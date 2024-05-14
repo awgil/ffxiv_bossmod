@@ -71,7 +71,7 @@ class Buffet(BossModule module) : Components.KnockbackFromCastTarget(module, Act
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 18));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 17.5f));
     }
 }
 
@@ -124,7 +124,7 @@ class AiravataStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7601)]
-public class Airavata(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20))
+public class Airavata(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(19))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

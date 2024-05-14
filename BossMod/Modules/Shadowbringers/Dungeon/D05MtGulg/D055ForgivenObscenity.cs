@@ -66,7 +66,7 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_casters.Count > 1 && ((_casters[0].Position.AlmostEqual(new(-227.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-232.5f, 251.5f), 1)) || (_casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-247.5f, 251.5f), 1))))
+        if (_casters.Count > 1 && (_casters[0].Position.AlmostEqual(new(-227.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-232.5f, 251.5f), 1) || _casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-247.5f, 251.5f), 1)))
         {
             if (_casters.Count > 2)
             {
@@ -106,7 +106,7 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
                     yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f), ArenaColor.Danger);
             }
         }
-        if (_casters.Count > 1 && ((_casters[0].Position.AlmostEqual(new(-242.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-237.5f, 253), 1)) || (_casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-227.5f, 253), 1))))
+        if (_casters.Count > 1 && (_casters[0].Position.AlmostEqual(new(-242.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-237.5f, 253), 1) || _casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-227.5f, 253), 1)))
         {
             if (_casters.Count > 2)
             {
@@ -151,9 +151,7 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Rings)
-        {
             _casters.Add(actor);
-        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -162,8 +160,7 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
             _activation = WorldState.CurrentTime;
         if ((AID)spell.Action.ID == AID.VenaAmoris)
         {
-            ++NumCasts;
-            if (NumCasts == 6)
+            if (++NumCasts == 6)
             {
                 _casters.Clear();
                 NumCasts = 0;

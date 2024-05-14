@@ -263,6 +263,9 @@ public record class ArenaBoundsComplex(IEnumerable<Shape> UnionShapes, IEnumerab
 
     private static (WPos Center, float Radius, RelSimplifiedComplexPolygon Poly) CalculatePolygonProperties(IEnumerable<Shape> unionShapes, IEnumerable<Shape> differenceShapes)
     {
+        if (StaticCache.TryGetValue((unionShapes, differenceShapes), out var cachedResult))
+            return ((WPos, float, RelSimplifiedComplexPolygon))cachedResult;
+
         var unionPolygons = ParseShapes(unionShapes, default);
         var differencePolygons = ParseShapes(differenceShapes, default);
 
@@ -294,6 +297,7 @@ public record class ArenaBoundsComplex(IEnumerable<Shape> UnionShapes, IEnumerab
         var differencePolygonsCentered = ParseShapes(differenceShapes, center);
         var combinedPolyCentered = CombinePolygons(unionPolygonsCentered, differencePolygonsCentered);
 
+        StaticCache[(unionShapes, differenceShapes)] = (center, radius, combinedPolyCentered);
         return (center, radius, combinedPolyCentered);
     }
 

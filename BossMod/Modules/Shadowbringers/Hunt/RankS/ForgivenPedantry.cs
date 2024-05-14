@@ -70,7 +70,7 @@ class LeftRightCheek(BossModule module) : Components.GenericAOEs(module)
 class TerrifyingGlance(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.TerrifyingGlance));
 class TheStake(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheStake), new AOEShapeCircle(18));
 class SecondCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SecondCircle), new AOEShapeRect(40, 4));
-class CleansingFire(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.CleansingFire));
+class CleansingFire(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CleansingFire));
 
 class FeveredFlagellation(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.FeveredFlagellation), new AOEShapeCone(15, 45.Degrees()))
 {
@@ -86,7 +86,7 @@ class FeveredFlagellationHint(BossModule module) : Components.SingleTargetCast(m
 
 class WitchHunt(BossModule module) : Components.GenericBaitAway(module)
 {
-    private static readonly AOEShapeRect rect = new(0, 5);
+    private readonly AOEShapeRect rect = new(0, 5); //note: this can't be static or length won't be recalculated properly
     private bool witchHunt1done;
 
     public override void Update()

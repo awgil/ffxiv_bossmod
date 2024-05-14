@@ -67,7 +67,7 @@ class FireRampageCleave(BossModule module) : Components.GenericAOEs(module)
 
 class FieryRampageCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FieryRampageCircleReal), new AOEShapeCircle(16));
 class FieryRampageRaidwide(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.FieryRampageRaidwideReal), "Time your dodge correctly");
-class PyrosaultReal(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PyrosaultReal), new AOEShapeCircle(10));
+class Pyrosault(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PyrosaultReal), new AOEShapeCircle(10));
 class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FireballReal), 6);
 class CrimsonRush(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.CrimsonRushReal), 10);
 

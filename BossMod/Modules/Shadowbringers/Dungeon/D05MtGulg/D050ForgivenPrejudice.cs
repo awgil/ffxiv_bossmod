@@ -21,10 +21,7 @@ public enum AID : uint
 }
 
 class SanctifiedAero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedAero), new AOEShapeRect(40, 4));
-
-//Note: this attack is a r20 circle, not drawing it because it is too big and the damage not all that high even if interrupt/stun fails
 class PunitiveLight(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.PunitiveLight), true, true, "Raidwide", true);
-
 class Sanctification(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Sanctification), new AOEShapeCone(12, 45.Degrees()));
 
 class D050ForgivenPrejudiceStates : StateMachineBuilder
@@ -35,24 +32,36 @@ class D050ForgivenPrejudiceStates : StateMachineBuilder
             .ActivateOnEnter<Sanctification>()
             .ActivateOnEnter<PunitiveLight>()
             .ActivateOnEnter<SanctifiedAero>()
-            .Raw.Update = () => (module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.ForgivenVenery).All(e => e.IsDead) && module.Enemies(OID.ForgivenExtortion).All(e => e.IsDead) && module.Enemies(OID.ForgivenConformity).All(e => e.IsDead)) || module.Enemies(OID.ForgivenApathy).Any(e => e.InCombat) || module.Enemies(OID.ForgivenApathy).Any(e => e.IsTargetable);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.ForgivenVenery).All(e => e.IsDead) && module.Enemies(OID.ForgivenExtortion).All(e => e.IsDead) && module.Enemies(OID.ForgivenConformity).All(e => e.IsDead) || module.Enemies(OID.ForgivenApathy).Any(e => e.InCombat) || module.Enemies(OID.ForgivenApathy).Any(e => e.IsTargetable);
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8269)]
-public class D050ForgivenPrejudice(WorldState ws, Actor primary) : SimpleBossModule(ws, primary)
+
+public class D050ForgivenPrejudice : SimpleBossModule
 {
-    protected override void DrawEnemies(int pcSlot, Actor pc)
+    public readonly IReadOnlyList<Actor> ForgivenPrejudice;
+    public readonly IReadOnlyList<Actor> ForgivenExtortion;
+    public readonly IReadOnlyList<Actor> ForgivenConformity;
+    public readonly IReadOnlyList<Actor> ForgivenVenery;
+    public readonly IReadOnlyList<Actor> ForgivenApathy;
+
+    public D050ForgivenPrejudice(WorldState ws, Actor primary) : base(ws, primary)
     {
-        foreach (var s in Enemies(OID.Boss))
-            Arena.Actor(s, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.ForgivenExtortion))
-            Arena.Actor(s, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.ForgivenConformity))
-            Arena.Actor(s, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.ForgivenVenery))
-            Arena.Actor(s, ArenaColor.Enemy);
+        ForgivenPrejudice = Enemies(OID.Boss);
+        ForgivenExtortion = Enemies(OID.ForgivenExtortion);
+        ForgivenConformity = Enemies(OID.ForgivenConformity);
+        ForgivenVenery = Enemies(OID.ForgivenVenery);
+        ForgivenApathy = Enemies(OID.ForgivenApathy);
     }
 
-    protected override bool CheckPull() { return (!Enemies(OID.ForgivenApathy).Any(e => e.InCombat) || !Enemies(OID.ForgivenApathy).Any(e => e.IsTargetable)) && PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.ForgivenExtortion).Any(e => e.InCombat) || Enemies(OID.ForgivenConformity).Any(e => e.InCombat) || Enemies(OID.ForgivenVenery).Any(e => e.InCombat); }
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        Arena.Actors(ForgivenPrejudice, ArenaColor.Enemy);
+        Arena.Actors(ForgivenConformity, ArenaColor.Enemy);
+        Arena.Actors(ForgivenExtortion, ArenaColor.Enemy);
+        Arena.Actors(ForgivenVenery, ArenaColor.Enemy);
+    }
+
+    protected override bool CheckPull() => (!ForgivenApathy.Any(e => e.InCombat) || !ForgivenApathy.Any(e => e.IsTargetable)) && PrimaryActor.IsTargetable && PrimaryActor.InCombat || ForgivenExtortion.Any(e => e.InCombat) || ForgivenPrejudice.Any(e => e.InCombat) || ForgivenVenery.Any(e => e.InCombat);
 }

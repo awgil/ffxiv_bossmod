@@ -5,18 +5,31 @@ public enum OID : uint
     Boss = 0x2538, //R=5.4
     BossAdd = 0x2569, //R=3.0
     BossHelper = 0x233C,
+    AltarQueen = 0x254A, // R0.840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarGarlic = 0x2548, // R0.840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarTomato = 0x2549, // R0.840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarOnion = 0x2546, // R0.840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarEgg = 0x2547, // R0.840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
 }
 
 public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
-    AutoAttack2 = 6499, // BossAdd->player, no cast, single-target
+    AutoAttack2 = 872, // BonusAdds->player, no cast, single-target
+    AutoAttack3 = 6499, // BossAdd->player, no cast, single-target
     GlassyNova = 13362, // Boss->self, 3.0s cast, range 40+R width 8 rect
     Hellstorm = 13359, // Boss->self, 3.0s cast, single-target
     Hellstorm2 = 13363, // BossHelper->location, 3.5s cast, range 10 circle
     Netherwind = 13741, // BossAdd->self, 3.0s cast, range 15+R width 4 rect
     BrainFreeze = 13361, // Boss->self, 4.0s cast, range 10+R circle, turns player into Imp
     PolarRoar = 13360, // Boss->self, 3.0s cast, range 9-40 donut
+
+    Pollen = 6452, // 2A0A->self, 3.5s cast, range 6+R circle
+    TearyTwirl = 6448, // 2A06->self, 3.5s cast, range 6+R circle
+    HeirloomScream = 6451, // 2A09->self, 3.5s cast, range 6+R circle
+    PluckAndPrune = 6449, // 2A07->self, 3.5s cast, range 6+R circle
+    PungentPirouette = 6450, // 2A08->self, 3.5s cast, range 6+R circle
+    Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 
 class PolarRoar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PolarRoar), new AOEShapeDonut(9, 40));
@@ -24,6 +37,11 @@ class Hellstorm(BossModule module) : Components.LocationTargetedAOEs(module, Act
 class Netherwind(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Netherwind), new AOEShapeRect(18, 2));
 class GlassyNova(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GlassyNova), new AOEShapeRect(45.4f, 4));
 class BrainFreeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BrainFreeze), new AOEShapeCircle(15.4f));
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
 
 class HatiStates : StateMachineBuilder
 {
@@ -35,18 +53,33 @@ class HatiStates : StateMachineBuilder
             .ActivateOnEnter<Netherwind>()
             .ActivateOnEnter<BrainFreeze>()
             .ActivateOnEnter<GlassyNova>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead);
+            .ActivateOnEnter<PluckAndPrune>()
+            .ActivateOnEnter<TearyTwirl>()
+            .ActivateOnEnter<HeirloomScream>()
+            .ActivateOnEnter<PungentPirouette>()
+            .ActivateOnEnter<Pollen>()
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.AltarEgg).All(e => e.IsDead) && module.Enemies(OID.AltarQueen).All(e => e.IsDead) && module.Enemies(OID.AltarOnion).All(e => e.IsDead) && module.Enemies(OID.AltarGarlic).All(e => e.IsDead) && module.Enemies(OID.AltarTomato).All(e => e.IsDead);
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7590)]
-public class Hati(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20))
+public class Hati(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(19))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.BossAdd))
             Arena.Actor(s, ArenaColor.Object);
+        foreach (var s in Enemies(OID.AltarEgg))
+            Arena.Actor(s, ArenaColor.Vulnerable);
+        foreach (var s in Enemies(OID.AltarTomato))
+            Arena.Actor(s, ArenaColor.Vulnerable);
+        foreach (var s in Enemies(OID.AltarQueen))
+            Arena.Actor(s, ArenaColor.Vulnerable);
+        foreach (var s in Enemies(OID.AltarGarlic))
+            Arena.Actor(s, ArenaColor.Vulnerable);
+        foreach (var s in Enemies(OID.AltarOnion))
+            Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -56,6 +89,11 @@ public class Hati(WorldState ws, Actor primary) : BossModule(ws, primary, new(10
         {
             e.Priority = (OID)e.Actor.OID switch
             {
+                OID.AltarOnion => 7,
+                OID.AltarEgg => 6,
+                OID.AltarGarlic => 5,
+                OID.AltarTomato => 4,
+                OID.AltarQueen => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0
