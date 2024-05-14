@@ -32,7 +32,8 @@ public enum SID : uint
 
 class BadBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BadBreath), new AOEShapeCone(17.775f, 60.Degrees()));
 class VineProbe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VineProbe), new AOEShapeRect(11.775f, 4));
-class OffalBreath(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.OffalBreath), m => m.Enemies(OID.voidzone), 0);
+class OffalBreath(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.OffalBreath));
+class OffalBreathVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.OffalBreath), m => m.Enemies(OID.voidzone).Where(e => e.EventState != 7), 1.6f);
 
 class Reflect(BossModule module) : BossComponent(module)
 {
@@ -80,7 +81,8 @@ class Stage19Act1States : StateMachineBuilder
             .ActivateOnEnter<Reflect>()
             .ActivateOnEnter<BadBreath>()
             .ActivateOnEnter<VineProbe>()
-            .ActivateOnEnter<OffalBreath>();
+            .ActivateOnEnter<OffalBreath>()
+            .ActivateOnEnter<OffalBreathVoidzone>();
     }
 }
 

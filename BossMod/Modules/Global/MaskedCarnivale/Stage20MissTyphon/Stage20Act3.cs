@@ -27,7 +27,7 @@ class Tentacle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID
 class Wallop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wallop), new AOEShapeRect(57.2f, 5));
 class WallopKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Wallop), 20, kind: Kind.AwayFromOrigin); //knockback actually delayed by 0.8s
 class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fireball), 8);
-class ImpSong(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.ImpSong), "Interrupt Ultros!");
+class ImpSong(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.ImpSong), showNameInHint: true);
 class Snort(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Snort), "Use Diamondback!");
 class SnortKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Snort), 30, kind: Kind.AwayFromOrigin);  //knockback actually delayed by 0.7s
 
@@ -35,7 +35,7 @@ class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add("This act is act 1+2 combined with tentacles on top.\nThe Final Sting combo (Off-guard->Bristle->Moonflute->Final Sting) makes\nthis act including the achievement much easier. Ultros is weak to fire.");
+        hints.Add($"This act is act 1+2 combined with tentacles on top.\nThe Final Sting combo (Off-guard->Bristle->Moonflute->Final Sting) makes\nthis act including the achievement much easier. {Module.PrimaryActor.Name} is weak to fire.");
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

@@ -39,7 +39,7 @@ class DoubleMeteor(BossModule module) : Components.UniformStackSpread(module, 0,
 class Explosion(BossModule module) : BossComponent(module)
 {
     public bool Done { get; private set; }
-    private BitMask _forbidden;
+    private readonly BitMask _forbidden;
     private Actor? _towerTH;
     private Actor? _towerDD;
 

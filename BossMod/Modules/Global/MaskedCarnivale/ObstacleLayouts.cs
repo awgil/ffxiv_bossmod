@@ -32,22 +32,9 @@ public class Layout2Corners(BossModule module) : BossComponent(module)
         yield return new WPos(105.5f, 94.5f);
     }
 
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        Arena.AddPolygon(Wall1A(), ArenaColor.Border);
-        Arena.AddPolygon(Wall1B(), ArenaColor.Border);
-        Arena.AddPolygon(Wall2A(), ArenaColor.Border);
-        Arena.AddPolygon(Wall2B(), ArenaColor.Border);
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall1A(), false));
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall1B(), false));
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall2A(), false));
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall2B(), true));
-    }
+    private static readonly List<Shape> union = [new Circle(new(100, 100), 25)];
+    private static readonly List<Shape> difference = [new PolygonCustom(Wall1A()), new PolygonCustom(Wall1B()), new PolygonCustom(Wall2A()), new PolygonCustom(Wall2B())];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
 }
 
 public class Layout4Quads(BossModule module) : BossComponent(module)
@@ -82,22 +69,10 @@ public class Layout4Quads(BossModule module) : BossComponent(module)
         yield return new WPos(110, 87);
         yield return new WPos(107, 90);
     }
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        Arena.AddPolygon(Quad1(), ArenaColor.Border);
-        Arena.AddPolygon(Quad2(), ArenaColor.Border);
-        Arena.AddPolygon(Quad3(), ArenaColor.Border);
-        Arena.AddPolygon(Quad4(), ArenaColor.Border);
-    }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad1(), false));
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad2(), false));
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad3(), false));
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad4(), false));
-    }
+    private static readonly List<Shape> union = [new Circle(new(100, 100), 25)];
+    private static readonly List<Shape> difference = [new PolygonCustom(Quad1()), new PolygonCustom(Quad2()), new PolygonCustom(Quad3()), new PolygonCustom(Quad4())];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
 }
 
 public class LayoutBigQuad(BossModule module) : BossComponent(module)
@@ -109,14 +84,8 @@ public class LayoutBigQuad(BossModule module) : BossComponent(module)
         yield return new WPos(100, 93);
         yield return new WPos(93, 100);
     }
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        Arena.AddPolygon(Quad(), ArenaColor.Border);
-    }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad(), false));
-    }
+    private static readonly List<Shape> union = [new Circle(new(100, 100), 25)];
+    private static readonly List<Shape> difference = [new PolygonCustom(Quad())];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
 }

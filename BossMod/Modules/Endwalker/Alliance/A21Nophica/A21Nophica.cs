@@ -7,9 +7,9 @@ class ArenaBounds(BossModule module) : BossComponent(module)
         if (index == 0x39)
         {
             if (state == 0x02000200)
-                Arena.Bounds = new ArenaBoundsCircle(28);
+                Arena.Bounds = A21Nophica.SmallerBounds;
             if (state == 0x00400004)
-                Arena.Bounds = new ArenaBoundsCircle(34);
+                Arena.Bounds = A21Nophica.DefaultBounds;
         }
     }
 }
@@ -23,4 +23,8 @@ class Furrow(BossModule module) : Components.StackWithCastTargets(module, Action
 class HeavensEarth(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.HeavensEarthAOE), new AOEShapeCircle(5), true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 911, NameID = 12065)]
-public class A21Nophica(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -238), new ArenaBoundsCircle(30));
+public class A21Nophica(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -238), DefaultBounds)
+{
+    public static readonly ArenaBoundsCircle DefaultBounds = new(34);
+    public static readonly ArenaBoundsCircle SmallerBounds = new(28);
+}

@@ -17,7 +17,7 @@ public enum AID : uint
 
 class Starstorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Starstorm), 5);
 class RagingAxe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RagingAxe), new AOEShapeCone(5, 45.Degrees()));
-class LightningSpark(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.LightningSpark), "Interrupt");
+class LightningSpark(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.LightningSpark));
 
 class Hints2(BossModule module) : BossComponent(module)
 {
@@ -60,7 +60,7 @@ public class Stage24Act1 : BossModule
         ActivateComponent<Hints>();
     }
 
-    protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.ArenaViking).Any(e => e.InCombat); }
+    protected override bool CheckPull() => PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.ArenaViking).Any(e => e.InCombat);
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

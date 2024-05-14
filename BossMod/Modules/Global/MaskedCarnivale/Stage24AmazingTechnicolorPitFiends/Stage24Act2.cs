@@ -25,7 +25,7 @@ class Mechanogravity(BossModule module) : Components.LocationTargetedAOEs(module
 class RagingAxe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RagingAxe), new AOEShapeCone(5, 45.Degrees()));
 class CondensedLibra(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CondensedLibra), "Use Diamondback!");
 class TripleHit(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TripleHit), "Use Diamondback!");
-class Silence(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Silence), "Interrupt");
+class Silence(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.Silence));
 
 class Hints2(BossModule module) : BossComponent(module)
 {

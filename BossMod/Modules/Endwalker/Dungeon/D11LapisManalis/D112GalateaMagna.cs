@@ -203,7 +203,7 @@ public class TenebrismTowers(BossModule module) : Components.GenericTowers(modul
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Towers.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 6));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 5));
     }
 }
 

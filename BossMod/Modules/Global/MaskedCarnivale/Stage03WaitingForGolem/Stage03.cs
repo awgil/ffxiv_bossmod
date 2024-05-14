@@ -15,16 +15,14 @@ public enum AID : uint
 }
 
 class BoulderClap(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BoulderClap), new AOEShapeCone(14, 60.Degrees()));
-
-class Dreadstorm(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.EarthenHeart), m => m.Enemies(OID.voidzone), 0);
-
-class Obliterate(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Obliterate), "Interruptible raidwide");
+class EarthenHeart(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.EarthenHeart), m => m.Enemies(OID.voidzone).Where(e => e.EventState != 7), 1.2f);
+class Obliterate(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.Obliterate));
 
 class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add("Zipacna is weak against water based spells.\nFlying Sardine is recommended to interrupt raidwide.");
+        hints.Add($"{Module.PrimaryActor.Name} is weak against water based spells.\nFlying Sardine is recommended to interrupt raidwide.");
     }
 }
 
@@ -32,7 +30,7 @@ class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add("Zipacna is weak against water based spells.\nEarth based spells are useless against Zipacna.");
+        hints.Add($"{Module.PrimaryActor.Name} is weak against water based spells.\nEarth based spells are useless against {Module.PrimaryActor.Name}.");
     }
 }
 
@@ -42,7 +40,7 @@ class Stage03States : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<BoulderClap>()
-            .ActivateOnEnter<Dreadstorm>()
+            .ActivateOnEnter<EarthenHeart>()
             .ActivateOnEnter<Obliterate>()
             .ActivateOnEnter<Hints2>()
             .DeactivateOnEnter<Hints>();

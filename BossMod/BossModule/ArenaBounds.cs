@@ -11,7 +11,7 @@ public abstract record class ArenaBounds(float Radius, float MapResolution, WPos
     public RelSimplifiedComplexPolygon ShapeSimplified { get; private set; } = new();
     public List<RelTriangle> ShapeTriangulation { get; private set; } = [];
     private readonly PolygonClipper.Operand _clipOperand = new();
-    public static readonly Dictionary<object, object> _staticCache = [];
+    public static readonly Dictionary<object, object> StaticCache = [];
 
     private float _screenHalfSize;
     public float ScreenHalfSize
@@ -130,7 +130,7 @@ public record class ArenaBoundsRect(float HalfWidth, float HalfHeight, Angle Rot
 
     private static float CalculateRadius(float HalfWidth, float HalfHeight, Angle Rotation)
     {
-        if (_staticCache.TryGetValue((HalfWidth, HalfHeight, Rotation), out var cachedResult))
+        if (StaticCache.TryGetValue((HalfWidth, HalfHeight, Rotation), out var cachedResult))
             return (float)cachedResult;
 
         var cos = MathF.Abs(MathF.Cos(Rotation.Rad));
@@ -141,7 +141,7 @@ public record class ArenaBoundsRect(float HalfWidth, float HalfHeight, Angle Rot
         var maxDistZ = Math.Max(MathF.Abs(corner1.Z), MathF.Abs(corner2.Z));
         var radius = Math.Max(maxDistX, maxDistZ);
 
-        _staticCache[(HalfWidth, HalfHeight, Rotation)] = radius;
+        StaticCache[(HalfWidth, HalfHeight, Rotation)] = radius;
         return radius;
     }
 

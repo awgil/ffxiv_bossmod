@@ -18,13 +18,13 @@ public enum AID : uint
 class WildHorn(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WildHorn), new AOEShapeCone(16.96f, 60.Degrees()));
 class Trounce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Trounce), new AOEShapeCone(46.96f, 30.Degrees()));
 class SporeSac(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.SporeSac), "Calls Roselets. Prepare Ice Spikes if available.");
-class InflammableFumes(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.InflammableFumes), "Stun Boss with Bomb Toss. High damage but suriveable.");
+class InflammableFumes(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.InflammableFumes), false, true);
 
 class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add("Use Bomb Toss to stun Hydnora when he casts Inflammable Fumes.\nUse Ice Spikes to instantly kill roselets once they become aggressive.\nHydnora is weak against water and strong against earth spells.");
+        hints.Add($"Use Bomb Toss to stun {Module.PrimaryActor.Name} when he casts Inflammable Fumes.\nUse Ice Spikes to instantly kill roselets once they become aggressive.\n{Module.PrimaryActor.Name} is weak against water and strong against earth spells.");
     }
 }
 

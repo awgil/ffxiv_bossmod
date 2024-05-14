@@ -52,5 +52,5 @@ public class Stage22Act1 : BossModule
             Arena.Actor(s, ArenaColor.Enemy);
     }
 
-    protected override bool CheckPull() { return (PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Boss).Any(e => e.IsDead)) && !Enemies(OID.BossAct2).Any(e => e.InCombat); }
+    protected override bool CheckPull() => (PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Boss).Any(e => e.IsDead)) && !Enemies(OID.BossAct2).Any(e => e.InCombat);
 }

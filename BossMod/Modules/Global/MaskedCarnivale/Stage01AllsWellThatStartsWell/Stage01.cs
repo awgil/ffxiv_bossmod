@@ -43,7 +43,7 @@ public class Stage01 : BossModule
         ActivateComponent<Hints>();
     }
 
-    protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Slime).Any(e => e.InCombat); }
+    protected override bool CheckPull() => PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Slime).Any(e => e.InCombat);
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

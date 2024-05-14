@@ -17,7 +17,7 @@ class LightwaveCommon(BossModule module) : Components.CastCounter(module, Action
         }
     }
 
-    protected bool InSafeCone(WPos origin, WPos blocking, WPos position)
+    protected static bool InSafeCone(WPos origin, WPos blocking, WPos position)
     {
         var toBlock = blocking - origin;
         var toCheck = position - origin;

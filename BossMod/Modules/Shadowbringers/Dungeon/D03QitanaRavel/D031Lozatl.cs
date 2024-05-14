@@ -66,4 +66,9 @@ class D031LozatlStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8231)]
-public class D031Lozatl(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 315), new ArenaBoundsCircle(20));
+public class D031Lozatl(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> union = [new Circle(new(0, 315), 19.6f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(0, 335.25f), 20, 2), new Rectangle(new(0, 294.5f), 20, 2)];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+}

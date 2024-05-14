@@ -87,69 +87,6 @@ class WrathOfTheRonka(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-public class Layout(BossModule module) : BossComponent(module)
-{
-    private static IEnumerable<WPos> Wall1()
-    {
-        yield return new WPos(-4, 646.4f);
-        yield return new WPos(-6, 646.4f);
-        yield return new WPos(-6, 639);
-        yield return new WPos(-4, 639);
-    }
-
-    private static IEnumerable<WPos> Wall2()
-    {
-        yield return new WPos(4, 631.4f);
-        yield return new WPos(6, 631.4f);
-        yield return new WPos(6, 624);
-        yield return new WPos(4, 624);
-    }
-
-    private static IEnumerable<WPos> Wall3()
-    {
-        yield return new WPos(4, 440);
-        yield return new WPos(6, 440);
-        yield return new WPos(6, 433);
-        yield return new WPos(4, 433);
-    }
-
-    private static IEnumerable<WPos> Wall4()
-    {
-        yield return new WPos(-4, 425);
-        yield return new WPos(-6, 425);
-        yield return new WPos(-6, 418);
-        yield return new WPos(-4, 418);
-    }
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        if (Module.PrimaryActor.Position.AlmostEqual(new(0, 634), 1))
-        {
-            Arena.AddPolygon(Wall1(), ArenaColor.Border, 2);
-            Arena.AddPolygon(Wall2(), ArenaColor.Border, 2);
-        }
-        if (Module.PrimaryActor.Position.AlmostEqual(new(0, 428), 1))
-        {
-            Arena.AddPolygon(Wall3(), ArenaColor.Border, 2);
-            Arena.AddPolygon(Wall4(), ArenaColor.Border, 2);
-        }
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    { //Note: this isn't looking natural because the AI is trying to dodge the lasers and the wall at the same time, consider not activating the AI in partyfinder until the AI is improved, for multiboxing it should do ok
-        base.AddAIHints(slot, actor, assignment, hints);
-        if (Module.PrimaryActor.Position.AlmostEqual(new(0, 634), 1))
-        {
-            hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall1(), true));
-            hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall2(), false));
-        }
-        if (Module.PrimaryActor.Position.AlmostEqual(new(0, 428), 1))
-        {
-            hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall3(), false));
-            hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall4(), true));
-        }
-    }
-}
-
 class BurningBeam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BurningBeam), new AOEShapeRect(15, 2));
 
 class D030RonkanDreamerStates : StateMachineBuilder
@@ -157,7 +94,6 @@ class D030RonkanDreamerStates : StateMachineBuilder
     public D030RonkanDreamerStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<Layout>()
             .ActivateOnEnter<RonkanFire>()
             .ActivateOnEnter<RonkanAbyss>()
             .ActivateOnEnter<WrathOfTheRonka>()
@@ -166,8 +102,15 @@ class D030RonkanDreamerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8639)]
-public class D030RonkanDreamer(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, primary.Position.Z > 550 ? 640 : 434), new ArenaBoundsRect(17.5f, 24))
+public class D030RonkanDreamer(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position.Z > 550 ? arena1.Center : arena2.Center, primary.Position.Z > 550 ? arena1 : arena2)
 {
+    private static readonly List<Shape> union1 = [new Rectangle(new(0, 640), 17.5f, 23)];
+    private static readonly List<Shape> difference1 = [new Rectangle(new(-5.2f, 642.7f), 1.15f, 3.5f), new Rectangle(new(5.1f, 627.6f), 1.15f, 3.5f)];
+    public static readonly ArenaBounds arena1 = new ArenaBoundsComplex(union1, difference1);
+    private static readonly List<Shape> union2 = [new Rectangle(new(0, 434.5f), 17.5f, 24f)];
+    private static readonly List<Shape> difference2 = [new Rectangle(new(-5.1f, 421.7f), 1.15f, 3.5f), new Rectangle(new(5.1f, 436.6f), 1.15f, 3.5f)];
+    public static readonly ArenaBounds arena2 = new ArenaBoundsComplex(union2, difference2);
+
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

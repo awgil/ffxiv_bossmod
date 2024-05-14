@@ -21,7 +21,7 @@ public enum SID : uint
 
 class DemonEye(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.DemonEye))
 {
-    private BitMask _blinded;
+    private readonly BitMask _blinded;
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -43,7 +43,7 @@ class DemonEye(BossModule module) : Components.CastGaze(module, ActionID.MakeSpe
 
 class ColdStare(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(42.53f, 45.Degrees())) //TODO: cone based gaze
 {
-    private BitMask _blinded;
+    private readonly BitMask _blinded;
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -65,7 +65,7 @@ class ColdStare(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 
 class TearyTwirl(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.TearyTwirl), 6.3f)
 {
-    private BitMask _blinded;
+    private readonly BitMask _blinded;
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -110,15 +110,14 @@ class Stage06Act1States : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 616, NameID = 8090, SortOrder = 1)]
 public class Stage06Act1 : BossModule
 {
-    public Stage06Act1(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsCircle(25))
+    public Stage06Act1(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), LayoutBigQuad.arena)
     {
         ActivateComponent<Hints>();
-        ActivateComponent<LayoutBigQuad>();
         ActivateComponent<TearyTwirl>();
         ActivateComponent<DemonEye>();
     }
 
-    protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Mandragora).Any(e => e.InCombat); }
+    protected override bool CheckPull() => PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Mandragora).Any(e => e.InCombat);
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

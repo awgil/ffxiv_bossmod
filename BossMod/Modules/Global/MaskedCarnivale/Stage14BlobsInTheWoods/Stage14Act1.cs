@@ -49,7 +49,7 @@ class Stage14Act1States : StateMachineBuilder
     {
         TrivialPhase()
             .DeactivateOnEnter<Hints>()
-            .ActivateOnEnter<LastSong>()
+            // .ActivateOnEnter<LastSong>()
             .ActivateOnEnter<LastSongHint>()
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && !module.FindComponent<LastSongHint>()!.casting;
     }
@@ -58,10 +58,9 @@ class Stage14Act1States : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 624, NameID = 8108, SortOrder = 1)]
 public class Stage14Act1 : BossModule
 {
-    public Stage14Act1(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsCircle(25))
+    public Stage14Act1(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), Layout2Corners.arena)
     {
         ActivateComponent<Hints>();
-        ActivateComponent<Layout2Corners>();
     }
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
