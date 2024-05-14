@@ -22,6 +22,11 @@ sealed class WorldStateGameSync : IDisposable
     private readonly List<(ulong Caster, ActorCastEvent Event)> _castEvents = [];
     private readonly List<(uint Seq, ulong Target, int TargetIndex)> _confirms = [];
 
+    private readonly Network.OpcodeMap _opcodeMap = new();
+    private readonly Network.PacketInterceptor _interceptor = new();
+    private readonly Network.PacketDecoderGame _decoder = new();
+
+    private readonly ConfigListener<ReplayManagementConfig> _netConfig;
     private readonly EventSubscriptions _subscriptions;
 
     private delegate void ProcessPacketActorControlDelegate(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID, byte replaying);
@@ -41,7 +46,9 @@ sealed class WorldStateGameSync : IDisposable
         _ws = ws;
         _startTime = DateTime.Now;
         _startQPC = Utils.FrameQPC();
+        _interceptor.ServerIPCReceived += ServerIPCReceived;
 
+        _netConfig = Service.Config.GetAndSubscribe<ReplayManagementConfig>(config => _interceptor.Active = config.RecordServerPackets || config.DumpServerPackets);
         _subscriptions = new
         (
             ActionManagerEx.Instance!.ActionRequested.Subscribe(OnActionRequested),
@@ -74,6 +81,8 @@ sealed class WorldStateGameSync : IDisposable
         _processEnvControlHook.Dispose();
         _processPacketRSVDataHook.Dispose();
         _subscriptions.Dispose();
+        _netConfig.Dispose();
+        _interceptor.Dispose();
     }
 
     public unsafe void Update(TimeSpan prevFramePerf)
@@ -94,6 +103,10 @@ sealed class WorldStateGameSync : IDisposable
         if (_ws.CurrentZone != Service.ClientState.TerritoryType || _ws.CurrentCFCID != GameMain.Instance()->CurrentContentFinderConditionId)
         {
             _ws.Execute(new WorldState.OpZoneChange(Service.ClientState.TerritoryType, GameMain.Instance()->CurrentContentFinderConditionId));
+        }
+        if (_ws.Network.IDScramble != Network.IDScramble.Delta)
+        {
+            _ws.Execute(new NetworkState.OpIDScramble(Network.IDScramble.Delta));
         }
 
         foreach (var c in _confirms)
@@ -431,6 +444,17 @@ sealed class WorldStateGameSync : IDisposable
     {
         var curGauge = JobGaugeManager.Instance()->CurrentGauge;
         return curGauge != null ? Utils.ReadField<ulong>(curGauge, 8) : 0;
+    }
+
+    private unsafe void ServerIPCReceived(DateTime sendTimestamp, uint sourceServerActor, uint targetServerActor, ushort opcode, uint epoch, Span<byte> payload)
+    {
+        var id = _opcodeMap.ID(opcode);
+        // targetServerActor is always a player?..
+        var ipc = new NetworkState.ServerIPC(id, opcode, epoch, sourceServerActor, sendTimestamp, [.. payload]);
+        if (_netConfig.Data.RecordServerPackets)
+            _globalOps.Add(new NetworkState.OpServerIPC(ipc));
+        if (_netConfig.Data.DumpServerPackets)
+            _decoder.LogNode(_decoder.Decode(ipc, DateTime.UtcNow), "");
     }
 
     private void OnActionRequested(ClientActionRequest arg)

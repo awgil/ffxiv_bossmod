@@ -10,11 +10,6 @@ autorotation rework:
 -- properly support additional cdgroups
 -- remove fake cdgroup 71 (lb/holster)
 
-network rework:
-- optionally log raw ipcs to replay
-- visualize in replay analysis, dump to file
-- utility to inject custom ipcs to the stream for debugging?
-
 general:
 - refactor window system to dispose stuff properly and avoid CS1806 and `_ = new...` pattern
 - diagnostic to detect readonly mutable collections
@@ -24,6 +19,7 @@ general:
 - constrain bossmodules to zone id (e.g. for T04)
 - revise module categories - consider merging fates/hunts/quests/gold saucer?/pvp? into outdoor?/casual?
 - refactor pendingeffects
+- utility to inject custom ipcs to the stream for debugging?
 
 boss modules:
 - wipe should not fast forward all phases
