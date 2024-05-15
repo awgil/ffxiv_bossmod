@@ -11,18 +11,14 @@ public static class ShapeDistance
 
     public static Func<WPos, float> Donut(WPos origin, float innerRadius, float outerRadius)
     {
-        if (outerRadius <= 0 || innerRadius >= outerRadius)
-            return _ => float.MaxValue;
-        if (innerRadius <= 0)
-            return Circle(origin, outerRadius);
-        return p =>
+        return outerRadius <= 0 || innerRadius >= outerRadius ? (_ => float.MaxValue) : innerRadius <= 0 ? Circle(origin, outerRadius) : (p =>
         {
             // intersection of outer circle and inverted inner circle
             var distOrigin = (p - origin).Length();
             var distOuter = distOrigin - outerRadius;
             var distInner = innerRadius - distOrigin;
             return Math.Max(distOuter, distInner);
-        };
+        });
     }
 
     public static Func<WPos, float> InvertedDonut(WPos origin, float innerRadius, float outerRadius)
@@ -189,6 +185,14 @@ public static class ShapeDistance
     {
         var convexpolygon = ConvexPolygon(vertices, cw, offset);
         return p => -convexpolygon(p);
+    }
+
+    public static Func<WPos, float> ConcavePolygon(IEnumerable<WPos> vertices)
+    {
+        return p =>
+        {
+            return p.InConcavePolygon(vertices) ? 0 : float.MaxValue;
+        };
     }
 
     private static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Max(e => e(p)) - offset;

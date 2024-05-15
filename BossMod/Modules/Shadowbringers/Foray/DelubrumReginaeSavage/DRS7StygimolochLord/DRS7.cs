@@ -15,8 +15,10 @@ public class DRS7 : BossModule
     private readonly IReadOnlyList<Actor> _monks;
     private readonly IReadOnlyList<Actor> _ballsEarth;
     private readonly IReadOnlyList<Actor> _ballsFire;
+    public static readonly WPos BoundsCenter = new(-416, -184);
+    public static readonly ArenaBounds DefaultBounds = new ArenaBoundsCircle(35);
 
-    public DRS7(WorldState ws, Actor primary) : base(ws, primary, new(-416, -184), new ArenaBoundsCircle(35))
+    public DRS7(WorldState ws, Actor primary) : base(ws, primary, BoundsCenter, DefaultBounds)
     {
         _monks = Enemies(OID.StygimolochMonk);
         _ballsEarth = Enemies(OID.BallOfEarth);

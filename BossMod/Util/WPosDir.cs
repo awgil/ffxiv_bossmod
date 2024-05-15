@@ -117,4 +117,27 @@ public record struct WPos(float X, float Z)
         }
         return inside;
     }
+
+    public readonly bool InConcavePolygon(IEnumerable<WPos> vertices)
+    {
+        float windingNumber = 0;
+        var verticesList = vertices.ToList();
+        for (var i = 0; i < verticesList.Count; i++)
+        {
+            var j = (i + 1) % verticesList.Count;
+            var vi = verticesList[i];
+            var vj = verticesList[j];
+            var di = this - vi;
+            var dj = this - vj;
+            var cross = di.Cross(dj);
+            if (vi.Z <= Z)
+            {
+                if (vj.Z > Z && cross > 0)
+                    ++windingNumber;
+            }
+            else if (vj.Z <= Z && cross < 0)
+                --windingNumber;
+        }
+        return windingNumber != 0;
+    }
 }
