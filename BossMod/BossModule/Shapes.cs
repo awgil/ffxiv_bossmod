@@ -4,7 +4,7 @@ public abstract record class Shape
 {
     public static readonly Dictionary<object, RelSimplifiedComplexPolygon> StaticCache = [];
     public abstract RelSimplifiedComplexPolygon ToPolygon(WPos center);
-    public const float MaxApproxError = 0.05f;
+    public const float MaxApproxError = 0.01f;
 }
 
 public record class Circle(WPos Center, float Radius) : Shape

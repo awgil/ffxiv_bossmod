@@ -279,31 +279,35 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
 
 // for creating complex bounds by using two IEnumerable of shapes
 // first IEnumerable contains platforms that will be united, second optional IEnumberale contains shapes that will be subtracted
+// for convenience third list will optionally perform additional unions at the end
 public record class ArenaBoundsComplex : ArenaBoundsCustom
 {
-    public ArenaBoundsComplex(IEnumerable<Shape> UnionShapes, IEnumerable<Shape>? DifferenceShapes = null, float MapResolution = 0.5f) : base(BuildBounds(UnionShapes, DifferenceShapes ?? [], MapResolution))
+    public ArenaBoundsComplex(IEnumerable<Shape> UnionShapes, IEnumerable<Shape>? DifferenceShapes = null, IEnumerable<Shape>? AdditionalShapes = null, float MapResolution = 0.5f)
+        : base(BuildBounds(UnionShapes, DifferenceShapes ?? [], AdditionalShapes ?? [], MapResolution))
     {
-        Center = CalculatePolygonProperties(UnionShapes, DifferenceShapes ?? []).Center;
+        var properties = CalculatePolygonProperties(UnionShapes, DifferenceShapes ?? [], AdditionalShapes ?? []);
+        Center = properties.Center;
     }
 
-    private static ArenaBoundsCustom BuildBounds(IEnumerable<Shape> unionShapes, IEnumerable<Shape> differenceShapes, float mapResolution)
+    private static ArenaBoundsCustom BuildBounds(IEnumerable<Shape> unionShapes, IEnumerable<Shape> differenceShapes, IEnumerable<Shape> additionalShapes, float mapResolution)
     {
-        var props = CalculatePolygonProperties(unionShapes, differenceShapes);
+        var props = CalculatePolygonProperties(unionShapes, differenceShapes, additionalShapes);
         return new ArenaBoundsCustom(props.Radius, props.Poly, mapResolution);
     }
 
-    private static (WPos Center, float Radius, RelSimplifiedComplexPolygon Poly) CalculatePolygonProperties(IEnumerable<Shape> unionShapes, IEnumerable<Shape> differenceShapes)
+    private static (WPos Center, float Radius, RelSimplifiedComplexPolygon Poly) CalculatePolygonProperties(IEnumerable<Shape> unionShapes, IEnumerable<Shape> differenceShapes, IEnumerable<Shape> additionalShapes)
     {
-        if (StaticCache.TryGetValue((unionShapes, differenceShapes), out var cachedResult))
+        var cacheKey = (unionShapes, differenceShapes, additionalShapes);
+        if (StaticCache.TryGetValue(cacheKey, out var cachedResult))
             return ((WPos, float, RelSimplifiedComplexPolygon))cachedResult;
 
         var unionPolygons = ParseShapes(unionShapes, default);
         var differencePolygons = ParseShapes(differenceShapes, default);
+        var additionalPolygons = ParseShapes(additionalShapes, default);
 
-        var combinedPoly = CombinePolygons(unionPolygons, differencePolygons);
+        var combinedPoly = CombinePolygons(unionPolygons, differencePolygons, additionalPolygons);
 
         float minX = float.MaxValue, maxX = float.MinValue, minZ = float.MaxValue, maxZ = float.MinValue;
-
         foreach (var part in combinedPoly.Parts)
         {
             foreach (var vertex in part.Exterior)
@@ -324,29 +328,31 @@ public record class ArenaBoundsComplex : ArenaBoundsCustom
         var maxDistZ = Math.Max(MathF.Abs(maxZ - center.Z), MathF.Abs(minZ - center.Z));
         var radius = Math.Max(maxDistX, maxDistZ);
 
-        var unionPolygonsCentered = ParseShapes(unionShapes, center);
-        var differencePolygonsCentered = ParseShapes(differenceShapes, center);
-        var combinedPolyCentered = CombinePolygons(unionPolygonsCentered, differencePolygonsCentered);
+        var combinedPolyCentered = CombinePolygons(ParseShapes(unionShapes, center), ParseShapes(differenceShapes, center), ParseShapes(additionalShapes, center));
 
-        StaticCache[(unionShapes, differenceShapes)] = (center, radius, combinedPolyCentered);
+        StaticCache[cacheKey] = (center, radius, combinedPolyCentered);
         return (center, radius, combinedPolyCentered);
     }
 
-    private static RelSimplifiedComplexPolygon CombinePolygons(List<RelSimplifiedComplexPolygon> unionPolygons, List<RelSimplifiedComplexPolygon> differencePolygons)
+    private static RelSimplifiedComplexPolygon CombinePolygons(List<RelSimplifiedComplexPolygon> unionPolygons, List<RelSimplifiedComplexPolygon> differencePolygons, List<RelSimplifiedComplexPolygon> secondUnionPolygons)
     {
         var clipper = new PolygonClipper();
         var operandUnion = new PolygonClipper.Operand();
         var operandDifference = new PolygonClipper.Operand();
+        var operandSecondUnion = new PolygonClipper.Operand();
 
         foreach (var polygon in unionPolygons)
             operandUnion.AddPolygon(polygon);
-
         foreach (var polygon in differencePolygons)
             operandDifference.AddPolygon(polygon);
+        foreach (var polygon in secondUnionPolygons)
+            operandSecondUnion.AddPolygon(polygon);
 
         var combinedShape = clipper.Union(operandUnion, new PolygonClipper.Operand(), Clipper2Lib.FillRule.NonZero);
         if (differencePolygons.Count != 0)
             combinedShape = clipper.Difference(new PolygonClipper.Operand(combinedShape), operandDifference, Clipper2Lib.FillRule.NonZero);
+        if (secondUnionPolygons.Count != 0)
+            combinedShape = clipper.Union(new PolygonClipper.Operand(combinedShape), operandSecondUnion, Clipper2Lib.FillRule.NonZero);
 
         return combinedShape;
     }

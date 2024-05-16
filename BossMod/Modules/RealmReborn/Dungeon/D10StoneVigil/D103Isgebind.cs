@@ -50,4 +50,12 @@ class D103IsgebindStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 11, NameID = 1680)]
-public class D103Isgebind(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -248), new ArenaBoundsSquare(20));
+public class D103Isgebind(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> union = [new Square(new(0, -248), 24)];
+    private static readonly List<Shape> difference = [new Square(new(-24, -224), 5.75f, 45.Degrees()), new Square(new(24, -224), 5.75f, 45.Degrees()),
+    new Square(new(-24, -272), 5.75f, 45.Degrees()), new Square(new(24, -272), 5.75f, 45.Degrees()), new Circle(new(-24, -248), 4.5f)];
+    private static readonly List<Shape> union2 = [new Circle(new(-19.5f, -228.4f), 3), new Circle(new(19.5f, -228.4f), 3), new Circle(new(-19.5f, -267.6f), 3),
+    new Circle(new(19.5f, -267.6f), 3), new Circle(new(-21.3f, -243.6f), 1.5f), new Circle(new(-21.3f, -252.4f), 1.5f)];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference, union2);
+}
