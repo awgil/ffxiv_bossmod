@@ -53,12 +53,46 @@ class D123OctomammothStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12334)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12334)]
 
 public class D123Octomammoth(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
 {
-    public static readonly ArenaBoundsComplex arena = new([new Rectangle(new(-347.74f, -358.78f), 2, 10, 22.5f.Degrees()),
-    new Rectangle(new(-360.78f, -345.74f), 2, 10, 67.5f.Degrees()), new Rectangle(new(-392.26f, -358.78f), 2, 10, -22.5f.Degrees()),
-    new Rectangle(new(-379.22f, -345.74f), 2, 10, -67.5f.Degrees()), new Circle(new(-345, -368), 8), new Circle(new(-387.678f, -350.322f), 8),
-    new Circle(new(-352.322f, -350.322f), 8), new Circle(new(-370, -343), 8), new Circle(new(-395, -368), 8)]);
+    private static readonly Angle Angle225 = 22.5f.Degrees();
+    private static readonly Angle Angle675 = 67.5f.Degrees();
+    private static readonly Angle Angle0 = 0.Degrees();
+    private static readonly Angle Angle45 = 45.Degrees();
+    private const float CircleRadius = 7.5f;
+    private const int BridgeHalfWidth = 2;
+    private const int BridgeLength = 10;
+    private const int FillerLength = 2;
+    private const float FillerHalfWidth = 0.5f;
+    private static readonly List<Shape> Circles = [
+            new Circle(new(-345, -368), CircleRadius),
+            new Circle(new(-387.678f, -350.322f), CircleRadius),
+            new Circle(new(-352.322f, -350.322f), CircleRadius),
+            new Circle(new(-370, -343), CircleRadius),
+            new Circle(new(-395, -368), CircleRadius)];
+    private static readonly List<Shape> Bridges = [
+            new Rectangle(new(-347.71f, -359.78f), BridgeHalfWidth, BridgeLength, Angle225),
+            new Rectangle(new(-360.77f, -346.3f), BridgeHalfWidth, BridgeLength, Angle675),
+            new Rectangle(new(-392.29f, -359.78f), BridgeHalfWidth, BridgeLength, -Angle225),
+            new Rectangle(new(-379.22f, -346f), BridgeHalfWidth, BridgeLength, -Angle675)];
+    private static readonly List<Shape> Fillers = [
+            new Rectangle(new(-390.8f, -361.7f), FillerLength, FillerHalfWidth, -Angle675),
+            new Rectangle(new(-394.5f, -360.4f), FillerLength, FillerHalfWidth, Angle225),
+            new Rectangle(new(-392.8f, -355.9f), FillerLength, FillerHalfWidth, -Angle675),
+            new Rectangle(new(-389.2f, -357.7f), FillerLength, FillerHalfWidth, Angle225),
+            new Rectangle(new(-382.3f, -345.1f), FillerLength, FillerHalfWidth, -Angle225),
+            new Rectangle(new(-380.2f, -348.6f), FillerLength, FillerHalfWidth, Angle675),
+            new Rectangle(new(-376.3f, -347.2f), FillerLength, FillerHalfWidth, -Angle225),
+            new Rectangle(new(-377.5f, -343.1f), FillerLength, FillerHalfWidth, Angle675),
+            new Rectangle(new(-363.9f, -347.3f), FillerLength, FillerHalfWidth, Angle225),
+            new Rectangle(new(-361.9f, -343.9f), FillerLength, FillerHalfWidth, -Angle45),
+            new Rectangle(new(-357.9f, -345.1f), FillerLength, FillerHalfWidth, Angle0),
+            new Rectangle(new(-359.7f, -348.9f), FillerLength, FillerHalfWidth, -Angle45),
+            new Rectangle(new(-351, -357.7f), FillerLength, FillerHalfWidth, -Angle45),
+            new Rectangle(new(-347.3f, -356.2f), FillerLength, FillerHalfWidth, Angle675),
+            new Rectangle(new(-345.4f, -360.4f), FillerLength, FillerHalfWidth, -Angle225),
+            new Rectangle(new(-349.1f, -361.8f), FillerLength, FillerHalfWidth, Angle675)];
+    private static readonly ArenaBoundsComplex arena = new(Bridges.Concat(Circles).Concat(Fillers));
 }

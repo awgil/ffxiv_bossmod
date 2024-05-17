@@ -9,8 +9,8 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
-    BattleCry1 = 33364, // Boss->self, 5.0s cast, range 40 circle
-    BattleCry2 = 34605, // Boss->self, 5.0s cast, range 40 circle
+    BattleCry1 = 34605, // Boss->self, 5.0s cast, range 40 circle
+    BattleCry2 = 33364, // Boss->self, 5.0s cast, range 40 circle
     ElectricEruption = 33615, // Boss->self, 5.0s cast, range 40 circle
     Electrify = 33367, // Helper->location, 5.5s cast, range 10 circle
     LightningClaw1 = 33366, // Boss->location, no cast, range 6 circle
@@ -37,7 +37,7 @@ public enum IconID : uint
     Stackmarker = 161, // 39D7/3DC2
 }
 
-class Voidzone(BossModule module) : BossComponent(module)
+class ArenaBorders(BossModule module) : BossComponent(module)
 {
     public override void OnEventEnvControl(byte index, uint state)
     {
@@ -48,6 +48,26 @@ class Voidzone(BossModule module) : BossComponent(module)
             if (state == 0x00080004)
                 Module.Arena.Bounds = D122Arkas.DefaultBounds;
         }
+    }
+}
+
+class BattleCryArenaChangeHint(BossModule module) : Components.GenericAOEs(module)
+{
+    private static readonly AOEShapeDonut donut = new(10, 15);
+    private AOEInstance? _aoe;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.BattleCry2)
+            _aoe = new(donut, new(425, -440), default, spell.NPCFinishAt);
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.BattleCry2)
+            _aoe = null;
     }
 }
 
@@ -95,7 +115,7 @@ class ForkedFissures(BossModule module) : Components.GenericAOEs(module)
                 _patternStart.AddRange(patternIndex01Start);
                 _patternEnd.AddRange(patternIndex01End);
             }
-            for (int i = _patternStart.Count - 1; i >= 0; i--)
+            for (var i = _patternStart.Count - 1; i >= 0; i--)
             {
                 _aoes.Add(new(new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), _patternStart[i], Angle.FromDirection(_patternEnd[i] - _patternStart[i]), WorldState.FutureTime(6)));
                 _patternStart.RemoveAt(i);
@@ -128,7 +148,8 @@ class D122ArkasStates : StateMachineBuilder
     public D122ArkasStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<Voidzone>()
+            .ActivateOnEnter<ArenaBorders>()
+            .ActivateOnEnter<BattleCryArenaChangeHint>()
             .ActivateOnEnter<LightningClaw>()
             .ActivateOnEnter<SpunLightning>()
             .ActivateOnEnter<ForkedFissures>()
@@ -146,9 +167,12 @@ class D122ArkasStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12337)]
-public class D122Arkas(WorldState ws, Actor primary) : BossModule(ws, primary, new(425, -440), DefaultBounds)
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12337)]
+public class D122Arkas(WorldState ws, Actor primary) : BossModule(ws, primary, DefaultBounds.Center, DefaultBounds)
 {
-    public static readonly ArenaBoundsCircle DefaultBounds = new(14.5f);
+    private static readonly List<Shape> union = [new Circle(new(425, -440), 14.55f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(425, -424), 20, 2.4f), new Rectangle(new(425, -455), 10, 1.25f)];
+
+    public static readonly ArenaBoundsComplex DefaultBounds = new(union, difference);
     public static readonly ArenaBoundsCircle SmallerBounds = new(10);
 }
