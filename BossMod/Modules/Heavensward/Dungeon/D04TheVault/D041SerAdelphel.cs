@@ -168,7 +168,7 @@ class D041SerAdelphelStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS), Xyzzy", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 34, NameID = 3634)]
-public class D041SerAdelphel(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+public class D041SerAdelphel(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -100), arena)
 {
     protected override bool CheckPull() => PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.SerAdelphelBrightblade).Any(e => e.InCombat);
 

@@ -31,8 +31,8 @@ public enum AID : uint
     WhiteKnightsTour = 4152, // DawnKnight->self, 3.0s cast, range 40+R width 4 rect
     BlackKnightsTour = 4153, // DuskKnight->self, 3.0s cast, range 40+R width 4 rect
 
-    TurretChargeStart = 4154, // Helper->player, no cast, single-target mob march, exoflare?
-    TurretChargeRest = 4155, // Helper->player, no cast, single-target mob march, exoflare?
+    TurretChargeDawnKnight = 4154, // Helper->player, no cast, only triggers if inside hitbox
+    TurretChargeRestDuskKnight = 4155, // Helper->player, no cast, only triggers if inside hitbox
 }
 
 public enum TetherID : uint
@@ -50,15 +50,15 @@ class HolyChain(BossModule module) : Components.Chains(module, (uint)TetherID.Ho
 class TurretTour(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _knights = [];
-    private static readonly AOEShapeRect rect = new(2, 2, 3);
-    private static readonly AOEShapeRect rect2 = new(6, 2);
+    private static readonly AOEShapeCircle circle = new(2);
+    private static readonly AOEShapeRect rect = new(6, 2, 2);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var c in _knights)
         {
-            yield return new(rect, c.Position, c.Rotation, Color: ArenaColor.Danger);
-            yield return new(rect2, c.Position + 2 * c.Rotation.ToDirection(), c.Rotation);
+            yield return new(circle, c.Position, c.Rotation, Color: ArenaColor.Danger);
+            yield return new(rect, c.Position + 2 * c.Rotation.ToDirection(), c.Rotation);
         }
     }
 

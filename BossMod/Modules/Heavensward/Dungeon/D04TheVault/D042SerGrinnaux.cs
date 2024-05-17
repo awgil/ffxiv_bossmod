@@ -3,10 +3,10 @@
 public enum OID : uint
 {
     Boss = 0x1054, // R2.200, x1
-    Helper = 0xD25, // R0.500, x13, mixed types
     SerGrinnauxTheBull = 0x1053, // R0.500, x1
     StellarImplodeArea = 0x1E91C1, // R0.500, x0 (spawn during fight), EventObj type
     AetherialTear = 0x1055, // R2.000, x0 (spawn during fight)
+    Helper = 0xD25, // R0.500, x13, mixed types
 }
 
 public enum AID : uint
@@ -48,7 +48,7 @@ class FaithUnmoving(BossModule module) : Components.KnockbackFromCastTarget(modu
 }
 
 class Rive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Rive), new AOEShapeRect(30.5f, 1));
-class HyperdimensionalSlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HyperdimensionalSlash), new AOEShapeRect(45, 4));
+class HyperdimensionalSlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HyperdimensionalSlash), new AOEShapeRect(47.2f, 4));
 class DimensionalCollapse1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DimensionalCollapse1), new AOEShapeDonutSector(2.5f, 7.5f, 90.Degrees()));
 class DimensionalCollapse2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DimensionalCollapse2), new AOEShapeDonutSector(7.5f, 12.5f, 90.Degrees()));
 class DimensionalCollapse3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DimensionalCollapse3), new AOEShapeDonutSector(12.5f, 17.5f, 90.Degrees()));
