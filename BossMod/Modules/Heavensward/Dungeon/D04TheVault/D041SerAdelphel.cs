@@ -71,7 +71,7 @@ class BrightSphere(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.BrightFlare)
+        if ((AID)spell.Action.ID == AID.BrightFlare && _aoes.Count > 0)
             _aoes.RemoveAt(0);
     }
 }

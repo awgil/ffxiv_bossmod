@@ -28,16 +28,11 @@ public enum AID : uint
     Quickstep = 4319, // Boss->location, no cast, single-target
 }
 
-public enum SID : uint
-{
-    Stun = 2953, // none->player, extra=0x0
-
-}
-
 public enum TetherID : uint
 {
     BaitAway = 17, // MagitekTurretI->player
 }
+
 class SelfDetonate(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SelfDetonate));
 
 class AetherochemicalGrenado(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AetherochemicalGrenado), 8);

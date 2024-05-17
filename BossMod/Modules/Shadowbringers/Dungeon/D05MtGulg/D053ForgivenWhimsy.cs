@@ -29,9 +29,28 @@ public enum AID : uint
     PerfectContrition = 15630, // 27CD->self, 6.0s cast, range 5-15 donut
 }
 
+class PerfectContrition(BossModule module) : Components.GenericAOEs(module)
+{
+    private static readonly AOEShapeDonut donut = new(5, 15);
+    private readonly List<AOEInstance> _aoes = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID.Brightsphere)
+            _aoes.Add(new AOEInstance(donut, actor.Position, default, Module.WorldState.FutureTime(10.6f)));
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.PerfectContrition)
+            _aoes.Clear();
+    }
+}
+
 class Catechism(BossModule module) : Components.SingleTargetCastDelay(module, ActionID.MakeSpell(AID.Catechism), ActionID.MakeSpell(AID.Catechism2), 0.5f);
 class SacramentOfPenance(BossModule module) : Components.RaidwideCastDelay(module, ActionID.MakeSpell(AID.SacramentOfPenance), ActionID.MakeSpell(AID.SacramentOfPenance2), 0.5f);
-class PerfectContrition(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PerfectContrition), new AOEShapeDonut(5, 15));
 
 class JudgmentDay(BossModule module) : Components.GenericTowers(module)
 {
