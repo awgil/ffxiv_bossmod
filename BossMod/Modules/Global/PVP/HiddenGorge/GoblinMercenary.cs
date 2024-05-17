@@ -131,7 +131,7 @@ class GoblinMercenaryStates : StateMachineBuilder
             .ActivateOnEnter<GobspinSwipe>()
             .ActivateOnEnter<Knockbacks>()
             .ActivateOnEnter<GobfireShootypops>()
-            .Raw.Update = () => Module.PrimaryActor.IsDead || !Module.PrimaryActor.IsTargetable;
+            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || !Module.PrimaryActor.IsTargetable;
     }
 }
 
