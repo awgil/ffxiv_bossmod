@@ -1,0 +1,30 @@
+{
+  "Author": "The CombatReborn Team",
+  "Name": "BossMod Reborn",
+  "InternalName": "BossMod",
+  "Description": "A bunch of utilities to simplify boss mechanics",
+  "ApplicableVersion": "any",
+  "Tags": [
+    "combat",
+    "boss",
+    "dodge",
+    "mechanics",
+    "pve",
+    "raids",
+    "trials"
+  ],
+  "DalamudApiLevel": 9,
+  "LoadRequiredState": 0,
+  "LoadSync": false,
+  "CanUnloadAsync": false,
+  "LoadPriority": 0,
+  "IsTestingExclusive": false,
+  "IconUrl": "https://raw.githubusercontent.com/FFXIV-CombatReborn/RebornAssets/main/IconAssets/BMR_Icon.png",
+  "Punchline": "Don't fail at raid mechanics anymore",
+  "AcceptsFeedback": true,
+  "ImageUrls": [
+    "https://raw.githubusercontent.com/FFXIV-CombatReborn/BossmodReborn/master/Data/image1.png",
+    "https://raw.githubusercontent.com/FFXIV-CombatReborn/BossmodReborn/master/Data/image2.png",
+    "https://raw.githubusercontent.com/FFXIV-CombatReborn/BossmodReborn/master/Data/image3.png"
+  ]
+}
