@@ -64,6 +64,6 @@ public enum SID : uint
 
 public enum TetherID : uint
 {
-    Tether_8 = 8, // player/BlizzardSphere->BlizzardIII/player
-    Tether_1 = 1, // AzureGuard->AzureGuard
+    Tether8 = 8, // player/BlizzardSphere->BlizzardIII/player
+    Tether1 = 1, // AzureGuard->AzureGuard
 }

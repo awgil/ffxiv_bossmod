@@ -104,5 +104,5 @@ public enum IconID : uint
 }
 public enum TetherID : uint
 {
-    Tether_1 = 1, // Aether->Aether
+    Tether1 = 1, // Aether->Aether
 }

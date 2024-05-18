@@ -34,8 +34,8 @@ public enum AID : uint
 
 public enum IconID : uint
 {
-    Icon_218 = 218, // player
-    Icon_139 = 139, // player
+    Icon218 = 218, // player
+    Icon139 = 139, // player
 }
 
 class BeatificScorn5(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BeatificScorn5), new AOEShapeCircle(9));

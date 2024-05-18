@@ -49,10 +49,10 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_20 = 20, // player
+    Icon20 = 20, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_3 = 3, // Hydrosphere->Hydrocore
+    Tether3 = 3, // Hydrosphere->Hydrocore
 }

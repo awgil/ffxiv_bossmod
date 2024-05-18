@@ -49,8 +49,9 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_329 = 329, // player
+    Icon329 = 329, // player
 }
+
 class DiffusionRay(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.DiffusionRay));
 class GravitonCannon(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.GravitonCannon), 6);
 

@@ -35,8 +35,8 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_101 = 101, // player
-    Icon_218 = 218, // player
+    Icon101 = 101, // player
+    Icon218 = 218, // player
 }
 
 class CosmicKissSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.CosmicKissSpread), 6);

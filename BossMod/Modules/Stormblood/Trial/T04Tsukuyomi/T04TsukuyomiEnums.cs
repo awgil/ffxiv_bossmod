@@ -95,12 +95,12 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_230 = 230, // player
-    Icon_305 = 305, // player
+    Icon230 = 230, // player
+    Icon305 = 305, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_12 = 12, // MidnightHaze->MidnightHaze
-    Tether_17 = 17, // SpecterOfThePatriarch/SpecterOfTheMatriarch/SpecterOfAsahi->Yotsuyu
+    Tether12 = 12, // MidnightHaze->MidnightHaze
+    Tether17 = 17, // SpecterOfThePatriarch/SpecterOfTheMatriarch/SpecterOfAsahi->Yotsuyu
 }

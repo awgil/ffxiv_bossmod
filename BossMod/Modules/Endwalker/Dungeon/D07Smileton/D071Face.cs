@@ -40,14 +40,14 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_136 = 136, // player
-    Icon_96 = 96, // player
-    Icon_137 = 137, // player
+    Icon136 = 136, // player
+    Icon96 = 96, // player
+    Icon137 = 137, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_169 = 169, // 34D0->Boss
+    Tether169 = 169, // 34D0->Boss
 }
 class OffMyLawnKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.OffMyLawnKnockback), 8, kind: Kind.DirForward, stopAtWall: true);
 class TemperTemperSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.TemperTemperSpread), 5);

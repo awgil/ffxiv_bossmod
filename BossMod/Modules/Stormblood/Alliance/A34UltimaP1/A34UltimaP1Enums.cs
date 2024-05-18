@@ -91,10 +91,10 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_43 = 43, // player
-    Icon_55 = 55, // player
-    Icon_90 = 90, // player
-    Icon_102 = 102, // player
-    Icon_127 = 127, // player
-    Icon_139 = 139, // player
+    Icon43 = 43, // player
+    Icon55 = 55, // player
+    Icon90 = 90, // player
+    Icon102 = 102, // player
+    Icon127 = 127, // player
+    Icon139 = 139, // player
 }

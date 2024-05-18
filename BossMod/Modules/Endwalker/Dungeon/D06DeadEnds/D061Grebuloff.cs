@@ -35,10 +35,10 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_55 = 55, // player
-    Icon_218 = 218, // player
-    Icon_62 = 62, // player
-    Icon_139 = 139, // player
+    Icon55 = 55, // player
+    Icon218 = 218, // player
+    Icon62 = 62, // player
+    Icon139 = 139, // player
 }
 
 class BefoulmentSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.BefoulmentSpread), 6);

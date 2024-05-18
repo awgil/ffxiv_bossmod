@@ -62,10 +62,10 @@ public enum IconID : uint
 
 public enum TetherID : uint
 {
-    Tether_162 = 162, // Helper->Helper
-    Tether_57 = 57, // MegaGraviton->player
-    Tether_17 = 17, // MegaGraviton->player
-    Tether_22 = 22, // Helper->Boss
+    Tether162 = 162, // Helper->Helper
+    Tether57 = 57, // MegaGraviton->player
+    Tether17 = 17, // MegaGraviton->player
+    Tether22 = 22, // Helper->Boss
 }
 
 class CoffinScratch(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.CoffinScratch), 3);

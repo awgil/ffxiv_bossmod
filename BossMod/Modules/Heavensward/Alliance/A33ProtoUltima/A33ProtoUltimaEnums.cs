@@ -49,11 +49,11 @@ public enum AID : uint
 
 public enum IconID : uint
 {
-    Icon_62 = 62, // ProtoUltimaHelper2
+    Icon62 = 62, // ProtoUltimaHelper2
     Nox = 197, // player chasing aoe icon
 }
 
 public enum TetherID : uint
 {
-    Tether_12 = 12, // AetherCollector->Boss
+    Tether12 = 12, // AetherCollector->Boss
 }

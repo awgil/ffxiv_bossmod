@@ -121,9 +121,9 @@ public enum IconID : uint
 
 public enum TetherID : uint
 {
-    Tether_6 = 6, // Helper2->Boss
-    Tether_4 = 4, // Helper2->Boss
-    Tether_3 = 3, // Helper2->Boss
-    Tether_5 = 5, // Helper2->Boss
-    Tether_79 = 79, // Helper2->Boss
+    Tether6 = 6, // Helper2->Boss
+    Tether4 = 4, // Helper2->Boss
+    Tether3 = 3, // Helper2->Boss
+    Tether5 = 5, // Helper2->Boss
+    Tether79 = 79, // Helper2->Boss
 }

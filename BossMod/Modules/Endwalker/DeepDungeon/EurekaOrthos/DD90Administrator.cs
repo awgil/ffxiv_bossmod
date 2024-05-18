@@ -32,8 +32,8 @@ public enum AID : uint
     HomingLaserBoss = 31460, // Boss->self, no cast, single-target | Instacast animation, effect to simulate helper actually doing puddles 
     InterceptionSequence = 31450, // Boss->self, 3.0s cast, range 60 circle | Used to prep the Egg/Orb/Cube/Square for order of firing 
 
-    Weaponskill_Unknown = 31458, // Boss->self, no cast, single-target
-    Weaponskill_Unknown2 = 31459, // Boss->self, no cast, single-target
+    WeaponskillUnknown = 31458, // Boss->self, no cast, single-target
+    WeaponskillUnknown2 = 31459, // Boss->self, no cast, single-target
 }
 
 class AetherLaserCone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AetherochemicalLaserCone), new AOEShapeCone(50, 60.Degrees()));

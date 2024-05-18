@@ -57,13 +57,13 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_353 = 353, // player
-    Icon_161 = 161, // player
+    Icon353 = 353, // player
+    Icon161 = 161, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_206 = 206, // Boss->3AE4
+    Tether206 = 206, // Boss->3AE4
 }
 class VoidVortex1(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.VoidVortex1), 6);
 class VoidVortex3(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.VoidVortex3), 6, 8);

@@ -37,9 +37,9 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_218 = 218, // player
-    Icon_62 = 62, // player
-    Icon_139 = 139, // player
+    Icon218 = 218, // player
+    Icon62 = 62, // player
+    Icon139 = 139, // player
 }
 class LamellarLight1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LamellarLight1), new AOEShapeCircle(15));
 class Lifesbreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Lifesbreath), new AOEShapeRect(50, 5));

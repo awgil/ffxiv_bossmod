@@ -28,10 +28,10 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_218 = 218, // player
-    Icon_79 = 79, // player/Helper
-    Icon_81 = 81, // player/Helper
-    Icon_80 = 80, // player/Helper
+    Icon218 = 218, // player
+    Icon79 = 79, // player/Helper
+    Icon81 = 81, // player/Helper
+    Icon80 = 80, // player/Helper
 }
 
 class Tread1(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.Tread1), 4);

@@ -32,14 +32,14 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_139 = 139, // player
-    Icon_289 = 289, // player
-    Icon_218 = 218, // player
+    Icon139 = 139, // player
+    Icon289 = 289, // player
+    Icon218 = 218, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_17 = 17, // MarkIIGuidedMissile->player
+    Tether17 = 17, // MarkIIGuidedMissile->player
 }
 class ElectricSlideKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.ElectricSlide), 15, stopAtWall: true);
 class ElectricSlide(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.ElectricSlide), 6, 8);

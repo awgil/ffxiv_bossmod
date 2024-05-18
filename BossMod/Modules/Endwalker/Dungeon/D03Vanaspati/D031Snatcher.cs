@@ -26,8 +26,8 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_218 = 218, // player
-    Icon_304 = 304, // player
+    Icon218 = 218, // player
+    Icon304 = 304, // player
 }
 
 class WhatIsLeft(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhatIsLeft), new AOEShapeCone(40, 90.Degrees()));

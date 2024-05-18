@@ -40,9 +40,10 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_139 = 139, // player
-    Icon_230 = 230, // player
+    Icon139 = 139, // player
+    Icon230 = 230, // player
 }
+
 class ElectromagneticRepellant(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 7, ActionID.MakeSpell(AID.ElectromagneticRepellant), m => m.Enemies(OID.Boss).Where(z => z.EventState != 7), 0.8f);
 
 class InfantryDeterrentAOE(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.InfantryDeterrentAOE), 6);

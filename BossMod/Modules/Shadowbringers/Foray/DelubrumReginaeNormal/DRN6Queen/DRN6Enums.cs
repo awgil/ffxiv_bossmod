@@ -111,7 +111,7 @@ public enum IconID : uint
 
 public enum TetherID : uint
 {
-    Tether_2 = 2, // QueensSoldier/QueensGunner/QueensWarrior/QueensKnight->Boss
+    Tether2 = 2, // QueensSoldier/QueensGunner/QueensWarrior/QueensKnight->Boss
     ReversalBomb = 16, // AetherialBolt/AetherialBurst->QueensWarrior
     SecretsRevealed = 30, // SoldierAvatar->QueensSoldier
 }

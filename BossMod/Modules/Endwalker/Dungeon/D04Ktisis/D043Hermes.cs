@@ -60,7 +60,7 @@ public enum IconID : uint
 
 public enum TetherID : uint
 {
-    Tether_160 = 160, // Karukeion->Boss
+    Tether160 = 160, // Karukeion->Boss
 }
 
 class TrueBraveryInterruptHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.TrueBravery));

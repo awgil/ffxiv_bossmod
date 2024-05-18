@@ -82,11 +82,11 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_23 = 23, // player
-    Icon_62 = 62, // player
+    Icon23 = 23, // player
+    Icon62 = 62, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_1 = 1, // Aether/AetherialChakram->WailingAtomos/CursingAtomos
+    Tether1 = 1, // Aether/AetherialChakram->WailingAtomos/CursingAtomos
 }

@@ -34,8 +34,8 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_218 = 218, // player
-    Icon_161 = 161, // player
+    Icon218 = 218, // player
+    Icon161 = 161, // player
 }
 
 class MeaninglessDestruction(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MeaninglessDestruction));

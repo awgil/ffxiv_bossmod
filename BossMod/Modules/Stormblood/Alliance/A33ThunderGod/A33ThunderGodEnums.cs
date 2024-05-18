@@ -87,11 +87,11 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_170 = 170, // player
+    Icon170 = 170, // player
     Nox = 197, // player chasing AOE icon
-    Icon_23 = 23, // player
-    Icon_62 = 62, // player
-    Icon_110 = 110, // player
+    Icon23 = 23, // player
+    Icon62 = 62, // player
+    Icon110 = 110, // player
 }
 
 public enum TetherID : uint

@@ -38,7 +38,7 @@ public enum AID : uint
 
 public enum IconID : uint
 {
-    Icon_218 = 218, // player
+    Icon218 = 218, // player
 }
 
 //class DreamsOfIce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DreamsOfIce), new AOEShapeCircle(6));

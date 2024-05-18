@@ -1,4 +1,5 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.Normal.DRN3QueensGuard;
+
 public enum OID : uint
 {
     Helper = 0x233C, // R0.500, x9, 523 type

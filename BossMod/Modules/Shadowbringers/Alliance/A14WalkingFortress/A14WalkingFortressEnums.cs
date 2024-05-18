@@ -90,16 +90,16 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_198 = 198, // player
-    Icon_139 = 139, // player
-    Icon_199 = 199, // Helper
-    Icon_164 = 164, // player
-    Icon_200 = 200, // GoliathTank
-    Icon_161 = 161, // player
+    Icon198 = 198, // player
+    Icon139 = 139, // player
+    Icon199 = 199, // Helper
+    Icon164 = 164, // player
+    Icon200 = 200, // GoliathTank
+    Icon161 = 161, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_100 = 100, // GoliathTank->Boss
-    Tether_54 = 54, // Boss->GoliathTank
+    Tether100 = 100, // GoliathTank->Boss
+    Tether54 = 54, // Boss->GoliathTank
 }

@@ -35,12 +35,12 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_218 = 218, // player
+    Icon218 = 218, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_161 = 161, // 35DA->Boss
+    Tether161 = 161, // 35DA->Boss
 }
 
 class Impact(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Impact), new AOEShapeRect(14, 20));

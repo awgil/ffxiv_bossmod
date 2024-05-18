@@ -49,14 +49,14 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_198 = 198, // player
-    Icon_97 = 97, // player
-    Icon_102 = 102, // player
+    Icon198 = 198, // player
+    Icon97 = 97, // player
+    Icon102 = 102, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_5 = 5, // Actor22a6->player
-    Tether_78 = 78, // Actor22a6->player
-    Tether_14 = 14, // Gigas->Gigas
+    Tether5 = 5, // Actor22a6->player
+    Tether78 = 78, // Actor22a6->player
+    Tether14 = 14, // Gigas->Gigas
 }

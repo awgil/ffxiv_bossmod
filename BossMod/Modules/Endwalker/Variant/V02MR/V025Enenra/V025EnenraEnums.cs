@@ -60,10 +60,10 @@ public enum SID : uint
 }
 public enum IconID : uint
 {
-    Icon_344 = 344, // player
+    Icon344 = 344, // player
 }
 public enum TetherID : uint
 {
-    Tether_244 = 244, // EnenraClone->Boss
+    Tether244 = 244, // EnenraClone->Boss
     PipeCleaner = 17, // player->Boss
 }

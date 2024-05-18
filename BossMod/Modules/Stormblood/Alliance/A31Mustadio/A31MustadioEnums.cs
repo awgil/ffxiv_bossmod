@@ -52,16 +52,16 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_127 = 127, // player
-    Icon_139 = 139, // player
-    Icon_152 = 152, // player
-    Icon_164 = 164, // player
-    Icon_186 = 186, // player
-    Icon_198 = 198, // player
+    Icon127 = 127, // player
+    Icon139 = 139, // player
+    Icon152 = 152, // player
+    Icon164 = 164, // player
+    Icon186 = 186, // player
+    Icon198 = 198, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_86 = 86, // IronConstruct->Boss
-    Tether_88 = 88, // EarlyTurret->Boss
+    Tether86 = 86, // IronConstruct->Boss
+    Tether88 = 88, // EarlyTurret->Boss
 }

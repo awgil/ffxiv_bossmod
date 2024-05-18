@@ -28,7 +28,7 @@ public enum SID : uint
 
 public enum TetherID : uint
 {
-    Tether_14 = 14, // SmallerBoss->SmallerBoss
+    Tether14 = 14, // SmallerBoss->SmallerBoss
 }
 
 class UniteMare1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.UniteMare1), new AOEShapeCircle(6));

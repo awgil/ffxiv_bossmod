@@ -109,7 +109,7 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_169 = 169, // player
+    Icon169 = 169, // player
 }
 
 public enum TetherID : uint

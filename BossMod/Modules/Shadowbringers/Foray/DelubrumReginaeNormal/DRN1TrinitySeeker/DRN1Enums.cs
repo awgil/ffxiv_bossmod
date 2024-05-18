@@ -57,7 +57,7 @@ public enum AID : uint
     DeadIronAOE = 23216, // Helper->self, no cast, range 50 30-degree cone earthshaker
     DeadIronSecond = 23364, // SeekerAvatar->self, no cast, single-target, visual (second earthshakers, without cast)
 
-    Ability_Unknown = 14588, // Helper->player, no cast, single-target
+    AbilityUnknown = 14588, // Helper->player, no cast, single-target
 }
 
 public enum SID : uint

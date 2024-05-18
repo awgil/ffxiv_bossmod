@@ -86,6 +86,6 @@ public enum IconID : uint
 
 public enum TetherID : uint
 {
-    Tether_2 = 2, // Connla2/ShadowLimb->Boss/player
-    Tether_1 = 1, // ShadowLimb->player
+    Tether2 = 2, // Connla2/ShadowLimb->Boss/player
+    Tether1 = 1, // ShadowLimb->player
 }

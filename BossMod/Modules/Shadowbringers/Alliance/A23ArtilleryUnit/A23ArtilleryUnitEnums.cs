@@ -58,12 +58,12 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_230 = 230, // player
-    Icon_172 = 172, // player
+    Icon230 = 230, // player
+    Icon172 = 172, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_122 = 122, // Boss->ArtilleryUnit
-    Tether_123 = 123, // ArtilleryUnit->Pod/Helper
+    Tether122 = 122, // Boss->ArtilleryUnit
+    Tether123 = 123, // ArtilleryUnit->Pod/Helper
 }

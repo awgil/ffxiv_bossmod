@@ -61,13 +61,13 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_23 = 23, // player
-    Icon_62 = 62, // player
-    Icon_230 = 230, // player
-    Icon_112 = 112, // AmaNoIwato
+    Icon23 = 23, // player
+    Icon62 = 62, // player
+    Icon230 = 230, // player
+    Icon112 = 112, // AmaNoIwato
 }
 
 public enum TetherID : uint
 {
-    Tether_66 = 66, // AmaNoIwato->Boss
+    Tether66 = 66, // AmaNoIwato->Boss
 }

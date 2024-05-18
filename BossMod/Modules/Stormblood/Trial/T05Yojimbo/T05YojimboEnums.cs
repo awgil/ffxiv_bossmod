@@ -70,15 +70,15 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_144 = 144, // player
-    Icon_55 = 55, // player
-    Icon_87 = 87, // player
-    Icon_5 = 5, // player
+    Icon144 = 144, // player
+    Icon55 = 55, // player
+    Icon87 = 87, // player
+    Icon5 = 5, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_57 = 57, // player->Boss
-    Tether_1 = 1, // player->Boss
-    Tether_81 = 81, // player->Boss
+    Tether57 = 57, // player->Boss
+    Tether1 = 1, // player->Boss
+    Tether81 = 81, // player->Boss
 }

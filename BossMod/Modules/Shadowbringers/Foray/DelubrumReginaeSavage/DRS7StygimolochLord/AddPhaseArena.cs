@@ -8,17 +8,12 @@ class AddPhaseArena(BossModule module) : BossComponent(module)
     private const float _alcoveDepth = 1;
     private const float _alcoveWidth = 2;
     private bool Active;
-    private static readonly List<Func<WPos, float>> _labyrinthDistances;
-
-    static AddPhaseArena()
-    {
-        _labyrinthDistances =
-        [
-            ShapeDistance.ConcavePolygon(ConvertToWPos(InDanger())),
-            ShapeDistance.ConcavePolygon(ConvertToWPos(MidDanger())),
-            ShapeDistance.ConcavePolygon(ConvertToWPos(OutDanger()))
-        ];
-    }
+    private static readonly List<Func<WPos, float>> _labyrinthDistances =
+    [
+        ShapeDistance.ConcavePolygon(ConvertToWPos(InDanger())),
+        ShapeDistance.ConcavePolygon(ConvertToWPos(MidDanger())),
+        ShapeDistance.ConcavePolygon(ConvertToWPos(OutDanger()))
+    ];
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {

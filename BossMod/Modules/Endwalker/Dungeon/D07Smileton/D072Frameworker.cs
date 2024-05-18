@@ -30,7 +30,7 @@ public enum SID : uint
 
 public enum TetherID : uint
 {
-    Tether_23 = 23, // SmileySupporter->Boss
+    Tether23 = 23, // SmileySupporter->Boss
 }
 
 class OmnidimensionalOnslaughtAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OmnidimensionalOnslaughtAOE), new AOEShapeCone(40, 22.5f.Degrees()));

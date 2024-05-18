@@ -36,8 +36,8 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_218 = 218, // player
-    Icon_161 = 161, // player
+    Icon218 = 218, // player
+    Icon161 = 161, // player
 }
 
 class AglaeaShotAOE1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AglaeaShotAOE1), new AOEShapeRect(20, 3));

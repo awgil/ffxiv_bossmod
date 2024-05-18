@@ -37,15 +37,15 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_163 = 163, // player
-    Icon_162 = 162, // player
-    Icon_290 = 290, // Boss
-    Icon_62 = 62, // player
+    Icon163 = 163, // player
+    Icon162 = 162, // player
+    Icon290 = 290, // Boss
+    Icon62 = 62, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_28 = 28, // player->Boss
+    Tether28 = 28, // player->Boss
 }
 
 class ElectromagneticRelease1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectromagneticRelease1), new AOEShapeRect(40, 3));

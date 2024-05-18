@@ -1,6 +1,5 @@
 ﻿namespace BossMod.Shadowbringers.Alliance.A22FlightUnits;
 
-
 public enum OID : uint
 {
     Helper = 0x233C, // R0.500, x?, 523 type
@@ -84,13 +83,13 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_23 = 23, // player
-    Icon_198 = 198, // player
-    Icon_139 = 139, // player
+    Icon23 = 23, // player
+    Icon198 = 198, // player
+    Icon139 = 139, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_7 = 7, // player->FlightUnitCHi/FlightUnitALpha/FlightUnitBEta
-    Tether_54 = 54, // FlightUnitALpha/FlightUnitCHi/FlightUnitBEta->FlightUnitBEta/FlightUnitALpha/FlightUnitCHi
+    Tether7 = 7, // player->FlightUnitCHi/FlightUnitALpha/FlightUnitBEta
+    Tether54 = 54, // FlightUnitALpha/FlightUnitCHi/FlightUnitBEta->FlightUnitBEta/FlightUnitALpha/FlightUnitCHi
 }

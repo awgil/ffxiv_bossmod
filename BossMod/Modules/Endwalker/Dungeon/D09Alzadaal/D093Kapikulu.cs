@@ -41,14 +41,14 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_218 = 218, // player
-    Icon_161 = 161, // player
+    Icon218 = 218, // player
+    Icon161 = 161, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_177 = 177, // player->Boss
-    Tether_188 = 188, // Boss->Helper
+    Tether177 = 177, // player->Boss
+    Tether188 = 188, // Boss->Helper
 }
 
 class ManaExplosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ManaExplosion), new AOEShapeCircle(15));

@@ -94,5 +94,5 @@ public enum IconID : uint
 
 public enum TetherID : uint
 {
-    Tether_12 = 12, // Boss->Dawon
+    Tether12 = 12, // Boss->Dawon
 }

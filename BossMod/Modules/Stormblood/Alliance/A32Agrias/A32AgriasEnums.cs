@@ -64,20 +64,20 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_8 = 8, // player
-    Icon_11 = 11, // player
-    Icon_13 = 13, // player
-    Icon_23 = 23, // player
-    Icon_25 = 25, // player
-    Icon_127 = 127, // player
-    Icon_139 = 139, // player
-    Icon_153 = 153, // player
-    Icon_165 = 165, // player
-    Icon_4294967292 = 4294967292, // player
+    Icon8 = 8, // player
+    Icon11 = 11, // player
+    Icon13 = 13, // player
+    Icon23 = 23, // player
+    Icon25 = 25, // player
+    Icon127 = 127, // player
+    Icon139 = 139, // player
+    Icon153 = 153, // player
+    Icon165 = 165, // player
+    Icon4294967292 = 4294967292, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_14 = 14, // EmblazonedShield/SwordKnight->ShieldKnight/SwordKnight
-    Tether_2 = 2, // player->Boss
+    Tether14 = 14, // EmblazonedShield/SwordKnight->ShieldKnight/SwordKnight
+    Tether2 = 2, // player->Boss
 }

@@ -57,19 +57,19 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_62 = 62, // player
+    Icon62 = 62, // player
     Tankbuster = 218, // player
-    Icon_139 = 139, // player
-    Icon_79 = 79, // player
-    Icon_80 = 80, // player
-    Icon_81 = 81, // player
-    Icon_82 = 82, // player
+    Icon139 = 139, // player
+    Icon79 = 79, // player
+    Icon80 = 80, // player
+    Icon81 = 81, // player
+    Icon82 = 82, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_117 = 117, // Helper->Helper
-    Tether_116 = 116, // Helper->Helper
-    Tether_41 = 41, // player->Boss
-    Tether_54 = 54, // Puppet2P->Boss
+    Tether117 = 117, // Helper->Helper
+    Tether116 = 116, // Helper->Helper
+    Tether41 = 41, // player->Boss
+    Tether54 = 54, // Puppet2P->Boss
 }

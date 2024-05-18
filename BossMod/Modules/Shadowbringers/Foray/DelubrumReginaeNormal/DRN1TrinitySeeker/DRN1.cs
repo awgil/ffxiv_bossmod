@@ -17,7 +17,7 @@ class DeadIron : Components.BaitAwayTethers
 [ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 760, NameID = 9834)]
 public class DRN1TrinitySeeker(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 278), new ArenaBoundsCircle(25))
 {
-    public static readonly float BarricadeRadius = 20;
+    public const float BarricadeRadius = 20;
 
     protected override void DrawArenaForeground(int pcSlot, Actor pc)
     {

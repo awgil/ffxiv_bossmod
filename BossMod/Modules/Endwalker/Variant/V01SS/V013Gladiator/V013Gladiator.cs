@@ -163,7 +163,7 @@ class SilverFlame1(BossModule module) : Components.GenericAOEs(module)
     private DateTime _startingActivation;
 
     private static readonly AOEShapeRect _shape = new(60, 4);
-    private static readonly int _maxCasts = 8;
+    private const int _maxCasts = 8;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -202,7 +202,7 @@ class SilverFlame2(BossModule module) : Components.GenericAOEs(module)
     private DateTime _startingActivation;
 
     private static readonly AOEShapeRect _shape = new(60, 4);
-    private static readonly int _maxCasts = 8;
+    private const int _maxCasts = 8;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
