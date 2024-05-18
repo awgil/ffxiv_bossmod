@@ -82,5 +82,10 @@ class D063LahabreaIgeyorhmStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 38, NameID = 3822)] //3822 Igeyorhm, 2143 Lahabrea
-public class D063LahabreaIgeyorhm(WorldState ws, Actor primary) : BossModule(ws, primary, new(230, -181), new ArenaBoundsCircle(20));
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 38, NameID = 2143)]
+public class D063LahabreaIgeyorhm(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> union = [new Circle(new(230, -181), 20.25f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(230, -161), 20, 0.75f)];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+}

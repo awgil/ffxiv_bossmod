@@ -12,9 +12,9 @@ public enum AID : uint
 
     BallisticMissile1 = 4334, // Boss->self, 3.0s cast, single-target
     BallisticMissile2 = 4335, // Helper->self, no cast, ???
-    BallisticMissileAOE = 4771, // Helper->self, 4.0s cast, range 4 circle
+    BallisticMissileVisual = 4771, // Helper->self, 4.0s cast, range 4 circle
 
-    ChthonicHush = 4327, // Boss->self, no cast, range 12+R ?-degree cone
+    ChthonicHush = 4327, // Boss->self, no cast, range 12+R (R=5.3) 120-degree cone
     CircleOfFlames = 4332, // Boss->player, no cast, range 5 circle
     GaseousBomb = 4336, // Boss->player, no cast, range 5 circle
     HoodSwing = 4329, // Boss->self, no cast, range 8+R ?-degree cone
@@ -41,15 +41,16 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_382 = 382, // Helper
+    Enumeration = 382, // Helper
     Stack = 93, // player
 }
+
 class Paradox(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Paradox), 5);
-class HoodSwing(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.HoodSwing), new AOEShapeCone(12, 22.5f.Degrees()));
+class ChthonicHush(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.ChthonicHush), new AOEShapeCone(13.3f, 60.Degrees()));
 class Petrifaction(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.Petrifaction));
 class Ka(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Ka), new AOEShapeCone(45, 30.Degrees()));
-class BallisticMissileAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BallisticMissileAOE), new AOEShapeCircle(4));
-class GaseousBomb(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.GaseousBomb), 5, 2);
+class BallisticMissileAOE(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Enumeration, ActionID.MakeSpell(AID.BallisticMissile2), 4, 5.1f, 2, 2);
+class GaseousBomb(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, ActionID.MakeSpell(AID.GaseousBomb), 5, 4.1f);
 
 class D062HarmachisStates : StateMachineBuilder
 {
@@ -57,7 +58,7 @@ class D062HarmachisStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<Paradox>()
-            //.ActivateOnEnter<HoodSwing>()
+            .ActivateOnEnter<ChthonicHush>()
             .ActivateOnEnter<Petrifaction>()
             .ActivateOnEnter<Ka>()
             .ActivateOnEnter<GaseousBomb>()
@@ -65,5 +66,10 @@ class D062HarmachisStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 38, NameID = 3821)]
-public class D062Harmachis(WorldState ws, Actor primary) : BossModule(ws, primary, new(248, 272), new ArenaBoundsCircle(20));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 38, NameID = 3821)]
+public class D062Harmachis(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> union = [new Circle(new(248, 272), 19.5f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(228, 272), 20, 1.8f, 90.Degrees()), new Rectangle(new(268.25f, 272), 20, 2, 90.Degrees())];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+}
