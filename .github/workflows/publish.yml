@@ -1,49 +1,46 @@
-name: Build & Publish to Dynamis
-
+name: Publish
 on:
   push:
     tags:
-      - "v*.*.*.*"
-
+      - '*.*.*.*'
 jobs:
   Build:
-    runs-on: ubuntu-latest
-    env:
-        DALAMUD_HOME: /tmp/dalamud
+    permissions:
+      contents: write
+    runs-on: windows-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           submodules: true
 
-      - name: Get Tag Name
-        run: echo "tag=$(echo ${{ github.ref }} | sed 's/refs\/tags\/v//')" >> $GITHUB_ENV
+      - name: Get Environment Variables
+        run: |
+          $tag = "${{ github.ref }}" -replace 'refs/tags/', ''
 
+          "tag=$tag" | Out-File -Append -FilePath $Env:GITHUB_ENV
+          
       - name: Set up .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 8.0.x
-          
+
       - name: Download Dalamud Latest
         run: |
-          wget https://goatcorp.github.io/dalamud-distrib/latest.zip -O ${{ env.DALAMUD_HOME }}.zip
-          unzip ${{ env.DALAMUD_HOME }}.zip -d ${{ env.DALAMUD_HOME }}
+          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile latest.zip
+          Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
 
-      - name: Restore Project
-        run: dotnet restore
+      - name: Restore Nuget Packages
+        run: dotnet restore BossMod\BossMod.csproj
 
-      - name: Build Project
-        run: dotnet build --configuration Release BossMod/BossMod.csproj -p:AssemblyVersion=${{ env.tag }}
+      - name: Build Plugin
+        run: dotnet build --no-restore -c Release BossMod\BossMod.csproj -p:AssemblyVersion=${{ env.tag }} -p:FileVersion=${{ env.tag }} -p:InformationalVersion=${{ env.tag }} --output .\build
 
-      - name: Publish Version
-        uses: PunishXIV/dynamis-action@v1
-        id: dynamis
+      - name: Zip Plugin
+        run: Compress-Archive -Path .\build\* -DestinationPath .\build\BossMod.zip
+
+      - name: Publish Plugin
+        uses: softprops/action-gh-release@v2
         with:
-          plugin_id: 30
-          internal_name: "BossMod"
-          version_number: ${{ env.tag }}
-          path: "BossMod/bin/Release/BossMod/latest.zip"
-          type: "latest"
-          dalamud_version: "9"
-        env:
-          PUBLISHER_KEY: ${{ secrets.PUBLISHER_KEY }}
+          files: ./build/BossMod.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
