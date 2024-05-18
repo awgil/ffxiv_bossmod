@@ -10,7 +10,7 @@ class ParhelicCircle(BossModule module) : Components.GenericAOEs(module)
     public override void OnActorCreated(Actor actor)
     {
         var activation = WorldState.FutureTime(8.9f);
-        var c = Module.Bounds.Center;
+        var c = Module.Center;
         if ((OID)actor.OID == OID.RefulgenceHexagon)
         {
             _aoes.Add(new(_circle, c, default, activation));

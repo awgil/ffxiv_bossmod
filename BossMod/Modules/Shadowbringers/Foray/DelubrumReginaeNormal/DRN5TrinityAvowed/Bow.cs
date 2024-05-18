@@ -51,7 +51,7 @@ class ShimmeringShot(BossModule module, float spawnToActivation) : TemperatureAO
 
         var xOffset = _pattern is Pattern.EWNormal or Pattern.EWInverted ? -20 : +20;
         var zOffset = 10 * (cell - 2);
-        yield return new(_shapeCell, Module.Bounds.Center + new WDir(xOffset, zOffset), new(), _activation, ArenaColor.SafeFromAOE, false);
+        yield return new(_shapeCell, Module.Center + new WDir(xOffset, zOffset), new(), _activation, ArenaColor.SafeFromAOE, false);
     }
 
     public override void Update()
@@ -84,7 +84,7 @@ class ShimmeringShot(BossModule module, float spawnToActivation) : TemperatureAO
 
     public bool ActorUnsafeAt(Actor actor, WPos pos)
     {
-        var offset = pos - Module.Bounds.Center;
+        var offset = pos - Module.Center;
         var posInFlames = _pattern switch
         {
             Pattern.EWNormal or Pattern.EWInverted => offset.X > -15,
@@ -100,7 +100,7 @@ class ShimmeringShot(BossModule module, float spawnToActivation) : TemperatureAO
         return _slotTempAdjustments[row] != -Temperature(actor);
     }
 
-    protected int RowIndex(WPos pos) => (pos.Z - Module.Bounds.Center.Z) switch
+    protected int RowIndex(WPos pos) => (pos.Z - Module.Center.Z) switch
     {
         < -15 => 0,
         < -5 => 1,
@@ -117,7 +117,7 @@ class ShimmeringShot(BossModule module, float spawnToActivation) : TemperatureAO
         if (arrow == null)
             return;
 
-        if (arrow.Position.X < Module.Bounds.Center.X != _pattern is Pattern.WENormal or Pattern.WEInverted)
+        if ((arrow.Position.X < Module.Center.X) != _pattern is Pattern.WENormal or Pattern.WEInverted)
             ReportError("Unexpected arrow X coord");
         var srcRow = RowIndex(arrow.Position);
         var destRow = _remap[(int)_pattern, srcRow];

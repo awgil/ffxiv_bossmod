@@ -172,8 +172,8 @@ class Thundercall(BossModule module) : Components.GenericAOEs(module)
             _orbs.AddRange(Module.Enemies(OID.BallOfLevin));
             WDir center = new();
             foreach (var o in _orbs)
-                center += o.Position - Module.Bounds.Center;
-            _safeOrb = _orbs.Farthest(Module.Bounds.Center + center);
+                center += o.Position - Module.Center;
+            _safeOrb = _orbs.Farthest(Module.Center + center);
             _miniTarget = WorldState.Actors.Find(spell.TargetID);
         }
     }

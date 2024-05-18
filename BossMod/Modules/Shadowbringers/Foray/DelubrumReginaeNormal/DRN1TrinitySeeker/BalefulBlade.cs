@@ -18,7 +18,7 @@ class BalefulBlade(BossModule module) : BossComponent(module)
         for (int i = 0; i < 4; ++i)
         {
             var center = (45 + i * 90).Degrees();
-            shape.Draw(Arena, Module.Bounds.Center, center, ArenaColor.SafeFromAOE);
+            shape.Draw(Arena, Module.Center, center, ArenaColor.SafeFromAOE);
         }
     }
 
@@ -30,7 +30,7 @@ class BalefulBlade(BossModule module) : BossComponent(module)
 
     public bool IsSafe(Actor actor)
     {
-        var offset = actor.Position - Module.Bounds.Center;
+        var offset = actor.Position - Module.Center;
         var angle = Angle.FromDirection(offset).Rad; // 4 barricades to check, at +-45 and +-135
         angle = Math.Abs(angle); // fold around z axis, leaving two barricades to check - at 45 and 135
         angle = Math.Abs(angle - 90.Degrees().Rad); // rotate and fold again, leaving one barricade at 45 +- 22.5

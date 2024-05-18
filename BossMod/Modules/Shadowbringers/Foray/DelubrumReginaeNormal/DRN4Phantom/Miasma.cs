@@ -113,7 +113,7 @@ class Miasma(BossModule module) : Components.GenericAOEs(module)
         _laneStates[laneIndex, heightIndex] = new() { Shape = shape, Activation = WorldState.FutureTime(16.1f), NextOrigin = new(actor.Position.X, Module.Center.Z - Module.Bounds.Radius + (shape == _shapeRect ? 0 : 5)) };
     }
 
-    private int LaneIndex(WPos pos) => (pos.X - Module.Bounds.Center.X) switch
+    private int LaneIndex(WPos pos) => (pos.X - Module.Center.X) switch
     {
         < -10 => 0,
         < 0 => 1,

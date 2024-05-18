@@ -272,9 +272,9 @@ class FierceBeating(BossModule module) : Components.Exaflare(module, 4)
         foreach (var (c, t, r) in ImminentAOEs())
             yield return new(Shape, c, r, t, ImminentColor);
         if (Lines.Count > 0 && linesstartedcount1 < 8)
-            yield return new(circle, Helpers.RotateAroundOrigin(linesstartedcount1 * 45, Module.Bounds.Center, _casters[0]), default, _activation.AddSeconds(linesstartedcount1 * 3.7f));
+            yield return new(circle, Helpers.RotateAroundOrigin(linesstartedcount1 * 45, Module.Center, _casters[0]), default, _activation.AddSeconds(linesstartedcount1 * 3.7f));
         if (Lines.Count > 1 && linesstartedcount2 < 8)
-            yield return new(circle, Helpers.RotateAroundOrigin(linesstartedcount2 * 45, Module.Bounds.Center, _casters[1]), default, _activation.AddSeconds(linesstartedcount2 * 3.7f));
+            yield return new(circle, Helpers.RotateAroundOrigin(linesstartedcount2 * 45, Module.Center, _casters[1]), default, _activation.AddSeconds(linesstartedcount2 * 3.7f));
     }
 
     public override void Update()

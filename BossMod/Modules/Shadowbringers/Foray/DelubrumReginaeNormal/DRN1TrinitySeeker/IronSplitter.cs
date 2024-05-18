@@ -10,7 +10,7 @@ class IronSplitter(BossModule module) : Components.GenericAOEs(module, ActionID.
     {
         if (spell.Action == WatchedAction)
         {
-            var distance = (caster.Position - Module.Bounds.Center).Length();
+            var distance = (caster.Position - Module.Center).Length();
             if (distance is < 3 or > 9 and < 11 or > 17 and < 19) // tiles
             {
                 _aoes.Add(new(new AOEShapeCircle(4), Module.Center, new(), spell.NPCFinishAt));

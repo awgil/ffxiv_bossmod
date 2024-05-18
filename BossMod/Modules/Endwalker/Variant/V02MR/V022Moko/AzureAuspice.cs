@@ -73,7 +73,7 @@ class Upwell(BossModule module) : Components.GenericAOEs(module)
     {
         line.NextOrigin += line.Advance;
         line.NextActivation = WorldState.FutureTime(2);
-        var offset = (line.NextOrigin - Module.Bounds.Center).Abs();
+        var offset = (line.NextOrigin - Module.Center).Abs();
         line.NextShape = offset.X < 19 && offset.Z < 19 ? _shapeNarrow : null;
     }
 }
