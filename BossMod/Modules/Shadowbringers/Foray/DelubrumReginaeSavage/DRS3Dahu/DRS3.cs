@@ -12,7 +12,7 @@ class Burn : Components.BaitAwayIcon
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9751)]
-public class DRS3(WorldState ws, Actor primary) : BossModule(ws, primary, new(82, 138), new ArenaBoundsCircle(30))
+public class DRS3(WorldState ws, Actor primary) : BossModule(ws, primary, new(82, 138), new ArenaBoundsCircle(29.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

@@ -8,6 +8,17 @@ class AddPhaseArena(BossModule module) : BossComponent(module)
     private const float _alcoveDepth = 1;
     private const float _alcoveWidth = 2;
     private bool Active;
+    private static readonly List<Func<WPos, float>> _labyrinthDistances;
+
+    static AddPhaseArena()
+    {
+        _labyrinthDistances =
+        [
+            ShapeDistance.ConcavePolygon(ConvertToWPos(InDanger())),
+            ShapeDistance.ConcavePolygon(ConvertToWPos(MidDanger())),
+            ShapeDistance.ConcavePolygon(ConvertToWPos(OutDanger()))
+        ];
+    }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
@@ -65,7 +76,7 @@ class AddPhaseArena(BossModule module) : BossComponent(module)
 
     private static IEnumerable<WDir> OutDanger()
     {
-        var outerBoundary = RepeatFirst(CurveApprox.Circle(35.1f, Shape.MaxApproxError));
+        var outerBoundary = RepeatFirst(CurveApprox.Circle(34.6f, Shape.MaxApproxError));
         var innerRing = RepeatFirst(RingBorder(0.Degrees(), _outerRingRadius, false)).Reverse();
         return outerBoundary.Concat(innerRing);
     }
@@ -80,15 +91,12 @@ class AddPhaseArena(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var labyrinth = new List<Func<WPos, float>>();
         base.AddAIHints(slot, actor, assignment, hints);
         if (!Active)
         {
-            labyrinth.Add(ShapeDistance.ConcavePolygon(ConvertToWPos(InDanger())));
-            labyrinth.Add(ShapeDistance.ConcavePolygon(ConvertToWPos(MidDanger())));
-            labyrinth.Add(ShapeDistance.ConcavePolygon(ConvertToWPos(OutDanger())));
-            hints.AddForbiddenZone(p => labyrinth.Select(f => f(p)).Min());
+            hints.AddForbiddenZone(p => _labyrinthDistances.Select(f => f(p)).Min());
         }
     }
-    public static readonly ArenaBounds labPhase = new ArenaBoundsComplex([new Circle(DRS7.BoundsCenter, 35)], labyrinth);
+
+    public static readonly ArenaBounds labPhase = new ArenaBoundsComplex([new Circle(DRS7.BoundsCenter, 34.5f)], labyrinth);
 }

@@ -15,7 +15,7 @@ public enum AID : uint
     RamsBreath = 1102, // Boss->self, 2.0s cast, range 9.7 120-degree cone, -45 degree offset
     DragonsBreath = 1103, // Boss->self, 2.0s cast, range 9.7 120-degree cone, +45 degree offset
     RamsVoice = 1104, // Boss->self, 3.0s cast, range 9.7 circle
-    DragonsVoice = 1442, // Boss->self, 4.5s cast, range 9-30 donut
+    DragonsVoice = 1442, // Boss->self, 4.5s cast, range 8-30 donut
     RamsKeeper = 1106, // Boss->location, 3.0s cast, range 6 voidzone
     Cacophony = 1107, // Boss->self, no cast, visual, summons orb
     ChaoticChorus = 1108, // Cacophony->self, no cast, range 6 aoe

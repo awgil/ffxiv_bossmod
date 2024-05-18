@@ -187,6 +187,7 @@ public static class ShapeDistance
         return p => -convexpolygon(p);
     }
 
+    // TODO: This is not very efficient for complex polygons, need to find a better way
     public static Func<WPos, float> ConcavePolygon(IEnumerable<WPos> vertices)
     {
         return p =>

@@ -84,8 +84,7 @@ class TimeEruption(BossModule module) : Components.GenericAOEs(module, ActionID.
         _ => null
     };
 }
-
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 735, NameID = 9384)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 32, SortOrder = 2)] //BossNameID = 9384
 public class DAL1Sartauvoir : BossModule
 {
     public readonly IReadOnlyList<Actor> Boss;

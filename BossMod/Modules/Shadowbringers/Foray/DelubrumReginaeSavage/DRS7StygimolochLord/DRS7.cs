@@ -16,7 +16,7 @@ public class DRS7 : BossModule
     private readonly IReadOnlyList<Actor> _ballsEarth;
     private readonly IReadOnlyList<Actor> _ballsFire;
     public static readonly WPos BoundsCenter = new(-416, -184);
-    public static readonly ArenaBounds DefaultBounds = new ArenaBoundsCircle(35);
+    public static readonly ArenaBounds DefaultBounds = new ArenaBoundsCircle(34.5f);
 
     public DRS7(WorldState ws, Actor primary) : base(ws, primary, BoundsCenter, DefaultBounds)
     {

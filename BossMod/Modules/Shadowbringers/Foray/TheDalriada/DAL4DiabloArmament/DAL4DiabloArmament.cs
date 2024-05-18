@@ -37,5 +37,5 @@ class PillarOfShamash3(BossModule module) : Components.SelfTargetedAOEs(module, 
 
 class UltimatePseudoterror(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.UltimatePseudoterror), new AOEShapeDonut(15, 70));
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 735, NameID = 10007)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 32, SortOrder = 5)] //BossNameID = 10007
 public class DAL4DiabloArmament(WorldState ws, Actor primary) : BossModule(ws, primary, new(-720, -760), new ArenaBoundsCircle(30));
