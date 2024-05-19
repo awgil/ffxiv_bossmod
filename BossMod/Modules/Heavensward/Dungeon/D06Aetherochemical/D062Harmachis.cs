@@ -49,8 +49,21 @@ class Paradox(BossModule module) : Components.LocationTargetedAOEs(module, Actio
 class ChthonicHush(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.ChthonicHush), new AOEShapeCone(13.3f, 60.Degrees()));
 class Petrifaction(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.Petrifaction));
 class Ka(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Ka), new AOEShapeCone(45, 30.Degrees()));
-class BallisticMissileAOE(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Enumeration, ActionID.MakeSpell(AID.BallisticMissile2), 4, 5.1f, 2, 2);
 class GaseousBomb(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, ActionID.MakeSpell(AID.GaseousBomb), 5, 4.1f);
+class BallisticMissile(BossModule module) : Components.UniformStackSpread(module, 4, 2, 2)
+{
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.Bind)
+            AddStack(actor, Module.WorldState.FutureTime(6.2f));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.BallisticMissile2)
+            Stacks.Clear();
+    }
+}
 
 class D062HarmachisStates : StateMachineBuilder
 {
@@ -62,7 +75,7 @@ class D062HarmachisStates : StateMachineBuilder
             .ActivateOnEnter<Petrifaction>()
             .ActivateOnEnter<Ka>()
             .ActivateOnEnter<GaseousBomb>()
-            .ActivateOnEnter<BallisticMissileAOE>();
+            .ActivateOnEnter<BallisticMissile>();
     }
 }
 

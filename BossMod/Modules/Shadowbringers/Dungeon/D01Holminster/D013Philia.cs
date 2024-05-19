@@ -319,14 +319,14 @@ class FierceBeating(BossModule module) : Components.Exaflare(module, 4)
         {
             if ((AID)spell.Action.ID is AID.FierceBeating4 or AID.FierceBeating6)
             {
-                int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+                var index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
                 AdvanceLine(Lines[index], caster.Position);
                 if (Lines[index].ExplosionsLeft == 0)
                     Lines.RemoveAt(index);
             }
             if ((AID)spell.Action.ID == AID.FierceBeating5)
             {
-                int index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
+                var index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
                 AdvanceLine(Lines[index], spell.TargetXZ);
                 if (Lines[index].ExplosionsLeft == 0)
                     Lines.RemoveAt(index);

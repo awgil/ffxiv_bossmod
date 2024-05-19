@@ -32,13 +32,10 @@ class WheiMorn(BossModule module) : Components.StandardChasingAOEs(module, new A
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(caster, spell);
-        if ((AID)spell.Action.ID is AID.WheiMornFirst or AID.WheiMornRest)
+        if (Chasers.Count == 0)
         {
-            if (NumCasts == MaxCasts)
-            {
-                ExcludedTargets.Reset();
-                NumCasts = 0;
-            }
+            ExcludedTargets.Reset();
+            NumCasts = 0;
         }
     }
 }
@@ -50,15 +47,15 @@ class DarkWyrmtail(BossModule module) : Components.SelfTargetedAOEs(module, Acti
 class CreatureOfDarkness(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _heads = [];
-    private static readonly AOEShapeRect rect = new(2, 2, 2);
-    private static readonly AOEShapeRect rect2 = new(6, 2);
+    private static readonly AOEShapeCircle circle = new(2);
+    private static readonly AOEShapeRect rect = new(6, 2, 2);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var c in _heads)
         {
-            yield return new(rect, c.Position, c.Rotation, Color: ArenaColor.Danger);
-            yield return new(rect2, c.Position + 2 * c.Rotation.ToDirection(), c.Rotation);
+            yield return new(rect, c.Position + 2 * c.Rotation.ToDirection(), c.Rotation);
+            yield return new(circle, c.Position, c.Rotation, Color: ArenaColor.Danger);
         }
     }
 

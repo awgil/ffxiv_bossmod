@@ -58,6 +58,7 @@ public sealed class Plugin : IDalamudPlugin
 
         CommandManager = commandManager;
         CommandManager.AddHandler("/bmr", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
+        CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
         _ws = new(Utils.FrameQPF(), dalamudStartInfo?.GameVersion?.ToString() ?? "unknown");
         _wsSync = new(_ws);
@@ -94,6 +95,7 @@ public sealed class Plugin : IDalamudPlugin
         ActionManagerEx.Instance?.Dispose();
         BozjaInterop.Instance?.Dispose();
         CommandManager.RemoveHandler("/bmr");
+        CommandManager.RemoveHandler("/vbm");
     }
 
     private void OnCommand(string cmd, string args)
