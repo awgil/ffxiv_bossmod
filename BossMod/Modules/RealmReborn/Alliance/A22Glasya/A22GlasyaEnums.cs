@@ -1,4 +1,5 @@
 ﻿namespace BossMod.RealmReborn.Alliance.A22Glasya;
+
 public enum OID : uint
 {
     Boss = 0xBD7, // R4.000, x?
@@ -24,5 +25,5 @@ public enum SID : uint
 
 public enum TetherID : uint
 {
-    Tether_22 = 22, // ClockworkWright->Boss
+    Tether22 = 22, // ClockworkWright->Boss
 }

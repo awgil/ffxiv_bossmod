@@ -1,4 +1,5 @@
 ﻿namespace BossMod.RealmReborn.Alliance.A13KingBehemoth;
+
 public enum OID : uint
 {
     Boss = 0x932, // R8.700, x?

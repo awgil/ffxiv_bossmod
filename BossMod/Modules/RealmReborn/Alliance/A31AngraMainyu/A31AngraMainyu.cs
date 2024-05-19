@@ -1,6 +1,4 @@
-﻿using BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros;
-
-namespace BossMod.RealmReborn.Alliance.A31AngraMainyu;
+﻿namespace BossMod.RealmReborn.Alliance.A31AngraMainyu;
 
 class DoubleVision(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.DoubleVision));
 class MortalGaze1(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.MortalGaze1));

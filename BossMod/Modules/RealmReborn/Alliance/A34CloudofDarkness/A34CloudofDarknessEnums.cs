@@ -1,4 +1,5 @@
 ﻿namespace BossMod.RealmReborn.Alliance.A34CloudofDarkness;
+
 public enum OID : uint
 {
     Boss = 0xCFA, // R14.000, x?

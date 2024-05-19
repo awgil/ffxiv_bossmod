@@ -1,4 +1,5 @@
 ﻿namespace BossMod.RealmReborn.Alliance.A23Amon;
+
 public enum OID : uint
 {
     Boss = 0xBE0, // R4.000, x?
@@ -44,11 +45,11 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_27 = 27, // player
-    Icon_3 = 3, // player
+    Icon27 = 27, // player
+    Icon3 = 3, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_1 = 1, // DimensionalCompression->player
+    Tether1 = 1, // DimensionalCompression->player
 }

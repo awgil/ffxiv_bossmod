@@ -1,4 +1,5 @@
 ﻿namespace BossMod.RealmReborn.Alliance.A21Scylla;
+
 public enum OID : uint
 {
     Boss = 0xBC1, // R3.750, x?
@@ -35,9 +36,9 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_24 = 24, // player
-    Icon_26 = 26, // player
-    Icon_25 = 25, // player
+    Icon24 = 24, // player
+    Icon26 = 26, // player
+    Icon25 = 25, // player
 }
 
 public enum TetherID : uint

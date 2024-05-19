@@ -81,7 +81,7 @@ public enum SID : uint
 public enum IconID : uint
 {
     Nox = 197, // player
-    Icon_62 = 62, // player
+    Icon62 = 62, // player
 }
 
 public enum TetherID : uint

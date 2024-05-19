@@ -96,6 +96,6 @@ public enum IconID : uint
 
 public enum TetherID : uint
 {
-    Tether_50 = 50, // EphemeralKnight->player
-    Tether_84 = 84, // Helper->player
+    Tether50 = 50, // EphemeralKnight->player
+    Tether84 = 84, // Helper->player
 }

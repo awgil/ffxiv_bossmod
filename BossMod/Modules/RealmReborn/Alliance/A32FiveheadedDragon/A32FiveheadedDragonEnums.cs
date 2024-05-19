@@ -60,11 +60,11 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_318 = 318, // player
-    Icon_46 = 46, // player
+    Icon318 = 318, // player
+    Icon46 = 46, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_5 = 5, // DragonfireFly->player
+    Tether5 = 5, // DragonfireFly->player
 }

@@ -1,4 +1,5 @@
 ﻿namespace BossMod.RealmReborn.Alliance.A12Thanatos;
+
 public enum OID : uint
 {
     Boss = 0x92E, // R3.000, x?
@@ -32,7 +33,7 @@ public enum SID : uint
 
 public enum TetherID : uint
 {
-    Tether_17 = 17, // Sandman->MagicPot
-    Tether_15 = 15, // MagicPot->Boss
-    Tether_4 = 4, // player->MagicPot
+    Tether17 = 17, // Sandman->MagicPot
+    Tether15 = 15, // MagicPot->Boss
+    Tether4 = 4, // player->MagicPot
 }

@@ -1,4 +1,5 @@
 ﻿namespace BossMod.RealmReborn.Alliance.A11BoneDragon;
+
 public enum OID : uint
 {
     Boss = 0x92B, // R5.000, x?
@@ -29,10 +30,10 @@ public enum SID : uint
 }
 public enum IconID : uint
 {
-    Icon_5 = 5, // player
+    Icon5 = 5, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_1 = 1, // Platinal->Platinal
+    Tether1 = 1, // Platinal->Platinal
 }

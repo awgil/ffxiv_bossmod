@@ -1,4 +1,5 @@
 ﻿namespace BossMod.RealmReborn.Alliance.A33Cerberus;
+
 public enum OID : uint
 {
     Boss = 0xDF6, // R10.800, x?
@@ -61,12 +62,12 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon_3 = 3, // player
+    Icon3 = 3, // player
 }
 
 public enum TetherID : uint
 {
-    Tether_34 = 34, // CerberusHelper3->player
-    Tether_33 = 33, // CerberusHelper3->Boss
-    Tether_32 = 32, // CerberusHelper3->Boss
+    Tether34 = 34, // CerberusHelper3->player
+    Tether33 = 33, // CerberusHelper3->Boss
+    Tether32 = 32, // CerberusHelper3->Boss
 }

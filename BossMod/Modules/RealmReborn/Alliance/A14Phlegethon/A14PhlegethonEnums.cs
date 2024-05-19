@@ -1,4 +1,5 @@
 ﻿namespace BossMod.RealmReborn.Alliance.A14Phlegethon;
+
 public enum OID : uint
 {
     Boss = 0x938, // R5.000, x?
