@@ -19,12 +19,12 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    AutoAttack3 = 872, // SmallBiped->player, no cast, single-target
-    AutoAttack_AutomaticCannon = 18264, // ReverseJointedGoliath->player, no cast, single-target
-    AreaBombardment = 18256, // Boss->self, 3.0s cast, single-target
-    ArmLaser = 18263, // ReverseJointedGoliath->self, 3.0s cast, range 30 90-degree cone
     AutoAttack1 = 19041, // Ally2P1->self, no cast, range 30 circle
     AutoAttack2 = 19043, // Ally2P1->ReverseJointedGoliath, no cast, single-target
+    AutoAttack3 = 872, // SmallBiped->player, no cast, single-target
+    AutoAttackAutomaticCannon = 18264, // ReverseJointedGoliath->player, no cast, single-target
+    AreaBombardment = 18256, // Boss->self, 3.0s cast, single-target
+    ArmLaser = 18263, // ReverseJointedGoliath->self, 3.0s cast, range 30 90-degree cone
     AutomaticCannon1 = 18257, // Boss->self, no cast, single-target
     AutomaticCannon2 = 18258, // EngelsHelper1->player, no cast, single-target
     CrushingWheel1 = 18248, // Boss->self, no cast, single-target
