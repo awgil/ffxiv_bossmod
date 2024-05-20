@@ -110,7 +110,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
 
         if (RaidwideOnResolve)
         {
-            DateTime firstActivation = DateTime.MaxValue;
+            var firstActivation = DateTime.MaxValue;
             BitMask damageMask = new();
             foreach (var s in ActiveSpreads)
             {

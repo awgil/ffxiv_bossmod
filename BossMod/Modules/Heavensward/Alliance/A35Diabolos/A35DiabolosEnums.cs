@@ -19,6 +19,8 @@ public enum AID : uint
     Noctoshield = 7183, // Boss->self, no cast, single-target
     RuinousOmen1 = 7184, // Boss->self, 15.0s cast, range 50 circle
     RuinousOmen2 = 7185, // Helper->self, 16.0s cast, range 30 circle
+    RuinousOmen3 = 7191, // Helper->self, no cast, range 30 circle
+
     UltimateTerror = 7186, // Boss->self, 4.0s cast, range 18+R circle
     UnknownAbility = 7190, // Boss->self, no cast, single-target
     VoidCall = 7188, // Deathgate->self, 9.0s cast, single-target

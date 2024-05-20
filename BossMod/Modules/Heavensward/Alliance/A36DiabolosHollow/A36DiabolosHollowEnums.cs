@@ -25,6 +25,8 @@ public enum AID : uint
     HollowCamisado = 7193, // Boss->player, 3.0s cast, single-target
     HollowNight = 7197, // Boss->players, no cast, range 8 circle
     HollowNightmare = 7200, // Boss->self, 4.0s cast, range 50 circle
+    HollowTerror = 7201, // Boss->self, 4.0s cast, range 17+R circle
+
     HollowOmen1 = 7202, // Boss->self, 15.0s cast, range 50 circle
     HollowOmen2 = 7203, // Helper->self, 20.0s cast, range 30 circle
     Hollowshield = 7198, // Boss->self, no cast, single-target

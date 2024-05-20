@@ -28,15 +28,20 @@ public enum AID : uint
     CitadelBuster2 = 7595, // ProtoUltimaHelper->self, 2.5s cast, range 65+R width 10 rect
 
     DiffractiveLaser = 7594, // Boss->self, no cast, range 12+R ?-degree cone
+    DiffractiveLaser2 = 7583, // ProtoBit->self, 2.5s cast, range 20+R 60-degree cone
+
     Eikonizer = 7597, // ProtoUltimaHelper->self, no cast, range 40 circle
     FlareStar = 7588, // ProtoUltimaHelper->self, 7.0s cast, range 31+R circle
     LightPillar = 7578, // Boss->self, no cast, single-target
-
+    LightPillar2 = 7589, // ProtoUltimaHelper->location, 2.2s cast, range 3 circle
+    LightPillar3 = 7592, // ProtoUltimaHelper->location, no cast, range 3 circle
     Rotoswipe = 4556, // AllaganDreadnaught->self, 3.0s cast, range 8+R 120-degree cone
 
-    Supernova1 = 7581, // Boss->self, 6.0s cast, range 40+R circle
-    Supernova2 = 7593, // Boss->self, 60.0s cast, range 40+R circle
+    IntegratedAetheromodulator = 7582, // ProtoBit->self, 2.5s cast, range 15+R circle
 
+    Supernova1 = 7581, // Boss->self, 6.0s cast, range 40+R circle
+    SupernovaEnrage = 7593, // Boss->self, 60.0s cast, range 40+R circle
+    SupernovaEnrageRepeat = 7764, // Boss->self, no cast, range 40+R circle
     Touchdown = 7580, // Boss->self, no cast, range 6+R circle
 
     WreckingBall = 4557, // AllaganDreadnaught->location, 4.0s cast, range 8 circle
@@ -44,7 +49,7 @@ public enum AID : uint
     UnknownWeaponskill1 = 7584, // Boss->self, no cast, single-target
     UnknownWeaponskill2 = 7585, // Boss->self, no cast, single-target
     UnknownWeaponskill3 = 7586, // Boss->self, no cast, single-target
-    UnknownWeaponskill4 = 7596, // ProtoUltimaHelper2->self, no cast, range 8 circle
+    UnknownWeaponskill4 = 7596, // ProtoUltimaHelper2->self, no cast, range 8 circleW
 }
 
 public enum IconID : uint

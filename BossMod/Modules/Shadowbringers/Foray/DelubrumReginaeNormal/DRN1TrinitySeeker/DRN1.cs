@@ -24,7 +24,7 @@ public class DRN1TrinitySeeker(WorldState ws, Actor primary) : BossModule(ws, pr
         for (var i = 0; i < 4; ++i)
         {
             var center = (45 + i * 90).Degrees();
-            Arena.PathArcTo(Bounds.Center, BarricadeRadius, (center - 22.5f.Degrees()).Rad, (center + 22.5f.Degrees()).Rad);
+            Arena.PathArcTo(Center, BarricadeRadius, (center - 22.5f.Degrees()).Rad, (center + 22.5f.Degrees()).Rad);
             MiniArena.PathStroke(false, ArenaColor.Border, 2);
         }
     }
