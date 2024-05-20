@@ -256,8 +256,15 @@ class Combos(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Hellburner(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Hellburner2), new AOEShapeCircle(5), true);
-class HellburnerHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Hellburner2));
+class Hellburner(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Hellburner2), new AOEShapeCircle(5), true)
+{
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (CurrentBaits.Count > 0)
+            hints.Add("Tankbuster cleave");
+    }
+}
+
 class MissileShower(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.MissileShower), "Raidwide x2");
 class ThermobaricExplosive(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.ThermobaricExplosive2), 25);
 class AssaultCarapace(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AssaultCarapace), new AOEShapeRect(60, 16, 60));
@@ -283,7 +290,6 @@ class ChiStates : StateMachineBuilder
             .ActivateOnEnter<RearGuns>()
             .ActivateOnEnter<RearGuns2>()
             .ActivateOnEnter<Hellburner>()
-            .ActivateOnEnter<HellburnerHint>()
             .ActivateOnEnter<FreeFallBombs>()
             .ActivateOnEnter<ThermobaricExplosive>()
             .ActivateOnEnter<Bunkerbuster>()

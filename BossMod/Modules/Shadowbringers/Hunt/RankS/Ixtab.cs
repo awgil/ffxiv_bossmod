@@ -75,8 +75,16 @@ class DualCastTartareanFlameThunder(BossModule module) : Components.GenericAOEs(
 class TartareanTwister(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.TartareanTwister));
 class TartareanBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TartareanBlizzard), new AOEShapeCone(40, 22.5f.Degrees()));
 class TartareanQuake(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TartareanQuake));
-class TartareanAbyss(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.TartareanAbyss), new AOEShapeCircle(6), true);
-class TartareanAbyssHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TartareanAbyss), "Tankbuster circle");
+
+class TartareanAbyss(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.TartareanAbyss), new AOEShapeCircle(6), true)
+{
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (CurrentBaits.Count > 0)
+            hints.Add("Tankbuster cleave");
+    }
+}
+
 class TartareanFlare(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TartareanFlare), 18);
 class TartareanMeteor(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.TartareanMeteor), 10);
 class ArchaicDualcast(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.ArchaicDualcast), "Preparing In/Out or Out/In AOE");
@@ -143,7 +151,6 @@ class IxtabStates : StateMachineBuilder
             .ActivateOnEnter<TartareanBlizzard>()
             .ActivateOnEnter<TartareanQuake>()
             .ActivateOnEnter<TartareanAbyss>()
-            .ActivateOnEnter<TartareanAbyssHint>()
             .ActivateOnEnter<TartareanFlare>()
             .ActivateOnEnter<TartareanMeteor>()
             .ActivateOnEnter<ArchaicDualcast>()

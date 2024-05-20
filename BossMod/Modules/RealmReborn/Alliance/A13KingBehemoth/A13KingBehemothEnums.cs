@@ -21,7 +21,7 @@ public enum AID : uint
     SelfDestruct = 1789, // Puroboros->self, 3.0s cast, range 6+R circle
     CharybdisVisual = 1751, // Boss->location, 3.0s cast, range 6 circle
     CharybdisAOE = 1752, // Charybdis->location, no cast, range 6 circle
-
+    Shock = 766, // 937->self, no cast, range 6 circle
 }
 
 public enum SID : uint

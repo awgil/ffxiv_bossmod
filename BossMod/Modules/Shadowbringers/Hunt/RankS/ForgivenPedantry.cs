@@ -80,9 +80,13 @@ class FeveredFlagellation(BossModule module) : Components.BaitAwayCast(module, A
         if (spell.Action == WatchedAction)
             CurrentBaits.RemoveAll(b => b.Source == caster);
     }
-}
 
-class FeveredFlagellationHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.FeveredFlagellation), "Cleave tankbuster");
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (CurrentBaits.Count > 0)
+            hints.Add("Tankbuster cleave");
+    }
+}
 
 class WitchHunt(BossModule module) : Components.GenericBaitAway(module)
 {
@@ -141,7 +145,6 @@ class ForgivenPedantryStates : StateMachineBuilder
             .ActivateOnEnter<SecondCircle>()
             .ActivateOnEnter<CleansingFire>()
             .ActivateOnEnter<FeveredFlagellation>()
-            .ActivateOnEnter<FeveredFlagellationHint>()
             .ActivateOnEnter<WitchHunt>();
     }
 }

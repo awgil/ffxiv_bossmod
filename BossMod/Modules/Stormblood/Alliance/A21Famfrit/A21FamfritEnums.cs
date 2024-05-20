@@ -29,13 +29,15 @@ public enum AID : uint
     Tsunami1 = 11336, // Boss->self, 3.0s cast, single-target
     Tsunami2 = 11338, // Boss->self, 3.0s cast, single-target
     Tsunami3 = 11339, // Boss->self, 3.0s cast, single-target
-    Tsunami4 = 11340, // Boss->self, no cast, single-target
-    Tsunami5 = 11341, // Boss->self, no cast, single-target
-    Tsunami6 = 11342, // Boss->self, no cast, single-target
-    Tsunami7 = 11343, // Boss->self, no cast, single-target
-    Tsunami8 = 11344, // FamfritTheDarkeningCloud->self, 5.0s cast, range 40 circle
-    Tsunami9 = 11345, // FamfritTheDarkeningCloud->self, no cast, range 36+R ?-degree cone
-    Tsunami10 = 11346, // FamfritTheDarkeningCloud->self, no cast, range 36+R ?-degree cone
+    Tsunami4 = 11337, // Boss->self, 3.0s cast, single-target
+    Tsunami5 = 11340, // Boss->self, no cast, single-target
+    Tsunami6 = 11341, // Boss->self, no cast, single-target
+    Tsunami7 = 11342, // Boss->self, no cast, single-target
+    Tsunami8 = 11343, // Boss->self, no cast, single-target
+    Tsunami9 = 11344, // FamfritTheDarkeningCloud->self, 5.0s cast, range 40 circle
+    Tsunami10 = 11345, // FamfritTheDarkeningCloud->self, no cast, range 36+R ?-degree cone
+    Tsunami11 = 11346, // FamfritTheDarkeningCloud->self, no cast, range 36+R ?-degree cone
+
     UnknownAbility = 11335, // Boss->location, no cast, ???
     WaterIV = 11325, // Boss->self, 4.0s cast, range 80 circle
 }

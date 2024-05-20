@@ -71,6 +71,8 @@ public enum AID : uint
     AntiPersonnelMissile3 = 19217, // Boss->self, 5.0s cast, single-target
     SidestrikingSpin1 = 19079, // Helper->self, 6.3s cast, range 12 width 30 rect
     SidestrikingSpin2 = 19078, // SerialJointedServiceModel->self, 6.0s cast, single-target
+    Unknown1 = 19032, // 2CC8->self, no cast, single-target
+    Unknown2 = 19031, // 2CC7->self, no cast, single-target
 }
 
 public enum SID : uint

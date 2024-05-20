@@ -41,6 +41,8 @@ public enum AID : uint
 
     Unrelenting1 = 9771, // Boss->self, 2.5s cast, single-target
     Unrelenting2 = 9772, // ArgathThadalfus->self, 3.0s cast, range 60+R ?-degree cone
+
+    Coldblood = 9766, // Boss->self, 12.0s cast, range ?-66 donut
 }
 
 public enum SID : uint

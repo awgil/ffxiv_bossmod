@@ -12,12 +12,14 @@ public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast, single-target
 
-    BeatificScorn1 = 29811, // Boss->self, 4.0s cast, single-target //Visual
-    BeatificScorn2 = 29814, // Boss->self, no cast, single-target //Visual
-    BeatificScorn3 = 29815, // Boss->self, no cast, single-target //Visual
-    BeatificScorn4 = 29816, // Boss->self, no cast, single-target //Visual
+    BeatificScorn1 = 29811, // Boss->self, 4.0s cast, single-target
+    BeatificScorn2 = 29812, // Boss->self, no cast, single-target
+    BeatificScorn3 = 29813, // Boss->self, 4.0s cast, single-target
+    BeatificScorn4 = 29814, // Boss->self, no cast, single-target
+    BeatificScorn5 = 29815, // Boss->self, no cast, single-target
+    BeatificScorn6 = 29816, // Boss->self, no cast, single-target
+    BeatificScornAOE = 29817, // Helper->self, 10.0s cast, range 9 circle
 
-    BeatificScorn5 = 29817, // Helper->self, 10.0s cast, range 9 circle
     DeathForeseen1 = 29821, // Helper->self, 5.0s cast, range 40 circle
     DeathForeseen2 = 29828, // Helper->self, 8.0s cast, range 40 circle
 
@@ -29,7 +31,10 @@ public enum AID : uint
     Voidshaker = 29822, // Boss->self, 5.0s cast, range 20 120-degree cone
     UnknownAbility1 = 29819, // Boss->self, no cast, single-target
     UnknownAbility2 = 29820, // Boss->location, no cast, single-target //Likely Toric Void: A ring AoE around the outside of the area, used at the same time as Eye of Troia.
-    // Missing Antipreasure stack marker
+    ToricVoid = 29829, // Boss->self, 4.0s cast, single-target
+    ToricVoid2 = 31206, // Boss->self, no cast, single-target
+    ToricVoid3 = 31207, // Helper->self, 4.0s cast, range 10-20 donut
+    Antipressure = 31208, // Helper->player, 7.0s cast, range 6 circle, stack
 }
 
 public enum IconID : uint
@@ -38,7 +43,7 @@ public enum IconID : uint
     Icon139 = 139, // player
 }
 
-class BeatificScorn5(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BeatificScorn5), new AOEShapeCircle(9));
+class BeatificScorn5(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BeatificScornAOE), new AOEShapeCircle(9));
 
 class DeathForeseen1(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.DeathForeseen1));
 class DeathForeseen2(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.DeathForeseen2));

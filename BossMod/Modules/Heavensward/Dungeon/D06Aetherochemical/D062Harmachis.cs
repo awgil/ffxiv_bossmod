@@ -50,7 +50,7 @@ class ChthonicHush(BossModule module) : Components.Cleave(module, ActionID.MakeS
 class Petrifaction(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.Petrifaction));
 class Ka(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Ka), new AOEShapeCone(45, 30.Degrees()));
 class GaseousBomb(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, ActionID.MakeSpell(AID.GaseousBomb), 5, 4.1f);
-class BallisticMissile(BossModule module) : Components.UniformStackSpread(module, 4, 2, 2)
+class BallisticMissile(BossModule module) : Components.UniformStackSpread(module, 4, 0, 2, 2)
 {
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

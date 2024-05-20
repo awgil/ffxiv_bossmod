@@ -10,12 +10,14 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast, single-target
-    DynamicPound = 25157, // Boss->self, 7.0s cast, range 40 width 6 rect
+    DynamicPound1 = 25157, // Boss->self, 7.0s cast, range 40 width 6 rect
+    DynamicPound2 = 25326, // Boss->self, 7.0s cast, range 40 width 6 rect
     DynamicScrapline = 25158, // Boss->self, 7.0s cast, range 8 circle
     ElectromagneticRelease1 = 25327, // Helper->self, 9.5s cast, range 40 width 6 rect
     ElectromagneticRelease2 = 25329, // Helper->self, 9.5s cast, range 8 circle
     GroundAndPound1 = 25159, // Boss->self, 3.5s cast, range 40 width 6 rect
     GroundAndPound2 = 25322, // Boss->self, 3.5s cast, range 40 width 6 rect
+
     RollingScrapline = 25323, // Boss->self, 3.0s cast, range 8 circle
     Shock = 25330, // Thunderball->self, 3.0s cast, range 8 circle
     ShockingForce = 25324, // Boss->players, 5.0s cast, range 6 circle
@@ -54,7 +56,8 @@ class ElectromagneticRelease2(BossModule module) : Components.SelfTargetedAOEs(m
 class GroundAndPound1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GroundAndPound1), new AOEShapeRect(40, 6));
 class GroundAndPound2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GroundAndPound2), new AOEShapeRect(40, 6));
 
-class DynamicPound(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DynamicPound), new AOEShapeRect(40, 6));
+class DynamicPound(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DynamicPound1), new AOEShapeRect(40, 6));
+class DynamicPound2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DynamicPound2), new AOEShapeRect(40, 6));
 class DynamicScrapline(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DynamicScrapline), new AOEShapeCircle(8));
 class RollingScrapline(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RollingScrapline), new AOEShapeCircle(6));
 class Shock(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shock), new AOEShapeCircle(8));
@@ -70,6 +73,7 @@ class D021BarnabasStates : StateMachineBuilder
             .ActivateOnEnter<GroundAndPound1>()
             .ActivateOnEnter<GroundAndPound2>()
             .ActivateOnEnter<DynamicPound>()
+            .ActivateOnEnter<DynamicPound2>()
             .ActivateOnEnter<DynamicScrapline>()
             .ActivateOnEnter<RollingScrapline>()
             .ActivateOnEnter<Shock>()

@@ -2,8 +2,16 @@ namespace BossMod.Endwalker.Trial.T08Asura;
 
 class LowerRealm(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.LowerRealm));
 class Ephemerality(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Ephemerality));
-class CuttingJewel(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.CuttingJewel), new AOEShapeCircle(4), true);
-class CuttingJewelHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CuttingJewel));
+
+class CuttingJewel(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.CuttingJewel), new AOEShapeCircle(4), true)
+{
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (CurrentBaits.Count > 0)
+            hints.Add("Tankbuster cleave");
+    }
+}
+
 class IconographyPedestalPurge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IconographyPedestalPurge), new AOEShapeCircle(10));
 class PedestalPurge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PedestalPurge), new AOEShapeCircle(27)); // Note, this is not a raidwide, origin is outside of the arena
 class IconographyWheelOfDeincarnation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IconographyWheelOfDeincarnation), new AOEShapeDonut(8, 40));
@@ -27,7 +35,6 @@ class T08AsuraStates : StateMachineBuilder
             .ActivateOnEnter<Chakra4>()
             .ActivateOnEnter<Chakra5>()
             .ActivateOnEnter<CuttingJewel>()
-            .ActivateOnEnter<CuttingJewelHint>()
             .ActivateOnEnter<Laceration>()
             .ActivateOnEnter<IconographyPedestalPurge>()
             .ActivateOnEnter<PedestalPurge>()

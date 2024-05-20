@@ -40,6 +40,8 @@ public enum AID : uint
     SourSough = 3510, // Wolfsbane->self, no cast, range 6+R ?-degree cone
     Ululation = 3254, // Boss->self, 4.2s cast, range 80+R circle
     Devour = 3242, // Boss->location, no cast, range 8 circle
+    HexEye = 1914, // Unknown->self, 2.5s cast, range 3+R circle
+
 }
 
 public enum SID : uint

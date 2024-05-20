@@ -8,6 +8,11 @@ public enum OID : uint
     BossAdd1 = 0x3D35, //R=1.76 
     BossAdd2 = 0x3D36, //R=1.56
     BonusAddLampas = 0x3D4D, //R=2.001, bonus loot adds
+    GymnasticGarlic = 0x3D51, // R0.840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+    GymnasticQueen = 0x3D53, // R0.840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+    GymnasticEggplant = 0x3D50, // R0.840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+    GymnasticOnion = 0x3D4F, // R0.840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+    GymnasticTomato = 0x3D52, // R0.840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
 }
 
 public enum AID : uint
@@ -27,10 +32,14 @@ public enum AID : uint
     OdiousAir = 32237, // Boss->self, 3.0s cast, range 12 120-degree cone
 
     HeavySmash = 32317, // BossAdd->location, 3.0s cast, range 6 circle
-    Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
+    PluckAndPrune = 32302, // GymnasticEggplant->self, 3.5s cast, range 7 circle
+    Pollen = 32305, // GymnasticQueen->self, 3.5s cast, range 7 circle
+    HeirloomScream = 32304, // GymnasticTomato->self, 3.5s cast, range 7 circle
+    PungentPirouette = 32303, // GymnasticGarlic->self, 3.5s cast, range 7 circle
+    TearyTwirl = 32301, // GymnasticOnion->self, 3.5s cast, range 7 circle
+    Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
 }
 
-class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
 class SludgeBomb(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SludgeBomb2), 8);
 class RustlingWind(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RustlingWind), new AOEShapeRect(15, 2));
 class AcidMist(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AcidMist), new AOEShapeCircle(6));
@@ -67,6 +76,13 @@ class OdiousAtmosphere(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(7));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(7));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(7));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(7));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7));
+
 class MegakanthaStates : StateMachineBuilder
 {
     public MegakanthaStates(BossModule module) : base(module)
@@ -79,7 +95,12 @@ class MegakanthaStates : StateMachineBuilder
             .ActivateOnEnter<OdiousAtmosphere>()
             .ActivateOnEnter<AcidMist>()
             .ActivateOnEnter<HeavySmash>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd1).All(e => e.IsDead) && module.Enemies(OID.BossAdd2).All(e => e.IsDead) && module.Enemies(OID.BonusAddLyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAddLampas).All(e => e.IsDead);
+            .ActivateOnEnter<PluckAndPrune>()
+            .ActivateOnEnter<TearyTwirl>()
+            .ActivateOnEnter<HeirloomScream>()
+            .ActivateOnEnter<PungentPirouette>()
+            .ActivateOnEnter<Pollen>()
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd1).All(e => e.IsDead) && module.Enemies(OID.BossAdd2).All(e => e.IsDead) && module.Enemies(OID.BonusAddLyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAddLampas).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
     }
 }
 
@@ -97,6 +118,16 @@ public class Megakantha(WorldState ws, Actor primary) : BossModule(ws, primary, 
             Arena.Actor(s, ArenaColor.Vulnerable);
         foreach (var s in Enemies(OID.BonusAddLampas))
             Arena.Actor(s, ArenaColor.Vulnerable);
+        foreach (var s in Enemies(OID.GymnasticEggplant))
+            Arena.Actor(s, ArenaColor.Vulnerable);
+        foreach (var s in Enemies(OID.GymnasticTomato))
+            Arena.Actor(s, ArenaColor.Vulnerable);
+        foreach (var s in Enemies(OID.GymnasticQueen))
+            Arena.Actor(s, ArenaColor.Vulnerable);
+        foreach (var s in Enemies(OID.GymnasticGarlic))
+            Arena.Actor(s, ArenaColor.Vulnerable);
+        foreach (var s in Enemies(OID.GymnasticOnion))
+            Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -106,7 +137,11 @@ public class Megakantha(WorldState ws, Actor primary) : BossModule(ws, primary, 
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAddLampas => 4,
+                OID.GymnasticOnion => 8,
+                OID.GymnasticEggplant => 7,
+                OID.GymnasticGarlic => 6,
+                OID.GymnasticTomato => 5,
+                OID.GymnasticQueen or OID.BonusAddLampas => 4,
                 OID.BonusAddLyssa => 3,
                 OID.BossAdd1 or OID.BossAdd2 => 2,
                 OID.Boss => 1,

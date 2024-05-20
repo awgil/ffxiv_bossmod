@@ -60,6 +60,12 @@ public enum AID : uint
     Yukikaze2 = 14386, // Helper->self, 3.0s cast, range 44+R width 4 rect
 
     ZanmaZanmai = 14404, // Boss->self, 3.0s cast, range 80 circle
+
+    Seasplitter1 = 14409, // Helper->self, 5.0s cast, range 21+R width 40 rect
+    Seasplitter2 = 14406, // Helper->self, no cast, range 7+R width 40 rect
+    Seasplitter3 = 14407, // Helper->self, no cast, range 7+R width 40 rect
+    Seasplitter4 = 14408, // Helper->self, no cast, range 7+R width 40 rect
+    MightyBlow = 14393, // Helper->player, no cast, single-target
 }
 
 public enum SID : uint

@@ -43,7 +43,9 @@ public enum AID : uint
     VoidVortex2 = 30253, // Boss->self, no cast, single-target
     VoidVortex3 = 30254, // Helper->players, 5.0s cast, range 6 circle //stack
 
-    // missing firedamp, tankbuster
+    FiredampVisual = 30262, // Boss->self, 5.0s cast, single-target
+    Firedamp = 30263, // Helper->player, 5.4s cast, range 5 circle, tankbuster
+    VoidGravity = 30242, // Helper->player, 5.0s cast, range 6 circle
 }
 
 public enum SID : uint
@@ -59,6 +61,8 @@ public enum IconID : uint
 {
     Icon353 = 353, // player
     Icon161 = 161, // player
+    Icon343 = 343, // player
+    Icon139 = 139, // player
 }
 
 public enum TetherID : uint

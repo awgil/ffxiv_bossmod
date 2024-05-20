@@ -23,7 +23,8 @@ public enum AID : uint
 
     Blizzard = 7777, // ShadowcourtJester->player, 1.0s cast, single-target
     Manos = 7379, // Boss->self, no cast, single-target
-    MarrowDrain = 3342, // ShadowcourtHound->self, 3.0s cast, range 6+R 120-degree cone
+    MarrowDrain1 = 3342, // ShadowcourtHound->self, 3.0s cast, range 6+R 120-degree cone
+    MarrowDrain2 = 3340, // ShadowcourtHound->self, 3.0s cast, range 6+R 120-degree cone
 
     NoxAOEFirst = 7458, // Connla->location, 5.0s cast, range 10 circle
     NoxAOERest = 7457, // Connla->location, no cast, range 10 circle
@@ -59,6 +60,7 @@ public enum AID : uint
     ThirtyThorns2 = 7468, // Connla->self, no cast, range 12+R width 3 rect
     ThirtyThorns3 = 7469, // Connla->self, no cast, range 12+R width 3 rect
     ThirtyThorns4 = 7470, // Connla->self, 1.5s cast, range 8 circle
+    Unhand = 7461, // ShadowLimb->self, 5.0s cast, range 60 circle
 
     Unknown = 7452, // Boss->self, no cast, range 15 circle
     Unknown2 = 7376, // Connla2->self, no cast, single-target
