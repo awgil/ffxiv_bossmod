@@ -16,11 +16,12 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    WaveOfTurmoil = 32257, // 3D39->self, 5.0s cast, single-target
-    WaveOfTurmoil2 = 32258, // 233C->self, 5.0s cast, range 40 circle, knockback 20 away from source
     AutoAttack1 = 870, // 3D4E->player, no cast, single-target
     AutoAttack2 = 871, // 3D3A->player, no cast, single-target
     AutoAttack3 = 872, // 3D39->player, no cast, single-target
+
+    WaveOfTurmoil = 32257, // 3D39->self, 5.0s cast, single-target
+    WaveOfTurmoil2 = 32258, // 233C->self, 5.0s cast, range 40 circle, knockback 20 away from source
     Hydrobomb = 32259, // 233C->location, 6.5s cast, range 10 circle
     Ceras = 32255, // 3D39->player, 5.0s cast, single-target
     Waterspout = 32261, // 3D39->self, 3.0s cast, single-target

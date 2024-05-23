@@ -74,5 +74,5 @@ class DD90AdministratorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 903, NameID = 12102)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 905, NameID = 12102)]
 public class DD90Administrator(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsSquare(20));

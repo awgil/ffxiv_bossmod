@@ -14,7 +14,7 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    AutoAttack1k = 872, // Boss->player, no cast, single-target
+    AutoAttack = 872, // Boss->player, no cast, single-target
     Coloratura = 2379, // Boss->self, no cast, range 8+R ?-degree cone
     BlizzagaForte = 2382, // Boss->self, 3.0s cast, range 6+R circle
     Darkness = 1875, // KumKum->self, 1.0s cast, range 6+R ?-degree cone
@@ -28,10 +28,13 @@ public enum AID : uint
     TheLastBout = 2372, // ExperimentalByProduct66->self, no cast, range 60 circle
     ThundagaForte1 = 2384, // AmonHelper->location, 3.5s cast, range 6 circle
     ThundagaForte2 = 2383, // Boss->location, 3.5s cast, range 6 circle
+    Pyrotechnics1 = 2377, // Boss->self, no cast, ???
+    Pyrotechnics2 = 2378, // AmonHelper->location, no cast, ???
 }
 
 public enum SID : uint
 {
+    AetherochemicalBomb = 509, // Boss->player, extra=0x0
     Invincibility = 1570, // none->player, extra=0x0
     Heavy = 14, // Boss->player, extra=0x32
     Minimum = 438, // DimensionalCompression->player/ExperimentalByProduct33/KumKum/Kichiknebik, extra=0x32

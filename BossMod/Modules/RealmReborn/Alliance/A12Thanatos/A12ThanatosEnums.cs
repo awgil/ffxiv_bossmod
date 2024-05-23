@@ -22,6 +22,7 @@ public enum AID : uint
     Attack = 1459, // Sandman->MagicPot, no cast, single-target
     TerrorTouch = 1661, // Sandman->MagicPot, no cast, single-target
     AstralLight = 1759, // MagicPot->self, 3.0s cast, range 6+R circle
+    SweetSteel = 489, // Nemesis->self, no cast, range 6+R ?-degree cone
 }
 
 public enum SID : uint

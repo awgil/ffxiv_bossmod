@@ -47,6 +47,7 @@ public record class Donut(WPos Center, float InnerRadius, float OuterRadius) : S
     }
 }
 
+// for rectangles defined by a center, halfwidth, halfheight and optionally rotation
 public record class Rectangle(WPos Center, float HalfWidth, float HalfHeight, Angle Rotation = default) : Shape
 {
     public override RelSimplifiedComplexPolygon ToPolygon(WPos center)
@@ -68,6 +69,13 @@ public record class Rectangle(WPos Center, float HalfWidth, float HalfHeight, An
     }
 }
 
+// for rectangles defined by a start point, end point and halfwidth
+public record class RectangleSE(WPos Start, WPos End, float HalfWidth) : Rectangle(
+    Center: new WPos((Start.X + End.X) / 2, (Start.Z + End.Z) / 2),
+    HalfWidth: HalfWidth,
+    HalfHeight: (End - Start).Length() / 2,
+    Rotation: new Angle(MathF.Atan2(End.Z - Start.Z, End.X - Start.X)) + 90.Degrees()
+);
 public record class Square(WPos Center, float HalfSize, Angle Rotation = default) : Rectangle(Center, HalfSize, HalfSize, Rotation);
 
 public record class Cross(WPos Center, float Length, float HalfWidth, Angle Rotation = default) : Shape

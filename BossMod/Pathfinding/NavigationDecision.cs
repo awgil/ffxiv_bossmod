@@ -35,6 +35,23 @@ public struct NavigationDecision
 
     public static NavigationDecision Build(WorldState ws, AIHints hints, Actor player, WPos? targetPos, float targetRadius, Angle targetRot, Positional positional, float playerSpeed = 6, float forbiddenZoneCushion = DefaultForbiddenZoneCushion)
     {
+        hints.WaypointManager.UpdateCurrentWaypoint(player.Position);
+
+        if (hints.WaypointManager.HasWaypoints())
+        {
+            var currentWaypoint = hints.WaypointManager.GetCurrentWaypoint();
+            if (currentWaypoint.HasValue)
+            {
+                return new NavigationDecision
+                {
+                    Destination = currentWaypoint.Value,
+                    LeewaySeconds = float.MaxValue,
+                    TimeToGoal = (currentWaypoint.Value - player.Position).Length() / playerSpeed,
+                    DecisionType = Decision.Optimal
+                };
+            }
+        }
+
         // TODO: skip pathfinding if there are no forbidden zones, just find closest point in circle/cone...
 
         var imminent = ImminentExplosionTime(ws.CurrentTime);
@@ -288,7 +305,11 @@ public struct NavigationDecision
         }
 
         // just run to closest safe spot, if no good path can be found
-        var closest = map.EnumeratePixels().Where(p => { var px = map[p.x, p.y]; return px.Priority == 0 && px.MaxG == float.MaxValue; }).MinBy(p => (p.center - startPos).LengthSq()).center;
+        var closest = map.EnumeratePixels().Where(p =>
+        {
+            var px = map[p.x, p.y];
+            return px.Priority == 0 && px.MaxG == float.MaxValue;
+        }).MinBy(p => (p.center - startPos).LengthSq()).center;
         return new() { Destination = closest, LeewaySeconds = 0, TimeToGoal = (closest - startPos).Length() / speed, Map = map, DecisionType = Decision.ImminentToClosest };
     }
 

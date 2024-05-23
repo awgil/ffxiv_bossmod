@@ -11,6 +11,7 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack1 = 1461, // Boss/IronGiant->player, no cast, single-target
+    AutoAttack2 = 1459, // IronClaws->player, no cast, single-target
 
     GreatDivide = 1725, // Boss->self, no cast, range 5+R width 8 rect
 
@@ -37,7 +38,8 @@ public enum AID : uint
 
     GrandSword = 1785, // IronGiant->self, no cast, range 12+R 120-degree cone
     DeathGrip = 610, // IronClaws->player, no cast, single-target
-    AutoAttack2 = 1459, // IronClaws->player, no cast, single-target
+
+    AncientFlare = 1731, // Boss->self, no cast, ???
 }
 
 public enum SID : uint

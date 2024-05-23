@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D012TesleentheForgiven;
+﻿namespace BossMod.Shadowbringers.Dungeon.D01Holminster.D012TesleentheForgiven;
 
 public enum OID : uint
 {
@@ -53,7 +53,7 @@ class FeveredFlagellation(BossModule module) : Components.GenericBaitAway(module
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.FeveredFlagellation2)
+        if (CurrentBaits.Count > 0 && (AID)spell.Action.ID == AID.FeveredFlagellation2)
             CurrentBaits.RemoveAt(0);
     }
 
@@ -81,5 +81,10 @@ class D012TesleentheForgivenStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8300)]
-public class D012TesleentheForgiven(WorldState ws, Actor primary) : BossModule(ws, primary, new(78, -82), new ArenaBoundsCircle(19.5f));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8300)]
+public class D012TesleentheForgiven(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> union = [new Circle(new(78, -82), 19.5f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(78, -62), 20, 1), new Rectangle(new(78, -102), 20, 1)];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+}

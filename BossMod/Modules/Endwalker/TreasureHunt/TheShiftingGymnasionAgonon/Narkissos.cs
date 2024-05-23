@@ -10,14 +10,16 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    Attack = 872, // Boss->player, no cast, single-target
+    AutoAttack = 870, // BonusAddLyssa->player, no cast, single-target
+    AutoAttack2 = 872, // Boss->player, no cast, single-target
+
     FetchingFulgence = 32332, // Boss->self, 4.0s cast, range 40 circle, Gaze, Vegetal Vapors
     PotentPerfume = 32333, // BossHelper->location, 4.0s cast, range 8 circle, high damage, Vegetal Vapours
     Lash = 32330, // Boss->player, 5.0s cast, single-target, tank buster
     SapShower = 32335, // Boss->self, no cast, single-target
     SapShower2 = 32336, // BossHelper->location, 6.5s cast, range 8 circle, high damage, Vegetal Vapours
     ExtensibleTendrils = 32339, // Boss->self, 5.0s cast, range 25 width 6 cross
-    AutoAttack = 870, // 3D4E->player, no cast, single-target
+
     RockHard = 32340, // BossHelper->player, 5.5s cast, range 6 circle
     HeavySmash = 32317, // 3D4E->location, 3.0s cast, range 6 circle
     BeguilingGas = 32331, // Boss->self, 5.0s cast, range 40 circle, Temporary Misdirection

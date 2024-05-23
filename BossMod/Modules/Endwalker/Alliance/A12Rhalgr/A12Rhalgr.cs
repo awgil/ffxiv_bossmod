@@ -4,7 +4,7 @@ class DestructiveBolt(BossModule module) : Components.SpreadFromCastTargets(modu
 class StrikingMeteor(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.StrikingMeteor), 6);
 class BronzeLightning(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BronzeLightning), new AOEShapeCone(50, 22.5f.Degrees()), 4);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11273, SortOrder = 3)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "veyn, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11273, SortOrder = 3)]
 public class A12Rhalgr(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
 {
     private static readonly List<WPos> arenacoords = [new(-29.2f, 235.5f), new(-40.3f, 248f), new(-47.5f, 260), new(-52.64f, 274.2f), new(-46.3f, 276.04f), new(-45.1f, 274.8f),

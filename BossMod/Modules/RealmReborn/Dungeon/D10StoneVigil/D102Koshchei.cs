@@ -70,7 +70,7 @@ class D102KoshcheiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 11, NameID = 1678)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "veyn, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 11, NameID = 1678)]
 public class D102Koshchei(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
 {
     private static readonly List<Shape> union = [new Rectangle(new(44, -80), 13.5f, 10.5f), new Rectangle(new(30.1f, -80), 4.5f, 0.4f, 90.Degrees()),

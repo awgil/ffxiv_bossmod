@@ -28,6 +28,7 @@ public class AIHints
 
     public WPos Center;
     public ArenaBounds Bounds = DefaultBounds;
+    public WaypointManager WaypointManager { get; private set; } = new WaypointManager();
 
     // list of potential targets
     public List<Enemy> PotentialTargets = [];
@@ -75,7 +76,7 @@ public class AIHints
     // fill list of potential targets from world state
     public void FillPotentialTargets(WorldState ws, bool playerIsDefaultTank)
     {
-        bool playerInFate = ws.Client.ActiveFate.ID != 0 && ws.Party.Player()?.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(ws.Client.ActiveFate.ID)?.ClassJobLevelMax;
+        var playerInFate = ws.Client.ActiveFate.ID != 0 && ws.Party.Player()?.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(ws.Client.ActiveFate.ID)?.ClassJobLevelMax;
         var allowedFateID = playerInFate ? ws.Client.ActiveFate.ID : 0;
         foreach (var actor in ws.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && (a.FateID == 0 || a.FateID == allowedFateID)))
         {
@@ -140,4 +141,80 @@ public class AIHints
     public int NumPriorityTargetsInAOERect(WPos origin, WDir direction, float lenFront, float halfWidth, float lenBack = 0) => NumPriorityTargetsInAOE(a => a.Actor.Position.InRect(origin, direction, lenFront + a.Actor.HitboxRadius, lenBack, halfWidth));
 
     public WPos ClampToBounds(WPos position) => Center + Bounds.ClampToBounds(position - Center);
+}
+
+public class WaypointManager
+{
+    private readonly Queue<WPos> waypoints = new();
+    private WPos? currentWaypoint = null;
+    private DateTime currentWaypointSetTime;
+    private float waypointTimeLimit;
+
+    public void AddWaypoint(WPos waypoint)
+    {
+        waypoints.Enqueue(waypoint);
+    }
+
+    public void AddWaypointsWithRandomization(List<WPos> waypointsList, float radius, int numRandomWaypoints)
+    {
+        for (var i = 0; i < waypointsList.Count - 1; i++)
+        {
+            AddWaypoint(waypointsList[i]);
+            for (var j = 0; j < numRandomWaypoints; j++)
+                AddWaypoint(GenerateRandomPointBetween(waypointsList[i], waypointsList[i + 1], radius));
+        }
+        AddWaypoint(waypointsList[^1]);
+    }
+
+    public WPos? GetCurrentWaypoint() => currentWaypoint;
+
+    public void UpdateCurrentWaypoint(WPos actorPosition, float threshold = 0.1f)
+    {
+        if (currentWaypoint.HasValue)
+        {
+            if ((currentWaypoint.Value - actorPosition).Length() <= threshold)
+            {
+                currentWaypoint = waypoints.Count > 0 ? waypoints.Dequeue() : null;
+                currentWaypointSetTime = DateTime.Now;
+            }
+            else if ((DateTime.Now - currentWaypointSetTime).TotalSeconds > waypointTimeLimit)
+            {
+                ClearWaypoints();
+                Service.Log("Waypoints cleared due to time limit");
+            }
+        }
+        else if (waypoints.Count > 0)
+        {
+            currentWaypoint = waypoints.Dequeue();
+            currentWaypointSetTime = DateTime.Now;
+        }
+    }
+
+    public bool HasWaypoints()
+    {
+        return currentWaypoint.HasValue || waypoints.Count > 0;
+    }
+
+    public void ClearWaypoints()
+    {
+        waypoints.Clear();
+        currentWaypoint = null;
+    }
+
+    public void SetWaypointTimeLimit(float timeLimit)
+    {
+        waypointTimeLimit = timeLimit;
+    }
+
+    public static WPos GenerateRandomPointBetween(WPos start, WPos end, float radius)
+    {
+        var random = new Random();
+        var t = (float)random.NextDouble();
+        var pointOnLine = new WPos(start.X + t * (end.X - start.X), start.Z + t * (end.Z - start.Z));
+        var angle = (float)(random.NextDouble() * 2 * Math.PI);
+        var distance = (float)(random.NextDouble() * radius);
+        var offsetX = distance * (float)Math.Cos(angle);
+        var offsetZ = distance * (float)Math.Sin(angle);
+        return new WPos(pointOnLine.X + offsetX, pointOnLine.Z + offsetZ);
+    }
 }

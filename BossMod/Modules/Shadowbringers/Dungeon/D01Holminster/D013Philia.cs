@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia;
+﻿namespace BossMod.Shadowbringers.Dungeon.D01Holmintser.D013Philia;
 
 public enum OID : uint
 {
@@ -356,5 +356,10 @@ class D013PhiliaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8301)]
-public class D013Philia(WorldState ws, Actor primary) : BossModule(ws, primary, new(134, -465), new ArenaBoundsCircle(19.5f));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8301)]
+public class D013Philia(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> union = [new Circle(new(134, -465), 19.5f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(134, -445), 20, 1.5f)];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+}

@@ -47,7 +47,17 @@ class MagitekRayF(BossModule module) : Components.SelfTargetedAOEs(module, Actio
 class MagitekRayR(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRayAOERight), new AOEShapeRect(40, 3));
 class MagitekRayL(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRayAOELeft), new AOEShapeRect(40, 3));
 class HomingRay(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.HomingRayAOE), 6);
-class LaserFocus(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.LaserFocusAOE), 6);
+class LaserFocus(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.LaserFocusAOE), 6)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // requested by LTS, not sure if this is really needed (it is supposed to improve DPS uptime?)
+        if (Stacks.Count > 0)
+        {
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 1.5f));
+        }
+    }
+}
 
 class AethericBoom(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.AethericBoom), 30, stopAtWall: true)
 {
@@ -81,12 +91,18 @@ class Aetheroplasm(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var orb = ActiveOrbs.FirstOrDefault();
+        // orbs spawn with rotation 0°, checking for a different angle makes sure the AI doesn't run into the wall trying to catch them
+        // since orbs are outside of the arena until they start rotating
+        var orb = ActiveOrbs.FirstOrDefault(x => !x.Rotation.AlmostEqual(0.Degrees(), Helpers.RadianConversion));
+        var orbs = new List<Func<WPos, float>>();
         if (orb != null)
         {
             hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(orb.Position + 0.7f * orb.Rotation.ToDirection(), 1.2f));
+            foreach (var o in ActiveOrbs)
+                orbs.Add(ShapeDistance.InvertedCircle(o.Position + 0.7f * o.Rotation.ToDirection(), 1.2f));
         }
+        if (orbs.Count > 0)
+            hints.AddForbiddenZone(p => orbs.Select(f => f(p)).Max());
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -132,8 +148,8 @@ class T04PortaDecumana2States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 830, NameID = 2137, SortOrder = 2)]
-public class T04PortaDecumana2(WorldState ws, Actor primary) : BossModule(ws, primary, new(-704, 480), new ArenaBoundsCircle(20))
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "veyn, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 830, NameID = 2137, SortOrder = 2)]
+public class T04PortaDecumana2(WorldState ws, Actor primary) : BossModule(ws, primary, new(-704, 480), new ArenaBoundsCircle(19.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

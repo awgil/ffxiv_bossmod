@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D011ForgivenDissonance;
+﻿namespace BossMod.Shadowbringers.Dungeon.D01Holminster.D011ForgivenDissonance;
 
 public enum OID : uint
 {
@@ -45,5 +45,10 @@ class D011ForgivenDissonanceStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8299)]
-public class D011ForgivenDissonance(WorldState ws, Actor primary) : BossModule(ws, primary, new(-15, 240), new ArenaBoundsCircle(19.5f));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8299)]
+public class D011ForgivenDissonance(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> union = [new Circle(new(-15, 240), 19.5f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(-15, 260), 20, 1.25f), new Rectangle(new(-15, 220), 20, 1.2f)];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+}

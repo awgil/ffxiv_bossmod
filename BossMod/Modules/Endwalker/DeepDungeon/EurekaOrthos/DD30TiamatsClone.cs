@@ -11,13 +11,13 @@ public enum AID : uint
 {
     HeadAttack = 31842, // 233C->player, no cast, single-target
     AutoAttack = 32702, // 3D9A->player, no cast, single-target
-    CreatureOfDarkness = 31841, // 3D9A->self, 3.0s cast, single-target // Summon Heads E<->W heading S
+    CreatureOfDarkness = 31841, // 3D9A->self, 3.0s cast, single-target, summon Heads E<->W heading S
     DarkMegaflare1 = 31849, // 3D9A->self, 3.0s cast, single-target
     DarkMegaflare2 = 31850, // 233C->location, 3.0s cast, range 6 circle
     DarkWyrmtail1 = 31843, // 3D9A->self, 5.0s cast, single-target
-    DarkWyrmtail2 = 31844, // 233C->self, 6.0s cast, range 40 width 16 rect // Summon Heads Heading E/W from Middle Lane
+    DarkWyrmtail2 = 31844, // 233C->self, 6.0s cast, range 40 width 16 rect, summon Heads Heading E/W from Middle Lane
     DarkWyrmwing1 = 31845, // 3D9A->self, 5.0s cast, single-target
-    DarkWyrmwing2 = 31846, // 233C->self, 6.0s cast, range 40 width 16 rect  // Summon Heads Heading E/W from E/W Walls
+    DarkWyrmwing2 = 31846, // 233C->self, 6.0s cast, range 40 width 16 rect, summon Heads Heading E/W from E/W Walls
     WheiMornFirst = 31847, // 3D9A->location, 5.0s cast, range 6 circle
     WheiMornRest = 31848, // 3D9A->location, no cast, range 6 circle
 }
