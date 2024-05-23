@@ -2,10 +2,10 @@
 
 public enum OID : uint
 {
-    Boss = 0x3900, // x1
-    Helper = 0x233C, // x10
-    Aetheroplasm = 0x3902, // spawn during fight
-    MagitekBit = 0x3901, // spawn during fight
+    Boss = 0x3900, // R=6.0
+    Helper = 0x233C,
+    Aetheroplasm = 0x3902, // R=1.0
+    MagitekBit = 0x3901, // R=0.6
 }
 
 public enum AID : uint
@@ -54,7 +54,7 @@ class LaserFocus(BossModule module) : Components.StackWithCastTargets(module, Ac
         // requested by LTS, not sure if this is really needed (it is supposed to improve DPS uptime?)
         if (Stacks.Count > 0)
         {
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 1.5f));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 1.5f), Stacks[0].Activation);
         }
     }
 }

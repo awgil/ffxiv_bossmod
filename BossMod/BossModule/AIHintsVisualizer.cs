@@ -39,6 +39,10 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
         {
             tree.LeafNodes(hints.PlannedActions, e => $"{e.action} @ {e.target} in {e.windowEnd:f3}s ({(e.lowPriority ? "low" : "high")} priority)");
         }
+        foreach (var _1 in tree.Node("Custom waypoints", !hints.WaypointManager.HasWaypoints))
+        {
+            tree.LeafNodes(hints.WaypointManager.waypoints, wp => $"{wp}");
+        }
         foreach (var _1 in tree.Node("Pathfinding"))
         {
             _pathfindVisualizer ??= BuildPathfindingVisualizer();

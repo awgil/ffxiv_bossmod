@@ -61,7 +61,11 @@ class Geyser(BossModule module) : Components.GenericAOEs(module)
 
     private readonly List<AOEInstance> _geysers = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _geysers;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var g in _geysers)
+            yield return new(g.Shape, g.Origin, default, g.Activation, g.Activation == _geysers[0].Activation ? ArenaColor.Danger : ArenaColor.AOE);
+    }
 
     public override void OnActorEAnim(Actor actor, uint state)
     {

@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // information relevant for AI decision making process for a specific player
 public class AIHints
@@ -143,77 +141,4 @@ public class AIHints
     public int NumPriorityTargetsInAOERect(WPos origin, WDir direction, float lenFront, float halfWidth, float lenBack = 0) => NumPriorityTargetsInAOE(a => a.Actor.Position.InRect(origin, direction, lenFront + a.Actor.HitboxRadius, lenBack, halfWidth));
 
     public WPos ClampToBounds(WPos position) => Center + Bounds.ClampToBounds(position - Center);
-}
-
-public class WaypointManager
-{
-    private readonly Queue<WPos> waypoints = new();
-    private WPos? activeWaypoint;
-    private DateTime activeWaypointSetTime;
-    public float WaypointTimeLimit { get; set; }
-    public WPos? CurrentWaypoint => activeWaypoint;
-    public bool HasWaypoints => activeWaypoint.HasValue || waypoints.Count > 0;
-
-    public void AddWaypoint(WPos waypoint)
-    {
-        waypoints.Enqueue(waypoint);
-    }
-
-    public void AddWaypointsWithRandomization(List<WPos> waypointsList, float radius, int numRandomWaypoints)
-    {
-        for (var i = 0; i < waypointsList.Count - 1; i++)
-        {
-            AddWaypoint(waypointsList[i]);
-            for (var j = 0; j < numRandomWaypoints; j++)
-                AddWaypoint(GenerateRandomPointBetween(waypointsList[i], waypointsList[i + 1], radius));
-        }
-        AddWaypoint(waypointsList[^1]);
-    }
-
-    public void UpdateCurrentWaypoint(WPos actorPosition, float threshold = 0.1f)
-    {
-        if (activeWaypoint.HasValue)
-        {
-            if ((activeWaypoint.Value - actorPosition).Length() <= threshold)
-            {
-                activeWaypoint = waypoints.Count > 0 ? waypoints.Dequeue() : null;
-                activeWaypointSetTime = DateTime.Now;
-            }
-            else if ((DateTime.Now - activeWaypointSetTime).TotalSeconds > WaypointTimeLimit)
-            {
-                ClearWaypoints();
-                Service.Log("Waypoints cleared due to time limit");
-            }
-        }
-        else if (waypoints.Count > 0)
-        {
-            activeWaypoint = waypoints.Dequeue();
-            activeWaypointSetTime = DateTime.Now;
-        }
-    }
-
-    public void ClearWaypoints()
-    {
-        waypoints.Clear();
-        activeWaypoint = null;
-    }
-
-    public static WPos GenerateRandomPointBetween(WPos start, WPos end, float radius)
-    {
-        using var rng = RandomNumberGenerator.Create();
-        var t = GetRandomFloat(rng);
-        var pointOnLine = new WPos(start.X + t * (end.X - start.X), start.Z + t * (end.Z - start.Z));
-        var angle = GetRandomFloat(rng) * 2 * Math.PI;
-        var distance = GetRandomFloat(rng) * radius;
-        var offsetX = distance * (float)Math.Cos(angle);
-        var offsetZ = distance * (float)Math.Sin(angle);
-        return new WPos(pointOnLine.X + offsetX, pointOnLine.Z + offsetZ);
-    }
-
-    private static float GetRandomFloat(RandomNumberGenerator rng)
-    {
-        var bytes = new byte[4];
-        rng.GetBytes(bytes);
-        return BitConverter.ToUInt32(bytes, 0) / (float)uint.MaxValue;
-    }
 }

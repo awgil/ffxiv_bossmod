@@ -58,15 +58,16 @@ class FunambulistsFantasia(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var lyre = Module.Enemies(OID.LiarsLyre).FirstOrDefault();
+        hints.WaypointManager.module = Module;
         if (Module.Arena.Bounds == D033AencThon.chasmArena && lyre != null)
         {
+            hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(lyre.Position, 3));
             if (!WaypointsAdded && !actor.IsDead)
             {
                 hints.WaypointManager.WaypointTimeLimit = 10;
                 WaypointsAdded = true;
-                foreach (var w in waypoints)
-                    hints.WaypointManager.AddWaypoint(w);
+                hints.WaypointManager.AddWaypointsWithRandomization(waypoints, 0.1f, 10);
             }
         }
     }

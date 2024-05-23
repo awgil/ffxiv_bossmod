@@ -65,19 +65,28 @@ sealed class AIManager : IDisposable
         if (ImGui.Button("Reset"))
             SwitchToIdle();
         ImGui.SameLine();
-        if (ImGui.Button("AI On - Follow leader"))
+        if (ImGui.Button("AI On - Follow selected slot"))
         {
-            if (_config.FollowLeader)
+            SwitchToFollow(_config.FollowSlot);
+        }
+        ImGui.Text("Follow Party Slot");
+        ImGui.SameLine();
+        var partyMemberNames = new List<string>();
+        for (int i = 0; i < 8; i++)
+        {
+            var member = _autorot.WorldState.Party[i];
+            if (member != null)
             {
-                var leader = Service.PartyList[(int)Service.PartyList.PartyLeaderIndex];
-                int leaderSlot = leader != null ? _autorot.WorldState.Party.ContentIDs.IndexOf((ulong)leader.ContentId) : -1;
-                SwitchToFollow(leaderSlot >= 0 ? leaderSlot : PartyState.PlayerSlot);
+                partyMemberNames.Add(member.Name);
             }
             else
             {
-                SwitchToFollow(PartyState.PlayerSlot);
+                partyMemberNames.Add($"Slot {i + 1}");
             }
         }
+        var partyMemberNamesArray = partyMemberNames.ToArray();
+
+        ImGui.Combo("##FollowPartySlot", ref _config.FollowSlot, partyMemberNamesArray, partyMemberNamesArray.Length);
     }
 
     private void SwitchToIdle()

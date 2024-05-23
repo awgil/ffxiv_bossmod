@@ -2,12 +2,12 @@
 
 public enum OID : uint
 {
-    Boss = 0x38FB, // x1
-    UltimaGaruda = 0x38FC, // x1
-    UltimaTitan = 0x38FD, // x1
-    UltimaIfrit = 0x38FF, // x1
-    GraniteGaol = 0x38FE, // spawn during fight
-    Helper = 0x233C, // x15
+    Boss = 0x38FB, // R=6.0
+    UltimaGaruda = 0x38FC, // R=3.4
+    UltimaTitan = 0x38FD, // /R=5.25
+    UltimaIfrit = 0x38FF, // R=5.0
+    GraniteGaol = 0x38FE, // R=1.8
+    Helper = 0x233C,
 }
 
 public enum AID : uint
@@ -36,9 +36,15 @@ public enum AID : uint
     RadiantPlumeAOE = 28983, // Helper->self, 3.0s cast, range 8 circle aoe
     VulcanBurst = 29003, // UltimaIfrit->self, 4.0s cast, raidwide knockback 15
 
-    //_Gen_ = 28988, // Helper->player, no cast, single-target, visual ???
-    //_Gen_ = 28511, // Helper->self, no cast, ??? (cast during transition)
-    //_Gen_ = 28992, // Helper->self, no cast, single-target, ??? (cast during transition)
+    Transition1 = 28988, // Helper->player, no cast, single-target
+    Transition2 = 28992, // Helper->self, no cast, single-target
+    Transition3 = 28511, // Helper->self, no cast, ???
+    EarthenEternity = 29435, // Boss->self, 33.0s cast, range 35 circle
+    HeadsmansWind = 28510, // Boss->self, 28.0s cast, range 35 circle
+    RadiantBlaze = 28990, // Boss->self, 32.0s cast, single-target
+    RadiantBlaze2 = 28991, // Helper->self, 32.0s cast, range 12 circle
+    GraniteSepulchre = 28989, // GraniteGaol->self, 33.0s cast, single-target
+
     TransitionFinish1 = 28994, // Boss->self, no cast, single-target, visual (lose buff)
     TransitionFinish2 = 28993, // Boss->self, no cast, single-target, visual (lose buff)
     TransitionFinish3 = 28995, // Boss->self, no cast, single-target, visual (lose buff)
