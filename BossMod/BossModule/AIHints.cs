@@ -207,7 +207,7 @@ public class WaypointManager
 
     public static WPos GenerateRandomPointBetween(WPos start, WPos end, float radius)
     {
-        var rng = RandomNumberGenerator.Create();
+        using var rng = RandomNumberGenerator.Create();
         var t = GetRandomFloat(rng);
         var pointOnLine = new WPos(start.X + t * (end.X - start.X), start.Z + t * (end.Z - start.Z));
         var angle = GetRandomFloat(rng) * 2 * Math.PI;

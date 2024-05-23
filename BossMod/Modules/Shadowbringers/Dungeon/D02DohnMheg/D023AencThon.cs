@@ -63,7 +63,7 @@ class FunambulistsFantasia(BossModule module) : BossComponent(module)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(lyre.Position, 3));
             if (!WaypointsAdded && !actor.IsDead)
             {
-                hints.WaypointManager.SetWaypointTimeLimit(10.0f); // Set a 10-second time limit
+                hints.WaypointManager.WaypointTimeLimit = 10;
                 WaypointsAdded = true;
                 foreach (var w in waypoints)
                     hints.WaypointManager.AddWaypoint(w);

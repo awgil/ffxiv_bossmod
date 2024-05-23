@@ -37,9 +37,9 @@ public struct NavigationDecision
     {
         hints.WaypointManager.UpdateCurrentWaypoint(player.Position);
 
-        if (hints.WaypointManager.HasWaypoints())
+        if (hints.WaypointManager.HasWaypoints)
         {
-            var currentWaypoint = hints.WaypointManager.GetCurrentWaypoint();
+            var currentWaypoint = hints.WaypointManager.CurrentWaypoint;
             if (currentWaypoint.HasValue)
             {
                 return new NavigationDecision
