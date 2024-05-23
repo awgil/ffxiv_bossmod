@@ -66,23 +66,17 @@ sealed class AIManager : IDisposable
             SwitchToIdle();
         ImGui.SameLine();
         if (ImGui.Button("AI On - Follow selected slot"))
-        {
             SwitchToFollow(_config.FollowSlot);
-        }
         ImGui.Text("Follow Party Slot");
         ImGui.SameLine();
         var partyMemberNames = new List<string>();
-        for (int i = 0; i < 8; i++)
+        for (var i = 0; i < 8; i++)
         {
             var member = _autorot.WorldState.Party[i];
             if (member != null)
-            {
                 partyMemberNames.Add(member.Name);
-            }
             else
-            {
                 partyMemberNames.Add($"Slot {i + 1}");
-            }
         }
         var partyMemberNamesArray = partyMemberNames.ToArray();
 

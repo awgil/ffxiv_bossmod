@@ -1,6 +1,5 @@
 ﻿namespace BossMod.AI;
 
-// AIConfig Class
 [ConfigDisplay(Name = "AI settings (very experimental!!!)", Order = 6)]
 sealed class AIConfig : ConfigNode
 {
@@ -10,9 +9,6 @@ sealed class AIConfig : ConfigNode
     [PropertyDisplay("Draw UI")]
     public bool DrawUI = true;
 
-    [PropertyDisplay("Follow Leader")]
-    public bool FollowLeader = true;
-
     [PropertyDisplay("Focus Target Leader")]
     public bool FocusTargetLeader = true;
 
@@ -21,5 +17,5 @@ sealed class AIConfig : ConfigNode
 
     [PropertyDisplay("Follow Party Slot")]
     [PropertyCombo(["Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5", "Slot 6", "Slot 7", "Slot 8"])]
-    public int FollowSlot = 0; // Default to Slot 1
+    public int FollowSlot = 0;
 }
