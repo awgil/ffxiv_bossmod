@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using System.Security.Cryptography;
+
+namespace BossMod;
 
 // information relevant for AI decision making process for a specific player
 public class AIHints
@@ -146,7 +148,7 @@ public class AIHints
 public class WaypointManager
 {
     private readonly Queue<WPos> waypoints = new();
-    private WPos? currentWaypoint = null;
+    private WPos? currentWaypoint;
     private DateTime currentWaypointSetTime;
     private float waypointTimeLimit;
 
@@ -166,7 +168,7 @@ public class WaypointManager
         AddWaypoint(waypointsList[^1]);
     }
 
-    public WPos? GetCurrentWaypoint() => currentWaypoint;
+    public WPos? CurrentWaypoint => currentWaypoint;
 
     public void UpdateCurrentWaypoint(WPos actorPosition, float threshold = 0.1f)
     {
@@ -190,10 +192,7 @@ public class WaypointManager
         }
     }
 
-    public bool HasWaypoints()
-    {
-        return currentWaypoint.HasValue || waypoints.Count > 0;
-    }
+    public bool HasWaypoints => currentWaypoint.HasValue || waypoints.Count > 0;
 
     public void ClearWaypoints()
     {
@@ -201,20 +200,27 @@ public class WaypointManager
         currentWaypoint = null;
     }
 
-    public void SetWaypointTimeLimit(float timeLimit)
+    public float WaypointTimeLimit
     {
-        waypointTimeLimit = timeLimit;
+        set => waypointTimeLimit = value;
     }
 
     public static WPos GenerateRandomPointBetween(WPos start, WPos end, float radius)
     {
-        var random = new Random();
-        var t = (float)random.NextDouble();
+        var rng = RandomNumberGenerator.Create();
+        var t = GetRandomFloat(rng);
         var pointOnLine = new WPos(start.X + t * (end.X - start.X), start.Z + t * (end.Z - start.Z));
-        var angle = (float)(random.NextDouble() * 2 * Math.PI);
-        var distance = (float)(random.NextDouble() * radius);
+        var angle = GetRandomFloat(rng) * 2 * Math.PI;
+        var distance = GetRandomFloat(rng) * radius;
         var offsetX = distance * (float)Math.Cos(angle);
         var offsetZ = distance * (float)Math.Sin(angle);
         return new WPos(pointOnLine.X + offsetX, pointOnLine.Z + offsetZ);
+    }
+
+    private static float GetRandomFloat(RandomNumberGenerator rng)
+    {
+        var bytes = new byte[4];
+        rng.GetBytes(bytes);
+        return BitConverter.ToUInt32(bytes, 0) / (float)uint.MaxValue;
     }
 }
