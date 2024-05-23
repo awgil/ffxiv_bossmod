@@ -148,9 +148,11 @@ public class AIHints
 public class WaypointManager
 {
     private readonly Queue<WPos> waypoints = new();
-    private WPos? currentWaypoint;
-    private DateTime currentWaypointSetTime;
-    private float waypointTimeLimit;
+    private WPos? activeWaypoint;
+    private DateTime activeWaypointSetTime;
+    public float WaypointTimeLimit { get; set; }
+    public WPos? CurrentWaypoint => activeWaypoint;
+    public bool HasWaypoints => activeWaypoint.HasValue || waypoints.Count > 0;
 
     public void AddWaypoint(WPos waypoint)
     {
@@ -168,18 +170,16 @@ public class WaypointManager
         AddWaypoint(waypointsList[^1]);
     }
 
-    public WPos? CurrentWaypoint => currentWaypoint;
-
     public void UpdateCurrentWaypoint(WPos actorPosition, float threshold = 0.1f)
     {
-        if (currentWaypoint.HasValue)
+        if (activeWaypoint.HasValue)
         {
-            if ((currentWaypoint.Value - actorPosition).Length() <= threshold)
+            if ((activeWaypoint.Value - actorPosition).Length() <= threshold)
             {
-                currentWaypoint = waypoints.Count > 0 ? waypoints.Dequeue() : null;
-                currentWaypointSetTime = DateTime.Now;
+                activeWaypoint = waypoints.Count > 0 ? waypoints.Dequeue() : null;
+                activeWaypointSetTime = DateTime.Now;
             }
-            else if ((DateTime.Now - currentWaypointSetTime).TotalSeconds > waypointTimeLimit)
+            else if ((DateTime.Now - activeWaypointSetTime).TotalSeconds > WaypointTimeLimit)
             {
                 ClearWaypoints();
                 Service.Log("Waypoints cleared due to time limit");
@@ -187,22 +187,15 @@ public class WaypointManager
         }
         else if (waypoints.Count > 0)
         {
-            currentWaypoint = waypoints.Dequeue();
-            currentWaypointSetTime = DateTime.Now;
+            activeWaypoint = waypoints.Dequeue();
+            activeWaypointSetTime = DateTime.Now;
         }
     }
-
-    public bool HasWaypoints => currentWaypoint.HasValue || waypoints.Count > 0;
 
     public void ClearWaypoints()
     {
         waypoints.Clear();
-        currentWaypoint = null;
-    }
-
-    public float WaypointTimeLimit
-    {
-        set => waypointTimeLimit = value;
+        activeWaypoint = null;
     }
 
     public static WPos GenerateRandomPointBetween(WPos start, WPos end, float radius)
