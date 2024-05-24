@@ -139,6 +139,9 @@ sealed class AIManager : IDisposable
     private void OnCommand(string cmd, string message)
     {
         var messageData = message.Split(' ');
+        if (messageData.Length == 0)
+            return;
+
         switch (messageData[0])
         {
             case "on":
@@ -153,9 +156,38 @@ sealed class AIManager : IDisposable
                 else
                     SwitchToIdle();
                 break;
+            case "follow":
+                if (messageData.Length < 2)
+                {
+                    Service.Log("[AI] Missing follow target.");
+                    return;
+                }
+
+                if (messageData[1].StartsWith("Slot", StringComparison.OrdinalIgnoreCase) && int.TryParse(messageData[1].AsSpan(4), out var slot) && slot >= 1 && slot <= 8)
+                    SwitchToFollow(slot - 1);
+                else
+                {
+                    var memberIndex = FindPartyMemberByName(string.Join(" ", messageData.Skip(1)));
+                    if (memberIndex >= 0)
+                        SwitchToFollow(memberIndex);
+                    else
+                        Service.Log($"[AI] Unknown party member: {string.Join(" ", messageData.Skip(1))}");
+                }
+                break;
             default:
                 Service.Log($"[AI] Unknown command: {messageData[0]}");
                 break;
         }
+    }
+
+    private int FindPartyMemberByName(string name)
+    {
+        for (var i = 0; i < 8; i++)
+        {
+            var member = _autorot.WorldState.Party[i];
+            if (member != null && member.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                return i;
+        }
+        return -1;
     }
 }
