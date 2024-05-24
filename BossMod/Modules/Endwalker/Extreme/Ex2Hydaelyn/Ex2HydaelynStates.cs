@@ -57,7 +57,7 @@ class Ex2HydaelynStates : StateMachineBuilder
         Halo(id + 0x230000, 3.8f);
         HerosSundering(id + 0x240000, 6.1f);
         ShiningSaber(id + 0x250000, 5.3f);
-        SwitchWeapon(id + 0x260000, 5.9f, false);
+        SwitchWeapon(id + 0x260000, 3.4f, false);
         ForkByWeapon(id + 0x270000, 4, ForkSecondStaff, ForkSecondChakram);
     }
 
@@ -65,10 +65,10 @@ class Ex2HydaelynStates : StateMachineBuilder
     {
         MagosRadiance(id, 5.2f);
         CrystallizeParhelicCircleAureole(id + 0x10000, 5.2f);
-        SwitchWeapon(id + 0x20000, 5, false);
+        SwitchWeapon(id + 0x20000, 2.5f, false);
         MousaScorn(id + 0x30000, 5.2f);
         ParhelionCrystallizeAureole(id + 0x40000, 6.8f);
-        SwitchWeapon(id + 0x50000, 5, true);
+        SwitchWeapon(id + 0x50000, 2.5f, true);
         ForkSecondMerge(id, 8);
     }
 
@@ -76,10 +76,10 @@ class Ex2HydaelynStates : StateMachineBuilder
     {
         MousaScorn(id, 5.2f);
         ParhelionCrystallizeAureole(id + 0x10000, 6.8f);
-        SwitchWeapon(id + 0x20000, 5, false);
+        SwitchWeapon(id + 0x20000, 2.5f, false);
         MagosRadiance(id + 0x30000, 5.2f);
         CrystallizeParhelicCircleAureole(id + 0x40000, 5.2f);
-        SwitchWeapon(id + 0x50000, 5, true);
+        SwitchWeapon(id + 0x50000, 2.5f, true);
         ForkSecondMerge(id, 8);
     }
 
@@ -88,12 +88,12 @@ class Ex2HydaelynStates : StateMachineBuilder
         RadiantHalo(id + 0x100000, delay);
         Lightwave3(id + 0x110000, 5.2f);
         CrystallizeShiningSaber(id + 0x120000, 9.1f); // TODO: can there be aureole instead of saber here?..
-        SwitchWeapon(id + 0x130000, 1.3f, false); // note: we don't create a fork here, since it's kind of irrelevant...
+        SwitchWeapon(id + 0x130000, 1.3f, false, true); // note: we don't create a fork here, since it's kind of irrelevant...
         Lightwave3(id + 0x140000, 7.3f);
         CrystallizeAureole(id + 0x150000, 9.1f, true);
-        SwitchWeapon(id + 0x160000, 1.3f, false);
+        SwitchWeapon(id + 0x160000, 1.3f, false, true);
         CrystallizeAureole(id + 0x170000, 7.3f, false);
-        SwitchWeapon(id + 0x180000, 1.3f, true);
+        SwitchWeapon(id + 0x180000, 1.3f, true, true);
         Cast(id + 0x190000, AID.HerosRadianceEnrage, 9.5f, 10, "Enrage");
     }
 
@@ -221,11 +221,13 @@ class Ex2HydaelynStates : StateMachineBuilder
     {
         // note: what is the difference between aureole spells? seems to be determined by weapon?..
         CastMulti(id, new AID[] { AID.Aureole1, AID.Aureole2, AID.LateralAureole1, AID.LateralAureole2 }, delay, 5)
+            .ActivateOnEnter<Aureole>()
             .ActivateOnEnter<Aureole1>()
             .ActivateOnEnter<Aureole2>()
             .ActivateOnEnter<LateralAureole1>()
             .ActivateOnEnter<LateralAureole2>();
         return ComponentCondition<Aureole>(id + 2, 0.5f, comp => comp.Done, "Aureole")
+            .DeactivateOnExit<Aureole>()
             .DeactivateOnExit<Aureole1>()
             .DeactivateOnExit<Aureole2>()
             .DeactivateOnExit<LateralAureole1>()
@@ -240,10 +242,10 @@ class Ex2HydaelynStates : StateMachineBuilder
             .DeactivateOnExit<ParhelicCircle>();
     }
 
-    private void SwitchWeapon(uint id, float delay, bool toSword)
+    private void SwitchWeapon(uint id, float delay, bool toSword, bool shorter = default)
     {
         ComponentCondition<WeaponTracker>(id, delay, comp => comp.AOEImminent, "Select weapon");
-        ComponentCondition<WeaponTracker>(id + 0x10, toSword ? 6.9f : 6, comp => !comp.AOEImminent, "Weapon AOE");
+        ComponentCondition<WeaponTracker>(id + 0x10, toSword && !shorter ? 6.9f : !toSword && !shorter ? 6 : toSword && shorter ? 5.8f : 5, comp => !comp.AOEImminent, "Weapon AOE");
     }
 
     // note: activates Crystallize component and sets positioning flag
@@ -266,7 +268,7 @@ class Ex2HydaelynStates : StateMachineBuilder
     private void CrystallizeSwitchWeapon(uint id, float delay, bool toSword)
     {
         CrystallizeCast(id, delay);
-        SwitchWeapon(id + 0x200, 5.5f, toSword);
+        SwitchWeapon(id + 0x200, 3.1f, toSword);
         CrystallizeResolve(id + 0x300, toSword ? 3.2f : 4);
     }
 
