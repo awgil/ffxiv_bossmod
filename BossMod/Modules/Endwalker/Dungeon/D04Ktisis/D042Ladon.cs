@@ -10,16 +10,16 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast, single-target
-    Inhale1 = 25732, // Boss->self, 4.0s cast, single-target //Indicator
-    Inhale2 = 25915, // Boss->self, no cast, single-target //Indicator
-    IntimidationRaidwide = 25741, // Boss->self, 6.0s cast, range 40 circle //Raidwide
-    PyricBlastStack = 25742, // Boss->players, 4.0s cast, range 6 circle //Stack
+    Inhale1 = 25732, // Boss->self, 4.0s cast, single-target
+    Inhale2 = 25915, // Boss->self, no cast, single-target
+    IntimidationRaidwide = 25741, // Boss->self, 6.0s cast, range 40 circle, raidwide
+    PyricBlastStack = 25742, // Boss->players, 4.0s cast, range 6 circle, stack
     PyricBreathFront = 25734, // Boss->self, 7.0s cast, range 40 120-degree cone
     PyricBreathLeft = 25735, // Boss->self, 7.0s cast, range 40 120-degree cone
     PyricBreathRight = 25736, // Boss->self, 7.0s cast, range 40 120-degree cone
-    PyricBreath4 = 25737, // Boss->self, no cast, range 40 ?-degree cone
-    PyricBreath5 = 25738, // Boss->self, no cast, range 40 ?-degree cone
-    PyricBreath6 = 25739, // Boss->self, no cast, range 40 ?-degree cone
+    PyricBreath4 = 25737, // Boss->self, no cast, range 40 120-degree cone
+    PyricBreath5 = 25738, // Boss->self, no cast, range 40 120-degree cone
+    PyricBreath6 = 25739, // Boss->self, no cast, range 40 120-degree cone
     PyricSphereVisual = 25744, // PyricSphere->self, 5.0s cast, single-target
     PyricSphereAOE = 25745, // Helper->self, 10.0s cast, range 50 width 4 cross //Cross
     ScratchTankbuster = 25743, // Boss->player, 5.0s cast, single-target //Tankbuster
@@ -65,5 +65,5 @@ class D042LadonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 787, NameID = 10398)]
-public class D042Ladon(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 48), new ArenaBoundsSquare(20));
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 787, NameID = 10398)]
+public class D042Ladon(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 48), new ArenaBoundsSquare(19.5f));

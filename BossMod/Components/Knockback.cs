@@ -22,7 +22,8 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
         AOEShape? Shape = null, // if null, assume it is unavoidable raidwide knockback/attract
         Angle Direction = default, // irrelevant for non-directional knockback/attract
         Kind Kind = Kind.AwayFromOrigin,
-        float MinDistance = 0 // irrelevant for knockbacks
+        float MinDistance = 0, // irrelevant for knockbacks
+        IEnumerable<SafeWall>? SafeWalls = null
     );
 
     public record struct SafeWall(
@@ -48,6 +49,9 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
     public bool StopAtWall = stopAtWall; // use if wall is solid rather than deadly
     public bool StopAfterWall = stopAfterWall; // use if the wall is a polygon where you need to check for intersections
     public int MaxCasts = maxCasts; // use to limit number of drawn knockbacks
+    private const float approxHitBoxRadius = 0.499f; // calculated because due to floating point errors this does not result in 0.001
+    private const float maxIntersectionError = 0.5f - approxHitBoxRadius; // calculated because due to floating point errors this does not result in 0.001
+
     protected PlayerImmuneState[] PlayerImmunes = new PlayerImmuneState[PartyState.MaxAllianceSize];
 
     public bool IsImmune(int slot, DateTime time) => !IgnoreImmunes && PlayerImmunes[slot].ImmuneAt(time);
@@ -166,16 +170,18 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
                 distance = Math.Min(s.Distance, (s.Origin - from).Length() - s.MinDistance);
             if (distance <= 0)
                 continue; // this could happen if attract starts from < min distance
-
+            Service.Log($"{actor.HitboxRadius}");
             if (StopAtWall)
-                distance = Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) - actor.HitboxRadius);
+                distance = Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) - Math.Clamp(actor.HitboxRadius - approxHitBoxRadius, maxIntersectionError, actor.HitboxRadius - approxHitBoxRadius)); // hitbox radius can be != 0.5 if player is transformed/mounted, but normal arenas with walls should account for walkable arena in their shape already
             if (StopAfterWall)
-                distance = Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) + 0.1f);
+                distance = Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) + maxIntersectionError);
 
-            if (SafeWalls.Any())
+            var sourceSafeWalls = s.SafeWalls ?? SafeWalls;
+
+            if (sourceSafeWalls.Any())
             {
                 var distanceToWall = float.MaxValue;
-                foreach (var wall in SafeWalls)
+                foreach (var wall in sourceSafeWalls)
                 {
                     var t = float.MaxValue;
 
@@ -200,8 +206,8 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
                         distanceToWall = t;
                 }
                 distance = distanceToWall < float.MaxValue
-                    ? Math.Min(distance, distanceToWall - actor.HitboxRadius)
-                    : Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) + 0.1f);
+                    ? Math.Min(distance, distanceToWall - Math.Clamp(actor.HitboxRadius - approxHitBoxRadius, maxIntersectionError, actor.HitboxRadius - approxHitBoxRadius))
+                    : Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) + maxIntersectionError);
             }
 
             var to = from + distance * dir;

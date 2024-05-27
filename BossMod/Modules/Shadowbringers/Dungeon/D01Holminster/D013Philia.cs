@@ -181,7 +181,7 @@ class PendulumFlare(BossModule module) : Components.GenericBaitAway(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Rect(Module.Center, target.Position, 18));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 18.5f));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -335,11 +335,32 @@ class FierceBeating(BossModule module) : Components.Exaflare(module, 4)
     }
 }
 
+class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Service.Config.Get<AutorotationConfig>().Enabled)
+            if (!Module.FindComponent<FierceBeating>()!.ActiveAOEs(slot, actor).Any() && Module.FindComponent<IntoTheLight>()!.CurrentBaits.Count == 0 &&
+            Module.FindComponent<Taphephobia>()!.Spreads.Count == 0 && !Module.FindComponent<LeftKnout>()!.ActiveAOEs(slot, actor).Any() &&
+            !Module.FindComponent<RightKnout>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<PendulumAOE>()!.ActiveAOEs(slot, actor).Any() &&
+            Module.FindComponent<PendulumFlare>()!.CurrentBaits.Count == 0)
+                if (actor.Role is Role.Melee or Role.Tank)
+                {
+                    var ironchain = Module.Enemies(OID.IronChain).FirstOrDefault();
+                    if (ironchain != null && !ironchain.IsDead)
+                        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(ironchain.Position, ironchain.HitboxRadius + 3));
+                    else
+                        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
+                }
+    }
+}
+
 class D013PhiliaStates : StateMachineBuilder
 {
     public D013PhiliaStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<ScavengersDaughter>()
             .ActivateOnEnter<HeadCrusher>()
             .ActivateOnEnter<PendulumFlare>()
@@ -361,5 +382,5 @@ public class D013Philia(WorldState ws, Actor primary) : BossModule(ws, primary, 
 {
     private static readonly List<Shape> union = [new Circle(new(134, -465), 19.5f)];
     private static readonly List<Shape> difference = [new Rectangle(new(134, -445), 20, 1.5f)];
-    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+    private static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
 }

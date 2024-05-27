@@ -27,11 +27,24 @@ class FallingBoulder(BossModule module) : Components.SelfTargetedAOEs(module, Ac
 class FallingRock(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FallingRock), new AOEShapeCircle(3));
 class FallingRock2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FallingRock2), new AOEShapeCircle(2));
 
+class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Service.Config.Get<AutorotationConfig>().Enabled)
+            if (!Module.FindComponent<Towerfall>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<FallingBoulder>()!.ActiveAOEs(slot, actor).Any() &&
+            !Module.FindComponent<FallingRock>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<FallingRock2>()!.ActiveAOEs(slot, actor).Any())
+                if (actor.Role is Role.Melee or Role.Tank)
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
+    }
+}
+
 class D032BatsquatchStates : StateMachineBuilder
 {
     public D032BatsquatchStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<Towerfall>()
             .ActivateOnEnter<Soundwave>()
             .ActivateOnEnter<Subsonics>()
@@ -47,5 +60,5 @@ public class D032Batsquatch(WorldState ws, Actor primary) : BossModule(ws, prima
 {
     private static readonly List<Shape> union = [new Circle(new(62, -35.2f), 14.7f)];
     private static readonly List<Shape> difference = [new Rectangle(new(61.9f, -20), 20, 2), new Rectangle(new(61.9f, -50), 20, 2)];
-    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+    private static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
 }

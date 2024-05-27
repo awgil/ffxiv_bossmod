@@ -35,6 +35,19 @@ public enum AID : uint
     FinaleEnrage = 13520, // Boss->self, 60.0s cast, range 80+R circle
 }
 
+public enum SID : uint
+{
+    Bleeding = 273, // Boss->player, extra=0x0
+    Imp = 1134, // Boss->player, extra=0x30
+    Toad = 439, // Boss->player, extra=0x1
+    Stun = 149, // Helper->player, extra=0x0
+    Staggered = 715, // Helper->player, extra=0xECA
+    FoolsTightrope = 385, // Boss->Boss/LiarsLyre, extra=0x0
+    FoolsTumble = 387, // none->player, extra=0x1823
+    Unfooled = 386, // none->player, extra=0x0
+    FoolsFigure = 388, // none->Boss, extra=0x123
+}
+
 class VirtuosicCapriccio(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.VirtuosicCapriccio), "Raidwide + Bleed");
 class CripplingBlow(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CripplingBlow));
 class ImpChoir(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.ImpChoir));
@@ -55,6 +68,12 @@ class FunambulistsFantasia(BossModule module) : BossComponent(module)
             Module.Arena.Bounds = D033AencThon.arena;
     }
 
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.FoolsTumble && actor == Module.Raid.Player())
+            WaypointsAdded = false;
+    }
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var lyre = Module.Enemies(OID.LiarsLyre).FirstOrDefault();
@@ -63,12 +82,15 @@ class FunambulistsFantasia(BossModule module) : BossComponent(module)
         {
             hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(lyre.Position, 3));
-            if (!WaypointsAdded && !actor.IsDead)
+            if (!WaypointsAdded && Module.Arena.Bounds == D033AencThon.chasmArena)
             {
+                hints.WaypointManager.ClearWaypoints();
                 hints.WaypointManager.WaypointTimeLimit = 10;
                 WaypointsAdded = true;
                 hints.WaypointManager.AddWaypointsWithRandomization(waypoints, 0.1f, 10);
             }
+            if (Module.Arena.Bounds == D033AencThon.arena)
+                hints.WaypointManager.ClearWaypoints();
         }
     }
 }
@@ -131,11 +153,24 @@ class FlailingTentacles(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Service.Config.Get<AutorotationConfig>().Enabled)
+            if (!Module.FindComponent<ToadChoir>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<CorrosiveBile>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<Finale>()!.Active &&
+            !Module.FindComponent<BileBombardment>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<FlailingTentacles>()!.ActiveAOEs(slot, actor).Any())
+                if (actor.Role is Role.Melee or Role.Tank)
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
+    }
+}
+
 class D033AencThonStates : StateMachineBuilder
 {
     public D033AencThonStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<VirtuosicCapriccio>()
             .ActivateOnEnter<CripplingBlow>()
             .ActivateOnEnter<ImpChoir>()

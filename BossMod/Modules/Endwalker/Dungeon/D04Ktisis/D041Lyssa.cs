@@ -50,5 +50,5 @@ class D041LyssaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 787, NameID = 10396)]
-public class D041Lyssa(WorldState ws, Actor primary) : BossModule(ws, primary, new(-144, 49), new ArenaBoundsCircle(30));
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 787, NameID = 10396)]
+public class D041Lyssa(WorldState ws, Actor primary) : BossModule(ws, primary, new(-144, 49), new ArenaBoundsCircle(19.5f));

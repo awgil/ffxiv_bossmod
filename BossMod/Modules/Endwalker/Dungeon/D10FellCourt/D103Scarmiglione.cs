@@ -69,13 +69,14 @@ public enum TetherID : uint
 {
     Tether206 = 206, // Boss->3AE4
 }
+
 class VoidVortex1(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.VoidVortex1), 6);
 class VoidVortex3(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.VoidVortex3), 6, 8);
 
 class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.VacuumWave), 30, stopAtWall: true);
 
 class BlightedBedevilment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlightedBedevilment), new AOEShapeCircle(9));
-class BlightedBladework2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlightedBladework2), new AOEShapeCircle(9));
+class BlightedBladework2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlightedBladework2), new AOEShapeCircle(25));
 class Nox(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Nox), new AOEShapeCircle(10));
 
 class RottenRampage2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RottenRampage2), 6);

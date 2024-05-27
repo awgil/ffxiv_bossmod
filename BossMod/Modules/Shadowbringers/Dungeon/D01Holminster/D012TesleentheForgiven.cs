@@ -68,11 +68,23 @@ class FeveredFlagellation(BossModule module) : Components.GenericBaitAway(module
 class Exorcise(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.ExorciseA), 6);
 class HolyWater(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.HolyWater), m => m.Enemies(OID.HolyWaterVoidzone).Where(z => z.EventState != 7), 0.8f);
 
+class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Service.Config.Get<AutorotationConfig>().Enabled)
+            if (Module.FindComponent<FeveredFlagellation>()!.CurrentBaits.Count == 0 && Module.FindComponent<Exorcise>()!.Stacks.Count == 0 && !Module.FindComponent<HolyWater>()!.ActiveAOEs(slot, actor).Any())
+                if (actor.Role is Role.Melee or Role.Tank)
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
+    }
+}
+
 class D012TesleentheForgivenStates : StateMachineBuilder
 {
     public D012TesleentheForgivenStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<TheTickler>()
             .ActivateOnEnter<ScoldsBridle>()
             .ActivateOnEnter<FeveredFlagellation>()
@@ -86,5 +98,5 @@ public class D012TesleentheForgiven(WorldState ws, Actor primary) : BossModule(w
 {
     private static readonly List<Shape> union = [new Circle(new(78, -82), 19.5f)];
     private static readonly List<Shape> difference = [new Rectangle(new(78, -62), 20, 1), new Rectangle(new(78, -102), 20, 1)];
-    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+    private static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
 }

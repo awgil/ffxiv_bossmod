@@ -69,11 +69,23 @@ class Swinge(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Service.Config.Get<AutorotationConfig>().Enabled)
+            if (!Module.FindComponent<Swinge>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<FeedingTime>()!.Active)
+                if (actor.Role is Role.Melee or Role.Tank)
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
+    }
+}
+
 class D022GriauleStates : StateMachineBuilder
 {
     public D022GriauleStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<FeedingTime>()
             .ActivateOnEnter<Tiiimbeeer>()
             .ActivateOnEnter<Swinge>();
@@ -85,7 +97,7 @@ public class D022Griaule(WorldState ws, Actor primary) : BossModule(ws, primary,
 {
     private static readonly List<Shape> union = [new Circle(new(7.17f, -339), 24.6f)];
     private static readonly List<Shape> difference = [new Rectangle(new(7, -363.5f), 20, 1), new Rectangle(new(7, -315), 20, 0.75f)];
-    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+    private static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
 
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

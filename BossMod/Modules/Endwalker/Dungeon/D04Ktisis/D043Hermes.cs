@@ -20,11 +20,12 @@ public enum AID : uint
 
     Meteor = 25890, // Boss->self, 3.0s cast, single-target
     Quadruple = 25894, // Boss->self, 3.0s cast, single-target
-    Trismegistos = 25886, // Boss->self, 5.0s cast, range 40 circle // Raidwide
+    Trismegistos = 25886, // Boss->self, 5.0s cast, range 40 circle, raidwide
 
-    TrueAeroVisual = 25899, // Boss->self, 5.0s cast, single-target // protean
-    TrueAeroProtean = 25900, // Helper->player, no cast, range 40 width 6 rect
-    TrueAeroBait = 25901, // Helper->self, 2.5s cast, range 40 width 6 rect
+    TrueAeroVisual = 25899, // Boss->self, 5.0s cast, single-target
+    TrueAeroTarget = 25887, // Helper->player, no cast, single-target
+    TrueAeroFirst = 25900, // Helper->player, no cast, range 40 width 6 rect
+    TrueAeroRepeat = 25901, // Helper->self, 2.5s cast, range 40 width 6 rect
 
     TrueAeroII1 = 25896, // Boss->self, 5.0s cast, single-target
     TrueAeroII2 = 25897, // Helper->player, 5.0s cast, range 6 circle
@@ -36,13 +37,11 @@ public enum AID : uint
 
     TrueBravery = 25907, // Boss->self, 5.0s cast, single-target
 
-    TrueTornado1 = 25902, // Boss->self, 5.0s cast, single-target // Tankbuster
+    TrueTornado1 = 25902, // Boss->self, 5.0s cast, single-target
     TrueTornado2 = 25903, // Boss->self, no cast, single-target
     TrueTornado3 = 25904, // Boss->self, no cast, single-target
-    TrueTornado4 = 25905, // Helper->player, no cast, range 4 circle //Tankbuster
-    TrueTornadoAOE = 25906, // Helper->location, 2.5s cast, range 4 circle //LocationBaitedAOE 
-
-    UnknownAbility = 25887, // Helper->player, no cast, single-target
+    TrueTornado4 = 25905, // Helper->player, no cast, range 4 circle
+    TrueTornadoAOE = 25906, // Helper->location, 2.5s cast, range 4 circle
 }
 
 public enum SID : uint
@@ -66,24 +65,43 @@ public enum TetherID : uint
 class TrueBraveryInterruptHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.TrueBravery));
 class Trismegistos(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Trismegistos));
 
-class TrueTornado1(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TrueTornado1));
-class TrueTornado4(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TrueTornado4));
+class TrueTornadoTankbuster(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(4), (uint)IconID.Tankbuster, ActionID.MakeSpell(AID.TrueTornado4), 5.1f)
+{
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (CurrentBaits.Count > 0)
+            hints.Add("Tankbuster cleave");
+    }
+}
+
 class TrueTornadoAOE(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TrueTornadoAOE), 4);
 
-//class TrueAeroProtean(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Spreadmarker, ActionID.MakeSpell(AID.TrueAeroProtean), new AOEShapeRect(20, 3));
-class TrueAeroBait(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrueAeroBait), new AOEShapeRect(20, 3));
+class TrueAeroFirst(BossModule module) : Components.GenericBaitAway(module)
+{
+    private static readonly AOEShapeRect rect = new(40, 3);
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.TrueAeroTarget)
+            CurrentBaits.Add(new(Module.PrimaryActor, WorldState.Actors.Find(spell.MainTargetID)!, rect, Module.WorldState.FutureTime(5.7f)));
+        if ((AID)spell.Action.ID == AID.TrueAeroFirst)
+            CurrentBaits.Clear();
+    }
+}
 
-class TrueAeroII2(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.TrueAeroII2), new AOEShapeCircle(6));
+class TrueAeroRepeat(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrueAeroRepeat), new AOEShapeRect(40, 3));
+
+class TrueAeroII2(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.TrueAeroII2), 6);
 class TrueAeroII3(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TrueAeroII3), 6);
 
-class TrueAeroIV1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrueAeroIV1), new AOEShapeRect(50, 5, 50));
-class TrueAeroIV3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrueAeroIV3), new AOEShapeRect(50, 5, 50));
+class TrueAeroIV1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrueAeroIV1), new AOEShapeRect(50, 5));
+class TrueAeroIV3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrueAeroIV3), new AOEShapeRect(50, 5), 4);
 
 class CosmicKiss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CosmicKiss), new AOEShapeCircle(10));
 
+//TODO: these line of sight AOEs are rectangles and not a circle. this component shows an incorrect angle
 class TrueAeroIVLOS(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.TrueAeroIVLOS), 50, false)
 {
-    public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.Meteor);
+    public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.Meteor).Count > 0 ? Module.Enemies(OID.Meteor).Where(x => x.ModelState.AnimState2 != 1) : (IEnumerable<Actor>)Module.Enemies(OID.Meteor);
 }
 
 class D043HermesStates : StateMachineBuilder
@@ -91,19 +109,20 @@ class D043HermesStates : StateMachineBuilder
     public D043HermesStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<TrueBraveryInterruptHint>()
             .ActivateOnEnter<CosmicKiss>()
-            .ActivateOnEnter<TrueAeroBait>()
+            .ActivateOnEnter<TrueAeroFirst>()
+            .ActivateOnEnter<TrueAeroRepeat>()
             .ActivateOnEnter<TrueAeroII2>()
             .ActivateOnEnter<TrueAeroII3>()
             .ActivateOnEnter<TrueAeroIV1>()
             .ActivateOnEnter<TrueAeroIVLOS>()
             .ActivateOnEnter<TrueAeroIV3>()
-            .ActivateOnEnter<TrueTornado1>()
-            .ActivateOnEnter<TrueTornado4>()
+            .ActivateOnEnter<TrueTornadoTankbuster>()
             .ActivateOnEnter<TrueTornadoAOE>()
             .ActivateOnEnter<Trismegistos>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 787, NameID = 10363)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 787, NameID = 10363)]
 public class D043Hermes(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -50), new ArenaBoundsCircle(20));

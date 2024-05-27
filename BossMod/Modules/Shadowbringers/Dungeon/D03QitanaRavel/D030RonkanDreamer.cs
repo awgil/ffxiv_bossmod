@@ -87,6 +87,17 @@ class WrathOfTheRonka(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Service.Config.Get<AutorotationConfig>().Enabled)
+            if (!Module.FindComponent<WrathOfTheRonka>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<RonkanAbyss>()!.ActiveAOEs(slot, actor).Any())
+                if (actor.Role is Role.Melee or Role.Tank)
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
+    }
+}
+
 class BurningBeam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BurningBeam), new AOEShapeRect(15, 2));
 
 class D030RonkanDreamerStates : StateMachineBuilder
@@ -94,6 +105,7 @@ class D030RonkanDreamerStates : StateMachineBuilder
     public D030RonkanDreamerStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<RonkanFire>()
             .ActivateOnEnter<RonkanAbyss>()
             .ActivateOnEnter<WrathOfTheRonka>()
@@ -106,10 +118,10 @@ public class D030RonkanDreamer(WorldState ws, Actor primary) : BossModule(ws, pr
 {
     private static readonly List<Shape> union1 = [new Rectangle(new(0, 640), 17.5f, 23)];
     private static readonly List<Shape> difference1 = [new Rectangle(new(-5.2f, 642.7f), 1.15f, 3.5f), new Rectangle(new(5.1f, 627.6f), 1.15f, 3.5f)];
-    public static readonly ArenaBounds arena1 = new ArenaBoundsComplex(union1, difference1);
+    private static readonly ArenaBounds arena1 = new ArenaBoundsComplex(union1, difference1);
     private static readonly List<Shape> union2 = [new Rectangle(new(0, 434.5f), 17.5f, 24f)];
     private static readonly List<Shape> difference2 = [new Rectangle(new(-5.1f, 421.7f), 1.15f, 3.5f), new Rectangle(new(5.1f, 436.6f), 1.15f, 3.5f)];
-    public static readonly ArenaBounds arena2 = new ArenaBoundsComplex(union2, difference2);
+    private static readonly ArenaBounds arena2 = new ArenaBoundsComplex(union2, difference2);
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

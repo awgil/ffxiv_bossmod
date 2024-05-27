@@ -37,37 +37,31 @@ public enum IconID : uint
     Stackmarker = 161, // 39D7/3DC2
 }
 
-class ArenaBorders(BossModule module) : BossComponent(module)
-{
-    public override void OnEventEnvControl(byte index, uint state)
-    {
-        if (index == 0x00)
-        {
-            if (state == 0x00020001)
-                Module.Arena.Bounds = D122Arkas.SmallerBounds;
-            if (state == 0x00080004)
-                Module.Arena.Bounds = D122Arkas.DefaultBounds;
-        }
-    }
-}
-
-class BattleCryArenaChangeHint(BossModule module) : Components.GenericAOEs(module)
+class BattleCryArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeDonut donut = new(10, 15);
     private AOEInstance? _aoe;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
+    public override void OnEventEnvControl(byte index, uint state)
+    {
+        if (index == 0x00)
+        {
+            if (state == 0x00020001)
+            {
+                Module.Arena.Bounds = D122Arkas.SmallerBounds;
+                _aoe = null;
+            }
+            if (state == 0x00080004)
+                Module.Arena.Bounds = D122Arkas.DefaultBounds;
+        }
+    }
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.BattleCry2)
-            _aoe = new(donut, new(425, -440), default, spell.NPCFinishAt);
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.BattleCry2)
-            _aoe = null;
+            _aoe = new(donut, new(425, -440), default, spell.NPCFinishAt.AddSeconds(0.8f));
     }
 }
 
@@ -148,8 +142,7 @@ class D122ArkasStates : StateMachineBuilder
     public D122ArkasStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<ArenaBorders>()
-            .ActivateOnEnter<BattleCryArenaChangeHint>()
+            .ActivateOnEnter<BattleCryArenaChange>()
             .ActivateOnEnter<LightningClaw>()
             .ActivateOnEnter<SpunLightning>()
             .ActivateOnEnter<ForkedFissures>()

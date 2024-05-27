@@ -6,7 +6,7 @@ class PandaemonsHoly(BossModule module) : Components.SelfTargetedAOEs(module, Ac
 // note: origin seems to be weird?
 class CirclesOfPandaemonium(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CirclesOfPandaemonium), new AOEShapeDonut(12, 40))
 {
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(c => new AOEInstance(Shape, new(Module.Center.X, Border.MainPlatformCenterZ - Border.MainPlatformHalfSize.Z), c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, Color, Risky));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(c => new AOEInstance(Shape, new(100, 85), default, c.CastInfo!.NPCFinishAt, Color, Risky));
 }
 
 class Imprisonment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ImprisonmentAOE), new AOEShapeCircle(4));
@@ -18,5 +18,14 @@ class Touchdown(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 [ConfigDisplay(Order = 0x1A0, Parent = typeof(EndwalkerConfig))]
 public class P10SPandaemoniumConfig() : CooldownPlanningConfigNode(90);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 939, NameID = 12354)]
-public class P10SPandaemonium(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 92.5f), new ArenaBoundsRect(30, 22.5f));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "veyn, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 939, NameID = 12354)]
+public class P10SPandaemonium(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> union = [new Rectangle(new(100, 100), 13, 15), new Rectangle(new(125, 85), 4, 15), new Rectangle(new(75, 85), 4, 15)];
+    private static readonly List<Shape> BridgeL = [new Rectangle(new(83, 92.5f), 4, 1)];
+    private static readonly List<Shape> BridgeR = [new Rectangle(new(117, 92.5f), 4, 1)];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union);
+    public static readonly ArenaBounds arenaL = new ArenaBoundsComplex(union.Concat(BridgeL));
+    public static readonly ArenaBounds arenaR = new ArenaBoundsComplex(union.Concat(BridgeR));
+    public static readonly ArenaBounds arenaLR = new ArenaBoundsComplex(union.Concat(BridgeL).Concat(BridgeR));
+}

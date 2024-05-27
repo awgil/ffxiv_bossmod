@@ -51,11 +51,24 @@ class RonkanLight(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Service.Config.Get<AutorotationConfig>().Enabled)
+            if (!Module.FindComponent<LozatlsFuryA>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<LozatlsFuryB>()!.ActiveAOEs(slot, actor).Any() &&
+            !Module.FindComponent<RonkanLight>()!.ActiveAOEs(slot, actor).Any())
+                if (actor.Role is Role.Melee or Role.Tank)
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
+    }
+}
+
 class D031LozatlStates : StateMachineBuilder
 {
     public D031LozatlStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<LozatlsFuryA>()
             .ActivateOnEnter<LozatlsFuryB>()
             .ActivateOnEnter<Stonefist>()
@@ -70,5 +83,5 @@ public class D031Lozatl(WorldState ws, Actor primary) : BossModule(ws, primary, 
 {
     private static readonly List<Shape> union = [new Circle(new(0, 315), 19.6f)];
     private static readonly List<Shape> difference = [new Rectangle(new(0, 335.25f), 20, 2), new Rectangle(new(0, 294.5f), 20, 2)];
-    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+    private static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
 }

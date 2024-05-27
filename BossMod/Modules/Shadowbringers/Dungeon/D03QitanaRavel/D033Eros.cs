@@ -47,13 +47,20 @@ public enum TetherID : uint
 
 class HoundOutOfHeavenGood(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.HoundOutOfHeavenTetherGood) // TODO: consider generalizing stretched tethers?
 {
-    private ulong target;
+    public ulong target;
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         base.OnTethered(source, tether);
         if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherGood)
             target = tether.Target;
+    }
+
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    {
+        base.OnUntethered(source, tether);
+        if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherGood)
+            target = default;
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -85,13 +92,20 @@ class HoundOutOfHeavenGood(BossModule module) : Components.BaitAwayTethers(modul
 
 class HoundOutOfHeavenBad(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.HoundOutOfHeavenTetherStretch)
 {
-    private ulong target;
+    public ulong target;
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         base.OnTethered(source, tether);
         if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherStretch)
             target = tether.Target;
+    }
+
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    {
+        base.OnUntethered(source, tether);
+        if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherStretch)
+            target = default;
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -122,8 +136,8 @@ class HoundOutOfHeavenBad(BossModule module) : Components.BaitAwayTethers(module
 }
 
 class ViperPoisonPatterns(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.ViperPoisonPatterns), m => m.Enemies(OID.PoisonVoidzone).Where(z => z.EventState != 7), 0);
-class ConfessionOfFaithLeft(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConfessionOfFaithLeft), new AOEShapeCone(60, 46.Degrees(), 20.Degrees())); // TODO: verify; there should not be an offset in reality here...
-class ConfessionOfFaithRight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConfessionOfFaithRight), new AOEShapeCone(60, 46.Degrees(), -20.Degrees())); // TODO: verify; there should not be an offset in reality here...
+class ConfessionOfFaithLeft(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConfessionOfFaithLeft), new AOEShapeCone(60, 47.Degrees(), 20.Degrees())); // TODO: verify; there should not be an offset in reality here...
+class ConfessionOfFaithRight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConfessionOfFaithRight), new AOEShapeCone(60, 47.Degrees(), -20.Degrees())); // TODO: verify; there should not be an offset in reality here...
 class ConfessionOfFaithStack(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.ConfessionOfFaithStack), 6);
 class ConfessionOfFaithCenter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConfessionOfFaithCenter), new AOEShapeCone(60, 40.Degrees()));
 class ConfessionOfFaithSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.ConfessionOfFaithSpread), 5);
@@ -131,7 +145,7 @@ class ConfessionOfFaithSpread(BossModule module) : Components.SpreadFromCastTarg
 class ViperPoisonBait(BossModule module) : Components.GenericBaitAway(module)
 {
     private bool targeted;
-    private Actor? target;
+    public Actor? target;
 
     public override void OnEventIcon(Actor actor, uint iconID)
     {
@@ -149,6 +163,7 @@ class ViperPoisonBait(BossModule module) : Components.GenericBaitAway(module)
         {
             CurrentBaits.Clear();
             targeted = false;
+            target = null;
         }
     }
 
@@ -182,11 +197,26 @@ class HeavingBreath(BossModule module) : Components.KnockbackFromCastTarget(modu
 class Glossolalia(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Glossolalia));
 class Rend(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Rend));
 
+class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Service.Config.Get<AutorotationConfig>().Enabled)
+            if (Module.FindComponent<ViperPoisonBait>()!.target != actor && Module.FindComponent<HoundOutOfHeavenGood>()!.target != actor.InstanceID &&
+            Module.FindComponent<HoundOutOfHeavenBad>()!.target != actor.InstanceID && Module.FindComponent<ConfessionOfFaithStack>()!.Stacks.Count == 0 &&
+            Module.FindComponent<ConfessionOfFaithSpread>()!.Spreads.Count == 0 && !Module.FindComponent<ConfessionOfFaithLeft>()!.ActiveAOEs(slot, actor).Any() &&
+            !Module.FindComponent<ConfessionOfFaithRight>()!.ActiveAOEs(slot, actor).Any())
+                if (actor.Role is Role.Melee or Role.Tank)
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
+    }
+}
+
 class D033ErosStates : StateMachineBuilder
 {
     public D033ErosStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<ViperPoisonBait>()
             .ActivateOnEnter<ViperPoisonPatterns>()
             .ActivateOnEnter<Rend>()

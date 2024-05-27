@@ -180,29 +180,46 @@ class ConvictionMarcato(BossModule module) : Components.SelfTargetedAOEs(module,
 class ConvictionMarcato2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConvictionMarcato2), new AOEShapeRect(40, 2.5f));
 class ConvictionMarcato3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConvictionMarcato3), new AOEShapeRect(40, 2.5f));
 
-class Voidzone(BossModule module) : BossComponent(module)
+class PenancePianissimo(BossModule module) : Components.GenericAOEs(module)
 {
-    private bool active;
+    private AOEInstance? _aoe;
+    private static readonly AOEShapeDonut donut = new(14.5f, 30);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.PenancePianissimo)
+            _aoe = new(donut, Arena.Center, default, spell.NPCFinishAt.AddSeconds(0.7f));
+    }
 
     public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state == 0x00040008)
-        {
-            Module.Arena.Bounds = new ArenaBoundsRect(15, 20);
-            active = false;
-        }
+            Module.Arena.Bounds = D055ForgivenObscenity.arenaRect;
         if (state == 0x00010002)
         {
-            active = true;
-            Module.Arena.Bounds = new ArenaBoundsCircle(15);
+            _aoe = null;
+            Module.Arena.Bounds = D055ForgivenObscenity.arenaCircle;
         }
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (active)
+        if (Module.Arena.Bounds == D055ForgivenObscenity.arenaCircle)
             hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
+    }
+}
+
+class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Service.Config.Get<AutorotationConfig>().Enabled)
+            if (!Module.FindComponent<DivineDiminuendo>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<DivineDiminuendo1>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<ConvictionMarcato>()!.ActiveAOEs(slot, actor).Any())
+                if (actor.Role is Role.Melee or Role.Tank && Module.PrimaryActor.IsTargetable)
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
     }
 }
 
@@ -211,6 +228,7 @@ class D055ForgivenObscenityStates : StateMachineBuilder
     public D055ForgivenObscenityStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<SacramentSforzando>()
             .ActivateOnEnter<DivineDiminuendo>()
             .ActivateOnEnter<DivineDiminuendo1>()
@@ -223,13 +241,15 @@ class D055ForgivenObscenityStates : StateMachineBuilder
             .ActivateOnEnter<OrisonFortissimo>()
             .ActivateOnEnter<GoldChaser>()
             .ActivateOnEnter<Orbs>()
-            .ActivateOnEnter<Voidzone>();
+            .ActivateOnEnter<PenancePianissimo>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8262)]
-public class D055ForgivenObscenity(WorldState ws, Actor primary) : BossModule(ws, primary, new(-240, 237), new ArenaBoundsRect(15, 20))
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8262)]
+public class D055ForgivenObscenity(WorldState ws, Actor primary) : BossModule(ws, primary, new(-240, 237), arenaRect)
 {
+    public static readonly ArenaBounds arenaRect = new ArenaBoundsRect(14.5f, 19.5f);
+    public static readonly ArenaBounds arenaCircle = new ArenaBoundsCircle(15);
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);

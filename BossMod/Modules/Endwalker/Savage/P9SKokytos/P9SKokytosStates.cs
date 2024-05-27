@@ -141,6 +141,7 @@ class P9SKokytosStates : StateMachineBuilder
         ComponentCondition<ArchaicDemolish>(id + 0x210, 1.2f, comp => !comp.Active, "Party stacks")
             .DeactivateOnExit<ArchaicDemolish>()
             .DeactivateOnExit<Uplift>() // walls disappear after next raidwide, but that doesn't really matter
+            .OnExit(() => Module.Arena.Bounds = P9SKokytos.arena)
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
@@ -149,6 +150,7 @@ class P9SKokytosStates : StateMachineBuilder
         ArchaicRockbreaker(id, delay);
         Dualspell(id + 0x100, 2.3f)
             .DeactivateOnExit<ArchaicRockbreakerLine>()
+            .OnExit(() => Module.Arena.Bounds = P9SKokytos.arena)
             .DeactivateOnExit<Uplift>();
     }
 
@@ -182,6 +184,7 @@ class P9SKokytosStates : StateMachineBuilder
         Targetable(id + 0x70, true, 1.4f, "Reappear");
 
         Dualspell(id + 0x1000, 0.1f, true)
+            .OnExit(() => Module.Arena.Bounds = P9SKokytos.arena)
             .DeactivateOnExit<Uplift>();
     }
 

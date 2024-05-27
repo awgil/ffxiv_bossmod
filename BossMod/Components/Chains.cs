@@ -6,7 +6,6 @@ public class Chains(BossModule module, uint tetherID, ActionID aid = default) : 
     public uint TID { get; init; } = tetherID;
     public bool TethersAssigned { get; private set; }
     private readonly Actor?[] _partner = new Actor?[PartyState.MaxAllianceSize];
-    private readonly DateTime[] _start = new DateTime[PartyState.MaxAllianceSize];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -52,15 +51,12 @@ public class Chains(BossModule module, uint tetherID, ActionID aid = default) : 
     {
         var slot = Raid.FindSlot(source);
         if (slot >= 0)
-        {
             _partner[slot] = target;
-            _start[slot] = WorldState.CurrentTime;
-        }
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_partner[slot] is var partner && partner != null)
-            hints.AddForbiddenZone(ShapeDistance.Circle(partner.Position, 7 + 7 * (float)(WorldState.CurrentTime - _start[slot]).TotalSeconds));
+            hints.AddForbiddenZone(ShapeDistance.Circle(partner.Position, (partner.Position - actor.Position).Length() + 1));
     }
 }

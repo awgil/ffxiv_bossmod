@@ -1,9 +1,11 @@
-﻿namespace BossMod.Shadowbringers.Dungeon.D02DohnMheg.D021AencThon;
+﻿using BossMod.Shadowbringers.Dungeon.D04MalikahsWell.D042AmphibiousTalos;
+
+namespace BossMod.Shadowbringers.Dungeon.D02DohnMheg.D021AencThon;
 
 public enum OID : uint
 {
     Boss = 0x3F2, // R=2.0
-    Helper = 0x233C, // x3
+    Helper = 0x233C,
     GeyserHelper1 = 0x1EAAA1, // controls animations for 2 geysers
     GeyserHelper2 = 0x1EAAA2, // controls animations for 3 geysers
 }
@@ -64,7 +66,7 @@ class Geyser(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var g in _geysers)
-            yield return new(g.Shape, g.Origin, default, g.Activation, g.Activation == _geysers[0].Activation ? ArenaColor.Danger : ArenaColor.AOE);
+            yield return new(g.Shape, g.Origin, default, g.Activation, g.Activation == _geysers[0].Activation ? ArenaColor.Danger : ArenaColor.AOE, g.Activation == _geysers[0].Activation);
     }
 
     public override void OnActorEAnim(Actor actor, uint state)
@@ -92,11 +94,23 @@ class Geyser(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Service.Config.Get<AutorotationConfig>().Enabled)
+            if (!Module.FindComponent<Hydrofall>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<Geyser>()!.ActiveAOEs(slot, actor).Any() && Module.FindComponent<LaughingLeapStack>()!.Stacks.Count == 0)
+                if (actor.Role is Role.Melee or Role.Tank)
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
+    }
+}
+
 class D021AencThonStates : StateMachineBuilder
 {
     public D021AencThonStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<CandyCane>()
             .ActivateOnEnter<Landsblood>()
             .ActivateOnEnter<Hydrofall>()
@@ -111,5 +125,5 @@ public class D021AencThon(WorldState ws, Actor primary) : BossModule(ws, primary
 {
     private static readonly List<Shape> union = [new Circle(new(0, 30), 19.5f)];
     private static readonly List<Shape> difference = [new Rectangle(new(0, 50), 20, 1), new Rectangle(new(0, 10), 20, 1.2f)];
-    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+    private static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
 }

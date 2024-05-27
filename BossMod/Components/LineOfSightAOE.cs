@@ -42,7 +42,7 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
     {
         if (Origin != null)
         {
-            // inverse of a union of inverted max-range circle and a bunch of infinite cones minus inner cirles
+            // inverse of a union of inverted max-range circle and a bunch of infinite cones minus inner circles
             var normals = Visibility.Select(v => (v.Distance, (v.Dir + v.HalfWidth).ToDirection().OrthoL(), (v.Dir - v.HalfWidth).ToDirection().OrthoR())).ToArray();
             float invertedDistanceToSafe(WPos p)
             {
