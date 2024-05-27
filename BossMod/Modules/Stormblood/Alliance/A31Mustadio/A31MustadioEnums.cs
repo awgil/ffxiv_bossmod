@@ -16,22 +16,30 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 14138, // Boss->player, no cast, single-target
-    Analysis = 14133, // Boss->self, 4.0s cast, single-target
-    ArmShot = 14137, // Boss->player, 4.0s cast, single-target
+
+    ArmShot = 14137, // Boss->player, 4.0s cast, single-target // Tankbuster
+
     BallisticImpact1 = 14147, // Helper->player, 5.0s cast, range 6 circle
     BallisticImpact2 = 14149, // Boss->self, no cast, range 60 circle
+
     BallisticMissile = 14140, // Boss->self, 3.0s cast, single-target
+
+    EnergyBurst = 14139, // Boss->self, 4.0s cast, range 90 circle // Raid-wide AoE
+
+    Maintenance = 14132, // Boss->self, 8.0s cast, single-target
     Compress = 14144, // IronConstruct->self, 2.0s cast, range 100 width 15 rect
-    EnergyBurst = 14139, // Boss->self, 4.0s cast, range 90 circle
-    LastTestament = 14135, // Boss->self, 6.0s cast, range 100 width 60 rect
+    SatelliteBeam = 14145, // EarlyTurret->self, 2.0s cast, range 30 width 30 rect
+
     LeftHandgonne = 14143, // Boss->self, 4.0s cast, range 30 210-degree cone
+    RightHandgonne = 14142, // Boss->self, 4.0s cast, range 30 210-degree cone
     LegShot1 = 14136, // Boss->self, 4.0s cast, single-target
     LegShot2 = 14146, // Helper->location, no cast, range 6 circle
-    Maintenance = 14132, // Boss->self, 8.0s cast, single-target
-    RightHandgonne = 14142, // Boss->self, 4.0s cast, range 30 210-degree cone
-    SatelliteBeam = 14145, // EarlyTurret->self, 2.0s cast, range 30 width 30 rect
+
     Searchlight1 = 14141, // Boss->self, no cast, single-target
     Searchlight2 = 14148, // Helper->self, no cast, range 5 circle
+
+    Analysis = 14133, // Boss->self, 4.0s cast, single-target
+    LastTestament = 14135, // Boss->self, 6.0s cast, range 100 width 60 rect
     Unknown1 = 14134, // Boss->self, no cast, single-target
     Unknown2 = 14150, // Boss->self, no cast, single-target
     Unknown3 = 14188, // Helper->self, no cast, range 60 circle
@@ -53,7 +61,7 @@ public enum SID : uint
 public enum IconID : uint
 {
     Icon127 = 127, // player
-    Icon139 = 139, // player
+    Spreadmarker = 139, // player
     Icon152 = 152, // player
     Icon164 = 164, // player
     Icon186 = 186, // player

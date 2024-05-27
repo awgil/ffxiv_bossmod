@@ -23,28 +23,32 @@ public enum AID : uint
     ScarletLadyAuto = 14065, // ScarletLady->player, no cast, single-target
     AutoAttack2 = 12863, // Boss->player, no cast, single-target
 
-    AshesToAshes = 12831, // ScarletLady->self, 3.0s cast, range 40 circle
+    ScreamsOfTheDamned = 12833, // Boss->self, 3.0s cast, range 40 circle // Raidwide
+    SouthronStar = 12852, // Boss->self, 4.0s cast, range 41 circle // Raidwide
+    AshesToAshes = 12831, // ScarletLady->self, 3.0s cast, range 40 circle // Raidwide
+    ScarletFever = 12844, // Helper->self, 7.0s cast, range 41 circle // Raidwide
+
+    RuthlessRefrain = 12848, // Boss->self, 4.0s cast, range 41 circle // Knockback
+
+    Cremate = 12832, // Boss->player, 3.0s cast, single-target // Tankbuster
+
+    PhantomFlurryVisual = 12849, // Boss->self, 4.0s cast, single-target
+    PhantomFlurryTankbuster = 12850, // Helper->players, no cast, single-target // Tankbuster
+    PhantomFlurryAOE = 12851, // Helper->self, 6.0s cast, range 41 180-degree cone
+
+    IncandescentInterlude = 12860, // Boss->self, 4.0s cast, single-target // Towers
+    Rekindle = 12853, // Helper->player, no cast, range 6 circle // Spread
+
+    EternalFlame = 12834, // Boss->self, 3.0s cast, range 80 circle // summons ScarletLady
+    PhoenixDown = 12836, // Boss->self, 3.0s cast, single-target
+
     Burn = 12861, // Helper->self, no cast, range 4 circle
-    Cremate = 12832, // Boss->player, 3.0s cast, single-target
-    EternalFlame = 12834, // Boss->self, 3.0s cast, range 80 circle
     FleetingSummer = 12835, // Boss->self, 3.0s cast, range 40 90-degree cone
     Hotspot = 12856, // Helper->self, 0.9s cast, range 21 ?-degree cone
-    IncandescentInterlude = 12860, // Boss->self, 4.0s cast, single-target
-
-    PhantomFlurry1 = 12849, // Boss->self, 4.0s cast, single-target
-    PhantomFlurry2 = 12850, // Helper->players, no cast, single-target
-    PhantomFlurry3 = 12851, // Helper->self, 6.0s cast, range 41 180-degree cone
-
-    PhoenixDown = 12836, // Boss->self, 3.0s cast, single-target
-    Rekindle = 12853, // Helper->player, no cast, range 6 circle
-    RuthlessRefrain = 12848, // Boss->self, 4.0s cast, range 41 circle
-    ScarletFever = 12844, // Helper->self, 7.0s cast, range 41 circle
 
     ScarletHymn1 = 12840, // RapturousEcho->player, no cast, single-target
     ScarletHymn2 = 12855, // Boss->self, no cast, single-target
 
-    ScreamsOfTheDamned = 12833, // Boss->self, 3.0s cast, range 40 circle
-    SouthronStar = 12852, // Boss->self, 4.0s cast, range 41 circle
     Swoop = 12859, // Suzaku1->self, 3.0s cast, range 55 width 6 rect
     UnknownSpell = 12846, // Boss->location, no cast, single-target
 
@@ -76,7 +80,7 @@ public enum SID : uint
 public enum IconID : uint
 {
     Icon381 = 381, // player
-    Icon139 = 139, // player
+    Spreadmarker = 139, // player
 }
 
 public enum TetherID : uint

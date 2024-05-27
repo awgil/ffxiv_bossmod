@@ -16,6 +16,8 @@ public enum AID : uint
     AutoAttack = 872, // Boss->player, no cast, single-target
     MobAutoAttack = 870, // Hakutei1->player, no cast, single-target
 
+    DanceOfTheIncomplete = 9681, // Boss->self, no cast, single-target
+
     AnswerOnHigh = 10212, // Boss->self, no cast, single-target
 
     Aratama1 = 10793, // Helper->location, 2.5s cast, range 4 circle
@@ -26,20 +28,20 @@ public enum AID : uint
     Bombogenesis2 = 10811, // Helper->self, no cast, range 6 circle
 
     Clutch = 10209, // Boss->player, no cast, single-target
-    DanceOfTheIncomplete = 9681, // Boss->self, no cast, single-target
+
     DistantClap = 10800, // Boss->self, 5.0s cast, range ?-25 donut
     FellSwoop = 10829, // Helper->self, no cast, range 100 circle
 
     FireAndLightning1 = 10796, // Boss->self, 4.0s cast, range 50+R width 20 rect
     FireAndLightning2 = 10801, // Hakutei1->self, 4.0s cast, range 50+R width 20 rect
 
-    HeavenlyStrike = 10797, // Boss->player, 4.0s cast, range 3 circle
+    HeavenlyStrike = 10797, // Boss->player, 4.0s cast, range 3 circle // Tankbuster
 
     HighestStakes1 = 10210, // Boss->location, 5.0s cast, single-target
     HighestStakes2 = 10806, // Helper->location, no cast, range 6 circle
 
-    HundredfoldHavoc1 = 10808, // Helper->self, 5.0s cast, range 5 circle
-    HundredfoldHavoc2 = 10809, // Helper->self, no cast, range 5 circle
+    HundredfoldHavocFirst = 10808, // Helper->self, 5.0s cast, range 5 circle
+    HundredfoldHavocRest = 10809, // Helper->self, no cast, range 5 circle
 
     ImperialGuard = 10819, // Hakutei2->self, 3.0s cast, range 40+R width 5 rect
 
@@ -47,7 +49,7 @@ public enum AID : uint
     StateOfShock2 = 10208, // Boss->player, 4.0s cast, single-target
 
     SteelClaw = 10802, // Hakutei1->self, no cast, range 13+R ?-degree cone
-    StormPulse = 10799, // Boss->self, 4.0s cast, range 100 circle
+    StormPulse = 10799, // Boss->self, 4.0s cast, range 100 circle // Raidwide
 
     SweepTheLeg1 = 10798, // Boss->self, 4.0s cast, range 24+R 270-degree cone
     SweepTheLeg2 = 10821, // Boss->self, no cast, single-target
@@ -83,7 +85,7 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon62 = 62, // Helper
-    Icon87 = 87, // player
-    Icon101 = 101, // player
+    Stackmarker = 62, // Helper
+    Burn = 87, // player
+    Spreadmarker = 101, // player
 }

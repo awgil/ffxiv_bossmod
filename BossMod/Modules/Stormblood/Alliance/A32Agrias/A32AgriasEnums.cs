@@ -15,24 +15,41 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // Boss/SwordKnight->player, no cast, single-target
+
     SpellAttack = 14431, // ShieldKnight->player, no cast, single-target
-    CleansingFlame1 = 14436, // Boss->self, 5.0s cast, single-target
-    CleansingFlame2 = 14437, // Helper->players, 5.0s cast, range 6 circle
+
+    CleansingFlame = 14436, // Boss->self, 5.0s cast, single-target
+    CleansingFlameSpread = 14437, // Helper->players, 5.0s cast, range 6 circle
+
     CleansingStrike = 14420, // Boss->self, 6.0s cast, single-target
+
     Consecration = 14416, // Boss->self, 4.0s cast, single-target
-    DivineLight = 14439, // Boss->self, 4.0s cast, range 60 circle
+
+    DivineLight = 14439, // Boss->self, 4.0s cast, range 60 circle // Raid-wide AoE
+
     DivineRuination1 = 14424, // Boss->self, 8.0s cast, single-target
     DivineRuination2 = 14425, // Helper->self, no cast, range 60 width 6 rect
+
     HallowedBolt1 = 14426, // Boss->self, 4.0s cast, single-target
-    HallowedBolt2 = 14427, // Helper->self, 4.0s cast, range 15 circle
-    HallowedBolt3 = 14428, // Helper->self, no cast, range ?-30 donut
+    HallowedBoltAOE = 14427, // Helper->self, 4.0s cast, range 15 circle
+    HallowedBoltDonut = 14428, // Helper->self, no cast, range ?-30 donut
+    //Two random players are marked for an AoE attack that hits twice in succession: Once as a circle AoE centered on the player,
+    //and once as a ring AoE centered on the player, with an inner radius equal to the prior circle AoE.
+
     HeavenlyJudgment1 = 14432, // Boss->self, 4.0s cast, single-target
     HeavenlyJudgment2 = 14433, // Helper->self, 8.0s cast, range 60 circle
+
     JudgmentBlade = 14423, // Boss->self, 8.0s cast, range 60 circle
+    // AoE Knockback and inflicts Vulnerability Up.
+    // To avoid, step into one of the EmblazonedShield light pillars, face the boss, and use the duty action Holy Shield.
+
     MortalBlow = 14430, // SwordKnight->self, 5.0s cast, range 30 circle
-    NorthswainsStrike1 = 14419, // EphemeralKnight->self, 15.0s cast, range 60 width 6 rect
-    NorthswainsStrike2 = 14982, // Boss->self, 15.0s cast, single-target
+
+    NorthswainsStrikeEphemeralKnight = 14419, // EphemeralKnight->self, 15.0s cast, range 60 width 6 rect
+    NorthswainsStrikeBoss = 14982, // Boss->self, 15.0s cast, single-target
+
     ThunderSlash = 14438, // Boss->self/player, 4.0s cast, range 60 ?-degree cone
+
     Unknown1 = 14429, // Boss->self, no cast, single-target
     Unknown2 = 15058, // Helper->self, no cast, range 60 circle
     Unknown3 = 14417, // Halidom->player, no cast, single-target
@@ -70,7 +87,7 @@ public enum IconID : uint
     Icon23 = 23, // player
     Icon25 = 25, // player
     Icon127 = 127, // player
-    Icon139 = 139, // player
+    Spreadmarker = 139, // player
     Icon153 = 153, // player
     Icon165 = 165, // player
     Icon4294967292 = 4294967292, // player

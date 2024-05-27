@@ -15,12 +15,14 @@ public enum AID : uint
 {
     AutoAttack = 14501, // Boss->player, no cast, single-target
 
+    Redemption = 14506, // Boss->player, 4.0s cast, single-target
+    DemiVirgo = 14530, // Boss->self, 3.0s cast, single-target
+
     Auralight1 = 14504, // Helper->self, 2.5s cast, range 50 width 10 rect
     Auralight2 = 14505, // Helper->self, 2.5s cast, range 25 width 10 rect
 
     Bombardment = 14526, // Helper->location, 2.5s cast, range 6 circle
     Cataclysm = 14500, // Boss->self, no cast, single-target
-    DemiVirgo = 14530, // Boss->self, 3.0s cast, single-target
 
     EastwardMarch1 = 14494, // Boss->self, 4.0s cast, single-target
     EastwardMarch2 = 14496, // Helper->self, no cast, single-target
@@ -32,14 +34,14 @@ public enum AID : uint
     FlareIV = 14493, // Helper->players, 5.5s cast, range 80 circle
     UltimateFlare = 14525, // Dominion2->location, no cast, range 80 circle
 
-    GrandCross1 = 14510, // 2639->self, 4.0s cast, range 60 width 15 cross
+    GrandCrossAOE = 14510, // 2639->self, 4.0s cast, range 60 width 15 cross
     GrandCross2 = 14536, // Boss->self, 3.0s cast, single-target
 
     Holy = 14507, // Helper->location, 2.5s cast, range 2 circle
 
-    HolyIV1 = 14490, // Helper->location, 3.0s cast, range 6 circle
-    HolyIV2 = 14491, // Helper->players, 5.5s cast, range 6 circle
-    HolyIV3 = 14534, // Boss->self, 3.0s cast, single-target
+    HolyIVBait = 14490, // Helper->location, 3.0s cast, range 6 circle
+    HolyIVSpread = 14491, // Helper->players, 5.5s cast, range 6 circle
+    HolyIVVisual = 14534, // Boss->self, 3.0s cast, single-target
 
     LifeDrain = 14523, // Helper->player, no cast, single-target
     Penultima = 14524, // 25B6->player, no cast, single-target
@@ -48,7 +50,6 @@ public enum AID : uint
     RayOfLight1 = 14518, // 25AE->self, no cast, single-target
     RayOfLight2 = 14519, // Helper->self, no cast, range 70 width 10 rect
 
-    Redemption = 14506, // Boss->player, 4.0s cast, single-target
     Shockwave = 14484, // Helper->self, no cast, range 80 circle
 
     WestwardMarch1 = 14497, // Helper->self, no cast, single-target

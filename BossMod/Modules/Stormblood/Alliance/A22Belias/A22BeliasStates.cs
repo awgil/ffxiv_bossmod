@@ -4,6 +4,10 @@ class A22BeliasStates : StateMachineBuilder
 {
     public A22BeliasStates(BossModule module) : base(module)
     {
-        TrivialPhase();
+        TrivialPhase()
+            .ActivateOnEnter<TimeEruption>()
+            .ActivateOnEnter<TimeBomb2>()
+            .ActivateOnEnter<Eruption>()
+            .ActivateOnEnter<FireIV>();
     }
 }

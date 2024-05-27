@@ -22,6 +22,7 @@ class DAL4DiabloArmamentStates : StateMachineBuilder
             .ActivateOnEnter<PillarOfShamash1>() // need to be staggered
             .ActivateOnEnter<PillarOfShamash2>()
             .ActivateOnEnter<PillarOfShamash3>()
-            .ActivateOnEnter<UltimatePseudoterror>();
+            .ActivateOnEnter<UltimatePseudoterror>()
+            .ActivateOnEnter<AccelerationBomb>();
     }
 }

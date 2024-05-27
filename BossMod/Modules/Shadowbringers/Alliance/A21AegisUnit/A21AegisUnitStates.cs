@@ -4,6 +4,10 @@ class A21AegisUnitStates : StateMachineBuilder
 {
     public A21AegisUnitStates(BossModule module) : base(module)
     {
-        TrivialPhase();
+        TrivialPhase()
+            .ActivateOnEnter<FlightPath>()
+            .ActivateOnEnter<AntiPersonnelLaser>()
+            .ActivateOnEnter<HighPoweredLaser>()
+            .ActivateOnEnter<LifesLastSong>();
     }
 }

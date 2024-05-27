@@ -4,6 +4,10 @@ class A32AgriasStates : StateMachineBuilder
 {
     public A32AgriasStates(BossModule module) : base(module)
     {
-        TrivialPhase();
+        TrivialPhase()
+            .ActivateOnEnter<DivineLight>()
+            .ActivateOnEnter<NorthswainsStrikeEphemeralKnight>()
+            .ActivateOnEnter<CleansingFlameSpread>()
+            .ActivateOnEnter<HallowedBoltAOE>();
     }
 }

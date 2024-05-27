@@ -2,7 +2,7 @@
 
 public enum OID : uint
 {
-    Boss = 0x225D, // R4.200, x?
+    Construct = 0x225D, // R4.200, x?
     Helper = 0x18D6, // R0.500, x?
     RamzaBasLexentale = 0x23E, // R0.500, x?
     CrudeScrawling = 0x1EA9ED, // R0.500, x?, EventObj type
@@ -10,9 +10,9 @@ public enum OID : uint
     LooseCog = 0x225E, // R8.700, x?
     Actorb84 = 0xB84, // R0.500, x?
     Missile = 0x225F, // R1.300, x?
-    Construct71 = 0x22A3, // R3.150, x?
-    Construct72 = 0x22A2, // R3.150, x?
-    Construct73 = 0x2260, // R3.150, x?
+    Construct711 = 0x22A3, // R3.150, x?
+    Construct712 = 0x22A2, // R3.150, x?
+    Construct713 = 0x2260, // R3.150, x?
     Construct7 = 0x0, // R0.500, x?, None type
 }
 
@@ -24,15 +24,15 @@ public enum AID : uint
     Compress1 = 11356, // Boss->self, 2.5s cast, range 100+R width 7 rect
     Compress2 = 11357, // Boss->self, 2.5s cast, range 100 width 7 cross
 
-    ComputationMode = 11351, // Boss->self, 5.0s cast, single-target
+    ComputationMode = 11351, // Boss->self, 5.0s cast, single-target // minigame phase
 
     Destroy1 = 11354, // Boss->player, 5.0s cast, single-target
     Destroy2 = 11377, // Boss->player, 5.0s cast, single-target
 
-    Dispose1 = 11359, // Boss->self, 7.0s cast, range 100+R ?-degree cone
-    Dispose2 = 11360, // Boss->self, no cast, range 100+R ?-degree cone
-    Dispose3 = 11497, // Boss->self, 7.0s cast, range 100+R ?-degree cone
-    Dispose4 = 11498, // Boss->self, no cast, range 100+R ?-degree cone
+    Dispose1 = 11359, // Boss->self, 7.0s cast, range 100+R 90-degree cone
+    Dispose2 = 11360, // Boss->self, no cast, range 100+R 90-degree cone
+    Dispose3 = 11497, // Boss->self, 7.0s cast, range 100+R 90-degree cone
+    Dispose4 = 11498, // Boss->self, no cast, range 100+R 90-degree cone
 
     DivideByThree = 11466, // Boss->self, 10.0s cast, range 100 circle
     DivideByFour = 11468, // Boss->self, 10.0s cast, range 100 circle

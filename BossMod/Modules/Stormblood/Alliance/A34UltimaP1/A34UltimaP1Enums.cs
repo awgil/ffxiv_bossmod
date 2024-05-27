@@ -21,50 +21,51 @@ public enum AID : uint
 {
     AutoAttack = 14499, // Boss->player, no cast, single-target
 
-    Auralight1 = 14487, // Helper->self, 6.0s cast, range 70 width 10 rect
-    Auralight2 = 14488, // Helper->self, 6.0s cast, range 20 circle
-    Auralight3 = 14570, // Boss->self, 6.0s cast, single-target
-
-    ControlTower1 = 14548, // DemiHashmal->self, 3.0s cast, range 80 circle
-    ControlTower2 = 14549, // Helper->self, 4.0s cast, range 6 circle
-    CrushWeapon = 14515, // Agrias2->location, 3.0s cast, range 6 circle
-    DarkCannonade1 = 14541, // DemiFamfrit->self, 5.0s cast, single-target
-    DarkCannonade2 = 14542, // Helper->player, no cast, single-target
-    DarkEwer = 14538, // DemiFamfrit->self, 3.0s cast, single-target
-    DemiAquarius = 14527, // Boss->self, 3.0s cast, single-target
-    DemiAries = 14528, // Boss->self, 3.0s cast, single-target
-    DemiLeo = 14529, // Boss->self, 3.0s cast, single-target
-    EarthHammer = 14552, // DemiHashmal->self, 5.0s cast, single-target
-    Eruption1 = 15479, // DemiBelias->self, 3.0s cast, single-target
-    Eruption2 = 15480, // Helper->location, 3.0s cast, range 8 circle
-
-    ExtremeEdge1 = 14554, // DemiHashmal->self, 6.0s cast, range 60+R width 36 rect
-    ExtremeEdge2 = 14555, // DemiHashmal->self, 6.0s cast, range 60+R width 36 rect
-
-    GrandCross1 = 14508, // Boss->self, 3.0s cast, single-target
-    GrandCross2 = 14510, // AuraciteShard->self, 4.0s cast, range 60 width 15 cross
-    HallowedBolt = 14514, // Agrias2->location, 3.0s cast, range 6 circle
-    Hammerfall = 14553, // Helper->self, 1.0s cast, range 40 circle
-    Hellfire = 14673, // DemiBelias->self, 15.0s cast, single-target
-
     HolyIV1 = 14489, // Boss->self, 3.0s cast, single-target
-    HolyIV2 = 14490, // Helper->location, 3.0s cast, range 6 circle
-    HolyIV3 = 14491, // Helper->players, 5.5s cast, range 6 circle
+    HolyIVBait = 14490, // Helper->location, 3.0s cast, range 6 circle
+    HolyIVSpread = 14491, // Helper->players, 5.5s cast, range 6 circle
     HolyIV4 = 15367, // Boss->self, 5.0s cast, single-target
 
-    Landwaster = 14674, // DemiHashmal->self, 15.0s cast, single-target
-    Materialize = 14539, // Aspersory->self, 2.0s cast, range 6 circle
+    AuralightRect = 14487, // Helper->self, 6.0s cast, range 70 width 10 rect
+    AuralightAOE = 14488, // Helper->self, 6.0s cast, range 20 circle
+    AuralightVisual = 14570, // Boss->self, 6.0s cast, single-target
+
+    GrandCrossVisual = 14508, // Boss->self, 3.0s cast, single-target
+    GrandCrossAOE = 14510, // AuraciteShard->self, 4.0s cast, range 60 width 15 cross
     Plummet = 14509, // AuraciteShard->self, 3.5s cast, range 15 width 15 rect
-    PrevailingCurrent = 14540, // Helper->self, no cast, range 6 circle
-    Sanction = 14550, // DemiHashmal->self, no cast, range 80 circle
-    Searchlight = 14513, // Agrias2->location, 3.0s cast, range 6 circle
 
-    TimeEruption1 = 14543, // DemiBelias->self, 3.0s cast, single-target
-    TimeEruption2 = 14544, // Helper->self, 6.0s cast, range 20 width 20 rect
-    TimeEruption3 = 14545, // Helper->self, 9.0s cast, range 20 width 20 rect
+    DemiAquarius = 14527, // Boss->self, 3.0s cast, single-target
+    DarkEwer = 14538, // DemiFamfrit->self, 3.0s cast, single-target
+    DarkCannonade1 = 14541, // DemiFamfrit->self, 5.0s cast, single-target
+    DarkCannonade2 = 14542, // Helper->player, no cast, single-target
+    Tsunami = 14672, // DemiFamfrit->self, 15.0s cast, single-target // Ultimate, never cast
 
+    DemiAries = 14528, // Boss->self, 3.0s cast, single-target
+    TimeEruptionVisual = 14543, // DemiBelias->self, 3.0s cast, single-target
+    TimeEruptionAOEFirst = 14544, // Helper->self, 6.0s cast, range 20 width 20 rect
+    TimeEruptionAOESecond = 14545, // Helper->self, 9.0s cast, range 20 width 20 rect
+    Eruption1 = 15479, // DemiBelias->self, 3.0s cast, single-target
+    Eruption2 = 15480, // Helper->location, 3.0s cast, range 8 circle
+    Hellfire = 14673, // DemiBelias->self, 15.0s cast, single-target // Ultimate, never cast
+
+    DemiLeo = 14529, // Boss->self, 3.0s cast, single-target
+    ControlTower1 = 14548, // DemiHashmal->self, 3.0s cast, range 80 circle
+    ControlTower2 = 14549, // Helper->self, 4.0s cast, range 6 circle
     Towerfall = 14551, // Helper->self, no cast, range 40+R width 10 rect
-    Tsunami = 14672, // DemiFamfrit->self, 15.0s cast, single-target
+    ExtremeEdge1 = 14554, // DemiHashmal->self, 6.0s cast, range 60+R width 36 rect
+    ExtremeEdge2 = 14555, // DemiHashmal->self, 6.0s cast, range 60+R width 36 rect
+    EarthHammer = 14552, // DemiHashmal->self, 5.0s cast, single-target
+    Sanction = 14550, // DemiHashmal->self, no cast, range 80 circle
+    Landwaster = 14674, // DemiHashmal->self, 15.0s cast, single-target // Ultimate, never cast
+
+    CrushWeapon = 14515, // Agrias2->location, 3.0s cast, range 6 circle
+    Searchlight = 14513, // Agrias2->location, 3.0s cast, range 6 circle
+    HallowedBolt = 14514, // Agrias2->location, 3.0s cast, range 6 circle
+
+    Hammerfall = 14553, // Helper->self, 1.0s cast, range 40 circle
+
+    Materialize = 14539, // Aspersory->self, 2.0s cast, range 6 circle
+    PrevailingCurrent = 14540, // Helper->self, no cast, range 6 circle
 
     UltimateIllusion1 = 14485, // Boss->self, 22.0s cast, single-target
     UltimateIllusion2 = 14486, // Helper->self, no cast, range 80 circle

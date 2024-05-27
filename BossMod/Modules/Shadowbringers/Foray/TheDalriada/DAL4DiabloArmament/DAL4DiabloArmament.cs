@@ -16,6 +16,27 @@ class AdvancedNox : Components.StandardChasingAOEs
     }
 }
 
+class AccelerationBomb(BossModule module) : Components.StayMove(module)
+{
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID is SID.AccelerationBomb)
+        {
+            if (Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < Requirements.Length)
+                Requirements[slot] = Requirement.Stay;
+        }
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID is SID.AccelerationBomb)
+        {
+            if (Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < Requirements.Length)
+                Requirements[slot] = Requirement.None;
+        }
+    }
+}
+
 class AssaultCannon(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AssaultCannon), new AOEShapeRect(100, 3));
 class DeadlyDealingAOE(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DeadlyDealingAOE), 6);
 

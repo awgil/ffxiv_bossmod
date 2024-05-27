@@ -14,13 +14,13 @@ public enum AID : uint
 {
     BossAutoAttack = 21450, // Boss->player, no cast, single-target
     MechanicalLaceration1 = 20920, // Boss->self, 5.0s cast, range 100 circle
-    MechanicalDecapitation = 20916, // Boss->self, 6.0s cast, range ?-43 donut
     MechanicalDissection = 20915, // Boss->self, 6.0s cast, range 85 width 11 rect
-    MechanicalContusion1 = 20917, // Boss->self, 3.0s cast, single-target
-    MechanicalContusion2 = 20919, // Helper->location, 4.0s cast, range 6 circle
-    MechanicalContusion3 = 20918, // Helper->player, 5.0s cast, range 6 circle
+    MechanicalDecapitation = 20916, // Boss->self, 6.0s cast, range ?-43 donut
+    MechanicalContusionVisual = 20917, // Boss->self, 3.0s cast, single-target
+    MechanicalContusionGround = 20919, // Helper->location, 4.0s cast, range 6 circle
+    MechanicalContusionSpread = 20918, // Helper->player, 5.0s cast, range 6 circle
     IncongruousSpin1 = 20913, // ThePuppets1->self, 8.0s cast, single-target
-    IncongruousSpin2 = 20914, // Helper->self, 8.5s cast, range 80 width 150 rect
+    IncongruousSpinAOE = 20914, // Helper->self, 8.5s cast, range 80 width 150 rect
     MechanicalLaceration2 = 21461, // Boss->self, no cast, range 100 circle
 }
 
@@ -34,5 +34,5 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon139 = 139, // player
+    Spreadmarker = 139, // player
 }

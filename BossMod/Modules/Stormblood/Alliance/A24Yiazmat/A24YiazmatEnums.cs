@@ -17,6 +17,7 @@ public enum AID : uint
 {
     BossAutoAttack = 870, // Boss->player, no cast, single-target
     MobAutoAttack = 872, // Archaeodemon->player, no cast, single-target
+
     AncientAero = 11320, // WindAzer->self, 2.5s cast, range 40+R width 6 rect
     Cyclone1 = 11299, // Boss->self, 7.0s cast, range 30 circle
     Cyclone2 = 11481, // Helper->player, no cast, single-target
@@ -32,13 +33,15 @@ public enum AID : uint
     MagneticGenesis2 = 11322, // Helper->self, no cast, ???
     MagneticGenesis3 = 11323, // Helper->self, no cast, ???
     MagneticLysis = 11306, // Boss->location, 3.5s cast, range 30 circle
-    Rake1 = 11302, // Boss->player, 4.0s cast, single-target
+
+    RakeTB = 11302, // Boss->player, 4.0s cast, single-target
     Rake2 = 11303, // Boss->location, no cast, range 5 circle
     Rake3 = 11304, // Boss->location, no cast, range 5 circle
-    Rake4 = 11324, // Boss->location, 4.0s cast, range 10 circle
-    Rake5 = 11598, // Helper->player, 4.5s cast, range 5 circle
-    Rake6 = 11599, // Helper->location, no cast, range 10 circle
-    Rake7 = 11826, // Helper->self, 4.5s cast, range 10 circle
+    RakeLoc1 = 11324, // Boss->location, 4.0s cast, range 10 circle
+    RakeSpread = 11598, // Helper->player, 4.5s cast, range 5 circle
+    RakeLoc2 = 11599, // Helper->location, no cast, range 10 circle
+    RakeAOE = 11826, // Helper->self, 4.5s cast, range 10 circle
+
     SolarStorm1 = 11308, // Boss->self, 5.0s cast, range 30 circle
     SolarStorm2 = 11474, // Boss->self, no cast, range 31 circle
     StoneBreath = 11305, // Boss->self, 7.0s cast, range 60+R ?-degree cone

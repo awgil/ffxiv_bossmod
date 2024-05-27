@@ -170,7 +170,7 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
                 distance = Math.Min(s.Distance, (s.Origin - from).Length() - s.MinDistance);
             if (distance <= 0)
                 continue; // this could happen if attract starts from < min distance
-            Service.Log($"{actor.HitboxRadius}");
+
             if (StopAtWall)
                 distance = Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) - Math.Clamp(actor.HitboxRadius - approxHitBoxRadius, maxIntersectionError, actor.HitboxRadius - approxHitBoxRadius)); // hitbox radius can be != 0.5 if player is transformed/mounted, but normal arenas with walls should account for walkable arena in their shape already
             if (StopAfterWall)
