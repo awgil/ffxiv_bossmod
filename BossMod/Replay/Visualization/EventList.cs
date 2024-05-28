@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using System.Runtime.InteropServices;
 
 namespace BossMod.ReplayVisualization;
 
@@ -31,13 +32,13 @@ class EventList(Replay r, Action<DateTime> scrollTo)
         foreach (var e in _tree.Nodes(r.Encounters, e => new($"{ModuleRegistry.FindByOID(e.OID)?.ModuleType.Name}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}, countdown on pull={e.CountdownOnPull:f3}")))
         {
             var moduleInfo = ModuleRegistry.FindByOID(e.OID);
-            var lists = _listsFiltered.GetOrAdd(e);
-            foreach (var n in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(lists.Ops)))
+            ref var lists = ref CollectionsMarshal.GetValueRefOrAddDefault(_listsFiltered, e, out _);
+            foreach (var n in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_listsFiltered[e].Ops)))
             {
                 lists.Ops ??= new(r, moduleInfo, r.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), scrollTo);
                 lists.Ops.Draw(_tree, e.Time.Start);
             }
-            foreach (var n in _tree.Node("Server IPCs", contextMenu: () => IPCListContextMenu(lists.IPCs)))
+            foreach (var n in _tree.Node("Server IPCs", contextMenu: () => IPCListContextMenu(_listsFiltered[e].IPCs)))
             {
                 lists.IPCs ??= new(r, r.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), scrollTo);
                 lists.IPCs.Draw(_tree, e.Time.Start);
