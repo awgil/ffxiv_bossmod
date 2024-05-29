@@ -152,14 +152,14 @@ public record class RelSimplifiedComplexPolygon(List<RelPolygonWithHoles> Parts)
         {
             var exteriorPath = new Path64(part.Exterior.Length);
             foreach (var vertex in part.Exterior)
-                exteriorPath.Add(new Point64(vertex.X * PolygonClipper._scale, vertex.Z * PolygonClipper._scale));
+                exteriorPath.Add(new Point64(vertex.X * PolygonClipper.Scale, vertex.Z * PolygonClipper.Scale));
             exteriorPaths.Add(exteriorPath);
 
             foreach (var holeIndex in part.Holes)
             {
                 var holePath = new Path64(part.Interior(holeIndex).Length);
                 foreach (var vertex in part.Interior(holeIndex))
-                    holePath.Add(new Point64(vertex.X * PolygonClipper._scale, vertex.Z * PolygonClipper._scale));
+                    holePath.Add(new Point64(vertex.X * PolygonClipper.Scale, vertex.Z * PolygonClipper.Scale));
                 holePaths.Add(holePath);
             }
         }
@@ -173,23 +173,23 @@ public record class RelSimplifiedComplexPolygon(List<RelPolygonWithHoles> Parts)
             var holeOffset = new ClipperOffset();
             holeOffset.AddPath(path, JoinType.Miter, EndType.Polygon);
             var expandedHole = new Paths64();
-            holeOffset.Execute(-Offset * PolygonClipper._scale, expandedHole);
+            holeOffset.Execute(-Offset * PolygonClipper.Scale, expandedHole);
             expandedHoles.AddRange(expandedHole);
         }
 
         var solution = new Paths64();
-        offset.Execute(Offset * PolygonClipper._scale, solution);
+        offset.Execute(Offset * PolygonClipper.Scale, solution);
 
         var result = new RelSimplifiedComplexPolygon();
         foreach (var path in solution)
         {
-            var vertices = path.Select(pt => new WDir(pt.X * PolygonClipper._invScale, pt.Y * PolygonClipper._invScale)).ToList();
+            var vertices = path.Select(pt => new WDir(pt.X * PolygonClipper.InvScale, pt.Y * PolygonClipper.InvScale)).ToList();
             result.Parts.Add(new RelPolygonWithHoles(vertices));
         }
 
         foreach (var path in expandedHoles)
         {
-            var vertices = path.Select(pt => new WDir(pt.X * PolygonClipper._invScale, pt.Y * PolygonClipper._invScale)).ToList();
+            var vertices = path.Select(pt => new WDir(pt.X * PolygonClipper.InvScale, pt.Y * PolygonClipper.InvScale)).ToList();
             result.Parts.Last().AddHole(vertices);
         }
         return result;
@@ -199,8 +199,8 @@ public record class RelSimplifiedComplexPolygon(List<RelPolygonWithHoles> Parts)
 // utility for simplifying and performing boolean operations on complex polygons
 public class PolygonClipper
 {
-    public const float _scale = 1024 * 1024; // note: we need at least 10 bits for integer part (-1024 to 1024 range); using 11 bits leaves 20 bits for fractional part; power-of-two scale should reduce rounding issues
-    public const float _invScale = 1 / _scale;
+    public const float Scale = 1024 * 1024; // note: we need at least 10 bits for integer part (-1024 to 1024 range); using 11 bits leaves 20 bits for fractional part; power-of-two scale should reduce rounding issues
+    public const float InvScale = 1 / Scale;
 
     // reusable representation of the complex polygon ready for boolean operations
     public record class Operand
@@ -288,8 +288,8 @@ public class PolygonClipper
         }
     }
 
-    private static Point64 ConvertPoint(WDir pt) => new(pt.X * _scale, pt.Z * _scale);
-    private static WDir ConvertPoint(Point64 pt) => new(pt.X * _invScale, pt.Y * _invScale);
+    private static Point64 ConvertPoint(WDir pt) => new(pt.X * Scale, pt.Z * Scale);
+    private static WDir ConvertPoint(Point64 pt) => new(pt.X * InvScale, pt.Y * InvScale);
 }
 
 public static class PolygonUtil
