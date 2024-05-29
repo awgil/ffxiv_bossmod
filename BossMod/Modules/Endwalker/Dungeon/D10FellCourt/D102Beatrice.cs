@@ -53,6 +53,8 @@ class Voidshaker(BossModule module) : Components.SelfTargetedAOEs(module, Action
 class VoidNail(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.VoidNail), 6);
 class Hush(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Hush));
 class EyeOfTroia(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EyeOfTroia));
+class ToricVoid3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ToricVoid3), new AOEShapeDonut(10, 10));
+class Antipressure(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Antipressure), 6, 4);
 
 class D102BeatriceStates : StateMachineBuilder
 {
@@ -65,9 +67,11 @@ class D102BeatriceStates : StateMachineBuilder
             .ActivateOnEnter<Voidshaker>()
             .ActivateOnEnter<VoidNail>()
             .ActivateOnEnter<Hush>()
-            .ActivateOnEnter<EyeOfTroia>();
+            .ActivateOnEnter<EyeOfTroia>()
+            .ActivateOnEnter<ToricVoid3>()
+            .ActivateOnEnter<Antipressure>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11384)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11384)]
 public class D102Beatrice(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -148), new ArenaBoundsCircle(20));

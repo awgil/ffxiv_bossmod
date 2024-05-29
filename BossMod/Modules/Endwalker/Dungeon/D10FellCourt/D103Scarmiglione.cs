@@ -71,19 +71,15 @@ public enum TetherID : uint
 }
 
 class VoidVortex1(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.VoidVortex1), 6);
-class VoidVortex3(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.VoidVortex3), 6, 8);
-
+class VoidVortex3(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.VoidVortex3), 6, 4);
 class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.VacuumWave), 30, stopAtWall: true);
-
 class BlightedBedevilment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlightedBedevilment), new AOEShapeCircle(9));
 class BlightedBladework2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlightedBladework2), new AOEShapeCircle(25));
 class Nox(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Nox), new AOEShapeCircle(10));
-
 class RottenRampage2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RottenRampage2), 6);
-
 class BlightedSweep(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlightedSweep), new AOEShapeCone(40, 90.Degrees()));
-
 class CursedEcho(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CursedEcho));
+class VoidGravity(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.VoidGravity), 6, 4);
 
 class D103ScarmiglioneStates : StateMachineBuilder
 {
@@ -98,9 +94,18 @@ class D103ScarmiglioneStates : StateMachineBuilder
             .ActivateOnEnter<Nox>()
             .ActivateOnEnter<RottenRampage2>()
             .ActivateOnEnter<BlightedSweep>()
-            .ActivateOnEnter<CursedEcho>();
+            .ActivateOnEnter<CursedEcho>()
+            .ActivateOnEnter<VoidGravity>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11372)]
-public class D103Scarmiglione(WorldState ws, Actor primary) : BossModule(ws, primary, new(-35, -298), new ArenaBoundsCircle(20));
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11372)]
+public class D103Scarmiglione(WorldState ws, Actor primary) : BossModule(ws, primary, new(-35, -298), new ArenaBoundsCircle(20))
+{
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.Necroserf1), ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.Necroserf2), ArenaColor.Enemy);
+    }
+}

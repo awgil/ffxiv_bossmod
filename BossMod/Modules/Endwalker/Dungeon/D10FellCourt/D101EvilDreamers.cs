@@ -15,9 +15,10 @@ public enum AID : uint
     UniteMare1 = 29621, // SmallerBoss->self, 11.0s cast, range 6 circle
     UniteMare2 = 29622, // SmallerBoss->self, 11.0s cast, range 6 circle
     UniteMare3 = 29628, // EvilDreamer1->self, 10.0s cast, range 12 circle
-    DarkVision = 29627, // EvilDreamer4->self, 15.0s cast, range 41 width 5 rect
+    DarkVision2 = 29627, // EvilDreamer4->self, 15.0s cast, range 41 width 5 rect
+    DarkVision1 = 29624, // EvilDreamer4->self, 8.0s cast, range 40 width 5 rect
     UnknownAbility2 = 29629, // EvilDreamer4->location, no cast, single-target
-    // Void Gravity missing, stack marker mechanic
+    VoidGravity = 29626, // EvilDreamer4->player, 6.0s cast, range 6 circle
 }
 
 public enum SID : uint
@@ -34,7 +35,9 @@ public enum TetherID : uint
 class UniteMare1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.UniteMare1), new AOEShapeCircle(6));
 class UniteMare2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.UniteMare2), new AOEShapeCircle(6));
 class UniteMare3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.UniteMare3), new AOEShapeCircle(12));
-class DarkVision(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkVision), new AOEShapeRect(41, 2.5f));
+class DarkVision1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkVision1), new AOEShapeRect(40, 2.5f));
+class DarkVision2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkVision2), new AOEShapeRect(41, 2.5f));
+class VoidGravity(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.VoidGravity), 6, 4);
 
 class D101EvilDreamersStates : StateMachineBuilder
 {
@@ -44,11 +47,13 @@ class D101EvilDreamersStates : StateMachineBuilder
             .ActivateOnEnter<UniteMare1>()
             .ActivateOnEnter<UniteMare2>()
             .ActivateOnEnter<UniteMare3>()
-            .ActivateOnEnter<DarkVision>();
+            .ActivateOnEnter<DarkVision1>()
+            .ActivateOnEnter<DarkVision2>()
+            .ActivateOnEnter<VoidGravity>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", PrimaryActorOID = (uint)OID.EvilDreamer1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11382)] // 11383
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", PrimaryActorOID = (uint)OID.EvilDreamer1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11382)] // 11383
 public class D101EvilDreamers(WorldState ws, Actor primary) : BossModule(ws, primary, new(168, 90), new ArenaBoundsCircle(20))
 {
     private Actor? _evilDreamer2;
