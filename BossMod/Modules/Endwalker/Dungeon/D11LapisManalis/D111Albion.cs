@@ -47,14 +47,14 @@ class WildlifeCrossing(BossModule module) : Components.GenericAOEs(module)
     private (bool active, WPos position, Angle rotation, int count, DateTime reset, List<Actor> beasts) stampede2;
     private readonly (bool, WPos, Angle, int, DateTime, List<Actor>)[] stampedePositions =
     [
-        (true, new WPos(4, -759), _rot90, 0, default(DateTime), new List<Actor>()),
-        (true, new WPos(44, -759), _rotM90, 0, default(DateTime), new List<Actor>()),
-        (true, new WPos(4, -749), _rot90, 0, default(DateTime), new List<Actor>()),
-        (true, new WPos(44, -749), _rotM90, 0, default(DateTime), new List<Actor>()),
-        (true, new WPos(4, -739), _rot90, 0, default(DateTime), new List<Actor>()),
-        (true, new WPos(44, -739), _rotM90, 0, default(DateTime), new List<Actor>()),
-        (true, new WPos(4, -729), _rot90, 0, default(DateTime), new List<Actor>()),
-        (true, new WPos(44, -729), _rotM90, 0, default(DateTime), new List<Actor>()),
+        (true, new WPos(4, -759), _rot90, 0, default, []),
+        (true, new WPos(44, -759), _rotM90, 0, default, []),
+        (true, new WPos(4, -749), _rot90, 0, default, []),
+        (true, new WPos(44, -749), _rotM90, 0, default, []),
+        (true, new WPos(4, -739), _rot90, 0, default, []),
+        (true, new WPos(44, -739), _rotM90, 0, default, []),
+        (true, new WPos(4, -729), _rot90, 0, default, []),
+        (true, new WPos(44, -729), _rotM90, 0, default, []),
     ];
     private bool Newstampede => stampede1 == default;
 
@@ -150,7 +150,7 @@ class WildlifeCrossing(BossModule module) : Components.GenericAOEs(module)
                 ++stampede1.count;
             if (MathF.Abs(caster.Position.Z - stampede2.position.Z) < 1)
                 ++stampede2.count;
-            if (stampede1.count == 30) //sometimes stampedes only have 30 instead of 31 hits for some reason, so i take the lower value and add a 0.5s reset timer via update
+            if (stampede1.count == 30) // sometimes stampedes only have 30 instead of 31 hits for some reason, so we take the lower value and add a 0.5s reset timer via update
                 stampede1.reset = WorldState.FutureTime(0.5f);
             if (stampede2.count == 30)
                 stampede1.reset = WorldState.FutureTime(0.5f);

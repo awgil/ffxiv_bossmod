@@ -16,4 +16,5 @@ public static class ArenaColor
     public const uint PlayerInteresting = 0xffc0c0c0;
     public const uint PlayerGeneric = 0xff808080;
     public const uint Vulnerable = 0xffff00ff;
+    public const uint FutureVulnerable = 0x80ff00ff;
 }

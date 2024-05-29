@@ -42,6 +42,7 @@
     <Using Include="System.Linq" />
     <Using Include="System.Numerics" />
     <Using Include="System.Security.Cryptography" />
+    <Using Include="System.Text" />
   </ItemGroup>
 
   <PropertyGroup>

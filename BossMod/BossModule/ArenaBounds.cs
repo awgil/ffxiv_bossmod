@@ -297,7 +297,7 @@ public record class ArenaBoundsComplex : ArenaBoundsCustom
 
     private static (WPos Center, float Radius, RelSimplifiedComplexPolygon Poly) CalculatePolygonProperties(IEnumerable<Shape> unionShapes, IEnumerable<Shape> differenceShapes, IEnumerable<Shape> additionalShapes)
     {
-        var cacheKey = (unionShapes, differenceShapes, additionalShapes);
+        var cacheKey = CreateCacheKey(unionShapes, differenceShapes, additionalShapes);
         if (StaticCache.TryGetValue(cacheKey, out var cachedResult))
             return ((WPos, float, RelSimplifiedComplexPolygon))cachedResult;
 
@@ -332,6 +332,22 @@ public record class ArenaBoundsComplex : ArenaBoundsCustom
 
         StaticCache[cacheKey] = (center, radius, combinedPolyCentered);
         return (center, radius, combinedPolyCentered);
+    }
+
+    private static string CreateCacheKey(IEnumerable<Shape> unionShapes, IEnumerable<Shape> differenceShapes, IEnumerable<Shape> additionalShapes)
+    {
+        using var sha512 = SHA512.Create();
+        var unionKey = string.Join(",", unionShapes.Select(s => ComputeShapeHash(s, sha512)));
+        var differenceKey = string.Join(",", differenceShapes.Select(s => ComputeShapeHash(s, sha512)));
+        var additionalKey = string.Join(",", additionalShapes.Select(s => ComputeShapeHash(s, sha512)));
+        return $"{unionKey}|{differenceKey}|{additionalKey}";
+    }
+
+    private static string ComputeShapeHash(Shape shape, SHA512 sha512)
+    {
+        var data = Encoding.UTF8.GetBytes(shape.ToString());
+        var hash = sha512.ComputeHash(data);
+        return BitConverter.ToString(hash).Replace("-", "");
     }
 
     private static RelSimplifiedComplexPolygon CombinePolygons(List<RelSimplifiedComplexPolygon> unionPolygons, List<RelSimplifiedComplexPolygon> differencePolygons, List<RelSimplifiedComplexPolygon> secondUnionPolygons)

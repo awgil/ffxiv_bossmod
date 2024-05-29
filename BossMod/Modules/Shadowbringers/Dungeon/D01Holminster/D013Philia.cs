@@ -152,19 +152,16 @@ class Aethersup(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class PendulumFlare(BossModule module) : Components.GenericBaitAway(module)
+class PendulumFlare(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
-    private bool targeted;
-    private Actor? target;
+    public List<Actor> targets = [];
 
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.SpreadFlare)
         {
             CurrentBaits.Add(new(Module.PrimaryActor, actor, new AOEShapeCircle(20)));
-            targeted = true;
-            target = actor;
-            CenterAtTarget = true;
+            targets.Add(actor);
         }
     }
 
@@ -173,21 +170,21 @@ class PendulumFlare(BossModule module) : Components.GenericBaitAway(module)
         if ((AID)spell.Action.ID == AID.PendulumAOE1)
         {
             CurrentBaits.Clear();
-            targeted = false;
+            targets.Clear();
         }
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (target == actor && targeted)
+        if (targets.Contains(actor))
             hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 18.5f));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(slot, actor, hints);
-        if (target == actor && targeted)
+        if (targets.Contains(actor))
             hints.Add("Bait away!");
     }
 }
@@ -343,7 +340,7 @@ class MeleeRange(BossModule module) : BossComponent(module) // force melee range
             if (!Module.FindComponent<FierceBeating>()!.ActiveAOEs(slot, actor).Any() && Module.FindComponent<IntoTheLight>()!.CurrentBaits.Count == 0 &&
             Module.FindComponent<Taphephobia>()!.Spreads.Count == 0 && !Module.FindComponent<LeftKnout>()!.ActiveAOEs(slot, actor).Any() &&
             !Module.FindComponent<RightKnout>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<PendulumAOE>()!.ActiveAOEs(slot, actor).Any() &&
-            Module.FindComponent<PendulumFlare>()!.CurrentBaits.Count == 0)
+            !Module.FindComponent<PendulumFlare>()!.targets.Contains(actor))
                 if (actor.Role is Role.Melee or Role.Tank)
                 {
                     var ironchain = Module.Enemies(OID.IronChain).FirstOrDefault();
@@ -383,4 +380,11 @@ public class D013Philia(WorldState ws, Actor primary) : BossModule(ws, primary, 
     private static readonly List<Shape> union = [new Circle(new(134, -465), 19.5f)];
     private static readonly List<Shape> difference = [new Rectangle(new(134, -445), 20, 1.5f)];
     private static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        foreach (var s in Enemies(OID.IronChain))
+            Arena.Actor(s, ArenaColor.Vulnerable);
+    }
 }

@@ -47,25 +47,25 @@ public enum TetherID : uint
 
 class HoundOutOfHeavenGood(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.HoundOutOfHeavenTetherGood) // TODO: consider generalizing stretched tethers?
 {
-    public ulong target;
+    public List<Actor> targets = [];
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         base.OnTethered(source, tether);
         if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherGood)
-            target = tether.Target;
+            targets.Add(WorldState.Actors.Find(tether.Target)!);
     }
 
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         base.OnUntethered(source, tether);
         if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherGood)
-            target = default;
+            targets.Remove(WorldState.Actors.Find(tether.Target)!);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (DrawTethers && target == pc.InstanceID && CurrentBaits.Count > 0)
+        if (targets.Contains(pc))
         {
             foreach (var b in ActiveBaits)
             {
@@ -78,39 +78,39 @@ class HoundOutOfHeavenGood(BossModule module) : Components.BaitAwayTethers(modul
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (target == actor.InstanceID && CurrentBaits.Count > 0)
+        if (targets.Contains(actor))
             hints.Add("Tether is stretched!", false);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (target == actor.InstanceID && CurrentBaits.Count > 0)
+        if (targets.Contains(actor))
             hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
     }
 }
 
 class HoundOutOfHeavenBad(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.HoundOutOfHeavenTetherStretch)
 {
-    public ulong target;
+    public List<Actor> targets = [];
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         base.OnTethered(source, tether);
         if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherStretch)
-            target = tether.Target;
+            targets.Add(WorldState.Actors.Find(tether.Target)!);
     }
 
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         base.OnUntethered(source, tether);
         if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherStretch)
-            target = default;
+            targets.Remove(WorldState.Actors.Find(tether.Target)!);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (DrawTethers && target == pc.InstanceID && CurrentBaits.Count > 0)
+        if (targets.Contains(pc))
         {
             foreach (var b in ActiveBaits)
             {
@@ -123,14 +123,14 @@ class HoundOutOfHeavenBad(BossModule module) : Components.BaitAwayTethers(module
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (target == actor.InstanceID && CurrentBaits.Count > 0)
+        if (targets.Contains(actor))
             hints.Add("Stretch tether further!");
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (target == actor.InstanceID && CurrentBaits.Count > 0)
+        if (targets.Contains(actor))
             hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
     }
 }
@@ -144,16 +144,14 @@ class ConfessionOfFaithSpread(BossModule module) : Components.SpreadFromCastTarg
 
 class ViperPoisonBait(BossModule module) : Components.GenericBaitAway(module)
 {
-    private bool targeted;
-    public Actor? target;
+    public List<Actor> targets = [];
 
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.poisonbait)
         {
             CurrentBaits.Add(new(actor, actor, new AOEShapeCircle(6)));
-            targeted = true;
-            target = actor;
+            targets.Add(actor);
         }
     }
 
@@ -162,22 +160,21 @@ class ViperPoisonBait(BossModule module) : Components.GenericBaitAway(module)
         if ((AID)spell.Action.ID == AID.ViperPoisonBaitAway)
         {
             CurrentBaits.Clear();
-            targeted = false;
-            target = null;
+            targets.Clear();
         }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(slot, actor, hints);
-        if (target == actor && targeted)
+        if (targets.Contains(actor))
             hints.Add("Bait voidzone away!");
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (target == actor && targeted)
+        if (targets.Contains(actor))
             hints.AddForbiddenZone(ShapeDistance.Rect(new(17, -518), new(17, -558), 13));
     }
 }
@@ -202,8 +199,8 @@ class MeleeRange(BossModule module) : BossComponent(module) // force melee range
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (!Service.Config.Get<AutorotationConfig>().Enabled)
-            if (Module.FindComponent<ViperPoisonBait>()!.target != actor && Module.FindComponent<HoundOutOfHeavenGood>()!.target != actor.InstanceID &&
-            Module.FindComponent<HoundOutOfHeavenBad>()!.target != actor.InstanceID && Module.FindComponent<ConfessionOfFaithStack>()!.Stacks.Count == 0 &&
+            if (!Module.FindComponent<ViperPoisonBait>()!.targets.Contains(actor) && !Module.FindComponent<HoundOutOfHeavenGood>()!.targets.Contains(actor) &&
+            !Module.FindComponent<HoundOutOfHeavenBad>()!.targets.Contains(actor) && Module.FindComponent<ConfessionOfFaithStack>()!.Stacks.Count == 0 &&
             Module.FindComponent<ConfessionOfFaithSpread>()!.Spreads.Count == 0 && !Module.FindComponent<ConfessionOfFaithLeft>()!.ActiveAOEs(slot, actor).Any() &&
             !Module.FindComponent<ConfessionOfFaithRight>()!.ActiveAOEs(slot, actor).Any())
                 if (actor.Role is Role.Melee or Role.Tank)
