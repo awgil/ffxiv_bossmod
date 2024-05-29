@@ -347,7 +347,7 @@ public record class ArenaBoundsComplex : ArenaBoundsCustom
     {
         var data = Encoding.UTF8.GetBytes(shape.ToString());
         var hash = sha512.ComputeHash(data);
-        return BitConverter.ToString(hash).Replace("-", "");
+        return BitConverter.ToString(hash).Replace("-", "", StringComparison.Ordinal);
     }
 
     private static RelSimplifiedComplexPolygon CombinePolygons(List<RelSimplifiedComplexPolygon> unionPolygons, List<RelSimplifiedComplexPolygon> differencePolygons, List<RelSimplifiedComplexPolygon> secondUnionPolygons)
