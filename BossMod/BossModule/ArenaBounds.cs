@@ -167,7 +167,7 @@ public record class ArenaBoundsRect(float HalfWidth, float HalfHeight, Angle Rot
 public record class ArenaBoundsSquare(float Radius, Angle Rotation = default, float MapResolution = 0.5f) : ArenaBoundsRect(Radius, Radius, Rotation, MapResolution) { }
 
 // custom complex polygon bounds
-public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon Poly, float MapResolution = 0.5f) : ArenaBounds(Radius, MapResolution)
+public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon Poly, float MapResolution = 0.5f, float Offset = 0) : ArenaBounds(Radius, MapResolution)
 {
     private Pathfinding.Map? _cachedMap;
 
@@ -266,14 +266,35 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
 
     private Pathfinding.Map BuildMap()
     {
-        var map = new Pathfinding.Map(MapResolution, Center, CalculatePolygonProperties(Poly).halfWidth, CalculatePolygonProperties(Poly).halfHeight);
+        var polygon = Offset != 0 ? Poly.Offset(Offset) : Poly;
+        var mapProperties = CalculatePolygonProperties(polygon);
+        var map = new Pathfinding.Map(MapResolution, Center, mapProperties.halfWidth, mapProperties.halfHeight);
 
         foreach (var (x, y, pos) in map.EnumeratePixels())
         {
             var relativeCenter = new WDir(pos.X - Center.X, pos.Z - Center.Z);
-            map.Pixels[y * map.Width + x].MaxG = Poly.Contains(relativeCenter) ? float.MaxValue : 0;
+            var samplePoints = GenerateSamplePoints(relativeCenter, MapResolution);
+            var allPointsInside = samplePoints.All(polygon.Contains);
+            map.Pixels[y * map.Width + x].MaxG = allPointsInside ? float.MaxValue : 0;
         }
         return map;
+    }
+
+    private List<WDir> GenerateSamplePoints(WDir relativeCenter, float resolution)
+    {
+        var stepSize = resolution / 3;
+        var halfResolution = resolution / 2;
+
+        return
+        [new(relativeCenter.X - halfResolution + stepSize, relativeCenter.Z - halfResolution + stepSize),
+        new(relativeCenter.X - halfResolution + stepSize, relativeCenter.Z),
+        new(relativeCenter.X - halfResolution + stepSize, relativeCenter.Z + halfResolution - stepSize),
+        new(relativeCenter.X, relativeCenter.Z - halfResolution + stepSize),
+        new(relativeCenter.X, relativeCenter.Z),
+        new(relativeCenter.X, relativeCenter.Z + halfResolution - stepSize),
+        new(relativeCenter.X + halfResolution - stepSize, relativeCenter.Z - halfResolution + stepSize),
+        new(relativeCenter.X + halfResolution - stepSize, relativeCenter.Z),
+        new(relativeCenter.X + halfResolution - stepSize, relativeCenter.Z + halfResolution - stepSize)];
     }
 }
 
@@ -282,17 +303,17 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
 // for convenience third list will optionally perform additional unions at the end
 public record class ArenaBoundsComplex : ArenaBoundsCustom
 {
-    public ArenaBoundsComplex(IEnumerable<Shape> UnionShapes, IEnumerable<Shape>? DifferenceShapes = null, IEnumerable<Shape>? AdditionalShapes = null, float MapResolution = 0.5f)
-        : base(BuildBounds(UnionShapes, DifferenceShapes ?? [], AdditionalShapes ?? [], MapResolution))
+    public ArenaBoundsComplex(IEnumerable<Shape> UnionShapes, IEnumerable<Shape>? DifferenceShapes = null, IEnumerable<Shape>? AdditionalShapes = null, float MapResolution = 0.5f, float Offset = 0)
+        : base(BuildBounds(UnionShapes, DifferenceShapes ?? [], AdditionalShapes ?? [], MapResolution, Offset))
     {
         var properties = CalculatePolygonProperties(UnionShapes, DifferenceShapes ?? [], AdditionalShapes ?? []);
         Center = properties.Center;
     }
 
-    private static ArenaBoundsCustom BuildBounds(IEnumerable<Shape> unionShapes, IEnumerable<Shape> differenceShapes, IEnumerable<Shape> additionalShapes, float mapResolution)
+    private static ArenaBoundsCustom BuildBounds(IEnumerable<Shape> unionShapes, IEnumerable<Shape> differenceShapes, IEnumerable<Shape> additionalShapes, float mapResolution, float offset)
     {
         var props = CalculatePolygonProperties(unionShapes, differenceShapes, additionalShapes);
-        return new ArenaBoundsCustom(props.Radius, props.Poly, mapResolution);
+        return new ArenaBoundsCustom(props.Radius, props.Poly, mapResolution, offset);
     }
 
     private static (WPos Center, float Radius, RelSimplifiedComplexPolygon Poly) CalculatePolygonProperties(IEnumerable<Shape> unionShapes, IEnumerable<Shape> differenceShapes, IEnumerable<Shape> additionalShapes)
@@ -301,9 +322,9 @@ public record class ArenaBoundsComplex : ArenaBoundsCustom
         if (StaticCache.TryGetValue(cacheKey, out var cachedResult))
             return ((WPos, float, RelSimplifiedComplexPolygon))cachedResult;
 
-        var unionPolygons = ParseShapes(unionShapes, default);
-        var differencePolygons = ParseShapes(differenceShapes, default);
-        var additionalPolygons = ParseShapes(additionalShapes, default);
+        var unionPolygons = ParseShapes(unionShapes);
+        var differencePolygons = ParseShapes(differenceShapes);
+        var additionalPolygons = ParseShapes(additionalShapes);
 
         var combinedPoly = CombinePolygons(unionPolygons, differencePolygons, additionalPolygons);
 
@@ -373,5 +394,5 @@ public record class ArenaBoundsComplex : ArenaBoundsCustom
         return combinedShape;
     }
 
-    private static List<RelSimplifiedComplexPolygon> ParseShapes(IEnumerable<Shape> shapes, WPos center) => shapes.Select(shape => shape.ToPolygon(center)).ToList();
+    private static List<RelSimplifiedComplexPolygon> ParseShapes(IEnumerable<Shape> shapes, WPos center = default) => shapes.Select(shape => shape.ToPolygon(center)).ToList();
 }

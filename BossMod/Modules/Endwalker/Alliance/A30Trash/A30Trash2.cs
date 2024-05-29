@@ -36,7 +36,7 @@ public class A30Trash2Pack1States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", PrimaryActorOID = (uint)OID.AngelosPack1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 12481, SortOrder = 5)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, veyn", PrimaryActorOID = (uint)OID.AngelosPack1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 12481, SortOrder = 5)]
 public class A30Trash2Pack1(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
 {
     private static readonly List<Shape> union = [new Rectangle(new(800, 786), 21, 13.5f), new Rectangle(new(800, 767), 7.5f, 10), new Rectangle(new(800, 758), 10, 4)];
@@ -62,7 +62,7 @@ public class A30Trash2Pack2States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", PrimaryActorOID = (uint)OID.AngelosPack2, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 12481, SortOrder = 6)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, veyn", PrimaryActorOID = (uint)OID.AngelosPack2, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 12481, SortOrder = 6)]
 public class A30Trash2Pack2(WorldState ws, Actor primary) : BossModule(ws, primary, new(800, 909.75f), new ArenaBoundsSquare(19.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

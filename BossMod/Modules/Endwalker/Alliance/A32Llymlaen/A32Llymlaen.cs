@@ -9,7 +9,7 @@ class Maelstrom(BossModule module) : Components.LocationTargetedAOEs(module, Act
 class Godsbane(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.GodsbaneAOE));
 class DeepDiveHardWater(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.DeepDiveHardWater), 6);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11299, SortOrder = 3)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, LTS, veyn", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11299, SortOrder = 3)]
 public class A32Llymlaen(WorldState ws, Actor primary) : BossModule(ws, primary, DefaultCenter, DefaultBounds)
 {
     public const float CorridorHalfLength = 40;

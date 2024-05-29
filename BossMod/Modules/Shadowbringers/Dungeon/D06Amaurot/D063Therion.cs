@@ -35,31 +35,33 @@ class Border(BossModule module) : Components.GenericAOEs(module, warningText: "P
 {
     private ArenaBounds? arena;
     private const int SquareHalfWidth = 2;
-    private const int RectangleHalfWidth = 10;
+    private const float RectangleHalfWidth = 10.1f;
     private const int MaxError = 5;
+    private const float PathfindingOffset = -0.5f;
     private static readonly AOEShapeRect _square = new(2, 2, 2);
 
-    private readonly List<AOEInstance> _aoes = [];
+    public readonly List<AOEInstance> BreakingPlatforms = [];
 
-    private static readonly List<(WPos Position, Shape Shape)> shapes =
-    [
-        (new(-12, -71), new Square(new(-12, -71), SquareHalfWidth)),
-        (new(12, -71), new Square(new(12, -71), SquareHalfWidth)),
-        (new(-12, -51), new Square(new(-12, -51), SquareHalfWidth)),
-        (new(12, -51), new Square(new(12, -51), SquareHalfWidth)),
-        (new(-12, -31), new Square(new(-12, -31), SquareHalfWidth)),
-        (new(12, -31), new Square(new(12, -31), SquareHalfWidth)),
-        (new(-12, -17), new Square(new(-12, -17), SquareHalfWidth)),
-        (new(12, -17), new Square(new(12, -17), SquareHalfWidth)),
-        (new(0, -65), new Square(new(0, -65), RectangleHalfWidth)),
-        (new(0, -55), new Square(new(0, -45), RectangleHalfWidth))
-    ];
+    public static readonly List<WPos> positions = [new(-12, -71), new(12, -71), new(-12, -51),
+    new(12, -51), new(-12, -31), new(12, -31), new(-12, -17), new(12, -17), new(0, -65), new(0, -45)];
+
+    private static readonly List<Shape> shapes = [new Square(positions[0], SquareHalfWidth),
+    new Square(positions[1], SquareHalfWidth), new Square(positions[2], SquareHalfWidth),
+    new Square(positions[3], SquareHalfWidth), new Square(positions[4], SquareHalfWidth),
+    new Square(positions[5], SquareHalfWidth), new Square(positions[6], SquareHalfWidth),
+    new Square(positions[7], SquareHalfWidth), new Square(positions[8], RectangleHalfWidth),
+    new Square(positions[9], RectangleHalfWidth)];
+
     private static readonly List<Shape> rect = [new Rectangle(new WPos(0, -45), 10, 30)];
-    private readonly List<Shape> unionRefresh = new(rect.Concat(shapes.Take(8).Select(s => s.Shape)));
+    public readonly List<Shape> unionRefresh = new(rect.Concat(shapes.Take(8)));
     private readonly List<Shape> difference = [];
-    public static readonly ArenaBounds arenaDefault = new ArenaBoundsComplex(rect.Concat(shapes.Take(8).Select(s => s.Shape)));
+    public static readonly ArenaBounds arenaDefault = new ArenaBoundsComplex(rect.Concat(shapes.Take(8)), Offset: PathfindingOffset);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var p in BreakingPlatforms)
+            yield return new(_square, p.Origin, Color: ArenaColor.FutureVulnerable, Risky: Module.FindComponent<Apokalypsis>()!.NumCasts == 0);
+    }
 
     public override void OnActorEAnim(Actor actor, uint state)
     {
@@ -67,18 +69,19 @@ class Border(BossModule module) : Components.GenericAOEs(module, warningText: "P
         {
             for (var i = 0; i < 8; i++)
             {
-                if (actor.Position.AlmostEqual(shapes[i].Position, MaxError))
+                if (actor.Position.AlmostEqual(positions[i], MaxError))
                 {
-                    if (unionRefresh.Remove(shapes[i].Shape))
+                    if (unionRefresh.Remove(shapes[i]))
                     {
                         if (unionRefresh.Count == 7)
-                            difference.Add(shapes[8].Shape);
+                            difference.Add(shapes[8]);
                         if (unionRefresh.Count == 5)
-                            difference.Add(shapes[9].Shape);
-                        arena = new ArenaBoundsComplex(unionRefresh, difference);
+                            difference.Add(shapes[9]);
+                        arena = new ArenaBoundsComplex(unionRefresh, difference, Offset: PathfindingOffset);
                         Module.Arena.Bounds = arena;
                         Module.Arena.Center = arena.Center;
                     }
+                    BreakingPlatforms.Remove(new(_square, positions[i], Color: ArenaColor.FutureVulnerable));
                 }
             }
         }
@@ -86,8 +89,8 @@ class Border(BossModule module) : Components.GenericAOEs(module, warningText: "P
         {
             for (var i = 0; i < 8; i++)
             {
-                if (actor.Position.AlmostEqual(shapes[i].Position, MaxError))
-                    _aoes.Add(new(_square, shapes[i].Position, Color: ArenaColor.FutureVulnerable));
+                if (actor.Position.AlmostEqual(positions[i], MaxError))
+                    BreakingPlatforms.Add(new(_square, positions[i], Color: ArenaColor.FutureVulnerable));
             }
         }
     }
@@ -95,14 +98,19 @@ class Border(BossModule module) : Components.GenericAOEs(module, warningText: "P
 
 class Apokalypsis(BossModule module) : Components.GenericAOEs(module)
 {
-    private AOEInstance? _aoe;
+    private DateTime _activation;
+    private static readonly AOEShapeRect _rect = new(76, 10);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_activation != default)
+            yield return new(_rect, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation, Risky: (Module.FindComponent<Border>()!.unionRefresh.Count - Module.FindComponent<Border>()!.BreakingPlatforms.Count) > 1);
+    }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ApokalypsisFirst)
-            _aoe = new(new AOEShapeRect(76, 10), caster.Position, spell.Rotation, spell.NPCFinishAt);
+            _activation = spell.NPCFinishAt;
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -113,7 +121,7 @@ class Apokalypsis(BossModule module) : Components.GenericAOEs(module)
             case AID.ApokalypsisRest:
                 if (++NumCasts == 5)
                 {
-                    _aoe = null;
+                    _activation = default;
                     NumCasts = 0;
                 }
                 break;
@@ -131,7 +139,7 @@ class ThereionCharge(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.TherionCharge)
-            _aoe = new(_rect, NumCasts == 0 ? new(0, -65) : new(0, -45), default, spell.NPCFinishAt);
+            _aoe = new(_rect, NumCasts == 0 ? Border.positions[8] : Border.positions[9], default, spell.NPCFinishAt);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

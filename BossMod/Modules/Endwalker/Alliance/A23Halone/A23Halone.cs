@@ -10,5 +10,5 @@ class IceDart(BossModule module) : Components.SpreadFromCastTargets(module, Acti
 class IceRondel(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.IceRondel), 6);
 class Niphas(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Niphas), new AOEShapeCircle(9));
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 911, NameID = 12064)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "veyn, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 911, NameID = 12064)]
 public class A23Halone(WorldState ws, Actor primary) : BossModule(ws, primary, new(-700, 600), new ArenaBoundsCircle(30));
