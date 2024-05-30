@@ -38,7 +38,7 @@ class HexingStaves(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (Module.FindComponent<Explosion>() is var explosion && explosion != null && !explosion.ActiveAOEs(slot, actor).Any())
+        if (!Module.FindComponent<Explosion>()!.ActiveAOEs(slot, actor).Any())
             foreach (var c in _staves)
                 yield return new(cross, c.Position, c.Rotation, _activation, Risky: _activation.AddSeconds(-5) < WorldState.CurrentTime);
     }
@@ -77,7 +77,6 @@ class AbyssalOutburst(BossModule module) : Components.RaidwideCast(module, Actio
 class Doom(BossModule module) : BossComponent(module)
 {
     private readonly List<Actor> _doomed = [];
-    public bool Doomed { get; private set; }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -115,11 +114,23 @@ class Doom(BossModule module) : BossComponent(module)
     }
 }
 
+class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Service.Config.Get<AutorotationConfig>().Enabled)
+            if (Module.FindComponent<VoidDarkII>()!.Stacks.Count == 0)
+                if (actor.Role is Role.Melee or Role.Tank)
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
+    }
+}
+
 class D131DarkElfStates : StateMachineBuilder
 {
     public D131DarkElfStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<StaffSmite>()
             .ActivateOnEnter<HexingStaves>()
             .ActivateOnEnter<Explosion>()
@@ -129,5 +140,5 @@ class D131DarkElfStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12500)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12500)]
 public class D131DarkElf(WorldState ws, Actor primary) : BossModule(ws, primary, new(-401, -231), new ArenaBoundsSquare(15.5f));

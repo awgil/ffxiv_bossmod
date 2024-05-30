@@ -37,45 +37,60 @@ public enum AID : uint
     DeathsJourney3 = 35872, // Helper->self, 6.5s cast, range 30 30-degree cone, visual
 }
 
-class Voidzone(BossModule module) : BossComponent(module)
+class OldMagic(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.OldMagic));
+class OldMagicVoidzone(BossModule module) : Components.GenericAOEs(module)
 {
+    private static readonly AOEShapeDonut donut = new(20, 22.5f);
+    private AOEInstance? _aoe;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.OldMagic && Module.Arena.Bounds == D133Durante.startingBounds)
+            _aoe = new(donut, Module.Center, default, spell.NPCFinishAt);
+    }
+
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00020001 && index == 0x0A)
-            Module.Arena.Bounds = new ArenaBoundsCircle(20);
+        {
+            Module.Arena.Bounds = D133Durante.defaultBounds;
+            _aoe = null;
+        }
     }
 }
 
 class ArcaneEdge(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ArcaneEdge));
-class OldMagic(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.OldMagic));
 class Contrapasso(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Contrapasso));
 
 class DuplicitousBattery(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<(WPos source, DateTime activation)> _casters = [];
+    private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeCircle circle = new(5);
+    private const int MaxInitialAOEs = 16;
+    private const int MaxAOEs = 32;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_casters.Count > 0)
-            for (int i = 0; i < Math.Clamp(_casters.Count, 1, 16); ++i)
-                yield return new(circle, _casters[i].source, default, _casters[i].activation, ArenaColor.Danger);
-        if (_casters.Count > 16)
-            for (int i = 16; i < Math.Clamp(_casters.Count, 16, 32); ++i)
-                yield return new(circle, _casters[i].source, default, _casters[i].activation, Risky: false);
+        var clampedCount = Math.Min(_aoes.Count, MaxAOEs);
+        for (var i = 0; i < clampedCount; ++i)
+        {
+            var isRisky = i < MaxInitialAOEs;
+            yield return new AOEInstance(circle, _aoes[i].Origin, default, _aoes[i].Activation, isRisky ? ArenaColor.Danger : ArenaColor.AOE, isRisky);
+        }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.DuplicitousBatteryTelegraph)
-            _casters.Add((spell.LocXZ, WorldState.FutureTime(6.5f)));
+            _aoes.Add(new(circle, spell.LocXZ, default, WorldState.FutureTime(6.5f)));
 
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (_casters.Count > 0 && (AID)spell.Action.ID == AID.DuplicitousBattery2)
-            _casters.RemoveAt(0);
+        if (_aoes.Count > 0 && (AID)spell.Action.ID == AID.DuplicitousBattery2)
+            _aoes.RemoveAt(0);
     }
 }
 
@@ -131,12 +146,31 @@ class DarkImpact(BossModule module) : Components.SelfTargetedAOEs(module, Action
 class DeathsJourney(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeathsJourney), new AOEShapeCircle(8));
 class DeathsJourney2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeathsJourney2), new AOEShapeCone(30, 15.Degrees()));
 
+class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Service.Config.Get<AutorotationConfig>().Enabled)
+        {
+            if (!Module.InBounds(actor.Position)) // return into module bounds if accidently left bounds
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 3));
+            else if (!Module.FindComponent<DuplicitousBattery>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<Explosion>()!.ActiveAOEs(slot, actor).Any() &&
+            !Module.FindComponent<Explosion2>()!.ActiveAOEs(slot, actor).Any() && Module.FindComponent<FallenGrace>()!.Spreads.Count == 0 &&
+            Module.FindComponent<AntipodalAssault>()!.CurrentBaits.Count == 0 && !Module.FindComponent<DarkImpact>()!.ActiveAOEs(slot, actor).Any() &&
+            !Module.FindComponent<TwilightPhase>()!.ActiveAOEs(slot, actor).Any())
+                if (actor.Role is Role.Melee or Role.Tank)
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
+        }
+    }
+}
+
 class D133DuranteStates : StateMachineBuilder
 {
     public D133DuranteStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<Voidzone>()
+            .ActivateOnEnter<MeleeRange>()
+            .ActivateOnEnter<OldMagicVoidzone>()
             .ActivateOnEnter<OldMagic>()
             .ActivateOnEnter<ArcaneEdge>()
             .ActivateOnEnter<Contrapasso>()
@@ -153,5 +187,9 @@ class D133DuranteStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12584)]
-class D133Durante(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -422), new ArenaBoundsCircle(23));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12584)]
+class D133Durante(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -422), startingBounds)
+{
+    public static readonly ArenaBounds startingBounds = new ArenaBoundsCircle(22.5f);
+    public static readonly ArenaBounds defaultBounds = new ArenaBoundsCircle(20);
+}
