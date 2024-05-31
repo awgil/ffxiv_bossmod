@@ -184,6 +184,7 @@ class A23HaloneStates : StateMachineBuilder
             .DeactivateOnExit<GlacialSpearSmall>()
             .DeactivateOnExit<GlacialSpearLarge>()
             .DeactivateOnExit<Octagons>()
+            .OnExit(() => Module.Arena.Bounds = Octagons.arenaDefault)
             .SetHint(StateMachine.StateHint.DowntimeStart);
 
         ComponentCondition<FurysAegis>(id + 0x200, 8.7f, comp => comp.NumCasts > 0, "Raidwide", 10) // TODO: these timings differ a lot, depending on whether large is killed last?..

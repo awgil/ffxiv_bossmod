@@ -115,7 +115,7 @@ class AntlionMarch(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.AntilonMarchTelegraph)
         {
             var dir = spell.LocXZ - caster.Position;
-            _aoes.Add(new(new AOEShapeRect(dir.Length(), 4), caster.Position, Angle.FromDirection(dir)));
+            _aoes.Add(new(new AOEShapeRect(dir.Length(), 4.5f), caster.Position, Angle.FromDirection(dir))); // actual charge is only 4 halfwidth, but the telegraphs and actual AOEs can be in different positions by upto 0.5y according to my logs
         }
         if ((AID)spell.Action.ID == AID.AntlionMarch)
             _activation = spell.NPCFinishAt.AddSeconds(0.2f); //since these are charges of different length with 0s cast time, the activation times are different for each and there are different patterns, so we just pretend that they all start after the telegraphs end
@@ -204,7 +204,8 @@ class MeleeRange(BossModule module) : BossComponent(module) // force melee range
             if (!Module.InBounds(actor.Position)) // return into module bounds if accidently left bounds
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 3));
             else if (!Module.FindComponent<Landslip>()!.Sources(slot, actor).Any() && !Module.FindComponent<AntlionMarch>()!.ActiveAOEs(slot, actor).Any() &&
-            !Module.FindComponent<PoundSand>()!.ActiveAOEs(slot, actor).Any() && Module.FindComponent<EarthenGeyser>()!.Stacks.Count == 0)
+            !Module.FindComponent<PoundSand>()!.ActiveAOEs(slot, actor).Any() && Module.FindComponent<EarthenGeyser>()!.Stacks.Count == 0 &&
+            !Module.FindComponent<Landslip>()!.TowerDanger)
                 if (actor.Role is Role.Melee or Role.Tank)
                     hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
         }

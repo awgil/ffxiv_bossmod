@@ -4,75 +4,70 @@ namespace BossMod.Endwalker.Alliance.A23Halone;
 // NW (Octagon3): Alliance A
 // NE (Octagon1): Alliance C
 // S (Octagon2): Alliance B
-class Octagons(BossModule module) : BossComponent(module)
+class Octagons(BossModule module) : Components.GenericAOEs(module)
 {
+    private ArenaBounds? _arena;
+    private const int InnerRadius = 11;
+    private const int OuterRadius = 12;
+    private const int Vertices = 8;
     private static readonly WPos[] spears = [new(-686, 592), new(-700, 616.2f), new(-714, 592)];
+    private static readonly Angle[] angle = [37.5f.Degrees(), 22.5f.Degrees(), -37.5f.Degrees()];
+    private static readonly List<Shape> shapes = [new Polygon(spears[0], InnerRadius, Vertices, angle[0]),
+    new Polygon(spears[0], OuterRadius, Vertices, angle[0]), new Polygon(spears[1], InnerRadius, Vertices, angle[1]),
+    new Polygon(spears[1], OuterRadius, Vertices, angle[1]), new Polygon(spears[2], InnerRadius, Vertices, angle[2]),
+    new Polygon(spears[2], OuterRadius, Vertices, angle[2])];
+    private static readonly List<Shape> baseArena = [new Circle(new WPos(-700, 600), 30)];
+    public readonly List<Shape> octagonsInner = [];
+    public readonly List<Shape> octagonsOuter = [];
+    public static readonly ArenaBounds arenaDefault = new ArenaBoundsCircle(30);
+    public AOEInstance? _aoe;
+    public static readonly AOEShapeCustom customShape = new(baseArena, [shapes[0], shapes[2], shapes[4]]);
 
-    private static IEnumerable<WPos> Octagon1()
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+
+    public override void OnEventEnvControl(byte index, uint state)
     {
-        for (int i = 0; i < 9; ++i)
-            yield return Helpers.RotateAroundOrigin(37.5f + i * 45, spears[0], new(spears[0].X + 11.5f, spears[0].Z));
-    }
-
-    private static IEnumerable<WPos> Octagon2()
-    {
-        for (int i = 0; i < 9; ++i)
-            yield return Helpers.RotateAroundOrigin(22.5f + i * 45, spears[1], new(spears[1].X + 11.5f, spears[1].Z));
-    }
-
-    private static IEnumerable<WPos> Octagon3()
-    {
-        for (int i = 0; i < 9; ++i)
-            yield return Helpers.RotateAroundOrigin(-37.5f + i * 45, spears[2], new(spears[2].X + 11.5f, spears[2].Z));
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        if (Module.Enemies(OID.GlacialSpearSmall).Any(x => x.Position.AlmostEqual(spears[0], 1) && !x.IsDead))
-            foreach (var c in Octagon1())
-                Arena.PathLineTo(c);
-        MiniArena.PathStroke(false, ArenaColor.Border, 2);
-        if (Module.Enemies(OID.GlacialSpearSmall).Any(x => x.Position.AlmostEqual(spears[1], 1) && !x.IsDead))
-            foreach (var c in Octagon2())
-                Arena.PathLineTo(c);
-        MiniArena.PathStroke(false, ArenaColor.Border, 2);
-        if (Module.Enemies(OID.GlacialSpearSmall).Any(x => x.Position.AlmostEqual(spears[2], 1) && !x.IsDead))
-            foreach (var c in Octagon3())
-                Arena.PathLineTo(c);
-        MiniArena.PathStroke(false, ArenaColor.Border, 2);
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        var octagons = new List<Func<WPos, float>>(); //inverted octagons
-        var octagons2 = new List<Func<WPos, float>>(); //octagons
-
-        base.AddAIHints(slot, actor, assignment, hints);
-
-        if (Module.Enemies(OID.GlacialSpearSmall).Count(x => !x.IsDead) == 3)
+        //x07 = south, x06 = east, x05 = west x00020001 walls activate, x00200004 disappear
+        // telegraph - 0x00100008
+        switch (state)
         {
-            octagons.Add(ShapeDistance.InvertedConvexPolygon(Octagon1(), true));
-            octagons.Add(ShapeDistance.InvertedConvexPolygon(Octagon2(), true));
-            octagons.Add(ShapeDistance.InvertedConvexPolygon(Octagon3(), true));
+            case 0x00100008 when index == 0x07:
+                _aoe = new(customShape, Module.Arena.Center);
+                break;
+            case 0x00020001 when index == 0x07:
+                AddOctagons();
+                _aoe = null;
+                break;
+            case 0x00200004:
+                RemoveOctagons(index);
+                break;
         }
-        else if (Module.Enemies(OID.GlacialSpearSmall).Any(x => x.Position.AlmostEqual(spears[0], 1) && !x.IsDead) && actor.Position.InConvexPolygon(Octagon1()))
-            octagons.Add(ShapeDistance.InvertedConvexPolygon(Octagon1(), true));
-        else if (Module.Enemies(OID.GlacialSpearSmall).Any(x => x.Position.AlmostEqual(spears[1], 1) && !x.IsDead) && actor.Position.InConvexPolygon(Octagon2()))
-            octagons.Add(ShapeDistance.InvertedConvexPolygon(Octagon2(), true));
-        else if (Module.Enemies(OID.GlacialSpearSmall).Any(x => x.Position.AlmostEqual(spears[2], 1) && !x.IsDead) && actor.Position.InConvexPolygon(Octagon3()))
-            octagons.Add(ShapeDistance.InvertedConvexPolygon(Octagon3(), true));
-        if (octagons.Count == 0)
+        _arena = new ArenaBoundsComplex(baseArena, octagonsOuter, octagonsInner);
+        Module.Arena.Bounds = _arena;
+    }
+
+    private void AddOctagons()
+    {
+        octagonsInner.AddRange([shapes[0], shapes[2], shapes[4]]);
+        octagonsOuter.AddRange([shapes[1], shapes[3], shapes[5]]);
+    }
+
+    private void RemoveOctagons(byte index)
+    {
+        switch (index)
         {
-            if (Module.Enemies(OID.GlacialSpearSmall).Any(x => x.Position.AlmostEqual(spears[0], 1) && !x.IsDead) && !actor.Position.InConvexPolygon(Octagon1()))
-                octagons2.Add(ShapeDistance.ConvexPolygon(Octagon1(), true));
-            if (Module.Enemies(OID.GlacialSpearSmall).Any(x => x.Position.AlmostEqual(spears[1], 1) && !x.IsDead) && !actor.Position.InConvexPolygon(Octagon2()))
-                octagons2.Add(ShapeDistance.ConvexPolygon(Octagon2(), true));
-            if (Module.Enemies(OID.GlacialSpearSmall).Any(x => x.Position.AlmostEqual(spears[2], 1) && !x.IsDead) && !actor.Position.InConvexPolygon(Octagon3()))
-                octagons2.Add(ShapeDistance.ConvexPolygon(Octagon3(), true));
+            case 0x06:
+                octagonsInner.Remove(shapes[0]);
+                octagonsOuter.Remove(shapes[1]);
+                break;
+            case 0x07:
+                octagonsInner.Remove(shapes[2]);
+                octagonsOuter.Remove(shapes[3]);
+                break;
+            case 0x05:
+                octagonsInner.Remove(shapes[4]);
+                octagonsOuter.Remove(shapes[5]);
+                break;
         }
-        if (octagons.Count > 0)
-            hints.AddForbiddenZone(p => octagons.Select(f => f(p)).Max());
-        if (octagons2.Count > 0)
-            hints.AddForbiddenZone(p => octagons2.Select(f => f(p)).Min());
     }
 }
