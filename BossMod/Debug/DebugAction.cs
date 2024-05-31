@@ -110,7 +110,7 @@ public class DebugAction(WorldState ws)
                 ImGui.TextUnformatted($"Recast group: {groupID}");
                 var group = mgr->GetRecastGroupDetail(groupID);
                 if (group != null)
-                    ImGui.TextUnformatted($"Recast group details: active={group->IsActive}, action={group->ActionID}, elapsed={group->Elapsed:f3}, total={group->Total:f3}, cooldown={group->Total - group->Elapsed:f3}");
+                    ImGui.TextUnformatted($"Recast group details: active={group->IsActive}, action={group->ActionId}, elapsed={group->Elapsed:f3}, total={group->Total:f3}, cooldown={group->Total - group->Elapsed:f3}");
             }
         }
         else if (Service.GameGui.HoveredItem != 0)
@@ -130,7 +130,7 @@ public class DebugAction(WorldState ws)
             ImGui.TextUnformatted($"Recast group: {groupID}");
             var group = mgr->GetRecastGroupDetail(groupID);
             if (group != null)
-                ImGui.TextUnformatted($"Recast group details: active={group->IsActive}, action={group->ActionID}, elapsed={group->Elapsed}, total={group->Total}");
+                ImGui.TextUnformatted($"Recast group details: active={group->IsActive}, action={group->ActionId}, elapsed={group->Elapsed}, total={group->Total}");
         }
         else
         {

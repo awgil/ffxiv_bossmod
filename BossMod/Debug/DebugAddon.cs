@@ -62,7 +62,7 @@ public unsafe sealed class DebugAddon : IDisposable
             ImGui.SameLine();
             if (ImGui.Button("Hook addon!"))
             {
-                var address = (nint)addon->AtkEventListener.vfunc[2];
+                var address = (nint)addon->VirtualTable->ReceiveEvent;
                 _addonRcvs[_newHook] = address;
                 if (!_rcvAddonHooks.ContainsKey(address))
                 {
@@ -82,7 +82,7 @@ public unsafe sealed class DebugAddon : IDisposable
             ImGui.SameLine();
             if (ImGui.Button("Hook agent!"))
             {
-                var address = (nint)agent->VTable->ReceiveEvent;
+                var address = (nint)agent->VirtualTable->ReceiveEvent;
                 _agentRcvs[agentId] = address;
                 if (!_rcvAgentHooks.ContainsKey(address))
                 {
@@ -115,8 +115,8 @@ public unsafe sealed class DebugAddon : IDisposable
                 FFXIVClientStructs.FFXIV.Component.GUI.ValueType.String8 => $"string8",
                 FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Vector => $"vector",
                 FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Texture => $"texture",
-                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.AllocatedString => $"astring",
-                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.AllocatedVector => $"avector",
+                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.ManagedString => $"astring",
+                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.ManagedVector => $"avector",
                 _ => $"{values[i].Type} unknown"
             };
         }

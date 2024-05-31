@@ -34,10 +34,16 @@ public sealed class Plugin : IDalamudPlugin
         [RequiredVersion("1.0")] DalamudPluginInterface dalamud,
         [RequiredVersion("1.0")] ICommandManager commandManager)
     {
+        if (!dalamud.ConfigDirectory.Exists)
+            dalamud.ConfigDirectory.Create();
         var dalamudRoot = dalamud.GetType().Assembly.
                 GetType("Dalamud.Service`1", true)!.MakeGenericType(dalamud.GetType().Assembly.GetType("Dalamud.Dalamud", true)!).
                 GetMethod("Get")!.Invoke(null, BindingFlags.Default, null, [], null);
         var dalamudStartInfo = dalamudRoot?.GetType().GetProperty("StartInfo", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(dalamudRoot) as DalamudStartInfo;
+        var gameVersion = dalamudStartInfo?.GameVersion?.ToString() ?? "unknown";
+        InteropGenerator.Runtime.Resolver.GetInstance.Setup(0, gameVersion, new(dalamud.ConfigDirectory.FullName + "/cs.json"));
+        FFXIVClientStructs.Interop.Generated.Addresses.Register();
+        InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
 
         dalamud.Create<Service>();
         Service.LogHandler = (string msg) => Service.Logger.Debug(msg);
@@ -59,7 +65,7 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager = commandManager;
         CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
-        _ws = new(Utils.FrameQPF(), dalamudStartInfo?.GameVersion?.ToString() ?? "unknown");
+        _ws = new(Utils.FrameQPF(), gameVersion);
         _wsSync = new(_ws);
         _bossmod = new(_ws);
         _autorotation = new(_bossmod);

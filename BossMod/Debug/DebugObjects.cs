@@ -1,5 +1,4 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using ImGuiNET;
 using System.Text;
@@ -10,7 +9,7 @@ public class DebugObjects
 {
     private readonly UITree _tree = new();
     private bool _showCrap;
-    private uint _selectedID;
+    private ulong _selectedID;
 
     public unsafe void DrawObjectTable()
     {
@@ -26,8 +25,8 @@ public class DebugObjects
                 continue;
 
             var internalObj = Utils.GameObjectInternal(obj);
-            var localID = Utils.ReadField<uint>(internalObj, 0x78);
-            var uniqueID = obj.ObjectId != 0xE0000000 ? obj.ObjectId : localID;
+            var localID = internalObj->LayoutId;
+            ulong uniqueID = internalObj->GetObjectId();
 
             var posRot = new Vector4(obj.Position.X, obj.Position.Y, obj.Position.Z, obj.Rotation);
             foreach (var n in _tree.Node($"#{i} {Utils.ObjectString(obj)} ({localID:X}) ({Utils.ObjectKindString(obj)}) {Utils.PosRotString(posRot)}###{uniqueID:X}", contextMenu: () => ObjectContextMenu(obj), select: () => _selectedID = uniqueID))
@@ -36,10 +35,11 @@ public class DebugObjects
                 var battleChara = obj as BattleChara;
                 var internalChara = Utils.BattleCharaInternal(battleChara);
 
+                _tree.LeafNode($"Unique ID: {uniqueID:X}");
                 _tree.LeafNode($"Gimmick ID: {Utils.ReadField<uint>(internalObj, 0x7C):X}");
                 _tree.LeafNode($"Radius: {obj.HitboxRadius:f3}");
                 _tree.LeafNode($"Owner: {Utils.ObjectString(obj.OwnerId)}");
-                _tree.LeafNode($"BNpcBase/Name: {obj.DataId}/{Utils.GameObjectInternal(obj)->GetNpcID()}");
+                _tree.LeafNode($"BNpcBase/Name: {obj.DataId:X}/{Utils.GameObjectInternal(obj)->GetNameId()}");
                 _tree.LeafNode($"Targetable: {obj.IsTargetable}");
                 _tree.LeafNode($"Friendly: {Utils.GameObjectIsFriendly(obj)}");
                 _tree.LeafNode($"Is character: {internalObj->IsCharacter()}");
@@ -89,7 +89,6 @@ public class DebugObjects
     public unsafe void DrawUIObjects()
     {
         var module = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->UIModule->GetUI3DModule();
-        var objs = (FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.ObjectInfo*)module->ObjectInfoArray;
         ImGui.BeginTable("uiobj", 3, ImGuiTableFlags.Resizable);
         ImGui.TableSetupColumn("Index");
         ImGui.TableSetupColumn("GameObj");
@@ -97,11 +96,11 @@ public class DebugObjects
         ImGui.TableHeadersRow();
         for (int i = 0; i < 426; ++i)
         {
-            var o = objs[i].GameObject;
+            var o = module->ObjectInfoArray[i].GameObject;
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); ImGui.TextUnformatted($"{i}: {(ulong)o:X}");
-            ImGui.TableNextColumn(); if (o != null) ImGui.TextUnformatted($"{o->DataID:X} '{MemoryHelper.ReadSeString((IntPtr)o->Name, 64)}' <{o->ObjectID:X}>");
-            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{objs[i].NamePlateObjectKind}");
+            ImGui.TableNextColumn(); if (o != null) ImGui.TextUnformatted($"{o->BaseId:X} '{o->NameString}' <{o->EntityId:X}>");
+            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{module->ObjectInfoArray[i].NamePlateObjectKind}");
         }
         ImGui.EndTable();
     }

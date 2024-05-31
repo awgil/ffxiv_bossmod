@@ -1,4 +1,5 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Group;
+using FFXIVClientStructs.Interop;
 
 namespace BossMod;
 
@@ -13,7 +14,7 @@ class PartyAlliance
     public unsafe bool IsAlliance => (_groupManager->AllianceFlags & 1) != 0;
     public unsafe bool IsSmallGroupAlliance => (_groupManager->AllianceFlags & 2) != 0; // alliance containing 6 groups of 4 members rather than 3x8
 
-    public unsafe PartyMember* PartyMember(int index) => (index >= 0 && index < NumPartyMembers) ? ArrayElement(_groupManager->PartyMembers, index) : null;
+    public unsafe PartyMember* PartyMember(int index) => (index >= 0 && index < NumPartyMembers) ? _groupManager->PartyMembers.GetPointer(index) : null;
     public unsafe PartyMember* AllianceMember(int rawIndex) => (rawIndex is >= 0 and < 20) ? AllianceMemberIfValid(rawIndex) : null;
     public unsafe PartyMember* AllianceMember(int group, int index)
     {
@@ -27,17 +28,16 @@ class PartyAlliance
     {
         for (int i = 0; i < NumPartyMembers; ++i)
         {
-            var m = ArrayElement(_groupManager->PartyMembers, i);
-            if ((ulong)m->ContentID == contentID)
+            var m = _groupManager->PartyMembers.GetPointer(i);
+            if ((ulong)m->ContentId == contentID)
                 return m;
         }
         return null;
     }
 
-    private static unsafe PartyMember* ArrayElement(byte* array, int index) => ((PartyMember*)array) + index;
     private unsafe PartyMember* AllianceMemberIfValid(int rawIndex)
     {
-        var p = ArrayElement(_groupManager->AllianceMembers, rawIndex);
+        var p = _groupManager->AllianceMembers.GetPointer(rawIndex);
         return (p->Flags & 1) != 0 ? p : null;
     }
 }

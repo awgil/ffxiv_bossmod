@@ -63,9 +63,9 @@ class DebugParty
             return;
         ImGui.TableNextRow();
         ImGui.TableNextColumn(); ImGui.TextUnformatted(index);
-        ImGui.TableNextColumn(); ImGui.TextUnformatted($"{member->ContentID:X}");
-        ImGui.TableNextColumn(); ImGui.TextUnformatted($"{member->ObjectID:X}");
-        ImGui.TableNextColumn(); ImGui.TextUnformatted(MemoryHelper.ReadSeString((IntPtr)member->Name, 0x40).ToString());
+        ImGui.TableNextColumn(); ImGui.TextUnformatted($"{member->ContentId:X}");
+        ImGui.TableNextColumn(); ImGui.TextUnformatted($"{member->ObjectId:X}");
+        ImGui.TableNextColumn(); ImGui.TextUnformatted(member->NameString);
         ImGui.TableNextColumn(); ImGui.TextUnformatted($"{member->TerritoryType}");
         ImGui.TableNextColumn(); ImGui.TextUnformatted($"{member->HomeWorld}");
         ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.Vec3String(new(member->X, member->Y, member->Z)));

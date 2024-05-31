@@ -11,7 +11,7 @@ public unsafe struct Countdown
     [FieldOffset(0x38)] public byte Active;
     [FieldOffset(0x3C)] public uint Initiator;
 
-    public static unsafe Countdown* Instance => (Countdown*)Framework.Instance()->GetUiModule()->GetAgentModule()->GetAgentByInternalId(AgentId.CountDownSettingDialog);
+    public static unsafe Countdown* Instance => (Countdown*)Framework.Instance()->GetUIModule()->GetAgentModule()->GetAgentByInternalId(AgentId.CountDownSettingDialog);
 
     public static float? TimeRemaining()
     {

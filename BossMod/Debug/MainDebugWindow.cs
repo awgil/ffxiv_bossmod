@@ -231,7 +231,7 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
         var dist = selfToObj.Length();
         var angle = Angle.FromDirection(new(selfToObj.XZ())) - refAngle;
         var visHalf = Angle.Asin(obj->HitboxRadius / dist);
-        ImGui.TextUnformatted($"{kind}: #{obj->ObjectIndex} {Utils.ObjectString(obj->ObjectID)} {obj->DataID}:{obj->GetNpcID()}, hb={obj->HitboxRadius} ({visHalf}), dist={dist}, angle={angle} ({Math.Max(0, angle.Abs().Rad - visHalf.Rad).Radians()})");
+        ImGui.TextUnformatted($"{kind}: #{obj->ObjectIndex} {Utils.ObjectString(obj->EntityId)} {obj->BaseId}:{obj->GetNameId()}, hb={obj->HitboxRadius} ({visHalf}), dist={dist}, angle={angle} ({Math.Max(0, angle.Abs().Rad - visHalf.Rad).Radians()})");
     }
 
     private unsafe void DrawPlayerAttributes()
@@ -277,7 +277,7 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
     private unsafe void DrawLimitBreak()
     {
         var lb = LimitBreakController.Instance();
-        ImGui.TextUnformatted($"Value: {lb->CurrentValue}/{lb->BarValue & 0xFFFF} ({lb->BarCount} bars)");
-        ImGui.TextUnformatted($"Unks: uE={(lb->BarValue >> 16) & 0xFF}, uF={lb->BarValue >> 24}");
+        ImGui.TextUnformatted($"Value: {lb->CurrentUnits}/{lb->BarUnits} ({lb->BarCount} bars)");
+        ImGui.TextUnformatted($"PVP: {lb->IsPvP}");
     }
 }

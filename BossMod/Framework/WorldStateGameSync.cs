@@ -132,7 +132,7 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe void UpdateWaymarks()
     {
         var wm = Waymark.A;
-        foreach (ref var marker in MarkingController.Instance()->FieldMarkerArraySpan)
+        foreach (ref var marker in MarkingController.Instance()->FieldMarkers)
         {
             Vector3? pos = marker.Active ? new(marker.X / 1000.0f, marker.Y / 1000.0f, marker.Z / 1000.0f) : null;
             if (_ws.Waymarks[wm] != pos)
@@ -336,7 +336,7 @@ sealed class WorldStateGameSync : IDisposable
             if (member == null)
                 UpdatePartySlot(i, 0, 0);
             else
-                UpdatePartySlot(i, contentID, member->ObjectID);
+                UpdatePartySlot(i, contentID, member->ObjectId);
         }
         for (int i = 0; i < _alliance.NumPartyMembers; ++i)
         {
@@ -344,32 +344,31 @@ sealed class WorldStateGameSync : IDisposable
             if (member == null)
                 continue;
 
-            var contentID = (ulong)member->ContentID;
+            var contentID = (ulong)member->ContentId;
             if (_ws.Party.ContentIDs.IndexOf(contentID) != -1)
                 continue; // already added, updated in previous loop
 
             var freeSlot = _ws.Party.ContentIDs[1..].IndexOf(0ul);
             if (freeSlot == -1)
             {
-                Service.Log($"[WorldState] Failed to find empty slot for party member {contentID:X}:{member->ObjectID:X}");
+                Service.Log($"[WorldState] Failed to find empty slot for party member {contentID:X}:{member->ObjectId:X}");
                 continue;
             }
 
-            UpdatePartySlot(freeSlot + 1, contentID, member->ObjectID);
+            UpdatePartySlot(freeSlot + 1, contentID, member->ObjectId);
         }
 
         // update alliance members
         for (int i = PartyState.MaxPartySize; i < PartyState.MaxAllianceSize; ++i)
         {
             var member = _alliance.IsAlliance && !_alliance.IsSmallGroupAlliance ? _alliance.AllianceMember(i - PartyState.MaxPartySize) : null;
-            UpdatePartySlot(i, 0, member != null ? member->ObjectID : 0);
+            UpdatePartySlot(i, 0, member != null ? member->ObjectId : 0);
         }
 
         // update limit break
         var lb = LimitBreakController.Instance();
-        var lbMax = (ushort)lb->BarValue; // CS is incorrect here, two high bytes are some other fields
-        if (_ws.Party.LimitBreakCur != lb->CurrentValue || _ws.Party.LimitBreakMax != lbMax)
-            _ws.Execute(new PartyState.OpLimitBreakChange(lb->CurrentValue, lbMax));
+        if (_ws.Party.LimitBreakCur != lb->CurrentUnits || _ws.Party.LimitBreakMax != lb->BarUnits)
+            _ws.Execute(new PartyState.OpLimitBreakChange(lb->CurrentUnits, lb->BarUnits));
     }
 
     private void UpdatePartySlot(int slot, ulong contentID, ulong instanceID)
