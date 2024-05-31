@@ -1,3 +1,18 @@
+autorotation v2:
+- Autorotation.cs
+-- not tied to game - convert to rotationmodulemanager basically
+-- move useaction hook to AMEx
+-- manual queue should be managed by a plugin / framework
+-- move hints above? ie to be filled by framework right after WS/BMM update
+-- manage ui and active modules
+-- calcnextaction logic to combine manual queue, hints and rotation modules
+- CommonActions.cs
+-- just a base class for rotation modules
+-- move rotation expire logic to autorotation?
+--- maybe need to split into manager + manual layers?
+-- 
+
+
 autorotation rework:
 - priority action suggestions
 - control panel w/ presets and bindings
