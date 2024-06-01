@@ -7,8 +7,8 @@ namespace BossMod.Endwalker.Alliance.A23Halone;
 class Octagons(BossModule module) : Components.GenericAOEs(module)
 {
     private ArenaBounds? _arena;
-    private const int InnerRadius = 11;
-    private const int OuterRadius = 12;
+    private const float InnerRadius = 11.5f;
+    private const float OuterRadius = 12.5f;
     private const int Vertices = 8;
     private static readonly WPos[] spears = [new(-686, 592), new(-700, 616.2f), new(-714, 592)];
     private static readonly Angle[] angle = [37.5f.Degrees(), 22.5f.Degrees(), -37.5f.Degrees()];
@@ -69,5 +69,9 @@ class Octagons(BossModule module) : Components.GenericAOEs(module)
                 octagonsOuter.Remove(shapes[5]);
                 break;
         }
+    }
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        //TODO fix AI map creation
     }
 }

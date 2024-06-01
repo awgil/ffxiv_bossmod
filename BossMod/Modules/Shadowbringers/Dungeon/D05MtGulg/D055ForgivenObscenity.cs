@@ -62,11 +62,22 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private readonly List<Actor> _casters = [];
-    private static readonly AOEShapeRect rect = new(100, 2.5f, 100);
+    private static readonly AOEShapeRect rect = new(100, 2.53f, 100); // halfwidth is 2.5, but +0.03 safety margin because ring position doesn't seem to be exactly caster position
+    private static readonly List<WPos> positionsSet1 = [new WPos(-227.5f, 253), new WPos(-232.5f, 251.5f)];
+    private static readonly List<WPos> positionsSet2 = [new WPos(-252.5f, 253), new WPos(-247.5f, 251.5f)];
+    private static readonly List<WPos> positionsSet3 = [new WPos(-242.5f, 253), new WPos(-237.5f, 253)];
+    private static readonly List<WPos> positionsSet4 = [new WPos(-252.5f, 253), new WPos(-227.5f, 253)];
+
+    private bool AreCastersInPositions(List<WPos> positions)
+    {
+        return _casters.Count >= 2 && positions.Count == 2 &&
+               (_casters[0].Position == positions[0] && _casters[1].Position == positions[1] ||
+                _casters[0].Position == positions[1] && _casters[1].Position == positions[0]);
+    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_casters.Count > 1 && (_casters[0].Position.AlmostEqual(new(-227.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-232.5f, 251.5f), 1) || _casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-247.5f, 251.5f), 1)))
+        if (AreCastersInPositions(positionsSet1) || AreCastersInPositions(positionsSet2))
         {
             if (_casters.Count > 2)
             {
@@ -106,7 +117,7 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
                     yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f), ArenaColor.Danger);
             }
         }
-        if (_casters.Count > 1 && (_casters[0].Position.AlmostEqual(new(-242.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-237.5f, 253), 1) || _casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-227.5f, 253), 1)))
+        if (AreCastersInPositions(positionsSet3) || AreCastersInPositions(positionsSet4))
         {
             if (_casters.Count > 2)
             {
@@ -158,6 +169,7 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.Ringsmith)
             _activation = WorldState.CurrentTime;
+
         if ((AID)spell.Action.ID == AID.VenaAmoris)
         {
             if (++NumCasts == 6)

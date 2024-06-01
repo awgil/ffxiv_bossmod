@@ -5,19 +5,29 @@ public abstract record class Shape
     public static readonly Dictionary<object, RelSimplifiedComplexPolygon> StaticCache = [];
     public abstract RelSimplifiedComplexPolygon ToPolygon(WPos center);
     public const float MaxApproxError = 0.01f;
+    public abstract string ComputeHash();
+
+    public static string ComputeSHA512(string input)
+    {
+        var bytes = Encoding.UTF8.GetBytes(input);
+        var hash = SHA512.HashData(bytes);
+        return BitConverter.ToString(hash).Replace("-", "", StringComparison.Ordinal);
+    }
 }
 
 public record class Circle(WPos Center, float Radius) : Shape
 {
     public override RelSimplifiedComplexPolygon ToPolygon(WPos center)
     {
-        if (StaticCache.TryGetValue((Center, center, Radius, typeof(Circle)), out var cachedResult))
+        if (StaticCache.TryGetValue((ComputeHash(), center), out var cachedResult))
             return cachedResult;
         var vertices = CurveApprox.Circle(Radius, MaxApproxError).Select(p => p + (Center - center)).ToList();
         var result = new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(vertices)]);
-        StaticCache[(Center, center, Radius, typeof(Circle))] = result;
+        StaticCache[(ComputeHash(), center)] = result;
         return result;
     }
+
+    public override string ComputeHash() => ComputeSHA512($"{nameof(Circle)}:{Center.X},{Center.Z},{Radius}");
 }
 
 // for custom polygons defined by a list of vertices
@@ -25,12 +35,18 @@ public record class PolygonCustom(IEnumerable<WPos> Vertices) : Shape
 {
     public override RelSimplifiedComplexPolygon ToPolygon(WPos center)
     {
-        if (StaticCache.TryGetValue((center, Vertices, typeof(PolygonCustom)), out var cachedResult))
+        if (StaticCache.TryGetValue((ComputeHash(), center), out var cachedResult))
             return cachedResult;
         var relativeVertices = Vertices.Select(v => v - center).ToList();
         var result = new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(relativeVertices)]);
-        StaticCache[(center, Vertices, typeof(PolygonCustom))] = result;
+        StaticCache[(ComputeHash(), center)] = result;
         return result;
+    }
+
+    public override string ComputeHash()
+    {
+        var verticesHash = string.Join(",", Vertices.Select(v => $"{v.X},{v.Z}"));
+        return ComputeSHA512($"{nameof(PolygonCustom)}:{verticesHash}");
     }
 }
 
@@ -38,13 +54,15 @@ public record class Donut(WPos Center, float InnerRadius, float OuterRadius) : S
 {
     public override RelSimplifiedComplexPolygon ToPolygon(WPos center)
     {
-        if (StaticCache.TryGetValue((Center, center, InnerRadius, OuterRadius, typeof(Donut)), out var cachedResult))
+        if (StaticCache.TryGetValue((ComputeHash(), center), out var cachedResult))
             return cachedResult;
         var vertices = CurveApprox.Donut(InnerRadius, OuterRadius, MaxApproxError).Select(p => p + (Center - center)).ToList();
         var result = new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(vertices)]);
-        StaticCache[(Center, center, InnerRadius, OuterRadius, typeof(Donut))] = result;
+        StaticCache[(ComputeHash(), center)] = result;
         return result;
     }
+
+    public override string ComputeHash() => ComputeSHA512($"{nameof(Donut)}:{Center.X},{Center.Z},{InnerRadius},{OuterRadius}");
 }
 
 // for rectangles defined by a center, halfwidth, halfheight and optionally rotation
@@ -52,7 +70,7 @@ public record class Rectangle(WPos Center, float HalfWidth, float HalfHeight, An
 {
     public override RelSimplifiedComplexPolygon ToPolygon(WPos center)
     {
-        if (StaticCache.TryGetValue((Center, center, HalfWidth, HalfHeight, Rotation, typeof(Rectangle)), out var cachedResult))
+        if (StaticCache.TryGetValue((ComputeHash(), center), out var cachedResult))
             return cachedResult;
         var cos = MathF.Cos(Rotation.Rad);
         var sin = MathF.Sin(Rotation.Rad);
@@ -64,9 +82,11 @@ public record class Rectangle(WPos Center, float HalfWidth, float HalfHeight, An
             new WDir(-HalfWidth * cos - HalfHeight * sin, -HalfWidth * sin + HalfHeight * cos) + (Center - center)
         };
         var result = new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(vertices)]);
-        StaticCache[(Center, center, HalfWidth, HalfHeight, Rotation, typeof(Rectangle))] = result;
+        StaticCache[(ComputeHash(), center)] = result;
         return result;
     }
+
+    public override string ComputeHash() => ComputeSHA512($"{nameof(Rectangle)}:{Center.X},{Center.Z},{HalfWidth},{HalfHeight},{Rotation.Rad}");
 }
 
 // for rectangles defined by a start point, end point and halfwidth
@@ -76,13 +96,14 @@ public record class RectangleSE(WPos Start, WPos End, float HalfWidth) : Rectang
     HalfHeight: (End - Start).Length() / 2,
     Rotation: new Angle(MathF.Atan2(End.Z - Start.Z, End.X - Start.X)) + 90.Degrees()
 );
+
 public record class Square(WPos Center, float HalfSize, Angle Rotation = default) : Rectangle(Center, HalfSize, HalfSize, Rotation);
 
 public record class Cross(WPos Center, float Length, float HalfWidth, Angle Rotation = default) : Shape
 {
     public override RelSimplifiedComplexPolygon ToPolygon(WPos center)
     {
-        if (StaticCache.TryGetValue((Center, center, Length, HalfWidth, Rotation, typeof(Cross)), out var cachedResult))
+        if (StaticCache.TryGetValue((ComputeHash(), center), out var cachedResult))
             return cachedResult;
         var cos = MathF.Cos(Rotation.Rad);
         var sin = MathF.Sin(Rotation.Rad);
@@ -109,9 +130,11 @@ public record class Cross(WPos Center, float Length, float HalfWidth, Angle Rota
             new(horizontalVertices)
         };
         var result = new RelSimplifiedComplexPolygon(polygons);
-        StaticCache[(Center, center, Length, HalfWidth, Rotation, typeof(Cross))] = result;
+        StaticCache[(ComputeHash(), center)] = result;
         return result;
     }
+
+    public override string ComputeHash() => ComputeSHA512($"{nameof(Cross)}:{Center.X},{Center.Z},{Length},{HalfWidth},{Rotation.Rad}");
 }
 
 // Equilateral triangle defined by center, radius and rotation
@@ -119,7 +142,7 @@ public record class TriangleE(WPos Center, float Radius, Angle Rotation = defaul
 {
     public override RelSimplifiedComplexPolygon ToPolygon(WPos center)
     {
-        if (StaticCache.TryGetValue((Center, center, Radius, Rotation, typeof(TriangleE)), out var cachedResult))
+        if (StaticCache.TryGetValue((ComputeHash(), center), out var cachedResult))
             return cachedResult;
 
         var sqrt3 = MathF.Sqrt(3);
@@ -139,9 +162,11 @@ public record class TriangleE(WPos Center, float Radius, Angle Rotation = defaul
         var rotatedVertices = vertices.Select(v => new WDir(v.X * cos - v.Z * sin, v.X * sin + v.Z * cos)).ToList();
 
         var result = new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(rotatedVertices)]);
-        StaticCache[(Center, center, Radius, Rotation, typeof(TriangleE))] = result;
+        StaticCache[(ComputeHash(), center)] = result;
         return result;
     }
+
+    public override string ComputeHash() => ComputeSHA512($"{nameof(TriangleE)}:{Center.X},{Center.Z},{Radius},{Rotation.Rad}");
 }
 
 // custom Triangle defined by three sides and rotation, mind the triangle inequality, side1 + side2 >= side3 
@@ -149,7 +174,7 @@ public record class TriangleS(WPos Center, float SideA, float SideB, float SideC
 {
     public override RelSimplifiedComplexPolygon ToPolygon(WPos center)
     {
-        if (StaticCache.TryGetValue((Center, center, SideA, SideB, SideC, Rotation, typeof(TriangleS)), out var cachedResult))
+        if (StaticCache.TryGetValue((ComputeHash(), center), out var cachedResult))
             return cachedResult;
 
         var sides = new[] { SideA, SideB, SideC }.OrderByDescending(s => s).ToArray();
@@ -176,9 +201,11 @@ public record class TriangleS(WPos Center, float SideA, float SideB, float SideC
         var adjustedVertices = rotatedVertices.Select(v => v + (Center - center)).ToList();
 
         var result = new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(adjustedVertices)]);
-        StaticCache[(Center, center, SideA, SideB, SideC, Rotation, typeof(TriangleS))] = result;
+        StaticCache[(ComputeHash(), center)] = result;
         return result;
     }
+
+    public override string ComputeHash() => ComputeSHA512($"{nameof(TriangleS)}:{Center.X},{Center.Z},{SideA},{SideB},{SideC},{Rotation.Rad}");
 }
 
 // Triangle definded by base length and angle at the apex, apex points north by default
@@ -186,7 +213,7 @@ public record class TriangleA(WPos Center, float BaseLength, Angle ApexAngle, An
 {
     public override RelSimplifiedComplexPolygon ToPolygon(WPos center)
     {
-        if (StaticCache.TryGetValue((Center, center, BaseLength, ApexAngle, Rotation, typeof(TriangleA)), out var cachedResult))
+        if (StaticCache.TryGetValue((ComputeHash(), center), out var cachedResult))
             return cachedResult;
 
         var apexAngleRad = ApexAngle.Rad;
@@ -212,9 +239,11 @@ public record class TriangleA(WPos Center, float BaseLength, Angle ApexAngle, An
         var adjustedVertices = rotatedVertices.Select(v => v + (Center - center)).ToList();
 
         var result = new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(adjustedVertices)]);
-        StaticCache[(Center, center, BaseLength, ApexAngle, Rotation, typeof(TriangleA))] = result;
+        StaticCache[(ComputeHash(), center)] = result;
         return result;
     }
+
+    public override string ComputeHash() => ComputeSHA512($"{nameof(TriangleA)}:{Center.X},{Center.Z},{BaseLength},{ApexAngle.Rad},{Rotation.Rad}");
 }
 
 // for polygons defined by a radius and n amount of vertices
@@ -222,7 +251,7 @@ public record class Polygon(WPos Center, float Radius, int Vertices, Angle Rotat
 {
     public override RelSimplifiedComplexPolygon ToPolygon(WPos center)
     {
-        if (StaticCache.TryGetValue((Center, center, Radius, Vertices, Rotation, typeof(Polygon)), out var cachedResult))
+        if (StaticCache.TryGetValue((ComputeHash(), center), out var cachedResult))
             return cachedResult;
 
         var angleIncrement = 2 * MathF.PI / Vertices;
@@ -238,35 +267,41 @@ public record class Polygon(WPos Center, float Radius, int Vertices, Angle Rotat
         }
 
         var result = new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(vertices)]);
-        StaticCache[(Center, center, Radius, Vertices, Rotation, typeof(Polygon))] = result;
+        StaticCache[(ComputeHash(), center)] = result;
         return result;
     }
+
+    public override string ComputeHash() => ComputeSHA512($"{nameof(Polygon)}:{Center.X},{Center.Z},{Radius},{Vertices},{Rotation.Rad}");
 }
 
 public record class Cone(WPos Center, float Radius, Angle StartAngle, Angle EndAngle) : Shape
 {
     public override RelSimplifiedComplexPolygon ToPolygon(WPos center)
     {
-        if (StaticCache.TryGetValue((Center, center, Radius, StartAngle, EndAngle, typeof(Cone)), out var cachedResult))
+        if (StaticCache.TryGetValue((ComputeHash(), center), out var cachedResult))
             return cachedResult;
 
         var vertices = CurveApprox.CircleSector(Center, Radius, StartAngle, EndAngle, MaxApproxError).Select(p => p - center).ToList();
         var result = new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(vertices)]);
-        StaticCache[(Center, center, Radius, StartAngle, EndAngle, typeof(Cone))] = result;
+        StaticCache[(ComputeHash(), center)] = result;
         return result;
     }
+
+    public override string ComputeHash() => ComputeSHA512($"{nameof(Cone)}:{Center.X},{Center.Z},{Radius},{StartAngle.Rad},{EndAngle.Rad}");
 }
 
 public record class DonutSegment(WPos Center, float InnerRadius, float OuterRadius, Angle StartAngle, Angle EndAngle) : Shape
 {
     public override RelSimplifiedComplexPolygon ToPolygon(WPos center)
     {
-        if (StaticCache.TryGetValue((Center, center, InnerRadius, OuterRadius, StartAngle, EndAngle, typeof(DonutSegment)), out var cachedResult))
+        if (StaticCache.TryGetValue((ComputeHash(), center), out var cachedResult))
             return cachedResult;
 
         var vertices = CurveApprox.DonutSector(InnerRadius, OuterRadius, StartAngle, EndAngle, MaxApproxError).Select(p => p + (Center - center)).ToList();
         var result = new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(vertices)]);
-        StaticCache[(Center, center, InnerRadius, OuterRadius, StartAngle, EndAngle, typeof(DonutSegment))] = result;
+        StaticCache[(ComputeHash(), center)] = result;
         return result;
     }
+
+    public override string ComputeHash() => ComputeSHA512($"{nameof(DonutSegment)}:{Center.X},{Center.Z},{InnerRadius},{OuterRadius},{StartAngle.Rad},{EndAngle.Rad}");
 }

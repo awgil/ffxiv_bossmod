@@ -357,18 +357,11 @@ public record class ArenaBoundsComplex : ArenaBoundsCustom
 
     private static string CreateCacheKey(IEnumerable<Shape> unionShapes, IEnumerable<Shape> differenceShapes, IEnumerable<Shape> additionalShapes)
     {
-        using var sha512 = SHA512.Create();
-        var unionKey = string.Join(",", unionShapes.Select(s => ComputeShapeHash(s, sha512)));
-        var differenceKey = string.Join(",", differenceShapes.Select(s => ComputeShapeHash(s, sha512)));
-        var additionalKey = string.Join(",", additionalShapes.Select(s => ComputeShapeHash(s, sha512)));
-        return $"{unionKey}|{differenceKey}|{additionalKey}";
-    }
-
-    private static string ComputeShapeHash(Shape shape, SHA512 sha512)
-    {
-        var data = Encoding.UTF8.GetBytes(shape.ToString());
-        var hash = sha512.ComputeHash(data);
-        return BitConverter.ToString(hash).Replace("-", "", StringComparison.Ordinal);
+        var unionKey = string.Join(",", unionShapes.Select(s => s.ComputeHash()));
+        var differenceKey = string.Join(",", differenceShapes.Select(s => s.ComputeHash()));
+        var additionalKey = string.Join(",", additionalShapes.Select(s => s.ComputeHash()));
+        var combinedKey = $"{unionKey}|{differenceKey}|{additionalKey}";
+        return Shape.ComputeSHA512(combinedKey);
     }
 
     private static RelSimplifiedComplexPolygon CombinePolygons(List<RelSimplifiedComplexPolygon> unionPolygons, List<RelSimplifiedComplexPolygon> differencePolygons, List<RelSimplifiedComplexPolygon> secondUnionPolygons)
