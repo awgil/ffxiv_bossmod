@@ -135,7 +135,10 @@ sealed class Autorotation : IDisposable
 
         ClassActions?.FillStatusesToCancel(Hints.StatusesToCancel);
         foreach (var s in Hints.StatusesToCancel)
-            ActionManagerEx.Instance!.CancelStatus(s.statusId, s.sourceId != 0 ? (uint)s.sourceId : Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId);
+        {
+            var res = FFXIVClientStructs.FFXIV.Client.Game.StatusManager.ExecuteStatusOff(s.statusId, s.sourceId != 0 ? (uint)s.sourceId : Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId);
+            Service.Log($"[AR] Canceling status {s.statusId} from {s.sourceId:X} -> {res}");
+        }
 
         _ui.IsOpen = ClassActions != null && Config.ShowUI;
 

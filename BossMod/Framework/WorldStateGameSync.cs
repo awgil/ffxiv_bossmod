@@ -3,7 +3,11 @@ using Dalamud.Hooking;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
+using FFXIVClientStructs.FFXIV.Client.Game.Group;
+using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using FFXIVClientStructs.Interop;
 
 namespace BossMod;
 
@@ -14,7 +18,6 @@ sealed class WorldStateGameSync : IDisposable
     private readonly DateTime _startTime;
     private readonly ulong _startQPC;
 
-    private readonly PartyAlliance _alliance = new();
     private readonly List<WorldState.Operation> _globalOps = [];
     private readonly Dictionary<ulong, List<WorldState.Operation>> _actorOps = [];
     private readonly Actor?[] _actorsByIndex = new Actor?[Service.ObjectTable.Length];
@@ -28,6 +31,10 @@ sealed class WorldStateGameSync : IDisposable
 
     private readonly ConfigListener<ReplayManagementConfig> _netConfig;
     private readonly EventSubscriptions _subscriptions;
+
+    private unsafe delegate void ProcessPacketEffectResultDelegate(uint targetID, byte* packet, byte replaying);
+    private readonly Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultHook;
+    private readonly Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultBasicHook;
 
     private delegate void ProcessPacketActorControlDelegate(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID, byte replaying);
     private readonly Hook<ProcessPacketActorControlDelegate> _processPacketActorControlHook;
@@ -52,9 +59,16 @@ sealed class WorldStateGameSync : IDisposable
         _subscriptions = new
         (
             ActionManagerEx.Instance!.ActionRequested.Subscribe(OnActionRequested),
-            ActionManagerEx.Instance!.ActionEffectReceived.Subscribe(OnActionEffect),
-            ActionManagerEx.Instance!.EffectResultReceived.Subscribe(OnEffectResult)
+            ActionManagerEx.Instance!.ActionEffectReceived.Subscribe(OnActionEffect)
         );
+
+        _processPacketEffectResultHook = Service.Hook.HookFromSignature<ProcessPacketEffectResultDelegate>("48 8B C4 44 88 40 18 89 48 08", ProcessPacketEffectResultDetour);
+        _processPacketEffectResultHook.Enable();
+        Service.Log($"[WSG] ProcessPacketEffectResult address = 0x{_processPacketEffectResultHook.Address:X}");
+
+        _processPacketEffectResultBasicHook = Service.Hook.HookFromSignature<ProcessPacketEffectResultDelegate>("40 53 41 54 41 55 48 83 EC 40", ProcessPacketEffectResultBasicDetour);
+        _processPacketEffectResultBasicHook.Enable();
+        Service.Log($"[WSG] ProcessPacketEffectResultBasic address = 0x{_processPacketEffectResultBasicHook.Address:X}");
 
         _processPacketActorControlHook = Service.Hook.HookFromSignature<ProcessPacketActorControlDelegate>("E8 ?? ?? ?? ?? 0F B7 0B 83 E9 64", ProcessPacketActorControlDetour);
         _processPacketActorControlHook.Enable();
@@ -76,6 +90,8 @@ sealed class WorldStateGameSync : IDisposable
 
     public void Dispose()
     {
+        _processPacketEffectResultBasicHook.Dispose();
+        _processPacketEffectResultHook.Dispose();
         _processPacketActorControlHook.Dispose();
         _processPacketNpcYellHook.Dispose();
         _processEnvControlHook.Dispose();
@@ -322,6 +338,8 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe void UpdateParty()
     {
+        var gm = GroupManager.Instance();
+
         // update player slot
         UpdatePartySlot(PartyState.PlayerSlot, Service.ClientState.LocalContentId, Service.ClientState.LocalPlayer?.ObjectId ?? 0);
 
@@ -332,36 +350,36 @@ sealed class WorldStateGameSync : IDisposable
             if (contentID == 0)
                 continue; // skip empty slots
 
-            var member = _alliance.FindPartyMember(contentID);
+            var member = gm->GetPartyMemberByContentId(contentID);
             if (member == null)
                 UpdatePartySlot(i, 0, 0);
             else
                 UpdatePartySlot(i, contentID, member->ObjectId);
         }
-        for (int i = 0; i < _alliance.NumPartyMembers; ++i)
+        for (int i = 0; i < gm->MemberCount; ++i)
         {
-            var member = _alliance.PartyMember(i);
-            if (member == null)
-                continue;
-
-            var contentID = (ulong)member->ContentId;
+            ref var member = ref gm->PartyMembers[i];
+            var contentID = (ulong)member.ContentId;
             if (_ws.Party.ContentIDs.IndexOf(contentID) != -1)
                 continue; // already added, updated in previous loop
 
             var freeSlot = _ws.Party.ContentIDs[1..].IndexOf(0ul);
             if (freeSlot == -1)
             {
-                Service.Log($"[WorldState] Failed to find empty slot for party member {contentID:X}:{member->ObjectId:X}");
+                Service.Log($"[WorldState] Failed to find empty slot for party member {contentID:X}:{member.ObjectId:X}");
                 continue;
             }
 
-            UpdatePartySlot(freeSlot + 1, contentID, member->ObjectId);
+            UpdatePartySlot(freeSlot + 1, contentID, member.ObjectId);
         }
 
         // update alliance members
+        var isNormalAlliance = gm->IsAlliance && !gm->IsSmallGroupAlliance;
         for (int i = PartyState.MaxPartySize; i < PartyState.MaxAllianceSize; ++i)
         {
-            var member = _alliance.IsAlliance && !_alliance.IsSmallGroupAlliance ? _alliance.AllianceMember(i - PartyState.MaxPartySize) : null;
+            var member = isNormalAlliance ? gm->AllianceMembers.GetPointer(i - PartyState.MaxPartySize) : null;
+            if (!member->IsValidAllianceMember)
+                member = null;
             UpdatePartySlot(i, 0, member != null ? member->ObjectId : 0);
         }
 
@@ -379,7 +397,8 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe void UpdateClient()
     {
-        var countdown = Countdown.TimeRemaining();
+        var countdownAgent = AgentCountDownSettingDialog.Instance();
+        var countdown = countdownAgent != null && countdownAgent->Active ? countdownAgent->TimeRemaining : 0;
         if (_ws.Client.CountdownRemaining != countdown)
             _ws.Execute(new ClientState.OpCountdownChange(countdown));
 
@@ -398,7 +417,12 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ClientState.OpDutyActionsChange(dutyAction0, dutyAction1));
 
         Span<byte> bozjaHolster = stackalloc byte[_ws.Client.BozjaHolster.Length];
-        BozjaInterop.FetchHolster(bozjaHolster);
+        bozjaHolster.Clear();
+        var bozjaState = PublicContentBozja.GetState();
+        if (bozjaState != null)
+            foreach (var action in bozjaState->HolsterActions)
+                if (action != 0)
+                    ++bozjaHolster[action];
         if (!MemoryExtensions.SequenceEqual(_ws.Client.BozjaHolster.AsSpan(), bozjaHolster))
             _ws.Execute(new ClientState.OpBozjaHolsterChange(CalcBozjaHolster(bozjaHolster)));
 
@@ -471,6 +495,30 @@ sealed class WorldStateGameSync : IDisposable
     {
         _actorOps.GetOrAdd(targetID).Add(new ActorState.OpEffectResult(targetID, seq, targetIndex));
         _confirms.Add((seq, targetID, targetIndex));
+    }
+
+    private unsafe void ProcessPacketEffectResultDetour(uint targetID, byte* packet, byte replaying)
+    {
+        var count = packet[0];
+        var p = (Network.ServerIPC.EffectResultEntry*)(packet + 4);
+        for (int i = 0; i < count; ++i)
+        {
+            OnEffectResult(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
+            ++p;
+        }
+        _processPacketEffectResultHook.Original(targetID, packet, replaying);
+    }
+
+    private unsafe void ProcessPacketEffectResultBasicDetour(uint targetID, byte* packet, byte replaying)
+    {
+        var count = packet[0];
+        var p = (Network.ServerIPC.EffectResultBasicEntry*)(packet + 4);
+        for (int i = 0; i < count; ++i)
+        {
+            OnEffectResult(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
+            ++p;
+        }
+        _processPacketEffectResultBasicHook.Original(targetID, packet, replaying);
     }
 
     private void ProcessPacketActorControlDetour(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID, byte replaying)

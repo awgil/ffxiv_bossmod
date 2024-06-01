@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using ImGuiNET;
 
 namespace BossMod;
@@ -241,7 +242,7 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
             Utils.WriteField((void*)Service.Condition.Address, (int)Dalamud.Game.ClientState.Conditions.ConditionFlag.OnFreeTrial, false);
         }
 
-        var uiState = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance();
+        var uiState = UIState.Instance();
         ImGui.BeginTable("attrs", 2);
         ImGui.TableSetupColumn("Index");
         ImGui.TableSetupColumn("Value");
@@ -259,10 +260,10 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
 
     private unsafe void DrawCountdown()
     {
-        var agent = Countdown.Instance;
-        ImGui.TextUnformatted($"Active: {agent->Active != 0}");
-        ImGui.TextUnformatted($"Initiator: {Utils.ObjectString(agent->Initiator)}");
-        ImGui.TextUnformatted($"Time left: {agent->Timer:f3}");
+        var agent = AgentCountDownSettingDialog.Instance();
+        ImGui.TextUnformatted($"Active: {agent->Active} (showing cd={agent->ShowingCountdown})");
+        ImGui.TextUnformatted($"Initiator: {Utils.ObjectString(agent->InitiatorId)}");
+        ImGui.TextUnformatted($"Time left: {agent->TimeRemaining:f3}");
     }
 
     private void DrawWindowSystem()

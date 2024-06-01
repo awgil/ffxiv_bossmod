@@ -59,7 +59,6 @@ public sealed class Plugin : IDalamudPlugin
         Service.Config.LoadFromFile(dalamud.ConfigFile);
         Service.Config.Modified.Subscribe(() => Service.Config.SaveToFile(dalamud.ConfigFile));
 
-        BozjaInterop.Instance = new();
         ActionManagerEx.Instance = new(); // needs config
 
         CommandManager = commandManager;
@@ -98,7 +97,6 @@ public sealed class Plugin : IDalamudPlugin
         _autorotation.Dispose();
         _wsSync.Dispose();
         ActionManagerEx.Instance?.Dispose();
-        BozjaInterop.Instance?.Dispose();
         CommandManager.RemoveHandler("/vbm");
     }
 
