@@ -1,4 +1,5 @@
-﻿namespace BossMod.Pathfinding;
+﻿using System.Collections.Concurrent;
+namespace BossMod.Pathfinding;
 
 // 'map' used for running pathfinding algorithms
 // this is essentially a square grid representing an arena (or immediate neighbourhood of the player) where we rasterize forbidden/desired zones
@@ -78,14 +79,20 @@ public class Map
     public void BlockPixelsInside(Func<WPos, float> shape, float maxG, float threshold)
     {
         MaxG = MathF.Max(MaxG, maxG);
-        foreach (var (x, y, center) in EnumeratePixels())
+        Parallel.ForEach(Partitioner.Create(0, Pixels.Length), range =>
         {
-            if (shape(center) <= threshold)
+            for (var i = range.Item1; i < range.Item2; i++)
             {
-                ref var pixel = ref Pixels[y * Width + x];
-                pixel.MaxG = MathF.Min(pixel.MaxG, maxG);
+                var x = i % Width;
+                var y = i / Width;
+                var center = GridToWorld(x, y, 0.5f, 0.5f);
+                if (shape(center) <= threshold)
+                {
+                    ref var pixel = ref Pixels[i];
+                    pixel.MaxG = MathF.Min(pixel.MaxG, maxG);
+                }
             }
-        }
+        });
     }
 
     public int AddGoal(int x, int y, int deltaPriority)
@@ -98,19 +105,25 @@ public class Map
 
     public int AddGoal(Func<WPos, float> shape, float threshold, int minPriority, int deltaPriority)
     {
-        int maxAdjustedPriority = minPriority;
-        foreach (var (x, y, center) in EnumeratePixels())
+        var maxAdjustedPriority = minPriority;
+        Parallel.ForEach(Partitioner.Create(0, Pixels.Length), range =>
         {
-            if (shape(center) <= threshold)
+            for (var i = range.Item1; i < range.Item2; i++)
             {
-                ref var pixel = ref Pixels[y * Width + x];
-                if (pixel.Priority >= minPriority)
+                var x = i % Width;
+                var y = i / Width;
+                var center = GridToWorld(x, y, 0.5f, 0.5f);
+                if (shape(center) <= threshold)
                 {
-                    pixel.Priority += deltaPriority;
-                    maxAdjustedPriority = Math.Max(maxAdjustedPriority, pixel.Priority);
+                    ref var pixel = ref Pixels[i];
+                    if (pixel.Priority >= minPriority)
+                    {
+                        pixel.Priority += deltaPriority;
+                        maxAdjustedPriority = Math.Max(maxAdjustedPriority, pixel.Priority);
+                    }
                 }
             }
-        }
+        });
         MaxPriority = Math.Max(MaxPriority, maxAdjustedPriority);
         return maxAdjustedPriority;
     }

@@ -247,6 +247,8 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
         => Zone(_triCache[(10, key)] ??= Bounds.ClipAndTriangulate(contour.Select(p => p - Center)), color);
     public void ZoneRelPoly(object key, IEnumerable<WDir> relContour, uint color)
         => Zone(_triCache[(11, key)] ??= Bounds.ClipAndTriangulate(relContour), color);
+    public void ZoneRelPoly(object key, RelSimplifiedComplexPolygon poly, uint color)
+        => Zone(_triCache[(12, key)] ??= Bounds.ClipAndTriangulate(poly), color);
 
     public void TextScreen(Vector2 center, string text, uint color, float fontSize = 17)
     {

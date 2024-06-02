@@ -1,28 +1,24 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7StygimolochLord;
 
-class AddPhaseArena(BossModule module) : BossComponent(module)
+class Border(BossModule module) : Components.GenericAOEs(module)
 {
+    public static readonly WPos BoundsCenter = new(-416, -184);
+    public static readonly ArenaBounds DefaultBounds = new ArenaBoundsCircle(34.5f);
     private const float _innerRingRadius = 14.5f;
     private const float _outerRingRadius = 27.5f;
     private const float _ringHalfWidth = 2.5f;
     private const float _alcoveDepth = 1;
     private const float _alcoveWidth = 2;
     private bool Active;
-    private static readonly List<Func<WPos, float>> _labyrinthDistances =
-    [
-        ShapeDistance.ConcavePolygon(ConvertToWPos(InDanger())),
-        ShapeDistance.ConcavePolygon(ConvertToWPos(MidDanger())),
-        ShapeDistance.ConcavePolygon(ConvertToWPos(OutDanger()))
-    ];
+    private static readonly List<Shape> labyrinth = [new PolygonCustom(ConvertToWPos(InDanger())),
+        new PolygonCustom(ConvertToWPos(MidDanger())), new PolygonCustom(ConvertToWPos(OutDanger()))];
+    public static readonly AOEShapeCustom customShape = new(labyrinth);
+    public static readonly ArenaBounds labPhase = new ArenaBoundsComplex([new Circle(BoundsCenter, 34.5f)], labyrinth);
 
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (!Active)
-        {
-            Arena.ZoneRelPoly((GetType(), 0), InDanger(), ArenaColor.AOE);
-            Arena.ZoneRelPoly((GetType(), 1), MidDanger(), ArenaColor.AOE);
-            Arena.ZoneRelPoly((GetType(), 2), OutDanger(), ArenaColor.AOE);
-        }
+            yield return new(customShape, Module.Arena.Center);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -76,22 +72,5 @@ class AddPhaseArena(BossModule module) : BossComponent(module)
         return outerBoundary.Concat(innerRing);
     }
 
-    private static IEnumerable<WPos> ConvertToWPos(IEnumerable<WDir> directions)
-    {
-        return directions.Select(dir => new WPos(DRS7.BoundsCenter.X + dir.X, DRS7.BoundsCenter.Z + dir.Z));
-    }
-
-    private static readonly List<Shape> labyrinth = [new PolygonCustom(ConvertToWPos(InDanger())),
-        new PolygonCustom(ConvertToWPos(MidDanger())), new PolygonCustom(ConvertToWPos(OutDanger()))];
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-        if (!Active)
-        {
-            hints.AddForbiddenZone(p => _labyrinthDistances.Select(f => f(p)).Min());
-        }
-    }
-
-    public static readonly ArenaBounds labPhase = new ArenaBoundsComplex([new Circle(DRS7.BoundsCenter, 34.5f)], labyrinth);
+    private static IEnumerable<WPos> ConvertToWPos(IEnumerable<WDir> directions) => directions.Select(dir => new WPos(BoundsCenter.X + dir.X, BoundsCenter.Z + dir.Z));
 }

@@ -8,8 +8,8 @@ class DRS7States : StateMachineBuilder
             .ActivateOnEnter<RapidBoltsAOE>()
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable;
         SimplePhase(1, PhaseAdds, "Adds")
-            .ActivateOnEnter<AddPhaseArena>()
-            .OnExit(() => Module.Arena.Bounds = DRS7.DefaultBounds)
+            .ActivateOnEnter<Border>()
+            .OnExit(() => Module.Arena.Bounds = Border.DefaultBounds)
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsTargetable;
         DeathPhase(2, PhaseAfterAdds)
             .ActivateOnEnter<RapidBoltsAOE>();

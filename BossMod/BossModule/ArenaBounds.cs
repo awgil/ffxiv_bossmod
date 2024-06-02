@@ -1,5 +1,4 @@
 ﻿namespace BossMod;
-
 // radius is the largest horizontal/vertical dimension: radius for circle, max of width/height for rect
 // note: this class to represent *relative* arena bounds (relative to arena center) - the reason being that in some cases effective center moves every frame, and bounds caches a lot (clip poly & base map for pathfinding)
 // note: if arena bounds are changed, new instance is recreated; max approx error can change without recreating the instance
@@ -267,16 +266,18 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
     private Pathfinding.Map BuildMap()
     {
         var polygon = Offset != 0 ? Poly.Offset(Offset) : Poly;
-        var mapProperties = CalculatePolygonProperties(polygon);
-        var map = new Pathfinding.Map(MapResolution, Center, mapProperties.halfWidth, mapProperties.halfHeight);
+        var (halfWidth, halfHeight) = CalculatePolygonProperties(polygon);
+        var map = new Pathfinding.Map(MapResolution, Center, halfWidth, halfHeight);
 
-        foreach (var (x, y, pos) in map.EnumeratePixels())
+        Parallel.ForEach(map.EnumeratePixels(), (pixel) =>
         {
+            var (x, y, pos) = pixel;
             var relativeCenter = new WDir(pos.X - Center.X, pos.Z - Center.Z);
             var samplePoints = GenerateSamplePoints(relativeCenter, MapResolution);
             var allPointsInside = samplePoints.All(polygon.Contains);
             map.Pixels[y * map.Width + x].MaxG = allPointsInside ? float.MaxValue : 0;
-        }
+        });
+
         return map;
     }
 
@@ -378,11 +379,11 @@ public record class ArenaBoundsComplex : ArenaBoundsCustom
         foreach (var polygon in secondUnionPolygons)
             operandSecondUnion.AddPolygon(polygon);
 
-        var combinedShape = clipper.Union(operandUnion, new PolygonClipper.Operand(), Clipper2Lib.FillRule.NonZero);
+        var combinedShape = clipper.Union(operandUnion, new PolygonClipper.Operand());
         if (differencePolygons.Count != 0)
-            combinedShape = clipper.Difference(new PolygonClipper.Operand(combinedShape), operandDifference, Clipper2Lib.FillRule.NonZero);
+            combinedShape = clipper.Difference(new PolygonClipper.Operand(combinedShape), operandDifference);
         if (secondUnionPolygons.Count != 0)
-            combinedShape = clipper.Union(new PolygonClipper.Operand(combinedShape), operandSecondUnion, Clipper2Lib.FillRule.NonZero);
+            combinedShape = clipper.Union(new PolygonClipper.Operand(combinedShape), operandSecondUnion);
 
         return combinedShape;
     }

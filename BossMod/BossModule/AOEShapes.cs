@@ -121,16 +121,15 @@ public sealed record class AOEShapeTriCone(float SideLength, Angle HalfAngle, An
     public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Tri(origin, new(default, SideLength * (rotation + HalfAngle).ToDirection(), SideLength * (rotation - HalfAngle).ToDirection()));
 }
 
-public sealed record class AOEShapeCustom(List<Shape> UnionShapes, List<Shape> DifferenceShapes) : AOEShape
+public sealed record class AOEShapeCustom(IEnumerable<Shape> UnionShapes, IEnumerable<Shape>? DifferenceShapes = null) : AOEShape
 {
-    private static readonly Dictionary<string, List<RelTriangle>> _triangulationCache = [];
     private static readonly Dictionary<object, object> _polygonCacheStatic = [];
     private readonly Dictionary<object, object> _polygonCache = [];
     private static readonly Dictionary<(string, WPos, Angle), Func<WPos, float>> _distanceFuncCache = [];
 
     private RelSimplifiedComplexPolygon GetCombinedPolygon(WPos origin)
     {
-        var cacheKey = CreateCacheKey(UnionShapes, DifferenceShapes);
+        var cacheKey = CreateCacheKey(UnionShapes, DifferenceShapes ?? []);
         if (_polygonCacheStatic.TryGetValue(cacheKey, out var cachedResult))
             return (RelSimplifiedComplexPolygon)cachedResult;
 
@@ -139,7 +138,7 @@ public sealed record class AOEShapeCustom(List<Shape> UnionShapes, List<Shape> D
             unionOperands.AddPolygon(shape.ToPolygon(origin));
 
         var differenceOperands = new PolygonClipper.Operand();
-        foreach (var shape in DifferenceShapes)
+        foreach (var shape in DifferenceShapes ?? [])
             differenceOperands.AddPolygon(shape.ToPolygon(origin));
 
         var clipper = new PolygonClipper();
@@ -151,7 +150,7 @@ public sealed record class AOEShapeCustom(List<Shape> UnionShapes, List<Shape> D
 
     public override bool Check(WPos position, WPos origin, Angle rotation)
     {
-        var cacheKey = (CreateCacheKey(UnionShapes, DifferenceShapes), position, origin, rotation);
+        var cacheKey = (CreateCacheKey(UnionShapes, DifferenceShapes ?? []), position, origin, rotation);
         if (_polygonCache.TryGetValue(cacheKey, out var cachedResult))
             return (bool)cachedResult;
         var combinedPolygon = GetCombinedPolygon(origin);
@@ -161,36 +160,15 @@ public sealed record class AOEShapeCustom(List<Shape> UnionShapes, List<Shape> D
         return result;
     }
 
-    private static string CreateCacheKey(IEnumerable<Shape> UnionShapes, IEnumerable<Shape> DifferenceShapes)
+    private static string CreateCacheKey(IEnumerable<Shape> unionShapes, IEnumerable<Shape> differenceShapes)
     {
-        using var sha512 = SHA512.Create();
-        var unionKey = string.Join(",", UnionShapes.Select(s => ComputeShapeHash(s, sha512)));
-        var differenceKey = string.Join(",", DifferenceShapes.Select(s => ComputeShapeHash(s, sha512)));
-        return $"{unionKey}|{differenceKey}";
+        var unionKey = string.Join(",", unionShapes.Select(s => s.ComputeHash()));
+        var differenceKey = string.Join(",", differenceShapes.Select(s => s.ComputeHash()));
+        var combinedKey = $"{unionKey}|{differenceKey}";
+        return Shape.ComputeSHA512(combinedKey);
     }
 
-    private static string ComputeShapeHash(Shape shape, SHA512 sha512)
-    {
-        var data = Encoding.UTF8.GetBytes(shape.ToString());
-        var hash = sha512.ComputeHash(data);
-        return BitConverter.ToString(hash).Replace("-", "", StringComparison.Ordinal);
-    }
-
-    public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE)
-    {
-        var cacheKey = CreateCacheKey(UnionShapes, DifferenceShapes);
-        if (!_triangulationCache.TryGetValue(cacheKey, out var triangles))
-        {
-            var combinedPolygon = GetCombinedPolygon(origin);
-            triangles = combinedPolygon.Triangulate();
-            _triangulationCache[cacheKey] = triangles;
-        }
-
-        foreach (var triangle in triangles)
-        {
-            arena.ZoneTri(origin + triangle.A, origin + triangle.B, origin + triangle.C, color); // probably not very efficient to split the polygon into triangles, there must be a better way
-        }
-    }
+    public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.ZoneRelPoly(CreateCacheKey(UnionShapes, DifferenceShapes ?? []), GetCombinedPolygon(origin), color);
 
     public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger)
     {
@@ -215,43 +193,23 @@ public sealed record class AOEShapeCustom(List<Shape> UnionShapes, List<Shape> D
         }
     }
 
-    public override Func<WPos, float> Distance(WPos origin, Angle rotation) // probably not a very efficient way, will make AI pathfinding lag
+    public override Func<WPos, float> Distance(WPos origin, Angle rotation)
     {
-        var funcCacheKey = (CreateCacheKey(UnionShapes, DifferenceShapes), origin, rotation);
-        if (_distanceFuncCache.TryGetValue(funcCacheKey, out var cachedFunc))
+        // TODO: Distance maps should probably be cloned instead of being saved in a dictionary
+        var cacheKey = (CreateCacheKey(UnionShapes, DifferenceShapes ?? []), origin, rotation);
+        if (_distanceFuncCache.TryGetValue(cacheKey, out var cachedFunc))
             return cachedFunc;
+        var unionDistanceFuncs = UnionShapes.Select(shape => shape.Distance()).ToList();
+        var differenceDistanceFuncs = (DifferenceShapes ?? []).Select(shape => shape.Distance()).ToList();
 
-        float distanceFunc(WPos position)
+        float combinedDistanceFunc(WPos p)
         {
-            var combinedPolygon = GetCombinedPolygon(origin);
-            var relativePosition = position - origin;
-            var distances = new List<float>();
-            var inside = combinedPolygon.Contains(relativePosition);
-
-            foreach (var part in combinedPolygon.Parts)
-            {
-                distances.AddRange(part.ExteriorEdges.Select(edge => DistanceToEdge(relativePosition, edge)));
-                foreach (var holeIndex in part.Holes)
-                    distances.AddRange(part.InteriorEdges(holeIndex).Select(edge => DistanceToEdge(relativePosition, edge)));
-            }
-
-            var minDistance = distances.Min();
-            var finalDistance = inside ? -minDistance : minDistance;
-            return finalDistance;
+            var minUnionDist = unionDistanceFuncs.Min(func => func(p));
+            var maxDifferenceDist = differenceDistanceFuncs.Count != 0 ? differenceDistanceFuncs.Max(func => -func(p)) : float.MinValue;
+            return Math.Max(minUnionDist, maxDifferenceDist);
         }
+        _distanceFuncCache[cacheKey] = combinedDistanceFunc;
 
-        _distanceFuncCache[funcCacheKey] = distanceFunc;
-        return distanceFunc;
-    }
-
-    private float DistanceToEdge(WDir point, (WDir, WDir) edge)
-    {
-        var (a, b) = edge;
-        var ab = b - a;
-        var ap = point - a;
-        var abLengthSquared = ab.LengthSq();
-        var t = Math.Clamp(Vector2.Dot(ap.ToVec2(), ab.ToVec2()) / abLengthSquared, 0, 1);
-        var projection = a + ab * t;
-        return (point - projection).Length();
+        return combinedDistanceFunc;
     }
 }

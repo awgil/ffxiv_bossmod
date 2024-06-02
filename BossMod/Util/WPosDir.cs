@@ -105,12 +105,14 @@ public record struct WPos(float X, float Z)
 
     public readonly bool InConvexPolygon(IEnumerable<WPos> vertices)
     {
-        var verts = vertices.ToList();
-        var count = verts.Count;
+        var verts = vertices as WPos[] ?? vertices.ToArray();
+        var count = verts.Length;
         var inside = false;
         for (int i = 0, j = count - 1; i < count; j = i++)
         {
-            if ((verts[i].Z > Z) != (verts[j].Z > Z) && X < (verts[j].X - verts[i].X) * (Z - verts[i].Z) / (verts[j].Z - verts[i].Z) + verts[i].X)
+            var vi = verts[i];
+            var vj = verts[j];
+            if ((vi.Z > Z) != (vj.Z > Z) && X < (vj.X - vi.X) * (Z - vi.Z) / (vj.Z - vi.Z) + vi.X)
             {
                 inside = !inside;
             }
@@ -122,14 +124,16 @@ public record struct WPos(float X, float Z)
     {
         float windingNumber = 0;
         var verticesList = vertices.ToList();
-        for (var i = 0; i < verticesList.Count; i++)
+        var verticesCount = verticesList.Count;
+
+        for (var i = 0; i < verticesCount; i++)
         {
-            var j = (i + 1) % verticesList.Count;
             var vi = verticesList[i];
-            var vj = verticesList[j];
+            var vj = verticesList[(i + 1) % verticesCount];
             var di = this - vi;
             var dj = this - vj;
             var cross = di.Cross(dj);
+
             if (vi.Z <= Z)
             {
                 if (vj.Z > Z && cross > 0)
@@ -138,6 +142,7 @@ public record struct WPos(float X, float Z)
             else if (vj.Z <= Z && cross < 0)
                 --windingNumber;
         }
+
         return windingNumber != 0;
     }
 }

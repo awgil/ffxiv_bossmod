@@ -253,5 +253,5 @@ class D063TherionStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 341, NameID = 8210)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 652, NameID = 8210)]
 public class D063Therion(WorldState ws, Actor primary) : BossModule(ws, primary, Border.arenaDefault.Center, Border.arenaDefault);
