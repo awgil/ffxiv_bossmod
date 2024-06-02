@@ -74,14 +74,9 @@ unsafe sealed class ActionManagerEx : IDisposable
     private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
     private int _restoreCntr;
 
-    private delegate void UpdateDelegate(ActionManager* self);
-    private readonly Hook<UpdateDelegate> _updateHook;
-
-    private delegate bool UseActionLocationDelegate(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation);
-    private readonly Hook<UseActionLocationDelegate> _useActionLocationHook;
-
-    private delegate bool UseBozjaFromHolsterDirectorDelegate(PublicContentBozja* self, uint holsterIndex, uint slot);
-    private readonly Hook<UseBozjaFromHolsterDirectorDelegate> _useBozjaFromHolsterDirectorHook;
+    private readonly Hook<ActionManager.Delegates.Update> _updateHook;
+    private readonly Hook<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
+    private readonly Hook<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
 
     private delegate void ProcessPacketActionEffectDelegate(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Network.ServerIPC.ActionEffectHeader* header, ulong* effects, ulong* targets);
     private readonly Hook<ProcessPacketActionEffectDelegate> _processPacketActionEffectHook;
@@ -94,13 +89,13 @@ unsafe sealed class ActionManagerEx : IDisposable
         _inst = ActionManager.Instance();
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
 
-        _updateHook = Service.Hook.HookFromAddress<UpdateDelegate>(ActionManager.Addresses.Update.Value, UpdateDetour);
+        _updateHook = Service.Hook.HookFromAddress<ActionManager.Delegates.Update>(ActionManager.Addresses.Update.Value, UpdateDetour);
         _updateHook.Enable();
 
-        _useActionLocationHook = Service.Hook.HookFromAddress<UseActionLocationDelegate>(ActionManager.Addresses.UseActionLocation.Value, UseActionLocationDetour);
+        _useActionLocationHook = Service.Hook.HookFromAddress<ActionManager.Delegates.UseActionLocation>(ActionManager.Addresses.UseActionLocation.Value, UseActionLocationDetour);
         _useActionLocationHook.Enable();
 
-        _useBozjaFromHolsterDirectorHook = Service.Hook.HookFromAddress<UseBozjaFromHolsterDirectorDelegate>(PublicContentBozja.Addresses.UseFromHolster.Value, UseBozjaFromHolsterDirectorDetour);
+        _useBozjaFromHolsterDirectorHook = Service.Hook.HookFromAddress<PublicContentBozja.Delegates.UseFromHolster>(PublicContentBozja.Addresses.UseFromHolster.Value, UseBozjaFromHolsterDirectorDetour);
         _useBozjaFromHolsterDirectorHook.Enable();
 
         _processPacketActionEffectHook = Service.Hook.HookFromSignature<ProcessPacketActionEffectDelegate>("E8 ?? ?? ?? ?? 48 8B 4C 24 68 48 33 CC E8 ?? ?? ?? ?? 4C 8D 5C 24 70 49 8B 5B 20 49 8B 73 28 49 8B E3 5F C3", ProcessPacketActionEffectDetour);
@@ -203,14 +198,14 @@ unsafe sealed class ActionManagerEx : IDisposable
             // fake action type - using action from bozja holster
             var state = PublicContentBozja.GetState(); // note: if it's non-null, the director instance can't be null too
             var holsterIndex = state != null ? state->HolsterActions.IndexOf((byte)action.ID) : -1;
-            return holsterIndex >= 0 && UseBozjaFromHolsterDirectorDetour(PublicContentBozja.GetInstance(), (uint)holsterIndex, action.Type == ActionType.BozjaHolsterSlot1 ? 1u : 0);
+            return holsterIndex >= 0 && PublicContentBozja.GetInstance()->UseFromHolster((uint)holsterIndex, action.Type == ActionType.BozjaHolsterSlot1 ? 1u : 0);
         }
         else
         {
             // real action type, just execute our UAL hook
             // note that for items extraParam should be 0xFFFF (since we want to use any item, not from first inventory slot)
             var extraParam = action.Type == ActionType.Item ? 0xFFFFu : 0;
-            return UseActionLocationDetour(_inst, action.Type, action.ID, targetId, &targetPos, extraParam);
+            return _inst->UseActionLocation((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, targetId, &targetPos, extraParam);
         }
     }
 
@@ -287,17 +282,17 @@ unsafe sealed class ActionManagerEx : IDisposable
             InputOverride.UnblockMovement();
     }
 
-    private bool UseActionLocationDetour(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation)
+    private bool UseActionLocationDetour(ActionManager* self, FFXIVClientStructs.FFXIV.Client.Game.ActionType actionType, uint actionId, ulong targetId, Vector3* location, uint extraParam)
     {
         var pc = Service.ClientState.LocalPlayer;
         var prevSeq = _inst->LastUsedActionSequence;
         var prevRot = pc?.Rotation ?? 0;
-        bool ret = _useActionLocationHook.Original(self, actionType, actionID, targetID, targetPos, itemLocation);
+        bool ret = _useActionLocationHook.Original(self, actionType, actionId, targetId, location, extraParam);
         var currSeq = _inst->LastUsedActionSequence;
         var currRot = pc?.Rotation ?? 0;
         if (currSeq != prevSeq)
         {
-            HandleActionRequest(new(actionType, actionID), currSeq, targetID, *targetPos, prevRot, currRot);
+            HandleActionRequest(new((ActionType)actionType, actionId), currSeq, targetId, *location, prevRot, currRot);
         }
         return ret;
     }
