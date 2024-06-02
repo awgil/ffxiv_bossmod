@@ -30,7 +30,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ReplayManagementWindow _wndReplay;
     private readonly MainDebugWindow _wndDebug;
 
-    public Plugin(
+    public unsafe Plugin(
         [RequiredVersion("1.0")] DalamudPluginInterface dalamud,
         [RequiredVersion("1.0")] ICommandManager commandManager)
     {
@@ -64,7 +64,8 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager = commandManager;
         CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
-        _ws = new(Utils.FrameQPF(), gameVersion);
+        var qpf = (ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency;
+        _ws = new(qpf, gameVersion);
         _wsSync = new(_ws);
         _bossmod = new(_ws);
         _autorotation = new(_bossmod);

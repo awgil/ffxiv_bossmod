@@ -144,7 +144,7 @@ unsafe sealed class DebugInput : IDisposable
 
     public void Draw()
     {
-        var dt = Utils.FrameDuration();
+        var dt = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->FrameDeltaTime;
 
         var player = _ws.Party.Player();
         var curPos = player?.PosRot.XYZ() ?? new();
@@ -354,10 +354,11 @@ unsafe sealed class DebugInput : IDisposable
         _rmiCameraHook.Original(self, inputMode, speedH, speedV);
         if (inputMode == 0) // let user override...
         {
+            var dt = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->FrameDeltaTime;
             var deltaH = (_pmcDesiredAzimuth.Degrees() - self->DirH.Radians()).Normalized();
             var deltaV = (_pmcDesiredAltitude.Degrees() - self->DirV.Radians()).Normalized();
-            var maxH = _pmcCameraSpeedH.Degrees().Rad * Utils.FrameDuration();
-            var maxV = _pmcCameraSpeedV.Degrees().Rad * Utils.FrameDuration();
+            var maxH = _pmcCameraSpeedH.Degrees().Rad * dt;
+            var maxV = _pmcCameraSpeedV.Degrees().Rad * dt;
             self->InputDeltaH = Math.Clamp(deltaH.Rad, -maxH, maxH);
             self->InputDeltaV = Math.Clamp(deltaV.Rad, -maxV, maxV);
         }

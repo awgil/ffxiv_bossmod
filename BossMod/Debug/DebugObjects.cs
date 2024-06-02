@@ -41,13 +41,13 @@ public class DebugObjects
                 _tree.LeafNode($"Owner: {Utils.ObjectString(obj.OwnerId)}");
                 _tree.LeafNode($"BNpcBase/Name: {obj.DataId:X}/{Utils.GameObjectInternal(obj)->GetNameId()}");
                 _tree.LeafNode($"Targetable: {obj.IsTargetable}");
-                _tree.LeafNode($"Friendly: {Utils.GameObjectIsFriendly(obj)}");
+                _tree.LeafNode($"Friendly: {Utils.GameObjectIsFriendly(&internalChara->Character.GameObject)}");
                 _tree.LeafNode($"Is character: {internalObj->IsCharacter()}");
-                _tree.LeafNode($"Event state: {Utils.GameObjectEventState(obj)}");
+                _tree.LeafNode($"Event state: {internalChara->EventState}");
                 if (character != null)
                 {
                     _tree.LeafNode($"Class: {(Class)character.ClassJob.Id} ({character.ClassJob.Id})");
-                    _tree.LeafNode($"HP: {character.CurrentHp}/{character.MaxHp} ({Utils.CharacterShieldValue(character)})");
+                    _tree.LeafNode($"HP: {character.CurrentHp}/{character.MaxHp} ({internalChara->ShieldValue})");
                     _tree.LeafNode($"Status flags: {character.StatusFlags}");
                 }
                 if (battleChara != null)
@@ -96,11 +96,11 @@ public class DebugObjects
         ImGui.TableHeadersRow();
         for (int i = 0; i < 426; ++i)
         {
-            var o = module->ObjectInfoArray[i].GameObject;
+            var o = module->ObjectInfos[i].GameObject;
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); ImGui.TextUnformatted($"{i}: {(ulong)o:X}");
             ImGui.TableNextColumn(); if (o != null) ImGui.TextUnformatted($"{o->BaseId:X} '{o->NameString}' <{o->EntityId:X}>");
-            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{module->ObjectInfoArray[i].NamePlateObjectKind}");
+            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{module->ObjectInfos[i].NamePlateObjectKind}");
         }
         ImGui.EndTable();
     }
@@ -118,14 +118,14 @@ public class DebugObjects
             }
 
             var chara = obj as BattleChara;
-            if (chara)
+            if (chara != null)
             {
                 res.Append($", vfxObj=0x{Utils.ReadField<ulong>(internalObj, 0x1840):X}/0x{Utils.ReadField<ulong>(internalObj, 0x1848):X}");
-                if (chara!.IsCasting)
+                if (chara.IsCasting)
                 {
                     var target = Service.ObjectTable.SearchById(chara.CastTargetObjectId);
                     var targetString = target ? Utils.ObjectString(target!) : "unknown";
-                    res.Append($", castAction={new ActionID((ActionType)chara.CastActionType, chara.CastActionId)}, castTarget={targetString}, castLoc={Utils.Vec3String(Utils.BattleCharaCastLocation(chara))}, castTime={Utils.CastTimeString(chara.CurrentCastTime, chara.TotalCastTime)}");
+                    res.Append($", castAction={new ActionID((ActionType)chara.CastActionType, chara.CastActionId)}, castTarget={targetString}, castLoc={Utils.Vec3String(Utils.BattleCharaInternal(chara)->GetCastInfo()->CastLocation)}, castTime={Utils.CastTimeString(chara.CurrentCastTime, chara.TotalCastTime)}");
                 }
                 foreach (var status in chara!.StatusList)
                 {

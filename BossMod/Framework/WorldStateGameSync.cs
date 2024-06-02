@@ -1,11 +1,13 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Hooking;
+﻿using Dalamud.Hooking;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.Interop;
 
@@ -14,13 +16,16 @@ namespace BossMod;
 // utility that updates a world state to correspond to game state
 sealed class WorldStateGameSync : IDisposable
 {
+    private const int ObjectTableSize = 599; // should match CS; note that different ranges are used for different purposes - consider splitting?..
+    private const uint InvalidEntityId = 0xE0000000;
+
     private readonly WorldState _ws;
     private readonly DateTime _startTime;
-    private readonly ulong _startQPC;
+    private readonly long _startQPC;
 
     private readonly List<WorldState.Operation> _globalOps = [];
     private readonly Dictionary<ulong, List<WorldState.Operation>> _actorOps = [];
-    private readonly Actor?[] _actorsByIndex = new Actor?[Service.ObjectTable.Length];
+    private readonly Actor?[] _actorsByIndex = new Actor?[ObjectTableSize];
 
     private readonly List<(ulong Caster, ActorCastEvent Event)> _castEvents = [];
     private readonly List<(uint Seq, ulong Target, int TargetIndex)> _confirms = [];
@@ -52,7 +57,7 @@ sealed class WorldStateGameSync : IDisposable
     {
         _ws = ws;
         _startTime = DateTime.Now;
-        _startQPC = Utils.FrameQPC();
+        _startQPC = Framework.Instance()->PerformanceCounterValue;
         _interceptor.ServerIPCReceived += ServerIPCReceived;
 
         _netConfig = Service.Config.GetAndSubscribe<ReplayManagementConfig>(config => _interceptor.Active = config.RecordServerPackets || config.DumpServerPackets);
@@ -103,15 +108,16 @@ sealed class WorldStateGameSync : IDisposable
 
     public unsafe void Update(TimeSpan prevFramePerf)
     {
+        var fwk = Framework.Instance();
         _ws.Execute(new WorldState.OpFrameStart
         (
             new(
-                _startTime.AddSeconds((double)(Utils.FrameQPC() - _startQPC) / _ws.QPF),
-                Utils.FrameQPC(),
-                Utils.FrameIndex(),
-                Utils.FrameDurationRaw(),
-                Utils.FrameDuration(),
-                Utils.TickSpeedMultiplier()
+                _startTime.AddSeconds((double)(fwk->PerformanceCounterValue - _startQPC) / _ws.QPF),
+                (ulong)fwk->PerformanceCounterValue,
+                fwk->FrameCounter,
+                fwk->RealFrameDeltaTime,
+                fwk->FrameDeltaTime,
+                fwk->GameSpeedMultiplier
             ),
             prevFramePerf,
             GaugeData()
@@ -157,23 +163,24 @@ sealed class WorldStateGameSync : IDisposable
         }
     }
 
-    private void UpdateActors()
+    private unsafe void UpdateActors()
     {
+        var mgr = GameObjectManager.Instance();
         for (int i = 0; i < _actorsByIndex.Length; ++i)
         {
             var actor = _actorsByIndex[i];
-            var obj = Service.ObjectTable[i];
+            var obj = mgr->Objects.All[i].Value;
 
-            if (obj != null && obj.ObjectId == GameObject.InvalidGameObjectId)
+            if (obj != null && obj->EntityId == InvalidEntityId)
                 obj = null; // ignore non-networked objects (really?..)
 
-            if (obj != null && (obj.ObjectId & 0xFF000000) == 0xFF000000)
+            if (obj != null && (obj->EntityId & 0xFF000000) == 0xFF000000)
             {
-                //Service.Log($"[WorldState] Skipping bad object #{i} with id {obj.ObjectId:X}");
+                Service.Log($"[WorldState] Skipping bad object #{i} with id {obj->EntityId:X}");
                 obj = null;
             }
 
-            if (actor != null && actor.InstanceID != obj?.ObjectId)
+            if (actor != null && (obj == null || actor.InstanceID != obj->EntityId))
             {
                 _actorsByIndex[i] = null;
                 RemoveActor(actor);
@@ -182,7 +189,7 @@ sealed class WorldStateGameSync : IDisposable
 
             if (obj != null)
             {
-                if (actor != _ws.Actors.Find(obj.ObjectId))
+                if (actor != _ws.Actors.Find(obj->EntityId))
                 {
                     Service.Log($"[WorldState] Actor position mismatch for #{i} {actor}");
                 }
@@ -201,40 +208,40 @@ sealed class WorldStateGameSync : IDisposable
         _ws.Execute(new ActorState.OpDestroy(actor.InstanceID));
     }
 
-    private void UpdateActor(GameObject obj, int index, Actor? act)
+    private unsafe void UpdateActor(GameObject* obj, int index, Actor? act)
     {
-        var character = obj as Character;
-        var name = obj.Name.TextValue;
-        var nameID = character?.NameId ?? 0;
-        var classID = (Class)(character?.ClassJob.Id ?? 0);
-        var level = character?.Level ?? 0;
-        var posRot = new Vector4(obj.Position, obj.Rotation);
+        var chr = obj->IsCharacter() ? (Character*)obj : null;
+        var name = obj->NameString;
+        var nameID = chr != null ? chr->NameId : 0;
+        var classID = chr != null ? (Class)chr->ClassJob : Class.None;
+        var level = chr != null ? chr->Level : 0;
+        var posRot = new Vector4(obj->Position, obj->Rotation);
         var hpmp = new ActorHPMP();
         bool inCombat = false;
-        if (character != null)
+        if (chr != null)
         {
-            hpmp.CurHP = character.CurrentHp;
-            hpmp.MaxHP = character.MaxHp;
-            hpmp.Shield = (uint)(Utils.CharacterShieldValue(character) * 0.01f * hpmp.MaxHP);
-            hpmp.CurMP = character.CurrentMp;
-            inCombat = Utils.CharacterInCombat(character);
+            hpmp.CurHP = chr->Health;
+            hpmp.MaxHP = chr->MaxHealth;
+            hpmp.Shield = (uint)(chr->ShieldValue * 0.01f * hpmp.MaxHP);
+            hpmp.CurMP = chr->Mana;
+            inCombat = chr->InCombat;
         }
-        var targetable = Utils.GameObjectIsTargetable(obj);
+        var targetable = obj->GetIsTargetable();
         var friendly = Utils.GameObjectIsFriendly(obj);
-        var isDead = Utils.GameObjectIsDead(obj);
-        var target = character == null ? 0 : SanitizedObjectID(obj != Service.ClientState.LocalPlayer ? Utils.CharacterTargetID(character) : (Service.TargetManager.Target?.ObjectId ?? 0)); // this is a bit of a hack - when changing targets, we want AI to see changes immediately rather than wait for server response
-        var modelState = character != null ? new ActorModelState(Utils.CharacterModelState(character), Utils.CharacterAnimationState(character, false), Utils.CharacterAnimationState(character, true)) : default;
-        var eventState = Utils.GameObjectEventState(obj);
-        var radius = Utils.GameObjectRadius(obj);
+        var isDead = obj->IsDead();
+        var target = chr != null ? SanitizedObjectID(chr->GetTargetId()) : 0; // note: when changing targets, we want to see changes immediately rather than wait for server response
+        var modelState = chr != null ? new ActorModelState(chr->Timeline.ModelState, chr->Timeline.AnimationState[0], chr->Timeline.AnimationState[1]) : default;
+        var eventState = obj->EventState;
+        var radius = obj->GetRadius();
 
         if (act == null)
         {
-            var type = (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind);
-            _ws.Execute(new ActorState.OpCreate(obj.ObjectId, obj.DataId, index, name, nameID, type, classID, level, posRot, radius, hpmp, targetable, friendly, SanitizedObjectID(obj.OwnerId), Utils.GameObjectFateID(obj)));
-            act = _actorsByIndex[index] = _ws.Actors.Find(obj.ObjectId)!;
+            var type = (ActorType)(((int)obj->ObjectKind << 8) + obj->SubKind);
+            _ws.Execute(new ActorState.OpCreate(obj->EntityId, obj->BaseId, index, name, nameID, type, classID, level, posRot, radius, hpmp, targetable, friendly, SanitizedObjectID(obj->OwnerId), obj->FateId));
+            act = _actorsByIndex[index] = _ws.Actors.Find(obj->EntityId)!;
 
             // note: for now, we continue relying on network messages for tether changes, since sometimes multiple changes can happen in a single frame, and some components rely on seeing all of them...
-            var tether = character != null ? new ActorTetherInfo(Utils.CharacterTetherID(character), Utils.CharacterTetherTargetID(character)) : default;
+            var tether = chr != null ? new ActorTetherInfo(chr->Vfx.Tethers[0].Id, chr->Vfx.Tethers[0].TargetId) : default;
             if (tether.ID != 0)
                 _ws.Execute(new ActorState.OpTether(act.InstanceID, tether));
         }
@@ -268,29 +275,33 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ActorState.OpTarget(act.InstanceID, target));
         DispatchActorEvents(act.InstanceID);
 
-        var chara = obj as BattleChara;
-        if (chara != null)
+        var castInfo = chr != null ? chr->GetCastInfo() : null;
+        if (castInfo != null)
         {
-            var curCast = chara.IsCasting
+            var curCast = castInfo->IsCasting != 0
                 ? new ActorCastInfo
                 {
-                    Action = new((ActionType)chara.CastActionType, chara.CastActionId),
-                    TargetID = SanitizedObjectID(chara.CastTargetObjectId),
-                    Rotation = Utils.CharacterCastRotation(chara).Radians(),
-                    Location = Utils.BattleCharaCastLocation(chara),
-                    TotalTime = chara.TotalCastTime,
-                    FinishAt = _ws.CurrentTime.AddSeconds(Math.Clamp(chara.TotalCastTime - chara.CurrentCastTime, 0, 100000)),
-                    Interruptible = chara.IsCastInterruptible
+                    Action = new((ActionType)castInfo->ActionType, castInfo->ActionId),
+                    TargetID = SanitizedObjectID(castInfo->CastTargetId),
+                    Rotation = chr->CastRotation.Radians(),
+                    Location = castInfo->CastLocation,
+                    TotalTime = castInfo->TotalCastTime, // TODO: should it use adjusted here?..
+                    FinishAt = _ws.CurrentTime.AddSeconds(Math.Clamp(castInfo->TotalCastTime - castInfo->CurrentCastTime, 0, 100000)),
+                    Interruptible = castInfo->Interruptible != 0,
                 } : null;
             UpdateActorCastInfo(act, curCast);
+        }
 
-            for (int i = 0; i < chara.StatusList.Length; ++i)
+        var sm = chr != null ? chr->GetStatusManager() : null;
+        if (sm != null)
+        {
+            for (int i = 0; i < sm->NumValidStatuses; ++i)
             {
                 // note: sometimes (Ocean Fishing) remaining-time is weird (I assume too large?) and causes exception in AddSeconds - so we just clamp it to some reasonable range
                 // note: self-cast buffs with duration X will have duration -X until EffectResult (~0.6s later); see autorotation for more details
                 ActorStatus curStatus = new();
-                var s = chara.StatusList[i];
-                if (s != null && s.StatusId != 0)
+                ref var s = ref sm->Status[i];
+                if (s.StatusId != 0)
                 {
                     var dur = Math.Min(Math.Abs(s.RemainingTime), 100000);
                     curStatus.ID = s.StatusId;
@@ -341,7 +352,7 @@ sealed class WorldStateGameSync : IDisposable
         var gm = GroupManager.Instance();
 
         // update player slot
-        UpdatePartySlot(PartyState.PlayerSlot, Service.ClientState.LocalContentId, Service.ClientState.LocalPlayer?.ObjectId ?? 0);
+        UpdatePartySlot(PartyState.PlayerSlot, UIState.Instance()->PlayerState.ContentId, UIState.Instance()->PlayerState.ObjectId);
 
         // update normal party slots: first update/remove existing members, then add new ones
         for (int i = PartyState.PlayerSlot + 1; i < PartyState.MaxPartySize; ++i)
@@ -359,18 +370,17 @@ sealed class WorldStateGameSync : IDisposable
         for (int i = 0; i < gm->MemberCount; ++i)
         {
             ref var member = ref gm->PartyMembers[i];
-            var contentID = (ulong)member.ContentId;
-            if (_ws.Party.ContentIDs.IndexOf(contentID) != -1)
+            if (_ws.Party.ContentIDs.IndexOf(member.ContentId) != -1)
                 continue; // already added, updated in previous loop
 
             var freeSlot = _ws.Party.ContentIDs[1..].IndexOf(0ul);
             if (freeSlot == -1)
             {
-                Service.Log($"[WorldState] Failed to find empty slot for party member {contentID:X}:{member.ObjectId:X}");
+                Service.Log($"[WorldState] Failed to find empty slot for party member {member.ContentId:X}:{member.ObjectId:X}");
                 continue;
             }
 
-            UpdatePartySlot(freeSlot + 1, contentID, member.ObjectId);
+            UpdatePartySlot(freeSlot + 1, member.ContentId, member.ObjectId);
         }
 
         // update alliance members
@@ -432,7 +442,7 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ClientState.OpActiveFateChange(activeFate));
     }
 
-    private ulong SanitizedObjectID(ulong raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
+    private ulong SanitizedObjectID(ulong raw) => raw != InvalidEntityId ? raw : 0;
 
     private void DispatchActorEvents(ulong instanceID)
     {

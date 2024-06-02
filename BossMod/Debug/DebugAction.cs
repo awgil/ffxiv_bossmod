@@ -49,7 +49,7 @@ public class DebugAction(WorldState ws)
             if (data != null)
             {
                 ImGui.TextUnformatted($"Name: {data.Name}");
-                ImGui.TextUnformatted($"Cast time: {data.Cast100ms / 10.0:f1}");
+                ImGui.TextUnformatted($"Cast time: {data.Cast100ms * 0.1f:f1} + {data.Unknown38 * 0.1f:f1}");
                 ImGui.TextUnformatted($"Range: {data.Range}");
                 ImGui.TextUnformatted($"Effect range: {data.EffectRange}");
                 ImGui.TextUnformatted($"Cooldown group: {data.CooldownGroup}");

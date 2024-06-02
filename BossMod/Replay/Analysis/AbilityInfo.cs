@@ -397,7 +397,7 @@ class AbilityInfo : CommonEnumInfo
                 {
                     var row = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID);
                     tree.LeafNode($"Category: {row?.ActionCategory?.Value?.Name}");
-                    tree.LeafNode($"Cast time: {row?.Cast100ms * 0.1f:f1}");
+                    tree.LeafNode($"Cast time: {row?.Cast100ms * 0.1f:f1} + {row?.Unknown38 * 0.1f:f1}");
                     tree.LeafNode($"Target range: {row?.Range}");
                     tree.LeafNode($"Effect shape: {row?.CastType} ({(row != null ? DescribeShape(row) : "")})");
                     tree.LeafNode($"Effect range: {row?.EffectRange}");
@@ -554,13 +554,14 @@ class AbilityInfo : CommonEnumInfo
                 yield return OIDString(oid);
     }
 
-    private string CastTimeString(ActionData data) => data.CastTime > 0 ? string.Create(CultureInfo.InvariantCulture, $"{data.CastTime:f1}s cast") : "no cast";
+    private string CastTimeString(ActionData data, Lumina.Excel.GeneratedSheets.Action? ldata)
+        => data.CastTime > 0 ? string.Create(CultureInfo.InvariantCulture, $"{data.CastTime:f1}{(ldata?.Unknown38 > 0 ? $"+{ldata?.Unknown38 * 0.1f:f1}" : "")}s cast") : "no cast";
 
     private string EnumMemberString(ActionID aid, ActionData data)
     {
         var ldata = aid.Type == ActionType.Spell ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(aid.ID) : null;
         string name = aid.Type != ActionType.Spell ? $"// {aid}" : _aidType?.GetEnumName(aid.ID) ?? $"_{Utils.StringToIdentifier(ldata?.ActionCategory?.Value?.Name ?? "")}_{Utils.StringToIdentifier(ldata?.Name ?? $"Ability{aid.ID}")}";
-        return $"{name} = {aid.ID}, // {OIDListString(data.CasterOIDs)}->{JoinStrings(ActionTargetStrings(data))}, {CastTimeString(data)}, {DescribeShape(ldata)}";
+        return $"{name} = {aid.ID}, // {OIDListString(data.CasterOIDs)}->{JoinStrings(ActionTargetStrings(data))}, {CastTimeString(data, ldata)}, {DescribeShape(ldata)}";
     }
 
     private string DescribeShape(Lumina.Excel.GeneratedSheets.Action? data) => data != null ? data.CastType switch

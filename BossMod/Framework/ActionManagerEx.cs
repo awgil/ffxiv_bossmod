@@ -94,13 +94,13 @@ unsafe sealed class ActionManagerEx : IDisposable
         _inst = ActionManager.Instance();
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
 
-        _updateHook = Service.Hook.HookFromAddress<UpdateDelegate>((nint)ActionManager.Addresses.Update.Value, UpdateDetour);
+        _updateHook = Service.Hook.HookFromAddress<UpdateDelegate>(ActionManager.Addresses.Update.Value, UpdateDetour);
         _updateHook.Enable();
 
-        _useActionLocationHook = Service.Hook.HookFromAddress<UseActionLocationDelegate>((nint)ActionManager.Addresses.UseActionLocation.Value, UseActionLocationDetour);
+        _useActionLocationHook = Service.Hook.HookFromAddress<UseActionLocationDelegate>(ActionManager.Addresses.UseActionLocation.Value, UseActionLocationDetour);
         _useActionLocationHook.Enable();
 
-        _useBozjaFromHolsterDirectorHook = Service.Hook.HookFromAddress<UseBozjaFromHolsterDirectorDelegate>((nint)PublicContentBozja.Addresses.UseFromHolster.Value, UseBozjaFromHolsterDirectorDetour);
+        _useBozjaFromHolsterDirectorHook = Service.Hook.HookFromAddress<UseBozjaFromHolsterDirectorDelegate>(PublicContentBozja.Addresses.UseFromHolster.Value, UseBozjaFromHolsterDirectorDetour);
         _useBozjaFromHolsterDirectorHook.Enable();
 
         _processPacketActionEffectHook = Service.Hook.HookFromSignature<ProcessPacketActionEffectDelegate>("E8 ?? ?? ?? ?? 48 8B 4C 24 68 48 33 CC E8 ?? ?? ?? ?? 4C 8D 5C 24 70 49 8B 5B 20 49 8B 73 28 49 8B E3 5F C3", ProcessPacketActionEffectDetour);
