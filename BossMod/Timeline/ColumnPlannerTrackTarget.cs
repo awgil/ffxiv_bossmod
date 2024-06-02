@@ -65,7 +65,7 @@ public class ColumnPlannerTrackTarget(Timeline timeline, StateMachineTree tree, 
         }
     }
 
-    private string OIDString(uint oid) => oid == 0 ? "Automatic" : $"{ModuleInfo?.ObjectIDType?.GetEnumName(oid)} (0x{oid})";
+    private string OIDString(uint oid) => oid == 0 ? "Automatic" : $"{ModuleInfo?.ObjectIDType?.GetEnumName(oid)} (0x{oid:X})";
 
     private OverrideElement SetElementValue(OverrideElement e, uint oid)
     {

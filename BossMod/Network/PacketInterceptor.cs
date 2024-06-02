@@ -1,5 +1,4 @@
-﻿using Dalamud.Hooking;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace BossMod.Network;
 
@@ -25,19 +24,17 @@ internal sealed class PacketInterceptor : IDisposable
     public event ServerIPCReceivedDelegate? ServerIPCReceived;
 
     private unsafe delegate bool FetchReceivedPacketDelegate(void* self, ReceivedPacket* outData);
-    private readonly Hook<FetchReceivedPacketDelegate>? _fetchHook;
+    private readonly HookAddress<FetchReceivedPacketDelegate>? _fetchHook;
 
     public bool Active
     {
-        get => _fetchHook?.IsEnabled ?? false;
+        get => _fetchHook?.Enabled ?? false;
         set
         {
             if (_fetchHook == null)
                 Service.Log($"[NPI] Hook not found!");
-            else if (value)
-                _fetchHook.Enable();
             else
-                _fetchHook.Disable();
+                _fetchHook.Enabled = value;
         }
     }
 
@@ -49,7 +46,7 @@ internal sealed class PacketInterceptor : IDisposable
         var foundFetchAddress = Service.SigScanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 35", out var fetchAddress) || Service.SigScanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 44 0F B6 64 24", out fetchAddress);
         Service.Log($"[NPI] FetchReceivedPacket address = 0x{fetchAddress:X}");
         if (foundFetchAddress)
-            _fetchHook = Service.Hook.HookFromAddress<FetchReceivedPacketDelegate>(fetchAddress, FetchReceivedPacketDetour);
+            _fetchHook = new(fetchAddress, FetchReceivedPacketDetour, false);
 
         // potentially useful sigs from dalamud:
         // server ipc handler: 40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 8B F2 --- void(void* self, uint targetId, void* dataPtr)

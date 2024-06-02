@@ -74,9 +74,9 @@ unsafe sealed class ActionManagerEx : IDisposable
     private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
     private int _restoreCntr;
 
-    private readonly Hook<ActionManager.Delegates.Update> _updateHook;
-    private readonly Hook<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
-    private readonly Hook<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
+    private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
+    private readonly HookAddress<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
+    private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
 
     private delegate void ProcessPacketActionEffectDelegate(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Network.ServerIPC.ActionEffectHeader* header, ulong* effects, ulong* targets);
     private readonly Hook<ProcessPacketActionEffectDelegate> _processPacketActionEffectHook;
@@ -89,14 +89,9 @@ unsafe sealed class ActionManagerEx : IDisposable
         _inst = ActionManager.Instance();
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
 
-        _updateHook = Service.Hook.HookFromAddress<ActionManager.Delegates.Update>(ActionManager.Addresses.Update.Value, UpdateDetour);
-        _updateHook.Enable();
-
-        _useActionLocationHook = Service.Hook.HookFromAddress<ActionManager.Delegates.UseActionLocation>(ActionManager.Addresses.UseActionLocation.Value, UseActionLocationDetour);
-        _useActionLocationHook.Enable();
-
-        _useBozjaFromHolsterDirectorHook = Service.Hook.HookFromAddress<PublicContentBozja.Delegates.UseFromHolster>(PublicContentBozja.Addresses.UseFromHolster.Value, UseBozjaFromHolsterDirectorDetour);
-        _useBozjaFromHolsterDirectorHook.Enable();
+        _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
+        _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
+        _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
 
         _processPacketActionEffectHook = Service.Hook.HookFromSignature<ProcessPacketActionEffectDelegate>("E8 ?? ?? ?? ?? 48 8B 4C 24 68 48 33 CC E8 ?? ?? ?? ?? 4C 8D 5C 24 70 49 8B 5B 20 49 8B 73 28 49 8B E3 5F C3", ProcessPacketActionEffectDetour);
         _processPacketActionEffectHook.Enable();

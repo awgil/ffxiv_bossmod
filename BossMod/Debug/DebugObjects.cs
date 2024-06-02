@@ -41,9 +41,9 @@ public class DebugObjects
                 _tree.LeafNode($"Owner: {Utils.ObjectString(obj.OwnerId)}");
                 _tree.LeafNode($"BNpcBase/Name: {obj.DataId:X}/{Utils.GameObjectInternal(obj)->GetNameId()}");
                 _tree.LeafNode($"Targetable: {obj.IsTargetable}");
-                _tree.LeafNode($"Friendly: {Utils.GameObjectIsFriendly(&internalChara->Character.GameObject)}");
+                _tree.LeafNode($"Friendly: {Utils.GameObjectIsFriendly(Utils.GameObjectInternal(obj))}");
                 _tree.LeafNode($"Is character: {internalObj->IsCharacter()}");
-                _tree.LeafNode($"Event state: {internalChara->EventState}");
+                _tree.LeafNode($"Event state: {Utils.GameObjectInternal(obj)->EventState}");
                 if (character != null)
                 {
                     _tree.LeafNode($"Class: {(Class)character.ClassJob.Id} ({character.ClassJob.Id})");

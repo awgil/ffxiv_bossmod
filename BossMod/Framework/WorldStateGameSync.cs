@@ -227,7 +227,7 @@ sealed class WorldStateGameSync : IDisposable
             inCombat = chr->InCombat;
         }
         var targetable = obj->GetIsTargetable();
-        var friendly = Utils.GameObjectIsFriendly(obj);
+        var friendly = Utils.GameObjectIsFriendly(obj) != 0;
         var isDead = obj->IsDead();
         var target = chr != null ? SanitizedObjectID(chr->GetTargetId()) : 0; // note: when changing targets, we want to see changes immediately rather than wait for server response
         var modelState = chr != null ? new ActorModelState(chr->Timeline.ModelState, chr->Timeline.AnimationState[0], chr->Timeline.AnimationState[1]) : default;
@@ -388,7 +388,7 @@ sealed class WorldStateGameSync : IDisposable
         for (int i = PartyState.MaxPartySize; i < PartyState.MaxAllianceSize; ++i)
         {
             var member = isNormalAlliance ? gm->AllianceMembers.GetPointer(i - PartyState.MaxPartySize) : null;
-            if (!member->IsValidAllianceMember)
+            if (member != null && !member->IsValidAllianceMember)
                 member = null;
             UpdatePartySlot(i, 0, member != null ? member->ObjectId : 0);
         }
@@ -408,7 +408,7 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe void UpdateClient()
     {
         var countdownAgent = AgentCountDownSettingDialog.Instance();
-        var countdown = countdownAgent != null && countdownAgent->Active ? countdownAgent->TimeRemaining : 0;
+        float? countdown = countdownAgent != null && countdownAgent->Active && countdownAgent->TimeRemaining >= 0 ? countdownAgent->TimeRemaining : null;
         if (_ws.Client.CountdownRemaining != countdown)
             _ws.Execute(new ClientState.OpCountdownChange(countdown));
 
