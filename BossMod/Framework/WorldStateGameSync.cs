@@ -350,6 +350,7 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe void UpdateParty()
     {
         var gm = GroupManager.Instance();
+        var ui = UIState.Instance();
 
         // update player slot
         UpdatePartySlot(PartyState.PlayerSlot, UIState.Instance()->PlayerState.ContentId, UIState.Instance()->PlayerState.ObjectId);
@@ -358,29 +359,38 @@ sealed class WorldStateGameSync : IDisposable
         for (int i = PartyState.PlayerSlot + 1; i < PartyState.MaxPartySize; ++i)
         {
             var contentID = _ws.Party.ContentIDs[i];
-            if (contentID == 0)
-                continue; // skip empty slots
-
-            var member = gm->GetPartyMemberByContentId(contentID);
-            if (member == null)
-                UpdatePartySlot(i, 0, 0);
-            else
-                UpdatePartySlot(i, contentID, member->ObjectId);
+            var instanceID = _ws.Party.ActorIDs[i];
+            if (contentID != 0)
+            {
+                // slot was occupied by player => see if it's still in party
+                var member = gm->GetPartyMemberByContentId(contentID);
+                if (member != null)
+                    UpdatePartySlot(i, contentID, member->ObjectId); // slot is still occupied by player; update in case instance-id changed
+                else
+                    UpdatePartySlot(i, 0, 0); // player is no longer in party => clear slot
+            }
+            else if (instanceID != 0)
+            {
+                // slot was occupied by trust => see if it's still in party
+                if (!HasBuddy(instanceID))
+                    UpdatePartySlot(i, 0, 0); // buddy is no longer in party => clear slot
+                // else: no reason to update...
+            }
+            // else: slot was empty, skip
         }
         for (int i = 0; i < gm->MemberCount; ++i)
         {
             ref var member = ref gm->PartyMembers[i];
-            if (_ws.Party.ContentIDs.IndexOf(member.ContentId) != -1)
-                continue; // already added, updated in previous loop
-
-            var freeSlot = _ws.Party.ContentIDs[1..].IndexOf(0ul);
-            if (freeSlot == -1)
-            {
-                Service.Log($"[WorldState] Failed to find empty slot for party member {member.ContentId:X}:{member.ObjectId:X}");
-                continue;
-            }
-
-            UpdatePartySlot(freeSlot + 1, member.ContentId, member.ObjectId);
+            if (_ws.Party.ContentIDs.IndexOf(member.ContentId) == -1)
+                AddPartyMember(member.ContentId, member.ObjectId);
+            // else: already added, updated in previous loop
+        }
+        for (int i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
+        {
+            var instanceID = ui->Buddy.DutyHelperInfo.DutyHelpers[i].ObjectId;
+            if (instanceID != InvalidEntityId && _ws.Party.ActorIDs[1..PartyState.MaxPartySize].IndexOf(instanceID) == -1)
+                AddPartyMember(0, instanceID);
+            // else: buddy is non-existent or already updated, skip
         }
 
         // update alliance members
@@ -397,6 +407,32 @@ sealed class WorldStateGameSync : IDisposable
         var lb = LimitBreakController.Instance();
         if (_ws.Party.LimitBreakCur != lb->CurrentUnits || _ws.Party.LimitBreakMax != lb->BarUnits)
             _ws.Execute(new PartyState.OpLimitBreakChange(lb->CurrentUnits, lb->BarUnits));
+    }
+
+    private unsafe bool HasBuddy(ulong instanceID)
+    {
+        var ui = UIState.Instance();
+        for (int i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
+            if (ui->Buddy.DutyHelperInfo.DutyHelpers[i].ObjectId == instanceID)
+                return true;
+        return false;
+    }
+
+    private int FindFreePartySlot()
+    {
+        for (int i = 1; i < PartyState.MaxPartySize; ++i)
+            if (_ws.Party.ContentIDs[i] == 0 && _ws.Party.ActorIDs[i] == 0)
+                return i;
+        return -1;
+    }
+
+    private void AddPartyMember(ulong contentID, ulong instanceID)
+    {
+        var freeSlot = FindFreePartySlot();
+        if (freeSlot >= 0)
+            _ws.Execute(new PartyState.OpModify(freeSlot, contentID, instanceID));
+        else
+            Service.Log($"[WorldState] Failed to find empty slot for party member {contentID:X}:{instanceID:X}");
     }
 
     private void UpdatePartySlot(int slot, ulong contentID, ulong instanceID)

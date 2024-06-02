@@ -1,4 +1,6 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Group;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using ImGuiNET;
 
 namespace BossMod;
@@ -37,7 +39,8 @@ class DebugParty
         // note: alliance slots, unlike normal slots, are more permanent - if a player leaves, other players retain their indices (leaving gaps)
         // also content ID for all alliance members always seems to be 0; this isn't a huge deal, since alliance members are always in the same zone and thus have valid object IDs
         var gm = GroupManager.Instance();
-        ImGui.TextUnformatted($"Num members: {gm->MemberCount}, alliance={(!gm->IsAlliance ? "no" : gm->IsSmallGroupAlliance ? "small-group" : "yes")}");
+        var ui = UIState.Instance();
+        ImGui.TextUnformatted($"Num members: {gm->MemberCount}, alliance={(!gm->IsAlliance ? "no" : gm->IsSmallGroupAlliance ? "small-group" : "yes")}, has-helpers={ui->Buddy.DutyHelperInfo.HasHelpers}");
 
         ImGui.BeginTable("party-custom", 7, ImGuiTableFlags.Resizable);
         ImGui.TableSetupColumn("Index");
@@ -53,6 +56,28 @@ class DebugParty
         for (int i = 0; i < gm->AllianceMembers.Length; ++i)
             if (gm->AllianceMembers[i].IsValidAllianceMember)
                 DrawPartyMember($"A{i}", ref gm->AllianceMembers[i]);
+        for (int i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
+        {
+            var id = ui->Buddy.DutyHelperInfo.DutyHelpers[i].ObjectId;
+            if (id == 0xE0000000)
+                continue;
+            var obj = GameObjectManager.Instance()->Objects.GetNetworkedObjectById(id);
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"B{i}");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{ui->Buddy.DutyHelperInfo.ENpcIds[i]}");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{id:X}");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{obj->NameString}");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted("---");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted("---");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{Utils.Vec3String(obj->Position)}");
+        }
         ImGui.EndTable();
     }
 

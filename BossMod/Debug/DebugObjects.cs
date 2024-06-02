@@ -33,7 +33,7 @@ public class DebugObjects
             {
                 var character = obj as Character;
                 var battleChara = obj as BattleChara;
-                var internalChara = Utils.BattleCharaInternal(battleChara);
+                var internalChara = Utils.CharacterInternal(character);
 
                 _tree.LeafNode($"Unique ID: {uniqueID:X}");
                 _tree.LeafNode($"Gimmick ID: {Utils.ReadField<uint>(internalObj, 0x7C):X}");
