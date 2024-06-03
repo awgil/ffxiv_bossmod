@@ -65,6 +65,34 @@ public sealed class ConfigUI : IDisposable
             using (var tab = ImRaii.TabItem("Modules"))
                 if (tab)
                     _mv.Draw(_tree);
+            using (var tab = ImRaii.TabItem("Slash commands"))
+                if (tab)
+                    DrawAvailableCommands();
+        }
+    }
+
+    private readonly Dictionary<string, string> _availableCommands = new()
+    {
+        { "on", "Enables the AI." },
+        { "off", "Disables the AI." },
+        { "toggle", "Toggles the AI on/off." },
+        { "targetmaster", "Toggles the focus on target leader." },
+        { "follow slot", "Follows the specified slot, eg. Slot1." },
+        { "follow name", "Follows the specified party member by name." },
+        { "debug", "Toggles the debug menu." },
+        { "forbidactions", "Toggles the forbidding of actions." },
+        { "forbidmovement", "Toggles the forbidding of movement." },
+        { "followcombat", "Toggles following during combat." },
+        { "followmodule", "Toggles following during active boss module." }
+    };
+
+    private void DrawAvailableCommands()
+    {
+        ImGui.Text("Available Commands:");
+        ImGui.Separator();
+        foreach (var command in _availableCommands)
+        {
+            ImGui.Text($"/bmrai {command.Key}: {command.Value}");
         }
     }
 

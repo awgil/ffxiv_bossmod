@@ -36,7 +36,7 @@ sealed class AIManager : IDisposable
 
     public void Update()
     {
-        if (_autorot.WorldState.Party.ContentIDs[_masterSlot] == 0)
+        if (_autorot.WorldState.Party.ContentIDs[_masterSlot] == 0 && _autorot.WorldState.Party.ActorIDs[_masterSlot] == 0)
             SwitchToIdle();
 
         if (!_config.Enabled && _beh != null)
@@ -94,9 +94,13 @@ sealed class AIManager : IDisposable
 
     private void SwitchToFollow(int masterSlot)
     {
-        SwitchToIdle();
-        _masterSlot = masterSlot;
-        _beh = new AIBehaviour(_controller, _autorot);
+        var master = _autorot.WorldState.Party[masterSlot];
+        if (master != null)
+        {
+            SwitchToIdle();
+            _masterSlot = masterSlot;
+            _beh = new AIBehaviour(_controller, _autorot);
+        }
     }
 
     private int FindPartyMemberSlotFromSender(SeString sender)
@@ -104,7 +108,15 @@ sealed class AIManager : IDisposable
         if (sender.Payloads.FirstOrDefault() is not PlayerPayload source)
             return -1;
         var pm = Service.PartyList.FirstOrDefault(pm => pm.Name.TextValue == source.PlayerName && pm.World.Id == source.World.RowId);
-        return pm != null ? _autorot.WorldState.Party.ContentIDs.IndexOf((ulong)pm.ContentId) : -1;
+        if (pm != null)
+            return _autorot.WorldState.Party.ContentIDs.IndexOf((ulong)pm.ContentId);
+
+        // Check for NPCs (Buddies)
+        var buddy = _autorot.WorldState.Party.WithSlot().FirstOrDefault(p => p.Item2.Name.Equals(source.PlayerName, StringComparison.OrdinalIgnoreCase));
+        if (buddy != default)
+            return buddy.Item1;
+
+        return -1;
     }
 
     private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
@@ -141,20 +153,25 @@ sealed class AIManager : IDisposable
         var messageData = message.Split(' ');
         if (messageData.Length == 0)
             return;
-
         switch (messageData[0])
         {
             case "on":
-                SwitchToFollow(PartyState.PlayerSlot);
+                _config.Enabled = true;
+                SwitchToFollow(_config.FollowSlot);
                 break;
             case "off":
+                _config.Enabled = false;
                 SwitchToIdle();
                 break;
             case "toggle":
+                _config.Enabled = !_config.Enabled;
                 if (_beh == null)
-                    SwitchToFollow(PartyState.PlayerSlot);
+                    SwitchToFollow(_config.FollowSlot);
                 else
                     SwitchToIdle();
+                break;
+            case "targetmaster":
+                _config.FocusTargetLeader = !_config.FocusTargetLeader;
                 break;
             case "follow":
                 if (messageData.Length < 2)
@@ -173,6 +190,44 @@ sealed class AIManager : IDisposable
                     else
                         Service.Log($"[AI] Unknown party member: {string.Join(" ", messageData.Skip(1))}");
                 }
+                break;
+            case "debug":
+                _config.DrawUI = !_config.DrawUI;
+                Service.Log($"[AI] Debug menu is now {(_config.DrawUI ? "enabled" : "disabled")}");
+                break;
+            case "forbidactions":
+                _config.ForbidActions = !_config.ForbidActions;
+                Service.Log($"[AI] Forbid actions is now {(_config.ForbidActions ? "enabled" : "disabled")}");
+                break;
+            case "forbidmovement":
+                _config.ForbidMovement = !_config.ForbidMovement;
+                Service.Log($"[AI] Forbid movement is now {(_config.ForbidMovement ? "enabled" : "disabled")}");
+                break;
+            case "followcombat":
+                if (_config.FollowDuringCombat)
+                {
+                    _config.FollowDuringCombat = false;
+                    _config.FollowDuringActiveBossModule = false;
+                }
+                else
+                {
+                    _config.FollowDuringCombat = true;
+                }
+                Service.Log($"[AI] Follow during combat is now {(_config.FollowDuringCombat ? "enabled" : "disabled")}");
+                Service.Log($"[AI] Follow during active boss module is now {(_config.FollowDuringActiveBossModule ? "enabled" : "disabled")}");
+                break;
+            case "followmodule":
+                if (_config.FollowDuringActiveBossModule)
+                {
+                    _config.FollowDuringActiveBossModule = false;
+                }
+                else
+                {
+                    _config.FollowDuringActiveBossModule = true;
+                    _config.FollowDuringCombat = true;
+                }
+                Service.Log($"[AI] Follow during active boss module is now {(_config.FollowDuringActiveBossModule ? "enabled" : "disabled")}");
+                Service.Log($"[AI] Follow during combat is now {(_config.FollowDuringCombat ? "enabled" : "disabled")}");
                 break;
             default:
                 Service.Log($"[AI] Unknown command: {messageData[0]}");

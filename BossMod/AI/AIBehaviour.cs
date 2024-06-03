@@ -8,14 +8,17 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
 {
     private readonly AIConfig _config = Service.Config.Get<AIConfig>();
     private NavigationDecision _naviDecision;
-    private bool _forbidMovement;
-    private bool _forbidActions;
     private bool _afkMode;
     private bool _followMaster; // if true, our navigation target is master rather than primary target - this happens e.g. in outdoor or in dungeons during gathering trash
     private float _maxCastTime;
     private WPos _masterPrevPos;
     private WPos _masterMovementStart;
     private DateTime _masterLastMoved;
+
+    public bool ForbidActions => _config.ForbidActions;
+    public bool ForbidMovement => _config.ForbidMovement;
+    public bool FollowDuringCombat => _config.FollowDuringCombat;
+    public bool FollowDuringActiveBossModule => _config.FollowDuringActiveBossModule;
 
     public void Dispose()
     {
@@ -31,7 +34,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
             FocusMaster(master);
 
         _afkMode = !master.InCombat && (autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
-        bool forbidActions = _forbidActions || ctrl.IsMounted || _afkMode || autorot.ClassActions == null || autorot.ClassActions.AutoAction >= CommonActions.AutoActionFirstCustom;
+        bool forbidActions = _config.ForbidActions || ctrl.IsMounted || _afkMode || autorot.ClassActions == null || autorot.ClassActions.AutoAction >= CommonActions.AutoActionFirstCustom;
 
         CommonActions.Targeting target = new();
         if (!forbidActions)
@@ -43,7 +46,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
             AdjustTargetPositional(player, ref target);
         }
 
-        _followMaster = master != player && autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null && (!master.InCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100);
+        _followMaster = master != player && (_config.FollowDuringCombat || !master.InCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100) && (_config.FollowDuringActiveBossModule || autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null);
         _naviDecision = BuildNavigationDecision(player, master, ref target);
 
         bool masterIsMoving = TrackMasterMovement(master);
@@ -101,7 +104,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
 
     private NavigationDecision BuildNavigationDecision(Actor player, Actor master, ref CommonActions.Targeting targeting)
     {
-        if (_forbidMovement)
+        if (_config.ForbidActions)
             return new() { LeewaySeconds = float.MaxValue };
         if (_followMaster)
             return NavigationDecision.Build(autorot.WorldState, autorot.Hints, player, master.Position, 1, new(), Positional.Any);
@@ -198,9 +201,13 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
 
     public void DrawDebug()
     {
-        ImGui.Checkbox("Forbid actions", ref _forbidActions);
+        ImGui.Checkbox("Forbid actions", ref _config.ForbidActions);
         ImGui.SameLine();
-        ImGui.Checkbox("Forbid movement", ref _forbidMovement);
+        ImGui.Checkbox("Forbid movement", ref _config.ForbidMovement);
+        ImGui.SameLine();
+        ImGui.Checkbox("Follow during combat", ref _config.FollowDuringCombat);
+        ImGui.SameLine();
+        ImGui.Checkbox("Follow during active boss module", ref _config.FollowDuringActiveBossModule);
         var player = autorot.WorldState.Party.Player();
         var dist = _naviDecision.Destination != null && player != null ? (_naviDecision.Destination.Value - player.Position).Length() : 0;
         ImGui.TextUnformatted($"Max-cast={MathF.Min(_maxCastTime, 1000):f3}, afk={_afkMode}, follow={_followMaster}, algo={_naviDecision.DecisionType} {_naviDecision.Destination} (d={dist:f3}), master standing for {Math.Clamp((autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds, 0, 1000):f1}");

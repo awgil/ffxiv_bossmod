@@ -48,7 +48,7 @@ public sealed class Plugin : IDalamudPlugin
         dalamud.Create<Service>();
         Service.LogHandler = (string msg) => Service.Logger.Debug(msg);
         Service.LuminaGameData = Service.DataManager.GameData;
-        Service.WindowSystem = new("bmr");
+        Service.WindowSystem = new("vbm");
         //Service.Device = pluginInterface.UiBuilder.Device;
         Service.Condition.ConditionChange += OnConditionChanged;
         MultiboxUnlock.Exec();
@@ -99,7 +99,6 @@ public sealed class Plugin : IDalamudPlugin
         _autorotation.Dispose();
         _wsSync.Dispose();
         ActionManagerEx.Instance?.Dispose();
-        BozjaInterop.Instance?.Dispose();
         CommandManager.RemoveHandler("/bmr");
         CommandManager.RemoveHandler("/vbm");
     }
