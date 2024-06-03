@@ -1,0 +1,3 @@
+[submodule "FFXIVClientStructs"]
+	path = FFXIVClientStructs
+	url = https://github.com/awgil/FFXIVClientStructs.git

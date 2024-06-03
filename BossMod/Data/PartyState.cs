@@ -2,19 +2,21 @@
 
 namespace BossMod;
 
-// state of the party/alliance that player is part of; part of the world state structure
+// state of the party/alliance/trust that player is part of; part of the world state structure
 // solo player is considered to be in party of size 1
 // after joining the party, member's slot never changes until leaving the party; this means that there could be intermediate gaps
 // note that player could be in party without having actor in world (e.g. if he is in different zone)
 // if player does not exist in world, party is always empty; otherwise player is always in slot 0
 // in alliance, two 'other' groups use slots 8-15 and 16-23; alliance members don't have content-ID, but always have actor-ID
+// in trust, buddies are considered party members with content-id 0 (but non-zero actor id, they are always in world)
+// party slot is considered 'empty' if both ids are 0
 public sealed class PartyState
 {
     public const int PlayerSlot = 0;
     public const int MaxPartySize = 8;
     public const int MaxAllianceSize = 24;
 
-    private readonly ulong[] _contentIDs = new ulong[MaxPartySize]; // non-alliance slots: empty slots contain 0's, alliance slots: n/a (FF always reports 0)
+    private readonly ulong[] _contentIDs = new ulong[MaxPartySize]; // non-alliance slots: empty slots or buddy slots contain 0's, alliance slots: n/a (FF always reports 0)
     private readonly ulong[] _actorIDs = new ulong[MaxAllianceSize]; // non-alliance slots: empty slots or slots corresponding to players not in world contain 0's, alliance slots: empty slots contains 0's
     private readonly Actor?[] _actors = new Actor?[MaxAllianceSize];
 

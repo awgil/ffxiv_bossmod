@@ -1,5 +1,4 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using ImGuiNET;
 using System.Text;
@@ -10,7 +9,7 @@ public class DebugObjects
 {
     private readonly UITree _tree = new();
     private bool _showCrap;
-    private uint _selectedID;
+    private ulong _selectedID;
 
     public unsafe void DrawObjectTable()
     {
@@ -26,28 +25,29 @@ public class DebugObjects
                 continue;
 
             var internalObj = Utils.GameObjectInternal(obj);
-            var localID = Utils.ReadField<uint>(internalObj, 0x78);
-            var uniqueID = obj.ObjectId != 0xE0000000 ? obj.ObjectId : localID;
+            var localID = internalObj->LayoutId;
+            ulong uniqueID = internalObj->GetObjectId();
 
             var posRot = new Vector4(obj.Position.X, obj.Position.Y, obj.Position.Z, obj.Rotation);
             foreach (var n in _tree.Node($"#{i} {Utils.ObjectString(obj)} ({localID:X}) ({Utils.ObjectKindString(obj)}) {Utils.PosRotString(posRot)}###{uniqueID:X}", contextMenu: () => ObjectContextMenu(obj), select: () => _selectedID = uniqueID))
             {
                 var character = obj as Character;
                 var battleChara = obj as BattleChara;
-                var internalChara = Utils.BattleCharaInternal(battleChara);
+                var internalChara = Utils.CharacterInternal(character);
 
+                _tree.LeafNode($"Unique ID: {uniqueID:X}");
                 _tree.LeafNode($"Gimmick ID: {Utils.ReadField<uint>(internalObj, 0x7C):X}");
                 _tree.LeafNode($"Radius: {obj.HitboxRadius:f3}");
                 _tree.LeafNode($"Owner: {Utils.ObjectString(obj.OwnerId)}");
-                _tree.LeafNode($"BNpcBase/Name: {obj.DataId}/{Utils.GameObjectInternal(obj)->GetNpcID()}");
+                _tree.LeafNode($"BNpcBase/Name: {obj.DataId:X}/{Utils.GameObjectInternal(obj)->GetNameId()}");
                 _tree.LeafNode($"Targetable: {obj.IsTargetable}");
-                _tree.LeafNode($"Friendly: {Utils.GameObjectIsFriendly(obj)}");
+                _tree.LeafNode($"Friendly: {Utils.GameObjectIsFriendly(Utils.GameObjectInternal(obj))}");
                 _tree.LeafNode($"Is character: {internalObj->IsCharacter()}");
-                _tree.LeafNode($"Event state: {Utils.GameObjectEventState(obj)}");
+                _tree.LeafNode($"Event state: {Utils.GameObjectInternal(obj)->EventState}");
                 if (character != null)
                 {
                     _tree.LeafNode($"Class: {(Class)character.ClassJob.Id} ({character.ClassJob.Id})");
-                    _tree.LeafNode($"HP: {character.CurrentHp}/{character.MaxHp} ({Utils.CharacterShieldValue(character)})");
+                    _tree.LeafNode($"HP: {character.CurrentHp}/{character.MaxHp} ({internalChara->ShieldValue})");
                     _tree.LeafNode($"Status flags: {character.StatusFlags}");
                 }
                 if (battleChara != null)
@@ -89,7 +89,6 @@ public class DebugObjects
     public unsafe void DrawUIObjects()
     {
         var module = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->UIModule->GetUI3DModule();
-        var objs = (FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.ObjectInfo*)module->ObjectInfoArray;
         ImGui.BeginTable("uiobj", 3, ImGuiTableFlags.Resizable);
         ImGui.TableSetupColumn("Index");
         ImGui.TableSetupColumn("GameObj");
@@ -97,11 +96,11 @@ public class DebugObjects
         ImGui.TableHeadersRow();
         for (int i = 0; i < 426; ++i)
         {
-            var o = objs[i].GameObject;
+            var o = module->ObjectInfos[i].GameObject;
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); ImGui.TextUnformatted($"{i}: {(ulong)o:X}");
-            ImGui.TableNextColumn(); if (o != null) ImGui.TextUnformatted($"{o->DataID:X} '{MemoryHelper.ReadSeString((IntPtr)o->Name, 64)}' <{o->ObjectID:X}>");
-            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{objs[i].NamePlateObjectKind}");
+            ImGui.TableNextColumn(); if (o != null) ImGui.TextUnformatted($"{o->BaseId:X} '{o->NameString}' <{o->EntityId:X}>");
+            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{module->ObjectInfos[i].NamePlateObjectKind}");
         }
         ImGui.EndTable();
     }
@@ -119,14 +118,14 @@ public class DebugObjects
             }
 
             var chara = obj as BattleChara;
-            if (chara)
+            if (chara != null)
             {
                 res.Append($", vfxObj=0x{Utils.ReadField<ulong>(internalObj, 0x1840):X}/0x{Utils.ReadField<ulong>(internalObj, 0x1848):X}");
-                if (chara!.IsCasting)
+                if (chara.IsCasting)
                 {
                     var target = Service.ObjectTable.SearchById(chara.CastTargetObjectId);
                     var targetString = target ? Utils.ObjectString(target!) : "unknown";
-                    res.Append($", castAction={new ActionID((ActionType)chara.CastActionType, chara.CastActionId)}, castTarget={targetString}, castLoc={Utils.Vec3String(Utils.BattleCharaCastLocation(chara))}, castTime={Utils.CastTimeString(chara.CurrentCastTime, chara.TotalCastTime)}");
+                    res.Append($", castAction={new ActionID((ActionType)chara.CastActionType, chara.CastActionId)}, castTarget={targetString}, castLoc={Utils.Vec3String(Utils.BattleCharaInternal(chara)->GetCastInfo()->CastLocation)}, castTime={Utils.CastTimeString(chara.CurrentCastTime, chara.TotalCastTime)}");
                 }
                 foreach (var status in chara!.StatusList)
                 {

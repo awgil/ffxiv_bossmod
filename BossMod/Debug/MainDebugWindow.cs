@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using ImGuiNET;
 
 namespace BossMod;
@@ -16,7 +17,6 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
     private readonly DebugClassDefinitions _debugClassDefinitions = new(ws);
     private readonly DebugAddon _debugAddon = new();
     private readonly DebugTiming _debugTiming = new();
-    private readonly DebugCollision _debugCollision = new();
     private readonly DebugVfx _debugVfx = new();
 
     protected override void Dispose(bool disposing)
@@ -24,15 +24,15 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
         _debugInput.Dispose();
         _debugClassDefinitions.Dispose();
         _debugAddon.Dispose();
-        _debugCollision.Dispose();
         _debugVfx.Dispose();
         base.Dispose(disposing);
     }
 
     public unsafe override void Draw()
     {
+        var playerCID = UIState.Instance()->PlayerState.ContentId;
         var player = Service.ClientState.LocalPlayer;
-        ImGui.TextUnformatted($"Current zone: {ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={Service.ClientState.LocalContentId:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
+        ImGui.TextUnformatted($"Current zone: {ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={playerCID:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
         ImGui.TextUnformatted($"ID scramble: {Network.IDScramble.Delta} = {*Network.IDScramble.OffsetAdjusted} - {*Network.IDScramble.OffsetBaseFixed} - {*Network.IDScramble.OffsetBaseChanging}");
         ImGui.TextUnformatted($"Player mode: {Utils.CharacterInternal(player)->Mode}");
 
@@ -134,10 +134,6 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
         {
             DrawWindowSystem();
         }
-        if (ImGui.CollapsingHeader("Collision"))
-        {
-            _debugCollision.Draw();
-        }
         if (ImGui.CollapsingHeader("VFX"))
         {
             _debugVfx.Draw();
@@ -237,7 +233,7 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
         var dist = selfToObj.Length();
         var angle = Angle.FromDirection(new(selfToObj.XZ())) - refAngle;
         var visHalf = Angle.Asin(obj->HitboxRadius / dist);
-        ImGui.TextUnformatted($"{kind}: #{obj->ObjectIndex} {Utils.ObjectString(obj->ObjectID)} {obj->DataID}:{obj->GetNpcID()}, hb={obj->HitboxRadius} ({visHalf}), dist={dist}, angle={angle} ({Math.Max(0, angle.Abs().Rad - visHalf.Rad).Radians()})");
+        ImGui.TextUnformatted($"{kind}: #{obj->ObjectIndex} {Utils.ObjectString(obj->EntityId)} {obj->BaseId}:{obj->GetNameId()}, hb={obj->HitboxRadius} ({visHalf}), dist={dist}, angle={angle} ({Math.Max(0, angle.Abs().Rad - visHalf.Rad).Radians()})");
     }
 
     private unsafe void DrawPlayerAttributes()
@@ -247,7 +243,7 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
             Utils.WriteField((void*)Service.Condition.Address, (int)Dalamud.Game.ClientState.Conditions.ConditionFlag.OnFreeTrial, false);
         }
 
-        var uiState = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance();
+        var uiState = UIState.Instance();
         ImGui.BeginTable("attrs", 2);
         ImGui.TableSetupColumn("Index");
         ImGui.TableSetupColumn("Value");
@@ -265,10 +261,10 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
 
     private unsafe void DrawCountdown()
     {
-        var agent = Countdown.Instance;
-        ImGui.TextUnformatted($"Active: {agent->Active != 0}");
-        ImGui.TextUnformatted($"Initiator: {Utils.ObjectString(agent->Initiator)}");
-        ImGui.TextUnformatted($"Time left: {agent->Timer:f3}");
+        var agent = AgentCountDownSettingDialog.Instance();
+        ImGui.TextUnformatted($"Active: {agent->Active} (showing cd={agent->ShowingCountdown})");
+        ImGui.TextUnformatted($"Initiator: {Utils.ObjectString(agent->InitiatorId)}");
+        ImGui.TextUnformatted($"Time left: {agent->TimeRemaining:f3}");
     }
 
     private void DrawWindowSystem()
@@ -283,7 +279,7 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
     private unsafe void DrawLimitBreak()
     {
         var lb = LimitBreakController.Instance();
-        ImGui.TextUnformatted($"Value: {lb->CurrentValue}/{lb->BarValue & 0xFFFF} ({lb->BarCount} bars)");
-        ImGui.TextUnformatted($"Unks: uE={(lb->BarValue >> 16) & 0xFF}, uF={lb->BarValue >> 24}");
+        ImGui.TextUnformatted($"Value: {lb->CurrentUnits}/{lb->BarUnits} ({lb->BarCount} bars)");
+        ImGui.TextUnformatted($"PVP: {lb->IsPvP}");
     }
 }

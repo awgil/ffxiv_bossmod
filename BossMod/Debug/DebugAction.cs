@@ -11,13 +11,19 @@ public class DebugAction(WorldState ws)
     {
         var am = ActionManagerEx.Instance!;
         var amr = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
+        var aidCastAction = am.CastAction;
+        var aidCastSpell = am.CastSpell;
+        var aidCombo = new ActionID(ActionType.Spell, amr->Combo.Action);
+        var aidQueued = am.QueuedAction;
+        var aidGTAction = new ActionID((ActionType)amr->AreaTargetingActionType, amr->AreaTargetingActionId);
+        var aidGTSpell = new ActionID(ActionType.Spell, amr->AreaTargetingSpellId);
         ImGui.TextUnformatted($"ActionManager singleton address: 0x{(ulong)amr:X}");
-        ImGui.TextUnformatted($"Anim lock: {am.AnimationLock:f3}");
-        ImGui.TextUnformatted($"Cast: {am.CastAction} / {am.CastSpell}, progress={am.CastTimeElapsed:f3}/{am.CastTimeTotal:f3}, target={am.CastTargetID:X}/{Utils.Vec3String(am.CastTargetPos)}");
-        ImGui.TextUnformatted($"Combo: {new ActionID(ActionType.Spell, am.ComboLastMove)}, {am.ComboTimeLeft:f3}");
-        ImGui.TextUnformatted($"Queue: {(am.QueueActive ? "active" : "inactive")}, {am.QueueAction} @ {am.QueueTargetID:X} [{am.QueueCallType}], combo={am.QueueComboRouteID}");
-        ImGui.TextUnformatted($"GT: {am.GTAction} / {am.GTSpell}, arg={am.GTUnkArg}, obj={am.GTUnkObj:X}, a0={am.GTUnkA0:X2}, b8={am.GTUnkB8:X2}, bc={am.GTUnkBC:X}");
-        ImGui.TextUnformatted($"Last used action sequence: {am.LastUsedActionSequence}");
+        ImGui.TextUnformatted($"Anim lock: {amr->AnimationLock:f3}");
+        ImGui.TextUnformatted($"Cast: {aidCastAction} / {aidCastSpell}, progress={amr->CastTimeElapsed:f3}/{amr->CastTimeTotal:f3}, target={amr->CastTargetId:X}/{Utils.Vec3String(amr->CastTargetPosition)}");
+        ImGui.TextUnformatted($"Combo: {aidCombo}, {am.ComboTimeLeft:f3}");
+        ImGui.TextUnformatted($"Queue: {(amr->ActionQueued ? "active" : "inactive")}, {aidQueued} @ {(ulong)amr->QueuedTargetId:X} [{amr->QueueType}], combo={amr->QueuedComboRouteId}");
+        ImGui.TextUnformatted($"GT: {aidGTAction} / {aidGTSpell}, arg={Utils.ReadField<uint>(amr, 0x94)}, obj={Utils.ReadField<ulong>(amr, 0x98):X}, a0={Utils.ReadField<byte>(amr, 0xA0):X2}, b8={Utils.ReadField<byte>(amr, 0xB8):X2}, bc={Utils.ReadField<byte>(amr, 0xBC):X}");
+        ImGui.TextUnformatted($"Last used action sequence: {amr->LastUsedActionSequence}");
         if (ImGui.Button("GT complete"))
         {
             Utils.WriteField(amr, 0xB8, (byte)1);
@@ -43,7 +49,7 @@ public class DebugAction(WorldState ws)
             if (data != null)
             {
                 ImGui.TextUnformatted($"Name: {data.Name}");
-                ImGui.TextUnformatted($"Cast time: {data.Cast100ms / 10.0:f1}");
+                ImGui.TextUnformatted($"Cast time: {data.Cast100ms * 0.1f:f1} + {data.Unknown38 * 0.1f:f1}");
                 ImGui.TextUnformatted($"Range: {data.Range}");
                 ImGui.TextUnformatted($"Effect range: {data.EffectRange}");
                 ImGui.TextUnformatted($"Cooldown group: {data.CooldownGroup}");
@@ -110,7 +116,7 @@ public class DebugAction(WorldState ws)
                 ImGui.TextUnformatted($"Recast group: {groupID}");
                 var group = mgr->GetRecastGroupDetail(groupID);
                 if (group != null)
-                    ImGui.TextUnformatted($"Recast group details: active={group->IsActive}, action={group->ActionID}, elapsed={group->Elapsed:f3}, total={group->Total:f3}, cooldown={group->Total - group->Elapsed:f3}");
+                    ImGui.TextUnformatted($"Recast group details: active={group->IsActive}, action={group->ActionId}, elapsed={group->Elapsed:f3}, total={group->Total:f3}, cooldown={group->Total - group->Elapsed:f3}");
             }
         }
         else if (Service.GameGui.HoveredItem != 0)
@@ -130,7 +136,7 @@ public class DebugAction(WorldState ws)
             ImGui.TextUnformatted($"Recast group: {groupID}");
             var group = mgr->GetRecastGroupDetail(groupID);
             if (group != null)
-                ImGui.TextUnformatted($"Recast group details: active={group->IsActive}, action={group->ActionID}, elapsed={group->Elapsed}, total={group->Total}");
+                ImGui.TextUnformatted($"Recast group details: active={group->IsActive}, action={group->ActionId}, elapsed={group->Elapsed}, total={group->Total}");
         }
         else
         {

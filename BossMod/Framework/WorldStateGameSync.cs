@@ -1,23 +1,31 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Hooking;
+﻿using Dalamud.Hooking;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
+using FFXIVClientStructs.FFXIV.Client.Game.Group;
+using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using FFXIVClientStructs.Interop;
 
 namespace BossMod;
 
 // utility that updates a world state to correspond to game state
 sealed class WorldStateGameSync : IDisposable
 {
+    private const int ObjectTableSize = 599; // should match CS; note that different ranges are used for different purposes - consider splitting?..
+    private const uint InvalidEntityId = 0xE0000000;
+
     private readonly WorldState _ws;
     private readonly DateTime _startTime;
-    private readonly ulong _startQPC;
+    private readonly long _startQPC;
 
-    private readonly PartyAlliance _alliance = new();
     private readonly List<WorldState.Operation> _globalOps = [];
     private readonly Dictionary<ulong, List<WorldState.Operation>> _actorOps = [];
-    private readonly Actor?[] _actorsByIndex = new Actor?[Service.ObjectTable.Length];
+    private readonly Actor?[] _actorsByIndex = new Actor?[ObjectTableSize];
 
     private readonly List<(ulong Caster, ActorCastEvent Event)> _castEvents = [];
     private readonly List<(uint Seq, ulong Target, int TargetIndex)> _confirms = [];
@@ -28,6 +36,10 @@ sealed class WorldStateGameSync : IDisposable
 
     private readonly ConfigListener<ReplayManagementConfig> _netConfig;
     private readonly EventSubscriptions _subscriptions;
+
+    private unsafe delegate void ProcessPacketEffectResultDelegate(uint targetID, byte* packet, byte replaying);
+    private readonly Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultHook;
+    private readonly Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultBasicHook;
 
     private delegate void ProcessPacketActorControlDelegate(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID, byte replaying);
     private readonly Hook<ProcessPacketActorControlDelegate> _processPacketActorControlHook;
@@ -45,16 +57,23 @@ sealed class WorldStateGameSync : IDisposable
     {
         _ws = ws;
         _startTime = DateTime.Now;
-        _startQPC = Utils.FrameQPC();
+        _startQPC = Framework.Instance()->PerformanceCounterValue;
         _interceptor.ServerIPCReceived += ServerIPCReceived;
 
         _netConfig = Service.Config.GetAndSubscribe<ReplayManagementConfig>(config => _interceptor.Active = config.RecordServerPackets || config.DumpServerPackets);
         _subscriptions = new
         (
             ActionManagerEx.Instance!.ActionRequested.Subscribe(OnActionRequested),
-            ActionManagerEx.Instance!.ActionEffectReceived.Subscribe(OnActionEffect),
-            ActionManagerEx.Instance!.EffectResultReceived.Subscribe(OnEffectResult)
+            ActionManagerEx.Instance!.ActionEffectReceived.Subscribe(OnActionEffect)
         );
+
+        _processPacketEffectResultHook = Service.Hook.HookFromSignature<ProcessPacketEffectResultDelegate>("48 8B C4 44 88 40 18 89 48 08", ProcessPacketEffectResultDetour);
+        _processPacketEffectResultHook.Enable();
+        Service.Log($"[WSG] ProcessPacketEffectResult address = 0x{_processPacketEffectResultHook.Address:X}");
+
+        _processPacketEffectResultBasicHook = Service.Hook.HookFromSignature<ProcessPacketEffectResultDelegate>("40 53 41 54 41 55 48 83 EC 40", ProcessPacketEffectResultBasicDetour);
+        _processPacketEffectResultBasicHook.Enable();
+        Service.Log($"[WSG] ProcessPacketEffectResultBasic address = 0x{_processPacketEffectResultBasicHook.Address:X}");
 
         _processPacketActorControlHook = Service.Hook.HookFromSignature<ProcessPacketActorControlDelegate>("E8 ?? ?? ?? ?? 0F B7 0B 83 E9 64", ProcessPacketActorControlDetour);
         _processPacketActorControlHook.Enable();
@@ -76,6 +95,8 @@ sealed class WorldStateGameSync : IDisposable
 
     public void Dispose()
     {
+        _processPacketEffectResultBasicHook.Dispose();
+        _processPacketEffectResultHook.Dispose();
         _processPacketActorControlHook.Dispose();
         _processPacketNpcYellHook.Dispose();
         _processEnvControlHook.Dispose();
@@ -87,15 +108,16 @@ sealed class WorldStateGameSync : IDisposable
 
     public unsafe void Update(TimeSpan prevFramePerf)
     {
+        var fwk = Framework.Instance();
         _ws.Execute(new WorldState.OpFrameStart
         (
             new(
-                _startTime.AddSeconds((double)(Utils.FrameQPC() - _startQPC) / _ws.QPF),
-                Utils.FrameQPC(),
-                Utils.FrameIndex(),
-                Utils.FrameDurationRaw(),
-                Utils.FrameDuration(),
-                Utils.TickSpeedMultiplier()
+                _startTime.AddSeconds((double)(fwk->PerformanceCounterValue - _startQPC) / _ws.QPF),
+                (ulong)fwk->PerformanceCounterValue,
+                fwk->FrameCounter,
+                fwk->RealFrameDeltaTime,
+                fwk->FrameDeltaTime,
+                fwk->GameSpeedMultiplier
             ),
             prevFramePerf,
             GaugeData()
@@ -132,7 +154,7 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe void UpdateWaymarks()
     {
         var wm = Waymark.A;
-        foreach (ref var marker in MarkingController.Instance()->FieldMarkerArraySpan)
+        foreach (ref var marker in MarkingController.Instance()->FieldMarkers)
         {
             Vector3? pos = marker.Active ? new(marker.X / 1000.0f, marker.Y / 1000.0f, marker.Z / 1000.0f) : null;
             if (_ws.Waymarks[wm] != pos)
@@ -141,23 +163,24 @@ sealed class WorldStateGameSync : IDisposable
         }
     }
 
-    private void UpdateActors()
+    private unsafe void UpdateActors()
     {
+        var mgr = GameObjectManager.Instance();
         for (int i = 0; i < _actorsByIndex.Length; ++i)
         {
             var actor = _actorsByIndex[i];
-            var obj = Service.ObjectTable[i];
+            var obj = mgr->Objects.All[i].Value;
 
-            if (obj != null && obj.ObjectId == GameObject.InvalidGameObjectId)
+            if (obj != null && obj->EntityId == InvalidEntityId)
                 obj = null; // ignore non-networked objects (really?..)
 
-            if (obj != null && (obj.ObjectId & 0xFF000000) == 0xFF000000)
+            if (obj != null && (obj->EntityId & 0xFF000000) == 0xFF000000)
             {
-                //Service.Log($"[WorldState] Skipping bad object #{i} with id {obj.ObjectId:X}");
+                Service.Log($"[WorldState] Skipping bad object #{i} with id {obj->EntityId:X}");
                 obj = null;
             }
 
-            if (actor != null && actor.InstanceID != obj?.ObjectId)
+            if (actor != null && (obj == null || actor.InstanceID != obj->EntityId))
             {
                 _actorsByIndex[i] = null;
                 RemoveActor(actor);
@@ -166,7 +189,7 @@ sealed class WorldStateGameSync : IDisposable
 
             if (obj != null)
             {
-                if (actor != _ws.Actors.Find(obj.ObjectId))
+                if (actor != _ws.Actors.Find(obj->EntityId))
                 {
                     Service.Log($"[WorldState] Actor position mismatch for #{i} {actor}");
                 }
@@ -185,40 +208,40 @@ sealed class WorldStateGameSync : IDisposable
         _ws.Execute(new ActorState.OpDestroy(actor.InstanceID));
     }
 
-    private void UpdateActor(GameObject obj, int index, Actor? act)
+    private unsafe void UpdateActor(GameObject* obj, int index, Actor? act)
     {
-        var character = obj as Character;
-        var name = obj.Name.TextValue;
-        var nameID = character?.NameId ?? 0;
-        var classID = (Class)(character?.ClassJob.Id ?? 0);
-        var level = character?.Level ?? 0;
-        var posRot = new Vector4(obj.Position, obj.Rotation);
+        var chr = obj->IsCharacter() ? (Character*)obj : null;
+        var name = obj->NameString;
+        var nameID = chr != null ? chr->NameId : 0;
+        var classID = chr != null ? (Class)chr->ClassJob : Class.None;
+        var level = chr != null ? chr->Level : 0;
+        var posRot = new Vector4(obj->Position, obj->Rotation);
         var hpmp = new ActorHPMP();
         bool inCombat = false;
-        if (character != null)
+        if (chr != null)
         {
-            hpmp.CurHP = character.CurrentHp;
-            hpmp.MaxHP = character.MaxHp;
-            hpmp.Shield = (uint)(Utils.CharacterShieldValue(character) * 0.01f * hpmp.MaxHP);
-            hpmp.CurMP = character.CurrentMp;
-            inCombat = Utils.CharacterInCombat(character);
+            hpmp.CurHP = chr->Health;
+            hpmp.MaxHP = chr->MaxHealth;
+            hpmp.Shield = (uint)(chr->ShieldValue * 0.01f * hpmp.MaxHP);
+            hpmp.CurMP = chr->Mana;
+            inCombat = chr->InCombat;
         }
-        var targetable = Utils.GameObjectIsTargetable(obj);
-        var friendly = Utils.GameObjectIsFriendly(obj);
-        var isDead = Utils.GameObjectIsDead(obj);
-        var target = character == null ? 0 : SanitizedObjectID(obj != Service.ClientState.LocalPlayer ? Utils.CharacterTargetID(character) : (Service.TargetManager.Target?.ObjectId ?? 0)); // this is a bit of a hack - when changing targets, we want AI to see changes immediately rather than wait for server response
-        var modelState = character != null ? new ActorModelState(Utils.CharacterModelState(character), Utils.CharacterAnimationState(character, false), Utils.CharacterAnimationState(character, true)) : default;
-        var eventState = Utils.GameObjectEventState(obj);
-        var radius = Utils.GameObjectRadius(obj);
+        var targetable = obj->GetIsTargetable();
+        var friendly = Utils.GameObjectIsFriendly(obj) != 0;
+        var isDead = obj->IsDead();
+        var target = chr != null ? SanitizedObjectID(chr->GetTargetId()) : 0; // note: when changing targets, we want to see changes immediately rather than wait for server response
+        var modelState = chr != null ? new ActorModelState(chr->Timeline.ModelState, chr->Timeline.AnimationState[0], chr->Timeline.AnimationState[1]) : default;
+        var eventState = obj->EventState;
+        var radius = obj->GetRadius();
 
         if (act == null)
         {
-            var type = (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind);
-            _ws.Execute(new ActorState.OpCreate(obj.ObjectId, obj.DataId, index, name, nameID, type, classID, level, posRot, radius, hpmp, targetable, friendly, SanitizedObjectID(obj.OwnerId), Utils.GameObjectFateID(obj)));
-            act = _actorsByIndex[index] = _ws.Actors.Find(obj.ObjectId)!;
+            var type = (ActorType)(((int)obj->ObjectKind << 8) + obj->SubKind);
+            _ws.Execute(new ActorState.OpCreate(obj->EntityId, obj->BaseId, index, name, nameID, type, classID, level, posRot, radius, hpmp, targetable, friendly, SanitizedObjectID(obj->OwnerId), obj->FateId));
+            act = _actorsByIndex[index] = _ws.Actors.Find(obj->EntityId)!;
 
             // note: for now, we continue relying on network messages for tether changes, since sometimes multiple changes can happen in a single frame, and some components rely on seeing all of them...
-            var tether = character != null ? new ActorTetherInfo(Utils.CharacterTetherID(character), Utils.CharacterTetherTargetID(character)) : default;
+            var tether = chr != null ? new ActorTetherInfo(chr->Vfx.Tethers[0].Id, chr->Vfx.Tethers[0].TargetId) : default;
             if (tether.ID != 0)
                 _ws.Execute(new ActorState.OpTether(act.InstanceID, tether));
         }
@@ -252,29 +275,33 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ActorState.OpTarget(act.InstanceID, target));
         DispatchActorEvents(act.InstanceID);
 
-        var chara = obj as BattleChara;
-        if (chara != null)
+        var castInfo = chr != null ? chr->GetCastInfo() : null;
+        if (castInfo != null)
         {
-            var curCast = chara.IsCasting
+            var curCast = castInfo->IsCasting != 0
                 ? new ActorCastInfo
                 {
-                    Action = new((ActionType)chara.CastActionType, chara.CastActionId),
-                    TargetID = SanitizedObjectID(chara.CastTargetObjectId),
-                    Rotation = Utils.CharacterCastRotation(chara).Radians(),
-                    Location = Utils.BattleCharaCastLocation(chara),
-                    TotalTime = chara.TotalCastTime,
-                    FinishAt = _ws.CurrentTime.AddSeconds(Math.Clamp(chara.TotalCastTime - chara.CurrentCastTime, 0, 100000)),
-                    Interruptible = chara.IsCastInterruptible
+                    Action = new((ActionType)castInfo->ActionType, castInfo->ActionId),
+                    TargetID = SanitizedObjectID(castInfo->CastTargetId),
+                    Rotation = chr->CastRotation.Radians(),
+                    Location = castInfo->CastLocation,
+                    TotalTime = castInfo->TotalCastTime, // TODO: should it use adjusted here?..
+                    FinishAt = _ws.CurrentTime.AddSeconds(Math.Clamp(castInfo->TotalCastTime - castInfo->CurrentCastTime, 0, 100000)),
+                    Interruptible = castInfo->Interruptible != 0,
                 } : null;
             UpdateActorCastInfo(act, curCast);
+        }
 
-            for (int i = 0; i < chara.StatusList.Length; ++i)
+        var sm = chr != null ? chr->GetStatusManager() : null;
+        if (sm != null)
+        {
+            for (int i = 0; i < sm->NumValidStatuses; ++i)
             {
                 // note: sometimes (Ocean Fishing) remaining-time is weird (I assume too large?) and causes exception in AddSeconds - so we just clamp it to some reasonable range
                 // note: self-cast buffs with duration X will have duration -X until EffectResult (~0.6s later); see autorotation for more details
                 ActorStatus curStatus = new();
-                var s = chara.StatusList[i];
-                if (s != null && s.StatusId != 0)
+                ref var s = ref sm->Status[i];
+                if (s.StatusId != 0)
                 {
                     var dur = Math.Min(Math.Abs(s.RemainingTime), 100000);
                     curStatus.ID = s.StatusId;
@@ -322,54 +349,90 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe void UpdateParty()
     {
+        var gm = GroupManager.Instance();
+        var ui = UIState.Instance();
+
         // update player slot
-        UpdatePartySlot(PartyState.PlayerSlot, Service.ClientState.LocalContentId, Service.ClientState.LocalPlayer?.ObjectId ?? 0);
+        UpdatePartySlot(PartyState.PlayerSlot, UIState.Instance()->PlayerState.ContentId, UIState.Instance()->PlayerState.ObjectId);
 
         // update normal party slots: first update/remove existing members, then add new ones
         for (int i = PartyState.PlayerSlot + 1; i < PartyState.MaxPartySize; ++i)
         {
             var contentID = _ws.Party.ContentIDs[i];
-            if (contentID == 0)
-                continue; // skip empty slots
-
-            var member = _alliance.FindPartyMember(contentID);
-            if (member == null)
-                UpdatePartySlot(i, 0, 0);
-            else
-                UpdatePartySlot(i, contentID, member->ObjectID);
-        }
-        for (int i = 0; i < _alliance.NumPartyMembers; ++i)
-        {
-            var member = _alliance.PartyMember(i);
-            if (member == null)
-                continue;
-
-            var contentID = (ulong)member->ContentID;
-            if (_ws.Party.ContentIDs.IndexOf(contentID) != -1)
-                continue; // already added, updated in previous loop
-
-            var freeSlot = _ws.Party.ContentIDs[1..].IndexOf(0ul);
-            if (freeSlot == -1)
+            var instanceID = _ws.Party.ActorIDs[i];
+            if (contentID != 0)
             {
-                Service.Log($"[WorldState] Failed to find empty slot for party member {contentID:X}:{member->ObjectID:X}");
-                continue;
+                // slot was occupied by player => see if it's still in party
+                var member = gm->GetPartyMemberByContentId(contentID);
+                if (member != null)
+                    UpdatePartySlot(i, contentID, member->ObjectId); // slot is still occupied by player; update in case instance-id changed
+                else
+                    UpdatePartySlot(i, 0, 0); // player is no longer in party => clear slot
             }
-
-            UpdatePartySlot(freeSlot + 1, contentID, member->ObjectID);
+            else if (instanceID != 0)
+            {
+                // slot was occupied by trust => see if it's still in party
+                if (!HasBuddy(instanceID))
+                    UpdatePartySlot(i, 0, 0); // buddy is no longer in party => clear slot
+                // else: no reason to update...
+            }
+            // else: slot was empty, skip
+        }
+        for (int i = 0; i < gm->MemberCount; ++i)
+        {
+            ref var member = ref gm->PartyMembers[i];
+            if (_ws.Party.ContentIDs.IndexOf(member.ContentId) == -1)
+                AddPartyMember(member.ContentId, member.ObjectId);
+            // else: already added, updated in previous loop
+        }
+        for (int i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
+        {
+            var instanceID = ui->Buddy.DutyHelperInfo.DutyHelpers[i].ObjectId;
+            if (instanceID != InvalidEntityId && _ws.Party.ActorIDs[1..PartyState.MaxPartySize].IndexOf(instanceID) == -1)
+                AddPartyMember(0, instanceID);
+            // else: buddy is non-existent or already updated, skip
         }
 
         // update alliance members
+        var isNormalAlliance = gm->IsAlliance && !gm->IsSmallGroupAlliance;
         for (int i = PartyState.MaxPartySize; i < PartyState.MaxAllianceSize; ++i)
         {
-            var member = _alliance.IsAlliance && !_alliance.IsSmallGroupAlliance ? _alliance.AllianceMember(i - PartyState.MaxPartySize) : null;
-            UpdatePartySlot(i, 0, member != null ? member->ObjectID : 0);
+            var member = isNormalAlliance ? gm->AllianceMembers.GetPointer(i - PartyState.MaxPartySize) : null;
+            if (member != null && !member->IsValidAllianceMember)
+                member = null;
+            UpdatePartySlot(i, 0, member != null ? member->ObjectId : 0);
         }
 
         // update limit break
         var lb = LimitBreakController.Instance();
-        var lbMax = (ushort)lb->BarValue; // CS is incorrect here, two high bytes are some other fields
-        if (_ws.Party.LimitBreakCur != lb->CurrentValue || _ws.Party.LimitBreakMax != lbMax)
-            _ws.Execute(new PartyState.OpLimitBreakChange(lb->CurrentValue, lbMax));
+        if (_ws.Party.LimitBreakCur != lb->CurrentUnits || _ws.Party.LimitBreakMax != lb->BarUnits)
+            _ws.Execute(new PartyState.OpLimitBreakChange(lb->CurrentUnits, lb->BarUnits));
+    }
+
+    private unsafe bool HasBuddy(ulong instanceID)
+    {
+        var ui = UIState.Instance();
+        for (int i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
+            if (ui->Buddy.DutyHelperInfo.DutyHelpers[i].ObjectId == instanceID)
+                return true;
+        return false;
+    }
+
+    private int FindFreePartySlot()
+    {
+        for (int i = 1; i < PartyState.MaxPartySize; ++i)
+            if (_ws.Party.ContentIDs[i] == 0 && _ws.Party.ActorIDs[i] == 0)
+                return i;
+        return -1;
+    }
+
+    private void AddPartyMember(ulong contentID, ulong instanceID)
+    {
+        var freeSlot = FindFreePartySlot();
+        if (freeSlot >= 0)
+            _ws.Execute(new PartyState.OpModify(freeSlot, contentID, instanceID));
+        else
+            Service.Log($"[WorldState] Failed to find empty slot for party member {contentID:X}:{instanceID:X}");
     }
 
     private void UpdatePartySlot(int slot, ulong contentID, ulong instanceID)
@@ -380,7 +443,8 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe void UpdateClient()
     {
-        var countdown = Countdown.TimeRemaining();
+        var countdownAgent = AgentCountDownSettingDialog.Instance();
+        float? countdown = countdownAgent != null && countdownAgent->Active && countdownAgent->TimeRemaining >= 0 ? countdownAgent->TimeRemaining : null;
         if (_ws.Client.CountdownRemaining != countdown)
             _ws.Execute(new ClientState.OpCountdownChange(countdown));
 
@@ -399,7 +463,12 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ClientState.OpDutyActionsChange(dutyAction0, dutyAction1));
 
         Span<byte> bozjaHolster = stackalloc byte[_ws.Client.BozjaHolster.Length];
-        BozjaInterop.FetchHolster(bozjaHolster);
+        bozjaHolster.Clear();
+        var bozjaState = PublicContentBozja.GetState();
+        if (bozjaState != null)
+            foreach (var action in bozjaState->HolsterActions)
+                if (action != 0)
+                    ++bozjaHolster[action];
         if (!MemoryExtensions.SequenceEqual(_ws.Client.BozjaHolster.AsSpan(), bozjaHolster))
             _ws.Execute(new ClientState.OpBozjaHolsterChange(CalcBozjaHolster(bozjaHolster)));
 
@@ -409,7 +478,7 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ClientState.OpActiveFateChange(activeFate));
     }
 
-    private ulong SanitizedObjectID(ulong raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
+    private ulong SanitizedObjectID(ulong raw) => raw != InvalidEntityId ? raw : 0;
 
     private void DispatchActorEvents(ulong instanceID)
     {
@@ -472,6 +541,30 @@ sealed class WorldStateGameSync : IDisposable
     {
         _actorOps.GetOrAdd(targetID).Add(new ActorState.OpEffectResult(targetID, seq, targetIndex));
         _confirms.Add((seq, targetID, targetIndex));
+    }
+
+    private unsafe void ProcessPacketEffectResultDetour(uint targetID, byte* packet, byte replaying)
+    {
+        var count = packet[0];
+        var p = (Network.ServerIPC.EffectResultEntry*)(packet + 4);
+        for (int i = 0; i < count; ++i)
+        {
+            OnEffectResult(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
+            ++p;
+        }
+        _processPacketEffectResultHook.Original(targetID, packet, replaying);
+    }
+
+    private unsafe void ProcessPacketEffectResultBasicDetour(uint targetID, byte* packet, byte replaying)
+    {
+        var count = packet[0];
+        var p = (Network.ServerIPC.EffectResultBasicEntry*)(packet + 4);
+        for (int i = 0; i < count; ++i)
+        {
+            OnEffectResult(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
+            ++p;
+        }
+        _processPacketEffectResultBasicHook.Original(targetID, packet, replaying);
     }
 
     private void ProcessPacketActorControlDetour(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID, byte replaying)

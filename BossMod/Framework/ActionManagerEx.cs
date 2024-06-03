@@ -1,8 +1,8 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
-using System.Runtime.InteropServices;
 
 namespace BossMod;
 
@@ -46,52 +46,22 @@ unsafe sealed class ActionManagerEx : IDisposable
 {
     public static ActionManagerEx? Instance;
 
+    public ActionID CastSpell => new(ActionType.Spell, _inst->CastSpellId);
+    public ActionID CastAction => new((ActionType)_inst->CastActionType, _inst->CastActionId);
+    public float CastTimeRemaining => _inst->CastSpellId != 0 ? _inst->CastTimeTotal - _inst->CastTimeElapsed : 0;
+    public float ComboTimeLeft => _inst->Combo.Timer;
+    public uint ComboLastMove => _inst->Combo.Action;
+    public ActionID QueuedAction => new((ActionType)_inst->QueuedActionType, _inst->QueuedActionId);
+
     public float AnimationLockDelaySmoothing = 0.8f; // TODO tweak
     public float AnimationLockDelayAverage { get; private set; } = 0.1f; // smoothed delay between client request and server response
     public float AnimationLockDelayMax => Config.RemoveAnimationLockDelay ? 0 : float.MaxValue; // this caps max delay a-la xivalexander (TODO: make tweakable?)
-    public float AnimationLock => Utils.ReadField<float>(_inst, 8);
 
-    public uint CastSpellID => Utils.ReadField<uint>(_inst, 0x24);
-    public ActionID CastSpell => new(ActionType.Spell, CastActionID);
-    public ActionType CastActionType => (ActionType)Utils.ReadField<uint>(_inst, 0x28);
-    public uint CastActionID => Utils.ReadField<uint>(_inst, 0x2C);
-    public ActionID CastAction => new(CastActionType, CastActionID);
-    public float CastTimeElapsed => Utils.ReadField<float>(_inst, 0x30);
-    public float CastTimeTotal => Utils.ReadField<float>(_inst, 0x34);
-    public float CastTimeRemaining => CastSpellID != 0 ? CastTimeTotal - CastTimeElapsed : 0;
-    public ulong CastTargetID => Utils.ReadField<ulong>(_inst, 0x38);
-    public Vector3 CastTargetPos => Utils.ReadField<Vector3>(_inst, 0x40);
-
-    public float ComboTimeLeft => Utils.ReadField<float>(_inst, 0x60);
-    public uint ComboLastMove => Utils.ReadField<uint>(_inst, 0x64);
-
-    public bool QueueActive => Utils.ReadField<bool>(_inst, 0x68);
-    public ActionType QueueActionType => (ActionType)Utils.ReadField<uint>(_inst, 0x6C);
-    public uint QueueActionID => Utils.ReadField<uint>(_inst, 0x70);
-    public ActionID QueueAction => new(QueueActionType, QueueActionID);
-    public ulong QueueTargetID => Utils.ReadField<ulong>(_inst, 0x78);
-    public uint QueueCallType => Utils.ReadField<uint>(_inst, 0x80);
-    public uint QueueComboRouteID => Utils.ReadField<uint>(_inst, 0x84);
-
-    public uint GTActionID => Utils.ReadField<uint>(_inst, 0x88);
-    public ActionType GTActionType => (ActionType)Utils.ReadField<uint>(_inst, 0x8C);
-    public ActionID GTAction => new(GTActionType, GTActionID);
-    public uint GTSpellID => Utils.ReadField<uint>(_inst, 0x90);
-    public ActionID GTSpell => new(ActionType.Spell, GTSpellID);
-    public uint GTUnkArg => Utils.ReadField<uint>(_inst, 0x94);
-    public ulong GTUnkObj => Utils.ReadField<ulong>(_inst, 0x98);
-    public byte GTUnkA0 => Utils.ReadField<byte>(_inst, 0xA0);
-    public byte GTUnkB8 => Utils.ReadField<byte>(_inst, 0xB8);
-    public uint GTUnkBC => Utils.ReadField<byte>(_inst, 0xBC);
-
-    public ushort LastUsedActionSequence => Utils.ReadField<ushort>(_inst, 0x110);
-
-    public float EffectiveAnimationLock => AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends
+    public float EffectiveAnimationLock => _inst->AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends
     public float EffectiveAnimationLockDelay => AnimationLockDelayMax <= 0.5f ? AnimationLockDelayMax : MathF.Min(AnimationLockDelayAverage, 0.1f); // this is a conservative estimate
 
     public Event<ClientActionRequest> ActionRequested = new();
     public Event<ulong, ActorCastEvent> ActionEffectReceived = new();
-    public Event<ulong, uint, int> EffectResultReceived = new();
 
     public InputOverride InputOverride;
     public ActionManagerConfig Config;
@@ -104,31 +74,12 @@ unsafe sealed class ActionManagerEx : IDisposable
     private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
     private int _restoreCntr;
 
-    private delegate bool GetGroundTargetPositionDelegate(ActionManager* self, Vector3* outPos);
-    private readonly GetGroundTargetPositionDelegate _getGroundTargetPositionFunc;
-
-    private delegate void FaceTargetDelegate(ActionManager* self, Vector3* position, ulong targetID);
-    private readonly FaceTargetDelegate _faceTargetFunc;
-
-    private delegate void UpdateDelegate(ActionManager* self);
-    private readonly Hook<UpdateDelegate> _updateHook;
-
-    private delegate bool UseActionLocationDelegate(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation);
-    private readonly Hook<UseActionLocationDelegate> _useActionLocationHook;
-
-    private delegate bool UseBozjaFromHolsterDirectorDelegate(void* self, uint holsterIndex, uint slot);
-    private readonly Hook<UseBozjaFromHolsterDirectorDelegate> _useBozjaFromHolsterDirectorHook;
+    private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
+    private readonly HookAddress<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
+    private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
 
     private delegate void ProcessPacketActionEffectDelegate(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Network.ServerIPC.ActionEffectHeader* header, ulong* effects, ulong* targets);
     private readonly Hook<ProcessPacketActionEffectDelegate> _processPacketActionEffectHook;
-
-    private delegate void ProcessPacketEffectResultDelegate(uint targetID, byte* packet, byte replaying);
-    private readonly Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultHook;
-    private readonly Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultBasicHook;
-
-    // it's a static function of StatusManager really
-    private delegate bool CancelStatusDelegate(uint statusId, uint sourceId);
-    private readonly CancelStatusDelegate _cancelStatusFunc;
 
     public ActionManagerEx()
     {
@@ -138,47 +89,17 @@ unsafe sealed class ActionManagerEx : IDisposable
         _inst = ActionManager.Instance();
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
 
-        var getGroundTargetPositionAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 44 8B 84 24 80 00 00 00 33 C0");
-        _getGroundTargetPositionFunc = Marshal.GetDelegateForFunctionPointer<GetGroundTargetPositionDelegate>(getGroundTargetPositionAddress);
-        Service.Log($"[AMEx] GetGroundTargetPosition address = 0x{getGroundTargetPositionAddress:X}");
-
-        var faceTargetAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 81 FE FB 1C 00 00 74 ?? 81 FE 53 5F 00 00 74 ?? 81 FE 6F 73 00 00");
-        _faceTargetFunc = Marshal.GetDelegateForFunctionPointer<FaceTargetDelegate>(faceTargetAddress);
-        Service.Log($"[AMEx] FaceTarget address = 0x{faceTargetAddress:X}");
-
-        _updateHook = Service.Hook.HookFromSignature<UpdateDelegate>("48 8B C4 48 89 58 20 57 48 81 EC", UpdateDetour);
-        _updateHook.Enable();
-        Service.Log($"[AMEx] Update address = 0x{_updateHook.Address:X}");
-
-        _useActionLocationHook = Service.Hook.HookFromSignature<UseActionLocationDelegate>("E8 ?? ?? ?? ?? 3C 01 0F 85 ?? ?? ?? ?? EB 46", UseActionLocationDetour);
-        _useActionLocationHook.Enable();
-        Service.Log($"[AMEx] UseActionLocation address = 0x{_useActionLocationHook.Address:X}");
-
-        _useBozjaFromHolsterDirectorHook = Service.Hook.HookFromSignature<UseBozjaFromHolsterDirectorDelegate>("E8 ?? ?? ?? ?? 3C 01 0F 85 ?? ?? ?? ?? BD", UseBozjaFromHolsterDirectorDetour);
-        _useBozjaFromHolsterDirectorHook.Enable();
-        Service.Log($"[AMEx] UseBozjaFromHolsterDirector address = 0x{_useBozjaFromHolsterDirectorHook.Address:X}");
+        _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
+        _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
+        _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
 
         _processPacketActionEffectHook = Service.Hook.HookFromSignature<ProcessPacketActionEffectDelegate>("E8 ?? ?? ?? ?? 48 8B 4C 24 68 48 33 CC E8 ?? ?? ?? ?? 4C 8D 5C 24 70 49 8B 5B 20 49 8B 73 28 49 8B E3 5F C3", ProcessPacketActionEffectDetour);
         _processPacketActionEffectHook.Enable();
         Service.Log($"[AMEx] ProcessPacketActionEffect address = 0x{_processPacketActionEffectHook.Address:X}");
-
-        _processPacketEffectResultHook = Service.Hook.HookFromSignature<ProcessPacketEffectResultDelegate>("48 8B C4 44 88 40 18 89 48 08", ProcessPacketEffectResultDetour);
-        _processPacketEffectResultHook.Enable();
-        Service.Log($"[AMEx] ProcessPacketEffectResult address = 0x{_processPacketEffectResultHook.Address:X}");
-
-        _processPacketEffectResultBasicHook = Service.Hook.HookFromSignature<ProcessPacketEffectResultDelegate>("40 53 41 54 41 55 48 83 EC 40", ProcessPacketEffectResultBasicDetour);
-        _processPacketEffectResultBasicHook.Enable();
-        Service.Log($"[AMEx] ProcessPacketEffectResultBasic address = 0x{_processPacketEffectResultBasicHook.Address:X}");
-
-        var cancelStatusAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 2C 48 8B 07");
-        _cancelStatusFunc = Marshal.GetDelegateForFunctionPointer<CancelStatusDelegate>(cancelStatusAddress);
-        Service.Log($"[AMEx] CancelStatus address = 0x{cancelStatusAddress:X}");
     }
 
     public void Dispose()
     {
-        _processPacketEffectResultBasicHook.Dispose();
-        _processPacketEffectResultHook.Dispose();
         _processPacketActionEffectHook.Dispose();
         _useBozjaFromHolsterDirectorHook.Dispose();
         _useActionLocationHook.Dispose();
@@ -189,10 +110,10 @@ unsafe sealed class ActionManagerEx : IDisposable
     public Vector3? GetWorldPosUnderCursor()
     {
         Vector3 res = new();
-        return _getGroundTargetPositionFunc(_inst, &res) ? res : null;
+        return _inst->GetGroundPositionForCursor(&res) ? res : null;
     }
 
-    public void FaceTarget(Vector3 position, ulong unkObjID = GameObject.InvalidGameObjectId) => _faceTargetFunc(_inst, &position, unkObjID);
+    public void FaceTarget(Vector3 position, ulong unkObjID = GameObject.InvalidGameObjectId) => _inst->AutoFaceTargetPosition(&position, unkObjID);
     public void FaceDirection(WDir direction)
     {
         var player = Service.ClientState.LocalPlayer;
@@ -255,8 +176,8 @@ unsafe sealed class ActionManagerEx : IDisposable
     }
 
     // returns time in ms
-    public int GetAdjustedCastTime(ActionID action, bool skipHasteAdjustment = true, byte* outOptProcState = null)
-        => ActionManager.GetAdjustedCastTime((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, (byte)(skipHasteAdjustment ? 1 : 0), outOptProcState);
+    public int GetAdjustedCastTime(ActionID action, bool applyProcs = true, ActionManager.CastTimeProc* outOptProc = null)
+        => ActionManager.GetAdjustedCastTime((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, applyProcs, outOptProc);
 
     public bool IsRecastTimerActive(ActionID action)
         => _inst->IsRecastTimerActive((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID);
@@ -264,33 +185,35 @@ unsafe sealed class ActionManagerEx : IDisposable
     public int GetRecastGroup(ActionID action)
         => _inst->GetRecastGroup((int)action.Type, action.ID);
 
-    public bool UseAction(ActionID action, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
-        => _inst->UseAction((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
-
     // skips queueing etc
-    public bool UseActionRaw(ActionID action, ulong targetID = GameObject.InvalidGameObjectId, Vector3 targetPos = new(), uint itemLocation = 0)
-        => UseActionLocationDetour(_inst, action.Type, action.ID, targetID, &targetPos, itemLocation);
-
-    // does all the sanity checks (that status is on actor, is a buff that can be canceled, etc.)
-    // on success, the status manager is updated immediately, meaning that no rate limiting is needed
-    // if sourceId is not specified, removes first status with matching id
-    public bool CancelStatus(uint statusId, uint sourceId = GameObject.InvalidGameObjectId)
+    private bool ExecuteAction(ActionID action, ulong targetId, Vector3 targetPos)
     {
-        var res = _cancelStatusFunc(statusId, sourceId);
-        Service.Log($"[AMEx] Canceling status {statusId} from {sourceId:X} -> {res}");
-        return res;
+        if (action.Type is ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1)
+        {
+            // fake action type - using action from bozja holster
+            var state = PublicContentBozja.GetState(); // note: if it's non-null, the director instance can't be null too
+            var holsterIndex = state != null ? state->HolsterActions.IndexOf((byte)action.ID) : -1;
+            return holsterIndex >= 0 && PublicContentBozja.GetInstance()->UseFromHolster((uint)holsterIndex, action.Type == ActionType.BozjaHolsterSlot1 ? 1u : 0);
+        }
+        else
+        {
+            // real action type, just execute our UAL hook
+            // note that for items extraParam should be 0xFFFF (since we want to use any item, not from first inventory slot)
+            var extraParam = action.Type == ActionType.Item ? 0xFFFFu : 0;
+            return _inst->UseActionLocation((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, targetId, &targetPos, extraParam);
+        }
     }
 
     private void UpdateDetour(ActionManager* self)
     {
         var dt = Framework.Instance()->FrameDeltaTime;
-        var imminentAction = QueueActive ? QueueAction : AutoQueue.Action;
+        var imminentAction = _inst->ActionQueued ? QueuedAction : AutoQueue.Action;
         var imminentActionAdj = imminentAction.Type == ActionType.Spell ? new(ActionType.Spell, GetAdjustedActionID(imminentAction.ID)) : imminentAction;
         var imminentRecast = imminentActionAdj ? _inst->GetRecastGroupDetail(GetRecastGroup(imminentActionAdj)) : null;
         if (Config.RemoveCooldownDelay)
         {
             var cooldownOverflow = imminentRecast != null && imminentRecast->IsActive != 0 ? imminentRecast->Elapsed + dt - imminentRecast->Total : dt;
-            var animlockOverflow = dt - AnimationLock;
+            var animlockOverflow = dt - _inst->AnimationLock;
             _useActionInPast = Math.Min(cooldownOverflow, animlockOverflow);
             if (_useActionInPast >= dt)
                 _useActionInPast = 0; // nothing prevented us from casting it before, so do not adjust anything...
@@ -302,7 +225,7 @@ unsafe sealed class ActionManagerEx : IDisposable
 
         // check whether movement is safe; block movement if not and if desired
         MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
-        MoveMightInterruptCast |= imminentActionAdj && CastTimeRemaining <= 0 && AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f; // if we're not casting, but will start soon, moving might interrupt future cast
+        MoveMightInterruptCast |= imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f; // if we're not casting, but will start soon, moving might interrupt future cast
         bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast;
 
         // restore rotation logic; note that movement abilities (like charge) can take multiple frames until they allow changing facing
@@ -336,13 +259,7 @@ unsafe sealed class ActionManagerEx : IDisposable
                 if (AutoQueue.FacingAngle != null)
                     FaceDirection(AutoQueue.FacingAngle.Value.ToDirection());
 
-                var res = AutoQueue.Action.Type switch
-                {
-                    ActionType.Item => UseActionRaw(actionAdj, targetID, AutoQueue.TargetPos, 65535),
-                    ActionType.BozjaHolsterSlot0 => BozjaInterop.UseFromHolster(AutoQueue.Action.As<BozjaHolsterID>(), 0),
-                    ActionType.BozjaHolsterSlot1 => BozjaInterop.UseFromHolster(AutoQueue.Action.As<BozjaHolsterID>(), 1),
-                    _ => UseActionRaw(actionAdj, targetID, AutoQueue.TargetPos)
-                };
+                var res = ExecuteAction(actionAdj, targetID, AutoQueue.TargetPos);
                 //Service.Log($"[AMEx] Auto-execute {AutoQueue.Source} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(AutoQueue.TargetPos)} => {res}");
             }
             else
@@ -360,22 +277,22 @@ unsafe sealed class ActionManagerEx : IDisposable
             InputOverride.UnblockMovement();
     }
 
-    private bool UseActionLocationDetour(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation)
+    private bool UseActionLocationDetour(ActionManager* self, FFXIVClientStructs.FFXIV.Client.Game.ActionType actionType, uint actionId, ulong targetId, Vector3* location, uint extraParam)
     {
         var pc = Service.ClientState.LocalPlayer;
-        var prevSeq = LastUsedActionSequence;
+        var prevSeq = _inst->LastUsedActionSequence;
         var prevRot = pc?.Rotation ?? 0;
-        bool ret = _useActionLocationHook.Original(self, actionType, actionID, targetID, targetPos, itemLocation);
-        var currSeq = LastUsedActionSequence;
+        bool ret = _useActionLocationHook.Original(self, actionType, actionId, targetId, location, extraParam);
+        var currSeq = _inst->LastUsedActionSequence;
         var currRot = pc?.Rotation ?? 0;
         if (currSeq != prevSeq)
         {
-            HandleActionRequest(new(actionType, actionID), currSeq, targetID, *targetPos, prevRot, currRot);
+            HandleActionRequest(new((ActionType)actionType, actionId), currSeq, targetId, *location, prevRot, currRot);
         }
         return ret;
     }
 
-    private bool UseBozjaFromHolsterDirectorDetour(void* self, uint holsterIndex, uint slot)
+    private bool UseBozjaFromHolsterDirectorDetour(PublicContentBozja* self, uint holsterIndex, uint slot)
     {
         var pc = Service.ClientState.LocalPlayer;
         var prevRot = pc?.Rotation ?? 0;
@@ -383,7 +300,7 @@ unsafe sealed class ActionManagerEx : IDisposable
         if (res)
         {
             var currRot = pc?.Rotation ?? 0;
-            var entry = BozjaInterop.GetHolsterEntry(holsterIndex);
+            var entry = (BozjaHolsterID)self->State.HolsterActions[(int)holsterIndex];
             HandleActionRequest(ActionID.MakeBozjaHolster(entry, (int)slot), 0, GameObject.InvalidGameObjectId, default, prevRot, currRot);
         }
         return res;
@@ -417,9 +334,9 @@ unsafe sealed class ActionManagerEx : IDisposable
         }
         ActionEffectReceived.Fire(casterID, info);
 
-        var prevAnimLock = AnimationLock;
+        var prevAnimLock = _inst->AnimationLock;
         _processPacketActionEffectHook.Original(casterID, casterObj, targetPos, header, effects, targets);
-        var currAnimLock = AnimationLock;
+        var currAnimLock = _inst->AnimationLock;
 
         if (casterID != Service.ClientState.LocalPlayer?.ObjectId || header->SourceSequence == 0 && _lastReqSequence != 0)
         {
@@ -453,7 +370,7 @@ unsafe sealed class ActionManagerEx : IDisposable
                     {
                         animLockReduction = Math.Min(adjDelay - AnimationLockDelayMax, currAnimLock);
                         adjDelay -= animLockReduction;
-                        Utils.WriteField(_inst, 8, currAnimLock - animLockReduction);
+                        _inst->AnimationLock = currAnimLock - animLockReduction;
                     }
                 }
                 AnimationLockDelayAverage = adjDelay * (1 - AnimationLockDelaySmoothing) + AnimationLockDelayAverage * AnimationLockDelaySmoothing;
@@ -468,33 +385,9 @@ unsafe sealed class ActionManagerEx : IDisposable
         _lastReqSequence = -1;
     }
 
-    private void ProcessPacketEffectResultDetour(uint targetID, byte* packet, byte replaying)
-    {
-        var count = packet[0];
-        var p = (Network.ServerIPC.EffectResultEntry*)(packet + 4);
-        for (int i = 0; i < count; ++i)
-        {
-            EffectResultReceived.Fire(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
-            ++p;
-        }
-        _processPacketEffectResultHook.Original(targetID, packet, replaying);
-    }
-
-    private void ProcessPacketEffectResultBasicDetour(uint targetID, byte* packet, byte replaying)
-    {
-        var count = packet[0];
-        var p = (Network.ServerIPC.EffectResultBasicEntry*)(packet + 4);
-        for (int i = 0; i < count; ++i)
-        {
-            EffectResultReceived.Fire(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
-            ++p;
-        }
-        _processPacketEffectResultBasicHook.Original(targetID, packet, replaying);
-    }
-
     private void HandleActionRequest(ActionID action, int seq, ulong targetID, Vector3 targetPos, float prevRot, float currRot)
     {
-        _lastReqInitialAnimLock = AnimationLock;
+        _lastReqInitialAnimLock = _inst->AnimationLock;
         _lastReqSequence = seq;
         MoveMightInterruptCast = CastTimeRemaining > 0;
         if (prevRot != currRot && Config.RestoreRotation)
@@ -508,9 +401,9 @@ unsafe sealed class ActionManagerEx : IDisposable
         if (_useActionInPast > 0)
         {
             if (CastTimeRemaining > 0)
-                Utils.WriteField(_inst, 0x30, CastTimeElapsed + _useActionInPast);
+                _inst->CastTimeElapsed += _useActionInPast;
             else
-                Utils.WriteField(_inst, 8, Math.Max(0, AnimationLock - _useActionInPast));
+                _inst->AnimationLock = Math.Max(0, _inst->AnimationLock - _useActionInPast);
 
             if (recast != null)
                 recast->Elapsed += _useActionInPast;
@@ -518,7 +411,7 @@ unsafe sealed class ActionManagerEx : IDisposable
 
         var recastElapsed = recast != null ? recast->Elapsed : 0;
         var recastTotal = recast != null ? recast->Total : 0;
-        Service.Log($"[AMEx] UAL #{seq} {action} @ {targetID:X} / {Utils.Vec3String(targetPos)}, ALock={AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
-        ActionRequested.Fire(new(action, targetID, targetPos, (uint)seq, AnimationLock, CastSpellID != 0 ? CastTimeElapsed : 0, CastSpellID != 0 ? CastTimeTotal : 0, recastElapsed, recastTotal));
+        Service.Log($"[AMEx] UAL #{seq} {action} @ {targetID:X} / {Utils.Vec3String(targetPos)}, ALock={_inst->AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
+        ActionRequested.Fire(new(action, targetID, targetPos, (uint)seq, _inst->AnimationLock, _inst->CastSpellId != 0 ? _inst->CastTimeElapsed : 0, _inst->CastSpellId != 0 ? _inst->CastTimeTotal : 0, recastElapsed, recastTotal));
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
+using JetBrains.Annotations;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -42,42 +43,17 @@ public static partial class Utils
     public static unsafe T ReadField<T>(void* address, int offset) where T : unmanaged => *(T*)((IntPtr)address + offset);
     public static unsafe void WriteField<T>(void* address, int offset, T value) where T : unmanaged => *(T*)((IntPtr)address + offset) = value;
 
-    private unsafe delegate byte GameObjectIsFriendlyDelegate(FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* obj);
-    private static readonly GameObjectIsFriendlyDelegate GameObjectIsFriendlyFunc = Marshal.GetDelegateForFunctionPointer<GameObjectIsFriendlyDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 33 C9 84 C0 0F 95 C1 8D 41 03"));
+    public unsafe delegate byte GameObjectIsFriendlyDelegate(FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* obj);
+    public static readonly GameObjectIsFriendlyDelegate GameObjectIsFriendly = Marshal.GetDelegateForFunctionPointer<GameObjectIsFriendlyDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 33 C9 84 C0 0F 95 C1 8D 41 03"));
 
     public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* GameObjectInternal(GameObject? obj) => obj != null ? (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)obj.Address : null;
     public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Character.Character* CharacterInternal(Character? chr) => chr != null ? (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)chr.Address : null;
     public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* BattleCharaInternal(BattleChara? chara) => chara != null ? (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)chara.Address : null;
 
-    public static unsafe bool GameObjectIsDead(GameObject obj) => GameObjectInternal(obj)->IsDead();
-    public static unsafe bool GameObjectIsTargetable(GameObject obj) => GameObjectInternal(obj)->GetIsTargetable();
-    public static unsafe bool GameObjectIsFriendly(GameObject obj) => GameObjectIsFriendlyFunc(GameObjectInternal(obj)) != 0;
-    public static unsafe byte GameObjectEventState(GameObject obj) => ReadField<byte>(GameObjectInternal(obj), 0x70); // see actor control 106
-    public static unsafe float GameObjectRadius(GameObject obj) => GameObjectInternal(obj)->GetRadius();
-    public static unsafe uint GameObjectFateID(GameObject obj) => GameObjectInternal(obj)->FateId;
-    //public static unsafe Vector3 GameObjectNonInterpolatedPosition(GameObject obj) => ReadField<Vector3>(GameObjectInternal(obj), 0x10);
-    //public static unsafe float GameObjectNonInterpolatedRotation(GameObject obj) => ReadField<float>(GameObjectInternal(obj), 0x20);
-    public static unsafe byte CharacterShieldValue(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x1A0 + 0x46); // CharacterInternal(chr)->ShieldValue; // % of max hp; see effect result
-    public static unsafe bool CharacterInCombat(Character chr) => (ReadField<byte>(CharacterInternal(chr), 0x1EB) & 0x20) != 0; // see actor control 4
-    public static unsafe byte CharacterAnimationState(Character chr, bool second) => ReadField<byte>(CharacterInternal(chr), 0x970 + (second ? 0x2C2 : 0x2C1)); // see actor control 62
-    public static unsafe byte CharacterModelState(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x970 + 0x2C0); // see actor control 63
-    public static unsafe float CharacterCastRotation(Character chr) => ReadField<float>(CharacterInternal(chr), 0x1B6C); // see ActorCast -> Character::StartCast
-    public static unsafe ulong CharacterTargetID(Character chr) => ReadField<ulong>(CharacterInternal(chr), 0x1B58); // until FFXIVClientStructs fixes offset and type...
-    public static unsafe ushort CharacterTetherID(Character chr) => ReadField<ushort>(CharacterInternal(chr), 0x12F0 + 0xA0); // see actor control 35 -> CharacterTethers::Set (note that there is also a secondary tether...)
-    public static unsafe ulong CharacterTetherTargetID(Character chr) => ReadField<ulong>(CharacterInternal(chr), 0x12F0 + 0xA0 + 0x10);
-    public static unsafe Vector3 BattleCharaCastLocation(BattleChara chara) => BattleCharaInternal(chara)->GetCastInfo->CastLocation; // see ActorCast -> Character::StartCast -> Character::StartOmen
-
-    public static unsafe uint FrameIndex() => FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->FrameCounter;
-    public static unsafe ulong FrameQPF() => ReadField<ulong>(FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance(), 0x16A0);
-    public static unsafe ulong FrameQPC() => ReadField<ulong>(FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance(), 0x16A8);
-    public static unsafe float FrameDuration() => FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->FrameDeltaTime;
-    public static unsafe float FrameDurationRaw() => ReadField<float>(FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance(), 0x16BC);
-    public static unsafe float TickSpeedMultiplier() => ReadField<float>(FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance(), 0x17B0);
-
     public static unsafe ulong MouseoverID()
     {
         var pronoun = FFXIVClientStructs.FFXIV.Client.UI.Misc.PronounModule.Instance();
-        return pronoun != null && pronoun->UiMouseOverTarget != null ? pronoun->UiMouseOverTarget->ObjectID : 0;
+        return pronoun != null && pronoun->UiMouseOverTarget != null ? pronoun->UiMouseOverTarget->EntityId : 0;
     }
 
     public static unsafe ulong SceneObjectFlags(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o) => ReadField<ulong>(o, 0x38);

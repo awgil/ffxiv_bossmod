@@ -1,0 +1,86 @@
+autorotation v2:
+- Autorotation.cs
+-- not tied to game - convert to rotationmodulemanager basically
+-- move useaction hook to AMEx
+-- manual queue should be managed by a plugin / framework
+-- move hints above? ie to be filled by framework right after WS/BMM update
+-- manage ui and active modules
+-- calcnextaction logic to combine manual queue, hints and rotation modules
+- CommonActions.cs
+-- just a base class for rotation modules
+-- move rotation expire logic to autorotation?
+--- maybe need to split into manager + manual layers?
+-- 
+
+
+autorotation rework:
+- priority action suggestions
+- control panel w/ presets and bindings
+- module registry supporting alternatives per job
+- unify lb planning across all classes
+- proper gcd time calculations
+- simulation in replay analysis
+- cooldowns
+-- get rid of cdgroup enums
+-- properly support additional cdgroups
+-- remove fake cdgroup 71 (lb/holster)
+
+general:
+- refactor window system to dispose stuff properly and avoid CS1806 and `_ = new...` pattern
+- diagnostic to detect readonly mutable collections
+- introduce 'Game' class that would contain dalamud services and stuff like AMEx/IDScramble, instead of statics, to avoid uncontrolled access to game state (won't help with CS tho)
+- autoreplay improvements - react to module manager transitions?
+- better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
+- constrain bossmodules to zone id (e.g. for T04)
+- revise module categories - consider merging fates/hunts/quests/gold saucer?/pvp? into outdoor?/casual?
+- refactor pendingeffects
+- utility to inject custom ipcs to the stream for debugging?
+
+boss modules:
+- wipe should not fast forward all phases
+- fail log
+- boss module config presets/profiles
+
+autorotation:
+- dot/regen server tick tracking
+- brd
+-- aoe rotation (2/3/4+ targets, barrage usage)
+-- take traits into account (ij proccing rs, ea proccing repertoire)
+- drg
+-- priorities...
+-- dragon sight is a true north
+-- cd planning
+- war
+-- simulate gauge changes (message can arrive few frames after ActionEffect...)
+-- low-level rotation - improve berserk delay logic
+- whm:
+-- resurrect (6.1 and later changes)
+-- planner
+-- smart-targeting for ST actions
+
+cooldown planner:
+- in-combat cooldown plan ui
+- select columns to show (concrete actions, categories)
+
+ai:
+- improve healing AI: analyze incoming dps
+- movement: know time left, distance to travel => decide whether to swiftcast or slidecast or use movement rotation
+
+world rendering:
+- danger zones (modify action vfx?)
+- arrows
+
+replay encounter analysis:
+- tether & debuff passing range
+- pull range
+
+misc:
+- memory show/watch utility
+- clip circles to arena bounds...
+- draw target max-melee and boss positioning hints?..
+- assignments/config sharing (webservice?)
+
+notes on targeting:
+- aoe (e.g. cone) will hit if shape intersects target's hitbox; for players it is == 0.5
+- max melee range is raw range (usually 3) + source hitbox radius + target hitbox radius; for players this usually means 3.5 + target hitbox
+- charge/onslaught will bring player to source hitbox radius + target hitbox radius range, or leave in place if current distance is less
