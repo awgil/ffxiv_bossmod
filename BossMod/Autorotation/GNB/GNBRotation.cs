@@ -1,4 +1,4 @@
-﻿// CONTRIB: made by lazylemo, not checked
+// CONTRIB: made by LazyLemo, tweaked by Akechi (there's still plenty of issues that need to be addressed.. but with DT around the corner, not so much on my mind)
 namespace BossMod.GNB;
 
 public static class Rotation
@@ -34,6 +34,7 @@ public static class Rotation
     }
 
     // strategy configuration
+    // TODO: add in Hold Double Down; Force ST or AOE combo
     public class Strategy : CommonRotation.Strategy
     {
         public enum GaugeUse : uint
@@ -43,17 +44,29 @@ public static class Rotation
             [PropertyDisplay("Spend all gauge ASAP", 0x8000ff00)]
             Spend = 1, // spend all gauge asap, don't bother conserving
 
+            [PropertyDisplay("Hold Carts", 0x800000ff)]
+            Hold = 2, // Hold carts
+
+            [PropertyDisplay("Force ST combo", 0x809061F9)]
+            ForceST = 3,
+
+            [PropertyDisplay("Force AOE combo", 0x80D1AF97)]
+            ForceAOE = 4,
+
+            [PropertyDisplay("Force Gnashing combo", 0x804C967D)]
+            ForceGF = 5,
+
             [PropertyDisplay("Use Lightning Shot if outside melee", 0x80c08000)]
-            LightningShotIfNotInMelee = 2,
+            LightningShotIfNotInMelee = 6,
 
             [PropertyDisplay("Use ST combo if still in ST combo, else use AOE combo", 0x80c0c000)]
-            ComboFitBeforeDowntime = 3, // useful on late phases before downtime
+            ComboFitBeforeDowntime = 7, // useful on late phases before downtime
 
             [PropertyDisplay("Use appropriate rotation to reach max gauge before downtime (NEEDS TESTING)", 0x80c0c000)]
-            MaxGaugeBeforeDowntime = 4, // useful on late phases before downtime
+            MaxGaugeBeforeDowntime = 8, // useful on late phases before downtime
 
             [PropertyDisplay("Use combo until second-last step, then spend gauge", 0x80400080)]
-            PenultimateComboThenSpend = 5, // useful for ensuring ST extension is used right before long downtime
+            PenultimateComboThenSpend = 9, // useful for ensuring ST extension is used right before long downtime
         }
 
         public enum PotionUse : uint
@@ -245,12 +258,135 @@ public static class Rotation
     {
         if (strategy.GaugeStrategy == Strategy.GaugeUse.Spend)
         {
-            if (state.CD(CDGroup.GnashingFang) > 9 && state.Ammo >= 1)
+            if (state.Ammo >= 2)
+            {
+                if (state.CD(CDGroup.DoubleDown) < 0.6f && state.Ammo > 2)
+                    return AID.DoubleDown;
+
+                if (state.CD(CDGroup.GnashingFang) < 0.6f && state.Ammo <= 2)
+                {
+                    if (state.GunComboStep == 0)
+                        return AID.GnashingFang;
+                    if (state.GunComboStep == 1)
+                        return AID.SavageClaw;
+                    if (state.GunComboStep == 2)
+                        return AID.WickedTalon;
+                }
+
                 return AID.BurstStrike;
-            if (strategy.FightEndIn < 9 && state.Ammo > 0)
-                return AID.BurstStrike;
+            }
+
+            if (state.Ammo == 0 && state.GunComboStep <= 0)
+            {
+                return AID.KeenEdge;
+            }
         }
 
+        if (strategy.GaugeStrategy == Strategy.GaugeUse.Hold && state.Ammo >= 0 && state.NoMercyLeft >= 0)
+        {
+            if (aoe)
+            {
+                if (state.ComboLastMove == AID.DemonSlice && state.Ammo < 3)
+                {
+                    return AID.DemonSlaughter;
+                }
+                else if (state.ComboLastMove == AID.DemonSlice && state.Ammo == 3)
+                {
+                    return AID.FatedCircle;
+                }
+                else if (state.ComboLastMove == AID.KeenEdge)
+                {
+                    return AID.BrutalShell;
+                }
+
+                return AID.DemonSlice;
+            }
+            else if (state.ComboLastMove == AID.BrutalShell)
+            {
+                if (state.Ammo < 3)
+                {
+                    return AID.SolidBarrel;
+                }
+                else if (state.Ammo == 3)
+                {
+                    return AID.BurstStrike;
+                }
+            }
+            else if (state.ComboLastMove == AID.KeenEdge)
+            {
+                return AID.BrutalShell;
+            }
+            return AID.KeenEdge;
+        }
+
+        if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceST && state.Ammo >= 0 && state.NoMercyLeft >= 0)
+        {
+            if (state.ComboLastMove == AID.BrutalShell)
+            {
+                if (state.Ammo < 3)
+                {
+                    return AID.SolidBarrel;
+                }
+                else if (state.Ammo == 3)
+                {
+                    return AID.BurstStrike;
+                }
+            }
+            else if (state.ComboLastMove == AID.KeenEdge)
+            {
+                return AID.BrutalShell;
+            }
+            return AID.KeenEdge;
+        }
+
+        if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceAOE && state.Ammo >= 0 && state.NoMercyLeft >= 0)
+        {
+            if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceAOE && state.Ammo >= 0 && state.NoMercyLeft >= 0)
+            {
+                if (state.ComboLastMove == AID.DemonSlice && state.Ammo < 3)
+                {
+                    return AID.DemonSlaughter;
+                }
+                else if (state.ComboLastMove == AID.DemonSlice && state.Ammo == 3)
+                {
+                    return AID.FatedCircle;
+                }
+
+                return AID.DemonSlice;
+            }
+        }
+
+        if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceGF)
+        {
+            if (state.Ammo >= 1)
+            {
+                if (state.CD(CDGroup.GnashingFang) < 0.6f && state.CD(CDGroup.DoubleDown) < 0.6f)
+                {
+                    if (state.GunComboStep == 0)
+                    {
+                        return AID.GnashingFang;
+                    }
+                    else if (state.GunComboStep == 1)
+                    {
+                        return AID.SavageClaw;
+                    }
+                    else if (state.GunComboStep == 2)
+                    {
+                        return AID.WickedTalon;
+                    }
+                }
+                else if (state.GunComboStep == 1)
+                {
+                    return AID.SavageClaw;
+                }
+                else if (state.GunComboStep == 2)
+                {
+                    return AID.WickedTalon;
+                }
+            }
+        }
+
+        // todo: Add Hold Double Down only?
         if (Service.Config.Get<GNBConfig>().Skscheck && state.Ammo == state.MaxCartridges - 1 && state.ComboLastMove == AID.BrutalShell && state.GunComboStep == 0 && state.CD(CDGroup.GnashingFang) < 2.5)
             return AID.SolidBarrel;
         if (!Service.Config.Get<GNBConfig>().Skscheck && state.Ammo == state.MaxCartridges - 1 && state.ComboLastMove == AID.BrutalShell && state.GunComboStep == 0 && state.CD(CDGroup.GnashingFang) < 2.5 && (state.CD(CDGroup.Bloodfest) > 20 && state.Unlocked(AID.Bloodfest)))
@@ -313,9 +449,129 @@ public static class Rotation
 
         if (strategy.GaugeStrategy == Strategy.GaugeUse.Spend && state.Ammo >= 0)
         {
-            if (state.CD(CDGroup.GnashingFang) < 0.6f)
-                return AID.GnashingFang;
-            return AID.BurstStrike;
+            if (state.Ammo >= 2)
+            {
+                if (state.CD(CDGroup.DoubleDown) < 0.6f && state.Ammo > 2)
+                    return AID.DoubleDown;
+
+                if (state.CD(CDGroup.GnashingFang) < 0.6f && state.Ammo <= 2)
+                {
+                    if (state.GunComboStep == 0)
+                        return AID.GnashingFang;
+                    if (state.GunComboStep == 1)
+                        return AID.SavageClaw;
+                    if (state.GunComboStep == 2)
+                        return AID.WickedTalon;
+                }
+
+                return AID.BurstStrike;
+            }
+
+            if (state.Ammo == 0 && state.GunComboStep <= 0)
+            {
+                return AID.KeenEdge;
+            }
+        }
+
+        if (strategy.GaugeStrategy == Strategy.GaugeUse.Hold && state.Ammo >= 0 && state.NoMercyLeft >= 0)
+        {
+            if (aoe)
+            {
+                if (state.ComboLastMove == AID.DemonSlice)
+                {
+                    return AID.DemonSlaughter;
+                }
+                else if (state.ComboLastMove == AID.BrutalShell)
+                {
+                    return AID.SolidBarrel;
+                }
+                else if (state.ComboLastMove == AID.KeenEdge)
+                {
+                    return AID.BrutalShell;
+                }
+
+                return AID.DemonSlice;
+            }
+            else if (state.ComboLastMove == AID.BrutalShell)
+            {
+                if (state.Ammo < 3)
+                {
+                    return AID.SolidBarrel;
+                }
+                else if (state.Ammo == 3)
+                {
+                    return AID.BurstStrike;
+                }
+            }
+            else if (state.ComboLastMove == AID.KeenEdge)
+            {
+                return AID.BrutalShell;
+            }
+            return AID.KeenEdge;
+        }
+
+        if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceST && state.Ammo >= 0 && state.NoMercyLeft >= 0)
+        {
+            if (state.ComboLastMove == AID.BrutalShell)
+            {
+                if (state.Ammo < 3)
+                {
+                    return AID.SolidBarrel;
+                }
+                else if (state.Ammo == 3)
+                {
+                    return AID.BurstStrike;
+                }
+            }
+            else if (state.ComboLastMove == AID.KeenEdge)
+            {
+                return AID.BrutalShell;
+            }
+            return AID.KeenEdge;
+        }
+
+        if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceAOE && state.Ammo >= 0 && state.NoMercyLeft >= 0)
+        {
+            if (state.ComboLastMove == AID.DemonSlice && state.Ammo < 3)
+            {
+                return AID.DemonSlaughter;
+            }
+            else if (state.ComboLastMove == AID.DemonSlice && state.Ammo == 3)
+            {
+                return AID.FatedCircle;
+            }
+
+            return AID.DemonSlice;
+        }
+
+        if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceGF)
+        {
+            if (state.Ammo >= 1)
+            {
+                if (state.CD(CDGroup.GnashingFang) < 0.6f && state.CD(CDGroup.DoubleDown) < 0.6f)
+                {
+                    if (state.GunComboStep == 0)
+                    {
+                        return AID.GnashingFang;
+                    }
+                    else if (state.GunComboStep == 1)
+                    {
+                        return AID.SavageClaw;
+                    }
+                    else if (state.GunComboStep == 2)
+                    {
+                        return AID.WickedTalon;
+                    }
+                }
+                else if (state.GunComboStep == 1)
+                {
+                    return AID.SavageClaw;
+                }
+                else if (state.GunComboStep == 2)
+                {
+                    return AID.WickedTalon;
+                }
+            }
         }
 
         // single-target gauge spender
@@ -326,6 +582,10 @@ public static class Rotation
     {
         Strategy.GaugeUse.Automatic or Strategy.GaugeUse.LightningShotIfNotInMelee => (state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10),
         Strategy.GaugeUse.Spend => true,
+        Strategy.GaugeUse.ForceST => true,
+        Strategy.GaugeUse.ForceAOE => true,
+        Strategy.GaugeUse.ForceGF => true,
+        Strategy.GaugeUse.Hold => true,
         Strategy.GaugeUse.ComboFitBeforeDowntime => strategy.FightEndIn <= state.GCD + 2.5f * ((aoe ? GetAOEComboLength(state.ComboLastMove) : GetSTComboLength(state.ComboLastMove)) - 1),
         Strategy.GaugeUse.PenultimateComboThenSpend => state.ComboLastMove is AID.BrutalShell or AID.DemonSlice,
         _ => true
@@ -342,11 +602,11 @@ public static class Rotation
 
     public static bool ShouldUseNoMercy(State state, Strategy strategy)
     {
-        if (strategy.NoMercyUse == Strategy.OffensiveAbilityUse.Delay)
+        if (strategy.NoMercyUse == CommonRotation.Strategy.OffensiveAbilityUse.Delay)
         {
             return false;
         }
-        else if (strategy.NoMercyUse == Strategy.OffensiveAbilityUse.Force)
+        else if (strategy.NoMercyUse == CommonRotation.Strategy.OffensiveAbilityUse.Force)
         {
             return true;
         }
@@ -382,25 +642,25 @@ public static class Rotation
 
     public static bool ShouldUseGnash(State state, Strategy strategy) => strategy.GnashUse switch
     {
-        Strategy.OffensiveAbilityUse.Delay => false,
-        Strategy.OffensiveAbilityUse.Force => true,
+        CommonRotation.Strategy.OffensiveAbilityUse.Delay => false,
+        CommonRotation.Strategy.OffensiveAbilityUse.Force => true,
         _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.Unlocked(AID.GnashingFang) && state.CD(CDGroup.GnashingFang) < 0.6f && state.Ammo >= 1
     };
 
     public static bool ShouldUseZone(State state, Strategy strategy) => strategy.ZoneUse switch
     {
-        Strategy.OffensiveAbilityUse.Delay => false,
-        Strategy.OffensiveAbilityUse.Force => true,
+        CommonRotation.Strategy.OffensiveAbilityUse.Delay => false,
+        CommonRotation.Strategy.OffensiveAbilityUse.Force => true,
         _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.Unlocked(AID.SonicBreak) && state.CD(CDGroup.SonicBreak) > state.AnimationLock && state.CD(CDGroup.NoMercy) > 17
     };
 
     public static bool ShouldUseFest(State state, Strategy strategy)
     {
-        if (strategy.BloodFestUse == Strategy.OffensiveAbilityUse.Delay)
+        if (strategy.BloodFestUse == CommonRotation.Strategy.OffensiveAbilityUse.Delay)
         {
             return false;
         }
-        else if (strategy.BloodFestUse == Strategy.OffensiveAbilityUse.Force)
+        else if (strategy.BloodFestUse == CommonRotation.Strategy.OffensiveAbilityUse.Force)
         {
             return true;
         }
@@ -417,8 +677,8 @@ public static class Rotation
 
     public static bool ShouldUseBow(State state, Strategy strategy) => strategy.BowUse switch
     {
-        Strategy.OffensiveAbilityUse.Delay => false,
-        Strategy.OffensiveAbilityUse.Force => true,
+        CommonRotation.Strategy.OffensiveAbilityUse.Delay => false,
+        CommonRotation.Strategy.OffensiveAbilityUse.Force => true,
         _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.Unlocked(AID.BowShock) && state.CD(CDGroup.SonicBreak) > state.AnimationLock && state.CD(CDGroup.NoMercy) > 40
     };
 
@@ -551,6 +811,18 @@ public static class Rotation
         }
 
         if (strategy.GaugeStrategy == Strategy.GaugeUse.Spend)
+            return GetNextAmmoAction(state, strategy, aoe);
+
+        if (strategy.GaugeStrategy == Strategy.GaugeUse.Hold)
+            return GetNextUnlockedComboAction(state, strategy, aoe);
+
+        if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceST)
+            return GetNextUnlockedComboAction(state, strategy, aoe);
+
+        if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceAOE)
+            return GetNextUnlockedComboAction(state, strategy, aoe);
+
+        if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceGF)
             return GetNextAmmoAction(state, strategy, aoe);
 
         if (strategy.GaugeStrategy == Strategy.GaugeUse.MaxGaugeBeforeDowntime && state.NoMercyLeft < state.AnimationLock)
