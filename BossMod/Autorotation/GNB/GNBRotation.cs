@@ -6,7 +6,7 @@ public static class Rotation
     // full state needed for determining next action
     public class State(WorldState ws) : CommonRotation.PlayerState(ws)
     {
-        public int Ammo; // 0 to 100
+        public int Ammo; // 0 to 3
         public int GunComboStep; // 0 to 2
         public float NoMercyLeft; // 0 if buff not up, max 20
         public bool ReadyToRip; // 0 if buff not up, max 10
@@ -34,27 +34,27 @@ public static class Rotation
     }
 
     // strategy configuration
-    // TODO: add in Hold Double Down; Force ST or AOE combo
+    // TODO: add in "Hold Double Down" & rotation to support it, I'm lazy 
     public class Strategy : CommonRotation.Strategy
     {
         public enum GaugeUse : uint
         {
-            Automatic = 0, // spend gauge either under raid buffs or if next downtime is soon (so that next raid buff window won't cover at least 4 GCDs)
+            Automatic = 0, // optimal spend (for the most part)
 
             [PropertyDisplay("Spend all gauge ASAP", 0x8000ff00)]
-            Spend = 1, // spend all gauge asap, don't bother conserving
+            Spend = 1, // burn all carts; Double Down > GF combo > Burst Strike > 123 combo
 
             [PropertyDisplay("Hold Carts", 0x800000ff)]
-            Hold = 2, // Hold carts
+            Hold = 2, // Hold cartridges optimally; works for both ST/AOE
 
             [PropertyDisplay("Force ST combo", 0x809061F9)]
-            ForceST = 3,
+            ForceST = 3, // forces Single Target combo & protects overcap
 
             [PropertyDisplay("Force AOE combo", 0x80D1AF97)]
-            ForceAOE = 4,
+            ForceAOE = 4, // forces AOE combo & protects overcap 
 
             [PropertyDisplay("Force Gnashing combo", 0x804C967D)]
-            ForceGF = 5,
+            ForceGF = 5, // forces GF combo
 
             [PropertyDisplay("Use Lightning Shot if outside melee", 0x80c08000)]
             LightningShotIfNotInMelee = 6,
@@ -71,7 +71,7 @@ public static class Rotation
 
         public enum PotionUse : uint
         {
-            Manual = 0, // potion won't be used automatically
+            Manual = 0, // nothing used
 
             [PropertyDisplay("Use ASAP, but delay slightly during opener", 0x8000ff00)]
             Immediate = 1,
@@ -386,7 +386,6 @@ public static class Rotation
             }
         }
 
-        // todo: Add Hold Double Down only?
         if (Service.Config.Get<GNBConfig>().Skscheck && state.Ammo == state.MaxCartridges - 1 && state.ComboLastMove == AID.BrutalShell && state.GunComboStep == 0 && state.CD(CDGroup.GnashingFang) < 2.5)
             return AID.SolidBarrel;
         if (!Service.Config.Get<GNBConfig>().Skscheck && state.Ammo == state.MaxCartridges - 1 && state.ComboLastMove == AID.BrutalShell && state.GunComboStep == 0 && state.CD(CDGroup.GnashingFang) < 2.5 && (state.CD(CDGroup.Bloodfest) > 20 && state.Unlocked(AID.Bloodfest)))
@@ -417,6 +416,11 @@ public static class Rotation
                 return AID.BurstStrike;
             if (!aoe && state.Ammo >= 1 && state.CD(CDGroup.GnashingFang) > state.GCD && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.SonicBreak) && state.GunComboStep == 0)
                 return AID.BurstStrike;
+
+            // Lv70 only; when in NM and you can't use Fated Circle (Lv72) sadge
+            if (aoe && state.Ammo >= 1 && !state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.Bloodfest) && state.Unlocked(AID.Continuation) && state.GunComboStep == 0)
+                return AID.BurstStrike;
+
             if (!aoe && state.Ammo >= 1 && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.SonicBreak) && !state.Unlocked(AID.GnashingFang))
                 return AID.BurstStrike;
             if (aoe && state.Ammo >= 1 && state.CD(CDGroup.GnashingFang) > state.GCD && state.CD(CDGroup.DoubleDown) > state.GCD && state.CD(CDGroup.SonicBreak) > state.GCD && state.Unlocked(AID.DoubleDown) && state.GunComboStep == 0)
@@ -778,6 +782,10 @@ public static class Rotation
         if (strategy.GaugeStrategy == Strategy.GaugeUse.LightningShotIfNotInMelee && state.RangeToTarget > 3)
             return AID.LightningShot;
 
+        // Lv70 only; can't use Fated Circle (Lv72) sadge
+        if (aoe && state.Ammo >= 1 && !state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.Bloodfest) && state.Unlocked(AID.BurstStrike) && state.Unlocked(AID.Continuation) && state.CD(CDGroup.GnashingFang) > 24 && state.GunComboStep == 0)
+            return AID.BurstStrike;
+
         if (state.ReadyToBlast)
             return state.BestContinuation;
         if (state.ReadyToGouge)
@@ -833,7 +841,6 @@ public static class Rotation
 
     public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline, bool aoe)
     {
-        //bool hasContinuation = state.ReadyToBlast || state.ReadyToGouge || state.ReadyToRip || state.ReadyToTear;
         if (strategy.SpecialActionUse == Strategy.SpecialAction.LB3)
             return ActionID.MakeSpell(AID.GunmetalSoul);
 
