@@ -602,11 +602,11 @@ public static class Rotation
 
     public static bool ShouldUseNoMercy(State state, Strategy strategy)
     {
-        if (strategy.NoMercyUse == Strategy.OffensiveAbilityUse.Delay)
+        if (strategy.NoMercyUse == CommonRotation.Strategy.OffensiveAbilityUse.Delay)
         {
             return false;
         }
-        else if (strategy.NoMercyUse == Strategy.OffensiveAbilityUse.Force)
+        else if (strategy.NoMercyUse == CommonRotation.Strategy.OffensiveAbilityUse.Force)
         {
             return true;
         }
@@ -642,25 +642,25 @@ public static class Rotation
 
     public static bool ShouldUseGnash(State state, Strategy strategy) => strategy.GnashUse switch
     {
-        Strategy.OffensiveAbilityUse.Delay => false,
-        Strategy.OffensiveAbilityUse.Force => true,
+        CommonRotation.Strategy.OffensiveAbilityUse.Delay => false,
+        CommonRotation.Strategy.OffensiveAbilityUse.Force => true,
         _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.Unlocked(AID.GnashingFang) && state.CD(CDGroup.GnashingFang) < 0.6f && state.Ammo >= 1
     };
 
     public static bool ShouldUseZone(State state, Strategy strategy) => strategy.ZoneUse switch
     {
-        Strategy.OffensiveAbilityUse.Delay => false,
-        Strategy.OffensiveAbilityUse.Force => true,
+        CommonRotation.Strategy.OffensiveAbilityUse.Delay => false,
+        CommonRotation.Strategy.OffensiveAbilityUse.Force => true,
         _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.Unlocked(AID.SonicBreak) && state.CD(CDGroup.SonicBreak) > state.AnimationLock && state.CD(CDGroup.NoMercy) > 17
     };
 
     public static bool ShouldUseFest(State state, Strategy strategy)
     {
-        if (strategy.BloodFestUse == Strategy.OffensiveAbilityUse.Delay)
+        if (strategy.BloodFestUse == CommonRotation.Strategy.OffensiveAbilityUse.Delay)
         {
             return false;
         }
-        else if (strategy.BloodFestUse == Strategy.OffensiveAbilityUse.Force)
+        else if (strategy.BloodFestUse == CommonRotation.Strategy.OffensiveAbilityUse.Force)
         {
             return true;
         }
@@ -677,8 +677,8 @@ public static class Rotation
 
     public static bool ShouldUseBow(State state, Strategy strategy) => strategy.BowUse switch
     {
-        Strategy.OffensiveAbilityUse.Delay => false,
-        Strategy.OffensiveAbilityUse.Force => true,
+        CommonRotation.Strategy.OffensiveAbilityUse.Delay => false,
+        CommonRotation.Strategy.OffensiveAbilityUse.Force => true,
         _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.Unlocked(AID.BowShock) && state.CD(CDGroup.SonicBreak) > state.AnimationLock && state.CD(CDGroup.NoMercy) > 40
     };
 
