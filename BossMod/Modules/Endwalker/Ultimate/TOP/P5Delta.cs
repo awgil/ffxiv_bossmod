@@ -238,7 +238,7 @@ class P5Delta(BossModule module) : BossComponent(module)
         if (p.PartnerSlot < 0 || _eyeDir == default)
             yield break; // no safe spots yet
 
-        if (p.RocketPunch == null)
+        if (NumPunchesSpawned < PartyState.MaxPartySize)
         {
             // no punches yet, show all 4 possible spots
             if (p.IsLocal)
