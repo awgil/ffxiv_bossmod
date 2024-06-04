@@ -72,6 +72,15 @@ class Landslip(BossModule module) : Components.Knockback(module)
         else
             return false;
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var c in _casters)
+            // forbid the half of each lane that would result in the player being pushed into the death wall
+            // TODO make this work with towerfall too...not a huge priority because duty support healer can keep
+            // player alive in that case
+            hints.AddForbiddenZone(new AOEShapeRect(10, 5, 10), c.Position + c.Rotation.ToDirection() * 30);
+    }
 }
 
 class EarthenGeyser(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.EarthenGeyser2), 10);
