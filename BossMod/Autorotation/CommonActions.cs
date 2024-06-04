@@ -328,7 +328,7 @@ abstract class CommonActions : IDisposable
         s.TargetingEnemy = Autorot.PrimaryTarget != null && Autorot.PrimaryTarget.Type is ActorType.Enemy or ActorType.Part && !Autorot.PrimaryTarget.IsAlly;
         s.RangeToTarget = Autorot.PrimaryTarget != null ? (Autorot.PrimaryTarget.Position - Player.Position).Length() - Autorot.PrimaryTarget.HitboxRadius - Player.HitboxRadius : float.MaxValue;
         s.AnimationLock = am.EffectiveAnimationLock;
-        s.AnimationLockDelay = am.EffectiveAnimationLockDelay;
+        s.AnimationLockDelay = am.AnimLockTweak.DelayEstimate;
         s.ComboTimeLeft = am.ComboTimeLeft;
         s.ComboLastAction = am.ComboLastMove;
         s.LimitBreakLevel = Autorot.WorldState.Party.LimitBreakMax > 0 ? Autorot.WorldState.Party.LimitBreakCur / Autorot.WorldState.Party.LimitBreakMax : 0;

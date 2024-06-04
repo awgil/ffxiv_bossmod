@@ -42,7 +42,7 @@ sealed class Autorotation : IDisposable
     public Actor? SecondaryTarget; // this is usually a mouseover, but AI can override; typically used for heal and utility abilities
     public AIHints Hints = new();
     public float EffAnimLock => ActionManagerEx.Instance!.EffectiveAnimationLock;
-    public float AnimLockDelay => ActionManagerEx.Instance!.EffectiveAnimationLockDelay;
+    public float AnimLockDelay => ActionManagerEx.Instance!.AnimLockTweak.DelayEstimate;
 
     private static readonly ActionID IDSprintGeneral = new(ActionType.General, 4);
 
