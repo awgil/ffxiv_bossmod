@@ -125,7 +125,7 @@ public class DebugObjects
                 {
                     var target = Service.ObjectTable.SearchById(chara.CastTargetObjectId);
                     var targetString = target ? Utils.ObjectString(target!) : "unknown";
-                    res.Append($", castAction={new ActionID((ActionType)chara.CastActionType, chara.CastActionId)}, castTarget={targetString}, castLoc={Utils.Vec3String(Utils.BattleCharaInternal(chara)->GetCastInfo()->CastLocation)}, castTime={Utils.CastTimeString(chara.CurrentCastTime, chara.TotalCastTime)}");
+                    res.Append($", castAction={new ActionID((ActionType)chara.CastActionType, chara.CastActionId)}, castTarget={targetString}, castLoc={Utils.Vec3String(Utils.BattleCharaInternal(chara)->GetCastInfo()->TargetLocation)}, castTime={Utils.CastTimeString(chara.CurrentCastTime, chara.TotalCastTime)}");
                 }
                 foreach (var status in chara!.StatusList)
                 {

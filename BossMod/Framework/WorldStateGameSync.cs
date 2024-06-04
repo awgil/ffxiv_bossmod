@@ -169,7 +169,7 @@ sealed class WorldStateGameSync : IDisposable
         for (int i = 0; i < _actorsByIndex.Length; ++i)
         {
             var actor = _actorsByIndex[i];
-            var obj = mgr->Objects.All[i].Value;
+            var obj = mgr->Objects.IndexSorted[i].Value;
 
             if (obj != null && obj->EntityId == InvalidEntityId)
                 obj = null; // ignore non-networked objects (really?..)
@@ -282,9 +282,9 @@ sealed class WorldStateGameSync : IDisposable
                 ? new ActorCastInfo
                 {
                     Action = new((ActionType)castInfo->ActionType, castInfo->ActionId),
-                    TargetID = SanitizedObjectID(castInfo->CastTargetId),
+                    TargetID = SanitizedObjectID(castInfo->TargetId),
                     Rotation = chr->CastRotation.Radians(),
-                    Location = castInfo->CastLocation,
+                    Location = castInfo->TargetLocation,
                     TotalTime = castInfo->TotalCastTime, // TODO: should it use adjusted here?..
                     FinishAt = _ws.CurrentTime.AddSeconds(Math.Clamp(castInfo->TotalCastTime - castInfo->CurrentCastTime, 0, 100000)),
                     Interruptible = castInfo->Interruptible != 0,
@@ -353,7 +353,7 @@ sealed class WorldStateGameSync : IDisposable
         var ui = UIState.Instance();
 
         // update player slot
-        UpdatePartySlot(PartyState.PlayerSlot, UIState.Instance()->PlayerState.ContentId, UIState.Instance()->PlayerState.ObjectId);
+        UpdatePartySlot(PartyState.PlayerSlot, UIState.Instance()->PlayerState.ContentId, UIState.Instance()->PlayerState.EntityId);
 
         // update normal party slots: first update/remove existing members, then add new ones
         for (int i = PartyState.PlayerSlot + 1; i < PartyState.MaxPartySize; ++i)
@@ -365,7 +365,7 @@ sealed class WorldStateGameSync : IDisposable
                 // slot was occupied by player => see if it's still in party
                 var member = gm->GetPartyMemberByContentId(contentID);
                 if (member != null)
-                    UpdatePartySlot(i, contentID, member->ObjectId); // slot is still occupied by player; update in case instance-id changed
+                    UpdatePartySlot(i, contentID, member->EntityId); // slot is still occupied by player; update in case instance-id changed
                 else
                     UpdatePartySlot(i, 0, 0); // player is no longer in party => clear slot
             }
@@ -382,12 +382,12 @@ sealed class WorldStateGameSync : IDisposable
         {
             ref var member = ref gm->PartyMembers[i];
             if (_ws.Party.ContentIDs.IndexOf(member.ContentId) == -1)
-                AddPartyMember(member.ContentId, member.ObjectId);
+                AddPartyMember(member.ContentId, member.EntityId);
             // else: already added, updated in previous loop
         }
         for (int i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
         {
-            var instanceID = ui->Buddy.DutyHelperInfo.DutyHelpers[i].ObjectId;
+            var instanceID = ui->Buddy.DutyHelperInfo.DutyHelpers[i].EntityId;
             if (instanceID != InvalidEntityId && _ws.Party.ActorIDs[1..PartyState.MaxPartySize].IndexOf(instanceID) == -1)
                 AddPartyMember(0, instanceID);
             // else: buddy is non-existent or already updated, skip
@@ -400,7 +400,7 @@ sealed class WorldStateGameSync : IDisposable
             var member = isNormalAlliance ? gm->AllianceMembers.GetPointer(i - PartyState.MaxPartySize) : null;
             if (member != null && !member->IsValidAllianceMember)
                 member = null;
-            UpdatePartySlot(i, 0, member != null ? member->ObjectId : 0);
+            UpdatePartySlot(i, 0, member != null ? member->EntityId : 0);
         }
 
         // update limit break
@@ -413,7 +413,7 @@ sealed class WorldStateGameSync : IDisposable
     {
         var ui = UIState.Instance();
         for (int i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
-            if (ui->Buddy.DutyHelperInfo.DutyHelpers[i].ObjectId == instanceID)
+            if (ui->Buddy.DutyHelperInfo.DutyHelpers[i].EntityId == instanceID)
                 return true;
         return false;
     }

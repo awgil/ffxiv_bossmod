@@ -96,7 +96,7 @@ sealed class Autorotation : IDisposable
         if (Hints.ForcedTarget != null && PrimaryTarget != Hints.ForcedTarget)
         {
             PrimaryTarget = Hints.ForcedTarget;
-            var obj = Hints.ForcedTarget.SpawnIndex >= 0 ? FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.All[Hints.ForcedTarget.SpawnIndex].Value : null;
+            var obj = Hints.ForcedTarget.SpawnIndex >= 0 ? FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.IndexSorted[Hints.ForcedTarget.SpawnIndex].Value : null;
             if (obj != null && obj->EntityId != Hints.ForcedTarget.InstanceID)
                 Service.Log($"[AR] Unexpected new target: expected {Hints.ForcedTarget.InstanceID:X} at #{Hints.ForcedTarget.SpawnIndex}, but found {obj->EntityId:X}");
             FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->Target = obj;

@@ -1,8 +1,9 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Hooking;
-using FFXIVClientStructs.FFXIV.Client.Game;
+﻿using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
 namespace BossMod;
 
@@ -77,9 +78,7 @@ unsafe sealed class ActionManagerEx : IDisposable
     private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
     private readonly HookAddress<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
     private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
-
-    private delegate void ProcessPacketActionEffectDelegate(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Network.ServerIPC.ActionEffectHeader* header, ulong* effects, ulong* targets);
-    private readonly Hook<ProcessPacketActionEffectDelegate> _processPacketActionEffectHook;
+    private readonly HookAddress<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
 
     public ActionManagerEx()
     {
@@ -92,10 +91,7 @@ unsafe sealed class ActionManagerEx : IDisposable
         _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
         _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
         _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
-
-        _processPacketActionEffectHook = Service.Hook.HookFromSignature<ProcessPacketActionEffectDelegate>("E8 ?? ?? ?? ?? 48 8B 4C 24 68 48 33 CC E8 ?? ?? ?? ?? 4C 8D 5C 24 70 49 8B 5B 20 49 8B 73 28 49 8B E3 5F C3", ProcessPacketActionEffectDetour);
-        _processPacketActionEffectHook.Enable();
-        Service.Log($"[AMEx] ProcessPacketActionEffect address = 0x{_processPacketActionEffectHook.Address:X}");
+        _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
     }
 
     public void Dispose()
@@ -113,7 +109,7 @@ unsafe sealed class ActionManagerEx : IDisposable
         return _inst->GetGroundPositionForCursor(&res) ? res : null;
     }
 
-    public void FaceTarget(Vector3 position, ulong unkObjID = GameObject.InvalidGameObjectId) => _inst->AutoFaceTargetPosition(&position, unkObjID);
+    public void FaceTarget(Vector3 position, ulong unkObjID = 0xE0000000) => _inst->AutoFaceTargetPosition(&position, unkObjID);
     public void FaceDirection(WDir direction)
     {
         var player = Service.ClientState.LocalPlayer;
@@ -172,15 +168,15 @@ unsafe sealed class ActionManagerEx : IDisposable
     {
         if (action.Type is ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1)
             action = BozjaActionID.GetHolster(action.As<BozjaHolsterID>()); // see BozjaContentDirector.useFromHolster
-        return _inst->GetActionStatus((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, target, checkRecastActive, checkCastingActive, outOptExtraInfo);
+        return _inst->GetActionStatus((CSActionType)action.Type, action.ID, target, checkRecastActive, checkCastingActive, outOptExtraInfo);
     }
 
     // returns time in ms
     public int GetAdjustedCastTime(ActionID action, bool applyProcs = true, ActionManager.CastTimeProc* outOptProc = null)
-        => ActionManager.GetAdjustedCastTime((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, applyProcs, outOptProc);
+        => ActionManager.GetAdjustedCastTime((CSActionType)action.Type, action.ID, applyProcs, outOptProc);
 
     public bool IsRecastTimerActive(ActionID action)
-        => _inst->IsRecastTimerActive((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID);
+        => _inst->IsRecastTimerActive((CSActionType)action.Type, action.ID);
 
     public int GetRecastGroup(ActionID action)
         => _inst->GetRecastGroup((int)action.Type, action.ID);
@@ -200,7 +196,7 @@ unsafe sealed class ActionManagerEx : IDisposable
             // real action type, just execute our UAL hook
             // note that for items extraParam should be 0xFFFF (since we want to use any item, not from first inventory slot)
             var extraParam = action.Type == ActionType.Item ? 0xFFFFu : 0;
-            return _inst->UseActionLocation((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, targetId, &targetPos, extraParam);
+            return _inst->UseActionLocation((CSActionType)action.Type, action.ID, targetId, &targetPos, extraParam);
         }
     }
 
@@ -252,7 +248,7 @@ unsafe sealed class ActionManagerEx : IDisposable
             if (actionAdj != AutoQueue.Action)
                 Service.Log($"[AMEx] Something didn't perform action adjustment correctly: replacing {AutoQueue.Action} with {actionAdj}");
 
-            var targetID = AutoQueue.Target?.InstanceID ?? GameObject.InvalidGameObjectId;
+            var targetID = AutoQueue.Target?.InstanceID ?? 0xE0000000;
             var status = GetActionStatus(actionAdj, targetID);
             if (status == 0)
             {
@@ -277,7 +273,7 @@ unsafe sealed class ActionManagerEx : IDisposable
             InputOverride.UnblockMovement();
     }
 
-    private bool UseActionLocationDetour(ActionManager* self, FFXIVClientStructs.FFXIV.Client.Game.ActionType actionType, uint actionId, ulong targetId, Vector3* location, uint extraParam)
+    private bool UseActionLocationDetour(ActionManager* self, CSActionType actionType, uint actionId, ulong targetId, Vector3* location, uint extraParam)
     {
         var pc = Service.ClientState.LocalPlayer;
         var prevSeq = _inst->LastUsedActionSequence;
@@ -301,15 +297,15 @@ unsafe sealed class ActionManagerEx : IDisposable
         {
             var currRot = pc?.Rotation ?? 0;
             var entry = (BozjaHolsterID)self->State.HolsterActions[(int)holsterIndex];
-            HandleActionRequest(ActionID.MakeBozjaHolster(entry, (int)slot), 0, GameObject.InvalidGameObjectId, default, prevRot, currRot);
+            HandleActionRequest(ActionID.MakeBozjaHolster(entry, (int)slot), 0, 0xE0000000, default, prevRot, currRot);
         }
         return res;
     }
 
-    private void ProcessPacketActionEffectDetour(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Network.ServerIPC.ActionEffectHeader* header, ulong* effects, ulong* targets)
+    private void ProcessPacketActionEffectDetour(uint casterID, Character* casterObj, Vector3* targetPos, ActionEffectHandler.Header* header, ActionEffectHandler.TargetEffects* effects, GameObjectId* targets)
     {
-        var packetAnimLock = header->animationLockTime;
-        var action = new ActionID(header->actionType, header->actionId);
+        var packetAnimLock = header->AnimationLock;
+        var action = new ActionID((ActionType)header->ActionType, header->ActionId);
 
         // note: there's a slight difference with dispatching event from here rather than from packet processing (ActionEffectN) functions
         // 1. action id is already unscrambled
@@ -318,18 +314,19 @@ unsafe sealed class ActionManagerEx : IDisposable
         var info = new ActorCastEvent
         {
             Action = action,
-            MainTargetID = header->animationTargetId,
-            AnimationLockTime = header->animationLockTime,
+            MainTargetID = header->AnimationTargetId,
+            AnimationLockTime = header->AnimationLock,
             MaxTargets = header->NumTargets,
             TargetPos = *targetPos,
             SourceSequence = header->SourceSequence,
-            GlobalSequence = header->globalEffectCounter,
+            GlobalSequence = header->GlobalSequence,
         };
+        var rawEffects = (ulong*)effects;
         for (int i = 0; i < header->NumTargets; ++i)
         {
             var targetEffects = new ActionEffects();
             for (int j = 0; j < ActionEffects.MaxCount; ++j)
-                targetEffects[j] = effects[i * 8 + j];
+                targetEffects[j] = rawEffects[i * 8 + j];
             info.Targets.Add(new(targets[i], targetEffects));
         }
         ActionEffectReceived.Fire(casterID, info);
@@ -361,9 +358,9 @@ unsafe sealed class ActionManagerEx : IDisposable
                 if (adjDelay > AnimationLockDelayMax)
                 {
                     // sanity check for plugin conflicts
-                    if (header->animationLockTime != packetAnimLock || packetAnimLock % 0.01 is >= 0.0005f and <= 0.0095f)
+                    if (header->AnimationLock != packetAnimLock || packetAnimLock % 0.01 is >= 0.0005f and <= 0.0095f)
                     {
-                        Service.Log($"[AMEx] Unexpected animation lock {packetAnimLock:f} -> {header->animationLockTime:f}, disabling anim lock tweak feature");
+                        Service.Log($"[AMEx] Unexpected animation lock {packetAnimLock:f} -> {header->AnimationLock:f}, disabling anim lock tweak feature");
                         Config.RemoveAnimationLockDelay = false;
                     }
                     else
