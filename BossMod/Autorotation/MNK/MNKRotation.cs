@@ -210,7 +210,7 @@ public static class Rotation
 
         public void ApplyStrategyOverrides(uint[] overrides)
         {
-            if (overrides.Length >= 18)
+            if (overrides.Length >= 20)
             {
                 DashUse = (DashStrategy)overrides[0];
                 TrueNorthUse = (OffensiveAbilityUse)overrides[1];
