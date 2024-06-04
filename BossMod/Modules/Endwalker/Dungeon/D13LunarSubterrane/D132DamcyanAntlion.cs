@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Dungeon.D13LunarSubterrane.D132DamcyanAntilon;
+﻿namespace BossMod.Endwalker.Dungeon.D13LunarSubterrane.D132DamcyanAntlion;
 
 public enum OID : uint
 {
