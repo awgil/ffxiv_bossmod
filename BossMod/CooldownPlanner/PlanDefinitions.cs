@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace BossMod;
 
 public static class PlanDefinitions
@@ -110,14 +113,24 @@ public static class PlanDefinitions
         c.CooldownTracks.Add(new("Mantra", ActionID.MakeSpell(MNK.AID.Mantra), 42));
         c.StrategyTracks.Add(new("Dash", typeof(MNK.Rotation.Strategy.DashStrategy)));
         c.StrategyTracks.Add(new("TrueN", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+        c.StrategyTracks.Add(new("DF", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+        c.StrategyTracks.Add(new("Demo", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
         c.StrategyTracks.Add(new("Nadi", typeof(MNK.Rotation.Strategy.NadiChoice)));
         c.StrategyTracks.Add(new("RoF", typeof(MNK.Rotation.Strategy.FireStrategy)));
         c.StrategyTracks.Add(new("RoW", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
-        c.StrategyTracks.Add(new("BHood", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
-        c.StrategyTracks.Add(
-            new("PerfBal", typeof(CommonRotation.Strategy.OffensiveAbilityUse))
-        );
+        c.StrategyTracks.Add(new("BH", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+        c.StrategyTracks.Add(new("TFC", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+        c.StrategyTracks.Add(new("Meditate", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+        c.StrategyTracks.Add(new("PB", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+        c.StrategyTracks.Add(new("PB1", typeof(MNK.Rotation.Strategy.FormChoice)));
+        c.StrategyTracks.Add(new("PB2", typeof(MNK.Rotation.Strategy.FormChoice)));
+        c.StrategyTracks.Add(new("PB3", typeof(MNK.Rotation.Strategy.FormChoice)));
+        c.StrategyTracks.Add(new("FS", typeof(MNK.Rotation.Strategy.FormShiftStrategy)));
+        c.StrategyTracks.Add(new("FSForm", typeof(MNK.Rotation.Strategy.FormChoice)));
+        c.StrategyTracks.Add(new("Blitz", typeof(MNK.Rotation.Strategy.BlitzStrategy)));
+        c.StrategyTracks.Add(new("DK", typeof(MNK.Rotation.Strategy.DragonKickStrategy)));
         c.StrategyTracks.Add(new("SSS", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+        c.StrategyTracks.Add(new("Potion", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
         return c;
     }
 
