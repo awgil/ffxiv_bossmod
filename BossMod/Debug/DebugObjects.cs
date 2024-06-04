@@ -26,7 +26,7 @@ public class DebugObjects
 
             var internalObj = Utils.GameObjectInternal(obj);
             var localID = internalObj->LayoutId;
-            ulong uniqueID = internalObj->GetObjectId();
+            ulong uniqueID = internalObj->GetGameObjectId();
 
             var posRot = new Vector4(obj.Position.X, obj.Position.Y, obj.Position.Z, obj.Rotation);
             foreach (var n in _tree.Node($"#{i} {Utils.ObjectString(obj)} ({localID:X}) ({Utils.ObjectKindString(obj)}) {Utils.PosRotString(posRot)}###{uniqueID:X}", contextMenu: () => ObjectContextMenu(obj), select: () => _selectedID = uniqueID))
