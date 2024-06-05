@@ -1,7 +1,7 @@
 {
   "Author": "The CombatReborn Team",
   "Name": "BossMod Reborn",
-  "InternalName": "BossMod",
+  "InternalName": "BossModReborn",
   "Description": "A bunch of utilities to simplify boss mechanics",
   "ApplicableVersion": "any",
   "Tags": [

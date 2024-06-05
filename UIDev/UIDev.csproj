@@ -63,7 +63,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BossMod\BossMod.csproj" />
+    <ProjectReference Include="..\BossMod\BossModReborn.csproj" />
   </ItemGroup>
 
   <ItemGroup>

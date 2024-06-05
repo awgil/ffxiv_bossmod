@@ -69,9 +69,9 @@ public sealed class ConfigUI : IDisposable
             using (var tab = ImRaii.TabItem("Slash commands"))
                 if (tab)
                     DrawAvailableCommands();
-            using (var tab = ImRaii.TabItem("Information"))
+            using (var tab = ImRaii.TabItem("Read me!"))
                 if (tab)
-                    DrawInformation();
+                    DrawReadMe();
         }
     }
 
@@ -101,18 +101,24 @@ public sealed class ConfigUI : IDisposable
         {
             ImGui.Text($"/bmrai {command.Key}: {command.Value}");
         }
+        ImGui.Separator();
+        ImGui.Text("To ensure plugin compatibility: /vbmai can be used instead of /bmrai");
     }
 
-    private void DrawInformation()
+    private void DrawReadMe()
     {
         ImGui.Text("Important information");
         ImGui.Separator();
-        ImGui.Text("This is a FORK of veyn's BossMod.");
+        ImGui.Text("This is a FORK of veyn's BossMod (VBM).");
         ImGui.Spacing();
         ImGui.Text("Please do not ask him for any support for problems you encounter while using this fork.");
         ImGui.Spacing();
         ImGui.Text("Instead visit the Combat Reborn Discord and ask for support there:");
         RenderTextWithLink("https://discord.gg/p54TZMPnC9", new Uri("https://discord.gg/p54TZMPnC9"));
+        ImGui.NewLine();
+        ImGui.Text("Please also make sure to not load VBM and this fork at the same time.");
+        ImGui.Spacing();
+        ImGui.Text("The consequences of doing that are unexplored and unsupported.");
     }
 
     static void RenderTextWithLink(string displayText, Uri url)

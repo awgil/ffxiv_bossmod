@@ -9,6 +9,10 @@
     <PackageProjectUrl></PackageProjectUrl>
   </PropertyGroup>
 
+<PropertyGroup>
+  <AssemblyName>BossModReborn</AssemblyName>
+</PropertyGroup>
+
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <Platforms>x64</Platforms>

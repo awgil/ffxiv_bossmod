@@ -153,7 +153,11 @@ sealed class AIManager : IDisposable
             return;
 
         var messagePrefix = message.Payloads.FirstOrDefault() as TextPayload;
-        if (messagePrefix?.Text == null || !messagePrefix.Text.StartsWith("bmrai ", StringComparison.Ordinal))
+        if (messagePrefix?.Text == null)
+            return;
+
+        var messageText = messagePrefix.Text;
+        if (!messageText.StartsWith("bmrai ", StringComparison.OrdinalIgnoreCase) && !messageText.StartsWith("vbmai ", StringComparison.OrdinalIgnoreCase))
             return;
 
         var messageData = messagePrefix.Text.Split(' ');
