@@ -12,6 +12,7 @@ namespace BossMod.Network.ServerIPC;
 // SystemLogMessage1: FFXIVOpcodes = SomeDirectorUnk4
 // WaymarkPreset: FFXIVOpcodes = PlaceFieldMarkerPreset, machina = PresetWaymark
 // Waymark: FFXIVOpcodes = PlaceFieldMarker
+// ActorCustomizeData: PlayerUpdateLook
 // actor control examples: normal = toggle weapon, self = cooldown, target = target change
 public enum PacketID
 {
@@ -98,7 +99,7 @@ public enum PacketID
     Transfer = 266,
     ActorSetPos = 267,
     ActorCast = 269,
-    PlayerUpdateLook = 270,
+    ActorCustomizeData = 270,
     UpdateParty = 271,
     InitZone = 272,
     ApplyIDScramble = 273,
@@ -114,6 +115,7 @@ public enum PacketID
     FirstAttack = 283,
     PlayerStateFlags = 284,
     PlayerClassInfo = 285,
+    PlayerBlueMageActions = 286,
     ModelEquip = 287,
     Examine = 288,
     CharaNameReq = 291,
