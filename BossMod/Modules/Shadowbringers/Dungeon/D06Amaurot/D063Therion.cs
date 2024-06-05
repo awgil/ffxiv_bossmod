@@ -221,19 +221,12 @@ class DeathlyRayFaces(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+class StayInBounds(BossModule module) : BossComponent(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-        {
-            if (!Module.InBounds(actor.Position)) // return into module bounds if accidently walked into fire to prevent death by doom
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 3));
-            else if (!Module.FindComponent<DeathlyRayFaces>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<Apokalypsis>()!.ActiveAOEs(slot, actor).Any() &&
-            !Module.FindComponent<ThereionCharge>()!.ActiveAOEs(slot, actor).Any())
-                if (actor.Role is Role.Melee or Role.Tank)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-        }
+        if (!Module.InBounds(actor.Position))
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 3));
     }
 }
 
@@ -242,7 +235,7 @@ class D063TherionStates : StateMachineBuilder
     public D063TherionStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
+            .ActivateOnEnter<StayInBounds>()
             .ActivateOnEnter<ThereionCharge>()
             .ActivateOnEnter<Misfortune>()
             .ActivateOnEnter<ShadowWreck>()

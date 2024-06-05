@@ -125,21 +125,6 @@ class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
     }
 }
 
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-            if (!Module.FindComponent<MagitekRayF>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<MagitekRayL>()!.ActiveAOEs(slot, actor).Any() &&
-            !Module.FindComponent<MagitekRayR>()!.ActiveAOEs(slot, actor).Any() && Module.FindComponent<HomingRay>()!.Spreads.Count == 0 &&
-            Module.FindComponent<LaserFocus>()!.Stacks.Count == 0 && !Module.FindComponent<Aetheroplasm>()!.ActiveOrbs.Any() &&
-            !Module.FindComponent<AssaultCannon>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<CitadelBuster>()!.ActiveAOEs(slot, actor).Any() &&
-            !Module.FindComponent<Explosion>()!.ActiveAOEs(slot, actor).Any())
-                if (actor.Role is Role.Melee or Role.Tank)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-    }
-}
-
 class Ultima(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Ultima), "Enrage!", true);
 
 class T04PortaDecumana2States : StateMachineBuilder
@@ -147,7 +132,6 @@ class T04PortaDecumana2States : StateMachineBuilder
     public T04PortaDecumana2States(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<TankPurge>()
             .ActivateOnEnter<HomingLasers>()
             .ActivateOnEnter<MagitekRayF>()

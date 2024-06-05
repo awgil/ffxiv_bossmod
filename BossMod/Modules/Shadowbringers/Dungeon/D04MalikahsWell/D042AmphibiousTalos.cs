@@ -80,26 +80,13 @@ class HighPressureRaidwide(BossModule module) : Components.RaidwideCast(module, 
 class HighPressureKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.HighPressure), 20, stopAtWall: true);
 class GeyserEruption(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GeyserEruption), new AOEShapeCircle(8));
 class Geysers(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Geyser).Where(v => v.EventState != 7));
-
 class Wellbore(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wellbore), new AOEShapeCircle(15));
-
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-            if (!Module.FindComponent<GeyserEruption>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<SwiftSpillRotation>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<Wellbore>()!.ActiveAOEs(slot, actor).Any())
-                if (actor.Role is Role.Melee or Role.Tank)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-    }
-}
 
 class D042AmphibiousTalosStates : StateMachineBuilder
 {
     public D042AmphibiousTalosStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<SwiftSpillRotation>()
             .ActivateOnEnter<Efface>()
             .ActivateOnEnter<HighPressureKnockback>()

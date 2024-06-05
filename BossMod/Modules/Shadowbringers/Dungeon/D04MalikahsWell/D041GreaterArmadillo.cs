@@ -50,24 +50,11 @@ class RightRound(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-            if (!Module.FindComponent<FallingRock>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<FlailSmash>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<Earthshake>()!.ActiveAOEs(slot, actor).Any() &&
-            !Module.FindComponent<RightRound>()!.ActiveAOEs(slot, actor).Any() && Module.FindComponent<HeadToss>()!.Stacks.Count == 0)
-                if (actor.Role is Role.Melee or Role.Tank)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-    }
-}
-
 class D041GreaterArmadilloStates : StateMachineBuilder
 {
     public D041GreaterArmadilloStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<RightRound>()
             .ActivateOnEnter<StoneFlail>()
             .ActivateOnEnter<FallingRock>()

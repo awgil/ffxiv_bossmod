@@ -86,25 +86,11 @@ class TheFinalSky(BossModule module) : Components.CastLineOfSightAOE(module, Act
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.FallenStar);
 }
 
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-            if (!Module.FindComponent<TheFallingSky>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<CosmicKiss>()!.ActiveAOEs(slot, actor).Any() &&
-            !Module.FindComponent<Towerfall>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<Earthquake>()!.ActiveAOEs(slot, actor).Any() &&
-            Module.FindComponent<TheFinalSky>()!.Origin == null && Module.FindComponent<Meteors>()!.CurrentBaits.Count == 0 && Module.FindComponent<TheBurningSky2>()!.Stacks.Count == 0)
-                if (actor.Role is Role.Melee or Role.Tank)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-    }
-}
-
 class D061FirstBeastStates : StateMachineBuilder
 {
     public D061FirstBeastStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<TheFinalSky>()
             .ActivateOnEnter<Meteors>()
             .ActivateOnEnter<TheBurningSky1>()

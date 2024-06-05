@@ -15,11 +15,6 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
     private WPos _masterMovementStart;
     private DateTime _masterLastMoved;
 
-    public bool ForbidActions => _config.ForbidActions;
-    public bool ForbidMovement => _config.ForbidMovement;
-    public bool FollowDuringCombat => _config.FollowDuringCombat;
-    public bool FollowDuringActiveBossModule => _config.FollowDuringActiveBossModule;
-
     public void Dispose()
     {
     }
@@ -34,7 +29,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
             FocusMaster(master);
 
         _afkMode = !master.InCombat && (autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
-        bool forbidActions = _config.ForbidActions || ctrl.IsMounted || _afkMode || autorot.ClassActions == null || autorot.ClassActions.AutoAction >= CommonActions.AutoActionFirstCustom;
+        var forbidActions = _config.ForbidActions || ctrl.IsMounted || _afkMode || autorot.ClassActions == null || autorot.ClassActions.AutoAction >= CommonActions.AutoActionFirstCustom;
 
         CommonActions.Targeting target = new();
         if (!forbidActions)
@@ -46,14 +41,14 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
             AdjustTargetPositional(player, ref target);
         }
 
-        _followMaster = master != player && (_config.FollowDuringCombat || !master.InCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100) && (_config.FollowDuringActiveBossModule || autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null);
-        _naviDecision = BuildNavigationDecision(player, master, ref target);
+        var followTarget = _config.FollowTarget;
+        _followMaster = master != player && (_config.FollowDuringCombat || !master.InCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100) && (_config.FollowDuringActiveBossModule || autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null) && (_config.FollowOutOfCombat || master.InCombat);
 
-        bool masterIsMoving = TrackMasterMovement(master);
-        bool moveWithMaster = masterIsMoving && (master == player || _followMaster);
+        _naviDecision = followTarget && autorot.WorldState.Actors.Find(player.TargetID) != null ? BuildNavigationDecision(player, autorot.WorldState.Actors.Find(player.TargetID)!, ref target) : BuildNavigationDecision(player, master, ref target);
+        var masterIsMoving = TrackMasterMovement(master);
+        var moveWithMaster = masterIsMoving && (master == player || _followMaster);
         _maxCastTime = moveWithMaster || ctrl.ForceFacing ? 0 : _naviDecision.LeewaySeconds;
 
-        // note: that there is a 1-frame delay if target and/or strategy changes - we don't really care?..
         if (!forbidActions)
         {
             int actionStrategy = target.Target != null ? CommonActions.AutoActionAIFight : CommonActions.AutoActionAIIdle;
@@ -104,13 +99,15 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
 
     private NavigationDecision BuildNavigationDecision(Actor player, Actor master, ref CommonActions.Targeting targeting)
     {
-        if (_config.ForbidActions)
+        var target = autorot.WorldState.Actors.Find(player.TargetID);
+        if (_config.ForbidMovement)
             return new() { LeewaySeconds = float.MaxValue };
-        if (_followMaster)
+        if (_followMaster && !_config.FollowTarget || _followMaster && _config.FollowTarget && target == null)
             return NavigationDecision.Build(autorot.WorldState, autorot.Hints, player, master.Position, 1, new(), Positional.Any);
+        if (_followMaster && _config.FollowTarget && target != null)
+            return NavigationDecision.Build(autorot.WorldState, autorot.Hints, player, target.Position, target.HitboxRadius + player.HitboxRadius + 3, target.Rotation, _config.DesiredPositional);
         if (targeting.Target == null)
             return NavigationDecision.Build(autorot.WorldState, autorot.Hints, player, null, 0, new(), Positional.Any);
-
         var adjRange = targeting.PreferredRange + player.HitboxRadius + targeting.Target.Actor.HitboxRadius;
         if (targeting.PreferTanking)
         {
@@ -123,8 +120,8 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
                 return NavigationDecision.Build(autorot.WorldState, autorot.Hints, player, dest, 0.5f, new(), Positional.Any);
             }
         }
-
         var adjRotation = targeting.PreferTanking ? targeting.Target.DesiredRotation : targeting.Target.Actor.Rotation;
+
         return NavigationDecision.Build(autorot.WorldState, autorot.Hints, player, targeting.Target.Actor.Position, adjRange, adjRotation, targeting.PreferredPosition);
     }
 
@@ -206,8 +203,12 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
         ImGui.Checkbox("Forbid movement", ref _config.ForbidMovement);
         ImGui.SameLine();
         ImGui.Checkbox("Follow during combat", ref _config.FollowDuringCombat);
-        ImGui.SameLine();
+        ImGui.Spacing();
         ImGui.Checkbox("Follow during active boss module", ref _config.FollowDuringActiveBossModule);
+        ImGui.SameLine();
+        ImGui.Checkbox("Follow out of combat", ref _config.FollowOutOfCombat);
+        ImGui.SameLine();
+        ImGui.Checkbox("Follow target", ref _config.FollowTarget);
         var player = autorot.WorldState.Party.Player();
         var dist = _naviDecision.Destination != null && player != null ? (_naviDecision.Destination.Value - player.Position).Length() : 0;
         ImGui.TextUnformatted($"Max-cast={MathF.Min(_maxCastTime, 1000):f3}, afk={_afkMode}, follow={_followMaster}, algo={_naviDecision.DecisionType} {_naviDecision.Destination} (d={dist:f3}), master standing for {Math.Clamp((autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds, 0, 1000):f1}");

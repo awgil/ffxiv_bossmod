@@ -163,6 +163,6 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnConditionChanged(ConditionFlag flag, bool value)
     {
-        Service.Log($"Condition chage: {flag}={value}");
+        Service.Log($"Condition change: {flag}={value}");
     }
 }

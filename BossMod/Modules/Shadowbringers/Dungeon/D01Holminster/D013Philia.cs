@@ -97,6 +97,12 @@ class Chains(BossModule module) : BossComponent(module)
                     OID.Boss => -1,
                     _ => 0
                 };
+        if (!Service.Config.Get<AutorotationConfig>().Enabled)
+        {
+            var ironchain = Module.Enemies(OID.IronChain).FirstOrDefault();
+            if (ironchain != null && !ironchain.IsDead)
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(ironchain.Position, ironchain.HitboxRadius + 3));
+        }
     }
 
     public override void OnEventIcon(Actor actor, uint iconID)
@@ -332,32 +338,11 @@ class FierceBeating(BossModule module) : Components.Exaflare(module, 4)
     }
 }
 
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-            if (!Module.FindComponent<FierceBeating>()!.ActiveAOEs(slot, actor).Any() && Module.FindComponent<IntoTheLight>()!.CurrentBaits.Count == 0 &&
-            Module.FindComponent<Taphephobia>()!.Spreads.Count == 0 && !Module.FindComponent<LeftKnout>()!.ActiveAOEs(slot, actor).Any() &&
-            !Module.FindComponent<RightKnout>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<PendulumAOE>()!.ActiveAOEs(slot, actor).Any() &&
-            !Module.FindComponent<PendulumFlare>()!.targets.Contains(actor))
-                if (actor.Role is Role.Melee or Role.Tank)
-                {
-                    var ironchain = Module.Enemies(OID.IronChain).FirstOrDefault();
-                    if (ironchain != null && !ironchain.IsDead)
-                        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(ironchain.Position, ironchain.HitboxRadius + 3));
-                    else
-                        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-                }
-    }
-}
-
 class D013PhiliaStates : StateMachineBuilder
 {
     public D013PhiliaStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<ScavengersDaughter>()
             .ActivateOnEnter<HeadCrusher>()
             .ActivateOnEnter<PendulumFlare>()

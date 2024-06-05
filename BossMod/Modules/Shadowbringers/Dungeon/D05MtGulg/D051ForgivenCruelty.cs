@@ -29,23 +29,12 @@ class LumenInfinitum(BossModule module) : Components.SelfTargetedAOEs(module, Ac
 class HurricaneWing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HurricaneWing), new AOEShapeCircle(10));
 class TyphoonWing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TyphoonWing), new AOEShapeCone(25, 30.Degrees()));
 class TyphoonWing2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TyphoonWing2), new AOEShapeCone(25, 30.Degrees()));
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-            if (!Module.FindComponent<HurricaneWing>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<TyphoonWing>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<TyphoonWing2>()!.ActiveAOEs(slot, actor).Any())
-                if (actor.Role is Role.Melee or Role.Tank)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-    }
-}
 
 class D051ForgivenCrueltyStates : StateMachineBuilder
 {
     public D051ForgivenCrueltyStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<Rake>()
             .ActivateOnEnter<HurricaneWing>()
             .ActivateOnEnter<TyphoonWing>()

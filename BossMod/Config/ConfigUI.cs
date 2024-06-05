@@ -1,4 +1,5 @@
 ﻿using Dalamud.Interface.Utility.Raii;
+using System.Diagnostics;
 using ImGuiNET;
 using System.Reflection;
 
@@ -68,6 +69,9 @@ public sealed class ConfigUI : IDisposable
             using (var tab = ImRaii.TabItem("Slash commands"))
                 if (tab)
                     DrawAvailableCommands();
+            using (var tab = ImRaii.TabItem("Information"))
+                if (tab)
+                    DrawInformation();
         }
     }
 
@@ -77,13 +81,16 @@ public sealed class ConfigUI : IDisposable
         { "off", "Disables the AI." },
         { "toggle", "Toggles the AI on/off." },
         { "targetmaster", "Toggles the focus on target leader." },
-        { "follow slot", "Follows the specified slot, eg. Slot1." },
+        { "follow slotX", "Follows the specified slot, eg. Slot1." },
         { "follow name", "Follows the specified party member by name." },
         { "debug", "Toggles the debug menu." },
-        { "forbidactions", "Toggles the forbidding of actions." },
+        { "forbidactions", "Toggles the forbidding of actions. (only for autorotation)" },
         { "forbidmovement", "Toggles the forbidding of movement." },
         { "followcombat", "Toggles following during combat." },
-        { "followmodule", "Toggles following during active boss module." }
+        { "followmodule", "Toggles following during active boss module." },
+        { "followoutofcombat", "Toggles following during out of combat." },
+        { "followtarget", "Toggles following targets during combat." },
+        { "positional X", "Switch to positional when following targets. (any, rear, flank, front)" }
     };
 
     private void DrawAvailableCommands()
@@ -94,6 +101,35 @@ public sealed class ConfigUI : IDisposable
         {
             ImGui.Text($"/bmrai {command.Key}: {command.Value}");
         }
+    }
+
+    private void DrawInformation()
+    {
+        ImGui.Text("Important information");
+        ImGui.Separator();
+        ImGui.Text("This is a FORK of veyn's BossMod.");
+        ImGui.Spacing();
+        ImGui.Text("Please do not ask him for any support for problems you encounter while using this fork.");
+        ImGui.Spacing();
+        ImGui.Text("Instead visit the Combat Reborn Discord and ask for support there:");
+        RenderTextWithLink("https://discord.gg/p54TZMPnC9", "https://discord.gg/p54TZMPnC9");
+    }
+
+    static void RenderTextWithLink(string displayText, string url)
+    {
+        ImGui.PushID(url);
+        ImGui.Text(displayText);
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        var textSize = ImGui.CalcTextSize(displayText);
+        var drawList = ImGui.GetWindowDrawList();
+        var cursorPos = ImGui.GetCursorScreenPos();
+        drawList.AddLine(cursorPos, new Vector2(cursorPos.X + textSize.X, cursorPos.Y), ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 1, 1)));
+        ImGui.PopID();
     }
 
     public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws)

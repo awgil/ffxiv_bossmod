@@ -82,23 +82,11 @@ class HereticsForkBreakingWheelStreak(BossModule module) : Components.GenericAOE
     }
 }
 
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-            if (!Module.FindComponent<BreakingWheel>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<HereticsFork>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<HereticsForkBreakingWheelStreak>()!.ActiveAOEs(slot, actor).Any())
-                if (actor.Role is Role.Melee or Role.Tank)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-    }
-}
-
 class D043StorgeStates : StateMachineBuilder
 {
     public D043StorgeStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<IntestinalCrank>()
             .ActivateOnEnter<CrystalNail>()
             .ActivateOnEnter<HereticsFork>()

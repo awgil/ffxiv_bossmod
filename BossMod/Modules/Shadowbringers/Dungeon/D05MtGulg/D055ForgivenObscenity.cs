@@ -224,23 +224,11 @@ class PenancePianissimo(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-            if (!Module.FindComponent<DivineDiminuendo>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<DivineDiminuendo1>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<ConvictionMarcato>()!.ActiveAOEs(slot, actor).Any())
-                if (actor.Role is Role.Melee or Role.Tank && Module.PrimaryActor.IsTargetable)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-    }
-}
-
 class D055ForgivenObscenityStates : StateMachineBuilder
 {
     public D055ForgivenObscenityStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<SacramentSforzando>()
             .ActivateOnEnter<DivineDiminuendo>()
             .ActivateOnEnter<DivineDiminuendo1>()

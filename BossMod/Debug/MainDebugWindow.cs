@@ -17,6 +17,7 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
     private readonly DebugClassDefinitions _debugClassDefinitions = new(ws);
     private readonly DebugAddon _debugAddon = new();
     private readonly DebugTiming _debugTiming = new();
+    private readonly DebugCollision _debugCollision = new();
     private readonly DebugVfx _debugVfx = new();
 
     protected override void Dispose(bool disposing)
@@ -24,6 +25,7 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
         _debugInput.Dispose();
         _debugClassDefinitions.Dispose();
         _debugAddon.Dispose();
+        _debugCollision.Dispose();
         _debugVfx.Dispose();
         base.Dispose(disposing);
     }
@@ -133,6 +135,10 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
         if (ImGui.CollapsingHeader("Window system"))
         {
             DrawWindowSystem();
+        }
+        if (ImGui.CollapsingHeader("Collision"))
+        {
+            _debugCollision.Draw();
         }
         if (ImGui.CollapsingHeader("VFX"))
         {

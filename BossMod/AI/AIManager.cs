@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.Text;
+﻿using Dalamud.Game.Gui.Dtr;
+using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using ImGuiNET;
@@ -10,6 +11,7 @@ sealed class AIManager : IDisposable
     private readonly Autorotation _autorot;
     private readonly AIController _controller;
     private readonly AIConfig _config;
+    private readonly DtrBarEntry _dtrBarEntry;
     private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
     private AIBehaviour? _beh;
     private readonly UISimpleWindow _ui;
@@ -20,6 +22,7 @@ sealed class AIManager : IDisposable
         _controller = new();
         _config = Service.Config.Get<AIConfig>();
         _ui = new("AI", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing) { RespectCloseHotkey = false };
+        _dtrBarEntry = Service.DtrBar.Get("Bossmod");
         Service.ChatGui.ChatMessage += OnChatMessage;
         Service.CommandManager.AddHandler("/bmrai", new Dalamud.Game.Command.CommandInfo(OnCommand) { HelpMessage = "Toggle AI mode" });
         Service.CommandManager.AddHandler("/vbmai", new Dalamud.Game.Command.CommandInfo(OnCommand) { ShowInHelp = false });
@@ -29,6 +32,7 @@ sealed class AIManager : IDisposable
     {
         SwitchToIdle();
         _ui.Dispose();
+        _dtrBarEntry.Dispose();
         Service.ChatGui.ChatMessage -= OnChatMessage;
         Service.CommandManager.RemoveHandler("/bmrai");
         Service.CommandManager.RemoveHandler("/vbmai");
@@ -55,6 +59,25 @@ sealed class AIManager : IDisposable
         _controller.Update(player);
 
         _ui.IsOpen = _config.Enabled && player != null && _config.DrawUI;
+
+        DtrUpdate(_beh);
+    }
+
+    public void DtrUpdate(AIBehaviour? behaviour)
+    {
+        _dtrBarEntry.Shown = _config.ShowDTR;
+        if (_dtrBarEntry.Shown)
+        {
+            var status = behaviour != null ? "On" : "Off";
+            _dtrBarEntry.Text = "AI: " + status;
+            _dtrBarEntry.OnClick = () =>
+            {
+                if (behaviour != null)
+                    SwitchToIdle();
+                else
+                    SwitchToFollow(_config.FollowSlot);
+            };
+        }
     }
 
     private void DrawOverlay()
@@ -62,12 +85,12 @@ sealed class AIManager : IDisposable
         ImGui.TextUnformatted($"AI: {(_beh != null ? "on" : "off")}, master={_autorot.WorldState.Party[_masterSlot]?.Name}");
         ImGui.TextUnformatted($"Navi={_controller.NaviTargetPos} / {_controller.NaviTargetRot}{(_controller.ForceFacing ? " forced" : "")}");
         _beh?.DrawDebug();
-        if (ImGui.Button("Reset"))
-            SwitchToIdle();
-        ImGui.SameLine();
-        if (ImGui.Button("AI On - Follow selected slot"))
+        if (ImGui.Button("AI on"))
             SwitchToFollow(_config.FollowSlot);
-        ImGui.Text("Follow Party Slot");
+        ImGui.SameLine();
+        if (ImGui.Button("AI off"))
+            SwitchToIdle();
+        ImGui.Text("Follow party slot");
         ImGui.SameLine();
         var partyMemberNames = new List<string>();
         for (var i = 0; i < 8; i++)
@@ -81,6 +104,13 @@ sealed class AIManager : IDisposable
         var partyMemberNamesArray = partyMemberNames.ToArray();
 
         ImGui.Combo("##FollowPartySlot", ref _config.FollowSlot, partyMemberNamesArray, partyMemberNamesArray.Length);
+
+        ImGui.Text("Desired positional");
+        ImGui.SameLine();
+        var positionalOptions = Enum.GetNames(typeof(Positional));
+        var positionalIndex = (int)_config.DesiredPositional;
+        if (ImGui.Combo("##DesiredPositional", ref positionalIndex, positionalOptions, positionalOptions.Length))
+            _config.DesiredPositional = (Positional)positionalIndex;
     }
 
     private void SwitchToIdle()
@@ -113,10 +143,7 @@ sealed class AIManager : IDisposable
 
         // Check for NPCs (Buddies)
         var buddy = _autorot.WorldState.Party.WithSlot().FirstOrDefault(p => p.Item2.Name.Equals(source.PlayerName, StringComparison.OrdinalIgnoreCase));
-        if (buddy != default)
-            return buddy.Item1;
-
-        return -1;
+        return buddy != default ? buddy.Item1 : -1;
     }
 
     private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
@@ -203,6 +230,10 @@ sealed class AIManager : IDisposable
                 _config.ForbidMovement = !_config.ForbidMovement;
                 Service.Log($"[AI] Forbid movement is now {(_config.ForbidMovement ? "enabled" : "disabled")}");
                 break;
+            case "followoutofcombat":
+                _config.FollowOutOfCombat = !_config.FollowOutOfCombat;
+                Service.Log($"[AI] Forbid movement is now {(_config.FollowOutOfCombat ? "enabled" : "disabled")}");
+                break;
             case "followcombat":
                 if (_config.FollowDuringCombat)
                 {
@@ -229,10 +260,45 @@ sealed class AIManager : IDisposable
                 Service.Log($"[AI] Follow during active boss module is now {(_config.FollowDuringActiveBossModule ? "enabled" : "disabled")}");
                 Service.Log($"[AI] Follow during combat is now {(_config.FollowDuringCombat ? "enabled" : "disabled")}");
                 break;
+            case "followtarget":
+                _config.FollowTarget = !_config.FollowTarget;
+                Service.Log($"[AI] Following targets is now {(_config.FollowTarget ? "enabled" : "disabled")}");
+                break;
+            case "positional":
+                if (messageData.Length < 2)
+                {
+                    Service.Log("[AI] Missing positional type.");
+                    return;
+                }
+                SetPositional(messageData[1]);
+                break;
             default:
                 Service.Log($"[AI] Unknown command: {messageData[0]}");
                 break;
         }
+    }
+
+    private void SetPositional(string positional)
+    {
+        switch (positional.ToLower())
+        {
+            case "any":
+                _config.DesiredPositional = Positional.Any;
+                break;
+            case "flank":
+                _config.DesiredPositional = Positional.Flank;
+                break;
+            case "rear":
+                _config.DesiredPositional = Positional.Rear;
+                break;
+            case "front":
+                _config.DesiredPositional = Positional.Front;
+                break;
+            default:
+                Service.Log($"[AI] Unknown positional: {positional}");
+                return;
+        }
+        Service.Log($"[AI] Desired positional set to {_config.DesiredPositional}");
     }
 
     private int FindPartyMemberByName(string name)

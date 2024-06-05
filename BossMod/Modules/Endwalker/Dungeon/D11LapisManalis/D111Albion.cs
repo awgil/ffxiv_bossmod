@@ -41,120 +41,119 @@ public enum IconID : uint
 class WildlifeCrossing(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeRect rect = new(20, 5, 20);
-    private static readonly Angle _rot90 = 90.Degrees();
-    private static readonly Angle _rotM90 = -90.Degrees();
-    private (bool active, WPos position, Angle rotation, int count, DateTime reset, List<Actor> beasts) stampede1;
-    private (bool active, WPos position, Angle rotation, int count, DateTime reset, List<Actor> beasts) stampede2;
+    private static readonly Angle Rot90 = 90.Degrees();
+    private static readonly Angle RotM90 = -90.Degrees();
+
+    private (bool Active, WPos Position, Angle Rotation, int Count, DateTime Reset, List<Actor> Beasts) stampede1;
+    private (bool Active, WPos Position, Angle Rotation, int Count, DateTime Reset, List<Actor> Beasts) stampede2;
+
     private readonly (bool, WPos, Angle, int, DateTime, List<Actor>)[] stampedePositions =
     [
-        (true, new WPos(4, -759), _rot90, 0, default, []),
-        (true, new WPos(44, -759), _rotM90, 0, default, []),
-        (true, new WPos(4, -749), _rot90, 0, default, []),
-        (true, new WPos(44, -749), _rotM90, 0, default, []),
-        (true, new WPos(4, -739), _rot90, 0, default, []),
-        (true, new WPos(44, -739), _rotM90, 0, default, []),
-        (true, new WPos(4, -729), _rot90, 0, default, []),
-        (true, new WPos(44, -729), _rotM90, 0, default, []),
+        (true, new WPos(4, -759), Rot90, 0, default, []),
+        (true, new WPos(44, -759), RotM90, 0, default, []),
+        (true, new WPos(4, -749), Rot90, 0, default, []),
+        (true, new WPos(44, -749), RotM90, 0, default, []),
+        (true, new WPos(4, -739), Rot90, 0, default, []),
+        (true, new WPos(44, -739), RotM90, 0, default, []),
+        (true, new WPos(4, -729), Rot90, 0, default, []),
+        (true, new WPos(44, -729), RotM90, 0, default, [])
     ];
-    private bool Newstampede => stampede1 == default;
+
+    private bool IsNewStampede => stampede1 == default;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (stampede1.active && stampede1.beasts.Count > 0)
-            yield return new(new AOEShapeRect(CalculateStampedeLength(stampede1.beasts) + 30, 5), new(stampede1.beasts[^1].Position.X, stampede1.position.Z), stampede1.rotation);
-        if (stampede2.active && stampede2.beasts.Count > 0)
-            yield return new(new AOEShapeRect(CalculateStampedeLength(stampede2.beasts) + 30, 5), new(stampede2.beasts[^1].Position.X, stampede2.position.Z), stampede2.rotation);
-        if (stampede1.active && stampede1.beasts.Count == 0)
-            yield return new(rect, stampede1.position, _rot90);
-        if (stampede2.active && stampede2.beasts.Count == 0)
-            yield return new(rect, stampede2.position, _rot90);
+        if (stampede1.Active && stampede1.Beasts.Count > 0)
+            yield return CreateAOEInstance(stampede1);
+        if (stampede2.Active && stampede2.Beasts.Count > 0)
+            yield return CreateAOEInstance(stampede2);
+        if (stampede1.Active && stampede1.Beasts.Count == 0)
+            yield return new(rect, stampede1.Position, Rot90);
+        if (stampede2.Active && stampede2.Beasts.Count == 0)
+            yield return new(rect, stampede2.Position, Rot90);
+    }
+
+    private static AOEInstance CreateAOEInstance((bool Active, WPos Position, Angle Rotation, int Count, DateTime Reset, List<Actor> Beasts) stampede)
+    {
+        var length = CalculateStampedeLength(stampede.Beasts) + 30;
+        var position = new WPos(stampede.Beasts[^1].Position.X, stampede.Position.Z);
+        return new(new AOEShapeRect(length, 5), position, stampede.Rotation);
     }
 
     private static float CalculateStampedeLength(List<Actor> beasts) => (beasts[0].Position - beasts[^1].Position).Length();
 
     public override void OnEventEnvControl(byte index, uint state)
     {
-        if (state == 0x00020001)
+        if (state != 0x00020001)
+            return;
+        var stampedePosition = GetStampedePosition(index);
+        if (stampedePosition == null)
+            return;
+        if (IsNewStampede)
+            stampede1 = stampedePosition.Value;
+        else
+            stampede2 = stampedePosition.Value;
+    }
+
+    private (bool, WPos, Angle, int, DateTime, List<Actor>)? GetStampedePosition(byte index)
+    {
+        return index switch
         {
-            if (index == 0x21)
-                if (Newstampede)
-                    stampede1 = stampedePositions[0];
-                else
-                    stampede2 = stampedePositions[0];
-            if (index == 0x25)
-                if (Newstampede)
-                    stampede1 = stampedePositions[1];
-                else
-                    stampede2 = stampedePositions[1];
-            if (index == 0x22)
-                if (Newstampede)
-                    stampede1 = stampedePositions[2];
-                else
-                    stampede2 = stampedePositions[2];
-            if (index == 0x26)
-                if (Newstampede)
-                    stampede1 = stampedePositions[3];
-                else
-                    stampede2 = stampedePositions[3];
-            if (index == 0x23)
-                if (Newstampede)
-                    stampede1 = stampedePositions[4];
-                else
-                    stampede2 = stampedePositions[4];
-            if (index == 0x27)
-                if (Newstampede)
-                    stampede1 = stampedePositions[5];
-                else
-                    stampede2 = stampedePositions[5];
-            if (index == 0x24)
-                if (Newstampede)
-                    stampede1 = stampedePositions[6];
-                else
-                    stampede2 = stampedePositions[6];
-            if (index == 0x28)
-                if (Newstampede)
-                    stampede1 = stampedePositions[7];
-                else
-                    stampede2 = stampedePositions[7];
-        }
+            0x21 => stampedePositions[0],
+            0x25 => stampedePositions[1],
+            0x22 => stampedePositions[2],
+            0x26 => stampedePositions[3],
+            0x23 => stampedePositions[4],
+            0x27 => stampedePositions[5],
+            0x24 => stampedePositions[6],
+            0x28 => stampedePositions[7],
+            _ => default
+        };
     }
 
     public override void Update()
     {
-        var stampede1Position = new WPos(24, stampede1.position.Z);
-        var stampede2Position = new WPos(24, stampede2.position.Z);
+        UpdateStampede(ref stampede1, new WPos(24, stampede1.Position.Z));
+        UpdateStampede(ref stampede2, new WPos(24, stampede2.Position.Z));
 
+        ResetStampedeIfNeeded(ref stampede1);
+        ResetStampedeIfNeeded(ref stampede2);
+    }
+
+    private void UpdateStampede(ref (bool Active, WPos Position, Angle Rotation, int Count, DateTime Reset, List<Actor> Beasts) stampede, WPos position)
+    {
         foreach (var oid in new[] { OID.WildBeasts4, OID.WildBeasts3, OID.WildBeasts2, OID.WildBeasts1 })
         {
             var beasts = Module.Enemies(oid);
             foreach (var b in beasts)
             {
-                if (b.Position.InRect(stampede1Position, stampede1.rotation, 33, 33, 5) && !stampede1.beasts.Contains(b))
-                    stampede1.beasts.Add(b);
-                if (b.Position.InRect(stampede2Position, stampede2.rotation, 33, 33, 5) && !stampede2.beasts.Contains(b))
-                    stampede2.beasts.Add(b);
+                if (b.Position.InRect(position, stampede.Rotation, 33, 33, 5) && !stampede.Beasts.Contains(b))
+                    stampede.Beasts.Add(b);
             }
         }
+    }
 
-        if (stampede1.reset != default && WorldState.CurrentTime > stampede1.reset)
-            stampede1 = default;
-        if (stampede2.reset != default && WorldState.CurrentTime > stampede2.reset)
-            stampede2 = default;
+    private void ResetStampedeIfNeeded(ref (bool Active, WPos Position, Angle Rotation, int Count, DateTime Reset, List<Actor> Beasts) stampede)
+    {
+        if (stampede.Reset != default && WorldState.CurrentTime > stampede.Reset)
+            stampede = default;
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.WildlifeCrossing)
-        {
-            if (MathF.Abs(caster.Position.Z - stampede1.position.Z) < 1)
-                ++stampede1.count;
-            if (MathF.Abs(caster.Position.Z - stampede2.position.Z) < 1)
-                ++stampede2.count;
-            if (stampede1.count == 30) // sometimes stampedes only have 30 instead of 31 hits for some reason, so we take the lower value and add a 0.5s reset timer via update
-                stampede1.reset = WorldState.FutureTime(0.5f);
-            if (stampede2.count == 30)
-                stampede1.reset = WorldState.FutureTime(0.5f);
-        }
+        if ((AID)spell.Action.ID != AID.WildlifeCrossing)
+            return;
+        UpdateStampedeCount(ref stampede1, caster.Position.Z);
+        UpdateStampedeCount(ref stampede2, caster.Position.Z);
+    }
+
+    private void UpdateStampedeCount(ref (bool Active, WPos Position, Angle Rotation, int Count, DateTime Reset, List<Actor> Beasts) stampede, float casterZ)
+    {
+        if (MathF.Abs(casterZ - stampede.Position.Z) < 1)
+            ++stampede.Count;
+        if (stampede.Count != 30)
+            return;
+        stampede.Reset = WorldState.FutureTime(0.5f);
     }
 }
 
@@ -223,7 +222,8 @@ class Icebreaker(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class IcyThroes2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IcyThroes4), new AOEShapeCircle(6));
+class IcyThroes2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IcyThroes2), new AOEShapeCircle(6));
+class IcyThroes4(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IcyThroes4), new AOEShapeCircle(6));
 class KnockOnIce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.KnockOnIce2), new AOEShapeCircle(5));
 class RightSlam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightSlam), new AOEShapeRect(20, 80, 0, -90.Degrees())); //full width = half width in this case + angle is detected incorrectly, length and width are also switched
 class LeftSlam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftSlam), new AOEShapeRect(20, 80, 0, 90.Degrees())); //full width = half width in this case + angle is detected incorrectly, length and width are also switched
@@ -247,6 +247,7 @@ class D111AlbionStates : StateMachineBuilder
             .ActivateOnEnter<KnockOnIce>()
             .ActivateOnEnter<IcyThroes>()
             .ActivateOnEnter<IcyThroes2>()
+            .ActivateOnEnter<IcyThroes4>()
             .ActivateOnEnter<RoarOfAlbion>();
     }
 }

@@ -47,23 +47,12 @@ class PalmAttacks(BossModule module) : Components.GenericAOEs(module) //Palm Att
 }
 
 class LightShot(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightShot), new AOEShapeRect(40, 2));
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-            if (!Module.FindComponent<PalmAttacks>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<LightShot>()!.ActiveAOEs(slot, actor).Any())
-                if (actor.Role is Role.Melee or Role.Tank)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-    }
-}
 
 class D054ForgivenRevelryStates : StateMachineBuilder
 {
     public D054ForgivenRevelryStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<PalmAttacks>()
             .ActivateOnEnter<LightShot>();
     }

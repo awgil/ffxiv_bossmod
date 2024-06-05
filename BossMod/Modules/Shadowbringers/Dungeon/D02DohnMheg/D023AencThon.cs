@@ -153,24 +153,11 @@ class FlailingTentacles(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-            if (!Module.FindComponent<ToadChoir>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<CorrosiveBile>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<Finale>()!.Active &&
-            !Module.FindComponent<BileBombardment>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<FlailingTentacles>()!.ActiveAOEs(slot, actor).Any())
-                if (actor.Role is Role.Melee or Role.Tank)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-    }
-}
-
 class D033AencThonStates : StateMachineBuilder
 {
     public D033AencThonStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<VirtuosicCapriccio>()
             .ActivateOnEnter<CripplingBlow>()
             .ActivateOnEnter<ImpChoir>()

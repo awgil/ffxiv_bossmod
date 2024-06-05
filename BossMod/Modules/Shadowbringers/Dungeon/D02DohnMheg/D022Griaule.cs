@@ -69,23 +69,11 @@ class Swinge(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-            if (!Module.FindComponent<Swinge>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<FeedingTime>()!.Active)
-                if (actor.Role is Role.Melee or Role.Tank)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-    }
-}
-
 class D022GriauleStates : StateMachineBuilder
 {
     public D022GriauleStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<FeedingTime>()
             .ActivateOnEnter<Tiiimbeeer>()
             .ActivateOnEnter<Swinge>();

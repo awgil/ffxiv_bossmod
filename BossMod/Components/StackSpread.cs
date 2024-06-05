@@ -99,6 +99,9 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
             // forbid standing next to other stack markers
             foreach (var stackWith in ActiveStacks.Where(s => s.Target != actor))
                 hints.AddForbiddenZone(ShapeDistance.Circle(stackWith.Target.Position, stackWith.Radius), stackWith.Activation);
+            if (Raid.PartyContainsBuddies) // if player got stackmarker and is playing with NPCs, go to a NPC to stack with them
+                foreach (var stackWith in ActiveStacks.Where(s => s.Target == actor))
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Raid.WithoutSlot().FirstOrDefault(x => !IsStackTarget(x))!.Position, stackWith.Radius - 1), stackWith.Activation);
         }
         else if (!IsSpreadTarget(actor))
         {

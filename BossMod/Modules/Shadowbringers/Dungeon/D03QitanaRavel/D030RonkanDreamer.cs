@@ -87,17 +87,6 @@ class WrathOfTheRonka(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-            if (!Module.FindComponent<WrathOfTheRonka>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<RonkanAbyss>()!.ActiveAOEs(slot, actor).Any())
-                if (actor.Role is Role.Melee or Role.Tank)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-    }
-}
-
 class BurningBeam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BurningBeam), new AOEShapeRect(15, 2));
 
 class D030RonkanDreamerStates : StateMachineBuilder
@@ -105,7 +94,6 @@ class D030RonkanDreamerStates : StateMachineBuilder
     public D030RonkanDreamerStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<RonkanFire>()
             .ActivateOnEnter<RonkanAbyss>()
             .ActivateOnEnter<WrathOfTheRonka>()

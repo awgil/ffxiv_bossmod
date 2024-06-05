@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Dungeon.D13LunarSubterrane.D132DamcyanAntilon;
+﻿namespace BossMod.Endwalker.Dungeon.D13LunarSubterrane.D132DamcyanAntlion;
 
 public enum OID : uint
 {
@@ -35,7 +35,7 @@ class SandblastVoidzone(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.Sandblast && Module.Arena.Bounds == D132DamcyanAntilon.startingBounds)
+        if ((AID)spell.Action.ID == AID.Sandblast && Module.Arena.Bounds == D132DamcyanAntlion.startingBounds)
         {
             _aoes.Add(new(rect, Module.Center + new WDir(0, -22.5f), 90.Degrees(), spell.NPCFinishAt));
             _aoes.Add(new(rect, Module.Center + new WDir(0, 22.5f), 90.Degrees(), spell.NPCFinishAt));
@@ -45,7 +45,7 @@ class SandblastVoidzone(BossModule module) : Components.GenericAOEs(module)
     {
         if (state == 0x00020001 && index == 0x00)
         {
-            Module.Arena.Bounds = D132DamcyanAntilon.defaultBounds;
+            Module.Arena.Bounds = D132DamcyanAntlion.defaultBounds;
             _aoes.Clear();
         }
     }
@@ -195,29 +195,21 @@ class Towerfall(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+class StayInBounds(BossModule module) : BossComponent(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-        {
-            if (!Module.InBounds(actor.Position)) // return into module bounds if accidently left bounds
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 3));
-            else if (!Module.FindComponent<Landslip>()!.Sources(slot, actor).Any() && !Module.FindComponent<AntlionMarch>()!.ActiveAOEs(slot, actor).Any() &&
-            !Module.FindComponent<PoundSand>()!.ActiveAOEs(slot, actor).Any() && Module.FindComponent<EarthenGeyser>()!.Stacks.Count == 0 &&
-            !Module.FindComponent<Landslip>()!.TowerDanger)
-                if (actor.Role is Role.Melee or Role.Tank)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-        }
+        if (!Module.InBounds(actor.Position))
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 3));
     }
 }
 
-class D132DamcyanAntilonStates : StateMachineBuilder
+class D132DamcyanAntlionStates : StateMachineBuilder
 {
-    public D132DamcyanAntilonStates(BossModule module) : base(module)
+    public D132DamcyanAntlionStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
+            .ActivateOnEnter<StayInBounds>()
             .ActivateOnEnter<SandblastVoidzone>()
             .ActivateOnEnter<Sandblast>()
             .ActivateOnEnter<Landslip>()
@@ -229,8 +221,8 @@ class D132DamcyanAntilonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12484)]
-public class D132DamcyanAntilon(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 60), startingBounds)
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12484)]
+public class D132DamcyanAntlion(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 60), startingBounds)
 {
     public static readonly ArenaBounds startingBounds = new ArenaBoundsRect(19.5f, 25);
     public static readonly ArenaBounds defaultBounds = new ArenaBoundsRect(19.5f, 20);

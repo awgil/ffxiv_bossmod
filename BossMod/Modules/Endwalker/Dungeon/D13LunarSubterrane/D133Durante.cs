@@ -146,21 +146,12 @@ class DarkImpact(BossModule module) : Components.SelfTargetedAOEs(module, Action
 class DeathsJourney(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeathsJourney), new AOEShapeCircle(8));
 class DeathsJourney2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeathsJourney2), new AOEShapeCone(30, 15.Degrees()));
 
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
+class StayInBounds(BossModule module) : BossComponent(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-        {
-            if (!Module.InBounds(actor.Position)) // return into module bounds if accidently left bounds
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 3));
-            else if (!Module.FindComponent<DuplicitousBattery>()!.ActiveAOEs(slot, actor).Any() && !Module.FindComponent<Explosion>()!.ActiveAOEs(slot, actor).Any() &&
-            !Module.FindComponent<Explosion2>()!.ActiveAOEs(slot, actor).Any() && Module.FindComponent<FallenGrace>()!.Spreads.Count == 0 &&
-            Module.FindComponent<AntipodalAssault>()!.CurrentBaits.Count == 0 && !Module.FindComponent<DarkImpact>()!.ActiveAOEs(slot, actor).Any() &&
-            !Module.FindComponent<TwilightPhase>()!.ActiveAOEs(slot, actor).Any())
-                if (actor.Role is Role.Melee or Role.Tank)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-        }
+        if (!Module.InBounds(actor.Position))
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 3));
     }
 }
 
@@ -169,7 +160,7 @@ class D133DuranteStates : StateMachineBuilder
     public D133DuranteStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
+            .ActivateOnEnter<StayInBounds>()
             .ActivateOnEnter<OldMagicVoidzone>()
             .ActivateOnEnter<OldMagic>()
             .ActivateOnEnter<ArcaneEdge>()

@@ -194,26 +194,11 @@ class HeavingBreath(BossModule module) : Components.KnockbackFromCastTarget(modu
 class Glossolalia(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Glossolalia));
 class Rend(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Rend));
 
-class MeleeRange(BossModule module) : BossComponent(module) // force melee range for melee rotation solver users
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-            if (!Module.FindComponent<ViperPoisonBait>()!.targets.Contains(actor) && !Module.FindComponent<HoundOutOfHeavenGood>()!.targets.Contains(actor) &&
-            !Module.FindComponent<HoundOutOfHeavenBad>()!.targets.Contains(actor) && Module.FindComponent<ConfessionOfFaithStack>()!.Stacks.Count == 0 &&
-            Module.FindComponent<ConfessionOfFaithSpread>()!.Spreads.Count == 0 && !Module.FindComponent<ConfessionOfFaithLeft>()!.ActiveAOEs(slot, actor).Any() &&
-            !Module.FindComponent<ConfessionOfFaithRight>()!.ActiveAOEs(slot, actor).Any())
-                if (actor.Role is Role.Melee or Role.Tank)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 3));
-    }
-}
-
 class D033ErosStates : StateMachineBuilder
 {
     public D033ErosStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MeleeRange>()
             .ActivateOnEnter<ViperPoisonBait>()
             .ActivateOnEnter<ViperPoisonPatterns>()
             .ActivateOnEnter<Rend>()

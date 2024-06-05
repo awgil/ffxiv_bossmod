@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
 namespace BossMod;
 
@@ -29,6 +30,7 @@ public sealed class PartyState
 
     public int LimitBreakCur;
     public int LimitBreakMax = 10000;
+    public unsafe bool PartyContainsBuddies => UIState.Instance()->Buddy.DutyHelperInfo.ENpcIds.Length > 0;
 
     public PartyState(ActorState actorState)
     {
