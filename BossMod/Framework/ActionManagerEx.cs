@@ -56,7 +56,6 @@ unsafe sealed class ActionManagerEx : IDisposable
     public CommonActions.NextAction AutoQueue;
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
     private readonly ActionManager* _inst = ActionManager.Instance();
-    private int _lastReqSequence = -1;
     private float _useActionInPast; // if >0 while using an action, cooldown/anim lock will be reduced by this amount as if action was used a bit in the past
     private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
     private int _restoreCntr;
@@ -317,13 +316,11 @@ unsafe sealed class ActionManagerEx : IDisposable
         _processPacketActionEffectHook.Original(casterID, casterObj, targetPos, header, effects, targets);
         var currAnimLock = _inst->AnimationLock;
 
-        if (casterID != UIState.Instance()->PlayerState.EntityId || header->SourceSequence == 0 && _lastReqSequence != 0)
+        if (casterID != UIState.Instance()->PlayerState.EntityId || header->SourceSequence == 0 && !header->ForceAnimationLock)
         {
             // this action is either executed by non-player, or is non-player-initiated
             // TODO: reconsider the condition:
             // - some actions with SourceSequence != 0 are special-cased in code (NIN's ten/chi/jin) and apparently don't trigger anim-lock, verify
-            // - actions can have 'force anim lock' flag set, and then trigger anim-lock despite SourceSequence == 0, verify e.g. bozja holster actions
-            // - auto is the most common cast with SourceSequence == 0; can it happen while waiting for reholster response?..
             // - do we want to do non-anim-lock related things (eg unblock movement override) when we get action with 'force anim lock' flag?
             if (currAnimLock != prevAnimLock)
                 Service.Log($"[AMEx] Animation lock updated by non-player-initiated action: #{header->SourceSequence} {casterID:X} {info.Action} {prevAnimLock:f3} -> {currAnimLock:f3}");
@@ -336,15 +333,12 @@ unsafe sealed class ActionManagerEx : IDisposable
         // animation lock delay update
         var animLockReduction = AnimLockTweak.Apply(header->SourceSequence, prevAnimLock, _inst->AnimationLock, packetAnimLock, header->AnimationLock, out var animLockDelay);
         _inst->AnimationLock -= animLockReduction;
-
         Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} {info.Action} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}) -> {_inst->AnimationLock:f3}), Flags={header->Flags:X}, CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
-        _lastReqSequence = -1;
     }
 
     private void HandleActionRequest(ActionID action, int seq, ulong targetID, Vector3 targetPos, float prevRot, float currRot)
     {
         AnimLockTweak.RecordRequest(seq, _inst->AnimationLock);
-        _lastReqSequence = seq;
         MoveMightInterruptCast = CastTimeRemaining > 0;
         if (prevRot != currRot && Config.RestoreRotation)
         {
