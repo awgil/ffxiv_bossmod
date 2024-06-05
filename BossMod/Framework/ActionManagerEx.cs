@@ -56,7 +56,6 @@ unsafe sealed class ActionManagerEx : IDisposable
     public CommonActions.NextAction AutoQueue;
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
     private readonly ActionManager* _inst = ActionManager.Instance();
-    private float _lastReqInitialAnimLock;
     private int _lastReqSequence = -1;
     private float _useActionInPast; // if >0 while using an action, cooldown/anim lock will be reduced by this amount as if action was used a bit in the past
     private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
@@ -184,7 +183,8 @@ unsafe sealed class ActionManagerEx : IDisposable
 
     private void UpdateDetour(ActionManager* self)
     {
-        var dt = Framework.Instance()->FrameDeltaTime;
+        var fwk = Framework.Instance();
+        var dt = fwk->GameSpeedMultiplier * fwk->FrameDeltaTime;
         var imminentAction = _inst->ActionQueued ? QueuedAction : AutoQueue.Action;
         var imminentActionAdj = imminentAction.Type == ActionType.Spell ? new(ActionType.Spell, GetAdjustedActionID(imminentAction.ID)) : imminentAction;
         var imminentRecast = imminentActionAdj ? _inst->GetRecastGroupDetail(GetRecastGroup(imminentActionAdj)) : null;
@@ -334,29 +334,16 @@ unsafe sealed class ActionManagerEx : IDisposable
         InputOverride.UnblockMovement(); // unblock input unconditionally on successful cast (I assume there are no instances where we need to immediately start next GCD?)
 
         // animation lock delay update
-        float animLockDelay = _lastReqInitialAnimLock - prevAnimLock;
-        float animLockReduction = 0;
-        if (_lastReqSequence == header->SourceSequence)
-        {
-            if (_lastReqInitialAnimLock > 0)
-            {
-                AnimLockTweak.SanityCheck(packetAnimLock, header->AnimationLock);
-                animLockReduction = AnimLockTweak.Apply(_inst->AnimationLock, animLockDelay);
-                _inst->AnimationLock -= animLockReduction;
-            }
-        }
-        else if (currAnimLock != prevAnimLock)
-        {
-            Service.Log($"[AMEx] Animation lock updated by action with unexpected sequence ID #{header->SourceSequence}: {prevAnimLock:f3} -> {currAnimLock:f3}");
-        }
+        var animLockReduction = AnimLockTweak.Apply(header->SourceSequence, prevAnimLock, _inst->AnimationLock, packetAnimLock, header->AnimationLock, out var animLockDelay);
+        _inst->AnimationLock -= animLockReduction;
 
-        Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} {info.Action} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}-{animLockReduction:f3}), CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
+        Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} {info.Action} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}) -> {_inst->AnimationLock:f3}), Flags={header->Flags:X}, CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
         _lastReqSequence = -1;
     }
 
     private void HandleActionRequest(ActionID action, int seq, ulong targetID, Vector3 targetPos, float prevRot, float currRot)
     {
-        _lastReqInitialAnimLock = _inst->AnimationLock;
+        AnimLockTweak.RecordRequest(seq, _inst->AnimationLock);
         _lastReqSequence = seq;
         MoveMightInterruptCast = CastTimeRemaining > 0;
         if (prevRot != currRot && Config.RestoreRotation)
