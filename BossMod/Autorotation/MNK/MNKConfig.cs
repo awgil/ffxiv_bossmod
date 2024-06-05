@@ -17,7 +17,4 @@ class MNKConfig : ConfigNode
 
     [PropertyDisplay("Delay Thunderclap if already in melee range of target")]
     public bool PreventCloseDash = true;
-
-    [PropertyDisplay("Use Form Shift out of combat")]
-    public bool AutoFormShift = false;
 }
