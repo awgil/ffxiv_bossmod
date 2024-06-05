@@ -26,7 +26,7 @@ public class DebugObjects
 
             var internalObj = Utils.GameObjectInternal(obj);
             var localID = internalObj->LayoutId;
-            ulong uniqueID = internalObj->GetObjectId();
+            ulong uniqueID = internalObj->GetGameObjectId();
 
             var posRot = new Vector4(obj.Position.X, obj.Position.Y, obj.Position.Z, obj.Rotation);
             foreach (var n in _tree.Node($"#{i} {Utils.ObjectString(obj)} ({localID:X}) ({Utils.ObjectKindString(obj)}) {Utils.PosRotString(posRot)}###{uniqueID:X}", contextMenu: () => ObjectContextMenu(obj), select: () => _selectedID = uniqueID))
@@ -125,7 +125,7 @@ public class DebugObjects
                 {
                     var target = Service.ObjectTable.SearchById(chara.CastTargetObjectId);
                     var targetString = target ? Utils.ObjectString(target!) : "unknown";
-                    res.Append($", castAction={new ActionID((ActionType)chara.CastActionType, chara.CastActionId)}, castTarget={targetString}, castLoc={Utils.Vec3String(Utils.BattleCharaInternal(chara)->GetCastInfo()->CastLocation)}, castTime={Utils.CastTimeString(chara.CurrentCastTime, chara.TotalCastTime)}");
+                    res.Append($", castAction={new ActionID((ActionType)chara.CastActionType, chara.CastActionId)}, castTarget={targetString}, castLoc={Utils.Vec3String(Utils.BattleCharaInternal(chara)->GetCastInfo()->TargetLocation)}, castTime={Utils.CastTimeString(chara.CurrentCastTime, chara.TotalCastTime)}");
                 }
                 foreach (var status in chara!.StatusList)
                 {

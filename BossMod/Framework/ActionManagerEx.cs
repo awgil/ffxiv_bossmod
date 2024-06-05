@@ -1,8 +1,10 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Hooking;
-using FFXIVClientStructs.FFXIV.Client.Game;
+﻿using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
 namespace BossMod;
 
@@ -10,16 +12,6 @@ namespace BossMod;
 // handles following features:
 // 1. automatic action execution (provided by autorotation or ai modules, if enabled); does nothing if no automatic actions are provided
 // 2. effective animation lock reduction (a-la xivalex)
-//    game handles instants and casted actions differently:
-//    * instants: on action request (e.g. on the frame the action button is pressed), animation lock is set to 0.5 (or 0.35 for some specific actions); it then ticks down every frame
-//      some time later (ping + server latency, typically 50-100ms if ping is good), we receive action effect packet - the packet contains action's animation lock (typically 0.6)
-//      the game then updates animation lock (now equal to 0.5 minus time since request) to the packet data
-//      so the 'effective' animation lock between action request and animation lock end is equal to action's animation lock + delay between request and response
-//      this feature reduces effective animation lock by either removing extra delay completely or clamping it to specified maximal value
-//    * casts: on action request animation lock is not set (remains equal to 0), remaining cast time is set to action's cast time; remaining cast time then ticks down every frame
-//      some time later (cast time minus approximately 0.5s, aka slidecast window), we receive action effect packet - the packet contains action's animation lock (typically 0.1)
-//      the game then updates animation lock (still 0) to the packet data - however, since animation lock isn't ticking down while cast is in progress, there is no extra delay
-//      this feature does nothing for casts, since they already work correctly
 // 3. framerate-dependent cooldown reduction
 //    imagine game is running at exactly 100fps (10ms frame time), and action is queued when remaining cooldown is 5ms
 //    on next frame (+10ms), cooldown will be reduced and clamped to 0, action will be executed and it's cooldown set to X ms - so next time it can be pressed at X+10 ms
@@ -53,21 +45,17 @@ unsafe sealed class ActionManagerEx : IDisposable
     public uint ComboLastMove => _inst->Combo.Action;
     public ActionID QueuedAction => new((ActionType)_inst->QueuedActionType, _inst->QueuedActionId);
 
-    public float AnimationLockDelaySmoothing = 0.8f; // TODO tweak
-    public float AnimationLockDelayAverage { get; private set; } = 0.1f; // smoothed delay between client request and server response
-    public float AnimationLockDelayMax => Config.RemoveAnimationLockDelay ? 0 : float.MaxValue; // this caps max delay a-la xivalexander (TODO: make tweakable?)
-
-    public float EffectiveAnimationLock => _inst->AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends
-    public float EffectiveAnimationLockDelay => AnimationLockDelayMax <= 0.5f ? AnimationLockDelayMax : MathF.Min(AnimationLockDelayAverage, 0.1f); // this is a conservative estimate
+    public float EffectiveAnimationLock => _inst->AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends, so this is the minimal time until next action can be requested
 
     public Event<ClientActionRequest> ActionRequested = new();
     public Event<ulong, ActorCastEvent> ActionEffectReceived = new();
 
-    public InputOverride InputOverride;
-    public ActionManagerConfig Config;
-    public CommonActions.NextAction AutoQueue; // TODO: consider using native 'queue' fields for this?
+    public AnimationLockTweak AnimLockTweak = new();
+    public InputOverride InputOverride = new();
+    public ActionManagerConfig Config = Service.Config.Get<ActionManagerConfig>();
+    public CommonActions.NextAction AutoQueue;
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
-    private readonly ActionManager* _inst;
+    private readonly ActionManager* _inst = ActionManager.Instance();
     private float _lastReqInitialAnimLock;
     private int _lastReqSequence = -1;
     private float _useActionInPast; // if >0 while using an action, cooldown/anim lock will be reduced by this amount as if action was used a bit in the past
@@ -77,25 +65,15 @@ unsafe sealed class ActionManagerEx : IDisposable
     private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
     private readonly HookAddress<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
     private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
-
-    private delegate void ProcessPacketActionEffectDelegate(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Network.ServerIPC.ActionEffectHeader* header, ulong* effects, ulong* targets);
-    private readonly Hook<ProcessPacketActionEffectDelegate> _processPacketActionEffectHook;
+    private readonly HookAddress<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
 
     public ActionManagerEx()
     {
-        InputOverride = new();
-        Config = Service.Config.Get<ActionManagerConfig>();
-
-        _inst = ActionManager.Instance();
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
-
         _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
         _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
         _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
-
-        _processPacketActionEffectHook = Service.Hook.HookFromSignature<ProcessPacketActionEffectDelegate>("E8 ?? ?? ?? ?? 48 8B 4C 24 68 48 33 CC E8 ?? ?? ?? ?? 4C 8D 5C 24 70 49 8B 5B 20 49 8B 73 28 49 8B E3 5F C3", ProcessPacketActionEffectDetour);
-        _processPacketActionEffectHook.Enable();
-        Service.Log($"[AMEx] ProcessPacketActionEffect address = 0x{_processPacketActionEffectHook.Address:X}");
+        _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
     }
 
     public void Dispose()
@@ -113,7 +91,7 @@ unsafe sealed class ActionManagerEx : IDisposable
         return _inst->GetGroundPositionForCursor(&res) ? res : null;
     }
 
-    public void FaceTarget(Vector3 position, ulong unkObjID = GameObject.InvalidGameObjectId) => _inst->AutoFaceTargetPosition(&position, unkObjID);
+    public void FaceTarget(Vector3 position, ulong unkObjID = 0xE0000000) => _inst->AutoFaceTargetPosition(&position, unkObjID);
     public void FaceDirection(WDir direction)
     {
         var player = Service.ClientState.LocalPlayer;
@@ -172,15 +150,15 @@ unsafe sealed class ActionManagerEx : IDisposable
     {
         if (action.Type is ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1)
             action = BozjaActionID.GetHolster(action.As<BozjaHolsterID>()); // see BozjaContentDirector.useFromHolster
-        return _inst->GetActionStatus((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, target, checkRecastActive, checkCastingActive, outOptExtraInfo);
+        return _inst->GetActionStatus((CSActionType)action.Type, action.ID, target, checkRecastActive, checkCastingActive, outOptExtraInfo);
     }
 
     // returns time in ms
     public int GetAdjustedCastTime(ActionID action, bool applyProcs = true, ActionManager.CastTimeProc* outOptProc = null)
-        => ActionManager.GetAdjustedCastTime((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, applyProcs, outOptProc);
+        => ActionManager.GetAdjustedCastTime((CSActionType)action.Type, action.ID, applyProcs, outOptProc);
 
     public bool IsRecastTimerActive(ActionID action)
-        => _inst->IsRecastTimerActive((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID);
+        => _inst->IsRecastTimerActive((CSActionType)action.Type, action.ID);
 
     public int GetRecastGroup(ActionID action)
         => _inst->GetRecastGroup((int)action.Type, action.ID);
@@ -200,7 +178,7 @@ unsafe sealed class ActionManagerEx : IDisposable
             // real action type, just execute our UAL hook
             // note that for items extraParam should be 0xFFFF (since we want to use any item, not from first inventory slot)
             var extraParam = action.Type == ActionType.Item ? 0xFFFFu : 0;
-            return _inst->UseActionLocation((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, targetId, &targetPos, extraParam);
+            return _inst->UseActionLocation((CSActionType)action.Type, action.ID, targetId, &targetPos, extraParam);
         }
     }
 
@@ -252,7 +230,7 @@ unsafe sealed class ActionManagerEx : IDisposable
             if (actionAdj != AutoQueue.Action)
                 Service.Log($"[AMEx] Something didn't perform action adjustment correctly: replacing {AutoQueue.Action} with {actionAdj}");
 
-            var targetID = AutoQueue.Target?.InstanceID ?? GameObject.InvalidGameObjectId;
+            var targetID = AutoQueue.Target?.InstanceID ?? 0xE0000000;
             var status = GetActionStatus(actionAdj, targetID);
             if (status == 0)
             {
@@ -277,7 +255,7 @@ unsafe sealed class ActionManagerEx : IDisposable
             InputOverride.UnblockMovement();
     }
 
-    private bool UseActionLocationDetour(ActionManager* self, FFXIVClientStructs.FFXIV.Client.Game.ActionType actionType, uint actionId, ulong targetId, Vector3* location, uint extraParam)
+    private bool UseActionLocationDetour(ActionManager* self, CSActionType actionType, uint actionId, ulong targetId, Vector3* location, uint extraParam)
     {
         var pc = Service.ClientState.LocalPlayer;
         var prevSeq = _inst->LastUsedActionSequence;
@@ -301,79 +279,70 @@ unsafe sealed class ActionManagerEx : IDisposable
         {
             var currRot = pc?.Rotation ?? 0;
             var entry = (BozjaHolsterID)self->State.HolsterActions[(int)holsterIndex];
-            HandleActionRequest(ActionID.MakeBozjaHolster(entry, (int)slot), 0, GameObject.InvalidGameObjectId, default, prevRot, currRot);
+            HandleActionRequest(ActionID.MakeBozjaHolster(entry, (int)slot), 0, 0xE0000000, default, prevRot, currRot);
         }
         return res;
     }
 
-    private void ProcessPacketActionEffectDetour(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Network.ServerIPC.ActionEffectHeader* header, ulong* effects, ulong* targets)
+    private void ProcessPacketActionEffectDetour(uint casterID, Character* casterObj, Vector3* targetPos, ActionEffectHandler.Header* header, ActionEffectHandler.TargetEffects* effects, GameObjectId* targets)
     {
-        var packetAnimLock = header->animationLockTime;
-        var action = new ActionID(header->actionType, header->actionId);
-
+        // notify listeners about the event
         // note: there's a slight difference with dispatching event from here rather than from packet processing (ActionEffectN) functions
         // 1. action id is already unscrambled
         // 2. this function won't be called if caster object doesn't exist
         // the last point is deemed to be minor enough for us to not care, as it simplifies things (no need to hook 5 functions)
         var info = new ActorCastEvent
         {
-            Action = action,
-            MainTargetID = header->animationTargetId,
-            AnimationLockTime = header->animationLockTime,
+            Action = new ActionID((ActionType)header->ActionType, header->ActionId),
+            MainTargetID = header->AnimationTargetId,
+            AnimationLockTime = header->AnimationLock,
             MaxTargets = header->NumTargets,
             TargetPos = *targetPos,
             SourceSequence = header->SourceSequence,
-            GlobalSequence = header->globalEffectCounter,
+            GlobalSequence = header->GlobalSequence,
         };
+        var rawEffects = (ulong*)effects;
         for (int i = 0; i < header->NumTargets; ++i)
         {
             var targetEffects = new ActionEffects();
             for (int j = 0; j < ActionEffects.MaxCount; ++j)
-                targetEffects[j] = effects[i * 8 + j];
+                targetEffects[j] = rawEffects[i * 8 + j];
             info.Targets.Add(new(targets[i], targetEffects));
         }
         ActionEffectReceived.Fire(casterID, info);
 
+        // call the hooked function and observe the effects
+        var packetAnimLock = header->AnimationLock;
         var prevAnimLock = _inst->AnimationLock;
         _processPacketActionEffectHook.Original(casterID, casterObj, targetPos, header, effects, targets);
         var currAnimLock = _inst->AnimationLock;
 
-        if (casterID != Service.ClientState.LocalPlayer?.ObjectId || header->SourceSequence == 0 && _lastReqSequence != 0)
+        if (casterID != UIState.Instance()->PlayerState.EntityId || header->SourceSequence == 0 && _lastReqSequence != 0)
         {
-            // non-player-initiated; TODO: reconsider the condition for header->SourceSequence == 0 (e.g. autos) - could they happen while we wait for stuff like reholster?..
+            // this action is either executed by non-player, or is non-player-initiated
+            // TODO: reconsider the condition:
+            // - some actions with SourceSequence != 0 are special-cased in code (NIN's ten/chi/jin) and apparently don't trigger anim-lock, verify
+            // - actions can have 'force anim lock' flag set, and then trigger anim-lock despite SourceSequence == 0, verify e.g. bozja holster actions
+            // - auto is the most common cast with SourceSequence == 0; can it happen while waiting for reholster response?..
+            // - do we want to do non-anim-lock related things (eg unblock movement override) when we get action with 'force anim lock' flag?
             if (currAnimLock != prevAnimLock)
-                Service.Log($"[AMEx] Animation lock updated by non-player-initiated action: #{header->SourceSequence} {casterID:X} {action} {prevAnimLock:f3} -> {currAnimLock:f3}");
+                Service.Log($"[AMEx] Animation lock updated by non-player-initiated action: #{header->SourceSequence} {casterID:X} {info.Action} {prevAnimLock:f3} -> {currAnimLock:f3}");
             return;
         }
 
         MoveMightInterruptCast = false; // slidecast window start
         InputOverride.UnblockMovement(); // unblock input unconditionally on successful cast (I assume there are no instances where we need to immediately start next GCD?)
 
+        // animation lock delay update
         float animLockDelay = _lastReqInitialAnimLock - prevAnimLock;
         float animLockReduction = 0;
-
-        // animation lock delay update
         if (_lastReqSequence == header->SourceSequence)
         {
             if (_lastReqInitialAnimLock > 0)
             {
-                float adjDelay = animLockDelay;
-                if (adjDelay > AnimationLockDelayMax)
-                {
-                    // sanity check for plugin conflicts
-                    if (header->animationLockTime != packetAnimLock || packetAnimLock % 0.01 is >= 0.0005f and <= 0.0095f)
-                    {
-                        Service.Log($"[AMEx] Unexpected animation lock {packetAnimLock:f} -> {header->animationLockTime:f}, disabling anim lock tweak feature");
-                        Config.RemoveAnimationLockDelay = false;
-                    }
-                    else
-                    {
-                        animLockReduction = Math.Min(adjDelay - AnimationLockDelayMax, currAnimLock);
-                        adjDelay -= animLockReduction;
-                        _inst->AnimationLock = currAnimLock - animLockReduction;
-                    }
-                }
-                AnimationLockDelayAverage = adjDelay * (1 - AnimationLockDelaySmoothing) + AnimationLockDelayAverage * AnimationLockDelaySmoothing;
+                AnimLockTweak.SanityCheck(packetAnimLock, header->AnimationLock);
+                animLockReduction = AnimLockTweak.Apply(_inst->AnimationLock, animLockDelay);
+                _inst->AnimationLock -= animLockReduction;
             }
         }
         else if (currAnimLock != prevAnimLock)
@@ -381,7 +350,7 @@ unsafe sealed class ActionManagerEx : IDisposable
             Service.Log($"[AMEx] Animation lock updated by action with unexpected sequence ID #{header->SourceSequence}: {prevAnimLock:f3} -> {currAnimLock:f3}");
         }
 
-        Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} {action} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}-{animLockReduction:f3}), CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
+        Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} {info.Action} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}-{animLockReduction:f3}), CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
         _lastReqSequence = -1;
     }
 

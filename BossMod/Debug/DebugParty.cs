@@ -44,8 +44,8 @@ class DebugParty
 
         ImGui.BeginTable("party-custom", 7, ImGuiTableFlags.Resizable);
         ImGui.TableSetupColumn("Index");
-        ImGui.TableSetupColumn("ContentID");
-        ImGui.TableSetupColumn("ObjectID");
+        ImGui.TableSetupColumn("ContentId");
+        ImGui.TableSetupColumn("EntityId");
         ImGui.TableSetupColumn("Name");
         ImGui.TableSetupColumn("Zone");
         ImGui.TableSetupColumn("World");
@@ -58,10 +58,10 @@ class DebugParty
                 DrawPartyMember($"A{i}", ref gm->AllianceMembers[i]);
         for (int i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
         {
-            var id = ui->Buddy.DutyHelperInfo.DutyHelpers[i].ObjectId;
+            var id = ui->Buddy.DutyHelperInfo.DutyHelpers[i].EntityId;
             if (id == 0xE0000000)
                 continue;
-            var obj = GameObjectManager.Instance()->Objects.GetNetworkedObjectById(id);
+            var obj = GameObjectManager.Instance()->Objects.GetObjectByEntityId(id);
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
             ImGui.TextUnformatted($"B{i}");
@@ -86,7 +86,7 @@ class DebugParty
         ImGui.TableNextRow();
         ImGui.TableNextColumn(); ImGui.TextUnformatted(index);
         ImGui.TableNextColumn(); ImGui.TextUnformatted($"{member.ContentId:X}");
-        ImGui.TableNextColumn(); ImGui.TextUnformatted($"{member.ObjectId:X}");
+        ImGui.TableNextColumn(); ImGui.TextUnformatted($"{member.EntityId:X}");
         ImGui.TableNextColumn(); ImGui.TextUnformatted(member.NameString);
         ImGui.TableNextColumn(); ImGui.TextUnformatted($"{member.TerritoryType}");
         ImGui.TableNextColumn(); ImGui.TextUnformatted($"{member.HomeWorld}");
