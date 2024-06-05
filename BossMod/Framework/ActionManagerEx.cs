@@ -13,24 +13,12 @@ namespace BossMod;
 // 1. automatic action execution (provided by autorotation or ai modules, if enabled); does nothing if no automatic actions are provided
 // 2. effective animation lock reduction (a-la xivalex)
 // 3. framerate-dependent cooldown reduction
-//    imagine game is running at exactly 100fps (10ms frame time), and action is queued when remaining cooldown is 5ms
-//    on next frame (+10ms), cooldown will be reduced and clamped to 0, action will be executed and it's cooldown set to X ms - so next time it can be pressed at X+10 ms
-//    if we were running with infinite fps, cooldown would be reduced to 0 and action would be executed slightly (5ms) earlier
-//    we can't fix that easily, but at least we can fix the cooldown after action execution - so that next time it can be pressed at X+5ms
-//    we do that by reducing actual cooldown by difference between previously-remaining cooldown and frame delta, if action is executed at first opportunity
 // 4. slidecast assistant aka movement block
 //    cast is interrupted if player moves when remaining cast time is greater than ~0.5s (moving during that window without interrupting is known as slidecasting)
 //    this feature blocks WSAD input to prevent movement while this would interrupt a cast, allowing slidecasting efficiently while just holding movement button
 //    other ways of moving (eg LMB+RMB, jumping etc) are not blocked, allowing for emergency movement even while the feature is active
 //    movement is blocked a bit before cast start and unblocked as soon as action effect packet is received
 // 5. preserving character facing direction
-//    when any action is executed, character is automatically rotated to face the target (this can be disabled in-game, but it would simply block an action if not facing target instead)
-//    this makes maintaining uptime during gaze mechanics unnecessarily complicated (requiring either moving or rotating mouse back-and-forth in non-legacy camera mode)
-//    this feature remembers original rotation before executing an action and then attempts to restore it
-//    just like any 'manual' way, it is not 100% reliable:
-//    * client rate-limits rotation updates, so even for instant casts there is a short window of time (~0.1s) following action execution when character faces a target on server
-//    * for movement-affecting abilities (jumps, charges, etc) rotation can't be restored until animation ends
-//    * for casted abilities, rotation isn't restored until slidecast window starts, as otherwise cast is interrupted
 // 6. ground-targeted action queueing
 //    ground-targeted actions can't be queued, making using them efficiently tricky
 //    this feature allows queueing them, plus provides options to execute them automatically either at target's position or at cursor's position
@@ -46,21 +34,19 @@ unsafe sealed class ActionManagerEx : IDisposable
     public ActionID QueuedAction => new((ActionType)_inst->QueuedActionType, _inst->QueuedActionId);
 
     public float EffectiveAnimationLock => _inst->AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends, so this is the minimal time until next action can be requested
+    public float AnimationLockDelayEstimate => _animLockTweak.DelayEstimate;
 
     public Event<ClientActionRequest> ActionRequested = new();
     public Event<ulong, ActorCastEvent> ActionEffectReceived = new();
 
-    public AnimationLockTweak AnimLockTweak = new();
     public InputOverride InputOverride = new();
     public ActionManagerConfig Config = Service.Config.Get<ActionManagerConfig>();
     public CommonActions.NextAction AutoQueue;
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
     private readonly ActionManager* _inst = ActionManager.Instance();
-    private float _lastReqInitialAnimLock;
-    private int _lastReqSequence = -1;
-    private float _useActionInPast; // if >0 while using an action, cooldown/anim lock will be reduced by this amount as if action was used a bit in the past
-    private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
-    private int _restoreCntr;
+    private readonly AnimationLockTweak _animLockTweak = new();
+    private readonly CooldownDelayTweak _cooldownTweak = new();
+    private readonly RestoreRotationTweak _restoreRotTweak = new();
 
     private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
     private readonly HookAddress<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
@@ -94,9 +80,9 @@ unsafe sealed class ActionManagerEx : IDisposable
     public void FaceTarget(Vector3 position, ulong unkObjID = 0xE0000000) => _inst->AutoFaceTargetPosition(&position, unkObjID);
     public void FaceDirection(WDir direction)
     {
-        var player = Service.ClientState.LocalPlayer;
+        var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         if (player != null)
-            FaceTarget(player.Position + new Vector3(direction.X, 0, direction.Z));
+            FaceTarget(player->Position.ToSystem() + direction.ToVec3());
     }
 
     public void GetCooldown(ref Cooldown result, RecastDetail* data)
@@ -184,21 +170,13 @@ unsafe sealed class ActionManagerEx : IDisposable
 
     private void UpdateDetour(ActionManager* self)
     {
-        var dt = Framework.Instance()->FrameDeltaTime;
+        var fwk = Framework.Instance();
+        var dt = fwk->GameSpeedMultiplier * fwk->FrameDeltaTime;
         var imminentAction = _inst->ActionQueued ? QueuedAction : AutoQueue.Action;
         var imminentActionAdj = imminentAction.Type == ActionType.Spell ? new(ActionType.Spell, GetAdjustedActionID(imminentAction.ID)) : imminentAction;
         var imminentRecast = imminentActionAdj ? _inst->GetRecastGroupDetail(GetRecastGroup(imminentActionAdj)) : null;
-        if (Config.RemoveCooldownDelay)
-        {
-            var cooldownOverflow = imminentRecast != null && imminentRecast->IsActive != 0 ? imminentRecast->Elapsed + dt - imminentRecast->Total : dt;
-            var animlockOverflow = dt - _inst->AnimationLock;
-            _useActionInPast = Math.Min(cooldownOverflow, animlockOverflow);
-            if (_useActionInPast >= dt)
-                _useActionInPast = 0; // nothing prevented us from casting it before, so do not adjust anything...
-            else if (_useActionInPast > 0.1f)
-                _useActionInPast = 0.1f; // upper limit for time adjustment
-        }
 
+        _cooldownTweak.StartAdjustment(_inst->AnimationLock, imminentRecast != null && imminentRecast->IsActive != 0 ? imminentRecast->Total - imminentRecast->Elapsed : 0, dt);
         _updateHook.Original(self);
 
         // check whether movement is safe; block movement if not and if desired
@@ -207,14 +185,10 @@ unsafe sealed class ActionManagerEx : IDisposable
         bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast;
 
         // restore rotation logic; note that movement abilities (like charge) can take multiple frames until they allow changing facing
-        if (_restoreRotation != null && !MoveMightInterruptCast)
+        var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        if (player != null && !MoveMightInterruptCast && _restoreRotTweak.TryRestore(player->Rotation.Radians(), out var restore))
         {
-            var curRot = (Service.ClientState.LocalPlayer?.Rotation ?? 0).Radians();
-            //Service.Log($"[AMEx] Restore rotation: {curRot.Rad}: {_restoreRotation.Value.post.Rad}->{_restoreRotation.Value.pre.Rad}");
-            if (_restoreRotation.Value.post.AlmostEqual(curRot, 0.01f))
-                FaceDirection(_restoreRotation.Value.pre.ToDirection());
-            else if (--_restoreCntr == 0)
-                _restoreRotation = null;
+            FaceDirection(restore.ToDirection());
         }
 
         // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
@@ -247,7 +221,7 @@ unsafe sealed class ActionManagerEx : IDisposable
             }
         }
 
-        _useActionInPast = 0; // clear any potential adjustments
+        _cooldownTweak.StopAdjustment(); // clear any potential adjustments
 
         if (blockMovement)
             InputOverride.BlockMovement();
@@ -257,12 +231,12 @@ unsafe sealed class ActionManagerEx : IDisposable
 
     private bool UseActionLocationDetour(ActionManager* self, CSActionType actionType, uint actionId, ulong targetId, Vector3* location, uint extraParam)
     {
-        var pc = Service.ClientState.LocalPlayer;
+        var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         var prevSeq = _inst->LastUsedActionSequence;
-        var prevRot = pc?.Rotation ?? 0;
+        var prevRot = player != null ? player->Rotation.Radians() : default;
         bool ret = _useActionLocationHook.Original(self, actionType, actionId, targetId, location, extraParam);
         var currSeq = _inst->LastUsedActionSequence;
-        var currRot = pc?.Rotation ?? 0;
+        var currRot = player != null ? player->Rotation.Radians() : default;
         if (currSeq != prevSeq)
         {
             HandleActionRequest(new((ActionType)actionType, actionId), currSeq, targetId, *location, prevRot, currRot);
@@ -272,12 +246,12 @@ unsafe sealed class ActionManagerEx : IDisposable
 
     private bool UseBozjaFromHolsterDirectorDetour(PublicContentBozja* self, uint holsterIndex, uint slot)
     {
-        var pc = Service.ClientState.LocalPlayer;
-        var prevRot = pc?.Rotation ?? 0;
+        var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        var prevRot = player != null ? player->Rotation.Radians() : default;
         var res = _useBozjaFromHolsterDirectorHook.Original(self, holsterIndex, slot);
+        var currRot = player != null ? player->Rotation.Radians() : default;
         if (res)
         {
-            var currRot = pc?.Rotation ?? 0;
             var entry = (BozjaHolsterID)self->State.HolsterActions[(int)holsterIndex];
             HandleActionRequest(ActionID.MakeBozjaHolster(entry, (int)slot), 0, 0xE0000000, default, prevRot, currRot);
         }
@@ -317,13 +291,11 @@ unsafe sealed class ActionManagerEx : IDisposable
         _processPacketActionEffectHook.Original(casterID, casterObj, targetPos, header, effects, targets);
         var currAnimLock = _inst->AnimationLock;
 
-        if (casterID != UIState.Instance()->PlayerState.EntityId || header->SourceSequence == 0 && _lastReqSequence != 0)
+        if (casterID != UIState.Instance()->PlayerState.EntityId || header->SourceSequence == 0 && !header->ForceAnimationLock)
         {
             // this action is either executed by non-player, or is non-player-initiated
             // TODO: reconsider the condition:
             // - some actions with SourceSequence != 0 are special-cased in code (NIN's ten/chi/jin) and apparently don't trigger anim-lock, verify
-            // - actions can have 'force anim lock' flag set, and then trigger anim-lock despite SourceSequence == 0, verify e.g. bozja holster actions
-            // - auto is the most common cast with SourceSequence == 0; can it happen while waiting for reholster response?..
             // - do we want to do non-anim-lock related things (eg unblock movement override) when we get action with 'force anim lock' flag?
             if (currAnimLock != prevAnimLock)
                 Service.Log($"[AMEx] Animation lock updated by non-player-initiated action: #{header->SourceSequence} {casterID:X} {info.Action} {prevAnimLock:f3} -> {currAnimLock:f3}");
@@ -334,53 +306,30 @@ unsafe sealed class ActionManagerEx : IDisposable
         InputOverride.UnblockMovement(); // unblock input unconditionally on successful cast (I assume there are no instances where we need to immediately start next GCD?)
 
         // animation lock delay update
-        float animLockDelay = _lastReqInitialAnimLock - prevAnimLock;
-        float animLockReduction = 0;
-        if (_lastReqSequence == header->SourceSequence)
-        {
-            if (_lastReqInitialAnimLock > 0)
-            {
-                AnimLockTweak.SanityCheck(packetAnimLock, header->AnimationLock);
-                animLockReduction = AnimLockTweak.Apply(_inst->AnimationLock, animLockDelay);
-                _inst->AnimationLock -= animLockReduction;
-            }
-        }
-        else if (currAnimLock != prevAnimLock)
-        {
-            Service.Log($"[AMEx] Animation lock updated by action with unexpected sequence ID #{header->SourceSequence}: {prevAnimLock:f3} -> {currAnimLock:f3}");
-        }
-
-        Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} {info.Action} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}-{animLockReduction:f3}), CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
-        _lastReqSequence = -1;
+        var animLockReduction = _animLockTweak.Apply(header->SourceSequence, prevAnimLock, _inst->AnimationLock, packetAnimLock, header->AnimationLock, out var animLockDelay);
+        _inst->AnimationLock -= animLockReduction;
+        Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} {info.Action} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}) -> {_inst->AnimationLock:f3}), Flags={header->Flags:X}, CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
     }
 
-    private void HandleActionRequest(ActionID action, int seq, ulong targetID, Vector3 targetPos, float prevRot, float currRot)
+    private void HandleActionRequest(ActionID action, uint seq, ulong targetID, Vector3 targetPos, Angle prevRot, Angle currRot)
     {
-        _lastReqInitialAnimLock = _inst->AnimationLock;
-        _lastReqSequence = seq;
+        _animLockTweak.RecordRequest(seq, _inst->AnimationLock);
+        _restoreRotTweak.Preserve(prevRot, currRot);
         MoveMightInterruptCast = CastTimeRemaining > 0;
-        if (prevRot != currRot && Config.RestoreRotation)
-        {
-            _restoreRotation = (prevRot.Radians(), currRot.Radians());
-            _restoreCntr = 2; // not sure why - but sometimes after successfully restoring rotation it is snapped back on next frame; TODO investigate
-            //Service.Log($"[AMEx] Restore start: {currRot} -> {prevRot}");
-        }
 
         var recast = _inst->GetRecastGroupDetail(GetRecastGroup(action));
-        if (_useActionInPast > 0)
-        {
-            if (CastTimeRemaining > 0)
-                _inst->CastTimeElapsed += _useActionInPast;
-            else
-                _inst->AnimationLock = Math.Max(0, _inst->AnimationLock - _useActionInPast);
 
-            if (recast != null)
-                recast->Elapsed += _useActionInPast;
-        }
+        if (CastTimeRemaining > 0)
+            _inst->CastTimeElapsed += _cooldownTweak.Adjustment;
+        else
+            _inst->AnimationLock = Math.Max(0, _inst->AnimationLock - _cooldownTweak.Adjustment);
 
-        var recastElapsed = recast != null ? recast->Elapsed : 0;
-        var recastTotal = recast != null ? recast->Total : 0;
+        if (recast != null)
+            recast->Elapsed += _cooldownTweak.Adjustment;
+
+        var (castElapsed, castTotal) = _inst->CastSpellId != 0 ? (_inst->CastTimeElapsed, _inst->CastTimeTotal) : (0, 0);
+        var (recastElapsed, recastTotal) = recast != null ? (recast->Elapsed, recast->Total) : (0, 0);
         Service.Log($"[AMEx] UAL #{seq} {action} @ {targetID:X} / {Utils.Vec3String(targetPos)}, ALock={_inst->AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
-        ActionRequested.Fire(new(action, targetID, targetPos, (uint)seq, _inst->AnimationLock, _inst->CastSpellId != 0 ? _inst->CastTimeElapsed : 0, _inst->CastSpellId != 0 ? _inst->CastTimeTotal : 0, recastElapsed, recastTotal));
+        ActionRequested.Fire(new(action, targetID, targetPos, seq, _inst->AnimationLock, castElapsed, castTotal, recastElapsed, recastTotal));
     }
 }

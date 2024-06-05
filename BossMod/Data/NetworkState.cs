@@ -2,7 +2,10 @@
 
 public sealed class NetworkState
 {
-    public readonly record struct ServerIPC(Network.ServerIPC.PacketID ID, ushort Opcode, uint Epoch, uint SourceServerActor, DateTime SendTimestamp, IReadOnlyList<byte> Payload);
+    public readonly record struct ServerIPC(Network.ServerIPC.PacketID ID, ushort Opcode, uint Epoch, uint SourceServerActor, DateTime SendTimestamp, byte[] Payload)
+    {
+        public readonly byte[] Payload = Payload;
+    };
 
     public uint IDScramble;
 

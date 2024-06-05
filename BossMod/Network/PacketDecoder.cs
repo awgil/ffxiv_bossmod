@@ -55,7 +55,7 @@ public unsafe abstract class PacketDecoder
     private TextNode? DecodePacket(PacketID id, byte* payload) => id switch
     {
         PacketID.RSVData when (RSVData*)payload is var p => new($"{MemoryHelper.ReadStringNullTerminated((nint)p->Key)} = {MemoryHelper.ReadString((nint)p->Value, p->ValueLength)} [{p->ValueLength}]"),
-        PacketID.Countdown when (ServerIPC.Countdown*)payload is var p => new($"{p->Time}s from {DecodeActor(p->SenderID)}{(p->FailedInCombat != 0 ? " fail-in-combat" : "")} '{MemoryHelper.ReadStringNullTerminated((nint)p->Text)}' u={p->u4:X4} {p->u9:X2} {p->u10:X2}"),
+        PacketID.Countdown when (Countdown*)payload is var p => new($"{p->Time}s from {DecodeActor(p->SenderID)}{(p->FailedInCombat != 0 ? " fail-in-combat" : "")} '{MemoryHelper.ReadStringNullTerminated((nint)p->Text)}' u={p->u4:X4} {p->u9:X2} {p->u10:X2}"),
         PacketID.CountdownCancel when (CountdownCancel*)payload is var p => new($"from {DecodeActor(p->SenderID)} '{MemoryHelper.ReadStringNullTerminated((nint)p->Text)}' u={p->u4:X4} {p->u6:X4}"),
         PacketID.StatusEffectList when (StatusEffectList*)payload is var p => DecodeStatusEffectList(p),
         PacketID.StatusEffectListEureka when (StatusEffectListEureka*)payload is var p => DecodeStatusEffectList(&p->Data, $", rank={p->Rank}/{p->Element}/{p->u2}, pad={p->pad3:X2}"),
