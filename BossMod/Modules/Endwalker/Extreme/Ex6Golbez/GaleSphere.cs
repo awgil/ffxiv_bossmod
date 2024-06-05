@@ -5,7 +5,7 @@ class GaleSphere(BossModule module) : Components.GenericAOEs(module)
     public enum Side { S, E, N, W } // direction = value * 90deg
 
     private readonly List<Side> _sides = [];
-    private readonly List<Actor>[] _spheres = [new(), new(), new(), new()];
+    private readonly List<Actor>[] _spheres = [[], [], [], []];
 
     private static readonly AOEShapeRect _shape = new(30, 2.5f);
 
