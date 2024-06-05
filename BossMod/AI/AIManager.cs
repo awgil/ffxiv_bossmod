@@ -3,6 +3,7 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using ImGuiNET;
+using System.Globalization;
 
 namespace BossMod.AI;
 
@@ -280,7 +281,7 @@ sealed class AIManager : IDisposable
 
     private void SetPositional(string positional)
     {
-        switch (positional.ToLower())
+        switch (positional.ToLower(CultureInfo.InvariantCulture))
         {
             case "any":
                 _config.DesiredPositional = Positional.Any;

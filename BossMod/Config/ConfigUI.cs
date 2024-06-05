@@ -112,18 +112,18 @@ public sealed class ConfigUI : IDisposable
         ImGui.Text("Please do not ask him for any support for problems you encounter while using this fork.");
         ImGui.Spacing();
         ImGui.Text("Instead visit the Combat Reborn Discord and ask for support there:");
-        RenderTextWithLink("https://discord.gg/p54TZMPnC9", "https://discord.gg/p54TZMPnC9");
+        RenderTextWithLink("https://discord.gg/p54TZMPnC9", new Uri("https://discord.gg/p54TZMPnC9"));
     }
 
-    static void RenderTextWithLink(string displayText, string url)
+    static void RenderTextWithLink(string displayText, Uri url)
     {
-        ImGui.PushID(url);
+        ImGui.PushID(url.ToString());
         ImGui.Text(displayText);
         if (ImGui.IsItemHovered())
         {
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
             if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                Process.Start(new ProcessStartInfo(url.ToString()) { UseShellExecute = true });
         }
         var textSize = ImGui.CalcTextSize(displayText);
         var drawList = ImGui.GetWindowDrawList();
