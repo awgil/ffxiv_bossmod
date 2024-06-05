@@ -281,18 +281,18 @@ sealed class AIManager : IDisposable
 
     private void SetPositional(string positional)
     {
-        switch (positional.ToLower(CultureInfo.InvariantCulture))
+        switch (positional.ToUpperInvariant())
         {
-            case "any":
+            case "ANY":
                 _config.DesiredPositional = Positional.Any;
                 break;
-            case "flank":
+            case "FLANK":
                 _config.DesiredPositional = Positional.Flank;
                 break;
-            case "rear":
+            case "REAR":
                 _config.DesiredPositional = Positional.Rear;
                 break;
-            case "front":
+            case "FRONT":
                 _config.DesiredPositional = Positional.Front;
                 break;
             default:
