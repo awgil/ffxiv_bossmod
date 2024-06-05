@@ -31,16 +31,16 @@ jobs:
           Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
 
       - name: Restore Nuget Packages
-        run: dotnet restore BossMod\BossMod.csproj
+        run: dotnet restore BossMod\BossModReborn.csproj
 
       - name: Build Plugin
-        run: dotnet build --no-restore -c Release BossMod\BossMod.csproj -p:AssemblyVersion=${{ env.tag }} -p:FileVersion=${{ env.tag }} -p:InformationalVersion=${{ env.tag }} --output .\build
+        run: dotnet build --no-restore -c Release BossMod\BossModReborn.csproj -p:AssemblyVersion=${{ env.tag }} -p:FileVersion=${{ env.tag }} -p:InformationalVersion=${{ env.tag }} --output .\build
 
       - name: Zip Plugin
-        run: Compress-Archive -Path .\build\* -DestinationPath .\build\BossMod.zip
+        run: Compress-Archive -Path .\build\* -DestinationPath .\build\BossModReborn.zip
 
       - name: Publish Plugin
         uses: softprops/action-gh-release@v2
         with:
-          files: ./build/BossMod.zip
+          files: ./build/BossModReborn.zip
           token: ${{ secrets.GITHUB_TOKEN }}
