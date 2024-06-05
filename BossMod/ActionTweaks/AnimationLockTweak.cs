@@ -24,14 +24,14 @@ public sealed class AnimationLockTweak
     public float DelayEstimate => _config.RemoveAnimationLockDelay ? 0 : MathF.Min(DelayAverage * 1.5f, 0.1f); // this is a conservative estimate
 
     // record initial animation lock after action request
-    public void RecordRequest(int expectedSequence, float initialAnimLock)
+    public void RecordRequest(uint expectedSequence, float initialAnimLock)
     {
         _lastReqInitialAnimLock = initialAnimLock;
-        _lastReqSequence = expectedSequence;
+        _lastReqSequence = (int)expectedSequence;
     }
 
     // apply the tweak: calculate animation lock delay and calculate how much animation lock should be reduced
-    public float Apply(int sequence, float gamePrevAnimLock, float gameCurrAnimLock, float packetPrevAnimLock, float packetCurrAnimLock, out float delay)
+    public float Apply(uint sequence, float gamePrevAnimLock, float gameCurrAnimLock, float packetPrevAnimLock, float packetCurrAnimLock, out float delay)
     {
         delay = _lastReqInitialAnimLock - gamePrevAnimLock;
         if (delay < 0)
