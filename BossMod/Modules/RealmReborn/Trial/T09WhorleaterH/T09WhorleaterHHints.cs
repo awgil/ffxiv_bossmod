@@ -19,7 +19,7 @@ class Hints(BossModule module) : BossComponent(module)
         var TankMimikry = actor.FindStatus(2124); //Bluemage Tank Mimikry
         if (tail != null)
         {
-            if ((actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer || (actor.Class is Class.BLU && TankMimikry == null)) && actor.TargetID == Module.Enemies(OID.Tail).FirstOrDefault()?.InstanceID)
+            if ((actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer || actor.Class is Class.BLU && TankMimikry == null) && actor.TargetID == Module.Enemies(OID.Tail).FirstOrDefault()?.InstanceID)
                 hints.Add("Attack the head! (Attacking the tail will reflect damage onto you)");
             if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged && actor.TargetID == Module.PrimaryActor.InstanceID)
                 hints.Add("Attack the tail! (Attacking the head will reflect damage onto you)");

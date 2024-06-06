@@ -31,6 +31,7 @@ public enum AID : uint
     Hydrovent = 31136, // Helper->location, 5.0s cast, range 6 circle
     SpringTide = 31135, // Helper->players, no cast, range 6 circle
     Tsunami = 31137, // Helper->self, no cast, range 80 width 60 rect
+    TsunamiEnrage = 31138, // Helper->self, no cast, range 80 width 60 rect
     Voidcleaver = 31110, // Boss->self, 4.0s cast, single-target
     Voidcleaver2 = 31111, // Helper->self, no cast, range 100 circle
     VoidMiasma = 32691, // Helper->self, 3.0s cast, range 50 30-degree cone
@@ -67,7 +68,14 @@ class Tsunami(BossModule module) : Components.RaidwideAfterNPCYell(module, Actio
 class StygianDeluge(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.StygianDeluge));
 class Antediluvian(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Antediluvian2), new AOEShapeCircle(15));
 class BodySlam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BodySlam3), new AOEShapeCircle(8));
-class BodySlamKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BodySlam2), 10);
+class BodySlamKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BodySlam2), 10)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Sources(slot, actor).Any() && Module.FindComponent<Antediluvian>()!.NumCasts >= 4)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 10), Sources(slot, actor).FirstOrDefault().Activation);
+    }
+}
 
 class HydraulicRam(BossModule module) : Components.GenericAOEs(module)
 {
@@ -162,11 +170,21 @@ class Stackmarkers(BossModule module) : Components.UniformStackSpread(module, 6,
     }
 }
 
+class StayInBounds(BossModule module) : BossComponent(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Module.InBounds(actor.Position))
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 3));
+    }
+}
+
 class D113CagnazzoStates : StateMachineBuilder
 {
     public D113CagnazzoStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<StayInBounds>()
             .ActivateOnEnter<Voidcleaver>()
             .ActivateOnEnter<Lifescleaver>()
             .ActivateOnEnter<VoidMiasma>()
@@ -186,7 +204,7 @@ class D113CagnazzoStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 11995)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 11995)]
 public class D113Cagnazzo(WorldState ws, Actor primary) : BossModule(ws, primary, new(-250, 130), new ArenaBoundsSquare(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
