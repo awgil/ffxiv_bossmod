@@ -44,8 +44,8 @@ class WildlifeCrossing(BossModule module) : Components.GenericAOEs(module)
     private static readonly Angle Rot90 = 90.Degrees();
     private static readonly Angle RotM90 = -90.Degrees();
 
-    private Stampede stampede1 = Stampede.Default;
-    private Stampede stampede2 = Stampede.Default;
+    private Stampede stampede1;
+    private Stampede stampede2;
 
     private static readonly (WPos, Angle)[] stampedePositions = [(new(4, -759), Rot90),
         (new(44, -759), RotM90), (new(4, -749), Rot90), (new(44, -749), RotM90),
