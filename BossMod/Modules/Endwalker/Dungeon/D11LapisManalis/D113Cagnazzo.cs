@@ -66,7 +66,16 @@ class VoidMiasma(BossModule module) : Components.SelfTargetedAOEs(module, Action
 class Lifescleaver(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Lifescleaver2), new AOEShapeCone(50, 15.Degrees()));
 class Tsunami(BossModule module) : Components.RaidwideAfterNPCYell(module, ActionID.MakeSpell(AID.Tsunami), (uint)NPCYell.LimitBreakStart, 4.5f);
 class StygianDeluge(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.StygianDeluge));
-class Antediluvian(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Antediluvian2), new AOEShapeCircle(15));
+class Antediluvian(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Antediluvian2), new AOEShapeCircle(15))
+{
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastFinished(caster, spell);
+        if (NumCasts == 6 && (AID)spell.Action.ID == AID.Antediluvian2)
+            NumCasts = 0;
+    }
+}
+
 class BodySlam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BodySlam3), new AOEShapeCircle(8));
 class BodySlamKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BodySlam2), 10)
 {
