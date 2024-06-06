@@ -34,11 +34,13 @@ class DebugParty
         ImGui.EndTable();
     }
 
-    public unsafe void DrawPartyCustom()
+    public unsafe void DrawPartyCustom(bool secondary)
     {
         // note: alliance slots, unlike normal slots, are more permanent - if a player leaves, other players retain their indices (leaving gaps)
         // also content ID for all alliance members always seems to be 0; this isn't a huge deal, since alliance members are always in the same zone and thus have valid object IDs
         var gm = GroupManager.Instance();
+        if (secondary)
+            gm += 1;
         var ui = UIState.Instance();
         ImGui.TextUnformatted($"Num members: {gm->MemberCount}, alliance={(!gm->IsAlliance ? "no" : gm->IsSmallGroupAlliance ? "small-group" : "yes")}, has-helpers={ui->Buddy.DutyHelperInfo.HasHelpers}");
 

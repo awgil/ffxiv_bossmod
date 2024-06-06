@@ -351,9 +351,24 @@ sealed class WorldStateGameSync : IDisposable
     {
         var gm = GroupManager.Instance();
         var ui = UIState.Instance();
+        var pc = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        var pcContentId = UIState.Instance()->PlayerState.ContentId;
+        var pcEntityId = UIState.Instance()->PlayerState.EntityId;
+        if (Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback])
+        {
+            // when doing replay playback, game uses independent group manager
+            gm += 1;
+            pcEntityId = pc != null ? pc->EntityId : 0;
+            var member = pc != null ? gm->GetPartyMemberByObjectId(pcEntityId) : null;
+            pcContentId = member != null ? member->ContentId : 0;
+        }
+        else if (pc != null && pc->EntityId != pcEntityId)
+        {
+            Service.Log($"[WSG] Player entity id mismatch: {pcEntityId:X} vs {pc->EntityId:X}");
+        }
 
         // update player slot
-        UpdatePartySlot(PartyState.PlayerSlot, UIState.Instance()->PlayerState.ContentId, UIState.Instance()->PlayerState.EntityId);
+        UpdatePartySlot(PartyState.PlayerSlot, pcContentId, pcEntityId);
 
         // update normal party slots: first update/remove existing members, then add new ones
         for (int i = PartyState.PlayerSlot + 1; i < PartyState.MaxPartySize; ++i)

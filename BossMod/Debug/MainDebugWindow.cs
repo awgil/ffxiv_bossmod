@@ -68,7 +68,11 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
         }
         if (ImGui.CollapsingHeader("Party (custom)"))
         {
-            _debugParty.DrawPartyCustom();
+            _debugParty.DrawPartyCustom(false);
+        }
+        if (ImGui.CollapsingHeader("Party (duty recorder)"))
+        {
+            _debugParty.DrawPartyCustom(true);
         }
         if (ImGui.CollapsingHeader("Autorotation"))
         {
