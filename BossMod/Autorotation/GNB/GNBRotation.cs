@@ -16,7 +16,7 @@ public static class Rotation
         public float AuroraLeft; // 0 if buff not up, max 18
         public int NumTargetsHitByAOE;
         public int MaxCartridges;
-        
+
         // upgrade paths
         public AID BestZone => Unlocked(AID.BlastingZone) ? AID.BlastingZone : AID.DangerZone;
         public AID BestHeart => Unlocked(AID.HeartOfCorundum) ? AID.HeartOfCorundum : AID.HeartOfStone;
