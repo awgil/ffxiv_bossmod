@@ -9,7 +9,7 @@ abstract class CommonActions : IDisposable
     public const int AutoActionAIFight = 2;
     public const int AutoActionFirstCustom = 3;
 
-    public enum ActionSource { Automatic, Planned, Manual, Emergency }
+    public enum ActionSource { Automatic, Planned, Manual, Emergency } // TODO: replace with priority
 
     public record struct NextAction(ActionID Action, Actor? Target, Vector3 TargetPos, Angle? FacingAngle, ActionSource Source);
     public record struct Targeting(AIHints.Enemy Target, float PreferredRange = 3, Positional PreferredPosition = Positional.Any, bool PreferTanking = false);

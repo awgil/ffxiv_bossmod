@@ -459,7 +459,7 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe void UpdateClient()
     {
         var countdownAgent = AgentCountDownSettingDialog.Instance();
-        float? countdown = countdownAgent != null && countdownAgent->Active && countdownAgent->TimeRemaining >= 0 ? countdownAgent->TimeRemaining : null;
+        float? countdown = countdownAgent != null && countdownAgent->Active ? countdownAgent->TimeRemaining : null;
         if (_ws.Client.CountdownRemaining != countdown)
             _ws.Execute(new ClientState.OpCountdownChange(countdown));
 

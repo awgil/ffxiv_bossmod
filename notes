@@ -1,0 +1,44 @@
+* CS crosschecks *
+public static unsafe byte GameObjectEventState(GameObject obj) => ReadField<byte>(GameObjectInternal(obj), 0x70); // see actor control 106
+public static unsafe byte CharacterShieldValue(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x1A0 + 0x46); // CharacterInternal(chr)->ShieldValue; // % of max hp; see effect result
+public static unsafe bool CharacterInCombat(Character chr) => (ReadField<byte>(CharacterInternal(chr), 0x1EB) & 0x20) != 0; // see actor control 4
+public static unsafe byte CharacterAnimationState(Character chr, bool second) => ReadField<byte>(CharacterInternal(chr), 0x970 + (second ? 0x2C2 : 0x2C1)); // see actor control 62
+public static unsafe byte CharacterModelState(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x970 + 0x2C0); // see actor control 63
+public static unsafe float CharacterCastRotation(Character chr) => ReadField<float>(CharacterInternal(chr), 0x1B6C); // see ActorCast -> Character::StartCast
+public static unsafe ulong CharacterTargetID(Character chr) => ReadField<ulong>(CharacterInternal(chr), 0x1B58); // until FFXIVClientStructs fixes offset and type...
+public static unsafe ushort CharacterTetherID(Character chr) => ReadField<ushort>(CharacterInternal(chr), 0x12F0 + 0xA0); // see actor control 35 -> CharacterTethers::Set (note that there is also a secondary tether...)
+public static unsafe ulong CharacterTetherTargetID(Character chr) => ReadField<ulong>(CharacterInternal(chr), 0x12F0 + 0xA0 + 0x10);
+public static unsafe Vector3 BattleCharaCastLocation(BattleChara chara) => BattleCharaInternal(chara)->GetCastInfo()->CastLocation; // see ActorCast -> Character::StartCast -> Character::StartOmen
+
+* UseAction notes *
+// when spamming e.g. HS, every click (~0.2 sec) this function is called; aid=HS, a4=a5=a6=a7==0, returns True
+// 0.5s before CD end, action becomes queued (this function returns True); while anything is queued, further calls return False
+// callType is 0 for normal calls, 1 if called by queue mechanism, 2 if called from macro, 3 if combo (in such case comboRouteID is ActionComboRoute row id)
+// right when GCD ends, it is called internally by queue mechanism with aid=adjusted-id, a5=1, a4=a6=a7==0, returns True
+// itemLocation==0 for spells, 65535 for item used from hotbar, some value (bagID<<8 | slotID) for item used from inventory; it is the same as a4 in UseActionLocation
+
+* old Autorotation notes *
+// typically 'casting an action' causes the following sequence of events:
+// - immediately after sending ActionRequest message, client 'speculatively' starts CD (including GCD)
+// - ~50-100ms later client receives bundle (typically one, but sometimes messages can be spread over two frames!) with ActorControlSelf[Cooldown], ActorControl[Gain/LoseEffect], AbilityN, ActorGauge, StatusEffectList
+//   new statuses have large negative duration (e.g. -30 when ST is applied) - theory: it means 'show as X, don't reduce' - TODO test?..
+// - ~600ms later client receives EventResult with normal durations
+//
+// during this 'unconfirmed' window we might be considering wrong move to be the next-best one (e.g. imagine we've just started long IR cd and don't see the effect yet - next-best might be infuriate)
+// but I don't think this matters in practice, as presumably client forbids queueing any actions while there are pending requests
+// I don't know what happens if there is no confirmation for a long time (due to ping or packet loss)
+//
+// reject scenario:
+// a relatively easy way to repro it is doing no-movement rotation, then enabling moves when PR is up and 3 charges are up; next onslaught after PR seems to be often rejected
+// it seems that game will not send another request after reject until 500ms passed since prev request
+//
+// IMPORTANT: it seems that game uses *client-side* cooldown to determine when next request can happen, here's an example:
+// - 04:51.508: request Upheaval
+// - 04:51.635: confirm Upheaval (ACS[Cooldown] = 30s)
+// - 05:21.516: request Upheaval (30.008 since prev request, 29.881 since prev response)
+// - 05:21.609: confirm Upheaval (29.974 since prev response)
+//
+// here's a list of things we do now:
+// 1. we use cooldowns as reported by ActionManager API rather than parse network messages. This (1) allows us to not rely on randomized opcodes, (2) allows us not to handle things like CD resets on wipes, actor resets on zone changes, etc.
+// 2. we convert large negative status durations to their expected values
+// 3. when there are pending actions, we don't update internal state, leaving same next-best recommendation
