@@ -25,6 +25,7 @@ public sealed class HookAddress<T> : IDisposable where T : Delegate
     public HookAddress(Address address, T detour, bool autoEnable = true) : this(address.Value, detour, autoEnable) { }
     public HookAddress(nint address, T detour, bool autoEnable = true)
     {
+        Service.Log($"Hooking {typeof(T)} @ 0x{address:X}");
         _hook = Service.Hook.HookFromAddress(address, detour);
         if (autoEnable)
             _hook.Enable();
