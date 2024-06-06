@@ -42,7 +42,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
         }
 
         var followTarget = _config.FollowTarget;
-        _followMaster = master != player && (_config.FollowDuringCombat || !master.InCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100) && (_config.FollowDuringActiveBossModule || autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null) && (_config.FollowOutOfCombat || master.InCombat);
+        _followMaster = (_config.FollowDuringCombat || !master.InCombat) && (_config.FollowDuringActiveBossModule || autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null) && (_config.FollowOutOfCombat || master.InCombat);
 
         _naviDecision = followTarget && autorot.WorldState.Actors.Find(player.TargetID) != null ? BuildNavigationDecision(player, autorot.WorldState.Actors.Find(player.TargetID)!, ref target) : BuildNavigationDecision(player, master, ref target);
         var masterIsMoving = TrackMasterMovement(master);
