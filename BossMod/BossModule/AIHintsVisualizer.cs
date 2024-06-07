@@ -7,7 +7,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
 {
     private readonly MapVisualizer?[] _zoneVisualizers = new MapVisualizer?[hints.ForbiddenZones.Count];
     private MapVisualizer? _pathfindVisualizer;
-    private NavigationDecision.Context _naviCtx = new();
+    private readonly NavigationDecision.Context _naviCtx = new();
     private NavigationDecision _navi;
 
     public void Draw(UITree tree)
