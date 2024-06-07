@@ -171,7 +171,7 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
     private Pathfinding.Map? _cachedMap;
 
     protected override PolygonClipper.Operand BuildClipPoly() => new(Poly);
-    public override Pathfinding.Map PathfindMap(WPos center) => (_cachedMap ??= BuildMap()).Clone(center);
+    public override void PathfindMap(Pathfinding.Map map, WPos center) => map.Init(_cachedMap ??= BuildMap(), center);
 
     public override bool Contains(WDir offset)
     {
