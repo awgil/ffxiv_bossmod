@@ -16,14 +16,14 @@ public class Map
         public int Priority; // >0 if goal
     }
 
-    public float Resolution { get; private init; } // pixel size, in world units
-    public int Width { get; private init; } // always even
-    public int Height { get; private init; } // always even
-    public Pixel[] Pixels;
+    public float Resolution { get; private set; } // pixel size, in world units
+    public int Width { get; private set; } // always even
+    public int Height { get; private set; } // always even
+    public Pixel[] Pixels = [];
 
     public WPos Center { get; private set; } // position of map center in world units
-    public Angle Rotation { get; private init; } // rotation relative to world space (=> ToDirection() is equal to direction of local 'height' axis in world space)
-    private WDir LocalZDivRes { get; init; }
+    public Angle Rotation { get; private set; } // rotation relative to world space (=> ToDirection() is equal to direction of local 'height' axis in world space)
+    private WDir LocalZDivRes { get; set; }
 
     public float MaxG { get; private set; } // maximal 'maxG' value of all blocked pixels
     public int MaxPriority { get; private set; } // maximal 'priority' value of all goal pixels
@@ -32,25 +32,45 @@ public class Map
 
     public Pixel this[int x, int y] => InBounds(x, y) ? Pixels[y * Width + x] : new() { MaxG = float.MaxValue, Priority = 0 };
 
-    public Map(float resolution, WPos center, float worldHalfWidth, float worldHalfHeight, Angle rotation = new())
+    public Map() { }
+    public Map(float resolution, WPos center, float worldHalfWidth, float worldHalfHeight, Angle rotation = new()) => Init(resolution, center, worldHalfWidth, worldHalfHeight, rotation);
+
+    public void Init(float resolution, WPos center, float worldHalfWidth, float worldHalfHeight, Angle rotation = new())
     {
         Resolution = resolution;
         Width = 2 * (int)MathF.Ceiling(worldHalfWidth / resolution);
         Height = 2 * (int)MathF.Ceiling(worldHalfHeight / resolution);
-        Pixels = Utils.MakeArray(Width * Height, new Pixel() { MaxG = float.MaxValue, Priority = 0 });
+
+        var numPixels = Width * Height;
+        if (Pixels.Length < numPixels)
+            Pixels = new Pixel[numPixels];
+        Array.Fill(Pixels, new Pixel { MaxG = float.MaxValue, Priority = 0 }, 0, numPixels);
 
         Center = center;
         Rotation = rotation;
         LocalZDivRes = rotation.ToDirection() / Resolution;
+
+        MaxG = 0;
+        MaxPriority = 0;
     }
 
-    public Map Clone(WPos center)
+    public void Init(Map source, WPos center)
     {
-        var res = (Map)MemberwiseClone();
-        res.Pixels = new Pixel[Pixels.Length];
-        Array.Copy(Pixels, res.Pixels, Pixels.Length);
-        res.Center = center;
-        return res;
+        Resolution = source.Resolution;
+        Width = source.Width;
+        Height = source.Height;
+
+        var numPixels = Width * Height;
+        if (Pixels.Length < numPixels)
+            Pixels = new Pixel[numPixels];
+        Array.Copy(source.Pixels, Pixels, numPixels);
+
+        Center = center;
+        Rotation = source.Rotation;
+        LocalZDivRes = source.LocalZDivRes;
+
+        MaxG = source.MaxG;
+        MaxPriority = source.MaxPriority;
     }
 
     public Vector2 WorldToGridFrac(WPos world)
