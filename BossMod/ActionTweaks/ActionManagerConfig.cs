@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-// TODO: rename
+// TODO: rename to ActionTweaksConfig
 [ConfigDisplay(Name = "Action tweaks settings", Order = 4)]
 public sealed class ActionManagerConfig : ConfigNode
 {
@@ -16,6 +16,9 @@ public sealed class ActionManagerConfig : ConfigNode
 
     [PropertyDisplay("Restore rotation after action use")]
     public bool RestoreRotation = false;
+
+    [PropertyDisplay("Use actions on mouseover target, if possible")]
+    public bool PreferMouseover = false;
 
     public enum GroundTargetingMode
     {

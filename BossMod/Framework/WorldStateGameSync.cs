@@ -63,7 +63,7 @@ sealed class WorldStateGameSync : IDisposable
         _netConfig = Service.Config.GetAndSubscribe<ReplayManagementConfig>(config => _interceptor.Active = config.RecordServerPackets || config.DumpServerPackets);
         _subscriptions = new
         (
-            ActionManagerEx.Instance!.ActionRequested.Subscribe(OnActionRequested),
+            ActionManagerEx.Instance!.ActionRequestExecuted.Subscribe(OnActionRequested),
             ActionManagerEx.Instance!.ActionEffectReceived.Subscribe(OnActionEffect)
         );
 

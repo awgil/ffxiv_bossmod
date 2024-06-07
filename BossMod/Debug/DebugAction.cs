@@ -1,11 +1,17 @@
 ﻿using Dalamud.Game.Gui;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using ImGuiNET;
 
 namespace BossMod;
 
-public class DebugAction(WorldState ws)
+public class DebugAction(WorldState ws) : IDisposable
 {
     private int _customAction;
+    private UITree _tree = new();
+
+    public void Dispose()
+    {
+    }
 
     public unsafe void DrawActionManagerExtensions()
     {
@@ -22,16 +28,18 @@ public class DebugAction(WorldState ws)
         ImGui.TextUnformatted($"Cast: {aidCastAction} / {aidCastSpell}, progress={amr->CastTimeElapsed:f3}/{amr->CastTimeTotal:f3}, target={amr->CastTargetId:X}/{Utils.Vec3String(amr->CastTargetPosition)}");
         ImGui.TextUnformatted($"Combo: {aidCombo}, {am.ComboTimeLeft:f3}");
         ImGui.TextUnformatted($"Queue: {(amr->ActionQueued ? "active" : "inactive")}, {aidQueued} @ {(ulong)amr->QueuedTargetId:X} [{amr->QueueType}], combo={amr->QueuedComboRouteId}");
-        ImGui.TextUnformatted($"GT: {aidGTAction} / {aidGTSpell}, arg={Utils.ReadField<uint>(amr, 0x94)}, obj={Utils.ReadField<ulong>(amr, 0x98):X}, a0={Utils.ReadField<byte>(amr, 0xA0):X2}, b8={Utils.ReadField<byte>(amr, 0xB8):X2}, bc={Utils.ReadField<byte>(amr, 0xBC):X}");
+        ImGui.TextUnformatted($"GT: {aidGTAction} / {aidGTSpell}, arg={Utils.ReadField<uint>(amr, 0x94)}, targ={amr->AreaTargetingExecuteAtObject:X}/{amr->AreaTargetingExecuteAtCursor}, a0={Utils.ReadField<byte>(amr, 0xA0):X2}, bc={Utils.ReadField<byte>(amr, 0xBC):X}");
         ImGui.TextUnformatted($"Last used action sequence: {amr->LastUsedActionSequence}");
+        //ImGui.TextUnformatted($"GT config: 298={Framework.Instance()->SystemConfig.GetConfigOption(298)->Value.UInt}");
         if (ImGui.Button("GT complete"))
         {
-            Utils.WriteField(amr, 0xB8, (byte)1);
+            amr->AreaTargetingExecuteAtCursor = true;
         }
         ImGui.SameLine();
         if (ImGui.Button("GT set target"))
         {
-            Utils.WriteField(amr, 0x98, (ulong)(Service.TargetManager.Target?.ObjectId ?? 0));
+            var target = TargetSystem.Instance()->Target;
+            amr->AreaTargetingExecuteAtObject = target != null ? target->GetGameObjectId() : 0xE0000000;
         }
 
         if (ImGui.Button("Rotate 30 CCW"))
@@ -142,6 +150,11 @@ public class DebugAction(WorldState ws)
         {
             ImGui.TextUnformatted("Hover: none");
         }
+
+        foreach (var nr in _tree.Node("Player actions"))
+        {
+            DrawFilteredActions("Hostile + friendly", a => a.IsPlayerAction && a.CanTargetHostile && (a.CanTargetSelf || a.CanTargetParty || a.CanTargetFriendly || a.Unknown19 || a.Unknown22 || a.Unknown23));
+        }
     }
 
     private unsafe void DrawStatus(string prompt, ActionID action, bool checkRecast, bool checkCasting)
@@ -149,5 +162,16 @@ public class DebugAction(WorldState ws)
         uint extra;
         var status = ActionManagerEx.Instance!.GetActionStatus(action, Service.ClientState.LocalPlayer?.TargetObjectId ?? 0xE0000000, checkRecast, checkCasting, &extra);
         ImGui.TextUnformatted($"{prompt}: {status} [{extra}] '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(status)?.Text}'");
+    }
+
+    private void DrawFilteredActions(string tag, Func<Lumina.Excel.GeneratedSheets.Action, bool> filter)
+    {
+        foreach (var nr in _tree.Node(tag))
+        {
+            foreach (var a in Service.LuminaGameData!.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()!.Where(filter))
+            {
+                _tree.LeafNode($"#{a.RowId} {a.Name}");
+            }
+        }
     }
 }

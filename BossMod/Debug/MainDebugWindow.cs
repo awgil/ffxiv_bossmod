@@ -21,6 +21,7 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
 
     protected override void Dispose(bool disposing)
     {
+        _debugAction.Dispose();
         _debugInput.Dispose();
         _debugClassDefinitions.Dispose();
         _debugAddon.Dispose();

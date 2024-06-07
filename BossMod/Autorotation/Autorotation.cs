@@ -22,9 +22,6 @@ sealed class Autorotation : IDisposable
 
     private static readonly ActionID IDSprintGeneral = new(ActionType.General, 4);
 
-    private unsafe delegate bool UseActionDelegate(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted);
-    private readonly Hook<UseActionDelegate> _useActionHook;
-
     public unsafe Autorotation(BossModuleManager bossmods)
     {
         Bossmods = bossmods;
@@ -35,16 +32,14 @@ sealed class Autorotation : IDisposable
             WorldState.Client.ActionRequested.Subscribe(OnActionRequested),
             WorldState.Actors.CastEvent.Subscribe(OnCastEvent)
         );
-
-        _useActionHook = Service.Hook.HookFromSignature<UseActionDelegate>("E8 ?? ?? ?? ?? EB 64 B1 01", UseActionDetour);
-        _useActionHook.Enable();
+        ActionManagerEx.Instance!.FilterActionRequest += FilterActionRequest;
     }
 
     public void Dispose()
     {
+        ActionManagerEx.Instance!.FilterActionRequest -= FilterActionRequest;
         _subscriptions.Dispose();
         _ui.Dispose();
-        _useActionHook.Dispose();
         ClassActions?.Dispose();
         _autoHints.Dispose();
     }
@@ -178,26 +173,16 @@ sealed class Autorotation : IDisposable
     }
 
     // note: current implementation introduces slight input lag (on button press, next autorotation update will pick state updates, which will be executed on next action manager update)
-    private unsafe bool UseActionDetour(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
+    private bool FilterActionRequest(ActionID action, ulong targetId)
     {
-        //Service.Log($"UA: {new ActionID(actionType, actionID)} @ {targetID:X}: {itemLocation} {callType} {comboRouteID}");
-        if (callType != 0 || ClassActions == null)
-        {
-            // pass to hooked function transparently
-            return _useActionHook.Original(self, actionType, actionID, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
-        }
+        if (ClassActions == null)
+            return false;
 
-        var action = new ActionID(actionType, actionID);
         if (action == IDSprintGeneral)
             action = CommonDefinitions.IDSprint;
-        bool nullTarget = targetID is 0 or Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId;
-        var target = nullTarget ? null : WorldState.Actors.Find(targetID);
-        if (target == null && !nullTarget || !ClassActions.HandleUserActionRequest(action, target))
-        {
-            // unknown target (e.g. quest object) or unsupported action - pass to hooked function
-            return _useActionHook.Original(self, actionType, actionID, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
-        }
-
-        return false;
+        bool nullTarget = targetId is 0 or Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId;
+        var target = nullTarget ? null : WorldState.Actors.Find(targetId);
+        // unknown target (e.g. quest object) or unsupported action => do not filter
+        return (nullTarget || target != null) && ClassActions.HandleUserActionRequest(action, target);
     }
 }

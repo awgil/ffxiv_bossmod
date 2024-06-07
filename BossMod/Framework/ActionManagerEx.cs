@@ -1,9 +1,11 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
 namespace BossMod;
@@ -36,7 +38,8 @@ unsafe sealed class ActionManagerEx : IDisposable
     public float EffectiveAnimationLock => _inst->AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends, so this is the minimal time until next action can be requested
     public float AnimationLockDelayEstimate => _animLockTweak.DelayEstimate;
 
-    public Event<ClientActionRequest> ActionRequested = new();
+    public Func<ActionID, ulong, bool>? FilterActionRequest; // if the delegate is available and returns true, the user action request is not executed
+    public Event<ClientActionRequest> ActionRequestExecuted = new();
     public Event<ulong, ActorCastEvent> ActionEffectReceived = new();
 
     public InputOverride InputOverride = new();
@@ -49,6 +52,7 @@ unsafe sealed class ActionManagerEx : IDisposable
     private readonly RestoreRotationTweak _restoreRotTweak = new();
 
     private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
+    private readonly HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
     private readonly HookAddress<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
     private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
     private readonly HookAddress<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
@@ -57,6 +61,7 @@ unsafe sealed class ActionManagerEx : IDisposable
     {
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
         _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
+        _useActionHook = new(ActionManager.Addresses.UseAction, UseActionDetour);
         _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
         _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
         _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
@@ -67,6 +72,7 @@ unsafe sealed class ActionManagerEx : IDisposable
         _processPacketActionEffectHook.Dispose();
         _useBozjaFromHolsterDirectorHook.Dispose();
         _useActionLocationHook.Dispose();
+        _useActionHook.Dispose();
         _updateHook.Dispose();
         InputOverride.Dispose();
     }
@@ -229,6 +235,35 @@ unsafe sealed class ActionManagerEx : IDisposable
             InputOverride.UnblockMovement();
     }
 
+    // note: targetId is usually your current primary target (or 0xE0000000 if you don't target anyone), unless you do something like /ac XXX <f> etc
+    private bool UseActionDetour(ActionManager* self, CSActionType actionType, uint actionId, ulong targetId, uint extraParam, ActionManager.UseActionMode mode, uint comboRouteId, bool* outOptAreaTargeted)
+    {
+        var action = new ActionID((ActionType)actionType, actionId);
+        //Service.Log($"[AMEx] UA: {action} @ {targetId:X}: {extraParam} {mode} {comboRouteId}");
+        // note: only standard mode can be filtered
+        if (mode == ActionManager.UseActionMode.None && FilterActionRequest != null && FilterActionRequest(action, targetId))
+            return false;
+
+        var primaryTarget = TargetSystem.Instance()->Target;
+        var primaryTargetId = primaryTarget != null ? primaryTarget->GetGameObjectId() : 0xE0000000;
+        if (Config.PreferMouseover && targetId == primaryTargetId)
+        {
+            var mouseoverTarget = PronounModule.Instance()->UiMouseOverTarget;
+            if (mouseoverTarget != null && ActionManager.CanUseActionOnTarget(ActionManager.GetSpellIdForAction(actionType, actionId), mouseoverTarget))
+                targetId = mouseoverTarget->GetGameObjectId();
+        }
+
+        bool areaTargeted = false;
+        var res = _useActionHook.Original(self, actionType, actionId, targetId, extraParam, mode, comboRouteId, &areaTargeted);
+        if (outOptAreaTargeted != null)
+            *outOptAreaTargeted = areaTargeted;
+        if (areaTargeted && Config.GTMode == ActionManagerConfig.GroundTargetingMode.AtCursor)
+            self->AreaTargetingExecuteAtCursor = true;
+        if (areaTargeted && Config.GTMode == ActionManagerConfig.GroundTargetingMode.AtTarget)
+            self->AreaTargetingExecuteAtObject = targetId;
+        return res;
+    }
+
     private bool UseActionLocationDetour(ActionManager* self, CSActionType actionType, uint actionId, ulong targetId, Vector3* location, uint extraParam)
     {
         var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
@@ -330,6 +365,6 @@ unsafe sealed class ActionManagerEx : IDisposable
         var (castElapsed, castTotal) = _inst->CastSpellId != 0 ? (_inst->CastTimeElapsed, _inst->CastTimeTotal) : (0, 0);
         var (recastElapsed, recastTotal) = recast != null ? (recast->Elapsed, recast->Total) : (0, 0);
         Service.Log($"[AMEx] UAL #{seq} {action} @ {targetID:X} / {Utils.Vec3String(targetPos)}, ALock={_inst->AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
-        ActionRequested.Fire(new(action, targetID, targetPos, seq, _inst->AnimationLock, castElapsed, castTotal, recastElapsed, recastTotal));
+        ActionRequestExecuted.Fire(new(action, targetID, targetPos, seq, _inst->AnimationLock, castElapsed, castTotal, recastElapsed, recastTotal));
     }
 }
