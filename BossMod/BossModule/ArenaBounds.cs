@@ -33,7 +33,7 @@ public abstract record class ArenaBounds(float Radius, float MapResolution)
     }
 
     protected abstract PolygonClipper.Operand BuildClipPoly();
-    public abstract Pathfinding.Map PathfindMap(WPos center); // if implementation caches a map, it should return a clone
+    public abstract void PathfindMap(Pathfinding.Map map, WPos center);
     public abstract bool Contains(WDir offset);
     public abstract float IntersectRay(WDir originOffset, WDir dir);
     public abstract WDir ClampToBounds(WDir offset);
@@ -105,7 +105,7 @@ public record class ArenaBoundsCircle(float Radius, float MapResolution = 0.5f) 
     private Pathfinding.Map? _cachedMap;
 
     protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Circle(Radius, MaxApproxError));
-    public override Pathfinding.Map PathfindMap(WPos center) => (_cachedMap ??= BuildMap()).Clone(center);
+    public override void PathfindMap(Pathfinding.Map map, WPos center) => map.Init(_cachedMap ??= BuildMap(), center);
     public override bool Contains(WDir offset) => offset.LengthSq() <= Radius * Radius;
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayCircle(originOffset, dir, Radius);
 
@@ -147,7 +147,7 @@ public record class ArenaBoundsRect(float HalfWidth, float HalfHeight, Angle Rot
     }
 
     protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(Orientation, HalfWidth, HalfHeight));
-    public override Pathfinding.Map PathfindMap(WPos center) => new(MapResolution, center, HalfWidth, HalfHeight, Rotation);
+    public override void PathfindMap(Pathfinding.Map map, WPos center) => map.Init(MapResolution, center, HalfWidth, HalfHeight, Rotation);
     public override bool Contains(WDir offset) => offset.InRect(Orientation, HalfHeight, HalfHeight, HalfWidth);
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayRect(originOffset, dir, Orientation, HalfWidth, HalfHeight);
 

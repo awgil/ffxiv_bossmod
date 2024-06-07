@@ -205,5 +205,10 @@ public class MapVisualizer
         }
     }
 
-    private ThetaStar BuildPathfind() => new(Map, GoalPriority, StartPos, 1.0f / 6);
+    private ThetaStar BuildPathfind()
+    {
+        var res = new ThetaStar();
+        res.Start(Map, GoalPriority, StartPos, 1.0f / 6);
+        return res;
+    }
 }

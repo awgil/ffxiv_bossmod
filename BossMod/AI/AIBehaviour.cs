@@ -7,6 +7,7 @@ namespace BossMod.AI;
 sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
 {
     private readonly AIConfig _config = Service.Config.Get<AIConfig>();
+    private readonly NavigationDecision.Context _naviCtx = new();
     private NavigationDecision _naviDecision;
     private bool _afkMode;
     private bool _followMaster; // if true, our navigation target is master rather than primary target - this happens e.g. in outdoor or in dungeons during gathering trash
@@ -116,7 +117,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
             if (desiredToTarget.LengthSq() > 4 /*&& (_autorot.ClassActions?.GetState().GCD ?? 0) > 0.5f*/)
             {
                 var dest = autorot.Hints.ClampToBounds(targeting.Target.DesiredPosition - adjRange * desiredToTarget.Normalized());
-                return NavigationDecision.Build(autorot.WorldState, autorot.Hints, player, dest, 0.5f, new(), Positional.Any);
+                return NavigationDecision.Build(_naviCtx, autorot.WorldState, autorot.Hints, player, dest, 0.5f, new(), Positional.Any);
             }
         }
         var adjRotation = targeting.PreferTanking ? targeting.Target.DesiredRotation : targeting.Target.Actor.Rotation;

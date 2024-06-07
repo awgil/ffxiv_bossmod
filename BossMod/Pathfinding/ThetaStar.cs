@@ -12,23 +12,28 @@ public class ThetaStar
         public float PathLeeway;
     }
 
-    private readonly Map _map;
-    private readonly (int x, int y)[] _goals;
-    private readonly Node[] _nodes;
+    private Map _map = new();
+    private readonly List<(int x, int y)> _goals = [];
+    private Node[] _nodes = [];
     private readonly List<int> _openList = [];
-    private readonly float _deltaGSide;
-    private readonly float _deltaGDiag;
+    private float _deltaGSide;
+    private float _deltaGDiag;
 
     public ref Node NodeByIndex(int index) => ref _nodes[index];
     public int CellIndex(int x, int y) => y * _map.Width + x;
     public WPos CellCenter(int index) => _map.GridToWorld(index % _map.Width, index / _map.Width, 0.5f, 0.5f);
 
     // gMultiplier is typically inverse speed, which turns g-values into time
-    public ThetaStar(Map map, IEnumerable<(int x, int y)> goals, (int x, int y) start, float gMultiplier)
+    public void Start(Map map, IEnumerable<(int x, int y)> goals, (int x, int y) start, float gMultiplier)
     {
         _map = map;
-        _goals = goals.ToArray();
-        _nodes = new Node[map.Width * map.Height];
+        _goals.Clear();
+        _goals.AddRange(goals);
+        var numPixels = map.Width * map.Height;
+        if (_nodes.Length < numPixels)
+            _nodes = new Node[numPixels];
+        Array.Fill(_nodes, default, 0, numPixels);
+        _openList.Clear();
         _deltaGSide = map.Resolution * gMultiplier;
         _deltaGDiag = _deltaGSide * 1.414214f;
 
@@ -42,10 +47,7 @@ public class ThetaStar
         AddToOpen(startIndex);
     }
 
-    public ThetaStar(Map map, int goalPriority, WPos startPos, float gMultiplier)
-        : this(map, map.Goals().Where(g => g.priority >= goalPriority).Select(g => (g.x, g.y)), map.WorldToGrid(startPos), gMultiplier)
-    {
-    }
+    public void Start(Map map, int goalPriority, WPos startPos, float gMultiplier) => Start(map, map.Goals().Where(g => g.priority >= goalPriority).Select(g => (g.x, g.y)), map.WorldToGrid(startPos), gMultiplier);
 
     // returns whether search is to be terminated; on success, first node of the open list would contain found goal
     private bool IsInBounds(int x, int y) => x >= 0 && y >= 0 && x < _map.Width && y < _map.Height;
@@ -61,7 +63,7 @@ public class ThetaStar
 
     public bool ExecuteStep()
     {
-        if (_goals.Length == 0 || _openList.Count == 0 || _nodes[_openList[0]].HScore <= 0)
+        if (_goals.Count == 0 || _openList.Count == 0 || _nodes[_openList[0]].HScore <= 0)
             return false;
 
         var nextNodeIndex = PopMinOpen();

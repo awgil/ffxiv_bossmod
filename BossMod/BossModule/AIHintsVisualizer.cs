@@ -7,6 +7,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
 {
     private readonly MapVisualizer?[] _zoneVisualizers = new MapVisualizer?[hints.ForbiddenZones.Count];
     private MapVisualizer? _pathfindVisualizer;
+    private readonly NavigationDecision.Context _naviCtx = new();
     private NavigationDecision _navi;
 
     public void Draw(UITree tree)
@@ -53,7 +54,8 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
 
     private MapVisualizer BuildZoneVisualizer(Func<WPos, float> shape)
     {
-        var map = hints.Bounds.PathfindMap(hints.Center);
+        var map = new Map();
+        hints.Bounds.PathfindMap(map, hints.Center);
         map.BlockPixelsInside(shape, 0, NavigationDecision.DefaultForbiddenZoneCushion);
         return new MapVisualizer(map, 0, player.Position);
     }
@@ -65,7 +67,8 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
         _navi = BuildPathfind(targeting.enemy, targeting.range, targeting.pos, targeting.tank);
         if (_navi.Map == null)
         {
-            _navi.Map = hints.Bounds.PathfindMap(hints.Center);
+            _navi.Map = new();
+            hints.Bounds.PathfindMap(_navi.Map, hints.Center);
             var imm = NavigationDecision.ImminentExplosionTime(ws.CurrentTime);
             foreach (var (shape, activation) in hints.ForbiddenZones)
                 NavigationDecision.AddBlockerZone(_navi.Map, imm, activation, shape, NavigationDecision.DefaultForbiddenZoneCushion);
@@ -78,7 +81,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
     private NavigationDecision BuildPathfind(AIHints.Enemy? target, float range, Positional positional, bool preferTanking)
     {
         if (target == null)
-            return NavigationDecision.Build(ws, hints, player, null, 0, new(), Positional.Any);
+            return NavigationDecision.Build(_naviCtx, ws, hints, player, null, 0, new(), Positional.Any);
 
         var adjRange = range + player.HitboxRadius + target.Actor.HitboxRadius;
         if (preferTanking)
@@ -89,11 +92,11 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
             if (desiredToTarget.LengthSq() > 4 /* && gcd check*/)
             {
                 var dest = target.DesiredPosition - adjRange * desiredToTarget.Normalized();
-                return NavigationDecision.Build(ws, hints, player, dest, 0.5f, new(), Positional.Any);
+                return NavigationDecision.Build(_naviCtx, ws, hints, player, dest, 0.5f, new(), Positional.Any);
             }
         }
 
         var adjRotation = preferTanking ? target.DesiredRotation : target.Actor.Rotation;
-        return NavigationDecision.Build(ws, hints, player, target.Actor.Position, adjRange, adjRotation, positional);
+        return NavigationDecision.Build(_naviCtx, ws, hints, player, target.Actor.Position, adjRange, adjRotation, positional);
     }
 }
