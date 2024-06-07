@@ -296,7 +296,12 @@ public struct NavigationDecision
         }
 
         // just run to closest safe spot, if no good path can be found
-        var closest = map.EnumeratePixels().Where(p => { var px = map[p.x, p.y]; return px.Priority == 0 && px.MaxG == float.MaxValue; }).MinBy(p => (p.center - startPos).LengthSq()).center;
+        bool match((int x, int y, WPos center) p)
+        {
+            var px = map[p.x, p.y];
+            return px.Priority == 0 && px.MaxG == float.MaxValue;
+        }
+        var closest = map.EnumeratePixels().Where(match).MinBy(p => (p.center - startPos).LengthSq()).center;
         return new() { Destination = closest, LeewaySeconds = 0, TimeToGoal = (closest - startPos).Length() / speed, Map = map, DecisionType = Decision.ImminentToClosest };
     }
 

@@ -140,7 +140,7 @@ sealed class Autorotation : IDisposable
         var next = ActionManagerEx.Instance!.AutoQueue;
         var state = ClassActions.GetState();
         var strategy = ClassActions.GetStrategy();
-        ImGui.TextUnformatted($"[{ClassActions.AutoAction}] Next: {next.Action} ({next.Source})");
+        ImGui.TextUnformatted($"[{ClassActions.AutoAction}] Next: {next.Action} ({next.Priority})");
         if (ClassActions.AutoAction != CommonActions.AutoActionNone && strategy.NextPositional != Positional.Any)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, PositionalColor(strategy));

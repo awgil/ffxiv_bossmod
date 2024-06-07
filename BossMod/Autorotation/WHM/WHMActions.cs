@@ -80,15 +80,15 @@ class Actions : HealerActions
     {
     }
 
-    protected override NextAction CalculateAutomaticGCD()
+    protected override ActionQueue.Entry CalculateAutomaticGCD()
     {
         // TODO: rework, especially non-ai...
         switch (AutoAction)
         {
             case AutoActionST:
-                return Autorot.PrimaryTarget != null ? MakeResult(Rotation.GetNextBestSTDamageGCD(_state, _strategy), Autorot.PrimaryTarget) : new();
+                return Autorot.PrimaryTarget != null ? MakeResult(Rotation.GetNextBestSTDamageGCD(_state, _strategy), Autorot.PrimaryTarget) : default;
             case AutoActionAOE:
-                return Autorot.PrimaryTarget != null ? MakeResult(Rotation.GetNextBestAOEDamageGCD(_state, _strategy), Autorot.PrimaryTarget) : new();
+                return Autorot.PrimaryTarget != null ? MakeResult(Rotation.GetNextBestAOEDamageGCD(_state, _strategy), Autorot.PrimaryTarget) : default;
             case AutoActionSTHeal:
                 return MakeResult(Rotation.GetNextBestSTHealGCD(_state, _strategy), (_config.Data.MouseoverFriendly ? SmartTargetFriendly(Autorot.PrimaryTarget) : Autorot.PrimaryTarget) ?? Player);
             case AutoActionAOEHeal:
@@ -135,19 +135,19 @@ class Actions : HealerActions
                         return MakeResult(Rotation.GetNextBestSTDamageGCD(_state, _strategy), Autorot.PrimaryTarget);
                 }
 
-                return new(); // chill
+                return default; // chill
         }
     }
 
-    protected override NextAction CalculateAutomaticOGCD(float deadline)
+    protected override ActionQueue.Entry CalculateAutomaticOGCD(float deadline)
     {
         if (AutoAction < AutoActionAIFight)
-            return new();
+            return default;
 
         if (deadline < float.MaxValue && _allowDelayingNextGCD)
             deadline += 0.4f + _state.AnimationLockDelay;
 
-        NextAction res = new();
+        ActionQueue.Entry res = default;
         if (_state.CanWeave(deadline - _state.OGCDSlotLength)) // first ogcd slot
             res = GetNextBestOGCD(deadline - _state.OGCDSlotLength);
         if (!res.Action && _state.CanWeave(deadline)) // second/only ogcd slot
@@ -155,7 +155,7 @@ class Actions : HealerActions
         return res;
     }
 
-    private NextAction GetNextBestOGCD(float deadline)
+    private ActionQueue.Entry GetNextBestOGCD(float deadline)
     {
         // TODO: L52+
 
@@ -175,7 +175,7 @@ class Actions : HealerActions
         if (_state.CurMP <= 7000 && _state.Unlocked(AID.LucidDreaming) && _state.CanWeave(CDGroup.LucidDreaming, 0.6f, deadline))
             return MakeResult(AID.LucidDreaming, Player);
 
-        return new();
+        return default;
     }
 
     protected override void OnActionSucceeded(ActorCastEvent ev)

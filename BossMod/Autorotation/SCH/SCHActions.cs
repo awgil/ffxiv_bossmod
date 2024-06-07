@@ -63,7 +63,7 @@ class Actions : HealerActions
     {
     }
 
-    protected override NextAction CalculateAutomaticGCD()
+    protected override ActionQueue.Entry CalculateAutomaticGCD()
     {
         // TODO: rework, implement non-ai...
         if (_state.Unlocked(AID.SummonSelene) && _state.Fairy == null)
@@ -96,18 +96,18 @@ class Actions : HealerActions
         if (_state.CurMP > 3000 && Autorot.PrimaryTarget != null)
             return MakeResult(Rotation.GetNextBestDamageGCD(_state, _strategy), Autorot.PrimaryTarget);
 
-        return new(); // chill
+        return default; // chill
     }
 
-    protected override NextAction CalculateAutomaticOGCD(float deadline)
+    protected override ActionQueue.Entry CalculateAutomaticOGCD(float deadline)
     {
         if (AutoAction < AutoActionAIFight)
-            return new();
+            return default;
 
         if (deadline < float.MaxValue && _allowDelayingNextGCD)
             deadline += 0.4f + _state.AnimationLockDelay;
 
-        NextAction res = new();
+        ActionQueue.Entry res = default;
         if (_state.CanWeave(deadline - _state.OGCDSlotLength)) // first ogcd slot
             res = GetNextBestOGCD(deadline - _state.OGCDSlotLength);
         if (!res.Action && _state.CanWeave(deadline)) // second/only ogcd slot
@@ -115,7 +115,7 @@ class Actions : HealerActions
         return res;
     }
 
-    private NextAction GetNextBestOGCD(float deadline)
+    private ActionQueue.Entry GetNextBestOGCD(float deadline)
     {
         // TODO: L52+
         // TODO: fey illumination
@@ -148,7 +148,7 @@ class Actions : HealerActions
         if (_state.CurMP <= 7000 && _state.Unlocked(AID.LucidDreaming) && _state.CanWeave(CDGroup.LucidDreaming, 0.6f, deadline))
             return MakeResult(AID.LucidDreaming, Player);
 
-        return new();
+        return default;
     }
 
     protected override void OnActionSucceeded(ActorCastEvent ev)

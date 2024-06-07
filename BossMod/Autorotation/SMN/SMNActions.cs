@@ -52,7 +52,7 @@ class Actions : CommonActions
     {
     }
 
-    protected override NextAction CalculateAutomaticGCD()
+    protected override ActionQueue.Entry CalculateAutomaticGCD()
     {
         if (!Player.InCombat && _state.Unlocked(AID.SummonCarbuncle) && !_state.PetSummoned)
             return MakeResult(AID.SummonCarbuncle, Player);
@@ -60,15 +60,15 @@ class Actions : CommonActions
         //    return MakeResult(AID.Physick, Autorot.SecondaryTarget); // TODO: automatic target selection
 
         if (Autorot.PrimaryTarget == null || AutoAction < AutoActionAIFight)
-            return new();
+            return default;
         var aid = Rotation.GetNextBestGCD(_state, _strategy, _aoe, _strategy.ForceMovementIn < 5);
         return MakeResult(aid, Autorot.PrimaryTarget);
     }
 
-    protected override NextAction CalculateAutomaticOGCD(float deadline)
+    protected override ActionQueue.Entry CalculateAutomaticOGCD(float deadline)
     {
         if (Autorot.PrimaryTarget == null || AutoAction < AutoActionAIFight)
-            return new();
+            return default;
 
         ActionID res = new();
         if (_state.CanWeave(deadline - _state.OGCDSlotLength)) // first ogcd slot

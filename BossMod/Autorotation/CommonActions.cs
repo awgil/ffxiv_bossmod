@@ -9,9 +9,6 @@ abstract class CommonActions : IDisposable
     public const int AutoActionAIFight = 2;
     public const int AutoActionFirstCustom = 3;
 
-    public enum ActionSource { Automatic, Planned, Manual, Emergency } // TODO: replace with priority
-
-    public record struct NextAction(ActionID Action, Actor? Target, Vector3 TargetPos, Angle? FacingAngle, ActionSource Source);
     public record struct Targeting(AIHints.Enemy Target, float PreferredRange = 3, Positional PreferredPosition = Positional.Any, bool PreferTanking = false);
 
     public class SupportedAction(ActionDefinition definition, bool isGT)
@@ -227,41 +224,41 @@ abstract class CommonActions : IDisposable
         return true;
     }
 
-    public NextAction CalculateNextAction()
+    public ActionQueue.Entry CalculateNextAction()
     {
         // check emergency mode
         var mqEmergency = _mq.PeekEmergency();
         if (mqEmergency != null)
-            return new(mqEmergency.Action, mqEmergency.Target, mqEmergency.TargetPos, mqEmergency.FacingAngle, ActionSource.Emergency);
+            return new(mqEmergency.Action, mqEmergency.Target, mqEmergency.TargetPos, mqEmergency.FacingAngle, ActionQueue.Priority.ManualEmergency);
 
         var effAnimLock = Autorot.EffAnimLock;
         var animLockDelay = Autorot.AnimLockDelay;
 
         // see if we have any GCD (queued or automatic)
         var mqGCD = _mq.PeekGCD();
-        var nextGCD = mqGCD != null ? new NextAction(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, mqGCD.FacingAngle, ActionSource.Manual) : AutoAction != AutoActionNone ? CalculateAutomaticGCD() : new();
+        var nextGCD = mqGCD != null ? new(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, mqGCD.FacingAngle, ActionQueue.Priority.ManualGCD) : AutoAction != AutoActionNone ? CalculateAutomaticGCD() : default;
         float ogcdDeadline = nextGCD.Action ? Autorot.WorldState.Client.Cooldowns[CommonDefinitions.GCDGroup].Remaining : float.MaxValue;
         //Log($"{nextGCD.Action} = {ogcdDeadline}");
 
         // search for any oGCDs that we can execute without delaying GCD
         var mqOGCD = _mq.PeekOGCD(effAnimLock, animLockDelay, ogcdDeadline);
         if (mqOGCD != null)
-            return new(mqOGCD.Action, mqOGCD.Target, mqOGCD.TargetPos, mqOGCD.FacingAngle, ActionSource.Manual);
+            return new(mqOGCD.Action, mqOGCD.Target, mqOGCD.TargetPos, mqOGCD.FacingAngle, ActionQueue.Priority.ManualOGCD);
 
         // see if there is anything high-priority from cooldown plan to be executed
         var cpActionHigh = Autorot.Hints.PlannedActions.FirstOrDefault(x => !x.lowPriority && CanExecutePlannedAction(x.action, x.target, effAnimLock, animLockDelay, ogcdDeadline));
         if (cpActionHigh.action)
-            return new(cpActionHigh.action, cpActionHigh.target, new(), null, ActionSource.Planned);
+            return new(cpActionHigh.action, cpActionHigh.target, new(), null, ActionQueue.Priority.Medium);
 
         // note: we intentionally don't check that automatic oGCD really does not clip GCD - we provide utilities that allow module checking that, but also allow overriding if needed
-        var nextOGCD = AutoAction != AutoActionNone ? CalculateAutomaticOGCD(ogcdDeadline) : new();
+        var nextOGCD = AutoAction != AutoActionNone ? CalculateAutomaticOGCD(ogcdDeadline) : default;
         if (nextOGCD.Action)
             return nextOGCD;
 
         // finally see whether there are any low-priority planned actions
         var cpActionLow = Autorot.Hints.PlannedActions.FirstOrDefault(x => x.lowPriority && CanExecutePlannedAction(x.action, x.target, effAnimLock, animLockDelay, ogcdDeadline));
         if (cpActionLow.action)
-            return new(cpActionLow.action, cpActionLow.target, new(), null, ActionSource.Planned);
+            return new(cpActionLow.action, cpActionLow.target, new(), null, ActionQueue.Priority.Low);
 
         // no ogcds, execute gcd instead
         return nextGCD;
@@ -287,21 +284,21 @@ abstract class CommonActions : IDisposable
     public virtual void FillStatusesToCancel(List<(uint statusId, ulong sourceId)> list) { }
     protected abstract void UpdateInternalState(int autoAction);
     protected abstract void QueueAIActions();
-    protected abstract NextAction CalculateAutomaticGCD();
-    protected abstract NextAction CalculateAutomaticOGCD(float deadline);
+    protected abstract ActionQueue.Entry CalculateAutomaticGCD();
+    protected abstract ActionQueue.Entry CalculateAutomaticOGCD(float deadline);
     protected virtual void OnActionExecuted(in ClientActionRequest request) { }
     protected virtual void OnActionSucceeded(ActorCastEvent ev) { }
 
-    protected NextAction MakeResult(ActionID action, Actor? target)
+    protected ActionQueue.Entry MakeResult(ActionID action, Actor? target)
     {
         var data = action ? SupportedActions[action] : null;
         if (data == null)
-            return new();
+            return default;
         if (data.Definition.Range == 0)
             target = Player; // override range-0 actions to always target player
-        return target != null && data.Allowed(Player, target) ? new(action, target, new(), null, ActionSource.Automatic) : new();
+        return target != null && data.Allowed(Player, target) ? new(action, target, new(), null, (data.Definition.CooldownGroup == CommonDefinitions.GCDGroup ? ActionQueue.Priority.High : ActionQueue.Priority.Low) + 500) : default;
     }
-    protected NextAction MakeResult<AID>(AID aid, Actor? target) where AID : Enum => MakeResult(ActionID.MakeSpell(aid), target);
+    protected ActionQueue.Entry MakeResult<AID>(AID aid, Actor? target) where AID : Enum => MakeResult(ActionID.MakeSpell(aid), target);
 
     protected void SimulateManualActionForAI(ActionID action, Actor? target, bool enable)
     {

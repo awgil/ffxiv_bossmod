@@ -44,7 +44,7 @@ unsafe sealed class ActionManagerEx : IDisposable
 
     public InputOverride InputOverride = new();
     public ActionManagerConfig Config = Service.Config.Get<ActionManagerConfig>();
-    public CommonActions.NextAction AutoQueue;
+    public ActionQueue.Entry AutoQueue;
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
     private readonly ActionManager* _inst = ActionManager.Instance();
     private readonly AnimationLockTweak _animLockTweak = new();
@@ -222,7 +222,7 @@ unsafe sealed class ActionManagerEx : IDisposable
             }
             else
             {
-                Service.Log($"[AMEx] Can't execute {AutoQueue.Source} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(status)?.Text}'");
+                Service.Log($"[AMEx] Can't execute prio {AutoQueue.Priority} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(status)?.Text}'");
                 blockMovement = false;
             }
         }

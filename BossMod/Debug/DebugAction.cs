@@ -7,7 +7,7 @@ namespace BossMod;
 public class DebugAction(WorldState ws) : IDisposable
 {
     private int _customAction;
-    private UITree _tree = new();
+    private readonly UITree _tree = new();
 
     public void Dispose()
     {
