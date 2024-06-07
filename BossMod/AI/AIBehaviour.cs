@@ -12,7 +12,6 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
     private bool _followMaster; // if true, our navigation target is master rather than primary target - this happens e.g. in outdoor or in dungeons during gathering trash
     private float _maxCastTime;
     private WPos _masterPrevPos;
-    private WPos _masterMovementStart;
     private DateTime _masterLastMoved;
 
     public void Dispose()
@@ -105,7 +104,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
         if (_followMaster && !_config.FollowTarget || _followMaster && _config.FollowTarget && target == null)
             return NavigationDecision.Build(autorot.WorldState, autorot.Hints, player, master.Position, 1, new(), Positional.Any);
         if (_followMaster && _config.FollowTarget && target != null)
-            return NavigationDecision.Build(autorot.WorldState, autorot.Hints, player, target.Position, target.HitboxRadius + player.HitboxRadius + 3, target.Rotation, _config.DesiredPositional);
+            return NavigationDecision.Build(autorot.WorldState, autorot.Hints, player, target.Position, target.HitboxRadius + 2.6f, target.Rotation, _config.DesiredPositional);
         if (targeting.Target == null)
             return NavigationDecision.Build(autorot.WorldState, autorot.Hints, player, null, 0, new(), Positional.Any);
         var adjRange = targeting.PreferredRange + player.HitboxRadius + targeting.Target.Actor.HitboxRadius;
@@ -131,7 +130,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
         if (masterChanged)
         {
             ctrl.SetFocusTarget(master);
-            _masterPrevPos = _masterMovementStart = master.Position;
+            _masterPrevPos = master.Position;
             _masterLastMoved = autorot.WorldState.CurrentTime.AddSeconds(-1);
         }
     }
@@ -149,7 +148,6 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
         else if ((autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 0.5f)
         {
             // master has stopped, consider previous movement finished
-            _masterMovementStart = _masterPrevPos;
             masterIsMoving = false;
         }
         // else: don't consider master to have stopped moving unless he's standing still for some small time

@@ -65,7 +65,7 @@ class UITest
             Service.WindowSystem.Draw();
         };
 
-        var configPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs", "BossMod.json");
+        var configPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs", "BossModReborn.json");
         var mainWindow = new UITestWindow(scene, configPath);
         mainWindow.IsOpen = true;
         scene.Run();
