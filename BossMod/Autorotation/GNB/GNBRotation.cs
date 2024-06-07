@@ -1,4 +1,4 @@
-// made by LazyLemo, edited by Akechi (there's still plenty of issues, but with DT around the corner, I dont care to fix them. These QoL updates should suffice until then)
+// made by LazyLemo, edited by Akechi-kun (there's still plenty of issues, but with DT around the corner, I dont care to fix them. These QoL updates should suffice until then)
 namespace BossMod.GNB;
 
 public static class Rotation
@@ -15,8 +15,8 @@ public static class Rotation
         public bool ReadyToBlast; // 0 if buff not up, max 10
         public float AuroraLeft; // 0 if buff not up, max 18
         public int NumTargetsHitByAOE;
-
         public int MaxCartridges;
+
         // upgrade paths
         public AID BestZone => Unlocked(AID.BlastingZone) ? AID.BlastingZone : AID.DangerZone;
         public AID BestHeart => Unlocked(AID.HeartOfCorundum) ? AID.HeartOfCorundum : AID.HeartOfStone;
@@ -34,7 +34,7 @@ public static class Rotation
     }
 
     // strategy configuration
-    // TODO: add in "Hold Double Down" & rotation to support it, I'm lazy 
+    // TODO: add in "Hold Double Down" option?
     public class Strategy : CommonRotation.Strategy
     {
         public enum GaugeUse : uint
@@ -62,7 +62,7 @@ public static class Rotation
             [PropertyDisplay("Use ST combo if still in ST combo, else use AOE combo", 0x80c0c000)]
             ComboFitBeforeDowntime = 7, // useful on late phases before downtime
 
-            [PropertyDisplay("Use appropriate rotation to reach max gauge before downtime (NEEDS TESTING)", 0x80c0c000)]
+            [PropertyDisplay("Use appropriate rotation to reach max gauge before downtime", 0x80c0c000)]
             MaxGaugeBeforeDowntime = 8, // useful on late phases before downtime
 
             [PropertyDisplay("Use combo until second-last step, then spend gauge", 0x80400080)]
@@ -258,12 +258,13 @@ public static class Rotation
     {
         if (strategy.GaugeStrategy == Strategy.GaugeUse.Spend)
         {
-            if (state.Ammo >= 2)
+            if (state.Ammo >= 1)
             {
-                if (state.CD(CDGroup.DoubleDown) < 0.6f && state.Ammo > 2)
+                if (state.CD(CDGroup.DoubleDown) < 0.6f && state.Ammo >= 2)
+                {
                     return AID.DoubleDown;
-
-                if (state.CD(CDGroup.GnashingFang) < 0.6f && state.Ammo <= 2)
+                }
+                else if (state.CD(CDGroup.GnashingFang) < 0.6f && state.Ammo <= 3)
                 {
                     if (state.GunComboStep == 0)
                         return AID.GnashingFang;
@@ -272,7 +273,6 @@ public static class Rotation
                     if (state.GunComboStep == 2)
                         return AID.WickedTalon;
                 }
-
                 return AID.BurstStrike;
             }
 
@@ -397,13 +397,12 @@ public static class Rotation
         // Lv30-53 NM proc ST
         if (state.Unlocked(AID.NoMercy))
         {
-            bool canUseBurstStrike = (state.NoMercyLeft > 0) &&
-                                     !state.Unlocked(AID.FatedCircle) &&
+            bool canUseBurstStrike = !state.Unlocked(AID.FatedCircle) &&
                                      !state.Unlocked(AID.DoubleDown) &&
                                      !state.Unlocked(AID.Bloodfest) &&
                                      !state.Unlocked(AID.Continuation) &&
                                      !state.Unlocked(AID.GnashingFang) &&
-                                     state.Ammo >= 1;
+                                     !state.Unlocked(AID.SonicBreak);
 
             // ST
             if (!aoe)
@@ -413,11 +412,12 @@ public static class Rotation
                     !state.Unlocked(AID.Bloodfest) &&
                     !state.Unlocked(AID.Continuation) &&
                     !state.Unlocked(AID.GnashingFang) &&
+                    !state.Unlocked(AID.SonicBreak) &&
                     state.Ammo >= 2)
                 {
                     return AID.NoMercy;
                 }
-                else if (canUseBurstStrike && state.Ammo >= 2) // Ensure at least 2 ammo for BurstStrike
+                else if (canUseBurstStrike && state.CD(CDGroup.NoMercy) < 40 && state.Ammo >= 2 && state.ComboLastMove == AID.BrutalShell)
                 {
                     return AID.BurstStrike;
                 }
@@ -431,11 +431,12 @@ public static class Rotation
                     !state.Unlocked(AID.Bloodfest) &&
                     !state.Unlocked(AID.Continuation) &&
                     !state.Unlocked(AID.GnashingFang) &&
+                    !state.Unlocked(AID.SonicBreak) &&
                     state.Ammo >= 2)
                 {
                     return AID.NoMercy;
                 }
-                else if (canUseBurstStrike && state.Ammo >= 2) // Ensure at least 2 ammo for BurstStrike
+                else if (canUseBurstStrike && state.CD(CDGroup.NoMercy) < 40 && state.Ammo >= 2 && state.ComboLastMove == AID.DemonSlice)
                 {
                     return AID.BurstStrike;
                 }
@@ -470,9 +471,9 @@ public static class Rotation
             if (!aoe)
             {
                 if (state.Ammo >= 1 && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.Bloodfest) && !state.Unlocked(AID.Continuation) && !state.Unlocked(AID.GnashingFang) && !state.Unlocked(AID.SonicBreak))
-                    return AID.BurstStrike; // Use Burst Strike
+                    return AID.BurstStrike;
             }
-            // AOE Logic
+            // AOE
             else if (aoe)
             {
                 if (state.NoMercyLeft > 0)
@@ -481,22 +482,22 @@ public static class Rotation
                     {
                         if (state.Unlocked(AID.GnashingFang) && state.CD(CDGroup.GnashingFang) == 0)
                         {
-                            return AID.GnashingFang; // Use Gnashing Fang if available and off cooldown
+                            return AID.GnashingFang; // Lv60+ AOE GF
                         }
                         if (!state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown))
                         {
-                            return AID.BurstStrike; // Use Burst Strike if Fated Circle and Double Down are not unlocked
+                            return AID.BurstStrike; // Lv 30-72 AOE BS
                         }
                     }
                     if (state.Ammo >= 2 && !state.Unlocked(AID.DoubleDown) &&
-                        !state.Unlocked(AID.Bloodfest) && !state.Unlocked(AID.Continuation) && !state.Unlocked(AID.GnashingFang))
+                        !state.Unlocked(AID.Bloodfest) && !state.Unlocked(AID.Continuation) && !state.Unlocked(AID.GnashingFang) && !state.Unlocked(AID.SonicBreak))
                     {
-                        return AID.BurstStrike; // Use Burst Strike for Lv30-53 AOE spender
+                        return AID.BurstStrike; // Lv30-53 AOE BS
                     }
                     if (state.Ammo >= 2 && state.Unlocked(AID.SonicBreak) && state.Unlocked(AID.GnashingFang) &&
                         !state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown))
                     {
-                        return AID.GnashingFang; // Use Gnashing Fang for Lv60 AOE fix
+                        return AID.GnashingFang; // Lv60 AOE GF fix
                     }
                 }
                 if (state.Ammo >= 1 && state.GunComboStep == 0)
@@ -504,27 +505,27 @@ public static class Rotation
                     if (state.NoMercyLeft > 0 && !state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.Bloodfest) &&
                         state.Unlocked(AID.Continuation))
                     {
-                        return AID.BurstStrike; // Lv70 AOE combo, no Fated Circle
+                        return AID.BurstStrike; // Lv70 AOE BS
                     }
                     if (state.Ammo >= 1 && state.NoMercyLeft > 0 && state.Unlocked(AID.SonicBreak) && state.Unlocked(AID.GnashingFang) &&
                         !state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown))
                     {
-                        return AID.BurstStrike; // Lv60 AOE BurstStrike fix
+                        return AID.BurstStrike; // Lv60 AOE BS
                     }
                     if (state.CD(CDGroup.GnashingFang) > state.GCD && state.CD(CDGroup.DoubleDown) > state.GCD &&
                         state.CD(CDGroup.SonicBreak) > state.GCD && state.Unlocked(AID.DoubleDown))
                     {
-                        return AID.FatedCircle; // Lv80 AOE with DoubleDown
+                        return AID.FatedCircle; // Lv80 AOE
                     }
                     if (state.CD(CDGroup.GnashingFang) > state.GCD && state.Unlocked(AID.FatedCircle) &&
                         !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.SonicBreak))
                     {
-                        return AID.FatedCircle; // Lv80 AOE with Fated Circle and without DoubleDown and SonicBreak
+                        return AID.FatedCircle; // Lv80 AOE 
                     }
                     if (state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown) &&
                         !state.Unlocked(AID.SonicBreak) && !state.Unlocked(AID.GnashingFang))
                     {
-                        return AID.FatedCircle; // Lv80 AOE with only Fated Circle unlocked
+                        return AID.FatedCircle; // Lv80 AOE
                     }
                 }
             }
@@ -675,7 +676,6 @@ public static class Rotation
             }
         }
 
-        // single-target gauge spender
         return GetNextUnlockedComboAction(state, strategy, aoe);
     }
 
@@ -885,7 +885,7 @@ public static class Rotation
                 !state.Unlocked(AID.Bloodfest) && !state.Unlocked(AID.Continuation) && !state.Unlocked(AID.GnashingFang) &&
                 !state.Unlocked(AID.SonicBreak))
             {
-                return AID.BurstStrike; // Use Burst Strike
+                return AID.BurstStrike;
             }
         }
         // AOE Logic
@@ -897,26 +897,26 @@ public static class Rotation
                 {
                     if (state.Unlocked(AID.GnashingFang) && state.CD(CDGroup.GnashingFang) == 0)
                     {
-                        return AID.GnashingFang; // Use Gnashing Fang if available and off cooldown
+                        return AID.GnashingFang; // Lv60+ AOE GF
                     }
                     if (!state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown))
                     {
-                        return AID.BurstStrike; // Use Burst Strike if Fated Circle and Double Down are not unlocked
+                        return AID.BurstStrike; // Lv30-72 AOE BS
                     }
                 }
                 if (state.Ammo >= 2 && !state.Unlocked(AID.DoubleDown) &&
-                    !state.Unlocked(AID.Bloodfest) && !state.Unlocked(AID.Continuation) && !state.Unlocked(AID.GnashingFang))
+                    !state.Unlocked(AID.Bloodfest) && !state.Unlocked(AID.Continuation) && !state.Unlocked(AID.GnashingFang) && !state.Unlocked(AID.SonicBreak))
                 {
-                    return AID.BurstStrike; // Use Burst Strike for Lv30-53 AOE spender
+                    return AID.BurstStrike; // Lv30-53 AOE BS
                 }
                 if (state.Ammo >= 2 && state.Unlocked(AID.SonicBreak) && state.Unlocked(AID.GnashingFang) &&
                     !state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown))
                 {
-                    return AID.GnashingFang; // Use Gnashing Fang for Lv60 AOE fix
+                    return AID.GnashingFang; // Lv60 AOE GF fix
                 }
                 else if (state.Ammo >= 2 && state.Unlocked(AID.SonicBreak) && state.Unlocked(AID.GnashingFang) && (state.CD(CDGroup.GnashingFang) > state.AnimationLock && !state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown)))
                 {
-                    return AID.BurstStrike; // Use BurstStrike for Lv60 AOE fix
+                    return AID.BurstStrike; // Lv60 AOE BS 
                 }
             }
             if (state.Ammo >= 2 && state.GunComboStep == 0)
@@ -924,22 +924,22 @@ public static class Rotation
                 if (!state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.Bloodfest) &&
                     state.Unlocked(AID.Continuation))
                 {
-                    return AID.BurstStrike; // Lv70 AOE combo, no Fated Circle
+                    return AID.BurstStrike; // Lv70 AOE BS
                 }
                 if (state.CD(CDGroup.GnashingFang) > state.GCD && state.CD(CDGroup.DoubleDown) > state.GCD &&
                     state.CD(CDGroup.SonicBreak) > state.GCD && state.Unlocked(AID.DoubleDown))
                 {
-                    return AID.FatedCircle; // Lv80 AOE with DoubleDown
+                    return AID.FatedCircle; // Lv80 AOE
                 }
                 if (state.CD(CDGroup.GnashingFang) > state.GCD && state.Unlocked(AID.FatedCircle) &&
                     !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.SonicBreak))
                 {
-                    return AID.FatedCircle; // Lv80 AOE with Fated Circle and without DoubleDown and SonicBreak
+                    return AID.FatedCircle; // Lv80 AOE
                 }
                 if (state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown) &&
                     !state.Unlocked(AID.SonicBreak) && !state.Unlocked(AID.GnashingFang))
                 {
-                    return AID.FatedCircle; // Lv80 AOE with only Fated Circle unlocked
+                    return AID.FatedCircle; // Lv80 AOE
                 }
             }
         }
@@ -1036,14 +1036,14 @@ public static class Rotation
         // Lv30-53 NM proc ST
         if (state.Unlocked(AID.NoMercy))
         {
-            if (!state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.Bloodfest) && !state.Unlocked(AID.Continuation) && !state.Unlocked(AID.GnashingFang) && state.Ammo == 2 && state.CanWeave(CDGroup.NoMercy, 0.6f, deadline))
+            if (!state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.Bloodfest) && !state.Unlocked(AID.Continuation) && !state.Unlocked(AID.GnashingFang) && !state.Unlocked(AID.SonicBreak) && state.Ammo == 2 && state.CanWeave(CDGroup.NoMercy, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.NoMercy);
         }
 
         // Lv30-53 NM proc AOE
         if (state.Unlocked(AID.NoMercy))
         {
-            if (aoe && !state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.Bloodfest) && !state.Unlocked(AID.Continuation) && !state.Unlocked(AID.GnashingFang) && state.Ammo == 2)
+            if (aoe && !state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.Bloodfest) && !state.Unlocked(AID.Continuation) && !state.Unlocked(AID.GnashingFang) && state.Ammo == 2 && !state.Unlocked(AID.SonicBreak) && state.Ammo == 2 && state.CanWeave(CDGroup.NoMercy, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.NoMercy);
         }
 

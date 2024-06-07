@@ -3,30 +3,6 @@ using ImGuiNET;
 
 namespace BossMod;
 
-// typically 'casting an action' causes the following sequence of events:
-// - immediately after sending ActionRequest message, client 'speculatively' starts CD (including GCD)
-// - ~50-100ms later client receives bundle (typically one, but sometimes messages can be spread over two frames!) with ActorControlSelf[Cooldown], ActorControl[Gain/LoseEffect], AbilityN, ActorGauge, StatusEffectList
-//   new statuses have large negative duration (e.g. -30 when ST is applied) - theory: it means 'show as X, don't reduce' - TODO test?..
-// - ~600ms later client receives EventResult with normal durations
-//
-// during this 'unconfirmed' window we might be considering wrong move to be the next-best one (e.g. imagine we've just started long IR cd and don't see the effect yet - next-best might be infuriate)
-// but I don't think this matters in practice, as presumably client forbids queueing any actions while there are pending requests
-// I don't know what happens if there is no confirmation for a long time (due to ping or packet loss)
-//
-// reject scenario:
-// a relatively easy way to repro it is doing no-movement rotation, then enabling moves when PR is up and 3 charges are up; next onslaught after PR seems to be often rejected
-// it seems that game will not send another request after reject until 500ms passed since prev request
-//
-// IMPORTANT: it seems that game uses *client-side* cooldown to determine when next request can happen, here's an example:
-// - 04:51.508: request Upheaval
-// - 04:51.635: confirm Upheaval (ACS[Cooldown] = 30s)
-// - 05:21.516: request Upheaval (30.008 since prev request, 29.881 since prev response)
-// - 05:21.609: confirm Upheaval (29.974 since prev response)
-//
-// here's a list of things we do now:
-// 1. we use cooldowns as reported by ActionManager API rather than parse network messages. This (1) allows us to not rely on randomized opcodes, (2) allows us not to handle things like CD resets on wipes, actor resets on zone changes, etc.
-// 2. we convert large negative status durations to their expected values
-// 3. when there are pending actions, we don't update internal state, leaving same next-best recommendation
 sealed class Autorotation : IDisposable
 {
     public readonly AutorotationConfig Config = Service.Config.Get<AutorotationConfig>();
@@ -204,11 +180,6 @@ sealed class Autorotation : IDisposable
     // note: current implementation introduces slight input lag (on button press, next autorotation update will pick state updates, which will be executed on next action manager update)
     private unsafe bool UseActionDetour(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
     {
-        // when spamming e.g. HS, every click (~0.2 sec) this function is called; aid=HS, a4=a5=a6=a7==0, returns True
-        // 0.5s before CD end, action becomes queued (this function returns True); while anything is queued, further calls return False
-        // callType is 0 for normal calls, 1 if called by queue mechanism, 2 if called from macro, 3 if combo (in such case comboRouteID is ActionComboRoute row id)
-        // right when GCD ends, it is called internally by queue mechanism with aid=adjusted-id, a5=1, a4=a6=a7==0, returns True
-        // itemLocation==0 for spells, 65535 for item used from hotbar, some value (bagID<<8 | slotID) for item used from inventory; it is the same as a4 in UseActionLocation
         //Service.Log($"UA: {new ActionID(actionType, actionID)} @ {targetID:X}: {itemLocation} {callType} {comboRouteID}");
         if (callType != 0 || ClassActions == null)
         {
