@@ -365,9 +365,9 @@ public static class Rotation
                     && state.Unlocked(AID.FormShift)
                 )
                     return AID.FormShift;
-
-                return AID.None;
             }
+
+            return AID.None;
         }
 
         if (!HaveTarget(state, strategy))
