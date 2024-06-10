@@ -19,20 +19,9 @@ public enum AID : uint
     WhatIsRight = 25139, // Boss->self, 8.0s cast, range 20 180-degree cone
 }
 
-public enum SID : uint
-{
-    TemporaryMisdirection = 1422, // Boss->player, extra=0x2D0
-}
-
-public enum IconID : uint
-{
-    Icon218 = 218, // player
-    Icon304 = 304, // player
-}
-
 class WhatIsLeft(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhatIsLeft), new AOEShapeCone(40, 90.Degrees()));
 class WhatIsRight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhatIsRight), new AOEShapeCone(40, 90.Degrees()));
-class LostHope(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.LostHope), "Applies temporay misdirection");
+class LostHope(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.LostHope), "Applies temporary misdirection");
 class Vitriol(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Vitriol), new AOEShapeCircle(13));
 class NoteOfDespair(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.NoteOfDespair));
 class Wallow(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Wallow), 6);
@@ -53,5 +42,10 @@ class D031SnatcherStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 789, NameID = 10717)]
-public class D031Snatcher(WorldState ws, Actor primary) : BossModule(ws, primary, new(-375, 85), new ArenaBoundsCircle(20));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (LTS, Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 789, NameID = 10717)]
+public class D031Snatcher(WorldState ws, Actor primary) : BossModule(ws, primary, DefaultBounds.Center, DefaultBounds)
+{
+    private static readonly List<Shape> union = [new Circle(new(-375, 85), 19.5f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(-375, 106.25f), 20, 2.4f), new Rectangle(new(-375, 61), 20, 2, -30.Degrees())];
+    public static readonly ArenaBoundsComplex DefaultBounds = new(union, difference);
+}

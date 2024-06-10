@@ -12,6 +12,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
     private bool _afkMode;
     private bool _followMaster; // if true, our navigation target is master rather than primary target - this happens e.g. in outdoor or in dungeons during gathering trash
     private float _maxCastTime;
+    private WPos _masterMovementStart;
     private WPos _masterPrevPos;
     private DateTime _masterLastMoved;
 
@@ -42,7 +43,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
         }
 
         var followTarget = _config.FollowTarget;
-        _followMaster = (_config.FollowDuringCombat || !master.InCombat) && (_config.FollowDuringActiveBossModule || autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null) && (_config.FollowOutOfCombat || master.InCombat);
+        _followMaster = (_config.FollowDuringCombat || !master.InCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100) && (_config.FollowDuringActiveBossModule || autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null) && (_config.FollowOutOfCombat || master.InCombat);
 
         _naviDecision = followTarget && autorot.WorldState.Actors.Find(player.TargetID) != null ? BuildNavigationDecision(player, autorot.WorldState.Actors.Find(player.TargetID)!, ref target) : BuildNavigationDecision(player, master, ref target);
         var masterIsMoving = TrackMasterMovement(master);
@@ -51,7 +52,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
 
         if (!forbidActions)
         {
-            int actionStrategy = target.Target != null ? CommonActions.AutoActionAIFight : CommonActions.AutoActionAIIdle;
+            var actionStrategy = target.Target != null ? CommonActions.AutoActionAIFight : CommonActions.AutoActionAIIdle;
             autorot.ClassActions?.UpdateAutoAction(actionStrategy, _maxCastTime, false);
         }
 
@@ -127,11 +128,11 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
 
     private void FocusMaster(Actor master)
     {
-        bool masterChanged = Service.TargetManager.FocusTarget?.ObjectId != master.InstanceID;
+        var masterChanged = Service.TargetManager.FocusTarget?.ObjectId != master.InstanceID;
         if (masterChanged)
         {
             ctrl.SetFocusTarget(master);
-            _masterPrevPos = master.Position;
+            _masterPrevPos = _masterMovementStart = master.Position;
             _masterLastMoved = autorot.WorldState.CurrentTime.AddSeconds(-1);
         }
     }
@@ -140,7 +141,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
     {
         // keep track of master movement
         // idea is that if master is moving forward (e.g. running in outdoor or pulling trashpacks in dungeon), we want to closely follow and not stop to cast
-        bool masterIsMoving = true;
+        var masterIsMoving = true;
         if (master.Position != _masterPrevPos)
         {
             _masterLastMoved = autorot.WorldState.CurrentTime;
@@ -149,6 +150,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
         else if ((autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 0.5f)
         {
             // master has stopped, consider previous movement finished
+            _masterMovementStart = _masterPrevPos;
             masterIsMoving = false;
         }
         // else: don't consider master to have stopped moving unless he's standing still for some small time
@@ -197,20 +199,32 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
 
     public void DrawDebug()
     {
-        ImGui.Checkbox("Forbid actions", ref _config.ForbidActions);
+        var configModified = false;
+
+        configModified |= DrawConfigCheckbox("Forbid actions", ref _config.ForbidActions);
         ImGui.SameLine();
-        ImGui.Checkbox("Forbid movement", ref _config.ForbidMovement);
+        configModified |= DrawConfigCheckbox("Forbid movement", ref _config.ForbidMovement);
         ImGui.SameLine();
-        ImGui.Checkbox("Follow during combat", ref _config.FollowDuringCombat);
+        configModified |= DrawConfigCheckbox("Follow during combat", ref _config.FollowDuringCombat);
         ImGui.Spacing();
-        ImGui.Checkbox("Follow during active boss module", ref _config.FollowDuringActiveBossModule);
+        configModified |= DrawConfigCheckbox("Follow during active boss module", ref _config.FollowDuringActiveBossModule);
         ImGui.SameLine();
-        ImGui.Checkbox("Follow out of combat", ref _config.FollowOutOfCombat);
+        configModified |= DrawConfigCheckbox("Follow out of combat", ref _config.FollowOutOfCombat);
         ImGui.SameLine();
-        ImGui.Checkbox("Follow target", ref _config.FollowTarget);
+        configModified |= DrawConfigCheckbox("Follow target", ref _config.FollowTarget);
+
+        if (configModified)
+            _config.Modified.Fire();
+
         var player = autorot.WorldState.Party.Player();
         var dist = _naviDecision.Destination != null && player != null ? (_naviDecision.Destination.Value - player.Position).Length() : 0;
         ImGui.TextUnformatted($"Max-cast={MathF.Min(_maxCastTime, 1000):f3}, afk={_afkMode}, follow={_followMaster}, algo={_naviDecision.DecisionType} {_naviDecision.Destination} (d={dist:f3}), master standing for {Math.Clamp((autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds, 0, 1000):f1}");
+    }
+
+    private bool DrawConfigCheckbox(string label, ref bool configField)
+    {
+        var originalValue = configField;
+        return ImGui.Checkbox(label, ref configField) && configField != originalValue;
     }
 
     private bool TargetIsForbidden(Actor? actor) => actor != null && autorot.Hints.ForbiddenTargets.Any(e => e.Actor == actor);

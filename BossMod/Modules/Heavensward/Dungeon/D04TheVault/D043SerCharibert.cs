@@ -51,7 +51,7 @@ class TurretTour(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _knights = [];
     private static readonly AOEShapeCircle circle = new(2);
-    private static readonly AOEShapeRect rect = new(6, 2, 2);
+    private static readonly AOEShapeRect rect = new(10, 2, 2);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
