@@ -75,7 +75,7 @@ public sealed class ConfigUI : IDisposable
         }
     }
 
-    private readonly Dictionary<string, string> _availableCommands = new()
+    private readonly Dictionary<string, string> _availableAICommands = new()
     {
         { "on", "Enables the AI." },
         { "off", "Disables the AI." },
@@ -83,7 +83,7 @@ public sealed class ConfigUI : IDisposable
         { "targetmaster", "Toggles the focus on target leader." },
         { "follow slotX", "Follows the specified slot, eg. Slot1." },
         { "follow name", "Follows the specified party member by name." },
-        { "debug", "Toggles the debug menu." },
+        { "ui", "Toggles the AI menu." },
         { "forbidactions", "Toggles the forbidding of actions. (only for autorotation)" },
         { "forbidmovement", "Toggles the forbidding of movement." },
         { "followcombat", "Toggles following during combat." },
@@ -93,16 +93,33 @@ public sealed class ConfigUI : IDisposable
         { "positional X", "Switch to positional when following targets. (any, rear, flank, front)" }
     };
 
+    private readonly Dictionary<string, string> _availableOtherCommands = new()
+    {
+        { "a", "Toggles autorotation." },
+        { "d", "Opens the debug menu." },
+        { "r", "Opens the replay menu." },
+        { "gc", "Triggers the garbage collection." },
+        { "cfg", "Lists all configs." }
+    };
+
     private void DrawAvailableCommands()
     {
         ImGui.Text("Available Commands:");
         ImGui.Separator();
-        foreach (var command in _availableCommands)
+        ImGui.Text("AI:");
+        ImGui.Separator();
+        foreach (var command in _availableAICommands)
         {
             ImGui.Text($"/bmrai {command.Key}: {command.Value}");
         }
         ImGui.Separator();
-        ImGui.Text("To ensure plugin compatibility: /vbmai can be used instead of /bmrai");
+        ImGui.Text("Other commands:");
+        ImGui.Separator();
+        foreach (var command in _availableOtherCommands)
+        {
+            ImGui.Text($"/bmr {command.Key}: {command.Value}");
+        }
+        ImGui.Text("/vbm can be used instead of /bmr and /vbmai can be used instead of /bmrai");
     }
 
     private void DrawReadMe()

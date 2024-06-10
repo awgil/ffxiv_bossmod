@@ -31,6 +31,7 @@ sealed class AIManager : IDisposable
     {
         SwitchToIdle();
         _dtrBarEntry.Dispose();
+        _wndAI.Dispose();
         Service.ChatGui.ChatMessage -= OnChatMessage;
         Service.CommandManager.RemoveHandler("/bmrai");
         Service.CommandManager.RemoveHandler("/vbmai");
@@ -148,45 +149,45 @@ sealed class AIManager : IDisposable
 
         var configModified = false;
 
-        switch (messageData[0].ToLowerInvariant())
+        switch (messageData[0].ToUpperInvariant())
         {
-            case "on":
+            case "ON":
                 configModified = EnableConfig(true);
                 break;
-            case "off":
+            case "OFF":
                 configModified = EnableConfig(false);
                 break;
-            case "toggle":
+            case "TOGGLE":
                 configModified = ToggleConfig();
                 break;
-            case "targetmaster":
+            case "TARGETMASTER":
                 configModified = ToggleFocusTargetLeader();
                 break;
-            case "follow":
+            case "FOLLOW":
                 configModified = HandleFollowCommand(messageData);
                 break;
-            case "debug":
+            case "UI":
                 configModified = ToggleDebugMenu();
                 break;
-            case "forbidactions":
+            case "FORBIDACTIONS":
                 configModified = ToggleForbidActions();
                 break;
-            case "forbidmovement":
+            case "FORDBIDMOVEMENT":
                 configModified = ToggleForbidMovement();
                 break;
-            case "followoutofcombat":
+            case "FOLLOWOUTOFCOMBAT":
                 configModified = ToggleFollowOutOfCombat();
                 break;
-            case "followcombat":
+            case "FOLLOWCOMBAT":
                 configModified = ToggleFollowCombat();
                 break;
-            case "followmodule":
+            case "FOLLOWMODULE":
                 configModified = ToggleFollowModule();
                 break;
-            case "followtarget":
+            case "FOLLOWTARGET":
                 configModified = ToggleFollowTarget();
                 break;
-            case "positional":
+            case "POSITIONAL":
                 configModified = HandlePositionalCommand(messageData);
                 break;
             default:
@@ -258,7 +259,7 @@ sealed class AIManager : IDisposable
     private bool ToggleDebugMenu()
     {
         _config.DrawUI = !_config.DrawUI;
-        Service.Log($"[AI] Debug menu is now {(_config.DrawUI ? "enabled" : "disabled")}");
+        Service.Log($"[AI] AI menu is now {(_config.DrawUI ? "enabled" : "disabled")}");
         return true;
     }
 

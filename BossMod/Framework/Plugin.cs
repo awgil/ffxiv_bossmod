@@ -104,6 +104,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnCommand(string cmd, string args)
     {
+        var autorotConfig = Service.Config.Get<AutorotationConfig>();
         Service.Log($"OnCommand: {cmd} {args}");
         var split = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (split.Length == 0)
@@ -130,6 +131,10 @@ public sealed class Plugin : IDalamudPlugin
                 break;
             case "r":
                 _wndReplay.SetVisible(!_wndReplay.IsOpen);
+                break;
+            case "a":
+                autorotConfig.Enabled = !autorotConfig.Enabled;
+                autorotConfig.Modified.Fire();
                 break;
         }
     }

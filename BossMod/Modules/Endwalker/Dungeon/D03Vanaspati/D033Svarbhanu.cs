@@ -157,6 +157,7 @@ class CosmicKissRect(BossModule module) : Components.GenericAOEs(module)
             _aoes.RemoveAt(0);
     }
 }
+
 class CosmicKissRaidwide(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CosmicKiss));
 
 class CosmicKissKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.CosmicKiss), 13)
@@ -178,22 +179,22 @@ class CosmicKissKnockback(BossModule module) : Components.KnockbackFromCastTarge
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var forbidden = new List<Func<WPos, float>>();
-        var component = Module.FindComponent<ChaoticUndercurrent>()!.ActiveAOEs(slot, actor);
-        if (component.Any() && Sources(slot, actor).Any() || activation > Module.WorldState.CurrentTime) // 0.8s delay to wait for action effect
+        var component = Module.FindComponent<ChaoticUndercurrent>()?.ActiveAOEs(slot, actor)?.ToList();
+        if (component != null && component.Count != 0 && Sources(slot, actor).Any() || activation > Module.WorldState.CurrentTime) // 0.8s delay to wait for action effect
         {
-            if (component.Any(x => x.Origin.Z == -152) && component.Any(x => x.Origin.Z == -162))
+            if (component!.Any(x => x.Origin.Z == -152) && component!.Any(x => x.Origin.Z == -162))
             {
                 forbidden.Add(ShapeDistance.InvertedCone(Module.Center, 7, Degrees0, Degrees45));
                 forbidden.Add(ShapeDistance.InvertedCone(Module.Center, 7, Degrees180, Degrees45));
             }
-            else if (component.Any(x => x.Origin.Z == -142) && component.Any(x => x.Origin.Z == -172))
+            else if (component!.Any(x => x.Origin.Z == -142) && component!.Any(x => x.Origin.Z == -172))
             {
                 forbidden.Add(ShapeDistance.InvertedCone(Module.Center, 7, Degrees90, Degrees45));
                 forbidden.Add(ShapeDistance.InvertedCone(Module.Center, 7, -Degrees90, Degrees45));
             }
-            else if (component.Any(x => x.Origin.Z == -142) && component.Any(x => x.Origin.Z == -152))
+            else if (component!.Any(x => x.Origin.Z == -142) && component!.Any(x => x.Origin.Z == -152))
                 forbidden.Add(ShapeDistance.InvertedCone(Module.Center, 7, Degrees180, Degrees90));
-            else if (component.Any(x => x.Origin.Z == -162) && component.Any(x => x.Origin.Z == -172))
+            else if (component!.Any(x => x.Origin.Z == -162) && component!.Any(x => x.Origin.Z == -172))
                 forbidden.Add(ShapeDistance.InvertedCone(Module.Center, 7, Degrees0, Degrees90));
             if (forbidden.Count > 0)
                 hints.AddForbiddenZone(p => forbidden.Select(f => f(p)).Max(), activation);
