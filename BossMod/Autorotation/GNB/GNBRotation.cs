@@ -1007,7 +1007,7 @@ public static class Rotation
             return ActionID.MakeSpell(AID.RoughDivide);
 
         if (ShouldUsePotion(state, strategy) && state.CanWeave(state.PotionCD, 1.1f, deadline))
-            return CommonDefinitions.IDPotionStr;
+            return ActionDefinitions.IDPotionStr;
 
         if (state.Unlocked(AID.NoMercy))
         {

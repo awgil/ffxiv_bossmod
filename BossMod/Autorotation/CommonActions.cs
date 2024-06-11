@@ -43,22 +43,20 @@ abstract class CommonActions : IDisposable
     private DateTime _autoActionExpire;
     private bool _forceExpireAtCountdownCancel;
     private readonly QuestLockCheck _lock;
-    private readonly ManualActionOverride _mq;
 
     public SupportedAction SupportedSpell<AID>(AID aid) where AID : Enum => SupportedActions[ActionID.MakeSpell(aid)];
 
-    protected CommonActions(Autorotation autorot, Actor player, uint[] unlockData, Dictionary<ActionID, ActionDefinition> supportedActions)
+    protected CommonActions(Autorotation autorot, Actor player, uint[] unlockData)
     {
         Player = player;
         Autorot = autorot;
-        foreach (var (aid, def) in supportedActions)
+        foreach (var def in ActionDefinitions.Instance.Definitions)
         {
-            var a = SupportedActions[aid] = new(def, aid.IsGroundTargeted());
+            var a = SupportedActions[def.ID] = new(def, def.ID.IsGroundTargeted());
             if (def.Range == 0)
                 a.TransformTarget = _ => Player; // by default, all actions with range 0 should always target player
         }
         _lock = new(unlockData);
-        _mq = new(autorot.WorldState);
     }
 
     public void Dispose()
@@ -168,62 +166,6 @@ abstract class CommonActions : IDisposable
         MaxCastTime = maxCastTime;
     }
 
-    public bool HandleUserActionRequest(ActionID action, Actor? target, Vector3? forcedGTPos = null)
-    {
-        var supportedAction = SupportedActions.GetValueOrDefault(action);
-        if (supportedAction == null)
-            return false;
-
-        //UpdateInternalState(AutoAction);
-        if (supportedAction.TransformAction != null)
-        {
-            var adjAction = supportedAction.TransformAction();
-            Service.Log($"Transform: {action} -> {adjAction}");
-            if (adjAction != action)
-            {
-                action = adjAction;
-                supportedAction = SupportedActions[adjAction];
-            }
-        }
-
-        if (supportedAction.PlaceholderForAuto != AutoActionNone)
-        {
-            UpdateAutoAction(supportedAction.PlaceholderForAuto, float.MaxValue, true);
-            return true;
-        }
-
-        // this is a manual action
-        if (supportedAction.IsGT)
-        {
-            if (forcedGTPos != null)
-            {
-                _mq.Push(action, null, forcedGTPos.Value, null, supportedAction.Definition, supportedAction.Condition);
-                return true;
-            }
-
-            if (ActionManagerEx.Instance!.Config.GTMode == ActionManagerConfig.GroundTargetingMode.Manual)
-                return false;
-
-            if (ActionManagerEx.Instance!.Config.GTMode == ActionManagerConfig.GroundTargetingMode.AtCursor)
-            {
-                var pos = ActionManagerEx.Instance!.GetWorldPosUnderCursor();
-                if (pos == null)
-                    return false; // same as manual...
-                _mq.Push(action, null, pos.Value, null, supportedAction.Definition, supportedAction.Condition);
-                return true;
-            }
-        }
-
-        if (supportedAction.TransformTarget != null)
-        {
-            target = supportedAction.TransformTarget(target);
-        }
-
-        Angle? angleOverride = supportedAction.TransformAngle?.Invoke();
-        _mq.Push(action, target, new(), angleOverride, supportedAction.Definition, supportedAction.Condition);
-        return true;
-    }
-
     public ActionQueue.Entry CalculateNextAction()
     {
         // check emergency mode
@@ -237,7 +179,7 @@ abstract class CommonActions : IDisposable
         // see if we have any GCD (queued or automatic)
         var mqGCD = _mq.PeekGCD();
         var nextGCD = mqGCD != null ? new(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, mqGCD.FacingAngle, ActionQueue.Priority.ManualGCD) : AutoAction != AutoActionNone ? CalculateAutomaticGCD() : default;
-        float ogcdDeadline = nextGCD.Action ? Autorot.WorldState.Client.Cooldowns[CommonDefinitions.GCDGroup].Remaining : float.MaxValue;
+        float ogcdDeadline = nextGCD.Action ? Autorot.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining : float.MaxValue;
         //Log($"{nextGCD.Action} = {ogcdDeadline}");
 
         // search for any oGCDs that we can execute without delaying GCD
@@ -267,7 +209,6 @@ abstract class CommonActions : IDisposable
     public void NotifyActionExecuted(in ClientActionRequest request)
     {
         Log($"Exec #{request.SourceSequence} {request.Action} @ {request.TargetID:X} [{GetState()}]");
-        _mq.Pop(request.Action);
         Autorot.Bossmods.ActiveModule?.PlanExecution?.NotifyActionExecuted(Autorot.Bossmods.ActiveModule.StateMachine, request.Action);
         OnActionExecuted(in request);
     }
@@ -296,29 +237,16 @@ abstract class CommonActions : IDisposable
             return default;
         if (data.Definition.Range == 0)
             target = Player; // override range-0 actions to always target player
-        return target != null && data.Allowed(Player, target) ? new(action, target, new(), null, (data.Definition.CooldownGroup == CommonDefinitions.GCDGroup ? ActionQueue.Priority.High : ActionQueue.Priority.Low) + 500) : default;
+        return target != null && data.Allowed(Player, target) ? new(action, target, (data.Definition.IsGCD ? ActionQueue.Priority.High : ActionQueue.Priority.Low) + 500) : default;
     }
     protected ActionQueue.Entry MakeResult<AID>(AID aid, Actor? target) where AID : Enum => MakeResult(ActionID.MakeSpell(aid), target);
-
-    protected void SimulateManualActionForAI(ActionID action, Actor? target, bool enable)
-    {
-        if (enable)
-        {
-            var data = SupportedActions[action];
-            _mq.Push(action, target, new(), null, data.Definition, data.Condition, true);
-        }
-        else
-        {
-            _mq.Pop(action, true);
-        }
-    }
 
     // fill common state properties
     protected void FillCommonPlayerState(CommonRotation.PlayerState s)
     {
         var vuln = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextVulnerable(Autorot.Bossmods.ActiveModule.StateMachine) ?? (false, 10000);
 
-        var am = ActionManagerEx.Instance!;
+        var am = Autorot.ActionManager;
         s.Level = Player.Level;
         s.UnlockProgress = _lock.Progress();
         s.CurMP = Player.HPMP.CurMP;
@@ -401,9 +329,10 @@ abstract class CommonActions : IDisposable
         // TODO: planned GCDs?..
         var definition = SupportedActions.GetValueOrDefault(action);
         return definition != null
-            && definition.Definition.CooldownGroup != CommonDefinitions.GCDGroup
-            && Autorot.WorldState.Client.Cooldowns[definition.Definition.CooldownGroup].Remaining - effAnimLock <= definition.Definition.CooldownAtFirstCharge
-            && effAnimLock + definition.Definition.AnimationLock + animLockDelay <= deadline
+            && !definition.Definition.IsGCD
+            && (definition.Definition.MainCooldownGroup < 0 || Autorot.WorldState.Client.Cooldowns[definition.Definition.MainCooldownGroup].Remaining - effAnimLock <= definition.Definition.CooldownAtFirstCharge)
+            && (definition.Definition.ExtraCooldownGroup < 0 || Autorot.WorldState.Client.Cooldowns[definition.Definition.ExtraCooldownGroup].Remaining - effAnimLock <= 0)
+            && effAnimLock + definition.Definition.InstantAnimLock + animLockDelay <= deadline
             && definition.Allowed(Player, target);
     }
 

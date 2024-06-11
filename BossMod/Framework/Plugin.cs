@@ -2,7 +2,6 @@
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
-using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using System.Reflection;
@@ -16,8 +15,11 @@ public sealed class Plugin : IDalamudPlugin
     private ICommandManager CommandManager { get; init; }
 
     private readonly WorldState _ws;
-    private readonly WorldStateGameSync _wsSync;
+    private readonly AIHints _hints;
     private readonly BossModuleManager _bossmod;
+    private readonly AIHintsBuilder _hintsBuilder;
+    private readonly ActionManagerEx _amex;
+    private readonly WorldStateGameSync _wsSync;
     private readonly Autorotation _autorotation;
     private readonly AI.AIManager _ai;
     private readonly AI.Broadcast _broadcast;
@@ -31,7 +33,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ReplayManagementWindow _wndReplay;
     private readonly MainDebugWindow _wndDebug;
 
-    public unsafe Plugin(DalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner)
+    public unsafe Plugin(DalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner, IDataManager dataManager)
     {
         if (!dalamud.ConfigDirectory.Exists)
             dalamud.ConfigDirectory.Create();
@@ -46,7 +48,7 @@ public sealed class Plugin : IDalamudPlugin
 
         dalamud.Create<Service>();
         Service.LogHandler = (string msg) => Service.Logger.Debug(msg);
-        Service.LuminaGameData = Service.DataManager.GameData;
+        Service.LuminaGameData = dataManager.GameData;
         Service.WindowSystem = new("vbm");
         //Service.Device = pluginInterface.UiBuilder.Device;
         Service.Condition.ConditionChange += OnConditionChanged;
@@ -54,20 +56,25 @@ public sealed class Plugin : IDalamudPlugin
         Network.IDScramble.Initialize();
         Camera.Instance = new();
 
+        var manager = Service.SigScanner.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 0F 28 F0 45 0F 57 C0");
+        Service.Log($"foo: {manager:X}");
+
         Service.Config.Initialize();
         Service.Config.LoadFromFile(dalamud.ConfigFile);
         Service.Config.Modified.Subscribe(() => Service.Config.SaveToFile(dalamud.ConfigFile));
 
-        ActionManagerEx.Instance = new(); // needs config
-
         CommandManager = commandManager;
         CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
+        var actionDefs = ActionDefinitions.Instance; // ensure action definitions are initialized
         var qpf = (ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency;
         _ws = new(qpf, gameVersion);
-        _wsSync = new(_ws);
+        _hints = new();
         _bossmod = new(_ws);
-        _autorotation = new(_bossmod);
+        _hintsBuilder = new(_ws, _bossmod);
+        _amex = new(_ws, _hints);
+        _wsSync = new(_ws, _amex);
+        _autorotation = new(_bossmod, _hints, _amex);
         _ai = new(_autorotation);
         _broadcast = new();
         _ipc = new(_autorotation);
@@ -92,11 +99,13 @@ public sealed class Plugin : IDalamudPlugin
         _wndBossmodPlan.Dispose();
         _wndBossmod.Dispose();
         _ipc.Dispose();
-        _bossmod.Dispose();
         _ai.Dispose();
         _autorotation.Dispose();
         _wsSync.Dispose();
-        ActionManagerEx.Instance?.Dispose();
+        _amex.Dispose();
+        _hintsBuilder.Dispose();
+        _bossmod.Dispose();
+        ActionDefinitions.Instance.Dispose();
         CommandManager.RemoveHandler("/vbm");
     }
 
@@ -143,10 +152,13 @@ public sealed class Plugin : IDalamudPlugin
 
         Camera.Instance?.Update();
         _wsSync.Update(_prevUpdateTime);
+        var queue = _amex.StartActionGather();
         _bossmod.Update();
-        _autorotation.Update();
+        _hintsBuilder.Update(_hints, PartyState.PlayerSlot);
+        _autorotation.Update(queue);
         _ai.Update();
         _broadcast.Update();
+        _amex.FinishActionGather();
 
         bool uiHidden = Service.GameGui.GameUiHidden || Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.WatchingCutscene];
         if (!uiHidden)

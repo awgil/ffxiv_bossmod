@@ -66,10 +66,13 @@ class UITest
         };
 
         var configPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs", "BossMod.json");
-        var mainWindow = new UITestWindow(scene, configPath);
-        mainWindow.IsOpen = true;
+        var mainWindow = new UITestWindow(scene, configPath)
+        {
+            IsOpen = true
+        };
         scene.Run();
         mainWindow.Dispose();
+        ActionDefinitions.Instance.Dispose();
     }
 
     private static unsafe void InitializeDalamudStyle()

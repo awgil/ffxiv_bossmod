@@ -20,6 +20,7 @@ sealed class WorldStateGameSync : IDisposable
     private const uint InvalidEntityId = 0xE0000000;
 
     private readonly WorldState _ws;
+    private readonly ActionManagerEx _amex;
     private readonly DateTime _startTime;
     private readonly long _startQPC;
 
@@ -53,9 +54,10 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe delegate void ProcessPacketRSVDataDelegate(byte* packet);
     private readonly Hook<ProcessPacketRSVDataDelegate> _processPacketRSVDataHook;
 
-    public unsafe WorldStateGameSync(WorldState ws)
+    public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
     {
         _ws = ws;
+        _amex = amex;
         _startTime = DateTime.Now;
         _startQPC = Framework.Instance()->PerformanceCounterValue;
         _interceptor.ServerIPCReceived += ServerIPCReceived;
@@ -63,8 +65,8 @@ sealed class WorldStateGameSync : IDisposable
         _netConfig = Service.Config.GetAndSubscribe<ReplayManagementConfig>(config => _interceptor.Active = config.RecordServerPackets || config.DumpServerPackets);
         _subscriptions = new
         (
-            ActionManagerEx.Instance!.ActionRequestExecuted.Subscribe(OnActionRequested),
-            ActionManagerEx.Instance!.ActionEffectReceived.Subscribe(OnActionEffect)
+            amex.ActionRequestExecuted.Subscribe(OnActionRequested),
+            amex.ActionEffectReceived.Subscribe(OnActionEffect)
         );
 
         _processPacketEffectResultHook = Service.Hook.HookFromSignature<ProcessPacketEffectResultDelegate>("48 8B C4 44 88 40 18 89 48 08", ProcessPacketEffectResultDetour);
@@ -464,7 +466,7 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ClientState.OpCountdownChange(countdown));
 
         Span<Cooldown> cooldowns = stackalloc Cooldown[_ws.Client.Cooldowns.Length];
-        ActionManagerEx.Instance!.GetCooldowns(cooldowns);
+        _amex.GetCooldowns(cooldowns);
         if (!MemoryExtensions.SequenceEqual(_ws.Client.Cooldowns.AsSpan(), cooldowns))
         {
             if (cooldowns.IndexOfAnyExcept(default(Cooldown)) < 0)
@@ -473,7 +475,7 @@ sealed class WorldStateGameSync : IDisposable
                 _ws.Execute(new ClientState.OpCooldown(false, CalcCooldownDifference(cooldowns, _ws.Client.Cooldowns.AsSpan())));
         }
 
-        var (dutyAction0, dutyAction1) = ActionManagerEx.Instance!.GetDutyActions();
+        var (dutyAction0, dutyAction1) = _amex.GetDutyActions();
         if (_ws.Client.DutyActions[0] != dutyAction0 || _ws.Client.DutyActions[1] != dutyAction1)
             _ws.Execute(new ClientState.OpDutyActionsChange(dutyAction0, dutyAction1));
 

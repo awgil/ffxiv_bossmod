@@ -14,7 +14,7 @@ class Actions : CommonActions
     private readonly ConfigListener<SAMConfig> _config;
 
     public Actions(Autorotation autorot, Actor player)
-        : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
+        : base(autorot, player, Definitions.UnlockQuests)
     {
         _state = new(autorot.WorldState);
         _strategy = new();
@@ -115,7 +115,7 @@ class Actions : CommonActions
     protected override void UpdateInternalState(int autoAction)
     {
         UpdatePlayerState();
-        FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
+        FillCommonStrategy(_strategy, ActionDefinitions.IDPotionStr);
         _strategy.ApplyStrategyOverrides(
             Autorot
                 .Bossmods.ActiveModule?.PlanExecution

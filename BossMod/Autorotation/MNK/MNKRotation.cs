@@ -463,7 +463,7 @@ public static class Rotation
                 return ActionID.MakeSpell(AID.Thunderclap);
 
             if (strategy.PotionUse == CommonRotation.Strategy.OffensiveAbilityUse.Force && state.CanWeave(state.PotionCD, 1.1f, deadline))
-                return CommonDefinitions.IDPotionStr;
+                return ActionDefinitions.IDPotionStr;
 
             return new();
         }
@@ -485,7 +485,7 @@ public static class Rotation
                     if (state.FoPLeft > 0)
                     {
                         if (state.CanWeave(state.PotionCD, 0.6f, deadline))
-                            return CommonDefinitions.IDPotionStr;
+                            return ActionDefinitions.IDPotionStr;
                     }
 
                     if (state.CanWeave(state.DutyActionCD(fop), 0.6f, deadline))
@@ -519,7 +519,7 @@ public static class Rotation
         }
 
         if (strategy.PotionUse == CommonRotation.Strategy.OffensiveAbilityUse.Force && state.CanWeave(state.PotionCD, 1.1f, deadline))
-            return CommonDefinitions.IDPotionStr;
+            return ActionDefinitions.IDPotionStr;
 
         if (ShouldUseBrotherhood(state, strategy, deadline))
             return ActionID.MakeSpell(AID.Brotherhood);

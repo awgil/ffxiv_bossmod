@@ -26,8 +26,6 @@ namespace BossMod;
 //    this feature allows queueing them, plus provides options to execute them automatically either at target's position or at cursor's position
 unsafe sealed class ActionManagerEx : IDisposable
 {
-    public static ActionManagerEx? Instance;
-
     public ActionID CastSpell => new(ActionType.Spell, _inst->CastSpellId);
     public ActionID CastAction => new((ActionType)_inst->CastActionType, _inst->CastActionId);
     public float CastTimeRemaining => _inst->CastSpellId != 0 ? _inst->CastTimeTotal - _inst->CastTimeElapsed : 0;
@@ -38,15 +36,18 @@ unsafe sealed class ActionManagerEx : IDisposable
     public float EffectiveAnimationLock => _inst->AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends, so this is the minimal time until next action can be requested
     public float AnimationLockDelayEstimate => _animLockTweak.DelayEstimate;
 
-    public Func<ActionID, ulong, bool>? FilterActionRequest; // if the delegate is available and returns true, the user action request is not executed
     public Event<ClientActionRequest> ActionRequestExecuted = new();
     public Event<ulong, ActorCastEvent> ActionEffectReceived = new();
 
     public InputOverride InputOverride = new();
     public ActionManagerConfig Config = Service.Config.Get<ActionManagerConfig>();
-    public ActionQueue.Entry AutoQueue;
+    public ActionQueue.Entry AutoQueue { get; private set; }
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
     private readonly ActionManager* _inst = ActionManager.Instance();
+    private readonly WorldState _ws;
+    private readonly AIHints _hints;
+    private readonly ActionQueue _actionQueue = new();
+    private readonly ManualActionQueueTweak _manualQueue;
     private readonly AnimationLockTweak _animLockTweak = new();
     private readonly CooldownDelayTweak _cooldownTweak = new();
     private readonly RestoreRotationTweak _restoreRotTweak = new();
@@ -57,8 +58,12 @@ unsafe sealed class ActionManagerEx : IDisposable
     private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
     private readonly HookAddress<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
 
-    public ActionManagerEx()
+    public ActionManagerEx(WorldState ws, AIHints hints)
     {
+        _ws = ws;
+        _hints = hints;
+        _manualQueue = new(ws, hints);
+
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
         _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
         _useActionHook = new(ActionManager.Addresses.UseAction, UseActionDetour);
@@ -75,6 +80,21 @@ unsafe sealed class ActionManagerEx : IDisposable
         _useActionHook.Dispose();
         _updateHook.Dispose();
         InputOverride.Dispose();
+    }
+
+    // start gathering candidate actions for this frame: clear previous transient queue, fill in data from manual queue
+    public ActionQueue StartActionGather()
+    {
+        _actionQueue.Clear();
+        _manualQueue.FillQueue(_actionQueue);
+        return _actionQueue;
+    }
+
+    // finish gathering candidate actions for this frame: sort by priority and select best action to execute
+    public void FinishActionGather()
+    {
+        var player = _ws.Party.Player();
+        AutoQueue = player != null ? _actionQueue.FindBest(_ws, player, _ws.Client.Cooldowns, EffectiveAnimationLock, _hints, _animLockTweak.DelayEstimate) : default;
     }
 
     public Vector3? GetWorldPosUnderCursor()
@@ -125,7 +145,7 @@ unsafe sealed class ActionManagerEx : IDisposable
 
     public float GCD()
     {
-        var gcd = _inst->GetRecastGroupDetail(CommonDefinitions.GCDGroup);
+        var gcd = _inst->GetRecastGroupDetail(ActionDefinitions.GCDGroup);
         return gcd->Total - gcd->Elapsed;
     }
 
@@ -154,6 +174,28 @@ unsafe sealed class ActionManagerEx : IDisposable
 
     public int GetRecastGroup(ActionID action)
         => _inst->GetRecastGroup((int)action.Type, action.ID);
+
+    // perform some action transformations to simplify implementation of queueing; UseActionLocation expects some normalization to be already done
+    private ActionID NormalizeGeneralAction(ActionID action)
+    {
+        // do some general action adjustments; note that if we queue action up, it will go through UseActionLocation, so anything non-spell/item needs special handling
+        if (action.Type == ActionType.General)
+        {
+            if (action == ActionDefinitions.IDGeneralLimitBreak)
+            {
+                var lb = LimitBreakController.Instance();
+                var level = lb->BarUnits != 0 ? lb->CurrentUnits / lb->BarUnits : 0;
+                var id = level > 0 ? lb->GetActionId((Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value, (byte)(level - 1)) : 0;
+                if (id != 0)
+                    action = new(ActionType.Spell, id);
+            }
+            else if (action == ActionDefinitions.IDGeneralSprint || action == ActionDefinitions.IDGeneralDuty1 || action == ActionDefinitions.IDGeneralDuty2)
+            {
+                action = new(ActionType.Spell, ActionManager.GetSpellIdForAction(CSActionType.GeneralAction, action.ID));
+            }
+        }
+        return action;
+    }
 
     // skips queueing etc
     private bool ExecuteAction(ActionID action, ulong targetId, Vector3 targetPos)
@@ -240,18 +282,29 @@ unsafe sealed class ActionManagerEx : IDisposable
     {
         var action = new ActionID((ActionType)actionType, actionId);
         //Service.Log($"[AMEx] UA: {action} @ {targetId:X}: {extraParam} {mode} {comboRouteId}");
-        // note: only standard mode can be filtered
-        if (mode == ActionManager.UseActionMode.None && FilterActionRequest != null && FilterActionRequest(action, targetId))
-            return false;
 
+        // if mouseover mode is enabled AND target is a usual primary target AND current mouseover is valid target for action, then we override target to mouseover
+        bool mouseoverOverride = false;
         var primaryTarget = TargetSystem.Instance()->Target;
         var primaryTargetId = primaryTarget != null ? primaryTarget->GetGameObjectId() : 0xE0000000;
         if (Config.PreferMouseover && targetId == primaryTargetId)
         {
             var mouseoverTarget = PronounModule.Instance()->UiMouseOverTarget;
             if (mouseoverTarget != null && ActionManager.CanUseActionOnTarget(ActionManager.GetSpellIdForAction(actionType, actionId), mouseoverTarget))
+            {
                 targetId = mouseoverTarget->GetGameObjectId();
+                mouseoverOverride = true;
+            }
         }
+
+        action = NormalizeGeneralAction(action);
+        (ulong, Vector3?) getAreaTarget() => mouseoverOverride ? (targetId, null) :
+            (Config.GTMode == ActionManagerConfig.GroundTargetingMode.AtTarget ? targetId : 0xE0000000, Config.GTMode == ActionManagerConfig.GroundTargetingMode.AtCursor ? GetWorldPosUnderCursor() : null);
+
+        // note: only standard mode can be filtered
+        // note: current implementation introduces slight input lag (on button press, next autorotation update will pick state updates, which will be executed on next action manager update)
+        if (mode == ActionManager.UseActionMode.None && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, mouseoverOverride, getAreaTarget))
+            return false;
 
         bool areaTargeted = false;
         var res = _useActionHook.Original(self, actionType, actionId, targetId, extraParam, mode, comboRouteId, &areaTargeted);
@@ -348,6 +401,7 @@ unsafe sealed class ActionManagerEx : IDisposable
 
     private void HandleActionRequest(ActionID action, uint seq, ulong targetID, Vector3 targetPos, Angle prevRot, Angle currRot)
     {
+        _manualQueue.Pop(action);
         _animLockTweak.RecordRequest(seq, _inst->AnimationLock);
         _restoreRotTweak.Preserve(prevRot, currRot);
         MoveMightInterruptCast = CastTimeRemaining > 0;

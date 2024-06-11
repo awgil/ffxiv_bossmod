@@ -8,7 +8,4 @@ class SCHConfig : ConfigNode
 
     [PropertyDisplay("Use mouseover targeting for friendly spells")]
     public bool MouseoverFriendly = true;
-
-    [PropertyDisplay("Prefer Selene over Eos")]
-    public bool PreferSelene = false;
 }

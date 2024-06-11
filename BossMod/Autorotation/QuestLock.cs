@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-// for quest-locked abilities, we maintain a sorted list of interesting quests in chain (assuming that it is slightly linear)
+// for quest-locked abilities, we maintain a sorted list of interesting quests in chain (assuming that it is linear)
 // since quest can't be 'uncompleted', we keep track of first uncompleted quest and only check it
 class QuestLockCheck(uint[] unlockData)
 {

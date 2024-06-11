@@ -10,8 +10,7 @@ class Actions : HealerActions
     private bool _allowDelayingNextGCD;
     private readonly ConfigListener<SCHConfig> _config;
 
-    public Actions(Autorotation autorot, Actor player)
-        : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
+    public Actions(Autorotation autorot, Actor player) : base(autorot, player, Definitions.UnlockQuests)
     {
         _state = new(autorot.WorldState);
         _strategy = new();
@@ -52,7 +51,7 @@ class Actions : HealerActions
     {
         base.UpdateInternalState(autoAction);
         UpdatePlayerState();
-        FillCommonStrategy(_strategy, CommonDefinitions.IDPotionMnd);
+        FillCommonStrategy(_strategy, ActionDefinitions.IDPotionMnd);
         _strategy.NumWhisperingDawnTargets = _state.Fairy != null && _state.Unlocked(AID.WhisperingDawn) ? CountAOEHealTargets(15, _state.Fairy.Position) : 0;
         _strategy.NumSuccorTargets = _state.Unlocked(AID.Succor) ? CountAOEPreshieldTargets(15, Player.Position, (uint)SID.Galvanize, _state.GCD + 2, 10) : 0;
         _strategy.NumArtOfWarTargets = _state.Unlocked(AID.ArtOfWar1) ? Autorot.Hints.NumPriorityTargetsInAOECircle(Player.Position, 5) : 0;
@@ -66,8 +65,8 @@ class Actions : HealerActions
     protected override ActionQueue.Entry CalculateAutomaticGCD()
     {
         // TODO: rework, implement non-ai...
-        if (_state.Unlocked(AID.SummonSelene) && _state.Fairy == null)
-            return MakeResult(_config.Data.PreferSelene ? AID.SummonSelene : AID.SummonEos, Player);
+        if (_state.Unlocked(AID.SummonEos) && _state.Fairy == null)
+            return MakeResult(AID.SummonEos, Player);
 
         // AI: aoe heals > st heals > esuna > damage
         // i don't really think 'rotation/actions' split is particularly good fit for healers AI...

@@ -20,6 +20,9 @@ public sealed class ActionManagerConfig : ConfigNode
     [PropertyDisplay("Use actions on mouseover target, if possible")]
     public bool PreferMouseover = false;
 
+    [PropertyDisplay("Use custom queueing for manually pressed actions, to better integrate with autorotation")]
+    public bool UseManualQueue = false;
+
     public enum GroundTargetingMode
     {
         [PropertyDisplay("Manually select position by extra click (normal game behaviour)")]

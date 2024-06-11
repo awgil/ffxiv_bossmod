@@ -585,7 +585,7 @@ public static class Rotation
 
         // 1. potion
         if (ShouldUsePotion(state, strategy) && state.CanWeave(state.PotionCD, 1.1f, deadline))
-            return CommonDefinitions.IDPotionStr;
+            return ActionDefinitions.IDPotionStr;
 
         // 2. inner release / berserk
         if (state.Unlocked(AID.InnerRelease))

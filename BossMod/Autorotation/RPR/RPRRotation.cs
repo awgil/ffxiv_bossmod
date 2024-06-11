@@ -627,7 +627,7 @@ public static class Rotation
             if (state.CD(CDGroup.ArcaneCircle) < 7.5f && state.ShroudGauge >= 50 && state.CanWeave(CDGroup.Enshroud, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Enshroud);
             if (state.LemureShroudCount is 3 && state.CanWeave(state.PotionCD, 1.1f, deadline) && state.lastActionisSoD)
-                return CommonDefinitions.IDPotionStr;
+                return ActionDefinitions.IDPotionStr;
             if (state.LemureShroudCount is 2 && state.CanWeave(CDGroup.ArcaneCircle, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.ArcaneCircle);
             if (state.CD(CDGroup.ArcaneCircle) > 11 && state.VoidShroudCount >= 2 && state.CanWeave(CDGroup.LemuresSlice, 0.6f, deadline))
@@ -635,7 +635,7 @@ public static class Rotation
         }
 
         if (ShouldUsePotion(state, strategy) && state.CanWeave(state.PotionCD, 1.1f, deadline))
-            return CommonDefinitions.IDPotionStr;
+            return ActionDefinitions.IDPotionStr;
         if (ShouldUseTrueNorth(state, strategy) && state.CanWeave(CDGroup.TrueNorth - 45, 0.6f, deadline) && !aoe && state.GCD < 0.8)
             return ActionID.MakeSpell(AID.TrueNorth);
         if (ShouldUseEnshroud(state, strategy) && state.Unlocked(AID.Enshroud) && state.CanWeave(CDGroup.Enshroud, 0.6f, deadline))

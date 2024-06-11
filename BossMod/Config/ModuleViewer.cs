@@ -32,14 +32,14 @@ public sealed class ModuleViewer : IDisposable
         _expansions = Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon)).ToArray();
         _categories = Enum.GetNames<BossModuleInfo.Category>().Take((int)BossModuleInfo.Category.Count).Select(n => (n, defaultIcon)).ToArray();
 
-        var exVersion = Service.LuminaGameData?.GetExcelSheet<ExVersion>();
+        var exVersion = Service.LuminaSheet<ExVersion>();
         Customize(BossModuleInfo.Expansion.RealmReborn, 61875, exVersion?.GetRow(0)?.Name);
         Customize(BossModuleInfo.Expansion.Heavensward, 61876, exVersion?.GetRow(1)?.Name);
         Customize(BossModuleInfo.Expansion.Stormblood, 61877, exVersion?.GetRow(2)?.Name);
         Customize(BossModuleInfo.Expansion.Shadowbringers, 61878, exVersion?.GetRow(3)?.Name);
         Customize(BossModuleInfo.Expansion.Endwalker, 61879, exVersion?.GetRow(4)?.Name);
 
-        var contentType = Service.LuminaGameData?.GetExcelSheet<ContentType>();
+        var contentType = Service.LuminaSheet<ContentType>();
         Customize(BossModuleInfo.Category.Dungeon, contentType?.GetRow(2));
         Customize(BossModuleInfo.Category.Trial, contentType?.GetRow(4));
         Customize(BossModuleInfo.Category.Raid, contentType?.GetRow(5));
@@ -52,7 +52,7 @@ public sealed class ModuleViewer : IDisposable
         Customize(BossModuleInfo.Category.Ultimate, contentType?.GetRow(28));
         Customize(BossModuleInfo.Category.Criterion, contentType?.GetRow(30));
 
-        var playStyle = Service.LuminaGameData?.GetExcelSheet<CharaCardPlayStyle>();
+        var playStyle = Service.LuminaSheet<CharaCardPlayStyle>();
         Customize(BossModuleInfo.Category.Foray, playStyle?.GetRow(6));
         Customize(BossModuleInfo.Category.MaskedCarnivale, playStyle?.GetRow(8));
         Customize(BossModuleInfo.Category.Hunt, playStyle?.GetRow(10));

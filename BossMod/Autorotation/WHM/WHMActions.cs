@@ -15,8 +15,7 @@ class Actions : HealerActions
     private bool _allowDelayingNextGCD;
     private readonly ConfigListener<WHMConfig> _config;
 
-    public Actions(Autorotation autorot, Actor player)
-        : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
+    public Actions(Autorotation autorot, Actor player) : base(autorot, player, Definitions.UnlockQuests)
     {
         _state = new(autorot.WorldState);
         _strategy = new();
@@ -60,7 +59,7 @@ class Actions : HealerActions
     {
         base.UpdateInternalState(autoAction);
         UpdatePlayerState();
-        FillCommonStrategy(_strategy, CommonDefinitions.IDPotionMnd);
+        FillCommonStrategy(_strategy, ActionDefinitions.IDPotionMnd);
         _strategy.NumAssizeMedica1Targets = _state.Unlocked(AID.Medica1) ? CountAOEHealTargets(15, Player.Position, 0.5f) : 0;
         _strategy.NumRaptureMedica2Targets = _state.Unlocked(AID.Medica2) ? CountAOEHealTargets(20, Player.Position) : 0;
         _strategy.NumCure3Targets = _state.Unlocked(AID.Cure3) ? SmartCure3Target().Item2 : 0;

@@ -408,7 +408,7 @@ public static class Rotation
     {
         // potion
         if (ShouldUsePotion(state, strategy) && state.CanWeave(state.PotionCD, 1.1f, deadline))
-            return CommonDefinitions.IDPotionDex;
+            return ActionDefinitions.IDPotionDex;
 
         // maintain songs
         if (state.TargetingEnemy && strategy.CombatTimer >= 0)

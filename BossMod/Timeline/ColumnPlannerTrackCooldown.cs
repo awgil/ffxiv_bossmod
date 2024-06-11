@@ -91,9 +91,9 @@ public class ColumnPlannerTrackCooldown(Timeline timeline, StateMachineTree tree
     private ActionElement SetElementAction(ActionElement e, ActionID action)
     {
         e.Action = action;
-        var actionDef = ClassDef.Abilities[action];
-        e.EffectLength = actionDef.EffectDuration;
-        e.CooldownLength = actionDef.Cooldown;
+        var actionDef = ActionDefinitions.Instance[action];
+        e.EffectLength = actionDef?.EffectDuration ?? 0;
+        e.CooldownLength = actionDef?.Cooldown ?? 0;
         return e;
     }
 }

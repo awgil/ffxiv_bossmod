@@ -12,11 +12,12 @@ sealed class AnalysisManager : IDisposable
         public T Get() => _impl ??= _init();
     }
 
-    private class Global(List<Replay> replays)
+    private sealed class Global(List<Replay> replays)
     {
         private readonly Lazy<UnknownActionEffects> _unkEffects = new(() => new(replays));
         private readonly Lazy<ParticipantInfo> _participantInfo = new(() => new(replays));
         private readonly Lazy<AbilityInfo> _abilityInfo = new(() => new(replays));
+        private readonly Lazy<ClassDefinitions> _classDefinitions = new(() => new(replays));
         private readonly Lazy<ClientActions> _clientActions = new(() => new(replays));
         private readonly Lazy<EffectResultMispredict> _effectResultMissing = new(() => new(replays, true));
         private readonly Lazy<EffectResultMispredict> _effectResultUnexpected = new(() => new(replays, false));
@@ -32,6 +33,9 @@ sealed class AnalysisManager : IDisposable
 
             foreach (var n in tree.Node("Ability info", false, 0xffffffff, () => _abilityInfo.Get().DrawContextMenu()))
                 _abilityInfo.Get().Draw(tree);
+
+            foreach (var n in tree.Node("Player class definitions"))
+                _classDefinitions.Get().Draw(tree);
 
             foreach (var n in tree.Node("Client action weirdness"))
                 _clientActions.Get().Draw(tree);

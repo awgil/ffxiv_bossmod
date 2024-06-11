@@ -13,7 +13,7 @@ class Actions : CommonActions
     private readonly ConfigListener<RPRConfig> _config;
 
     public Actions(Autorotation autorot, Actor player)
-        : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
+        : base(autorot, player, Definitions.UnlockQuests)
     {
         _state = new(autorot.WorldState);
         _strategy = new();
@@ -63,7 +63,7 @@ class Actions : CommonActions
             _ => false, // irrelevant...
         };
         UpdatePlayerState();
-        FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
+        FillCommonStrategy(_strategy, ActionDefinitions.IDPotionStr);
         _strategy.ApplyStrategyOverrides(Autorot.Bossmods.ActiveModule?.PlanExecution?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine) ?? []);
         FillStrategyPositionals(_strategy, Rotation.GetNextPositional(_state, _strategy), _state.TrueNorthLeft > _state.GCD);
     }

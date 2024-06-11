@@ -67,14 +67,14 @@ public enum Role
 
 public static class ClassRole
 {
-    public static ClassCategory GetClassCategory(this Class cls) => cls switch
+    public static ClassCategory GetClassCategory(this Class cls, bool allowLimited = true) => cls switch
     {
         Class.GLA or Class.PLD or Class.MRD or Class.WAR or Class.DRK or Class.GNB => ClassCategory.Tank,
         Class.SCH or Class.CNJ or Class.WHM or Class.AST or Class.SGE => ClassCategory.Healer,
         Class.LNC or Class.DRG or Class.PGL or Class.MNK or Class.ROG or Class.NIN or Class.SAM or Class.RPR => ClassCategory.Melee,
         Class.ARC or Class.BRD or Class.MCH or Class.DNC => ClassCategory.PhysRanged,
         Class.THM or Class.BLM or Class.ACN or Class.SMN or Class.RDM => ClassCategory.Caster,
-        Class.BLU => ClassCategory.Limited,
+        Class.BLU => allowLimited ? ClassCategory.Limited : ClassCategory.Caster,
         _ => ClassCategory.Undefined
     };
 

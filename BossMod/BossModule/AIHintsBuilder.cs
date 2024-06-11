@@ -1,19 +1,21 @@
 ﻿namespace BossMod;
 
-// utility that determines ai hints automatically based on actor casts
-// this is used e.g. in outdoor or on trash, where we have no active bossmodules
-public sealed class AutoHints : IDisposable
+// utility that recalculates ai hints based on different data sources (eg active bossmodule, etc)
+// when there is no active bossmodule (eg in outdoor or on trash), we try to guess things based on world state (eg actor casts)
+public sealed class AIHintsBuilder : IDisposable
 {
     private const float RaidwideSize = 30;
 
     private readonly WorldState _ws;
+    private readonly BossModuleManager _bmm;
     private readonly EventSubscriptions _subscriptions;
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = [];
     private ArenaBoundsCircle? _activeFateBounds;
 
-    public AutoHints(WorldState ws)
+    public AIHintsBuilder(WorldState ws, BossModuleManager bmm)
     {
         _ws = ws;
+        _bmm = bmm;
         _subscriptions = new
         (
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
@@ -24,7 +26,26 @@ public sealed class AutoHints : IDisposable
 
     public void Dispose() => _subscriptions.Dispose();
 
-    public void CalculateAIHints(AIHints hints, Actor player)
+    public void Update(AIHints hints, int playerSlot)
+    {
+        hints.Clear();
+        var player = _ws.Party[playerSlot];
+        if (player != null)
+        {
+            var playerAssignment = Service.Config.Get<PartyRolesConfig>()[_ws.Party.ContentIDs[playerSlot]];
+            var activeModule = _bmm.ActiveModule?.StateMachine.ActivePhase != null ? _bmm.ActiveModule : null;
+            hints.FillPotentialTargets(_ws, playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !_ws.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank));
+            hints.FillForcedTarget(_bmm.ActiveModule, _ws, player);
+            hints.FillPlannedActions(_bmm.ActiveModule, playerSlot, player); // note that we might fill some actions even if module is not active yet (prepull)
+            if (activeModule != null)
+                activeModule.CalculateAIHints(playerSlot, player, playerAssignment, hints);
+            else
+                CalculateAutoHints(hints, player);
+        }
+        hints.Normalize();
+    }
+
+    private void CalculateAutoHints(AIHints hints, Actor player)
     {
         if (_ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax)
         {

@@ -14,7 +14,7 @@ class Actions : CommonActions
     private bool _predictedTechFinish; // TODO: find a way to remove that
 
     public Actions(Autorotation autorot, Actor player)
-        : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
+        : base(autorot, player, Definitions.UnlockQuests)
     {
         _state = new(autorot.WorldState);
         _strategy = new();
@@ -120,7 +120,7 @@ class Actions : CommonActions
     protected override void UpdateInternalState(int autoAction)
     {
         UpdatePlayerState();
-        FillCommonStrategy(_strategy, CommonDefinitions.IDPotionDex);
+        FillCommonStrategy(_strategy, ActionDefinitions.IDPotionDex);
 
         var primaryTarget = Autorot.PrimaryTarget;
 

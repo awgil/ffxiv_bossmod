@@ -98,6 +98,7 @@ unsafe sealed class DebugInput : IDisposable
 
     private readonly UITree _tree = new();
     private readonly WorldState _ws;
+    private readonly ActionManagerEx _amex;
     private readonly AI.AIController _navi;
     private Vector2 _dest;
     private Vector3 _prevPos;
@@ -120,7 +121,8 @@ unsafe sealed class DebugInput : IDisposable
         _convertVirtualKey = Service.KeyState.GetType().GetMethod("ConvertVirtualKey", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<ConvertVirtualKeyDelegate>(Service.KeyState);
         _getKeyRef = Service.KeyState.GetType().GetMethod("GetRefValue", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<GetRefValueDelegate>(Service.KeyState);
         _ws = autorot.WorldState;
-        _navi = new();
+        _amex = autorot.ActionManager;
+        _navi = new(_amex);
 
         _playerController = (PlayerController*)Service.SigScanner.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 3C 01 75 1E 48 8D 0D");
         Service.Log($"[DebugInput] playerController addess: 0x{(nint)_playerController:X}");
@@ -285,7 +287,7 @@ unsafe sealed class DebugInput : IDisposable
 
         ImGui.Checkbox("Gamepad navigate", ref _gamepadNavigate);
 
-        var input = ActionManagerEx.Instance!.InputOverride;
+        var input = _amex.InputOverride;
         Array.Fill(input.GamepadOverrides, 0);
         if (_gamepadButtonOverride >= 0 && _gamepadButtonOverride < input.GamepadOverrides.Length)
         {

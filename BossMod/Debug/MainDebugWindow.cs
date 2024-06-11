@@ -10,7 +10,7 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
     private readonly DebugObjects _debugObjects = new();
     private readonly DebugParty _debugParty = new();
     private readonly DebugGraphics _debugGraphics = new();
-    private readonly DebugAction _debugAction = new(ws);
+    private readonly DebugAction _debugAction = new(ws, autorot.ActionManager);
     private readonly DebugHate _debugHate = new();
     private readonly DebugInput _debugInput = new(autorot);
     private readonly DebugAutorotation _debugAutorot = new(autorot);
@@ -207,7 +207,7 @@ class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod 
 
     private unsafe void DrawTargets()
     {
-        var cursorPos = ActionManagerEx.Instance?.GetWorldPosUnderCursor();
+        var cursorPos = autorot.ActionManager.GetWorldPosUnderCursor();
         ImGui.TextUnformatted($"World pos under cursor: {(cursorPos == null ? "n/a" : Utils.Vec3String(cursorPos.Value))}");
 
         var selfPos = Service.ClientState.LocalPlayer?.Position ?? new();

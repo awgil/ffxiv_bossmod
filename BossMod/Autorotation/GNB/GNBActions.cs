@@ -12,8 +12,7 @@ class Actions : TankActions
     private readonly Rotation.Strategy _strategy;
     private readonly ConfigListener<GNBConfig> _config;
 
-    public Actions(Autorotation autorot, Actor player)
-        : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
+    public Actions(Autorotation autorot, Actor player) : base(autorot, player, Definitions.UnlockQuests)
     {
         _state = new(autorot.WorldState);
         _strategy = new();
@@ -59,7 +58,7 @@ class Actions : TankActions
             _ => false, // irrelevant...
         };
         UpdatePlayerState();
-        FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
+        FillCommonStrategy(_strategy, ActionDefinitions.IDPotionStr);
         _strategy.ApplyStrategyOverrides(Autorot.Bossmods.ActiveModule?.PlanExecution?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine) ?? []);
     }
 
@@ -141,7 +140,7 @@ class Actions : TankActions
         SupportedSpell(AID.LightningShot).Condition = config.ForbidEarlyLightningShot ? _ => _strategy.CombatTimer is float.MinValue or >= -0.7f : null;
     }
 
-    private AID ComboLastMove => (AID)ActionManagerEx.Instance!.ComboLastMove;
+    private AID ComboLastMove => (AID)Autorot.ActionManager.ComboLastMove;
 
     private int NumTargetsHitByAOE() => Autorot.Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
 }

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace BossMod;
 
 public static class PlanDefinitions
@@ -20,10 +17,9 @@ public static class PlanDefinitions
         public float Cooldown = cooldown;
     }
 
-    public class ClassData(Type aidType, Dictionary<ActionID, ActionDefinition> supportedActions)
+    public class ClassData(Type aidType)
     {
         public Type AIDType = aidType;
-        public Dictionary<ActionID, ActionDefinition> Abilities = supportedActions;
         public List<CooldownTrack> CooldownTracks = [];
         public List<StrategyTrack> StrategyTracks = [];
     }
@@ -46,7 +42,7 @@ public static class PlanDefinitions
 
     private static ClassData DefineWAR()
     {
-        var c = new ClassData(typeof(WAR.AID), WAR.Definitions.SupportedActions);
+        var c = new ClassData(typeof(WAR.AID));
         c.CooldownTracks.Add(new("Veng", ActionID.MakeSpell(WAR.AID.Vengeance), 38));
         c.CooldownTracks.Add(new("Rampart", ActionID.MakeSpell(WAR.AID.Rampart), 8));
         c.CooldownTracks.Add(new("Thrill", ActionID.MakeSpell(WAR.AID.ThrillOfBattle), 30));
@@ -58,7 +54,7 @@ public static class PlanDefinitions
         c.CooldownTracks.Add(new("SIO", ActionID.MakeSpell(WAR.AID.ShakeItOff), 68));
         c.CooldownTracks.Add(new("Taunt", ActionID.MakeSpell(WAR.AID.Provoke), 15));
         c.CooldownTracks.Add(new("Shirk", ActionID.MakeSpell(WAR.AID.Shirk), 48));
-        c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
+        c.CooldownTracks.Add(new("Sprint", ActionDefinitions.IDSprint, 1));
         c.StrategyTracks.Add(new("Gauge", typeof(WAR.Rotation.Strategy.GaugeUse)));
         c.StrategyTracks.Add(new("Infuriate", typeof(WAR.Rotation.Strategy.InfuriateUse)));
         c.StrategyTracks.Add(new("Potion", typeof(WAR.Rotation.Strategy.PotionUse), 270));
@@ -72,7 +68,7 @@ public static class PlanDefinitions
 
     private static ClassData DefinePLD()
     {
-        var c = new ClassData(typeof(PLD.AID), PLD.Definitions.SupportedActions);
+        var c = new ClassData(typeof(PLD.AID));
         c.CooldownTracks.Add(new("Sentinel", ActionID.MakeSpell(PLD.AID.Sentinel), 38));
         c.CooldownTracks.Add(new("Rampart", ActionID.MakeSpell(PLD.AID.Rampart), 8));
         c.CooldownTracks.Add(new("HallowedGround", ActionID.MakeSpell(PLD.AID.HallowedGround), 30));
@@ -84,19 +80,19 @@ public static class PlanDefinitions
 
     private static ClassData DefineWHM()
     {
-        var c = new ClassData(typeof(WHM.AID), WHM.Definitions.SupportedActions);
+        var c = new ClassData(typeof(WHM.AID));
         return c;
     }
 
     private static ClassData DefineSCH()
     {
-        var c = new ClassData(typeof(SCH.AID), SCH.Definitions.SupportedActions);
+        var c = new ClassData(typeof(SCH.AID));
         return c;
     }
 
     private static ClassData DefineDRG()
     {
-        var c = new ClassData(typeof(DRG.AID), DRG.Definitions.SupportedActions);
+        var c = new ClassData(typeof(DRG.AID));
         c.CooldownTracks.Add(new("Feint", ActionID.MakeSpell(DRG.AID.Feint), 22));
         c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(DRG.AID.ArmsLength), 32));
         c.StrategyTracks.Add(new("TrueN", typeof(DRG.Rotation.Strategy.TrueNorthUse)));
@@ -106,7 +102,7 @@ public static class PlanDefinitions
 
     private static ClassData DefineMNK()
     {
-        var c = new ClassData(typeof(MNK.AID), MNK.Definitions.SupportedActions);
+        var c = new ClassData(typeof(MNK.AID));
         c.CooldownTracks.Add(new("Feint", ActionID.MakeSpell(MNK.AID.Feint), 22));
         c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(MNK.AID.ArmsLength), 32));
         c.CooldownTracks.Add(new("RoE", ActionID.MakeSpell(MNK.AID.RiddleOfEarth), 64));
@@ -136,11 +132,11 @@ public static class PlanDefinitions
 
     private static ClassData DefineBRD()
     {
-        var c = new ClassData(typeof(BRD.AID), BRD.Definitions.SupportedActions);
+        var c = new ClassData(typeof(BRD.AID));
         c.CooldownTracks.Add(new("Troub", ActionID.MakeSpell(BRD.AID.Troubadour), 62));
         c.CooldownTracks.Add(new("Minne", ActionID.MakeSpell(BRD.AID.NaturesMinne), 66));
         c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(BRD.AID.ArmsLength), 32));
-        c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
+        c.CooldownTracks.Add(new("Sprint", ActionDefinitions.IDSprint, 1));
         c.StrategyTracks.Add(new("Songs", typeof(BRD.Rotation.Strategy.SongUse)));
         c.StrategyTracks.Add(new("Potion", typeof(BRD.Rotation.Strategy.PotionUse), 270));
         c.StrategyTracks.Add(new("DOTs", typeof(BRD.Rotation.Strategy.DotUse)));
@@ -156,12 +152,12 @@ public static class PlanDefinitions
 
     private static ClassData DefineDNC()
     {
-        var c = new ClassData(typeof(DNC.AID), DNC.Definitions.SupportedActions);
+        var c = new ClassData(typeof(DNC.AID));
         c.CooldownTracks.Add(new("Samba", ActionID.MakeSpell(DNC.AID.ShieldSamba), 56));
         c.CooldownTracks.Add(new("Waltz", ActionID.MakeSpell(DNC.AID.CuringWaltz), 52));
         c.CooldownTracks.Add(new("Improv", ActionID.MakeSpell(DNC.AID.Improvisation), 80));
         c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(BRD.AID.ArmsLength), 32));
-        c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
+        c.CooldownTracks.Add(new("Sprint", ActionDefinitions.IDSprint, 1));
         c.StrategyTracks.Add(new("Gauge", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
         c.StrategyTracks.Add(new("Feather", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
         c.StrategyTracks.Add(new("TechStep", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
@@ -171,17 +167,17 @@ public static class PlanDefinitions
 
     private static ClassData DefineBLM()
     {
-        var c = new ClassData(typeof(BLM.AID), BLM.Definitions.SupportedActions);
+        var c = new ClassData(typeof(BLM.AID));
         return c;
     }
 
     private static ClassData DefineRPR()
     {
-        var c = new ClassData(typeof(RPR.AID), RPR.Definitions.SupportedActions);
+        var c = new ClassData(typeof(RPR.AID));
         c.CooldownTracks.Add(new("ACrest", ActionID.MakeSpell(RPR.AID.ArcaneCrest), 40));
         c.CooldownTracks.Add(new("Feint", ActionID.MakeSpell(RPR.AID.Feint), 22));
         c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(RPR.AID.ArmsLength), 32));
-        c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
+        c.CooldownTracks.Add(new("Sprint", ActionDefinitions.IDSprint, 1));
         c.StrategyTracks.Add(new("Gauge", typeof(RPR.Rotation.Strategy.GaugeUse)));
         c.StrategyTracks.Add(new("SOUL", typeof(RPR.Rotation.Strategy.BloodstalkUse)));
         c.StrategyTracks.Add(new("SS", typeof(RPR.Rotation.Strategy.OffensiveAbilityUse)));
@@ -196,11 +192,11 @@ public static class PlanDefinitions
 
     private static ClassData DefineSAM()
     {
-        var c = new ClassData(typeof(SAM.AID), SAM.Definitions.SupportedActions);
+        var c = new ClassData(typeof(SAM.AID));
         c.CooldownTracks.Add(new("ThirdEye", ActionID.MakeSpell(SAM.AID.ThirdEye), 6));
         c.CooldownTracks.Add(new("Feint", ActionID.MakeSpell(SAM.AID.Feint), 22));
         c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(SAM.AID.ArmsLength), 32));
-        c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
+        c.CooldownTracks.Add(new("Sprint", ActionDefinitions.IDSprint, 1));
         c.StrategyTracks.Add(new("TrueN", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
         c.StrategyTracks.Add(new("Cast", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
         c.StrategyTracks.Add(new("Higanbana", typeof(SAM.Rotation.Strategy.HiganbanaUse)));
@@ -213,7 +209,7 @@ public static class PlanDefinitions
 
     private static ClassData DefineGNB()
     {
-        var c = new ClassData(typeof(GNB.AID), GNB.Definitions.SupportedActions);
+        var c = new ClassData(typeof(GNB.AID));
         c.CooldownTracks.Add(new("Nebula", ActionID.MakeSpell(GNB.AID.Nebula), 38));
         c.CooldownTracks.Add(new("Rampart", ActionID.MakeSpell(GNB.AID.Rampart), 8));
         c.CooldownTracks.Add(new("Camoufl", ActionID.MakeSpell(GNB.AID.Camouflage), 6));
@@ -225,7 +221,7 @@ public static class PlanDefinitions
         c.CooldownTracks.Add(new("HoL", ActionID.MakeSpell(GNB.AID.HeartOfLight), 64));
         c.CooldownTracks.Add(new("Taunt", ActionID.MakeSpell(GNB.AID.Provoke), 15));
         c.CooldownTracks.Add(new("Shirk", ActionID.MakeSpell(GNB.AID.Shirk), 48));
-        c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
+        c.CooldownTracks.Add(new("Sprint", ActionDefinitions.IDSprint, 1));
         c.StrategyTracks.Add(new("Gauge", typeof(GNB.Rotation.Strategy.GaugeUse)));
         c.StrategyTracks.Add(new("Potion", typeof(GNB.Rotation.Strategy.PotionUse), 270));
         c.StrategyTracks.Add(new("NoM", typeof(GNB.Rotation.Strategy.OffensiveAbilityUse)));

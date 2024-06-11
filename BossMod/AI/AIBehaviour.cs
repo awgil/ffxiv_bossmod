@@ -192,7 +192,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
             // sprint, if not in combat and far enough away from destination
             if (allowSprint && (player.InCombat ? _naviDecision.LeewaySeconds <= 0 && distSq > 25 : player != master && distSq > 400))
             {
-                autorot.ClassActions?.HandleUserActionRequest(CommonDefinitions.IDSprint, player);
+                autorot.ClassActions?.HandleUserActionRequest(ActionDefinitions.IDSprint, player);
             }
         }
     }

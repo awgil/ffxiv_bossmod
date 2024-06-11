@@ -186,13 +186,13 @@ namespace UIDev
         {
             var res = Mistake.None;
             bool isOGCD = false;
-            if (action == CommonDefinitions.IDSprint)
+            if (action == ActionDefinitions.IDSprint)
             {
                 isOGCD = true;
                 res |= AdvanceTime(state, ref t, 0.6f, state.SprintCD);
                 res |= AdjustCD(state, CommonDefinitions.SprintCDGroup, 60, 60);
             }
-            else if (action == CommonDefinitions.IDPotionStr)
+            else if (action == ActionDefinitions.IDPotionStr)
             {
                 isOGCD = true;
                 res |= AdvanceTime(state, ref t, 1.1f, state.PotionCD);
@@ -370,7 +370,7 @@ namespace UIDev
 
         public string ActionString(ActionID action)
         {
-            return action == CommonDefinitions.IDSprint ? "Sprint" : action.Type == ActionType.Item ? "StatPotion" : ((AID)action.ID).ToString();
+            return action == ActionDefinitions.IDSprint ? "Sprint" : action.Type == ActionType.Item ? "StatPotion" : ((AID)action.ID).ToString();
         }
 
         private void DrawActionRow(ActionID action, bool isGCD, Mistake mistake, float t, Rotation.State state, Rotation.Strategy strategy)

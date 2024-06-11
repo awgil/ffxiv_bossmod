@@ -1,7 +1,7 @@
 ﻿namespace BossMod;
 
 // extra utilities for tanks
-abstract class TankActions(Autorotation autorot, Actor player, uint[] unlockData, Dictionary<ActionID, ActionDefinition> supportedActions) : CommonActions(autorot, player, unlockData, supportedActions)
+abstract class TankActions(Autorotation autorot, Actor player, uint[] unlockData) : CommonActions(autorot, player, unlockData)
 {
     protected bool IsOfftank { get; private set; }
     protected DateTime LastStanceSwap { get; private set; }

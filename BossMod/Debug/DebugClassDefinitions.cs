@@ -36,11 +36,11 @@ sealed class DebugClassDefinitions : IDisposable
 
             var cp = typeof(Lumina.Excel.GeneratedSheets.ClassJobCategory).GetProperty(c.ToString());
             bool actionIsInteresting(Lumina.Excel.GeneratedSheets.Action a) => !a.IsPvP && a.ClassJobLevel > 0 && (cp?.GetValue(a.ClassJobCategory.Value) as bool? ?? false);
-            Actions = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(actionIsInteresting).ToList() ?? [];
+            Actions = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(actionIsInteresting).ToList() ?? [];
             Actions.SortBy(e => e.ClassJobLevel);
 
             bool traitIsInteresting(Lumina.Excel.GeneratedSheets.Trait t) => cp?.GetValue(t.ClassJobCategory.Value) as bool? ?? false;
-            Traits = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Trait>()?.Where(traitIsInteresting).ToList() ?? [];
+            Traits = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.Trait>()?.Where(traitIsInteresting).ToList() ?? [];
             Traits.SortBy(e => e.Level);
 
             foreach (var action in Actions)
@@ -161,7 +161,7 @@ sealed class DebugClassDefinitions : IDisposable
                     foreach (var (cg, actions) in data.CooldownGroups)
                     {
                         var cdgName = data.CDGType?.GetEnumName(cg);
-                        _tree.LeafNode($"{cg} ({cdgName}): {string.Join(", ", actions.Select(a => a.Name))}", cdgName != null || cg == CommonDefinitions.GCDGroup ? 0xffffffff : 0xff0000ff);
+                        _tree.LeafNode($"{cg} ({cdgName}): {string.Join(", ", actions.Select(a => a.Name))}", cdgName != null || cg == ActionDefinitions.GCDGroup ? 0xffffffff : 0xff0000ff);
                     }
                 }
 
@@ -182,10 +182,10 @@ sealed class DebugClassDefinitions : IDisposable
         if (ImGui.MenuItem("Generate AID enum"))
         {
             var sb = new StringBuilder("public enum AID : uint\n{\n    None = 0,\n\n    // GCDs");
-            foreach (var action in cd.Actions.Where(a => a.CooldownGroup - 1 == CommonDefinitions.GCDGroup))
+            foreach (var action in cd.Actions.Where(a => a.CooldownGroup - 1 == ActionDefinitions.GCDGroup))
                 sb.Append($"\n    {ActionEnumString(cd, action)}");
             sb.Append("\n\n    // oGCDs");
-            foreach (var action in cd.Actions.Where(a => a.CooldownGroup - 1 != CommonDefinitions.GCDGroup))
+            foreach (var action in cd.Actions.Where(a => a.CooldownGroup - 1 != ActionDefinitions.GCDGroup))
                 sb.Append($"\n    {ActionEnumString(cd, action)}");
             sb.Append("\n}\n");
             ImGui.SetClipboardText(sb.ToString());
@@ -216,7 +216,7 @@ sealed class DebugClassDefinitions : IDisposable
                 float animLock = _seenActionLocks.GetValueOrDefault(new ActionID(ActionType.Spell, action.RowId), defaultAnimLock);
                 var animLockStr = animLock == defaultAnimLock ? "" : $", {animLock:f3}f";
                 var cg = action.CooldownGroup - 1;
-                if (cg == CommonDefinitions.GCDGroup)
+                if (cg == ActionDefinitions.GCDGroup)
                 {
                     if (action.Cast100ms == 0)
                         sb.Append($"res.GCD(AID.{aidEnum}, {action.Range}{animLockStr});\n");
@@ -292,7 +292,7 @@ sealed class DebugClassDefinitions : IDisposable
         var sb = new StringBuilder("public enum CDGroup : int\n{");
         foreach (var (cg, actions) in cd.CooldownGroups)
         {
-            if (cg == CommonDefinitions.GCDGroup)
+            if (cg == ActionDefinitions.GCDGroup)
                 continue;
 
             ushort? commonRecast = actions[0].Recast100ms;
@@ -348,7 +348,7 @@ sealed class DebugClassDefinitions : IDisposable
     {
         var aidEnum = cd.AIDType?.GetEnumName(action.RowId) ?? Utils.StringToIdentifier(action.Name);
         var sb = new StringBuilder($"{aidEnum} = {action.RowId}, // L{action.ClassJobLevel}, {CastTimeString(action)}");
-        if (action.CooldownGroup - 1 != CommonDefinitions.GCDGroup)
+        if (action.CooldownGroup - 1 != ActionDefinitions.GCDGroup)
             sb.Append($", {CooldownString(action)}");
         sb.Append($", range {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionRange(action.RowId)}, {CastTypeString(action.CastType)} {action.EffectRange}/{action.XAxisModifier}, targets={TargetsString(action)}, animLock={AnimLockString(new ActionID(ActionType.Spell, action.RowId))}");
         return sb.ToString();
@@ -375,7 +375,7 @@ sealed class DebugClassDefinitions : IDisposable
     private string CooldownString(Lumina.Excel.GeneratedSheets.Action action)
     {
         var cg = action.CooldownGroup - 1;
-        var res = cg == CommonDefinitions.GCDGroup ? "GCD" : $"{action.Recast100ms * 0.1f:f1}s CD (group {cg})";
+        var res = cg == ActionDefinitions.GCDGroup ? "GCD" : $"{action.Recast100ms * 0.1f:f1}s CD (group {cg})";
         var charges = MaxChargesAtCap(action.RowId);
         if (charges > 1)
             res += $" ({charges} charges)";

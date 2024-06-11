@@ -13,7 +13,7 @@ class Actions : CommonActions
     private readonly ConfigListener<SMNConfig> _config;
 
     public Actions(Autorotation autorot, Actor player)
-        : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
+        : base(autorot, player, Definitions.UnlockQuests)
     {
         _state = new(autorot.WorldState);
         _strategy = new();
@@ -45,7 +45,7 @@ class Actions : CommonActions
             _ => false, // irrelevant...
         };
         UpdatePlayerState();
-        FillCommonStrategy(_strategy, CommonDefinitions.IDPotionInt);
+        FillCommonStrategy(_strategy, ActionDefinitions.IDPotionInt);
     }
 
     protected override void QueueAIActions()

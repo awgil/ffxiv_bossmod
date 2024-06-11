@@ -1,7 +1,7 @@
 ﻿namespace BossMod;
 
 // information relevant for AI decision making process for a specific player
-public class AIHints
+public sealed class AIHints
 {
     public class Enemy(Actor actor, bool shouldBeTanked)
     {

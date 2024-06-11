@@ -41,12 +41,11 @@ public static class CommonRotation
             return slot >= 0 && DutyActions[1 - slot] == other ? slot : -1;
         }
 
-        public float GCD => Cooldowns[CommonDefinitions.GCDGroup].Remaining; // 2.5 max (decreased by SkS), 0 if not on gcd
-        public float SprintCD => Cooldowns[CommonDefinitions.SprintCDGroup].Remaining; // 60.0 max
-        public float PotionCD => Cooldowns[CommonDefinitions.PotionCDGroup].Remaining; // variable max
+        public float GCD => Cooldowns[ActionDefinitions.GCDGroup].Remaining; // 2.5 max (decreased by SkS), 0 if not on gcd
+        public float PotionCD => Cooldowns[ActionDefinitions.PotionCDGroup].Remaining; // variable max
         public float CD<CDGroup>(CDGroup group) where CDGroup : Enum => Cooldowns[(int)(object)group].Remaining;
 
-        public float DutyActionCD(int slot) => slot is >= 0 and < 2 ? Cooldowns[CommonDefinitions.DutyAction0CDGroup + slot].Remaining : float.MaxValue;
+        public float DutyActionCD(int slot) => slot is >= 0 and < 2 ? Cooldowns[ActionDefinitions.DutyAction0CDGroup + slot].Remaining : float.MaxValue;
         public float DutyActionCD(ActionID action) => DutyActionCD(FindDutyActionSlot(action));
 
         // check whether weaving typical ogcd off cooldown would end its animation lock by the specified deadline

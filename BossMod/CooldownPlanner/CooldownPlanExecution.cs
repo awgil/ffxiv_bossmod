@@ -52,7 +52,7 @@ public class CooldownPlanExecution
         public uint OID = oid;
     }
 
-    public CooldownPlan? Plan { get; private init; }
+    public readonly CooldownPlan? Plan;
     private readonly StateData Pull;
     private readonly Dictionary<uint, StateData> States = [];
     private readonly List<ActionData> Actions = [];
@@ -200,7 +200,7 @@ public class CooldownPlanExecution
             else
             {
                 var left = next.WindowStart - t;
-                ImGui.PushStyleColor(ImGuiCol.Text, left < classDef.Abilities[track.Actions[0].aid].Cooldown ? 0xffffffff : 0x80808080);
+                ImGui.PushStyleColor(ImGuiCol.Text, left < (ActionDefinitions.Instance[track.Actions[0].aid]?.Cooldown ?? 0) ? 0xffffffff : 0x80808080);
                 ImGui.TextUnformatted($"{track.Name}: in {left:f1}s");
                 ImGui.PopStyleColor();
             }

@@ -1,5 +1,4 @@
-﻿using Dalamud.Hooking;
-using ImGuiNET;
+﻿using ImGuiNET;
 
 namespace BossMod;
 
@@ -8,7 +7,8 @@ sealed class Autorotation : IDisposable
     public readonly AutorotationConfig Config = Service.Config.Get<AutorotationConfig>();
     public readonly BossModuleManager Bossmods;
     public WorldState WorldState => Bossmods.WorldState;
-    private readonly AutoHints _autoHints;
+    public readonly AIHints Hints;
+    public readonly ActionManagerEx ActionManager; // TODO: make private
     private readonly UISimpleWindow _ui;
     private readonly EventSubscriptions _subscriptions;
 
@@ -16,63 +16,45 @@ sealed class Autorotation : IDisposable
 
     public Actor? PrimaryTarget; // this is usually a normal (hard) target, but AI can override; typically used for damage abilities
     public Actor? SecondaryTarget; // this is usually a mouseover, but AI can override; typically used for heal and utility abilities
-    public AIHints Hints = new();
-    public float EffAnimLock => ActionManagerEx.Instance!.EffectiveAnimationLock;
-    public float AnimLockDelay => ActionManagerEx.Instance!.AnimationLockDelayEstimate;
+    public float EffAnimLock => ActionManager.EffectiveAnimationLock;
+    public float AnimLockDelay => ActionManager.AnimationLockDelayEstimate;
 
-    private static readonly ActionID IDSprintGeneral = new(ActionType.General, 4);
-
-    public unsafe Autorotation(BossModuleManager bossmods)
+    public unsafe Autorotation(BossModuleManager bossmods, AIHints hints, ActionManagerEx amex)
     {
         Bossmods = bossmods;
-        _autoHints = new(bossmods.WorldState);
+        Hints = hints;
+        ActionManager = amex;
         _ui = new("Autorotation", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing) { RespectCloseHotkey = false };
         _subscriptions = new
         (
             WorldState.Client.ActionRequested.Subscribe(OnActionRequested),
             WorldState.Actors.CastEvent.Subscribe(OnCastEvent)
         );
-        ActionManagerEx.Instance!.FilterActionRequest += FilterActionRequest;
     }
 
     public void Dispose()
     {
-        ActionManagerEx.Instance!.FilterActionRequest -= FilterActionRequest;
         _subscriptions.Dispose();
         _ui.Dispose();
         ClassActions?.Dispose();
-        _autoHints.Dispose();
     }
 
-    public unsafe void Update()
+    public unsafe void Update(ActionQueue queue)
     {
         var player = WorldState.Party.Player();
-        PrimaryTarget = WorldState.Actors.Find(player?.TargetID ?? 0);
+        PrimaryTarget = Hints.ForcedTarget ?? WorldState.Actors.Find(player?.TargetID ?? 0);
         SecondaryTarget = WorldState.Actors.Find(Utils.MouseoverID());
 
-        Hints.Clear();
-        if (player != null)
+        // update forced target, if needed (TODO: move outside maybe?)
+        if (Hints.ForcedTarget != null)
         {
-            var playerAssignment = Service.Config.Get<PartyRolesConfig>()[WorldState.Party.ContentIDs[PartyState.PlayerSlot]];
-            var activeModule = Bossmods.ActiveModule?.StateMachine.ActivePhase != null ? Bossmods.ActiveModule : null;
-            Hints.FillPotentialTargets(WorldState, playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !WorldState.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank));
-            Hints.FillForcedTarget(Bossmods.ActiveModule, WorldState, player);
-            Hints.FillPlannedActions(Bossmods.ActiveModule, PartyState.PlayerSlot, player); // note that we might fill some actions even if module is not active yet (prepull)
-            if (activeModule != null)
-                activeModule.CalculateAIHints(PartyState.PlayerSlot, player, playerAssignment, Hints);
-            else
-                _autoHints.CalculateAIHints(Hints, player);
-        }
-        Hints.Normalize();
-        if (Hints.ForcedTarget != null && PrimaryTarget != Hints.ForcedTarget)
-        {
-            PrimaryTarget = Hints.ForcedTarget;
             var obj = Hints.ForcedTarget.SpawnIndex >= 0 ? FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.IndexSorted[Hints.ForcedTarget.SpawnIndex].Value : null;
             if (obj != null && obj->EntityId != Hints.ForcedTarget.InstanceID)
                 Service.Log($"[AR] Unexpected new target: expected {Hints.ForcedTarget.InstanceID:X} at #{Hints.ForcedTarget.SpawnIndex}, but found {obj->EntityId:X}");
             FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->Target = obj;
         }
 
+        // TODO: move to rotationmodulemanager...
         Type? classType = null;
         if (Config.Enabled && player != null)
         {
@@ -105,7 +87,7 @@ sealed class Autorotation : IDisposable
         var nextAction = ClassActions?.CalculateNextAction() ?? default;
         if (nextAction.Target != null && Hints.ForbiddenTargets.FirstOrDefault(e => e.Actor == nextAction.Target)?.Priority == AIHints.Enemy.PriorityForbidFully)
             nextAction = default;
-        ActionManagerEx.Instance!.AutoQueue = nextAction; // TODO: this delays action for 1 frame after downtime, reconsider...
+        ActionManager.AutoQueue = nextAction; // TODO: this delays action for 1 frame after downtime, reconsider...
 
         ClassActions?.FillStatusesToCancel(Hints.StatusesToCancel);
         foreach (var s in Hints.StatusesToCancel)
@@ -137,10 +119,10 @@ sealed class Autorotation : IDisposable
     {
         if (ClassActions == null)
             return;
-        var next = ActionManagerEx.Instance!.AutoQueue;
+        var next = ActionManager.AutoQueue;
         var state = ClassActions.GetState();
         var strategy = ClassActions.GetStrategy();
-        ImGui.TextUnformatted($"[{ClassActions.AutoAction}] Next: {next.Action} ({next.Priority})");
+        ImGui.TextUnformatted($"[{ClassActions.AutoAction}] Next: {next.Action} ({next.Priority:f2})");
         if (ClassActions.AutoAction != CommonActions.AutoActionNone && strategy.NextPositional != Positional.Any)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, PositionalColor(strategy));
@@ -151,7 +133,7 @@ sealed class Autorotation : IDisposable
         ImGui.TextUnformatted(strategy.ToString());
         ImGui.TextUnformatted($"Raidbuffs: {state.RaidBuffsLeft:f2}s left, next in {strategy.RaidBuffsIn:f2}s");
         ImGui.TextUnformatted($"Downtime: {strategy.FightEndIn:f2}s, pos-lock: {strategy.PositionLockIn:f2}");
-        ImGui.TextUnformatted($"GCD={WorldState.Client.Cooldowns[CommonDefinitions.GCDGroup].Remaining:f3}, AnimLock={EffAnimLock:f3}+{AnimLockDelay:f3}, Combo={state.ComboTimeLeft:f3}");
+        ImGui.TextUnformatted($"GCD={WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f3}, AnimLock={EffAnimLock:f3}+{AnimLockDelay:f3}, Combo={state.ComboTimeLeft:f3}");
     }
 
     private void OnActionRequested(ClientState.OpActionRequest op)
@@ -170,19 +152,5 @@ sealed class Autorotation : IDisposable
         return strategy.NextPositionalImminent
             ? (strategy.NextPositionalCorrect ? 0xff00ff00 : 0xff0000ff)
             : (strategy.NextPositionalCorrect ? 0xffffffff : 0xff00ffff);
-    }
-
-    // note: current implementation introduces slight input lag (on button press, next autorotation update will pick state updates, which will be executed on next action manager update)
-    private bool FilterActionRequest(ActionID action, ulong targetId)
-    {
-        if (ClassActions == null)
-            return false;
-
-        if (action == IDSprintGeneral)
-            action = CommonDefinitions.IDSprint;
-        bool nullTarget = targetId is 0 or Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId;
-        var target = nullTarget ? null : WorldState.Actors.Find(targetId);
-        // unknown target (e.g. quest object) or unsupported action => do not filter
-        return (nullTarget || target != null) && ClassActions.HandleUserActionRequest(action, target);
     }
 }
