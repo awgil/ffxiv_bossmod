@@ -22,7 +22,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
     {
     }
 
-    public void Execute(Actor player, Actor master)
+    public void Execute(Actor player, Actor master, ActionQueue queue)
     {
         if (player.IsDead || ctrl.InCutscene)
             return;
@@ -58,7 +58,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
             autorot.ClassActions?.UpdateAutoAction(actionStrategy, _maxCastTime, false);
         }
 
-        UpdateMovement(player, master, target, !forbidActions);
+        UpdateMovement(player, master, target, !forbidActions ? queue : null);
     }
 
     // returns null if we're to be idle, otherwise target to attack
@@ -158,7 +158,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
         return masterIsMoving;
     }
 
-    private void UpdateMovement(Actor player, Actor master, CommonActions.Targeting target, bool allowSprint)
+    private void UpdateMovement(Actor player, Actor master, CommonActions.Targeting target, ActionQueue? queueForSprint)
     {
         var destRot = AvoidGaze.Update(player, target.Target?.Actor.Position, autorot.Hints, autorot.WorldState.CurrentTime.AddSeconds(0.5));
         if (destRot != null)
@@ -190,9 +190,9 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
             //    _ctrl.TargetRot = cameraFacing.OrthoL().Dot(_ctrl.TargetRot.Value) > 0 ? _ctrl.TargetRot.Value.OrthoR() : _ctrl.TargetRot.Value.OrthoL();
 
             // sprint, if not in combat and far enough away from destination
-            if (allowSprint && (player.InCombat ? _naviDecision.LeewaySeconds <= 0 && distSq > 25 : player != master && distSq > 400))
+            if (player.InCombat ? _naviDecision.LeewaySeconds <= 0 && distSq > 25 : player != master && distSq > 400)
             {
-                autorot.ClassActions?.HandleUserActionRequest(ActionDefinitions.IDSprint, player);
+                queueForSprint?.Push(ActionDefinitions.IDSprint, player, ActionQueue.Priority.Minimal + 100);
             }
         }
     }

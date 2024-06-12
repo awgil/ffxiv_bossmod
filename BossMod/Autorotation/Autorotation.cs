@@ -61,18 +61,18 @@ sealed class Autorotation : IDisposable
             classType = player.Class switch
             {
                 Class.WAR => typeof(WAR.Actions),
-                Class.PLD => player.Level <= 60 ? typeof(PLD.Actions) : null,
-                Class.MNK => typeof(MNK.Actions),
-                Class.DRG => typeof(DRG.Actions),
-                Class.BRD => typeof(BRD.Actions),
-                Class.BLM => player.Level <= 60 ? typeof(BLM.Actions) : null,
-                Class.SMN => player.Level <= 30 ? typeof(SMN.Actions) : null,
-                Class.WHM => typeof(WHM.Actions),
-                Class.SCH => player.Level <= 60 ? typeof(SCH.Actions) : null,
-                Class.RPR => typeof(RPR.Actions),
-                Class.GNB => typeof(GNB.Actions),
-                Class.SAM => typeof(SAM.Actions),
-                Class.DNC => typeof(DNC.Actions),
+                //Class.PLD => player.Level <= 60 ? typeof(PLD.Actions) : null,
+                //Class.MNK => typeof(MNK.Actions),
+                //Class.DRG => typeof(DRG.Actions),
+                //Class.BRD => typeof(BRD.Actions),
+                //Class.BLM => player.Level <= 60 ? typeof(BLM.Actions) : null,
+                //Class.SMN => player.Level <= 30 ? typeof(SMN.Actions) : null,
+                //Class.WHM => typeof(WHM.Actions),
+                //Class.SCH => player.Level <= 60 ? typeof(SCH.Actions) : null,
+                //Class.RPR => typeof(RPR.Actions),
+                //Class.GNB => typeof(GNB.Actions),
+                //Class.SAM => typeof(SAM.Actions),
+                //Class.DNC => typeof(DNC.Actions),
                 _ => null
             };
         }
@@ -84,12 +84,9 @@ sealed class Autorotation : IDisposable
         }
 
         ClassActions?.Update();
-        var nextAction = ClassActions?.CalculateNextAction() ?? default;
-        if (nextAction.Target != null && Hints.ForbiddenTargets.FirstOrDefault(e => e.Actor == nextAction.Target)?.Priority == AIHints.Enemy.PriorityForbidFully)
-            nextAction = default;
-        ActionManager.AutoQueue = nextAction; // TODO: this delays action for 1 frame after downtime, reconsider...
-
+        ClassActions?.CalculateNextActions(queue);
         ClassActions?.FillStatusesToCancel(Hints.StatusesToCancel);
+
         foreach (var s in Hints.StatusesToCancel)
         {
             var res = FFXIVClientStructs.FFXIV.Client.Game.StatusManager.ExecuteStatusOff(s.statusId, s.sourceId != 0 ? (uint)s.sourceId : Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId);

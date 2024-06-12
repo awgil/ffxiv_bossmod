@@ -123,7 +123,10 @@ public sealed class Definitions : IDisposable
         d.Spell(AID.Stronghold)!.EffectDuration = 15;
         d.Spell(AID.Rampart)!.EffectDuration = 20;
         d.Spell(AID.LowBlow)!.EffectDuration = 5;
+        d.Spell(AID.Interject)!.Condition = (_, _, target, _) => target?.CastInfo?.Interruptible ?? false; // don't use interject if target is not casting interruptible spell
         d.Spell(AID.Reprisal)!.EffectDuration = 10;
+        d.Spell(AID.Reprisal)!.Condition = (_, player, _, hints) => hints.PotentialTargets.Any(e => e.Actor.Position.InCircle(player.Position, 5 + e.Actor.HitboxRadius)); // don't use reprisal if no one would be hit; TODO: consider checking only target?..
+        d.Spell(AID.Shirk)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
 
         d.Spell(AID.Repose)!.EffectDuration = 30;
 

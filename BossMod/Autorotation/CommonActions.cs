@@ -2,7 +2,7 @@ using FFXIVGame = FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace BossMod;
 
-abstract class CommonActions : IDisposable
+abstract class CommonActions(Autorotation autorot, Actor player, uint[] unlockData) : IDisposable
 {
     public const int AutoActionNone = 0;
     public const int AutoActionAIIdle = 1;
@@ -11,53 +11,14 @@ abstract class CommonActions : IDisposable
 
     public record struct Targeting(AIHints.Enemy Target, float PreferredRange = 3, Positional PreferredPosition = Positional.Any, bool PreferTanking = false);
 
-    public class SupportedAction(ActionDefinition definition, bool isGT)
-    {
-        public ActionDefinition Definition = definition;
-        public bool IsGT = isGT;
-        public Func<Actor?, bool>? Condition;
-        public int PlaceholderForAuto; // if set, attempting to execute this action would instead initiate auto-strategy
-        public Func<ActionID>? TransformAction;
-        public Func<Actor?, Actor?>? TransformTarget;
-        public Func<Angle?>? TransformAngle;
-
-        public bool Allowed(Actor player, Actor target)
-        {
-            if (player != target)
-            {
-                var distSq = (target.Position - player.Position).LengthSq();
-                var effRange = Definition.Range + player.HitboxRadius + target.HitboxRadius;
-                if (distSq > effRange * effRange)
-                    return false;
-            }
-            return Condition == null || Condition(target);
-        }
-    }
-
-    public Actor Player { get; init; }
-    public Dictionary<ActionID, SupportedAction> SupportedActions { get; init; } = [];
+    public readonly Actor Player = player;
     public int AutoAction { get; private set; }
     public float MaxCastTime { get; private set; }
-    protected Autorotation Autorot;
+    protected readonly Autorotation Autorot = autorot;
     private DateTime _playerCombatStart;
     private DateTime _autoActionExpire;
     private bool _forceExpireAtCountdownCancel;
-    private readonly QuestLockCheck _lock;
-
-    public SupportedAction SupportedSpell<AID>(AID aid) where AID : Enum => SupportedActions[ActionID.MakeSpell(aid)];
-
-    protected CommonActions(Autorotation autorot, Actor player, uint[] unlockData)
-    {
-        Player = player;
-        Autorot = autorot;
-        foreach (var def in ActionDefinitions.Instance.Definitions)
-        {
-            var a = SupportedActions[def.ID] = new(def, def.ID.IsGroundTargeted());
-            if (def.Range == 0)
-                a.TransformTarget = _ => Player; // by default, all actions with range 0 should always target player
-        }
-        _lock = new(unlockData);
-    }
+    private readonly QuestLockCheck _lock = new(unlockData);
 
     public void Dispose()
     {
@@ -96,7 +57,6 @@ abstract class CommonActions : IDisposable
             }
         }
 
-        _mq.RemoveExpired();
         if (AutoAction != AutoActionNone && _autoActionExpire < Autorot.WorldState.CurrentTime)
         {
             Log($"Auto action {AutoAction} expired");
@@ -104,8 +64,6 @@ abstract class CommonActions : IDisposable
         }
 
         UpdateInternalState(AutoAction);
-        if (AutoAction is > AutoActionNone and < AutoActionFirstCustom)
-            QueueAIActions();
     }
 
     public unsafe bool HaveItemInInventory(uint id) => FFXIVGame.InventoryManager.Instance()->GetInventoryItemCount(id % 1000000, id >= 1000000, false, false) > 0;
@@ -166,44 +124,18 @@ abstract class CommonActions : IDisposable
         MaxCastTime = maxCastTime;
     }
 
-    public ActionQueue.Entry CalculateNextAction()
+    public void CalculateNextActions(ActionQueue queue)
     {
-        // check emergency mode
-        var mqEmergency = _mq.PeekEmergency();
-        if (mqEmergency != null)
-            return new(mqEmergency.Action, mqEmergency.Target, mqEmergency.TargetPos, mqEmergency.FacingAngle, ActionQueue.Priority.ManualEmergency);
+        // TODO: rework to allow modules to decide stuff themselves
+        if (AutoAction != AutoActionNone)
+            CalculateAutomaticActions(queue);
+        if (AutoAction is > AutoActionNone and < AutoActionFirstCustom)
+            QueueAIActions(queue);
 
-        var effAnimLock = Autorot.EffAnimLock;
-        var animLockDelay = Autorot.AnimLockDelay;
-
-        // see if we have any GCD (queued or automatic)
-        var mqGCD = _mq.PeekGCD();
-        var nextGCD = mqGCD != null ? new(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, mqGCD.FacingAngle, ActionQueue.Priority.ManualGCD) : AutoAction != AutoActionNone ? CalculateAutomaticGCD() : default;
-        float ogcdDeadline = nextGCD.Action ? Autorot.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining : float.MaxValue;
-        //Log($"{nextGCD.Action} = {ogcdDeadline}");
-
-        // search for any oGCDs that we can execute without delaying GCD
-        var mqOGCD = _mq.PeekOGCD(effAnimLock, animLockDelay, ogcdDeadline);
-        if (mqOGCD != null)
-            return new(mqOGCD.Action, mqOGCD.Target, mqOGCD.TargetPos, mqOGCD.FacingAngle, ActionQueue.Priority.ManualOGCD);
-
-        // see if there is anything high-priority from cooldown plan to be executed
-        var cpActionHigh = Autorot.Hints.PlannedActions.FirstOrDefault(x => !x.lowPriority && CanExecutePlannedAction(x.action, x.target, effAnimLock, animLockDelay, ogcdDeadline));
-        if (cpActionHigh.action)
-            return new(cpActionHigh.action, cpActionHigh.target, new(), null, ActionQueue.Priority.Medium);
-
-        // note: we intentionally don't check that automatic oGCD really does not clip GCD - we provide utilities that allow module checking that, but also allow overriding if needed
-        var nextOGCD = AutoAction != AutoActionNone ? CalculateAutomaticOGCD(ogcdDeadline) : default;
-        if (nextOGCD.Action)
-            return nextOGCD;
-
-        // finally see whether there are any low-priority planned actions
-        var cpActionLow = Autorot.Hints.PlannedActions.FirstOrDefault(x => x.lowPriority && CanExecutePlannedAction(x.action, x.target, effAnimLock, animLockDelay, ogcdDeadline));
-        if (cpActionLow.action)
-            return new(cpActionLow.action, cpActionLow.target, new(), null, ActionQueue.Priority.Low);
-
-        // no ogcds, execute gcd instead
-        return nextGCD;
+        // TODO: move planned action handling outside?..
+        var delta = Autorot.Hints.PlannedActions.Count;
+        foreach (var a in Autorot.Hints.PlannedActions)
+            queue.Push(a.action, a.target, (a.lowPriority ? ActionQueue.Priority.Low : ActionQueue.Priority.Medium) + --delta * ActionQueue.Priority.Delta);
     }
 
     public void NotifyActionExecuted(in ClientActionRequest request)
@@ -224,22 +156,23 @@ abstract class CommonActions : IDisposable
     public virtual Targeting SelectBetterTarget(AIHints.Enemy initial) => new(initial);
     public virtual void FillStatusesToCancel(List<(uint statusId, ulong sourceId)> list) { }
     protected abstract void UpdateInternalState(int autoAction);
-    protected abstract void QueueAIActions();
-    protected abstract ActionQueue.Entry CalculateAutomaticGCD();
-    protected abstract ActionQueue.Entry CalculateAutomaticOGCD(float deadline);
+    protected abstract void QueueAIActions(ActionQueue queue);
+    protected abstract void CalculateAutomaticActions(ActionQueue queue);
     protected virtual void OnActionExecuted(in ClientActionRequest request) { }
     protected virtual void OnActionSucceeded(ActorCastEvent ev) { }
 
-    protected ActionQueue.Entry MakeResult(ActionID action, Actor? target)
+    protected void PushResult(ActionQueue queue, ActionID action, Actor? target)
     {
-        var data = action ? SupportedActions[action] : null;
+        var data = action ? ActionDefinitions.Instance[action] : null;
         if (data == null)
-            return default;
-        if (data.Definition.Range == 0)
+            return;
+        if (data.Range == 0)
             target = Player; // override range-0 actions to always target player
-        return target != null && data.Allowed(Player, target) ? new(action, target, (data.Definition.IsGCD ? ActionQueue.Priority.High : ActionQueue.Priority.Low) + 500) : default;
+        if (target == null || Autorot.Hints.ForbiddenTargets.FirstOrDefault(e => e.Actor == target)?.Priority == AIHints.Enemy.PriorityForbidFully)
+            return; // forbidden
+        queue.Push(action, target, (data.IsGCD ? ActionQueue.Priority.High : ActionQueue.Priority.Low) + 500);
     }
-    protected ActionQueue.Entry MakeResult<AID>(AID aid, Actor? target) where AID : Enum => MakeResult(ActionID.MakeSpell(aid), target);
+    protected void PushResult<AID>(ActionQueue queue, AID aid, Actor? target) where AID : Enum => PushResult(queue, ActionID.MakeSpell(aid), target);
 
     // fill common state properties
     protected void FillCommonPlayerState(CommonRotation.PlayerState s)
@@ -306,34 +239,10 @@ abstract class CommonActions : IDisposable
         };
     }
 
-    // smart targeting utility: return target (if friendly) or mouseover (if friendly) or null (otherwise)
-    protected Actor? SmartTargetFriendly(Actor? primaryTarget)
-        => primaryTarget?.Type is ActorType.Player or ActorType.Chocobo ? primaryTarget : Autorot.SecondaryTarget?.Type is ActorType.Player or ActorType.Chocobo ? Autorot.SecondaryTarget : null;
-
-    // smart targeting utility: return mouseover (if hostile and allowed) or target (otherwise)
-    protected Actor? SmartTargetHostile(Actor? primaryTarget)
-        => Autorot.SecondaryTarget?.Type == ActorType.Enemy && !Autorot.SecondaryTarget.IsAlly ? Autorot.SecondaryTarget : primaryTarget;
-
-    // smart targeting utility: return target (if friendly) or mouseover (if friendly) or other tank (if available) or null (otherwise)
-    protected Actor? SmartTargetCoTank(Actor? primaryTarget)
-        => SmartTargetFriendly(primaryTarget) ?? Autorot.WorldState.Party.WithoutSlot().Exclude(Player).FirstOrDefault(a => a.Role == Role.Tank);
-
     protected void Log(string message)
     {
         if (Autorot.Config.Logging)
             Service.Log($"[AR] [{GetType()}] {message}");
-    }
-
-    private bool CanExecutePlannedAction(ActionID action, Actor target, float effAnimLock, float animLockDelay, float deadline)
-    {
-        // TODO: planned GCDs?..
-        var definition = SupportedActions.GetValueOrDefault(action);
-        return definition != null
-            && !definition.Definition.IsGCD
-            && (definition.Definition.MainCooldownGroup < 0 || Autorot.WorldState.Client.Cooldowns[definition.Definition.MainCooldownGroup].Remaining - effAnimLock <= definition.Definition.CooldownAtFirstCharge)
-            && (definition.Definition.ExtraCooldownGroup < 0 || Autorot.WorldState.Client.Cooldowns[definition.Definition.ExtraCooldownGroup].Remaining - effAnimLock <= 0)
-            && effAnimLock + definition.Definition.InstantAnimLock + animLockDelay <= deadline
-            && definition.Allowed(Player, target);
     }
 
     private float CombatTimer() => _playerCombatStart != default

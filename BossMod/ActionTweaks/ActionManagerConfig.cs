@@ -20,6 +20,9 @@ public sealed class ActionManagerConfig : ConfigNode
     [PropertyDisplay("Use actions on mouseover target, if possible")]
     public bool PreferMouseover = false;
 
+    [PropertyDisplay("Smart targeting: if usual (mouseover/primary) target is not valid for action, select best target automatically (e.g. co-tank for Shirk)")]
+    public bool SmartTargets = true;
+
     [PropertyDisplay("Use custom queueing for manually pressed actions, to better integrate with autorotation")]
     public bool UseManualQueue = false;
 

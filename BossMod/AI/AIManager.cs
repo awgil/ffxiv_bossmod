@@ -32,7 +32,7 @@ sealed class AIManager : IDisposable
         Service.CommandManager.RemoveHandler("/vbmai");
     }
 
-    public void Update()
+    public void Update(ActionQueue queue)
     {
         if (_autorot.WorldState.Party.ContentIDs[_masterSlot] == 0)
             SwitchToIdle();
@@ -44,7 +44,7 @@ sealed class AIManager : IDisposable
         var master = _autorot.WorldState.Party[_masterSlot];
         if (_beh != null && player != null && master != null)
         {
-            _beh.Execute(player, master);
+            _beh.Execute(player, master, queue);
         }
         else
         {

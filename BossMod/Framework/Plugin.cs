@@ -156,7 +156,7 @@ public sealed class Plugin : IDalamudPlugin
         _bossmod.Update();
         _hintsBuilder.Update(_hints, PartyState.PlayerSlot);
         _autorotation.Update(queue);
-        _ai.Update();
+        _ai.Update(queue);
         _broadcast.Update();
         _amex.FinishActionGather();
 

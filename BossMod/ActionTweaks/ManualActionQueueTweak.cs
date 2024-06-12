@@ -87,13 +87,16 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             targetId = gtTarget;
         }
 
+        if (def.Range == 0)
+            targetId = player.InstanceID; // the action can only target player
+
         var target = ws.Actors.Find(targetId);
         if (target == null && targetId is not 0 and not 0xE0000000)
             return false; // target is valid, but not found in world, bail... (TODO this shouldn't be happening really)
 
         // ok, good to queue...
-        if (!isGT && !isMouseover && def.TransformTarget != null)
-            target = def.TransformTarget(ws, player, target, hints);
+        if (!isGT && !isMouseover && _config.SmartTargets && def.SmartTarget != null)
+            target = def.SmartTarget(ws, player, target, hints);
         Angle? angleOverride = def.TransformAngle?.Invoke(ws, player, target, hints);
 
         var expireAt = ws.CurrentTime.AddSeconds(expire);

@@ -16,12 +16,12 @@ public sealed record class ActionDefinition(
     float CastAnimLock = 0.1f) // animation lock if ability is non-instant
 {
     public delegate bool ConditionDelegate(WorldState ws, Actor player, Actor? target, AIHints hints);
-    public delegate Actor? TransformTargetDelegate(WorldState ws, Actor player, Actor? target, AIHints hints);
+    public delegate Actor? SmartTargetDelegate(WorldState ws, Actor player, Actor? target, AIHints hints);
     public delegate Angle? TransformAngleDelegate(WorldState ws, Actor player, Actor? target, AIHints hints);
 
     public float EffectDuration; // used by planner UI; TODO: this can change depending on traits...
     public ConditionDelegate? Condition; // optional condition, if it returns false, action is not executed
-    public TransformTargetDelegate? TransformTarget; // optional target transformation
+    public SmartTargetDelegate? SmartTarget; // optional target transformation for 'smart targeting' feature
     public TransformAngleDelegate? TransformAngle; // optional facing angle transformation
 
     public float CooldownAtFirstCharge => (MaxChargesAtCap - 1) * Cooldown;
@@ -112,6 +112,12 @@ public sealed class ActionDefinitions : IDisposable
         foreach (var c in _classDefinitions)
             c.Dispose();
     }
+
+    // smart targeting utility: return target (if friendly) or null (otherwise)
+    public static Actor? SmartTargetFriendly(Actor? primaryTarget) => (primaryTarget?.IsAlly ?? false) ? primaryTarget : null;
+
+    // smart targeting utility: return target (if friendly) or other tank (if available) or null (otherwise)
+    public static Actor? SmartTargetCoTank(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? ws.Party.WithoutSlot().Exclude(player).FirstOrDefault(a => a.Role == Role.Tank);
 
     public int MainCDGroupSpell(uint spellId) => (ActionData(spellId)?.CooldownGroup ?? 0) - 1;
     public int ExtraCDGroupSpell(uint spellId) => (ActionData(spellId)?.AdditionalCooldownGroup ?? 0) - 1;
