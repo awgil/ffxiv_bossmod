@@ -107,7 +107,7 @@ public record class Rectangle(WPos Center, float HalfWidth, float HalfHeight, An
         => GetOrCreatePolygon(center, () => new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(Contour(center))]));
 
     public override Func<WPos, float> Distance()
-        => ShapeDistance.Rect(Center, Rotation, HalfWidth, HalfWidth, HalfHeight);
+        => ShapeDistance.Rect(Center, Rotation, HalfHeight, HalfHeight, HalfWidth);
 
     public override string ComputeHash() => ComputeSHA512($"{nameof(Rectangle)}:{Center.X},{Center.Z},{HalfWidth},{HalfHeight},{Rotation.Rad}");
 }

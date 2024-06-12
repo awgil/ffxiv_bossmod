@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Dungeon.D04Ktisis.D043Hermes;
+﻿namespace BossMod.Endwalker.Dungeon.D04KtisisHyperboreia.D043Hermes;
 
 public enum OID : uint
 {
@@ -65,7 +65,7 @@ public enum TetherID : uint
 class TrueBraveryInterruptHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.TrueBravery));
 class Trismegistos(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Trismegistos));
 
-class TrueTornadoTankbuster(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(4), (uint)IconID.Tankbuster, ActionID.MakeSpell(AID.TrueTornado4), 5.1f)
+class TrueTornadoTankbuster(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(4), (uint)IconID.Tankbuster, ActionID.MakeSpell(AID.TrueTornado4), 5.1f, true)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -98,8 +98,7 @@ class TrueAeroIV3(BossModule module) : Components.SelfTargetedAOEs(module, Actio
 
 class CosmicKiss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CosmicKiss), new AOEShapeCircle(10));
 
-//TODO: these line of sight AOEs are rectangles and not a circle. this component shows an incorrect angle
-class TrueAeroIVLOS(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.TrueAeroIVLOS), 50, false)
+class TrueAeroIVLOS(BossModule module) : Components.GenericLineOfSightRectAOE(module, ActionID.MakeSpell(AID.TrueAeroIVLOS))
 {
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.Meteor).Count > 0 ? Module.Enemies(OID.Meteor).Where(x => x.ModelState.AnimState2 != 1) : (IEnumerable<Actor>)Module.Enemies(OID.Meteor);
 }

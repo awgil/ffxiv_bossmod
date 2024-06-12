@@ -70,9 +70,4 @@ class Octagons(BossModule module) : Components.GenericAOEs(module)
                 break;
         }
     }
-
-    // public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    // {
-    //     //TODO fix AI map creation
-    // }
 }

@@ -118,3 +118,53 @@ public abstract class CastLineOfSightAOE : GenericLineOfSightAOE
         Modify(position, BlockerActors().Select(b => (b.Position, b.HitboxRadius)), caster?.CastInfo?.NPCFinishAt ?? default);
     }
 }
+
+// generic component that shows line-of-sight safe spots for rect AOES, probably a bad solution but needed for Hermes in Ktis Hyperboreia
+// TODO: rework to add support for arbitrary AOE shapes and blocker shapes (eg rectangles in shadowbringer alliance raid),
+// add support for multiple AOE sources at the same time (I simplified Hermes from 4 AOEs into one)
+// add support for blockers that spawn or get destroyed after cast already started (Hermes: again a cheat here by only using that meteor that exists for the whole mechanic)
+public abstract class GenericLineOfSightRectAOE(BossModule module, ActionID aid) : GenericAOEs(module, aid, "Hide behind obstacle!")
+{
+    public List<AOEInstance> InvertedAOE = [];
+    public List<Shape> UnionShapes = [];
+    public List<Shape> DifferenceShapes = [];
+
+    public abstract IEnumerable<Actor> BlockerActors();
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => InvertedAOE.Take(1);
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (ActiveAOEs(slot, actor).Any(c => c.Risky && !c.Check(actor.Position)))
+            hints.Add(WarningText);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            foreach (var b in BlockerActors())
+            {
+                UnionShapes.Add(new RectangleSE(b.Position, b.Position + 1000 * caster.Rotation.ToDirection(), b.HitboxRadius));
+                DifferenceShapes.Add(new Circle(b.Position, b.HitboxRadius));
+            }
+            InvertedAOE.Add(new(new AOEShapeCustom(CopyShapes(UnionShapes), CopyShapes(DifferenceShapes), true), Module.Arena.Center, default, spell.NPCFinishAt, ArenaColor.SafeFromAOE));
+            UnionShapes.Clear();
+            DifferenceShapes.Clear();
+        }
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            InvertedAOE.RemoveAt(0);
+        }
+    }
+
+    private List<Shape> CopyShapes(List<Shape> shapes)
+    {
+        var copy = new List<Shape>();
+        copy.AddRange(shapes);
+        return copy;
+    }
+}

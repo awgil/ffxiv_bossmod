@@ -145,7 +145,7 @@ public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, A
 }
 
 // component for mechanics requiring icon targets to bait their aoe away from raid
-public class BaitAwayIcon(BossModule module, AOEShape shape, uint iconID, ActionID aid = default, float activationDelay = 5.1f) : GenericBaitAway(module, aid)
+public class BaitAwayIcon(BossModule module, AOEShape shape, uint iconID, ActionID aid = default, float activationDelay = 5.1f, bool centerAtTarget = false) : GenericBaitAway(module, aid, centerAtTarget: centerAtTarget)
 {
     public AOEShape Shape = shape;
     public uint IID = iconID;

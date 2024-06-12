@@ -121,7 +121,7 @@ public sealed record class AOEShapeTriCone(float SideLength, Angle HalfAngle, An
     public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Tri(origin, new(default, SideLength * (rotation + HalfAngle).ToDirection(), SideLength * (rotation - HalfAngle).ToDirection()));
 }
 
-public sealed record class AOEShapeCustom(IEnumerable<Shape> UnionShapes, IEnumerable<Shape>? DifferenceShapes = null) : AOEShape
+public sealed record class AOEShapeCustom(IEnumerable<Shape> UnionShapes, IEnumerable<Shape>? DifferenceShapes = null, bool InvertForbiddenZone = false) : AOEShape
 {
     private static readonly Dictionary<object, object> _polygonCacheStatic = [];
     private readonly Dictionary<object, object> _polygonCache = [];
@@ -208,8 +208,14 @@ public sealed record class AOEShapeCustom(IEnumerable<Shape> UnionShapes, IEnume
             var maxDifferenceDist = differenceDistanceFuncs.Count != 0 ? differenceDistanceFuncs.Max(func => -func(p)) : float.MinValue;
             return Math.Max(minUnionDist, maxDifferenceDist);
         }
-        _distanceFuncCache[cacheKey] = combinedDistanceFunc;
 
-        return combinedDistanceFunc;
+        float finalFunc(WPos p)
+        {
+            var result = combinedDistanceFunc(p);
+            return InvertForbiddenZone ? -result : result;
+        }
+
+        _distanceFuncCache[cacheKey] = finalFunc;
+        return finalFunc;
     }
 }

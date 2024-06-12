@@ -103,7 +103,8 @@ class ChaoticUndercurrent(BossModule module) : Components.GenericAOEs(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Module.FindComponent<CosmicKissKnockback>()!.Sources(slot, actor).Any())
+        var component = Module.FindComponent<CosmicKissKnockback>()!;
+        if (component.Sources(slot, actor).Any() || component.Activation > Module.WorldState.CurrentTime) // 0.8s delay to wait for action effect
         { } // remove forbidden zones while knockback is active to not confuse the AI
         else
             base.AddAIHints(slot, actor, assignment, hints);
@@ -162,7 +163,7 @@ class CosmicKissRaidwide(BossModule module) : Components.RaidwideCast(module, Ac
 
 class CosmicKissKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.CosmicKiss), 13)
 {
-    private DateTime activation;
+    public DateTime Activation;
     private static readonly Angle Degrees90 = 90.Degrees();
     private static readonly Angle Degrees45 = 45.Degrees();
     private static readonly Angle Degrees0 = 0.Degrees();
@@ -173,14 +174,14 @@ class CosmicKissKnockback(BossModule module) : Components.KnockbackFromCastTarge
     {
         base.OnCastStarted(caster, spell);
         if (spell.Action == WatchedAction)
-            activation = spell.NPCFinishAt.AddSeconds(0.8f);
+            Activation = spell.NPCFinishAt.AddSeconds(0.8f);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var forbidden = new List<Func<WPos, float>>();
         var component = Module.FindComponent<ChaoticUndercurrent>()?.ActiveAOEs(slot, actor)?.ToList();
-        if (component != null && component.Count != 0 && Sources(slot, actor).Any() || activation > Module.WorldState.CurrentTime) // 0.8s delay to wait for action effect
+        if (component != null && component.Count != 0 && Sources(slot, actor).Any() || Activation > Module.WorldState.CurrentTime) // 0.8s delay to wait for action effect
         {
             if (component!.Any(x => x.Origin.Z == -152) && component!.Any(x => x.Origin.Z == -162))
             {
@@ -197,7 +198,7 @@ class CosmicKissKnockback(BossModule module) : Components.KnockbackFromCastTarge
             else if (component!.Any(x => x.Origin.Z == -162) && component!.Any(x => x.Origin.Z == -172))
                 forbidden.Add(ShapeDistance.InvertedCone(Module.Center, 7, Degrees0, Degrees90));
             if (forbidden.Count > 0)
-                hints.AddForbiddenZone(p => forbidden.Select(f => f(p)).Max(), activation);
+                hints.AddForbiddenZone(p => forbidden.Select(f => f(p)).Max(), Activation);
         }
     }
 }
