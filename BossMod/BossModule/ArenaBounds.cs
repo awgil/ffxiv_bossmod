@@ -127,6 +127,7 @@ public record class ArenaBoundsCircle(float Radius, float MapResolution = 0.5f) 
 // if rotation is 0, half-width is along X and half-height is along Z
 public record class ArenaBoundsRect(float HalfWidth, float HalfHeight, Angle Rotation = default, float MapResolution = 0.5f) : ArenaBounds(CalculateRadius(HalfHeight, HalfWidth, Rotation), MapResolution)
 {
+    private Pathfinding.Map? _cachedMap;
     public readonly WDir Orientation = Rotation.ToDirection();
 
     private static float CalculateRadius(float HalfWidth, float HalfHeight, Angle Rotation)
@@ -147,9 +148,16 @@ public record class ArenaBoundsRect(float HalfWidth, float HalfHeight, Angle Rot
     }
 
     protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(Orientation, HalfWidth, HalfHeight));
-    public override void PathfindMap(Pathfinding.Map map, WPos center) => map.Init(MapResolution, center, HalfWidth, HalfHeight, Rotation);
+    public override void PathfindMap(Pathfinding.Map map, WPos center) => map.Init(_cachedMap ??= BuildMap(), center);
     public override bool Contains(WDir offset) => offset.InRect(Orientation, HalfHeight, HalfHeight, HalfWidth);
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayRect(originOffset, dir, Orientation, HalfWidth, HalfHeight);
+
+    private Pathfinding.Map BuildMap()
+    {
+        var map = new Pathfinding.Map(MapResolution, default, HalfWidth, HalfHeight, Rotation);
+        map.BlockPixelsInside(ShapeDistance.InvertedRect(default, Rotation, HalfHeight, HalfHeight, HalfWidth), 0, 0);
+        return map;
+    }
 
     public override WDir ClampToBounds(WDir offset)
     {

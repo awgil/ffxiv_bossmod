@@ -29,7 +29,7 @@ class Sandblast(BossModule module) : Components.RaidwideCast(module, ActionID.Ma
 
 class SandblastVoidzone(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeRect rect = new(19.5f, 5, 19.5f);
+    private static readonly AOEShapeRect rect = new(19.5f, 2.5f, 19.5f);
     private readonly List<AOEInstance> _aoes = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
