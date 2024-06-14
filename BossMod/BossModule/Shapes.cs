@@ -291,6 +291,7 @@ public record class Polygon(WPos Center, float Radius, int Vertices, Angle Rotat
     public override string ComputeHash() => ComputeSHA512($"{nameof(Polygon)}:{Center.X},{Center.Z},{Radius},{Vertices},{Rotation.Rad}");
 }
 
+// for cones defined by radius, start angle and end angle
 public record class Cone(WPos Center, float Radius, Angle StartAngle, Angle EndAngle) : Shape
 {
     public override List<WDir> Contour(WPos center)
@@ -301,11 +302,15 @@ public record class Cone(WPos Center, float Radius, Angle StartAngle, Angle EndA
         => GetOrCreatePolygon(center, () => new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(Contour(center))]));
 
     public override Func<WPos, float> Distance()
-        => ShapeDistance.Cone(Center, Radius, StartAngle, EndAngle - StartAngle);
+        => ShapeDistance.Cone(Center, Radius, (StartAngle + EndAngle) / 2, (EndAngle - StartAngle) / 2);
 
     public override string ComputeHash() => ComputeSHA512($"{nameof(Cone)}:{Center.X},{Center.Z},{Radius},{StartAngle.Rad},{EndAngle.Rad}");
 }
 
+// for cones defined by radius, direction and half angle
+public record class ConeHA(WPos Center, float Radius, Angle CenterDir, Angle HalfAngle) : Cone(Center, Radius, CenterDir - HalfAngle, CenterDir + HalfAngle);
+
+// for donut segments defined by inner and outer radius, direction, start angle and end angle
 public record class DonutSegment(WPos Center, float InnerRadius, float OuterRadius, Angle StartAngle, Angle EndAngle) : Shape
 {
     public override List<WDir> Contour(WPos center)
@@ -316,7 +321,11 @@ public record class DonutSegment(WPos Center, float InnerRadius, float OuterRadi
         => GetOrCreatePolygon(center, () => new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(Contour(center))]));
 
     public override Func<WPos, float> Distance()
-        => ShapeDistance.DonutSector(Center, InnerRadius, OuterRadius, StartAngle, EndAngle - StartAngle);
+        => ShapeDistance.DonutSector(Center, InnerRadius, OuterRadius, (StartAngle + EndAngle) / 2, (EndAngle - StartAngle) / 2);
 
     public override string ComputeHash() => ComputeSHA512($"{nameof(DonutSegment)}:{Center.X},{Center.Z},{InnerRadius},{OuterRadius},{StartAngle.Rad},{EndAngle.Rad}");
 }
+
+// for donut segments defined by inner and outer radius, direction and half angle
+public record class DonutSegmentHA(WPos Center, float InnerRadius, float OuterRadius, Angle CenterDir, Angle HalfAngle) : DonutSegment(Center, InnerRadius, OuterRadius,
+CenterDir - HalfAngle, CenterDir + HalfAngle);

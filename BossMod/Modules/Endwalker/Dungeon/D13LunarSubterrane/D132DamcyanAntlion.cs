@@ -35,7 +35,7 @@ class SandblastVoidzone(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.Sandblast && Module.Arena.Bounds == D132DamcyanAntlion.startingBounds)
+        if ((AID)spell.Action.ID == AID.Sandblast && Module.Arena.Bounds == D132DamcyanAntlion.StartingBounds)
         {
             _aoes.Add(new(rect, Module.Center + new WDir(0, -22.5f), 90.Degrees(), spell.NPCFinishAt));
             _aoes.Add(new(rect, Module.Center + new WDir(0, 22.5f), 90.Degrees(), spell.NPCFinishAt));
@@ -45,7 +45,7 @@ class SandblastVoidzone(BossModule module) : Components.GenericAOEs(module)
     {
         if (state == 0x00020001 && index == 0x00)
         {
-            Module.Arena.Bounds = D132DamcyanAntlion.defaultBounds;
+            Module.Arena.Bounds = D132DamcyanAntlion.DefaultBounds;
             _aoes.Clear();
         }
     }
@@ -222,8 +222,8 @@ class D132DamcyanAntlionStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12484)]
-public class D132DamcyanAntlion(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 60), startingBounds)
+public class D132DamcyanAntlion(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 60), StartingBounds)
 {
-    public static readonly ArenaBounds startingBounds = new ArenaBoundsRect(19.5f, 25);
-    public static readonly ArenaBounds defaultBounds = new ArenaBoundsRect(19.5f, 20);
+    public static readonly ArenaBounds StartingBounds = new ArenaBoundsRect(19.5f, 25);
+    public static readonly ArenaBounds DefaultBounds = new ArenaBoundsRect(19.5f, 20);
 }

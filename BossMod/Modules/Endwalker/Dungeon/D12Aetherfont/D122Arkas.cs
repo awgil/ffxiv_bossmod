@@ -136,12 +136,21 @@ class Shock(BossModule module) : Components.LocationTargetedAOEs(module, ActionI
 class SpinningClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpinningClaw), new AOEShapeCircle(10));
 class BattleCry1(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BattleCry1));
 class BattleCry2(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BattleCry2));
+class StayInBounds(BossModule module) : BossComponent(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Module.InBounds(actor.Position))
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 3));
+    }
+}
 
 class D122ArkasStates : StateMachineBuilder
 {
     public D122ArkasStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<StayInBounds>()
             .ActivateOnEnter<BattleCryArenaChange>()
             .ActivateOnEnter<LightningClaw>()
             .ActivateOnEnter<SpunLightning>()

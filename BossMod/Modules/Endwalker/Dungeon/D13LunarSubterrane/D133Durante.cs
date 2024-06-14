@@ -46,7 +46,7 @@ class OldMagicVoidzone(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.OldMagic && Module.Arena.Bounds == D133Durante.startingBounds)
+        if ((AID)spell.Action.ID == AID.OldMagic && Module.Arena.Bounds == D133Durante.StartingBounds)
             _aoe = new(donut, Module.Center, default, spell.NPCFinishAt);
     }
 
@@ -54,7 +54,7 @@ class OldMagicVoidzone(BossModule module) : Components.GenericAOEs(module)
     {
         if (state == 0x00020001 && index == 0x0A)
         {
-            Module.Arena.Bounds = D133Durante.defaultBounds;
+            Module.Arena.Bounds = D133Durante.DefaultBounds;
             _aoe = null;
         }
     }
@@ -179,8 +179,8 @@ class D133DuranteStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12584)]
-class D133Durante(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -422), startingBounds)
+class D133Durante(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -422), StartingBounds)
 {
-    public static readonly ArenaBounds startingBounds = new ArenaBoundsCircle(22.5f);
-    public static readonly ArenaBounds defaultBounds = new ArenaBoundsCircle(20);
+    public static readonly ArenaBounds StartingBounds = new ArenaBoundsCircle(22.5f);
+    public static readonly ArenaBounds DefaultBounds = new ArenaBoundsCircle(20);
 }
