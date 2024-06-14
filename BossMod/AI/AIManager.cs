@@ -185,7 +185,7 @@ sealed class AIManager : IDisposable
                 configModified = ToggleFollowModule();
                 break;
             case "FOLLOWTARGET":
-                configModified = ToggleFollowTarget();
+                configModified = ToggleFollowTarget(messageData);
                 break;
             case "POSITIONAL":
                 configModified = HandlePositionalCommand(messageData);
@@ -316,11 +316,29 @@ sealed class AIManager : IDisposable
         return true;
     }
 
-    private bool ToggleFollowTarget()
+    private bool ToggleFollowTarget(string[] messageData)
     {
-        _config.FollowTarget = !_config.FollowTarget;
+        if (messageData.Length == 1)
+        {
+            _config.FollowTarget = !_config.FollowTarget;
+        }
+        else
+        {
+            switch (messageData[1].ToUpperInvariant())
+            {
+                case "ON":
+                    _config.FollowTarget = true;
+                    break;
+                case "OFF":
+                    _config.FollowTarget = false;
+                    break;
+                default:
+                    Service.Log($"[AI] Unknown follow target command: {messageData[1]}");
+                    return _config.FollowTarget;
+            }
+        }
         Service.Log($"[AI] Following targets is now {(_config.FollowTarget ? "enabled" : "disabled")}");
-        return true;
+        return _config.FollowTarget;
     }
 
     private bool HandlePositionalCommand(string[] messageData)

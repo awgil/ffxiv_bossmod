@@ -90,6 +90,7 @@ public sealed class ConfigUI : IDisposable
         { "followmodule", "Toggles following during active boss module." },
         { "followoutofcombat", "Toggles following during out of combat." },
         { "followtarget", "Toggles following targets during combat." },
+        { "followtarget on/off", "Sets following target during combat to on or off." },
         { "positional X", "Switch to positional when following targets. (any, rear, flank, front)" }
     };
 
@@ -136,6 +137,10 @@ public sealed class ConfigUI : IDisposable
         ImGui.Text("Please also make sure to not load VBM and this fork at the same time.");
         ImGui.Spacing();
         ImGui.Text("The consequences of doing that are unexplored and unsupported.");
+        ImGui.Separator();
+        ImGui.Text("The AI is designed for legacy movement, make sure to turn on legacy movement\nwhile using AI.");
+        ImGui.Spacing();
+        ImGui.Text("It is advised to pause AutoDuty during boss modules since it can conflict with BMR AI.");
     }
 
     static void RenderTextWithLink(string displayText, Uri url)

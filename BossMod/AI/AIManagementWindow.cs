@@ -42,7 +42,11 @@ sealed class AIManagementWindow : UIWindow
         ImGui.TextUnformatted($"Navi={_manager.Controller.NaviTargetPos} / {_manager.Controller.NaviTargetRot}{(_manager.Controller.ForceFacing ? " forced" : "")}");
         _manager.Beh?.DrawDebug();
         if (ImGui.Button("AI on/update followed slot"))
+        {
             _manager.SwitchToFollow(_config.FollowSlot);
+            _config.Enabled = true;
+            _config.Modified.Fire();
+        }
         ImGui.SameLine();
         if (ImGui.Button("AI off"))
             _manager.SwitchToIdle();
