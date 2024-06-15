@@ -1,37 +1,33 @@
 autorotation v2:
+- planning
+-- plan -> structures
+-- plan database -> serialization, conversion, defaults per moduletype+job
+-- plan manager -> listen to bmm and countdown
+- merge autorot & plan window into RotationWindow
 - auto start/end logic
 -- on countdown start => plan (should be automatic), or user-configured default preset
--- on countdown end, if not in combat => abort
--- on combat start, if countdown above threshold => abort (ninjapull)
--- on combat start, otherwise => n/a (continue)
--- on combat start, if inactive (no countdown) => n/a (stay idle, ninjapull or smth...)
--- on combat end => abort
+-+ on countdown end, if not in combat => abort
+-+ on combat start, if countdown above threshold => abort (ninjapull)
+-+ on combat start, otherwise => n/a (continue)
+-+ on combat start, if inactive (no countdown) => n/a (stay idle, ninjapull or smth...)
+-+ on combat end => abort
 -- timeout => move to idle
--- die => ??? abort probably...
--- introduce 'force disabled' state (after abort, until combat ends + countdown is inactive, prevents any autorotation running)
-- revise planner
+-+ die => ??? abort probably...
 - move action tweaks configs + converter
-- console command to start autorotation
-- worldstate: animlock, combo, gauge parser
-- action transforms?..
-- Autorotation.cs
--- not tied to game - convert to rotationmodulemanager basically
--- manage ui and active modules
-- CommonActions.cs
--- just a base class for rotation modules
--- move rotation expire logic to autorotation?
---- maybe need to split into manager + manual layers?
-
-
-autorotation rework:
-- priority action suggestions
-- control panel w/ presets and bindings
-- module registry supporting alternatives per job
-- unify lb planning across all classes
-- proper gcd time calculations
-- simulation in replay analysis
-- cooldowns
+post-wip:
+- resurrect legacy modules
+- cleanup
 -- get rid of cdgroup enums
+-- ui refactoring / beautifying pass
+-- ipc for autorotation
+-- delete autorotationlegacy & cdplannerlegacy
+- worldstate: animlock, combo, gauge parser
+- actiondefinitions
+-- action transforms?.. (combos, adjustment)
+-- adjusted casttime/cooldown/maxcharges/???
+-- better unlock model
+- proper gcd time calculations?
+- simulation in replay analysis
 
 general:
 - refactor window system to dispose stuff properly and avoid CS1806 and `_ = new...` pattern

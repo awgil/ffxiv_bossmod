@@ -2,7 +2,7 @@
 
 namespace BossMod;
 
-sealed class Autorotation : IDisposable
+sealed class AutorotationLegacy : IDisposable
 {
     public readonly AutorotationConfig Config = Service.Config.Get<AutorotationConfig>();
     public readonly BossModuleManager Bossmods;
@@ -19,7 +19,7 @@ sealed class Autorotation : IDisposable
     public float EffAnimLock => ActionManager.EffectiveAnimationLock;
     public float AnimLockDelay => ActionManager.AnimationLockDelayEstimate;
 
-    public unsafe Autorotation(BossModuleManager bossmods, AIHints hints, ActionManagerEx amex)
+    public unsafe AutorotationLegacy(BossModuleManager bossmods, AIHints hints, ActionManagerEx amex)
     {
         Bossmods = bossmods;
         Hints = hints;

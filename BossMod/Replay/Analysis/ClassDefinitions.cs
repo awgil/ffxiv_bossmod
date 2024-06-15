@@ -307,7 +307,7 @@ class ClassDefinitions
             tree.LeafNode($"Row: {na.Row}, raw range: {na.Row?.Range}, class: {na.Row?.ClassJob.Value?.Abbreviation}, category: {na.Row?.ClassJobCategory.Value?.Name}");
             tree.LeafNode($"Unlock: {UnlockString(na.Row?.ClassJobLevel ?? 0, na.Row?.UnlockLink ?? 0)}");
             tree.LeafNode($"Warnings: {(na.PotentiallyRemoved ? "PR " : "")}{(na.ReplayOnly ? "RO " : "")}", na.PotentiallyRemoved || na.ReplayOnly ? 0xff0000ff : 0xffffffff);
-            tree.LeafNode($"Targets: [{TargetsString(na.Row, ", ")}]");
+            tree.LeafNode($"Targets: [{ActionDefinitions.Instance.GetActionTargets(na.ID)}]");
             tree.LeafNode($"Can be put on action bar: {na.CanBePutOnActionBar}");
             tree.LeafNode($"Is role action: {na.IsRoleAction}");
             tree.LeafNode($"Expected anim lock: {na.ExpectedInstantAnimLock} / {na.ExpectedCastAnimLock}", na.SeenDifferentInstantAnimLocks || na.SeenDifferentCastAnimLocks ? 0xff0000ff : 0xffffffff);
@@ -507,7 +507,7 @@ class ClassDefinitions
         }
 
         public string Comment(ActionData action, bool allowClasses)
-            => $"{LevelString(action, allowClasses)}, {CastTimeString(action)}{CooldownString(action)}{ChargesString(action)}, range {ActionDefinitions.Instance.GetActionRange(action.ID, action.IsPhysRanged)}, {DescribeShape(action.Row)}, targets={TargetsString(action.Row, "/")}{AnimLockString(action)}";
+            => $"{LevelString(action, allowClasses)}, {CastTimeString(action)}{CooldownString(action)}{ChargesString(action)}, range {ActionDefinitions.Instance.GetActionRange(action.ID, action.IsPhysRanged)}, {DescribeShape(action.Row)}, targets={ActionDefinitions.Instance.GetActionTargets(action.ID).ToString().Replace(", ", "/")}{AnimLockString(action)}";
 
         private string LevelString(ActionData action, bool allowClasses)
         {
@@ -651,32 +651,6 @@ class ClassDefinitions
 
     private static string ActionIDName(string ns, ActionID aid) => Type.GetType($"BossMod.{ns}.AID")?.GetEnumName(aid.ID) ?? Utils.StringToIdentifier(aid.Name());
     private static string TraitIDName(string ns, Lumina.Excel.GeneratedSheets.Trait trait) => Type.GetType($"BossMod.{ns}.TraitID")?.GetEnumName(trait.RowId) ?? Utils.StringToIdentifier(trait.Name);
-
-    private static string TargetsString(Lumina.Excel.GeneratedSheets.Action? action, string sep)
-    {
-        if (action == null)
-            return "???";
-        var res = new List<string>();
-        if (action.CanTargetSelf)
-            res.Add("self");
-        if (action.CanTargetParty)
-            res.Add("party");
-        if (action.CanTargetFriendly)
-            res.Add("alliance");
-        if (action.CanTargetHostile)
-            res.Add("hostile");
-        if (action.Unknown19)
-            res.Add("friendly");
-        if (action.TargetArea)
-            res.Add("area");
-        if (action.Unknown22)
-            res.Add("own pet");
-        if (action.Unknown23)
-            res.Add("party pet");
-        if (!action.CanTargetDead)
-            res.Add("!dead");
-        return res.Count > 0 ? string.Join(sep, res) : "n/a";
-    }
 
     private static string AnimLockString(ActionData action)
     {

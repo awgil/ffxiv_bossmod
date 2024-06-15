@@ -186,13 +186,13 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.LastBastion)!.EffectDuration = 8;
-        d.Spell(AID.FightOrFlight)!.EffectDuration = 20;
-        d.Spell(AID.Sheltron)!.EffectDuration = 4; // TODO: duration increases to 6...
-        d.Spell(AID.Sentinel)!.EffectDuration = 15;
+        //d.Spell(AID.LastBastion)!.EffectDuration = 8;
+        //d.Spell(AID.FightOrFlight)!.EffectDuration = 20;
+        //d.Spell(AID.Sheltron)!.EffectDuration = 4; // TODO: duration increases to 6...
+        //d.Spell(AID.Sentinel)!.EffectDuration = 15;
         // TODO: Cover effect duration 12?..
-        d.Spell(AID.HallowedGround)!.EffectDuration = 10;
-        d.Spell(AID.DivineVeil)!.EffectDuration = 30;
+        //d.Spell(AID.HallowedGround)!.EffectDuration = 10;
+        //d.Spell(AID.DivineVeil)!.EffectDuration = 30;
         // TODO: Intervention effect duration?
     }
 }

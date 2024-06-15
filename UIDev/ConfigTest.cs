@@ -10,7 +10,7 @@ class ConfigTest : TestWindow
 
     public ConfigTest() : base("Config", new(400, 400), ImGuiWindowFlags.None)
     {
-        _ui = new(Service.Config, new(TimeSpan.TicksPerSecond, "fake"));
+        _ui = new(Service.Config, new(TimeSpan.TicksPerSecond, "fake"), null);
     }
 
     protected override void Dispose(bool disposing)

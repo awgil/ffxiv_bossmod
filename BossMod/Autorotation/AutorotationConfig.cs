@@ -1,7 +1,8 @@
 ﻿namespace BossMod;
 
+// TODO: move to Autorotation namespace
 [ConfigDisplay(Name = "Autorotation settings (experimental!)", Order = 5)]
-class AutorotationConfig : ConfigNode
+public sealed class AutorotationConfig : ConfigNode
 {
     [PropertyDisplay("Enable autorotation")]
     public bool Enabled = false;
@@ -20,4 +21,8 @@ class AutorotationConfig : ConfigNode
 
     [PropertyDisplay("Sticky auto actions")]
     public bool StickyAutoActions = false;
+
+    [PropertyDisplay("Early pull threshold: if player enters combat when countdown is larger than this value, we consider it a ninja-pull and force disable autorotation")]
+    [PropertySlider(0, 30, Speed = 1)]
+    public float EarlyPullThreshold = 1.5f;
 }

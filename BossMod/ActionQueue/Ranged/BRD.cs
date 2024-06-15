@@ -175,13 +175,13 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.RagingStrikes)!.EffectDuration = 20;
-        d.Spell(AID.MagesBallad)!.EffectDuration = 45;
-        d.Spell(AID.ArmysPaeon)!.EffectDuration = 45;
-        d.Spell(AID.WanderersMinuet)!.EffectDuration = 45;
-        d.Spell(AID.BattleVoice)!.EffectDuration = 15;
-        d.Spell(AID.RadiantFinale)!.EffectDuration = 15;
-        d.Spell(AID.Troubadour)!.EffectDuration = 15;
-        d.Spell(AID.NaturesMinne)!.EffectDuration = 15;
+        //d.Spell(AID.RagingStrikes)!.EffectDuration = 20;
+        //d.Spell(AID.MagesBallad)!.EffectDuration = 45;
+        //d.Spell(AID.ArmysPaeon)!.EffectDuration = 45;
+        //d.Spell(AID.WanderersMinuet)!.EffectDuration = 45;
+        //d.Spell(AID.BattleVoice)!.EffectDuration = 15;
+        //d.Spell(AID.RadiantFinale)!.EffectDuration = 15;
+        //d.Spell(AID.Troubadour)!.EffectDuration = 15;
+        //d.Spell(AID.NaturesMinne)!.EffectDuration = 15;
     }
 }

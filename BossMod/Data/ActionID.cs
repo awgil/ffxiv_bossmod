@@ -58,12 +58,6 @@ public readonly record struct ActionID(uint Raw)
 
     public readonly bool IsCasted() => CastTime() > 0;
 
-    public readonly bool IsGroundTargeted() => Type switch
-    {
-        ActionType.Spell => Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(ID)?.TargetArea ?? false,
-        _ => false
-    };
-
     public static ActionID MakeSpell<AID>(AID id) where AID : Enum
     {
         var castID = (uint)(object)id;

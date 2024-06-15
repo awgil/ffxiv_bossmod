@@ -175,7 +175,7 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.ThirdEye)!.EffectDuration = 4;
-        d.Spell(AID.MeikyoShisui)!.EffectDuration = 15;
+        //d.Spell(AID.ThirdEye)!.EffectDuration = 4;
+        //d.Spell(AID.MeikyoShisui)!.EffectDuration = 15;
     }
 }

@@ -3,7 +3,7 @@
 namespace BossMod;
 
 // extra utilities for healers
-abstract class HealerActions(Autorotation autorot, Actor player, uint[] unlockData) : CommonActions(autorot, player, unlockData)
+abstract class HealerActions(AutorotationLegacy autorot, Actor player, uint[] unlockData) : CommonActions(autorot, player, unlockData)
 {
     public struct PartyMemberState
     {

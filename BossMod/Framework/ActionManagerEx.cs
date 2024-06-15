@@ -281,26 +281,26 @@ unsafe sealed class ActionManagerEx : IDisposable
         //Service.Log($"[AMEx] UA: {action} @ {targetId:X}: {extraParam} {mode} {comboRouteId}");
 
         // if mouseover mode is enabled AND target is a usual primary target AND current mouseover is valid target for action, then we override target to mouseover
-        bool mouseoverOverride = false;
         var primaryTarget = TargetSystem.Instance()->Target;
         var primaryTargetId = primaryTarget != null ? primaryTarget->GetGameObjectId() : 0xE0000000;
-        if (Config.PreferMouseover && targetId == primaryTargetId)
+        bool targetOverridden = targetId != primaryTargetId;
+        if (Config.PreferMouseover && !targetOverridden)
         {
             var mouseoverTarget = PronounModule.Instance()->UiMouseOverTarget;
             if (mouseoverTarget != null && ActionManager.CanUseActionOnTarget(ActionManager.GetSpellIdForAction(actionType, actionId), mouseoverTarget))
             {
                 targetId = mouseoverTarget->GetGameObjectId();
-                mouseoverOverride = true;
+                targetOverridden = true;
             }
         }
 
         action = NormalizeGeneralAction(action);
-        (ulong, Vector3?) getAreaTarget() => mouseoverOverride ? (targetId, null) :
+        (ulong, Vector3?) getAreaTarget() => targetOverridden ? (targetId, null) :
             (Config.GTMode == ActionManagerConfig.GroundTargetingMode.AtTarget ? targetId : 0xE0000000, Config.GTMode == ActionManagerConfig.GroundTargetingMode.AtCursor ? GetWorldPosUnderCursor() : null);
 
         // note: only standard mode can be filtered
         // note: current implementation introduces slight input lag (on button press, next autorotation update will pick state updates, which will be executed on next action manager update)
-        if (mode == ActionManager.UseActionMode.None && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, mouseoverOverride, getAreaTarget))
+        if (mode == ActionManager.UseActionMode.None && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, !targetOverridden, getAreaTarget))
             return false;
 
         bool areaTargeted = false;

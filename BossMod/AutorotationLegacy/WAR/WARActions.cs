@@ -2,7 +2,7 @@
 
 namespace BossMod.WAR;
 
-sealed class Actions(Autorotation autorot, Actor player) : TankActions(autorot, player, Definitions.UnlockQuests)
+sealed class Actions(AutorotationLegacy autorot, Actor player) : TankActions(autorot, player, Definitions.UnlockQuests)
 {
     public const int AutoActionST = AutoActionFirstCustom + 0;
     public const int AutoActionAOE = AutoActionFirstCustom + 1;

@@ -33,7 +33,7 @@ class ReplayDetailsWindow : UIWindow
         _curTime = _first = data.Ops[0].Timestamp;
         _last = data.Ops[^1].Timestamp;
         _player.AdvanceTo(_first, _mgr.Update);
-        _config = new(Service.Config, _player.WorldState);
+        _config = new(Service.Config, _player.WorldState, null);
         _events = new(data, MoveTo);
         _analysis = new([data]);
     }

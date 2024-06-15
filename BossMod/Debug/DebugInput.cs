@@ -116,7 +116,7 @@ unsafe sealed class DebugInput : IDisposable
     private float _pmcCameraSpeedH;
     private float _pmcCameraSpeedV;
 
-    public DebugInput(Autorotation autorot)
+    public DebugInput(AutorotationLegacy autorot)
     {
         _convertVirtualKey = Service.KeyState.GetType().GetMethod("ConvertVirtualKey", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<ConvertVirtualKeyDelegate>(Service.KeyState);
         _getKeyRef = Service.KeyState.GetType().GetMethod("GetRefValue", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<GetRefValueDelegate>(Service.KeyState);

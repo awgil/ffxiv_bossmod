@@ -1,4 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
+﻿using BossMod.Autorotation;
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using System.Reflection;
 
@@ -20,11 +21,13 @@ public sealed class ConfigUI : IDisposable
     private readonly ModuleViewer _mv = new();
     private readonly ConfigRoot _root;
     private readonly WorldState _ws;
+    private readonly PresetDatabase? _presets;
 
-    public ConfigUI(ConfigRoot config, WorldState ws)
+    public ConfigUI(ConfigRoot config, WorldState ws, PresetDatabase? presets)
     {
         _root = config;
         _ws = ws;
+        _presets = presets;
 
         Dictionary<Type, UINode> nodes = [];
         foreach (var n in config.Nodes)
@@ -65,6 +68,9 @@ public sealed class ConfigUI : IDisposable
             using (var tab = ImRaii.TabItem("Modules"))
                 if (tab)
                     _mv.Draw(_tree);
+            using (var tab = ImRaii.TabItem("Presets"))
+                if (tab)
+                    _presets?.Editor.Draw();
         }
     }
 

@@ -172,7 +172,7 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.ArcaneCrest)!.EffectDuration = 5;
-        d.Spell(AID.ArcaneCircle)!.EffectDuration = 20;
+        //d.Spell(AID.ArcaneCrest)!.EffectDuration = 5;
+        //d.Spell(AID.ArcaneCircle)!.EffectDuration = 20;
     }
 }

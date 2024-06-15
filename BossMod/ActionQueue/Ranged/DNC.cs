@@ -201,9 +201,9 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.StandardStep)!.EffectDuration = 15;
-        d.Spell(AID.ShieldSamba)!.EffectDuration = 15;
-        d.Spell(AID.Flourish)!.EffectDuration = 30;
-        d.Spell(AID.ImprovisedFinish)!.EffectDuration = 60;
+        //d.Spell(AID.StandardStep)!.EffectDuration = 15;
+        //d.Spell(AID.ShieldSamba)!.EffectDuration = 15;
+        //d.Spell(AID.Flourish)!.EffectDuration = 30;
+        //d.Spell(AID.ImprovisedFinish)!.EffectDuration = 60;
     }
 }

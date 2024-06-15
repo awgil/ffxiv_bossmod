@@ -37,6 +37,14 @@ public record struct BitMask(ulong Raw)
     public static BitMask operator |(BitMask a, BitMask b) => new(a.Raw | b.Raw);
     public static BitMask operator ^(BitMask a, BitMask b) => new(a.Raw ^ b.Raw);
 
+    public static BitMask Build(params int[] bits)
+    {
+        BitMask res = default;
+        foreach (var bit in bits)
+            res.Raw |= MaskForBit(bit);
+        return res;
+    }
+
     public readonly IEnumerable<int> SetBits()
     {
         ulong v = Raw;

@@ -171,12 +171,12 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.Camouflage)!.EffectDuration = 20;
-        d.Spell(AID.Nebula)!.EffectDuration = 15;
-        d.Spell(AID.Aurora)!.EffectDuration = 18;
-        d.Spell(AID.Superbolide)!.EffectDuration = 10;
-        d.Spell(AID.HeartOfLight)!.EffectDuration = 15;
-        d.Spell(AID.HeartOfStone)!.EffectDuration = 4;
-        d.Spell(AID.HeartOfCorundum)!.EffectDuration = 4;
+        //d.Spell(AID.Camouflage)!.EffectDuration = 20;
+        //d.Spell(AID.Nebula)!.EffectDuration = 15;
+        //d.Spell(AID.Aurora)!.EffectDuration = 18;
+        //d.Spell(AID.Superbolide)!.EffectDuration = 10;
+        //d.Spell(AID.HeartOfLight)!.EffectDuration = 15;
+        //d.Spell(AID.HeartOfStone)!.EffectDuration = 4;
+        //d.Spell(AID.HeartOfCorundum)!.EffectDuration = 4;
     }
 }

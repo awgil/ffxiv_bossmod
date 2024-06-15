@@ -4,7 +4,7 @@ using ImGuiNET;
 namespace BossMod.AI;
 
 // constantly follow master
-sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
+sealed class AIBehaviour(AIController ctrl, AutorotationLegacy autorot) : IDisposable
 {
     private readonly AIConfig _config = Service.Config.Get<AIConfig>();
     private readonly NavigationDecision.Context _naviCtx = new();

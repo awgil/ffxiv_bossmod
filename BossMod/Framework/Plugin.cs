@@ -1,9 +1,11 @@
-﻿using Dalamud.Common;
+﻿using BossMod.Autorotation;
+using Dalamud.Common;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using System.IO;
 using System.Reflection;
 
 namespace BossMod;
@@ -20,7 +22,8 @@ public sealed class Plugin : IDalamudPlugin
     private readonly AIHintsBuilder _hintsBuilder;
     private readonly ActionManagerEx _amex;
     private readonly WorldStateGameSync _wsSync;
-    private readonly Autorotation _autorotation;
+    private readonly RotationModuleManager _rotation;
+    private readonly AutorotationLegacy _autorotation;
     private readonly AI.AIManager _ai;
     private readonly AI.Broadcast _broadcast;
     private readonly IPCProvider _ipc;
@@ -66,6 +69,9 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager = commandManager;
         CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
+        var rotationRoot = new DirectoryInfo(dalamud.ConfigDirectory.FullName + "/autorot");
+        rotationRoot.Create();
+
         var actionDefs = ActionDefinitions.Instance; // ensure action definitions are initialized
         var qpf = (ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency;
         _ws = new(qpf, gameVersion);
@@ -74,6 +80,7 @@ public sealed class Plugin : IDalamudPlugin
         _hintsBuilder = new(_ws, _bossmod);
         _amex = new(_ws, _hints);
         _wsSync = new(_ws, _amex);
+        _rotation = new(rotationRoot, _bossmod, _hints);
         _autorotation = new(_bossmod, _hints, _amex);
         _ai = new(_autorotation);
         _broadcast = new();
@@ -101,6 +108,7 @@ public sealed class Plugin : IDalamudPlugin
         _ipc.Dispose();
         _ai.Dispose();
         _autorotation.Dispose();
+        _rotation.Dispose();
         _wsSync.Dispose();
         _amex.Dispose();
         _hintsBuilder.Dispose();
@@ -138,12 +146,15 @@ public sealed class Plugin : IDalamudPlugin
             case "r":
                 _wndReplay.SetVisible(!_wndReplay.IsOpen);
                 break;
+            case "ar":
+                ParseAutorotationCommands(split);
+                break;
         }
     }
 
     private void OpenConfigUI()
     {
-        _ = new UISimpleWindow("Boss mod config", new ConfigUI(Service.Config, _ws).Draw, true, new(300, 300));
+        _ = new UISimpleWindow("Boss mod config", new ConfigUI(Service.Config, _ws, _rotation.Database).Draw, true, new(300, 300));
     }
 
     private void DrawUI()
@@ -155,6 +166,7 @@ public sealed class Plugin : IDalamudPlugin
         var queue = _amex.StartActionGather();
         _bossmod.Update();
         _hintsBuilder.Update(_hints, PartyState.PlayerSlot);
+        _rotation.Update(_hints?.ForcedTarget ?? _ws.Actors.Find(_ws.Party.Player()?.TargetID ?? 0), queue);
         _autorotation.Update(queue);
         _ai.Update(queue);
         _broadcast.Update();
@@ -168,6 +180,57 @@ public sealed class Plugin : IDalamudPlugin
 
         Camera.Instance?.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
+    }
+
+    private void ParseAutorotationCommands(string[] cmd)
+    {
+        switch (cmd.Length > 1 ? cmd[1] : "")
+        {
+            case "clear":
+                Service.Log($"Console: clearing autorotation preset '{_rotation.Preset?.Name ?? "<n/a>"}'");
+                _rotation.Preset = null;
+                break;
+            case "disable":
+                Service.Log($"Console: force-disabling from preset '{_rotation.Preset?.Name ?? "<n/a>"}'");
+                _rotation.Preset = RotationModuleManager.ForceDisable;
+                break;
+            case "set":
+                ParseAutorotationSetCommand(cmd, false);
+                break;
+            case "toggle":
+                ParseAutorotationSetCommand(cmd, true);
+                break;
+            default:
+                PrintAutorotationHelp();
+                break;
+        }
+    }
+
+    private void ParseAutorotationSetCommand(string[] cmd, bool toggle)
+    {
+        if (cmd.Length <= 2)
+        {
+            PrintAutorotationHelp();
+        }
+        else if (_rotation.Database.Presets.FirstOrDefault(p => p.Name == cmd[2]) is var preset && preset == null)
+        {
+            Service.ChatGui.PrintError($"Failed to find preset '{cmd[2]}'");
+        }
+        else
+        {
+            var newPreset = toggle && _rotation.Preset == preset ? null : preset;
+            Service.Log($"Console: {(toggle ? "toggle" : "set")} changes preset from '{_rotation.Preset?.Name ?? "<n/a>"}' to '{newPreset?.Name ?? "<n/a>"}'");
+            _rotation.Preset = newPreset;
+        }
+    }
+
+    private void PrintAutorotationHelp()
+    {
+        Service.ChatGui.Print("Autorotation commands:");
+        Service.ChatGui.Print("* /vbm ar clear - clear current preset; autorotation will do nothing unless plan is active");
+        Service.ChatGui.Print("* /vbm ar disable - force disable autorotation; no actions will be executed automatically even if plan is active");
+        Service.ChatGui.Print("* /vbm ar set Preset - start executing specified preset");
+        Service.ChatGui.Print("* /vbm ar toggle Preset - start executing specified preset unless it's already active; clear otherwise");
     }
 
     private void OnConditionChanged(ConditionFlag flag, bool value)

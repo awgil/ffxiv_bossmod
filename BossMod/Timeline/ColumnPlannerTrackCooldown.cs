@@ -92,7 +92,7 @@ public class ColumnPlannerTrackCooldown(Timeline timeline, StateMachineTree tree
     {
         e.Action = action;
         var actionDef = ActionDefinitions.Instance[action];
-        e.EffectLength = actionDef?.EffectDuration ?? 0;
+        //e.EffectLength = actionDef?.EffectDuration ?? 0;
         e.CooldownLength = actionDef?.Cooldown ?? 0;
         return e;
     }

@@ -1,12 +1,30 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace BossMod;
 
 public static class Serialization
 {
+    public class JsonTypeConverter : System.Text.Json.Serialization.JsonConverter<Type>
+    {
+        public override Type? Read(ref System.Text.Json.Utf8JsonReader reader, Type typeToConvert, System.Text.Json.JsonSerializerOptions options) => Type.GetType(reader.GetString() ?? "");
+        public override void Write(System.Text.Json.Utf8JsonWriter writer, Type value, System.Text.Json.JsonSerializerOptions options) => writer.WriteStringValue(value.FullName);
+        public override Type ReadAsPropertyName(ref System.Text.Json.Utf8JsonReader reader, Type typeToConvert, System.Text.Json.JsonSerializerOptions options) => Type.GetType(reader.GetString() ?? "")!;
+        public override void WriteAsPropertyName(System.Text.Json.Utf8JsonWriter writer, [DisallowNull] Type value, System.Text.Json.JsonSerializerOptions options) => writer.WritePropertyName(value.FullName!);
+    }
+
+    public static System.Text.Json.JsonSerializerOptions BuildSerializationOptions() => new()
+    {
+        IncludeFields = true,
+        WriteIndented = true,
+        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+        Converters = { new JsonStringEnumConverter(), new JsonTypeConverter() }
+    };
+
     public static JsonSerializer BuildSerializer()
     {
         var res = new JsonSerializer();

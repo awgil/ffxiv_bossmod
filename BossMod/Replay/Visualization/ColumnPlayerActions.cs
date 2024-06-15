@@ -82,11 +82,11 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
             {
                 var col = GetCooldownColumn(actionDef.MainCooldownGroup, a.ID);
                 // TODO: effect should be extended by action-to-effectresult delay?..
-                if (actionDef.EffectDuration > 0)
-                {
-                    col.AddHistoryEntryRange(enc.Time.Start, effectStart, actionDef.EffectDuration, actionName, 0x8000ff00).TooltipExtra.Add($"- effect: {actionDef.EffectDuration:f1}s");
-                    AdvanceCooldown(actionDef.MainCooldownGroup, enc.Time.Start, effectStart.AddSeconds(actionDef.EffectDuration), false);
-                }
+                //if (actionDef.EffectDuration > 0)
+                //{
+                //    col.AddHistoryEntryRange(enc.Time.Start, effectStart, actionDef.EffectDuration, actionName, 0x8000ff00).TooltipExtra.Add($"- effect: {actionDef.EffectDuration:f1}s");
+                //    AdvanceCooldown(actionDef.MainCooldownGroup, enc.Time.Start, effectStart.AddSeconds(actionDef.EffectDuration), false);
+                //}
                 col.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, 0xffffffff).AddActionTooltip(a);
             }
 

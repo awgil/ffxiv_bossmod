@@ -57,7 +57,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         }
     }
 
-    public bool Push(ActionID action, ulong targetId, bool isMouseover, Func<(ulong, Vector3?)> getAreaTarget)
+    public bool Push(ActionID action, ulong targetId, bool allowTargetOverride, Func<(ulong, Vector3?)> getAreaTarget)
     {
         if (!_config.UseManualQueue)
             return false; // we don't use queue at all
@@ -75,9 +75,8 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         if (def.ReadyIn(ws.Client.Cooldowns) > expire)
             return false; // don't bother trying to queue something that's on cd
 
-        var isGT = action.IsGroundTargeted();
         Vector3 targetPos = default;
-        if (isGT)
+        if (def.AllowedTargets.HasFlag(ActionTargets.Area))
         {
             // ground-targeted actions have special targeting
             var (gtTarget, gtPos) = getAreaTarget();
@@ -95,7 +94,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             return false; // target is valid, but not found in world, bail... (TODO this shouldn't be happening really)
 
         // ok, good to queue...
-        if (!isGT && !isMouseover && _config.SmartTargets && def.SmartTarget != null)
+        if (!def.AllowedTargets.HasFlag(ActionTargets.Area) && allowTargetOverride && _config.SmartTargets && def.SmartTarget != null)
             target = def.SmartTarget(ws, player, target, hints);
         Angle? angleOverride = def.TransformAngle?.Invoke(ws, player, target, hints);
 

@@ -1,11 +1,28 @@
 ﻿namespace BossMod;
 
+// allowed categories of targets for an action
+[Flags]
+public enum ActionTargets
+{
+    None = 0,
+    Self = 1 << 0,
+    Party = 1 << 1,
+    Alliance = 1 << 2,
+    Hostile = 1 << 3,
+    Friendly = 1 << 4,
+    OwnPet = 1 << 5,
+    PartyPet = 1 << 6,
+    Area = 1 << 7,
+    Dead = 1 << 8,
+}
+
 // this contains all information about player actions that we care about (for action tweaks, autorotation, etc)
 // some of the data is available in sheets, however unfortunately quite a bit is hardcoded in game functions; it often uses current player data
 // however, we need this information outside game (ie in uidev) and for different players of different classes/levels (ie for replay analysis)
 // because of that, we need to reimplement a lot of the logic here - this has to be synchronized to the code whenever game changes
 public sealed record class ActionDefinition(
     ActionID ID,
+    ActionTargets AllowedTargets,
     float Range, // 0 for self-targeted abilities
     float CastTime = 0, // 0 for instant-cast; can be adjusted by a number of factors (TODO: add functor)
     int MainCooldownGroup = -1,
@@ -19,7 +36,6 @@ public sealed record class ActionDefinition(
     public delegate Actor? SmartTargetDelegate(WorldState ws, Actor player, Actor? target, AIHints hints);
     public delegate Angle? TransformAngleDelegate(WorldState ws, Actor player, Actor? target, AIHints hints);
 
-    public float EffectDuration; // used by planner UI; TODO: this can change depending on traits...
     public ConditionDelegate? Condition; // optional condition, if it returns false, action is not executed
     public SmartTargetDelegate? SmartTarget; // optional target transformation for 'smart targeting' feature
     public TransformAngleDelegate? TransformAngle; // optional facing angle transformation
@@ -124,6 +140,9 @@ public sealed class ActionDefinitions : IDisposable
     public int MainCDGroupAction(ActionID aid) => MainCDGroupSpell(GetSpellIdForAction(aid));
     public int ExtraCDGroupAction(ActionID aid) => aid.Type == ActionType.Spell ? ExtraCDGroupSpell(aid.ID) : -1; // see ActionManager.GetAdditionalRecastGroup - always -1 for non-spells
 
+    public int MinSpellLevel(uint spellId) => ActionData(spellId)?.ClassJobLevel ?? 0;
+    public int MinActionLevel(ActionID aid) => aid.Type == ActionType.Spell ? MinSpellLevel(aid.ID) : 0;
+
     // see ActionManager.GetSpellIdForAction
     public uint GetSpellIdForAction(ActionID aid) => aid.Type switch
     {
@@ -136,6 +155,36 @@ public sealed class ActionDefinitions : IDisposable
         ActionType.Ornament => 20061, // 'accessorize'
         _ => 0
     };
+
+    // see ActionManager.CanUseActionOnTarget
+    public ActionTargets GetSpellTargets(uint spellId)
+    {
+        var data = ActionData(spellId);
+        ActionTargets res = ActionTargets.None;
+        if (data != null)
+        {
+            if (data.CanTargetSelf)
+                res |= ActionTargets.Self;
+            if (data.CanTargetParty)
+                res |= ActionTargets.Party;
+            if (data.CanTargetFriendly)
+                res |= ActionTargets.Alliance;
+            if (data.CanTargetHostile)
+                res |= ActionTargets.Hostile;
+            if (data.Unknown19)
+                res |= ActionTargets.Friendly;
+            if (data.Unknown22)
+                res |= ActionTargets.OwnPet;
+            if (data.Unknown23)
+                res |= ActionTargets.PartyPet;
+            if (data.TargetArea)
+                res |= ActionTargets.Area;
+            if (data.Unknown24 == 1)
+                res |= ActionTargets.Dead;
+        }
+        return res;
+    }
+    public ActionTargets GetActionTargets(ActionID aid) => GetSpellTargets(GetSpellIdForAction(aid));
 
     // see ActionManager.GetActionRange
     // note that actions with range == -1 use data from equipped weapon; currently all weapons for phys-ranged classes have range 25, others have range 3
@@ -174,7 +223,7 @@ public sealed class ActionDefinitions : IDisposable
     private void Register(ActionID aid, ActionDefinition definition) => _definitions.Add(aid, definition);
 
     public void RegisterSpell(ActionID aid, bool isPhysRanged = false, int maxCharges = 1, float instantAnimLock = 0.6f, float castAnimLock = 0.1f)
-        => Register(aid, new(aid, GetSpellRange(aid.ID, isPhysRanged), GetBaseSpellCastTime(aid.ID), MainCDGroupSpell(aid.ID), ExtraCDGroupSpell(aid.ID), GetBaseSpellCooldown(aid.ID), maxCharges, instantAnimLock, castAnimLock));
+        => Register(aid, new(aid, GetSpellTargets(aid.ID), GetSpellRange(aid.ID, isPhysRanged), GetBaseSpellCastTime(aid.ID), MainCDGroupSpell(aid.ID), ExtraCDGroupSpell(aid.ID), GetBaseSpellCooldown(aid.ID), maxCharges, instantAnimLock, castAnimLock));
     public void RegisterSpell<AID>(AID aid, bool isPhysRanged = false, int maxCharges = 1, float instantAnimLock = 0.6f, float castAnimLock = 0.1f) where AID : Enum
         => RegisterSpell(ActionID.MakeSpell(aid), isPhysRanged, maxCharges, instantAnimLock, castAnimLock);
 
@@ -186,12 +235,13 @@ public sealed class ActionDefinitions : IDisposable
         var spellId = itemAction?.Type ?? 0;
         var cdgroup = MainCDGroupSpell(spellId);
         float cooldown = item?.Cooldowns ?? 0;
+        var targets = GetSpellTargets(spellId);
         var range = GetSpellRange(spellId);
         var castTime = item?.CastTimes ?? 2;
         var aidNQ = new ActionID(ActionType.Item, baseId);
-        _definitions[aidNQ] = new(aidNQ, range, castTime, cdgroup, -1, cooldown, InstantAnimLock: 1.1f) { EffectDuration = itemAction?.Data[2] ?? 0 };
+        _definitions[aidNQ] = new(aidNQ, targets, range, castTime, cdgroup, -1, cooldown, InstantAnimLock: 1.1f);
         var aidHQ = new ActionID(ActionType.Item, baseId + 1000000);
-        _definitions[aidHQ] = new(aidHQ, range, castTime, cdgroup, -1, cooldown * 0.9f, InstantAnimLock: 1.1f) { EffectDuration = itemAction?.DataHQ[2] ?? 0 };
+        _definitions[aidHQ] = new(aidHQ, targets, range, castTime, cdgroup, -1, cooldown * 0.9f, InstantAnimLock: 1.1f);
     }
 
     private void RegisterBozja(BozjaHolsterID id)
@@ -202,9 +252,9 @@ public sealed class ActionDefinitions : IDisposable
         if (!isItem)
         {
             var aid1 = ActionID.MakeBozjaHolster(id, 0);
-            _definitions[aid1] = new(aid1, 0, InstantAnimLock: 2.1f);
+            _definitions[aid1] = new(aid1, ActionTargets.Self, 0, InstantAnimLock: 2.1f);
             var aid2 = ActionID.MakeBozjaHolster(id, 1);
-            _definitions[aid2] = new(aid2, 0, InstantAnimLock: 2.1f);
+            _definitions[aid2] = new(aid2, ActionTargets.Self, 0, InstantAnimLock: 2.1f);
         }
     }
 }

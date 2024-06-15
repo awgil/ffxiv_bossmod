@@ -178,7 +178,7 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.Mantra)!.EffectDuration = 15;
-        d.Spell(AID.RiddleOfEarth)!.EffectDuration = 10;
+        //d.Spell(AID.Mantra)!.EffectDuration = 15;
+        //d.Spell(AID.RiddleOfEarth)!.EffectDuration = 10;
     }
 }

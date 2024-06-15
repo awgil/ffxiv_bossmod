@@ -7,14 +7,14 @@ namespace BossMod.AI;
 
 sealed class AIManager : IDisposable
 {
-    private readonly Autorotation _autorot;
+    private readonly AutorotationLegacy _autorot;
     private readonly AIController _controller;
     private readonly AIConfig _config;
     private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
     private AIBehaviour? _beh;
     private readonly UISimpleWindow _ui;
 
-    public AIManager(Autorotation autorot)
+    public AIManager(AutorotationLegacy autorot)
     {
         _autorot = autorot;
         _controller = new(autorot.ActionManager);

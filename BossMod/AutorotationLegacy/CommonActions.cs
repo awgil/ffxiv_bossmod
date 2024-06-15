@@ -2,7 +2,7 @@ using FFXIVGame = FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace BossMod;
 
-abstract class CommonActions(Autorotation autorot, Actor player, uint[] unlockData) : IDisposable
+abstract class CommonActions(AutorotationLegacy autorot, Actor player, uint[] unlockData) : IDisposable
 {
     public const int AutoActionNone = 0;
     public const int AutoActionAIIdle = 1;
@@ -14,7 +14,7 @@ abstract class CommonActions(Autorotation autorot, Actor player, uint[] unlockDa
     public readonly Actor Player = player;
     public int AutoAction { get; private set; }
     public float MaxCastTime { get; private set; }
-    protected readonly Autorotation Autorot = autorot;
+    protected readonly AutorotationLegacy Autorot = autorot;
     private DateTime _playerCombatStart;
     private DateTime _autoActionExpire;
     private bool _forceExpireAtCountdownCancel;

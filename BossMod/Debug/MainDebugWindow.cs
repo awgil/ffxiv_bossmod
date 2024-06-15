@@ -5,7 +5,7 @@ using ImGuiNET;
 
 namespace BossMod;
 
-class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod debug UI", false, new(300, 200))
+class MainDebugWindow(WorldState ws, AutorotationLegacy autorot) : UIWindow("Boss mod debug UI", false, new(300, 200))
 {
     private readonly DebugObjects _debugObjects = new();
     private readonly DebugParty _debugParty = new();

@@ -176,20 +176,12 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.LandWaker)!.EffectDuration = 8;
-        d.Spell(AID.Berserk)!.EffectDuration = 15;
+        //d.Spell(AID.Berserk)!.EffectDuration = 15;
         d.Spell(AID.Tomahawk)!.Condition = (ws, player, _, _) => !_config.ForbidEarlyTomahawk || player.InCombat || ws.Client.CountdownRemaining is null or <= 0.7f;
-        d.Spell(AID.ThrillOfBattle)!.EffectDuration = 10;
-        d.Spell(AID.Vengeance)!.EffectDuration = 15;
-        d.Spell(AID.Holmgang)!.EffectDuration = 10;
         d.Spell(AID.Holmgang)!.SmartTarget = (_, player, target, _) => _config.HolmgangSelf ? player : target;
-        d.Spell(AID.RawIntuition)!.EffectDuration = 4; // TODO: effect duration 6
-        d.Spell(AID.Equilibrium)!.Condition = (_, player, _, _) => player.HPMP.CurHP < player.HPMP.MaxHP; // don't use equilibrium at full hp; TODO: secondary effect (hot) duration 6?..
-        d.Spell(AID.ShakeItOff)!.EffectDuration = 30; // note: secondary effect duration 15
-        d.Spell(AID.InnerRelease)!.EffectDuration = 15;
+        d.Spell(AID.Equilibrium)!.Condition = (_, player, _, _) => player.HPMP.CurHP < player.HPMP.MaxHP; // don't use equilibrium at full hp
+        //d.Spell(AID.InnerRelease)!.EffectDuration = 15;
         d.Spell(AID.NascentFlash)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
-        d.Spell(AID.NascentFlash)!.EffectDuration = 4; // note: secondary effect duration 8
-        d.Spell(AID.Bloodwhetting)!.EffectDuration = 4; // note: secondary effect duration 8
 
         // upgrades (TODO: don't think we actually care...)
         //d.Spell(AID.Defiance)!.TransformAction = d.Spell(AID.ReleaseDefiance)!.TransformAction = () => ActionID.MakeSpell(_state.HaveTankStance ? AID.ReleaseDefiance : AID.Defiance);

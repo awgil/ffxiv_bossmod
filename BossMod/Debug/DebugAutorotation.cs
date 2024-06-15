@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-class DebugAutorotation(Autorotation autorot)
+class DebugAutorotation(AutorotationLegacy autorot)
 {
     private readonly UITree _tree = new();
 
