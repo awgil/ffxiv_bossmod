@@ -1,8 +1,7 @@
 autorotation v2:
 - planning
--- plan -> structures
--- plan database -> serialization, conversion, defaults per moduletype+job
--- plan manager -> listen to bmm and countdown
+-- plan database -> serialization
+-- plan manager -> plan execution, listen to bmm and countdown
 - merge autorot & plan window into RotationWindow
 - auto start/end logic
 -- on countdown start => plan (should be automatic), or user-configured default preset
@@ -13,7 +12,19 @@ autorotation v2:
 -+ on combat end => abort
 -- timeout => move to idle
 -+ die => ??? abort probably...
-- move action tweaks configs + converter
+- converters
+-- actionmanager
+-- autorotation
+-- per-class
+-- plans
+- questlock on actiondefinition level
+-- minlevel
+-- optional unlock provider functor
+-- autoqueue should check during push
+-- remove unlock stuff
+- actiondefinitions
+-- sid generator
+-- spell out shared cooldowns in comments instead of group?
 post-wip:
 - resurrect legacy modules
 - cleanup

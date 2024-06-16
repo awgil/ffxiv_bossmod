@@ -44,7 +44,7 @@ public sealed class ActionQueue
 
     public Entry FindBest(WorldState ws, Actor player, ReadOnlySpan<Cooldown> cooldowns, float animationLock, AIHints hints, float instantAnimLockDelay)
     {
-        _entries.SortBy(e => e.Priority);
+        _entries.SortByReverse(e => e.Priority);
         Entry best = default;
         float deadline = float.MaxValue; // any candidate we consider, if executed, should allow executing next action by this deadline
         foreach (ref var candidate in _entries.AsSpan())

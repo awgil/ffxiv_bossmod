@@ -1,6 +1,9 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
+using AID = BossMod.WAR.AID;
+using TraitID = BossMod.WAR.TraitID;
+using Definitions = BossMod.WAR.Definitions;
 
-namespace BossMod.WAR;
+namespace BossMod.Autorotation.Legacy;
 
 sealed class Actions(AutorotationLegacy autorot, Actor player) : TankActions(autorot, player, Definitions.UnlockQuests)
 {
@@ -12,24 +15,8 @@ sealed class Actions(AutorotationLegacy autorot, Actor player) : TankActions(aut
     private readonly Rotation.Strategy _strategy = new();
     private readonly WARConfig _config = Service.Config.Get<WARConfig>();
 
-    public override CommonRotation.PlayerState GetState() => _state;
-    public override CommonRotation.Strategy GetStrategy() => _strategy;
-
-    protected override void UpdateInternalState(int autoAction)
-    {
-        base.UpdateInternalState(autoAction);
-        _aoe = autoAction switch
-        {
-            AutoActionST => false,
-            AutoActionAOE => true, // TODO: consider making AI-like check
-            AutoActionAIFight => NumTargetsHitByAOE() >= 3,
-            _ => false, // irrelevant...
-        };
-        UpdatePlayerState();
-        FillCommonStrategy(_strategy, ActionDefinitions.IDPotionStr);
-        _strategy.ApplyStrategyOverrides(Autorot.Bossmods.ActiveModule?.PlanExecution?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine) ?? []);
-        _strategy.OnslaughtHeadroom = _config.OnslaughtHeadroom;
-    }
+    public override CommonState.PlayerState GetState() => _state;
+    public override CommonState.Strategy GetStrategy() => _strategy;
 
     protected override void QueueAIActions(ActionQueue queue)
     {
@@ -76,39 +63,4 @@ sealed class Actions(AutorotationLegacy autorot, Actor player) : TankActions(aut
         PushResult(queue, gcd, Autorot.PrimaryTarget);
         PushResult(queue, ogcd, Autorot.PrimaryTarget);
     }
-
-    private void UpdatePlayerState()
-    {
-        FillCommonPlayerState(_state);
-        _state.HaveTankStance = Player.FindStatus(SID.Defiance) != null;
-
-        _state.Gauge = Service.JobGauges.Get<WARGauge>().BeastGauge;
-
-        _state.SurgingTempestLeft = _state.NascentChaosLeft = _state.PrimalRendLeft = _state.InnerReleaseLeft = 0;
-        _state.InnerReleaseStacks = 0;
-        foreach (var status in Player.Statuses)
-        {
-            switch ((SID)status.ID)
-            {
-                case SID.SurgingTempest:
-                    _state.SurgingTempestLeft = StatusDuration(status.ExpireAt);
-                    break;
-                case SID.NascentChaos:
-                    _state.NascentChaosLeft = StatusDuration(status.ExpireAt);
-                    break;
-                case SID.Berserk:
-                case SID.InnerRelease:
-                    _state.InnerReleaseLeft = StatusDuration(status.ExpireAt);
-                    _state.InnerReleaseStacks = status.Extra & 0xFF;
-                    break;
-                case SID.PrimalRend:
-                    _state.PrimalRendLeft = StatusDuration(status.ExpireAt);
-                    break;
-            }
-        }
-    }
-
-    private AID ComboLastMove => (AID)Autorot.ActionManager.ComboLastMove;
-
-    private int NumTargetsHitByAOE() => Autorot.Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
 }

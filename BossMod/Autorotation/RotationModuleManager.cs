@@ -41,7 +41,8 @@ public sealed class RotationModuleManager : IDisposable
             _bmm.WorldState.Actors.InCombatChanged.Subscribe(OnCombatChanged),
             _bmm.WorldState.Actors.IsDeadChanged.Subscribe(OnDeadChanged),
             _bmm.WorldState.Party.Modified.Subscribe(op => DirtyActiveModules(op.Slot == _playerSlot)),
-            _bmm.WorldState.Client.CountdownChanged.Subscribe(OnCountdownChanged)
+            _bmm.WorldState.Client.CountdownChanged.Subscribe(OnCountdownChanged),
+            Database.PresetModified.Subscribe(OnPresetModified)
         );
     }
 
@@ -154,6 +155,12 @@ public sealed class RotationModuleManager : IDisposable
             Service.Log($"[RMM] Countdown expired or aborted => clear preset '{Preset?.Name ?? "<n/a>"}'");
             Preset = null;
         }
+    }
+
+    private void OnPresetModified(Preset? prev, Preset? curr)
+    {
+        if (prev != null && prev == Preset)
+            Preset = curr;
     }
 
     private void DirtyActiveModules(bool condition)

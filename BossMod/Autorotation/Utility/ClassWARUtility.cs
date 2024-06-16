@@ -44,6 +44,6 @@ public sealed record class ClassWARUtility(WorldState World, Actor Player, AIHin
             _ => default
         };
         if (aid != default)
-            actions.Push(ActionID.MakeSpell(aid), (BWOption)bw.Option == BWOption.NascentFlash ? CoTank() : Player, bw.Priority(ActionQueue.Priority.Low));
+            actions.Push(ActionID.MakeSpell(aid), (BWOption)bw.Option == BWOption.NascentFlash ? ResolveTargetOverride(bw) ?? CoTank() : Player, bw.Priority(ActionQueue.Priority.Low));
     }
 }
