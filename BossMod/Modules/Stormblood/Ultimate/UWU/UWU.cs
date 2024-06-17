@@ -24,7 +24,7 @@ class P5AetherochemicalLaserLeft(BossModule module) : Components.SelfTargetedAOE
 class P5LightPillar(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightPillarAOE), 3); // TODO: consider showing circle around baiter
 class P5AethericBoom(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.AethericBoom), 10);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Garuda, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 539)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Garuda, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 539, PlanLevel = 70)]
 public class UWU : BossModule
 {
     private readonly IReadOnlyList<Actor> _titan;

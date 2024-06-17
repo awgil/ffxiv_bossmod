@@ -1,11 +1,12 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿using BossMod.Autorotation;
+using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using ImGuiNET;
 
 namespace BossMod;
 
-class MainDebugWindow(WorldState ws, AutorotationLegacy autorot) : UIWindow("Boss mod debug UI", false, new(300, 200))
+class MainDebugWindow(WorldState ws, RotationModuleManager autorot) : UIWindow("Boss mod debug UI", false, new(300, 200))
 {
     private readonly DebugObjects _debugObjects = new();
     private readonly DebugParty _debugParty = new();

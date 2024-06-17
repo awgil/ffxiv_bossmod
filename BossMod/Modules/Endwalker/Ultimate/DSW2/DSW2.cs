@@ -16,7 +16,7 @@ class P6SwirlingBlizzard(BossModule module) : Components.SelfTargetedAOEs(module
 class P7Shockwave(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.ShockwaveP7));
 class P7AlternativeEnd(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.AlternativeEnd));
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP2, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 788)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP2, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 788, PlanLevel = 90)]
 public class DSW2(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), BoundsCircle)
 {
     public static readonly ArenaBoundsCircle BoundsCircle = new(21); // p2, intermission

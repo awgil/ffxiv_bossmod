@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S2;
 
 [ConfigDisplay(Order = 0x182, Parent = typeof(EndwalkerConfig))]
-public class P8S2Config() : CooldownPlanningConfigNode(90)
+public class P8S2Config() : ConfigNode()
 {
     [PropertyDisplay("Limitless desolation: tanks/healers use right side")]
     public bool LimitlessDesolationTHRight = false;

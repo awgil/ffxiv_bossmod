@@ -116,7 +116,7 @@ class P3AethericProfusion(BossModule module) : Components.CastCounter(module, Ac
         // mitigate heavy raidwide
         hints.PredictedDamage.Add((Raid.WithSlot().Mask(), _activation));
         if (actor.Role == Role.Ranged)
-            hints.PlannedActions.Add((ActionID.MakeSpell(BLM.AID.Addle), Module.PrimaryActor, (float)(_activation - WorldState.CurrentTime).TotalSeconds, false));
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Addle), Module.PrimaryActor, ActionQueue.Priority.High);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

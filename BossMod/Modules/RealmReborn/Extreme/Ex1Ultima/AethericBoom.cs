@@ -73,8 +73,8 @@ class AethericBoom(BossModule module) : Components.CastHint(module, ActionID.Mak
             else
             {
                 // third cast in progress => immune knockback and go to resolve positions
-                hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.ArmsLength), actor, 1, false));
-                hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Surecast), actor, 1, false));
+                hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.ArmsLength), actor, ActionQueue.Priority.High);
+                hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Surecast), actor, ActionQueue.Priority.High);
                 PrepositionForOrbs(hints, assignment, 3);
             }
         }

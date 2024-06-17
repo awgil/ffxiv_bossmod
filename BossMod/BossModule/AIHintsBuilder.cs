@@ -35,8 +35,6 @@ public sealed class AIHintsBuilder : IDisposable
             var playerAssignment = Service.Config.Get<PartyRolesConfig>()[_ws.Party.ContentIDs[playerSlot]];
             var activeModule = _bmm.ActiveModule?.StateMachine.ActivePhase != null ? _bmm.ActiveModule : null;
             hints.FillPotentialTargets(_ws, playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !_ws.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank));
-            hints.FillForcedTarget(_bmm.ActiveModule, _ws, player);
-            hints.FillPlannedActions(_bmm.ActiveModule, playerSlot, player); // note that we might fill some actions even if module is not active yet (prepull)
             if (activeModule != null)
                 activeModule.CalculateAIHints(playerSlot, player, playerAssignment, hints);
             else

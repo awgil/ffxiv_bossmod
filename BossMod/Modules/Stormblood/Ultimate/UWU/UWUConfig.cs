@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
 [ConfigDisplay(Order = 0x210, Parent = typeof(StormbloodConfig))]
-public class UWUConfig() : CooldownPlanningConfigNode(70)
+public class UWUConfig() : ConfigNode()
 {
     [PropertyDisplay("Titan gaols priorities (close < far)")]
     [GroupDetails(["0", "1", "2", "3", "4", "5", "6", "7"])]

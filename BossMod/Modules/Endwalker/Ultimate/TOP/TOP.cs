@@ -5,7 +5,7 @@ class SolarRayF(BossModule module) : Components.BaitAwayCast(module, ActionID.Ma
 class P4BlueScreen(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.BlueScreenAOE));
 class P5BlindFaith(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.BlindFaithSuccess), "Intermission");
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 908)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 908, PlanLevel = 90)]
 public class TOP(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20))
 {
     private Actor? _opticalUnit;

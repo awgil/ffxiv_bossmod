@@ -211,7 +211,7 @@ public class ConfigRoot
                 {
                     var oid = uint.Parse(k);
                     var info = ModuleRegistry.FindByOID(oid);
-                    var config = (info?.CooldownPlanningSupported ?? false) ? info.ConfigType : null;
+                    var config = info?.PlanLevel > 0 ? info.ConfigType : null;
                     if (config?.FullName == null)
                         continue;
 
@@ -256,7 +256,6 @@ public class ConfigRoot
                     if (planList?["Available"] is not JArray avail)
                         continue;
                     var c = Enum.Parse<Class>(cls);
-                    var aidType = PlanDefinitions.Classes[c].AIDType;
                     foreach (var plan in avail)
                     {
                         if (plan?["PlanAbilities"] is not JObject abilities)
@@ -275,7 +274,7 @@ public class ConfigRoot
 
                             foreach (var abilUse in aidList)
                             {
-                                abilUse["ID"] = aidType.GetEnumName(aid.ID);
+                                abilUse["ID"] = Utils.StringToIdentifier(aid.Name());
                                 abilUse["StateID"] = $"0x{abilUse["StateID"]?.Value<uint>():X8}";
                                 actions.Add(abilUse);
                             }

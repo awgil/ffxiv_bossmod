@@ -5,7 +5,7 @@ namespace BossMod;
 // column representing single planner track (could be cooldowns or anything else)
 public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name) : ColumnGenericHistory(timeline, tree, phaseBranches, name)
 {
-    public class Element(ColumnGenericHistory.Entry window)
+    public class Element(Entry window)
     {
         public Entry Window = window;
         public Entry? Effect; // null if window length is >= than effect length
@@ -16,7 +16,7 @@ public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tre
         public float TotalLength => Math.Max(EffectLength, Window.Duration + CooldownLength);
     }
 
-    private class EditState(ColumnPlannerTrack.Element element, bool editingEnd)
+    private class EditState(Element element, bool editingEnd)
     {
         public Element Element = element;
         public bool EditingEnd = editingEnd;

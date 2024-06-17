@@ -13,27 +13,27 @@ class TankPurge(BossModule module) : Components.RaidwideCast(module, ActionID.Ma
             {
                 case PartyRolesConfig.Assignment.MT:
                     if ((NumCasts & 1) == 0)
-                        hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Reprisal), actor, 1, false));
+                        hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Reprisal), actor, ActionQueue.Priority.High);
                     break;
                 case PartyRolesConfig.Assignment.OT:
                     if ((NumCasts & 1) == 1)
-                        hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Reprisal), actor, 1, false));
+                        hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Reprisal), actor, ActionQueue.Priority.High);
                     break;
                 case PartyRolesConfig.Assignment.M1:
                     if ((NumCasts & 1) == 0)
-                        hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.Feint), Module.PrimaryActor, 1, false));
+                        hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Feint), Module.PrimaryActor, ActionQueue.Priority.High);
                     break;
                 case PartyRolesConfig.Assignment.M2:
                     if ((NumCasts & 1) == 1)
-                        hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.Feint), Module.PrimaryActor, 1, false));
+                        hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Feint), Module.PrimaryActor, ActionQueue.Priority.High);
                     break;
                 case PartyRolesConfig.Assignment.R1:
                     if ((NumCasts & 1) == 0)
-                        hints.PlannedActions.Add((ActionID.MakeSpell(BLM.AID.Addle), Module.PrimaryActor, 1, false));
+                        hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Addle), Module.PrimaryActor, ActionQueue.Priority.High);
                     break;
                 case PartyRolesConfig.Assignment.R2:
                     if ((NumCasts & 1) == 1)
-                        hints.PlannedActions.Add((ActionID.MakeSpell(BLM.AID.Addle), Module.PrimaryActor, 1, false));
+                        hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Addle), Module.PrimaryActor, ActionQueue.Priority.High);
                     break;
             }
         }

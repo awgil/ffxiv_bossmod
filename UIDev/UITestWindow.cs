@@ -2,6 +2,7 @@
 using ImGuiScene;
 using BossMod;
 using System.Reflection;
+using BossMod.Autorotation;
 
 namespace UIDev;
 
@@ -9,7 +10,8 @@ class UITestWindow : UIWindow
 {
     private readonly SimpleImGuiScene _scene;
     private readonly List<Type> _testTypes;
-    private readonly ReplayManager _replayManager = new(".");
+    private readonly RotationDatabase _rotationDB;
+    private readonly ReplayManager _replayManager;
     private readonly EventSubscription _onConfigModified;
     private string _configPath;
 
@@ -20,7 +22,7 @@ class UITestWindow : UIWindow
         set => RespectCloseHotkey = !value;
     }
 
-    public UITestWindow(SimpleImGuiScene scene, string configPath) : base("Boss mod UI development", false, new(600, 600))
+    public UITestWindow(SimpleImGuiScene scene, string configPath, string rotationRoot) : base("Boss mod UI development", false, new(600, 600))
     {
         _scene = scene;
         _testTypes = Utils.GetDerivedTypes<TestWindow>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract).ToList();
@@ -29,6 +31,9 @@ class UITestWindow : UIWindow
         Service.Config.Initialize();
         Service.Config.LoadFromFile(new(configPath));
         _onConfigModified = Service.Config.Modified.Subscribe(() => ConfigModified = true);
+
+        _rotationDB = new(new(rotationRoot));
+        _replayManager = new(_rotationDB.Plans, ".");
     }
 
     protected override void Dispose(bool disposing)

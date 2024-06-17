@@ -22,7 +22,7 @@ class P3ChasteningHeat(BossModule module) : Components.BaitAwayCast(module, Acti
 class P3DivineSpear(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.DivineSpear), new AOEShapeCone(24.2f, 45.Degrees()), (uint)OID.AlexanderPrime); // TODO: verify angle
 class P3DivineJudgmentRaidwide(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.DivineJudgmentRaidwide));
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 694)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 694, PlanLevel = 80)]
 public class TEA : BossModule
 {
     private readonly IReadOnlyList<Actor> _liquidHand;

@@ -1,11 +1,11 @@
 ﻿namespace BossMod.Autorotation.Legacy;
 
-// TODO: a _lot_ of that stuff should be reworked...
-public abstract class CommonState(WorldState ws, Actor player, AIHints hints)
+// TODO: a _lot_ of this stuff should be reworked...
+public abstract class CommonState(RotationModule module)
 {
-    public int Level => player.Level;
+    public int Level => module.Player.Level;
     public int UnlockProgress;
-    public uint CurMP => player.HPMP.CurMP; // 10000 max
+    public uint CurMP => module.Player.HPMP.CurMP; // 10000 max
     public bool TargetingEnemy;
     public bool HaveTankStance;
     public float RangeToTarget; // minus both hitboxes; <= 0 means inside hitbox, <= 3 means in melee range, maxvalue if there is no target
@@ -15,9 +15,8 @@ public abstract class CommonState(WorldState ws, Actor player, AIHints hints)
     public uint ComboLastAction;
     public float RaidBuffsLeft; // 0 if no damage-up status is up, otherwise it is time left on longest
 
-    public float CombatTimer; // MinValue if not in combat, negative during countdown, zero or positive during combat
+    public float? CountdownRemaining => module.World.Client.CountdownRemaining;
     public bool ForbidDOTs;
-    public float ForceMovementIn;
     public float FightEndIn; // how long fight will last (we try to spend all resources before this happens)
     public float RaidBuffsIn; // estimate time when new raidbuff window starts (if it is smaller than FightEndIn, we try to conserve resources)
     public float PositionLockIn; // time left to use moving abilities (Primal Rend and Onslaught) - we won't use them if it is ==0; setting this to 2.5f will make us use PR asap
@@ -26,9 +25,9 @@ public abstract class CommonState(WorldState ws, Actor player, AIHints hints)
     public bool NextPositionalCorrect; // true if correctly positioned for next positional
 
     // these simply point to client state
-    public readonly Cooldown[] Cooldowns = ws.Client.Cooldowns;
-    public readonly ActionID[] DutyActions = ws.Client.DutyActions;
-    public readonly byte[] BozjaHolster = ws.Client.BozjaHolster;
+    public readonly Cooldown[] Cooldowns = module.World.Client.Cooldowns;
+    public readonly ActionID[] DutyActions = module.World.Client.DutyActions;
+    public readonly byte[] BozjaHolster = module.World.Client.BozjaHolster;
 
     // both 2.5 max (unless slowed), reduced by gear attributes and certain status effects
     public float AttackGCDTime;
@@ -60,46 +59,77 @@ public abstract class CommonState(WorldState ws, Actor player, AIHints hints)
 
     public void UpdateCommon(Actor? target, int unlockProgress)
     {
-        var vuln = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextVulnerable(Autorot.Bossmods.ActiveModule.StateMachine) ?? (false, 10000);
+        var vuln = module.Manager.Planner?.EstimateTimeToNextVulnerable() ?? (false, 10000);
+        var downtime = module.Manager.Planner?.EstimateTimeToNextDowntime() ?? (false, 0);
+        var poslock = module.Manager.Planner?.EstimateTimeToNextPositioning() ?? (false, 10000);
 
-        var am = Autorot.ActionManager;
-        UnlockProgress = _lock.Progress();
+        var am = module.Manager.ActionManager;
+        UnlockProgress = unlockProgress;
         TargetingEnemy = target != null && target.Type is ActorType.Enemy or ActorType.Part && !target.IsAlly;
-        RangeToTarget = target != null ? (target.Position - player.Position).Length() - target.HitboxRadius - player.HitboxRadius : float.MaxValue;
+        RangeToTarget = target != null ? (target.Position - module.Player.Position).Length() - target.HitboxRadius - module.Player.HitboxRadius : float.MaxValue;
         AnimationLock = am.EffectiveAnimationLock;
         AnimationLockDelay = am.AnimationLockDelayEstimate;
         ComboTimeLeft = am.ComboTimeLeft;
         ComboLastAction = am.ComboLastMove;
 
-        // all GCD skills share the same base recast time (with some exceptions that aren't relevant here)
-        // so we can check Fast Blade (9) and Stone (119) recast timers to get effective sks and sps
-        // regardless of current class
-        AttackGCDTime = FFXIVGame.ActionManager.GetAdjustedRecastTime(FFXIVGame.ActionType.Action, 9) / 1000f;
-        SpellGCDTime = FFXIVGame.ActionManager.GetAdjustedRecastTime(FFXIVGame.ActionType.Action, 119) / 1000f;
-
         RaidBuffsLeft = vuln.Item1 ? vuln.Item2 : 0;
-        foreach (var status in player.Statuses.Where(s => IsDamageBuff(s.ID)))
+        foreach (var status in module.Player.Statuses.Where(s => IsDamageBuff(s.ID)))
         {
             RaidBuffsLeft = MathF.Max(RaidBuffsLeft, StatusDuration(status.ExpireAt));
         }
         // TODO: also check damage-taken debuffs on target
 
-
-        var targetEnemy = target != null ? hints.PotentialTargets.Find(e => e.Actor == target) : null;
-        var downtime = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextDowntime(Autorot.Bossmods.ActiveModule.StateMachine) ?? (false, 0);
-        var poslock = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextPositioning(Autorot.Bossmods.ActiveModule.StateMachine) ?? (false, 10000);
-        var vuln = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextVulnerable(Autorot.Bossmods.ActiveModule.StateMachine) ?? (false, 10000);
-
-        CombatTimer = CombatTimer();
+        var targetEnemy = target != null ? module.Hints.PotentialTargets.Find(e => e.Actor == target) : null;
         ForbidDOTs = targetEnemy?.ForbidDOTs ?? false;
-        ForceMovementIn = MaxCastTime;
         FightEndIn = downtime.Item1 ? 0 : downtime.Item2;
         RaidBuffsIn = vuln.Item1 ? 0 : vuln.Item2;
-        if (Autorot.Bossmods.ActiveModule?.PlanConfig != null) // assumption: if there is no planning support for encounter (meaning it's something trivial, like outdoor boss), don't expect any cooldowns
-            RaidBuffsIn = Math.Min(RaidBuffsIn, Autorot.Bossmods.RaidCooldowns.NextDamageBuffIn(ws.CurrentTime));
-        PositionLockIn = Autorot.Config.EnableMovement && !poslock.Item1 ? poslock.Item2 : 0;
+        if (module.Bossmods.ActiveModule?.Info?.PlanLevel > 0) // assumption: if there is no planning support for encounter (meaning it's something trivial, like outdoor boss), don't expect any cooldowns
+            RaidBuffsIn = Math.Min(RaidBuffsIn, module.Bossmods.RaidCooldowns.NextDamageBuffIn(module.World.CurrentTime));
+        PositionLockIn = !poslock.Item1 ? poslock.Item2 : 0;
         NextPositional = Positional.Any;
         NextPositionalImminent = false;
         NextPositionalCorrect = true;
+
+        // all GCD skills share the same base recast time (with some exceptions that aren't relevant here)
+        // so we can check Fast Blade (9) and Stone (119) recast timers to get effective sks and sps
+        // regardless of current class
+        AttackGCDTime = am.GetAdjustedRecastTime(new(ActionType.Spell, 9), false) * 0.001f;
+        SpellGCDTime = am.GetAdjustedRecastTime(new(ActionType.Spell, 119), false) * 0.001f;
     }
+
+    public float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - module.World.CurrentTime).TotalSeconds, 0.0f);
+
+    // this also checks pending statuses
+    // note that we check pending statuses first - otherwise we get the same problem with double refresh if we try to refresh early (we find old status even though we have pending one)
+    public (float Left, int Stacks) StatusDetails(Actor? actor, uint sid, ulong sourceID, float pendingDuration = 1000)
+    {
+        if (actor == null)
+            return (0, 0);
+        var pending = module.World.PendingEffects.PendingStatus(actor.InstanceID, sid, sourceID);
+        if (pending != null)
+            return (pendingDuration, pending.Value);
+        var status = actor.FindStatus(sid, sourceID);
+        return status != null ? (StatusDuration(status.Value.ExpireAt), status.Value.Extra & 0xFF) : (0, 0);
+    }
+    public (float Left, int Stacks) StatusDetails<SID>(Actor? actor, SID sid, ulong sourceID, float pendingDuration = 1000) where SID : Enum => StatusDetails(actor, (uint)(object)sid, sourceID, pendingDuration);
+
+    // check whether specified status is a damage buff
+    // see https://i.redd.it/xrtgpras94881.png
+    // TODO: AST card buffs?, enemy debuffs?, single-target buffs (DRG dragon sight, DNC devilment)
+    public bool IsDamageBuff(uint statusID) => statusID switch
+    {
+        49 => true, // medicated
+        141 => true, // BRD battle voice
+        //638 => true, // NIN trick attack - note that this is a debuff on enemy
+        786 => true, // DRG battle litany
+        1185 => true, // MNK brotherhood
+        //1221 => true, // SCH chain stratagem - note that this is a debuff on enemy
+        1297 => true, // RDM embolden
+        1822 => true, // DNC technical finish
+        1878 => true, // AST divination
+        2599 => true, // RPR arcane circle
+        2703 => true, // SMN searing light
+        2964 => true, // BRD radiant finale
+        _ => false
+    };
 }

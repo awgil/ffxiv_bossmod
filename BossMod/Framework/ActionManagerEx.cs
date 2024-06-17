@@ -24,7 +24,8 @@ namespace BossMod;
 // 6. ground-targeted action queueing
 //    ground-targeted actions can't be queued, making using them efficiently tricky
 //    this feature allows queueing them, plus provides options to execute them automatically either at target's position or at cursor's position
-unsafe sealed class ActionManagerEx : IDisposable
+// TODO: should not be public!
+public unsafe sealed class ActionManagerEx : IDisposable
 {
     public ActionID CastSpell => new(ActionType.Spell, _inst->CastSpellId);
     public ActionID CastAction => new((ActionType)_inst->CastActionType, _inst->CastActionId);
@@ -46,7 +47,6 @@ unsafe sealed class ActionManagerEx : IDisposable
     private readonly ActionManager* _inst = ActionManager.Instance();
     private readonly WorldState _ws;
     private readonly AIHints _hints;
-    private readonly ActionQueue _actionQueue = new();
     private readonly ManualActionQueueTweak _manualQueue;
     private readonly AnimationLockTweak _animLockTweak = new();
     private readonly CooldownDelayTweak _cooldownTweak = new();
@@ -82,20 +82,17 @@ unsafe sealed class ActionManagerEx : IDisposable
         InputOverride.Dispose();
     }
 
-    // start gathering candidate actions for this frame: clear previous transient queue, fill in data from manual queue
-    public ActionQueue StartActionGather()
+    public void QueueManualActions()
     {
-        _actionQueue.Clear();
         _manualQueue.RemoveExpired();
-        _manualQueue.FillQueue(_actionQueue);
-        return _actionQueue;
+        _manualQueue.FillQueue(_hints.ActionsToExecute);
     }
 
     // finish gathering candidate actions for this frame: sort by priority and select best action to execute
     public void FinishActionGather()
     {
         var player = _ws.Party.Player();
-        AutoQueue = player != null ? _actionQueue.FindBest(_ws, player, _ws.Client.Cooldowns, EffectiveAnimationLock, _hints, _animLockTweak.DelayEstimate) : default;
+        AutoQueue = player != null ? _hints.ActionsToExecute.FindBest(_ws, player, _ws.Client.Cooldowns, EffectiveAnimationLock, _hints, _animLockTweak.DelayEstimate) : default;
     }
 
     public Vector3? GetWorldPosUnderCursor()
@@ -169,6 +166,8 @@ unsafe sealed class ActionManagerEx : IDisposable
     // returns time in ms
     public int GetAdjustedCastTime(ActionID action, bool applyProcs = true, ActionManager.CastTimeProc* outOptProc = null)
         => ActionManager.GetAdjustedCastTime((CSActionType)action.Type, action.ID, applyProcs, outOptProc);
+
+    public int GetAdjustedRecastTime(ActionID action, bool applyClassMechanics = true) => ActionManager.GetAdjustedRecastTime((CSActionType)action.Type, action.ID, applyClassMechanics);
 
     public bool IsRecastTimerActive(ActionID action)
         => _inst->IsRecastTimerActive((CSActionType)action.Type, action.ID);

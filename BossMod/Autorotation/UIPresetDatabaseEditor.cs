@@ -118,7 +118,7 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
                                 _selectedPresetIndex = j;
                             else if (_selectedPresetIndex == j)
                                 _selectedPresetIndex = i;
-                            db.Save();
+                            db.Modify(-1, null);
                             ImGui.ResetMouseDragDelta();
                         }
                     }
@@ -160,18 +160,9 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
     {
         if (_selectedPreset != null && _selectedPreset.Modified && !_selectedPreset.NameConflict)
         {
-            if (_selectedPresetIndex >= 0)
-            {
-                db.PresetModified.Fire(db.Presets[_selectedPresetIndex], _selectedPreset.Preset);
-                db.Presets[_selectedPresetIndex] = _selectedPreset.Preset;
-            }
-            else
-            {
-                _selectedPresetIndex = db.Presets.Count;
-                db.PresetModified.Fire(null, _selectedPreset.Preset);
-                db.Presets.Add(_selectedPreset.Preset);
-            }
-            db.Save();
+            db.Modify(_selectedPresetIndex, _selectedPreset.Preset);
+            if (_selectedPresetIndex < 0)
+                _selectedPresetIndex = db.Presets.Count - 1;
             RevertCurrentPreset();
         }
         else
@@ -187,9 +178,7 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
             _selectedPreset.DetachFromSource();
             _selectedPreset.MakeNameUnique();
             _selectedPresetIndex = db.Presets.Count;
-            db.PresetModified.Fire(null, _selectedPreset.Preset);
-            db.Presets.Add(_selectedPreset.Preset);
-            db.Save();
+            db.Modify(-1, _selectedPreset.Preset);
             RevertCurrentPreset();
         }
         else
@@ -210,9 +199,7 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
     {
         if (_selectedPresetIndex >= 0)
         {
-            db.PresetModified.Fire(db.Presets[_selectedPresetIndex], null);
-            db.Presets.RemoveAt(_selectedPresetIndex);
-            db.Save();
+            db.Modify(_selectedPresetIndex, null);
             _selectedPresetIndex = -1;
             _selectedPreset = null;
         }

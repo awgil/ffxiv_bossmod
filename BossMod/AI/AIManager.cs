@@ -1,20 +1,25 @@
-﻿using Dalamud.Game.Text;
+﻿using BossMod.Autorotation;
+using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 
 namespace BossMod.AI;
 
 sealed class AIManager : IDisposable
 {
-    private readonly AutorotationLegacy _autorot;
+    private readonly RotationModuleManager _autorot;
     private readonly AIController _controller;
     private readonly AIConfig _config;
     private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
     private AIBehaviour? _beh;
+    private Preset? _aiPreset;
     private readonly UISimpleWindow _ui;
 
-    public AIManager(AutorotationLegacy autorot)
+    private WorldState WorldState => _autorot.Bossmods.WorldState;
+
+    public AIManager(RotationModuleManager autorot)
     {
         _autorot = autorot;
         _controller = new(autorot.ActionManager);
@@ -32,19 +37,19 @@ sealed class AIManager : IDisposable
         Service.CommandManager.RemoveHandler("/vbmai");
     }
 
-    public void Update(ActionQueue queue)
+    public void Update()
     {
-        if (_autorot.WorldState.Party.ContentIDs[_masterSlot] == 0)
+        if (WorldState.Party.ContentIDs[_masterSlot] == 0)
             SwitchToIdle();
 
         if (!_config.Enabled && _beh != null)
             SwitchToIdle();
 
-        var player = _autorot.WorldState.Party.Player();
-        var master = _autorot.WorldState.Party[_masterSlot];
+        var player = WorldState.Party.Player();
+        var master = WorldState.Party[_masterSlot];
         if (_beh != null && player != null && master != null)
         {
-            _beh.Execute(player, master, queue);
+            _beh.Execute(player, master);
         }
         else
         {
@@ -57,23 +62,41 @@ sealed class AIManager : IDisposable
 
     private void DrawOverlay()
     {
-        ImGui.TextUnformatted($"AI: {(_beh != null ? "on" : "off")}, master={_autorot.WorldState.Party[_masterSlot]?.Name}");
+        ImGui.TextUnformatted($"AI: {(_beh != null ? "on" : "off")}, master={WorldState.Party[_masterSlot]?.Name}");
         ImGui.TextUnformatted($"Navi={_controller.NaviTargetPos} / {_controller.NaviTargetRot}{(_controller.ForceFacing ? " forced" : "")}");
         _beh?.DrawDebug();
-        if (ImGui.Button("Reset"))
-            SwitchToIdle();
-        ImGui.SameLine();
-        if (ImGui.Button("AI On - Follow leader"))
+
+        using (var leaderCombo = ImRaii.Combo("Leader", _beh == null ? "<idle>" : WorldState.Party[_masterSlot]?.Name ?? "<unknown>"))
         {
-            if (_config.FollowLeader)
+            if (leaderCombo)
             {
-                var leader = Service.PartyList[(int)Service.PartyList.PartyLeaderIndex];
-                int leaderSlot = leader != null ? _autorot.WorldState.Party.ContentIDs.IndexOf((ulong)leader.ContentId) : -1;
-                SwitchToFollow(leaderSlot >= 0 ? leaderSlot : PartyState.PlayerSlot);
+                if (ImGui.Selectable("<idle>", _beh == null))
+                {
+                    SwitchToIdle();
+                }
+                foreach (var (i, p) in WorldState.Party.WithSlot(true))
+                {
+                    if (ImGui.Selectable(p.Name, _masterSlot == i))
+                    {
+                        SwitchToFollow(i);
+                    }
+                }
             }
-            else
+        }
+
+        using (var presetCombo = ImRaii.Combo("AI preset", _aiPreset?.Name ?? ""))
+        {
+            if (presetCombo)
             {
-                SwitchToFollow(PartyState.PlayerSlot);
+                foreach (var p in _autorot.Database.Presets.Presets)
+                {
+                    if (ImGui.Selectable(p.Name, p == _aiPreset))
+                    {
+                        _aiPreset = p;
+                        if (_beh != null)
+                            _beh.AIPreset = p;
+                    }
+                }
             }
         }
     }
@@ -91,7 +114,7 @@ sealed class AIManager : IDisposable
     {
         SwitchToIdle();
         _masterSlot = masterSlot;
-        _beh = new AIBehaviour(_controller, _autorot);
+        _beh = new AIBehaviour(_controller, _autorot, _aiPreset);
     }
 
     private int FindPartyMemberSlotFromSender(SeString sender)
@@ -99,7 +122,7 @@ sealed class AIManager : IDisposable
         if (sender.Payloads.FirstOrDefault() is not PlayerPayload source)
             return -1;
         var pm = Service.PartyList.FirstOrDefault(pm => pm.Name.TextValue == source.PlayerName && pm.World.Id == source.World.RowId);
-        return pm != null ? _autorot.WorldState.Party.ContentIDs.IndexOf((ulong)pm.ContentId) : -1;
+        return pm != null ? WorldState.Party.ContentIDs.IndexOf((ulong)pm.ContentId) : -1;
     }
 
     private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)

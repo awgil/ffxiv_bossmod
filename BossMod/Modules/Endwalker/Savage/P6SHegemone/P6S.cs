@@ -5,8 +5,5 @@ class DarkDome(BossModule module) : Components.LocationTargetedAOEs(module, Acti
 class DarkAshes(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.DarkAshesAOE), 6);
 class DarkSphere(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.DarkSphereAOE), 10);
 
-[ConfigDisplay(Order = 0x160, Parent = typeof(EndwalkerConfig))]
-public class P6SConfig() : CooldownPlanningConfigNode(90);
-
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 881, NameID = 11381)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 881, NameID = 11381, PlanLevel = 90)]
 public class P6S(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));

@@ -205,7 +205,7 @@ class Voidzone(BossModule module) : BossComponent(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (active)
-            hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Sprint), actor, ActionQueue.Priority.High);
     }
 }
 

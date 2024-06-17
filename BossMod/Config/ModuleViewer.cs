@@ -294,7 +294,7 @@ public sealed class ModuleViewer : IDisposable
     private string ModuleHelpText(ModuleInfo info)
     {
         var sb = new StringBuilder();
-        sb.AppendLine(CultureInfo.CurrentCulture, $"Cooldown planning: {(info.Info.CooldownPlanningSupported ? "supported!" : "not supported")}");
+        sb.AppendLine(CultureInfo.CurrentCulture, $"Cooldown planning: {(info.Info.PlanLevel > 0 ? $"L{info.Info.PlanLevel}" : "not supported")}");
         if (info.Info.Contributors.Length > 0)
             sb.AppendLine(CultureInfo.CurrentCulture, $"Contributors: {info.Info.Contributors}");
         return sb.ToString();

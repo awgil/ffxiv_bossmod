@@ -65,8 +65,10 @@ class UITest
             Service.WindowSystem.Draw();
         };
 
-        var configPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs", "BossMod.json");
-        var mainWindow = new UITestWindow(scene, configPath)
+        var pluginConfigs = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs");
+        var configPath = Path.Join(pluginConfigs, "BossMod.json");
+        var rotationRoot = Path.Join(pluginConfigs, "BossMod", "autorot");
+        var mainWindow = new UITestWindow(scene, configPath, rotationRoot)
         {
             IsOpen = true
         };

@@ -5,7 +5,7 @@ namespace BossMod.Autorotation;
 // database containing all registered rotation module definitions and builder functions
 public static class RotationModuleRegistry
 {
-    public readonly record struct Entry(RotationModuleDefinition Definition, Func<WorldState, Actor, AIHints, RotationModule> Builder);
+    public readonly record struct Entry(RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder);
 
     public static readonly Dictionary<Type, Entry> Modules = BuildModules();
 
@@ -22,7 +22,7 @@ public static class RotationModuleRegistry
                 continue;
             }
 
-            var factory = New<RotationModule>.ConstructorDerived<WorldState, Actor, AIHints>(t);
+            var factory = New<RotationModule>.ConstructorDerived<RotationModuleManager, Actor>(t);
             res[t] = new(def, factory);
         }
         return res;

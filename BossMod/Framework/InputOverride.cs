@@ -7,7 +7,8 @@ namespace BossMod;
 
 // utility for overriding keyboard input as seen in game
 // TODO: currently we don't handle cast-start while moving correctly, blocking movement on keypress is too late, cast gets cancelled anyway
-sealed partial class InputOverride : IDisposable
+// TODO: should not be public!
+public sealed partial class InputOverride : IDisposable
 {
     private const int WM_KEYDOWN = 0x0100;
 

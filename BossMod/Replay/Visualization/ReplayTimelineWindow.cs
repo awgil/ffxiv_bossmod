@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using BossMod.Autorotation;
+using ImGuiNET;
 
 namespace BossMod.ReplayVisualization;
 
@@ -16,7 +17,7 @@ class ReplayTimelineWindow : UIWindow
     private readonly UISimpleWindow? _config;
     private readonly UITree _configTree = new();
 
-    public ReplayTimelineWindow(Replay replay, Replay.Encounter enc, BitMask showPlayers) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1200, 1000))
+    public ReplayTimelineWindow(Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1200, 1000))
     {
         _replay = replay;
         _encounter = enc;
@@ -28,7 +29,7 @@ class ReplayTimelineWindow : UIWindow
         _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, _stateTree, _phaseBranches));
         _timeline.Columns.Add(new ColumnSeparator(_timeline));
         _colEnemies = _timeline.Columns.Add(new ColumnEnemiesDetails(_timeline, _stateTree, _phaseBranches, replay, enc));
-        _colPlayers = _timeline.Columns.Add(new ColumnPlayersDetails(_timeline, _stateTree, _phaseBranches, replay, enc, showPlayers));
+        _colPlayers = _timeline.Columns.Add(new ColumnPlayersDetails(_timeline, _stateTree, _phaseBranches, replay, enc, showPlayers, planDB));
 
         if (IsOpen)
         {
@@ -96,14 +97,14 @@ class ReplayTimelineWindow : UIWindow
 
         var tree = new StateMachineTree(m.StateMachine);
         var phaseBranches = Enumerable.Repeat(0, m.StateMachine.Phases.Count).ToList();
-        var phaseTimings = new StateMachineTimings();
-        phaseTimings.PhaseDurations.AddRange(Enumerable.Repeat(0.0f, m.StateMachine.Phases.Count));
+        List<float> phaseTimings = [];
+        phaseTimings.AddRange(Enumerable.Repeat(0.0f, m.StateMachine.Phases.Count));
 
         var phaseEnter = enc.Time.Start;
         foreach (var p in enc.Phases)
         {
             phaseBranches[p.ID] = tree.Nodes[p.LastStateID].BranchID - tree.Phases[p.ID].StartingNode.BranchID;
-            phaseTimings.PhaseDurations[p.ID] = (float)(p.Exit - phaseEnter).TotalSeconds;
+            phaseTimings[p.ID] = (float)(p.Exit - phaseEnter).TotalSeconds;
             phaseEnter = p.Exit;
         }
 

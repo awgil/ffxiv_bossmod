@@ -109,13 +109,13 @@ public class StateMachineTree
         }
     }
 
-    public void ApplyTimings(StateMachineTimings? timings)
+    public void ApplyTimings(List<float>? phaseDurations)
     {
         if (Phases.Count == 0)
             return;
 
-        if (timings != null)
-            foreach (var (p, t) in Phases.Zip(timings.PhaseDurations))
+        if (phaseDurations != null)
+            foreach (var (p, t) in Phases.Zip(phaseDurations))
                 p.Duration = Math.Min(t, p.MaxTime);
 
         for (int i = 1; i < Phases.Count; ++i)

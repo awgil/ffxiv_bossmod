@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿using BossMod.Autorotation;
+using Dalamud.Game.ClientState.Objects.Types;
 
 namespace BossMod;
 
@@ -6,7 +7,7 @@ sealed class IPCProvider : IDisposable
 {
     private Action? _disposeActions;
 
-    public IPCProvider(AutorotationLegacy autorotation)
+    public IPCProvider(RotationModuleManager autorotation)
     {
         // TODO: this really needs to be reconsidered, this exposes implementation detail
         // for usecase description, see PR 330 - really AI itself should handle heal range
@@ -17,8 +18,8 @@ sealed class IPCProvider : IDisposable
         Register("HasModule", (GameObject obj) => ModuleRegistry.FindByOID(obj.DataId) != null);
         Register("IsMoving", autorotation.ActionManager.InputOverride.IsMoving);
         Register("ForbiddenZonesCount", () => autorotation.Hints.ForbiddenZones.Count);
-        Register("InitiateCombat", () => autorotation.ClassActions?.UpdateAutoAction(CommonActions.AutoActionAIFight, float.MaxValue, true));
-        Register("SetAutorotationState", (bool state) => Service.Config.Get<AutorotationConfig>().Enabled = state);
+        //Register("InitiateCombat", () => autorotation.ClassActions?.UpdateAutoAction(CommonActions.AutoActionAIFight, float.MaxValue, true));
+        //Register("SetAutorotationState", (bool state) => Service.Config.Get<AutorotationConfig>().Enabled = state);
     }
 
     public void Dispose() => _disposeActions?.Invoke();

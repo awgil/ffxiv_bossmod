@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
 [ConfigDisplay(Order = 0x1C1, Parent = typeof(EndwalkerConfig))]
-public class P12S1AthenaConfig() : CooldownPlanningConfigNode(90)
+public class P12S1AthenaConfig() : ConfigNode()
 {
     public enum EngravementOfSouls1Strategy
     {

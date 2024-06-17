@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using ImGuiNET;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace BossMod.Autorotation;
@@ -29,8 +30,31 @@ public sealed record class Preset(string Name)
     {
         var res = new Preset(Name);
         foreach (var kv in Modules)
-            res.Modules[kv.Key] = [.. kv.Value.Select(s => s with { Value = s.Value with { } })];
+            res.Modules[kv.Key] = [.. kv.Value];
         return res;
+    }
+
+    public StrategyValue[] ActiveStrategyOverrides(Type type, Modifier mods)
+    {
+        var res = Utils.MakeArray<StrategyValue>(RotationModuleRegistry.Modules[type].Definition.Configs.Count, new()); // TODO: if allocations are a problem, could use a single private scratch buffer...
+        foreach (ref var s in Modules[type].AsSpan())
+            if ((s.Mod & mods) == s.Mod)
+                res[s.Track] = s.Value;
+        return res;
+    }
+
+    public StrategyValue[] ActiveStrategyOverrides(Type type) => ActiveStrategyOverrides(type, CurrentModifiers());
+
+    public static Modifier CurrentModifiers()
+    {
+        Modifier mods = Modifier.None;
+        if (ImGui.GetIO().KeyShift)
+            mods |= Modifier.Shift;
+        if (ImGui.GetIO().KeyCtrl)
+            mods |= Modifier.Ctrl;
+        if (ImGui.GetIO().KeyAlt)
+            mods |= Modifier.Alt;
+        return mods;
     }
 }
 

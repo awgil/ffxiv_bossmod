@@ -44,8 +44,8 @@ class LimitCut(BossModule module, float alphaDelay) : Components.GenericBaitAway
             }
             if (hitIn < 5)
             {
-                var action = actor.Class.GetClassCategory() is ClassCategory.Healer or ClassCategory.Caster ? ActionID.MakeSpell(WHM.AID.Surecast) : ActionID.MakeSpell(WAR.AID.ArmsLength);
-                hints.PlannedActions.Add((action, actor, hitIn, false));
+                var action = actor.Class.GetClassCategory() is ClassCategory.Healer or ClassCategory.Caster ? ActionID.MakeSpell(ClassShared.AID.Surecast) : ActionID.MakeSpell(ClassShared.AID.ArmsLength);
+                hints.ActionsToExecute.Push(action, actor, ActionQueue.Priority.High);
             }
         }
     }

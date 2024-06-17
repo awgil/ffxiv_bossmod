@@ -59,7 +59,7 @@ class Ex4IfritAICommon(BossModule module) : BossComponent(module)
     {
         if (action && phaseTime >= minPhaseTime && phaseTime < maxPhaseTime)
         {
-            hints.PlannedActions.Add((action, player, maxPhaseTime - phaseTime, false));
+            hints.ActionsToExecute.Push(action, player, ActionQueue.Priority.High);
         }
     }
 

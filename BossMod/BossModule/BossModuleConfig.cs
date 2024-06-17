@@ -59,9 +59,6 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Show boss module demo out of instances (useful for configuring windows)")]
     public bool ShowDemo = false;
 
-    [PropertyDisplay("Show window with cooldown plan timers")]
-    public bool EnableTimerWindow = false;
-
     [PropertyDisplay("Always show all alive party members")]
     public bool ShowIrrelevantPlayers = false;
 

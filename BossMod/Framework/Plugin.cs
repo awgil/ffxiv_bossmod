@@ -16,6 +16,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private ICommandManager CommandManager { get; init; }
 
+    private readonly RotationDatabase _rotationDB;
     private readonly WorldState _ws;
     private readonly AIHints _hints;
     private readonly BossModuleManager _bossmod;
@@ -23,7 +24,6 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ActionManagerEx _amex;
     private readonly WorldStateGameSync _wsSync;
     private readonly RotationModuleManager _rotation;
-    private readonly AutorotationLegacy _autorotation;
     private readonly AI.AIManager _ai;
     private readonly AI.Broadcast _broadcast;
     private readonly IPCProvider _ipc;
@@ -31,7 +31,6 @@ public sealed class Plugin : IDalamudPlugin
 
     // windows
     private readonly BossModuleMainWindow _wndBossmod;
-    private readonly BossModulePlanWindow _wndBossmodPlan;
     private readonly BossModuleHintsWindow _wndBossmodHints;
     private readonly ReplayManagementWindow _wndReplay;
     private readonly MainDebugWindow _wndDebug;
@@ -69,28 +68,24 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager = commandManager;
         CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
-        var rotationRoot = new DirectoryInfo(dalamud.ConfigDirectory.FullName + "/autorot");
-        rotationRoot.Create();
-
         var actionDefs = ActionDefinitions.Instance; // ensure action definitions are initialized
         var qpf = (ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency;
+        _rotationDB = new(new(dalamud.ConfigDirectory.FullName + "/autorot"));
         _ws = new(qpf, gameVersion);
         _hints = new();
         _bossmod = new(_ws);
         _hintsBuilder = new(_ws, _bossmod);
         _amex = new(_ws, _hints);
         _wsSync = new(_ws, _amex);
-        _rotation = new(rotationRoot, _bossmod, _hints);
-        _autorotation = new(_bossmod, _hints, _amex);
-        _ai = new(_autorotation);
+        _rotation = new(_rotationDB, _bossmod, _hints, _amex);
+        _ai = new(_rotation);
         _broadcast = new();
-        _ipc = new(_autorotation);
+        _ipc = new(_rotation);
 
         _wndBossmod = new(_bossmod);
-        _wndBossmodPlan = new(_bossmod);
         _wndBossmodHints = new(_bossmod);
-        _wndReplay = new(_ws, new(dalamud.ConfigDirectory.FullName + "/replays"));
-        _wndDebug = new(_ws, _autorotation);
+        _wndReplay = new(_ws, _rotationDB.Plans, new(dalamud.ConfigDirectory.FullName + "/replays"));
+        _wndDebug = new(_ws, _rotation);
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
         dalamud.UiBuilder.Draw += DrawUI;
@@ -103,11 +98,9 @@ public sealed class Plugin : IDalamudPlugin
         _wndDebug.Dispose();
         _wndReplay.Dispose();
         _wndBossmodHints.Dispose();
-        _wndBossmodPlan.Dispose();
         _wndBossmod.Dispose();
         _ipc.Dispose();
         _ai.Dispose();
-        _autorotation.Dispose();
         _rotation.Dispose();
         _wsSync.Dispose();
         _amex.Dispose();
@@ -154,7 +147,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OpenConfigUI()
     {
-        _ = new UISimpleWindow("Boss mod config", new ConfigUI(Service.Config, _ws, _rotation.Database).Draw, true, new(300, 300));
+        _ = new UISimpleWindow("Boss mod config", new ConfigUI(Service.Config, _ws, _rotationDB).Draw, true, new(300, 300));
     }
 
     private void DrawUI()
@@ -163,14 +156,14 @@ public sealed class Plugin : IDalamudPlugin
 
         Camera.Instance?.Update();
         _wsSync.Update(_prevUpdateTime);
-        var queue = _amex.StartActionGather();
+        _amex.QueueManualActions();
         _bossmod.Update();
         _hintsBuilder.Update(_hints, PartyState.PlayerSlot);
-        _rotation.Update(_hints?.ForcedTarget ?? _ws.Actors.Find(_ws.Party.Player()?.TargetID ?? 0), queue);
-        _autorotation.Update(queue);
-        _ai.Update(queue);
+        _rotation.Update();
+        _ai.Update();
         _broadcast.Update();
         _amex.FinishActionGather();
+        ExecuteHints();
 
         bool uiHidden = Service.GameGui.GameUiHidden || Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.WatchingCutscene];
         if (!uiHidden)
@@ -180,6 +173,23 @@ public sealed class Plugin : IDalamudPlugin
 
         Camera.Instance?.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
+    }
+
+    private unsafe void ExecuteHints()
+    {
+        // update forced target, if needed (TODO: move outside maybe?)
+        if (_hints.ForcedTarget != null)
+        {
+            var obj = _hints.ForcedTarget.SpawnIndex >= 0 ? FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.IndexSorted[_hints.ForcedTarget.SpawnIndex].Value : null;
+            if (obj != null && obj->EntityId != _hints.ForcedTarget.InstanceID)
+                Service.Log($"[ExecHints] Unexpected new target: expected {_hints.ForcedTarget.InstanceID:X} at #{_hints.ForcedTarget.SpawnIndex}, but found {obj->EntityId:X}");
+            FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->Target = obj;
+        }
+        foreach (var s in _hints.StatusesToCancel)
+        {
+            var res = FFXIVClientStructs.FFXIV.Client.Game.StatusManager.ExecuteStatusOff(s.statusId, s.sourceId != 0 ? (uint)s.sourceId : Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId);
+            Service.Log($"[ExecHints] Canceling status {s.statusId} from {s.sourceId:X} -> {res}");
+        }
     }
 
     private void ParseAutorotationCommands(string[] cmd)
@@ -212,7 +222,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             PrintAutorotationHelp();
         }
-        else if (_rotation.Database.Presets.FirstOrDefault(p => p.Name == cmd[2]) is var preset && preset == null)
+        else if (_rotation.Database.Presets.Presets.FirstOrDefault(p => p.Name == cmd[2]) is var preset && preset == null)
         {
             Service.ChatGui.PrintError($"Failed to find preset '{cmd[2]}'");
         }

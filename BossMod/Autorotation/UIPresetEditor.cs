@@ -245,7 +245,7 @@ public sealed class UIPresetEditor
         }
         else if (_selectedSettingIndex < 0)
         {
-            DrawModulePreview(SelectedModuleType, ms);
+            DrawModulePreview(SelectedModuleType);
         }
         else
         {
@@ -253,23 +253,11 @@ public sealed class UIPresetEditor
         }
     }
 
-    private void DrawModulePreview(Type moduleType, List<Preset.ModuleSetting> ms)
+    private void DrawModulePreview(Type moduleType)
     {
-        Preset.Modifier mods = Preset.Modifier.None;
-        if (ImGui.GetIO().KeyShift)
-            mods |= Preset.Modifier.Shift;
-        if (ImGui.GetIO().KeyCtrl)
-            mods |= Preset.Modifier.Ctrl;
-        if (ImGui.GetIO().KeyAlt)
-            mods |= Preset.Modifier.Alt;
-        ImGui.TextUnformatted($"Current modifiers: {mods}");
-
+        ImGui.TextUnformatted($"Current modifiers: {Preset.CurrentModifiers()}");
         var md = RotationModuleRegistry.Modules[moduleType].Definition;
-        var values = Utils.MakeArray<StrategyValue>(md.Configs.Count, new());
-        foreach (ref var s in ms.AsSpan())
-            if ((s.Mod & mods) == s.Mod)
-                values[s.Track] = s.Value;
-
+        var values = Preset.ActiveStrategyOverrides(moduleType);
         foreach (var i in _orderedTrackList)
         {
             var val = values[i];

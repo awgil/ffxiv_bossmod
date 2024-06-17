@@ -12,9 +12,6 @@ public abstract class BossModule : IDisposable
     public readonly MiniArena Arena;
     public readonly ModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
-    // TODO: this should be moved outside...
-    public readonly CooldownPlanningConfigNode? PlanConfig;
-    public CooldownPlanExecution? PlanExecution;
 
     private readonly EventSubscriptions _subscriptions;
 
@@ -109,16 +106,6 @@ public abstract class BossModule : IDisposable
 
         foreach (var v in WorldState.Actors)
             OnActorCreated(v);
-
-        if (Info?.CooldownPlanningSupported ?? false)
-        {
-            PlanConfig = Service.Config.Get<CooldownPlanningConfigNode>(Info.ConfigType!);
-            _subscriptions.Add(PlanConfig.Modified.Subscribe(() =>
-            {
-                Service.Log($"[BM] Detected plan modification for '{GetType()}', resetting execution");
-                PlanExecution = null;
-            }));
-        }
     }
 
     public void Dispose()
@@ -137,15 +124,6 @@ public abstract class BossModule : IDisposable
 
     public void Update()
     {
-        // update cooldown plan if needed
-        var cls = Raid.Player()?.Class ?? Class.None;
-        var plan = PlanConfig?.SelectedPlan(cls);
-        if (PlanExecution == null || PlanExecution.Plan != plan)
-        {
-            Service.Log($"[BM] Selected plan for '{GetType()}' ({PrimaryActor.InstanceID:X}) for {cls}: '{plan?.Name ?? "<none>"}'");
-            PlanExecution = new(StateMachine, plan);
-        }
-
         if (StateMachine.ActivePhaseIndex < 0 && CheckPull())
             StateMachine.Start(WorldState.CurrentTime);
 

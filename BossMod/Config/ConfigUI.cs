@@ -21,13 +21,13 @@ public sealed class ConfigUI : IDisposable
     private readonly ModuleViewer _mv = new();
     private readonly ConfigRoot _root;
     private readonly WorldState _ws;
-    private readonly PresetDatabase? _presets;
+    private readonly UIPresetDatabaseEditor? _presets;
 
-    public ConfigUI(ConfigRoot config, WorldState ws, PresetDatabase? presets)
+    public ConfigUI(ConfigRoot config, WorldState ws, RotationDatabase? rotationDB)
     {
         _root = config;
         _ws = ws;
-        _presets = presets;
+        _presets = rotationDB != null ? new(rotationDB.Presets) : null;
 
         Dictionary<Type, UINode> nodes = [];
         foreach (var n in config.Nodes)
@@ -70,7 +70,7 @@ public sealed class ConfigUI : IDisposable
                     _mv.Draw(_tree);
             using (var tab = ImRaii.TabItem("Presets"))
                 if (tab)
-                    _presets?.Editor.Draw();
+                    _presets?.Draw();
         }
     }
 

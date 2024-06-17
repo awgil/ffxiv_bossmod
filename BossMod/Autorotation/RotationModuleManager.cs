@@ -1,7 +1,4 @@
-﻿using ImGuiNET;
-using System.IO;
-
-namespace BossMod.Autorotation;
+﻿namespace BossMod.Autorotation;
 
 // the manager contains a set of rotation module instances corresponding to the selected preset/plan
 public sealed class RotationModuleManager : IDisposable
@@ -18,31 +15,40 @@ public sealed class RotationModuleManager : IDisposable
     }
 
     public readonly AutorotationConfig Config = Service.Config.Get<AutorotationConfig>();
-    public readonly PresetDatabase Database;
-    private readonly BossModuleManager _bmm;
-    private readonly int _playerSlot;
-    private readonly AIHints _hints;
+    public readonly RotationDatabase Database;
+    public readonly BossModuleManager Bossmods;
+    public readonly ActionManagerEx ActionManager; // TODO: remove!
+    public readonly int PlayerSlot;
+    public readonly AIHints Hints;
+    public PlanExecution? Planner { get; private set; }
+    private readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
     private readonly EventSubscriptions _subscriptions;
     private List<(RotationModuleDefinition Definition, RotationModule Module)>? _activeModules;
 
     public static readonly Preset ForceDisable = new(""); // empty preset, so if it's activated, rotation is force disabled
 
-    public RotationModuleManager(DirectoryInfo dbRoot, BossModuleManager bmm, AIHints hints, int playerSlot = PartyState.PlayerSlot)
+    public WorldState WorldState => WorldState;
+    public Actor? Player => WorldState.Party[PlayerSlot];
+
+    public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AIHints hints, ActionManagerEx amex, int playerSlot = PartyState.PlayerSlot)
     {
-        Database = new(new(dbRoot.FullName + "/presets.json"));
-        _bmm = bmm;
-        _playerSlot = playerSlot;
-        _hints = hints;
+        Database = db;
+        Bossmods = bmm;
+        PlayerSlot = playerSlot;
+        Hints = hints;
+        ActionManager = amex;
         _subscriptions = new
         (
-            _bmm.WorldState.Actors.Added.Subscribe(a => DirtyActiveModules(_bmm.WorldState.Party.ActorIDs[_playerSlot] == a.InstanceID)),
-            _bmm.WorldState.Actors.Removed.Subscribe(a => DirtyActiveModules(_bmm.WorldState.Party.ActorIDs[_playerSlot] == a.InstanceID)),
-            _bmm.WorldState.Actors.ClassChanged.Subscribe(a => DirtyActiveModules(_bmm.WorldState.Party.ActorIDs[_playerSlot] == a.InstanceID)),
-            _bmm.WorldState.Actors.InCombatChanged.Subscribe(OnCombatChanged),
-            _bmm.WorldState.Actors.IsDeadChanged.Subscribe(OnDeadChanged),
-            _bmm.WorldState.Party.Modified.Subscribe(op => DirtyActiveModules(op.Slot == _playerSlot)),
-            _bmm.WorldState.Client.CountdownChanged.Subscribe(OnCountdownChanged),
-            Database.PresetModified.Subscribe(OnPresetModified)
+            WorldState.Actors.Added.Subscribe(a => DirtyActiveModules(WorldState.Party.ActorIDs[PlayerSlot] == a.InstanceID)),
+            WorldState.Actors.Removed.Subscribe(a => DirtyActiveModules(WorldState.Party.ActorIDs[PlayerSlot] == a.InstanceID)),
+            WorldState.Actors.ClassChanged.Subscribe(a => DirtyActiveModules(WorldState.Party.ActorIDs[PlayerSlot] == a.InstanceID)),
+            WorldState.Actors.InCombatChanged.Subscribe(OnCombatChanged),
+            WorldState.Actors.IsDeadChanged.Subscribe(OnDeadChanged),
+            WorldState.Actors.CastEvent.Subscribe(OnCastEvent),
+            WorldState.Party.Modified.Subscribe(op => DirtyActiveModules(op.Slot == PlayerSlot)),
+            WorldState.Client.ActionRequested.Subscribe(OnActionRequested),
+            WorldState.Client.CountdownChanged.Subscribe(OnCountdownChanged),
+            Database.Presets.PresetModified.Subscribe(OnPresetModified)
         );
     }
 
@@ -51,69 +57,78 @@ public sealed class RotationModuleManager : IDisposable
         _subscriptions.Dispose();
     }
 
-    public void Update(Actor? target, ActionQueue actions)
+    public void Update()
     {
-        _activeModules ??= RebuildActiveModules();
-        if (Preset != null)
+        // see whether current plan matches what should be active, and update if not; only rebuild actions if there is no active override
+        var expectedPlan = CalculateExpectedPlan();
+        if (Planner?.Module != Bossmods.ActiveModule || Planner?.Plan != expectedPlan)
         {
-            Preset.Modifier mods = Preset.Modifier.None;
-            if (ImGui.GetIO().KeyShift)
-                mods |= Preset.Modifier.Shift;
-            if (ImGui.GetIO().KeyCtrl)
-                mods |= Preset.Modifier.Ctrl;
-            if (ImGui.GetIO().KeyAlt)
-                mods |= Preset.Modifier.Alt;
-
-            foreach (var m in _activeModules)
-            {
-                var mt = m.Module.GetType();
-                if (Preset.Modules.TryGetValue(mt, out var ms))
-                {
-                    var values = Utils.MakeArray<StrategyValue>(m.Definition.Configs.Count, new()); // TODO: if allocations are a problem, could use a single private scratch buffer...
-                    foreach (ref var s in ms.AsSpan())
-                        if ((s.Mod & mods) == s.Mod)
-                            values[s.Track] = s.Value;
-                    m.Module.Execute(values, target, actions);
-                }
-                else
-                {
-                    Service.Log($"[RMM] Preset for {mt.FullName} not found");
-                }
-            }
+            Planner = Bossmods.ActiveModule != null ? new(Bossmods.ActiveModule, expectedPlan) : null;
+            DirtyActiveModules(Preset == null);
         }
-        //else if (... plan ...)
-        else if (_activeModules.Count != 0)
+
+        // rebuild modules if needed
+        _activeModules ??= Preset != null ? RebuildActiveModules(Preset.Modules.Keys) : Planner?.Plan != null ? RebuildActiveModules(Planner.Plan.Modules.Keys) : [];
+
+        // forced target update
+        if (Hints.ForcedTarget == null && Preset == null && Planner?.ActiveForcedTarget() is var forced && forced != null)
         {
-            Service.Log($"[RMM] Non-empty active module list while there are no active preset/plan");
+            Hints.ForcedTarget = ResolveTargetOverride(forced.Value);
+        }
+
+        // auto actions
+        var target = Hints.ForcedTarget ?? WorldState.Actors.Find(Player?.TargetID ?? 0);
+        foreach (var m in _activeModules)
+        {
+            var mt = m.Module.GetType();
+            var values = Preset?.ActiveStrategyOverrides(mt) ?? Planner?.ActiveStrategyOverrides(mt) ?? [];
+            m.Module.Execute(values, target);
         }
     }
 
+    public Actor? ResolveTargetOverride(in StrategyValue strategy) => strategy.Target switch
+    {
+        StrategyTarget.Self => Player,
+        StrategyTarget.PartyByAssignment => _prc.SlotsPerAssignment(WorldState.Party) is var spa && strategy.TargetParam < spa.Length ? WorldState.Party[spa[strategy.TargetParam]] : null,
+        StrategyTarget.PartyWithLowestHP => WorldState.Party.WithoutSlot().Exclude(strategy.TargetParam != 0 ? null : Player).MinBy(a => a.HPMP.CurHP),
+        StrategyTarget.EnemyWithHighestPriority => Player != null ? Hints.PriorityTargets.MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor : null,
+        StrategyTarget.EnemyByOID => Player != null && (uint)strategy.TargetParam is var oid && oid != 0 ? Hints.PotentialTargets.Where(e => e.Actor.OID == oid).MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor : null,
+        _ => null
+    };
+
+    private Plan? CalculateExpectedPlan()
+    {
+        var player = Player;
+        if (player == null || Bossmods.ActiveModule == null)
+            return null; // nothing loaded/active, so no plan
+        if (Bossmods.ActiveModule.StateMachine.ActiveState == null && WorldState.Client.CountdownRemaining == null)
+            return null; // neither pull nor prepull
+        var plans = Database.Plans.GetPlans(Bossmods.ActiveModule.GetType(), player.Class);
+        return plans.SelectedIndex >= 0 ? plans.Plans[plans.SelectedIndex] : null;
+    }
+
     // TODO: consider not recreating modules that were active and continue to be active?
-    private List<(RotationModuleDefinition Definition, RotationModule Module)> RebuildActiveModules()
+    private List<(RotationModuleDefinition Definition, RotationModule Module)> RebuildActiveModules(IEnumerable<Type> types)
     {
         List<(RotationModuleDefinition Definition, RotationModule Module)> res = [];
-        var player = _bmm.WorldState.Party[_playerSlot];
+        var player = Player;
         if (player != null)
         {
-            if (Preset != null)
+            foreach (var m in types)
             {
-                foreach (var m in Preset.Modules)
+                var def = RotationModuleRegistry.Modules.GetValueOrDefault(m);
+                if (def.Definition != null && def.Definition.Classes[(int)player.Class] && player.Level >= def.Definition.MinLevel && player.Level <= def.Definition.MaxLevel)
                 {
-                    var def = RotationModuleRegistry.Modules.GetValueOrDefault(m.Key);
-                    if (def.Definition != null && def.Definition.Classes[(int)player.Class] && player.Level >= def.Definition.MinLevel && player.Level <= def.Definition.MaxLevel)
-                    {
-                        res.Add((def.Definition, def.Builder(_bmm.WorldState, player, _hints)));
-                    }
+                    res.Add((def.Definition, def.Builder(this, player)));
                 }
             }
-            // else if (... plan ...)
         }
         return res;
     }
 
     private void OnCombatChanged(Actor actor)
     {
-        if (_bmm.WorldState.Party.ActorIDs[_playerSlot] != actor.InstanceID)
+        if (WorldState.Party.ActorIDs[PlayerSlot] != actor.InstanceID)
             return; // don't care
 
         if (!actor.InCombat)
@@ -122,7 +137,7 @@ public sealed class RotationModuleManager : IDisposable
             Service.Log($"[RMM] Player exits combat => clear preset '{Preset?.Name ?? "<n/a>"}'");
             Preset = null;
         }
-        else if (_bmm.WorldState.Client.CountdownRemaining > Config.EarlyPullThreshold)
+        else if (WorldState.Client.CountdownRemaining > Config.EarlyPullThreshold)
         {
             // player enters combat while countdown is in progress => force disable
             Service.Log($"[RMM] Player ninja pulled => force-disabling from '{Preset?.Name ?? "<n/a>"}'");
@@ -133,7 +148,7 @@ public sealed class RotationModuleManager : IDisposable
 
     private void OnDeadChanged(Actor actor)
     {
-        if (_bmm.WorldState.Party.ActorIDs[_playerSlot] != actor.InstanceID)
+        if (WorldState.Party.ActorIDs[PlayerSlot] != actor.InstanceID)
             return; // don't care
 
         // note: if combat ends while player is dead, we'll reset the preset, which is desirable
@@ -148,7 +163,7 @@ public sealed class RotationModuleManager : IDisposable
 
     private void OnCountdownChanged(ClientState.OpCountdownChange op)
     {
-        if (op.Value == null && !(_bmm.WorldState.Party[_playerSlot]?.InCombat ?? false))
+        if (op.Value == null && !(Player?.InCombat ?? false))
         {
             // countdown ended and player is not in combat - so either it was cancelled, or pull didn't happen => clear manual overrides
             // note that if pull will happen regardless after this, we'll start executing plan normally (without prepull part)
@@ -167,5 +182,20 @@ public sealed class RotationModuleManager : IDisposable
     {
         if (condition)
             _activeModules = null;
+    }
+
+    private void OnActionRequested(ClientState.OpActionRequest op)
+    {
+#if DEBUG
+        Service.Log($"[RMM] Exec #{op.Request.SourceSequence} {op.Request.Action} @ {op.Request.TargetID:X} [{string.Join(" --- ", _activeModules?.Select(m => m.Module.DescribeState()) ?? [])}]");
+#endif
+    }
+
+    private void OnCastEvent(Actor actor, ActorCastEvent cast)
+    {
+#if DEBUG
+        if (cast.SourceSequence != 0 && WorldState.Party.ActorIDs[PlayerSlot] == actor.InstanceID)
+            Service.Log($"[RMM] Cast #{cast.SourceSequence} {cast.Action} @ {cast.MainTargetID:X} [{string.Join(" --- ", _activeModules?.Select(m => m.Module.DescribeState()) ?? [])}]");
+#endif
     }
 }

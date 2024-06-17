@@ -1,80 +1,49 @@
-﻿using ImGuiNET;
-using Newtonsoft.Json.Linq;
+﻿using BossMod.Autorotation;
+using BossMod.ReplayVisualization;
+using Dalamud.Interface.Utility.Raii;
+using ImGuiNET;
+using System.Text.Json;
 
 namespace BossMod;
 
-// a set of action-use columns that represent cooldown plan
+// a set of use columns that represent a single cooldown plan; note that it works on a private copy of a plan and reports modifications to whoever owns it
 public class CooldownPlannerColumns : Timeline.ColumnGroup
 {
-    private readonly CooldownPlan _plan;
-    private readonly Action _onModified;
+    public bool Modified;
+    public Plan Plan; // note: this is a copy of the plan stored in database
     private readonly StateMachineTree _tree;
     private readonly List<int> _phaseBranches;
-    private readonly ModuleRegistry.Info? _moduleInfo;
     private readonly bool _syncTimings;
-    private string _name = "";
-    private StateMachineTimings _timings = new();
-    private readonly List<ColumnPlannerTrackCooldown> _colCooldowns = [];
-    private readonly List<ColumnPlannerTrackStrategy> _colStrategy = [];
+    private readonly List<Replay.Action> _playerActions;
+    private readonly DateTime _encStart;
+    private readonly Dictionary<Type, List<ColumnPlannerTrackStrategy>> _colsStrategy = [];
     private readonly ColumnPlannerTrackTarget _colTarget;
-    private readonly Dictionary<ActionID, int> _aidToColCooldown = [];
 
     private readonly float _trackWidth = 50;
 
-    public Class PlanClass => _plan.Class;
+    public Class PlanClass => Plan.Class;
 
-    public CooldownPlannerColumns(CooldownPlan plan, Action onModified, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, ModuleRegistry.Info? moduleInfo, bool syncTimings)
+    public CooldownPlannerColumns(Plan plan, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, bool syncTimings, List<Replay.Action> playerActions, DateTime encStart)
         : base(timeline)
     {
-        _plan = plan;
-        _onModified = onModified;
+        Plan = plan;
         _tree = tree;
         _phaseBranches = phaseBranches;
-        _moduleInfo = moduleInfo;
         _syncTimings = syncTimings;
-        var classDef = PlanDefinitions.Classes[plan.Class];
-        foreach (var track in classDef.CooldownTracks)
-        {
-            ActionID defaultAction = new();
-            foreach (var a in track.Actions.Where(a => a.minLevel <= plan.Level))
-            {
-                _aidToColCooldown[a.aid] = _colCooldowns.Count;
-                if (!defaultAction)
-                    defaultAction = a.aid;
-            }
+        _playerActions = playerActions;
+        _encStart = encStart;
 
-            if (defaultAction)
-            {
-                var col = Add(new ColumnPlannerTrackCooldown(timeline, tree, phaseBranches, track.Name, moduleInfo, classDef, track, defaultAction, plan.Level));
-                col.Width = _trackWidth;
-                col.NotifyModified = onModified;
-                _colCooldowns.Add(col);
-            }
-        }
-        foreach (var track in classDef.StrategyTracks)
-        {
-            var col = Add(new ColumnPlannerTrackStrategy(timeline, tree, phaseBranches, track.Name, classDef, track));
-            col.Width = _trackWidth;
-            col.NotifyModified = onModified;
-            _colStrategy.Add(col);
-        }
-
-        _colTarget = Add(new ColumnPlannerTrackTarget(timeline, tree, phaseBranches, moduleInfo));
+        _colTarget = Add(new ColumnPlannerTrackTarget(timeline, tree, phaseBranches, ModuleRegistry.FindByType(plan.Encounter)));
         _colTarget.Width = _trackWidth;
-        _colTarget.NotifyModified = onModified;
+        _colTarget.NotifyModified = OnModifiedTargets;
 
-        ExtractPlanData(plan);
-    }
-
-    // TODO: should be removed...
-    public ColumnPlannerTrackCooldown? TrackForAction(ActionID aid)
-    {
-        var index = _aidToColCooldown.GetValueOrDefault(aid, -1);
-        return index >= 0 ? _colCooldowns[index] : null;
+        SyncCreateImport();
     }
 
     public void DrawCommonControls()
     {
+        if (ImGui.Button("Modules"))
+            ImGui.OpenPopup("modules");
         if (ImGui.Button("Export to clipboard"))
             ExportToClipboard();
         ImGui.SameLine();
@@ -82,8 +51,48 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
             ImportFromClipboard();
         ImGui.SameLine();
         ImGui.SetNextItemWidth(100);
-        if (ImGui.InputText("Name", ref _name, 255))
-            _onModified();
+        Modified |= ImGui.InputText("Name", ref Plan.Name, 255);
+
+        using var popup = ImRaii.Popup("modules");
+        if (popup)
+        {
+            foreach (var (mt, m) in RotationModuleRegistry.Modules.Where(m => m.Value.Definition.Classes[(int)Plan.Class]))
+            {
+                var added = Plan.Modules.ContainsKey(mt);
+                var disable = added && !ImGui.GetIO().KeyShift;
+                using (ImRaii.Disabled(disable))
+                {
+                    if (ImGui.Checkbox(m.Definition.DisplayName, ref added))
+                    {
+                        if (added)
+                        {
+                            Plan.AddModule(mt);
+                            AddStrategyColumns(mt);
+                        }
+                        else
+                        {
+                            Plan.Modules.Remove(mt);
+                            if (_colsStrategy.Remove(mt, out var cols))
+                                foreach (var col in cols)
+                                    Columns.Remove(col);
+                        }
+                        Modified = true;
+                    }
+                }
+                if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+                {
+                    using var tooltip = ImRaii.Tooltip();
+                    if (tooltip)
+                    {
+                        if (disable)
+                            ImGui.TextUnformatted("Hold shift to remove");
+                        ImGui.TextUnformatted(m.Definition.DisplayName);
+                        ImGui.TextUnformatted(m.Definition.Description);
+                        ImGui.TextUnformatted($"Class: {mt.Name}");
+                    }
+                }
+            }
+        }
     }
 
     public int DrawPhaseControls(int selectedPhase)
@@ -100,10 +109,10 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         ImGui.SameLine();
         if (ImGui.SliderFloat("###phase-duration", ref selPhase.Duration, 0, selPhase.MaxTime, $"{selPhase.Name}: %.1f"))
         {
-            _timings.PhaseDurations[selectedPhase] = selPhase.Duration;
+            Plan.PhaseDurations[selectedPhase] = selPhase.Duration;
             if (_syncTimings)
-                _tree.ApplyTimings(_timings);
-            _onModified();
+                _tree.ApplyTimings(Plan.PhaseDurations);
+            Modified = true;
         }
 
         ImGui.SameLine();
@@ -118,61 +127,36 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         return selectedPhase;
     }
 
-    public void DrawConfig()
+    public void DrawConfig(UITree tree)
     {
         DrawCommonControls();
-        // TODO: hide/show for tracks
-    }
-
-    public void UpdateEditedPlan()
-    {
-        var plan = BuildPlan();
-        _plan.Name = plan.Name;
-        _plan.Timings = plan.Timings;
-        _plan.Actions = plan.Actions;
-        _plan.StrategyOverrides = plan.StrategyOverrides;
-        _plan.TargetOverrides = plan.TargetOverrides;
-    }
-
-    public void ExportToClipboard()
-    {
-        if (_moduleInfo == null)
+        foreach (var (mt, cols) in tree.Nodes(_colsStrategy, kv => new(RotationModuleRegistry.Modules[kv.Key].Definition.DisplayName, kv.Value.Count == 0)))
         {
-            Service.Log($"Failed to export plan, module info unavailable");
-            return;
+            foreach (var col in cols)
+            {
+                var visible = col.Width > 0;
+                if (ImGui.Checkbox(col.Name, ref visible))
+                    col.Width = visible ? _trackWidth : 0;
+            }
         }
-
-        var json = BuildPlan().ToJSON(Serialization.BuildSerializer());
-        json["Class"] = _plan.Class.ToString();
-        json["Encounter"] = _moduleInfo.ModuleType.FullName;
-        ImGui.SetClipboardText(json.ToString());
     }
+
+    public void ExportToClipboard() => ImGui.SetClipboardText(JsonSerializer.Serialize(Plan, Serialization.BuildSerializationOptions()));
 
     public void ImportFromClipboard()
     {
         try
         {
-            var json = JObject.Parse(ImGui.GetClipboardText());
-            var cls = Enum.Parse<Class>(json?["Class"]?.ToString() ?? "None");
-            if (cls != _plan.Class)
+            var plan = JsonSerializer.Deserialize<Plan>(ImGui.GetClipboardText(), Serialization.BuildSerializationOptions())!;
+            if (plan.Class != Plan.Class || plan.Encounter != Plan.Encounter)
             {
-                Service.Log($"Failed to import: plan belongs to {cls} instead of {_plan.Class}");
+                Service.Log($"Failed to import: plan belongs to {plan.Class} {plan.Encounter} instead of {Plan.Class} {Plan.Encounter}");
                 return;
             }
-            var module = json?["Encounter"]?.ToString() ?? "";
-            if (module != _moduleInfo?.ModuleType.FullName)
-            {
-                Service.Log($"Failed to import: plan belongs to {module} instead of {_moduleInfo?.ModuleType.FullName}");
-                return;
-            }
-            var plan = CooldownPlan.FromJSON(cls, _plan.Level, json, Serialization.BuildSerializer());
-            if (plan == null)
-            {
-                Service.Log($"Failed to import: some error occured");
-                return;
-            }
-            ExtractPlanData(plan);
-            _onModified();
+
+            Modified = true;
+            Plan = plan;
+            SyncCreateImport();
         }
         catch (Exception ex)
         {
@@ -180,86 +164,91 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         }
     }
 
-    private void ExtractPlanData(CooldownPlan plan)
+    public void SyncCreateImport()
     {
-        _name = plan.Name;
-
-        _timings = plan.Timings.Clone();
-        for (int i = _timings.PhaseDurations.Count; i < _tree.Phases.Count; ++i)
-            _timings.PhaseDurations.Add(_tree.Phases[i].Duration);
+        // add data for missing phases
+        for (int i = Plan.PhaseDurations.Count; i < _tree.Phases.Count; ++i)
+            Plan.PhaseDurations.Add(_tree.Phases[i].Duration);
         if (_syncTimings)
-            _tree.ApplyTimings(plan.Timings);
+            _tree.ApplyTimings(Plan.PhaseDurations);
 
-        foreach (var col in _colCooldowns)
-            while (col.Elements.Count > 0)
-                col.RemoveElement(0);
-        foreach (var a in plan.Actions)
-        {
-            var col = TrackForAction(a.ID);
-            if (col != null)
-            {
-                var state = _tree.Nodes.GetValueOrDefault(a.StateID);
-                if (state != null)
-                {
-                    col.AddElement(state, a.TimeSinceActivation, a.WindowLength, a.ID, a.LowPriority, a.Target.Clone(), a.Comment);
-                }
-            }
-        }
+        // remove any existing strategy columns
+        foreach (var cols in _colsStrategy)
+            foreach (var col in cols.Value)
+                Columns.Remove(col);
+        _colsStrategy.Clear();
 
-        foreach (var (col, overrides) in _colStrategy.Zip(plan.StrategyOverrides))
-        {
-            while (col.Elements.Count > 0)
-                col.RemoveElement(0);
+        // add new strategy columns
+        foreach (var mt in Plan.Modules.Keys)
+            AddStrategyColumns(mt);
 
-            foreach (var o in overrides)
-            {
-                var state = _tree.Nodes.GetValueOrDefault(o.StateID);
-                if (state != null)
-                {
-                    col.AddElement(state, o.TimeSinceActivation, o.WindowLength, o.Value, o.Comment);
-                }
-            }
-        }
-
+        // clear and readd target overrides
         while (_colTarget.Elements.Count > 0)
             _colTarget.RemoveElement(0);
-        foreach (var o in plan.TargetOverrides)
+        foreach (var o in Plan.Targeting)
         {
             var state = _tree.Nodes.GetValueOrDefault(o.StateID);
             if (state != null)
             {
-                _colTarget.AddElement(state, o.TimeSinceActivation, o.WindowLength, o.OID, o.Comment);
+                _colTarget.AddElement(state, o.TimeSinceActivation, o.WindowLength, o.Value);
             }
         }
     }
 
-    private CooldownPlan BuildPlan()
+    private void AddStrategyColumns(Type t)
     {
-        var res = new CooldownPlan(_plan.Class, _plan.Level, _name)
+        var moduleInfo = ModuleRegistry.FindByType(Plan.Encounter);
+        var cols = _colsStrategy[t] = [];
+        var md = RotationModuleRegistry.Modules[t].Definition;
+        var tracks = Plan.Modules[t];
+        List<int> uiOrder = [.. Enumerable.Range(0, tracks.Count)];
+        uiOrder.SortByReverse(i => md.Configs[i].UIPriority);
+        foreach (int i in uiOrder)
         {
-            Timings = _timings.Clone()
-        };
-        foreach (var col in _colCooldowns)
-        {
-            foreach (var e in col.Elements)
+            var col = AddBefore(new ColumnPlannerTrackStrategy(Timeline, _tree, _phaseBranches, md.Configs[i], Plan.Level, moduleInfo), _colTarget);
+            col.Width = md.Configs[i].UIPriority >= 0 ? _trackWidth : 0;
+            col.NotifyModified = () => OnModifiedStrategy(tracks[i], col);
+            foreach (var entry in tracks[i])
             {
-                var cast = (ColumnPlannerTrackCooldown.ActionElement)e;
-                res.Actions.Add(new(cast.Action, e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration, cast.LowPriority, cast.Target.Clone(), cast.Comment));
+                var state = _tree.Nodes.GetValueOrDefault(entry.StateID);
+                if (state != null)
+                {
+                    col.AddElement(state, entry.TimeSinceActivation, entry.WindowLength, entry.Value);
+                }
             }
-        }
-        foreach (var (col, overrides) in _colStrategy.Zip(res.StrategyOverrides))
-        {
-            foreach (var e in col.Elements)
+            foreach (var a in _playerActions)
             {
-                var cast = (ColumnPlannerTrackStrategy.OverrideElement)e;
-                overrides.Add(new(cast.Value, e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration, cast.Comment));
+                if (md.Configs[i].AssociatedActions.Contains(a.ID))
+                {
+                    col.AddHistoryEntryDot(_encStart, a.Timestamp, $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}", 0xffffffff).AddActionTooltip(a);
+                }
             }
+            cols.Add(col);
         }
+    }
+
+    private void OnModifiedStrategy(List<Plan.Entry> entries, ColumnPlannerTrackStrategy track)
+    {
+        Modified = true;
+        entries.Clear();
+        foreach (var e in track.Elements)
+        {
+            var cast = (ColumnPlannerTrackStrategy.OverrideElement)e;
+            AddEntry(entries, e, cast.Value);
+        }
+    }
+
+    private void OnModifiedTargets()
+    {
+        Modified = true;
+        Plan.Targeting.Clear();
         foreach (var e in _colTarget.Elements)
         {
             var cast = (ColumnPlannerTrackTarget.OverrideElement)e;
-            res.TargetOverrides.Add(new(cast.OID, e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration, cast.Comment));
+            AddEntry(Plan.Targeting, e, cast.Value);
         }
-        return res;
     }
+
+    private void AddEntry(List<Plan.Entry> list, ColumnPlannerTrack.Element elem, in StrategyValue value)
+        => list.Add(new(value) { StateID = elem.Window.AttachNode.State.ID, TimeSinceActivation = elem.Window.Delay, WindowLength = elem.Window.Duration });
 }

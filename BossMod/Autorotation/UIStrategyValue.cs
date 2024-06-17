@@ -14,26 +14,40 @@ public static class UIStrategyValue
         ("Very High", ActionQueue.Priority.VeryHigh),
     ];
 
-    public static void DrawPreview(ref StrategyValue value, StrategyConfig cfg, ModuleRegistry.Info? moduleInfo)
+    public static List<string> Preview(ref StrategyValue value, StrategyConfig cfg, ModuleRegistry.Info? moduleInfo)
     {
         var opt = cfg.Options[value.Option];
-        ImGui.TextUnformatted($"Option: {opt.UIName}");
-        ImGui.TextUnformatted($"Comment: {value.Comment}");
-        ImGui.TextUnformatted($"Priority: {(float.IsNaN(value.PriorityOverride) ? "default" : value.PriorityOverride.ToString("f"))}");
-        ImGui.TextUnformatted($"Target: {PreviewTarget(ref value, moduleInfo)}");
+        return [
+            $"Option: {opt.UIName}",
+            $"Comment: {value.Comment}",
+            $"Priority: {(float.IsNaN(value.PriorityOverride) ? "default" : value.PriorityOverride.ToString("f"))}",
+            $"Target: {PreviewTarget(ref value, moduleInfo)}"
+        ];
+    }
+
+    public static string PreviewTarget(ref StrategyValue value, ModuleRegistry.Info? moduleInfo)
+    {
+        var targetDetails = value.Target switch
+        {
+            StrategyTarget.PartyByAssignment => ((PartyRolesConfig.Assignment)value.TargetParam).ToString(),
+            StrategyTarget.PartyWithLowestHP => $"{(value.TargetParam != 0 ? "include" : "exclude")} self",
+            StrategyTarget.EnemyByOID => $"{(moduleInfo?.ObjectIDType != null ? Enum.ToObject(moduleInfo.ObjectIDType, (uint)value.TargetParam).ToString() : "???")} (0x{value.TargetParam:X})",
+            _ => ""
+        };
+        return targetDetails.Length > 0 ? $"{value.Target} ({targetDetails})" : $"{value.Target}";
     }
 
     public static bool DrawEditor(ref StrategyValue value, StrategyConfig cfg, ModuleRegistry.Info? moduleInfo, int? level)
     {
         var modified = false;
-        modified |= DrawOption(ref value, cfg, level);
+        modified |= DrawEditorOption(ref value, cfg, level);
         modified |= ImGui.InputText("Comment", ref value.Comment, 512);
-        modified |= DrawPriority(ref value);
-        modified |= DrawTarget(ref value, cfg, moduleInfo);
+        modified |= DrawEditorPriority(ref value);
+        modified |= DrawEditorTarget(ref value, cfg.Options[value.Option].SupportedTargets, moduleInfo);
         return modified;
     }
 
-    private static bool DrawOption(ref StrategyValue value, StrategyConfig cfg, int? level)
+    public static bool DrawEditorOption(ref StrategyValue value, StrategyConfig cfg, int? level)
     {
         var modified = false;
         using (var combo = ImRaii.Combo("Option", cfg.Options[value.Option].UIName))
@@ -57,7 +71,7 @@ public static class UIStrategyValue
         return modified;
     }
 
-    private static bool DrawPriority(ref StrategyValue value)
+    public static bool DrawEditorPriority(ref StrategyValue value)
     {
         var modified = false;
         var overridePriority = !float.IsNaN(value.PriorityOverride);
@@ -119,17 +133,16 @@ public static class UIStrategyValue
         return modified;
     }
 
-    private static bool DrawTarget(ref StrategyValue value, StrategyConfig cfg, ModuleRegistry.Info? moduleInfo)
+    public static bool DrawEditorTarget(ref StrategyValue value, ActionTargets supportedTargets, ModuleRegistry.Info? moduleInfo)
     {
         var modified = false;
-        var opt = cfg.Options[value.Option];
         using (var combo = ImRaii.Combo("Target", value.Target.ToString()))
         {
             if (combo)
             {
                 for (var i = StrategyTarget.Automatic; i < StrategyTarget.Count; ++i)
                 {
-                    if (AllowTarget(i, opt.SupportedTargets, moduleInfo) && ImGui.Selectable(i.ToString(), i == value.Target))
+                    if (AllowTarget(i, supportedTargets, moduleInfo) && ImGui.Selectable(i.ToString(), i == value.Target))
                     {
                         value.Target = i;
                         value.TargetParam = 0;
@@ -151,7 +164,7 @@ public static class UIStrategyValue
                 }
                 break;
             case StrategyTarget.PartyWithLowestHP:
-                if (opt.SupportedTargets.HasFlag(ActionTargets.Self))
+                if (supportedTargets.HasFlag(ActionTargets.Self))
                 {
                     var includeSelf = value.TargetParam != 0;
                     if (ImGui.Checkbox("Allow self", ref includeSelf))
@@ -176,19 +189,7 @@ public static class UIStrategyValue
         return modified;
     }
 
-    private static string PreviewTarget(ref StrategyValue value, ModuleRegistry.Info? moduleInfo)
-    {
-        var targetDetails = value.Target switch
-        {
-            StrategyTarget.PartyByAssignment => ((PartyRolesConfig.Assignment)value.TargetParam).ToString(),
-            StrategyTarget.PartyWithLowestHP => $"{(value.TargetParam != 0 ? "include" : "exclude")} self",
-            StrategyTarget.EnemyByOID => $"{(moduleInfo?.ObjectIDType != null ? Enum.ToObject(moduleInfo.ObjectIDType, (uint)value.TargetParam).ToString() : "???")} (0x{value.TargetParam:X})",
-            _ => ""
-        };
-        return targetDetails.Length > 0 ? $"{value.Target} ({targetDetails})" : $"{value.Target}";
-    }
-
-    private static bool AllowTarget(StrategyTarget t, ActionTargets supported, ModuleRegistry.Info? moduleInfo) => t switch
+    public static bool AllowTarget(StrategyTarget t, ActionTargets supported, ModuleRegistry.Info? moduleInfo) => t switch
     {
         StrategyTarget.Self => supported.HasFlag(ActionTargets.Self),
         StrategyTarget.PartyByAssignment => supported.HasFlag(ActionTargets.Party),

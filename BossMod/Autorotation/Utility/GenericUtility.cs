@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Autorotation;
 
 // base class that simplifies implementation of utility modules - these are really only useful for planning support
-public abstract record class GenericUtility(WorldState World, Actor Player, AIHints Hints) : RotationModule(World, Player, Hints)
+public abstract class GenericUtility(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     public enum SimpleOption { None, Use }
     public enum LBOption { None, LB3, LB2, LB1, LB2Only, LB1Only, LB12 }
@@ -31,10 +31,10 @@ public abstract record class GenericUtility(WorldState World, Actor Player, AIHi
         lb.AddOption(LBOption.LB12, new(0x80ffff80, allowedTargets, "LB1/2", "Use LB1/2 if available, but not LB3", Effect: effectLB1));
     }
 
-    protected void ExecuteSimple<AID>(in StrategyValue value, AID aid, Actor? target, ActionQueue actions) where AID : Enum
+    protected void ExecuteSimple<AID>(in StrategyValue value, AID aid, Actor? target) where AID : Enum
     {
         if ((SimpleOption)value.Option == SimpleOption.Use)
-            actions.Push(ActionID.MakeSpell(aid), ResolveTargetOverride(value) ?? target, value.Priority(ActionQueue.Priority.Low));
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), ResolveTargetOverride(value) ?? target, value.Priority(ActionQueue.Priority.Low));
     }
 
     // returns 0 if not needed, or current LB level

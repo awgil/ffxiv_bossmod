@@ -34,6 +34,7 @@ public sealed class AIHints
     public int HighestPotentialTargetPriority;
 
     // forced target
+    // this should be set only if either explicitly planned by user or by ai, otherwise it will be annoying to user
     public Actor? ForcedTarget;
 
     // positioning: list of shapes that are either forbidden to stand in now or will be in near future
@@ -51,9 +52,8 @@ public sealed class AIHints
     // AI will attempt to shield & mitigate
     public List<(BitMask players, DateTime activation)> PredictedDamage = [];
 
-    // planned actions
-    // autorotation will execute them in window-end order, if possible
-    public List<(ActionID action, Actor target, float windowEnd, bool lowPriority)> PlannedActions = [];
+    // actions that we want to be executed, gathered from various sources (manual input, autorotation, planner, ai, modules, etc.)
+    public ActionQueue ActionsToExecute = new();
 
     // buffs to be canceled asap
     public List<(uint statusId, ulong sourceId)> StatusesToCancel = [];
@@ -68,7 +68,7 @@ public sealed class AIHints
         ForbiddenZones.Clear();
         ForbiddenDirections.Clear();
         PredictedDamage.Clear();
-        PlannedActions.Clear();
+        ActionsToExecute.Clear();
         StatusesToCancel.Clear();
     }
 
@@ -83,41 +83,11 @@ public sealed class AIHints
         }
     }
 
-    // fill forced target, if any
-    public void FillForcedTarget(BossModule? module, WorldState ws, Actor player)
-    {
-        if (module?.PlanExecution != null)
-        {
-            var oid = module.PlanExecution.ActiveForcedTarget(module.StateMachine);
-            if (oid != null)
-            {
-                var targets = oid.Value != 0 ? PotentialTargets.Where(e => e.Actor.OID == oid.Value) : PotentialTargets;
-                var maxPrio = targets.MaxBy(t => t.Priority)?.Priority ?? -1;
-                ForcedTarget = maxPrio >= 0 ? targets.Where(e => e.Priority == maxPrio).MinBy(e => (e.Actor.Position - player.Position).LengthSq())?.Actor : null;
-            }
-        }
-    }
-
-    // fill planned actions based on current state
-    public void FillPlannedActions(BossModule? module, int slot, Actor player)
-    {
-        if (module?.PlanExecution != null)
-        {
-            // TODO: support custom conditions in planner
-            foreach (var a in module.PlanExecution.ActiveActions(module.StateMachine))
-            {
-                var target = a.Target.Select(module, slot, player);
-                if (target == null)
-                    continue;
-                PlannedActions.Add((a.Action, target, a.TimeLeft, a.LowPriority));
-            }
-        }
-    }
-
     public void AddForbiddenZone(Func<WPos, float> shapeDistance, DateTime activation = new()) => ForbiddenZones.Add((shapeDistance, activation));
     public void AddForbiddenZone(AOEShape shape, WPos origin, Angle rot = new(), DateTime activation = new()) => ForbiddenZones.Add((shape.Distance(origin, rot), activation));
 
     // normalize all entries after gathering data: sort by priority / activation timestamp
+    // TODO: note that the name is misleading - it actually happens mid frame, before all actions are gathered (eg before autorotation runs), but further steps (eg ai) might consume previously gathered data
     public void Normalize()
     {
         PotentialTargets.SortByReverse(x => x.Priority);
@@ -125,7 +95,6 @@ public sealed class AIHints
         ForbiddenZones.SortBy(e => e.activation);
         ForbiddenDirections.SortBy(e => e.activation);
         PredictedDamage.SortBy(e => e.activation);
-        PlannedActions.SortBy(e => e.windowEnd);
     }
 
     // query utilities

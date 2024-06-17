@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
 [ConfigDisplay(Order = 0x200, Parent = typeof(ShadowbringersConfig))]
-public class TEAConfig() : CooldownPlanningConfigNode(80)
+public class TEAConfig() : ConfigNode()
 {
     public enum P2Intermission
     {

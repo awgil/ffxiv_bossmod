@@ -37,17 +37,17 @@ public sealed class ActionQueue
         public const float Delta = 0.01f;
     }
 
-    private readonly List<Entry> _entries = [];
+    public readonly List<Entry> Entries = [];
 
-    public void Clear() => _entries.Clear();
-    public void Push(ActionID action, Actor? target, float priority, Vector3 targetPos = default, Angle? facingAngle = null) => _entries.Add(new(action, target, priority, targetPos, facingAngle));
+    public void Clear() => Entries.Clear();
+    public void Push(ActionID action, Actor? target, float priority, Vector3 targetPos = default, Angle? facingAngle = null) => Entries.Add(new(action, target, priority, targetPos, facingAngle));
 
     public Entry FindBest(WorldState ws, Actor player, ReadOnlySpan<Cooldown> cooldowns, float animationLock, AIHints hints, float instantAnimLockDelay)
     {
-        _entries.SortByReverse(e => e.Priority);
+        Entries.SortByReverse(e => e.Priority);
         Entry best = default;
         float deadline = float.MaxValue; // any candidate we consider, if executed, should allow executing next action by this deadline
-        foreach (ref var candidate in _entries.AsSpan())
+        foreach (ref var candidate in Entries.AsSpan())
         {
             if (candidate.Priority < Priority.Minimal)
                 break; // this and further actions are something we don't really want to execute (prio < minimal)

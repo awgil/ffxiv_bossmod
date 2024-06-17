@@ -25,8 +25,7 @@ public static class ModuleRegistry
         public uint GroupID;
         public uint NameID;
         public int SortOrder;
-
-        public bool CooldownPlanningSupported => ConfigType?.IsSubclassOf(typeof(CooldownPlanningConfigNode)) ?? false;
+        public int PlanLevel;
 
         public static Info? Build(Type module)
         {
@@ -153,6 +152,7 @@ public static class ModuleRegistry
                 GroupID = groupID,
                 NameID = nameID,
                 SortOrder = sortOrder,
+                PlanLevel = infoAttr?.PlanLevel ?? 0,
             };
         }
 

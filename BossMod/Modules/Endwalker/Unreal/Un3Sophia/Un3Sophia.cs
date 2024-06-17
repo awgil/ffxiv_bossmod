@@ -14,8 +14,5 @@ class Cintamani(BossModule module) : Components.CastCounter(module, ActionID.Mak
 class QuasarProximity1(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.QuasarProximity1), 15);
 class QuasarProximity2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.QuasarProximity2), 15); // TODO: reconsider distance
 
-[ConfigDisplay(Order = 0x330, Parent = typeof(EndwalkerConfig))]
-public class Un3SophiaConfig() : CooldownPlanningConfigNode(90);
-
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.RemovedUnreal, GroupID = 926, NameID = 5199)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.RemovedUnreal, GroupID = 926, NameID = 5199, PlanLevel = 90)]
 public class Un3Sophia(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsRect(20, 15));

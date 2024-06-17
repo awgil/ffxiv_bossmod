@@ -15,8 +15,5 @@ class PealOfDamnation(BossModule module) : Components.SelfTargetedAOEs(module, A
 class PandaemoniacPillars(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Bury), 2);
 class Touchdown(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TouchdownAOE), new AOEShapeCircle(20));
 
-[ConfigDisplay(Order = 0x1A0, Parent = typeof(EndwalkerConfig))]
-public class P10SPandaemoniumConfig() : CooldownPlanningConfigNode(90);
-
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 939, NameID = 12354)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 939, NameID = 12354, PlanLevel = 90)]
 public class P10SPandaemonium(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 92.5f), new ArenaBoundsRect(30, 22.5f));

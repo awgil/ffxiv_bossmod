@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Keys;
+﻿using BossMod.Autorotation;
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Hooking;
 using ImGuiNET;
 using System.Reflection;
@@ -116,11 +117,11 @@ unsafe sealed class DebugInput : IDisposable
     private float _pmcCameraSpeedH;
     private float _pmcCameraSpeedV;
 
-    public DebugInput(AutorotationLegacy autorot)
+    public DebugInput(RotationModuleManager autorot)
     {
         _convertVirtualKey = Service.KeyState.GetType().GetMethod("ConvertVirtualKey", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<ConvertVirtualKeyDelegate>(Service.KeyState);
         _getKeyRef = Service.KeyState.GetType().GetMethod("GetRefValue", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<GetRefValueDelegate>(Service.KeyState);
-        _ws = autorot.WorldState;
+        _ws = autorot.Bossmods.WorldState;
         _amex = autorot.ActionManager;
         _navi = new(_amex);
 

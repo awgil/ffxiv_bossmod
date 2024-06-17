@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Autorotation;
 
-public sealed record class ClassWARUtility(WorldState World, Actor Player, AIHints Hints) : RoleTankUtility(World, Player, Hints)
+public sealed class ClassWARUtility(RotationModuleManager manager, Actor player) : RoleTankUtility(manager, player)
 {
     public enum Track { Thrill = SharedTrack.Count, Vengeance, Holmgang, Bloodwhetting, Equilibrium, ShakeItOff }
     public enum BWOption { None, Bloodwhetting, RawIntuition, NascentFlash }
@@ -26,14 +26,14 @@ public sealed record class ClassWARUtility(WorldState World, Actor Player, AIHin
         return res;
     }
 
-    public override void Execute(ReadOnlySpan<StrategyValue> strategy, Actor? primaryTarget, ActionQueue actions)
+    public override void Execute(ReadOnlySpan<StrategyValue> strategy, Actor? primaryTarget)
     {
-        ExecuteShared(strategy, actions, ActionID.MakeSpell(WAR.AID.LandWaker));
-        ExecuteSimple(strategy[(int)Track.Thrill], WAR.AID.ThrillOfBattle, Player, actions);
-        ExecuteSimple(strategy[(int)Track.Vengeance], WAR.AID.Vengeance, Player, actions);
-        ExecuteSimple(strategy[(int)Track.Holmgang], WAR.AID.Holmgang, Player, actions);
-        ExecuteSimple(strategy[(int)Track.Equilibrium], WAR.AID.Equilibrium, Player, actions);
-        ExecuteSimple(strategy[(int)Track.ShakeItOff], WAR.AID.ShakeItOff, Player, actions);
+        ExecuteShared(strategy, ActionID.MakeSpell(WAR.AID.LandWaker));
+        ExecuteSimple(strategy[(int)Track.Thrill], WAR.AID.ThrillOfBattle, Player);
+        ExecuteSimple(strategy[(int)Track.Vengeance], WAR.AID.Vengeance, Player);
+        ExecuteSimple(strategy[(int)Track.Holmgang], WAR.AID.Holmgang, Player);
+        ExecuteSimple(strategy[(int)Track.Equilibrium], WAR.AID.Equilibrium, Player);
+        ExecuteSimple(strategy[(int)Track.ShakeItOff], WAR.AID.ShakeItOff, Player);
 
         var bw = strategy[(int)Track.Bloodwhetting];
         var aid = (BWOption)bw.Option switch
@@ -44,6 +44,6 @@ public sealed record class ClassWARUtility(WorldState World, Actor Player, AIHin
             _ => default
         };
         if (aid != default)
-            actions.Push(ActionID.MakeSpell(aid), (BWOption)bw.Option == BWOption.NascentFlash ? ResolveTargetOverride(bw) ?? CoTank() : Player, bw.Priority(ActionQueue.Priority.Low));
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), (BWOption)bw.Option == BWOption.NascentFlash ? ResolveTargetOverride(bw) ?? CoTank() : Player, bw.Priority(ActionQueue.Priority.Low));
     }
 }

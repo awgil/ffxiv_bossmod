@@ -10,8 +10,5 @@ class HemitheosHolySpread(BossModule module) : Components.SpreadFromCastTargets(
 class HemitheosTornado(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HemitheosTornado), new AOEShapeCircle(25));
 class HemitheosGlareMine(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HemitheosGlareMine), new AOEShapeDonut(5, 30)); // TODO: verify inner radius
 
-[ConfigDisplay(Order = 0x170, Parent = typeof(EndwalkerConfig))]
-public class P7SConfig() : CooldownPlanningConfigNode(90);
-
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 877, NameID = 11374)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 877, NameID = 11374, PlanLevel = 90)]
 public class P7S(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(27));

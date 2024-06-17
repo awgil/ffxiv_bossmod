@@ -30,7 +30,6 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
         GetCooldownColumn(ActionDefinitions.GCDGroup, new()).Name = "GCD"; // make sure GCD column always exists and is before any others
         SetupClass(playerClass);
 
-        var classDef = PlanDefinitions.Classes.GetValueOrDefault(playerClass);
         int iCast = 0;
         var minTime = enc.Time.Start.AddSeconds(timeline.MinTime);
         foreach (var a in replay.Actions.SkipWhile(a => a.Timestamp < minTime).TakeWhile(a => a.Timestamp <= enc.Time.End).Where(a => a.Source == player))
@@ -47,7 +46,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
             while (iCast < player.Casts.Count && player.Casts[iCast].Time.End < a.Timestamp)
             {
                 // add cast without event (interrupted, cancelled, whatever)
-                AddUnfinishedCast(player.Casts[iCast++], enc.Time.Start, classDef);
+                AddUnfinishedCast(player.Casts[iCast++], enc.Time.Start);
             }
 
             var actionDef = ActionDefinitions.Instance[a.ID];
@@ -82,6 +81,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
             {
                 var col = GetCooldownColumn(actionDef.MainCooldownGroup, a.ID);
                 // TODO: effect should be extended by action-to-effectresult delay?..
+                // TODO: restore this somehow... broken during autorotation refactoring
                 //if (actionDef.EffectDuration > 0)
                 //{
                 //    col.AddHistoryEntryRange(enc.Time.Start, effectStart, actionDef.EffectDuration, actionName, 0x8000ff00).TooltipExtra.Add($"- effect: {actionDef.EffectDuration:f1}s");
@@ -120,7 +120,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
         // add remaining unfinished casts
         while (iCast < player.Casts.Count)
         {
-            AddUnfinishedCast(player.Casts[iCast++], enc.Time.Start, classDef);
+            AddUnfinishedCast(player.Casts[iCast++], enc.Time.Start);
         }
 
         // add unfinished cooldowns
@@ -157,22 +157,23 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
         {
             case Class.WAR:
                 // make sure important damage cooldowns are in consistent order
-                GetCooldownColumn((int)WAR.CDGroup.Infuriate, ActionID.MakeSpell(WAR.AID.Infuriate));
-                GetCooldownColumn((int)WAR.CDGroup.InnerRelease, ActionID.MakeSpell(WAR.AID.InnerRelease));
-                GetCooldownColumn((int)WAR.CDGroup.Upheaval, ActionID.MakeSpell(WAR.AID.Upheaval));
-                GetCooldownColumn((int)WAR.CDGroup.Onslaught, ActionID.MakeSpell(WAR.AID.Onslaught));
+                GetCooldownColumn(ActionID.MakeSpell(WAR.AID.Infuriate));
+                GetCooldownColumn(ActionID.MakeSpell(WAR.AID.InnerRelease));
+                GetCooldownColumn(ActionID.MakeSpell(WAR.AID.Upheaval));
+                GetCooldownColumn(ActionID.MakeSpell(WAR.AID.Onslaught));
                 // infuriate cooldown reductions
-                _cooldownReductions[ActionID.MakeSpell(WAR.AID.InnerBeast)] = ((int)WAR.CDGroup.Infuriate, 5);
-                _cooldownReductions[ActionID.MakeSpell(WAR.AID.FellCleave)] = ((int)WAR.CDGroup.Infuriate, 5);
-                _cooldownReductions[ActionID.MakeSpell(WAR.AID.InnerChaos)] = ((int)WAR.CDGroup.Infuriate, 5);
-                _cooldownReductions[ActionID.MakeSpell(WAR.AID.SteelCyclone)] = ((int)WAR.CDGroup.Infuriate, 5);
-                _cooldownReductions[ActionID.MakeSpell(WAR.AID.Decimate)] = ((int)WAR.CDGroup.Infuriate, 5);
-                _cooldownReductions[ActionID.MakeSpell(WAR.AID.ChaoticCyclone)] = ((int)WAR.CDGroup.Infuriate, 5);
+                var infCDG = ActionDefinitions.Instance.Spell(WAR.AID.Infuriate)!.MainCooldownGroup;
+                _cooldownReductions[ActionID.MakeSpell(WAR.AID.InnerBeast)] = (infCDG, 5);
+                _cooldownReductions[ActionID.MakeSpell(WAR.AID.FellCleave)] = (infCDG, 5);
+                _cooldownReductions[ActionID.MakeSpell(WAR.AID.InnerChaos)] = (infCDG, 5);
+                _cooldownReductions[ActionID.MakeSpell(WAR.AID.SteelCyclone)] = (infCDG, 5);
+                _cooldownReductions[ActionID.MakeSpell(WAR.AID.Decimate)] = (infCDG, 5);
+                _cooldownReductions[ActionID.MakeSpell(WAR.AID.ChaoticCyclone)] = (infCDG, 5);
                 break;
         }
     }
 
-    private void AddUnfinishedCast(Replay.Cast cast, DateTime encStart, PlanDefinitions.ClassData? classDef)
+    private void AddUnfinishedCast(Replay.Cast cast, DateTime encStart)
     {
         var name = $"[unfinished] {cast.ID} -> {ReplayUtils.ParticipantString(cast.Target, cast.Time.Start)}";
         _animLocks.AddHistoryEntryRange(encStart, cast.Time, name, 0x800000ff).AddCastTooltip(cast);
@@ -194,6 +195,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
 
     private ColumnGenericHistory GetCooldownColumn(int cooldownGroup, ActionID defaultAction)
         => _cdGroups[cooldownGroup].Column ??= AddBefore<ColumnGenericHistory>(new(Timeline, _autoAttacks.Tree, _autoAttacks.PhaseBranches, defaultAction.ToString()), _sep);
+    private ColumnGenericHistory GetCooldownColumn(ActionID action) => GetCooldownColumn(ActionDefinitions.Instance[action]!.MainCooldownGroup, action);
 
     private void AddCooldownRange(ref CooldownGroup data, DateTime encStart, DateTime rangeEnd)
     {

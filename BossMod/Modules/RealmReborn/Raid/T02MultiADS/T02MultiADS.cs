@@ -117,10 +117,7 @@ class T02ADSStates : StateMachineBuilder
     }
 }
 
-[ConfigDisplay(Order = 0x120, Parent = typeof(RealmRebornConfig))]
-public class T02ADSConfig() : CooldownPlanningConfigNode(50);
-
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.ADS, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 94, NameID = 1459, SortOrder = 1)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.ADS, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 94, NameID = 1459, SortOrder = 1, PlanLevel = 50)]
 public class T02ADS(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 77), new ArenaBoundsRect(18, 13));
 
 class T02QuarantineNodeStates : StateMachineBuilder

@@ -1,17 +1,10 @@
 autorotation v2:
+- RotationWindow
+-- selector for presets
+-- selector for plans
+-- actionqueue visu?
 - planning
--- plan database -> serialization
--- plan manager -> plan execution, listen to bmm and countdown
-- merge autorot & plan window into RotationWindow
-- auto start/end logic
--- on countdown start => plan (should be automatic), or user-configured default preset
--+ on countdown end, if not in combat => abort
--+ on combat start, if countdown above threshold => abort (ninjapull)
--+ on combat start, otherwise => n/a (continue)
--+ on combat start, if inactive (no countdown) => n/a (stay idle, ninjapull or smth...)
--+ on combat end => abort
--- timeout => move to idle
--+ die => ??? abort probably...
+-- plan editor outside replay -- from moduleinfo popup?.. (select module, popup with class -> list menu)
 - converters
 -- actionmanager
 -- autorotation
@@ -25,18 +18,30 @@ autorotation v2:
 - actiondefinitions
 -- sid generator
 -- spell out shared cooldowns in comments instead of group?
+-- default priority in meta
+-- option enum type in meta + check
 post-wip:
 - resurrect legacy modules
 - cleanup
+-- helper for `(Enum)strategy[(int)Track.X].Option`
+-- delete/rework commonstate
 -- get rid of cdgroup enums
 -- ui refactoring / beautifying pass
 -- ipc for autorotation
 -- delete autorotationlegacy & cdplannerlegacy
+-- remove newtonsoft.json
+-- bossmoduleplanwindow
+-- search for `//namespace BossMod`
+-- restore effect duration in action columns somehow...
+-- rmm in replay analysis
 - worldstate: animlock, combo, gauge parser
 - actiondefinitions
 -- action transforms?.. (combos, adjustment)
 -- adjusted casttime/cooldown/maxcharges/???
--- better unlock model
+- ai features
+-- legacy ai rotation modules (auto stance, interrupt, taunt, etc)
+-- target selection should be part of a module/preset
+-- ai manager should use selected preset for combat, out of combat use forcedtarget
 - proper gcd time calculations?
 - simulation in replay analysis
 

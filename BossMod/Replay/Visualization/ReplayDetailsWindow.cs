@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using BossMod.Autorotation;
+using ImGuiNET;
 
 namespace BossMod.ReplayVisualization;
 
@@ -25,7 +26,7 @@ class ReplayDetailsWindow : UIWindow
     private float _pfTargetRadius = 3;
     private Positional _pfPositional = Positional.Any;
 
-    public ReplayDetailsWindow(Replay data) : base($"Replay: {data.Path}", false, new(1500, 1000))
+    public ReplayDetailsWindow(Replay data, PlanDatabase planDB) : base($"Replay: {data.Path}", false, new(1500, 1000))
     {
         _player = new(data);
         _mgr = new(_player.WorldState);
@@ -34,7 +35,7 @@ class ReplayDetailsWindow : UIWindow
         _last = data.Ops[^1].Timestamp;
         _player.AdvanceTo(_first, _mgr.Update);
         _config = new(Service.Config, _player.WorldState, null);
-        _events = new(data, MoveTo);
+        _events = new(data, MoveTo, planDB);
         _analysis = new([data]);
     }
 
@@ -74,23 +75,24 @@ class ReplayDetailsWindow : UIWindow
             }
             ImGui.TextUnformatted($"Current state: {_mgr.ActiveModule.StateMachine.ActiveState?.ID:X}, Time since pull: {_mgr.ActiveModule.StateMachine.TimeSinceActivation:f3}, Draw time: {(drawTimerPost - drawTimerPre).TotalMilliseconds:f3}ms, Components: {compList}, Player offset: {povOffsetString}, Draw cache: {_mgr.ActiveModule.Arena.DrawCacheStats()}");
 
-            if (ImGui.CollapsingHeader("Plan execution"))
-            {
-                var sm = _mgr.ActiveModule.StateMachine;
-                if (ImGui.Button("Show timeline"))
-                {
-                    _ = new StateMachineWindow(_mgr.ActiveModule);
-                }
-                ImGui.SameLine();
-                _mgr.ActiveModule.PlanConfig?.DrawSelectionUI(_mgr.ActiveModule.Raid[_povSlot]?.Class ?? Class.None, sm, _mgr.ActiveModule.Info);
+            // TODO: restore; this requires getting rid of AMEx from rotation module manager
+            //if (ImGui.CollapsingHeader("Plan execution"))
+            //{
+            //    var sm = _mgr.ActiveModule.StateMachine;
+            //    if (ImGui.Button("Show timeline"))
+            //    {
+            //        _ = new StateMachineWindow(_mgr.ActiveModule);
+            //    }
+            //    ImGui.SameLine();
+            //    _mgr.ActiveModule.PlanConfig?.DrawSelectionUI(_mgr.ActiveModule.Raid[_povSlot]?.Class ?? Class.None, sm, _mgr.ActiveModule.Info);
 
-                var pe = _mgr.ActiveModule.PlanExecution;
-                if (pe != null)
-                {
-                    ImGui.TextUnformatted($"Downtime: {FlagTransitionString(pe.EstimateTimeToNextDowntime(sm))}; Pos-lock: {FlagTransitionString(pe.EstimateTimeToNextPositioning(sm))}; Vuln: {FlagTransitionString(pe.EstimateTimeToNextVulnerable(sm))}; Strats: [{string.Join(",", pe.ActiveStrategyOverrides(sm))}]");
-                    pe.Draw(sm);
-                }
-            }
+            //    var pe = _mgr.ActiveModule.PlanExecution;
+            //    if (pe != null)
+            //    {
+            //        ImGui.TextUnformatted($"Downtime: {FlagTransitionString(pe.EstimateTimeToNextDowntime(sm))}; Pos-lock: {FlagTransitionString(pe.EstimateTimeToNextPositioning(sm))}; Vuln: {FlagTransitionString(pe.EstimateTimeToNextVulnerable(sm))}; Strats: [{string.Join(",", pe.ActiveStrategyOverrides(sm))}]");
+            //        pe.Draw(sm);
+            //    }
+            //}
         }
 
         DrawPartyTable();

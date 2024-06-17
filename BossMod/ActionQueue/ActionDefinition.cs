@@ -14,6 +14,8 @@ public enum ActionTargets
     PartyPet = 1 << 6,
     Area = 1 << 7,
     Dead = 1 << 8,
+
+    All = (1 << 9) - 1,
 }
 
 // this contains all information about player actions that we care about (for action tweaks, autorotation, etc)

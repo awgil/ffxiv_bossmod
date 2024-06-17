@@ -1,4 +1,5 @@
-﻿using Dalamud.Interface.ImGuiFileDialog;
+﻿using BossMod.Autorotation;
+using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using System.IO;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BossMod;
 
-public sealed class ReplayManager(string fileDialogStartPath) : IDisposable
+public sealed class ReplayManager(PlanDatabase planDB, string fileDialogStartPath) : IDisposable
 {
     private sealed class ReplayEntry : IDisposable
     {
@@ -37,9 +38,9 @@ public sealed class ReplayManager(string fileDialogStartPath) : IDisposable
             Disposed = true;
         }
 
-        public void Show()
+        public void Show(PlanDatabase planDB)
         {
-            Window ??= new(Replay.Result);
+            Window ??= new(Replay.Result, planDB);
             Window.IsOpen = true;
             Window.BringToFront();
         }
@@ -91,7 +92,7 @@ public sealed class ReplayManager(string fileDialogStartPath) : IDisposable
         {
             if (e.AutoShowWindow && e.Window == null && e.Replay.IsCompletedSuccessfully && e.Replay.Result.Ops.Count > 0)
             {
-                e.Show();
+                e.Show(planDB);
             }
         }
         // auto-show analysis windows that are now ready, auto dispose entries that had their windows closed
@@ -155,7 +156,7 @@ public sealed class ReplayManager(string fileDialogStartPath) : IDisposable
                 if (popup)
                 {
                     if (ImGui.MenuItem("Show"))
-                        e.Show();
+                        e.Show(planDB);
                     if (ImGui.MenuItem("Convert to verbose"))
                         ConvertLog(e.Replay.Result, ReplayLogFormat.TextVerbose);
                     if (ImGui.MenuItem("Convert to short text"))

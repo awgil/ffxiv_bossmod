@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
 
 [ConfigDisplay(Order = 0x181, Parent = typeof(EndwalkerConfig))]
-public class P8S1Config() : CooldownPlanningConfigNode(90)
+public class P8S1Config() : ConfigNode()
 {
     [PropertyDisplay("Snake 1: assignments")]
     [GroupDetails(["Prio 1 (always CW from N)", "Prio 2 (flex CW from N)", "Prio 3 (flex CCW from NW)", "Prio 4 (always CCW from NW)"])]

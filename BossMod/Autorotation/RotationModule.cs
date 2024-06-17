@@ -18,22 +18,21 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
 
 // base class for rotation modules
 // each rotation module should contain a `public static RotationModuleDefinition Definition()` function
-public abstract record class RotationModule(WorldState World, Actor Player, AIHints Hints)
+// TODO: i don't think it should know about manager, rework this...
+public abstract class RotationModule(RotationModuleManager manager, Actor player)
 {
-    private readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
+    public readonly RotationModuleManager Manager = manager;
+    public readonly Actor Player = player;
+    public BossModuleManager Bossmods => Manager.Bossmods;
+    public WorldState World => Manager.Bossmods.WorldState;
+    public AIHints Hints => Manager.Hints;
 
     // the main entry point of the module - given a set of strategy values, fill the queue with a set of actions to execute
-    public abstract void Execute(ReadOnlySpan<StrategyValue> strategy, Actor? primaryTarget, ActionQueue actions);
+    public abstract void Execute(ReadOnlySpan<StrategyValue> strategy, Actor? primaryTarget);
+
+    public virtual string DescribeState() => "";
 
     // utility to resolve the target overrides; returns null on failure - in this case module is expected to run smart-targeting logic
     // expected usage is `ResolveTargetOverride(strategy) ?? CustomSmartTargetingLogic(...)`
-    protected Actor? ResolveTargetOverride(in StrategyValue strategy) => strategy.Target switch
-    {
-        StrategyTarget.Self => Player,
-        StrategyTarget.PartyByAssignment => _prc.SlotsPerAssignment(World.Party) is var spa && strategy.TargetParam < spa.Length ? World.Party[spa[strategy.TargetParam]] : null,
-        StrategyTarget.PartyWithLowestHP => World.Party.WithoutSlot().Exclude(strategy.TargetParam != 0 ? null : Player).MinBy(a => a.HPMP.CurHP),
-        StrategyTarget.EnemyWithHighestPriority => Hints.PriorityTargets.MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor,
-        StrategyTarget.EnemyByOID => (uint)strategy.TargetParam is var oid && oid != 0 ? Hints.PotentialTargets.Where(e => e.Actor.OID == oid).MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor : null,
-        _ => null
-    };
+    protected Actor? ResolveTargetOverride(in StrategyValue strategy) => Manager.ResolveTargetOverride(strategy);
 }

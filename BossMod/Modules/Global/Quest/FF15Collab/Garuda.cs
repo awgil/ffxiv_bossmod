@@ -71,7 +71,7 @@ class Microburst(BossModule module) : Components.SelfTargetedAOEs(module, Action
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (casting && actor.Position.AlmostEqual(Module.PrimaryActor.Position, 15))
-            hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), Module.Enemies(OID.Monolith).FirstOrDefault()!, 1, false));
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.warpstrike), Module.Enemies(OID.Monolith).FirstOrDefault()!, ActionQueue.Priority.High);
     }
 }
 
@@ -105,9 +105,9 @@ class MistralShriek(BossModule module) : Components.SelfTargetedAOEs(module, Act
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (casting)
-            hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), Module.Enemies(OID.Monolith).FirstOrDefault(p => !p.Position.AlmostEqual(Module.PrimaryActor.Position, 5))!, 1, false));
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.warpstrike), Module.Enemies(OID.Monolith).FirstOrDefault(p => !p.Position.AlmostEqual(Module.PrimaryActor.Position, 5))!, ActionQueue.Priority.High);
         if (WorldState.CurrentTime > done && WorldState.CurrentTime < done.AddSeconds(2))
-            hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), Module.PrimaryActor, 1, false));
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.warpstrike), Module.PrimaryActor, ActionQueue.Priority.High);
     }
 }
 

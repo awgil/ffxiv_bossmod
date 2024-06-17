@@ -1,5 +1,3 @@
-using BossMod.PlanTarget;
-
 namespace BossMod.Global.PVP.HiddenGorge.GoblinMercenary;
 
 public enum OID : uint

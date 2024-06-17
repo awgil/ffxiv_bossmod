@@ -94,12 +94,6 @@ sealed class AIController(ActionManagerEx amex)
         WantJump = false;
     }
 
-    public void SetPrimaryTarget(Actor? actor)
-    {
-        if (Service.TargetManager.Target?.ObjectId != actor?.InstanceID)
-            Service.TargetManager.Target = actor != null ? Service.ObjectTable.SearchById((uint)actor.InstanceID) : null;
-    }
-
     public void SetFocusTarget(Actor? actor)
     {
         if (Service.TargetManager.FocusTarget?.ObjectId != actor?.InstanceID)

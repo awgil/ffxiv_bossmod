@@ -36,9 +36,9 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
         {
             tree.LeafNodes(hints.PredictedDamage, d => $"[{string.Join(", ", ws.Party.WithSlot().IncludedInMask(d.players).Select(ia => ia.Item2.Name))}], at {Math.Max(0, (d.activation - ws.CurrentTime).TotalSeconds):f3}");
         }
-        foreach (var _1 in tree.Node("Planned actions", hints.PlannedActions.Count == 0))
+        foreach (var _1 in tree.Node("Planned actions", hints.ActionsToExecute.Entries.Count == 0))
         {
-            tree.LeafNodes(hints.PlannedActions, e => $"{e.action} @ {e.target} in {e.windowEnd:f3}s ({(e.lowPriority ? "low" : "high")} priority)");
+            tree.LeafNodes(hints.ActionsToExecute.Entries, e => $"{e.Action} @ {e.Target} (priority {e.Priority})");
         }
         foreach (var _1 in tree.Node("Pathfinding"))
         {

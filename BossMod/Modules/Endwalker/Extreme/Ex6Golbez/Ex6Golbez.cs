@@ -15,8 +15,5 @@ class VoidBlizzard(BossModule module) : Components.StackWithCastTargets(module, 
 class VoidAero(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.VoidAero), 3, 2);
 class VoidTornado(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.VoidTornado), 6, 4);
 
-[ConfigDisplay(Order = 0x060, Parent = typeof(EndwalkerConfig))]
-public class Ex6GolbezConfig() : CooldownPlanningConfigNode(90);
-
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 950, NameID = 12365)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 950, NameID = 12365, PlanLevel = 90)]
 public class Ex6Golbez(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(15));

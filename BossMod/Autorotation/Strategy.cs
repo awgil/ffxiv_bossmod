@@ -20,6 +20,7 @@ public record class StrategyConfig(
     float UIPriority = 0) // tracks are sorted by UI priority for display; negative are hidden by default
 {
     public readonly List<StrategyOption> Options = [];
+    public readonly List<ActionID> AssociatedActions = []; // these actions will be shown on the track in the planner ui
 
     public string UIName => DisplayName.Length > 0 ? DisplayName : InternalName;
 

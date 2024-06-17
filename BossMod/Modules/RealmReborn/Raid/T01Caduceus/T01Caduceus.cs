@@ -100,10 +100,7 @@ class T01CaduceusStates : StateMachineBuilder
     }
 }
 
-[ConfigDisplay(Order = 0x110, Parent = typeof(RealmRebornConfig))]
-public class T01CaduceusConfig() : CooldownPlanningConfigNode(50);
-
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 93, NameID = 1466, SortOrder = 2)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 93, NameID = 1466, SortOrder = 2, PlanLevel = 50)]
 public class T01Caduceus : BossModule
 {
     public T01Caduceus(WorldState ws, Actor primary) : base(ws, primary, new(-26, -407), new ArenaBoundsRect(35, 43))

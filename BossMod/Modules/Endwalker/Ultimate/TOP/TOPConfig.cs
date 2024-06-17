@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
 [ConfigDisplay(Order = 0x210, Parent = typeof(EndwalkerConfig))]
-public class TOPConfig() : CooldownPlanningConfigNode(90)
+public class TOPConfig() : ConfigNode()
 {
     [PropertyDisplay("P1 Program Loop: assignments (G1 CW from NW, G2 CCW by default, in case of conflict 'lower' number flexes)")]
     [GroupDetails(["G1 prio1", "G1 prio2", "G1 prio3", "G1 prio4", "G2 prio1", "G2 prio2", "G2 prio3", "G2 prio4"])]
