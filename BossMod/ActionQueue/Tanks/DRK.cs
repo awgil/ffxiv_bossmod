@@ -65,62 +65,6 @@ public enum TraitID : uint
 
 public sealed class Definitions : IDisposable
 {
-    public static readonly uint[] UnlockQuests = [67590, 67591, 67592, 67594, 67596, 67597, 67598, 67600, 68455];
-
-    public static bool Unlocked(AID id, int level, int questProgress) => id switch
-    {
-        AID.SyphonStrike => level >= 2,
-        AID.Unleash => level >= 6,
-        AID.Rampart => level >= 8,
-        AID.Grit => level >= 10,
-        AID.ReleaseGrit => level >= 10,
-        AID.LowBlow => level >= 12,
-        AID.Provoke => level >= 15,
-        AID.Unmend => level >= 15,
-        AID.Interject => level >= 18,
-        AID.Reprisal => level >= 22,
-        AID.Souleater => level >= 26,
-        AID.FloodOfDarkness => level >= 30 && questProgress > 0,
-        AID.ArmsLength => level >= 32,
-        AID.BloodWeapon => level >= 35 && questProgress > 1,
-        AID.ShadowWall => level >= 38,
-        AID.EdgeOfDarkness => level >= 40 && questProgress > 2,
-        AID.StalwartSoul => level >= 40,
-        AID.DarkMind => level >= 45,
-        AID.Shirk => level >= 48,
-        AID.LivingDead => level >= 50 && questProgress > 3,
-        AID.SaltedEarth => level >= 52 && questProgress > 4,
-        AID.Plunge => level >= 54 && questProgress > 5,
-        AID.AbyssalDrain => level >= 56 && questProgress > 6,
-        AID.CarveAndSpit => level >= 60 && questProgress > 7,
-        AID.Bloodspiller => level >= 62,
-        AID.Quietus => level >= 64,
-        AID.Delirium => level >= 68,
-        AID.TheBlackestNight => level >= 70 && questProgress > 8,
-        AID.EdgeOfShadow => level >= 74,
-        AID.FloodOfShadow => level >= 74,
-        AID.DarkMissionary => level >= 76,
-        AID.LivingShadow => level >= 80,
-        AID.Oblation => level >= 82,
-        AID.SaltAndDarkness => level >= 86,
-        AID.SaltAndDarknessEnd => level >= 86,
-        AID.Shadowbringer => level >= 90,
-        _ => true
-    };
-
-    public static bool Unlocked(TraitID id, int level, int questProgress) => id switch
-    {
-        TraitID.Blackblood => level >= 62,
-        TraitID.EnhancedBlackblood => level >= 66,
-        TraitID.DarksideMastery => level >= 74,
-        TraitID.EnhancedPlunge => level >= 78,
-        TraitID.EnhancedUnmend => level >= 84,
-        TraitID.MeleeMastery => level >= 84,
-        TraitID.EnhancedLivingShadow => level >= 88,
-        TraitID.EnhancedLivingShadowII => level >= 90,
-        _ => true
-    };
-
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.DarkForce, instantAnimLock: 3.86f);

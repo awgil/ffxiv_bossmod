@@ -158,26 +158,6 @@ public enum TraitID : uint
 
 public sealed class Definitions : IDisposable
 {
-    public static bool Unlocked(AID id, int level, int questProgress) => id switch
-    {
-        AID.Addle => level >= 8,
-        AID.Sleep => level >= 10,
-        AID.LucidDreaming => level >= 14,
-        AID.Swiftcast => level >= 18,
-        AID.Surecast => level >= 44,
-        _ => true
-    };
-
-    public static bool Unlocked(TraitID id, int level, int questProgress) => id switch
-    {
-        TraitID.MaimAndMend1 => level >= 10,
-        TraitID.MaimAndMend2 => level >= 20,
-        TraitID.MaimAndMend3 => level >= 30,
-        TraitID.MaimAndMend4 => level >= 40,
-        TraitID.MaimAndMend5 => level >= 50,
-        _ => true
-    };
-
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.Whistle); // animLock=???

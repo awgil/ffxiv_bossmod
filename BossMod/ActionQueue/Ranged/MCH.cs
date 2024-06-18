@@ -68,66 +68,6 @@ public enum TraitID : uint
 
 public sealed class Definitions : IDisposable
 {
-    public static readonly uint[] UnlockQuests = [67233, 67234, 67235, 67240, 67242, 67243, 67244, 67246, 67248, 68445];
-
-    public static bool Unlocked(AID id, int level, int questProgress) => id switch
-    {
-        AID.SlugShot => level >= 2,
-        AID.HotShot => level >= 4,
-        AID.LegGraze => level >= 6,
-        AID.SecondWind => level >= 8,
-        AID.Reassemble => level >= 10,
-        AID.FootGraze => level >= 10,
-        AID.GaussRound => level >= 15,
-        AID.SpreadShot => level >= 18,
-        AID.Peloton => level >= 20,
-        AID.HeadGraze => level >= 24,
-        AID.CleanShot => level >= 26,
-        AID.Hypercharge => level >= 30 && questProgress > 0,
-        AID.ArmsLength => level >= 32,
-        AID.HeatBlast => level >= 35 && questProgress > 1,
-        AID.RookAutoturret => level >= 40 && questProgress > 2,
-        AID.RookOverdrive => level >= 40,
-        AID.Detonator => level >= 45,
-        AID.Wildfire => level >= 45,
-        AID.Ricochet => level >= 50 && questProgress > 3,
-        AID.AutoCrossbow => level >= 52 && questProgress > 4,
-        AID.HeatedSplitShot => level >= 54 && questProgress > 5,
-        AID.Tactician => level >= 56 && questProgress > 6,
-        AID.Drill => level >= 58 && questProgress > 7,
-        AID.HeatedSlugShot => level >= 60 && questProgress > 8,
-        AID.Dismantle => level >= 62,
-        AID.HeatedCleanShot => level >= 64,
-        AID.BarrelStabilizer => level >= 66,
-        AID.Flamethrower => level >= 70 && questProgress > 9,
-        AID.Bioblaster => level >= 72,
-        AID.AirAnchor => level >= 76,
-        AID.QueenOverdrive => level >= 80,
-        AID.AutomatonQueen => level >= 80,
-        AID.Scattergun => level >= 82,
-        AID.ChainSaw => level >= 90,
-        _ => true
-    };
-
-    public static bool Unlocked(TraitID id, int level, int questProgress) => id switch
-    {
-        TraitID.IncreasedActionDamage => level >= 20,
-        TraitID.IncreasedActionDamageII => level >= 40,
-        TraitID.SplitShotMastery => level >= 54 && questProgress > 5,
-        TraitID.SlugShotMastery => level >= 60 && questProgress > 8,
-        TraitID.CleanShotMastery => level >= 64,
-        TraitID.ChargedActionMastery => level >= 74,
-        TraitID.HotShotMastery => level >= 76,
-        TraitID.EnhancedWildfire => level >= 78,
-        TraitID.Promotion => level >= 80,
-        TraitID.SpreadShotMastery => level >= 82,
-        TraitID.EnhancedReassemble => level >= 84,
-        TraitID.MarksmansMastery => level >= 84,
-        TraitID.QueensGambit => level >= 86,
-        TraitID.EnhancedTactician => level >= 88,
-        _ => true
-    };
-
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.SatelliteBeam, true, castAnimLock: 3.70f); // animLock=???, castAnimLock=3.700

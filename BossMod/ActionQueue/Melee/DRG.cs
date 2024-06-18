@@ -65,63 +65,6 @@ public enum TraitID : uint
 
 public sealed class Definitions : IDisposable
 {
-    public static readonly uint[] UnlockQuests = [65591, 65975, 66603, 66604, 66605, 66607, 66608, 67226, 67228, 67229, 67230, 67231, 68450];
-
-    public static bool Unlocked(AID id, int level, int questProgress) => id switch
-    {
-        AID.VorpalThrust => level >= 4,
-        AID.LifeSurge => level >= 6,
-        AID.SecondWind => level >= 8,
-        AID.LegSweep => level >= 10,
-        AID.Bloodbath => level >= 12,
-        AID.PiercingTalon => level >= 15 && questProgress > 0,
-        AID.Disembowel => level >= 18,
-        AID.Feint => level >= 22,
-        AID.FullThrust => level >= 26,
-        AID.LanceCharge => level >= 30 && questProgress > 1,
-        AID.Jump => level >= 30 && questProgress > 2,
-        AID.ArmsLength => level >= 32,
-        AID.ElusiveJump => level >= 35 && questProgress > 3,
-        AID.DoomSpike => level >= 40 && questProgress > 4,
-        AID.SpineshatterDive => level >= 45 && questProgress > 5,
-        AID.DragonfireDive => level >= 50 && questProgress > 6,
-        AID.ChaosThrust => level >= 50,
-        AID.TrueNorth => level >= 50,
-        AID.BattleLitany => level >= 52 && questProgress > 7,
-        AID.FangAndClaw => level >= 56 && questProgress > 9,
-        AID.WheelingThrust => level >= 58 && questProgress > 10,
-        AID.Geirskogul => level >= 60 && questProgress > 11,
-        AID.SonicThrust => level >= 62,
-        AID.DragonSight => level >= 66,
-        AID.MirageDive => level >= 68,
-        AID.Nastrond => level >= 70 && questProgress > 12,
-        AID.CoerthanTorment => level >= 72,
-        AID.HighJump => level >= 74,
-        AID.RaidenThrust => level >= 76,
-        AID.Stardiver => level >= 80,
-        AID.DraconianFury => level >= 82,
-        AID.HeavensThrust => level >= 86,
-        AID.ChaoticSpring => level >= 86,
-        AID.WyrmwindThrust => level >= 90,
-        _ => true
-    };
-
-    public static bool Unlocked(TraitID id, int level, int questProgress) => id switch
-    {
-        TraitID.BloodOfTheDragon => level >= 54 && questProgress > 8,
-        TraitID.LanceMastery1 => level >= 64,
-        TraitID.LifeOfTheDragon => level >= 70 && questProgress > 12,
-        TraitID.JumpMastery => level >= 74,
-        TraitID.LanceMastery2 => level >= 76,
-        TraitID.LifeOfTheDragonMastery => level >= 78,
-        TraitID.EnhancedCoerthanTorment => level >= 82,
-        TraitID.EnhancedSpineshatterDive => level >= 84,
-        TraitID.LanceMastery3 => level >= 86,
-        TraitID.EnhancedLifeSurge => level >= 88,
-        TraitID.LanceMastery4 => level >= 90,
-        _ => true
-    };
-
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.DragonsongDive, castAnimLock: 3.70f);

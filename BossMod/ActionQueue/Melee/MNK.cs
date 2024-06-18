@@ -72,69 +72,6 @@ public enum TraitID : uint
 
 public sealed class Definitions : IDisposable
 {
-    public static readonly uint[] UnlockQuests = [66094, 66103, 66597, 66598, 66599, 66600, 66602, 67563, 67564, 67567, 67966];
-
-    public static bool Unlocked(AID id, int level, int questProgress) => id switch
-    {
-        AID.TrueStrike => level >= 4,
-        AID.SnapPunch => level >= 6,
-        AID.SecondWind => level >= 8,
-        AID.LegSweep => level >= 10,
-        AID.Bloodbath => level >= 12,
-        AID.SteelPeak => level >= 15 && questProgress > 0,
-        AID.Meditation => level >= 15 && questProgress > 0,
-        AID.TwinSnakes => level >= 18,
-        AID.Feint => level >= 22,
-        AID.ArmOfTheDestroyer => level >= 26,
-        AID.Demolish => level >= 30 && questProgress > 1,
-        AID.Rockbreaker => level >= 30 && questProgress > 2,
-        AID.ArmsLength => level >= 32,
-        AID.Thunderclap => level >= 35 && questProgress > 3,
-        AID.HowlingFist => level >= 40 && questProgress > 4,
-        AID.Mantra => level >= 42,
-        AID.FourPointFury => level >= 45 && questProgress > 5,
-        AID.TrueNorth => level >= 50,
-        AID.DragonKick => level >= 50,
-        AID.PerfectBalance => level >= 50 && questProgress > 6,
-        AID.FormShift => level >= 52 && questProgress > 7,
-        AID.ForbiddenChakra => level >= 54 && questProgress > 8,
-        AID.ElixirField => level >= 60 && questProgress > 9,
-        AID.MasterfulBlitz => level >= 60 && questProgress > 9,
-        AID.CelestialRevolution => level >= 60 && questProgress > 9,
-        AID.FlintStrike => level >= 60 && questProgress > 9,
-        AID.TornadoKick => level >= 60 && questProgress > 9,
-        AID.RiddleOfEarth => level >= 64,
-        AID.RiddleOfFire => level >= 68,
-        AID.Brotherhood => level >= 70 && questProgress > 10,
-        AID.RiddleOfWind => level >= 72,
-        AID.Enlightenment => level >= 74,
-        AID.Anatman => level >= 78,
-        AID.SixSidedStar => level >= 80,
-        AID.ShadowOfTheDestroyer => level >= 82,
-        AID.RisingPhoenix => level >= 86,
-        AID.PhantomRush => level >= 90,
-        _ => true
-    };
-
-    public static bool Unlocked(TraitID id, int level, int questProgress) => id switch
-    {
-        TraitID.EnhancedGreasedLightning1 => level >= 20,
-        TraitID.DeepMeditation1 => level >= 38,
-        TraitID.EnhancedGreasedLightning2 => level >= 40,
-        TraitID.SteelPeakMastery => level >= 54 && questProgress > 8,
-        TraitID.EnhancedPerfectBalance => level >= 60 && questProgress > 9,
-        TraitID.DeepMeditation2 => level >= 74,
-        TraitID.HowlingFistMastery => level >= 74,
-        TraitID.EnhancedGreasedLightning3 => level >= 76,
-        TraitID.ArmOfTheDestroyerMastery => level >= 82,
-        TraitID.EnhancedThunderclap => level >= 84,
-        TraitID.MeleeMastery => level >= 84,
-        TraitID.FlintStrikeMastery => level >= 86,
-        TraitID.EnhancedBrotherhood => level >= 88,
-        TraitID.TornadoKickMastery => level >= 90,
-        _ => true
-    };
-
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.FinalHeaven, castAnimLock: 3.70f);

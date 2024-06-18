@@ -53,10 +53,13 @@ public sealed class ActionQueue
                 break; // this and further actions are something we don't really want to execute (prio < minimal)
 
             var def = ActionDefinitions.Instance[candidate.Action];
-            var startDelay = Math.Max(Math.Max(0, animationLock), def?.ReadyIn(cooldowns) ?? 0);
+            if (def == null || !def.AllowedClasses[(int)player.Class] || player.Level < def.MinLevel || !(ActionDefinitions.Instance.UnlockCheck?.Invoke(def.UnlockLink) ?? true))
+                continue; // unregistered or locked action
+
+            var startDelay = Math.Max(Math.Max(0, animationLock), def.ReadyIn(cooldowns));
 
             // TODO: adjusted cast time!
-            var duration = def?.CastTime > 0 ? def.CastTime + def.CastAnimLock : (def?.InstantAnimLock ?? 0.6f) + instantAnimLockDelay;
+            var duration = def.CastTime > 0 ? def.CastTime + def.CastAnimLock : def.InstantAnimLock + instantAnimLockDelay;
             if (startDelay + duration > deadline)
                 continue; // this action can't be done in time for higher-priority action, skip
 

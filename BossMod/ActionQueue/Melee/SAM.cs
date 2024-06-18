@@ -69,67 +69,6 @@ public enum TraitID : uint
 
 public sealed class Definitions : IDisposable
 {
-    public static readonly uint[] UnlockQuests = [68101, 68106];
-
-    public static bool Unlocked(AID id, int level, int questProgress) => id switch
-    {
-        AID.Jinpu => level >= 4,
-        AID.ThirdEye => level >= 6,
-        AID.SecondWind => level >= 8,
-        AID.LegSweep => level >= 10,
-        AID.Bloodbath => level >= 12,
-        AID.Enpi => level >= 15,
-        AID.Shifu => level >= 18,
-        AID.Feint => level >= 22,
-        AID.Fuga => level >= 26,
-        AID.Iaijutsu => level >= 30,
-        AID.Gekko => level >= 30,
-        AID.Higanbana => level >= 30,
-        AID.ArmsLength => level >= 32,
-        AID.Mangetsu => level >= 35,
-        AID.Kasha => level >= 40,
-        AID.TenkaGoken => level >= 40,
-        AID.Oka => level >= 45,
-        AID.MidareSetsugekka => level >= 50,
-        AID.TrueNorth => level >= 50,
-        AID.MeikyoShisui => level >= 50,
-        AID.Yukikaze => level >= 50,
-        AID.HissatsuShinten => level >= 52,
-        AID.HissatsuGyoten => level >= 54,
-        AID.HissatsuYaten => level >= 56,
-        AID.Meditate => level >= 60 && questProgress > 0,
-        AID.HissatsuKyuten => level >= 62,
-        AID.Hagakure => level >= 68,
-        AID.Ikishoten => level >= 68,
-        AID.HissatsuGuren => level >= 70 && questProgress > 1,
-        AID.HissatsuSenei => level >= 72,
-        AID.TsubameGaeshi => level >= 76,
-        AID.KaeshiHiganbana => level >= 76,
-        AID.KaeshiSetsugekka => level >= 76,
-        AID.KaeshiGoken => level >= 76,
-        AID.Shoha => level >= 80,
-        AID.Shoha2 => level >= 82,
-        AID.Fuko => level >= 86,
-        AID.OgiNamikiri => level >= 90,
-        AID.KaeshiNamikiri => level >= 90,
-        _ => true
-    };
-
-    public static bool Unlocked(TraitID id, int level, int questProgress) => id switch
-    {
-        TraitID.KenkiMastery => level >= 52,
-        TraitID.KenkiMastery2 => level >= 62,
-        TraitID.WayoftheSamurai => level >= 66,
-        TraitID.EnhancedIaijutsu => level >= 74,
-        TraitID.EnhancedFufu => level >= 78,
-        TraitID.EnhancedTsubame => level >= 84,
-        TraitID.WayoftheSamurai2 => level >= 84,
-        TraitID.FugaMastery => level >= 86,
-        TraitID.EnhancedMeikyoShisui => level >= 88,
-        TraitID.EnhancedIkishoten => level >= 90,
-        _ => true
-    };
-
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.DoomOfTheLiving, castAnimLock: 3.70f); // animLock=???, castAnimLock=3.700

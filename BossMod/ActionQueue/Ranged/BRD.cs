@@ -71,69 +71,6 @@ public enum TraitID : uint
 
 public sealed class Definitions : IDisposable
 {
-    public static readonly uint[] UnlockQuests = [65604, 65612, 66621, 66622, 66623, 66624, 66626, 67250, 67251, 67252, 67254, 68430];
-
-    public static bool Unlocked(AID id, int level, int questProgress) => id switch
-    {
-        AID.StraightShot => level >= 2,
-        AID.RagingStrikes => level >= 4,
-        AID.LegGraze => level >= 6,
-        AID.VenomousBite => level >= 6,
-        AID.SecondWind => level >= 8,
-        AID.FootGraze => level >= 10,
-        AID.Bloodletter => level >= 12,
-        AID.RepellingShot => level >= 15 && questProgress > 0,
-        AID.QuickNock => level >= 18,
-        AID.Peloton => level >= 20,
-        AID.HeadGraze => level >= 24,
-        AID.MagesBallad => level >= 30 && questProgress > 2,
-        AID.Windbite => level >= 30 && questProgress > 1,
-        AID.ArmsLength => level >= 32,
-        AID.WardensPaean => level >= 35 && questProgress > 3,
-        AID.Barrage => level >= 38,
-        AID.ArmysPaeon => level >= 40 && questProgress > 4,
-        AID.RainOfDeath => level >= 45 && questProgress > 5,
-        AID.BattleVoice => level >= 50 && questProgress > 6,
-        AID.WanderersMinuet => level >= 52 && questProgress > 7,
-        AID.PitchPerfect => level >= 52,
-        AID.EmpyrealArrow => level >= 54 && questProgress > 8,
-        AID.IronJaws => level >= 56 && questProgress > 9,
-        AID.Sidewinder => level >= 60 && questProgress > 10,
-        AID.Troubadour => level >= 62,
-        AID.CausticBite => level >= 64,
-        AID.Stormbite => level >= 64,
-        AID.NaturesMinne => level >= 66,
-        AID.RefulgentArrow => level >= 70 && questProgress > 11,
-        AID.Shadowbite => level >= 72,
-        AID.BurstShot => level >= 76,
-        AID.ApexArrow => level >= 80,
-        AID.Ladonsbite => level >= 82,
-        AID.BlastArrow => level >= 86,
-        AID.RadiantFinale => level >= 90,
-        _ => true
-    };
-
-    public static bool Unlocked(TraitID id, int level, int questProgress) => id switch
-    {
-        TraitID.HeavierShot => level >= 2,
-        TraitID.IncreasedActionDamage1 => level >= 20,
-        TraitID.IncreasedActionDamage2 => level >= 40,
-        TraitID.BiteMastery1 => level >= 64,
-        TraitID.EnhancedEmpyrealArrow => level >= 68,
-        TraitID.StraightShotMastery => level >= 70 && questProgress > 11,
-        TraitID.EnhancedQuickNock => level >= 72,
-        TraitID.BiteMastery2 => level >= 76,
-        TraitID.HeavyShotMastery => level >= 76,
-        TraitID.EnhancedArmysPaeon => level >= 78,
-        TraitID.SoulVoice => level >= 80,
-        TraitID.QuickNockMastery => level >= 82,
-        TraitID.EnhancedBloodletter => level >= 84,
-        TraitID.EnhancedApexArrow => level >= 86,
-        TraitID.EnhancedTroubadour => level >= 88,
-        TraitID.MinstrelsCoda => level >= 90,
-        _ => true
-    };
-
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.SagittariusArrow, true, castAnimLock: 3.70f);

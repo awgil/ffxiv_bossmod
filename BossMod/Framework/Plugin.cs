@@ -5,7 +5,6 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using System.IO;
 using System.Reflection;
 
 namespace BossMod;
@@ -69,7 +68,8 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager = commandManager;
         CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
-        var actionDefs = ActionDefinitions.Instance; // ensure action definitions are initialized
+        ActionDefinitions.Instance.UnlockCheck = QuestUnlocked; // ensure action definitions are initialized and set unlock check functor (we don't really store the quest progress in clientstate, for now at least)
+
         var qpf = (ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency;
         _rotationDB = new(new(dalamud.ConfigDirectory.FullName + "/autorot"));
         _ws = new(qpf, gameVersion);
@@ -176,6 +176,15 @@ public sealed class Plugin : IDalamudPlugin
 
         Camera.Instance?.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
+    }
+
+    private unsafe bool QuestUnlocked(uint link)
+    {
+        // see ActionManager.IsActionUnlocked
+        var gameMain = FFXIVClientStructs.FFXIV.Client.Game.GameMain.Instance();
+        return link == 0
+            || Service.LuminaRow<Lumina.Excel.GeneratedSheets.TerritoryType>(gameMain->CurrentTerritoryTypeId)?.TerritoryIntendedUse == 31 // deep dungeons check is hardcoded in game
+            || FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(link);
     }
 
     private unsafe void ExecuteHints()

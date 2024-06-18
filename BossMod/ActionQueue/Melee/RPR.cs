@@ -68,66 +68,6 @@ public enum TraitID : uint
 
 public sealed class Definitions : IDisposable
 {
-    public static readonly uint[] UnlockQuests = [69614];
-
-    public static bool Unlocked(AID id, int level, int questProgress) => id switch
-    {
-        AID.WaxingSlice => level >= 5,
-        AID.SecondWind => level >= 8,
-        AID.LegSweep => level >= 10,
-        AID.ShadowofDeath => level >= 10,
-        AID.Bloodbath => level >= 12,
-        AID.Harpe => level >= 15,
-        AID.HellsIngress => level >= 20,
-        AID.HellsEgress => level >= 20,
-        AID.Feint => level >= 22,
-        AID.SpinningScythe => level >= 25,
-        AID.InfernalSlice => level >= 30,
-        AID.ArmsLength => level >= 32,
-        AID.WhorlofDeath => level >= 35,
-        AID.ArcaneCrest => level >= 40,
-        AID.NightmareScythe => level >= 45,
-        AID.BloodStalk => level >= 50,
-        AID.TrueNorth => level >= 50,
-        AID.GrimSwathe => level >= 55,
-        AID.SoulSlice => level >= 60,
-        AID.SoulScythe => level >= 65,
-        AID.UnveiledGibbet => level >= 70,
-        AID.Gibbet => level >= 70,
-        AID.UnveiledGallows => level >= 70,
-        AID.Gallows => level >= 70,
-        AID.Guillotine => level >= 70,
-        AID.ArcaneCircle => level >= 72,
-        AID.Regress => level >= 74,
-        AID.Gluttony => level >= 76,
-        AID.Enshroud => level >= 80 && questProgress > 0,
-        AID.VoidReaping => level >= 80 && questProgress > 0,
-        AID.CrossReaping => level >= 80 && questProgress > 0,
-        AID.GrimReaping => level >= 80 && questProgress > 0,
-        AID.HarvestMoon => level >= 82,
-        AID.SoulSow => level >= 82,
-        AID.LemuresSlice => level >= 86,
-        AID.LemuresScythe => level >= 86,
-        AID.PlentifulHarvest => level >= 88,
-        AID.Communio => level >= 90,
-        _ => true
-    };
-
-    public static bool Unlocked(TraitID id, int level, int questProgress) => id switch
-    {
-        TraitID.SoulGauge => level >= 50,
-        TraitID.DeathScytheMastery1 => level >= 60,
-        TraitID.EnhancedAvatar => level >= 70,
-        TraitID.Hellsgate => level >= 74,
-        TraitID.TemperedSoul => level >= 78,
-        TraitID.ShroudGauge => level >= 80 && questProgress > 0,
-        TraitID.EnhancedArcaneCrest => level >= 84,
-        TraitID.DeathScytheMastery2 => level >= 84,
-        TraitID.EnhancedShroud => level >= 86,
-        TraitID.EnhancedArcaneCircle => level >= 88,
-        _ => true
-    };
-
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.TheEnd, castAnimLock: 3.70f); // animLock=???, castAnimLock=3.700

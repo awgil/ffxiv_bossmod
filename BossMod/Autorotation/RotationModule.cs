@@ -32,6 +32,19 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
     public virtual string DescribeState() => "";
 
+    // utility to check action/trait unlocks
+    public bool ActionUnlocked(ActionID action)
+    {
+        var def = ActionDefinitions.Instance[action];
+        return def != null && def.AllowedClasses[(int)Player.Class] && Player.Level >= def.MinLevel && (ActionDefinitions.Instance.UnlockCheck?.Invoke(def.UnlockLink) ?? true);
+    }
+
+    public bool TraitUnlocked(uint id)
+    {
+        var unlock = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Trait>(id)?.Quest.Row ?? 0;
+        return ActionDefinitions.Instance.UnlockCheck?.Invoke(unlock) ?? true;
+    }
+
     // utility to resolve the target overrides; returns null on failure - in this case module is expected to run smart-targeting logic
     // expected usage is `ResolveTargetOverride(strategy) ?? CustomSmartTargetingLogic(...)`
     protected Actor? ResolveTargetOverride(in StrategyValue strategy) => Manager.ResolveTargetOverride(strategy);

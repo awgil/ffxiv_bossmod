@@ -68,65 +68,6 @@ public enum TraitID : uint
 
 public sealed class Definitions : IDisposable
 {
-    public static readonly uint[] UnlockQuests = [68802];
-
-    public static bool Unlocked(AID id, int level, int questProgress) => id switch
-    {
-        AID.NoMercy => level >= 2,
-        AID.BrutalShell => level >= 4,
-        AID.Camouflage => level >= 6,
-        AID.Rampart => level >= 8,
-        AID.DemonSlice => level >= 10,
-        AID.RoyalGuard => level >= 10,
-        AID.ReleaseRoyalGuard => level >= 10,
-        AID.LowBlow => level >= 12,
-        AID.Provoke => level >= 15,
-        AID.LightningShot => level >= 15,
-        AID.Interject => level >= 18,
-        AID.DangerZone => level >= 18,
-        AID.Reprisal => level >= 22,
-        AID.SolidBarrel => level >= 26,
-        AID.BurstStrike => level >= 30,
-        AID.ArmsLength => level >= 32,
-        AID.Nebula => level >= 38,
-        AID.DemonSlaughter => level >= 40,
-        AID.Aurora => level >= 45,
-        AID.Shirk => level >= 48,
-        AID.Superbolide => level >= 50,
-        AID.SonicBreak => level >= 54,
-        AID.RoughDivide => level >= 56,
-        AID.GnashingFang => level >= 60,
-        AID.SavageClaw => level >= 60,
-        AID.WickedTalon => level >= 60,
-        AID.BowShock => level >= 62,
-        AID.HeartOfLight => level >= 64,
-        AID.HeartOfStone => level >= 68,
-        AID.AbdomenTear => level >= 70 && questProgress > 0,
-        AID.JugularRip => level >= 70 && questProgress > 0,
-        AID.EyeGouge => level >= 70 && questProgress > 0,
-        AID.Continuation => level >= 70 && questProgress > 0,
-        AID.FatedCircle => level >= 72,
-        AID.Bloodfest => level >= 76,
-        AID.BlastingZone => level >= 80,
-        AID.HeartOfCorundum => level >= 82,
-        AID.Hypervelocity => level >= 86,
-        AID.DoubleDown => level >= 90,
-        _ => true
-    };
-
-    public static bool Unlocked(TraitID id, int level, int questProgress) => id switch
-    {
-        TraitID.CartridgeCharge => level >= 30,
-        TraitID.EnhancedBrutalShell => level >= 52,
-        TraitID.DangerZoneMastery => level >= 80,
-        TraitID.HeartOfStoneMastery => level >= 82,
-        TraitID.EnhancedAurora => level >= 84,
-        TraitID.MeleeMastery => level >= 84,
-        TraitID.EnhancedContinuation => level >= 86,
-        TraitID.CartridgeChargeII => level >= 88,
-        _ => true
-    };
-
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.GunmetalSoul, instantAnimLock: 3.86f);

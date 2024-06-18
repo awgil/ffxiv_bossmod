@@ -3,9 +3,9 @@
 // TODO: a _lot_ of this stuff should be reworked...
 public abstract class CommonState(RotationModule module)
 {
-    public int Level => module.Player.Level;
-    public int UnlockProgress;
-    public uint CurMP => module.Player.HPMP.CurMP; // 10000 max
+    public RotationModule Module = module;
+    public int Level => Module.Player.Level;
+    public uint CurMP => Module.Player.HPMP.CurMP; // 10000 max
     public bool TargetingEnemy;
     public bool HaveTankStance;
     public float RangeToTarget; // minus both hitboxes; <= 0 means inside hitbox, <= 3 means in melee range, maxvalue if there is no target
@@ -15,7 +15,7 @@ public abstract class CommonState(RotationModule module)
     public uint ComboLastAction;
     public float RaidBuffsLeft; // 0 if no damage-up status is up, otherwise it is time left on longest
 
-    public float? CountdownRemaining => module.World.Client.CountdownRemaining;
+    public float? CountdownRemaining => Module.World.Client.CountdownRemaining;
     public bool ForbidDOTs;
     public float FightEndIn; // how long fight will last (we try to spend all resources before this happens)
     public float RaidBuffsIn; // estimate time when new raidbuff window starts (if it is smaller than FightEndIn, we try to conserve resources)
@@ -25,9 +25,9 @@ public abstract class CommonState(RotationModule module)
     public bool NextPositionalCorrect; // true if correctly positioned for next positional
 
     // these simply point to client state
-    public readonly Cooldown[] Cooldowns = module.World.Client.Cooldowns;
-    public readonly ActionID[] DutyActions = module.World.Client.DutyActions;
-    public readonly byte[] BozjaHolster = module.World.Client.BozjaHolster;
+    public Cooldown[] Cooldowns => Module.World.Client.Cooldowns;
+    public ActionID[] DutyActions => Module.World.Client.DutyActions;
+    public byte[] BozjaHolster => Module.World.Client.BozjaHolster;
 
     // both 2.5 max (unless slowed), reduced by gear attributes and certain status effects
     public float AttackGCDTime;
@@ -57,34 +57,33 @@ public abstract class CommonState(RotationModule module)
     public bool CanWeave(float cooldown, float actionLock, float deadline) => deadline < 10000 ? MathF.Max(cooldown, AnimationLock) + actionLock + AnimationLockDelay <= deadline : cooldown <= AnimationLock;
     public bool CanWeave<AID>(AID aid, float actionLock, float deadline) where AID : Enum => CanWeave(CD(aid), actionLock, deadline);
 
-    public void UpdateCommon(Actor? target, int unlockProgress)
+    public void UpdateCommon(Actor? target)
     {
-        var vuln = module.Manager.Planner?.EstimateTimeToNextVulnerable() ?? (false, 10000);
-        var downtime = module.Manager.Planner?.EstimateTimeToNextDowntime() ?? (false, 0);
-        var poslock = module.Manager.Planner?.EstimateTimeToNextPositioning() ?? (false, 10000);
+        var vuln = Module.Manager.Planner?.EstimateTimeToNextVulnerable() ?? (false, 10000);
+        var downtime = Module.Manager.Planner?.EstimateTimeToNextDowntime() ?? (false, 0);
+        var poslock = Module.Manager.Planner?.EstimateTimeToNextPositioning() ?? (false, 10000);
 
-        var am = module.Manager.ActionManager;
-        UnlockProgress = unlockProgress;
+        var am = Module.Manager.ActionManager;
         TargetingEnemy = target != null && target.Type is ActorType.Enemy or ActorType.Part && !target.IsAlly;
-        RangeToTarget = target != null ? (target.Position - module.Player.Position).Length() - target.HitboxRadius - module.Player.HitboxRadius : float.MaxValue;
+        RangeToTarget = target != null ? (target.Position - Module.Player.Position).Length() - target.HitboxRadius - Module.Player.HitboxRadius : float.MaxValue;
         AnimationLock = am.EffectiveAnimationLock;
         AnimationLockDelay = am.AnimationLockDelayEstimate;
         ComboTimeLeft = am.ComboTimeLeft;
         ComboLastAction = am.ComboLastMove;
 
         RaidBuffsLeft = vuln.Item1 ? vuln.Item2 : 0;
-        foreach (var status in module.Player.Statuses.Where(s => IsDamageBuff(s.ID)))
+        foreach (var status in Module.Player.Statuses.Where(s => IsDamageBuff(s.ID)))
         {
             RaidBuffsLeft = MathF.Max(RaidBuffsLeft, StatusDuration(status.ExpireAt));
         }
         // TODO: also check damage-taken debuffs on target
 
-        var targetEnemy = target != null ? module.Hints.PotentialTargets.Find(e => e.Actor == target) : null;
+        var targetEnemy = target != null ? Module.Hints.PotentialTargets.Find(e => e.Actor == target) : null;
         ForbidDOTs = targetEnemy?.ForbidDOTs ?? false;
         FightEndIn = downtime.Item1 ? 0 : downtime.Item2;
         RaidBuffsIn = vuln.Item1 ? 0 : vuln.Item2;
-        if (module.Bossmods.ActiveModule?.Info?.PlanLevel > 0) // assumption: if there is no planning support for encounter (meaning it's something trivial, like outdoor boss), don't expect any cooldowns
-            RaidBuffsIn = Math.Min(RaidBuffsIn, module.Bossmods.RaidCooldowns.NextDamageBuffIn(module.World.CurrentTime));
+        if (Module.Bossmods.ActiveModule?.Info?.PlanLevel > 0) // assumption: if there is no planning support for encounter (meaning it's something trivial, like outdoor boss), don't expect any cooldowns
+            RaidBuffsIn = Math.Min(RaidBuffsIn, Module.Bossmods.RaidCooldowns.NextDamageBuffIn(Module.World.CurrentTime));
         PositionLockIn = !poslock.Item1 ? poslock.Item2 : 0;
         NextPositional = Positional.Any;
         NextPositionalImminent = false;
@@ -97,7 +96,7 @@ public abstract class CommonState(RotationModule module)
         SpellGCDTime = am.GetAdjustedRecastTime(new(ActionType.Spell, 119), false) * 0.001f;
     }
 
-    public float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - module.World.CurrentTime).TotalSeconds, 0.0f);
+    public float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - Module.World.CurrentTime).TotalSeconds, 0.0f);
 
     // this also checks pending statuses
     // note that we check pending statuses first - otherwise we get the same problem with double refresh if we try to refresh early (we find old status even though we have pending one)
@@ -105,7 +104,7 @@ public abstract class CommonState(RotationModule module)
     {
         if (actor == null)
             return (0, 0);
-        var pending = module.World.PendingEffects.PendingStatus(actor.InstanceID, sid, sourceID);
+        var pending = Module.World.PendingEffects.PendingStatus(actor.InstanceID, sid, sourceID);
         if (pending != null)
             return (pendingDuration, pending.Value);
         var status = actor.FindStatus(sid, sourceID);

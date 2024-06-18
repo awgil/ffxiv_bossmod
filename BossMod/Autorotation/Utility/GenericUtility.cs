@@ -15,7 +15,7 @@ public abstract class GenericUtility(RotationModuleManager manager, Actor player
         var adata = adefs[action]!;
         var cfg = def.AddConfig(expectedIndex, new(internalName, displayName, uiPriority));
         cfg.AddOption(SimpleOption.None, new(0x80ffffff, ActionTargets.None, "None", "Do not use automatically"));
-        cfg.AddOption(SimpleOption.Use, new(0x8000ffff, adata.AllowedTargets, "Use", $"Use {action.Name()}", adata.Cooldown, effect, adefs.MinActionLevel(action)));
+        cfg.AddOption(SimpleOption.Use, new(0x8000ffff, adata.AllowedTargets, "Use", $"Use {action.Name()}", adata.Cooldown, effect, adefs.ActionMinLevel(action)));
     }
 
     protected static void DefineLimitBreak<Index>(RotationModuleDefinition def, Index expectedIndex, ActionTargets allowedTargets, float effectLB1 = 0, float effectLB2 = 0, float effectLB3 = 0) where Index : Enum

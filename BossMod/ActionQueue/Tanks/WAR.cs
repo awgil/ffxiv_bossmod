@@ -100,68 +100,6 @@ public enum TraitID : uint
 
 public sealed class Definitions : IDisposable
 {
-    public static readonly uint[] UnlockQuests = [65852, 65855, 66586, 66587, 66589, 66590, 66124, 66132, 66134, 66137, 68440];
-
-    public static bool Unlocked(AID id, int level, int questProgress) => id switch
-    {
-        AID.Maim => level >= 4,
-        AID.Berserk => level >= 6,
-        AID.Rampart => level >= 8,
-        AID.Overpower => level >= 10,
-        AID.Defiance => level >= 10,
-        AID.ReleaseDefiance => level >= 10,
-        AID.LowBlow => level >= 12,
-        AID.Tomahawk => level >= 15 && questProgress > 0,
-        AID.Provoke => level >= 15,
-        AID.Interject => level >= 18,
-        AID.Reprisal => level >= 22,
-        AID.StormPath => level >= 26,
-        AID.ThrillOfBattle => level >= 30 && questProgress > 1,
-        AID.ArmsLength => level >= 32,
-        AID.InnerBeast => level >= 35 && questProgress > 2,
-        AID.Vengeance => level >= 38,
-        AID.MythrilTempest => level >= 40 && questProgress > 3,
-        AID.Holmgang => level >= 42,
-        AID.SteelCyclone => level >= 45 && questProgress > 4,
-        AID.Shirk => level >= 48,
-        AID.StormEye => level >= 50,
-        AID.Infuriate => level >= 50 && questProgress > 5,
-        AID.FellCleave => level >= 54 && questProgress > 6,
-        AID.RawIntuition => level >= 56 && questProgress > 7,
-        AID.Equilibrium => level >= 58 && questProgress > 8,
-        AID.Decimate => level >= 60 && questProgress > 9,
-        AID.Onslaught => level >= 62,
-        AID.Upheaval => level >= 64,
-        AID.ShakeItOff => level >= 68,
-        AID.InnerRelease => level >= 70 && questProgress > 10,
-        AID.ChaoticCyclone => level >= 72,
-        AID.NascentFlash => level >= 76,
-        AID.InnerChaos => level >= 80,
-        AID.Bloodwhetting => level >= 82,
-        AID.Orogeny => level >= 86,
-        AID.PrimalRend => level >= 90,
-        _ => true
-    };
-
-    public static bool Unlocked(TraitID id, int level, int questProgress) => id switch
-    {
-        TraitID.TheBeastWithin => level >= 35 && questProgress > 2,
-        TraitID.InnerBeastMastery => level >= 54 && questProgress > 6,
-        TraitID.SteelCycloneMastery => level >= 60 && questProgress > 9,
-        TraitID.EnhancedInfuriate => level >= 66,
-        TraitID.BerserkMastery => level >= 70 && questProgress > 10,
-        TraitID.NascentChaos => level >= 72,
-        TraitID.MasteringTheBeast => level >= 74,
-        TraitID.EnhancedShakeItOff => level >= 76,
-        TraitID.EnhancedThrillOfBattle => level >= 78,
-        TraitID.RawIntuitionMastery => level >= 82,
-        TraitID.EnhancedNascentFlash => level >= 82,
-        TraitID.EnhancedEquilibrium => level >= 84,
-        TraitID.MeleeMastery => level >= 84,
-        TraitID.EnhancedOnslaught => level >= 88,
-        _ => true
-    };
-
     private readonly WARConfig _config = Service.Config.Get<WARConfig>();
 
     public Definitions(ActionDefinitions d)

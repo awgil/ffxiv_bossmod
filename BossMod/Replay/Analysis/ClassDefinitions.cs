@@ -43,7 +43,6 @@ class ClassDefinitions
         public readonly List<ActionData> Actions = [];
         public readonly SortedDictionary<int, List<ActionData>> ByCDGroup = [];
         public List<Lumina.Excel.GeneratedSheets.Trait> Traits = [];
-        public List<uint>? Unlocks;
     }
 
     private readonly Dictionary<ActionID, ActionData> _actionData = [];
@@ -148,18 +147,8 @@ class ClassDefinitions
         }
         foreach (var (_, list) in _byCategory)
             list.SortBy(d => d.Row?.ClassJobLevel ?? 0);
-
         foreach (var (_, cd) in _classData)
-        {
             cd.Actions.SortBy(d => d.Row?.ClassJobLevel ?? 0);
-
-            List<(uint, bool)>? quests = [];
-            foreach (var action in cd.Actions.Where(a => a.Row != null && a.Row.UnlockLink != 0))
-                quests = BuildOrderedQuests(quests, action.Row!.UnlockLink);
-            foreach (var trait in cd.Traits.Where(t => t.Quest.Row != 0))
-                quests = BuildOrderedQuests(quests, trait.Quest.Row);
-            cd.Unlocks = quests?.Where(q => q.Item2).Select(q => q.Item1).ToList();
-        }
     }
 
     public void Draw(UITree tree)
@@ -247,52 +236,6 @@ class ClassDefinitions
             _classData[(Class)c].ByCDGroup.GetOrAdd(cdgroup).Add(action);
     }
 
-    private List<(uint, bool)>? BuildOrderedQuests(List<(uint, bool)>? quests, uint questID)
-    {
-        if (quests == null)
-            return null;
-
-        var index = quests.FindIndex(q => q.Item1 == questID);
-        if (index < 0)
-        {
-            var q = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Quest>(questID);
-            if (q != null && AddToDepChain(quests, q))
-                index = quests.Count - 1;
-        }
-
-        if (index < 0)
-            return null;
-
-        quests[index] = (questID, true);
-        return quests;
-    }
-
-    private bool AddToDepChain(List<(uint, bool)> list, Lumina.Excel.GeneratedSheets.Quest item)
-    {
-        var prereq = item.PreviousQuest[0].Value;
-        if (prereq == null)
-        {
-            if (list.Count == 0)
-            {
-                list.Add((item.RowId, false));
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        else if (list.Count == 0 || list[^1].Item1 == prereq.RowId || AddToDepChain(list, prereq))
-        {
-            list.Add((item.RowId, false));
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
     private void DrawActions(UITree tree, List<ActionData> actions)
     {
         static string suffix(BitMask m) => m.NumSetBits() switch
@@ -307,7 +250,7 @@ class ClassDefinitions
             tree.LeafNode($"Row: {na.Row}, raw range: {na.Row?.Range}, class: {na.Row?.ClassJob.Value?.Abbreviation}, category: {na.Row?.ClassJobCategory.Value?.Name}");
             tree.LeafNode($"Unlock: {UnlockString(na.Row?.ClassJobLevel ?? 0, na.Row?.UnlockLink ?? 0)}");
             tree.LeafNode($"Warnings: {(na.PotentiallyRemoved ? "PR " : "")}{(na.ReplayOnly ? "RO " : "")}", na.PotentiallyRemoved || na.ReplayOnly ? 0xff0000ff : 0xffffffff);
-            tree.LeafNode($"Targets: [{ActionDefinitions.Instance.GetActionTargets(na.ID)}]");
+            tree.LeafNode($"Targets: [{ActionDefinitions.Instance.ActionAllowedTargets(na.ID)}]");
             tree.LeafNode($"Can be put on action bar: {na.CanBePutOnActionBar}");
             tree.LeafNode($"Is role action: {na.IsRoleAction}");
             tree.LeafNode($"Expected anim lock: {na.ExpectedInstantAnimLock} / {na.ExpectedCastAnimLock}", na.SeenDifferentInstantAnimLocks || na.SeenDifferentCastAnimLocks ? 0xff0000ff : 0xffffffff);
@@ -387,11 +330,6 @@ class ClassDefinitions
             ImGui.SetClipboardText(GenerateClassTraitID(cd));
         }
 
-        if (ImGui.MenuItem("Generate unlock info"))
-        {
-            ImGui.SetClipboardText(GenerateClassUnlocks(cd));
-        }
-
         if (ImGui.MenuItem("Generate definitions constructor"))
         {
             ImGui.SetClipboardText(GenerateClassRegistration(cd));
@@ -409,8 +347,6 @@ class ClassDefinitions
         sb.AppendLine();
         sb.AppendLine("public sealed class Definitions : IDisposable");
         sb.AppendLine("{");
-        sb.Append(stub ? "    // *** paste unlock info here ***\n" : GenerateClassUnlocks(cd));
-        sb.AppendLine();
         sb.Append(stub ? "    // *** paste constructor here ***\n" : GenerateClassRegistration(cd));
         sb.AppendLine();
         sb.AppendLine("    public void Dispose() { }");
@@ -440,24 +376,6 @@ class ClassDefinitions
         foreach (var trait in cd.Traits)
             writer.Add(TraitIDName(cd.ID.ToString(), trait), trait.RowId, $"L{trait.Level}");
         return writer.Result();
-    }
-
-    private string GenerateClassUnlocks(ClassData cd)
-    {
-        var writer = new StringBuilder();
-        if (cd.Unlocks != null)
-            writer.AppendLine($"public static readonly uint[] UnlockQuests = [{string.Join(", ", cd.Unlocks)}];");
-        writer.AppendLine();
-        var unlockAID = new UnlockWriter("AID");
-        foreach (var action in cd.Actions.Where(a => a.Row?.ClassJobLevel > 1))
-            unlockAID.Add(ActionIDName(cd.ID.ToString(), action.ID), action.Row!.ClassJobLevel, cd.Unlocks?.IndexOf(action.Row!.UnlockLink) ?? -1);
-        writer.Append(unlockAID.Result());
-        writer.AppendLine();
-        var unlockTrait = new UnlockWriter("TraitID");
-        foreach (var trait in cd.Traits.Where(t => t.Level > 1))
-            unlockTrait.Add(TraitIDName(cd.ID.ToString(), trait), trait.Level, cd.Unlocks?.IndexOf(trait.Quest.Row) ?? -1);
-        writer.Append(unlockTrait.Result());
-        return writer.ToString();
     }
 
     private string GenerateClassRegistration(ClassData cd)
@@ -507,7 +425,7 @@ class ClassDefinitions
         }
 
         public string Comment(ActionData action, bool allowClasses)
-            => $"{LevelString(action, allowClasses)}, {CastTimeString(action)}{CooldownString(action)}{ChargesString(action)}, range {ActionDefinitions.Instance.GetActionRange(action.ID, action.IsPhysRanged)}, {DescribeShape(action.Row)}, targets={ActionDefinitions.Instance.GetActionTargets(action.ID).ToString().Replace(", ", "/")}{AnimLockString(action)}";
+            => $"{LevelString(action, allowClasses)}, {CastTimeString(action)}{CooldownString(action)}{ChargesString(action)}, range {ActionDefinitions.Instance.ActionRange(action.ID, action.IsPhysRanged)}, {DescribeShape(action.Row)}, targets={ActionDefinitions.Instance.ActionAllowedTargets(action.ID).ToString().Replace(", ", "/")}{AnimLockString(action)}";
 
         private string LevelString(ActionData action, bool allowClasses)
         {
@@ -518,7 +436,7 @@ class ClassDefinitions
 
         private string CastTimeString(ActionData action)
         {
-            var castTime = ActionDefinitions.Instance.GetBaseActionCastTime(action.ID);
+            var castTime = ActionDefinitions.Instance.ActionBaseCastTime(action.ID);
             return castTime != 0 ? $"{castTime:f1}s cast" : "instant";
         }
 
@@ -526,7 +444,7 @@ class ClassDefinitions
         {
             < 0 => "",
             ActionDefinitions.GCDGroup => ", GCD",
-            _ => $", {ActionDefinitions.Instance.GetBaseActionCooldown(action.ID):f1}s CD (group {action.MainCDGroup}{(action.ExtraCDGroup >= 0 ? $"/{action.ExtraCDGroup}" : "")})"
+            _ => $", {ActionDefinitions.Instance.ActionBaseCooldown(action.ID):f1}s CD (group {action.MainCDGroup}{(action.ExtraCDGroup >= 0 ? $"/{action.ExtraCDGroup}" : "")})"
         };
 
         private string ChargesString(ActionData action)

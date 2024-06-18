@@ -98,17 +98,16 @@ public sealed class LegacyWAR : LegacyModule
         public WAR.AID ComboLastMove => (WAR.AID)ComboLastAction;
         //public float InnerReleaseCD => CD(UnlockedInnerRelease ? AID.InnerRelease : AID.Berserk); // note: technically berserk and IR don't share CD, and with level sync you can have both...
 
-        public bool Unlocked(WAR.AID aid) => WAR.Definitions.Unlocked(aid, Level, UnlockProgress);
-        public bool Unlocked(WAR.TraitID tid) => WAR.Definitions.Unlocked(tid, Level, UnlockProgress);
+        public bool Unlocked(WAR.AID aid) => Module.ActionUnlocked(ActionID.MakeSpell(aid));
+        public bool Unlocked(WAR.TraitID tid) => Module.TraitUnlocked((uint)tid);
 
         public override string ToString()
         {
-            return $"g={Gauge}, RB={RaidBuffsLeft:f1}, ST={SurgingTempestLeft:f1}, NC={NascentChaosLeft:f1}, PR={PrimalRendLeft:f1}, IR={InnerReleaseStacks}/{InnerReleaseLeft:f1}, IRCD={CD(WAR.AID.Berserk):f1}/{CD(WAR.AID.InnerRelease):f1}, InfCD={CD(WAR.AID.Infuriate):f1}, UphCD={CD(WAR.AID.Upheaval):f1}, OnsCD={CD(WAR.AID.Onslaught):f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+            return $"g={Gauge}, RB={RaidBuffsLeft:f1}, ST={SurgingTempestLeft:f1}, NC={NascentChaosLeft:f1}, PR={PrimalRendLeft:f1}, IR={InnerReleaseStacks}/{InnerReleaseLeft:f1}, IRCD={CD(WAR.AID.Berserk):f1}/{CD(WAR.AID.InnerRelease):f1}, InfCD={CD(WAR.AID.Infuriate):f1}, UphCD={CD(WAR.AID.Upheaval):f1}, OnsCD={CD(WAR.AID.Onslaught):f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
         }
     }
 
     private readonly State _state;
-    private readonly QuestLockCheck _questLock = new(WAR.Definitions.UnlockQuests); // TODO: rethink...
 
     public LegacyWAR(RotationModuleManager manager, Actor player) : base(manager, player)
     {
@@ -117,7 +116,7 @@ public sealed class LegacyWAR : LegacyModule
 
     public override void Execute(ReadOnlySpan<StrategyValue> strategy, Actor? primaryTarget)
     {
-        _state.UpdateCommon(primaryTarget, _questLock.Progress());
+        _state.UpdateCommon(primaryTarget);
         _state.HaveTankStance = Player.FindStatus(WAR.SID.Defiance) != null;
 
         _state.Gauge = Service.JobGauges.Get<WARGauge>().BeastGauge;
