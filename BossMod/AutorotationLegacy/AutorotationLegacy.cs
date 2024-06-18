@@ -95,27 +95,6 @@
 //        }
 //    }
 
-//    private void DrawOverlay()
-//    {
-//        if (ClassActions == null)
-//            return;
-//        var next = ActionManager.AutoQueue;
-//        var state = ClassActions.GetState();
-//        var strategy = ClassActions.GetStrategy();
-//        ImGui.TextUnformatted($"[{ClassActions.AutoAction}] Next: {next.Action} ({next.Priority:f2})");
-//        if (ClassActions.AutoAction != CommonActions.AutoActionNone && strategy.NextPositional != Positional.Any)
-//        {
-//            ImGui.PushStyleColor(ImGuiCol.Text, PositionalColor(strategy));
-//            ImGui.TextUnformatted(strategy.NextPositional.ToString());
-//            ImGui.PopStyleColor();
-//            ImGui.SameLine();
-//        }
-//        ImGui.TextUnformatted(strategy.ToString());
-//        ImGui.TextUnformatted($"Raidbuffs: {state.RaidBuffsLeft:f2}s left, next in {strategy.RaidBuffsIn:f2}s");
-//        ImGui.TextUnformatted($"Downtime: {strategy.FightEndIn:f2}s, pos-lock: {strategy.PositionLockIn:f2}");
-//        ImGui.TextUnformatted($"GCD={WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f3}, AnimLock={EffAnimLock:f3}+{AnimLockDelay:f3}, Combo={state.ComboTimeLeft:f3}");
-//    }
-
 //    private uint PositionalColor(CommonRotation.Strategy strategy)
 //    {
 //        return strategy.NextPositionalImminent

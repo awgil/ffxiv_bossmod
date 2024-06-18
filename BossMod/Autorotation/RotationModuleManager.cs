@@ -27,7 +27,7 @@ public sealed class RotationModuleManager : IDisposable
 
     public static readonly Preset ForceDisable = new(""); // empty preset, so if it's activated, rotation is force disabled
 
-    public WorldState WorldState => WorldState;
+    public WorldState WorldState => Bossmods.WorldState;
     public Actor? Player => WorldState.Party[PlayerSlot];
 
     public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AIHints hints, ActionManagerEx amex, int playerSlot = PartyState.PlayerSlot)

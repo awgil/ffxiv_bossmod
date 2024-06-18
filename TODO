@@ -1,10 +1,4 @@
 autorotation v2:
-- RotationWindow
--- selector for presets
--- selector for plans
--- actionqueue visu?
-- planning
--- plan editor outside replay -- from moduleinfo popup?.. (select module, popup with class -> list menu)
 - converters
 -- actionmanager
 -- autorotation
@@ -20,17 +14,20 @@ autorotation v2:
 -- spell out shared cooldowns in comments instead of group?
 -- default priority in meta
 -- option enum type in meta + check
+- planning
+-- plan editor outside replay -- from moduleinfo popup?.. (select module, popup with class -> list menu)
 post-wip:
 - resurrect legacy modules
+- positionals
+-- aihints
+-- visualization
 - cleanup
 -- helper for `(Enum)strategy[(int)Track.X].Option`
 -- delete/rework commonstate
--- get rid of cdgroup enums
 -- ui refactoring / beautifying pass
 -- ipc for autorotation
 -- delete autorotationlegacy & cdplannerlegacy
 -- remove newtonsoft.json
--- bossmoduleplanwindow
 -- search for `//namespace BossMod`
 -- restore effect duration in action columns somehow...
 -- rmm in replay analysis
@@ -42,6 +39,7 @@ post-wip:
 -- legacy ai rotation modules (auto stance, interrupt, taunt, etc)
 -- target selection should be part of a module/preset
 -- ai manager should use selected preset for combat, out of combat use forcedtarget
+- action history/queue visualization
 - proper gcd time calculations?
 - simulation in replay analysis
 

@@ -23,27 +23,26 @@ public sealed class PlanDatabase
     {
         _manifestPath = new(rootPath + ".manifest.json");
         _planStore = new(rootPath);
+        if (!_planStore.Exists)
+            _planStore.Create();
 
         // first load all actually available plans
-        var serOptions = Serialization.BuildSerializationOptions();
         Dictionary<string, Plan> foundPlans = [];
-        if (_planStore.Exists)
+        var serOptions = Serialization.BuildSerializationOptions();
+        foreach (var f in _planStore.EnumerateFiles("*.json"))
         {
-            foreach (var f in _planStore.EnumerateFiles("*.json"))
+            try
             {
-                try
-                {
-                    using var json = Serialization.ReadJson(f.FullName);
-                    var version = json.RootElement.GetProperty("version").GetInt32();
-                    var payload = json.RootElement.GetProperty("payload");
-                    var plan = payload.Deserialize<Plan>(serOptions);
-                    plan!.Guid = f.Name[..^5];
-                    foundPlans[plan.Guid] = plan;
-                }
-                catch (Exception ex)
-                {
-                    Service.Log($"Failed to parse plan '{f.FullName}': {ex}");
-                }
+                using var json = Serialization.ReadJson(f.FullName);
+                var version = json.RootElement.GetProperty("version").GetInt32();
+                var payload = json.RootElement.GetProperty("payload");
+                var plan = payload.Deserialize<Plan>(serOptions);
+                plan!.Guid = f.Name[..^5];
+                foundPlans[plan.Guid] = plan;
+            }
+            catch (Exception ex)
+            {
+                Service.Log($"Failed to parse plan '{f.FullName}': {ex}");
             }
         }
 

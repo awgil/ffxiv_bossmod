@@ -33,6 +33,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly BossModuleMainWindow _wndBossmod;
     private readonly BossModuleHintsWindow _wndBossmodHints;
     private readonly ReplayManagementWindow _wndReplay;
+    private readonly UIRotationWindow _wndRotation;
     private readonly MainDebugWindow _wndDebug;
 
     public unsafe Plugin(DalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner, IDataManager dataManager)
@@ -85,6 +86,7 @@ public sealed class Plugin : IDalamudPlugin
         _wndBossmod = new(_bossmod);
         _wndBossmodHints = new(_bossmod);
         _wndReplay = new(_ws, _rotationDB.Plans, new(dalamud.ConfigDirectory.FullName + "/replays"));
+        _wndRotation = new(_rotation);
         _wndDebug = new(_ws, _rotation);
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
@@ -96,6 +98,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         Service.Condition.ConditionChange -= OnConditionChanged;
         _wndDebug.Dispose();
+        _wndRotation.Dispose();
         _wndReplay.Dispose();
         _wndBossmodHints.Dispose();
         _wndBossmod.Dispose();

@@ -58,7 +58,7 @@ public sealed class LegacyWAR : LegacyModule
         uph.AddOption(OffensiveStrategy.Delay, new(0x800000ff, ActionTargets.None, "Delay", "Delay"));
         uph.AddOption(OffensiveStrategy.Force, new(0x8000ff00, ActionTargets.None, "Force", "Force use ASAP (even without ST)"));
 
-        var pr = res.AddConfig(Track.Upheaval, new("PR", UIPriority: 30));
+        var pr = res.AddConfig(Track.PrimalRend, new("PR", UIPriority: 30));
         pr.AddOption(OffensiveStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic", "Use normally"));
         pr.AddOption(OffensiveStrategy.Delay, new(0x800000ff, ActionTargets.None, "Delay", "Delay"));
         pr.AddOption(OffensiveStrategy.Force, new(0x8000ff00, ActionTargets.None, "Force", "Force use ASAP (do not delay to raidbuffs)"));
