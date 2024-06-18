@@ -81,7 +81,7 @@ public sealed class RotationModuleManager : IDisposable
         foreach (var m in _activeModules)
         {
             var mt = m.Module.GetType();
-            var values = Preset?.ActiveStrategyOverrides(mt) ?? Planner?.ActiveStrategyOverrides(mt) ?? [];
+            var values = Preset?.ActiveStrategyOverrides(mt) ?? Planner?.ActiveStrategyOverrides(mt) ?? throw new InvalidOperationException("Both preset and plan are null, but there are active modules");
             m.Module.Execute(values, target);
         }
     }

@@ -5,20 +5,23 @@ public sealed class ClassWARUtility(RotationModuleManager manager, Actor player)
     public enum Track { Thrill = SharedTrack.Count, Vengeance, Holmgang, Bloodwhetting, Equilibrium, ShakeItOff }
     public enum BWOption { None, Bloodwhetting, RawIntuition, NascentFlash }
 
+    public static ActionID IDLimitBreak3 = ActionID.MakeSpell(WAR.AID.LandWaker);
+
     public static RotationModuleDefinition Definition()
     {
         var res = new RotationModuleDefinition("Utility: WAR", "Planner support for utility actions", BitMask.Build((int)Class.WAR), 90);
-        DefineShared(res);
+        DefineShared(res, IDLimitBreak3);
 
         DefineSimpleConfig(res, Track.Thrill, "Thrill", "", 450, WAR.AID.ThrillOfBattle, 10);
         DefineSimpleConfig(res, Track.Vengeance, "Veng", "", 550, WAR.AID.Vengeance, 15);
         DefineSimpleConfig(res, Track.Holmgang, "Holmgang", "", 400, WAR.AID.Holmgang, 10);
 
-        var bw = res.AddConfig(Track.Bloodwhetting, new("BW", UIPriority: 350));
+        var bw = res.Define(Track.Bloodwhetting).As<BWOption>("BW", uiPriority: 350);
         bw.AddOption(BWOption.None, new(0x80ffffff, ActionTargets.None, "None", "Do not use automatically"));
         bw.AddOption(BWOption.Bloodwhetting, new(0x8000ffff, ActionTargets.Self, "BW", "Use Bloodwhetting", 25, 4, 82)); // note: secondary effect duration 8
         bw.AddOption(BWOption.RawIntuition, new(0x8000ffff, ActionTargets.Self, "RI", "Use Raw Intuition", 25, 6, 56, 81));
         bw.AddOption(BWOption.NascentFlash, new(0x80ff00ff, ActionTargets.Party, "NF", "Use Nascent Flash", 25, 4, 76)); // note: secondary effect duration 8
+        bw.AddAssociatedActions(WAR.AID.Bloodwhetting, WAR.AID.RawIntuition, WAR.AID.NascentFlash);
 
         DefineSimpleConfig(res, Track.Equilibrium, "Equi", "", 320, WAR.AID.Equilibrium); // note: secondary effect (hot) duration 6
         DefineSimpleConfig(res, Track.ShakeItOff, "SIO", "", 220, WAR.AID.ShakeItOff, 30); // note: secondary effect duration 15
@@ -26,17 +29,17 @@ public sealed class ClassWARUtility(RotationModuleManager manager, Actor player)
         return res;
     }
 
-    public override void Execute(ReadOnlySpan<StrategyValue> strategy, Actor? primaryTarget)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget)
     {
-        ExecuteShared(strategy, ActionID.MakeSpell(WAR.AID.LandWaker));
-        ExecuteSimple(strategy[(int)Track.Thrill], WAR.AID.ThrillOfBattle, Player);
-        ExecuteSimple(strategy[(int)Track.Vengeance], WAR.AID.Vengeance, Player);
-        ExecuteSimple(strategy[(int)Track.Holmgang], WAR.AID.Holmgang, Player);
-        ExecuteSimple(strategy[(int)Track.Equilibrium], WAR.AID.Equilibrium, Player);
-        ExecuteSimple(strategy[(int)Track.ShakeItOff], WAR.AID.ShakeItOff, Player);
+        ExecuteShared(strategy, IDLimitBreak3);
+        ExecuteSimple(strategy.Option(Track.Thrill), WAR.AID.ThrillOfBattle, Player);
+        ExecuteSimple(strategy.Option(Track.Vengeance), WAR.AID.Vengeance, Player);
+        ExecuteSimple(strategy.Option(Track.Holmgang), WAR.AID.Holmgang, Player);
+        ExecuteSimple(strategy.Option(Track.Equilibrium), WAR.AID.Equilibrium, Player);
+        ExecuteSimple(strategy.Option(Track.ShakeItOff), WAR.AID.ShakeItOff, Player);
 
-        var bw = strategy[(int)Track.Bloodwhetting];
-        var aid = (BWOption)bw.Option switch
+        var bw = strategy.Option(Track.Bloodwhetting);
+        var aid = bw.As<BWOption>() switch
         {
             BWOption.Bloodwhetting => WAR.AID.Bloodwhetting,
             BWOption.RawIntuition => WAR.AID.RawIntuition,
@@ -44,6 +47,6 @@ public sealed class ClassWARUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (aid != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), (BWOption)bw.Option == BWOption.NascentFlash ? ResolveTargetOverride(bw) ?? CoTank() : Player, bw.Priority(ActionQueue.Priority.Low));
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), bw.As<BWOption>() == BWOption.NascentFlash ? ResolveTargetOverride(bw.Value) ?? CoTank() : Player, bw.Priority());
     }
 }

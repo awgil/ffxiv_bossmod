@@ -7,8 +7,6 @@ autorotation v2:
 - actiondefinitions
 -- sid generator
 -- spell out shared cooldowns in comments instead of group?
--- default priority in meta
--- option enum type in meta + check
 - planning
 -- plan editor outside replay -- from moduleinfo popup?.. (select module, popup with class -> list menu)
 post-wip:
@@ -40,6 +38,7 @@ post-wip:
 - simulation in replay analysis
 
 general:
+- horizontal timeline / cooldown planner
 - refactor window system to dispose stuff properly and avoid CS1806 and `_ = new...` pattern
 - diagnostic to detect readonly mutable collections
 - introduce 'Game' class that would contain dalamud services and stuff like AMEx/IDScramble, instead of statics, to avoid uncontrolled access to game state (won't help with CS tho)
@@ -71,10 +70,6 @@ autorotation:
 -- resurrect (6.1 and later changes)
 -- planner
 -- smart-targeting for ST actions
-
-cooldown planner:
-- in-combat cooldown plan ui
-- select columns to show (concrete actions, categories)
 
 ai:
 - improve healing AI: analyze incoming dps

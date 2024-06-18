@@ -260,7 +260,7 @@ public sealed class UIPresetEditor
         var values = Preset.ActiveStrategyOverrides(moduleType);
         foreach (var i in _orderedTrackList)
         {
-            var val = values[i];
+            ref var val = ref values.Values[i];
             ImGui.TextUnformatted($"{md.Configs[i].UIName} = {md.Configs[i].Options[val.Option].UIName}");
         }
     }

@@ -7,13 +7,20 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
     public readonly BitMask Classes = Classes;
     public readonly List<StrategyConfig> Configs = [];
 
-    public StrategyConfig AddConfig<Index>(Index expectedIndex, StrategyConfig config) where Index : Enum
+    // unfortunately, c# doesn't support partial type inference, and forcing user to spell out track enum twice is obnoxious, so here's the hopefully cheap solution
+    public readonly ref struct DefineRef(List<StrategyConfig> configs, int index)
     {
-        if (Configs.Count != (int)(object)expectedIndex)
-            throw new ArgumentException($"Unexpected index for {config.InternalName}: expected {expectedIndex} ({(int)(object)expectedIndex}), got {Configs.Count}");
-        Configs.Add(config);
-        return config;
+        public StrategyConfig As<Selector>(string internalName, string displayName = "", float uiPriority = 0) where Selector : Enum
+        {
+            if (configs.Count != index)
+                throw new ArgumentException($"Unexpected index for {internalName}: expected {index}, cur size {configs.Count}");
+            var config = new StrategyConfig(typeof(Selector), internalName, displayName, uiPriority);
+            configs.Add(config);
+            return config;
+        }
     }
+
+    public DefineRef Define<Index>(Index expectedIndex) where Index : Enum => new(Configs, (int)(object)expectedIndex);
 }
 
 // base class for rotation modules
@@ -28,7 +35,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     public AIHints Hints => Manager.Hints;
 
     // the main entry point of the module - given a set of strategy values, fill the queue with a set of actions to execute
-    public abstract void Execute(ReadOnlySpan<StrategyValue> strategy, Actor? primaryTarget);
+    public abstract void Execute(StrategyValues strategy, Actor? primaryTarget);
 
     public virtual string DescribeState() => "";
 

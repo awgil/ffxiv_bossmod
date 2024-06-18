@@ -81,17 +81,17 @@ public sealed class PlanExecution
         return (s.Vulnerable.Active, s.Vulnerable.TransitionIn - Math.Min(Module.StateMachine.TimeSinceTransition, s.Duration));
     }
 
-    public StrategyValue[] ActiveStrategyOverrides(Type module)
+    public StrategyValues ActiveStrategyOverrides(Type module)
     {
         var s = FindCurrentStateData();
         var t = GetVirtualTime(s);
         var data = Strategies[module];
-        var res = Utils.MakeArray<StrategyValue>(data.Count, new());
+        var res = new StrategyValues(RotationModuleRegistry.Modules[module].Definition.Configs);
         for (int i = 0; i < data.Count; ++i)
         {
             var entry = GetEntryAt(data[i], t, s);
             if (entry != null)
-                res[i] = entry.Value;
+                res.Values[i] = entry.Value;
         }
         return res;
     }

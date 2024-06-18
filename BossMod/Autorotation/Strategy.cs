@@ -15,9 +15,10 @@ public enum StrategyTarget
 
 // the tuning knobs of the rotation module are represented by strategy config rather than usual global config classes, since we they need to be changed dynamically by planner or manual input
 public record class StrategyConfig(
+    Type OptionEnum, // type of the enum used for options
     string InternalName, // unique name of the config; it is used for serialization, so it can't really be changed without losing user data (or writing config converter)
-    string DisplayName = "", // if non-empty, this name is used for all UI instead of internal name
-    float UIPriority = 0) // tracks are sorted by UI priority for display; negative are hidden by default
+    string DisplayName, // if non-empty, this name is used for all UI instead of internal name
+    float UIPriority) // tracks are sorted by UI priority for display; negative are hidden by default
 {
     public readonly List<StrategyOption> Options = [];
     public readonly List<ActionID> AssociatedActions = []; // these actions will be shown on the track in the planner ui
@@ -26,10 +27,19 @@ public record class StrategyConfig(
 
     public StrategyOption AddOption<Index>(Index expectedIndex, StrategyOption option) where Index : Enum
     {
+        if (typeof(Index) != OptionEnum)
+            throw new ArgumentException($"Unexpected index type for {option.InternalName}: expected {OptionEnum.FullName}, got {typeof(Index).FullName}");
         if (Options.Count != (int)(object)expectedIndex)
-            throw new ArgumentException($"Unexpected index for {option.InternalName}: expected {expectedIndex} ({(int)(object)expectedIndex}), got {Options.Count}");
+            throw new ArgumentException($"Unexpected index value for {option.InternalName}: expected {expectedIndex} ({(int)(object)expectedIndex}), got {Options.Count}");
         Options.Add(option);
         return option;
+    }
+
+    public void AddAssociatedAction<AID>(AID aid) where AID : Enum => AssociatedActions.Add(ActionID.MakeSpell(aid));
+    public void AddAssociatedActions<AID>(params AID[] aids) where AID : Enum
+    {
+        foreach (var aid in aids)
+            AddAssociatedAction(aid);
     }
 }
 
@@ -43,7 +53,8 @@ public record class StrategyOption(
     float Cooldown = 0, // if > 0, this time after window end is shaded to notify user about associated action cooldown
     float Effect = 0, // if > 0, this time after window start is shaded to notify user about associated effect duration
     int MinLevel = 1, // min character level for this option to be available
-    int MaxLevel = int.MaxValue) // max character level for this option to be available
+    int MaxLevel = int.MaxValue, // max character level for this option to be available
+    float DefaultPriority = ActionQueue.Priority.Low) // default priority that is used if no override is defined
 {
     public string UIName => DisplayName.Length > 0 ? DisplayName : InternalName;
 }
@@ -56,6 +67,31 @@ public record struct StrategyValue()
     public StrategyTarget Target; // target selection strategy
     public int TargetParam; // strategy-specific parameter
     public string Comment = ""; // user-editable comment string
+}
 
-    public readonly float Priority(float defaultValue) => float.IsNaN(PriorityOverride) ? defaultValue : PriorityOverride;
+public record struct StrategyValues(List<StrategyConfig> Configs)
+{
+    public StrategyValue[] Values = Utils.MakeArray(Configs.Count, new StrategyValue());
+
+    // unfortunately, c# doesn't support partial type inference, and forcing user to spell out track enum twice is obnoxious, so here's the hopefully cheap solution
+    public readonly ref struct OptionRef(ref StrategyConfig config, ref StrategyValue value)
+    {
+        public readonly ref readonly StrategyConfig Config = ref config;
+        public readonly ref readonly StrategyValue Value = ref value;
+
+        public OptionType As<OptionType>() where OptionType : Enum
+        {
+            if (Config.OptionEnum != typeof(OptionType))
+                throw new ArgumentException($"Unexpected option type for {Config.InternalName}: expected {Config.OptionEnum.FullName}, got {typeof(OptionType).FullName}");
+            return (OptionType)(object)Value.Option;
+        }
+
+        public float Priority() => float.IsNaN(Value.PriorityOverride) ? Config.Options[Value.Option].DefaultPriority : Value.PriorityOverride;
+    }
+
+    public readonly OptionRef Option<TrackIndex>(TrackIndex index) where TrackIndex : Enum
+    {
+        var idx = (int)(object)index;
+        return new(ref Configs.Ref(idx), ref Values[idx]);
+    }
 }

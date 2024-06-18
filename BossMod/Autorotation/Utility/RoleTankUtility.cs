@@ -5,10 +5,14 @@ public abstract class RoleTankUtility(RotationModuleManager manager, Actor playe
 {
     public enum SharedTrack { Sprint, LB, Rampart, LowBlow, Provoke, Interject, Reprisal, Shirk, ArmsLength, Count }
 
-    protected static void DefineShared(RotationModuleDefinition def)
+    protected static void DefineShared(RotationModuleDefinition def, ActionID lb3)
     {
         DefineSimpleConfig(def, SharedTrack.Sprint, "Sprint", "", 100, ClassShared.AID.Sprint, 10);
-        DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Self, 10, 15, 8);
+
+        var lb = DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Self, 10, 15, 8);
+        lb.AddAssociatedActions(ClassShared.AID.ShieldWall, ClassShared.AID.Stronghold);
+        lb.AssociatedActions.Add(lb3);
+
         DefineSimpleConfig(def, SharedTrack.Rampart, "Rampart", "", 500, ClassShared.AID.Rampart, 20);
         DefineSimpleConfig(def, SharedTrack.LowBlow, "Stun", "", -100, ClassShared.AID.LowBlow, 5);
         DefineSimpleConfig(def, SharedTrack.Provoke, "Taunt", "", 200, ClassShared.AID.Provoke);
@@ -20,18 +24,18 @@ public abstract class RoleTankUtility(RotationModuleManager manager, Actor playe
         // TODO: stance
     }
 
-    protected void ExecuteShared(ReadOnlySpan<StrategyValue> strategy, ActionID lb3)
+    protected void ExecuteShared(StrategyValues strategy, ActionID lb3)
     {
-        ExecuteSimple(strategy[(int)SharedTrack.Sprint], ClassShared.AID.Sprint, Player);
-        ExecuteSimple(strategy[(int)SharedTrack.Rampart], ClassShared.AID.Rampart, Player);
-        ExecuteSimple(strategy[(int)SharedTrack.LowBlow], ClassShared.AID.LowBlow, null);
-        ExecuteSimple(strategy[(int)SharedTrack.Provoke], ClassShared.AID.Provoke, null);
-        ExecuteSimple(strategy[(int)SharedTrack.Interject], ClassShared.AID.Interject, null);
-        ExecuteSimple(strategy[(int)SharedTrack.Reprisal], ClassShared.AID.Reprisal, Player);
-        ExecuteSimple(strategy[(int)SharedTrack.Shirk], ClassShared.AID.Shirk, CoTank());
-        ExecuteSimple(strategy[(int)SharedTrack.ArmsLength], ClassShared.AID.ArmsLength, Player);
+        ExecuteSimple(strategy.Option(SharedTrack.Sprint), ClassShared.AID.Sprint, Player);
+        ExecuteSimple(strategy.Option(SharedTrack.Rampart), ClassShared.AID.Rampart, Player);
+        ExecuteSimple(strategy.Option(SharedTrack.LowBlow), ClassShared.AID.LowBlow, null);
+        ExecuteSimple(strategy.Option(SharedTrack.Provoke), ClassShared.AID.Provoke, null);
+        ExecuteSimple(strategy.Option(SharedTrack.Interject), ClassShared.AID.Interject, null);
+        ExecuteSimple(strategy.Option(SharedTrack.Reprisal), ClassShared.AID.Reprisal, Player);
+        ExecuteSimple(strategy.Option(SharedTrack.Shirk), ClassShared.AID.Shirk, CoTank());
+        ExecuteSimple(strategy.Option(SharedTrack.ArmsLength), ClassShared.AID.ArmsLength, Player);
 
-        var lb = LBLevelToExecute(strategy[(int)SharedTrack.LB]);
+        var lb = LBLevelToExecute(strategy.Option(SharedTrack.LB).As<LBOption>());
         if (lb > 0)
             Hints.ActionsToExecute.Push(lb == 3 ? lb3 : ActionID.MakeSpell(lb == 2 ? ClassShared.AID.Stronghold : ClassShared.AID.ShieldWall), Player, ActionQueue.Priority.VeryHigh);
     }

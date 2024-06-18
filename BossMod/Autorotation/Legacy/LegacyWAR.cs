@@ -17,13 +17,13 @@ public sealed class LegacyWAR : LegacyModule
         // TODO: think about target overrides where they make sense (ST stuff, esp things like onslaught?)
         var res = new RotationModuleDefinition("Legacy WAR", "Old pre-refactoring module", BitMask.Build((int)Class.WAR), 90);
 
-        var aoe = res.AddConfig(Track.AOE, new("AOE", UIPriority: 90));
+        var aoe = res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 90);
         aoe.AddOption(AOEStrategy.SingleTarget, new(0x80ffffff, ActionTargets.None, "ST", "Use single-target rotation"));
         aoe.AddOption(AOEStrategy.ForceAOE, new(0x8000ffff, ActionTargets.None, "AOE", "Use aoe rotation"));
         aoe.AddOption(AOEStrategy.Auto, new(0x8000ff00, ActionTargets.None, "Auto", "Use aoe rotation if 3+ targets would be hit, otherwise use single-target rotation; break combo if necessary"));
         aoe.AddOption(AOEStrategy.AutoFinishCombo, new(0x80ff00ff, ActionTargets.None, "AutoFinishCombo", "Use aoe rotation if 3+ targets would be hit, otherwise use single-target rotation; finish combo route before switching"));
 
-        var gcd = res.AddConfig(Track.GCD, new("Gauge", "GCD", UIPriority: 80));
+        var gcd = res.Define(Track.GCD).As<GCDStrategy>("Gauge", "GCD", uiPriority: 80);
         gcd.AddOption(GCDStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic")); // spend gauge either under raid buffs or if next downtime is soon (so that next raid buff window won't cover at least 4 GCDs); TODO reconsider...
         gcd.AddOption(GCDStrategy.Spend, new(0x8000ff00, ActionTargets.None, "Spend", "Spend gauge freely, ensure ST is properly maintained"));
         gcd.AddOption(GCDStrategy.ConserveIfNoBuffs, new(0x8000ffff, ActionTargets.None, "ConserveIfNoBuffs", "Conserve unless under raid buffs"));
@@ -35,35 +35,40 @@ public sealed class LegacyWAR : LegacyModule
         gcd.AddOption(GCDStrategy.PenultimateComboThenSpend, new(0x80400080, ActionTargets.None, "PenultimateComboThenSpend", "Use combo until second-last step, then spend gauge"));
         gcd.AddOption(GCDStrategy.ForceSpend, new(0x8000ffc0, ActionTargets.None, "ForceSpend", "Force gauge spender if possible, even if ST is not up/running out soon"));
 
-        var inf = res.AddConfig(Track.Infuriate, new("Infuriate", UIPriority: 70));
+        var inf = res.Define(Track.Infuriate).As<InfuriateStrategy>("Infuriate", uiPriority: 70);
         inf.AddOption(InfuriateStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic", "Try to delay uses until raidbuffs, avoiding overcap"));
         inf.AddOption(InfuriateStrategy.Delay, new(0x800000ff, ActionTargets.None, "Delay", "Delay, even if risking overcap"));
         inf.AddOption(InfuriateStrategy.ForceIfNoNC, new(0x8000ff00, ActionTargets.None, "ForceIfNoNC", "Force unless NC active"));
         inf.AddOption(InfuriateStrategy.AutoUnlessIR, new(0x8000ffff, ActionTargets.None, "AutoUnlessIR", "Use normally, but not during IR"));
         inf.AddOption(InfuriateStrategy.ForceIfChargesCapping, new(0x8000ff80, ActionTargets.None, "ForceIfChargesCapping", "Force use if charges are about to overcap (unless NC is already active), even if it would overcap gauge"));
+        inf.AddAssociatedAction(WAR.AID.Infuriate);
 
-        var pot = res.AddConfig(Track.Potion, new("Potion", UIPriority: 60));
+        var pot = res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 60);
         pot.AddOption(PotionStrategy.Manual, new(0x80ffffff, ActionTargets.None, "Manual", "Do not use automatically"));
         pot.AddOption(PotionStrategy.Immediate, new(0x8000ff00, ActionTargets.None, "Immediate", "Use ASAP, but delay slightly during opener", 270, 30));
         pot.AddOption(PotionStrategy.DelayUntilRaidBuffs, new(0x8000ffff, ActionTargets.None, "DelayUntilRaidBuffs", "Delay until raidbuffs", 270, 30));
         pot.AddOption(PotionStrategy.Force, new(0x800000ff, ActionTargets.None, "Force", "Use ASAP, even if without ST", 270, 30));
+        pot.AssociatedActions.Add(ActionDefinitions.IDPotionStr);
 
-        var ir = res.AddConfig(Track.InnerRelease, new("IR", UIPriority: 50));
+        var ir = res.Define(Track.InnerRelease).As<OffensiveStrategy>("IR", uiPriority: 50);
         ir.AddOption(OffensiveStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic", "Use normally"));
         ir.AddOption(OffensiveStrategy.Delay, new(0x800000ff, ActionTargets.None, "Delay", "Delay"));
         ir.AddOption(OffensiveStrategy.Force, new(0x8000ff00, ActionTargets.None, "Force", "Force use ASAP (even during downtime or without ST)"));
+        pot.AddAssociatedActions(WAR.AID.Berserk, WAR.AID.InnerRelease);
 
-        var uph = res.AddConfig(Track.Upheaval, new("Upheaval", UIPriority: 40));
+        var uph = res.Define(Track.Upheaval).As<OffensiveStrategy>("Upheaval", uiPriority: 40);
         uph.AddOption(OffensiveStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic", "Use normally"));
         uph.AddOption(OffensiveStrategy.Delay, new(0x800000ff, ActionTargets.None, "Delay", "Delay"));
         uph.AddOption(OffensiveStrategy.Force, new(0x8000ff00, ActionTargets.None, "Force", "Force use ASAP (even without ST)"));
+        uph.AddAssociatedActions(WAR.AID.Upheaval, WAR.AID.Orogeny);
 
-        var pr = res.AddConfig(Track.PrimalRend, new("PR", UIPriority: 30));
+        var pr = res.Define(Track.PrimalRend).As<OffensiveStrategy>("PR", uiPriority: 30);
         pr.AddOption(OffensiveStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic", "Use normally"));
         pr.AddOption(OffensiveStrategy.Delay, new(0x800000ff, ActionTargets.None, "Delay", "Delay"));
         pr.AddOption(OffensiveStrategy.Force, new(0x8000ff00, ActionTargets.None, "Force", "Force use ASAP (do not delay to raidbuffs)"));
+        pr.AddAssociatedAction(WAR.AID.PrimalRend);
 
-        var onsl = res.AddConfig(Track.Onslaught, new("Onslaught", UIPriority: 20));
+        var onsl = res.Define(Track.Onslaught).As<OnslaughtStrategy>("Onslaught", uiPriority: 20);
         onsl.AddOption(OnslaughtStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic", "Always keep one charge reserved, use other charges under raidbuffs or to prevent overcapping"));
         onsl.AddOption(OnslaughtStrategy.Forbid, new(0x800000ff, ActionTargets.None, "Forbid", "Forbid automatic use"));
         onsl.AddOption(OnslaughtStrategy.NoReserve, new(0x8000ffff, ActionTargets.None, "NoReserve", "Do not reserve charges: use all charges if under raidbuffs, otherwise use as needed to prevent overcapping"));
@@ -71,6 +76,7 @@ public sealed class LegacyWAR : LegacyModule
         onsl.AddOption(OnslaughtStrategy.ForceReserve, new(0x80ff0000, ActionTargets.None, "ForceReserve", "Use all charges except one ASAP"));
         onsl.AddOption(OnslaughtStrategy.ReserveTwo, new(0x80ffff00, ActionTargets.None, "ReserveTwo", "Reserve 2 charges, trying to prevent overcap"));
         onsl.AddOption(OnslaughtStrategy.UseOutsideMelee, new(0x80ff00ff, ActionTargets.None, "UseOutsideMelee", "Use as gapcloser if outside melee range"));
+        onsl.AddAssociatedAction(WAR.AID.Onslaught);
 
         // TODO: consider these:
         //public bool Aggressive; // if true, we use buffs and stuff at last possible moment; otherwise we make sure to keep at least 1 GCD safety net
@@ -114,7 +120,7 @@ public sealed class LegacyWAR : LegacyModule
         _state = new(this);
     }
 
-    public override void Execute(ReadOnlySpan<StrategyValue> strategy, Actor? primaryTarget)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget)
     {
         _state.UpdateCommon(primaryTarget);
         _state.HaveTankStance = Player.FindStatus(WAR.SID.Defiance) != null;
@@ -125,7 +131,7 @@ public sealed class LegacyWAR : LegacyModule
         _state.PrimalRendLeft = _state.StatusDetails(Player, WAR.SID.PrimalRend, Player.InstanceID).Left;
         (_state.InnerReleaseLeft, _state.InnerReleaseStacks) = _state.StatusDetails(Player, _state.Unlocked(WAR.AID.InnerRelease) ? WAR.SID.InnerRelease : WAR.SID.Berserk, Player.InstanceID);
 
-        var aoe = (AOEStrategy)strategy[(int)Track.AOE].Option switch
+        var aoe = strategy.Option(Track.AOE).As<AOEStrategy>() switch
         {
             AOEStrategy.ForceAOE => true,
             AOEStrategy.Auto => PreferAOE(),
@@ -410,7 +416,7 @@ public sealed class LegacyWAR : LegacyModule
         }
     }
 
-    private WAR.AID GetNextBestGCD(ReadOnlySpan<StrategyValue> strategy, bool aoe)
+    private WAR.AID GetNextBestGCD(StrategyValues strategy, bool aoe)
     {
         // prepull or no target
         if (!_state.TargetingEnemy || _state.CountdownRemaining > 0.7f)
@@ -418,11 +424,11 @@ public sealed class LegacyWAR : LegacyModule
 
         // 0. non-standard actions forced by strategy
         // forced PR
-        var strategyPR = (OffensiveStrategy)strategy[(int)Track.PrimalRend].Option;
+        var strategyPR = strategy.Option(Track.PrimalRend).As<OffensiveStrategy>();
         if (strategyPR == OffensiveStrategy.Force && _state.PrimalRendLeft > _state.GCD)
             return WAR.AID.PrimalRend;
         // forced tomahawk
-        var strategyGCD = (GCDStrategy)strategy[(int)Track.GCD].Option;
+        var strategyGCD = strategy.Option(Track.GCD).As<GCDStrategy>();
         if (strategyGCD == GCDStrategy.TomahawkIfNotInMelee && _state.RangeToTarget > 3)
             return WAR.AID.Tomahawk;
         // forced surging tempest combo (TODO: at which point does AOE combo start giving ST?)
@@ -535,21 +541,21 @@ public sealed class LegacyWAR : LegacyModule
     }
 
     // window-end is either GCD or GCD - time-for-second-ogcd; we are allowed to use ogcds only if their animation lock would complete before window-end
-    private ActionID GetNextBestOGCD(ReadOnlySpan<StrategyValue> strategy, float deadline, bool aoe)
+    private ActionID GetNextBestOGCD(StrategyValues strategy, float deadline, bool aoe)
     {
         // 0. onslaught as a gap-filler - this should be used asap even if we're delaying GCD, since otherwise we'll probably end up delaying it even more
-        var strategyOnslaught = (OnslaughtStrategy)strategy[(int)Track.Onslaught].Option;
+        var strategyOnslaught = strategy.Option(Track.Onslaught).As<OnslaughtStrategy>();
         bool wantOnslaught = _state.Unlocked(WAR.AID.Onslaught) && _state.TargetingEnemy && ShouldUseOnslaught(strategyOnslaught);
         if (wantOnslaught && _state.RangeToTarget > 3)
             return ActionID.MakeSpell(WAR.AID.Onslaught);
 
         // 1. potion
-        var strategyPotion = (PotionStrategy)strategy[(int)Track.Potion].Option;
+        var strategyPotion = strategy.Option(Track.Potion).As<PotionStrategy>();
         if (ShouldUsePotion(strategyPotion) && _state.CanWeave(_state.PotionCD, 1.1f, deadline))
             return ActionDefinitions.IDPotionStr;
 
         // 2. inner release / berserk
-        var strategyIR = (OffensiveStrategy)strategy[(int)Track.InnerRelease].Option;
+        var strategyIR = strategy.Option(Track.InnerRelease).As<OffensiveStrategy>();
         if (_state.Unlocked(WAR.AID.InnerRelease))
         {
             if (ShouldUseInnerRelease(strategyIR) && _state.CanWeave(WAR.AID.InnerRelease, 0.6f, deadline))
@@ -563,13 +569,13 @@ public sealed class LegacyWAR : LegacyModule
 
         // 3. upheaval
         // TODO: reconsider priority compared to IR
-        var strategyUpheaval = (OffensiveStrategy)strategy[(int)Track.Upheaval].Option;
+        var strategyUpheaval = strategy.Option(Track.Upheaval).As<OffensiveStrategy>();
         if (_state.Unlocked(WAR.AID.Upheaval) && ShouldUseUpheaval(strategyUpheaval) && _state.CanWeave(WAR.AID.Upheaval, 0.6f, deadline))
             return ActionID.MakeSpell(aoe && _state.Unlocked(WAR.AID.Orogeny) ? WAR.AID.Orogeny : WAR.AID.Upheaval);
 
         // 4. infuriate, if not forbidden and not delayed; note that infuriate can't be used out of combat
-        var strategyGCD = (GCDStrategy)strategy[(int)Track.GCD].Option;
-        var strategyInfuriate = (InfuriateStrategy)strategy[(int)Track.Infuriate].Option;
+        var strategyGCD = strategy.Option(Track.GCD).As<GCDStrategy>();
+        var strategyInfuriate = strategy.Option(Track.Infuriate).As<InfuriateStrategy>();
         if (_state.Unlocked(WAR.AID.Infuriate) && Player.InCombat && _state.CanWeave(_state.CD(WAR.AID.Infuriate) - 60, 0.6f, deadline) && ShouldUseInfuriate(strategyInfuriate, strategyGCD, aoe))
             return ActionID.MakeSpell(WAR.AID.Infuriate);
 
