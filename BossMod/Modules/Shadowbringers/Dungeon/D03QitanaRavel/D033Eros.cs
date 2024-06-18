@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x27B1, //R=7.02
     Helper = 0x233C, //R=0.5
-    PoisonVoidzone = 0x1E972C,
+    PoisonVoidzone = 0x1E972C
 }
 
 public enum AID : uint
@@ -12,12 +12,12 @@ public enum AID : uint
     AutoAttack = 872, // Boss->player, no cast, single-target
     Rend = 15513, // Boss->player, 4.0s cast, single-target, tankbuster
     HoundOutOfHeaven = 15514, // Boss->self, 5.0s cast, single-target
-    HoundOutOfHeavenTetherStretchSuccess = 17079, // Boss->player, no cast, single-target, tether break success
-    HoundOutOfHeavenTetherStretchFail = 17080, // Boss->player, no cast, single-target, tether break fail
+    HoundOutOfHeavenSuccess = 17079, // Boss->player, no cast, single-target, tether stretch success
+    HoundOutOfHeavenFail = 17080, // Boss->player, no cast, single-target, tether stretch fail
     Glossolalia = 15515, // Boss->self, 3.0s cast, range 50 circle, raidwide
     ViperPoison = 15516, // Boss->self, 6.0s cast, single-target
     ViperPoisonPatterns = 15518, // Helper->location, 6.0s cast, range 6 circle
-    ViperPoisonBaitAway = 15517, // Helper->player, 6.0s cast, range 6 circle
+    ViperPoisonBait = 15517, // Helper->player, 6.0s cast, range 6 circle
     Jump = 15519, // Boss->location, no cast, single-target, visual?
     Inhale = 17168, // Boss->self, 4.0s cast, range 50 circle, attract 50 between centers
     HeavingBreath = 15520, // Boss->self, 3.5s cast, range 50 circle, knockback 35 forward
@@ -28,153 +28,29 @@ public enum AID : uint
     ConfessionOfFaithRight = 15527, // Helper->self, 5.5s cast, range 60 41-degree cone
     ConfessionOfFaithStack = 15525, // Helper->players, 5.8s cast, range 6 circle, stack
     ConfessionOfFaithCenter = 15522, // Helper->self, 5.5s cast, range 60 40-degree cone
-    ConfessionOfFaithSpread = 15523, // Helper->player, 5.8s cast, range 5 circle, spread
-}
-
-public enum IconID : uint
-{
-    tankbuster = 198, // player
-    stack = 62, // player
-    poisonbait = 171, // player
-    spread = 96, // player
+    ConfessionOfFaithSpread = 15523 // Helper->player, 5.8s cast, range 5 circle, spread
 }
 
 public enum TetherID : uint
 {
     HoundOutOfHeavenTetherGood = 1, // Boss->player
-    HoundOutOfHeavenTetherStretch = 57, // Boss->player
+    HoundOutOfHeavenTetherBad = 57 // Boss->player
 }
 
-class HoundOutOfHeavenGood(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.HoundOutOfHeavenTetherGood) // TODO: consider generalizing stretched tethers?
-{
-    public List<Actor> targets = [];
-
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
-    {
-        base.OnTethered(source, tether);
-        if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherGood)
-            targets.Add(WorldState.Actors.Find(tether.Target)!);
-    }
-
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
-    {
-        base.OnUntethered(source, tether);
-        if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherGood)
-            targets.Remove(WorldState.Actors.Find(tether.Target)!);
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        if (targets.Contains(pc))
-        {
-            foreach (var b in ActiveBaits)
-            {
-                if (Arena.Config.ShowOutlinesAndShadows)
-                    Arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
-                Arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Safe);
-            }
-        }
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (targets.Contains(actor))
-            hints.Add("Tether is stretched!", false);
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-        if (targets.Contains(actor))
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
-    }
-}
-
-class HoundOutOfHeavenBad(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.HoundOutOfHeavenTetherStretch)
-{
-    public List<Actor> targets = [];
-
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
-    {
-        base.OnTethered(source, tether);
-        if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherStretch)
-            targets.Add(WorldState.Actors.Find(tether.Target)!);
-    }
-
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
-    {
-        base.OnUntethered(source, tether);
-        if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherStretch)
-            targets.Remove(WorldState.Actors.Find(tether.Target)!);
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        if (targets.Contains(pc))
-        {
-            foreach (var b in ActiveBaits)
-            {
-                if (Arena.Config.ShowOutlinesAndShadows)
-                    Arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
-                Arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Danger);
-            }
-        }
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (targets.Contains(actor))
-            hints.Add("Stretch tether further!");
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-        if (targets.Contains(actor))
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
-    }
-}
-
+class HoundOutOfHeaven(BossModule module) : Components.StretchTetherDuo(module, (uint)TetherID.HoundOutOfHeavenTetherBad, (uint)TetherID.HoundOutOfHeavenTetherGood, 15, activationDelay: 5.2f);
 class ViperPoisonPatterns(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.ViperPoisonPatterns), m => m.Enemies(OID.PoisonVoidzone).Where(z => z.EventState != 7), 0);
 class ConfessionOfFaithLeft(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConfessionOfFaithLeft), new AOEShapeCone(60, 47.Degrees(), 20.Degrees())); // TODO: verify; there should not be an offset in reality here...
 class ConfessionOfFaithRight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConfessionOfFaithRight), new AOEShapeCone(60, 47.Degrees(), -20.Degrees())); // TODO: verify; there should not be an offset in reality here...
-class ConfessionOfFaithStack(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.ConfessionOfFaithStack), 6);
+class ConfessionOfFaithStack(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.ConfessionOfFaithStack), 6, 4);
 class ConfessionOfFaithCenter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConfessionOfFaithCenter), new AOEShapeCone(60, 40.Degrees()));
 class ConfessionOfFaithSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.ConfessionOfFaithSpread), 5);
 
-class ViperPoisonBait(BossModule module) : Components.GenericBaitAway(module)
+class ViperPoisonBait(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.ViperPoisonBait), new AOEShapeCircle(6), true)
 {
-    public List<Actor> targets = [];
-
-    public override void OnEventIcon(Actor actor, uint iconID)
-    {
-        if (iconID == (uint)IconID.poisonbait)
-        {
-            CurrentBaits.Add(new(actor, actor, new AOEShapeCircle(6)));
-            targets.Add(actor);
-        }
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.ViperPoisonBaitAway)
-        {
-            CurrentBaits.Clear();
-            targets.Clear();
-        }
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        base.AddHints(slot, actor, hints);
-        if (targets.Contains(actor))
-            hints.Add("Bait voidzone away!");
-    }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (targets.Contains(actor))
+        if (ActiveBaits.Any(x => x.Target == actor))
             hints.AddForbiddenZone(ShapeDistance.Rect(new(17, -518), new(17, -558), 13));
     }
 }
@@ -202,8 +78,7 @@ class D033ErosStates : StateMachineBuilder
             .ActivateOnEnter<ViperPoisonBait>()
             .ActivateOnEnter<ViperPoisonPatterns>()
             .ActivateOnEnter<Rend>()
-            .ActivateOnEnter<HoundOutOfHeavenGood>()
-            .ActivateOnEnter<HoundOutOfHeavenBad>()
+            .ActivateOnEnter<HoundOutOfHeaven>()
             .ActivateOnEnter<Glossolalia>()
             .ActivateOnEnter<ConfessionOfFaithLeft>()
             .ActivateOnEnter<ConfessionOfFaithRight>()

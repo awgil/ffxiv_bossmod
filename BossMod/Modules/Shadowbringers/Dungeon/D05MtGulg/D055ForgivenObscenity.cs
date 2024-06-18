@@ -86,13 +86,10 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
                 if (NumCasts is 0 or 1)
                     yield return new(rect, _casters[1].Position, default, _activation.AddSeconds(7.6f), ArenaColor.Danger);
             }
-            if (_casters.Count > 4)
+            if (_casters.Count > 4 && NumCasts is 0 or 1)
             {
-                if (NumCasts is 0 or 1)
-                {
-                    yield return new(rect, _casters[2].Position, default, _activation.AddSeconds(8.1f));
-                    yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.6f));
-                }
+                yield return new(rect, _casters[2].Position, default, _activation.AddSeconds(8.1f));
+                yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.6f));
             }
             if (_casters.Count > 4)
             {
@@ -101,13 +98,10 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
                 if (NumCasts is 2 or 3)
                     yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.6f), ArenaColor.Danger);
             }
-            if (_casters.Count == 6)
+            if (_casters.Count == 6 && NumCasts is 2 or 3)
             {
-                if (NumCasts is 2 or 3)
-                {
-                    yield return new(rect, _casters[4].Position, default, _activation.AddSeconds(9.1f));
-                    yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f));
-                }
+                yield return new(rect, _casters[4].Position, default, _activation.AddSeconds(9.1f));
+                yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f));
             }
             if (_casters.Count == 6)
             {
@@ -117,7 +111,7 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
                     yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f), ArenaColor.Danger);
             }
         }
-        if (AreCastersInPositions(positionsSet3) || AreCastersInPositions(positionsSet4))
+        else if (AreCastersInPositions(positionsSet3) || AreCastersInPositions(positionsSet4))
         {
             if (_casters.Count > 2)
             {
@@ -126,13 +120,10 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
                 if (NumCasts is 0 or 1)
                     yield return new(rect, _casters[1].Position, default, _activation.AddSeconds(7.1f), ArenaColor.Danger);
             }
-            if (_casters.Count > 4)
+            if (_casters.Count > 4 && NumCasts is 0 or 1)
             {
-                if (NumCasts is 0 or 1)
-                {
-                    yield return new(rect, _casters[2].Position, default, _activation.AddSeconds(8.1f));
-                    yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.1f));
-                }
+                yield return new(rect, _casters[2].Position, default, _activation.AddSeconds(8.1f));
+                yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.1f));
             }
             if (_casters.Count > 4)
             {
@@ -141,13 +132,10 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
                 if (NumCasts is 2 or 3)
                     yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.1f), ArenaColor.Danger);
             }
-            if (_casters.Count == 6)
+            if (_casters.Count == 6 && NumCasts is 2 or 3)
             {
-                if (NumCasts is 2 or 3)
-                {
-                    yield return new(rect, _casters[4].Position, default, _activation.AddSeconds(11.1f));
-                    yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f));
-                }
+                yield return new(rect, _casters[4].Position, default, _activation.AddSeconds(11.1f));
+                yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f));
             }
             if (_casters.Count == 6)
             {
@@ -209,7 +197,7 @@ class PenancePianissimo(BossModule module) : Components.GenericAOEs(module)
     {
         if (state == 0x00040008)
             Module.Arena.Bounds = D055ForgivenObscenity.arenaRect;
-        if (state == 0x00010002)
+        else if (state == 0x00010002)
         {
             _aoe = null;
             Module.Arena.Bounds = D055ForgivenObscenity.arenaCircle;

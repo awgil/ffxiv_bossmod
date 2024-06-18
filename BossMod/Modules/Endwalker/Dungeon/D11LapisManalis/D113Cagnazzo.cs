@@ -106,7 +106,7 @@ class HydraulicRam(BossModule module) : Components.GenericAOEs(module)
             var dir = spell.LocXZ - caster.Position;
             _casters.Add((caster.Position, new AOEShapeRect(dir.Length(), 4), Angle.FromDirection(dir)));
         }
-        if ((AID)spell.Action.ID == AID.HydraulicRam)
+        else if ((AID)spell.Action.ID == AID.HydraulicRam)
             _activation = spell.NPCFinishAt.AddSeconds(1.5f); //since these are charges of different length with 0s cast time, the activation times are different for each and there are different patterns, so we just pretend that they all start after the telegraphs end
     }
 
@@ -136,7 +136,7 @@ class Hydrobomb(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.HydrobombTelegraph)
             _casters.Add(spell.LocXZ);
-        if ((AID)spell.Action.ID == AID.HydraulicRam)
+        else if ((AID)spell.Action.ID == AID.HydraulicRam)
             _activation = spell.NPCFinishAt.AddSeconds(2.2f);
     }
 

@@ -2,11 +2,11 @@
 
 public enum OID : uint
 {
-    Boss = 0x3DA4, // R3.500, x1
-    Igeyorhm = 0x3DA3, // R3.500, x1
-    Helper = 0x233C, // R0.500, x12, 523 type
-    BurningStar = 0x3DA6, // R1.500, x0 (spawn during fight)
-    FrozenStar = 0x3DA5, // R1.500, x0 (spawn during fight)
+    Boss = 0x3DA4, // R3.5
+    Igeyorhm = 0x3DA3, // R3.5
+    BurningStar = 0x3DA6, // R1.5
+    FrozenStar = 0x3DA5, // R1.5
+    Helper = 0x233C
 }
 
 public enum AID : uint
@@ -43,17 +43,18 @@ public enum AID : uint
 
     GripOfNight = 32790, // Boss->self, 6.0s cast, range 40 150-degree cone
 
-    ShadowFlare = 31885, // Boss/Lahabrea->self, 5.0s cast, range 40 circle
+    ShadowFlare = 31885 // Boss/Lahabrea->self, 5.0s cast, range 40 circle
 }
 
 public enum TetherID : uint
 {
-    StarTether = 110, // BurningStar/FrozenStar->BurningStar/FrozenStar
+    StarTether = 110 // BurningStar/FrozenStar->BurningStar/FrozenStar
 }
 
 class ShadowFlare(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ShadowFlare));
 class GripOfNight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GripOfNight), new AOEShapeCone(40, 75.Degrees()));
 class DarkFireIIAOE(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.DarkFireIIAOE), 6);
+class EndOfDays(BossModule module) : Components.LineStack(module, ActionID.MakeSpell(AID.EndOfDays), ActionID.MakeSpell(AID.EndOfDays2), 5.1f);
 
 class Stars(BossModule module) : Components.GenericAOEs(module)
 {
@@ -141,48 +142,6 @@ class Stars(BossModule module) : Components.GenericAOEs(module)
             _active = false;
         }
     }
-}
-
-// TODO: create and use generic 'line stack' component
-class EndOfDays(BossModule module) : Components.GenericBaitAway(module)
-{
-    private Actor? target;
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID.EndOfDays)
-        {
-            target = WorldState.Actors.Find(spell.MainTargetID);
-            CurrentBaits.Add(new(Module.PrimaryActor, target!, new AOEShapeRect(50, 4)));
-        }
-        if ((AID)spell.Action.ID == AID.EndOfDays2)
-            CurrentBaits.Clear();
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (CurrentBaits.Count > 0 && actor != target)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 50, 0, 4));
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (CurrentBaits.Count > 0)
-        {
-            if (!actor.Position.InRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 50, 0, 4))
-                hints.Add("Stack!");
-            else
-                hints.Add("Stack!", false);
-        }
-    }
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        foreach (var bait in CurrentBaits)
-            bait.Shape.Draw(Arena, BaitOrigin(bait), bait.Rotation, ArenaColor.SafeFromAOE);
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc) { }
 }
 
 class D063LahabreaIgeyorhmStates : StateMachineBuilder

@@ -9,7 +9,8 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
     {
         None,
         AwayFromOrigin, // standard knockback - specific distance along ray from origin to target
-        TowardsOrigin, // standard pull - "knockback" to source - forward along source's direction + 180 degrees
+        TowardsOrigin, // standard pull - "knockback" to source -  specific distance along ray from origin to target + 180 degrees
+        DirBackward, // standard pull - "knockback" to source - forward along source's direction + 180 degrees
         DirForward, // directional knockback - forward along source's direction
         DirLeft, // directional knockback - forward along source's direction + 90 degrees
         DirRight, // directional knockback - forward along source's direction - 90 degrees
@@ -157,6 +158,7 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
             {
                 Kind.AwayFromOrigin => from != s.Origin ? (from - s.Origin).Normalized() : default,
                 Kind.TowardsOrigin => from != s.Origin ? (s.Origin - from).Normalized() : default,
+                Kind.DirBackward => (s.Direction + 180.Degrees()).ToDirection(),
                 Kind.DirForward => s.Direction.ToDirection(),
                 Kind.DirLeft => s.Direction.ToDirection().OrthoL(),
                 Kind.DirRight => s.Direction.ToDirection().OrthoR(),
@@ -166,8 +168,15 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
                 continue; // couldn't determine direction for some reason
 
             var distance = s.Distance;
-            if (s.Kind is Kind.TowardsOrigin)
+            if (s.Kind == Kind.TowardsOrigin)
                 distance = Math.Min(s.Distance, (s.Origin - from).Length() - s.MinDistance);
+            if (s.Kind == Kind.DirBackward)
+            {
+                var perpendicularDir = s.Direction.ToDirection().OrthoL();
+                var perpendicularDistance = Math.Abs((from - s.Origin).Cross(perpendicularDir) / perpendicularDir.Length());
+                distance = Math.Min(s.Distance, perpendicularDistance);
+            }
+
             if (distance <= 0)
                 continue; // this could happen if attract starts from < min distance
 

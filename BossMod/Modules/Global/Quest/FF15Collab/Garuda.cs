@@ -113,53 +113,7 @@ class MistralShriek(BossModule module) : Components.SelfTargetedAOEs(module, Act
 
 class MistralSong(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MistralSong), new AOEShapeCone(20, 75.Degrees()));
 class WickedTornado(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WickedTornado), new AOEShapeDonut(8, 20));
-
-// TODO: create and use generic 'line stack' component
-class MiniSupercell(BossModule module) : Components.GenericBaitAway(module)
-{
-    private Actor? target;
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID.MiniSupercell)
-        {
-            target = WorldState.Actors.Find(spell.MainTargetID);
-            CurrentBaits.Add(new(Module.PrimaryActor, target!, new AOEShapeRect(45, 3)));
-        }
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.MiniSupercell2)
-            CurrentBaits.Clear();
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (CurrentBaits.Count > 0 && actor != target)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 45, 0, 3));
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (CurrentBaits.Count > 0)
-        {
-            if (!actor.Position.InRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 45, 0, 3))
-                hints.Add("Stack!");
-            else
-                hints.Add("Stack!", false);
-        }
-    }
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        foreach (var bait in CurrentBaits)
-            bait.Shape.Draw(Arena, BaitOrigin(bait), bait.Rotation, ArenaColor.SafeFromAOE);
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc) { }
-}
-
+class MiniSupercell(BossModule module) : Components.LineStack(module, ActionID.MakeSpell(AID.MiniSupercell), ActionID.MakeSpell(AID.MiniSupercell2), 5, 45, 3, 2);
 class MiniSupercellKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.MiniSupercell2), 50, shape: new AOEShapeRect(45, 3), stopAtWall: true);
 
 class GravitationalForce(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.GravitationalForce2), m => m.Enemies(OID.GravityVoidzone), 0);

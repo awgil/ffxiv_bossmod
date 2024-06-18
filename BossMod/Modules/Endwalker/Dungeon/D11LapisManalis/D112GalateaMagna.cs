@@ -227,7 +227,7 @@ class Doom(BossModule module) : BossComponent(module)
     {
         if (_doomed.Contains(actor) && !(actor.Role == Role.Healer || actor.Class == Class.BRD))
             hints.Add("You were doomed! Get cleansed fast.");
-        if (_doomed.Contains(actor) && (actor.Role == Role.Healer || actor.Class == Class.BRD))
+        else if (_doomed.Contains(actor) && (actor.Role == Role.Healer || actor.Class == Class.BRD))
             hints.Add("Cleanse yourself! (Doom).");
         foreach (var c in _doomed)
             if (!_doomed.Contains(actor) && (actor.Role == Role.Healer || actor.Class == Class.BRD))
@@ -241,7 +241,7 @@ class Doom(BossModule module) : BossComponent(module)
         {
             if (_doomed.Count > 0 && actor.Role == Role.Healer)
                 hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Esuna), c, 1, false));
-            if (_doomed.Count > 0 && actor.Class == Class.BRD)
+            else if (_doomed.Count > 0 && actor.Class == Class.BRD)
                 hints.PlannedActions.Add((ActionID.MakeSpell(BRD.AID.WardensPaean), c, 1, false));
         }
     }

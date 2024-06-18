@@ -10,7 +10,5 @@ class SublimeSunset(BossModule module) : Components.LocationTargetedAOEs(module,
 public class A13Azeyma(WorldState ws, Actor primary) : BossModule(ws, primary, NormalCenter, NormalBounds)
 {
     public static readonly WPos NormalCenter = new(-750, -750);
-    public static readonly WPos TriangleCenter = new(-750, -753.5f);
-    public static readonly ArenaBoundsCircle NormalBounds = new(30);
-    public static readonly ArenaBoundsComplex TriangleBounds = new([new TriangleE(TriangleCenter, 12)]);
+    public static readonly ArenaBoundsCircle NormalBounds = new(29.5f);
 }

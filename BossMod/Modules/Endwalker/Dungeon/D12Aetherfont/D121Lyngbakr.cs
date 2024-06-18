@@ -68,7 +68,7 @@ class Frequencies(BossModule module) : Components.GenericAOEs(module)
 class SonicBloop(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SonicBloop));
 class Waterspout(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Waterspout), 5);
 class TidalBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TidalBreath), new AOEShapeCone(40, 90.Degrees()));
-class Tidalspout(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Tidalspout), 6);
+class Tidalspout(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Tidalspout), 6, 4);
 class Upsweep(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Upsweep));
 class BodySlam(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BodySlam));
 

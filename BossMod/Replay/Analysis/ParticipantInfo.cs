@@ -147,7 +147,7 @@ class ParticipantInfo : CommonEnumInfo
         }
     }
 
-    private static bool IsIgnored(Replay.Participant p) => p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area or ActorType.Treasure;
+    private static bool IsIgnored(Replay.Participant p) => p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area or ActorType.Treasure or ActorType.Buddy;
     private string RadiusString(ParticipantData d) => d.MinRadius != d.MaxRadius ? string.Create(CultureInfo.InvariantCulture, $"{d.MinRadius:f3}-{d.MaxRadius:f3}") : string.Create(CultureInfo.InvariantCulture, $"{d.MinRadius:f3}");
     private string GuessName(uint oid, ParticipantData d) => Utils.StringToIdentifier(d.Names.Count > 0 ? d.Names[0].name : $"Actor{oid:X}");
 

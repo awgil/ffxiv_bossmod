@@ -2,9 +2,9 @@ namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.DD70Aeturna;
 
 public enum OID : uint
 {
-    Boss = 0x3D1B, // R5.950, x1
-    AllaganCrystal = 0x3D1C, // R1.500, x4
-    Helper = 0x233C, // R0.500, x12, 523 type
+    Boss = 0x3D1B, // R5.95
+    AllaganCrystal = 0x3D1C, // R1.5
+    Helper = 0x233C
 }
 
 public enum AID : uint
@@ -21,98 +21,17 @@ public enum AID : uint
     ShatterCircle = 31439, // 3D1C->self, 3.0s cast, range 8 circle
     ShatterCone = 31440, // 3D1C->self, 2.5s cast, range 18+R 150-degree cone
     SteelClaw = 31445, // 3D1B->player, 5.0s cast, single-target
-    Teleport = 31446, // 3D1B->location, no cast, single-target, boss teleports mid
-}
-
-public enum IconID : uint
-{
-    tankbuster = 198, // player
+    Teleport = 31446 // 3D1B->location, no cast, single-target, boss teleports mid
 }
 
 public enum TetherID : uint
 {
     FerocityTetherGood = 1, // Boss->player
-    FerocityTetherStretch = 57, // Boss->player
+    FerocityTetherBad = 57 // Boss->player
 }
 
 class SteelClaw(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.SteelClaw));
-
-class FerocityGood(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.FerocityTetherGood) // TODO: consider generalizing stretched tethers?
-{
-    private ulong target;
-
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
-    {
-        base.OnTethered(source, tether);
-        if (tether.ID == (uint)TetherID.FerocityTetherGood)
-            target = tether.Target;
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        if (DrawTethers && target == pc.InstanceID && CurrentBaits.Count > 0)
-        {
-            foreach (var b in ActiveBaits)
-            {
-                if (Arena.Config.ShowOutlinesAndShadows)
-                    Arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
-                Arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Safe);
-            }
-        }
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.Add("Tether is stretched!", false);
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-        if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
-    }
-}
-
-class FerocityBad(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.FerocityTetherStretch)
-{
-    private ulong target;
-
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
-    {
-        base.OnTethered(source, tether);
-        if (tether.ID == (uint)TetherID.FerocityTetherStretch)
-            target = tether.Target;
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        if (DrawTethers && target == pc.InstanceID && CurrentBaits.Count > 0)
-        {
-            foreach (var b in ActiveBaits)
-            {
-                if (Arena.Config.ShowOutlinesAndShadows)
-                    Arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
-                Arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Danger);
-            }
-        }
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.Add("Stretch tether further!");
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-        if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
-    }
-}
-
+class Ferocity(BossModule module) : Components.StretchTetherDuo(module, (uint)TetherID.FerocityTetherBad, (uint)TetherID.FerocityTetherGood, 15, activationDelay: 5.7f);
 class PreternaturalTurnCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PreternaturalTurnCircle), new AOEShapeCircle(15));
 class PreternaturalTurnDonut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PreternaturalTurnDonut), new AOEShapeDonut(6, 30));
 
@@ -169,8 +88,7 @@ class DD70AeturnaStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<SteelClaw>()
-            .ActivateOnEnter<FerocityGood>()
-            .ActivateOnEnter<FerocityBad>()
+            .ActivateOnEnter<Ferocity>()
             .ActivateOnEnter<PreternaturalTurnCircle>()
             .ActivateOnEnter<PreternaturalTurnDonut>()
             .ActivateOnEnter<Shatter>()

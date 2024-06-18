@@ -1,6 +1,5 @@
 ﻿using ImGuiNET;
 using System.IO;
-using System.Text;
 
 namespace BossMod.ReplayVisualization;
 
@@ -71,16 +70,12 @@ class OpList(Replay replay, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldSt
         var p = replay.FindParticipant(instanceID, timestamp)!;
         if ((p.OwnerID & 0xFF000000) == 0x10000000)
             return false; // player's pet/area
-        if (p.Type == ActorType.Player && !allowPlayers)
-            return false;
-        if (_filteredOIDs.Contains(p.OID))
-            return false;
-        return true;
+        return (p.Type is not ActorType.Player and not ActorType.Buddy and not ActorType.Pet || allowPlayers) && !_filteredOIDs.Contains(p.OID);
     }
 
     private bool FilterInterestingStatus(Replay.Status s)
     {
-        if (s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
+        if (s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Buddy)
             return false; // don't care about statuses applied by players
         if (s.Target.Type is ActorType.Pet)
             return false; // don't care about statuses applied to pets
@@ -92,6 +87,7 @@ class OpList(Replay replay, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldSt
             return false; // don't care about filtered out statuses
         return true;
     }
+
     private bool FilterInterestingStatuses(ulong instanceID, int index, DateTime timestamp) => FindStatuses(instanceID, index, timestamp).Any(FilterInterestingStatus);
 
     private bool FilterOp(WorldState.Operation o)
@@ -115,6 +111,10 @@ class OpList(Replay replay, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldSt
             ActorState.OpEffectResult => false,
             ActorState.OpStatus op => FilterInterestingStatuses(op.InstanceID, op.Index, op.Timestamp),
             PartyState.OpLimitBreakChange => false,
+            ActorState.OpEventNpcYell op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
+            ActorState.OpEventObjectStateChange op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
+            ActorState.OpEventObjectAnimation op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
+            ActorState.OpRename op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ClientState.OpActionRequest => false,
             //ClientState.OpActionReject => false,
             ClientState.OpCooldown => false,

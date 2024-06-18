@@ -54,7 +54,7 @@ public abstract class BossModule : IDisposable
         // execute callbacks for existing state
         foreach (var actor in WorldState.Actors)
         {
-            bool nonPlayer = actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo;
+            bool nonPlayer = actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo and not ActorType.Buddy;
             if (nonPlayer)
             {
                 comp.OnActorCreated(actor);
@@ -357,7 +357,7 @@ public abstract class BossModule : IDisposable
     private void OnActorCreated(Actor actor)
     {
         _relevantEnemies.GetValueOrDefault(actor.OID)?.Add(actor);
-        if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo)
+        if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo and not ActorType.Buddy)
             foreach (var comp in _components)
                 comp.OnActorCreated(actor);
     }
@@ -365,21 +365,21 @@ public abstract class BossModule : IDisposable
     private void OnActorDestroyed(Actor actor)
     {
         _relevantEnemies.GetValueOrDefault(actor.OID)?.Remove(actor);
-        if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo)
+        if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo and not ActorType.Buddy)
             foreach (var comp in _components)
                 comp.OnActorDestroyed(actor);
     }
 
     private void OnActorCastStarted(Actor actor)
     {
-        if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && (actor.CastInfo?.IsSpell() ?? false))
+        if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo and not ActorType.Buddy && (actor.CastInfo?.IsSpell() ?? false))
             foreach (var comp in _components)
                 comp.OnCastStarted(actor, actor.CastInfo);
     }
 
     private void OnActorCastFinished(Actor actor)
     {
-        if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && (actor.CastInfo?.IsSpell() ?? false))
+        if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo and not ActorType.Buddy && (actor.CastInfo?.IsSpell() ?? false))
             foreach (var comp in _components)
                 comp.OnCastFinished(actor, actor.CastInfo);
     }
@@ -416,7 +416,7 @@ public abstract class BossModule : IDisposable
 
     private void OnActorCastEvent(Actor actor, ActorCastEvent cast)
     {
-        if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && cast.IsSpell())
+        if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo and not ActorType.Buddy && cast.IsSpell())
             foreach (var comp in _components)
                 comp.OnEventCast(actor, cast);
     }

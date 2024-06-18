@@ -383,7 +383,7 @@ abstract class CommonActions : IDisposable
 
     // smart targeting utility: return target (if friendly) or mouseover (if friendly) or null (otherwise)
     protected Actor? SmartTargetFriendly(Actor? primaryTarget)
-        => primaryTarget?.Type is ActorType.Player or ActorType.Chocobo ? primaryTarget : Autorot.SecondaryTarget?.Type is ActorType.Player or ActorType.Chocobo ? Autorot.SecondaryTarget : null;
+        => primaryTarget?.Type is ActorType.Player or ActorType.Chocobo or ActorType.Buddy ? primaryTarget : Autorot.SecondaryTarget?.Type is ActorType.Player or ActorType.Chocobo or ActorType.Buddy ? Autorot.SecondaryTarget : null;
 
     // smart targeting utility: return mouseover (if hostile and allowed) or target (otherwise)
     protected Actor? SmartTargetHostile(Actor? primaryTarget)

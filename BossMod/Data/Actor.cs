@@ -9,6 +9,7 @@ public enum ActorType : ushort
     Pet = 0x202,
     Chocobo = 0x203,
     Enemy = 0x205,
+    Buddy = 0x209,
     EventNpc = 0x300,
     Treasure = 0x400,
     Aetheryte = 0x500,

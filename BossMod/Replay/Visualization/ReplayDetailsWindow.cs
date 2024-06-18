@@ -218,7 +218,7 @@ class ReplayDetailsWindow : UIWindow
         foreach (var s in actor.Statuses.Where(s => s.ID != 0))
         {
             var src = _player.WorldState.Actors.Find(s.SourceID);
-            if (src?.Type is ActorType.Player or ActorType.Pet)
+            if (src?.Type is ActorType.Player or ActorType.Pet or ActorType.Buddy)
                 continue;
             if (s.ID is 360 or 362 or 364 or 365 or 413 or 902)
                 continue; // skip FC buff

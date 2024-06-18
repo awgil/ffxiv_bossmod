@@ -49,13 +49,14 @@ class VineWhip(BossModule module) : Components.SingleTargetCast(module, ActionID
 class OdiousAtmosphere(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
+    private static readonly AOEShapeCone cone = new(40, 90.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.OdiousAtmosphere0)
-            _aoe = new(new AOEShapeCone(40, 90.Degrees()), caster.Position, spell.Rotation, spell.NPCFinishAt);
+            _aoe = new(cone, caster.Position, spell.Rotation, spell.NPCFinishAt);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

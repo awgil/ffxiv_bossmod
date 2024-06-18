@@ -1,17 +1,14 @@
-﻿using BossMod.Endwalker.Hunt.RankS.KerShroud;
-
-namespace BossMod.Heavensward.Dungeon.D06Aetherochemical.D064AscianPrime;
+﻿namespace BossMod.Heavensward.Dungeon.D06Aetherochemical.D064AscianPrime;
 
 public enum OID : uint
 {
-    Boss = 0x3DA7, // R3.800, x1
-    LahabreasShade = 0x3DAB, // R3.500, x1
-    IgeyorhmsShade = 0x3DAA, // R3.500, x1
-    Helper = 0x233C, // R0.500, x23, 523 type
-
-    FrozenStar = 0x3DA8, // R1.500, x0 (spawn during fight)
-    BurningStar = 0x3DA9, // R1.500, x0 (spawn during fight)
-    ArcaneSphere = 0x3DAC, // R7.000, x0 (spawn during fight)
+    Boss = 0x3DA7, // R3.8
+    LahabreasShade = 0x3DAB, // R3.5
+    IgeyorhmsShade = 0x3DAA, // R3.5
+    FrozenStar = 0x3DA8, // R1.5
+    BurningStar = 0x3DA9, // R1.5
+    ArcaneSphere = 0x3DAC, // R7.0
+    Helper = 0x233C
 }
 
 public enum AID : uint
@@ -74,7 +71,7 @@ public enum AID : uint
 
     UniversalManipulationTeleport = 31419, // Boss->location, no cast, single-target
     UniversalManipulation = 31900, // Boss->self, 5.0s cast, range 40 circle
-    UniversalManipulation2 = 33044, // Boss->player, no cast, single-target
+    UniversalManipulation2 = 33044 // Boss->player, no cast, single-target
 }
 
 public enum SID : uint
@@ -85,7 +82,7 @@ public enum SID : uint
     BurningChains1 = 3505, // none->player, extra=0x0
     BurningChains2 = 769, // none->player, extra=0x0
     DarkWhispers = 3535, // none->player, extra=0x0 Spread marker
-    Untargetable = 2056, // Boss->Boss, extra=0x231, before limitbreak phase
+    Untargetable = 2056 // Boss->Boss, extra=0x231, before limitbreak phase
 }
 
 public enum IconID : uint
@@ -95,14 +92,14 @@ public enum IconID : uint
     DarkWhispers = 139, // player
     AncientFrost = 161, // player
     BurningChains = 97, // player
-    DarkFire = 311, // player
+    DarkFire = 311 // player
 }
 
 public enum TetherID : uint
 {
     StarTether = 110, // FrozenStar/BurningStar->FrozenStar/BurningStar
     BurningChains = 9, // player->player
-    ArcaneSphere = 197, // ArcaneSphere->Boss
+    ArcaneSphere = 197 // ArcaneSphere->Boss
 }
 
 class AncientCircle(BossModule module) : Components.UniformStackSpread(module, 5, 4)
@@ -163,50 +160,8 @@ class DarkBlizzardIIIAOE3(BossModule module) : Components.SelfTargetedAOEs(modul
 class DarkBlizzardIIIAOE4(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkBlizzardIIIAOE4), new AOEShapeCone(41, 10.Degrees()));
 class DarkBlizzardIIIAOE5(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkBlizzardIIIAOE5), new AOEShapeCone(41, 10.Degrees()));
 class DarkFireIIAOE(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.DarkFireIIAOE), 6);
-
 class BurningChains(BossModule module) : Components.Chains(module, (uint)TetherID.BurningChains, ActionID.MakeSpell(AID.BurningChains));
-
-// TODO: create and use generic 'line stack' component
-class EntropicFlame(BossModule module) : Components.GenericBaitAway(module)
-{
-    private Actor? target;
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID.EntropicFlame)
-        {
-            target = WorldState.Actors.Find(spell.MainTargetID);
-            CurrentBaits.Add(new(Module.PrimaryActor, target!, new AOEShapeRect(50, 4)));
-        }
-        if ((AID)spell.Action.ID == AID.EntropicFlame2)
-            CurrentBaits.Clear();
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (CurrentBaits.Count > 0 && actor != target)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 50, 0, 4));
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (CurrentBaits.Count > 0)
-        {
-            if (!actor.Position.InRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 50, 0, 4))
-                hints.Add("Stack!");
-            else
-                hints.Add("Stack!", false);
-        }
-    }
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        foreach (var bait in CurrentBaits)
-            bait.Shape.Draw(Arena, BaitOrigin(bait), bait.Rotation, ArenaColor.SafeFromAOE);
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc) { }
-}
+class EntropicFlame(BossModule module) : Components.LineStack(module, ActionID.MakeSpell(AID.EntropicFlame), ActionID.MakeSpell(AID.EntropicFlame3), 5.2f);
 
 class Stars(BossModule module) : Components.GenericAOEs(module)
 {

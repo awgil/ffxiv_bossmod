@@ -30,9 +30,10 @@ public enum AID : uint
 public enum SID : uint
 {
     HiddenStatus = 2056, // none->GoldenWings, extra=0x16C, probably just a visual?
-    Doom = 1769, // Helper->player, extra=0x0, heal to full doom
+    Doom = 1769 // Helper->player, extra=0x0, heal to full doom
 }
-class Necrosis(BossModule module) : BossComponent(module)
+
+class Doom(BossModule module) : BossComponent(module)
 {
     private readonly List<Actor> _doomed = [];
 
@@ -52,7 +53,7 @@ class Necrosis(BossModule module) : BossComponent(module)
     {
         if (_doomed.Contains(actor) && !(actor.Role == Role.Healer))
             hints.Add("You were doomed! Get healed to full fast.");
-        if (_doomed.Contains(actor) && actor.Role == Role.Healer)
+        else if (_doomed.Contains(actor) && actor.Role == Role.Healer)
             hints.Add("Heal yourself to full! (Doom).");
         foreach (var c in _doomed)
             if (!_doomed.Contains(actor) && actor.Role == Role.Healer)
@@ -60,9 +61,9 @@ class Necrosis(BossModule module) : BossComponent(module)
     }
 }
 
-class LamellarLight1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LamellarLight1), new AOEShapeCircle(15), 3);
+class LamellarLightCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LamellarLight1), new AOEShapeCircle(15), 3);
 class Lifesbreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Lifesbreath), new AOEShapeRect(50, 5));
-class LamellarLight3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LamellarLight3), new AOEShapeRect(40, 2));
+class LamellarLightRect(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LamellarLight3), new AOEShapeRect(40, 2));
 class StillEmbrace(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.StillEmbrace), 6);
 class Benevolence(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Benevolence), 6, 4);
 
@@ -77,8 +78,9 @@ class D063RalaStates : StateMachineBuilder
     public D063RalaStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<LamellarLight1>()
-            .ActivateOnEnter<LamellarLight3>()
+            .ActivateOnEnter<Doom>()
+            .ActivateOnEnter<LamellarLightCircle>()
+            .ActivateOnEnter<LamellarLightRect>()
             .ActivateOnEnter<Lifesbreath>()
             .ActivateOnEnter<StillEmbrace>()
             .ActivateOnEnter<Benevolence>()

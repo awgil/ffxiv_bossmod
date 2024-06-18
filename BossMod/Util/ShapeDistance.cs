@@ -79,6 +79,12 @@ public static class ShapeDistance
         };
     }
 
+    public static Func<WPos, float> InvertedDonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
+    {
+        var donutSectir = DonutSector(origin, innerRadius, outerRadius, centerDir, halfAngle);
+        return p => -donutSectir(p);
+    }
+
     public static Func<WPos, float> Tri(WPos origin, RelTriangle tri)
     {
         var ab = tri.B - tri.A;
@@ -104,6 +110,13 @@ public static class ShapeDistance
             return Math.Max(Math.Max(d1, d2), d3);
         };
     }
+
+    public static Func<WPos, float> InvertedTri(WPos origin, RelTriangle tri)
+    {
+        var triangle = Tri(origin, tri);
+        return p => -triangle(p);
+    }
+
     public static Func<WPos, float> TriList(WPos origin, List<RelTriangle> tris) => Union([.. tris.Select(tri => Tri(origin, tri))]);
 
     public static Func<WPos, float> Rect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
@@ -164,6 +177,12 @@ public static class ShapeDistance
             var distO = Math.Max(Math.Max(distOFront, distOBack), Math.Max(distOLeft, distORight));
             return Math.Min(distP, distO);
         };
+    }
+
+    public static Func<WPos, float> InvertedCross(WPos origin, Angle direction, float length, float halfWidth)
+    {
+        var cross = Cross(origin, direction, length, halfWidth);
+        return p => -cross(p);
     }
 
     // positive offset increases area

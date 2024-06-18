@@ -28,7 +28,7 @@ public enum AID : uint
 class ChaoticUndercurrent(BossModule module) : Components.GenericAOEs(module)
 {
     private enum Pattern { None, BBRR, RRBB, BRRB, RBBR }
-    private Pattern CurrentPattern = Pattern.None;
+    private Pattern CurrentPattern;
     private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeRect rect = new(40, 5);
     private static readonly Angle rotation = 90.Degrees();

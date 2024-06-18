@@ -53,16 +53,67 @@ public record class Circle(WPos Center, float Radius) : Shape
     public override string ComputeHash() => ComputeSHA512($"{nameof(Circle)}:{Center.X},{Center.Z},{Radius}");
 }
 
-// for custom polygons defined by a list of vertices
+// for custom polygons, automatically checking if convex or concave
 public record class PolygonCustom(IEnumerable<WPos> Vertices) : Shape
 {
+    private static readonly Dictionary<string, bool> propertyCache = [];
+
     public override List<WDir> Contour(WPos center)
         => GetOrCreateContour(center, () => Vertices.Select(v => v - center).ToList());
 
     public override RelSimplifiedComplexPolygon ToPolygon(WPos center)
         => GetOrCreatePolygon(center, () => new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(Contour(center))]));
 
-    public override Func<WPos, float> Distance() => ShapeDistance.ConcavePolygon(Vertices);
+    private bool IsConvex()
+    {
+        var hash = ComputeHash() + "IsConvex";
+        if (propertyCache.TryGetValue(hash, out var isConvex))
+            return isConvex;
+
+        var vertices = Vertices.ToList();
+        var n = vertices.Count;
+        isConvex = true;
+        for (var i = 0; i < n; i++)
+        {
+            var p0 = vertices[i];
+            var p1 = vertices[(i + 1) % n];
+            var p2 = vertices[(i + 2) % n];
+
+            var crossProduct = (p1.X - p0.X) * (p2.Z - p1.Z) - (p1.Z - p0.Z) * (p2.X - p1.X);
+            if (i == 0)
+                isConvex = crossProduct > 0;
+            else
+                if ((crossProduct > 0) != isConvex)
+                return propertyCache[hash] = false;
+        }
+        propertyCache[hash] = isConvex;
+        return isConvex;
+    }
+
+    private bool IsCounterClockwise()
+    {
+        var hash = ComputeHash() + "IsCounterClockwise";
+        if (propertyCache.TryGetValue(hash, out var isCounterClockwise))
+            return isCounterClockwise;
+
+        var vertices = Vertices.ToList();
+        float area = 0;
+        for (var i = 0; i < vertices.Count; i++)
+        {
+            var p0 = vertices[i];
+            var p1 = vertices[(i + 1) % vertices.Count];
+            area += (p1.X - p0.X) * (p1.Z + p0.Z);
+        }
+        isCounterClockwise = area > 0;
+        propertyCache[hash] = isCounterClockwise;
+        return isCounterClockwise;
+    }
+
+    public override Func<WPos, float> Distance()
+    {
+        return IsConvex() ? IsCounterClockwise() ? ShapeDistance.ConvexPolygon(Vertices, false) : ShapeDistance.ConvexPolygon(Vertices, true)
+            : ShapeDistance.ConcavePolygon(Vertices);
+    }
 
     public override string ComputeHash()
     {
@@ -185,7 +236,25 @@ public record class TriangleE(WPos Center, float Radius, Angle Rotation = defaul
         => GetOrCreatePolygon(center, () => new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(Contour(center))]));
 
     public override Func<WPos, float> Distance()
-        => ShapeDistance.Tri(Center, new RelTriangle(new WDir(-Radius, 0), new WDir(Radius, 0), new WDir(0, -Radius)));
+    {
+        var sqrt3 = MathF.Sqrt(3);
+        var halfSide = Radius;
+        var height = halfSide * sqrt3;
+        var a = new WDir(-halfSide, height / 3);
+        var b = new WDir(halfSide, height / 3);
+        var c = new WDir(0, -2 * height / 3);
+
+        var cos = MathF.Cos(Rotation.Rad);
+        var sin = MathF.Sin(Rotation.Rad);
+
+        var rotatedA = new WDir(a.X * cos - a.Z * sin, a.X * sin + a.Z * cos);
+        var rotatedB = new WDir(b.X * cos - b.Z * sin, b.X * sin + b.Z * cos);
+        var rotatedC = new WDir(c.X * cos - c.Z * sin, c.X * sin + c.Z * cos);
+
+        var relTriangle = new RelTriangle(rotatedA, rotatedB, rotatedC);
+
+        return ShapeDistance.Tri(Center, relTriangle);
+    }
 
     public override string ComputeHash() => ComputeSHA512($"{nameof(TriangleE)}:{Center.X},{Center.Z},{Radius},{Rotation.Rad}");
 }
@@ -223,7 +292,28 @@ public record class TriangleS(WPos Center, float SideA, float SideB, float SideC
         => GetOrCreatePolygon(center, () => new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(Contour(center))]));
 
     public override Func<WPos, float> Distance()
-        => ShapeDistance.Tri(Center, new RelTriangle(new WDir(-SideA / 2, 0), new WDir(SideA / 2, 0), new WDir(0, -SideB)));
+    {
+        var sides = new[] { SideA, SideB, SideC }.OrderByDescending(s => s).ToArray();
+        var a = sides[0];
+        var b = sides[1];
+        var c = sides[2];
+        var vertex1 = new WDir(0, 0);
+        var vertex2 = new WDir(a, 0);
+        var cosC = (b * b + a * a - c * c) / (2 * a * b);
+        var sinC = MathF.Sqrt(1 - cosC * cosC);
+        var vertex3 = new WDir(b * cosC, b * sinC);
+
+        var cos = MathF.Cos(Rotation.Rad);
+        var sin = MathF.Sin(Rotation.Rad);
+
+        var rotatedVertex1 = new WDir(vertex1.X * cos - vertex1.Z * sin, vertex1.X * sin + vertex1.Z * cos);
+        var rotatedVertex2 = new WDir(vertex2.X * cos - vertex2.Z * sin, vertex2.X * sin + vertex2.Z * cos);
+        var rotatedVertex3 = new WDir(vertex3.X * cos - vertex3.Z * sin, vertex3.X * sin + vertex3.Z * cos);
+
+        var relTriangle = new RelTriangle(rotatedVertex1, rotatedVertex2, rotatedVertex3);
+
+        return ShapeDistance.Tri(Center, relTriangle);
+    }
 
     public override string ComputeHash() => ComputeSHA512($"{nameof(TriangleS)}:{Center.X},{Center.Z},{SideA},{SideB},{SideC},{Rotation.Rad}");
 }
@@ -258,7 +348,25 @@ public record class TriangleA(WPos Center, float BaseLength, Angle ApexAngle, An
         => GetOrCreatePolygon(center, () => new RelSimplifiedComplexPolygon([new RelPolygonWithHoles(Contour(center))]));
 
     public override Func<WPos, float> Distance()
-        => ShapeDistance.Tri(Center, new RelTriangle(new WDir(-BaseLength / 2, 0), new WDir(BaseLength / 2, 0), new WDir(0, -BaseLength / 2 / MathF.Tan(ApexAngle.Rad / 2))));
+    {
+        var apexAngleRad = ApexAngle.Rad;
+        var height = BaseLength / 2 / MathF.Tan(apexAngleRad / 2);
+        var halfBase = BaseLength / 2;
+        var vertex1 = new WDir(-halfBase, 0);
+        var vertex2 = new WDir(halfBase, 0);
+        var vertex3 = new WDir(0, -height);
+
+        var cos = MathF.Cos(Rotation.Rad);
+        var sin = MathF.Sin(Rotation.Rad);
+
+        var rotatedVertex1 = new WDir(vertex1.X * cos - vertex1.Z * sin, vertex1.X * sin + vertex1.Z * cos);
+        var rotatedVertex2 = new WDir(vertex2.X * cos - vertex2.Z * sin, vertex2.X * sin + vertex2.Z * cos);
+        var rotatedVertex3 = new WDir(vertex3.X * cos - vertex3.Z * sin, vertex3.X * sin + vertex3.Z * cos);
+
+        var relTriangle = new RelTriangle(rotatedVertex1, rotatedVertex2, rotatedVertex3);
+
+        return ShapeDistance.Tri(Center, relTriangle);
+    }
 
     public override string ComputeHash() => ComputeSHA512($"{nameof(TriangleA)}:{Center.X},{Center.Z},{BaseLength},{ApexAngle.Rad},{Rotation.Rad}");
 }

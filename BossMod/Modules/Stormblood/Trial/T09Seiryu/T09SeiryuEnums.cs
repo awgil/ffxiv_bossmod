@@ -44,8 +44,8 @@ public enum AID : uint
     FifthElement = 14334, // Boss->self, 4.0s cast, range 100 circle
 
     ForbiddenArtsMarker = 14277, // Helper->player, no cast, single-target, applies linestack marker
-    ForbiddenArts1 = 15474, // Boss->self, no cast, range 80+R width 8 rect
-    ForbiddenArts2 = 15490, // Boss->self, no cast, range 80+R width 8 rect
+    ForbiddenArtsFirst = 15490, // Boss->self, no cast, range 80+R width 8 rect
+    ForbiddenArtsSecond = 15474, // Boss->self, no cast, range 80+R width 8 rect
 
     FortuneBladeSigil = 14342, // Helper->self, 6.5s cast, range 50+R width 4 rect
 
@@ -54,8 +54,8 @@ public enum AID : uint
     GreatTyphoon40 = 14354, // Helper->self, 3.0s cast, range ?-40 donut, outside of arena
     InfirmSoul = 14333, // Boss->player, 5.0s cast, range 4 circle, tankbuster
 
-    KanaboVisual = 14316, // IwaNoShiki->location, no cast, ???
-    Kanabo1 = 15392, // IwaNoShiki->self, 6.0s cast, single-target
+    KanaboVisual1 = 14316, // IwaNoShiki->location, no cast, ???
+    KanaboVisual2 = 15392, // IwaNoShiki->self, 6.0s cast, single-target
     Kanabo2 = 15391, // IwaNoShiki->self, 3.0s cast, range 40+R 60-degree cone
 
     KujiKiri = 14305, // Boss->self, 4.0s cast, single-target
@@ -93,15 +93,15 @@ public enum AID : uint
     ForceOfNature2 = 14345, // Helper->self, 5.0s cast, range 5 circle
     ForceOfNature3 = 14313, // YamaNoShiki->self, no cast, single-target
 
-    SummonShiki = 14285, // Boss->self, 3.0s cast, single-target
+    SummonShiki = 14285 // Boss->self, 3.0s cast, single-target
 }
 
 public enum IconID : uint
 {
-    Spreadmarker = 169, // player
+    Spreadmarker = 169 // player
 }
 
 public enum TetherID : uint
 {
-    BaitAway = 17, // AkaNoShiki/AoNoShiki/IwaNoShiki->player
+    BaitAway = 17 // AkaNoShiki/AoNoShiki/IwaNoShiki->player
 }

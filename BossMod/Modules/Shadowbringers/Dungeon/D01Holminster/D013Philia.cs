@@ -200,47 +200,7 @@ class LeftKnout(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 class RightKnout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightKnout), new AOEShapeCone(24, 105.Degrees()));
 class Taphephobia(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Taphephobia2), 6);
 
-// TODO: create and use generic 'line stack' component
-class IntoTheLight(BossModule module) : Components.GenericBaitAway(module)
-{
-    private Actor? target;
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID.IntoTheLight)
-        {
-            target = WorldState.Actors.Find(spell.MainTargetID);
-            CurrentBaits.Add(new(Module.PrimaryActor, target!, new AOEShapeRect(50, 4)));
-        }
-        if ((AID)spell.Action.ID == AID.IntoTheLight2)
-            CurrentBaits.Clear();
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (CurrentBaits.Count > 0 && actor != target)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 50, 0, 4));
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (CurrentBaits.Count > 0)
-        {
-            if (!actor.Position.InRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 50, 0, 4))
-                hints.Add("Stack!");
-            else
-                hints.Add("Stack!", false);
-        }
-    }
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        foreach (var bait in CurrentBaits)
-            bait.Shape.Draw(Arena, BaitOrigin(bait), bait.Rotation, ArenaColor.SafeFromAOE);
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc) { }
-}
+class IntoTheLight(BossModule module) : Components.LineStack(module, ActionID.MakeSpell(AID.IntoTheLight), ActionID.MakeSpell(AID.IntoTheLight2), 5.3f);
 
 class CatONineTails(BossModule module) : Components.GenericRotatingAOE(module)
 {

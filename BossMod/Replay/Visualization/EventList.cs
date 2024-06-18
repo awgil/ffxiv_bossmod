@@ -90,7 +90,7 @@ class EventList(Replay r, Action<DateTime> scrollTo)
         }
 
         bool haveActions = actions.Any();
-        bool actionIsCrap(Replay.Action a) => a.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo;
+        bool actionIsCrap(Replay.Action a) => a.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Buddy;
         foreach (var n in _tree.Node("Interesting actions", !haveActions))
         {
             DrawActions(actions.Where(a => !actionIsCrap(a)), tp, aidType);
@@ -101,7 +101,7 @@ class EventList(Replay r, Action<DateTime> scrollTo)
         }
 
         bool haveStatuses = statuses.Any();
-        bool statusIsCrap(Replay.Status s) => s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo || s.Target.Type is ActorType.Pet or ActorType.Chocobo;
+        bool statusIsCrap(Replay.Status s) => s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Buddy || s.Target.Type is ActorType.Pet or ActorType.Chocobo;
         foreach (var n in _tree.Node("Interesting statuses", !haveStatuses))
         {
             DrawStatuses(statuses.Where(s => !statusIsCrap(s)), tp, sidType);

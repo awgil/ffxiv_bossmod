@@ -109,9 +109,8 @@ public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, A
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         var (player, enemy) = DetermineTetherSides(source, tether);
-        if (player != null && enemy != null)
-            if (enemyOID == default || _enemies.Contains(source))
-                CurrentBaits.Add(new(enemy, player, Shape, WorldState.FutureTime(ActivationDelay)));
+        if (player != null && enemy != null && (enemyOID == default || _enemies.Contains(source)))
+            CurrentBaits.Add(new(enemy, player, Shape, WorldState.FutureTime(ActivationDelay)));
     }
 
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
@@ -124,7 +123,7 @@ public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, A
     }
 
     // we support both player->enemy and enemy->player tethers
-    private (Actor? player, Actor? enemy) DetermineTetherSides(Actor source, ActorTetherInfo tether)
+    public (Actor? player, Actor? enemy) DetermineTetherSides(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID != TID)
             return (null, null);
@@ -133,8 +132,8 @@ public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, A
         if (target == null)
             return (null, null);
 
-        var (player, enemy) = source.Type == ActorType.Player ? (source, target) : (target, source);
-        if (player.Type != ActorType.Player || enemy.Type == ActorType.Player)
+        var (player, enemy) = source.Type is ActorType.Player or ActorType.Buddy ? (source, target) : (target, source);
+        if (player.Type is not ActorType.Player and not ActorType.Buddy || enemy.Type is ActorType.Player or ActorType.Buddy)
         {
             ReportError($"Unexpected tether pair: {source.InstanceID:X} -> {target.InstanceID:X}");
             return (null, null);

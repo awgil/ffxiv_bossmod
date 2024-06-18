@@ -7,6 +7,7 @@ namespace BossMod.AI;
 
 sealed class AIManager : IDisposable
 {
+    public static AIManager? Instance { get; private set; }
     public readonly Autorotation Autorot;
     public readonly AIController Controller;
     private readonly AIConfig _config;
@@ -17,6 +18,7 @@ sealed class AIManager : IDisposable
 
     public AIManager(Autorotation autorot)
     {
+        Instance = this;
         _wndAI = new AIManagementWindow(this);
         Autorot = autorot;
         Controller = new();
@@ -292,9 +294,7 @@ sealed class AIManager : IDisposable
             _config.FollowDuringActiveBossModule = false;
         }
         else
-        {
             _config.FollowDuringCombat = true;
-        }
         Service.Log($"[AI] Follow during combat is now {(_config.FollowDuringCombat ? "enabled" : "disabled")}");
         Service.Log($"[AI] Follow during active boss module is now {(_config.FollowDuringActiveBossModule ? "enabled" : "disabled")}");
         return true;
@@ -303,9 +303,7 @@ sealed class AIManager : IDisposable
     private bool ToggleFollowModule()
     {
         if (_config.FollowDuringActiveBossModule)
-        {
             _config.FollowDuringActiveBossModule = false;
-        }
         else
         {
             _config.FollowDuringActiveBossModule = true;
@@ -319,9 +317,7 @@ sealed class AIManager : IDisposable
     private bool ToggleFollowTarget(string[] messageData)
     {
         if (messageData.Length == 1)
-        {
             _config.FollowTarget = !_config.FollowTarget;
-        }
         else
         {
             switch (messageData[1].ToUpperInvariant())
