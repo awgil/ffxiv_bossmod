@@ -14,7 +14,6 @@ post-wip:
 -- ui refactoring / beautifying pass
 -- ipc for autorotation
 -- delete autorotationlegacy & cdplannerlegacy
--- remove newtonsoft.json
 -- search for `//namespace BossMod`
 -- restore effect duration in action columns somehow...
 -- rmm in replay analysis
