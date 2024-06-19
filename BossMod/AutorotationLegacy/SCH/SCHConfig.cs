@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Parent = typeof(AutorotationConfig))]
+[ConfigDisplay(Parent = typeof(ActionTweaksConfig))]
 class SCHConfig : ConfigNode
 {
     //[PropertyDisplay("Execute optimal rotations on Ruin/Broil (ST damage), Art of War (AOE damage), Physick (ST heal) and Succor (AOE heal)")]

@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Parent = typeof(AutorotationConfig))]
+[ConfigDisplay(Parent = typeof(ActionTweaksConfig))]
 class SMNConfig : ConfigNode
 {
     [PropertyDisplay("Execute optimal rotations on Ruin (ST) or Outburst (AOE)")]

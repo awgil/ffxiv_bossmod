@@ -8,7 +8,7 @@
 // We do that by reducing actual cooldown by difference between previously-remaining cooldown and frame delta, if action is executed at first opportunity.
 public sealed class CooldownDelayTweak
 {
-    private readonly ActionManagerConfig _config = Service.Config.Get<ActionManagerConfig>();
+    private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
 
     public float Adjustment { get; private set; } // if >0 while using an action, cooldown/anim lock will be reduced by this amount as if action was used a bit in the past
 

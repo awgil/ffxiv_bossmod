@@ -41,7 +41,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
     public Event<ulong, ActorCastEvent> ActionEffectReceived = new();
 
     public InputOverride InputOverride = new();
-    public ActionManagerConfig Config = Service.Config.Get<ActionManagerConfig>();
+    public ActionTweaksConfig Config = Service.Config.Get<ActionTweaksConfig>();
     public ActionQueue.Entry AutoQueue { get; private set; }
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
     private readonly ActionManager* _inst = ActionManager.Instance();
@@ -295,7 +295,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
 
         action = NormalizeGeneralAction(action);
         (ulong, Vector3?) getAreaTarget() => targetOverridden ? (targetId, null) :
-            (Config.GTMode == ActionManagerConfig.GroundTargetingMode.AtTarget ? targetId : 0xE0000000, Config.GTMode == ActionManagerConfig.GroundTargetingMode.AtCursor ? GetWorldPosUnderCursor() : null);
+            (Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtTarget ? targetId : 0xE0000000, Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtCursor ? GetWorldPosUnderCursor() : null);
 
         // note: only standard mode can be filtered
         // note: current implementation introduces slight input lag (on button press, next autorotation update will pick state updates, which will be executed on next action manager update)
@@ -306,9 +306,9 @@ public unsafe sealed class ActionManagerEx : IDisposable
         var res = _useActionHook.Original(self, actionType, actionId, targetId, extraParam, mode, comboRouteId, &areaTargeted);
         if (outOptAreaTargeted != null)
             *outOptAreaTargeted = areaTargeted;
-        if (areaTargeted && Config.GTMode == ActionManagerConfig.GroundTargetingMode.AtCursor)
+        if (areaTargeted && Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtCursor)
             self->AreaTargetingExecuteAtCursor = true;
-        if (areaTargeted && Config.GTMode == ActionManagerConfig.GroundTargetingMode.AtTarget)
+        if (areaTargeted && Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtTarget)
             self->AreaTargetingExecuteAtObject = targetId;
         return res;
     }

@@ -1,6 +1,6 @@
 namespace BossMod;
 
-[ConfigDisplay(Parent = typeof(AutorotationConfig))]
+[ConfigDisplay(Parent = typeof(ActionTweaksConfig))]
 class SAMConfig : ConfigNode
 {
     [PropertyDisplay("Execute optimal rotations on Hakaze (ST) or Fuko/Fuga (AOE)")]

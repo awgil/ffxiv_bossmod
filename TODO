@@ -1,9 +1,4 @@
 autorotation v2:
-- converters
--- actionmanager
--- autorotation
--- per-class
--- plans
 - actiondefinitions
 -- sid generator
 -- spell out shared cooldowns in comments instead of group?
@@ -15,7 +10,6 @@ post-wip:
 -- aihints
 -- visualization
 - cleanup
--- helper for `(Enum)strategy[(int)Track.X].Option`
 -- delete/rework commonstate
 -- ui refactoring / beautifying pass
 -- ipc for autorotation

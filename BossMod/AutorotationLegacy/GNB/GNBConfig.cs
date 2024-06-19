@@ -1,6 +1,6 @@
 namespace BossMod;
 
-[ConfigDisplay(Parent = typeof(AutorotationConfig))]
+[ConfigDisplay(Parent = typeof(ActionTweaksConfig))]
 class GNBConfig : ConfigNode
 {
     [PropertyDisplay("Execute optimal rotations on Keen Edge (ST) or Demon Slice (AOE)")]

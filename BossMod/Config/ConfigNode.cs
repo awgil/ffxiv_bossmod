@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace BossMod;
 
@@ -53,15 +53,27 @@ public abstract class ConfigNode
     public virtual void DrawCustom(UITree tree, WorldState ws) { }
 
     // deserialize fields from json; default implementation should work fine for most cases
-    public virtual void Deserialize(JObject j, JsonSerializer ser)
+    public virtual void Deserialize(JsonElement j, JsonSerializerOptions ser)
     {
-        ser.DeserializeFields(j, this);
+        var type = GetType();
+        foreach (var jfield in j.EnumerateObject())
+        {
+            var field = type.GetField(jfield.Name);
+            if (field != null)
+            {
+                var value = jfield.Value.Deserialize(field.FieldType, ser);
+                if (value != null)
+                {
+                    field.SetValue(this, value);
+                }
+            }
+        }
     }
 
     // serialize node to json; default implementation should work fine for most cases
-    public virtual JObject Serialize(JsonSerializer ser)
+    public virtual void Serialize(Utf8JsonWriter jwriter, JsonSerializerOptions ser)
     {
-        return JObject.FromObject(this, ser);
+        JsonSerializer.Serialize(jwriter, this, ser);
     }
 }
 

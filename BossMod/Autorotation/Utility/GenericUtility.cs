@@ -25,11 +25,11 @@ public abstract class GenericUtility(RotationModuleManager manager, Actor player
         var lb = def.Define(expectedIndex).As<LBOption>("LB");
         lb.AddOption(LBOption.None, new(0x80ffffff, ActionTargets.None, "None", "Do not use automatically"));
         lb.AddOption(LBOption.LB3, new(0x8000ff00, allowedTargets, "LB3", "Use LB3 if available", Effect: effectLB3));
-        lb.AddOption(LBOption.LB2, new(0x8000ff40, allowedTargets, "LB2+", "Use LB2/3 if available", Effect: effectLB3));
-        lb.AddOption(LBOption.LB1, new(0x8000ff80, allowedTargets, "LB1+", "Use any LB if available", Effect: effectLB3));
-        lb.AddOption(LBOption.LB2Only, new(0x80ffff00, allowedTargets, "LB2", "Use LB2 if available, but not LB3", Effect: effectLB2));
-        lb.AddOption(LBOption.LB1Only, new(0x80ffff40, allowedTargets, "LB1", "Use LB1 if available, but not LB2+", Effect: effectLB1));
-        lb.AddOption(LBOption.LB12, new(0x80ffff80, allowedTargets, "LB1/2", "Use LB1/2 if available, but not LB3", Effect: effectLB1));
+        lb.AddOption(LBOption.LB2, new(0x8000ff40, allowedTargets, "LB2", "Use LB2/3 if available", Effect: effectLB3));
+        lb.AddOption(LBOption.LB1, new(0x8000ff80, allowedTargets, "LB1", "Use any LB if available", Effect: effectLB3));
+        lb.AddOption(LBOption.LB2Only, new(0x80ffff00, allowedTargets, "LB2Only", "Use LB2 if available, but not LB3", Effect: effectLB2));
+        lb.AddOption(LBOption.LB1Only, new(0x80ffff40, allowedTargets, "LB1Only", "Use LB1 if available, but not LB2+", Effect: effectLB1));
+        lb.AddOption(LBOption.LB12, new(0x80ffff80, allowedTargets, "LB12", "Use LB1/2 if available, but not LB3", Effect: effectLB1));
         return lb;
     }
 

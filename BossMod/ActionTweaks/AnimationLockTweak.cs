@@ -15,7 +15,7 @@
 // TODO: consider adding 'clamped delay' mode that doesn't reduce it straight to zero (a-la xivalex)?
 public sealed class AnimationLockTweak
 {
-    private readonly ActionManagerConfig _config = Service.Config.Get<ActionManagerConfig>();
+    private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
     private float _lastReqInitialAnimLock;
     private int _lastReqSequence = -1;
 

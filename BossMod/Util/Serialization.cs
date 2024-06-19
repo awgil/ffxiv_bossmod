@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Globalization;
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -31,31 +29,4 @@ public static class Serialization
     }
 
     public static Utf8JsonWriter WriteJson(Stream fstream, bool indented = true) => new(fstream, new JsonWriterOptions() { Indented = indented });
-
-    // TODO: remove all this and replace with system.text.json...
-    public static Newtonsoft.Json.JsonSerializer BuildSerializer()
-    {
-        var res = new Newtonsoft.Json.JsonSerializer();
-        res.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
-        return res;
-    }
-
-    public static void DeserializeFields(this Newtonsoft.Json.JsonSerializer ser, JObject from, object to)
-    {
-        foreach (var (f, data) in from)
-            ser.DeserializeField(f, data, to);
-    }
-
-    public static void DeserializeField(this Newtonsoft.Json.JsonSerializer ser, string name, JToken? data, object to)
-    {
-        var field = to.GetType().GetField(name);
-        if (field != null)
-        {
-            var value = data?.ToObject(field.FieldType, ser);
-            if (value != null)
-            {
-                field.SetValue(to, value);
-            }
-        }
-    }
 }

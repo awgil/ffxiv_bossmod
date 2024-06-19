@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Parent = typeof(AutorotationConfig))]
+[ConfigDisplay(Parent = typeof(ActionTweaksConfig))]
 class RPRConfig : ConfigNode
 {
     [PropertyDisplay("Execute optimal rotations on Slice (ST) or Spinning Scythe (AOE)")]

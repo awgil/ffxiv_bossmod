@@ -1,12 +1,13 @@
-﻿using Newtonsoft.Json.Linq;
-using System.IO;
+﻿using System.IO;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace BossMod;
 
 public class ConfigRoot
 {
-    private const int _version = 9;
+    private const int _version = 10;
 
     public Event Modified = new();
     private readonly Dictionary<Type, ConfigNode> _nodes = [];
@@ -36,22 +37,13 @@ public class ConfigRoot
     {
         try
         {
-            var contents = File.ReadAllText(file.FullName);
-            var json = JObject.Parse(contents);
-            var version = (int?)json["Version"] ?? 0;
-            if (json["Payload"] is JObject payload)
+            using var json = ReadConvertFile(file);
+            var ser = Serialization.BuildSerializationOptions();
+            foreach (var jconfig in json.RootElement.GetProperty("Payload").EnumerateObject())
             {
-                payload = ConvertConfig(payload, version);
-                var ser = Serialization.BuildSerializer();
-                foreach (var (t, j) in payload)
-                {
-                    var type = Type.GetType(t);
-                    var node = type != null ? _nodes.GetValueOrDefault(type) : null;
-                    if (node != null && j is JObject jObj)
-                    {
-                        node.Deserialize(jObj, ser);
-                    }
-                }
+                var type = Type.GetType(jconfig.Name);
+                var node = type != null ? _nodes.GetValueOrDefault(type) : null;
+                node?.Deserialize(jconfig.Value, ser);
             }
         }
         catch (Exception e)
@@ -64,22 +56,17 @@ public class ConfigRoot
     {
         try
         {
-            var ser = Serialization.BuildSerializer();
-            JObject payload = [];
-            foreach (var (t, n) in _nodes)
+            WriteFile(file, jwriter =>
             {
-                var jNode = n.Serialize(ser);
-                if (jNode.Count > 0)
+                jwriter.WriteStartObject();
+                var ser = Serialization.BuildSerializationOptions();
+                foreach (var (t, n) in _nodes)
                 {
-                    payload.Add(t.FullName!, jNode);
+                    jwriter.WritePropertyName(t.FullName!);
+                    n.Serialize(jwriter, ser);
                 }
-            }
-            JObject jContents = new()
-            {
-                { "Version", _version },
-                { "Payload", payload }
-            };
-            File.WriteAllText(file.FullName, jContents.ToString());
+                jwriter.WriteEndObject();
+            });
         }
         catch (Exception e)
         {
@@ -176,36 +163,60 @@ public class ConfigRoot
         : t.IsAssignableTo(typeof(Enum)) ? Enum.Parse(t, str)
         : null;
 
-    private static JObject ConvertConfig(JObject payload, int version)
+    private JsonDocument ReadConvertFile(FileInfo file)
+    {
+        var json = Serialization.ReadJson(file.FullName);
+        var version = json.RootElement.TryGetProperty("Version", out var jver) ? jver.GetInt32() : 0;
+        if (version > _version)
+            throw new ArgumentException($"Config file version {version} is newer than supported {_version}");
+        if (version == _version)
+            return json;
+
+        var converted = ConvertConfig(JsonObject.Create(json.RootElement.GetProperty("Payload"))!, version, file.Directory!);
+
+        var original = new FileInfo(file.FullName);
+        var backup = new FileInfo(file.FullName + $".v{version}");
+        if (!backup.Exists)
+            file.MoveTo(backup.FullName);
+        WriteFile(original, jwriter => converted.WriteTo(jwriter));
+        json.Dispose();
+
+        return Serialization.ReadJson(original.FullName);
+    }
+
+    private void WriteFile(FileInfo file, Action<Utf8JsonWriter> writePayload)
+    {
+        using var fstream = new FileStream(file.FullName, FileMode.Create, FileAccess.Write, FileShare.Read);
+        using var jwriter = Serialization.WriteJson(fstream);
+        jwriter.WriteStartObject();
+        jwriter.WriteNumber("Version", _version);
+        jwriter.WritePropertyName("Payload");
+        writePayload(jwriter);
+        jwriter.WriteEndObject();
+    }
+
+    private static JsonObject ConvertConfig(JsonObject payload, int version, DirectoryInfo dir)
     {
         // v1: moved BossModuleConfig children to special encounter config node; use type names as keys
         // v2: flat structure (config root contains all nodes)
         if (version < 2)
         {
-            JObject newPayload = [];
+            JsonObject newPayload = [];
             ConvertV1GatherChildren(newPayload, payload, version == 0);
             payload = newPayload;
         }
         // v3: modified namespaces for old modules
         if (version < 3)
         {
-            JObject newPayload = [];
-            foreach (var (k, v) in payload)
-            {
-                var newKey = k switch
-                {
-                    "BossMod.Endwalker.P1S.P1SConfig" => "BossMod.Endwalker.Savage.P1SErichthonios.P1SConfig",
-                    "BossMod.Endwalker.P4S2.P4S2Config" => "BossMod.Endwalker.Savage.P4S2Hesperos.P4S2Config",
-                    _ => k
-                };
-                newPayload[newKey] = v;
-            }
-            payload = newPayload;
+            if (TryRemoveNode(payload, "BossMod.Endwalker.P1S.P1SConfig", out var p1s))
+                payload.Add("BossMod.Endwalker.Savage.P1SErichthonios.P1SConfig", p1s);
+            if (TryRemoveNode(payload, "BossMod.Endwalker.P4S2.P4S2Config", out var p4s2))
+                payload.Add("BossMod.Endwalker.Savage.P4S2Hesperos.P4S2Config", p4s2);
         }
         // v4: cooldown plans moved to encounter configs
         if (version < 4)
         {
-            if (payload["BossMod.CooldownPlanManager"]?["Plans"] is JObject plans)
+            if (payload["BossMod.CooldownPlanManager"]?["Plans"] is JsonObject plans)
             {
                 foreach (var (k, planData) in plans)
                 {
@@ -215,7 +226,7 @@ public class ConfigRoot
                     if (config?.FullName == null)
                         continue;
 
-                    if (payload[config.FullName] is not JObject node)
+                    if (payload[config.FullName] is not JsonObject node)
                         payload[config.FullName] = node = [];
                     node["CooldownPlans"] = planData;
                 }
@@ -225,19 +236,16 @@ public class ConfigRoot
         // v5: bloodwhetting -> raw intuition in cd planner, to support low-level content
         if (version < 5)
         {
-            Dictionary<string, string> renames = new()
-            {
-                [ActionID.MakeSpell(WAR.AID.Bloodwhetting).Raw.ToString()] = ActionID.MakeSpell(WAR.AID.RawIntuition).Raw.ToString()
-            };
             foreach (var (k, config) in payload)
             {
-                if (config?["CooldownPlans"]?["WAR"]?["Available"] is JArray plans)
+                if (config?["CooldownPlans"]?["WAR"]?["Available"] is JsonArray plans)
                 {
                     foreach (var plan in plans)
                     {
-                        if (plan["PlanAbilities"] is JObject planAbilities)
+                        if (plan!["PlanAbilities"] is JsonObject planAbilities)
                         {
-                            RenameKeys(planAbilities, renames);
+                            if (TryRemoveNode(planAbilities, ActionID.MakeSpell(WAR.AID.Bloodwhetting).Raw.ToString(), out var bw))
+                                planAbilities.Add(ActionID.MakeSpell(WAR.AID.RawIntuition).Raw.ToString(), bw);
                         }
                     }
                 }
@@ -248,23 +256,23 @@ public class ConfigRoot
         {
             foreach (var (k, config) in payload)
             {
-                if (config?["CooldownPlans"] is not JObject plans)
+                if (config?["CooldownPlans"] is not JsonObject plans)
                     continue;
                 bool isTEA = k == typeof(Shadowbringers.Ultimate.TEA.TEAConfig).FullName;
                 foreach (var (cls, planList) in plans)
                 {
-                    if (planList?["Available"] is not JArray avail)
+                    if (planList?["Available"] is not JsonArray avail)
                         continue;
                     var c = Enum.Parse<Class>(cls);
                     foreach (var plan in avail)
                     {
-                        if (plan?["PlanAbilities"] is not JObject abilities)
+                        if (plan?["PlanAbilities"] is not JsonObject abilities)
                             continue;
 
-                        var actions = new JArray();
+                        var actions = new JsonArray();
                         foreach (var (aidRaw, aidData) in abilities)
                         {
-                            if (aidData is not JArray aidList)
+                            if (aidData is not JsonArray aidList)
                                 continue;
 
                             var aid = new ActionID(uint.Parse(aidRaw));
@@ -274,12 +282,12 @@ public class ConfigRoot
 
                             foreach (var abilUse in aidList)
                             {
-                                abilUse["ID"] = Utils.StringToIdentifier(aid.Name());
-                                abilUse["StateID"] = $"0x{abilUse["StateID"]?.Value<uint>():X8}";
+                                abilUse!["ID"] = Utils.StringToIdentifier(aid.Name());
+                                abilUse["StateID"] = $"0x{abilUse["StateID"]?.GetValue<uint>():X8}";
                                 actions.Add(abilUse);
                             }
                         }
-                        var jplan = (JObject)plan!;
+                        var jplan = (JsonObject)plan!;
                         jplan.Remove("PlanAbilities");
                         jplan["Actions"] = actions;
                     }
@@ -289,7 +297,7 @@ public class ConfigRoot
         // v7: action manager refactor
         if (version < 7)
         {
-            var amConfig = payload["BossMod.ActionManagerConfig"] = new JObject();
+            var amConfig = payload["BossMod.ActionManagerConfig"] = new JsonObject();
             var autorotConfig = payload["BossMod.AutorotationConfig"];
             amConfig["RemoveAnimationLockDelay"] = autorotConfig?["RemoveAnimationLockDelay"] ?? false;
             amConfig["PreventMovingWhileCasting"] = autorotConfig?["PreventMovingWhileCasting"] ?? false;
@@ -302,22 +310,31 @@ public class ConfigRoot
         {
             foreach (var (_, config) in payload)
             {
-                if (config is JObject jconfig)
+                if (config is JsonObject jconfig)
                 {
                     jconfig.Remove("Modified");
                 }
             }
         }
+        // v10: autorotation v2: moved configs around and importantly moved cdplans outside
+        if (version < 10)
+        {
+            if (TryRemoveNode(payload, "BossMod.ActionManagerConfig", out var tweaks))
+                payload.Add("BossMod.ActionTweaksConfig", tweaks);
+            if (TryRemoveNode(payload, "BossMod.AutorotationConfig", out var autorot))
+                payload.Add("BossMod.Autorotation.AutorotationConfig", autorot);
+            ConvertV9Plans(payload, dir);
+        }
         return payload;
     }
 
-    private static void ConvertV1GatherChildren(JObject result, JObject json, bool isV0)
+    private static void ConvertV1GatherChildren(JsonObject result, JsonObject json, bool isV0)
     {
-        if (json["__children__"] is not JObject children)
+        if (json["__children__"] is not JsonObject children)
             return;
         foreach ((var childTypeName, var jChild) in children)
         {
-            if (jChild is not JObject jChildObj)
+            if (jChild is not JsonObject jChildObj)
                 continue;
 
             string realTypeName = isV0 ? (jChildObj["__type__"]?.ToString() ?? childTypeName) : childTypeName;
@@ -327,11 +344,165 @@ public class ConfigRoot
         json.Remove("__children__");
     }
 
-    private static void RenameKeys(JObject map, Dictionary<string, string> rename)
+    private static void ConvertV9Plans(JsonObject payload, DirectoryInfo dir)
     {
-        JObject upd = [];
-        foreach (var (k, v) in map)
-            upd[rename.GetValueOrDefault(k, k)] = v;
-        map.Replace(upd);
+        var dbRoot = new DirectoryInfo(dir.FullName + "/BossMod/autorot/plans");
+        if (!dbRoot.Exists)
+            dbRoot.Create();
+        using var manifestStream = new FileStream(dbRoot + ".manifest.json", FileMode.Create, FileAccess.Write, FileShare.Read);
+        using var manifest = Serialization.WriteJson(manifestStream);
+        manifest.WriteStartObject();
+        manifest.WriteNumber("version", 0);
+        manifest.WriteStartObject("payload");
+        foreach (var (ct, cfg) in payload.AsObject())
+        {
+            if (!TryRemoveNode(cfg!.AsObject(), "CooldownPlans", out var cdplans))
+                continue;
+            var t = ct[..^6];
+            var type = Type.GetType(t);
+            manifest.WriteStartObject(t);
+            foreach (var (cls, plans) in cdplans!.AsObject())
+            {
+                manifest.WriteStartObject(cls);
+                if (plans!.AsObject().TryGetPropertyValue("SelectedIndex", out var jsel))
+                    manifest.WriteNumber("SelectedIndex", jsel!.GetValue<int>());
+                manifest.WriteStartArray("Plans");
+                foreach (var plan in plans["Available"]!.AsArray())
+                {
+                    var guid = Guid.NewGuid().ToString();
+                    manifest.WriteStringValue(guid);
+
+                    var oplan = plan!.AsObject();
+                    var utilityTracks = ConvertV9ActionsToUtilityTracks(oplan);
+                    var rotationTracks = ConvertV9StrategiesToRotationTracks(oplan);
+                    if (rotationTracks.Remove("Special", out var lb))
+                        utilityTracks["LB"] = lb;
+
+                    using var planStream = new FileStream($"{dbRoot}/{guid}.json", FileMode.Create, FileAccess.Write, FileShare.Read);
+                    using var jplan = Serialization.WriteJson(planStream);
+                    jplan.WriteStartObject();
+                    jplan.WriteNumber("version", 0);
+                    jplan.WriteStartObject("payload");
+                    jplan.WriteString("Name", plan!["Name"]!.GetValue<string>());
+                    jplan.WriteString("Encounter", t);
+                    jplan.WriteString("Class", cls);
+                    jplan.WriteNumber("Level", type != null ? ModuleRegistry.FindByType(type)?.PlanLevel ?? 0 : 0);
+                    jplan.WriteStartArray("PhaseDurations");
+                    foreach (var d in plan["Timings"]!["PhaseDurations"]!.AsArray())
+                        jplan.WriteNumberValue(d!.GetValue<float>());
+                    jplan.WriteEndArray();
+                    jplan.WriteStartObject("Modules");
+                    ConvertV9WriteTrack(jplan, $"BossMod.Autorotation.Class{cls}Utility", utilityTracks);
+                    ConvertV9WriteTrack(jplan, $"BossMod.Autorotation.Legacy.Legacy{cls}", rotationTracks);
+                    jplan.WriteEndObject();
+                    if (oplan.TryGetPropertyValue("Targets", out var jtargets))
+                    {
+                        jplan.WriteStartArray("Targeting");
+                        foreach (var target in jtargets!.AsArray())
+                        {
+                            var jt = target!.AsObject();
+                            if (TryRemoveNode(jt, "OID", out var oid))
+                            {
+                                jt["Target"] = "EnemyByOID";
+                                jt["TargetParam"] = int.Parse(oid!.GetValue<string>()[2..], System.Globalization.NumberStyles.HexNumber);
+                            }
+                            jt.WriteTo(jplan);
+                        }
+                        jplan.WriteEndArray();
+                    }
+                    jplan.WriteEndObject();
+                    jplan.WriteEndObject();
+                }
+                manifest.WriteEndArray();
+                manifest.WriteEndObject();
+            }
+            manifest.WriteEndObject();
+        }
+        manifest.WriteEndObject();
+        manifest.WriteEndObject();
     }
+
+    private static Dictionary<string, List<JsonObject>> ConvertV9ActionsToUtilityTracks(JsonObject plan)
+    {
+        Dictionary<string, List<JsonObject>> tracks = [];
+        if (!plan.TryGetPropertyValue("Actions", out var actions))
+            return tracks;
+        foreach (var action in actions!.AsArray())
+        {
+            var aobj = action!.AsObject();
+            aobj["Option"] = "Use";
+            if (TryRemoveNode(aobj, "LowPriority", out var jprio))
+                aobj.Add("PriorityOverride", jprio!.GetValue<bool>() ? ActionQueue.Priority.Low : ActionQueue.Priority.High);
+            if (TryRemoveNode(aobj, "Target", out var jtarget))
+            {
+                switch (jtarget!["Type"]!.GetValue<string>()!)
+                {
+                    case "Self":
+                        aobj["Target"] = "Self";
+                        break;
+                    case "EnemyByOID":
+                        aobj["Target"] = "EnemyByOID";
+                        aobj["TargetParam"] = jtarget["OID"]!.GetValue<int>();
+                        break;
+                    case "LowestHPPartyMember":
+                        aobj["Target"] = "PartyWithLowestHP";
+                        aobj["TargetParam"] = jtarget["AllowSelf"]!.GetValue<bool>() ? 1 : 0;
+                        break;
+                }
+            }
+            if (TryRemoveNode(aobj, "ID", out var jid))
+            {
+                var id = jid!.GetValue<string>();
+                switch (id)
+                {
+                    case "Bloodwhetting":
+                        id = "BW";
+                        aobj["Option"] = "BW";
+                        break;
+                    case "RawIntuition":
+                        id = "BW";
+                        aobj["Option"] = "RI";
+                        break;
+                    case "NascentFlash":
+                        id = "BW";
+                        aobj["Option"] = "NF";
+                        break;
+                }
+                tracks.GetOrAdd(id).Add(aobj);
+            }
+        }
+        return tracks;
+    }
+
+    private static Dictionary<string, List<JsonObject>> ConvertV9StrategiesToRotationTracks(JsonObject plan)
+    {
+        Dictionary<string, List<JsonObject>> tracks = [];
+        if (!plan.TryGetPropertyValue("Strategies", out var strategies))
+            return tracks;
+        foreach (var (track, values) in strategies!.AsObject())
+        {
+            var t = tracks[track] = [.. values!.AsArray().Select(n => n!.AsObject())];
+            foreach (var v in t)
+                if (TryRemoveNode(v, "Value", out var jv))
+                    v["Option"] = jv;
+        }
+        return tracks;
+    }
+
+    private static void ConvertV9WriteTrack(Utf8JsonWriter writer, string module, Dictionary<string, List<JsonObject>> tracks)
+    {
+        writer.WriteStartObject(module);
+        foreach (var (tn, td) in tracks)
+        {
+            writer.WriteStartArray(tn);
+            foreach (var d in td)
+            {
+                d.WriteTo(writer);
+            }
+            writer.WriteEndArray();
+        }
+        writer.WriteEndObject();
+    }
+
+    private static bool TryRemoveNode(JsonObject parent, string key, out JsonNode? node) => parent.TryGetPropertyValue(key, out node) && parent.Remove(key);
 }

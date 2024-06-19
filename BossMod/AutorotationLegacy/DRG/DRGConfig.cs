@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Parent = typeof(AutorotationConfig))]
+[ConfigDisplay(Parent = typeof(ActionTweaksConfig))]
 class DRGConfig : ConfigNode
 {
     [PropertyDisplay("Execute optimal rotations on True Thrust (ST) or Doom Spike (AOE)")]

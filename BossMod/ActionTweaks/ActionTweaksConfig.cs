@@ -1,8 +1,7 @@
 ﻿namespace BossMod;
 
-// TODO: rename to ActionTweaksConfig
 [ConfigDisplay(Name = "Action tweaks settings", Order = 4)]
-public sealed class ActionManagerConfig : ConfigNode
+public sealed class ActionTweaksConfig : ConfigNode
 {
     // TODO: consider exposing max-delay to config; 0 would mean 'remove all delay', max-value would mean 'disable'
     [PropertyDisplay("Remove extra lag-induced animation lock delay from instant casts (a-la xivalex)")]

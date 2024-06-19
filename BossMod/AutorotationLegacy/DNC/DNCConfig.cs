@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Parent = typeof(AutorotationConfig))]
+[ConfigDisplay(Parent = typeof(ActionTweaksConfig))]
 class DNCConfig : ConfigNode
 {
     [PropertyDisplay("Execute optimal rotations on Cascade (ST) or Windmill (AOE)")]

@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Parent = typeof(AutorotationConfig))]
+[ConfigDisplay(Parent = typeof(ActionTweaksConfig))]
 class WARConfig : ConfigNode
 {
     [PropertyDisplay("Prefer self-targeted holmgang; requires smart targeting to be enabled (and allows overriding target by mouseover)")]
@@ -8,7 +8,4 @@ class WARConfig : ConfigNode
 
     [PropertyDisplay("Forbid tomahawk too early in prepull")]
     public bool ForbidEarlyTomahawk = true;
-
-    [PropertyDisplay("Extra time buffer for Onslaught (prevents triple weaves, prevents slight GCD delay)")]
-    public bool OnslaughtHeadroom = true;
 }

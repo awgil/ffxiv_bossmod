@@ -10,7 +10,7 @@
 // * for casted abilities, rotation isn't restored until slidecast window starts, as otherwise cast is interrupted
 public sealed class RestoreRotationTweak
 {
-    private readonly ActionManagerConfig _config = Service.Config.Get<ActionManagerConfig>();
+    private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
     private Angle _modified; // rotation immediately after action execution; as long as it's not unchanged, we'll try restoring (otherwise we assume player changed facing manually and abort)
     private Angle _original; // rotation immediately before action execution; this is what we're trying to restore
     private int _numRetries; // for some reason, sometimes after successfully restoring rotation it is snapped back on next frame; in this case we retry again - TODO investigate why this happens

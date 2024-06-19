@@ -18,7 +18,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         public readonly bool Expired(DateTime now) => ExpireAt < now || (Target?.IsDestroyed ?? false);
     }
 
-    private readonly ActionManagerConfig _config = Service.Config.Get<ActionManagerConfig>();
+    private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
     private readonly List<Entry> _queue = [];
     private bool _emergencyMode;
 

@@ -208,7 +208,6 @@ public sealed class PlanDatabase
             jwriter.WritePropertyName("payload");
             JsonSerializer.Serialize(jwriter, plan, Serialization.BuildSerializationOptions());
             jwriter.WriteEndObject();
-            jwriter.WriteEndObject();
             Service.Log($"Plan saved successfully to '{filename}'");
         }
         catch (Exception ex)

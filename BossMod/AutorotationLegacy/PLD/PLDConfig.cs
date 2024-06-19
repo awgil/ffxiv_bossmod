@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Parent = typeof(AutorotationConfig))]
+[ConfigDisplay(Parent = typeof(ActionTweaksConfig))]
 class PLDConfig : ConfigNode
 {
     [PropertyDisplay("Execute optimal single-target rotation on Fast Blade and AOE rotation on Total Eclipse")]

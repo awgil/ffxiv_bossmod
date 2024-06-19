@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Parent = typeof(AutorotationConfig))]
+[ConfigDisplay(Parent = typeof(ActionTweaksConfig))]
 class WHMConfig : ConfigNode
 {
     [PropertyDisplay("Execute optimal rotations on Glare (ST damage), Holy (AOE damage), Cure1 (ST heal) and Medica1 (AOE heal)")]
