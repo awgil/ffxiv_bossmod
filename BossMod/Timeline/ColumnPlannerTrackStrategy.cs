@@ -51,7 +51,7 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
     private void UpdateProperties(OverrideElement e)
     {
         var opt = config.Options[e.Value.Option];
-        e.Window.Color = opt.Color;
+        e.Window.Color = e.Value.Option > 0 && e.Value.Option <= Timeline.Colors.PlannerWindow.Length ? Timeline.Colors.PlannerWindow[e.Value.Option - 1] : Timeline.Colors.PlannerFallback;
         e.CooldownLength = opt.Cooldown;
         e.EffectLength = opt.Effect;
     }

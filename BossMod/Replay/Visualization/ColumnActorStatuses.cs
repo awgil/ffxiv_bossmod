@@ -1,5 +1,4 @@
 ﻿using ImGuiNET;
-using static BossMod.Replay;
 
 namespace BossMod.ReplayVisualization;
 
@@ -44,7 +43,7 @@ public class ColumnActorStatuses : Timeline.ColumnGroup
         _sep.Width = Columns.Any(c => c != _sep && c.Width > 0) ? 1 : 0;
     }
 
-    private ColumnGenericHistory BuildColumn(uint statusID, Participant? source)
+    private ColumnGenericHistory BuildColumn(uint statusID, Replay.Participant? source)
     {
         var res = AddBefore(new ColumnGenericHistory(Timeline, _tree, _phaseBranches), _sep);
         DateTime prevEnd = default;

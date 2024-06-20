@@ -6,7 +6,7 @@ namespace BossMod;
 // entry is attached to a node (this is important if timings are adjusted for any reason)
 public class ColumnGenericHistory : Timeline.Column
 {
-    public class Entry(Entry.Type type, StateMachineTree.Node attachNode, float delay, float duration, string name, uint color, float widthRel = 1.0f)
+    public class Entry(Entry.Type type, StateMachineTree.Node attachNode, float delay, float duration, string name, Color color, float widthRel = 1.0f)
     {
         public enum Type { Dot, Line, Range }
 
@@ -15,7 +15,7 @@ public class ColumnGenericHistory : Timeline.Column
         public float Delay = delay; // from node's predecessor time
         public float Duration = duration; // used for hover tests to display tooltip
         public string Name = name;
-        public uint Color = color;
+        public Color Color = color;
         public float WidthRel = widthRel;
         public List<string> TooltipExtra = [];
 
@@ -31,8 +31,6 @@ public class ColumnGenericHistory : Timeline.Column
 
     private readonly float _trackHalfWidth = 5;
     private readonly float _eventRadius = 4;
-
-    private readonly uint _colBackground = 0x40404040;
 
     public ColumnGenericHistory(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name = "")
         : base(timeline)
@@ -61,26 +59,26 @@ public class ColumnGenericHistory : Timeline.Column
 
         var trackMin = Timeline.ColumnCoordsToScreenCoords(Width / 2 - _trackHalfWidth, Timeline.MinVisibleTime);
         var trackMax = Timeline.ColumnCoordsToScreenCoords(Width / 2 + _trackHalfWidth, Timeline.MaxVisibleTime);
-        drawlist.AddRectFilled(trackMin, trackMax, _colBackground);
+        drawlist.AddRectFilled(trackMin, trackMax, Timeline.Colors.PlannerBackground.ABGR);
 
         foreach (var e in Entries.Where(e => e.EntryType == Entry.Type.Range && IsEntryVisible(e)))
         {
             var eStart = e.TimeSinceGlobalStart(Tree);
             var yStart = Timeline.TimeToScreenCoord(eStart);
             var yEnd = Timeline.TimeToScreenCoord(eStart + e.Duration);
-            drawlist.AddRectFilled(new(trackMin.X, yStart), new(Utils.Lerp(trackMin.X, trackMax.X, e.WidthRel), yEnd), e.Color);
+            drawlist.AddRectFilled(new(trackMin.X, yStart), new(Utils.Lerp(trackMin.X, trackMax.X, e.WidthRel), yEnd), e.Color.ABGR);
         }
 
         foreach (var e in Entries.Where(e => e.EntryType == Entry.Type.Line && IsEntryVisible(e)))
         {
             var y = Timeline.TimeToScreenCoord(e.TimeSinceGlobalStart(Tree));
-            drawlist.AddLine(new(trackMin.X, y), new(Utils.Lerp(trackMin.X, trackMax.X, e.WidthRel), y), e.Color);
+            drawlist.AddLine(new(trackMin.X, y), new(Utils.Lerp(trackMin.X, trackMax.X, e.WidthRel), y), e.Color.ABGR);
         }
 
         foreach (var e in Entries.Where(e => e.EntryType == Entry.Type.Dot && IsEntryVisible(e)))
         {
             var y = Timeline.TimeToScreenCoord(e.TimeSinceGlobalStart(Tree));
-            drawlist.AddCircleFilled(new(Utils.Lerp(trackMin.X, trackMax.X, e.WidthRel * 0.5f), y), _eventRadius, e.Color);
+            drawlist.AddCircleFilled(new(Utils.Lerp(trackMin.X, trackMax.X, e.WidthRel * 0.5f), y), _eventRadius, e.Color.ABGR);
         }
     }
 

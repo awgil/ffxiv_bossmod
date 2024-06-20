@@ -73,7 +73,7 @@ public abstract class ConfigNode
     // serialize node to json; default implementation should work fine for most cases
     public virtual void Serialize(Utf8JsonWriter jwriter, JsonSerializerOptions ser)
     {
-        JsonSerializer.Serialize(jwriter, this, ser);
+        JsonSerializer.Serialize(jwriter, this, GetType(), ser);
     }
 }
 

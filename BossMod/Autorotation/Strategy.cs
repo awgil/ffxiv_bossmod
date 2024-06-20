@@ -25,12 +25,23 @@ public record class StrategyConfig(
 
     public string UIName => DisplayName.Length > 0 ? DisplayName : InternalName;
 
-    public StrategyOption AddOption<Index>(Index expectedIndex, StrategyOption option) where Index : Enum
+    public StrategyOption AddOption<Index>(Index expectedIndex, string internalName, string displayName = "", float cooldown = 0, float effect = 0, ActionTargets supportedTargets = ActionTargets.None,
+        int minLevel = 1, int maxLevel = int.MaxValue, float defaultPriority = ActionQueue.Priority.Medium) where Index : Enum
     {
+        var idx = (int)(object)expectedIndex;
         if (typeof(Index) != OptionEnum)
-            throw new ArgumentException($"Unexpected index type for {option.InternalName}: expected {OptionEnum.FullName}, got {typeof(Index).FullName}");
-        if (Options.Count != (int)(object)expectedIndex)
-            throw new ArgumentException($"Unexpected index value for {option.InternalName}: expected {expectedIndex} ({(int)(object)expectedIndex}), got {Options.Count}");
+            throw new ArgumentException($"Unexpected index type for {internalName}: expected {OptionEnum.FullName}, got {typeof(Index).FullName}");
+        if (Options.Count != idx)
+            throw new ArgumentException($"Unexpected index value for {internalName}: expected {expectedIndex} ({idx}), got {Options.Count}");
+        var option = new StrategyOption(internalName, displayName)
+        {
+            Cooldown = cooldown,
+            Effect = effect,
+            SupportedTargets = supportedTargets,
+            MinLevel = minLevel,
+            MaxLevel = maxLevel,
+            DefaultPriority = defaultPriority,
+        };
         Options.Add(option);
         return option;
     }
@@ -45,17 +56,17 @@ public record class StrategyConfig(
 
 // each strategy config has a unique set of allowed options; each option has a set of properties describing how it is rendered in planner and what further configuration parameters it supports
 // note: first option (with index 0) should correspond to the default automatic behaviour; second option (with index 1) should correspond to most often used override (it's selected by default when adding override)
-public record class StrategyOption(
-    uint Color, // color used in the UI to present this option; doesn't have to be unique, but it helps with ux...
-    ActionTargets SupportedTargets, // valid targets for relevant action; used to filter target options for values
-    string InternalName, // unique name of the option; it is used for serialization, so it can't really be changed without losing user data (or writing config converter)
-    string DisplayName = "", // if non-empty, this name is used for all UI instead of internal name
-    float Cooldown = 0, // if > 0, this time after window end is shaded to notify user about associated action cooldown
-    float Effect = 0, // if > 0, this time after window start is shaded to notify user about associated effect duration
-    int MinLevel = 1, // min character level for this option to be available
-    int MaxLevel = int.MaxValue, // max character level for this option to be available
-    float DefaultPriority = ActionQueue.Priority.Low) // default priority that is used if no override is defined
+public record class StrategyOption(string InternalName, string DisplayName)
 {
+    public string InternalName = InternalName; // unique name of the option; it is used for serialization, so it can't really be changed without losing user data (or writing config converter)
+    public string DisplayName = DisplayName; // if non-empty, this name is used for all UI instead of internal name
+    public float Cooldown; // if > 0, this time after window end is shaded to notify user about associated action cooldown
+    public float Effect; // if > 0, this time after window start is shaded to notify user about associated effect duration
+    public ActionTargets SupportedTargets; // valid targets for relevant action; used to filter target options for values
+    public int MinLevel = 1; // min character level for this option to be available
+    public int MaxLevel = int.MaxValue; // max character level for this option to be available
+    public float DefaultPriority = ActionQueue.Priority.Medium; // default priority that is used if no override is defined
+
     public string UIName => DisplayName.Length > 0 ? DisplayName : InternalName;
 }
 

@@ -89,6 +89,7 @@ public class Timeline
         }
     }
 
+    public readonly ColorConfig Colors = Service.Config.Get<ColorConfig>();
     public float MinTime;
     public float MaxTime;
     public float? CurrentTime;

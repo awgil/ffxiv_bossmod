@@ -18,64 +18,64 @@ public sealed class LegacyWAR : LegacyModule
         var res = new RotationModuleDefinition("Legacy WAR", "Old pre-refactoring module", "veyn", RotationModuleQuality.WIP, BitMask.Build((int)Class.WAR), 90);
 
         var aoe = res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 90);
-        aoe.AddOption(AOEStrategy.SingleTarget, new(0x80ffffff, ActionTargets.None, "ST", "Use single-target rotation"));
-        aoe.AddOption(AOEStrategy.ForceAOE, new(0x8000ffff, ActionTargets.None, "AOE", "Use aoe rotation"));
-        aoe.AddOption(AOEStrategy.Auto, new(0x8000ff00, ActionTargets.None, "Auto", "Use aoe rotation if 3+ targets would be hit, otherwise use single-target rotation; break combo if necessary"));
-        aoe.AddOption(AOEStrategy.AutoFinishCombo, new(0x80ff00ff, ActionTargets.None, "AutoFinishCombo", "Use aoe rotation if 3+ targets would be hit, otherwise use single-target rotation; finish combo route before switching"));
+        aoe.AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target rotation");
+        aoe.AddOption(AOEStrategy.ForceAOE, "AOE", "Use aoe rotation");
+        aoe.AddOption(AOEStrategy.Auto, "Auto", "Use aoe rotation if 3+ targets would be hit, otherwise use single-target rotation; break combo if necessary");
+        aoe.AddOption(AOEStrategy.AutoFinishCombo, "AutoFinishCombo", "Use aoe rotation if 3+ targets would be hit, otherwise use single-target rotation; finish combo route before switching");
 
         var gcd = res.Define(Track.GCD).As<GCDStrategy>("Gauge", "GCD", uiPriority: 80);
-        gcd.AddOption(GCDStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic")); // spend gauge either under raid buffs or if next downtime is soon (so that next raid buff window won't cover at least 4 GCDs); TODO reconsider...
-        gcd.AddOption(GCDStrategy.Spend, new(0x8000ff00, ActionTargets.None, "Spend", "Spend gauge freely, ensure ST is properly maintained"));
-        gcd.AddOption(GCDStrategy.ConserveIfNoBuffs, new(0x8000ffff, ActionTargets.None, "ConserveIfNoBuffs", "Conserve unless under raid buffs"));
-        gcd.AddOption(GCDStrategy.Conserve, new(0x800000ff, ActionTargets.None, "Conserve", "Conserve as much as possible"));
-        gcd.AddOption(GCDStrategy.ForceExtendST, new(0x80ff00ff, ActionTargets.None, "ForceExtendST", "Force extend ST buff, potentially overcapping gauge and/or ST"));
-        gcd.AddOption(GCDStrategy.ForceSPCombo, new(0x80ff0080, ActionTargets.None, "ForceSPCombo", "Force SP combo, potentially overcapping gauge"));
-        gcd.AddOption(GCDStrategy.TomahawkIfNotInMelee, new(0x80c08000, ActionTargets.None, "TomahawkIfNotInMelee", "Use tomahawk if outside melee"));
-        gcd.AddOption(GCDStrategy.ComboFitBeforeDowntime, new(0x80c0c000, ActionTargets.None, "ComboFitBeforeDowntime", "Use combo, unless it can't be finished before downtime and unless gauge and/or ST would overcap"));
-        gcd.AddOption(GCDStrategy.PenultimateComboThenSpend, new(0x80400080, ActionTargets.None, "PenultimateComboThenSpend", "Use combo until second-last step, then spend gauge"));
-        gcd.AddOption(GCDStrategy.ForceSpend, new(0x8000ffc0, ActionTargets.None, "ForceSpend", "Force gauge spender if possible, even if ST is not up/running out soon"));
+        gcd.AddOption(GCDStrategy.Automatic, "Automatic"); // spend gauge either under raid buffs or if next downtime is soon (so that next raid buff window won't cover at least 4 GCDs); TODO reconsider...
+        gcd.AddOption(GCDStrategy.Spend, "Spend", "Spend gauge freely, ensure ST is properly maintained");
+        gcd.AddOption(GCDStrategy.ConserveIfNoBuffs, "ConserveIfNoBuffs", "Conserve unless under raid buffs");
+        gcd.AddOption(GCDStrategy.Conserve, "Conserve", "Conserve as much as possible");
+        gcd.AddOption(GCDStrategy.ForceExtendST, "ForceExtendST", "Force extend ST buff, potentially overcapping gauge and/or ST");
+        gcd.AddOption(GCDStrategy.ForceSPCombo, "ForceSPCombo", "Force SP combo, potentially overcapping gauge");
+        gcd.AddOption(GCDStrategy.TomahawkIfNotInMelee, "TomahawkIfNotInMelee", "Use tomahawk if outside melee");
+        gcd.AddOption(GCDStrategy.ComboFitBeforeDowntime, "ComboFitBeforeDowntime", "Use combo, unless it can't be finished before downtime and unless gauge and/or ST would overcap");
+        gcd.AddOption(GCDStrategy.PenultimateComboThenSpend, "PenultimateComboThenSpend", "Use combo until second-last step, then spend gauge");
+        gcd.AddOption(GCDStrategy.ForceSpend, "ForceSpend", "Force gauge spender if possible, even if ST is not up/running out soon");
 
         var inf = res.Define(Track.Infuriate).As<InfuriateStrategy>("Infuriate", uiPriority: 70);
-        inf.AddOption(InfuriateStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic", "Try to delay uses until raidbuffs, avoiding overcap"));
-        inf.AddOption(InfuriateStrategy.Delay, new(0x800000ff, ActionTargets.None, "Delay", "Delay, even if risking overcap"));
-        inf.AddOption(InfuriateStrategy.ForceIfNoNC, new(0x8000ff00, ActionTargets.None, "ForceIfNoNC", "Force unless NC active"));
-        inf.AddOption(InfuriateStrategy.AutoUnlessIR, new(0x8000ffff, ActionTargets.None, "AutoUnlessIR", "Use normally, but not during IR"));
-        inf.AddOption(InfuriateStrategy.ForceIfChargesCapping, new(0x8000ff80, ActionTargets.None, "ForceIfChargesCapping", "Force use if charges are about to overcap (unless NC is already active), even if it would overcap gauge"));
+        inf.AddOption(InfuriateStrategy.Automatic, "Automatic", "Try to delay uses until raidbuffs, avoiding overcap");
+        inf.AddOption(InfuriateStrategy.Delay, "Delay", "Delay, even if risking overcap");
+        inf.AddOption(InfuriateStrategy.ForceIfNoNC, "ForceIfNoNC", "Force unless NC active");
+        inf.AddOption(InfuriateStrategy.AutoUnlessIR, "AutoUnlessIR", "Use normally, but not during IR");
+        inf.AddOption(InfuriateStrategy.ForceIfChargesCapping, "ForceIfChargesCapping", "Force use if charges are about to overcap (unless NC is already active), even if it would overcap gauge");
         inf.AddAssociatedAction(WAR.AID.Infuriate);
 
         var pot = res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 60);
-        pot.AddOption(PotionStrategy.Manual, new(0x80ffffff, ActionTargets.None, "Manual", "Do not use automatically"));
-        pot.AddOption(PotionStrategy.Immediate, new(0x8000ff00, ActionTargets.None, "Immediate", "Use ASAP, but delay slightly during opener", 270, 30));
-        pot.AddOption(PotionStrategy.DelayUntilRaidBuffs, new(0x8000ffff, ActionTargets.None, "DelayUntilRaidBuffs", "Delay until raidbuffs", 270, 30));
-        pot.AddOption(PotionStrategy.Force, new(0x800000ff, ActionTargets.None, "Force", "Use ASAP, even if without ST", 270, 30));
+        pot.AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically");
+        pot.AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, but delay slightly during opener", 270, 30);
+        pot.AddOption(PotionStrategy.DelayUntilRaidBuffs, "DelayUntilRaidBuffs", "Delay until raidbuffs", 270, 30);
+        pot.AddOption(PotionStrategy.Force, "Force", "Use ASAP, even if without ST", 270, 30);
         pot.AssociatedActions.Add(ActionDefinitions.IDPotionStr);
 
         var ir = res.Define(Track.InnerRelease).As<OffensiveStrategy>("IR", uiPriority: 50);
-        ir.AddOption(OffensiveStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic", "Use normally"));
-        ir.AddOption(OffensiveStrategy.Delay, new(0x800000ff, ActionTargets.None, "Delay", "Delay"));
-        ir.AddOption(OffensiveStrategy.Force, new(0x8000ff00, ActionTargets.None, "Force", "Force use ASAP (even during downtime or without ST)"));
+        ir.AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally");
+        ir.AddOption(OffensiveStrategy.Delay, "Delay", "Delay");
+        ir.AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP (even during downtime or without ST)");
         ir.AddAssociatedActions(WAR.AID.Berserk, WAR.AID.InnerRelease);
 
         var uph = res.Define(Track.Upheaval).As<OffensiveStrategy>("Upheaval", uiPriority: 40);
-        uph.AddOption(OffensiveStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic", "Use normally"));
-        uph.AddOption(OffensiveStrategy.Delay, new(0x800000ff, ActionTargets.None, "Delay", "Delay"));
-        uph.AddOption(OffensiveStrategy.Force, new(0x8000ff00, ActionTargets.None, "Force", "Force use ASAP (even without ST)"));
+        uph.AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally");
+        uph.AddOption(OffensiveStrategy.Delay, "Delay", "Delay");
+        uph.AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP (even without ST)");
         uph.AddAssociatedActions(WAR.AID.Upheaval, WAR.AID.Orogeny);
 
         var pr = res.Define(Track.PrimalRend).As<OffensiveStrategy>("PR", uiPriority: 30);
-        pr.AddOption(OffensiveStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic", "Use normally"));
-        pr.AddOption(OffensiveStrategy.Delay, new(0x800000ff, ActionTargets.None, "Delay", "Delay"));
-        pr.AddOption(OffensiveStrategy.Force, new(0x8000ff00, ActionTargets.None, "Force", "Force use ASAP (do not delay to raidbuffs)"));
+        pr.AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally");
+        pr.AddOption(OffensiveStrategy.Delay, "Delay", "Delay");
+        pr.AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP (do not delay to raidbuffs)");
         pr.AddAssociatedAction(WAR.AID.PrimalRend);
 
         var onsl = res.Define(Track.Onslaught).As<OnslaughtStrategy>("Onslaught", uiPriority: 20);
-        onsl.AddOption(OnslaughtStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic", "Always keep one charge reserved, use other charges under raidbuffs or to prevent overcapping"));
-        onsl.AddOption(OnslaughtStrategy.Forbid, new(0x800000ff, ActionTargets.None, "Forbid", "Forbid automatic use"));
-        onsl.AddOption(OnslaughtStrategy.NoReserve, new(0x8000ffff, ActionTargets.None, "NoReserve", "Do not reserve charges: use all charges if under raidbuffs, otherwise use as needed to prevent overcapping"));
-        onsl.AddOption(OnslaughtStrategy.Force, new(0x8000ff00, ActionTargets.None, "Force", "Use all charges ASAP"));
-        onsl.AddOption(OnslaughtStrategy.ForceReserve, new(0x80ff0000, ActionTargets.None, "ForceReserve", "Use all charges except one ASAP"));
-        onsl.AddOption(OnslaughtStrategy.ReserveTwo, new(0x80ffff00, ActionTargets.None, "ReserveTwo", "Reserve 2 charges, trying to prevent overcap"));
-        onsl.AddOption(OnslaughtStrategy.UseOutsideMelee, new(0x80ff00ff, ActionTargets.None, "UseOutsideMelee", "Use as gapcloser if outside melee range"));
+        onsl.AddOption(OnslaughtStrategy.Automatic, "Automatic", "Always keep one charge reserved, use other charges under raidbuffs or to prevent overcapping");
+        onsl.AddOption(OnslaughtStrategy.Forbid, "Forbid", "Forbid automatic use");
+        onsl.AddOption(OnslaughtStrategy.NoReserve, "NoReserve", "Do not reserve charges: use all charges if under raidbuffs, otherwise use as needed to prevent overcapping");
+        onsl.AddOption(OnslaughtStrategy.Force, "Force", "Use all charges ASAP");
+        onsl.AddOption(OnslaughtStrategy.ForceReserve, "ForceReserve", "Use all charges except one ASAP");
+        onsl.AddOption(OnslaughtStrategy.ReserveTwo, "ReserveTwo", "Reserve 2 charges, trying to prevent overcap");
+        onsl.AddOption(OnslaughtStrategy.UseOutsideMelee, "UseOutsideMelee", "Use as gapcloser if outside melee range");
         onsl.AddAssociatedAction(WAR.AID.Onslaught);
 
         // TODO: consider these:

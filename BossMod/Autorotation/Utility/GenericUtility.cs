@@ -14,8 +14,8 @@ public abstract class GenericUtility(RotationModuleManager manager, Actor player
         var action = ActionID.MakeSpell(aid);
         var adata = adefs[action]!;
         var cfg = def.Define(expectedIndex).As<SimpleOption>(internalName, displayName, uiPriority);
-        cfg.AddOption(SimpleOption.None, new(0x80ffffff, ActionTargets.None, "None", "Do not use automatically"));
-        cfg.AddOption(SimpleOption.Use, new(0x8000ffff, adata.AllowedTargets, "Use", $"Use {action.Name()}", adata.Cooldown, effect, adefs.ActionMinLevel(action)));
+        cfg.AddOption(SimpleOption.None, "None", "Do not use automatically");
+        cfg.AddOption(SimpleOption.Use, "Use", $"Use {action.Name()}", adata.Cooldown, effect, adata.AllowedTargets, adefs.ActionMinLevel(action));
         cfg.AddAssociatedAction(aid);
     }
 
@@ -23,13 +23,13 @@ public abstract class GenericUtility(RotationModuleManager manager, Actor player
     {
         // note: it assumes that effect durations are either 0's or correspond to tank LB (so lb2 > lb1 > lb3)
         var lb = def.Define(expectedIndex).As<LBOption>("LB");
-        lb.AddOption(LBOption.None, new(0x80ffffff, ActionTargets.None, "None", "Do not use automatically"));
-        lb.AddOption(LBOption.LB3, new(0x8000ff00, allowedTargets, "LB3", "Use LB3 if available", Effect: effectLB3));
-        lb.AddOption(LBOption.LB2, new(0x8000ff40, allowedTargets, "LB2", "Use LB2/3 if available", Effect: effectLB3));
-        lb.AddOption(LBOption.LB1, new(0x8000ff80, allowedTargets, "LB1", "Use any LB if available", Effect: effectLB3));
-        lb.AddOption(LBOption.LB2Only, new(0x80ffff00, allowedTargets, "LB2Only", "Use LB2 if available, but not LB3", Effect: effectLB2));
-        lb.AddOption(LBOption.LB1Only, new(0x80ffff40, allowedTargets, "LB1Only", "Use LB1 if available, but not LB2+", Effect: effectLB1));
-        lb.AddOption(LBOption.LB12, new(0x80ffff80, allowedTargets, "LB12", "Use LB1/2 if available, but not LB3", Effect: effectLB1));
+        lb.AddOption(LBOption.None, "None", "Do not use automatically");
+        lb.AddOption(LBOption.LB3, "LB3", "Use LB3 if available", 0, effectLB3, allowedTargets);
+        lb.AddOption(LBOption.LB2, "LB2", "Use LB2/3 if available", 0, effectLB3, allowedTargets);
+        lb.AddOption(LBOption.LB1, "LB1", "Use any LB if available", 0, effectLB3, allowedTargets);
+        lb.AddOption(LBOption.LB2Only, "LB2Only", "Use LB2 if available, but not LB3", 0, effectLB2, allowedTargets);
+        lb.AddOption(LBOption.LB1Only, "LB1Only", "Use LB1 if available, but not LB2+", 0, effectLB1, allowedTargets);
+        lb.AddOption(LBOption.LB12, "LB12", "Use LB1/2 if available, but not LB3", 0, effectLB1, allowedTargets);
         return lb;
     }
 

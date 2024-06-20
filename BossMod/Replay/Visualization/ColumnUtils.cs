@@ -5,7 +5,7 @@ public static class ColumnUtils
     public static ColumnGenericHistory.Entry AddHistoryEntryDot(this ColumnGenericHistory column, DateTime encStart, DateTime timestamp, string name, uint color, float widthRel = 1.0f)
     {
         var (node, delay) = column.Tree.AbsoluteTimeToNodeAndDelay((float)(timestamp - encStart).TotalSeconds, column.PhaseBranches);
-        var e = new ColumnGenericHistory.Entry(ColumnGenericHistory.Entry.Type.Dot, node, delay, 0, name, color, widthRel);
+        var e = new ColumnGenericHistory.Entry(ColumnGenericHistory.Entry.Type.Dot, node, delay, 0, name, new(color), widthRel);
         column.Entries.Add(e);
         return e;
     }
@@ -13,7 +13,7 @@ public static class ColumnUtils
     public static ColumnGenericHistory.Entry AddHistoryEntryLine(this ColumnGenericHistory column, DateTime encStart, DateTime timestamp, string name, uint color, float widthRel = 1.0f)
     {
         var (node, delay) = column.Tree.AbsoluteTimeToNodeAndDelay((float)(timestamp - encStart).TotalSeconds, column.PhaseBranches);
-        var e = new ColumnGenericHistory.Entry(ColumnGenericHistory.Entry.Type.Line, node, delay, 0, name, color, widthRel);
+        var e = new ColumnGenericHistory.Entry(ColumnGenericHistory.Entry.Type.Line, node, delay, 0, name, new(color), widthRel);
         column.Entries.Add(e);
         return e;
     }
@@ -21,7 +21,7 @@ public static class ColumnUtils
     public static ColumnGenericHistory.Entry AddHistoryEntryRange(this ColumnGenericHistory column, DateTime encStart, DateTime rangeStart, float duration, string name, uint color, float widthRel = 1.0f)
     {
         var (node, delay) = column.Tree.AbsoluteTimeToNodeAndDelay((float)(rangeStart - encStart).TotalSeconds, column.PhaseBranches);
-        var e = new ColumnGenericHistory.Entry(ColumnGenericHistory.Entry.Type.Range, node, delay, duration, name, color, widthRel);
+        var e = new ColumnGenericHistory.Entry(ColumnGenericHistory.Entry.Type.Range, node, delay, duration, name, new(color), widthRel);
         column.Entries.Add(e);
         return e;
     }
