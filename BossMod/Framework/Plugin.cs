@@ -29,6 +29,7 @@ public sealed class Plugin : IDalamudPlugin
     private TimeSpan _prevUpdateTime;
 
     // windows
+    private readonly ConfigUI _configUI; // TODO: should be a proper window!
     private readonly BossModuleMainWindow _wndBossmod;
     private readonly BossModuleHintsWindow _wndBossmodHints;
     private readonly ReplayManagementWindow _wndReplay;
@@ -83,15 +84,16 @@ public sealed class Plugin : IDalamudPlugin
         _broadcast = new();
         _ipc = new(_rotation);
 
+        _configUI = new(Service.Config, _ws, _rotationDB);
         _wndBossmod = new(_bossmod);
         _wndBossmodHints = new(_bossmod);
         _wndReplay = new(_ws, _rotationDB.Plans, new(dalamud.ConfigDirectory.FullName + "/replays"));
-        _wndRotation = new(_rotation);
+        _wndRotation = new(_rotation, () => OpenConfigUI("Presets"));
         _wndDebug = new(_ws, _rotation);
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
         dalamud.UiBuilder.Draw += DrawUI;
-        dalamud.UiBuilder.OpenConfigUi += OpenConfigUI;
+        dalamud.UiBuilder.OpenConfigUi += () => OpenConfigUI();
     }
 
     public void Dispose()
@@ -102,6 +104,7 @@ public sealed class Plugin : IDalamudPlugin
         _wndReplay.Dispose();
         _wndBossmodHints.Dispose();
         _wndBossmod.Dispose();
+        _configUI.Dispose();
         _ipc.Dispose();
         _ai.Dispose();
         _rotation.Dispose();
@@ -148,9 +151,10 @@ public sealed class Plugin : IDalamudPlugin
         }
     }
 
-    private void OpenConfigUI()
+    private void OpenConfigUI(string showTab = "")
     {
-        _ = new UISimpleWindow("Boss mod config", new ConfigUI(Service.Config, _ws, _rotationDB).Draw, true, new(300, 300));
+        _configUI.ShowTab(showTab);
+        _ = new UISimpleWindow("Boss mod config", _configUI.Draw, true, new(300, 300));
     }
 
     private void DrawUI()

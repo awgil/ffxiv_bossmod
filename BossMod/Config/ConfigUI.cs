@@ -1,8 +1,6 @@
 ﻿using BossMod.Autorotation;
-using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using System.Reflection;
-using System.Threading;
 
 namespace BossMod;
 
@@ -19,6 +17,7 @@ public sealed class ConfigUI : IDisposable
 
     private readonly List<UINode> _roots = [];
     private readonly UITree _tree = new();
+    private readonly UITabs _tabs = new();
     private readonly ModuleViewer _mv = new();
     private readonly ConfigRoot _root;
     private readonly WorldState _ws;
@@ -29,6 +28,9 @@ public sealed class ConfigUI : IDisposable
         _root = config;
         _ws = ws;
         _presets = rotationDB != null ? new(rotationDB.Presets) : null;
+        _tabs.Add("Configs", () => DrawNodes(_roots));
+        _tabs.Add("Modules", () => _mv.Draw(_tree));
+        _tabs.Add("Presets", () => _presets?.Draw());
 
         Dictionary<Type, UINode> nodes = [];
         foreach (var n in config.Nodes)
@@ -58,21 +60,11 @@ public sealed class ConfigUI : IDisposable
         _mv.Dispose();
     }
 
+    public void ShowTab(string name) => _tabs.Select(name);
+
     public void Draw()
     {
-        using var tabs = ImRaii.TabBar("Tabs");
-        if (tabs)
-        {
-            using (var tab = ImRaii.TabItem("Configs"))
-                if (tab)
-                    DrawNodes(_roots);
-            using (var tab = ImRaii.TabItem("Modules"))
-                if (tab)
-                    _mv.Draw(_tree);
-            using (var tab = ImRaii.TabItem("Presets"))
-                if (tab)
-                    _presets?.Draw();
-        }
+        _tabs.Draw();
     }
 
     public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws)

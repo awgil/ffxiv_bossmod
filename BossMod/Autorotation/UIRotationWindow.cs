@@ -1,4 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
+﻿using Dalamud.Interface;
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 
 namespace BossMod.Autorotation;
@@ -8,16 +9,17 @@ public sealed class UIRotationWindow : UIWindow
     private readonly RotationModuleManager _mgr;
     private readonly AutorotationConfig _config = Service.Config.Get<AutorotationConfig>();
 
-    public UIRotationWindow(RotationModuleManager mgr) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
+    public UIRotationWindow(RotationModuleManager mgr, Action openConfig) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _mgr = mgr;
         ShowCloseButton = false;
         RespectCloseHotkey = false;
+        TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => openConfig() });
     }
 
     public override void PreOpenCheck()
     {
-        IsOpen = _config.ShowUI;
+        IsOpen = _config.ShowUI && _mgr.WorldState.Party.Player() != null;
 
         // TODO: draw positionals
     }
