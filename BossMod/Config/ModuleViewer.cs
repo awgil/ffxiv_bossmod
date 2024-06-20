@@ -1,4 +1,5 @@
-﻿using Dalamud.Interface;
+﻿using BossMod.Autorotation;
+using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
@@ -16,6 +17,8 @@ public sealed class ModuleViewer : IDisposable
     private record struct ModuleGroupInfo(string Name, uint Id, uint SortOrder, IDalamudTextureWrap? Icon = null);
     private record struct ModuleGroup(ModuleGroupInfo Info, List<ModuleInfo> Modules);
 
+    private readonly PlanDatabase? _planDB;
+
     private BitMask _filterExpansions;
     private BitMask _filterCategories;
 
@@ -24,10 +27,12 @@ public sealed class ModuleViewer : IDisposable
     private readonly IDalamudTextureWrap? _iconFATE;
     private readonly IDalamudTextureWrap? _iconHunt;
     private readonly List<ModuleGroup>[,] _groups;
-    private Vector2 _iconSize = new(30, 30);
+    private readonly Vector2 _iconSize = new(30, 30);
 
-    public ModuleViewer()
+    public ModuleViewer(PlanDatabase? planDB)
     {
+        _planDB = planDB;
+
         var defaultIcon = GetIcon(61762);
         _expansions = Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon)).ToArray();
         _categories = Enum.GetNames<BossModuleInfo.Category>().Take((int)BossModuleInfo.Category.Count).Select(n => (n, defaultIcon)).ToArray();
@@ -115,13 +120,13 @@ public sealed class ModuleViewer : IDisposable
         _iconHunt?.Dispose();
     }
 
-    public void Draw(UITree tree)
+    public void Draw(UITree tree, WorldState ws)
     {
         using (var group = ImRaii.Group())
             DrawFilters();
         ImGui.SameLine();
         using (var group = ImRaii.Group())
-            DrawModules(tree);
+            DrawModules(tree, ws);
     }
 
     private void DrawFilters()
@@ -181,7 +186,7 @@ public sealed class ModuleViewer : IDisposable
         }
     }
 
-    private void DrawModules(UITree _tree)
+    private void DrawModules(UITree tree, WorldState ws)
     {
         using var table = ImRaii.Table("ModulesTable", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.BordersV | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.NoHostExtendX);
         if (!table)
@@ -205,23 +210,32 @@ public sealed class ModuleViewer : IDisposable
                     UIMisc.Image(group.Info.Icon ?? _categories[j].icon, new(36));
                     ImGui.TableNextColumn();
 
-                    foreach (var ng in _tree.Node($"{group.Info.Name}###{i}/{j}/{group.Info.Id}"))
+                    foreach (var ng in tree.Node($"{group.Info.Name}###{i}/{j}/{group.Info.Id}"))
                     {
                         foreach (var mod in group.Modules)
                         {
                             using (ImRaii.Disabled(mod.Info.ConfigType == null))
-                                if (UIMisc.IconButton(FontAwesomeIcon.Cog, "cfg", $"###{mod.Info.ModuleType.FullName}"))
-                                    _ = new BossModuleConfigWindow(mod.Info, new(TimeSpan.TicksPerSecond, "fake"));
+                                if (UIMisc.IconButton(FontAwesomeIcon.Cog, "cfg", $"###{mod.Info.ModuleType.FullName}_cfg"))
+                                    _ = new BossModuleConfigWindow(mod.Info, ws);
+                            ImGui.SameLine();
+                            using (ImRaii.Disabled(mod.Info.PlanLevel == 0))
+                                if (UIMisc.IconButton(FontAwesomeIcon.ClipboardList, "plan", $"###{mod.Info.ModuleType.FullName}_plans"))
+                                    ImGui.OpenPopup($"{mod.Info.ModuleType.FullName}_popup");
                             ImGui.SameLine();
                             UIMisc.HelpMarker(() => ModuleHelpText(mod));
                             ImGui.SameLine();
-                            using var color = ImRaii.PushColor(ImGuiCol.Text, mod.Info.Maturity switch
+                            var textColor = mod.Info.Maturity switch
                             {
                                 BossModuleInfo.Maturity.WIP => 0xff0000ff,
                                 BossModuleInfo.Maturity.Verified => 0xff00ff00,
                                 _ => 0xffffffff
-                            });
-                            ImGui.TextUnformatted($"{mod.Name} [{mod.Info.ModuleType.Name}]");
+                            };
+                            using (ImRaii.PushColor(ImGuiCol.Text, textColor))
+                                ImGui.TextUnformatted($"{mod.Name} [{mod.Info.ModuleType.Name}]");
+
+                            using (var popup = ImRaii.Popup($"{mod.Info.ModuleType.FullName}_popup"))
+                                if (popup)
+                                    ModulePlansPopup(mod.Info);
                         }
                     }
                 }
@@ -298,5 +312,24 @@ public sealed class ModuleViewer : IDisposable
         if (info.Info.Contributors.Length > 0)
             sb.AppendLine(CultureInfo.CurrentCulture, $"Contributors: {info.Info.Contributors}");
         return sb.ToString();
+    }
+
+    private void ModulePlansPopup(ModuleRegistry.Info info)
+    {
+        if (_planDB == null || !_planDB.Plans.TryGetValue(info.ModuleType, out var mplans))
+            return;
+
+        foreach (var (cls, plans) in mplans)
+        {
+            foreach (var plan in plans.Plans)
+            {
+                if (ImGui.Selectable($"Edit {cls} '{plan.Name}' ({plan.Guid})"))
+                {
+                    UIPlanDatabaseEditor.StartPlanEditor(_planDB, plan);
+                }
+            }
+        }
+
+        // TODO: new plan ui
     }
 }

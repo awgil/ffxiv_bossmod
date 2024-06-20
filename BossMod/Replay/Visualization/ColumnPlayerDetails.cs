@@ -4,7 +4,7 @@ using ImGuiNET;
 
 namespace BossMod.ReplayVisualization;
 
-// note: currently it assumes that there's only one instance that can edit db, it won't refresh if plan is edited and saved in a different instance...
+// TODO: currently it assumes that there's only one instance that can edit db, it won't refresh if plan is edited and saved in a different instance...
 public class ColumnPlayerDetails : Timeline.ColumnGroup
 {
     private readonly StateMachineTree _tree;
@@ -82,7 +82,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         if (_moduleInfo != null && _planner != null && _planner.Modified)
         {
             var plans = _planDatabase.GetPlans(_moduleInfo.ModuleType, _playerClass);
-            _planDatabase.ModifyPlan(plans.Plans[plans.SelectedIndex], _planner.Plan.MakeClone());
+            _planDatabase.ModifyPlan(plans.Plans[_selectedPlan], _planner.Plan.MakeClone());
             _planner.Modified = false;
         }
     }

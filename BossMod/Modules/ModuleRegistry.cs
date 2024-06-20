@@ -194,9 +194,9 @@ public static class ModuleRegistry
     }
 
     // TODO: this is a hack...
-    public static BossModule? CreateModuleForConfigPlanning(Type cfg)
+    public static BossModule? CreateModuleForConfigPlanning(Type module)
     {
-        var info = _modulesByOID.Values.FirstOrDefault(i => i.ConfigType == cfg);
+        var info = FindByType(module);
         return info != null ? CreateModule(info, new(TimeSpan.TicksPerSecond, "fake"), new(0, info.PrimaryActorOID, -1, "", 0, ActorType.None, Class.None, 0, new())) : null;
     }
 

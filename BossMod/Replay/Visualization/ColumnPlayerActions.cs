@@ -95,6 +95,8 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
                         effectTooltip.Add($"- effect: {Utils.StatusString(eff.Value)}, duration={(status != null ? status.Time : "???")}s, start-delay={delay:f3}s");
                     }
                 }
+                if (actionDef.MainCooldownGroup == ActionDefinitions.GCDGroup)
+                    effectDuration = Math.Min(effectDuration, 0.6f); // TODO: this is a hack, reconsider... the problem is that sometimes actions apply statuses that are then refreshed, that usually happens for gcds...
                 if (effectDuration > 0)
                 {
                     col.AddHistoryEntryRange(enc.Time.Start, effectStart, effectDuration, actionName, 0x8000ff00).TooltipExtra = effectTooltip;

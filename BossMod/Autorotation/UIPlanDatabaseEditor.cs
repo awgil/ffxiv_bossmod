@@ -26,4 +26,16 @@ public sealed class UIPlanDatabaseEditor
         }
         return selected;
     }
+
+    public static void StartPlanEditor(PlanDatabase db, Plan plan, StateMachine sm)
+    {
+        _ = new UIPlanEditorWindow(db, plan, sm);
+    }
+
+    public static void StartPlanEditor(PlanDatabase db, Plan plan)
+    {
+        var m = ModuleRegistry.CreateModuleForConfigPlanning(plan.Encounter);
+        if (m != null)
+            StartPlanEditor(db, plan, m.StateMachine);
+    }
 }

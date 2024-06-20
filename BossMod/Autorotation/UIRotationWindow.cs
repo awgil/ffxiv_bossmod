@@ -66,10 +66,23 @@ public sealed class UIRotationWindow : UIWindow
                     plans.SelectedIndex = newSel;
                     _mgr.Database.Plans.ModifyManifest(activeModule.GetType(), player.Class);
                 }
+
+                ImGui.SameLine();
+                if (ImGui.Button(plans.SelectedIndex >= 0 ? "Edit" : "New"))
+                {
+                    if (plans.SelectedIndex < 0)
+                    {
+                        var plan = new Plan($"New {plans.Plans.Count + 1}", activeModule.GetType()) { Guid = Guid.NewGuid().ToString(), Class = player.Class, Level = activeModule.Info.PlanLevel };
+                        plans.SelectedIndex = plans.Plans.Count;
+                        _mgr.Database.Plans.ModifyPlan(null, plan);
+                    }
+                    UIPlanDatabaseEditor.StartPlanEditor(_mgr.Database.Plans, plans.Plans[plans.SelectedIndex], activeModule.StateMachine);
+                }
             }
         }
 
         // TODO: more fancy action history/queue...
+        ImGui.TextUnformatted($"Modules: {_mgr}");
         ImGui.TextUnformatted($"GCD={_mgr.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f3}, AnimLock={_mgr.ActionManager.EffectiveAnimationLock:f3}+{_mgr.ActionManager.AnimationLockDelayEstimate:f3}, Combo={_mgr.ActionManager.ComboTimeLeft:f3}");
         foreach (var a in _mgr.Hints.ActionsToExecute.Entries)
         {

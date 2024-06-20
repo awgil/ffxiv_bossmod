@@ -160,7 +160,7 @@ public sealed class PlanExecution
             if (s != null)
             {
                 var windowStart = s.EnterTime + Math.Min(s.Duration, entry.TimeSinceActivation);
-                ForcedTargets.Add(new(windowStart, windowStart + entry.WindowLength, s.BranchID, s.NumBranches, entry.Value));
+                res.Add(new(windowStart, windowStart + entry.WindowLength, s.BranchID, s.NumBranches, entry.Value));
             }
         }
         return res;

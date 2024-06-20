@@ -20,7 +20,7 @@ public static class UIStrategyValue
         return [
             $"Option: {opt.UIName}",
             $"Comment: {value.Comment}",
-            $"Priority: {(float.IsNaN(value.PriorityOverride) ? "default" : value.PriorityOverride.ToString("f"))}",
+            $"Priority: {(float.IsNaN(value.PriorityOverride) ? $"default ({opt.DefaultPriority:f})" : value.PriorityOverride.ToString("f"))}",
             $"Target: {PreviewTarget(ref value, moduleInfo)}"
         ];
     }

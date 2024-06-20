@@ -99,7 +99,7 @@ public class BossModuleMainWindow : UIWindow
 
     private void OpenModuleConfig()
     {
-        if (_mgr.ActiveModule?.Info?.ConfigType != null)
+        if (_mgr.ActiveModule?.Info != null)
             _ = new BossModuleConfigWindow(_mgr.ActiveModule.Info, _mgr.WorldState);
     }
 }

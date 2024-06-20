@@ -42,13 +42,6 @@
 //        ImGui.SameLine();
 //        if (ImGui.Button(plans.SelectedIndex >= 0 ? "Edit plan" : "Create new plan"))
 //        {
-//            if (plans.SelectedIndex < 0)
-//            {
-//                plans.Available.Add(new(c, SyncLevel, $"New {plans.Available.Count + 1}"));
-//                plans.SelectedIndex = plans.Available.Count - 1;
-//                Modified.Fire();
-//            }
-//            StartPlanEditor(plans.Available[plans.SelectedIndex], sm, moduleInfo);
 //        }
 //    }
 
@@ -110,93 +103,3 @@
 //        }
 //    }
 
-//    public override void Deserialize(JObject j, JsonSerializer ser)
-//    {
-//        foreach (var p in CooldownPlans.Values)
-//        {
-//            p.Available.Clear();
-//            p.SelectedIndex = -1;
-//        }
-
-//        foreach (var (f, data) in j)
-//        {
-//            if (f == "CooldownPlans")
-//                DeserializeCooldownPlans(data as JObject, ser);
-//            else
-//                ser.DeserializeField(f, data, this);
-//        }
-//    }
-
-//    public override JObject Serialize(JsonSerializer ser)
-//    {
-//        var baseType = typeof(CooldownPlanningConfigNode);
-//        JObject res = [];
-//        foreach (var f in GetType().GetFields().Where(f => f.DeclaringType != baseType && f.GetCustomAttribute<JsonIgnoreAttribute>() == null))
-//        {
-//            var v = f.GetValue(this);
-//            if (v != null)
-//            {
-//                res[f.Name] = JToken.FromObject(v, ser);
-//            }
-//        }
-//        res["CooldownPlans"] = SerializeCooldownPlans(ser);
-//        return res;
-//    }
-
-//    private void StartPlanEditor(CooldownPlan plan, StateMachine? sm, ModuleRegistry.Info? moduleInfo)
-//    {
-//        if (sm == null)
-//            return;
-//        _ = new CooldownPlanEditorWindow(plan, sm, moduleInfo, Modified.Fire);
-//    }
-
-//    private void StartPlanEditor(CooldownPlan plan)
-//    {
-//        var m = ModuleRegistry.CreateModuleForConfigPlanning(GetType());
-//        if (m != null)
-//            StartPlanEditor(plan, m.StateMachine, m.Info);
-//    }
-
-//    private void DeserializeCooldownPlans(JObject? j, JsonSerializer ser)
-//    {
-//        if (j == null)
-//            return;
-//        foreach (var (c, data) in j)
-//        {
-//            if (!Enum.TryParse(c, out Class cls))
-//                continue; // invalid class
-//            var plans = CooldownPlans.GetValueOrDefault(cls);
-//            if (plans == null)
-//                continue; // non-plannable class
-//            if (data?["Available"] is not JArray jPlans)
-//                continue;
-
-//            plans.SelectedIndex = data?["SelectedIndex"]?.Value<int>() ?? -1;
-//            foreach (var jPlan in jPlans)
-//            {
-//                var plan = CooldownPlan.FromJSON(cls, SyncLevel, jPlan as JObject, ser);
-//                if (plan != null)
-//                {
-//                    plans.Available.Add(plan);
-//                }
-//            }
-//        }
-//    }
-
-//    private JObject SerializeCooldownPlans(JsonSerializer ser)
-//    {
-//        JObject res = [];
-//        foreach (var (c, plans) in CooldownPlans)
-//        {
-//            if (plans.Available.Count == 0)
-//                continue;
-//            var j = res[c.ToString()] = new JObject();
-//            j["SelectedIndex"] = plans.SelectedIndex;
-//            var jPlans = new JArray();
-//            j["Available"] = jPlans;
-//            foreach (var plan in plans.Available)
-//                jPlans.Add(plan.ToJSON(ser));
-//        }
-//        return res;
-//    }
-//}

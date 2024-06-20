@@ -1,53 +1,50 @@
-﻿//using ImGuiNET;
+﻿using ImGuiNET;
 
-//namespace BossMod.Autorotation;
+namespace BossMod.Autorotation;
 
-//public class UIPlanEditorWindow : UIWindow
-//{
-//    private readonly PlanDatabase _db;
-//    private readonly Timeline _timeline = new();
-//    private readonly ColumnStateMachineBranch _colStates;
-//    private readonly CooldownPlannerColumns _planner;
-//    private int _selectedPhase;
-//    private bool _modified;
+public class UIPlanEditorWindow : UIWindow
+{
+    private readonly PlanDatabase _db;
+    private Plan _original;
+    private readonly Timeline _timeline = new();
+    private readonly ColumnStateMachineBranch _colStates;
+    private readonly CooldownPlannerColumns _planner;
+    private int _selectedPhase;
 
-//    public UIPlanEditorWindow(PlanDatabase db, string guid, Plan plan, StateMachine sm, ModuleRegistry.Info? moduleInfo) : base($"Cooldown planner##{guid}", true, new(600, 600))
-//    {
-//        _db = db;
+    public UIPlanEditorWindow(PlanDatabase db, Plan plan, StateMachine sm) : base($"Cooldown planner: {plan.Guid}", true, new(1200, 900))
+    {
+        _db = db;
+        _original = plan;
 
-//        var tree = new StateMachineTree(sm);
-//        var phaseBranches = Enumerable.Repeat(0, tree.Phases.Count).ToList();
-//        _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, tree, phaseBranches));
-//        _planner = _timeline.Columns.Add(new CooldownPlannerColumns(plan, OnPlanModified, _timeline, tree, phaseBranches, moduleInfo, true));
+        var tree = new StateMachineTree(sm);
+        var phaseBranches = Enumerable.Repeat(0, tree.Phases.Count).ToList();
+        _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, tree, phaseBranches));
+        _planner = _timeline.Columns.Add(new CooldownPlannerColumns(plan.MakeClone(), _timeline, tree, phaseBranches, true, [], default));
 
-//        _timeline.MinTime = -30;
-//        _timeline.MaxTime = tree.TotalMaxTime;
-//    }
+        _timeline.MinTime = -30;
+        _timeline.MaxTime = tree.TotalMaxTime;
+    }
 
-//    public override void PreOpenCheck() => RespectCloseHotkey = !_modified;
+    public override void PreOpenCheck() => RespectCloseHotkey = !_planner.Modified;
 
-//    public override void Draw()
-//    {
-//        if (UIMisc.Button("Save", !_modified, "No changes"))
-//            Save();
-//        ImGui.SameLine();
-//        _planner.DrawCommonControls();
+    public override void Draw()
+    {
+        if (UIMisc.Button("Save", !_planner.Modified, "No changes"))
+            Save();
+        ImGui.SameLine();
+        _planner.DrawCommonControls();
 
-//        _selectedPhase = _planner.DrawPhaseControls(_selectedPhase);
+        _selectedPhase = _planner.DrawPhaseControls(_selectedPhase);
 
-//        _timeline.Draw();
-//    }
+        _timeline.MaxTime = _colStates.Tree.TotalMaxTime;
+        _timeline.Draw();
+    }
 
-//    private void Save()
-//    {
-//        _planner.UpdateEditedPlan();
-//        _onModified();
-//        _modified = false;
-//    }
-
-//    private void OnPlanModified()
-//    {
-//        _timeline.MaxTime = _colStates.Tree.TotalMaxTime;
-//        _modified = true;
-//    }
-//}
+    private void Save()
+    {
+        var newPlan = _planner.Plan.MakeClone();
+        _db.ModifyPlan(_original, newPlan);
+        _original = newPlan;
+        _planner.Modified = false;
+    }
+}

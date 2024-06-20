@@ -2,19 +2,17 @@ autorotation v2:
 - actiondefinitions
 -- sid generator
 -- spell out shared cooldowns in comments instead of group?
-- planning
--- plan editor outside replay -- from moduleinfo popup?.. (select module, popup with class -> list menu)
-post-wip:
 - resurrect legacy modules
 - positionals
 -- aihints
 -- visualization
+- delete/rework commonstate
+- delete autorotationlegacy & cdplannerlegacy
+- search for `//namespace BossMod`
+post-wip:
 - cleanup
--- delete/rework commonstate
--- ui refactoring / beautifying pass
+-- preset/plan editors should properly react to external changes
 -- ipc for autorotation
--- delete autorotationlegacy & cdplannerlegacy
--- search for `//namespace BossMod`
 -- rmm in replay analysis
 - worldstate: animlock, combo, gauge parser
 - actiondefinitions
@@ -30,6 +28,7 @@ post-wip:
 - simulation in replay analysis
 
 general:
+- proper logging
 - consistently use Color instead of uint
 - horizontal timeline / cooldown planner
 - refactor window system to dispose stuff properly and avoid CS1806 and `_ = new...` pattern

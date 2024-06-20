@@ -63,6 +63,7 @@ public sealed class RotationModuleManager : IDisposable
         var expectedPlan = CalculateExpectedPlan();
         if (Planner?.Module != Bossmods.ActiveModule || Planner?.Plan != expectedPlan)
         {
+            Service.Log($"[RMM] Changing active plan: '{Planner?.Plan?.Guid}' -> '{expectedPlan?.Guid}'");
             Planner = Bossmods.ActiveModule != null ? new(Bossmods.ActiveModule, expectedPlan) : null;
             DirtyActiveModules(Preset == null);
         }
@@ -106,6 +107,8 @@ public sealed class RotationModuleManager : IDisposable
         var plans = Database.Plans.GetPlans(Bossmods.ActiveModule.GetType(), player.Class);
         return plans.SelectedIndex >= 0 ? plans.Plans[plans.SelectedIndex] : null;
     }
+
+    public override string ToString() => string.Join(", ", _activeModules?.Select(m => m.Module.GetType().Name) ?? []);
 
     // TODO: consider not recreating modules that were active and continue to be active?
     private List<(RotationModuleDefinition Definition, RotationModule Module)> RebuildActiveModules(IEnumerable<Type> types)

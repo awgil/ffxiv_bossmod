@@ -18,7 +18,7 @@ public sealed class ConfigUI : IDisposable
     private readonly List<UINode> _roots = [];
     private readonly UITree _tree = new();
     private readonly UITabs _tabs = new();
-    private readonly ModuleViewer _mv = new();
+    private readonly ModuleViewer _mv;
     private readonly ConfigRoot _root;
     private readonly WorldState _ws;
     private readonly UIPresetDatabaseEditor? _presets;
@@ -27,9 +27,10 @@ public sealed class ConfigUI : IDisposable
     {
         _root = config;
         _ws = ws;
+        _mv = new(rotationDB?.Plans);
         _presets = rotationDB != null ? new(rotationDB.Presets) : null;
         _tabs.Add("Configs", () => DrawNodes(_roots));
-        _tabs.Add("Modules", () => _mv.Draw(_tree));
+        _tabs.Add("Modules", () => _mv.Draw(_tree, _ws));
         _tabs.Add("Presets", () => _presets?.Draw());
 
         Dictionary<Type, UINode> nodes = [];
