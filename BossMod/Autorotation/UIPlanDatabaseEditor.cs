@@ -26,5 +26,4 @@ public sealed class UIPlanDatabaseEditor
         }
         return selected;
     }
-
 }

@@ -1,4 +1,5 @@
 autorotation v2:
+- rotation window should have config menu
 - actiondefinitions
 -- sid generator
 -- spell out shared cooldowns in comments instead of group?
@@ -15,7 +16,6 @@ post-wip:
 -- ipc for autorotation
 -- delete autorotationlegacy & cdplannerlegacy
 -- search for `//namespace BossMod`
--- restore effect duration in action columns somehow...
 -- rmm in replay analysis
 - worldstate: animlock, combo, gauge parser
 - actiondefinitions
@@ -26,6 +26,7 @@ post-wip:
 -- legacy ai rotation modules (auto stance, interrupt, taunt, etc)
 -- target selection should be part of a module/preset
 -- ai manager should use selected preset for combat, out of combat use forcedtarget
+- color scheme
 - action history/queue visualization
 - proper gcd time calculations?
 - simulation in replay analysis
@@ -43,6 +44,7 @@ general:
 - utility to inject custom ipcs to the stream for debugging?
 
 boss modules:
+- timers
 - wipe should not fast forward all phases
 - fail log
 - boss module config presets/profiles

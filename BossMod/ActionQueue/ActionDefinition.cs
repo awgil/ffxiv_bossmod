@@ -58,10 +58,6 @@ public sealed record class ActionDefinition(ActionID ID)
 // note that it is associated to a specific worldstate, so that it can be used for things like action conditions
 public sealed class ActionDefinitions : IDisposable
 {
-    public static ActionDefinitions Instance = new();
-
-    public Func<uint, bool>? UnlockCheck;
-
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Action>? _actionsSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.Action>();
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Item>? _itemsSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.Item>();
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.ClassJobCategory>? _cjcSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.ClassJobCategory>();
@@ -91,6 +87,10 @@ public sealed class ActionDefinitions : IDisposable
     public static readonly ActionID IDGeneralSprint = new(ActionType.General, 4);
     public static readonly ActionID IDGeneralDuty1 = new(ActionType.General, 26);
     public static readonly ActionID IDGeneralDuty2 = new(ActionType.General, 27);
+
+    public static readonly ActionDefinitions Instance = new();
+
+    public Func<uint, bool>? UnlockCheck;
 
     private ActionDefinitions()
     {

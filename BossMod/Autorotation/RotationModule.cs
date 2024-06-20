@@ -1,8 +1,28 @@
 ﻿namespace BossMod.Autorotation;
 
+public enum RotationModuleQuality
+{
+    [PropertyDisplay("Work-in-progress - expect it to break a lot (or just be straight broken)")]
+    WIP,
+
+    [PropertyDisplay("Basic - expect the standard rotation to work, but not much more - suitable for leveling or casual content, expect green/blue logs")]
+    Basic,
+
+    [PropertyDisplay("OK - expect to execute reasonable actions in most circumstances, recover from deaths, have basic planning support - suitable for savages, expect blue/purple logs")]
+    Ok,
+
+    [PropertyDisplay("Good - expect to execute optimal actions in most cases, and planner should cover the remaining situations - suitable for all content, expect purple/orange logs")]
+    Good,
+
+    [PropertyDisplay("Excellent - expect to be able to get orange/pink logs consistently if you utilize planner correctly")]
+    Excellent,
+
+    Count
+}
+
 // the configuration part of the rotation module
 // importantly, it defines constraints (supported classes and level ranges) and strategy configs (with their sets of possible options) used by the module to make its decisions
-public sealed record class RotationModuleDefinition(string DisplayName, string Description, BitMask Classes, int MaxLevel, int MinLevel = 1)
+public sealed record class RotationModuleDefinition(string DisplayName, string Description, string Author, RotationModuleQuality Quality, BitMask Classes, int MaxLevel, int MinLevel = 1)
 {
     public readonly BitMask Classes = Classes;
     public readonly List<StrategyConfig> Configs = [];

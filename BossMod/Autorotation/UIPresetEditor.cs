@@ -154,9 +154,7 @@ public sealed class UIPresetEditor
             using var tooltip = ImRaii.Tooltip();
             if (tooltip)
             {
-                ImGui.TextUnformatted(definition.DisplayName);
-                ImGui.TextUnformatted(definition.Description);
-                ImGui.TextUnformatted($"Class: {type.Name}");
+                UIRotationModule.DescribeModule(type, definition);
             }
         }
         return res;

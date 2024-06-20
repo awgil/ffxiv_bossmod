@@ -44,6 +44,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
     {
         if (ImGui.Button("Modules"))
             ImGui.OpenPopup("modules");
+        ImGui.SameLine();
         if (ImGui.Button("Export to clipboard"))
             ExportToClipboard();
         ImGui.SameLine();
@@ -86,9 +87,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                     {
                         if (disable)
                             ImGui.TextUnformatted("Hold shift to remove");
-                        ImGui.TextUnformatted(m.Definition.DisplayName);
-                        ImGui.TextUnformatted(m.Definition.Description);
-                        ImGui.TextUnformatted($"Class: {mt.Name}");
+                        UIRotationModule.DescribeModule(mt, m.Definition);
                     }
                 }
             }

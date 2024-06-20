@@ -80,13 +80,26 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
             if (actionDef != null)
             {
                 var col = GetCooldownColumn(actionDef.MainCooldownGroup, a.ID);
-                // TODO: effect should be extended by action-to-effectresult delay?..
-                // TODO: restore this somehow... broken during autorotation refactoring
-                //if (actionDef.EffectDuration > 0)
-                //{
-                //    col.AddHistoryEntryRange(enc.Time.Start, effectStart, actionDef.EffectDuration, actionName, 0x8000ff00).TooltipExtra.Add($"- effect: {actionDef.EffectDuration:f1}s");
-                //    AdvanceCooldown(actionDef.MainCooldownGroup, enc.Time.Start, effectStart.AddSeconds(actionDef.EffectDuration), false);
-                //}
+                float effectDuration = 0;
+                List<string> effectTooltip = [];
+                foreach (var t in a.Targets)
+                {
+                    foreach (var eff in t.Effects.Where(eff => eff.Type is ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource))
+                    {
+                        var source = eff.FromTarget ? t.Target : a.Source;
+                        var target = eff.Type == ActionEffectType.ApplyStatusEffectTarget && !eff.AtSource ? t.Target : a.Source;
+                        var status = replay.Statuses.FirstOrDefault(s => s.ID == eff.Value && s.Target == target && s.Source == source);
+                        var duration = (float)((status?.Time.End ?? a.Timestamp) - a.Timestamp).TotalSeconds;
+                        var delay = ((status?.Time.Start ?? a.Timestamp) - a.Timestamp).TotalSeconds;
+                        effectDuration = Math.Max(effectDuration, duration);
+                        effectTooltip.Add($"- effect: {Utils.StatusString(eff.Value)}, duration={(status != null ? status.Time : "???")}s, start-delay={delay:f3}s");
+                    }
+                }
+                if (effectDuration > 0)
+                {
+                    col.AddHistoryEntryRange(enc.Time.Start, effectStart, effectDuration, actionName, 0x8000ff00).TooltipExtra = effectTooltip;
+                    AdvanceCooldown(actionDef.MainCooldownGroup, enc.Time.Start, effectStart.AddSeconds(effectDuration), false);
+                }
                 col.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, 0xffffffff).AddActionTooltip(a);
             }
 

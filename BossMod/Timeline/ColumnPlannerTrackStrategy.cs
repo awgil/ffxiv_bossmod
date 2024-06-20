@@ -14,6 +14,7 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
     {
         var elem = (OverrideElement)AddElement(attachNode, delay, windowLength);
         elem.Value = value;
+        UpdateProperties(elem);
     }
 
     protected override Element CreateElement(Entry window)
@@ -24,6 +25,7 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
             if (level >= config.Options[i].MinLevel && level <= config.Options[i].MaxLevel)
             {
                 res.Value.Option = i;
+                break;
             }
         }
         UpdateProperties(res);
@@ -40,7 +42,10 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
     {
         var cast = (OverrideElement)e;
         if (UIStrategyValue.DrawEditor(ref cast.Value, config, moduleInfo, level))
+        {
+            UpdateProperties(cast);
             NotifyModified();
+        }
     }
 
     private void UpdateProperties(OverrideElement e)

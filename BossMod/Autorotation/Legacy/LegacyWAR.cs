@@ -15,7 +15,7 @@ public sealed class LegacyWAR : LegacyModule
     public static RotationModuleDefinition Definition()
     {
         // TODO: think about target overrides where they make sense (ST stuff, esp things like onslaught?)
-        var res = new RotationModuleDefinition("Legacy WAR", "Old pre-refactoring module", BitMask.Build((int)Class.WAR), 90);
+        var res = new RotationModuleDefinition("Legacy WAR", "Old pre-refactoring module", "veyn", RotationModuleQuality.WIP, BitMask.Build((int)Class.WAR), 90);
 
         var aoe = res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 90);
         aoe.AddOption(AOEStrategy.SingleTarget, new(0x80ffffff, ActionTargets.None, "ST", "Use single-target rotation"));
@@ -54,7 +54,7 @@ public sealed class LegacyWAR : LegacyModule
         ir.AddOption(OffensiveStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic", "Use normally"));
         ir.AddOption(OffensiveStrategy.Delay, new(0x800000ff, ActionTargets.None, "Delay", "Delay"));
         ir.AddOption(OffensiveStrategy.Force, new(0x8000ff00, ActionTargets.None, "Force", "Force use ASAP (even during downtime or without ST)"));
-        pot.AddAssociatedActions(WAR.AID.Berserk, WAR.AID.InnerRelease);
+        ir.AddAssociatedActions(WAR.AID.Berserk, WAR.AID.InnerRelease);
 
         var uph = res.Define(Track.Upheaval).As<OffensiveStrategy>("Upheaval", uiPriority: 40);
         uph.AddOption(OffensiveStrategy.Automatic, new(0x80ffffff, ActionTargets.None, "Automatic", "Use normally"));
