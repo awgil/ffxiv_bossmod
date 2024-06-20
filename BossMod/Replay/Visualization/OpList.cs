@@ -115,6 +115,8 @@ class OpList(Replay replay, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldSt
             ActorState.OpEventObjectStateChange op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ActorState.OpEventObjectAnimation op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ActorState.OpRename op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
+            ActorState.OpIcon op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
+            ActorState.OpTether op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ClientState.OpActionRequest => false,
             //ClientState.OpActionReject => false,
             ClientState.OpCooldown => false,

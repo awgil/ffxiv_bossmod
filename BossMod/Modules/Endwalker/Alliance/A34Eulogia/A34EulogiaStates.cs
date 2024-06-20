@@ -4,7 +4,8 @@ class A34EulogiaStates : StateMachineBuilder
 {
     public A34EulogiaStates(BossModule module) : base(module)
     {
-        DeathPhase(0, SinglePhase);
+        DeathPhase(0, SinglePhase)
+             .ActivateOnEnter<ArenaChanges>();
     }
 
     public void SinglePhase(uint id)
@@ -31,6 +32,17 @@ class A34EulogiaStates : StateMachineBuilder
         Quintessence(id + 0x110000, 17.7f);
         Sunbeam(id + 0x120000, 7.2f);
         Whorl(id + 0x130000, 10.7f);
+
+        MechanicsInRandomOrder(id + 0x140000, 241.7f);
+        DawnOfTime(id + 0x150000, 0);
+        Quintessence(id + 0x160000, 13.6f); // no logs past this here, just guessed
+        Sunbeam(id + 0x170000, 7.2f);
+        Whorl(id + 0x180000, 8.6f);
+        MechanicsInRandomOrder(id + 0x190000, 241.7f);
+    }
+
+    private void MechanicsInRandomOrder(uint id, float delay)
+    {
         // following mechanics order is either fully random, or has multiple possible forks...
         //Hydrostasis(id + 0x140000, 3.2f);
         //SolarFans(id + 0x150000, 2.5f);
@@ -38,25 +50,25 @@ class A34EulogiaStates : StateMachineBuilder
         //ThousandfoldThrust(id + 0x170000, 1.2f);
         //DestructiveBolt(id + 0x180000, 2.5f);
         //LovesLight(id + 0x190000, 5.4f);
-        SimpleState(id + 0xFF0000, 100, "Mechanics in random order")
-            .ActivateOnEnter<LovesLight>()
-            .ActivateOnEnter<SolarFans>()
-            .ActivateOnEnter<RadiantRhythm>()
-            .ActivateOnEnter<RadiantFlourish>()
-            .ActivateOnEnter<Hydrostasis>()
-            .ActivateOnEnter<DestructiveBolt>()
-            .ActivateOnEnter<Hieroglyphika>()
-            .ActivateOnEnter<HandOfTheDestroyerWrath>()
-            .ActivateOnEnter<HandOfTheDestroyerJudgment>()
-            .ActivateOnEnter<MatronsBreath>()
-            .ActivateOnEnter<TorrentialTrident>()
-            .ActivateOnEnter<ByregotStrikeJump>()
-            .ActivateOnEnter<ByregotStrikeKnockback>()
-            .ActivateOnEnter<ByregotStrikeCone>()
-            .ActivateOnEnter<ThousandfoldThrust>()
-            .ActivateOnEnter<AsAboveSoBelow>()
-            .ActivateOnEnter<ClimbingShot>()
-            .ActivateOnEnter<SoaringMinuet>();
+        Timeout(id + 0x140000, 241.7f, "Mechanics in random order")
+             .ActivateOnEnter<LovesLight>()
+             .ActivateOnEnter<SolarFans>()
+             .ActivateOnEnter<RadiantRhythm>()
+             .ActivateOnEnter<RadiantFlourish>()
+             .ActivateOnEnter<Hydrostasis>()
+             .ActivateOnEnter<DestructiveBolt>()
+             .ActivateOnEnter<Hieroglyphika>()
+             .ActivateOnEnter<HandOfTheDestroyerWrath>()
+             .ActivateOnEnter<HandOfTheDestroyerJudgment>()
+             .ActivateOnEnter<MatronsBreath>()
+             .ActivateOnEnter<TorrentialTrident>()
+             .ActivateOnEnter<ByregotStrikeJump>()
+             .ActivateOnEnter<ByregotStrikeKnockback>()
+             .ActivateOnEnter<ByregotStrikeCone>()
+             .ActivateOnEnter<ThousandfoldThrust>()
+             .ActivateOnEnter<AsAboveSoBelow>()
+             .ActivateOnEnter<ClimbingShot>()
+             .ActivateOnEnter<SoaringMinuet>();
     }
 
     private void DawnOfTime(uint id, float delay)
@@ -90,7 +102,6 @@ class A34EulogiaStates : StateMachineBuilder
     private void Whorl(uint id, float delay)
     {
         Cast(id, AID.Whorl, delay, 7, "Raidwide")
-            .OnExit(() => Module.Arena.Bounds = A34Eulogia.SmallerBounds)
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
@@ -129,7 +140,8 @@ class A34EulogiaStates : StateMachineBuilder
         Cast(id, AID.Hydrostasis, delay, 4);
         Cast(id + 0x10, AID.TimeAndTide, 2.1f, 6)
             .ActivateOnEnter<Hydrostasis>();
-        ComponentCondition<Hydrostasis>(id + 0x20, 2.9f, comp => comp.NumCasts > 0, "Knockback 1");
+        ComponentCondition<Hydrostasis>(id + 0x20, 2.9f, comp => comp.NumCasts > 0, "Knockback 1")
+            .SetHint(StateMachine.StateHint.Knockback);
         ComponentCondition<Hydrostasis>(id + 0x21, 3, comp => comp.NumCasts > 1, "Knockback 2");
         ComponentCondition<Hydrostasis>(id + 0x22, 3, comp => comp.NumCasts > 2, "Knockback 3")
             .DeactivateOnExit<Hydrostasis>();
@@ -145,8 +157,7 @@ class A34EulogiaStates : StateMachineBuilder
 
     private void HieroglyphikaHandOfTheDestroyer(uint id, float delay)
     {
-        Cast(id, AID.Hieroglyphika, delay, 5)
-            .OnEnter(() => Module.Arena.Bounds = A34Eulogia.HieroglyphikaBounds);
+        Cast(id, AID.Hieroglyphika, delay, 5);
         ComponentCondition<Hieroglyphika>(id + 0x10, 1, comp => comp.AOEs.Count > 0)
             .ActivateOnEnter<Hieroglyphika>();
         ComponentCondition<Hieroglyphika>(id + 0x20, 12.8f, comp => comp.BindsAssigned, "Binds");
@@ -154,8 +165,7 @@ class A34EulogiaStates : StateMachineBuilder
         ComponentCondition<Hieroglyphika>(id + 0x31, 2.8f, comp => comp.NumCasts > 0, "Squares")
             .ActivateOnEnter<HandOfTheDestroyerWrath>()
             .ActivateOnEnter<HandOfTheDestroyerJudgment>()
-            .DeactivateOnExit<Hieroglyphika>()
-            .OnExit(() => Module.Arena.Bounds = A34Eulogia.SmallerBounds);
+            .DeactivateOnExit<Hieroglyphika>();
         CastEnd(id + 0x32, 4.7f);
         Condition(id + 0x33, 0.5f, () => Module.FindComponent<HandOfTheDestroyerWrath>()?.NumCasts > 0 || Module.FindComponent<HandOfTheDestroyerJudgment>()?.NumCasts > 0, "Half-arena cleave")
             .DeactivateOnExit<HandOfTheDestroyerWrath>()
@@ -212,6 +222,7 @@ class A34EulogiaStates : StateMachineBuilder
             .ActivateOnEnter<AsAboveSoBelow>()
             .ActivateOnEnter<ClimbingShot>();
         ComponentCondition<ClimbingShot>(id + 0x20, 0.2f, comp => comp.NumCasts > 0, "Knockback")
+            .SetHint(StateMachine.StateHint.Knockback)
             .DeactivateOnExit<ClimbingShot>();
         ComponentCondition<AsAboveSoBelow>(id + 0x30, 0.8f, comp => comp.NumCasts > 0, "Exaflare start");
         Cast(id + 0x40, AID.SoaringMinuet, 2.3f, 7, "Wide cleave")
@@ -226,7 +237,6 @@ class A34EulogiaStates : StateMachineBuilder
         ComponentCondition<EudaimonEorzea>(id + 0x10, 2.7f, comp => comp.NumCasts > 0, "Raidwide x13")
             .ActivateOnEnter<EudaimonEorzea>()
             .DeactivateOnExit<EudaimonEorzea>()
-            .OnExit(() => Module.Arena.Bounds = A34Eulogia.DefaultBounds)
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 }

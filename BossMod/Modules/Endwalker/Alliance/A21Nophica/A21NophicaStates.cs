@@ -22,6 +22,7 @@ class A21NophicaStates : StateMachineBuilder
         HeavensEarth(id + 0x90000, 3.1f);
         Abundance(id + 0xA0000, 6.3f);
         Abundance(id + 0xB0000, 4.2f);
+        MatronsPlentyFloralHazeReapersGaleLandwaker(id + 0xC0000, 11.2f); // TODO: verify. even on a MINE run i only saw the start of this
         SimpleState(id + 0xFF0000, 100, "???");
     }
 

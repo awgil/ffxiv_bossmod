@@ -43,6 +43,10 @@ public enum AID : uint
     DevastatingBoltInner = 22470, // Helper->self, 4.0s cast, range 12-17 donut
     RendingBolt = 22475, // Boss->self, 3.0s cast, single-target, visual (electrocution puddles)
     Electrocution = 22476, // Helper->location, 3.0s cast, range 3 circle puddles
+    ManaBurnFirst = 22495, // BallOfFire->self, 8.0s cast, range 80 circle
+    ManaBurnRepeat = 20506, // Helper->self, no cast, range 80 circle
+    SandBurstFirst = 22498, // BallOfEarth->self, 8.0s cast, range 80 circle
+    SandBurstRepeat = 20507, // Helper->self, no cast, range 80 circle
 }
 
 public enum SID : uint

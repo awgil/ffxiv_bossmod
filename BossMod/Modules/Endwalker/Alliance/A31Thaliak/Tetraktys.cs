@@ -2,12 +2,17 @@
 
 class TetraktysBorder(BossModule module) : Components.GenericAOEs(module)
 {
+    public static readonly WPos NormalCenter = new(-945, 945);
+    public static readonly ArenaBoundsSquare NormalBounds = new(24);
+    private static readonly WPos TriangleCenter = new(-945, 941.5f);
+    private static readonly TriangleE triangle = new(TriangleCenter, 48);
+    private static readonly Square square = new(NormalCenter, 24);
+    private static readonly ArenaBoundsComplex TriangleBounds = new([triangle]);
+    private static readonly AOEShapeCustom transition = new([square], [triangle]);
+    private AOEInstance? _aoe;
     public bool Active;
-    private readonly List<AOEInstance> _aoes = [];
 
-    private static readonly AOEShapeRect _shape = new(50, 24);
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
     public override void OnEventEnvControl(byte index, uint state)
     {
@@ -15,19 +20,18 @@ class TetraktysBorder(BossModule module) : Components.GenericAOEs(module)
         {
             switch (state)
             {
-                case 0x00200010: // telegraph - emulate by three rects from center of each side
-                    var apex = Module.Center - new WDir(0, Module.Bounds.Radius);
-                    var height = Module.Bounds.Radius * Helpers.sqrt3;
-                    var activation = WorldState.FutureTime(6.5f);
-                    _aoes.Add(new(_shape, apex + new WDir(0, height), default, activation));
-                    _aoes.Add(new(_shape, apex + 0.5f * new WDir(+Module.Bounds.Radius, height), 120.Degrees(), activation));
-                    _aoes.Add(new(_shape, apex + 0.5f * new WDir(-Module.Bounds.Radius, height), -120.Degrees(), activation));
+                case 0x00200010:
+                    _aoe = new(transition, NormalCenter, default, WorldState.FutureTime(6.5f));
                     break;
                 case 0x00020001:
-                    _aoes.Clear();
+                    _aoe = null;
+                    Module.Arena.Bounds = TriangleBounds;
+                    Module.Arena.Center = TriangleCenter;
                     Active = true;
                     break;
                 case 0x00080004:
+                    Module.Arena.Bounds = NormalBounds;
+                    Module.Arena.Center = NormalCenter;
                     Active = false;
                     break;
             }

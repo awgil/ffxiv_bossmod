@@ -3,8 +3,10 @@
 class WildfireWard(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.IlluminatingGlimpse), 15, false, 1, kind: Kind.DirLeft);
 class ArenaBounds(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly Shape triangle = new PolygonCustom([new(-761.5f, -743.38f), new(-750, -763.27f), new(-738.51f, -743.39f)]);
-    private static readonly Shape circle = new Circle(A13Azeyma.NormalCenter, 29.5f);
+
+    private static readonly Circle circle = new(A13Azeyma.NormalCenter, 29.5f);
+    private static readonly WPos triangleCenter = new(-750, -753.325f);
+    private static readonly TriangleE triangle = new(triangleCenter, 24);
     private static readonly AOEShapeCustom triangleCutOut = new([circle], [triangle]);
     private static readonly ArenaBoundsComplex TriangleBounds = new([triangle]);
 
@@ -22,7 +24,7 @@ class ArenaBounds(BossModule module) : Components.GenericAOEs(module)
             {
                 _aoe = null;
                 Arena.Bounds = TriangleBounds;
-                Arena.Center = TriangleBounds.Center;
+                Arena.Center = triangleCenter;
             }
             else if (state == 0x00080004)
                 Arena.Bounds = A13Azeyma.NormalBounds;

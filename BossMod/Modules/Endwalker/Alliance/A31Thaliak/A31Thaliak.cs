@@ -10,11 +10,4 @@ class HieroglyphikaLeftBank(BossModule module) : Components.SelfTargetedAOEs(mod
 class HieroglyphikaRightBank(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HieroglyphikaRightBank), new AOEShapeCone(60, 90.Degrees()));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, LTS, veyn", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11298, SortOrder = 2)]
-public class A31Thaliak(WorldState ws, Actor primary) : BossModule(ws, primary, NormalCenter, NormalBounds)
-{
-    public static readonly WPos NormalCenter = new(-945, 945);
-    public static readonly ArenaBoundsSquare NormalBounds = new(24);
-    public static readonly WPos TriangleCenter = new(-945, 941.5f);
-    public static readonly ArenaBoundsComplex TriangleBounds = new([new TriangleE(TriangleCenter, 24)]);
-
-}
+public class A31Thaliak(WorldState ws, Actor primary) : BossModule(ws, primary, TetraktysBorder.NormalCenter, TetraktysBorder.NormalBounds);

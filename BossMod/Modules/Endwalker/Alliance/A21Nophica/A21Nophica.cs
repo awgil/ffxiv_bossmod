@@ -1,14 +1,24 @@
 ﻿namespace BossMod.Endwalker.Alliance.A21Nophica;
 
-class ArenaBounds(BossModule module) : BossComponent(module)
+class ArenaBounds(BossModule module) : Components.GenericAOEs(module)
 {
+    private static readonly AOEShapeDonut donut = new(28, 34);
+    private AOEInstance? _aoe;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (index == 0x39)
         {
             if (state == 0x02000200)
+                _aoe = new(donut, Module.Center, default, WorldState.FutureTime(5.8f));
+            if (state is 0x00200010 or 0x00020001)
+            {
                 Arena.Bounds = A21Nophica.SmallerBounds;
-            if (state == 0x00400004)
+                _aoe = null;
+            }
+            if (state is 0x00080004 or 0x00400004)
                 Arena.Bounds = A21Nophica.DefaultBounds;
         }
     }

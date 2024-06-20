@@ -50,8 +50,11 @@ class DRS4States : StateMachineBuilder
         P2GunTurret(id + 0x40000, 10.2f);
         P2DoubleGambit(id + 0x50000, 10.3f);
         P2BloodAndBone(id + 0x60000, 5.7f);
-        // TODO: tankbusters -> 4th battery -> raidwides -> tankbusters -> enrage
-        SimpleState(id + 0xFF0000, 100, "???");
+        P2RapidSever(id + 0x70000, 4.1f);
+        P2TurretsTour(id + 0x80000, 10.2f);
+        P2BloodAndBone(id + 0x90000, 5.1f);
+        P2RapidSever(id + 0xA0000, 4.1f);
+        SimpleState(id + 0xB0000, 15, "Enrage");  // TODO: not sure about the timing, no log yet
     }
 
     private void Phase3(uint id)
@@ -186,6 +189,21 @@ class DRS4States : StateMachineBuilder
         Condition(id, delay, () => (_module.Soldier()?.CastInfo?.IsSpell(AID.RapidSeverSoldier) ?? false) || (_module.Gunner()?.CastInfo?.IsSpell(AID.ShotInTheDark) ?? false));
         Condition(id + 1, 5, () => _module.Soldier()?.CastInfo == null && _module.Gunner()?.CastInfo == null, "Tankbuster")
             .SetHint(StateMachine.StateHint.Tankbuster);
+    }
+
+    private void P2TurretsTour(uint id, float delay)
+    {
+        ActorCast(id, _module.Gunner, AID.RelentlessBatteryGunner, delay, 5); // both soldier and gunner cast their visual
+        ActorCast(id + 0x10, Module.Enemies(OID.Gunner).FirstOrDefault, AID.AutomaticTurret2, 3, 3, false, "Turrets spawn");
+        ActorCast(id + 0x20, Module.Enemies(OID.Gunner).FirstOrDefault, AID.TurretsTour, 3.1f, 5, false, "Turrets start")
+            .ActivateOnEnter<TurretsTour>();
+        ComponentCondition<TurretsTour>(id + 0x30, 1.6f, comp => comp.NumCasts >= 4, "Turrets resolve")
+            .DeactivateOnExit<TurretsTour>();
+        ActorCastMulti(id + 0x40, _module.Soldier, new[] { AID.FieryPortent, AID.IcyPortent }, 0.2f, 5.2f, false, "Move/stay")
+            .ActivateOnEnter<FieryPortent>()
+            .ActivateOnEnter<IcyPortent>()
+            .DeactivateOnExit<FieryPortent>()
+            .DeactivateOnExit<IcyPortent>();
     }
 
     private void P2FoolsGambit(uint id, float delay)

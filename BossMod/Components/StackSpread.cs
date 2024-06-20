@@ -316,13 +316,10 @@ public class LineStack(BossModule module, ActionID aidMarker, ActionID aidResolv
         if (isBaitNotTarget && !isBaitTarget && !forbiddenActors)
             foreach (var b in ActiveBaits.Where(x => x.Target != actor))
                 forbiddenInverted.Add(ShapeDistance.InvertedRect(b.Source.Position, (b.Target.Position - b.Source.Position).Normalized(), Range, 0, HalfWidth));
-        // prevent overlapping if there are multiple line stacks
-        if (isBaitNotTarget && isBaitTarget)
+        // prevent overlapping if there are multiple line stacks, or if an actor is forbidden to enter
+        if (isBaitNotTarget && isBaitTarget || forbiddenActors)
             foreach (var b in ActiveBaits.Where(x => x.Target != actor))
                 forbidden.Add(ShapeDistance.Rect(b.Source.Position, (b.Target.Position - b.Source.Position).Normalized(), Range, 0, 2 * HalfWidth));
-        if (forbiddenActors) // if too many people are dead, you can become a forbidden actor and get stack at the same time
-            foreach (var b in ActiveBaits.Where(x => x.Target != actor))
-                forbidden.Add(ShapeDistance.Rect(b.Source.Position, (b.Target.Position - b.Source.Position).Normalized(), Range, 0, HalfWidth));
         if (forbiddenInverted.Count > 0)
             hints.AddForbiddenZone(p => forbiddenInverted.Select(f => f(p)).Max(), ActiveBaits.FirstOrDefault().Activation);
         if (forbidden.Count > 0)

@@ -206,13 +206,58 @@ public static class ShapeDistance
         return p => -convexpolygon(p);
     }
 
-    // TODO: This is not very efficient for complex polygons, need to find a better way
     public static Func<WPos, float> ConcavePolygon(IEnumerable<WPos> vertices)
     {
+        var edges = PolygonUtil.EnumerateEdges(vertices).ToList();
         return p =>
         {
-            return p.InConcavePolygon(vertices) ? 0 : float.MaxValue;
+            var isInside = IsPointInsideConcavePolygon(p, vertices);
+            var minDistance = edges.Min(e => DistanceToEdge(p, e));
+            return isInside ? -minDistance : minDistance;
         };
+    }
+
+    private static bool IsPointInsideConcavePolygon(WPos point, IEnumerable<WPos> vertices)
+    {
+        var intersections = 0;
+        var verticesList = vertices.ToList();
+        for (var i = 0; i < verticesList.Count; i++)
+        {
+            var a = verticesList[i];
+            var b = verticesList[(i + 1) % verticesList.Count];
+            if (RayIntersectsEdge(point, a, b))
+            {
+                intersections++;
+            }
+        }
+        return intersections % 2 != 0;
+    }
+
+    private static bool RayIntersectsEdge(WPos point, WPos a, WPos b)
+    {
+        if (a.Z > b.Z)
+            (b, a) = (a, b);
+        if (point.Z == a.Z || point.Z == b.Z)
+            point = new WPos(point.X, point.Z + 0.0001f);
+        if (point.Z > b.Z || point.Z < a.Z || point.X >= Math.Max(a.X, b.X))
+            return false;
+        if (point.X < Math.Min(a.X, b.X))
+            return true;
+        var red = (point.Z - a.Z) / (b.Z - a.Z);
+        var blue = (b.X - a.X) * red + a.X;
+        return point.X < blue;
+    }
+
+    private static float DistanceToEdge(WPos point, (WPos p1, WPos p2) edge)
+    {
+        var (p1, p2) = edge;
+        var edgeVector = p2 - p1;
+        var pointVector = point - p1;
+        var edgeLengthSquared = edgeVector.LengthSq();
+
+        var t = Math.Max(0, Math.Min(1, pointVector.Dot(edgeVector) / edgeLengthSquared));
+        var projection = p1 + t * edgeVector;
+        return (point - projection).Length();
     }
 
     private static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Max(e => e(p)) - offset;

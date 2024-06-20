@@ -33,7 +33,10 @@ class DRS7States : StateMachineBuilder
         RendingBolt(id + 0x30000, 2.8f);
         LabyrinthineFateDevastatingBoltRendingBoltFatefulWords(id + 0x40000, 7.3f);
         RendingBoltDevastatingBolt(id + 0x50000, 4.6f);
-        // TODO: repeat?
+        LabyrinthineFateDevastatingBoltRendingBoltFatefulWords(id + 0x60000, 7.3f);
+        RendingBoltDevastatingBolt(id + 0x70000, 4.6f);
+        LabyrinthineFateDevastatingBoltRendingBoltFatefulWords(id + 0x80000, 7.3f);
+        RendingBoltDevastatingBolt(id + 0x90000, 4.6f);
         SimpleState(id + 0xFF0000, 100, "???");
     }
 

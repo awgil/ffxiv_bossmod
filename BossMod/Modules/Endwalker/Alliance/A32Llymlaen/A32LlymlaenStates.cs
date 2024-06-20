@@ -30,7 +30,10 @@ class A32LlymlaenStates : StateMachineBuilder
         WindRoseSeafoamSpiral(id + 0x120000, 11.3f);
         StormySeas(id + 0x130000, 2.9f);
         LeftRightStrait(id + 0x140000, 0.3f);
-
+        Tempest(id + 0x150000, 6.2f);
+        NavigatorsTridentAdds(id + 0x160000, 11.5f);
+        WindRoseSeafoamSpiral(id + 0x170000, 5);
+        SurgingWaveToTheLast(id + 0x180000, 2.1f);
         SimpleState(id + 0xFF0000, 10, "???");
     }
 
