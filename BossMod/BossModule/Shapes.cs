@@ -87,11 +87,11 @@ public record class PolygonCustom(IEnumerable<WPos> Vertices) : Shape
         return isConvex;
     }
 
-    private bool IsCounterClockwise()
+    private bool IsClockwise()
     {
-        var hash = ComputeHash() + "IsCounterClockwise";
-        if (propertyCache.TryGetValue(hash, out var isCounterClockwise))
-            return isCounterClockwise;
+        var hash = ComputeHash() + "IsClockwise";
+        if (propertyCache.TryGetValue(hash, out var isClockwise))
+            return isClockwise;
 
         var vertices = Vertices.ToList();
         float area = 0;
@@ -101,12 +101,12 @@ public record class PolygonCustom(IEnumerable<WPos> Vertices) : Shape
             var p1 = vertices[(i + 1) % vertices.Count];
             area += (p1.X - p0.X) * (p1.Z + p0.Z);
         }
-        isCounterClockwise = area > 0;
-        propertyCache[hash] = isCounterClockwise;
-        return isCounterClockwise;
+        isClockwise = area < 0;
+        propertyCache[hash] = isClockwise;
+        return isClockwise;
     }
 
-    public override Func<WPos, float> Distance() => IsConvex() ? ShapeDistance.ConvexPolygon(Vertices, !IsCounterClockwise()) : ShapeDistance.ConcavePolygon(Vertices);
+    public override Func<WPos, float> Distance() => IsConvex() ? ShapeDistance.ConvexPolygon(Vertices, IsClockwise()) : ShapeDistance.ConcavePolygon(Vertices);
 
     public override string ComputeHash()
     {

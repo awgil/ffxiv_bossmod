@@ -163,10 +163,11 @@ public sealed record class AOEShapeCustom(IEnumerable<Shape> UnionShapes, IEnume
     private static readonly Dictionary<(string, bool), RelSimplifiedComplexPolygon> _polygonCache = [];
     private readonly Dictionary<(string, WPos, WPos, Angle, bool), bool> _checkCache = [];
     private static readonly Dictionary<(string, WPos, Angle, bool), Func<WPos, float>> _distanceFuncCache = [];
+    private readonly string sha512key = CreateCacheKey(UnionShapes, DifferenceShapes ?? []);
 
     private RelSimplifiedComplexPolygon GetCombinedPolygon(WPos origin)
     {
-        var cacheKey = (CreateCacheKey(UnionShapes, DifferenceShapes ?? []), InvertForbiddenZone);
+        var cacheKey = (sha512key, InvertForbiddenZone);
         if (_polygonCache.TryGetValue(cacheKey, out var cachedResult))
             return cachedResult;
 
@@ -180,14 +181,13 @@ public sealed record class AOEShapeCustom(IEnumerable<Shape> UnionShapes, IEnume
 
         var clipper = new PolygonClipper();
         var finalResult = clipper.Difference(unionOperands, differenceOperands);
-
         _polygonCache[cacheKey] = finalResult;
         return finalResult;
     }
 
     public override bool Check(WPos position, WPos origin, Angle rotation)
     {
-        var cacheKey = (CreateCacheKey(UnionShapes, DifferenceShapes ?? []), position, origin, rotation, InvertForbiddenZone);
+        var cacheKey = (sha512key, position, origin, rotation, InvertForbiddenZone);
         if (_checkCache.TryGetValue(cacheKey, out var cachedResult))
             return cachedResult;
         var combinedPolygon = GetCombinedPolygon(origin);
@@ -205,7 +205,7 @@ public sealed record class AOEShapeCustom(IEnumerable<Shape> UnionShapes, IEnume
         return Shape.ComputeSHA512(combinedKey);
     }
 
-    public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.ZoneRelPoly(CreateCacheKey(UnionShapes, DifferenceShapes ?? []), GetCombinedPolygon(origin), color);
+    public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.ZoneRelPoly(sha512key, GetCombinedPolygon(origin), color);
 
     public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger)
     {
@@ -239,27 +239,11 @@ public sealed record class AOEShapeCustom(IEnumerable<Shape> UnionShapes, IEnume
 
     public override Func<WPos, float> Distance(WPos origin, Angle rotation)
     {
-        // TODO: Distance maps should probably be cloned instead of being saved in a dictionary
-        var cacheKey = (CreateCacheKey(UnionShapes, DifferenceShapes ?? []), origin, rotation, InvertForbiddenZone);
+        var cacheKey = (sha512key, origin, rotation, InvertForbiddenZone);
         if (_distanceFuncCache.TryGetValue(cacheKey, out var cachedFunc))
             return cachedFunc;
-        var unionDistanceFuncs = UnionShapes.Select(shape => shape.Distance()).ToList();
-        var differenceDistanceFuncs = (DifferenceShapes ?? []).Select(shape => shape.Distance()).ToList();
-
-        float combinedDistanceFunc(WPos p)
-        {
-            var minUnionDist = unionDistanceFuncs.Min(func => func(p));
-            var maxDifferenceDist = differenceDistanceFuncs.Count != 0 ? differenceDistanceFuncs.Max(func => -func(p)) : float.MinValue;
-            return Math.Max(minUnionDist, maxDifferenceDist);
-        }
-
-        float finalFunc(WPos p)
-        {
-            var result = combinedDistanceFunc(p);
-            return InvertForbiddenZone ? -result : result;
-        }
-
-        _distanceFuncCache[cacheKey] = finalFunc;
-        return finalFunc;
+        var result = InvertForbiddenZone ? ShapeDistance.InvertedPolygonWithHoles(origin, GetCombinedPolygon(origin)) : ShapeDistance.PolygonWithHoles(origin, GetCombinedPolygon(origin));
+        _distanceFuncCache[cacheKey] = result;
+        return result;
     }
 }

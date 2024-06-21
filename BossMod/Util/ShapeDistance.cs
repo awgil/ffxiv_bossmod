@@ -2,8 +2,23 @@
 
 // shapes can be defined by distance from point to shape's border; distance is positive for points outside shape and negative for points inside shape
 // union is min, intersection is max
+
 public static class ShapeDistance
 {
+    // for concave polygons this seems to provide a big speed up (seen 10x uplift), for others not so much or even detrimental. not sure why.
+    public static Func<WPos, float> CacheFunction(Func<WPos, float> func)
+    {
+        var cache = new ConcurrentDictionary<WPos, float>();
+        return p =>
+        {
+            if (cache.TryGetValue(p, out var cachedValue))
+                return cachedValue;
+            var result = func(p);
+            cache[p] = result;
+            return result;
+        };
+    }
+
     public static Func<WPos, float> HalfPlane(WPos point, WDir normal) => p => normal.Dot(p - point);
 
     public static Func<WPos, float> Circle(WPos origin, float radius) => radius <= 0 ? (_ => float.MaxValue) : (p => (p - origin).Length() - radius);
@@ -191,75 +206,70 @@ public static class ShapeDistance
         Func<WPos, float> edge((WPos p1, WPos p2) e)
         {
             if (e.p1 == e.p2)
-                return _ => float.MinValue;
+                return CacheFunction(_ => float.MinValue);
             var dir = (e.p2 - e.p1).Normalized();
             var normal = cw ? dir.OrthoL() : dir.OrthoR();
-            return p => normal.Dot(p - e.p1);
+            return CacheFunction(p => normal.Dot(p - e.p1));
         }
-        return Intersection([.. edges.Select(edge)], offset);
+        return CacheFunction(Intersection([.. edges.Select(edge)], offset));
     }
+
     public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0) => ConvexPolygon(PolygonUtil.EnumerateEdges(vertices), cw, offset);
 
     public static Func<WPos, float> InvertedConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0)
     {
-        var convexpolygon = ConvexPolygon(vertices, cw, offset);
-        return p => -convexpolygon(p);
+        var convexPolygon = ConvexPolygon(vertices, cw, offset);
+        return p => -convexPolygon(p);
     }
 
     public static Func<WPos, float> ConcavePolygon(IEnumerable<WPos> vertices)
     {
         var edges = PolygonUtil.EnumerateEdges(vertices).ToList();
-        return p =>
+        return CacheFunction(p =>
         {
-            var isInside = IsPointInsideConcavePolygon(p, vertices);
-            var minDistance = edges.Min(e => DistanceToEdge(p, e));
+            var isInside = PolygonUtil.IsPointInsideConcavePolygon(p, vertices);
+            var minDistance = edges.Min(e => PolygonUtil.DistanceToEdge(p, e));
             return isInside ? -minDistance : minDistance;
-        };
+        });
     }
 
-    private static bool IsPointInsideConcavePolygon(WPos point, IEnumerable<WPos> vertices)
+    public static Func<WPos, float> InvertedConcavePolygon(IEnumerable<WPos> vertices)
     {
-        var intersections = 0;
-        var verticesList = vertices.ToList();
-        for (var i = 0; i < verticesList.Count; i++)
+        var concavePolygon = ConcavePolygon(vertices);
+        return p => -concavePolygon(p);
+    }
+
+    public static Func<WPos, float> PolygonWithHoles(WPos origin, RelSimplifiedComplexPolygon polygon)
+    {
+        float distanceFunc(WPos p)
         {
-            var a = verticesList[i];
-            var b = verticesList[(i + 1) % verticesList.Count];
-            if (RayIntersectsEdge(point, a, b))
+            var localPoint = new WDir(p.X - origin.X, p.Z - origin.Z);
+            var isInside = polygon.Contains(localPoint);
+            var minDistance = polygon.Parts.SelectMany(part => part.ExteriorEdges)
+                .Min(edge => PolygonUtil.DistanceToEdge(p, PolygonUtil.ConvertToWPos(origin, edge)));
+
+            Parallel.ForEach(polygon.Parts, part =>
             {
-                intersections++;
-            }
+                Parallel.ForEach(part.Holes, holeIndex =>
+                {
+                    var holeMinDistance = part.InteriorEdges(holeIndex)
+                        .Min(edge => PolygonUtil.DistanceToEdge(p, PolygonUtil.ConvertToWPos(origin, edge)));
+                    lock (polygon)
+                        minDistance = Math.Min(minDistance, holeMinDistance);
+                });
+            });
+            return isInside ? -minDistance : minDistance;
         }
-        return intersections % 2 != 0;
+        return CacheFunction(distanceFunc);
     }
 
-    private static bool RayIntersectsEdge(WPos point, WPos a, WPos b)
+    public static Func<WPos, float> InvertedPolygonWithHoles(WPos origin, RelSimplifiedComplexPolygon polygon)
     {
-        if (a.Z > b.Z)
-            (b, a) = (a, b);
-        if (point.Z == a.Z || point.Z == b.Z)
-            point = new WPos(point.X, point.Z + 0.0001f);
-        if (point.Z > b.Z || point.Z < a.Z || point.X >= Math.Max(a.X, b.X))
-            return false;
-        if (point.X < Math.Min(a.X, b.X))
-            return true;
-        var red = (point.Z - a.Z) / (b.Z - a.Z);
-        var blue = (b.X - a.X) * red + a.X;
-        return point.X < blue;
-    }
-
-    private static float DistanceToEdge(WPos point, (WPos p1, WPos p2) edge)
-    {
-        var (p1, p2) = edge;
-        var edgeVector = p2 - p1;
-        var pointVector = point - p1;
-        var edgeLengthSquared = edgeVector.LengthSq();
-
-        var t = Math.Max(0, Math.Min(1, pointVector.Dot(edgeVector) / edgeLengthSquared));
-        var projection = p1 + t * edgeVector;
-        return (point - projection).Length();
+        var polygonWithHoles = PolygonWithHoles(origin, polygon);
+        return p => -polygonWithHoles(p);
     }
 
     private static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Max(e => e(p)) - offset;
     private static Func<WPos, float> Union(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Min(e => e(p)) - offset;
+
 }
