@@ -26,7 +26,6 @@
 
 //    public static readonly Dictionary<Class, ClassData> Classes = new()
 //    {
-//        [Class.WAR] = DefineWAR(),
 //        [Class.PLD] = DefinePLD(),
 //        [Class.WHM] = DefineWHM(),
 //        [Class.SCH] = DefineSCH(),
@@ -39,32 +38,6 @@
 //        [Class.GNB] = DefineGNB(),
 //        [Class.SAM] = DefineSAM()
 //    };
-
-//    private static ClassData DefineWAR()
-//    {
-//        var c = new ClassData(typeof(WAR.AID));
-//        c.CooldownTracks.Add(new("Veng", ActionID.MakeSpell(WAR.AID.Vengeance), 38));
-//        c.CooldownTracks.Add(new("Rampart", ActionID.MakeSpell(WAR.AID.Rampart), 8));
-//        c.CooldownTracks.Add(new("Thrill", ActionID.MakeSpell(WAR.AID.ThrillOfBattle), 30));
-//        c.CooldownTracks.Add(new("Holmgang", ActionID.MakeSpell(WAR.AID.Holmgang), 42));
-//        c.CooldownTracks.Add(new("BW", new[] { (ActionID.MakeSpell(WAR.AID.Bloodwhetting), 82), (ActionID.MakeSpell(WAR.AID.RawIntuition), 56), (ActionID.MakeSpell(WAR.AID.NascentFlash), 76) }));
-//        c.CooldownTracks.Add(new("Equi", ActionID.MakeSpell(WAR.AID.Equilibrium), 58));
-//        c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(WAR.AID.ArmsLength), 32));
-//        c.CooldownTracks.Add(new("Reprisal", ActionID.MakeSpell(WAR.AID.Reprisal), 22));
-//        c.CooldownTracks.Add(new("SIO", ActionID.MakeSpell(WAR.AID.ShakeItOff), 68));
-//        c.CooldownTracks.Add(new("Taunt", ActionID.MakeSpell(WAR.AID.Provoke), 15));
-//        c.CooldownTracks.Add(new("Shirk", ActionID.MakeSpell(WAR.AID.Shirk), 48));
-//        c.CooldownTracks.Add(new("Sprint", ActionDefinitions.IDSprint, 1));
-//        c.StrategyTracks.Add(new("Gauge", typeof(WAR.Rotation.Strategy.GaugeUse)));
-//        c.StrategyTracks.Add(new("Infuriate", typeof(WAR.Rotation.Strategy.InfuriateUse)));
-//        c.StrategyTracks.Add(new("Potion", typeof(WAR.Rotation.Strategy.PotionUse), 270));
-//        c.StrategyTracks.Add(new("IR", typeof(WAR.Rotation.Strategy.OffensiveAbilityUse)));
-//        c.StrategyTracks.Add(new("Upheaval", typeof(WAR.Rotation.Strategy.OffensiveAbilityUse)));
-//        c.StrategyTracks.Add(new("PR", typeof(WAR.Rotation.Strategy.OffensiveAbilityUse)));
-//        c.StrategyTracks.Add(new("Onslaught", typeof(WAR.Rotation.Strategy.OnslaughtUse)));
-//        c.StrategyTracks.Add(new("Special", typeof(WAR.Rotation.Strategy.SpecialAction)));
-//        return c;
-//    }
 
 //    private static ClassData DefinePLD()
 //    {
@@ -127,26 +100,6 @@
 //        c.StrategyTracks.Add(new("DK", typeof(MNK.Rotation.Strategy.DragonKickStrategy)));
 //        c.StrategyTracks.Add(new("SSS", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
 //        c.StrategyTracks.Add(new("Potion", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
-//        return c;
-//    }
-
-//    private static ClassData DefineBRD()
-//    {
-//        var c = new ClassData(typeof(BRD.AID));
-//        c.CooldownTracks.Add(new("Troub", ActionID.MakeSpell(BRD.AID.Troubadour), 62));
-//        c.CooldownTracks.Add(new("Minne", ActionID.MakeSpell(BRD.AID.NaturesMinne), 66));
-//        c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(BRD.AID.ArmsLength), 32));
-//        c.CooldownTracks.Add(new("Sprint", ActionDefinitions.IDSprint, 1));
-//        c.StrategyTracks.Add(new("Songs", typeof(BRD.Rotation.Strategy.SongUse)));
-//        c.StrategyTracks.Add(new("Potion", typeof(BRD.Rotation.Strategy.PotionUse), 270));
-//        c.StrategyTracks.Add(new("DOTs", typeof(BRD.Rotation.Strategy.DotUse)));
-//        c.StrategyTracks.Add(new("Apex", typeof(BRD.Rotation.Strategy.ApexArrowUse)));
-//        c.StrategyTracks.Add(new("Blast", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
-//        c.StrategyTracks.Add(new("RS", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
-//        c.StrategyTracks.Add(new("BL", typeof(BRD.Rotation.Strategy.BloodletterUse)));
-//        c.StrategyTracks.Add(new("EA", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
-//        c.StrategyTracks.Add(new("Barrage", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
-//        c.StrategyTracks.Add(new("SW", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
 //        return c;
 //    }
 

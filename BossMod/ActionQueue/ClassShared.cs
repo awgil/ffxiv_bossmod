@@ -128,9 +128,8 @@ public sealed class Definitions : IDisposable
         //d.Spell(AID.Feint)!.EffectDuration = 10;
         //d.Spell(AID.TrueNorth)!.EffectDuration = 10;
 
-        //d.Spell(AID.LegGraze)!.EffectDuration = 10;
-        //d.Spell(AID.FootGraze)!.EffectDuration = 10;
-        //d.Spell(AID.Peloton)!.EffectDuration = 30;
+        d.Spell(AID.Peloton)!.Condition = (_, player, _, _) => !player.InCombat;
+        d.Spell(AID.HeadGraze)!.Condition = (_, _, target, _) => target?.CastInfo?.Interruptible ?? false;
 
         //d.Spell(AID.Addle)!.EffectDuration = 10;
         //d.Spell(AID.Sleep)!.EffectDuration = 30;

@@ -25,7 +25,7 @@ public record class StrategyConfig(
 
     public string UIName => DisplayName.Length > 0 ? DisplayName : InternalName;
 
-    public StrategyOption AddOption<Index>(Index expectedIndex, string internalName, string displayName = "", float cooldown = 0, float effect = 0, ActionTargets supportedTargets = ActionTargets.None,
+    public StrategyConfig AddOption<Index>(Index expectedIndex, string internalName, string displayName = "", float cooldown = 0, float effect = 0, ActionTargets supportedTargets = ActionTargets.None,
         int minLevel = 1, int maxLevel = int.MaxValue, float defaultPriority = ActionQueue.Priority.Medium) where Index : Enum
     {
         var idx = (int)(object)expectedIndex;
@@ -33,7 +33,7 @@ public record class StrategyConfig(
             throw new ArgumentException($"Unexpected index type for {internalName}: expected {OptionEnum.FullName}, got {typeof(Index).FullName}");
         if (Options.Count != idx)
             throw new ArgumentException($"Unexpected index value for {internalName}: expected {expectedIndex} ({idx}), got {Options.Count}");
-        var option = new StrategyOption(internalName, displayName)
+        Options.Add(new(internalName, displayName)
         {
             Cooldown = cooldown,
             Effect = effect,
@@ -41,16 +41,15 @@ public record class StrategyConfig(
             MinLevel = minLevel,
             MaxLevel = maxLevel,
             DefaultPriority = defaultPriority,
-        };
-        Options.Add(option);
-        return option;
+        });
+        return this;
     }
 
-    public void AddAssociatedAction<AID>(AID aid) where AID : Enum => AssociatedActions.Add(ActionID.MakeSpell(aid));
-    public void AddAssociatedActions<AID>(params AID[] aids) where AID : Enum
+    public StrategyConfig AddAssociatedActions<AID>(params AID[] aids) where AID : Enum
     {
         foreach (var aid in aids)
-            AddAssociatedAction(aid);
+            AssociatedActions.Add(ActionID.MakeSpell(aid));
+        return this;
     }
 }
 

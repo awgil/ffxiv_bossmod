@@ -1,7 +1,4 @@
 autorotation v2:
-- actiondefinitions
--- sid generator
--- spell out shared cooldowns in comments instead of group?
 - resurrect legacy modules
 - positionals
 -- aihints
@@ -10,11 +7,10 @@ autorotation v2:
 - delete autorotationlegacy & cdplannerlegacy
 - search for `//namespace BossMod`
 post-wip:
-- cleanup
--- preset/plan editors should properly react to external changes
--- ipc for autorotation
--- rmm in replay analysis
 - worldstate: animlock, combo, gauge parser
+- preset/plan editors should properly react to external changes
+- ipc for autorotation
+- rmm in replay analysis
 - actiondefinitions
 -- action transforms?.. (combos, adjustment)
 -- adjusted casttime/cooldown/maxcharges/???
@@ -26,6 +22,7 @@ post-wip:
 - action history/queue visualization
 - proper gcd time calculations?
 - simulation in replay analysis
+- spell out shared cooldowns in actiondefinitions comments instead of group?
 
 general:
 - proper logging
@@ -40,6 +37,14 @@ general:
 - revise module categories - consider merging fates/hunts/quests/gold saucer?/pvp? into outdoor?/casual?
 - refactor pendingeffects
 - utility to inject custom ipcs to the stream for debugging?
+- better aoe targeting
+-- improve forbidden classification
+--- target absolutely forbidden to damage (eg tea doll, t01 blob, outdoor enemy that wasn't pulled yet)
+--- target is invulnerable, hitting it is a complete waste, won't advance combo/apply buffs/etc
+--- target is at 1hp, damage will be dealt but won't be logged, might be worth hitting for gauge or combo advance
+--- target can be damaged but it won't contribute to fight progress or log (various pointless adds)
+--- target is not a priority, but damaging it is a nice bonus (lower priority than max target)
+-- use that for targeting utils in aihints
 
 boss modules:
 - timers

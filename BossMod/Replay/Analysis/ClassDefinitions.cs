@@ -33,16 +33,29 @@ class ClassDefinitions
         public bool SeenDifferentCastAnimLocks;
         public Dictionary<int, List<Entry>> InstantByAnimLock = [];
         public Dictionary<int, List<Entry>> CastByAnimLock = [];
+        public HashSet<uint> AppliedStatusesToSource = [];
+        public HashSet<uint> AppliedStatusesToTarget = [];
 
         public bool Warning => !SeenInstant && !SeenCast;
         public bool Error => Definition == null || Row == null || SeenDifferentInstantAnimLocks || SeenDifferentCastAnimLocks || PotentiallyRemoved || ReplayOnly;
+    }
+
+    private class StatusData
+    {
+        public HashSet<ActionID> Actions = [];
+        public bool OnSource;
+        public bool OnTarget;
+
+        public string AppliedByString() => string.Join(", ", Actions.Select(aid => aid.Name()));
+        public string AppliedToString() => OnSource ? (OnTarget ? "self/target" : "self") : "target";
     }
 
     private record class ClassData(Class ID, Class Base)
     {
         public readonly List<ActionData> Actions = [];
         public readonly SortedDictionary<int, List<ActionData>> ByCDGroup = [];
-        public List<Lumina.Excel.GeneratedSheets.Trait> Traits = [];
+        public readonly List<Lumina.Excel.GeneratedSheets.Trait> Traits = [];
+        public readonly Dictionary<uint, StatusData> Statuses = [];
     }
 
     private readonly Dictionary<ActionID, ActionData> _actionData = [];
@@ -111,6 +124,15 @@ class ClassDefinitions
                     data.SeenDifferentInstantAnimLocks |= data.ExpectedInstantAnimLock != alock;
                     data.InstantByAnimLock.GetOrAdd(alock).Add(new(r, a));
                 }
+
+                foreach (var target in a.Targets)
+                {
+                    foreach (var eff in target.Effects.Where(eff => eff.Type is ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource && !eff.FromTarget))
+                    {
+                        var onTarget = eff.Type == ActionEffectType.ApplyStatusEffectTarget && target.Target != a.Source && !eff.AtSource;
+                        (onTarget ? data.AppliedStatusesToTarget : data.AppliedStatusesToSource).Add(eff.Value);
+                    }
+                }
             }
         }
 
@@ -148,7 +170,24 @@ class ClassDefinitions
         foreach (var (_, list) in _byCategory)
             list.SortBy(d => d.Row?.ClassJobLevel ?? 0);
         foreach (var (_, cd) in _classData)
+        {
             cd.Actions.SortBy(d => d.Row?.ClassJobLevel ?? 0);
+            foreach (var a in cd.Actions)
+            {
+                foreach (var s in a.AppliedStatusesToSource)
+                {
+                    var sd = cd.Statuses.GetOrAdd(s);
+                    sd.Actions.Add(a.ID);
+                    sd.OnSource = true;
+                }
+                foreach (var s in a.AppliedStatusesToTarget)
+                {
+                    var sd = cd.Statuses.GetOrAdd(s);
+                    sd.Actions.Add(a.ID);
+                    sd.OnTarget = true;
+                }
+            }
+        }
     }
 
     public void Draw(UITree tree)
@@ -262,6 +301,14 @@ class ClassDefinitions
             {
                 DrawEntries(tree, nl.Value);
             }
+            foreach (var ns in tree.Node("Statuses applied to self", na.AppliedStatusesToSource.Count == 0))
+            {
+                tree.LeafNodes(na.AppliedStatusesToSource, Utils.StatusString);
+            }
+            foreach (var ns in tree.Node("Statuses applied to target", na.AppliedStatusesToTarget.Count == 0))
+            {
+                tree.LeafNodes(na.AppliedStatusesToTarget, Utils.StatusString);
+            }
         }
     }
 
@@ -330,6 +377,11 @@ class ClassDefinitions
             ImGui.SetClipboardText(GenerateClassTraitID(cd));
         }
 
+        if (ImGui.MenuItem("Generate SID enum"))
+        {
+            ImGui.SetClipboardText(GenerateClassSID(cd));
+        }
+
         if (ImGui.MenuItem("Generate definitions constructor"))
         {
             ImGui.SetClipboardText(GenerateClassRegistration(cd));
@@ -344,6 +396,8 @@ class ClassDefinitions
         sb.Append(stub ? "// *** paste AID enum here ***\n" : GenerateClassAID(cd));
         sb.AppendLine();
         sb.Append(stub ? "// *** paste TraitID enum here ***\n" : GenerateClassTraitID(cd));
+        sb.AppendLine();
+        sb.Append(stub ? "// *** paste SID enum here ***\n" : GenerateClassSID(cd));
         sb.AppendLine();
         sb.AppendLine("public sealed class Definitions : IDisposable");
         sb.AppendLine("{");
@@ -375,6 +429,15 @@ class ClassDefinitions
         writer.Add("None", 0);
         foreach (var trait in cd.Traits)
             writer.Add(TraitIDName(cd.ID.ToString(), trait), trait.RowId, $"L{trait.Level}");
+        return writer.Result();
+    }
+
+    private string GenerateClassSID(ClassData cd)
+    {
+        var writer = new EnumWriter("SID");
+        writer.Add("None", 0);
+        foreach (var (sid, data) in cd.Statuses)
+            writer.Add(StatusIDName(cd.ID.ToString(), sid), sid, $"applied by {data.AppliedByString()} to {data.AppliedToString()}");
         return writer.Result();
     }
 
@@ -569,6 +632,7 @@ class ClassDefinitions
 
     private static string ActionIDName(string ns, ActionID aid) => Type.GetType($"BossMod.{ns}.AID")?.GetEnumName(aid.ID) ?? Utils.StringToIdentifier(aid.Name());
     private static string TraitIDName(string ns, Lumina.Excel.GeneratedSheets.Trait trait) => Type.GetType($"BossMod.{ns}.TraitID")?.GetEnumName(trait.RowId) ?? Utils.StringToIdentifier(trait.Name);
+    private static string StatusIDName(string ns, uint sid) => Type.GetType($"BossMod.{ns}.SID")?.GetEnumName(sid) ?? Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(sid)?.Name ?? $"Status{sid}");
 
     private static string AnimLockString(ActionData action)
     {

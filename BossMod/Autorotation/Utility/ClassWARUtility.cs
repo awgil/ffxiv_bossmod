@@ -16,12 +16,12 @@ public sealed class ClassWARUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Vengeance, "Vengeance", "", 550, WAR.AID.Vengeance, 15);
         DefineSimpleConfig(res, Track.Holmgang, "Holmgang", "", 400, WAR.AID.Holmgang, 10);
 
-        var bw = res.Define(Track.Bloodwhetting).As<BWOption>("BW", uiPriority: 350);
-        bw.AddOption(BWOption.None, "None", "Do not use automatically");
-        bw.AddOption(BWOption.Bloodwhetting, "BW", "Use Bloodwhetting", 25, 4, ActionTargets.Self, 82); // note: secondary effect duration 8
-        bw.AddOption(BWOption.RawIntuition, "RI", "Use Raw Intuition", 25, 6, ActionTargets.Self, 56, 81);
-        bw.AddOption(BWOption.NascentFlash, "NF", "Use Nascent Flash", 25, 4, ActionTargets.Party, 76); // note: secondary effect duration 8
-        bw.AddAssociatedActions(WAR.AID.Bloodwhetting, WAR.AID.RawIntuition, WAR.AID.NascentFlash);
+        res.Define(Track.Bloodwhetting).As<BWOption>("BW", uiPriority: 350)
+            .AddOption(BWOption.None, "None", "Do not use automatically")
+            .AddOption(BWOption.Bloodwhetting, "BW", "Use Bloodwhetting", 25, 4, ActionTargets.Self, 82) // note: secondary effect duration 8
+            .AddOption(BWOption.RawIntuition, "RI", "Use Raw Intuition", 25, 6, ActionTargets.Self, 56, 81)
+            .AddOption(BWOption.NascentFlash, "NF", "Use Nascent Flash", 25, 4, ActionTargets.Party, 76) // note: secondary effect duration 8
+            .AddAssociatedActions(WAR.AID.Bloodwhetting, WAR.AID.RawIntuition, WAR.AID.NascentFlash);
 
         DefineSimpleConfig(res, Track.Equilibrium, "Equilibrium", "", 320, WAR.AID.Equilibrium); // note: secondary effect (hot) duration 6
         DefineSimpleConfig(res, Track.ShakeItOff, "ShakeItOff", "SIO", 220, WAR.AID.ShakeItOff, 30); // note: secondary effect duration 15

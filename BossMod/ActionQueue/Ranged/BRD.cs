@@ -69,6 +69,30 @@ public enum TraitID : uint
     MinstrelsCoda = 448, // L90, radiant finale mechanics
 }
 
+public enum SID : uint
+{
+    None = 0,
+    StraightShotReady = 122, // applied by Barrage, Iron Jaws, Caustic Bite, Stormbite, Burst Shot to self
+    VenomousBite = 124, // applied by Venomous Bite, dot
+    Windbite = 129, // applied by Windbite, dot
+    CausticBite = 1200, // applied by Caustic Bite, Iron Jaws to target, dot
+    Stormbite = 1201, // applied by Stormbite, Iron Jaws to target, dot
+    RagingStrikes = 125, // applied by Raging Strikes to self, damage buff
+    Barrage = 128, // applied by Barrage to self
+    Peloton = 1199, // applied by Peloton to self/target
+    ShadowbiteReady = 3002, // applied by Ladonsbite to self
+    NaturesMinne = 1202, // applied by Nature's Minne to self
+    WardensPaean = 866, // applied by the Warden's Paean to self
+    BattleVoice = 141, // applied by Battle Voice to self
+    Troubadour = 1934, // applied by Troubadour to self
+    ArmsLength = 1209, // applied by Arm's Length to self
+    Bind = 13, // applied by Foot Graze to target
+    BlastArrowReady = 2692, // applied by Apex Arrow to self
+    RadiantFinale = 2964, // applied by Radiant Finale to self. damage up
+    RadiantFinaleVisual = 2722, // applied by Radiant Finale to self, visual effect
+    ArmysMuse = 1932, // applied when leaving army's paeon
+}
+
 public sealed class Definitions : IDisposable
 {
     public Definitions(ActionDefinitions d)
@@ -112,13 +136,15 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        //d.Spell(AID.RagingStrikes)!.EffectDuration = 20;
-        //d.Spell(AID.MagesBallad)!.EffectDuration = 45;
-        //d.Spell(AID.ArmysPaeon)!.EffectDuration = 45;
-        //d.Spell(AID.WanderersMinuet)!.EffectDuration = 45;
-        //d.Spell(AID.BattleVoice)!.EffectDuration = 15;
-        //d.Spell(AID.RadiantFinale)!.EffectDuration = 15;
-        //d.Spell(AID.Troubadour)!.EffectDuration = 15;
-        //d.Spell(AID.NaturesMinne)!.EffectDuration = 15;
+        // smart targets
+        d.Spell(AID.WardensPaean)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
+
+        // upgrades/button replacement (TODO: don't think we actually care...)
+        //d.Spell(AID.HeavyShot)!.TransformAction = d.Spell(AID.BurstShot)!.TransformAction = () => ActionID.MakeSpell(_state.BestBurstShot);
+        //d.Spell(AID.StraightShot)!.TransformAction = d.Spell(AID.RefulgentArrow)!.TransformAction = () => ActionID.MakeSpell(_state.BestRefulgentArrow);
+        //d.Spell(AID.VenomousBite)!.TransformAction = d.Spell(AID.CausticBite)!.TransformAction = () => ActionID.MakeSpell(_state.BestCausticBite);
+        //d.Spell(AID.Windbite)!.TransformAction = d.Spell(AID.Stormbite)!.TransformAction = () => ActionID.MakeSpell(_state.BestStormbite);
+        //d.Spell(AID.QuickNock)!.TransformAction = d.Spell(AID.Ladonsbite)!.TransformAction = () => ActionID.MakeSpell(_state.BestLadonsbite);
+        //d.Spell(AID.WanderersMinuet)!.TransformAction = d.Spell(AID.PitchPerfect)!.TransformAction = () => ActionID.MakeSpell(_state.ActiveSong == Rotation.Song.WanderersMinuet ? AID.PitchPerfect : AID.WanderersMinuet);
     }
 }

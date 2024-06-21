@@ -140,7 +140,12 @@ public sealed class ActionDefinitions : IDisposable
     public static Actor? SmartTargetFriendly(Actor? primaryTarget) => (primaryTarget?.IsAlly ?? false) ? primaryTarget : null;
 
     // smart targeting utility: return target (if friendly) or other tank (if available) or null (otherwise)
-    public static Actor? SmartTargetCoTank(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? ws.Party.WithoutSlot().Exclude(player).FirstOrDefault(a => a.Role == Role.Tank);
+    public static Actor? FindCoTank(WorldState ws, Actor player) => ws.Party.WithoutSlot().Exclude(player).FirstOrDefault(a => a.Role == Role.Tank);
+    public static Actor? SmartTargetCoTank(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? FindCoTank(ws, player);
+
+    // smart targeting utility: return target (if friendly) or any esunable player (if any) or self (otherwise)
+    public static Actor? FindEsunaTarget(WorldState ws) => ws.Party.WithoutSlot().FirstOrDefault(p => p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)));
+    public static Actor? SmartTargetEsunable(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? FindEsunaTarget(ws) ?? player;
 
     // see ActionManager.GetSpellIdForAction
     public uint ActionSpellId(ActionID aid) => aid.Type switch

@@ -49,11 +49,9 @@
 //        {
 //            classType = player.Class switch
 //            {
-//                Class.WAR => typeof(WAR.Actions),
 //                //Class.PLD => player.Level <= 60 ? typeof(PLD.Actions) : null,
 //                //Class.MNK => typeof(MNK.Actions),
 //                //Class.DRG => typeof(DRG.Actions),
-//                //Class.BRD => typeof(BRD.Actions),
 //                //Class.BLM => player.Level <= 60 ? typeof(BLM.Actions) : null,
 //                //Class.SMN => player.Level <= 30 ? typeof(SMN.Actions) : null,
 //                //Class.WHM => typeof(WHM.Actions),
