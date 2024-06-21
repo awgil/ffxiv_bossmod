@@ -50,12 +50,6 @@ public static partial class Utils
     public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Character.Character* CharacterInternal(Character? chr) => chr != null ? (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)chr.Address : null;
     public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* BattleCharaInternal(BattleChara? chara) => chara != null ? (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)chara.Address : null;
 
-    public static unsafe ulong MouseoverID()
-    {
-        var pronoun = FFXIVClientStructs.FFXIV.Client.UI.Misc.PronounModule.Instance();
-        return pronoun != null && pronoun->UiMouseOverTarget != null ? pronoun->UiMouseOverTarget->EntityId : 0;
-    }
-
     public static unsafe ulong SceneObjectFlags(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o) => ReadField<ulong>(o, 0x38);
 
     // backport from .net 6, except that it doesn't throw on empty enumerable...

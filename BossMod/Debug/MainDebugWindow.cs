@@ -220,7 +220,8 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot) : UIWindow("
         DrawTarget("GPose target", ts->GPoseTarget, selfPos, angle);
         DrawTarget("Mouseover", ts->MouseOverTarget, selfPos, angle);
         DrawTarget("Focus", ts->FocusTarget, selfPos, angle);
-        ImGui.TextUnformatted($"UI Mouseover: {Utils.ObjectString(Utils.MouseoverID())}");
+        var mouseover = FFXIVClientStructs.FFXIV.Client.UI.Misc.PronounModule.Instance()->UiMouseOverTarget;
+        ImGui.TextUnformatted($"UI Mouseover: {Utils.ObjectString(mouseover != null ? mouseover->EntityId : 0)}");
 
         if (ImGui.Button("Target closest enemy"))
         {

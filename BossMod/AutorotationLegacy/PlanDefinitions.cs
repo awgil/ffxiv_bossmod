@@ -2,40 +2,16 @@
 
 //public static class PlanDefinitions
 //{
-//    public class CooldownTrack(string name, (ActionID aid, int minLevel)[] actions)
-//    {
-//        public string Name = name;
-//        public (ActionID aid, int minLevel)[] Actions = actions;
-
-//        public CooldownTrack(string name, ActionID aid, int minLevel) : this(name, [(aid, minLevel)]) { }
-//    }
-
-//    public class StrategyTrack(string name, Type? values = null, float cooldown = 0)
-//    {
-//        public string Name = name;
-//        public Type? Values = values;
-//        public float Cooldown = cooldown;
-//    }
-
-//    public class ClassData(Type aidType)
-//    {
-//        public Type AIDType = aidType;
-//        public List<CooldownTrack> CooldownTracks = [];
-//        public List<StrategyTrack> StrategyTracks = [];
-//    }
-
 //    public static readonly Dictionary<Class, ClassData> Classes = new()
 //    {
 //        [Class.PLD] = DefinePLD(),
-//        [Class.WHM] = DefineWHM(),
-//        [Class.SCH] = DefineSCH(),
+//        [Class.GNB] = DefineGNB(),
+
+//        [Class.DNC] = DefineDNC(),
+
 //        [Class.DRG] = DefineDRG(),
 //        [Class.MNK] = DefineMNK(),
-//        [Class.BRD] = DefineBRD(),
-//        [Class.DNC] = DefineDNC(),
-//        [Class.BLM] = DefineBLM(),
 //        [Class.RPR] = DefineRPR(),
-//        [Class.GNB] = DefineGNB(),
 //        [Class.SAM] = DefineSAM()
 //    };
 
@@ -48,18 +24,6 @@
 //        c.CooldownTracks.Add(new("Sheltron", ActionID.MakeSpell(PLD.AID.Sheltron), 35));
 //        c.CooldownTracks.Add(new("ArmsLength", ActionID.MakeSpell(PLD.AID.ArmsLength), 32));
 //        c.CooldownTracks.Add(new("Reprisal", ActionID.MakeSpell(PLD.AID.Reprisal), 22));
-//        return c;
-//    }
-
-//    private static ClassData DefineWHM()
-//    {
-//        var c = new ClassData(typeof(WHM.AID));
-//        return c;
-//    }
-
-//    private static ClassData DefineSCH()
-//    {
-//        var c = new ClassData(typeof(SCH.AID));
 //        return c;
 //    }
 
@@ -115,12 +79,6 @@
 //        c.StrategyTracks.Add(new("Feather", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
 //        c.StrategyTracks.Add(new("TechStep", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
 //        c.StrategyTracks.Add(new("StdStep", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
-//        return c;
-//    }
-
-//    private static ClassData DefineBLM()
-//    {
-//        var c = new ClassData(typeof(BLM.AID));
 //        return c;
 //    }
 

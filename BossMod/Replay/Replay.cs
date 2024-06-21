@@ -8,6 +8,7 @@ public sealed class Replay
 
         public override readonly string ToString() => $"{Duration:f2}";
         public readonly bool Contains(DateTime t) => t >= Start && t <= End;
+        public readonly TimeSpan Distance(DateTime t) => t < Start ? Start - t : t > End ? t - End : default;
     }
 
     // note: if target is non-null, Location corresponds to target's position at cast start

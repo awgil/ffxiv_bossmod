@@ -9,8 +9,10 @@ sealed class IPCList(Replay replay, IEnumerable<WorldState.Operation> ops, Actio
     {
         protected override string DecodeActor(ulong instanceID)
         {
-            var p = replay.FindParticipant(instanceID, Now);
-            return p != null || instanceID == 0 ? ReplayUtils.ParticipantPosRotString(p, Now) : $"<unknown> {instanceID:X}";
+            // note that actors can be created with a few frames delay after packets arrive
+            var p = replay.Participants.Where(p => p.InstanceID == instanceID).MinBy(p => p.EffectiveExistence.Distance(Now));
+            var adjNow = p == null ? Now : Now < p.EffectiveExistence.Start ? p.EffectiveExistence.Start : Now > p.EffectiveExistence.End ? p.EffectiveExistence.End : Now;
+            return p != null || instanceID == 0 ? ReplayUtils.ParticipantPosRotString(p, adjNow) : $"<unknown> {instanceID:X}";
         }
     }
 

@@ -8,13 +8,12 @@ autorotation v2:
 - search for `//namespace BossMod`
 post-wip:
 - worldstate: animlock, combo, gauge parser
+- rmm in replay analysis
 - preset/plan editors should properly react to external changes
 - ipc for autorotation
-- rmm in replay analysis
 - actiondefinitions
 -- action transforms?.. (combos, adjustment)
 -- adjusted casttime/cooldown/maxcharges/???
--- compare defs vs actual state in analysis
 - ai features
 -- legacy ai rotation modules (auto stance, interrupt, taunt, etc)
 -- target selection should be part of a module/preset
