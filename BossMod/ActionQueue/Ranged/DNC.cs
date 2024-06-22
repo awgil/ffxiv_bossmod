@@ -161,9 +161,9 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        //d.Spell(AID.StandardStep)!.EffectDuration = 15;
-        //d.Spell(AID.ShieldSamba)!.EffectDuration = 15;
-        //d.Spell(AID.Flourish)!.EffectDuration = 30;
-        //d.Spell(AID.ImprovisedFinish)!.EffectDuration = 60;
+        // upgrades/button replacement (TODO: don't think we actually care...)
+        //d.Spell(AID.StandardStep)!.TransformAction = () => ActionID.MakeSpell(_state.BestStandardStep);
+        //d.Spell(AID.TechnicalStep)!.TransformAction = () => ActionID.MakeSpell(_state.BestTechStep);
+        //d.Spell(AID.Improvisation)!.TransformAction = () => ActionID.MakeSpell(_state.BestImprov);
     }
 }

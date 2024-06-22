@@ -6,8 +6,6 @@
 //    {
 //        [Class.PLD] = DefinePLD(),
 //        [Class.GNB] = DefineGNB(),
-
-//        [Class.DNC] = DefineDNC(),
 //    };
 
 //    private static ClassData DefinePLD()
@@ -19,21 +17,6 @@
 //        c.CooldownTracks.Add(new("Sheltron", ActionID.MakeSpell(PLD.AID.Sheltron), 35));
 //        c.CooldownTracks.Add(new("ArmsLength", ActionID.MakeSpell(PLD.AID.ArmsLength), 32));
 //        c.CooldownTracks.Add(new("Reprisal", ActionID.MakeSpell(PLD.AID.Reprisal), 22));
-//        return c;
-//    }
-
-//    private static ClassData DefineDNC()
-//    {
-//        var c = new ClassData(typeof(DNC.AID));
-//        c.CooldownTracks.Add(new("Samba", ActionID.MakeSpell(DNC.AID.ShieldSamba), 56));
-//        c.CooldownTracks.Add(new("Waltz", ActionID.MakeSpell(DNC.AID.CuringWaltz), 52));
-//        c.CooldownTracks.Add(new("Improv", ActionID.MakeSpell(DNC.AID.Improvisation), 80));
-//        c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(BRD.AID.ArmsLength), 32));
-//        c.CooldownTracks.Add(new("Sprint", ActionDefinitions.IDSprint, 1));
-//        c.StrategyTracks.Add(new("Gauge", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
-//        c.StrategyTracks.Add(new("Feather", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
-//        c.StrategyTracks.Add(new("TechStep", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
-//        c.StrategyTracks.Add(new("StdStep", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
 //        return c;
 //    }
 
