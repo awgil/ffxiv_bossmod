@@ -137,7 +137,8 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        //d.Spell(AID.ThirdEye)!.EffectDuration = 4;
-        //d.Spell(AID.MeikyoShisui)!.EffectDuration = 15;
+        // upgrades (TODO: don't think we actually care...)
+        //d.Spell(AID.Iaijutsu)!.TransformAction = () => ActionID.MakeSpell(_state.BestIai);
+        //d.Spell(AID.MeikyoShisui)!.Condition = _ => _state.MeikyoLeft == 0;
     }
 }
