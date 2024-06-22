@@ -19,8 +19,6 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
         DefineSimpleConfig(def, SharedTrack.Bloodbath, "Bloodbath", "", -50, ClassShared.AID.Bloodbath, 20);
         DefineSimpleConfig(def, SharedTrack.Feint, "Feint", "", 500, ClassShared.AID.Feint, 10);
         DefineSimpleConfig(def, SharedTrack.ArmsLength, "ArmsLength", "ArmsL", 300, ClassShared.AID.ArmsLength, 6); // note: secondary effect 15s
-        //DefineSimpleConfig(def, SharedTrack.TrueNorth, "TrueNorth", "TrueN", 100, ClassShared.AID.TrueNorth, 10);
-        //        c.StrategyTracks.Add(new("TrueN", typeof(DRG.Rotation.Strategy.TrueNorthUse)));
     }
 
     protected void ExecuteShared(StrategyValues strategy, ActionID lb3)
@@ -31,7 +29,6 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
         ExecuteSimple(strategy.Option(SharedTrack.Bloodbath), ClassShared.AID.Bloodbath, Player);
         ExecuteSimple(strategy.Option(SharedTrack.Feint), ClassShared.AID.Feint, null);
         ExecuteSimple(strategy.Option(SharedTrack.ArmsLength), ClassShared.AID.ArmsLength, Player);
-        //ExecuteSimple(strategy.Option(SharedTrack.TrueNorth), ClassShared.AID.TrueNorth, Player);
 
         var lb = LBLevelToExecute(strategy.Option(SharedTrack.LB).As<LBOption>());
         if (lb > 0)
