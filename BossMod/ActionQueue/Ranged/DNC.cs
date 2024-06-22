@@ -76,6 +76,36 @@ public enum TraitID : uint
     EnhancedDevilment = 457, // L90
 }
 
+// TODO: regenerate
+public enum SID : uint
+{
+    None = 0,
+    SilkenSymmetry = 2693, // applied by Cascade, Windmill to self
+    Heavy = 14, // applied by Leg Graze to target
+    Bind = 13, // applied by Foot Graze to target
+    ArmsLength = 1209, // applied by Arm's Length to self
+    TechnicalStep = 1819, // applied by Technical Step to self
+    FlourishingFinish = 2698, // applied by Quadruple Technical Finish, Single Technical Finish, Double Technical Finish, Triple Technical Finish, Technical Finish to self
+    TechnicalFinish = 1822, // applied by Quadruple Technical Finish, Single Technical Finish, Double Technical Finish, Triple Technical Finish to self
+    TechnicalEsprit = 1848, // applied by Quadruple Technical Finish, Double Technical Finish to self
+    StandardFinish = 1821, // applied by Tillana, Double Standard Finish, Single Standard Finish to self
+    StandardEsprit = 1847, // applied by Tillana, Double Standard Finish, Single Standard Finish to self
+    StandardStep = 1818, // applied by Standard Step to self
+    Improvisation = 1827, // applied by Improvisation to self
+    ImprovisedFinish = 2697, // applied by Improvised Finish to self
+    ShieldSamba = 1826, // applied by Shield Samba to self
+    Devilment = 1825, // applied by Devilment to self
+    FlourishingStarfall = 2700, // applied by Devilment to self
+    FlourishingSymmetry = 3017, // applied by Flourish to self
+    FlourishingFlow = 3018, // applied by Flourish to self
+    ThreefoldFanDance = 1820, // applied by Flourish, Fan Dance, Fan Dance II to self
+    FourfoldFanDance = 2699, // applied by Flourish to self
+    SilkenFlow = 2694, // applied by Fountain to self
+    Peloton = 1199, // applied by Peloton to self
+    DancePartner = 1824, // applied by Closed Position to target
+    ClosedPosition = 1823, // applied by Closed Position to self
+}
+
 public sealed class Definitions : IDisposable
 {
     public Definitions(ActionDefinitions d)

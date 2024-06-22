@@ -82,6 +82,19 @@ public enum TraitID : uint
     EnhancedDeploymentTactics = 494, // L88, reduce cd
 }
 
+// TODO: regenerate
+public enum SID : uint
+{
+    None = 0,
+    Bio1 = 179, // applied by Bio1 to target, dot
+    Bio2 = 189, // applied by Bio2 to target, dot
+    Biolysis = 0xFFFFFF, // TODO!
+    Galvanize = 297, // applied by Adloquium to target, shield
+    LucidDreaming = 1204, // applied by Lucid Dreaming to self
+    Swiftcast = 167, // applied by Swiftcast to self
+    Sleep = 3, // applied by Repose to target
+}
+
 public sealed class Definitions : IDisposable
 {
     public Definitions(ActionDefinitions d)

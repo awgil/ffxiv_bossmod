@@ -72,6 +72,30 @@ public enum TraitID : uint
     EnhancedDivineBenison = 490, // L88, second charge
 }
 
+// TODO: regenerate
+public enum SID : uint
+{
+    None = 0,
+    Aero1 = 143, // applied by Aero1 to target, dot
+    Aero2 = 144, // applied by Aero2 to target, dot
+    Dia = 1871, // applied by Dia to target, dot
+    Medica2 = 150, // applied by Medica2 to targets, hot
+    Freecure = 155, // applied by Cure1 to self, next cure2 is free
+    Swiftcast = 167, // applied by Swiftcast to self, next gcd is instant
+    ThinAir = 1217, // applied by Thin Air to self, next gcd costs no mp
+    LucidDreaming = 1204, // applied by Lucid Dreaming to self, mp regen
+    DivineBenison = 1218, // applied by Divine Benison to target, shield
+    Confession = 1219, // applied by Plenary Indulgence to self, heal buff
+    Temperance = 1872, // applied by Temperance to self, heal and mitigate buff
+    Surecast = 160, // applied by Surecast to self, knockback immune
+    PresenceOfMind = 157, // applied by Presence of Mind to self, damage buff
+    Regen = 158, // applied by Regen to target, hp regen
+    Asylum = 1911, // applied by Asylum to target, hp regen
+    Aquaveil = 2708, // applied by Aquaveil to target, mitigate
+    LiturgyOfTheBell = 2709, // applied by Liturgy of the Bell to target, heal on hit
+    Sleep = 3, // applied by Repose to target
+}
+
 public sealed class Definitions : IDisposable
 {
     public Definitions(ActionDefinitions d)

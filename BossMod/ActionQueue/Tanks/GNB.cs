@@ -66,6 +66,33 @@ public enum TraitID : uint
     CartridgeChargeII = 427, // L88
 }
 
+// TODO: regenerate
+public enum SID : uint
+{
+    None = 0,
+    BrutalShell = 1898, // applied by Brutal Shell to self
+    NoMercy = 1831, // applied by No Mercy to self
+    ReadyToRip = 1842, // applied by Gnashing Fang to self
+    SonicBreak = 1837, // applied by Sonic Break to target
+    BowShock = 1838, // applied by Bow Shock to target
+    ReadyToTear = 1843, // applied by Savage Claw to self
+    ReadyToGouge = 1844, // applied by Wicked Talon to self
+    ReadyToBlast = 2686, // applied by Burst Strike to self
+    Nebula = 1834, // applied by Nebula to self
+    Rampart = 1191, // applied by Rampart to self
+    Reprisal = 1193, // applied by Reprisal to target
+    Camouflage = 1832, // applied by Camouflage to self
+    ArmsLength = 1209, // applied by Arm's Length to self
+    HeartOfLight = 1839, // applied by Heart of Light to self
+    Aurora = 1835, // applied by Aurora to self
+    Superbolide = 1836, // applied by Superbolide to self
+    HeartOfCorundum = 2683, // applied by Heart of Corundum to self
+    ClarityOfCorundum = 2684, // applied by Heart of Corundum to self
+    CatharsisOfCorundum = 2685, // applied by Heart of Corundum to self
+    RoyalGuard = 1833, // applied by Royal Guard to self
+    Stun = 2, // applied by Low Blow to target
+}
+
 public sealed class Definitions : IDisposable
 {
     public Definitions(ActionDefinitions d)

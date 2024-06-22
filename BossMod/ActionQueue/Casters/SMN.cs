@@ -127,6 +127,16 @@ public enum TraitID : uint
     Enkindle2 = 481, // L90, summon upgrade
 }
 
+// TODO: regenerate
+public enum SID : uint
+{
+    None = 0,
+    Addle = 1203, // applied by Addle to target, -5% phys and -10% magic damage dealt
+    LucidDreaming = 1204, // applied by Lucid Dreaming to self, MP restore
+    Swiftcast = 167, // applied by Swiftcast to self, next cast is instant
+    Sleep = 3, // applied by Sleep to target
+}
+
 public sealed class Definitions : IDisposable
 {
     public Definitions(ActionDefinitions d)

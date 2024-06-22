@@ -73,6 +73,19 @@ public enum TraitID : uint
     EnhancedDivineVeil = 416, // L88, adds heal
 }
 
+// TODO: regenerate
+public enum SID : uint
+{
+    None = 0,
+    FightOrFlight = 76, // applied by Fight or Flight to self, +25% physical damage dealt buff
+    CircleOfScorn = 248, // applied by Circle of Scorn to target, dot
+    Rampart = 1191, // applied by Rampart to self, -20% damage taken
+    Reprisal = 1193, // applied by Reprisal to target
+    HallowedGround = 82, // applied by Hallowed Ground to self, immune
+    IronWill = 79, // applied by Iron Will to self, tank stance
+    Stun = 2, // applied by Low Blow, Shield Bash to target
+}
+
 public sealed class Definitions : IDisposable
 {
     public Definitions(ActionDefinitions d)

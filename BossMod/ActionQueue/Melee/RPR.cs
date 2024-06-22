@@ -66,6 +66,30 @@ public enum TraitID : uint
     EnhancedArcaneCircle = 387, // L88
 }
 
+// TODO: regenerate
+public enum SID : uint
+{
+    None = 0,
+    DeathsDesign = 2586,
+    SoulReaver = 2587,
+    ImmortalSacrifice = 2592,
+    ArcaneCircle = 2599,
+    EnhancedGibbet = 2588,
+    EnhancedGallows = 2589,
+    EnhancedVoidReaping = 2590,
+    EnhancedCrossReaping = 2591,
+    EnhancedHarpe = 2845,
+    Enshrouded = 2593,
+    Soulsow = 2594,
+    Threshold = 2595,
+    CircleofSacrifice = 2600,
+    BloodsownCircle = 2972,
+    TrueNorth = 1250,
+    Bloodbath = 84,
+    Feint = 1195,
+    Stun = 2,
+}
+
 public sealed class Definitions : IDisposable
 {
     public Definitions(ActionDefinitions d)
