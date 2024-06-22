@@ -17,6 +17,7 @@ public enum CDGroup : int
     Surecast = 48, // 120.0 max
 }
 
+// TODO: regenerate
 public enum SID : uint
 {
     None = 0,

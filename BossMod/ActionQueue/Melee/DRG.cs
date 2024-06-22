@@ -128,14 +128,6 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        // upgrades (TODO: don't think we actually care...)
-        //d.Spell(AID.FullThrust)!.TransformAction = d.Spell(AID.HeavensThrust)!.TransformAction = () => ActionID.MakeSpell(_state.BestHeavensThrust);
-        //d.Spell(AID.ChaosThrust)!.TransformAction = d.Spell(AID.ChaoticSpring)!.TransformAction = () => ActionID.MakeSpell(_state.BestChaoticSpring);
-        //d.Spell(AID.Jump)!.TransformAction = d.Spell(AID.HighJump)!.TransformAction = () => ActionID.MakeSpell(_state.BestJump);
-        //d.Spell(AID.TrueThrust)!.TransformAction = d.Spell(AID.RaidenThrust)!.TransformAction = () => ActionID.MakeSpell(_state.BestTrueThrust);
-        //d.Spell(AID.DoomSpike)!.TransformAction = d.Spell(AID.DraconianFury)!.TransformAction = () => ActionID.MakeSpell(_state.BestDoomSpike);
-        //d.Spell(AID.Geirskogul)!.TransformAction = d.Spell(AID.Nastrond)!.TransformAction = () => ActionID.MakeSpell(_state.BestGeirskogul);
-
         // smart targets
         d.Spell(AID.DragonSight)!.SmartTarget = SmartTargetDragonSight;
 
@@ -147,6 +139,14 @@ public sealed class Definitions : IDisposable
             DRGConfig.ElusiveJumpBehavior.CameraForward => (_, _, _, _) => Camera.Instance!.CameraAzimuth.Radians(),
             _ => null
         };
+
+        // upgrades (TODO: don't think we actually care...)
+        //d.Spell(AID.FullThrust)!.TransformAction = d.Spell(AID.HeavensThrust)!.TransformAction = () => ActionID.MakeSpell(_state.BestHeavensThrust);
+        //d.Spell(AID.ChaosThrust)!.TransformAction = d.Spell(AID.ChaoticSpring)!.TransformAction = () => ActionID.MakeSpell(_state.BestChaoticSpring);
+        //d.Spell(AID.Jump)!.TransformAction = d.Spell(AID.HighJump)!.TransformAction = () => ActionID.MakeSpell(_state.BestJump);
+        //d.Spell(AID.TrueThrust)!.TransformAction = d.Spell(AID.RaidenThrust)!.TransformAction = () => ActionID.MakeSpell(_state.BestTrueThrust);
+        //d.Spell(AID.DoomSpike)!.TransformAction = d.Spell(AID.DraconianFury)!.TransformAction = () => ActionID.MakeSpell(_state.BestDoomSpike);
+        //d.Spell(AID.Geirskogul)!.TransformAction = d.Spell(AID.Nastrond)!.TransformAction = () => ActionID.MakeSpell(_state.BestGeirskogul);
     }
 
     // smart targeting utility: return target (if friendly) or mouseover (if friendly) or other tank (if available) or null (otherwise)

@@ -20,6 +20,7 @@ public enum CDGroup : int
     Rescue = 49, // 120.0 max
 }
 
+// TODO: regenerate
 public enum SID : uint
 {
     None = 0,

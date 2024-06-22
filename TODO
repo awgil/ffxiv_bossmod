@@ -1,8 +1,7 @@
 autorotation v2:
 - resurrect legacy modules
 - delete/rework commonstate
-- delete autorotationlegacy & cdplannerlegacy
-- search for `//namespace BossMod`
+- delete autorotationlegacy dir
 post-wip:
 - worldstate: animlock, combo, gauge parser, camera
 - rmm in replay analysis

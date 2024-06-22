@@ -22,6 +22,7 @@ public enum CDGroup : int
     SecondWind = 49,
 }
 
+// TODO: regenerate
 public enum SID : uint
 {
     None = 0,

@@ -35,6 +35,7 @@ public enum CDGroup : int
     LimitBreak = 71, // special/fake (TODO: remove need for it?)
 }
 
+// TODO: regenerate
 public enum SID : uint
 {
     None = 0,

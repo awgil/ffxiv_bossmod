@@ -70,8 +70,37 @@ public enum TraitID : uint
     TornadoKickMastery = 513, // L90, tornado kick -> phantom rush upgrade
 }
 
+// TODO: regenerate
+public enum SID : uint
+{
+    None = 0,
+    OpoOpoForm = 107, // applied by Snap Punch to self
+    RaptorForm = 108, // applied by Bootshine, Arm of the Destroyer to self
+    CoeurlForm = 109, // applied by True Strike, Twin Snakes to self
+    RiddleOfFire = 1181, // applied by Riddle of Fire to self
+    RiddleOfWind = 2687, // applied by Riddle of Wind to self
+    LeadenFist = 1861, // applied by Dragon Kick to self
+    DisciplinedFist = 3001, // applied by Twin Snakes to self, damage buff
+    PerfectBalance = 110, // applied by Perfect Balance to self, ignore form requirements
+    Demolish = 246, // applied by Demolish to target, dot
+    Bloodbath = 84, // applied by Bloodbath to self, lifesteal
+    Feint = 1195, // applied by Feint to target, -10% phys and -5% magic damage dealt
+    Mantra = 102, // applied by Mantra to targets, +10% healing taken
+    TrueNorth = 1250, // applied by True North to self, ignore positionals
+    Stun = 2, // applied by Leg Sweep to target
+    FormlessFist = 2513, // applied by Form Shift to self
+    SixSidedStar = 2514, // applied by Six-Sided Star to self
+
+    LostFontofPower = 2346,
+    BannerHonoredSacrifice = 2327,
+    LostExcellence = 2564,
+    Memorable = 2565,
+}
+
 public sealed class Definitions : IDisposable
 {
+    private readonly MNKConfig _config = Service.Config.Get<MNKConfig>();
+
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.FinalHeaven, castAnimLock: 3.70f);
@@ -115,7 +144,16 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        //d.Spell(AID.Mantra)!.EffectDuration = 15;
-        //d.Spell(AID.RiddleOfEarth)!.EffectDuration = 10;
+        d.Spell(AID.Thunderclap)!.Condition = (_, player, target, _) => !_config.PreventCloseDash || (target?.Position.InCircle(player.Position, 3) ?? false);
+
+        // upgrades (TODO: don't think we actually care...)
+        //d.Spell(AID.SteelPeak)!.TransformAction = d.Spell(AID.ForbiddenChakra)!.TransformAction = () => ActionID.MakeSpell(_state.BestForbiddenChakra);
+        //d.Spell(AID.HowlingFist)!.TransformAction = d.Spell(AID.Enlightenment)!.TransformAction = () => ActionID.MakeSpell(_state.BestEnlightenment);
+        //d.Spell(AID.Meditation)!.TransformAction = () => ActionID.MakeSpell(_state.Chakra == 5 ? _state.BestForbiddenChakra : AID.Meditation);
+        //d.Spell(AID.ArmOfTheDestroyer)!.TransformAction = d.Spell(AID.ShadowOfTheDestroyer)!.TransformAction = () => ActionID.MakeSpell(_state.BestShadowOfTheDestroyer);
+        //d.Spell(AID.MasterfulBlitz)!.TransformAction = () => ActionID.MakeSpell(_state.BestBlitz);
+        //d.Spell(AID.PerfectBalance)!.Condition = _ => _state.PerfectBalanceLeft == 0;
+        // combo replacement (TODO: don't think we actually care...)
+        //d.Spell(AID.FourPointFury)!.TransformAction = config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextComboAction(_state, _strategy)) : null;
     }
 }

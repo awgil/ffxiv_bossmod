@@ -29,6 +29,7 @@ public enum CDGroup : int
     PetEmbrace = 76, // 3.0 max, shared by Embrace, Seraphic Veil
 }
 
+// TODO: regenerate
 public enum SID : uint
 {
     None = 0,
