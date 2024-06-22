@@ -95,6 +95,8 @@ public enum SID : uint
 
 public sealed class Definitions : IDisposable
 {
+    private readonly GNBConfig _config = Service.Config.Get<GNBConfig>();
+
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.GunmetalSoul, instantAnimLock: 3.86f);
@@ -139,12 +141,23 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        //d.Spell(AID.Camouflage)!.EffectDuration = 20;
-        //d.Spell(AID.Nebula)!.EffectDuration = 15;
-        //d.Spell(AID.Aurora)!.EffectDuration = 18;
-        //d.Spell(AID.Superbolide)!.EffectDuration = 10;
-        //d.Spell(AID.HeartOfLight)!.EffectDuration = 15;
-        //d.Spell(AID.HeartOfStone)!.EffectDuration = 4;
-        //d.Spell(AID.HeartOfCorundum)!.EffectDuration = 4;
+        d.Spell(AID.LightningShot)!.Condition = (ws, player, _, _) => !_config.ForbidEarlyLightningShot || player.InCombat || ws.Client.CountdownRemaining is null or <= 0.7f;
+        d.Spell(AID.Aurora)!.Condition = (_, player, _, _) => player.HPMP.CurHP < player.HPMP.MaxHP; // don't use equilibrium at full hp
+        d.Spell(AID.HeartOfCorundum)!.SmartTarget = d.Spell(AID.HeartOfStone)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
+
+        // upgrades (TODO: don't think we actually care...)
+        //d.Spell(AID.RoyalGuard)!.TransformAction = d.Spell(AID.ReleaseRoyalGuard)!.TransformAction = () => ActionID.MakeSpell(_state.HaveTankStance ? AID.ReleaseRoyalGuard : AID.RoyalGuard);
+        //d.Spell(AID.DangerZone)!.TransformAction = d.Spell(AID.BlastingZone)!.TransformAction = () => ActionID.MakeSpell(_state.BestZone);
+        //d.Spell(AID.HeartOfStone)!.TransformAction = d.Spell(AID.HeartOfCorundum)!.TransformAction = () => ActionID.MakeSpell(_state.BestHeart);
+        //d.Spell(AID.Continuation)!.TransformAction = d.Spell(AID.JugularRip)!.TransformAction = d.Spell(AID.AbdomenTear)!.TransformAction = d.Spell(AID.EyeGouge)!.TransformAction = d.Spell(AID.Hypervelocity)!.TransformAction = () => ActionID.MakeSpell(_state.BestContinuation);
+        //d.Spell(AID.GnashingFang)!.TransformAction = d.Spell(AID.SavageClaw)!.TransformAction = d.Spell(AID.WickedTalon)!.TransformAction = () => ActionID.MakeSpell(_state.BestGnash);
+        //d.Spell(AID.Continuation)!.Condition = _ => _state.ReadyToRip ? ActionID.MakeSpell(AID.JugularRip) : ActionID.MakeSpell(AID.None);
+        //d.Spell(AID.Continuation)!.Condition = _ => _state.ReadyToTear ? ActionID.MakeSpell(AID.AbdomenTear) : ActionID.MakeSpell(AID.None);
+        //d.Spell(AID.Continuation)!.Condition = _ => _state.ReadyToGouge ? ActionID.MakeSpell(AID.EyeGouge) : ActionID.MakeSpell(AID.None);
+        //d.Spell(AID.Continuation)!.Condition = _ => _state.ReadyToBlast ? ActionID.MakeSpell(AID.Hypervelocity) : ActionID.MakeSpell(AID.None);
+        // combo replacement (TODO: don't think we actually care...)
+        //d.Spell(AID.BrutalShell)!.TransformAction = config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextBrutalShellComboAction(ComboLastMove)) : null;
+        //d.Spell(AID.SolidBarrel)!.TransformAction = config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextSTComboAction(ComboLastMove, AID.SolidBarrel)) : null;
+        //d.Spell(AID.DemonSlaughter)!.TransformAction = config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextAOEComboAction(ComboLastMove)) : null;
     }
 }

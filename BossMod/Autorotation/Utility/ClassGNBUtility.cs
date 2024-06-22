@@ -1,0 +1,49 @@
+﻿namespace BossMod.Autorotation;
+
+public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player) : RoleTankUtility(manager, player)
+{
+    public enum Track { Camouflage = SharedTrack.Count, Nebula, Aurora, Superbolide, HoL, HoC }
+    public enum HoCOption { None, HeartOfStone, HeartOfCorundum }
+
+    public static ActionID IDLimitBreak3 = ActionID.MakeSpell(GNB.AID.GunmetalSoul);
+
+    public static RotationModuleDefinition Definition()
+    {
+        var res = new RotationModuleDefinition("Utility: GNB", "Planner support for utility actions", "LazyLemo, Akechi-kun", RotationModuleQuality.WIP, BitMask.Build((int)Class.GNB), 90);
+        DefineShared(res, IDLimitBreak3);
+
+        DefineSimpleConfig(res, Track.Camouflage, "Camouflage", "Camoufl", 450, GNB.AID.Camouflage, 20);
+        DefineSimpleConfig(res, Track.Nebula, "Nebula", "Nebula", 550, GNB.AID.Nebula, 15);
+        DefineSimpleConfig(res, Track.Aurora, "Aurora", "Aurora", 320, GNB.AID.Aurora, 18);
+        DefineSimpleConfig(res, Track.Superbolide, "Superbolide", "Bolide", 400, GNB.AID.Superbolide, 10);
+        DefineSimpleConfig(res, Track.HoL, "HoL", "HoL", 220, GNB.AID.HeartOfLight, 15);
+
+        res.Define(Track.HoC).As<HoCOption>("HOC", uiPriority: 350)
+            .AddOption(HoCOption.None, "None", "Do not use automatically")
+            .AddOption(HoCOption.HeartOfStone, "HoS", "Use Heart of Stone", 25, 7, ActionTargets.Self | ActionTargets.Party, 68, 81) // note: secondary effect duration 30
+            .AddOption(HoCOption.HeartOfCorundum, "HoC", "Use Heart of Corundum", 25, 4, ActionTargets.Self | ActionTargets.Party, 82) // note: secondary effect duration 30
+            .AddAssociatedActions(GNB.AID.HeartOfStone, GNB.AID.HeartOfCorundum);
+
+        return res;
+    }
+
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget)
+    {
+        ExecuteShared(strategy, IDLimitBreak3);
+        ExecuteSimple(strategy.Option(Track.Camouflage), GNB.AID.Camouflage, Player);
+        ExecuteSimple(strategy.Option(Track.Nebula), GNB.AID.Nebula, Player);
+        ExecuteSimple(strategy.Option(Track.Aurora), GNB.AID.Aurora, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Superbolide), GNB.AID.Superbolide, Player);
+        ExecuteSimple(strategy.Option(Track.HoL), GNB.AID.HeartOfLight, Player);
+
+        var hoc = strategy.Option(Track.HoC);
+        var aid = hoc.As<HoCOption>() switch
+        {
+            HoCOption.HeartOfStone => GNB.AID.HeartOfStone,
+            HoCOption.HeartOfCorundum => GNB.AID.HeartOfCorundum,
+            _ => default
+        };
+        if (aid != default)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), ResolveTargetOverride(hoc.Value) ?? CoTank() ?? Player, hoc.Priority());
+    }
+}

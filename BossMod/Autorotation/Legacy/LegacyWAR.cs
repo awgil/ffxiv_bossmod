@@ -24,7 +24,7 @@ public sealed class LegacyWAR : LegacyModule
             .AddOption(AOEStrategy.AutoFinishCombo, "AutoFinishCombo", "Use aoe rotation if 3+ targets would be hit, otherwise use single-target rotation; finish combo route before switching");
 
         res.Define(Track.GCD).As<GCDStrategy>("Gauge", "GCD", uiPriority: 80)
-            .AddOption(GCDStrategy.Automatic, "Automatic") // spend gauge either under raid buffs or if next downtime is soon (so that next raid buff window won't cover at least 4 GCDs); TODO reconsider...
+            .AddOption(GCDStrategy.Automatic, "Automatic", "Spend gauge either under raid buffs or if next downtime is soon (so that next raid buff window won't cover at least 4 GCDs)") // TODO reconsider...
             .AddOption(GCDStrategy.Spend, "Spend", "Spend gauge freely, ensure ST is properly maintained")
             .AddOption(GCDStrategy.ConserveIfNoBuffs, "ConserveIfNoBuffs", "Conserve unless under raid buffs")
             .AddOption(GCDStrategy.Conserve, "Conserve", "Conserve as much as possible")
