@@ -1,7 +1,5 @@
-autorotation v2:
-- resurrect legacy modules
-- delete autorotationlegacy dir
-post-wip:
+autorotation v2 cleanup:
+- tank stance track
 - worldstate: animlock, combo, gauge parser, camera
 - rmm in replay analysis
 - preset/plan editors should properly react to external changes
@@ -18,6 +16,7 @@ post-wip:
 - simulation in replay analysis
 - spell out shared cooldowns in actiondefinitions comments instead of group?
 - delete/rework commonstate/legacy
+- delete autorotationlegacy dir
 
 general:
 - proper logging
