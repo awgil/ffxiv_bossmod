@@ -27,7 +27,7 @@ public sealed class LegacyBRD : LegacyModule
             .AddAssociatedActions(BRD.AID.QuickNock, BRD.AID.Ladonsbite, BRD.AID.RainOfDeath, BRD.AID.Shadowbite);
 
         res.Define(Track.Songs).As<SongStrategy>("Songs", uiPriority: 100)
-            .AddOption(SongStrategy.Automatic, "Automatic") // spend gauge either under raid buffs or if next downtime is soon (so that next raid buff window won't cover at least 4 GCDs); TODO reconsider...
+            .AddOption(SongStrategy.Automatic, "Automatic")
             .AddOption(SongStrategy.Extend, "Extend", "Extend until last tick")
             .AddOption(SongStrategy.Overextend, "Overextend", "Extend until last possible moment")
             .AddOption(SongStrategy.ForceWM, "ForceWM", "Force switch to Wanderer's Minuet")
@@ -234,7 +234,7 @@ public sealed class LegacyBRD : LegacyModule
     };
 
     // old BRDRotation
-    public bool CanRefreshDOTsIn(int numGCDs)
+    private bool CanRefreshDOTsIn(int numGCDs)
     {
         var minLeft = Math.Min(_state.TargetStormbiteLeft, _state.TargetCausticLeft);
         return minLeft > _state.GCD && minLeft <= _state.GCD + 2.5f * numGCDs;
@@ -242,7 +242,7 @@ public sealed class LegacyBRD : LegacyModule
 
     // heuristic to determine whether currently active dots were applied under raidbuffs (assumes dots are actually active)
     // it's not easy to directly determine active dot potency
-    public bool AreActiveDOTsBuffed()
+    private bool AreActiveDOTsBuffed()
     {
         // dots last for 45s => their time of application Td = t + dotsLeft - 45
         // assuming we're using BV as the main buff, its cd is 120 => it was last used at Ts = t + bvcd - 120, and lasted until Te = Ts + 15
@@ -257,7 +257,7 @@ public sealed class LegacyBRD : LegacyModule
     // IJ generally has to be used at last possible gcd before dots fall off -or- before major buffs fall off (to snapshot buffs to dots), but in some cases we want to use it earlier:
     // - 1 gcd earlier if we don't have RA proc (otherwise we might use filler, it would proc RA, then on next gcd we'll have to use IJ to avoid dropping dots and potentially waste another RA)
     // - 1/2 gcds earlier if we're waiting for more gauge for AA
-    public bool ShouldUseIronJawsAutomatic(ApexArrowStrategy aaStrategy, OffensiveStrategy baStrategy)
+    private bool ShouldUseIronJawsAutomatic(ApexArrowStrategy aaStrategy, OffensiveStrategy baStrategy)
     {
         var refreshDotsDeadline = Math.Min(_state.TargetStormbiteLeft, _state.TargetCausticLeft);
         if (refreshDotsDeadline <= _state.GCD)
@@ -283,7 +283,7 @@ public sealed class LegacyBRD : LegacyModule
         return _state.BattleVoiceLeft <= _state.GCD + 2.5f * maxRemainingGCDs;
     }
 
-    public bool ShouldUseIronJaws(DotStrategy dotStrategy, ApexArrowStrategy aaStrategy, OffensiveStrategy baStrategy) => dotStrategy switch
+    private bool ShouldUseIronJaws(DotStrategy dotStrategy, ApexArrowStrategy aaStrategy, OffensiveStrategy baStrategy) => dotStrategy switch
     {
         DotStrategy.Forbid => false,
         DotStrategy.ForceExtend => true,
@@ -294,7 +294,7 @@ public sealed class LegacyBRD : LegacyModule
 
     // you get 5 gauge for every repertoire tick, meaning every 15s you get 5 gauge from EA + up to 25 gauge (*80% = 20 average) from songs
     // using AA at 80+ gauge procs BA, meaning AA at <80 gauge is rarely worth it
-    public bool ShouldUseApexArrow(ApexArrowStrategy strategy) => strategy switch
+    private bool ShouldUseApexArrow(ApexArrowStrategy strategy) => strategy switch
     {
         ApexArrowStrategy.Delay => false,
         ApexArrowStrategy.ForceAnyGauge => _state.SoulVoice > 0,
@@ -310,7 +310,7 @@ public sealed class LegacyBRD : LegacyModule
         }
     };
 
-    public float SwitchAtRemainingSongTimer(SongStrategy strategy) => strategy switch
+    private float SwitchAtRemainingSongTimer(SongStrategy strategy) => strategy switch
     {
         SongStrategy.Automatic => _state.ActiveSong switch
         {
@@ -325,7 +325,7 @@ public sealed class LegacyBRD : LegacyModule
         _ => 3
     };
 
-    public bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
+    private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
         PotionStrategy.Manual => false,
         PotionStrategy.Burst => !Player.InCombat ? _state.CountdownRemaining < 2 : _state.TargetingEnemy && _state.CD(BRD.AID.RagingStrikes) < _state.GCD + 3.5f, // pre-pull or RS ready in 2 gcds (assume pot -> late-weaved WM -> RS)
@@ -334,7 +334,7 @@ public sealed class LegacyBRD : LegacyModule
     };
 
     // by default, we use RS asap as soon as WM is up
-    public bool ShouldUseRagingStrikes(OffensiveStrategy strategy) => strategy switch
+    private bool ShouldUseRagingStrikes(OffensiveStrategy strategy) => strategy switch
     {
         OffensiveStrategy.Delay => false,
         OffensiveStrategy.Force => true,
@@ -342,7 +342,7 @@ public sealed class LegacyBRD : LegacyModule
     };
 
     // by default, we pool bloodletter for burst
-    public bool ShouldUseBloodletter(BloodletterStrategy strategy) => strategy switch
+    private bool ShouldUseBloodletter(BloodletterStrategy strategy) => strategy switch
     {
         BloodletterStrategy.Delay => false,
         BloodletterStrategy.Force => true,
@@ -355,7 +355,7 @@ public sealed class LegacyBRD : LegacyModule
     };
 
     // by default, we use EA asap if in combat
-    public bool ShouldUseEmpyrealArrow(OffensiveStrategy strategy) => strategy switch
+    private bool ShouldUseEmpyrealArrow(OffensiveStrategy strategy) => strategy switch
     {
         OffensiveStrategy.Delay => false,
         OffensiveStrategy.Force => true,
@@ -364,7 +364,7 @@ public sealed class LegacyBRD : LegacyModule
 
     // by default, we use barrage under raid buffs, being careful not to overwrite RA proc
     // TODO: reconsider barrage usage during aoe
-    public bool ShouldUseBarrage(OffensiveStrategy strategy) => strategy switch
+    private bool ShouldUseBarrage(OffensiveStrategy strategy) => strategy switch
     {
         OffensiveStrategy.Delay => false,
         OffensiveStrategy.Force => true,
@@ -376,14 +376,14 @@ public sealed class LegacyBRD : LegacyModule
     };
 
     // by default, we use sidewinder asap, unless raid buffs are imminent
-    public bool ShouldUseSidewinder(OffensiveStrategy strategy) => strategy switch
+    private bool ShouldUseSidewinder(OffensiveStrategy strategy) => strategy switch
     {
         OffensiveStrategy.Delay => false,
         OffensiveStrategy.Force => true,
         _ => Player.InCombat && _state.CD(BRD.AID.BattleVoice) > 45 // TODO: consider exact delay condition
     };
 
-    public BRD.AID GetNextBestGCD(StrategyValues strategy)
+    private BRD.AID GetNextBestGCD(StrategyValues strategy)
     {
         // prepull or no target
         if (!_state.TargetingEnemy || _state.CountdownRemaining > 0.7f)
@@ -456,7 +456,7 @@ public sealed class LegacyBRD : LegacyModule
         }
     }
 
-    public ActionID GetNextBestOGCD(StrategyValues strategy, float deadline)
+    private ActionID GetNextBestOGCD(StrategyValues strategy, float deadline)
     {
         // potion
         var strategyPotion = strategy.Option(Track.Potion).As<PotionStrategy>();

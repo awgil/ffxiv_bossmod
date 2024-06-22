@@ -1,13 +1,10 @@
 autorotation v2:
 - resurrect legacy modules
-- positionals
--- aihints
--- visualization
 - delete/rework commonstate
 - delete autorotationlegacy & cdplannerlegacy
 - search for `//namespace BossMod`
 post-wip:
-- worldstate: animlock, combo, gauge parser
+- worldstate: animlock, combo, gauge parser, camera
 - rmm in replay analysis
 - preset/plan editors should properly react to external changes
 - ipc for autorotation

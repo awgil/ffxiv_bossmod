@@ -139,6 +139,19 @@
 //        return (best, bestHPRatio);
 //    }
 
+//// check whether given actor has tank stance
+//protected static bool HasTankStance(Actor a)
+//{
+//    var stanceSID = a.Class switch
+//    {
+//        Class.WAR => (uint)WAR.SID.Defiance,
+//        Class.PLD => (uint)PLD.SID.IronWill,
+//        Class.GNB => (uint)GNB.SID.RoyalGuard,
+//        _ => 0u
+//    };
+//    return stanceSID != 0 && a.FindStatus(stanceSID) != null;
+//}
+
 //    // find best target for regen/preshield
 //    protected Actor? FindProtectTarget(float minAttackerStrengthInCombat = 0.15f)
 //    {

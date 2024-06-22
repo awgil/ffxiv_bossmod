@@ -9,7 +9,6 @@
 
 //        [Class.DNC] = DefineDNC(),
 
-//        [Class.DRG] = DefineDRG(),
 //        [Class.MNK] = DefineMNK(),
 //        [Class.RPR] = DefineRPR(),
 //        [Class.SAM] = DefineSAM()
@@ -24,16 +23,6 @@
 //        c.CooldownTracks.Add(new("Sheltron", ActionID.MakeSpell(PLD.AID.Sheltron), 35));
 //        c.CooldownTracks.Add(new("ArmsLength", ActionID.MakeSpell(PLD.AID.ArmsLength), 32));
 //        c.CooldownTracks.Add(new("Reprisal", ActionID.MakeSpell(PLD.AID.Reprisal), 22));
-//        return c;
-//    }
-
-//    private static ClassData DefineDRG()
-//    {
-//        var c = new ClassData(typeof(DRG.AID));
-//        c.CooldownTracks.Add(new("Feint", ActionID.MakeSpell(DRG.AID.Feint), 22));
-//        c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(DRG.AID.ArmsLength), 32));
-//        c.StrategyTracks.Add(new("TrueN", typeof(DRG.Rotation.Strategy.TrueNorthUse)));
-//        c.StrategyTracks.Add(new("SpineShatter", typeof(DRG.Rotation.Strategy.SpineShatteruse)));
 //        return c;
 //    }
 

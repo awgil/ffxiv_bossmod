@@ -13,11 +13,11 @@ public abstract class RoleRangedUtility(RotationModuleManager manager, Actor pla
         lb.AddAssociatedActions(ClassShared.AID.BigShot, ClassShared.AID.Desperado);
         lb.AssociatedActions.Add(lb3);
 
-        DefineSimpleConfig(def, SharedTrack.LegGraze, "Slow", "", -100, ClassShared.AID.LegGraze, 10);
+        DefineSimpleConfig(def, SharedTrack.LegGraze, "LegGraze", "Slow", -100, ClassShared.AID.LegGraze, 10);
         DefineSimpleConfig(def, SharedTrack.SecondWind, "SecondWind", "", 20, ClassShared.AID.SecondWind);
-        DefineSimpleConfig(def, SharedTrack.FootGraze, "Bind", "", -150, ClassShared.AID.FootGraze, 10);
-        DefineSimpleConfig(def, SharedTrack.HeadGraze, "Interrupt", "", -50, ClassShared.AID.HeadGraze);
-        DefineSimpleConfig(def, SharedTrack.ArmsLength, "ArmsLength", "", 300, ClassShared.AID.ArmsLength, 6); // note: secondary effect 15s
+        DefineSimpleConfig(def, SharedTrack.FootGraze, "FootGraze", "Bind", -150, ClassShared.AID.FootGraze, 10);
+        DefineSimpleConfig(def, SharedTrack.HeadGraze, "HeadGraze", "Interrupt", -50, ClassShared.AID.HeadGraze);
+        DefineSimpleConfig(def, SharedTrack.ArmsLength, "ArmsLength", "ArmsL", 300, ClassShared.AID.ArmsLength, 6); // note: secondary effect 15s
     }
 
     protected void ExecuteShared(StrategyValues strategy, ActionID lb3)

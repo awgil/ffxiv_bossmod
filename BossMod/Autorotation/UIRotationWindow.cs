@@ -20,8 +20,7 @@ public sealed class UIRotationWindow : UIWindow
     public override void PreOpenCheck()
     {
         IsOpen = _config.ShowUI && _mgr.WorldState.Party.Player() != null;
-
-        // TODO: draw positionals
+        DrawPositional();
     }
 
     public override void Draw()
@@ -89,4 +88,27 @@ public sealed class UIRotationWindow : UIWindow
             ImGui.TextUnformatted($"> {a.Action} ({a.Priority:f2})");
         }
     }
+
+    private void DrawPositional()
+    {
+        var pos = _mgr.Hints.RecommendedPositional;
+        if (_config.ShowPositionals && pos.Target != null && !pos.Target.Omnidirectional)
+        {
+            var color = PositionalColor(pos.Imminent, pos.Correct);
+            switch (pos.Pos)
+            {
+                case Positional.Flank:
+                    Camera.Instance?.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3, pos.Target.Rotation + 90.Degrees(), 45.Degrees(), color);
+                    Camera.Instance?.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3, pos.Target.Rotation - 90.Degrees(), 45.Degrees(), color);
+                    break;
+                case Positional.Rear:
+                    Camera.Instance?.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3, pos.Target.Rotation + 180.Degrees(), 45.Degrees(), color);
+                    break;
+            }
+        }
+    }
+
+    private uint PositionalColor(bool imminent, bool correct) => imminent
+        ? (correct ? 0xff00ff00 : 0xff0000ff)
+        : (correct ? 0xffffffff : 0xff00ffff);
 }

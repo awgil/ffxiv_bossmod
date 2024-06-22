@@ -1,4 +1,6 @@
-﻿namespace BossMod.Autorotation.Legacy;
+﻿using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
+
+namespace BossMod.Autorotation.Legacy;
 
 // TODO: a _lot_ of this stuff should be reworked...
 public abstract class CommonState(RotationModule module)
@@ -94,6 +96,20 @@ public abstract class CommonState(RotationModule module)
         // regardless of current class
         AttackGCDTime = am.GetAdjustedRecastTime(new(ActionType.Spell, 9), false) * 0.001f;
         SpellGCDTime = am.GetAdjustedRecastTime(new(ActionType.Spell, 119), false) * 0.001f;
+    }
+
+    public void UpdatePositionals(Actor? target, (Positional pos, bool imm) positional, bool trueNorth)
+    {
+        var ignore = trueNorth || (target?.Omnidirectional ?? true);
+        NextPositional = positional.pos;
+        NextPositionalImminent = !ignore && positional.imm;
+        NextPositionalCorrect = ignore || target == null || positional.pos switch
+        {
+            Positional.Flank => MathF.Abs(target.Rotation.ToDirection().Dot((Module.Player.Position - target.Position).Normalized())) < 0.7071067f,
+            Positional.Rear => target.Rotation.ToDirection().Dot((Module.Player.Position - target.Position).Normalized()) < -0.7071068f,
+            _ => true
+        };
+        Module.Manager.Hints.RecommendedPositional = (target, NextPositional, NextPositionalImminent, NextPositionalCorrect);
     }
 
     public float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - Module.World.CurrentTime).TotalSeconds, 0.0f);
