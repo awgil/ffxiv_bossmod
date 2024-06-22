@@ -1,5 +1,4 @@
 autorotation v2:
-- strategy/option builders
 - resurrect legacy modules
 - delete autorotationlegacy dir
 post-wip:

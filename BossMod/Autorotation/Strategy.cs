@@ -24,33 +24,6 @@ public record class StrategyConfig(
     public readonly List<ActionID> AssociatedActions = []; // these actions will be shown on the track in the planner ui
 
     public string UIName => DisplayName.Length > 0 ? DisplayName : InternalName;
-
-    public StrategyConfig AddOption<Index>(Index expectedIndex, string internalName, string displayName = "", float cooldown = 0, float effect = 0, ActionTargets supportedTargets = ActionTargets.None,
-        int minLevel = 1, int maxLevel = int.MaxValue, float defaultPriority = ActionQueue.Priority.Medium) where Index : Enum
-    {
-        var idx = (int)(object)expectedIndex;
-        if (typeof(Index) != OptionEnum)
-            throw new ArgumentException($"Unexpected index type for {internalName}: expected {OptionEnum.FullName}, got {typeof(Index).FullName}");
-        if (Options.Count != idx)
-            throw new ArgumentException($"Unexpected index value for {internalName}: expected {expectedIndex} ({idx}), got {Options.Count}");
-        Options.Add(new(internalName, displayName)
-        {
-            Cooldown = cooldown,
-            Effect = effect,
-            SupportedTargets = supportedTargets,
-            MinLevel = minLevel,
-            MaxLevel = maxLevel,
-            DefaultPriority = defaultPriority,
-        });
-        return this;
-    }
-
-    public StrategyConfig AddAssociatedActions<AID>(params AID[] aids) where AID : Enum
-    {
-        foreach (var aid in aids)
-            AssociatedActions.Add(ActionID.MakeSpell(aid));
-        return this;
-    }
 }
 
 // each strategy config has a unique set of allowed options; each option has a set of properties describing how it is rendered in planner and what further configuration parameters it supports

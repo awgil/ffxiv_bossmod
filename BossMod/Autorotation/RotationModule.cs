@@ -27,20 +27,54 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
     public readonly BitMask Classes = Classes;
     public readonly List<StrategyConfig> Configs = [];
 
+    public DefineRef Define<Index>(Index expectedIndex) where Index : Enum => new(Configs, (int)(object)expectedIndex);
+
     // unfortunately, c# doesn't support partial type inference, and forcing user to spell out track enum twice is obnoxious, so here's the hopefully cheap solution
     public readonly ref struct DefineRef(List<StrategyConfig> configs, int index)
     {
-        public StrategyConfig As<Selector>(string internalName, string displayName = "", float uiPriority = 0) where Selector : Enum
+        public ConfigRef<Selector> As<Selector>(string internalName, string displayName = "", float uiPriority = 0) where Selector : Enum
         {
             if (configs.Count != index)
                 throw new ArgumentException($"Unexpected index for {internalName}: expected {index}, cur size {configs.Count}");
             var config = new StrategyConfig(typeof(Selector), internalName, displayName, uiPriority);
             configs.Add(config);
-            return config;
+            return new(config);
         }
     }
 
-    public DefineRef Define<Index>(Index expectedIndex) where Index : Enum => new(Configs, (int)(object)expectedIndex);
+    public readonly ref struct ConfigRef<Index>(StrategyConfig config) where Index : Enum
+    {
+        public ConfigRef<Index> AddOption(Index expectedIndex, string internalName, string displayName = "", float cooldown = 0, float effect = 0, ActionTargets supportedTargets = ActionTargets.None,
+            int minLevel = 1, int maxLevel = int.MaxValue, float defaultPriority = ActionQueue.Priority.Medium)
+        {
+            var idx = (int)(object)expectedIndex;
+            if (config.Options.Count != idx)
+                throw new ArgumentException($"Unexpected index value for {internalName}: expected {expectedIndex} ({idx}), got {config.Options.Count}");
+            config.Options.Add(new(internalName, displayName)
+            {
+                Cooldown = cooldown,
+                Effect = effect,
+                SupportedTargets = supportedTargets,
+                MinLevel = minLevel,
+                MaxLevel = maxLevel,
+                DefaultPriority = defaultPriority,
+            });
+            return this;
+        }
+
+        public ConfigRef<Index> AddAssociatedAction(ActionID aid)
+        {
+            config.AssociatedActions.Add(aid);
+            return this;
+        }
+
+        public ConfigRef<Index> AddAssociatedActions<AID>(params AID[] aids) where AID : Enum
+        {
+            foreach (var aid in aids)
+                config.AssociatedActions.Add(ActionID.MakeSpell(aid));
+            return this;
+        }
+    }
 }
 
 // base class for rotation modules

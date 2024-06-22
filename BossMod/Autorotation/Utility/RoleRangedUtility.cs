@@ -9,9 +9,9 @@ public abstract class RoleRangedUtility(RotationModuleManager manager, Actor pla
     {
         DefineSimpleConfig(def, SharedTrack.Sprint, "Sprint", "", 100, ClassShared.AID.Sprint, 10);
 
-        var lb = DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Hostile);
-        lb.AddAssociatedActions(ClassShared.AID.BigShot, ClassShared.AID.Desperado);
-        lb.AssociatedActions.Add(lb3);
+        DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Hostile)
+            .AddAssociatedActions(ClassShared.AID.BigShot, ClassShared.AID.Desperado)
+            .AddAssociatedAction(lb3);
 
         DefineSimpleConfig(def, SharedTrack.LegGraze, "LegGraze", "Slow", -100, ClassShared.AID.LegGraze, 10);
         DefineSimpleConfig(def, SharedTrack.SecondWind, "SecondWind", "", 20, ClassShared.AID.SecondWind);

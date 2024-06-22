@@ -48,7 +48,7 @@ public sealed class LegacyWAR : LegacyModule
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, but delay slightly during opener", 270, 30)
             .AddOption(PotionStrategy.DelayUntilRaidBuffs, "DelayUntilRaidBuffs", "Delay until raidbuffs", 270, 30)
             .AddOption(PotionStrategy.Force, "Force", "Use ASAP, even if without ST", 270, 30)
-            .AssociatedActions.Add(ActionDefinitions.IDPotionStr);
+            .AddAssociatedAction(ActionDefinitions.IDPotionStr);
 
         res.Define(Track.InnerRelease).As<OffensiveStrategy>("IR", uiPriority: 50)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally")

@@ -9,9 +9,9 @@ public abstract class RoleTankUtility(RotationModuleManager manager, Actor playe
     {
         DefineSimpleConfig(def, SharedTrack.Sprint, "Sprint", "", 100, ClassShared.AID.Sprint, 10);
 
-        var lb = DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Self, 10, 15, 8);
-        lb.AddAssociatedActions(ClassShared.AID.ShieldWall, ClassShared.AID.Stronghold);
-        lb.AssociatedActions.Add(lb3);
+        DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Self, 10, 15, 8)
+            .AddAssociatedActions(ClassShared.AID.ShieldWall, ClassShared.AID.Stronghold)
+            .AddAssociatedAction(lb3);
 
         DefineSimpleConfig(def, SharedTrack.Rampart, "Rampart", "", 500, ClassShared.AID.Rampart, 20);
         DefineSimpleConfig(def, SharedTrack.LowBlow, "LowBlow", "Stun", -100, ClassShared.AID.LowBlow, 5);

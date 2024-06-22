@@ -9,9 +9,9 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
     {
         DefineSimpleConfig(def, SharedTrack.Sprint, "Sprint", "", 100, ClassShared.AID.Sprint, 10);
 
-        var lb = DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Hostile);
-        lb.AddAssociatedActions(ClassShared.AID.Braver, ClassShared.AID.Bladedance);
-        lb.AssociatedActions.Add(lb3);
+        DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Hostile)
+            .AddAssociatedActions(ClassShared.AID.Braver, ClassShared.AID.Bladedance)
+            .AddAssociatedAction(lb3);
 
         // note: true north is a special case, even though it's a role action, it has custom handling by rotational modules
         DefineSimpleConfig(def, SharedTrack.SecondWind, "SecondWind", "", 20, ClassShared.AID.SecondWind);

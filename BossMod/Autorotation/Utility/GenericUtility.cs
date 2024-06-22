@@ -19,7 +19,7 @@ public abstract class GenericUtility(RotationModuleManager manager, Actor player
             .AddAssociatedActions(aid);
     }
 
-    protected static StrategyConfig DefineLimitBreak<Index>(RotationModuleDefinition def, Index expectedIndex, ActionTargets allowedTargets, float effectLB1 = 0, float effectLB2 = 0, float effectLB3 = 0) where Index : Enum
+    protected static RotationModuleDefinition.ConfigRef<LBOption> DefineLimitBreak<Index>(RotationModuleDefinition def, Index expectedIndex, ActionTargets allowedTargets, float effectLB1 = 0, float effectLB2 = 0, float effectLB3 = 0) where Index : Enum
     {
         // note: it assumes that effect durations are either 0's or correspond to tank LB (so lb2 > lb1 > lb3)
         return def.Define(expectedIndex).As<LBOption>("LB")

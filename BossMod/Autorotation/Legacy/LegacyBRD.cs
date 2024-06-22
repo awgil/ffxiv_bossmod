@@ -41,7 +41,7 @@ public sealed class LegacyBRD : LegacyModule
             .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
             .AddOption(PotionStrategy.Burst, "Burst", "Use right before burst", 270, 30)
             .AddOption(PotionStrategy.Force, "Force", "Use ASAP", 270, 30)
-            .AssociatedActions.Add(ActionDefinitions.IDPotionDex);
+            .AddAssociatedAction(ActionDefinitions.IDPotionDex);
 
         // TODO: think about multidotting, probably should be a separate track (default is primary only, think about interactions with ij etc)
         res.Define(Track.DOTs).As<DotStrategy>("DOTs", uiPriority: 80)
