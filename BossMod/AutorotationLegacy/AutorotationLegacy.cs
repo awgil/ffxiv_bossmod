@@ -10,7 +10,6 @@
 //        {
 //            classType = player.Class switch
 //            {
-//                //Class.MNK => typeof(MNK.Actions),
 //                //Class.RPR => typeof(RPR.Actions),
 //                //Class.SAM => typeof(SAM.Actions),
 //                //Class.DNC => typeof(DNC.Actions),

@@ -92,6 +92,8 @@ public enum SID : uint
 
 public sealed class Definitions : IDisposable
 {
+    private readonly RPRConfig _config = Service.Config.Get<RPRConfig>();
+
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.TheEnd, castAnimLock: 3.70f); // animLock=???, castAnimLock=3.700
@@ -136,7 +138,12 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        //d.Spell(AID.ArcaneCrest)!.EffectDuration = 5;
-        //d.Spell(AID.ArcaneCircle)!.EffectDuration = 20;
+        d.Spell(AID.Harpe)!.Condition = (ws, player, _, _) => !_config.ForbidEarlyHarpe || player.InCombat || ws.Client.CountdownRemaining is null or <= 1.7f;
+
+        // upgrades (TODO: don't think we actually care...)
+        //d.Spell(AID.BloodStalk)!.TransformAction = d.Spell(AID.UnveiledGallows)!.TransformAction = d.Spell(AID.UnveiledGibbet)!.TransformAction = () => ActionID.MakeSpell(_state.Beststalk);
+        //d.Spell(AID.Gibbet)!.TransformAction = d.Spell(AID.VoidReaping)!.TransformAction = () => ActionID.MakeSpell(_state.BestGibbet);
+        //d.Spell(AID.Gallows)!.TransformAction = d.Spell(AID.CrossReaping)!.TransformAction = () => ActionID.MakeSpell(_state.BestGallow);
+        //d.Spell(AID.SoulSow)!.TransformAction = d.Spell(AID.HarvestMoon)!.TransformAction = () => ActionID.MakeSpell(_state.BestSow);
     }
 }
