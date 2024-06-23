@@ -163,9 +163,9 @@ public sealed class Plugin : IDalamudPlugin
 
         Camera.Instance?.Update();
         _wsSync.Update(_prevUpdateTime);
-        _amex.QueueManualActions();
         _bossmod.Update();
         _hintsBuilder.Update(_hints, PartyState.PlayerSlot);
+        _amex.QueueManualActions();
         _rotation.Update();
         _ai.Update();
         _broadcast.Update();

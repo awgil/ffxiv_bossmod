@@ -19,6 +19,14 @@ autorotation v2 cleanup:
 - delete autorotationlegacy dir
 
 general:
+- module packs
+-- dlls, loaded as usual
+-- hotreload - just discard old version and load new one
+-- distributed as github releases, on startup query latest version and download if different
+-- rate limit gh requests to 1/hour
+-- dialog to add warns about arbitrary code execution
+-- update bm/rm registries on reload
+- add non-entities to worldstate
 - proper logging
 - consistently use Color instead of uint
 - horizontal timeline / cooldown planner
