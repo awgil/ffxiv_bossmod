@@ -221,10 +221,13 @@ public sealed class Plugin : IDalamudPlugin
                 _rotation.Preset = RotationModuleManager.ForceDisable;
                 break;
             case "set":
-                ParseAutorotationSetCommand(cmd, false);
+                if (cmd.Length <= 2)
+                    PrintAutorotationHelp();
+                else
+                    ParseAutorotationSetCommand(cmd[2], false);
                 break;
             case "toggle":
-                ParseAutorotationSetCommand(cmd, true);
+                ParseAutorotationSetCommand(cmd.Length > 2 ? cmd[2] : "", true);
                 break;
             default:
                 PrintAutorotationHelp();
@@ -232,21 +235,18 @@ public sealed class Plugin : IDalamudPlugin
         }
     }
 
-    private void ParseAutorotationSetCommand(string[] cmd, bool toggle)
+    private void ParseAutorotationSetCommand(string presetName, bool toggle)
     {
-        if (cmd.Length <= 2)
-        {
-            PrintAutorotationHelp();
-        }
-        else if (_rotation.Database.Presets.Presets.FirstOrDefault(p => p.Name == cmd[2]) is var preset && preset == null)
-        {
-            Service.ChatGui.PrintError($"Failed to find preset '{cmd[2]}'");
-        }
-        else
+        var preset = presetName.Length > 0 ? _rotation.Database.Presets.Presets.FirstOrDefault(p => p.Name == presetName) : RotationModuleManager.ForceDisable;
+        if (preset != null)
         {
             var newPreset = toggle && _rotation.Preset == preset ? null : preset;
             Service.Log($"Console: {(toggle ? "toggle" : "set")} changes preset from '{_rotation.Preset?.Name ?? "<n/a>"}' to '{newPreset?.Name ?? "<n/a>"}'");
             _rotation.Preset = newPreset;
+        }
+        else
+        {
+            Service.ChatGui.PrintError($"Failed to find preset '{presetName}'");
         }
     }
 
@@ -256,6 +256,7 @@ public sealed class Plugin : IDalamudPlugin
         Service.ChatGui.Print("* /vbm ar clear - clear current preset; autorotation will do nothing unless plan is active");
         Service.ChatGui.Print("* /vbm ar disable - force disable autorotation; no actions will be executed automatically even if plan is active");
         Service.ChatGui.Print("* /vbm ar set Preset - start executing specified preset");
+        Service.ChatGui.Print("* /vbm ar toggle - force disable autorotation if not already; otherwise clear overrides");
         Service.ChatGui.Print("* /vbm ar toggle Preset - start executing specified preset unless it's already active; clear otherwise");
     }
 
