@@ -49,13 +49,12 @@ class AetheroChemicalLaserCombo(BossModule module) : Components.GenericAOEs(modu
 {
     private static readonly AOEShape[] _shapes = [new AOEShapeCone(50, 60.Degrees()), new AOEShapeDonut(8, 60), new AOEShapeRect(40, 2.5f),
     new AOEShapeCross(60, 5), new AOEShapeDonut(5, 60)];
-
     private readonly Dictionary<uint, List<AOEInstance>> _icons = new() {
         { (uint)IconID.Icon1, new List<AOEInstance>() },
         { (uint)IconID.Icon2, new List<AOEInstance>() },
         { (uint)IconID.Icon3, new List<AOEInstance>() }
     };
-    private AOEInstance _boss = default;
+    private AOEInstance _boss;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
