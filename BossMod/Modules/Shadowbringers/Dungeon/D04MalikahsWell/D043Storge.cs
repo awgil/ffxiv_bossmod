@@ -16,7 +16,7 @@ public enum AID : uint
     BreakingWheelWait = 17914, // 2BD6->self, 7.5s cast, single-target, before long Breaking Wheel
     BreakingWheel1 = 15605, // Boss->self, 5.0s cast, range 5-60 donut
     BreakingWheel2 = 15610, // RhapsodicNail->self, 9.0s cast, range 5-60 donut
-    BreakingWheel3 = 15887, // Boss->self, 29.0s cast, range ?-60 donut
+    BreakingWheel3 = 15887, // Boss->self, 29.0s cast, range 5-60 donut
     CrystalNailVisual = 15606, // Boss->self, 2.5s cast, single-target
     CrystalNail = 15607, // RhapsodicNail->self, 2.5s cast, range 5 circle
     Censure1 = 15927, // Boss->self, 3.0s cast, range 60 circle, activates nails for Breaking Wheel

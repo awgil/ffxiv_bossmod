@@ -42,7 +42,7 @@ public record struct Angle(float Rad)
 
     public readonly bool AlmostEqual(Angle other, float epsRad) => Math.Abs((this - other).Normalized().Rad) <= epsRad;
 
-    public override readonly string ToString() => Deg.ToString("f0");
+    public override readonly string ToString() => Deg.ToString("f3");
 }
 
 public static class AngleExtensions

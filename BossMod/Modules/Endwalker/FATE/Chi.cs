@@ -57,10 +57,10 @@ class Bunkerbuster(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count >= 3)
-            for (int i = 0; i < 3; ++i)
+            for (var i = 0; i < 3; ++i)
                 yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
         if (_casters.Count >= 6)
-            for (int i = 3; i < 6; ++i)
+            for (var i = 3; i < 6; ++i)
                 yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(1.9f));
     }
 
@@ -71,7 +71,7 @@ class Bunkerbuster(BossModule module) : Components.GenericAOEs(module)
             _activation = spell.NPCFinishAt;
             ++NumCastsStarted;
         }
-        if ((AID)spell.Action.ID is AID.BunkerBuster3 && NumCastsStarted == 0)
+        else if ((AID)spell.Action.ID is AID.BunkerBuster3 && NumCastsStarted == 0)
         {
             _activation = spell.NPCFinishAt;
             ++NumCastsStarted;
@@ -101,7 +101,7 @@ class Bunkerbuster(BossModule module) : Components.GenericAOEs(module)
         {
             _casters.Add(actor);
             if (_casters.Count == 1)
-                _activation = WorldState.FutureTime(20); //placeholder value that gets overwritten when cast actually starts
+                _activation = WorldState.FutureTime(20); // placeholder value that gets overwritten when cast actually starts
         }
     }
 }
@@ -121,34 +121,34 @@ class BouncingBomb(BossModule module) : Components.GenericAOEs(module)
             if (_casters.Count >= 1 && NumCasts == 0)
                 yield return new(rect, _casters[0].Position, _casters[0].Rotation, _activation, ArenaColor.Danger);
             if (_casters.Count >= 4 && NumCasts == 0)
-                for (int i = 1; i < 4; ++i)
+                for (var i = 1; i < 4; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f));
             if (_casters.Count >= 3 && NumCasts == 1)
-                for (int i = 0; i < 3; ++i)
+                for (var i = 0; i < 3; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
             if (_casters.Count >= 8 && NumCasts == 1)
-                for (int i = 3; i < 8; ++i)
+                for (var i = 3; i < 8; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f));
             if (_casters.Count >= 5 && NumCasts == 4)
-                for (int i = 0; i < 5; ++i)
+                for (var i = 0; i < 5; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
         }
         if (bombcount == 2)
         {
             if (_casters.Count >= 2 && NumCasts == 0)
-                for (int i = 0; i < 2; ++i)
+                for (var i = 0; i < 2; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
             if (_casters.Count >= 7 && NumCasts == 0)
-                for (int i = 2; i < 7; ++i)
+                for (var i = 2; i < 7; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), Risky: false);
             if (_casters.Count >= 5 && NumCasts == 2)
-                for (int i = 0; i < 5; ++i)
+                for (var i = 0; i < 5; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
             if (_casters.Count >= 13 && NumCasts == 2)
-                for (int i = 5; i < 13; ++i)
+                for (var i = 5; i < 13; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), Risky: false);
             if (_casters.Count >= 8 && NumCasts == 7)
-                for (int i = 0; i < 8; ++i)
+                for (var i = 0; i < 8; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
         }
     }
@@ -157,7 +157,7 @@ class BouncingBomb(BossModule module) : Components.GenericAOEs(module)
     {
         if ((OID)actor.OID == OID.Helper4)
         {
-            _activation = WorldState.FutureTime(10);  //placeholder value that gets overwritten when cast actually starts
+            _activation = WorldState.FutureTime(10);  // placeholder value that gets overwritten when cast actually starts
             ++bombcount;
         }
         if ((OID)actor.OID is OID.Helper4 or OID.Helper5)
@@ -177,7 +177,7 @@ class BouncingBomb(BossModule module) : Components.GenericAOEs(module)
             ++NumCasts;
             if (_casters.Count > 0)
                 _casters.Remove(caster);
-            if ((bombcount == 1 && NumCasts is 1 or 4) || (bombcount == 2 && NumCasts is 2 or 7))
+            if (bombcount == 1 && NumCasts is 1 or 4 || bombcount == 2 && NumCasts is 2 or 7)
                 _activation = _activation.AddSeconds(2.8f);
             if (_casters.Count == 0 && bombcount != 0)
             {
@@ -193,6 +193,7 @@ class Combos(BossModule module) : Components.GenericAOEs(module)
     private static readonly AOEShapeCone cone = new(45, 90.Degrees());
     private static readonly AOEShapeDonut donut = new(16, 60);
     private static readonly AOEShapeRect rect = new(60, 16, 60);
+    private static readonly Angle Angle180 = 180.Degrees();
     private (AOEShape shape1, AOEShape shape2, DateTime activation1, DateTime activation2, bool offset, Angle rotation) combo;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
@@ -202,40 +203,39 @@ class Combos(BossModule module) : Components.GenericAOEs(module)
             if (NumCasts == 0)
             {
                 yield return new(combo.shape1, Module.PrimaryActor.Position, combo.rotation, combo.activation1, ArenaColor.Danger);
-                if (!combo.offset)
-                    yield return new(combo.shape2, Module.PrimaryActor.Position, combo.rotation, combo.activation2, Risky: combo.shape1 != combo.shape2);
-                else
-                    yield return new(combo.shape2, Module.PrimaryActor.Position, combo.rotation + 180.Degrees(), combo.activation2, Risky: combo.shape1 != combo.shape2);
+                yield return !combo.offset
+                    ? new(combo.shape2, Module.PrimaryActor.Position, combo.rotation, combo.activation2, Risky: combo.shape1 != combo.shape2)
+                    : new(combo.shape2, Module.PrimaryActor.Position, combo.rotation + Angle180, combo.activation2, Risky: combo.shape1 != combo.shape2);
             }
             if (NumCasts == 1)
             {
-                if (!combo.offset)
-                    yield return new(combo.shape2, Module.PrimaryActor.Position, combo.rotation, combo.activation2, ArenaColor.Danger);
-                else
-                    yield return new(combo.shape2, Module.PrimaryActor.Position, combo.rotation + 180.Degrees(), combo.activation2, ArenaColor.Danger);
+                yield return !combo.offset
+                    ? new(combo.shape2, Module.PrimaryActor.Position, combo.rotation, combo.activation2, ArenaColor.Danger)
+                    : new(combo.shape2, Module.PrimaryActor.Position, combo.rotation + Angle180, combo.activation2, ArenaColor.Danger);
             }
         }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
+        var activation = spell.NPCFinishAt.AddSeconds(3.1f);
         switch ((AID)spell.Action.ID)
         {
             case AID.CarapaceForeArms2dot0A:
-                combo = (rect, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), false, spell.Rotation);
+                combo = (rect, cone, spell.NPCFinishAt, activation, false, spell.Rotation);
                 break;
             case AID.CarapaceForeArms2dot0B:
-                combo = (donut, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), false, spell.Rotation);
+                combo = (donut, cone, spell.NPCFinishAt, activation, false, spell.Rotation);
                 break;
             case AID.CarapaceRearGuns2dot0A:
-                combo = (rect, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), true, spell.Rotation);
+                combo = (rect, cone, spell.NPCFinishAt, activation, true, spell.Rotation);
                 break;
             case AID.CarapaceRearGuns2dot0B:
-                combo = (donut, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), true, spell.Rotation);
+                combo = (donut, cone, spell.NPCFinishAt, activation, true, spell.Rotation);
                 break;
             case AID.RearGunsForeArms2dot0:
             case AID.ForeArmsRearGuns2dot0:
-                combo = (cone, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), true, spell.Rotation);
+                combo = (cone, cone, spell.NPCFinishAt, activation, true, spell.Rotation);
                 break;
         }
     }
@@ -298,5 +298,5 @@ class ChiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1855, NameID = 10400)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1855, NameID = 10400)]
 public class Chi(WorldState ws, Actor primary) : BossModule(ws, primary, new(650, 0), new ArenaBoundsSquare(30));

@@ -205,7 +205,7 @@ class ReplayDetailsWindow : UIWindow
         }
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted($"{(actor.IsDead ? "(Dead) " : "")}{actor} (r={actor.HitboxRadius:f2})");
+        ImGui.TextUnformatted($"{(actor.IsDead ? "(Dead) " : "")}{actor} (r={actor.HitboxRadius:f3})");
 
         ImGui.TableNextColumn();
         ImGui.TextUnformatted($"{_player.WorldState.Actors.Find(actor.TargetID)}");

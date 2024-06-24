@@ -51,7 +51,7 @@ class Stage07Act2States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 617, NameID = 8094, SortOrder = 2)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 617, NameID = 8094, SortOrder = 2)]
 public class Stage07Act2 : BossModule
 {
     public Stage07Act2(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), Layout4Quads.arena)

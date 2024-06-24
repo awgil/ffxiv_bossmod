@@ -119,7 +119,7 @@ public class UIPlot
         var screen = ToScreen(p);
         ImGui.GetWindowDrawList().AddCircleFilled(screen, PointRadius, color);
         if (ImGui.IsMouseHoveringRect(screen - new Vector2(PointRadius), screen + new Vector2(PointRadius)))
-            _tooltips.Add($"[{p.X:f2}, {p.Y:f2}]: {tooltip()}");
+            _tooltips.Add($"[{p.X:f3}, {p.Y:f3}]: {tooltip()}");
     }
 
     private Vector2 ToScreen(Vector2 p)

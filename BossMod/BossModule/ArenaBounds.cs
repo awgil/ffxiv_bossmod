@@ -286,6 +286,7 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
             var allPointsInside = samplePoints.All(polygon.Contains);
             map.Pixels[y * map.Width + x].MaxG = allPointsInside ? float.MaxValue : 0;
         });
+
         return map;
     }
 
@@ -312,7 +313,6 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
 // for convenience third list will optionally perform additional unions at the end
 public record class ArenaBoundsComplex : ArenaBoundsCustom
 {
-
     public ArenaBoundsComplex(IEnumerable<Shape> UnionShapes, IEnumerable<Shape>? DifferenceShapes = null, IEnumerable<Shape>? AdditionalShapes = null, float MapResolution = 0.5f, float Offset = 0)
         : base(BuildBounds(UnionShapes, DifferenceShapes, AdditionalShapes, MapResolution, Offset, out var center))
     {

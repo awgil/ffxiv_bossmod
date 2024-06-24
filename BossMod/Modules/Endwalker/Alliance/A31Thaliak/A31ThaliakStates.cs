@@ -123,7 +123,6 @@ class A31ThaliakStates : StateMachineBuilder
         CastEnd(id + 0x122, 2.3f);
         ComponentCondition<TetraktuosKosmos>(id + 0x130, 0.8f, comp => comp.AOEs.Count > 0);
         ComponentCondition<TetraktuosKosmos>(id + 0x140, 8, comp => comp.NumCasts >= 3, "Splitting tri 2+3")
-            .DeactivateOnExit<TetraktuosKosmosCounter>()
             .DeactivateOnExit<TetraktuosKosmos>();
         ComponentCondition<TetraktysBorder>(id + 0x200, 4.2f, comp => !comp.Active, "Triangles resolve")
             .DeactivateOnExit<TetraktysBorder>();
