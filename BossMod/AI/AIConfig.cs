@@ -17,4 +17,12 @@ sealed class AIConfig : ConfigNode
 
     [PropertyDisplay("Broadcast keypresses to other windows")]
     public bool BroadcastToSlaves = false;
+
+    [PropertyDisplay("Forbid Movement")]
+    public bool ForbidMovement = false;
+
+    [PropertyDisplay("Forbid Actions")]
+    public bool ForbidActions = false;
+
+
 }
