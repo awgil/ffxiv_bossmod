@@ -9,8 +9,9 @@ abstract class GigaTempest(BossModule module, AOEShapeRect shape, AID aidFirst, 
     {
         if ((AID)spell.Action.ID == _aidStart)
         {
-            WDir? advance = GetExaDirection(caster);
-            if (advance == null) return;
+            var advance = GetExaDirection(caster);
+            if (advance == null)
+                return;
             Lines.Add(new()
             {
                 Next = caster.Position,
@@ -39,27 +40,20 @@ abstract class GigaTempest(BossModule module, AOEShapeRect shape, AID aidFirst, 
 
     // The Gigatempest caster's heading is only used for rotating the AOE shape.
     // The exaflare direction must be derived from the caster's location.
-    private WDir? GetExaDirection(Actor caster)
+    private static WDir? GetExaDirection(Actor caster)
     {
         Angle? forwardAngle = null;
         if (caster.Position.Z == 536)
-        {
             forwardAngle = 180.Degrees();
-        }
         if (caster.Position.Z == 504)
-        {
             forwardAngle = 0.Degrees();
-        }
         if (caster.Position.X == -826)
-        {
             forwardAngle = 90.Degrees();
-        }
         if (caster.Position.X == -794)
-        {
             forwardAngle = 270.Degrees();
-        }
 
-        if (forwardAngle == null) return null;
+        if (forwardAngle == null)
+            return null;
 
         const float _advanceDistance = 8;
         return _advanceDistance * forwardAngle.Value.ToDirection();

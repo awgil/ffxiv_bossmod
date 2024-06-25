@@ -67,7 +67,8 @@ public sealed class Plugin : IDalamudPlugin
         Service.Config.Modified.Subscribe(() => Service.Config.SaveToFile(dalamud.ConfigFile));
 
         CommandManager = commandManager;
-        CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
+        CommandManager.AddHandler("/bmr", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
+        CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { ShowInHelp = false });
 
         ActionDefinitions.Instance.UnlockCheck = QuestUnlocked; // ensure action definitions are initialized and set unlock check functor (we don't really store the quest progress in clientstate, for now at least)
 
@@ -113,11 +114,13 @@ public sealed class Plugin : IDalamudPlugin
         _hintsBuilder.Dispose();
         _bossmod.Dispose();
         ActionDefinitions.Instance.Dispose();
+        CommandManager.RemoveHandler("/bmr");
         CommandManager.RemoveHandler("/vbm");
     }
 
     private void OnCommand(string cmd, string args)
     {
+        var autorotConfig = Service.Config.Get<AutorotationConfig>();
         Service.Log($"OnCommand: {cmd} {args}");
         var split = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (split.Length == 0)
@@ -262,6 +265,6 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnConditionChanged(ConditionFlag flag, bool value)
     {
-        Service.Log($"Condition chage: {flag}={value}");
+        Service.Log($"Condition change: {flag}={value}");
     }
 }

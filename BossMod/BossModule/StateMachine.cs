@@ -117,7 +117,7 @@ public class StateMachine(List<StateMachine.Phase> phases)
 
     public string BuildStateChain(State? start, string sep, int maxCount = 5)
     {
-        int count = 0;
+        var count = 0;
         var res = new StringBuilder();
         while (start != null && count < maxCount)
         {

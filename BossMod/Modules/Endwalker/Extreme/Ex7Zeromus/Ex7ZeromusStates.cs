@@ -6,7 +6,9 @@ class Ex7ZeromusStates : StateMachineBuilder
     {
         SimplePhase(0, Phase1, "P1")
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HPMP.CurHP <= 1 || (Module.PrimaryActor.CastInfo?.IsSpell(AID.RendTheRift) ?? false);
-        DeathPhase(1, Phase2); // starts at around 25%
+        DeathPhase(1, Phase2) // starts at around 25%, after current mechanic is resolved
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HPMP.CurHP <= 1 || (Module.PrimaryActor.CastInfo?.IsSpell(AID.Enrage) ?? false);
+        DeathPhase(2, EnrageP2); // starts at around 660s after current mechanic is resolved
     }
 
     private void Phase1(uint id)
@@ -28,8 +30,11 @@ class Ex7ZeromusStates : StateMachineBuilder
         DarkMatter(id + 0xE0000, 7.1f);
         SparklingBrandingFlare(id + 0xF0000, 5.2f);
         AbyssalNoxEchoesSableThread(id + 0x100000, 13.9f, true);
-
-        SimpleState(id + 0xFF0000, 10, "???");
+        SparklingBrandingFlare(id + 0x110000, 7.5f);
+        VoidBioVisceralWhirl(id + 0x120000, 3.9f);
+        DarkMatter(id + 0x130000, 7.1f);
+        SparklingBrandingFlare(id + 0x140000, 5.2f);
+        AbyssalNoxEchoesEnrage(id + 0x150000, 13.9f);
     }
 
     private void Phase2(uint id)
@@ -55,6 +60,13 @@ class Ex7ZeromusStates : StateMachineBuilder
         SimpleState(id + 0xFF0000, 10, "???");
     }
 
+    private void EnrageP2(uint id)
+    {
+        Cast(id, AID.Enrage, 5, 10, "Enrage")
+            .ActivateOnEnter<BigBangPuddle>() // first puddle/spread starts at the same time, but the rest are slightly staggered
+            .ActivateOnEnter<BigBangSpread>();
+    }
+
     private void AbyssalNoxEchoesSableThread(uint id, float delay, bool second)
     {
         Cast(id, AID.AbyssalNox, delay, 5);
@@ -72,6 +84,22 @@ class Ex7ZeromusStates : StateMachineBuilder
         ComponentCondition<SableThread>(id + 0x2010, 0.7f, comp => comp.NumCasts > 0, "Wild charge start");
         ComponentCondition<SableThread>(id + 0x2020, second ? 8.9f : 7.5f, comp => comp.NumCasts >= (second ? 7 : 6), "Wild charge resolve")
             .DeactivateOnExit<SableThread>();
+    }
+
+    private void AbyssalNoxEchoesEnrage(uint id, float delay)
+    {
+        Cast(id, AID.AbyssalNox, delay, 5);
+        ComponentCondition<AbyssalEchoes>(id + 0x1000, 0.1f, comp => comp.Casters.Count > 0)
+            .ActivateOnEnter<AbyssalEchoes>()
+            .ExecOnEnter<AbyssalEchoes>(comp => comp.MaxCasts = 0); // don't show aoes before doom, this is misleading
+        ComponentCondition<AbyssalEchoes>(id + 0x1010, 5, comp => comp.Casters.Count > 5, "1 hp"); // dooms are slightly staggered apply around here
+        ComponentCondition<AbyssalEchoes>(id + 0x1020, 11, comp => comp.NumCasts > 0, "Circles 1")
+            .ExecOnEnter<AbyssalEchoes>(comp => comp.MaxCasts = 5);
+        ComponentCondition<AbyssalEchoes>(id + 0x1030, 5, comp => comp.Casters.Count == 0, "Circles 2")
+            .DeactivateOnExit<AbyssalEchoes>();
+        Cast(id + 0x2000, AID.Enrage, 5, 10, "Enrage")
+            .ActivateOnEnter<BigBangPuddle>() // first puddle/spread starts at the same time, but the rest are slightly staggered
+            .ActivateOnEnter<BigBangSpread>();
     }
 
     private void DarkMatterCast(uint id, float delay, bool withStackSpread)

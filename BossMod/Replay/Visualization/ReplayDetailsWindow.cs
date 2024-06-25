@@ -209,7 +209,7 @@ class ReplayDetailsWindow : UIWindow
         }
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted($"{(actor.IsDead ? "(Dead) " : "")}{actor} (r={actor.HitboxRadius:f2})");
+        ImGui.TextUnformatted($"{(actor.IsDead ? "(Dead) " : "")}{actor} (r={actor.HitboxRadius:f3})");
 
         ImGui.TableNextColumn();
         ImGui.TextUnformatted($"{_player.WorldState.Actors.Find(actor.TargetID)}");
@@ -222,7 +222,7 @@ class ReplayDetailsWindow : UIWindow
         foreach (var s in actor.Statuses.Where(s => s.ID != 0))
         {
             var src = _player.WorldState.Actors.Find(s.SourceID);
-            if (src?.Type is ActorType.Player or ActorType.Pet)
+            if (src?.Type is ActorType.Player or ActorType.Pet or ActorType.Buddy)
                 continue;
             if (s.ID is 360 or 362 or 364 or 365 or 413 or 902)
                 continue; // skip FC buff

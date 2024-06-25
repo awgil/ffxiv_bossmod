@@ -30,7 +30,10 @@ class A32LlymlaenStates : StateMachineBuilder
         WindRoseSeafoamSpiral(id + 0x120000, 11.3f);
         StormySeas(id + 0x130000, 2.9f);
         LeftRightStrait(id + 0x140000, 0.3f);
-
+        Tempest(id + 0x150000, 6.2f);
+        NavigatorsTridentAdds(id + 0x160000, 11.5f);
+        WindRoseSeafoamSpiral(id + 0x170000, 5);
+        SurgingWaveToTheLast(id + 0x180000, 2.1f);
         SimpleState(id + 0xFF0000, 10, "???");
     }
 
@@ -81,7 +84,8 @@ class A32LlymlaenStates : StateMachineBuilder
             .DeactivateOnExit<DireStraits>();
 
         ComponentCondition<NavigatorsTridentAOE>(id + 0x20, 1.8f, comp => comp.Casters.Count > 0)
-            .ActivateOnEnter<NavigatorsTridentAOE>();
+            .ActivateOnEnter<NavigatorsTridentAOE>()
+            .ActivateOnEnter<SurgingWaveFrothingSea>();
         ComponentCondition<NavigatorsTridentAOE>(id + 0x21, 7, comp => comp.NumCasts > 0, "Knockback")
             .ActivateOnEnter<SurgingWaveCorridor>() // envcontrol will happen right after knockback end
             .ActivateOnEnter<NavigatorsTridentKnockback>()
@@ -102,16 +106,15 @@ class A32LlymlaenStates : StateMachineBuilder
             .DeactivateOnExit<SurgingWaveAOE>();
         ComponentCondition<SurgingWaveShockwave>(id + 0x11, 0.2f, comp => comp.NumCasts > 0, "Knockback")
             .DeactivateOnExit<SurgingWaveShockwave>();
-        ComponentCondition<SurgingWaveFrothingSea>(id + 0x20, 6.2f, comp => comp.NumCasts > 0)
-            .ActivateOnEnter<SurgingWaveFrothingSea>();
+        ComponentCondition<SurgingWaveFrothingSea>(id + 0x20, 6.2f, comp => comp.NumCasts > 0);
         CastStartMulti(id + 0x30, [AID.LeftStrait, AID.RightStrait], 7.8f);
         ComponentCondition<SurgingWaveFrothingSea>(id + 0x40, 3.9f, comp => comp.NumCasts > 12)
             .ActivateOnEnter<LeftStrait>()
-            .ActivateOnEnter<RightStrait>()
-            .DeactivateOnExit<SurgingWaveFrothingSea>();
+            .ActivateOnEnter<RightStrait>();
         ComponentCondition<SurgingWaveCorridor>(id + 0x50, 0.5f, comp => comp.CorridorDir == default)
             .DeactivateOnExit<SurgingWaveSeaFoam>()
             .DeactivateOnExit<SurgingWaveCorridor>()
+            .DeactivateOnExit<SurgingWaveFrothingSea>()
             .OnExit(() => (Module.Arena.Center, Module.Arena.Bounds) = (A32Llymlaen.DefaultCenter, A32Llymlaen.DefaultBounds));
         CastEnd(id + 0x60, 1.6f, "Side")
             .DeactivateOnExit<LeftStrait>()
@@ -127,15 +130,14 @@ class A32LlymlaenStates : StateMachineBuilder
 
     private void TorrentialTridents(uint id, float delay, bool longDelay)
     {
-        Cast(id, AID.TorrentialTridents, delay, 4);
+        Cast(id, AID.TorrentialTridents, delay, 4)
+            .ActivateOnEnter<TorrentialTridentAOE>();
         ComponentCondition<TorrentialTridentLanding>(id + 0x10, 2.8f, comp => comp.NumCasts > 0)
             .ActivateOnEnter<TorrentialTridentLanding>();
         ComponentCondition<TorrentialTridentLanding>(id + 0x20, 5, comp => comp.NumCasts > 5, "Raidwide x6")
             .DeactivateOnExit<TorrentialTridentLanding>();
-
-        ComponentCondition<TorrentialTridentAOE>(id + 0x30, longDelay ? 4.1f : 2.1f, comp => comp.Casters.Count > 0)
-            .ActivateOnEnter<TorrentialTridentAOE>();
-        ComponentCondition<TorrentialTridentAOE>(id + 0x40, 6, comp => comp.NumCasts > 0, "Explosions start");
+        ComponentCondition<TorrentialTridentAOE>(id + 0x30, longDelay ? 4.1f : 2.1f, comp => comp.AOEs.Count > 0);
+        ComponentCondition<TorrentialTridentAOE>(id + 0x40, longDelay ? 10 : 8, comp => comp.NumCasts > 0, "Explosions start");
         ComponentCondition<TorrentialTridentAOE>(id + 0x50, 5, comp => comp.NumCasts > 5, "Explosions end")
             .DeactivateOnExit<TorrentialTridentAOE>();
     }
@@ -197,7 +199,8 @@ class A32LlymlaenStates : StateMachineBuilder
             .DeactivateOnExit<DireStraits>();
 
         ComponentCondition<NavigatorsTridentAOE>(id + 0x20, 1.8f, comp => comp.Casters.Count > 0)
-            .ActivateOnEnter<NavigatorsTridentAOE>();
+            .ActivateOnEnter<NavigatorsTridentAOE>()
+            .ActivateOnEnter<SurgingWaveFrothingSea>();
         ComponentCondition<NavigatorsTridentAOE>(id + 0x21, 7, comp => comp.NumCasts > 0, "Knockback")
             .ActivateOnEnter<SurgingWaveCorridor>() // envcontrol will happen right after knockback end
             .ActivateOnEnter<SerpentsTide>()
@@ -221,20 +224,18 @@ class A32LlymlaenStates : StateMachineBuilder
         ComponentCondition<SurgingWaveShockwave>(id + 0x11, 0.2f, comp => comp.NumCasts > 0, "Knockback")
             .DeactivateOnExit<SurgingWaveShockwave>();
 
-        CastStart(id + 0x20, AID.ToTheLast, 3.0f)
-            .ActivateOnEnter<SurgingWaveFrothingSea>(); // note: first cast should happen ~3.2s later, but for whatever reason it is skipped sometimes...
+        CastStart(id + 0x20, AID.ToTheLast, 3.0f);
         ComponentCondition<ToTheLast>(id + 0x30, 6.0f, comp => comp.NumCasts > 0, "Side 1")
             .ActivateOnEnter<ToTheLast>();
         ComponentCondition<ToTheLast>(id + 0x40, 2.0f, comp => comp.NumCasts > 1, "Side 2");
         ComponentCondition<ToTheLast>(id + 0x50, 2.0f, comp => comp.NumCasts > 2, "Side 3")
             .DeactivateOnExit<ToTheLast>();
         CastStartMulti(id + 0x60, [AID.LeftStrait, AID.RightStrait], 1.4f);
-
         ComponentCondition<SurgingWaveCorridor>(id + 0x70, 4.0f, comp => comp.CorridorDir == default)
             .ActivateOnEnter<LeftStrait>()
             .ActivateOnEnter<RightStrait>()
-            .DeactivateOnExit<SurgingWaveFrothingSea>() // note: last cast happens ~0.5s later, but for whatever reason first cast is skipped sometimes, making counting hard
             .DeactivateOnExit<SurgingWaveCorridor>()
+            .DeactivateOnExit<SurgingWaveFrothingSea>()
             .OnExit(() => (Module.Arena.Center, Module.Arena.Bounds) = (A32Llymlaen.DefaultCenter, A32Llymlaen.DefaultBounds));
         CastEnd(id + 0x80, 2.0f, "Side")
             .DeactivateOnExit<LeftStrait>()

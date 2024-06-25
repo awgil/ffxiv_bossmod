@@ -62,11 +62,22 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private readonly List<Actor> _casters = [];
-    private static readonly AOEShapeRect rect = new(100, 2.5f, 100);
+    private static readonly AOEShapeRect rect = new(100, 2.53f, 100); // halfwidth is 2.5, but +0.03 safety margin because ring position doesn't seem to be exactly caster position
+    private static readonly List<WPos> positionsSet1 = [new WPos(-227.5f, 253), new WPos(-232.5f, 251.5f)];
+    private static readonly List<WPos> positionsSet2 = [new WPos(-252.5f, 253), new WPos(-247.5f, 251.5f)];
+    private static readonly List<WPos> positionsSet3 = [new WPos(-242.5f, 253), new WPos(-237.5f, 253)];
+    private static readonly List<WPos> positionsSet4 = [new WPos(-252.5f, 253), new WPos(-227.5f, 253)];
+
+    private bool AreCastersInPositions(List<WPos> positions)
+    {
+        return _casters.Count >= 2 && positions.Count == 2 &&
+               (_casters[0].Position == positions[0] && _casters[1].Position == positions[1] ||
+                _casters[0].Position == positions[1] && _casters[1].Position == positions[0]);
+    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_casters.Count > 1 && ((_casters[0].Position.AlmostEqual(new(-227.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-232.5f, 251.5f), 1)) || (_casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-247.5f, 251.5f), 1))))
+        if (AreCastersInPositions(positionsSet1) || AreCastersInPositions(positionsSet2))
         {
             if (_casters.Count > 2)
             {
@@ -75,13 +86,10 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
                 if (NumCasts is 0 or 1)
                     yield return new(rect, _casters[1].Position, default, _activation.AddSeconds(7.6f), ArenaColor.Danger);
             }
-            if (_casters.Count > 4)
+            if (_casters.Count > 4 && NumCasts is 0 or 1)
             {
-                if (NumCasts is 0 or 1)
-                {
-                    yield return new(rect, _casters[2].Position, default, _activation.AddSeconds(8.1f));
-                    yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.6f));
-                }
+                yield return new(rect, _casters[2].Position, default, _activation.AddSeconds(8.1f));
+                yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.6f));
             }
             if (_casters.Count > 4)
             {
@@ -90,13 +98,10 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
                 if (NumCasts is 2 or 3)
                     yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.6f), ArenaColor.Danger);
             }
-            if (_casters.Count == 6)
+            if (_casters.Count == 6 && NumCasts is 2 or 3)
             {
-                if (NumCasts is 2 or 3)
-                {
-                    yield return new(rect, _casters[4].Position, default, _activation.AddSeconds(9.1f));
-                    yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f));
-                }
+                yield return new(rect, _casters[4].Position, default, _activation.AddSeconds(9.1f));
+                yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f));
             }
             if (_casters.Count == 6)
             {
@@ -106,7 +111,7 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
                     yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f), ArenaColor.Danger);
             }
         }
-        if (_casters.Count > 1 && ((_casters[0].Position.AlmostEqual(new(-242.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-237.5f, 253), 1)) || (_casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-227.5f, 253), 1))))
+        else if (AreCastersInPositions(positionsSet3) || AreCastersInPositions(positionsSet4))
         {
             if (_casters.Count > 2)
             {
@@ -115,13 +120,10 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
                 if (NumCasts is 0 or 1)
                     yield return new(rect, _casters[1].Position, default, _activation.AddSeconds(7.1f), ArenaColor.Danger);
             }
-            if (_casters.Count > 4)
+            if (_casters.Count > 4 && NumCasts is 0 or 1)
             {
-                if (NumCasts is 0 or 1)
-                {
-                    yield return new(rect, _casters[2].Position, default, _activation.AddSeconds(8.1f));
-                    yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.1f));
-                }
+                yield return new(rect, _casters[2].Position, default, _activation.AddSeconds(8.1f));
+                yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.1f));
             }
             if (_casters.Count > 4)
             {
@@ -130,13 +132,10 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
                 if (NumCasts is 2 or 3)
                     yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.1f), ArenaColor.Danger);
             }
-            if (_casters.Count == 6)
+            if (_casters.Count == 6 && NumCasts is 2 or 3)
             {
-                if (NumCasts is 2 or 3)
-                {
-                    yield return new(rect, _casters[4].Position, default, _activation.AddSeconds(11.1f));
-                    yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f));
-                }
+                yield return new(rect, _casters[4].Position, default, _activation.AddSeconds(11.1f));
+                yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f));
             }
             if (_casters.Count == 6)
             {
@@ -151,19 +150,17 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Rings)
-        {
             _casters.Add(actor);
-        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Ringsmith)
             _activation = WorldState.CurrentTime;
+
         if ((AID)spell.Action.ID == AID.VenaAmoris)
         {
-            ++NumCasts;
-            if (NumCasts == 6)
+            if (++NumCasts == 6)
             {
                 _casters.Clear();
                 NumCasts = 0;
@@ -183,28 +180,34 @@ class ConvictionMarcato(BossModule module) : Components.SelfTargetedAOEs(module,
 class ConvictionMarcato2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConvictionMarcato2), new AOEShapeRect(40, 2.5f));
 class ConvictionMarcato3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConvictionMarcato3), new AOEShapeRect(40, 2.5f));
 
-class Voidzone(BossModule module) : BossComponent(module)
+class PenancePianissimo(BossModule module) : Components.GenericAOEs(module)
 {
-    private bool active;
+    private AOEInstance? _aoe;
+    private static readonly AOEShapeDonut donut = new(14.5f, 30);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.PenancePianissimo)
+            _aoe = new(donut, Arena.Center, default, spell.NPCFinishAt.AddSeconds(0.7f));
+    }
 
     public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state == 0x00040008)
+            Module.Arena.Bounds = D055ForgivenObscenity.arenaRect;
+        else if (state == 0x00010002)
         {
-            Module.Arena.Bounds = new ArenaBoundsRect(15, 20);
-            active = false;
-        }
-        if (state == 0x00010002)
-        {
-            active = true;
-            Module.Arena.Bounds = new ArenaBoundsCircle(15);
+            _aoe = null;
+            Module.Arena.Bounds = D055ForgivenObscenity.arenaCircle;
         }
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (active)
+        if (Module.Arena.Bounds == D055ForgivenObscenity.arenaCircle)
             hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Sprint), actor, ActionQueue.Priority.High);
     }
 }
@@ -226,13 +229,15 @@ class D055ForgivenObscenityStates : StateMachineBuilder
             .ActivateOnEnter<OrisonFortissimo>()
             .ActivateOnEnter<GoldChaser>()
             .ActivateOnEnter<Orbs>()
-            .ActivateOnEnter<Voidzone>();
+            .ActivateOnEnter<PenancePianissimo>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8262)]
-public class D055ForgivenObscenity(WorldState ws, Actor primary) : BossModule(ws, primary, new(-240, 237), new ArenaBoundsRect(15, 20))
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8262)]
+public class D055ForgivenObscenity(WorldState ws, Actor primary) : BossModule(ws, primary, new(-240, 237), arenaRect)
 {
+    public static readonly ArenaBounds arenaRect = new ArenaBoundsRect(14.5f, 19.5f);
+    public static readonly ArenaBounds arenaCircle = new ArenaBoundsCircle(15);
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);

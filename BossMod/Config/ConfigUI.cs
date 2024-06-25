@@ -1,4 +1,5 @@
-﻿using BossMod.Autorotation;
+using BossMod.Autorotation;
+using System.Diagnostics;
 using ImGuiNET;
 using System.Reflection;
 
@@ -65,7 +66,108 @@ public sealed class ConfigUI : IDisposable
 
     public void Draw()
     {
-        _tabs.Draw();
+       _tabs.Draw();
+        using var tabs = ImRaii.TabBar("Tabs");
+        if (tabs)
+        {
+            using (var tab = ImRaii.TabItem("Configs"))
+                if (tab)
+                    DrawNodes(_roots);
+            using (var tab = ImRaii.TabItem("Modules"))
+                if (tab)
+                    _mv.Draw(_tree);
+            using (var tab = ImRaii.TabItem("Slash commands"))
+                if (tab)
+                    DrawAvailableCommands();
+            using (var tab = ImRaii.TabItem("Read me!"))
+                if (tab)
+                    DrawReadMe();
+        }
+    }
+
+    private readonly Dictionary<string, string> _availableAICommands = new()
+    {
+        { "on", "Enables the AI." },
+        { "off", "Disables the AI." },
+        { "toggle", "Toggles the AI on/off." },
+        { "targetmaster", "Toggles the focus on target leader." },
+        { "follow slotX", "Follows the specified slot, eg. Slot1." },
+        { "follow name", "Follows the specified party member by name." },
+        { "ui", "Toggles the AI menu." },
+        { "forbidactions", "Toggles the forbidding of actions. (only for autorotation)" },
+        { "forbidmovement", "Toggles the forbidding of movement." },
+        { "followcombat", "Toggles following during combat." },
+        { "followmodule", "Toggles following during active boss module." },
+        { "followoutofcombat", "Toggles following during out of combat." },
+        { "followtarget", "Toggles following targets during combat." },
+        { "followtarget on/off", "Sets following target during combat to on or off." },
+        { "positional X", "Switch to positional when following targets. (any, rear, flank, front)" }
+    };
+
+    private readonly Dictionary<string, string> _availableOtherCommands = new()
+    {
+        { "a", "Toggles autorotation." },
+        { "d", "Opens the debug menu." },
+        { "r", "Opens the replay menu." },
+        { "gc", "Triggers the garbage collection." },
+        { "cfg", "Lists all configs." }
+    };
+
+    private void DrawAvailableCommands()
+    {
+        ImGui.Text("Available Commands:");
+        ImGui.Separator();
+        ImGui.Text("AI:");
+        ImGui.Separator();
+        foreach (var command in _availableAICommands)
+        {
+            ImGui.Text($"/bmrai {command.Key}: {command.Value}");
+        }
+        ImGui.Separator();
+        ImGui.Text("Other commands:");
+        ImGui.Separator();
+        foreach (var command in _availableOtherCommands)
+        {
+            ImGui.Text($"/bmr {command.Key}: {command.Value}");
+        }
+        ImGui.Text("/vbm can be used instead of /bmr and /vbmai can be used instead of /bmrai");
+    }
+
+    private void DrawReadMe()
+    {
+        ImGui.Text("Important information");
+        ImGui.Separator();
+        ImGui.Text("This is a FORK of veyn's BossMod (VBM).");
+        ImGui.Spacing();
+        ImGui.Text("Please do not ask him for any support for problems you encounter while using this fork.");
+        ImGui.Spacing();
+        ImGui.Text("Instead visit the Combat Reborn Discord and ask for support there:");
+        RenderTextWithLink("https://discord.gg/p54TZMPnC9", new Uri("https://discord.gg/p54TZMPnC9"));
+        ImGui.NewLine();
+        ImGui.Text("Please also make sure to not load VBM and this fork at the same time.");
+        ImGui.Spacing();
+        ImGui.Text("The consequences of doing that are unexplored and unsupported.");
+        ImGui.Separator();
+        ImGui.Text("The AI is designed for legacy movement, make sure to turn on legacy movement\nwhile using AI.");
+        ImGui.Spacing();
+        ImGui.Text("It is advised to pause AutoDuty during boss modules since it can conflict with BMR AI.");
+    }
+
+    static void RenderTextWithLink(string displayText, Uri url)
+    {
+        ImGui.PushID(url.ToString());
+        ImGui.Text(displayText);
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                Process.Start(new ProcessStartInfo(url.ToString()) { UseShellExecute = true });
+        }
+        var textSize = ImGui.CalcTextSize(displayText);
+        var drawList = ImGui.GetWindowDrawList();
+        var cursorPos = ImGui.GetCursorScreenPos();
+        drawList.AddLine(cursorPos, new Vector2(cursorPos.X + textSize.X, cursorPos.Y), ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 1, 1)));
+        ImGui.PopID();
     }
 
     public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws)

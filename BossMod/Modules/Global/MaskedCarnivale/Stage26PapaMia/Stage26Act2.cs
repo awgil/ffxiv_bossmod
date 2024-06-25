@@ -53,15 +53,7 @@ class DadJoke(BossModule module) : Components.Knockback(module)
             _activation = default;
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-    {
-        if (Module.FindComponent<Thunderhead>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
-            return true;
-        if (!Module.InBounds(pos))
-            return true;
-        else
-            return false;
-    }
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<Thunderhead>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.InBounds(pos);
 }
 
 class VoidThunderII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidThunderII), 4);
@@ -110,7 +102,7 @@ class Stage26Act2States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 695, NameID = 9231, SortOrder = 2)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 695, NameID = 9231, SortOrder = 2)]
 public class Stage26Act2 : BossModule
 {
     public Stage26Act2(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsCircle(16))

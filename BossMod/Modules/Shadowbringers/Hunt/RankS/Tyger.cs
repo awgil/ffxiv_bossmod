@@ -51,7 +51,7 @@ class TheScorpionsSting(BossModule module) : Components.GenericAOEs(module)
 
 class TheDragonsBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDragonsBreath), new AOEShapeCone(30, 60.Degrees()));
 class TheRamsBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsBreath), new AOEShapeCone(30, 60.Degrees()));
-class TheRamsEmbrace(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsEmbrace), new AOEShapeCircle(9));
+class TheRamsEmbrace(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsEmbrace), 9);
 class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(9));
 class TheRamsVoiceHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.TheRamsVoice));
 class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(8, 30));
@@ -74,5 +74,5 @@ class TygerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8905)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8905)]
 public class Tyger(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

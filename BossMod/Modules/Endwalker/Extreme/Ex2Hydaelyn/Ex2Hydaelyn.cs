@@ -1,5 +1,7 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
 
+class HerosSundering(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.HerosSundering), new AOEShapeCone(40, 45.Degrees()));
+
 // state related to mousa scorn mechanic (shared tankbuster)
 class MousaScorn(BossModule module) : Components.CastSharedTankbuster(module, ActionID.MakeSpell(AID.MousaScorn), 4);
 

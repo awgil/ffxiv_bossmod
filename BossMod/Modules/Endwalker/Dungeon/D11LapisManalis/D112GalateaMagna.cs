@@ -203,7 +203,7 @@ public class TenebrismTowers(BossModule module) : Components.GenericTowers(modul
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Towers.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 6));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 5));
     }
 }
 
@@ -227,7 +227,7 @@ class Doom(BossModule module) : BossComponent(module)
     {
         if (_doomed.Contains(actor) && !(actor.Role == Role.Healer || actor.Class == Class.BRD))
             hints.Add("You were doomed! Get cleansed fast.");
-        if (_doomed.Contains(actor) && (actor.Role == Role.Healer || actor.Class == Class.BRD))
+        else if (_doomed.Contains(actor) && (actor.Role == Role.Healer || actor.Class == Class.BRD))
             hints.Add("Cleanse yourself! (Doom).");
         foreach (var c in _doomed)
             if (!_doomed.Contains(actor) && (actor.Role == Role.Healer || actor.Class == Class.BRD))
@@ -241,7 +241,7 @@ class Doom(BossModule module) : BossComponent(module)
         {
             if (_doomed.Count > 0 && actor.Role == Role.Healer)
                 hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Esuna), c, ActionQueue.Priority.High);
-            if (_doomed.Count > 0 && actor.Class == Class.BRD)
+            else if (_doomed.Count > 0 && actor.Class == Class.BRD)
                 hints.ActionsToExecute.Push(ActionID.MakeSpell(BRD.AID.WardensPaean), c, ActionQueue.Priority.High);
         }
     }
@@ -264,5 +264,11 @@ class D112GalateaMagnaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 10308)]
-public class D112GalateaMagna(WorldState ws, Actor primary) : BossModule(ws, primary, new(350, -394), new ArenaBoundsCircle(19.5f));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 10308)]
+public class D112GalateaMagna(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> union = [new Circle(new(350, -394), 19.5f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(350, -373), 20, 2.25f), new Rectangle(new(350, -414), 20, 1.25f)];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+
+}

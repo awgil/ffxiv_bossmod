@@ -4,7 +4,8 @@ class P9SKokytosStates : StateMachineBuilder
 {
     public P9SKokytosStates(BossModule module) : base(module)
     {
-        DeathPhase(0, SinglePhase);
+        DeathPhase(0, SinglePhase)
+            .ActivateOnEnter<ArenaChanges>();
     }
 
     private void SinglePhase(uint id)
@@ -140,7 +141,7 @@ class P9SKokytosStates : StateMachineBuilder
             .ActivateOnEnter<ArchaicDemolish>();
         ComponentCondition<ArchaicDemolish>(id + 0x210, 1.2f, comp => !comp.Active, "Party stacks")
             .DeactivateOnExit<ArchaicDemolish>()
-            .DeactivateOnExit<Uplift>() // walls disappear after next raidwide, but that doesn't really matter
+            .DeactivateOnExit<Uplift>()
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 

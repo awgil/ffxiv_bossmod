@@ -33,9 +33,9 @@ public enum AID : uint
     MirroredLeftInterment = 27664, // Boss->self, 6.0s cast, range 40 180-degree cone
     MirroredForeInterment = 27661, // Boss->self, 6.0s cast, range 40 180-degree cone
     MirroredRearInterment = 27662, // Boss->self, 6.0s cast, range 40 180-degree cone
-    //unknown = 25698, // Boss->player, no cast, single-target, no idea what this is for, gets very rarely used, my 6min replay from pull to death doesn't have it for instance
-
+    Visual = 25698, // Boss->player, no cast, single-target
 }
+
 public enum SID : uint
 {
     TemporaryMisdirection = 1422, // Boss->player, extra=0x2D0
@@ -201,5 +201,5 @@ class KerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 10615)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, veyn", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 10615)]
 public class Ker(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

@@ -18,6 +18,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot) : UIWindow("
     private readonly DebugClassDefinitions _debugClassDefinitions = new(ws);
     private readonly DebugAddon _debugAddon = new();
     private readonly DebugTiming _debugTiming = new();
+    private readonly DebugCollision _debugCollision = new();
     private readonly DebugVfx _debugVfx = new();
 
     protected override void Dispose(bool disposing)
@@ -26,6 +27,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot) : UIWindow("
         _debugInput.Dispose();
         _debugClassDefinitions.Dispose();
         _debugAddon.Dispose();
+        _debugCollision.Dispose();
         _debugVfx.Dispose();
         base.Dispose(disposing);
     }
@@ -139,6 +141,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot) : UIWindow("
         if (ImGui.CollapsingHeader("Window system"))
         {
             DrawWindowSystem();
+        }
+        if (ImGui.CollapsingHeader("Collision"))
+        {
+            _debugCollision.Draw();
         }
         if (ImGui.CollapsingHeader("VFX"))
         {

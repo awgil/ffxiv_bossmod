@@ -1,19 +1,33 @@
 ﻿namespace BossMod.Endwalker.Alliance.A13Azeyma;
 
-class WildfireWard(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.IlluminatingGlimpse), 15, false, 1, kind: Kind.DirLeft)
+class WildfireWard(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.IlluminatingGlimpse), 15, false, 1, kind: Kind.DirLeft);
+class ArenaBounds(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly WPos[] _tri = [new(-750, -762), new(-760.392f, -744), new(-739.608f, -744)];
 
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (!actor.Position.InTri(_tri[0], _tri[1], _tri[2]))
-            hints.Add("Go to safe zone!");
-        if (CalculateMovements(slot, actor).Any(e => !e.to.InTri(_tri[0], _tri[1], _tri[2])))
-            hints.Add("About to be knocked into fire!");
-    }
+    private static readonly Circle circle = new(A13Azeyma.NormalCenter, 29.5f);
+    private static readonly WPos triangleCenter = new(-750, -753.325f);
+    private static readonly TriangleE triangle = new(triangleCenter, 24);
+    private static readonly AOEShapeCustom triangleCutOut = new([circle], [triangle]);
+    private static readonly ArenaBoundsComplex TriangleBounds = new([triangle]);
 
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    private AOEInstance? _aoe;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+
+    public override void OnEventEnvControl(byte index, uint state)
     {
-        Arena.ZoneTri(_tri[0], _tri[1], _tri[2], ArenaColor.SafeFromAOE);
+        if (index == 0x1C)
+        {
+            if (state == 0x00020001)
+                _aoe = new(triangleCutOut, A13Azeyma.NormalCenter, default, Module.WorldState.FutureTime(5.7f));
+            else if (state == 0x00200010)
+            {
+                _aoe = null;
+                Arena.Bounds = TriangleBounds;
+                Arena.Center = triangleCenter;
+            }
+            else if (state == 0x00080004)
+                Arena.Bounds = A13Azeyma.NormalBounds;
+        }
     }
 }

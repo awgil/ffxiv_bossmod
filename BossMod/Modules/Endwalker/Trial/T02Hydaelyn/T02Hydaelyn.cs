@@ -1,9 +1,16 @@
 namespace BossMod.Endwalker.Trial.T02Hydaelyn;
 
 class MousasScorn(BossModule module) : Components.CastSharedTankbuster(module, ActionID.MakeSpell(AID.MousasScorn), 4);
-class MousasScornHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.MousasScorn), "Shared Tankbuster");
-class HerossSundering(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.HerossSundering), new AOEShapeCone(40, 45.Degrees()));
-class HerossSunderingHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.HerossSundering), "Tankbuster cleave");
+
+class HerossSundering(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.HerossSundering), new AOEShapeCone(40, 45.Degrees()))
+{
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (CurrentBaits.Count > 0)
+            hints.Add("Tankbuster cleave");
+    }
+}
+
 class HerossRadiance(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HerossRadiance));
 class MagossRadiance(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MagossRadiance));
 class RadiantHalo(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.RadiantHalo));
@@ -25,9 +32,7 @@ class T02HydaelynStates : StateMachineBuilder
             .ActivateOnEnter<Beacon2>()
             .ActivateOnEnter<CrystallineStoneIII>()
             .ActivateOnEnter<CrystallineBlizzardIII>()
-            .ActivateOnEnter<MousasScornHint>()
             .ActivateOnEnter<HerossSundering>()
-            .ActivateOnEnter<HerossSunderingHint>()
             .ActivateOnEnter<HerossRadiance>()
             .ActivateOnEnter<MagossRadiance>()
             .ActivateOnEnter<HydaelynsRay>()
@@ -38,7 +43,7 @@ class T02HydaelynStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 790, NameID = 10453)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 790, NameID = 10453)]
 public class T02Hydaelyn(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

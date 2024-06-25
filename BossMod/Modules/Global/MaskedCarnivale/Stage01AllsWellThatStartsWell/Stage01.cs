@@ -35,7 +35,7 @@ class Stage01States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 610, NameID = 8077)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 610, NameID = 8077)]
 public class Stage01 : BossModule
 {
     public Stage01(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsCircle(25))
@@ -43,7 +43,7 @@ public class Stage01 : BossModule
         ActivateComponent<Hints>();
     }
 
-    protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Slime).Any(e => e.InCombat); }
+    protected override bool CheckPull() => PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Slime).Any(e => e.InCombat);
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

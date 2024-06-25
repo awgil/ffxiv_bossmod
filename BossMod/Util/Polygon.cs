@@ -51,7 +51,7 @@ public record class RelPolygonWithHoles(List<WDir> Vertices, List<int> HoleStart
         }
 
         var tess = Earcut.Tessellate(pts, HoleStarts);
-        for (int i = 0; i < tess.Count; i += 3)
+        for (var i = 0; i < tess.Count; i += 3)
             result.Add(new(Vertices[tess[i]], Vertices[tess[i + 1]], Vertices[tess[i + 2]]));
         return tess.Count > 0;
     }
@@ -79,13 +79,19 @@ public record class RelPolygonWithHoles(List<WDir> Vertices, List<int> HoleStart
         // for simple polygons, it doesn't matter which rule (even-odd, non-zero, etc) we use
         // so let's just use non-zero rule and calculate winding order
         // we need to select arbitrary direction to count winding intersections - let's select unit X
-        int winding = 0;
+        var winding = 0;
+        const float epsilon = 1e-6f;
+
         foreach (var (a, b) in edges)
         {
             // see whether edge ab intersects our test ray - it has to intersect the infinite line on the correct side
             var pa = a - p;
             var pb = b - p;
-            // if pa.Z and pb.Z have same signs, the edge is fully above or below the test ray
+
+            if (PointOnLineSegment(p, a, b, epsilon))
+                return true;
+
+            // if pa.Z and pb.Z have the same signs, the edge is fully above or below the test ray
             if (pa.Z <= 0)
             {
                 if (pb.Z > 0 && pa.Cross(pb) > 0)
@@ -98,6 +104,20 @@ public record class RelPolygonWithHoles(List<WDir> Vertices, List<int> HoleStart
             }
         }
         return winding != 0;
+    }
+
+    private static bool PointOnLineSegment(WDir point, WDir a, WDir b, float epsilon)
+    {
+        var crossProduct = (point.Z - a.Z) * (b.X - a.X) - (point.X - a.X) * (b.Z - a.Z);
+        if (MathF.Abs(crossProduct) > epsilon)
+            return false;
+
+        var dotProduct = (point.X - a.X) * (b.X - a.X) + (point.Z - a.Z) * (b.Z - a.Z);
+        if (dotProduct < 0)
+            return false;
+
+        var squaredLengthBA = (b.X - a.X) * (b.X - a.X) + (b.Z - a.Z) * (b.Z - a.Z);
+        return dotProduct <= squaredLengthBA;
     }
 }
 
@@ -120,13 +140,67 @@ public record class RelSimplifiedComplexPolygon(List<RelPolygonWithHoles> Parts)
 
     // point-in-polygon test; point is defined as offset from shape center
     public bool Contains(WDir p) => Parts.Any(part => part.Contains(p));
+
+    // positive offsets inflate, negative shrink polygon
+    public RelSimplifiedComplexPolygon Offset(float Offset)
+    {
+        var offset = new ClipperOffset();
+        var exteriorPaths = new List<Path64>();
+        var holePaths = new List<Path64>();
+
+        foreach (var part in Parts)
+        {
+            var exteriorPath = new Path64(part.Exterior.Length);
+            foreach (var vertex in part.Exterior)
+                exteriorPath.Add(new Point64(vertex.X * PolygonClipper.Scale, vertex.Z * PolygonClipper.Scale));
+            exteriorPaths.Add(exteriorPath);
+
+            foreach (var holeIndex in part.Holes)
+            {
+                var holePath = new Path64(part.Interior(holeIndex).Length);
+                foreach (var vertex in part.Interior(holeIndex))
+                    holePath.Add(new Point64(vertex.X * PolygonClipper.Scale, vertex.Z * PolygonClipper.Scale));
+                holePaths.Add(holePath);
+            }
+        }
+
+        foreach (var path in exteriorPaths)
+            offset.AddPath(path, JoinType.Miter, EndType.Polygon);
+
+        var expandedHoles = new List<Path64>();
+        foreach (var path in holePaths)
+        {
+            var holeOffset = new ClipperOffset();
+            holeOffset.AddPath(path, JoinType.Miter, EndType.Polygon);
+            var expandedHole = new Paths64();
+            holeOffset.Execute(-Offset * PolygonClipper.Scale, expandedHole);
+            expandedHoles.AddRange(expandedHole);
+        }
+
+        var solution = new Paths64();
+        offset.Execute(Offset * PolygonClipper.Scale, solution);
+
+        var result = new RelSimplifiedComplexPolygon();
+        foreach (var path in solution)
+        {
+            var vertices = path.Select(pt => new WDir(pt.X * PolygonClipper.InvScale, pt.Y * PolygonClipper.InvScale)).ToList();
+            result.Parts.Add(new RelPolygonWithHoles(vertices));
+        }
+
+        foreach (var path in expandedHoles)
+        {
+            var vertices = path.Select(pt => new WDir(pt.X * PolygonClipper.InvScale, pt.Y * PolygonClipper.InvScale)).ToList();
+            result.Parts.Last().AddHole(vertices);
+        }
+        return result;
+    }
 }
 
 // utility for simplifying and performing boolean operations on complex polygons
 public class PolygonClipper
 {
-    private const float _scale = 1024 * 1024; // note: we need at least 10 bits for integer part (-1024 to 1024 range); using 11 bits leaves 20 bits for fractional part; power-of-two scale should reduce rounding issues
-    private const float _invScale = 1 / _scale;
+    public const float Scale = 1024 * 1024; // note: we need at least 10 bits for integer part (-1024 to 1024 range); using 11 bits leaves 20 bits for fractional part; power-of-two scale should reduce rounding issues
+    public const float InvScale = 1 / Scale;
 
     // reusable representation of the complex polygon ready for boolean operations
     public record class Operand
@@ -173,10 +247,10 @@ public class PolygonClipper
         return Execute(ClipType.Union, fillRule);
     }
 
-    public RelSimplifiedComplexPolygon Intersect(Operand p1, Operand p2, FillRule fillRule = FillRule.EvenOdd) => Execute(ClipType.Intersection, fillRule, p1, p2);
-    public RelSimplifiedComplexPolygon Union(Operand p1, Operand p2, FillRule fillRule = FillRule.EvenOdd) => Execute(ClipType.Union, fillRule, p1, p2);
-    public RelSimplifiedComplexPolygon Difference(Operand starting, Operand remove, FillRule fillRule = FillRule.EvenOdd) => Execute(ClipType.Difference, fillRule, starting, remove);
-    public RelSimplifiedComplexPolygon Xor(Operand p1, Operand p2, FillRule fillRule = FillRule.EvenOdd) => Execute(ClipType.Xor, fillRule, p1, p2);
+    public RelSimplifiedComplexPolygon Intersect(Operand p1, Operand p2, FillRule fillRule = FillRule.NonZero) => Execute(ClipType.Intersection, fillRule, p1, p2);
+    public RelSimplifiedComplexPolygon Union(Operand p1, Operand p2, FillRule fillRule = FillRule.NonZero) => Execute(ClipType.Union, fillRule, p1, p2);
+    public RelSimplifiedComplexPolygon Difference(Operand starting, Operand remove, FillRule fillRule = FillRule.NonZero) => Execute(ClipType.Difference, fillRule, starting, remove);
+    public RelSimplifiedComplexPolygon Xor(Operand p1, Operand p2, FillRule fillRule = FillRule.NonZero) => Execute(ClipType.Xor, fillRule, p1, p2);
 
     private RelSimplifiedComplexPolygon Execute(ClipType operation, FillRule fillRule, Operand subject, Operand clip)
     {
@@ -214,8 +288,8 @@ public class PolygonClipper
         }
     }
 
-    private static Point64 ConvertPoint(WDir pt) => new(pt.X * _scale, pt.Z * _scale);
-    private static WDir ConvertPoint(Point64 pt) => new(pt.X * _invScale, pt.Y * _invScale);
+    private static Point64 ConvertPoint(WDir pt) => new(pt.X * Scale, pt.Z * Scale);
+    private static WDir ConvertPoint(Point64 pt) => new(pt.X * InvScale, pt.Y * InvScale);
 }
 
 public static class PolygonUtil
@@ -245,10 +319,10 @@ public static class PolygonUtil
             return false;
 
         var prevEdge = contour[0] - contour[^1];
-        float cross = (contour[^1] - contour[^2]).Cross(prevEdge);
+        var cross = (contour[^1] - contour[^2]).Cross(prevEdge);
         if (contour.Length > 3)
         {
-            for (int i = 1; i < contour.Length; ++i)
+            for (var i = 1; i < contour.Length; ++i)
             {
                 var currEdge = contour[i] - contour[i - 1];
                 var curCross = prevEdge.Cross(currEdge);
@@ -262,5 +336,52 @@ public static class PolygonUtil
             }
         }
         return cross != 0;
+    }
+
+    public static bool IsPointInsideConcavePolygon(WPos point, IEnumerable<WPos> vertices)
+    {
+        var intersections = 0;
+        var verticesList = vertices.ToList();
+        for (var i = 0; i < verticesList.Count; i++)
+        {
+            var a = verticesList[i];
+            var b = verticesList[(i + 1) % verticesList.Count];
+            if (RayIntersectsEdge(point, a, b))
+                intersections++;
+        }
+        return intersections % 2 != 0;
+    }
+
+    public static bool RayIntersectsEdge(WPos point, WPos a, WPos b)
+    {
+        if (a.Z > b.Z)
+            (b, a) = (a, b);
+        if (point.Z == a.Z || point.Z == b.Z)
+            point = new WPos(point.X, point.Z + 0.0001f);
+        if (point.Z > b.Z || point.Z < a.Z || point.X >= Math.Max(a.X, b.X))
+            return false;
+        if (point.X < Math.Min(a.X, b.X))
+            return true;
+        var red = (point.Z - a.Z) / (b.Z - a.Z);
+        var blue = (b.X - a.X) * red + a.X;
+        return point.X < blue;
+    }
+
+    public static float DistanceToEdge(WPos point, (WPos p1, WPos p2) edge)
+    {
+        var (p1, p2) = edge;
+        var edgeVector = p2 - p1;
+        var pointVector = point - p1;
+        var edgeLengthSquared = edgeVector.LengthSq();
+
+        var t = Math.Max(0, Math.Min(1, pointVector.Dot(edgeVector) / edgeLengthSquared));
+        var projection = p1 + t * edgeVector;
+        return (point - projection).Length();
+    }
+
+    public static (WPos, WPos) ConvertToWPos(WPos origin, (WDir, WDir) edge)
+    {
+        var (p1, p2) = edge;
+        return (new WPos(origin.X + p1.X, origin.Z + p1.Z), new WPos(origin.X + p2.X, origin.Z + p2.Z));
     }
 }

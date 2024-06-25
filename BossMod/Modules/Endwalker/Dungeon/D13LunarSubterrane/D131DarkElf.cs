@@ -38,7 +38,7 @@ class HexingStaves(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (Module.FindComponent<Explosion>() is var explosion && explosion != null && !explosion.ActiveAOEs(slot, actor).Any())
+        if (!Module.FindComponent<Explosion>()!.ActiveAOEs(slot, actor).Any())
             foreach (var c in _staves)
                 yield return new(cross, c.Position, c.Rotation, _activation, Risky: _activation.AddSeconds(-5) < WorldState.CurrentTime);
     }
@@ -77,7 +77,6 @@ class AbyssalOutburst(BossModule module) : Components.RaidwideCast(module, Actio
 class Doom(BossModule module) : BossComponent(module)
 {
     private readonly List<Actor> _doomed = [];
-    public bool Doomed { get; private set; }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -129,5 +128,5 @@ class D131DarkElfStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12500)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12500)]
 public class D131DarkElf(WorldState ws, Actor primary) : BossModule(ws, primary, new(-401, -231), new ArenaBoundsSquare(15.5f));

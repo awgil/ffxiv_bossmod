@@ -3,13 +3,14 @@
 namespace BossMod.Components;
 
 // generic knockback/attract component; it's a cast counter for convenience
-public abstract class Knockback(BossModule module, ActionID aid = new(), bool ignoreImmunes = false, int maxCasts = int.MaxValue, bool stopAtWall = false) : CastCounter(module, aid)
+public abstract class Knockback(BossModule module, ActionID aid = new(), bool ignoreImmunes = false, int maxCasts = int.MaxValue, bool stopAtWall = false, bool stopAfterWall = false, IEnumerable<SafeWall>? safeWalls = null) : CastCounter(module, aid)
 {
     public enum Kind
     {
         None,
         AwayFromOrigin, // standard knockback - specific distance along ray from origin to target
-        TowardsOrigin, // standard pull - "knockback" to source - forward along source's direction + 180 degrees
+        TowardsOrigin, // standard pull - "knockback" to source -  specific distance along ray from origin to target + 180 degrees
+        DirBackward, // standard pull - "knockback" to source - forward along source's direction + 180 degrees
         DirForward, // directional knockback - forward along source's direction
         DirLeft, // directional knockback - forward along source's direction + 90 degrees
         DirRight, // directional knockback - forward along source's direction - 90 degrees
@@ -22,7 +23,17 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
         AOEShape? Shape = null, // if null, assume it is unavoidable raidwide knockback/attract
         Angle Direction = default, // irrelevant for non-directional knockback/attract
         Kind Kind = Kind.AwayFromOrigin,
-        float MinDistance = 0 // irrelevant for knockbacks
+        float MinDistance = 0, // irrelevant for knockbacks
+        IEnumerable<SafeWall>? SafeWalls = null
+    );
+
+    public record struct SafeWall(
+        WPos Vertex1 = default, // for line segments
+        WPos Vertex2 = default,
+        WPos Center = default, // for circle segments
+        float Radius = default,
+        Angle StartAngle = default,
+        Angle EndAngle = default
     );
 
     protected struct PlayerImmuneState
@@ -34,9 +45,14 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
         public readonly bool ImmuneAt(DateTime time) => RoleBuffExpire > time || JobBuffExpire > time || DutyBuffExpire > time;
     }
 
+    public IEnumerable<SafeWall> SafeWalls { get; init; } = safeWalls ?? [];
     public bool IgnoreImmunes { get; init; } = ignoreImmunes;
     public bool StopAtWall = stopAtWall; // use if wall is solid rather than deadly
+    public bool StopAfterWall = stopAfterWall; // use if the wall is a polygon where you need to check for intersections
     public int MaxCasts = maxCasts; // use to limit number of drawn knockbacks
+    private const float approxHitBoxRadius = 0.499f; // calculated because due to floating point errors this does not result in 0.001
+    private const float maxIntersectionError = 0.5f - approxHitBoxRadius; // calculated because due to floating point errors this does not result in 0.001
+
     protected PlayerImmuneState[] PlayerImmunes = new PlayerImmuneState[PartyState.MaxAllianceSize];
 
     public bool IsImmune(int slot, DateTime time) => !IgnoreImmunes && PlayerImmunes[slot].ImmuneAt(time);
@@ -142,6 +158,7 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
             {
                 Kind.AwayFromOrigin => from != s.Origin ? (from - s.Origin).Normalized() : default,
                 Kind.TowardsOrigin => from != s.Origin ? (s.Origin - from).Normalized() : default,
+                Kind.DirBackward => (s.Direction + 180.Degrees()).ToDirection(),
                 Kind.DirForward => s.Direction.ToDirection(),
                 Kind.DirLeft => s.Direction.ToDirection().OrthoL(),
                 Kind.DirRight => s.Direction.ToDirection().OrthoR(),
@@ -151,13 +168,56 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
                 continue; // couldn't determine direction for some reason
 
             var distance = s.Distance;
-            if (s.Kind is Kind.TowardsOrigin)
+            if (s.Kind == Kind.TowardsOrigin)
                 distance = Math.Min(s.Distance, (s.Origin - from).Length() - s.MinDistance);
+            if (s.Kind == Kind.DirBackward)
+            {
+                var perpendicularDir = s.Direction.ToDirection().OrthoL();
+                var perpendicularDistance = Math.Abs((from - s.Origin).Cross(perpendicularDir) / perpendicularDir.Length());
+                distance = Math.Min(s.Distance, perpendicularDistance);
+            }
+
             if (distance <= 0)
                 continue; // this could happen if attract starts from < min distance
 
             if (StopAtWall)
-                distance = Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) - actor.HitboxRadius);
+                distance = Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) - Math.Clamp(actor.HitboxRadius - approxHitBoxRadius, maxIntersectionError, actor.HitboxRadius - approxHitBoxRadius)); // hitbox radius can be != 0.5 if player is transformed/mounted, but normal arenas with walls should account for walkable arena in their shape already
+            if (StopAfterWall)
+                distance = Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) + maxIntersectionError);
+
+            var sourceSafeWalls = s.SafeWalls ?? SafeWalls;
+
+            if (sourceSafeWalls.Any())
+            {
+                var distanceToWall = float.MaxValue;
+                foreach (var wall in sourceSafeWalls)
+                {
+                    var t = float.MaxValue;
+
+                    if (wall.Vertex1 != default && wall.Vertex2 != default)
+                        t = Intersect.RaySegment(from, dir, wall.Vertex1, wall.Vertex2);
+                    else if (wall.Center != default && wall.Radius != 0)
+                    {
+                        t = Intersect.RayCircle(from, dir, wall.Center, wall.Radius);
+                        if (t < float.MaxValue)
+                        {
+                            var intersection = from + t * dir;
+                            var intersectionAngle = Angle.FromDirection(intersection - wall.Center).Normalized();
+                            // Angle wraps around at 0°
+                            var isWithinAngles = wall.StartAngle <= wall.EndAngle
+                                ? intersectionAngle >= wall.StartAngle && intersectionAngle <= wall.EndAngle
+                                : intersectionAngle >= wall.StartAngle || intersectionAngle <= wall.EndAngle;
+                            if (!isWithinAngles)
+                                t = float.MaxValue;
+                        }
+                    }
+                    if (t < distanceToWall && t <= s.Distance)
+                        distanceToWall = t;
+                }
+                distance = distanceToWall < float.MaxValue
+                    ? Math.Min(distance, distanceToWall - Math.Clamp(actor.HitboxRadius - approxHitBoxRadius, maxIntersectionError, actor.HitboxRadius - approxHitBoxRadius))
+                    : Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) + maxIntersectionError);
+            }
 
             var to = from + distance * dir;
             yield return (from, to);
@@ -171,8 +231,8 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
 
 // generic 'knockback from/attract to cast target' component
 // TODO: knockback is really applied when effectresult arrives rather than when actioneffect arrives, this is important for ai hints (they can reposition too early otherwise)
-public class KnockbackFromCastTarget(BossModule module, ActionID aid, float distance, bool ignoreImmunes = false, int maxCasts = int.MaxValue, AOEShape? shape = null, Kind kind = Kind.AwayFromOrigin, float minDistance = 0, bool minDistanceBetweenHitboxes = false, bool stopAtWall = false)
-    : Knockback(module, aid, ignoreImmunes, maxCasts, stopAtWall)
+public class KnockbackFromCastTarget(BossModule module, ActionID aid, float distance, bool ignoreImmunes = false, int maxCasts = int.MaxValue, AOEShape? shape = null, Kind kind = Kind.AwayFromOrigin, float minDistance = 0, bool minDistanceBetweenHitboxes = false, bool stopAtWall = false, bool stopAfterWall = false, IEnumerable<SafeWall>? safeWalls = null)
+    : Knockback(module, aid, ignoreImmunes, maxCasts, stopAtWall, stopAfterWall, safeWalls)
 {
     public float Distance = distance;
     public AOEShape? Shape = shape;

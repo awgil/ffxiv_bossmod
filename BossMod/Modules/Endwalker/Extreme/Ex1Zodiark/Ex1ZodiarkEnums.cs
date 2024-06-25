@@ -47,6 +47,7 @@ public enum AID : uint
     Phobos = 26608, // Boss->self
     Adikia = 26609, // Boss->self
     AdikiaR = 26610, // Helper->self, second hit
+    RoilofDarknessVisual = 26161, // RoilingDarkness->Boss, no cast, single-target
     Styx = 26611, // Boss->self
     StyxAOE = 26612, // Helper->target, no cast
     Enrage = 26613,

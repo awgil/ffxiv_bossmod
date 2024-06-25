@@ -53,4 +53,10 @@ public class Chains(BossModule module, uint tetherID, ActionID aid = default) : 
         if (slot >= 0)
             _partner[slot] = target;
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_partner[slot] is var partner && partner != null)
+            hints.AddForbiddenZone(ShapeDistance.Circle(partner.Position, (partner.Position - actor.Position).Length() + 1));
+    }
 }

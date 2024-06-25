@@ -96,8 +96,13 @@ class D081TeratotaurStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 9, NameID = 1567)]
-public class D081Teratotaur(WorldState ws, Actor primary) : BossModule(ws, primary, new(-70, -60), new ArenaBoundsSquare(20))
+public class D081Teratotaur(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
 {
+    private static readonly List<Shape> shape = [new PolygonCustom([new(-94.9f, -59), new(-70.2f, -46.1f), new(-55.3f, -46.6f),
+    new(-55.7f, -55.6f), new(-51.1f, -60.9f), new(-51.2f, -65), new(-58.1f, -67.7f),
+    new(-64.7f, -70.6f), new(-88.4f, -72.2f), new(-89, -66.2f), new(-94.9f, -65.5f)])];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(shape);
+
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);
@@ -110,5 +115,12 @@ public class D081Teratotaur(WorldState ws, Actor primary) : BossModule(ws, prima
                 _ => 0
             };
         }
+    }
+
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        foreach (var s in Enemies(OID.DungWespe))
+            Arena.Actor(s, ArenaColor.Enemy);
     }
 }
