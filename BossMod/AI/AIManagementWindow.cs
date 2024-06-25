@@ -75,18 +75,18 @@ sealed class AIManagementWindow : UIWindow
             _config.DesiredPositional = (Positional)positionalIndex;
             _config.Modified.Fire();
         }
-        using (var presetCombo = ImRaii.Combo("AI preset", _manager.AiPreset?.Name ?? ""))
+        ImGui.Text("Autorotation AI preset");
+        ImGui.SameLine();
+        using var presetCombo = ImRaii.Combo("##AI preset", _manager.AiPreset?.Name ?? "");
+        if (presetCombo)
         {
-            if (presetCombo)
+            foreach (var p in _manager.Autorot.Database.Presets.Presets)
             {
-                foreach (var p in _manager.Autorot.Database.Presets.Presets)
+                if (ImGui.Selectable(p.Name, p == _manager.AiPreset))
                 {
-                    if (ImGui.Selectable(p.Name, p == _manager.AiPreset))
-                    {
-                        _manager.AiPreset = p;
-                        if (_manager.Beh != null)
-                            _manager.Beh.AIPreset = p;
-                    }
+                    _manager.AiPreset = p;
+                    if (_manager.Beh != null)
+                        _manager.Beh.AIPreset = p;
                 }
             }
         }
