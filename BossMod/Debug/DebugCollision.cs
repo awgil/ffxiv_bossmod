@@ -34,7 +34,7 @@ public unsafe struct CollisionModule
     [FieldOffset(0xA8)] public int LoadInProgressCounter;
     [FieldOffset(0xAC)] public Vector4 ForcedStreamingBounds;
 
-    public static CollisionModule* Instance => (CollisionModule*)Framework.Instance()->BGCollisionModule;
+    public static CollisionModule* Instance => (CollisionModule*)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->BGCollisionModule;
 }
 
 [StructLayout(LayoutKind.Explicit, Size = 0x38)]

@@ -80,7 +80,7 @@ class FunambulistsFantasia(BossModule module) : BossComponent(module)
         hints.WaypointManager.module = Module;
         if (Module.Arena.Bounds == D033AencThon.chasmArena && lyre != null)
         {
-            hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Sprint), actor, ActionQueue.Priority.High);
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(lyre.Position, 3));
             if (!WaypointsAdded && Module.Arena.Bounds == D033AencThon.chasmArena)
             {

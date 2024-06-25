@@ -377,8 +377,8 @@ public class StretchTetherDuo(BossModule module, uint tetherIDBad, uint tetherID
         var immunity = IsImmune(slot, ActiveBaits.FirstOrDefault(x => x.Target == actor).Activation);
         if (KnockbackImmunity && !immunity && ActivationDelayOnActor.Any(x => x.Item1 == actor && x.Item2.AddSeconds(-6) <= WorldState.CurrentTime))
         {
-            hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.ArmsLength), actor, 1, false));
-            hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Surecast), actor, 1, false));
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.ArmsLength), actor, ActionQueue.Priority.High);
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Surecast), actor, ActionQueue.Priority.High);
         }
         if (Shape != DefaultShape)
             base.AddAIHints(slot, actor, assignment, hints);

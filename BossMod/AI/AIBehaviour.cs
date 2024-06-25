@@ -35,7 +35,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
             FocusMaster(master);
 
         _afkMode = !master.InCombat && (WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
-        bool forbidActions = _config.ForbidActions || ctrl.IsMounted || _afkMode || autorot.Preset != null && autorot.Preset != AIPreset;
+        var forbidActions = _config.ForbidActions || ctrl.IsMounted || _afkMode || autorot.Preset != null && autorot.Preset != AIPreset;
 
         Targeting target = new();
         if (!forbidActions)
@@ -225,11 +225,5 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         ImGui.TextUnformatted($"Max-cast={MathF.Min(_maxCastTime, 1000):f3}, afk={_afkMode}, follow={_followMaster}, algo={_naviDecision.DecisionType} {_naviDecision.Destination} (d={dist:f3}), master standing for {Math.Clamp((WorldState.CurrentTime - _masterLastMoved).TotalSeconds, 0, 1000):f1}");
     }
 
-    private bool DrawConfigCheckbox(string label, ref bool configField)
-    {
-        var originalValue = configField;
-        return ImGui.Checkbox(label, ref configField) && configField != originalValue;
-    }
-
-    private bool TargetIsForbidden(Actor? actor) => actor != null && autorot.Hints.ForbiddenTargets.Any(e => e.Actor == actor);
+    private bool TargetIsForbidden(ulong actorId) => autorot.Hints.ForbiddenTargets.Any(e => e.Actor.InstanceID == actorId);
 }

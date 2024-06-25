@@ -2,6 +2,7 @@ using BossMod.Autorotation;
 using System.Diagnostics;
 using ImGuiNET;
 using System.Reflection;
+using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
@@ -66,16 +67,10 @@ public sealed class ConfigUI : IDisposable
 
     public void Draw()
     {
-       _tabs.Draw();
+        _tabs.Draw();
         using var tabs = ImRaii.TabBar("Tabs");
         if (tabs)
         {
-            using (var tab = ImRaii.TabItem("Configs"))
-                if (tab)
-                    DrawNodes(_roots);
-            using (var tab = ImRaii.TabItem("Modules"))
-                if (tab)
-                    _mv.Draw(_tree);
             using (var tab = ImRaii.TabItem("Slash commands"))
                 if (tab)
                     DrawAvailableCommands();
@@ -85,7 +80,7 @@ public sealed class ConfigUI : IDisposable
         }
     }
 
-    private readonly Dictionary<string, string> _availableAICommands = new()
+    private static readonly Dictionary<string, string> _availableAICommands = new()
     {
         { "on", "Enables the AI." },
         { "off", "Disables the AI." },
@@ -104,9 +99,17 @@ public sealed class ConfigUI : IDisposable
         { "positional X", "Switch to positional when following targets. (any, rear, flank, front)" }
     };
 
-    private readonly Dictionary<string, string> _availableOtherCommands = new()
+    private static readonly Dictionary<string, string> _autorotationCommands = new()
     {
-        { "a", "Toggles autorotation." },
+        { "ar", "Lists all autorotation commands." },
+        { "ar clear", "Clear current preset; autorotation will do nothing unless plan is active" },
+        { "ar set Preset", "Force disable autorotation; no actions will be executed automatically even if plan is active." },
+        { "ar toggle", "Force disable autorotation if not already; otherwise clear overrides." },
+        { "ar toggle Preset", "Start executing specified preset unless it's already active; clear otherwise" },
+    };
+
+    private static readonly Dictionary<string, string> _availableOtherCommands = new()
+    {
         { "d", "Opens the debug menu." },
         { "r", "Opens the replay menu." },
         { "gc", "Triggers the garbage collection." },
@@ -124,12 +127,20 @@ public sealed class ConfigUI : IDisposable
             ImGui.Text($"/bmrai {command.Key}: {command.Value}");
         }
         ImGui.Separator();
+        ImGui.Text("Autorotation commands:");
+        ImGui.Separator();
+        foreach (var command in _autorotationCommands)
+        {
+            ImGui.Text($"/bmr {command.Key}: {command.Value}");
+        }
+        ImGui.Separator();
         ImGui.Text("Other commands:");
         ImGui.Separator();
         foreach (var command in _availableOtherCommands)
         {
             ImGui.Text($"/bmr {command.Key}: {command.Value}");
         }
+        ImGui.Separator();
         ImGui.Text("/vbm can be used instead of /bmr and /vbmai can be used instead of /bmrai");
     }
 

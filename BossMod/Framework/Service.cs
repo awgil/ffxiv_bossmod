@@ -11,6 +11,7 @@ public sealed class Service
 {
 #pragma warning disable CS8618
     [PluginService] public static IPluginLog Logger { get; private set; }
+    [PluginService] public static IDataManager DataManager { get; private set; }
     [PluginService] public static IChatGui ChatGui { get; private set; }
     [PluginService] public static IGameGui GameGui { get; private set; }
     [PluginService] public static IGameInteropProvider Hook { get; private set; }

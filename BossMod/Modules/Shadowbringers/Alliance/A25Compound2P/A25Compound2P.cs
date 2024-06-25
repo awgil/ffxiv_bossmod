@@ -32,7 +32,7 @@ class EnergyCompression(BossModule module) : Components.GenericTowers(module)
         if (Towers.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 5));
         if (Towers.Count > 1)
-            hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Sprint), actor, ActionQueue.Priority.High);
     }
 }
 

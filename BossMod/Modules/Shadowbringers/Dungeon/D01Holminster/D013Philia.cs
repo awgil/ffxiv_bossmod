@@ -1,4 +1,6 @@
-﻿namespace BossMod.Shadowbringers.Dungeon.D01Holmintser.D013Philia;
+﻿using BossMod.Autorotation;
+
+namespace BossMod.Shadowbringers.Dungeon.D01Holmintser.D013Philia;
 
 public enum OID : uint
 {
@@ -97,12 +99,9 @@ class Chains(BossModule module) : BossComponent(module)
                     OID.Boss => -1,
                     _ => 0
                 };
-        if (!Service.Config.Get<AutorotationConfig>().Enabled)
-        {
-            var ironchain = Module.Enemies(OID.IronChain).FirstOrDefault();
-            if (ironchain != null && !ironchain.IsDead)
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(ironchain.Position, ironchain.HitboxRadius + 3));
-        }
+        var ironchain = Module.Enemies(OID.IronChain).FirstOrDefault();
+        if (ironchain != null && !ironchain.IsDead)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(ironchain.Position, ironchain.HitboxRadius + 3));
     }
 
     public override void OnEventIcon(Actor actor, uint iconID)
