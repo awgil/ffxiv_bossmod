@@ -11,7 +11,7 @@ namespace BossMod;
 
 public sealed class Plugin : IDalamudPlugin
 {
-    public string Name => "Boss Mod";
+    public string Name => "BossMod Reborn";
 
     private ICommandManager CommandManager { get; init; }
 
@@ -120,7 +120,6 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnCommand(string cmd, string args)
     {
-        var autorotConfig = Service.Config.Get<AutorotationConfig>();
         Service.Log($"OnCommand: {cmd} {args}");
         var split = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (split.Length == 0)

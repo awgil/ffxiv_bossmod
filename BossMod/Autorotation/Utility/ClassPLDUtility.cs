@@ -5,7 +5,7 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
     public enum Track { Sheltron = SharedTrack.Count, Sentinel, HallowedGround }
     public enum BWOption { None, Bloodwhetting, RawIntuition, NascentFlash }
 
-    public static ActionID IDLimitBreak3 = ActionID.MakeSpell(PLD.AID.LastBastion);
+    public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(PLD.AID.LastBastion);
 
     public static RotationModuleDefinition Definition()
     {

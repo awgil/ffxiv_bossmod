@@ -1,4 +1,5 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
+using System.Collections.ObjectModel;
 
 namespace BossMod.Autorotation.Legacy;
 
@@ -27,16 +28,16 @@ public abstract class CommonState(RotationModule module)
     public bool NextPositionalCorrect; // true if correctly positioned for next positional
 
     // these simply point to client state
-    public Cooldown[] Cooldowns => Module.World.Client.Cooldowns;
-    public ActionID[] DutyActions => Module.World.Client.DutyActions;
-    public byte[] BozjaHolster => Module.World.Client.BozjaHolster;
+    public ReadOnlyCollection<Cooldown> Cooldowns => Array.AsReadOnly(Module.World.Client.Cooldowns);
+    public ReadOnlyCollection<ActionID> DutyActions => Array.AsReadOnly(Module.World.Client.DutyActions);
+    public ReadOnlyCollection<byte> BozjaHolster => Array.AsReadOnly(Module.World.Client.BozjaHolster);
 
     // both 2.5 max (unless slowed), reduced by gear attributes and certain status effects
     public float AttackGCDTime;
     public float SpellGCDTime;
 
     // find a slot containing specified duty action; returns -1 if not found
-    public int FindDutyActionSlot(ActionID action) => Array.IndexOf(DutyActions, action);
+    public int FindDutyActionSlot(ActionID action) => Array.IndexOf(Module.World.Client.DutyActions, action);
     // find a slot containing specified duty action, if other duty action is the specified one; returns -1 if not found, or other action is different
     public int FindDutyActionSlot(ActionID action, ActionID other)
     {
