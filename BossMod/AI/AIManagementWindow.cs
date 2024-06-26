@@ -42,32 +42,33 @@ sealed class AIManagementWindow : UIWindow
     {
         ImGui.TextUnformatted($"Navi={_manager.Controller.NaviTargetPos} / {_manager.Controller.NaviTargetRot}{(_manager.Controller.ForceFacing ? " forced" : "")}");
         _manager.Beh?.DrawDebug();
-        if (ImGui.Button("AI on/update followed slot"))
-        {
-            _manager.SwitchToFollow(_config.FollowSlot);
-            _config.Enabled = true;
-            _config.Modified.Fire();
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("AI off"))
-            _manager.SwitchToIdle();
         ImGui.Text("Follow party slot");
         ImGui.SameLine();
-        var partyMemberNames = new List<string>();
-        for (var i = 0; i < 8; i++)
+        ImGui.SetNextItemWidth(250);
+        ImGui.SetNextWindowSizeConstraints(new Vector2(0, 0), new Vector2(float.MaxValue, ImGui.GetTextLineHeightWithSpacing() * 50));
+        using (var leaderCombo = ImRaii.Combo("##Leader", _manager.Beh == null ? "<idle>" : _manager.WorldState.Party[_manager.MasterSlot]?.Name ?? "<unknown>"))
         {
-            var member = _manager.Autorot.WorldState.Party[i];
-            if (member != null)
-                partyMemberNames.Add(member.Name);
-            else
-                partyMemberNames.Add($"Slot {i + 1}");
+            if (leaderCombo)
+            {
+                if (ImGui.Selectable("<idle>", _manager.Beh == null))
+                {
+                    _manager.SwitchToIdle();
+                }
+                foreach (var (i, p) in _manager.WorldState.Party.WithSlot(true))
+                {
+                    if (ImGui.Selectable(p.Name, _manager.MasterSlot == i))
+                    {
+                        _config.Enabled = true;
+                        _manager.SwitchToFollow(i);
+                        _config.FollowSlot = i;
+                        _config.Modified.Fire();
+                    }
+                }
+            }
         }
-        var partyMemberNamesArray = partyMemberNames.ToArray();
-
-        if (ImGui.Combo("##FollowPartySlot", ref _config.FollowSlot, partyMemberNamesArray, partyMemberNamesArray.Length))
-            _config.Modified.Fire();
         ImGui.Text("Desired positional");
         ImGui.SameLine();
+        ImGui.SetNextItemWidth(100);
         var positionalOptions = Enum.GetNames(typeof(Positional));
         var positionalIndex = (int)_config.DesiredPositional;
         if (ImGui.Combo("##DesiredPositional", ref positionalIndex, positionalOptions, positionalOptions.Length))
@@ -77,6 +78,8 @@ sealed class AIManagementWindow : UIWindow
         }
         ImGui.Text("Autorotation AI preset");
         ImGui.SameLine();
+        ImGui.SetNextItemWidth(250);
+        ImGui.SetNextWindowSizeConstraints(new Vector2(0, 0), new Vector2(float.MaxValue, ImGui.GetTextLineHeightWithSpacing() * 50));
         using var presetCombo = ImRaii.Combo("##AI preset", _manager.AiPreset?.Name ?? "");
         if (presetCombo)
         {

@@ -59,17 +59,27 @@ class Magnetism(BossModule module) : Components.Knockback(module, ignoreImmunes:
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<NerveGasRingAndAutoCannons>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) ||
         (Module.FindComponent<Barofield>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.InBounds(pos);
 
+    private bool IsPull(Actor source, Actor target)
+    {
+        return statusOnActor.Contains((source, (uint)SID.NegativeChargeDrone)) && statusOnActor.Contains((target, (uint)SID.PositiveChargePlayer)) ||
+            statusOnActor.Contains((source, (uint)SID.PositiveChargeDrone)) && statusOnActor.Contains((target, (uint)SID.NegativeChargePlayer));
+    }
+
+    private bool IsKnockback(Actor source, Actor target)
+    {
+        return statusOnActor.Contains((source, (uint)SID.NegativeChargeDrone)) && statusOnActor.Contains((target, (uint)SID.NegativeChargePlayer)) ||
+            statusOnActor.Contains((source, (uint)SID.PositiveChargeDrone)) && statusOnActor.Contains((target, (uint)SID.PositiveChargePlayer));
+    }
+
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Magnetism)
         {
             var target = WorldState.Actors.Find(tether.Target)!;
             var activation = Module.WorldState.FutureTime(10);
-            // case: Pull
-            if (statusOnActor.Contains((source, (uint)SID.NegativeChargeDrone)) && statusOnActor.Contains((target, (uint)SID.PositiveChargePlayer)) || statusOnActor.Contains((source, (uint)SID.PositiveChargeDrone)) && statusOnActor.Contains((target, (uint)SID.NegativeChargePlayer)))
+            if (IsPull(source, target))
                 sourceByActor.Add((target, new(source.Position, 10, activation, Kind: Kind.TowardsOrigin)));
-            // case: Knockback
-            else if (statusOnActor.Contains((source, (uint)SID.NegativeChargeDrone)) && statusOnActor.Contains((target, (uint)SID.NegativeChargePlayer)) || statusOnActor.Contains((source, (uint)SID.PositiveChargeDrone)) && statusOnActor.Contains((target, (uint)SID.PositiveChargePlayer)))
+            else if (IsKnockback(source, target))
                 sourceByActor.Add((target, new(source.Position, 10, activation)));
         }
     }

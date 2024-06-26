@@ -68,7 +68,7 @@ class OpList(Replay replay, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldSt
     private bool FilterInterestingActor(ulong instanceID, DateTime timestamp, bool allowPlayers)
     {
         var p = replay.FindParticipant(instanceID, timestamp)!;
-        if ((p.OwnerID & 0xFF000000) == 0x10000000)
+        if ((p.OwnerID & 0xFF000000) == 0x10000000 && p.Type != ActorType.Buddy)
             return false; // player's pet/area
         return (p.Type is not ActorType.Player and not ActorType.Buddy and not ActorType.Pet || allowPlayers) && !_filteredOIDs.Contains(p.OID);
     }

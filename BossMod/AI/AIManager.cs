@@ -18,7 +18,7 @@ sealed class AIManager : IDisposable
     public AIBehaviour? Beh;
     public Preset? AiPreset;
 
-    private WorldState WorldState => Autorot.Bossmods.WorldState;
+    public WorldState WorldState => Autorot.Bossmods.WorldState;
 
     public AIManager(RotationModuleManager autorot)
     {
@@ -91,7 +91,7 @@ sealed class AIManager : IDisposable
     public void SwitchToFollow(int masterSlot)
     {
         SwitchToIdle();
-        MasterSlot = masterSlot;
+        MasterSlot = WorldState.Party[masterSlot]?.Name == null ? 0 : masterSlot;
         Beh = new AIBehaviour(Controller, Autorot, AiPreset);
         _wndAI.UpdateTitle();
     }

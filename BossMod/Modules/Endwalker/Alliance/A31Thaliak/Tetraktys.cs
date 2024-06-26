@@ -114,44 +114,44 @@ class TetraktuosKosmos(BossModule module) : Components.GenericAOEs(module)
     private static readonly List<(AOEShape shape, WPos pos, int angle)> combos =
     [
         // 0x12
-        (_shapeTri, new WPos(-945, 948.5f), 1),
-        (_shapeRect, new WPos(-945, 935), 1),
-        (_shapeRect, new WPos(-948.827f, 941.828f), 4),
-        (_shapeRect, new WPos(-941.173f, 941.828f), 7),        
+        (_shapeTri, new(-945, 948.5f), 1),
+        (_shapeRect, new(-945, 935), 1),
+        (_shapeRect, new(-948.827f, 941.828f), 4),
+        (_shapeRect, new(-941.173f, 941.828f), 7),        
         // 0x14
-        (_shapeTri, new WPos(-953, 962.356f), 1),
-        (_shapeRect, new WPos(-949, 955.428f), 3),
-        (_shapeRect, new WPos(-957, 955.428f), 4),
-        (_shapeRect, new WPos(-953, 948.5f), 1),
+        (_shapeTri, new(-953, 962.356f), 1),
+        (_shapeRect, new(-949, 955.428f), 3),
+        (_shapeRect, new(-957, 955.428f), 4),
+        (_shapeRect, new(-953, 948.5f), 1),
         // 0x15
-        (_shapeTri, new WPos(-937, 962.356f), 2),
-        (_shapeRect, new WPos(-937, 948.5f), 1),
-        (_shapeRect, new WPos(-933, 955.428f), 3),
-        (_shapeRect, new WPos(-941, 955.428f), 4),      
+        (_shapeTri, new(-937, 962.356f), 2),
+        (_shapeRect, new(-937, 948.5f), 1),
+        (_shapeRect, new(-933, 955.428f), 3),
+        (_shapeRect, new(-941, 955.428f), 4),      
 
         // pair 0x13 + 0x15
-        (_shapeTri, new WPos(-961, 948.7f), 0),
-        (_shapeTri, new WPos(-937, 962.356f), 2),
-        (_shapeRect, new WPos(-933, 955.428f), 3),
-        (_shapeRect, new WPos(-941, 955.428f), 4),
-        (_shapeRect, new WPos(-937, 948.5f), 1),
-        (_shapeRect, new WPos(-957, 955.428f), 5),
+        (_shapeTri, new(-961, 948.7f), 0),
+        (_shapeTri, new(-937, 962.356f), 2),
+        (_shapeRect, new(-933, 955.428f), 3),
+        (_shapeRect, new(-941, 955.428f), 4),
+        (_shapeRect, new(-937, 948.5f), 1),
+        (_shapeRect, new(-957, 955.428f), 5),
 
         // pair 0x12 + 0x16
-        (_shapeTri, new WPos(-945, 948.5f), 1),
-        (_shapeTri, new WPos(-929, 948.7f), 0),
-        (_shapeRect, new WPos(-933, 955.428f), 6),
-        (_shapeRect, new WPos(-941.173f, 941.828f), 7),
-        (_shapeRect, new WPos(-948.827f, 941.828f), 4),
-        (_shapeRect, new WPos(-945, 935), 1),
+        (_shapeTri, new(-945, 948.5f), 1),
+        (_shapeTri, new(-929, 948.7f), 0),
+        (_shapeRect, new(-933, 955.428f), 6),
+        (_shapeRect, new(-941.173f, 941.828f), 7),
+        (_shapeRect, new(-948.827f, 941.828f), 4),
+        (_shapeRect, new(-945, 935), 1),
 
         // //pair 0x11 + 0x14
-        (_shapeTri, new WPos(-945, 921), 0),
-        (_shapeTri, new WPos(-953, 962.356f), 1),
-        (_shapeRect, new WPos(-945, 934.8f), 0),
-        (_shapeRect, new WPos(-953, 948.5f), 1),
-        (_shapeRect, new WPos(-957, 955.428f), 4),
-        (_shapeRect, new WPos(-949, 955.428f), 3)
+        (_shapeTri, new(-945, 921), 0),
+        (_shapeTri, new(-953, 962.356f), 1),
+        (_shapeRect, new(-945, 934.8f), 0),
+        (_shapeRect, new(-953, 948.5f), 1),
+        (_shapeRect, new(-957, 955.428f), 4),
+        (_shapeRect, new(-949, 955.428f), 3)
     ];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs;
