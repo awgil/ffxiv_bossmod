@@ -110,7 +110,7 @@ class CE31MetalFoxChaosStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 13)] // bnpcname=9424
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 13)] // bnpcname=9424
 public class CE31MetalFoxChaos(WorldState ws, Actor primary) : BossModule(ws, primary, new(-234, 262), new ArenaBoundsSquare(30.2f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

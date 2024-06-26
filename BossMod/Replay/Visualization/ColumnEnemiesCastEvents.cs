@@ -21,7 +21,7 @@ public class ColumnEnemiesCastEvents : Timeline.ColumnGroup
         _phaseBranches = phaseBranches;
         _encounter = enc;
         _moduleInfo = ModuleRegistry.FindByOID(enc.OID);
-        _actions = replay.EncounterActions(enc).Where(a => a.Source.Type is not (ActorType.Player or ActorType.Pet or ActorType.Chocobo)).ToList();
+        _actions = replay.EncounterActions(enc).Where(a => a.Source.Type is not (ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Buddy)).ToList();
         foreach (var a in _actions)
         {
             var f = _filters.GetOrAdd(a.ID);
@@ -97,7 +97,7 @@ public class ColumnEnemiesCastEvents : Timeline.ColumnGroup
     {
         bool phys = false;
         bool magic = false;
-        foreach (var t in action.Targets.Where(t => t.Target.Type == ActorType.Player))
+        foreach (var t in action.Targets.Where(t => t.Target.Type is ActorType.Player or ActorType.Buddy))
         {
             foreach (var e in t.Effects.Where(e => e.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage))
             {

@@ -35,12 +35,11 @@ class MyriadAspects(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.MyriadAspects1 or AID.MyriadAspects2)
-            ++NumCasts;
-        if (NumCasts == 12)
-        {
-            NumCasts = 0;
-            _spell1.Clear();
-            _spell2.Clear();
-        }
+            if (++NumCasts == 12)
+            {
+                NumCasts = 0;
+                _spell1.Clear();
+                _spell2.Clear();
+            }
     }
 }

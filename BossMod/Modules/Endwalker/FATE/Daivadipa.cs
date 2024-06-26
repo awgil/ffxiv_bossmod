@@ -92,7 +92,7 @@ class LitPath(BossModule module) : Components.GenericAOEs(module)
                 bluered1 = true;
                 bluered2 = true;
             }
-            if ((AID)spell.Action.ID == AID.LoyalFlame2)
+            else if ((AID)spell.Action.ID == AID.LoyalFlame2)
             {
                 _activation = spell.NPCFinishAt;
                 redblue1 = true;
@@ -113,7 +113,7 @@ class LitPath(BossModule module) : Components.GenericAOEs(module)
                 _activation = default;
             }
         }
-        if ((AID)spell.Action.ID == AID.LitPath2)
+        else if ((AID)spell.Action.ID == AID.LitPath2)
         {
             bluered2 = false;
             redblue1 = false;
@@ -166,7 +166,7 @@ class Burn(BossModule module) : Components.GenericAOEs(module)
                 bluered1 = true;
                 bluered2 = true;
             }
-            if ((AID)spell.Action.ID == AID.LoyalFlame2)
+            else if ((AID)spell.Action.ID == AID.LoyalFlame2)
             {
                 _activation = spell.NPCFinishAt;
                 redblue1 = true;
@@ -187,7 +187,7 @@ class Burn(BossModule module) : Components.GenericAOEs(module)
                 _activation = default;
             }
         }
-        if ((AID)spell.Action.ID == AID.Burn2)
+        else if ((AID)spell.Action.ID == AID.Burn2)
         {
             bluered2 = false;
             redblue1 = false;
@@ -214,27 +214,21 @@ class DivineCall(BossModule module) : Components.StatusDrivenForcedMarch(module,
 {
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
-        if (Module.FindComponent<LeftwardTrisula>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
-            return true;
-        if (Module.FindComponent<RightwardParasu>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
-            return true;
-        if (Module.FindComponent<Burn>() is var burn && burn != null && burn.ActiveAOEs(slot, actor).Any() && !burn.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation))) //safe and non-safe areas reverse by the time forced march runs out
-            return true;
-        if (Module.FindComponent<LitPath>() is var lit && lit != null && lit.ActiveAOEs(slot, actor).Any() && !lit.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation))) //safe and non-safe areas reverse by the time forced march runs out
-            return true;
-        else
-            return false;
+        return (Module.FindComponent<LeftwardTrisula>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) ||
+        (Module.FindComponent<RightwardParasu>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) ||
+        Module.FindComponent<Burn>() is var burn && burn != null && burn.ActiveAOEs(slot, actor).Any() && !burn.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ||
+        Module.FindComponent<LitPath>() is var lit && lit != null && lit.ActiveAOEs(slot, actor).Any() && !lit.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation));
     }
 
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (Module.PrimaryActor.CastInfo?.IsSpell(AID.DivineCall) ?? false)
             hints.Add("Apply backwards march debuff");
-        if (Module.PrimaryActor.CastInfo?.IsSpell(AID.DivineCall2) ?? false)
+        else if (Module.PrimaryActor.CastInfo?.IsSpell(AID.DivineCall2) ?? false)
             hints.Add("Apply right march debuff");
-        if (Module.PrimaryActor.CastInfo?.IsSpell(AID.DivineCall3) ?? false)
+        else if (Module.PrimaryActor.CastInfo?.IsSpell(AID.DivineCall3) ?? false)
             hints.Add("Apply forwards march debuff");
-        if (Module.PrimaryActor.CastInfo?.IsSpell(AID.DivineCall4) ?? false)
+        else if (Module.PrimaryActor.CastInfo?.IsSpell(AID.DivineCall4) ?? false)
             hints.Add("Apply left march debuff");
     }
 
@@ -273,5 +267,5 @@ class DaivadipaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1763, NameID = 10269)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1763, NameID = 10269)]
 public class Daivadipa(WorldState ws, Actor primary) : BossModule(ws, primary, new(-608, 811), new ArenaBoundsSquare(24.5f));

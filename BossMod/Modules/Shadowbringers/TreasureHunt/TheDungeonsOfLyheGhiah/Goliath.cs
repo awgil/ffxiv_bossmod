@@ -72,7 +72,7 @@ class GoliathStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 688, NameID = 8953)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 688, NameID = 8953)]
 public class Goliath(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -390), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

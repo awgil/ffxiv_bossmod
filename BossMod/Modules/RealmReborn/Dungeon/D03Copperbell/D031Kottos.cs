@@ -35,4 +35,9 @@ class D031KottosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 3, NameID = 548)]
-public class D031Kottos(WorldState ws, Actor primary) : BossModule(ws, primary, new(43, -89.56f), new ArenaBoundsCircle(15));
+public class D031Kottos(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> union = [new Circle(new(43, -89.8f), 14.75f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(42.9f, -105.9f), 20, 2), new Circle(new(39.5f, -74.4f), 1.5f), new Circle(new(47.5f, -74.4f), 1.8f)];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+}

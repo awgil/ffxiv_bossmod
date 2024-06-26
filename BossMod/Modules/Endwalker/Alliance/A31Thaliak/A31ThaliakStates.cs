@@ -24,7 +24,10 @@ class A31ThaliakStates : StateMachineBuilder
         Rhyton(id + 0xC0000, 6.1f);
         RheognosisPetrine(id + 0xD0000, 7.6f);
         Thlipsis(id + 0xE0000, 2.1f);
-
+        HieroglyphicaLeftRightBank(id + 0xF0000, 6.6f);
+        Hydroptosis(id + 0x100000, 2.1f);
+        Katarraktes(id + 0x110000, 5.2f);
+        Tetraktys2(id + 0x120000, 7.7f);
         SimpleState(id + 0xFF0000, 10, "???");
     }
 
@@ -42,6 +45,7 @@ class A31ThaliakStates : StateMachineBuilder
         Cast(id, AID.Rheognosis, delay, 5)
             .ActivateOnEnter<RheognosisKnockback>();
         ComponentCondition<RheognosisKnockback>(id + 0x10, 20.3f, comp => comp.NumCasts > 0, "Knockback")
+            .SetHint(StateMachine.StateHint.Knockback)
             .DeactivateOnExit<RheognosisKnockback>()
             .SetHint(StateMachine.StateHint.Raidwide);
     }
@@ -51,6 +55,7 @@ class A31ThaliakStates : StateMachineBuilder
         Cast(id, AID.RheognosisPetrine, delay, 5)
             .ActivateOnEnter<RheognosisKnockback>();
         ComponentCondition<RheognosisKnockback>(id + 0x10, 20.3f, comp => comp.NumCasts > 0, "Knockback")
+            .SetHint(StateMachine.StateHint.Knockback)
             .ActivateOnEnter<RheognosisCrash>()
             .DeactivateOnExit<RheognosisKnockback>()
             .SetHint(StateMachine.StateHint.Raidwide);
@@ -98,8 +103,7 @@ class A31ThaliakStates : StateMachineBuilder
         CastStart(id, AID.Tetraktys, delay)
             .ActivateOnEnter<TetraktysBorder>(); // telegraph appears ~0.1s before cast start
         CastEnd(id + 1, 6);
-        ComponentCondition<TetraktysBorder>(id + 2, 0.4f, comp => comp.Active, "Triangles start")
-            .OnExit(() => Module.Arena.Bounds = A31Thaliak.TriBounds);
+        ComponentCondition<TetraktysBorder>(id + 2, 0.4f, comp => comp.Active, "Triangles start");
         ComponentCondition<Tetraktys>(id + 0x10, 3.6f, comp => comp.AOEs.Count > 0)
             .ActivateOnEnter<Tetraktys>();
         ComponentCondition<Tetraktys>(id + 0x11, 3.9f, comp => comp.NumCasts >= 3, "Small tri 1");
@@ -112,6 +116,7 @@ class A31ThaliakStates : StateMachineBuilder
 
         Cast(id + 0x100, AID.TetraktuosKosmos, 1.7f, 4);
         ComponentCondition<TetraktuosKosmos>(id + 0x110, 0.8f, comp => comp.AOEs.Count > 0)
+            .ActivateOnEnter<TetraktuosKosmosCounter>()
             .ActivateOnEnter<TetraktuosKosmos>();
         CastStart(id + 0x120, AID.TetraktuosKosmos, 6.3f);
         ComponentCondition<TetraktuosKosmos>(id + 0x121, 1.7f, comp => comp.NumCasts >= 1, "Splitting tri 1");
@@ -119,10 +124,8 @@ class A31ThaliakStates : StateMachineBuilder
         ComponentCondition<TetraktuosKosmos>(id + 0x130, 0.8f, comp => comp.AOEs.Count > 0);
         ComponentCondition<TetraktuosKosmos>(id + 0x140, 8, comp => comp.NumCasts >= 3, "Splitting tri 2+3")
             .DeactivateOnExit<TetraktuosKosmos>();
-
         ComponentCondition<TetraktysBorder>(id + 0x200, 4.2f, comp => !comp.Active, "Triangles resolve")
-            .DeactivateOnExit<TetraktysBorder>()
-            .OnExit(() => Module.Arena.Bounds = A31Thaliak.NormalBounds);
+            .DeactivateOnExit<TetraktysBorder>();
     }
 
     private void Tetraktys2(uint id, float delay)
@@ -130,8 +133,7 @@ class A31ThaliakStates : StateMachineBuilder
         CastStart(id, AID.Tetraktys, delay)
             .ActivateOnEnter<TetraktysBorder>(); // telegraph appears ~0.1s before cast start
         CastEnd(id + 1, 6);
-        ComponentCondition<TetraktysBorder>(id + 2, 0.4f, comp => comp.Active, "Triangles start")
-            .OnExit(() => Module.Arena.Bounds = A31Thaliak.TriBounds);
+        ComponentCondition<TetraktysBorder>(id + 2, 0.4f, comp => comp.Active, "Triangles start");
         ComponentCondition<Tetraktys>(id + 0x10, 3.6f, comp => comp.AOEs.Count > 0)
             .ActivateOnEnter<Tetraktys>();
         ComponentCondition<Tetraktys>(id + 0x11, 3.9f, comp => comp.NumCasts >= 3, "Small tri 1");
@@ -154,8 +156,7 @@ class A31ThaliakStates : StateMachineBuilder
             .DeactivateOnExit<TetraktuosKosmos>();
 
         ComponentCondition<TetraktysBorder>(id + 0x200, 3.2f, comp => !comp.Active, "Triangles resolve")
-            .DeactivateOnExit<TetraktysBorder>()
-            .OnExit(() => Module.Arena.Bounds = A31Thaliak.NormalBounds);
+            .DeactivateOnExit<TetraktysBorder>();
     }
 
     private void Hieroglyphica(uint id, float delay)
@@ -171,7 +172,9 @@ class A31ThaliakStates : StateMachineBuilder
 
     private void HieroglyphicaLeftRightBank(uint id, float delay)
     {
-        Cast(id, AID.Hieroglyphika, delay, 5);
+        Cast(id, AID.Hieroglyphika, delay, 5)
+            .ActivateOnEnter<HieroglyphikaLeftBank>()
+            .ActivateOnEnter<HieroglyphikaRightBank>();
         ComponentCondition<Hieroglyphika>(id + 0x10, 0.9f, comp => comp.SafeSideDir != default)
             .ActivateOnEnter<Hieroglyphika>();
         CastStartMulti(id + 0x11, [AID.HieroglyphikaLeftBank, AID.HieroglyphikaRightBank], 1.2f);
@@ -180,8 +183,6 @@ class A31ThaliakStates : StateMachineBuilder
         ComponentCondition<Hieroglyphika>(id + 0x30, 4.1f, comp => comp.NumCasts > 0, "Squares")
             .DeactivateOnExit<Hieroglyphika>();
         CastEnd(id + 0x40, 4.1f, "Half-arena cleave")
-            .ActivateOnEnter<HieroglyphikaLeftBank>() // note: we activate this only now - there's enough time to dodge from any safespot, and this simplifies staying on maxmelee
-            .ActivateOnEnter<HieroglyphikaRightBank>()
             .DeactivateOnExit<HieroglyphikaLeftBank>()
             .DeactivateOnExit<HieroglyphikaRightBank>();
     }

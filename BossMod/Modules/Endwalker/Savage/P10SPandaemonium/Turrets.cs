@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
-class Turrets(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.PealOfCondemnation), true, 1) // TODO: verify whether it ignores immunes
+class Turrets(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.PealOfCondemnation), true, 1, stopAfterWall: true)
 {
     private readonly Actor?[] _turrets = new Actor?[8]; // pairs in order of activation
     private DateTime _activation;
@@ -18,25 +18,19 @@ class Turrets(BossModule module) : Components.Knockback(module, ActionID.MakeSpe
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        int inCount = 0;
-        bool outOfBounds = false;
+        base.AddHints(slot, actor, hints);
+        var inCount = 0;
         foreach (var t in ImminentTurretsWithTargets())
         {
             if (t.source == null || t.target == null || !_shape.Check(actor.Position, t.source.Position, Angle.FromDirection(t.target.Position - t.source.Position)))
                 continue; // not in aoe
-
             ++inCount;
-            var dir = actor.Position != t.source.Position ? (actor.Position - t.source.Position).Normalized() : new();
-            var to = actor.Position + _distance * dir;
-            outOfBounds |= !Border.InsideMainPlatform(Module, to);
         }
 
         if (inCount > 1)
             hints.Add("GTFO from one of the knockbacks!");
         else if (inCount > 0 && _forbidden[slot])
             hints.Add("GTFO from knockback!");
-        else if (outOfBounds)
-            hints.Add("About to be knocked off platform!");
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => ImminentTurretsWithTargets().Any(t => t.target == player) ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;

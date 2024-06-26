@@ -4,7 +4,7 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
 {
     public enum Track { WardensPaean = SharedTrack.Count, Troubadour, NaturesMinne }
 
-    public static ActionID IDLimitBreak3 = ActionID.MakeSpell(BRD.AID.SagittariusArrow);
+    public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(BRD.AID.SagittariusArrow);
 
     public static RotationModuleDefinition Definition()
     {

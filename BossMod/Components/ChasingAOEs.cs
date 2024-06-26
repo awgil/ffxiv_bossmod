@@ -55,6 +55,17 @@ public class GenericChasingAOEs(BossModule module, ActionID aid = default, strin
         }
         return true;
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        // TODO: for some reason the AI only dodges the first hit correctly and then fails the rest (looks like running against a wall)
+        // this is a hack that tries to counter the problem
+        // 11 is the biggest radius of known chasing AOE (from Zeromus ex) + 1
+        if (Chasers.Count > 0)
+            foreach (var c in Chasers.Where(x => x.Target == actor))
+                hints.AddForbiddenZone(ShapeDistance.Circle(c.PredictedPosition(), 11));
+    }
 }
 
 // standard chasing aoe; first cast is long - assume it is baited on the nearest allowed target; successive casts are instant

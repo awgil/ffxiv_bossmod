@@ -56,7 +56,7 @@ public static class ColumnUtils
 
     public static bool ActionHasDamageToPlayerEffects(Replay.Action action)
     {
-        return action.Targets.Any(t => t.Target.Type == ActorType.Player && t.Effects.Any(e => e.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage));
+        return action.Targets.Any(t => t.Target.Type is ActorType.Player or ActorType.Buddy && t.Effects.Any(e => e.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage));
     }
 }
 

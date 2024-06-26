@@ -21,5 +21,5 @@ class InfralateralArc(BossModule module) : Components.CastCounter(module, Action
             Arena.Actor(actor, actor.Position.InCone(Module.PrimaryActor.Position, pcDir, _coneHalfAngle) ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
     }
 
-    private Role EffectiveRole(Actor a) => a.Role == Role.Ranged ? Role.Melee : a.Role;
+    private static Role EffectiveRole(Actor a) => a.Role == Role.Ranged ? Role.Melee : a.Role;
 }

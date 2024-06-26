@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex6Golbez;
 
-class DragonsDescent(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.DragonsDescent))
+class DragonsDescent(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.DragonsDescent), ignoreImmunes: true)
 {
     private Actor? _source;
     private DateTime _activation;
@@ -39,7 +39,7 @@ class DoubleMeteor(BossModule module) : Components.UniformStackSpread(module, 0,
 class Explosion(BossModule module) : BossComponent(module)
 {
     public bool Done { get; private set; }
-    private BitMask _forbidden;
+    private readonly BitMask _forbidden;
     private Actor? _towerTH;
     private Actor? _towerDD;
 

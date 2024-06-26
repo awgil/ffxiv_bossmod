@@ -42,10 +42,10 @@ class MiniArenaTest : TestWindow
         {
             foreach (var p in KBContour())
                 _arena.PathLineTo(p);
-            _arena.PathStroke(true, 0xffff00ff);
+            MiniArena.PathStroke(true, 0xffff00ff);
         }
         _arena.Actor(new(_playerPos), 0.Degrees(), 0xff00ff00);
-        _arena.End();
+        MiniArena.End();
 
         // arena config
         ImGui.DragFloat2("Player pos", ref _playerPos);

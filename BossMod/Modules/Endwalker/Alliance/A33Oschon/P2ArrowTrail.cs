@@ -1,16 +1,11 @@
 namespace BossMod.Endwalker.Alliance.A33Oschon;
 
-class P2ArrowTrail : Components.Exaflare
+class P2ArrowTrail(BossModule module) : Components.Exaflare(module, new AOEShapeRect(10, 5))
 {
-    public P2ArrowTrail(BossModule module) : base(module, new AOEShapeRect(5, 5))
-    {
-        ImminentColor = ArenaColor.AOE;
-    }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ArrowTrailHint)
-            Lines.Add(new() { Next = caster.Position, Advance = 5 * caster.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt.AddSeconds(0.4f), TimeToMove = 0.5f, ExplosionsLeft = 8, MaxShownExplosions = 8 });
+            Lines.Add(new() { Next = caster.Position, Advance = 5 * caster.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt.AddSeconds(0.4f), TimeToMove = 0.5f, ExplosionsLeft = 8, MaxShownExplosions = 3 });
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -18,7 +13,7 @@ class P2ArrowTrail : Components.Exaflare
         if ((AID)spell.Action.ID == AID.ArrowTrailAOE)
         {
             ++NumCasts;
-            int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+            var index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
             if (index >= 0)
             {
                 AdvanceLine(Lines[index], caster.Position);

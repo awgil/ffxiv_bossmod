@@ -4,7 +4,8 @@ public class A13AzeymaStates : StateMachineBuilder
 {
     public A13AzeymaStates(BossModule module) : base(module)
     {
-        DeathPhase(0, SinglePhase);
+        DeathPhase(0, SinglePhase)
+            .ActivateOnEnter<ArenaBounds>();
     }
 
     private void SinglePhase(uint id)
@@ -76,18 +77,18 @@ public class A13AzeymaStates : StateMachineBuilder
     private void SolarFans(uint id, float delay)
     {
         Cast(id, AID.SolarFans, delay, 4, "Fans start")
+            .ActivateOnEnter<RadiantFlourish>()
             .ActivateOnEnter<SolarFans>()
+            .ActivateOnEnter<RadiantRhythm>()
             .DeactivateOnExit<SolarFans>();
         // +0.5s: charge cast end
-        CastStart(id + 0x10, AID.RadiantRhythmFirst, 3.2f)
-            .ActivateOnEnter<RadiantRhythm>();
+        CastStart(id + 0x10, AID.RadiantRhythmFirst, 3.2f);
         CastEnd(id + 0x11, 5);
         ComponentCondition<RadiantRhythm>(id + 0x12, 0.1f, comp => comp.NumCasts >= 2); // first cast; after that there are 3 or 4 rhythm casts, 1.4s apart
         CastStart(id + 0x20, AID.RadiantFinish, 5.4f) // or 6.8, depending on number of rhythm casts
             .DeactivateOnExit<RadiantRhythm>();
         CastEnd(id + 0x21, 3, "Fans resolve")
-            .ActivateOnEnter<RadiantFinish>()
-            .DeactivateOnExit<RadiantFinish>();
+            .DeactivateOnExit<RadiantFlourish>();
     }
 
     private void FleetingSpark(uint id, float delay)

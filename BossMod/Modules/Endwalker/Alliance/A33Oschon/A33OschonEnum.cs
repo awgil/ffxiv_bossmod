@@ -75,6 +75,10 @@ public enum AID : uint
     WanderingVolleyDownhillAOE = 35234, // Helper->location, 14.0s cast, range 8 circle
     WanderingVolleyN = 35244, // BossP2->self, 10.0s cast, range 40 width 40 rect, knockback 12 left/right + huge circle N
     WanderingVolleyS = 35245, // BossP2->self, 10.0s cast, range 40 width 40 rect, knockback 12 left/right + huge circle S
+
+    P2SuddenDownpour = 35226, // BossP2->self, 4.0+1,0s cast, single-target
+    P2SuddenDownpourAOE = 36027, // Helper->self, 5.0s cast, range 60 circle
+
 }
 
 public enum IconID : uint

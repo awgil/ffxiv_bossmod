@@ -3,7 +3,7 @@
 class FlamespireClaw(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.FlamespireClawAOE))
 {
     private readonly int[] _order = new int[PartyState.MaxPartySize];
-    private BitMask _tethers;
+    private readonly BitMask _tethers;
 
     private static readonly AOEShapeCone _shape = new(20, 45.Degrees()); // TODO: verify angle
 

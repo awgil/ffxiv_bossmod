@@ -71,9 +71,9 @@ class PalladionArena(BossModule module) : BossComponent(module)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        for (int i = 0; i < 8; ++i)
+        for (var i = 0; i < 8; ++i)
             Arena.PathLineTo(Module.Center + 14 * (i * 45).Degrees().ToDirection());
-        Arena.PathStroke(true, ArenaColor.Border, 2);
+        MiniArena.PathStroke(true, ArenaColor.Border, 2);
     }
 }
 
@@ -170,7 +170,7 @@ class PalladionClearCut(BossModule module) : Components.GenericAOEs(module)
 class PalladionWhiteFlame : Components.GenericBaitAway
 {
     private readonly Palladion? _palladion;
-    private readonly Actor _fakeSource = new(0, 0, -1, "dummy", 0, ActorType.None, Class.None, 0, new(100, 0, 100, 0)); // fake actor used as bait source
+    private static readonly Actor _fakeSource = new(0, 0, -1, "dummy", 0, ActorType.None, Class.None, 0, new(100, 0, 100, 0)); // fake actor used as bait source
 
     private static readonly AOEShapeRect _shape = new(100, 2);
 

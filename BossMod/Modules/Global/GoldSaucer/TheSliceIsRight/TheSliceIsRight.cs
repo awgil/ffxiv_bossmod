@@ -130,7 +130,7 @@ class TheSliceIsRightStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.GoldSaucer, GroupID = 181, NameID = 9066)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.GoldSaucer, GroupID = 181, NameID = 9066)]
 public class TheSliceIsRight(WorldState ws, Actor primary) : BossModule(ws, primary, new(70.5f, -36), new ArenaBoundsCircle(15))
 {
     protected override bool CheckPull() { return PrimaryActor != null; }

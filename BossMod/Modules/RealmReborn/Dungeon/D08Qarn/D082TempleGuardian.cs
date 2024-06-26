@@ -32,8 +32,13 @@ class D082TempleGuardianStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 9, NameID = 1569)]
-public class D082TempleGuardian(WorldState ws, Actor primary) : BossModule(ws, primary, new(50, -10), new ArenaBoundsCircle(15))
+public class D082TempleGuardian(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
 {
+    private static readonly List<Shape> shape = [new PolygonCustom([new(66.5f, -33.7f), new(58.6f, -25), new(51.4f, -22.5f),
+    new(39.3f, -16.5f), new(36.6f, -5), new(39.3f, 5.7f), new(41.1f, 16),
+    new(56.5f, 14.8f), new(63.6f, 7.1f), new(64.7f, 3.3f), new(70.3f, -3.9f), new(72.6f, -33.3f)])];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(shape);
+
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

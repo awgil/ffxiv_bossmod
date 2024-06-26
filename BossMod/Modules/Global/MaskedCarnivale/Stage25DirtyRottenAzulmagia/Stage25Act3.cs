@@ -67,7 +67,7 @@ class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, Acti
 class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(6, 30));
 class Maelstrom(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.Maelstrom));
 class Meteor(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Meteor), 15);
-class MeteorVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 10, ActionID.MakeSpell(AID.Meteor), m => m.Enemies(OID.LavaVoidzone).Where(z => z.EventState != 7), 0);
+class MeteorVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 10, ActionID.MakeSpell(AID.Meteor), m => m.Enemies(OID.LavaVoidzone).Where(z => z.EventState != 7), 1.2f);
 
 class Hints(BossModule module) : BossComponent(module)
 {
@@ -119,7 +119,7 @@ class Stage25Act3States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 635, NameID = 8129, SortOrder = 3)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 635, NameID = 8129, SortOrder = 3)]
 public class Stage25Act3 : BossModule
 {
     public Stage25Act3(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsCircle(16))

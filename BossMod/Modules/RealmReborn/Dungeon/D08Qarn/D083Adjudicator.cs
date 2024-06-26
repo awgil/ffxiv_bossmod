@@ -34,7 +34,7 @@ class D083AdjudicatorStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 9, NameID = 1570)]
-public class D083Adjudicator(WorldState ws, Actor primary) : BossModule(ws, primary, new(238, 0), new ArenaBoundsCircle(20))
+public class D083Adjudicator(WorldState ws, Actor primary) : BossModule(ws, primary, new(236, 0), new ArenaBoundsCircle(20))
 {
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -49,5 +49,14 @@ public class D083Adjudicator(WorldState ws, Actor primary) : BossModule(ws, prim
                 _ => 0
             };
         }
+    }
+
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        foreach (var s in Enemies(OID.MythrilVerge))
+            Arena.Actor(s, ArenaColor.Enemy);
+        foreach (var s in Enemies(OID.SunJuror))
+            Arena.Actor(s, ArenaColor.Enemy);
     }
 }

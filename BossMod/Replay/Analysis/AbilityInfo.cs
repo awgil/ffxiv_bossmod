@@ -1,7 +1,6 @@
 ﻿using BossMod.Components;
 using ImGuiNET;
 using System.Globalization;
-using System.Text;
 
 namespace BossMod.ReplayAnalysis;
 
@@ -501,7 +500,7 @@ class AbilityInfo : CommonEnumInfo
 
     private void AddActionData(Replay replay, Replay.Action action)
     {
-        if (action.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
+        if (action.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Buddy)
             return;
 
         var data = _data.GetOrAdd(action.ID);
@@ -510,7 +509,7 @@ class AbilityInfo : CommonEnumInfo
             data.TargetOIDs.Add(action.MainTarget.OID);
         data.SeenTargetSelf |= action.Source == action.MainTarget;
         data.SeenTargetOtherEnemy |= action.MainTarget != action.Source && action.MainTarget?.Type == ActorType.Enemy;
-        data.SeenTargetPlayer |= action.MainTarget?.Type == ActorType.Player;
+        data.SeenTargetPlayer |= action.MainTarget?.Type is ActorType.Player or ActorType.Buddy;
         data.SeenTargetLocation |= action.MainTarget == null;
         data.SeenAOE |= action.Targets.Count > 1;
 
@@ -522,7 +521,7 @@ class AbilityInfo : CommonEnumInfo
 
     private void AddCastData(Replay replay, Replay.Participant caster, Replay.Cast cast)
     {
-        if (caster.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
+        if (caster.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Buddy)
             return;
 
         var data = _data.GetOrAdd(cast.ID);
@@ -531,7 +530,7 @@ class AbilityInfo : CommonEnumInfo
             data.TargetOIDs.Add(cast.Target.OID);
         data.SeenTargetSelf |= caster == cast.Target;
         data.SeenTargetOtherEnemy |= cast.Target != caster && cast.Target?.Type == ActorType.Enemy;
-        data.SeenTargetPlayer |= cast.Target?.Type == ActorType.Player;
+        data.SeenTargetPlayer |= cast.Target?.Type is ActorType.Player or ActorType.Buddy;
         data.SeenTargetLocation |= cast.Target == null;
         data.CastTime = cast.ExpectedCastTime + 0.3f;
 
@@ -539,7 +538,7 @@ class AbilityInfo : CommonEnumInfo
     }
 
     private static IEnumerable<Replay.Participant> AlivePlayersAt(Replay r, DateTime t)
-        => r.Participants.Where(p => p.Type is ActorType.Player or ActorType.Chocobo && p.ExistsInWorldAt(t) && !p.DeadAt(t));
+        => r.Participants.Where(p => p.Type is ActorType.Player or ActorType.Buddy or ActorType.Chocobo && p.ExistsInWorldAt(t) && !p.DeadAt(t));
 
     private IEnumerable<string> ActionTargetStrings(ActionData data)
     {

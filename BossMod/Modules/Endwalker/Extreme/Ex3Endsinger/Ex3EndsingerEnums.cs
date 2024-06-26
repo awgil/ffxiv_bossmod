@@ -30,6 +30,7 @@ public enum AID : uint
     KatasterismoiExplosion = 28714, // Helper->self, no cast, range 4 aoe if tower is soaked
     KatasterismoiMassiveExposion = 28715, // Helper->self, no cast, range 40 aoe if failed
     GripOfDespair = 28701, // Boss->self, 5s cast, visual
+    GripsOfDespair2 = 28702, // Helper->self, no cast, ???
 
     ElenchosSides = 28704, // Boss->self, 6s cast, visual
     ElenchosSidesAOE = 28705, // Helper->self, 6s cast, 6.5 half-width rect

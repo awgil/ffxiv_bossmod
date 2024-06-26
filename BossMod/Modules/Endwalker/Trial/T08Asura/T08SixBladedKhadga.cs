@@ -4,14 +4,14 @@ class SixBladedKhadga(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<ActorCastInfo> _spell = [];
     private DateTime _start;
-    private static readonly AOEShapeCone Cone = new(20, 90.Degrees());
+    private static readonly AOEShapeCone cone = new(20, 90.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_spell.Count > 0)
-            yield return new(Cone, Module.PrimaryActor.Position, _spell[0].Rotation, _start, ArenaColor.Danger);
+            yield return new(cone, Module.PrimaryActor.Position, _spell[0].Rotation, _start.AddSeconds(NumCasts * 2), ArenaColor.Danger);
         if (_spell.Count > 1)
-            yield return new(Cone, Module.PrimaryActor.Position, _spell[1].Rotation, _start.AddSeconds(2));
+            yield return new(cone, Module.PrimaryActor.Position, _spell[1].Rotation, _start.AddSeconds(2 + NumCasts * 2), Risky: !_spell[1].Rotation.AlmostEqual(_spell[0].Rotation + 180.Degrees(), Helpers.RadianConversion));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -20,7 +20,7 @@ class SixBladedKhadga(BossModule module) : Components.GenericAOEs(module)
         {
             _spell.Add(spell);
             if (_start == default)
-                _start = WorldState.FutureTime(12.9f);
+                _start = Module.WorldState.FutureTime(12.9f);
         }
     }
 
@@ -28,10 +28,9 @@ class SixBladedKhadga(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID is AID.Khadga1 or AID.Khadga2 or AID.Khadga3 or AID.Khadga4 or AID.Khadga5 or AID.Khadga6)
         {
-            ++NumCasts;
             _spell.RemoveAt(0);
             _start.AddSeconds(2);
-            if (NumCasts == 6)
+            if (++NumCasts == 6)
             {
                 NumCasts = 0;
                 _start = default;

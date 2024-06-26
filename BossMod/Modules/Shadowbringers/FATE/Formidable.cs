@@ -239,5 +239,5 @@ class FormidableStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1464, NameID = 8822)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "veyn, Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1464, NameID = 8822)]
 public class Formidable(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

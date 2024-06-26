@@ -39,10 +39,27 @@ public struct NavigationDecision
     public int MapGoal;
     public Decision DecisionType;
 
-    public const float DefaultForbiddenZoneCushion = 0.7071068f;
+    public const float DefaultForbiddenZoneCushion = 0.15f;
 
     public static NavigationDecision Build(Context ctx, WorldState ws, AIHints hints, Actor player, WPos? targetPos, float targetRadius, Angle targetRot, Positional positional, float playerSpeed = 6, float forbiddenZoneCushion = DefaultForbiddenZoneCushion)
     {
+        hints.WaypointManager.UpdateCurrentWaypoint(player.Position);
+
+        if (hints.WaypointManager.HasWaypoints)
+        {
+            var currentWaypoint = hints.WaypointManager.CurrentWaypoint;
+            if (currentWaypoint.HasValue)
+            {
+                return new NavigationDecision
+                {
+                    Destination = currentWaypoint.Value,
+                    LeewaySeconds = float.MaxValue,
+                    TimeToGoal = (currentWaypoint.Value - player.Position).Length() / playerSpeed,
+                    DecisionType = Decision.Optimal
+                };
+            }
+        }
+
         // TODO: skip pathfinding if there are no forbidden zones, just find closest point in circle/cone...
 
         var imminent = ImminentExplosionTime(ws.CurrentTime);

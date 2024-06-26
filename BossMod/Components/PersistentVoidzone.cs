@@ -28,9 +28,9 @@ public class PersistentVoidzoneAtCastTarget(BossModule module, float radius, Act
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var p in _predictedByEvent)
-            yield return new(Shape, p.pos, Activation: p.time);
+            yield return new(Shape, p.pos, default, p.time);
         foreach (var p in _predictedByCast)
-            yield return new(Shape, WorldState.Actors.Find(p.caster.CastInfo!.TargetID)?.Position ?? p.caster.CastInfo.LocXZ, Activation: p.time);
+            yield return new(Shape, WorldState.Actors.Find(p.caster.CastInfo!.TargetID)?.Position ?? p.caster.CastInfo.LocXZ, default, p.time);
         foreach (var z in Sources(Module))
             yield return new(Shape, z.Position);
     }

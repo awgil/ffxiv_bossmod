@@ -24,17 +24,17 @@ public static class Intersect
         // rayOriginOffset.i + t.i * rayDir.i = +- halfSize.i => t.i = (+-halfSize.i - rayOriginOffset.i) / rayDir.i
         var invX = 1.0f / rayDir.X; // could be +- inf
         var invZ = 1.0f / rayDir.Z;
-        float tmin = -float.Epsilon;
-        float tmax = float.MaxValue;
+        var tmin = -float.Epsilon;
+        var tmax = float.MaxValue;
 
         // if rayDir.i == 0, inv.i == +- inf
         // then if ray origin is outside box, ti1 = ti2 = +-inf (infinities of same sign)
         // if it's inside box, ti1 = -ti2 = +-inf (infinities of different sign)
         // if it's exactly on bound, either one of the ti is infinity, other is NaN
-        float tx1 = (-halfWidth - rayOriginOffset.X) * invX;
-        float tx2 = (+halfWidth - rayOriginOffset.X) * invX;
-        float tz1 = (-halfHeight - rayOriginOffset.Z) * invZ;
-        float tz2 = (+halfHeight - rayOriginOffset.Z) * invZ;
+        var tx1 = (-halfWidth - rayOriginOffset.X) * invX;
+        var tx2 = (+halfWidth - rayOriginOffset.X) * invX;
+        var tz1 = (-halfHeight - rayOriginOffset.Z) * invZ;
+        var tz2 = (+halfHeight - rayOriginOffset.Z) * invZ;
 
         // naive version - works fine for infinities, but not for nans - clip 'ray segment' to part between two lines
         // tmin = max(tmin, min(t1, t2));
@@ -76,6 +76,7 @@ public static class Intersect
         var t = -odn / ddn;
         return t >= 0 ? t : float.MaxValue;
     }
+
     public static float RayLine(WPos rayOrigin, WDir rayDir, WPos lineOrigin, WDir line) => RayLine(rayOrigin - lineOrigin, rayDir, line);
 
     public static float RaySegment(WDir rayOriginOffset, WDir rayDir, WDir oa, WDir ob)
@@ -92,6 +93,17 @@ public static class Intersect
     }
     public static float RaySegments(WDir rayOriginOffset, WDir rayDir, IEnumerable<(WDir, WDir)> edges) => edges.Min(e => RaySegment(rayOriginOffset, rayDir, e.Item1, e.Item2));
 
+    public static float RaySegment(WPos rayOrigin, WDir rayDir, WPos vertexA, WPos vertexB)
+    {
+        var lineDir = vertexB - vertexA;
+        var t = RayLine(rayOrigin - vertexA, rayDir, lineDir);
+        if (t == float.MaxValue)
+            return float.MaxValue;
+
+        var p = rayOrigin + t * rayDir;
+        var u = lineDir.Dot(p - vertexA);
+        return u >= 0 && u <= lineDir.LengthSq() ? t : float.MaxValue;
+    }
     public static float RayPolygon(WDir rayOriginOffset, WDir rayDir, RelPolygonWithHoles poly)
     {
         var dist = RaySegments(rayOriginOffset, rayDir, poly.ExteriorEdges);

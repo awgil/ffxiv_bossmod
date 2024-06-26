@@ -36,7 +36,7 @@ public enum SID : uint
 class ExplosiveDehiscence(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.ExplosiveDehiscence))
 {
     public bool casting;
-    public BitMask _blinded;
+    public readonly BitMask _blinded;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -105,7 +105,8 @@ class Reflect(BossModule module) : BossComponent(module)
 
 class BadBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BadBreath), new AOEShapeCone(17.775f, 60.Degrees()));
 class VineProbe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VineProbe), new AOEShapeRect(11.775f, 4));
-class OffalBreath(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.OffalBreath), m => m.Enemies(OID.voidzone), 0);
+class OffalBreath(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.OffalBreath));
+class OffalBreathVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.OffalBreath), m => m.Enemies(OID.voidzone).Where(e => e.EventState != 7), 1.6f);
 
 class Hints(BossModule module) : BossComponent(module)
 {
@@ -125,11 +126,12 @@ class Stage19Act2States : StateMachineBuilder
             .ActivateOnEnter<BadBreath>()
             .ActivateOnEnter<VineProbe>()
             .ActivateOnEnter<ExplosiveDehiscence>()
-            .ActivateOnEnter<OffalBreath>();
+            .ActivateOnEnter<OffalBreath>()
+            .ActivateOnEnter<OffalBreathVoidzone>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 629, NameID = 8117, SortOrder = 2)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 629, NameID = 8117, SortOrder = 2)]
 public class Stage19Act2 : BossModule
 {
     public Stage19Act2(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsCircle(16))

@@ -1,5 +1,4 @@
 ﻿using ImGuiNET;
-using System.Text;
 
 namespace BossMod.ReplayAnalysis;
 
@@ -24,7 +23,7 @@ class StatusInfo : CommonEnumInfo
         {
             foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
             {
-                foreach (var status in replay.EncounterStatuses(enc).Where(s => !(s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo) && !(s.Target.Type is ActorType.Pet or ActorType.Chocobo)))
+                foreach (var status in replay.EncounterStatuses(enc).Where(s => !(s.ID is 43 or 44 or 418) && !(s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Buddy) && !(s.Target.Type is ActorType.Pet or ActorType.Chocobo)))
                 {
                     var data = _data.GetOrAdd(status.ID);
                     if (status.Source != null)

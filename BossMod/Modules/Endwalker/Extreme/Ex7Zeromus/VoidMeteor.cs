@@ -66,7 +66,7 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
                     Arena.PathArcTo(target.Position, 2, (rot + 90.Degrees()).Rad, (rot - 90.Degrees()).Rad);
                     Arena.PathLineTo(source.Position - norm);
                     Arena.PathLineTo(source.Position + norm);
-                    Arena.PathStroke(true, _playerStates[slot].NonClipping ? ArenaColor.Safe : ArenaColor.Danger, thickness);
+                    MiniArena.PathStroke(true, _playerStates[slot].NonClipping ? ArenaColor.Safe : ArenaColor.Danger, thickness);
                     Arena.AddLine(source.Position, target.Position, _playerStates[slot].Stretched ? ArenaColor.Safe : ArenaColor.Danger, thickness);
                 }
             }
@@ -114,7 +114,7 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
         _ => null
     };
 
-    private IEnumerable<WDir> BuildShadowPolygon(WDir sourceOffset, WDir meteorOffset)
+    private static IEnumerable<WDir> BuildShadowPolygon(WDir sourceOffset, WDir meteorOffset)
     {
         var toMeteor = meteorOffset - sourceOffset;
         var dirToMeteor = Angle.FromDirection(toMeteor);
@@ -137,7 +137,7 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
         return Arena.Bounds.ClipAndTriangulate(simplified);
     }
 
-    private bool IsClipped(WPos source, WPos target, WPos position) => position.InCircle(target, _radius) || position.InRect(source, target - source, _radius);
+    private static bool IsClipped(WPos source, WPos target, WPos position) => position.InCircle(target, _radius) || position.InRect(source, target - source, _radius);
 
     private bool IsClippedByOthers(Actor player)
     {

@@ -6,14 +6,20 @@ class DireStraits(BossModule module) : Components.GenericAOEs(module)
 
     private static readonly AOEShapeRect _shape = new(40, 40);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(1);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_aoes.Count > 0)
+            yield return new(_aoes[0].Shape, _aoes[0].Origin, _aoes[0].Rotation, _aoes[0].Activation, ArenaColor.Danger);
+        if (_aoes.Count > 1)
+            yield return new(_aoes[1].Shape, _aoes[1].Origin, _aoes[1].Rotation, _aoes[1].Activation, Risky: false);
+    }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID.DireStraitsAOEFirst or AID.DireStraitsAOESecond)
+        if ((AID)spell.Action.ID == AID.DireStraitsVisualFirst)
         {
-            _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
-            _aoes.SortBy(aoe => aoe.Activation);
+            _aoes.Add(new(_shape, Module.Arena.Center, spell.Rotation, spell.NPCFinishAt.AddSeconds(5)));
+            _aoes.Add(new(_shape, Module.Arena.Center, spell.Rotation + 180.Degrees(), spell.NPCFinishAt.AddSeconds(6.7f)));
         }
     }
 

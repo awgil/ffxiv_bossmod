@@ -86,6 +86,13 @@ public enum AID : uint
     VoidBlizzard = 33890, // Helper->players, 6.0s cast, range 6 circle 4-man stack
     VoidAero = 33884, // Helper->players, 6.0s cast, range 3 circle 2-man stack
     VoidTornado = 33885, // Helper->players, 6.0s cast, range 6 circle 4-man stack
+
+    AzdajasShadowEnrage = 33977, // Boss->self, 5.0s cast, single-target
+    AzdajasShadowEnrageVisual = 33979, // ShadowDragon->self, 4.0s cast, single-target
+    BlackFangEnrage = 33978, // Boss->self, 4.0s cast, single-target
+    BlackFangEnrageAOE1 = 34587, // Helper->self, no cast, range 40 circle, raidwide hit 1
+    BlackFangEnrageAOE2 = 34715, // Helper->self, no cast, range 40 circle, raidwide hit 2-5
+    BlackFangEnrageAOE3 = 33980, // Helper->self, 10.7s cast, range 40 circle, enrage
 }
 
 public enum SID : uint

@@ -34,7 +34,7 @@ class ComplexBoundsTest : TestWindow
         _arena.ZoneCircle(_arena.Center + _aoeOffset * _aoeRotDeg.Degrees().ToDirection(), _aoeRadius, ArenaColor.AOE);
         var dt = DateTime.Now - t1;
 
-        _arena.End();
+        MiniArena.End();
 
         ImGui.TextUnformatted($"AOE draw perf: {dt.TotalMilliseconds:f3}ms");
 

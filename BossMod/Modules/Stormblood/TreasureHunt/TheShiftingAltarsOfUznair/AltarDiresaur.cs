@@ -74,7 +74,7 @@ class FireballBait(BossModule module) : Components.GenericBaitAway(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 18));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 17.5f));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -110,8 +110,8 @@ class DiresaurStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7627)]
-public class Diresaur(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20))
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7627)]
+public class Diresaur(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(19))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

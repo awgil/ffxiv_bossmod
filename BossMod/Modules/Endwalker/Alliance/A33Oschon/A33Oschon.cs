@@ -10,11 +10,13 @@ class P1Downhill(BossModule module) : Components.LocationTargetedAOEs(module, Ac
 class P2MovingMountains(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.MovingMountains));
 class P2PeakPeril(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.PeakPeril));
 class P2Shockwave(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Shockwave));
+class P2SuddenDownpour(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.P2SuddenDownpourAOE));
+
 class P2PitonPull(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PitonPullAOE), 22);
 class P2Altitude(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AltitudeAOE), 6);
 class P2Arrow(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.ArrowP2AOE), new AOEShapeCircle(10), true);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, LTS", PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11300, SortOrder = 4)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, LTS, veyn", PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11300, SortOrder = 4)]
 public class A33Oschon(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 750), new ArenaBoundsSquare(25))
 {
     private Actor? _bossP2;

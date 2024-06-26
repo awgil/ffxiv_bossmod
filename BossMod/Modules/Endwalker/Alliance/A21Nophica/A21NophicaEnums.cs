@@ -7,8 +7,8 @@ public enum OID : uint
     Tower = 0x3E73, // R1.350, spawn during fight
     BlueSafeZone = 0x1EB845, // R0.500, EventObj type, spawn during fight
     GoldSafeZone = 0x1EB846, // R0.500, EventObj type, spawn during fight
-    BlueTower = 0x1EB843, // R0.500, EventObj type, spawn during fight
-    GoldTower = 0x1EB844, // R0.500, EventObj type, spawn during fight
+    BlueFlowers = 0x1EB843, // R0.500, EventObj type, spawn during fight
+    GoldFlowers = 0x1EB844, // R0.500, EventObj type, spawn during fight
 }
 
 public enum AID : uint

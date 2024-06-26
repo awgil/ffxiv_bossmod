@@ -34,4 +34,9 @@ class D074AiatarStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 8, NameID = 1279)]
-public class D074Aiatar(WorldState ws, Actor primary) : BossModule(ws, primary, new(-25, -235), new ArenaBoundsCircle(20));
+public class D074Aiatar(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> shape = [new Circle(new(-26, -236), 19.5f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(-46.75f, -236), 20, 2, 90.Degrees())];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(shape, difference);
+}

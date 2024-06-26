@@ -57,7 +57,7 @@ class SewageDeluge(BossModule module) : BossComponent(module)
         Arena.PathLineTo(Module.Center + new WDir(-_cornerInner, +_cornerInner));
         Arena.PathLineTo(Module.Center + new WDir(-_connectInner, +_cornerInner));
         Arena.PathLineTo(Module.Center + new WDir(-_connectInner, -_cornerInner));
-        Arena.PathStroke(true, ArenaColor.Border);
+        MiniArena.PathStroke(true, ArenaColor.Border);
 
         // outer border
         Arena.PathLineTo(Module.Center + new WDir(-_cornerOuter, -_cornerOuter));
@@ -80,7 +80,7 @@ class SewageDeluge(BossModule module) : BossComponent(module)
         Arena.PathLineTo(Module.Center + new WDir(-_connectOuter, +_cornerInner));
         Arena.PathLineTo(Module.Center + new WDir(-_connectOuter, -_cornerInner));
         Arena.PathLineTo(Module.Center + new WDir(-_cornerOuter, -_cornerInner));
-        Arena.PathStroke(true, ArenaColor.Border);
+        MiniArena.PathStroke(true, ArenaColor.Border);
     }
 
     public override void OnEventEnvControl(byte index, uint state)

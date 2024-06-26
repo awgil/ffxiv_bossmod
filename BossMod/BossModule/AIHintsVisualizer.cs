@@ -40,6 +40,10 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
         {
             tree.LeafNodes(hints.ActionsToExecute.Entries, e => $"{e.Action} @ {e.Target} (priority {e.Priority})");
         }
+        foreach (var _1 in tree.Node("Custom waypoints", !hints.WaypointManager.HasWaypoints))
+        {
+            tree.LeafNodes(hints.WaypointManager.waypoints, wp => $"{wp}");
+        }
         foreach (var _1 in tree.Node("Pathfinding"))
         {
             _pathfindVisualizer ??= BuildPathfindingVisualizer();

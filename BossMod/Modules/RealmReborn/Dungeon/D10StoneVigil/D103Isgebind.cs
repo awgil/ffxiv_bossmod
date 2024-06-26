@@ -49,5 +49,21 @@ class D103IsgebindStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 11, NameID = 1680)]
-public class D103Isgebind(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -248), new ArenaBoundsSquare(20));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "veyn, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 11, NameID = 1680)]
+public class D103Isgebind(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> union = [new Square(new(0, -248), 23.7f), new Square(new(-23, -259.4f), 1), new Square(new(3.4f, -271), 1),
+    new Square(new(12.8f, -225), 1)];
+    private static readonly List<Shape> difference = [new Square(new(-24, -224), 5.75f, 45.Degrees()), new Square(new(24, -224), 5.75f, 45.Degrees()),
+    new Square(new(-24, -272), 5.75f, 45.Degrees()), new Square(new(24, -272), 5.75f, 45.Degrees()), new Circle(new(-23.9f, -248), 4.5f),
+    new Circle(new(23.9f, -248), 4.5f), new Square(new(-16.2f, -271.9f), 0.5f, 45.Degrees()), new Square(new(16.2f, -271.9f), 0.5f, 45.Degrees()), new Square(new(-16.2f, -224.1f), 0.5f, 45.Degrees()),
+    new Square(new(16.2f, -224.1f), 0.5f, 45.Degrees()), new Square(new(-23.9f, -264.2f), 0.45f, 45.Degrees()), new Square(new(23.9f, -264.2f), 0.45f, 45.Degrees()), new Square(new(-23.9f, -231.8f), 0.45f, 45.Degrees()),
+    new Square(new(23.9f, -231.8f), 0.45f, 45.Degrees()), new Rectangle(new(0, -224), 3.8f, 0.4f), new Rectangle(new(2.1f, -224.3f), 1.5f, 0.4f), new Rectangle(new(-2.1f, -224.3f), 1.5f, 0.4f),
+    new Square(new(-8, -224), 0.45f), new Square(new(7.9f, -224), 0.45f), new Square(new(7.9f, -272), 0.45f), new Square(new(0, -272), 0.45f),
+    new Square(new(-7.9f, -272), 0.45f), new Square(new(24, -240), 0.45f), new Square(new(24, -256), 0.45f), new Square(new(-24, -240), 0.45f), new Square(new(-24, -256), 0.45f)];
+    private static readonly List<Shape> union2 = [new Circle(new(-19.5f, -228.4f), 3), new Circle(new(19.5f, -228.4f), 3), new Circle(new(-19.5f, -267.6f), 3),
+    new Circle(new(19.5f, -267.6f), 3), new Circle(new(-21.3f, -243.6f), 1.5f), new Circle(new(-21.3f, -252.4f), 1.5f), new Square(new(-23, -243.4f), 0.7f),
+    new Square(new(-23, -252.6f), 0.7f), new Circle(new(21.3f, -243.6f), 1.5f), new Circle(new(21.3f, -252.4f), 1.5f), new Square(new(23, -243.4f), 0.7f),
+    new Square(new(23, -252.6f), 0.7f)];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference, union2);
+}

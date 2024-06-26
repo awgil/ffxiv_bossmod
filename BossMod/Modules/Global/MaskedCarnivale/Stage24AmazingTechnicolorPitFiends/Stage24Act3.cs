@@ -56,15 +56,7 @@ class HeadDown(BossModule module) : Components.BaitAwayChargeCast(module, Action
 
 class HeadDownKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.HeadDown), 10, kind: Kind.DirForward)
 {
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-    {
-        if (Module.FindComponent<VacuumBlade>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
-            return true;
-        if (!Module.InBounds(pos))
-            return true;
-        else
-            return false;
-    }
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<VacuumBlade>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.InBounds(pos);
 }
 
 class BoneShaker(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BoneShaker), "Adds + Raidwide");
@@ -102,7 +94,7 @@ class Stage24Act3States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 634, NameID = 8125, SortOrder = 3)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 634, NameID = 8125, SortOrder = 3)]
 public class Stage24Act3 : BossModule
 {
     public Stage24Act3(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsCircle(16))

@@ -25,17 +25,15 @@ public enum AID : uint
     Water = 14271, // 2716->player, 1.0s cast, single-target
 }
 
-class GoldenTongue(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increase its magic damage");
-
-class DarkVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, ActionID.MakeSpell(AID.Dark), m => m.Enemies(OID.DarkVoidzone), 0);
-
+class GoldenTongue(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.GoldenTongue));
+class DarkVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, ActionID.MakeSpell(AID.Dark), m => m.Enemies(OID.DarkVoidzone).Where(e => e.EventState != 7), 1);
 class Dark(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Dark), 5);
 
 class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add("Guimauve summons a total of 6 adds during the fight, one of each element.\nHealer mimikry can be helpful if you have trouble surviving.");
+        hints.Add($"{Module.PrimaryActor.Name} summons a total of 6 adds during the fight, one of each element.\nHealer mimikry can be helpful if you have trouble surviving.");
     }
 }
 
@@ -51,7 +49,7 @@ class Stage09States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 619, NameID = 8099)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 619, NameID = 8099)]
 public class Stage09 : BossModule
 {
     public Stage09(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsCircle(16))

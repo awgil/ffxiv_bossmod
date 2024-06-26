@@ -27,7 +27,7 @@ public class ColumnEnemiesDetails : Timeline.ColumnGroup
         foreach (var (oid, participants) in enc.ParticipantsByOID)
         {
             var data = new PerOID() { OID = oid };
-            foreach (var p in participants.Where(p => (p.HasAnyActions || p.Casts.Count > 0) && !(p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)))
+            foreach (var p in participants.Where(p => (p.HasAnyActions || p.Casts.Count > 0) && !(p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Buddy)))
                 data.Columns.Add((p, null));
             if (data.Columns.Count > 0)
                 _data.Add(data);

@@ -6,5 +6,9 @@ class SolarFold(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 class Sunbeam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Sunbeam), new AOEShapeCircle(9), 14);
 class SublimeSunset(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SublimeSunsetAOE), 40); // TODO: check falloff
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11277, SortOrder = 5)]
-public class A13Azeyma(WorldState ws, Actor primary) : BossModule(ws, primary, new(-750, -750), new ArenaBoundsCircle(30));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "veyn, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11277, SortOrder = 5)]
+public class A13Azeyma(WorldState ws, Actor primary) : BossModule(ws, primary, NormalCenter, NormalBounds)
+{
+    public static readonly WPos NormalCenter = new(-750, -750);
+    public static readonly ArenaBoundsCircle NormalBounds = new(29.5f);
+}

@@ -4,21 +4,24 @@ class ArchaicRockbreakerCenter(BossModule module) : Components.LocationTargetedA
 
 class ArchaicRockbreakerShockwave(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.ArchaicRockbreakerShockwave), true)
 {
-    private readonly Uplift? _uplift = module.FindComponent<Uplift>();
     private readonly DateTime _activation = module.WorldState.FutureTime(6.5f);
+    private static readonly List<SafeWall> Walls0 = [new(new(93, 117.5f), new(108, 117.5f)), new(new(82.5f, 93), new(82.5f, 108)),
+    new(new(117.5f, 93), new(117.5f, 108)), new(new(93, 82.5f), new(108, 82.5f))];
+    private static readonly List<SafeWall> Walls45 = Walls0.Select(wall => RotatedSafeWall(wall.Vertex1, wall.Vertex2)).ToList();
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        float distance = 21;
-        if (_uplift?.WallDirection != null)
-        {
-            var offset = actor.Position - Module.Center;
-            var dot = Math.Abs(_uplift.WallDirection.Value.ToDirection().Dot(offset.Normalized()));
-            bool againstWall = dot is > 0.9238795f or < 0.3826834f;
-            if (againstWall)
-                distance = Module.Bounds.Radius - offset.Length() - 0.5f;
-        }
-        yield return new(Module.Center, distance, _activation);
+        if (Module.Arena.Bounds == P9SKokytos.arenaUplift0)
+            yield return new(Module.Center, 21, _activation, SafeWalls: Walls0);
+        if (Module.Arena.Bounds == P9SKokytos.arenaUplift45)
+            yield return new(Module.Center, 21, _activation, SafeWalls: Walls45);
+    }
+
+    private static SafeWall RotatedSafeWall(WPos start, WPos end)
+    {
+        var rotatedStart = Helpers.RotateAroundOrigin(45, P9SKokytos.center, start);
+        var rotatedEnd = Helpers.RotateAroundOrigin(45, P9SKokytos.center, end);
+        return new SafeWall(rotatedStart, rotatedEnd);
     }
 }
 

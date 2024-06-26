@@ -15,7 +15,6 @@ public sealed class NetworkState
             yield return new OpIDScramble(IDScramble);
     }
 
-    // implementation of operations
     public Event<OpIDScramble> IDScrambleChanged = new();
     public sealed record class OpIDScramble(uint Value) : WorldState.Operation
     {
@@ -37,6 +36,6 @@ public sealed class NetworkState
             .Emit(Packet.Epoch)
             .Emit(Packet.SourceServerActor, "X8")
             .Emit(Packet.SendTimestamp.Ticks)
-            .Emit(Packet.Payload);
+            .Emit(Packet.Payload.ToArray());
     }
 }

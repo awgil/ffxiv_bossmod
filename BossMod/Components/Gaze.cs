@@ -46,7 +46,7 @@ public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool 
     {
         foreach (var eye in ActiveEyes(pcSlot, pc))
         {
-            bool danger = HitByEye(pc, eye) != Inverted;
+            var danger = HitByEye(pc, eye) != Inverted;
             var eyeCenter = IndicatorScreenPos(eye.Position);
             var dl = ImGui.GetWindowDrawList();
             dl.PathArcTo(eyeCenter - new Vector2(0, _eyeOffsetV), _eyeOuterR, MathF.PI / 2 + _eyeHalfAngle, MathF.PI / 2 - _eyeHalfAngle);
@@ -58,7 +58,7 @@ public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool 
             {
                 var (min, max) = Inverted ? (45, 315) : (-45, 45);
                 Arena.PathArcTo(pc.Position, 1, (pc.Rotation + eye.Forward + min.Degrees()).Rad, (pc.Rotation + eye.Forward + max.Degrees()).Rad);
-                Arena.PathStroke(false, ArenaColor.Enemy);
+                MiniArena.PathStroke(false, ArenaColor.Enemy);
             }
         }
     }

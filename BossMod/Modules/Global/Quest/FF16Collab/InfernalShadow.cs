@@ -67,7 +67,7 @@ class FireRampageCleave(BossModule module) : Components.GenericAOEs(module)
 
 class FieryRampageCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FieryRampageCircleReal), new AOEShapeCircle(16));
 class FieryRampageRaidwide(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.FieryRampageRaidwideReal), "Time your dodge correctly");
-class PyrosaultReal(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PyrosaultReal), new AOEShapeCircle(10));
+class Pyrosault(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PyrosaultReal), new AOEShapeCircle(10));
 class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FireballReal), 6);
 class CrimsonRush(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.CrimsonRushReal), 10);
 
@@ -212,7 +212,7 @@ class SearingStomp(BossModule module) : BossComponent(module)
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70334, NameID = 12564)] // also: CFC 959
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70334, NameID = 12564)] // also: CFC 959
 public class InfernalShadow(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

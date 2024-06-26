@@ -23,7 +23,7 @@ class Lochos(BossModule module, float activationDelay) : Components.GenericAOEs(
     {
         if (state == 0x00200010)
         {
-            (WDir offset, Angle dir) = index switch
+            (var offset, var dir) = index switch
             {
                 8 => (new(+15, -30), 0.Degrees()),
                 9 => (new(-30, -15), 90.Degrees()),

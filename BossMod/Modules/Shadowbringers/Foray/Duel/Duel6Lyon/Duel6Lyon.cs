@@ -21,7 +21,7 @@ class Duel6LyonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "SourP", GroupType = BossModuleInfo.GroupType.BozjaDuel, GroupID = 778, NameID = 31)]
-public class Duel6Lyon(WorldState ws, Actor primary) : BossModule(ws, primary, new(50f, -410f), new ArenaBoundsCircle(20))
+public class Duel6Lyon(WorldState ws, Actor primary) : BossModule(ws, primary, new(50, -410), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

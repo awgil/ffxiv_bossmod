@@ -31,8 +31,8 @@ public enum AID : uint
     MoveSunstorm = 28807, // Helper->Sunstorm, no cast, attract
 
     SolarFans = 28813, // Boss->self, 4.0s cast, visual
-    SolarFansAOE = 29374, // Helper->location, 4.0s cast, 5 half-width rect between source and target ?
-    SolarFansCharge = 28814, // WardensFlame->location, 4.5s cast, 5 half-width rect between source and target ?
+    SolarFansAOE = 29374, // Helper->location, 4.0s cast, 10 width charge
+    SolarFansCharge = 28814, // WardensFlame->location, 4.5s cast, 10 width charge, visual
     RadiantRhythmFirst = 28815, // Boss->self, 5.0s cast, visual
     RadiantRhythmRest = 28816, // Boss->self, no cast, visual
     RadiantFlight = 28819, // Helper->self, no cast, range 20?-30 donut 90-degree cone, starting from flame and CCW

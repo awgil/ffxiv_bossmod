@@ -6,6 +6,7 @@ class InfernalShadowStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<VulcanBurst>()
+            .ActivateOnEnter<Pyrosault>()
             .ActivateOnEnter<Incinerate>()
             .ActivateOnEnter<SpreadingFire>()
             .ActivateOnEnter<SmolderingClaw>()
@@ -21,6 +22,6 @@ class InfernalShadowStates : StateMachineBuilder
             .ActivateOnEnter<Eruption2>()
             .ActivateOnEnter<BurningStrike>()
             .ActivateOnEnter<SearingStomp>()
-            .Raw.Update = () => Module.PrimaryActor.HPMP.CurHP == 1;
+            .Raw.Update = () => Module.PrimaryActor.HPMP.CurHP == 1 || Module.PrimaryActor.IsDeadOrDestroyed;
     }
 }

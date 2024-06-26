@@ -16,11 +16,12 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    WaveOfTurmoil = 32257, // 3D39->self, 5.0s cast, single-target
-    WaveOfTurmoil2 = 32258, // 233C->self, 5.0s cast, range 40 circle, knockback 20 away from source
     AutoAttack1 = 870, // 3D4E->player, no cast, single-target
     AutoAttack2 = 871, // 3D3A->player, no cast, single-target
     AutoAttack3 = 872, // 3D39->player, no cast, single-target
+
+    WaveOfTurmoil = 32257, // 3D39->self, 5.0s cast, single-target
+    WaveOfTurmoil2 = 32258, // 233C->self, 5.0s cast, range 40 circle, knockback 20 away from source
     Hydrobomb = 32259, // 233C->location, 6.5s cast, range 10 circle
     Ceras = 32255, // 3D39->player, 5.0s cast, single-target
     Waterspout = 32261, // 3D39->self, 3.0s cast, single-target
@@ -83,8 +84,8 @@ class MeganereisStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12014)]
-public class Meganereis(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20))
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12014)]
+public class Meganereis(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(19))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

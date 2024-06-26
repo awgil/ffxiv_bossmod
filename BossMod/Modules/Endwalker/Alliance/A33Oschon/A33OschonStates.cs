@@ -29,7 +29,12 @@ class A33OschonStates : StateMachineBuilder
         P1TrekShot(id + 0xB0000, 1.3f);
         P1SuddenDownpour(id + 0xC0000, 2.6f);
         P1SuddenDownpour(id + 0xD0000, 1.1f);
-
+        P1Reproduce(id + 0xE0000, 7.4f);
+        P1SuddenDownpour(id + 0xF0000, 0.1f);
+        P1DownhillClimbingShot(id + 0x100000, 4.4f);
+        P1FlintedFoehn(id + 0x110000, 3.1f);
+        P1TrekShot(id + 0x120000, 1.4f);
+        P1SuddenDownpour(id + 0x130000, 2.6f);
         SimpleState(id + 0xFF0000, 10, "???");
     }
 
@@ -48,7 +53,9 @@ class A33OschonStates : StateMachineBuilder
         P2FlintedFoehn(id + 0xA0000, 5.7f);
         P2Arrow(id + 0xB0000, 1.1f);
         P2Altitude(id + 0xC0000, 2.2f);
-
+        P2SuddenDownpour(id + 0xD0000, 7.2f);
+        P2SuddenDownpour(id + 0xE0000, 5.1f);
+        P2ArrowTrail(id + 0xF0000, 7.2f);
         SimpleState(id + 0xFF0000, 10, "???");
     }
 
@@ -112,6 +119,7 @@ class A33OschonStates : StateMachineBuilder
         ComponentCondition<P1Downhill>(id + 0x10, 0.4f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<P1Downhill>();
         ActorCastMulti(id + 0x20, _module.BossP1, [AID.ClimbingShot1, AID.ClimbingShot2, AID.ClimbingShot3, AID.ClimbingShot4], 1.7f, 5, true, "Knockback")
+            .SetHint(StateMachine.StateHint.Knockback)
             .ActivateOnEnter<P1ClimbingShot>()
             .DeactivateOnExit<P1ClimbingShot>();
         ComponentCondition<P1Downhill>(id + 0x30, 1.8f, comp => comp.NumCasts > 0, "Puddles")
@@ -234,5 +242,14 @@ class A33OschonStates : StateMachineBuilder
         ActorCastEnd(id + 0x42, _module.BossP2, 7.5f, true);
         ComponentCondition<P2PitonPull>(id + 0x43, 0.5f, comp => comp.NumCasts > 0, "Diagonal circles")
             .DeactivateOnExit<P2PitonPull>();
+    }
+
+    private void P2SuddenDownpour(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP2, AID.P2SuddenDownpour, delay, 4, true);
+        ComponentCondition<P2SuddenDownpour>(id + 2, 1, comp => comp.NumCasts > 0, "Raidwide")
+            .ActivateOnEnter<P2SuddenDownpour>()
+            .DeactivateOnExit<P2SuddenDownpour>()
+            .SetHint(StateMachine.StateHint.Raidwide);
     }
 }

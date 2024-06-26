@@ -93,4 +93,4 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, ActionID.
 }
 
 class HammersLevinforge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Levinforge), new AOEShapeRect(50, 5));
-class HammersSpire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ByregotSpire), new AOEShapeRect(50, 15));
+class HammersSpire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ByregotSpire), new AOEShapeRect(50, 15, 2));

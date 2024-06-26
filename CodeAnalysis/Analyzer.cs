@@ -10,7 +10,7 @@ public class Analyzer : DiagnosticAnalyzer
     private static readonly List<DiagnosticDescriptor> s_diagnostics = [];
     private static DiagnosticDescriptor Register(string title, string message)
     {
-        var res = new DiagnosticDescriptor($"VBM{s_diagnostics.Count + 1:d3}", title, message, "Custom rules", DiagnosticSeverity.Error, true);
+        var res = new DiagnosticDescriptor($"BMR{s_diagnostics.Count + 1:d3}", title, message, "Custom rules", DiagnosticSeverity.Error, true);
         s_diagnostics.Add(res);
         return res;
     }

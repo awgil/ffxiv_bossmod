@@ -44,5 +44,10 @@ class D051ForgivenCrueltyStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8260)]
-public class D051ForgivenCruelty(WorldState ws, Actor primary) : BossModule(ws, primary, new(188, -170), new ArenaBoundsCircle(20));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8260)]
+public class D051ForgivenCruelty(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> union = [new Circle(new(188, -170), 19.5f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(168.25f, -170), 20, 1, 90.Degrees()), new Rectangle(new(207.75f, -170), 20, 1, 90.Degrees())];
+    private static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+}

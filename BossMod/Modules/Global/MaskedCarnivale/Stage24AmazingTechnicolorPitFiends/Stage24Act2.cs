@@ -25,7 +25,7 @@ class Mechanogravity(BossModule module) : Components.LocationTargetedAOEs(module
 class RagingAxe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RagingAxe), new AOEShapeCone(5, 45.Degrees()));
 class CondensedLibra(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CondensedLibra), "Use Diamondback!");
 class TripleHit(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TripleHit), "Use Diamondback!");
-class Silence(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Silence), "Interrupt");
+class Silence(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.Silence));
 
 class Hints2(BossModule module) : BossComponent(module)
 {
@@ -62,7 +62,7 @@ class Stage24Act2States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 634, NameID = 8128, SortOrder = 2)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 634, NameID = 8128, SortOrder = 2)]
 public class Stage24Act2 : BossModule
 {
     public Stage24Act2(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsCircle(25))

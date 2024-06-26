@@ -9,13 +9,13 @@ class P2WanderingShot(BossModule module) : Components.GenericAOEs(module, Action
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        WDir offset = (AID)spell.Action.ID switch
+        WPos coords = (AID)spell.Action.ID switch
         {
-            AID.WanderingShotN or AID.WanderingVolleyN => new(0, -10),
-            AID.WanderingShotS or AID.WanderingVolleyS => new(0, +10),
+            AID.WanderingShotN or AID.WanderingVolleyN => new(-0.015f, 739.986f),
+            AID.WanderingShotS or AID.WanderingVolleyS => new(-0.015f, 759.975f),
             _ => default
         };
-        if (offset != default)
-            _aoe = new(_shape, Module.Center + offset, default, spell.NPCFinishAt.AddSeconds(3.6f));
+        if (coords != default)
+            _aoe = new(_shape, coords, default, spell.NPCFinishAt.AddSeconds(3.6f));
     }
 }

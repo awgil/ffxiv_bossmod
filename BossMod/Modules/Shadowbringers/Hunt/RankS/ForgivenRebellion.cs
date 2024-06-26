@@ -178,12 +178,8 @@ class MindJack(BossModule module) : Components.StatusDrivenForcedMarch(module, 2
 {
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
-        if (Module.FindComponent<Interference>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
-            return true;
-        if (Module.FindComponent<RagingFire>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
-            return true;
-        else
-            return false;
+        return (Module.FindComponent<Interference>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) ||
+        (Module.FindComponent<RagingFire>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
     }
 }
 
@@ -204,5 +200,5 @@ class ForgivenRebellionStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 8915)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 8915)]
 public class ForgivenRebellion(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

@@ -4,7 +4,7 @@ public sealed class ClassDNCUtility(RotationModuleManager manager, Actor player)
 {
     public enum Track { CuringWaltz = SharedTrack.Count, ShieldSamba, Improvisation }
 
-    public static ActionID IDLimitBreak3 = ActionID.MakeSpell(DNC.AID.CrimsonLotus);
+    public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(DNC.AID.CrimsonLotus);
 
     public static RotationModuleDefinition Definition()
     {
