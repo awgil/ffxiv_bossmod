@@ -39,7 +39,7 @@ sealed class AIManager : IDisposable
 
     public void Update()
     {
-        if (WorldState.Party.ContentIDs[_masterSlot] == 0)
+        if (WorldState.Party.ActorIDs[_masterSlot] == 0)
             SwitchToIdle();
 
         if (!_config.Enabled && _beh != null)
