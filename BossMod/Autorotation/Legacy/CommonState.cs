@@ -1,6 +1,4 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
-
-namespace BossMod.Autorotation.Legacy;
+﻿namespace BossMod.Autorotation.Legacy;
 
 // TODO: a _lot_ of this stuff should be reworked...
 public abstract class CommonState(RotationModule module)

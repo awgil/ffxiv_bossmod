@@ -59,9 +59,6 @@ public sealed class Plugin : IDalamudPlugin
         Network.IDScramble.Initialize();
         Camera.Instance = new();
 
-        var manager = Service.SigScanner.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 0F 28 F0 45 0F 57 C0");
-        Service.Log($"foo: {manager:X}");
-
         Service.Config.Initialize();
         Service.Config.LoadFromFile(dalamud.ConfigFile);
         Service.Config.Modified.Subscribe(() => Service.Config.SaveToFile(dalamud.ConfigFile));

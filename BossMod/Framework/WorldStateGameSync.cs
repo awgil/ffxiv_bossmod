@@ -16,7 +16,7 @@ namespace BossMod;
 // utility that updates a world state to correspond to game state
 sealed class WorldStateGameSync : IDisposable
 {
-    private const int ObjectTableSize = 599; // should match CS; note that different ranges are used for different purposes - consider splitting?..
+    private const int ObjectTableSize = 629; // should match CS; note that different ranges are used for different purposes - consider splitting?..
     private const uint InvalidEntityId = 0xE0000000;
 
     private readonly WorldState _ws;
@@ -287,7 +287,7 @@ sealed class WorldStateGameSync : IDisposable
                     TargetID = SanitizedObjectID(castInfo->TargetId),
                     Rotation = chr->CastRotation.Radians(),
                     Location = castInfo->TargetLocation,
-                    TotalTime = castInfo->TotalCastTime, // TODO: should it use adjusted here?..
+                    TotalTime = castInfo->BaseCastTime, // TODO: should it use total (adjusted) here?..
                     FinishAt = _ws.CurrentTime.AddSeconds(Math.Clamp(castInfo->TotalCastTime - castInfo->CurrentCastTime, 0, 100000)),
                     Interruptible = castInfo->Interruptible != 0,
                 } : null;
@@ -351,17 +351,17 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe void UpdateParty()
     {
-        var gm = GroupManager.Instance();
+        var replay = Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback];
+        var gm = GroupManager.Instance()->GetGroup(replay);
         var ui = UIState.Instance();
         var pc = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         var pcContentId = UIState.Instance()->PlayerState.ContentId;
         var pcEntityId = UIState.Instance()->PlayerState.EntityId;
-        if (Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback])
+        if (replay)
         {
             // when doing replay playback, game uses independent group manager
-            gm += 1;
             pcEntityId = pc != null ? pc->EntityId : 0;
-            var member = pc != null ? gm->GetPartyMemberByObjectId(pcEntityId) : null;
+            var member = pc != null ? gm->GetPartyMemberByEntityId(pcEntityId) : null;
             pcContentId = member != null ? member->ContentId : 0;
         }
         else if (pc != null && pc->EntityId != pcEntityId)
