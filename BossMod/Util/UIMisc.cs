@@ -1,5 +1,6 @@
 ﻿using Dalamud.Interface;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 
@@ -38,15 +39,16 @@ public static class UIMisc
         ImGui.TextColored(colour, text);
     }
 
-    public static void Image(IDalamudTextureWrap? icon, Vector2 size)
+    public static void Image(ISharedImmediateTexture? icon, Vector2 size)
     {
-        if (icon != null)
-            ImGui.Image(icon.ImGuiHandle, size);
+        var wrap = icon?.GetWrapOrDefault();
+        if (wrap != null)
+            ImGui.Image(wrap.ImGuiHandle, size);
         else
             ImGui.Dummy(size);
     }
 
-    public static bool ImageToggleButton(IDalamudTextureWrap? icon, Vector2 size, bool state, string text)
+    public static bool ImageToggleButton(ISharedImmediateTexture? icon, Vector2 size, bool state, string text)
     {
         var cursor = ImGui.GetCursorPos();
         var padding = ImGui.GetStyle().FramePadding;
@@ -54,10 +56,11 @@ public static class UIMisc
         ImGui.TextUnformatted(text);
         ImGui.SetCursorPos(cursor);
 
-        if (icon != null)
+        var wrap = icon?.GetWrapOrDefault();
+        if (wrap != null)
         {
             Vector4 tintColor = state ? new(1f, 1f, 1f, 1f) : new(0.5f, 0.5f, 0.5f, 0.85f);
-            return ImGui.ImageButton(icon.ImGuiHandle, size, Vector2.Zero, Vector2.One, 1, Vector4.Zero, tintColor);
+            return ImGui.ImageButton(wrap.ImGuiHandle, size, Vector2.Zero, Vector2.One, 1, Vector4.Zero, tintColor);
         }
         else
         {

@@ -8,7 +8,7 @@ namespace BossMod;
 
 public static partial class Utils
 {
-    public static string ObjectString(GameObject obj) => $"{obj.DataId:X} '{obj.Name}' <{obj.ObjectId:X}>";
+    public static string ObjectString(IGameObject obj) => $"{obj.DataId:X} '{obj.Name}' <{obj.EntityId:X}>";
 
     public static string ObjectString(ulong id)
     {
@@ -16,7 +16,7 @@ public static partial class Utils
         return obj != null ? ObjectString(obj) : $"(not found) <{id:X}>";
     }
 
-    public static string ObjectKindString(GameObject obj)
+    public static string ObjectKindString(IGameObject obj)
         => obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc ? $"{obj.ObjectKind}/{(Dalamud.Game.ClientState.Objects.Enums.BattleNpcSubKind)obj.SubKind}"
         : obj.SubKind == 0 ? $"{obj.ObjectKind}"
         : $"{obj.ObjectKind}/{obj.SubKind}";
@@ -46,9 +46,9 @@ public static partial class Utils
     public unsafe delegate byte GameObjectIsFriendlyDelegate(FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* obj);
     public static readonly GameObjectIsFriendlyDelegate GameObjectIsFriendly = Marshal.GetDelegateForFunctionPointer<GameObjectIsFriendlyDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 33 C9 84 C0 0F 95 C1 8D 41 03"));
 
-    public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* GameObjectInternal(GameObject? obj) => obj != null ? (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)obj.Address : null;
-    public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Character.Character* CharacterInternal(Character? chr) => chr != null ? (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)chr.Address : null;
-    public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* BattleCharaInternal(BattleChara? chara) => chara != null ? (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)chara.Address : null;
+    public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* GameObjectInternal(IGameObject? obj) => obj != null ? (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)obj.Address : null;
+    public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Character.Character* CharacterInternal(ICharacter? chr) => chr != null ? (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)chr.Address : null;
+    public static unsafe FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* BattleCharaInternal(IBattleChara? chara) => chara != null ? (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)chara.Address : null;
 
     public static unsafe ulong SceneObjectFlags(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o) => ReadField<ulong>(o, 0x38);
 

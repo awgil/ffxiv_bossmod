@@ -21,7 +21,7 @@ public sealed class Service
     [PluginService] public static ITextureProvider Texture { get; private set; }
     [PluginService] public static ICommandManager CommandManager { get; private set; }
     [PluginService] public static IDtrBar DtrBar { get; private set; }
-    [PluginService] public static DalamudPluginInterface PluginInterface { get; private set; }
+    [PluginService] public static IDalamudPluginInterface PluginInterface { get; private set; }
     // TODO: get rid of stuff below in favour of CS
     [PluginService] public static IClientState ClientState { get; private set; }
     [PluginService] public static IObjectTable ObjectTable { get; private set; }

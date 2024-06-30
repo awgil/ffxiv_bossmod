@@ -96,7 +96,7 @@ sealed class AIController(ActionManagerEx amex)
 
     public void SetFocusTarget(Actor? actor)
     {
-        if (Service.TargetManager.FocusTarget?.ObjectId != actor?.InstanceID)
+        if (Service.TargetManager.FocusTarget?.EntityId != actor?.InstanceID)
             Service.TargetManager.FocusTarget = actor != null ? Service.ObjectTable.SearchById((uint)actor.InstanceID) : null;
     }
 

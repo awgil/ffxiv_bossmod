@@ -13,22 +13,22 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot) : UIWindow("
     private readonly DebugGraphics _debugGraphics = new();
     private readonly DebugAction _debugAction = new(ws, autorot.ActionManager);
     private readonly DebugHate _debugHate = new();
-    private readonly DebugInput _debugInput = new(autorot);
+    //private readonly DebugInput _debugInput = new(autorot);
     private readonly DebugAutorotation _debugAutorot = new(autorot);
     private readonly DebugClassDefinitions _debugClassDefinitions = new(ws);
     private readonly DebugAddon _debugAddon = new();
     private readonly DebugTiming _debugTiming = new();
     private readonly DebugCollision _debugCollision = new();
-    private readonly DebugVfx _debugVfx = new();
+    //private readonly DebugVfx _debugVfx = new();
 
     protected override void Dispose(bool disposing)
     {
         _debugAction.Dispose();
-        _debugInput.Dispose();
+        //_debugInput.Dispose();
         _debugClassDefinitions.Dispose();
         _debugAddon.Dispose();
         _debugCollision.Dispose();
-        _debugVfx.Dispose();
+        //_debugVfx.Dispose();
         base.Dispose(disposing);
     }
 
@@ -114,10 +114,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot) : UIWindow("
         {
             DrawTargets();
         }
-        if (ImGui.CollapsingHeader("Input"))
-        {
-            _debugInput.Draw();
-        }
+        //if (ImGui.CollapsingHeader("Input"))
+        //{
+        //    _debugInput.Draw();
+        //}
         if (ImGui.CollapsingHeader("Class definitions"))
         {
             _debugClassDefinitions.Draw();
@@ -146,10 +146,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot) : UIWindow("
         {
             _debugCollision.Draw();
         }
-        if (ImGui.CollapsingHeader("VFX"))
-        {
-            _debugVfx.Draw();
-        }
+        //if (ImGui.CollapsingHeader("VFX"))
+        //{
+        //    _debugVfx.Draw();
+        //}
         if (ImGui.CollapsingHeader("Limit break"))
         {
             DrawLimitBreak();
@@ -163,12 +163,11 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot) : UIWindow("
             var obj = (elem.InstanceID >> 32) == 0 ? Service.ObjectTable.SearchById((uint)elem.InstanceID) : null;
             if (ImGui.TreeNode(Utils.ObjectString(obj!)))
             {
-                var chara = obj as BattleChara;
-                if (chara != null)
+                if (obj is IBattleChara chara)
                 {
                     foreach (var status in chara.StatusList)
                     {
-                        var src = status.SourceObject ? Utils.ObjectString(status.SourceObject!) : "none";
+                        var src = status.SourceObject != null ? Utils.ObjectString(status.SourceObject) : "none";
                         ImGui.TextUnformatted($"{status.StatusId} '{status.GameData.Name}': param={status.Param}, stacks={status.StackCount}, time={status.RemainingTime:f2}, source={src}");
                     }
                 }
