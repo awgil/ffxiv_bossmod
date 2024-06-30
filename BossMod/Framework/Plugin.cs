@@ -36,7 +36,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly UIRotationWindow _wndRotation;
     private readonly MainDebugWindow _wndDebug;
 
-    public unsafe Plugin(DalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner, IDataManager dataManager)
+    public unsafe Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner, IDataManager dataManager)
     {
         if (!dalamud.ConfigDirectory.Exists)
             dalamud.ConfigDirectory.Create();
@@ -200,7 +200,7 @@ public sealed class Plugin : IDalamudPlugin
         }
         foreach (var s in _hints.StatusesToCancel)
         {
-            var res = FFXIVClientStructs.FFXIV.Client.Game.StatusManager.ExecuteStatusOff(s.statusId, s.sourceId != 0 ? (uint)s.sourceId : Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId);
+            var res = FFXIVClientStructs.FFXIV.Client.Game.StatusManager.ExecuteStatusOff(s.statusId, s.sourceId != 0 ? (uint)s.sourceId : 0xE0000000);
             Service.Log($"[ExecHints] Canceling status {s.statusId} from {s.sourceId:X} -> {res}");
         }
     }

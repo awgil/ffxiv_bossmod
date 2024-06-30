@@ -15,7 +15,7 @@ public class DebugObjects
     {
         ImGui.Checkbox("Show players, minions and mounts", ref _showCrap);
 
-        GameObject? selected = null;
+        IGameObject? selected = null;
         for (int i = 0; i < Service.ObjectTable.Length; ++i)
         {
             var obj = Service.ObjectTable[i];
@@ -31,8 +31,7 @@ public class DebugObjects
             var posRot = new Vector4(obj.Position.X, obj.Position.Y, obj.Position.Z, obj.Rotation);
             foreach (var n in _tree.Node($"#{i} {Utils.ObjectString(obj)} ({localID:X}) ({Utils.ObjectKindString(obj)}) {Utils.PosRotString(posRot)}###{uniqueID:X}", contextMenu: () => ObjectContextMenu(obj), select: () => _selectedID = uniqueID))
             {
-                var character = obj as Character;
-                var battleChara = obj as BattleChara;
+                var character = obj as ICharacter;
                 var internalChara = Utils.CharacterInternal(character);
 
                 _tree.LeafNode($"Unique ID: {uniqueID:X}");
@@ -50,7 +49,7 @@ public class DebugObjects
                     _tree.LeafNode($"HP: {character.CurrentHp}/{character.MaxHp} ({internalChara->ShieldValue})");
                     _tree.LeafNode($"Status flags: {character.StatusFlags}");
                 }
-                if (battleChara != null)
+                if (obj is IBattleChara battleChara)
                 {
                     _tree.LeafNode($"Cast: {Utils.CastTimeString(battleChara.CurrentCastTime, battleChara.TotalCastTime)} {new ActionID((ActionType)battleChara.CastActionType, battleChara.CastActionId)}");
                     foreach (var nn in _tree.Node("Statuses"))
@@ -117,19 +116,18 @@ public class DebugObjects
                 res.Append($", drawPos={Utils.Vec3String(internalObj->DrawObject->Object.Position)}, drawScale={Utils.Vec3String(internalObj->DrawObject->Object.Scale)}");
             }
 
-            var chara = obj as BattleChara;
-            if (chara != null)
+            if (obj is IBattleChara chara)
             {
                 res.Append($", vfxObj=0x{Utils.ReadField<ulong>(internalObj, 0x1840):X}/0x{Utils.ReadField<ulong>(internalObj, 0x1848):X}");
                 if (chara.IsCasting)
                 {
                     var target = Service.ObjectTable.SearchById(chara.CastTargetObjectId);
-                    var targetString = target ? Utils.ObjectString(target!) : "unknown";
+                    var targetString = target != null ? Utils.ObjectString(target) : "unknown";
                     res.Append($", castAction={new ActionID((ActionType)chara.CastActionType, chara.CastActionId)}, castTarget={targetString}, castLoc={Utils.Vec3String(Utils.BattleCharaInternal(chara)->GetCastInfo()->TargetLocation)}, castTime={Utils.CastTimeString(chara.CurrentCastTime, chara.TotalCastTime)}");
                 }
                 foreach (var status in chara!.StatusList)
                 {
-                    var src = status.SourceObject ? Utils.ObjectString(status.SourceObject!) : "none";
+                    var src = status.SourceObject != null ? Utils.ObjectString(status.SourceObject) : "none";
                     res.Append($"\n  status {status.StatusId} '{status.GameData.Name}': param={status.Param}, stacks={status.StackCount}, time={status.RemainingTime:f2}, source={src}");
                 }
             }
@@ -137,7 +135,7 @@ public class DebugObjects
         Service.Log(res.ToString());
     }
 
-    private unsafe void ObjectContextMenu(GameObject obj)
+    private unsafe void ObjectContextMenu(IGameObject obj)
     {
         if (ImGui.MenuItem("Target"))
         {

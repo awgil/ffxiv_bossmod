@@ -133,7 +133,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
 
     private void FocusMaster(Actor master)
     {
-        bool masterChanged = Service.TargetManager.FocusTarget?.ObjectId != master.InstanceID;
+        bool masterChanged = Service.TargetManager.FocusTarget?.EntityId != master.InstanceID;
         if (masterChanged)
         {
             ctrl.SetFocusTarget(master);

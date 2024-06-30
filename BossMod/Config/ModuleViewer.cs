@@ -14,7 +14,7 @@ namespace BossMod;
 public sealed class ModuleViewer : IDisposable
 {
     private record struct ModuleInfo(ModuleRegistry.Info Info, string Name, int SortOrder);
-    private record struct ModuleGroupInfo(string Name, uint Id, uint SortOrder, IDalamudTextureWrap? Icon = null);
+    private record struct ModuleGroupInfo(string Name, uint Id, uint SortOrder, uint Icon = 0);
     private record struct ModuleGroup(ModuleGroupInfo Info, List<ModuleInfo> Modules);
 
     private readonly PlanDatabase? _planDB;
@@ -22,10 +22,10 @@ public sealed class ModuleViewer : IDisposable
     private BitMask _filterExpansions;
     private BitMask _filterCategories;
 
-    private readonly (string name, IDalamudTextureWrap? icon)[] _expansions;
-    private readonly (string name, IDalamudTextureWrap? icon)[] _categories;
-    private readonly IDalamudTextureWrap? _iconFATE;
-    private readonly IDalamudTextureWrap? _iconHunt;
+    private readonly (string name, uint icon)[] _expansions;
+    private readonly (string name, uint icon)[] _categories;
+    private readonly uint _iconFATE;
+    private readonly uint _iconHunt;
     private readonly List<ModuleGroup>[,] _groups;
     private readonly Vector2 _iconSize = new(30, 30);
 
@@ -33,7 +33,7 @@ public sealed class ModuleViewer : IDisposable
     {
         _planDB = planDB;
 
-        var defaultIcon = GetIcon(61762);
+        uint defaultIcon = 61762;
         _expansions = Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon)).ToArray();
         _categories = Enum.GetNames<BossModuleInfo.Category>().Take((int)BossModuleInfo.Category.Count).Select(n => (n, defaultIcon)).ToArray();
 
@@ -68,8 +68,8 @@ public sealed class ModuleViewer : IDisposable
         _categories[(int)BossModuleInfo.Category.Alliance].icon = _categories[(int)BossModuleInfo.Category.Raid].icon;
         //_categories[(int)BossModuleInfo.Category.Event].icon = GetIcon(61757);
 
-        _iconFATE = GetIcon(contentType?.GetRow(8)?.Icon ?? 0);
-        _iconHunt = GetIcon((uint)(playStyle?.GetRow(10)?.Icon ?? 0));
+        _iconFATE = contentType?.GetRow(8)?.Icon ?? 0;
+        _iconHunt = (uint)(playStyle?.GetRow(10)?.Icon ?? 0);
 
         _groups = new List<ModuleGroup>[(int)BossModuleInfo.Expansion.Count, (int)BossModuleInfo.Category.Count];
         for (int i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
@@ -112,12 +112,6 @@ public sealed class ModuleViewer : IDisposable
 
     public void Dispose()
     {
-        foreach (var e in _expansions)
-            e.icon?.Dispose();
-        foreach (var c in _categories)
-            c.icon?.Dispose();
-        _iconFATE?.Dispose();
-        _iconHunt?.Dispose();
     }
 
     public void Draw(UITree tree, WorldState ws)
@@ -155,7 +149,7 @@ public sealed class ModuleViewer : IDisposable
         for (var e = BossModuleInfo.Expansion.RealmReborn; e < BossModuleInfo.Expansion.Count; ++e)
         {
             ref var expansion = ref _expansions[(int)e];
-            UIMisc.ImageToggleButton(expansion.icon, _iconSize, !_filterExpansions[(int)e], expansion.name);
+            UIMisc.ImageToggleButton(Service.Texture.GetFromGameIcon(expansion.icon), _iconSize, !_filterExpansions[(int)e], expansion.name);
             if (ImGui.IsItemClicked())
             {
                 _filterExpansions.Toggle((int)e);
@@ -173,7 +167,7 @@ public sealed class ModuleViewer : IDisposable
         for (var c = BossModuleInfo.Category.Uncategorized; c < BossModuleInfo.Category.Count; ++c)
         {
             ref var category = ref _categories[(int)c];
-            UIMisc.ImageToggleButton(category.icon, _iconSize, !_filterCategories[(int)c], category.name);
+            UIMisc.ImageToggleButton(Service.Texture.GetFromGameIcon(category.icon), _iconSize, !_filterCategories[(int)c], category.name);
             if (ImGui.IsItemClicked())
             {
                 _filterCategories.Toggle((int)c);
@@ -205,9 +199,9 @@ public sealed class ModuleViewer : IDisposable
                 {
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    UIMisc.Image(_expansions[i].icon, new(36));
+                    UIMisc.Image(Service.Texture.GetFromGameIcon(_expansions[i].icon), new(36));
                     ImGui.SameLine();
-                    UIMisc.Image(group.Info.Icon ?? _categories[j].icon, new(36));
+                    UIMisc.Image(Service.Texture.GetFromGameIcon(group.Info.Icon != 0 ? group.Info.Icon : _categories[j].icon), new(36));
                     ImGui.TableNextColumn();
 
                     foreach (var ng in tree.Node($"{group.Info.Name}###{i}/{j}/{group.Info.Id}"))
@@ -243,11 +237,9 @@ public sealed class ModuleViewer : IDisposable
         }
     }
 
-    private void Customize((string name, IDalamudTextureWrap? icon)[] array, int element, uint iconId, SeString? name)
+    private void Customize((string name, uint icon)[] array, int element, uint iconId, SeString? name)
     {
-        var icon = GetIcon(iconId);
-        if (icon != null)
-            array[element].icon = icon;
+        array[element].icon = iconId;
         if (name != null)
             array[element].name = name;
     }
@@ -256,7 +248,7 @@ public sealed class ModuleViewer : IDisposable
     private void Customize(BossModuleInfo.Category category, ContentType? ct) => Customize(category, ct?.Icon ?? 0, ct?.Name);
     private void Customize(BossModuleInfo.Category category, CharaCardPlayStyle? ps) => Customize(category, (uint)(ps?.Icon ?? 0), ps?.Name);
 
-    private static IDalamudTextureWrap? GetIcon(uint iconId) => iconId != 0 ? Service.Texture?.GetIcon(iconId, Dalamud.Plugin.Services.ITextureProvider.IconFlags.HiRes) : null;
+    //private static IDalamudTextureWrap? GetIcon(uint iconId) => iconId != 0 ? Service.Texture?.GetIcon(iconId, Dalamud.Plugin.Services.ITextureProvider.IconFlags.HiRes) : null;
     private static string FixCase(SeString? str) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(str ?? "");
     private static string BNpcName(uint id) => FixCase(Service.LuminaRow<BNpcName>(id)?.Singular);
 

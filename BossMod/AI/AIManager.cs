@@ -125,7 +125,7 @@ sealed class AIManager : IDisposable
         return pm != null ? WorldState.Party.ContentIDs.IndexOf((ulong)pm.ContentId) : -1;
     }
 
-    private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
+    private void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
         if (!_config.Enabled || type != XivChatType.Party)
             return;
