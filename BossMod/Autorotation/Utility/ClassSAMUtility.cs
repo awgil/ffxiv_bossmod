@@ -4,7 +4,7 @@ public sealed class ClassSAMUtility(RotationModuleManager manager, Actor player)
 {
     public enum Track { ThirdEye = SharedTrack.Count }
 
-    public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SAM.AID.DoomOfTheLiving);
+    public static ActionID IDLimitBreak3 = ActionID.MakeSpell(SAM.AID.DoomOfTheLiving);
 
     public static RotationModuleDefinition Definition()
     {

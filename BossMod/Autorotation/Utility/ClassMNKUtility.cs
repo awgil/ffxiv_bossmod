@@ -4,7 +4,7 @@ public sealed class ClassMNKUtility(RotationModuleManager manager, Actor player)
 {
     public enum Track { Mantra = SharedTrack.Count, RiddleOfEarth }
 
-    public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(MNK.AID.FinalHeaven);
+    public static ActionID IDLimitBreak3 = ActionID.MakeSpell(MNK.AID.FinalHeaven);
 
     public static RotationModuleDefinition Definition()
     {

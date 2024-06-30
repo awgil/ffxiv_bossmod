@@ -4,7 +4,7 @@ public sealed class ClassRPRUtility(RotationModuleManager manager, Actor player)
 {
     public enum Track { ArcaneCrest = SharedTrack.Count }
 
-    public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(RPR.AID.TheEnd);
+    public static ActionID IDLimitBreak3 = ActionID.MakeSpell(RPR.AID.TheEnd);
 
     public static RotationModuleDefinition Definition()
     {

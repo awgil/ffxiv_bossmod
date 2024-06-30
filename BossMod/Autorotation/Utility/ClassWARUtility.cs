@@ -5,7 +5,7 @@ public sealed class ClassWARUtility(RotationModuleManager manager, Actor player)
     public enum Track { Thrill = SharedTrack.Count, Vengeance, Holmgang, Bloodwhetting, Equilibrium, ShakeItOff }
     public enum BWOption { None, Bloodwhetting, RawIntuition, NascentFlash }
 
-    public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(WAR.AID.LandWaker);
+    public static ActionID IDLimitBreak3 = ActionID.MakeSpell(WAR.AID.LandWaker);
 
     public static RotationModuleDefinition Definition()
     {

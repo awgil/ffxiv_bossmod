@@ -5,7 +5,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
     public enum Track { Camouflage = SharedTrack.Count, Nebula, Aurora, Superbolide, HeartOfLight, HeartOfCorundum }
     public enum HoCOption { None, HeartOfStone, HeartOfCorundum }
 
-    public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(GNB.AID.GunmetalSoul);
+    public static ActionID IDLimitBreak3 = ActionID.MakeSpell(GNB.AID.GunmetalSoul);
 
     public static RotationModuleDefinition Definition()
     {
