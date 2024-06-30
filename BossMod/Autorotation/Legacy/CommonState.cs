@@ -1,6 +1,3 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
-using System.Collections.ObjectModel;
-
 namespace BossMod.Autorotation.Legacy;
 
 // TODO: a _lot_ of this stuff should be reworked...

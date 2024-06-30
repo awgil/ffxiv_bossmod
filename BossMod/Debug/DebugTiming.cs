@@ -24,7 +24,7 @@ public class DebugTiming
         ImGui.TextUnformatted($"dt real: {dtReal} = raw + {dtReal - fwk->RealFrameDeltaTime}");
         ImGui.TextUnformatted($"dt ms granularity: {fwk->FrameDeltaTimeMSInt} + {fwk->FrameDeltaTimeMSRem}");
         ImGui.TextUnformatted($"dt us granularity: {fwk->FrameDeltaTimeUSInt} + {fwk->FrameDeltaTimeUSRem}");
-        ImGui.TextUnformatted($"dt timer: {DateTime.UnixEpoch.AddSeconds(fwk->UtcTime.TimeStamp)}");
+        ImGui.TextUnformatted($"dt timer: {DateTime.UnixEpoch.AddSeconds(fwk->UtcTime.Timestamp)}");
         _prevFrameCounter = fwk->FrameCounter;
         _prevQPC = fwk->PerformanceCounterValue;
     }
