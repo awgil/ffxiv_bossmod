@@ -38,12 +38,12 @@ sealed class IPCProvider : IDisposable
         _disposeActions += p.UnregisterFunc;
     }
 
-    private void Register(string name, Action func)
-    {
-        var p = Service.PluginInterface.GetIpcProvider<object>("BossMod." + name);
-        p.RegisterAction(func);
-        _disposeActions += p.UnregisterAction;
-    }
+    // private void Register(string name, Action func)
+    // {
+    //     var p = Service.PluginInterface.GetIpcProvider<object>("BossMod." + name);
+    //     p.RegisterAction(func);
+    //     _disposeActions += p.UnregisterAction;
+    // }
 
     //private void Register<T1>(string name, Action<T1> func)
     //{

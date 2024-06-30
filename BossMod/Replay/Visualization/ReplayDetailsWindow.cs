@@ -380,7 +380,7 @@ class ReplayDetailsWindow : UIWindow
             ResetPF();
     }
 
-    private string FlagTransitionString((bool active, float transIn) arg) => $"{(arg.active ? "end" : "start")} in {arg.transIn:f2}s";
+    // private string FlagTransitionString((bool active, float transIn) arg) => $"{(arg.active ? "end" : "start")} in {arg.transIn:f2}s";
 
     private void MoveTo(DateTime t)
     {

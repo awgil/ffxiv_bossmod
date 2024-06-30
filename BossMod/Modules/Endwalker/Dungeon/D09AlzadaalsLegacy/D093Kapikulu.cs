@@ -53,6 +53,8 @@ class ManaExplosion(BossModule module) : Components.GenericAOEs(module)
     private static readonly AOEShapeCircle circle = new(15);
     private static readonly HashSet<WPos> aoePositionsSet1 = [new(119, -68), new(101, -86), new(101, -50)]; // yellow P2, green P1
     private static readonly HashSet<WPos> aoePositionsSet2 = [new(119, -50), new(101, -68), new(119, -86)]; // yellow P1, green P2
+    private Actor? _target;
+    private DateTime _activation;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
@@ -60,14 +62,22 @@ class ManaExplosion(BossModule module) : Components.GenericAOEs(module)
     {
         if (tether.ID == (uint)TetherID.ManaExplosion)
         {
-            var target = WorldState.Actors.Find(tether.Target)!;
-            var activation = Module.WorldState.FutureTime(11.5f); // some variation here, have seen upto almost 12.3s
-            if (target.Position == new WPos(110, -45.5f)) // green cloth tethered
+            _target = WorldState.Actors.Find(tether.Target)!;
+            _activation = Module.WorldState.FutureTime(11.5f); // some variation here, have seen upto almost 12.3s
+        }
+    }
+
+    public override void Update()
+    {
+        if (_target != default)
+        {
+            if (_target.Position == new WPos(110, -45.5f)) // green cloth tethered
                 foreach (var c in currentPattern == Pattern.Pattern1 ? aoePositionsSet1 : aoePositionsSet2)
-                    _aoes.Add(new(circle, c, default, activation));
-            else if (target.Position == new WPos(110, -90.5f)) // yellow cloth tethered
+                    _aoes.Add(new(circle, c, default, _activation));
+            else if (_target.Position == new WPos(110, -90.5f)) // yellow cloth tethered
                 foreach (var c in currentPattern == Pattern.Pattern1 ? aoePositionsSet2 : aoePositionsSet1)
-                    _aoes.Add(new(circle, c, default, activation));
+                    _aoes.Add(new(circle, c, default, _activation));
+            _target = default;
         }
     }
 

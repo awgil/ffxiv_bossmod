@@ -176,12 +176,12 @@ public sealed class LegacyGNB : LegacyModule
     private int NumTargetsHitByAOE() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
 
     // old GNBRotation
-    private int GaugeGainedFromAction(GNB.AID action) => action switch
-    {
-        GNB.AID.SolidBarrel or GNB.AID.DemonSlaughter => 1,
-        GNB.AID.Bloodfest => _state.Unlocked(GNB.TraitID.CartridgeChargeII) ? 3 : 2,
-        _ => 0
-    };
+    // private int GaugeGainedFromAction(GNB.AID action) => action switch
+    // {
+    //     GNB.AID.SolidBarrel or GNB.AID.DemonSlaughter => 1,
+    //     GNB.AID.Bloodfest => _state.Unlocked(GNB.TraitID.CartridgeChargeII) ? 3 : 2,
+    //     _ => 0
+    // };
 
     private int GetSTComboLength(GNB.AID comboLastMove) => comboLastMove switch
     {
@@ -192,12 +192,12 @@ public sealed class LegacyGNB : LegacyModule
 
     private int GetAOEComboLength(GNB.AID comboLastMove) => comboLastMove == GNB.AID.DemonSlice ? 1 : 2;
 
-    private GNB.AID GetNextSTComboAction(GNB.AID comboLastMove, GNB.AID finisher) => comboLastMove switch
-    {
-        GNB.AID.BrutalShell => finisher,
-        GNB.AID.KeenEdge => GNB.AID.BrutalShell,
-        _ => GNB.AID.KeenEdge
-    };
+    // private GNB.AID GetNextSTComboAction(GNB.AID comboLastMove, GNB.AID finisher) => comboLastMove switch
+    // {
+    //     GNB.AID.BrutalShell => finisher,
+    //     GNB.AID.KeenEdge => GNB.AID.BrutalShell,
+    //     _ => GNB.AID.KeenEdge
+    // };
 
     private GNB.AID GetNextBrutalShellComboAction(GNB.AID comboLastMove)
     {
@@ -688,18 +688,18 @@ public sealed class LegacyGNB : LegacyModule
         return GetNextUnlockedComboAction(strategy, aoe);
     }
 
-    private bool ShouldSpendGauge(StrategyValues strategy, bool aoe) => strategy.Option(Track.Gauge).As<GaugeStrategy>() switch
-    {
-        GaugeStrategy.Automatic or GaugeStrategy.LightningShotIfNotInMelee => (_state.RaidBuffsLeft > _state.GCD || _state.FightEndIn <= _state.RaidBuffsIn + 10),
-        GaugeStrategy.Spend => true,
-        GaugeStrategy.ForceST => true,
-        GaugeStrategy.ForceAOE => true,
-        GaugeStrategy.ForceGF => true,
-        GaugeStrategy.Hold => true,
-        GaugeStrategy.ComboFitBeforeDowntime => _state.FightEndIn <= _state.GCD + 2.5f * ((aoe ? GetAOEComboLength(_state.ComboLastMove) : GetSTComboLength(_state.ComboLastMove)) - 1),
-        GaugeStrategy.PenultimateComboThenSpend => _state.ComboLastMove is GNB.AID.BrutalShell or GNB.AID.DemonSlice,
-        _ => true
-    };
+    // private bool ShouldSpendGauge(StrategyValues strategy, bool aoe) => strategy.Option(Track.Gauge).As<GaugeStrategy>() switch
+    // {
+    //     GaugeStrategy.Automatic or GaugeStrategy.LightningShotIfNotInMelee => (_state.RaidBuffsLeft > _state.GCD || _state.FightEndIn <= _state.RaidBuffsIn + 10),
+    //     GaugeStrategy.Spend => true,
+    //     GaugeStrategy.ForceST => true,
+    //     GaugeStrategy.ForceAOE => true,
+    //     GaugeStrategy.ForceGF => true,
+    //     GaugeStrategy.Hold => true,
+    //     GaugeStrategy.ComboFitBeforeDowntime => _state.FightEndIn <= _state.GCD + 2.5f * ((aoe ? GetAOEComboLength(_state.ComboLastMove) : GetSTComboLength(_state.ComboLastMove)) - 1),
+    //     GaugeStrategy.PenultimateComboThenSpend => _state.ComboLastMove is GNB.AID.BrutalShell or GNB.AID.DemonSlice,
+    //     _ => true
+    // };
 
     private bool ShouldUsePotion(StrategyValues strategy) => strategy.Option(Track.Potion).As<PotionStrategy>() switch
     {
