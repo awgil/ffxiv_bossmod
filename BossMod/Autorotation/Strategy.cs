@@ -51,29 +51,10 @@ public record struct StrategyValue()
     public int TargetParam; // strategy-specific parameter
     public string Comment = ""; // user-editable comment string
 }
-
-public readonly record struct StrategyValues
+#pragma warning disable CA2227
+public record struct StrategyValues(List<StrategyConfig> Configs)
 {
-    private readonly List<StrategyConfig> _configs;
-
-    public StrategyValues(List<StrategyConfig> configs)
-    {
-        _configs = configs;
-        Values = Utils.MakeArray(_configs.Count, new StrategyValue());
-    }
-
-    public readonly IReadOnlyList<StrategyConfig> Configs => _configs.AsReadOnly();
-    public StrategyValue[] Values { get; }
-
-    public readonly void AddConfig(StrategyConfig config)
-    {
-        _configs.Add(config);
-    }
-
-    public readonly void RemoveConfig(StrategyConfig config)
-    {
-        _configs.Remove(config);
-    }
+    public StrategyValue[] Values = Utils.MakeArray(Configs.Count, new StrategyValue());
 
     // unfortunately, c# doesn't support partial type inference, and forcing user to spell out track enum twice is obnoxious, so here's the hopefully cheap solution
     public readonly ref struct OptionRef(ref StrategyConfig config, ref StrategyValue value)
@@ -94,6 +75,7 @@ public readonly record struct StrategyValues
     public readonly OptionRef Option<TrackIndex>(TrackIndex index) where TrackIndex : Enum
     {
         var idx = (int)(object)index;
-        return new(ref _configs.Ref(idx), ref Values[idx]);
+        return new(ref Configs.Ref(idx), ref Values[idx]);
     }
 }
+#pragma warning restore CA2227
