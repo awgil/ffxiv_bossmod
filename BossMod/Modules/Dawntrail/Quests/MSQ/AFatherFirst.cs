@@ -79,7 +79,10 @@ class DualBlowsSteeledStrike(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.DualBlows1 or AID.DualBlows2 or AID.DualBlows3 or AID.DualBlows4)
+        {
             _aoes.Add(new(cone, caster.Position, spell.Rotation, spell.NPCFinishAt));
+            _aoes.SortBy(x => x.Activation);
+        }
         if ((AID)spell.Action.ID is AID.SteeledStrike1 or AID.SteeledStrike2)
             _aoes.Add(new(cross, caster.Position, spell.Rotation, spell.NPCFinishAt));
     }
@@ -107,7 +110,7 @@ class BurningSun(BossModule module) : Components.GenericAOEs(module)
                 yield return new(_aoes[i].Shape, _aoes[i].Origin, default, _aoes[i].Activation, ArenaColor.Danger);
         if (_aoes.Count > 9)
             for (var i = 9; i < _aoes.Count; ++i)
-                yield return new(_aoes[i].Shape, _aoes[i].Origin, default, _aoes[i].Activation, Risky: false);
+                yield return new(_aoes[i].Shape, _aoes[i].Origin, default, _aoes[i].Activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -125,7 +128,7 @@ class BurningSun(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class BrawlEnder(BossModule module) : Components.Knockback(module)
+class BrawlEnder(BossModule module) : Components.Knockback(module, stopAtWall: true)
 {
     private DateTime activation;
 
@@ -134,6 +137,8 @@ class BrawlEnder(BossModule module) : Components.Knockback(module)
         if (activation != default)
             yield return new(actor.Position, 20, activation, default, actor.Rotation, Kind.DirForward);
     }
+
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<FireVoidzone>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
