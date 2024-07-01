@@ -69,7 +69,7 @@ class ManaExplosion(BossModule module) : Components.GenericAOEs(module)
 
     public override void Update()
     {
-        if (_target != default)
+        if (_target != default) // Helper can teleport after tether started, this fixes the rare problem
         {
             if (_target.Position == new WPos(110, -45.5f)) // green cloth tethered
                 foreach (var c in currentPattern == Pattern.Pattern1 ? aoePositionsSet1 : aoePositionsSet2)
@@ -77,7 +77,8 @@ class ManaExplosion(BossModule module) : Components.GenericAOEs(module)
             else if (_target.Position == new WPos(110, -90.5f)) // yellow cloth tethered
                 foreach (var c in currentPattern == Pattern.Pattern1 ? aoePositionsSet2 : aoePositionsSet1)
                     _aoes.Add(new(circle, c, default, _activation));
-            _target = default;
+            if (_aoes.Count > 0)
+                _target = default;
         }
     }
 

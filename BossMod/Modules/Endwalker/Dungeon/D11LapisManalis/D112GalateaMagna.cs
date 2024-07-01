@@ -190,13 +190,13 @@ public class TenebrismTowers(BossModule module) : Components.GenericTowers(modul
                     position = new(340, -394);
                     break;
             }
-            Towers.Add(new(position, 5, 1, 1));
+            Towers.Add(new(position, 5, activation: Module.WorldState.FutureTime(6)));
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.Burst or AID.BigBurst)
+        if ((AID)spell.Action.ID == AID.Burst)
             Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
     }
 

@@ -57,7 +57,7 @@ class JudgmentDay(BossModule module) : Components.GenericTowers(module)
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Towers)
-            Towers.Add(new(actor.Position, 5, 1, 1));
+            Towers.Add(new(actor.Position, 5, activation: Module.WorldState.FutureTime(7.6f)));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
