@@ -1,4 +1,6 @@
 autorotation v2 cleanup:
+- target self if usual target is invalid
+- reconsider condition vs forbid?
 - tank stance track
 - worldstate: animlock, combo, gauge parser, camera
 - rmm in replay analysis
