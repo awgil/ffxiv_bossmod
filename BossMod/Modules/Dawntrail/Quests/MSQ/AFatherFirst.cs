@@ -83,7 +83,7 @@ class DualBlowsSteeledStrike(BossModule module) : Components.GenericAOEs(module)
             _aoes.Add(new(cone, caster.Position, spell.Rotation, spell.NPCFinishAt));
             _aoes.SortBy(x => x.Activation);
         }
-        if ((AID)spell.Action.ID is AID.SteeledStrike1 or AID.SteeledStrike2)
+        else if ((AID)spell.Action.ID is AID.SteeledStrike1 or AID.SteeledStrike2)
             _aoes.Add(new(cross, caster.Position, spell.Rotation, spell.NPCFinishAt));
     }
 
@@ -117,7 +117,7 @@ class BurningSun(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.BurningSunTelegraph1)
             _aoes.Add(new(circleSmall, spell.LocXZ, default, spell.NPCFinishAt.AddSeconds(4)));
-        if ((AID)spell.Action.ID == AID.BurningSunTelegraph2)
+        else if ((AID)spell.Action.ID == AID.BurningSunTelegraph2)
             _aoes.Add(new(circleBig, spell.LocXZ, default, spell.NPCFinishAt.AddSeconds(4)));
     }
 
