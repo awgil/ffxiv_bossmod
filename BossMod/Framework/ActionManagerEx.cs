@@ -255,12 +255,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
         // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
         if (EffectiveAnimationLock <= 0 && AutoQueue.Action && !IsRecastTimerActive(AutoQueue.Action) && !(blockMovement && InputOverride.IsMoving()))
         {
-            // extra safety checks (should no longer be needed)
-            // normally general action -> spell conversion is done by UseAction before calling UseActionRaw
-            // calling UseActionRaw directly is not good: it would call StartCooldown, which would in turn call GetRecastTime, which always returns 5s for general actions
-            // this leads to incorrect sprint cooldown (5s instead of 60s), which is just bad
-            // for spells, call GetAdjustedActionId - even though it is typically done correctly by autorotation modules
-            var actionAdj = AutoQueue.Action.Type == ActionType.Spell ? new(ActionType.Spell, GetAdjustedActionID(AutoQueue.Action.ID)) : AutoQueue.Action;
+            var actionAdj = NormalizeActionForQueue(AutoQueue.Action);
             var targetID = AutoQueue.Target?.InstanceID ?? 0xE0000000;
             var status = GetActionStatus(actionAdj, targetID);
             if (status == 0)

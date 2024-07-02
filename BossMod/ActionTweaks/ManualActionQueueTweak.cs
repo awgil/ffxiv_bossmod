@@ -75,27 +75,9 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         if (def.ReadyIn(ws.Client.Cooldowns) > expire)
             return false; // don't bother trying to queue something that's on cd
 
-        Vector3 targetPos = default;
-        if (def.AllowedTargets.HasFlag(ActionTargets.Area))
-        {
-            // ground-targeted actions have special targeting
-            var (gtTarget, gtPos) = getAreaTarget();
-            if (gtTarget == 0xE0000000 && gtPos == null)
-                return false; // manual targeting desired
-            targetPos = gtPos ?? default;
-            targetId = gtTarget;
-        }
+        if (!ResolveTarget(def, player, targetId, getAreaTarget, allowTargetOverride, out var target, out var targetPos))
+            return false; // failed to resolve target
 
-        if (def.Range == 0)
-            targetId = player.InstanceID; // the action can only target player
-
-        var target = ws.Actors.Find(targetId);
-        if (target == null && targetId is not 0 and not 0xE0000000)
-            return false; // target is valid, but not found in world, bail... (TODO this shouldn't be happening really)
-
-        // ok, good to queue...
-        if (!def.AllowedTargets.HasFlag(ActionTargets.Area) && allowTargetOverride && _config.SmartTargets && def.SmartTarget != null)
-            target = def.SmartTarget(ws, player, target, hints);
         Angle? angleOverride = def.TransformAngle?.Invoke(ws, player, target, hints);
 
         var expireAt = ws.CurrentTime.AddSeconds(expire);
@@ -141,5 +123,54 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
 
         if (_emergencyMode && index == 0)
             _emergencyMode = false;
+    }
+
+    private bool ResolveTarget(ActionDefinition def, Actor player, ulong targetId, Func<(ulong, Vector3?)> getAreaTarget, bool allowSmartTarget, out Actor? target, out Vector3 targetPos)
+    {
+        target = null;
+        targetPos = default;
+        if (def.AllowedTargets.HasFlag(ActionTargets.Area))
+        {
+            // ground-targeted actions have special targeting
+            var (gtTarget, gtPos) = getAreaTarget();
+            if (gtPos != null)
+            {
+                // auto cast at cursor
+                targetPos = gtPos.Value;
+                return true;
+            }
+            else if (gtTarget is not 0 and not 0xE0000000)
+            {
+                // auto cast at target
+                target = ws.Actors.Find(gtTarget);
+                return target != null; // if target isn't found in world, bail
+            }
+            else
+            {
+                return false; // manual targeting desired
+            }
+        }
+
+        if (def.AllowedTargets == ActionTargets.Self)
+        {
+            // the action can only target player, don't bother with other logic...
+            target = player;
+            return true;
+        }
+
+        target = ws.Actors.Find(targetId);
+        if (target == null && targetId is not 0 and not 0xE0000000)
+            return false; // target is valid, but not found in world, bail... (TODO this shouldn't be happening really)
+
+        // custom smart-targeting
+        if (allowSmartTarget && _config.SmartTargets && def.SmartTarget != null)
+            target = def.SmartTarget(ws, player, target, hints);
+
+        // smart-targeting fallback: cast on self is target is not valid
+        var targetIsValid = target != null && (def.AllowedTargets.HasFlag(ActionTargets.Hostile) || !target.IsAlly);
+        if (def.AllowedTargets.HasFlag(ActionTargets.Self) && !targetIsValid)
+            target = player;
+
+        return true;
     }
 }
