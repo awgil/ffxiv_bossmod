@@ -33,11 +33,11 @@ public abstract class GenericAOEs(BossModule module, ActionID aid = default, str
 }
 
 // self-targeted aoe that happens at the end of the cast
-public class SelfTargetedAOEs(BossModule module, ActionID aid, AOEShape shape, int maxCasts = int.MaxValue) : GenericAOEs(module, aid)
+public class SelfTargetedAOEs(BossModule module, ActionID aid, AOEShape shape, int maxCasts = int.MaxValue, uint color = ArenaColor.AOE) : GenericAOEs(module, aid)
 {
     public AOEShape Shape { get; init; } = shape;
     public int MaxCasts = maxCasts; // used for staggered aoes, when showing all active would be pointless
-    public uint Color = ArenaColor.AOE; // can be customized if needed
+    public uint Color = color;
     public bool Risky = true; // can be customized if needed
     public readonly List<Actor> Casters = [];
 

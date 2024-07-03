@@ -210,12 +210,21 @@ class RunThrough2(BossModule module) : Components.SelfTargetedAOEs(module, Actio
 class Fireflood(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fireflood), 18);
 class TuraliStoneIII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TuraliStoneIII), 4);
 class TuraliQuake(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TuraliQuake), 9, maxCasts: 5);
+class StayInBounds(BossModule module) : BossComponent(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Module.InBounds(actor.Position))
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 3));
+    }
+}
 
 class TakingAStandStates : StateMachineBuilder
 {
     public TakingAStandStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<StayInBounds>()
             .ActivateOnEnter<RoarArenaChange>()
             .ActivateOnEnter<Roar1>()
             .ActivateOnEnter<Roar2>()
