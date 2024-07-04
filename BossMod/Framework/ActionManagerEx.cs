@@ -156,6 +156,8 @@ public unsafe sealed class ActionManagerEx : IDisposable
 
     public uint GetAdjustedActionID(uint actionID) => _inst->GetAdjustedActionId(actionID);
 
+    public uint GetSpellIdForAction(ActionID action) => ActionManager.GetSpellIdForAction((CSActionType)action.Type, action.ID);
+
     public uint GetActionStatus(ActionID action, ulong target, bool checkRecastActive = true, bool checkCastingActive = true, uint* outOptExtraInfo = null)
     {
         if (action.Type is ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1)
@@ -176,25 +178,36 @@ public unsafe sealed class ActionManagerEx : IDisposable
         => _inst->GetRecastGroup((int)action.Type, action.ID);
 
     // perform some action transformations to simplify implementation of queueing; UseActionLocation expects some normalization to be already done
-    private ActionID NormalizeGeneralAction(ActionID action)
+    private ActionID NormalizeActionForQueue(ActionID action)
     {
-        // do some general action adjustments; note that if we queue action up, it will go through UseActionLocation, so anything non-spell/item needs special handling
-        if (action.Type == ActionType.General)
+        switch (action.Type)
         {
-            if (action == ActionDefinitions.IDGeneralLimitBreak)
-            {
-                var lb = LimitBreakController.Instance();
-                var level = lb->BarUnits != 0 ? lb->CurrentUnits / lb->BarUnits : 0;
-                var id = level > 0 ? lb->GetActionId((Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value, (byte)(level - 1)) : 0;
-                if (id != 0)
-                    action = new(ActionType.Spell, id);
-            }
-            else if (action == ActionDefinitions.IDGeneralSprint || action == ActionDefinitions.IDGeneralDuty1 || action == ActionDefinitions.IDGeneralDuty2)
-            {
-                action = new(ActionType.Spell, ActionManager.GetSpellIdForAction(CSActionType.GeneralAction, action.ID));
-            }
+            case ActionType.Spell:
+                // for normal actions, we want to do adjustment immediately, before action is queued; there are several reasons for that:
+                // 1. transformation can affect action targeting (eg MNK meditation/chakra); queue will check the properties of the queued action
+                // 2. for classes that start at high level and then are synced down, the 'base' action can be some upgrade; the queue will ignore non-adjusted actions, assuming they aren't unlocked yet
+                // note that when action is executed several frames later, the adjustment will be done again, in case something changes in the state
+                return new(ActionType.Spell, GetAdjustedActionID(action.ID));
+            case ActionType.General:
+                // for general actions, we want to convert things we care about to spells; UseActionLocation will expect that to be done
+                if (action == ActionDefinitions.IDGeneralLimitBreak)
+                {
+                    var lb = LimitBreakController.Instance();
+                    var level = lb->BarUnits != 0 ? lb->CurrentUnits / lb->BarUnits : 0;
+                    var id = level > 0 ? lb->GetActionId((Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value, (byte)(level - 1)) : 0;
+                    return id != 0 ? new(ActionType.Spell, id) : action;
+                }
+                else if (action == ActionDefinitions.IDGeneralSprint || action == ActionDefinitions.IDGeneralDuty1 || action == ActionDefinitions.IDGeneralDuty2)
+                {
+                    return new(ActionType.Spell, GetSpellIdForAction(action));
+                }
+                else
+                {
+                    return action;
+                }
+            default:
+                return action;
         }
-        return action;
     }
 
     // skips queueing etc
@@ -242,12 +255,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
         // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
         if (EffectiveAnimationLock <= 0 && AutoQueue.Action && !IsRecastTimerActive(AutoQueue.Action) && !(blockMovement && InputOverride.IsMoving()))
         {
-            // extra safety checks (should no longer be needed)
-            // normally general action -> spell conversion is done by UseAction before calling UseActionRaw
-            // calling UseActionRaw directly is not good: it would call StartCooldown, which would in turn call GetRecastTime, which always returns 5s for general actions
-            // this leads to incorrect sprint cooldown (5s instead of 60s), which is just bad
-            // for spells, call GetAdjustedActionId - even though it is typically done correctly by autorotation modules
-            var actionAdj = AutoQueue.Action.Type == ActionType.Spell ? new(ActionType.Spell, GetAdjustedActionID(AutoQueue.Action.ID)) : AutoQueue.Action;
+            var actionAdj = NormalizeActionForQueue(AutoQueue.Action);
             var targetID = AutoQueue.Target?.InstanceID ?? 0xE0000000;
             var status = GetActionStatus(actionAdj, targetID);
             if (status == 0)
@@ -278,6 +286,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
     {
         var action = new ActionID((ActionType)actionType, actionId);
         //Service.Log($"[AMEx] UA: {action} @ {targetId:X}: {extraParam} {mode} {comboRouteId}");
+        action = NormalizeActionForQueue(action);
 
         // if mouseover mode is enabled AND target is a usual primary target AND current mouseover is valid target for action, then we override target to mouseover
         var primaryTarget = TargetSystem.Instance()->Target;
@@ -286,14 +295,13 @@ public unsafe sealed class ActionManagerEx : IDisposable
         if (Config.PreferMouseover && !targetOverridden)
         {
             var mouseoverTarget = PronounModule.Instance()->UiMouseOverTarget;
-            if (mouseoverTarget != null && ActionManager.CanUseActionOnTarget(ActionManager.GetSpellIdForAction(actionType, actionId), mouseoverTarget))
+            if (mouseoverTarget != null && ActionManager.CanUseActionOnTarget(GetSpellIdForAction(action), mouseoverTarget))
             {
                 targetId = mouseoverTarget->GetGameObjectId();
                 targetOverridden = true;
             }
         }
 
-        action = NormalizeGeneralAction(action);
         (ulong, Vector3?) getAreaTarget() => targetOverridden ? (targetId, null) :
             (Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtTarget ? targetId : 0xE0000000, Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtCursor ? GetWorldPosUnderCursor() : null);
 

@@ -1,4 +1,5 @@
 autorotation v2 cleanup:
+- reconsider condition vs forbid?
 - tank stance track
 - worldstate: animlock, combo, gauge parser, camera
 - rmm in replay analysis

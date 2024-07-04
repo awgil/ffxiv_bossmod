@@ -29,6 +29,7 @@ public sealed class RotationModuleManager : IDisposable
 
     public WorldState WorldState => Bossmods.WorldState;
     public Actor? Player => WorldState.Party[PlayerSlot];
+    public DateTime CombatStart { get; private set; } // default value when player is not in combat, otherwise timestamp when player entered combat
 
     public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AIHints hints, ActionManagerEx amex, int playerSlot = PartyState.PlayerSlot)
     {
@@ -133,6 +134,8 @@ public sealed class RotationModuleManager : IDisposable
     {
         if (WorldState.Party.ActorIDs[PlayerSlot] != actor.InstanceID)
             return; // don't care
+
+        CombatStart = actor.InCombat ? WorldState.CurrentTime : default; // keep track of combat time in case rotation modules want to do something special in openers
 
         if (!actor.InCombat)
         {
