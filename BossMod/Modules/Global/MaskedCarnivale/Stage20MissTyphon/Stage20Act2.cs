@@ -19,13 +19,13 @@ class AquaBreath(BossModule module) : Components.SelfTargetedAOEs(module, Action
 class Megavolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Megavolt), new AOEShapeCircle(11.1f));
 class Waterspout(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Waterspout), 4);
 class LightningBolt(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightningBolt), 3);
-class ImpSong(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.ImpSong), "Interrupt Ultros!");
+class ImpSong(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.ImpSong));
 
 class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add("Ultros is weak to fire. Interrupt Imp Song.");
+        hints.Add($"{Module.PrimaryActor.Name} is weak to fire. Interrupt Imp Song.");
     }
 }
 
@@ -44,7 +44,7 @@ class Stage20Act2States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 630, NameID = 7111, SortOrder = 2)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 630, NameID = 7111, SortOrder = 2)]
 public class Stage20Act2 : BossModule
 {
     public Stage20Act2(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsCircle(16))

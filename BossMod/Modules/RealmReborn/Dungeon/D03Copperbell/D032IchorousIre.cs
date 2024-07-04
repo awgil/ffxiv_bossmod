@@ -32,4 +32,9 @@ class D032IchorousIreStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 3, NameID = 554)]
-public class D032IchorousIre(WorldState ws, Actor primary) : BossModule(ws, primary, new(26.97f, 113.97f), new ArenaBoundsCircle(20));
+public class D032IchorousIre(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> union = [new Circle(new(27, 114), 19.5f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(37.5f, 95), 20, 2.4f, 25.Degrees()), new Rectangle(new(6, 112), 20, 1.75f, 270.Degrees())];
+    public static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+}

@@ -51,7 +51,7 @@ public record struct StrategyValue()
     public int TargetParam; // strategy-specific parameter
     public string Comment = ""; // user-editable comment string
 }
-
+#pragma warning disable CA2227
 public record struct StrategyValues(List<StrategyConfig> Configs)
 {
     public StrategyValue[] Values = Utils.MakeArray(Configs.Count, new StrategyValue());
@@ -78,3 +78,4 @@ public record struct StrategyValues(List<StrategyConfig> Configs)
         return new(ref Configs.Ref(idx), ref Values[idx]);
     }
 }
+#pragma warning restore CA2227

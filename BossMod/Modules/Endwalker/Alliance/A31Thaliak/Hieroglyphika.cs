@@ -52,9 +52,9 @@ class Hieroglyphika(BossModule module) : Components.GenericAOEs(module, ActionID
 
         WDir[] safespots = [.. _canonicalSafespots.Select(d => d.Rotate(dir))];
         var activation = WorldState.FutureTime(17.1f);
-        for (int z = -3; z <= 3; z += 2)
+        for (var z = -3; z <= 3; z += 2)
         {
-            for (int x = -3; x <= 3; x += 2)
+            for (var x = -3; x <= 3; x += 2)
             {
                 var cellOffset = new WDir(x * 6, z * 6);
                 if (!safespots.Any(s => s.AlmostEqual(cellOffset, 1)))

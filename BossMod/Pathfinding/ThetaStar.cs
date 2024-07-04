@@ -38,7 +38,7 @@ public class ThetaStar
         _deltaGDiag = _deltaGSide * 1.414214f;
 
         start = map.ClampToGrid(start);
-        int startIndex = CellIndex(start.x, start.y);
+        var startIndex = CellIndex(start.x, start.y);
         _nodes[startIndex].GScore = 0;
         _nodes[startIndex].HScore = HeuristicDistance(start.x, start.y);
         _nodes[startIndex].ParentX = start.x; // start's parent is self
@@ -50,38 +50,54 @@ public class ThetaStar
     public void Start(Map map, int goalPriority, WPos startPos, float gMultiplier) => Start(map, map.Goals().Where(g => g.priority >= goalPriority).Select(g => (g.x, g.y)), map.WorldToGrid(startPos), gMultiplier);
 
     // returns whether search is to be terminated; on success, first node of the open list would contain found goal
+    private bool IsInBounds(int x, int y) => x >= 0 && y >= 0 && x < _map.Width && y < _map.Height;
+
+    private void AddNeighbor(int parentX, int parentY, int parentIndex, int nodeX, int nodeY, float deltaG)
+    {
+        if (IsInBounds(nodeX, nodeY))
+        {
+            var nodeIndex = CellIndex(nodeX, nodeY);
+            VisitNeighbour(parentX, parentY, parentIndex, nodeX, nodeY, nodeIndex, deltaG);
+        }
+    }
+
     public bool ExecuteStep()
     {
         if (_goals.Count == 0 || _openList.Count == 0 || _nodes[_openList[0]].HScore <= 0)
             return false;
 
-        int nextNodeIndex = PopMinOpen();
+        var nextNodeIndex = PopMinOpen();
         var nextNodeX = nextNodeIndex % _map.Width;
         var nextNodeY = nextNodeIndex / _map.Width;
-        bool haveN = nextNodeIndex >= _map.Width;
-        bool haveS = nextNodeIndex < (_map.Width - 1) * _map.Height;
-        bool haveE = nextNodeX > 0;
-        bool haveW = nextNodeX < _map.Width - 1;
+
+        var haveN = nextNodeY > 0;
+        var haveS = nextNodeY < _map.Height - 1;
+        var haveE = nextNodeX > 0;
+        var haveW = nextNodeX < _map.Width - 1;
+
         if (haveN)
         {
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY - 1, nextNodeIndex - _map.Width, _deltaGSide);
+            AddNeighbor(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY - 1, _deltaGSide);
             if (haveE)
-                VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY - 1, nextNodeIndex - _map.Width - 1, _deltaGDiag);
+                AddNeighbor(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY - 1, _deltaGDiag);
             if (haveW)
-                VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY - 1, nextNodeIndex - _map.Width + 1, _deltaGDiag);
+                AddNeighbor(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY - 1, _deltaGDiag);
         }
+
         if (haveE)
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY, nextNodeIndex - 1, _deltaGSide);
+            AddNeighbor(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY, _deltaGSide);
         if (haveW)
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY, nextNodeIndex + 1, _deltaGSide);
+            AddNeighbor(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY, _deltaGSide);
+
         if (haveS)
         {
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY + 1, nextNodeIndex + _map.Width, _deltaGSide);
+            AddNeighbor(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY + 1, _deltaGSide);
             if (haveE)
-                VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY + 1, nextNodeIndex + _map.Width - 1, _deltaGDiag);
+                AddNeighbor(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY + 1, _deltaGDiag);
             if (haveW)
-                VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY + 1, nextNodeIndex + _map.Width + 1, _deltaGDiag);
+                AddNeighbor(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY + 1, _deltaGDiag);
         }
+
         return true;
     }
 
@@ -96,8 +112,17 @@ public class ThetaStar
 
     private void VisitNeighbour(int parentX, int parentY, int parentIndex, int nodeX, int nodeY, int nodeIndex, float deltaG)
     {
+        // Validate the node index within map bounds
+        if (nodeX < 0 || nodeY < 0 || nodeX >= _map.Width || nodeY >= _map.Height || nodeIndex < 0 || nodeIndex >= _nodes.Length)
+        {
+            Service.Log($"Invalid node index: {nodeIndex}, skipping (nodeX: {nodeX}, nodeY: {nodeY}).");
+            return;
+        }
+
+        // Check if already in the closed list
         if (_nodes[nodeIndex].OpenHeapIndex < 0)
             return; // in closed list already
+
         var nodeG = _nodes[parentIndex].GScore + deltaG;
         var nodeLeeway = _map.Pixels[nodeIndex].MaxG - nodeG;
         if (nodeLeeway < 0)
@@ -110,8 +135,8 @@ public class ThetaStar
             _nodes[nodeIndex].HScore = HeuristicDistance(nodeX, nodeY);
 
             // check LoS from grandparent
-            int grandParentX = _nodes[parentIndex].ParentX;
-            int grandParentY = _nodes[parentIndex].ParentY;
+            var grandParentX = _nodes[parentIndex].ParentX;
+            var grandParentY = _nodes[parentIndex].ParentY;
             var losLeeway = LineOfSight(grandParentX, grandParentY, nodeX, nodeY, nodeG);
             if (losLeeway >= 0)
             {
@@ -135,7 +160,7 @@ public class ThetaStar
 
     private float LineOfSight(int x1, int y1, int x2, int y2, float maxG)
     {
-        float minLeeway = float.MaxValue;
+        var minLeeway = float.MaxValue;
         foreach (var (x, y) in _map.EnumeratePixelsInLine(x1, y1, x2, y2))
         {
             minLeeway = Math.Min(minLeeway, _map[x, y].MaxG - maxG);
@@ -147,7 +172,7 @@ public class ThetaStar
 
     private float HeuristicDistance(int x, int y)
     {
-        float bestSq = float.MaxValue;
+        var bestSq = float.MaxValue;
         foreach (var g in _goals)
         {
             var curSq = DistanceSq(x, y, g.x, g.y);
@@ -178,7 +203,7 @@ public class ThetaStar
     // remove first (minimal) node from open heap and mark as closed
     private int PopMinOpen()
     {
-        int nodeIndex = _openList[0];
+        var nodeIndex = _openList[0];
         _openList[0] = _openList[^1];
         _nodes[nodeIndex].OpenHeapIndex = -1;
         _openList.RemoveAt(_openList.Count - 1);
@@ -207,14 +232,14 @@ public class ThetaStar
 
     private void PercolateDown(int heapIndex)
     {
-        int nodeIndex = _openList[heapIndex];
-        int maxSize = _openList.Count;
+        var nodeIndex = _openList[heapIndex];
+        var maxSize = _openList.Count;
         while (true)
         {
-            int child1 = (heapIndex << 1) + 1;
+            var child1 = (heapIndex << 1) + 1;
             if (child1 >= maxSize)
                 break;
-            int child2 = child1 + 1;
+            var child2 = child1 + 1;
             if (child2 == maxSize || HeapLess(_openList[child1], _openList[child2]))
             {
                 if (HeapLess(_openList[child1], nodeIndex))

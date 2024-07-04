@@ -84,11 +84,13 @@ public class BaitAwayEveryone : GenericBaitAway
 }
 
 // component for mechanics requiring tether targets to bait their aoe away from raid
-public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, ActionID aid = default) : GenericBaitAway(module, aid)
+public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, ActionID aid = default, uint enemyOID = default, float activationDelay = default) : GenericBaitAway(module, aid)
 {
     public AOEShape Shape = shape;
     public uint TID = tetherID;
     public bool DrawTethers = true;
+    public readonly IReadOnlyList<Actor> _enemies = module.Enemies(enemyOID);
+    public float ActivationDelay = activationDelay;
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -107,10 +109,8 @@ public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, A
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         var (player, enemy) = DetermineTetherSides(source, tether);
-        if (player != null && enemy != null)
-        {
-            CurrentBaits.Add(new(enemy, player, Shape));
-        }
+        if (player != null && enemy != null && (enemyOID == default || _enemies.Contains(source)))
+            CurrentBaits.Add(new(enemy, player, Shape, WorldState.FutureTime(ActivationDelay)));
     }
 
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
@@ -123,7 +123,7 @@ public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, A
     }
 
     // we support both player->enemy and enemy->player tethers
-    private (Actor? player, Actor? enemy) DetermineTetherSides(Actor source, ActorTetherInfo tether)
+    public (Actor? player, Actor? enemy) DetermineTetherSides(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID != TID)
             return (null, null);
@@ -132,8 +132,8 @@ public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, A
         if (target == null)
             return (null, null);
 
-        var (player, enemy) = source.Type == ActorType.Player ? (source, target) : (target, source);
-        if (player.Type != ActorType.Player || enemy.Type == ActorType.Player)
+        var (player, enemy) = source.Type is ActorType.Player or ActorType.Buddy ? (source, target) : (target, source);
+        if (player.Type is not ActorType.Player and not ActorType.Buddy || enemy.Type is ActorType.Player or ActorType.Buddy)
         {
             ReportError($"Unexpected tether pair: {source.InstanceID:X} -> {target.InstanceID:X}");
             return (null, null);
@@ -144,7 +144,7 @@ public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, A
 }
 
 // component for mechanics requiring icon targets to bait their aoe away from raid
-public class BaitAwayIcon(BossModule module, AOEShape shape, uint iconID, ActionID aid = default, float activationDelay = 5.1f) : GenericBaitAway(module, aid)
+public class BaitAwayIcon(BossModule module, AOEShape shape, uint iconID, ActionID aid = default, float activationDelay = 5.1f, bool centerAtTarget = false) : GenericBaitAway(module, aid, centerAtTarget: centerAtTarget)
 {
     public AOEShape Shape = shape;
     public uint IID = iconID;

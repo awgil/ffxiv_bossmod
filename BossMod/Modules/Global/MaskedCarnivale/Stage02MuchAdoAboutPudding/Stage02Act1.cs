@@ -15,7 +15,7 @@ public enum AID : uint
     GoldenTongue = 14265, // 25C0/25C2/25C4->self, 5.0s cast, single-target
 }
 
-class GoldenTongue(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increase its magic damage");
+class GoldenTongue(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.GoldenTongue));
 
 class Hints(BossModule module) : BossComponent(module)
 {
@@ -45,7 +45,7 @@ class Stage02Act1States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 612, NameID = 8078, SortOrder = 1)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 612, NameID = 8078, SortOrder = 1)]
 public class Stage02Act1 : BossModule
 {
     public Stage02Act1(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsCircle(25))
@@ -53,7 +53,7 @@ public class Stage02Act1 : BossModule
         ActivateComponent<Hints>();
     }
 
-    protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Marshmallow).Any(e => e.InCombat) || Enemies(OID.Bavarois).Any(e => e.InCombat); }
+    protected override bool CheckPull() => PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Marshmallow).Any(e => e.InCombat) || Enemies(OID.Bavarois).Any(e => e.InCombat);
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

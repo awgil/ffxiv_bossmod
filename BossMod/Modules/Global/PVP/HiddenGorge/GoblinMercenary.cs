@@ -27,16 +27,19 @@ public enum IconID : uint
 
 class GobspinSwipe(BossModule module) : Components.GenericAOEs(module)
 {
+    private static readonly AOEShapeCircle circle = new(8);
+    private static readonly AOEShapeDonut donut = new(5, 30);
     private AOEInstance? _aoe;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
+        var activation = spell.NPCFinishAt.AddSeconds(4);
         if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
-            _aoe = new(new AOEShapeCircle(8), Module.PrimaryActor.Position, default, spell.NPCFinishAt.AddSeconds(4));
+            _aoe = new(circle, Module.PrimaryActor.Position, default, activation);
         if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
-            _aoe = new(new AOEShapeDonut(5, 30), Module.PrimaryActor.Position, default, spell.NPCFinishAt.AddSeconds(4));
+            _aoe = new(donut, Module.PrimaryActor.Position, default, activation);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -48,16 +51,19 @@ class GobspinSwipe(BossModule module) : Components.GenericAOEs(module)
 
 class Knockbacks(BossModule module) : Components.Knockback(module)
 {
+    private static readonly AOEShapeCircle circle = new(8);
+    private static readonly AOEShapeDonut donut = new(5, 30);
     private Source? _knockback;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => Utils.ZeroOrOne(_knockback);
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
+        var activation = spell.NPCFinishAt.AddSeconds(4);
         if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
-            _knockback = new(Module.PrimaryActor.Position, 15, spell.NPCFinishAt.AddSeconds(4), new AOEShapeCircle(8));
+            _knockback = new(Module.PrimaryActor.Position, 15, activation, circle);
         if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
-            _knockback = new(Module.PrimaryActor.Position, 15, spell.NPCFinishAt.AddSeconds(4), new AOEShapeDonut(5, 30));
+            _knockback = new(Module.PrimaryActor.Position, 15, activation, donut);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -129,10 +135,9 @@ class GoblinMercenaryStates : StateMachineBuilder
             .ActivateOnEnter<GobspinSwipe>()
             .ActivateOnEnter<Knockbacks>()
             .ActivateOnEnter<GobfireShootypops>()
-            .Raw.Update = () => Module.PrimaryActor.IsDead || !Module.PrimaryActor.IsTargetable;
+            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || !Module.PrimaryActor.IsTargetable;
     }
 }
 
-// note: arena shapes don't seem to be perfect circle/square ?
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 599, NameID = 7906)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 599, NameID = 7906)]
 public class GoblinMercenary(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, primary.Position.Z < 0 ? -124.5f : 144.5f), primary.Position.Z < 0 ? new ArenaBoundsSquare(16) : new ArenaBoundsCircle(30));

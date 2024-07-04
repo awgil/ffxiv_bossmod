@@ -18,6 +18,11 @@ public record struct Angle(float Rad)
     public static Angle operator *(Angle a, float b) => new(a.Rad * b);
     public static Angle operator *(float a, Angle b) => new(a * b.Rad);
     public static Angle operator /(Angle a, float b) => new(a.Rad / b);
+    public static bool operator >(Angle a, Angle b) => a.Rad > b.Rad;
+    public static bool operator <(Angle a, Angle b) => a.Rad < b.Rad;
+    public static bool operator >=(Angle a, Angle b) => a.Rad >= b.Rad;
+    public static bool operator <=(Angle a, Angle b) => a.Rad <= b.Rad;
+
     public readonly Angle Abs() => new(Math.Abs(Rad));
     public readonly float Sin() => MathF.Sin(Rad);
     public readonly float Cos() => MathF.Cos(Rad);
@@ -37,7 +42,7 @@ public record struct Angle(float Rad)
 
     public readonly bool AlmostEqual(Angle other, float epsRad) => Math.Abs((this - other).Normalized().Rad) <= epsRad;
 
-    public override readonly string ToString() => Deg.ToString("f0");
+    public override readonly string ToString() => Deg.ToString("f3");
 }
 
 public static class AngleExtensions

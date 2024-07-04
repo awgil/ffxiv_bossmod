@@ -42,11 +42,11 @@ class Ex6GolbezStates : StateMachineBuilder
         BindingCold(id + 0x180000, 4.5f);
 
         AzdajasShadow(id + 0x190000, 8.2f);
-        PhasesOfTheShadow(id + 0x1A0000, 5); // TODO: don't know exact timings below
+        PhasesOfTheShadow(id + 0x1A0000, 5);
         BindingCold(id + 0x1B0000, 5);
-        BindingCold(id + 0x1C0000, 8);
+        BindingCold(id + 0x1C0000, 8.2f);
         VoidMeteor(id + 0x1D0000, 3);
-        SimpleState(id + 0x1E0000, 20, "Enrage");
+        BlackFangEnrage(id + 0x1E0000, 6.5f);
     }
 
     private void BindingCold(uint id, float delay)
@@ -180,6 +180,16 @@ class Ex6GolbezStates : StateMachineBuilder
         ComponentCondition<BlackFang>(id + 0x30, 2.9f, comp => comp.NumCasts >= 6, "Raidwide hit 6")
             .DeactivateOnExit<BlackFang>()
             .SetHint(StateMachine.StateHint.Raidwide);
+    }
+
+    private void BlackFangEnrage(uint id, float delay)
+    {
+        Cast(id, AID.AzdajasShadowEnrage, delay, 5);
+        Cast(id + 0x10, AID.BlackFangEnrage, 5.1f, 4);
+        ComponentCondition<BlackFang>(id + 0x20, 3.8f, comp => comp.NumCasts > 0, "Raidwide x5")
+            .ActivateOnEnter<BlackFang>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ComponentCondition<BlackFang>(id + 0x30, 3.1f, comp => comp.NumCasts >= 6, "Enrage");
     }
 
     // leaves component active

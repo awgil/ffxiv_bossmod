@@ -207,7 +207,8 @@ class A22AlthykNymeiaStates : StateMachineBuilder
             .ActivateOnEnter<Hydrostasis>()
             .DeactivateOnExit<Petrai>()
             .SetHint(StateMachine.StateHint.Tankbuster);
-        ComponentCondition<Hydrostasis>(id + 0x20, 15, comp => comp.NumCasts >= 1, "Knockback 1");
+        ComponentCondition<Hydrostasis>(id + 0x20, 15, comp => comp.NumCasts >= 1, "Knockback 1")
+            .SetHint(StateMachine.StateHint.Knockback);
         ComponentCondition<Hydrostasis>(id + 0x21, 3, comp => comp.NumCasts >= 2, "Knockback 2");
         ComponentCondition<Hydrostasis>(id + 0x22, 3, comp => comp.NumCasts >= 3, "Knockback 3")
             .DeactivateOnExit<Hydrostasis>();
@@ -219,7 +220,8 @@ class A22AlthykNymeiaStates : StateMachineBuilder
         ComponentCondition<Hydrostasis>(id + 0x10, 2.0f, comp => comp.Active)
             .ActivateOnEnter<Hydrostasis>();
         ActorCast(id + 0x20, _module.Althyk, AID.TimeAndTide, 0.1f, 10); // TODO: boss often dies here...
-        ComponentCondition<Hydrostasis>(id + 0x30, 2, comp => comp.NumCasts >= 1, "Knockback 1");
+        ComponentCondition<Hydrostasis>(id + 0x30, 2, comp => comp.NumCasts >= 1, "Knockback 1")
+            .SetHint(StateMachine.StateHint.Knockback);
         ComponentCondition<Hydrostasis>(id + 0x31, 3, comp => comp.NumCasts >= 2, "Knockback 2");
         ComponentCondition<Hydrostasis>(id + 0x32, 3, comp => comp.NumCasts >= 3, "Knockback 3")
             .DeactivateOnExit<Hydrostasis>();

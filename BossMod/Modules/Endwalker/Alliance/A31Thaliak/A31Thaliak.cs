@@ -9,17 +9,5 @@ class RightBank(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 class HieroglyphikaLeftBank(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HieroglyphikaLeftBank), new AOEShapeCone(60, 90.Degrees()));
 class HieroglyphikaRightBank(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HieroglyphikaRightBank), new AOEShapeCone(60, 90.Degrees()));
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11298, SortOrder = 2)]
-public class A31Thaliak(WorldState ws, Actor primary) : BossModule(ws, primary, new(-945, 945), NormalBounds)
-{
-    public static readonly ArenaBoundsSquare NormalBounds = new(24);
-    public static readonly ArenaBoundsCustom TriBounds = BuildTriBounds();
-
-    private static ArenaBoundsCustom BuildTriBounds()
-    {
-        // equilateral triangle, apex at true north, base is equal to width => height = w * sqrt(3) / 2 => offset to base = w / 2 * (sqrt(3) - 1)
-        var baseOffset = NormalBounds.Radius * 0.732050808f;
-        List<WDir> verts = [new(0, -NormalBounds.Radius), new(NormalBounds.Radius, baseOffset), new(-NormalBounds.Radius, baseOffset)];
-        return new(NormalBounds.Radius, new([new(verts)]));
-    }
-}
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, LTS, veyn", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11298, SortOrder = 2)]
+public class A31Thaliak(WorldState ws, Actor primary) : BossModule(ws, primary, TetraktysBorder.NormalCenter, TetraktysBorder.NormalBounds);

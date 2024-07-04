@@ -11,7 +11,7 @@ namespace BossMod;
 
 public sealed class Plugin : IDalamudPlugin
 {
-    public string Name => "Boss Mod";
+    public string Name => "BossMod Reborn";
 
     private ICommandManager CommandManager { get; init; }
 
@@ -64,7 +64,8 @@ public sealed class Plugin : IDalamudPlugin
         Service.Config.Modified.Subscribe(() => Service.Config.SaveToFile(dalamud.ConfigFile));
 
         CommandManager = commandManager;
-        CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
+        CommandManager.AddHandler("/bmr", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
+        CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { ShowInHelp = false });
 
         ActionDefinitions.Instance.UnlockCheck = QuestUnlocked; // ensure action definitions are initialized and set unlock check functor (we don't really store the quest progress in clientstate, for now at least)
 
@@ -110,6 +111,7 @@ public sealed class Plugin : IDalamudPlugin
         _hintsBuilder.Dispose();
         _bossmod.Dispose();
         ActionDefinitions.Instance.Dispose();
+        CommandManager.RemoveHandler("/bmr");
         CommandManager.RemoveHandler("/vbm");
     }
 
@@ -259,6 +261,6 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnConditionChanged(ConditionFlag flag, bool value)
     {
-        Service.Log($"Condition chage: {flag}={value}");
+        Service.Log($"Condition change: {flag}={value}");
     }
 }

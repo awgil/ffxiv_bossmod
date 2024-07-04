@@ -1,4 +1,6 @@
-﻿namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia;
+﻿using BossMod.Autorotation;
+
+namespace BossMod.Shadowbringers.Dungeon.D01Holmintser.D013Philia;
 
 public enum OID : uint
 {
@@ -97,6 +99,9 @@ class Chains(BossModule module) : BossComponent(module)
                     OID.Boss => -1,
                     _ => 0
                 };
+        var ironchain = Module.Enemies(OID.IronChain).FirstOrDefault();
+        if (ironchain != null && !ironchain.IsDead)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(ironchain.Position, ironchain.HitboxRadius + 3));
     }
 
     public override void OnEventIcon(Actor actor, uint iconID)
@@ -136,7 +141,6 @@ class Aethersup(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
@@ -153,19 +157,16 @@ class Aethersup(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class PendulumFlare(BossModule module) : Components.GenericBaitAway(module)
+class PendulumFlare(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
-    private bool targeted;
-    private Actor? target;
+    public List<Actor> targets = [];
 
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.SpreadFlare)
         {
             CurrentBaits.Add(new(Module.PrimaryActor, actor, new AOEShapeCircle(20)));
-            targeted = true;
-            target = actor;
-            CenterAtTarget = true;
+            targets.Add(actor);
         }
     }
 
@@ -174,21 +175,21 @@ class PendulumFlare(BossModule module) : Components.GenericBaitAway(module)
         if ((AID)spell.Action.ID == AID.PendulumAOE1)
         {
             CurrentBaits.Clear();
-            targeted = false;
+            targets.Clear();
         }
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Rect(Module.Center, target.Position, 18));
+        if (targets.Contains(actor))
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 18.5f));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(slot, actor, hints);
-        if (target == actor && targeted)
+        if (targets.Contains(actor))
             hints.Add("Bait away!");
     }
 }
@@ -198,47 +199,7 @@ class LeftKnout(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 class RightKnout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightKnout), new AOEShapeCone(24, 105.Degrees()));
 class Taphephobia(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Taphephobia2), 6);
 
-// TODO: create and use generic 'line stack' component
-class IntoTheLight(BossModule module) : Components.GenericBaitAway(module)
-{
-    private Actor? target;
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID.IntoTheLight)
-        {
-            target = WorldState.Actors.Find(spell.MainTargetID);
-            CurrentBaits.Add(new(Module.PrimaryActor, target!, new AOEShapeRect(50, 4)));
-        }
-        if ((AID)spell.Action.ID == AID.IntoTheLight2)
-            CurrentBaits.Clear();
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (CurrentBaits.Count > 0 && actor != target)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 50, 0, 4));
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (CurrentBaits.Count > 0)
-        {
-            if (!actor.Position.InRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 50, 0, 4))
-                hints.Add("Stack!");
-            else
-                hints.Add("Stack!", false);
-        }
-    }
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        foreach (var bait in CurrentBaits)
-            bait.Shape.Draw(Arena, BaitOrigin(bait), bait.Rotation, ArenaColor.SafeFromAOE);
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc) { }
-}
+class IntoTheLight(BossModule module) : Components.LineStack(module, ActionID.MakeSpell(AID.IntoTheLight), ActionID.MakeSpell(AID.IntoTheLight2), 5.3f);
 
 class CatONineTails(BossModule module) : Components.GenericRotatingAOE(module)
 {
@@ -265,7 +226,6 @@ class FierceBeating(BossModule module) : Components.Exaflare(module, 4)
     private int linesstartedcount2;
     private static readonly AOEShapeCircle circle = new(4);
     private DateTime _activation;
-    private const float RadianConversion = 45 * (MathF.PI / 180);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -274,16 +234,9 @@ class FierceBeating(BossModule module) : Components.Exaflare(module, 4)
         foreach (var (c, t, r) in ImminentAOEs())
             yield return new(Shape, c, r, t, ImminentColor);
         if (Lines.Count > 0 && linesstartedcount1 < 8)
-            yield return new(circle, CalculateCirclePosition(linesstartedcount1, Module.Center, _casters[0]), default, _activation.AddSeconds(linesstartedcount1 * 3.7f));
+            yield return new(circle, Helpers.RotateAroundOrigin(linesstartedcount1 * 45, Module.Center, _casters[0]), default, _activation.AddSeconds(linesstartedcount1 * 3.7f));
         if (Lines.Count > 1 && linesstartedcount2 < 8)
-            yield return new(circle, CalculateCirclePosition(linesstartedcount2, Module.Center, _casters[1]), default, _activation.AddSeconds(linesstartedcount2 * 3.7f));
-    }
-
-    private static WPos CalculateCirclePosition(int count, WPos origin, WPos caster)
-    {
-        float x = MathF.Cos(count * RadianConversion) * (caster.X - origin.X) - MathF.Sin(count * RadianConversion) * (caster.Z - origin.Z);
-        float z = MathF.Sin(count * RadianConversion) * (caster.X - origin.X) + MathF.Cos(count * RadianConversion) * (caster.Z - origin.Z);
-        return new WPos(origin.X + x, origin.Z + z);
+            yield return new(circle, Helpers.RotateAroundOrigin(linesstartedcount2 * 45, Module.Center, _casters[1]), default, _activation.AddSeconds(linesstartedcount2 * 3.7f));
     }
 
     public override void Update()
@@ -328,14 +281,14 @@ class FierceBeating(BossModule module) : Components.Exaflare(module, 4)
         {
             if ((AID)spell.Action.ID is AID.FierceBeating4 or AID.FierceBeating6)
             {
-                int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+                var index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
                 AdvanceLine(Lines[index], caster.Position);
                 if (Lines[index].ExplosionsLeft == 0)
                     Lines.RemoveAt(index);
             }
             if ((AID)spell.Action.ID == AID.FierceBeating5)
             {
-                int index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
+                var index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
                 AdvanceLine(Lines[index], spell.TargetXZ);
                 if (Lines[index].ExplosionsLeft == 0)
                     Lines.RemoveAt(index);
@@ -365,5 +318,17 @@ class D013PhiliaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8301)]
-public class D013Philia(WorldState ws, Actor primary) : BossModule(ws, primary, new(134, -465), new ArenaBoundsCircle(19.5f));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8301)]
+public class D013Philia(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+{
+    private static readonly List<Shape> union = [new Circle(new(134, -465), 19.5f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(134, -445), 20, 1.5f)];
+    private static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        foreach (var s in Enemies(OID.IronChain))
+            Arena.Actor(s, ArenaColor.Vulnerable);
+    }
+}

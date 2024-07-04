@@ -31,6 +31,7 @@ public enum AID : uint
     FakeRightInTheDark = 27991, // Boss->self, 4.0s cast, range 20 180-degree cone
     RightInTheDark1 = 27992, // BossHelper->self, 4.0s cast, range 20 180-degree cone
     MerryGoRound4 = 27985, // Boss->self, no cast, single-target, boss animation
+    MerryGoRound45 = 28093, // Boss->self, no cast, single-target
     applyspreadmarkers = 28045, // Boss->self, no cast, single-target
     FakeQuakeInYourBoots2 = 28090, // Boss->self, 4.0s cast, range 10 circle
     QuakeInYourBoots2 = 28189, // BossHelper->self, 4.0s cast, range 10-20 donut
@@ -42,6 +43,7 @@ public enum AID : uint
     QuakeMeAway2 = 28190, // BossHelper->self, 4.0s cast, range 10 circle
     MerryGoRound5 = 27987, // Boss->self, no cast, single-target, boss animation
     unknown2 = 28145, // Boss->self, no cast, single-target, probably death animation since it was cast after death
+
     PluckAndPrune = 6449, // 3809->self, 3.5s cast, range 6+R circle
     TearyTwirl = 6448, // 3808->self, 3.5s cast, range 6+R circle
     Telega = 9630, // 380C->self, no cast, single-target, bonus add disappear
@@ -115,7 +117,7 @@ class LuckyFaceStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 819, NameID = 10831)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 819, NameID = 10831)]
 public class LuckyFace(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -460), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

@@ -4,7 +4,7 @@ public sealed class ClassDRGUtility(RotationModuleManager manager, Actor player)
 {
     //public enum Track { ElusiveJump = SharedTrack.Count }
 
-    public static ActionID IDLimitBreak3 = ActionID.MakeSpell(DRG.AID.DragonsongDive);
+    public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(DRG.AID.DragonsongDive);
 
     public static RotationModuleDefinition Definition()
     {

@@ -44,6 +44,7 @@ public enum AID : uint
     FlareAOE = 35680, // Helper->self, 8.0s cast, range 5 circle tower
     FlareScald = 35766, // Helper->self, no cast, range 5 circle (tower aftereffect, damage + vuln)
     FlareKill = 35682, // Helper->self, 5.0s cast, range 5 circle (tower aftereffect, kill)
+    FlareMassiveExplosion = 35681, // Helper->self, no cast, range 60 circle (tower aftereffect, wipe)
     ProminenceSpine = 35683, // Helper->self, 5.0s cast, range 60 width 10 rect (tower aftereffect, ray)
 
     VoidBio = 35686, // Boss->self, 5.0s cast, single-target, visual (spawn toxic bubbles)

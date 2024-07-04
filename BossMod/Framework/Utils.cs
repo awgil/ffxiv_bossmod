@@ -29,9 +29,9 @@ public static partial class Utils
     public static bool AlmostEqual(float a, float b, float eps) => MathF.Abs(a - b) <= eps;
     public static bool AlmostEqual(Vector3 a, Vector3 b, float eps) => (a - b).LengthSquared() <= eps * eps;
 
-    public static string Vec3String(Vector3 pos) => $"[{pos.X:f2}, {pos.Y:f2}, {pos.Z:f2}]";
-    public static string QuatString(Quaternion q) => $"[{q.X:f2}, {q.Y:f2}, {q.Z:f2}, {q.W:f2}]";
-    public static string PosRotString(Vector4 posRot) => $"[{posRot.X:f2}, {posRot.Y:f2}, {posRot.Z:f2}, {posRot.W.Radians()}]";
+    public static string Vec3String(Vector3 pos) => $"[{pos.X:f3}, {pos.Y:f3}, {pos.Z:f3}]";
+    public static string QuatString(Quaternion q) => $"[{q.X:f3}, {q.Y:f3}, {q.Z:f3}, {q.W:f3}]";
+    public static string PosRotString(Vector4 posRot) => $"[{posRot.X:f3}, {posRot.Y:f3}, {posRot.Z:f3}, {posRot.W.Radians()}]";
     public static bool CharacterIsOmnidirectional(uint oid) => Service.LuminaRow<Lumina.Excel.GeneratedSheets.BNpcBase>(oid)?.Unknown10 ?? false;
     public static string StatusString(uint statusID) => $"{statusID} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(statusID)?.Name ?? "<not found>"}'";
     public static bool StatusIsRemovable(uint statusID) => Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(statusID)?.CanDispel ?? false;

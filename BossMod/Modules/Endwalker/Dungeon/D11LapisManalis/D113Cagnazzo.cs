@@ -31,6 +31,7 @@ public enum AID : uint
     Hydrovent = 31136, // Helper->location, 5.0s cast, range 6 circle
     SpringTide = 31135, // Helper->players, no cast, range 6 circle
     Tsunami = 31137, // Helper->self, no cast, range 80 width 60 rect
+    TsunamiEnrage = 31138, // Helper->self, no cast, range 80 width 60 rect
     Voidcleaver = 31110, // Boss->self, 4.0s cast, single-target
     Voidcleaver2 = 31111, // Helper->self, no cast, range 100 circle
     VoidMiasma = 32691, // Helper->self, 3.0s cast, range 50 30-degree cone
@@ -65,9 +66,25 @@ class VoidMiasma(BossModule module) : Components.SelfTargetedAOEs(module, Action
 class Lifescleaver(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Lifescleaver2), new AOEShapeCone(50, 15.Degrees()));
 class Tsunami(BossModule module) : Components.RaidwideAfterNPCYell(module, ActionID.MakeSpell(AID.Tsunami), (uint)NPCYell.LimitBreakStart, 4.5f);
 class StygianDeluge(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.StygianDeluge));
-class Antediluvian(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Antediluvian2), new AOEShapeCircle(15));
+class Antediluvian(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Antediluvian2), new AOEShapeCircle(15))
+{
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastFinished(caster, spell);
+        if (NumCasts == 6 && (AID)spell.Action.ID == AID.Antediluvian2)
+            NumCasts = 0;
+    }
+}
+
 class BodySlam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BodySlam3), new AOEShapeCircle(8));
-class BodySlamKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BodySlam2), 10);
+class BodySlamKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BodySlam2), 10)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Sources(slot, actor).Any() && Module.FindComponent<Antediluvian>()!.NumCasts >= 4)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 10), Sources(slot, actor).FirstOrDefault().Activation);
+    }
+}
 
 class HydraulicRam(BossModule module) : Components.GenericAOEs(module)
 {
@@ -78,7 +95,7 @@ class HydraulicRam(BossModule module) : Components.GenericAOEs(module)
     {
         if (_casters.Count > 0)
             yield return new(_casters[0].shape, _casters[0].source, _casters[0].direction, _activation, ArenaColor.Danger);
-        for (int i = 1; i < _casters.Count; ++i)
+        for (var i = 1; i < _casters.Count; ++i)
             yield return new(_casters[i].shape, _casters[i].source, _casters[i].direction, _activation);
     }
 
@@ -89,7 +106,7 @@ class HydraulicRam(BossModule module) : Components.GenericAOEs(module)
             var dir = spell.LocXZ - caster.Position;
             _casters.Add((caster.Position, new AOEShapeRect(dir.Length(), 4), Angle.FromDirection(dir)));
         }
-        if ((AID)spell.Action.ID == AID.HydraulicRam)
+        else if ((AID)spell.Action.ID == AID.HydraulicRam)
             _activation = spell.NPCFinishAt.AddSeconds(1.5f); //since these are charges of different length with 0s cast time, the activation times are different for each and there are different patterns, so we just pretend that they all start after the telegraphs end
     }
 
@@ -109,9 +126,9 @@ class Hydrobomb(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count > 1)
-            for (int i = 0; i < 2; ++i)
+            for (var i = 0; i < 2; ++i)
                 yield return new(circle, _casters[i], default, _activation.AddSeconds(6 - _casters.Count / 2), ArenaColor.Danger);
-        for (int i = 2; i < _casters.Count; ++i)
+        for (var i = 2; i < _casters.Count; ++i)
             yield return new(circle, _casters[i], default, _activation.AddSeconds(MathF.Ceiling(i / 2) + 6 - _casters.Count / 2));
     }
 
@@ -119,7 +136,7 @@ class Hydrobomb(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.HydrobombTelegraph)
             _casters.Add(spell.LocXZ);
-        if ((AID)spell.Action.ID == AID.HydraulicRam)
+        else if ((AID)spell.Action.ID == AID.HydraulicRam)
             _activation = spell.NPCFinishAt.AddSeconds(2.2f);
     }
 
@@ -162,11 +179,21 @@ class Stackmarkers(BossModule module) : Components.UniformStackSpread(module, 6,
     }
 }
 
+class StayInBounds(BossModule module) : BossComponent(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Module.InBounds(actor.Position))
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 3));
+    }
+}
+
 class D113CagnazzoStates : StateMachineBuilder
 {
     public D113CagnazzoStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<StayInBounds>()
             .ActivateOnEnter<Voidcleaver>()
             .ActivateOnEnter<Lifescleaver>()
             .ActivateOnEnter<VoidMiasma>()
@@ -186,7 +213,7 @@ class D113CagnazzoStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 11995)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 11995)]
 public class D113Cagnazzo(WorldState ws, Actor primary) : BossModule(ws, primary, new(-250, 130), new ArenaBoundsSquare(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
