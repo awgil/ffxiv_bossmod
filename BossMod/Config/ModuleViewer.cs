@@ -18,6 +18,7 @@ public sealed class ModuleViewer : IDisposable
     private record struct ModuleGroup(ModuleGroupInfo Info, List<ModuleInfo> Modules);
 
     private readonly PlanDatabase? _planDB;
+    private readonly WorldState _ws; // TODO: reconsider...
 
     private BitMask _filterExpansions;
     private BitMask _filterCategories;
@@ -29,9 +30,10 @@ public sealed class ModuleViewer : IDisposable
     private readonly List<ModuleGroup>[,] _groups;
     private readonly Vector2 _iconSize = new(30, 30);
 
-    public ModuleViewer(PlanDatabase? planDB)
+    public ModuleViewer(PlanDatabase? planDB, WorldState ws)
     {
         _planDB = planDB;
+        _ws = ws;
 
         uint defaultIcon = 61762;
         _expansions = Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon)).ToArray();
@@ -308,9 +310,10 @@ public sealed class ModuleViewer : IDisposable
 
     private void ModulePlansPopup(ModuleRegistry.Info info)
     {
-        if (_planDB == null || !_planDB.Plans.TryGetValue(info.ModuleType, out var mplans))
+        if (_planDB == null)
             return;
 
+        var mplans = _planDB.Plans.GetOrAdd(info.ModuleType);
         foreach (var (cls, plans) in mplans)
         {
             foreach (var plan in plans.Plans)
@@ -322,6 +325,16 @@ public sealed class ModuleViewer : IDisposable
             }
         }
 
-        // TODO: new plan ui
+        var player = _ws.Party.Player();
+        if (player != null)
+        {
+            if (ImGui.Selectable($"New plan for {player.Class}..."))
+            {
+                var plans = mplans.GetOrAdd(player.Class);
+                var plan = new Plan($"New {plans.Plans.Count + 1}", info.ModuleType) { Guid = Guid.NewGuid().ToString(), Class = player.Class, Level = info.PlanLevel };
+                _planDB.ModifyPlan(null, plan);
+                UIPlanDatabaseEditor.StartPlanEditor(_planDB, plan);
+            }
+        }
     }
 }
