@@ -52,9 +52,9 @@ public record struct StrategyValue()
     public string Comment = ""; // user-editable comment string
 }
 
-public record struct StrategyValues(List<StrategyConfig> Configs)
+public readonly record struct StrategyValues(List<StrategyConfig> Configs)
 {
-    public StrategyValue[] Values = Utils.MakeArray(Configs.Count, new StrategyValue());
+    public readonly StrategyValue[] Values = Utils.MakeArray(Configs.Count, new StrategyValue());
 
     // unfortunately, c# doesn't support partial type inference, and forcing user to spell out track enum twice is obnoxious, so here's the hopefully cheap solution
     public readonly ref struct OptionRef(ref StrategyConfig config, ref StrategyValue value)

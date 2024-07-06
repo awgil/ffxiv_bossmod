@@ -519,7 +519,7 @@ public sealed class LegacyMNK : LegacyModule
             var fop = BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfPower);
             var ex = BozjaActionID.GetNormal(BozjaHolsterID.LostExcellence);
 
-            var hsacInBag = _state.BozjaHolster[(int)BozjaHolsterID.BannerHonoredSacrifice] > 0;
+            var hsacInBag = _state.Module.World.Client.BozjaHolster[(int)BozjaHolsterID.BannerHonoredSacrifice] > 0;
             var hsacSlot = _state.FindDutyActionSlot(hsac, fop);
             var exSlot = _state.FindDutyActionSlot(ex, fop);
 
