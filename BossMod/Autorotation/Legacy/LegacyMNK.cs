@@ -19,7 +19,7 @@ public sealed class LegacyMNK : LegacyModule
     public static RotationModuleDefinition Definition()
     {
         // TODO: think about target overrides where they make sense
-        var res = new RotationModuleDefinition("Legacy MNK", "Old pre-refactoring module", "xan", RotationModuleQuality.WIP, BitMask.Build((int)Class.MNK), 90);
+        var res = new RotationModuleDefinition("Legacy MNK", "Old pre-refactoring module", "xan", RotationModuleQuality.WIP, BitMask.Build((int)Class.MNK), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 210)
             .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target actions")
