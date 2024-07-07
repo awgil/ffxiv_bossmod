@@ -137,19 +137,19 @@ public sealed class RotationModuleManager : IDisposable
 
         CombatStart = actor.InCombat ? WorldState.CurrentTime : default; // keep track of combat time in case rotation modules want to do something special in openers
 
-        if (!actor.InCombat)
+        if (!actor.InCombat && Config.ClearPresetOnCombatEnd)
         {
             // player exits combat => clear manual overrides
             Service.Log($"[RMM] Player exits combat => clear preset '{Preset?.Name ?? "<n/a>"}'");
             Preset = null;
         }
-        else if (WorldState.Client.CountdownRemaining > Config.EarlyPullThreshold)
+        else if (actor.InCombat && WorldState.Client.CountdownRemaining > Config.EarlyPullThreshold)
         {
             // player enters combat while countdown is in progress => force disable
             Service.Log($"[RMM] Player ninja pulled => force-disabling from '{Preset?.Name ?? "<n/a>"}'");
             Preset = ForceDisable;
         }
-        // else: player enters combat when countdown is either not active or around zero, proceed normally - if override is queued, let it run, otherwise let plan run
+        // if player enters combat when countdown is either not active or around zero, proceed normally - if override is queued, let it run, otherwise let plan run
     }
 
     private void OnDeadChanged(Actor actor)

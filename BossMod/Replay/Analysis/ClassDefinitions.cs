@@ -486,7 +486,8 @@ class ClassDefinitions
             }
         }
 
-        public string Comment(ActionData action, bool allowClasses) => $"{LevelString(action, allowClasses)}, {CastTimeString(action)}{CooldownString(action)}{ChargesString(action)}, range {ActionDefinitions.Instance.ActionRange(action.ID, action.IsPhysRanged)}, {DescribeShape(action.Row)}, targets={ActionDefinitions.Instance.ActionAllowedTargets(action.ID).ToString().Replace(", ", "/", StringComparison.InvariantCulture)}{AnimLockString(action)}";
+        public string Comment(ActionData action, bool allowClasses)
+            => $"{LevelString(action, allowClasses)}, {CastTimeString(action)}{CooldownString(action)}{ChargesString(action)}, range {ActionDefinitions.Instance.ActionRange(action.ID, action.IsPhysRanged)}, {DescribeShape(action.Row)}, targets={ActionDefinitions.Instance.ActionAllowedTargets(action.ID).ToString().Replace(", ", "/", StringComparison.InvariantCulture)}{AnimLockString(action)}";
 
         private string LevelString(ActionData action, bool allowClasses)
         {

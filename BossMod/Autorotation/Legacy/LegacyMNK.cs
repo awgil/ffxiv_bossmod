@@ -19,7 +19,7 @@ public sealed class LegacyMNK : LegacyModule
     public static RotationModuleDefinition Definition()
     {
         // TODO: think about target overrides where they make sense
-        var res = new RotationModuleDefinition("Legacy MNK", "Old pre-refactoring module", "xan", RotationModuleQuality.WIP, BitMask.Build((int)Class.MNK), 90);
+        var res = new RotationModuleDefinition("Legacy MNK", "Old pre-refactoring module", "xan", RotationModuleQuality.WIP, BitMask.Build((int)Class.MNK), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 210)
             .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target actions")
@@ -519,7 +519,7 @@ public sealed class LegacyMNK : LegacyModule
             var fop = BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfPower);
             var ex = BozjaActionID.GetNormal(BozjaHolsterID.LostExcellence);
 
-            var hsacInBag = _state.BozjaHolster[(int)BozjaHolsterID.BannerHonoredSacrifice] > 0;
+            var hsacInBag = _state.Module.World.Client.BozjaHolster[(int)BozjaHolsterID.BannerHonoredSacrifice] > 0;
             var hsacSlot = _state.FindDutyActionSlot(hsac, fop);
             var exSlot = _state.FindDutyActionSlot(ex, fop);
 

@@ -26,10 +26,6 @@ public abstract class CommonState(RotationModule module)
     public bool NextPositionalImminent; // true if next positional will happen on next gcd
     public bool NextPositionalCorrect; // true if correctly positioned for next positional
 
-    // these simply point to client state
-    public ReadOnlyCollection<Cooldown> Cooldowns => Array.AsReadOnly(Module.World.Client.Cooldowns);
-    public ReadOnlyCollection<ActionID> DutyActions => Array.AsReadOnly(Module.World.Client.DutyActions);
-    public ReadOnlyCollection<byte> BozjaHolster => Array.AsReadOnly(Module.World.Client.BozjaHolster);
     // both 2.5 max (unless slowed), reduced by gear attributes and certain status effects
     public float AttackGCDTime;
     public float SpellGCDTime;
@@ -40,14 +36,14 @@ public abstract class CommonState(RotationModule module)
     public int FindDutyActionSlot(ActionID action, ActionID other)
     {
         var slot = FindDutyActionSlot(action);
-        return slot >= 0 && DutyActions[1 - slot] == other ? slot : -1;
+        return slot >= 0 && Module.World.Client.DutyActions[1 - slot] == other ? slot : -1;
     }
 
-    public float GCD => Cooldowns[ActionDefinitions.GCDGroup].Remaining; // 2.5 max (decreased by SkS), 0 if not on gcd
-    public float PotionCD => Cooldowns[ActionDefinitions.PotionCDGroup].Remaining; // variable max
-    public float CD<AID>(AID aid) where AID : Enum => Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
+    public float GCD => Module.World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining; // 2.5 max (decreased by SkS), 0 if not on gcd
+    public float PotionCD => Module.World.Client.Cooldowns[ActionDefinitions.PotionCDGroup].Remaining; // variable max
+    public float CD<AID>(AID aid) where AID : Enum => Module.World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
 
-    public float DutyActionCD(int slot) => slot is >= 0 and < 2 ? Cooldowns[ActionDefinitions.DutyAction0CDGroup + slot].Remaining : float.MaxValue;
+    public float DutyActionCD(int slot) => slot is >= 0 and < 2 ? Module.World.Client.Cooldowns[ActionDefinitions.DutyAction0CDGroup + slot].Remaining : float.MaxValue;
     public float DutyActionCD(ActionID action) => DutyActionCD(FindDutyActionSlot(action));
 
     // check whether weaving typical ogcd off cooldown would end its animation lock by the specified deadline

@@ -29,7 +29,7 @@ public sealed class ConfigUI : IDisposable
     {
         _root = config;
         _ws = ws;
-        _mv = new(rotationDB?.Plans);
+        _mv = new(rotationDB?.Plans, ws);
         _presets = rotationDB != null ? new(rotationDB.Presets) : null;
         _tabs.Add("Configs", () => DrawNodes(_roots));
         _tabs.Add("Modules", () => _mv.Draw(_tree, _ws));

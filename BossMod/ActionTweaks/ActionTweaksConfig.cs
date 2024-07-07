@@ -13,7 +13,7 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertyDisplay("Prevent movement while casting")]
     public bool PreventMovingWhileCasting = false;
 
-    [PropertyDisplay("Restore rotation after action use")]
+    [PropertyDisplay("Restore character orientation after action use (no effect if 'auto face target' in game settings is disabled)")]
     public bool RestoreRotation = false;
 
     [PropertyDisplay("Use actions on mouseover target, if possible")]
