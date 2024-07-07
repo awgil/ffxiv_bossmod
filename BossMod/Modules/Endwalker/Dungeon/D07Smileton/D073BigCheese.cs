@@ -72,5 +72,5 @@ class D073BigCheeseStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 794, NameID = 10336)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 794, NameID = 10336)]
 public class D073BigCheese(WorldState ws, Actor primary) : BossModule(ws, primary, new(-22, -44), new ArenaBoundsRect(14.5f, 10));

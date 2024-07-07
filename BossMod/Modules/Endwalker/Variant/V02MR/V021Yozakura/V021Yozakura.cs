@@ -112,5 +112,5 @@ class Witherwind(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _spirits.Where(actor => !actor.IsDead).Select(b => new AOEInstance(_shape, b.Position));
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, Category = BossModuleInfo.Category.Criterion, GroupID = 945, NameID = 12325)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, Category = BossModuleInfo.Category.Criterion, GroupID = 945, NameID = 12325)]
 public class V021Yozakura(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position.X < -700 ? new(-775, 16) : primary.Position.X > 700 ? new(737, 220) : new(47, 93), new ArenaBoundsSquare(20));

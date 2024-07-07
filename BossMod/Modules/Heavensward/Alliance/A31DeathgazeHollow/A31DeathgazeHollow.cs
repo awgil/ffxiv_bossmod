@@ -62,7 +62,7 @@ class Unknown3(BossModule module) : Components.KnockbackFromCastTarget(module, A
 class VoidDeathKB2(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.VoidDeathKB2), 15, kind: Kind.TowardsOrigin, stopAtWall: true);
 class VoidDeathKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.VoidDeathKB), 40, kind: Kind.TowardsOrigin, stopAtWall: true);
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 220, NameID = 5507)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 220, NameID = 5507)]
 public class A31DeathgazeHollow(WorldState ws, Actor primary) : BossModule(ws, primary, new(300, 410), new ArenaBoundsRect(30, 15))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

@@ -77,7 +77,7 @@ public enum SID : uint
 public enum IconID : uint
 {
     Icon144 = 144, // player
-    Icon55 = 55, // player
+    DoritoStack = 55, // player
     Icon87 = 87, // player
     Icon5 = 5, // player
 }

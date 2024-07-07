@@ -67,5 +67,5 @@ class D051LiviaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 786, NameID = 10290)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 786, NameID = 10290)]
 public class D051Livia(WorldState ws, Actor primary) : BossModule(ws, primary, new(-6, 471), new ArenaBoundsCircle(20));

@@ -9,7 +9,7 @@ class BlackLung(BossModule module) : Components.RaidwideCast(module, ActionID.Ma
 class GrandCorruption(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.GrandCorruption));
 class FlailingTentacles2Knockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.FlailingTentacles2), 30, stopAtWall: true);
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 120, NameID = 4626)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 120, NameID = 4626)]
 public class A13Cuchulainn(WorldState ws, Actor primary) : BossModule(ws, primary, new(288, 138.5f), new ArenaBoundsCircle(29.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

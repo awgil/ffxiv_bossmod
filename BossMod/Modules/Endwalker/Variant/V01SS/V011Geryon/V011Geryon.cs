@@ -45,7 +45,7 @@ class Shockwave(BossModule module) : Components.Knockback(module)
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<RunawaySludge>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.InBounds(pos);
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, Category = BossModuleInfo.Category.Criterion, GroupID = 868, NameID = 11442)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, Category = BossModuleInfo.Category.Criterion, GroupID = 868, NameID = 11442)]
 public class V011Geryon(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position.X < -150 ? new(-213, 101) : primary.Position.X > 100 ? new(-213, 101) : new(0, 0), new ArenaBoundsSquare(19.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

@@ -15,5 +15,5 @@ class HeavenswardLeap(BossModule module) : Components.CastCounter(module, Action
 class PureOfSoul(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.PureOfSoul));
 class AbsoluteConviction(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.AbsoluteConviction));
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 963, NameID = 3632, PlanLevel = 90)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.RemovedUnreal, GroupID = 963, NameID = 3632, PlanLevel = 90)]
 public class Un5Thordan(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(21));

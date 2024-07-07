@@ -11,7 +11,7 @@ class Haircut2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID
 class SplitEnd1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SplitEnd1), new AOEShapeCone(25.5f, 22.5f.Degrees()));
 class SplitEnd2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SplitEnd2), new AOEShapeCone(25.5f, 22.5f.Degrees()));
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 168, NameID = 4897)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 168, NameID = 4897)]
 public class A25Calofisteri(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -35), new ArenaBoundsCircle(30))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

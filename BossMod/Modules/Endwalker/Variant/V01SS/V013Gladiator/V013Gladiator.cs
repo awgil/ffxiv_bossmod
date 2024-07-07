@@ -233,5 +233,5 @@ class SilverFlame2(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", PrimaryActorOID = (uint)OID.Boss, GroupType = BossModuleInfo.GroupType.CFC, Category = BossModuleInfo.Category.Criterion, GroupID = 868, NameID = 11387)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", PrimaryActorOID = (uint)OID.Boss, GroupType = BossModuleInfo.GroupType.CFC, Category = BossModuleInfo.Category.Criterion, GroupID = 868, NameID = 11387)]
 public class V013Gladiator(WorldState ws, Actor primary) : BossModule(ws, primary, new(-35, -271), new ArenaBoundsSquare(20));

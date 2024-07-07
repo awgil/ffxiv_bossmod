@@ -29,7 +29,7 @@ class AtmosAOE1(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 class AtmosAOE2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AtmosAOE2), new AOEShapeCircle(20));
 class AtmosDonut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AtmosDonut), new AOEShapeDonut(6, 20));
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 220, NameID = 5509)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 220, NameID = 5509)]
 public class A32FerdiadHollow(WorldState ws, Actor primary) : BossModule(ws, primary, new(-350, 225), new ArenaBoundsCircle(30))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

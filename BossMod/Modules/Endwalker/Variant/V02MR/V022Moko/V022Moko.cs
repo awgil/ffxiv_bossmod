@@ -104,7 +104,7 @@ class SpiritMobs(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _spirits.Where(actor => !actor.IsDead).Select(b => new AOEInstance(_shape, b.Position));
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "CombatReborn Team", PrimaryActorOID = (uint)OID.Boss, GroupType = BossModuleInfo.GroupType.CFC, Category = BossModuleInfo.Category.Criterion, GroupID = 945, NameID = 12357)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team", PrimaryActorOID = (uint)OID.Boss, GroupType = BossModuleInfo.GroupType.CFC, Category = BossModuleInfo.Category.Criterion, GroupID = 945, NameID = 12357)]
 public class V022Moko(WorldState ws, Actor primary) : BossModule(ws, primary, new(-700, 540), new ArenaBoundsSquare(20))
 {
     private Actor? _bossPath2;

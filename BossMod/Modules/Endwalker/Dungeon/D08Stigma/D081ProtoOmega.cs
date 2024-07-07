@@ -64,5 +64,5 @@ class D081ProtoOmegaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 784, NameID = 10401)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 784, NameID = 10401)]
 public class D081ProtoOmega(WorldState ws, Actor primary) : BossModule(ws, primary, new(-144, -136), new ArenaBoundsSquare(20));

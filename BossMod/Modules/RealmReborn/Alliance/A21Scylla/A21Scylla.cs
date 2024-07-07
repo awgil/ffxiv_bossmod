@@ -5,7 +5,7 @@ class SearingChain(BossModule module) : Components.SelfTargetedAOEs(module, Acti
 class InfiniteAnguish(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.InfiniteAnguish), new AOEShapeDonut(6, 12));
 class AncientFlare(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AncientFlare));
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 102, NameID = 2809)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 102, NameID = 2809)]
 public class A21Scylla(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -192), new ArenaBoundsCircle(35))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

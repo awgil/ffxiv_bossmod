@@ -64,5 +64,5 @@ public enum IconID : uint
 {
     Icon198 = 198, // player
     Spreadmarker = 139, // player
-    Icon55 = 55, // player
+    DoritoStack = 55, // player
 }

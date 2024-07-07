@@ -67,8 +67,6 @@ public class D101EvilDreamers(WorldState ws, Actor primary) : BossModule(ws, pri
 
     protected override void UpdateModule()
     {
-        // TODO: this is an ugly hack, think how multi-actor fights can be implemented without it...
-        // the problem is that on wipe, any actor can be deleted and recreated in the same frame
         _evilDreamer2 ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.EvilDreamer2).FirstOrDefault() : null;
         _evilDreamer3 ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.EvilDreamer3).FirstOrDefault() : null;
         _evilDreamer4 ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.EvilDreamer4).FirstOrDefault() : null;

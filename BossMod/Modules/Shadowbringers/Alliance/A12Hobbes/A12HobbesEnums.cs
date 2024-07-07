@@ -94,9 +94,9 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    Icon168 = 168, // Hobbes3
-    Icon167 = 167, // Hobbes3
-    Icon196 = 196, // player
+    RotateCCW = 168, // Hobbes3
+    RotateCW = 167, // Hobbes3
+    Stackmarker = 196, // player
 }
 
 public enum TetherID : uint

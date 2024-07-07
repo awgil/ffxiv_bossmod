@@ -34,7 +34,7 @@ class MarrowDrain(BossModule module) : Components.SelfTargetedAOEs(module, Actio
 class MarrowDrain2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MarrowDrain2), new AOEShapeCone(10.44f, 60.Degrees()));
 class BigHug(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BigHug), new AOEShapeRect(6, 1.5f));
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 220, NameID = 5515)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 220, NameID = 5515)]
 public class A34Scathach(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -50), new ArenaBoundsCircle(30))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

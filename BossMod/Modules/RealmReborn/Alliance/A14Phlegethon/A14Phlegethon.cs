@@ -8,7 +8,7 @@ class MoonfallSlash(BossModule module) : Components.SelfTargetedAOEs(module, Act
 class VacuumSlash2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VacuumSlash2), new AOEShapeCone(80, 22.5f.Degrees()));
 class AncientFlare1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AncientFlare1), new AOEShapeCircle(35));
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 92, NameID = 732)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 92, NameID = 732)]
 public class A14Phlegethon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-110, 180), new ArenaBoundsCircle(35))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

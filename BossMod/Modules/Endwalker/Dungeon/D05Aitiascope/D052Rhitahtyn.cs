@@ -63,5 +63,5 @@ class D052RhitahtynStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 786, NameID = 10292)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 786, NameID = 10292)]
 public class D052Rhitahtyn(WorldState ws, Actor primary) : BossModule(ws, primary, new(11, 144), new ArenaBoundsSquare(20));

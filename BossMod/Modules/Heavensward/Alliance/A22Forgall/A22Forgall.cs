@@ -8,7 +8,7 @@ class MortalRay(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 class Mow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mow), new AOEShapeCone(13.8f, 60.Degrees()));
 class TailDrive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailDrive), new AOEShapeCone(30, 45.Degrees()));
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 168, NameID = 4878)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 168, NameID = 4878)]
 public class A22Forgall(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -416), new ArenaBoundsCircle(30))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

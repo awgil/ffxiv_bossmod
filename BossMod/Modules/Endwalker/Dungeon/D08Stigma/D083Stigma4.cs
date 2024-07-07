@@ -84,5 +84,5 @@ class D083Stigma4States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 784, NameID = 10404)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 784, NameID = 10404)]
 public class D083Stigma4(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 2.5f), new ArenaBoundsSquare(20));

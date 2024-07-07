@@ -65,5 +65,5 @@ class D071FaceStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 794, NameID = 10331)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 794, NameID = 10331)]
 public class D071Face(WorldState ws, Actor primary) : BossModule(ws, primary, new(-45, -20), new ArenaBoundsSquare(20));

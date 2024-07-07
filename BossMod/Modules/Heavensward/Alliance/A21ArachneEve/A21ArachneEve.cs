@@ -11,7 +11,7 @@ class FrondAffeared(BossModule module) : Components.CastGaze(module, ActionID.Ma
 class TheWidowsEmbrace(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TheWidowsEmbrace), 18, kind: Kind.TowardsOrigin, stopAtWall: true);
 class TheWidowsKiss(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TheWidowsKiss), 4, kind: Kind.TowardsOrigin, stopAtWall: true);
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 168, NameID = 4871)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 168, NameID = 4871)]
 public class A21ArachneEve(WorldState ws, Actor primary) : BossModule(ws, primary, new(20, -60), new ArenaBoundsCircle(30))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

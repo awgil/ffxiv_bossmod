@@ -6,7 +6,7 @@ class RuinousOmen1(BossModule module) : Components.RaidwideCast(module, ActionID
 class RuinousOmen2(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.RuinousOmen2));
 class UltimateTerror(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.UltimateTerror), new AOEShapeDonut(5, 18));
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 220, NameID = 5526)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 220, NameID = 5526)]
 public class A35Diabolos(WorldState ws, Actor primary) : BossModule(ws, primary, new(-350, -445), new ArenaBoundsCircle(35))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

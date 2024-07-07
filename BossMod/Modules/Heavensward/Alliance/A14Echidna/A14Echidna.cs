@@ -13,7 +13,7 @@ class Deathstrike(BossModule module) : Components.SelfTargetedAOEs(module, Actio
 class FlameWreath(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FlameWreath), 18);
 class SerpentineStrike(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SerpentineStrike), new AOEShapeCircle(20));
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 120, NameID = 4631)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 120, NameID = 4631)]
 public class A14Echidna(WorldState ws, Actor primary) : BossModule(ws, primary, new(288, -126), new ArenaBoundsCircle(29.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

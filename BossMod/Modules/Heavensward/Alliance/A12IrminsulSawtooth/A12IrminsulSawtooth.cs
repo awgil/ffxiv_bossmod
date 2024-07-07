@@ -14,7 +14,7 @@ class ShockwaveStomp(BossModule module) : Components.CastLineOfSightAOE(module, 
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.Irminsul).Where(a => !a.IsDead);
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", PrimaryActorOID = (uint)OID.Irminsul, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 120, NameID = 4623)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", PrimaryActorOID = (uint)OID.Irminsul, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 120, NameID = 4623)]
 public class A12IrminsulSawtooth(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 130), arena)
 {
     private static readonly ArenaBoundsComplex arena = new([new Donut(new(0, 130), 8, 35)]);

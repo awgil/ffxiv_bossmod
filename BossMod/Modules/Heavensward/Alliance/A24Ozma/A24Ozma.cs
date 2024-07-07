@@ -26,7 +26,7 @@ class AccelerationBomb(BossModule module) : Components.StayMove(module)
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "CombatReborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 168, NameID = 4896)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 168, NameID = 4896)]
 public class A24Ozma(WorldState ws, Actor primary) : BossModule(ws, primary, new(280, -410), arena)
 {
     private static readonly ArenaBoundsComplex arena = new([new Donut(new(280, -410), 18, 25), new Rectangle(new(280, -386), 5, 12), new Rectangle(new(260, -422), 5, 12, 120.Degrees()),
