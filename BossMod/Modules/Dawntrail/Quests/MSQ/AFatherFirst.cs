@@ -106,7 +106,7 @@ class BurningSun(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_aoes.Count > 0)
-            for (var i = 1; i < Math.Clamp(_aoes.Count, 0, 9); ++i)
+            for (var i = 0; i < Math.Clamp(_aoes.Count, 0, 9); ++i)
                 yield return new(_aoes[i].Shape, _aoes[i].Origin, default, _aoes[i].Activation, ArenaColor.Danger);
         if (_aoes.Count > 9)
             for (var i = 9; i < _aoes.Count; ++i)
