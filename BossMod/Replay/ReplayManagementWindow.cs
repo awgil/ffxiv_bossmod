@@ -14,6 +14,7 @@ public class ReplayManagementWindow : UIWindow
     private readonly EventSubscriptions _subscriptions;
     private ReplayRecorder? _recorder;
     private string _message = "";
+    private bool _autoRecording;
 
     private const string _windowID = "###Replay recorder";
 
@@ -133,15 +134,20 @@ public class ReplayManagementWindow : UIWindow
 
     private bool UpdateAutoRecord(uint cfcId)
     {
+        if (!_config.AutoRecord)
+            return false; // don't care
+
         if (!IsRecording() && _config.AutoRecord && cfcId != 0)
         {
             StartRecording();
+            _autoRecording = true;
             return true;
         }
 
-        if (IsRecording() && _config.AutoStop && cfcId == 0)
+        if (IsRecording() && _autoRecording && cfcId == 0)
         {
             StopRecording();
+            _autoRecording = false;
             return true;
         }
 

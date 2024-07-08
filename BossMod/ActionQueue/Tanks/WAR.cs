@@ -5,48 +5,51 @@ public enum AID : uint
     None = 0,
     Sprint = ClassShared.AID.Sprint,
 
-    LandWaker = 4240, // LB3, instant, range 0, AOE 50 circle, targets=self, animLock=3.860
-    HeavySwing = 31, // L1, instant, GCD, range 3, single-target, targets=hostile
-    Maim = 37, // L4, instant, GCD, range 3, single-target, targets=hostile
-    Berserk = 38, // L6, instant, 60.0s CD (group 10), range 0, single-target, targets=self
-    Overpower = 41, // L10, instant, GCD, range 0, AOE 5 circle, targets=self
-    Defiance = 48, // L10, instant, 2.0s CD (group 2), range 0, single-target, targets=self
-    ReleaseDefiance = 32066, // L10, instant, 1.0s CD (group 2), range 0, single-target, targets=self
-    Tomahawk = 46, // L15, instant, GCD, range 20, single-target, targets=hostile
-    StormPath = 42, // L26, instant, GCD, range 3, single-target, targets=hostile
-    ThrillOfBattle = 40, // L30, instant, 90.0s CD (group 16), range 0, single-target, targets=self
-    InnerBeast = 49, // L35, instant, GCD, range 3, single-target, targets=hostile
-    Vengeance = 44, // L38, instant, 120.0s CD (group 21), range 0, single-target, targets=self
-    MythrilTempest = 16462, // L40, instant, GCD, range 0, AOE 5 circle, targets=self
-    Holmgang = 43, // L42, instant, 240.0s CD (group 23), range 6, single-target, targets=self/hostile
-    SteelCyclone = 51, // L45, instant, GCD, range 0, AOE 5 circle, targets=self
-    StormEye = 45, // L50, instant, GCD, range 3, single-target, targets=hostile
-    Infuriate = 52, // L50, instant, 60.0s CD (group 19/70) (2 charges), range 0, single-target, targets=self
-    FellCleave = 3549, // L54, instant, GCD, range 3, single-target, targets=hostile
-    RawIntuition = 3551, // L56, instant, 25.0s CD (group 3), range 0, single-target, targets=self
-    Equilibrium = 3552, // L58, instant, 60.0s CD (group 14), range 0, single-target, targets=self
-    Decimate = 3550, // L60, instant, GCD, range 0, AOE 5 circle, targets=self
-    Onslaught = 7386, // L62, instant, 30.0s CD (group 9/71) (2-3 charges), range 20, single-target, targets=hostile
-    Upheaval = 7387, // L64, instant, 30.0s CD (group 5), range 3, single-target, targets=hostile
-    ShakeItOff = 7388, // L68, instant, 90.0s CD (group 17), range 0, AOE 30 circle, targets=self
-    InnerRelease = 7389, // L70, instant, 60.0s CD (group 11), range 0, single-target, targets=self
-    ChaoticCyclone = 16463, // L72, instant, GCD, range 0, AOE 5 circle, targets=self
-    NascentFlash = 16464, // L76, instant, 25.0s CD (group 3), range 30, single-target, targets=party
-    InnerChaos = 16465, // L80, instant, GCD, range 3, single-target, targets=hostile
-    Bloodwhetting = 25751, // L82, instant, 25.0s CD (group 3), range 0, single-target, targets=self
-    Orogeny = 25752, // L86, instant, 30.0s CD (group 5), range 0, AOE 5 circle, targets=self
-    PrimalRend = 25753, // L90, instant, GCD, range 20, AOE 5 circle, targets=hostile, animLock=1.150
+    LandWaker = 4240, // LB3, instant, range 0, AOE 50 circle, targets=Self, animLock=3.860
+    HeavySwing = 31, // L1, instant, GCD, range 3, single-target, targets=Hostile
+    Maim = 37, // L4, instant, GCD, range 3, single-target, targets=Hostile
+    Berserk = 38, // L6, instant, 60.0s CD (group 10), range 0, single-target, targets=Self
+    Overpower = 41, // L10, instant, GCD, range 0, AOE 5 circle, targets=Self
+    Defiance = 48, // L10, instant, 2.0s CD (group 1), range 0, single-target, targets=Self
+    ReleaseDefiance = 32066, // L10, instant, 1.0s CD (group 1), range 0, single-target, targets=Self
+    Tomahawk = 46, // L15, instant, GCD, range 20, single-target, targets=Hostile
+    StormPath = 42, // L26, instant, GCD, range 3, single-target, targets=Hostile
+    ThrillOfBattle = 40, // L30, instant, 90.0s CD (group 15), range 0, single-target, targets=Self
+    InnerBeast = 49, // L35, instant, GCD, range 3, single-target, targets=Hostile
+    Vengeance = 44, // L38, instant, 120.0s CD (group 21), range 0, single-target, targets=Self
+    MythrilTempest = 16462, // L40, instant, GCD, range 0, AOE 5 circle, targets=Self
+    Holmgang = 43, // L42, instant, 240.0s CD (group 24), range 6, single-target, targets=Self/Hostile
+    SteelCyclone = 51, // L45, instant, GCD, range 0, AOE 5 circle, targets=Self
+    StormEye = 45, // L50, instant, GCD, range 3, single-target, targets=Hostile
+    Infuriate = 52, // L50, instant, 60.0s CD (group 19/70) (2 charges), range 0, single-target, targets=Self
+    FellCleave = 3549, // L54, instant, GCD, range 3, single-target, targets=Hostile
+    RawIntuition = 3551, // L56, instant, 25.0s CD (group 6), range 0, single-target, targets=Self
+    Equilibrium = 3552, // L58, instant, 60.0s CD (group 13), range 0, single-target, targets=Self
+    Decimate = 3550, // L60, instant, GCD, range 0, AOE 5 circle, targets=Self
+    Onslaught = 7386, // L62, instant, 30.0s CD (group 7/71) (2-3 charges), range 20, single-target, targets=Hostile
+    Upheaval = 7387, // L64, instant, 30.0s CD (group 8), range 3, single-target, targets=Hostile
+    ShakeItOff = 7388, // L68, instant, 90.0s CD (group 14), range 0, AOE 30 circle, targets=Self
+    InnerRelease = 7389, // L70, instant, 60.0s CD (group 11), range 0, single-target, targets=Self
+    ChaoticCyclone = 16463, // L72, instant, GCD, range 0, AOE 5 circle, targets=Self
+    NascentFlash = 16464, // L76, instant, 25.0s CD (group 6), range 30, single-target, targets=Party
+    InnerChaos = 16465, // L80, instant, GCD, range 3, single-target, targets=Hostile
+    Bloodwhetting = 25751, // L82, instant, 25.0s CD (group 6), range 0, single-target, targets=Self
+    Orogeny = 25752, // L86, instant, 30.0s CD (group 8), range 0, AOE 5 circle, targets=Self
+    PrimalRend = 25753, // L90, instant, GCD, range 20, AOE 5 circle, targets=Hostile, animLock=1.150
+    Damnation = 36923, // L92, instant, 120.0s CD (group 21), range 0, single-target, targets=Self
+    PrimalWrath = 36924, // L96, instant, 1.0s CD (group 0), range 0, AOE 5 circle, targets=Self
+    PrimalRuination = 36925, // L100, instant, GCD, range 3, AOE 5 circle, targets=Hostile
 
     // Shared
-    ShieldWall = ClassShared.AID.ShieldWall, // LB1, instant, range 0, AOE 50 circle, targets=self, animLock=1.930
-    Stronghold = ClassShared.AID.Stronghold, // LB2, instant, range 0, AOE 50 circle, targets=self, animLock=3.860
-    Rampart = ClassShared.AID.Rampart, // L8, instant, 90.0s CD (group 46), range 0, single-target, targets=self
-    LowBlow = ClassShared.AID.LowBlow, // L12, instant, 25.0s CD (group 41), range 3, single-target, targets=hostile
-    Provoke = ClassShared.AID.Provoke, // L15, instant, 30.0s CD (group 42), range 25, single-target, targets=hostile
-    Interject = ClassShared.AID.Interject, // L18, instant, 30.0s CD (group 43), range 3, single-target, targets=hostile
-    Reprisal = ClassShared.AID.Reprisal, // L22, instant, 60.0s CD (group 44), range 0, AOE 5 circle, targets=self
-    ArmsLength = ClassShared.AID.ArmsLength, // L32, instant, 120.0s CD (group 48), range 0, single-target, targets=self
-    Shirk = ClassShared.AID.Shirk, // L48, instant, 120.0s CD (group 49), range 25, single-target, targets=party
+    ShieldWall = ClassShared.AID.ShieldWall, // LB1, instant, range 0, AOE 50 circle, targets=Self, animLock=1.930
+    Stronghold = ClassShared.AID.Stronghold, // LB2, instant, range 0, AOE 50 circle, targets=Self, animLock=3.860
+    Rampart = ClassShared.AID.Rampart, // L8, instant, 90.0s CD (group 46), range 0, single-target, targets=Self
+    LowBlow = ClassShared.AID.LowBlow, // L12, instant, 25.0s CD (group 41), range 3, single-target, targets=Hostile
+    Provoke = ClassShared.AID.Provoke, // L15, instant, 30.0s CD (group 42), range 25, single-target, targets=Hostile
+    Interject = ClassShared.AID.Interject, // L18, instant, 30.0s CD (group 43), range 3, single-target, targets=Hostile
+    Reprisal = ClassShared.AID.Reprisal, // L22, instant, 60.0s CD (group 44), range 0, AOE 5 circle, targets=Self
+    ArmsLength = ClassShared.AID.ArmsLength, // L32, instant, 120.0s CD (group 48), range 0, single-target, targets=Self
+    Shirk = ClassShared.AID.Shirk, // L48, instant, 120.0s CD (group 49), range 25, single-target, targets=Party
 }
 
 public enum TraitID : uint
@@ -65,8 +68,14 @@ public enum TraitID : uint
     RawIntuitionMastery = 418, // L82, raw intuition -> bloodwhetting
     EnhancedNascentFlash = 419, // L82, duration increase
     EnhancedEquilibrium = 420, // L84, adds hot
-    MeleeMastery = 505, // L84, potency increase
+    MeleeMastery1 = 505, // L84, potency increase
     EnhancedOnslaught = 421, // L88, 3rd onslaught charge
+    VengeanceMastery = 567, // L92
+    EnhancedRampart = 639, // L94
+    MeleeMastery2 = 654, // L94
+    EnhancedInnerRelease = 568, // L96
+    EnhancedReprisal = 640, // L98
+    EnhancedPrimalRend = 569, // L100
 }
 
 public enum SID : uint
@@ -78,8 +87,13 @@ public enum SID : uint
     InnerRelease = 1177, // applied by Inner Release to self, next 3 GCDs should be free FCs
     PrimalRend = 2624, // applied by Inner Release to self, allows casting PR
     InnerStrength = 2663, // applied by Inner Release to self, immunes
+    BurgeoningFury = 3833, // applied by Fell Cleave to self, 3 stacks turns into wrathful
+    Wrathful = 3901, // 3rd stack of Burgeoning Fury turns into this, allows Primal Wrath
+    PrimalRuinationReady = 3834, // applied by Primal Rend to self
     VengeanceRetaliation = 89, // applied by Vengeance to self, retaliation for physical attacks
     VengeanceDefense = 912, // applied by Vengeance to self, -30% damage taken
+    Damnation = 3832, // applied by Damnation to self, -40% damage taken and retaliation for physical attacks
+    PrimevalImpulse = 3900, // hot applied after hit under Damnation
     Rampart = 1191, // applied by Rampart to self, -20% damage taken
     ThrillOfBattle = 87, // applied by Thrill of Battle to self
     Holmgang = 409, // applied by Holmgang to self
@@ -138,6 +152,9 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Bloodwhetting);
         d.RegisterSpell(AID.Orogeny);
         d.RegisterSpell(AID.PrimalRend, instantAnimLock: 1.15f);
+        d.RegisterSpell(AID.Damnation);
+        d.RegisterSpell(AID.PrimalWrath);
+        d.RegisterSpell(AID.PrimalRuination);
 
         Customize(d);
     }
