@@ -92,6 +92,8 @@ public sealed class LegacyWAR : LegacyModule
         public float SurgingTempestLeft; // 0 if buff not up, max 60
         public float NascentChaosLeft; // 0 if buff not up, max 30
         public float PrimalRendLeft; // 0 if buff not up, max 30
+        public float PrimalRuinationLeft; // 0 if buff not up, max 30
+        public float WrathfulLeft; // 0 if buff not up, max 30
         public float InnerReleaseLeft; // 0 if buff not up, max 15
         public int InnerReleaseStacks; // 0 if buff not up, max 3
 
@@ -109,7 +111,7 @@ public sealed class LegacyWAR : LegacyModule
 
         public override string ToString()
         {
-            return $"g={Gauge}, RB={RaidBuffsLeft:f1}, ST={SurgingTempestLeft:f1}, NC={NascentChaosLeft:f1}, PR={PrimalRendLeft:f1}, IR={InnerReleaseStacks}/{InnerReleaseLeft:f1}, IRCD={CD(WAR.AID.Berserk):f1}/{CD(WAR.AID.InnerRelease):f1}, InfCD={CD(WAR.AID.Infuriate):f1}, UphCD={CD(WAR.AID.Upheaval):f1}, OnsCD={CD(WAR.AID.Onslaught):f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+            return $"g={Gauge}, RB={RaidBuffsLeft:f1}, ST={SurgingTempestLeft:f1}, NC={NascentChaosLeft:f1}, PR={PrimalRendLeft:f1}/{PrimalRuinationLeft:f1}, IR={InnerReleaseStacks}/{InnerReleaseLeft:f1}/{WrathfulLeft:f1}, IRCD={CD(WAR.AID.Berserk):f1}/{CD(WAR.AID.InnerRelease):f1}, InfCD={CD(WAR.AID.Infuriate):f1}, UphCD={CD(WAR.AID.Upheaval):f1}, OnsCD={CD(WAR.AID.Onslaught):f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
         }
     }
 
@@ -129,6 +131,8 @@ public sealed class LegacyWAR : LegacyModule
         _state.SurgingTempestLeft = _state.StatusDetails(Player, WAR.SID.SurgingTempest, Player.InstanceID).Left;
         _state.NascentChaosLeft = _state.StatusDetails(Player, WAR.SID.NascentChaos, Player.InstanceID).Left;
         _state.PrimalRendLeft = _state.StatusDetails(Player, WAR.SID.PrimalRend, Player.InstanceID).Left;
+        _state.PrimalRuinationLeft = _state.StatusDetails(Player, WAR.SID.PrimalRuinationReady, Player.InstanceID).Left;
+        _state.WrathfulLeft = _state.StatusDetails(Player, WAR.SID.Wrathful, Player.InstanceID).Left;
         (_state.InnerReleaseLeft, _state.InnerReleaseStacks) = _state.StatusDetails(Player, _state.Unlocked(WAR.AID.InnerRelease) ? WAR.SID.InnerRelease : WAR.SID.Berserk, Player.InstanceID);
 
         var aoe = strategy.Option(Track.AOE).As<AOEStrategy>() switch
@@ -469,6 +473,7 @@ public sealed class LegacyWAR : LegacyModule
 
         // forbid automatic PR when out of melee range, to avoid fucking up player positioning when avoiding mechanics
         float primalRendWindow = (strategyPR == OffensiveStrategy.Delay || _state.RangeToTarget > 3) ? 0 : MathF.Min(_state.PrimalRendLeft, _state.PositionLockIn);
+        float primalRuinationWindow = _state.PrimalRuinationLeft; // TODO: reconsider
         var irCD = _state.CD(_state.Unlocked(WAR.AID.InnerRelease) ? WAR.AID.InnerRelease : WAR.AID.Berserk);
 
         bool spendGauge = ShouldSpendGauge(strategyGCD, aoe);
@@ -482,6 +487,8 @@ public sealed class LegacyWAR : LegacyModule
         float thirdGCDIn = gcdDelay + 5f;
         if (primalRendWindow > _state.GCD && primalRendWindow < secondGCDIn)
             return WAR.AID.PrimalRend;
+        if (primalRuinationWindow > _state.GCD && primalRuinationWindow < secondGCDIn)
+            return WAR.AID.PrimalRuination; // TODO: reconsider
         if (_state.NascentChaosLeft > _state.GCD && _state.NascentChaosLeft < secondGCDIn)
             return GetNextFCAction(aoe);
         if (primalRendWindow > _state.GCD && _state.NascentChaosLeft > _state.GCD && primalRendWindow < thirdGCDIn && _state.NascentChaosLeft < thirdGCDIn)
@@ -499,9 +506,12 @@ public sealed class LegacyWAR : LegacyModule
                 if (_state.InnerReleaseLeft <= _state.GCD + fcCastsLeft * 2.5f)
                     return GetNextFCAction(aoe);
 
-                // don't delay if it won't give us anything (but still prefer PR under buffs)
+                // don't delay if it won't give us anything (but still prefer PR under buffs) - TODO: reconsider...
                 if (spendGauge || _state.InnerReleaseLeft <= _state.RaidBuffsIn)
-                    return primalRendWindow > _state.GCD && spendGauge ? WAR.AID.PrimalRend : GetNextFCAction(aoe);
+                    return !spendGauge ? GetNextFCAction(aoe)
+                        : primalRendWindow > _state.GCD ? WAR.AID.PrimalRend
+                        : primalRuinationWindow > _state.GCD ? WAR.AID.PrimalRuination
+                        : GetNextFCAction(aoe);
 
                 // don't delay FC if it can cause infuriate overcap (e.g. we use combo action, gain gauge and then can't spend it in time)
                 if (_state.CD(WAR.AID.Infuriate) < _state.GCD + (_state.InnerReleaseStacks + 1) * 7.5f)
@@ -541,6 +551,8 @@ public sealed class LegacyWAR : LegacyModule
         // 6. if there is no chance we can delay PR until next raid buffs, just cast it now
         if (primalRendWindow > _state.GCD && primalRendWindow <= _state.RaidBuffsIn)
             return WAR.AID.PrimalRend;
+        if (primalRuinationWindow > _state.GCD && primalRuinationWindow <= _state.RaidBuffsIn)
+            return WAR.AID.PrimalRuination;
 
         // TODO: do not spend gauge if we're delaying berserk
         if (!spendGauge)
@@ -555,6 +567,8 @@ public sealed class LegacyWAR : LegacyModule
         // ok at this point, we just want to spend gauge - either because we're using greedy strategy, or something prevented us from casting combo
         if (primalRendWindow > _state.GCD)
             return WAR.AID.PrimalRend;
+        if (primalRuinationWindow > _state.GCD)
+            return WAR.AID.PrimalRuination;
         if (canUseFC)
             return GetNextFCAction(aoe);
 
@@ -605,6 +619,10 @@ public sealed class LegacyWAR : LegacyModule
         bool onslaughtHeadroom = true; // TODO: customize via strategy?..
         if (wantOnslaught && _state.CanWeave(_state.CD(WAR.AID.Onslaught) - 60, onslaughtHeadroom ? 0.8f : 0.6f, deadline))
             return ActionID.MakeSpell(WAR.AID.Onslaught);
+
+        // 6. primal wrath (TODO: reconsider)
+        if (_state.WrathfulLeft > _state.AnimationLock && Player.InCombat && _state.CanWeave(WAR.AID.PrimalWrath, 0.6f, deadline))
+            return ActionID.MakeSpell(WAR.AID.PrimalWrath);
 
         // no suitable oGCDs...
         return new();

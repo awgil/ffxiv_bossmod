@@ -1,5 +1,6 @@
 ﻿namespace BossMod.Autorotation;
 
+// TODO: dawntrail updates: veng -> damnation, enhanced reprisal (role)
 public sealed class ClassWARUtility(RotationModuleManager manager, Actor player) : RoleTankUtility(manager, player)
 {
     public enum Track { Thrill = SharedTrack.Count, Vengeance, Holmgang, Bloodwhetting, Equilibrium, ShakeItOff }

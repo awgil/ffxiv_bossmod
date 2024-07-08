@@ -167,8 +167,8 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             target = def.SmartTarget(ws, player, target, hints);
 
         // smart-targeting fallback: cast on self is target is not valid
-        var targetIsValid = target != null && (def.AllowedTargets.HasFlag(ActionTargets.Hostile) || !target.IsAlly);
-        if (def.AllowedTargets.HasFlag(ActionTargets.Self) && !targetIsValid)
+        var targetInvalid = target == null || !def.AllowedTargets.HasFlag(ActionTargets.Hostile) && !target.IsAlly;
+        if (targetInvalid && def.AllowedTargets.HasFlag(ActionTargets.Self))
             target = player;
 
         return true;
