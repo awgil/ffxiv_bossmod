@@ -229,7 +229,7 @@ sealed class WorldStateGameSync : IDisposable
             inCombat = chr->InCombat;
         }
         var targetable = obj->GetIsTargetable();
-        var friendly = Utils.GameObjectIsFriendly(obj) != 0;
+        var friendly = chr == null || ActionManager.ClassifyTarget(chr) != ActionManager.TargetCategory.Enemy;
         var isDead = obj->IsDead();
         var target = chr != null ? SanitizedObjectID(chr->GetTargetId()) : 0; // note: when changing targets, we want to see changes immediately rather than wait for server response
         var modelState = chr != null ? new ActorModelState(chr->Timeline.ModelState, chr->Timeline.AnimationState[0], chr->Timeline.AnimationState[1]) : default;

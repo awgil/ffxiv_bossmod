@@ -132,11 +132,11 @@ public sealed class Definitions : IDisposable
         d.Spell(AID.DragonSight)!.SmartTarget = SmartTargetDragonSight;
 
         // elusive jump aiming (TODO: read camera from worldstate)
-        d.Spell(AID.ElusiveJump)!.TransformAngle = _config.ElusiveJump switch
+        d.Spell(AID.ElusiveJump)!.TransformAngle = (_, player, _, _) => _config.ElusiveJump switch
         {
-            DRGConfig.ElusiveJumpBehavior.CharacterForward => (_, player, _, _) => player.Rotation + 180.Degrees(),
-            DRGConfig.ElusiveJumpBehavior.CameraBackward => (_, _, _, _) => Camera.Instance!.CameraAzimuth.Radians() + 180.Degrees(),
-            DRGConfig.ElusiveJumpBehavior.CameraForward => (_, _, _, _) => Camera.Instance!.CameraAzimuth.Radians(),
+            DRGConfig.ElusiveJumpBehavior.CharacterForward => player.Rotation + 180.Degrees(),
+            DRGConfig.ElusiveJumpBehavior.CameraBackward => Camera.Instance!.CameraAzimuth.Radians() + 180.Degrees(),
+            DRGConfig.ElusiveJumpBehavior.CameraForward => Camera.Instance!.CameraAzimuth.Radians(),
             _ => null
         };
 
