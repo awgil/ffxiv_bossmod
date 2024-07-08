@@ -36,6 +36,7 @@ sealed class AIManager : IDisposable
     public void Dispose()
     {
         SwitchToIdle();
+        _dtrBarEntry.Remove();
         _wndAI.Dispose();
         Service.ChatGui.ChatMessage -= OnChatMessage;
         Service.CommandManager.RemoveHandler("/bmrai");
