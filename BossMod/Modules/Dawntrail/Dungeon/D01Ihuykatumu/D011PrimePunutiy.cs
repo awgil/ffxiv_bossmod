@@ -2,32 +2,28 @@
 
 public enum OID : uint
 {
-    Boss = 0x4190, // R7.990, x1
-    Helper = 0x233C, // R0.500, x16 (spawn during fight), 523 type
-    Actor1eba45 = 0x1EBA45, // R0.500, x0 (spawn during fight), EventObj type
-    Actor1eba43 = 0x1EBA43, // R0.500, x0 (spawn during fight), EventObj type
-    Actor1eba46 = 0x1EBA46, // R0.500, x0 (spawn during fight), EventObj type
-    Actor1eba44 = 0x1EBA44, // R0.500, x0 (spawn during fight), EventObj type
-    Actor1ea1a1 = 0x1EA1A1, // R2.000, x1, EventObj type
-    Actor1e8fb8 = 0x1E8FB8, // R2.000, x2, EventObj type
-    Actor1ebca9 = 0x1EBCA9, // R0.500, x1, EventObj type
-    IhuykatumuFlytrap = 0x4194, // R1.600, x0 (spawn during fight)
-    ProdigiousPunutiy = 0x4191, // R4.230, x0 (spawn during fight)
-    Punutiy = 0x4192, // R2.820, x0 (spawn during fight)
-    PetitPunutiy = 0x4193, // R2.115, x0 (spawn during fight)
+    Boss = 0x4190, // R7.99
+    PalmTree1 = 0x1EBA45,
+    PalmTree2 = 0x1EBA43,
+    PalmTree3 = 0x1EBA46,
+    PalmTree4 = 0x1EBA44,
+    IhuykatumuFlytrap = 0x4194, // R1.6
+    ProdigiousPunutiy = 0x4191, // R4.23
+    Punutiy = 0x4192, // R2.82
+    PetitPunutiy = 0x4193, // R2.115
+    Helper = 0x233C
 }
 
 public enum AID : uint
 {
     AutoAttack = 872, // Boss/PetitPunutiy/Punutiy/ProdigiousPunutiy->player, no cast, single-target
 
-    PunutiyPress = 36492, // Boss->self, 5.0s cast, range 60 circle // raidwide
-
-    Hydrowave = 36493, // Boss->self, 4.0s cast, range 60 30.000-degree cone
+    PunutiyPress = 36492, // Boss->self, 5.0s cast, range 60 circle
+    Hydrowave = 36493, // Boss->self, 4.0s cast, range 60 30-degree cone
     Inhale = 36496, // Helper->self, no cast, range 100 ?-degree cone
 
-    Resurface1 = 36494, // Boss->self, 5.0s cast, range 100 60.000-degree cone
-    Resurface2 = 36495, // Boss->self, 7.0s cast, single-target
+    ResurfaceVisual = 36495, // Boss->self, 7.0s cast, single-target
+    Resurface = 36494, // Boss->self, 5.0s cast, range 100 60-degree cone
 
     Bury1 = 36497, // Helper->self, 4.0s cast, range 12 circle
     Bury2 = 36500, // Helper->self, 4.0s cast, range 35 width 10 rect
@@ -46,35 +42,66 @@ public enum AID : uint
     PunutiyFlop1 = 36508, // ProdigiousPunutiy->player, 8.0s cast, range 14 circle
     PunutiyFlop2 = 36513, // PetitPunutiy->player, 8.0s cast, range 6 circle
 
-    Hydrowave1 = 36509, // Punutiy->self, 8.0s cast, single-target
-    Hydrowave2 = 36511, // Punutiy->self, no cast, single-target
-    Hydrowave3 = 36512, // Helper->self, no cast, range 60 ?-degree cone
+    HydrowaveBaitVisual1 = 36509, // Punutiy->self, 8.0s cast, single-target
+    HydrowaveBaitVisual2 = 36511, // Punutiy->self, no cast, single-target
+    HydrowaveBait = 36512, // Helper->self, no cast, range 60 30-degree cone
 
-    ShoreShaker1 = 36514, // Boss->self, 4.0+1.0s cast, single-target
-    ShoreShaker2 = 36515, // Helper->self, 5.0s cast, range 10 circle
-    ShoreShaker3 = 36516, // Helper->self, 7.0s cast, range ?-20 donut
-    ShoreShaker4 = 36517, // Helper->self, 9.0s cast, range ?-30 donut
-}
-
-public enum SID : uint
-{
-    VulnerabilityUp = 1789, // Helper->player, extra=0x1
-}
-
-public enum IconID : uint
-{
-    Stackmarker = 196, // player
-    Icon505 = 505, // player
+    ShoreShakerVisual = 36514, // Boss->self, 4.0+1.0s cast, single-target
+    ShoreShaker1 = 36515, // Helper->self, 5.0s cast, range 10 circle
+    ShoreShaker2 = 36516, // Helper->self, 7.0s cast, range 10-20 donut
+    ShoreShaker3 = 36517, // Helper->self, 9.0s cast, range 20-30 donut
 }
 
 public enum TetherID : uint
 {
-    Tether17 = 17, // ProdigiousPunutiy/Punutiy/PetitPunutiy->player
+    BaitAway = 17, // ProdigiousPunutiy/Punutiy/PetitPunutiy->player
+}
+
+class HydrowaveBait(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(60, 15.Degrees()), (uint)TetherID.BaitAway, ActionID.MakeSpell(AID.HydrowaveBait), (uint)OID.Punutiy, 8.6f)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (CurrentBaits.Any(x => x.Target == actor))
+            hints.AddForbiddenZone(ShapeDistance.Rect(Module.Center - new WDir(0, -18), Module.Center - new WDir(0, 18), 18), Module.WorldState.FutureTime(ActivationDelay));
+    }
+
+    public override void OnUntethered(Actor source, ActorTetherInfo tether) { } // snapshot is ~0.6s after tether disappears
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.HydrowaveBait)
+            CurrentBaits.Clear();
+    }
+}
+
+class Resurface(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Resurface), new AOEShapeCone(100, 30.Degrees()));
+class Inhale(BossModule module) : Components.GenericAOEs(module)
+{
+    private AOEInstance? _aoe;
+    private static readonly AOEShapeCone cone = new(100, 30.Degrees());
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.Resurface)
+            _aoe = new(cone, new(15, -95), spell.Rotation, spell.NPCFinishAt); // Resurface and Inhale origin are not identical, but almost 0.4y off
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.Inhale)
+            if (++NumCasts == 6)
+            {
+                _aoe = null;
+                NumCasts = 0;
+            }
+    }
 }
 
 class PunutiyPress(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PunutiyPress));
 class Hydrowave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrowave), new AOEShapeCone(60, 15.Degrees()));
-class Resurface1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Resurface1), new AOEShapeCone(100, 30.Degrees()));
 
 class Bury1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Bury1), new AOEShapeCircle(12));
 class Bury2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Bury2), new AOEShapeRect(35, 5));
@@ -90,18 +117,42 @@ class Decay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.Ma
 class PunutiyFlop1(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.PunutiyFlop1), 14);
 class PunutiyFlop2(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.PunutiyFlop2), 6);
 
-class ShoreShaker2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ShoreShaker2), new AOEShapeCircle(10));
-class ShoreShaker3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ShoreShaker3), new AOEShapeDonut(10, 20));
-class ShoreShaker4(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ShoreShaker4), new AOEShapeDonut(20, 30));
+class ShoreShaker(BossModule module) : Components.ConcentricAOEs(module, _shapes)
+{
+    private static readonly AOEShape[] _shapes = [new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30)];
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.ShoreShaker1)
+            AddSequence(Module.Center, spell.NPCFinishAt);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (Sequences.Count > 0)
+        {
+            var order = (AID)spell.Action.ID switch
+            {
+                AID.ShoreShaker1 => 0,
+                AID.ShoreShaker2 => 1,
+                AID.ShoreShaker3 => 2,
+                _ => -1
+            };
+            AdvanceSequence(order, Module.Center, WorldState.FutureTime(2));
+        }
+    }
+}
 
 class D011PrimePunutiyStates : StateMachineBuilder
 {
     public D011PrimePunutiyStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<Inhale>()
+            .ActivateOnEnter<Resurface>()
             .ActivateOnEnter<PunutiyPress>()
             .ActivateOnEnter<Hydrowave>()
-            .ActivateOnEnter<Resurface1>()
+            .ActivateOnEnter<HydrowaveBait>()
             .ActivateOnEnter<Bury1>()
             .ActivateOnEnter<Bury2>()
             .ActivateOnEnter<Bury3>()
@@ -113,11 +164,21 @@ class D011PrimePunutiyStates : StateMachineBuilder
             .ActivateOnEnter<Decay>()
             .ActivateOnEnter<PunutiyFlop1>()
             .ActivateOnEnter<PunutiyFlop2>()
-            .ActivateOnEnter<ShoreShaker2>()
-            .ActivateOnEnter<ShoreShaker3>()
-            .ActivateOnEnter<ShoreShaker4>();
+            .ActivateOnEnter<ShoreShaker>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12723)]
-public class D011PrimePunutiy(WorldState ws, Actor primary) : BossModule(ws, primary, new(35, -95), new ArenaBoundsSquare(20));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12723)]
+public class D011PrimePunutiy(WorldState ws, Actor primary) : BossModule(ws, primary, new(35, -95), new ArenaBoundsSquare(19.5f))
+{
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        foreach (var s in Enemies(OID.Punutiy))
+            Arena.Actor(s, ArenaColor.Enemy);
+        foreach (var s in Enemies(OID.PetitPunutiy))
+            Arena.Actor(s, ArenaColor.Enemy);
+        foreach (var s in Enemies(OID.ProdigiousPunutiy))
+            Arena.Actor(s, ArenaColor.Enemy);
+    }
+}

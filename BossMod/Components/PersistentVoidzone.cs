@@ -8,7 +8,7 @@ public class PersistentVoidzone(BossModule module, float radius, Func<BossModule
     public AOEShapeCircle Shape { get; init; } = new(radius);
     public Func<BossModule, IEnumerable<Actor>> Sources { get; init; } = sources;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Sources(Module).Select(s => new AOEInstance(Shape, s.Position));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Sources(Module).Select(s => new AOEInstance(Shape, s.Position, s.Rotation));
 }
 
 // voidzone that appears with some delay at cast target

@@ -15,8 +15,6 @@ public enum OID : uint
     Mimiclot4 = 0x41A1, // R1.200, x0 (spawn during fight)
     Mimiclot5 = 0x419A, // R1.200, x0 (spawn during fight)
     Mimiclot6 = 0x419F, // R1.750, x0 (spawn during fight)
-    Actor1e8fb8 = 0x1E8FB8, // R2.000, x2, EventObj type
-    Actor1e8f2f = 0x1E8F2F, // R0.500, x1, EventObj type
 }
 
 public enum AID : uint
@@ -51,20 +49,6 @@ public enum AID : uint
     FlagrantSpread2 = 36485, // Mimiclot3/Mimiclot6->self, 5.0s cast, range 6 circle
 }
 
-public enum SID : uint
-{
-    UnknownStatus1 = 2193, // Boss->Boss/IhuykatumuIvy, extra=0x2D2/0x2B9
-    Vitalized = 3806, // none->IhuykatumuIvy, extra=0x1/0x2/0x3/0x4/0x5
-    VulnerabilityUp = 1789, // IhuykatumuIvy/Mimiclot6->player, extra=0x1
-    UnknownStatus2 = 2397, // none->Mimiclot1/Mimiclot2/Mimiclot3/Mimiclot4/Mimiclot5/Mimiclot6, extra=0x2C1/0x2C0/0x2BF
-}
-
-public enum IconID : uint
-{
-    Tankbuster = 218, // player
-    Spreadmarker = 139, // player
-}
-
 class Uppercut(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Uppercut));
 class Arise(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Arise), new AOEShapeCircle(8));
 class Wallop1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wallop1), new AOEShapeRect(40, 5));
@@ -88,5 +72,27 @@ class D012DrowsieStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12716)]
-public class D012Drowsie(WorldState ws, Actor primary) : BossModule(ws, primary, new(80, 53), new ArenaBoundsCircle(19.5f));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12716)]
+public class D012Drowsie(WorldState ws, Actor primary) : BossModule(ws, primary, DefaultBounds.Center, DefaultBounds)
+{
+    private static readonly List<Shape> union = [new Circle(new(80, 53), 19.5f)];
+    private static readonly List<Shape> difference = [new Rectangle(new(65.5f, 38), 20, 1.75f, 130.Degrees()), new Rectangle(new(80, 74), 20, 2)];
+    public static readonly ArenaBoundsComplex DefaultBounds = new(union, difference);
+
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        foreach (var s in Enemies(OID.Mimiclot1))
+            Arena.Actor(s, ArenaColor.Enemy);
+        foreach (var s in Enemies(OID.Mimiclot2))
+            Arena.Actor(s, ArenaColor.Enemy);
+        foreach (var s in Enemies(OID.Mimiclot3))
+            Arena.Actor(s, ArenaColor.Enemy);
+        foreach (var s in Enemies(OID.Mimiclot4))
+            Arena.Actor(s, ArenaColor.Enemy);
+        foreach (var s in Enemies(OID.Mimiclot5))
+            Arena.Actor(s, ArenaColor.Enemy);
+        foreach (var s in Enemies(OID.Mimiclot6))
+            Arena.Actor(s, ArenaColor.Enemy);
+    }
+}

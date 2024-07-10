@@ -62,7 +62,7 @@ class Anthrabomb2(BossModule module) : Components.LocationTargetedAOEs(module, A
 class Anthrabomb3(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Anthrabomb3), 10);
 class Anthrabomb4(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Anthrabomb4), 10);
 class Anthrabomb5(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Anthrabomb5), 10);
-class Anthrabomb6(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Anthrabomb6), 6);
+class Anthrabomb6(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Anthrabomb6), 6);
 class HotBlast1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HotBlast1), new AOEShapeRect(40, 3));
 class HotBlast2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HotBlast2), new AOEShapeRect(40, 3));
 class CarbonaceousCombustion2(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CarbonaceousCombustion2));

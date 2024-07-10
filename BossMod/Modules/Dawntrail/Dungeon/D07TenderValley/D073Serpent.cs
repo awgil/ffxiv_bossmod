@@ -84,4 +84,4 @@ class D073SerpentStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 834, NameID = 12709)]
-public class D073Serpent(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 150), new ArenaBoundsSquare(12));
+public class D073Serpent(WorldState ws, Actor primary) : BossModule(ws, primary, new(-130, -554), new ArenaBoundsSquare(12));
