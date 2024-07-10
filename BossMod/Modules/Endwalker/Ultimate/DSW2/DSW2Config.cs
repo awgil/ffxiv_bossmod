@@ -15,6 +15,9 @@ public class DSW2Config() : ConfigNode()
     [PropertyDisplay("P2 Sanctity of the Ward (charges): role responsible for balancing groups (if not set, swap with role partner instead)")]
     public Role P2SanctitySwapRole;
 
+    [PropertyDisplay("P2 Sanctity of the Ward (meteors): automatically use knockback immunity if needed")]
+    public bool P2Sanctity2AutomaticAntiKB = true;
+
     [PropertyDisplay("P2 Sanctity of the Ward (meteors): pair assignments")]
     [GroupDetails(["North", "East", "South", "West"])]
     [GroupPreset("MT/R1 N, OT/R2 S, H1/M1 E, H2/M2 W", [0, 2, 1, 3, 1, 3, 0, 2])]
