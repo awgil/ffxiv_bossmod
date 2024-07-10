@@ -32,11 +32,10 @@ public enum AID : uint
     Wallop1 = 36479, // IhuykatumuIvy->self, 7.0s cast, range 40 width 10 rect
     Wallop2 = 36482, // IhuykatumuIvy->self, 7.0s cast, range 40 width 16 rect
 
-    UnknownAbility1 = 36480, // Helper->IhuykatumuIvy, no cast, single-target
-    UnknownAbility2 = 36481, // Boss->self, no cast, single-target
-    UnknownAbility3 = 36484, // BlueClot/GreenClot/RedClot->location, no cast, single-target
-
-    UnknownWeaponskill = 36762, // Boss->self, no cast, single-target
+    Visual1 = 36480, // Helper->IhuykatumuIvy, no cast, single-target
+    Visual2 = 36481, // Boss->self, no cast, single-target
+    Visual3 = 36484, // BlueClot/GreenClot/RedClot->location, no cast, single-target
+    Visual4 = 36762, // Boss->self, no cast, single-target
 
     Sneeze = 36475, // Boss->self, 5.0s cast, range 60 150.000-degree cone
     Spit = 36483, // Boss->self, 5.0s cast, single-target

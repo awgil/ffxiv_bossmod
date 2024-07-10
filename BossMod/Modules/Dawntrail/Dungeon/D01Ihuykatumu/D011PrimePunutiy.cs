@@ -37,13 +37,13 @@ public enum AID : uint
     Decay = 36505, // IhuykatumuFlytrap->self, 7.0s cast, range ?-40 donut
 
     SongOfThePunutiy = 36506, // Boss->self, 5.0s cast, single-target
-    UnknownAbility = 36510, // Helper->player, no cast, single-target
 
     PunutiyFlop1 = 36508, // ProdigiousPunutiy->player, 8.0s cast, range 14 circle
     PunutiyFlop2 = 36513, // PetitPunutiy->player, 8.0s cast, range 6 circle
 
     HydrowaveBaitVisual1 = 36509, // Punutiy->self, 8.0s cast, single-target
     HydrowaveBaitVisual2 = 36511, // Punutiy->self, no cast, single-target
+    HydrowaveBaitVisual3 = 36510, // Helper->player, no cast, single-target
     HydrowaveBait = 36512, // Helper->self, no cast, range 60 30-degree cone
 
     ShoreShakerVisual = 36514, // Boss->self, 4.0+1.0s cast, single-target
