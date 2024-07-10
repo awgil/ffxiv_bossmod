@@ -142,7 +142,7 @@ public record class ArenaBoundsSquare(float Radius, float MapResolution = 0.5f) 
 }
 
 // if rotation is 0, half-width is along X and half-height is along Z
-public record class ArenaBoundsRect(float HalfWidth, float HalfHeight, Angle Rotation = default, float MapResolution = 0.5f) : ArenaBounds(MathF.Max(HalfWidth, HalfHeight), MapResolution)
+public record class ArenaBoundsRect(float HalfWidth, float HalfHeight, Angle Rotation = default, float Radius = 0, float MapResolution = 0.5f) : ArenaBounds(Radius > 0 ? Radius : MathF.Max(HalfWidth, HalfHeight), MapResolution)
 {
     public readonly WDir Orientation = Rotation.ToDirection();
 
