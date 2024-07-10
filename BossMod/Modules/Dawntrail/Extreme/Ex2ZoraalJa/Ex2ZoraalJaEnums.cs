@@ -92,8 +92,8 @@ public enum AID : uint
     HalfCircuitAOEDonut = 37792, // Helper->self, 7.0s cast, range 10-30 donut
     HalfCircuitAOECircle = 37793, // Helper->self, 7.0s cast, range 10 circle
 
-    //_Ability_SmitingCircuit = 37733, // 42B9->self, no cast, single-target
-    //_Ability_SmitingCircuit = 37732, // 42B9->self, no cast, single-target
+    SmitingCircuitVisual1 = 37733, // 42B9->self, no cast, single-target
+    SmitingCircuitVisual2 = 37732, // 42B9->self, no cast, single-target
 }
 
 public enum SID : uint

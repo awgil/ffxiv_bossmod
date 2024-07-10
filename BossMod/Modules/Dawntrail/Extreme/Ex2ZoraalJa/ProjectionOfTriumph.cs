@@ -7,8 +7,8 @@ class ProjectionOfTriumph(BossModule module) : Components.GenericAOEs(module)
     private readonly List<Line> _lines = [];
     private DateTime _nextActivation;
 
-    private readonly static AOEShapeCircle _shapeCircle = new(4);
-    private readonly static AOEShapeDonut _shapeDonut = new(2, 8); // TODO: verify inner radius
+    private static readonly AOEShapeCircle _shapeCircle = new(4);
+    private static readonly AOEShapeDonut _shapeDonut = new(2, 8); // TODO: verify inner radius
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

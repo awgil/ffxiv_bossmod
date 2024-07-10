@@ -14,7 +14,7 @@ public class Ex2ZoraalJa(WorldState ws, Actor primary) : BossModule(ws, primary,
 {
     public static readonly WPos NormalCenter = new(100, 100);
     public static readonly ArenaBoundsRect NormalBounds = new(20, 20, 45.Degrees());
-    public static readonly ArenaBoundsRect SmallBounds = new(10, 10, 45.Degrees(), 20);
+    public static readonly ArenaBoundsRect SmallBounds = new(10, 10, 45.Degrees());
     public static readonly ArenaBoundsCustom NWPlatformBounds = BuildTwoPlatformsBounds(135.Degrees());
     public static readonly ArenaBoundsCustom NEPlatformBounds = BuildTwoPlatformsBounds(-135.Degrees());
 

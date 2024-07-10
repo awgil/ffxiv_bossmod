@@ -45,6 +45,7 @@ public sealed class ModuleViewer : IDisposable
         Customize(BossModuleInfo.Expansion.Stormblood, 61877, exVersion?.GetRow(2)?.Name);
         Customize(BossModuleInfo.Expansion.Shadowbringers, 61878, exVersion?.GetRow(3)?.Name);
         Customize(BossModuleInfo.Expansion.Endwalker, 61879, exVersion?.GetRow(4)?.Name);
+        Customize(BossModuleInfo.Expansion.Dawntrail, 61880, exVersion?.GetRow(5)?.Name);
 
         var contentType = Service.LuminaSheet<ContentType>();
         Customize(BossModuleInfo.Category.Dungeon, contentType?.GetRow(2));
