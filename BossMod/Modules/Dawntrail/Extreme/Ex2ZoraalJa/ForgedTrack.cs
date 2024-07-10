@@ -40,7 +40,7 @@ class ForgedTrack(BossModule module) : Components.GenericAOEs(module)
             if (rightIsWide == laneRight)
             {
                 // wide
-                WideAOEs.Add(new(_shapeWide, Module.Center + rightDir *  adjustedLaneOffset, spell.Rotation, spell.NPCFinishAt.AddSeconds(1.4f)));
+                WideAOEs.Add(new(_shapeWide, Module.Center + rightDir * adjustedLaneOffset, spell.Rotation, spell.NPCFinishAt.AddSeconds(1.4f)));
             }
             else
             {
