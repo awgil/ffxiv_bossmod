@@ -132,8 +132,8 @@ public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, A
         if (target == null)
             return (null, null);
 
-        var (player, enemy) = source.Type == ActorType.Player ? (source, target) : (target, source);
-        if (player.Type != ActorType.Player || enemy.Type == ActorType.Player)
+        var (player, enemy) = source.Type is ActorType.Player or ActorType.DutySupport ? (source, target) : (target, source);
+        if (!(player.Type is ActorType.Player or ActorType.DutySupport) || enemy.Type == ActorType.Player)
         {
             ReportError($"Unexpected tether pair: {source.InstanceID:X} -> {target.InstanceID:X}");
             return (null, null);
