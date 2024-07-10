@@ -7,9 +7,11 @@ class P2SanctityOfTheWard2VoidzoneIce(BossModule module) : Components.Persistent
 
 class P2SanctityOfTheWard2Knockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.FaithUnmoving), 16)
 {
+    private readonly DSW2Config _config = Service.Config.Get<DSW2Config>();
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Casters.Count > 0 && !actor.Position.InCircle(Module.Center, 12))
+        if (_config.P2Sanctity2AutomaticAntiKB && Casters.Count > 0 && !actor.Position.InCircle(Module.Center, 12))
         {
             var action = actor.Class.GetClassCategory() is ClassCategory.Healer or ClassCategory.Caster ? ActionID.MakeSpell(ClassShared.AID.Surecast) : ActionID.MakeSpell(ClassShared.AID.ArmsLength);
             hints.ActionsToExecute.Push(action, actor, ActionQueue.Priority.High);

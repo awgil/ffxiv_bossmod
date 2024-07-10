@@ -277,7 +277,7 @@ class Ex2ZoraalJaStates : StateMachineBuilder
         Cast(id, AID.ProjectionOfTurmoil, delay, 5, "Moving line with stacks")
             .ActivateOnEnter<ProjectionOfTurmoil>();
         HalfFull(id + 0x100, 16.6f);
-        HalfFull(id + 0x200, 2.8f);
+        HalfFull(id + 0x200, 2.9f);
         HalfFull(id + 0x300, 4.1f);
         BitterWhirlwind(id + 0x400, 3.9f)
             .DeactivateOnExit<ProjectionOfTurmoil>();
