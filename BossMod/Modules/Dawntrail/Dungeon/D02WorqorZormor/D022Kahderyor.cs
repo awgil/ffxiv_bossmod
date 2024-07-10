@@ -5,10 +5,7 @@ public enum OID : uint
 {
     Boss = 0x415D, // R7.000, x1
     Helper = 0x233C, // R0.500, x20, 523 type
-    //_Gen_ = 0x412E, // R3.960, x1
-    //_Gen_Actor1e8f2f = 0x1E8F2F, // R0.500, x1 (spawn during fight), EventObj type
-    //_Gen_Actor1e8fb8 = 0x1E8FB8, // R2.000, x2 (spawn during fight), EventObj type
-    _Gen_CrystallineDebris = 0x415E, // R1.400, x0 (spawn during fight)
+    CrystallineDebris = 0x415E, // R1.400, x0 (spawn during fight)
 }
 
 public enum AID : uint
@@ -142,7 +139,7 @@ class CrystallineCrush(BossModule module) : Components.CastTowers(module, Action
 }
 
 class CrystallineStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CrystallineStorm), new AOEShapeRect(25, 1, 25));
-class CrystallineDebris(BossModule module) : Components.Adds(module, (uint)OID._Gen_CrystallineDebris)
+class CrystallineDebris(BossModule module) : Components.Adds(module, (uint)OID.CrystallineDebris)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

@@ -55,7 +55,7 @@ abstract class FreezableAOEs(BossModule module, ActionID action, AOEShape shape)
             if (_casters.Remove(caster))
                 _anyCastFinished = true;
 
-        if (!_casters.Any())
+        if (_casters.Count == 0)
         {
             _anyCastFinished = false;
             _numFrozen = 0;
