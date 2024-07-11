@@ -15,14 +15,14 @@ public abstract class LegacyModule(RotationModuleManager manager, Actor player) 
     }
     protected void PushResult<AID>(AID aid, Actor? target) where AID : Enum => PushResult(ActionID.MakeSpell(aid), target);
 
-    protected (Actor? Target, int Priority) FindBetterTargetBy(Actor? initial, float maxDistanceFromPlayer, Func<Actor, int> prioFunc)
+    protected (Actor? Target, P Priority) FindBetterTargetBy<P>(Actor? initial, float maxDistanceFromPlayer, Func<Actor, P> prioFunc) where P : struct, IComparable
     {
         var bestTarget = initial;
-        var bestPrio = initial != null ? prioFunc(initial) : -1;
+        var bestPrio = initial != null ? prioFunc(initial) : default;
         foreach (var enemy in Hints.PriorityTargets.Where(x => x.Actor != initial && x.Actor.Position.InCircle(Player.Position, maxDistanceFromPlayer + x.Actor.HitboxRadius)))
         {
             var newPrio = prioFunc(enemy.Actor);
-            if (newPrio > bestPrio)
+            if (newPrio.CompareTo(bestPrio) > 0)
             {
                 bestPrio = newPrio;
                 bestTarget = enemy.Actor;

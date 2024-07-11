@@ -37,6 +37,10 @@ public sealed class AIHints
     // this should be set only if either explicitly planned by user or by ai, otherwise it will be annoying to user
     public Actor? ForcedTarget;
 
+    // amount of time remaining we have to finish a slidecast
+    // this is only set to a sensible value by AIBehaviour; otherwise it will be 0 if any movement keys are being pressed or infinity otherwise
+    public float ForceMovementIn = float.MaxValue;
+
     // positioning: list of shapes that are either forbidden to stand in now or will be in near future
     // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
     public List<(Func<WPos, float> shapeDistance, DateTime activation)> ForbiddenZones = [];
@@ -64,6 +68,7 @@ public sealed class AIHints
     // clear all stored data
     public void Clear()
     {
+        ForceMovementIn = float.MaxValue;
         Center = default;
         Bounds = DefaultBounds;
         PotentialTargets.Clear();
