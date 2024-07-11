@@ -51,7 +51,7 @@ public enum AID : uint
     BitingWind = 36761 // Helper->player, no cast, single-target
 }
 
-class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Whirlwind).Where(z => z.EventState != 7))
+class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Whirlwind))
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

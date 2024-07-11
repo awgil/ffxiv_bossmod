@@ -102,7 +102,7 @@ public enum TetherID : uint
     ArcaneSphere = 197 // ArcaneSphere->Boss
 }
 
-class AncientCircle(BossModule module) : Components.UniformStackSpread(module, 5, 4)
+class AncientCircle(BossModule module) : Components.UniformStackSpread(module, 4, 4)
 {
     // this is a donut targeted on each player, it is best solved by stacking
     // regular stack component won't work because this is self targeted
@@ -116,6 +116,12 @@ class AncientCircle(BossModule module) : Components.UniformStackSpread(module, 5
     {
         if ((AID)spell.Action.ID == AID.AncientCircle)
             Stacks.Clear();
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Stacks.Count > 0)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Stacks[0].Target.Position, 4));
     }
 }
 
