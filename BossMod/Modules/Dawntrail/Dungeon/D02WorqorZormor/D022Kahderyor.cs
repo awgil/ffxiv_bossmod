@@ -34,10 +34,10 @@ class CrystalInout(BossModule module) : Components.GenericAOEs(module)
 
     private record struct Inout(AOEShape InShape, AOEShape OutShape, WPos Center, Angle Rotation);
 
-    private DateTime _finishAt = default;
+    private DateTime _finishAt;
     private readonly List<Inout> _aoes = [];
     private Active _active = Active.None;
-    private byte _castsWhileActive = 0;
+    private byte _castsWhileActive;
 
     private void Reset()
     {

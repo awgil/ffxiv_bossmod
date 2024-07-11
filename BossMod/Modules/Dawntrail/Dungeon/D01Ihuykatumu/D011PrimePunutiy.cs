@@ -65,31 +65,27 @@ class Bury(BossModule module) : Components.GenericAOEs(module)
 
 class Resurface(BossModule module) : Components.GenericAOEs(module)
 {
-    private AOEInstance? _inst = null;
+    private AOEInstance? _aoe;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_inst != null)
-            yield return _inst.Value;
-    }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.Resurface)
-            _inst = new AOEInstance(new AOEShapeCone(100, 32.Degrees()), caster.Position, spell.Rotation, spell.NPCFinishAt);
+            _aoe = new AOEInstance(new AOEShapeCone(100, 32.Degrees()), caster.Position, spell.Rotation, spell.NPCFinishAt);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.Resurface2)
-            _inst = null;
+            _aoe = null;
     }
 }
 
 class Decay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Decay), new AOEShapeDonut(5, 40))
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
-        => Arena.Actors(module.Enemies(OID.IhuykatumuFlytrap).Where(x => !x.IsDead), ArenaColor.Object, allowDeadAndUntargetable: true);
+        => Arena.Actors(Module.Enemies(OID.IhuykatumuFlytrap).Where(x => !x.IsDead), ArenaColor.Object, allowDeadAndUntargetable: true);
 }
 
 abstract class TetherBait(BossModule module, bool centerAtTarget = false) : Components.GenericBaitAway(module, default, true, centerAtTarget)

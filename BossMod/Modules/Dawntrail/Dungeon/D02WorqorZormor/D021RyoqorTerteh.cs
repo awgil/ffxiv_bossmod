@@ -26,8 +26,8 @@ class FrostingFracas(BossModule module) : Components.RaidwideCast(module, Action
 abstract class FreezableAOEs(BossModule module, ActionID action, AOEShape shape) : Components.GenericAOEs(module)
 {
     protected Dictionary<Actor, bool> _casters = [];
-    protected byte _numFrozen = 0;
-    protected bool _anyCastFinished = false;
+    protected byte _numFrozen;
+    protected bool _anyCastFinished;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

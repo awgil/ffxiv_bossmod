@@ -42,8 +42,8 @@ class LevinsickleSpark(BossModule module) : Components.LocationTargetedAOEs(modu
 // rest are 8 seconds after previous
 class Whirlwind(BossModule module) : Components.GenericAOEs(module)
 {
-    private int _activations = 0;
-    private DateTime _nextActivation = default;
+    private int _activations;
+    private DateTime _nextActivation;
 
     private static readonly List<Angle> Rotations = [0.Degrees(), 45.Degrees(), 90.Degrees(), 135.Degrees()];
 
@@ -82,11 +82,11 @@ class Whirlwind(BossModule module) : Components.GenericAOEs(module)
         if (_activations >= 12)
             yield break;
 
-        var whirlwind = module.Enemies(OID.Whirlwind).FirstOrDefault();
+        var whirlwind = Module.Enemies(OID.Whirlwind).FirstOrDefault();
         if (whirlwind == null)
             yield break;
 
-        var whirlyHelper = module.Enemies(OID.Helper).FirstOrDefault(x => x.NameID == 12715);
+        var whirlyHelper = Module.Enemies(OID.Helper).FirstOrDefault(x => x.NameID == 12715);
         if (whirlyHelper == null)
             yield break;
 
@@ -99,7 +99,7 @@ class Whirlwind(BossModule module) : Components.GenericAOEs(module)
     private uint Shade(DateTime activation)
     {
         var clampedETA = Math.Clamp((activation - WorldState.CurrentTime).TotalSeconds, 0, 4);
-        var opacity = 1 - (clampedETA / 4);
+        var opacity = 1 - clampedETA / 4;
         var alpha = (uint)(opacity * 96) + 32;
         return 0x008080 + alpha * 0x1000000;
     }
