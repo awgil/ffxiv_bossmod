@@ -19,10 +19,8 @@ class Ex2ZoraalJaStates : StateMachineBuilder
         ProjectionOfTriumph2(id + 0x70000, 8.3f);
         ProjectionOfTurmoil2(id + 0x80000, 7.2f);
         DawnOfAnAge3(id + 0x90000, 8.4f);
-
-        // TODO: never seen stuff below
-        MultidirectionalDivideHalf(id + 0xA0000, 10);
-        SimpleState(id + 0xFF0000, 10, "???");
+        MultidirectionalDivideHalf(id + 0xA0000, 8.3f);
+        Cast(id + 0xB0000, AID.Enrage, 5.3f, 10, "Enrage");
     }
 
     private void Actualize(uint id, float delay)
@@ -36,9 +34,10 @@ class Ex2ZoraalJaStates : StateMachineBuilder
         Cast(id, AID.MultidirectionalDivide, delay, 5, "Cross")
             .ActivateOnEnter<MultidirectionalDivide>()
             .DeactivateOnExit<MultidirectionalDivide>();
-        CastMulti(id + 0x10, [AID.ForwardHalfR, AID.ForwardHalfL, AID.BackwardHalfR, AID.BackwardHalfL], 3.1f, 8, "Criss-cross") // criss-cross resolves around the cast end
+        CastStartMulti(id + 0x10, [AID.ForwardHalfR, AID.ForwardHalfL, AID.BackwardHalfR, AID.BackwardHalfL], 3.1f)
             .ActivateOnEnter<MultidirectionalDivideMain>()
-            .ActivateOnEnter<MultidirectionalDivideExtra>()
+            .ActivateOnEnter<MultidirectionalDivideExtra>();
+        CastEnd(id + 0x11, 8, "Criss-cross") // criss-cross resolves around the cast end
             .ActivateOnEnter<ForwardBackwardHalf>()
             .DeactivateOnExit<MultidirectionalDivideMain>()
             .DeactivateOnExit<MultidirectionalDivideExtra>();
