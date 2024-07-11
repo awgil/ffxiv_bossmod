@@ -300,7 +300,6 @@ public sealed class ActionDefinitions : IDisposable
             CastTime = castTime,
             MainCooldownGroup = cdgroup,
             Cooldown = cooldown,
-            InstantAnimLock = 1.1f
         };
         var aidHQ = new ActionID(ActionType.Item, baseId + 1000000);
         _definitions[aidHQ] = new(aidHQ)
@@ -310,7 +309,6 @@ public sealed class ActionDefinitions : IDisposable
             CastTime = castTime,
             MainCooldownGroup = cdgroup,
             Cooldown = cooldown * 0.9f,
-            InstantAnimLock = 1.1f
         };
     }
 
