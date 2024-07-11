@@ -21,6 +21,7 @@ public static class BossModuleInfo
         Stormblood,
         Shadowbringers,
         Endwalker,
+        Dawntrail,
         Global,
 
         Count
@@ -75,6 +76,7 @@ public static class BossModuleInfo
         Expansion.Stormblood => "SB",
         Expansion.Shadowbringers => "ShB",
         Expansion.Endwalker => "EW",
+        Expansion.Dawntrail => "DT",
         _ => e.ToString()
     };
 }
