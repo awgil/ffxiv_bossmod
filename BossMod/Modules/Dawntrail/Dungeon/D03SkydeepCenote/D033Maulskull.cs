@@ -65,7 +65,7 @@ public enum AID : uint
     BuildingHeat = 36710, // Helper->players, 7.0s cast, range 6 circle
 
     AshlayerVisual = 36711, // Boss->self, 3.0+2.0s cast, single-target
-    Ashlayer = 36712, // Helper->self, no cast, range 60 circle
+    Ashlayer = 36712 // Helper->self, no cast, range 60 circle
 }
 
 class Stonecarver(BossModule module) : Components.GenericAOEs(module)

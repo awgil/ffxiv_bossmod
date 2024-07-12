@@ -36,7 +36,7 @@ public enum AID : uint
     StalagmiteCircle = 36293, // Helper->self, 5.0s cast, range 15 circle
 
     CyclonicRingVisual = 36289, // Boss->self, 5.0s cast, single-target
-    CyclonicRing = 36294, // Helper->self, 5.0s cast, range 8-40 donut
+    CyclonicRing = 36294 // Helper->self, 5.0s cast, range 8-40 donut
 }
 
 public enum IconID : uint
@@ -44,7 +44,7 @@ public enum IconID : uint
     Stackmarker = 62, // Helper
     WindShot = 511, // player
     EarthenShot = 169, // player
-    SeedCrystals = 311, // player
+    SeedCrystals = 311 // player
 }
 
 class WindEarthShot(BossModule module) : Components.GenericAOEs(module)
