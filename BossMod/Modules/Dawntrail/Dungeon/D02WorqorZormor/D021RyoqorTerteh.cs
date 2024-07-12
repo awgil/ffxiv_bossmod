@@ -17,7 +17,6 @@ public enum AID : uint
 
 public enum SID : uint
 {
-    // frozen adds always get both 3944 and 3445, no idea what the difference is. i just picked my favorite
     Frozen = 3944, // none->_Gen_RorrlohTeh/_Gen_QorrlohTeh1, extra=0x0
     Frozen2 = 3445
 }
