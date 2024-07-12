@@ -318,8 +318,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : xbase<AID
             && StatusLeft(SID.ClosedPosition) == 0
             && _state.CD(AID.ClosedPosition) == 0
             && !IsDancing
-            && FindDancePartner() is Actor partner
-            && partner.IsTargetable)
+            && FindDancePartner() is Actor partner)
             PushGCD(AID.ClosedPosition, partner);
 
         CalcNextBestGCD(strategy, primaryTarget);
