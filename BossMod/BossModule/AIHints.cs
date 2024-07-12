@@ -68,7 +68,6 @@ public sealed class AIHints
     // clear all stored data
     public void Clear()
     {
-        ForceMovementIn = float.MaxValue;
         Center = default;
         Bounds = DefaultBounds;
         PotentialTargets.Clear();
