@@ -73,7 +73,7 @@ class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 5, m 
     {
         base.AddAIHints(slot, actor, assignment, hints);
         foreach (var w in ActiveAOEs(slot, actor))
-            hints.AddForbiddenZone(new AOEShapeRect(6, 5), w.Origin, w.Rotation);
+            hints.AddForbiddenZone(new AOEShapeRect(6, 6), w.Origin, w.Rotation);
     }
 }
 

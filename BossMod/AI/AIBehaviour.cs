@@ -179,7 +179,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
             var toDest = _naviDecision.Destination != null ? _naviDecision.Destination.Value - player.Position : new();
             var distSq = toDest.LengthSq();
             ctrl.NaviTargetPos = _naviDecision.Destination;
-            //_ctrl.NaviTargetRot = distSq >= 0.01f ? toDest.Normalized() : null;
+            ctrl.NaviTargetRot = null;
             ctrl.NaviTargetVertical = master != player ? master.PosRot.Y : null;
             ctrl.AllowInterruptingCastByMovement = player.CastInfo != null && _naviDecision.LeewaySeconds <= (player.CastInfo.FinishAt - WorldState.CurrentTime).TotalSeconds - 0.5;
             ctrl.ForceCancelCast = player.CastInfo != null && TargetIsForbidden(player.CastInfo.TargetID);
