@@ -4,17 +4,15 @@ public enum OID : uint
 {
     Boss = 0x42B5, // R10.050, x1
     Helper = 0x233C, // R0.500, x18 (spawn during fight), mixed types
-    //_Gen_Actor1e8536 = 0x1E8536, // R2.000, x1, EventObj type
-    //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
     FangVollokSmall = 0x42B7, // R1.000, x0 (spawn during fight), 1-cell aoes
     FangVollokLarge = 0x42B8, // R2.000, x0 (spawn during fight)
     FangBlade = 0x42AB, // R1.000, x0 (spawn during fight), sword aoes
-    //_Gen_ = 0x19A, // R0.500, x0 (spawn during fight)
+    ForgedTrackHelper = 0x19A, // R0.500, x0 (spawn during fight)
     ProjectionOfTriumphCircle = 0x4156, // R1.000, x0 (spawn during fight), projection of triumph line
     ProjectionOfTriumphDonut = 0x4157, // R1.000, x0 (spawn during fight), projection of triumph line
     ProjectionOfTurmoil = 0x42BD, // R1.000, x0 (spawn during fight), projection of turmoil line
     BitingWind = 0x42BE, // R0.800, x0 (spawn during fight), knockback zone
-    //_Gen_ = 0x42B9, // R10.050, x0 (spawn during fight)
+    HalfCircuitHelper = 0x42B9, // R10.050, x0 (spawn during fight)
 }
 
 public enum AID : uint
@@ -47,7 +45,7 @@ public enum AID : uint
     GreaterGateway = 37761, // Boss->self, 4.0s cast, single-target, visual (create portals)
     BladeWarp = 37726, // Boss->self, 4.0s cast, single-target, visual (create swords)
     ForgedTrack = 37727, // Boss->self, 4.0s cast, single-target, visual (tether swords)
-    ForgedTrackVisual = 37728, // Helper->19A, no cast, single-target, ???
+    ForgedTrackVisual = 37728, // Helper->ForgedTrackHelper, no cast, single-target, ???
     ForgedTrackPreview = 37788, // FangBlade->self, 10.9s cast, range 20 width 5 rect
     ForgedTrackAOE = 37789, // FangBlade->self, no cast, range 20 width 5 rect (narrow line)
     FieryEdge = 37762, // FangBlade->self, no cast, single-target, visual (wide/triple line)
@@ -86,28 +84,25 @@ public enum AID : uint
     BurningChains = 37781, // Boss->self, 5.0s cast, single-target, visual (chains)
     BurningChainsAOE = 37782, // Helper->self, no cast, ???
 
-    HalfCircuitCircle = 37739, // Boss->self, 7.0s cast, single-target
-    HalfCircuitDonut = 37740, // Boss->self, 7.0s cast, single-target
+    HalfCircuitCircle = 37739, // Boss->self, 7.0s cast, single-target, visual (circle + side cleave)
+    HalfCircuitDonut = 37740, // Boss->self, 7.0s cast, single-target, visual (donut + side cleave)
     HalfCircuitAOERect = 37791, // Helper->self, 7.3s cast, range 60 width 120 rect
     HalfCircuitAOEDonut = 37792, // Helper->self, 7.0s cast, range 10-30 donut
     HalfCircuitAOECircle = 37793, // Helper->self, 7.0s cast, range 10 circle
+    SmitingCircuitDonut = 37732, // HalfCircuitHelper->self, no cast, single-target, visual
+    SmitingCircuitCircle = 37733, // HalfCircuitHelper->self, no cast, single-target, visual
 
-    SmitingCircuitVisual1 = 37733, // 42B9->self, no cast, single-target
-    SmitingCircuitVisual2 = 37732, // 42B9->self, no cast, single-target
+    Enrage = 39274, // Boss->self, 10.0s cast, range 100 circle
 }
 
 public enum SID : uint
 {
-    //_Gen_ = 2397, // none->FangVollokSmall/42B9, extra=0x2C7/0x2CD
+    //_Gen_ = 2397, // none->FangVollokSmall/HalfCircuitHelper, extra=0x2C7/0x2CD
     Projection = 4047, // none->player, extra=0x0
     //_Gen_Sprint = 481, // none->ProjectionOfTurmoil, extra=0x32
-    //_Gen_Bleeding = 3077, // none->player, extra=0x0
     //_Gen_WindResistanceDownII = 2096, // Helper/BitingWind->player, extra=0x0
-    //_Gen_BrinkOfDeath = 44, // none->player, extra=0x0
     //_Gen_Liftoff = 3262, // BitingWind->player, extra=0x0
-    //_Gen_MagicVulnerabilityUp = 3516, // Helper->player, extra=0x1/0x2/0x3/0x4
     //_Gen_BurningChains = 769, // none->player, extra=0x0
-    //_Gen_Bleeding = 3078, // none->player, extra=0x0
 }
 
 public enum IconID : uint

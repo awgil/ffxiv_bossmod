@@ -1,20 +1,21 @@
-﻿namespace BossMod.Dawntrail.Dungeon.D01Ihuykatumu.D012Drowsie;
+namespace BossMod.Dawntrail.Dungeon.D01Ihuykatumu.D012Drowsie;
 
 public enum OID : uint
 {
-    Boss = 0x4195, // R5.000, x1
-    Helper = 0x233C, // R0.500, x10, 523 type
-    Apollyon = 0x41B9, // R7.000, x1
-    IhuykatumuIvy = 0x419C, // R4.200-8.400, x0 (spawn during fight)
-    BlueClot = 0x4197, // R2.000, x0 (spawn during fight)
-    GreenClot = 0x4196, // R3.500, x0 (spawn during fight)
-    RedClot = 0x4198, // R1.300, x0 (spawn during fight)
-    Mimiclot1 = 0x419B, // R0.800, x0 (spawn during fight)
-    Mimiclot2 = 0x41A0, // R1.200, x0 (spawn during fight)
-    Mimiclot3 = 0x4199, // R1.750, x0 (spawn during fight)
-    Mimiclot4 = 0x41A1, // R1.200, x0 (spawn during fight)
-    Mimiclot5 = 0x419A, // R1.200, x0 (spawn during fight)
-    Mimiclot6 = 0x419F, // R1.750, x0 (spawn during fight)
+    Boss = 0x4195, // R5.0
+
+    Apollyon = 0x41B9, // R7.0
+    IhuykatumuIvy = 0x419C, // R4.2-8.4
+    BlueClot = 0x4197, // R2.0
+    GreenClot = 0x4196, // R3.5
+    RedClot = 0x4198, // R1.3
+    Mimiclot1 = 0x419B, // R0.8
+    Mimiclot2 = 0x41A0, // R1.2
+    Mimiclot3 = 0x4199, // R1.75
+    Mimiclot4 = 0x41A1, // R1.2
+    Mimiclot5 = 0x419A, // R1.2
+    Mimiclot6 = 0x419F, // R1.75
+    Helper = 0x233
 }
 
 public enum AID : uint

@@ -1,4 +1,4 @@
-﻿namespace BossMod.Dawntrail.Dungeon.D02WorqorZormor.D022Kahderyor;
+namespace BossMod.Dawntrail.Dungeon.D02WorqorZormor.D022Kahderyor;
 
 public enum OID : uint
 {
