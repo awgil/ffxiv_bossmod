@@ -98,23 +98,41 @@ public abstract class xbase<AID, TraitID> : LegacyModule where AID : Enum where 
 
     private static bool IsEnemy(Actor? actor) => actor != null && actor.Type is ActorType.Enemy or ActorType.Part && !actor.IsAlly;
 
-    protected (Actor? Best, P Targets) SelectTarget<P>(OptionRef track, Actor? primaryTarget, float range, Func<Actor, P> priorityFunc) where P : struct, IComparable => track.As<Targeting>() switch
-    {
-        Targeting.Auto => FindBetterTargetBy(primaryTarget, range, priorityFunc),
-        Targeting.AutoPrimary => throw new NotImplementedException(),
-        _ => (primaryTarget, primaryTarget == null ? default : priorityFunc(primaryTarget))
-    };
+    protected (Actor? Best, int Priority) SelectTarget(
+        OptionRef track,
+        Actor? primaryTarget,
+        float range,
+        Func<Actor, Actor, bool> isInAOE
+    ) => SelectTarget(track, primaryTarget, range, isInAOE, (numTargets, _) => numTargets);
 
-    protected int NumSplashTargets(Actor primary) => Hints.NumPriorityTargetsInAOECircle(primary.Position, 5);
-    protected (int Targets, uint HP) SplashTargetsPlusHP(Actor primary)
+    protected (Actor? Best, P Priority) SelectTarget<P>(
+        OptionRef track,
+        Actor? primaryTarget,
+        float range,
+        Func<Actor, Actor, bool> isInAOE,
+        Func<int, Actor, P> prioFunc
+    ) where P : struct, IComparable
     {
-        var targets = NumSplashTargets(primary);
-        return (targets, targets > 1 ? primary.HPMP.CurHP : 0);
+        P targetPrio(Actor a) => prioFunc(Hints.NumPriorityTargetsInAOE(enemy => isInAOE(a, enemy.Actor)), a);
+
+        return track.As<Targeting>() switch
+        {
+            Targeting.Auto => FindBetterTargetBy(primaryTarget, range, targetPrio),
+            Targeting.AutoPrimary => primaryTarget == null ? (null, default) : FindBetterTargetBy(
+                primaryTarget,
+                range,
+                targetPrio,
+                enemy => isInAOE(enemy.Actor, primaryTarget)
+            ),
+            _ => (primaryTarget, primaryTarget == null ? default : targetPrio(primaryTarget))
+        };
     }
 
-    protected int NumMeleeAOETargets() => NumSplashTargets(Player);
+    protected bool IsSplashTarget(Actor primary, Actor other) => Hints.TargetInAOECircle(other, primary.Position, 5);
 
-    protected int Num25yRectTargets(Actor primary) => Hints.NumPriorityTargetsInAOERect(Player.Position, (primary.Position - Player.Position).Normalized(), 25, 4);
+    protected int NumMeleeAOETargets() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
+
+    protected bool Is25yRectTarget(Actor primary, Actor other) => Hints.TargetInAOERect(other, Player.Position, (primary.Position - Player.Position).Normalized(), 25, 4);
 
     public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget)
     {

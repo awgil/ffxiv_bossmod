@@ -302,9 +302,9 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : xbase<AID
         FinishingMoveLeft = StatusLeft(SID.FinishingMoveReady);
         DanceOfTheDawnLeft = StatusLeft(SID.DanceOfTheDawnReady);
 
-        (BestFan4Target, NumFan4Targets) = SelectTarget(targeting, primaryTarget, 15, CalcNumFan4Targets);
-        (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(targeting, primaryTarget, 25, NumSplashTargets);
-        (BestStarfallTarget, NumStarfallTargets) = SelectTarget(targeting, primaryTarget, 25, Num25yRectTargets);
+        (BestFan4Target, NumFan4Targets) = SelectTarget(targeting, primaryTarget, 15, IsFan4Target);
+        (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(targeting, primaryTarget, 25, IsSplashTarget);
+        (BestStarfallTarget, NumStarfallTargets) = SelectTarget(targeting, primaryTarget, 25, Is25yRectTarget);
 
         NumDanceTargets = Hints.NumPriorityTargetsInAOECircle(Player.Position, 15);
         NumAOETargets = strategy.Option(Track.AOE).As<AOEStrategy>() switch
@@ -318,14 +318,15 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : xbase<AID
             && StatusLeft(SID.ClosedPosition) == 0
             && _state.CD(AID.ClosedPosition) == 0
             && !IsDancing
-            && FindDancePartner() is Actor partner)
+            && FindDancePartner() is Actor partner
+            && partner.IsTargetable)
             PushGCD(AID.ClosedPosition, partner);
 
         CalcNextBestGCD(strategy, primaryTarget);
         QueueOGCD((deadline, _) => CalcNextBestOGCD(strategy, primaryTarget, deadline));
     }
 
-    private int CalcNumFan4Targets(Actor primary) => Hints.NumPriorityTargetsInAOECone(Player.Position, 15, (primary.Position - Player.Position).Normalized(), 60.Degrees());
+    private bool IsFan4Target(Actor primary, Actor other) => Hints.TargetInAOECone(other, Player.Position, 15, (primary.Position - Player.Position).Normalized(), 60.Degrees());
 
     private Actor? FindDancePartner() => World.Party.WithoutSlot().Exclude(Player).MaxBy(p => p.Class switch
         {
