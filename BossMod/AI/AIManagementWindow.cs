@@ -97,5 +97,12 @@ sealed class AIManagementWindow : UIWindow
 
     public override void OnClose() => SetVisible(false);
 
-    public void UpdateTitle() => WindowName = $"AI: {(_manager.Beh != null ? "on" : "off")}, master={_manager.Autorot.WorldState.Party[_manager.MasterSlot]?.Name}{_windowID}";
+    public void UpdateTitle()
+    {
+        var masterSlot = _manager?.MasterSlot ?? -1;
+        var masterName = _manager?.Autorot?.WorldState?.Party[masterSlot]?.Name ?? "unknown";
+        var masterSlotNumber = masterSlot != -1 ? (masterSlot + 1).ToString() : "N/A";
+
+        WindowName = $"AI: {(_manager?.Beh != null ? "on" : "off")}, master={masterName}[{masterSlotNumber}]{_windowID}";
+    }
 }

@@ -81,7 +81,7 @@ class AuraSphere(BossModule module) : BossComponent(module)
 {
     private readonly IReadOnlyList<Actor> _orbs = module.Enemies(OID.AuraSphere);
 
-    public IEnumerable<Actor> ActiveOrbs => _orbs.Where(orb => !orb.IsDead);
+    private IEnumerable<Actor> ActiveOrbs => _orbs.Where(orb => !orb.IsDead);
 
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -121,26 +121,28 @@ class GreatFlood(BossModule module) : Components.KnockbackFromCastTarget(module,
     {
         base.OnCastStarted(caster, spell);
         if (spell.Action == WatchedAction)
-            Data = (caster.Position, caster.Rotation, spell.NPCFinishAt.AddSeconds(0.85f));
+            Data = (caster.Position, caster.Rotation, spell.NPCFinishAt.AddSeconds(1));
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var source = Sources(slot, actor).FirstOrDefault();
         var component = Module.FindComponent<Allfire>()!.ActiveAOEs(slot, actor).Any();
-        if (!component && (source != default || Data.Item3 > Module.WorldState.CurrentTime)) // 0.85s delay to wait for action effect
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Data.Item1, Data.Item2, 15, 0, 20), Data.Item3);
+        if (!component && (source != default || Data.Item3 > Module.WorldState.CurrentTime)) // 1s delay to wait for action effect
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Data.Item1, Data.Item2, 12, 0, 20), Data.Item3);
     }
 }
 
 class Allfire(BossModule module) : Components.GenericAOEs(module)
 {
+    private const string risk2Hint = "Walk into safespot for knockback!";
+    private const string stayHint = "Wait inside safespot for knockback!";
     private bool tutorial;
     private static readonly AOEShapeRect rect = new(5, 5, 5);
     private readonly List<AOEInstance> _aoesWave1 = [];
     private readonly List<AOEInstance> _aoesWave2 = [];
     private readonly List<AOEInstance> _aoesWave3 = [];
-    private static readonly AOEShapeRect safespot = new(15, 10, InvertForbiddenZone: true);
+    private static readonly AOEShapeRect safespot = new(12, 10, InvertForbiddenZone: true);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -185,10 +187,23 @@ class Allfire(BossModule module) : Components.GenericAOEs(module)
         else if ((AID)spell.Action.ID == AID.Allfire3)
             _aoesWave3.Clear();
     }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (ActiveAOEs(slot, actor).Any(c => !(c.Shape == safespot)))
+            base.AddHints(slot, actor, hints);
+        else if (ActiveAOEs(slot, actor).Any(c => c.Shape == safespot && !c.Check(actor.Position)))
+            hints.Add(risk2Hint);
+        else if (ActiveAOEs(slot, actor).Any(c => c.Shape == safespot && c.Check(actor.Position)))
+            hints.Add(stayHint, false);
+    }
 }
 
 class VolcanicDrop(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.VolcanicDrop), 6);
 class EnduringGlory(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EnduringGlory));
+class Windswrath1Raidwide(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Windswrath1));
+class Windswrath2Raidwide(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Windswrath2));
+class GreatFloodRaidwide(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.GreatFlood));
 
 class Windswrath1(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Windswrath1), 15)
 {
@@ -198,12 +213,12 @@ class Windswrath1(BossModule module) : Components.KnockbackFromCastTarget(module
     {
         base.OnCastStarted(caster, spell);
         if (spell.Action == WatchedAction)
-            activation = spell.NPCFinishAt.AddSeconds(0.8f);
+            activation = spell.NPCFinishAt.AddSeconds(1);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Sources(slot, actor).Any() || activation > Module.WorldState.CurrentTime) // 0.8s delay to wait for action effect
+        if (Sources(slot, actor).Any() || activation > Module.WorldState.CurrentTime) // 1s delay to wait for action effect
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 5));
     }
 }
@@ -218,14 +233,14 @@ class Windswrath2(BossModule module) : Components.KnockbackFromCastTarget(module
     {
         base.OnCastStarted(caster, spell);
         if (spell.Action == WatchedAction)
-            activation = spell.NPCFinishAt.AddSeconds(0.8f);
+            activation = spell.NPCFinishAt.AddSeconds(1);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var forbidden = new List<Func<WPos, float>>();
         var component = Module.FindComponent<Whirlwind>()?.ActiveAOEs(slot, actor)?.ToList();
-        if (component != null && component.Count != 0 && Sources(slot, actor).Any() || activation > Module.WorldState.CurrentTime) // 0.8s delay to wait for action effect
+        if (component != null && component.Count != 0 && Sources(slot, actor).Any() || activation > Module.WorldState.CurrentTime) // 1s delay to wait for action effect
         {
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 5));
             foreach (var c in component!)
@@ -257,12 +272,15 @@ class D023GurfurlurStates : StateMachineBuilder
             .ActivateOnEnter<AuraSphere>()
             .ActivateOnEnter<LithicImpact>()
             .ActivateOnEnter<GreatFlood>()
+            .ActivateOnEnter<GreatFloodRaidwide>()
             .ActivateOnEnter<Allfire>()
             .ActivateOnEnter<VolcanicDrop>()
             .ActivateOnEnter<EnduringGlory>()
             .ActivateOnEnter<SledgeHammer>()
             .ActivateOnEnter<Windswrath1>()
-            .ActivateOnEnter<Windswrath2>();
+            .ActivateOnEnter<Windswrath1Raidwide>()
+            .ActivateOnEnter<Windswrath2>()
+            .ActivateOnEnter<Windswrath2Raidwide>();
     }
 }
 

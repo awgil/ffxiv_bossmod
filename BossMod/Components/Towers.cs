@@ -63,7 +63,7 @@ public class CastTowers(BossModule module, ActionID aid, float radius, int minSo
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            Towers.Add(new(DeterminePosition(caster, spell), Radius, MinSoakers, MaxSoakers));
+            Towers.Add(new(DeterminePosition(caster, spell), Radius, MinSoakers, MaxSoakers, activation: spell.NPCFinishAt));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

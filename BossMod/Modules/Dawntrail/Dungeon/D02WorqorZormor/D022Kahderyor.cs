@@ -109,24 +109,31 @@ class WindEarthShot(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class WindShotDonut(BossModule module) : Components.GenericAOEs(module)
+class WindShotStack(BossModule module) : Components.UniformStackSpread(module, 2, 0, 4)
 {
+    // this is a donut targeted on each player, it is best solved by stacking
     private static readonly AOEShapeDonut donut = new(5, 10);
     private DateTime activation;
     private readonly List<Actor> actors = [];
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        foreach (var a in actors)
-            yield return new(donut, a.Position, default, activation, Risky: false);
-    }
 
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.WindShot)
         {
-            actors.Add(actor);
             activation = Module.WorldState.FutureTime(6);
+            actors.Add(actor);
+        }
+    }
+
+    public override void Update()
+    {
+        var player = Module.Raid.Player();
+        Stacks.Clear();
+        if (actors.Count > 0 && player != null)
+        {
+            var closestTarget = Raid.WithoutSlot().Exclude(player).Closest(player.Position);
+            if (closestTarget != default)
+                AddStack(closestTarget, activation);
         }
     }
 
@@ -135,28 +142,24 @@ class WindShotDonut(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.WindShot)
             actors.Clear();
     }
-}
-
-class WindShotStack(BossModule module) : Components.UniformStackSpread(module, 2, 4)
-{
-    // this is a donut targeted on each player, it is best solved by stacking
-    public override void OnEventIcon(Actor actor, uint iconID)
-    {
-        if (iconID == (uint)IconID.WindShot && Stacks.Count == 0)
-            AddStack(actor, Module.WorldState.FutureTime(6));
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.WindShot)
-            Stacks.Clear();
-    }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Stacks.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Stacks[0].Target.Position, 2));
+        {
+            var closestTarget = Raid.WithoutSlot().Exclude(actor).Closest(actor.Position);
+            if (closestTarget != null)
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closestTarget.Position, 2), ActiveStacks.First().Activation);
+        }
     }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        foreach (var c in actors)
+            donut.Draw(Arena, c.Position, default, ArenaColor.AOE);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc) { }
 }
 
 class WindUnbound(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WindUnbound));
@@ -165,7 +168,10 @@ class CrystallineCrush(BossModule module) : Components.CastTowers(module, Action
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Towers.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 6));
+        {
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 6), Towers[0].Activation);
+            hints.PredictedDamage.Add((Raid.WithSlot().Mask(), Towers[0].Activation));
+        }
     }
 }
 
@@ -182,7 +188,6 @@ class D022KahderyorStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<WindShotStack>()
-            .ActivateOnEnter<WindShotDonut>()
             .ActivateOnEnter<WindEarthShot>()
             .ActivateOnEnter<WindUnbound>()
             .ActivateOnEnter<CrystallineStorm>()

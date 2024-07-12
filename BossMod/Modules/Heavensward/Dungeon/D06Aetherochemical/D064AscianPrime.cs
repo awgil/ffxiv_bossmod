@@ -102,27 +102,58 @@ public enum TetherID : uint
     ArcaneSphere = 197 // ArcaneSphere->Boss
 }
 
-class AncientCircle(BossModule module) : Components.UniformStackSpread(module, 4, 4)
+class AncientCircle(BossModule module) : Components.UniformStackSpread(module, 3, 0, 4)
 {
     // this is a donut targeted on each player, it is best solved by stacking
     // regular stack component won't work because this is self targeted
+    private static readonly AOEShapeDonut donut = new(10, 20);
+    private DateTime activation;
+    private readonly List<Actor> actors = [];
+
     public override void OnEventIcon(Actor actor, uint iconID)
     {
-        if (iconID == (uint)IconID.AncientCircle && Stacks.Count == 0)
-            AddStack(actor, Module.WorldState.FutureTime(8));
+        if (iconID == (uint)IconID.AncientCircle)
+        {
+            activation = Module.WorldState.FutureTime(8);
+            actors.Add(actor);
+        }
+    }
+
+    public override void Update()
+    {
+        var player = Module.Raid.Player();
+        Stacks.Clear();
+        if (actors.Count > 0 && player != null)
+        {
+            var closestTarget = Raid.WithoutSlot().Exclude(player).Closest(player.Position);
+            if (closestTarget != default)
+                AddStack(closestTarget, activation);
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.AncientCircle)
-            Stacks.Clear();
+            actors.Clear();
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Stacks.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Stacks[0].Target.Position, 4));
+        {
+            var closestTarget = Raid.WithoutSlot().Exclude(actor).Closest(actor.Position);
+            if (closestTarget != null)
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closestTarget.Position, 2), ActiveStacks.First().Activation);
+        }
     }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        foreach (var c in actors)
+            donut.Draw(Arena, c.Position, default, ArenaColor.AOE);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc) { }
 }
 
 class DarkWhispers(BossModule module) : Components.UniformStackSpread(module, 0, 6, alwaysShowSpreads: true)

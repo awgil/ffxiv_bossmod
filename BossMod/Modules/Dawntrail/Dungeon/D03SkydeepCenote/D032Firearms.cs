@@ -1,21 +1,18 @@
-﻿namespace BossMod.Dawntrail.Dungeon.D03Skydeep.D032Firearms;
+﻿namespace BossMod.Dawntrail.Dungeon.D03SkydeepCenote.D032Firearms;
 
 public enum OID : uint
 {
-    Boss = 0x4184, // R4.620, x1
-    Helper = 0x233C, // R0.500, x20, 523 type
-    Actor1e8f2f = 0x1E8F2F, // R0.500, x1, EventObj type
-    Actor1e8fb8 = 0x1E8FB8, // R2.000, x4, EventObj type
-    Actor1ea2ef = 0x1EA2EF, // R0.500, x1, EventObj type
+    Boss = 0x4184, // R4.62
+    Helper = 0x233C
 }
 
 public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast, single-target
+    Teleport = 36451, // Boss->location, no cast, single-target
 
     DynamicDominance = 36448, // Boss->self, 5.0s cast, range 70 circle
     MirrorManeuver = 39139, // Boss->self, 3.0s cast, single-target
-    UnknownAbility = 36451, // Boss->location, no cast, single-target
 
     ThunderlightBurstVisual = 36443, // Boss->self, 8.0s cast, single-target
     ThunderlightBurstAOE = 36445, // Helper->self, 10.9s cast, range 35 circle
@@ -35,20 +32,29 @@ public enum AID : uint
 
     Pummel = 36447, // Boss->player, 5.0s cast, single-target
 
-    ThunderlightFlurry = 36450, // Helper->player, 5.0s cast, range 6 circle
+    ThunderlightFlurry = 36450 // Helper->player, 5.0s cast, range 6 circle
 }
 
-public enum SID : uint
+class DynamicDominanceArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    VulnerabilityUp = 1789, // Helper->player, extra=0x1/0x2/0x3
-    Burns1 = 3065, // none->player, extra=0x0
-    Burns2 = 3066, // none->player, extra=0x0
-}
+    private static readonly AOEShapeCustom square = new([new Square(D032Firearms.ArenaCenter, 25)], [new Square(D032Firearms.ArenaCenter, 20)]);
+    private AOEInstance? _aoe;
 
-public enum IconID : uint
-{
-    Tankbuster = 218, // player
-    Spreadmarker = 139, // player
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.DynamicDominance && Module.Arena.Bounds == D032Firearms.StartingBounds)
+            _aoe = new(square, Module.Center, default, spell.NPCFinishAt.AddSeconds(0.6f));
+    }
+
+    public override void OnEventEnvControl(byte index, uint state)
+    {
+        if (state == 0x00020001 && index == 0x14)
+        {
+            Module.Arena.Bounds = D032Firearms.DefaultBounds;
+            _aoe = null;
+        }
+    }
 }
 
 class DynamicDominance(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.DynamicDominance));
@@ -59,10 +65,10 @@ class ThunderlightBurst2(BossModule module) : Components.SelfTargetedAOEs(module
 class ThunderlightBurst3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ThunderlightBurst3), new AOEShapeRect(35, 4));
 class ThunderlightBurst4(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ThunderlightBurst4), new AOEShapeRect(36, 4));
 
-class Artillery1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Artillery1), new AOEShapeRect(10, 5));
-class Artillery2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Artillery2), new AOEShapeRect(10, 5));
-class Artillery3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Artillery3), new AOEShapeRect(10, 5));
-class Artillery4(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Artillery4), new AOEShapeRect(10, 5));
+class Artillery1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Artillery1), new AOEShapeRect(5, 5, 5));
+class Artillery2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Artillery2), new AOEShapeRect(5, 5, 5));
+class Artillery3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Artillery3), new AOEShapeRect(5, 5, 5));
+class Artillery4(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Artillery4), new AOEShapeRect(5, 5, 5));
 
 class Pummel(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Pummel));
 class ThunderlightFlurry(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.ThunderlightFlurry), 6);
@@ -72,6 +78,7 @@ class D032FirearmsStates : StateMachineBuilder
     public D032FirearmsStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<DynamicDominanceArenaChange>()
             .ActivateOnEnter<DynamicDominance>()
             .ActivateOnEnter<ThunderlightBurstAOE>()
             .ActivateOnEnter<ThunderlightBurst1>()
@@ -87,5 +94,10 @@ class D032FirearmsStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 829, NameID = 12888)]
-public class D032Firearms(WorldState ws, Actor primary) : BossModule(ws, primary, new(-85, -155), new ArenaBoundsSquare(20));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 829, NameID = 12888)]
+public class D032Firearms(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, StartingBounds)
+{
+    public static readonly WPos ArenaCenter = new(-85, -155);
+    public static readonly ArenaBoundsSquare StartingBounds = new(24.5f);
+    public static readonly ArenaBoundsSquare DefaultBounds = new(20);
+}
