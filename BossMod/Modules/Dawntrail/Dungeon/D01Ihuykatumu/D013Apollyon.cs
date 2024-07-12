@@ -45,8 +45,8 @@ class CuttingWind(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(4);
 
-    private readonly List<WPos> _northPositions = [new(-111.688f, 253.942f), new(-102.276f, 264.313f), new(-108.922f, 276.528f)];
-    private readonly List<WPos> _southPositions = [new(-102.935f, 274.357f), new(-108.935f, 262.224f), new(-105.733f, 252.340f)];
+    private readonly List<WPos> _northPositions = [new(-111.69f, 253.94f), new(-102.28f, 264.31f), new(-108.92f, 276.53f)];
+    private readonly List<WPos> _southPositions = [new(-102.93f, 274.36f), new(-108.68f, 262.22f), new(-105.73f, 252.34f)];
 
     private static readonly float[] CastTimers = [8.9f, 16.9f, 24.9f];
     private static readonly List<Angle> Rotations = [0.Degrees(), 45.Degrees(), 90.Degrees(), 135.Degrees()];
