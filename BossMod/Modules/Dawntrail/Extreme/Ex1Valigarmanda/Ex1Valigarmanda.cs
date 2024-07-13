@@ -16,5 +16,5 @@ class TulidisasterEnrage2(BossModule module) : Components.CastCounter(module, Ac
 class TulidisasterEnrage3(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.TulidisasterEnrageAOE3));
 
 // TODO: investigate how exactly are omens drawn for northern cross & susurrant breath
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 833, NameID = 12854, PlanLevel = 100)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "veyn", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 833, NameID = 12854, PlanLevel = 100)]
 public class Ex1Valigarmanda(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsRect(20, 15));
