@@ -89,11 +89,8 @@ class DualBlowsSteeledStrike(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID.DualBlows1 or AID.DualBlows2 or AID.DualBlows3 or AID.DualBlows4 or AID.SteeledStrike1 or AID.SteeledStrike2)
-        {
-            if (_aoes.Count > 0)
-                _aoes.RemoveAt(0);
-        }
+        if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.DualBlows1 or AID.DualBlows2 or AID.DualBlows3 or AID.DualBlows4 or AID.SteeledStrike1 or AID.SteeledStrike2)
+            _aoes.RemoveAt(0);
     }
 }
 

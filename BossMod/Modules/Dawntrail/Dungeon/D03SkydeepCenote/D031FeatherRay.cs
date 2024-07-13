@@ -110,13 +110,10 @@ class Burst(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    private void AddAOEs(float offsetX, DateTime activation)
+    private void AddAOEs(float offset, DateTime activation)
     {
         foreach (var orb in Orbs)
-        {
-            var position = new WPos(orb.Position.X + offsetX, orb.Position.Z);
-            _aoes.Add(new AOEInstance(circle, position, default, activation));
-        }
+            _aoes.Add(new AOEInstance(circle, orb.Position + new WDir(offset, 0), default, activation));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

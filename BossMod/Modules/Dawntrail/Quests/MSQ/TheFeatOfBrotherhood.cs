@@ -111,11 +111,8 @@ class DualPyresSteelfoldStrike(BossModule module) : Components.GenericAOEs(modul
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID.DualPyres1 or AID.DualPyres2 or AID.DualPyres3 or AID.DualPyres4 or AID.SteelfoldStrike)
-        {
-            if (_aoes.Count > 0)
-                _aoes.RemoveAt(0);
-        }
+        if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.DualPyres1 or AID.DualPyres2 or AID.DualPyres3 or AID.DualPyres4 or AID.SteelfoldStrike)
+            _aoes.RemoveAt(0);
     }
 }
 
