@@ -108,6 +108,7 @@ sealed class AIManager : IDisposable
 
         _masterSlot = PartyState.PlayerSlot;
         _controller.Clear();
+        _autorot.Hints.ForceMovementIn = float.MaxValue;
     }
 
     private void SwitchToFollow(int masterSlot)
