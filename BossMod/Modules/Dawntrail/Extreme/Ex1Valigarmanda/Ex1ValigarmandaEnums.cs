@@ -75,6 +75,7 @@ public enum AID : uint
     VolcanicDropVisual = 36837, // Helper->location, no cast, range 20 circle, visual (volcano)
     VolcanicDropAOE = 36838, // Helper->location, no cast, range 20 circle, voidzone
     MountainFire = 36876, // Boss->self, 4.0s cast, single-target, visual (tankbuster tower)
+
     MountainFireMoveNToNW = 36877, // Boss->self, no cast, single-target
     MountainFireMoveNToNE = 36878, // Boss->self, no cast, single-target
     MountainFireMoveNWToN = 36879, // Boss->self, no cast, single-target
@@ -85,6 +86,7 @@ public enum AID : uint
     MountainFireConeNW = 36884, // Boss->self, no cast, single-target, visual (cone from NW)
     MountainFireConeNE = 36885, // Boss->self, no cast, single-target, visual (cone from NE)
     MountainFireTower = 36889, // Helper->self, 3.5s cast, range 3 circle, tower
+    UnmitigatedExplosion = 36891, // Helper->self, no cast, range 80 circle, tower fail
     MountainFireConeAOE = 36890, // Helper->self, no cast, range 40 ?-degree cone
     MountainFireEndN = 36886, // Boss->self, no cast, single-target, visual (mechanic end)
     MountainFireEndNW = 36887, // Boss->self, no cast, single-target, visual (mechanic end)
@@ -105,6 +107,7 @@ public enum AID : uint
     HailOfFeathersAOE5 = 36897, // Helper->self, 18.0s cast, range 80 circle with ? falloff
     HailOfFeathersAOE6 = 36898, // Helper->self, 21.0s cast, range 80 circle with ? falloff
     BlightedBolt = 36831, // Boss->self, 5.0+0.8s cast, single-target, visual (feather explosion)
+    BlightedBolt2 = 36832, // Helper->player, no cast, range 3 circle
     BlightedBoltAOE = 36833, // Helper->FeatherOfRuin, 5.8s cast, range 8 circle
     ThunderousBreath = 36834, // Boss->self, 7.0+0.9s cast, single-target, visual (lines + require levitation)
     ThunderousBreathAOE = 36835, // Helper->self, 7.9s cast, range 50 ?-degree cone
@@ -120,6 +123,7 @@ public enum AID : uint
     CalamitousEcho = 36870, // Helper->self, 5.0s cast, range 40 20-degree cone
     CalamitousCryTargetFirst = 34722, // Helper->player, no cast, single-target, target select for first wild charge
     CalamitousCryTargetRest = 26708, // Helper->player, no cast, single-target, target select for second+ wild charges
+    CalamitousCryEnrage = 36868, // Helper->self, no cast, range 80 width 6 rect
     CalamitousCryAOE = 36869, // Helper->self, no cast, range 80 width 6 rect, wild charge
     RuinForetoldBeaconsDead1 = 38245, // FlameKissedBeacon->Boss, no cast, single-target, visual (all 3 beacons are dead)
     RuinForetoldBeaconsDead2 = 38246, // ThunderousBeacon->Boss, no cast, single-target, visual (all 3 beacons are dead)

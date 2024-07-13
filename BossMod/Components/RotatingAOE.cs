@@ -45,7 +45,10 @@ public class GenericRotatingAOE(BossModule module) : GenericAOEs(module)
     {
         ++NumCasts;
 
-        ref var s = ref Sequences.AsSpan()[index];
+        if (index < 0 || index >= Sequences.Count)
+            return;
+
+        var s = Sequences[index];
         if (--s.NumRemainingCasts <= 0 && removeWhenFinished)
         {
             Sequences.RemoveAt(index);
@@ -54,6 +57,7 @@ public class GenericRotatingAOE(BossModule module) : GenericAOEs(module)
         {
             s.Rotation += s.Increment;
             s.NextActivation = currentTime.AddSeconds(s.SecondsBetweenActivations);
+            Sequences[index] = s;
         }
     }
 

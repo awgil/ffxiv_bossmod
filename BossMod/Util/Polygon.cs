@@ -367,21 +367,26 @@ public static class PolygonUtil
         return point.X < blue;
     }
 
-    public static float DistanceToEdge(WPos point, (WPos p1, WPos p2) edge)
+    public static float DistanceToEdge(WPos p, (WPos p1, WPos p2) edge)
     {
         var (p1, p2) = edge;
-        var edgeVector = p2 - p1;
-        var pointVector = point - p1;
-        var edgeLengthSquared = edgeVector.LengthSq();
+        var edgeDir = p2 - p1;
+        var len = edgeDir.Length();
+        if (len == 0)
+            return (p - p1).Length();
 
-        var t = Math.Max(0, Math.Min(1, pointVector.Dot(edgeVector) / edgeLengthSquared));
-        var projection = p1 + t * edgeVector;
-        return (point - projection).Length();
+        var proj = (p - p1).Dot(edgeDir) / len;
+        if (proj < 0)
+            return (p - p1).Length();
+        if (proj > len)
+            return (p - p2).Length();
+
+        var closestPoint = p1 + edgeDir * (proj / len);
+        return (p - closestPoint).Length();
     }
 
-    public static (WPos, WPos) ConvertToWPos(WPos origin, (WDir, WDir) edge)
+    public static (WPos p1, WPos p2) ConvertToWPos(WPos origin, (WDir p1, WDir p2) edge)
     {
-        var (p1, p2) = edge;
-        return (new WPos(origin.X + p1.X, origin.Z + p1.Z), new WPos(origin.X + p2.X, origin.Z + p2.Z));
+        return (new WPos(origin.X + edge.p1.X, origin.Z + edge.p1.Z), new WPos(origin.X + edge.p2.X, origin.Z + edge.p2.Z));
     }
 }
