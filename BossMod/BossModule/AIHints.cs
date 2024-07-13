@@ -39,6 +39,7 @@ public sealed class AIHints
 
     // amount of time remaining we have to finish a slidecast
     // this is only set to a sensible value by AIBehaviour; otherwise it will be 0 if any movement keys are being pressed or infinity otherwise
+    // TODO: reconsider...
     public float ForceMovementIn = float.MaxValue;
 
     // positioning: list of shapes that are either forbidden to stand in now or will be in near future

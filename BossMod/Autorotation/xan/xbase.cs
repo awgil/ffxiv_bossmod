@@ -80,9 +80,9 @@ public abstract class xbase<AID, TraitID> : LegacyModule where AID : Enum where 
             return;
         }
 
-        if (Player.DistanceTo(primaryTarget) > range)
+        if (Player.DistanceToHitbox(primaryTarget) > range)
         {
-            primaryTarget = Hints.PriorityTargets.Where(x => x.Actor.DistanceTo(Player) <= range).MaxBy(x => x.Actor.HPMP.CurHP)?.Actor;
+            primaryTarget = Hints.PriorityTargets.Where(x => x.Actor.DistanceToHitbox(Player) <= range).MaxBy(x => x.Actor.HPMP.CurHP)?.Actor;
             // Hints.ForcedTarget = primaryTarget;
         }
     }
