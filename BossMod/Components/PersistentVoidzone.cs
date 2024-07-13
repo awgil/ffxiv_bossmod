@@ -39,7 +39,7 @@ public class PersistentVoidzoneAtCastTarget(BossModule module, float radius, Act
     {
         if (_predictedByEvent.Count > 0)
             foreach (var s in Sources(Module))
-                _predictedByEvent.RemoveAll(p => p.pos.InCircle(s.Position, 3));
+                _predictedByEvent.RemoveAll(p => p.pos.InCircle(s.Position, 6));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

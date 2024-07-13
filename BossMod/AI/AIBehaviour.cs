@@ -57,6 +57,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         if (!forbidActions)
         {
             autorot.Preset = target.Target != null ? AIPreset : null;
+            autorot.Hints.ForceMovementIn = _maxCastTime;
         }
 
         UpdateMovement(player, master, target, !forbidActions ? autorot.Hints.ActionsToExecute : null);
