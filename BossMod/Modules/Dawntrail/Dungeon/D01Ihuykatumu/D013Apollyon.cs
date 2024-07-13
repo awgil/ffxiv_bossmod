@@ -30,78 +30,57 @@ class Blade(BossModule module) : Components.SingleTargetCast(module, ActionID.Ma
 class HighWind(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HighWind));
 class BladesOfFamine(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BladesOfFamine), new AOEShapeRect(50, 6));
 class WingOfLightning(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WingOfLightning), new AOEShapeCone(40, 22.5f.Degrees()), maxCasts: 8);
-class LightningHelper(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.LightningAOE));
+class LightningHelper(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.LightningAOE).Where(x => x.EventState != 7));
 class ThunderIII(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.ThunderIII), 6);
 class BladeAOE(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.BladeAOE), new AOEShapeCircle(6), centerAtTarget: true);
-class WindSickle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WindSickle), new AOEShapeDonut(6, 60));
+class WindSickle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WindSickle), new AOEShapeDonut(5, 60));
 class RazorStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RazorStorm), new AOEShapeRect(40, 20));
 class Levinsickle(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Levinsickle), 4);
 class LevinsickleSpark(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LevinsickleSpark), 4);
 
-// first aoe is 10 seconds after windwhistle
-// rest are 8 seconds after previous
-class Whirlwind(BossModule module) : Components.GenericAOEs(module)
+class CuttingWind(BossModule module) : Components.GenericAOEs(module)
 {
-    private int _activations;
-    private DateTime _nextActivation;
+    private readonly List<AOEInstance> _aoes = [];
+    private static readonly AOEShapeRect Shape = new(36, 4, 36);
 
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(4);
+
+    private readonly List<WPos> _northPositions = [new(-111.69f, 253.94f), new(-102.28f, 264.31f), new(-108.92f, 276.53f)];
+    private readonly List<WPos> _southPositions = [new(-102.93f, 274.36f), new(-108.68f, 262.22f), new(-105.73f, 252.34f)];
+
+    private static readonly float[] CastTimers = [8.9f, 16.9f, 24.9f];
     private static readonly List<Angle> Rotations = [0.Degrees(), 45.Degrees(), 90.Degrees(), 135.Degrees()];
 
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    private void AddAOEs(WPos pos, float delay)
     {
-        if ((AID)spell.Action.ID == AID.Windwhistle)
-            _nextActivation = WorldState.FutureTime(10);
+        foreach (var angle in Rotations)
+            _aoes.Add(new(Shape, pos, angle, Module.WorldState.FutureTime(delay)));
     }
 
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    public override void OnActorCreated(Actor actor)
     {
-        foreach (var c in ActiveAOEs(pcSlot, pc))
+        if ((OID)actor.OID == OID.Whirlwind)
         {
-            c.Shape.Draw(Arena, c.Origin, c.Rotation, c.Color);
-            c.Shape.Outline(Arena, c.Origin, c.Rotation, ArenaColor.AOE);
+            var coords = actor.Position.Z < 265 ? _northPositions : _southPositions;
+            foreach (var (c, d) in coords.Zip(CastTimers))
+                AddAOEs(c, d);
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.Cuttingwind)
-        {
-            _activations += 1;
-            _nextActivation = WorldState.FutureTime(8);
-        }
+        if (_aoes.Count > 0 && (AID)spell.Action.ID == AID.Cuttingwind)
+            _aoes.RemoveAt(0);
     }
+}
 
-    public override void OnActorDestroyed(Actor actor)
+class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Whirlwind))
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        _activations = 0;
-        _nextActivation = default;
-    }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_activations >= 12)
-            yield break;
-
-        var whirlwind = Module.Enemies(OID.Whirlwind).FirstOrDefault();
-        if (whirlwind == null)
-            yield break;
-
-        var whirlyHelper = Module.Enemies(OID.Helper).FirstOrDefault(x => x.NameID == 12715);
-        if (whirlyHelper == null)
-            yield break;
-
-        foreach (var angle in Rotations)
-        {
-            yield return new AOEInstance(new AOEShapeRect(72, 4, 72), whirlwind.Position, angle, _nextActivation, Shade(_nextActivation), _nextActivation < WorldState.FutureTime(4));
-        }
-    }
-
-    private uint Shade(DateTime activation)
-    {
-        var clampedETA = Math.Clamp((activation - WorldState.CurrentTime).TotalSeconds, 0, 4);
-        var opacity = 1 - clampedETA / 4;
-        var alpha = (uint)(opacity * 96) + 32;
-        return 0x008080 + alpha * 0x1000000;
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (Sources(Module).FirstOrDefault() is Actor w)
+            hints.AddForbiddenZone(new AOEShapeRect(6, 4, 4), w.Position, w.Rotation);
     }
 }
 
@@ -122,7 +101,9 @@ class D013ApollyonStates : StateMachineBuilder
             .ActivateOnEnter<RazorStorm>()
             .ActivateOnEnter<Levinsickle>()
             .ActivateOnEnter<LevinsickleSpark>()
-            .ActivateOnEnter<Whirlwind>();
+            .ActivateOnEnter<CuttingWind>()
+            .ActivateOnEnter<Whirlwind>()
+            ;
     }
 }
 
