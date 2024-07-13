@@ -13,9 +13,10 @@ class Stance(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
+        // TODO: origin should be spell.LocXZ (once it's fully fixed)
         (AOEShape? shape, WPos origin) = (AID)spell.Action.ID switch
         {
-            AID.SusurrantBreathAOE => (_shapeCone, caster.Position), // TODO: don't think origin is correct here...
+            AID.SusurrantBreathAOE => (_shapeCone, new(100, 75)),
             AID.SlitheringStrikeAOE => (_shapeOut, caster.Position),
             AID.StranglingCoilAOE => (_shapeIn, Module.Center),
             _ => ((AOEShape?)null, default(WPos))

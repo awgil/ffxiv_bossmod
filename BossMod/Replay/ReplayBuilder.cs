@@ -272,8 +272,7 @@ public sealed class ReplayBuilder : IDisposable
     {
         var c = actor.CastInfo!;
         var target = GetOrCreateOptionalParticipant(c.TargetID);
-        var location = target?.PosRotAt(_ws.CurrentTime).XYZ() ?? c.Location;
-        var cast = new Replay.Cast(c.Action, c.TotalTime, target, location, c.Rotation, c.Interruptible);
+        var cast = new Replay.Cast(c.Action, c.TotalTime, target, c.Location, c.Rotation, c.Interruptible);
         cast.Time.Start = _ws.CurrentTime;
         _participants[actor.InstanceID].Casts.Add(cast);
         if (actor == _ws.Party.Player() && _pendingClientActions.Count > 0 && _pendingClientActions[^1].ID == c.Action)

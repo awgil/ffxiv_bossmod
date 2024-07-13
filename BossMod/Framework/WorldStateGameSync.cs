@@ -26,6 +26,7 @@ sealed class WorldStateGameSync : IDisposable
 
     private readonly List<WorldState.Operation> _globalOps = [];
     private readonly Dictionary<ulong, List<WorldState.Operation>> _actorOps = [];
+    private readonly Dictionary<ulong, Vector3> _lastCastPositions = []; // unfortunately, game only saves cast location for area-targeted spells
     private readonly Actor?[] _actorsByIndex = new Actor?[ObjectTableSize];
 
     private readonly List<(ulong Caster, ActorCastEvent Event)> _castEvents = [];
@@ -37,6 +38,9 @@ sealed class WorldStateGameSync : IDisposable
 
     private readonly ConfigListener<ReplayManagementConfig> _netConfig;
     private readonly EventSubscriptions _subscriptions;
+
+    private unsafe delegate void ProcessPacketActorCastDelegate(uint casterId, Network.ServerIPC.ActorCast* packet);
+    private readonly Hook<ProcessPacketActorCastDelegate> _processPacketActorCastHook;
 
     private unsafe delegate void ProcessPacketEffectResultDelegate(uint targetID, byte* packet, byte replaying);
     private readonly Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultHook;
@@ -69,6 +73,10 @@ sealed class WorldStateGameSync : IDisposable
             amex.ActionEffectReceived.Subscribe(OnActionEffect)
         );
 
+        _processPacketActorCastHook = Service.Hook.HookFromSignature<ProcessPacketActorCastDelegate>("40 56 41 56 48 81 EC ?? ?? ?? ?? 48 8B F2", ProcessPacketActorCastDetour);
+        _processPacketActorCastHook.Enable();
+        Service.Log($"[WSG] ProcessPacketActorCast address = 0x{_processPacketActorCastHook.Address:X}");
+
         _processPacketEffectResultHook = Service.Hook.HookFromSignature<ProcessPacketEffectResultDelegate>("48 8B C4 44 88 40 18 89 48 08", ProcessPacketEffectResultDetour);
         _processPacketEffectResultHook.Enable();
         Service.Log($"[WSG] ProcessPacketEffectResult address = 0x{_processPacketEffectResultHook.Address:X}");
@@ -97,6 +105,7 @@ sealed class WorldStateGameSync : IDisposable
 
     public void Dispose()
     {
+        _processPacketActorCastHook.Dispose();
         _processPacketEffectResultBasicHook.Dispose();
         _processPacketEffectResultHook.Dispose();
         _processPacketActorControlHook.Dispose();
@@ -286,7 +295,7 @@ sealed class WorldStateGameSync : IDisposable
                     Action = new((ActionType)castInfo->ActionType, castInfo->ActionId),
                     TargetID = SanitizedObjectID(castInfo->TargetId),
                     Rotation = chr->CastRotation.Radians(),
-                    Location = castInfo->TargetLocation,
+                    Location = _lastCastPositions.GetValueOrDefault(act.InstanceID, castInfo->TargetLocation),
                     TotalTime = castInfo->BaseCastTime, // TODO: should it use total (adjusted) here?..
                     FinishAt = _ws.CurrentTime.AddSeconds(Math.Clamp(castInfo->TotalCastTime - castInfo->CurrentCastTime, 0, 100000)),
                     Interruptible = castInfo->Interruptible != 0,
@@ -558,6 +567,12 @@ sealed class WorldStateGameSync : IDisposable
     {
         _actorOps.GetOrAdd(targetID).Add(new ActorState.OpEffectResult(targetID, seq, targetIndex));
         _confirms.Add((seq, targetID, targetIndex));
+    }
+
+    private unsafe void ProcessPacketActorCastDetour(uint casterId, Network.ServerIPC.ActorCast* packet)
+    {
+        _lastCastPositions[casterId] = Network.PacketDecoder.IntToFloatCoords(packet->PosX, packet->PosY, packet->PosZ);
+        _processPacketActorCastHook.Original(casterId, packet);
     }
 
     private unsafe void ProcessPacketEffectResultDetour(uint targetID, byte* packet, byte replaying)
