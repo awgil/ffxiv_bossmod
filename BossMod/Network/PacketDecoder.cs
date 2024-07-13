@@ -320,7 +320,7 @@ public unsafe abstract class PacketDecoder
     }
     private TextNode DecodeWaymark(ServerIPC.Waymark* p) => new($"{p->ID}: {p->Active != 0} at {Utils.Vec3String(new(p->PosX * 0.001f, p->PosY * 0.001f, p->PosZ * 0.001f))}, pad={p->pad2:X4}");
 
-    private static Vector3 IntToFloatCoords(ushort x, ushort y, ushort z)
+    public static Vector3 IntToFloatCoords(ushort x, ushort y, ushort z)
     {
         float fx = x * (2000.0f / 65535) - 1000;
         float fy = y * (2000.0f / 65535) - 1000;
@@ -328,7 +328,7 @@ public unsafe abstract class PacketDecoder
         return new(fx, fy, fz);
     }
 
-    private static Angle IntToFloatAngle(ushort rot)
+    public static Angle IntToFloatAngle(ushort rot)
     {
         return (rot / 65535.0f * (2 * MathF.PI) - MathF.PI).Radians();
     }

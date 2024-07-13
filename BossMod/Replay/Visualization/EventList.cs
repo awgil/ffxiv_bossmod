@@ -161,7 +161,7 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB)
 
     private string CastString(Replay.Cast c, DateTime reference, DateTime prev, Type? aidType)
     {
-        return $"{new Replay.TimeRange(reference, c.Time.Start)} ({new Replay.TimeRange(prev, c.Time.Start)}) + {c.ExpectedCastTime + 0.3f:f2} ({c.Time}): {c.ID} ({aidType?.GetEnumName(c.ID.ID)}) @ {ReplayUtils.ParticipantString(c.Target, c.Time.Start)} {Utils.Vec3String(c.Location)} / {c.Rotation}";
+        return $"{new Replay.TimeRange(reference, c.Time.Start)} ({new Replay.TimeRange(prev, c.Time.Start)}) + {c.ExpectedCastTime + 0.3f:f2} ({c.Time}): {c.ID} ({aidType?.GetEnumName(c.ID.ID)}) @ {ReplayUtils.ParticipantPosRotString(c.Target, c.Time.Start)} / {Utils.Vec3String(c.Location)} / {c.Rotation}";
     }
 
     private void DrawCasts(IEnumerable<Replay.Cast> list, DateTime reference, Type? aidType)

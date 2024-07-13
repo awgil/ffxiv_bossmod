@@ -50,7 +50,7 @@ class BlightedBolt : Components.GenericAOEs
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_targets.Count > 0 && _targets.Any(t => t.IsDead))
+        if (_targets.Count < 6 || _targets.Any(t => t.IsDead))
             foreach (var t in _targets.Where(t => !t.IsDead))
                 yield return new(_shape, t.Position, default, _activation);
     }
@@ -58,7 +58,7 @@ class BlightedBolt : Components.GenericAOEs
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(slot, actor, hints);
-        if (_targets.Count > 0 && !_targets.Any(t => t.IsDead))
+        if (_targets.Count == 6 && !_targets.Any(t => t.IsDead))
             hints.Add("Kill feather!");
     }
 

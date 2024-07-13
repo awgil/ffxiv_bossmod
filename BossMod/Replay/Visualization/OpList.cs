@@ -280,7 +280,7 @@ class OpList(Replay replay, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldSt
         var c = FindCast(p, timestamp, start);
         if (c == null)
             return $"{ActorString(p, timestamp)}: <unknown cast>";
-        return $"{ActorString(p, timestamp)}: {c.ID} ({moduleInfo?.ActionIDType?.GetEnumName(c.ID.ID)}), {c.ExpectedCastTime:f2}s ({c.Time} actual){(c.Interruptible ? " (interruptible)" : "")} @ {ReplayUtils.ParticipantString(c.Target, timestamp)} {Utils.Vec3String(c.Location)} / {c.Rotation}";
+        return $"{ActorString(p, timestamp)}: {c.ID} ({moduleInfo?.ActionIDType?.GetEnumName(c.ID.ID)}), {c.ExpectedCastTime:f2}s ({c.Time} actual){(c.Interruptible ? " (interruptible)" : "")} @ {ReplayUtils.ParticipantPosRotString(c.Target, timestamp)} / {Utils.Vec3String(c.Location)} / {c.Rotation}";
     }
 
     private string StatusesString(ulong instanceID, int index, DateTime timestamp)

@@ -29,7 +29,10 @@ public sealed class RotationModuleManager : IDisposable
 
     public WorldState WorldState => Bossmods.WorldState;
     public Actor? Player => WorldState.Party[PlayerSlot];
+
+    // historic data for recent events that could be interesting for modules
     public DateTime CombatStart { get; private set; } // default value when player is not in combat, otherwise timestamp when player entered combat
+    public (DateTime Time, ActorCastEvent? Data) LastCast { get; private set; }
 
     public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AIHints hints, ActionManagerEx amex, int playerSlot = PartyState.PlayerSlot)
     {
@@ -199,9 +202,12 @@ public sealed class RotationModuleManager : IDisposable
 
     private void OnCastEvent(Actor actor, ActorCastEvent cast)
     {
-#if DEBUG
         if (cast.SourceSequence != 0 && WorldState.Party.ActorIDs[PlayerSlot] == actor.InstanceID)
+        {
+            LastCast = (WorldState.CurrentTime, cast);
+#if DEBUG
             Service.Log($"[RMM] Cast #{cast.SourceSequence} {cast.Action} @ {cast.MainTargetID:X} [{string.Join(" --- ", _activeModules?.Select(m => m.Module.DescribeState()) ?? [])}]");
 #endif
+        }
     }
 }

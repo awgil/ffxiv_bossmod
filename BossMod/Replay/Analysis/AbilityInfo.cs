@@ -418,7 +418,7 @@ class AbilityInfo : CommonEnumInfo
             }
             foreach (var n in tree.Node("Casts", data.Casts.Count == 0))
             {
-                tree.LeafNodes(data.Casts, c => $"{c.Item1.Path} @ {c.Item3.Time.Start:O} + {c.Item3.Time.Duration:f3}/{c.Item3.ExpectedCastTime:f3}: {ReplayUtils.ParticipantString(c.Item2, c.Item3.Time.Start)} / {c.Item3.Rotation} -> {ReplayUtils.ParticipantString(c.Item3.Target, c.Item3.Time.Start)} {Utils.Vec3String(c.Item3.Location)}");
+                tree.LeafNodes(data.Casts, c => $"{c.Item1.Path} @ {c.Item3.Time.Start:O} + {c.Item3.Time.Duration:f3}/{c.Item3.ExpectedCastTime:f3}: {ReplayUtils.ParticipantString(c.Item2, c.Item3.Time.Start)} / {c.Item3.Rotation} -> {ReplayUtils.ParticipantPosRotString(c.Item3.Target, c.Item3.Time.Start)} / {Utils.Vec3String(c.Item3.Location)}");
             }
             foreach (var an in tree.Node("Source position analysis"))
             {

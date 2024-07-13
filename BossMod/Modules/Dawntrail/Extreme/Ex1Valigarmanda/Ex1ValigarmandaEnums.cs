@@ -107,7 +107,7 @@ public enum AID : uint
     HailOfFeathersAOE5 = 36897, // Helper->self, 18.0s cast, range 80 circle with ? falloff
     HailOfFeathersAOE6 = 36898, // Helper->self, 21.0s cast, range 80 circle with ? falloff
     BlightedBolt = 36831, // Boss->self, 5.0+0.8s cast, single-target, visual (feather explosion)
-    BlightedBolt2 = 36832, // Helper->player, no cast, range 3 circle
+    BlightedBoltFail = 36832, // Helper->player, no cast, range 3 circle, ??? (second hit if mechanic failed)
     BlightedBoltAOE = 36833, // Helper->FeatherOfRuin, 5.8s cast, range 8 circle
     ThunderousBreath = 36834, // Boss->self, 7.0+0.9s cast, single-target, visual (lines + require levitation)
     ThunderousBreathAOE = 36835, // Helper->self, 7.9s cast, range 50 ?-degree cone
