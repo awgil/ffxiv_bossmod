@@ -13,6 +13,9 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertyDisplay("Prevent movement while casting")]
     public bool PreventMovingWhileCasting = false;
 
+    [PropertyDisplay("Automatically cancel a cast when target is dead")]
+    public bool CancelCastOnDeadTarget = false;
+
     [PropertyDisplay("Restore character orientation after action use (no effect if 'auto face target' in game settings is disabled)")]
     public bool RestoreRotation = false;
 

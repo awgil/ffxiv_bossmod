@@ -24,6 +24,7 @@ namespace BossMod;
 // 6. ground-targeted action queueing
 //    ground-targeted actions can't be queued, making using them efficiently tricky
 //    this feature allows queueing them, plus provides options to execute them automatically either at target's position or at cursor's position
+// 7. auto cancel cast utility
 // TODO: should not be public!
 public unsafe sealed class ActionManagerEx : IDisposable
 {
@@ -44,6 +45,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
     public ActionTweaksConfig Config = Service.Config.Get<ActionTweaksConfig>();
     public ActionQueue.Entry AutoQueue { get; private set; }
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
+    public bool ForceCancelCastNextFrame;
     private readonly ActionManager* _inst = ActionManager.Instance();
     private readonly WorldState _ws;
     private readonly AIHints _hints;
@@ -51,6 +53,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
     private readonly AnimationLockTweak _animLockTweak = new();
     private readonly CooldownDelayTweak _cooldownTweak = new();
     private readonly RestoreRotationTweak _restoreRotTweak = new();
+    private readonly CancelCastTweak _cancelCastTweak;
 
     private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
     private readonly HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
@@ -63,6 +66,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
         _ws = ws;
         _hints = hints;
         _manualQueue = new(ws, hints);
+        _cancelCastTweak = new(ws);
 
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
         _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
@@ -279,6 +283,10 @@ public unsafe sealed class ActionManagerEx : IDisposable
             InputOverride.BlockMovement();
         else
             InputOverride.UnblockMovement();
+
+        if (_ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(_ws.CurrentTime, ForceCancelCastNextFrame))
+            UIState.Instance()->Hotbar.CancelCast();
+        ForceCancelCastNextFrame = false;
     }
 
     // note: targetId is usually your current primary target (or 0xE0000000 if you don't target anyone), unless you do something like /ac XXX <f> etc

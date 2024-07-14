@@ -144,7 +144,7 @@ sealed class AIController(ActionManagerEx amex)
         else
         {
             _amex.InputOverride.GamepadOverridesEnabled = false;
-            _axisForward.CurDirection = ForceCancelCast && castInProgress ? 1 : 0; // this is a hack to cancel any cast...
+            _amex.ForceCancelCastNextFrame |= ForceCancelCast && castInProgress;
             _keyJump.Held = false;
         }
 
