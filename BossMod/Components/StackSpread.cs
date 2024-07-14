@@ -313,6 +313,12 @@ public class LineStack(BossModule module, ActionID aidMarker, ActionID aidResolv
         var forbiddenInverted = new List<Func<WPos, float>>();
         var forbidden = new List<Func<WPos, float>>();
         var forbiddenActors = ForbiddenActors.Contains(actor);
+        // if line stack target and NPCs in party, go stack with them. usually they won't come to you
+        if (Raid.WithoutSlot().Any(x => x.Type == ActorType.Buddy) && ActiveBaits.Any(x => x.Target == actor))
+        {
+            var closestTarget = Raid.WithoutSlot().Exclude(actor).Closest(actor.Position)!;
+            forbiddenInverted.Add(ShapeDistance.InvertedCircle(closestTarget.Position, 2));
+        }
         if (isBaitNotTarget && !isBaitTarget && !forbiddenActors)
             foreach (var b in ActiveBaits.Where(x => x.Target != actor))
                 forbiddenInverted.Add(ShapeDistance.InvertedRect(b.Source.Position, (b.Target.Position - b.Source.Position).Normalized(), Range, 0, HalfWidth));

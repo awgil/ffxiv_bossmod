@@ -48,9 +48,18 @@ public class GenericBaitAway(BossModule module, ActionID aid = default, bool alw
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        if (!ActiveBaits.Any())
+            return;
         foreach (var b in ActiveBaitsNotOn(actor))
             hints.AddForbiddenZone(b.Shape, BaitOrigin(b), b.Rotation, b.Activation);
         //TODO: AI hints for when actor is the target
+        var circles = from b in ActiveBaits
+                      where actor == b.Target && b.Shape is AOEShapeCircle
+                      from a in Raid.WithoutSlot().Exclude(actor)
+                      select new { b, a, circle = (AOEShapeCircle)b.Shape };
+
+        foreach (var item in circles)
+            hints.AddForbiddenZone(ShapeDistance.Circle(item.a.Position, item.circle.Radius), item.b.Activation);
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => ActiveBaitsOn(player).Any() ? BaiterPriority : PlayerPriority.Irrelevant;
