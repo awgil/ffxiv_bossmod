@@ -362,40 +362,83 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe void UpdateParty()
     {
+        var replay = Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback];
+        var group = GroupManager.Instance()->GetGroup(replay);
+
+        // update party members
+        var playerMember = UpdatePartyPlayer(replay, group);
+        UpdatePartyNormal(group, playerMember);
+        UpdatePartyAlliance(group);
+
+        // update limit break
+        var lb = LimitBreakController.Instance();
+        if (_ws.Party.LimitBreakCur != lb->CurrentUnits || _ws.Party.LimitBreakMax != lb->BarUnits)
+            _ws.Execute(new PartyState.OpLimitBreakChange(lb->CurrentUnits, lb->BarUnits));
+    }
+
+    // returns player entry in game's group
+    private unsafe PartyMember* UpdatePartyPlayer(bool recorderPlaybackMode, GroupManager.Group* group)
+    {
+        // in worldstate, player is always in slot #0
+        // in game, there are several considerations:
+        // - PlayerState contains character data as long as player is logged in; in playback mode, it contains actual logged-in player rather than replay's POV
+        // - objecttable entry #0 is always a player; in playback mode, it contains POV object; however, sometimes that object can be non-existent (eg during zone transitions)
+        // - group manager contains player's entry at arbitrary position; it can be set before player's object is created, and it's not present while solo
+        var player = PartyState.EmptySlot;
+
         var pc = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         if (pc != null && !pc->IsCharacter())
         {
-            Service.Log($"[WSG] Object #0 is not a character");
+            Service.Log($"[WSG] Object #0 is not a character, this should never happen");
             pc = null;
         }
 
-        var replay = Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback];
-        var ui = UIState.Instance();
-        if (!replay && pc != null && (pc->EntityId != ui->PlayerState.EntityId || pc->ContentId != ui->PlayerState.ContentId))
+        if (!recorderPlaybackMode)
         {
-            Service.Log($"[WSG] Player entity id mismatch: obj0={pc->ContentId:X}/{pc->EntityId:X} vs ui={ui->PlayerState.ContentId:X}/{ui->PlayerState.EntityId:X}");
-        }
-
-        // update player slot; consider it filled even when solo
-        var gm = GroupManager.Instance()->GetGroup(replay);
-        if (pc != null)
-        {
-            var pcMember = gm->GetPartyMemberByEntityId(pc->EntityId);
-            UpdatePartySlot(PartyState.PlayerSlot, pcMember != null ? BuildPartyMember(pcMember) : new(pc->ContentId, pc->EntityId, false, pc->NameString));
+            // in normal mode, the primary data source is playerstate
+            var ui = UIState.Instance();
+            if (ui->PlayerState.IsLoaded != 0)
+            {
+                player = new(ui->PlayerState.ContentId, ui->PlayerState.EntityId, false, ui->PlayerState.CharacterNameString);
+                if (pc != null && (pc->ContentId != player.ContentId || pc->EntityId != player.InstanceId))
+                    Service.Log($"[WSG] Object #0 is valid ({pc->AccountId:X}.{pc->ContentId:X}, {pc->EntityId:X8} '{pc->NameString}') but different from playerstate ({player})");
+            }
+            else
+            {
+                // player not logged in, just do some sanity checks
+                if (pc != null)
+                    Service.Log($"[WSG] Object #0 is valid ({pc->AccountId:X}.{pc->ContentId:X}, {pc->EntityId:X8} '{pc->NameString}') while player is not logged in");
+                if (group->MemberCount > 0)
+                    Service.Log($"[WGS] Group is non-empty while player is not logged in");
+            }
         }
         else
         {
-            UpdatePartySlot(PartyState.PlayerSlot, PartyState.EmptySlot);
+            // in playback mode, the primary data source is object #0
+            if (pc != null)
+            {
+                player = new(pc->ContentId, pc->EntityId, false, pc->NameString);
+            }
+            // else: just assume there's no player for now...
         }
 
-        // update normal party slots: first update/remove existing members, then add new ones
+        var member = player.InstanceId != 0 ? group->GetPartyMemberByEntityId((uint)player.InstanceId) : null;
+        if (member != null)
+            player.InCutscene = (member->Flags & 0x10) != 0;
+        UpdatePartySlot(PartyState.PlayerSlot, player);
+        return member;
+    }
+
+    private unsafe void UpdatePartyNormal(GroupManager.Group* group, PartyMember* player)
+    {
+        // first iterate over previous members, search for match in game state, and reconcile differences - update or remove
         for (int i = PartyState.PlayerSlot + 1; i < PartyState.MaxPartySize; ++i)
         {
             ref var m = ref _ws.Party.Members[i];
             if (m.ContentId != 0)
             {
                 // slot was occupied by player => see if it's still in party; either update to current state or clear if it's no longer in party
-                var member = gm->GetPartyMemberByContentId(m.ContentId);
+                var member = group->GetPartyMemberByContentId(m.ContentId);
                 UpdatePartySlot(i, BuildPartyMember(member));
             }
             else if (m.InstanceId != 0)
@@ -407,13 +450,17 @@ sealed class WorldStateGameSync : IDisposable
             }
             // else: slot was empty, skip
         }
-        for (int i = 0; i < gm->MemberCount; ++i)
+
+        // now iterate through game state and add new members; note that there's no need to update existing, it was done in the previous loop
+        for (int i = 0; i < group->MemberCount; ++i)
         {
-            var cid = gm->PartyMembers[i].ContentId;
-            if (Array.FindIndex(_ws.Party.Members, m => m.ContentId == cid) < 0)
-                AddPartyMember(BuildPartyMember(gm->PartyMembers.GetPointer(i)));
-            // else: already added, updated in previous loop
+            var member = group->PartyMembers.GetPointer(i);
+            if (member != player && Array.FindIndex(_ws.Party.Members, m => m.ContentId == member->ContentId) < 0)
+                AddPartyMember(BuildPartyMember(member));
+            // else: member is either a player (it was handled by a different function) or already exists in party state
         }
+        // consider buddies as party members too
+        var ui = UIState.Instance();
         for (int i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
         {
             var instanceID = ui->Buddy.DutyHelperInfo.DutyHelpers[i].EntityId;
@@ -424,21 +471,20 @@ sealed class WorldStateGameSync : IDisposable
             }
             // else: buddy is non-existent or already updated, skip
         }
+    }
 
-        // update alliance members
-        var isNormalAlliance = gm->IsAlliance && !gm->IsSmallGroupAlliance;
+    private unsafe void UpdatePartyAlliance(GroupManager.Group* group)
+    {
+        // note: we don't support small-group alliance (should we?)
+        // unlike normal party, game's alliance slots never change, so we just keep 1:1 mapping
+        var isNormalAlliance = group->IsAlliance && !group->IsSmallGroupAlliance;
         for (int i = PartyState.MaxPartySize; i < PartyState.MaxAllianceSize; ++i)
         {
-            var member = isNormalAlliance ? gm->AllianceMembers.GetPointer(i - PartyState.MaxPartySize) : null;
+            var member = isNormalAlliance ? group->AllianceMembers.GetPointer(i - PartyState.MaxPartySize) : null;
             if (member != null && !member->IsValidAllianceMember)
                 member = null;
             UpdatePartySlot(i, BuildPartyMember(member));
         }
-
-        // update limit break
-        var lb = LimitBreakController.Instance();
-        if (_ws.Party.LimitBreakCur != lb->CurrentUnits || _ws.Party.LimitBreakMax != lb->BarUnits)
-            _ws.Execute(new PartyState.OpLimitBreakChange(lb->CurrentUnits, lb->BarUnits));
     }
 
     private unsafe bool HasBuddy(ulong instanceID)
