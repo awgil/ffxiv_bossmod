@@ -1,6 +1,9 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.Game.Group;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
 using System.Text;
 
@@ -132,6 +135,24 @@ public class DebugObjects
                     res.Append($"\n  status {status.StatusId} '{status.GameData.Name}': param={status.Param}, stacks={status.StackCount}, time={status.RemainingTime:f2}, source={src}");
                 }
             }
+        }
+        res.Append("\n--- cid/acid (C) ---");
+        var gom = GameObjectManager.Instance();
+        for (int i = 0; i < 100; ++i)
+        {
+            var obj = gom->Objects.IndexSorted[i * 2].Value;
+            if (obj != null && obj->IsCharacter())
+            {
+                var chara = (Character*)obj;
+                res.Append($"\n{i}: {chara->AccountId:X}.{chara->ContentId:X} = {obj->NameString}");
+            }
+        }
+        res.Append("\n--- cid/acid (P) ---");
+        var gp = GroupManager.Instance()->GetGroup();
+        for (int i = 0; i < gp->MemberCount; ++i)
+        {
+            ref var member = ref gp->PartyMembers[i];
+            res.Append($"\n{i}: {member.AccountId:X}.{member.ContentId:X} = {member.NameString} / {(member.UnkName != null ? member.UnkName->ToString() : "<null>")}");
         }
         Service.Log(res.ToString());
     }
