@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Plugin.Services;
+using ImGuiNET;
 using System.IO;
 using System.Text;
 
@@ -117,6 +118,8 @@ class OpList(Replay replay, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldSt
             PartyState.OpLimitBreakChange => false,
             ClientState.OpActionRequest => false,
             //ClientState.OpActionReject => false,
+            ClientState.OpAnimationLockChange => false,
+            ClientState.OpComboChange => false,
             ClientState.OpCooldown => false,
             NetworkState.OpServerIPC => false,
             _ => true

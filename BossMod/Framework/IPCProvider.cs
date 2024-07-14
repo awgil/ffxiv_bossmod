@@ -7,7 +7,7 @@ sealed class IPCProvider : IDisposable
 {
     private Action? _disposeActions;
 
-    public IPCProvider(RotationModuleManager autorotation)
+    public IPCProvider(RotationModuleManager autorotation, ActionManagerEx amex)
     {
         // TODO: this really needs to be reconsidered, this exposes implementation detail
         // for usecase description, see PR 330 - really AI itself should handle heal range
@@ -17,7 +17,7 @@ sealed class IPCProvider : IDisposable
 
         Register("HasModule", (IGameObject obj) => ModuleRegistry.FindByOID(obj.DataId) != null);
         Register("HasModuleByDataId", (uint dataId) => ModuleRegistry.FindByOID(dataId) != null);
-        Register("IsMoving", autorotation.ActionManager.InputOverride.IsMoving);
+        Register("IsMoving", amex.InputOverride.IsMoving);
         Register("ForbiddenZonesCount", () => autorotation.Hints.ForbiddenZones.Count);
         //Register("InitiateCombat", () => autorotation.ClassActions?.UpdateAutoAction(CommonActions.AutoActionAIFight, float.MaxValue, true));
         //Register("SetAutorotationState", (bool state) => Service.Config.Get<AutorotationConfig>().Enabled = state);

@@ -11,8 +11,8 @@ public abstract class CommonState(RotationModule module)
     public float RangeToTarget; // minus both hitboxes; <= 0 means inside hitbox, <= 3 means in melee range, maxvalue if there is no target
     public float AnimationLock; // typical actions have 0.6 delay, but some (notably primal rend and potion) are >1
     public float AnimationLockDelay; // average time between action request and confirmation; this is added to effective animation lock for actions
-    public float ComboTimeLeft; // 0 if not in combo, max 30
-    public uint ComboLastAction;
+    public float ComboTimeLeft => Module.World.Client.ComboState.Remaining; // 0 if not in combo, max 30
+    public uint ComboLastAction => Module.World.Client.ComboState.Action;
     public float RaidBuffsLeft; // 0 if no damage-up status is up, otherwise it is time left on longest
 
     public float? CountdownRemaining => Module.World.Client.CountdownRemaining;
@@ -58,13 +58,10 @@ public abstract class CommonState(RotationModule module)
         var downtime = Module.Manager.Planner?.EstimateTimeToNextDowntime() ?? (false, 0);
         var poslock = Module.Manager.Planner?.EstimateTimeToNextPositioning() ?? (false, 10000);
 
-        var am = Module.Manager.ActionManager;
         TargetingEnemy = target != null && target.Type is ActorType.Enemy or ActorType.Part && !target.IsAlly;
         RangeToTarget = target != null ? (target.Position - Module.Player.Position).Length() - target.HitboxRadius - Module.Player.HitboxRadius : float.MaxValue;
-        AnimationLock = am.EffectiveAnimationLock;
-        AnimationLockDelay = am.AnimationLockDelayEstimate;
-        ComboTimeLeft = am.ComboTimeLeft;
-        ComboLastAction = am.ComboLastMove;
+        AnimationLock = Module.Manager.ActionManager.EffectiveAnimationLock;
+        AnimationLockDelay = Module.Manager.ActionManager.AnimationLockDelayEstimate;
 
         RaidBuffsLeft = vuln.Item1 ? vuln.Item2 : 0;
         foreach (var status in Module.Player.Statuses.Where(s => IsDamageBuff(s.ID)))
@@ -87,8 +84,8 @@ public abstract class CommonState(RotationModule module)
         // all GCD skills share the same base recast time (with some exceptions that aren't relevant here)
         // so we can check Fast Blade (9) and Stone (119) recast timers to get effective sks and sps
         // regardless of current class
-        AttackGCDTime = am.GetAdjustedRecastTime(new(ActionType.Spell, 9), false) * 0.001f;
-        SpellGCDTime = am.GetAdjustedRecastTime(new(ActionType.Spell, 119), false) * 0.001f;
+        AttackGCDTime = Module.Manager.ActionManager.GetAdjustedRecastTime(new(ActionType.Spell, 9), false) * 0.001f;
+        SpellGCDTime = Module.Manager.ActionManager.GetAdjustedRecastTime(new(ActionType.Spell, 119), false) * 0.001f;
     }
 
     public void UpdatePositionals(Actor? target, (Positional pos, bool imm) positional, bool trueNorth)

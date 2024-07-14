@@ -329,7 +329,9 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLRJ"u8)] = ParseClientActionReject,
             [new("CDN+"u8)] = () => ParseClientCountdown(true),
             [new("CDN-"u8)] = () => ParseClientCountdown(false),
-            [new("CLCD"u8)] = ParseCooldown,
+            [new("CLAL"u8)] = ParseClientAnimationLock,
+            [new("CLCB"u8)] = ParseClientCombo,
+            [new("CLCD"u8)] = ParseClientCooldown,
             [new("CLDA"u8)] = ParseClientDutyActions,
             [new("CLBH"u8)] = ParseClientBozjaHolster,
             [new("CLAF"u8)] = ParseClientActiveFate,
@@ -603,8 +605,10 @@ public sealed class ReplayParserLog : IDisposable
     }
 
     private ClientState.OpCountdownChange ParseClientCountdown(bool start) => new(start ? _input.ReadFloat() : null);
+    private ClientState.OpAnimationLockChange ParseClientAnimationLock() => new(_input.ReadFloat());
+    private ClientState.OpComboChange ParseClientCombo() => new(new(_input.ReadUInt(false), _input.ReadFloat()));
 
-    private ClientState.OpCooldown ParseCooldown()
+    private ClientState.OpCooldown ParseClientCooldown()
     {
         var reset = _input.ReadBool();
         List<(int, Cooldown)> cooldowns = [];

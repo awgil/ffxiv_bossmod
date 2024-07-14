@@ -1,8 +1,15 @@
 autorotation v2 cleanup:
 - reconsider condition vs forbid?
 - tank stance track
-- worldstate: animlock, combo, gauge parser, camera
 - rmm in replay analysis
+-- gauge parser
+-- camera in worldstate
+-- castinfo should contain elapsed/total with tick
+-- commonstate.animlock from player's cast info and clientstate animlock
+-- commonstate.animlockdelay externally supplied to rmm's update
+-- commonstate.gcdtime from ?? (stats?)
+-- xbase.forcemovementin from ?? (hints?)
+-- get rid of actionmanager in rmm
 - preset/plan editors should properly react to external changes
 - ipc for autorotation
 - actiondefinitions

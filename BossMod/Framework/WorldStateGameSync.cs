@@ -528,6 +528,14 @@ sealed class WorldStateGameSync : IDisposable
         if (_ws.Client.CountdownRemaining != countdown)
             _ws.Execute(new ClientState.OpCountdownChange(countdown));
 
+        var actionManager = ActionManager.Instance();
+        if (_ws.Client.AnimationLock != actionManager->AnimationLock)
+            _ws.Execute(new ClientState.OpAnimationLockChange(actionManager->AnimationLock));
+
+        var combo = new ClientState.Combo(actionManager->Combo.Action, actionManager->Combo.Timer);
+        if (_ws.Client.ComboState != combo)
+            _ws.Execute(new ClientState.OpComboChange(combo));
+
         Span<Cooldown> cooldowns = stackalloc Cooldown[_ws.Client.Cooldowns.Length];
         _amex.GetCooldowns(cooldowns);
         if (!MemoryExtensions.SequenceEqual(_ws.Client.Cooldowns.AsSpan(), cooldowns))

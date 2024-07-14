@@ -130,8 +130,8 @@ public sealed class LegacyRPR : LegacyModule
         _state.VoidShroudCount = gauge.VoidShroud;
         _state.ShroudGauge = gauge.Shroud;
         _state.SoulGauge = gauge.Soul;
-        if (_state.ComboLastMove == RPR.AID.InfernalSlice)
-            _state.ComboTimeLeft = 0;
+        //if (_state.ComboLastMove == RPR.AID.InfernalSlice)
+        //    _state.ComboTimeLeft = 0;
 
         _state.SoulReaverLeft = _state.StatusDetails(Player, RPR.SID.SoulReaver, Player.InstanceID).Left;
         _state.ImmortalSacrificeLeft = _state.StatusDetails(Player, RPR.SID.ImmortalSacrifice, Player.InstanceID).Left;

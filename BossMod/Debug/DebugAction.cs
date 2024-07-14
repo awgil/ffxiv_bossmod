@@ -15,6 +15,8 @@ sealed class DebugAction(WorldState ws, ActionManagerEx amex) : IDisposable
 
     public unsafe void DrawActionManagerExtensions()
     {
+        var pc = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        var pcCast = pc != null ? ((FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)pc)->GetCastInfo() : null;
         var amr = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
         var aidCastAction = amex.CastAction;
         var aidCastSpell = amex.CastSpell;
@@ -25,6 +27,8 @@ sealed class DebugAction(WorldState ws, ActionManagerEx amex) : IDisposable
         ImGui.TextUnformatted($"ActionManager singleton address: 0x{(ulong)amr:X}");
         ImGui.TextUnformatted($"Anim lock: {amr->AnimationLock:f3}");
         ImGui.TextUnformatted($"Cast: {aidCastAction} / {aidCastSpell}, progress={amr->CastTimeElapsed:f3}/{amr->CastTimeTotal:f3}, target={amr->CastTargetId:X}/{Utils.Vec3String(amr->CastTargetPosition)}");
+        if (pcCast != null)
+            ImGui.TextUnformatted($"Cast (obj): {pcCast->IsCasting} {new ActionID((ActionType)pcCast->ActionType, pcCast->ActionId)}, progress={pcCast->CurrentCastTime:f3}/{pcCast->BaseCastTime:f3}/{pcCast->TotalCastTime:f3}");
         ImGui.TextUnformatted($"Combo: {aidCombo}, {amex.ComboTimeLeft:f3}");
         ImGui.TextUnformatted($"Queue: {(amr->ActionQueued ? "active" : "inactive")}, {aidQueued} @ {(ulong)amr->QueuedTargetId:X} [{amr->QueueType}], combo={amr->QueuedComboRouteId}");
         ImGui.TextUnformatted($"GT: {aidGTAction} / {aidGTSpell}, arg={Utils.ReadField<uint>(amr, 0x94)}, targ={amr->AreaTargetingExecuteAtObject:X}/{amr->AreaTargetingExecuteAtCursor}, a0={Utils.ReadField<byte>(amr, 0xA0):X2}, bc={Utils.ReadField<byte>(amr, 0xBC):X}");

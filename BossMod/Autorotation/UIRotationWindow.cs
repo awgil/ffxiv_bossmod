@@ -7,11 +7,13 @@ namespace BossMod.Autorotation;
 public sealed class UIRotationWindow : UIWindow
 {
     private readonly RotationModuleManager _mgr;
+    private readonly ActionManagerEx _amex;
     private readonly AutorotationConfig _config = Service.Config.Get<AutorotationConfig>();
 
-    public UIRotationWindow(RotationModuleManager mgr, Action openConfig) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
+    public UIRotationWindow(RotationModuleManager mgr, ActionManagerEx amex, Action openConfig) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _mgr = mgr;
+        _amex = amex;
         ShowCloseButton = false;
         RespectCloseHotkey = false;
         TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => openConfig() });
@@ -82,7 +84,7 @@ public sealed class UIRotationWindow : UIWindow
 
         // TODO: more fancy action history/queue...
         ImGui.TextUnformatted($"Modules: {_mgr}");
-        ImGui.TextUnformatted($"GCD={_mgr.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f3}, AnimLock={_mgr.ActionManager.EffectiveAnimationLock:f3}+{_mgr.ActionManager.AnimationLockDelayEstimate:f3}, Combo={_mgr.ActionManager.ComboTimeLeft:f3}, RBIn={_mgr.Bossmods.RaidCooldowns.NextDamageBuffIn(_mgr.WorldState.CurrentTime):f3}");
+        ImGui.TextUnformatted($"GCD={_mgr.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f3}, AnimLock={_amex.EffectiveAnimationLock:f3}+{_amex.AnimationLockDelayEstimate:f3}, Combo={_amex.ComboTimeLeft:f3}, RBIn={_mgr.Bossmods.RaidCooldowns.NextDamageBuffIn(_mgr.WorldState.CurrentTime):f3}");
         foreach (var a in _mgr.Hints.ActionsToExecute.Entries)
         {
             ImGui.TextUnformatted($"> {a.Action} ({a.Priority:f2})");

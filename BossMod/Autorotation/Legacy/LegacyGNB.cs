@@ -120,8 +120,8 @@ public sealed class LegacyGNB : LegacyModule
     {
         _state.UpdateCommon(primaryTarget);
         _state.HaveTankStance = Player.FindStatus(GNB.SID.RoyalGuard) != null;
-        if (_state.ComboLastMove == GNB.AID.SolidBarrel)
-            _state.ComboTimeLeft = 0;
+        //if (_state.ComboLastMove == GNB.AID.SolidBarrel)
+        //    _state.ComboTimeLeft = 0;
 
         _state.Ammo = Service.JobGauges.Get<GNBGauge>().Ammo;
         _state.GunComboStep = Service.JobGauges.Get<GNBGauge>().AmmoComboStep;

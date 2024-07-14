@@ -20,10 +20,10 @@ sealed class AIManager : IDisposable
 
     private WorldState WorldState => _autorot.Bossmods.WorldState;
 
-    public AIManager(RotationModuleManager autorot)
+    public AIManager(RotationModuleManager autorot, ActionManagerEx amex)
     {
         _autorot = autorot;
-        _controller = new(autorot.ActionManager);
+        _controller = new(amex);
         _config = Service.Config.Get<AIConfig>();
         _ui = new("AI", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing) { RespectCloseHotkey = false };
         Service.ChatGui.ChatMessage += OnChatMessage;

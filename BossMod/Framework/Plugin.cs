@@ -77,16 +77,16 @@ public sealed class Plugin : IDalamudPlugin
         _amex = new(_ws, _hints);
         _wsSync = new(_ws, _amex);
         _rotation = new(_rotationDB, _bossmod, _hints, _amex);
-        _ai = new(_rotation);
+        _ai = new(_rotation, _amex);
         _broadcast = new();
-        _ipc = new(_rotation);
+        _ipc = new(_rotation, _amex);
 
         _configUI = new(Service.Config, _ws, _rotationDB);
         _wndBossmod = new(_bossmod);
         _wndBossmodHints = new(_bossmod);
         _wndReplay = new(_ws, _rotationDB.Plans, new(dalamud.ConfigDirectory.FullName + "/replays"));
-        _wndRotation = new(_rotation, () => OpenConfigUI("Presets"));
-        _wndDebug = new(_ws, _rotation);
+        _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Presets"));
+        _wndDebug = new(_ws, _rotation, _amex);
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
         dalamud.UiBuilder.Draw += DrawUI;
