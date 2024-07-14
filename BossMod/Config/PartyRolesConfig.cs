@@ -18,7 +18,7 @@ public class PartyRolesConfig : ConfigNode
         Assignment[] res = Utils.MakeArray(PartyState.MaxPartySize, Assignment.Unassigned);
         for (int i = 0; i < PartyState.MaxPartySize; ++i)
         {
-            var r = this[party.ContentIDs[i]];
+            var r = this[party.Members[i].ContentId];
             if (r == Assignment.Unassigned)
                 return [];
             if (counts[(int)r]++ > 0)
@@ -34,7 +34,7 @@ public class PartyRolesConfig : ConfigNode
         int[] res = Utils.MakeArray((int)Assignment.Unassigned, PartyState.MaxPartySize);
         for (int i = 0; i < PartyState.MaxPartySize; ++i)
         {
-            var r = this[party.ContentIDs[i]];
+            var r = this[party.Members[i].ContentId];
             if (r == Assignment.Unassigned)
                 return [];
             if (res[(int)r] != PartyState.MaxPartySize)
@@ -50,7 +50,7 @@ public class PartyRolesConfig : ConfigNode
         var res = new Role[PartyState.MaxPartySize];
         for (int i = 0; i < PartyState.MaxPartySize; ++i)
         {
-            res[i] = this[party.ContentIDs[i]] switch
+            res[i] = this[party.Members[i].ContentId] switch
             {
                 Assignment.MT or Assignment.OT => Role.Tank,
                 Assignment.H1 or Assignment.H2 => Role.Healer,
@@ -71,12 +71,12 @@ public class PartyRolesConfig : ConfigNode
             ImGui.TableSetupColumn("Name");
             ImGui.TableHeadersRow();
 
-            List<(ulong cid, string name, Role role, Assignment assignment)> party = [];
+            List<(ulong cid, string name, char role, Assignment assignment)> party = [];
             for (int i = 0; i < PartyState.MaxPartySize; ++i)
             {
-                var m = ws.Party.Members[i];
-                if (m != null)
-                    party.Add((ws.Party.ContentIDs[i], m.Name, m.Role, this[ws.Party.ContentIDs[i]]));
+                ref var m = ref ws.Party.Members[i];
+                if (m.IsValid())
+                    party.Add((m.ContentId, m.Name, ws.Party[i]?.Role.ToString()[0] ?? '?', this[m.ContentId]));
             }
             party.SortBy(e => e.role);
 
@@ -96,7 +96,7 @@ public class PartyRolesConfig : ConfigNode
                     }
                 }
                 ImGui.TableNextColumn();
-                ImGui.TextUnformatted($"({classRole.ToString()[0]}) {name}");
+                ImGui.TextUnformatted($"({classRole}) {name}");
             }
             ImGui.EndTable();
 

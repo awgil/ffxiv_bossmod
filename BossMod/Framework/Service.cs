@@ -23,7 +23,6 @@ public sealed class Service
     // TODO: get rid of stuff below in favour of CS
     [PluginService] public static IClientState ClientState { get; private set; }
     [PluginService] public static IObjectTable ObjectTable { get; private set; }
-    [PluginService] public static IPartyList PartyList { get; private set; }
     [PluginService] public static ITargetManager TargetManager { get; private set; }
     [PluginService] public static IJobGauges JobGauges { get; private set; }
     [PluginService] public static IKeyState KeyState { get; private set; }

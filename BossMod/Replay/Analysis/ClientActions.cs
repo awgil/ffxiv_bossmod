@@ -18,7 +18,7 @@ class ClientActions
                     case PartyState.OpModify o:
                         if (o.Slot == PartyState.PlayerSlot)
                         {
-                            playerID = o.InstanceID;
+                            playerID = o.Member.InstanceId;
                             // TODO: is that correct?..
                             pendingRequests.Clear();
                             pendingCast = null;

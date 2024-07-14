@@ -571,8 +571,8 @@ public sealed class ReplayParserLog : IDisposable
     private ActorState.OpEventObjectAnimation ParseActorEventObjectAnimation() => new(_input.ReadActorID(), _input.ReadUShort(true), _input.ReadUShort(true));
     private ActorState.OpPlayActionTimelineEvent ParseActorPlayActionTimelineEvent() => new(_input.ReadActorID(), _input.ReadUShort(true));
     private ActorState.OpEventNpcYell ParseActorEventNpcYell() => new(_input.ReadActorID(), _input.ReadUShort(false));
-    private PartyState.OpModify ParsePartyModify() => new(_input.ReadInt(), _input.ReadULong(true), _input.ReadULong(true));
-    private PartyState.OpModify ParsePartyLeave() => new(_input.ReadInt(), 0, 0);
+    private PartyState.OpModify ParsePartyModify() => new(_input.ReadInt(), new(_input.ReadULong(true), _input.ReadULong(true), _version >= 15 && _input.ReadBool(), _version < 15 ? "" : _input.ReadString()));
+    private PartyState.OpModify ParsePartyLeave() => new(_input.ReadInt(), new(0, 0, false, ""));
     private PartyState.OpLimitBreakChange ParsePartyLimitBreak() => new(_input.ReadInt(), _input.ReadInt());
 
     private ClientState.OpActionRequest ParseClientActionRequest()

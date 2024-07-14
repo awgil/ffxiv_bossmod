@@ -64,17 +64,13 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot) : UIWindow("
         {
             DrawCastingEnemiesList();
         }
-        if (ImGui.CollapsingHeader("Party (dalamud)"))
+        if (ImGui.CollapsingHeader("Party"))
         {
-            _debugParty.DrawPartyDalamud();
-        }
-        if (ImGui.CollapsingHeader("Party (custom)"))
-        {
-            _debugParty.DrawPartyCustom(false);
+            _debugParty.Draw(false);
         }
         if (ImGui.CollapsingHeader("Party (duty recorder)"))
         {
-            _debugParty.DrawPartyCustom(true);
+            _debugParty.Draw(true);
         }
         if (ImGui.CollapsingHeader("Autorotation"))
         {

@@ -16,13 +16,15 @@ public sealed class PartyState
     public const int MaxPartySize = 8;
     public const int MaxAllianceSize = 24;
 
-    private readonly ulong[] _contentIDs = new ulong[MaxPartySize]; // non-alliance slots: empty slots or buddy slots contain 0's, alliance slots: n/a (FF always reports 0)
-    private readonly ulong[] _actorIDs = new ulong[MaxAllianceSize]; // non-alliance slots: empty slots or slots corresponding to players not in world contain 0's, alliance slots: empty slots contains 0's
-    private readonly Actor?[] _actors = new Actor?[MaxAllianceSize];
+    public record struct Member(ulong ContentId, ulong InstanceId, bool InCutscene, string Name)
+    {
+        // note that a valid member can have 0 contentid (eg buddy) or 0 instanceid (eg player in a different zone)
+        public readonly bool IsValid() => ContentId != 0 || InstanceId != 0;
+    }
+    public static readonly Member EmptySlot = new(0, 0, false, "");
 
-    public ReadOnlySpan<ulong> ContentIDs => _contentIDs;
-    public ReadOnlySpan<ulong> ActorIDs => _actorIDs;
-    public ReadOnlyCollection<Actor?> Members => Array.AsReadOnly(_actors);
+    public readonly Member[] Members = Utils.MakeArray(MaxAllianceSize, EmptySlot);
+    private readonly Actor?[] _actors = new Actor?[MaxAllianceSize]; // transient
 
     public Actor? this[int slot] => (slot >= 0 && slot < _actors.Length) ? _actors[slot] : null; // bounds-checking accessor
     public Actor? Player() => this[PlayerSlot];
@@ -70,41 +72,35 @@ public sealed class PartyState
     }
 
     // find a slot index containing specified player (by instance ID); returns -1 if not found
-    public int FindSlot(ulong instanceID) => instanceID != 0 ? Array.IndexOf(_actorIDs, instanceID) : -1;
+    public int FindSlot(ulong instanceID) => instanceID != 0 ? Array.FindIndex(Members, m => m.InstanceId == instanceID) : -1;
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {
-        for (int i = 0; i < MaxAllianceSize; ++i)
-            if (i < MaxPartySize && _contentIDs[i] != 0 || _actorIDs[i] != 0)
-                yield return new OpModify(i, i < MaxPartySize ? _contentIDs[i] : 0, _actorIDs[i]);
+        for (int i = 0; i < Members.Length; ++i)
+            if (Members[i].IsValid())
+                yield return new OpModify(i, Members[i]);
         if (LimitBreakCur != 0 || LimitBreakMax != 10000)
             yield return new OpLimitBreakChange(LimitBreakCur, LimitBreakMax);
     }
 
     // implementation of operations
     public Event<OpModify> Modified = new();
-    public sealed record class OpModify(int Slot, ulong ContentID, ulong InstanceID) : WorldState.Operation
+    public sealed record class OpModify(int Slot, Member Member) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {
-            if (Slot is < 0 or >= MaxAllianceSize)
+            if (Slot >= 0 && Slot < ws.Party.Members.Length)
+            {
+                ws.Party.Members[Slot] = Member;
+                ws.Party._actors[Slot] = ws.Actors.Find(Member.InstanceId);
+                ws.Party.Modified.Fire(this);
+            }
+            else
             {
                 Service.Log($"[PartyState] Out-of-bounds slot {Slot}");
-                return;
             }
-            if (Slot >= MaxPartySize && ContentID != 0)
-            {
-                Service.Log($"[PartyState] Unexpected non-zero content ID {ContentID:X}:{InstanceID:X} for alliance slot #{Slot}");
-                return;
-            }
-
-            if (Slot < MaxPartySize)
-                ws.Party._contentIDs[Slot] = ContentID;
-            ws.Party._actorIDs[Slot] = InstanceID;
-            ws.Party._actors[Slot] = ws.Actors.Find(InstanceID);
-            ws.Party.Modified.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("PAR "u8).Emit(Slot).Emit(ContentID, "X").Emit(InstanceID, "X8");
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("PAR "u8).Emit(Slot).Emit(Member.ContentId, "X").Emit(Member.InstanceId, "X8").Emit(Member.InCutscene).Emit(Member.Name);
     }
 
     public Event<OpLimitBreakChange> LimitBreakChanged = new();

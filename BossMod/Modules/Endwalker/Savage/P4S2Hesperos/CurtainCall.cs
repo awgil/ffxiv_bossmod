@@ -9,7 +9,7 @@ class CurtainCall(BossModule module) : BossComponent(module)
 
     public override void Update()
     {
-        _playersInBreakOrder ??= Raid.Members.Zip(_playerOrder).Where(po => po.First != null && po.Second != 0).OrderBy(po => po.Second).Select(po => po.First!).ToList();
+        _playersInBreakOrder ??= [.. Raid.WithSlot(true).WhereSlot(i => _playerOrder[i] != 0).OrderBy(ip => _playerOrder[ip.Item1]).Actors()];
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

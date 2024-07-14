@@ -152,7 +152,7 @@ public class DebugObjects
         for (int i = 0; i < gp->MemberCount; ++i)
         {
             ref var member = ref gp->PartyMembers[i];
-            res.Append($"\n{i}: {member.AccountId:X}.{member.ContentId:X} = {member.NameString} / {(member.UnkName != null ? member.UnkName->ToString() : "<null>")}");
+            res.Append($"\n{i}: {member.AccountId:X}.{member.ContentId:X} = {member.NameString} / {(member.NameOverride != null ? member.NameOverride->ToString() : "<null>")}");
         }
         Service.Log(res.ToString());
     }

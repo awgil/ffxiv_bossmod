@@ -43,9 +43,9 @@ public sealed class RotationModuleManager : IDisposable
         ActionManager = amex;
         _subscriptions = new
         (
-            WorldState.Actors.Added.Subscribe(a => DirtyActiveModules(WorldState.Party.ActorIDs[PlayerSlot] == a.InstanceID)),
-            WorldState.Actors.Removed.Subscribe(a => DirtyActiveModules(WorldState.Party.ActorIDs[PlayerSlot] == a.InstanceID)),
-            WorldState.Actors.ClassChanged.Subscribe(a => DirtyActiveModules(WorldState.Party.ActorIDs[PlayerSlot] == a.InstanceID)),
+            WorldState.Actors.Added.Subscribe(a => DirtyActiveModules(WorldState.Party.Members[PlayerSlot].InstanceId == a.InstanceID)),
+            WorldState.Actors.Removed.Subscribe(a => DirtyActiveModules(WorldState.Party.Members[PlayerSlot].InstanceId == a.InstanceID)),
+            WorldState.Actors.ClassChanged.Subscribe(a => DirtyActiveModules(WorldState.Party.Members[PlayerSlot].InstanceId == a.InstanceID)),
             WorldState.Actors.InCombatChanged.Subscribe(OnCombatChanged),
             WorldState.Actors.IsDeadChanged.Subscribe(OnDeadChanged),
             WorldState.Actors.CastEvent.Subscribe(OnCastEvent),
@@ -135,7 +135,7 @@ public sealed class RotationModuleManager : IDisposable
 
     private void OnCombatChanged(Actor actor)
     {
-        if (WorldState.Party.ActorIDs[PlayerSlot] != actor.InstanceID)
+        if (WorldState.Party.Members[PlayerSlot].InstanceId != actor.InstanceID)
             return; // don't care
 
         CombatStart = actor.InCombat ? WorldState.CurrentTime : default; // keep track of combat time in case rotation modules want to do something special in openers
@@ -157,7 +157,7 @@ public sealed class RotationModuleManager : IDisposable
 
     private void OnDeadChanged(Actor actor)
     {
-        if (WorldState.Party.ActorIDs[PlayerSlot] != actor.InstanceID)
+        if (WorldState.Party.Members[PlayerSlot].InstanceId != actor.InstanceID)
             return; // don't care
 
         // note: if combat ends while player is dead, we'll reset the preset, which is desirable
@@ -202,7 +202,7 @@ public sealed class RotationModuleManager : IDisposable
 
     private void OnCastEvent(Actor actor, ActorCastEvent cast)
     {
-        if (cast.SourceSequence != 0 && WorldState.Party.ActorIDs[PlayerSlot] == actor.InstanceID)
+        if (cast.SourceSequence != 0 && WorldState.Party.Members[PlayerSlot].InstanceId == actor.InstanceID)
         {
             LastCast = (WorldState.CurrentTime, cast);
 #if DEBUG

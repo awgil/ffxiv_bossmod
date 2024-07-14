@@ -1,5 +1,6 @@
 ﻿using Dalamud.Hooking;
 using Dalamud.Memory;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
@@ -10,6 +11,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.Interop;
+using System.Runtime.CompilerServices;
 
 namespace BossMod;
 
@@ -360,62 +362,66 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe void UpdateParty()
     {
-        var replay = Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback];
-        var gm = GroupManager.Instance()->GetGroup(replay);
-        var ui = UIState.Instance();
-        var pc = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
-        var pcContentId = UIState.Instance()->PlayerState.ContentId;
-        var pcEntityId = UIState.Instance()->PlayerState.EntityId;
-        if (replay)
+        var pc = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        if (pc != null && !pc->IsCharacter())
         {
-            // when doing replay playback, game uses independent group manager
-            pcEntityId = pc != null ? pc->EntityId : 0;
-            var member = pc != null ? gm->GetPartyMemberByEntityId(pcEntityId) : null;
-            pcContentId = member != null ? member->ContentId : 0;
-        }
-        else if (pc != null && pc->EntityId != pcEntityId)
-        {
-            Service.Log($"[WSG] Player entity id mismatch: {pcEntityId:X} vs {pc->EntityId:X}");
+            Service.Log($"[WSG] Object #0 is not a character");
+            pc = null;
         }
 
-        // update player slot
-        UpdatePartySlot(PartyState.PlayerSlot, pcContentId, pcEntityId);
+        var replay = Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback];
+        var ui = UIState.Instance();
+        if (!replay && pc != null && (pc->EntityId != ui->PlayerState.EntityId || pc->ContentId != ui->PlayerState.ContentId))
+        {
+            Service.Log($"[WSG] Player entity id mismatch: obj0={pc->ContentId:X}/{pc->EntityId:X} vs ui={ui->PlayerState.ContentId:X}/{ui->PlayerState.EntityId:X}");
+        }
+
+        // update player slot; consider it filled even when solo
+        var gm = GroupManager.Instance()->GetGroup(replay);
+        if (pc != null)
+        {
+            var pcMember = gm->GetPartyMemberByEntityId(pc->EntityId);
+            UpdatePartySlot(PartyState.PlayerSlot, pcMember != null ? BuildPartyMember(pcMember) : new(pc->ContentId, pc->EntityId, false, pc->NameString));
+        }
+        else
+        {
+            UpdatePartySlot(PartyState.PlayerSlot, PartyState.EmptySlot);
+        }
 
         // update normal party slots: first update/remove existing members, then add new ones
         for (int i = PartyState.PlayerSlot + 1; i < PartyState.MaxPartySize; ++i)
         {
-            var contentID = _ws.Party.ContentIDs[i];
-            var instanceID = _ws.Party.ActorIDs[i];
-            if (contentID != 0)
+            ref var m = ref _ws.Party.Members[i];
+            if (m.ContentId != 0)
             {
-                // slot was occupied by player => see if it's still in party
-                var member = gm->GetPartyMemberByContentId(contentID);
-                if (member != null)
-                    UpdatePartySlot(i, contentID, member->EntityId); // slot is still occupied by player; update in case instance-id changed
-                else
-                    UpdatePartySlot(i, 0, 0); // player is no longer in party => clear slot
+                // slot was occupied by player => see if it's still in party; either update to current state or clear if it's no longer in party
+                var member = gm->GetPartyMemberByContentId(m.ContentId);
+                UpdatePartySlot(i, BuildPartyMember(member));
             }
-            else if (instanceID != 0)
+            else if (m.InstanceId != 0)
             {
                 // slot was occupied by trust => see if it's still in party
-                if (!HasBuddy(instanceID))
-                    UpdatePartySlot(i, 0, 0); // buddy is no longer in party => clear slot
+                if (!HasBuddy(m.InstanceId))
+                    UpdatePartySlot(i, PartyState.EmptySlot); // buddy is no longer in party => clear slot
                 // else: no reason to update...
             }
             // else: slot was empty, skip
         }
         for (int i = 0; i < gm->MemberCount; ++i)
         {
-            ref var member = ref gm->PartyMembers[i];
-            if (_ws.Party.ContentIDs.IndexOf(member.ContentId) == -1)
-                AddPartyMember(member.ContentId, member.EntityId);
+            var cid = gm->PartyMembers[i].ContentId;
+            if (Array.FindIndex(_ws.Party.Members, m => m.ContentId == cid) < 0)
+                AddPartyMember(BuildPartyMember(gm->PartyMembers.GetPointer(i)));
             // else: already added, updated in previous loop
         }
         for (int i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
         {
             var instanceID = ui->Buddy.DutyHelperInfo.DutyHelpers[i].EntityId;
-            if (instanceID != InvalidEntityId && _ws.Party.ActorIDs[1..PartyState.MaxPartySize].IndexOf(instanceID) == -1)
-                AddPartyMember(0, instanceID);
+            if (instanceID != InvalidEntityId && _ws.Party.FindSlot(instanceID) < 0)
+            {
+                var obj = GameObjectManager.Instance()->Objects.GetObjectByEntityId(instanceID);
+                AddPartyMember(new(0, instanceID, false, obj != null ? obj->NameString : ""));
+            }
             // else: buddy is non-existent or already updated, skip
         }
 
@@ -426,7 +432,7 @@ sealed class WorldStateGameSync : IDisposable
             var member = isNormalAlliance ? gm->AllianceMembers.GetPointer(i - PartyState.MaxPartySize) : null;
             if (member != null && !member->IsValidAllianceMember)
                 member = null;
-            UpdatePartySlot(i, 0, member != null ? member->EntityId : 0);
+            UpdatePartySlot(i, BuildPartyMember(member));
         }
 
         // update limit break
@@ -447,24 +453,26 @@ sealed class WorldStateGameSync : IDisposable
     private int FindFreePartySlot()
     {
         for (int i = 1; i < PartyState.MaxPartySize; ++i)
-            if (_ws.Party.ContentIDs[i] == 0 && _ws.Party.ActorIDs[i] == 0)
+            if (!_ws.Party.Members[i].IsValid())
                 return i;
         return -1;
     }
 
-    private void AddPartyMember(ulong contentID, ulong instanceID)
+    private unsafe PartyState.Member BuildPartyMember(PartyMember* m) => m != null ? new(m->ContentId, m->EntityId, (m->Flags & 0x10) != 0, m->NameString) : PartyState.EmptySlot;
+
+    private void AddPartyMember(PartyState.Member m)
     {
         var freeSlot = FindFreePartySlot();
         if (freeSlot >= 0)
-            _ws.Execute(new PartyState.OpModify(freeSlot, contentID, instanceID));
+            _ws.Execute(new PartyState.OpModify(freeSlot, m));
         else
-            Service.Log($"[WorldState] Failed to find empty slot for party member {contentID:X}:{instanceID:X}");
+            Service.Log($"[WorldState] Failed to find empty slot for party member {m.ContentId:X}:{m.InstanceId:X}");
     }
 
-    private void UpdatePartySlot(int slot, ulong contentID, ulong instanceID)
+    private void UpdatePartySlot(int slot, PartyState.Member m)
     {
-        if (contentID != (slot < PartyState.MaxPartySize ? _ws.Party.ContentIDs[slot] : 0) || instanceID != _ws.Party.ActorIDs[slot])
-            _ws.Execute(new PartyState.OpModify(slot, contentID, instanceID));
+        if (_ws.Party.Members[slot] != m)
+            _ws.Execute(new PartyState.OpModify(slot, m));
     }
 
     private unsafe void UpdateClient()

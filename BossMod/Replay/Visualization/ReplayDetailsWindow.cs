@@ -366,7 +366,7 @@ class ReplayDetailsWindow : UIWindow
         {
             _hintsBuilder.Update(_hints, _povSlot);
 
-            var playerAssignment = Service.Config.Get<PartyRolesConfig>()[_mgr.WorldState.Party.ContentIDs[_povSlot]];
+            var playerAssignment = Service.Config.Get<PartyRolesConfig>()[_mgr.WorldState.Party.Members[_povSlot].ContentId];
             var pfTank = playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !_mgr.WorldState.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank);
             _pfVisu = new(_hints, _mgr.WorldState, player, player.TargetID, e => (e, _pfTargetRadius, _pfPositional, pfTank));
         }

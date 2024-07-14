@@ -128,9 +128,9 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
             else
             {
                 // if player has dark => show AOE radius around blue players and single tower to soak
-                foreach ((var player, var icon) in Raid.Members.Zip(_playerIcons))
+                for (int i = 0; i < _playerIcons.Length; ++i)
                 {
-                    if (icon == IconID.AkanthaiWater && player != null)
+                    if (_playerIcons[i] == IconID.AkanthaiWater && Raid[i] is var player && player != null)
                     {
                         Arena.AddCircle(player.Position, _waterExplosionRange, ArenaColor.Danger);
                     }
