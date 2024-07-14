@@ -184,7 +184,7 @@ class Ex2ZoraalJaStates : StateMachineBuilder
             .ActivateOnEnter<ChasmOfVollokPlayer>() // icons appear ~2.7s before swords resolve
             .DeactivateOnExit<ChasmOfVollokFangSmall>();
         CastStart(id + 0x1040, AID.DutysEdge, 3.3f, "Cells") // player cells resolve together with cast start
-            .ExecOnExit<ChasmOfVollokPlayer>(comp => comp.Active = true)
+            .ExecOnEnter<ChasmOfVollokPlayer>(comp => comp.Active = true)
             .ActivateOnEnter<DutysEdge>()
             .DeactivateOnExit<ChasmOfVollokPlayer>();
         DutysEdgeResolve(id + 0x1050, 4.9f);
