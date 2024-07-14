@@ -217,12 +217,18 @@ class TrackingBolt2(BossModule module) : Components.SpreadFromCastTargets(module
 
 class AccelerationBomb(BossModule module) : Components.StayMove(module)
 {
+    private bool pausedAI;
+    private DateTime expiresAt;
+    private bool expired;
+
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.AccelerationBomb)
         {
             if (Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < Requirements.Length)
                 Requirements[slot] = Requirement.Stay;
+            if (actor == Module.Raid.Player()!)
+                expiresAt = status.ExpireAt;
         }
     }
 
@@ -231,7 +237,26 @@ class AccelerationBomb(BossModule module) : Components.StayMove(module)
         if ((SID)status.ID == SID.AccelerationBomb)
         {
             if (Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < Requirements.Length)
+            {
                 Requirements[slot] = Requirement.None;
+                expired = true;
+                expiresAt = default;
+            }
+        }
+    }
+
+    public override void Update()
+    {
+        if (expiresAt != default && AI.AIManager.Instance?.Beh != null && expiresAt.AddSeconds(-0.1f) <= Module.WorldState.CurrentTime)
+        {
+            AI.AIManager.Instance?.SwitchToIdle();
+            pausedAI = true;
+        }
+        else if (expired && pausedAI)
+        {
+            AI.AIManager.Instance?.SwitchToFollow(Service.Config.Get<AI.AIConfig>().FollowSlot);
+            pausedAI = false;
+            expired = false;
         }
     }
 }
@@ -257,5 +282,5 @@ class D042ProtectorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 831, NameID = 12757)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 831, NameID = 12757, SortOrder = 4)]
 public class D042Protector(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaChanges.ArenaCenter, ArenaChanges.StartingBounds);
