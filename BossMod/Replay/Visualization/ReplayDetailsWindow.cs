@@ -15,6 +15,7 @@ class ReplayDetailsWindow : UIWindow
     private DateTime _prevFrame;
     private float _playSpeed;
     private float _azimuth;
+    private bool _azimuthOverride;
     private int _povSlot = PartyState.PlayerSlot;
     private readonly ConfigUI _config;
     private bool _showConfig;
@@ -59,10 +60,12 @@ class ReplayDetailsWindow : UIWindow
         DrawTimelineRow();
         ImGui.TextUnformatted($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.LoadedModules.Count(m => m.StateMachine.ActiveState != null)}, active module: {_mgr.ActiveModule?.GetType()}");
         ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
+        ImGui.SameLine();
+        ImGui.Checkbox("Override", ref _azimuthOverride);
         if (_mgr.ActiveModule != null)
         {
             var drawTimerPre = DateTime.Now;
-            _mgr.ActiveModule.Draw(_azimuth / 180 * MathF.PI, _povSlot, true, true);
+            _mgr.ActiveModule.Draw(_azimuthOverride ? _azimuth.Degrees() : _mgr.WorldState.Client.CameraAzimuth, _povSlot, true, true);
             var drawTimerPost = DateTime.Now;
 
             var compList = string.Join(", ", _mgr.ActiveModule.Components.Select(c => c.GetType().Name));

@@ -177,8 +177,8 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.EnAvant)!.TransformAngle = (_, _, _, _) => _config.AlignDashToCamera
-            ? Camera.Instance!.CameraAzimuth.Radians() + 180.Degrees()
+        d.Spell(AID.EnAvant)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera
+            ? ws.Client.CameraAzimuth + 180.Degrees()
             : null;
         // upgrades/button replacement (TODO: don't think we actually care...)
         //d.Spell(AID.StandardStep)!.TransformAction = () => ActionID.MakeSpell(_state.BestStandardStep);

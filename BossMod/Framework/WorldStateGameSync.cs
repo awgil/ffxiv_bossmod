@@ -133,7 +133,8 @@ sealed class WorldStateGameSync : IDisposable
                 fwk->GameSpeedMultiplier
             ),
             prevFramePerf,
-            GaugeData()
+            GaugeData(),
+            Camera.Instance?.CameraAzimuth.Radians() ?? default
         ));
         if (_ws.CurrentZone != Service.ClientState.TerritoryType || _ws.CurrentCFCID != GameMain.Instance()->CurrentContentFinderConditionId)
         {

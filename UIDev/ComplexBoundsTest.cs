@@ -25,7 +25,7 @@ class ComplexBoundsTest : TestWindow
         ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, +180);
         ImGui.DragFloat("Camera altitude", ref _altitude, 1, -90, +90);
 
-        _arena.Begin((float)(Math.PI * _azimuth / 180));
+        _arena.Begin(_azimuth.Degrees());
         if (_fillBG)
             _arena.Zone(_arena.Bounds.ShapeTriangulation, 0xff402010);
         _arena.Border(ArenaColor.Border);

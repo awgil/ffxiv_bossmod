@@ -350,7 +350,7 @@ public sealed class ReplayParserLog : IDisposable
 
         if (_version is > 0 and < 5 && _input is TextInput ti && _legacyPrevTS < ti.Timestamp)
         {
-            _builder.AddOp(new WorldState.OpFrameStart(new() { Timestamp = ti.Timestamp }, default, 0));
+            _builder.AddOp(new WorldState.OpFrameStart(new() { Timestamp = ti.Timestamp }, default, 0, default));
             _legacyPrevTS = ti.Timestamp;
         }
 
@@ -409,7 +409,7 @@ public sealed class ReplayParserLog : IDisposable
             frame.TickSpeedMultiplier = 1;
             _legacyPrevTS = ti.Timestamp;
         }
-        return new(frame, prevUpdateTime, gauge);
+        return new(frame, prevUpdateTime, gauge, _version >= 16 ? _input.ReadAngle() : default);
     }
 
     private WorldState.OpUserMarker ParseUserMarker() => new(_input.ReadString());

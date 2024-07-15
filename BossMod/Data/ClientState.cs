@@ -38,6 +38,8 @@ public sealed class ClientState
     public const int NumCooldownGroups = 82;
 
     public float? CountdownRemaining;
+    public Angle CameraAzimuth; // updated every frame by the frame-start event
+    public ulong GaugePayload; // updated every frame by the frame-start event
     public float AnimationLock;
     public Combo ComboState;
     public readonly Cooldown[] Cooldowns = new Cooldown[NumCooldownGroups];

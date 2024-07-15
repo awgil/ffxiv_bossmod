@@ -21,6 +21,7 @@ public static partial class Utils
         : obj.SubKind == 0 ? $"{obj.ObjectKind}"
         : $"{obj.ObjectKind}/{obj.SubKind}";
 
+    public static Vector2 XY(this Vector4 v) => new(v.X, v.Y);
     public static Vector3 XYZ(this Vector4 v) => new(v.X, v.Y, v.Z);
     public static Vector2 XZ(this Vector4 v) => new(v.X, v.Z);
     public static Vector2 XZ(this Vector3 v) => new(v.X, v.Z);

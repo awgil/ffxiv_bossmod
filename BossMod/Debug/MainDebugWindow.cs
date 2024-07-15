@@ -84,13 +84,9 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
         {
             _debugGraphics.DrawWatchedMods();
         }
-        if (Camera.Instance != null && ImGui.CollapsingHeader("Matrices"))
+        if (ImGui.CollapsingHeader("Matrices"))
         {
             _debugGraphics.DrawMatrices();
-        }
-        if (ImGui.CollapsingHeader("Matrices (alt)"))
-        {
-            _debugGraphics.DrawMatricesAlt();
         }
         if (Camera.Instance != null && ImGui.CollapsingHeader("In-game overlay"))
         {

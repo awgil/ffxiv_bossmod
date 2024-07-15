@@ -138,7 +138,7 @@ public abstract class BossModule : IDisposable
         }
     }
 
-    public void Draw(float cameraAzimuth, int pcSlot, bool includeText, bool includeArena)
+    public void Draw(Angle cameraAzimuth, int pcSlot, bool includeText, bool includeArena)
     {
         var pc = Raid[pcSlot];
         if (pc == null)

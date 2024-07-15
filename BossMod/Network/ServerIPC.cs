@@ -509,6 +509,7 @@ public enum ActorControlCategory : ushort
     AchievementPopup = 515, // from dissector
     LogMsg = 517, // from dissector
     AchievementMsg = 518, // from dissector
+    SetCutsceneFlags = 519,
     SetItemLevel = 521, // from dissector
     ChallengeEntryCompleteMsg = 523, // from dissector
     ChallengeEntryUnlockMsg = 524, // from dissector

@@ -230,53 +230,11 @@ class DebugGraphics
 
     public unsafe void DrawMatrices()
     {
-        if (Camera.Instance == null)
-            return;
-
-        using var table = ImRaii.Table("matrices", 2);
-        if (!table)
-            return;
-
-        ImGui.TableSetupColumn("Name");
-        ImGui.TableSetupColumn("Value");
-        ImGui.TableHeadersRow();
-
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn(); ImGui.TextUnformatted("VP");
-        ImGui.TableNextColumn(); DrawMatrix(Camera.Instance.ViewProj);
-
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn(); ImGui.TextUnformatted("P");
-        ImGui.TableNextColumn(); DrawMatrix(Camera.Instance.Proj);
-
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn(); ImGui.TextUnformatted("V");
-        ImGui.TableNextColumn(); DrawMatrix(Camera.Instance.View);
-
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn(); ImGui.TextUnformatted("Camera Altitude");
-        ImGui.TableNextColumn(); ImGui.TextUnformatted(Camera.Instance.CameraAltitude.Radians().ToString());
-
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn(); ImGui.TextUnformatted("Camera Azimuth");
-        ImGui.TableNextColumn(); ImGui.TextUnformatted(Camera.Instance.CameraAzimuth.Radians().ToString());
-
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn(); ImGui.TextUnformatted("W");
-        ImGui.TableNextColumn(); DrawMatrix(Camera.Instance.CameraWorld);
-
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn(); ImGui.TextUnformatted("Viewport size");
-        ImGui.TableNextColumn(); ImGui.TextUnformatted($"{Camera.Instance.ViewportSize.X:f6} {Camera.Instance.ViewportSize.Y:f6}");
-    }
-
-    public unsafe void DrawMatricesAlt()
-    {
         var camera = CameraManager.Instance()->CurrentCamera;
         if (camera == null)
             return;
 
-        using var table = ImRaii.Table("matrices_alt", 2);
+        using var table = ImRaii.Table("matrices", 2);
         if (!table)
             return;
 
@@ -335,6 +293,13 @@ class DebugGraphics
             camera->RenderCamera->FiniteFarPlane ^= true;
 
         var view = camera->ViewMatrix;
+        var lx = new Vector3(view.M11, view.M21, view.M31);
+        var ly = new Vector3(view.M12, view.M22, view.M32);
+        var lz = new Vector3(view.M13, view.M23, view.M33);
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn(); ImGui.TextUnformatted("View handedness");
+        ImGui.TableNextColumn(); ImGui.TextUnformatted($"{Vector3.Dot(lz, Vector3.Cross(lx, ly))}");
+
         view.M44 = 1;
         FFXIVClientStructs.FFXIV.Common.Math.Matrix4x4.Invert(view, out var world);
         ImGui.TableNextRow();

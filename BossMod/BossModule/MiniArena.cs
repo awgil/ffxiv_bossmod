@@ -45,7 +45,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
 
     // these are set at the beginning of each draw
     public Vector2 ScreenCenter { get; private set; }
-    private float _cameraAzimuth;
+    private Angle _cameraAzimuth;
     private float _cameraSinAzimuth;
     private float _cameraCosAzimuth = 1;
 
@@ -56,7 +56,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     public string DrawCacheStats() => _triCache.Stats();
 
     // prepare for drawing - set up internal state, clip rect etc.
-    public void Begin(float cameraAzimuthRadians)
+    public void Begin(Angle cameraAzimuth)
     {
         var centerOffset = new Vector2(ScreenMarginSize + (Config.AddSlackForRotations ? 1.5f : 1.0f) * ScreenHalfSize);
         var fullSize = 2 * centerOffset;
@@ -73,9 +73,9 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
             _triCache.NextFrame();
         }
         ScreenCenter = cursor + centerOffset;
-        _cameraAzimuth = cameraAzimuthRadians;
-        _cameraSinAzimuth = MathF.Sin(cameraAzimuthRadians);
-        _cameraCosAzimuth = MathF.Cos(cameraAzimuthRadians);
+        _cameraAzimuth = cameraAzimuth;
+        _cameraSinAzimuth = cameraAzimuth.Sin();
+        _cameraCosAzimuth = cameraAzimuth.Cos();
         //var camWorld = SharpDX.Matrix.RotationYawPitchRoll(azimuth, altitude, 0);
         //camWorld.Row4 = camWorld.Row3 * WorldHalfSize;
         //camWorld.M44 = 1;
@@ -160,7 +160,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     public void AddCone(WPos center, float radius, Angle centerDirection, Angle halfAngle, uint color, float thickness = 1)
     {
         var sCenter = WorldPositionToScreenPosition(center);
-        float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth;
+        float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth.Rad;
         var drawlist = ImGui.GetWindowDrawList();
         drawlist.PathLineTo(sCenter);
         drawlist.PathArcTo(sCenter, radius / Bounds.Radius * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
@@ -170,7 +170,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     public void AddDonutCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color, float thickness = 1)
     {
         var sCenter = WorldPositionToScreenPosition(center);
-        float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth;
+        float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth.Rad;
         var drawlist = ImGui.GetWindowDrawList();
         drawlist.PathArcTo(sCenter, innerRadius / Bounds.Radius * ScreenHalfSize, sDir + halfAngle.Rad, sDir - halfAngle.Rad);
         drawlist.PathArcTo(sCenter, outerRadius / Bounds.Radius * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
@@ -200,7 +200,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     // adds a bunch of points corresponding to arc - if path is non empty, this adds an edge from last point to first arc point
     public void PathArcTo(WPos center, float radius, float amin, float amax)
     {
-        ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / Bounds.Radius * ScreenHalfSize, MathF.PI / 2 - amin + _cameraAzimuth, MathF.PI / 2 - amax + _cameraAzimuth);
+        ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / Bounds.Radius * ScreenHalfSize, MathF.PI / 2 - amin + _cameraAzimuth.Rad, MathF.PI / 2 - amax + _cameraAzimuth.Rad);
     }
 
     public void PathStroke(bool closed, uint color, float thickness = 1)

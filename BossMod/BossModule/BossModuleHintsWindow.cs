@@ -24,7 +24,7 @@ public class BossModuleHintsWindow : UIWindow
     {
         try
         {
-            _mgr.ActiveModule?.Draw(0, PartyState.PlayerSlot, true, false);
+            _mgr.ActiveModule?.Draw(default, PartyState.PlayerSlot, true, false);
         }
         catch (Exception ex)
         {
