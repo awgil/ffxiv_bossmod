@@ -8,7 +8,7 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: BRD", "Planner support for utility actions", "veyn", RotationModuleQuality.WIP, BitMask.Build((int)Class.BRD), 90);
+        var res = new RotationModuleDefinition("Utility: BRD", "Planner support for utility actions", "veyn", RotationModuleQuality.WIP, BitMask.Build((int)Class.BRD), 100);
         DefineShared(res, IDLimitBreak3);
 
         // TODO: repelling shot (not sure how it can be planned really...)

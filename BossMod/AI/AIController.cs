@@ -144,8 +144,9 @@ sealed class AIController(ActionManagerEx amex)
         else
         {
             _amex.InputOverride.GamepadOverridesEnabled = false;
-            _amex.ForceCancelCastNextFrame |= ForceCancelCast && castInProgress;
+            _axisForward.CurDirection = 0;
             _keyJump.Held = false;
+            _amex.ForceCancelCastNextFrame |= ForceCancelCast && castInProgress;
         }
 
         if (NaviTargetVertical != null && IsVerticalAllowed && NaviTargetPos != null)

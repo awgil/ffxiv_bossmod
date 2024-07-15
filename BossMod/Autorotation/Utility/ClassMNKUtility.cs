@@ -8,7 +8,7 @@ public sealed class ClassMNKUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: MNK", "Planner support for utility actions", "xan", RotationModuleQuality.WIP, BitMask.Build((int)Class.MNK), 90);
+        var res = new RotationModuleDefinition("Utility: MNK", "Planner support for utility actions", "xan", RotationModuleQuality.WIP, BitMask.Build((int)Class.MNK), 100);
         DefineShared(res, IDLimitBreak3);
 
         DefineSimpleConfig(res, Track.Mantra, "Mantra", "", 100, MNK.AID.Mantra, 15);
