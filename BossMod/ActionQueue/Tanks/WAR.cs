@@ -163,9 +163,9 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.Tomahawk)!.Condition = (ws, player, _, _) => !_config.ForbidEarlyTomahawk || player.InCombat || ws.Client.CountdownRemaining is null or <= 0.7f;
+        d.Spell(AID.Tomahawk)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyTomahawk && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
         d.Spell(AID.Holmgang)!.SmartTarget = (_, player, target, _) => _config.HolmgangSelf ? player : target;
-        d.Spell(AID.Equilibrium)!.Condition = (_, player, _, _) => player.HPMP.CurHP < player.HPMP.MaxHP; // don't use equilibrium at full hp
+        d.Spell(AID.Equilibrium)!.ForbidExecute = (_, player, _, _) => player.HPMP.CurHP >= player.HPMP.MaxHP; // don't use equilibrium at full hp
         d.Spell(AID.NascentFlash)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
 
         // upgrades (TODO: don't think we actually care...)

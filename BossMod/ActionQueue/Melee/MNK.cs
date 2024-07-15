@@ -144,7 +144,7 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.Thunderclap)!.Condition = (_, player, target, _) => !_config.PreventCloseDash || target != null && !target.Position.InCircle(player.Position, 3 + target.HitboxRadius + player.HitboxRadius);
+        d.Spell(AID.Thunderclap)!.ForbidExecute = (_, player, target, _) => _config.PreventCloseDash && (target?.Position.InCircle(player.Position, target.HitboxRadius + player.HitboxRadius) ?? true);
 
         // upgrades (TODO: don't think we actually care...)
         //d.Spell(AID.SteelPeak)!.TransformAction = d.Spell(AID.ForbiddenChakra)!.TransformAction = () => ActionID.MakeSpell(_state.BestForbiddenChakra);

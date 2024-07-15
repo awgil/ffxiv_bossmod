@@ -40,7 +40,7 @@ public sealed record class ActionDefinition(ActionID ID)
     public int MaxChargesAtCap = 1; // TODO: this actually depends on unlocked traits...
     public float InstantAnimLock = 0.6f; // animation lock if ability is instant-cast
     public float CastAnimLock = 0.1f; // animation lock if ability is non-instant
-    public ConditionDelegate? Condition; // optional condition, if it returns false, action is not executed
+    public ConditionDelegate? ForbidExecute; // optional condition, if it returns true, action is not executed
     public SmartTargetDelegate? SmartTarget; // optional target transformation for 'smart targeting' feature
     public TransformAngleDelegate? TransformAngle; // optional facing angle transformation
 

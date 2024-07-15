@@ -1,5 +1,4 @@
 autorotation v2 cleanup:
-- reconsider condition vs forbid?
 - tank stance track
 - rmm in replay analysis
 -- gauge parser
