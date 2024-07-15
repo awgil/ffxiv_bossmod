@@ -24,12 +24,12 @@ public abstract class GenericUtility(RotationModuleManager manager, Actor player
         // note: it assumes that effect durations are either 0's or correspond to tank LB (so lb2 > lb1 > lb3)
         return def.Define(expectedIndex).As<LBOption>("LB")
             .AddOption(LBOption.None, "None", "Do not use automatically")
-            .AddOption(LBOption.LB3, "LB3", "Use LB3 if available", 0, effectLB3, allowedTargets)
-            .AddOption(LBOption.LB2, "LB2", "Use LB2/3 if available", 0, effectLB3, allowedTargets)
-            .AddOption(LBOption.LB1, "LB1", "Use any LB if available", 0, effectLB3, allowedTargets)
-            .AddOption(LBOption.LB2Only, "LB2Only", "Use LB2 if available, but not LB3", 0, effectLB2, allowedTargets)
-            .AddOption(LBOption.LB1Only, "LB1Only", "Use LB1 if available, but not LB2+", 0, effectLB1, allowedTargets)
-            .AddOption(LBOption.LB12, "LB12", "Use LB1/2 if available, but not LB3", 0, effectLB1, allowedTargets);
+            .AddOption(LBOption.LB3, "LB3", "Use LB3 if available", 0, effectLB3, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
+            .AddOption(LBOption.LB2, "LB2", "Use LB2/3 if available", 0, effectLB3, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
+            .AddOption(LBOption.LB1, "LB1", "Use any LB if available", 0, effectLB3, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
+            .AddOption(LBOption.LB2Only, "LB2Only", "Use LB2 if available, but not LB3", 0, effectLB2, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
+            .AddOption(LBOption.LB1Only, "LB1Only", "Use LB1 if available, but not LB2+", 0, effectLB1, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
+            .AddOption(LBOption.LB12, "LB12", "Use LB1/2 if available, but not LB3", 0, effectLB1, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh);
     }
 
     protected void ExecuteSimple<AID>(in StrategyValues.OptionRef opt, AID aid, Actor? target) where AID : Enum

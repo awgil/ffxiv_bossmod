@@ -6,11 +6,13 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
     public enum HoCOption { None, HeartOfStone, HeartOfCorundum }
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(GNB.AID.GunmetalSoul);
+    public static readonly ActionID IDStanceApply = ActionID.MakeSpell(GNB.AID.RoyalGuard);
+    public static readonly ActionID IDStanceRemove = ActionID.MakeSpell(GNB.AID.ReleaseRoyalGuard);
 
     public static RotationModuleDefinition Definition()
     {
         var res = new RotationModuleDefinition("Utility: GNB", "Planner support for utility actions", "LazyLemo, Akechi-kun", RotationModuleQuality.WIP, BitMask.Build((int)Class.GNB), 100);
-        DefineShared(res, IDLimitBreak3);
+        DefineShared(res, IDLimitBreak3, IDStanceApply, IDStanceRemove);
 
         DefineSimpleConfig(res, Track.Camouflage, "Camouflage", "Camoufl", 450, GNB.AID.Camouflage, 20);
         DefineSimpleConfig(res, Track.Nebula, "Nebula", "Nebula", 550, GNB.AID.Nebula, 15);
@@ -29,7 +31,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget)
     {
-        ExecuteShared(strategy, IDLimitBreak3);
+        ExecuteShared(strategy, IDLimitBreak3, IDStanceApply, IDStanceRemove, (uint)GNB.SID.RoyalGuard);
         ExecuteSimple(strategy.Option(Track.Camouflage), GNB.AID.Camouflage, Player);
         ExecuteSimple(strategy.Option(Track.Nebula), GNB.AID.Nebula, Player);
         ExecuteSimple(strategy.Option(Track.Aurora), GNB.AID.Aurora, primaryTarget);

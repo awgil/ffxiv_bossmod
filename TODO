@@ -1,5 +1,4 @@
 autorotation v2 cleanup:
-- tank stance track
 - rmm in replay analysis
 -- gauge parser
 -- castinfo should contain elapsed/total with tick
