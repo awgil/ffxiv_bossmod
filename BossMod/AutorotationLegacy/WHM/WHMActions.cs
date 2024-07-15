@@ -1,6 +1,4 @@
-﻿//using Dalamud.Game.ClientState.JobGauge.Types;
-
-//namespace BossMod.WHM;
+﻿//namespace BossMod.WHM;
 
 //// TODO: this is shit, like all healer modules...
 //class Actions : HealerActions

@@ -1,5 +1,4 @@
-﻿using Dalamud.Game.ClientState.JobGauge.Enums;
-using Dalamud.Game.ClientState.JobGauge.Types;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.Legacy;
 
@@ -68,7 +67,7 @@ public sealed class LegacySAM : LegacyModule
     {
         public int MeditationStacks; // 3 max
         public int Kenki; // 100 max, changes by 5
-        public Kaeshi Kaeshi; // see SAMGauge.Kaeshi
+        public KaeshiAction Kaeshi; // see SAMGauge.Kaeshi
         public float FukaLeft; // 40 max
         public float FugetsuLeft; // 40 max
         public float TrueNorthLeft; // 10 max
@@ -156,11 +155,11 @@ public sealed class LegacySAM : LegacyModule
             _lastTsubame = World.CurrentTime;
         _tsubameCooldown = newTsubameCooldown;
 
-        var gauge = Service.JobGauges.Get<SAMGauge>();
+        var gauge = GetGauge<SamuraiGauge>();
 
-        _state.HasIceSen = gauge.HasSetsu;
-        _state.HasMoonSen = gauge.HasGetsu;
-        _state.HasFlowerSen = gauge.HasKa;
+        _state.HasIceSen = gauge.SenFlags.HasFlag(SenFlags.Setsu);
+        _state.HasMoonSen = gauge.SenFlags.HasFlag(SenFlags.Getsu);
+        _state.HasFlowerSen = gauge.SenFlags.HasFlag(SenFlags.Ka);
         _state.MeditationStacks = gauge.MeditationStacks;
         _state.Kenki = gauge.Kenki;
         _state.Kaeshi = gauge.Kaeshi;
@@ -254,7 +253,7 @@ public sealed class LegacySAM : LegacyModule
         if (!_state.Unlocked(SAM.AID.TsubameGaeshi))
             return SAM.AID.None;
 
-        if (_state.Kaeshi == Kaeshi.NAMIKIRI)
+        if (_state.Kaeshi == KaeshiAction.Namikiri)
         {
             // namikiri is not tied to tsubame cooldown
             return SAM.AID.KaeshiNamikiri;
@@ -264,8 +263,8 @@ public sealed class LegacySAM : LegacyModule
             // will have tsubame on next gcd
             return _state.Kaeshi switch
             {
-                Kaeshi.GOKEN => SAM.AID.KaeshiGoken,
-                Kaeshi.SETSUGEKKA => SAM.AID.KaeshiSetsugekka,
+                KaeshiAction.Goken => SAM.AID.KaeshiGoken,
+                KaeshiAction.Setsugekka => SAM.AID.KaeshiSetsugekka,
                 // higanbana is worthless
                 _ => SAM.AID.None
             };

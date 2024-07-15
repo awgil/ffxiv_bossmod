@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.ClientState.JobGauge.Types;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.Legacy;
 
@@ -125,7 +125,7 @@ public sealed class LegacyRPR : LegacyModule
         _state.UpdateCommon(primaryTarget);
         _state.HasSoulsow = Player.FindStatus(RPR.SID.Soulsow) != null;
 
-        var gauge = Service.JobGauges.Get<RPRGauge>();
+        var gauge = GetGauge<ReaperGauge>();
         _state.LemureShroudCount = gauge.LemureShroud;
         _state.VoidShroudCount = gauge.VoidShroud;
         _state.ShroudGauge = gauge.Shroud;

@@ -1,7 +1,8 @@
 ﻿using BossMod.DNC;
-using Dalamud.Game.ClientState.JobGauge.Types;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.xan;
+
 public sealed class DNC(RotationModuleManager manager, Actor player) : xbase<AID, TraitID>(manager, player)
 {
     public enum Track { AOE, Targeting, Buffs, Partner }
@@ -277,12 +278,13 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : xbase<AID
         SelectPrimaryTarget(targeting, ref primaryTarget, range: 25);
         _state.UpdateCommon(primaryTarget);
 
-        var gauge = Service.JobGauges.Get<DNCGauge>();
+        var gauge = GetGauge<DancerGauge>();
+        var curStep = (uint)gauge.CurrentStep;
 
         Feathers = gauge.Feathers;
-        IsDancing = gauge.IsDancing;
-        CompletedSteps = gauge.CompletedSteps;
-        NextStep = (gauge.CompletedSteps == 4 || gauge.NextStep == 15998) ? 0 : gauge.NextStep;
+        IsDancing = gauge.DanceSteps[0] != 0;
+        CompletedSteps = gauge.StepIndex;
+        NextStep = curStep > 0 ? curStep + 15998 : curStep;
         Esprit = gauge.Esprit;
 
         StandardStepLeft = StatusLeft(SID.StandardStep);

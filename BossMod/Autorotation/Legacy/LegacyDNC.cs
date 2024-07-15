@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.ClientState.JobGauge.Types;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.Legacy;
 
@@ -147,12 +147,13 @@ public sealed class LegacyDNC : LegacyModule
         _state.UpdateCommon(primaryTarget);
         _state.AnimationLockDelay = MathF.Max(0.1f, _state.AnimationLockDelay);
 
-        var gauge = Service.JobGauges.Get<DNCGauge>();
+        var gauge = GetGauge<DancerGauge>();
+        var curStep = (uint)gauge.CurrentStep;
 
         _state.Feathers = gauge.Feathers;
-        _state.IsDancing = gauge.IsDancing;
-        _state.CompletedSteps = gauge.CompletedSteps;
-        _state.NextStep = (gauge.CompletedSteps == 4 || gauge.NextStep == 15998) ? 0 : gauge.NextStep;
+        _state.IsDancing = gauge.DanceSteps[0] != 0;
+        _state.CompletedSteps = gauge.StepIndex;
+        _state.NextStep = curStep > 0 ? curStep + 15998 : curStep;
         _state.Esprit = gauge.Esprit;
 
         _state.StandardStepLeft = StatusLeft(DNC.SID.StandardStep);

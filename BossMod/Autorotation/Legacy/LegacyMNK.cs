@@ -1,5 +1,4 @@
-﻿using Dalamud.Game.ClientState.JobGauge.Enums;
-using Dalamud.Game.ClientState.JobGauge.Types;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.Legacy;
 
@@ -144,8 +143,8 @@ public sealed class LegacyMNK : LegacyModule
     public class State(RotationModule module) : CommonState(module)
     {
         public int Chakra; // 0-5
-        public BeastChakra[] BeastChakra = [];
-        public Nadi Nadi;
+        public BeastChakraType[] BeastChakra = [];
+        public NadiFlags Nadi;
         public Form Form;
         public float BlitzLeft; // 20 max
         public float FormLeft; // 0 if no form, 30 max
@@ -170,13 +169,13 @@ public sealed class LegacyMNK : LegacyModule
 
         public float ActualFightEndIn => FightEndIn == 0 ? 10000f : FightEndIn;
 
-        public bool HasLunar => Nadi.HasFlag(Nadi.LUNAR);
-        public bool HasSolar => Nadi.HasFlag(Nadi.SOLAR);
+        public bool HasLunar => Nadi.HasFlag(NadiFlags.Lunar);
+        public bool HasSolar => Nadi.HasFlag(NadiFlags.Solar);
         public bool HasBothNadi => HasLunar && HasSolar;
 
         public bool CanFormShift => Unlocked(MNK.AID.FormShift) && PerfectBalanceLeft == 0;
 
-        public int BeastCount => BeastChakra.Count(x => x != Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.NONE);
+        public int BeastCount => BeastChakra.Count(x => x != BeastChakraType.None);
 
         public bool ForcedLunar => BeastCount > 1 && BeastChakra[0] == BeastChakra[1] && !HasBothNadi;
         public bool ForcedSolar => BeastCount > 1 && BeastChakra[0] != BeastChakra[1] && !HasBothNadi;
@@ -231,7 +230,7 @@ public sealed class LegacyMNK : LegacyModule
     {
         _state.UpdateCommon(primaryTarget);
 
-        var gauge = Service.JobGauges.Get<MNKGauge>();
+        var gauge = GetGauge<MonkGauge>();
         _state.Chakra = gauge.Chakra;
         _state.BeastChakra = gauge.BeastChakra;
         _state.Nadi = gauge.Nadi;
@@ -632,10 +631,10 @@ public sealed class LegacyMNK : LegacyModule
             if (!_state.HasBothNadi)
                 foreach (var chak in _state.BeastChakra)
                 {
-                    canCoeurl &= chak != BeastChakra.COEURL;
-                    canRaptor &= chak != BeastChakra.RAPTOR;
+                    canCoeurl &= chak != BeastChakraType.Coeurl;
+                    canRaptor &= chak != BeastChakraType.Raptor;
                     if (forcedSolar)
-                        canOpo &= chak != BeastChakra.OPOOPO;
+                        canOpo &= chak != BeastChakraType.OpoOpo;
                 }
 
             // big pile of conditionals to check whether this is a forced solar (buffs are running out).

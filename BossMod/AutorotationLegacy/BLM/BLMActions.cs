@@ -1,6 +1,4 @@
-﻿//using Dalamud.Game.ClientState.JobGauge.Types;
-
-//namespace BossMod.BLM;
+﻿//namespace BossMod.BLM;
 
 //class Actions : CommonActions
 //{

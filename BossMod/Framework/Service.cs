@@ -24,7 +24,6 @@ public sealed class Service
     [PluginService] public static IClientState ClientState { get; private set; }
     [PluginService] public static IObjectTable ObjectTable { get; private set; }
     [PluginService] public static ITargetManager TargetManager { get; private set; }
-    [PluginService] public static IJobGauges JobGauges { get; private set; }
     [PluginService] public static IKeyState KeyState { get; private set; }
 #pragma warning restore CS8618
 

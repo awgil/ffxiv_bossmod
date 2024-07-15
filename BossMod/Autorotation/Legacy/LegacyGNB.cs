@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.ClientState.JobGauge.Types;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.Legacy;
 
@@ -123,8 +123,9 @@ public sealed class LegacyGNB : LegacyModule
         //if (_state.ComboLastMove == GNB.AID.SolidBarrel)
         //    _state.ComboTimeLeft = 0;
 
-        _state.Ammo = Service.JobGauges.Get<GNBGauge>().Ammo;
-        _state.GunComboStep = Service.JobGauges.Get<GNBGauge>().AmmoComboStep;
+        var gauge = GetGauge<GunbreakerGauge>();
+        _state.Ammo = gauge.Ammo;
+        _state.GunComboStep = gauge.AmmoComboStep;
         _state.MaxCartridges = _state.Unlocked(GNB.TraitID.CartridgeChargeII) ? 3 : 2;
 
         _state.NoMercyLeft = _state.StatusDetails(Player, GNB.SID.NoMercy, Player.InstanceID).Left;
