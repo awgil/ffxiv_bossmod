@@ -102,8 +102,10 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
     public bool TraitUnlocked(uint id)
     {
-        var unlock = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Trait>(id)?.Quest.Row ?? 0;
-        return ActionDefinitions.Instance.UnlockCheck?.Invoke(unlock) ?? true;
+        var trait = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Trait>(id);
+        var unlock = trait?.Quest.Row ?? 0;
+        var level = trait?.Level ?? 0;
+        return Player.Level >= level && (ActionDefinitions.Instance.UnlockCheck?.Invoke(unlock) ?? true);
     }
 
     // utility to resolve the target overrides; returns null on failure - in this case module is expected to run smart-targeting logic
