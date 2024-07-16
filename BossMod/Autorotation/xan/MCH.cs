@@ -222,14 +222,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : xbase<AID
 
     private bool ShouldHypercharge(StrategyValues strategy, float deadline)
     {
-        if (!Unlocked(AID.Hypercharge)
-            // no gauge
-            || HyperchargedLeft == 0 && Heat < 50
-            // already active, can't use again
-            || Overheated
-            // reassemble would be wasted on heat blast or crossbow
-            || ReassembleLeft > _state.GCD
-            || !_state.CanWeave(AID.Hypercharge, 0.6f, deadline))
+        if (!Unlocked(AID.Hypercharge) || HyperchargedLeft == 0 && Heat < 50 || Overheated || ReassembleLeft > _state.GCD || !_state.CanWeave(AID.Hypercharge, 0.6f, deadline))
             return false;
 
         // hack for CD alignment in opener - wait for wildfire application
