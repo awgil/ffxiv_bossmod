@@ -274,7 +274,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : xbase<AID
 
     public override void Exec(StrategyValues strategy, Actor? primaryTarget)
     {
-        var targeting = strategy.Option(Track.Targeting);
+        var targeting = strategy.Option(Track.Targeting).As<Targeting>();
         SelectPrimaryTarget(targeting, ref primaryTarget, range: 25);
         _state.UpdateCommon(primaryTarget);
 
@@ -324,10 +324,10 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : xbase<AID
             PushGCD(AID.ClosedPosition, partner);
 
         CalcNextBestGCD(strategy, primaryTarget);
-        QueueOGCD((deadline, _) => CalcNextBestOGCD(strategy, primaryTarget, deadline));
+        QueueOGCD(deadline => CalcNextBestOGCD(strategy, primaryTarget, deadline));
     }
 
-    private bool IsFan4Target(Actor primary, Actor other) => Hints.TargetInAOECone(other, Player.Position, 15, (primary.Position - Player.Position).Normalized(), 60.Degrees());
+    private bool IsFan4Target(Actor primary, Actor other) => Hints.TargetInAOECone(other, Player.Position, 15, Player.DirectionTo(primary), 60.Degrees());
 
     private Actor? FindDancePartner() => World.Party.WithoutSlot().Exclude(Player).MaxBy(p => p.Class switch
         {
