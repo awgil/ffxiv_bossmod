@@ -17,8 +17,9 @@ public unsafe struct PlayerMoveControllerFlyInput
     [FieldOffset(0x15)] public byte HaveBackwardOrStrafe;
 }
 
-public unsafe class AIMove : IDisposable
+public sealed unsafe class AIMove : IDisposable
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible", Justification = "Camera already does this")]
     public static AIMove? Instance;
 
     public WPos? DesiredPosition;
@@ -28,16 +29,16 @@ public unsafe class AIMove : IDisposable
     private bool _legacyMode;
 
     private delegate bool RMIWalkIsInputEnabled(void* self);
-    private RMIWalkIsInputEnabled _rmiWalkIsInputEnabled1;
-    private RMIWalkIsInputEnabled _rmiWalkIsInputEnabled2;
+    private readonly RMIWalkIsInputEnabled _rmiWalkIsInputEnabled1;
+    private readonly RMIWalkIsInputEnabled _rmiWalkIsInputEnabled2;
 
     private delegate void RMIWalkDelegate(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk);
     [Signature("E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D")]
-    private Hook<RMIWalkDelegate> _rmiWalkHook = null!;
+    private readonly Hook<RMIWalkDelegate> _rmiWalkHook = null!;
 
     private delegate void RMIFlyDelegate(void* self, PlayerMoveControllerFlyInput* result);
     [Signature("E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8")]
-    private Hook<RMIFlyDelegate> _rmiFlyHook = null!;
+    private readonly Hook<RMIFlyDelegate> _rmiFlyHook = null!;
 
     public AIMove()
     {
@@ -54,12 +55,14 @@ public unsafe class AIMove : IDisposable
         UpdateLegacyMode();
 
         _rmiWalkHook.Enable();
+        _rmiFlyHook.Enable();
     }
 
     public void Dispose()
     {
         Service.GameConfig.UiControlChanged -= OnConfigChanged;
         _rmiWalkHook.Dispose();
+        _rmiFlyHook.Dispose();
     }
 
     private void RMIWalkDetour(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk)
