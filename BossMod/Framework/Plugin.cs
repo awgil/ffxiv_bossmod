@@ -1,4 +1,5 @@
-﻿using BossMod.Autorotation;
+﻿using BossMod.AI;
+using BossMod.Autorotation;
 using Dalamud.Common;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
@@ -58,6 +59,7 @@ public sealed class Plugin : IDalamudPlugin
         MultiboxUnlock.Exec();
         Network.IDScramble.Initialize();
         Camera.Instance = new();
+        AIMove.Instance = new();
 
         Service.Config.Initialize();
         Service.Config.LoadFromFile(dalamud.ConfigFile);

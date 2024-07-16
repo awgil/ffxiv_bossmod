@@ -13,6 +13,7 @@ public sealed class Service
     [PluginService] public static IPluginLog Logger { get; private set; }
     [PluginService] public static IChatGui ChatGui { get; private set; }
     [PluginService] public static IGameGui GameGui { get; private set; }
+    [PluginService] public static IGameConfig GameConfig { get; private set; }
     [PluginService] public static IGameInteropProvider Hook { get; private set; }
     [PluginService] public static ISigScanner SigScanner { get; private set; }
     [PluginService] public static ICondition Condition { get; private set; }
