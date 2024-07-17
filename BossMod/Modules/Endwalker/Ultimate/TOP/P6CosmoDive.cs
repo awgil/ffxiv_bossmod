@@ -31,7 +31,7 @@ class P6CosmoDive(BossModule module) : Components.UniformStackSpread(module, 6, 
         if ((AID)spell.Action.ID == AID.CosmoDive)
         {
             _source = caster;
-            _activation = spell.NPCFinishAt.AddSeconds(2.5f);
+            _activation = Module.CastFinishAt(spell, 2.5f);
         }
     }
 

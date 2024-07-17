@@ -8,7 +8,7 @@ class P5Exaflare(BossModule module) : Components.Exaflare(module, 6)
     {
         if ((AID)spell.Action.ID is AID.ExaflareFirst)
         {
-            Lines.Add(new() { Next = caster.Position, Advance = 8 * spell.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt, TimeToMove = 1.5f, ExplosionsLeft = 6, MaxShownExplosions = 4 });
+            Lines.Add(new() { Next = caster.Position, Advance = 8 * spell.Rotation.ToDirection(), NextExplosion = Module.CastFinishAt(spell), TimeToMove = 1.5f, ExplosionsLeft = 6, MaxShownExplosions = 4 });
         }
     }
 

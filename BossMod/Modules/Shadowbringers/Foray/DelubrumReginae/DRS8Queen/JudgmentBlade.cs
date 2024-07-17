@@ -15,7 +15,7 @@ class JudgmentBlade(BossModule module) : Components.GenericAOEs(module)
             _ => 0
         };
         if (offset != 0)
-            _aoe = new(new AOEShapeRect(70, 15), caster.Position + offset * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, spell.NPCFinishAt);
+            _aoe = new(new AOEShapeRect(70, 15), caster.Position + offset * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, Module.CastFinishAt(spell));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

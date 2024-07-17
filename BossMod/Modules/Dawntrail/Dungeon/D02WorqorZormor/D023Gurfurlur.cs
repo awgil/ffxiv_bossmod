@@ -34,7 +34,7 @@ class GreatFlood(BossModule module) : Components.KnockbackFromCastTarget(module,
         if (caster?.CastInfo == null)
             return;
 
-        var knockbackTime = caster.CastInfo.NPCFinishAt;
+        var knockbackTime = Module.CastFinishAt(caster.CastInfo);
 
         if (IsImmune(slot, knockbackTime))
             return;
@@ -53,7 +53,7 @@ class Allfire(BossModule module) : Components.GenericAOEs(module)
     {
         var castStage = GetStage(spell.Action.ID);
         if (castStage >= 0)
-            _aoes[castStage].Add(new AOEInstance(new AOEShapeRect(5, 5, 5), caster.Position, default, spell.NPCFinishAt));
+            _aoes[castStage].Add(new AOEInstance(new AOEShapeRect(5, 5, 5), caster.Position, default, Module.CastFinishAt(spell)));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -123,7 +123,7 @@ abstract class Windswrath(BossModule module, ActionID aid) : Components.Knockbac
         if (caster?.CastInfo == null)
             return;
 
-        var knockbackTime = caster.CastInfo.NPCFinishAt;
+        var knockbackTime = Module.CastFinishAt(caster.CastInfo);
 
         if (IsImmune(slot, knockbackTime))
             return;

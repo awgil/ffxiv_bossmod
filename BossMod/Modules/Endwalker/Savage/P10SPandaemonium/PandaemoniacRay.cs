@@ -9,5 +9,5 @@ class JadePassage(BossModule module) : Components.GenericAOEs(module, ActionID.M
 
     private static readonly AOEShapeRect _shape = new(40, 1, 40);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _spheres.Where(s => !s.IsDead).Select(s => new AOEInstance(_shape, s.Position, s.Rotation, s.CastInfo?.NPCFinishAt ?? _activation));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _spheres.Where(s => !s.IsDead).Select(s => new AOEInstance(_shape, s.Position, s.Rotation, Module.CastFinishAt(s.CastInfo, 0, _activation)));
 }

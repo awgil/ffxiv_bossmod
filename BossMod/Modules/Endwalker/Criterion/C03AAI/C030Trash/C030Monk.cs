@@ -7,7 +7,7 @@ class Hydroshot(BossModule module) : Components.Knockback(module)
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (_caster?.CastInfo?.TargetID == actor.InstanceID)
-            yield return new(_caster.Position, 10, _caster.CastInfo?.NPCFinishAt ?? default);
+            yield return new(_caster.Position, 10, Module.CastFinishAt(_caster.CastInfo));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

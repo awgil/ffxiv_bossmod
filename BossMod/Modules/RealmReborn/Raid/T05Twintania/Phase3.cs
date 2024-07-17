@@ -16,7 +16,7 @@ class P3Divebomb(BossModule module) : Components.GenericAOEs(module)
             if (Module.PrimaryActor.CastInfo == null)
                 yield return new(_shape, Module.PrimaryActor.Position, Angle.FromDirection(Target.Value - Module.PrimaryActor.Position), HitAt);
             else
-                yield return new(_shape, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo.Rotation, Module.PrimaryActor.CastInfo.NPCFinishAt);
+                yield return new(_shape, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo.Rotation, Module.CastFinishAt(Module.PrimaryActor.CastInfo));
         }
     }
 

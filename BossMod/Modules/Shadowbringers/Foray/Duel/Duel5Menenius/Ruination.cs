@@ -31,11 +31,11 @@ class RuinationExaflare(BossModule module) : Components.Exaflare(module, 4)
     {
         public Actor Caster;
 
-        public LineWithActor(Actor caster)
+        public LineWithActor(BossModule module, Actor caster)
         {
             Next = caster.Position;
             Advance = 4 * caster.Rotation.ToDirection();
-            NextExplosion = caster.CastInfo!.NPCFinishAt;
+            NextExplosion = module.CastFinishAt(caster.CastInfo!);
             TimeToMove = 1.1f;
             ExplosionsLeft = 6;
             MaxShownExplosions = 7;
@@ -46,7 +46,7 @@ class RuinationExaflare(BossModule module) : Components.Exaflare(module, 4)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.RuinationExaStart)
-            Lines.Add(new LineWithActor(caster));
+            Lines.Add(new LineWithActor(Module, caster));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

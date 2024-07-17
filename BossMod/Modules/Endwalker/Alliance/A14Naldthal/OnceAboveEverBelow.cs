@@ -9,8 +9,8 @@ class OnceAboveEverBelow(BossModule module) : Components.Exaflare(module, 6)
             var advance = 6 * spell.Rotation.ToDirection();
             // lines are offset by 6/18/30; outer have 1 explosion only, mid have 4 or 5, inner 5
             var numExplosions = (caster.Position - Module.Center).LengthSq() > 500 ? 1 : 5;
-            Lines.Add(new() { Next = caster.Position, Advance = advance, NextExplosion = spell.NPCFinishAt, TimeToMove = 1.5f, ExplosionsLeft = numExplosions, MaxShownExplosions = 5 });
-            Lines.Add(new() { Next = caster.Position, Advance = -advance, NextExplosion = spell.NPCFinishAt, TimeToMove = 1.5f, ExplosionsLeft = numExplosions, MaxShownExplosions = 5 });
+            Lines.Add(new() { Next = caster.Position, Advance = advance, NextExplosion = Module.CastFinishAt(spell), TimeToMove = 1.5f, ExplosionsLeft = numExplosions, MaxShownExplosions = 5 });
+            Lines.Add(new() { Next = caster.Position, Advance = -advance, NextExplosion = Module.CastFinishAt(spell), TimeToMove = 1.5f, ExplosionsLeft = numExplosions, MaxShownExplosions = 5 });
         }
     }
 

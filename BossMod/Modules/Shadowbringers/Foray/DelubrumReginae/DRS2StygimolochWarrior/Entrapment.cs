@@ -12,7 +12,7 @@ class EntrapmentAttract(BossModule module) : Components.Knockback(module, Action
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Entrapment)
-            _activation = spell.NPCFinishAt.AddSeconds(0.8f);
+            _activation = Module.CastFinishAt(spell, 0.8f);
     }
 }
 

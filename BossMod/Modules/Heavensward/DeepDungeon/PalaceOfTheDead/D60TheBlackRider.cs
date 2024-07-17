@@ -77,7 +77,7 @@ class ValfodrKB(BossModule module) : Components.Knockback(module) // note actual
     {
         if ((AID)spell.Action.ID == AID.Valfodr)
         {
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
             StopAtWall = true;
         }
     }

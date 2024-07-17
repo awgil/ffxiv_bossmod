@@ -24,7 +24,7 @@ class GoblinSlash(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.GobthunderII && spell.LocXZ == caster.Position)
-            _aoe = new(new AOEShapeCircle(8), Module.PrimaryActor.Position, default, spell.NPCFinishAt.AddSeconds(2.6f));
+            _aoe = new(new AOEShapeCircle(8), Module.PrimaryActor.Position, default, Module.CastFinishAt(spell, 2.6f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

@@ -34,9 +34,9 @@ class GobspinSwipe(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
-            _aoe = new(new AOEShapeCircle(8), Module.PrimaryActor.Position, default, spell.NPCFinishAt.AddSeconds(4));
+            _aoe = new(new AOEShapeCircle(8), Module.PrimaryActor.Position, default, Module.CastFinishAt(spell, 4));
         if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
-            _aoe = new(new AOEShapeDonut(5, 30), Module.PrimaryActor.Position, default, spell.NPCFinishAt.AddSeconds(4));
+            _aoe = new(new AOEShapeDonut(5, 30), Module.PrimaryActor.Position, default, Module.CastFinishAt(spell, 4));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -55,9 +55,9 @@ class Knockbacks(BossModule module) : Components.Knockback(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
-            _knockback = new(Module.PrimaryActor.Position, 15, spell.NPCFinishAt.AddSeconds(4), new AOEShapeCircle(8));
+            _knockback = new(Module.PrimaryActor.Position, 15, Module.CastFinishAt(spell, 4), new AOEShapeCircle(8));
         if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
-            _knockback = new(Module.PrimaryActor.Position, 15, spell.NPCFinishAt.AddSeconds(4), new AOEShapeDonut(5, 30));
+            _knockback = new(Module.PrimaryActor.Position, 15, Module.CastFinishAt(spell, 4), new AOEShapeDonut(5, 30));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -95,7 +95,7 @@ class GobfireShootypops(BossModule module) : Components.GenericRotatingAOE(modul
         if ((AID)spell.Action.ID == AID.GobfireShootypopsStart)
         {
             _rotation = spell.Rotation;
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
         }
         if (_rotation != default)
             InitIfReady(caster);

@@ -104,7 +104,7 @@ class FracturedEventide(BossModule module) : Components.GenericAOEs(module)
             _source = caster;
             _startingRotation = spell.Rotation;
             _increment = _startingRotation.Rad > 0 ? -7.Degrees() : 7.Degrees();
-            _startingActivation = spell.NPCFinishAt;
+            _startingActivation = Module.CastFinishAt(spell);
         }
     }
 

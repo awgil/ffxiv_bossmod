@@ -43,7 +43,7 @@ class PrincessThrenody(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.PrincessThrenodyPrepare)
         {
             _direction = spell.Rotation + ThrenodyDirection();
-            _activation = spell.NPCFinishAt.AddSeconds(2); //saw delays of upto ~0.3s higher because delay between Prepare and Resolve can vary
+            _activation = Module.CastFinishAt(spell, 2); //saw delays of upto ~0.3s higher because delay between Prepare and Resolve can vary
         }
     }
 

@@ -60,13 +60,14 @@ public sealed class AIHintsBuilder : IDisposable
         {
             var target = aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ;
             var rot = aoe.Caster.CastInfo!.Rotation;
+            var finishAt = _ws.FutureTime(aoe.Caster.CastInfo.NPCRemainingTime);
             if (aoe.IsCharge)
             {
-                hints.AddForbiddenZone(ShapeDistance.Rect(aoe.Caster.Position, target, ((AOEShapeRect)aoe.Shape).HalfWidth), aoe.Caster.CastInfo.NPCFinishAt);
+                hints.AddForbiddenZone(ShapeDistance.Rect(aoe.Caster.Position, target, ((AOEShapeRect)aoe.Shape).HalfWidth), finishAt);
             }
             else
             {
-                hints.AddForbiddenZone(aoe.Shape, target, rot, aoe.Caster.CastInfo.NPCFinishAt);
+                hints.AddForbiddenZone(aoe.Shape, target, rot, finishAt);
             }
         }
     }

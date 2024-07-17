@@ -87,12 +87,12 @@ class CrystalInout(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.EarthenShotHelper)
         {
             _active = Active.Out;
-            _finishAt = spell.NPCFinishAt;
+            _finishAt = Module.CastFinishAt(spell);
         }
         if ((AID)spell.Action.ID == AID.WindShotHelper)
         {
             _active = Active.In;
-            _finishAt = spell.NPCFinishAt;
+            _finishAt = Module.CastFinishAt(spell);
         }
     }
 

@@ -42,7 +42,7 @@ abstract class PetrifactionCommon(BossModule module) : Components.GenericGaze(mo
         {
             var dir = Angle.FromDirection(caster.Position - Module.Center);
             var priority = (int)MathF.Round((180 - dir.Deg) / 45) % 8;
-            ActiveGorgons.Add((caster, spell.NPCFinishAt.AddSeconds(1.1f), priority));
+            ActiveGorgons.Add((caster, Module.CastFinishAt(spell, 1.1f), priority));
         }
     }
 

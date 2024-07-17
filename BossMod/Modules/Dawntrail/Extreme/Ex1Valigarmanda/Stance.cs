@@ -22,7 +22,7 @@ class Stance(BossModule module) : Components.GenericAOEs(module)
             _ => ((AOEShape?)null, default(WPos))
         };
         if (shape != null)
-            _aoe = new(shape, origin, spell.Rotation, spell.NPCFinishAt);
+            _aoe = new(shape, origin, spell.Rotation, Module.CastFinishAt(spell));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -39,7 +39,7 @@ class CharringCataclysm(BossModule module) : Components.UniformStackSpread(modul
         if ((AID)spell.Action.ID is AID.SusurrantBreathAOE or AID.SlitheringStrikeAOE or AID.StranglingCoilAOE)
         {
             // note: dd vs supports is random, select supports arbitrarily
-            AddStacks(Module.Raid.WithoutSlot(true).Where(p => p.Class.IsSupport()), spell.NPCFinishAt.AddSeconds(0.7f));
+            AddStacks(Module.Raid.WithoutSlot(true).Where(p => p.Class.IsSupport()), Module.CastFinishAt(spell, 0.7f));
         }
     }
 

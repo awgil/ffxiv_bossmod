@@ -21,7 +21,7 @@ class ChimericSuccession(BossModule module) : Components.UniformStackSpread(modu
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.FrontFirestrikes or AID.RearFirestrikes)
-            _jumpActivation = spell.NPCFinishAt.AddSeconds(0.4f);
+            _jumpActivation = Module.CastFinishAt(spell, 0.4f);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

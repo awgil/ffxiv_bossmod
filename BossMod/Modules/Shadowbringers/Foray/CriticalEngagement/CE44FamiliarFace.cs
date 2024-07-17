@@ -61,7 +61,7 @@ class ExtremeEdge(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var c in _casters)
-            yield return new(_shape, c.caster.Position + c.offset * c.caster.CastInfo!.Rotation.ToDirection().OrthoL(), c.caster.CastInfo.Rotation, c.caster.CastInfo.NPCFinishAt);
+            yield return new(_shape, c.caster.Position + c.offset * c.caster.CastInfo!.Rotation.ToDirection().OrthoL(), c.caster.CastInfo.Rotation, Module.CastFinishAt(c.caster.CastInfo));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -89,7 +89,7 @@ class IntractableLand(BossModule module) : Components.Exaflare(module, 8)
     {
         if ((AID)spell.Action.ID == AID.IntractableLandFirst)
         {
-            Lines.Add(new() { Next = caster.Position, Advance = 8 * spell.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt, TimeToMove = 0.8f, ExplosionsLeft = 8, MaxShownExplosions = 4 });
+            Lines.Add(new() { Next = caster.Position, Advance = 8 * spell.Rotation.ToDirection(), NextExplosion = Module.CastFinishAt(spell), TimeToMove = 0.8f, ExplosionsLeft = 8, MaxShownExplosions = 4 });
         }
     }
 

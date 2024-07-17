@@ -43,7 +43,7 @@ class PlanarTactics(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID is AID.NArcaneMineAOE or AID.SArcaneMineAOE)
         {
-            Mines.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
+            Mines.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
             if (Mines.Count == 8)
             {
                 InitSafespots();

@@ -88,13 +88,13 @@ class LitPath(BossModule module) : Components.GenericAOEs(module)
         {
             if ((AID)spell.Action.ID == AID.LoyalFlame)
             {
-                _activation = spell.NPCFinishAt;
+                _activation = Module.CastFinishAt(spell);
                 bluered1 = true;
                 bluered2 = true;
             }
             if ((AID)spell.Action.ID == AID.LoyalFlame2)
             {
-                _activation = spell.NPCFinishAt;
+                _activation = Module.CastFinishAt(spell);
                 redblue1 = true;
                 redblue2 = true;
             }
@@ -162,13 +162,13 @@ class Burn(BossModule module) : Components.GenericAOEs(module)
         {
             if ((AID)spell.Action.ID == AID.LoyalFlame)
             {
-                _activation = spell.NPCFinishAt;
+                _activation = Module.CastFinishAt(spell);
                 bluered1 = true;
                 bluered2 = true;
             }
             if ((AID)spell.Action.ID == AID.LoyalFlame2)
             {
-                _activation = spell.NPCFinishAt;
+                _activation = Module.CastFinishAt(spell);
                 redblue1 = true;
                 redblue2 = true;
             }

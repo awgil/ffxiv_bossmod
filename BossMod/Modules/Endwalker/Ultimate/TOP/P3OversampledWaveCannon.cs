@@ -142,7 +142,7 @@ class P3OversampledWaveCannonSpread(BossModule module) : Components.UniformStack
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.OversampledWaveCannonR or AID.OversampledWaveCannonL)
-            AddSpreads(Raid.WithoutSlot(true), spell.NPCFinishAt);
+            AddSpreads(Raid.WithoutSlot(true), Module.CastFinishAt(spell));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

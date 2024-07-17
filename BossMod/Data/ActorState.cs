@@ -44,6 +44,15 @@ public sealed class ActorState : IEnumerable<Actor>
         }
     }
 
+    public void Tick(float dt)
+    {
+        foreach (var act in this)
+        {
+            if (act.CastInfo != null)
+                act.CastInfo.ElapsedTime += dt;
+        }
+    }
+
     // implementation of operations
     public Event<Actor> Added = new();
     public sealed record class OpCreate(ulong InstanceID, uint OID, int SpawnIndex, string Name, uint NameID, ActorType Type, Class Class, int Level, Vector4 PosRot, float HitboxRadius,
@@ -271,14 +280,14 @@ public sealed class ActorState : IEnumerable<Actor>
         {
             if (actor.CastInfo != null)
                 ws.Actors.CastFinished.Fire(actor);
-            actor.CastInfo = Value;
+            actor.CastInfo = Value != null ? Value with { } : null;
             if (Value != null)
                 ws.Actors.CastStarted.Fire(actor);
         }
         public override void Write(ReplayRecorder.Output output)
         {
             if (Value != null)
-                output.EmitFourCC("CST+"u8).EmitActor(InstanceID).Emit(Value.Action).EmitActor(Value.TargetID).Emit(Value.Location).EmitTimePair(Value.FinishAt, Value.TotalTime).Emit(Value.Interruptible).Emit(Value.Rotation);
+                output.EmitFourCC("CST+"u8).EmitActor(InstanceID).Emit(Value.Action).EmitActor(Value.TargetID).Emit(Value.Location).EmitFloatPair(Value.ElapsedTime, Value.TotalTime).Emit(Value.Interruptible).Emit(Value.Rotation);
             else
                 output.EmitFourCC("CST-"u8).EmitActor(InstanceID);
         }

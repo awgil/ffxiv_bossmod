@@ -13,7 +13,7 @@ class P3Burst(BossModule module) : Components.GenericAOEs(module, ActionID.MakeS
         {
             var activation = _bombActivation.GetValueOrDefault(b.InstanceID);
             if (activation != null)
-                yield return new(_shape, b.Position, b.Rotation, b.CastInfo?.NPCFinishAt ?? activation.Value);
+                yield return new(_shape, b.Position, b.Rotation, Module.CastFinishAt(b.CastInfo, 0, activation.Value));
         }
     }
 

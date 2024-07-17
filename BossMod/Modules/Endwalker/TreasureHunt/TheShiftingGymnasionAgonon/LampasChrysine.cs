@@ -27,7 +27,7 @@ class AetherialLight(BossModule module) : Components.SelfTargetedAOEs(module, Ac
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, (NumCasts > 2 && i < 2) ? ArenaColor.Danger : ArenaColor.AOE));
+        return ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), (NumCasts > 2 && i < 2) ? ArenaColor.Danger : ArenaColor.AOE));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

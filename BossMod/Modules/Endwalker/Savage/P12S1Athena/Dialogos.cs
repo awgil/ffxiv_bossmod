@@ -56,7 +56,7 @@ class Dialogos(BossModule module) : Components.UniformStackSpread(module, 6, 6, 
         if (type != Type.None)
         {
             _type = type;
-            _tankActivation = spell.NPCFinishAt.AddSeconds(0.2);
+            _tankActivation = Module.CastFinishAt(spell, 0.2f);
         }
     }
 

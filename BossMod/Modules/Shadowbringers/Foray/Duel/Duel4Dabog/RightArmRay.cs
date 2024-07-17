@@ -57,7 +57,7 @@ class RightArmRayBuffed(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.RightArmRayAOEFirst)
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

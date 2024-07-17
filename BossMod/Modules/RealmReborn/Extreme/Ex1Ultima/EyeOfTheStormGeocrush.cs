@@ -25,11 +25,11 @@ class EyeOfTheStormGeocrush(BossModule module) : BossComponent(module)
             // we want to stand in a small ring near inner edge of aoe
             var inner = ShapeDistance.Circle(_eotsCaster.Position, _aoeEOTS.InnerRadius - 2);
             var outer = ShapeDistance.InvertedCircle(_eotsCaster.Position, _aoeEOTS.InnerRadius);
-            hints.AddForbiddenZone(p => Math.Min(inner(p), outer(p)), _eotsCaster.CastInfo!.NPCFinishAt);
+            hints.AddForbiddenZone(p => Math.Min(inner(p), outer(p)), Module.CastFinishAt(_eotsCaster.CastInfo!));
         }
         else if (_geocrushCaster != null)
         {
-            hints.AddForbiddenZone(_aoeGeocrush, _geocrushCaster.Position, new(), _geocrushCaster.CastInfo!.NPCFinishAt);
+            hints.AddForbiddenZone(_aoeGeocrush, _geocrushCaster.Position, new(), Module.CastFinishAt(_geocrushCaster.CastInfo!));
         }
     }
 

@@ -12,6 +12,6 @@ class Hellfire(BossModule module) : BossComponent(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Hellfire)
-            _expectedRaidwide = spell.NPCFinishAt;
+            _expectedRaidwide = Module.CastFinishAt(spell);
     }
 }

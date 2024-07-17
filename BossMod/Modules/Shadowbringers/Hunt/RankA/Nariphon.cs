@@ -66,7 +66,7 @@ class RootsOfAtopy(BossModule module) : Components.GenericStackSpread(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.RootsOfAtopy)
-            Stacks.Add(new(WorldState.Actors.Find(spell.TargetID)!, 6, activation: spell.NPCFinishAt, forbiddenPlayers: _forbidden));
+            Stacks.Add(new(WorldState.Actors.Find(spell.TargetID)!, 6, activation: Module.CastFinishAt(spell), forbiddenPlayers: _forbidden));
     }
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

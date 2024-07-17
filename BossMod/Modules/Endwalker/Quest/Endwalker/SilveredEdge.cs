@@ -30,7 +30,7 @@ class SilveredEdge(BossModule module) : Components.GenericAOEs(module)
         {
             active = true;
             casting = true;
-            _activation = spell.NPCFinishAt.AddSeconds(1.4f);
+            _activation = Module.CastFinishAt(spell, 1.4f);
         }
     }
 

@@ -7,7 +7,7 @@ class Candlewick(BossModule module) : Components.ConcentricAOEs(module, _shapes)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.CandlewickPointBlank)
-            AddSequence(caster.Position, spell.NPCFinishAt.AddSeconds(2));
+            AddSequence(caster.Position, Module.CastFinishAt(spell, 2));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

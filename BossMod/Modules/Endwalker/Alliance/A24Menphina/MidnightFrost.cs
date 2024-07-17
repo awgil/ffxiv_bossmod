@@ -16,7 +16,7 @@ class MidnightFrostWaxingClaw(BossModule module) : Components.GenericAOEs(module
             AID.MidnightFrostLongDismountedFrontAOE or AID.MidnightFrostLongDismountedBackAOE or
             AID.WaxingClawRight or AID.WaxingClawLeft)
         {
-            _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
+            _aoes.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
         }
     }
 

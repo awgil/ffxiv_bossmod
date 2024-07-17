@@ -60,10 +60,10 @@ class P5OmegaDiffuseWaveCannon(BossModule module) : Components.GenericAOEs(modul
         if ((AID)spell.Action.ID is AID.OmegaDiffuseWaveCannonFront or AID.OmegaDiffuseWaveCannonSides)
         {
             var first = spell.Rotation + ((AID)spell.Action.ID == AID.OmegaDiffuseWaveCannonFront ? 0 : 90).Degrees();
-            _aoes.Add(new(_shape, caster.Position, first, spell.NPCFinishAt.AddSeconds(1.1f)));
-            _aoes.Add(new(_shape, caster.Position, first + 180.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f)));
-            _aoes.Add(new(_shape, caster.Position, first + 90.Degrees(), spell.NPCFinishAt.AddSeconds(5.2f)));
-            _aoes.Add(new(_shape, caster.Position, first - 90.Degrees(), spell.NPCFinishAt.AddSeconds(5.2f)));
+            _aoes.Add(new(_shape, caster.Position, first, Module.CastFinishAt(spell, 1.1f)));
+            _aoes.Add(new(_shape, caster.Position, first + 180.Degrees(), Module.CastFinishAt(spell, 1.1f)));
+            _aoes.Add(new(_shape, caster.Position, first + 90.Degrees(), Module.CastFinishAt(spell, 5.2f)));
+            _aoes.Add(new(_shape, caster.Position, first - 90.Degrees(), Module.CastFinishAt(spell, 5.2f)));
         }
     }
 

@@ -43,7 +43,7 @@ public class SelfTargetedAOEs(BossModule module, ActionID aid, AOEShape shape, i
 
     public IEnumerable<Actor> ActiveCasters => Casters.Take(MaxCasts);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, Color, Risky));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), Color, Risky));
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -67,7 +67,7 @@ public class SelfTargetedLegacyRotationAOEs(BossModule module, ActionID aid, AOE
 
     public IEnumerable<Actor> ActiveCasters => Casters.Take(MaxCasts);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.Rotation, c.CastInfo!.NPCFinishAt));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.Rotation, Module.CastFinishAt(c.CastInfo)));
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -93,7 +93,7 @@ public class LocationTargetedAOEs(BossModule module, ActionID aid, float radius,
 
     public IEnumerable<Actor> ActiveCasters => Casters.Take(MaxCasts);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(c => new AOEInstance(Shape, c.CastInfo!.LocXZ, c.CastInfo.Rotation, c.CastInfo.NPCFinishAt, Color, Risky));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(c => new AOEInstance(Shape, c.CastInfo!.LocXZ, c.CastInfo.Rotation, Module.CastFinishAt(c.CastInfo), Color, Risky));
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -114,7 +114,7 @@ public class ChargeAOEs(BossModule module, ActionID aid, float halfWidth) : Gene
     public float HalfWidth { get; init; } = halfWidth;
     public readonly List<(Actor caster, AOEShape shape, Angle direction)> Casters = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Select(csr => new AOEInstance(csr.shape, csr.caster.Position, csr.direction, csr.caster.CastInfo!.NPCFinishAt));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Select(csr => new AOEInstance(csr.shape, csr.caster.Position, csr.direction, Module.CastFinishAt(csr.caster.CastInfo)));
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

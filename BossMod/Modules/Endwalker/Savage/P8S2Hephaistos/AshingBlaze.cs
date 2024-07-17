@@ -8,7 +8,7 @@ class AshingBlaze(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_origin != null)
-            yield return new(_shape, _origin.Value, 0.Degrees(), Module.PrimaryActor.CastInfo?.NPCFinishAt ?? default);
+            yield return new(_shape, _origin.Value, 0.Degrees(), Module.CastFinishAt(Module.PrimaryActor.CastInfo));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

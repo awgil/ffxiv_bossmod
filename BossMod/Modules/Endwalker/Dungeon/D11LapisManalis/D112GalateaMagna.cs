@@ -96,7 +96,7 @@ class OutInAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WaxingCycle1)
-            AddSequence(Module.Center, spell.NPCFinishAt);
+            AddSequence(Module.Center, Module.CastFinishAt(spell));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -121,7 +121,7 @@ class InOutAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WaningCycle1)
-            AddSequence(Module.Center, spell.NPCFinishAt);
+            AddSequence(Module.Center, Module.CastFinishAt(spell));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

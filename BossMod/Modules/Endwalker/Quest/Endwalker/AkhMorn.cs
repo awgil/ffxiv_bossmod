@@ -21,7 +21,7 @@ class AkhMorn(BossModule module) : Components.GenericBaitAway(module, centerAtTa
         if ((AID)spell.Action.ID == AID.AkhMorn)
         {
             CurrentBaits.Add(new(Module.PrimaryActor, Raid.Player()!, new AOEShapeCircle(4)));
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
         }
     }
 

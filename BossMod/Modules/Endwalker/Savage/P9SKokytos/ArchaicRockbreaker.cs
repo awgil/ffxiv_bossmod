@@ -125,7 +125,7 @@ class ArchaicDemolish(BossModule module) : Components.UniformStackSpread(module,
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ArchaicDemolish)
-            AddStacks(Raid.WithoutSlot(true).Where(a => a.Role == Role.Healer), spell.NPCFinishAt.AddSeconds(1.2f));
+            AddStacks(Raid.WithoutSlot(true).Where(a => a.Role == Role.Healer), Module.CastFinishAt(spell, 1.2f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

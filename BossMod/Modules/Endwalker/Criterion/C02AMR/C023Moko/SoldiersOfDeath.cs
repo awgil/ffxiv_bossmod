@@ -40,7 +40,7 @@ class IronRainStorm(BossModule module) : Components.GenericAOEs(module)
             _ => null
         };
         if (shape != null)
-            AOEs.Add(new(shape, spell.LocXZ, default, spell.NPCFinishAt));
+            AOEs.Add(new(shape, spell.LocXZ, default, Module.CastFinishAt(spell)));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

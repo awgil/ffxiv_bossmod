@@ -61,7 +61,7 @@ class PelagicCleaverRotation(BossModule module) : Components.GenericRotatingAOE(
         if ((AID)spell.Action.ID == AID.PelagicCleaverRotationStart)
         {
             _rotation = spell.Rotation;
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
         }
         if (_rotation != default)
             InitIfReady(caster);

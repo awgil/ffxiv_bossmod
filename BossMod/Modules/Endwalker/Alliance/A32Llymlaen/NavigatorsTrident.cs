@@ -12,7 +12,7 @@ class DireStraits(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID is AID.DireStraitsAOEFirst or AID.DireStraitsAOESecond)
         {
-            _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
+            _aoes.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
             _aoes.SortBy(aoe => aoe.Activation);
         }
     }
@@ -45,8 +45,8 @@ class NavigatorsTridentKnockback(BossModule module) : Components.Knockback(modul
         if ((AID)spell.Action.ID == AID.NavigatorsTridentAOE)
         {
             _sources.Clear();
-            _sources.Add(new(caster.Position, 20, spell.NPCFinishAt, _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
-            _sources.Add(new(caster.Position, 20, spell.NPCFinishAt, _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
+            _sources.Add(new(caster.Position, 20, Module.CastFinishAt(spell), _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
+            _sources.Add(new(caster.Position, 20, Module.CastFinishAt(spell), _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
         }
     }
 

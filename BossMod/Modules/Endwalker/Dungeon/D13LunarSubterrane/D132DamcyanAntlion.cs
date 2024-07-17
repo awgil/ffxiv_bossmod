@@ -52,7 +52,7 @@ class Landslip(BossModule module) : Components.Knockback(module)
     {
         if ((AID)spell.Action.ID == AID.Landslip2)
         {
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
             _casters.Add(caster);
         }
     }
@@ -108,7 +108,7 @@ class AntlionMarch(BossModule module) : Components.GenericAOEs(module)
             _casters.Add((caster.Position, new AOEShapeRect(dir.Length(), 4), Angle.FromDirection(dir)));
         }
         if ((AID)spell.Action.ID == AID.AntlionMarch)
-            _activation = spell.NPCFinishAt.AddSeconds(0.2f); //since these are charges of different length with 0s cast time, the activation times are different for each and there are different patterns, so we just pretend that they all start after the telegraphs end
+            _activation = Module.CastFinishAt(spell, 0.2f); //since these are charges of different length with 0s cast time, the activation times are different for each and there are different patterns, so we just pretend that they all start after the telegraphs end
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

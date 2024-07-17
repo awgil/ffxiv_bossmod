@@ -23,8 +23,8 @@ class ForwardBackwardHalf(BossModule module) : Components.GenericAOEs(module, Ac
             return;
 
         var cleaveDir = spell.Rotation + (front ? 180 : 0).Degrees();
-        _aoes.Add(new(_shapeEdge, caster.Position, cleaveDir, spell.NPCFinishAt));
-        _aoes.Add(new(_shapeSide, caster.Position, cleaveDir + (left ? 90 : -90).Degrees(), spell.NPCFinishAt));
+        _aoes.Add(new(_shapeEdge, caster.Position, cleaveDir, Module.CastFinishAt(spell)));
+        _aoes.Add(new(_shapeSide, caster.Position, cleaveDir + (left ? 90 : -90).Degrees(), Module.CastFinishAt(spell)));
     }
 }
 
@@ -41,7 +41,7 @@ class HalfFull(BossModule module) : Components.GenericAOEs(module, ActionID.Make
         if ((AID)spell.Action.ID is AID.HalfFullR or AID.HalfFullL)
         {
             var cleaveDir = spell.Rotation + ((AID)spell.Action.ID == AID.HalfFullL ? 90 : -90).Degrees();
-            _aoes.Add(new(_shapeSide, caster.Position, cleaveDir, spell.NPCFinishAt));
+            _aoes.Add(new(_shapeSide, caster.Position, cleaveDir, Module.CastFinishAt(spell)));
         }
     }
 }

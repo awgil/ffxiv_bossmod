@@ -97,10 +97,10 @@ class SoulPurge(BossModule module) : Components.GenericAOEs(module)
                 _dualcast = true;
                 break;
             case AID.SoulPurgeCircle:
-                SetupImminentAOEs(_shapeCircle, _shapeDonut, caster.Position, spell.NPCFinishAt);
+                SetupImminentAOEs(_shapeCircle, _shapeDonut, caster.Position, Module.CastFinishAt(spell));
                 break;
             case AID.SoulPurgeDonut:
-                SetupImminentAOEs(_shapeDonut, _shapeCircle, caster.Position, spell.NPCFinishAt);
+                SetupImminentAOEs(_shapeDonut, _shapeCircle, caster.Position, Module.CastFinishAt(spell));
                 break;
         }
     }

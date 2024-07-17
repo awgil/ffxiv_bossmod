@@ -62,7 +62,7 @@ class OrdealOfPurgation(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.OrdealOfPurgation)
-            _activation = spell.NPCFinishAt; // note: actual activation is several seconds later, but we need to finish our movements before shackles, so effective activation is around cast end
+            _activation = Module.CastFinishAt(spell); // note: actual activation is several seconds later, but we need to finish our movements before shackles, so effective activation is around cast end
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

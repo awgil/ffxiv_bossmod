@@ -34,7 +34,7 @@ class BitterWhirlwind(BossModule module) : Components.GenericBaitAway(module, ce
         if ((AID)spell.Action.ID == AID.BitterWhirlwindAOEFirst)
         {
             _source = caster;
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
         }
     }
 

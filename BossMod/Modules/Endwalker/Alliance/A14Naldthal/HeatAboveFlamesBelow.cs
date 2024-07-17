@@ -13,7 +13,7 @@ class HeatAboveFlamesBelow(BossModule module) : Components.GenericAOEs(module)
     {
         var shape = ShapeForAction(spell.Action);
         if (shape != null)
-            _aoes.Add(new(shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
+            _aoes.Add(new(shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

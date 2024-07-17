@@ -10,9 +10,9 @@ class CaloricTheory1Part1(BossModule module) : Components.UniformStackSpread(mod
     {
         if ((AID)spell.Action.ID == AID.CaloricTheory1InitialFire && WorldState.Actors.Find(spell.TargetID) is var target && target != null)
         {
-            AddStack(target, spell.NPCFinishAt);
+            AddStack(target, Module.CastFinishAt(spell));
             foreach (var (_, p) in Raid.WithSlot(true).ExcludedFromMask(_initialMarkers))
-                AddSpread(p, spell.NPCFinishAt);
+                AddSpread(p, Module.CastFinishAt(spell));
         }
     }
 
@@ -116,11 +116,11 @@ class CaloricTheory2Part1(BossModule module) : Components.UniformStackSpread(mod
         {
             case AID.CaloricTheory2InitialFire:
                 if (WorldState.Actors.Find(spell.TargetID) is var fireTarget && fireTarget != null)
-                    AddStack(fireTarget, spell.NPCFinishAt); // fake stack
+                    AddStack(fireTarget, Module.CastFinishAt(spell)); // fake stack
                 break;
             case AID.CaloricTheory2InitialWind:
                 if (WorldState.Actors.Find(spell.TargetID) is var windTarget && windTarget != null)
-                    AddSpread(windTarget, spell.NPCFinishAt);
+                    AddSpread(windTarget, Module.CastFinishAt(spell));
                 break;
         }
     }

@@ -132,7 +132,7 @@ class Aethersup(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.Aethersup)
         {
             _rotation = spell.Rotation;
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
         }
     }
 
@@ -247,7 +247,7 @@ class CatONineTails(BossModule module) : Components.GenericRotatingAOE(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.FierceBeating1)
-            Sequences.Add(new(_shape, Module.Center, spell.Rotation + 180.Degrees(), -45.Degrees(), spell.NPCFinishAt, 2, 8));
+            Sequences.Add(new(_shape, Module.Center, spell.Rotation + 180.Degrees(), -45.Degrees(), Module.CastFinishAt(spell), 2, 8));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -301,8 +301,8 @@ class FierceBeating(BossModule module) : Components.Exaflare(module, 4)
     {
         if ((AID)spell.Action.ID == AID.FierceBeating4)
         {
-            Lines.Add(new() { Next = caster.Position, Advance = 2.5f * spell.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt, TimeToMove = 1, ExplosionsLeft = 7, MaxShownExplosions = 3 });
-            _activation = spell.NPCFinishAt;
+            Lines.Add(new() { Next = caster.Position, Advance = 2.5f * spell.Rotation.ToDirection(), NextExplosion = Module.CastFinishAt(spell), TimeToMove = 1, ExplosionsLeft = 7, MaxShownExplosions = 3 });
+            _activation = Module.CastFinishAt(spell);
             ++linesstartedcounttotal;
             ++NumCasts;
             _casters.Add(caster.Position);

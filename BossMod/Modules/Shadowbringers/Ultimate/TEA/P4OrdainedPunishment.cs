@@ -12,7 +12,7 @@ class P4OrdainedCapitalPunishment(BossModule module) : Components.GenericSharedT
         if ((AID)spell.Action.ID == AID.OrdainedCapitalPunishment)
         {
             Source = caster;
-            Activation = spell.NPCFinishAt.AddSeconds(3.1f);
+            Activation = Module.CastFinishAt(spell, 3.1f);
         }
     }
 }

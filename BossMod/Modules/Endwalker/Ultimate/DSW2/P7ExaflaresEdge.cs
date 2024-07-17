@@ -18,9 +18,9 @@ class P7ExaflaresEdge : Components.Exaflare
         if ((AID)spell.Action.ID is AID.ExaflaresEdgeFirst)
         {
             var advance = 7 * spell.Rotation.ToDirection();
-            Lines.Add(new() { Next = caster.Position, Advance = advance, NextExplosion = spell.NPCFinishAt, TimeToMove = 1.9f, ExplosionsLeft = 6, MaxShownExplosions = 1 });
-            Lines.Add(new() { Next = caster.Position, Advance = advance.OrthoL(), NextExplosion = spell.NPCFinishAt, TimeToMove = 1.9f, ExplosionsLeft = 6, MaxShownExplosions = 1 });
-            Lines.Add(new() { Next = caster.Position, Advance = advance.OrthoR(), NextExplosion = spell.NPCFinishAt, TimeToMove = 1.9f, ExplosionsLeft = 6, MaxShownExplosions = 1 });
+            Lines.Add(new() { Next = caster.Position, Advance = advance, NextExplosion = Module.CastFinishAt(spell), TimeToMove = 1.9f, ExplosionsLeft = 6, MaxShownExplosions = 1 });
+            Lines.Add(new() { Next = caster.Position, Advance = advance.OrthoL(), NextExplosion = Module.CastFinishAt(spell), TimeToMove = 1.9f, ExplosionsLeft = 6, MaxShownExplosions = 1 });
+            Lines.Add(new() { Next = caster.Position, Advance = advance.OrthoR(), NextExplosion = Module.CastFinishAt(spell), TimeToMove = 1.9f, ExplosionsLeft = 6, MaxShownExplosions = 1 });
         }
     }
 

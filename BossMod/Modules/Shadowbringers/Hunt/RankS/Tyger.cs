@@ -33,7 +33,7 @@ class TheScorpionsSting(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.TheRamsVoice or AID.TheDragonsVoice)
-            _activation = spell.NPCFinishAt.AddSeconds(2.3f);
+            _activation = Module.CastFinishAt(spell, 2.3f);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

@@ -54,7 +54,7 @@ class MistralSongVulcanBurst(BossModule module) : Components.GenericAOEs(module,
         if (spell.Action == WatchedAction)
         {
             _garuda = caster;
-            _resolve = spell.NPCFinishAt;
+            _resolve = Module.CastFinishAt(spell);
             _burstImminent = true;
         }
     }

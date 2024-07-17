@@ -18,13 +18,13 @@ class VisceralWhirl(BossModule module) : Components.GenericAOEs(module)
         {
             case AID.VisceralWhirlRAOE1:
             case AID.VisceralWhirlLAOE1:
-                _aoes.Add(new(_shapeNormal, caster.Position, spell.Rotation, spell.NPCFinishAt));
+                _aoes.Add(new(_shapeNormal, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
                 break;
             case AID.VisceralWhirlRAOE2:
-                _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, spell.NPCFinishAt));
+                _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, Module.CastFinishAt(spell)));
                 break;
             case AID.VisceralWhirlLAOE2:
-                _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoR(), spell.Rotation, spell.NPCFinishAt));
+                _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoR(), spell.Rotation, Module.CastFinishAt(spell)));
                 break;
         }
     }

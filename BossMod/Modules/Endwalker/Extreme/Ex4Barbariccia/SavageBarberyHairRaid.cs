@@ -7,7 +7,7 @@ class SavageBarbery(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return _casts.Select(cs => new AOEInstance(cs.Shape, cs.Caster.Position, cs.Caster.CastInfo!.Rotation, cs.Caster.CastInfo.NPCFinishAt));
+        return _casts.Select(cs => new AOEInstance(cs.Shape, cs.Caster.Position, cs.Caster.CastInfo!.Rotation, Module.CastFinishAt(cs.Caster.CastInfo)));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -37,7 +37,7 @@ class HairRaid(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return _casts.Select(cs => new AOEInstance(cs.Shape, cs.Caster.Position, cs.Caster.CastInfo!.Rotation, cs.Caster.CastInfo.NPCFinishAt));
+        return _casts.Select(cs => new AOEInstance(cs.Shape, cs.Caster.Position, cs.Caster.CastInfo!.Rotation, Module.CastFinishAt(cs.Caster.CastInfo)));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

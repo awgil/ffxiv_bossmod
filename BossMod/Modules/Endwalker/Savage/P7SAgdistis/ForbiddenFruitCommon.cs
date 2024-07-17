@@ -27,7 +27,7 @@ class ForbiddenFruitCommon(BossModule module, ActionID watchedAction) : Componen
         foreach (var (source, shape, time) in _predictedAOEs)
             yield return new(shape, source.Position, source.Rotation, time);
         foreach (var (source, shape) in _activeAOEs)
-            yield return new(shape, source.Position, source.CastInfo!.Rotation, source.CastInfo.NPCFinishAt);
+            yield return new(shape, source.Position, source.CastInfo!.Rotation, Module.CastFinishAt(source.CastInfo));
     }
 
     public override void Update()

@@ -13,7 +13,7 @@ class P4Twisters(BossModule module) : BossComponent(module)
 
     public override void Update()
     {
-        if (_predictedPositions.Count == 0 && (Module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false) && (Module.PrimaryActor.CastInfo.NPCFinishAt - WorldState.CurrentTime).TotalSeconds <= PredictBeforeCastFinish)
+        if (_predictedPositions.Count == 0 && (Module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false) && Module.PrimaryActor.CastInfo.NPCRemainingTime <= PredictBeforeCastFinish)
             _predictedPositions.AddRange(Raid.WithoutSlot().Select(a => a.Position));
         if (_twisters.Count > 0)
             _predictedPositions.Clear();
@@ -28,7 +28,7 @@ class P4Twisters(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var p in _predictedPositions)
-            hints.AddForbiddenZone(ShapeDistance.Circle(p, PredictAvoidRadius), Module.PrimaryActor.CastInfo?.NPCFinishAt ?? new());
+            hints.AddForbiddenZone(ShapeDistance.Circle(p, PredictAvoidRadius), Module.CastFinishAt(Module.PrimaryActor.CastInfo));
         foreach (var t in ActiveTwisters)
             hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, t.HitboxRadius + TwisterCushion));
     }

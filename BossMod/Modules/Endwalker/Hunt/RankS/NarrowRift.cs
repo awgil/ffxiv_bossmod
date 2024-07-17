@@ -43,7 +43,7 @@ class EmptyPromise(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_pendingShapes.Count > 0)
-            yield return new(_pendingShapes[0], Module.PrimaryActor.Position, new(), Module.PrimaryActor.CastInfo?.NPCFinishAt ?? WorldState.CurrentTime); // TODO: activation
+            yield return new(_pendingShapes[0], Module.PrimaryActor.Position, new(), Module.CastFinishAt(Module.PrimaryActor.CastInfo));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

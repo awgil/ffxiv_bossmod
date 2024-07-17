@@ -13,9 +13,9 @@ class P1FlameThrower(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var c in Casters.Skip(2))
-            yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, ArenaColor.AOE, false);
+            yield return new(_shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), ArenaColor.AOE, false);
         foreach (var c in Casters.Take(2))
-            yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, ArenaColor.Danger, true);
+            yield return new(_shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), ArenaColor.Danger, true);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

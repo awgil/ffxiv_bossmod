@@ -12,7 +12,7 @@ class HailOfFeathers(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID is AID.HailOfFeathersAOE1 or AID.HailOfFeathersAOE2 or AID.HailOfFeathersAOE3 or AID.HailOfFeathersAOE4 or AID.HailOfFeathersAOE5 or AID.HailOfFeathersAOE6)
         {
-            _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
+            _aoes.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
             _aoes.SortBy(aoe => aoe.Activation);
         }
     }
@@ -67,7 +67,7 @@ class BlightedBolt : Components.GenericAOEs
         if ((AID)spell.Action.ID == AID.BlightedBoltAOE)
         {
             _targets.AddIfNonNull(WorldState.Actors.Find(spell.TargetID));
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
         }
     }
 

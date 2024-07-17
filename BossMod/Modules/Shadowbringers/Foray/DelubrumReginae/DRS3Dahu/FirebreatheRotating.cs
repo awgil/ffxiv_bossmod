@@ -10,7 +10,7 @@ class FirebreatheRotating(BossModule module) : Components.GenericRotatingAOE(mod
     {
         if ((AID)spell.Action.ID == AID.FirebreatheRotating)
         {
-            Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.NPCFinishAt.AddSeconds(0.7f), 2, 5));
+            Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, Module.CastFinishAt(spell, 0.7f), 2, 5));
         }
     }
 

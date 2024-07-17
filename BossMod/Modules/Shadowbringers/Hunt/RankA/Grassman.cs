@@ -27,7 +27,7 @@ class ChestThump(BossModule module) : BossComponent(module)
         if ((AID)spell.Action.ID is AID.ChestThump)
         {
             casting = true;
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
         }
     }
 

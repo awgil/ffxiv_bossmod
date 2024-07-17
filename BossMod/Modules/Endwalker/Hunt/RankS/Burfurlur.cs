@@ -54,7 +54,7 @@ class QuintupleSneeze(BossModule module) : Components.GenericAOEs(module)
                 break;
             case AID.QuintupleSneeze1:
                 _referenceAngle = spell.Rotation;
-                _nextSneeze = spell.NPCFinishAt;
+                _nextSneeze = Module.CastFinishAt(spell);
                 break;
         }
     }

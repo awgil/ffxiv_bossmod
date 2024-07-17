@@ -29,7 +29,7 @@ class InhaleGoobbuesGrief(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_showInhale)
-            yield return new(_shapeInhale, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo!.Rotation, Module.PrimaryActor.CastInfo.NPCFinishAt);
+            yield return new(_shapeInhale, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo!.Rotation, Module.CastFinishAt(Module.PrimaryActor.CastInfo));
         if (_showGrief)
             yield return new(_shapeGrief, Module.PrimaryActor.Position, new(), _griefActivation);
     }
@@ -40,10 +40,10 @@ class InhaleGoobbuesGrief(BossModule module) : Components.GenericAOEs(module)
         {
             case AID.Inhale:
                 _showInhale = _showGrief = true;
-                _griefActivation = spell.NPCFinishAt.AddSeconds(1.1);
+                _griefActivation = Module.CastFinishAt(spell, 1.1f);
                 break;
             case AID.GoobbuesGrief:
-                _griefActivation = spell.NPCFinishAt;
+                _griefActivation = Module.CastFinishAt(spell);
                 break;
         }
     }

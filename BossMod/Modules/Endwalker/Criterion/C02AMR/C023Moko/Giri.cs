@@ -47,7 +47,7 @@ class TripleKasumiGiri(BossModule module) : Components.GenericAOEs(module)
             _directionOffsets.Add(dir);
             _hints.Add(hint);
 
-            //var activation = _aoes.Count > 0 ? _aoes[^1].Activation.AddSeconds(3.1f) : actor.CastInfo?.NPCFinishAt ?? WorldState.FutureTime(12);
+            //var activation = _aoes.Count > 0 ? _aoes[^1].Activation.AddSeconds(3.1f) : Module.CastFinishAt(actor.CastInfo?) ?? WorldState.FutureTime(12);
             //var rotation = (_aoes.Count > 0 ? _aoes[^1].Rotation : actor.Rotation) + dir;
             //_aoes.Add(new(donut ? _shapeIn : _shapeOut, actor.Position, rotation, activation));
             //_aoes.Add(new(_shapeCone, actor.Position, rotation, activation));
@@ -77,8 +77,8 @@ class TripleKasumiGiri(BossModule module) : Components.GenericAOEs(module)
                 ReportError($"Mispredicted rotation: {spell.Rotation} vs predicted {_aoes[mismatch].Rotation}");
             _aoes.Clear();
         }
-        _aoes.Add(new(donut ? _shapeIn : _shapeOut, caster.Position, spell.Rotation, spell.NPCFinishAt));
-        _aoes.Add(new(_shapeCone, caster.Position, spell.Rotation, spell.NPCFinishAt));
+        _aoes.Add(new(donut ? _shapeIn : _shapeOut, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
+        _aoes.Add(new(_shapeCone, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -268,7 +268,7 @@ class IaiGiriResolve(BossModule module) : Components.GenericAOEs(module)
                 {
                     first = false;
                     aoe.Rotation = spell.Rotation;
-                    aoe.Activation = spell.NPCFinishAt;
+                    aoe.Activation = Module.CastFinishAt(spell);
                 }
             }
         }

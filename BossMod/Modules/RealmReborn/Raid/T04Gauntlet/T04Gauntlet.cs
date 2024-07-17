@@ -36,7 +36,7 @@ class GravityThrustPox(BossModule module) : Components.GenericAOEs(module, defau
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var c in ((T04Gauntlet)Module).Rooks.Where(a => a.CastInfo?.TargetID == actor.InstanceID))
-            yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
+            yield return new(_shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo));
     }
 }
 

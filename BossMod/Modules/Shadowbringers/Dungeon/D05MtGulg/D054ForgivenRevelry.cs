@@ -31,10 +31,10 @@ class PalmAttacks(BossModule module) : Components.GenericAOEs(module) //Palm Att
         switch ((AID)spell.Action.ID)
         {
             case AID.LeftPalm2:
-                _aoe = new(rect, new(Module.PrimaryActor.Position.X, Module.Center.Z), -90.Degrees(), spell.NPCFinishAt);
+                _aoe = new(rect, new(Module.PrimaryActor.Position.X, Module.Center.Z), -90.Degrees(), Module.CastFinishAt(spell));
                 break;
             case AID.RightPalm2:
-                _aoe = new(rect, new(Module.PrimaryActor.Position.X, Module.Center.Z), 90.Degrees(), spell.NPCFinishAt);
+                _aoe = new(rect, new(Module.PrimaryActor.Position.X, Module.Center.Z), 90.Degrees(), Module.CastFinishAt(spell));
                 break;
         }
     }

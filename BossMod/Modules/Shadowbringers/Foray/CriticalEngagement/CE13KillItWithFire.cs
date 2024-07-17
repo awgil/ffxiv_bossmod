@@ -52,10 +52,10 @@ class DeadLeaves(BossModule module) : Components.GenericAOEs(module, default, "G
     {
         if (_tenderStatuses[slot])
             foreach (var c in _tenderCasters)
-                yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
+                yield return new(_shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo));
         if (_jealousStatuses[slot])
             foreach (var c in _jealousCasters)
-                yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
+                yield return new(_shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo));
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)

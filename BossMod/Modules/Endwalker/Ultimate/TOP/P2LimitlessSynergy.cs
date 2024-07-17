@@ -54,7 +54,7 @@ class P2BeyondDefense(BossModule module) : Components.UniformStackSpread(module,
             case AID.BeyondDefense:
                 _source = caster;
                 CurMechanic = Mechanic.Spread;
-                _activation = spell.NPCFinishAt.AddSeconds(0.2f);
+                _activation = Module.CastFinishAt(spell, 0.2f);
                 break;
         }
     }

@@ -6,7 +6,7 @@ class EasternEwers(BossModule module) : Components.Exaflare(module, 4)
     {
         if ((AID)spell.Action.ID is AID.NBrimOver or AID.SBrimOver)
         {
-            Lines.Add(new() { Next = caster.Position, Advance = new(0, 5.1f), NextExplosion = spell.NPCFinishAt, TimeToMove = 0.8f, ExplosionsLeft = 11, MaxShownExplosions = int.MaxValue });
+            Lines.Add(new() { Next = caster.Position, Advance = new(0, 5.1f), NextExplosion = Module.CastFinishAt(spell), TimeToMove = 0.8f, ExplosionsLeft = 11, MaxShownExplosions = int.MaxValue });
         }
     }
 

@@ -33,10 +33,10 @@ class NumbingNoiseTailSnapRotating(BossModule module) : Components.GenericRotati
         switch ((AID)spell.Action.ID)
         {
             case AID.NumbingNoiseAttract: // NN always seems to go CCW
-                Sequences.Add(new(_shapeNumbingNoise, Module.PrimaryActor.Position, spell.Rotation, 120.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f), 2.7f, 3));
+                Sequences.Add(new(_shapeNumbingNoise, Module.PrimaryActor.Position, spell.Rotation, 120.Degrees(), Module.CastFinishAt(spell, 1.1f), 2.7f, 3));
                 break;
             case AID.TailSnapAttract: // TS always seems to go CW
-                Sequences.Add(new(_shapeTailSnap, Module.PrimaryActor.Position, spell.Rotation + 180.Degrees(), -120.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f), 2.7f, 3));
+                Sequences.Add(new(_shapeTailSnap, Module.PrimaryActor.Position, spell.Rotation + 180.Degrees(), -120.Degrees(), Module.CastFinishAt(spell, 1.1f), 2.7f, 3));
                 break;
         }
     }
@@ -66,7 +66,7 @@ class NumbingNoiseTailSnapAttract(BossModule module) : Components.Knockback(modu
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (caster == Module.PrimaryActor && (AID)spell.Action.ID is AID.NumbingNoiseAttract or AID.TailSnapAttract)
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

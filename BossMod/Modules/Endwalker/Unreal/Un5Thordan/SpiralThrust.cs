@@ -18,7 +18,7 @@ abstract class SpiralThrust(BossModule module, float predictionDelay) : Componen
                 _predictionDelay = 0;
                 _aoes.Clear();
             }
-            _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
+            _aoes.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
         }
     }
 

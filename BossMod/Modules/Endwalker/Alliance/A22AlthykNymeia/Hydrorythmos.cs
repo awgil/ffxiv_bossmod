@@ -27,7 +27,7 @@ class Hydrorythmos(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.HydrorythmosFirst)
         {
             _dir = spell.Rotation;
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
         }
     }
 

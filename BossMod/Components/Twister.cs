@@ -64,7 +64,7 @@ public class CastTwister(BossModule module, float radius, uint oid, ActionID aid
     {
         if (spell.Action == WatchedAction && _predictStart == DateTime.MaxValue)
         {
-            _predictStart = spell.NPCFinishAt.AddSeconds(-_predictBeforeCastEnd);
+            _predictStart = Module.CastFinishAt(spell, -_predictBeforeCastEnd);
         }
     }
 

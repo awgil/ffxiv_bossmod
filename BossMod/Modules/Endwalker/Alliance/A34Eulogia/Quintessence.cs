@@ -73,7 +73,7 @@ class Quintessence(BossModule module) : Components.GenericAOEs(module)
             ReportError($"Duplicate shape for order {order}: {spell.Action}");
 
         _forms[order].shape = shape;
-        _forms[order].activation = spell.NPCFinishAt.AddSeconds(19.5f - order * 3.7f);
+        _forms[order].activation = Module.CastFinishAt(spell, 19.5f - order * 3.7f);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

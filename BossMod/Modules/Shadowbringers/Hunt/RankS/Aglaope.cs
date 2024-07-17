@@ -45,8 +45,8 @@ class SeductiveSonata(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.SeductiveSonata)
         {
             casting = true;
-            _activation = spell.NPCFinishAt;
-            _time = spell.NPCFinishAt.AddSeconds(2.2f);
+            _activation = Module.CastFinishAt(spell);
+            _time = Module.CastFinishAt(spell, 2.2f);
         }
     }
 

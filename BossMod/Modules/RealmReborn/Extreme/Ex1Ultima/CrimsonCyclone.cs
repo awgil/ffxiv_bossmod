@@ -20,7 +20,7 @@ class CrimsonCyclone(BossModule module) : Components.GenericAOEs(module, ActionI
         if (spell.Action == WatchedAction)
         {
             _ifrit = caster;
-            _resolve = spell.NPCFinishAt;
+            _resolve = Module.CastFinishAt(spell);
         }
     }
 

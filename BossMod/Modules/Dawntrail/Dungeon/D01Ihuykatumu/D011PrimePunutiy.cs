@@ -54,7 +54,7 @@ class Bury(BossModule module) : Components.GenericAOEs(module)
             _ => null
         };
         if (toAdd != null)
-            _activeAOEs.Add((caster, new AOEInstance(toAdd, caster.Position, spell.Rotation, spell.NPCFinishAt)));
+            _activeAOEs.Add((caster, new AOEInstance(toAdd, caster.Position, spell.Rotation, Module.CastFinishAt(spell))));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -72,7 +72,7 @@ class Resurface(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.Resurface)
-            _aoe = new AOEInstance(new AOEShapeCone(100, 32.Degrees()), caster.Position, spell.Rotation, spell.NPCFinishAt);
+            _aoe = new AOEInstance(new AOEShapeCone(100, 32.Degrees()), caster.Position, spell.Rotation, Module.CastFinishAt(spell));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -152,7 +152,7 @@ class ShoreShaker(BossModule module) : Components.ConcentricAOEs(module, [new AO
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ShoreShaker)
-            AddSequence(Module.Center, spell.NPCFinishAt);
+            AddSequence(Module.Center, Module.CastFinishAt(spell));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

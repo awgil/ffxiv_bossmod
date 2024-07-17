@@ -11,7 +11,7 @@ class WinterHalo(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.WinterHaloShortAOE or AID.WinterHaloLongMountedAOE or AID.WinterHaloLongDismountedAOE)
-            _aoe = new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt);
+            _aoe = new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

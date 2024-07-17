@@ -24,21 +24,23 @@ public enum ActorType : ushort
     CardStand = 0xE00,
 }
 
-public sealed class ActorCastInfo
+public sealed record class ActorCastInfo
 {
-    public static readonly TimeSpan NPCFinishDelay = TimeSpan.FromSeconds(0.3); // for whatever reason, npc spells have reported remaining cast time consistently 0.3s smaller than reality
+    public static readonly float NPCFinishDelay = 0.3f; // for whatever reason, npc spells have reported remaining cast time consistently 0.3s smaller than reality
 
     public ActionID Action;
     public ulong TargetID;
     public Angle Rotation;
     public Vector3 Location;
+    public float ElapsedTime;
     public float TotalTime;
-    public DateTime FinishAt;
     public bool Interruptible;
     public bool EventHappened;
 
     public WPos LocXZ => new(Location.XZ());
-    public DateTime NPCFinishAt => FinishAt + NPCFinishDelay;
+    public float RemainingTime => TotalTime - ElapsedTime;
+    public float NPCTotalTime => TotalTime + NPCFinishDelay;
+    public float NPCRemainingTime => NPCTotalTime - ElapsedTime;
 
     public bool IsSpell() => Action.Type == ActionType.Spell;
     public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);

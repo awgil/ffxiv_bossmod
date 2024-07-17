@@ -51,8 +51,8 @@ class MiniLight(BossModule module) : Components.GenericAOEs(module)
     {
         var activation = (AID)spell.Action.ID switch
         {
-            AID.Soundstorm => spell.NPCFinishAt.AddSeconds(12.1f), // timing varies, have seen delays between 17.2s and 17.8s, but 2nd AID should correct any incorrectness
-            AID.MiniLight => spell.NPCFinishAt,
+            AID.Soundstorm => Module.CastFinishAt(spell, 12.1f), // timing varies, have seen delays between 17.2s and 17.8s, but 2nd AID should correct any incorrectness
+            AID.MiniLight => Module.CastFinishAt(spell),
             _ => default
         };
         if (activation != default)

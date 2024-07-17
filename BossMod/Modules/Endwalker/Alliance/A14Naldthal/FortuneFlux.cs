@@ -103,7 +103,7 @@ class FortuneFluxOrder(BossModule module) : BossComponent(module)
         {
             ReportError($"Several cast-start for #{order}");
         }
-        m.activation = spell.NPCFinishAt;
+        m.activation = Module.CastFinishAt(spell);
     }
 }
 

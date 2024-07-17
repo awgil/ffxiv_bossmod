@@ -11,7 +11,7 @@ class SpreadingFire(BossModule module) : Components.ConcentricAOEs(module, _shap
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SpreadingFire1st)
-            AddSequence(caster.Position, spell.NPCFinishAt);
+            AddSequence(caster.Position, Module.CastFinishAt(spell));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -50,7 +50,7 @@ class FireRampageCleave(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID is AID.FieryRampageCleaveReal or AID.FieryRampageCleaveReal2)
         {
-            _castersunsorted.Add((caster.Position, spell.Rotation, spell.NPCFinishAt, spell.Action.ID)); //casters appear in random order in raw ops
+            _castersunsorted.Add((caster.Position, spell.Rotation, Module.CastFinishAt(spell), spell.Action.ID)); //casters appear in random order in raw ops
             _casters = _castersunsorted.OrderBy(x => x.AID).Select(x => (x.position, x.rotation, x.activation)).ToList();
         }
     }
@@ -88,7 +88,7 @@ class CrimsonStreak(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.CrimsonStreakReal)
         {
             var dir = spell.LocXZ - caster.Position;
-            _casters.Add((caster.Position, new AOEShapeRect(dir.Length(), 10), Angle.FromDirection(dir), spell.NPCFinishAt));
+            _casters.Add((caster.Position, new AOEShapeRect(dir.Length(), 10), Angle.FromDirection(dir), Module.CastFinishAt(spell)));
         }
     }
 
@@ -133,7 +133,7 @@ class Eruption2(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID is AID.EruptionReal2 or AID.EruptionReal3 or AID.EruptionReal4)
         {
-            _castersunsorted.Add((spell.LocXZ, spell.NPCFinishAt, spell.Action.ID));
+            _castersunsorted.Add((spell.LocXZ, Module.CastFinishAt(spell), spell.Action.ID));
             _casters = _castersunsorted.OrderBy(x => x.AID).Select(x => (x.position, x.activation)).ToList();
         }
     }

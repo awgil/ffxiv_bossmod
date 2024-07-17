@@ -39,7 +39,7 @@ abstract class FreezableAOEs(BossModule module, ActionID action, AOEShape shape)
             var isCastReal = !isFrozen || _anyCastFinished;
 
             if (isCastReal)
-                yield return new AOEInstance(shape, caster.Position, caster.Rotation, caster.CastInfo!.NPCFinishAt + (isFrozen ? TimeSpan.FromSeconds(8) : default));
+                yield return new AOEInstance(shape, caster.Position, caster.Rotation, Module.CastFinishAt(caster.CastInfo, isFrozen ? 8 : 0));
         }
     }
 

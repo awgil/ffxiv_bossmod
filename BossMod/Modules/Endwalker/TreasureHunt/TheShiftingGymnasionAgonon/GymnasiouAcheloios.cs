@@ -75,14 +75,14 @@ class Slammer(BossModule module) : Components.GenericRotatingAOE(module)
     {
         if ((AID)spell.Action.ID is AID.DoubleHammer)
         {
-            Sequences.Add(new(_shape, caster.Position, spell.Rotation, 180.Degrees(), spell.NPCFinishAt, 3.9f, 2, 1));
+            Sequences.Add(new(_shape, caster.Position, spell.Rotation, 180.Degrees(), Module.CastFinishAt(spell), 3.9f, 2, 1));
             ImminentColor = ArenaColor.AOE;
         }
         if ((AID)spell.Action.ID == AID.QuadrupleHammer2)
         {
             ImminentColor = ArenaColor.Danger;
             _rotation = spell.Rotation;
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
         }
         if (_rotation != default)
             InitIfReady(caster);

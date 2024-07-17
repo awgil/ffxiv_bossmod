@@ -44,7 +44,7 @@ class ZoomInKB(BossModule module) : Components.Knockback(module) // actual knock
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ZoomIn)
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

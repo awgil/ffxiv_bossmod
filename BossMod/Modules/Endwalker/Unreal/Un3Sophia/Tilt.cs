@@ -81,7 +81,7 @@ class Quasar(BossModule module) : Tilt(module)
                 _ => DistanceLong
             };
             Direction = (WeightLeft > WeightRight ? -90 : 90).Degrees();
-            Activation = spell.NPCFinishAt.AddSeconds(0.7f);
+            Activation = Module.CastFinishAt(spell, 0.7f);
         }
     }
 }

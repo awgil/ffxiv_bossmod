@@ -22,7 +22,7 @@ class CrimsonCyclone(BossModule module, float predictionDelay) : Components.Gene
             foreach (var p in _predicted)
                 yield return new(p.shape, p.pos, p.rot, p.activation);
         foreach (var c in _casters)
-            yield return new(_shapeMain, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
+            yield return new(_shapeMain, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo));
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)

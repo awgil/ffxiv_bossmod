@@ -91,7 +91,7 @@ public class StandardChasingAOEs(BossModule module, AOEShape shape, ActionID act
             var (slot, target) = Raid.WithSlot().ExcludedFromMask(ExcludedTargets).MinBy(ip => (ip.Item2.Position - pos).LengthSq());
             if (target != null)
             {
-                Chasers.Add(new(Shape, target, pos, 0, MaxCasts, spell.NPCFinishAt, SecondsBetweenActivations)); // initial cast does not move anywhere
+                Chasers.Add(new(Shape, target, pos, 0, MaxCasts, Module.CastFinishAt(spell), SecondsBetweenActivations)); // initial cast does not move anywhere
                 ExcludedTargets.Set(slot);
             }
         }

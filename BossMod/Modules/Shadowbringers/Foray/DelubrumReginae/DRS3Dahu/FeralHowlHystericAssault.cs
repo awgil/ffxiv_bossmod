@@ -13,7 +13,7 @@ class FeralHowlHystericAssault(BossModule module, AID aidCast, AID aidAOE, float
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == _aidCast)
-            _source = new(caster.Position, 30, spell.NPCFinishAt.AddSeconds(_delay));
+            _source = new(caster.Position, 30, Module.CastFinishAt(spell, _delay));
     }
 }
 

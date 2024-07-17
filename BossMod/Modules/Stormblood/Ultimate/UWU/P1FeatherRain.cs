@@ -17,7 +17,7 @@ class P1FeatherRain(BossModule module) : Components.GenericAOEs(module, ActionID
         foreach (var p in _predicted)
             yield return new(_shape, p, new(), _activation);
         foreach (var c in _casters)
-            yield return new(_shape, c.CastInfo!.LocXZ, new(), c.CastInfo!.NPCFinishAt);
+            yield return new(_shape, c.CastInfo!.LocXZ, new(), Module.CastFinishAt(c.CastInfo!));
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)

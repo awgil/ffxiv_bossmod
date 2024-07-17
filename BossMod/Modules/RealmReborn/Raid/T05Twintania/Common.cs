@@ -63,7 +63,7 @@ class DeathSentence(BossModule module) : Components.CastCounter(module, ActionID
         boss.PreferProvoking = true;
         if (Module.PrimaryActor.CastInfo?.Action == WatchedAction)
         {
-            var cooldownWindowEnd = (float)(Module.PrimaryActor.CastInfo.NPCFinishAt - WorldState.CurrentTime).TotalSeconds;
+            var cooldownWindowEnd = Module.PrimaryActor.CastInfo.NPCRemainingTime;
             switch (assignment)
             {
                 case PartyRolesConfig.Assignment.MT:

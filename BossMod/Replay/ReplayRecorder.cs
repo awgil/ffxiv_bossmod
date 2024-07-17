@@ -38,7 +38,6 @@ public sealed class ReplayRecorder : IDisposable
         public abstract Output Emit(ActorStatus v);
         public abstract Output Emit(List<ActorCastEvent.Target> v);
         public abstract Output EmitFloatPair(float t1, float t2);
-        public abstract Output EmitTimePair(DateTime t1, float t2);
         public abstract Output EmitActor(ulong instanceID);
         public abstract void EndEntry();
         public abstract void Flush();
@@ -95,7 +94,6 @@ public sealed class ReplayRecorder : IDisposable
             return this;
         }
         public override Output EmitFloatPair(float t1, float t2) => WriteEntry($"{t1:f3}/{t2:f3}");
-        public override Output EmitTimePair(DateTime t1, float t2) => WriteEntry($"{(t1 - _curEntry).TotalSeconds:f3}/{t2:f3}");
         public override Output EmitActor(ulong instanceID)
         {
             var actor = actorLookup?.Find(instanceID);
@@ -156,7 +154,6 @@ public sealed class ReplayRecorder : IDisposable
             return this;
         }
         public override Output EmitFloatPair(float t1, float t2) { _dest.Write(t1); _dest.Write(t2); return this; }
-        public override Output EmitTimePair(DateTime t1, float t2) { _dest.Write(t1.Ticks); _dest.Write(t2); return this; }
         public override Output EmitActor(ulong instanceID) { _dest.Write(instanceID); return this; }
         public override void EndEntry() { }
         public override void Flush() => _dest.Flush();
@@ -166,7 +163,7 @@ public sealed class ReplayRecorder : IDisposable
     private readonly Output _logger;
     private readonly EventSubscription _subscription;
 
-    public const int Version = 16;
+    public const int Version = 17;
 
     public ReplayRecorder(WorldState ws, ReplayLogFormat format, bool logInitialState, DirectoryInfo targetDirectory, string logPrefix)
     {

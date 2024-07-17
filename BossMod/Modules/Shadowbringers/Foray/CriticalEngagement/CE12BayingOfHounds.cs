@@ -46,7 +46,7 @@ class Hellpounce(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.Hellpounce or AID.HellpounceSecond)
-            Activate(caster.Position, spell.LocXZ, spell.NPCFinishAt);
+            Activate(caster.Position, spell.LocXZ, Module.CastFinishAt(spell));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -81,7 +81,7 @@ class VoidQuake(BossModule module) : Components.GenericAOEs(module) //this conce
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return _active.Take(1).Select(e => new AOEInstance(e.shape, e.caster.Position, e.caster.CastInfo!.Rotation, e.caster.CastInfo.NPCFinishAt));
+        return _active.Take(1).Select(e => new AOEInstance(e.shape, e.caster.Position, e.caster.CastInfo!.Rotation, Module.CastFinishAt(e.caster.CastInfo)));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

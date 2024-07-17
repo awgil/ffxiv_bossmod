@@ -19,7 +19,7 @@ class EyeOfTheStorm(BossModule module) : Components.GenericAOEs(module, ActionID
         if (spell.Action == WatchedAction)
         {
             _caster = caster;
-            _nextCastAt = caster.CastInfo!.NPCFinishAt;
+            _nextCastAt = Module.CastFinishAt(caster.CastInfo!);
         }
     }
 

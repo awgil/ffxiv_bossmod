@@ -183,7 +183,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
             ctrl.NaviTargetPos = _naviDecision.Destination;
             ctrl.NaviTargetRot = null;
             ctrl.NaviTargetVertical = master != player ? master.PosRot.Y : null;
-            ctrl.AllowInterruptingCastByMovement = player.CastInfo != null && _naviDecision.LeewaySeconds <= (player.CastInfo.FinishAt - WorldState.CurrentTime).TotalSeconds - 0.5;
+            ctrl.AllowInterruptingCastByMovement = player.CastInfo != null && _naviDecision.LeewaySeconds <= player.CastInfo.RemainingTime - 0.5;
             ctrl.ForceCancelCast = player.CastInfo != null && TargetIsForbidden(player.CastInfo.TargetID);
             ctrl.ForceFacing = false;
             ctrl.WantJump = distSq >= 0.01f && autorot.Bossmods.ActiveModule?.StateMachine.ActiveState != null && autorot.Bossmods.ActiveModule.NeedToJump(player.Position, toDest.Normalized());

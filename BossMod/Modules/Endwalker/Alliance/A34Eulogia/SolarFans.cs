@@ -38,7 +38,7 @@ class RadiantRhythm(BossModule module) : Components.GenericAOEs(module)
                     ReportError($"Inconsistent starting angle: {_nextAngle} -> {startingAngle}");
                 NumCasts = 0;
                 _nextAngle = startingAngle + 45.Degrees();
-                _activation = spell.NPCFinishAt.AddSeconds(2.8f);
+                _activation = Module.CastFinishAt(spell, 2.8f);
                 break;
             case AID.RadiantFlight:
                 // verify our assumption
@@ -80,7 +80,7 @@ class RadiantFlourish(BossModule module) : Components.GenericAOEs(module)
         switch ((AID)spell.Action.ID)
         {
             case AID.SolarFansAOE:
-                _aoes.Add(new(_shape, spell.LocXZ, default, spell.NPCFinishAt.AddSeconds(13.8f)));
+                _aoes.Add(new(_shape, spell.LocXZ, default, Module.CastFinishAt(spell, 13.8f)));
                 break;
             case AID.RadiantFlourish:
                 // verify the assumption

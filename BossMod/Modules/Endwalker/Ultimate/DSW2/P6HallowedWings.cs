@@ -19,7 +19,7 @@ class P6HallowedWings(BossModule module) : Components.GenericAOEs(module)
         if (offset == 0)
             return;
         var origin = caster.Position + offset * spell.Rotation.ToDirection().OrthoL();
-        AOE = new(_shape, origin, spell.Rotation, spell.NPCFinishAt.AddSeconds(0.8f));
+        AOE = new(_shape, origin, spell.Rotation, Module.CastFinishAt(spell, 0.8f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

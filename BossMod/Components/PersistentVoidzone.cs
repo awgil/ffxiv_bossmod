@@ -45,7 +45,7 @@ public class PersistentVoidzoneAtCastTarget(BossModule module, float radius, Act
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            _predictedByCast.Add((caster, spell.NPCFinishAt.AddSeconds(CastEventToSpawn)));
+            _predictedByCast.Add((caster, Module.CastFinishAt(spell, CastEventToSpawn)));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -111,7 +111,7 @@ public class PersistentInvertibleVoidzoneByCast(BossModule module, float radius,
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            InvertResolveAt = spell.NPCFinishAt;
+            InvertResolveAt = Module.CastFinishAt(spell);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

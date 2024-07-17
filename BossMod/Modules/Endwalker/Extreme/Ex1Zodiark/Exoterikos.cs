@@ -72,9 +72,9 @@ class Exoterikos(BossModule module) : BossComponent(module)
             }
             else if (shape == _aoeRay)
             {
-                if (lastRay != default && (actor.CastInfo == null || (actor.CastInfo.NPCFinishAt - lastRay).TotalSeconds > 2))
+                if (lastRay != default && (actor.CastInfo == null || (Module.CastFinishAt(actor.CastInfo) - lastRay).TotalSeconds > 2))
                     continue;
-                lastRay = actor.CastInfo?.NPCFinishAt ?? new();
+                lastRay = Module.CastFinishAt(actor.CastInfo);
             }
             yield return (actor, shape);
         }

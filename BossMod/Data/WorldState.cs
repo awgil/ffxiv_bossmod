@@ -82,6 +82,7 @@ public sealed class WorldState
             ws.Client.CameraAzimuth = CameraAzimuth;
             ws.Client.GaugePayload = GaugePayload;
             ws.Client.Tick(Frame.Duration);
+            ws.Actors.Tick(Frame.Duration);
             ws.FrameStarted.Fire(this);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("FRAM"u8)

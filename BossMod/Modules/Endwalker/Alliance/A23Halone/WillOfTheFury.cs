@@ -14,7 +14,7 @@ class WillOfTheFury(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.WillOfTheFuryAOE1)
         {
-            UpdateAOE(spell.NPCFinishAt);
+            UpdateAOE(Module.CastFinishAt(spell));
         }
     }
 

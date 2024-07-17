@@ -38,7 +38,7 @@ class OutInAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.FrigidNeedle)
-            AddSequence(Module.Center, spell.NPCFinishAt.AddSeconds(0.45f));
+            AddSequence(Module.Center, Module.CastFinishAt(spell, 0.45f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -63,7 +63,7 @@ class InOutAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.CircleOfIce)
-            AddSequence(Module.Center, spell.NPCFinishAt.AddSeconds(0.45f));
+            AddSequence(Module.Center, Module.CastFinishAt(spell, 0.45f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

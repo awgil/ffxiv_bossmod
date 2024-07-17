@@ -9,7 +9,7 @@ class CrushingHoof(BossModule module) : Components.GenericAOEs(module, ActionID.
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.CrushingHoof)
-            _aoe = new(new AOEShapeCircle(25), spell.LocXZ, default, spell.NPCFinishAt.AddSeconds(1));
+            _aoe = new(new AOEShapeCircle(25), spell.LocXZ, default, Module.CastFinishAt(spell, 1));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

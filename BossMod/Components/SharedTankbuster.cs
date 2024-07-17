@@ -72,7 +72,7 @@ public class CastSharedTankbuster(BossModule module, ActionID aid, AOEShape shap
         {
             Source = caster;
             Target = WorldState.Actors.Find(spell.TargetID);
-            Activation = spell.NPCFinishAt;
+            Activation = Module.CastFinishAt(spell);
         }
     }
 

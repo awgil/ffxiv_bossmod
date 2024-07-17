@@ -12,7 +12,7 @@ class ClawTail(BossModule module) : Components.GenericAOEs(module)
         var rotation = Module.PrimaryActor.CastInfo?.Rotation ?? Module.PrimaryActor.Rotation;
         if (_tailFirst ? Progress == 0 : Progress >= 7)
             rotation += 180.Degrees();
-        yield return new(_shape, Module.PrimaryActor.Position, rotation, Module.PrimaryActor.CastInfo?.NPCFinishAt ?? WorldState.CurrentTime);
+        yield return new(_shape, Module.PrimaryActor.Position, rotation, Module.CastFinishAt(Module.PrimaryActor.CastInfo));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

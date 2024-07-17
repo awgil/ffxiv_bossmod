@@ -24,10 +24,10 @@ class LeafstormRimestorm(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (Module.PrimaryActor.CastInfo?.IsSpell(AID.Leafstorm) ?? false)
-            yield return new(_leafstorm, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo!.Rotation, Module.PrimaryActor.CastInfo.NPCFinishAt);
+            yield return new(_leafstorm, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo!.Rotation, Module.CastFinishAt(Module.PrimaryActor.CastInfo));
 
         if (Module.PrimaryActor.CastInfo?.IsSpell(AID.Rimestorm) ?? false)
-            yield return new(_rimestorm, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo!.Rotation, Module.PrimaryActor.CastInfo.NPCFinishAt);
+            yield return new(_rimestorm, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo!.Rotation, Module.CastFinishAt(Module.PrimaryActor.CastInfo));
         else if (_rimestormExpected != default)
             yield return new(_rimestorm, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo?.Rotation ?? Module.PrimaryActor.Rotation, _rimestormExpected);
     }

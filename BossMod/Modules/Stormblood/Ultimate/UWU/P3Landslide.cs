@@ -27,7 +27,7 @@ class Landslide(BossModule module) : Components.GenericAOEs(module)
         }
 
         foreach (var c in _casters)
-            yield return new((OID)c.OID == OID.Titan ? ShapeBoss : ShapeHelper, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
+            yield return new((OID)c.OID == OID.Titan ? ShapeBoss : ShapeHelper, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

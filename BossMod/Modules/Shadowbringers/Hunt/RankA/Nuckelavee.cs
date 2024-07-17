@@ -26,7 +26,7 @@ class Spite(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Gallop)
-            _aoe = new(new AOEShapeCircle(8), spell.LocXZ, default, spell.NPCFinishAt);
+            _aoe = new(new AOEShapeCircle(8), spell.LocXZ, default, Module.CastFinishAt(spell));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

@@ -10,7 +10,7 @@ class WindsOfWeight(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return (_invertedPlayers[slot] ? _purple : _green).Select(c => new AOEInstance(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt));
+        return (_invertedPlayers[slot] ? _purple : _green).Select(c => new AOEInstance(_shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo)));
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)

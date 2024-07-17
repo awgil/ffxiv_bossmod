@@ -13,7 +13,7 @@ class EndOfDays(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
             if (c.caster.CastInfo == null)
                 yield return new(_shape, c.caster.Position, c.caster.Rotation, c.finish);
             else
-                yield return new(_shape, c.caster.Position, c.caster.CastInfo.Rotation, c.caster.CastInfo.NPCFinishAt);
+                yield return new(_shape, c.caster.Position, c.caster.CastInfo.Rotation, Module.CastFinishAt(c.caster.CastInfo));
         }
     }
 

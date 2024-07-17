@@ -10,7 +10,7 @@ class WickedStep(BossModule module) : Components.Knockback(module, ignoreImmunes
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         foreach (var s in _towers.Where(s => s?.Position.InCircle(actor.Position, _towerRadius) ?? false))
-            yield return new(s!.Position, _knockbackRadius, s!.CastInfo!.NPCFinishAt);
+            yield return new(s!.Position, _knockbackRadius, Module.CastFinishAt(s!.CastInfo));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

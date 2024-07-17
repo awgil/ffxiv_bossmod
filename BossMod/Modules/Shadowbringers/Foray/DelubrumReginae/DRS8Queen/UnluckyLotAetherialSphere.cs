@@ -9,7 +9,7 @@ class UnluckyLotAetherialSphere(BossModule module) : Components.GenericAOEs(modu
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.OptimalOffensiveMoveSphere)
-            _aoe = new(new AOEShapeCircle(20), caster.Position, default, spell.NPCFinishAt.AddSeconds(2.6));
+            _aoe = new(new AOEShapeCircle(20), caster.Position, default, Module.CastFinishAt(spell, 2.6f));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

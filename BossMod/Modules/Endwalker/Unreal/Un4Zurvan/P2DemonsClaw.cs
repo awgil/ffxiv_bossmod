@@ -7,7 +7,7 @@ class P2DemonsClawKnockback(BossModule module) : Components.Knockback(module, Ac
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (_caster?.CastInfo?.TargetID == actor.InstanceID)
-            yield return new(_caster.Position, 17, _caster.CastInfo.NPCFinishAt);
+            yield return new(_caster.Position, 17, Module.CastFinishAt(_caster.CastInfo));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

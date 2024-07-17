@@ -49,19 +49,19 @@ class Combos(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID is AID.AutumnWreath)
         {
             _rotation = spell.Rotation;
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
             _shape = donut;
         }
         if ((AID)spell.Action.ID is AID.DawnsEdge)
         {
             _rotation = spell.Rotation;
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
             _shape = rect;
         }
         if ((AID)spell.Action.ID is AID.WinterRain)
         {
             _rotation = spell.Rotation;
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
             _shape = circle;
         }
     }

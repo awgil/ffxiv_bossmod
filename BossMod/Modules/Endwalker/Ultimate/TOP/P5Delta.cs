@@ -431,7 +431,7 @@ class P5DeltaHyperPulse(BossModule module) : Components.GenericAOEs(module)
             var rot = _delta.ArmRotations[_delta.ArmIndex(caster.Position - Module.Center)];
             for (int i = 0; i < _numRepeats; ++i)
             {
-                _aoes.Add(new(_shape, caster.Position, (spell.Rotation + i * rot).Normalized(), spell.NPCFinishAt.AddSeconds(i * 0.6)));
+                _aoes.Add(new(_shape, caster.Position, (spell.Rotation + i * rot).Normalized(), Module.CastFinishAt(spell, i * 0.6f)));
             }
         }
     }
@@ -527,7 +527,7 @@ class P5DeltaOversampledWaveCannon(BossModule module) : Components.UniformStackS
             var ps = _delta.Players[i];
             if (ps.IsLocal)
             {
-                AddSpread(p, spell.NPCFinishAt); // assume only intended targets will be hit, otherwise chances are it will be all random
+                AddSpread(p, Module.CastFinishAt(spell)); // assume only intended targets will be hit, otherwise chances are it will be all random
                 if (ps.SideAssignment == bossSide)
                     _bossIntendedTargets.Set(i);
                 else
@@ -554,7 +554,7 @@ class P5DeltaSwivelCannon(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.SwivelCannonR or AID.SwivelCannonL)
-            AOE = new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt);
+            AOE = new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

@@ -58,7 +58,7 @@ class DismissalOverruling(BossModule module) : Components.Knockback(module)
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (_source != null)
-            yield return new(_source.Position, 11, _source.CastInfo!.NPCFinishAt);
+            yield return new(_source.Position, 11, Module.CastFinishAt(_source.CastInfo));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

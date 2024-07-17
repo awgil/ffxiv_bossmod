@@ -67,7 +67,7 @@ class HeavenAndEarth(BossModule module) : Components.GenericRotatingAOE(module)
             UpdateIncrement(30.Degrees());
 
         if ((AID)spell.Action.ID == AID.HeavenAndEarthStart)
-            Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.NPCFinishAt, 1.2f, 4));
+            Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, Module.CastFinishAt(spell), 1.2f, 4));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -86,7 +86,7 @@ class HeartOfNatureConcentric(BossModule module) : Components.ConcentricAOEs(mod
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.NaturesPulse1)
-            AddSequence(caster.Position, spell.NPCFinishAt);
+            AddSequence(caster.Position, Module.CastFinishAt(spell));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -127,7 +127,7 @@ class WindsPeakKB(BossModule module) : Components.Knockback(module)
         {
             _watched = true;
             _time = WorldState.CurrentTime;
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
         }
     }
 }
@@ -140,11 +140,11 @@ class NaturesBlood(BossModule module) : Components.Exaflare(module, 4)
     {
         public Actor Caster;
 
-        public LineWithActor(Actor caster)
+        public LineWithActor(BossModule module, Actor caster)
         {
             Next = caster.Position;
             Advance = 6 * caster.Rotation.ToDirection();
-            NextExplosion = caster.CastInfo!.NPCFinishAt;
+            NextExplosion = module.CastFinishAt(caster.CastInfo);
             TimeToMove = 1.1f;
             ExplosionsLeft = 7;
             MaxShownExplosions = 3;
@@ -155,7 +155,7 @@ class NaturesBlood(BossModule module) : Components.Exaflare(module, 4)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NaturesBlood1)
-            Lines.Add(new LineWithActor(caster));
+            Lines.Add(new LineWithActor(Module, caster));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

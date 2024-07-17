@@ -15,8 +15,8 @@ class HeavensWrathKnockback(BossModule module) : Components.Knockback(module)
         if ((AID)spell.Action.ID == AID.HeavensWrathVisual)
         {
             _sources.Clear();
-            _sources.Add(new(caster.Position, 15, spell.NPCFinishAt, _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
-            _sources.Add(new(caster.Position, 15, spell.NPCFinishAt, _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
+            _sources.Add(new(caster.Position, 15, Module.CastFinishAt(spell), _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
+            _sources.Add(new(caster.Position, 15, Module.CastFinishAt(spell), _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
         }
     }
 

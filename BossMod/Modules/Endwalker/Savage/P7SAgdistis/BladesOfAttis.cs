@@ -6,11 +6,11 @@ class BladesOfAttis(BossModule module) : Components.Exaflare(module, 7)
     {
         public Actor Caster;
 
-        public LineWithActor(Actor caster)
+        public LineWithActor(BossModule module, Actor caster)
         {
             Next = caster.Position;
             Advance = 7 * caster.Rotation.ToDirection();
-            NextExplosion = caster.CastInfo!.NPCFinishAt;
+            NextExplosion = module.CastFinishAt(caster.CastInfo!);
             TimeToMove = 2;
             ExplosionsLeft = 8;
             MaxShownExplosions = 8;
@@ -22,7 +22,7 @@ class BladesOfAttis(BossModule module) : Components.Exaflare(module, 7)
     {
         if ((AID)spell.Action.ID is AID.BladesOfAttisFirst)
         {
-            Lines.Add(new LineWithActor(caster));
+            Lines.Add(new LineWithActor(Module, caster));
         }
     }
 

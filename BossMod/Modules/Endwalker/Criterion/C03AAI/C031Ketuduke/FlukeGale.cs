@@ -52,7 +52,7 @@ class FlukeGale(BossModule module) : Components.Knockback(module)
         {
             case AID.FlukeGaleAOE1:
             case AID.FlukeGaleAOE2:
-                Gales.Add(new(caster.Position, 20, spell.NPCFinishAt, _shape, spell.Rotation, Kind.DirForward));
+                Gales.Add(new(caster.Position, 20, Module.CastFinishAt(spell), _shape, spell.Rotation, Kind.DirForward));
                 Gales.SortBy(s => s.Activation);
                 break;
             case AID.Hydrofall:

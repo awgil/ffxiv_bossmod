@@ -40,12 +40,12 @@ class ForgedTrack(BossModule module) : Components.GenericAOEs(module)
             if (rightIsWide == laneRight)
             {
                 // wide
-                WideAOEs.Add(new(_shapeWide, Module.Center + rightDir * adjustedLaneOffset, spell.Rotation, spell.NPCFinishAt.AddSeconds(1.4f)));
+                WideAOEs.Add(new(_shapeWide, Module.Center + rightDir * adjustedLaneOffset, spell.Rotation, Module.CastFinishAt(spell, 1.4f)));
             }
             else
             {
                 // knockback
-                KnockbackAOEs.Add(new(_shape, Module.Center + rightDir * adjustedLaneOffset, spell.Rotation, spell.NPCFinishAt.AddSeconds(1.9f)));
+                KnockbackAOEs.Add(new(_shape, Module.Center + rightDir * adjustedLaneOffset, spell.Rotation, Module.CastFinishAt(spell, 1.9f)));
             }
         }
         else
@@ -57,7 +57,7 @@ class ForgedTrack(BossModule module) : Components.GenericAOEs(module)
             var cross = crossInner == laneInner;
             var adjustedRight = cross ^ laneRight;
             var adjustedLaneOffset = (laneInner ? 7.5f : 2.5f) * (adjustedRight ? 1 : -1);
-            NarrowAOEs.Add(new(_shape, Module.Center + rightDir * adjustedLaneOffset, spell.Rotation, spell.NPCFinishAt.AddSeconds(1.3f)));
+            NarrowAOEs.Add(new(_shape, Module.Center + rightDir * adjustedLaneOffset, spell.Rotation, Module.CastFinishAt(spell, 1.3f)));
         }
     }
 

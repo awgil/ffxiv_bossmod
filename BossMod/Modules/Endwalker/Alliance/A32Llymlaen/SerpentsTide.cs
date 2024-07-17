@@ -10,7 +10,7 @@ class SerpentsTide(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SerpentsTide)
-            AOEs.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
+            AOEs.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

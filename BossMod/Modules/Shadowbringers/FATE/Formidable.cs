@@ -70,7 +70,7 @@ class FiresOfMtGulg(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.FiresOfMtGulg)
         {
             _caster = caster;
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
             NumCasts = 0;
         }
     }
@@ -154,7 +154,7 @@ class DwarvenDischarge(BossModule module, AOEShape shape, OID oid, AID aid, floa
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var (caster, activation) in _casters)
-            yield return new(_shape, caster.Position, default, caster.CastInfo?.NPCFinishAt ?? activation);
+            yield return new(_shape, caster.Position, default, Module.CastFinishAt(caster.CastInfo, 0, activation));
     }
 
     public override void OnActorCreated(Actor actor)

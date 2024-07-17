@@ -64,7 +64,7 @@ class Stormcall(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction && _sources.FindIndex(e => e.source == caster) is var index && index >= 0)
-            _sources[index] = (caster, caster.Position, spell.NPCFinishAt);
+            _sources[index] = (caster, caster.Position, Module.CastFinishAt(spell));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -91,12 +91,12 @@ class Foreshadowing(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_bossAOE != null)
-            yield return new(_bossAOE, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo!.Rotation, Module.PrimaryActor.CastInfo.NPCFinishAt);
+            yield return new(_bossAOE, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo!.Rotation, Module.CastFinishAt(Module.PrimaryActor.CastInfo));
 
         if (_addActivation != default)
             foreach (var add in _addAOEs)
                 if (add.shape != null)
-                    yield return new(add.shape, add.caster.Position, add.caster.CastInfo?.Rotation ?? add.caster.Rotation, add.caster.CastInfo?.NPCFinishAt ?? _addActivation);
+                    yield return new(add.shape, add.caster.Position, add.caster.CastInfo?.Rotation ?? add.caster.Rotation, Module.CastFinishAt(add.caster.CastInfo, 0, _addActivation));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

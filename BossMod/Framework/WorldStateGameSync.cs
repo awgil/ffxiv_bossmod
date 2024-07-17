@@ -299,8 +299,8 @@ sealed class WorldStateGameSync : IDisposable
                     TargetID = SanitizedObjectID(castInfo->TargetId),
                     Rotation = chr->CastRotation.Radians(),
                     Location = _lastCastPositions.GetValueOrDefault(act.InstanceID, castInfo->TargetLocation),
-                    TotalTime = castInfo->BaseCastTime, // TODO: should it use total (adjusted) here?..
-                    FinishAt = _ws.CurrentTime.AddSeconds(Math.Clamp(castInfo->TotalCastTime - castInfo->CurrentCastTime, 0, 100000)),
+                    ElapsedTime = castInfo->CurrentCastTime,
+                    TotalTime = castInfo->BaseCastTime,
                     Interruptible = castInfo->Interruptible != 0,
                 } : null;
             UpdateActorCastInfo(act, curCast);
@@ -333,12 +333,11 @@ sealed class WorldStateGameSync : IDisposable
         if (cast == null && act.CastInfo == null)
             return; // was not casting and is not casting
 
-        // note: ignore small finish-at differences, assume these are due to frame time irregularities
-        if (cast != null && act.CastInfo != null && cast.Action == act.CastInfo.Action && cast.TargetID == act.CastInfo.TargetID && Math.Abs((cast.FinishAt - act.CastInfo.FinishAt).TotalSeconds) < 0.2)
+        if (cast != null && act.CastInfo != null && cast.Action == act.CastInfo.Action && cast.TargetID == act.CastInfo.TargetID && cast.TotalTime == act.CastInfo.TotalTime && Math.Abs(cast.ElapsedTime - act.CastInfo.ElapsedTime) < 0.2)
         {
             // continuing casting same spell
-            act.CastInfo.TotalTime = cast.TotalTime;
-            act.CastInfo.FinishAt = cast.FinishAt;
+            // TODO: consider *not* ignoring elapsed differences, these probably mean we're doing something wrong...
+            act.CastInfo.ElapsedTime = cast.ElapsedTime;
             return;
         }
 

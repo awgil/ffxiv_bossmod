@@ -35,7 +35,7 @@ class QuadrupedalCrush(BossModule module) : Components.GenericAOEs(module, Actio
         if ((AID)spell.Action.ID == AID.QuadrupedalCrush)
         {
             _source = spell.LocXZ;
-            _activation = spell.NPCFinishAt.AddSeconds(0.9f);
+            _activation = Module.CastFinishAt(spell, 0.9f);
         }
     }
 }

@@ -16,7 +16,7 @@ class Tetrapagos(BossModule module) : Components.GenericAOEs(module)
             _ => null
         };
         if (shape != null)
-            _aoes.Add(new(shape, caster.Position, caster.Rotation, spell.NPCFinishAt.AddSeconds(7.3f)));
+            _aoes.Add(new(shape, caster.Position, caster.Rotation, Module.CastFinishAt(spell, 7.3f)));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

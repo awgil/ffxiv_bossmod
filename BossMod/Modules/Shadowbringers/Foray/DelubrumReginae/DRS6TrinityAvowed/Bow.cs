@@ -11,7 +11,7 @@ class FlamesOfBozja(BossModule module, bool risky) : Components.GenericAOEs(modu
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            AOE = new(new AOEShapeRect(45, 25), caster.Position, spell.Rotation, spell.NPCFinishAt, Risky: _risky);
+            AOE = new(new AOEShapeRect(45, 25), caster.Position, spell.Rotation, Module.CastFinishAt(spell), Risky: _risky);
     }
 
     public override void OnEventEnvControl(byte index, uint state)

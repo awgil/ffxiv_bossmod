@@ -20,8 +20,8 @@ class BubbleShowerCrabDribble(BossModule module) : Components.GenericAOEs(module
         if ((AID)spell.Action.ID is AID.NBubbleShower or AID.SBubbleShower)
         {
             _aoes.Clear();
-            _aoes.Add(new(_shape1, caster.Position, spell.Rotation, spell.NPCFinishAt));
-            _aoes.Add(new(_shape2, caster.Position, spell.Rotation + 180.Degrees(), spell.NPCFinishAt.AddSeconds(3.6f)));
+            _aoes.Add(new(_shape1, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
+            _aoes.Add(new(_shape2, caster.Position, spell.Rotation + 180.Degrees(), Module.CastFinishAt(spell, 3.6f)));
         }
     }
 

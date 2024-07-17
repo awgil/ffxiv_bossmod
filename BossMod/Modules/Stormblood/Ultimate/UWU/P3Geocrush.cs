@@ -14,7 +14,7 @@ class P3Geocrush2(BossModule module) : Components.GenericAOEs(module, ActionID.M
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_caster != null)
-            yield return new(_shapeCrush, _caster.Position, _caster.CastInfo!.Rotation, _caster.CastInfo.NPCFinishAt);
+            yield return new(_shapeCrush, _caster.Position, _caster.CastInfo!.Rotation, Module.CastFinishAt(_caster.CastInfo));
         if (_shapeReduced != null)
             yield return new(_shapeReduced, Module.Center);
     }

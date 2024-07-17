@@ -59,7 +59,7 @@ class NoblePursuit(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID is AID.NNoblePursuitFirst or AID.SNoblePursuitFirst)
         {
             var dir = spell.LocXZ - caster.Position;
-            _charges.Add(new(new AOEShapeRect(dir.Length(), _chargeHalfWidth), caster.Position, Angle.FromDirection(dir), spell.NPCFinishAt));
+            _charges.Add(new(new AOEShapeRect(dir.Length(), _chargeHalfWidth), caster.Position, Angle.FromDirection(dir), Module.CastFinishAt(spell)));
             _posAfterLastCharge = spell.LocXZ;
         }
     }

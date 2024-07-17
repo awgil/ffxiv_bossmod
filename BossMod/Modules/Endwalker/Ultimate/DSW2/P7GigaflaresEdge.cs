@@ -12,7 +12,7 @@ class P7GigaflaresEdge(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID is AID.GigaflaresEdgeAOE1 or AID.GigaflaresEdgeAOE2 or AID.GigaflaresEdgeAOE3)
         {
-            _aoes.Add(new(_shape, caster.Position, default, spell.NPCFinishAt));
+            _aoes.Add(new(_shape, caster.Position, default, Module.CastFinishAt(spell)));
             _aoes.SortBy(aoe => aoe.Activation);
         }
     }

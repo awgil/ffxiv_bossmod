@@ -11,7 +11,7 @@ class HandOfTheDestroyer(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.HandOfTheDestroyerWrathAOE or AID.HandOfTheDestroyerJudgmentAOE)
-            _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
+            _aoes.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -46,7 +46,7 @@ class BrokenShards(BossModule module) : Components.GenericAOEs(module)
             _ => null
         };
         if (locs != null)
-            _aoes.AddRange(locs.Select(p => new AOEInstance(_shape, p, default, spell.NPCFinishAt)));
+            _aoes.AddRange(locs.Select(p => new AOEInstance(_shape, p, default, Module.CastFinishAt(spell))));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

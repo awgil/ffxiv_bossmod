@@ -11,7 +11,7 @@ class Hydrostasis(BossModule module) : Components.Knockback(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.HydrostasisAOE1 or AID.HydrostasisAOE2 or AID.HydrostasisAOE3 or AID.HydrostasisAOEDelayed)
-            AddSource(caster.Position, spell.NPCFinishAt);
+            AddSource(caster.Position, Module.CastFinishAt(spell));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

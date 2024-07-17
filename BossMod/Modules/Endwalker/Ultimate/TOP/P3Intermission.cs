@@ -106,7 +106,7 @@ class P3WaveRepeater(BossModule module) : Components.ConcentricAOEs(module, _sha
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WaveRepeater1)
-            AddSequence(caster.Position, spell.NPCFinishAt);
+            AddSequence(caster.Position, Module.CastFinishAt(spell));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

@@ -407,8 +407,8 @@ public sealed class ReplayParserLog : IDisposable
             frame.Index = ++_legacyFrameIndex;
             frame.Duration = frame.DurationRaw = (float)(ti.Timestamp - _legacyPrevTS).TotalSeconds;
             frame.TickSpeedMultiplier = 1;
-            _legacyPrevTS = ti.Timestamp;
         }
+        _legacyPrevTS = frame.Timestamp;
         return new(frame, prevUpdateTime, gauge, _version >= 16 ? _input.ReadAngle() : default);
     }
 
@@ -539,14 +539,23 @@ public sealed class ReplayParserLog : IDisposable
             var action = _input.ReadAction();
             var target = _input.ReadActorID();
             var loc = _input.ReadVec3();
-            var (finishAt, totalTime) = _input.ReadTimePair();
+            float elapsedTime, totalTime;
+            if (_version >= 17)
+            {
+                (elapsedTime, totalTime) = _input.ReadFloatPair();
+            }
+            else
+            {
+                (var finishAt, totalTime) = _input.ReadTimePair();
+                elapsedTime = totalTime + action.CastTimeExtra() - (float)(finishAt - _legacyPrevTS).TotalSeconds;
+            }
             cast = new()
             {
                 Action = action,
                 TargetID = target,
                 Location = loc,
+                ElapsedTime = elapsedTime,
                 TotalTime = totalTime,
-                FinishAt = finishAt,
                 Interruptible = _input.CanRead() && _input.ReadBool(),
                 Rotation = _input.CanRead() ? _input.ReadAngle() : default,
             };

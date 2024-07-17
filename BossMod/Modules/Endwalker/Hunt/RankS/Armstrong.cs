@@ -30,7 +30,7 @@ class MagitekCompressor(BossModule module) : Components.GenericRotatingAOE(modul
         if ((AID)spell.Action.ID is AID.MagitekCompressorFirst)
         {
             NumCasts = 0;
-            Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.NPCFinishAt, 2.1f, 10));
+            Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, Module.CastFinishAt(spell), 2.1f, 10));
         }
     }
 

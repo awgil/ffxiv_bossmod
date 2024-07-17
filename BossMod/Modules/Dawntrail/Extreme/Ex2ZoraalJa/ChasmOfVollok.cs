@@ -15,7 +15,7 @@ class ChasmOfVollokFangSmall(BossModule module) : Components.GenericAOEs(module,
             // the visual cast happens on one of the side platforms at intercardinals, offset by 30
             var platformOffset = 30 / 1.41421356f;
             var offset = new WDir(caster.Position.X > Module.Center.X ? -platformOffset : +platformOffset, caster.Position.Z > Module.Center.Z ? -platformOffset : +platformOffset);
-            AOEs.Add(new(_shape, caster.Position + offset, spell.Rotation, spell.NPCFinishAt));
+            AOEs.Add(new(_shape, caster.Position + offset, spell.Rotation, Module.CastFinishAt(spell)));
         }
     }
 }
@@ -33,12 +33,12 @@ class ChasmOfVollokFangLarge(BossModule module) : Components.GenericAOEs(module,
     {
         if ((AID)spell.Action.ID == AID.VollokLargeAOE)
         {
-            AOEs.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
+            AOEs.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
 
             var mainOffset = Ex2ZoraalJa.NormalCenter - Module.Center;
             var fangOffset = caster.Position - Module.Center;
             var mirrorOffset = fangOffset.Dot(mainOffset) > 0 ? -2 * mainOffset : 2 * mainOffset;
-            AOEs.Add(new(_shape, caster.Position + mirrorOffset, spell.Rotation, spell.NPCFinishAt));
+            AOEs.Add(new(_shape, caster.Position + mirrorOffset, spell.Rotation, Module.CastFinishAt(spell)));
         }
     }
 }

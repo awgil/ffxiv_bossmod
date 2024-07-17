@@ -9,8 +9,8 @@ class AsAboveSoBelow(BossModule module) : Components.Exaflare(module, 6)
             var advance = 6 * spell.Rotation.ToDirection();
             // outer lines have 4 explosion only, rest 5
             var numExplosions = (caster.Position - Module.Center).LengthSq() > 500 ? 4 : 6;
-            Lines.Add(new() { Next = caster.Position, Advance = advance, NextExplosion = spell.NPCFinishAt, TimeToMove = 1.5f, ExplosionsLeft = numExplosions, MaxShownExplosions = 5 });
-            Lines.Add(new() { Next = caster.Position, Advance = -advance, NextExplosion = spell.NPCFinishAt, TimeToMove = 1.5f, ExplosionsLeft = numExplosions, MaxShownExplosions = 5 });
+            Lines.Add(new() { Next = caster.Position, Advance = advance, NextExplosion = Module.CastFinishAt(spell), TimeToMove = 1.5f, ExplosionsLeft = numExplosions, MaxShownExplosions = 5 });
+            Lines.Add(new() { Next = caster.Position, Advance = -advance, NextExplosion = Module.CastFinishAt(spell), TimeToMove = 1.5f, ExplosionsLeft = numExplosions, MaxShownExplosions = 5 });
         }
     }
 

@@ -83,7 +83,7 @@ class SanctifiedBlizzardChain(BossModule module) : Components.GenericRotatingAOE
     {
         if ((AID)spell.Action.ID == AID.SanctifiedBlizzardChain)
         {
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
             _rot1 = spell.Rotation;
         }
         if ((AID)spell.Action.ID is AID.SanctifiedBlizzardChain2 or AID.SanctifiedBlizzardChain3)
@@ -145,7 +145,7 @@ class HeavenlyCyclone(BossModule module) : Components.GenericRotatingAOE(module)
         if ((AID)spell.Action.ID is AID.RotateCW or AID.RotateCCW)
         {
             _rotation = spell.Rotation;
-            _activation = spell.NPCFinishAt.AddSeconds(5.2f);
+            _activation = Module.CastFinishAt(spell, 5.2f);
         }
         if (_rotation != default)
             InitIfReady(caster);

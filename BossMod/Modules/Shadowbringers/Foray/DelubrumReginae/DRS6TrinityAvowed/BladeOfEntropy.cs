@@ -20,7 +20,7 @@ class BladeOfEntropy(BossModule module) : TemperatureAOE(module)
                 DateTime activation = new();
                 foreach (var c in _casters)
                 {
-                    activation = c.caster.CastInfo!.NPCFinishAt;
+                    activation = Module.CastFinishAt(c.caster.CastInfo!);
                     if (c.dir.Dot(cellCenter - c.caster.Position) > 0)
                     {
                         temperature = c.temperature;

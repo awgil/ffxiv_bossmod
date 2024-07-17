@@ -52,7 +52,7 @@ class Sweep(BossModule module) : Components.Exaflare(module, 6)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SweepStart)
-            Lines.Add(new() { Next = caster.Position, Advance = 12 * spell.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt.AddSeconds(0.9f), TimeToMove = 4.5f, ExplosionsLeft = 4, MaxShownExplosions = 3 });
+            Lines.Add(new() { Next = caster.Position, Advance = 12 * spell.Rotation.ToDirection(), NextExplosion = Module.CastFinishAt(spell, 0.9f), TimeToMove = 4.5f, ExplosionsLeft = 4, MaxShownExplosions = 3 });
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

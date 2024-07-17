@@ -25,7 +25,7 @@ class Upheaval(BossModule module) : Components.Knockback(module, ActionID.MakeSp
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            _remainInPosition = spell.NPCFinishAt.AddSeconds(1); // TODO: just wait for effectresult instead...
+            _remainInPosition = Module.CastFinishAt(spell, 1); // TODO: just wait for effectresult instead...
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

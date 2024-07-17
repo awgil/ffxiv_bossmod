@@ -102,19 +102,19 @@ class Exegesis(BossModule module) : Components.GenericAOEs(module)
         {
             case AID.ExegesisA:
                 Pattern = Patterns.Diagonal;
-                _activation = spell.NPCFinishAt;
+                _activation = Module.CastFinishAt(spell);
                 break;
             case AID.ExegesisB:
                 Pattern = Patterns.EastWest;
-                _activation = spell.NPCFinishAt;
+                _activation = Module.CastFinishAt(spell);
                 break;
             case AID.ExegesisC:
                 Pattern = Patterns.NorthSouth;
-                _activation = spell.NPCFinishAt;
+                _activation = Module.CastFinishAt(spell);
                 break;
             case AID.ExegesisD:
                 Pattern = Patterns.Cross;
-                _activation = spell.NPCFinishAt;
+                _activation = Module.CastFinishAt(spell);
                 break;
         }
     }

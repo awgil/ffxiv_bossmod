@@ -1,6 +1,5 @@
 autorotation v2 cleanup:
 - rmm in replay analysis
--- castinfo should contain elapsed/total with tick
 -- commonstate.animlock from player's cast info and clientstate animlock
 -- commonstate.animlockdelay externally supplied to rmm's update
 -- commonstate.gcdtime from ?? (stats?)

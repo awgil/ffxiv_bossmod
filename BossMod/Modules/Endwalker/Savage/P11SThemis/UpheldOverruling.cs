@@ -9,12 +9,12 @@ class UpheldOverruling(BossModule module) : Components.UniformStackSpread(module
             case AID.UpheldOverrulingLight:
             case AID.UpheldRulingLight:
                 if (WorldState.Actors.Find(caster.Tether.Target) is var stackTarget && stackTarget != null)
-                    AddStack(stackTarget, spell.NPCFinishAt.AddSeconds(0.3f));
+                    AddStack(stackTarget, Module.CastFinishAt(spell, 0.3f));
                 break;
             case AID.UpheldOverrulingDark:
             case AID.UpheldRulingDark:
                 if (WorldState.Actors.Find(caster.Tether.Target) is var spreadTarget && spreadTarget != null)
-                    AddSpread(spreadTarget, spell.NPCFinishAt.AddSeconds(0.3f));
+                    AddSpread(spreadTarget, Module.CastFinishAt(spell, 0.3f));
                 break;
         }
     }

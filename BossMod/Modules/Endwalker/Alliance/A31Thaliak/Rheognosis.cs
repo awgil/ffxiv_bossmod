@@ -9,7 +9,7 @@ class RheognosisKnockback(BossModule module) : Components.Knockback(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.Rheognosis or AID.RheognosisPetrine)
-            _knockback = new(Module.Center, 25, spell.NPCFinishAt.AddSeconds(20.3f), Direction: spell.Rotation + 180.Degrees(), Kind: Kind.DirForward);
+            _knockback = new(Module.Center, 25, Module.CastFinishAt(spell, 20.3f), Direction: spell.Rotation + 180.Degrees(), Kind: Kind.DirForward);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

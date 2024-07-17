@@ -11,10 +11,10 @@ class PomStone(BossModule module) : Components.GenericAOEs(module)
     {
         if (_casters.Count > 0)
         {
-            var deadline = _casters[0].caster.CastInfo!.NPCFinishAt.AddSeconds(1);
+            var deadline = _casters[0].caster.CastInfo!.RemainingTime + 1;
             foreach (var c in _casters)
-                if (c.caster.CastInfo!.NPCFinishAt < deadline)
-                    yield return new(c.shape, c.caster.Position, c.caster.CastInfo.Rotation, c.caster.CastInfo.NPCFinishAt);
+                if (c.caster.CastInfo!.RemainingTime < deadline)
+                    yield return new(c.shape, c.caster.Position, c.caster.CastInfo!.Rotation, Module.CastFinishAt(c.caster.CastInfo));
         }
     }
 

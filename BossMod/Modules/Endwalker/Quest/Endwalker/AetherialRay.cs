@@ -19,7 +19,7 @@ class AetherialRay(BossModule module) : Components.GenericBaitAway(module, cente
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AetherialRay)
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

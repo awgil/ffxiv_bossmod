@@ -31,7 +31,7 @@ class Flood(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AetherialPull)
-            _aoe = new(new AOEShapeCircle(8), Module.PrimaryActor.Position, default, spell.NPCFinishAt.AddSeconds(3.6f));
+            _aoe = new(new AOEShapeCircle(8), Module.PrimaryActor.Position, default, Module.CastFinishAt(spell, 3.6f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

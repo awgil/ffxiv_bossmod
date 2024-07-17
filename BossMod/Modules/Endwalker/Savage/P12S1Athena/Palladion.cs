@@ -82,7 +82,7 @@ class PalladionShockwave(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly Palladion? _palladion = module.FindComponent<Palladion>();
     private WPos _origin = module.PrimaryActor.Position;
-    private DateTime _activation = module.PrimaryActor.CastInfo?.NPCFinishAt.AddSeconds(0.3f) ?? default;
+    private DateTime _activation = module.CastFinishAt(module.PrimaryActor.CastInfo, 0.3f);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -129,7 +129,7 @@ class PalladionStack : Components.UniformStackSpread
     public PalladionStack(BossModule module) : base(module, 6, 0, raidwideOnResolve: false)
     {
         _palladion = module.FindComponent<Palladion>();
-        UpdateStack(Module.PrimaryActor.CastInfo?.NPCFinishAt.AddSeconds(0.3f) ?? default);
+        UpdateStack(Module.CastFinishAt(Module.PrimaryActor.CastInfo, 0.3f));
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => IsStackTarget(player) ? PlayerPriority.Interesting : PlayerPriority.Normal;

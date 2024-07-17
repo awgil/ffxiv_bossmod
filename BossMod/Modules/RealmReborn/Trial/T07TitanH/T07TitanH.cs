@@ -80,7 +80,7 @@ class Geocrush(BossModule module) : Components.GenericAOEs(module, ActionID.Make
             };
             _outer = new AOEShapeDonut(outerRadius, Module.Bounds.Radius);
             _inner = new AOEShapeCircle(outerRadius - 2); // TODO: check falloff...
-            _innerFinish = spell.NPCFinishAt;
+            _innerFinish = Module.CastFinishAt(spell);
         }
     }
 
@@ -101,8 +101,8 @@ class Burst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.Ma
         // pattern 2: center -> 4 cardinals at small offset ~1s later -> 4 intercardinals at bigger offset ~1s later
         // pattern 3: 3 in center line -> 3 in side line ~1.5s later -> 3 in other side line ~1.5s later
         // showing casts that end within 2.25s seems to deal with all patterns reasonably well
-        var timeLimit = Casters.FirstOrDefault()?.CastInfo?.NPCFinishAt.AddSeconds(2.25f) ?? new();
-        return Casters.TakeWhile(c => c.CastInfo!.NPCFinishAt <= timeLimit).Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt));
+        var timeLimit = Module.CastFinishAt(Casters.FirstOrDefault()?.CastInfo, 2.25f);
+        return Casters.TakeWhile(c => Module.CastFinishAt(c.CastInfo!) <= timeLimit).Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo!)));
     }
 }
 

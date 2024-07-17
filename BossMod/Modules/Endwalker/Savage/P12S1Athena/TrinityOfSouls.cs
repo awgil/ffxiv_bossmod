@@ -37,7 +37,7 @@ class TrinityOfSouls(BossModule module) : Components.GenericAOEs(module)
         };
         if (angle != default)
         {
-            _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
+            _aoes.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
             _invertMiddle = invert;
         }
     }

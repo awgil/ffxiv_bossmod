@@ -35,30 +35,30 @@ class P6CosmoArrow(BossModule module) : Components.GenericAOEs(module)
             if (offsetAbs.X < 5)
             {
                 // central vertical
-                _lines.Add(new(_shapeFirst, caster.Position, spell.Rotation, new(1, 0), spell.NPCFinishAt, 4));
-                _lines.Add(new(null, caster.Position, spell.Rotation, new(-1, 0), spell.NPCFinishAt, 4));
+                _lines.Add(new(_shapeFirst, caster.Position, spell.Rotation, new(1, 0), Module.CastFinishAt(spell), 4));
+                _lines.Add(new(null, caster.Position, spell.Rotation, new(-1, 0), Module.CastFinishAt(spell), 4));
                 if (CurPattern == Pattern.Unknown)
                     CurPattern = Pattern.InOut;
             }
             else if (offsetAbs.Z < 5)
             {
                 // central horizontal
-                _lines.Add(new(_shapeFirst, caster.Position, spell.Rotation, new(0, 1), spell.NPCFinishAt, 4));
-                _lines.Add(new(null, caster.Position, spell.Rotation, new(0, -1), spell.NPCFinishAt, 4));
+                _lines.Add(new(_shapeFirst, caster.Position, spell.Rotation, new(0, 1), Module.CastFinishAt(spell), 4));
+                _lines.Add(new(null, caster.Position, spell.Rotation, new(0, -1), Module.CastFinishAt(spell), 4));
                 if (CurPattern == Pattern.Unknown)
                     CurPattern = Pattern.InOut;
             }
             else if (offsetAbs.X < 18)
             {
                 // side vertical
-                _lines.Add(new(_shapeFirst, caster.Position, spell.Rotation, new(offset.X < 0 ? 1 : -1, 0), spell.NPCFinishAt, 7));
+                _lines.Add(new(_shapeFirst, caster.Position, spell.Rotation, new(offset.X < 0 ? 1 : -1, 0), Module.CastFinishAt(spell), 7));
                 if (CurPattern == Pattern.Unknown)
                     CurPattern = Pattern.OutIn;
             }
             else if (offsetAbs.Z < 18)
             {
                 // side horizontal
-                _lines.Add(new(_shapeFirst, caster.Position, spell.Rotation, new(0, offset.Z < 0 ? 1 : -1), spell.NPCFinishAt, 7));
+                _lines.Add(new(_shapeFirst, caster.Position, spell.Rotation, new(0, offset.Z < 0 ? 1 : -1), Module.CastFinishAt(spell), 7));
                 if (CurPattern == Pattern.Unknown)
                     CurPattern = Pattern.OutIn;
             }

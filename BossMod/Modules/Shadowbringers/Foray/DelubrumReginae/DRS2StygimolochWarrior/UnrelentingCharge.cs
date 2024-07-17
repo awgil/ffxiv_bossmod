@@ -16,7 +16,7 @@ class UnrelentingCharge(BossModule module) : Components.Knockback(module)
         if ((AID)spell.Action.ID == AID.UnrelentingCharge)
         {
             _source = caster;
-            _activation = spell.NPCFinishAt.AddSeconds(0.3f);
+            _activation = Module.CastFinishAt(spell, 0.3f);
         }
     }
 

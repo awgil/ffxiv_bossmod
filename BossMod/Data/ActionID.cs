@@ -50,11 +50,26 @@ public readonly record struct ActionID(uint Raw)
         _ => ""
     };
 
+    // see ActionManager.GetSpellIdForAction
+    public readonly uint SpellId() => Type switch
+    {
+        ActionType.Spell => ID,
+        ActionType.Item => Service.LuminaRow<Lumina.Excel.GeneratedSheets.Item>(ID % 500000)?.ItemAction.Value?.Type ?? 0,
+        ActionType.KeyItem => Service.LuminaRow<Lumina.Excel.GeneratedSheets.EventItem>(ID)?.Action.Row ?? 0,
+        ActionType.Ability => 2, // 'interaction'
+        ActionType.General => Service.LuminaRow<Lumina.Excel.GeneratedSheets.GeneralAction>(ID)?.Action.Row ?? 0, // note: duty action 1/2 (26/27) use special code
+        ActionType.Mount => 4, // 'mount'
+        ActionType.Ornament => 20061, // 'accessorize'
+        _ => 0
+    };
+
     public readonly float CastTime() => Type switch
     {
         ActionType.Spell => (Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(ID)?.Cast100ms ?? 0) * 0.1f,
         _ => 0
     };
+
+    public readonly float CastTimeExtra() => Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(SpellId())?.Unknown38 * 0.1f ?? 0;
 
     public readonly bool IsCasted() => CastTime() > 0;
 

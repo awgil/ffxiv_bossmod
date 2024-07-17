@@ -45,12 +45,12 @@ class Frequencies(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.ResonantFrequency)
         {
-            _activation1 = spell.NPCFinishAt;
+            _activation1 = Module.CastFinishAt(spell);
             _smallcrystals.Add(caster);
         }
         if ((AID)spell.Action.ID == AID.ExplosiveFrequency)
         {
-            _activation2 = spell.NPCFinishAt;
+            _activation2 = Module.CastFinishAt(spell);
             _bigcrystals.Add(caster);
         }
     }

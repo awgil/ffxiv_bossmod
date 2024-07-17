@@ -17,19 +17,19 @@ class FlameAndSulphur(BossModule module) : Components.GenericAOEs(module)
         {
             case AID.BrazenBalladExpanding:
                 foreach (var a in Module.Enemies(OID.FlameAndSulphurFlame))
-                    _aoes.Add(new(_shapeFlameExpand, a.Position, a.Rotation, spell.NPCFinishAt.AddSeconds(3.1f)));
+                    _aoes.Add(new(_shapeFlameExpand, a.Position, a.Rotation, Module.CastFinishAt(spell, 3.1f)));
                 foreach (var a in Module.Enemies(OID.FlameAndSulphurRock))
-                    _aoes.Add(new(_shapeRockExpand, a.Position, a.Rotation, spell.NPCFinishAt.AddSeconds(3.1f)));
+                    _aoes.Add(new(_shapeRockExpand, a.Position, a.Rotation, Module.CastFinishAt(spell, 3.1f)));
                 break;
             case AID.BrazenBalladSplitting:
                 foreach (var a in Module.Enemies(OID.FlameAndSulphurFlame))
                 {
                     var offset = a.Rotation.ToDirection().OrthoL() * 7.5f;
-                    _aoes.Add(new(_shapeFlameSplit, a.Position + offset, a.Rotation, spell.NPCFinishAt.AddSeconds(3.1f)));
-                    _aoes.Add(new(_shapeFlameSplit, a.Position - offset, a.Rotation, spell.NPCFinishAt.AddSeconds(3.1f)));
+                    _aoes.Add(new(_shapeFlameSplit, a.Position + offset, a.Rotation, Module.CastFinishAt(spell, 3.1f)));
+                    _aoes.Add(new(_shapeFlameSplit, a.Position - offset, a.Rotation, Module.CastFinishAt(spell, 3.1f)));
                 }
                 foreach (var a in Module.Enemies(OID.FlameAndSulphurRock))
-                    _aoes.Add(new(_shapeRockSplit, a.Position, a.Rotation, spell.NPCFinishAt.AddSeconds(3.1f)));
+                    _aoes.Add(new(_shapeRockSplit, a.Position, a.Rotation, Module.CastFinishAt(spell, 3.1f)));
                 break;
         }
     }

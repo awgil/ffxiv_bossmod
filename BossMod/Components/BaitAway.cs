@@ -175,7 +175,7 @@ public class BaitAwayCast(BossModule module, ActionID aid, AOEShape shape, bool 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction && WorldState.Actors.Find(spell.TargetID) is var target && target != null)
-            CurrentBaits.Add(new(caster, target, Shape, spell.NPCFinishAt));
+            CurrentBaits.Add(new(caster, target, Shape, Module.CastFinishAt(spell)));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -215,7 +215,7 @@ public class BaitAwayChargeCast(BossModule module, ActionID aid, float halfWidth
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction && WorldState.Actors.Find(spell.TargetID) is var target && target != null)
-            CurrentBaits.Add(new(caster, target, new AOEShapeRect(0, HalfWidth), spell.NPCFinishAt));
+            CurrentBaits.Add(new(caster, target, new AOEShapeRect(0, HalfWidth), Module.CastFinishAt(spell)));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

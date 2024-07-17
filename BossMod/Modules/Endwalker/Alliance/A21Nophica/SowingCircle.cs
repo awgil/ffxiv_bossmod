@@ -6,7 +6,7 @@ class SowingCircle(BossModule module) : Components.Exaflare(module, 5)
     {
         if ((AID)spell.Action.ID is AID.SowingCircleFirst)
         {
-            Lines.Add(new() { Next = spell.LocXZ, Advance = 5 * caster.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt, TimeToMove = 1, ExplosionsLeft = 10, MaxShownExplosions = 2 });
+            Lines.Add(new() { Next = spell.LocXZ, Advance = 5 * caster.Rotation.ToDirection(), NextExplosion = Module.CastFinishAt(spell), TimeToMove = 1, ExplosionsLeft = 10, MaxShownExplosions = 2 });
         }
     }
 

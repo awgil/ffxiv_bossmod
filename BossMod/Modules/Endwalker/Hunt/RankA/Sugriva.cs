@@ -67,7 +67,7 @@ class RockThrow(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (Active())
-            yield return new(_shape, Module.PrimaryActor.CastInfo!.LocXZ, default, Module.PrimaryActor.CastInfo.NPCFinishAt);
+            yield return new(_shape, Module.PrimaryActor.CastInfo!.LocXZ, default, Module.CastFinishAt(Module.PrimaryActor.CastInfo));
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)

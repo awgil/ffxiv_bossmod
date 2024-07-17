@@ -46,7 +46,7 @@ class MountainFireCone(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.MountainFireTower)
-            _aoe = new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt.AddSeconds(0.4f));
+            _aoe = new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 0.4f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

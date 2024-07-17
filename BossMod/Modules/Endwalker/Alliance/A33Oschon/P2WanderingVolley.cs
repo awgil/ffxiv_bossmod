@@ -17,8 +17,8 @@ class P2WanderingVolleyKnockback(BossModule module) : Components.Knockback(modul
         {
             _sources.Clear();
             // happens through center, so create two sources with origin at center looking orthogonally
-            _sources.Add(new(Module.Center, 12, spell.NPCFinishAt, _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
-            _sources.Add(new(Module.Center, 12, spell.NPCFinishAt, _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
+            _sources.Add(new(Module.Center, 12, Module.CastFinishAt(spell), _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
+            _sources.Add(new(Module.Center, 12, Module.CastFinishAt(spell), _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
         }
     }
 }
@@ -33,7 +33,7 @@ class P2WanderingVolleyAOE(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.WanderingVolleyN or AID.WanderingVolleyS)
-            _aoe = new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt);
+            _aoe = new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

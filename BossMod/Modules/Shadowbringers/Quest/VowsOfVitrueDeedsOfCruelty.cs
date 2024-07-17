@@ -48,9 +48,9 @@ class TerminusEstRects(BossModule module) : Components.GenericAOEs(module)
         {
             _aoes.AddRange(
             [
-                new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt),
-                new(_shape, caster.Position, spell.Rotation - 90.Degrees(), spell.NPCFinishAt),
-                new(_shape, caster.Position, spell.Rotation + 90.Degrees(), spell.NPCFinishAt)
+                new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)),
+                new(_shape, caster.Position, spell.Rotation - 90.Degrees(), Module.CastFinishAt(spell)),
+                new(_shape, caster.Position, spell.Rotation + 90.Degrees(), Module.CastFinishAt(spell))
             ]);
         }
     }

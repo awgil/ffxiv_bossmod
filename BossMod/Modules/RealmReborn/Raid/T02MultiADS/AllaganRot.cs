@@ -41,7 +41,7 @@ class AllaganRot(BossModule module) : BossComponent(module)
             // predict rot target
             _rotHolderSlot = Raid.FindSlot(spell.TargetID);
             if (_rotHolderSlot >= 0)
-                _rotExpiration[_rotHolderSlot] = spell.NPCFinishAt.AddSeconds(15);
+                _rotExpiration[_rotHolderSlot] = Module.CastFinishAt(spell, 15);
         }
     }
 

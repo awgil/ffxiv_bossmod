@@ -20,8 +20,8 @@ class BladeOfTheTengu(BossModule module) : Components.GenericAOEs(module)
         if (secondAngle != default)
         {
             NumCasts = 0;
-            _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt.AddSeconds(0.1f)));
-            _aoes.Add(new(_shape, caster.Position, spell.Rotation + secondAngle, spell.NPCFinishAt.AddSeconds(1.9f)));
+            _aoes.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 0.1f)));
+            _aoes.Add(new(_shape, caster.Position, spell.Rotation + secondAngle, Module.CastFinishAt(spell, 1.9f)));
         }
     }
 

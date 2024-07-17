@@ -70,8 +70,8 @@ class RideDownKnockback(BossModule module) : Components.Knockback(module, Action
         {
             _sources.Clear();
             // charge always happens through center, so create two sources with origin at center looking orthogonally
-            _sources.Add(new(Module.Center, 12, spell.NPCFinishAt, _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
-            _sources.Add(new(Module.Center, 12, spell.NPCFinishAt, _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
+            _sources.Add(new(Module.Center, 12, Module.CastFinishAt(spell), _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
+            _sources.Add(new(Module.Center, 12, Module.CastFinishAt(spell), _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
         }
     }
 
@@ -112,7 +112,7 @@ class RawSteel(BossModule module) : Components.BaitAwayChargeCast(module, Action
         {
             if (b.Target == actor)
                 hints.AddForbiddenZone(ShapeDistance.Circle(b.Source.Position, _safeDistance));
-            hints.PredictedDamage.Add((new BitMask().WithBit(Raid.FindSlot(b.Target.InstanceID)), b.Source.CastInfo?.NPCFinishAt ?? default));
+            hints.PredictedDamage.Add((new BitMask().WithBit(Raid.FindSlot(b.Target.InstanceID)), Module.CastFinishAt(b.Source.CastInfo)));
         }
     }
 

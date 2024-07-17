@@ -15,7 +15,7 @@ abstract class GigaTempest(BossModule module, AOEShapeRect shape, AID aidFirst, 
             {
                 Next = caster.Position,
                 Advance = advance.Value,
-                NextExplosion = caster.CastInfo!.NPCFinishAt,
+                NextExplosion = Module.CastFinishAt(caster.CastInfo!),
                 TimeToMove = 0.9f,
                 ExplosionsLeft = 5,
                 MaxShownExplosions = 5,

@@ -7,7 +7,7 @@ class MoogleGoRound(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return _casters.Take(2).Select(c => new AOEInstance(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt));
+        return _casters.Take(2).Select(c => new AOEInstance(_shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo!)));
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -19,7 +19,7 @@ class MoogleGoRound(BossModule module) : Components.GenericAOEs(module)
         {
             var f1 = ShapeDistance.InvertedCircle(_casters[0].Position, 23);
             var f2 = ShapeDistance.Circle(_casters[2].Position, 10);
-            hints.AddForbiddenZone(p => Math.Min(f1(p), f2(p)), _casters[1].CastInfo!.NPCFinishAt);
+            hints.AddForbiddenZone(p => Math.Min(f1(p), f2(p)), Module.CastFinishAt(_casters[1].CastInfo!));
         }
     }
 

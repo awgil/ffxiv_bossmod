@@ -38,7 +38,7 @@ public static partial class Utils
     public static bool StatusIsRemovable(uint statusID) => Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(statusID)?.CanDispel ?? false;
     public static string StatusTimeString(DateTime expireAt, DateTime now) => $"{Math.Max(0, (expireAt - now).TotalSeconds):f3}";
     public static string CastTimeString(float current, float total) => $"{current:f2}/{total:f2}";
-    public static string CastTimeString(ActorCastInfo cast, DateTime now) => CastTimeString((float)(cast.FinishAt - now).TotalSeconds, cast.TotalTime);
+    public static string CastTimeString(ActorCastInfo cast, DateTime now) => CastTimeString(cast.ElapsedTime, cast.TotalTime);
     public static string LogMessageString(uint id) => $"{id} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(id)?.Text}'";
 
     public static unsafe T ReadField<T>(void* address, int offset) where T : unmanaged => *(T*)((IntPtr)address + offset);

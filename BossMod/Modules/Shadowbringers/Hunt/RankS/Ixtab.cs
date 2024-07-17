@@ -43,19 +43,19 @@ class DualCastTartareanFlameThunder(BossModule module) : Components.GenericAOEs(
         var dualcast = Module.PrimaryActor.FindStatus(SID.Dualcast) != null;
         if ((AID)spell.Action.ID == AID.TartareanThunder)
             if (!dualcast)
-                _aoes.Add(new(circle, caster.Position, default, spell.NPCFinishAt));
+                _aoes.Add(new(circle, caster.Position, default, Module.CastFinishAt(spell)));
             else
             {
-                _aoes.Add(new(circle, caster.Position, default, spell.NPCFinishAt));
-                _aoes.Add(new(donut, caster.Position, default, spell.NPCFinishAt.AddSeconds(5.1f)));
+                _aoes.Add(new(circle, caster.Position, default, Module.CastFinishAt(spell)));
+                _aoes.Add(new(donut, caster.Position, default, Module.CastFinishAt(spell, 5.1f)));
             }
         if ((AID)spell.Action.ID == AID.TartareanFlame)
             if (!dualcast)
-                _aoes.Add(new(donut, caster.Position, default, spell.NPCFinishAt));
+                _aoes.Add(new(donut, caster.Position, default, Module.CastFinishAt(spell)));
             else
             {
-                _aoes.Add(new(donut, caster.Position, default, spell.NPCFinishAt));
-                _aoes.Add(new(circle, caster.Position, default, spell.NPCFinishAt.AddSeconds(5.1f)));
+                _aoes.Add(new(donut, caster.Position, default, Module.CastFinishAt(spell)));
+                _aoes.Add(new(circle, caster.Position, default, Module.CastFinishAt(spell, 5.1f)));
             }
     }
 

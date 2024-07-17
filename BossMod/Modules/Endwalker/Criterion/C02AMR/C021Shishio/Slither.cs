@@ -10,7 +10,7 @@ class Slither(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_caster?.CastInfo != null)
-            yield return new(_shape, _caster.Position, _caster.CastInfo.Rotation, _caster.CastInfo.NPCFinishAt);
+            yield return new(_shape, _caster.Position, _caster.CastInfo.Rotation, Module.CastFinishAt(_caster.CastInfo));
         else if (_predictedActivation != default)
             yield return new(_shape, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation + 180.Degrees(), _predictedActivation);
     }
@@ -26,7 +26,7 @@ class Slither(BossModule module) : Components.GenericAOEs(module)
                 break;
             case AID.NSplittingCry:
             case AID.SSplittingCry:
-                _predictedActivation = spell.NPCFinishAt.AddSeconds(4.2f);
+                _predictedActivation = Module.CastFinishAt(spell, 4.2f);
                 break;
         }
     }

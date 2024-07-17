@@ -25,7 +25,7 @@ class AllegiantArsenal(BossModule module) : Components.GenericAOEs(module)
         switch ((AID)spell.Action.ID)
         {
             case AID.AllegiantArsenalSword:
-                Activate(_shapeSword, spell.NPCFinishAt, Mechanics switch
+                Activate(_shapeSword, Module.CastFinishAt(spell), Mechanics switch
                 {
                     Order.Unknown => Order.SwordSecond,
                     Order.BowSecond => Order.StaffBowSword,
@@ -34,7 +34,7 @@ class AllegiantArsenal(BossModule module) : Components.GenericAOEs(module)
                 });
                 break;
             case AID.AllegiantArsenalBow:
-                Activate(_shapeBow, spell.NPCFinishAt, Mechanics switch
+                Activate(_shapeBow, Module.CastFinishAt(spell), Mechanics switch
                 {
                     Order.Unknown => Order.BowSecond,
                     Order.SwordSecond => Order.StaffSwordBow,
@@ -43,7 +43,7 @@ class AllegiantArsenal(BossModule module) : Components.GenericAOEs(module)
                 });
                 break;
             case AID.AllegiantArsenalStaff:
-                Activate(_shapeStaff, spell.NPCFinishAt, Mechanics switch
+                Activate(_shapeStaff, Module.CastFinishAt(spell), Mechanics switch
                 {
                     Order.Unknown => Order.StaffSecond,
                     Order.SwordSecond => Order.BowSwordStaff,

@@ -27,12 +27,12 @@ class WickedWheel(BossModule module) : Components.GenericAOEs(module)
                 // if wheel was predicted, keep the shape, but update the activation time
                 var predictedIndex = Sources.FindIndex(s => s.source == caster);
                 if (predictedIndex >= 0)
-                    Sources[predictedIndex] = (caster, Sources[predictedIndex].shape, spell.NPCFinishAt);
+                    Sources[predictedIndex] = (caster, Sources[predictedIndex].shape, Module.CastFinishAt(spell));
                 else
-                    Sources.Add((caster, ShapeWheel, spell.NPCFinishAt));
+                    Sources.Add((caster, ShapeWheel, Module.CastFinishAt(spell)));
                 break;
             case AID.WickedWheelSister:
-                Sources.Add((caster, ShapeSister, spell.NPCFinishAt));
+                Sources.Add((caster, ShapeSister, Module.CastFinishAt(spell)));
                 break;
         };
     }

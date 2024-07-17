@@ -11,8 +11,8 @@ class RubyGlow4(BossModule module) : RubyGlowRecolor(module, 5)
             yield return p;
 
         if (Module.PrimaryActor.CastInfo?.IsSpell(AID.RagingClaw) ?? false)
-            yield return new(ShapeHalf, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo.Rotation, Module.PrimaryActor.CastInfo.NPCFinishAt);
+            yield return new(ShapeHalf, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo.Rotation, Module.CastFinishAt(Module.PrimaryActor.CastInfo));
         if (Module.PrimaryActor.CastInfo?.IsSpell(AID.SearingRay) ?? false)
-            yield return new(ShapeHalf, Module.Center, Module.PrimaryActor.CastInfo.Rotation + 180.Degrees(), Module.PrimaryActor.CastInfo.NPCFinishAt);
+            yield return new(ShapeHalf, Module.Center, Module.PrimaryActor.CastInfo.Rotation + 180.Degrees(), Module.CastFinishAt(Module.PrimaryActor.CastInfo));
     }
 }

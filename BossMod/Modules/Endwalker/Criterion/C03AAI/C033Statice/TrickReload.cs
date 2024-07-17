@@ -46,11 +46,11 @@ class Trapshooting(BossModule module) : Components.UniformStackSpread(module, 6,
             {
                 var target = Raid.WithoutSlot().FirstOrDefault(); // TODO: dunno how target is selected...
                 if (target != null)
-                    AddStack(target, spell.NPCFinishAt.AddSeconds(4.1f));
+                    AddStack(target, Module.CastFinishAt(spell, 4.1f));
             }
             else
             {
-                AddSpreads(Raid.WithoutSlot(true), spell.NPCFinishAt.AddSeconds(4.1f));
+                AddSpreads(Raid.WithoutSlot(true), Module.CastFinishAt(spell, 4.1f));
             }
         }
     }

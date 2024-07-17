@@ -13,7 +13,7 @@ class GaleSphere(BossModule module) : Components.GenericAOEs(module)
     {
         if (NumCasts < _spheres.Length)
             foreach (var s in _spheres[NumCasts])
-                yield return new(_shape, s.Position, s.CastInfo?.Rotation ?? s.Rotation, s.CastInfo?.NPCFinishAt ?? WorldState.CurrentTime);
+                yield return new(_shape, s.Position, s.CastInfo?.Rotation ?? s.Rotation, Module.CastFinishAt(s.CastInfo));
     }
 
     public override void AddGlobalHints(GlobalHints hints)

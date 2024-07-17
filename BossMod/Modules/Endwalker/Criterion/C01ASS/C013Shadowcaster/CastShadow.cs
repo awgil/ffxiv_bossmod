@@ -9,7 +9,7 @@ class CastShadow(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return (FirstAOECasters.Count > 0 ? FirstAOECasters : SecondAOECasters).Select(c => new AOEInstance(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt));
+        return (FirstAOECasters.Count > 0 ? FirstAOECasters : SecondAOECasters).Select(c => new AOEInstance(_shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo)));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

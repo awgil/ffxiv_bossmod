@@ -8,7 +8,7 @@ class FatefulWords(BossModule module) : Components.Knockback(module, ActionID.Ma
     {
         var kind = _mechanics[slot];
         if (kind != Kind.None)
-            yield return new(Module.Center, 6, Module.PrimaryActor.CastInfo?.NPCFinishAt ?? default, Kind: kind);
+            yield return new(Module.Center, 6, Module.CastFinishAt(Module.PrimaryActor.CastInfo), Kind: kind);
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)

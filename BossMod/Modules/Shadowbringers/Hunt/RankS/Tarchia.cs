@@ -41,7 +41,7 @@ class MightySpin2(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Groundstorm)
-            _activation = spell.NPCFinishAt.AddSeconds(4);
+            _activation = Module.CastFinishAt(spell, 4);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

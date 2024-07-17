@@ -44,7 +44,7 @@ class SewageWave(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID is AID.SewageWave or AID.SewageWave2)
         {
             _rotation = spell.Rotation;
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
         }
     }
 

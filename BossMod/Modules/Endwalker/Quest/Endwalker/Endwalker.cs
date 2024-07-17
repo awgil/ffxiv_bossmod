@@ -53,7 +53,7 @@ class NineNightsAvatar : Components.SelfTargetedAOEs
 
 class NineNightsHelpers(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NineNightsHelpers), new AOEShapeCircle(10), 6)
 {
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, i < 2 ? ArenaColor.Danger : ArenaColor.AOE));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), i < 2 ? ArenaColor.Danger : ArenaColor.AOE));
 }
 
 class VeilAsunder(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VeilAsunderHelper), 6);
@@ -67,7 +67,7 @@ class TheEdgeUnbound2(BossModule module) : Components.SelfTargetedAOEs(module, A
 
 class UnmovingDvenadkatik(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.UnmovingDvenadkatikVisual), new AOEShapeCone(50, 15.Degrees()), 10)
 {
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, i < 2 ? ArenaColor.Danger : ArenaColor.AOE));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), i < 2 ? ArenaColor.Danger : ArenaColor.AOE));
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "croizat", PrimaryActorOID = (uint)OID.ZenosP1, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70000, NameID = 10393)]

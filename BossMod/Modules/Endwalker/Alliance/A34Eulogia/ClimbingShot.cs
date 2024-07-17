@@ -11,7 +11,7 @@ class ClimbingShot(BossModule module) : Components.Knockback(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.ClimbingShotNald or AID.ClimbingShotThal)
-            _knockback = new(Module.PrimaryActor.Position, 20, spell.NPCFinishAt.AddSeconds(0.2f));
+            _knockback = new(Module.PrimaryActor.Position, 20, Module.CastFinishAt(spell, 0.2f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

@@ -105,7 +105,7 @@ class P6WyrmsbreathTankbusterShared(BossModule module) : Components.GenericShare
         {
             Source = _main.Dragons[0];
             Target = WorldState.Actors.Find(Source?.TargetID ?? 0);
-            Activation = Source?.CastInfo?.NPCFinishAt ?? WorldState.CurrentTime;
+            Activation = Module.CastFinishAt(Source?.CastInfo);
         }
     }
 }

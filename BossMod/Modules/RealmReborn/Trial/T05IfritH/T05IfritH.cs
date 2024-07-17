@@ -50,7 +50,7 @@ class CrimsonCyclone(BossModule module) : Components.GenericAOEs(module, ActionI
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return _casters.Select(c => new AOEInstance(_shape, c.Position, c.CastInfo?.Rotation ?? c.Rotation, c.CastInfo?.NPCFinishAt ?? WorldState.FutureTime(4)));
+        return _casters.Select(c => new AOEInstance(_shape, c.Position, c.CastInfo?.Rotation ?? c.Rotation, Module.CastFinishAt(c.CastInfo, 0, WorldState.FutureTime(4))));
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)

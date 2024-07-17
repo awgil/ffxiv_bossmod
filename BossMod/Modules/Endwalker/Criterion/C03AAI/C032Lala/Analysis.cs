@@ -104,7 +104,7 @@ class TargetedLight(BossModule module) : Components.GenericGaze(module, default,
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NTargetedLightAOE or AID.STargetedLightAOE)
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

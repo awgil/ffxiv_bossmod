@@ -45,7 +45,7 @@ class HeartOfNatureConcentric(BossModule module) : Components.ConcentricAOEs(mod
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.NaturesPulse1)
-            AddSequence(caster.Position, spell.NPCFinishAt);
+            AddSequence(caster.Position, Module.CastFinishAt(spell));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -137,7 +137,7 @@ class WindsPeakKB(BossModule module) : Components.Knockback(module)
         {
             watched = true;
             Time = WorldState.CurrentTime;
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
         }
     }
 }
@@ -151,11 +151,11 @@ class NaturesBlood(BossModule module) : Components.Exaflare(module, 4)
     {
         public Actor Caster;
 
-        public LineWithActor(Actor caster)
+        public LineWithActor(BossModule module, Actor caster)
         {
             Next = caster.Position;
             Advance = 6 * caster.Rotation.ToDirection();
-            NextExplosion = caster.CastInfo!.NPCFinishAt;
+            NextExplosion = module.CastFinishAt(caster.CastInfo!);
             TimeToMove = 1.1f; //note the actual time between exaflare moves seems to vary by upto 100ms, but all 4 exaflares move at the same time
             ExplosionsLeft = 7;
             MaxShownExplosions = 3;
@@ -166,7 +166,7 @@ class NaturesBlood(BossModule module) : Components.Exaflare(module, 4)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NaturesBlood1)
-            Lines.Add(new LineWithActor(caster));
+            Lines.Add(new LineWithActor(Module, caster));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

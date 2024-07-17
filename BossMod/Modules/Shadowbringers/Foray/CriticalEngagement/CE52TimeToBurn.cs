@@ -56,7 +56,7 @@ class TimeEruptionBombReproduce(BossModule module) : Components.GenericAOEs(modu
         else if (_cycloneCasters.Count > 0)
         {
             foreach (var c in _cycloneCasters)
-                yield return new(_shapeCyclone, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
+                yield return new(_shapeCyclone, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo));
         }
         else if (_eruptionStart != default)
         {

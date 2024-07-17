@@ -147,7 +147,7 @@ class FireSpread(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NFireSpreadFirst or AID.SFireSpreadFirst)
-            Sequences.Add(new() { NextRotation = spell.Rotation, RemainingExplosions = 12, NextActivation = spell.NPCFinishAt });
+            Sequences.Add(new() { NextRotation = spell.Rotation, RemainingExplosions = 12, NextActivation = Module.CastFinishAt(spell) });
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

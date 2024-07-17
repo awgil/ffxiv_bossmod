@@ -197,11 +197,11 @@ public class CastStackSpread(BossModule module, ActionID stackAID, ActionID spre
     {
         if (spell.Action == StackAction && WorldState.Actors.Find(spell.TargetID) is var stackTarget && stackTarget != null)
         {
-            AddStack(stackTarget, spell.NPCFinishAt);
+            AddStack(stackTarget, Module.CastFinishAt(spell));
         }
         else if (spell.Action == SpreadAction && WorldState.Actors.Find(spell.TargetID) is var spreadTarget && spreadTarget != null)
         {
-            AddSpread(spreadTarget, spell.NPCFinishAt);
+            AddSpread(spreadTarget, Module.CastFinishAt(spell));
         }
     }
 

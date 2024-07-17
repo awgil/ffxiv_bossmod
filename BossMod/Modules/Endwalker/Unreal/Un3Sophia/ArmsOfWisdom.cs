@@ -7,7 +7,7 @@ class ArmsOfWisdom(BossModule module) : Components.Knockback(module, ActionID.Ma
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (_caster?.CastInfo?.TargetID == actor.InstanceID)
-            yield return new(_caster.Position, 5, _caster.CastInfo.NPCFinishAt);
+            yield return new(_caster.Position, 5, Module.CastFinishAt(_caster.CastInfo));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

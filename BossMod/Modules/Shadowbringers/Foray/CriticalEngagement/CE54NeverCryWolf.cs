@@ -56,7 +56,7 @@ class BracingWind(BossModule module) : Components.KnockbackFromCastTarget(module
         var length = Module.Bounds.Radius * 2; // casters are at the border, orthogonal to borders
         foreach (var c in Casters)
         {
-            hints.AddForbiddenZone(ShapeDistance.Rect(c.Position, c.CastInfo!.Rotation, length, Distance - length, 6), c.CastInfo!.NPCFinishAt);
+            hints.AddForbiddenZone(ShapeDistance.Rect(c.Position, c.CastInfo!.Rotation, length, Distance - length, 6), Module.CastFinishAt(c.CastInfo!));
         }
     }
 }
@@ -97,7 +97,7 @@ class ThermalGust(BossModule module) : Components.GenericAOEs(module)
 
     private static readonly AOEShapeRect _shape = new(60, 2);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(_shape, c.Position, c.CastInfo?.Rotation ?? c.Rotation, c.CastInfo?.NPCFinishAt ?? _activation));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(_shape, c.Position, c.CastInfo?.Rotation ?? c.Rotation, Module.CastFinishAt(c.CastInfo, 0, _activation)));
 
     public override void OnActorCreated(Actor actor)
     {
@@ -134,11 +134,11 @@ class AgeOfEndlessFrost(BossModule module) : Components.GenericAOEs(module)
         {
             case AID.AgeOfEndlessFrostFirstCW:
                 _increment = -40.Degrees();
-                _nextActivation = spell.NPCFinishAt;
+                _nextActivation = Module.CastFinishAt(spell);
                 break;
             case AID.AgeOfEndlessFrostFirstCCW:
                 _increment = 40.Degrees();
-                _nextActivation = spell.NPCFinishAt;
+                _nextActivation = Module.CastFinishAt(spell);
                 break;
             case AID.AgeOfEndlessFrostFirstAOE:
                 NumCasts = 0;

@@ -25,12 +25,12 @@ class ManyFaces(BossModule module) : Components.GenericAOEs(module)
             wrath = true;
         if ((AID)spell.Action.ID == AID.FaceMechanicWrath)
         {
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
             _rotationDelight = spell.Rotation;
         }
         if ((AID)spell.Action.ID == AID.FaceMechanicDelight)
         {
-            _activation = spell.NPCFinishAt;
+            _activation = Module.CastFinishAt(spell);
             _rotationWrath = spell.Rotation;
         }
     }

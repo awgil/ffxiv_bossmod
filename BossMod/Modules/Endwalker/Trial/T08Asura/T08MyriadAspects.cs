@@ -22,12 +22,12 @@ class MyriadAspects(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.MyriadAspects1)
         {
-            _activation1 = spell.NPCFinishAt;
+            _activation1 = Module.CastFinishAt(spell);
             _spell1.Add(spell);
         }
         if ((AID)spell.Action.ID == AID.MyriadAspects2)
         {
-            _activation2 = spell.NPCFinishAt;
+            _activation2 = Module.CastFinishAt(spell);
             _spell2.Add(spell);
         }
     }
