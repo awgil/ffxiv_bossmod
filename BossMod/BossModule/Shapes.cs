@@ -147,7 +147,7 @@ public record class Rectangle(WPos Center, float HalfWidth, float HalfHeight, An
     public override Func<WPos, float> Distance()
         => ShapeDistance.Rect(Center, Rotation, HalfHeight, HalfHeight, HalfWidth);
 
-    public override string ComputeHash() => ComputeSHA512($"{nameof(Rectangle)}:{Center.X},{Center.Z},{HalfWidth},{HalfHeight},{Rotation.Rad}");
+    public override string ComputeHash() => ComputeSHA512($"{nameof(Rectangle)}:{Center.X},{Center.Z},{HalfWidth},{HalfHeight},{Rotation}");
 }
 
 // for rectangles defined by a start point, end point and halfwidth
@@ -191,7 +191,7 @@ public record class Cross(WPos Center, float Length, float HalfWidth, Angle Rota
     public override Func<WPos, float> Distance()
         => ShapeDistance.Cross(Center, Rotation, Length, HalfWidth);
 
-    public override string ComputeHash() => ComputeSHA512($"{nameof(Cross)}:{Center.X},{Center.Z},{Length},{HalfWidth},{Rotation.Rad}");
+    public override string ComputeHash() => ComputeSHA512($"{nameof(Cross)}:{Center.X},{Center.Z},{Length},{HalfWidth},{Rotation}");
 }
 
 // Equilateral triangle defined by center, sidelength and rotation
@@ -212,7 +212,7 @@ public record class TriangleE(WPos Center, float SideLength, Angle Rotation = de
 
     public override Func<WPos, float> Distance() => ShapeDistance.ConvexPolygon(Contour(Center).Select(dir => dir + Center), cw: true);
 
-    public override string ComputeHash() => ComputeSHA512($"{nameof(TriangleE)}:{Center.X},{Center.Z},{SideLength},{Rotation.Rad}");
+    public override string ComputeHash() => ComputeSHA512($"{nameof(TriangleE)}:{Center.X},{Center.Z},{SideLength},{Rotation}");
 }
 
 // for polygons defined by a radius and n amount of vertices
@@ -237,7 +237,7 @@ public record class Polygon(WPos Center, float Radius, int Vertices, Angle Rotat
 
     public override Func<WPos, float> Distance() => ShapeDistance.ConvexPolygon(Contour(Center).Select(dir => dir + Center), cw: false);
 
-    public override string ComputeHash() => ComputeSHA512($"{nameof(Polygon)}:{Center.X},{Center.Z},{Radius},{Vertices},{Rotation.Rad}");
+    public override string ComputeHash() => ComputeSHA512($"{nameof(Polygon)}:{Center.X},{Center.Z},{Radius},{Vertices},{Rotation}");
 }
 
 // for cones defined by radius, start angle and end angle
@@ -250,7 +250,7 @@ public record class Cone(WPos Center, float Radius, Angle StartAngle, Angle EndA
     public override Func<WPos, float> Distance()
         => ShapeDistance.Cone(Center, Radius, (StartAngle + EndAngle) / 2, (EndAngle - StartAngle) / 2);
 
-    public override string ComputeHash() => ComputeSHA512($"{nameof(Cone)}:{Center.X},{Center.Z},{Radius},{StartAngle.Rad},{EndAngle.Rad}");
+    public override string ComputeHash() => ComputeSHA512($"{nameof(Cone)}:{Center.X},{Center.Z},{Radius},{StartAngle},{EndAngle}");
 }
 
 // for cones defined by radius, direction and half angle
@@ -266,7 +266,7 @@ public record class DonutSegment(WPos Center, float InnerRadius, float OuterRadi
     public override Func<WPos, float> Distance()
         => ShapeDistance.DonutSector(Center, InnerRadius, OuterRadius, (StartAngle + EndAngle) / 2, (EndAngle - StartAngle) / 2);
 
-    public override string ComputeHash() => ComputeSHA512($"{nameof(DonutSegment)}:{Center.X},{Center.Z},{InnerRadius},{OuterRadius},{StartAngle.Rad},{EndAngle.Rad}");
+    public override string ComputeHash() => ComputeSHA512($"{nameof(DonutSegment)}:{Center.X},{Center.Z},{InnerRadius},{OuterRadius},{StartAngle},{EndAngle}");
 }
 
 // for donut segments defined by inner and outer radius, direction and half angle
