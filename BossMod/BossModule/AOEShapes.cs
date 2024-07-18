@@ -108,7 +108,7 @@ public sealed record class AOEShapeCross(float Length, float HalfWidth, Angle Di
     {
         foreach (var p in ContourPoints(origin, rotation))
             arena.PathLineTo(p);
-        MiniArena.PathStroke(true, color);
+        arena.PathStroke(true, color);
     }
 
     private IEnumerable<WPos> ContourPoints(WPos origin, Angle rotation, float offset = 0)
@@ -222,7 +222,7 @@ public sealed record class AOEShapeCustom(IEnumerable<Shape> UnionShapes, IEnume
                 if (i != exteriorEdges.Count - 1)
                     arena.PathLineTo(origin + end);
             }
-            MiniArena.PathStroke(true, color);
+            arena.PathStroke(true, color);
 
             foreach (var holeIndex in part.Holes)
             {
@@ -234,7 +234,7 @@ public sealed record class AOEShapeCustom(IEnumerable<Shape> UnionShapes, IEnume
                     if (i != interiorEdges.Count - 1)
                         arena.PathLineTo(origin + end);
                 }
-                MiniArena.PathStroke(true, color);
+                arena.PathStroke(true, color);
             }
         }
     }
