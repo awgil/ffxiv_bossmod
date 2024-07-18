@@ -53,7 +53,7 @@ public sealed class ClassWARUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (vengAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(vengAction), Player, veng.Priority());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(vengAction), Player, veng.Priority(), veng.Value.ExpireIn);
 
         var bw = strategy.Option(Track.Bloodwhetting);
         var bwAction = bw.As<BWOption>() switch
@@ -64,6 +64,6 @@ public sealed class ClassWARUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (bwAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(bwAction), bwAction == WAR.AID.NascentFlash ? ResolveTargetOverride(bw.Value) ?? CoTank() : Player, bw.Priority());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(bwAction), bwAction == WAR.AID.NascentFlash ? ResolveTargetOverride(bw.Value) ?? CoTank() : Player, bw.Priority(), bw.Value.ExpireIn);
     }
 }

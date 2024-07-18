@@ -29,8 +29,9 @@ public abstract class RoleRangedUtility(RotationModuleManager manager, Actor pla
         ExecuteSimple(strategy.Option(SharedTrack.HeadGraze), ClassShared.AID.HeadGraze, null);
         ExecuteSimple(strategy.Option(SharedTrack.ArmsLength), ClassShared.AID.ArmsLength, Player);
 
-        var lb = LBLevelToExecute(strategy.Option(SharedTrack.LB).As<LBOption>());
-        if (lb > 0)
-            Hints.ActionsToExecute.Push(lb == 3 ? lb3 : ActionID.MakeSpell(lb == 2 ? ClassShared.AID.Desperado : ClassShared.AID.BigShot), null, ActionQueue.Priority.VeryHigh);
+        var lb = strategy.Option(SharedTrack.LB);
+        var lbLevel = LBLevelToExecute(lb.As<LBOption>());
+        if (lbLevel > 0)
+            Hints.ActionsToExecute.Push(lbLevel == 3 ? lb3 : ActionID.MakeSpell(lbLevel == 2 ? ClassShared.AID.Desperado : ClassShared.AID.BigShot), ResolveTargetOverride(lb.Value), ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn);
     }
 }

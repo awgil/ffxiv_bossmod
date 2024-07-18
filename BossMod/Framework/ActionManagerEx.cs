@@ -97,6 +97,8 @@ public unsafe sealed class ActionManagerEx : IDisposable
     {
         var player = _ws.Party.Player();
         AutoQueue = player != null ? _hints.ActionsToExecute.FindBest(_ws, player, _ws.Client.Cooldowns, EffectiveAnimationLock, _hints, _animLockTweak.DelayEstimate) : default;
+        if (AutoQueue.Delay > 0)
+            AutoQueue = default;
     }
 
     public Vector3? GetWorldPosUnderCursor()

@@ -54,17 +54,17 @@ public abstract class RoleTankUtility(RotationModuleManager manager, Actor playe
             var haveStance = Player.FindStatus(stanceOption) != null;
             var wantStance = stanceOption == StanceOption.Apply;
             if (haveStance != wantStance)
-                Hints.ActionsToExecute.Push(wantStance ? stanceApply : stanceRemove, Player, stance.Priority());
+                Hints.ActionsToExecute.Push(wantStance ? stanceApply : stanceRemove, Player, stance.Priority(), stance.Value.ExpireIn);
         }
 
         var reprisal = strategy.Option(SharedTrack.Reprisal);
         if (reprisal.As<ReprisalOption>() != ReprisalOption.None)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Reprisal), Player, reprisal.Priority());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Reprisal), Player, reprisal.Priority(), reprisal.Value.ExpireIn);
 
         var lb = strategy.Option(SharedTrack.LB);
         var lbLevel = LBLevelToExecute(lb.As<LBOption>());
         if (lbLevel > 0)
-            Hints.ActionsToExecute.Push(lbLevel == 3 ? lb3 : ActionID.MakeSpell(lbLevel == 2 ? ClassShared.AID.Stronghold : ClassShared.AID.ShieldWall), Player, lb.Priority());
+            Hints.ActionsToExecute.Push(lbLevel == 3 ? lb3 : ActionID.MakeSpell(lbLevel == 2 ? ClassShared.AID.Stronghold : ClassShared.AID.ShieldWall), Player, lb.Priority(), lb.Value.ExpireIn);
     }
 
     protected Actor? CoTank() => World.Party.WithoutSlot().FirstOrDefault(a => a != Player && a.Role == Role.Tank);

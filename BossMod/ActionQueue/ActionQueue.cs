@@ -8,11 +8,12 @@
 // - repeat the process until no more actions can be found
 public sealed class ActionQueue
 {
-    public readonly record struct Entry(ActionID Action, Actor? Target, float Priority, Vector3 TargetPos = default, Angle? FacingAngle = null);
+    public readonly record struct Entry(ActionID Action, Actor? Target, float Priority, float Expire = float.MaxValue, float Delay = 0, Vector3 TargetPos = default, Angle? FacingAngle = null);
 
     // reference priority guidelines
-    // values divisible by 1000 are reserved for standard cooldown planner priorities; to disambiguate, small value < 1 could be added to the actions whose window ends earlier
-    // code should avoid adding several actions with identical priority for consistence; consider using values like 1100 or 1230 (not divisible by 1000, but divisible by 10) to allow user to fine-tune custom priorities
+    // values divisible by 1000 are reserved for standard cooldown planner priorities
+    // for actions with identical priorities, the 'expiration' field is used to disambiguate (entries expiring earlier are higher effective priority)
+    // code should avoid adding several actions with identical priority for consistency; consider using values like 1100 or 1230 (not divisible by 1000, but divisible by 10) to allow user to fine-tune custom priorities
     // note that actions with priority < 0 will never be executed; they can still be added to the queue if it's convenient for the implementation
     public static class Priority
     {
@@ -32,19 +33,16 @@ public sealed class ActionQueue
         public const float ManualOGCD = 4001; // manually pressed ogcd should be higher priority than any non-gcd, but lower than any gcd
         public const float ManualGCD = 4999; // manually pressed gcd should be higher priority than any gcd; it's still lower priority than VeryHigh, since presumably that action is planned to delay gcd
         public const float ManualEmergency = 9000; // this action should be used asap, because user is spamming it
-
-        // small delta to use for disambiguating actions with identical priority
-        public const float Delta = 0.01f;
     }
 
     public readonly List<Entry> Entries = [];
 
     public void Clear() => Entries.Clear();
-    public void Push(ActionID action, Actor? target, float priority, Vector3 targetPos = default, Angle? facingAngle = null) => Entries.Add(new(action, target, priority, targetPos, facingAngle));
+    public void Push(ActionID action, Actor? target, float priority, float expire = float.MaxValue, float delay = 0, Vector3 targetPos = default, Angle? facingAngle = null) => Entries.Add(new(action, target, priority, expire, delay, targetPos, facingAngle));
 
     public Entry FindBest(WorldState ws, Actor player, ReadOnlySpan<Cooldown> cooldowns, float animationLock, AIHints hints, float instantAnimLockDelay)
     {
-        Entries.SortByReverse(e => e.Priority);
+        Entries.SortByReverse(e => (e.Priority, -e.Expire));
         Entry best = default;
         float deadline = float.MaxValue; // any candidate we consider, if executed, should allow executing next action by this deadline
         foreach (ref var candidate in Entries.AsSpan())
@@ -56,7 +54,7 @@ public sealed class ActionQueue
             if (def == null || !def.AllowedClasses[(int)player.Class] || player.Level < def.MinLevel || !(ActionDefinitions.Instance.UnlockCheck?.Invoke(def.UnlockLink) ?? true))
                 continue; // unregistered or locked action
 
-            var startDelay = Math.Max(Math.Max(0, animationLock), def.ReadyIn(cooldowns));
+            var startDelay = Math.Max(Math.Max(candidate.Delay, animationLock), def.ReadyIn(cooldowns));
 
             // TODO: adjusted cast time!
             var duration = def.CastTime > 0 ? def.CastTime + def.CastAnimLock : def.InstantAnimLock + instantAnimLockDelay;

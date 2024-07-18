@@ -14,7 +14,7 @@ class P2SanctityOfTheWard2Knockback(BossModule module) : Components.KnockbackFro
         if (_config.P2Sanctity2AutomaticAntiKB && Casters.Count > 0 && !actor.Position.InCircle(Module.Center, 12))
         {
             var action = actor.Class.GetClassCategory() is ClassCategory.Healer or ClassCategory.Caster ? ActionID.MakeSpell(ClassShared.AID.Surecast) : ActionID.MakeSpell(ClassShared.AID.ArmsLength);
-            hints.ActionsToExecute.Push(action, actor, ActionQueue.Priority.High);
+            hints.ActionsToExecute.Push(action, actor, ActionQueue.Priority.High, Casters.FirstOrDefault()?.CastInfo?.NPCRemainingTime ?? 0);
         }
     }
 }

@@ -91,7 +91,7 @@ public sealed class PlanExecution
         {
             var entry = GetEntryAt(data[i], t, s);
             if (entry != null)
-                res.Values[i] = entry.Value;
+                res.Values[i] = entry.Value with { ExpireIn = entry.WindowEnd - t };
         }
         return res;
     }

@@ -46,6 +46,6 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (aid != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), ResolveTargetOverride(hoc.Value) ?? CoTank() ?? Player, hoc.Priority());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), ResolveTargetOverride(hoc.Value) ?? CoTank() ?? Player, hoc.Priority(), hoc.Value.ExpireIn);
     }
 }

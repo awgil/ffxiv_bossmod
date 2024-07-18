@@ -27,7 +27,7 @@ class Freefire(BossModule module) : Components.GenericAOEs(module, ActionID.Make
             };
             if (invuln)
             {
-                hints.ActionsToExecute.Push(invuln, actor, ActionQueue.Priority.High);
+                hints.ActionsToExecute.Push(invuln, actor, ActionQueue.Priority.High, (float)(_resolve - WorldState.CurrentTime).TotalSeconds);
                 return;
             }
         }

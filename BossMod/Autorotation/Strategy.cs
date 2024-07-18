@@ -50,6 +50,7 @@ public record struct StrategyValue()
     public StrategyTarget Target; // target selection strategy
     public int TargetParam; // strategy-specific parameter
     public string Comment = ""; // user-editable comment string
+    public float ExpireIn = float.MaxValue; // time until strategy expires
 }
 
 public readonly record struct StrategyValues(List<StrategyConfig> Configs)
