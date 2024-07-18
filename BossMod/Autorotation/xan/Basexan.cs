@@ -10,7 +10,7 @@ public enum Targeting { Auto, Manual, AutoPrimary }
 public enum OffensiveStrategy { Automatic, Delay, Force }
 public enum AOEStrategy { AOE, SingleTarget }
 
-public abstract class xbase<AID, TraitID> : LegacyModule where AID : Enum where TraitID : Enum
+public abstract class Basexan<AID, TraitID> : LegacyModule where AID : Enum where TraitID : Enum
 {
     public class State(RotationModule module) : CommonState(module) { }
 
@@ -21,7 +21,9 @@ public abstract class xbase<AID, TraitID> : LegacyModule where AID : Enum where 
     protected float TrueNorthLeft { get; private set; }
     protected float CombatTimer { get; private set; }
 
-    protected xbase(RotationModuleManager manager, Actor player) : base(manager, player)
+    protected AID ComboLastMove => (AID)(object)_state.ComboLastAction;
+
+    protected Basexan(RotationModuleManager manager, Actor player) : base(manager, player)
     {
         _state = new(this);
     }
@@ -161,7 +163,7 @@ public abstract class xbase<AID, TraitID> : LegacyModule where AID : Enum where 
     protected int StatusStacks<SID>(SID status) where SID : Enum => Status(status).Stacks;
 }
 
-static class xtensions
+static class Extendxan
 {
     public static RotationModuleDefinition.ConfigRef<Targeting> DefineTargeting<Index>(this RotationModuleDefinition def, Index trackname)
          where Index : Enum

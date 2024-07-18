@@ -3,7 +3,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class DNC(RotationModuleManager manager, Actor player) : xbase<AID, TraitID>(manager, player)
+public sealed class DNC(RotationModuleManager manager, Actor player) : Basexan<AID, TraitID>(manager, player)
 {
     public enum Track { AOE, Targeting, Buffs, Partner }
     public enum PartnerStrategy { Automatic, Manual }
@@ -96,7 +96,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : xbase<AID
         var canFlow = CanFlow(out var flowCombo);
         var canSymmetry = CanSymmetry(out var symmetryCombo);
         var combo2 = NumAOETargets > 1 ? AID.Bladeshower : AID.Fountain;
-        var haveCombo2 = Unlocked(combo2) && _state.ComboLastAction == (NumAOETargets > 1 ? (uint)AID.Windmill : (uint)AID.Cascade);
+        var haveCombo2 = Unlocked(combo2) && ComboLastMove == (NumAOETargets > 1 ? AID.Windmill : AID.Cascade);
 
         if (canStarfall && FlourishingStarfallLeft <= _state.AttackGCDTime)
             PushGCD(AID.StarfallDance, BestStarfallTarget);
@@ -329,7 +329,9 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : xbase<AID
 
     private bool IsFan4Target(Actor primary, Actor other) => Hints.TargetInAOECone(other, Player.Position, 15, Player.DirectionTo(primary), 60.Degrees());
 
-    private Actor? FindDancePartner() => World.Party.WithoutSlot().Exclude(Player).MaxBy(p => p.Class switch
+    private Actor? FindDancePartner()
+    {
+        var player = World.Party.WithoutSlot().Exclude(Player).MaxBy(p => p.Class switch
         {
             Class.SAM => 100,
             Class.NIN or Class.VPR => 99,
@@ -343,5 +345,12 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : xbase<AID
             Class.BRD => 68,
             Class.DNC => 67,
             _ => 1
-        }) ?? World.Actors.FirstOrDefault(x => x.Type == ActorType.Chocobo && x.OwnerID == Player.InstanceID);
+        });
+
+        // check if valid target is in cutscene
+        if (player != null)
+            return World.Party.Members[World.Party.FindSlot(player.InstanceID)].InCutscene ? null : player;
+
+        return World.Actors.FirstOrDefault(x => x.Type == ActorType.Chocobo && x.OwnerID == Player.InstanceID);
+    }
 }
