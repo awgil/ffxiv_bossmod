@@ -235,7 +235,7 @@ public record class Polygon(WPos Center, float Radius, int Vertices, Angle Rotat
             return vertices;
         });
 
-    public override Func<WPos, float> Distance() => ShapeDistance.ConvexPolygon(Contour(Center).Select(dir => dir + Center), cw: true);
+    public override Func<WPos, float> Distance() => ShapeDistance.ConvexPolygon(Contour(Center).Select(dir => dir + Center), cw: false);
 
     public override string ComputeHash() => ComputeSHA512($"{nameof(Polygon)}:{Center.X},{Center.Z},{Radius},{Vertices},{Rotation.Rad}");
 }
