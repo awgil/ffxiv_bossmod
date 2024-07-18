@@ -140,7 +140,7 @@ public abstract class xbase<AID, TraitID> : LegacyModule where AID : Enum where 
     protected PositionCheck IsSplashTarget => (Actor primary, Actor other) => Hints.TargetInAOECircle(other, primary.Position, 5);
     protected PositionCheck Is25yRectTarget => (Actor primary, Actor other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 25, 4);
 
-    public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget)
+    public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay)
     {
         var pelo = Player.FindStatus(BRD.SID.Peloton);
         PelotonLeft = pelo != null ? _state.StatusDuration(pelo.Value.ExpireAt) : 0;
@@ -151,10 +151,10 @@ public abstract class xbase<AID, TraitID> : LegacyModule where AID : Enum where 
 
         CombatTimer = (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds;
 
-        Exec(strategy, primaryTarget);
+        Exec(strategy, primaryTarget, estimatedAnimLockDelay);
     }
 
-    public abstract void Exec(StrategyValues strategy, Actor? primaryTarget);
+    public abstract void Exec(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay);
 
     protected (float Left, int Stacks) Status<SID>(SID status) where SID : Enum => _state.StatusDetails(Player, status, Player.InstanceID);
     protected float StatusLeft<SID>(SID status) where SID : Enum => Status(status).Left;

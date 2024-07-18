@@ -272,11 +272,11 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : xbase<AID
         return TechFinishLeft > _state.AnimationLock;
     }
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay)
     {
         var targeting = strategy.Option(Track.Targeting).As<Targeting>();
         SelectPrimaryTarget(targeting, ref primaryTarget, range: 25);
-        _state.UpdateCommon(primaryTarget);
+        _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
 
         var gauge = GetGauge<DancerGauge>();
         var curStep = (uint)gauge.CurrentStep;

@@ -146,9 +146,9 @@ public sealed class LegacySAM : LegacyModule
         _state = new(this);
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay)
     {
-        _state.UpdateCommon(primaryTarget);
+        _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
 
         var newTsubameCooldown = _state.CD(SAM.AID.TsubameGaeshi);
         if (newTsubameCooldown > _tsubameCooldown + 10) // eliminate variance, cd increment is 60s

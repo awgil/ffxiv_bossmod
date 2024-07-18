@@ -165,7 +165,7 @@ public sealed class Plugin : IDalamudPlugin
         _bossmod.Update();
         _hintsBuilder.Update(_hints, PartyState.PlayerSlot);
         _amex.QueueManualActions();
-        _rotation.Update();
+        _rotation.Update(_amex.AnimationLockDelayEstimate);
         _ai.Update();
         _broadcast.Update();
         _amex.FinishActionGather();

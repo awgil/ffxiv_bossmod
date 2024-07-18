@@ -52,16 +52,16 @@ public abstract class CommonState(RotationModule module)
     public bool CanWeave(float cooldown, float actionLock, float deadline) => deadline < 10000 ? MathF.Max(cooldown, AnimationLock) + actionLock + AnimationLockDelay <= deadline : cooldown <= AnimationLock;
     public bool CanWeave<AID>(AID aid, float actionLock, float deadline) where AID : Enum => CanWeave(CD(aid), actionLock, deadline);
 
-    public void UpdateCommon(Actor? target)
+    public void UpdateCommon(Actor? target, float estimatedAnimLockDelay)
     {
         var vuln = Module.Manager.Planner?.EstimateTimeToNextVulnerable() ?? (false, 10000);
         var downtime = Module.Manager.Planner?.EstimateTimeToNextDowntime() ?? (false, 0);
         var poslock = Module.Manager.Planner?.EstimateTimeToNextPositioning() ?? (false, 10000);
 
         TargetingEnemy = target != null && target.Type is ActorType.Enemy or ActorType.Part && !target.IsAlly;
-        RangeToTarget = target != null ? (target.Position - Module.Player.Position).Length() - target.HitboxRadius - Module.Player.HitboxRadius : float.MaxValue;
-        AnimationLock = Module.Manager.ActionManager.EffectiveAnimationLock;
-        AnimationLockDelay = Module.Manager.ActionManager.AnimationLockDelayEstimate;
+        RangeToTarget = Module.Player.DistanceToHitbox(target);
+        AnimationLock = (Module.Player.CastInfo?.RemainingTime ?? 0) + Module.World.Client.AnimationLock;
+        AnimationLockDelay = estimatedAnimLockDelay;
 
         RaidBuffsLeft = vuln.Item1 ? vuln.Item2 : 0;
         foreach (var status in Module.Player.Statuses.Where(s => IsDamageBuff(s.ID)))

@@ -120,9 +120,9 @@ public sealed class LegacyRPR : LegacyModule
         _state = new(this);
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay)
     {
-        _state.UpdateCommon(primaryTarget);
+        _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
         _state.HasSoulsow = Player.FindStatus(RPR.SID.Soulsow) != null;
 
         var gauge = GetGauge<ReaperGauge>();

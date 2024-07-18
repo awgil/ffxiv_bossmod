@@ -122,9 +122,9 @@ public sealed class LegacyWAR : LegacyModule
         _state = new(this);
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay)
     {
-        _state.UpdateCommon(primaryTarget);
+        _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
         _state.HaveTankStance = Player.FindStatus(WAR.SID.Defiance) != null;
 
         _state.Gauge = GetGauge<WarriorGauge>().BeastGauge;
