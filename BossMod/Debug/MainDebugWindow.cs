@@ -246,6 +246,21 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
         }
 
         var uiState = UIState.Instance();
+        var level = (uint)uiState->PlayerState.CurrentLevel;
+        var paramGrow = Service.LuminaRow<Lumina.Excel.GeneratedSheets.ParamGrow>(level);
+        if (paramGrow != null)
+        {
+            ImGui.TextUnformatted($"Level: {level}, baseSpeed={paramGrow.BaseSpeed}, levelMod={paramGrow.LevelModifier}");
+            var sksValue = uiState->PlayerState.Attributes[45];
+            var spsValue = uiState->PlayerState.Attributes[46];
+            var sksMod = 130 * (paramGrow.BaseSpeed - sksValue) / paramGrow.LevelModifier + 1000;
+            var spsMod = 130 * (paramGrow.BaseSpeed - spsValue) / paramGrow.LevelModifier + 1000;
+            var hasteValue = uiState->PlayerState.Attributes[47];
+            ImGui.TextUnformatted($"SKS: value={sksValue}, mod={sksMod}, gcd={2500 * sksMod / 1000}");
+            ImGui.TextUnformatted($"SPS: value={spsValue}, mod={spsMod}, gcd={2500 * spsMod / 1000}");
+            ImGui.TextUnformatted($"Haste: value={hasteValue}, gcd-sks={2500 * sksMod / 1000 * hasteValue / 100}, gcd-sps={2500 * spsMod / 1000 * hasteValue / 100}");
+        }
+
         ImGui.BeginTable("attrs", 2);
         ImGui.TableSetupColumn("Index");
         ImGui.TableSetupColumn("Value");
