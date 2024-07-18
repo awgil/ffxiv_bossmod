@@ -34,14 +34,17 @@ public sealed class ClientState
 {
     public readonly record struct Fate(uint ID, Vector3 Center, float Radius);
     public record struct Combo(uint Action, float Remaining);
+    public record struct Gauge(ulong Low, ulong High);
+    public record struct Stats(int SkillSpeed, int SpellSpeed, int Haste);
 
     public const int NumCooldownGroups = 82;
 
     public float? CountdownRemaining;
     public Angle CameraAzimuth; // updated every frame by the frame-start event
-    public ulong GaugePayload; // updated every frame by the frame-start event
+    public Gauge GaugePayload; // updated every frame by the frame-start event
     public float AnimationLock;
     public Combo ComboState;
+    public Stats PlayerStats;
     public readonly Cooldown[] Cooldowns = new Cooldown[NumCooldownGroups];
     public readonly ActionID[] DutyActions = new ActionID[2];
     public readonly byte[] BozjaHolster = new byte[(int)BozjaHolsterID.Count]; // number of copies in holster per item
@@ -57,6 +60,9 @@ public sealed class ClientState
 
         if (ComboState.Remaining > 0)
             yield return new OpComboChange(ComboState);
+
+        if (PlayerStats != default)
+            yield return new OpPlayerStatsChange(PlayerStats);
 
         var cooldowns = Cooldowns.Select((v, i) => (i, v)).Where(iv => iv.v.Total > 0).ToList();
         if (cooldowns.Count > 0)
@@ -157,6 +163,17 @@ public sealed class ClientState
             ws.Client.ComboChanged.Fire(this);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLCB"u8).Emit(Value.Action).Emit(Value.Remaining);
+    }
+
+    public Event<OpPlayerStatsChange> PlayerStatsChanged = new();
+    public sealed record class OpPlayerStatsChange(Stats Value) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            ws.Client.PlayerStats = Value;
+            ws.Client.PlayerStatsChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLST"u8).Emit(Value.SkillSpeed).Emit(Value.SpellSpeed).Emit(Value.Haste);
     }
 
     public Event<OpCooldown> CooldownsChanged = new();

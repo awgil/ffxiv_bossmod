@@ -74,7 +74,7 @@ public sealed class WorldState
 
     // implementation of operations
     public Event<OpFrameStart> FrameStarted = new();
-    public sealed record class OpFrameStart(FrameState Frame, TimeSpan PrevUpdateTime, ulong GaugePayload, Angle CameraAzimuth) : Operation
+    public sealed record class OpFrameStart(FrameState Frame, TimeSpan PrevUpdateTime, ClientState.Gauge GaugePayload, Angle CameraAzimuth) : Operation
     {
         protected override void Exec(WorldState ws)
         {
@@ -88,7 +88,8 @@ public sealed class WorldState
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("FRAM"u8)
             .Emit(PrevUpdateTime.TotalMilliseconds, "f3")
             .Emit()
-            .Emit(GaugePayload, "X16")
+            .Emit(GaugePayload.Low, "X16")
+            .Emit(GaugePayload.High, "X16")
             .Emit(Frame.QPC)
             .Emit(Frame.Index)
             .Emit(Frame.DurationRaw)

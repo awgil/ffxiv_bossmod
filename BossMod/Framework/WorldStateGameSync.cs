@@ -536,6 +536,11 @@ sealed class WorldStateGameSync : IDisposable
         if (_ws.Client.ComboState != combo)
             _ws.Execute(new ClientState.OpComboChange(combo));
 
+        var uiState = UIState.Instance();
+        var stats = new ClientState.Stats(uiState->PlayerState.Attributes[45], uiState->PlayerState.Attributes[46], uiState->PlayerState.Attributes[47]);
+        if (_ws.Client.PlayerStats != stats)
+            _ws.Execute(new ClientState.OpPlayerStatsChange(stats));
+
         Span<Cooldown> cooldowns = stackalloc Cooldown[_ws.Client.Cooldowns.Length];
         _amex.GetCooldowns(cooldowns);
         if (!MemoryExtensions.SequenceEqual(_ws.Client.Cooldowns.AsSpan(), cooldowns))
@@ -597,10 +602,10 @@ sealed class WorldStateGameSync : IDisposable
         return res;
     }
 
-    private unsafe ulong GaugeData()
+    private unsafe ClientState.Gauge GaugeData()
     {
         var curGauge = JobGaugeManager.Instance()->CurrentGauge;
-        return curGauge != null ? Utils.ReadField<ulong>(curGauge, 8) : 0;
+        return curGauge != null ? new(Utils.ReadField<ulong>(curGauge, 8), Utils.ReadField<ulong>(curGauge, 16)) : default;
     }
 
     private unsafe void ServerIPCReceived(DateTime sendTimestamp, uint sourceServerActor, uint targetServerActor, ushort opcode, uint epoch, Span<byte> payload)

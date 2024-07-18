@@ -331,6 +331,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("CDN-"u8)] = () => ParseClientCountdown(false),
             [new("CLAL"u8)] = ParseClientAnimationLock,
             [new("CLCB"u8)] = ParseClientCombo,
+            [new("CLST"u8)] = ParseClientPlayerStats,
             [new("CLCD"u8)] = ParseClientCooldown,
             [new("CLDA"u8)] = ParseClientDutyActions,
             [new("CLBH"u8)] = ParseClientBozjaHolster,
@@ -350,7 +351,7 @@ public sealed class ReplayParserLog : IDisposable
 
         if (_version is > 0 and < 5 && _input is TextInput ti && _legacyPrevTS < ti.Timestamp)
         {
-            _builder.AddOp(new WorldState.OpFrameStart(new() { Timestamp = ti.Timestamp }, default, 0, default));
+            _builder.AddOp(new WorldState.OpFrameStart(new() { Timestamp = ti.Timestamp }, default, default, default));
             _legacyPrevTS = ti.Timestamp;
         }
 
@@ -382,7 +383,7 @@ public sealed class ReplayParserLog : IDisposable
         var frame = new FrameState();
         var prevUpdateTime = TimeSpan.FromMilliseconds(_input.ReadDouble());
         _input.ReadVoid();
-        var gauge = _input.CanRead() ? _input.ReadULong(true) : 0;
+        var gauge = new ClientState.Gauge(_input.CanRead() ? _input.ReadULong(true) : 0, _version >= 18 ? _input.ReadULong(true) : 0);
         if (_version >= 10)
         {
             frame.QPC = _input.ReadULong(false);
@@ -616,6 +617,7 @@ public sealed class ReplayParserLog : IDisposable
     private ClientState.OpCountdownChange ParseClientCountdown(bool start) => new(start ? _input.ReadFloat() : null);
     private ClientState.OpAnimationLockChange ParseClientAnimationLock() => new(_input.ReadFloat());
     private ClientState.OpComboChange ParseClientCombo() => new(new(_input.ReadUInt(false), _input.ReadFloat()));
+    private ClientState.OpPlayerStatsChange ParseClientPlayerStats() => new(new(_input.ReadInt(), _input.ReadInt(), _input.ReadInt()));
 
     private ClientState.OpCooldown ParseClientCooldown()
     {
