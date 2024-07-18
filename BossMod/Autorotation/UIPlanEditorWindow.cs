@@ -32,6 +32,9 @@ public class UIPlanEditorWindow : UIWindow
         if (UIMisc.Button("Save", !_planner.Modified, "No changes"))
             Save();
         ImGui.SameLine();
+        if (UIMisc.Button("Delete", !ImGui.GetIO().KeyShift, "Hold shift to delete"))
+            Delete();
+        ImGui.SameLine();
         _planner.DrawCommonControls();
 
         _selectedPhase = _planner.DrawPhaseControls(_selectedPhase);
@@ -46,5 +49,11 @@ public class UIPlanEditorWindow : UIWindow
         _db.ModifyPlan(_original, newPlan);
         _original = newPlan;
         _planner.Modified = false;
+    }
+
+    private void Delete()
+    {
+        _db.ModifyPlan(_original, null);
+        IsOpen = false;
     }
 }
