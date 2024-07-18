@@ -2,10 +2,6 @@
 
 namespace BossMod.Autorotation.xan;
 
-// frick you i'll name my class whatever i want
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-
 public enum Targeting { Auto, Manual, AutoPrimary }
 public enum OffensiveStrategy { Automatic, Delay, Force }
 public enum AOEStrategy { AOE, SingleTarget }
