@@ -513,8 +513,8 @@ class ClassDefinitions
         private string ChargesString(ActionData action)
         {
             // assume if definition is present, we know what we're doing...
-            var min = Math.Max(action.Row?.MaxCharges ?? action.Definition?.MaxChargesAtCap ?? 1, 1);
-            var max = action.Definition?.MaxChargesAtCap ?? 0;
+            var min = ActionDefinitions.Instance.ActionBaseMaxCharges(action.ID);
+            var max = action.Definition?.MaxChargesAtCap() ?? 0;
             return min == 1 && max <= 1 ? "" // simple
                 : min == max ? $" ({min} charges)"
                 : max == 0 ? $" ({min}? charges)"
@@ -559,9 +559,6 @@ class ClassDefinitions
             List<string> args = [$"AID.{ActionIDName(Namespace, a.ID)}"];
             if (a.IsPhysRanged)
                 args.Add("true");
-            var charges = a.Definition?.MaxChargesAtCap ?? a.Row?.MaxCharges;
-            if (charges > 1)
-                args.Add($"maxCharges: {charges}");
             var instAnimLock = AnimLock(a.InstantByAnimLock, a.ExpectedInstantAnimLock, 0.6f);
             if (instAnimLock != 0.6f)
                 args.Add($"instantAnimLock: {instAnimLock:f}f");

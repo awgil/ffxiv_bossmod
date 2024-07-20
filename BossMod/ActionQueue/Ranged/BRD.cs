@@ -102,7 +102,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.StraightShot, true);
         d.RegisterSpell(AID.RagingStrikes, true);
         d.RegisterSpell(AID.VenomousBite, true);
-        d.RegisterSpell(AID.Bloodletter, true, maxCharges: 3);
+        d.RegisterSpell(AID.Bloodletter, true);
         d.RegisterSpell(AID.RepellingShot, true, instantAnimLock: 0.80f);
         d.RegisterSpell(AID.QuickNock, true);
         d.RegisterSpell(AID.MagesBallad, true);
@@ -110,7 +110,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.WardensPaean, true);
         d.RegisterSpell(AID.Barrage, true);
         d.RegisterSpell(AID.ArmysPaeon, true);
-        d.RegisterSpell(AID.RainOfDeath, true, maxCharges: 3);
+        d.RegisterSpell(AID.RainOfDeath, true);
         d.RegisterSpell(AID.BattleVoice, true);
         d.RegisterSpell(AID.WanderersMinuet, true);
         d.RegisterSpell(AID.PitchPerfect, true);
@@ -136,6 +136,10 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
+        // hardcoded mechanics
+        d.RegisterChargeIncreaseTrait(AID.Bloodletter, TraitID.EnhancedBloodletter);
+        d.RegisterChargeIncreaseTrait(AID.RainOfDeath, TraitID.EnhancedBloodletter);
+
         // smart targets
         d.Spell(AID.WardensPaean)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
 

@@ -113,10 +113,10 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.BurstStrike);
         d.RegisterSpell(AID.Nebula);
         d.RegisterSpell(AID.DemonSlaughter);
-        d.RegisterSpell(AID.Aurora, maxCharges: 2);
+        d.RegisterSpell(AID.Aurora);
         d.RegisterSpell(AID.Superbolide);
         d.RegisterSpell(AID.SonicBreak);
-        d.RegisterSpell(AID.RoughDivide, maxCharges: 2);
+        d.RegisterSpell(AID.RoughDivide);
         d.RegisterSpell(AID.GnashingFang, instantAnimLock: 0.70f);
         d.RegisterSpell(AID.SavageClaw, instantAnimLock: 0.50f);
         d.RegisterSpell(AID.WickedTalon, instantAnimLock: 0.77f);

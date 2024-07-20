@@ -119,7 +119,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.AfflatusSolace);
         d.RegisterSpell(AID.Stone3); // animLock=???
         d.RegisterSpell(AID.Assize);
-        d.RegisterSpell(AID.ThinAir, maxCharges: 2);
+        d.RegisterSpell(AID.ThinAir);
         d.RegisterSpell(AID.Tetragrammaton);
         d.RegisterSpell(AID.Stone4);
         d.RegisterSpell(AID.DivineBenison);

@@ -118,7 +118,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Fire4);
         d.RegisterSpell(AID.BetweenTheLines, instantAnimLock: 0.80f); // animLock=0.800
         d.RegisterSpell(AID.Thunder4);
-        d.RegisterSpell(AID.Triplecast, maxCharges: 2);
+        d.RegisterSpell(AID.Triplecast);
         d.RegisterSpell(AID.Foul);
         d.RegisterSpell(AID.Despair);
         d.RegisterSpell(AID.UmbralSoul);

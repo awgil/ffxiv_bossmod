@@ -260,9 +260,9 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
             // off cd -> cd
             data.ChargeCooldownEnd = data.Cursor.AddSeconds(actionDef.Cooldown);
             data.ChargesOnCooldown = 1;
-            data.MaxCharges = actionDef.MaxChargesAtCap;
+            data.MaxCharges = actionDef.MaxChargesAtCap(); // TODO: at player level
         }
-        else if (data.ChargesOnCooldown < actionDef.MaxChargesAtCap)
+        else if (data.ChargesOnCooldown < actionDef.MaxChargesAtCap()) // TODO: at player level
         {
             // just spend new charge
             ++data.ChargesOnCooldown;

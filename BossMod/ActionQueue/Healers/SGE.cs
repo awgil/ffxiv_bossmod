@@ -84,7 +84,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Prognosis);
         d.RegisterSpell(AID.Egeiro);
         d.RegisterSpell(AID.Physis); // animLock=???
-        d.RegisterSpell(AID.Phlegma, maxCharges: 2);
+        d.RegisterSpell(AID.Phlegma);
         d.RegisterSpell(AID.Eukrasia);
         d.RegisterSpell(AID.EukrasianDiagnosis);
         d.RegisterSpell(AID.EukrasianPrognosis);
@@ -102,7 +102,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Toxikon);
         d.RegisterSpell(AID.Haima);
         d.RegisterSpell(AID.DosisII); // animLock=???
-        d.RegisterSpell(AID.PhlegmaII, maxCharges: 2); // animLock=???
+        d.RegisterSpell(AID.PhlegmaII); // animLock=???
         d.RegisterSpell(AID.EukrasianDosisII); // animLock=???
         d.RegisterSpell(AID.Rhizomata);
         d.RegisterSpell(AID.Holos);
@@ -111,7 +111,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.ToxikonII);
         d.RegisterSpell(AID.DosisIII);
         d.RegisterSpell(AID.EukrasianDosisIII);
-        d.RegisterSpell(AID.PhlegmaIII, maxCharges: 2);
+        d.RegisterSpell(AID.PhlegmaIII);
         d.RegisterSpell(AID.Krasis);
         d.RegisterSpell(AID.Pneuma);
 

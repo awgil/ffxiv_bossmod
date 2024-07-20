@@ -110,8 +110,8 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.NightmareScythe);
         d.RegisterSpell(AID.BloodStalk);
         d.RegisterSpell(AID.GrimSwathe);
-        d.RegisterSpell(AID.SoulSlice, maxCharges: 2);
-        d.RegisterSpell(AID.SoulScythe, maxCharges: 2);
+        d.RegisterSpell(AID.SoulSlice);
+        d.RegisterSpell(AID.SoulScythe);
         d.RegisterSpell(AID.UnveiledGibbet);
         d.RegisterSpell(AID.Gibbet);
         d.RegisterSpell(AID.UnveiledGallows);

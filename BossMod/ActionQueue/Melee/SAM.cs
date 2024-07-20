@@ -109,7 +109,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.TenkaGoken); // animLock=???
         d.RegisterSpell(AID.Oka);
         d.RegisterSpell(AID.MidareSetsugekka); // animLock=???
-        d.RegisterSpell(AID.MeikyoShisui, maxCharges: 2);
+        d.RegisterSpell(AID.MeikyoShisui);
         d.RegisterSpell(AID.Yukikaze);
         d.RegisterSpell(AID.HissatsuShinten);
         d.RegisterSpell(AID.HissatsuGyoten);
@@ -120,10 +120,10 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Ikishoten);
         d.RegisterSpell(AID.HissatsuGuren);
         d.RegisterSpell(AID.HissatsuSenei);
-        d.RegisterSpell(AID.TsubameGaeshi, maxCharges: 2); // animLock=???
-        d.RegisterSpell(AID.KaeshiHiganbana, maxCharges: 2);
-        d.RegisterSpell(AID.KaeshiSetsugekka, maxCharges: 2);
-        d.RegisterSpell(AID.KaeshiGoken, maxCharges: 2);
+        d.RegisterSpell(AID.TsubameGaeshi); // animLock=???
+        d.RegisterSpell(AID.KaeshiHiganbana);
+        d.RegisterSpell(AID.KaeshiSetsugekka);
+        d.RegisterSpell(AID.KaeshiGoken);
         d.RegisterSpell(AID.Shoha);
         d.RegisterSpell(AID.Shoha2);
         d.RegisterSpell(AID.Fuko);
@@ -137,6 +137,9 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
+        // hardcoded mechanics
+        d.RegisterChargeIncreaseTrait(AID.MeikyoShisui, TraitID.EnhancedMeikyoShisui);
+
         // upgrades (TODO: don't think we actually care...)
         //d.Spell(AID.Iaijutsu)!.TransformAction = () => ActionID.MakeSpell(_state.BestIai);
         //d.Spell(AID.MeikyoShisui)!.Condition = _ => _state.MeikyoLeft == 0;

@@ -129,7 +129,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Biolysis);
         d.RegisterSpell(AID.Recitation);
         d.RegisterSpell(AID.FeyBlessing);
-        d.RegisterSpell(AID.Consolation, maxCharges: 2);
+        d.RegisterSpell(AID.Consolation);
         d.RegisterSpell(AID.SummonSeraph);
         d.RegisterSpell(AID.Broil4);
         d.RegisterSpell(AID.ArtOfWar2);

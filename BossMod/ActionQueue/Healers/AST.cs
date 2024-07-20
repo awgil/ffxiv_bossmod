@@ -102,7 +102,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.TheSpire);
         d.RegisterSpell(AID.TheEwer);
         d.RegisterSpell(AID.TheBole);
-        d.RegisterSpell(AID.Draw, maxCharges: 2);
+        d.RegisterSpell(AID.Draw);
         d.RegisterSpell(AID.TheArrow);
         d.RegisterSpell(AID.TheBalance);
         d.RegisterSpell(AID.TheSpear);

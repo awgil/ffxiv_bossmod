@@ -84,7 +84,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.LegSweep);
         d.RegisterSpell(AID.Bloodbath);
         d.RegisterSpell(AID.Feint);
-        d.RegisterSpell(AID.TrueNorth, maxCharges: 2);
+        d.RegisterSpell(AID.TrueNorth);
 
         // PhysRanged
         d.RegisterSpell(AID.BigShot, true, castAnimLock: 3.10f);

@@ -141,7 +141,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.RisingWindmill, true);
         d.RegisterSpell(AID.Fountainfall, true);
         d.RegisterSpell(AID.Bloodshower, true);
-        d.RegisterSpell(AID.EnAvant, true, maxCharges: 3);
+        d.RegisterSpell(AID.EnAvant, true);
         d.RegisterSpell(AID.FanDanceII, true);
         d.RegisterSpell(AID.CuringWaltz, true);
         d.RegisterSpell(AID.ShieldSamba, true);
@@ -177,6 +177,10 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
+        // hardcoded mechanics
+        d.RegisterChargeIncreaseTrait(AID.EnAvant, TraitID.EnhancedEnAvantII);
+        d.RegisterChargeIncreaseTrait(AID.EnAvant, TraitID.EnhancedEnAvant);
+
         d.Spell(AID.EnAvant)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera
             ? ws.Client.CameraAzimuth + 180.Degrees()
             : null;

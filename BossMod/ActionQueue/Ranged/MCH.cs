@@ -102,7 +102,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.SlugShot, true);
         d.RegisterSpell(AID.HotShot, true);
         d.RegisterSpell(AID.Reassemble, true);
-        d.RegisterSpell(AID.GaussRound, true, maxCharges: 3);
+        d.RegisterSpell(AID.GaussRound, true);
         d.RegisterSpell(AID.SpreadShot, true);
         d.RegisterSpell(AID.CleanShot, true);
         d.RegisterSpell(AID.Hypercharge, true);
@@ -111,25 +111,25 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.RookOverdrive, true);
         d.RegisterSpell(AID.Detonator, true);
         d.RegisterSpell(AID.Wildfire, true);
-        d.RegisterSpell(AID.Ricochet, true, maxCharges: 3);
+        d.RegisterSpell(AID.Ricochet, true);
         d.RegisterSpell(AID.AutoCrossbow, true);
         d.RegisterSpell(AID.HeatedSplitShot, true);
         d.RegisterSpell(AID.Tactician, true);
-        d.RegisterSpell(AID.Drill, true, maxCharges: 2);
+        d.RegisterSpell(AID.Drill, true);
         d.RegisterSpell(AID.HeatedSlugShot, true);
         d.RegisterSpell(AID.Dismantle, true);
         d.RegisterSpell(AID.HeatedCleanShot, true);
         d.RegisterSpell(AID.BarrelStabilizer, true);
         d.RegisterSpell(AID.BlazingShot, true);
         d.RegisterSpell(AID.Flamethrower, true);
-        d.RegisterSpell(AID.Bioblaster, true, maxCharges: 2);
+        d.RegisterSpell(AID.Bioblaster, true);
         d.RegisterSpell(AID.AirAnchor, true);
         d.RegisterSpell(AID.AutomatonQueen, true);
         d.RegisterSpell(AID.QueenOverdrive, true);
         d.RegisterSpell(AID.Scattergun, true);
         d.RegisterSpell(AID.ChainSaw, true);
-        d.RegisterSpell(AID.DoubleCheck, true, maxCharges: 3); // animLock=???
-        d.RegisterSpell(AID.Checkmate, true, maxCharges: 3); // animLock=???
+        d.RegisterSpell(AID.DoubleCheck, true); // animLock=???
+        d.RegisterSpell(AID.Checkmate, true); // animLock=???
         d.RegisterSpell(AID.Excavator, true); // animLock=???
         d.RegisterSpell(AID.FullMetalField, true); // animLock=???
 

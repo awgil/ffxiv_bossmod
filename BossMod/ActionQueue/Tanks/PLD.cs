@@ -117,7 +117,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Requiescat);
         d.RegisterSpell(AID.PassageOfArms);
         d.RegisterSpell(AID.HolyCircle);
-        d.RegisterSpell(AID.Intervene, maxCharges: 2);
+        d.RegisterSpell(AID.Intervene);
         d.RegisterSpell(AID.Atonement);
         d.RegisterSpell(AID.Confiteor);
         d.RegisterSpell(AID.HolySheltron);

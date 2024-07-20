@@ -81,7 +81,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Riposte);
         d.RegisterSpell(AID.Jolt); // animLock=???
         d.RegisterSpell(AID.Verthunder); // animLock=???
-        d.RegisterSpell(AID.CorpsACorps, maxCharges: 2);
+        d.RegisterSpell(AID.CorpsACorps);
         d.RegisterSpell(AID.Veraero); // animLock=???
         d.RegisterSpell(AID.Scatter); // animLock=???
         d.RegisterSpell(AID.VerthunderII);
@@ -90,8 +90,8 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Verstone);
         d.RegisterSpell(AID.Zwerchhau);
         d.RegisterSpell(AID.EnchantedZwerchhau);
-        d.RegisterSpell(AID.Engagement, maxCharges: 2);
-        d.RegisterSpell(AID.Displacement, maxCharges: 2, instantAnimLock: 0.80f); // animLock=0.800
+        d.RegisterSpell(AID.Engagement);
+        d.RegisterSpell(AID.Displacement, instantAnimLock: 0.80f); // animLock=0.800
         d.RegisterSpell(AID.Fleche);
         d.RegisterSpell(AID.Acceleration);
         d.RegisterSpell(AID.Redoublement);

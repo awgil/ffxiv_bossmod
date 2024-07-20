@@ -180,7 +180,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.AethericMimicry4); // animLock=???
         d.RegisterSpell(AID.BasicInstinct); // animLock=???
         d.RegisterSpell(AID.Quasar); // animLock=???
-        d.RegisterSpell(AID.Surpanakha, maxCharges: 4); // animLock=???
+        d.RegisterSpell(AID.Surpanakha); // animLock=???
         d.RegisterSpell(AID.CondensedLibra); // animLock=???
         d.RegisterSpell(AID.Devour); // animLock=???
         d.RegisterSpell(AID.Reflux); // animLock=???

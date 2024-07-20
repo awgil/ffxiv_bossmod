@@ -137,12 +137,12 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Holmgang);
         d.RegisterSpell(AID.SteelCyclone);
         d.RegisterSpell(AID.StormEye);
-        d.RegisterSpell(AID.Infuriate, maxCharges: 2);
+        d.RegisterSpell(AID.Infuriate);
         d.RegisterSpell(AID.FellCleave);
         d.RegisterSpell(AID.RawIntuition);
         d.RegisterSpell(AID.Equilibrium);
         d.RegisterSpell(AID.Decimate);
-        d.RegisterSpell(AID.Onslaught, maxCharges: 3);
+        d.RegisterSpell(AID.Onslaught);
         d.RegisterSpell(AID.Upheaval);
         d.RegisterSpell(AID.ShakeItOff);
         d.RegisterSpell(AID.InnerRelease);
@@ -163,6 +163,9 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
+        // hardcoded mechanics
+        d.RegisterChargeIncreaseTrait(AID.Onslaught, TraitID.EnhancedOnslaught);
+
         d.Spell(AID.Tomahawk)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyTomahawk && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
         d.Spell(AID.Holmgang)!.SmartTarget = (_, player, target, _) => _config.HolmgangSelf ? player : target;
         d.Spell(AID.Equilibrium)!.ForbidExecute = (_, player, _, _) => player.HPMP.CurHP >= player.HPMP.MaxHP; // don't use equilibrium at full hp

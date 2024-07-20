@@ -37,14 +37,34 @@ public sealed record class ActionDefinition(ActionID ID)
     public int MainCooldownGroup = -1;
     public int ExtraCooldownGroup = -1;
     public float Cooldown; // for single charge (if multi-charge action); can be adjusted by a number of factors (TODO: add functor)
-    public int MaxChargesAtCap = 1; // TODO: this actually depends on unlocked traits...
+    public int MaxChargesBase = 1; // baseline max-charges when action is unlocked
+    public readonly List<(int Charges, int Level, uint UnlockLink)> MaxChargesOverride = []; // trait overrides for max-charges (applied in order)
     public float InstantAnimLock = 0.6f; // animation lock if ability is instant-cast
     public float CastAnimLock = 0.1f; // animation lock if ability is non-instant
     public ConditionDelegate? ForbidExecute; // optional condition, if it returns true, action is not executed
     public SmartTargetDelegate? SmartTarget; // optional target transformation for 'smart targeting' feature
     public TransformAngleDelegate? TransformAngle; // optional facing angle transformation
 
-    public float CooldownAtFirstCharge => (MaxChargesAtCap - 1) * Cooldown;
+    // note: this does *not* include quest-locked overrides
+    // the way game works is - when you use first charge, total is set to cd*max-at-cap, and elapsed is set to cd*(max-at-level - 1)
+    public int MaxChargesAtCap()
+    {
+        foreach (ref var o in MaxChargesOverride.AsSpan())
+            if (LinkUnlocked(o.UnlockLink))
+                return o.Charges;
+        return MaxChargesBase;
+    }
+
+    public int MaxChargesAtLevel(int level)
+    {
+        foreach (ref var o in MaxChargesOverride.AsSpan())
+            if (level >= o.Level && LinkUnlocked(o.UnlockLink))
+                return o.Charges;
+        return MaxChargesBase;
+    }
+
+    public bool IsMultiCharge => MaxChargesAtCap() > 1;
+    public float CooldownAtFirstCharge => (MaxChargesAtCap() - 1) * Cooldown;
     public bool IsGCD => MainCooldownGroup == ActionDefinitions.GCDGroup || ExtraCooldownGroup == ActionDefinitions.GCDGroup;
 
     // for multi-charge abilities, action is ready when elapsed >= single-charge cd; assume that if any multi-charge actions share cooldown group, they have same cooldown - otherwise dunno how it should work
@@ -54,11 +74,13 @@ public sealed record class ActionDefinition(ActionID ID)
         if (MainCooldownGroup < 0)
             return 0;
         var cdg = cooldowns[MainCooldownGroup];
-        return MaxChargesAtCap <= 1 || cdg.Total < Cooldown ? cdg.Remaining : Cooldown - cdg.Elapsed;
+        return !IsMultiCharge || cdg.Total < Cooldown ? cdg.Remaining : Cooldown - cdg.Elapsed;
     }
 
     public float ExtraReadyIn(ReadOnlySpan<Cooldown> cooldowns) => ExtraCooldownGroup >= 0 ? cooldowns[ExtraCooldownGroup].Remaining : 0;
     public float ReadyIn(ReadOnlySpan<Cooldown> cooldowns) => Math.Max(MainReadyIn(cooldowns), ExtraReadyIn(cooldowns));
+
+    private static bool LinkUnlocked(uint link) => link == 0 || (ActionDefinitions.Instance.UnlockCheck?.Invoke(link) ?? true);
 }
 
 // database of all supported player-initiated actions
@@ -68,6 +90,7 @@ public sealed class ActionDefinitions : IDisposable
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Action>? _actionsSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.Action>();
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Item>? _itemsSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.Item>();
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.ClassJobCategory>? _cjcSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.ClassJobCategory>();
+    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Trait>? _traitSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.Trait>();
     private readonly List<IDisposable> _classDefinitions;
     private readonly Dictionary<ActionID, ActionDefinition> _definitions = [];
 
@@ -245,11 +268,16 @@ public sealed class ActionDefinitions : IDisposable
         _ => 5,
     };
 
+    public int SpellBaseMaxCharges(Lumina.Excel.GeneratedSheets.Action? data) => data?.MaxCharges ?? 1;
+    public int SpellBaseMaxCharges(uint spellId) => SpellBaseMaxCharges(ActionData(spellId));
+    public int ActionBaseMaxCharges(ActionID aid) => SpellBaseMaxCharges(aid.SpellId());
+
     private Lumina.Excel.GeneratedSheets.Action? ActionData(uint id) => _actionsSheet?.GetRow(id);
     private Lumina.Excel.GeneratedSheets.Item? ItemData(uint id) => _itemsSheet?.GetRow(id % 500000);
+    private Lumina.Excel.GeneratedSheets.Trait? TraitData(uint id) => _traitSheet?.GetRow(id);
 
     // registration for different kinds of actions
-    public void RegisterSpell(ActionID aid, bool isPhysRanged = false, int maxCharges = 1, float instantAnimLock = 0.6f, float castAnimLock = 0.1f)
+    public void RegisterSpell(ActionID aid, bool isPhysRanged = false, float instantAnimLock = 0.6f, float castAnimLock = 0.1f)
     {
         var data = ActionData(aid.ID);
         var def = new ActionDefinition(aid)
@@ -263,15 +291,15 @@ public sealed class ActionDefinitions : IDisposable
             MainCooldownGroup = SpellMainCDGroup(data),
             ExtraCooldownGroup = SpellExtraCDGroup(data),
             Cooldown = SpellBaseCooldown(data),
-            MaxChargesAtCap = maxCharges,
+            MaxChargesBase = SpellBaseMaxCharges(data),
             InstantAnimLock = instantAnimLock,
             CastAnimLock = castAnimLock,
         };
         Register(aid, def);
     }
 
-    public void RegisterSpell<AID>(AID aid, bool isPhysRanged = false, int maxCharges = 1, float instantAnimLock = 0.6f, float castAnimLock = 0.1f) where AID : Enum
-        => RegisterSpell(ActionID.MakeSpell(aid), isPhysRanged, maxCharges, instantAnimLock, castAnimLock);
+    public void RegisterSpell<AID>(AID aid, bool isPhysRanged = false, float instantAnimLock = 0.6f, float castAnimLock = 0.1f) where AID : Enum
+        => RegisterSpell(ActionID.MakeSpell(aid), isPhysRanged, instantAnimLock, castAnimLock);
 
     private void Register(ActionID aid, ActionDefinition definition) => _definitions.Add(aid, definition);
 
@@ -319,4 +347,12 @@ public sealed class ActionDefinitions : IDisposable
             _definitions[aid2] = new(aid2) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
         }
     }
+
+    // hardcoded mechanic implementations
+    public void RegisterChargeIncreaseTrait(ActionID aid, uint traitId)
+    {
+        var trait = TraitData(traitId)!;
+        _definitions[aid].MaxChargesOverride.Add((trait.Value, trait.Level, trait.Quest.Row));
+    }
+    public void RegisterChargeIncreaseTrait<AID, TraitID>(AID aid, TraitID traitId) where AID : Enum where TraitID : Enum => RegisterChargeIncreaseTrait(ActionID.MakeSpell(aid), (uint)(object)traitId);
 }

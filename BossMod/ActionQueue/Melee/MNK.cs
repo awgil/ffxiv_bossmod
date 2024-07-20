@@ -113,12 +113,12 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.ArmOfTheDestroyer);
         d.RegisterSpell(AID.Demolish);
         d.RegisterSpell(AID.Rockbreaker);
-        d.RegisterSpell(AID.Thunderclap, maxCharges: 3);
+        d.RegisterSpell(AID.Thunderclap);
         d.RegisterSpell(AID.HowlingFist);
         d.RegisterSpell(AID.Mantra);
         d.RegisterSpell(AID.FourPointFury);
         d.RegisterSpell(AID.DragonKick);
-        d.RegisterSpell(AID.PerfectBalance, maxCharges: 2);
+        d.RegisterSpell(AID.PerfectBalance);
         d.RegisterSpell(AID.FormShift);
         d.RegisterSpell(AID.ForbiddenChakra);
         d.RegisterSpell(AID.ElixirField);
@@ -144,6 +144,9 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
+        // hardcoded mechanics
+        d.RegisterChargeIncreaseTrait(AID.Thunderclap, TraitID.EnhancedThunderclap);
+
         d.Spell(AID.Thunderclap)!.ForbidExecute = (_, player, target, _) => _config.PreventCloseDash && (target?.Position.InCircle(player.Position, target.HitboxRadius + player.HitboxRadius) ?? true);
 
         // upgrades (TODO: don't think we actually care...)

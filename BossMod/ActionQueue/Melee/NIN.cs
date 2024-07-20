@@ -101,7 +101,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Mug);
         d.RegisterSpell(AID.TrickAttack);
         d.RegisterSpell(AID.AeolianEdge);
-        d.RegisterSpell(AID.Ten1, maxCharges: 2, instantAnimLock: 0.35f);
+        d.RegisterSpell(AID.Ten1, instantAnimLock: 0.35f);
         d.RegisterSpell(AID.Ten2, instantAnimLock: 0.35f);
         d.RegisterSpell(AID.RabbitMedium);
         d.RegisterSpell(AID.FumaShuriken1);
@@ -111,7 +111,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Ninjutsu); // animLock=???
         d.RegisterSpell(AID.Raiton1);
         d.RegisterSpell(AID.Raiton2);
-        d.RegisterSpell(AID.Chi1, maxCharges: 2, instantAnimLock: 0.35f);
+        d.RegisterSpell(AID.Chi1, instantAnimLock: 0.35f);
         d.RegisterSpell(AID.Chi2, instantAnimLock: 0.35f);
         d.RegisterSpell(AID.Katon1);
         d.RegisterSpell(AID.Katon2);
@@ -126,7 +126,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Doton2);
         d.RegisterSpell(AID.Huton1);
         d.RegisterSpell(AID.Huton2);
-        d.RegisterSpell(AID.Jin1, maxCharges: 2, instantAnimLock: 0.35f);
+        d.RegisterSpell(AID.Jin1, instantAnimLock: 0.35f);
         d.RegisterSpell(AID.Jin2, instantAnimLock: 0.35f);
         d.RegisterSpell(AID.Kassatsu);
         d.RegisterSpell(AID.HakkeMujinsatsu);

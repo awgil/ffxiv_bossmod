@@ -93,7 +93,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.DragonsongDive, castAnimLock: 3.70f);
         d.RegisterSpell(AID.TrueThrust);
         d.RegisterSpell(AID.VorpalThrust);
-        d.RegisterSpell(AID.LifeSurge, maxCharges: 2);
+        d.RegisterSpell(AID.LifeSurge);
         d.RegisterSpell(AID.PiercingTalon);
         d.RegisterSpell(AID.Disembowel);
         d.RegisterSpell(AID.FullThrust);
@@ -101,7 +101,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Jump, instantAnimLock: 0.80f);
         d.RegisterSpell(AID.ElusiveJump, instantAnimLock: 0.80f);
         d.RegisterSpell(AID.DoomSpike);
-        d.RegisterSpell(AID.SpineshatterDive, maxCharges: 2, instantAnimLock: 0.80f);
+        d.RegisterSpell(AID.SpineshatterDive, instantAnimLock: 0.80f);
         d.RegisterSpell(AID.DragonfireDive, instantAnimLock: 0.80f);
         d.RegisterSpell(AID.ChaosThrust);
         d.RegisterSpell(AID.BattleLitany);
@@ -128,6 +128,10 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
+        // hardcoded mechanics
+        d.RegisterChargeIncreaseTrait(AID.LifeSurge, TraitID.EnhancedLifeSurge);
+        d.RegisterChargeIncreaseTrait(AID.SpineshatterDive, TraitID.EnhancedSpineshatterDive);
+
         // smart targets
         d.Spell(AID.DragonSight)!.SmartTarget = SmartTargetDragonSight;
 
