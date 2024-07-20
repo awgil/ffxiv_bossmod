@@ -49,7 +49,14 @@ public sealed record class ActionDefinition(ActionID ID)
 
     // for multi-charge abilities, action is ready when elapsed >= single-charge cd; assume that if any multi-charge actions share cooldown group, they have same cooldown - otherwise dunno how it should work
     // TODO: use adjusted cooldown
-    public float MainReadyIn(ReadOnlySpan<Cooldown> cooldowns) => MainCooldownGroup >= 0 ? (MaxChargesAtCap > 1 ? Cooldown : cooldowns[MainCooldownGroup].Total) - cooldowns[MainCooldownGroup].Elapsed : 0;
+    public float MainReadyIn(ReadOnlySpan<Cooldown> cooldowns)
+    {
+        if (MainCooldownGroup < 0)
+            return 0;
+        var cdg = cooldowns[MainCooldownGroup];
+        return MaxChargesAtCap <= 1 || cdg.Total < Cooldown ? cdg.Remaining : Cooldown - cdg.Elapsed;
+    }
+
     public float ExtraReadyIn(ReadOnlySpan<Cooldown> cooldowns) => ExtraCooldownGroup >= 0 ? cooldowns[ExtraCooldownGroup].Remaining : 0;
     public float ReadyIn(ReadOnlySpan<Cooldown> cooldowns) => Math.Max(MainReadyIn(cooldowns), ExtraReadyIn(cooldowns));
 }
