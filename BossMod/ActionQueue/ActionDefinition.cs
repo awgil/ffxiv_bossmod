@@ -47,9 +47,9 @@ public sealed record class ActionDefinition(ActionID ID)
     public float CooldownAtFirstCharge => (MaxChargesAtCap - 1) * Cooldown;
     public bool IsGCD => MainCooldownGroup == ActionDefinitions.GCDGroup || ExtraCooldownGroup == ActionDefinitions.GCDGroup;
 
-    // for multi-charge abilities, assume action is ready when elapsed >= single-charge cd
+    // for multi-charge abilities, action is ready when elapsed >= single-charge cd; assume that if any multi-charge actions share cooldown group, they have same cooldown - otherwise dunno how it should work
     // TODO: use adjusted cooldown
-    public float MainReadyIn(ReadOnlySpan<Cooldown> cooldowns) => MainCooldownGroup >= 0 ? Math.Min(cooldowns[MainCooldownGroup].Total, Cooldown) - cooldowns[MainCooldownGroup].Elapsed : 0;
+    public float MainReadyIn(ReadOnlySpan<Cooldown> cooldowns) => MainCooldownGroup >= 0 ? (MaxChargesAtCap > 1 ? Cooldown : cooldowns[MainCooldownGroup].Total) - cooldowns[MainCooldownGroup].Elapsed : 0;
     public float ExtraReadyIn(ReadOnlySpan<Cooldown> cooldowns) => ExtraCooldownGroup >= 0 ? cooldowns[ExtraCooldownGroup].Remaining : 0;
     public float ReadyIn(ReadOnlySpan<Cooldown> cooldowns) => Math.Max(MainReadyIn(cooldowns), ExtraReadyIn(cooldowns));
 }
