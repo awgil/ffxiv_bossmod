@@ -17,8 +17,7 @@ public sealed class RotationModuleManager : IDisposable
     public readonly AutorotationConfig Config = Service.Config.Get<AutorotationConfig>();
     public readonly RotationDatabase Database;
     public readonly BossModuleManager Bossmods;
-    public readonly ActionManagerEx ActionManager; // TODO: remove!
-    public readonly int PlayerSlot;
+    public readonly int PlayerSlot; // TODO: reconsider, we rely on too many things in clientstate...
     public readonly AIHints Hints;
     public PlanExecution? Planner { get; private set; }
     private readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
@@ -34,13 +33,12 @@ public sealed class RotationModuleManager : IDisposable
     public DateTime CombatStart { get; private set; } // default value when player is not in combat, otherwise timestamp when player entered combat
     public (DateTime Time, ActorCastEvent? Data) LastCast { get; private set; }
 
-    public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AIHints hints, ActionManagerEx amex, int playerSlot = PartyState.PlayerSlot)
+    public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AIHints hints, int playerSlot = PartyState.PlayerSlot)
     {
         Database = db;
         Bossmods = bmm;
         PlayerSlot = playerSlot;
         Hints = hints;
-        ActionManager = amex;
         _subscriptions = new
         (
             WorldState.Actors.Added.Subscribe(a => DirtyActiveModules(WorldState.Party.Members[PlayerSlot].InstanceId == a.InstanceID)),
@@ -61,7 +59,7 @@ public sealed class RotationModuleManager : IDisposable
         _subscriptions.Dispose();
     }
 
-    public void Update(float estimatedAnimLockDelay)
+    public void Update(float estimatedAnimLockDelay, float forceMovementIn)
     {
         // see whether current plan matches what should be active, and update if not; only rebuild actions if there is no active override
         var expectedPlan = CalculateExpectedPlan();
@@ -87,7 +85,7 @@ public sealed class RotationModuleManager : IDisposable
         {
             var mt = m.Module.GetType();
             var values = Preset?.ActiveStrategyOverrides(mt) ?? Planner?.ActiveStrategyOverrides(mt) ?? throw new InvalidOperationException("Both preset and plan are null, but there are active modules");
-            m.Module.Execute(values, target, estimatedAnimLockDelay);
+            m.Module.Execute(values, target, estimatedAnimLockDelay, forceMovementIn);
         }
     }
 

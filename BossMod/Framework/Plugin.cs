@@ -78,7 +78,7 @@ public sealed class Plugin : IDalamudPlugin
         _hintsBuilder = new(_ws, _bossmod);
         _amex = new(_ws, _hints);
         _wsSync = new(_ws, _amex);
-        _rotation = new(_rotationDB, _bossmod, _hints, _amex);
+        _rotation = new(_rotationDB, _bossmod, _hints);
         _ai = new(_rotation, _amex);
         _broadcast = new();
         _ipc = new(_rotation, _amex);
@@ -165,7 +165,7 @@ public sealed class Plugin : IDalamudPlugin
         _bossmod.Update();
         _hintsBuilder.Update(_hints, PartyState.PlayerSlot);
         _amex.QueueManualActions();
-        _rotation.Update(_amex.AnimationLockDelayEstimate);
+        _rotation.Update(_amex.AnimationLockDelayEstimate, _amex.InputOverride.IsMoveRequested() ? 0 : _ai.ForceMovementIn);
         _ai.Update();
         _broadcast.Update();
         _amex.FinishActionGather();

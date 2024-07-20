@@ -11,6 +11,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
 
     public WorldState WorldState => autorot.Bossmods.WorldState;
     public Preset? AIPreset = aiPreset;
+    public float ForceMovementIn { get; private set; } = float.MaxValue; // TODO: reconsider
     private readonly AIConfig _config = Service.Config.Get<AIConfig>();
     private readonly NavigationDecision.Context _naviCtx = new();
     private NavigationDecision _naviDecision;
@@ -29,6 +30,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
 
     public void Execute(Actor player, Actor master)
     {
+        ForceMovementIn = float.MaxValue;
         if (player.IsDead || ctrl.InCutscene)
             return;
 
@@ -59,7 +61,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         if (!forbidActions)
         {
             autorot.Preset = target.Target != null ? AIPreset : null;
-            autorot.Hints.ForceMovementIn = _maxCastTime;
+            ForceMovementIn = _maxCastTime;
         }
 
         UpdateMovement(player, master, target, !forbidActions ? autorot.Hints.ActionsToExecute : null);

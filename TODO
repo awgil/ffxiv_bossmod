@@ -1,13 +1,10 @@
 autorotation v2 cleanup:
 - rmm in replay analysis
--- commonstate.gcdtime from ?? (stats?)
--- xbase.forcemovementin from ?? (hints?)
--- get rid of actionmanager in rmm
 - preset/plan editors should properly react to external changes
 - ipc for autorotation
 - actiondefinitions
 -- action transforms?.. (combos, adjustment)
--- adjusted casttime/cooldown/maxcharges/???
+-- adjusted casttime/cooldown/???
 - ai features
 -- legacy ai rotation modules (auto stance, interrupt, taunt, etc)
 -- target selection should be part of a module/preset

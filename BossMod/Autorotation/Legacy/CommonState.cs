@@ -82,10 +82,8 @@ public abstract class CommonState(RotationModule module)
         NextPositionalCorrect = true;
 
         // all GCD skills share the same base recast time (with some exceptions that aren't relevant here)
-        // so we can check Fast Blade (9) and Stone (119) recast timers to get effective sks and sps
-        // regardless of current class
-        AttackGCDTime = Module.Manager.ActionManager.GetAdjustedRecastTime(new(ActionType.Spell, 9), false) * 0.001f;
-        SpellGCDTime = Module.Manager.ActionManager.GetAdjustedRecastTime(new(ActionType.Spell, 119), false) * 0.001f;
+        AttackGCDTime = ActionSpeed.GCDRounded(Module.World.Client.PlayerStats.SkillSpeed, Module.World.Client.PlayerStats.Haste, Module.Player.Level);
+        SpellGCDTime = ActionSpeed.GCDRounded(Module.World.Client.PlayerStats.SpellSpeed, Module.World.Client.PlayerStats.Haste, Module.Player.Level);
     }
 
     public void UpdatePositionals(Actor? target, (Positional pos, bool imm) positional, bool trueNorth)

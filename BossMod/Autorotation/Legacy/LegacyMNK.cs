@@ -226,7 +226,7 @@ public sealed class LegacyMNK : LegacyModule
         _state = new(this);
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
     {
         _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
 

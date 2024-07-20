@@ -95,7 +95,7 @@ public abstract class xbase<AID, TraitID> : LegacyModule where AID : Enum where 
 
     protected bool CanCast(AID aid) => GetCastTime(aid) <= ForceMovementIn;
 
-    protected float ForceMovementIn => Manager.ActionManager.InputOverride.IsMoveRequested() ? 0 : Hints.ForceMovementIn;
+    protected float ForceMovementIn;
 
     protected bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     protected bool Unlocked(TraitID tid) => TraitUnlocked((uint)(object)tid);
@@ -140,7 +140,7 @@ public abstract class xbase<AID, TraitID> : LegacyModule where AID : Enum where 
     protected PositionCheck IsSplashTarget => (Actor primary, Actor other) => Hints.TargetInAOECircle(other, primary.Position, 5);
     protected PositionCheck Is25yRectTarget => (Actor primary, Actor other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 25, 4);
 
-    public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay)
+    public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
     {
         var pelo = Player.FindStatus(BRD.SID.Peloton);
         PelotonLeft = pelo != null ? _state.StatusDuration(pelo.Value.ExpireAt) : 0;
@@ -148,6 +148,7 @@ public abstract class xbase<AID, TraitID> : LegacyModule where AID : Enum where 
         TrueNorthLeft = StatusLeft(DRG.SID.TrueNorth);
 
         _state.AnimationLockDelay = MathF.Max(0.1f, _state.AnimationLockDelay);
+        ForceMovementIn = forceMovementIn;
 
         CombatTimer = (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds;
 

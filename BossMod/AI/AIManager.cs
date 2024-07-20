@@ -19,6 +19,7 @@ sealed class AIManager : IDisposable
     private readonly UISimpleWindow _ui;
 
     private WorldState WorldState => _autorot.Bossmods.WorldState;
+    public float ForceMovementIn => _beh?.ForceMovementIn ?? float.MaxValue;
 
     public AIManager(RotationModuleManager autorot, ActionManagerEx amex)
     {
@@ -109,7 +110,6 @@ sealed class AIManager : IDisposable
 
         _masterSlot = PartyState.PlayerSlot;
         _controller.Clear();
-        _autorot.Hints.ForceMovementIn = float.MaxValue;
     }
 
     private void SwitchToFollow(int masterSlot)
