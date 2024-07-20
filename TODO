@@ -1,5 +1,4 @@
 autorotation v2 cleanup:
-- rmm in replay analysis
 - preset/plan editors should properly react to external changes
 - ipc for autorotation
 - actiondefinitions

@@ -86,7 +86,7 @@ public sealed class Plugin : IDalamudPlugin
         _configUI = new(Service.Config, _ws, _rotationDB);
         _wndBossmod = new(_bossmod);
         _wndBossmodHints = new(_bossmod);
-        _wndReplay = new(_ws, _rotationDB.Plans, new(dalamud.ConfigDirectory.FullName + "/replays"));
+        _wndReplay = new(_ws, _rotationDB, new(dalamud.ConfigDirectory.FullName + "/replays"));
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Presets"));
         _wndDebug = new(_ws, _rotation, _amex);
 

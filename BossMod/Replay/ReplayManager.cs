@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BossMod;
 
-public sealed class ReplayManager(PlanDatabase planDB, string fileDialogStartPath) : IDisposable
+public sealed class ReplayManager(RotationDatabase rotationDB, string fileDialogStartPath) : IDisposable
 {
     private sealed class ReplayEntry : IDisposable
     {
@@ -38,9 +38,9 @@ public sealed class ReplayManager(PlanDatabase planDB, string fileDialogStartPat
             Disposed = true;
         }
 
-        public void Show(PlanDatabase planDB)
+        public void Show(RotationDatabase rotationDB)
         {
-            Window ??= new(Replay.Result, planDB);
+            Window ??= new(Replay.Result, rotationDB);
             Window.IsOpen = true;
             Window.BringToFront();
         }
@@ -92,7 +92,7 @@ public sealed class ReplayManager(PlanDatabase planDB, string fileDialogStartPat
         {
             if (e.AutoShowWindow && e.Window == null && e.Replay.IsCompletedSuccessfully && e.Replay.Result.Ops.Count > 0)
             {
-                e.Show(planDB);
+                e.Show(rotationDB);
             }
         }
         // auto-show analysis windows that are now ready, auto dispose entries that had their windows closed
@@ -156,7 +156,7 @@ public sealed class ReplayManager(PlanDatabase planDB, string fileDialogStartPat
                 if (popup)
                 {
                     if (ImGui.MenuItem("Show"))
-                        e.Show(planDB);
+                        e.Show(rotationDB);
                     if (ImGui.MenuItem("Convert to verbose"))
                         ConvertLog(e.Replay.Result, ReplayLogFormat.TextVerbose);
                     if (ImGui.MenuItem("Convert to short text"))

@@ -33,7 +33,7 @@ class UITestWindow : UIWindow
         _onConfigModified = Service.Config.Modified.Subscribe(() => ConfigModified = true);
 
         _rotationDB = new(new(rotationRoot));
-        _replayManager = new(_rotationDB.Plans, ".");
+        _replayManager = new(_rotationDB, ".");
     }
 
     protected override void Dispose(bool disposing)

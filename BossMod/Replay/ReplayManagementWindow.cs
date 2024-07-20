@@ -18,12 +18,12 @@ public class ReplayManagementWindow : UIWindow
 
     private const string _windowID = "###Replay recorder";
 
-    public ReplayManagementWindow(WorldState ws, PlanDatabase planDB, DirectoryInfo logDir) : base(_windowID, false, new(300, 200))
+    public ReplayManagementWindow(WorldState ws, RotationDatabase rotationDB, DirectoryInfo logDir) : base(_windowID, false, new(300, 200))
     {
         _ws = ws;
         _logDir = logDir;
         _config = Service.Config.Get<ReplayManagementConfig>();
-        _manager = new(planDB, logDir.FullName);
+        _manager = new(rotationDB, logDir.FullName);
         _subscriptions = new
         (
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI),
