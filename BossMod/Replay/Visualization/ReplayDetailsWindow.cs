@@ -71,6 +71,9 @@ class ReplayDetailsWindow : UIWindow
         ImGui.Checkbox("Override", ref _azimuthOverride);
         if (_mgr.ActiveModule != null)
         {
+            _hintsBuilder.Update(_hints, _povSlot);
+            _rmm.Update(0, float.MaxValue);
+
             var drawTimerPre = DateTime.Now;
             _mgr.ActiveModule.Draw(_azimuthOverride ? _azimuth.Degrees() : _mgr.WorldState.Client.CameraAzimuth, _povSlot, true, true);
             var drawTimerPost = DateTime.Now;
@@ -428,12 +431,7 @@ class ReplayDetailsWindow : UIWindow
             _hintsBuilder = new(_player.WorldState, _mgr);
             _rmm = new(_rotationDB, _mgr, _hints);
         }
-        _player.AdvanceTo(t, () =>
-        {
-            _mgr.Update();
-            _hintsBuilder.Update(_hints, _povSlot);
-            _rmm.Update(0, float.MaxValue);
-        });
+        _player.AdvanceTo(t, _mgr.Update);
         _curTime = t;
         ResetPF();
     }

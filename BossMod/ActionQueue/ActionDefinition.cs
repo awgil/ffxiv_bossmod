@@ -80,6 +80,15 @@ public sealed record class ActionDefinition(ActionID ID)
     public float ExtraReadyIn(ReadOnlySpan<Cooldown> cooldowns) => ExtraCooldownGroup >= 0 ? cooldowns[ExtraCooldownGroup].Remaining : 0;
     public float ReadyIn(ReadOnlySpan<Cooldown> cooldowns) => Math.Max(MainReadyIn(cooldowns), ExtraReadyIn(cooldowns));
 
+    // return time until charges are capped (for multi-charge abilities; for single-charge this is equivalent to remaining cooldown)
+    public float ChargeCapIn(ReadOnlySpan<Cooldown> cooldowns, int level)
+    {
+        if (MainCooldownGroup < 0)
+            return 0;
+        var cdg = cooldowns[MainCooldownGroup];
+        return cdg.Total > 0 ? (MaxChargesAtLevel(level) * Cooldown - cdg.Elapsed) : 0;
+    }
+
     private static bool LinkUnlocked(uint link) => link == 0 || (ActionDefinitions.Instance.UnlockCheck?.Invoke(link) ?? true);
 }
 
