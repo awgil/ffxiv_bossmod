@@ -1,14 +1,10 @@
 ﻿using BossMod.GNB;
-using Dalamud.Game.ClientState.JobGauge.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using FFXIVClientStructs.FFXIV.Common.Lua;
 
 namespace BossMod.Autorotation.akechi;
-
-public sealed class GNB(RotationModuleManager manager, Actor player) : xbase<AID, TraitID>(manager, player)
+public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID, TraitID>(manager, player)
 {
-    public enum Track { AOE, Targeting, Buffs, Partner }
-    public enum PartnerStrategy { Automatic, Manual }
+    public enum Track { AOE, Targeting, Buffs }
 
     public static RotationModuleDefinition Definition()
     {

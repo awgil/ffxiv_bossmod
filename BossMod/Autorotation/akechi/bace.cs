@@ -10,18 +10,17 @@ public enum Targeting { Auto, Manual, AutoPrimary }
 public enum OffensiveStrategy { Automatic, Delay, Force }
 public enum AOEStrategy { AOE, SingleTarget }
 
-public abstract class xbase<AID, TraitID> : LegacyModule where AID : Enum where TraitID : Enum
+public abstract class bace<AID, TraitID> : LegacyModule where AID : Enum where TraitID : Enum
 {
     public class State(RotationModule module) : CommonState(module) { }
 
     protected State _state;
 
-    protected float PelotonLeft { get; private set; }
     protected float SwiftcastLeft { get; private set; }
     protected float TrueNorthLeft { get; private set; }
     protected float CombatTimer { get; private set; }
 
-    protected xbase(RotationModuleManager manager, Actor player) : base(manager, player)
+    protected bace(RotationModuleManager manager, Actor player) : base(manager, player)
     {
         _state = new(this);
     }
@@ -95,7 +94,7 @@ public abstract class xbase<AID, TraitID> : LegacyModule where AID : Enum where 
 
     protected bool CanCast(AID aid) => GetCastTime(aid) <= ForceMovementIn;
 
-    protected float ForceMovementIn => Manager.ActionManager.InputOverride.IsMoveRequested() ? 0 : Hints.ForceMovementIn;
+    protected float ForceMovementIn;
 
     protected bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     protected bool Unlocked(TraitID tid) => TraitUnlocked((uint)(object)tid);
@@ -137,17 +136,14 @@ public abstract class xbase<AID, TraitID> : LegacyModule where AID : Enum where 
 
     protected int NumMeleeAOETargets() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
 
-    protected PositionCheck IsSplashTarget => (Actor primary, Actor other) => Hints.TargetInAOECircle(other, primary.Position, 5);
-    protected PositionCheck Is25yRectTarget => (Actor primary, Actor other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 25, 4);
-
-    public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay)
+    public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
     {
         var pelo = Player.FindStatus(BRD.SID.Peloton);
-        PelotonLeft = pelo != null ? _state.StatusDuration(pelo.Value.ExpireAt) : 0;
         SwiftcastLeft = StatusLeft(WHM.SID.Swiftcast);
         TrueNorthLeft = StatusLeft(DRG.SID.TrueNorth);
 
         _state.AnimationLockDelay = MathF.Max(0.1f, _state.AnimationLockDelay);
+        ForceMovementIn = forceMovementIn;
 
         CombatTimer = (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds;
 
@@ -155,7 +151,6 @@ public abstract class xbase<AID, TraitID> : LegacyModule where AID : Enum where 
     }
 
     public abstract void Exec(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay);
-
     protected (float Left, int Stacks) Status<SID>(SID status) where SID : Enum => _state.StatusDetails(Player, status, Player.InstanceID);
     protected float StatusLeft<SID>(SID status) where SID : Enum => Status(status).Left;
     protected int StatusStacks<SID>(SID status) where SID : Enum => Status(status).Stacks;
