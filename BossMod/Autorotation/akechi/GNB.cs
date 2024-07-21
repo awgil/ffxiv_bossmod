@@ -95,11 +95,18 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
                     PushGCD(AID.LionHeart, primaryTarget);
             }
 
+            // SonicBreak
+            if (Unlocked(AID.SonicBreak) && ShouldUseSonic(strategy))
+            {
+                if (ReadyToBreak && _state.CD(AID.NoMercy) <= 42.45)
+                    PushGCD(AID.SonicBreak, primaryTarget);
+            }
+
             // BurstStrike
             if (Unlocked(AID.BurstStrike) && ShouldUseBurstStrike(strategy))
             {
                 if (Ammo >= 1 & _state.CD(AID.DoubleDown) > 0 && _state.CD(AID.GnashingFang) > 0 && GunComboStep == 0 && !ReadyToReign && NoMercy)
-                    PushGCD(AID.BurstStrike, primaryTarget);
+                    PushGCD(AID.BurstStrike, primaryTarget); // General use
                 if (Ammo >= 2 && !Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown))
                     PushGCD(AID.BurstStrike, primaryTarget); // subLv76 AOE BS
                 if (!Unlocked(AID.DoubleDown) && !Unlocked(AID.Bloodfest) && !Unlocked(AID.Continuation) && !Unlocked(AID.GnashingFang) && !Unlocked(AID.SonicBreak))
@@ -108,13 +115,6 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
                     PushGCD(AID.BurstStrike, primaryTarget); // Lv60 AOE BS 
                 if (!Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown) && !Unlocked(AID.Bloodfest) && Unlocked(AID.Continuation))
                     PushGCD(AID.BurstStrike, primaryTarget); // Lv70 AOE BS
-            }
-
-            // SonicBreak
-            if (Unlocked(AID.SonicBreak) && ShouldUseSonic(strategy))
-            {
-                if (ReadyToBreak && _state.CD(AID.NoMercy) <= 42)
-                    PushGCD(AID.SonicBreak, primaryTarget);
             }
         }
 
