@@ -95,29 +95,19 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
                     PushGCD(AID.LionHeart, primaryTarget);
             }
 
-            if (ComboLastMove == AID.ReignOfBeasts)
-                PushGCD(ReignCombo, primaryTarget);
-
             // BurstStrike
             if (Unlocked(AID.BurstStrike) && ShouldUseBurstStrike(strategy))
             {
+                if (Ammo >= 1 & _state.CD(AID.DoubleDown) > 0 && _state.CD(AID.GnashingFang) > 0 && GunComboStep == 0 && !ReadyToReign && NoMercy)
+                    PushGCD(AID.BurstStrike, primaryTarget);
                 if (Ammo >= 2 && !Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown))
-                {
-                    PushGCD(AID.BurstStrike, primaryTarget); // Lv30-72 AOE BS
-                }
+                    PushGCD(AID.BurstStrike, primaryTarget); // subLv76 AOE BS
                 if (!Unlocked(AID.DoubleDown) && !Unlocked(AID.Bloodfest) && !Unlocked(AID.Continuation) && !Unlocked(AID.GnashingFang) && !Unlocked(AID.SonicBreak))
-                {
                     PushGCD(AID.BurstStrike, primaryTarget); // Lv30-53 AOE BS
-                }
                 if (Ammo >= 2 && Unlocked(AID.SonicBreak) && Unlocked(AID.GnashingFang) && _state.CD(AID.GnashingFang) > _state.AnimationLock && !Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown))
-                {
                     PushGCD(AID.BurstStrike, primaryTarget); // Lv60 AOE BS 
-                }
-                if (!Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown) && !Unlocked(AID.Bloodfest) &&
-                    Unlocked(AID.Continuation))
-                {
+                if (!Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown) && !Unlocked(AID.Bloodfest) && Unlocked(AID.Continuation))
                     PushGCD(AID.BurstStrike, primaryTarget); // Lv70 AOE BS
-                }
             }
 
             // SonicBreak
@@ -259,7 +249,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
         }
         else
         {
-            return ((Unlocked(AID.Bloodfest) && Unlocked(AID.Bloodfest) && Ammo == 1) // Opener conditions
+            return ((Unlocked(AID.Bloodfest) && Unlocked(AID.Bloodfest) && Ammo == 1 && _state.CD(AID.Bloodfest) == 0) // Opener/Reopener conditions
                     || (!Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown) && !Unlocked(AID.Bloodfest) &&
                     !Unlocked(AID.Continuation) && !Unlocked(AID.GnashingFang) && !Unlocked(AID.SonicBreak) &&
                     Ammo == MaxCartridges) // subLv53
