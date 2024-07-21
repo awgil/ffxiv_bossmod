@@ -626,6 +626,9 @@ public sealed class ReplayParserLog : IDisposable
         cooldowns.Capacity = _input.ReadByte(false);
         for (int i = 0; i < cooldowns.Capacity; ++i)
             cooldowns.Add((_input.ReadByte(false), new(_input.ReadFloat(), _input.ReadFloat())));
+        if (_version < 19)
+            foreach (ref var cd in cooldowns.AsSpan())
+                cd.Item2.Elapsed = cd.Item2.Total - cd.Item2.Elapsed; // there was a mistake before v19 where remaining was saved instead of elapsed
         return new(reset, cooldowns);
     }
 
