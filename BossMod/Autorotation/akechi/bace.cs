@@ -138,7 +138,6 @@ public abstract class bace<AID, TraitID> : LegacyModule where AID : Enum where T
 
     public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
     {
-        var pelo = Player.FindStatus(BRD.SID.Peloton);
         SwiftcastLeft = StatusLeft(WHM.SID.Swiftcast);
         TrueNorthLeft = StatusLeft(DRG.SID.TrueNorth);
 
