@@ -193,7 +193,7 @@ public sealed class ClientState
             output.Emit(Reset);
             output.Emit((byte)Cooldowns.Count);
             foreach (var e in Cooldowns)
-                output.Emit((byte)e.group).Emit(e.value.Remaining).Emit(e.value.Total);
+                output.Emit((byte)e.group).Emit(e.value.Elapsed).Emit(e.value.Total);
         }
     }
 
