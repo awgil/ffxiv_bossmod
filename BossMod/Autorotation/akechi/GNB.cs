@@ -1,5 +1,6 @@
 ﻿using BossMod.GNB;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 
 namespace BossMod.Autorotation.akechi;
 public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID, TraitID>(manager, player)
@@ -40,13 +41,13 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
     public AID BestZone => Unlocked(AID.BlastingZone) ? AID.BlastingZone : AID.DangerZone;
     public AID BestContinuation => ReadyToRip ? AID.JugularRip : ReadyToTear ? AID.AbdomenTear : ReadyToGouge ? AID.EyeGouge : ReadyToBlast ? AID.Hypervelocity : AID.Continuation;
     public AID ComboLastMove => (AID)World.Client.ComboState.Action;
+    public AID ComboTime => (AID)World.Client.ComboState.Remaining;
+    public AID ReignCombo => ComboLastMove == AID.ReignOfBeasts ? AID.NobleBlood : ComboLastMove == AID.NobleBlood ? AID.LionHeart : AID.Bloodfest;
 
     protected override float GetCastTime(AID aid) => 0;
 
     private void GetNextBestGCD(StrategyValues strategy, Actor? primaryTarget)
     {
-        var canReign = (ReadyToReign && GunComboStep == 0) || ComboLastMove == AID.NobleBlood || ComboLastMove == AID.ReignOfBeasts;
-
         // prepull
         if (!_state.TargetingEnemy || _state.CountdownRemaining > 0.7f)
             PushGCD(AID.None, Player);
@@ -82,13 +83,20 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
                     PushGCD(AID.DoubleDown, primaryTarget);
             }
 
-            // ReignOfBeasts
-            if (Unlocked(AID.ReignOfBeasts) && ShouldUseBeasts(strategy))
+            // Reign Combo
+            if (Unlocked(AID.ReignOfBeasts))
             {
-                if (canReign && _state.CD(AID.DoubleDown) > 0
+                if (ShouldUseBeasts(strategy) && _state.CD(AID.DoubleDown) > 0
                     && _state.CD(AID.GnashingFang) > 0)
                     PushGCD(AID.ReignOfBeasts, primaryTarget);
+                if (ShouldUseNoble(strategy))
+                    PushGCD(AID.NobleBlood, primaryTarget);
+                if (ShouldUseLion(strategy))
+                    PushGCD(AID.LionHeart, primaryTarget);
             }
+
+            if (ComboLastMove == AID.ReignOfBeasts)
+                PushGCD(ReignCombo, primaryTarget);
 
             // BurstStrike
             if (Unlocked(AID.BurstStrike) && ShouldUseBurstStrike(strategy))
@@ -131,7 +139,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
             }
         }
         // AOE Logic 80 & below
-        else if (NumAOETargets >= 2)
+        if (NumAOETargets >= 2)
         {
             if (Ammo >= 2 && GunComboStep == 0)
             {
@@ -155,18 +163,6 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
 
         if (Unlocked(AID.Continuation) && (ReadyToBlast || ReadyToRaze || ReadyToGouge || ReadyToTear || ReadyToRip))
             PushOGCD(BestContinuation, primaryTarget);
-
-        // NobleBlood
-        if (Unlocked(AID.ReignOfBeasts) && ShouldUseNoble(strategy))
-        {
-            PushGCD(AID.NobleBlood, primaryTarget);
-        }
-
-        // LionHeart
-        if (Unlocked(AID.ReignOfBeasts) && ShouldUseLion(strategy))
-        {
-            PushGCD(AID.LionHeart, primaryTarget);
-        }
 
         // GF2&3
         if (GunComboStep > 0)
@@ -193,7 +189,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
             if (Ammo != MaxCartridges)
                 PushGCD(AID.SolidBarrel, primaryTarget);
         }
-        else if (ComboLastMove == AID.KeenEdge)
+        if (ComboLastMove == AID.KeenEdge)
         {
             PushGCD(AID.BrutalShell, primaryTarget);
         }
@@ -324,6 +320,8 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
 
         return (ReadyToReign && GunComboStep == 0);
     }
+
+    // NB plan
     private bool ShouldUseNoble(StrategyValues strategy)
     {
         if (!Unlocked(AID.ReignOfBeasts))
@@ -331,8 +329,10 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
             return false;
         }
 
-        return ComboLastMove == AID.ReignOfBeasts;
+        return GunComboStep == 3;
     }
+
+    // LH plan
     private bool ShouldUseLion(StrategyValues strategy)
     {
         if (!Unlocked(AID.ReignOfBeasts))
@@ -340,7 +340,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
             return false;
         }
 
-        return ComboLastMove == AID.NobleBlood;
+        return GunComboStep == 4;
     }
 
     // BS plan

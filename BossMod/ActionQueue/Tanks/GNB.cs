@@ -41,9 +41,9 @@ public enum AID : uint
     DoubleDown = 25760, // L90, instant, 60.0s CD (group 12/57), range 0, AOE 5 circle, targets=self
     GreatNebula = 36935, // L92, instant, 120.0s CD, range 0, single-target, targeets=self
     FatedBrand = 36936, // L96, instant, 1.0s CD, (group 0), range 5, AOE, targets=hostile
-    LionHeart = 36939, // L100, instant, GCD, range 3, single-target, targets=hostile
-    NobleBlood = 36938, // L100, instant, GCD, range 3, single-target, targets=hostile
     ReignOfBeasts = 36937, // L100, instant, GCD, range 3, single-target, targets=hostile
+    NobleBlood = 36938, // L100, instant, GCD, range 3, single-target, targets=hostile
+    LionHeart = 36939, // L100, instant, GCD, range 3, single-target, targets=hostile
 
     // Shared
     ShieldWall = ClassShared.AID.ShieldWall, // LB1, instant, range 0, AOE 50 circle, targets=self, animLock=1.930
@@ -102,7 +102,7 @@ public enum SID : uint
     GreatNebula = 3838, // applied by Nebula to self
     ReadyToRaze = 3839, // applied by Fated Circle to self
     ReadyToBreak = 3886, // applied by No mercy to self
-    ReadyToReign = 3840, // applied by Bloodfest to self
+    ReadyToReign = 3840, // applied by Bloodfest to target
 }
 
 public sealed class Definitions : IDisposable
