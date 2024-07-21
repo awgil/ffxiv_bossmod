@@ -45,6 +45,8 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
 
     private void GetNextBestGCD(StrategyValues strategy, Actor? primaryTarget)
     {
+        var canReign = (ReadyToReign && GunComboStep == 0) || ComboLastMove == AID.NobleBlood || ComboLastMove == AID.ReignOfBeasts;
+
         // prepull
         if (!_state.TargetingEnemy || _state.CountdownRemaining > 0.7f)
             PushGCD(AID.None, Player);
@@ -80,6 +82,14 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
                     PushGCD(AID.DoubleDown, primaryTarget);
             }
 
+            // ReignOfBeasts
+            if (Unlocked(AID.ReignOfBeasts) && ShouldUseBeasts(strategy))
+            {
+                if (canReign && _state.CD(AID.DoubleDown) > 0
+                    && _state.CD(AID.GnashingFang) > 0)
+                    PushGCD(AID.ReignOfBeasts, primaryTarget);
+            }
+
             // BurstStrike
             if (Unlocked(AID.BurstStrike) && ShouldUseBurstStrike(strategy))
             {
@@ -91,7 +101,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
                 {
                     PushGCD(AID.BurstStrike, primaryTarget); // Lv30-53 AOE BS
                 }
-                if (Ammo >= 2 && Unlocked(AID.SonicBreak) && Unlocked(AID.GnashingFang) && (_state.CD(AID.GnashingFang) > _state.AnimationLock && !Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown)))
+                if (Ammo >= 2 && Unlocked(AID.SonicBreak) && Unlocked(AID.GnashingFang) && _state.CD(AID.GnashingFang) > _state.AnimationLock && !Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown))
                 {
                     PushGCD(AID.BurstStrike, primaryTarget); // Lv60 AOE BS 
                 }
@@ -146,26 +156,16 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
         if (Unlocked(AID.Continuation) && (ReadyToBlast || ReadyToRaze || ReadyToGouge || ReadyToTear || ReadyToRip))
             PushOGCD(BestContinuation, primaryTarget);
 
-        // ReignOfBeasts
-        if (Unlocked(AID.ReignOfBeasts) && ShouldUseBeasts(strategy) && GunComboStep == 0)
-        {
-            if (_state.CD(AID.NoMercy) > 40 && _state.CD(AID.DoubleDown) > 0
-                && _state.CD(AID.GnashingFang) > 0)
-                PushGCD(AID.ReignOfBeasts, primaryTarget);
-        }
-
         // NobleBlood
-        if (Unlocked(AID.ReignOfBeasts) && ShouldUseNoble(strategy) && GunComboStep == 0)
+        if (Unlocked(AID.ReignOfBeasts) && ShouldUseNoble(strategy))
         {
-            if (ComboLastMove == AID.ReignOfBeasts && _state.CD(AID.DoubleDown) > 0)
-                PushGCD(AID.NobleBlood, primaryTarget);
+            PushGCD(AID.NobleBlood, primaryTarget);
         }
 
         // LionHeart
-        if (Unlocked(AID.ReignOfBeasts) && ShouldUseLion(strategy) && GunComboStep == 0)
+        if (Unlocked(AID.ReignOfBeasts) && ShouldUseLion(strategy))
         {
-            if (ComboLastMove == AID.NobleBlood && _state.CD(AID.DoubleDown) > 0)
-                PushGCD(AID.LionHeart, primaryTarget);
+            PushGCD(AID.LionHeart, primaryTarget);
         }
 
         // GF2&3
@@ -322,7 +322,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
             return false;
         }
 
-        return (_state.CD(AID.Bloodfest) >= 90) && Unlocked(AID.ReignOfBeasts);
+        return (ReadyToReign && GunComboStep == 0);
     }
     private bool ShouldUseNoble(StrategyValues strategy)
     {
@@ -331,7 +331,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
             return false;
         }
 
-        return (_state.CD(AID.Bloodfest) >= 90) && ComboLastMove == (AID.ReignOfBeasts);
+        return ComboLastMove == AID.ReignOfBeasts;
     }
     private bool ShouldUseLion(StrategyValues strategy)
     {
@@ -340,7 +340,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
             return false;
         }
 
-        return (_state.CD(AID.Bloodfest) >= 90 && ComboLastMove == (AID.NobleBlood));
+        return ComboLastMove == AID.NobleBlood;
     }
 
     // BS plan
