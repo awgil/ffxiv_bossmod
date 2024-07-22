@@ -5,17 +5,8 @@ using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 namespace BossMod.Autorotation.akechi;
 public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID, TraitID>(manager, player)
 {
-    public enum Track { AOE, Targeting, Buffs, SonicBreak, DoubleDown, GnashingFang, BurstStrike, NoMercy, Bloodfest, Zone, BowShock, ForceST, ForceAOE }
-    public enum SonicBreakStrategy { Force, Delay, Automatic }
-    public enum DoubleDownStrategy { Force, Delay, Automatic }
-    public enum GnashingFangStrategy { Force, Delay, Automatic }
-    public enum BurstStrikeStrategy { Force, Delay, Automatic }
-    public enum NoMercyStrategy { Force, Delay, Automatic }
-    public enum BloodfestStrategy { Force, Delay, Automatic }
-    public enum ZoneStrategy { Force, Delay, Automatic }
-    public enum BowShockStrategy { Force, Delay, Automatic }
-    public enum FSTstrategy { Force, Automatic } // force ST
-    public enum FAOEstrategy { Force, Automatic } // force AOE
+    public enum Track { AOE, Targeting, Buffs, SonicBreak, DoubleDown, GnashingFang, BurstStrike, NoMercy, Bloodfest, Zone, BowShock }
+    public enum OffensiveStrategy { Force, Delay, Automatic }
 
     public static RotationModuleDefinition Definition()
     {
@@ -23,46 +14,40 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
 
         def.DefineAOE(Track.AOE);
         def.DefineTargeting(Track.Targeting);
-        def.DefineSimple(Track.Buffs, "Buffs").AddAssociatedActions(AID.NoMercy, AID.Bloodfest);
+        def.DefineSimple(Track.Buffs, "Buffs").AddAssociatedActions(AID.NoMercy);
 
-        def.Define(Track.SonicBreak).As<SonicBreakStrategy>("SB")
-            .AddOption(SonicBreakStrategy.Force, "Force", "Force use of Sonic Break")
-            .AddOption(SonicBreakStrategy.Delay, "Delay", "Delay use of Sonic break")
-            .AddOption(SonicBreakStrategy.Automatic, "Auto", "Normal use of Sonic break");
-        def.Define(Track.DoubleDown).As<DoubleDownStrategy>("DD")
-            .AddOption(DoubleDownStrategy.Force, "Force", "Force use of Double Down")
-            .AddOption(DoubleDownStrategy.Delay, "Delay", "Delay use of Double Down")
-            .AddOption(DoubleDownStrategy.Automatic, "Auto", "Normal use of Double Down");
-        def.Define(Track.GnashingFang).As<GnashingFangStrategy>("GF")
-            .AddOption(GnashingFangStrategy.Force, "Force", "Force use of Gnashing Fang")
-            .AddOption(GnashingFangStrategy.Delay, "Delay", "Delay use of Gnashing Fang")
-            .AddOption(GnashingFangStrategy.Automatic, "Auto", "Normal use of Gnashing Fang");
-        def.Define(Track.BurstStrike).As<BurstStrikeStrategy>("BStrike")
-            .AddOption(BurstStrikeStrategy.Force, "Force", "Force use of Burst Strike")
-            .AddOption(BurstStrikeStrategy.Delay, "Delay", "Delay use of Burst Strike")
-            .AddOption(BurstStrikeStrategy.Automatic, "Auto", "Normal use of Burst Strike");
-        def.Define(Track.NoMercy).As<NoMercyStrategy>("NM")
-            .AddOption(NoMercyStrategy.Force, "Force", "Force use of No Mercy")
-            .AddOption(NoMercyStrategy.Delay, "Delay", "Delay use of No Mercy")
-            .AddOption(NoMercyStrategy.Automatic, "Auto", "Normal use of No Mercy");
-        def.Define(Track.Bloodfest).As<BloodfestStrategy>("BF")
-            .AddOption(BloodfestStrategy.Force, "Force", "Force use of Bloodfest")
-            .AddOption(BloodfestStrategy.Delay, "Delay", "Delay use of Bloodfest")
-            .AddOption(BloodfestStrategy.Automatic, "Auto", "Normal use of Bloodfest");
-        def.Define(Track.Zone).As<ZoneStrategy>("Zone")
-            .AddOption(ZoneStrategy.Force, "Force", "Force use of Danger/Blasting Zone")
-            .AddOption(ZoneStrategy.Delay, "Delay", "Delay use of Danger/Blasting Zone")
-            .AddOption(ZoneStrategy.Automatic, "Auto", "Normal use of Danger/Blasting Zone");
-        def.Define(Track.BowShock).As<BowShockStrategy>("BShock")
-            .AddOption(BowShockStrategy.Force, "Force", "Force use of Bow Shock")
-            .AddOption(BowShockStrategy.Delay, "Delay", "Delay use of Bow Shock")
-            .AddOption(BowShockStrategy.Automatic, "Auto", "Normal use of Bow Shock");
-        def.Define(Track.ForceST).As<FSTstrategy>("Force ST")
-            .AddOption(FSTstrategy.Force, "Force", "Force use of Single Target rotation")
-            .AddOption(FSTstrategy.Automatic, "Auto", "Use original rotation");
-        def.Define(Track.ForceAOE).As<FAOEstrategy>("Force AOE")
-            .AddOption(FAOEstrategy.Force, "Force", "Force use of AOE rotation")
-            .AddOption(FAOEstrategy.Automatic, "Auto", "Use original rotation");
+        def.Define(Track.SonicBreak).As<OffensiveStrategy>("SB")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Sonic Break")
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Sonic break")
+            .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Sonic break");
+        def.Define(Track.DoubleDown).As<OffensiveStrategy>("DD")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Double Down")
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Double Down")
+            .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Double Down");
+        def.Define(Track.GnashingFang).As<OffensiveStrategy>("GF")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Gnashing Fang")
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Gnashing Fang")
+            .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Gnashing Fang");
+        def.Define(Track.BurstStrike).As<OffensiveStrategy>("BStrike")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Burst Strike")
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Burst Strike")
+            .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Burst Strike");
+        def.Define(Track.NoMercy).As<OffensiveStrategy>("NM")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of No Mercy")
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of No Mercy")
+            .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of No Mercy");
+        def.Define(Track.Bloodfest).As<OffensiveStrategy>("BF")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Bloodfest")
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Bloodfest")
+            .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Bloodfest");
+        def.Define(Track.Zone).As<OffensiveStrategy>("Zone")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Danger/Blasting Zone")
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Danger/Blasting Zone")
+            .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Danger/Blasting Zone");
+        def.Define(Track.BowShock).As<OffensiveStrategy>("BShock")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Bow Shock")
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Bow Shock")
+            .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Bow Shock");
 
         // strategy.Option(Track.x).As<xStrategy>() == xStrategy.Force
         // strategy.Option(Track.x).As<xStrategy>() == xStrategy.Delay
@@ -110,20 +95,19 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
         if (_state.CD(AID.NoMercy) is <= 60 or >= 40)
         {
             // GnashingFang
-            if (Unlocked(AID.GnashingFang) && ShouldUseGnashingFang(strategy))
+            if (Unlocked(AID.GnashingFang))
             {
-                if (Ammo >= 2 && Unlocked(AID.SonicBreak) && Unlocked(AID.GnashingFang) &&
-                    !Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown))
-                {
-                    PushGCD(AID.GnashingFang, primaryTarget); // Lv60 AOE GF fix
-                }
-                PushGCD(AID.GnashingFang, primaryTarget);
+                if (((_state.TargetingEnemy && _state.CD(AID.GnashingFang) < 0.6f && Ammo >= 1 && (NoMercy || _state.CD(AID.NoMercy) > 17)) || (Ammo >= 2 && Unlocked(AID.SonicBreak) && Unlocked(AID.GnashingFang) &&
+                   !Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown))) || ShouldUseGnashingFang(strategy))
+                    PushGCD(AID.GnashingFang, primaryTarget);
             }
 
             // DoubleDown
-            if (Unlocked(AID.DoubleDown) && ShouldUseDoubleDown(strategy))
+            if (Unlocked(AID.DoubleDown))
             {
-                PushGCD(AID.DoubleDown, primaryTarget);
+                if ((_state.CD(AID.DoubleDown) < 0.6f && _state.CD(AID.NoMercy) < 58 && _state.CD(AID.GnashingFang) > 0 &&
+                    Ammo >= 2) || ShouldUseDoubleDown(strategy))
+                    PushGCD(AID.DoubleDown, primaryTarget);
             }
 
             // Reign Combo
@@ -139,15 +123,23 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
             }
 
             // SonicBreak
-            if (Unlocked(AID.SonicBreak) && ShouldUseSonic(strategy))
+            if (Unlocked(AID.SonicBreak))
             {
-                PushGCD(AID.SonicBreak, primaryTarget);
+                if ((ReadyToBreak && _state.CD(AID.NoMercy) <= 42.45) || ShouldUseSonic(strategy))
+                    PushGCD(AID.SonicBreak, primaryTarget);
             }
 
             // BurstStrike
-            if (Unlocked(AID.BurstStrike) && ShouldUseBurstStrike(strategy))
+            if (Unlocked(AID.BurstStrike))
             {
-                PushGCD(AID.BurstStrike, primaryTarget);
+                if (((Ammo == MaxCartridges && ComboLastMove == AID.BrutalShell) // Overcap
+                    || (Ammo >= 1 & _state.CD(AID.DoubleDown) > 0 && _state.CD(AID.GnashingFang) > 0 && GunComboStep == 0 && !ReadyToReign && NoMercy)
+                    || (Ammo >= 2 && !Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown))
+                    || (!Unlocked(AID.DoubleDown) && !Unlocked(AID.Bloodfest) && !Unlocked(AID.Continuation) && !Unlocked(AID.GnashingFang) && !Unlocked(AID.SonicBreak))
+                    || (Ammo >= 2 && Unlocked(AID.SonicBreak) && Unlocked(AID.GnashingFang) && _state.CD(AID.GnashingFang) > _state.AnimationLock && !Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown))
+                    || (!Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown) && !Unlocked(AID.Bloodfest) && Unlocked(AID.Continuation)))
+                    || ShouldUseBurstStrike(strategy))
+                    PushGCD(AID.BurstStrike, primaryTarget);
             }
         }
 
@@ -226,11 +218,11 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
             return ActionDefinitions.IDPotionStr; */
 
         // No Mercy
-        if (Unlocked(AID.NoMercy) && ShouldUseNoMercy(strategy, deadline))
+        if (Unlocked(AID.NoMercy))
         {
             if (_state.GCD < 0.8f)
             {
-                if ((Unlocked(AID.Bloodfest) && Ammo == 1) // Opener conditions
+                if (((Unlocked(AID.Bloodfest) && Ammo == 1) // Opener conditions
                     || (!Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown) && !Unlocked(AID.Bloodfest) &&
                     !Unlocked(AID.Continuation) && !Unlocked(AID.GnashingFang) && !Unlocked(AID.SonicBreak) &&
                     Ammo == MaxCartridges) // subLv53
@@ -243,26 +235,30 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
                     || (!Unlocked(AID.DoubleDown) && Unlocked(AID.FatedCircle) && Unlocked(AID.Bloodfest) && _state.CD(AID.GnashingFang) < _state.AnimationLock &&
                     Ammo == MaxCartridges) // Lv80
                     || (Unlocked(AID.DoubleDown) && Ammo == MaxCartridges)) // Lv90+
+                    || ShouldUseNoMercy(strategy, deadline))
                     PushOGCD(AID.NoMercy, Player);
             }
         }
 
         // Bloodfest
-        if (Unlocked(AID.Bloodfest) && ShouldUseBloodfest(strategy, primaryTarget) && _state.CanWeave(AID.Bloodfest, 0.6f, deadline))
+        if (Unlocked(AID.Bloodfest) && _state.CanWeave(AID.Bloodfest, 0.6f, deadline))
         {
-            PushOGCD(AID.Bloodfest, primaryTarget);
+            if ((Ammo == 0 && NoMercy) || ShouldUseBloodfest(strategy, primaryTarget))
+                PushOGCD(AID.Bloodfest, primaryTarget);
         }
 
         // Zone
-        if (Unlocked(AID.DangerZone) && ShouldUseZone(strategy, deadline) && _state.CanWeave(AID.DangerZone, 0.6f, deadline))
+        if (Unlocked(AID.DangerZone) && _state.CanWeave(AID.DangerZone, 0.6f, deadline))
         {
-            PushOGCD(BestZone, primaryTarget);
+            if ((_state.TargetingEnemy && (NoMercy || _state.CD(AID.NoMercy) > 17)) || ShouldUseZone(strategy, deadline))
+                PushOGCD(BestZone, primaryTarget);
         }
 
         // Bow Shock
-        if (Unlocked(AID.BowShock) && ShouldUseBowShock(strategy, deadline) && _state.CanWeave(AID.BowShock, 0.6f, deadline))
+        if (Unlocked(AID.BowShock) && _state.CanWeave(AID.BowShock, 0.6f, deadline))
         {
-            PushOGCD(AID.BowShock, primaryTarget);
+            if ((_state.TargetingEnemy && NoMercy) || ShouldUseBowShock(strategy, deadline))
+                PushOGCD(AID.BowShock, primaryTarget);
         }
 
         // Continuation
@@ -273,16 +269,16 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
     // NM plan
     private bool ShouldUseNoMercy(StrategyValues strategy, float deadline)
     {
-        if (!Unlocked(AID.NoMercy) || strategy.Option(Track.NoMercy).As<NoMercyStrategy>() == NoMercyStrategy.Delay)
+        if (!Unlocked(AID.NoMercy) || strategy.Option(Track.NoMercy).As<OffensiveStrategy>() == OffensiveStrategy.Delay)
         {
             return false;
         }
-        if (strategy.Option(Track.NoMercy).As<NoMercyStrategy>() == NoMercyStrategy.Force)
+        if (strategy.Option(Track.NoMercy).As<OffensiveStrategy>() == OffensiveStrategy.Force)
         {
             return true;
         }
 
-        return strategy.Option(Track.NoMercy).As<NoMercyStrategy>() == NoMercyStrategy.Automatic &&
+        return strategy.Option(Track.NoMercy).As<OffensiveStrategy>() == OffensiveStrategy.Automatic &&
             ((Unlocked(AID.Bloodfest) && Unlocked(AID.Bloodfest) && Ammo == 1 && _state.CD(AID.Bloodfest) == 0) // Opener/Reopener conditions
             || (!Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown) && !Unlocked(AID.Bloodfest) &&
             !Unlocked(AID.Continuation) && !Unlocked(AID.GnashingFang) && !Unlocked(AID.SonicBreak) &&
@@ -302,45 +298,45 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
     // Bloodfest plan
     private bool ShouldUseBloodfest(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (!Unlocked(AID.Bloodfest) || strategy.Option(Track.Bloodfest).As<BloodfestStrategy>() == BloodfestStrategy.Delay)
+        if (!Unlocked(AID.Bloodfest) || strategy.Option(Track.Bloodfest).As<OffensiveStrategy>() == OffensiveStrategy.Delay)
         {
             return false;
         }
-        if (strategy.Option(Track.Bloodfest).As<BloodfestStrategy>() == BloodfestStrategy.Force)
+        if (strategy.Option(Track.Bloodfest).As<OffensiveStrategy>() == OffensiveStrategy.Force)
         {
             return true;
         }
-        return strategy.Option(Track.Bloodfest).As<BloodfestStrategy>() == BloodfestStrategy.Automatic &&
+        return strategy.Option(Track.Bloodfest).As<OffensiveStrategy>() == OffensiveStrategy.Automatic &&
             Ammo == 0 && NoMercy;
     }
 
     // Sonic plan
     private bool ShouldUseSonic(StrategyValues strategy)
     {
-        if (!Unlocked(AID.SonicBreak) || !NoMercy || strategy.Option(Track.SonicBreak).As<SonicBreakStrategy>() == SonicBreakStrategy.Delay)
+        if (!Unlocked(AID.SonicBreak) || !NoMercy || strategy.Option(Track.SonicBreak).As<OffensiveStrategy>() == OffensiveStrategy.Delay)
         {
             return false;
         }
-        if (strategy.Option(Track.SonicBreak).As<SonicBreakStrategy>() == SonicBreakStrategy.Force)
+        if (strategy.Option(Track.SonicBreak).As<OffensiveStrategy>() == OffensiveStrategy.Force)
         {
             return true;
         }
-        return (strategy.Option(Track.SonicBreak).As<SonicBreakStrategy>() == SonicBreakStrategy.Automatic &&
+        return (strategy.Option(Track.SonicBreak).As<OffensiveStrategy>() == OffensiveStrategy.Automatic &&
             ReadyToBreak && _state.CD(AID.NoMercy) <= 42.45);
     }
 
     // DD plan
     private bool ShouldUseDoubleDown(StrategyValues strategy)
     {
-        if (!Unlocked(AID.DoubleDown) || strategy.Option(Track.DoubleDown).As<DoubleDownStrategy>() == DoubleDownStrategy.Delay)
+        if (!Unlocked(AID.DoubleDown) || strategy.Option(Track.DoubleDown).As<OffensiveStrategy>() == OffensiveStrategy.Delay)
         {
             return false;
         }
-        if (strategy.Option(Track.DoubleDown).As<DoubleDownStrategy>() == DoubleDownStrategy.Force)
+        if (strategy.Option(Track.DoubleDown).As<OffensiveStrategy>() == OffensiveStrategy.Force)
         {
             return true;
         }
-        return strategy.Option(Track.DoubleDown).As<DoubleDownStrategy>() == DoubleDownStrategy.Automatic &&
+        return strategy.Option(Track.DoubleDown).As<OffensiveStrategy>() == OffensiveStrategy.Automatic &&
             _state.CD(AID.DoubleDown) < 0.6f && _state.CD(AID.NoMercy) < 58 && _state.CD(AID.GnashingFang) > 0 &&
             Ammo >= 2;
     }
@@ -382,15 +378,15 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
     private bool ShouldUseBurstStrike(StrategyValues strategy)
     {
         if (!Unlocked(AID.BurstStrike) || ComboLastMove == AID.ReignOfBeasts || ComboLastMove == AID.NobleBlood ||
-            strategy.Option(Track.BurstStrike).As<BurstStrikeStrategy>() == BurstStrikeStrategy.Delay)
+            strategy.Option(Track.BurstStrike).As<OffensiveStrategy>() == OffensiveStrategy.Delay)
         {
             return false;
         }
-        if (strategy.Option(Track.BurstStrike).As<BurstStrikeStrategy>() == BurstStrikeStrategy.Delay)
+        if (strategy.Option(Track.BurstStrike).As<OffensiveStrategy>() == OffensiveStrategy.Delay)
         {
             return true;
         }
-        return strategy.Option(Track.BurstStrike).As<BurstStrikeStrategy>() == BurstStrikeStrategy.Automatic &&
+        return strategy.Option(Track.BurstStrike).As<OffensiveStrategy>() == OffensiveStrategy.Automatic &&
             ((Ammo == MaxCartridges && ComboLastMove == AID.BrutalShell) // Overcap
             || (Ammo >= 1 & _state.CD(AID.DoubleDown) > 0 && _state.CD(AID.GnashingFang) > 0 && GunComboStep == 0 && !ReadyToReign && NoMercy)
             || (Ammo >= 2 && !Unlocked(AID.FatedCircle) && !Unlocked(AID.DoubleDown))
@@ -402,44 +398,45 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID,
     // GF plan
     private bool ShouldUseGnashingFang(StrategyValues strategy)
     {
-        if (!Unlocked(AID.GnashingFang) || strategy.Option(Track.GnashingFang).As<GnashingFangStrategy>() == GnashingFangStrategy.Delay)
+        if (!Unlocked(AID.GnashingFang) || strategy.Option(Track.GnashingFang).As<OffensiveStrategy>() == OffensiveStrategy.Delay)
         {
             return false;
         }
-        if (strategy.Option(Track.GnashingFang).As<GnashingFangStrategy>() == GnashingFangStrategy.Force)
+        if (strategy.Option(Track.GnashingFang).As<OffensiveStrategy>() == OffensiveStrategy.Force)
         {
             return true;
         }
-        return strategy.Option(Track.GnashingFang).As<GnashingFangStrategy>() == GnashingFangStrategy.Automatic && _state.TargetingEnemy && _state.CD(AID.GnashingFang) < 0.6f && Ammo >= 1 && (NoMercy || _state.CD(AID.NoMercy) > 17);
+        return strategy.Option(Track.GnashingFang).As<OffensiveStrategy>() == OffensiveStrategy.Automatic &&
+            _state.TargetingEnemy && _state.CD(AID.GnashingFang) < 0.6f && Ammo >= 1 && (NoMercy || _state.CD(AID.NoMercy) > 17);
     }
 
     // Zone plan
     private bool ShouldUseZone(StrategyValues strategy, float deadline)
     {
-        if (!Unlocked(AID.DangerZone) || strategy.Option(Track.Zone).As<ZoneStrategy>() == ZoneStrategy.Delay)
+        if (!Unlocked(AID.DangerZone) || strategy.Option(Track.Zone).As<OffensiveStrategy>() == OffensiveStrategy.Delay)
         {
             return false;
         }
-        if (strategy.Option(Track.Zone).As<ZoneStrategy>() == ZoneStrategy.Force)
+        if (strategy.Option(Track.Zone).As<OffensiveStrategy>() == OffensiveStrategy.Force)
         {
             return true;
         }
-        return strategy.Option(Track.Zone).As<ZoneStrategy>() == ZoneStrategy.Automatic &&
+        return strategy.Option(Track.Zone).As<OffensiveStrategy>() == OffensiveStrategy.Automatic &&
             _state.TargetingEnemy && (NoMercy || _state.CD(AID.NoMercy) > 17);
     }
 
     // BowShock plan
     private bool ShouldUseBowShock(StrategyValues strategy, float deadline)
     {
-        if (!Unlocked(AID.BowShock) || strategy.Option(Track.BowShock).As<BowShockStrategy>() == BowShockStrategy.Delay)
+        if (!Unlocked(AID.BowShock) || strategy.Option(Track.BowShock).As<OffensiveStrategy>() == OffensiveStrategy.Delay)
         {
             return false;
         }
-        if (strategy.Option(Track.BowShock).As<BowShockStrategy>() == BowShockStrategy.Force)
+        if (strategy.Option(Track.BowShock).As<OffensiveStrategy>() == OffensiveStrategy.Force)
         {
             return true;
         }
-        return strategy.Option(Track.BowShock).As<BowShockStrategy>() == BowShockStrategy.Automatic &&
+        return strategy.Option(Track.BowShock).As<OffensiveStrategy>() == OffensiveStrategy.Automatic &&
             _state.TargetingEnemy && NoMercy;
     }
 
