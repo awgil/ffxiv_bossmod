@@ -2,7 +2,7 @@
 
 namespace BossMod.Autorotation.akechi;
 
-// thank you xan :)
+// o7
 #pragma warning disable CS8981
 #pragma warning disable IDE1006
 
@@ -10,7 +10,7 @@ public enum Targeting { Auto, Manual, AutoPrimary }
 public enum OffensiveStrategy { Automatic, Delay, Force }
 public enum AOEStrategy { AOE, SingleTarget }
 
-public abstract class bace<AID, TraitID> : LegacyModule where AID : Enum where TraitID : Enum
+public abstract class baseakechi<AID, TraitID> : LegacyModule where AID : Enum where TraitID : Enum
 {
     public class State(RotationModule module) : CommonState(module) { }
 
@@ -20,7 +20,7 @@ public abstract class bace<AID, TraitID> : LegacyModule where AID : Enum where T
     protected float TrueNorthLeft { get; private set; }
     protected float CombatTimer { get; private set; }
 
-    protected bace(RotationModuleManager manager, Actor player) : base(manager, player)
+    protected baseakechi(RotationModuleManager manager, Actor player) : base(manager, player)
     {
         _state = new(this);
     }

@@ -3,7 +3,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 
 namespace BossMod.Autorotation.akechi;
-public sealed class GNB(RotationModuleManager manager, Actor player) : bace<AID, TraitID>(manager, player)
+public sealed class GNB(RotationModuleManager manager, Actor player) : baseakechi<AID, TraitID>(manager, player)
 {
     public enum Track { AOE, Targeting, Buffs, SonicBreak, DoubleDown, GnashingFang, BurstStrike, NoMercy, Bloodfest, Zone, BowShock }
     public enum OffensiveStrategy { Force, Delay, Automatic }
