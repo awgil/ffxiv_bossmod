@@ -24,7 +24,7 @@ public sealed class RaidCooldowns : IDisposable
         _subscriptions.Dispose();
     }
 
-    public float NextDamageBuffIn(DateTime now)
+    public float NextDamageBuffIn()
     {
         // TODO: this is currently quite hacky
         if (_damageCooldowns.Count == 0)
@@ -35,7 +35,20 @@ public sealed class RaidCooldowns : IDisposable
         }
         // find first ability coming off CD and return time until it happens
         var firstAvailable = _damageCooldowns.Select(e => e.AvailableAt).Min();
-        return MathF.Max(0, (float)(firstAvailable - now).TotalSeconds);
+        return MathF.Max(0, (float)(firstAvailable - _ws.CurrentTime).TotalSeconds);
+    }
+
+    public static bool IsDamageBuff(uint statusID) => statusID
+        is (uint)AST.SID.Divination or (uint)DRG.SID.BattleLitany or (uint)RPR.SID.ArcaneCircle or (uint)MNK.SID.Brotherhood
+        or (uint)BRD.SID.BattleVoice or (uint)DNC.SID.TechnicalFinish or (uint)SMN.SID.SearingLight or (uint)RDM.SID.Embolden;
+
+    public float DamageBuffLeft(Actor target)
+    {
+        DateTime expireMax = _ws.CurrentTime;
+        foreach (var status in target.Statuses.Where(s => IsDamageBuff(s.ID)))
+            if (status.ExpireAt > expireMax)
+                expireMax = status.ExpireAt;
+        return (float)(expireMax - _ws.CurrentTime).TotalSeconds;
     }
 
     public float InterruptAvailableIn(int slot, DateTime now) => MathF.Max(0, (float)(_interruptCooldowns[slot] - now).TotalSeconds);
@@ -53,30 +66,30 @@ public sealed class RaidCooldowns : IDisposable
         // TODO: AST card buffs?, all non-damage buffs
         _ = cast.Action.ID switch
         {
-            (uint)BRD.AID.BattleVoice => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 120),
-            //2258 => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 60), // NIN trick attack - note that this results in debuff on enemy, which isn't handled properly for now
-            (uint)DRG.AID.BattleLitany => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 120),
-            (uint)MNK.AID.Brotherhood => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 120),
-            //(uint)DRG.AID.DragonSight => UpdateDamageCooldown(actor.InstanceID, cast.Action, 20, 120), // note that it is single-target rather than raid
-            //(uint)SCH.AID.ChainStratagem => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 120), // note that this results in debuff on enemy, which isn't handled properly for now
-            7520 => UpdateDamageCooldown(actor.InstanceID, cast.Action, 20, 120), // RDM embolden
-            16196 => UpdateDamageCooldown(actor.InstanceID, cast.Action, 20, 120), // DNC technical finish
-            16552 => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 120), // AST divination
-            24405 => UpdateDamageCooldown(actor.InstanceID, cast.Action, 20, 120), // RPR arcane circle
-            (uint)BRD.AID.RadiantFinale => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 120), // note that even though CD is 110, it's used together with other 2min cds
-            (uint)SMN.AID.SearingLight => UpdateDamageCooldown(actor.InstanceID, cast.Action, 30, 120),
+            //(uint)SCH.AID.ChainStratagem => UpdateDamageCooldown(actor.InstanceID, cast.Action), // note that this results in debuff on enemy, which isn't handled properly for now
+            (uint)AST.AID.Divination => UpdateDamageCooldown(actor.InstanceID, cast.Action),
+            (uint)DRG.AID.BattleLitany => UpdateDamageCooldown(actor.InstanceID, cast.Action),
+            (uint)RPR.AID.ArcaneCircle => UpdateDamageCooldown(actor.InstanceID, cast.Action),
+            (uint)MNK.AID.Brotherhood => UpdateDamageCooldown(actor.InstanceID, cast.Action),
+            //(uint)NIN.AID.TrickAttack => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 60), // NIN trick attack - note that this results in debuff on enemy, which isn't handled properly for now
+            (uint)BRD.AID.BattleVoice => UpdateDamageCooldown(actor.InstanceID, cast.Action),
+            //(uint)BRD.AID.RadiantFinale => UpdateDamageCooldown(actor.InstanceID, cast.Action), // note that even though CD is 110, it's used together with other 2min cds
+            (uint)DNC.AID.QuadrupleTechnicalFinish => UpdateDamageCooldown(actor.InstanceID, cast.Action), // DNC technical finish
+            (uint)SMN.AID.SearingLight => UpdateDamageCooldown(actor.InstanceID, cast.Action),
+            (uint)RDM.AID.Embolden => UpdateDamageCooldown(actor.InstanceID, cast.Action), // RDM embolden
             (uint)WAR.AID.Interject or (uint)BRD.AID.HeadGraze => UpdateInterruptCooldown(actor.InstanceID, cast.Action, 30),
+            // TODO: PCT
             _ => false
         };
     }
 
-    private bool UpdateDamageCooldown(ulong casterID, ActionID action, float duration, float cooldown)
+    private bool UpdateDamageCooldown(ulong casterID, ActionID action)
     {
         int slot = _ws.Party.FindSlot(casterID);
         if (slot is < 0 or >= PartyState.MaxPartySize) // ignore cooldowns from other alliance parties
             return false;
 
-        var availableAt = _ws.CurrentTime.AddSeconds(cooldown);
+        var availableAt = _ws.CurrentTime.AddSeconds(120);
         var index = _damageCooldowns.FindIndex(e => e.Slot == slot && e.Action == action);
         if (index < 0)
         {
@@ -86,7 +99,7 @@ public sealed class RaidCooldowns : IDisposable
         {
             _damageCooldowns[index] = (slot, action, availableAt);
         }
-        Service.Log($"[RaidCooldowns] Updating damage cooldown: {action} by {_ws.Party[slot]?.Name} will last for {duration:f1}s and will next be available in {cooldown:f1}s; there are now {_damageCooldowns.Count} entries");
+        Service.Log($"[RaidCooldowns] Updating damage cooldown: {action} by {_ws.Party[slot]?.Name}; there are now {_damageCooldowns.Count} entries");
         return true;
     }
 

@@ -90,6 +90,7 @@ public enum SID : uint
     Stun = 2, // applied by Leg Sweep to target
     FormlessFist = 2513, // applied by Form Shift to self
     SixSidedStar = 2514, // applied by Six-Sided Star to self
+    Brotherhood = 1185,
 
     LostFontofPower = 2346,
     BannerHonoredSacrifice = 2327,

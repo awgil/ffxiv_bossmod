@@ -75,7 +75,7 @@ public abstract class CommonState(RotationModule module)
         FightEndIn = downtime.Item1 ? 0 : downtime.Item2;
         RaidBuffsIn = vuln.Item1 ? 0 : vuln.Item2;
         if (Module.Bossmods.ActiveModule?.Info?.PlanLevel > 0) // assumption: if there is no planning support for encounter (meaning it's something trivial, like outdoor boss), don't expect any cooldowns
-            RaidBuffsIn = Math.Min(RaidBuffsIn, Module.Bossmods.RaidCooldowns.NextDamageBuffIn(Module.World.CurrentTime));
+            RaidBuffsIn = Math.Min(RaidBuffsIn, Module.Bossmods.RaidCooldowns.NextDamageBuffIn());
         PositionLockIn = !poslock.Item1 ? poslock.Item2 : 0;
         NextPositional = Positional.Any;
         NextPositionalImminent = false;
@@ -119,20 +119,5 @@ public abstract class CommonState(RotationModule module)
     // check whether specified status is a damage buff
     // see https://i.redd.it/xrtgpras94881.png
     // TODO: AST card buffs?, enemy debuffs?, single-target buffs (DRG dragon sight, DNC devilment)
-    public bool IsDamageBuff(uint statusID) => statusID switch
-    {
-        49 => true, // medicated
-        141 => true, // BRD battle voice
-        //638 => true, // NIN trick attack - note that this is a debuff on enemy
-        786 => true, // DRG battle litany
-        1185 => true, // MNK brotherhood
-        //1221 => true, // SCH chain stratagem - note that this is a debuff on enemy
-        1297 => true, // RDM embolden
-        1822 => true, // DNC technical finish
-        1878 => true, // AST divination
-        2599 => true, // RPR arcane circle
-        2703 => true, // SMN searing light
-        2964 => true, // BRD radiant finale
-        _ => false
-    };
+    public bool IsDamageBuff(uint statusID) => statusID == 49 || RaidCooldowns.IsDamageBuff(statusID); // medicated or raidbuff
 }

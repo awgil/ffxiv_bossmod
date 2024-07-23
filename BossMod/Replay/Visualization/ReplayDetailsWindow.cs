@@ -126,7 +126,7 @@ class ReplayDetailsWindow : UIWindow
 
                 // TODO: more fancy action history/queue...
                 ImGui.TextUnformatted($"Modules: {_rmm}");
-                ImGui.TextUnformatted($"GCD={_mgr.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f3}, AnimLock={_mgr.WorldState.Client.AnimationLock:f3}, Combo={_mgr.WorldState.Client.ComboState.Remaining:f3}, RBIn={_mgr.RaidCooldowns.NextDamageBuffIn(_mgr.WorldState.CurrentTime):f3}");
+                ImGui.TextUnformatted($"GCD={_mgr.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f3}, AnimLock={_mgr.WorldState.Client.AnimationLock:f3}, Combo={_mgr.WorldState.Client.ComboState.Remaining:f3}, RBIn={_mgr.RaidCooldowns.NextDamageBuffIn():f3}");
                 foreach (var a in _hints.ActionsToExecute.Entries)
                 {
                     ImGui.TextUnformatted($"> {a.Action} ({a.Priority:f2})");

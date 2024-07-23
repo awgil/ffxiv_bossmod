@@ -84,6 +84,11 @@ public enum TraitID : uint
     EnhancedCelestialIntersection = 500, // L88
 }
 
+public enum SID : uint
+{
+    Divination = 1878,
+}
+
 public sealed class Definitions : IDisposable
 {
     public Definitions(ActionDefinitions d)

@@ -72,6 +72,11 @@ public enum TraitID : uint
     EnhancedManaficationII = 486, // L90
 }
 
+public enum SID : uint
+{
+    Embolden = 1297,
+}
+
 public sealed class Definitions : IDisposable
 {
     public Definitions(ActionDefinitions d)
