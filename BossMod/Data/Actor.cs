@@ -26,7 +26,7 @@ public enum ActorType : ushort
 
 public sealed record class ActorCastInfo
 {
-    public static readonly float NPCFinishDelay = 0.3f; // for whatever reason, npc spells have reported remaining cast time consistently 0.3s smaller than reality
+    public const float NPCFinishDelay = 0.3f; // for whatever reason, npc spells have reported remaining cast time consistently 0.3s smaller than reality
 
     public ActionID Action;
     public ulong TargetID;
