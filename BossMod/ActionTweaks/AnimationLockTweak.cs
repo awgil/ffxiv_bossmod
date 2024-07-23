@@ -19,9 +19,10 @@ public sealed class AnimationLockTweak
     private float _lastReqInitialAnimLock;
     private int _lastReqSequence = -1;
 
+    public float DelayMax = 0.02f; // TODO: tweak
     public float DelaySmoothing = 0.8f; // TODO tweak
     public float DelayAverage { get; private set; } = 0.1f; // smoothed delay between client request and server response
-    public float DelayEstimate => _config.RemoveAnimationLockDelay ? 0 : MathF.Min(DelayAverage * 1.5f, 0.1f); // this is a conservative estimate
+    public float DelayEstimate => _config.RemoveAnimationLockDelay ? DelayMax : MathF.Min(DelayAverage * 1.5f, 0.1f); // this is a conservative estimate
 
     // record initial animation lock after action request
     public void RecordRequest(uint expectedSequence, float initialAnimLock)
@@ -45,7 +46,7 @@ public sealed class AnimationLockTweak
             SanityCheck(packetPrevAnimLock, packetCurrAnimLock, gameCurrAnimLock);
             DelayAverage = delay * (1 - DelaySmoothing) + DelayAverage * DelaySmoothing; // update the average
             // the result will be subtracted from current anim lock (and thus from adjusted lock delay)
-            reduction = _config.RemoveCooldownDelay ? Math.Clamp(delay /* - DelayMax */, 0, gameCurrAnimLock) : 0;
+            reduction = _config.RemoveCooldownDelay ? Math.Clamp(delay - DelayMax, 0, gameCurrAnimLock) : 0;
         }
         _lastReqInitialAnimLock = 0;
         _lastReqSequence = -1;
