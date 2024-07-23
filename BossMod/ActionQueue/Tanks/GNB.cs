@@ -22,7 +22,7 @@ public enum AID : uint
     Aurora = 16151, // L45, instant, 60.0s CD (group 19/71), range 30, single-target, targets=self/party/alliance/friendly
     Superbolide = 16152, // L50, instant, 360.0s CD (group 24), range 0, single-target, targets=self
     SonicBreak = 16153, // L54, instant, 60.0s CD (group 13/57), range 3, single-target, targets=hostile
-    RoughDivide = 16154, // L56, instant, 30.0s CD (group 9/70) (2? charges), range 20, single-target, targets=hostile
+    Trajectory = 36934, // L56, instant, 30.0s CD (group 9/70) (2? charges), range 20, single-target, targets=hostile
     GnashingFang = 16146, // L60, instant, 30.0s CD (group 5/57), range 3, single-target, targets=hostile, animLock=0.700
     SavageClaw = 16147, // L60, instant, GCD, range 3, single-target, targets=hostile, animLock=0.500
     WickedTalon = 16150, // L60, instant, GCD, range 3, single-target, targets=hostile, animLock=0.770
@@ -39,6 +39,11 @@ public enum AID : uint
     HeartOfCorundum = 25758, // L82, instant, 25.0s CD (group 3), range 30, single-target, targets=self/party
     Hypervelocity = 25759, // L86, instant, 1.0s CD (group 0), range 5, single-target, targets=hostile
     DoubleDown = 25760, // L90, instant, 60.0s CD (group 12/57), range 0, AOE 5 circle, targets=self
+    GreatNebula = 36935, // L92, instant, 120.0s CD, range 0, single-target, targeets=self
+    FatedBrand = 36936, // L96, instant, 1.0s CD, (group 0), range 5, AOE, targets=hostile
+    ReignOfBeasts = 36937, // L100, instant, GCD, range 3, single-target, targets=hostile
+    NobleBlood = 36938, // L100, instant, GCD, range 3, single-target, targets=hostile
+    LionHeart = 36939, // L100, instant, GCD, range 3, single-target, targets=hostile
 
     // Shared
     ShieldWall = ClassShared.AID.ShieldWall, // LB1, instant, range 0, AOE 50 circle, targets=self, animLock=1.930
@@ -64,6 +69,9 @@ public enum TraitID : uint
     MeleeMastery = 507, // L84
     EnhancedContinuation = 426, // L86
     CartridgeChargeII = 427, // L88
+    NebulaMastery = 574, // L92
+    EnhancedContinuationII = 575,// L96
+    EnhancedBloodfest = 576, // L100
 }
 
 // TODO: regenerate
@@ -91,6 +99,10 @@ public enum SID : uint
     CatharsisOfCorundum = 2685, // applied by Heart of Corundum to self
     RoyalGuard = 1833, // applied by Royal Guard to self
     Stun = 2, // applied by Low Blow to target
+    GreatNebula = 3838, // applied by Nebula to self
+    ReadyToRaze = 3839, // applied by Fated Circle to self
+    ReadyToBreak = 3886, // applied by No mercy to self
+    ReadyToReign = 3840, // applied by Bloodfest to target
 }
 
 public sealed class Definitions : IDisposable
@@ -116,7 +128,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Aurora);
         d.RegisterSpell(AID.Superbolide);
         d.RegisterSpell(AID.SonicBreak);
-        d.RegisterSpell(AID.RoughDivide);
+        d.RegisterSpell(AID.Trajectory);
         d.RegisterSpell(AID.GnashingFang, instantAnimLock: 0.70f);
         d.RegisterSpell(AID.SavageClaw, instantAnimLock: 0.50f);
         d.RegisterSpell(AID.WickedTalon, instantAnimLock: 0.77f);
@@ -133,6 +145,10 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.HeartOfCorundum);
         d.RegisterSpell(AID.Hypervelocity);
         d.RegisterSpell(AID.DoubleDown);
+        d.RegisterSpell(AID.FatedBrand);
+        d.RegisterSpell(AID.ReignOfBeasts);
+        d.RegisterSpell(AID.NobleBlood);
+        d.RegisterSpell(AID.LionHeart);
 
         Customize(d);
     }

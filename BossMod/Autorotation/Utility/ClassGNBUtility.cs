@@ -11,7 +11,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: GNB", "Planner support for utility actions", "LazyLemo, Akechi-kun", RotationModuleQuality.WIP, BitMask.Build((int)Class.GNB), 100);
+        var res = new RotationModuleDefinition("Utility: GNB", "Planner support for utility actions", "Akechi-kun", RotationModuleQuality.WIP, BitMask.Build((int)Class.GNB), 100);
         DefineShared(res, IDLimitBreak3, IDStanceApply, IDStanceRemove);
 
         DefineSimpleConfig(res, Track.Camouflage, "Camouflage", "Camoufl", 450, GNB.AID.Camouflage, 20);
