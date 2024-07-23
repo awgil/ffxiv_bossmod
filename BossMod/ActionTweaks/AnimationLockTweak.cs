@@ -42,7 +42,7 @@ public sealed class AnimationLockTweak
         float reduction = 0;
         if (_lastReqSequence == sequence && _lastReqInitialAnimLock > 0)
         {
-            SanityCheck(packetPrevAnimLock, packetCurrAnimLock);
+            SanityCheck(packetPrevAnimLock, packetCurrAnimLock, gameCurrAnimLock);
             DelayAverage = delay * (1 - DelaySmoothing) + DelayAverage * DelaySmoothing; // update the average
             // the result will be subtracted from current anim lock (and thus from adjusted lock delay)
             reduction = _config.RemoveCooldownDelay ? Math.Clamp(delay /* - DelayMax */, 0, gameCurrAnimLock) : 0;
@@ -53,14 +53,17 @@ public sealed class AnimationLockTweak
     }
 
     // perform sanity check to detect conflicting plugins: disable the tweak if condition is false
-    private void SanityCheck(float originalAnimLock, float modifiedAnimLock)
+    private void SanityCheck(float packetOriginalAnimLock, float packetModifiedAnimLock, float gameCurrAnimLock)
     {
         if (!_config.RemoveAnimationLockDelay)
             return; // nothing to do, tweak is already disabled
-        if (originalAnimLock == modifiedAnimLock && originalAnimLock % 0.01 is <= 0.0005f or >= 0.0095f)
+        if (packetOriginalAnimLock == packetModifiedAnimLock && packetOriginalAnimLock == gameCurrAnimLock && packetOriginalAnimLock % 0.01 is <= 0.0005f or >= 0.0095f)
             return; // nothing changed the packet value, and it's original value is reasonable
 
-        Service.Log($"[ALT] Unexpected animation lock {originalAnimLock:f} -> {modifiedAnimLock:f}, disabling anim lock tweak feature");
+        Service.Log($"[ALT] Unexpected animation lock {packetOriginalAnimLock:f6} -> {packetModifiedAnimLock:f6} -> {gameCurrAnimLock:f6}, disabling anim lock tweak feature");
+        Service.ChatGui.PrintError("[BossMod] Unexpected animation lock! Disabling animation lock reduction feature.");
+        Service.ChatGui.PrintError("[BossMod] This can be caused by another plugin affecting the animation lock.");
+        Service.ChatGui.PrintError("[BossMod] If you are sure you are not using any of them, please report this as a bug.");
         _config.RemoveAnimationLockDelay = false; // disable the tweak (but don't save the config, in case this condition is temporary)
     }
 }
