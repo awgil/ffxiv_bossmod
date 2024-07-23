@@ -57,7 +57,7 @@ public enum AID : uint
     ChasmOfVollokPlayer = 37769, // Helper->self, no cast, ???, aoe in player's cell
 
     ProjectionOfTriumph = 37770, // Boss->self, 5.0s cast, single-target, visual (lines with circles and donuts)
-    SiegeOfVollok = 37771, // FangVollokSmall->self, 0.5s cast, range ?-8 donut
+    SiegeOfVollok = 37771, // FangVollokSmall->self, 0.5s cast, range 3-8 donut
     WallsOfVollok = 37772, // FangVollokSmall->self, 0.5s cast, range 4 circle
     ProjectionOfTurmoil = 39560, // Boss->self, 5.0s cast, single-target, visual (line with stacks)
     MightOfVollok = 37773, // Helper->players, no cast, range 8 circle, shared damage with vuln
