@@ -2,15 +2,11 @@
 
 namespace BossMod.Autorotation.akechi;
 
-// o7
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-
 public enum Targeting { Auto, Manual, AutoPrimary }
 public enum OffensiveStrategy { Automatic, Delay, Force }
 public enum AOEStrategy { AOE, SingleTarget }
 
-public abstract class baseakechi<AID, TraitID> : LegacyModule where AID : Enum where TraitID : Enum
+public abstract class Baseakechi<AID, TraitID> : LegacyModule where AID : Enum where TraitID : Enum
 {
     public class State(RotationModule module) : CommonState(module) { }
 
@@ -20,7 +16,7 @@ public abstract class baseakechi<AID, TraitID> : LegacyModule where AID : Enum w
     protected float TrueNorthLeft { get; private set; }
     protected float CombatTimer { get; private set; }
 
-    protected baseakechi(RotationModuleManager manager, Actor player) : base(manager, player)
+    protected Baseakechi(RotationModuleManager manager, Actor player) : base(manager, player)
     {
         _state = new(this);
     }
@@ -155,7 +151,7 @@ public abstract class baseakechi<AID, TraitID> : LegacyModule where AID : Enum w
     protected int StatusStacks<SID>(SID status) where SID : Enum => Status(status).Stacks;
 }
 
-static class xtensions
+static class Extensionsakechi
 {
     public static RotationModuleDefinition.ConfigRef<Targeting> DefineTargeting<Index>(this RotationModuleDefinition def, Index trackname)
          where Index : Enum
