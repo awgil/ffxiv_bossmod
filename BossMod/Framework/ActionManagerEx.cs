@@ -183,6 +183,11 @@ public unsafe sealed class ActionManagerEx : IDisposable
     public int GetRecastGroup(ActionID action)
         => _inst->GetRecastGroup((int)action.Type, action.ID);
 
+    // see ActionEffectHandler.Receive - there are a few hardcoded actions here
+    private bool ExpectAnimationLockUpdate(ActionEffectHandler.Header* header)
+        => header->SourceSequence != 0 && !(header->ActionType == CSActionType.Action && (NIN.AID)header->ActionId is NIN.AID.Ten1 or NIN.AID.Chi1 or NIN.AID.Jin1 or NIN.AID.Ten2 or NIN.AID.Chi2 or NIN.AID.Jin2)
+        || header->ForceAnimationLock;
+
     // perform some action transformations to simplify implementation of queueing; UseActionLocation expects some normalization to be already done
     private ActionID NormalizeActionForQueue(ActionID action)
     {
@@ -393,11 +398,10 @@ public unsafe sealed class ActionManagerEx : IDisposable
         _processPacketActionEffectHook.Original(casterID, casterObj, targetPos, header, effects, targets);
         var currAnimLock = _inst->AnimationLock;
 
-        if (casterID != UIState.Instance()->PlayerState.EntityId || header->SourceSequence == 0 && !header->ForceAnimationLock)
+        if (casterID != UIState.Instance()->PlayerState.EntityId || !ExpectAnimationLockUpdate(header))
         {
             // this action is either executed by non-player, or is non-player-initiated
             // TODO: reconsider the condition:
-            // - some actions with SourceSequence != 0 are special-cased in code (NIN's ten/chi/jin) and apparently don't trigger anim-lock, verify
             // - do we want to do non-anim-lock related things (eg unblock movement override) when we get action with 'force anim lock' flag?
             if (currAnimLock != prevAnimLock)
                 Service.Log($"[AMEx] Animation lock updated by non-player-initiated action: #{header->SourceSequence} {casterID:X} {info.Action} {prevAnimLock:f3} -> {currAnimLock:f3}");
