@@ -1,5 +1,4 @@
-﻿#if false
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation;
 
@@ -154,6 +153,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
     private float PRLeft; // max 30 (rend) or 20 (ruination)
     private bool PrimalRuinationActive;
     private float OnslaughtCD;
+    private float OnslaughtCapIn;
     private float PotionLeft; // max 30
     private float RaidBuffsLeft; // max 20
     private float RaidBuffsIn;
@@ -161,6 +161,8 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
     private float BurstWindowIn;
     private WAR.AID NextGCD; // this is needed to estimate gauge and make a decision on infuriate
     private GCDPriority NextGCDPrio;
+
+    private const float OnslaughtMinGCD = 0.8f; // triple-weaving onslaught is not a good idea, since it might delay gcd for longer than normal anim lock; TODO reconsider implementation
 
     private bool Unlocked(WAR.AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     private bool Unlocked(WAR.TraitID tid) => TraitUnlocked((uint)tid);
@@ -194,6 +196,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             PRLeft = SelfStatusLeft(WAR.SID.PrimalRend);
 
         OnslaughtCD = CD(WAR.AID.Onslaught);
+        OnslaughtCapIn = OnslaughtCD - (Unlocked(WAR.TraitID.EnhancedOnslaught) ? 0 : 30);
         PotionLeft = PotionStatusLeft();
         (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);
 
@@ -684,24 +687,23 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         //    return false; // forbidden due to state flags
         if (SurgingTempestLeft <= World.Client.AnimationLock)
             return false; // delay until ST, even if overcapping charges
-        float chargeCapIn = OnslaughtCD - (Unlocked(WAR.TraitID.EnhancedOnslaught) ? 0 : 30);
-        if (chargeCapIn < GCD + GCDLength)
+        if (OnslaughtCapIn < GCD + GCDLength)
             return true; // if we won't onslaught now, we risk overcapping charges
         if (reserveLastCharge && OnslaughtCD > 30 + World.Client.AnimationLock)
             return false; // strategy prevents us from using last charge
         if (RaidBuffsLeft > World.Client.AnimationLock)
             return true; // use now, since we're under raid buffs
-        return chargeCapIn <= RaidBuffsIn; // use if we won't be able to delay until next raid buffs
+        return OnslaughtCapIn <= RaidBuffsIn; // use if we won't be able to delay until next raid buffs
     }
 
     private bool ShouldUseOnslaught(OnslaughtStrategy strategy, Actor? target) => strategy switch
     {
-        OnslaughtStrategy.Automatic => WantOnslaught(target, true),
+        OnslaughtStrategy.Automatic => GCD >= OnslaughtMinGCD && WantOnslaught(target, true),
         OnslaughtStrategy.Forbid => false,
-        OnslaughtStrategy.NoReserve => WantOnslaught(target, false),
-        OnslaughtStrategy.Force => true,
-        OnslaughtStrategy.ForceReserve => OnslaughtCD <= 30 + World.Client.AnimationLock,
-        OnslaughtStrategy.ReserveTwo => OnslaughtCD - (Unlocked(WAR.TraitID.EnhancedOnslaught) ? 0 : 30) <= GCD,
+        OnslaughtStrategy.NoReserve => GCD >= OnslaughtMinGCD && WantOnslaught(target, false),
+        OnslaughtStrategy.Force => GCD >= OnslaughtMinGCD,
+        OnslaughtStrategy.ForceReserve => GCD >= OnslaughtMinGCD && OnslaughtCD <= 30 + World.Client.AnimationLock,
+        OnslaughtStrategy.ReserveTwo => GCD >= OnslaughtMinGCD && OnslaughtCapIn <= GCD,
         OnslaughtStrategy.GapClose => !InMeleeRange(target),
         _ => false,
     };
@@ -735,4 +737,3 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         _ => false
     };
 }
-#endif
