@@ -146,6 +146,20 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
     protected float PotionStatusLeft() => SelfStatusLeft(49, 30);
 
-    public float GCD => World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining; // 2.5 max (decreased by SkS), 0 if not on gcd
-    public float PotionCD => World.Client.Cooldowns[ActionDefinitions.PotionCDGroup].Remaining; // variable max
+    protected float GCD => World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining; // 2.5 max (decreased by SkS), 0 if not on gcd
+    protected float PotionCD => World.Client.Cooldowns[ActionDefinitions.PotionCDGroup].Remaining; // variable max
+
+    protected (float Left, float In) EstimateRaidBuffTimings(Actor? primaryTarget)
+    {
+        if (primaryTarget?.OID != 0x385)
+            return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), Bossmods.RaidCooldowns.NextDamageBuffIn());
+
+        // hack for a dummy: expect that raidbuffs appear at 7.8s and then every 120s
+        var cycleTime = (float)(Player.InCombat ? (World.CurrentTime - Manager.CombatStart).TotalSeconds : 0) - 7.8f;
+        if (cycleTime < 0)
+            return (0, 0); // very beginning of a fight
+
+        cycleTime %= 120;
+        return cycleTime < 20 ? (20 - cycleTime, 0) : (0, 120 - cycleTime);
+    }
 }

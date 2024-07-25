@@ -5,21 +5,19 @@ namespace BossMod.Autorotation;
 
 public sealed class StandardWAR(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { AOE, Burst, Potion, PrimalRend, Tomahawk, Infuriate, InnerRelease, Upheaval, Onslaught }
+    public enum Track { AOE, Burst, Potion, PrimalRend, Tomahawk, InnerRelease, Infuriate, Upheaval, Wrath, Onslaught }
     public enum AOEStrategy { SingleTarget, ForceAOE, Auto, AutoFinishCombo }
     public enum BurstStrategy { Automatic, Spend, Conserve, UnderRaidBuffs, UnderPotion, ForceExtendST, IgnoreST }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, AlignWithIR, Immediate }
     public enum PrimalRendStrategy { Automatic, Forbid, Force, GapClose, Smuggle }
-    public enum TomahawkStrategy { Opener, Forbid, Force, Ranged }
-    //public enum GCDStrategy { Automatic, ForceSPCombo, TomahawkIfNotInMelee, ComboFitBeforeDowntime, PenultimateComboThenSpend }
-    //public enum InfuriateStrategy { Automatic, Delay, ForceIfNoNC, AutoUnlessIR, ForceIfChargesCapping }
-    //public enum OffensiveStrategy { Automatic, Delay, Force }
-    //public enum OnslaughtStrategy { Automatic, Forbid, NoReserve, Force, ForceReserve, ReserveTwo, UseOutsideMelee }
+    public enum TomahawkStrategy { OpenerRanged, Opener, Forbid, Force, Ranged }
+    public enum OffensiveStrategy { Automatic, Delay, Force }
+    public enum InfuriateStrategy { Automatic, Delay, ForceIfNoNC, ForceIfChargesCapping }
+    public enum OnslaughtStrategy { Automatic, Forbid, NoReserve, Force, ForceReserve, ReserveTwo, GapClose }
 
     public static RotationModuleDefinition Definition()
     {
-        // TODO: think about target overrides where they make sense (ST stuff, esp things like onslaught?)
-        var res = new RotationModuleDefinition("Legacy WAR", "Old pre-refactoring module", "veyn", RotationModuleQuality.WIP, BitMask.Build((int)Class.WAR), 100);
+        var res = new RotationModuleDefinition("Standard WAR", "Standard rotation module", "veyn", RotationModuleQuality.WIP, BitMask.Build((int)Class.WAR), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 90)
             .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target rotation")
@@ -51,57 +49,48 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             .AddOption(PrimalRendStrategy.Smuggle, "Smuggle", "Delay until last possible GCD (useful for smuggling ruin into pot window)", 0, 0, ActionTargets.Hostile, 90)
             .AddAssociatedActions(WAR.AID.PrimalRend, WAR.AID.PrimalRuination);
 
-        res.Define(Track.Tomahawk).As<TomahawkStrategy>("Tomahawk", uiPriority: -10)
-            .AddOption(TomahawkStrategy.)
+        res.Define(Track.Tomahawk).As<TomahawkStrategy>("Tomahawk", uiPriority: 10)
+            .AddOption(TomahawkStrategy.OpenerRanged, "OpenerRanged", "Use as very first GCD and only if outside melee range")
+            .AddOption(TomahawkStrategy.Opener, "Opener", "Use as very first GCD regardless of range")
+            .AddOption(TomahawkStrategy.Forbid, "Forbid", "Do not use automatically")
+            .AddOption(TomahawkStrategy.Force, "Force", "Force use ASAP (even in melee range)")
+            .AddOption(TomahawkStrategy.Ranged, "Ranged", "Use if outside melee range")
             .AddAssociatedActions(WAR.AID.Tomahawk);
 
-        //res.Define(Track.GCD).As<GCDStrategy>("Gauge", "GCD", uiPriority: 80)
-        //    .AddOption(GCDStrategy.Automatic, "Automatic", "Spend gauge either under raid buffs or if next downtime is soon (so that next raid buff window won't cover at least 4 GCDs)") // TODO reconsider...
-        //    .AddOption(GCDStrategy.Spend, "Spend", "Spend gauge freely, ensure ST is properly maintained")
-        //    .AddOption(GCDStrategy.ConserveIfNoBuffs, "ConserveIfNoBuffs", "Conserve unless under raid buffs")
-        //    .AddOption(GCDStrategy.Conserve, "Conserve", "Conserve as much as possible")
-        //    .AddOption(GCDStrategy.ForceExtendST, "ForceExtendST", "Force extend ST buff, potentially overcapping gauge and/or ST")
-        //    .AddOption(GCDStrategy.ForceSPCombo, "ForceSPCombo", "Force SP combo, potentially overcapping gauge")
-        //    .AddOption(GCDStrategy.TomahawkIfNotInMelee, "TomahawkIfNotInMelee", "Use tomahawk if outside melee")
-        //    .AddOption(GCDStrategy.ComboFitBeforeDowntime, "ComboFitBeforeDowntime", "Use combo, unless it can't be finished before downtime and unless gauge and/or ST would overcap")
-        //    .AddOption(GCDStrategy.PenultimateComboThenSpend, "PenultimateComboThenSpend", "Use combo until second-last step, then spend gauge")
-        //    .AddOption(GCDStrategy.ForceSpend, "ForceSpend", "Force gauge spender if possible, even if ST is not up/running out soon");
+        res.Define(Track.InnerRelease).As<OffensiveStrategy>("IR", uiPriority: 50)
+            .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally (whenever ST is up)")
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP (even during downtime or without ST)")
+            .AddAssociatedActions(WAR.AID.Berserk, WAR.AID.InnerRelease);
 
-        //res.Define(Track.Infuriate).As<InfuriateStrategy>("Infuriate", uiPriority: 70)
-        //    .AddOption(InfuriateStrategy.Automatic, "Automatic", "Try to delay uses until raidbuffs, avoiding overcap")
-        //    .AddOption(InfuriateStrategy.Delay, "Delay", "Delay, even if risking overcap")
-        //    .AddOption(InfuriateStrategy.ForceIfNoNC, "ForceIfNoNC", "Force unless NC active")
-        //    .AddOption(InfuriateStrategy.AutoUnlessIR, "AutoUnlessIR", "Use normally, but not during IR")
-        //    .AddOption(InfuriateStrategy.ForceIfChargesCapping, "ForceIfChargesCapping", "Force use if charges are about to overcap (unless NC is already active), even if it would overcap gauge")
-        //    .AddAssociatedActions(WAR.AID.Infuriate);
+        res.Define(Track.Infuriate).As<InfuriateStrategy>("Infuriate", uiPriority: 60)
+            .AddOption(InfuriateStrategy.Automatic, "Automatic", "Try to delay uses until raidbuffs, avoiding overcap")
+            .AddOption(InfuriateStrategy.Delay, "Delay", "Delay, even if risking overcap")
+            .AddOption(InfuriateStrategy.ForceIfNoNC, "ForceIfNoNC", "Force unless NC active")
+            .AddOption(InfuriateStrategy.ForceIfChargesCapping, "ForceIfChargesCapping", "Force use if charges are about to overcap (unless NC is already active), even if it would overcap gauge")
+            .AddAssociatedActions(WAR.AID.Infuriate);
 
+        res.Define(Track.Upheaval).As<OffensiveStrategy>("Upheaval", uiPriority: 40)
+            .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally (ASAP, assuming ST is up)")
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP (even without ST)")
+            .AddAssociatedActions(WAR.AID.Upheaval, WAR.AID.Orogeny);
 
+        res.Define(Track.Wrath).As<OffensiveStrategy>("Wrath", uiPriority: -10)
+            .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally (ASAP, assuming ST is up)")
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP (even without ST)")
+            .AddAssociatedActions(WAR.AID.PrimalWrath);
 
-        //res.Define(Track.InnerRelease).As<OffensiveStrategy>("IR", uiPriority: 50)
-        //    .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally")
-        //    .AddOption(OffensiveStrategy.Delay, "Delay", "Delay")
-        //    .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP (even during downtime or without ST)")
-        //    .AddAssociatedActions(WAR.AID.Berserk, WAR.AID.InnerRelease);
-
-        //res.Define(Track.Upheaval).As<OffensiveStrategy>("Upheaval", uiPriority: 40)
-        //    .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally")
-        //    .AddOption(OffensiveStrategy.Delay, "Delay", "Delay")
-        //    .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP (even without ST)")
-        //    .AddAssociatedActions(WAR.AID.Upheaval, WAR.AID.Orogeny);
-
-        //res.Define(Track.Onslaught).As<OnslaughtStrategy>("Onslaught", uiPriority: 20)
-        //    .AddOption(OnslaughtStrategy.Automatic, "Automatic", "Always keep one charge reserved, use other charges under raidbuffs or to prevent overcapping")
-        //    .AddOption(OnslaughtStrategy.Forbid, "Forbid", "Forbid automatic use")
-        //    .AddOption(OnslaughtStrategy.NoReserve, "NoReserve", "Do not reserve charges: use all charges if under raidbuffs, otherwise use as needed to prevent overcapping")
-        //    .AddOption(OnslaughtStrategy.Force, "Force", "Use all charges ASAP")
-        //    .AddOption(OnslaughtStrategy.ForceReserve, "ForceReserve", "Use all charges except one ASAP")
-        //    .AddOption(OnslaughtStrategy.ReserveTwo, "ReserveTwo", "Reserve 2 charges, trying to prevent overcap")
-        //    .AddOption(OnslaughtStrategy.UseOutsideMelee, "UseOutsideMelee", "Use as gapcloser if outside melee range")
-        //    .AddAssociatedActions(WAR.AID.Onslaught);
-
-        // TODO: consider these:
-        //public bool Aggressive; // if true, we use buffs and stuff at last possible moment; otherwise we make sure to keep at least 1 GCD safety net
-        //public bool OnslaughtHeadroom; // if true, consider onslaught to have slightly higher animation lock than in reality, to account for potential small movement animation delay
+        res.Define(Track.Onslaught).As<OnslaughtStrategy>("Onslaught", uiPriority: 20)
+            .AddOption(OnslaughtStrategy.Automatic, "Automatic", "Always keep one charge reserved, use other charges inside burst or to prevent overcapping")
+            .AddOption(OnslaughtStrategy.Forbid, "Forbid", "Forbid automatic use")
+            .AddOption(OnslaughtStrategy.NoReserve, "NoReserve", "Do not reserve charges: use all charges if inside burst, otherwise use as needed to prevent overcapping")
+            .AddOption(OnslaughtStrategy.Force, "Force", "Use all charges ASAP")
+            .AddOption(OnslaughtStrategy.ForceReserve, "ForceReserve", "Use all charges except one ASAP")
+            .AddOption(OnslaughtStrategy.ReserveTwo, "ReserveTwo", "Reserve 2 charges, trying to prevent overcap")
+            .AddOption(OnslaughtStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range")
+            .AddAssociatedActions(WAR.AID.Onslaught);
 
         return res;
     }
@@ -114,65 +103,102 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         DelayCombo = 350, // we'd rather not use combo now, to prevent overcapping gauge/ST
         DelayFC = 390, // we see an opportunity to delay FC/IC until next burst (but might have to press it anyway to avoid overcapping gauge)
         // baseline flexible actions
-        FlexibleCombo = 500, // normal flexible combo
-        FlexibleFC = 580, // using FC/IC now is low value (not buffed), but we don't see any better opportunity to use it in future
-        FlexiblePR = 590, // using PR now is low value (not buffed), but we don't see any better opportunity to use it in future
+        FlexibleCombo = 400, // normal flexible combo
+        FlexibleFC = 480, // using FC/IC now is low value (not buffed), but we don't see any better opportunity to use it in future
+        FlexiblePR = 490, // using PR now is low value (not buffed), but we don't see any better opportunity to use it in future
         // high value actions (under buffs)
-        BuffedFC = 680,
-        BuffedPR = 690,
+        BuffedFC = 550,
+        BuffedPR = 560,
+        BuffedIR = 570, // FC/IC under IR; these are high priority, since we want to spend stacks asap to use wrath under buffs
         // critical actions (avoid overcapping gauge/infuriate, maintain ST, etc)
-        AvoidDropCombo = 760, // if we don't continue combo, we'll lose it
-        AvoidOvercapInfuriateIR = 770, // if we delay FC/IC, we'll be forced to spam IC/FC later to avoid losing IR stacks, which will overcap infuriate
-        AvoidOvercapInfuriateNext = 780, // if we delay FC/IC, infuriate will overcap when it's used later
-        AvoidDropST = 790, // if we delay combo, we will be dropping ST
+        AvoidDropCombo = 660, // if we don't continue combo, we'll lose it
+        AvoidOvercapInfuriateIR = 670, // if we delay FC/IC, we'll be forced to spam IC/FC later to avoid losing IR stacks, which will overcap infuriate
+        AvoidOvercapInfuriateNext = 680, // if we delay FC/IC, infuriate will overcap when it's used later
+        AvoidDropST = 690, // if we delay combo, we will be dropping ST
         // last-chance priorities: if corresponding action is not used on next gcd, we will likely lose an opportunity
-        LastChanceFC = 870, // last chance to use IC/FC (otherwise IR will expire)
-        LastChanceIC = 880, // last chance to use IC (otherwise nascent chaos will expire)
-        LastChancePR = 890, // last chance to use PR (otherwise buff will expire)
+        LastChanceFC = 770, // last chance to use IC/FC (otherwise IR will expire)
+        LastChanceIC = 780, // last chance to use IC (otherwise nascent chaos will expire)
+        LastChancePR = 790, // last chance to use PR (otherwise buff will expire)
         // forced actions are explicitly requested by strategies, so we assume user knows what he's doing
-        ForcedCombo = 980, // need to use combo action asap
-        ForcedPR = 990, // need to use PR asap (forced strategy or as a gapcloser)
+        ForcedTomahawk = 870,
+        ForcedCombo = 880,
+        ForcedPR = 890,
+        // gapcloser; note that if we're using onslaught as a gapcloser, it has higher priority than other gcds
+        GapclosePR = 990,
+    }
+
+    public enum OGCDPriority
+    {
+        None = 0,
+        Onslaught = 500,
+        PrimalWrath = 550,
+        Infuriate = 570,
+        Upheaval = 580,
+        InnerRelease = 590,
+        Potion = 900,
+        GapcloseOnslaught = 980, // note that it uses 'very high' prio
     }
 
     private int Gauge; // 0 to 100
     private float GCDLength; // 2.5s adjusted by sks/haste
     private float SurgingTempestLeft; // max 60
     private float NascentChaosLeft; // max 30
-    private float PRLeft; // max 30 (rend) or 20 (ruination)
-    private bool PrimalRuinationActive;
-    private float WrathfulLeft; // max 30
+    private float InfuriateCD;
+    private int InfuriateCDReduction; // 0 or 5, depending on trait
+    private float InfuriateCDLeeway; // minimal CD on infuriate after next GCD to allow delaying; bare minimum is 0.6 (typical gcd anim lock)
     private bool InnerReleaseUnlocked;
     private float InnerReleaseLeft; // max 15 (either IR or berserk)
     private int InnerReleaseStacks; // max 3 (either IR or berserk)
+    private float InnerReleaseCD;
+    private float WrathfulLeft; // max 30
+    private float PRLeft; // max 30 (rend) or 20 (ruination)
+    private bool PrimalRuinationActive;
+    private float OnslaughtCD;
     private float PotionLeft; // max 30
     private float RaidBuffsLeft; // max 20
     private float RaidBuffsIn;
     private float BurstWindowLeft;
     private float BurstWindowIn;
+    private WAR.AID NextGCD; // this is needed to estimate gauge and make a decision on infuriate
+    private GCDPriority NextGCDPrio;
 
     private bool Unlocked(WAR.AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     private bool Unlocked(WAR.TraitID tid) => TraitUnlocked((uint)tid);
     private float CD(WAR.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
     private bool CanFitGCD(float deadline, int extraGCDs = 0) => GCD + GCDLength * extraGCDs < deadline; // note: if deadline is 0 (meaning status not active etc), we can't fit a single gcd even if available immediately (GCD==0), so we use <
     private WAR.AID PrevCombo => (WAR.AID)World.Client.ComboState.Action;
+    private bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3;
+    private bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f;
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
     {
         Gauge = GetGauge<WarriorGauge>().BeastGauge;
         GCDLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
         SurgingTempestLeft = SelfStatusLeft(WAR.SID.SurgingTempest);
+
         NascentChaosLeft = SelfStatusLeft(WAR.SID.NascentChaos);
+        InfuriateCD = CD(WAR.AID.Infuriate);
+        // note: technically we can use infuriate 0.6s after gcd, but that could end up delaying other important ogcds - so we give a full extra gcd to these calculations; TODO investigate whether it results in suboptimal choices
+        InfuriateCDLeeway = GCDLength;
+        InfuriateCDReduction = Unlocked(WAR.TraitID.EnhancedInfuriate) ? 5 : 0;
+
+        InnerReleaseUnlocked = Unlocked(WAR.AID.InnerRelease);
+        (InnerReleaseLeft, InnerReleaseStacks) = SelfStatusDetails(InnerReleaseUnlocked ? WAR.SID.InnerRelease : WAR.SID.Berserk);
+        InnerReleaseCD = CD(InnerReleaseUnlocked ? WAR.AID.InnerRelease : WAR.AID.Berserk);
+        WrathfulLeft = SelfStatusLeft(WAR.SID.Wrathful);
+
         PRLeft = SelfStatusLeft(WAR.SID.PrimalRuinationReady);
         if (PRLeft > 0)
             PrimalRuinationActive = true;
         else
             PRLeft = SelfStatusLeft(WAR.SID.PrimalRend);
-        WrathfulLeft = SelfStatusLeft(WAR.SID.Wrathful);
-        InnerReleaseUnlocked = Unlocked(WAR.AID.InnerRelease);
-        (InnerReleaseLeft, InnerReleaseStacks) = SelfStatusDetails(InnerReleaseUnlocked ? WAR.SID.InnerRelease : WAR.SID.Berserk);
+
+        OnslaughtCD = CD(WAR.AID.Onslaught);
         PotionLeft = PotionStatusLeft();
-        RaidBuffsLeft = Bossmods.RaidCooldowns.DamageBuffLeft(Player);
-        RaidBuffsIn = Bossmods.RaidCooldowns.NextDamageBuffIn();
+        (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);
+
+        NextGCD = WAR.AID.None;
+        NextGCDPrio = GCDPriority.None;
 
         var aoeStrategy = strategy.Option(Track.AOE).As<AOEStrategy>();
         var aoeTargets = aoeStrategy switch
@@ -206,20 +232,65 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             QueueGCD(PrimalRuinationActive ? WAR.AID.PrimalRend : WAR.AID.PrimalRend, target, prio);
         }
 
-        var infCD = CD(WAR.AID.Infuriate);
-        var irCD = CD(InnerReleaseUnlocked ? WAR.AID.InnerRelease : WAR.AID.Berserk);
         if (Gauge >= 50 || InnerReleaseUnlocked && CanFitGCD(InnerReleaseLeft))
         {
             var action = FellCleaveAction(aoeTargets);
-            var prio = FellCleavePriority(infCD, irCD);
+            var prio = FellCleavePriority();
             QueueGCD(action, action is WAR.AID.InnerBeast or WAR.AID.FellCleave or WAR.AID.InnerChaos ? primaryTarget : Player, prio);
         }
 
-        var (comboAction, comboPrio) = ComboActionPriority(aoeStrategy, aoeTargets, burstStrategy, burst.Value.ExpireIn, irCD);
+        var (comboAction, comboPrio) = ComboActionPriority(aoeStrategy, aoeTargets, burstStrategy, burst.Value.ExpireIn);
         QueueGCD(comboAction, comboAction is WAR.AID.Overpower or WAR.AID.MythrilTempest ? Player : primaryTarget, comboPrio);
 
-        // TODO: tomahawk
-        // TODO: ogcds
+        if (ShouldUseTomahawk(primaryTarget, strategy.Option(Track.Tomahawk).As<TomahawkStrategy>()))
+            QueueGCD(WAR.AID.Tomahawk, primaryTarget, GCDPriority.ForcedTomahawk);
+
+        // oGCDs
+        if (InnerReleaseUnlocked)
+        {
+            if (ShouldUseInnerRelease(strategy.Option(Track.InnerRelease).As<OffensiveStrategy>(), primaryTarget))
+                QueueOGCD(WAR.AID.InnerRelease, Player, OGCDPriority.InnerRelease);
+        }
+        else
+        {
+            // TODO: berserk
+        }
+
+        if (Player.InCombat && Unlocked(WAR.AID.Infuriate))
+        {
+            var inf = ShouldUseInfuriate(strategy.Option(Track.Infuriate).As<InfuriateStrategy>(), primaryTarget);
+            if (inf.Use)
+                QueueOGCD(WAR.AID.Infuriate, Player, OGCDPriority.Infuriate, inf.Delayable ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low);
+        }
+
+        if (Unlocked(WAR.AID.Upheaval) && ShouldUseUpheaval(strategy.Option(Track.Upheaval).As<OffensiveStrategy>()))
+        {
+            var aoe = aoeTargets >= 3 && Unlocked(WAR.AID.Orogeny);
+            QueueOGCD(aoe ? WAR.AID.Orogeny : WAR.AID.Upheaval, aoe ? Player : primaryTarget, OGCDPriority.Upheaval);
+        }
+
+        if (aoeTargets > 0 && WrathfulLeft > World.Client.AnimationLock && ShouldUsePrimalWrath(strategy.Option(Track.Wrath).As<OffensiveStrategy>()))
+        {
+            QueueOGCD(WAR.AID.PrimalWrath, Player, OGCDPriority.PrimalWrath);
+        }
+
+        if (Unlocked(WAR.AID.Onslaught))
+        {
+            var onsStrategy = strategy.Option(Track.Onslaught).As<OnslaughtStrategy>();
+            if (ShouldUseOnslaught(onsStrategy, primaryTarget))
+            {
+                // special case for use as gapcloser - it has to be very high priority
+                var (prio, basePrio) = onsStrategy == OnslaughtStrategy.GapClose
+                    ? (OGCDPriority.GapcloseOnslaught, ActionQueue.Priority.High)
+                    : (OGCDPriority.Onslaught, OnslaughtCD < GCDLength ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low);
+                QueueOGCD(WAR.AID.Onslaught, primaryTarget, prio, basePrio);
+            }
+        }
+
+        // potion should be used as late as possible in ogcd window, so that if playing at <2.5 gcd, it can cover 13 gcds
+        // TODO: reconsider delay to make it safe enough
+        if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Low + (int)OGCDPriority.Potion, 0, GCD - 0.8f);
     }
 
     private void QueueGCD(WAR.AID aid, Actor? target, GCDPriority prio)
@@ -228,6 +299,19 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         {
             var delay = !Player.InCombat && World.Client.CountdownRemaining > 0 ? Math.Max(0, World.Client.CountdownRemaining.Value - EffectApplicationDelay(aid)) : 0;
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + (int)prio, delay: delay);
+            if (prio > NextGCDPrio)
+            {
+                NextGCD = aid;
+                NextGCDPrio = prio;
+            }
+        }
+    }
+
+    private void QueueOGCD(WAR.AID aid, Actor? target, OGCDPriority prio, float basePrio = ActionQueue.Priority.Low)
+    {
+        if (prio != OGCDPriority.None)
+        {
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, basePrio + (int)prio);
         }
     }
 
@@ -267,8 +351,6 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
     // add extra gcd worth of overlap in case of a slight raidbuff drift
     private bool IsPotionBeforeRaidbuffs() => RaidBuffsLeft == 0 && PotionLeft > RaidBuffsIn + 17.5f;
 
-    private bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3;
-
     // rend/ruination use same strategy track and very similar considerations (differing only in treatment of gap-close)
     private GCDPriority PRPriority(PrimalRendStrategy strategy, Actor? target)
     {
@@ -276,23 +358,23 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         if (strategy == PrimalRendStrategy.Forbid)
             return GCDPriority.None;
         if (strategy == PrimalRendStrategy.Force)
-            return GCDPriority.ForcedPR;
+            return PrimalRuinationActive || InMeleeRange(target) ? GCDPriority.ForcedPR : GCDPriority.GapclosePR;
 
         // we strongly prefer *not* losing PR; only consider doing that if explicitly forbidden by strategy
         if (!CanFitGCD(PRLeft, 1))
-            return GCDPriority.LastChancePR;
+            return PrimalRuinationActive || InMeleeRange(target) ? GCDPriority.LastChancePR : GCDPriority.GapclosePR;
         // ok, PR is safe to delay - if we're trying to smuggle, that's it, we don't use it
         if (strategy == PrimalRendStrategy.Smuggle)
             return GCDPriority.None;
 
         if (!PrimalRuinationActive)
         {
-            var inMelee = InMeleeRange(target);
-            var needMelee = strategy != PrimalRendStrategy.GapClose;
-            if (inMelee != needMelee)
+            var outOfMelee = !InMeleeRange(target);
+            var gapclose = strategy == PrimalRendStrategy.GapClose;
+            if (gapclose != outOfMelee)
                 return GCDPriority.None;
-            if (!needMelee)
-                return GCDPriority.ForcedPR; // force use as gapcloser to satisfy strategy
+            if (gapclose)
+                return GCDPriority.GapclosePR;
         }
 
         // normal delayable use
@@ -324,7 +406,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         return haveFC ? WAR.AID.FellCleave : WAR.AID.InnerBeast;
     }
 
-    private GCDPriority FellCleavePriority(float infuriateCD, float irCD)
+    private GCDPriority FellCleavePriority()
     {
         // check for risk of losing NC buff
         // note: NC buff implies that we've unlocked at least Chaotic Cyclone; technically we could've skipped IR quest, but we don't really care to support that
@@ -347,31 +429,28 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
 
         // check for risk of overcapping infuriate
         // first, check whether delaying FC/IC will overcap infuriate
-        // note: technically we can use infuriate 0.6s after gcd, but that could end up delaying other important ogcds - so we give a full extra gcd to these calculations; TODO investigate whether it results in suboptimal choices
         // note: we don't have to worry if gauge is <= 50 and NC isn't up - this means we're free to infuriate
         // note: there are situations where e.g. gauge is 40, if we delay FC we would cast SP, and then won't be able to infuriate - this is covered by combo priority calculations
-        var infLeeway = GCDLength; // TODO: bare minimum is 0.6
-        var infCDReduction = Unlocked(WAR.TraitID.EnhancedInfuriate) ? 5 : 0;
         var needFCBeforeInf = ncActive || Gauge > 50;
-        if (needFCBeforeInf && !CanFitGCD(infuriateCD - infCDReduction - infLeeway, 1))
+        if (needFCBeforeInf && !CanFitGCD(InfuriateCD - InfuriateCDReduction - InfuriateCDLeeway, 1))
             return GCDPriority.AvoidOvercapInfuriateNext;
 
         // second, if we're under IR, delaying FC/IC might then force us to spam FC/IC to avoid losing IR stacks, without being able to infuriate, and thus overcap it
         // this can only happen if we won't be able to fit extra IC though
         // note: if IR is imminent, this doesn't matter - 6 gcds is more than enough to use all FC/IC
-        if (irActive && !CanFitGCD(InnerReleaseLeft, effectiveIRStacks + 1) && !CanFitGCD(infuriateCD - infCDReduction * effectiveIRStacks - infLeeway, effectiveIRStacks))
+        if (irActive && !CanFitGCD(InnerReleaseLeft, effectiveIRStacks + 1) && !CanFitGCD(InfuriateCD - InfuriateCDReduction * effectiveIRStacks - InfuriateCDLeeway, effectiveIRStacks))
             return GCDPriority.AvoidOvercapInfuriateIR;
 
         // third, if IR is imminent, we have high (>50) gauge, we won't be able to spend this gauge (and use infuriate) before spending IR stacks
         // note: low IR cooldown implies that IR is not active
         var imminentIRStacks = ncActive ? 4 : 3;
-        if (needFCBeforeInf && InnerReleaseUnlocked && !CanFitGCD(irCD, 1) && !CanFitGCD(infuriateCD - infCDReduction * imminentIRStacks - infLeeway, imminentIRStacks))
+        if (needFCBeforeInf && InnerReleaseUnlocked && !CanFitGCD(InnerReleaseCD, 1) && !CanFitGCD(InfuriateCD - InfuriateCDReduction * imminentIRStacks - InfuriateCDLeeway, imminentIRStacks))
             return GCDPriority.AvoidOvercapInfuriateIR;
 
         // at this point, we can delay FC/IC safely, just need to consider whether it's worth it
         // first off, if we're bursting, no point in delaying
         if (CanFitGCD(BurstWindowLeft))
-            return GCDPriority.BuffedFC;
+            return irActive ? GCDPriority.BuffedIR : GCDPriority.BuffedFC;
 
         if (irActive)
         {
@@ -410,7 +489,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         _ => 0
     };
 
-    private (WAR.AID, GCDPriority) ComboActionPriority(AOEStrategy aoeStrategy, int aoeTargets, BurstStrategy burstStrategy, float burstStrategyExpire, float irCD)
+    private (WAR.AID, GCDPriority) ComboActionPriority(AOEStrategy aoeStrategy, int aoeTargets, BurstStrategy burstStrategy, float burstStrategyExpire)
     {
         var comboStepsRemaining = PrevCombo switch
         {
@@ -451,7 +530,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
                 // by default, go for SE if we won't overcap ST
                 // calculation: SE will overcap if STLeft-GCD+30 > 60 => STLeft > 30+GCD
                 // SE+IR will overcap if STLeft-max(IRCD,GCD)+40 > 60 => STLeft > 20+max(IRCD,GCD)
-                wantSERoute = SurgingTempestLeft <= 30 + GCD && SurgingTempestLeft <= 20 + Math.Max(GCD, irCD);
+                wantSERoute = SurgingTempestLeft <= 30 + GCD && SurgingTempestLeft <= 20 + Math.Max(GCD, InnerReleaseCD);
 
                 // there's an extra consideration inside burst window: replacing SE with SP might give us a buffed FC in burst
                 // note: SP & SE potencies are equal, the only reason to prefer SP inside burst is if it gives us extra gauge to then FC inside burst
@@ -495,5 +574,165 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         // just a normal combo action; delay if overcapping gauge
         return (nextAction, riskOvercappingGauge ? GCDPriority.DelayCombo : GCDPriority.FlexibleCombo);
     }
+
+    private bool ShouldUseTomahawk(Actor? target, TomahawkStrategy strategy) => strategy switch
+    {
+        TomahawkStrategy.OpenerRanged => IsFirstGCD() && !InMeleeRange(target),
+        TomahawkStrategy.Opener => IsFirstGCD(),
+        TomahawkStrategy.Force => true,
+        TomahawkStrategy.Ranged => !InMeleeRange(target),
+        _ => false
+    };
+
+    // by default, we use IR asap as soon as ST is up
+    private bool ShouldUseInnerRelease(OffensiveStrategy strategy, Actor? target) => strategy switch
+    {
+        OffensiveStrategy.Automatic => Player.InCombat && target != null && !target.IsAlly && SurgingTempestLeft > InnerReleaseCD, // TODO: reconsider ST duration threshold...
+        OffensiveStrategy.Delay => false,
+        OffensiveStrategy.Force => true,
+        _ => false
+    };
+
+    private (bool Use, bool Delayable) ShouldUseInfuriate(InfuriateStrategy strategy, Actor? target)
+    {
+        if (strategy == InfuriateStrategy.Delay || CanFitGCD(NascentChaosLeft))
+            return (false, false); // explicitly forbidden or NC still active
+
+        if (strategy == InfuriateStrategy.ForceIfNoNC)
+            return (true, false); // explicitly requested
+        if (strategy == InfuriateStrategy.ForceIfChargesCapping && InfuriateCD <= World.Client.AnimationLock)
+            return (true, false); // this really makes most sense as a downtime option, so very tight check
+
+        // ok, we need to actually make a decision here
+        if (Gauge > 50)
+            return (false, false); // using would overcap gauge
+        if (target == null || target.IsAlly)
+            return (false, false); // don't use during downtime, no guarantees it will end before NC expires
+
+        var irActive = CanFitGCD(InnerReleaseLeft);
+        if (!InnerReleaseUnlocked)
+        {
+            // before IR, main purpose of infuriate is to maximize buffed FCs under Berserk
+            // note: technically it's possible to unlock NC without unlocking IR, but we really don't care to optimize this situation, it's probably gonna work well enough
+            if (irActive)
+                return (true, false);
+
+            // don't delay if we risk overcapping stacks (TODO: improve this check...)
+            if (!CanFitGCD(InfuriateCD, 4))
+                return (true, true);
+
+            // TODO: consider whether we want to spend both stacks in spend mode if berserk is not imminent...
+            return (false, false);
+        }
+
+        var unlockedNC = Unlocked(WAR.AID.ChaoticCyclone);
+        if (unlockedNC && irActive && !CanFitGCD(InnerReleaseLeft, InnerReleaseStacks))
+            return (false, false); // using inf now would cost IR stack
+
+        // check whether we are at risk of overcapping infuriate cooldown if we delay it for another gcd
+        // calculation for max cooldown to consider delay:
+        // - start with remaining GCD + leeway; if CD is smaller, after next gcd we risk overcap
+        // - if we could have >50 gauge after next GCD, we might need one or more FCs, depending on IR, before we have another chance to infuriate
+        var maxInfuriateCD = GCD + InfuriateCDLeeway;
+        if (Gauge + GaugeGainedFromAction(NextGCD) > 50)
+        {
+            var numFCsToBurnGauge = 1;
+            if (irActive)
+                numFCsToBurnGauge += InnerReleaseStacks;
+            else if (!CanFitGCD(InnerReleaseCD, 1))
+                numFCsToBurnGauge += 3;
+            maxInfuriateCD += (GCDLength + InfuriateCDReduction) * numFCsToBurnGauge;
+        }
+        if (InfuriateCD < maxInfuriateCD)
+            return (true, false); // we can't safely delay infuriate
+
+        // ok, at this point we are free to either delay or use it
+        // if IR is active, prefer not using infuriate, so as not to delay spending stack; there are few reasons:
+        // - at L96+, we really don't want to push wrath out of burst window; normally IC will be inside burst anyway, but in some corner cases it's better to have 3xFC+wrath under buffs than IC+2xFC
+        // - less chance to waste IR in case of downtime, mob deaths, etc, if there is no plan
+        // TODO: there are also arguments in favour of using infuriate ASAP in burst (<L96, or if burst window won't fit all FC's anyway, especially if we choose PR's instead), reconsider...
+        if (irActive && unlockedNC)
+            return (false, false);
+
+        // at this point, use under burst or delay outside (TODO: reconsider, we might want to be smarter here...)
+        return (CanFitGCD(BurstWindowLeft), true);
+    }
+
+    private bool ShouldUseUpheaval(OffensiveStrategy strategy) => strategy switch
+    {
+        OffensiveStrategy.Automatic => Player.InCombat && SurgingTempestLeft > MathF.Max(CD(WAR.AID.Upheaval), World.Client.AnimationLock), // TODO: consider delaying until burst window in opener?..
+        OffensiveStrategy.Delay => false,
+        OffensiveStrategy.Force => true,
+        _ => false
+    };
+
+    private bool ShouldUsePrimalWrath(OffensiveStrategy strategy) => strategy switch
+    {
+        OffensiveStrategy.Automatic => Player.InCombat && SurgingTempestLeft > MathF.Max(CD(WAR.AID.PrimalWrath), World.Client.AnimationLock),
+        OffensiveStrategy.Delay => false,
+        OffensiveStrategy.Force => true,
+        _ => false
+    };
+
+    private bool WantOnslaught(Actor? target, bool reserveLastCharge)
+    {
+        if (!Player.InCombat)
+            return false; // don't use out of combat
+        if (!InMeleeRange(target))
+            return false; // don't use out of melee range to prevent fucking up player's position
+        //if (PositionLockIn <= World.Client.AnimationLock)
+        //    return false; // forbidden due to state flags
+        if (SurgingTempestLeft <= World.Client.AnimationLock)
+            return false; // delay until ST, even if overcapping charges
+        float chargeCapIn = OnslaughtCD - (Unlocked(WAR.TraitID.EnhancedOnslaught) ? 0 : 30);
+        if (chargeCapIn < GCD + GCDLength)
+            return true; // if we won't onslaught now, we risk overcapping charges
+        if (reserveLastCharge && OnslaughtCD > 30 + World.Client.AnimationLock)
+            return false; // strategy prevents us from using last charge
+        if (RaidBuffsLeft > World.Client.AnimationLock)
+            return true; // use now, since we're under raid buffs
+        return chargeCapIn <= RaidBuffsIn; // use if we won't be able to delay until next raid buffs
+    }
+
+    private bool ShouldUseOnslaught(OnslaughtStrategy strategy, Actor? target) => strategy switch
+    {
+        OnslaughtStrategy.Automatic => WantOnslaught(target, true),
+        OnslaughtStrategy.Forbid => false,
+        OnslaughtStrategy.NoReserve => WantOnslaught(target, false),
+        OnslaughtStrategy.Force => true,
+        OnslaughtStrategy.ForceReserve => OnslaughtCD <= 30 + World.Client.AnimationLock,
+        OnslaughtStrategy.ReserveTwo => OnslaughtCD - (Unlocked(WAR.TraitID.EnhancedOnslaught) ? 0 : 30) <= GCD,
+        OnslaughtStrategy.GapClose => !InMeleeRange(target),
+        _ => false,
+    };
+
+    private bool IsPotionAlignedWithIR()
+    {
+        // we have several considerations for potion use:
+        // 1. during opener, we generally want to use it after fourth gcd, to align with raidbuffs
+        // 1.a. with standard tomahawk+combo opener, this coincides with first window with ST buff up
+        // 1.b. with facepull opener, this actually occurs 1 gcd after ST/IR is up; the 4th gcd (first gcd under ST/IR) should be a HS
+        // 1.c. however, if raidbuffs actually go out early (eg. right before 4th gcd), we would reconsider and use IC/PR/FC asap; we might not have enough time to react and pot
+        // 1.d. if we're doing early IR, we actually need to use potion as soon as ST is up
+        // so, at least for now, we're gonna use potion right after IR as long as ST is up
+        if (CanFitGCD(SurgingTempestLeft) && CanFitGCD(InnerReleaseLeft) && InnerReleaseStacks == 3 && CanFitGCD(PRLeft))
+            return true;
+
+        // another consideration is - if we're smuggling ruin, we want to use pots before last gcd
+        // we want at least 5 gcds (3xFC+PR+PR) after IR, and pot covers 12 gcds normally
+        if (PrimalRuinationActive && CanFitGCD(PRLeft) && !CanFitGCD(PRLeft, 1) && !CanFitGCD(InnerReleaseCD, 7))
+            return true;
+
+        // not aligned
+        return false;
+    }
+
+    private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
+    {
+        PotionStrategy.AlignWithRaidBuffs => IsPotionAlignedWithIR() && RaidBuffsIn < 30,
+        PotionStrategy.AlignWithIR => IsPotionAlignedWithIR(),
+        PotionStrategy.Immediate => true,
+        _ => false
+    };
 }
 #endif
