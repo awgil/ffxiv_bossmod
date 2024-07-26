@@ -30,7 +30,7 @@ public class ColumnPlannerTrackTarget(Timeline timeline, StateMachineTree tree, 
     protected override void EditElement(Element e)
     {
         var cast = (OverrideElement)e;
-        if (UIStrategyValue.DrawEditorTarget(ref cast.Value, ActionTargets.All, moduleInfo))
+        if (UIStrategyValue.DrawEditorTarget(ref cast.Value, ActionTargets.All, false, moduleInfo))
             NotifyModified();
         if (ImGui.InputText("Comment", ref cast.Value.Comment, 256))
             NotifyModified();
