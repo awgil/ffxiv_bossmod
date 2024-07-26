@@ -465,7 +465,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         else if (ncActive)
         {
             // NC outside IR could be delayed until buffs
-            return NascentChaosLeft > RaidBuffsIn ? GCDPriority.DelayFC : GCDPriority.FlexibleFC;
+            return NascentChaosLeft > BurstWindowIn ? GCDPriority.DelayFC : GCDPriority.FlexibleFC;
         }
         else
         {
@@ -691,9 +691,9 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             return true; // if we won't onslaught now, we risk overcapping charges
         if (reserveLastCharge && OnslaughtCD > 30 + World.Client.AnimationLock)
             return false; // strategy prevents us from using last charge
-        if (RaidBuffsLeft > World.Client.AnimationLock)
+        if (BurstWindowLeft > World.Client.AnimationLock)
             return true; // use now, since we're under raid buffs
-        return OnslaughtCapIn <= RaidBuffsIn; // use if we won't be able to delay until next raid buffs
+        return OnslaughtCapIn <= BurstWindowIn; // use if we won't be able to delay until next raid buffs
     }
 
     private bool ShouldUseOnslaught(OnslaughtStrategy strategy, Actor? target) => strategy switch
