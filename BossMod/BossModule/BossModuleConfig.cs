@@ -65,6 +65,9 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Show outlines and shadows on various radar markings")]
     public bool ShowOutlinesAndShadows = false;
 
+    [PropertyDisplay("Allow modules to automatically use actions (eg anti knockback, etc)")]
+    public bool AllowAutomaticActions = true;
+
     [PropertyDisplay("Minimal maturity for the module to be loaded")]
     public BossModuleInfo.Maturity MinMaturity = BossModuleInfo.Maturity.Contributed;
 }

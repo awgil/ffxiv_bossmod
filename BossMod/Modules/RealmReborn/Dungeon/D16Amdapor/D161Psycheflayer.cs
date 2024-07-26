@@ -59,9 +59,8 @@ public class D161Psycheflayer(WorldState ws, Actor primary) : BossModule(ws, pri
     private Actor? _bossP2;
     public Actor MainBoss() => _bossP2 ?? PrimaryActor;
 
-    public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.CalculateAIHints(slot, actor, assignment, hints);
         foreach (var e in hints.PotentialTargets)
         {
             e.Priority = (OID)e.Actor.OID switch

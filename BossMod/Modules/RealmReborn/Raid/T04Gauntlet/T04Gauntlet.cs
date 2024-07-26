@@ -87,10 +87,8 @@ public class T04Gauntlet : BossModule
         Dreadnaughts = Enemies(OID.ClockworkDreadnaught);
     }
 
-    public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.CalculateAIHints(slot, actor, assignment, hints);
-
         // note: we don't bother checking for physical/magical defense on knights/soldiers and just have everyone aoe them down; magic reflect is very small
         // note: we try to kill dreadnaught first, since it's the only dangerous thing here
         // note: we try to offtank all bugs and not have dreadnaught eat them

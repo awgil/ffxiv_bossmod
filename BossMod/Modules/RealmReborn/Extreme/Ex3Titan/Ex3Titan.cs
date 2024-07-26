@@ -21,7 +21,7 @@ public class Ex3Titan : BossModule
         Bombs = Enemies(OID.BombBoulder);
     }
 
-    public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var heart = Heart();
         if (heart != null && heart.IsTargetable)
@@ -31,7 +31,6 @@ public class Ex3Titan : BossModule
             hints.PotentialTargets.Add(new(heart, false));
             //hints.PotentialTargets.Add(new(PrimaryActor, false));
         }
-        base.CalculateAIHints(slot, actor, assignment, hints);
     }
 
     protected override void DrawEnemies(int pcSlot, Actor pc)

@@ -123,9 +123,8 @@ public class Narkissos(WorldState ws, Actor primary) : BossModule(ws, primary, n
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
-    public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.CalculateAIHints(slot, actor, assignment, hints);
         foreach (var e in hints.PotentialTargets)
         {
             e.Priority = (OID)e.Actor.OID switch

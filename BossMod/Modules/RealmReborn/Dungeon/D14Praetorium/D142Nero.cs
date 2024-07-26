@@ -54,9 +54,8 @@ class D142NeroStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 16, NameID = 2135)]
 public class D142Nero(WorldState ws, Actor primary) : BossModule(ws, primary, new(-164, 0), new ArenaBoundsCircle(20))
 {
-    public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.CalculateAIHints(slot, actor, assignment, hints);
         foreach (var e in hints.PotentialTargets)
         {
             e.Priority = (OID)e.Actor.OID switch

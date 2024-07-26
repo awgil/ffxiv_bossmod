@@ -38,9 +38,8 @@ public class T09WhorleaterH(WorldState ws, Actor primary) : BossModule(ws, prima
             Arena.Actor(c, ArenaColor.Object);
     }
 
-    public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.CalculateAIHints(slot, actor, assignment, hints);
         var TankMimikry = actor.FindStatus(2124); //Bluemage Tank Mimikry
         foreach (var e in hints.PotentialTargets)
         {

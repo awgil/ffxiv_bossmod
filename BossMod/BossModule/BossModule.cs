@@ -216,13 +216,15 @@ public abstract class BossModule : IDisposable
         return hints;
     }
 
-    // TODO: should not be virtual
-    public virtual void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         hints.Center = Center;
         hints.Bounds = Bounds;
         foreach (var comp in _components)
             comp.AddAIHints(slot, actor, assignment, hints);
+        CalculateModuleAIHints(slot, actor, assignment, hints);
+        if (!WindowConfig.AllowAutomaticActions)
+            hints.ActionsToExecute.Clear();
     }
 
     public virtual bool NeedToJump(WPos from, WDir dir) => false; // if arena has complicated shape that requires jumps to navigate, module can provide this info to AI
@@ -244,6 +246,7 @@ public abstract class BossModule : IDisposable
     protected virtual void UpdateModule() { }
     protected virtual void DrawArenaBackground(int pcSlot, Actor pc) { } // before modules background
     protected virtual void DrawArenaForeground(int pcSlot, Actor pc) { } // after border, before modules foreground
+    protected virtual void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { }
 
     // called at the very end to draw important enemies, default implementation draws primary actor
     protected virtual void DrawEnemies(int pcSlot, Actor pc)

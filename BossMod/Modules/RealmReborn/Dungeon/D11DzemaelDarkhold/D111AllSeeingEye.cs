@@ -60,9 +60,8 @@ class D111AllSeeingEyeStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1397)]
 public class D111AllSeeingEye(WorldState ws, Actor primary) : BossModule(ws, primary, new(40, 70), new ArenaBoundsSquare(30))
 {
-    public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.CalculateAIHints(slot, actor, assignment, hints);
         if (PrimaryActor.FindStatus(SID.Invincibility) != null)
             hints.PotentialTargets.RemoveAll(e => e.Actor == PrimaryActor);
     }

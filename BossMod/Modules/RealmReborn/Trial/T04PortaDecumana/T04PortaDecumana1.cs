@@ -92,9 +92,8 @@ class T04PortaDecumana1States : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 830, NameID = 2137, SortOrder = 1)]
 public class T04PortaDecumana1(WorldState ws, Actor primary) : BossModule(ws, primary, new(-772, -600), new ArenaBoundsCircle(20))
 {
-    public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.CalculateAIHints(slot, actor, assignment, hints);
         if (PrimaryActor.FindStatus(SID.Invincibility) != null || PrimaryActor.FindStatus(SID.VortexBarrier) != null)
             hints.PotentialTargets.RemoveAll(e => e.Actor == PrimaryActor);
     }
