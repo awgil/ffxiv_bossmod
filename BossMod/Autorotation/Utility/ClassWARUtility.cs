@@ -20,7 +20,8 @@ public sealed class ClassWARUtility(RotationModuleManager manager, Actor player)
         res.Define(Track.Vengeance).As<VengOption>("Vengeance", "Veng", 550)
             .AddOption(VengOption.None, "None", "Do not use automatically")
             .AddOption(VengOption.Vengeance, "Use", "Use Vengeance", 120, 15, ActionTargets.Self, 38, 91)
-            .AddOption(VengOption.Damnation, "UseEx", "Use Damnation", 120, 15, ActionTargets.Self, 92);
+            .AddOption(VengOption.Damnation, "UseEx", "Use Damnation", 120, 15, ActionTargets.Self, 92)
+            .AddAssociatedActions(WAR.AID.Vengeance, WAR.AID.Damnation);
 
         DefineSimpleConfig(res, Track.Holmgang, "Holmgang", "", 400, WAR.AID.Holmgang, 10);
 

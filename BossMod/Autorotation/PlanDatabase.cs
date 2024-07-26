@@ -37,8 +37,11 @@ public sealed class PlanDatabase
                 var version = json.RootElement.GetProperty("version").GetInt32();
                 var payload = json.RootElement.GetProperty("payload");
                 var plan = payload.Deserialize<Plan>(serOptions);
-                plan!.Guid = f.Name[..^5];
-                foundPlans[plan.Guid] = plan;
+                if (plan != null)
+                {
+                    plan.Guid = f.Name[..^5];
+                    foundPlans[plan.Guid] = plan;
+                }
             }
             catch (Exception ex)
             {

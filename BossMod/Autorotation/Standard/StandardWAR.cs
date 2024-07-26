@@ -8,7 +8,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
     public enum AOEStrategy { SingleTarget, ForceAOE, Auto, AutoFinishCombo }
     public enum BurstStrategy { Automatic, Spend, Conserve, UnderRaidBuffs, UnderPotion, ForceExtendST, IgnoreST }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, AlignWithIR, Immediate }
-    public enum PrimalRendStrategy { Automatic, Forbid, Force, GapClose, Smuggle }
+    public enum PrimalRendStrategy { Automatic, Forbid, Force, GapClose, SmuggleNextPotion, SmuggleAlignedPotion, DelayUntilLastChance }
     public enum TomahawkStrategy { OpenerRanged, Opener, Forbid, Force, Ranged }
     public enum OffensiveStrategy { Automatic, Delay, Force }
     public enum InfuriateStrategy { Automatic, Delay, ForceIfNoNC, ForceIfChargesCapping }
@@ -45,7 +45,9 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             .AddOption(PrimalRendStrategy.Forbid, "Forbid", "Do not use automatically", 0, 0, ActionTargets.Hostile, 90)
             .AddOption(PrimalRendStrategy.Force, "Force", "Force use ASAP", 0, 0, ActionTargets.Hostile, 90)
             .AddOption(PrimalRendStrategy.GapClose, "GapClose", "Use Rend if outside melee range as a gap-closer", 0, 0, ActionTargets.Hostile, 90)
-            .AddOption(PrimalRendStrategy.Smuggle, "Smuggle", "Delay until last possible GCD (useful for smuggling ruin into pot window)", 0, 0, ActionTargets.Hostile, 90)
+            .AddOption(PrimalRendStrategy.SmuggleNextPotion, "SmuggleNextPotion", "Delay until last possible GCD, if potion will be ready by the time ruin expires (useful for smuggling ruin into unaligned pot window)", 0, 0, ActionTargets.Hostile, 90)
+            .AddOption(PrimalRendStrategy.SmuggleAlignedPotion, "SmuggleAlignedPotion", "Delay until last possible GCD, if potion will be ready by the time ruin expires and would overlap raidbuffs (useful for smuggling ruin into aligned pot window)", 0, 0, ActionTargets.Hostile, 90)
+            .AddOption(PrimalRendStrategy.DelayUntilLastChance, "DelayUntilLastChance", "Delay until last possible GCD", 0, 0, ActionTargets.Hostile, 90)
             .AddAssociatedActions(WAR.AID.PrimalRend, WAR.AID.PrimalRuination);
 
         res.Define(Track.Tomahawk).As<TomahawkStrategy>("Tomahawk", uiPriority: 10)
@@ -189,6 +191,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         InnerReleaseCD = CD(InnerReleaseUnlocked ? WAR.AID.InnerRelease : WAR.AID.Berserk);
         WrathfulLeft = SelfStatusLeft(WAR.SID.Wrathful);
 
+        PrimalRuinationActive = false;
         PRLeft = SelfStatusLeft(WAR.SID.PrimalRuinationReady);
         if (PRLeft > 0)
             PrimalRuinationActive = true;
@@ -232,7 +235,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             var pr = strategy.Option(Track.PrimalRend);
             var target = ResolveTargetOverride(pr.Value) ?? primaryTarget;
             var prio = PRPriority(pr.As<PrimalRendStrategy>(), target);
-            QueueGCD(PrimalRuinationActive ? WAR.AID.PrimalRend : WAR.AID.PrimalRend, target, prio);
+            QueueGCD(PrimalRuinationActive ? WAR.AID.PrimalRuination : WAR.AID.PrimalRend, target, prio);
         }
 
         if (Gauge >= 50 || InnerReleaseUnlocked && CanFitGCD(InnerReleaseLeft))
@@ -293,7 +296,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         // potion should be used as late as possible in ogcd window, so that if playing at <2.5 gcd, it can cover 13 gcds
         // TODO: reconsider delay to make it safe enough
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Low + (int)OGCDPriority.Potion, 0, GCD - 0.8f);
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Low + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
     }
 
     private void QueueGCD(WAR.AID aid, Actor? target, GCDPriority prio)
@@ -354,6 +357,26 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
     // add extra gcd worth of overlap in case of a slight raidbuff drift
     private bool IsPotionBeforeRaidbuffs() => RaidBuffsLeft == 0 && PotionLeft > RaidBuffsIn + 17.5f;
 
+    private bool CanSmugglePR(bool aligned)
+    {
+        if (CanFitGCD(PotionLeft))
+            return false; // potion is already active, so no point in delaying
+        var ruinExpireIn = PRLeft + (PrimalRuinationActive ? 0 : 20);
+        if (ruinExpireIn < PotionCD)
+            return false; // no way we can delay until potion comes off cd
+        // ok, we can try delaying until potion - but if we're actually trying to align potion to raidbuffs, we might delay it too
+        // TODO: this needs more thought... for now, assume raidbuffs need to become available at most 20s after expiration
+        return !aligned || RaidBuffsLeft == 0 && RaidBuffsIn < ruinExpireIn + 20;
+    }
+
+    private bool ShouldSmugglePR(PrimalRendStrategy strategy) => strategy switch
+    {
+        PrimalRendStrategy.SmuggleNextPotion => CanSmugglePR(false),
+        PrimalRendStrategy.SmuggleAlignedPotion => CanSmugglePR(true),
+        PrimalRendStrategy.DelayUntilLastChance => true,
+        _ => false, // by default, we don't smuggle
+    };
+
     // rend/ruination use same strategy track and very similar considerations (differing only in treatment of gap-close)
     private GCDPriority PRPriority(PrimalRendStrategy strategy, Actor? target)
     {
@@ -367,7 +390,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         if (!CanFitGCD(PRLeft, 1))
             return PrimalRuinationActive || InMeleeRange(target) ? GCDPriority.LastChancePR : GCDPriority.GapclosePR;
         // ok, PR is safe to delay - if we're trying to smuggle, that's it, we don't use it
-        if (strategy == PrimalRendStrategy.Smuggle)
+        if (ShouldSmugglePR(strategy))
             return GCDPriority.None;
 
         if (!PrimalRuinationActive)
@@ -731,7 +754,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
 
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
-        PotionStrategy.AlignWithRaidBuffs => IsPotionAlignedWithIR() && RaidBuffsIn < 30,
+        PotionStrategy.AlignWithRaidBuffs => IsPotionAlignedWithIR() && (RaidBuffsLeft > 0 || RaidBuffsIn < 30),
         PotionStrategy.AlignWithIR => IsPotionAlignedWithIR(),
         PotionStrategy.Immediate => true,
         _ => false
