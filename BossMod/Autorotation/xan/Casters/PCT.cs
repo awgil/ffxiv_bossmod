@@ -171,7 +171,6 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
             PushGCD(AID.FireInRed, primaryTarget);
         }
-
     }
 
     private bool IsMotifOk(StrategyValues strategy)
