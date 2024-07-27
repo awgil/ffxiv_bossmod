@@ -43,12 +43,11 @@ sealed class AIController(ActionManagerEx amex)
 
     public void Update(Actor? player)
     {
-        var movement = AIMove.Instance!;
+        var movement = MovementOverride.Instance!;
 
         if (player == null || player.IsDead || InCutscene)
         {
             movement.DesiredPosition = null;
-            _amex.InputOverride.GamepadOverridesEnabled = false;
             return;
         }
 
