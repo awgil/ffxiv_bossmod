@@ -34,12 +34,17 @@ public enum AID : uint
     HolyCircle = 16458, // L72, 1.5s cast, GCD, range 0, AOE 5 circle, targets=self
     Intervene = 16461, // L74, instant, 30.0s CD (group 9/70) (2 charges), range 20, single-target, targets=hostile
     Atonement = 16460, // L76, instant, GCD, range 3, single-target, targets=hostile
+    Supplication = 36918, // L76, instant, GCD, range 3, single-target, targets=hostile
+    Sepulchre = 36919, // L76, instant, GCD, range 3, single-target, targets=hostile
     Confiteor = 16459, // L80, instant, GCD, range 25, AOE 5 circle, targets=hostile
     HolySheltron = 25746, // L82, instant, 5.0s CD (group 2), range 0, single-target, targets=self
     Expiacion = 25747, // L86, instant, 30.0s CD (group 5), range 3, AOE 5 circle, targets=hostile
     BladeOfFaith = 25748, // L90, instant, GCD, range 25, AOE 5 circle, targets=hostile
     BladeOfTruth = 25749, // L90, instant, GCD, range 25, AOE 5 circle, targets=hostile
     BladeOfValor = 25750, // L90, instant, GCD, range 25, AOE 5 circle, targets=hostile
+    Guardian = 36920,
+    Imperator = 36921,
+    BladeOfHonor = 36922,
 
     // Shared
     ShieldWall = ClassShared.AID.ShieldWall, // LB1, instant, range 0, AOE 50 circle, targets=self, animLock=1.930
@@ -77,13 +82,17 @@ public enum TraitID : uint
 public enum SID : uint
 {
     None = 0,
-    FightOrFlight = 76, // applied by Fight or Flight to self, +25% physical damage dealt buff
-    CircleOfScorn = 248, // applied by Circle of Scorn to target, dot
-    Rampart = 1191, // applied by Rampart to self, -20% damage taken
-    Reprisal = 1193, // applied by Reprisal to target
-    HallowedGround = 82, // applied by Hallowed Ground to self, immune
-    IronWill = 79, // applied by Iron Will to self, tank stance
-    Stun = 2, // applied by Low Blow, Shield Bash to target
+    FightOrFlight = 76, // applied by Fight or Flight to self
+    IronWill = 79, // applied by Iron Will to self
+    GoringBladeReady = 3847, // applied by Fight or Flight to self
+    Requiescat = 1368, // applied by Requiescat to self
+    ConfiteorReady = 3019, // applied by Requiescat to self
+    CircleOfScorn = 248, // applied by Circle of Scorn to target
+    AtonementReady = 1902, // applied by Royal Authority to self
+    DivineMight = 2673, // applied by Royal Authority to self
+    SupplicationReady = 3827, // applied by Atonement to self
+    SepulchreReady = 3828, // applied by Supplication to self
+    BladeOfHonorReady = 3831, // applied by Requiescat to self
 }
 
 public sealed class Definitions : IDisposable
@@ -119,12 +128,17 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.HolyCircle);
         d.RegisterSpell(AID.Intervene);
         d.RegisterSpell(AID.Atonement);
+        d.RegisterSpell(AID.Supplication);
+        d.RegisterSpell(AID.Sepulchre);
         d.RegisterSpell(AID.Confiteor);
         d.RegisterSpell(AID.HolySheltron);
         d.RegisterSpell(AID.Expiacion);
         d.RegisterSpell(AID.BladeOfFaith);
         d.RegisterSpell(AID.BladeOfTruth);
         d.RegisterSpell(AID.BladeOfValor);
+        d.RegisterSpell(AID.Imperator);
+        d.RegisterSpell(AID.Guardian);
+        d.RegisterSpell(AID.BladeOfHonor);
 
         Customize(d);
     }

@@ -7,15 +7,15 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
     public enum Track { Stance, Ranged, Interject, Stun, ArmsLength, Mit, Invuln }
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Tank AI", "Utilities for tank AI - stance, provoke, interrupt, ranged attack", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.PLD, Class.GLA, Class.WAR, Class.MRD, Class.DRK, Class.GNB), 100);
+        var def = new RotationModuleDefinition("Tank AI", "Utilities for tank AI - stance, provoke, interrupt, ranged attack", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA, Class.WAR, Class.MRD, Class.DRK, Class.GNB), 100);
 
         def.AbilityTrack(Track.Stance, "Stance");
         def.AbilityTrack(Track.Ranged, "Ranged GCD");
         def.AbilityTrack(Track.Interject, "Interject").AddAssociatedActions(ClassShared.AID.Interject);
         def.AbilityTrack(Track.Stun, "Low Blow").AddAssociatedActions(ClassShared.AID.LowBlow);
         def.AbilityTrack(Track.ArmsLength, "Arms' Length").AddAssociatedActions(ClassShared.AID.ArmsLength);
-        def.AbilityTrack(Track.Mit, "Personal mits");
-        def.AbilityTrack(Track.Invuln, "Invuln");
+        //def.AbilityTrack(Track.Mit, "Personal mits");
+        //def.AbilityTrack(Track.Invuln, "Invuln");
 
         return def;
     }
@@ -38,7 +38,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         _ => default
     };
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimationLockDelay, float forceMovementIn)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
     {
         // ranged
         if (strategy.Enabled(Track.Ranged) && ActionUnlocked(RangedAction) && Player.DistanceToHitbox(primaryTarget) is > 5 and <= 20 && primaryTarget!.Type is ActorType.Enemy && !primaryTarget.IsAlly)

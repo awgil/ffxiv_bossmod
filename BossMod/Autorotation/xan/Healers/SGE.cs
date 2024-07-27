@@ -10,7 +10,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("SGE", "Sage", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.SGE), 100);
+        var def = new RotationModuleDefinition("SGE", "Sage", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SGE), 100);
 
         def.DefineShared();
 
@@ -78,13 +78,21 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
         NumAOETargets = AdjustNumTargets(strategy, NumAOETargets);
         NumNearbyDotTargets = AdjustNumTargets(strategy, NumNearbyDotTargets);
 
-        if (strategy.Targeting() == Targeting.Auto)
+        if (strategy.Targeting() is Targeting.Auto or Targeting.AutoTryPri)
         {
-            var allPossibleDotTargets = Hints.PriorityTargets.Where(x => x.Actor.DistanceToHitbox(Player) <= 25);
-            if (allPossibleDotTargets.Count() > 2)
-                BestDotTarget = null;
-            else
-                BestDotTarget = allPossibleDotTargets.FirstOrDefault(x => !HaveDot(x.Actor))?.Actor;
+            var numTargets = 0;
+            BestDotTarget = null;
+            foreach (var possibleTarget in Hints.PriorityTargets.Where(x => x.Actor.DistanceToHitbox(Player) <= 25))
+            {
+                if (++numTargets > 2)
+                {
+                    BestDotTarget = null;
+                    break;
+                }
+
+                if (!HaveDot(possibleTarget.Actor))
+                    BestDotTarget = possibleTarget.Actor;
+            }
         }
         else
         {

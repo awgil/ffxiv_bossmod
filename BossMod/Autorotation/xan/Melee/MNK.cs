@@ -6,7 +6,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 {
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("MNK", "Monk", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.MNK, Class.PGL), 100);
+        var def = new RotationModuleDefinition("MNK", "Monk", "xan", RotationModuleQuality.Good, BitMask.Build(Class.MNK, Class.PGL), 100);
 
         def.DefineShared().AddAssociatedActions(AID.RiddleOfFire, AID.RiddleOfWind, AID.Brotherhood);
 
@@ -70,7 +70,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     public bool CanFormShift => Unlocked(AID.FormShift) && PerfectBalanceLeft == 0;
 
-    private (Positional, bool) GetNextPositional() => (CoeurlStacks > 0 ? Positional.Flank : Positional.Rear, EffectiveForm == Form.Coeurl);
+    private (Positional, bool) NextPositional => (CoeurlStacks > 0 ? Positional.Flank : Positional.Rear, EffectiveForm == Form.Coeurl);
 
     public override void Exec(StrategyValues strategy, Actor? primaryTarget)
     {
@@ -119,7 +119,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         BestRangedTarget = SelectTarget(strategy, primaryTarget, 20, IsSplashTarget).Best;
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, IsEnlightenmentTarget);
 
-        UpdatePositionals(primaryTarget, GetNextPositional(), TrueNorthLeft > GCD);
+        UpdatePositionals(primaryTarget, NextPositional, TrueNorthLeft > GCD);
 
         OGCD(strategy, primaryTarget);
 

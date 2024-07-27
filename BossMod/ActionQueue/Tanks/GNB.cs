@@ -157,6 +157,8 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
+        d.RegisterChargeIncreaseTrait(AID.Aurora, TraitID.EnhancedAurora);
+
         d.Spell(AID.LightningShot)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyLightningShot && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
         d.Spell(AID.Aurora)!.ForbidExecute = (_, player, _, _) => player.HPMP.CurHP >= player.HPMP.MaxHP; // don't use at full hp
         d.Spell(AID.HeartOfCorundum)!.SmartTarget = d.Spell(AID.HeartOfStone)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;

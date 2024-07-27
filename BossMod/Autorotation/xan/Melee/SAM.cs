@@ -8,7 +8,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("SAM", "Samurai", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.SAM), 100);
+        var def = new RotationModuleDefinition("SAM", "Samurai", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SAM), 100);
 
         def.DefineShared().AddAssociatedActions(AID.Ikishoten, AID.HissatsuSenei);
 
@@ -134,7 +134,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             PushGCD(AID.OgiNamikiri, BestOgiTarget);
 
         if (MeikyoLeft > GCD)
-            PushGCD(GetMeikyoAction(), NumAOETargets > 2 ? Player : primaryTarget);
+            PushGCD(MeikyoAction, NumAOETargets > 2 ? Player : primaryTarget);
 
         if (NumAOETargets > 2 && Unlocked(AID.Fuga))
         {
@@ -192,37 +192,40 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         return Unlocked(AID.Jinpu) ? AID.Jinpu : AID.None;
     }
 
-    private AID GetMeikyoAction()
+    private AID MeikyoAction
     {
-        if (NumAOETargets > 2)
+        get
         {
-            // priority 0: damage buff
-            if (FugetsuLeft == 0)
-                return AID.Mangetsu;
-
-            return (Moon, Flower) switch
+            if (NumAOETargets > 2)
             {
-                // refresh buff running out first
-                (false, false) => FugetsuLeft <= FukaLeft ? AID.Mangetsu : AID.Oka,
-                (true, false) => AID.Oka,
-                _ => AID.Mangetsu,
-            };
-        }
-        else
-        {
-            // priority 0: damage buff
-            if (FugetsuLeft == 0)
-                return AID.Gekko;
+                // priority 0: damage buff
+                if (FugetsuLeft == 0)
+                    return AID.Mangetsu;
 
-            return (Moon, Flower) switch
+                return (Moon, Flower) switch
+                {
+                    // refresh buff running out first
+                    (false, false) => FugetsuLeft <= FukaLeft ? AID.Mangetsu : AID.Oka,
+                    (true, false) => AID.Oka,
+                    _ => AID.Mangetsu,
+                };
+            }
+            else
             {
-                // refresh buff running out first
-                (false, false) => FugetsuLeft <= FukaLeft ? AID.Gekko : AID.Kasha,
-                (false, true) => AID.Gekko,
-                (true, false) => AID.Kasha,
-                // only use yukikaze to get sen, as it's the weakest ender
-                _ => Ice ? AID.Gekko : AID.Yukikaze,
-            };
+                // priority 0: damage buff
+                if (FugetsuLeft == 0)
+                    return AID.Gekko;
+
+                return (Moon, Flower) switch
+                {
+                    // refresh buff running out first
+                    (false, false) => FugetsuLeft <= FukaLeft ? AID.Gekko : AID.Kasha,
+                    (false, true) => AID.Gekko,
+                    (true, false) => AID.Kasha,
+                    // only use yukikaze to get sen, as it's the weakest ender
+                    _ => Ice ? AID.Gekko : AID.Yukikaze,
+                };
+            }
         }
     }
 
@@ -276,7 +279,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             return (Positional.Any, false);
 
         if (MeikyoLeft > GCD)
-            return GetMeikyoAction() switch
+            return MeikyoAction switch
             {
                 AID.Gekko => (Positional.Rear, true),
                 AID.Kasha => (Positional.Flank, true),

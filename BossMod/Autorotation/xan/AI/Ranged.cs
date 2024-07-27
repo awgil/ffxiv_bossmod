@@ -6,7 +6,7 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase(mana
     public enum Track { Peloton, Interrupt, SecondWind }
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Phys Ranged AI", "Utilities for physical ranged dps - peloton, interrupt, defensive abilities", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.ARC, Class.BRD, Class.MCH, Class.DNC), 100);
+        var def = new RotationModuleDefinition("Phys Ranged AI", "Utilities for physical ranged dps - peloton, interrupt, defensive abilities", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ARC, Class.BRD, Class.MCH, Class.DNC), 100);
 
         def.AbilityTrack(Track.Peloton, "Peloton").AddAssociatedActions(ClassShared.AID.Peloton);
         def.AbilityTrack(Track.Interrupt, "Head Graze").AddAssociatedActions(ClassShared.AID.HeadGraze);
@@ -15,7 +15,7 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase(mana
         return def;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimationLockDelay, float forceMovementIn)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
     {
         if (Player.InCombat)
             _pelotonLockout = World.CurrentTime;

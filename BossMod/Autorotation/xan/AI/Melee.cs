@@ -4,7 +4,7 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase(manag
     public enum Track { SecondWind, Bloodbath, Stun }
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Melee DPS AI", "Utilities for melee - bloodbath, second wind, stun", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.PGL, Class.MNK, Class.LNC, Class.DRG, Class.ROG, Class.NIN, Class.SAM, Class.RPR, Class.VPR), 100);
+        var def = new RotationModuleDefinition("Melee DPS AI", "Utilities for melee - bloodbath, second wind, stun", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PGL, Class.MNK, Class.LNC, Class.DRG, Class.ROG, Class.NIN, Class.SAM, Class.RPR, Class.VPR), 100);
 
         def.AbilityTrack(Track.SecondWind, "Second Wind");
         def.AbilityTrack(Track.Bloodbath, "Bloodbath");
@@ -13,7 +13,7 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase(manag
         return def;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimationLockDelay, float forceMovementIn)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
     {
         if (Player.Statuses.Any(x => x.ID is (uint)BossMod.NIN.SID.TenChiJin or (uint)BossMod.NIN.SID.Mudra))
             return;

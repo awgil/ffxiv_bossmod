@@ -28,7 +28,7 @@ public sealed class PendingEffects
                 bool confirmTarget = false;
                 foreach (var eff in ev.Targets[i].Effects)
                 {
-                    if (eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage or ActionEffectType.Heal or ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource or ActionEffectType.RecoveredFromStatusEffect)
+                    if (eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage or ActionEffectType.Heal or ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource or ActionEffectType.LoseStatusEffectTarget or ActionEffectType.LoseStatusEffectSource or ActionEffectType.RecoveredFromStatusEffect or ActionEffectType.MpGain or ActionEffectType.MpLoss)
                     {
                         if (ev.Targets[i].ID == source)
                             confirmSource = confirmTarget = true;
@@ -129,6 +129,19 @@ public sealed class PendingEffects
         return res;
     }
 
+    public int PendingMPDifference(ulong target)
+    {
+        int res = 0;
+        foreach (var eff in PendingEffectsAtTarget(_entries, target))
+        {
+            if (eff.Type is ActionEffectType.MpLoss)
+                res -= eff.Value;
+            else if (eff.Type is ActionEffectType.MpGain)
+                res += eff.Value;
+        }
+        return res;
+    }
+
     // returns low byte of extra if pending (stack count), or null if not
     public byte? PendingStatus(ulong target, uint statusID, ulong source)
     {
@@ -141,6 +154,20 @@ public sealed class PendingEffects
         }
         return null;
     }
+
+    public byte? PendingStatus(ulong target, uint statusID)
+    {
+        foreach (var eff in PendingEffectsAtTarget(_entries, target))
+        {
+            if (eff.Type is ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource && eff.Value == statusID)
+            {
+                return eff.Param2;
+            }
+        }
+        return null;
+    }
+
+    public IEnumerable<ActionEffect> AllPendingEffects(ulong target) => PendingEffectsAtTarget(_entries, target);
 
     private static IEnumerable<ActionEffect> PendingEffectsAtTarget(IEnumerable<Entry> entries, ulong target)
     {

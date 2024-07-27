@@ -1,5 +1,6 @@
 ﻿using BossMod.NIN;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using System.Collections.ObjectModel;
 
 namespace BossMod.Autorotation.xan;
 public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
@@ -49,7 +50,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
     // these aren't the same cdgroup :(
     public float AssassinateCD => CD(Unlocked(AID.DreamWithinADream) ? AID.DreamWithinADream : AID.Assassinate);
 
-    private int[] Mudras => [Mudra.Param & 3, (Mudra.Param >> 2) & 3, (Mudra.Param >> 4) & 3];
+    private ReadOnlyCollection<int> Mudras => Array.AsReadOnly([Mudra.Param & 3, (Mudra.Param >> 2) & 3, (Mudra.Param >> 4) & 3]);
 
     private readonly Dictionary<AID, (int Len, int Last)> Combos = new()
     {
@@ -199,7 +200,6 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
             PushGCD(AID.SpinningEdge, primaryTarget);
         }
-
     }
 
     private bool ShouldPK(Actor? primaryTarget)
