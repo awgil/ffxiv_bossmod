@@ -28,7 +28,7 @@ public sealed class PendingEffects
                 bool confirmTarget = false;
                 foreach (var eff in ev.Targets[i].Effects)
                 {
-                    if (eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage or ActionEffectType.Heal or ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource or ActionEffectType.LoseStatusEffectTarget or ActionEffectType.LoseStatusEffectSource or ActionEffectType.RecoveredFromStatusEffect or ActionEffectType.MpGain or ActionEffectType.MpLoss)
+                    if (eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage or ActionEffectType.Heal or ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource or ActionEffectType.RecoveredFromStatusEffect or ActionEffectType.MpGain or ActionEffectType.MpLoss)
                     {
                         if (ev.Targets[i].ID == source)
                             confirmSource = confirmTarget = true;
@@ -166,8 +166,6 @@ public sealed class PendingEffects
         }
         return null;
     }
-
-    public IEnumerable<ActionEffect> AllPendingEffects(ulong target) => PendingEffectsAtTarget(_entries, target);
 
     private static IEnumerable<ActionEffect> PendingEffectsAtTarget(IEnumerable<Entry> entries, ulong target)
     {
