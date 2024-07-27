@@ -53,18 +53,6 @@ public unsafe struct PlayerController
     [FieldOffset(0x559)] public byte ControlMode;
 }
 
-[StructLayout(LayoutKind.Explicit, Size = 0x18)]
-public unsafe struct PlayerMoveControllerFlyInput
-{
-    [FieldOffset(0x0)] public float Forward;
-    [FieldOffset(0x4)] public float Left;
-    [FieldOffset(0x8)] public float Up;
-    [FieldOffset(0xC)] public float Turn;
-    [FieldOffset(0x10)] public float u10;
-    [FieldOffset(0x14)] public byte DirMode;
-    [FieldOffset(0x15)] public byte HaveBackwardOrStrafe;
-}
-
 [StructLayout(LayoutKind.Explicit, Size = 0x2B0)]
 public unsafe struct CameraX
 {
@@ -86,7 +74,7 @@ unsafe sealed class DebugInput : IDisposable
     private delegate ref int GetRefValueDelegate(int vkCode);
     private readonly GetRefValueDelegate _getKeyRef;
 
-    //private readonly PlayerController* _playerController;
+    private readonly PlayerController* _playerController;
 
     //private delegate void RMIWalkDelegate(PlayerMoveControllerWalk* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk);
     //private readonly Hook<RMIWalkDelegate> _rmiWalkHook;
@@ -109,13 +97,13 @@ unsafe sealed class DebugInput : IDisposable
     private int _gamepadButtonOverride = -1;
     private int _gamepadButtonValue;
     private bool _gamepadNavigate;
-    private bool _pmcOverrideDirEnable;
-    private float _pmcOverrideDir;
-    private float _pmcOverrideVertical;
-    private float _pmcDesiredAzimuth;
-    private float _pmcDesiredAltitude;
-    private float _pmcCameraSpeedH;
-    private float _pmcCameraSpeedV;
+    //private bool _pmcOverrideDirEnable;
+    //private float _pmcOverrideDir;
+    //private float _pmcOverrideVertical;
+    //private float _pmcDesiredAzimuth;
+    //private float _pmcDesiredAltitude;
+    //private float _pmcCameraSpeedH;
+    //private float _pmcCameraSpeedV;
 
     public DebugInput(RotationModuleManager autorot)
     {
@@ -125,8 +113,8 @@ unsafe sealed class DebugInput : IDisposable
         //_amex = autorot.ActionManager;
         //_navi = new(_amex);
 
-        //_playerController = (PlayerController*)Service.SigScanner.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 3C 01 75 1E 48 8D 0D");
-        //Service.Log($"[DebugInput] playerController addess: 0x{(nint)_playerController:X}");
+        _playerController = (PlayerController*)Service.SigScanner.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 3C 01 75 1E 48 8D 0D");
+        Service.Log($"[DebugInput] playerController addess: 0x{(nint)_playerController:X}");
 
         //_rmiWalkHook = Service.Hook.HookFromSignature<RMIWalkDelegate>("E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D", RMIWalkDetour);
         //Service.Log($"[DebugInput] rmiwalk addess: 0x{_rmiWalkHook.Address:X}");
