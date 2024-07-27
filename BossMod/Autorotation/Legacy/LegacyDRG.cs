@@ -28,13 +28,13 @@ public sealed class LegacyDRG : LegacyModule
             .AddOption(TrueNorthStrategy.Force, "Force")
             .AddAssociatedActions(DRG.AID.TrueNorth);
 
-        res.Define(Track.SpineshatterDive).As<SpineshatterStrategy>("SpineShatter", "SSDive", uiPriority: 70)
-            .AddOption(SpineshatterStrategy.Automatic, "Automatic", "Always keep one charge reserved, use other charges under raidbuffs or prevent overcapping")
-            .AddOption(SpineshatterStrategy.Forbid, "Forbid", "Forbid automatic use")
-            .AddOption(SpineshatterStrategy.Force, "Force", "Use all charges ASAP")
-            .AddOption(SpineshatterStrategy.ForceReserve, "ForceReserve", "Use all charges except one ASAP")
-            .AddOption(SpineshatterStrategy.UseOutsideMelee, "UseOutsideMelee", "Use as gapcloser if outside melee range")
-            .AddAssociatedActions(DRG.AID.SpineshatterDive);
+        //res.Define(Track.SpineshatterDive).As<SpineshatterStrategy>("SpineShatter", "SSDive", uiPriority: 70)
+        //    .AddOption(SpineshatterStrategy.Automatic, "Automatic", "Always keep one charge reserved, use other charges under raidbuffs or prevent overcapping")
+        //    .AddOption(SpineshatterStrategy.Forbid, "Forbid", "Forbid automatic use")
+        //    .AddOption(SpineshatterStrategy.Force, "Force", "Use all charges ASAP")
+        //    .AddOption(SpineshatterStrategy.ForceReserve, "ForceReserve", "Use all charges except one ASAP")
+        //    .AddOption(SpineshatterStrategy.UseOutsideMelee, "UseOutsideMelee", "Use as gapcloser if outside melee range")
+        //    .AddAssociatedActions(DRG.AID.SpineshatterDive);
 
         return res;
     }
@@ -135,7 +135,7 @@ public sealed class LegacyDRG : LegacyModule
         //    ogcd = GetNextBestOGCD(strategy, deadline - _state.OGCDSlotLength);
         if (!ogcd && _state.CanWeave(deadline)) // second/only ogcd slot
             ogcd = GetNextBestOGCD(strategy, deadline, gcd);
-        PushResult(ogcd, ogcd == ActionID.MakeSpell(DRG.AID.DragonSight) ? DRG.Definitions.FindBestDragonSightTarget(World, Player) : primaryTarget);
+        PushResult(ogcd, /*ogcd == ActionID.MakeSpell(DRG.AID.DragonSight) ? DRG.Definitions.FindBestDragonSightTarget(World, Player) :*/ primaryTarget);
     }
 
     //protected override void QueueAIActions()
@@ -228,7 +228,7 @@ public sealed class LegacyDRG : LegacyModule
             if (_state.ComboLastMove == DRG.AID.VorpalThrust
                 && chargeCapIn < _state.GCD + 2.5
                 && _state.CD(DRG.AID.BattleLitany) < 100
-                && _state.CD(DRG.AID.DragonSight) < 100
+                //&& _state.CD(DRG.AID.DragonSight) < 100
                 && _state.CD(DRG.AID.LanceCharge) < 40
                 && _state.CD(DRG.AID.Geirskogul) > 0)
                 return true;
@@ -260,6 +260,7 @@ public sealed class LegacyDRG : LegacyModule
         }
     }
 
+    /*
     private bool UseSpineShatterDive(SpineshatterStrategy strategy)
     {
         switch (strategy)
@@ -292,6 +293,7 @@ public sealed class LegacyDRG : LegacyModule
                 return false; // Default: Don't use in other cases
         }
     }
+    */
 
     private (Positional, bool) GetNextPositional()
     {
@@ -419,14 +421,14 @@ public sealed class LegacyDRG : LegacyModule
             return default;
 
         bool canJump = _state.PositionLockIn > _state.AnimationLock;
-        bool wantSpineShatter = _state.Unlocked(DRG.AID.SpineshatterDive) && _state.TargetingEnemy && UseSpineShatterDive(strategy.Option(Track.SpineshatterDive).As<SpineshatterStrategy>());
+        // bool wantSpineShatter = _state.Unlocked(DRG.AID.SpineshatterDive) && _state.TargetingEnemy && UseSpineShatterDive(strategy.Option(Track.SpineshatterDive).As<SpineshatterStrategy>());
 
         if (_state.PowerSurgeLeft > _state.GCD)
         {
-            if (_state.Unlocked(DRG.AID.LanceCharge) && _state.CanWeave(DRG.AID.LanceCharge, 0.6f, deadline - _state.OGCDSlotLength) && ((_state.CD(DRG.AID.DragonSight) < _state.GCD) || (_state.CD(DRG.AID.DragonSight) < 65) && (_state.CD(DRG.AID.DragonSight) > 55)))
+            if (_state.Unlocked(DRG.AID.LanceCharge) && _state.CanWeave(DRG.AID.LanceCharge, 0.6f, deadline - _state.OGCDSlotLength) /*&& ((_state.CD(DRG.AID.DragonSight) < _state.GCD) || (_state.CD(DRG.AID.DragonSight) < 65) && (_state.CD(DRG.AID.DragonSight) > 55))*/)
                 return ActionID.MakeSpell(DRG.AID.LanceCharge);
-            if (_state.Unlocked(DRG.AID.DragonSight) && _state.CanWeave(DRG.AID.DragonSight, 0.6f, deadline) && _state.CD(DRG.AID.BattleLitany) < _state.GCD + 2.5)
-                return ActionID.MakeSpell(DRG.AID.DragonSight);
+            //if (_state.Unlocked(DRG.AID.DragonSight) && _state.CanWeave(DRG.AID.DragonSight, 0.6f, deadline) && _state.CD(DRG.AID.BattleLitany) < _state.GCD + 2.5)
+            //    return ActionID.MakeSpell(DRG.AID.DragonSight);
             if (_state.Unlocked(DRG.AID.BattleLitany) && _state.CanWeave(DRG.AID.BattleLitany, 0.6f, deadline))
                 return ActionID.MakeSpell(DRG.AID.BattleLitany);
             // life surge on most damaging gcd
@@ -437,7 +439,7 @@ public sealed class LegacyDRG : LegacyModule
             if (_state.LifeOfTheDragonLeft > _state.AnimationLock && _state.CanWeave(DRG.AID.Nastrond, 0.6f, deadline))
                 return ActionID.MakeSpell(DRG.AID.Nastrond);
 
-            if (_state.CD(DRG.AID.LanceCharge) > 5 && _state.CD(DRG.AID.DragonSight) > 5 && _state.CD(DRG.AID.BattleLitany) > 5)
+            if (_state.CD(DRG.AID.LanceCharge) > 5 && /*_state.CD(DRG.AID.DragonSight) > 5 &&*/ _state.CD(DRG.AID.BattleLitany) > 5)
             {
                 if (_state.CanWeave(DRG.AID.WyrmwindThrust, 0.6f, deadline) && ShouldUseWyrmWindThrust() && (nextBestGCD is DRG.AID.DraconianFury or DRG.AID.RaidenThrust))
                     return ActionID.MakeSpell(DRG.AID.WyrmwindThrust);
@@ -449,20 +451,20 @@ public sealed class LegacyDRG : LegacyModule
                     return ActionID.MakeSpell(DRG.AID.MirageDive);
                 if (canJump && _state.Unlocked(DRG.AID.DragonfireDive) && _state.CanWeave(DRG.AID.DragonfireDive, 0.8f, deadline))
                     return ActionID.MakeSpell(DRG.AID.DragonfireDive);
-                if (wantSpineShatter && _state.CanWeave(_state.CD(DRG.AID.SpineshatterDive), 0.8f, deadline))
-                    return ActionID.MakeSpell(DRG.AID.SpineshatterDive);
+                //if (wantSpineShatter && _state.CanWeave(_state.CD(DRG.AID.SpineshatterDive), 0.8f, deadline))
+                //    return ActionID.MakeSpell(DRG.AID.SpineshatterDive);
                 if (canJump && _state.Unlocked(DRG.AID.Stardiver) && _state.LifeOfTheDragonLeft > _state.AnimationLock && _state.CanWeave(DRG.AID.Stardiver, 1.5f, deadline))
                     return ActionID.MakeSpell(DRG.AID.Stardiver);
                 if (_state.CanWeave(DRG.AID.WyrmwindThrust, 0.6f, deadline) && ShouldUseWyrmWindThrust())
                     return ActionID.MakeSpell(DRG.AID.WyrmwindThrust);
-                if (wantSpineShatter && _state.RangeToTarget > 3)
-                    return ActionID.MakeSpell(DRG.AID.SpineshatterDive);
+                //if (wantSpineShatter && _state.RangeToTarget > 3)
+                //    return ActionID.MakeSpell(DRG.AID.SpineshatterDive);
                 //if (wantSpineShatter && _state.LifeOfTheDragonLeft < _state.AnimationLock && _state.CanWeave(_state.CD(DRG.AID.SpineshatterDive) - 60, 0.8f, deadline))
                 //    return ActionID.MakeSpell(DRG.AID.SpineshatterDive);
                 //if (wantSpineShatter && _state.LifeOfTheDragonLeft > _state.AnimationLock && _state.CD(DRG.AID.Stardiver) > 0 && _state.CanWeave(_state.CD(DRG.AID.SpineshatterDive) - 60, 0.8f, deadline))
                 //    return ActionID.MakeSpell(DRG.AID.SpineshatterDive);
-                if (wantSpineShatter && _state.CanWeave(_state.CD(DRG.AID.SpineshatterDive) - 60, 0.8f, deadline))
-                    return ActionID.MakeSpell(DRG.AID.SpineshatterDive);
+                //if (wantSpineShatter && _state.CanWeave(_state.CD(DRG.AID.SpineshatterDive) - 60, 0.8f, deadline))
+                //    return ActionID.MakeSpell(DRG.AID.SpineshatterDive);
                 //if (_state.DiveReadyLeft > _state.AnimationLock && _state.CanWeave(DRG.AID.MirageDive, 0.6f, deadline) && _state.EyeCount != 2 && _state.LifeOfTheDragonLeft > _state.AnimationLock && _state.CD(DRG.AID.Stardiver) > 0)
                 //    return ActionID.MakeSpell(DRG.AID.MirageDive);
                 //if (_state.DiveReadyLeft > _state.AnimationLock && _state.CanWeave(DRG.AID.MirageDive, 0.6f, deadline) && _state.EyeCount != 2 && _state.LifeOfTheDragonLeft < _state.AnimationLock)

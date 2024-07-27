@@ -18,6 +18,19 @@ public enum ActionTargets
     All = (1 << 9) - 1,
 }
 
+// used for BLM calculations and possibly BLU optimization
+public enum ActionAspect : byte
+{
+    None,
+    Fire,
+    Ice,
+    Wind,
+    Earth,
+    Thunder,
+    Water,
+    Physical
+}
+
 // this contains all information about player actions that we care about (for action tweaks, autorotation, etc)
 // some of the data is available in sheets, however unfortunately quite a bit is hardcoded in game functions; it often uses current player data
 // however, we need this information outside game (ie in uidev) and for different players of different classes/levels (ie for replay analysis)
@@ -37,7 +50,8 @@ public sealed record class ActionDefinition(ActionID ID)
     public int MainCooldownGroup = -1;
     public int ExtraCooldownGroup = -1;
     public float Cooldown; // for single charge (if multi-charge action); can be adjusted by a number of factors (TODO: add functor)
-    public int MaxChargesBase = 1; // baseline max-charges when action is unlocked
+    public ActionAspect Aspect; // useful for BLM and BLU
+    public int MaxChargesBase; // baseline max-charges when action is unlocked
     public readonly List<(int Charges, int Level, uint UnlockLink)> MaxChargesOverride = []; // trait overrides for max-charges (applied in order)
     public float InstantAnimLock = 0.6f; // animation lock if ability is instant-cast
     public float CastAnimLock = 0.1f; // animation lock if ability is non-instant
@@ -155,6 +169,8 @@ public sealed class ActionDefinitions : IDisposable
             new SMN.Definitions(this),
             new RDM.Definitions(this),
             new BLU.Definitions(this),
+            new PCT.Definitions(this),
+            new VPR.Definitions(this),
         ];
 
         // items (TODO: more generic approach is needed...)
@@ -277,7 +293,16 @@ public sealed class ActionDefinitions : IDisposable
         _ => 5,
     };
 
-    public int SpellBaseMaxCharges(Lumina.Excel.GeneratedSheets.Action? data) => data?.MaxCharges ?? 1;
+    public ActionAspect SpellAspect(Lumina.Excel.GeneratedSheets.Action? data) => (ActionAspect)(data?.Aspect ?? 0);
+    public ActionAspect SpellAspect(uint spellId) => SpellAspect(ActionData(spellId));
+    public ActionAspect ActionAspect(ActionID aid) => aid.Type switch
+    {
+        ActionType.Spell => SpellAspect(aid.ID),
+        _ => 0
+    };
+
+    // the vast majority of chargeless actions have MaxCharges=0, even though they logically have 1
+    public int SpellBaseMaxCharges(Lumina.Excel.GeneratedSheets.Action? data) => Math.Max(data?.MaxCharges ?? 1, (byte)1);
     public int SpellBaseMaxCharges(uint spellId) => SpellBaseMaxCharges(ActionData(spellId));
     public int ActionBaseMaxCharges(ActionID aid) => SpellBaseMaxCharges(aid.SpellId());
 
@@ -300,6 +325,7 @@ public sealed class ActionDefinitions : IDisposable
             MainCooldownGroup = SpellMainCDGroup(data),
             ExtraCooldownGroup = SpellExtraCDGroup(data),
             Cooldown = SpellBaseCooldown(data),
+            Aspect = SpellAspect(data),
             MaxChargesBase = SpellBaseMaxCharges(data),
             InstantAnimLock = instantAnimLock,
             CastAnimLock = castAnimLock,
