@@ -13,6 +13,23 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertyDisplay("Prevent movement while casting")]
     public bool PreventMovingWhileCasting = false;
 
+    public enum ModifierKey
+    {
+        [PropertyDisplay("None")]
+        None,
+        [PropertyDisplay("Control")]
+        Ctrl,
+        [PropertyDisplay("Alt")]
+        Alt,
+        [PropertyDisplay("Shift")]
+        Shift,
+        [PropertyDisplay("LMB + RMB")]
+        M12
+    }
+
+    [PropertyDisplay("Hold to allow movement while casting")]
+    public ModifierKey MoveEscapeHatch = ModifierKey.None;
+
     [PropertyDisplay("Automatically cancel a cast when target is dead")]
     public bool CancelCastOnDeadTarget = false;
 

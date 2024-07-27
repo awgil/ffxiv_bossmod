@@ -41,7 +41,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
     public Event<ClientActionRequest> ActionRequestExecuted = new();
     public Event<ulong, ActorCastEvent> ActionEffectReceived = new();
 
-    public InputOverride InputOverride = new();
+    public MovementOverride InputOverride => MovementOverride.Instance!;
     public ActionTweaksConfig Config = Service.Config.Get<ActionTweaksConfig>();
     public ActionQueue.Entry AutoQueue { get; private set; }
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
@@ -286,10 +286,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
 
         _cooldownTweak.StopAdjustment(); // clear any potential adjustments
 
-        if (blockMovement)
-            InputOverride.BlockMovement();
-        else
-            InputOverride.UnblockMovement();
+        InputOverride.MovementBlocked = blockMovement;
 
         if (_ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(_ws.CurrentTime, ForceCancelCastNextFrame))
             UIState.Instance()->Hotbar.CancelCast();
@@ -409,7 +406,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
         }
 
         MoveMightInterruptCast = false; // slidecast window start
-        InputOverride.UnblockMovement(); // unblock input unconditionally on successful cast (I assume there are no instances where we need to immediately start next GCD?)
+        InputOverride.MovementBlocked = false; // unblock input unconditionally on successful cast (I assume there are no instances where we need to immediately start next GCD?)
 
         // animation lock delay update
         var animLockReduction = _animLockTweak.Apply(header->SourceSequence, prevAnimLock, _inst->AnimationLock, packetAnimLock, header->AnimationLock, out var animLockDelay);
