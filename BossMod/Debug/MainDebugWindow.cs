@@ -13,7 +13,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
     private readonly DebugGraphics _debugGraphics = new();
     private readonly DebugAction _debugAction = new(ws, amex);
     private readonly DebugHate _debugHate = new();
-    //private readonly DebugInput _debugInput = new(autorot);
+    private readonly DebugInput _debugInput = new(autorot);
     private readonly DebugAutorotation _debugAutorot = new(autorot);
     private readonly DebugClassDefinitions _debugClassDefinitions = new(ws);
     private readonly DebugAddon _debugAddon = new();
@@ -23,7 +23,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
     protected override void Dispose(bool disposing)
     {
         _debugAction.Dispose();
-        //_debugInput.Dispose();
+        _debugInput.Dispose();
         _debugClassDefinitions.Dispose();
         _debugAddon.Dispose();
         //_debugVfx.Dispose();
@@ -108,10 +108,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
         {
             DrawTargets();
         }
-        //if (ImGui.CollapsingHeader("Input"))
-        //{
-        //    _debugInput.Draw();
-        //}
+        if (ImGui.CollapsingHeader("Input"))
+        {
+            _debugInput.Draw();
+        }
         if (ImGui.CollapsingHeader("Class definitions"))
         {
             _debugClassDefinitions.Draw();
