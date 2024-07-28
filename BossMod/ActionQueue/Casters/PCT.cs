@@ -163,8 +163,8 @@ public sealed class Definitions : IDisposable
         d.RegisterChargeIncreaseTrait(AID.StrikingMuse, TraitID.EnhancedPictomancyII);
         d.RegisterChargeIncreaseTrait(AID.LivingMuse, TraitID.EnhancedPictomancyIV);
 
-        d.Spell(AID.Smudge)!.TransformAngle = (_, _, _, _) => _config.AlignDashToCamera
-            ? Camera.Instance!.CameraAzimuth.Radians() + 180.Degrees()
+        d.Spell(AID.Smudge)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera
+            ? ws.Client.CameraAzimuth + 180.Degrees()
             : null;
     }
 }
