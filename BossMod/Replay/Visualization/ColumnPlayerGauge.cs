@@ -1,4 +1,6 @@
-﻿namespace BossMod.ReplayVisualization;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+
+namespace BossMod.ReplayVisualization;
 
 public abstract class ColumnPlayerGauge : Timeline.ColumnGroup, IToggleableColumn
 {
@@ -18,6 +20,16 @@ public abstract class ColumnPlayerGauge : Timeline.ColumnGroup, IToggleableColum
             _ => (ColumnPlayerGauge?)null // TODO: remove this cast as soon as we introduce other gauge type here...
         };
     }
+
+    // TODO: reconsider...
+    protected unsafe T GetGauge<T>(WorldState.OpFrameStart op) where T : unmanaged
+    {
+        T res = default;
+        ((ulong*)&res)[1] = op.GaugePayload.Low;
+        if (sizeof(T) > 16)
+            ((ulong*)&res)[2] = op.GaugePayload.High;
+        return res;
+    }
 }
 
 public class ColumnPlayerGaugeWAR : ColumnPlayerGauge
@@ -35,34 +47,24 @@ public class ColumnPlayerGaugeWAR : ColumnPlayerGauge
     {
         _gauge = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
 
-        var ir = replay.EncounterStatuses(enc).Where(s => s.ID == (uint)WAR.SID.InnerRelease && s.Target == player).ToList();
+        var minTime = enc.Time.Start.AddSeconds(timeline.MinTime);
         int prevGauge = 0;
-        var prevTime = enc.Time.Start;
-        foreach (var a in replay.EncounterActions(enc).Where(a => a.Source == player && a.ID.Type == ActionType.Spell))
+        var prevTime = minTime;
+        foreach (var frame in replay.Ops.SkipWhile(op => op.Timestamp < minTime).TakeWhile(op => op.Timestamp <= enc.Time.End).OfType<WorldState.OpFrameStart>())
         {
-            var delta = (WAR.AID)a.ID.ID switch
+            var gauge = GetGauge<WarriorGauge>(frame);
+            if (gauge.BeastGauge != prevGauge)
             {
-                WAR.AID.Maim => 10,
-                WAR.AID.StormPath => 20,
-                WAR.AID.StormEye => 10,
-                WAR.AID.MythrilTempest => 20,
-                WAR.AID.InnerBeast or WAR.AID.FellCleave or WAR.AID.SteelCyclone or WAR.AID.Decimate => ir.Any(s => s.Time.Contains(a.Timestamp)) ? 0 : -50,
-                WAR.AID.InnerChaos or WAR.AID.ChaoticCyclone => -50,
-                WAR.AID.Infuriate => 50,
-                _ => -1,
-            };
-            if (delta == -1)
-                continue;
+                if (prevGauge != 0)
+                {
+                    _gauge.AddHistoryEntryRange(enc.Time.Start, prevTime, frame.Timestamp, $"{prevGauge} gauge", 0x80808080, prevGauge * 0.01f);
+                }
 
-            if (prevGauge > 0)
-                _gauge.AddHistoryEntryRange(enc.Time.Start, prevTime, a.Timestamp, $"{prevGauge} gauge", 0x80808080, prevGauge * 0.01f);
+                prevGauge = gauge.BeastGauge;
+                prevTime = frame.Timestamp;
+            }
 
-            var newGauge = Math.Clamp(prevGauge + delta, 0, 100);
-            var actionName = $"{delta} gauge: {a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}";
-            _gauge.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, delta == 0 ? 0xffc0c0c0 : newGauge == prevGauge + delta ? 0xffffffff : 0xff0000ff).AddActionTooltip(a);
-
-            prevGauge = newGauge;
-            prevTime = a.Timestamp;
+            // TODO: add combo/FC/inf actions?..
         }
     }
 }
