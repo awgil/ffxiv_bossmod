@@ -36,23 +36,25 @@ public static class ColumnUtils
         return AddHistoryEntryRange(column, encStart, range.Start, range.Duration, name, color, widthRel);
     }
 
-    public static void AddActionTooltip(this ColumnGenericHistory.Entry entry, Replay.Action action)
+    public static void AddActionTooltip(List<string> tooltip, Replay.Action action)
     {
         foreach (var t in action.Targets)
         {
-            entry.TooltipExtra.Add($"- {ReplayUtils.ActionTargetString(t, action.Timestamp)}");
+            tooltip.Add($"- {ReplayUtils.ActionTargetString(t, action.Timestamp)}");
             foreach (var e in t.Effects)
             {
-                entry.TooltipExtra.Add($"-- {ReplayUtils.ActionEffectString(e)}");
+                tooltip.Add($"-- {ReplayUtils.ActionEffectString(e)}");
             }
         }
     }
+    public static void AddActionTooltip(this ColumnGenericHistory.Entry entry, Replay.Action action) => entry.TooltipExtra = (res, _) => AddActionTooltip(res, action);
 
-    public static void AddCastTooltip(this ColumnGenericHistory.Entry entry, Replay.Cast cast)
+    public static void AddCastTooltip(List<string> tooltip, Replay.Cast cast)
     {
-        entry.TooltipExtra.Add($"- cast expected {cast.ExpectedCastTime:f2}, actual {cast.Time}");
-        entry.TooltipExtra.Add($"- target loc: {Utils.Vec3String(cast.Location)}, angle: {cast.Rotation}");
+        tooltip.Add($"- cast expected {cast.ExpectedCastTime:f2}, actual {cast.Time}");
+        tooltip.Add($"- target loc: {Utils.Vec3String(cast.Location)}, angle: {cast.Rotation}");
     }
+    public static void AddCastTooltip(this ColumnGenericHistory.Entry entry, Replay.Cast cast) => entry.TooltipExtra = (res, _) => AddCastTooltip(res, cast);
 
     public static bool ActionHasDamageToPlayerEffects(Replay.Action action)
     {

@@ -17,7 +17,7 @@ public class ColumnGenericHistory : Timeline.Column
         public string Name = name;
         public Color Color = color;
         public float WidthRel = widthRel;
-        public List<string> TooltipExtra = [];
+        public Action<List<string>, float>? TooltipExtra;
 
         public float TimeSincePhaseStart() => (AttachNode.Predecessor?.Time ?? 0) + Delay;
         public float TimeSinceGlobalStart(StateMachineTree tree) => tree.Phases[AttachNode.PhaseID].StartTime + TimeSincePhaseStart();
@@ -88,9 +88,11 @@ public class ColumnGenericHistory : Timeline.Column
         if (!ScreenPosInTrack(mousePos))
             return;
 
-        foreach (var e in Entries.Where(e => (e.Name.Length > 0 || e.TooltipExtra.Count > 0) && ScreenPosInEntry(mousePos, e)))
+        var cursor = Timeline.ScreenCoordToTime(mousePos.Y);
+        Timeline.HighlightTime(cursor, 0x80808080);
+        foreach (var e in Entries.Where(e => (e.Name.Length > 0 || e.TooltipExtra != null) && ScreenPosInEntry(mousePos, e)))
         {
-            Timeline.AddTooltip(EntryTooltip(e));
+            Timeline.AddTooltip(EntryTooltip(e, cursor));
             HighlightEntry(e);
         }
     }
@@ -105,7 +107,7 @@ public class ColumnGenericHistory : Timeline.Column
     protected bool ScreenPosInTrack(Vector2 pos)
     {
         var ox = Timeline.ScreenCoordToColumnOffset(pos.X) - Width / 2; // distance from column center
-        if (Math.Abs(ox) > _trackHalfWidth)
+        if (ox < -_trackHalfWidth || ox >= _trackHalfWidth)
             return false;
         if (pos.Y < Timeline.ScreenClientTL.Y || pos.Y > Timeline.ScreenClientTL.Y + Timeline.Height)
             return false;
@@ -122,9 +124,15 @@ public class ColumnGenericHistory : Timeline.Column
         return pos.Y >= (yMin - 4) && pos.Y <= (yMax + 4);
     }
 
-    private List<string> EntryTooltip(Entry e)
+    private List<string> EntryTooltip(Entry e, float cursor)
     {
-        List<string> res = [$"{e.TimeSinceGlobalStart(Tree):f3}: {e.Name}", .. e.TooltipExtra];
+        var start = e.TimeSinceGlobalStart(Tree);
+        List<string> res = [$"{start:f3}: {e.Name}"];
+        e.TooltipExtra?.Invoke(res, cursor);
+        if (e.Duration > 0)
+        {
+            res.Add($"{start + e.Duration:f3}: total {e.Duration:f3}s, cursor: {cursor:f3} = {cursor - start:f3}s after start, {start + e.Duration - cursor:f3}s before end");
+        }
         return res;
     }
 }

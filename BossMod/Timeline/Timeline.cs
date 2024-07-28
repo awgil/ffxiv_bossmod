@@ -105,6 +105,7 @@ public class Timeline
     private float _curColumnOffset;
     private Vector2 _screenClientTL;
     private readonly List<List<string>> _tooltip = [];
+    private readonly List<(float t, uint color)> _highlightTime = [];
     public float MinVisibleTime { get; private set; }
     public float MaxVisibleTime => MinVisibleTime + Height / PixelsPerSecond;
 
@@ -136,6 +137,11 @@ public class Timeline
         _curColumnOffset = 0;
         Columns.DrawAdvance(ref _curColumnOffset);
 
+        // cursor lines
+        foreach (var h in _highlightTime)
+            ImGui.GetWindowDrawList().AddLine(CanvasCoordsToScreenCoords(0, h.t), CanvasCoordsToScreenCoords(Columns.Width, h.t), h.color);
+        _highlightTime.Clear();
+
         ImGui.PopClipRect();
 
         if (_tooltip.Count > 0)
@@ -156,15 +162,8 @@ public class Timeline
     }
 
     // API below is supposed to be called during column's Draw() function
-    public void AddTooltip(List<string> strings)
-    {
-        _tooltip.Add(strings);
-    }
-
-    public void HighlightTime(float t)
-    {
-        ImGui.GetWindowDrawList().AddLine(CanvasCoordsToScreenCoords(0, t), CanvasCoordsToScreenCoords(Columns.Width, t), 0xffffffff);
-    }
+    public void AddTooltip(List<string> strings) => _tooltip.Add(strings);
+    public void HighlightTime(float t, uint color = 0xffffffff) => _highlightTime.Add((t, color));
 
     public float TimeDeltaToScreenDelta(float dt) => dt * PixelsPerSecond;
     public float ScreenDeltaToTimeDelta(float dy) => dy / PixelsPerSecond;

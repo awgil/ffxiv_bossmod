@@ -99,7 +99,8 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
                     effectDuration = Math.Min(effectDuration, 0.6f); // TODO: this is a hack, reconsider... the problem is that sometimes actions apply statuses that are then refreshed, that usually happens for gcds...
                 if (effectDuration > 0)
                 {
-                    col.AddHistoryEntryRange(enc.Time.Start, effectStart, effectDuration, actionName, 0x8000ff00).TooltipExtra = effectTooltip;
+                    var e = col.AddHistoryEntryRange(enc.Time.Start, effectStart, effectDuration, actionName, 0x8000ff00);
+                    e.TooltipExtra = (res, _) => res.AddRange(effectTooltip);
                     AdvanceCooldown(actionDef.MainCooldownGroup, enc.Time.Start, effectStart.AddSeconds(effectDuration), false);
                 }
                 col.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, 0xffffffff).AddActionTooltip(a);
@@ -205,7 +206,14 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
     private void AddAnimationLock(ColumnGenericHistory col, Replay.Action action, DateTime encStart, DateTime lockStart, string name)
     {
         if (action.AnimationLock > 0)
-            col.AddHistoryEntryRange(encStart, lockStart, action.AnimationLock, name, 0x80808080).TooltipExtra.Add($"- anim lock: {action.AnimationLock:f2}");
+        {
+            var e = col.AddHistoryEntryRange(encStart, lockStart, action.AnimationLock, name, 0x80808080);
+            e.TooltipExtra = (res, t) =>
+            {
+                var elapsed = t - (lockStart - encStart).TotalSeconds;
+                res.Add($"- anim lock: {action.AnimationLock - elapsed:f3} / {action.AnimationLock:f3}");
+            };
+        }
     }
 
     private ColumnGenericHistory GetCooldownColumn(int cooldownGroup, ActionID defaultAction)
@@ -216,11 +224,20 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
     {
         if (data.Column == null)
             return;
-        var width = data.MaxCharges > 0 ? (float)data.ChargesOnCooldown / data.MaxCharges : 1;
+        var maxCharges = data.MaxCharges;
+        var chargesOnCooldown = data.ChargesOnCooldown;
+        var chargeCooldown = data.ChargeCooldown;
+        var chargeCooldownEnd = data.ChargeCooldownEnd;
+        var startCD = (chargeCooldownEnd - data.Cursor).TotalSeconds;
+        var endCD = (chargeCooldownEnd - rangeEnd).TotalSeconds;
+        var width = maxCharges > 0 ? (float)chargesOnCooldown / maxCharges : 1;
         var e = data.Column.AddHistoryEntryRange(encStart, data.Cursor, rangeEnd, data.CooldownAction.ToString(), 0x80808080, width);
-        e.TooltipExtra.Add($"- charges remaining: {data.MaxCharges - data.ChargesOnCooldown}/{data.MaxCharges}");
-        e.TooltipExtra.Add($"- start CD: {(data.ChargeCooldownEnd - data.Cursor).TotalSeconds:f3}s");
-        e.TooltipExtra.Add($"- end CD: {(data.ChargeCooldownEnd - rangeEnd).TotalSeconds:f3}s");
+        e.TooltipExtra = (res, t) =>
+        {
+            res.Add($"- remaining: {(chargeCooldownEnd - encStart).TotalSeconds - t:f3}s / {chargeCooldown:f3}s ({maxCharges - chargesOnCooldown}/{maxCharges} charges)");
+            res.Add($"- start CD: {startCD:f3}s / {chargeCooldown:f3}s");
+            res.Add($"- end CD: {endCD:f3}s / {chargeCooldown:f3}s");
+        };
     }
 
     private void AdvanceCooldown(int cdGroup, DateTime encStart, DateTime timestamp, bool addRanges)
@@ -270,7 +287,9 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
         else
         {
             // already at max charges, assume previous cooldown is slightly smaller than expected
-            data.Column!.AddHistoryEntryLine(encStart, timestamp, aid.ToString(), 0xffffffff).TooltipExtra.Add($"- cooldown {(data.ChargeCooldownEnd - data.Cursor).TotalSeconds:f1}s smaller than expected");
+            var deficit = (data.ChargeCooldownEnd - data.Cursor).TotalSeconds;
+            var e = data.Column!.AddHistoryEntryLine(encStart, timestamp, aid.ToString(), 0xffffffff);
+            e.TooltipExtra = (res, _) => res.Add($"- cooldown {deficit:f1}s smaller than expected");
             data.ChargeCooldownEnd = data.Cursor.AddSeconds(actionDef.Cooldown);
         }
         data.ChargeCooldown = actionDef.Cooldown;

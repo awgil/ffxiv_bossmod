@@ -50,8 +50,12 @@ public class ColumnActorStatuses : Timeline.ColumnGroup
         foreach (var s in _replay.EncounterStatuses(_enc).Where(s => s.ID == statusID && s.Source == source && s.Target == _target))
         {
             var e = res.AddHistoryEntryRange(_enc.Time.Start, s.Time, $"{Utils.StatusString(statusID)} ({s.StartingExtra:X}) on {ReplayUtils.ParticipantString(_target, s.Time.Start)} from {ReplayUtils.ParticipantString(s.Source, s.Time.Start)}", 0x80808080);
-            e.TooltipExtra.Add($"- initial duration: {s.InitialDuration:f3}");
-            e.TooltipExtra.Add($"- final duration: {s.InitialDuration - s.Time.Duration:f3}");
+            e.TooltipExtra = (res, t) =>
+            {
+                var elapsed = t - (s.Time.Start - _enc.Time.Start).TotalSeconds;
+                res.Add($"- remaining: {s.InitialDuration - elapsed:f3} / {s.InitialDuration:f3}");
+                res.Add($"- final duration: {s.InitialDuration - s.Time.Duration:f3}");
+            };
             if (s.Time.Start == prevEnd)
                 res.AddHistoryEntryLine(_enc.Time.Start, prevEnd, "", 0xffffffff);
             prevEnd = s.Time.End;
