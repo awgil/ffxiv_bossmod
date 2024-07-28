@@ -222,11 +222,24 @@ public class Timeline
             drawlist.AddText(p - new Vector2(tickTextSize.X + 5, tickTextSize.Y / 2), 0xffffffff, tickText);
         }
 
-        if (CurrentTime != null && CurrentTime.Value >= MinVisibleTime && CurrentTime.Value <= maxT)
+        if (CurrentTime != null)
         {
-            // draw timeline mark
             var p = CanvasCoordsToScreenCoords(0, CurrentTime.Value);
-            drawlist.AddTriangleFilled(p, p - new Vector2(4, 2), p - new Vector2(4, -2), 0xffffffff);
+            if (CurrentTime.Value >= MinVisibleTime && CurrentTime.Value <= maxT)
+            {
+                // draw timeline mark
+                drawlist.AddTriangleFilled(p, p - new Vector2(4, 2), p - new Vector2(4, -2), 0xffffffff);
+            }
+
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            {
+                // change current time, so that listeners could react
+                var pos = ImGui.GetMousePos();
+                if (Math.Abs(pos.X - p.X) <= 3)
+                {
+                    CurrentTime = ScreenCoordToTime(pos.Y);
+                }
+            }
         }
     }
 }

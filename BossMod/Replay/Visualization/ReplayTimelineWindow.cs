@@ -7,6 +7,7 @@ class ReplayTimelineWindow : UIWindow
 {
     private readonly Replay _replay;
     private readonly Replay.Encounter _encounter;
+    private readonly ReplayDetailsWindow _timelineSync;
     private readonly StateMachineTree _stateTree;
     private readonly List<int> _phaseBranches;
     private readonly Timeline _timeline = new();
@@ -17,10 +18,11 @@ class ReplayTimelineWindow : UIWindow
     private readonly UISimpleWindow? _config;
     private readonly UITree _configTree = new();
 
-    public ReplayTimelineWindow(Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1200, 1000))
+    public ReplayTimelineWindow(Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB, ReplayDetailsWindow timelineSync) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1200, 1000))
     {
         _replay = replay;
         _encounter = enc;
+        _timelineSync = timelineSync;
         (_stateTree, _phaseBranches) = BuildStateData(enc);
         _timeline.MinTime = -30;
         _timeline.MaxTime = _stateTree.TotalMaxTime;
@@ -57,7 +59,11 @@ class ReplayTimelineWindow : UIWindow
             _colPlayers.SaveAll();
         }
 
+        var t = (float)(_timelineSync.CurrentTime - _encounter.Time.Start).TotalSeconds;
+        _timeline.CurrentTime = t;
         _timeline.Draw();
+        if (_timeline.CurrentTime != t)
+            _timelineSync.CurrentTime = _encounter.Time.Start.AddSeconds(_timeline.CurrentTime.Value);
     }
 
     private void DrawConfig()

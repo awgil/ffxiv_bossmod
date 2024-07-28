@@ -29,6 +29,12 @@ class ReplayDetailsWindow : UIWindow
     private float _pfTargetRadius = 3;
     private Positional _pfPositional = Positional.Any;
 
+    public DateTime CurrentTime
+    {
+        get => _curTime;
+        set => MoveTo(value);
+    }
+
     public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB) : base($"Replay: {data.Path}", false, new(1500, 1000))
     {
         _player = new(data);
@@ -40,7 +46,7 @@ class ReplayDetailsWindow : UIWindow
         _last = data.Ops[^1].Timestamp;
         _player.AdvanceTo(_first, _mgr.Update);
         _config = new(Service.Config, _player.WorldState, null);
-        _events = new(data, MoveTo, rotationDB.Plans);
+        _events = new(data, MoveTo, rotationDB.Plans, this);
         _analysis = new([data]);
     }
 
@@ -118,9 +124,9 @@ class ReplayDetailsWindow : UIWindow
 
                         var enc = _player.Replay.Encounters.FirstOrDefault(e => e.InstanceID == _mgr.ActiveModule.PrimaryActor.InstanceID);
                         if (enc != null)
-                            _ = new ReplayTimelineWindow(_player.Replay, enc, new(1), _rotationDB.Plans);
-                        else
-                            UIPlanDatabaseEditor.StartPlanEditor(_rotationDB.Plans, plans.Plans[plans.SelectedIndex], _mgr.ActiveModule.StateMachine);
+                        {
+                            _ = new ReplayTimelineWindow(_player.Replay, enc, new(1), _rotationDB.Plans, this);
+                        }
                     }
                 }
 
