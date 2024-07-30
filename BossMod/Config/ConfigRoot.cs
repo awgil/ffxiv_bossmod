@@ -129,7 +129,6 @@ public class ConfigRoot
                 }
                 /*else if (args.Count == 2)
                 {
-                    result.Add("Usage: /bmr cfg <config-type> <field> <value>");
                     result.Add("Usage: /vbm cfg <config-type> <field> <value>");
                     result.Add($"Type of {matchingNodes[0].GetType().Name}.{matchingFields[0].Name} is {matchingFields[0].FieldType.Name}");
                 }*/
