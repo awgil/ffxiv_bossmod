@@ -54,7 +54,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("SMN", "Summoner", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SMN, Class.ACN), 100);
+        var def = new RotationModuleDefinition("xan SMN", "Summoner", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SMN, Class.ACN), 100);
 
         def.DefineShared().AddAssociatedActions(AID.SearingLight);
 

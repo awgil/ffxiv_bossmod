@@ -10,7 +10,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Baseakech
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("GNB", "Gunbreaker", "Akechi-kun", RotationModuleQuality.Ok, BitMask.Build(Class.GNB), 100);
+        var def = new RotationModuleDefinition("Akechi GNB", "Gunbreaker", "Akechi-kun", RotationModuleQuality.Ok, BitMask.Build(Class.GNB), 100);
 
         def.DefineAOE(Track.AOE);
         def.DefineTargeting(Track.Targeting);
