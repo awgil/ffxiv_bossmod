@@ -6,7 +6,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
 {
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("GNB", "Gunbreaker", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.GNB), 100);
+        var def = new RotationModuleDefinition("xan GNB", "Gunbreaker", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.GNB), 100);
 
         def.DefineShared().AddAssociatedActions(AID.Bloodfest);
 

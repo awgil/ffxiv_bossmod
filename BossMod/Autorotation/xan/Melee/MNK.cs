@@ -6,7 +6,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 {
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("MNK", "Monk", "xan", RotationModuleQuality.Good, BitMask.Build(Class.MNK, Class.PGL), 100);
+        var def = new RotationModuleDefinition("xan MNK", "Monk", "xan", RotationModuleQuality.Good, BitMask.Build(Class.MNK, Class.PGL), 100);
 
         def.DefineShared().AddAssociatedActions(AID.RiddleOfFire, AID.RiddleOfWind, AID.Brotherhood);
 
