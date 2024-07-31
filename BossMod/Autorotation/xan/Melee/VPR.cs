@@ -256,7 +256,8 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         if (!Unlocked(AID.Reawaken) || ReawakenReady == 0 && Offering < 50 || ReawakenLeft > 0 || !strategy.BuffsOk())
             return false;
 
-        // todo force
+        if (strategy.Option(SharedTrack.Buffs).As<OffensiveStrategy>() == OffensiveStrategy.Force)
+            return true;
 
         // full reawaken combo is reawaken (2.2) + generation 1-4 (2s each) = 10.2s (scaled by skill speed) (ouroboros not accounted for since we only really care about casting it with the debuff active)
         var baseDuration = 8.2f;
