@@ -8,7 +8,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 {
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("VPR", "Viper", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.VPR), 100);
+        var def = new RotationModuleDefinition("xan VPR", "Viper", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.VPR), 100);
 
         def.DefineShared().AddAssociatedActions(AID.Reawaken);
 

@@ -8,7 +8,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("SAM", "Samurai", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SAM), 100);
+        var def = new RotationModuleDefinition("xan SAM", "Samurai", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SAM), 100);
 
         def.DefineShared().AddAssociatedActions(AID.Ikishoten, AID.HissatsuSenei);
 
