@@ -3,17 +3,25 @@
 [ConfigDisplay(Name = "AI settings (very experimental!!!)", Order = 6)]
 sealed class AIConfig : ConfigNode
 {
+    public enum Slot { One, Two, Three, Four }
+
     [PropertyDisplay("Enable AI")]
     public bool Enabled = false;
 
     [PropertyDisplay("Draw UI")]
     public bool DrawUI = true;
 
-    [PropertyDisplay($"Follow slot\n(-1 is target)")]
-    public int FollowSlot = 0;
+    [PropertyDisplay("PreferedPositional")]
+    public Positional PreferedPositional = 0;
+
+    [PropertyDisplay($"Follow slot")]
+    public Slot FollowSlot = 0;
 
     [PropertyDisplay($"Follow range")]
     public int FollowRange = 3;
+
+    [PropertyDisplay($"Follow target")]
+    public bool FollowTarget = false;
 
     [PropertyDisplay("Follow during active module")]
     public bool FollowActiveBM = false;
@@ -23,9 +31,6 @@ sealed class AIConfig : ConfigNode
 
     [PropertyDisplay("Follow out of combat")]
     public bool FollowOOC = true;
-
-    [PropertyDisplay("Prefered positional")]
-    public int PreferedPositional = 2;
 
     [PropertyDisplay("Focus target master")]
     public bool FocusTargetLeader = true;
