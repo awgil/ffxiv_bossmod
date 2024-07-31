@@ -4,7 +4,7 @@ namespace BossMod.Autorotation.xan;
 
 public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
 {
-    public enum Track { Stance, Ranged, Interject, Stun, ArmsLength, Mit, Invuln }
+    public enum Track { Stance, Ranged, Interject, Stun, ArmsLength, Mit, Invuln, Protect }
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("Tank AI", "Utilities for tank AI - stance, provoke, interrupt, ranged attack", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA, Class.WAR, Class.MRD, Class.DRK, Class.GNB), 100);
@@ -14,8 +14,9 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         def.AbilityTrack(Track.Interject, "Interject").AddAssociatedActions(ClassShared.AID.Interject);
         def.AbilityTrack(Track.Stun, "Low Blow").AddAssociatedActions(ClassShared.AID.LowBlow);
         def.AbilityTrack(Track.ArmsLength, "Arms' Length").AddAssociatedActions(ClassShared.AID.ArmsLength);
-        //def.AbilityTrack(Track.Mit, "Personal mits");
-        //def.AbilityTrack(Track.Invuln, "Invuln");
+        def.AbilityTrack(Track.Mit, "Personal mits");
+        def.AbilityTrack(Track.Invuln, "Invuln");
+        def.AbilityTrack(Track.Protect, "Protect party members");
 
         return def;
     }
