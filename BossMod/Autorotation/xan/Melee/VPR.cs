@@ -57,7 +57,6 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
     private Actor? BestGenerationTarget;
 
     private int CoilMax => Unlocked(TraitID.EnhancedVipersRattle) ? 3 : 2;
-    private float GnashRefreshTimer => 20;
 
     public override void Exec(StrategyValues strategy, Actor? primaryTarget)
     {
