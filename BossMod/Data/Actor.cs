@@ -10,6 +10,7 @@ public enum ActorType : ushort
     Chocobo = 0x203,
     Enemy = 0x205,
     DutySupport = 0x209,
+    Helper = 0x20B,
     EventNpc = 0x300,
     Treasure = 0x400,
     Aetheryte = 0x500,
