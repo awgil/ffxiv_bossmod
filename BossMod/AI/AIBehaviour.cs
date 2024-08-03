@@ -4,11 +4,11 @@ using ImGuiNET;
 
 namespace BossMod.AI;
 
+public record struct Targeting(AIHints.Enemy Target, float PreferredRange = 3, Positional PreferredPosition = Positional.Any, bool PreferTanking = false);
+
 // constantly follow master
 sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Preset? aiPreset) : IDisposable
 {
-    public record struct Targeting(AIHints.Enemy Target, float PreferredRange = 3, Positional PreferredPosition = Positional.Any, bool PreferTanking = false);
-
     public WorldState WorldState => autorot.Bossmods.WorldState;
     public Preset? AIPreset = aiPreset;
     public float ForceMovementIn { get; private set; } = float.MaxValue; // TODO: reconsider
@@ -91,7 +91,8 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         // now give class module a chance to improve targeting
         // typically it would switch targets for multidotting, or to hit more targets with AOE
         // in case of ties, it should prefer to return original target - this would prevent useless switches
-        return new(target!);
+        var targeting = new Targeting(target!, player.Class.GetRole() is Role.Ranged or Role.Healer ? 24.5f : 2.9f);
+        return autorot.SelectTargetForAI(targeting) ?? targeting;
     }
 
     private void AdjustTargetPositional(Actor player, ref Targeting targeting)

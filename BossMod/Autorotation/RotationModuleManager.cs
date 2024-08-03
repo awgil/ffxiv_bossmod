@@ -89,6 +89,23 @@ public sealed class RotationModuleManager : IDisposable
         }
     }
 
+    public AI.Targeting? SelectTargetForAI(AI.Targeting currentTarget)
+    {
+        if (_activeModules == null)
+            return null;
+
+        foreach (var m in _activeModules)
+        {
+            var mt = m.Module.GetType();
+            var values = Preset?.ActiveStrategyOverrides(mt) ?? Planner?.ActiveStrategyOverrides(mt) ?? throw new InvalidOperationException();
+            // first come first serve
+            if (m.Module.SelectTargetForAI(values, currentTarget) is AI.Targeting t)
+                return t;
+        }
+
+        return null;
+    }
+
     public Actor? ResolveTargetOverride(in StrategyValue strategy) => strategy.Target switch
     {
         StrategyTarget.Self => Player,
