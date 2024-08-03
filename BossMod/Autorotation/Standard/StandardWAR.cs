@@ -105,8 +105,9 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         DelayFC = 390, // we see an opportunity to delay FC/IC until next burst (but might have to press it anyway to avoid overcapping gauge)
         // baseline flexible actions
         FlexibleCombo = 400, // normal flexible combo
-        FlexibleFC = 480, // using FC/IC now is low value (not buffed), but we don't see any better opportunity to use it in future
-        FlexiblePR = 490, // using PR now is low value (not buffed), but we don't see any better opportunity to use it in future
+        FlexibleFC = 470, // using FC/IC now is low value (not buffed), but we don't see any better opportunity to use it in future
+        FlexiblePR = 480, // using PR now is low value (not buffed), but we don't see any better opportunity to use it in future
+        FlexibleIR = 490, // using FC/IC under IR is low value, but we still wanna get it done sooner rather than later to minimize the chance to lose stacks
         // high value actions (under buffs)
         BuffedFC = 550,
         BuffedPR = 560,
@@ -483,7 +484,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             // under IR, we have very limited opportunity to delay FC/IC, but it still might be useful (eg with early IR opener, raidbuffs appear on second IR gcd, and we can do filler-IC-FC-FC-FC)
             var maxFillers = (int)((InnerReleaseLeft - GCD) / GCDLength) + 1 - effectiveIRStacks;
             var canDelayFC = maxFillers > 0 && !CanFitGCD(BurstWindowIn, maxFillers);
-            return canDelayFC ? GCDPriority.DelayFC : GCDPriority.FlexibleFC;
+            return canDelayFC ? GCDPriority.DelayFC : GCDPriority.FlexibleIR;
         }
         else if (ncActive)
         {
@@ -659,6 +660,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         // calculation for max cooldown to consider delay:
         // - start with remaining GCD + leeway; if CD is smaller, after next gcd we risk overcap
         // - if we could have >50 gauge after next GCD, we might need one or more FCs, depending on IR, before we have another chance to infuriate
+        // - if next GCD is FC, we get extra CD reduction
         var maxInfuriateCD = GCD + InfuriateCDLeeway;
         if (Gauge + GaugeGainedFromAction(NextGCD) > 50)
         {
@@ -668,6 +670,10 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             else if (!CanFitGCD(InnerReleaseCD, 1))
                 numFCsToBurnGauge += 3;
             maxInfuriateCD += (GCDLength + InfuriateCDReduction) * numFCsToBurnGauge;
+        }
+        else if (NextGCD is WAR.AID.FellCleave or WAR.AID.InnerBeast or WAR.AID.SteelCyclone or WAR.AID.Decimate)
+        {
+            maxInfuriateCD += InfuriateCDReduction;
         }
         if (InfuriateCD < maxInfuriateCD)
             return (true, false); // we can't safely delay infuriate
