@@ -38,6 +38,7 @@ public sealed class RaidCooldowns : IDisposable
         return MathF.Max(0, (float)(firstAvailable - _ws.CurrentTime).TotalSeconds);
     }
 
+    // TODO: why do we need two versions?..
     public float NextDamageBuffIn2()
     {
         if (_damageCooldowns.Count == 0)
@@ -89,7 +90,6 @@ public sealed class RaidCooldowns : IDisposable
             (uint)RDM.AID.Embolden => UpdateDamageCooldown(actor.InstanceID, cast.Action), // RDM embolden
             (uint)PCT.AID.StarryMuse => UpdateDamageCooldown(actor.InstanceID, cast.Action), // PCT starry muse
             (uint)WAR.AID.Interject or (uint)BRD.AID.HeadGraze => UpdateInterruptCooldown(actor.InstanceID, cast.Action, 30),
-            // TODO: PCT
             _ => false
         };
     }
