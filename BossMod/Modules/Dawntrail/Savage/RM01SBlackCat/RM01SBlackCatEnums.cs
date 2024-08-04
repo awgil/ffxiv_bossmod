@@ -7,8 +7,6 @@ public enum OID : uint
     CopyCat = 0x432A, // R3.993, x1, mouser clone
     LeapTarget = 0x432B, // R1.000, x0 (spawn during fight)
     Soulshade = 0x432C, // R5.610, x3, boss clone
-    //_Gen_Actor1ea1a1 = 0x1EA1A1, // R0.500-2.000, x1, EventObj type
-    //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
 }
 
 public enum AID : uint
@@ -54,6 +52,26 @@ public enum AID : uint
     OneTwoPawShadeLR = 37991, // Soulshade->self, 5.0s cast, single-target, visual (two cleaves)
     OneTwoPawShadeAOELFirst = 37993, // Helper->self, 6.0s cast, range 100 180-degree cone
     OneTwoPawShadeAOERSecond = 37992, // Helper->self, 9.0s cast, range 100 180-degree cone
+    LeapingOneTwoPawBossLRL = 37965, // Boss->self, 5.0s cast, single-target, visual (jump left, cleave right then left)
+    LeapingOneTwoPawBossLLR = 37966, // Boss->self, 5.0s cast, single-target, visual (jump left, cleave left then right)
+    LeapingOneTwoPawBossRRL = 37967, // Boss->self, 5.0s cast, single-target, visual (jump right, cleave right then left)
+    LeapingOneTwoPawBossRLR = 37968, // Boss->self, 5.0s cast, single-target, visual (jump right, cleave left then right)
+    LeapingOneTwoPawBossJumpRL = 37969, // Boss->self, no cast, single-target, visual (RL after jump)
+    LeapingOneTwoPawBossAOERFirst = 37970, // Helper->self, 0.8s cast, range 100 180-degree cone
+    LeapingOneTwoPawBossAOELSecond = 37971, // Helper->self, 2.8s cast, range 100 180-degree cone
+    LeapingOneTwoPawBossJumpLR = 37972, // Boss->self, no cast, single-target, visual (LR after jump)
+    LeapingOneTwoPawBossAOELFirst = 37974, // Helper->self, 0.8s cast, range 100 180-degree cone
+    LeapingOneTwoPawBossAOERSecond = 37973, // Helper->self, 2.8s cast, range 100 180-degree cone
+    LeapingOneTwoPawShadeLRL = 37999, // Soulshade->self, 5.0s cast, single-target, visual (jump left, cleave right then left)
+    LeapingOneTwoPawShadeLLR = 38000, // Soulshade->self, 5.0s cast, single-target, visual (jump left, cleave left then right)
+    LeapingOneTwoPawShadeRRL = 38001, // Soulshade->self, 5.0s cast, single-target, visual (jump right, cleave right then left)
+    LeapingOneTwoPawShadeRLR = 38002, // Soulshade->self, 5.0s cast, single-target, visual (jump right, cleave left then right)
+    LeapingOneTwoPawShadeJumpRL = 38003, // Soulshade->self, no cast, single-target, visual (RL after jump)
+    LeapingOneTwoPawShadeAOERFirst = 38004, // Helper->self, 0.8s cast, range 100 180-degree cone
+    LeapingOneTwoPawShadeAOELSecond = 38005, // Helper->self, 2.8s cast, range 100 180-degree cone
+    LeapingOneTwoPawShadeJumpLR = 38006, // Soulshade->self, no cast, single-target, visual (LR after jump)
+    LeapingOneTwoPawShadeAOELFirst = 38008, // Helper->self, 0.8s cast, range 100 180-degree cone
+    LeapingOneTwoPawShadeAOERSecond = 38007, // Helper->self, 2.8s cast, range 100 180-degree cone
 
     QuadrupleSwipeBoss = 37981, // Boss->self, 4.0+1.0s cast, single-target, visual (pair stacks)
     QuadrupleSwipeBossAOE = 37982, // Helper->players, 5.0s cast, range 4 circle 2-man stack
@@ -63,6 +81,12 @@ public enum AID : uint
     QuadrupleSwipeShadeAOE = 38016, // Helper->players, 5.0s cast, range 4 circle 2-man stack
     DoubleSwipeShade = 38017, // Soulshade->self, 4.0+1.0s cast, single-target, visual (light party stacks)
     DoubleSwipeShadeAOE = 38018, // Helper->players, 5.0s cast, range 5 circle 4-man stack
+
+    TempestuousTearTargetSelect = 34722, // Helper->player, no cast, single-target
+    TempestuousTear = 38019, // Boss->self, 5.0+1.0s cast, single-target
+    TempestuousTearAOE = 38020, // Helper->players, no cast, range 100 width 6 rect
+    Nailchipper = 38021, // Boss->self, 7.0+1.0s cast, single-target, visual (spreads)
+    NailchipperAOE = 38022, // Helper->players, 8.0s cast, range 5 circle spread
 
     Mouser = 37953, // Boss->self, 10.0s cast, single-target, visual (break tiles)
     MouserPrepareJump1 = 37955, // Helper->self, 1.0s cast, range 10 width 10 rect, visual (damage tile)
@@ -82,82 +106,37 @@ public enum AID : uint
     GrimalkinGaleShockwave = 37963, // Boss->self, 6.0+1.0s cast, single-target, visual (knockback)
     GrimalkinGaleShockwaveAOE = 37964, // Helper->self, 7.0s cast, range 30 circle knockback 21
     GrimalkinGaleSpreadAOE = 39812, // Helper->players, 5.0s cast, range 5 circle
+    OvershadowTargetSelect = 26708, // Helper->player, no cast, single-target, visual (target selection)
+    Overshadow = 38039, // Boss->player, 5.0s cast, single-target, visual (line stack)
+    OvershadowAOE = 38040, // Boss->players, no cast, range 100 width 5 rect
+    SplinteringNails = 38041, // Boss->self, 5.0s cast, single-target, visual (role cones)
+    SplinteringNailsAOE = 38042, // Helper->self, no cast, range 100 ?-degree cone
 
-    //_Weaponskill_LeapingOneTwoPaw = 37965, // Boss->self, 5.0s cast, single-target
-    //_Weaponskill_LeapingOneTwoPaw = 37969, // Boss->self, no cast, single-target
-    //_Weaponskill_LeapingOneTwoPaw = 37970, // Helper->self, 0.8s cast, range 100 ?-degree cone
-    //_Weaponskill_LeapingOneTwoPaw = 37971, // Helper->self, 2.8s cast, range 100 ?-degree cone
-    //_Ability_ = 34722, // Helper->player, no cast, single-target
-    //_Weaponskill_LeapingOneTwoPaw = 37999, // Soulshade->self, 5.0s cast, single-target
-    //_Weaponskill_LeapingOneTwoPaw = 38003, // Soulshade->self, no cast, single-target
-    //_Spell_TempestuousTear = 38019, // Boss->self, 5.0+1.0s cast, single-target
-    //_Weaponskill_LeapingOneTwoPaw = 38004, // Helper->self, 0.8s cast, range 100 ?-degree cone
-    //_Spell_TempestuousTear = 38020, // Helper->players, no cast, range 100 width 6 rect
-    //_Weaponskill_LeapingOneTwoPaw = 38005, // Helper->self, 2.8s cast, range 100 ?-degree cone
-    //_Weaponskill_LeapingOneTwoPaw = 37966, // Boss->self, 5.0s cast, single-target
-    //_Weaponskill_LeapingOneTwoPaw = 37972, // Boss->self, no cast, single-target
-    //_Weaponskill_LeapingOneTwoPaw = 37974, // Helper->self, 0.8s cast, range 100 ?-degree cone
-    //_Weaponskill_LeapingOneTwoPaw = 37973, // Helper->self, 2.8s cast, range 100 ?-degree cone
-    //_Spell_Nailchipper = 38021, // Boss->self, 7.0+1.0s cast, single-target
-    //_Spell_Nailchipper = 38022, // Helper->players, 8.0s cast, range 5 circle
-    //_Weaponskill_LeapingOneTwoPaw = 37968, // Boss->self, 5.0s cast, single-target
-    //_Ability_ = 26708, // Helper->player, no cast, single-target
-    //_Spell_Overshadow = 38039, // Boss->player, 5.0s cast, single-target
-    //_Spell_Overshadow = 38040, // Boss->players, no cast, range 100 width 5 rect
-    //_Weaponskill_SplinteringNails = 38041, // Boss->self, 5.0s cast, single-target
-    //_Weaponskill_SplinteringNails = 38042, // Helper->self, no cast, range 100 ?-degree cone
-    //_Weaponskill_RainingCats = 39611, // Boss->self, 6.0s cast, single-target
-    //_Spell_RainingCats = 38047, // Helper->players, no cast, range 4 circle
-    //_Weaponskill_RainingCats = 38045, // Helper->self, no cast, range 100 ?-degree cone
-    //_Weaponskill_RainingCats = 39612, // Boss->self, 5.0s cast, single-target
-    //_Weaponskill_RainingCats = 39613, // Boss->self, 5.0s cast, single-target
-    //_Weaponskill_LeapingOneTwoPaw = 38000, // Soulshade->self, 5.0s cast, single-target
-    //_Weaponskill_LeapingOneTwoPaw = 38006, // Soulshade->self, no cast, single-target
-    //_Weaponskill_LeapingOneTwoPaw = 38008, // Helper->self, 0.8s cast, range 100 ?-degree cone
-    //_Weaponskill_LeapingOneTwoPaw = 38007, // Helper->self, 2.8s cast, range 100 ?-degree cone
-    //_Weaponskill_ = 38026, // Helper->location, 2.0s cast, width 6 rect charge
-    //_Weaponskill_ = 38027, // Helper->self, 3.0s cast, range 11 circle
-    //_Weaponskill_ = 38028, // Helper->location, 4.0s cast, width 6 rect charge
-    //_Weaponskill_ = 38035, // Helper->self, 11.0s cast, range 11 circle
-    //_Weaponskill_ = 39633, // Helper->self, 13.0s cast, range 11 circle
-    //_Weaponskill_ = 38031, // Helper->self, 7.0s cast, range 11 circle
-    //_Weaponskill_ = 38032, // Helper->location, 8.0s cast, width 6 rect charge
-    //_Weaponskill_ = 38030, // Helper->location, 6.0s cast, width 6 rect charge
-    //_Weaponskill_ = 38034, // Helper->location, 10.0s cast, width 6 rect charge
-    //_Weaponskill_PredaceousPounce = 39709, // Helper->self, 14.0s cast, range 11 circle
-    //_Weaponskill_PredaceousPounce = 39704, // Helper->location, 13.5s cast, width 6 rect charge
-    //_Weaponskill_ = 38029, // Helper->self, 5.0s cast, range 11 circle
-    //_Weaponskill_ = 39632, // Helper->location, 12.0s cast, width 6 rect charge
-    //_Weaponskill_ = 38033, // Helper->self, 9.0s cast, range 11 circle
-    //_Weaponskill_PredaceousPounce = 39635, // CopyCat->location, 13.0s cast, single-target
-    //_Weaponskill_LeapingOneTwoPaw = 38002, // Soulshade->self, 5.0s cast, single-target
-    //_Weaponskill_PredaceousPounce = 38024, // CopyCat->location, no cast, single-target
-    //_Weaponskill_PredaceousPounce = 39270, // Helper->location, 1.0s cast, width 6 rect charge
-    //_Weaponskill_PredaceousPounce = 38025, // Helper->self, 1.5s cast, range 11 circle
-    //_Weaponskill_Mouser = 39822, // Boss->self, 8.0s cast, single-target
-}
+    RainingCatsFirst = 39611, // Boss->self, 6.0s cast, single-target, visual (limit cut)
+    RainingCatsMid = 39612, // Boss->self, 5.0s cast, single-target, visual (sets 2/3)
+    RainingCatsLast = 39613, // Boss->self, 5.0s cast, single-target, visual (set 4)
+    RainingCatsTether = 38045, // Helper->self, no cast, range 100 ?-degree cone
+    RainingCatsStack = 38047, // Helper->players, no cast, range 4 circle stack on closest/farthest target
+    PredaceousPounceMove1 = 38026, // Helper->location, 2.0s cast, width 6 rect charge, visual (first jump)
+    PredaceousPounceMove2 = 38027, // Helper->self, 3.0s cast, range 11 circle, visual
+    PredaceousPounceMove3 = 38028, // Helper->location, 4.0s cast, width 6 rect charge, visual
+    PredaceousPounceMove4 = 38029, // Helper->self, 5.0s cast, range 11 circle, visual
+    PredaceousPounceMove5 = 38030, // Helper->location, 6.0s cast, width 6 rect charge, visual
+    PredaceousPounceMove6 = 38031, // Helper->self, 7.0s cast, range 11 circle, visual
+    PredaceousPounceMove7 = 38032, // Helper->location, 8.0s cast, width 6 rect charge, visual
+    PredaceousPounceMove8 = 38033, // Helper->self, 9.0s cast, range 11 circle, visual
+    PredaceousPounceMove9 = 38034, // Helper->location, 10.0s cast, width 6 rect charge, visual
+    PredaceousPounceMove10 = 38035, // Helper->self, 11.0s cast, range 11 circle, visual
+    PredaceousPounceMove11 = 39632, // Helper->location, 12.0s cast, width 6 rect charge, visual
+    PredaceousPounceMove12 = 39633, // Helper->self, 13.0s cast, range 11 circle, visual
+    PredaceousPounceJumpFirst = 39635, // CopyCat->location, 13.0s cast, single-target
+    PredaceousPounceJumpRest = 38024, // CopyCat->location, no cast, single-target
+    PredaceousPounceChargeAOEFirst = 39704, // Helper->location, 13.5s cast, width 6 rect charge
+    PredaceousPounceImpactAOEFirst = 39709, // Helper->self, 14.0s cast, range 11 circle
+    PredaceousPounceChargeAOERest = 39270, // Helper->location, 1.0s cast, width 6 rect charge
+    PredaceousPounceImpactAOERest = 38025, // Helper->self, 1.5s cast, range 11 circle
 
-public enum SID : uint
-{
-    //_Gen_SlashingResistanceDown = 3130, // Helper/Boss->player, extra=0x0
-    //_Gen_DamageDown = 3304, // Helper->player, extra=0x1/0x2
-    //_Gen_Weakness = 43, // none->player, extra=0x0
-    //_Gen_Transcendent = 418, // none->player, extra=0x0
-    //_Gen_NineLives = 3931, // none->Boss, extra=0x0
-    //_Gen_OneTwoMemory = 4048, // none->Boss, extra=0x0
-    //_Gen_ = 2056, // none->Soulshade/Boss, extra=0xE1/0x307
-    //_Gen_ = 2193, // Soulshade->Soulshade, extra=0x316/0x317
-    //_Gen_SustainedDamage = 2935, // Helper->player, extra=0x0
-    //_Gen_PhysicalVulnerabilityUp = 2940, // Helper->player, extra=0x0
-    //_Gen_TwoSwipeMemory = 4053, // none->Boss, extra=0x0
-    //_Gen_FourSwipeMemory = 4052, // none->Boss, extra=0x0
-    //_Gen_Stun = 2656, // none->player, extra=0x0
-    //_Gen_DownForTheCount = 783, // CopyCat->player, extra=0xEC7
-    //_Gen_BrinkOfDeath = 44, // none->player, extra=0x0
-    //_Gen_MagicVulnerabilityUp = 2941, // Helper->player, extra=0x0
-    //_Gen_LeftwardMemory = 4051, // none->Boss, extra=0x0
-    //_Gen_FourCrossedMemory = 4049, // none->Boss, extra=0x0
-    //_Gen_RightwardMemory = 4050, // none->Boss, extra=0x0
+    MouserEnrage = 39822, // Boss->self, 8.0s cast, single-target
 }
 
 public enum IconID : uint
@@ -165,12 +144,12 @@ public enum IconID : uint
     BiscuitMaker = 218, // player
     ElevateAndEviscerate = 538, // player
     GrimalkinGale = 376, // player
-    _Gen_Icon_244 = 244, // player
+    Nailchipper = 244, // player
 }
 
 public enum TetherID : uint
 {
     Soulshade = 102, // Soulshade->Boss
     Leap = 12, // Boss->LeapTarget
-    _Gen_Tether_89 = 89, // player->Boss
+    RainingCats = 89, // player->Boss
 }
