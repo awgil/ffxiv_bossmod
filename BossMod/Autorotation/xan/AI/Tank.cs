@@ -83,7 +83,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
 
         var attackers = EnemiesAutoingMe.Count();
 
-        if (strategy.Enabled(Track.Mit) && attackers > 0)
+        if (/*strategy.Enabled(Track.Mit) && */attackers > 0)
         {
             if (gauge.OathGauge >= 50 && HPRatio < 0.8)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.PLD.AID.Sheltron), Player, ActionQueue.Priority.Minimal);
@@ -97,7 +97,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
     {
         var attackers = EnemiesAutoingMe.Count();
 
-        if (strategy.Enabled(Track.Mit) && attackers > 0)
+        if (/*strategy.Enabled(Track.Mit) && */attackers > 0)
         {
             if (HPRatio < 0.8 && Cooldown(BossMod.GNB.AID.HeartOfCorundum) == 0)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.GNB.AID.HeartOfCorundum), Player, ActionQueue.Priority.Minimal);
