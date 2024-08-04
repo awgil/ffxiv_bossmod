@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x4329, // R3.993, x1
     Helper = 0x233C, // R0.500, x50, Helper type
-    //_Gen_CopyCat = 0x432A, // R3.993, x1
+    CopyCat = 0x432A, // R3.993, x1, mouser clone
     LeapTarget = 0x432B, // R1.000, x0 (spawn during fight)
     Soulshade = 0x432C, // R5.610, x3, boss clone
     //_Gen_Actor1ea1a1 = 0x1EA1A1, // R0.500-2.000, x1, EventObj type
@@ -64,24 +64,25 @@ public enum AID : uint
     DoubleSwipeShade = 38017, // Soulshade->self, 4.0+1.0s cast, single-target, visual (light party stacks)
     DoubleSwipeShadeAOE = 38018, // Helper->players, 5.0s cast, range 5 circle 4-man stack
 
-    //_Weaponskill_ = 37955, // Helper->self, 1.0s cast, range 10 width 10 rect
-    //_Weaponskill_ = 39276, // Helper->self, 1.0s cast, range 10 width 10 rect
-    //_Weaponskill_Mouser = 37953, // Boss->self, 10.0s cast, single-target
-    //_Weaponskill_Mouser = 37956, // Helper->location, no cast, single-target
-    //_Weaponskill_Mouser = 38054, // Helper->self, no cast, range 10 width 10 rect
-    //_Weaponskill_ = 37954, // Boss->self, no cast, single-target
-    //_Spell_Copycat = 37957, // Boss->self, 3.0s cast, single-target
-    //_Weaponskill_ElevateAndEviscerate = 37958, // 432A->self, 5.6s cast, single-target
-    //_Weaponskill_ElevateAndEviscerate = 37959, // 432A->player, no cast, single-target
-    //_Weaponskill_Shockwave = 37962, // Helper->self, no cast, range 60 width 10 cross
-    //_Weaponskill_Impact = 39251, // Helper->self, no cast, range 10 width 10 rect
-    //_Weaponskill_ElevateAndEviscerate = 37960, // 432A->self, 5.6s cast, single-target
-    //_Weaponskill_ElevateAndEviscerate = 37961, // 432A->player, no cast, single-target
-    //_Weaponskill_Impact = 39252, // Helper->self, no cast, range 10 width 10 rect
-    //_Weaponskill_GrimalkinGale = 39811, // Boss->self, no cast, single-target
-    //_Spell_Shockwave = 37963, // Boss->self, 6.0+1.0s cast, single-target
-    //_Spell_Shockwave = 37964, // Helper->self, 7.0s cast, range 30 circle
-    //_Spell_GrimalkinGale = 39812, // Helper->players, 5.0s cast, range 5 circle
+    Mouser = 37953, // Boss->self, 10.0s cast, single-target, visual (break tiles)
+    MouserPrepareJump1 = 37955, // Helper->self, 1.0s cast, range 10 width 10 rect, visual (damage tile)
+    MouserPrepareJump2 = 39276, // Helper->self, 1.0s cast, range 10 width 10 rect, visual (destroy tile)
+    MouserJump = 37956, // Helper->location, no cast, single-target (jump before hit)
+    MouserTileDamage = 38054, // Helper->self, no cast, range 10 width 10 rect (actual aoe)
+    MouserJumpsEnd = 37954, // Boss->self, no cast, single-target, visual (stop jumps)
+    Copycat = 37957, // Boss->self, 3.0s cast, single-target, visual (activate clone)
+    ElevateAndEviscerateKnockback = 37958, // CopyCat->self, 5.6s cast, single-target, visual (hit with knockback)
+    ElevateAndEviscerateKnockbackAOE = 37959, // CopyCat->player, no cast, single-target, visual
+    ElevateAndEviscerateHit = 37960, // CopyCat->self, 5.6s cast, single-target, visual (hit without knockback)
+    ElevateAndEviscerateHitAOE = 37961, // CopyCat->player, no cast, single-target, visual
+    ElevateAndEviscerateShockwave = 37962, // Helper->self, no cast, range 60 width 10 cross
+    ElevateAndEviscerateImpactKnockback = 39251, // Helper->self, no cast, range 10 width 10 rect, aoe after knockback on landing cell
+    ElevateAndEviscerateImpactHit = 39252, // Helper->self, no cast, range 10 width 10 rect, aoe after no-knockback on landing cell
+    GrimalkinGale = 39811, // Boss->self, no cast, single-target, visual (start repairs + knockbacks + spreads)
+    GrimalkinGaleShockwave = 37963, // Boss->self, 6.0+1.0s cast, single-target, visual (knockback)
+    GrimalkinGaleShockwaveAOE = 37964, // Helper->self, 7.0s cast, range 30 circle knockback 21
+    GrimalkinGaleSpreadAOE = 39812, // Helper->players, 5.0s cast, range 5 circle
+
     //_Weaponskill_LeapingOneTwoPaw = 37965, // Boss->self, 5.0s cast, single-target
     //_Weaponskill_LeapingOneTwoPaw = 37969, // Boss->self, no cast, single-target
     //_Weaponskill_LeapingOneTwoPaw = 37970, // Helper->self, 0.8s cast, range 100 ?-degree cone
@@ -128,9 +129,9 @@ public enum AID : uint
     //_Weaponskill_ = 38029, // Helper->self, 5.0s cast, range 11 circle
     //_Weaponskill_ = 39632, // Helper->location, 12.0s cast, width 6 rect charge
     //_Weaponskill_ = 38033, // Helper->self, 9.0s cast, range 11 circle
-    //_Weaponskill_PredaceousPounce = 39635, // 432A->location, 13.0s cast, single-target
+    //_Weaponskill_PredaceousPounce = 39635, // CopyCat->location, 13.0s cast, single-target
     //_Weaponskill_LeapingOneTwoPaw = 38002, // Soulshade->self, 5.0s cast, single-target
-    //_Weaponskill_PredaceousPounce = 38024, // 432A->location, no cast, single-target
+    //_Weaponskill_PredaceousPounce = 38024, // CopyCat->location, no cast, single-target
     //_Weaponskill_PredaceousPounce = 39270, // Helper->location, 1.0s cast, width 6 rect charge
     //_Weaponskill_PredaceousPounce = 38025, // Helper->self, 1.5s cast, range 11 circle
     //_Weaponskill_Mouser = 39822, // Boss->self, 8.0s cast, single-target
@@ -151,7 +152,7 @@ public enum SID : uint
     //_Gen_TwoSwipeMemory = 4053, // none->Boss, extra=0x0
     //_Gen_FourSwipeMemory = 4052, // none->Boss, extra=0x0
     //_Gen_Stun = 2656, // none->player, extra=0x0
-    //_Gen_DownForTheCount = 783, // 432A->player, extra=0xEC7
+    //_Gen_DownForTheCount = 783, // CopyCat->player, extra=0xEC7
     //_Gen_BrinkOfDeath = 44, // none->player, extra=0x0
     //_Gen_MagicVulnerabilityUp = 2941, // Helper->player, extra=0x0
     //_Gen_LeftwardMemory = 4051, // none->Boss, extra=0x0
@@ -162,8 +163,8 @@ public enum SID : uint
 public enum IconID : uint
 {
     BiscuitMaker = 218, // player
-    _Gen_Icon_538 = 538, // player
-    _Gen_Icon_376 = 376, // player
+    ElevateAndEviscerate = 538, // player
+    GrimalkinGale = 376, // player
     _Gen_Icon_244 = 244, // player
 }
 
