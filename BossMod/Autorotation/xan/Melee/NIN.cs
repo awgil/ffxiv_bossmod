@@ -104,10 +104,10 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
         OGCD(strategy, primaryTarget);
 
-        if (World.Client.CountdownRemaining > 0)
+        if (CountdownRemaining > 0)
         {
-            if (World.Client.CountdownRemaining < 6)
-                UseMudra(AID.Suiton, primaryTarget, endCondition: World.Client.CountdownRemaining < 1);
+            if (CountdownRemaining < 6)
+                UseMudra(AID.Suiton, primaryTarget, endCondition: CountdownRemaining < 1);
 
             return;
         }
@@ -355,7 +355,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
             if (NumRangedAOETargets > 2 || !Unlocked(AID.Bhavacakra))
                 PushOGCD(AID.HellfrogMedium, BestRangedAOETarget);
 
-            PushOGCD(AID.Bhavacakra, primaryTarget, Meisui > 0 ? 50 : 0);
+            PushOGCD(AID.Bhavacakra, primaryTarget, priority: Meisui > 0 ? 50 : 0);
         }
     }
 

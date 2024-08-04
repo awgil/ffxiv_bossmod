@@ -70,7 +70,12 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     public bool CanFormShift => Unlocked(AID.FormShift) && PerfectBalanceLeft == 0;
 
-    private (Positional, bool) NextPositional => (CoeurlStacks > 0 ? Positional.Flank : Positional.Rear, EffectiveForm == Form.Coeurl);
+    public const int AOEBreakpoint = 4;
+    public bool UseAOE => NumAOETargets >= AOEBreakpoint;
+
+    private (Positional, bool) NextPositional => UseAOE
+        ? (Positional.Any, false)
+        : (CoeurlStacks > 0 ? Positional.Flank : Positional.Rear, EffectiveForm == Form.Coeurl);
 
     public override void Exec(StrategyValues strategy, Actor? primaryTarget)
     {
@@ -123,15 +128,16 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
         OGCD(strategy, primaryTarget);
 
+        // minimize priority of these actions
         if (Chakra < 5 && Unlocked(AID.SteeledMeditation))
-            PushGCD(AID.SteeledMeditation, Player, -4500);
+            PushAction(AID.SteeledMeditation, Player, ActionQueue.Priority.Minimal + 1, 0);
 
-        if (Unlocked(AID.FormShift) && PerfectBalanceLeft == 0 && FormShiftLeft < 5)
-            PushGCD(AID.FormShift, Player, -4500);
-
-        if (World.Client.CountdownRemaining > 0)
+        if (CountdownRemaining > 0)
         {
-            if (World.Client.CountdownRemaining < 0.2 && Player.DistanceToHitbox(primaryTarget) is > 3 and < 25)
+            if (CountdownRemaining is > 2 and < 8 && FormShiftLeft == 0)
+                PushGCD(AID.FormShift, Player);
+
+            if (CountdownRemaining < 0.4 && Player.DistanceToHitbox(primaryTarget) is > 3 and < 25)
                 PushGCD(AID.Thunderclap, primaryTarget);
 
             return;
@@ -153,12 +159,11 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 PushGCD(AID.WindsReply, BestLineTarget);
         }
 
-        if (NumAOETargets > 2 && Unlocked(AID.ArmOfTheDestroyer))
+        if (UseAOE && Unlocked(AID.ArmOfTheDestroyer))
         {
             if (EffectiveForm == Form.Coeurl)
                 PushGCD(AID.Rockbreaker, Player);
 
-            // TODO this is actually still suboptimal on 3 targets
             if (EffectiveForm == Form.Raptor)
                 PushGCD(AID.FourPointFury, Player);
 
@@ -185,8 +190,10 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             if (PerfectBalanceLeft == 0)
                 return CurrentForm;
 
-            // hack: allow double lunar opener
-            var forcedSolar = ForcedSolar || HasLunar && !HasSolar && CombatTimer > 30;
+            // hack: allow double lunar opener - only in boss fights
+            // trash packs should get regular lunar solar
+            var forceDoubleLunar = CombatTimer < 30 && !UseAOE;
+            var forcedSolar = ForcedSolar || HasLunar && !HasSolar && !forceDoubleLunar;
 
             var canCoeurl = forcedSolar;
             var canRaptor = forcedSolar;
@@ -204,33 +211,25 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
+    // TODO the monk document is updated AGAIN, now we early PB in solar windows again?????????????
+    // FUCK
     private void QueuePB(StrategyValues strategy)
     {
         if (CurrentForm != Form.Raptor || BeastChakra[0] != BeastChakraType.None || FiresReplyLeft > GCD)
             return;
 
         // prevent odd window double blitz
-        if (HasBothNadi && FireLeft > 0)
+        // TODO figure out the actual mathematical equation that differentiates odd windows, this is stupid
+        if (BrotherhoodLeft == 0 && CD(AID.PerfectBalance) > 30)
             return;
 
-        // TODO forced solar in strategy
-        // default: solar in odd windows only, opener/2m is always lunar
-        var wantSolar = HasLunar && !HasSolar && FireLeft == 0;
-
-        // earliest we can press PB before next RoF
-        var gcdsAhead = wantSolar ? 1 : 2;
-
-        if (CanWeave(AID.RiddleOfFire, gcdsAhead))
-            PushOGCD(AID.PerfectBalance, Player);
-
-        // can PB if we have 4 GCDs worth of buff remaining
-        if (CanFitGCD(FireLeft, 3))
-            PushOGCD(AID.PerfectBalance, Player);
+        if (CanWeave(AID.RiddleOfFire, 3) || CanFitGCD(FireLeft, 3))
+            PushAction(AID.PerfectBalance, Player, ActionQueue.Priority.ManualOGCD + 1, 0);
     }
 
     private void OGCD(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (!Player.InCombat || GCD == 0)
+        if (!Player.InCombat || GCD == 0 || primaryTarget == null)
             return;
 
         if (strategy.BuffsOk())
@@ -238,10 +237,10 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             QueuePB(strategy);
 
             if (CombatTimer >= 10 || BeastCount == 3)
-                PushOGCD(AID.Brotherhood, Player);
+                PushAction(AID.Brotherhood, Player, ActionQueue.Priority.ManualOGCD + 3, 0);
 
             if (ShouldRoF)
-                PushOGCD(AID.RiddleOfFire, Player, delay: GCD - 0.8f);
+                PushAction(AID.RiddleOfFire, Player, ActionQueue.Priority.ManualOGCD + 2, GCD - 0.8f);
 
             if (CD(AID.RiddleOfFire) > 0)
                 PushOGCD(AID.RiddleOfWind, Player);
