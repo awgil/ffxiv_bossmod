@@ -7,19 +7,19 @@ public enum AOEStrategy { ST, AOE, ForceAOE, ForceST }
 public enum SharedTrack { Targeting, AOE, Buffs, Count }
 
 public abstract class Attackxan<AID, TraitID>(RotationModuleManager manager, Actor player) : Basexan<AID, TraitID>(manager, player)
-    where AID : Enum where TraitID : Enum
+    where AID : struct, Enum where TraitID : Enum
 {
     protected sealed override float GCDLength => AttackGCDLength;
 }
 
 public abstract class Castxan<AID, TraitID>(RotationModuleManager manager, Actor player) : Basexan<AID, TraitID>(manager, player)
-    where AID : Enum where TraitID : Enum
+    where AID : struct, Enum where TraitID : Enum
 {
     protected sealed override float GCDLength => SpellGCDLength;
 }
 
 public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
-    where AID : Enum where TraitID : Enum
+    where AID : struct, Enum where TraitID : Enum
 {
     protected float PelotonLeft { get; private set; }
     protected float SwiftcastLeft { get; private set; }
@@ -28,6 +28,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected float AnimationLockDelay { get; private set; }
     protected float RaidBuffsIn { get; private set; }
     protected float RaidBuffsLeft { get; private set; }
+    protected float DowntimeIn { get; private set; }
+
+    protected float? CountdownRemaining => World.Client.CountdownRemaining;
 
     protected float AttackGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     protected float SpellGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
@@ -41,40 +44,58 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     protected float CD(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
 
-    public bool CanWeave(float cooldown, float actionLock, int extraGCDs = 0)
-        => MathF.Max(cooldown, World.Client.AnimationLock) + actionLock + AnimationLockDelay <= GCD + GCDLength * extraGCDs;
-    public bool CanWeave(AID aid, int extraGCDs = 0)
+    public bool CanWeave(float cooldown, float actionLock, int extraGCDs = 0, float extraFixedDelay = 0)
+        => MathF.Max(cooldown, World.Client.AnimationLock) + actionLock + AnimationLockDelay <= GCD + GCDLength * extraGCDs + extraFixedDelay;
+    public bool CanWeave(AID aid, int extraGCDs = 0, float extraFixedDelay = 0)
     {
+        // TODO is this actually helpful?
+        if (!Unlocked(aid))
+            return false;
+
         var def = ActionDefinitions.Instance[ActionID.MakeSpell(aid)]!;
-        return CanWeave(CD(aid), def.InstantAnimLock, extraGCDs);
+        return CanWeave(CD(aid), def.InstantAnimLock, extraGCDs, extraFixedDelay);
     }
 
+    protected AID NextGCD;
+    protected int NextGCDPrio;
     protected uint MP;
 
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
-    protected void PushGCD(AID aid, Actor? target, int additionalPrio = 0, float delay = 0)
-        => PushAction(aid, target, ActionQueue.Priority.High + 500 + additionalPrio, delay);
+    protected void PushGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum
+        => PushGCD(aid, target, (int)(object)priority, delay);
 
-    protected void PushOGCD(AID aid, Actor? target, int additionalPrio = 0, float delay = 0)
-        => PushAction(aid, target, ActionQueue.Priority.Low + 500 + additionalPrio, delay);
+    protected void PushGCD(AID aid, Actor? target, int priority = 0, float delay = 0)
+    {
+        if (priority < 0)
+            return;
 
-    protected void PushAction(AID aid, Actor? target, float priority, float delay)
+        if (PushAction(aid, target, ActionQueue.Priority.High + 100 + priority, delay) && priority > NextGCDPrio)
+        {
+            NextGCD = aid;
+            NextGCDPrio = priority;
+        }
+    }
+
+    protected void PushOGCD(AID aid, Actor? target, int priority = 0, float delay = 0)
+        => PushAction(aid, target, ActionQueue.Priority.Low + 100 + priority, delay);
+
+    protected bool PushAction(AID aid, Actor? target, float priority, float delay)
     {
         if ((uint)(object)aid == 0)
-            return;
+            return false;
 
         if (!CanCast(aid))
-            return;
+            return false;
 
         var def = ActionDefinitions.Instance.Spell(aid);
         if (def == null)
-            return;
+            return false;
 
         if (def.Range != 0 && target == null)
         {
             // Service.Log($"Queued targeted action ({aid}) with no target");
-            return;
+            return false;
         }
 
         Vector3 targetPos = default;
@@ -82,6 +103,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             targetPos = Player.PosRot.XYZ();
 
         Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, targetPos: targetPos, delay: delay);
+        return true;
     }
 
     /// <summary>
@@ -211,7 +233,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     /// </summary>
     /// <param name="aid"></param>
     /// <returns></returns>
-    protected virtual float GetCastTime(AID aid) => SwiftcastLeft > GCD ? 0 : ActionDefinitions.Instance.Spell(aid)!.CastTime * SpellGCDLength / 2.5f;
+    protected virtual float GetCastTime(AID aid) => SwiftcastLeft > GCD ? 0 : ActionDefinitions.Instance.Spell(aid)!.CastTime * GCDLength / 2.5f;
 
     protected float NextCastStart => World.Client.AnimationLock > GCD ? World.Client.AnimationLock + AnimationLockDelay : GCD;
 
@@ -262,7 +284,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     {
         var pelo = Player.FindStatus(BRD.SID.Peloton);
         PelotonLeft = pelo != null ? StatusDuration(pelo.Value.ExpireAt) : 0;
-        SwiftcastLeft = StatusLeft(WHM.SID.Swiftcast);
+        SwiftcastLeft = StatusLeft(BossMod.WHM.SID.Swiftcast);
         TrueNorthLeft = StatusLeft(DRG.SID.TrueNorth);
 
         ForceMovementIn = forceMovementIn;
@@ -270,11 +292,20 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
         CombatTimer = (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds;
         (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);
+        DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime().Item2 ?? float.MaxValue;
 
         // TODO max MP can be higher in eureka/bozja
         MP = (uint)Math.Clamp(Player.HPMP.CurMP + World.PendingEffects.PendingMPDifference(Player.InstanceID), 0, 10000);
 
         Exec(strategy, primaryTarget);
+    }
+
+    private new (float Left, float In) EstimateRaidBuffTimings(Actor? primaryTarget)
+    {
+        if (primaryTarget?.OID != 0x385)
+            return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), Bossmods.RaidCooldowns.NextDamageBuffIn2());
+
+        return base.EstimateRaidBuffTimings(primaryTarget);
     }
 
     public abstract void Exec(StrategyValues strategy, Actor? primaryTarget);
@@ -283,6 +314,11 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected float StatusLeft<SID>(SID status) where SID : Enum => Status(status).Left;
     protected int StatusStacks<SID>(SID status) where SID : Enum => Status(status).Stacks;
 
+    protected float HPRatio(Actor actor) => (float)actor.HPMP.CurHP / Player.HPMP.MaxHP;
+    protected float HPRatio() => HPRatio(Player);
+
+    protected uint PredictedHP(Actor actor) => (uint)Math.Clamp(actor.HPMP.CurHP + World.PendingEffects.PendingHPDifference(actor.InstanceID), 0, actor.HPMP.MaxHP);
+    protected float PredictedHPRatio(Actor actor) => (float)PredictedHP(actor) / actor.HPMP.MaxHP;
 }
 
 static class Extendxan

@@ -31,7 +31,6 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
     public int TwinStacks; // max 2, granted by using "coil" or "den" gcds
     public TwinType TwinCombo;
 
-    public float TargetGnashLeft;
     public float Swiftscaled;
     public float Instinct;
     public float FlankstungVenom;
@@ -48,8 +47,9 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
     public float PoisedForTwinblood;
     public float ReawakenReady;
     public float ReawakenLeft;
+    public float HonedReavers;
+    public float HonedSteel;
 
-    public int NumNearbyGnashlessEnemies;
     public int NumAOETargets;
     public int NumRangedAOETargets;
 
@@ -57,7 +57,6 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
     private Actor? BestGenerationTarget;
 
     private int CoilMax => Unlocked(TraitID.EnhancedVipersRattle) ? 3 : 2;
-    private float GnashRefreshTimer => 20;
 
     public override void Exec(StrategyValues strategy, Actor? primaryTarget)
     {
@@ -105,9 +104,8 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         PoisedForTwinblood = StatusLeft(SID.PoisedForTwinblood);
         ReawakenReady = StatusLeft(SID.ReawakenReady);
         ReawakenLeft = StatusLeft(SID.Reawakened);
-
-        TargetGnashLeft = GnashLeft(primaryTarget);
-        NumNearbyGnashlessEnemies = Hints.PriorityTargets.Count(x => x.Actor.DistanceToHitbox(Player) <= 5 && GnashLeft(x.Actor) < GnashRefreshTimer);
+        HonedReavers = StatusLeft(SID.HonedReavers);
+        HonedSteel = StatusLeft(SID.HonedSteel);
 
         (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy, primaryTarget, 20, IsSplashTarget);
         BestGenerationTarget = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget).Best;
@@ -186,8 +184,8 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
         if (NumAOETargets > 2)
         {
-            if (ShouldDread(strategy))
-                PushGCD(AID.PitOfDread, Player);
+            if (ShouldVice(strategy))
+                PushGCD(AID.Vicepit, Player);
 
             if (ComboLastMove is AID.HuntersBite or AID.SwiftskinsBite)
             {
@@ -197,7 +195,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
                 PushGCD(AID.JaggedMaw, Player);
             }
 
-            if (ComboLastMove is AID.SteelMaw or AID.DreadMaw)
+            if (ComboLastMove is AID.SteelMaw or AID.ReavingMaw)
             {
                 if (Instinct < Swiftscaled)
                     PushGCD(AID.HuntersBite, Player);
@@ -205,15 +203,15 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
                 PushGCD(AID.SwiftskinsBite, Player);
             }
 
-            if (NumNearbyGnashlessEnemies > 2 && Unlocked(AID.DreadFangs))
-                PushGCD(AID.DreadMaw, primaryTarget);
+            if (HonedSteel == 0 && Unlocked(AID.ReavingFangs))
+                PushGCD(AID.ReavingMaw, primaryTarget);
 
             PushGCD(AID.SteelMaw, Player);
         }
         else
         {
-            if (ShouldDread(strategy))
-                PushGCD(AID.Dreadwinder, primaryTarget);
+            if (ShouldVice(strategy))
+                PushGCD(AID.Vicewinder, primaryTarget);
 
             if (ComboLastMove is AID.HuntersSting)
             {
@@ -231,7 +229,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
                 PushGCD(AID.HindsbaneFang, primaryTarget);
             }
 
-            if (ComboLastMove is AID.SteelFangs or AID.DreadFangs)
+            if (ComboLastMove is AID.SteelFangs or AID.ReavingFangs)
             {
                 if (Instinct < Swiftscaled)
                     PushGCD(AID.HuntersSting, primaryTarget);
@@ -239,8 +237,8 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
                 PushGCD(AID.SwiftskinsSting, primaryTarget);
             }
 
-            if (TargetGnashLeft < GnashRefreshTimer && Unlocked(AID.DreadFangs))
-                PushGCD(AID.DreadFangs, primaryTarget);
+            if (HonedSteel == 0 && Unlocked(AID.ReavingFangs))
+                PushGCD(AID.ReavingFangs, primaryTarget);
 
             PushGCD(AID.SteelFangs, primaryTarget);
         }
@@ -248,7 +246,6 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         // fallback for out of range
         if (Coil > 0)
             PushGCD(AID.UncoiledFury, BestRangedAOETarget);
-
     }
 
     private bool ShouldReawaken(StrategyValues strategy)
@@ -256,7 +253,8 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         if (!Unlocked(AID.Reawaken) || ReawakenReady == 0 && Offering < 50 || ReawakenLeft > 0 || !strategy.BuffsOk())
             return false;
 
-        // todo force
+        if (strategy.Option(SharedTrack.Buffs).As<OffensiveStrategy>() == OffensiveStrategy.Force)
+            return true;
 
         // full reawaken combo is reawaken (2.2) + generation 1-4 (2s each) = 10.2s (scaled by skill speed) (ouroboros not accounted for since we only really care about casting it with the debuff active)
         var baseDuration = 8.2f;
@@ -265,7 +263,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
         var actual = baseDuration * AttackGCDLength / 2.5f;
 
-        if (NumAOETargets == 0 || Instinct < actual || Swiftscaled < actual || TargetGnashLeft < actual || DreadCombo > 0)
+        if (NumAOETargets == 0 || Instinct < actual || Swiftscaled < actual || DreadCombo > 0)
             return false;
 
         if (RaidBuffsIn > 9000 || RaidBuffsLeft > 10 || ReawakenReady > GCD)
@@ -274,20 +272,9 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         return Offering == 100 && ComboLastMove is AID.HuntersSting or AID.SwiftskinsSting or AID.HuntersBite or AID.SwiftskinsBite;
     }
 
-    private bool ShouldDread(StrategyValues strategy)
-    {
-        if (Swiftscaled <= GCD || DreadCombo > 0)
-            return false;
+    private bool ShouldVice(StrategyValues strategy) => Swiftscaled > GCD && DreadCombo == 0 && NextChargeIn(AID.Vicewinder) <= GCD;
 
-        return NumAOETargets > 2 && Unlocked(AID.PitOfDread)
-            ? NumNearbyGnashlessEnemies > 0
-            : TargetGnashLeft < GnashRefreshTimer;
-    }
-
-    private bool ShouldCoil(StrategyValues strategy)
-    {
-        return Coil > 1 && TargetGnashLeft > GnashRefreshTimer && Swiftscaled > GCD && DreadCombo == 0;
-    }
+    private bool ShouldCoil(StrategyValues strategy) => Coil > 1 && Swiftscaled > GCD && DreadCombo == 0;
 
     private void OGCD(StrategyValues strategy, Actor? primaryTarget)
     {
@@ -354,7 +341,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
         var (pos, imm) = getmain();
 
-        if (Anguine > 0 || ShouldReawaken(strategy) || ShouldDread(strategy) || ShouldCoil(strategy))
+        if (Anguine > 0 || ShouldReawaken(strategy) || ShouldVice(strategy) || ShouldCoil(strategy))
             imm = false;
 
         return (pos, imm);
@@ -369,6 +356,4 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         [FieldOffset(0x0B)] public DreadCombo DreadCombo;
         [FieldOffset(0x10)] public byte ComboEx; // extra combo stuff
     }
-
-    private float GnashLeft(Actor? a) => StatusDetails(a, SID.NoxiousGnash, Player.InstanceID).Left;
 }

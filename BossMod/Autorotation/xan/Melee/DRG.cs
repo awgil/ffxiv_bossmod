@@ -15,7 +15,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan DRG", "Dragoon", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.DRG, Class.LNC), 100);
+        var def = new RotationModuleDefinition("xan DRG", "Dragoon", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DRG, Class.LNC), 100);
 
         def.DefineShared().AddAssociatedActions(AID.BattleLitany, AID.LanceCharge);
 
@@ -37,6 +37,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
     public float LifeSurge;
     public float DraconianFire;
     public float DragonsFlight;
+    public float StarcrossReady;
 
     public float TargetDotLeft;
 
@@ -65,6 +66,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         LanceCharge = StatusLeft(SID.LanceCharge);
         DraconianFire = StatusLeft(SID.DraconianFire);
         DragonsFlight = StatusLeft(SID.DragonsFlight);
+        StarcrossReady = StatusLeft(SID.StarcrossReady);
         TargetDotLeft = MathF.Max(
             StatusDetails(primaryTarget, SID.ChaosThrust, Player.InstanceID).Left,
             StatusDetails(primaryTarget, SID.ChaoticSpring, Player.InstanceID).Left
@@ -150,7 +152,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         var posOk = PosLockOk(strategy);
 
         if (NextPositionalImminent && !NextPositionalCorrect)
-            PushOGCD(AID.TrueNorth, Player, additionalPrio: -20, delay: GCD - 0.8f);
+            PushOGCD(AID.TrueNorth, Player, priority: -20, delay: GCD - 0.8f);
 
         if (strategy.BuffsOk())
         {
@@ -164,6 +166,14 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (CD(AID.LanceCharge) == 0)
             return;
 
+        if (LanceCharge > GCD && ShouldLifeSurge())
+            PushOGCD(AID.LifeSurge, Player);
+
+        if (StarcrossReady > 0)
+            // TODO we *technically* should select a specific target for starcross because it's a 3y range 5y radius circle...
+            // but it's always gonna get used immediately after stardiver and we'll be melee range...so fuck it
+            PushOGCD(AID.Starcross, primaryTarget);
+
         if (LotD > 0 && moveOk)
             PushOGCD(AID.Stardiver, BestDiveTarget);
 
@@ -172,9 +182,6 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
         if (DiveReady == 0 && posOk)
             PushOGCD(AID.Jump, primaryTarget);
-
-        if (LanceCharge > GCD && ShouldLifeSurge())
-            PushOGCD(AID.LifeSurge, Player);
 
         if (moveOk)
             PushOGCD(AID.DragonfireDive, BestDiveTarget);
