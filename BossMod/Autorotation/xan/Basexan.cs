@@ -300,6 +300,14 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         Exec(strategy, primaryTarget);
     }
 
+    private new (float Left, float In) EstimateRaidBuffTimings(Actor? primaryTarget)
+    {
+        if (primaryTarget?.OID != 0x385)
+            return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), Bossmods.RaidCooldowns.NextDamageBuffIn2());
+
+        return base.EstimateRaidBuffTimings(primaryTarget);
+    }
+
     public abstract void Exec(StrategyValues strategy, Actor? primaryTarget);
 
     protected (float Left, int Stacks) Status<SID>(SID status) where SID : Enum => Player.FindStatus(status) is ActorStatus s ? (StatusDuration(s.ExpireAt), s.Extra & 0xFF) : (0, 0);
