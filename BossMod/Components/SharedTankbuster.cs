@@ -82,3 +82,28 @@ public class CastSharedTankbuster(BossModule module, ActionID aid, AOEShape shap
             Source = Target = null;
     }
 }
+
+// shared tankbuster at icon
+public class IconSharedTankbuster(BossModule module, uint iconId, ActionID aid, AOEShape shape, float activationDelay = 5.1f, bool originAtTarget = false) : GenericSharedTankbuster(module, aid, shape, originAtTarget)
+{
+    public IconSharedTankbuster(BossModule module, uint iconId, ActionID aid, float radius, float activationDelay = 5.1f) : this(module, iconId, aid, new AOEShapeCircle(radius), activationDelay, true) { }
+
+    public virtual Actor? BaitSource(Actor target) => Module.PrimaryActor;
+
+    public override void OnEventIcon(Actor actor, uint iconID)
+    {
+        if (iconID == iconId)
+        {
+            Source = BaitSource(actor);
+            Target = actor;
+            Activation = WorldState.FutureTime(activationDelay);
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+        if (spell.Action == WatchedAction)
+            Source = Target = null;
+    }
+}

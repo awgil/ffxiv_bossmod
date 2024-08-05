@@ -188,6 +188,8 @@ public unsafe abstract class PacketDecoder
             ActorControlCategory.SetTarget => $"{DecodeActor(targetID)}",
             ActorControlCategory.SetAnimationState => $"#{p1} = {p2}",
             ActorControlCategory.SetModelState => $"{p1}",
+            ActorControlCategory.SetName => $"'{Service.LuminaRow<Lumina.Excel.GeneratedSheets.BNpcName>(p1)?.Singular}' ({p1})",
+            ActorControlCategory.SetCompanionOwnerId => $"{DecodeActor(p1)}",
             ActorControlCategory.ForcedMovement => $"dest={Utils.Vec3String(IntToFloatCoords((ushort)p1, (ushort)p2, (ushort)p3))}, rot={IntToFloatAngle((ushort)p4)}deg over {p5 * 0.0001:f4}s, type={p6}",
             ActorControlCategory.PlayActionTimeline => $"{p1:X4}",
             ActorControlCategory.EObjSetState => $"{p1:X4}, housing={(p3 != 0 ? p4 : null)}",

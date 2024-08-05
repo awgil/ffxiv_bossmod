@@ -421,6 +421,7 @@ public enum ActorControlCategory : ushort
     TreasureScreenMsg = 87, // from dissector
     SetOwnerId = 89, // from dissector
     ItemRepairMsg = 92, // from dissector
+    SetName = 98,
     BluActionLearn = 99, // from dissector
     DirectorInit = 100, // from dissector
     DirectorClear = 101, // from dissector
@@ -497,6 +498,7 @@ public enum ActorControlCategory : ushort
     EObjSetState = 409, // from dissector
     Unk6 = 412, // from dissector
     EObjAnimation = 413, // from dissector
+    SetCompanionOwnerId = 417,
     SetTitle = 500, // from dissector
     SetTargetSign = 502,
     SetStatusIcon = 504, // from dissector
