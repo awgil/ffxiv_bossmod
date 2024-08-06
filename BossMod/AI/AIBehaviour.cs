@@ -52,9 +52,10 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
 
         target.PreferredPosition = _config.PreferedPositional;
         target.PreferTanking = _config.PreferedPositional != Positional.Any;
-        target.PreferredRange = _config.FollowRange;
+        if (_config.FollowRangeOverride)
+            target.PreferredRange = _config.FollowRange;
 
-        _followMaster = master != player && (autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null || _config.FollowActiveBM) && (!master.InCombat || _config.FollowInCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100) && (player.InCombat || _config.FollowOOC);
+        _followMaster = master != player && (autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null || _config.FollowDuringActiveBossModule) && (!master.InCombat || _config.FollowDuringCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100) && (player.InCombat || _config.FollowOutOfCombat);
         _naviDecision = BuildNavigationDecision(player, master, ref target);
 
         bool masterIsMoving = TrackMasterMovement(master);

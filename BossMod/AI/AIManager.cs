@@ -5,6 +5,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using ImGuiNET;
+using System;
 
 namespace BossMod.AI;
 
@@ -203,6 +204,26 @@ sealed class AIManager : IDisposable
                     SwitchToFollow((int)_config.FollowSlot);
                 else
                     SwitchToIdle();
+                break;
+            case "follow":
+                if (messageData.Length < 2)
+                {
+                    Service.Log($"[AI] [Follow] Usage: /vbmai follow name");
+                    return;
+                }
+
+                var masterString = messageData.Length > 2 ? $"{messageData[1]} {messageData[2]}" : messageData[1];
+                var master = WorldState.Party.WithSlot().FirstOrDefault(x => x.Item2.Name.Equals(masterString, StringComparison.OrdinalIgnoreCase));
+
+                if (master.Item1 < 1)
+                {
+                    Service.Log($"[AI] [Follow] Error: can't find {masterString} in our party");
+                    return;
+                }
+
+                _config.FollowSlot = (AIConfig.Slot)master.Item1;
+                SwitchToFollow((int)_config.FollowSlot);
+
                 break;
             default:
                 Service.Log($"[AI] Unknown command: {messageData[0]}");

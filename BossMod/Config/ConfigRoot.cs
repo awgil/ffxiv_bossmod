@@ -117,7 +117,7 @@ public class ConfigRoot
                         matchingFields.Add(f);
                 if (matchingFields.Count == 0)
                 {
-                    result.Add("Field not found. Valid fields:");
+                    result.Add($"Field not found {args[1]}, Valid fields:");
                     foreach (var f in matchingNodes[0].GetType().GetFields().Where(f => f.GetCustomAttribute<PropertyDisplayAttribute>() != null))
                         result.Add($"- {f.Name}");
                 }

@@ -17,6 +17,9 @@ sealed class AIConfig : ConfigNode
     [PropertyDisplay($"Follow slot")]
     public Slot FollowSlot = 0;
 
+    [PropertyDisplay($"Override Follow range")]
+    public bool FollowRangeOverride = false;
+
     [PropertyDisplay($"Follow range")]
     public int FollowRange = 3;
 
@@ -24,13 +27,13 @@ sealed class AIConfig : ConfigNode
     public bool FollowTarget = false;
 
     [PropertyDisplay("Follow during active module")]
-    public bool FollowActiveBM = false;
+    public bool FollowDuringActiveBossModule = false;
 
     [PropertyDisplay("Follow in combat")]
-    public bool FollowInCombat = false;
+    public bool FollowDuringCombat = false;
 
     [PropertyDisplay("Follow out of combat")]
-    public bool FollowOOC = true;
+    public bool FollowOutOfCombat = true;
 
     [PropertyDisplay("Focus target master")]
     public bool FocusTargetLeader = true;
