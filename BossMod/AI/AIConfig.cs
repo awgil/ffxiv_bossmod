@@ -17,7 +17,10 @@ sealed class AIConfig : ConfigNode
     [PropertyDisplay("Show state in DTR Bar")]
     public bool ShowDTR = true;
 
-    [PropertyDisplay("Desired Positional")]
+    [PropertyDisplay($"Override positional")]
+    public bool OverridePositional = false;
+
+    [PropertyDisplay("Desired positional")]
     public Positional DesiredPositional = 0;
 
     [PropertyDisplay($"Follow slot")]

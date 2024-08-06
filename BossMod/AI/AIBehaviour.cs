@@ -48,8 +48,11 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
             AdjustTargetPositional(player, ref target);
         }
 
-        target.PreferredPosition = _config.DesiredPositional;
-        target.PreferTanking = _config.DesiredPositional != Positional.Any;
+        if (_config.OverridePositional)
+        {
+            target.PreferredPosition = _config.DesiredPositional;
+            target.PreferTanking = _config.DesiredPositional != Positional.Any;
+        }
         if (_config.OverrideRange)
             target.PreferredRange = _config.FollowRange;
 
