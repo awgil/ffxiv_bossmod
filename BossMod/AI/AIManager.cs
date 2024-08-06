@@ -1,11 +1,11 @@
-﻿using BossMod.Autorotation;
+using Dalamud.Game.Gui.Dtr;
+using BossMod.Autorotation;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using ImGuiNET;
-using System;
 
 namespace BossMod.AI;
 
@@ -15,11 +15,11 @@ sealed class AIManager : IDisposable
     private readonly AIController _controller;
     private readonly AIConfig _config;
     private int MasterSlot => (int)_config.FollowSlot; // non-zero means corresponding player is master
-    private Positional PreferedPositional => _config.PreferedPositional;
+    private Positional DesiredPositional => _config.DesiredPositional;
     private AIBehaviour? _beh;
     private Preset? _aiPreset;
     private readonly UISimpleWindow _ui;
-
+    private readonly IDtrBarEntry _dtrBarEntry = Service.DtrBar.Get("Bossmod");
     private WorldState WorldState => _autorot.Bossmods.WorldState;
     public float ForceMovementIn => _beh?.ForceMovementIn ?? float.MaxValue;
 
@@ -37,19 +37,45 @@ sealed class AIManager : IDisposable
     {
         SwitchToIdle();
         _ui.Dispose();
+        _dtrBarEntry.Remove();
         Service.ChatGui.ChatMessage -= OnChatMessage;
         Service.CommandManager.RemoveHandler("/vbmai");
     }
 
+    public void DtrUpdate(AIBehaviour? behaviour)
+    {
+        _dtrBarEntry.Shown = _config.ShowDTR;
+        if (_dtrBarEntry.Shown)
+        {
+            var status = behaviour != null ? "On" : "Off";
+            _dtrBarEntry.Text = "AI: " + status;
+            _dtrBarEntry.OnClick = () =>
+            {
+                if (behaviour != null)
+                    SwitchToIdle();
+                else
+                {
+                    if (!_config.Enabled)
+                    {
+                        _config.Enabled = true;
+                        _config.Modified.Fire();
+                    }
+                    SwitchToFollow((int)_config.FollowSlot);
+                }
+            };
+        }
+    }
+
     public void Update()
     {
-        if ((MasterSlot > 0 && !WorldState.Party.Members[MasterSlot].IsValid()) || (!_config.Enabled && _beh != null))
+        if (!WorldState.Party.Members[MasterSlot].IsValid())
             SwitchToIdle();
-        else if (_beh != null)
-            SwitchToFollow(MasterSlot);
+
+        if (!_config.Enabled && _beh != null)
+            SwitchToIdle();
 
         var player = WorldState.Party.Player();
-        var master = MasterSlot > 0 ? WorldState.Party[MasterSlot] : WorldState.Party.Player();
+        var master = WorldState.Party[MasterSlot];
         if (_beh != null && player != null && master != null)
         {
             _beh.Execute(player, master);
@@ -61,6 +87,8 @@ sealed class AIManager : IDisposable
         _controller.Update(player);
 
         _ui.IsOpen = _config.Enabled && player != null && _config.DrawUI;
+
+        DtrUpdate(_beh);
     }
 
     private void DrawOverlay()
@@ -81,6 +109,7 @@ sealed class AIManager : IDisposable
                 {
                     _config.FollowSlot = 0;
                     _config.FollowTarget = true;
+                    _config.Modified.Fire();
                     SwitchToFollow(0);
                 }
                 foreach (var (i, p) in WorldState.Party.WithSlot(true))
@@ -89,21 +118,23 @@ sealed class AIManager : IDisposable
                     {
                         _config.FollowSlot = (AIConfig.Slot)i;
                         _config.FollowTarget = false;
+                        _config.Modified.Fire();
                         SwitchToFollow(i);
                     }
                 }
             }
         }
 
-        using (var positionalCombo = ImRaii.Combo("Positional", $"{PreferedPositional}"))
+        using (var positionalCombo = ImRaii.Combo("Positional", $"{DesiredPositional}"))
         {
             if (positionalCombo)
             {
                 for (var i = 0; i < 4; i++)
                 {
-                    if (ImGui.Selectable($"{(Positional)i}", PreferedPositional == (Positional)i))
+                    if (ImGui.Selectable($"{(Positional)i}", DesiredPositional == (Positional)i))
                     {
-                        _config.PreferedPositional = (Positional)i;
+                        _config.DesiredPositional = (Positional)i;
+                        _config.Modified.Fire();
                     }
                 }
             }
@@ -132,6 +163,7 @@ sealed class AIManager : IDisposable
         _beh = null;
 
         _config.FollowSlot = PartyState.PlayerSlot;
+        _config.Modified.Fire();
         _controller.Clear();
     }
 
@@ -139,6 +171,7 @@ sealed class AIManager : IDisposable
     {
         SwitchToIdle();
         _config.FollowSlot = (AIConfig.Slot)masterSlot;
+        _config.Modified.Fire();
         _beh = new AIBehaviour(_controller, _autorot, _aiPreset);
     }
 
@@ -215,13 +248,14 @@ sealed class AIManager : IDisposable
                 var masterString = messageData.Length > 2 ? $"{messageData[1]} {messageData[2]}" : messageData[1];
                 var master = WorldState.Party.WithSlot().FirstOrDefault(x => x.Item2.Name.Equals(masterString, StringComparison.OrdinalIgnoreCase));
 
-                if (master.Item1 < 1)
+                if (master.Item2 is null)
                 {
                     Service.Log($"[AI] [Follow] Error: can't find {masterString} in our party");
                     return;
                 }
 
                 _config.FollowSlot = (AIConfig.Slot)master.Item1;
+                _config.Modified.Fire();
                 SwitchToFollow((int)_config.FollowSlot);
 
                 break;

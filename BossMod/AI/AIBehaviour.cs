@@ -15,8 +15,6 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
     private readonly AIConfig _config = Service.Config.Get<AIConfig>();
     private readonly NavigationDecision.Context _naviCtx = new();
     private NavigationDecision _naviDecision;
-    private bool _forbidMovement;
-    private bool _forbidActions;
     private bool _afkMode;
     private bool _followMaster; // if true, our navigation target is master rather than primary target - this happens e.g. in outdoor or in dungeons during gathering trash
     private float _maxCastTime;
@@ -35,11 +33,11 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
             return;
 
         // keep master in focus
-        if (_config.FocusTargetLeader)
+        if (_config.FocusTargetMaster)
             FocusMaster(master);
 
         _afkMode = !master.InCombat && (WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
-        bool forbidActions = _forbidActions || ctrl.IsMounted || _afkMode || autorot.Preset != null && autorot.Preset != AIPreset;
+        bool forbidActions = _config.ForbidActions || ctrl.IsMounted || _afkMode || autorot.Preset != null && autorot.Preset != AIPreset;
 
         Targeting target = new();
         if (!forbidActions)
@@ -50,9 +48,9 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
             AdjustTargetPositional(player, ref target);
         }
 
-        target.PreferredPosition = _config.PreferedPositional;
-        target.PreferTanking = _config.PreferedPositional != Positional.Any;
-        if (_config.FollowRangeOverride)
+        target.PreferredPosition = _config.DesiredPositional;
+        target.PreferTanking = _config.DesiredPositional != Positional.Any;
+        if (_config.OverrideRange)
             target.PreferredRange = _config.FollowRange;
 
         _followMaster = master != player && (autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null || _config.FollowDuringActiveBossModule) && (!master.InCombat || _config.FollowDuringCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100) && (player.InCombat || _config.FollowOutOfCombat);
@@ -115,7 +113,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
 
     private NavigationDecision BuildNavigationDecision(Actor player, Actor master, ref Targeting targeting)
     {
-        if (_forbidMovement)
+        if (_config.ForbidMovement)
             return new() { LeewaySeconds = float.MaxValue };
         if (_followMaster)
             return NavigationDecision.Build(_naviCtx, WorldState, autorot.Hints, player, master.Position, 1, new(), Positional.Any);
@@ -212,9 +210,21 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
 
     public void DrawDebug()
     {
-        ImGui.Checkbox("Forbid actions", ref _forbidActions);
+        ImGui.Checkbox("Forbid actions", ref _config.ForbidActions);
         ImGui.SameLine();
-        ImGui.Checkbox("Forbid movement", ref _forbidMovement);
+        ImGui.Checkbox("Forbid movement", ref _config.ForbidMovement);
+        ImGui.SameLine();
+        ImGui.Checkbox("Show extra options", ref _config.ShowExtraUIOptions);
+        if (_config.ShowExtraUIOptions)
+        {
+            ImGui.Checkbox("Follow during combat", ref _config.FollowDuringCombat);
+            ImGui.SameLine();
+            ImGui.Checkbox("Follow during active boss module", ref _config.FollowDuringActiveBossModule);
+            ImGui.Spacing();
+            ImGui.Checkbox("Follow out of combat", ref _config.FollowOutOfCombat);
+            ImGui.SameLine();
+            ImGui.Checkbox("Follow target", ref _config.FollowTarget);
+        }
         var player = WorldState.Party.Player();
         var dist = _naviDecision.Destination != null && player != null ? (_naviDecision.Destination.Value - player.Position).Length() : 0;
         ImGui.TextUnformatted($"Max-cast={MathF.Min(_maxCastTime, 1000):f3}, afk={_afkMode}, follow={_followMaster}, algo={_naviDecision.DecisionType} {_naviDecision.Destination} (d={dist:f3}), master standing for {Math.Clamp((WorldState.CurrentTime - _masterLastMoved).TotalSeconds, 0, 1000):f1}");
