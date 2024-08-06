@@ -24,9 +24,9 @@ class RM02SHoneyBLovelyStates : StateMachineBuilder
         Cast(id + 0xC0000, AID.SheerHeartAttack, 12.2f, 10, "Enrage");
     }
 
-    private void CallMeHoney(uint id, float delay, string name = "Raidwide")
+    private State CallMeHoney(uint id, float delay, string name = "Raidwide")
     {
-        Cast(id, AID.CallMeHoney, delay, 5, name)
+        return Cast(id, AID.CallMeHoney, delay, 5, name)
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
@@ -201,6 +201,7 @@ class RM02SHoneyBLovelyStates : StateMachineBuilder
         // +0.2s: last charge
 
         StingingSlashKillerSting(id + 0x300, 3.1f)
+            .DeactivateOnExit<PoisonStingVoidzone>()
             .DeactivateOnExit<BlindingLoveCharge1>()
             .DeactivateOnExit<BlindingLoveCharge2>();
 
@@ -250,6 +251,7 @@ class RM02SHoneyBLovelyStates : StateMachineBuilder
         CallMeHoney(id + 0x10, 11.5f, "Raidwide 1");
         CallMeHoney(id + 0x20, 12.2f, "Raidwide 2");
         CallMeHoney(id + 0x30, 12.2f, "Raidwide 3");
-        CallMeHoney(id + 0x40, 12.2f, "Raidwide 4");
+        CallMeHoney(id + 0x40, 12.2f, "Raidwide 4")
+            .DeactivateOnExit<RottenHeartBigBurst>();
     }
 }
