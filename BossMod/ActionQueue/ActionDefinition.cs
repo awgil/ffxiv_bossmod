@@ -53,6 +53,7 @@ public sealed record class ActionDefinition(ActionID ID)
     public ActionAspect Aspect; // useful for BLM and BLU
     public int MaxChargesBase; // baseline max-charges when action is unlocked
     public readonly List<(int Charges, int Level, uint UnlockLink)> MaxChargesOverride = []; // trait overrides for max-charges (applied in order)
+    public bool IsRoleAction; // unlocked conditions are different for these
     public float InstantAnimLock = 0.6f; // animation lock if ability is instant-cast
     public float CastAnimLock = 0.1f; // animation lock if ability is non-instant
     public ConditionDelegate? ForbidExecute; // optional condition, if it returns true, action is not executed
@@ -104,6 +105,13 @@ public sealed record class ActionDefinition(ActionID ID)
     }
 
     private static bool LinkUnlocked(uint link) => link == 0 || (ActionDefinitions.Instance.UnlockCheck?.Invoke(link) ?? true);
+
+    public bool IsUnlocked(WorldState ws, Actor player)
+    {
+        var checkLevel = IsRoleAction ? ws.Client.ClassJobLevel(player.Class) : player.Level;
+
+        return AllowedClasses[(int)player.Class] && checkLevel >= MinLevel && (ActionDefinitions.Instance.UnlockCheck?.Invoke(UnlockLink) ?? true);
+    }
 }
 
 // database of all supported player-initiated actions
@@ -329,6 +337,7 @@ public sealed class ActionDefinitions : IDisposable
             MaxChargesBase = SpellBaseMaxCharges(data),
             InstantAnimLock = instantAnimLock,
             CastAnimLock = castAnimLock,
+            IsRoleAction = data?.IsRoleAction ?? false
         };
         Register(aid, def);
     }

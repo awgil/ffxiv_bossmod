@@ -48,6 +48,7 @@ public sealed class ClientState
     public readonly Cooldown[] Cooldowns = new Cooldown[NumCooldownGroups];
     public readonly ActionID[] DutyActions = new ActionID[2];
     public readonly byte[] BozjaHolster = new byte[(int)BozjaHolsterID.Count]; // number of copies in holster per item
+    public readonly short[] ClassJobLevels = new short[32];
     public Fate ActiveFate;
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
@@ -74,6 +75,9 @@ public sealed class ClientState
         var bozjaHolster = BozjaHolster.Select((v, i) => ((BozjaHolsterID)i, v)).Where(iv => iv.v > 0).ToList();
         if (BozjaHolster.Any(count => count != 0))
             yield return new OpBozjaHolsterChange(bozjaHolster);
+
+        if (ClassJobLevels.Any(a => a != 0))
+            yield return new OpClassJobLevelsChange(ClassJobLevels);
     }
 
     public void Tick(float dt)
@@ -237,5 +241,32 @@ public sealed class ClientState
             ws.Client.ActiveFateChanged.Fire(this);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLAF"u8).Emit(Value.ID).Emit(Value.Center).Emit(Value.Radius, "f3");
+    }
+
+    public Event<OpClassJobLevelsChange> ClassJobLevelsChanged = new();
+    public sealed record class OpClassJobLevelsChange(short[] Value) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            Array.Fill(ws.Client.ClassJobLevels, (byte)0);
+            for (var i = 0; i < Value.Length; i++)
+                ws.Client.ClassJobLevels[i] = Value[i];
+            ws.Client.ClassJobLevelsChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("CLVL"u8);
+            output.Emit((byte)Value.Length);
+            foreach (var e in Value)
+                output.Emit(e);
+        }
+    }
+
+    public short ClassJobLevel(Class c)
+    {
+        var row = Service.LuminaRow<Lumina.Excel.GeneratedSheets.ClassJob>((uint)c);
+        if (row == null || row.ExpArrayIndex < 0)
+            return -1;
+        return ClassJobLevels[row.ExpArrayIndex];
     }
 }

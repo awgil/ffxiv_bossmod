@@ -569,6 +569,10 @@ sealed class WorldStateGameSync : IDisposable
         ClientState.Fate activeFate = curFate != null ? new(curFate->FateId, curFate->Location, curFate->Radius) : default;
         if (_ws.Client.ActiveFate != activeFate)
             _ws.Execute(new ClientState.OpActiveFateChange(activeFate));
+
+        var levels = uiState->PlayerState.ClassJobLevels;
+        if (!MemoryExtensions.SequenceEqual(_ws.Client.ClassJobLevels.AsSpan(), levels))
+            _ws.Execute(new ClientState.OpClassJobLevelsChange(levels.ToArray()));
     }
 
     private ulong SanitizedObjectID(ulong raw) => raw != InvalidEntityId ? raw : 0;
