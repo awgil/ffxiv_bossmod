@@ -46,7 +46,7 @@ public sealed class AnimationLockTweak
             SanityCheck(packetPrevAnimLock, packetCurrAnimLock, gameCurrAnimLock);
             DelayAverage = delay * (1 - DelaySmoothing) + DelayAverage * DelaySmoothing; // update the average
             // the result will be subtracted from current anim lock (and thus from adjusted lock delay)
-            reduction = _config.RemoveCooldownDelay ? Math.Clamp(delay - DelayMax, 0, gameCurrAnimLock) : 0;
+            reduction = _config.RemoveAnimationLockDelay ? Math.Clamp(delay - DelayMax, 0, gameCurrAnimLock) : 0;
         }
         _lastReqInitialAnimLock = 0;
         _lastReqSequence = -1;

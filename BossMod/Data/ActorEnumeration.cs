@@ -144,4 +144,18 @@ public static class ActorEnumeration
 
     // find farthest actor from point
     public static Actor? Farthest(this IEnumerable<Actor> range, WPos origin) => range.MaxBy(a => (a.Position - origin).LengthSq());
+
+    // count num actors matching and not matching a condition
+    public static (int match, int mismatch) CountByCondition(this IEnumerable<Actor> range, Func<Actor, bool> condition)
+    {
+        int match = 0, mismatch = 0;
+        foreach (var a in range)
+        {
+            if (condition(a))
+                ++match;
+            else
+                ++mismatch;
+        }
+        return (match, mismatch);
+    }
 }

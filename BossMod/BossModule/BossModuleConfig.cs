@@ -47,7 +47,7 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Show text hints in separate window")]
     public bool HintsInSeparateWindow = false;
 
-    [PropertyDisplay("Trisha mode: show radar without window")]
+    [PropertyDisplay("Transparent radar window background (if enabled, radar window can't be moved outside game viewport)")]
     public bool TrishaMode = false;
 
     [PropertyDisplay("Add opaque background to the arena")]
