@@ -51,7 +51,7 @@ public sealed class ActionQueue
                 break; // this and further actions are something we don't really want to execute (prio < minimal)
 
             var def = ActionDefinitions.Instance[candidate.Action];
-            if (def == null || !def.AllowedClasses[(int)player.Class] || player.Level < def.MinLevel || !(ActionDefinitions.Instance.UnlockCheck?.Invoke(def.UnlockLink) ?? true))
+            if (def == null || !def.IsUnlocked(ws, player))
                 continue; // unregistered or locked action
 
             var startDelay = Math.Max(Math.Max(candidate.Delay, animationLock), def.ReadyIn(cooldowns));

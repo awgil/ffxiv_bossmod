@@ -93,12 +93,9 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
     public virtual string DescribeState() => "";
 
-    // utility to check action/trait unlocks
-    public bool ActionUnlocked(ActionID action)
-    {
-        var def = ActionDefinitions.Instance[action];
-        return def != null && def.AllowedClasses[(int)Player.Class] && Player.Level >= def.MinLevel && (ActionDefinitions.Instance.UnlockCheck?.Invoke(def.UnlockLink) ?? true);
-    }
+    public virtual AI.Targeting? SelectTargetForAI(StrategyValues strategy, AI.Targeting aiDecision) => null;
+
+    public bool ActionUnlocked(ActionID action) => ActionDefinitions.Instance[action]?.IsUnlocked(World, Player) ?? false;
 
     public bool TraitUnlocked(uint id)
     {
