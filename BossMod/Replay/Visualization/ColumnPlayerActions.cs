@@ -57,7 +57,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
                 var cast = player.Casts[iCast++];
                 var castName = $"{cast.ID} -> {ReplayUtils.ParticipantString(cast.Target, cast.Time.Start)}";
                 _animLocks.AddHistoryEntryRange(enc.Time.Start, cast.Time, castName, 0x80ffffff).AddCastTooltip(cast);
-                if (actionDef != null)
+                if (actionDef?.MainCooldownGroup >= 0)
                 {
                     StartCooldown(a.ID, actionDef, enc.Time.Start, cast.Time.Start);
                     GetCooldownColumn(actionDef.MainCooldownGroup, a.ID).AddHistoryEntryRange(enc.Time.Start, cast.Time, castName, 0x80ffffff).AddCastTooltip(cast);
@@ -67,7 +67,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
             }
             else
             {
-                if (actionDef != null)
+                if (actionDef?.MainCooldownGroup >= 0)
                 {
                     StartCooldown(a.ID, actionDef, enc.Time.Start, a.ClientAction != null ? a.ClientAction.Requested : a.Timestamp);
                 }
@@ -77,7 +77,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
             AddAnimationLock(_animLocks, a, enc.Time.Start, effectStart, actionName);
             _animLocks.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, actionDef != null ? (ActionConfirmed(a) ? 0xffffffff : 0xff00ffff) : 0xff0000ff).AddActionTooltip(a);
 
-            if (actionDef != null)
+            if (actionDef?.MainCooldownGroup >= 0)
             {
                 var col = GetCooldownColumn(actionDef.MainCooldownGroup, a.ID);
                 float effectDuration = 0;

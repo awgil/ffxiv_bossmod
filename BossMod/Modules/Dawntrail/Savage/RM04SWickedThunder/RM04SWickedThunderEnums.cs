@@ -9,10 +9,6 @@ public enum OID : uint
     WickedReplica = 0x43AB, // R3.675-4.900, x8
     GunBattery = 0x43AC, // R1.000, x0 (spawn during fight) - bewitching flight / electrifying witch hunt
     Electromine = 0x43AD, // R1.000, x0 (spawn during fight) - electrope edge
-    //_Gen_WickedThunder = 0x4568, // R8.750, x1
-
-    //_Gen_Actor1ea1a1 = 0x1EA1A1, // R0.500-2.000, x1, EventObj type
-    //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
 }
 
 public enum AID : uint
