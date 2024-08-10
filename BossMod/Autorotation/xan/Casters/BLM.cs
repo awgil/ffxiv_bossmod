@@ -1,7 +1,7 @@
 ﻿using BossMod.BLM;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
-namespace BossMod.Autorotation.xan.Casters;
+namespace BossMod.Autorotation.xan;
 public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player)
 {
     public static RotationModuleDefinition Definition()
