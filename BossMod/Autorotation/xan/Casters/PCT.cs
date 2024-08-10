@@ -252,8 +252,6 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         if (CombatTimer < 10 && !CanvasFlags.HasFlag(CanvasFlags.Wing))
             return false;
 
-        Service.Log($"{Landscape}, {CanWeave(AID.ScenicMuse, gcdsAhead)}");
-
         return Landscape && CanWeave(AID.ScenicMuse, gcdsAhead);
     }
 
