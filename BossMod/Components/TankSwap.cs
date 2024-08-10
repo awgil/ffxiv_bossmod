@@ -48,7 +48,7 @@ public class TankSwap(BossModule module, ActionID bossCast, ActionID firstCast, 
         if (spell.Action == firstCast || spell.Action == subsequentHit)
         {
             ++NumCasts;
-            _prevTarget = spell.MainTargetID;
+            _prevTarget = spell.MainTargetID == caster.InstanceID && spell.Targets.Count != 0 ? spell.Targets[0].ID : spell.MainTargetID;
             _activation = Module.WorldState.FutureTime(timeBetweenHits);
         }
     }
