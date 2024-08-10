@@ -39,7 +39,7 @@ internal class DTR : IDisposable
     }
 }
 
-internal class DTRPopup(RotationModuleManager _mgr) : UIWindow("###vbm_dtr", false, new(100, 100), ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMouseInputs)
+internal class DTRPopup(RotationModuleManager _mgr) : UIWindow("###vbm_dtr", false, new(100, 100), ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoResize)
 {
     private bool _open;
     public void Show()
