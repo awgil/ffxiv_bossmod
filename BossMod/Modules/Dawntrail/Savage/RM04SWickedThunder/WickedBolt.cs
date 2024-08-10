@@ -1,4 +1,4 @@
-﻿namespace BossMod.Dawntrail.Savage.RM04WickedThunder;
+﻿namespace BossMod.Dawntrail.Savage.RM04SWickedThunder;
 
 class WickedBolt(BossModule module) : Components.StackWithIcon(module, (uint)IconID.WickedBolt, ActionID.MakeSpell(AID.WickedBoltAOE), 5, 5.1f, 8)
 {

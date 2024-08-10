@@ -1,6 +1,4 @@
-﻿using BossMod.Endwalker.Extreme.Ex4Barbariccia;
-
-namespace BossMod.Dawntrail.Savage.RM04WickedThunder;
+﻿namespace BossMod.Dawntrail.Savage.RM04SWickedThunder;
 
 class AetherialConversion(BossModule module) : Components.CastCounter(module, default)
 {

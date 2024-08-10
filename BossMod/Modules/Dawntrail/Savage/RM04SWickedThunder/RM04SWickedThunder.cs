@@ -1,4 +1,4 @@
-﻿namespace BossMod.Dawntrail.Savage.RM04WickedThunder;
+﻿namespace BossMod.Dawntrail.Savage.RM04SWickedThunder;
 
 class BewitchingFlight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BewitchingFlightAOE), new AOEShapeRect(40, 2.5f));
 class WickedJolt(BossModule module) : Components.TankSwap(module, ActionID.MakeSpell(AID.WickedJolt), ActionID.MakeSpell(AID.WickedJolt), ActionID.MakeSpell(AID.WickedJoltSecond), 3.2f, new AOEShapeRect(60, 2.5f), false);
@@ -11,7 +11,7 @@ class WickedSpecialCenter(BossModule module) : Components.SelfTargetedAOEs(modul
 class WickedSpecialSides(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WickedSpecialSidesAOE), new AOEShapeRect(40, 7.5f));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 992, NameID = 13057, PlanLevel = 100)]
-public class RM04WickedThunder(WorldState ws, Actor primary) : BossModule(ws, primary, P1Center, P1DefaultBounds)
+public class RM04SWickedThunder(WorldState ws, Actor primary) : BossModule(ws, primary, P1Center, P1DefaultBounds)
 {
     public static readonly WPos P1Center = new(100, 100);
     public static readonly WPos P2Center = new(100, 165);

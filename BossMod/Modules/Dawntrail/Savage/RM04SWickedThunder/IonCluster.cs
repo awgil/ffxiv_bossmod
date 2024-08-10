@@ -1,4 +1,4 @@
-﻿namespace BossMod.Dawntrail.Savage.RM04WickedThunder;
+﻿namespace BossMod.Dawntrail.Savage.RM04SWickedThunder;
 
 class StampedingThunder(BossModule module) : Components.GenericAOEs(module)
 {
@@ -25,7 +25,7 @@ class StampedingThunder(BossModule module) : Components.GenericAOEs(module)
             case AID.StampedingThunderFinish:
                 ++NumCasts;
                 AOE = null;
-                Module.Arena.Bounds = caster.Position.X < Module.Center.X ? RM04WickedThunder.P1IonClusterRBounds : RM04WickedThunder.P1IonClusterLBounds;
+                Module.Arena.Bounds = caster.Position.X < Module.Center.X ? RM04SWickedThunder.P1IonClusterRBounds : RM04SWickedThunder.P1IonClusterLBounds;
                 SmallArena = true;
                 break;
         }
@@ -35,7 +35,7 @@ class StampedingThunder(BossModule module) : Components.GenericAOEs(module)
     {
         if (index == 0 && state is 0x00400004 or 0x00800004)
         {
-            Module.Arena.Bounds = RM04WickedThunder.P1DefaultBounds;
+            Module.Arena.Bounds = RM04SWickedThunder.P1DefaultBounds;
             SmallArena = false;
         }
     }
