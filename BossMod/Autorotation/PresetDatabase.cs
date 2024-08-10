@@ -67,4 +67,6 @@ public sealed class PresetDatabase
             Service.Log($"Failed to write database to '{_dbPath.FullName}': {ex}");
         }
     }
+
+    public IEnumerable<Preset> PresetsForClass(Class c) => Presets.Where(p => p.Modules.Any(m => RotationModuleRegistry.Modules[m.Key].Definition.Classes[(int)c]));
 }

@@ -6,6 +6,19 @@ public sealed class AutorotationConfig : ConfigNode
     [PropertyDisplay("Show in-game UI")]
     public bool ShowUI = false;
 
+    public enum DtrStatus
+    {
+        [PropertyDisplay("Disabled")]
+        None,
+        [PropertyDisplay("Text only")]
+        TextOnly,
+        [PropertyDisplay("With icon")]
+        Icon
+    }
+
+    [PropertyDisplay("Preset display in DTR bar")]
+    public DtrStatus ShowDTR = DtrStatus.None;
+
     [PropertyDisplay("Show positional hints in world")]
     public bool ShowPositionals = false;
 
