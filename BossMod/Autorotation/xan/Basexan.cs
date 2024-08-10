@@ -99,7 +99,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         }
 
         Vector3 targetPos = default;
-        if (def.ID.ID is (uint)BLM.AID.LeyLines or (uint)BLM.AID.Retrace or (uint)BossMod.PCT.AID.StarryMuse or (uint)BossMod.PCT.AID.ScenicMuse)
+        if (def.ID.ID is (uint)BossMod.BLM.AID.LeyLines or (uint)BossMod.BLM.AID.Retrace or (uint)BossMod.PCT.AID.StarryMuse or (uint)BossMod.PCT.AID.ScenicMuse)
             targetPos = Player.PosRot.XYZ();
 
         Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, targetPos: targetPos, delay: delay);
@@ -311,7 +311,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         var pelo = Player.FindStatus(BossMod.BRD.SID.Peloton);
         PelotonLeft = pelo != null ? StatusDuration(pelo.Value.ExpireAt) : 0;
         SwiftcastLeft = StatusLeft(BossMod.WHM.SID.Swiftcast);
-        TrueNorthLeft = StatusLeft(DRG.SID.TrueNorth);
+        TrueNorthLeft = StatusLeft(BossMod.DRG.SID.TrueNorth);
 
         ForceMovementIn = forceMovementIn;
         AnimationLockDelay = estimatedAnimLockDelay;
