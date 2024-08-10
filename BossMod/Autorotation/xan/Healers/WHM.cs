@@ -3,20 +3,15 @@ using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 namespace BossMod.Autorotation.xan;
 public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player)
 {
-    public enum Track { Raise = SharedTrack.Count, Assize, Misery }
-    public enum RaiseStrategy { None, Fast, Slow }
+    public enum Track { Assize = SharedTrack.Count, Misery }
     public enum AssizeStrategy { None, HitSomething, HitEverything }
     public enum MiseryStrategy { ASAP, BuffedOnly, Delay }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan WHM", "White Mage", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.WHM), 100);
+        var def = new RotationModuleDefinition("xan WHM", "White Mage", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.WHM), 100);
 
         def.DefineShared().AddAssociatedActions(AID.PresenceOfMind);
-        def.Define(Track.Raise).As<RaiseStrategy>("Raise")
-            .AddOption(RaiseStrategy.None, "Off", "Do not automatically raise")
-            .AddOption(RaiseStrategy.Fast, "Fast", "Raise if Swiftcast is available")
-            .AddOption(RaiseStrategy.Slow, "Slow", "Always raise, hardcast if necessary");
         def.Define(Track.Assize).As<AssizeStrategy>("Assize")
             .AddOption(AssizeStrategy.None, "None", "Don't automatically use")
             .AddOption(AssizeStrategy.HitSomething, "HitSomething", "Use if it would hit any priority target")
