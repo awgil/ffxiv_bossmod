@@ -107,7 +107,11 @@ public record class RelSimplifiedComplexPolygon(List<RelPolygonWithHoles> Parts)
     public bool IsSimple => Parts.Count == 1 && Parts[0].IsSimple;
     public bool IsConvex => Parts.Count == 1 && Parts[0].IsConvex;
 
-    public RelSimplifiedComplexPolygon() : this([]) { }
+    public RelSimplifiedComplexPolygon() : this(new List<RelPolygonWithHoles>()) { }
+
+    // constructors for simple polygon
+    public RelSimplifiedComplexPolygon(List<WDir> simpleVertices) : this([new RelPolygonWithHoles(simpleVertices)]) { }
+    public RelSimplifiedComplexPolygon(IEnumerable<WDir> simpleVertices) : this([new RelPolygonWithHoles([.. simpleVertices])]) { }
 
     // build a triangulation of the polygon
     public List<RelTriangle> Triangulate()

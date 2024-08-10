@@ -1,6 +1,4 @@
-﻿using BossMod.Endwalker.Alliance.A30Trash2;
-
-namespace BossMod.Dawntrail.Savage.RM04WickedThunder;
+﻿namespace BossMod.Dawntrail.Savage.RM04WickedThunder;
 
 class StampedingThunder(BossModule module) : Components.GenericAOEs(module)
 {
@@ -27,8 +25,7 @@ class StampedingThunder(BossModule module) : Components.GenericAOEs(module)
             case AID.StampedingThunderFinish:
                 ++NumCasts;
                 AOE = null;
-                Module.Arena.Bounds = RM04WickedThunder.IonClusterBounds;
-                Module.Arena.Center = new(RM04WickedThunder.DefaultCenter.X + 3 * (RM04WickedThunder.DefaultCenter.X - caster.Position.X), RM04WickedThunder.DefaultCenter.Z);
+                Module.Arena.Bounds = caster.Position.X < Module.Center.X ? RM04WickedThunder.P1IonClusterRBounds : RM04WickedThunder.P1IonClusterLBounds;
                 SmallArena = true;
                 break;
         }
@@ -38,8 +35,7 @@ class StampedingThunder(BossModule module) : Components.GenericAOEs(module)
     {
         if (index == 0 && state is 0x00400004 or 0x00800004)
         {
-            Module.Arena.Bounds = RM04WickedThunder.DefaultBounds;
-            Module.Arena.Center = RM04WickedThunder.DefaultCenter;
+            Module.Arena.Bounds = RM04WickedThunder.P1DefaultBounds;
             SmallArena = false;
         }
     }
@@ -67,8 +63,8 @@ class ElectronStream(BossModule module) : Components.GenericAOEs(module)
         base.AddHints(slot, actor, hints);
 
         // wild charge
-        var offZ = actor.Position.Z - Module.Center.Z;
-        var sameSideCloser = Raid.WithoutSlot().Where(p => p != actor && p.Position.Z - Module.Center.Z is var off && off * offZ > 0 && Math.Abs(off) < Math.Abs(offZ));
+        var offZ = actor.Position.Z - Module.PrimaryActor.Position.Z;
+        var sameSideCloser = Raid.WithoutSlot().Where(p => p != actor && p.Position.Z - Module.PrimaryActor.Position.Z is var off && off * offZ > 0 && Math.Abs(off) < Math.Abs(offZ));
         if (actor.Role == Role.Tank)
         {
             if (sameSideCloser.Any())
@@ -132,19 +128,19 @@ class ElectronStreamCurrent(BossModule module) : Components.GenericAOEs(module, 
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        var actorOffset = actor.Position.Z - Module.Center.Z;
+        var actorOffset = actor.Position.Z - Module.PrimaryActor.Position.Z;
         foreach (var (i, p) in Raid.WithSlot().Exclude(slot))
         {
             switch (_status[i])
             {
                 case SID.RemoteCurrent:
-                    if (_status[slot] == SID.ColliderConductor && (p.Position.Z - Module.Center.Z) * actorOffset < 0)
+                    if (_status[slot] == SID.ColliderConductor && (p.Position.Z - Module.PrimaryActor.Position.Z) * actorOffset < 0)
                         break; // we're gonna bait this
                     if (FindBaitTarget(i, p) is var tf && tf != null)
                         yield return new(_shapeBait, p.Position, Angle.FromDirection(tf.Position - p.Position), _activation, Risky: _status[slot] != SID.RemoteCurrent); // common strat has two remotes hitting each other, which is fine
                     break;
                 case SID.ProximateCurrent:
-                    if (_status[slot] == SID.ColliderConductor && (p.Position.Z - Module.Center.Z) * actorOffset > 0)
+                    if (_status[slot] == SID.ColliderConductor && (p.Position.Z - Module.PrimaryActor.Position.Z) * actorOffset > 0)
                         break; // we're gonna bait this
                     if (FindBaitTarget(i, p) is var tc && tc != null)
                         yield return new(_shapeBait, p.Position, Angle.FromDirection(tc.Position - p.Position), _activation);
@@ -223,11 +219,11 @@ class ElectronStreamCurrent(BossModule module) : Components.GenericAOEs(module, 
 
     private (int slot, Actor? actor) FindDesignatedBaitSource(Actor target)
     {
-        var targetOffset = target.Position.Z - Module.Center.Z;
+        var targetOffset = target.Position.Z - Module.PrimaryActor.Position.Z;
         bool isBaiter(int slot, Actor actor) => _status[slot] switch
         {
-            SID.RemoteCurrent => (actor.Position.Z - Module.Center.Z) * targetOffset < 0,
-            SID.ProximateCurrent => (actor.Position.Z - Module.Center.Z) * targetOffset > 0,
+            SID.RemoteCurrent => (actor.Position.Z - Module.PrimaryActor.Position.Z) * targetOffset < 0,
+            SID.ProximateCurrent => (actor.Position.Z - Module.PrimaryActor.Position.Z) * targetOffset > 0,
             _ => false
         };
         return Raid.WithSlot().FirstOrDefault(ip => isBaiter(ip.Item1, ip.Item2));
@@ -242,20 +238,20 @@ class ElectronStreamCurrent(BossModule module) : Components.GenericAOEs(module, 
 
     private IEnumerable<WPos> SafeSpots(int slot, Actor actor)
     {
-        var dirZ = actor.Position.Z - Module.Center.Z > 0 ? 1 : -1;
+        var dirZ = actor.Position.Z - Module.PrimaryActor.Position.Z > 0 ? 1 : -1;
         switch (_status[slot])
         {
             case SID.RemoteCurrent:
             case SID.ProximateCurrent:
-                yield return Module.Center + new WDir(0, 5 * dirZ);
+                yield return Module.PrimaryActor.Position + new WDir(0, 5 * dirZ);
                 break;
             case SID.SpinningConductor:
             case SID.RoundhouseConductor:
-                yield return Module.Center + new WDir(-2.5f, 2.5f * dirZ);
-                yield return Module.Center + new WDir(+2.5f, 2.5f * dirZ);
+                yield return Module.PrimaryActor.Position + new WDir(-2.5f, 2.5f * dirZ);
+                yield return Module.PrimaryActor.Position + new WDir(+2.5f, 2.5f * dirZ);
                 break;
             case SID.ColliderConductor:
-                yield return Module.Center + new WDir(0, 6 * dirZ);
+                yield return Module.PrimaryActor.Position + new WDir(0, 6 * dirZ);
                 break;
         }
     }

@@ -20,6 +20,6 @@ public class A31Thaliak(WorldState ws, Actor primary) : BossModule(ws, primary, 
         // equilateral triangle, apex at true north, base is equal to width => height = w * sqrt(3) / 2 => offset to base = w / 2 * (sqrt(3) - 1)
         var baseOffset = NormalBounds.Radius * 0.732050808f;
         List<WDir> verts = [new(0, -NormalBounds.Radius), new(NormalBounds.Radius, baseOffset), new(-NormalBounds.Radius, baseOffset)];
-        return new(NormalBounds.Radius, new([new(verts)]));
+        return new(NormalBounds.Radius, new(verts));
     }
 }

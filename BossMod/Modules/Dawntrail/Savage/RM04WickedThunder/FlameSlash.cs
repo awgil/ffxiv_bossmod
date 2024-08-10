@@ -1,9 +1,9 @@
-﻿
-namespace BossMod.Dawntrail.Savage.RM04WickedThunder;
+﻿namespace BossMod.Dawntrail.Savage.RM04WickedThunder;
 
 class FlameSlash(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.FlameSlashAOE))
 {
     public AOEInstance? AOE;
+    public bool SmallArena;
 
     private static readonly AOEShapeRect _shape = new(40, 10);
 
@@ -11,14 +11,25 @@ class FlameSlash(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.FlameSlashAOE)
+        if (spell.Action == WatchedAction)
+        {
             AOE = new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell));
+        }
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            AOE = null;
+            SmallArena = true;
+        }
     }
 
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (index == 17 && state == 0x00400001)
-            AOE = null;
+            SmallArena = false;
     }
 }
 

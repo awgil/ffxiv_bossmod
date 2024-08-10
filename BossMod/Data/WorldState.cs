@@ -110,7 +110,7 @@ public sealed class WorldState
     {
         protected override void Exec(WorldState ws)
         {
-            lock (Service.LuminaGameData!)
+            lock (Service.LuminaRSVLock)
                 Service.LuminaGameData?.Excel.RsvProvider.Add(Key, Value);
             ws.RSVEntries[Key] = Value;
             ws.RSVDataReceived.Fire(this);

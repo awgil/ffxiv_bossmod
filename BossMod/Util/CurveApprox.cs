@@ -79,6 +79,8 @@ public static class CurveApprox
         yield return -dx - dz;
     }
     public static IEnumerable<WDir> Rect(WDir dirZ, float halfWidth, float halfHeight) => Rect(dirZ.OrthoL() * halfWidth, dirZ * halfHeight);
+    public static IEnumerable<WDir> Rect(WDir center, WDir dx, WDir dz) => Rect(dx, dz).Select(off => center + off);
+    public static IEnumerable<WDir> Rect(WDir center, WDir dirZ, float halfWidth, float halfHeight) => Rect(center, dirZ.OrthoL() * halfWidth, dirZ * halfHeight);
     public static IEnumerable<WPos> Rect(WPos center, WDir dx, WDir dz) => Rect(dx, dz).Select(off => center + off);
     public static IEnumerable<WPos> Rect(WPos center, WDir dirZ, float halfWidth, float halfHeight) => Rect(center, dirZ.OrthoL() * halfWidth, dirZ * halfHeight);
 

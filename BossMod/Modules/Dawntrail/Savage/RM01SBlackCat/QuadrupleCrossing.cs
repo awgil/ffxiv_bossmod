@@ -18,6 +18,13 @@ class QuadrupleCrossingProtean(BossModule module) : Components.GenericBaitAway(m
                 CurrentBaits.Add(new(Origin, p, _shape, _activation));
     }
 
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
+        if (_clone != null && CurrentBaits.Count == 0)
+            Arena.Actor(_clone.Position + 10 * (_clone.Rotation + _jumpDirection).ToDirection(), _clone.Rotation, ArenaColor.Object);
+    }
+
     public override void OnActorCreated(Actor actor)
     {
         // note: tether target is created after boss is tethered...

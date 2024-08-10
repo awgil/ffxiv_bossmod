@@ -73,6 +73,12 @@ class LeapingOneTwoPaw(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs.Skip(NumCasts).Take(1);
 
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (_clone != null && NumCasts >= AOEs.Count)
+            Arena.Actor(_clone.Position + 10 * (_clone.Rotation + _leapDirection).ToDirection(), _clone.Rotation, ArenaColor.Object);
+    }
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var (leapDir, firstDir) = (AID)spell.Action.ID switch

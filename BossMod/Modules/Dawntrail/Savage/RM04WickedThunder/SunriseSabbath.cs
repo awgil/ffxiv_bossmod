@@ -84,7 +84,7 @@ class SunriseSabbathElectronStream(BossModule module) : Components.GenericBaitAw
         base.DrawArenaForeground(pcSlot, pc);
 
         foreach (var c in Cannons)
-            Arena.Actor(c.cannon, ArenaColor.Object, true);
+            Arena.ActorInsideBounds(c.cannon.Position, c.cannon.Rotation, ArenaColor.Object); // these cannons are right on bounds, it's quite ugly if half of them are drawn differently...
         if (!ForbiddenPlayers[pcSlot] && _sabbath != null)
             foreach (var c in Cannons)
                 if (c.positron == _sabbath.Positron[pcSlot])
