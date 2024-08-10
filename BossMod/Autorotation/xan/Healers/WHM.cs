@@ -41,6 +41,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
     public int NumMiseryTargets;
     public int NumSolaceTargets;
 
+    private Actor? BestDotTarget;
     private Actor? BestMiseryTarget;
 
     public override void Exec(StrategyValues strategy, Actor? primaryTarget)
@@ -58,10 +59,9 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
         NumHolyTargets = NumNearbyTargets(strategy, 8);
         NumAssizeTargets = NumNearbyTargets(strategy, 15);
         (BestMiseryTarget, NumMiseryTargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
+        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, DotLeft, 2);
 
         NumSolaceTargets = World.Party.WithoutSlot().Count(x => Player.DistanceToHitbox(x) <= 20);
-
-        TargetDotLeft = DotLeft(primaryTarget);
 
         if (CountdownRemaining > 0)
         {
@@ -71,8 +71,8 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
-        if (!CanFitGCD(TargetDotLeft, 1) && NumHolyTargets <= 2)
-            PushGCD(AID.Aero1, primaryTarget);
+        if (!CanFitGCD(TargetDotLeft, 1))
+            PushGCD(AID.Aero1, BestDotTarget);
 
         if (BloodLily == 3 && NumMiseryTargets > 0)
         {
@@ -127,20 +127,9 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
             PushOGCD(AID.LucidDreaming, Player);
     }
 
-    static readonly SID[] DotStatus = [SID.Aero1, SID.Aero2, SID.Dia];
-
-    private float DotLeft(Actor? x)
-    {
-        if (x == null)
-            return 0;
-
-        foreach (var stat in DotStatus)
-        {
-            var dur = StatusDetails(x, (uint)stat, Player.InstanceID).Left;
-            if (dur > 0)
-                return dur;
-        }
-
-        return 0;
-    }
+    private float DotLeft(Actor? actor) => actor == null ? float.MaxValue : Utils.MaxAll(
+        StatusDetails(actor, SID.Aero1, Player.InstanceID).Left,
+        StatusDetails(actor, SID.Aero2, Player.InstanceID).Left,
+        StatusDetails(actor, SID.Dia, Player.InstanceID).Left
+    );
 }

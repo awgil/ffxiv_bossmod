@@ -244,6 +244,7 @@ public sealed class ClientState
     }
 
     public Event<OpClassJobLevelsChange> ClassJobLevelsChanged = new();
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1819:Properties should not return arrays", Justification = "give me a break")]
     public sealed record class OpClassJobLevelsChange(short[] Value) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)

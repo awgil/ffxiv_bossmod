@@ -108,7 +108,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
         NumAOETargets = NumMeleeAOETargets(strategy);
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 15, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 15, 2));
-        (BestConeTarget, NumConeTargets) = SelectTarget(strategy, primaryTarget, 8, (primary, other) => Hints.TargetInAOECone(other, Player.Position, 8, Player.DirectionTo(primary), 60.Degrees()));
+        (BestConeTarget, NumConeTargets) = SelectTarget(strategy, primaryTarget, 8, (primary, other) => Hints.TargetInAOECone(other, Player.Position, 8, Player.DirectionTo(primary), 90.Degrees()));
         (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
 
         UpdatePositionals(primaryTarget, GetNextPositional(primaryTarget), TrueNorthLeft > GCD);
@@ -201,7 +201,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (strategy.BuffsOk())
         {
             // wait for soul slice in opener
-            if (RedGauge > 0)
+            if (CD(AID.SoulSlice) > 0 || CombatTimer > 60)
                 PushOGCD(AID.ArcaneCircle, Player, delay: GCD - 1.6f);
         }
 

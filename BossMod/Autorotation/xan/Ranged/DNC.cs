@@ -122,9 +122,9 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        if (World.Client.CountdownRemaining > 0)
+        if (CountdownRemaining > 0)
         {
-            if (World.Client.CountdownRemaining is > 3.5f and < 15.5f && !IsDancing)
+            if (CountdownRemaining is > 3.5f and < 15.5f && !IsDancing)
                 PushGCD(AID.StandardStep, Player);
 
             return;
@@ -207,9 +207,9 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
 
     private void OGCD(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (World.Client.CountdownRemaining > 0)
+        if (CountdownRemaining > 0)
         {
-            if (World.Client.CountdownRemaining is > 2 and < 10 && NextStep == 0 && PelotonLeft == 0)
+            if (CountdownRemaining is > 2 and < 10 && NextStep == 0 && PelotonLeft == 0)
                 PushOGCD(AID.Peloton, Player);
 
             return;

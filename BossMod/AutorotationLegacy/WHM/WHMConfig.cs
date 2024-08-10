@@ -2,7 +2,7 @@
 
 // TODO: reconsider all this...
 [ConfigDisplay(Parent = typeof(ActionTweaksConfig))]
-class WHMConfig : ConfigNode
+class LegacyWHMConfig : ConfigNode
 {
     [PropertyDisplay("When trying to cast raise, apply swiftcast and thin air automatically, if possible")]
     public bool SwiftFreeRaise = true;

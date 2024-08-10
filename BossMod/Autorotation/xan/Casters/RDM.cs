@@ -47,8 +47,9 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
     public float VerstoneReady;
     public int Swordplay;
     public float ThornedFlourish;
+    public float GrandImpact;
+    public float Prefulgence;
 
-    public uint HighestMana => Math.Max(BlackMana, WhiteMana);
     public uint LowestMana => Math.Min(BlackMana, WhiteMana);
 
     public int NumAOETargets;
@@ -106,6 +107,8 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         VerstoneReady = StatusLeft(SID.VerstoneReady);
         Swordplay = StatusStacks(SID.MagickedSwordplay);
         ThornedFlourish = StatusLeft(SID.ThornedFlourish);
+        GrandImpact = StatusLeft(SID.GrandImpactReady);
+        Prefulgence = StatusLeft(SID.PrefulgenceReady);
 
         (BestAOETarget, NumAOETargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget);
@@ -144,6 +147,9 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (InCombo && strategy.Option(Track.Combo).As<ComboStrategy>() == ComboStrategy.Complete)
             return;
+
+        if (GrandImpact > GCD)
+            PushGCD(AID.GrandImpact, BestAOETarget);
 
         if (Acceleration > GCD)
         {
@@ -219,6 +225,9 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (ThornedFlourish > 0)
             PushOGCD(AID.ViceOfThorns, BestAOETarget);
+
+        if (Prefulgence > 0)
+            PushOGCD(AID.Prefulgence, BestAOETarget);
 
         if (RaidBuffsLeft > GCD && Acceleration == 0)
             PushOGCD(AID.Acceleration, Player);

@@ -96,6 +96,8 @@ public enum SID : uint
     Embolden = 1297,
     MagickedSwordplay = 3875,
     ThornedFlourish = 3876,
+    GrandImpactReady = 3877,
+    PrefulgenceReady = 3878
 }
 
 public sealed class Definitions : IDisposable

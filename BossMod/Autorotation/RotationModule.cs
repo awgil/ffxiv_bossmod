@@ -110,7 +110,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     protected Actor? ResolveTargetOverride(in StrategyValue strategy) => Manager.ResolveTargetOverride(strategy);
 
     // TODO: reconsider...
-    protected unsafe T GetGauge<T>() where T : unmanaged
+    public unsafe T GetGauge<T>() where T : unmanaged
     {
         T res = default;
         ((ulong*)&res)[1] = World.Client.GaugePayload.Low;

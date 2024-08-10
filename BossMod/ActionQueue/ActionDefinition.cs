@@ -40,6 +40,7 @@ public sealed record class ActionDefinition(ActionID ID)
     public delegate bool ConditionDelegate(WorldState ws, Actor player, Actor? target, AIHints hints);
     public delegate Actor? SmartTargetDelegate(WorldState ws, Actor player, Actor? target, AIHints hints);
     public delegate Angle? TransformAngleDelegate(WorldState ws, Actor player, Actor? target, AIHints hints);
+    public delegate Vector3? TransformPositionDelegate(BossModuleManager bmm, Actor player, Actor? target, AIHints hints);
 
     public BitMask AllowedClasses = new(~0ul);
     public int MinLevel;
@@ -59,6 +60,7 @@ public sealed record class ActionDefinition(ActionID ID)
     public ConditionDelegate? ForbidExecute; // optional condition, if it returns true, action is not executed
     public SmartTargetDelegate? SmartTarget; // optional target transformation for 'smart targeting' feature
     public TransformAngleDelegate? TransformAngle; // optional facing angle transformation
+    public TransformPositionDelegate? TransformPosition; // optional ground-targeted action position transformation
 
     // note: this does *not* include quest-locked overrides
     // the way game works is - when you use first charge, total is set to cd*max-at-cap, and elapsed is set to cd*(max-at-level - 1)

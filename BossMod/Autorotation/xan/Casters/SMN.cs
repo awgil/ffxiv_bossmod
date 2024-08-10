@@ -223,9 +223,9 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         if (primaryTarget == null)
             return;
 
-        if (World.Client.CountdownRemaining > 0)
+        if (CountdownRemaining > 0)
         {
-            if (World.Client.CountdownRemaining < 1.5)
+            if (CountdownRemaining <= GetSlidecastTime(AID.Ruin1))
                 PushGCD(AID.Ruin1, primaryTarget);
 
             return;
