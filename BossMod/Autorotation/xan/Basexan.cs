@@ -77,6 +77,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         }
     }
 
+    protected void PushOGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum
+        => PushOGCD(aid, target, (int)(object)priority, delay);
+
     protected void PushOGCD(AID aid, Actor? target, int priority = 0, float delay = 0)
         => PushAction(aid, target, ActionQueue.Priority.Low + 100 + priority, delay);
 
@@ -332,7 +335,13 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         if (primaryTarget?.OID != 0x2DE0)
             return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), Bossmods.RaidCooldowns.NextDamageBuffIn2());
 
-        return base.EstimateRaidBuffTimings(primaryTarget);
+        // hack for a dummy: expect that raidbuffs appear at 7.8s and then every 120s
+        var cycleTime = CombatTimer - 7.8f;
+        if (cycleTime < 0)
+            return (0, 7.8f - CombatTimer); // very beginning of a fight
+
+        cycleTime %= 120;
+        return cycleTime < 20 ? (20 - cycleTime, 0) : (0, 120 - cycleTime);
     }
 
     public abstract void Exec(StrategyValues strategy, Actor? primaryTarget);

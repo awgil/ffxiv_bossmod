@@ -118,6 +118,9 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
+        if (Swordplay > 0 || LowestMana >= 50 || InCombo)
+            Hints.RecommendedRangeToTarget = 3f;
+
         OGCD(strategy, primaryTarget);
 
         if (ComboLastMove is AID.Scorch)
