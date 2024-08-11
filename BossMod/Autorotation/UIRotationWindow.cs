@@ -39,7 +39,7 @@ public sealed class UIRotationWindow : UIWindow
             }
         }
 
-        foreach (var p in _mgr.Database.Presets.Presets.Where(p => p.Modules.Any(m => RotationModuleRegistry.Modules[m.Key].Definition.Classes[(int)player.Class])))
+        foreach (var p in _mgr.Database.Presets.PresetsForClass(player.Class))
         {
             ImGui.SameLine();
             using var col = ImRaii.PushColor(ImGuiCol.Button, 0xff008080, _mgr.Preset == p);

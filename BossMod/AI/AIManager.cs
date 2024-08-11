@@ -1,4 +1,3 @@
-using Dalamud.Game.Gui.Dtr;
 using BossMod.Autorotation;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -16,12 +15,12 @@ sealed class AIManager : IDisposable
     private readonly AIConfig _config;
     private int MasterSlot => (int)_config.FollowSlot; // non-zero means corresponding player is master
     private Positional DesiredPositional => _config.DesiredPositional;
-    private AIBehaviour? _beh;
     private Preset? _aiPreset;
     private readonly UISimpleWindow _ui;
-    private readonly IDtrBarEntry _dtrBarEntry = Service.DtrBar.Get("Bossmod");
     private WorldState WorldState => _autorot.Bossmods.WorldState;
-    public float ForceMovementIn => _beh?.ForceMovementIn ?? float.MaxValue;
+    public float ForceMovementIn => Behaviour?.ForceMovementIn ?? float.MaxValue;
+
+    public AIBehaviour? Behaviour { get; private set; }
 
     public AIManager(RotationModuleManager autorot, ActionManagerEx amex)
     {
@@ -37,33 +36,8 @@ sealed class AIManager : IDisposable
     {
         SwitchToIdle();
         _ui.Dispose();
-        _dtrBarEntry.Remove();
         Service.ChatGui.ChatMessage -= OnChatMessage;
         Service.CommandManager.RemoveHandler("/vbmai");
-    }
-
-    public void DtrUpdate(AIBehaviour? behaviour)
-    {
-        _dtrBarEntry.Shown = _config.ShowDTR;
-        if (_dtrBarEntry.Shown)
-        {
-            var status = behaviour != null ? "On" : "Off";
-            _dtrBarEntry.Text = "AI: " + status;
-            _dtrBarEntry.OnClick = () =>
-            {
-                if (behaviour != null)
-                    SwitchToIdle();
-                else
-                {
-                    if (!_config.Enabled)
-                    {
-                        _config.Enabled = true;
-                        _config.Modified.Fire();
-                    }
-                    SwitchToFollow((int)_config.FollowSlot);
-                }
-            };
-        }
     }
 
     public void Update()
@@ -71,14 +45,14 @@ sealed class AIManager : IDisposable
         if (!WorldState.Party.Members[MasterSlot].IsValid())
             SwitchToIdle();
 
-        if (!_config.Enabled && _beh != null)
+        if (!_config.Enabled && Behaviour != null)
             SwitchToIdle();
 
         var player = WorldState.Party.Player();
         var master = WorldState.Party[MasterSlot];
-        if (_beh != null && player != null && master != null)
+        if (Behaviour != null && player != null && master != null)
         {
-            _beh.Execute(player, master);
+            Behaviour.Execute(player, master);
         }
         else
         {
@@ -87,21 +61,19 @@ sealed class AIManager : IDisposable
         _controller.Update(player);
 
         _ui.IsOpen = _config.Enabled && player != null && _config.DrawUI;
-
-        DtrUpdate(_beh);
     }
 
     private void DrawOverlay()
     {
-        ImGui.TextUnformatted($"AI: {(_beh != null ? "on" : "off")}, master={WorldState.Party[MasterSlot]?.Name}");
+        ImGui.TextUnformatted($"AI: {(Behaviour != null ? "on" : "off")}, master={WorldState.Party[MasterSlot]?.Name}");
         ImGui.TextUnformatted($"Navi={_controller.NaviTargetPos} / {_controller.NaviTargetRot}{(_controller.ForceFacing ? " forced" : "")}");
-        _beh?.DrawDebug();
+        Behaviour?.DrawDebug();
 
-        using (var leaderCombo = ImRaii.Combo("Follow", _beh == null ? "<idle>" : (_config.FollowTarget ? "<target>" : WorldState.Party[MasterSlot]?.Name ?? "<unknown>")))
+        using (var leaderCombo = ImRaii.Combo("Follow", Behaviour == null ? "<idle>" : (_config.FollowTarget ? "<target>" : WorldState.Party[MasterSlot]?.Name ?? "<unknown>")))
         {
             if (leaderCombo)
             {
-                if (ImGui.Selectable("<idle>", _beh == null))
+                if (ImGui.Selectable("<idle>", Behaviour == null))
                 {
                     SwitchToIdle();
                 }
@@ -149,30 +121,30 @@ sealed class AIManager : IDisposable
                     if (ImGui.Selectable(p.Name, p == _aiPreset))
                     {
                         _aiPreset = p;
-                        if (_beh != null)
-                            _beh.AIPreset = p;
+                        if (Behaviour != null)
+                            Behaviour.AIPreset = p;
                     }
                 }
             }
         }
     }
 
-    private void SwitchToIdle()
+    public void SwitchToIdle()
     {
-        _beh?.Dispose();
-        _beh = null;
+        Behaviour?.Dispose();
+        Behaviour = null;
 
         _config.FollowSlot = PartyState.PlayerSlot;
         _config.Modified.Fire();
         _controller.Clear();
     }
 
-    private void SwitchToFollow(int masterSlot)
+    public void SwitchToFollow(int masterSlot)
     {
         SwitchToIdle();
         _config.FollowSlot = (AIConfig.Slot)masterSlot;
         _config.Modified.Fire();
-        _beh = new AIBehaviour(_controller, _autorot, _aiPreset);
+        Behaviour = new AIBehaviour(_controller, _autorot, _aiPreset);
     }
 
     private unsafe int FindPartyMemberSlotFromSender(SeString sender)
@@ -233,7 +205,7 @@ sealed class AIManager : IDisposable
                 SwitchToIdle();
                 break;
             case "toggle":
-                if (_beh == null)
+                if (Behaviour == null)
                     SwitchToFollow((int)_config.FollowSlot);
                 else
                     SwitchToIdle();

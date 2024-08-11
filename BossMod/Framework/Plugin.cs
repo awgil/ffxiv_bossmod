@@ -27,6 +27,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly AI.Broadcast _broadcast;
     private readonly IPCProvider _ipc;
     private TimeSpan _prevUpdateTime;
+    private readonly DTR _dtr;
 
     // windows
     private readonly ConfigUI _configUI; // TODO: should be a proper window!
@@ -81,6 +82,9 @@ public sealed class Plugin : IDalamudPlugin
         _ai = new(_rotation, _amex);
         _broadcast = new();
         _ipc = new(_rotation, _amex);
+        _dtr = new(_rotation, _ai);
+
+        Service.Framework.Update += OnUpdate;
 
         _configUI = new(Service.Config, _ws, _rotationDB);
         _wndBossmod = new(_bossmod);
@@ -97,6 +101,7 @@ public sealed class Plugin : IDalamudPlugin
     public void Dispose()
     {
         Service.Condition.ConditionChange -= OnConditionChanged;
+        Service.Framework.Update -= OnUpdate;
         _wndDebug.Dispose();
         _wndRotation.Dispose();
         _wndReplay.Dispose();
@@ -110,8 +115,14 @@ public sealed class Plugin : IDalamudPlugin
         _amex.Dispose();
         _hintsBuilder.Dispose();
         _bossmod.Dispose();
+        _dtr.Dispose();
         ActionDefinitions.Instance.Dispose();
         CommandManager.RemoveHandler("/vbm");
+    }
+
+    private void OnUpdate(IFramework fw)
+    {
+        _dtr.Update();
     }
 
     private void OnCommand(string cmd, string args)
