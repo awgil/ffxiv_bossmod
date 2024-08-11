@@ -147,6 +147,7 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
+        d.Spell(AID.Intervention)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
         //d.Spell(AID.LastBastion)!.EffectDuration = 8;
         //d.Spell(AID.FightOrFlight)!.EffectDuration = 20;
         //d.Spell(AID.Sheltron)!.EffectDuration = 4; // TODO: duration increases to 6...
