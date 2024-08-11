@@ -117,6 +117,12 @@ class Sweetheart(BossModule module) : Components.GenericAOEs(module)
         if ((OID)actor.OID == OID.Sweetheart && id == 0x11D3)
             _adds.Add(actor);
     }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.SweetheartTouch)
+            _adds.Remove(caster);
+    }
 }
 
 abstract class Heartsick(BossModule module, bool roles) : Components.StackWithIcon(module, (uint)IconID.Heartsick, ActionID.MakeSpell(AID.Heartsick), 6, 7, roles ? 2 : 4)

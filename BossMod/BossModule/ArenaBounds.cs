@@ -176,7 +176,7 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
     {
         var l = offset.Length();
         var dir = offset / l;
-        var t = Intersect.RayPolygon(default, offset, Poly);
+        var t = Intersect.RayPolygon(default, dir, Poly);
         return dir * Math.Min(t, l);
     }
 

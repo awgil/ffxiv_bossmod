@@ -1,7 +1,6 @@
 ﻿using System.Globalization;
 using System.IO;
 using System.IO.Compression;
-using System.Text;
 using System.Threading;
 
 namespace BossMod;
@@ -336,6 +335,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLDA"u8)] = ParseClientDutyActions,
             [new("CLBH"u8)] = ParseClientBozjaHolster,
             [new("CLAF"u8)] = ParseClientActiveFate,
+            [new("CLVL"u8)] = ParseClientClassJobLevels,
             [new("IPCI"u8)] = ParseNetworkIDScramble,
             [new("IPCS"u8)] = ParseNetworkServerIPC,
         };
@@ -644,6 +644,14 @@ public sealed class ReplayParserLog : IDisposable
     }
 
     private ClientState.OpActiveFateChange ParseClientActiveFate() => new(new(_input.ReadUInt(false), _input.ReadVec3(), _input.ReadFloat()));
+
+    private ClientState.OpClassJobLevelsChange ParseClientClassJobLevels()
+    {
+        var contents = new short[_input.ReadByte(false)];
+        for (int i = 0; i < contents.Length; i++)
+            contents[i] = _input.ReadShort();
+        return new(contents);
+    }
 
     private NetworkState.OpIDScramble ParseNetworkIDScramble() => new(_input.ReadUInt(false));
     private NetworkState.OpServerIPC ParseNetworkServerIPC() => new(new((Network.ServerIPC.PacketID)_input.ReadInt(), _input.ReadUShort(false), _input.ReadUInt(false), _input.ReadUInt(true), new(_input.ReadLong()), _input.ReadBytes()));

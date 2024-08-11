@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using System.Windows.Markup;
+
+namespace BossMod;
 
 public record struct ClientActionRequest
 (
@@ -38,6 +40,7 @@ public sealed class ClientState
     public record struct Stats(int SkillSpeed, int SpellSpeed, int Haste);
 
     public const int NumCooldownGroups = 82;
+    public const int NumClassLevels = 32; // see ClassJob.ExpArrayIndex
 
     public float? CountdownRemaining;
     public Angle CameraAzimuth; // updated every frame by the frame-start event
@@ -48,7 +51,14 @@ public sealed class ClientState
     public readonly Cooldown[] Cooldowns = new Cooldown[NumCooldownGroups];
     public readonly ActionID[] DutyActions = new ActionID[2];
     public readonly byte[] BozjaHolster = new byte[(int)BozjaHolsterID.Count]; // number of copies in holster per item
+    public readonly short[] ClassJobLevels = new short[NumClassLevels];
     public Fate ActiveFate;
+
+    public int ClassJobLevel(Class c)
+    {
+        var index = Service.LuminaRow<Lumina.Excel.GeneratedSheets.ClassJob>((uint)c)?.ExpArrayIndex ?? -1;
+        return index >= 0 && index < ClassJobLevels.Length ? ClassJobLevels[index] : -1;
+    }
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {
@@ -74,6 +84,9 @@ public sealed class ClientState
         var bozjaHolster = BozjaHolster.Select((v, i) => ((BozjaHolsterID)i, v)).Where(iv => iv.v > 0).ToList();
         if (BozjaHolster.Any(count => count != 0))
             yield return new OpBozjaHolsterChange(bozjaHolster);
+
+        if (ClassJobLevels.Any(a => a != 0))
+            yield return new OpClassJobLevelsChange(ClassJobLevels);
     }
 
     public void Tick(float dt)
@@ -237,5 +250,26 @@ public sealed class ClientState
             ws.Client.ActiveFateChanged.Fire(this);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLAF"u8).Emit(Value.ID).Emit(Value.Center).Emit(Value.Radius, "f3");
+    }
+
+    public Event<OpClassJobLevelsChange> ClassJobLevelsChanged = new();
+    public sealed record class OpClassJobLevelsChange(short[] Values) : WorldState.Operation
+    {
+        public readonly short[] Values = Values;
+
+        protected override void Exec(WorldState ws)
+        {
+            Array.Fill(ws.Client.ClassJobLevels, (short)0);
+            for (var i = 0; i < Values.Length; i++)
+                ws.Client.ClassJobLevels[i] = Values[i];
+            ws.Client.ClassJobLevelsChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("CLVL"u8);
+            output.Emit((byte)Values.Length);
+            foreach (var e in Values)
+                output.Emit(e);
+        }
     }
 }

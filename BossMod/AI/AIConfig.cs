@@ -11,11 +11,23 @@ sealed class AIConfig : ConfigNode
     [PropertyDisplay("Draw UI")]
     public bool DrawUI = true;
 
-    [PropertyDisplay("PreferedPositional")]
-    public Positional PreferedPositional = 0;
+    [PropertyDisplay("Show extra UI options")]
+    public bool ShowExtraUIOptions = true;
+
+    [PropertyDisplay("Show state in DTR Bar")]
+    public bool ShowDTR = true;
+
+    [PropertyDisplay($"Override positional")]
+    public bool OverridePositional = false;
+
+    [PropertyDisplay("Desired positional")]
+    public Positional DesiredPositional = 0;
 
     [PropertyDisplay($"Follow slot")]
     public Slot FollowSlot = 0;
+
+    [PropertyDisplay($"Override follow range")]
+    public bool OverrideRange = false;
 
     [PropertyDisplay($"Follow range")]
     public int FollowRange = 3;
@@ -23,17 +35,23 @@ sealed class AIConfig : ConfigNode
     [PropertyDisplay($"Follow target")]
     public bool FollowTarget = false;
 
-    [PropertyDisplay("Follow during active module")]
-    public bool FollowActiveBM = false;
+    [PropertyDisplay("Follow during active boss module")]
+    public bool FollowDuringActiveBossModule = false;
 
-    [PropertyDisplay("Follow in combat")]
-    public bool FollowInCombat = false;
+    [PropertyDisplay("Follow during combat")]
+    public bool FollowDuringCombat = false;
 
     [PropertyDisplay("Follow out of combat")]
-    public bool FollowOOC = true;
+    public bool FollowOutOfCombat = true;
+
+    [PropertyDisplay("Forbid movement")]
+    public bool ForbidMovement = false;
+
+    [PropertyDisplay("Forbid actions")]
+    public bool ForbidActions = false;
 
     [PropertyDisplay("Focus target master")]
-    public bool FocusTargetLeader = true;
+    public bool FocusTargetMaster = true;
 
     [PropertyDisplay("Broadcast keypresses to other windows")]
     public bool BroadcastToSlaves = false;

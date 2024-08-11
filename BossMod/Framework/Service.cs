@@ -20,6 +20,7 @@ public sealed class Service
     [PluginService] public static IFramework Framework { get; private set; }
     [PluginService] public static ITextureProvider Texture { get; private set; }
     [PluginService] public static ICommandManager CommandManager { get; private set; }
+    [PluginService] public static IDtrBar DtrBar { get; private set; }
     [PluginService] public static IDalamudPluginInterface PluginInterface { get; private set; }
     // TODO: get rid of stuff below in favour of CS
     [PluginService] public static IClientState ClientState { get; private set; }
@@ -33,6 +34,7 @@ public sealed class Service
     public static Action<string>? LogHandler;
     public static void Log(string msg) => LogHandler?.Invoke(msg);
 
+    public static object LuminaRSVLock = new(); // TODO: replace with System.Threading.Lock
     public static Lumina.GameData? LuminaGameData;
     public static Lumina.Excel.ExcelSheet<T>? LuminaSheet<T>() where T : Lumina.Excel.ExcelRow => LuminaGameData?.GetExcelSheet<T>(Lumina.Data.Language.English);
     public static T? LuminaRow<T>(uint row) where T : Lumina.Excel.ExcelRow => LuminaSheet<T>()?.GetRow(row);

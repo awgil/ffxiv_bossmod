@@ -22,8 +22,8 @@ public class Ex2ZoraalJa(WorldState ws, Actor primary) : BossModule(ws, primary,
     private static ArenaBoundsCustom BuildTwoPlatformsBounds(Angle orientation)
     {
         var dir = orientation.ToDirection();
-        var main = new PolygonClipper.Operand(CurveApprox.Rect(dir, 10, 10).Select(p => p - 15 * dir));
-        var side = new PolygonClipper.Operand(CurveApprox.Rect(dir, 10, 10).Select(p => p + 15 * dir));
+        var main = new PolygonClipper.Operand(CurveApprox.Rect(-15 * dir, dir, 10, 10));
+        var side = new PolygonClipper.Operand(CurveApprox.Rect(+15 * dir, dir, 10, 10));
         return new(20, NormalBounds.Clipper.Union(main, side));
     }
 }
