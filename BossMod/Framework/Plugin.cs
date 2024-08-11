@@ -82,7 +82,7 @@ public sealed class Plugin : IDalamudPlugin
         _ai = new(_rotation, _amex);
         _broadcast = new();
         _ipc = new(_rotation, _amex);
-        _dtr = new(_rotation);
+        _dtr = new(_rotation, _ai);
 
         Service.Framework.Update += OnUpdate;
 
