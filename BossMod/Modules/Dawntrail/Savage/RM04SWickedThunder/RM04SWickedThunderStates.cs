@@ -341,7 +341,7 @@ class RM04SWickedThunderStates : StateMachineBuilder
         ActorCastMulti(id + 0x40, _module.BossP2, [AID.WickedSpecialCenter, AID.WickedSpecialSides], 1.1f, 5, true)
             .ActivateOnEnter<WickedSpecialCenter>()
             .ActivateOnEnter<WickedSpecialSides>();
-        ComponentCondition<TwilightSabbath>(id + 0x50, 1, comp => comp.NumCasts > 2, "Cleaves 1 + Center/Sides")
+        ComponentCondition<TwilightSabbath>(id + 0x50, 1, comp => comp.NumCasts > 2, "Cleaves 2 + Center/Sides")
             .DeactivateOnExit<WickedSpecialCenter>() // resolves at the same time
             .DeactivateOnExit<WickedSpecialSides>()
             .DeactivateOnExit<TwilightSabbath>();
