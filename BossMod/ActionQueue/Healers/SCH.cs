@@ -5,42 +5,48 @@ public enum AID : uint
     None = 0,
     Sprint = ClassShared.AID.Sprint,
 
-    AngelFeathers = 4247, // LB3, 2.0s cast, range 0, AOE 50 circle, targets=self, castAnimLock=8.100
-    Ruin1 = 17869, // L1, 1.5s cast, GCD, range 25, single-target, targets=hostile, animLock=???
-    Bio1 = 17864, // L2, instant, GCD, range 25, single-target, targets=hostile, animLock=???
-    Physick = 190, // L4, 1.5s cast, GCD, range 30, single-target, targets=self/party/alliance/friendly
-    SummonEos = 17215, // L4, 1.5s cast, GCD, range 0, single-target, targets=self
-    WhisperingDawn = 16537, // L20, instant, 60.0s CD (group 13), range 0, single-target, targets=self
-    Bio2 = 17865, // L26, instant, GCD, range 25, single-target, targets=hostile
-    Adloquium = 185, // L30, 2.0s cast, GCD, range 30, single-target, targets=self/party/alliance/friendly
-    Succor = 186, // L35, 2.0s cast, GCD, range 0, AOE 15 circle, targets=self
-    Ruin2 = 17870, // L38, instant, GCD, range 25, single-target, targets=hostile
-    FeyIllumination = 16538, // L40, instant, 120.0s CD (group 21), range 0, single-target, targets=self
-    Aetherflow = 166, // L45, instant, 60.0s CD (group 12), range 0, single-target, targets=self
-    EnergyDrain = 167, // L45, instant, 1.0s CD (group 3), range 25, single-target, targets=hostile
-    Lustrate = 189, // L45, instant, 1.0s CD (group 0), range 30, single-target, targets=self/party/alliance/friendly
-    ArtOfWar1 = 16539, // L46, instant, GCD, range 0, AOE 5 circle, targets=self
-    SacredSoil = 188, // L50, instant, 30.0s CD (group 5), range 30, ???, targets=area
-    Indomitability = 3583, // L52, instant, 30.0s CD (group 6), range 0, AOE 15 circle, targets=self
-    Broil1 = 3584, // L54, 1.5s cast, GCD, range 25, single-target, targets=hostile, animLock=???
-    DeploymentTactics = 3585, // L56, instant, 120.0s CD (group 19), range 30, AOE 30 circle, targets=self/party
-    EmergencyTactics = 3586, // L58, instant, 15.0s CD (group 4), range 0, single-target, targets=self
-    Dissipation = 3587, // L60, instant, 180.0s CD (group 24), range 0, single-target, targets=self
-    Excogitation = 7434, // L62, instant, 45.0s CD (group 8), range 30, single-target, targets=self/party
-    Broil2 = 7435, // L64, 1.5s cast, GCD, range 25, single-target, targets=hostile
-    ChainStratagem = 7436, // L66, instant, 120.0s CD (group 20), range 25, single-target, targets=hostile
-    Aetherpact = 7437, // L70, instant, 3.0s CD (group 2), range 30, single-target, targets=self/party
-    DissolveUnion = 7869, // L70, instant, 1.0s CD (group 1), range 0, single-target, targets=self
-    Broil3 = 16541, // L72, 1.5s cast, GCD, range 25, single-target, targets=hostile, animLock=???
-    Biolysis = 16540, // L72, instant, GCD, range 25, single-target, targets=hostile
-    Recitation = 16542, // L74, instant, 90.0s CD (group 14), range 0, single-target, targets=self
-    FeyBlessing = 16543, // L76, instant, 60.0s CD (group 10), range 0, single-target, targets=self
-    Consolation = 16546, // L80, instant, 30.0s CD (group 9/70) (2? charges), range 0, single-target, targets=self
-    SummonSeraph = 16545, // L80, instant, 120.0s CD (group 22), range 0, single-target, targets=self
-    Broil4 = 25865, // L82, 1.5s cast, GCD, range 25, single-target, targets=hostile
-    ArtOfWar2 = 25866, // L82, instant, GCD, range 0, AOE 5 circle, targets=self
-    Protraction = 25867, // L86, instant, 60.0s CD (group 11), range 30, single-target, targets=self/party
-    Expedient = 25868, // L90, instant, 120.0s CD (group 23), range 0, AOE 30 circle, targets=self
+    AngelFeathers = 4247, // LB3, 2.0s cast, range 0, AOE 50 circle, targets=Self, animLock=8.100s?
+    Ruin1 = 17869, // L1, 1.5s cast, GCD, range 25, single-target, targets=Hostile
+    Bio1 = 17864, // L2, instant, GCD, range 25, single-target, targets=Hostile
+    Physick = 190, // L4, 1.5s cast, GCD, range 30, single-target, targets=Self/Party/Alliance/Friendly
+    SummonEos = 17215, // L4, 1.5s cast, GCD, range 0, single-target, targets=Self
+    WhisperingDawn = 16537, // L20, instant, 60.0s CD (group 14), range 0, single-target, targets=Self
+    Bio2 = 17865, // L26, instant, GCD, range 25, single-target, targets=Hostile
+    Adloquium = 185, // L30, 2.0s cast, GCD, range 30, single-target, targets=Self/Party/Alliance/Friendly
+    Succor = 186, // L35, 2.0s cast, GCD, range 0, AOE 15 circle, targets=Self
+    Ruin2 = 17870, // L38, instant, GCD, range 25, single-target, targets=Hostile
+    FeyIllumination = 16538, // L40, instant, 120.0s CD (group 21), range 0, single-target, targets=Self
+    Aetherflow = 166, // L45, instant, 60.0s CD (group 13), range 0, single-target, targets=Self
+    EnergyDrain = 167, // L45, instant, 1.0s CD (group 3), range 25, single-target, targets=Hostile
+    Lustrate = 189, // L45, instant, 1.0s CD (group 0), range 30, single-target, targets=Self/Party/Alliance/Friendly
+    ArtOfWar1 = 16539, // L46, instant, GCD, range 0, AOE 5 circle, targets=Self
+    SacredSoil = 188, // L50, instant, 30.0s CD (group 7), range 30, ???, targets=Area
+    Indomitability = 3583, // L52, instant, 30.0s CD (group 8), range 0, AOE 15 circle, targets=Self
+    Broil1 = 3584, // L54, 1.5s cast, GCD, range 25, single-target, targets=Hostile
+    DeploymentTactics = 3585, // L56, instant, 120.0s CD (group 19), range 30, AOE 30 circle, targets=Self/Party
+    EmergencyTactics = 3586, // L58, instant, 15.0s CD (group 6), range 0, single-target, targets=Self
+    Dissipation = 3587, // L60, instant, 180.0s CD (group 24), range 0, single-target, targets=Self
+    Excogitation = 7434, // L62, instant, 45.0s CD (group 9), range 30, single-target, targets=Self/Party
+    Broil2 = 7435, // L64, 1.5s cast, GCD, range 25, single-target, targets=Hostile
+    ChainStratagem = 7436, // L66, instant, 120.0s CD (group 20), range 25, single-target, targets=Hostile
+    DissolveUnion = 7869, // L70, instant, 1.0s CD (group 1), range 0, single-target, targets=Self
+    Aetherpact = 7437, // L70, instant, 3.0s CD (group 5), range 30, single-target, targets=Self/Party
+    Biolysis = 16540, // L72, instant, GCD, range 25, single-target, targets=Hostile
+    Broil3 = 16541, // L72, 1.5s cast, GCD, range 25, single-target, targets=Hostile
+    Recitation = 16542, // L74, instant, 90.0s CD (group 15), range 0, single-target, targets=Self
+    FeyBlessing = 16543, // L76, instant, 60.0s CD (group 11), range 0, single-target, targets=Self
+    SummonSeraph = 16545, // L80, instant, 120.0s CD (group 22), range 0, single-target, targets=Self
+    Consolation = 16546, // L80, instant, 30.0s CD (group 10/70) (2 charges), range 0, single-target, targets=Self
+    ArtOfWar2 = 25866, // L82, instant, GCD, range 0, AOE 5 circle, targets=Self
+    Broil4 = 25865, // L82, 1.5s cast, GCD, range 25, single-target, targets=Hostile
+    Protraction = 25867, // L86, instant, 60.0s CD (group 12), range 30, single-target, targets=Self/Party
+    Expedient = 25868, // L90, instant, 120.0s CD (group 18), range 0, AOE 30 circle, targets=Self
+    BanefulImpaction = 37012, // L92, instant, 1.0s CD (group 2), range 25, AOE 5 circle, targets=Hostile, animLock=???
+    Concitation = 37013, // L96, 2.0s cast, GCD, range 0, AOE 15 circle, targets=Self, animLock=???
+    Seraphism = 37014, // L100, instant, 180.0s CD (group 23), range 0, single-target, targets=Self, animLock=???
+    Manifestation = 37015, // L100, instant, GCD, range 30, single-target, targets=Self/Party/Alliance/Friendly, animLock=???
+    Accession = 37016, // L100, instant, GCD, range 0, AOE 15 circle, targets=Self, animLock=???
+    EmergencyTactics1 = 37037, // L100, instant, 1.0s CD (group 4), range 0, single-target, targets=Self, animLock=???
 
     // pet abilities (TODO: regenerate)
     PetEmbrace = 802, // L1, instant, 3.0s CD (group 76), range 30, single-target 0/0, targets=self/party/friendly, animLock=???
@@ -54,15 +60,15 @@ public enum AID : uint
     PetConsolation = 16547, // L80, instant, range 0, AOE circle 20/0, targets=self, animLock=???
 
     // Shared
-    HealingWind = ClassShared.AID.HealingWind, // LB1, 2.0s cast, range 0, AOE 50 circle, targets=self, castAnimLock=2.100
-    BreathOfTheEarth = ClassShared.AID.BreathOfTheEarth, // LB2, 2.0s cast, range 0, AOE 50 circle, targets=self, castAnimLock=5.130
-    Repose = ClassShared.AID.Repose, // L8, 2.5s cast, GCD, range 30, single-target, targets=hostile
-    Esuna = ClassShared.AID.Esuna, // L10, 1.0s cast, GCD, range 30, single-target, targets=self/party/alliance/friendly
-    Resurrection = ClassShared.AID.Resurrection, // L12, 8.0s cast, GCD, range 30, single-target, targets=party/alliance/friendly
-    LucidDreaming = ClassShared.AID.LucidDreaming, // L14, instant, 60.0s CD (group 45), range 0, single-target, targets=self
-    Swiftcast = ClassShared.AID.Swiftcast, // L18, instant, 60.0s CD (group 44), range 0, single-target, targets=self
-    Surecast = ClassShared.AID.Surecast, // L44, instant, 120.0s CD (group 48), range 0, single-target, targets=self
-    Rescue = ClassShared.AID.Rescue, // L48, instant, 120.0s CD (group 49), range 30, single-target, targets=party
+    HealingWind = ClassShared.AID.HealingWind, // LB1, 2.0s cast, range 0, AOE 50 circle, targets=Self, animLock=2.100s?
+    BreathOfTheEarth = ClassShared.AID.BreathOfTheEarth, // LB2, 2.0s cast, range 0, AOE 50 circle, targets=Self, animLock=5.130s?
+    Repose = ClassShared.AID.Repose, // L8, 2.5s cast, GCD, range 30, single-target, targets=Hostile
+    Esuna = ClassShared.AID.Esuna, // L10, 1.0s cast, GCD, range 30, single-target, targets=Self/Party/Alliance/Friendly
+    Resurrection = ClassShared.AID.Resurrection, // L12, 8.0s cast, GCD, range 30, single-target, targets=Party/Alliance/Friendly/Dead
+    LucidDreaming = ClassShared.AID.LucidDreaming, // L14, instant, 60.0s CD (group 44), range 0, single-target, targets=Self
+    Swiftcast = ClassShared.AID.Swiftcast, // L18, instant, 60.0s CD (group 43), range 0, single-target, targets=Self
+    Surecast = ClassShared.AID.Surecast, // L44, instant, 120.0s CD (group 48), range 0, single-target, targets=Self
+    Rescue = ClassShared.AID.Rescue, // L48, instant, 120.0s CD (group 49), range 30, single-target, targets=Party
 }
 
 public enum TraitID : uint
@@ -88,20 +94,22 @@ public enum SID : uint
     None = 0,
     Bio1 = 179, // applied by Bio1 to target, dot
     Bio2 = 189, // applied by Bio2 to target, dot
-    Biolysis = 0xFFFFFF, // TODO!
+    Biolysis = 1895,
     Galvanize = 297, // applied by Adloquium to target, shield
     LucidDreaming = 1204, // applied by Lucid Dreaming to self
     Swiftcast = 167, // applied by Swiftcast to self
     Sleep = 3, // applied by Repose to target
+    BanefulImpaction = 3883, // applied by Baneful Impaction to target
+    ImpactImminent = 3882, // applied by Chain Stratagem to self
 }
 
 public sealed class Definitions : IDisposable
 {
     public Definitions(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.AngelFeathers, castAnimLock: 8.10f); // castAnimLock=8.100
-        d.RegisterSpell(AID.Ruin1); // animLock=???
-        d.RegisterSpell(AID.Bio1); // animLock=???
+        d.RegisterSpell(AID.AngelFeathers, castAnimLock: 8.10f); // animLock=8.100s?
+        d.RegisterSpell(AID.Ruin1);
+        d.RegisterSpell(AID.Bio1);
         d.RegisterSpell(AID.Physick);
         d.RegisterSpell(AID.SummonEos);
         d.RegisterSpell(AID.WhisperingDawn);
@@ -116,25 +124,31 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.ArtOfWar1);
         d.RegisterSpell(AID.SacredSoil);
         d.RegisterSpell(AID.Indomitability);
-        d.RegisterSpell(AID.Broil1); // animLock=???
+        d.RegisterSpell(AID.Broil1);
         d.RegisterSpell(AID.DeploymentTactics);
         d.RegisterSpell(AID.EmergencyTactics);
         d.RegisterSpell(AID.Dissipation);
         d.RegisterSpell(AID.Excogitation);
         d.RegisterSpell(AID.Broil2);
         d.RegisterSpell(AID.ChainStratagem);
-        d.RegisterSpell(AID.Aetherpact);
         d.RegisterSpell(AID.DissolveUnion);
-        d.RegisterSpell(AID.Broil3); // animLock=???
+        d.RegisterSpell(AID.Aetherpact);
         d.RegisterSpell(AID.Biolysis);
+        d.RegisterSpell(AID.Broil3);
         d.RegisterSpell(AID.Recitation);
         d.RegisterSpell(AID.FeyBlessing);
-        d.RegisterSpell(AID.Consolation);
         d.RegisterSpell(AID.SummonSeraph);
-        d.RegisterSpell(AID.Broil4);
+        d.RegisterSpell(AID.Consolation);
         d.RegisterSpell(AID.ArtOfWar2);
+        d.RegisterSpell(AID.Broil4);
         d.RegisterSpell(AID.Protraction);
         d.RegisterSpell(AID.Expedient);
+        d.RegisterSpell(AID.BanefulImpaction); // animLock=???
+        d.RegisterSpell(AID.Concitation); // animLock=???
+        d.RegisterSpell(AID.Seraphism); // animLock=???
+        d.RegisterSpell(AID.Manifestation); // animLock=???
+        d.RegisterSpell(AID.Accession); // animLock=???
+        d.RegisterSpell(AID.EmergencyTactics1); // animLock=???
 
         Customize(d);
     }

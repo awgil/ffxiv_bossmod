@@ -82,6 +82,8 @@ public enum SID : uint
     Grit = 743,
     SaltedEarth = 749,
     Delirium = 1972,
+    EnhancedDelirium = 3836,
+    Scorn = 3837,
 }
 
 public sealed class Definitions : IDisposable
