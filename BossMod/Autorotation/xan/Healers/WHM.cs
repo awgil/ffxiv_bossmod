@@ -56,7 +56,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
         (BestMiseryTarget, NumMiseryTargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
         (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, DotLeft, 2);
 
-        NumSolaceTargets = World.Party.WithoutSlot().Count(x => Player.DistanceToHitbox(x) <= 20);
+        NumSolaceTargets = World.Party.WithoutSlot(partyOnly: true).Count(x => Player.DistanceToHitbox(x) <= 20);
 
         if (CountdownRemaining > 0)
         {
@@ -89,10 +89,10 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
         // TODO make a track for this
         if (Lily == 3 || !CanFitGCD(NextLily, 2) && Lily == 2)
         {
-            if (World.Party.WithoutSlot().Average(PredictedHPRatio) < 0.8 && NumSolaceTargets == World.Party.WithoutSlot().Count())
+            if (World.Party.WithoutSlot(partyOnly: true).Average(PredictedHPRatio) < 0.8 && NumSolaceTargets == World.Party.WithoutSlot(partyOnly: true).Count())
                 PushGCD(AID.AfflatusRapture, Player, 1);
 
-            PushGCD(AID.AfflatusSolace, World.Party.WithoutSlot().MinBy(PredictedHPRatio), 1);
+            PushGCD(AID.AfflatusSolace, World.Party.WithoutSlot(partyOnly: true).MinBy(PredictedHPRatio), 1);
         }
 
         if (SacredSight > 0)
