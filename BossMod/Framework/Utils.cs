@@ -104,6 +104,14 @@ public static partial class Utils
         return value;
     }
 
+    public static T MaxAll<T>(T first, params T[] rest) where T : IComparable
+    {
+        foreach (var v in rest)
+            if (v.CompareTo(first) > 0)
+                first = v;
+        return first;
+    }
+
     // add value to the list, if it is not null
     public static bool AddIfNonNull<T>(this List<T> list, T? value)
     {

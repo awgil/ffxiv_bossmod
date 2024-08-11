@@ -36,6 +36,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
     public int NumPneumaTargets;
 
     public int NumNearbyDotTargets;
+    public float TargetDotLeft;
 
     private Actor? BestPhlegmaTarget; // 6y/5y
     private Actor? BestRangedAOETarget; // 25y/5y toxikon, psyche
@@ -71,33 +72,14 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
                 break;
             }
             NumAOETargets++;
-            if (!HaveDot(t.Actor))
+            if (DotDuration(t.Actor) < 3)
                 NumNearbyDotTargets++;
         }
 
         NumAOETargets = AdjustNumTargets(strategy, NumAOETargets);
         NumNearbyDotTargets = AdjustNumTargets(strategy, NumNearbyDotTargets);
 
-        if (strategy.Targeting() is Targeting.Auto or Targeting.AutoTryPri)
-        {
-            var numTargets = 0;
-            BestDotTarget = null;
-            foreach (var possibleTarget in Hints.PriorityTargets.Where(x => x.Actor.DistanceToHitbox(Player) <= 25))
-            {
-                if (++numTargets > 2)
-                {
-                    BestDotTarget = null;
-                    break;
-                }
-
-                if (!HaveDot(possibleTarget.Actor))
-                    BestDotTarget = possibleTarget.Actor;
-            }
-        }
-        else
-        {
-            BestDotTarget = primaryTarget == null || HaveDot(primaryTarget) ? null : primaryTarget;
-        }
+        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, DotDuration, 2);
 
         DoGCD(strategy, primaryTarget);
         DoOGCD(strategy, primaryTarget);
@@ -124,7 +106,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
 
                 PushGCD(AID.Dyskrasia, Player);
             }
-            else if (BestDotTarget != null)
+            else if (!CanFitGCD(TargetDotLeft, 1))
             {
                 if (!Eukrasia)
                     PushGCD(AID.Eukrasia, Player);
@@ -168,11 +150,11 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
 
         if ((Gall == 3 || Gall == 2 && NextGall < 2.5f) && Player.HPMP.CurMP <= 9000 && strategy.Option(Track.Druo).As<DruoStrategy>() == DruoStrategy.Auto)
         {
-            var healTarget = World.Party.WithoutSlot().MinBy(x => x.HPMP.CurHP / x.HPMP.MaxHP);
+            var healTarget = World.Party.WithoutSlot(partyOnly: true).MinBy(x => x.HPMP.CurHP / x.HPMP.MaxHP);
             PushOGCD(AID.Druochole, healTarget);
         }
 
-        if (Player.HPMP.CurMP <= 7000)
+        if (MP <= 7000)
             PushOGCD(AID.LucidDreaming, Player);
 
         if (NumRangedAOETargets > 0)
@@ -181,18 +163,24 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
 
     static readonly SID[] DotStatus = [SID.EukrasianDosis, SID.EukrasianDosisII, SID.EukrasianDosisIII, SID.EukrasianDyskrasia];
 
-    private bool HaveDot(Actor x)
+    private float DotDuration(Actor? x)
     {
-        foreach (var stat in DotStatus)
-            if (StatusDetails(x, (uint)stat, Player.InstanceID).Left > 3)
-                return true;
+        if (x == null)
+            return float.MaxValue;
 
-        return false;
+        foreach (var stat in DotStatus)
+        {
+            var dur = StatusDetails(x, (uint)stat, Player.InstanceID).Left;
+            if (dur > 0)
+                return dur;
+        }
+
+        return 0;
     }
 
     private Actor? FindKardiaTarget()
     {
-        var party = World.Party.WithoutSlot();
+        var party = World.Party.WithoutSlot(partyOnly: true);
         var total = 0;
         var tanks = 0;
         Actor? tank = null;

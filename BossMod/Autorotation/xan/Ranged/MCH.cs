@@ -84,9 +84,9 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         if (IsPausedForFlamethrower)
             return;
 
-        if (World.Client.CountdownRemaining > 0)
+        if (CountdownRemaining > 0)
         {
-            if (World.Client.CountdownRemaining < 0.4f)
+            if (CountdownRemaining < 0.4)
                 PushGCD(AID.AirAnchor, primaryTarget);
 
             return;
@@ -110,14 +110,14 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             PushGCD(AID.Excavator, BestRangedAOETarget);
 
         if (Unlocked(AID.AirAnchor))
-            PushGCD(AID.AirAnchor, primaryTarget, 20);
+            PushGCD(AID.AirAnchor, primaryTarget, priority: 20);
 
         PushGCD(AID.ChainSaw, BestChainsawTarget, 10);
 
         if (NumAOETargets > 2)
             PushGCD(AID.Bioblaster, BestAOETarget);
 
-        PushGCD(AID.Drill, primaryTarget, CD(AID.Drill) <= GCD ? 20 : 0);
+        PushGCD(AID.Drill, primaryTarget, priority: CD(AID.Drill) <= GCD ? 20 : 0);
 
         // TODO work out priorities
         if (FMFLeft > GCD && ExcavatorLeft == 0)
@@ -147,7 +147,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
     private void OGCD(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (World.Client.CountdownRemaining is > 0 and < 5 && ReassembleLeft == 0)
+        if (CountdownRemaining is > 0 and < 5 && ReassembleLeft == 0)
             PushOGCD(AID.Reassemble, Player);
 
         if (IsPausedForFlamethrower || !Player.InCombat || primaryTarget == null)

@@ -45,7 +45,7 @@ public abstract class GenericUtility(RotationModuleManager manager, Actor player
         // note: while we could arguably delay that until right after next gcd, it's too risky, let the user deal with it by planning carefully...
         if (option == LBOption.None)
             return 0;
-        var curLevel = World.Party.LimitBreakMax > 0 ? World.Party.LimitBreakCur / World.Party.LimitBreakMax : 0;
+        var curLevel = World.Party.LimitBreakLevel;
         return option switch
         {
             LBOption.LB3 => curLevel == 3,

@@ -2,10 +2,13 @@
 
 namespace BossMod.Autorotation.xan;
 
-public abstract class AIBase(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
+public abstract class AIBase(RotationModuleManager manager, Actor player) : Targetxan(manager, player)
 {
     internal bool Unlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
-    internal float Cooldown<AID>(AID aid) where AID : Enum => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
+    internal float NextChargeIn<AID>(AID aid) where AID : Enum => NextChargeIn(ActionID.MakeSpell(aid));
+    internal float NextChargeIn(ActionID action) => ActionDefinitions.Instance[action]!.ReadyIn(World.Client.Cooldowns);
+
+    internal static ActionID Spell<AID>(AID aid) where AID : Enum => ActionID.MakeSpell(aid);
 
     internal bool ShouldInterrupt(Actor act) => IsCastReactable(act) && act.CastInfo!.Interruptible;
     internal bool ShouldStun(Actor act) => IsCastReactable(act) && !act.CastInfo!.Interruptible && !IsBossFromIcon(act.OID);
@@ -23,7 +26,28 @@ public abstract class AIBase(RotationModuleManager manager, Actor player) : Rota
 
     internal IEnumerable<AIHints.Enemy> EnemiesAutoingMe => Hints.PriorityTargets.Where(x => x.Actor.CastInfo == null && x.Actor.TargetID == Player.InstanceID && Player.DistanceToHitbox(x.Actor) <= 6);
 
-    internal float HPRatio => (float)Player.HPMP.CurHP / Player.HPMP.MaxHP;
+    internal float HPRatio(Actor actor) => (float)actor.HPMP.CurHP / Player.HPMP.MaxHP;
+    internal float HPRatio() => HPRatio(Player);
+
+    internal uint PredictedHP(Actor actor) => (uint)Math.Clamp(actor.HPMP.CurHP + World.PendingEffects.PendingHPDifference(actor.InstanceID), 0, actor.HPMP.MaxHP);
+    internal float PredictedHPRatio(Actor actor) => (float)PredictedHP(actor) / actor.HPMP.MaxHP;
+
+    internal IEnumerable<DateTime> Raidwides => Hints.PredictedDamage.Where(d => World.Party.WithSlot(partyOnly: true).IncludedInMask(d.players).Count() >= 2).Select(t => t.activation);
+    internal IEnumerable<(Actor, DateTime)> Tankbusters
+    {
+        get
+        {
+            foreach (var d in Hints.PredictedDamage)
+            {
+                var targets = World.Party.WithSlot(partyOnly: true).IncludedInMask(d.players).GetEnumerator();
+                var target1 = targets.Current;
+                if (targets.MoveNext())
+                    continue;
+
+                yield return (target1.Item2, d.activation);
+            }
+        }
+    }
 }
 
 public enum AbilityUse

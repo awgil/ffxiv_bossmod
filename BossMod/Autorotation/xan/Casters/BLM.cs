@@ -78,7 +78,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         Firestarter = StatusLeft(SID.Firestarter);
         InLeyLines = Player.FindStatus(SID.CircleOfPower) != null;
 
-        TargetThunderLeft = MaxAll(
+        TargetThunderLeft = Utils.MaxAll(
             StatusDetails(primaryTarget, SID.Thunder, Player.InstanceID, 24).Left,
             StatusDetails(primaryTarget, SID.ThunderII, Player.InstanceID, 18).Left,
             StatusDetails(primaryTarget, SID.ThunderIII, Player.InstanceID, 27).Left,
@@ -89,9 +89,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         (BestAOETarget, NumAOETargets) = SelectTargetByHP(strategy, primaryTarget, 25, IsSplashTarget);
 
-        if (World.Client.CountdownRemaining > 0)
+        if (CountdownRemaining > 0)
         {
-            if (World.Client.CountdownRemaining < GetCastTime(AID.Fire3))
+            if (CountdownRemaining < GetCastTime(AID.Fire3))
                 PushGCD(AID.Fire3, primaryTarget);
 
             return;
@@ -102,7 +102,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             if (Fire > 0 && Unlocked(AID.Transpose) && Unlocked(AID.UmbralSoul) && CD(AID.Transpose) == 0)
                 PushOGCD(AID.Transpose, Player);
 
-            if (Unlocked(AID.UmbralSoul) && Ice > 0 && (Ice < 3 || Hearts < MaxHearts || ElementLeft < 3))
+            if (Unlocked(AID.UmbralSoul) && Ice > 0 && (Ice < 3 || Hearts < MaxHearts || ElementLeft < 14))
                 PushGCD(AID.UmbralSoul, Player);
 
             return;
@@ -130,7 +130,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             FirePhase(strategy, primaryTarget);
         else if (Ice > 0)
             IcePhase(strategy, primaryTarget);
-        else if (!Player.InCombat && MP >= 9600)
+        else if (MP >= 9600)
             FirePhase(strategy, primaryTarget);
         else
             IcePhase(strategy, primaryTarget);
@@ -146,8 +146,13 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void FirePhase(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (NumAOETargets > 2 && Unlocked(AID.Flare))
-            FirePhaseAOE(strategy);
+        if (NumAOETargets > 2)
+        {
+            if (Unlocked(TraitID.UmbralHeart))
+                FirePhaseAOE(strategy);
+            else
+                FireAOELowLevel(strategy, primaryTarget);
+        }
         else
             FirePhaseST(strategy, primaryTarget);
     }
@@ -209,14 +214,23 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             // TODO this will skip free F3 to switch to UI (so we can transpose F3 for next fire phase)
             // 1. is this a DPS gain 2. does anyone actually care about level 50
             if (MP < 1600)
-                PushGCD(AID.Blizzard3, primaryTarget);
+            {
+                // F3 unlocks from leveling but B3 unlocks from a job quest (CRINGE)
+                if (Unlocked(AID.Blizzard3))
+                    PushGCD(AID.Blizzard3, primaryTarget);
+
+                TryInstantOrTranspose(strategy, primaryTarget);
+            }
 
             PushGCD(Firestarter > GCD ? AID.Fire3 : AID.Fire1, primaryTarget);
         }
         else if (MP >= 1600)
             PushGCD(AID.Fire1, primaryTarget);
         else
+        {
+            TryInstantOrTranspose(strategy, primaryTarget);
             PushGCD(AID.Blizzard1, primaryTarget);
+        }
     }
 
     private void FirePhaseAOE(StrategyValues strategy)
@@ -236,51 +250,105 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         }
 
         TryInstantCast(strategy, BestAOETarget);
+    }
 
-        PushGCD(AID.Fire2, BestAOETarget);
+    private void FireAOELowLevel(StrategyValues strategy, Actor? primaryTarget)
+    {
+        if (Thunderhead > GCD && TargetThunderLeft < 5)
+        {
+            PushGCD(AID.Thunder2, BestAOETarget);
+            PushGCD(AID.Thunder1, primaryTarget);
+        }
+
+        if (MP >= 3000)
+            PushGCD(AID.Fire2, BestAOETarget);
+        else if (MP >= 800)
+            PushGCD(AID.Flare, BestAOETarget);
+        else
+        {
+            if (!Unlocked(TraitID.AspectMastery3))
+                TryInstantOrTranspose(strategy, primaryTarget);
+
+            PushGCD(AID.Blizzard2, BestAOETarget);
+        }
     }
 
     private void IcePhase(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (NumAOETargets > 2 && Unlocked(AID.Blizzard2))
-            IcePhaseAOE(strategy, primaryTarget);
+        if (NumAOETargets > 2)
+        {
+            if (Unlocked(TraitID.UmbralHeart))
+                IcePhaseAOE(strategy, primaryTarget);
+            else
+                IceAOELowLevel(strategy, primaryTarget);
+        }
         else
             IcePhaseST(strategy, primaryTarget);
     }
 
-    private void IcePhaseAOE(StrategyValues strategy, Actor? primaryTarget)
-    {
-        if (Ice == 0)
-            PushGCD(AID.Fire2, BestAOETarget);
-        else if (Hearts < MaxHearts && Unlocked(AID.Freeze))
-            PushGCD(AID.Freeze, BestAOETarget);
-
-        TryInstantCast(strategy, primaryTarget);
-    }
-
     private void IcePhaseST(StrategyValues strategy, Actor? primaryTarget)
     {
+        if (Thunderhead > GCD && TargetThunderLeft < 5 && ElementLeft > GCDLength + AnimationLockDelay)
+            PushGCD(AID.Thunder1, primaryTarget);
+
         if (Ice < 3 && Unlocked(AID.Blizzard3))
             PushGCD(AID.Blizzard3, primaryTarget);
 
-        if (MP == 10000 && Unlocked(AID.Fire3))
+        if (MP >= 10000 && Unlocked(AID.Fire3))
         {
             var nextGCD = GCD + GCDLength;
 
-            if (ElementLeft > nextGCD && Firestarter > nextGCD && CanWeave(AID.Transpose, 1) && SwiftcastLeft == 0 && Triplecast == 0 && MP == 10000)
+            if (ElementLeft > nextGCD && Firestarter > nextGCD && CanWeave(AID.Transpose, 1) && SwiftcastLeft == 0 && Triplecast == 0)
                 TryInstantCast(strategy, primaryTarget, useFirestarter: false);
 
             PushGCD(AID.Fire3, primaryTarget);
         }
         else if (Unlocked(AID.Blizzard4))
             PushGCD(AID.Blizzard4, primaryTarget);
-        else if (Unlocked(AID.Freeze) && NumAOETargets > 0)
-            PushGCD(AID.Freeze, primaryTarget);
-        else if (MP == 10000)
+        else if (MP >= 10000)
+        {
+            TryInstantOrTranspose(strategy, primaryTarget);
             PushGCD(AID.Fire1, primaryTarget);
+        }
         else
             PushGCD(AID.Blizzard1, primaryTarget);
 
+    }
+
+    private void IcePhaseAOE(StrategyValues strategy, Actor? primaryTarget)
+    {
+        if (Ice == 0)
+        {
+            if (MP >= 9600)
+                PushGCD(AID.Fire2, BestAOETarget);
+
+            PushGCD(AID.Blizzard2, BestAOETarget);
+        }
+        else if (Hearts < MaxHearts)
+            PushGCD(AID.Freeze, BestAOETarget);
+
+        TryInstantCast(strategy, primaryTarget);
+    }
+
+    private void IceAOELowLevel(StrategyValues strategy, Actor? primaryTarget)
+    {
+        if (Thunderhead > GCD && TargetThunderLeft < 5)
+        {
+            PushGCD(AID.Thunder2, BestAOETarget);
+            PushGCD(AID.Thunder1, primaryTarget);
+        }
+
+        if (MP >= 9600)
+        {
+            if (!Unlocked(TraitID.AspectMastery3))
+                TryInstantOrTranspose(strategy, primaryTarget);
+
+            PushGCD(AID.Fire2, BestAOETarget);
+        }
+        else if (Ice == 3)
+            PushGCD(AID.Freeze, BestAOETarget);
+        else
+            PushGCD(AID.Blizzard2, BestAOETarget);
     }
 
     private void Choose(AID st, AID aoe, Actor? primaryTarget, int additionalPrio = 0)
@@ -308,6 +376,18 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Fire3, primaryTarget);
     }
 
+    private void TryInstantOrTranspose(StrategyValues strategy, Actor? primaryTarget, bool useThunderhead = true)
+    {
+        if (useThunderhead && Thunderhead > GCD)
+            Choose(AID.Thunder1, AID.Thunder2, primaryTarget);
+
+        if (Fire > 0 && MP < 1600)
+            PushGCD(AID.Manafont, Player);
+
+        if (Element != 0)
+            PushGCD(AID.Transpose, Player);
+    }
+
     private bool ShouldTriplecast(StrategyValues strategy) => Triplecast == 0 && (ShouldUseLeylines(strategy) || InLeyLines);
 
     private bool ShouldUseLeylines(StrategyValues strategy, int extraGCDs = 0)
@@ -317,17 +397,12 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private bool ShouldTranspose(StrategyValues strategy)
     {
+        if (!Unlocked(AID.Fire3))
+            return Fire > 0 && MP < 1600 || Ice > 0 && MP > 9000;
+
         if (NumAOETargets > 2)
             return Fire > 0 && MP < 800 || Ice > 0 && Hearts > 0 && MP >= 2400;
         else
             return Firestarter > GCD && Ice > 0 && Hearts == MaxHearts;
-    }
-
-    private float MaxAll(float first, params float[] rest)
-    {
-        foreach (var f in rest)
-            first = MathF.Max(f, first);
-
-        return first;
     }
 }

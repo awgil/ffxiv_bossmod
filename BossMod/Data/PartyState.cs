@@ -1,6 +1,4 @@
-﻿using System.Collections.ObjectModel;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // state of the party/alliance/trust that player is part of; part of the world state structure
 // solo player is considered to be in party of size 1
@@ -32,6 +30,8 @@ public sealed class PartyState
     public int LimitBreakCur;
     public int LimitBreakMax = 10000;
 
+    public int LimitBreakLevel => LimitBreakMax > 0 ? LimitBreakCur / LimitBreakMax : 0;
+
     public PartyState(ActorState actorState)
     {
         void assign(ulong instanceID, Actor? actor)
@@ -45,9 +45,9 @@ public sealed class PartyState
     }
 
     // select non-null and optionally alive raid members
-    public IEnumerable<Actor> WithoutSlot(bool includeDead = false)
+    public IEnumerable<Actor> WithoutSlot(bool includeDead = false, bool partyOnly = false)
     {
-        for (int i = 0; i < _actors.Length; ++i)
+        for (int i = 0, size = partyOnly ? MaxPartySize : MaxAllianceSize; i < size; ++i)
         {
             var player = _actors[i];
             if (player == null)
@@ -58,9 +58,9 @@ public sealed class PartyState
         }
     }
 
-    public IEnumerable<(int, Actor)> WithSlot(bool includeDead = false)
+    public IEnumerable<(int, Actor)> WithSlot(bool includeDead = false, bool partyOnly = false)
     {
-        for (int i = 0; i < _actors.Length; ++i)
+        for (int i = 0, size = partyOnly ? MaxPartySize : MaxAllianceSize; i < size; ++i)
         {
             var player = _actors[i];
             if (player == null)

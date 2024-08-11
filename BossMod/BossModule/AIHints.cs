@@ -47,6 +47,9 @@ public sealed class AIHints
     // positioning: next positional hint (TODO: reconsider, maybe it should be a list prioritized by in-gcds, and imminent should be in-gcds instead? or maybe it should be property of an enemy? do we need correct?)
     public (Actor? Target, Positional Pos, bool Imminent, bool Correct) RecommendedPositional;
 
+    // positioning: recommended range to target (TODO: reconsider?)
+    public float RecommendedRangeToTarget;
+
     // orientation restrictions (e.g. for gaze attacks): a list of forbidden orientation ranges, now or in near future
     // AI will rotate to face allowed orientation at last possible moment, potentially losing uptime
     public List<(Angle center, Angle halfWidth, DateTime activation)> ForbiddenDirections = [];
@@ -70,6 +73,7 @@ public sealed class AIHints
         ForcedTarget = null;
         ForbiddenZones.Clear();
         RecommendedPositional = default;
+        RecommendedRangeToTarget = 0;
         ForbiddenDirections.Clear();
         PredictedDamage.Clear();
         ActionsToExecute.Clear();
