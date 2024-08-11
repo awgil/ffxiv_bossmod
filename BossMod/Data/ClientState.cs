@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using System.Windows.Markup;
+
+namespace BossMod;
 
 public record struct ClientActionRequest
 (
@@ -38,6 +40,7 @@ public sealed class ClientState
     public record struct Stats(int SkillSpeed, int SpellSpeed, int Haste);
 
     public const int NumCooldownGroups = 82;
+    public const int NumClassLevels = 32; // see ClassJob.ExpArrayIndex
 
     public float? CountdownRemaining;
     public Angle CameraAzimuth; // updated every frame by the frame-start event
@@ -48,8 +51,14 @@ public sealed class ClientState
     public readonly Cooldown[] Cooldowns = new Cooldown[NumCooldownGroups];
     public readonly ActionID[] DutyActions = new ActionID[2];
     public readonly byte[] BozjaHolster = new byte[(int)BozjaHolsterID.Count]; // number of copies in holster per item
-    public readonly short[] ClassJobLevels = new short[32];
+    public readonly short[] ClassJobLevels = new short[NumClassLevels];
     public Fate ActiveFate;
+
+    public int ClassJobLevel(Class c)
+    {
+        var index = Service.LuminaRow<Lumina.Excel.GeneratedSheets.ClassJob>((uint)c)?.ExpArrayIndex ?? -1;
+        return index >= 0 && index < ClassJobLevels.Length ? ClassJobLevels[index] : -1;
+    }
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {
@@ -244,29 +253,23 @@ public sealed class ClientState
     }
 
     public Event<OpClassJobLevelsChange> ClassJobLevelsChanged = new();
-    public sealed record class OpClassJobLevelsChange(short[] Value) : WorldState.Operation
+    public sealed record class OpClassJobLevelsChange(short[] Values) : WorldState.Operation
     {
+        public readonly short[] Values = Values;
+
         protected override void Exec(WorldState ws)
         {
-            Array.Fill(ws.Client.ClassJobLevels, (byte)0);
-            for (var i = 0; i < Value.Length; i++)
-                ws.Client.ClassJobLevels[i] = Value[i];
+            Array.Fill(ws.Client.ClassJobLevels, (short)0);
+            for (var i = 0; i < Values.Length; i++)
+                ws.Client.ClassJobLevels[i] = Values[i];
             ws.Client.ClassJobLevelsChanged.Fire(this);
         }
         public override void Write(ReplayRecorder.Output output)
         {
             output.EmitFourCC("CLVL"u8);
-            output.Emit((byte)Value.Length);
-            foreach (var e in Value)
+            output.Emit((byte)Values.Length);
+            foreach (var e in Values)
                 output.Emit(e);
         }
-    }
-
-    public short ClassJobLevel(Class c)
-    {
-        var row = Service.LuminaRow<Lumina.Excel.GeneratedSheets.ClassJob>((uint)c);
-        if (row == null || row.ExpArrayIndex < 0)
-            return -1;
-        return ClassJobLevels[row.ExpArrayIndex];
     }
 }

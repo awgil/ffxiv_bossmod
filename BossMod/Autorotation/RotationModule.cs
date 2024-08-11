@@ -93,6 +93,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
     public virtual string DescribeState() => "";
 
+    // utility to check action/trait unlocks
     public bool ActionUnlocked(ActionID action) => ActionDefinitions.Instance[action]?.IsUnlocked(World, Player) ?? false;
 
     public bool TraitUnlocked(uint id)

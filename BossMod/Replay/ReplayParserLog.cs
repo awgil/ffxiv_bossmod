@@ -647,11 +647,10 @@ public sealed class ReplayParserLog : IDisposable
 
     private ClientState.OpClassJobLevelsChange ParseClientClassJobLevels()
     {
-        List<short> contents = [];
-        contents.Capacity = _input.ReadByte(false);
-        for (int i = 0; i < contents.Capacity; i++)
-            contents.Add(_input.ReadShort());
-        return new([.. contents]);
+        var contents = new short[_input.ReadByte(false)];
+        for (int i = 0; i < contents.Length; i++)
+            contents[i] = _input.ReadShort();
+        return new(contents);
     }
 
     private NetworkState.OpIDScramble ParseNetworkIDScramble() => new(_input.ReadUInt(false));
