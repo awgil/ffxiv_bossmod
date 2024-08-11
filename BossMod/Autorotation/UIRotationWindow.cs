@@ -31,23 +31,7 @@ public sealed class UIRotationWindow : UIWindow
         if (player == null)
             return;
 
-        using (ImRaii.PushColor(ImGuiCol.Button, 0xff000080, _mgr.Preset == RotationModuleManager.ForceDisable))
-        {
-            if (ImGui.Button("X"))
-            {
-                _mgr.Preset = _mgr.Preset == RotationModuleManager.ForceDisable ? null : RotationModuleManager.ForceDisable;
-            }
-        }
-
-        foreach (var p in _mgr.Database.Presets.PresetsForClass(player.Class))
-        {
-            ImGui.SameLine();
-            using var col = ImRaii.PushColor(ImGuiCol.Button, 0xff008080, _mgr.Preset == p);
-            if (ImGui.Button(p.Name))
-            {
-                _mgr.Preset = _mgr.Preset == p ? null : p;
-            }
-        }
+        DrawRotationSelector(_mgr);
 
         var activeModule = _mgr.Bossmods.ActiveModule;
         if (activeModule != null)
@@ -89,6 +73,35 @@ public sealed class UIRotationWindow : UIWindow
         {
             ImGui.TextUnformatted($"> {a.Action} ({a.Priority:f2})");
         }
+    }
+
+    public static bool DrawRotationSelector(RotationModuleManager mgr)
+    {
+        var modified = false;
+        if (mgr.Player == null)
+            return modified;
+
+        using (ImRaii.PushColor(ImGuiCol.Button, 0xff000080, mgr.Preset == RotationModuleManager.ForceDisable))
+        {
+            if (ImGui.Button("X"))
+            {
+                mgr.Preset = mgr.Preset == RotationModuleManager.ForceDisable ? null : RotationModuleManager.ForceDisable;
+                modified |= true;
+            }
+        }
+
+        foreach (var p in mgr.Database.Presets.PresetsForClass(mgr.Player.Class))
+        {
+            ImGui.SameLine();
+            using var col = ImRaii.PushColor(ImGuiCol.Button, 0xff008080, mgr.Preset == p);
+            if (ImGui.Button(p.Name))
+            {
+                mgr.Preset = mgr.Preset == p ? null : p;
+                modified |= true;
+            }
+        }
+
+        return modified;
     }
 
     private void DrawPositional()
