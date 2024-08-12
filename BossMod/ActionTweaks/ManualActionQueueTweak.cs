@@ -131,6 +131,13 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         targetPos = default;
         if (def.AllowedTargets.HasFlag(ActionTargets.Area))
         {
+            // GT actions with range 0 must be cast on player - there are only a few of these (BLM leylines, PCT leylines, PCT PVP limit break)
+            if (def.Range == 0)
+            {
+                targetPos = player.PosRot.XYZ();
+                return true;
+            }
+
             // ground-targeted actions have special targeting
             var (gtTarget, gtPos) = getAreaTarget();
             if (gtPos != null)
@@ -141,9 +148,14 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             }
             else if (gtTarget is not 0 and not 0xE0000000)
             {
-                // auto cast at target
-                target = ws.Actors.Find(gtTarget);
-                return target != null; // if target isn't found in world, bail
+                var t = ws.Actors.Find(gtTarget);
+                if (t != null)
+                {
+                    // auto cast at target's position
+                    targetPos = t.PosRot.XYZ();
+                    return true;
+                }
+                return false; // if target isn't found in world, bail
             }
             else
             {
