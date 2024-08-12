@@ -17,6 +17,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
             tree.LeafNodes(hints.PotentialTargets, e => $"[{e.Priority}] {e.Actor} (str={e.AttackStrength:f2}), dist={(e.Actor.Position - player.Position).Length():f2}, tank={e.ShouldBeTanked}/{e.PreferProvoking}/{e.DesiredPosition}/{e.DesiredRotation}");
         }
         tree.LeafNode($"Forced target: {hints.ForcedTarget}");
+        tree.LeafNode($"Forced movement: {hints.ForcedMovement}");
         foreach (var _1 in tree.Node("Forbidden zones", hints.ForbiddenZones.Count == 0))
         {
             for (int i = 0; i < hints.ForbiddenZones.Count; i++)

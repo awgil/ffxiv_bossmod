@@ -7,32 +7,43 @@ namespace BossMod.ReplayAnalysis;
 
 class AbilityInfo : CommonEnumInfo
 {
+    public readonly record struct Instance(Replay Replay, Replay.Encounter? Enc, Replay.Action Action)
+    {
+        public string TimestampString() => Enc != null
+            ? $"{Replay.Path} @ {Enc.Time.Start:O}+{(Action.Timestamp - Enc.Time.Start).TotalSeconds:f4}"
+            : $"{Replay.Path} @ {Action.Timestamp:O}";
+    }
+
     class SourcePositionAnalysis
     {
         private readonly UIPlot _plot = new();
-        private readonly List<(Replay Replay, Replay.Action Action, Vector2 SourcePos)> _points = [];
+        private readonly List<(Instance Inst, Vector2 SourcePos)> _points = [];
 
-        public SourcePositionAnalysis(List<(Replay, Replay.Action)> infos)
+        public SourcePositionAnalysis(List<Instance> infos)
         {
             _plot.DataMin = new(float.MaxValue, float.MaxValue);
             _plot.DataMax = new(float.MinValue, float.MinValue);
             _plot.TickAdvance = new(5, 5);
-            foreach (var (r, a) in infos)
+            foreach (var inst in infos)
             {
-                var pos = a.Source.PosRotAt(a.Timestamp).XZ();
+                var pos = inst.Action.Source.PosRotAt(inst.Action.Timestamp).XZ();
                 _plot.DataMin.X = Math.Min(_plot.DataMin.X, pos.X);
                 _plot.DataMin.Y = Math.Min(_plot.DataMin.Y, pos.Y);
                 _plot.DataMax.X = Math.Max(_plot.DataMax.X, pos.X);
                 _plot.DataMax.Y = Math.Max(_plot.DataMax.Y, pos.Y);
-                _points.Add((r, a, pos));
+                _points.Add((inst, pos));
             }
+            _plot.DataMin.X -= 1;
+            _plot.DataMin.Y -= 1;
+            _plot.DataMax.X += 1;
+            _plot.DataMax.Y += 1;
         }
 
         public void Draw()
         {
             _plot.Begin();
             foreach (var i in _points)
-                _plot.Point(i.SourcePos, 0xff808080, () => $"{i.Replay.Path} @ {i.Action.Timestamp:O}");
+                _plot.Point(i.SourcePos, 0xff808080, i.Inst.TimestampString);
             _plot.End();
         }
     }
@@ -42,35 +53,35 @@ class AbilityInfo : CommonEnumInfo
         public enum Targeting { SourcePosRot, TargetPosSourceRot, SourcePosDirToTarget }
 
         private readonly UIPlot _plot = new();
-        private readonly List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Angle, float Range, bool Hit)> _points = [];
+        private readonly List<(Instance Inst, Replay.Participant Target, float Angle, float Range, bool Hit)> _points = [];
 
-        public ConeAnalysis(List<(Replay, Replay.Action)> infos, Targeting targeting)
+        public ConeAnalysis(List<Instance> infos, Targeting targeting)
         {
             _plot.DataMin = new(-180, 0);
             _plot.DataMax = new(180, 60);
             _plot.TickAdvance = new(45, 5);
-            foreach (var (r, a) in infos)
+            foreach (var i in infos)
             {
-                var sourcePosRot = a.Source.PosRotAt(a.Timestamp);
+                var sourcePosRot = i.Action.Source.PosRotAt(i.Action.Timestamp);
                 var sourcePos = new WPos(sourcePosRot.XZ());
-                var targetPos = new WPos(a.TargetPos.XZ());
-                if (targetPos == sourcePos && a.Targets.Count > 0)
-                    targetPos = new(a.Targets[0].Target.PosRotAt(a.Timestamp).XZ());
+                var targetPos = new WPos(i.Action.TargetPos.XZ());
+                if (targetPos == sourcePos && i.Action.Targets.Count > 0)
+                    targetPos = new(i.Action.Targets[0].Target.PosRotAt(i.Action.Timestamp).XZ());
                 var origin = targeting != Targeting.TargetPosSourceRot ? sourcePos : targetPos;
                 var dir = targeting != Targeting.SourcePosDirToTarget ? sourcePosRot.W.Radians().ToDirection() : (targetPos - origin).Normalized();
                 var left = dir.OrthoL();
-                foreach (var target in AlivePlayersAt(r, a.Timestamp))
+                foreach (var target in AlivePlayersAt(i.Replay, i.Action.Timestamp))
                 {
                     // TODO: take target hitbox size into account...
-                    var pos = new WPos(target.PosRotAt(a.Timestamp).XZ());
+                    var pos = new WPos(target.PosRotAt(i.Action.Timestamp).XZ());
                     var toTarget = pos - origin;
                     var dist = toTarget.Length();
                     toTarget /= dist;
                     var angle = MathF.Acos(toTarget.Dot(dir));
                     if (toTarget.Dot(left) < 0)
                         angle = -angle;
-                    bool hit = a.Targets.Any(t => t.Target.InstanceID == target.InstanceID);
-                    _points.Add((r, a, target, angle / MathF.PI * 180, dist, hit));
+                    bool hit = i.Action.Targets.Any(t => t.Target.InstanceID == target.InstanceID);
+                    _points.Add((i, target, angle / MathF.PI * 180, dist, hit));
                 }
             }
         }
@@ -79,7 +90,7 @@ class AbilityInfo : CommonEnumInfo
         {
             _plot.Begin();
             foreach (var i in _points)
-                _plot.Point(new(i.Angle, i.Range), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.NameAt(i.Action.Timestamp)} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
+                _plot.Point(new(i.Angle, i.Range), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.NameAt(i.Inst.Action.Timestamp)} {i.Target.InstanceID:X} {i.Inst.TimestampString()}");
             _plot.End();
         }
     }
@@ -87,26 +98,26 @@ class AbilityInfo : CommonEnumInfo
     class RectAnalysis
     {
         private readonly UIPlot _plot = new();
-        private readonly List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Normal, float Length, bool Hit)> _points = [];
+        private readonly List<(Instance Inst, Replay.Participant Target, float Normal, float Length, bool Hit)> _points = [];
 
-        public RectAnalysis(List<(Replay, Replay.Action)> infos, bool originAtSource)
+        public RectAnalysis(List<Instance> infos, bool originAtSource)
         {
             _plot.DataMin = new(-50, -50);
             _plot.DataMax = new(50, 50);
             _plot.TickAdvance = new(5, 5);
-            foreach (var (r, a) in infos)
+            foreach (var i in infos)
             {
-                var sourcePosRot = a.Source.PosRotAt(a.Timestamp);
+                var sourcePosRot = i.Action.Source.PosRotAt(i.Action.Timestamp);
                 var origin = new WPos(sourcePosRot.XZ());
                 var dir = sourcePosRot.W.Radians().ToDirection();
                 var left = dir.OrthoL();
-                foreach (var target in AlivePlayersAt(r, a.Timestamp))
+                foreach (var target in AlivePlayersAt(i.Replay, i.Action.Timestamp))
                 {
                     // TODO: take target hitbox size into account...
-                    var pos = new WPos(target.PosRotAt(a.Timestamp).XZ());
+                    var pos = new WPos(target.PosRotAt(i.Action.Timestamp).XZ());
                     var toTarget = pos - origin;
-                    bool hit = a.Targets.Any(t => t.Target.InstanceID == target.InstanceID);
-                    _points.Add((r, a, target, toTarget.Dot(left), toTarget.Dot(dir), hit));
+                    bool hit = i.Action.Targets.Any(t => t.Target.InstanceID == target.InstanceID);
+                    _points.Add((i, target, toTarget.Dot(left), toTarget.Dot(dir), hit));
                 }
             }
         }
@@ -115,7 +126,7 @@ class AbilityInfo : CommonEnumInfo
         {
             _plot.Begin();
             foreach (var i in _points)
-                _plot.Point(new(i.Normal, i.Length), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.NameAt(i.Action.Timestamp)} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
+                _plot.Point(new(i.Normal, i.Length), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.NameAt(i.Inst.Action.Timestamp)} {i.Target.InstanceID:X} {i.Inst.TimestampString()}");
             _plot.End();
         }
     }
@@ -123,21 +134,21 @@ class AbilityInfo : CommonEnumInfo
     class DamageFalloffAnalysis
     {
         private readonly UIPlot _plot = new();
-        private readonly List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Range, int Damage)> _points = [];
+        private readonly List<(Instance Inst, Replay.Participant Target, float Range, int Damage)> _points = [];
 
-        public DamageFalloffAnalysis(List<(Replay, Replay.Action)> infos, bool useMaxComp, bool fromSource)
+        public DamageFalloffAnalysis(List<Instance> infos, bool useMaxComp, bool fromSource)
         {
             _plot.DataMin = new(0, 0);
             _plot.DataMax = new(100, 200000);
             _plot.TickAdvance = new(5, 10000);
-            foreach (var (r, a) in infos)
+            foreach (var i in infos)
             {
-                var origin = fromSource ? a.Source.PosRotAt(a.Timestamp).XYZ() : a.TargetPos;
-                foreach (var target in a.Targets)
+                var origin = fromSource ? i.Action.Source.PosRotAt(i.Action.Timestamp).XYZ() : i.Action.TargetPos;
+                foreach (var target in i.Action.Targets)
                 {
-                    var offset = target.Target.PosRotAt(a.Timestamp).XYZ() - origin;
+                    var offset = target.Target.PosRotAt(i.Action.Timestamp).XYZ() - origin;
                     var dist = useMaxComp ? MathF.Max(Math.Abs(offset.X), Math.Abs(offset.Z)) : offset.Length();
-                    _points.Add((r, a, target.Target, dist, ReplayUtils.ActionDamage(target)));
+                    _points.Add((i, target.Target, dist, ReplayUtils.ActionDamage(target)));
                 }
             }
         }
@@ -146,7 +157,7 @@ class AbilityInfo : CommonEnumInfo
         {
             _plot.Begin();
             foreach (var i in _points)
-                _plot.Point(new(i.Range, i.Damage), i.Damage > 0 ? 0xff00ffff : 0xff808080, () => $"{i.Damage} {i.Target.NameAt(i.Action.Timestamp)} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
+                _plot.Point(new(i.Range, i.Damage), i.Damage > 0 ? 0xff00ffff : 0xff808080, () => $"{i.Damage} {i.Target.NameAt(i.Inst.Action.Timestamp)} {i.Target.InstanceID:X} {i.Inst.TimestampString()}");
             _plot.End();
         }
     }
@@ -154,19 +165,19 @@ class AbilityInfo : CommonEnumInfo
     class GazeAnalysis
     {
         private readonly UIPlot _plot = new();
-        private readonly List<(Replay Replay, Replay.Action Action, Replay.Participant Target, Angle Angle, bool Hit)> _points = [];
+        private readonly List<(Instance Inst, Replay.Participant Target, Angle Angle, bool Hit)> _points = [];
 
-        public GazeAnalysis(List<(Replay, Replay.Action)> infos)
+        public GazeAnalysis(List<Instance> infos)
         {
             _plot.DataMin = new(-180, 0);
             _plot.DataMax = new(180, 2);
             _plot.TickAdvance = new(45, 1);
-            foreach (var (r, a) in infos)
+            foreach (var i in infos)
             {
-                var src = new WPos(a.Source.PosRotAt(a.Timestamp).XZ());
-                foreach (var target in a.Targets)
+                var src = new WPos(i.Action.Source.PosRotAt(i.Action.Timestamp).XZ());
+                foreach (var target in i.Action.Targets)
                 {
-                    var posRot = target.Target.PosRotAt(a.Timestamp);
+                    var posRot = target.Target.PosRotAt(i.Action.Timestamp);
                     var toSource = Angle.FromDirection(src - new WPos(posRot.XZ()));
                     var angle = toSource - posRot.W.Radians();
                     if (angle.Rad > MathF.PI)
@@ -174,7 +185,7 @@ class AbilityInfo : CommonEnumInfo
                     if (angle.Rad < -MathF.PI)
                         angle.Rad += 2 * MathF.PI;
                     bool hit = !target.Effects.All(eff => eff.Type is ActionEffectType.Miss or ActionEffectType.StartActionCombo);
-                    _points.Add((r, a, target.Target, angle, hit));
+                    _points.Add((i, target.Target, angle, hit));
                 }
             }
         }
@@ -183,14 +194,14 @@ class AbilityInfo : CommonEnumInfo
         {
             _plot.Begin();
             foreach (var i in _points)
-                _plot.Point(new(i.Angle.Deg, 1), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.NameAt(i.Action.Timestamp)} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
+                _plot.Point(new(i.Angle.Deg, 1), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.NameAt(i.Inst.Action.Timestamp)} {i.Target.InstanceID:X} {i.Inst.TimestampString()}");
             _plot.End();
         }
     }
 
     class KnockbackAnalysis
     {
-        private record struct Point(Replay Replay, Replay.Action Action, Replay.ActionTarget Target);
+        private record struct Point(Instance Inst, Replay.ActionTarget Target);
 
         private readonly Dictionary<int, List<Point>> _byDistance = [];
         private readonly Dictionary<Knockback.Kind, List<Point>> _byKind = [];
@@ -200,11 +211,11 @@ class AbilityInfo : CommonEnumInfo
         private readonly List<Point> _transcendentMisses = [];
         private readonly List<Point> _otherMisses = [];
 
-        public KnockbackAnalysis(List<(Replay, Replay.Action)> infos)
+        public KnockbackAnalysis(List<Instance> infos)
         {
-            foreach (var (r, a) in infos)
+            foreach (var i in infos)
             {
-                foreach (var target in a.Targets)
+                foreach (var target in i.Action.Targets)
                 {
                     bool hasKnockbacks = false;
                     foreach (var eff in target.Effects)
@@ -221,19 +232,19 @@ class AbilityInfo : CommonEnumInfo
                                     KnockbackDirection.SourceLeft => Knockback.Kind.DirLeft,
                                     _ => Knockback.Kind.None
                                 } : Knockback.Kind.None;
-                                AddPoint(r, a, target, (kbData?.Distance ?? 0) + eff.Param0, kind);
+                                AddPoint(i, target, (kbData?.Distance ?? 0) + eff.Param0, kind);
                                 hasKnockbacks = true;
                                 break;
                             case ActionEffectType.Attract1:
                             case ActionEffectType.Attract2:
                                 var attrData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Attract>(eff.Value);
-                                AddPoint(r, a, target, attrData?.MaxDistance ?? 0, Knockback.Kind.TowardsOrigin);
+                                AddPoint(i, target, attrData?.MaxDistance ?? 0, Knockback.Kind.TowardsOrigin);
                                 hasKnockbacks = true;
                                 break;
                             case ActionEffectType.AttractCustom1:
                             case ActionEffectType.AttractCustom2:
                             case ActionEffectType.AttractCustom3:
-                                AddPoint(r, a, target, eff.Value, Knockback.Kind.TowardsOrigin);
+                                AddPoint(i, target, eff.Value, Knockback.Kind.TowardsOrigin);
                                 hasKnockbacks = true;
                                 break;
                         }
@@ -241,12 +252,12 @@ class AbilityInfo : CommonEnumInfo
 
                     if (!hasKnockbacks)
                     {
-                        if (IsImmune(r, target.Target, a.Timestamp))
-                            _immuneMisses.Add(new(r, a, target));
-                        else if (IsTranscendent(r, target.Target, a.Timestamp))
-                            _transcendentMisses.Add(new(r, a, target));
+                        if (IsImmune(i.Replay, target.Target, i.Action.Timestamp))
+                            _immuneMisses.Add(new(i, target));
+                        else if (IsTranscendent(i.Replay, target.Target, i.Action.Timestamp))
+                            _transcendentMisses.Add(new(i, target));
                         else
-                            _otherMisses.Add(new(r, a, target));
+                            _otherMisses.Add(new(i, target));
                     }
                 }
             }
@@ -265,21 +276,21 @@ class AbilityInfo : CommonEnumInfo
             DrawPoints(tree, "Misses in other states", _otherMisses);
         }
 
-        private void AddPoint(Replay replay, Replay.Action action, Replay.ActionTarget target, int distance, Knockback.Kind kind)
+        private void AddPoint(Instance inst, Replay.ActionTarget target, int distance, Knockback.Kind kind)
         {
-            _byDistance.GetOrAdd(distance).Add(new(replay, action, target));
-            _byKind.GetOrAdd(kind).Add(new(replay, action, target));
-            if (IsImmune(replay, target.Target, action.Timestamp))
-                _immuneIgnores.Add(new(replay, action, target));
-            if (IsTranscendent(replay, target.Target, action.Timestamp))
-                _transcendentIgnores.Add(new(replay, action, target));
+            _byDistance.GetOrAdd(distance).Add(new(inst, target));
+            _byKind.GetOrAdd(kind).Add(new(inst, target));
+            if (IsImmune(inst.Replay, target.Target, inst.Action.Timestamp))
+                _immuneIgnores.Add(new(inst, target));
+            if (IsTranscendent(inst.Replay, target.Target, inst.Action.Timestamp))
+                _transcendentIgnores.Add(new(inst, target));
         }
 
         private void DrawPoints(UITree tree, string tag, List<Point> points)
         {
             foreach (var n in tree.Node($"{tag} ({points.Count} instances)", points.Count == 0))
             {
-                foreach (var an in tree.Nodes(points, p => new($"{p.Replay.Path} @ {p.Action.Timestamp:O}: {ReplayUtils.ParticipantPosRotString(p.Action.Source, p.Action.Timestamp)} -> {ReplayUtils.ParticipantString(p.Target.Target, p.Action.Timestamp)}")))
+                foreach (var an in tree.Nodes(points, p => new($"{p.Inst.TimestampString()}: {ReplayUtils.ParticipantPosRotString(p.Inst.Action.Source, p.Inst.Action.Timestamp)} -> {ReplayUtils.ParticipantString(p.Target.Target, p.Inst.Action.Timestamp)}")))
                 {
                     tree.LeafNodes(an.Target.Effects, ReplayUtils.ActionEffectString);
                 }
@@ -296,32 +307,32 @@ class AbilityInfo : CommonEnumInfo
 
     class CasterLinkAnalysis
     {
-        private readonly List<(Replay Replay, Replay.Action Action, float MinDistance)> _points = [];
+        private readonly List<(Instance Inst, float MinDistance)> _points = [];
 
-        public CasterLinkAnalysis(List<(Replay, Replay.Action)> infos)
+        public CasterLinkAnalysis(List<Instance> infos)
         {
-            foreach (var (r, a) in infos)
+            foreach (var i in infos)
             {
-                var pos = a.Source.PosRotAt(a.Timestamp).XYZ();
+                var pos = i.Action.Source.PosRotAt(i.Action.Timestamp).XYZ();
 
                 float minDistance = float.MaxValue;
-                foreach (var other in r.Participants.Where(p => p != a.Source && p.OID == a.Source.OID && p.ExistsInWorldAt(a.Timestamp)))
+                foreach (var other in i.Replay.Participants.Where(p => p != i.Action.Source && p.OID == i.Action.Source.OID && p.ExistsInWorldAt(i.Action.Timestamp)))
                 {
-                    var otherPos = other.PosRotAt(a.Timestamp).XYZ();
+                    var otherPos = other.PosRotAt(i.Action.Timestamp).XYZ();
                     minDistance = MathF.Min(minDistance, (otherPos - pos).Length());
                 }
 
-                _points.Add((r, a, minDistance));
+                _points.Add((i, minDistance));
             }
             _points.SortByReverse(e => e.MinDistance);
         }
 
-        public void Draw(UITree tree) => tree.LeafNodes(_points, p => $"{p.MinDistance:f3}: {p.Replay.Path} @ {p.Action.Timestamp:O}");
+        public void Draw(UITree tree) => tree.LeafNodes(_points, p => $"{p.MinDistance:f3}: {p.Inst.TimestampString()}");
     }
 
     class ActionData
     {
-        public List<(Replay, Replay.Action)> Instances = [];
+        public List<Instance> Instances = [];
         public List<(Replay, Replay.Participant, Replay.Cast)> Casts = [];
         public HashSet<uint> CasterOIDs = [];
         public HashSet<uint> TargetOIDs = [];
@@ -357,7 +368,7 @@ class AbilityInfo : CommonEnumInfo
             foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
             {
                 foreach (var action in replay.EncounterActions(enc))
-                    AddActionData(replay, action);
+                    AddActionData(replay, enc, action);
                 foreach (var (_, participants) in enc.ParticipantsByOID)
                     foreach (var p in participants)
                         foreach (var c in p.Casts.Where(c => enc.Time.Contains(c.Time.Start)))
@@ -371,7 +382,7 @@ class AbilityInfo : CommonEnumInfo
         foreach (var replay in replays)
         {
             foreach (var action in replay.Actions)
-                AddActionData(replay, action);
+                AddActionData(replay, null, action);
             foreach (var p in replay.Participants)
                 foreach (var c in p.Casts)
                     AddCastData(replay, p, c);
@@ -409,9 +420,9 @@ class AbilityInfo : CommonEnumInfo
             }
             foreach (var n in tree.Node("Instances", data.Instances.Count == 0))
             {
-                foreach (var an in tree.Nodes(data.Instances, a => new($"{a.Item1.Path} @ {a.Item2.Timestamp:O}: {ReplayUtils.ParticipantPosRotString(a.Item2.Source, a.Item2.Timestamp)} -> {ReplayUtils.ParticipantString(a.Item2.MainTarget, a.Item2.Timestamp)} {Utils.Vec3String(a.Item2.TargetPos)} ({a.Item2.Targets.Count} affected)", a.Item2.Targets.Count == 0)))
+                foreach (var an in tree.Nodes(data.Instances, inst => new($"{inst.TimestampString()}: {ReplayUtils.ParticipantPosRotString(inst.Action.Source, inst.Action.Timestamp)} -> {ReplayUtils.ParticipantString(inst.Action.MainTarget, inst.Action.Timestamp)} {Utils.Vec3String(inst.Action.TargetPos)} ({inst.Action.Targets.Count} affected)", inst.Action.Targets.Count == 0)))
                 {
-                    foreach (var tn in tree.Nodes(an.Item2.Targets, t => new(ReplayUtils.ActionTargetString(t, an.Item2.Timestamp))))
+                    foreach (var tn in tree.Nodes(an.Action.Targets, t => new(ReplayUtils.ActionTargetString(t, an.Action.Timestamp))))
                     {
                         tree.LeafNodes(tn.Effects, ReplayUtils.ActionEffectString);
                     }
@@ -499,7 +510,7 @@ class AbilityInfo : CommonEnumInfo
         }
     }
 
-    private void AddActionData(Replay replay, Replay.Action action)
+    private void AddActionData(Replay replay, Replay.Encounter? enc, Replay.Action action)
     {
         if (action.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
             return;
@@ -517,7 +528,7 @@ class AbilityInfo : CommonEnumInfo
         var cast = action.Source.Casts.Find(c => c.ID == action.ID && Math.Abs((c.Time.End - action.Timestamp).TotalSeconds) < 1);
         data.CastTime = cast?.ExpectedCastTime + 0.3f ?? 0;
 
-        data.Instances.Add((replay, action));
+        data.Instances.Add(new(replay, enc, action));
     }
 
     private void AddCastData(Replay replay, Replay.Participant caster, Replay.Cast cast)
