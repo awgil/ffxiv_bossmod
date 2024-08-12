@@ -22,7 +22,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
     public ActionID RaiseAction => Player.Class switch
     {
         Class.CNJ or Class.WHM => ActionID.MakeSpell(BossMod.WHM.AID.Raise),
-        Class.ACN or Class.SCH => ActionID.MakeSpell(SCH.AID.Resurrection),
+        Class.ACN or Class.SCH => ActionID.MakeSpell(BossMod.SCH.AID.Resurrection),
         Class.AST => ActionID.MakeSpell(BossMod.AST.AID.Ascend),
         Class.SGE => ActionID.MakeSpell(BossMod.SGE.AID.Egeiro),
         _ => default
@@ -126,13 +126,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         });
     }
 
-    private bool BeingRaised(Actor actor)
-    {
-        if (Player.FindStatus(BossMod.WHM.SID.Raise) != null)
-            return true;
-
-        return World.PendingEffects.PendingStatus(actor.InstanceID, (uint)BossMod.WHM.SID.Raise) != null;
-    }
+    private static bool BeingRaised(Actor actor) => actor.Statuses.Any(s => s.ID is 148 or 1140);
 
     private void AutoWHM(StrategyValues strategy)
     {

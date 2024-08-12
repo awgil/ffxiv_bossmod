@@ -5,7 +5,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
-    public enum Track { Potion = SharedTrack.Count }
+    public enum Track { Potion = SharedTrack.Count, SSS }
     public enum PotionStrategy
     {
         Manual,
@@ -22,6 +22,8 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(PotionStrategy.Manual, "Do not automatically use")
             .AddOption(PotionStrategy.PreBuffs, "Use ~4 GCDs before raid buff window")
             .AddOption(PotionStrategy.Now, "Use ASAP");
+
+        def.DefineSimple(Track.SSS, "SixSidedStar");
 
         return def;
     }
@@ -193,7 +195,20 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                     PushGCD(OpoStacks == 0 && Unlocked(AID.DragonKick) ? AID.DragonKick : AID.Bootshine, primaryTarget); break;
             }
         }
+
+        switch (strategy.Simple(Track.SSS))
+        {
+            case OffensiveStrategy.Force:
+                PushGCD(AID.SixSidedStar, primaryTarget, 500);
+                break;
+            case OffensiveStrategy.Automatic:
+                if (!CanFitGCD(DowntimeIn - SSSApplicationDelay, 1))
+                    PushGCD(AID.SixSidedStar, primaryTarget, 500);
+                break;
+        }
     }
+
+    private const float SSSApplicationDelay = 0.62f;
 
     private Form EffectiveForm
     {
@@ -223,8 +238,6 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    // TODO the monk document is updated AGAIN, now we early PB in solar windows again?????????????
-    // FUCK
     private void QueuePB(StrategyValues strategy)
     {
         if (CurrentForm != Form.Raptor || BeastChakra[0] != BeastChakraType.None || FiresReplyLeft > GCD)
