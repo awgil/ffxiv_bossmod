@@ -2,12 +2,12 @@
 
 class WideningNarrowingWitchHunt(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<AOEInstance> _aoes = [];
+    public readonly List<AOEInstance> AOEs = [];
 
     private static readonly AOEShapeCircle _shapeOut = new(10);
     private static readonly AOEShapeDonut _shapeIn = new(10, 60);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Skip(NumCasts).Take(1);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs.Skip(NumCasts).Take(1);
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -19,10 +19,10 @@ class WideningNarrowingWitchHunt(BossModule module) : Components.GenericAOEs(mod
         };
         if (first != null && second != null)
         {
-            _aoes.Add(new(first, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 1.1f)));
-            _aoes.Add(new(second, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 4.6f)));
-            _aoes.Add(new(first, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 8.1f)));
-            _aoes.Add(new(second, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 11.6f)));
+            AOEs.Add(new(first, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 1.1f)));
+            AOEs.Add(new(second, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 4.6f)));
+            AOEs.Add(new(first, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 8.1f)));
+            AOEs.Add(new(second, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 11.6f)));
         }
     }
 

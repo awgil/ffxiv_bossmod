@@ -5,8 +5,9 @@ namespace BossMod.Dawntrail.Savage.RM04SWickedThunder.AI;
 
 sealed class AIExperiment(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { ElectrifyingWitchHunt }
+    public enum Track { ElectrifyingWitchHunt, WNWitchHunt }
     public enum ElectrifyingWitchHuntStrategy { None, NWNear }
+    public enum WNWitchHuntStrategy { None, BaitFirstAny, BaitFirstNear }
 
     public static RotationModuleDefinition Definition()
     {
@@ -14,6 +15,10 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : Rotatio
         res.Define(Track.ElectrifyingWitchHunt).As<ElectrifyingWitchHuntStrategy>("ElectrifyingWitchHunt", "EWH")
             .AddOption(ElectrifyingWitchHuntStrategy.None, "None", "Do nothing")
             .AddOption(ElectrifyingWitchHuntStrategy.NWNear, "NWNear", "NW prefer near (MT spot)");
+        res.Define(Track.WNWitchHunt).As<WNWitchHuntStrategy>("WNWitchHuntStrategy", "WNWH")
+            .AddOption(WNWitchHuntStrategy.None, "None", "Do nothing")
+            .AddOption(WNWitchHuntStrategy.BaitFirstAny, "BaitFirstAny", "Bait first any")
+            .AddOption(WNWitchHuntStrategy.BaitFirstNear, "BaitFirstNear", "Bait first near (first or second)");
         return res;
     }
 
@@ -25,21 +30,36 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : Rotatio
         var ewh = strategy.Option(Track.ElectrifyingWitchHunt).As<ElectrifyingWitchHuntStrategy>();
         if (ewh != ElectrifyingWitchHuntStrategy.None)
         {
-            var pos = CalcElectrifyingWitchHuntPosition(module, ewh);
-            var dir = pos - Player.Position;
-            Hints.ForcedMovement = dir.LengthSq() > 0.01f ? dir.ToVec3() : default;
+            SetForcedMovement((module.StateMachine.ActiveState?.ID ?? 0) switch
+            {
+                0x00020011 => ElectrifyingWitchHuntFirstDodge(module, ewh),
+                0x00020111 => ElectrifyingWitchHuntSecondDodge(module, ewh),
+                _ => ElectrifyingWitchHuntInitialPosition(module, ewh)
+            });
+        }
+
+        var wnwh = strategy.Option(Track.WNWitchHunt).As<WNWitchHuntStrategy>();
+        if (wnwh != WNWitchHuntStrategy.None)
+        {
+            SetForcedMovement((module.StateMachine.ActiveState?.ID ?? 0) switch
+            {
+                0x00030001 => WNWitchHuntDodge(module, wnwh, 0),
+                0x00030010 => WNWitchHuntDodge(module, wnwh, 1),
+                0x00030020 => WNWitchHuntDodge(module, wnwh, 2),
+                0x00030030 => WNWitchHuntDodge(module, wnwh, 3),
+                0x00030040 => WNWitchHuntDodge(module, wnwh, 4),
+                _ => WNWitchHuntInitialPosition(module)
+            });
         }
     }
 
-    private WPos CalcElectrifyingWitchHuntPosition(RM04SWickedThunder module, ElectrifyingWitchHuntStrategy strategy)
+    private void SetForcedMovement(WPos pos, float tolerance = 0.1f)
     {
-        return (module.StateMachine.ActiveState?.ID ?? 0) switch
-        {
-            0x00020011 => ElectrifyingWitchHuntFirstDodge(module, strategy),
-            0x00020111 => ElectrifyingWitchHuntSecondDodge(module, strategy),
-            _ => ElectrifyingWitchHuntInitialPosition(module, strategy)
-        };
+        var dir = pos - Player.Position;
+        Hints.ForcedMovement = dir.LengthSq() > tolerance * tolerance ? new(dir.X, Player.PosRot.Y, dir.Z) : default;
     }
+
+    private float Speed() => Player.FindStatus(50) != null ? 7.8f : 6;
 
     // default spot: max melee at z=-5
     private WPos ElectrifyingWitchHuntInitialPosition(RM04SWickedThunder module, ElectrifyingWitchHuntStrategy strategy) => module.Center - new WDir(5.9f, 5);
@@ -58,7 +78,7 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : Rotatio
                 return uptimePos;
             var vertShiftW = burst.Casters.Sum(c => c.Position.X - module.Center.X) < 0;
             var downtimePos = uptimePos with { X = module.Center.X - 16.2f + (vertShiftW ? -1.5f : +1.5f) };
-            var timeToSafety = (Player.Position - downtimePos).Length() / 6;
+            var timeToSafety = (Player.Position - downtimePos).Length() / Speed();
             return module.StateMachine.TimeSinceTransition + GCD + timeToSafety < (module.StateMachine.ActiveState?.Duration ?? 0) ? uptimePos : downtimePos;
         }
         return ElectrifyingWitchHuntInitialPosition(module, strategy);
@@ -77,11 +97,51 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : Rotatio
             var vertShiftW = burst.Casters.Sum(c => c.Position.X - module.Center.X) < 0;
             var safeX = !centerUnsafe ? -5 : -16.2f + (vertShiftW ? -1.5f : +1.5f);
             var safeSpot = new WPos(module.Center.X + safeX, module.Center.Z - (goFar ? 12 : 3));
-            var timeToSafety = (Player.Position - safeSpot).Length() / 6;
+            var timeToSafety = (Player.Position - safeSpot).Length() / Speed();
             if (module.StateMachine.TimeSinceTransition + GCD + timeToSafety >= (module.StateMachine.ActiveState?.Duration ?? 0))
                 return safeSpot;
         }
         return ElectrifyingWitchHuntInitialPosition(module, strategy);
+    }
+
+    private WPos WNWitchHuntInitialPosition(RM04SWickedThunder module) => module.Center - new WDir(0, 7);
+
+    private WPos WNWitchHuntDodge(RM04SWickedThunder module, WNWitchHuntStrategy strategy, int nextBait)
+    {
+        var bait = module.FindComponent<WideningNarrowingWitchHuntBait>()?.CurMechanic ?? WideningNarrowingWitchHuntBait.Mechanic.None;
+        var aoe = module.FindComponent<WideningNarrowingWitchHunt>();
+        if (bait == default || aoe == null || aoe.NumCasts >= aoe.AOEs.Count)
+            return WNWitchHuntInitialPosition(module);
+
+        var timeToDodge = (module.StateMachine.ActiveState?.Duration ?? 0) - module.StateMachine.TimeSinceTransition;
+        if (nextBait == 0)
+        {
+            timeToDodge += 1.1f;
+            ++nextBait;
+        }
+
+        var baitNear = bait == WideningNarrowingWitchHuntBait.Mechanic.Near;
+        var wantBait = nextBait switch
+        {
+            1 => strategy == WNWitchHuntStrategy.BaitFirstAny || strategy == WNWitchHuntStrategy.BaitFirstNear && baitNear,
+            2 => strategy == WNWitchHuntStrategy.BaitFirstNear && baitNear,
+            _ => false
+        };
+        var wantNear = wantBait == baitNear;
+        var wantIn = aoe.AOEs[aoe.NumCasts].Shape is AOEShapeDonut;
+
+        var safeDist = wantIn ? (wantNear ? 4 : 7.7f) : (wantNear ? 10.3f : 12.5f);
+        var angle = wantIn ? nextBait switch
+        {
+            2 => 135.Degrees(),
+            4 => -135.Degrees(),
+            _ => 180.Degrees()
+        } : 180.Degrees();
+        var safePos = module.Center + safeDist * angle.ToDirection();
+        if (wantIn)
+            return safePos;
+        var timeToSafety = (Player.Position - safePos).Length() / Speed();
+        return GCD + timeToSafety >= timeToDodge ? safePos : WNWitchHuntInitialPosition(module);
     }
 }
 #endif

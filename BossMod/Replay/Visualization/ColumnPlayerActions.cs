@@ -195,7 +195,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
         _animLocks.AddHistoryEntryRange(encStart, cast.Time, name, 0x800000ff).AddCastTooltip(cast);
 
         var castActionDef = ActionDefinitions.Instance[cast.ID];
-        if (castActionDef != null)
+        if (castActionDef?.MainCooldownGroup >= 0)
         {
             AdvanceCooldown(castActionDef.MainCooldownGroup, encStart, cast.Time.Start, true);
             GetCooldownColumn(castActionDef.MainCooldownGroup, cast.ID).AddHistoryEntryRange(encStart, cast.Time, name, 0x800000ff).AddCastTooltip(cast);
