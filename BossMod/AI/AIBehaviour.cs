@@ -54,7 +54,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
             target.PreferTanking = _config.DesiredPositional != Positional.Any;
         }
         if (_config.OverrideRange)
-            target.PreferredRange = _config.FollowRange;
+            target.PreferredRange = _config.MaxDistanceToTarget;
 
         _followMaster = master != player && (autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null || _config.FollowDuringActiveBossModule) && (!master.InCombat || _config.FollowDuringCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100) && (player.InCombat || _config.FollowOutOfCombat);
         _naviDecision = BuildNavigationDecision(player, master, ref target);
@@ -120,7 +120,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         if (_config.ForbidMovement)
             return new() { LeewaySeconds = float.MaxValue };
         if (_followMaster)
-            return NavigationDecision.Build(_naviCtx, WorldState, autorot.Hints, player, master.Position, 1, new(), Positional.Any);
+            return NavigationDecision.Build(_naviCtx, WorldState, autorot.Hints, player, master.Position, _config.OverrideRange ? _config.MaxDistanceToSlot : 1, new(), Positional.Any);
         if (targeting.Target == null)
             return NavigationDecision.Build(_naviCtx, WorldState, autorot.Hints, player, null, 0, new(), Positional.Any);
 

@@ -29,11 +29,14 @@ sealed class AIConfig : ConfigNode
     [PropertyDisplay($"Override follow range")]
     public bool OverrideRange = false;
 
-    [PropertyDisplay($"Follow range")]
-    public int FollowRange = 3;
+    [PropertyDisplay($"Follow slot range")]
+    public float MaxDistanceToSlot = 1;
 
     [PropertyDisplay($"Follow target")]
     public bool FollowTarget = false;
+
+    [PropertyDisplay($"Follow target range")]
+    public float MaxDistanceToTarget = 3;
 
     [PropertyDisplay("Follow during active boss module")]
     public bool FollowDuringActiveBossModule = false;
