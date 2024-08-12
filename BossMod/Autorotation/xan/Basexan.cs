@@ -102,10 +102,11 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         }
 
         Vector3 targetPos = default;
-        if (def.ID.ID is (uint)BossMod.BLM.AID.LeyLines or (uint)BossMod.BLM.AID.Retrace or (uint)BossMod.PCT.AID.StarryMuse or (uint)BossMod.PCT.AID.ScenicMuse)
+
+        if (def.Range == 0 && def.AllowedTargets.HasFlag(ActionTargets.Area))
             targetPos = Player.PosRot.XYZ();
 
-        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, targetPos: targetPos, delay: delay);
+        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos);
         return true;
     }
 
