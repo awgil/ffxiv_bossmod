@@ -156,11 +156,14 @@ public sealed class PlanExecution
         List<EntryData> res = [];
         foreach (var entry in entries)
         {
-            var s = States.GetValueOrDefault(entry.StateID);
-            if (s != null)
+            if (!entry.Disabled)
             {
-                var windowStart = s.EnterTime + Math.Min(s.Duration, entry.TimeSinceActivation);
-                res.Add(new(windowStart, windowStart + entry.WindowLength, s.BranchID, s.NumBranches, entry.Value));
+                var s = States.GetValueOrDefault(entry.StateID);
+                if (s != null)
+                {
+                    var windowStart = s.EnterTime + Math.Min(s.Duration, entry.TimeSinceActivation);
+                    res.Add(new(windowStart, windowStart + entry.WindowLength, s.BranchID, s.NumBranches, entry.Value));
+                }
             }
         }
         return res;

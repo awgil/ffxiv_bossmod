@@ -12,6 +12,7 @@ public sealed record class Plan(string Name, Type Encounter)
         public uint StateID;
         public float TimeSinceActivation;
         public float WindowLength;
+        public bool Disabled;
         public StrategyValue Value = Value;
     }
 
@@ -163,6 +164,8 @@ public class JsonPlanConverter : JsonConverter<Plan>
         entry.StateID = uint.Parse((jelem.GetProperty(nameof(Plan.Entry.StateID)).GetString() ?? "")[2..], System.Globalization.NumberStyles.HexNumber);
         entry.TimeSinceActivation = jelem.GetProperty(nameof(Plan.Entry.TimeSinceActivation)).GetSingle();
         entry.WindowLength = jelem.GetProperty(nameof(Plan.Entry.WindowLength)).GetSingle();
+        if (jelem.TryGetProperty(nameof(Plan.Entry.Disabled), out var jdisabled))
+            entry.Disabled = jdisabled.GetBoolean();
         if (jelem.TryGetProperty(nameof(StrategyValue.PriorityOverride), out var jprio))
             entry.Value.PriorityOverride = jprio.GetSingle();
         if (jelem.TryGetProperty(nameof(StrategyValue.Target), out var jtarget))
@@ -178,6 +181,8 @@ public class JsonPlanConverter : JsonConverter<Plan>
         writer.WriteString(nameof(Plan.Entry.StateID), $"0x{entry.StateID:X8}");
         writer.WriteNumber(nameof(Plan.Entry.TimeSinceActivation), entry.TimeSinceActivation);
         writer.WriteNumber(nameof(Plan.Entry.WindowLength), entry.WindowLength);
+        if (entry.Disabled)
+            writer.WriteBoolean(nameof(Plan.Entry.Disabled), entry.Disabled);
         if (!float.IsNaN(entry.Value.PriorityOverride))
             writer.WriteNumber(nameof(StrategyValue.PriorityOverride), entry.Value.PriorityOverride);
         if (entry.Value.Target != StrategyTarget.Automatic)

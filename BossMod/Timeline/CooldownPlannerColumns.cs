@@ -189,7 +189,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
             var state = _tree.Nodes.GetValueOrDefault(o.StateID);
             if (state != null)
             {
-                _colTarget.AddElement(state, o.TimeSinceActivation, o.WindowLength, o.Value);
+                _colTarget.AddElement(state, o.TimeSinceActivation, o.WindowLength, o.Disabled, o.Value);
             }
         }
     }
@@ -212,7 +212,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                 var state = _tree.Nodes.GetValueOrDefault(entry.StateID);
                 if (state != null)
                 {
-                    col.AddElement(state, entry.TimeSinceActivation, entry.WindowLength, entry.Value);
+                    col.AddElement(state, entry.TimeSinceActivation, entry.WindowLength, entry.Disabled, entry.Value);
                 }
             }
             foreach (var a in _playerActions)
@@ -232,8 +232,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         entries.Clear();
         foreach (var e in track.Elements)
         {
-            var cast = (ColumnPlannerTrackStrategy.OverrideElement)e;
-            AddEntry(entries, e, cast.Value);
+            AddEntry(entries, e);
         }
     }
 
@@ -243,11 +242,10 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         Plan.Targeting.Clear();
         foreach (var e in _colTarget.Elements)
         {
-            var cast = (ColumnPlannerTrackTarget.OverrideElement)e;
-            AddEntry(Plan.Targeting, e, cast.Value);
+            AddEntry(Plan.Targeting, e);
         }
     }
 
-    private void AddEntry(List<Plan.Entry> list, ColumnPlannerTrack.Element elem, in StrategyValue value)
-        => list.Add(new(value) { StateID = elem.Window.AttachNode.State.ID, TimeSinceActivation = elem.Window.Delay, WindowLength = elem.Window.Duration });
+    private void AddEntry(List<Plan.Entry> list, ColumnPlannerTrack.Element elem)
+        => list.Add(new(elem.Value) { StateID = elem.Window.AttachNode.State.ID, TimeSinceActivation = elem.Window.Delay, WindowLength = elem.Window.Duration, Disabled = elem.Disabled });
 }
