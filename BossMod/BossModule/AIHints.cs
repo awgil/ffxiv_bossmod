@@ -37,12 +37,12 @@ public sealed class AIHints
     // this should be set only if either explicitly planned by user or by ai, otherwise it will be annoying to user
     public Actor? ForcedTarget;
 
+    // low-level forced movement - if set, character will move in specified direction (ignoring casts, uptime, forbidden zones, etc), or stay in place if set to default
+    public Vector3? ForcedMovement;
+
     // positioning: list of shapes that are either forbidden to stand in now or will be in near future
     // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
     public List<(Func<WPos, float> shapeDistance, DateTime activation)> ForbiddenZones = [];
-
-    // positioning: position hint - if set, player will move closer to this position, assuming it is safe and in target's range, without losing uptime
-    //public WPos? RecommendedPosition = null;
 
     // positioning: next positional hint (TODO: reconsider, maybe it should be a list prioritized by in-gcds, and imminent should be in-gcds instead? or maybe it should be property of an enemy? do we need correct?)
     public (Actor? Target, Positional Pos, bool Imminent, bool Correct) RecommendedPositional;
@@ -71,6 +71,7 @@ public sealed class AIHints
         Bounds = DefaultBounds;
         PotentialTargets.Clear();
         ForcedTarget = null;
+        ForcedMovement = null;
         ForbiddenZones.Clear();
         RecommendedPositional = default;
         RecommendedRangeToTarget = 0;

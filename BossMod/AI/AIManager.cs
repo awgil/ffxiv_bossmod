@@ -22,10 +22,10 @@ sealed class AIManager : IDisposable
 
     public AIBehaviour? Behaviour { get; private set; }
 
-    public AIManager(RotationModuleManager autorot, ActionManagerEx amex)
+    public AIManager(RotationModuleManager autorot, ActionManagerEx amex, MovementOverride movement)
     {
         _autorot = autorot;
-        _controller = new(amex);
+        _controller = new(amex, movement);
         _config = Service.Config.Get<AIConfig>();
         _ui = new("AI", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing) { RespectCloseHotkey = false };
         Service.ChatGui.ChatMessage += OnChatMessage;
@@ -58,7 +58,7 @@ sealed class AIManager : IDisposable
         {
             _controller.Clear();
         }
-        _controller.Update(player);
+        _controller.Update(player, _autorot.Hints);
 
         _ui.IsOpen = _config.Enabled && player != null && _config.DrawUI;
     }

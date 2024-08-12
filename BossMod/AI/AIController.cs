@@ -5,7 +5,7 @@ namespace BossMod.AI;
 // utility for simulating user actions based on AI decisions:
 // - navigation
 // - using actions safely (without spamming, not in cutscenes, etc)
-sealed class AIController(ActionManagerEx amex)
+sealed class AIController(ActionManagerEx amex, MovementOverride movement)
 {
     public WPos? NaviTargetPos;
     public WDir? NaviTargetRot;
@@ -16,6 +16,7 @@ sealed class AIController(ActionManagerEx amex)
     public bool WantJump;
 
     private readonly ActionManagerEx _amex = amex;
+    private readonly MovementOverride _movement = movement;
     private DateTime _nextJump;
 
     public bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas] || Service.Condition[ConditionFlag.OccupiedInQuestEvent];
@@ -41,41 +42,37 @@ sealed class AIController(ActionManagerEx amex)
             Service.TargetManager.FocusTarget = actor != null ? Service.ObjectTable.SearchById((uint)actor.InstanceID) : null;
     }
 
-    public void Update(Actor? player)
+    public void Update(Actor? player, AIHints hints)
     {
-        var movement = MovementOverride.Instance!;
-
         if (player == null || player.IsDead || InCutscene)
         {
-            movement.DesiredPosition = null;
             return;
         }
 
+        Vector3? desiredPosition = null;
         if (ForceFacing && NaviTargetRot != null && player.Rotation.ToDirection().Dot(NaviTargetRot.Value) < 0.996f)
         {
             _amex.FaceDirection(NaviTargetRot.Value);
         }
 
         // TODO this checks whether movement keys are pressed, we need a better solution
-        bool moveRequested = _amex.InputOverride.IsMoveRequested();
+        bool moveRequested = _movement.IsMoveRequested();
         bool castInProgress = player.CastInfo != null && !player.CastInfo.EventHappened;
         bool forbidMovement = moveRequested || !AllowInterruptingCastByMovement && _amex.MoveMightInterruptCast;
         if (NaviTargetPos != null && !forbidMovement && (NaviTargetPos.Value - player.Position).LengthSq() > 0.01f)
         {
-            movement.DesiredPosition = NaviTargetPos;
+            var y = NaviTargetVertical != null && IsVerticalAllowed ? NaviTargetVertical.Value : player.PosRot.Y;
+            desiredPosition = new(NaviTargetPos.Value.X, y, NaviTargetPos.Value.Z);
             if (WantJump)
                 ExecuteJump();
         }
         else
         {
-            movement.DesiredPosition = null;
             _amex.ForceCancelCastNextFrame |= ForceCancelCast && castInProgress;
         }
 
-        if (NaviTargetVertical != null && IsVerticalAllowed && NaviTargetPos != null)
-            movement.DesiredY = NaviTargetVertical;
-        else
-            movement.DesiredY = null;
+        if (hints.ForcedMovement == null && desiredPosition != null)
+            hints.ForcedMovement = desiredPosition.Value - player.PosRot.XYZ();
     }
 
     private unsafe void ExecuteJump()

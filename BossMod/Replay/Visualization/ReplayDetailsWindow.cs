@@ -78,7 +78,7 @@ class ReplayDetailsWindow : UIWindow
         if (_mgr.ActiveModule != null)
         {
             _hintsBuilder.Update(_hints, _povSlot);
-            _rmm.Update(0, float.MaxValue);
+            _rmm.Update(0, float.MaxValue, false);
 
             var drawTimerPre = DateTime.Now;
             _mgr.ActiveModule.Draw(_azimuthOverride ? _azimuth.Degrees() : _mgr.WorldState.Client.CameraAzimuth, _povSlot, true, true);

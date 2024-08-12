@@ -1,4 +1,5 @@
 ﻿namespace BossMod.Autorotation.xan;
+
 public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
 {
     public enum Track { SecondWind, Bloodbath, Stun }
@@ -13,7 +14,7 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase(manag
         return def;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
         if (Player.Statuses.Any(x => x.ID is (uint)BossMod.NIN.SID.TenChiJin or (uint)BossMod.NIN.SID.Mudra))
             return;

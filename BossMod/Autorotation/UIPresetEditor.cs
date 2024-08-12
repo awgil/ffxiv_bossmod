@@ -134,7 +134,7 @@ public sealed class UIPresetEditor
             return;
         foreach (var m in RotationModuleRegistry.Modules)
         {
-            if (!Preset.Modules.ContainsKey(m.Key))
+            if (m.Value.Definition.RelatedBossModule == null && !Preset.Modules.ContainsKey(m.Key))
             {
                 if (DrawModule(m.Key, m.Value.Definition))
                 {

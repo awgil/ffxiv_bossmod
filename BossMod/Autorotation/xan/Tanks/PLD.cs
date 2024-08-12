@@ -2,6 +2,7 @@
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.xan;
+
 public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
     public static RotationModuleDefinition Definition()

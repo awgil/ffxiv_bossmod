@@ -57,7 +57,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         using var popup = ImRaii.Popup("modules");
         if (popup)
         {
-            foreach (var (mt, m) in RotationModuleRegistry.Modules.Where(m => m.Value.Definition.Classes[(int)Plan.Class]))
+            foreach (var (mt, m) in RotationModuleRegistry.Modules.Where(m => (m.Value.Definition.RelatedBossModule == null || m.Value.Definition.RelatedBossModule == Plan.Encounter) && m.Value.Definition.Classes[(int)Plan.Class]))
             {
                 var added = Plan.Modules.ContainsKey(mt);
                 var disable = added && !ImGui.GetIO().KeyShift;

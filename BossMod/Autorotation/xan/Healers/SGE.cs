@@ -2,6 +2,7 @@
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.xan;
+
 public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player)
 {
     public enum Track { Kardia = SharedTrack.Count, Druo }

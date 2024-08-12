@@ -142,7 +142,7 @@ public sealed class LegacyDNC : LegacyModule
         _state = new(this);
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
         _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
         _state.AnimationLockDelay = MathF.Max(0.1f, _state.AnimationLockDelay);

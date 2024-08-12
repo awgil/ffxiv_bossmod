@@ -2,6 +2,7 @@
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.xan;
+
 public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
     public enum Track { Dive = SharedTrack.Count }

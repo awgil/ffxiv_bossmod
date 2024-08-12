@@ -2,6 +2,7 @@
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.xan;
+
 public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player)
 {
     public enum Track { Motif = SharedTrack.Count, Holy, Hammer }

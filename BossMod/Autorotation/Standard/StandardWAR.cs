@@ -175,7 +175,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
     private bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3;
     private bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f;
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
         Gauge = GetGauge<WarriorGauge>().BeastGauge;
         GCDLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);

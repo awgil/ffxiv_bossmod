@@ -15,7 +15,7 @@ public sealed class ClassDRGUtility(RotationModuleManager manager, Actor player)
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3);
     }

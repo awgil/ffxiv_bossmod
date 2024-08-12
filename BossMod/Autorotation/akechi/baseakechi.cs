@@ -132,7 +132,7 @@ public abstract class Baseakechi<AID, TraitID> : LegacyModule where AID : Enum w
 
     protected int NumMeleeAOETargets() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
 
-    public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
+    public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
         SwiftcastLeft = StatusLeft(WHM.SID.Swiftcast);
         TrueNorthLeft = StatusLeft(DRG.SID.TrueNorth);

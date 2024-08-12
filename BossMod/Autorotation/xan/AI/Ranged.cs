@@ -1,6 +1,5 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.UI;
+﻿namespace BossMod.Autorotation.xan;
 
-namespace BossMod.Autorotation.xan;
 public class RangedAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
 {
     private DateTime _pelotonLockout = DateTime.MinValue;
@@ -19,9 +18,8 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase(mana
         return def;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
-        var isMoving = MovementOverride.Instance?.IsMoving() ?? false;
         if (Player.InCombat || !isMoving)
             _pelotonLockout = World.CurrentTime.AddSeconds(1.5f);
 
@@ -69,10 +67,7 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase(mana
         if (!strategy.Enabled(Track.LimitBreak) || World.Party.WithoutSlot().Count(x => x.Type == ActorType.Player) > 1)
             return;
 
-        var bars = LimitBreakController.Instance()->BarCount;
-        if (World.Party.LimitBreakLevel != LimitBreakController.Instance()->BarCount)
-            return;
-
+        var bars = World.Party.LimitBreakLevel;
         switch (bars)
         {
             case 1:
@@ -97,7 +92,7 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase(mana
         }
     }
 
-    private bool PelotonWillExpire(Actor actor) => PelotonDuration(actor) < 5;
+    //private bool PelotonWillExpire(Actor actor) => PelotonDuration(actor) < 5;
 
     private float PelotonDuration(Actor actor)
     {

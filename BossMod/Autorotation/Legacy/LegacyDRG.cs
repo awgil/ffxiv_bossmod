@@ -89,7 +89,7 @@ public sealed class LegacyDRG : LegacyModule
         _state = new(this);
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
         _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
 

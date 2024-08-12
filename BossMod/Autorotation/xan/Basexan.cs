@@ -306,7 +306,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         Manager.Hints.RecommendedPositional = (target, next, NextPositionalImminent, NextPositionalCorrect);
     }
 
-    public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
+    public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
         var pelo = Player.FindStatus(BossMod.BRD.SID.Peloton);
         PelotonLeft = pelo != null ? StatusDuration(pelo.Value.ExpireAt) : 0;

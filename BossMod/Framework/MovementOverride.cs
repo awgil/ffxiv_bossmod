@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.Config;
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 using System.Runtime.InteropServices;
@@ -21,12 +22,7 @@ public unsafe struct PlayerMoveControllerFlyInput
 
 public sealed unsafe class MovementOverride : IDisposable
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible", Justification = "Camera already does this")]
-    public static MovementOverride? Instance;
-
-    public WPos? DesiredPosition;
-    public float? DesiredY;
-    public float Precision = 0.01f;
+    public Vector3? DesiredDirection;
 
     private float UserMoveLeft;
     private float UserMoveUp;
@@ -59,12 +55,10 @@ public sealed unsafe class MovementOverride : IDisposable
     private readonly RMIWalkIsInputEnabled _rmiWalkIsInputEnabled2;
 
     private delegate void RMIWalkDelegate(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk);
-    [Signature("E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D")]
-    private readonly Hook<RMIWalkDelegate> _rmiWalkHook = null!;
+    private readonly HookAddress<RMIWalkDelegate> _rmiWalkHook;
 
     private delegate void RMIFlyDelegate(void* self, PlayerMoveControllerFlyInput* result);
-    [Signature("E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8")]
-    private readonly Hook<RMIFlyDelegate> _rmiFlyHook = null!;
+    private readonly HookAddress<RMIFlyDelegate> _rmiFlyHook = null!;
 
     public MovementOverride()
     {
@@ -75,13 +69,11 @@ public sealed unsafe class MovementOverride : IDisposable
         _rmiWalkIsInputEnabled1 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled1Addr);
         _rmiWalkIsInputEnabled2 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled2Addr);
 
-        Service.Hook.InitializeFromAttributes(this);
-        Service.Log($"RMIWalk address: 0x{_rmiWalkHook.Address:X}");
+        _rmiWalkHook = new("E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D", RMIWalkDetour);
+        _rmiFlyHook = new("E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8", RMIFlyDetour);
+
         Service.GameConfig.UiControlChanged += OnConfigChanged;
         UpdateLegacyMode();
-
-        _rmiWalkHook.Enable();
-        _rmiFlyHook.Enable();
     }
 
     public void Dispose()
@@ -136,27 +128,20 @@ public sealed unsafe class MovementOverride : IDisposable
 
     private (Angle h, Angle v)? DirectionToDestination(bool allowVertical)
     {
-        if (DesiredPosition == null)
+        if (DesiredDirection == null || DesiredDirection.Value == default)
             return null;
 
-        var player = Service.ClientState.LocalPlayer;
+        var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         if (player == null)
             return null;
 
-        var playerXZ = new WPos(player.Position.X, player.Position.Z);
-
-        var distV3 = DesiredPosition.Value - playerXZ;
-        if (distV3.Length() <= Precision)
-            return null;
-
-        var dist = new WDir(distV3.X, distV3.Z);
-
-        var dirH = Angle.FromDirection(dist);
-        var dirV = allowVertical && DesiredY != null ? Angle.FromDirection(new(DesiredY.Value, dist.Length())) : default;
+        var dxz = new WDir(DesiredDirection.Value.X, DesiredDirection.Value.Z);
+        var dirH = Angle.FromDirection(dxz);
+        var dirV = allowVertical ? Angle.FromDirection(new(DesiredDirection.Value.Y, dxz.Length())) : default;
 
         var refDir = _legacyMode
             ? Camera.Instance!.CameraAzimuth.Radians() + 180.Degrees()
-            : player.Rotation.Radians();
+            : player->Rotation.Radians();
         return (dirH - refDir, dirV);
     }
 

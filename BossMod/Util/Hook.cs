@@ -23,6 +23,7 @@ public sealed class HookAddress<T> : IDisposable where T : Delegate
     }
 
     public HookAddress(Address address, T detour, bool autoEnable = true) : this(address.Value, detour, autoEnable) { }
+    public HookAddress(string signature, T detour, bool autoEnable = true) : this(Service.SigScanner.ScanText(signature), detour, autoEnable) { }
     public HookAddress(nint address, T detour, bool autoEnable = true)
     {
         Service.Log($"Hooking {typeof(T)} @ 0x{address:X}");

@@ -1,6 +1,7 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.xan;
+
 public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
 {
     public enum Track { Raise, RaiseTarget, Heal }
@@ -47,7 +48,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         return def;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
         AutoRaise(strategy);
 
