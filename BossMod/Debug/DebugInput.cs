@@ -91,6 +91,7 @@ unsafe sealed class DebugInput : IDisposable
     //private readonly AI.AIController _navi;
     private Vector2 _dest;
     private Vector3 _prevPos;
+    private float _prevSpeed;
     private bool _jump;
     private bool _gamepadAxisOverrideEnable;
     private float _gamepadAxisOverrideAngle;
@@ -141,8 +142,12 @@ unsafe sealed class DebugInput : IDisposable
         var player = _ws.Party.Player();
         var curPos = player?.PosRot.XYZ() ?? new();
         var speed = (curPos - _prevPos) / dt;
+        var speedAbs = speed.Length();
+        var accel = (speedAbs - _prevSpeed) / dt;
         _prevPos = curPos;
-        ImGui.TextUnformatted($"Speed={speed.Length():f3}, SpeedH={speed.XZ().Length():f3}, SpeedV={speed.Y:f3}, Azimuth={Angle.FromDirection(new(speed.XZ()))}, Altitude={Angle.FromDirection(new(speed.Y, speed.XZ().Length()))}");
+        _prevSpeed = speedAbs;
+        ImGui.TextUnformatted($"Speed={speedAbs:f3}, SpeedH={speed.XZ().Length():f3}, SpeedV={speed.Y:f3}, Accel={accel:f3}, Azimuth={Angle.FromDirection(new(speed.XZ()))}, Altitude={Angle.FromDirection(new(speed.Y, speed.XZ().Length()))}");
+        //Service.Log($"Speed: {speedAbs:f3}, accel: {accel:f3}");
 
         ImGui.Checkbox("Jump!", ref _jump);
         ImGui.InputFloat2("Destination", ref _dest);

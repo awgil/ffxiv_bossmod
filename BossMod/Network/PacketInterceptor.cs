@@ -43,7 +43,8 @@ internal sealed class PacketInterceptor : IDisposable
         // alternative signatures - seem to be changing from build to build:
         // - E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 35
         // - E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 44 0F B6 64 24
-        var foundFetchAddress = Service.SigScanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 4C 24 ?? FF 15", out var fetchAddress);
+        var foundFetchAddress = Service.SigScanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 4C 24 ?? FF 15", out var fetchAddress)
+            || Service.SigScanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 44 0F B6 64 24", out fetchAddress);
         Service.Log($"[NPI] FetchReceivedPacket address = 0x{fetchAddress:X}");
         if (foundFetchAddress)
             _fetchHook = new(fetchAddress, FetchReceivedPacketDetour, false);
