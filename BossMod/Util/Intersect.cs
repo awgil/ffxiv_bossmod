@@ -100,4 +100,59 @@ public static class Intersect
         return dist;
     }
     public static float RayPolygon(WDir rayOriginOffset, WDir rayDir, RelSimplifiedComplexPolygon poly) => poly.Parts.Min(part => RayPolygon(rayOriginOffset, rayDir, part));
+
+    // circle-shape intersections; they return true if shapes intersect or touch, false otherwise
+    // these are used e.g. for player-initiated aoes
+    public static bool CircleCircle(WDir circleOffset, float circleRadius, float radius)
+    {
+        var rsum = circleRadius + radius;
+        return circleOffset.LengthSq() <= rsum * rsum;
+    }
+    public static bool CircleCircle(WPos circleCenter, float circleRadius, WPos center, float radius) => CircleCircle(circleCenter - center, circleRadius, radius);
+
+    public static bool CircleCone(WDir circleOffset, float circleRadius, float coneRadius, WDir coneDir, Angle halfAngle)
+    {
+        var lsq = circleOffset.LengthSq();
+        var rsq = circleRadius * circleRadius;
+        if (lsq <= rsq)
+            return true; // circle contains cone origin
+        var rsum = circleRadius + coneRadius;
+        if (lsq > rsum * rsum)
+            return false; // circle can't intersect the cone, no matter the half-angle
+        if (halfAngle.Rad >= MathF.PI)
+            return true; // it's actually a circle-circle intersection
+
+        var correctSide = circleOffset.Dot(coneDir) > 0;
+        var normal = coneDir.OrthoL();
+        var sin = halfAngle.Sin();
+        var distFromAxis = circleOffset.Dot(normal);
+        var originInCone = (halfAngle.Rad - MathF.PI * 0.5f) switch
+        {
+            < 0 => correctSide && distFromAxis * distFromAxis <= lsq * sin * sin,
+            > 0 => correctSide || distFromAxis * distFromAxis >= lsq * sin * sin,
+            _ => correctSide,
+        };
+        if (originInCone)
+            return true; // circle origin is within cone sides
+
+        // ensure normal points to the half-plane that contains circle origin
+        if (distFromAxis < 0)
+            normal = -normal;
+
+        // see whether circle intersects side
+        var side = coneDir * halfAngle.Cos() + normal * sin;
+        var distFromSide = Math.Abs(circleOffset.Cross(side));
+        if (distFromSide > circleRadius)
+            return false; // too far
+        var distAlongSide = circleOffset.Dot(side);
+        if (distAlongSide < 0)
+            return false; // behind origin; note that we don't need to test intersection with origin
+        if (distAlongSide <= coneRadius)
+            return true; // circle-side intersection
+
+        // finally, we need to check far corner
+        var corner = side * coneRadius;
+        return (circleOffset - corner).LengthSq() <= rsq;
+    }
+    public static bool CircleCone(WPos circleCenter, float circleRadius, WPos coneCenter, float coneRadius, WDir coneDir, Angle halfAngle) => CircleCone(circleCenter - coneCenter, circleRadius, coneRadius, coneDir, halfAngle);
 }
