@@ -69,7 +69,7 @@ sealed class AIManager : IDisposable
         }
 
         _controller.Update(player, _autorot.Hints);
-        _aiStatus = $"AI: {(Behaviour != null ? $"on, {(_config.FollowTarget && target != null ? $"target={target.Name}" : $"master={master?.Name}[{(int)_config.FollowSlot}]")}" : "off")}";
+        _aiStatus = $"AI: {(Behaviour != null ? $"on, {(_config.FollowTarget && target != null ? $"target={target.Name}" : $"master={master?.Name}[{((int)_config.FollowSlot) + 1}]")}" : "off")}";
         _naviStatus = $"Navi={_controller.NaviTargetPos} / {_controller.NaviTargetRot}{(_controller.ForceFacing ? " forced" : "")}";
         _ui.IsOpen = _config.Enabled && player != null && _config.DrawUI;
         _ui.WindowName = _config.ShowStatusOnTitlebar ? $"{_aiStatus}, {_naviStatus}###AI" : $"AI###AI";
@@ -233,7 +233,9 @@ sealed class AIManager : IDisposable
                 }
 
                 var masterString = messageData.Length > 2 ? $"{messageData[1]} {messageData[2]}" : messageData[1];
-                var master = WorldState.Party.WithSlot().FirstOrDefault(x => x.Item2.Name.Equals(masterString, StringComparison.OrdinalIgnoreCase));
+                var masterStringIsSlot = masterString[..4].Equals("slot", StringComparison.OrdinalIgnoreCase) ? Convert.ToInt32(masterString.Substring(4, 1)) : 0;
+                Service.Log($"{masterStringIsSlot}");
+                var master = masterStringIsSlot > 0 ? (masterStringIsSlot - 1, WorldState.Party[masterStringIsSlot - 1]) : WorldState.Party.WithSlot().FirstOrDefault(x => x.Item2.Name.Equals(masterString, StringComparison.OrdinalIgnoreCase));
 
                 if (master.Item2 is null)
                 {
