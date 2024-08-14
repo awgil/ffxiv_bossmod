@@ -18,6 +18,8 @@ sealed class AIManager : IDisposable
     private Preset? _aiPreset;
     private readonly UISimpleWindow _ui;
     private WorldState WorldState => _autorot.Bossmods.WorldState;
+    private string _aiStatus = "";
+    private string _naviStatus = "";
     public float ForceMovementIn => Behaviour?.ForceMovementIn ?? float.MaxValue;
 
     public AIBehaviour? Behaviour { get; private set; }
@@ -27,10 +29,11 @@ sealed class AIManager : IDisposable
         _autorot = autorot;
         _controller = new(amex, movement);
         _config = Service.Config.Get<AIConfig>();
-        _ui = new("AI", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
+        _ui = new("###AI", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
         {
             RespectCloseHotkey = false,
             ShowCloseButton = false,
+            WindowName = $"AI: off###AI"
         };
         Service.ChatGui.ChatMessage += OnChatMessage;
         Service.CommandManager.AddHandler("/vbmai", new Dalamud.Game.Command.CommandInfo(OnCommand) { HelpMessage = "Toggle AI mode" });
@@ -54,6 +57,8 @@ sealed class AIManager : IDisposable
 
         var player = WorldState.Party.Player();
         var master = WorldState.Party[MasterSlot];
+        var target = WorldState.Actors.Find(WorldState.Party.Player()!.TargetID);
+
         if (Behaviour != null && player != null && master != null)
         {
             Behaviour.Execute(player, master);
@@ -62,15 +67,21 @@ sealed class AIManager : IDisposable
         {
             _controller.Clear();
         }
-        _controller.Update(player, _autorot.Hints);
 
+        _controller.Update(player, _autorot.Hints);
+        _aiStatus = $"AI: {(Behaviour != null ? $"on, {(_config.FollowTarget && target != null ? $"target={target.Name}" : $"master={master?.Name}[{(int)_config.FollowSlot}]")}" : "off")}";
+        _naviStatus = $"Navi={_controller.NaviTargetPos} / {_controller.NaviTargetRot}{(_controller.ForceFacing ? " forced" : "")}";
         _ui.IsOpen = _config.Enabled && player != null && _config.DrawUI;
+        _ui.WindowName = _config.ShowStatusOnTitlebar ? $"{_aiStatus}, {_naviStatus}###AI" : $"AI###AI";
     }
 
     private void DrawOverlay()
     {
-        ImGui.TextUnformatted($"AI: {(Behaviour != null ? "on" : "off")}, master={WorldState.Party[MasterSlot]?.Name}");
-        ImGui.TextUnformatted($"Navi={_controller.NaviTargetPos} / {_controller.NaviTargetRot}{(_controller.ForceFacing ? " forced" : "")}");
+        if (!_config.ShowStatusOnTitlebar)
+        {
+            ImGui.TextUnformatted(_aiStatus);
+            ImGui.TextUnformatted(_naviStatus);
+        }
         Behaviour?.DrawDebug();
 
         using (var leaderCombo = ImRaii.Combo("Follow", Behaviour == null ? "<idle>" : (_config.FollowTarget ? "<target>" : WorldState.Party[MasterSlot]?.Name ?? "<unknown>")))

@@ -14,6 +14,9 @@ sealed class AIConfig : ConfigNode
     [PropertyDisplay("Show extra UI options")]
     public bool ShowExtraUIOptions = true;
 
+    [PropertyDisplay("Show AI/Navi status on TitleBar")]
+    public bool ShowStatusOnTitlebar = false;
+
     [PropertyDisplay("Show state in DTR Bar")]
     public bool ShowDTR = true;
 
