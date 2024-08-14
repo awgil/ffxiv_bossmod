@@ -248,8 +248,35 @@ sealed class AIManager : IDisposable
                 SwitchToFollow((int)_config.FollowSlot);
 
                 break;
+            case "ui":
+                _config.DrawUI = !_config.DrawUI;
+                break;
             default:
-                Service.Log($"[AI] Unknown command: {messageData[0]}");
+                List<string> list = [];
+                list.Add("AIConfig");
+                list.AddRange(messageData);
+
+                if (list.Count == 2)
+                {
+                    //toggle
+                    var result = Service.Config.ConsoleCommand(list);
+                    if (bool.TryParse(result[0], out var resultBool))
+                    {
+                        list.Add((!resultBool).ToString());
+                        Service.Config.ConsoleCommand(list);
+                    }
+                    else
+                        Service.Log($"[AI] Unknown command: {messageData[0]}");
+                }
+                else if (list.Count == 3)
+                {
+                    //set
+                    if (Service.Config.ConsoleCommand(list).Count > 0)
+                        Service.Log($"[AI] Unknown command: {messageData[0]}");
+                }
+                else
+                    Service.Log($"[AI] Unknown command: {messageData[0]}");
+
                 break;
         }
     }
