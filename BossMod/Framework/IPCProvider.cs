@@ -42,6 +42,19 @@ sealed class IPCProvider : IDisposable
 
             return i >= 0;
         });
+
+        Register("Presets.GetActive", () => autorotation.Preset);
+        Register("Presets.SetActive", (string name) =>
+        {
+            var preset = autorotation.Database.Presets.Presets.FirstOrDefault(x => x.Name == name);
+            if (preset != null)
+            {
+                autorotation.Preset = preset;
+                return true;
+            }
+
+            return false;
+        });
     }
 
     public void Dispose() => _disposeActions?.Invoke();
