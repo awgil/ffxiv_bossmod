@@ -271,6 +271,9 @@ sealed class AIManager : IDisposable
                 else if (list.Count == 3)
                 {
                     //set
+                    var onOffReplace = list[2].Replace("on", "true", StringComparison.InvariantCultureIgnoreCase).Replace("off", "false", StringComparison.InvariantCultureIgnoreCase);
+                    list[2] = onOffReplace;
+
                     if (Service.Config.ConsoleCommand(list).Count > 0)
                         Service.Log($"[AI] Unknown command: {messageData[0]}");
                 }
