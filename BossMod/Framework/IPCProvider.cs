@@ -22,6 +22,26 @@ sealed class IPCProvider : IDisposable
         Register("Configuration", (IReadOnlyList<string> args) => Service.Config.ConsoleCommand(args));
         //Register("InitiateCombat", () => autorotation.ClassActions?.UpdateAutoAction(CommonActions.AutoActionAIFight, float.MaxValue, true));
         //Register("SetAutorotationState", (bool state) => Service.Config.Get<AutorotationConfig>().Enabled = state);
+
+        Register("Presets.List", () => autorotation.Database.Presets.Presets);
+        Register("Presets.Get", (string name) => autorotation.Database.Presets.Presets.FirstOrDefault(x => x.Name == name));
+        Register("Presets.ForClass", (byte classId) => autorotation.Database.Presets.PresetsForClass((Class)classId));
+        Register("Presets.Create", (Preset p, bool overwrite) =>
+        {
+            if (autorotation.Database.Presets.Presets.Any(x => x.Name == p.Name) && !overwrite)
+                return false;
+
+            autorotation.Database.Presets.Modify(-1, p);
+            return true;
+        });
+        Register("Presets.Delete", (string name) =>
+        {
+            var i = autorotation.Database.Presets.Presets.FindIndex(x => x.Name == name);
+            if (i >= 0)
+                autorotation.Database.Presets.Modify(i, null);
+
+            return i >= 0;
+        });
     }
 
     public void Dispose() => _disposeActions?.Invoke();
@@ -33,9 +53,16 @@ sealed class IPCProvider : IDisposable
         _disposeActions += p.UnregisterFunc;
     }
 
-    private void Register<TRet, T1>(string name, Func<TRet, T1> func)
+    private void Register<T1, TRet>(string name, Func<T1, TRet> func)
     {
-        var p = Service.PluginInterface.GetIpcProvider<TRet, T1>("BossMod." + name);
+        var p = Service.PluginInterface.GetIpcProvider<T1, TRet>("BossMod." + name);
+        p.RegisterFunc(func);
+        _disposeActions += p.UnregisterFunc;
+    }
+
+    private void Register<T1, T2, TRet>(string name, Func<T1, T2, TRet> func)
+    {
+        var p = Service.PluginInterface.GetIpcProvider<T1, T2, TRet>("BossMod." + name);
         p.RegisterFunc(func);
         _disposeActions += p.UnregisterFunc;
     }
