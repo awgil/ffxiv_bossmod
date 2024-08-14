@@ -124,7 +124,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
                 PushOGCD(AID.PomMuse, BestAOETarget);
 
             if (ShouldLandscape(strategy))
-                PushOGCD(AID.ScenicMuse, Player);
+                PushOGCD(AID.StarryMuse, Player);
 
             if (ShouldSubtract(strategy))
                 PushOGCD(AID.SubtractivePalette, Player);
