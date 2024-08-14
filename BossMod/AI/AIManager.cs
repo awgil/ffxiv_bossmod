@@ -57,7 +57,7 @@ sealed class AIManager : IDisposable
 
         var player = WorldState.Party.Player();
         var master = WorldState.Party[MasterSlot];
-        var target = WorldState.Actors.Find(WorldState.Party.Player()!.TargetID);
+        var target = WorldState.Actors.Find(WorldState.Party.Player()?.TargetID ?? 0);
 
         if (Behaviour != null && player != null && master != null)
         {
