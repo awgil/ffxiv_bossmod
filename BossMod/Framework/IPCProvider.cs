@@ -57,7 +57,7 @@ sealed class IPCProvider : IDisposable
             return i >= 0;
         });
 
-        Register("Presets.GetActive", () => SerializeN(autorotation.Preset));
+        Register("Presets.GetActive", () => autorotation.Preset?.Name);
         Register("Presets.SetActive", (string name) =>
         {
             var preset = autorotation.Database.Presets.Presets.FirstOrDefault(x => x.Name == name);
