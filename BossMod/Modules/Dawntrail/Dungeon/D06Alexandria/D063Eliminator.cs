@@ -76,12 +76,27 @@ class HaloOfDestruction(BossModule module) : Components.SelfTargetedAOEs(module,
 class Terminate(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TerminateAOE), new AOEShapeRect(40, 5))
 {
     private readonly HaloOfDestruction? _halo = module.FindComponent<HaloOfDestruction>();
+    private static readonly AOEShapeRect _shapeOverlap = new(40, 4);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        // when overlapping with halo, halo always resolves first
-        if (_halo == null || _halo.Casters.Count == 0)
-            base.AddAIHints(slot, actor, assignment, hints);
+        // when overlapping with halo, halo always resolves first - but we still wanna stay closer to the edge
+        foreach (var aoe in ActiveAOEs(slot, actor))
+        {
+            var shape = aoe.Shape;
+            var origin = aoe.Origin;
+            if (_halo?.Casters.Count > 0)
+            {
+                shape = _shapeOverlap;
+                origin.Z += (origin.Z - Module.Center.Z) switch
+                {
+                    <= -10 => -1,
+                    >= +10 => +1,
+                    _ => 0
+                };
+            }
+            hints.AddForbiddenZone(shape, origin, aoe.Rotation, aoe.Activation);
+        }
     }
 }
 class Electray(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Electray), 6)
@@ -102,7 +117,7 @@ class CompressionImpact(BossModule module) : Components.KnockbackFromCastTarget(
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var c in Casters)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCone(c.Position, 9, Angle.FromDirection(Module.Center - c.Position), 30.Degrees()), Module.CastFinishAt(c.CastInfo)); // just a hack...
+            hints.AddForbiddenZone(ShapeDistance.InvertedCone(c.Position, 8, Angle.FromDirection(Module.Center - c.Position), 30.Degrees()), Module.CastFinishAt(c.CastInfo)); // just a hack...
     }
 }
 
