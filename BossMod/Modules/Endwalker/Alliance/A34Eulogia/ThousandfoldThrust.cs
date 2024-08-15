@@ -3,7 +3,7 @@
 class ThousandfoldThrust(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
-    private readonly static AOEShapeCone _shape = new(60, 90.Degrees());
+    private static readonly AOEShapeCone _shape = new(60, 90.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 

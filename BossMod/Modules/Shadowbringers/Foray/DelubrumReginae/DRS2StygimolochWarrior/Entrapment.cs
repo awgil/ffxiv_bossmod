@@ -216,7 +216,7 @@ class Entrapment : Components.CastCounter
 
 class EntrapmentNormal(BossModule module) : Entrapment(module, _allowedPatterns)
 {
-    private readonly static Pattern[] _allowedPatterns = [
+    private static readonly Pattern[] _allowedPatterns = [
         new() { Normal = BuildMask( 8,  9, 10, 11, 12, 13, 18, 20, 34, 35, 36, 37, 38, 40, 42, 45) },
         new() { Normal = BuildMask( 8,  9, 11, 16, 19, 20, 21, 22, 26, 30, 32, 36, 40, 41, 42, 45) },
         new() { Normal = BuildMask( 9, 11, 12, 13, 14, 16, 17, 27, 28, 32, 33, 38, 41, 42, 43, 44) },
@@ -227,7 +227,7 @@ class EntrapmentNormal(BossModule module) : Entrapment(module, _allowedPatterns)
 
 class EntrapmentInescapable(BossModule module) : Entrapment(module, _allowedPatterns)
 {
-    private readonly static Pattern[] _allowedPatterns = [
+    private static readonly Pattern[] _allowedPatterns = [
         new() { Normal = BuildMask(3, 4,  5,  8, 20, 25, 38, 43, 46, 49, 52), Toad = BuildMask(10, 50, 54), Ice = BuildMask(40), Mini = BuildMask(29) },
         new() { Normal = BuildMask(2, 5,  8, 11, 14, 16, 25, 29, 46, 49, 51), Toad = BuildMask( 0, 4, 44),  Ice = BuildMask(50), Mini = BuildMask(34) },
         new() { Normal = BuildMask(5, 8, 11, 16, 18, 22, 24, 29, 43, 49, 53), Toad = BuildMask( 6, 33, 38), Ice = BuildMask( 4), Mini = BuildMask(48) },

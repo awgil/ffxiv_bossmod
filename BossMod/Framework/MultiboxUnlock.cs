@@ -6,7 +6,7 @@ namespace BossMod;
 // utility to remove anti-multibox check
 public static partial class MultiboxUnlock
 {
-    public unsafe static void Exec()
+    public static unsafe void Exec()
     {
         foreach (var handle in EnumHandles())
         {
@@ -24,7 +24,7 @@ public static partial class MultiboxUnlock
         }
     }
 
-    private unsafe static List<ulong> EnumHandles()
+    private static unsafe List<ulong> EnumHandles()
     {
         List<ulong> ret = [];
         uint bufferSize = 0x8000;
@@ -57,7 +57,7 @@ public static partial class MultiboxUnlock
     }
 
     // both OBJECT_NAME_INFORMATION and OBJECT_TYPE_INFORMATION have UNICODE_STRING as first member, so same thing works for both
-    private unsafe static string ObjectNameOrTypeName(ulong handle, bool typeName)
+    private static unsafe string ObjectNameOrTypeName(ulong handle, bool typeName)
     {
         uint bufferSize = 1024;
         var buffer = new byte[bufferSize];

@@ -30,7 +30,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
         base.Dispose(disposing);
     }
 
-    public unsafe override void Draw()
+    public override unsafe void Draw()
     {
         var playerCID = UIState.Instance()->PlayerState.ContentId;
         var player = Service.ClientState.LocalPlayer;

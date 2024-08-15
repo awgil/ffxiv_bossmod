@@ -6,7 +6,7 @@ using Lumina.Excel.GeneratedSheets;
 
 namespace BossMod;
 
-public unsafe sealed class DebugAddon : IDisposable
+public sealed unsafe class DebugAddon : IDisposable
 {
     delegate nint AddonReceiveEventDelegate(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventData, ulong* inputData);
     delegate void* AgentReceiveEventDelegate(AgentInterface* self, void* eventData, AtkValue* values, int valueCount, ulong eventKind);

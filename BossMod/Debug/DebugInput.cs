@@ -66,7 +66,7 @@ public unsafe struct CameraX
     [FieldOffset(0x14C)] public float DirVMax;
 }
 
-unsafe sealed class DebugInput : IDisposable
+internal sealed unsafe class DebugInput : IDisposable
 {
     private delegate byte ConvertVirtualKeyDelegate(int vkCode);
     private readonly ConvertVirtualKeyDelegate _convertVirtualKey;
