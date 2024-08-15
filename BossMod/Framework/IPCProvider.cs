@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Game.ClientState.Objects.Types;
+using System.Text.Json;
 
 namespace BossMod;
 
@@ -7,8 +8,17 @@ sealed class IPCProvider : IDisposable
 {
     private Action? _disposeActions;
 
+    private JsonSerializerOptions _jsonOptions;
+
+    private Preset? Deserialize(string p) => JsonSerializer.Deserialize<Preset>(p);
+    private string Serialize(Preset p) => JsonSerializer.Serialize(p);
+    private string? SerializeN(Preset? p) => p == null ? null : JsonSerializer.Serialize(p);
+    private List<string> Serialize(IEnumerable<Preset> p) => p.Select(Serialize).ToList();
+
     public IPCProvider(RotationModuleManager autorotation, ActionManagerEx amex, MovementOverride movement)
     {
+        _jsonOptions = Serialization.BuildSerializationOptions();
+
         // TODO: this really needs to be reconsidered, this exposes implementation detail
         // for usecase description, see PR 330 - really AI itself should handle heal range
         Register("ActiveModuleComponentBaseList", () => autorotation.Bossmods.ActiveModule?.Components.Select(c => c.GetType().BaseType?.Name).ToList() ?? default);
@@ -22,6 +32,43 @@ sealed class IPCProvider : IDisposable
         Register("Configuration", (IReadOnlyList<string> args) => Service.Config.ConsoleCommand(args));
         //Register("InitiateCombat", () => autorotation.ClassActions?.UpdateAutoAction(CommonActions.AutoActionAIFight, float.MaxValue, true));
         //Register("SetAutorotationState", (bool state) => Service.Config.Get<AutorotationConfig>().Enabled = state);
+
+        Register("Presets.List", () => Serialize(autorotation.Database.Presets.Presets));
+        Register("Presets.Get", (string name) => SerializeN(autorotation.Database.Presets.Presets.FirstOrDefault(x => x.Name == name)));
+        Register("Presets.ForClass", (byte classId) => Serialize(autorotation.Database.Presets.PresetsForClass((Class)classId)));
+        Register("Presets.Create", (string presetSerialized, bool overwrite) =>
+        {
+            var p = Deserialize(presetSerialized);
+            if (p == null)
+                return false;
+
+            if (autorotation.Database.Presets.Presets.Any(x => x.Name == p.Name) && !overwrite)
+                return false;
+
+            autorotation.Database.Presets.Modify(-1, p);
+            return true;
+        });
+        Register("Presets.Delete", (string name) =>
+        {
+            var i = autorotation.Database.Presets.Presets.FindIndex(x => x.Name == name);
+            if (i >= 0)
+                autorotation.Database.Presets.Modify(i, null);
+
+            return i >= 0;
+        });
+
+        Register("Presets.GetActive", () => autorotation.Preset?.Name);
+        Register("Presets.SetActive", (string name) =>
+        {
+            var preset = autorotation.Database.Presets.Presets.FirstOrDefault(x => x.Name == name);
+            if (preset != null)
+            {
+                autorotation.Preset = preset;
+                return true;
+            }
+
+            return false;
+        });
     }
 
     public void Dispose() => _disposeActions?.Invoke();
@@ -33,9 +80,16 @@ sealed class IPCProvider : IDisposable
         _disposeActions += p.UnregisterFunc;
     }
 
-    private void Register<TRet, T1>(string name, Func<TRet, T1> func)
+    private void Register<T1, TRet>(string name, Func<T1, TRet> func)
     {
-        var p = Service.PluginInterface.GetIpcProvider<TRet, T1>("BossMod." + name);
+        var p = Service.PluginInterface.GetIpcProvider<T1, TRet>("BossMod." + name);
+        p.RegisterFunc(func);
+        _disposeActions += p.UnregisterFunc;
+    }
+
+    private void Register<T1, T2, TRet>(string name, Func<T1, T2, TRet> func)
+    {
+        var p = Service.PluginInterface.GetIpcProvider<T1, T2, TRet>("BossMod." + name);
         p.RegisterFunc(func);
         _disposeActions += p.UnregisterFunc;
     }
