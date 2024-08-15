@@ -144,7 +144,7 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : Rotatio
         var angle = wantIn && !wantBait ? nextBait switch
         {
             2 => 135.Degrees(),
-            4 => -135.Degrees(),
+            4 => baitNear ? 180.Degrees() : -135.Degrees(),
             _ => 180.Degrees()
         } : 180.Degrees();
         var safePos = module.Center + safeDist * angle.ToDirection();

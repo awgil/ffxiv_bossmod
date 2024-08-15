@@ -184,7 +184,11 @@ class ParticipantInfo : CommonEnumInfo
     private StringBuilder AddBossModuleStub(StringBuilder sb, uint oid, ParticipantData data, bool withStates)
     {
         var name = GuessName(oid, data);
-        AddOIDEnum(sb, oid);
+        sb.AppendLine("public enum OID : uint");
+        sb.AppendLine("{");
+        sb.AppendLine($"    Boss = 0x{oid:X},");
+        sb.AppendLine($"    Helper = 0x233C,");
+        sb.AppendLine("}");
         sb.AppendLine();
         sb.AppendLine($"class {name}States : StateMachineBuilder");
         sb.AppendLine("{");
@@ -208,10 +212,7 @@ class ParticipantInfo : CommonEnumInfo
         sb.AppendLine("}");
         sb.AppendLine();
         sb.AppendLine($"[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = {data.Zones.FirstOrDefault().cfcId}, NameID = {data.Names.FirstOrDefault().id})]");
-        sb.AppendLine($"public class {name} : BossModule");
-        sb.AppendLine("{");
-        sb.AppendLine($"    public {name}(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsCircle(20)) {{ }}");
-        sb.AppendLine("}");
+        sb.AppendLine($"public class {name}(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));");
         return sb;
     }
 }

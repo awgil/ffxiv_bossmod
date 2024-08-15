@@ -512,7 +512,7 @@ class AbilityInfo : CommonEnumInfo
 
     private void AddActionData(Replay replay, Replay.Encounter? enc, Replay.Action action)
     {
-        if (action.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
+        if (action.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.DutySupport)
             return;
 
         var data = _data.GetOrAdd(action.ID);
@@ -533,7 +533,7 @@ class AbilityInfo : CommonEnumInfo
 
     private void AddCastData(Replay replay, Replay.Participant caster, Replay.Cast cast)
     {
-        if (caster.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
+        if (caster.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.DutySupport)
             return;
 
         var data = _data.GetOrAdd(cast.ID);
@@ -550,7 +550,7 @@ class AbilityInfo : CommonEnumInfo
     }
 
     private static IEnumerable<Replay.Participant> AlivePlayersAt(Replay r, DateTime t)
-        => r.Participants.Where(p => p.Type is ActorType.Player or ActorType.Chocobo && p.ExistsInWorldAt(t) && !p.DeadAt(t));
+        => r.Participants.Where(p => p.Type is ActorType.Player or ActorType.Chocobo or ActorType.DutySupport && p.ExistsInWorldAt(t) && !p.DeadAt(t));
 
     private IEnumerable<string> ActionTargetStrings(ActionData data)
     {
@@ -583,7 +583,7 @@ class AbilityInfo : CommonEnumInfo
         4 => $"range {data.EffectRange}+R width {data.XAxisModifier} rect",
         5 => $"range {data.EffectRange}+R circle",
         8 => $"width {data.XAxisModifier} rect charge",
-        10 => $"range ?-{data.EffectRange} donut",
+        10 => $"range {DetermineDonutInner(data).ToString() ?? "?"}-{data.EffectRange} donut",
         11 => $"range {data.EffectRange} width {data.XAxisModifier} cross",
         12 => $"range {data.EffectRange} width {data.XAxisModifier} rect",
         13 => $"range {data.EffectRange} {DetermineConeAngle(data)?.ToString() ?? "?"}-degree cone",
@@ -599,5 +599,23 @@ class AbilityInfo : CommonEnumInfo
         var path = omen.Path.ToString();
         var pos = path.IndexOf("fan", StringComparison.Ordinal);
         return pos >= 0 && pos + 6 <= path.Length && int.TryParse(path.AsSpan(pos + 3, 3), out var angle) ? angle.Degrees() : null;
+    }
+
+    private float? DetermineDonutInner(Lumina.Excel.GeneratedSheets.Action data)
+    {
+        var omen = data.Omen.Value;
+        if (omen == null)
+            return null;
+
+        var path = omen.Path.ToString();
+        var pos = path.IndexOf("sircle_", StringComparison.Ordinal);
+        if (pos >= 0 && pos + 11 <= path.Length && int.TryParse(path.AsSpan(pos + 9, 2), out var inner))
+            return inner;
+
+        pos = path.IndexOf("circle", StringComparison.Ordinal);
+        if (pos >= 0 && pos + 10 <= path.Length && int.TryParse(path.AsSpan(pos + 8, 2), out inner))
+            return inner;
+
+        return null;
     }
 }

@@ -81,7 +81,7 @@ class OpList(Replay replay, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldSt
 
     private bool FilterInterestingStatus(Replay.Status s)
     {
-        if (s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
+        if (s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.DutySupport)
             return false; // don't care about statuses applied by players
         if (s.Target.Type is ActorType.Pet)
             return false; // don't care about statuses applied to pets

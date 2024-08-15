@@ -16,6 +16,7 @@ public class GenericWildCharge(BossModule module, float halfWidth, ActionID aid 
     public float HalfWidth = halfWidth;
     public float FixedLength = fixedLength; // if == 0, length is up to target
     public Actor? Source; // if null, mechanic is not active
+    public DateTime Activation;
     public PlayerRole[] PlayerRoles = new PlayerRole[PartyState.MaxAllianceSize];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -63,7 +64,22 @@ public class GenericWildCharge(BossModule module, float halfWidth, ActionID aid 
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        // TODO: implement
+        switch (PlayerRoles[slot])
+        {
+            case PlayerRole.Ignore:
+            case PlayerRole.Target: // TODO: consider hints for target?.. best is just to stay in place i guess...
+            case PlayerRole.TargetNotFirst: // TODO: consider some hint to hide behind others?..
+                break;
+            case PlayerRole.Share: // TODO: some hint to be first in line...
+            case PlayerRole.ShareNotFirst:
+                foreach (var aoe in EnumerateAOEs())
+                    hints.AddForbiddenZone(ShapeDistance.InvertedRect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth), Activation);
+                break;
+            case PlayerRole.Avoid:
+                foreach (var aoe in EnumerateAOEs())
+                    hints.AddForbiddenZone(ShapeDistance.Rect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth), Activation);
+                break;
+        }
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
@@ -98,4 +114,25 @@ public class GenericWildCharge(BossModule module, float halfWidth, ActionID aid 
 
     private bool AnyRoleCloser((WPos origin, WDir dir, float length) aoe, PlayerRole role1, PlayerRole role2, float thresholdSq)
         => Raid.WithSlot().Any(ia => (PlayerRoles[ia.Item1] == role1 || PlayerRoles[ia.Item1] == role2) && InAOE(aoe, ia.Item2) && (ia.Item2.Position - aoe.origin).LengthSq() < thresholdSq);
+}
+
+// simple line stack where target is determined by 'target select' cast
+public class SimpleLineStack(BossModule module, float halfWidth, float fixedLength, ActionID aidTargetSelect, ActionID aidResolve, float activationDelay) : GenericWildCharge(module, halfWidth, aidResolve, fixedLength)
+{
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == aidTargetSelect)
+        {
+            Source = Module.PrimaryActor;
+            Activation = WorldState.FutureTime(activationDelay);
+            foreach (var (i, p) in Raid.WithSlot(true))
+                PlayerRoles[i] = p.InstanceID == spell.MainTargetID ? PlayerRole.Target : PlayerRole.Share;
+        }
+        else if (spell.Action == WatchedAction)
+        {
+            ++NumCasts;
+            Source = null;
+            Array.Fill(PlayerRoles, PlayerRole.Ignore);
+        }
+    }
 }
