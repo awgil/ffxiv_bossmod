@@ -18,6 +18,8 @@ sealed class AIManager : IDisposable
     private Preset? _aiPreset;
     private readonly UISimpleWindow _ui;
     private WorldState WorldState => _autorot.Bossmods.WorldState;
+    private string _aiStatus = "";
+    private string _naviStatus = "";
     public float ForceMovementIn => Behaviour?.ForceMovementIn ?? float.MaxValue;
 
     public AIBehaviour? Behaviour { get; private set; }
@@ -27,10 +29,11 @@ sealed class AIManager : IDisposable
         _autorot = autorot;
         _controller = new(amex, movement);
         _config = Service.Config.Get<AIConfig>();
-        _ui = new("AI", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
+        _ui = new("###AI", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
         {
             RespectCloseHotkey = false,
             ShowCloseButton = false,
+            WindowName = $"AI: off###AI"
         };
         Service.ChatGui.ChatMessage += OnChatMessage;
         Service.CommandManager.AddHandler("/vbmai", new Dalamud.Game.Command.CommandInfo(OnCommand) { HelpMessage = "Toggle AI mode" });
@@ -54,6 +57,8 @@ sealed class AIManager : IDisposable
 
         var player = WorldState.Party.Player();
         var master = WorldState.Party[MasterSlot];
+        var target = WorldState.Actors.Find(WorldState.Party.Player()?.TargetID ?? 0);
+
         if (Behaviour != null && player != null && master != null)
         {
             Behaviour.Execute(player, master);
@@ -62,15 +67,21 @@ sealed class AIManager : IDisposable
         {
             _controller.Clear();
         }
-        _controller.Update(player, _autorot.Hints);
 
+        _controller.Update(player, _autorot.Hints);
+        _aiStatus = $"AI: {(Behaviour != null ? $"on, {(_config.FollowTarget && target != null ? $"target={target.Name}" : $"master={master?.Name}[{((int)_config.FollowSlot) + 1}]")}" : "off")}";
+        _naviStatus = $"Navi={_controller.NaviTargetPos} / {_controller.NaviTargetRot}{(_controller.ForceFacing ? " forced" : "")}";
         _ui.IsOpen = _config.Enabled && player != null && _config.DrawUI;
+        _ui.WindowName = _config.ShowStatusOnTitlebar ? $"{_aiStatus}, {_naviStatus}###AI" : $"AI###AI";
     }
 
     private void DrawOverlay()
     {
-        ImGui.TextUnformatted($"AI: {(Behaviour != null ? "on" : "off")}, master={WorldState.Party[MasterSlot]?.Name}");
-        ImGui.TextUnformatted($"Navi={_controller.NaviTargetPos} / {_controller.NaviTargetRot}{(_controller.ForceFacing ? " forced" : "")}");
+        if (!_config.ShowStatusOnTitlebar)
+        {
+            ImGui.TextUnformatted(_aiStatus);
+            ImGui.TextUnformatted(_naviStatus);
+        }
         Behaviour?.DrawDebug();
 
         using (var leaderCombo = ImRaii.Combo("Follow", Behaviour == null ? "<idle>" : (_config.FollowTarget ? "<target>" : WorldState.Party[MasterSlot]?.Name ?? "<unknown>")))
@@ -222,7 +233,9 @@ sealed class AIManager : IDisposable
                 }
 
                 var masterString = messageData.Length > 2 ? $"{messageData[1]} {messageData[2]}" : messageData[1];
-                var master = WorldState.Party.WithSlot().FirstOrDefault(x => x.Item2.Name.Equals(masterString, StringComparison.OrdinalIgnoreCase));
+                var masterStringIsSlot = masterString[..4].Equals("slot", StringComparison.OrdinalIgnoreCase) ? Convert.ToInt32(masterString.Substring(4, 1)) : 0;
+                Service.Log($"{masterStringIsSlot}");
+                var master = masterStringIsSlot > 0 ? (masterStringIsSlot - 1, WorldState.Party[masterStringIsSlot - 1]) : WorldState.Party.WithSlot().FirstOrDefault(x => x.Item2.Name.Equals(masterString, StringComparison.OrdinalIgnoreCase));
 
                 if (master.Item2 is null)
                 {
@@ -235,8 +248,38 @@ sealed class AIManager : IDisposable
                 SwitchToFollow((int)_config.FollowSlot);
 
                 break;
+            case "ui":
+                _config.DrawUI = !_config.DrawUI;
+                break;
             default:
-                Service.Log($"[AI] Unknown command: {messageData[0]}");
+                List<string> list = [];
+                list.Add("AIConfig");
+                list.AddRange(messageData);
+
+                if (list.Count == 2)
+                {
+                    //toggle
+                    var result = Service.Config.ConsoleCommand(list);
+                    if (bool.TryParse(result[0], out var resultBool))
+                    {
+                        list.Add((!resultBool).ToString());
+                        Service.Config.ConsoleCommand(list);
+                    }
+                    else
+                        Service.Log($"[AI] Unknown command: {messageData[0]}");
+                }
+                else if (list.Count == 3)
+                {
+                    //set
+                    var onOffReplace = list[2].Replace("on", "true", StringComparison.InvariantCultureIgnoreCase).Replace("off", "false", StringComparison.InvariantCultureIgnoreCase);
+                    list[2] = onOffReplace;
+
+                    if (Service.Config.ConsoleCommand(list).Count > 0)
+                        Service.Log($"[AI] Unknown command: {messageData[0]}");
+                }
+                else
+                    Service.Log($"[AI] Unknown command: {messageData[0]}");
+
                 break;
         }
     }
