@@ -82,7 +82,7 @@ public sealed class Plugin : IDalamudPlugin
         _rotation = new(_rotationDB, _bossmod, _hints);
         _ai = new(_rotation, _amex, _movementOverride);
         _broadcast = new();
-        _ipc = new(_rotation, _amex, _movementOverride);
+        _ipc = new(_rotation, _amex, _movementOverride, _ai);
         _dtr = new(_rotation, _ai);
 
         _configUI = new(Service.Config, _ws, _rotationDB);

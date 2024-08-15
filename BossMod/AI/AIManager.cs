@@ -75,6 +75,13 @@ sealed class AIManager : IDisposable
         _ui.WindowName = _config.ShowStatusOnTitlebar ? $"{_aiStatus}, {_naviStatus}###AI" : $"AI###AI";
     }
 
+    public void SetAIPreset(Preset? p)
+    {
+        _aiPreset = p;
+        if (Behaviour != null)
+            Behaviour.AIPreset = p;
+    }
+
     private void DrawOverlay()
     {
         if (!_config.ShowStatusOnTitlebar)
@@ -135,9 +142,7 @@ sealed class AIManager : IDisposable
                 {
                     if (ImGui.Selectable(p.Name, p == _aiPreset))
                     {
-                        _aiPreset = p;
-                        if (Behaviour != null)
-                            Behaviour.AIPreset = p;
+                        SetAIPreset(p);
                     }
                 }
             }

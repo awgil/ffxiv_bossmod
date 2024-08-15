@@ -1,4 +1,5 @@
-﻿using BossMod.Autorotation;
+﻿using BossMod.AI;
+using BossMod.Autorotation;
 using Dalamud.Game.ClientState.Objects.Types;
 using System.Text.Json;
 
@@ -8,17 +9,13 @@ sealed class IPCProvider : IDisposable
 {
     private Action? _disposeActions;
 
-    private JsonSerializerOptions _jsonOptions;
-
     private Preset? Deserialize(string p) => JsonSerializer.Deserialize<Preset>(p);
     private string Serialize(Preset p) => JsonSerializer.Serialize(p);
     private string? SerializeN(Preset? p) => p == null ? null : JsonSerializer.Serialize(p);
     private List<string> Serialize(IEnumerable<Preset> p) => p.Select(Serialize).ToList();
 
-    public IPCProvider(RotationModuleManager autorotation, ActionManagerEx amex, MovementOverride movement)
+    public IPCProvider(RotationModuleManager autorotation, ActionManagerEx amex, MovementOverride movement, AIManager ai)
     {
-        _jsonOptions = Serialization.BuildSerializationOptions();
-
         // TODO: this really needs to be reconsidered, this exposes implementation detail
         // for usecase description, see PR 330 - really AI itself should handle heal range
         Register("ActiveModuleComponentBaseList", () => autorotation.Bossmods.ActiveModule?.Components.Select(c => c.GetType().BaseType?.Name).ToList() ?? default);
@@ -69,6 +66,8 @@ sealed class IPCProvider : IDisposable
 
             return false;
         });
+
+        Register("AI.SetPreset", (string name) => ai.SetAIPreset(autorotation.Database.Presets.Presets.FirstOrDefault(x => x.Name == name)));
     }
 
     public void Dispose() => _disposeActions?.Invoke();
@@ -101,10 +100,10 @@ sealed class IPCProvider : IDisposable
     //    _disposeActions += p.UnregisterAction;
     //}
 
-    //private void Register<T1>(string name, Action<T1> func)
-    //{
-    //    var p = Service.PluginInterface.GetIpcProvider<T1, object>("BossMod." + name);
-    //    p.RegisterAction(func);
-    //    _disposeActions += p.UnregisterAction;
-    //}
+    private void Register<T1>(string name, Action<T1> func)
+    {
+        var p = Service.PluginInterface.GetIpcProvider<T1, object>("BossMod." + name);
+        p.RegisterAction(func);
+        _disposeActions += p.UnregisterAction;
+    }
 }
