@@ -51,7 +51,7 @@ public abstract class RoleTankUtility(RotationModuleManager manager, Actor playe
         var stanceOption = stance.As<StanceOption>();
         if (stanceOption != StanceOption.None)
         {
-            var haveStance = Player.FindStatus(stanceOption) != null;
+            var haveStance = Player.FindStatus(stanceStatus) != null;
             var wantStance = stanceOption == StanceOption.Apply;
             if (haveStance != wantStance)
                 Hints.ActionsToExecute.Push(wantStance ? stanceApply : stanceRemove, Player, stance.Priority(), stance.Value.ExpireIn);
