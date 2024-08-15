@@ -102,7 +102,7 @@ class CompressionImpact(BossModule module) : Components.KnockbackFromCastTarget(
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var c in Casters)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCone(c.Position, 10, Angle.FromDirection(Module.Center - c.Position), 30.Degrees()), Module.CastFinishAt(c.CastInfo)); // just a hack...
+            hints.AddForbiddenZone(ShapeDistance.InvertedCone(c.Position, 9, Angle.FromDirection(Module.Center - c.Position), 30.Degrees()), Module.CastFinishAt(c.CastInfo)); // just a hack...
     }
 }
 
