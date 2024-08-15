@@ -91,8 +91,8 @@ public sealed class AIHintsBuilder : IDisposable
             //6 => ???
             //7 => new AOEShapeCircle(data.EffectRange), - used for player ground-targeted circles a-la asylum
             //8 => charge rect
-            //10 => new AOEShapeDonut(actor.HitboxRadius, data.EffectRange), // TODO: find a way to determine inner radius (omen examples: 28762 - 4/40 - gl_sircle_4004bp1)
-            //11 => cross == 12 + another 12 rotated 90 degrees
+            10 => new AOEShapeDonut(DetermineDonutInner(data), data.EffectRange),
+            11 => new AOEShapeCross(data.EffectRange, data.XAxisModifier * 0.5f),
             12 => new AOEShapeRect(data.EffectRange, data.XAxisModifier * 0.5f),
             13 => new AOEShapeCone(data.EffectRange, DetermineConeAngle(data) * 0.5f),
             _ => null
@@ -118,18 +118,32 @@ public sealed class AIHintsBuilder : IDisposable
         }
         var path = omen.Path.ToString();
         var pos = path.IndexOf("fan", StringComparison.Ordinal);
-        if (pos < 0 || pos + 6 > path.Length)
+        if (pos < 0 || pos + 6 > path.Length || !int.TryParse(path.AsSpan(pos + 3, 3), out var angle))
         {
             Service.Log($"[AutoHints] Can't determine angle from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
             return 180.Degrees();
         }
-
-        if (!int.TryParse(path.AsSpan(pos + 3, 3), out var angle))
-        {
-            Service.Log($"[AutoHints] Can't determine angle from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
-            return 180.Degrees();
-        }
-
         return angle.Degrees();
+    }
+
+    private float DetermineDonutInner(Lumina.Excel.GeneratedSheets.Action data)
+    {
+        var omen = data.Omen.Value;
+        if (omen == null)
+        {
+            Service.Log($"[AutoHints] No omen data for {data.RowId} '{data.Name}'...");
+            return 0;
+        }
+        var path = omen.Path.ToString();
+        var pos = path.IndexOf("sircle_", StringComparison.Ordinal);
+        if (pos >= 0 && pos + 11 <= path.Length && int.TryParse(path.AsSpan(pos + 9, 2), out var inner))
+            return inner;
+
+        pos = path.IndexOf("circle", StringComparison.Ordinal);
+        if (pos >= 0 && pos + 10 <= path.Length && int.TryParse(path.AsSpan(pos + 8, 2), out inner))
+            return inner;
+
+        Service.Log($"[AutoHints] Can't determine inner radius from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
+        return 0;
     }
 }

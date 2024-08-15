@@ -530,7 +530,7 @@ class ClassDefinitions
             4 => $"AOE {data.EffectRange}+R width {data.XAxisModifier} rect",
             5 => $"AOE {data.EffectRange}+R circle",
             8 => $"AOE width {data.XAxisModifier} rect charge",
-            10 => $"AOE ?-{data.EffectRange} donut",
+            10 => $"AOE {DetermineDonutInner(data).ToString() ?? "?"}-{data.EffectRange} donut",
             11 => $"AOE {data.EffectRange} width {data.XAxisModifier} cross",
             12 => $"AOE {data.EffectRange} width {data.XAxisModifier} rect",
             13 => $"AOE {data.EffectRange} {DetermineConeAngle(data)?.ToString() ?? "?"}-degree cone",
@@ -546,6 +546,24 @@ class ClassDefinitions
             var path = omen.Path.ToString();
             var pos = path.IndexOf("fan", StringComparison.Ordinal);
             return pos >= 0 && pos + 6 <= path.Length && int.TryParse(path.AsSpan(pos + 3, 3), out var angle) ? angle.Degrees() : null;
+        }
+
+        private float? DetermineDonutInner(Lumina.Excel.GeneratedSheets.Action data)
+        {
+            var omen = data.Omen.Value;
+            if (omen == null)
+                return null;
+
+            var path = omen.Path.ToString();
+            var pos = path.IndexOf("sircle_", StringComparison.Ordinal);
+            if (pos >= 0 && pos + 11 <= path.Length && int.TryParse(path.AsSpan(pos + 9, 2), out var inner))
+                return inner;
+
+            pos = path.IndexOf("circle", StringComparison.Ordinal);
+            if (pos >= 0 && pos + 10 <= path.Length && int.TryParse(path.AsSpan(pos + 8, 2), out inner))
+                return inner;
+
+            return null;
         }
     }
 
