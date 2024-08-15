@@ -312,6 +312,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
+        NextGCD = default;
+        NextGCDPrio = 0;
+
         var pelo = Player.FindStatus(BossMod.BRD.SID.Peloton);
         PelotonLeft = pelo != null ? StatusDuration(pelo.Value.ExpireAt) : 0;
         SwiftcastLeft = StatusLeft(BossMod.WHM.SID.Swiftcast);
