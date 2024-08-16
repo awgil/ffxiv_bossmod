@@ -43,6 +43,7 @@ class Disassembly(BossModule module) : Components.RaidwideCast(module, ActionID.
 class SupercellMatrix(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SupercellMatrix), new AOEShapeRect(28.2843f, 28.2843f));
 class SupercellMatrixRect(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SupercellMatrixRect), new AOEShapeRect(55, 4));
 class CentralizedCurrent(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CentralizedCurrent), new AOEShapeRect(45, 7.5f, 45));
+
 class SplitCurrent(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SplitCurrent))
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -66,6 +67,7 @@ class SplitCurrent(BossModule module) : Components.GenericAOEs(module, ActionID.
             _aoes.Clear();
     }
 }
+
 class StaticSpark(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.StaticSpark), 6)
 {
     private readonly SupercellMatrixRect? _supercell = module.FindComponent<SupercellMatrixRect>();
@@ -77,9 +79,11 @@ class StaticSpark(BossModule module) : Components.SpreadFromCastTargets(module, 
             base.AddAIHints(slot, actor, assignment, hints);
     }
 }
+
 class Amalgamight(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Amalgamight));
 class Voltburst(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Voltburst), 6);
 class Superbolt(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.SuperboltAOE), 6, 4);
+
 class TernaryCharge(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30)])
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

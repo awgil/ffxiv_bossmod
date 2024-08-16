@@ -67,7 +67,9 @@ class PathoPurge(BossModule module) : Components.GenericAOEs(module)
             AOEs.RemoveAt(0);
     }
 }
+
 class ImmuneResponseFront(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ImmuneResponseFrontAOE), new AOEShapeCone(40, 60.Degrees())); // TODO: verify angle
+
 class ImmuneResponseBack(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ImmuneResponseBackAOE), new AOEShapeCone(40, 120.Degrees())) // TODO: verify angle
 {
     private readonly PathoPurge? _purge = module.FindComponent<PathoPurge>();
@@ -84,6 +86,7 @@ class Disinfection(BossModule module) : Components.BaitAwayIcon(module, new AOES
             hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 6), b.Activation);
     }
 }
+
 class Quarantine(BossModule module) : Components.UniformStackSpread(module, 6, 0, 3)
 {
     private BitMask _forbidden;
