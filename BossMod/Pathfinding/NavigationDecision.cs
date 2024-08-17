@@ -128,11 +128,13 @@ public struct NavigationDecision
                 return new() { Destination = null, LeewaySeconds = float.MaxValue, TimeToGoal = 0, Map = ctx.Map, MapGoal = maxGoal, DecisionType = Decision.SafeBlocked };
             }
 
+            var playerOrientationToTarget = (player.Position - targetPos.Value).Normalized().Dot(targetRot.ToDirection());
+
             bool inPositional = positional switch
             {
-                Positional.Flank => MathF.Abs(targetRot.ToDirection().Dot((targetPos.Value - player.Position).Normalized())) < 0.7071067f,
-                Positional.Rear => targetRot.ToDirection().Dot((targetPos.Value - player.Position).Normalized()) < -0.7071068f,
-                Positional.Front => targetRot.ToDirection().Dot((targetPos.Value - player.Position).Normalized()) > 0.999f, // ~2.5 degrees - assuming max position error of 0.1, this requires us to stay at least at R=~2.25
+                Positional.Rear => playerOrientationToTarget < -0.7071068f,
+                Positional.Flank => MathF.Abs(playerOrientationToTarget) < 0.7071068f,
+                Positional.Front => playerOrientationToTarget > 0.999f, // ~2.5 degrees - assuming max position error of 0.1, this requires us to stay at least at R=~2.25
                 _ => true
             };
             if (!inPositional)

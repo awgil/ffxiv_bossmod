@@ -95,6 +95,11 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         // typically it would switch targets for multidotting, or to hit more targets with AOE
         // in case of ties, it should prefer to return original target - this would prevent useless switches
         var targeting = new Targeting(target!, autorot.Hints.RecommendedRangeToTarget - 0.1f);
+
+        var pos = autorot.Hints.RecommendedPositional;
+        if (targeting.Target.Actor == pos.Target)
+            targeting.PreferredPosition = pos.Pos;
+
         return /*autorot.SelectTargetForAI(targeting) ??*/ targeting;
     }
 
@@ -112,7 +117,8 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         }
 
         // if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting (TODO: reconsider?)
-        if (targeting.Target.Actor.TargetID == player.InstanceID && targeting.Target.Actor.CastInfo == null)
+        // skip if targeting a dummy, they don't rotate
+        if (targeting.Target.Actor.TargetID == player.InstanceID && targeting.Target.Actor.CastInfo == null && targeting.Target.Actor.OID != 0x385)
             targeting.PreferredPosition = Positional.Any;
     }
 
