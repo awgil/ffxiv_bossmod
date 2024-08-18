@@ -43,5 +43,13 @@ This is still work-in-progress, in future it should allow creating cooldown plan
 # Getting help
 
 When you've found a bug or think you have some issue with the plugin, please do the following:
-1. Set log level to 'debug' (type /xldev, select Dalamud -> Set log level -> Debug), reproduce the issue and find logs (typically found at C:\Users\username\AppData\Roaming\XIVLauncher\dalamud.log).
-2. Create a new issue in github, provide a detailed description (ideally include steps to reproduce the issue) and attach logs.
+1. Ask in discord; it might be a known issue, or people might help you quickly.
+2. Gather extra information to help me investigate the issue:
+   1. Set log level to 'debug' (type `/xldev`, select Dalamud -> Set log level -> Debug)
+   2. Start replay recording (type `/vbm r`, hit Start Recording)
+   3. Reproduce the issue
+   4. Stop replay recording (hit Stop Recording)
+   5. Find logs (typically at `C:\Users\username\AppData\Roaming\XIVLauncher\dalamud.log`) and replay (typically at `C:\Users\username\AppData\Roaming\XIVLauncher\pluginConfigs\BossMod\replays`)
+3. Create a new issue in github, provide a detailed description (include steps to reproduce the issue) and attach logs and replay.
+4. **Do not** create github issues to request new modules, ask questions, etc - discord is much more convenient for these kind of things.
+5. **Do** create github issues for very concrete bugs (if you have a replay/logs/easy way to reproduce what is obviously a problem) or very specific feature requests (please discuss in discord first to understand whether there's any interest in it).
