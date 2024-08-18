@@ -517,11 +517,11 @@ class AbilityInfo : CommonEnumInfo
 
         var data = _data.GetOrAdd(action.ID);
         data.CasterOIDs.Add(action.Source.OID);
-        if (action.MainTarget != null)
+        if (action.MainTarget != null && action.MainTarget.Type is not ActorType.Player and not ActorType.DutySupport)
             data.TargetOIDs.Add(action.MainTarget.OID);
         data.SeenTargetSelf |= action.Source == action.MainTarget;
         data.SeenTargetOtherEnemy |= action.MainTarget != action.Source && action.MainTarget?.Type == ActorType.Enemy;
-        data.SeenTargetPlayer |= action.MainTarget?.Type == ActorType.Player;
+        data.SeenTargetPlayer |= action.MainTarget?.Type is ActorType.Player or ActorType.DutySupport;
         data.SeenTargetLocation |= action.MainTarget == null;
         data.SeenAOE |= action.Targets.Count > 1;
 
@@ -538,11 +538,11 @@ class AbilityInfo : CommonEnumInfo
 
         var data = _data.GetOrAdd(cast.ID);
         data.CasterOIDs.Add(caster.OID);
-        if (cast.Target != null)
+        if (cast.Target != null && cast.Target.Type is not ActorType.Player and not ActorType.DutySupport)
             data.TargetOIDs.Add(cast.Target.OID);
         data.SeenTargetSelf |= caster == cast.Target;
         data.SeenTargetOtherEnemy |= cast.Target != caster && cast.Target?.Type == ActorType.Enemy;
-        data.SeenTargetPlayer |= cast.Target?.Type == ActorType.Player;
+        data.SeenTargetPlayer |= cast.Target?.Type is ActorType.Player or ActorType.DutySupport;
         data.SeenTargetLocation |= cast.Target == null;
         data.CastTime = cast.ExpectedCastTime + 0.3f;
 
@@ -561,7 +561,7 @@ class AbilityInfo : CommonEnumInfo
         if (data.SeenTargetLocation)
             yield return "location";
         if (data.SeenTargetOtherEnemy)
-            foreach (var oid in data.TargetOIDs.Where(oid => oid != 0))
+            foreach (var oid in data.TargetOIDs)
                 yield return OIDString(oid);
     }
 

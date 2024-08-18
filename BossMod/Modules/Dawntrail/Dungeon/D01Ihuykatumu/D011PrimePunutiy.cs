@@ -2,8 +2,8 @@
 
 public enum OID : uint
 {
-    Helper = 0x233C, // R0.500, x16 (spawn during fight), 523 type
     Boss = 0x4190, // R7.990, x1
+    Helper = 0x233C, // R0.500, x16 (spawn during fight), Helper type
     ProdigiousPunutiy = 0x4191, // R4.230, x0 (spawn during fight)
     Punutiy = 0x4192, // R2.820, x0 (spawn during fight)
     PetitPunutiy = 0x4193, // R2.115, x0 (spawn during fight)
@@ -12,28 +12,77 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    PunutiyPress = 36492, // Boss->self, 5.0s cast, range 60 circle
+    AutoAttack = 872, // Boss/Punutiy/ProdigiousPunutiy/PetitPunutiy->player, no cast, single-target
+    PunutiyPress = 36492, // Boss->self, 5.0s cast, range 60 circle, raidwide
     Hydrowave = 36493, // Boss->self, 4.0s cast, range 60 30-degree cone
-    AddsHydrowave = 36509,
     Resurface = 36494, // Boss->self, 5.0s cast, range 100 60-degree cone
-    Resurface2 = 36495, // Boss->self, 7.0s cast, single-target
-    Bury1 = 36497, // 233C->self, 4.0s cast, range 12 circle
-    Bury2 = 36498, // 233C->self, 4.0s cast, range 8 circle
-    Bury3 = 36499, // 233C->self, 4.0s cast, range 25 width 6 rect
-    Bury4 = 36500, // 233C->self, 4.0s cast, range 35 width 10 rect
-    Bury5 = 36501, // 233C->self, 4.0s cast, range 4 circle
-    Bury6 = 36502, // 233C->self, 4.0s cast, range 6 circle
-    Bury7 = 36503, // 233C->self, 4.0s cast, range 25 width 6 rect
-    Bury8 = 36504, // 233C->self, 4.0s cast, range 35 width 10 rect
-    Decay = 36505, // 4194->self, 7.0s cast, range ?-40 donut
+    ResurfacePersistent = 36495, // Boss->self, 7.0s cast, single-target, visual (constant inhale casts while being cast)
+    ResurfaceInhale = 36496, // Helper->self, no cast, range 100 60-degree cone
+    Bury1 = 36497, // Helper->self, 4.0s cast, range 12 circle
+    Bury2 = 36498, // Helper->self, 4.0s cast, range 8 circle
+    Bury3 = 36499, // Helper->self, 4.0s cast, range 25 width 6 rect
+    Bury4 = 36500, // Helper->self, 4.0s cast, range 35 width 10 rect
+    Bury5 = 36501, // Helper->self, 4.0s cast, range 4 circle
+    Bury6 = 36502, // Helper->self, 4.0s cast, range 6 circle
+    Bury7 = 36503, // Helper->self, 4.0s cast, range 25 width 6 rect
+    Bury8 = 36504, // Helper->self, 4.0s cast, range 35 width 10 rect
+    Decay = 36505, // IhuykatumuFlytrap->self, 7.0s cast, range 6-40 donut
+
+    SongOfThePunutiy = 36506, // Boss->self, 5.0s cast, single-target, visual (adds)
+    PunutiyFlopLarge = 36508, // ProdigiousPunutiy->player, 8.0s cast, range 14 circle
+    PunutiyHydrowave = 36509, // Punutiy->self, 8.0s cast, single-target, visual (baited cone)
+    PunutiyHydrowaveTargetSelect = 36510, // Helper->player, no cast, single-target, visual (target select for baited cone)
+    PunutiyHydrowaveVisual = 36511, // Punutiy->self, no cast, single-target, visual (baited cone hit)
+    PunutiyHydrowaveAOE = 36512, // Helper->self, no cast, range 60 60-degree cone
+    PunutiyFlopSmall = 36513, // PetitPunutiy->player, 8.0s cast, range 6 circle
     ShoreShaker = 36514, // Boss->self, 4.0+1.0s cast, single-target
-    ShoreShaker1 = 36515, // 233C->self, 5.0s cast, range 10 circle
-    ShoreShaker2 = 36516, // 233C->self, 7.0s cast, range ?-20 donut
-    ShoreShaker3 = 36517, // 233C->self, 9.0s cast, range ?-30 donut
+    ShoreShakerAOE1 = 36515, // Helper->self, 5.0s cast, range 10 circle
+    ShoreShakerAOE2 = 36516, // Helper->self, 7.0s cast, range 10-20 donut
+    ShoreShakerAOE3 = 36517, // Helper->self, 9.0s cast, range 20-30 donut
+}
+
+public enum IconID : uint
+{
+    PunutiyFlopLarge = 505, // player
+    PunutiyFlopSmall = 196, // player
+}
+
+public enum TetherID : uint
+{
+    SongOfThePunutiy = 17, // ProdigiousPunutiy/Punutiy/PetitPunutiy->player
 }
 
 class PunutiyFlop(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PunutiyPress));
 class Hydrowave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrowave), new AOEShapeCone(60, 15.Degrees()));
+
+class Resurface(BossModule module) : Components.GenericAOEs(module)
+{
+    private Actor? _source;
+    private DateTime _activation;
+
+    private static readonly AOEShapeCone _shape = new(100, 30.Degrees());
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_source != null)
+            yield return new(_shape, _source.Position, _source.CastInfo?.Rotation ?? _source.Rotation, _activation);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.Resurface)
+        {
+            _source = caster;
+            _activation = Module.CastFinishAt(spell);
+        }
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.ResurfacePersistent)
+            _source = null;
+    }
+}
 
 class Bury(BossModule module) : Components.GenericAOEs(module)
 {
@@ -63,95 +112,45 @@ class Bury(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Resurface(BossModule module) : Components.GenericAOEs(module)
-{
-    private AOEInstance? _aoe;
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action.ID == (uint)AID.Resurface)
-            _aoe = new AOEInstance(new AOEShapeCone(100, 32.Degrees()), caster.Position, spell.Rotation, Module.CastFinishAt(spell));
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action.ID == (uint)AID.Resurface2)
-            _aoe = null;
-    }
-}
-
 class Decay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Decay), new AOEShapeDonut(5, 40))
 {
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-        => Arena.Actors(Module.Enemies(OID.IhuykatumuFlytrap).Where(x => !x.IsDead), ArenaColor.Object, allowDeadAndUntargetable: true);
-}
+    private readonly IReadOnlyList<Actor> _flytrap = module.Enemies(OID.IhuykatumuFlytrap);
 
-abstract class TetherBait(BossModule module, bool centerAtTarget = false) : Components.GenericBaitAway(module, default, true, centerAtTarget)
-{
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(pcSlot, pc);
-        foreach (var b in ActiveBaits)
-        {
-            if (Arena.Config.ShowOutlinesAndShadows)
-                Arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
-            Arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Danger);
-        }
+        Arena.Actors(_flytrap.Where(x => !x.IsDead), ArenaColor.Object, true);
     }
-
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
-    {
-        if (tether.ID != 17)
-            return;
-
-        var tar = WorldState.Actors.Find(tether.Target);
-        if (tar == null)
-            return;
-
-        OnTetherCreated(source, tar);
-    }
-
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
-    {
-        if (tether.ID == 17)
-            CurrentBaits.Clear();
-    }
-
-    protected abstract void OnTetherCreated(Actor source, Actor target);
 }
 
-class FlopBait(BossModule module) : TetherBait(module, true)
+class PunitiyFlopLarge(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.PunutiyFlopLarge), new AOEShapeCircle(14), true);
+class PunitiyFlopSmall(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.PunutiyFlopSmall), new AOEShapeCircle(6), true);
+class PunitiyHydrowave(BossModule module) : Components.GenericBaitAway(module)
 {
-    protected override void OnTetherCreated(Actor source, Actor target)
+    private static readonly AOEShapeCone _shape = new(60, 30.Degrees());
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        switch ((OID)source.OID)
+        switch ((AID)spell.Action.ID)
         {
-            case OID.ProdigiousPunutiy:
-                CurrentBaits.Add(new(source, target, new AOEShapeCircle(14)));
+            case AID.PunutiyHydrowaveTargetSelect:
+                var target = WorldState.Actors.Find(spell.MainTargetID);
+                if (target != null)
+                    CurrentBaits.Add(new(caster, target, _shape, WorldState.FutureTime(8.6f)));
                 break;
-            case OID.PetitPunutiy:
-                CurrentBaits.Add(new(source, target, new AOEShapeCircle(6)));
+            case AID.PunutiyHydrowaveAOE:
+                CurrentBaits.Clear();
                 break;
         }
     }
 }
 
-class HydroBait(BossModule module) : TetherBait(module, false)
-{
-    protected override void OnTetherCreated(Actor source, Actor target)
-    {
-        if ((OID)source.OID == OID.Punutiy)
-            CurrentBaits.Add(new(source, target, new AOEShapeCone(60, 15.Degrees())));
-    }
-}
+class PunitiyAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.ProdigiousPunutiy, (uint)OID.Punutiy, (uint)OID.PetitPunutiy]);
 
 class ShoreShaker(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30)])
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.ShoreShaker)
+        if ((AID)spell.Action.ID == AID.ShoreShakerAOE1)
             AddSequence(Module.Center, Module.CastFinishAt(spell));
     }
 
@@ -159,9 +158,9 @@ class ShoreShaker(BossModule module) : Components.ConcentricAOEs(module, [new AO
     {
         var order = (AID)spell.Action.ID switch
         {
-            AID.ShoreShaker1 => 0,
-            AID.ShoreShaker2 => 1,
-            AID.ShoreShaker3 => 2,
+            AID.ShoreShakerAOE1 => 0,
+            AID.ShoreShakerAOE2 => 1,
+            AID.ShoreShakerAOE3 => 2,
             _ => -1
         };
         if (!AdvanceSequence(order, caster.Position, WorldState.FutureTime(2f)))
@@ -179,11 +178,13 @@ class D011PrimePunutiyStates : StateMachineBuilder
             .ActivateOnEnter<Resurface>()
             .ActivateOnEnter<Bury>()
             .ActivateOnEnter<Decay>()
-            .ActivateOnEnter<FlopBait>()
-            .ActivateOnEnter<HydroBait>()
+            .ActivateOnEnter<PunitiyFlopLarge>()
+            .ActivateOnEnter<PunitiyFlopSmall>()
+            .ActivateOnEnter<PunitiyHydrowave>()
+            .ActivateOnEnter<PunitiyAdds>()
             .ActivateOnEnter<ShoreShaker>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12723)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12723)]
 public class D011PrimePunutiy(WorldState ws, Actor primary) : BossModule(ws, primary, new(35, -95), new ArenaBoundsSquare(20));
