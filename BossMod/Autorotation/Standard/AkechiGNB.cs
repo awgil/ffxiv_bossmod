@@ -246,7 +246,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         var canSonic = (ReadyToBreak && Unlocked(GNB.AID.SonicBreak)); //SonicBreak conditions
         //var canReign = (ReadyToReign && Unlocked(GNB.AID.ReignOfBeasts)); //Reign conditions
         var canDD = Ammo >= 2 && Unlocked(GNB.AID.DoubleDown); //DoubleDown minimal conditions
-        var canBS = Ammo >= 1 && Unlocked(GNB.AID.BurstStrike); //BurstStrike minimal conditions
+        var canBSlv80 = Ammo >= 1 && Unlocked(GNB.AID.BurstStrike) && Unlocked(GNB.AID.Bloodfest); //BurstStrike minimal conditions
+        var canBSlv70 = ((Ammo == MaxCartridges && ComboLastMove is GNB.AID.BrutalShell) || (NoMercyLeft > 0 && Ammo > 0)) && Unlocked(GNB.AID.BurstStrike) && !Unlocked(GNB.AID.Bloodfest); //BurstStrike minimal conditions
         var canGF = Ammo >= 1 && Unlocked(GNB.AID.GnashingFang); //GnashingFang minimal conditions
         var canFC = Ammo >= 1 && Unlocked(GNB.AID.FatedCircle); //FatedCircle minimal conditions
 
@@ -302,12 +303,12 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         if (canSonic && ShouldUseSonicBreak(strategy.Option(Track.SonicBreak).As<OffensiveStrategy>(), primaryTarget))
             QueueGCD(GNB.AID.SonicBreak, primaryTarget, GCDPriority.NormalSB);
         //BurstStrike usage
-        if (canBS && ReignLeft is 0 && ShouldUseBurstStrike(strategy.Option(Track.BurstStrike).As<OffensiveStrategy>(), primaryTarget))
+        if (canBSlv80 && ShouldUseBurstStrike(strategy.Option(Track.BurstStrike).As<OffensiveStrategy>(), primaryTarget))
             QueueGCD(GNB.AID.BurstStrike, primaryTarget, GCDPriority.NormalBS);
         //FatedCircle usage
         if (canFC && ShouldUseFatedCircle(strategy.Option(Track.FatedCircle).As<OffensiveStrategy>(), primaryTarget))
             QueueGCD(GNB.AID.BurstStrike, primaryTarget, GCDPriority.NormalBS);
-        if (!canFC && canBS)
+        if (!canFC && canBSlv70)
         {
             var action = UseCorrectBS(AoETargets);
             var prio = GCDPriority.NormalBS;
@@ -363,7 +364,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     private GNB.AID UseCorrectBS(int AoETargets) //BurstStrike & FatedCircle have special conditions when a certain level range due to fated Circle being unlocked at lv74
     {
         //under No Mercy, if FatedCircle is not unlocked yet, we want to use BurstStrike even in non-AoE situations
-        if (Ammo == 3 && ComboLastMove is GNB.AID.BrutalShell)
+        if (Ammo == MaxCartridges && ComboLastMove is GNB.AID.BrutalShell)
             return AoETargets < 3 && Unlocked(GNB.AID.FatedCircle) ? GNB.AID.BurstStrike : GNB.AID.FatedCircle;
 
         //AoE spender is profitable in some situations:
@@ -425,7 +426,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         var riskingAmmo = Ammo + AmmoGainedFromAction(nextAction) > 3;
 
         if (comboStepsRemaining > 0 && !CanFitGCD(World.Client.ComboState.Remaining, 1))
-            return (nextAction, GCDPriority.NormalBS);
+            return (nextAction, GCDPriority.Combo123);
 
         //just a normal combo action; delay if overcapping gauge
         return (nextAction, riskingAmmo ? GCDPriority.NormalSB : GCDPriority.Combo123);
@@ -443,7 +444,11 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
 
     private bool ShouldUseNoMercy(OffensiveStrategy strategy, Actor? player) => strategy switch
     {
-        OffensiveStrategy.Automatic => Player.InCombat && ActionReady(GNB.AID.NoMercy) && (Ammo is 1 && BloodfestCD is 0 || Ammo == MaxCartridges) && GCD < 0.9f,
+        OffensiveStrategy.Automatic => Player.InCombat && ActionReady(GNB.AID.NoMercy) && GCD < 0.9f &&
+        ((Ammo is 1 && BloodfestCD is 0 && Unlocked(GNB.AID.Bloodfest) && Unlocked(GNB.AID.DoubleDown)) || //Lv90+ Opener
+        (Ammo >= 1 && BloodfestCD is 0 && Unlocked(GNB.AID.Bloodfest) && !Unlocked(GNB.AID.DoubleDown)) || //Lv80+ Opener
+        (!Unlocked(GNB.AID.Bloodfest) && Ammo == MaxCartridges) || //Lv70 & below
+        (Ammo == MaxCartridges)), //60s & 120s burst windows
         OffensiveStrategy.Force => true,
         OffensiveStrategy.Delay => false,
         _ => false
@@ -556,7 +561,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     //How we use BurstStrike
     private bool ShouldUseBurstStrike(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
-        OffensiveStrategy.Automatic => Player.InCombat && ((NoMercyCD > 40 && !ActionReady(GNB.AID.DoubleDown) && GunComboStep == 0 && ReignLeft is 0) || (ComboLastMove is GNB.AID.BrutalShell && Ammo == MaxCartridges)) && InMeleeRange(target),
+        OffensiveStrategy.Automatic => Player.InCombat && InMeleeRange(target) &&
+        ((Unlocked(GNB.AID.DoubleDown) && NoMercyCD > 40 && !ActionReady(GNB.AID.DoubleDown) && GunComboStep is 0 && ReignLeft is 0) || //Lv90+
+        (!Unlocked(GNB.AID.DoubleDown) && !ActionReady(GNB.AID.GnashingFang) && NoMercyLeft > 0 && GunComboStep is 0) || // Lv80 & Below use
+        (ComboLastMove is GNB.AID.BrutalShell && Ammo == MaxCartridges)), //Overcap
         OffensiveStrategy.Force => true,
         OffensiveStrategy.Delay => false,
         _ => false
