@@ -161,7 +161,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     private float BloodfestCD; //120s cooldown
     private float NoMercyLeft; //20s buff
     private float NoMercyCD; //60s cooldown
-    private float BreakLeft; //30s buff - we usually want to use this either asap or as late as possible inside No Mercy, so we're going for late usage here in vbm
+    public float BreakLeft; //30s buff - we usually want to use this either asap or as late as possible inside No Mercy, so we're going for late usage here in vbm
     private float ReignLeft; //30s buff, but we usually tend to use this the same way every time
     private float BlastLeft; //10s
     private float RazeLeft; //10s
@@ -172,11 +172,11 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     private float PotionLeft; //30s buff from Pots
     private float RaidBuffsLeft; //Typically always 20s-22s
     private float RaidBuffsIn; //Typically always 20s-22s
-    private float BurstWindowLeft; //Typically always 20s-22s
-    private float BurstWindowIn; //Typically always 20s-22s
+    public float BurstWindowLeft; //Typically always 20s-22s
+    public float BurstWindowIn; //Typically always 20s-22s
     private bool ReadyToBreak; //0s if not up, 30s if NoMercy just used
     private bool ReadyToReign; //0s if not up, 30s if Bloodfest just used
-    private GNB.AID NextGCD; //This is needed to estimate carts and make a decision on burst
+    public GNB.AID NextGCD; //This is needed to estimate carts and make a decision on burst
     private GCDPriority NextGCDPrio; //This is needed to estimate priority and make a decision on CDs
 
     private const float TrajectoryMinGCD = 0.8f; //Triple-weaving Trajectory is not a good idea, since it might delay gcd for longer than normal anim lock
@@ -389,7 +389,12 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         _ => GNB.AID.KeenEdge,
     };
 
-    private GNB.AID NextComboAoE() => ComboLastMove == GNB.AID.DemonSlice ? GNB.AID.DemonSlaughter : GNB.AID.DemonSlice; //how we use our AoE 1-2
+    private GNB.AID NextComboAoE() => ComboLastMove switch //how we use our AoE 1-2
+    {
+        GNB.AID.DemonSlice => Ammo == MaxCartridges ? GNB.AID.FatedCircle : GNB.AID.DemonSlaughter,
+        _ => GNB.AID.DemonSlice,
+    };
+
 
     private int AmmoGainedFromAction(GNB.AID action) => action switch //Our ammo gained from certain actions
     {
