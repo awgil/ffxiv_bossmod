@@ -12,7 +12,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: DRK", "Planner support for utility actions", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.DRK), 100);
+        var res = new RotationModuleDefinition("Utility: DRK", "Planner support for utility actions", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.DRK), 100);
         DefineShared(res, IDLimitBreak3, IDStanceApply, IDStanceRemove);
 
         DefineSimpleConfig(res, Track.DarkMind, "DarkMind", "DMind", 450, DRK.AID.DarkMind, 10);
