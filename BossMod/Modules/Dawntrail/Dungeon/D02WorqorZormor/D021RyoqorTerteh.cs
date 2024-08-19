@@ -3,79 +3,81 @@
 public enum OID : uint
 {
     Boss = 0x4159, // R5.280, x1
-    Helper = 0x233C,
+    Helper = 0x233C, // R0.500, x4, Helper type
+    QorrlohTehHelper = 0x43A2, // R0.500, x4
+    QorrlohTeh = 0x415A, // R3.000, x0 (spawn during fight) - circle aoe add
+    RorrlohTeh = 0x415B, // R1.500, x0 (spawn during fight) - rect aoe add
+    Snowball = 0x415C, // R2.500, x0 (spawn during fight)
 }
 
 public enum AID : uint
 {
-    FrostingFracas = 36280, // 233C->self, 5.0s cast, range 60 circle
-    IceScream = 36270, // 415B->self, 12.0s cast, range 20 width 20 rect
-    FrozenSwirl = 36272, // 43A2->self, 12.0s cast, range 15 circle
-    SnowBoulder = 36278, // 415C->self, 4.0s cast, range 50 width 6 rect
-    SparklingSprinkling = 36281, // 233C->player, 5.0s cast, range 5 circle
+    AutoAttack = 872, // Boss/Snowball->player, no cast, single-target
+    FrostingFracas = 36279, // Boss->self, 5.0s cast, single-target, visual (raidwide)
+    FrostingFracasAOE = 36280, // Helper->self, 5.0s cast, range 60 circle, raidwide
+    FluffleUp = 36265, // Boss->self, 4.0s cast, single-target, visual (spawn adds)
+    ColdFeat = 36266, // Boss->self, 4.0s cast, single-target, visual (freeze adds)
+    IceScream = 36270, // RorrlohTeh->self, 12.0s cast, range 20 width 20 rect
+    FrozenSwirl = 36271, // QorrlohTeh->self, 12.0s cast, single-target, visual (circle aoe)
+    FrozenSwirlAOE = 36272, // QorrlohTehHelper->self, 12.0s cast, range 15 circle
+    Snowscoop = 36275, // Boss->self, 4.0s cast, single-target, visual (spawn snowballs)
+    SnowBoulder = 36278, // Snowball->self, 4.0s cast, range 50 width 6 rect
+    SparklingSprinkling = 36713, // Boss->self, 5.0s cast, single-target, visual (spread)
+    SparklingSprinklingAOE = 36281, // Helper->player, 5.0s cast, range 5 circle spread
 }
 
-public enum SID : uint
+public enum IconID : uint
 {
-    Frozen = 3944, // none->_Gen_RorrlohTeh/_Gen_QorrlohTeh1, extra=0x0
-    Frozen2 = 3445
+    SparklingSprinkling = 376, // player
 }
 
-class FrostingFracas(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.FrostingFracas));
-
-abstract class FreezableAOEs(BossModule module, ActionID action, AOEShape shape) : Components.GenericAOEs(module)
+public enum TetherID : uint
 {
-    protected Dictionary<Actor, bool> _casters = [];
-    protected byte _numFrozen;
-    protected bool _anyCastFinished;
+    Freeze = 272, // RorrlohTeh/QorrlohTeh->Boss
+}
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_numFrozen < 2)
-            yield break;
+class FrostingFracas(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.FrostingFracasAOE));
 
-        foreach ((var caster, var isFrozen) in _casters)
-        {
-            var isCastReal = !isFrozen || _anyCastFinished;
+abstract class FreezableAOEs(BossModule module, ActionID action, AOEShape shape) : Components.GenericAOEs(module, action)
+{
+    private readonly List<AOEInstance> _aoes = [];
+    private int _numFrozen;
 
-            if (isCastReal)
-                yield return new AOEInstance(shape, caster.Position, caster.Rotation, Module.CastFinishAt(caster.CastInfo, isFrozen ? 8 : 0));
-        }
-    }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _numFrozen >= 2 ? _aoes.Take(2) : [];
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action == action)
-            _casters[caster] = false;
+        if (spell.Action == WatchedAction)
+            _aoes.Add(new(shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action == action)
-            if (_casters.Remove(caster))
-                _anyCastFinished = true;
-
-        if (_casters.Count == 0)
+        if (spell.Action == WatchedAction && _aoes.Count > 0)
         {
-            _anyCastFinished = false;
-            _numFrozen = 0;
+            _aoes.RemoveAt(0);
+            if (_aoes.Count == 0)
+                _numFrozen = 0;
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if ((SID)status.ID is SID.Frozen or SID.Frozen2 && _casters.ContainsKey(actor))
+        if (tether.ID == (uint)TetherID.Freeze && _aoes.FindIndex(aoe => aoe.Origin.AlmostEqual(source.Position, 1)) is var index && index >= 0)
         {
-            _casters[actor] = true;
-            _numFrozen += 1;
+            ++_numFrozen;
+            var aoe = _aoes[index];
+            aoe.Activation += TimeSpan.FromSeconds(8);
+            _aoes.Add(aoe);
+            _aoes.RemoveAt(index);
         }
     }
 }
-
 class IceScream(BossModule module) : FreezableAOEs(module, ActionID.MakeSpell(AID.IceScream), new AOEShapeRect(20, 10));
-class FrozenSwirl(BossModule module) : FreezableAOEs(module, ActionID.MakeSpell(AID.FrozenSwirl), new AOEShapeCircle(15));
-class SparklingSprinkling(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.SparklingSprinkling), 5);
-class SnowBoulder(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SnowBoulder), new AOEShapeRect(50, 3), maxCasts: 6);
+class FrozenSwirl(BossModule module) : FreezableAOEs(module, ActionID.MakeSpell(AID.FrozenSwirl), new AOEShapeCircle(15)); // note that helpers that cast visual cast are tethered
+
+class SnowBoulder(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SnowBoulder), new AOEShapeRect(50, 3), 6);
+class SparklingSprinkling(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.SparklingSprinklingAOE), 5);
 
 class D021RyoqorTertehStates : StateMachineBuilder
 {
@@ -85,10 +87,10 @@ class D021RyoqorTertehStates : StateMachineBuilder
             .ActivateOnEnter<FrostingFracas>()
             .ActivateOnEnter<IceScream>()
             .ActivateOnEnter<FrozenSwirl>()
-            .ActivateOnEnter<SparklingSprinkling>()
-            .ActivateOnEnter<SnowBoulder>();
+            .ActivateOnEnter<SnowBoulder>()
+            .ActivateOnEnter<SparklingSprinkling>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 824, NameID = 12699)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 824, NameID = 12699)]
 public class D021RyoqorTerteh(WorldState ws, Actor primary) : BossModule(ws, primary, new(-108, 119), new ArenaBoundsCircle(20));
