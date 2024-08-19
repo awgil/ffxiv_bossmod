@@ -4,7 +4,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
 {
     public enum Track { DarkMind = SharedTrack.Count, ShadowWall, LivingDead, TheBlackestNight, Oblation, DarkMissionary, Stance }
     public enum WallOption { None, ShadowWall, ShadowedVigil }
-    public enum StanceOption { None, StanceOn, StanceOff }
+    public enum ForceStanceOption { None, StanceOn, StanceOff }
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(DRK.AID.DarkForce);
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(DRK.AID.Grit);
@@ -28,10 +28,10 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Oblation, "Oblation", "Obl", 320, DRK.AID.Oblation); // note: secondary effect (hot) duration 6
         DefineSimpleConfig(res, Track.DarkMissionary, "DarkMissionary", "Mission", 220, DRK.AID.DarkMissionary, 30); // note: secondary effect duration 15
 
-        res.Define(Track.Stance).As<StanceOption>("Stance", "", 200)
-            .AddOption(StanceOption.None, "None", "Do not use automatically")
-            .AddOption(StanceOption.StanceOn, "", "Force Stance On", 0, 0, ActionTargets.Self)
-            .AddOption(StanceOption.StanceOff, "", "Force Stance Off", 0, 0, ActionTargets.Self)
+        res.Define(Track.Stance).As<ForceStanceOption>("Stance", "", 200)
+            .AddOption(ForceStanceOption.None, "None", "Do not use automatically")
+            .AddOption(ForceStanceOption.StanceOn, "", "Force Stance On", 0, 0, ActionTargets.Self)
+            .AddOption(ForceStanceOption.StanceOff, "", "Force Stance Off", 0, 0, ActionTargets.Self)
             .AddAssociatedActions(DRK.AID.Grit, DRK.AID.ReleaseGrit);
 
         return res;
@@ -57,10 +57,10 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(wallAction), Player, wall.Priority(), wall.Value.ExpireIn);
 
         var stance = strategy.Option(Track.Stance);
-        var stanceOption = stance.As<StanceOption>() switch
+        var stanceOption = stance.As<ForceStanceOption>() switch
         {
-            StanceOption.StanceOn => DRK.AID.Grit,
-            StanceOption.StanceOff => DRK.AID.ReleaseGrit,
+            ForceStanceOption.StanceOn => DRK.AID.Grit,
+            ForceStanceOption.StanceOff => DRK.AID.ReleaseGrit,
             _ => default
         };
         if (stanceOption != default)
