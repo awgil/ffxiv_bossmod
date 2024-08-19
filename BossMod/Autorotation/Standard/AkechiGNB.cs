@@ -21,7 +21,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     public static RotationModuleDefinition Definition()
     {
         //Our module title & signature
-        var res = new RotationModuleDefinition("GNB (Akechi)", "Standard rotation module", "Akechi", RotationModuleQuality.WIP, BitMask.Build((int)Class.GNB), 100);
+        var res = new RotationModuleDefinition("GNB (Akechi)", "Standard rotation module", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.GNB), 100);
         //Targeting strategy
         res.Define(Track.AoE).As<AoEStrategy>("AoE", uiPriority: 90)
             .AddOption(AoEStrategy.SingleTarget, "ST", "Use ST rotation")
