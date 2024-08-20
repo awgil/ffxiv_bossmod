@@ -2,7 +2,7 @@
 
 public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player) : RoleTankUtility(manager, player)
 {
-    public enum Track { DarkMind = SharedTrack.Count, ShadowWall, LivingDead, TheBlackestNight, Oblation, Shadowstride, DarkMissionary }
+    public enum Track { DarkMind = SharedTrack.Count, ShadowWall, LivingDead, TheBlackestNight, Oblation, DarkMissionary, Stance }
     public enum WallOption { None, ShadowWall, ShadowedVigil }
     public enum ForceStanceOption { None, StanceOn, StanceOff }
 
@@ -26,8 +26,13 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.LivingDead, "LivingDead", "LD", 400, DRK.AID.LivingDead, 10); //300s CD, 10s duration
         DefineSimpleConfig(res, Track.TheBlackestNight, "The Blackest Night", "TBN", 400, DRK.AID.TheBlackestNight, 7); //15s CD, 7s duration, 3000MP cost
         DefineSimpleConfig(res, Track.Oblation, "Oblation", "Obl", 320, DRK.AID.Oblation, 10); //60s CD, 10s duration (TODO: Has Two (2) charges; re-consider better use of both in CDPlanner)
-        DefineSimpleConfig(res, Track.Shadowstride, "Shadowstride", "Dash", 220, DRK.AID.Shadowstride); //30s CD
         DefineSimpleConfig(res, Track.DarkMissionary, "DarkMissionary", "Mission", 220, DRK.AID.DarkMissionary, 15); //90s CD, 15s duration
+
+        res.Define(Track.Stance).As<ForceStanceOption>("Stance", "", 200) //Forcing Stance for CD planning use
+            .AddOption(ForceStanceOption.None, "None", "Do not use automatically")
+            .AddOption(ForceStanceOption.StanceOn, "", "Force Stance On", 0, 0, ActionTargets.Self)
+            .AddOption(ForceStanceOption.StanceOff, "", "Force Stance Off", 0, 0, ActionTargets.Self)
+            .AddAssociatedActions(DRK.AID.Grit, DRK.AID.ReleaseGrit);
 
         return res;
     }
@@ -39,7 +44,6 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.LivingDead), DRK.AID.LivingDead, Player); //Execution of LivingDead
         ExecuteSimple(strategy.Option(Track.TheBlackestNight), DRK.AID.TheBlackestNight, Player); //Execution of TheBlackestNight
         ExecuteSimple(strategy.Option(Track.Oblation), DRK.AID.Oblation, Player); //Execution of Oblation
-        ExecuteSimple(strategy.Option(Track.Shadowstride), DRK.AID.Shadowstride, Player); //Execution of DarkMissionary
         ExecuteSimple(strategy.Option(Track.DarkMissionary), DRK.AID.DarkMissionary, Player); //Execution of DarkMissionary
 
         var wall = strategy.Option(Track.ShadowWall);
@@ -51,5 +55,15 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         };
         if (wallAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(wallAction), Player, wall.Priority(), wall.Value.ExpireIn); //Checking proper use of said option
+
+        var stance = strategy.Option(Track.Stance);
+        var stanceOption = stance.As<ForceStanceOption>() switch
+        {
+            ForceStanceOption.StanceOn => DRK.AID.Grit,
+            ForceStanceOption.StanceOff => DRK.AID.ReleaseGrit,
+            _ => default
+        };
+        if (stanceOption != default)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(stanceOption), Player, stance.Priority()); //Checking proper use of said option
     }
 }
