@@ -25,7 +25,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.LivingDead, "LivingDead", "LD", 400, DRK.AID.LivingDead, 10); //300s CD, 10s duration
         DefineSimpleConfig(res, Track.TheBlackestNight, "The Blackest Night", "TBN", 400, DRK.AID.TheBlackestNight, 7); //15s CD, 7s duration, 3000MP cost
         DefineSimpleConfig(res, Track.Oblation, "Oblation", "Obl", 320, DRK.AID.Oblation, 10); //60s CD, 10s duration (TODO: Has Two (2) charges; re-consider better use of both in CDPlanner)
-        DefineSimpleConfig(res, Track.Shadowstride, "Shadowstride", "Dash", 380, DRK.AID.Shadowstride); //30s CD
+        //DefineSimpleConfig(res, Track.Shadowstride, "Shadowstride", "Dash", 380, DRK.AID.Shadowstride); (TODO: Dash no longer does damage, consider how to add this)
         DefineSimpleConfig(res, Track.DarkMissionary, "DarkMissionary", "Mission", 220, DRK.AID.DarkMissionary, 15); //90s CD, 15s duration
 
         return res;
@@ -38,7 +38,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.LivingDead), DRK.AID.LivingDead, Player); //Execution of LivingDead
         ExecuteSimple(strategy.Option(Track.TheBlackestNight), DRK.AID.TheBlackestNight, Player); //Execution of TheBlackestNight
         ExecuteSimple(strategy.Option(Track.Oblation), DRK.AID.Oblation, Player); //Execution of Oblation
-        ExecuteSimple(strategy.Option(Track.Shadowstride), DRK.AID.Shadowstride, Player); //Execution of Shadowstride
+        //ExecuteSimple(strategy.Option(Track.Shadowstride), DRK.AID.Shadowstride, primaryTarget); (TODO: Dash no longer does damage, consider how to add this)
         ExecuteSimple(strategy.Option(Track.DarkMissionary), DRK.AID.DarkMissionary, Player); //Execution of DarkMissionary
 
         var wall = strategy.Option(Track.ShadowWall);
