@@ -1,69 +1,89 @@
-﻿
-namespace BossMod.Dawntrail.Dungeon.D02WorqorZormor.D022Kahderyor;
+﻿namespace BossMod.Dawntrail.Dungeon.D02WorqorZormor.D022Kahderyor;
 
 public enum OID : uint
 {
     Boss = 0x415D, // R7.000, x1
-    Helper = 0x233C, // R0.500, x20, 523 type
+    Helper = 0x233C, // R0.500, x20, Helper type
     CrystallineDebris = 0x415E, // R1.400, x0 (spawn during fight)
 }
 
 public enum AID : uint
 {
-    WindUnbound = 36282, // Boss->self, 5.0s cast, range 60 circle
-    CrystallineCrush = 36153, // 233C->self, 6.3s cast, range 6 circle
-    WindShot = 36284, // Boss->self, 5.5s cast, single-target
-    WindShotHelper = 36296, // 233C->player, 6.0s cast, range ?-10 donut
-    EarthenShot = 36283, // Boss->self, 5.0+0.5s cast, single-target
-    EarthenShotHelper = 36295, // 233C->player, 6.0s cast, range 6 circle
-    CrystallineStorm = 36290, // 233C->self, 4.0s cast, range 50 width 2 rect
-    SeedCrystals = 36298, // 233C->player, 5.0s cast, range 6 circle
-    CyclonicRing = 36294, // 233C->self, 5.0s cast, range ?-40 donut
-    EyeOfTheFierce = 36297, // 233C->self, 5.0s cast, range 60 circle
-    StalagmiteCircle = 36293, // 233C->self, 5.0s cast, range 15 circle
+    AutoAttack = 872, // Boss->player, no cast, single-target
+    WindUnbound = 36282, // Boss->self, 5.0s cast, range 60 circle, raidwide
+    CrystallineCrush = 36285, // Boss->location, 5.0+1.0s cast, single-target, visual (tower)
+    CrystallineCrushAOE = 36153, // Helper->self, 6.3s cast, range 6 circle tower
+    CrystallineStorm = 36286, // Boss->self, 3.0+1.0s cast, single-target, visual (rects)
+    CrystallineStormAOE = 36290, // Helper->self, 4.0s cast, range 50 width 2 rect
+    WindShot = 36284, // Boss->self, 5.5s cast, single-target, visual (donut spreads)
+    WindShotAOE = 36296, // Helper->player, 6.0s cast, range ?-10 donut spread
+    WindShotFail = 36300, // Helper->player, no cast, single-target, vuln on player outside safe zone
+    EarthenShot = 36283, // Boss->self, 5.0+0.5s cast, single-target, visual (circle spreads)
+    EarthenShotAOE = 36295, // Helper->player, 6.0s cast, range 6 circle spread
+    SeedCrystals = 36291, // Boss->self, 4.5+0.5s cast, single-target, visual (spread + spawn debris)
+    SeedCrystalsAOE = 36298, // Helper->player, 5.0s cast, range 6 circle spread
+    SharpenedSights = 36287, // Boss->self, 3.0s cast, single-target, visual (gaze buff)
+    EyeOfTheFierce = 36297, // Helper->self, 5.0s cast, range 60 circle gaze
+    StalagmiteCircle = 36288, // Boss->self, 5.0s cast, single-target, visual (gaze + out)
+    StalagmiteCircleAOE = 36293, // Helper->self, 5.0s cast, range 15 circle
+    CyclonicRing = 36289, // Boss->self, 5.0s cast, single-target, visual (gaze + in)
+    CyclonicRingAOE = 36294, // Helper->self, 5.0s cast, range 8-40 donut
 }
 
-class CrystalInout(BossModule module) : Components.GenericAOEs(module)
+public enum IconID : uint
 {
-    private enum Active
+    CrystallineCrush = 62, // Helper
+    WindShot = 511, // player
+    EarthenShot = 169, // player
+    SeedCrystals = 311, // player
+}
+
+class WindUnbound(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WindUnbound));
+
+class CrystallineCrush(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.CrystallineCrushAOE), 6, maxSoakers: 4)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        None = 0,
-        In = 1,
-        Out = 2
+        if (Towers.Count > 0)
+            hints.AddForbiddenZone(new AOEShapeDonut(6, 40), Towers[0].Position);
     }
+}
+class CrystallineStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CrystallineStormAOE), new AOEShapeRect(25, 1, 25));
+class WindShot(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.WindShotAOE), new AOEShapeDonut(5, 10), true); // TODO: verify inner radius
+class EarthenShot(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.EarthenShotAOE), 6);
 
-    private record struct Inout(AOEShape InShape, AOEShape OutShape, WPos Center, Angle Rotation);
+class CrystalInOut(BossModule module) : Components.GenericAOEs(module)
+{
+    private enum Mechanic { None, In, Out }
+    private record struct Source(AOEShape InShape, AOEShape OutShape, WPos Center, Angle Rotation);
 
-    private DateTime _finishAt;
-    private readonly List<Inout> _aoes = [];
-    private Active _active = Active.None;
-    private byte _castsWhileActive;
+    private readonly List<Source> _sources = [];
+    private Mechanic _mechanic;
+    private DateTime _activation;
 
-    private void Reset()
-    {
-        _castsWhileActive = 0;
-        _aoes.Clear();
-        _finishAt = default;
-    }
+    // TODO: verify aoe sizes...
+    private static readonly AOEShapeCircle _crushIn = new(8);
+    private static readonly AOEShapeCircle _crushOut = new(15);
+    private static readonly AOEShapeRect _stormIn = new(25, 1, 25);
+    private static readonly AOEShapeRect _stormOut = new(25, 7, 25);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_active == Active.None)
+        if (_mechanic == Mechanic.None)
             yield break;
 
-        foreach (var x in _aoes)
+        foreach (var s in _sources)
         {
-            if (_active == Active.In)
-                yield return new AOEInstance(x.InShape, x.Center, x.Rotation, _finishAt, ArenaColor.SafeFromAOE, Risky: false);
-            else
-                yield return new AOEInstance(x.OutShape, x.Center, x.Rotation, _finishAt);
+            yield return _mechanic == Mechanic.In
+                ? new AOEInstance(s.InShape, s.Center, s.Rotation, _activation, ArenaColor.SafeFromAOE, Risky: false)
+                : new AOEInstance(s.OutShape, s.Center, s.Rotation, _activation);
         }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(slot, actor, hints);
-        if (_active == Active.In && ActiveAOEs(slot, actor).All(c => !c.Check(actor.Position)))
+        if (_mechanic == Mechanic.In && ActiveAOEs(slot, actor).All(c => !c.Check(actor.Position)))
             hints.Add("Get to safe zone!");
     }
 
@@ -77,105 +97,98 @@ class CrystalInout(BossModule module) : Components.GenericAOEs(module)
         float distance(WPos p)
         {
             var dist = shapes.Select(s => s(p)).Min();
-            return _active == Active.Out ? dist : -dist;
+            return _mechanic == Mechanic.Out ? dist : -dist;
         }
-        hints.AddForbiddenZone(distance, _finishAt);
+        hints.AddForbiddenZone(distance, _activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.EarthenShotHelper)
+        switch ((AID)spell.Action.ID)
         {
-            _active = Active.Out;
-            _finishAt = Module.CastFinishAt(spell);
-        }
-        if ((AID)spell.Action.ID == AID.WindShotHelper)
-        {
-            _active = Active.In;
-            _finishAt = Module.CastFinishAt(spell);
+            case AID.CrystallineCrushAOE:
+                _sources.Add(new(_crushIn, _crushOut, caster.Position, spell.Rotation));
+                break;
+            case AID.CrystallineStormAOE:
+                _sources.Add(new(_stormIn, _stormOut, caster.Position, spell.Rotation));
+                break;
+            case AID.WindShotAOE:
+                _mechanic = Mechanic.In;
+                _activation = Module.CastFinishAt(spell);
+                break;
+            case AID.EarthenShotAOE:
+                _mechanic = Mechanic.Out;
+                _activation = Module.CastFinishAt(spell);
+                break;
         }
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID.EarthenShot or AID.WindShot)
-            _castsWhileActive++;
-
-        if ((AID)spell.Action.ID is AID.EarthenShotHelper or AID.WindShotHelper)
+        switch ((AID)spell.Action.ID)
         {
-            _active = Active.None;
-            if (_castsWhileActive >= 2)
-                Reset();
+            case AID.WindShot:
+            case AID.EarthenShot:
+                ++NumCasts; // we count visual casts, since there's always one per mechanic
+                break;
+            case AID.WindShotAOE:
+            case AID.EarthenShotAOE:
+                _mechanic = Mechanic.None;
+                if (NumCasts >= 2)
+                {
+                    NumCasts = 0;
+                    _sources.Clear();
+                    _activation = default;
+                }
+                break;
         }
-
-        if ((AID)spell.Action.ID == AID.CrystallineCrush)
-            _aoes.Add(new Inout(
-                new AOEShapeCircle(8),
-                new AOEShapeCircle(15),
-                caster.Position,
-                spell.Rotation
-            ));
-
-        if ((AID)spell.Action.ID == AID.CrystallineStorm)
-            _aoes.Add(new Inout(
-                new AOEShapeRect(25, 1, 25),
-                new AOEShapeRect(25, 7, 25),
-                caster.Position,
-                spell.Rotation
-            ));
     }
 }
 
-class WindUnbound(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WindUnbound));
-class WindShot(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.WindShotHelper), new AOEShapeDonut(5, 10), true);
-class EarthenShot(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.EarthenShotHelper), 6, true);
-class CrystallineCrush(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.CrystallineCrush), 6, maxSoakers: 4)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Towers.Count > 0)
-            hints.AddForbiddenZone(new AOEShapeDonut(6, 40), Towers[0].Position);
-    }
-}
-
-class CrystallineStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CrystallineStorm), new AOEShapeRect(25, 1, 25));
+class SeedCrystals(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.SeedCrystalsAOE), 6);
 class CrystallineDebris(BossModule module) : Components.Adds(module, (uint)OID.CrystallineDebris)
 {
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        foreach (var c in Actors.Where(x => !x.IsDead))
-            Arena.AddCircle(c.Position, 1.4f, ArenaColor.Danger);
-    }
-
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (Actors.Any(x => !x.IsDead))
+        if (ActiveActors.Any())
             hints.Add("Break debris!");
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var t in hints.PotentialTargets.Where(e => (OID)e.Actor.OID == OID.CrystallineDebris))
+            t.Priority = 1;
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var c in ActiveActors)
+            Arena.AddCircle(c.Position, 1.4f, ArenaColor.Danger);
+    }
 }
-class SeedCrystals(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.SeedCrystals), 6);
-class CyclonicRing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CyclonicRing), new AOEShapeDonut(7.5f, 40));
-class StalagmiteCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StalagmiteCircle), new AOEShapeCircle(15));
+
 class EyeOfTheFierce(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.EyeOfTheFierce));
+class StalagmiteCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StalagmiteCircleAOE), new AOEShapeCircle(15));
+class CyclonicRing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CyclonicRingAOE), new AOEShapeDonut(8, 40));
 
 class D022KahderyorStates : StateMachineBuilder
 {
     public D022KahderyorStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<CrystallineCrush>()
             .ActivateOnEnter<WindUnbound>()
+            .ActivateOnEnter<CrystallineCrush>()
+            .ActivateOnEnter<CrystallineStorm>()
             .ActivateOnEnter<WindShot>()
             .ActivateOnEnter<EarthenShot>()
-            .ActivateOnEnter<CrystallineStorm>()
-            .ActivateOnEnter<CrystallineDebris>()
-            .ActivateOnEnter<CrystalInout>()
+            .ActivateOnEnter<CrystalInOut>()
             .ActivateOnEnter<SeedCrystals>()
-            .ActivateOnEnter<CyclonicRing>()
+            .ActivateOnEnter<CrystallineDebris>()
+            .ActivateOnEnter<EyeOfTheFierce>()
             .ActivateOnEnter<StalagmiteCircle>()
-            .ActivateOnEnter<EyeOfTheFierce>();
+            .ActivateOnEnter<CyclonicRing>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 824, NameID = 12703)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 824, NameID = 12703)]
 public class D022Kahderyor(WorldState ws, Actor primary) : BossModule(ws, primary, new(-53, -57), new ArenaBoundsCircle(20));

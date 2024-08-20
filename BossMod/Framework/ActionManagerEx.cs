@@ -235,7 +235,13 @@ public sealed unsafe class ActionManagerEx : IDisposable
         {
             // real action type, just execute our UAL hook
             // note that for items extraParam should be 0xFFFF (since we want to use any item, not from first inventory slot)
-            var extraParam = action.Type == ActionType.Item ? 0xFFFFu : 0;
+            // note that for 'summon carbuncle/eos/titan/ifrit/garuda' actions, extraParam can be used to select glamour
+            var extraParam = action.Type switch
+            {
+                ActionType.Spell => ActionManager.GetExtraParamForSummonAction(action.ID), // will return 0 for non-summon actions
+                ActionType.Item => 0xFFFFu,
+                _ => 0u
+            };
             return _inst->UseActionLocation((CSActionType)action.Type, action.ID, targetId, &targetPos, extraParam);
         }
     }
