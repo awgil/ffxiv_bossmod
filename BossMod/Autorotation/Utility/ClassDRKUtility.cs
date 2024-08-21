@@ -26,14 +26,15 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.LivingDead, "LivingDead", "LD", 400, DRK.AID.LivingDead, 10); //300s CD, 10s duration
         DefineSimpleConfig(res, Track.TheBlackestNight, "The Blackest Night", "TBN", 400, DRK.AID.TheBlackestNight, 7); //15s CD, 7s duration, 3000MP cost
 
-        res.Define(Track.Oblation).As<OblationStrategy>("Oblation", "", 550) //120s CD, 15s duration
+        res.Define(Track.Oblation).As<OblationStrategy>("Oblation", "", 550) //60s (120s total), 10s duration, 2 charges
             .AddOption(OblationStrategy.None, "None", "Do not use automatically")
             .AddOption(OblationStrategy.Force, "Use", "Use Oblation", 60, 10, ActionTargets.Self, 82)
             .AddOption(OblationStrategy.Delay, "Don't use", "Delay Oblation")
             .AddAssociatedActions(DRK.AID.Oblation);
 
-        //DefineSimpleConfig(res, Track.Shadowstride, "Shadowstride", "Dash", 380, DRK.AID.Shadowstride); (TODO: Dash no longer does damage, consider how to add this)
         DefineSimpleConfig(res, Track.DarkMissionary, "DarkMissionary", "Mission", 220, DRK.AID.DarkMissionary, 15); //90s CD, 15s duration
+
+        //DefineSimpleConfig(res, Track.Shadowstride, "Shadowstride", "Dash", 380, DRK.AID.Shadowstride); (TODO: Dash no longer does damage, consider how to add this)
 
         return res;
     }
@@ -44,8 +45,9 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.DarkMind), DRK.AID.DarkMind, Player); //Execution of DarkMind
         ExecuteSimple(strategy.Option(Track.LivingDead), DRK.AID.LivingDead, Player); //Execution of LivingDead
         ExecuteSimple(strategy.Option(Track.TheBlackestNight), DRK.AID.TheBlackestNight, Player); //Execution of TheBlackestNight
-        //ExecuteSimple(strategy.Option(Track.Shadowstride), DRK.AID.Shadowstride, primaryTarget); (TODO: Dash no longer does damage, consider how to add this)
         ExecuteSimple(strategy.Option(Track.DarkMissionary), DRK.AID.DarkMissionary, Player); //Execution of DarkMissionary
+
+        //ExecuteSimple(strategy.Option(Track.Shadowstride), DRK.AID.Shadowstride, primaryTarget); (TODO: Dash no longer does damage, consider how to add this)
 
         var obl = strategy.Option(Track.Oblation);
         var oblAction = obl.As<OblationStrategy>() switch
