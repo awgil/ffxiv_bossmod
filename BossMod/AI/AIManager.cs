@@ -24,6 +24,21 @@ sealed class AIManager : IDisposable
 
     public AIBehaviour? Behaviour { get; private set; }
 
+    private bool Enabled
+    {
+        get => _config.Enabled;
+        set
+        {
+            if (_config.Enabled != value)
+                _config.Enabled = value;
+
+            if (!value && Behaviour != null)
+                SwitchToIdle();
+            else if (value && Behaviour == null)
+                SwitchToFollow(MasterSlot);
+        }
+    }
+
     public AIManager(RotationModuleManager autorot, ActionManagerEx amex, MovementOverride movement)
     {
         _autorot = autorot;
@@ -49,6 +64,8 @@ sealed class AIManager : IDisposable
 
     public void Update()
     {
+        Enabled = _config.Enabled;
+
         if (!WorldState.Party.Members[MasterSlot].IsValid())
             SwitchToIdle();
 
@@ -71,7 +88,7 @@ sealed class AIManager : IDisposable
         _controller.Update(player, _autorot.Hints);
         _aiStatus = $"AI: {(Behaviour != null ? $"on, {(_config.FollowTarget && target != null ? $"target={target.Name}" : $"master={master?.Name}[{((int)_config.FollowSlot) + 1}]")}" : "off")}";
         _naviStatus = $"Navi={_controller.NaviTargetPos} / {_controller.NaviTargetRot}{(_controller.ForceFacing ? " forced" : "")}";
-        _ui.IsOpen = _config.Enabled && player != null && _config.DrawUI;
+        _ui.IsOpen = player != null && _config.DrawUI;
         _ui.WindowName = _config.ShowStatusOnTitlebar ? $"{_aiStatus}, {_naviStatus}###AI" : $"AI###AI";
     }
 
@@ -219,16 +236,13 @@ sealed class AIManager : IDisposable
         switch (messageData[0])
         {
             case "on":
-                SwitchToFollow((int)_config.FollowSlot);
+                Enabled = true;
                 break;
             case "off":
-                SwitchToIdle();
+                Enabled = false;
                 break;
             case "toggle":
-                if (Behaviour == null)
-                    SwitchToFollow((int)_config.FollowSlot);
-                else
-                    SwitchToIdle();
+                Enabled ^= true;
                 break;
             case "follow":
                 if (messageData.Length < 2)
@@ -239,7 +253,7 @@ sealed class AIManager : IDisposable
 
                 var masterString = messageData.Length > 2 ? $"{messageData[1]} {messageData[2]}" : messageData[1];
                 var masterStringIsSlot = masterString[..4].Equals("slot", StringComparison.OrdinalIgnoreCase) ? Convert.ToInt32(masterString.Substring(4, 1)) : 0;
-                Service.Log($"{masterStringIsSlot}");
+
                 var master = masterStringIsSlot > 0 ? (masterStringIsSlot - 1, WorldState.Party[masterStringIsSlot - 1]) : WorldState.Party.WithSlot().FirstOrDefault(x => x.Item2.Name.Equals(masterString, StringComparison.OrdinalIgnoreCase));
 
                 if (master.Item2 is null)
@@ -250,11 +264,12 @@ sealed class AIManager : IDisposable
 
                 _config.FollowSlot = (AIConfig.Slot)master.Item1;
                 _config.Modified.Fire();
-                SwitchToFollow((int)_config.FollowSlot);
+                Enabled = true;
 
                 break;
             case "ui":
-                _config.DrawUI = !_config.DrawUI;
+                _config.DrawUI ^= true;
+                _config.Modified.Fire();
                 break;
             default:
                 List<string> list = [];

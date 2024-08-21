@@ -15,7 +15,7 @@ sealed class AIConfig : ConfigNode
     public bool ShowExtraUIOptions = true;
 
     [PropertyDisplay("Show AI/Navi status on TitleBar")]
-    public bool ShowStatusOnTitlebar = false;
+    public bool ShowStatusOnTitlebar = true;
 
     [PropertyDisplay("Show state in DTR Bar")]
     public bool ShowDTR = true;
@@ -39,7 +39,7 @@ sealed class AIConfig : ConfigNode
     public bool FollowTarget = false;
 
     [PropertyDisplay($"Follow target range")]
-    public float MaxDistanceToTarget = 3;
+    public float MaxDistanceToTarget = 2.6f;
 
     [PropertyDisplay("Follow during active boss module")]
     public bool FollowDuringActiveBossModule = false;
@@ -48,7 +48,7 @@ sealed class AIConfig : ConfigNode
     public bool FollowDuringCombat = false;
 
     [PropertyDisplay("Follow out of combat")]
-    public bool FollowOutOfCombat = true;
+    public bool FollowOutOfCombat = false;
 
     [PropertyDisplay("Forbid movement")]
     public bool ForbidMovement = false;
@@ -57,7 +57,7 @@ sealed class AIConfig : ConfigNode
     public bool ForbidActions = false;
 
     [PropertyDisplay("Focus target master")]
-    public bool FocusTargetMaster = true;
+    public bool FocusTargetMaster = false;
 
     [PropertyDisplay("Broadcast keypresses to other windows")]
     public bool BroadcastToSlaves = false;
