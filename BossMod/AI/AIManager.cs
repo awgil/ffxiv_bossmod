@@ -115,14 +115,14 @@ sealed class AIManager : IDisposable
             {
                 if (ImGui.Selectable("<idle>", Behaviour == null))
                 {
-                    SwitchToIdle();
+                    Enabled = false;
                 }
                 if (ImGui.Selectable("<target>", _config.FollowTarget))
                 {
                     _config.FollowSlot = 0;
                     _config.FollowTarget = true;
                     _config.Modified.Fire();
-                    SwitchToFollow(0);
+                    Enabled = true;
                 }
                 foreach (var (i, p) in WorldState.Party.WithSlot(true))
                 {
@@ -131,7 +131,7 @@ sealed class AIManager : IDisposable
                         _config.FollowSlot = (AIConfig.Slot)i;
                         _config.FollowTarget = false;
                         _config.Modified.Fire();
-                        SwitchToFollow(i);
+                        Enabled = true;
                     }
                 }
             }
