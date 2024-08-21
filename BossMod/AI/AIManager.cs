@@ -20,8 +20,9 @@ sealed class AIManager : IDisposable
     private WorldState WorldState => _autorot.Bossmods.WorldState;
     private string _aiStatus = "";
     private string _naviStatus = "";
-    public float ForceMovementIn => Behaviour?.ForceMovementIn ?? float.MaxValue;
 
+    public string GetAIPreset => _aiPreset?.Name ?? string.Empty;
+    public float ForceMovementIn => Behaviour?.ForceMovementIn ?? float.MaxValue;
     public AIBehaviour? Behaviour { get; private set; }
 
     private bool Enabled

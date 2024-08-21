@@ -68,6 +68,7 @@ sealed class IPCProvider : IDisposable
         });
 
         Register("AI.SetPreset", (string name) => ai.SetAIPreset(autorotation.Database.Presets.Presets.FirstOrDefault(x => x.Name == name)));
+        Register("AI.GetPreset", () => ai.GetAIPreset);
     }
 
     public void Dispose() => _disposeActions?.Invoke();
