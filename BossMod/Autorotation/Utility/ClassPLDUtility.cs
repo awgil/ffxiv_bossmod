@@ -1,7 +1,4 @@
-﻿using static BossMod.Autorotation.ClassPLDUtility;
-using static BossMod.Autorotation.ClassWARUtility;
-
-namespace BossMod.Autorotation;
+﻿namespace BossMod.Autorotation;
 
 public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player) : RoleTankUtility(manager, player)
 {
