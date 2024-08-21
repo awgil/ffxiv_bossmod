@@ -66,6 +66,14 @@ sealed class IPCProvider : IDisposable
 
             return false;
         });
+        Register("Presets.ClearActive", () =>
+        {
+            if (autorotation.Preset == null)
+                return false;
+
+            autorotation.Preset = null;
+            return true;
+        });
 
         Register("AI.SetPreset", (string name) => ai.SetAIPreset(autorotation.Database.Presets.Presets.FirstOrDefault(x => x.Name == name)));
     }
