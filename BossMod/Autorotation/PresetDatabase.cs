@@ -11,38 +11,26 @@ public sealed class PresetDatabase
 
     private readonly FileInfo _dbPath;
 
-    public PresetDatabase(string rootPath)
+    public PresetDatabase(string rootPath, FileInfo defaultPresets)
     {
         _dbPath = new(rootPath + ".db.json");
+        if (!_dbPath.Exists && defaultPresets.Exists)
+            defaultPresets.CopyTo(_dbPath.FullName);
+
         if (_dbPath.Exists)
         {
             try
             {
-                var cfg = Service.Config.Get<AutorotationConfig>();
-
-                Presets = LoadPresetsFromFile(_dbPath.FullName);
-                if (!cfg.DefaultPresetsImported)
-                {
-                    var ass = Path.Combine(Service.PluginInterface.AssemblyLocation.Directory?.FullName!, "Autorotation\\DefaultPresets.json");
-                    Presets.AddRange(LoadPresetsFromFile(ass));
-
-                    cfg.DefaultPresetsImported = true;
-                    cfg.Modified.Fire();
-                }
+                using var json = Serialization.ReadJson(_dbPath.FullName);
+                var version = json.RootElement.GetProperty("version").GetInt32();
+                var payload = json.RootElement.GetProperty("payload");
+                Presets = payload.Deserialize<List<Preset>>(Serialization.BuildSerializationOptions()) ?? [];
             }
             catch (Exception ex)
             {
                 Service.Log($"Failed to parse preset database '{_dbPath}': {ex}");
             }
         }
-    }
-
-    private List<Preset> LoadPresetsFromFile(string path)
-    {
-        using var json = Serialization.ReadJson(path);
-        var version = json.RootElement.GetProperty("version").GetInt32();
-        var payload = json.RootElement.GetProperty("payload");
-        return payload.Deserialize<List<Preset>>(Serialization.BuildSerializationOptions()) ?? [];
     }
 
     // if index >= 0: replace or delete
