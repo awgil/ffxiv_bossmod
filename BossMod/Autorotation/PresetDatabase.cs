@@ -18,16 +18,31 @@ public sealed class PresetDatabase
         {
             try
             {
-                using var json = Serialization.ReadJson(_dbPath.FullName);
-                var version = json.RootElement.GetProperty("version").GetInt32();
-                var payload = json.RootElement.GetProperty("payload");
-                Presets = payload.Deserialize<List<Preset>>(Serialization.BuildSerializationOptions()) ?? [];
+                var cfg = Service.Config.Get<AutorotationConfig>();
+
+                Presets = LoadPresetsFromFile(_dbPath.FullName);
+                if (!cfg.DefaultPresetsImported)
+                {
+                    var ass = Path.Combine(Service.PluginInterface.AssemblyLocation.Directory?.FullName!, "Autorotation\\DefaultPresets.json");
+                    Presets.AddRange(LoadPresetsFromFile(ass));
+
+                    cfg.DefaultPresetsImported = true;
+                    cfg.Modified.Fire();
+                }
             }
             catch (Exception ex)
             {
                 Service.Log($"Failed to parse preset database '{_dbPath}': {ex}");
             }
         }
+    }
+
+    private List<Preset> LoadPresetsFromFile(string path)
+    {
+        using var json = Serialization.ReadJson(path);
+        var version = json.RootElement.GetProperty("version").GetInt32();
+        var payload = json.RootElement.GetProperty("payload");
+        return payload.Deserialize<List<Preset>>(Serialization.BuildSerializationOptions()) ?? [];
     }
 
     // if index >= 0: replace or delete
