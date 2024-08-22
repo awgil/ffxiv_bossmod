@@ -18,7 +18,7 @@ public abstract class RoleTankUtility(RotationModuleManager manager, Actor playe
         DefineSimpleConfig(def, SharedTrack.Rampart, "Rampart", "", 500, ClassShared.AID.Rampart, 20);
         DefineSimpleConfig(def, SharedTrack.LowBlow, "LowBlow", "Stun", -100, ClassShared.AID.LowBlow, 5);
         DefineSimpleConfig(def, SharedTrack.Provoke, "Provoke", "", 200, ClassShared.AID.Provoke);
-        DefineSimpleConfig(def, SharedTrack.Interject, "Interject", "Interrupt", 50, ClassShared.AID.Interject);
+        DefineSimpleConfig(def, SharedTrack.Interject, "Interject", "Interrupt", -50, ClassShared.AID.Interject);
 
         def.Define(SharedTrack.Reprisal).As<ReprisalOption>("Reprisal", "", 250)
             .AddOption(ReprisalOption.None, "None", "Do not use automatically")
@@ -29,7 +29,7 @@ public abstract class RoleTankUtility(RotationModuleManager manager, Actor playe
         DefineSimpleConfig(def, SharedTrack.Shirk, "Shirk", "", 150, ClassShared.AID.Shirk);
         DefineSimpleConfig(def, SharedTrack.ArmsLength, "ArmsLength", "ArmsL", 300, ClassShared.AID.ArmsLength, 6); // note: secondary effect 15s
 
-        def.Define(SharedTrack.Stance).As<StanceOption>("Stance", "", 10)
+        def.Define(SharedTrack.Stance).As<StanceOption>("Stance", "", 5)
             .AddOption(StanceOption.None, "None", "Do not touch stance")
             .AddOption(StanceOption.Apply, "Apply", "Use stance if not already active", 2)
             .AddOption(StanceOption.Remove, "Remove", "Remove stance if active", 1)

@@ -95,7 +95,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
             {
                 var plans = _planDatabase.GetPlans(_moduleInfo.ModuleType, _playerClass);
                 UpdateSelectedPlan(plans, DrawPlanSelector(_moduleInfo.ModuleType, plans, _selectedPlan));
-                _planner?.DrawConfig(tree);
+                _planner?.DrawCommonControls();
             }
         }
         else

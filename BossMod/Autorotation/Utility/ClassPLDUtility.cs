@@ -1,6 +1,4 @@
-﻿using static FFXIVClientStructs.FFXIV.Client.UI.AddonJobHudPLD0;
-
-namespace BossMod.Autorotation;
+﻿namespace BossMod.Autorotation;
 
 public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player) : RoleTankUtility(manager, player)
 {
