@@ -6,7 +6,6 @@ namespace BossMod.ReplayVisualization;
 
 class ReplayTimelineWindow : UIWindow
 {
-    private readonly Replay _replay;
     private readonly Replay.Encounter _encounter;
     private readonly ReplayDetailsWindow _timelineSync;
     private readonly StateMachineTree _stateTree;
@@ -20,7 +19,6 @@ class ReplayTimelineWindow : UIWindow
 
     public ReplayTimelineWindow(Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB, ReplayDetailsWindow timelineSync) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1200, 1000))
     {
-        _replay = replay;
         _encounter = enc;
         _timelineSync = timelineSync;
         (_stateTree, _phaseBranches) = BuildStateData(enc);
