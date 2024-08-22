@@ -1,5 +1,3 @@
-using FFXIVClientStructs.FFXIV.Component.GUI;
-
 namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.DD60ServomechanicalMinotaur;
 
 public enum OID : uint
