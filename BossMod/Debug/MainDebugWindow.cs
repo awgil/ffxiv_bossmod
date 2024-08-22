@@ -10,6 +10,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
 {
     private readonly DebugObjects _debugObjects = new();
     private readonly DebugParty _debugParty = new();
+    private readonly DebugEnvControl _debugEnvControl = new();
     private readonly DebugGraphics _debugGraphics = new();
     private readonly DebugAction _debugAction = new(ws, amex);
     private readonly DebugHate _debugHate = new();
@@ -71,6 +72,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
         if (ImGui.CollapsingHeader("Party (duty recorder)"))
         {
             _debugParty.Draw(true);
+        }
+        if (ImGui.CollapsingHeader("EnvControl"))
+        {
+            _debugEnvControl.Draw();
         }
         if (ImGui.CollapsingHeader("Autorotation"))
         {
