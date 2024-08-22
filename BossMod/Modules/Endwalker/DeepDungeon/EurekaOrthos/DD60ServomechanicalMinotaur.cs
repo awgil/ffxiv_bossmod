@@ -9,8 +9,8 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    AutoAttack_Attack = 6499, // Boss->player, no cast, single-target
-    Weaponskill_ = 31867, // Helper->self, 1.0s cast, range 40 ?-degree cone // Displays the order of the aoe's going off
+    AutoAttack = 6499, // Boss->player, no cast, single-target
+    //Weaponskill_ = 31867, // Helper->self, 1.0s cast, range 40 ?-degree cone // Displays the order of the aoe's going off
     OctupleSwipe = 31872, // Boss->self, 10.8s cast, range 40 ?-degree cone // Windup Cast for N/E/S/W
     BullishSwipe4 = 31871, // Boss->self, no cast, range 40 ?-degree cone
     BullishSwipe3 = 31870, // Boss->self, no cast, range 40 ?-degree cone
