@@ -140,4 +140,4 @@ class D061AntivirusXStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 827, NameID = 12844)]
-public class D061AntivirusX(WorldState ws, Actor primary) : BossModule(ws, primary, new(852, 823), new ArenaBoundsSquare(20));
+public class D061AntivirusX(WorldState ws, Actor primary) : BossModule(ws, primary, new(852, 823), new ArenaBoundsRect(20, 15));
