@@ -7,7 +7,7 @@ public class GenericBaitAway(BossModule module, ActionID aid = default, bool alw
 {
     public record struct Bait(Actor Source, Actor Target, AOEShape Shape, DateTime Activation = default)
     {
-        public readonly Angle Rotation => Angle.FromDirection(Target.Position - Source.Position);
+        public readonly Angle Rotation => Source != Target ? Angle.FromDirection(Target.Position - Source.Position) : Source.Rotation;
     }
 
     public bool AlwaysDrawOtherBaits = alwaysDrawOtherBaits; // if false, other baits are drawn only if they are clipping a player
