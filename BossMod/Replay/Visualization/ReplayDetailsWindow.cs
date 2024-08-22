@@ -215,10 +215,10 @@ class ReplayDetailsWindow : UIWindow
         {
             DrawCheckpoint(m.Key, 0xffff0000, cursor, w);
         }
-        if (ImGui.IsMouseClicked(ImGuiMouseButton.Left) || ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+        if (ImGui.IsWindowFocused() && (ImGui.IsMouseClicked(ImGuiMouseButton.Left) || ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left)))
         {
             var pos = ImGui.GetMousePos();
-            if (Math.Abs(pos.Y - cursor.Y) <= 3)
+            if (Math.Abs(pos.Y - cursor.Y) <= 3 && pos.X >= cursor.X && pos.X <= cursor.X + w)
             {
                 var t = _first + (pos.X - cursor.X) / w * (_last - _first);
                 var margin = (_last - _first).TotalSeconds * 3 / w;
