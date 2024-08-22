@@ -77,9 +77,6 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
     // returns null if we're to be idle, otherwise target to attack
     private Targeting SelectPrimaryTarget(Actor player, Actor master)
     {
-        if ((!_config.FollowTarget || !master.InCombat) && (!autorot.Hints.PriorityTargets.Any() || !master.InCombat || AIPreset == null))
-            return new(); // there are no valid targets to attack, or we're not fighting - remain idle
-
         // we prefer not to switch targets unnecessarily, so start with current target - it could've been selected manually or by AI on previous frames
         // if current target is not among valid targets, clear it - this opens way for future target selection heuristics
         var targetId = autorot.Hints.ForcedTarget?.InstanceID ?? player.TargetID;
@@ -89,6 +86,10 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         // try assisting master, otherwise (if player is own master, or if master has no valid target) just select closest valid target
         target ??= master != player ? autorot.Hints.PriorityTargets.FirstOrDefault(t => master.TargetID == t.Actor.InstanceID) : null;
         target ??= autorot.Hints.PriorityTargets.MinBy(e => (e.Actor.Position - player.Position).LengthSq());
+
+        // if the previous line returned no target, there aren't any priority targets at all - give up
+        if (target == null)
+            return new();
 
         // TODO: rethink all this... ai module should set forced target if it wants to switch... figure out positioning and stuff
         // now give class module a chance to improve targeting
