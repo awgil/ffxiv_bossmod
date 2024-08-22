@@ -11,7 +11,7 @@ public sealed class ClassRPRUtility(RotationModuleManager manager, Actor player)
         var res = new RotationModuleDefinition("Utility: RPR", "Planner support for utility actions", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.RPR), 100);
         DefineShared(res, IDLimitBreak3);
 
-        DefineSimpleConfig(res, Track.ArcaneCrest, "ArcaneCrest", "", 600, RPR.AID.ArcaneCrest, 5);
+        DefineSimpleConfig(res, Track.ArcaneCrest, "Crest", "", 600, RPR.AID.ArcaneCrest, 5);
 
         return res;
     }
