@@ -66,6 +66,14 @@ sealed class IPCProvider : IDisposable
 
             return false;
         });
+        Register("Presets.ClearActive", () =>
+        {
+            if (autorotation.Preset == null)
+                return false;
+
+            autorotation.Preset = null;
+            return true;
+        });
         Register("Presets.GetForceDisabled", () => autorotation.Preset == RotationModuleManager.ForceDisable);
         Register("Presets.SetForceDisabled", () =>
         {
