@@ -298,13 +298,23 @@ public struct NavigationDecision
         }
 
         // just run to closest safe spot, if no good path can be found
-        bool match((int x, int y, WPos center) p)
+        WPos? closest = null;
+        float closestDistance = float.MaxValue;
+        foreach (var p in map.EnumeratePixels())
         {
             var px = map[p.x, p.y];
-            return px.Priority == 0 && px.MaxG == float.MaxValue;
+            if (px.Priority == 0 && px.MaxG == float.MaxValue)
+            {
+                // safe pixel, candidate
+                var distance = (p.center - startPos).LengthSq();
+                if (distance < closestDistance)
+                {
+                    closest = p.center;
+                    closestDistance = distance;
+                }
+            }
         }
-        var closest = map.EnumeratePixels().Where(match).MinBy(p => (p.center - startPos).LengthSq()).center;
-        return new() { Destination = closest, LeewaySeconds = 0, TimeToGoal = (closest - startPos).Length() / speed, Map = map, DecisionType = Decision.ImminentToClosest };
+        return new() { Destination = closest, LeewaySeconds = 0, TimeToGoal = MathF.Sqrt(closestDistance) / speed, Map = map, DecisionType = Decision.ImminentToClosest };
     }
 
     public static WPos? GetFirstWaypoint(ThetaStar pf, int cell)

@@ -59,6 +59,7 @@ sealed class AnalysisManager : IDisposable
         private readonly Lazy<StatusInfo> _statusInfo;
         private readonly Lazy<IconInfo> _iconInfo;
         private readonly Lazy<TetherInfo> _tetherInfo;
+        private readonly Lazy<EnvControlInfo> _envControlInfo;
         private readonly Lazy<ArenaBounds> _arenaBounds;
         private readonly Lazy<TEASpecific>? _teaSpecific;
         private readonly Lazy<TOPSpecific>? _topSpecific;
@@ -71,6 +72,7 @@ sealed class AnalysisManager : IDisposable
             _statusInfo = new(() => new(replays, oid));
             _iconInfo = new(() => new(replays, oid));
             _tetherInfo = new(() => new(replays, oid));
+            _envControlInfo = new(() => new(replays, oid));
             _arenaBounds = new(() => new(replays, oid));
             if (oid == (uint)Shadowbringers.Ultimate.TEA.OID.BossP1)
                 _teaSpecific = new(() => new(replays, oid));
@@ -97,6 +99,9 @@ sealed class AnalysisManager : IDisposable
 
             foreach (var n in tree.Node("Tether info", false, 0xffffffff, () => _tetherInfo.Get().DrawContextMenu()))
                 _tetherInfo.Get().Draw(tree);
+
+            foreach (var n in tree.Node("EnvControl info", false, 0xffffffff))
+                _envControlInfo.Get().Draw(tree);
 
             foreach (var n in tree.Node("Arena bounds"))
                 _arenaBounds.Get().Draw(tree);

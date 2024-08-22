@@ -27,8 +27,8 @@ class TetherInfo : CommonEnumInfo
                 foreach (var tether in replay.EncounterTethers(enc))
                 {
                     var data = _data.GetOrAdd(tether.ID);
-                    data.SourceOIDs.Add(tether.Source.OID);
-                    data.TargetOIDs.Add(tether.Target.OID);
+                    data.SourceOIDs.Add(tether.Source.Type != ActorType.DutySupport ? tether.Source.OID : 0);
+                    data.TargetOIDs.Add(tether.Target.Type != ActorType.DutySupport ? tether.Target.OID : 0);
                 }
             }
         }

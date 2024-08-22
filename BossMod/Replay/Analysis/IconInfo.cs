@@ -26,7 +26,7 @@ class IconInfo : CommonEnumInfo
                 foreach (var icon in replay.EncounterIcons(enc))
                 {
                     var data = _data.GetOrAdd(icon.ID);
-                    data.TargetOIDs.Add(icon.Target.OID);
+                    data.TargetOIDs.Add(icon.Target.Type != ActorType.DutySupport ? icon.Target.OID : 0);
                 }
             }
         }
