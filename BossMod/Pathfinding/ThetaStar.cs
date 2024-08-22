@@ -58,8 +58,8 @@ public class ThetaStar
         int nextNodeIndex = PopMinOpen();
         var nextNodeX = nextNodeIndex % _map.Width;
         var nextNodeY = nextNodeIndex / _map.Width;
-        bool haveN = nextNodeIndex >= _map.Width;
-        bool haveS = nextNodeIndex < (_map.Width - 1) * _map.Height;
+        bool haveN = nextNodeY > 0;
+        bool haveS = nextNodeY < _map.Height - 1;
         bool haveE = nextNodeX > 0;
         bool haveW = nextNodeX < _map.Width - 1;
         if (haveN)

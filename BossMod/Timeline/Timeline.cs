@@ -230,11 +230,11 @@ public class Timeline
                 drawlist.AddTriangleFilled(p, p - new Vector2(4, 2), p - new Vector2(4, -2), 0xffffffff);
             }
 
-            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            if (ImGui.IsWindowFocused() && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
             {
                 // change current time, so that listeners could react
                 var pos = ImGui.GetMousePos();
-                if (Math.Abs(pos.X - p.X) <= 3)
+                if (Math.Abs(pos.X - p.X) <= 3 && pos.Y >= _screenClientTL.Y && pos.Y <= _screenClientTL.Y + Height)
                 {
                     CurrentTime = ScreenCoordToTime(pos.Y);
                 }

@@ -21,7 +21,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     public static RotationModuleDefinition Definition()
     {
         //Our module title & signature
-        var res = new RotationModuleDefinition("GNB (Akechi)", "Standard rotation module", "Akechi", RotationModuleQuality.WIP, BitMask.Build((int)Class.GNB), 100);
+        var res = new RotationModuleDefinition("GNB (Akechi)", "Standard rotation module", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.GNB), 100);
         //Targeting strategy
         res.Define(Track.AoE).As<AoEStrategy>("AoE", uiPriority: 90)
             .AddOption(AoEStrategy.SingleTarget, "ST", "Use ST rotation")
@@ -269,16 +269,16 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //Continuation usage
         if (Unlocked(GNB.AID.Continuation))
         {
-            if (RipLeft > 0 || GunComboStep is 1)
-                QueueOGCD(GNB.AID.JugularRip, primaryTarget, OGCDPriority.Continuation1);
-            if (TearLeft > 0 || GunComboStep is 2)
-                QueueOGCD(GNB.AID.AbdomenTear, primaryTarget, OGCDPriority.Continuation);
-            if (GougeLeft > 0 || GunComboStep is 0)
-                QueueOGCD(GNB.AID.EyeGouge, primaryTarget, OGCDPriority.Continuation);
+            if (RipLeft > 0)
+                QueueOGCD(GNB.AID.JugularRip, primaryTarget, OGCDPriority.GapcloseTrajectory);
+            if (TearLeft > 0)
+                QueueOGCD(GNB.AID.AbdomenTear, primaryTarget, OGCDPriority.GapcloseTrajectory);
+            if (GougeLeft > 0)
+                QueueOGCD(GNB.AID.EyeGouge, primaryTarget, OGCDPriority.GapcloseTrajectory);
             if (BlastLeft > 0 || ComboLastMove is GNB.AID.BurstStrike)
-                QueueOGCD(GNB.AID.Hypervelocity, primaryTarget, OGCDPriority.Continuation1);
+                QueueOGCD(GNB.AID.Hypervelocity, primaryTarget, OGCDPriority.GapcloseTrajectory);
             if (RazeLeft > 0 || ComboLastMove is GNB.AID.FatedCircle)
-                QueueOGCD(GNB.AID.FatedBrand, primaryTarget, OGCDPriority.Continuation1);
+                QueueOGCD(GNB.AID.FatedBrand, primaryTarget, OGCDPriority.GapcloseTrajectory);
         }
         //GnashingFang usage
         if (canGF && ShouldUseGnashingFang(strategy.Option(Track.GnashingFang).As<OffensiveStrategy>(), primaryTarget))

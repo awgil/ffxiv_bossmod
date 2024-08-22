@@ -78,6 +78,7 @@ public enum TraitID : uint
 public enum SID : uint
 {
     None = 0,
+    Oblation = 2682,
     BloodWeapon = 742,
     Grit = 743,
     SaltedEarth = 749,

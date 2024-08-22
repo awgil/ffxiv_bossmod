@@ -45,6 +45,9 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         if (ImGui.Button("Modules"))
             ImGui.OpenPopup("modules");
         ImGui.SameLine();
+        if (ImGui.Button("Column visibility"))
+            ImGui.OpenPopup("columns");
+        ImGui.SameLine();
         if (ImGui.Button("Export to clipboard"))
             ExportToClipboard();
         ImGui.SameLine();
@@ -54,40 +57,62 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         ImGui.SetNextItemWidth(100);
         Modified |= ImGui.InputText("Name", ref Plan.Name, 255);
 
-        using var popup = ImRaii.Popup("modules");
-        if (popup)
+        using (var popup = ImRaii.Popup("modules"))
         {
-            foreach (var (mt, m) in RotationModuleRegistry.Modules.Where(m => (m.Value.Definition.RelatedBossModule == null || m.Value.Definition.RelatedBossModule == Plan.Encounter) && m.Value.Definition.Classes[(int)Plan.Class]))
+            if (popup)
             {
-                var added = Plan.Modules.ContainsKey(mt);
-                var disable = added && !ImGui.GetIO().KeyShift;
-                using (ImRaii.Disabled(disable))
+                foreach (var (mt, m) in RotationModuleRegistry.Modules.Where(m => (m.Value.Definition.RelatedBossModule == null || m.Value.Definition.RelatedBossModule == Plan.Encounter) && m.Value.Definition.Classes[(int)Plan.Class]))
                 {
-                    if (ImGui.Checkbox(m.Definition.DisplayName, ref added))
+                    var added = Plan.Modules.ContainsKey(mt);
+                    var disable = added && !ImGui.GetIO().KeyShift;
+                    using (ImRaii.Disabled(disable))
                     {
-                        if (added)
+                        if (ImGui.Checkbox(m.Definition.DisplayName, ref added))
                         {
-                            Plan.AddModule(mt);
-                            AddStrategyColumns(mt);
+                            if (added)
+                            {
+                                Plan.AddModule(mt);
+                                AddStrategyColumns(mt);
+                            }
+                            else
+                            {
+                                Plan.Modules.Remove(mt);
+                                if (_colsStrategy.Remove(mt, out var cols))
+                                    foreach (var col in cols)
+                                        Columns.Remove(col);
+                            }
+                            Modified = true;
                         }
-                        else
+                    }
+                    if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+                    {
+                        using var tooltip = ImRaii.Tooltip();
+                        if (tooltip)
                         {
-                            Plan.Modules.Remove(mt);
-                            if (_colsStrategy.Remove(mt, out var cols))
-                                foreach (var col in cols)
-                                    Columns.Remove(col);
+                            if (disable)
+                                ImGui.TextUnformatted("Hold shift to remove");
+                            UIRotationModule.DescribeModule(mt, m.Definition);
                         }
-                        Modified = true;
                     }
                 }
-                if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+            }
+        }
+
+        using (var popup = ImRaii.Popup("columns"))
+        {
+            if (popup)
+            {
+                foreach (var (mt, cols) in _colsStrategy)
                 {
-                    using var tooltip = ImRaii.Tooltip();
-                    if (tooltip)
+                    if (ImGui.BeginMenu(RotationModuleRegistry.Modules[mt].Definition.DisplayName))
                     {
-                        if (disable)
-                            ImGui.TextUnformatted("Hold shift to remove");
-                        UIRotationModule.DescribeModule(mt, m.Definition);
+                        foreach (var col in cols)
+                        {
+                            var visible = col.Width > 0;
+                            if (ImGui.Checkbox(col.Name, ref visible))
+                                col.Width = visible ? _trackWidth : 0;
+                        }
+                        ImGui.EndMenu();
                     }
                 }
             }
@@ -124,20 +149,6 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
             ++_phaseBranches[selectedPhase];
 
         return selectedPhase;
-    }
-
-    public void DrawConfig(UITree tree)
-    {
-        DrawCommonControls();
-        foreach (var (mt, cols) in tree.Nodes(_colsStrategy, kv => new(RotationModuleRegistry.Modules[kv.Key].Definition.DisplayName, kv.Value.Count == 0)))
-        {
-            foreach (var col in cols)
-            {
-                var visible = col.Width > 0;
-                if (ImGui.Checkbox(col.Name, ref visible))
-                    col.Width = visible ? _trackWidth : 0;
-            }
-        }
     }
 
     public void ExportToClipboard() => ImGui.SetClipboardText(JsonSerializer.Serialize(Plan, Serialization.BuildSerializationOptions()));

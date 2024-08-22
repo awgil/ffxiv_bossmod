@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 
 namespace BossMod.ReplayVisualization;
@@ -15,7 +16,6 @@ class ReplayTimelineWindow : UIWindow
     private readonly ColumnStateMachineBranch _colStates;
     private readonly ColumnEnemiesDetails _colEnemies;
     private readonly ColumnPlayersDetails _colPlayers;
-    private readonly UISimpleWindow? _config;
     private readonly UITree _configTree = new();
 
     public ReplayTimelineWindow(Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB, ReplayDetailsWindow timelineSync) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1200, 1000))
@@ -32,26 +32,15 @@ class ReplayTimelineWindow : UIWindow
         _timeline.Columns.Add(new ColumnSeparator(_timeline));
         _colEnemies = _timeline.Columns.Add(new ColumnEnemiesDetails(_timeline, _stateTree, _phaseBranches, replay, enc));
         _colPlayers = _timeline.Columns.Add(new ColumnPlayersDetails(_timeline, _stateTree, _phaseBranches, replay, enc, showPlayers, planDB));
-
-        if (IsOpen)
-        {
-            _config = new($"Replay timeline config: {_replay.Path} @ {_encounter.Time.Start:O}", DrawConfig, false, new(600, 600));
-        }
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        _config?.Dispose();
-        base.Dispose(disposing);
     }
 
     public override void PreOpenCheck() => RespectCloseHotkey = !_colPlayers.AnyPlanModified;
 
     public override void Draw()
     {
-        if (_config != null && ImGui.Button(!_config.IsOpen ? "Show config" : "Hide config"))
+        if (ImGui.Button("Config"))
         {
-            _config.Toggle();
+            ImGui.OpenPopup("config");
         }
         ImGui.SameLine();
         if (ImGui.Button($"Save {(_colPlayers.AnyPlanModified ? "all changes" : "(no changes)")}"))
@@ -64,6 +53,10 @@ class ReplayTimelineWindow : UIWindow
         _timeline.Draw();
         if (_timeline.CurrentTime != t)
             _timelineSync.CurrentTime = _encounter.Time.Start.AddSeconds(_timeline.CurrentTime.Value);
+
+        using var config = ImRaii.Popup("config");
+        if (config)
+            DrawConfig();
     }
 
     private void DrawConfig()

@@ -29,7 +29,7 @@ public abstract class RoleTankUtility(RotationModuleManager manager, Actor playe
         DefineSimpleConfig(def, SharedTrack.Shirk, "Shirk", "", 150, ClassShared.AID.Shirk);
         DefineSimpleConfig(def, SharedTrack.ArmsLength, "ArmsLength", "ArmsL", 300, ClassShared.AID.ArmsLength, 6); // note: secondary effect 15s
 
-        def.Define(SharedTrack.Stance).As<StanceOption>("Stance", "", -10)
+        def.Define(SharedTrack.Stance).As<StanceOption>("Stance", "", 5)
             .AddOption(StanceOption.None, "None", "Do not touch stance")
             .AddOption(StanceOption.Apply, "Apply", "Use stance if not already active", 2)
             .AddOption(StanceOption.Remove, "Remove", "Remove stance if active", 1)
