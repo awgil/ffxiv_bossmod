@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Dawntrail.Extreme.Ex1Valigarmanda;
+﻿namespace BossMod.Dawntrail.Extreme.Ex1Valigarmanda;
 
 class Spikesicle(BossModule module) : Components.GenericAOEs(module)
 {

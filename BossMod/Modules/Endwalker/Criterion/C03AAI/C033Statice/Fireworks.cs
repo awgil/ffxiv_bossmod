@@ -283,9 +283,9 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
     private void AddSafeSpot(List<WPos> list, Angle angle) => list.Add(Module.Center + 19 * angle.ToDirection());
 }
 
-// TODO: currently this assumes that DD always go rel-west, supports rel-east
 class Fireworks2Hints(BossModule module) : BossComponent(module)
 {
+    private readonly C033SStaticeConfig _config = Service.Config.Get<C033SStaticeConfig>();
     private readonly Fireworks? _fireworks = module.FindComponent<Fireworks>();
     private readonly Dartboard? _dartboard = module.FindComponent<Dartboard>();
     private readonly FireSpread? _fireSpread = module.FindComponent<FireSpread>();
@@ -321,7 +321,7 @@ class Fireworks2Hints(BossModule module) : BossComponent(module)
             if (_fireworks.IsSpreadTarget(actor))
             {
                 // spreads always go slightly S of rel E/W
-                bool west = actor.Class.IsDD(); // note: this is arbitrary
+                bool west = ShouldGoWest(actor);
                 yield return _relNorth.Value + (west ? 95 : -95).Degrees();
             }
             else if (!_dartboard.Bullseye[slot])
@@ -331,11 +331,13 @@ class Fireworks2Hints(BossModule module) : BossComponent(module)
             }
             else if (Raid[_dartboard.Bullseye.WithoutBit(slot).LowestSetBit()] is var partner && partner != null)
             {
-                bool west = actor.Class.IsDD(); // note: this is arbitrary
-                if (_fireworks.IsSpreadTarget(partner) && partner.Class.IsDD() == west)
+                bool west = ShouldGoWest(actor);
+                if (_fireworks.IsSpreadTarget(partner) && ShouldGoWest(partner) == west)
                     west = !west; // adjust to opposite color
                 yield return _relNorth.Value + (west ? 5 : -5).Degrees();
             }
         }
     }
+
+    private bool ShouldGoWest(Actor actor) => _config.Fireworks2Invert ? actor.Class.IsSupport() : actor.Class.IsDD();
 }
