@@ -383,4 +383,15 @@ public sealed class ActorState : IEnumerable<Actor>
         protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.EventNpcYell.Fire(actor, Message);
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("NYEL"u8).EmitActor(InstanceID).Emit(Message);
     }
+
+    public Event<Actor, bool> EventAggroPlayer = new();
+    public sealed record class OpAggroPlayer(ulong InstanceID, bool Has) : Operation(InstanceID)
+    {
+        protected override void ExecActor(WorldState ws, Actor actor)
+        {
+            actor.AggroPlayer = Has;
+            ws.Actors.EventAggroPlayer.Fire(actor, Has);
+        }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("NENP"u8).EmitActor(InstanceID).Emit(Has);
+    }
 }

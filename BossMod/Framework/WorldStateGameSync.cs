@@ -26,6 +26,8 @@ sealed class WorldStateGameSync : IDisposable
     private readonly DateTime _startTime;
     private readonly long _startQPC;
 
+    private List<(ulong ObjectId, int Enmity)> _playerEnmity = [];
+
     private readonly List<WorldState.Operation> _globalOps = [];
     private readonly Dictionary<ulong, List<WorldState.Operation>> _actorOps = [];
     private readonly Dictionary<ulong, Vector3> _lastCastPositions = []; // unfortunately, game only saves cast location for area-targeted spells
@@ -159,6 +161,15 @@ sealed class WorldStateGameSync : IDisposable
         }
         _globalOps.Clear();
 
+        _playerEnmity.Clear();
+        var uiState = UIState.Instance();
+        var hater = (Hater*)((IntPtr)uiState + 0x110);
+        for (var i = 0; i < hater->HaterArrayLength; i++)
+        {
+            var h = ((HaterInfo*)hater->HaterArray) + i;
+            _playerEnmity.Add((h->ObjectId, h->Enmity));
+        }
+
         UpdateWaymarks();
         UpdateActors();
         UpdateParty();
@@ -287,6 +298,12 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ActorState.OpEventState(act.InstanceID, eventState));
         if (act.TargetID != target)
             _ws.Execute(new ActorState.OpTarget(act.InstanceID, target));
+
+        var enmityIdx = _playerEnmity.FindIndex(item => item.ObjectId == act.InstanceID);
+        var has = enmityIdx >= 0;
+        if (has != act.AggroPlayer)
+            _ws.Execute(new ActorState.OpAggroPlayer(act.InstanceID, has));
+
         DispatchActorEvents(act.InstanceID);
 
         var castInfo = chr != null ? chr->GetCastInfo() : null;

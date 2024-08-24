@@ -88,7 +88,19 @@ public sealed class AIHints
         var allowedFateID = playerInFate ? ws.Client.ActiveFate.ID : 0;
         foreach (var actor in ws.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && (a.FateID == 0 || a.FateID == allowedFateID)))
         {
-            PotentialTargets.Add(new(actor, playerIsDefaultTank && (actor.InCombat || actor.FateID != 0)));
+            // fate mob in fate we are NOT a part of, skip entirely. it's okay to "attack" these (i.e., they won't be added as forbidden targets) because we can't even hit them
+            // (though aggro'd mobs will continue attacking us after we unsync, but who really cares)
+            if (actor.FateID > 0 && actor.FateID != allowedFateID)
+                continue;
+
+            var allowedAttack = actor.InCombat && ws.Party.FindSlot(actor.TargetID) >= 0;
+            // enemies in our enmity list can also be attacked, regardless of who they are targeting (since they are keeping us in combat)
+            allowedAttack |= actor.AggroPlayer;
+
+            PotentialTargets.Add(new(actor, playerIsDefaultTank)
+            {
+                Priority = allowedAttack ? 0 : Enemy.PriorityForbidAI
+            });
         }
     }
 
