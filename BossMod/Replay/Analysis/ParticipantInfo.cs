@@ -14,6 +14,7 @@ class ParticipantInfo : CommonEnumInfo
         public List<(string name, uint id)> Names = [];
         public List<int> SpawnedPreFight = [];
         public bool SpawnedMidFight;
+        public bool SeenTargetable;
         public float MinRadius = float.MaxValue;
         public float MaxRadius = float.MinValue;
     }
@@ -44,6 +45,7 @@ class ParticipantInfo : CommonEnumInfo
                         else
                             data.SpawnedMidFight = true;
 
+                        data.SeenTargetable |= p.TargetableHistory.Count > 0;
                         data.MinRadius = Math.Min(data.MinRadius, p.MinRadius);
                         data.MaxRadius = Math.Max(data.MaxRadius, p.MaxRadius);
                     }
@@ -64,6 +66,7 @@ class ParticipantInfo : CommonEnumInfo
                 data.Types.Add(p.Type);
                 data.Zones.Add((p.ZoneID, p.CFCID));
                 data.Names.AddRange(p.NameHistory.Values);
+                data.SeenTargetable = p.TargetableHistory.Count > 0;
                 data.MinRadius = Math.Min(data.MinRadius, p.MinRadius);
                 data.MaxRadius = Math.Max(data.MaxRadius, p.MaxRadius);
             }
@@ -82,7 +85,9 @@ class ParticipantInfo : CommonEnumInfo
                 1 => kv.Value.Types[0].ToString(),
                 _ => "mixed!"
             };
-            return new($"{kv.Key:X} ({_oidType?.GetEnumName(kv.Key)}) '{kv.Value.Names.FirstOrDefault().name}' ({typeName})", false, name == null ? 0xff00ffff : 0xffffffff);
+            // for global, highlight by targetable; for encounter, highlight by being defined in enum
+            var highlight = _oidType != null ? name == null : !kv.Value.SeenTargetable;
+            return new($"{kv.Key:X} ({_oidType?.GetEnumName(kv.Key)}) '{kv.Value.Names.FirstOrDefault().name}' ({typeName})", false, highlight ? 0xff00ffff : 0xffffffff);
         }
         foreach (var (oid, data) in tree.Nodes(_data, map, kv => DrawSubContextMenu(kv.Key, kv.Value)))
         {
@@ -95,6 +100,7 @@ class ParticipantInfo : CommonEnumInfo
             tree.LeafNode($"Spawned pre fight: {string.Join(", ", data.SpawnedPreFight)}");
             tree.LeafNode($"Spawned mid fight: {data.SpawnedMidFight}");
             tree.LeafNode($"Radius: {RadiusString(data)}");
+            tree.LeafNode($"Seen targetable: {data.SeenTargetable}");
         }
     }
 

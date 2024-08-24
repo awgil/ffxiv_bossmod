@@ -4,24 +4,38 @@ using ImGuiNET;
 
 namespace BossMod;
 
-sealed class DebugAction(WorldState ws, ActionManagerEx amex) : IDisposable
+sealed unsafe class DebugAction : IDisposable
 {
     private int _customAction;
     private readonly UITree _tree = new();
+    private readonly WorldState _ws;
+    private readonly ActionManagerEx _amex;
+
+    //private delegate uint GetActionStatusBallistaDelegate(Vector3* source, float radius, float minRange, float maxRange, Vector3* target, Vector3* aimPoint, uint* outOptExtraInfo);
+    //private readonly HookAddress<GetActionStatusBallistaDelegate> _gasHook;
+
+    public DebugAction(WorldState ws, ActionManagerEx amex)
+    {
+        _ws = ws;
+        _amex = amex;
+        //_gasHook = new(Service.SigScanner.Module.BaseAddress + 0xB5F300, GetActionStatusBallistaDetour);
+        Service.Log("---");
+    }
 
     public void Dispose()
     {
+        //_gasHook.Dispose();
     }
 
-    public unsafe void DrawActionManagerExtensions()
+    public void DrawActionManagerExtensions()
     {
         var pc = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         var pcCast = pc != null ? ((FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)pc)->GetCastInfo() : null;
         var amr = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
-        var aidCastAction = amex.CastAction;
-        var aidCastSpell = amex.CastSpell;
+        var aidCastAction = _amex.CastAction;
+        var aidCastSpell = _amex.CastSpell;
         var aidCombo = new ActionID(ActionType.Spell, amr->Combo.Action);
-        var aidQueued = amex.QueuedAction;
+        var aidQueued = _amex.QueuedAction;
         var aidGTAction = new ActionID((ActionType)amr->AreaTargetingActionType, amr->AreaTargetingActionId);
         var aidGTSpell = new ActionID(ActionType.Spell, amr->AreaTargetingSpellId);
         ImGui.TextUnformatted($"ActionManager singleton address: 0x{(ulong)amr:X}");
@@ -29,9 +43,10 @@ sealed class DebugAction(WorldState ws, ActionManagerEx amex) : IDisposable
         ImGui.TextUnformatted($"Cast: {aidCastAction} / {aidCastSpell}, progress={amr->CastTimeElapsed:f3}/{amr->CastTimeTotal:f3}, target={amr->CastTargetId:X}/{Utils.Vec3String(amr->CastTargetPosition)}");
         if (pcCast != null)
             ImGui.TextUnformatted($"Cast (obj): {pcCast->IsCasting} {new ActionID((ActionType)pcCast->ActionType, pcCast->ActionId)}, progress={pcCast->CurrentCastTime:f3}/{pcCast->BaseCastTime:f3}/{pcCast->TotalCastTime:f3}");
-        ImGui.TextUnformatted($"Combo: {aidCombo}, {amex.ComboTimeLeft:f3}");
+        ImGui.TextUnformatted($"Combo: {aidCombo}, {_amex.ComboTimeLeft:f3}");
         ImGui.TextUnformatted($"Queue: {(amr->ActionQueued ? "active" : "inactive")}, {aidQueued} @ {(ulong)amr->QueuedTargetId:X} [{amr->QueueType}], combo={amr->QueuedComboRouteId}");
         ImGui.TextUnformatted($"GT: {aidGTAction} / {aidGTSpell}, arg={Utils.ReadField<uint>(amr, 0x94)}, targ={amr->AreaTargetingExecuteAtObject:X}/{amr->AreaTargetingExecuteAtCursor}, a0={Utils.ReadField<byte>(amr, 0xA0):X2}, bc={Utils.ReadField<byte>(amr, 0xBC):X}");
+        ImGui.TextUnformatted($"Ballista: {amr->BallistaActive} {amr->BallistaRowId} @ {amr->BallistaOrigin} a={amr->BallistaRefAngle.Radians()} r={amr->BallistaRadius} t={amr->BallistaEntityId:X8}");
         ImGui.TextUnformatted($"Last used action sequence: {amr->LastUsedActionSequence}");
         //ImGui.TextUnformatted($"GT config: 298={Framework.Instance()->SystemConfig.GetConfigOption(298)->Value.UInt}");
         if (ImGui.Button("GT complete"))
@@ -47,11 +62,11 @@ sealed class DebugAction(WorldState ws, ActionManagerEx amex) : IDisposable
 
         if (ImGui.Button("Rotate 30 CCW"))
         {
-            amex.FaceDirection((ws.Party.Player()?.Rotation ?? 0.Degrees() + 30.Degrees()).ToDirection());
+            _amex.FaceDirection((_ws.Party.Player()?.Rotation ?? 0.Degrees() + 30.Degrees()).ToDirection());
         }
     }
 
-    public unsafe void DrawActionData()
+    public void DrawActionData()
     {
         ImGui.InputInt("Action to show details for", ref _customAction);
         if (_customAction != 0)
@@ -160,10 +175,10 @@ sealed class DebugAction(WorldState ws, ActionManagerEx amex) : IDisposable
         }
     }
 
-    private unsafe void DrawStatus(string prompt, ActionID action, bool checkRecast, bool checkCasting)
+    private void DrawStatus(string prompt, ActionID action, bool checkRecast, bool checkCasting)
     {
         uint extra;
-        var status = amex.GetActionStatus(action, Service.ClientState.LocalPlayer?.TargetObjectId ?? 0xE0000000, checkRecast, checkCasting, &extra);
+        var status = _amex.GetActionStatus(action, Service.ClientState.LocalPlayer?.TargetObjectId ?? 0xE0000000, checkRecast, checkCasting, &extra);
         ImGui.TextUnformatted($"{prompt}: {status} [{extra}] '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(status)?.Text}'");
     }
 
@@ -177,4 +192,11 @@ sealed class DebugAction(WorldState ws, ActionManagerEx amex) : IDisposable
             }
         }
     }
+
+    //private uint GetActionStatusBallistaDetour(Vector3* source, float radius, float minRange, float maxRange, Vector3* target, Vector3* aimPoint, uint* outOptExtraInfo)
+    //{
+    //    var res = _gasHook.Original(source, radius, minRange, maxRange, target, aimPoint, outOptExtraInfo);
+    //    Service.Log($"gas: {*source} R{radius} {minRange}-{maxRange} @ {*target} / {*aimPoint} (m={_amex.GetWorldPosUnderCursor()}) -> {res} ({*outOptExtraInfo})");
+    //    return res;
+    //}
 }

@@ -20,6 +20,7 @@ public class Analyzer : DiagnosticAnalyzer
         "Field {0} of component or module {1} is a mutable static, which introduces a risk of different instances of modules affecting each other");
     private static readonly DiagnosticDescriptor RuleNoBitmaskProperties = Register("Bitmasks should not be exposed as read/write properties",
         "Property {0} of type {1} is a read/write bitmask, which introduces a risk of mutating a temporary");
+    private static readonly DiagnosticDescriptor RuleNoEmptyFirstLine = Register("First line of the file should not be empty", "Empty first line is pointless");
 
     public override void Initialize(AnalysisContext context)
     {
@@ -27,6 +28,7 @@ public class Analyzer : DiagnosticAnalyzer
         context.EnableConcurrentExecution();
         context.RegisterSymbolAction(AnalyzeNoMutableStatics, SymbolKind.NamedType);
         context.RegisterSymbolAction(AnalyzeNoBitmaskProperties, SymbolKind.Property);
+        context.RegisterSyntaxTreeAction(AnalyzeNoEmptyFirstLine);
     }
 
     private static void AnalyzeNoMutableStatics(SymbolAnalysisContext context)
@@ -48,6 +50,16 @@ public class Analyzer : DiagnosticAnalyzer
                 return; // this is a hack; this is really a quite bad API that is quite risky and needs to be redesigned...
             context.ReportDiagnostic(Diagnostic.Create(RuleNoBitmaskProperties, p.Locations[0], p.Name, p.ContainingType?.Name));
         }
+    }
+
+    private static void AnalyzeNoEmptyFirstLine(SyntaxTreeAnalysisContext context)
+    {
+        var leadingTrivia = context.Tree.GetRoot().GetLeadingTrivia();
+        if (leadingTrivia.Count == 0)
+            return;
+        var firstTrivia = leadingTrivia[0].ToFullString();
+        if (firstTrivia.Length > 0 && firstTrivia[0] is '\r' or '\n')
+            context.ReportDiagnostic(Diagnostic.Create(RuleNoEmptyFirstLine, context.Tree.GetLocation(leadingTrivia[0].FullSpan)));
     }
 
     private static bool IsSameOrDerivedFrom(INamedTypeSymbol? symbol, params string[] bases)
