@@ -97,7 +97,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         var targeting = new Targeting(target!, autorot.Hints.RecommendedRangeToTarget - 0.1f);
 
         var pos = autorot.Hints.RecommendedPositional;
-        if (targeting.Target.Actor == pos.Target)
+        if (pos.Target != null && targeting.Target.Actor == pos.Target)
             targeting.PreferredPosition = pos.Pos;
 
         return /*autorot.SelectTargetForAI(targeting) ??*/ targeting;
