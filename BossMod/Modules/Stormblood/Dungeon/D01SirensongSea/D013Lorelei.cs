@@ -1,10 +1,5 @@
 ﻿using BossMod;
 using BossMod.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossModReborn.Stormblood.Dungeon.D01SirensongSea.D013Lorelei;
 
@@ -24,10 +19,10 @@ public enum AID : uint
 {
     VoidWater = 8040,
     Spell_IllWill = 8035,         // Boss->player, no cast, single-target
-    _Ability_VirginTears   = 8041, // Boss->self, 3.0s cast, single-target
+    _Ability_VirginTears = 8041, // Boss->self, 3.0s cast, single-target
     _Ability_MorbidAdvance = 8037, // Boss->self, 5.0s cast, range 80+R circle
-    _Weaponskill_HeadButt  = 8036, // Boss->player, no cast, single-target
-    _Spell_SomberMelody    = 8039, // Boss->self, 4.0s cast, range 80+R circle
+    _Weaponskill_HeadButt = 8036, // Boss->player, no cast, single-target
+    _Spell_SomberMelody = 8039, // Boss->self, 4.0s cast, range 80+R circle
     _Ability_MorbidRetreat = 8038, // Boss->self, 5.0s cast, range 80+R circle
 
 }
@@ -36,7 +31,7 @@ public enum SID : uint
 {
     Gen_ForcedMarchBackwards = 3629, // Boss->player, extra=0x1/0x2
     Gen_ForcedMarchForwards = 1257, // Boss->player, extra=0x1/0x2
-    Gen_Bleeding    = 320,  // none->player, extra=0x0
+    Gen_Bleeding = 320,  // none->player, extra=0x0
 }
 
 
@@ -48,7 +43,7 @@ class ArenaLimit(BossModule module) : GenericAOEs(module)
     {
         donut ??= new AOEInstance(new AOEShapeDonut(15, 25), Module.Center);
 
-        yield return (AOEInstance) donut;
+        yield return (AOEInstance)donut;
     }
 }
 
@@ -62,7 +57,7 @@ class Puddles(BossModule module) : GenericAOEs(module)
 
     public override void OnActorCreated(Actor actor)
     {
-        if((OID)actor.OID == OID.GenActor1ea300)
+        if ((OID)actor.OID == OID.GenActor1ea300)
         {
             aoes.Add(new AOEInstance(new AOEShapeCircle(7f), actor.Position));
         }
@@ -81,7 +76,7 @@ class Morbid(BossModule module) : GenericForcedMarch(module)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if((AID)spell.Action.ID == AID._Ability_MorbidAdvance)
+        if ((AID)spell.Action.ID == AID._Ability_MorbidAdvance)
         {
             AddForcedMovement(Raid.Player()!, 0.Degrees(), 3, WorldState.FutureTime(spell.RemainingTime));
         }

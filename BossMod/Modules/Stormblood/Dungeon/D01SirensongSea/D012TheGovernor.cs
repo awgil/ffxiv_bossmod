@@ -30,7 +30,7 @@ public enum AID : uint
 
 public enum TetherID : uint
 {
-    Tether   = 61
+    Tether = 61
 }
 
 class Tether(BossModule module) : BaitAwayTethers(module, new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.Tether)
@@ -104,7 +104,7 @@ class ShadowFlow(BossModule module) : GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if((AID)spell.Action.ID == AID.ShadowFlow)
+        if ((AID)spell.Action.ID == AID.ShadowFlow)
         {
             aoes.Add(new AOEInstance(new AOEShapeCircle(7f), Module.Center, Activation: Module.CastFinishAt(spell, 10f)));
         }
@@ -112,7 +112,7 @@ class ShadowFlow(BossModule module) : GenericAOEs(module)
 
     public override void OnActorCreated(Actor actor)
     {
-        if((OID)actor.OID == OID.GenTheGroveller)
+        if ((OID)actor.OID == OID.GenTheGroveller)
         {
             Grovellers.Add(actor);
         }
