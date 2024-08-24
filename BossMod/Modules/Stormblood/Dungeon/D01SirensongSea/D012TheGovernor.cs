@@ -1,7 +1,7 @@
 ﻿using BossMod;
 using BossMod.Components;
 
-namespace BossModReborn.Stormblood.Dungeon.D01SirensongSea.D012TheGovernor;
+namespace BossMod.Stormblood.Dungeon.D01SirensongSea.D012TheGovernor;
 
 public enum OID : uint
 {
