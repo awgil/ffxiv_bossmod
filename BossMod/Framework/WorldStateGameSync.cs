@@ -26,7 +26,8 @@ sealed class WorldStateGameSync : IDisposable
     private readonly DateTime _startTime;
     private readonly long _startQPC;
 
-    private List<(ulong ObjectId, int Enmity)> _playerEnmity = [];
+    // list of actors that are present in the user's enemy list
+    private readonly List<ulong> _playerEnmity = [];
 
     private readonly List<WorldState.Operation> _globalOps = [];
     private readonly Dictionary<ulong, List<WorldState.Operation>> _actorOps = [];
@@ -167,7 +168,7 @@ sealed class WorldStateGameSync : IDisposable
         for (var i = 0; i < hater->HaterArrayLength; i++)
         {
             var h = ((HaterInfo*)hater->HaterArray) + i;
-            _playerEnmity.Add((h->ObjectId, h->Enmity));
+            _playerEnmity.Add(h->ObjectId);
         }
 
         UpdateWaymarks();
@@ -299,10 +300,9 @@ sealed class WorldStateGameSync : IDisposable
         if (act.TargetID != target)
             _ws.Execute(new ActorState.OpTarget(act.InstanceID, target));
 
-        var enmityIdx = _playerEnmity.FindIndex(item => item.ObjectId == act.InstanceID);
-        var has = enmityIdx >= 0;
-        if (has != act.AggroPlayer)
-            _ws.Execute(new ActorState.OpAggroPlayer(act.InstanceID, has));
+        var hasAggro = _playerEnmity.IndexOf(act.InstanceID) >= 0;
+        if (hasAggro != act.AggroPlayer)
+            _ws.Execute(new ActorState.OpAggroPlayer(act.InstanceID, hasAggro));
 
         DispatchActorEvents(act.InstanceID);
 
