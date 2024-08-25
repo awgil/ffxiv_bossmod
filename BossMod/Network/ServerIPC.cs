@@ -631,7 +631,7 @@ public unsafe struct ActionEffectHeader
     public uint actionId; // what the casting player casts, shown in battle log / ui
     public uint globalEffectCounter;
     public float animationLockTime;
-    public uint SomeTargetID;
+    public uint BallistaEntityId; // for 'artillery' actions - entity id of ballista source
     public ushort SourceSequence; // 0 = initiated by server, otherwise corresponds to client request sequence id
     public ushort rotation;
     public ushort actionAnimationId;
@@ -767,7 +767,7 @@ public struct ActorCast
     public ushort Rotation;
     public byte Interruptible;
     public byte u1;
-    public uint u2_objID;
+    public uint BallistaEntityId; // for 'artillery' actions - entity id of ballista source
     public ushort PosX;
     public ushort PosY;
     public ushort PosZ;

@@ -16,7 +16,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Standard WAR", "Standard rotation module", "veyn", RotationModuleQuality.Basic, BitMask.Build((int)Class.WAR), 100);
+        var res = new RotationModuleDefinition("Standard WAR", "Standard rotation module", "veyn", RotationModuleQuality.Good, BitMask.Build((int)Class.WAR), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 90)
             .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target rotation")
@@ -242,7 +242,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         if (Gauge >= 50 || InnerReleaseUnlocked && CanFitGCD(InnerReleaseLeft))
         {
             var action = FellCleaveAction(aoeTargets);
-            var prio = FellCleavePriority();
+            var prio = InnerReleaseUnlocked ? FellCleavePriorityIR() : FellCleavePriorityBerserk();
             QueueGCD(action, action is WAR.AID.InnerBeast or WAR.AID.FellCleave or WAR.AID.InnerChaos ? primaryTarget : Player, prio);
         }
 
@@ -258,9 +258,10 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             if (ShouldUseInnerRelease(strategy.Option(Track.InnerRelease).As<OffensiveStrategy>(), primaryTarget))
                 QueueOGCD(WAR.AID.InnerRelease, Player, OGCDPriority.InnerRelease);
         }
-        else
+        else if (Unlocked(WAR.AID.Berserk))
         {
-            // TODO: berserk
+            if (ShouldUseBerserk(strategy.Option(Track.InnerRelease).As<OffensiveStrategy>(), primaryTarget, aoeTargets))
+                QueueOGCD(WAR.AID.Berserk, Player, OGCDPriority.InnerRelease);
         }
 
         if (Player.InCombat && Unlocked(WAR.AID.Infuriate))
@@ -433,10 +434,9 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         return haveFC ? WAR.AID.FellCleave : WAR.AID.InnerBeast;
     }
 
-    private GCDPriority FellCleavePriority()
+    private GCDPriority FellCleavePriorityIR()
     {
-        // check for risk of losing NC buff
-        // note: NC buff implies that we've unlocked at least Chaotic Cyclone; technically we could've skipped IR quest, but we don't really care to support that
+        // check for risk of losing NC buff (having a buff implies that we've unlocked at least Chaotic Cyclone)
         // NC buff also implies 50+ gauge (given by infuriate that gave NC buff)
         var ncActive = CanFitGCD(NascentChaosLeft);
         if (ncActive)
@@ -449,7 +449,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         // check for risk of losing IR stacks
         // calculation: we need to fit IRStacks (+1 if NC up) FC/ICs into IR window
         // note: this does not check for double IC before IR expiration (which we might do to avoid overcapping infuriate), this is handled below
-        var irActive = InnerReleaseUnlocked && CanFitGCD(InnerReleaseLeft);
+        var irActive = CanFitGCD(InnerReleaseLeft);
         var effectiveIRStacks = InnerReleaseStacks + (ncActive ? 1 : 0);
         if (irActive && !CanFitGCD(InnerReleaseLeft, effectiveIRStacks))
             return GCDPriority.LastChanceFC;
@@ -471,7 +471,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         // third, if IR is imminent, we have high (>50) gauge, we won't be able to spend this gauge (and use infuriate) before spending IR stacks
         // note: low IR cooldown implies that IR is not active
         var imminentIRStacks = ncActive ? 4 : 3;
-        if (needFCBeforeInf && InnerReleaseUnlocked && !CanFitGCD(InnerReleaseCD, 1) && !CanFitGCD(InfuriateCD - InfuriateCDReduction * imminentIRStacks - InfuriateCDLeeway, imminentIRStacks))
+        if (needFCBeforeInf && !CanFitGCD(InnerReleaseCD, 1) && !CanFitGCD(InfuriateCD - InfuriateCDReduction * imminentIRStacks - InfuriateCDLeeway, imminentIRStacks))
             return GCDPriority.AvoidOvercapInfuriateIR;
 
         // at this point, we can delay FC/IC safely, just need to consider whether it's worth it
@@ -494,19 +494,56 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         else
         {
             // no good reason to use FC now, unless we'd overcap gauge by combo (but that would be covered by combo priority)
-            // TODO: low-level logic (pre IR)
             return GCDPriority.DelayFC;
         }
     }
 
-    private WAR.AID NextComboSingleTarget(bool wantSE) => PrevCombo switch
+    private GCDPriority FellCleavePriorityBerserk()
+    {
+        // check for risk of losing NC buff (having a buff implies that we've unlocked at least Chaotic Cyclone)
+        // NC buff also implies 50+ gauge (given by infuriate that gave NC buff)
+        // note: technically it's possible to unlock NC (and even PR) without unlocking IR by skipping a quest
+        var ncActive = CanFitGCD(NascentChaosLeft);
+        if (ncActive)
+        {
+            var prExpiringSoon = CanFitGCD(PRLeft) && !CanFitGCD(PRLeft, 2); // if PR expires within 2 gcds, next would be forced PR, which reduces deadline for IC
+            if (!CanFitGCD(NascentChaosLeft, prExpiringSoon ? 2 : 1))
+                return GCDPriority.LastChanceIC;
+        }
+
+        // before unlocking IR, we want to use IB/FC mainly during berserk; outside berserk, we only use it to avoid overcapping gauge & infuriate
+        // we also can't delay spending berserk charges - any gcd will use them up
+        if (CanFitGCD(InnerReleaseLeft))
+            return GCDPriority.LastChanceFC;
+
+        // check for risk of overcapping infuriate if we delay FC/IC
+        // note: we don't have to worry if gauge is <= 50 and NC isn't up - this means we're free to infuriate
+        // note: there are situations where e.g. gauge is 40, if we delay FC we would cast SP, and then won't be able to infuriate - this is covered by combo priority calculations
+        var needFCBeforeInf = Unlocked(WAR.AID.Infuriate) && (ncActive || Gauge > 50);
+        if (needFCBeforeInf && !CanFitGCD(InfuriateCD - InfuriateCDReduction - InfuriateCDLeeway, 1))
+            return GCDPriority.AvoidOvercapInfuriateNext;
+
+        // if we're in burst window and berserk is not up or imminent (eg. we've spent all our charges already but still have some gauge), might as well FC
+        // note that if burst window is badly misaligned, we prefer keeping gauge for next berserk; getting back 80+ gauge will take us 9 gcds
+        if (CanFitGCD(BurstWindowLeft) && CanFitGCD(InnerReleaseCD, 9))
+            return GCDPriority.BuffedFC;
+
+        // if we have NC, but it will expire before next burst/berserk, might as well use it now
+        if (ncActive && NascentChaosLeft < BurstWindowIn && NascentChaosLeft < InnerReleaseCD)
+            return GCDPriority.FlexibleFC;
+
+        // no good reason to use FC now, unless we'd overcap gauge by combo (but that would be covered by combo priority)
+        return GCDPriority.DelayFC;
+    }
+
+    private WAR.AID NextComboSingleTarget(bool wantSE, bool forceReset) => forceReset ? WAR.AID.HeavySwing : PrevCombo switch
     {
         WAR.AID.Maim => wantSE ? WAR.AID.StormEye : WAR.AID.StormPath,
         WAR.AID.HeavySwing => WAR.AID.Maim,
         _ => WAR.AID.HeavySwing,
     };
 
-    private WAR.AID NextComboAOE() => PrevCombo == WAR.AID.Overpower ? WAR.AID.MythrilTempest : WAR.AID.Overpower;
+    private WAR.AID NextComboAOE(bool forceReset) => PrevCombo == WAR.AID.Overpower && !forceReset ? WAR.AID.MythrilTempest : WAR.AID.Overpower;
 
     private int GaugeGainedFromAction(WAR.AID action) => action switch
     {
@@ -570,7 +607,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
                 }
             }
         }
-        var nextAction = wantAOEAction ? NextComboAOE() : NextComboSingleTarget(wantSERoute);
+        var nextAction = wantAOEAction ? NextComboAOE(comboStepsRemaining == 0) : NextComboSingleTarget(wantSERoute, comboStepsRemaining == 0);
         var riskOvercappingGauge = Gauge + GaugeGainedFromAction(nextAction) > 100;
 
         // first deal with forced combo; for ST extension, we generally want to minimize overcap by using combo finisher as late as possible
@@ -619,6 +656,57 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         OffensiveStrategy.Force => true,
         _ => false
     };
+
+    // this is relevant only until we unlock IR
+    private bool ShouldUseBerserk(OffensiveStrategy strategy, Actor? target, int aoeTargets)
+    {
+        if (strategy != OffensiveStrategy.Automatic)
+            return strategy == OffensiveStrategy.Force;
+
+        if (!Player.InCombat || target == null || target.IsAlly)
+            return false; // prepull / downtime
+
+        if (Unlocked(WAR.AID.StormEye) && !CanFitGCD(SurgingTempestLeft, 2))
+            return false; // ST will fall off during berserk
+
+        if (aoeTargets >= 3)
+            return true; // don't delay during aoe
+
+        if (Unlocked(WAR.AID.Infuriate))
+        {
+            // we really want to cast SP + 2xIB or 3xIB under berserk; check whether we'll have infuriate before third GCD
+            var availableGauge = Gauge;
+            if (CD(WAR.AID.Infuriate) <= 65)
+                availableGauge += 50;
+            return PrevCombo switch
+            {
+                WAR.AID.Maim => availableGauge >= 80, // TODO: this isn't a very good check, improve...
+                _ => availableGauge == 150
+            };
+        }
+        else if (Unlocked(WAR.AID.InnerBeast))
+        {
+            // L35-49: ideally want to cast SP + 2xIB under berserk (we need to have 80+ gauge for that)
+            // however, we are also content with casting Maim + SP + IB (we need to have 20+ gauge for that; but if we have 70+, it is better to delay for 1 GCD)
+            // alternatively, we could delay for 3 GCDs at 40+ gauge - TODO determine which is better
+            return PrevCombo switch
+            {
+                WAR.AID.HeavySwing => Gauge is >= 20 and < 70,
+                WAR.AID.Maim => Gauge >= 80,
+                _ => false,
+            };
+        }
+        else if (Unlocked(WAR.AID.StormPath))
+        {
+            // L26-34: we are always going to use all 3 combo actions in arbitrary order, so no point delaying berserk
+            return true;
+        }
+        else
+        {
+            // L10-25: it's better to use Maim->HS->Maim
+            return PrevCombo == WAR.AID.HeavySwing;
+        }
+    }
 
     private (bool Use, bool Delayable) ShouldUseInfuriate(InfuriateStrategy strategy, Actor? target)
     {

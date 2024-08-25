@@ -127,7 +127,7 @@ class ClassDefinitions
 
                 foreach (var target in a.Targets)
                 {
-                    foreach (var eff in target.Effects.Where(eff => eff.Type is ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource && !eff.FromTarget))
+                    foreach (var eff in target.Effects.Where(eff => eff.Type is ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource or ActionEffectType.FullResistStatus && !eff.FromTarget))
                     {
                         var onTarget = eff.Type == ActionEffectType.ApplyStatusEffectTarget && target.Target != a.Source && !eff.AtSource;
                         (onTarget ? data.AppliedStatusesToTarget : data.AppliedStatusesToSource).Add(eff.Value);
