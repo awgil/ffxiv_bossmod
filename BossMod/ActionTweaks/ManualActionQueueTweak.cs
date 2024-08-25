@@ -72,7 +72,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
 
         bool isGCD = def.IsGCD;
         float expire = isGCD ? 1.0f : 3.0f;
-        if (def.ReadyIn(ws.Client.Cooldowns) > expire)
+        if (def.ReadyIn(ws.Client.Cooldowns, ws.Client.DutyActions) > expire)
             return false; // don't bother trying to queue something that's on cd
 
         if (!ResolveTarget(def, player, targetId, getAreaTarget, allowTargetOverride, out var target, out var targetPos))
@@ -81,7 +81,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         Angle? angleOverride = def.TransformAngle?.Invoke(ws, player, target, hints);
 
         var expireAt = ws.CurrentTime.AddSeconds(expire);
-        var index = _queue.FindIndex(e => e.Definition.MainCooldownGroup == def.MainCooldownGroup); // TODO: what about alt groups?..
+        var index = _queue.FindIndex(e => e.Definition.MainCooldownGroup == def.MainCooldownGroup); // TODO: what about alt groups and duty actions?..
         if (index < 0)
         {
             Service.Log($"[MAO] Queueing {action} @ {target}");
