@@ -40,6 +40,9 @@ public sealed class AIHints
     // low-level forced movement - if set, character will move in specified direction (ignoring casts, uptime, forbidden zones, etc), or stay in place if set to default
     public Vector3? ForcedMovement;
 
+    // indicates to AI mode that it should try to interact with some object
+    public Actor? InteractWithTarget;
+
     // positioning: list of shapes that are either forbidden to stand in now or will be in near future
     // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
     public List<(Func<WPos, float> shapeDistance, DateTime activation)> ForbiddenZones = [];
@@ -72,6 +75,7 @@ public sealed class AIHints
         PotentialTargets.Clear();
         ForcedTarget = null;
         ForcedMovement = null;
+        InteractWithTarget = null;
         ForbiddenZones.Clear();
         RecommendedPositional = default;
         RecommendedRangeToTarget = 0;
