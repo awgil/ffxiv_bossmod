@@ -270,6 +270,11 @@ class ReplayDetailsWindow : UIWindow
             ImGui.TextUnformatted($"{actor.CastInfo.Action}: {Utils.CastTimeString(actor.CastInfo, _player.WorldState.CurrentTime)}");
 
         ImGui.TableNextColumn();
+        if (actor.MountId > 0)
+        {
+            ImGui.TextUnformatted($"'Mounted' ({actor.MountId})");
+            ImGui.SameLine();
+        }
         foreach (var s in actor.Statuses.Where(s => s.ID != 0))
         {
             var src = _player.WorldState.Actors.Find(s.SourceID);

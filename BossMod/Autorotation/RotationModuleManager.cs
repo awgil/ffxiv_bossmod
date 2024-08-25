@@ -14,6 +14,9 @@ public sealed class RotationModuleManager : IDisposable
         }
     }
 
+    private uint _mountId;
+    private bool _isRP;
+
     public readonly AutorotationConfig Config = Service.Config.Get<AutorotationConfig>();
     public readonly RotationDatabase Database;
     public readonly BossModuleManager Bossmods;
@@ -70,6 +73,14 @@ public sealed class RotationModuleManager : IDisposable
             DirtyActiveModules(Preset == null);
         }
 
+        if (Player != null)
+        {
+            var rping = Player.FindStatus(Roleplay.SID.RolePlaying) != null;
+            DirtyActiveModules(Player.MountId != _mountId || _isRP != rping);
+            _mountId = Player.MountId;
+            _isRP = rping;
+        }
+
         // rebuild modules if needed
         _activeModules ??= Preset != null ? RebuildActiveModules(Preset.Modules.Keys) : Planner?.Plan != null ? RebuildActiveModules(Planner.Plan.Modules.Keys) : [];
 
@@ -122,6 +133,13 @@ public sealed class RotationModuleManager : IDisposable
             foreach (var m in types)
             {
                 var def = RotationModuleRegistry.Modules.GetValueOrDefault(m);
+
+                if (player.MountId > 0 && !def.Definition.CanUseWhileMounted)
+                    continue;
+
+                if (player.FindStatus(Roleplay.SID.RolePlaying) != null && !def.Definition.CanUseWhileRoleplaying)
+                    continue;
+
                 if (def.Definition != null && def.Definition.Classes[(int)player.Class] && player.Level >= def.Definition.MinLevel && player.Level <= def.Definition.MaxLevel)
                 {
                     res.Add((def.Definition, def.Builder(this, player)));

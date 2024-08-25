@@ -160,6 +160,7 @@ class OpList(Replay replay, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldSt
             ActorState.OpEventObjectAnimation op => $"EObjAnim: {ActorString(op.InstanceID, op.Timestamp)} = {((uint)op.Param1 << 16) | op.Param2:X8}",
             ActorState.OpPlayActionTimelineEvent op => $"Play action timeline: {ActorString(op.InstanceID, op.Timestamp)} = {op.ActionTimelineID:X4}",
             ActorState.OpEventNpcYell op => $"Yell: {ActorString(op.InstanceID, op.Timestamp)} = {op.Message} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.NpcYell>(op.Message)?.Text}'",
+            ActorState.OpMount op => $"Mount: {ActorString(op.InstanceID, op.Timestamp)} = {Service.LuminaRow<Lumina.Excel.GeneratedSheets.Mount>(op.MountId)?.Singular ?? "<unknown>"}",
             ClientState.OpDutyActionsChange op => $"Player duty actions change: {op.Slot0}, {op.Slot1}",
             ClientState.OpBozjaHolsterChange op => $"Player bozja holster change: {string.Join(", ", op.Contents.Select(e => $"{e.count}x {e.entry}"))}",
             _ => DumpOp(o)
