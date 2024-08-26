@@ -18,20 +18,20 @@ public enum OID : uint
 public enum AID : uint
 {
     VoidWater = 8040,
-    Spell_IllWill = 8035,         // Boss->player, no cast, single-target
-    _Ability_VirginTears = 8041, // Boss->self, 3.0s cast, single-target
-    _Ability_MorbidAdvance = 8037, // Boss->self, 5.0s cast, range 80+R circle
-    _Weaponskill_HeadButt = 8036, // Boss->player, no cast, single-target
-    _Spell_SomberMelody = 8039, // Boss->self, 4.0s cast, range 80+R circle
-    _Ability_MorbidRetreat = 8038, // Boss->self, 5.0s cast, range 80+R circle
+    IllWill = 8035,         // Boss->player, no cast, single-target
+    VirginTears = 8041, // Boss->self, 3.0s cast, single-target
+    MorbidAdvance = 8037, // Boss->self, 5.0s cast, range 80+R circle
+    HeadButt = 8036, // Boss->player, no cast, single-target
+    SomberMelody = 8039, // Boss->self, 4.0s cast, range 80+R circle
+    MorbidRetreat = 8038, // Boss->self, 5.0s cast, range 80+R circle
 
 }
 
 public enum SID : uint
 {
-    Gen_ForcedMarchBackwards = 3629, // Boss->player, extra=0x1/0x2
-    Gen_ForcedMarchForwards = 1257, // Boss->player, extra=0x1/0x2
-    Gen_Bleeding = 320,  // none->player, extra=0x0
+    ForcedMarchBackwards = 3629, // Boss->player, extra=0x1/0x2
+    ForcedMarchForwards = 1257, // Boss->player, extra=0x1/0x2
+    Bleeding = 320,  // none->player, extra=0x0
 }
 
 
@@ -76,11 +76,11 @@ class Morbid(BossModule module) : GenericForcedMarch(module)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_MorbidAdvance)
+        if ((AID)spell.Action.ID == AID.MorbidAdvance)
         {
             AddForcedMovement(Raid.Player()!, 0.Degrees(), 3, WorldState.FutureTime(spell.RemainingTime));
         }
-        if ((AID)spell.Action.ID == AID._Ability_MorbidRetreat)
+        if ((AID)spell.Action.ID == AID.MorbidRetreat)
         {
             AddForcedMovement(Raid.Player()!, 180.Degrees(), 3, WorldState.FutureTime(spell.RemainingTime));
         }
@@ -88,7 +88,7 @@ class Morbid(BossModule module) : GenericForcedMarch(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID.Gen_ForcedMarchBackwards or SID.Gen_ForcedMarchForwards && actor == Raid.Player())
+        if ((SID)status.ID is SID.ForcedMarchBackwards or SID.ForcedMarchForwards && actor == Raid.Player())
         {
             State.GetOrAdd(actor.InstanceID).PendingMoves.Clear();
             ActivateForcedMovement(Raid.Player()!, status.ExpireAt);
@@ -97,7 +97,7 @@ class Morbid(BossModule module) : GenericForcedMarch(module)
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID.Gen_ForcedMarchBackwards or SID.Gen_ForcedMarchForwards && actor == Raid.Player())
+        if ((SID)status.ID is SID.ForcedMarchBackwards or SID.ForcedMarchForwards && actor == Raid.Player())
         {
             DeactivateForcedMovement(Raid.Player()!);
         }
