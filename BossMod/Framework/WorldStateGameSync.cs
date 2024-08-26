@@ -164,12 +164,8 @@ sealed class WorldStateGameSync : IDisposable
 
         _playerEnmity.Clear();
         var uiState = UIState.Instance();
-        var hater = (Hater*)((IntPtr)uiState + 0x110);
-        for (var i = 0; i < hater->HaterArrayLength; i++)
-        {
-            var h = ((HaterInfo*)hater->HaterArray) + i;
-            _playerEnmity.Add(h->ObjectId);
-        }
+        for (var i = 0; i < uiState->Hater.HaterCount; i++)
+            _playerEnmity.Add(uiState->Hater.Haters[i].EntityId);
 
         UpdateWaymarks();
         UpdateActors();
@@ -255,6 +251,7 @@ sealed class WorldStateGameSync : IDisposable
         var targetable = obj->GetIsTargetable();
         var friendly = chr == null || ActionManager.ClassifyTarget(chr) != ActionManager.TargetCategory.Enemy;
         var isDead = obj->IsDead();
+        var hasAggro = _playerEnmity.IndexOf(obj->EntityId) >= 0;
         var target = chr != null ? SanitizedObjectID(chr->GetTargetId()) : 0; // note: when changing targets, we want to see changes immediately rather than wait for server response
         var modelState = chr != null ? new ActorModelState(chr->Timeline.ModelState, chr->Timeline.AnimationState[0], chr->Timeline.AnimationState[1]) : default;
         var eventState = obj->EventState;
@@ -293,16 +290,14 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ActorState.OpDead(act.InstanceID, isDead));
         if (act.InCombat != inCombat)
             _ws.Execute(new ActorState.OpCombat(act.InstanceID, inCombat));
+        if (act.AggroPlayer != hasAggro)
+            _ws.Execute(new ActorState.OpAggroPlayer(act.InstanceID, hasAggro));
         if (act.ModelState != modelState)
             _ws.Execute(new ActorState.OpModelState(act.InstanceID, modelState));
         if (act.EventState != eventState)
             _ws.Execute(new ActorState.OpEventState(act.InstanceID, eventState));
         if (act.TargetID != target)
             _ws.Execute(new ActorState.OpTarget(act.InstanceID, target));
-
-        var hasAggro = _playerEnmity.IndexOf(act.InstanceID) >= 0;
-        if (hasAggro != act.AggroPlayer)
-            _ws.Execute(new ActorState.OpAggroPlayer(act.InstanceID, hasAggro));
 
         DispatchActorEvents(act.InstanceID);
 

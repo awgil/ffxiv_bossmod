@@ -223,6 +223,17 @@ public sealed class ActorState : IEnumerable<Actor>
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC(Value ? "COM+"u8 : "COM-"u8).EmitActor(InstanceID);
     }
 
+    public Event<Actor> AggroPlayerChanged = new();
+    public sealed record class OpAggroPlayer(ulong InstanceID, bool Has) : Operation(InstanceID)
+    {
+        protected override void ExecActor(WorldState ws, Actor actor)
+        {
+            actor.AggroPlayer = Has;
+            ws.Actors.AggroPlayerChanged.Fire(actor);
+        }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("NENP"u8).EmitActor(InstanceID).Emit(Has);
+    }
+
     public Event<Actor> ModelStateChanged = new();
     public sealed record class OpModelState(ulong InstanceID, ActorModelState Value) : Operation(InstanceID)
     {
@@ -382,16 +393,5 @@ public sealed class ActorState : IEnumerable<Actor>
     {
         protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.EventNpcYell.Fire(actor, Message);
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("NYEL"u8).EmitActor(InstanceID).Emit(Message);
-    }
-
-    public Event<Actor, bool> EventAggroPlayer = new();
-    public sealed record class OpAggroPlayer(ulong InstanceID, bool Has) : Operation(InstanceID)
-    {
-        protected override void ExecActor(WorldState ws, Actor actor)
-        {
-            actor.AggroPlayer = Has;
-            ws.Actors.EventAggroPlayer.Fire(actor, Has);
-        }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("NENP"u8).EmitActor(InstanceID).Emit(Has);
     }
 }
