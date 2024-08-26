@@ -77,6 +77,9 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
     // returns null if we're to be idle, otherwise target to attack
     private Targeting SelectPrimaryTarget(Actor player, Actor master)
     {
+        if (autorot.Hints.InteractWithTarget is Actor interact)
+            return new Targeting(new AIHints.Enemy(interact, false), 3);
+
         // we prefer not to switch targets unnecessarily, so start with current target - it could've been selected manually or by AI on previous frames
         // if current target is not among valid targets, clear it - this opens way for future target selection heuristics
         var targetId = autorot.Hints.ForcedTarget?.InstanceID ?? player.TargetID;

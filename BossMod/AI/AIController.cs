@@ -1,4 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Objects.Types;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 
 namespace BossMod.AI;
 
@@ -17,6 +19,7 @@ sealed class AIController(ActionManagerEx amex, MovementOverride movement)
 
     private readonly ActionManagerEx _amex = amex;
     private readonly MovementOverride _movement = movement;
+    private DateTime _nextInteract;
     private DateTime _nextJump;
 
     public bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas] || Service.Condition[ConditionFlag.OccupiedInQuestEvent];
@@ -73,6 +76,21 @@ sealed class AIController(ActionManagerEx amex, MovementOverride movement)
 
         if (hints.ForcedMovement == null && desiredPosition != null)
             hints.ForcedMovement = desiredPosition.Value - player.PosRot.XYZ();
+
+        if (hints.InteractWithTarget is Actor tar && Service.TargetManager.Target is IGameObject obj && obj.EntityId == tar.InstanceID && player.DistanceToHitbox(tar) <= 3)
+            ExecuteInteract(obj);
+    }
+
+    private unsafe void ExecuteInteract(IGameObject obj)
+    {
+        if (_amex.EffectiveAnimationLock > 0)
+            return;
+
+        if (DateTime.Now >= _nextInteract)
+        {
+            TargetSystem.Instance()->OpenObjectInteraction((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)obj.Address);
+            _nextInteract = DateTime.Now.AddMilliseconds(100);
+        }
     }
 
     private unsafe void ExecuteJump()
