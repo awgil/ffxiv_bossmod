@@ -44,9 +44,13 @@ class Comet2(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCi
             CurrentBaits.Clear();
         }
     }
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        hints.AddForbiddenZone(new AOEShapeCircle(23), Module.Center);
+    }
 }
 class MultiAddModule(BossModule module) : Components.AddsMulti(module, [(uint)OID.LeftWingOfTragedy, (uint)OID.RightWingOfInjury]);
-//class MeteorImpact(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MeteorImpact), 30);
+class MeteorImpact(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MeteorImpact), 30);
 //class MeteorImpact2(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(15), 7, ActionID.MakeSpell(AID.MeteorImpact));
 //class Heavensfall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Heavensfall), 5);
 //class Heavensfall2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Heavensfall2), new AOEShapeCircle(5));
@@ -63,7 +67,7 @@ class D023TiomanStates : StateMachineBuilder
             .ActivateOnEnter<ChaosBlast2>()
             .ActivateOnEnter<Comet>()
             .ActivateOnEnter<Comet2>()
-            //.ActivateOnEnter<MeteorImpact>()
+            .ActivateOnEnter<MeteorImpact>()
             //.ActivateOnEnter<MeteorImpact2>()
             //.ActivateOnEnter<Heavensfall>()
             //.ActivateOnEnter<Heavensfall2>()
