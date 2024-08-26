@@ -94,6 +94,8 @@ public sealed class AIHints
                 continue;
 
             var allowedAttack = actor.InCombat && ws.Party.FindSlot(actor.TargetID) >= 0;
+            // enemies in our enmity list can also be attacked, regardless of who they are targeting (since they are keeping us in combat)
+            allowedAttack |= actor.AggroPlayer;
 
             PotentialTargets.Add(new(actor, playerIsDefaultTank)
             {
