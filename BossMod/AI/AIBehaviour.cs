@@ -80,9 +80,6 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         if (autorot.Hints.InteractWithTarget is Actor interact)
             return new Targeting(new AIHints.Enemy(interact, false), 3);
 
-        if ((!_config.FollowTarget || !master.InCombat) && (!autorot.Hints.PriorityTargets.Any() || !master.InCombat || AIPreset == null))
-            return new(); // there are no valid targets to attack, or we're not fighting - remain idle
-
         // we prefer not to switch targets unnecessarily, so start with current target - it could've been selected manually or by AI on previous frames
         // if current target is not among valid targets, clear it - this opens way for future target selection heuristics
         var targetId = autorot.Hints.ForcedTarget?.InstanceID ?? player.TargetID;
@@ -93,6 +90,10 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         target ??= master != player ? autorot.Hints.PriorityTargets.FirstOrDefault(t => master.TargetID == t.Actor.InstanceID) : null;
         target ??= autorot.Hints.PriorityTargets.MinBy(e => (e.Actor.Position - player.Position).LengthSq());
 
+        // if the previous line returned no target, there aren't any priority targets at all - give up
+        if (target == null)
+            return new();
+
         // TODO: rethink all this... ai module should set forced target if it wants to switch... figure out positioning and stuff
         // now give class module a chance to improve targeting
         // typically it would switch targets for multidotting, or to hit more targets with AOE
@@ -100,7 +101,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         var targeting = new Targeting(target!, autorot.Hints.RecommendedRangeToTarget - 0.1f);
 
         var pos = autorot.Hints.RecommendedPositional;
-        if (targeting.Target.Actor == pos.Target)
+        if (pos.Target != null && targeting.Target.Actor == pos.Target)
             targeting.PreferredPosition = pos.Pos;
 
         return /*autorot.SelectTargetForAI(targeting) ??*/ targeting;
@@ -203,7 +204,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
             ctrl.NaviTargetRot = null;
             ctrl.NaviTargetVertical = master != player ? master.PosRot.Y : null;
             ctrl.AllowInterruptingCastByMovement = player.CastInfo != null && _naviDecision.LeewaySeconds <= player.CastInfo.RemainingTime - 0.5;
-            ctrl.ForceCancelCast = player.CastInfo != null && TargetIsForbidden(player.CastInfo.TargetID);
+            ctrl.ForceCancelCast = false;
             ctrl.ForceFacing = false;
             ctrl.WantJump = distSq >= 0.01f && autorot.Bossmods.ActiveModule?.StateMachine.ActiveState != null && autorot.Bossmods.ActiveModule.NeedToJump(player.Position, toDest.Normalized());
 

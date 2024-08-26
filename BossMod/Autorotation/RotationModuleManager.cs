@@ -138,7 +138,7 @@ public sealed class RotationModuleManager : IDisposable
 
         CombatStart = actor.InCombat ? WorldState.CurrentTime : default; // keep track of combat time in case rotation modules want to do something special in openers
 
-        if (!actor.InCombat && Config.ClearPresetOnCombatEnd)
+        if (!actor.InCombat && (Preset == ForceDisable ? Config.ClearForceDisableOnCombatEnd : Config.ClearPresetOnCombatEnd))
         {
             // player exits combat => clear manual overrides
             Service.Log($"[RMM] Player exits combat => clear preset '{Preset?.Name ?? "<n/a>"}'");

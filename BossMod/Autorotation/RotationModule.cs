@@ -146,6 +146,18 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     protected float GCD => World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining; // 2.5 max (decreased by SkS), 0 if not on gcd
     protected float PotionCD => World.Client.Cooldowns[ActionDefinitions.PotionCDGroup].Remaining; // variable max
 
+    // find a slot containing specified duty action; returns -1 if not found
+    public int FindDutyActionSlot(ActionID action) => Array.IndexOf(World.Client.DutyActions, action);
+    // find a slot containing specified duty action, if other duty action is the specified one; returns -1 if not found, or other action is different
+    public int FindDutyActionSlot(ActionID action, ActionID other)
+    {
+        var slot = FindDutyActionSlot(action);
+        return slot >= 0 && World.Client.DutyActions[1 - slot] == other ? slot : -1;
+    }
+
+    public float DutyActionCD(int slot) => slot is >= 0 and < 2 ? World.Client.Cooldowns[ActionDefinitions.DutyAction0CDGroup + slot].Remaining : float.MaxValue;
+    public float DutyActionCD(ActionID action) => DutyActionCD(FindDutyActionSlot(action));
+
     protected (float Left, float In) EstimateRaidBuffTimings(Actor? primaryTarget)
     {
         if (primaryTarget?.OID != 0x385)

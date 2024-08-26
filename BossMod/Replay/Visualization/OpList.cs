@@ -1,5 +1,4 @@
-﻿using Dalamud.Plugin.Services;
-using ImGuiNET;
+﻿using ImGuiNET;
 using System.IO;
 using System.Text;
 
@@ -149,6 +148,7 @@ class OpList(Replay replay, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldSt
             ActorState.OpClassChange op => $"Actor class change: {ActorString(op.InstanceID, op.Timestamp)} -> {op.Class} L{op.Level}",
             ActorState.OpTargetable op => $"{(op.Value ? "Targetable" : "Untargetable")}: {ActorString(op.InstanceID, op.Timestamp)}",
             ActorState.OpDead op => $"{(op.Value ? "Die" : "Resurrect")}: {ActorString(op.InstanceID, op.Timestamp)}",
+            ActorState.OpAggroPlayer op => $"Aggro player: {ActorString(op.InstanceID, op.Timestamp)} = {op.Has}",
             ActorState.OpEventState op => $"Event state: {ActorString(op.InstanceID, op.Timestamp)} -> {op.Value}",
             ActorState.OpTarget op => $"Target: {ActorString(op.InstanceID, op.Timestamp)} -> {ActorString(op.Value, op.Timestamp)}",
             ActorState.OpTether op => $"Tether: {ActorString(op.InstanceID, op.Timestamp)} {op.Value.ID} ({moduleInfo?.TetherIDType?.GetEnumName(op.Value.ID)}) @ {ActorString(op.Value.Target, op.Timestamp)}",

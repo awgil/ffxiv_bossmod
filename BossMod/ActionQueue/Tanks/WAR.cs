@@ -113,6 +113,11 @@ public enum SID : uint
     ShieldWall = 194, // applied by Shield Wall to self/target
     Stronghold = 195, // applied by Stronghold to self/target
     LandWaker = 863, // applied by Land Waker to self/target
+    // bozja stuff - TODO consider moving out to common/bozja definitions
+    BannerOfHonoredSacrifice = 2327,
+    LostFontOfPower = 2346,
+    LostBloodRage = 2566,
+    BloodRush = 2567,
 }
 
 public sealed class Definitions : IDisposable

@@ -95,6 +95,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public bool IsAlly = ally;
     public bool IsDead;
     public bool InCombat;
+    public bool AggroPlayer; // determines whether a given actor shows in the player's UI enemy list
     public ActorModelState ModelState;
     public byte EventState; // not sure about the field meaning...
     public ulong OwnerID = ownerID; // uuid of owner, for pets and similar

@@ -6,7 +6,7 @@ public abstract class AIBase(RotationModuleManager manager, Actor player) : Targ
 {
     internal bool Unlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
     internal float NextChargeIn<AID>(AID aid) where AID : Enum => NextChargeIn(ActionID.MakeSpell(aid));
-    internal float NextChargeIn(ActionID action) => ActionDefinitions.Instance[action]!.ReadyIn(World.Client.Cooldowns);
+    internal float NextChargeIn(ActionID action) => ActionDefinitions.Instance[action]!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
 
     internal static ActionID Spell<AID>(AID aid) where AID : Enum => ActionID.MakeSpell(aid);
 
