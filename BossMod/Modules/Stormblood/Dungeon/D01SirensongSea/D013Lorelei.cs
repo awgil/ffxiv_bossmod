@@ -24,7 +24,6 @@ public enum AID : uint
     HeadButt = 8036, // Boss->player, no cast, single-target
     SomberMelody = 8039, // Boss->self, 4.0s cast, range 80+R circle
     MorbidRetreat = 8038, // Boss->self, 5.0s cast, range 80+R circle
-
 }
 
 public enum SID : uint
@@ -33,7 +32,6 @@ public enum SID : uint
     ForcedMarchForwards = 1257, // Boss->player, extra=0x1/0x2
     Bleeding = 320,  // none->player, extra=0x0
 }
-
 
 class ArenaLimit(BossModule module) : GenericAOEs(module)
 {
