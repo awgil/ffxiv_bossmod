@@ -168,7 +168,7 @@ public sealed class LegacyBRD : LegacyModule
         _state.SoulVoice = gauge.SoulVoice;
         _state.NumCoda = BitOperations.PopCount((uint)gauge.SongFlags & 0x70);
 
-        _state.StraightShotLeft = _state.StatusDetails(Player, BRD.SID.StraightShotReady, Player.InstanceID, 30).Left;
+        _state.StraightShotLeft = _state.StatusDetails(Player, BRD.SID.HawksEye, Player.InstanceID, 30).Left;
         _state.BlastArrowLeft = _state.StatusDetails(Player, BRD.SID.BlastArrowReady, Player.InstanceID, 10).Left;
         _state.ShadowbiteLeft = _state.StatusDetails(Player, BRD.SID.ShadowbiteReady, Player.InstanceID, 30).Left;
         _state.RagingStrikesLeft = _state.StatusDetails(Player, BRD.SID.RagingStrikes, Player.InstanceID, 20).Left;

@@ -206,7 +206,7 @@ public abstract unsafe class PacketDecoder
     {
         var rot = IntToFloatAngle(data->rotation);
         var aid = data->actionId - IDScramble.Delta;
-        var res = new TextNode($"#{data->globalEffectCounter} ({data->SourceSequence}) {new ActionID(data->actionType, aid)} ({data->actionId}/{data->actionAnimationId}), animTarget={DecodeActor(data->animationTargetId)}, animLock={data->animationLockTime:f3}, rot={rot}, pos={Utils.Vec3String(targetPos)}, var={data->variation}, someTarget={DecodeActor(data->SomeTargetID)}, flags={data->Flags:X2} pad={data->padding21:X4}");
+        var res = new TextNode($"#{data->globalEffectCounter} ({data->SourceSequence}) {new ActionID(data->actionType, aid)} ({data->actionId}/{data->actionAnimationId}), animTarget={DecodeActor(data->animationTargetId)}, animLock={data->animationLockTime:f3}, rot={rot}, pos={Utils.Vec3String(targetPos)}, var={data->variation}, ballista={DecodeActor(data->BallistaEntityId)}, flags={data->Flags:X2} pad={data->padding21:X4}");
         var targets = Math.Min(data->NumTargets, maxTargets);
         for (int i = 0; i < targets; ++i)
         {
@@ -228,7 +228,7 @@ public abstract unsafe class PacketDecoder
     private TextNode DecodeActorCast(ActorCast* p)
     {
         uint aid = p->ActionID - IDScramble.Delta;
-        return new($"{new ActionID(p->ActionType, aid)} ({new ActionID(ActionType.Spell, p->SpellID)}) @ {DecodeActor(p->TargetID)}, time={p->CastTime:f3} ({p->BaseCastTime100ms * 0.1f:f1}), rot={IntToFloatAngle(p->Rotation)}, targetpos={Utils.Vec3String(IntToFloatCoords(p->PosX, p->PosY, p->PosZ))}, interruptible={p->Interruptible}, u1={p->u1:X2}, u2={DecodeActor(p->u2_objID)}, u3={p->u3:X4}");
+        return new($"{new ActionID(p->ActionType, aid)} ({new ActionID(ActionType.Spell, p->SpellID)}) @ {DecodeActor(p->TargetID)}, time={p->CastTime:f3} ({p->BaseCastTime100ms * 0.1f:f1}), rot={IntToFloatAngle(p->Rotation)}, targetpos={Utils.Vec3String(IntToFloatCoords(p->PosX, p->PosY, p->PosZ))}, interruptible={p->Interruptible}, ballista={DecodeActor(p->BallistaEntityId)}, u1={p->u1:X2}, u3={p->u3:X4}");
     }
 
     private TextNode DecodeUpdateHate(UpdateHate* p)

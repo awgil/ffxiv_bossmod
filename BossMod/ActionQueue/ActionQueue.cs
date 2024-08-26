@@ -54,7 +54,7 @@ public sealed class ActionQueue
             if (def == null || !def.IsUnlocked(ws, player))
                 continue; // unregistered or locked action
 
-            var startDelay = Math.Max(Math.Max(candidate.Delay, animationLock), def.ReadyIn(cooldowns));
+            var startDelay = Math.Max(Math.Max(candidate.Delay, animationLock), def.ReadyIn(cooldowns, ws.Client.DutyActions));
 
             // TODO: adjusted cast time!
             var duration = def.CastTime > 0 ? def.CastTime + def.CastAnimLock : def.InstantAnimLock + instantAnimLockDelay;
