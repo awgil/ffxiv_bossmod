@@ -49,7 +49,8 @@ public enum IconID : uint
 }
 
 class Electrothermia(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Electrothermia));
-class SoulbaneSaber(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SoulbaneSaberBurst), new AOEShapeRect(20, 20));
+class SoulbaneSaber(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SoulbaneSaber), new AOEShapeRect(20, 2));
+class SoulbaneSaberBurst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SoulbaneSaberBurst), new AOEShapeRect(20, 20));
 class SaberRush(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SaberRush));
 class SoulbaneShock(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.SoulbaneShock), 5);
 class BossP2(BossModule module) : Components.Adds(module, (uint)OID.BossP2);
@@ -83,12 +84,14 @@ class SynthesleanSlither(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class SlitherbaneForeguard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SlitherbaneForeguardAOE), new AOEShapeCone(20, 90.Degrees()));
-class SlitherbaneRearguard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SlitherbaneRearguardAOE), new AOEShapeCone(20, 90.Degrees()));
+class SlitherbaneForeguard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SlitherbaneForeguard), new AOEShapeRect(20, 2));
+class SlitherbaneForeguardAoE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SlitherbaneForeguardAOE), new AOEShapeCone(20, 90.Degrees()));
+class SlitherbaneRearguard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SlitherbaneRearguard), new AOEShapeRect(20, 2));
+class SlitherbaneRearguardAoE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SlitherbaneRearguardAOE), new AOEShapeCone(20, 90.Degrees()));
 class SlitherbaneBurst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SlitherbaneBurst), new AOEShapeRect(20, 20))
 {
-    private readonly SlitherbaneForeguard? _foreguard = module.FindComponent<SlitherbaneForeguard>();
-    private readonly SlitherbaneRearguard? _rearguard = module.FindComponent<SlitherbaneRearguard>();
+    private readonly SlitherbaneForeguardAoE? _foreguard = module.FindComponent<SlitherbaneForeguardAoE>();
+    private readonly SlitherbaneRearguardAoE? _rearguard = module.FindComponent<SlitherbaneRearguardAoE>();
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -105,12 +108,15 @@ class D043ZanderSnakeskinnerStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<Electrothermia>()
             .ActivateOnEnter<SoulbaneSaber>()
+            .ActivateOnEnter<SoulbaneSaberBurst>()
             .ActivateOnEnter<SaberRush>()
             .ActivateOnEnter<SoulbaneShock>()
             .ActivateOnEnter<BossP2>()
             .ActivateOnEnter<Screech>()
             .ActivateOnEnter<ShadeShot>()
             .ActivateOnEnter<SynthesleanSlither>()
+            .ActivateOnEnter<SlitherbaneForeguardAoE>()
+            .ActivateOnEnter<SlitherbaneRearguardAoE>()
             .ActivateOnEnter<SlitherbaneForeguard>()
             .ActivateOnEnter<SlitherbaneRearguard>()
             .ActivateOnEnter<SlitherbaneBurst>();
