@@ -18,7 +18,6 @@ public class Chains(BossModule module, uint tetherID, ActionID aid = default, fl
     {
         return _partner[pcSlot] == player ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
     }
-    
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (slot < 0 || slot >= _partner.Length || chainLength == 0)
@@ -47,7 +46,7 @@ public class Chains(BossModule module, uint tetherID, ActionID aid = default, fl
             {
                 SetPartner(source.InstanceID, target);
                 SetPartner(target.InstanceID, source);
-                 _initialDistance = (source.Position - target.Position).Length();
+                _initialDistance = (source.Position - target.Position).Length();
             }
         }
     }
