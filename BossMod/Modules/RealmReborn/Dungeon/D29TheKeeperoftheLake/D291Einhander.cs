@@ -44,9 +44,9 @@ class HeavySwingTB(BossModule module) : Components.SingleTargetCast(module, Acti
 
 class Bomb1(BossModule module) : Components.Adds(module, (uint)OID.AuxiliaryCeruleumTank);
 
-class D292MagitekGunshipStates : StateMachineBuilder
+class D291EinhanderStates : StateMachineBuilder
 {
-    public D292MagitekGunshipStates(BossModule module) : base(module)
+    public D291EinhanderStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<AeroBlast>()
@@ -59,4 +59,4 @@ class D292MagitekGunshipStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 32, NameID = 3369)]
-public class D292MagitekGunship(WorldState ws, Actor primary) : BossModule(ws, primary, new(18.85f, -17), new ArenaBoundsCircle(20f));
+public class D291Einhander(WorldState ws, Actor primary) : BossModule(ws, primary, new(18.85f, -17), new ArenaBoundsCircle(20f));
