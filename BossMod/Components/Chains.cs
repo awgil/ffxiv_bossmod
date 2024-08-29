@@ -12,7 +12,7 @@ public class Chains(BossModule module, uint tetherID, ActionID aid = default, fl
         if (_partner[slot].Partner != null)
             hints.Add("Break the tether!");
         if (_partner[slot].Partner != null && !spreadChains)
-            hints.Add("Stay with Partner!");
+            hints.Add($"Stay with {_partner[slot].Partner}!");
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
