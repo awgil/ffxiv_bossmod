@@ -28,7 +28,7 @@ public enum AID : uint
     MarkXLIIIMiniCannon = 29272, // Boss->location, 5.0s cast, range 31 circle 
     MarkXLIQuickFiringCannon = 29271, // Boss->self, 5.0s cast, range 40 width 4 rect, done?
     ResoundingScreech = 29270, // Boss->self, 3.0s cast, single-target, not necessary to input, summon's tanks around the arena
-    _Ability_ = 29646, // Boss->location, no cast, single-target
+    UnknownAbility = 29646, // Boss->location, no cast, single-target
 }
 
 public enum IconID : uint
