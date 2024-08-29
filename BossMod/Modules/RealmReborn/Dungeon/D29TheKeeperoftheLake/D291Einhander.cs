@@ -1,4 +1,4 @@
-﻿namespace BossMod.Modules.RealmReborn.Dungeon.D18TheKeeperoftheLake.D181Einhander;
+﻿namespace BossMod.Modules.RealmReborn.Dungeon.D29TheKeeperoftheLake.D291Einhander;
 
 public enum OID : uint
 {
@@ -44,9 +44,9 @@ class HeavySwingTB(BossModule module) : Components.SingleTargetCast(module, Acti
 
 class Bomb1(BossModule module) : Components.Adds(module, (uint)OID.AuxiliaryCeruleumTank);
 
-class D181EinhanderStates : StateMachineBuilder
+class D292MagitekGunshipStates : StateMachineBuilder
 {
-    public D181EinhanderStates(BossModule module) : base(module)
+    public D292MagitekGunshipStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<AeroBlast>()
@@ -59,4 +59,4 @@ class D181EinhanderStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 32, NameID = 3369)]
-public class D181Einhander(WorldState ws, Actor primary) : BossModule(ws, primary, new(18.85f, -17), new ArenaBoundsCircle(20f));
+public class D292MagitekGunship(WorldState ws, Actor primary) : BossModule(ws, primary, new(18.85f, -17), new ArenaBoundsCircle(20f));

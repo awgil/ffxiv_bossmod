@@ -1,4 +1,4 @@
-﻿namespace BossMod.Modules.RealmReborn.Dungeon.D18TheKeeperoftheLake.D182MagitekGunship;
+﻿namespace BossMod.Modules.RealmReborn.Dungeon.D29TheKeeperoftheLake.D292MagitekGunship;
 
 public enum OID : uint
 {
@@ -59,9 +59,9 @@ class FlamethrowerAOE(BossModule module) : Components.GenericAOEs(module, Action
     }
 }
 
-class D182MagitekGunshipStates : StateMachineBuilder
+class D292MagitekGunshipStates : StateMachineBuilder
 {
-    public D182MagitekGunshipStates(BossModule module) : base(module)
+    public D292MagitekGunshipStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<MagitekGunshipAdds>()
@@ -75,4 +75,4 @@ class D182MagitekGunshipStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 32, NameID = 3373)]
-public class D182MagitekGunship(WorldState ws, Actor primary) : BossModule(ws, primary, new(8.5f, -150), new ArenaBoundsCircle(19));
+public class D292MagitekGunship(WorldState ws, Actor primary) : BossModule(ws, primary, new(8.5f, -150), new ArenaBoundsCircle(19));

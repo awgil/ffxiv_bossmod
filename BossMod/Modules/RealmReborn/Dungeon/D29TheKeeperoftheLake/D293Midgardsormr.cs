@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace BossMod.Modules.RealmReborn.Dungeon.D18TheKeeperoftheLake.D183Midgardsormr;
+﻿namespace BossMod.Modules.RealmReborn.Dungeon.D29TheKeeperoftheLake.D293Midgardsormr;
 
 public enum OID : uint
 {
@@ -47,10 +45,29 @@ class Animadversion(BossModule module) : Components.RaidwideCast(module, ActionI
 class Condescension(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Condescension)); // tank buster
 class Disgust(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Disgust), "Raidwide");
 class InnerTurmoil(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.InnerTurmoil), new AOEShapeCircle(22));
-class MirageAdonishment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MirageAdmonishment), new AOEShapeRect(40, 6));
 class PhandomAdomishment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PhantomAdmonishment), new AOEShapeRect(40, 6));
 class PhantomInner(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PhantomInnerTurmoil), new AOEShapeCircle(22));
 class PhantomOuter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PhantomOuterTurmoil), new AOEShapeDonutSector(22, 40, 90.Degrees()));
+
+class MirageAdmonishment(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> _aoes = [];
+    private static readonly AOEShapeRect rect = new(40, 6);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
+    {
+        if (id == 0x11D3 && (OID)actor.OID is OID.MirageDragonA or OID.MirageDragonB)
+            _aoes.Add(new(rect, actor.Position, actor.Rotation, WorldState.FutureTime(12)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.MirageAdmonishment)
+            _aoes.Clear();
+    }
+}
 
 class Anitpathy(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(6), new AOEShapeDonut(6, 12), new AOEShapeDonut(12, 20)])
 {
@@ -81,10 +98,10 @@ class AhkMornFollow(BossModule module) : Components.UniformStackSpread(module, 6
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.AkhMornFollowup or AID.AkhMornCast)
+        if ((AID)spell.Action.ID is AID.AkhMornFollowup)
             ++NumCasts;
 
-        if ((AID)spell.Action.ID is AID.AkhMornFollowup or AID.AkhMornCast && NumCasts >= 4)
+        if ((AID)spell.Action.ID is AID.AkhMornFollowup && NumCasts >= 3)
         {
             // reset for next usage of mechanic, thanks xan for the tip on how tf to fix this
             NumCasts = 0;
@@ -99,9 +116,9 @@ class AhkMornFollow(BossModule module) : Components.UniformStackSpread(module, 6
     }
 }
 
-class MidgardsormrStates : StateMachineBuilder
+class D293MidgardsormrStates : StateMachineBuilder
 {
-    public MidgardsormrStates(BossModule module) : base(module)
+    public D293MidgardsormrStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Adonishment>()
@@ -110,7 +127,7 @@ class MidgardsormrStates : StateMachineBuilder
             .ActivateOnEnter<Condescension>()
             .ActivateOnEnter<Disgust>()
             .ActivateOnEnter<InnerTurmoil>()
-            .ActivateOnEnter<MirageAdonishment>()
+            .ActivateOnEnter<MirageAdmonishment>()
             .ActivateOnEnter<PhandomAdomishment>()
             .ActivateOnEnter<PhantomInner>()
             .ActivateOnEnter<PhantomOuter>()
@@ -120,6 +137,5 @@ class MidgardsormrStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 32, NameID = 3374)]
-public class Midgardsormr(WorldState ws, Actor primary) : BossModule(ws, primary, new(-41, -78), new ArenaBoundsCircle(19.5f));
-
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Xan, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 32, NameID = 3374)]
+public class D293Midgardsormr(WorldState ws, Actor primary) : BossModule(ws, primary, new(-41, -78), new ArenaBoundsCircle(19.5f));
