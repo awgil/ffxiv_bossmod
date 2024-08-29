@@ -1,4 +1,4 @@
-﻿namespace BossMod.Modules.RealmReborn.Dungeon.D29TheKeeperoftheLake.D291Einhander;
+﻿namespace BossMod.RealmReborn.Dungeon.D29TheKeeperoftheLake.D291Einhander;
 
 public enum OID : uint
 {

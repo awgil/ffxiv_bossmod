@@ -1,4 +1,4 @@
-﻿namespace BossMod.Modules.RealmReborn.Dungeon.D29TheKeeperoftheLake.D293Midgardsormr;
+﻿namespace BossMod.RealmReborn.Dungeon.D29TheKeeperoftheLake.D293Midgardsormr;
 
 public enum OID : uint
 {

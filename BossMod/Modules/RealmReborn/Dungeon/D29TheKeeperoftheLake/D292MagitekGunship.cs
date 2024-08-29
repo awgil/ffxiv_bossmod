@@ -1,4 +1,4 @@
-﻿namespace BossMod.Modules.RealmReborn.Dungeon.D29TheKeeperoftheLake.D292MagitekGunship;
+﻿namespace BossMod.RealmReborn.Dungeon.D29TheKeeperoftheLake.D292MagitekGunship;
 
 public enum OID : uint
 {
