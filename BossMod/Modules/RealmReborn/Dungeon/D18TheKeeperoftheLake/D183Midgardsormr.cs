@@ -28,7 +28,7 @@ public enum AID : uint
     AntipathyCast1 = 29286, // Helper->self, 4.0s cast, range 6 circle // done
     AntipathyCast2 = 29287, // Helper->self, 4.0s cast, range -12 donut // done
     AntipathyCast3 = 29288, // Helper->self, 4.0s cast, range -20 donut // done
-    AutoAttack_Attack = 870, // 392D/392E->player, no cast, single-target
+    AutoAttack = 870, // 392D/392E->player, no cast, single-target
     Condescension = 29602, // Boss->player, 5.0s cast, single-target // done
     Disgust = 29891, // Boss->self, 4.0s cast, single-target // done
     DisgustAttack = 29892, // Helper->self, no cast, range 20 circle //done
