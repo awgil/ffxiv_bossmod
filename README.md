@@ -28,7 +28,7 @@ For supported classes, the Autorotation module will execute a fully optimal rota
 
 # Cooldown Planner
 
-<img align="right" height="250" src="/Data/cd_planner.png">
+<img align="right" height="200" src="/Data/cd_planner.png">
 
 The CD Planner allows you to turn your autorotation configuration into a plan for a specific boss fight. For instance, during a boss fight, you can automatically cast a raid-wide mitigation ability right before the boss casts an AoE. 
 
