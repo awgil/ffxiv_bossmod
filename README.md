@@ -30,7 +30,7 @@ For supported classes, the Autorotation module will execute a fully optimal rota
 
 <img align="right" height="250" src="/Data/cd_planner.png">
 
-The CD Planner allows you to turn your autorotation configuration into a plan for a specific boss fight. For instance, during a boss fight, you can automatically cast a raid-wide mitigation ability right before the boss casts an AoE. Then, you can see when the cooldown for that ability will be up so you can make sure to use it as soon as possible again.
+The CD Planner allows you to turn your autorotation configuration into a plan for a specific boss fight. For instance, during a boss fight, you can automatically cast a raid-wide mitigation ability right before the boss casts an AoE.
 
 All of the options from autorotations are supported in a CD planner, which include "tracks" for using role-based abilities, limit break, cooldowns, and more. These are all configured on a per-boss basis and are selectable when you are in the boss encounter.
 
@@ -44,7 +44,6 @@ The AI will move your character based on safe zones determined by a boss's modul
 
 An example of a plugin that utilizies VBM's AI module is [AutoDuty](https://github.com/ffxivcode/AutoDuty), which is supported in the same [Discord server](https://discord.gg/punishxiv) that VBM is supported in.
 
-<br />
 <hr />
 
 # Installation
