@@ -50,6 +50,9 @@ public sealed class RotationModuleManager : IDisposable
             WorldState.Actors.InCombatChanged.Subscribe(OnCombatChanged),
             WorldState.Actors.IsDeadChanged.Subscribe(OnDeadChanged),
             WorldState.Actors.CastEvent.Subscribe(OnCastEvent),
+            WorldState.Actors.StatusGain.Subscribe(OnStatusGain),
+            WorldState.Actors.StatusLose.Subscribe(OnStatusLose),
+            WorldState.Actors.EventMount.Subscribe(OnMounted),
             WorldState.Party.Modified.Subscribe(op => DirtyActiveModules(op.Slot == PlayerSlot)),
             WorldState.Client.ActionRequested.Subscribe(OnActionRequested),
             WorldState.Client.CountdownChanged.Subscribe(OnCountdownChanged),
@@ -71,14 +74,6 @@ public sealed class RotationModuleManager : IDisposable
             Service.Log($"[RMM] Changing active plan: '{Planner?.Plan?.Guid}' -> '{expectedPlan?.Guid}'");
             Planner = Bossmods.ActiveModule != null ? new(Bossmods.ActiveModule, expectedPlan) : null;
             DirtyActiveModules(Preset == null);
-        }
-
-        if (Player != null)
-        {
-            var rping = Player.FindStatus(Roleplay.SID.RolePlaying) != null;
-            DirtyActiveModules(Player.MountId != _mountId || _isRP != rping);
-            _mountId = Player.MountId;
-            _isRP = rping;
         }
 
         // rebuild modules if needed
@@ -134,10 +129,10 @@ public sealed class RotationModuleManager : IDisposable
             {
                 var def = RotationModuleRegistry.Modules.GetValueOrDefault(m);
 
-                if (player.MountId > 0 && !def.Definition.CanUseWhileMounted)
+                if (_mountId > 0 && !def.Definition.CanUseWhileMounted)
                     continue;
 
-                if (player.FindStatus(Roleplay.SID.RolePlaying) != null && !def.Definition.CanUseWhileRoleplaying)
+                if (_isRP && !def.Definition.CanUseWhileRoleplaying)
                     continue;
 
                 if (def.Definition != null && def.Definition.Classes[(int)player.Class] && player.Level >= def.Definition.MinLevel && player.Level <= def.Definition.MaxLevel)
@@ -224,6 +219,33 @@ public sealed class RotationModuleManager : IDisposable
 #if DEBUG
             Service.Log($"[RMM] Cast #{cast.SourceSequence} {cast.Action} @ {cast.MainTargetID:X} [{string.Join(" --- ", _activeModules?.Select(m => m.Module.DescribeState()) ?? [])}]");
 #endif
+        }
+    }
+
+    private void OnStatusGain(Actor actor, int statusID)
+    {
+        if (actor.InstanceID == Player?.InstanceID && statusID == (uint)Roleplay.SID.RolePlaying)
+        {
+            DirtyActiveModules(!_isRP);
+            _isRP = true;
+        }
+    }
+
+    private void OnStatusLose(Actor actor, int statusID)
+    {
+        if (actor.InstanceID == Player?.InstanceID && statusID == (uint)Roleplay.SID.RolePlaying)
+        {
+            DirtyActiveModules(_isRP);
+            _isRP = false;
+        }
+    }
+
+    private void OnMounted(Actor actor, uint mountID)
+    {
+        if (actor.InstanceID == Player?.InstanceID)
+        {
+            DirtyActiveModules(_mountId != mountID);
+            _mountId = mountID;
         }
     }
 }
