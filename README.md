@@ -18,7 +18,7 @@ The radar module also provides the next mechanic(s) in text form, as well as hin
 
 <img align="right" height="300" src="/Data/autorotation_config.png">
 
-For supported classes, the Autorotation module will execute a fully optimal rotation to the best of its ability. Individual job support is listed in the plugin. The features include:
+For supported classes, the Autorotation module will execute a fully optimal rotation to the best of its ability. Individual job support is listed in the plugin. A small guide on using this can be found [here](https://github.com/awgil/ffxiv_bossmod/wiki/Using-Presets). The features include:
 
 - Movement skills are not executed during parts of fight that require precise positioning
 - oGCDs are queued to next free oGCD slot so GCDs are not delayed
@@ -30,9 +30,9 @@ For supported classes, the Autorotation module will execute a fully optimal rota
 
 <img align="right" height="250" src="/Data/cd_planner.png">
 
-The CD Planner allows you to turn your autorotation configuration into a plan for a specific boss fight. For instance, during a boss fight, you can automatically cast a raid-wide mitigation ability right before the boss casts an AoE.
+The CD Planner allows you to turn your autorotation configuration into a plan for a specific boss fight. For instance, during a boss fight, you can automatically cast a raid-wide mitigation ability right before the boss casts an AoE. 
 
-All of the options from autorotations are supported in a CD planner, which include "tracks" for using role-based abilities, limit break, cooldowns, and more. These are all configured on a per-boss basis and are selectable when you are in the boss encounter.
+All of the options from autorotations are supported in a CD planner, which include "tracks" for using role-based abilities, limit break, cooldowns, and more. These are all configured on a per-boss basis. A small guide on using this can be found [here](https://github.com/awgil/ffxiv_bossmod/wiki/Using-the-CD-Planner).
 
 # AI
 
@@ -65,8 +65,12 @@ When you've found a bug or think you have some issue with the plugin, please do 
    4. Stop replay recording (hit "Stop Recording")
    5. Find the logs (typically at `C:\Users\username\AppData\Roaming\XIVLauncher\dalamud.log`)
    6. Find the replay (typically at `C:\Users\username\AppData\Roaming\XIVLauncher\pluginConfigs\BossMod\replays`)
-3. Create a [new issue](https://github.com/awgil/ffxiv_bossmod/issues/new/choose) on GitHub, provide a detailed description of the problem (including steps to reproduce the issue), and attach the logs and replay
+3. Create a [new issue](https://github.com/awgil/ffxiv_bossmod/issues/new/choose) on GitHub, provide a detailed description of the problem (including steps to reproduce the issue), and attach the logs and replay 
 
 **Do not** create GitHub issues to request new modules, ask questions, etc. Discord is much more convenient for these kinds of things.
 
 **Do** create GitHub issues for very concrete bugs (if you have replays, logs, or an easy way to reproduce what is obviously a problem) or very specific feature requests (please discuss in Discord first to understand whether there's any interest in it).
+
+# Contributing
+
+One of the best ways to contribute to Boss Mod is by making modules for boss fights. If you are looking for which bosses don't have modules, you can look in the `/BossMod/Modules` folder of the repository. To make modules, it's suggested to follow the [Making a Module](https://github.com/awgil/ffxiv_bossmod/wiki/Making-a-Module) guide on the repo's wiki, as well as the [Making a Module: What kind of attacks exist?](https://github.com/awgil/ffxiv_bossmod/wiki/Making-a-Module:-What-kind-of-attacks-exist%3F) wiki entry. There are quite a few people in the Discord server who know how to make modules, so feel free to ask for help there.
