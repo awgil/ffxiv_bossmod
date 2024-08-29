@@ -14,7 +14,7 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    AutoAttack_Attack = 870, // Boss/ThCohortLaquearius/ThCohortVanguard->player, no cast, single-target
+    AutoAttack = 870, // Boss/ThCohortLaquearius/ThCohortVanguard->player, no cast, single-target
     CarpetBombCast = 3391, // Boss->location, 1.0s cast, single-target // Done
     CarpetBombLinger = 3392, // MagitekGunshipAlt->location, 3.0s cast, range 5 circle // Done
     FlameThrower = 3389, // Boss->self, 3.5s cast, range 12+R 120-degree cone, cast to start flamethrower // Needs to be looked at
@@ -22,8 +22,8 @@ public enum AID : uint
     GarleanFire = 3411, // MagitekGunshipAlt->location, no cast, range 8 circle, LocationTargetAOE // Done
 
     // Add's Attacks
-    AutoAttack_AttackAdd1 = 871, // CohortEques->player, no cast, single-target // N/A
-    AutoAttack_AttackAdd2 = 872, // CohortSecutor->player, no cast, single-target // N/a
+    AutoAttackAdd1 = 871, // CohortEques->player, no cast, single-target // N/A
+    AutoAttackAdd2 = 872, // CohortSecutor->player, no cast, single-target // N/a
     DrillCannons = 1433, // CohortVanguard->self, 2.5s cast, range 30+R width 5 rect // done
     Overcharge = 1435, // CohortVanguard->self, 2.5s cast, range 8+R 120-degree cone // done
     Thunder = 968, // CohortSignifer->player, 1.0s cast, single-target // N/A
@@ -74,5 +74,5 @@ class D182MagitekGunshipStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 32, NameID = 3373)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 32, NameID = 3373)]
 public class D182MagitekGunship(WorldState ws, Actor primary) : BossModule(ws, primary, new(8.5f, -150), new ArenaBoundsCircle(19));

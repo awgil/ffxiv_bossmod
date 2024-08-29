@@ -1,4 +1,6 @@
-﻿namespace BossMod.Modules.RealmReborn.Dungeon.D18TheKeeperoftheLake.D183Midgardsormr;
+﻿using System.ComponentModel;
+
+namespace BossMod.Modules.RealmReborn.Dungeon.D18TheKeeperoftheLake.D183Midgardsormr;
 
 public enum OID : uint
 {
@@ -36,7 +38,7 @@ public enum AID : uint
     PhantomInnerTurmoil = 29278, // Boss->self, 7.0s cast, range 22 circle // done
     PhantomKin = 29277, // Boss->self, 4.0s cast, single-target // summons the clones on the side for phantom attacks
     PhantomOuterTurmoil = 29279, // Boss->self, 7.0s cast, range 39 ?-degree cone
-    _Ability_ = 30226, // 392D/392E->self, no cast, single-target
+    UnknownAbility = 30226, // 392D/392E->self, no cast, single-target
 }
 
 class Adonishment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Admonishment), new AOEShapeRect(40, 6));
@@ -72,16 +74,22 @@ class Anitpathy(BossModule module) : Components.ConcentricAOEs(module, [new AOES
     }
 }
 
-class AhkMorn(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4)
+class AhkMornInitial(BossModule module) : Components.StackWithIcon(module, (uint)IconID.AhkMornStack, ActionID.MakeSpell(AID.AkhMornCast), 6, 0, 2, 4);
+class AhkMornFollow(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4)
 {
-    // problem child here
-    // the icon shows up for all the hits, but doesn't dissapear after the 3rd follow up hit
     public int NumCasts { get; private set; }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.AkhMornCast)
+        if ((AID)spell.Action.ID is AID.AkhMornFollowup or AID.AkhMornCast)
             ++NumCasts;
+
+        if ((AID)spell.Action.ID is AID.AkhMornFollowup or AID.AkhMornCast && NumCasts >= 4)
+        {
+            // reset for next usage of mechanic, thanks xan for the tip on how tf to fix this
+            NumCasts = 0;
+            Stacks.Clear();
+        }
     }
 
     public override void OnEventIcon(Actor actor, uint iconID)
@@ -107,10 +115,11 @@ class MidgardsormrStates : StateMachineBuilder
             .ActivateOnEnter<PhantomInner>()
             .ActivateOnEnter<PhantomOuter>()
             .ActivateOnEnter<Anitpathy>()
-            .ActivateOnEnter<AhkMorn>();
+            .ActivateOnEnter<AhkMornInitial>()
+            .ActivateOnEnter<AhkMornFollow>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 32, NameID = 3374)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 32, NameID = 3374)]
 public class Midgardsormr(WorldState ws, Actor primary) : BossModule(ws, primary, new(-41, -78), new ArenaBoundsCircle(19.5f));
 

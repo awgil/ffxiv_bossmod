@@ -22,7 +22,7 @@ public enum OID : uint
 public enum AID : uint
 {
     AeroBlast = 29273, // Boss->self, 4.0s cast, range 40 circle, done?
-    AutoAttack_Attack = 870, // Boss->player, no cast, single-target
+    AutoAttack = 870, // Boss->player, no cast, single-target
     CeruleumExplosion = 29275, // 3929->self, 8.0s cast, range 12 circle
     HeavySwing = 29620, // Boss->player, 5.0s cast, single-target
     MarkXLIIIMiniCannon = 29272, // Boss->location, 5.0s cast, range 31 circle 
