@@ -44,6 +44,7 @@ The AI will move your character based on safe zones determined by a boss's modul
 
 An example of a plugin that utilizies VBM's AI module is [AutoDuty](https://github.com/ffxivcode/AutoDuty), which is supported in the same [Discord server](https://discord.gg/punishxiv) that VBM is supported in.
 
+<br />
 <hr />
 
 # Installation
