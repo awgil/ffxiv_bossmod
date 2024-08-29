@@ -1,8 +1,3 @@
-﻿using BossMod.Heavensward.Dungeon.D03Aery.D031Rangda;
-using BossMod.Heavensward.Dungeon.D04Vault.D042SerGrinnauxTheBull;
-using Clipper2Lib;
-using static FFXIVClientStructs.FFXIV.Client.UI.Info.InfoProxyLetter;
-
 namespace BossMod.Heavensward.Dungeon.D04Vault.D043SerCharibert;
 
 public enum OID : uint
