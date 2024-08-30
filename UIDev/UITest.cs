@@ -96,7 +96,6 @@ class UITest
         fontConfig.Destroy();
         rangeHandle.Free();
 
-
         ImGui.GetStyle().GrabRounding = 3f;
         ImGui.GetStyle().FrameRounding = 4f;
         ImGui.GetStyle().WindowRounding = 4f;

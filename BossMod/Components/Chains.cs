@@ -1,27 +1,40 @@
-﻿namespace BossMod.Components;
+namespace BossMod.Components;
 
-// component for breakable chains
-public class Chains(BossModule module, uint tetherID, ActionID aid = default) : CastCounter(module, aid)
+// component for breakable chains - Note that chainLength for AI considers the minimum distance needed for a chain-pair to be broken (assuming perfectly stacked at cast)
+public class Chains(BossModule module, uint tetherID, ActionID aid = default, float chainLength = 0, bool spreadChains = true) : CastCounter(module, aid)
 {
     public uint TID { get; init; } = tetherID;
     public bool TethersAssigned { get; private set; }
-    private readonly Actor?[] _partner = new Actor?[PartyState.MaxAllianceSize];
+    protected readonly (Actor? Partner, float InitialDistance)[] Partners = new (Actor? Partner, float InitialDistance)[PartyState.MaxAllianceSize];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (_partner[slot] != null)
-            hints.Add("Break the tether!");
+        if (Partners[slot].Partner != null)
+            hints.Add(spreadChains ? "Break the tether!" : "Stay with partner!");
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
-        return _partner[pcSlot] == player ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
+        return Partners[pcSlot].Partner == player ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (chainLength == 0)
+            return;
+        var partner = Partners[slot];
+        if (partner.Partner != null)
+        {
+            var forbiddenZone = spreadChains ? ShapeDistance.Circle(partner.Partner.Position, partner.InitialDistance + chainLength) : ShapeDistance.InvertedCircle(partner.Partner.Position, chainLength);
+            hints.AddForbiddenZone(forbiddenZone);
+        }
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (_partner[pcSlot] is var partner && partner != null)
-            Arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
+        var partner = Partners[pcSlot];
+        if (partner.Partner != null)
+            Arena.AddLine(pc.Position, partner.Partner.Position, spreadChains ? ArenaColor.Danger : ArenaColor.Safe);
     }
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
@@ -32,8 +45,9 @@ public class Chains(BossModule module, uint tetherID, ActionID aid = default) : 
             var target = WorldState.Actors.Find(tether.Target);
             if (target != null)
             {
-                SetPartner(source.InstanceID, target);
-                SetPartner(target.InstanceID, source);
+                var initialDistance = (source.Position - target.Position).Length();
+                SetPartner(source.InstanceID, target, initialDistance);
+                SetPartner(target.InstanceID, source, initialDistance);
             }
         }
     }
@@ -42,15 +56,17 @@ public class Chains(BossModule module, uint tetherID, ActionID aid = default) : 
     {
         if (tether.ID == TID)
         {
-            SetPartner(source.InstanceID, null);
-            SetPartner(tether.Target, null);
+            SetPartner(source.InstanceID, null, 0);
+            SetPartner(tether.Target, null, 0);
         }
     }
 
-    private void SetPartner(ulong source, Actor? target)
+    private void SetPartner(ulong source, Actor? target, float initialDistance)
     {
         var slot = Raid.FindSlot(source);
         if (slot >= 0)
-            _partner[slot] = target;
+        {
+            Partners[slot] = (target, initialDistance);
+        }
     }
 }

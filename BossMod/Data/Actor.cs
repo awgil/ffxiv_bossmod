@@ -100,6 +100,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public byte EventState; // not sure about the field meaning...
     public ulong OwnerID = ownerID; // uuid of owner, for pets and similar
     public ulong TargetID;
+    public uint MountId; // ID of current mount, 0 if not mounted
     public ActorCastInfo? CastInfo;
     public ActorTetherInfo Tether;
     public ActorStatus[] Statuses = new ActorStatus[60]; // empty slots have ID=0

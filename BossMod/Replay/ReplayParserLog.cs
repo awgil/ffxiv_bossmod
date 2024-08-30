@@ -305,6 +305,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("MDLS"u8)] = ParseActorModelState,
             [new("EVTS"u8)] = ParseActorEventState,
             [new("TARG"u8)] = ParseActorTarget,
+            [new("MNTD"u8)] = ParseActorMount,
             [new("TETH"u8)] = () => ParseActorTether(true),
             [new("TET+"u8)] = () => ParseActorTether(true), // legacy (up to v4)
             [new("TET-"u8)] = () => ParseActorTether(false), // legacy (up to v4)
@@ -531,6 +532,7 @@ public sealed class ReplayParserLog : IDisposable
         => new(_input.ReadActorID(), new(_input.ReadByte(false), _input.CanRead() ? _input.ReadByte(false) : (byte)0, _input.CanRead() ? _input.ReadByte(false) : (byte)0));
     private ActorState.OpEventState ParseActorEventState() => new(_input.ReadActorID(), _input.ReadByte(false));
     private ActorState.OpTarget ParseActorTarget() => new(_input.ReadActorID(), _input.ReadActorID());
+    private ActorState.OpMount ParseActorMount() => new(_input.ReadActorID(), _input.ReadUInt(false));
     private ActorState.OpTether ParseActorTether(bool tether) => new(_input.ReadActorID(), tether ? new(_input.ReadUInt(false), _input.ReadActorID()) : default);
 
     private ActorState.OpCastInfo ParseActorCastInfo(bool start)

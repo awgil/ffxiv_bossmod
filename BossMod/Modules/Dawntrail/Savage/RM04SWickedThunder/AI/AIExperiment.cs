@@ -5,9 +5,10 @@ namespace BossMod.Dawntrail.Savage.RM04SWickedThunder.AI;
 
 sealed class AIExperiment(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { ElectrifyingWitchHunt, WNWitchHunt }
+    public enum Track { ElectrifyingWitchHunt, WNWitchHunt, IonClusterPlatform }
     public enum ElectrifyingWitchHuntStrategy { None, NWNear }
     public enum WNWitchHuntStrategy { None, BaitFirstAny, BaitFirstNear }
+    public enum IonClusterPlatformStrategy { None, MaxUptime }
 
     public static RotationModuleDefinition Definition()
     {
@@ -19,6 +20,9 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : Rotatio
             .AddOption(WNWitchHuntStrategy.None, "None", "Do nothing")
             .AddOption(WNWitchHuntStrategy.BaitFirstAny, "BaitFirstAny", "Bait first any")
             .AddOption(WNWitchHuntStrategy.BaitFirstNear, "BaitFirstNear", "Bait first near (first or second)");
+        res.Define(Track.IonClusterPlatform).As<IonClusterPlatformStrategy>("IonClusterPlatformStrategy", "IonPlatform")
+            .AddOption(IonClusterPlatformStrategy.None, "None", "Do nothing")
+            .AddOption(IonClusterPlatformStrategy.MaxUptime, "MaxUptime", "Max uptime");
         return res;
     }
 
@@ -50,6 +54,17 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : Rotatio
                 0x00030030 => WNWitchHuntDodge(module, wnwh, 3),
                 0x00030040 => WNWitchHuntDodge(module, wnwh, 4),
                 _ => WNWitchHuntInitialPosition(module)
+            });
+        }
+
+        var ionPlatform = strategy.Option(Track.IonClusterPlatform).As<IonClusterPlatformStrategy>();
+        if (ionPlatform != IonClusterPlatformStrategy.None)
+        {
+            SetForcedMovement((module.StateMachine.ActiveState?.ID ?? 0) switch
+            {
+                < 0x00090020 => IonPlatformAOEs(module, ionPlatform, false),
+                0x00090020 => IonPlatformAOEs(module, ionPlatform, true),
+                _ => IonPlatformMid(module)
             });
         }
     }
@@ -103,6 +118,8 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : Rotatio
             var baitFar = resolve.CurMechanic == ElectrifyingWitchHuntResolve.Mechanic.Far;
             var goFar = wantBait == baitFar;
             var centerUnsafe = burst.Casters.Any(c => c.Position.X is > 98 and < 102);
+            if (!centerUnsafe && !goFar)
+                return defaultPos; // default is good enough for uptime...
             var vertShiftW = burst.Casters.Sum(c => c.Position.X - module.Center.X) < 0;
             var safeX = !centerUnsafe ? -5 : -16.2f + (vertShiftW ? -1.5f : +1.5f);
             var safeSpot = new WPos(module.Center.X + safeX, module.Center.Z - (goFar ? 12 : 3));
@@ -152,6 +169,32 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : Rotatio
             return safePos;
         var timeToSafety = (defaultPos - safePos).Length() / Speed();
         return GCD + timeToSafety >= timeToDodge ? safePos : defaultPos;
+    }
+
+    private WPos IonPlatformAOEs(RM04SWickedThunder module, IonClusterPlatformStrategy strategy, bool nextIsDeadly)
+    {
+        var thunder = module.FindComponent<StampedingThunder>();
+        if (thunder?.AOE == null)
+            return new(module.Center.X, module.Center.Z - 15);
+
+        var offset = thunder.AOE.Value.Origin.X > module.Center.X ? -1 : 1;
+        var uptimePos = module.PrimaryActor.Position + new WDir(offset * 7.8f, 0.1f);
+        var downtimePos = module.PrimaryActor.Position + new WDir(offset * 10.2f, 0.1f);
+
+        var timeToDodge = (module.StateMachine.ActiveState?.Duration ?? 0) - module.StateMachine.TimeSinceTransition;
+        var timeToSafety = 2.4f / Speed();
+        var goToDowntime = nextIsDeadly ? (GCD + timeToSafety >= timeToDodge) : (GCD > timeToDodge + timeToSafety);
+        return goToDowntime ? downtimePos : uptimePos;
+    }
+
+    private WPos IonPlatformMid(RM04SWickedThunder module)
+    {
+        var thunder = module.FindComponent<StampedingThunder>();
+        if (thunder?.SmallArena != true)
+            return Player.Position;
+
+        var offset = module.Arena.Bounds == RM04SWickedThunder.P1IonClusterRBounds ? 1 : -1;
+        return module.Center + new WDir(offset * 10.4f, -6.2f);
     }
 }
 #endif

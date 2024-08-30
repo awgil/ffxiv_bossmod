@@ -34,6 +34,8 @@ public sealed class ActorState : IEnumerable<Actor>
                 yield return new OpEventState(act.InstanceID, act.EventState);
             if (act.TargetID != 0)
                 yield return new OpTarget(act.InstanceID, act.TargetID);
+            if (act.MountId != 0)
+                yield return new OpMount(act.InstanceID, act.MountId);
             if (act.Tether.ID != 0)
                 yield return new OpTether(act.InstanceID, act.Tether);
             if (act.CastInfo != null)
@@ -265,6 +267,17 @@ public sealed class ActorState : IEnumerable<Actor>
             ws.Actors.TargetChanged.Fire(actor);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("TARG"u8).EmitActor(InstanceID).EmitActor(Value);
+    }
+
+    public Event<Actor> MountChanged = new();
+    public sealed record class OpMount(ulong InstanceID, uint Value) : Operation(InstanceID)
+    {
+        protected override void ExecActor(WorldState ws, Actor actor)
+        {
+            actor.MountId = Value;
+            ws.Actors.MountChanged.Fire(actor);
+        }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("MNTD"u8).EmitActor(InstanceID).Emit(Value);
     }
 
     // note: this is currently based on network events rather than per-frame state inspection

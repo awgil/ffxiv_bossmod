@@ -101,7 +101,8 @@ public abstract class BossModule : IDisposable
             WorldState.Actors.PlayActionTimelineEvent.Subscribe(OnActorPlayActionTimelineEvent),
             WorldState.Actors.EventNpcYell.Subscribe(OnActorNpcYell),
             WorldState.Actors.ModelStateChanged.Subscribe(OnActorModelStateChange),
-            WorldState.EnvControl.Subscribe(OnEnvControl)
+            WorldState.EnvControl.Subscribe(OnEnvControl),
+            WorldState.DirectorUpdate.Subscribe(OnDirectorUpdate)
         );
 
         foreach (var v in WorldState.Actors)
@@ -441,5 +442,11 @@ public abstract class BossModule : IDisposable
     {
         foreach (var comp in _components)
             comp.OnEventEnvControl(op.Index, op.State);
+    }
+
+    private void OnDirectorUpdate(WorldState.OpDirectorUpdate op)
+    {
+        foreach (var comp in _components)
+            comp.OnEventDirectorUpdate(op.UpdateID, op.Param1, op.Param2, op.Param3, op.Param4);
     }
 }

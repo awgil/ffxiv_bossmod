@@ -256,6 +256,7 @@ sealed class WorldStateGameSync : IDisposable
         var modelState = chr != null ? new ActorModelState(chr->Timeline.ModelState, chr->Timeline.AnimationState[0], chr->Timeline.AnimationState[1]) : default;
         var eventState = obj->EventState;
         var radius = obj->GetRadius();
+        var mountId = chr != null ? chr->Mount.MountId : 0u;
 
         if (act == null)
         {
@@ -298,6 +299,8 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ActorState.OpEventState(act.InstanceID, eventState));
         if (act.TargetID != target)
             _ws.Execute(new ActorState.OpTarget(act.InstanceID, target));
+        if (act.MountId != mountId)
+            _ws.Execute(new ActorState.OpMount(act.InstanceID, mountId));
 
         DispatchActorEvents(act.InstanceID);
 

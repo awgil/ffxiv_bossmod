@@ -1,56 +1,76 @@
-**Discord**: https://discord.gg/Zzrcc8kmvy
+# Boss Mod
 
-This plugin consists of several interrelated parts which can be enabled or disabled independently.
+<img align="right" width="150" height="150" src="/Data/icon.png">
 
-# Boss modules ("radar")
+Boss Mod (vbm) is a Dalamud plugin for FFXIV that provides boss fight radar, auto-rotation, cooldown planning, and AI. All of the its modules can be toggled individually. Support for it can be found in the [Puni.sh Discord server](https://discord.gg/punishxiv).
 
-Main part of the plugin and its reason of existence. It's an on-screen window that contains area map (kind of like a standard minimap)
-and shows player's position, boss position, various imminent aoes and other mechanics.
-This is useful mainly because (a) you don't have to remember what a million of ability names mean (think aureole/lateral aureole on hydaelyn),
-(b) you can see exactly whether you're getting clipped by incoming aoe or not.
+_Licensed under the terms of the ![BSD 3-Clause License](/LICENSE)_
 
-Above the map, the window contains several lines of text (these can be individually disabled in config if desired):
-1. Next mechanic, time until it happens, plus other imminent mechanics that are part of the same "group" (a set of mechanics that resolve one after another and need to be considered as a whole).
-All mechanic names are descriptive (e.g. "tankbuster", "raidwide") rather than flavourful (in-game ability names) to reduce cognitive load.
-2. Sequence of future mechanics.
-3. Global hints - short message indicating how to resolve current mechanic (e.g. "Spread")
-4. Player hints - short message indicating what player should do; this is color-coded: yellow if player is at risk of failing, green if everything is ok and player should continue to do what he is doing.
+# Radar
 
-For some mechanics that require precise positioning, plugin can optionally draw an arrow in main game viewport on top of 3D scene - this is enabled by "Show movement hints in world" config option.
+<img align="right" height="200" src="/Data/radar.png">
 
-# Autorotation (experimental / work-in-progress)
+The radar is the main part of the plugin and the primary reason for its existence. It provides an on-screen window that contains area mini-map that shows player positions, boss position(s), various imminent AoEs, and other mechanics. This is useful because you don't have to remember what ability names mean and you can see exactly whether you're getting clipped by incoming AoE or not.
 
-An extension of ideas from XIVCombo and MOAction plugins. For supported classes, execute full optimal rotation by pressing single button, at least when there is only one optimal decision.
-Currently supports WAR (well) and WHM (not so well). Some features:
-1. "Movement" skills (e.g. Primal Rend & Onslaught for WAR) that are part of rotation are not executed during parts of fight that require precise positioning
-(or not executed automatically at all, depending on config).
-2. OGCD cooldowns are queued to next free ogcd slot, so that GCDs are not delayed.
-3. For casters, there is a mode that prevents movement while casting - this allows performing perfect slide-casting by just holding WSAD and spamming rotation button.
-4. Ground-targeted abilities, depending on configuration, are cast immediately (on target or cursor positioning) and are queued properly.
-5. Abilities select "best" target automatically (examples: target of nascent flash is selected target if friendly, otherwise mouseover target if friendly, otherwise other tank).
+The radar module also provides the next mechanic(s) in text form, as well as hints for how to resolve the current mechanic from the perspective of the group and the player.
+   
+# Autorotation
 
-# Cooldown planner
+<img align="right" height="300" src="/Data/autorotation_config.png">
 
-Allows creating a plan (e.g. "Cast Vengeance right before this particular tankbuster") which is then executed automatically while spamming rotation button.
+For supported classes, the Autorotation module will execute a fully optimal rotation to the best of its ability. Individual job support is listed in the plugin. A small guide on using this can be found [here](https://github.com/awgil/ffxiv_bossmod/wiki/Using-Presets). The features include:
 
-This is still work-in-progress, in future it should allow creating cooldown plans for whole raid and sharing.
+- Movement skills are not executed during parts of fight that require precise positioning
+- oGCDs are queued to next free oGCD slot so GCDs are not delayed
+- Preventing movement while casting that allows perfect slidecasting
+- Ground-targeted abilities, are cast immediately and are queued properly
+- Abilities select the "best" target automatically
 
-# Install instructions:
-1. esc -> dalamud settings -> experimental -> custom plugin repositories, add https://puni.sh/api/repository/veyn
-2. esc -> dalamud plugins -> all plugins -> find "Boss Mod" and install
-3. settings are accessible either via esc menu or /vbm console command
+# Cooldown Planner
+
+<img align="right" height="200" src="/Data/cd_planner.png">
+
+The CD Planner allows you to turn your autorotation configuration into a plan for a specific boss fight. For instance, during a boss fight, you can automatically cast a raid-wide mitigation ability right before the boss casts an AoE. 
+
+All of the options from autorotations are supported in a CD planner, which include "tracks" for using role-based abilities, limit break, cooldowns, and more. These are all configured on a per-boss basis. A small guide on using this can be found [here](https://github.com/awgil/ffxiv_bossmod/wiki/Using-the-CD-Planner).
+
+# AI
+
+<img align="right" height="250" src="/Data/ai.png">
+
+VBM's AI module was created to automate movement during boss fights. With the help of other plugins, entine dungeons can be completely automated, provided a module exist for each boss. 
+
+The AI will move your character based on safe zones determined by a boss's module, which are also displayed on the radar. It also tries to keep you within range of the enemies you are attacking while you're in combat with them.
+
+An example of a plugin that utilizies VBM's AI module is [AutoDuty](https://github.com/ffxivcode/AutoDuty), which is supported in the same [Discord server](https://discord.gg/punishxiv) that VBM is supported in.
+
+<br />
+<hr />
+
+# Installation
+
+Add `https://puni.sh/api/repository/veyn` to your plugin repositories and then search for `Boss Mod` in the Plugin Installer to install Boss Mod.
+
+Settings can be accessed via the Plugin Installer or using the chat command `/vbm`.
 
 # Getting help
 
 When you've found a bug or think you have some issue with the plugin, please do the following:
-1. Ask in discord; it might be a known issue, or people might help you quickly.
-2. Gather extra information to help me investigate the issue:
-   1. Set log level to 'debug' (type `/xldev`, select Dalamud -> Set log level -> Debug)
-   2. Start replay recording (type `/vbm r`, hit Start Recording)
+
+1. Ask in [Discord](https://discord.gg/punishxiv): it might be a known issue or people might be able to help you quickly
+2. Gather extra information to aid in investigating the issue:
+   1. Set log level to "Debug" (type `/xldev`, select "Dalamud" -> "Set log level" -> "Debug")
+   2. Start replay recording (type `/vbm r` and hit "Start Recording")
    3. Reproduce the issue
-   4. Stop replay recording (hit Stop Recording)
-   5. Find logs (typically at `C:\Users\username\AppData\Roaming\XIVLauncher\dalamud.log`)
-   6. Find replay (typically at `C:\Users\username\AppData\Roaming\XIVLauncher\pluginConfigs\BossMod\replays`)
-3. Create a new issue in github, provide a detailed description (include steps to reproduce the issue) and attach logs and replay.
-4. **Do not** create github issues to request new modules, ask questions, etc - discord is much more convenient for these kind of things.
-5. **Do** create github issues for very concrete bugs (if you have a replay/logs/easy way to reproduce what is obviously a problem) or very specific feature requests (please discuss in discord first to understand whether there's any interest in it).
+   4. Stop replay recording (hit "Stop Recording")
+   5. Find the logs (typically at `C:\Users\username\AppData\Roaming\XIVLauncher\dalamud.log`)
+   6. Find the replay (typically at `C:\Users\username\AppData\Roaming\XIVLauncher\pluginConfigs\BossMod\replays`)
+3. Create a [new issue](https://github.com/awgil/ffxiv_bossmod/issues/new/choose) on GitHub, provide a detailed description of the problem (including steps to reproduce the issue), and attach the logs and replay 
+
+**Do not** create GitHub issues to request new modules, ask questions, etc. Discord is much more convenient for these kinds of things.
+
+**Do** create GitHub issues for very concrete bugs (if you have replays, logs, or an easy way to reproduce what is obviously a problem) or very specific feature requests (please discuss in Discord first to understand whether there's any interest in it).
+
+# Contributing
+
+One of the best ways to contribute to Boss Mod is by making modules for boss fights. If you are looking for which bosses don't have modules, you can look in the `/BossMod/Modules` folder of the repository. To make modules, it's suggested to follow the [Making a Module](https://github.com/awgil/ffxiv_bossmod/wiki/Making-a-Module) guide on the repo's wiki, as well as the [Making a Module: What kind of attacks exist?](https://github.com/awgil/ffxiv_bossmod/wiki/Making-a-Module:-What-kind-of-attacks-exist%3F) wiki entry. There are quite a few people in the Discord server who know how to make modules, so feel free to ask for help there.
