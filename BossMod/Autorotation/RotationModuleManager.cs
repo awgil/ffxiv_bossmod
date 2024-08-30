@@ -14,9 +14,6 @@ public sealed class RotationModuleManager : IDisposable
         }
     }
 
-    private uint _mountId;
-    private bool _isRP;
-
     public readonly AutorotationConfig Config = Service.Config.Get<AutorotationConfig>();
     public readonly RotationDatabase Database;
     public readonly BossModuleManager Bossmods;
@@ -30,6 +27,7 @@ public sealed class RotationModuleManager : IDisposable
     public static readonly Preset ForceDisable = new(""); // empty preset, so if it's activated, rotation is force disabled
 
     public WorldState WorldState => Bossmods.WorldState;
+    public ulong PlayerInstanceId => WorldState.Party.Members[PlayerSlot].InstanceId;
     public Actor? Player => WorldState.Party[PlayerSlot];
 
     // historic data for recent events that could be interesting for modules
@@ -44,15 +42,15 @@ public sealed class RotationModuleManager : IDisposable
         Hints = hints;
         _subscriptions = new
         (
-            WorldState.Actors.Added.Subscribe(a => DirtyActiveModules(WorldState.Party.Members[PlayerSlot].InstanceId == a.InstanceID)),
-            WorldState.Actors.Removed.Subscribe(a => DirtyActiveModules(WorldState.Party.Members[PlayerSlot].InstanceId == a.InstanceID)),
-            WorldState.Actors.ClassChanged.Subscribe(a => DirtyActiveModules(WorldState.Party.Members[PlayerSlot].InstanceId == a.InstanceID)),
+            WorldState.Actors.Added.Subscribe(a => DirtyActiveModules(PlayerInstanceId == a.InstanceID)),
+            WorldState.Actors.Removed.Subscribe(a => DirtyActiveModules(PlayerInstanceId == a.InstanceID)),
+            WorldState.Actors.ClassChanged.Subscribe(a => DirtyActiveModules(PlayerInstanceId == a.InstanceID)),
             WorldState.Actors.InCombatChanged.Subscribe(OnCombatChanged),
             WorldState.Actors.IsDeadChanged.Subscribe(OnDeadChanged),
             WorldState.Actors.CastEvent.Subscribe(OnCastEvent),
-            WorldState.Actors.StatusGain.Subscribe(OnStatusGain),
-            WorldState.Actors.StatusLose.Subscribe(OnStatusLose),
-            WorldState.Actors.EventMount.Subscribe(OnMounted),
+            WorldState.Actors.StatusGain.Subscribe((a, idx) => DirtyActiveModules(PlayerInstanceId == a.InstanceID && a.Statuses[idx].ID == (uint)Roleplay.SID.RolePlaying)),
+            WorldState.Actors.StatusLose.Subscribe((a, idx) => DirtyActiveModules(PlayerInstanceId == a.InstanceID && a.Statuses[idx].ID == (uint)Roleplay.SID.RolePlaying)),
+            WorldState.Actors.MountChanged.Subscribe(a => DirtyActiveModules(PlayerInstanceId == a.InstanceID)),
             WorldState.Party.Modified.Subscribe(op => DirtyActiveModules(op.Slot == PlayerSlot)),
             WorldState.Client.ActionRequested.Subscribe(OnActionRequested),
             WorldState.Client.CountdownChanged.Subscribe(OnCountdownChanged),
@@ -125,28 +123,32 @@ public sealed class RotationModuleManager : IDisposable
         var player = Player;
         if (player != null)
         {
+            var isRPMode = player.Statuses.Any(s => s.ID == (uint)Roleplay.SID.RolePlaying);
             foreach (var m in types)
             {
-                var def = RotationModuleRegistry.Modules.GetValueOrDefault(m);
-
-                if (_mountId > 0 && !def.Definition.CanUseWhileMounted)
+                if (!RotationModuleRegistry.Modules.TryGetValue(m, out var def))
                     continue;
-
-                if (_isRP && !def.Definition.CanUseWhileRoleplaying)
+                if (!def.Definition.Classes[(int)player.Class] || player.Level < def.Definition.MinLevel || player.Level > def.Definition.MaxLevel)
                     continue;
-
-                if (def.Definition != null && def.Definition.Classes[(int)player.Class] && player.Level >= def.Definition.MinLevel && player.Level <= def.Definition.MaxLevel)
-                {
-                    res.Add((def.Definition, def.Builder(this, player)));
-                }
+                if (!def.Definition.CanUseWhileMounted && player.MountId > 0)
+                    continue;
+                if (!def.Definition.CanUseWhileRoleplaying && isRPMode)
+                    continue;
+                res.Add((def.Definition, def.Builder(this, player)));
             }
         }
         return res;
     }
 
+    private void DirtyActiveModules(bool condition)
+    {
+        if (condition)
+            _activeModules = null;
+    }
+
     private void OnCombatChanged(Actor actor)
     {
-        if (WorldState.Party.Members[PlayerSlot].InstanceId != actor.InstanceID)
+        if (PlayerInstanceId != actor.InstanceID)
             return; // don't care
 
         CombatStart = actor.InCombat ? WorldState.CurrentTime : default; // keep track of combat time in case rotation modules want to do something special in openers
@@ -168,7 +170,7 @@ public sealed class RotationModuleManager : IDisposable
 
     private void OnDeadChanged(Actor actor)
     {
-        if (WorldState.Party.Members[PlayerSlot].InstanceId != actor.InstanceID)
+        if (PlayerInstanceId != actor.InstanceID)
             return; // don't care
 
         // note: if combat ends while player is dead, we'll reset the preset, which is desirable
@@ -198,12 +200,6 @@ public sealed class RotationModuleManager : IDisposable
             Preset = curr;
     }
 
-    private void DirtyActiveModules(bool condition)
-    {
-        if (condition)
-            _activeModules = null;
-    }
-
     private void OnActionRequested(ClientState.OpActionRequest op)
     {
 #if DEBUG
@@ -219,33 +215,6 @@ public sealed class RotationModuleManager : IDisposable
 #if DEBUG
             Service.Log($"[RMM] Cast #{cast.SourceSequence} {cast.Action} @ {cast.MainTargetID:X} [{string.Join(" --- ", _activeModules?.Select(m => m.Module.DescribeState()) ?? [])}]");
 #endif
-        }
-    }
-
-    private void OnStatusGain(Actor actor, int statusID)
-    {
-        if (actor.InstanceID == Player?.InstanceID && statusID == (uint)Roleplay.SID.RolePlaying)
-        {
-            DirtyActiveModules(!_isRP);
-            _isRP = true;
-        }
-    }
-
-    private void OnStatusLose(Actor actor, int statusID)
-    {
-        if (actor.InstanceID == Player?.InstanceID && statusID == (uint)Roleplay.SID.RolePlaying)
-        {
-            DirtyActiveModules(_isRP);
-            _isRP = false;
-        }
-    }
-
-    private void OnMounted(Actor actor, uint mountID)
-    {
-        if (actor.InstanceID == Player?.InstanceID)
-        {
-            DirtyActiveModules(_mountId != mountID);
-            _mountId = mountID;
         }
     }
 }

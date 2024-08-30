@@ -27,8 +27,6 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
 {
     public readonly BitMask Classes = Classes;
     public readonly List<StrategyConfig> Configs = [];
-    public readonly bool CanUseWhileMounted = CanUseWhileMounted;
-    public readonly bool CanUseWhileRoleplaying = CanUseWhileRoleplaying;
 
     public DefineRef Define<Index>(Index expectedIndex) where Index : Enum => new(Configs, (int)(object)expectedIndex);
 

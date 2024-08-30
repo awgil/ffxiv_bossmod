@@ -396,7 +396,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         _ => GNB.AID.DemonSlice,
     };
 
-
     private int AmmoGainedFromAction(GNB.AID action) => action switch //Our ammo gained from certain actions
     {
         GNB.AID.SolidBarrel => 1,

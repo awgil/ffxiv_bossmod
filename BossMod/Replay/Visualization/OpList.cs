@@ -151,6 +151,7 @@ class OpList(Replay replay, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldSt
             ActorState.OpAggroPlayer op => $"Aggro player: {ActorString(op.InstanceID, op.Timestamp)} = {op.Has}",
             ActorState.OpEventState op => $"Event state: {ActorString(op.InstanceID, op.Timestamp)} -> {op.Value}",
             ActorState.OpTarget op => $"Target: {ActorString(op.InstanceID, op.Timestamp)} -> {ActorString(op.Value, op.Timestamp)}",
+            ActorState.OpMount op => $"Mount: {ActorString(op.InstanceID, op.Timestamp)} = {Service.LuminaRow<Lumina.Excel.GeneratedSheets.Mount>(op.Value)?.Singular ?? "<unknown>"}",
             ActorState.OpTether op => $"Tether: {ActorString(op.InstanceID, op.Timestamp)} {op.Value.ID} ({moduleInfo?.TetherIDType?.GetEnumName(op.Value.ID)}) @ {ActorString(op.Value.Target, op.Timestamp)}",
             ActorState.OpCastInfo op => $"Cast {(op.Value != null ? "started" : "ended")}: {CastString(op.InstanceID, op.Timestamp, op.Value != null)}",
             ActorState.OpCastEvent op => $"Cast event: {ActorString(op.InstanceID, op.Timestamp)}: {op.Value.Action} ({moduleInfo?.ActionIDType?.GetEnumName(op.Value.Action.ID)}) @ {CastEventTargetString(op.Value, op.Timestamp)} ({op.Value.Targets.Count} targets affected) #{op.Value.GlobalSequence}",
@@ -160,7 +161,6 @@ class OpList(Replay replay, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldSt
             ActorState.OpEventObjectAnimation op => $"EObjAnim: {ActorString(op.InstanceID, op.Timestamp)} = {((uint)op.Param1 << 16) | op.Param2:X8}",
             ActorState.OpPlayActionTimelineEvent op => $"Play action timeline: {ActorString(op.InstanceID, op.Timestamp)} = {op.ActionTimelineID:X4}",
             ActorState.OpEventNpcYell op => $"Yell: {ActorString(op.InstanceID, op.Timestamp)} = {op.Message} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.NpcYell>(op.Message)?.Text}'",
-            ActorState.OpMount op => $"Mount: {ActorString(op.InstanceID, op.Timestamp)} = {Service.LuminaRow<Lumina.Excel.GeneratedSheets.Mount>(op.MountId)?.Singular ?? "<unknown>"}",
             ClientState.OpDutyActionsChange op => $"Player duty actions change: {op.Slot0}, {op.Slot1}",
             ClientState.OpBozjaHolsterChange op => $"Player bozja holster change: {string.Join(", ", op.Contents.Select(e => $"{e.count}x {e.entry}"))}",
             _ => DumpOp(o)

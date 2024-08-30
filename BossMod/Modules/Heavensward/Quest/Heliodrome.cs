@@ -45,23 +45,21 @@ class Adds(BossModule module) : Components.AddsMulti(module, [0x1960, 0x1961, 0x
 
 class Bounds(BossModule module) : BossComponent(module)
 {
-    public override void OnDirectorUpdate(uint directorID, uint updateID, uint[] updateParams)
+    public override void OnEventDirectorUpdate(uint updateID, uint param1, uint param2, uint param3, uint param4)
     {
         if (updateID == 0x10000002)
             Arena.Bounds = new ArenaBoundsCircle(20);
     }
 }
 
-class ReaperAI(BossModule module) : Components.RoleplayModule(module)
+class ReaperAI(BossModule module) : BossComponent(module)
 {
-    public override void Execute(Actor? primaryTarget)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (primaryTarget != null && Player.MountId == 103)
+        if (actor.MountId == 103 && WorldState.Actors.Find(actor.TargetID) is var target && target != null)
         {
-            if ((OID)primaryTarget.OID == OID.ImperialColossus)
-                UseGCD(Roleplay.AID.DiffractiveMagitekCannon, primaryTarget, targetPos: primaryTarget.PosRot.XYZ());
-
-            UseGCD(Roleplay.AID.MagitekCannon, primaryTarget, targetPos: primaryTarget.PosRot.XYZ());
+            var aid = (OID)target.OID == OID.ImperialColossus ? Roleplay.AID.DiffractiveMagitekCannon : Roleplay.AID.MagitekCannon;
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High, targetPos: target.PosRot.XYZ());
         }
     }
 }

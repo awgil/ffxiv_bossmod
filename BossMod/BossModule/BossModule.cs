@@ -446,8 +446,7 @@ public abstract class BossModule : IDisposable
 
     private void OnDirectorUpdate(WorldState.OpDirectorUpdate op)
     {
-        uint[] prms = [op.Param1, op.Param2, op.Param3, op.Param4];
         foreach (var comp in _components)
-            comp.OnDirectorUpdate(op.DirectorID, op.UpdateID, prms);
+            comp.OnEventDirectorUpdate(op.UpdateID, op.Param1, op.Param2, op.Param3, op.Param4);
     }
 }
