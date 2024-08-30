@@ -2,154 +2,16 @@
   "version": 0,
   "payload": [
     {
-      "Name": "Default - Single Target",
+      "Name": "Default",
       "Modules": {
         "BossMod.Autorotation.xan.DNC": [
           {
             "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.MCH": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.MNK": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.PCT": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          },
-          {
-            "Track": "Motifs",
-            "Option": "Combat"
-          }
-        ],
-        "BossMod.Autorotation.xan.PLD": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.SAM": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.SGE": [],
-        "BossMod.Autorotation.xan.VPR": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.NIN": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.GNB": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.SMN": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.DRK": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.StandardWAR": [],
-        "BossMod.Autorotation.xan.RPR": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.WHM": [],
-        "BossMod.Autorotation.xan.AST": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.BRD": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.SCH": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.BLM": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.DRG": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ],
-        "BossMod.Autorotation.xan.RDM": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          }
-        ]
-      }
-    },
-    {
-      "Name": "Default - AOE + No Buffs",
-      "Modules": {
-        "BossMod.Autorotation.xan.DNC": [
-          {
-            "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -164,11 +26,11 @@
         "BossMod.Autorotation.xan.MCH": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -183,11 +45,11 @@
         "BossMod.Autorotation.xan.MNK": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -202,11 +64,11 @@
         "BossMod.Autorotation.xan.PCT": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -225,11 +87,11 @@
         "BossMod.Autorotation.xan.PLD": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -244,11 +106,11 @@
         "BossMod.Autorotation.xan.SAM": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -273,11 +135,11 @@
         "BossMod.Autorotation.xan.VPR": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -292,11 +154,11 @@
         "BossMod.Autorotation.xan.NIN": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -311,11 +173,11 @@
         "BossMod.Autorotation.xan.GNB": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -330,11 +192,11 @@
         "BossMod.Autorotation.xan.SMN": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -349,11 +211,11 @@
         "BossMod.Autorotation.xan.DRK": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -368,11 +230,11 @@
         "BossMod.Autorotation.xan.RPR": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -387,11 +249,11 @@
         "BossMod.Autorotation.xan.WHM": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -406,11 +268,11 @@
         "BossMod.Autorotation.xan.AST": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -425,11 +287,11 @@
         "BossMod.Autorotation.xan.BRD": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -444,11 +306,11 @@
         "BossMod.Autorotation.xan.SCH": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -463,11 +325,11 @@
         "BossMod.Autorotation.xan.BLM": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -488,11 +350,11 @@
         "BossMod.Autorotation.xan.RDM": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
@@ -507,11 +369,11 @@
         "BossMod.Autorotation.xan.DRG": [
           {
             "Track": "Buffs",
-            "Option": "Delay"
+            "Option": "Auto"
           },
           {
             "Track": "Buffs",
-            "Option": "Auto",
+            "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
           {
