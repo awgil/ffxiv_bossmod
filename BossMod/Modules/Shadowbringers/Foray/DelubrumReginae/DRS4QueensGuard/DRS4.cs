@@ -13,7 +13,7 @@ class IcyPortent(BossModule module) : Components.CastHint(module, ActionID.MakeS
 class PawnOff(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PawnOffReal), new AOEShapeCircle(20));
 class Fracture(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Fracture)); // TODO: consider showing reflect hints
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Knight, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9838)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Knight, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9838, PlanLevel = 80)]
 public class DRS4 : BossModule
 {
     private readonly IReadOnlyList<Actor> _warrior;

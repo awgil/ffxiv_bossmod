@@ -25,6 +25,9 @@ public sealed class AutorotationConfig : ConfigNode
     [PropertyDisplay("Automatically end autorotation when exiting combat")]
     public bool ClearPresetOnCombatEnd = false;
 
+    [PropertyDisplay("Automatically reenable force-disabled autorotation when exiting combat")]
+    public bool ClearForceDisableOnCombatEnd = true;
+
     [PropertyDisplay("Early pull threshold: if player enters combat when countdown is larger than this value, we consider it a ninja-pull and force disable autorotation")]
     [PropertySlider(0, 30, Speed = 1)]
     public float EarlyPullThreshold = 1.5f;

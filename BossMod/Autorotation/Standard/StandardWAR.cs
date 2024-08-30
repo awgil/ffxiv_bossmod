@@ -4,7 +4,7 @@ namespace BossMod.Autorotation;
 
 public sealed class StandardWAR(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { AOE, Burst, Potion, PrimalRend, Tomahawk, InnerRelease, Infuriate, Upheaval, Wrath, Onslaught }
+    public enum Track { AOE, Burst, Potion, PrimalRend, Tomahawk, InnerRelease, Infuriate, Upheaval, Wrath, Onslaught, Bozja }
     public enum AOEStrategy { SingleTarget, ForceAOE, Auto, AutoFinishCombo }
     public enum BurstStrategy { Automatic, Spend, Conserve, UnderRaidBuffs, UnderPotion, ForceExtendST, IgnoreST }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, AlignWithIR, Immediate }
@@ -13,6 +13,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
     public enum OffensiveStrategy { Automatic, Delay, Force }
     public enum InfuriateStrategy { Automatic, Delay, ForceIfNoNC, ForceIfChargesCapping }
     public enum OnslaughtStrategy { Automatic, Forbid, NoReserve, Force, ForceReserve, ReserveTwo, GapClose }
+    public enum BozjaStrategy { None, WithIR, BloodRage }
 
     public static RotationModuleDefinition Definition()
     {
@@ -93,6 +94,14 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             .AddOption(OnslaughtStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range")
             .AddAssociatedActions(WAR.AID.Onslaught);
 
+        res.Define(Track.Bozja).As<BozjaStrategy>("Bozja", uiPriority: -20)
+            .AddOption(BozjaStrategy.None, "None", "Do not use any lost actions automatically")
+            .AddOption(BozjaStrategy.WithIR, "WithIR", "Use generic buff lost actions together (right before) inner release")
+            .AddOption(BozjaStrategy.BloodRage, "BloodRage", "Optimize rotation around lost blood rage usage (delay IR, use onslaught to proc blood rage)")
+            .AddAssociatedAction(BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfPower))
+            .AddAssociatedAction(BozjaActionID.GetNormal(BozjaHolsterID.BannerHonoredSacrifice))
+            .AddAssociatedAction(BozjaActionID.GetNormal(BozjaHolsterID.LostBloodRage));
+
         return res;
     }
 
@@ -137,6 +146,10 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         Infuriate = 570,
         Upheaval = 580,
         InnerRelease = 590,
+        LostBanner = 660,
+        LostFont = 670,
+        LostBloodRage = 680,
+        BloodRageOnslaught = 690,
         Potion = 900,
         GapcloseOnslaught = 980, // note that it uses 'very high' prio
     }
@@ -160,6 +173,13 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
     private float PotionLeft; // max 30
     private float RaidBuffsLeft; // max 20
     private float RaidBuffsIn;
+    private float LostBloodRageLeft; // max 30 (at 4 stacks) or 18 (at 1-3 stacks)
+    private int LostBloodRageStacks; // 4 if actual blood rage is active
+    private float LostBloodRageIn; // 0-180 if blood rage is slotted and desired by strategy; otherwise max-value
+    private float LostFontCD; // 0-120 if font is slotted and desired by strategy; otherwise max-value
+    private float LostBannerCD; // 0-90 if font is slotted and desired by strategy; otherwise max-value
+    private float LostBuffsLeft; // max(font of power, banner of honored sacrifice), max 30
+    private float LostBuffsIn; // depends on bozja strategy, when do we expect burst
     private float BurstWindowLeft;
     private float BurstWindowIn;
     private WAR.AID NextGCD; // this is needed to estimate gauge and make a decision on infuriate
@@ -192,17 +212,18 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         InnerReleaseCD = CD(InnerReleaseUnlocked ? WAR.AID.InnerRelease : WAR.AID.Berserk);
         WrathfulLeft = SelfStatusLeft(WAR.SID.Wrathful);
 
-        PrimalRuinationActive = false;
         PRLeft = SelfStatusLeft(WAR.SID.PrimalRuinationReady);
-        if (PRLeft > 0)
-            PrimalRuinationActive = true;
-        else
+        PrimalRuinationActive = PRLeft > 0;
+        if (!PrimalRuinationActive)
             PRLeft = SelfStatusLeft(WAR.SID.PrimalRend);
 
         OnslaughtCD = CD(WAR.AID.Onslaught);
-        OnslaughtCapIn = OnslaughtCD - (Unlocked(WAR.TraitID.EnhancedOnslaught) ? 0 : 30);
+        OnslaughtCapIn = Math.Max(0, OnslaughtCD - (Unlocked(WAR.TraitID.EnhancedOnslaught) ? 0 : 30));
         PotionLeft = PotionStatusLeft();
         (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);
+
+        var bozjaStrategy = strategy.Option(Track.Bozja).As<BozjaStrategy>();
+        CalculateBozjaState(bozjaStrategy);
 
         NextGCD = WAR.AID.None;
         NextGCDPrio = GCDPriority.None;
@@ -218,11 +239,12 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         // burst (raid buff) windows are normally 20s every 120s (barring downtimes, deaths, etc)
         // potions are 30s, usually they are aligned to overlap; we generally pot early (to allow ruin smuggle), in such case we consider first potion gcds to be non-burst (and so conserve gauge)
         // however, we might also be potting outside raidbuffs (0/5/10 or even 0/4:30/9), in such case we prefer bursting in potion window rather than in raidbuff window
+        // note: if we have bozja buffs pending, assume that is our main burst, rather than pots or raidbuffs
         var burst = strategy.Option(Track.Burst);
         var burstStrategy = burst.As<BurstStrategy>();
         (BurstWindowIn, BurstWindowLeft) = burstStrategy switch
         {
-            BurstStrategy.Automatic => (RaidBuffsIn, IsPotionBeforeRaidbuffs() ? 0 : Math.Max(PotionLeft, RaidBuffsLeft)),
+            BurstStrategy.Automatic => (LostBuffsIn < float.MaxValue ? LostBuffsIn : RaidBuffsIn, Math.Max(LostBuffsLeft, IsPotionBeforeRaidbuffs() ? 0 : Math.Max(PotionLeft, RaidBuffsLeft))),
             BurstStrategy.Spend or BurstStrategy.IgnoreST => (0, float.MaxValue),
             BurstStrategy.Conserve or BurstStrategy.ForceExtendST => (0, 0), // 'in' is 0, meaning 'raid buffs are imminent, but not yet active, so delay everything'
             BurstStrategy.UnderRaidBuffs => (RaidBuffsIn, RaidBuffsLeft),
@@ -288,17 +310,25 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             if (ShouldUseOnslaught(onsStrategy, primaryTarget))
             {
                 // special case for use as gapcloser - it has to be very high priority
-                var (prio, basePrio) = onsStrategy == OnslaughtStrategy.GapClose
-                    ? (OGCDPriority.GapcloseOnslaught, ActionQueue.Priority.High)
+                var (prio, basePrio) = onsStrategy == OnslaughtStrategy.GapClose ? (OGCDPriority.GapcloseOnslaught, ActionQueue.Priority.High)
+                    : LostBloodRageStacks is > 0 and < 4 ? (OGCDPriority.LostBanner, ActionQueue.Priority.Medium)
                     : (OGCDPriority.Onslaught, OnslaughtCD < GCDLength ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low);
                 QueueOGCD(WAR.AID.Onslaught, primaryTarget, prio, basePrio);
             }
         }
 
         // potion should be used as late as possible in ogcd window, so that if playing at <2.5 gcd, it can cover 13 gcds
-        // TODO: reconsider delay to make it safe enough
+        // TODO: reconsider potion usage in bozja
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Low + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
+
+        // bozja actions
+        if (ShouldUseLostBloodRage())
+            Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostBloodRage), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostBloodRage);
+        if (ShouldUseLostBuff(LostFontCD, 120))
+            Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfPower), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostFont);
+        if (ShouldUseLostBuff(LostBannerCD, 90))
+            Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.BannerHonoredSacrifice), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostBanner);
     }
 
     private void QueueGCD(WAR.AID aid, Actor? target, GCDPriority prio)
@@ -353,6 +383,52 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
 
     // all our aoes have the same shape (except for PR, but we don't really care about its aoe damage)
     private int NumTargetsHitByAOE() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
+
+    // calculate state of the bozja specific actions
+    private void CalculateBozjaState(BozjaStrategy strategy)
+    {
+        LostBuffsLeft = Math.Max(SelfStatusLeft(WAR.SID.LostFontOfPower), SelfStatusLeft(WAR.SID.BannerOfHonoredSacrifice));
+        (LostBloodRageLeft, LostBloodRageStacks) = SelfStatusDetails(WAR.SID.LostBloodRage);
+        if (LostBloodRageStacks == 0)
+        {
+            LostBloodRageLeft = SelfStatusLeft(WAR.SID.BloodRush);
+            if (LostBloodRageLeft > 0)
+            {
+                LostBloodRageStacks = 4;
+                LostBuffsLeft = Math.Max(LostBuffsLeft, LostBloodRageLeft);
+            }
+        }
+
+        LostFontCD = LostBannerCD = LostBloodRageIn = LostBuffsIn = float.MaxValue;
+        if (strategy == BozjaStrategy.None)
+            return; // don't expect any of the buffs ...
+
+        // assume if both FoP & BoTH are slotted, we gonna stack them, otherwise whatever is available can be pressed when ready
+        LostFontCD = DutyActionCD(BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfPower));
+        LostBannerCD = DutyActionCD(BozjaActionID.GetNormal(BozjaHolsterID.BannerHonoredSacrifice));
+        LostBuffsIn = LostFontCD < float.MaxValue && LostBannerCD < float.MaxValue ? Math.Max(LostFontCD, LostBannerCD) : Math.Min(LostFontCD, LostBannerCD);
+
+        // we also wanna stack buffs with IR - this happens naturally for FoP, but BoTH will need to be delayed
+        // note that we generally press buffs a gcd before IR
+        LostBuffsIn = Math.Max(LostBuffsIn, InnerReleaseCD - GCDLength);
+
+        // finally, if we're doing blood rage, we are delaying burst further
+        if (strategy == BozjaStrategy.BloodRage)
+        {
+            LostBloodRageIn = DutyActionCD(BozjaActionID.GetNormal(BozjaHolsterID.LostBloodRage));
+            var bloodRageWindowStart = LostBloodRageStacks switch
+            {
+                0 => LostBloodRageIn < float.MaxValue ? Math.Max(LostBloodRageIn, OnslaughtCapIn) + 30 : float.MaxValue, // we need around 30s to stack blood rage (2 reserved onslaughts + 1 to recharge)
+                1 => OnslaughtCapIn + 30,
+                2 => OnslaughtCapIn,
+                3 => Math.Max(0, OnslaughtCapIn - 30),
+                _ => 0
+            };
+            // if we can't use buffs and have them available by the time bloodrage window starts, delay
+            if (bloodRageWindowStart < LostBuffsIn + 120)
+                LostBuffsIn = bloodRageWindowStart;
+        }
+    }
 
     // heuristic: potion is often pressed ~10s before raidbuffs, so that last 20s overlaps
     // in such case, we don't want to treat first 10s of a potion as burst window by default
@@ -648,14 +724,24 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         _ => false
     };
 
-    // by default, we use IR asap as soon as ST is up
-    private bool ShouldUseInnerRelease(OffensiveStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseInnerRelease(OffensiveStrategy strategy, Actor? target)
     {
-        OffensiveStrategy.Automatic => Player.InCombat && target != null && !target.IsAlly && SurgingTempestLeft > InnerReleaseCD, // TODO: reconsider ST duration threshold...
-        OffensiveStrategy.Delay => false,
-        OffensiveStrategy.Force => true,
-        _ => false
-    };
+        if (strategy != OffensiveStrategy.Automatic)
+            return strategy == OffensiveStrategy.Force;
+
+        if (!Player.InCombat || target == null || target.IsAlly)
+            return false; // prepull / downtime
+
+        if (LostBloodRageStacks == 4)
+            return true; // use under bloodrage asap
+
+        if (LostBloodRageStacks > 0 || InnerReleaseCD + 30 > LostBloodRageIn)
+            return false; // do not use if bloodrage is imminent and it won't come off cd if used now
+
+        // by default, we use IR asap as soon as ST is up
+        // TODO: reconsider ST duration threshold...
+        return SurgingTempestLeft > InnerReleaseCD;
+    }
 
     // this is relevant only until we unlock IR
     private bool ShouldUseBerserk(OffensiveStrategy strategy, Actor? target, int aoeTargets)
@@ -802,15 +888,33 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             return false; // don't use out of melee range to prevent fucking up player's position
         //if (PositionLockIn <= World.Client.AnimationLock)
         //    return false; // forbidden due to state flags
+        if (LostBloodRageStacks == 3)
+            return true; // we want to start the burst asap
+        var onslaughtCapIn = OnslaughtCapIn;
+        var closeToOvercap = onslaughtCapIn < GCD + GCDLength;
+        if (LostBloodRageStacks is > 0 and < 4)
+        {
+            // special logic for stacking bloodrage
+            if (LostBloodRageLeft < 3)
+                return true; // if we don't use it now, we risk dropping stacks
+            return LostBloodRageLeft < 3 || LostBloodRageStacks switch
+            {
+                1 => closeToOvercap, // at 1 charge, bare minimum (assuming no delays) is 6s to overcap - we need to use two charges in 18 and 36s; realistically we don't want to delay gcds
+                2 => onslaughtCapIn < 15, // at 2 charges, bare minimum is 18s to overcap, we add extra 3s of leeway
+                _ => true, // at 3 charges, just start burst asap
+            };
+        }
+        if (LostBloodRageStacks == 0 && onslaughtCapIn + 27 > LostBloodRageIn)
+            return false; // delay until bloodrage, even if overcapping charges
         if (SurgingTempestLeft <= World.Client.AnimationLock)
             return false; // delay until ST, even if overcapping charges
-        if (OnslaughtCapIn < GCD + GCDLength)
+        if (closeToOvercap)
             return true; // if we won't onslaught now, we risk overcapping charges
         if (reserveLastCharge && OnslaughtCD > 30 + World.Client.AnimationLock)
             return false; // strategy prevents us from using last charge
         if (BurstWindowLeft > World.Client.AnimationLock)
             return true; // use now, since we're under raid buffs
-        return OnslaughtCapIn <= BurstWindowIn; // use if we won't be able to delay until next raid buffs
+        return onslaughtCapIn <= BurstWindowIn; // use if we won't be able to delay until next raid buffs
     }
 
     private bool ShouldUseOnslaught(OnslaughtStrategy strategy, Actor? target) => strategy switch
@@ -852,5 +956,14 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         PotionStrategy.AlignWithIR => IsPotionAlignedWithIR(),
         PotionStrategy.Immediate => true,
         _ => false
+    };
+
+    private bool ShouldUseLostBloodRage() => LostBloodRageIn < float.MaxValue && LostBloodRageStacks == 0 && OnslaughtCapIn < 18 + LostBloodRageIn;
+
+    private bool ShouldUseLostBuff(float availableIn, float cooldown) => availableIn < float.MaxValue && LostBloodRageStacks switch
+    {
+        0 => availableIn + cooldown <= LostBloodRageIn + 35 && InnerReleaseCD < GCDLength, // use buffs if bloodrage is on long enough cd and IR is imminent
+        4 => true, // use all buffs asap
+        _ => false // don't use any actions while stacking bloodrage
     };
 }

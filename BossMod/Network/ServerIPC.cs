@@ -181,6 +181,7 @@ public enum PacketID
     EquipDisplayFlags = 441,
     NpcYell = 442,
     FateInfo = 447,
+    CompletedAchievements = 452,
     LandSetInitialize = 461,
     LandUpdate = 462,
     YardObjectSpawn = 463,
@@ -508,6 +509,7 @@ public enum ActorControlCategory : ushort
     LearnTeleport = 509, // from dissector
     OpenRecommendationGuide = 512, // from dissector
     ArmoryErrorMsg = 513, // from dissector
+    AchievementProgress = 514,
     AchievementPopup = 515, // from dissector
     LogMsg = 517, // from dissector
     AchievementMsg = 518, // from dissector
