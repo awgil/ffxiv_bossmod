@@ -74,7 +74,7 @@ public class ConfigRoot
         }
     }
 
-    public List<string> ConsoleCommand(IReadOnlyList<string> args)
+    public List<string> ConsoleCommand(IReadOnlyList<string> args, bool save = true)
     {
         List<string> result = [];
         if (args.Count == 0)
@@ -148,7 +148,8 @@ public class ConfigRoot
                             else
                             {
                                 matchingFields[0].SetValue(matchingNodes[0], val);
-                                matchingNodes[0].Modified.Fire();
+                                if (save)
+                                    matchingNodes[0].Modified.Fire();
                             }
                         }
                     }
