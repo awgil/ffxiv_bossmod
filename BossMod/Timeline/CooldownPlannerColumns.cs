@@ -19,7 +19,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
     private readonly Dictionary<Type, List<ColumnPlannerTrackStrategy>> _colsStrategy = [];
     private readonly ColumnPlannerTrackTarget _colTarget;
 
-    private readonly float _trackWidth = 50;
+    private readonly float _trackWidth = 50 * ImGuiHelpers.GlobalScale;
 
     public Class PlanClass => Plan.Class;
 
