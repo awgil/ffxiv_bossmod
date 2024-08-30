@@ -41,6 +41,8 @@ public sealed class ActorState : IEnumerable<Actor>
             for (int i = 0; i < act.Statuses.Length; ++i)
                 if (act.Statuses[i].ID != 0)
                     yield return new OpStatus(act.InstanceID, i, act.Statuses[i]);
+            if (act.MountId != 0)
+                yield return new OpMount(act.InstanceID, act.MountId);
         }
     }
 
@@ -393,5 +395,17 @@ public sealed class ActorState : IEnumerable<Actor>
     {
         protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.EventNpcYell.Fire(actor, Message);
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("NYEL"u8).EmitActor(InstanceID).Emit(Message);
+    }
+
+    public Event<Actor, uint> EventMount = new();
+    public sealed record class OpMount(ulong InstanceID, uint MountId) : Operation(InstanceID)
+    {
+        protected override void ExecActor(WorldState ws, Actor actor)
+        {
+            actor.MountId = MountId;
+            ws.Actors.EventMount.Fire(actor, MountId);
+        }
+
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("MNTD"u8).EmitActor(InstanceID).Emit(MountId);
     }
 }

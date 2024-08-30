@@ -14,6 +14,9 @@ public sealed class RotationModuleManager : IDisposable
         }
     }
 
+    private uint _mountId;
+    private bool _isRP;
+
     public readonly AutorotationConfig Config = Service.Config.Get<AutorotationConfig>();
     public readonly RotationDatabase Database;
     public readonly BossModuleManager Bossmods;
@@ -47,6 +50,9 @@ public sealed class RotationModuleManager : IDisposable
             WorldState.Actors.InCombatChanged.Subscribe(OnCombatChanged),
             WorldState.Actors.IsDeadChanged.Subscribe(OnDeadChanged),
             WorldState.Actors.CastEvent.Subscribe(OnCastEvent),
+            WorldState.Actors.StatusGain.Subscribe(OnStatusGain),
+            WorldState.Actors.StatusLose.Subscribe(OnStatusLose),
+            WorldState.Actors.EventMount.Subscribe(OnMounted),
             WorldState.Party.Modified.Subscribe(op => DirtyActiveModules(op.Slot == PlayerSlot)),
             WorldState.Client.ActionRequested.Subscribe(OnActionRequested),
             WorldState.Client.CountdownChanged.Subscribe(OnCountdownChanged),
@@ -122,6 +128,13 @@ public sealed class RotationModuleManager : IDisposable
             foreach (var m in types)
             {
                 var def = RotationModuleRegistry.Modules.GetValueOrDefault(m);
+
+                if (_mountId > 0 && !def.Definition.CanUseWhileMounted)
+                    continue;
+
+                if (_isRP && !def.Definition.CanUseWhileRoleplaying)
+                    continue;
+
                 if (def.Definition != null && def.Definition.Classes[(int)player.Class] && player.Level >= def.Definition.MinLevel && player.Level <= def.Definition.MaxLevel)
                 {
                     res.Add((def.Definition, def.Builder(this, player)));
@@ -206,6 +219,33 @@ public sealed class RotationModuleManager : IDisposable
 #if DEBUG
             Service.Log($"[RMM] Cast #{cast.SourceSequence} {cast.Action} @ {cast.MainTargetID:X} [{string.Join(" --- ", _activeModules?.Select(m => m.Module.DescribeState()) ?? [])}]");
 #endif
+        }
+    }
+
+    private void OnStatusGain(Actor actor, int statusID)
+    {
+        if (actor.InstanceID == Player?.InstanceID && statusID == (uint)Roleplay.SID.RolePlaying)
+        {
+            DirtyActiveModules(!_isRP);
+            _isRP = true;
+        }
+    }
+
+    private void OnStatusLose(Actor actor, int statusID)
+    {
+        if (actor.InstanceID == Player?.InstanceID && statusID == (uint)Roleplay.SID.RolePlaying)
+        {
+            DirtyActiveModules(_isRP);
+            _isRP = false;
+        }
+    }
+
+    private void OnMounted(Actor actor, uint mountID)
+    {
+        if (actor.InstanceID == Player?.InstanceID)
+        {
+            DirtyActiveModules(_mountId != mountID);
+            _mountId = mountID;
         }
     }
 }

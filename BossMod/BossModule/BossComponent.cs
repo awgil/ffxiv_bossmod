@@ -60,6 +60,7 @@ public class BossComponent(BossModule module)
     public virtual void OnActorNpcYell(Actor actor, ushort id) { }
     public virtual void OnActorModelStateChange(Actor actor, byte modelState, byte animState1, byte animState2) { }
     public virtual void OnEventEnvControl(byte index, uint state) { }
+    public virtual void OnDirectorUpdate(uint directorID, uint updateID, uint[] updateParams) { }
 
     // some commonly used shortcuts
     protected MiniArena Arena => Module.Arena;

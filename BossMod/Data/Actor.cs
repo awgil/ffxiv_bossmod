@@ -103,6 +103,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public ActorCastInfo? CastInfo;
     public ActorTetherInfo Tether;
     public ActorStatus[] Statuses = new ActorStatus[60]; // empty slots have ID=0
+    public uint MountId; // ID of current mount, 0 if not mounted
 
     public Role Role => Class.GetRole();
     public WPos Position => new(PosRot.X, PosRot.Z);
