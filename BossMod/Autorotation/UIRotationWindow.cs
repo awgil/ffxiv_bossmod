@@ -63,6 +63,13 @@ public sealed class UIRotationWindow : UIWindow
                     }
                     UIPlanDatabaseEditor.StartPlanEditor(_mgr.Database.Plans, plans.Plans[plans.SelectedIndex], activeModule.StateMachine);
                 }
+
+                if (newSel >= 0 && _mgr.Preset != null)
+                {
+                    ImGui.SameLine();
+                    using var style = ImRaii.PushColor(ImGuiCol.Text, 0xff00ffff);
+                    UIMisc.HelpMarker(() => "You have a preset activated, which fully overrides the plan!", FontAwesomeIcon.ExclamationTriangle);
+                }
             }
         }
 

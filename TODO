@@ -2,8 +2,7 @@ immediate plans
 - drs review & update plans, fix br rotation
 - m2s ai/plan
 - mrd support
-- add hint that preset overrides plan
-- horizontal timeline
+- horizontal timeline / cooldown planner
 - pet place
 
 general:
@@ -17,16 +16,13 @@ general:
 - add non-entities to worldstate
 - proper logging
 - consistently use Color instead of uint
-- horizontal timeline / cooldown planner
 - refactor window system to dispose stuff properly and avoid CS1806 and `_ = new...` pattern
 - diagnostic to detect readonly mutable collections
 - introduce 'Game' class that would contain dalamud services and stuff like AMEx/IDScramble, instead of statics, to avoid uncontrolled access to game state (won't help with CS tho)
-- autoreplay improvements - react to module manager transitions?
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
 - constrain bossmodules to zone id (e.g. for T04)
 - revise module categories - consider merging fates/hunts/quests/gold saucer?/pvp? into outdoor?/casual?
 - refactor pendingeffects
-- utility to inject custom ipcs to the stream for debugging?
 - better aoe targeting
 -- improve forbidden classification
 --- target absolutely forbidden to damage (eg tea doll, t01 blob, outdoor enemy that wasn't pulled yet)
