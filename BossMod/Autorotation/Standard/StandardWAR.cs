@@ -318,7 +318,6 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         }
 
         // potion should be used as late as possible in ogcd window, so that if playing at <2.5 gcd, it can cover 13 gcds
-        // TODO: reconsider potion usage in bozja
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Low + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
 
@@ -647,7 +646,14 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         // - L94+ ST->AOE after HS replaces 340+480=820p + 20/30g with 250*N + 20g, so profitable at 4+ targets? (assuming 10g is worth ~50p)
         // - L94+ ST->AOE after Maim replaces 480 + 10/20g with ~125*N + 10g (half of aoe combo), so profitable at 4/5+ targets?
         // - L94+ AOE->ST replaces 140*N + 20g with ~345p + 6.7/10g (1/3 of st combo), so profitable at 1/2 targets?
-        var wantAOEAction = aoeStrategy == AOEStrategy.AutoFinishCombo && comboStepsRemaining > 0 ? doingAOECombo : Unlocked(WAR.AID.Overpower) && aoeTargets >= 3;
+        var wantAOEAction = Unlocked(WAR.AID.Overpower) && aoeStrategy switch
+        {
+            AOEStrategy.SingleTarget => false,
+            AOEStrategy.ForceAOE => true,
+            AOEStrategy.Auto => aoeTargets >= 3,
+            AOEStrategy.AutoFinishCombo => comboStepsRemaining > 0 ? doingAOECombo : aoeTargets >= 3,
+            _ => false
+        };
         if (comboStepsRemaining > 0 && wantAOEAction != doingAOECombo)
             comboStepsRemaining = 0;
 
@@ -944,6 +950,10 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         // another consideration is - if we're smuggling ruin, we want to use pots before last gcd
         // we want at least 5 gcds (3xFC+PR+PR) after IR, and pot covers 12 gcds normally
         if (PrimalRuinationActive && CanFitGCD(PRLeft) && !CanFitGCD(PRLeft, 1) && !CanFitGCD(InnerReleaseCD, 7))
+            return true;
+
+        // we want to use potion together with bozja buffs (TODO: reconsider)
+        if (LostBuffsLeft > 0 || LostBuffsIn < GCD)
             return true;
 
         // not aligned

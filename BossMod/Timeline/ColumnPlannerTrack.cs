@@ -196,6 +196,14 @@ public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tre
             modified = true;
         }
 
+        var startPhase = e.Window.TimeSincePhaseStart();
+        if (ImGui.InputFloat("Press at (relative to phase)", ref startPhase))
+        {
+            (e.Window.AttachNode, e.Window.Delay) = Tree.PhaseTimeToNodeAndDelay(startPhase, e.Window.AttachNode.PhaseID, PhaseBranches);
+            modified = true;
+        }
+
+        modified |= ImGui.InputFloat("Press at (relative to state)", ref e.Window.Delay);
         modified |= ImGui.InputFloat("Window length", ref e.WindowLength);
         return modified;
     }

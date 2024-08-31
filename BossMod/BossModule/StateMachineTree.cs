@@ -137,13 +137,16 @@ public class StateMachineTree
         };
     }
 
+    public (Node, float) PhaseTimeToNodeAndDelay(float t, int phaseIndex, List<int> phaseBranches)
+    {
+        var node = Phases[phaseIndex].TimeToBranchNode(phaseBranches[phaseIndex], t);
+        return (node, t - (node.Predecessor?.Time ?? 0));
+    }
+
     public (Node, float) AbsoluteTimeToNodeAndDelay(float t, List<int> phaseBranches)
     {
         int phaseIndex = FindPhaseAtTime(t);
-        var phase = Phases[phaseIndex];
-        t -= phase.StartTime;
-        var node = phase.TimeToBranchNode(phaseBranches[phaseIndex], t);
-        return (node, t - (node.Predecessor?.Time ?? 0));
+        return PhaseTimeToNodeAndDelay(t - Phases[phaseIndex].StartTime, phaseIndex, phaseBranches);
     }
 
     private (Node, float) LayoutNodeAndSuccessors(float t, int phaseID, int branchID, StateMachine.State state, Node? pred)
