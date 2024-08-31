@@ -136,7 +136,13 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         {
             Plan.PhaseDurations[selectedPhase] = selPhase.Duration;
             if (_syncTimings)
+            {
                 _tree.ApplyTimings(Plan.PhaseDurations);
+                foreach (var cols in _colsStrategy)
+                    foreach (var col in cols.Value)
+                        col.UpdateAllElements();
+                _colTarget.UpdateAllElements();
+            }
             Modified = true;
         }
 
@@ -260,5 +266,5 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
     }
 
     private void AddEntry(List<Plan.Entry> list, ColumnPlannerTrack.Element elem)
-        => list.Add(new(elem.Value) { StateID = elem.Window.AttachNode.State.ID, TimeSinceActivation = elem.Window.Delay, WindowLength = elem.Window.Duration, Disabled = elem.Disabled });
+        => list.Add(new(elem.Value) { StateID = elem.Window.AttachNode.State.ID, TimeSinceActivation = elem.Window.Delay, WindowLength = elem.WindowLength, Disabled = elem.Disabled });
 }
