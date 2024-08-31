@@ -12,7 +12,15 @@ class TagTeamLariatCombo(BossModule module) : Components.GenericAOEs(module)
         foreach (var aoe in AOEs)
         {
             var safe = _tetherSource[slot]?.Position.AlmostEqual(aoe.Origin, 25) ?? false;
-            yield return aoe with { Color = safe ? ArenaColor.SafeFromAOE : ArenaColor.AOE, Risky = !safe };
+            if (safe)
+                yield return aoe with
+                {
+                    Origin = Module.Center - (aoe.Origin - Module.Center),
+                    Rotation = aoe.Rotation + 180.Degrees(),
+                    Shape = new AOEShapeRect(70, 7f)
+                };
+            else
+                yield return aoe;
         }
     }
 
@@ -74,17 +82,11 @@ class TagTeamLariatCombo(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class FusesOfFuryMurderousMist : Components.SelfTargetedAOEs
+class FusesOfFuryMurderousMist(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FusesOfFuryMurderousMist), new AOEShapeCone(40, 45.Degrees(), 180.Degrees()))
 {
-    public FusesOfFuryMurderousMist(BossModule module) : base(module, ActionID.MakeSpell(AID.FusesOfFuryMurderousMist), new AOEShapeCone(40, 135.Degrees()))
-    {
-        Color = ArenaColor.SafeFromAOE;
-        Risky = false;
-    }
-
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (Casters.Any(c => !Shape.Check(actor.Position, c.Position, c.CastInfo!.Rotation)))
-            hints.Add("Go into cone!");
+        if (Casters.Any(c => Shape.Check(actor.Position, c.Position, c.CastInfo!.Rotation)))
+            hints.Add("Get hit by mist!");
     }
 }
