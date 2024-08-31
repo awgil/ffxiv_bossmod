@@ -43,7 +43,7 @@ public static class UIStrategyValue
         modified |= DrawEditorOption(ref value, cfg, level);
         modified |= ImGui.InputText("Comment", ref value.Comment, 512);
         modified |= DrawEditorPriority(ref value);
-        modified |= DrawEditorTarget(ref value, cfg.Options[value.Option].SupportedTargets, true, moduleInfo);
+        modified |= DrawEditorTarget(ref value, cfg.Options[value.Option].SupportedTargets, moduleInfo);
         return modified;
     }
 
@@ -133,7 +133,7 @@ public static class UIStrategyValue
         return modified;
     }
 
-    public static bool DrawEditorTarget(ref StrategyValue value, ActionTargets supportedTargets, bool allowAuto, ModuleRegistry.Info? moduleInfo)
+    public static bool DrawEditorTarget(ref StrategyValue value, ActionTargets supportedTargets, ModuleRegistry.Info? moduleInfo)
     {
         var modified = false;
         using (var combo = ImRaii.Combo("Target", value.Target.ToString()))
@@ -142,7 +142,7 @@ public static class UIStrategyValue
             {
                 for (var i = StrategyTarget.Automatic; i < StrategyTarget.Count; ++i)
                 {
-                    if (AllowTarget(i, supportedTargets, allowAuto, moduleInfo) && ImGui.Selectable(i.ToString(), i == value.Target))
+                    if (AllowTarget(i, supportedTargets, moduleInfo) && ImGui.Selectable(i.ToString(), i == value.Target))
                     {
                         value.Target = i;
                         value.TargetParam = 0;
@@ -189,9 +189,8 @@ public static class UIStrategyValue
         return modified;
     }
 
-    public static bool AllowTarget(StrategyTarget t, ActionTargets supported, bool allowAuto, ModuleRegistry.Info? moduleInfo) => t switch
+    public static bool AllowTarget(StrategyTarget t, ActionTargets supported, ModuleRegistry.Info? moduleInfo) => t switch
     {
-        StrategyTarget.Automatic => allowAuto,
         StrategyTarget.Self => supported.HasFlag(ActionTargets.Self),
         StrategyTarget.PartyByAssignment => supported.HasFlag(ActionTargets.Party),
         StrategyTarget.PartyWithLowestHP => supported.HasFlag(ActionTargets.Party),

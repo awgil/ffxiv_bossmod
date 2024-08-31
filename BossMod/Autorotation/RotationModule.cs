@@ -107,7 +107,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
     // utility to resolve the target overrides; returns null on failure - in this case module is expected to run smart-targeting logic
     // expected usage is `ResolveTargetOverride(strategy) ?? CustomSmartTargetingLogic(...)`
-    protected Actor? ResolveTargetOverride(in StrategyValue strategy) => Manager.ResolveTargetOverride(strategy);
+    protected Actor? ResolveTargetOverride(in StrategyValue strategy) => Manager.ResolveTargetOverride(strategy.Target, strategy.TargetParam);
 
     // TODO: reconsider...
     public unsafe T GetGauge<T>() where T : unmanaged
