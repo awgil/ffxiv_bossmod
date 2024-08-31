@@ -6,6 +6,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using System.Runtime.InteropServices;
 using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
 namespace BossMod;
@@ -61,6 +62,10 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
     private readonly HookAddress<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
 
+    private delegate void ExecuteCommandGTDelegate(uint commandId, Vector3* position, uint param1, uint param2, uint param3, uint param4);
+    private readonly ExecuteCommandGTDelegate _executeCommandGT;
+    private DateTime _nextAllowedExecuteCommand;
+
     public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement)
     {
         _ws = ws;
@@ -75,6 +80,10 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
         _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
         _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
+
+        var executeCommandGTAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 1E 48 8B 53 08");
+        Service.Log($"ExecuteCommandGT address: 0x{executeCommandGTAddress:X}");
+        _executeCommandGT = Marshal.GetDelegateForFunctionPointer<ExecuteCommandGTDelegate>(executeCommandGTAddress);
     }
 
     public void Dispose()
@@ -230,6 +239,16 @@ public sealed unsafe class ActionManagerEx : IDisposable
             var state = PublicContentBozja.GetState(); // note: if it's non-null, the director instance can't be null too
             var holsterIndex = state != null ? state->HolsterActions.IndexOf((byte)action.ID) : -1;
             return holsterIndex >= 0 && PublicContentBozja.GetInstance()->UseFromHolster((uint)holsterIndex, action.Type == ActionType.BozjaHolsterSlot1 ? 1u : 0);
+        }
+        else if (action.Type == ActionType.PetAction && action.ID == 3)
+        {
+            // pet actions are special; TODO support actions other than place (3), these use different send-packet function
+            var now = DateTime.Now;
+            if (_nextAllowedExecuteCommand > now)
+                return false;
+            _nextAllowedExecuteCommand = now.AddMilliseconds(100);
+            _executeCommandGT(1800, &targetPos, action.ID, 0, 0, 0);
+            return true;
         }
         else
         {
