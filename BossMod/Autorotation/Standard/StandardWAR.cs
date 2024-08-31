@@ -244,7 +244,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         var burstStrategy = burst.As<BurstStrategy>();
         (BurstWindowIn, BurstWindowLeft) = burstStrategy switch
         {
-            BurstStrategy.Automatic => (LostBuffsIn < float.MaxValue ? LostBuffsIn : RaidBuffsIn, Math.Max(LostBuffsLeft, IsPotionBeforeRaidbuffs() ? 0 : Math.Max(PotionLeft, RaidBuffsLeft))),
+            BurstStrategy.Automatic => LostBuffsIn < float.MaxValue ? (LostBuffsIn, LostBuffsLeft) : (RaidBuffsIn, Math.Max(LostBuffsLeft, IsPotionBeforeRaidbuffs() ? 0 : Math.Max(PotionLeft, RaidBuffsLeft))),
             BurstStrategy.Spend or BurstStrategy.IgnoreST => (0, float.MaxValue),
             BurstStrategy.Conserve or BurstStrategy.ForceExtendST => (0, 0), // 'in' is 0, meaning 'raid buffs are imminent, but not yet active, so delay everything'
             BurstStrategy.UnderRaidBuffs => (RaidBuffsIn, RaidBuffsLeft),
