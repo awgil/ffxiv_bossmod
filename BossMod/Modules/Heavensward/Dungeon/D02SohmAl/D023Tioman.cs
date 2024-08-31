@@ -48,6 +48,7 @@ class Comet2(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCi
     {
         hints.AddForbiddenZone(new AOEShapeCircle(23), Module.Center);
     }
+}
 class MultiAddModule(BossModule module) : Components.AddsMulti(module, [(uint)OID.LeftWingOfTragedy, (uint)OID.RightWingOfInjury])
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
