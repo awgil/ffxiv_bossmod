@@ -66,4 +66,4 @@ class D042SerGrinnauxTheBullStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 34, NameID = 3850)]
-public class D042SerGrinnauxTheBull(WorldState ws, Actor primary) : BossModule(ws, primary, new(-0.01f, 71.9f), new ArenaBoundsCircle(20));
+public class D052Byblos(WorldState ws, Actor primary) : BossModule(ws, primary, new(-0.01f, 71.9f), new ArenaBoundsCircle(20));

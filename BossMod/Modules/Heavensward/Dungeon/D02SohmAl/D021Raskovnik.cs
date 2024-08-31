@@ -1,4 +1,4 @@
-﻿namespace BossMod.Heavensward.Dungeon.D02SohmAl.D021Raskovnik;
+namespace BossMod.Heavensward.Dungeon.D02SohmAl.D021Raskovnik;
 
 public enum OID : uint
 {
@@ -38,5 +38,5 @@ class D021RaskovnikStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 37, NameID = 3791)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 37, NameID = 3791)]
 public class D021Raskovnik(WorldState ws, Actor primary) : BossModule(ws, primary, new(-127, 168), new ArenaBoundsCircle(23f));

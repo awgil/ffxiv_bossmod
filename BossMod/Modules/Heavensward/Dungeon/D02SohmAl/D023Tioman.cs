@@ -1,4 +1,4 @@
-﻿namespace BossMod.Heavensward.Dungeon.D02SohmAl.D023Tioman;
+namespace BossMod.Heavensward.Dungeon.D02SohmAl.D023Tioman;
 public enum OID : uint
 {
     Boss = 0xE96, // R6.840, x?
@@ -51,7 +51,7 @@ class Comet2(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCi
 }
 class MultiAddModule(BossModule module) : Components.AddsMulti(module, [(uint)OID.LeftWingOfTragedy, (uint)OID.RightWingOfInjury]);
 class MeteorImpact(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MeteorImpact), 30);
-//class MeteorImpact2(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(15), 7, ActionID.MakeSpell(AID.MeteorImpact));
+//class MeteorImpact2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MeteorImpact), 30);
 //class Heavensfall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Heavensfall), 5);
 //class Heavensfall2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Heavensfall2), new AOEShapeCircle(5));
 class Heavensfall3(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Heavensfall3), 5);
@@ -68,15 +68,12 @@ class D023TiomanStates : StateMachineBuilder
             .ActivateOnEnter<Comet>()
             .ActivateOnEnter<Comet2>()
             .ActivateOnEnter<MeteorImpact>()
-            //.ActivateOnEnter<MeteorImpact2>()
-            //.ActivateOnEnter<Heavensfall>()
-            //.ActivateOnEnter<Heavensfall2>()
             .ActivateOnEnter<Heavensfall3>()
             .ActivateOnEnter<DarkStar>()
             .ActivateOnEnter<MultiAddModule>();
 
     }
 }
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 37, NameID = 3798)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 37, NameID = 3798)]
 public class D023Tioman(WorldState ws, Actor primary) : BossModule(ws, primary, new(-103, -395), new ArenaBoundsCircle(27f));
 
