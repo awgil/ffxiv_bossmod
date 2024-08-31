@@ -4,7 +4,7 @@
 public sealed class ActionTweaksConfig : ConfigNode
 {
     // TODO: consider exposing max-delay to config; 0 would mean 'remove all delay', max-value would mean 'disable'
-    [PropertyDisplay("Remove extra lag-induced animation lock delay from instant casts", tooltip: "Do NOT use with XivAlexander or NoClippy - this should automatically disable itself if they are detected, but double check first!")]
+    [PropertyDisplay("Remove extra lag-induced animation lock delay from instant casts (read tooltip!)", tooltip: "Do NOT use with XivAlexander or NoClippy - this should automatically disable itself if they are detected, but double check first!")]
     public bool RemoveAnimationLockDelay = false;
 
     [PropertyDisplay("Remove extra framerate-induced cooldown delay", tooltip: "Dynamically adjusts cooldown and animation locks to ensure queued actions resolve immediately regardless of framerate limitations")]
