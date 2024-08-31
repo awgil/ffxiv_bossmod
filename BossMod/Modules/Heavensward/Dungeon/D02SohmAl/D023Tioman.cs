@@ -48,8 +48,19 @@ class Comet2(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCi
     {
         hints.AddForbiddenZone(new AOEShapeCircle(23), Module.Center);
     }
-}
-class MultiAddModule(BossModule module) : Components.AddsMulti(module, [(uint)OID.LeftWingOfTragedy, (uint)OID.RightWingOfInjury]);
+class MultiAddModule(BossModule module) : Components.AddsMulti(module, [(uint)OID.LeftWingOfTragedy, (uint)OID.RightWingOfInjury])
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var e in hints.PotentialTargets)
+            e.Priority = (OID)e.Actor.OID switch
+            {
+                OID.RightWingOfInjury or OID.LeftWingOfTragedy => 2,
+                OID.Boss => 1,
+                _ => 0
+            };
+    }
+};
 class MeteorImpact(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MeteorImpact), 30);
 //class MeteorImpact2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MeteorImpact), 30);
 //class Heavensfall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Heavensfall), 5);
