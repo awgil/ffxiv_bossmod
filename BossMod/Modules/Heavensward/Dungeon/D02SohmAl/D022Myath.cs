@@ -1,4 +1,4 @@
-﻿namespace BossMod.Heavensward.Dungeon.D02SohmAl.D022Myath;
+namespace BossMod.Heavensward.Dungeon.D02SohmAl.D022Myath;
 public enum OID : uint
 {
     Boss = 0xE91, // R4.900, x?
@@ -29,8 +29,19 @@ class PrimordialRoar(BossModule module) : Components.RaidwideCast(module, Action
 class MadDash(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.MadDash), 6);
 class MadDashStack(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.MadDashStack), 6, 2);
 class TheLastSong(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TheLastSong));
-class Adds(BossModule module) : Components.Adds(module, (uint)OID.ChymeOfTheMountain);
-
+class Adds(BossModule module) : Components.Adds(module, (uint)OID.ChymeOfTheMountain)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var e in hints.PotentialTargets)
+            e.Priority = (OID)e.Actor.OID switch
+            {
+                OID.ChymeOfTheMountain => 2,
+                OID.Boss => 1,
+                _ => 0
+            };
+    }
+}
 class D022MyathStates : StateMachineBuilder
 {
     public D022MyathStates(BossModule module) : base(module)
@@ -45,5 +56,5 @@ class D022MyathStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 37, NameID = 3793)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 37, NameID = 3793)]
 public class D022Myath(WorldState ws, Actor primary) : BossModule(ws, primary, new(158, -94), new ArenaBoundsCircle(30f));

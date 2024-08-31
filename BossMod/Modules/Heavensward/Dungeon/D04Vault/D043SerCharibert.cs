@@ -46,7 +46,7 @@ class March(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _knights = [];
     private static readonly AOEShapeRect rect = new(8, 2, -1);
-    private static readonly AOEShapeCircle circ = new(2);
+    private static readonly AOEShapeCircle circ = new(2.5f);
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var b in _knights)
@@ -70,8 +70,19 @@ class March(BossModule module) : Components.GenericAOEs(module)
         }
     }
 };
-class AddsModule(BossModule module) : Components.Adds(module, (uint)OID.HolyFlame);
-
+class AddsModule(BossModule module) : Components.Adds(module, (uint)OID.HolyFlame)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var e in hints.PotentialTargets)
+            e.Priority = (OID)e.Actor.OID switch
+            {
+                OID.HolyFlame => 2,
+                OID.Boss => 1,
+                _ => 0
+            };
+    }
+};
 class D043SerCharibertStates : StateMachineBuilder
 {
     public D043SerCharibertStates(BossModule module) : base(module)
@@ -90,5 +101,5 @@ class D043SerCharibertStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 34, NameID = 4142)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 34, NameID = 4142)]
 public class D043SerCharibert(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 4), new ArenaBoundsRect(20, 20));

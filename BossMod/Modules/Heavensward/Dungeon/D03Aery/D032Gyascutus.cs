@@ -1,4 +1,4 @@
-﻿namespace BossMod.Heavensward.Dungeon.D03Aery.D032Gyascutus;
+namespace BossMod.Heavensward.Dungeon.D03Aery.D032Gyascutus;
 
 public enum OID : uint
 {
