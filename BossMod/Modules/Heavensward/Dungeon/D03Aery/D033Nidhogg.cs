@@ -86,6 +86,6 @@ class D033NidhoggStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 39, NameID = 3458)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 39, NameID = 3458)]
 public class D033Nidhogg(WorldState ws, Actor primary) : BossModule(ws, primary, new(34.9f, -267f), new ArenaBoundsCircle(30f));
 
