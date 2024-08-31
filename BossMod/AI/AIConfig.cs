@@ -5,7 +5,7 @@ sealed class AIConfig : ConfigNode
 {
     public enum Slot { One, Two, Three, Four }
 
-    [PropertyDisplay("Enable AI")]
+    [PropertyDisplay("Enable AI", tooltip: "Very experimental")]
     public bool Enabled = false;
 
     [PropertyDisplay("Draw UI")]
