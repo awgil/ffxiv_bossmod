@@ -89,18 +89,38 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
 
     private void DrawConfigPlanner(UITree tree)
     {
-        if (_moduleInfo?.PlanLevel > 0)
-        {
-            foreach (var _1 in tree.Node("Planner"))
-            {
-                var plans = _planDatabase.GetPlans(_moduleInfo.ModuleType, _playerClass);
-                UpdateSelectedPlan(plans, DrawPlanSelector(_moduleInfo.ModuleType, plans, _selectedPlan));
-                _planner?.DrawCommonControls();
-            }
-        }
-        else
+        if (_moduleInfo == null || _moduleInfo.PlanLevel <= 0)
         {
             tree.LeafNode("Planner: not supported for this encounter");
+            return;
+        }
+
+        foreach (var _1 in tree.Node("Planner"))
+        {
+            var plans = _planDatabase.GetPlans(_moduleInfo.ModuleType, _playerClass);
+            UpdateSelectedPlan(plans, DrawPlanSelector(_moduleInfo.ModuleType, plans, _selectedPlan));
+            if (_planner != null)
+            {
+                ImGui.TextUnformatted($"GUID: {_planner.Plan.Guid}");
+                _planner.DrawCommonControls();
+
+                bool haveDifferentPhaseTimes = false;
+                for (int i = 0; i < _tree.Phases.Count; ++i)
+                {
+                    _planner.Modified |= ImGui.SliderFloat($"{_tree.Phases[i].Name}###phase-duration-{i}", ref _planner.Plan.PhaseDurations.Ref(i), 0, _tree.Phases[i].MaxTime, $"%.1f (replay: {_tree.Phases[i].Duration:f1} / {_tree.Phases[i].MaxTime:f1})");
+                    haveDifferentPhaseTimes |= _planner.Plan.PhaseDurations[i] != _tree.Phases[i].Duration;
+                }
+
+                using (ImRaii.Disabled(!haveDifferentPhaseTimes))
+                {
+                    if (ImGui.Button("Sync phase durations to replay"))
+                    {
+                        for (int i = 0; i < _tree.Phases.Count; ++i)
+                            _planner.Plan.PhaseDurations[i] = _tree.Phases[i].Duration;
+                        _planner.Modified = true;
+                    }
+                }
+            }
         }
     }
 

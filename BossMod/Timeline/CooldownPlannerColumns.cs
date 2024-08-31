@@ -55,7 +55,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         if (ImGui.Button("Import from clipboard"))
             ImportFromClipboard();
         ImGui.SameLine();
-        ImGui.SetNextItemWidth(100);
+        ImGui.SetNextItemWidth(150);
         Modified |= ImGui.InputText("Name", ref Plan.Name, 255);
 
         using (var popup = ImRaii.Popup("modules"))
