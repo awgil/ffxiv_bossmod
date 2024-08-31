@@ -16,7 +16,7 @@ public sealed class AutorotationConfig : ConfigNode
         Icon
     }
 
-    [PropertyDisplay("Show autorotation preset in server info bar")]
+    [PropertyDisplay("Show autorotation preset in the server info bar")]
     public DtrStatus ShowDTR = DtrStatus.None;
 
     [PropertyDisplay("Show positional hints in world", tooltip: "Show tips for positional abilities, indicating to move to the flank or rear of your target")]
