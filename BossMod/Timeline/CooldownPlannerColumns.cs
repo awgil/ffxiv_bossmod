@@ -164,6 +164,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                 Service.Log($"Failed to import: plan belongs to {plan.Class} {plan.Encounter} instead of {Plan.Class} {Plan.Encounter}");
                 return;
             }
+            plan.Guid = Plan.Guid;
 
             Modified = true;
             Plan = plan;
