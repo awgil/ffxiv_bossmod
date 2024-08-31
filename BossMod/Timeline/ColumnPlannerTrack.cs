@@ -173,6 +173,21 @@ public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tre
     protected abstract bool EditElement(Element e);
     protected abstract List<string> DescribeElement(Element e);
 
+    protected bool EditElementWindow(Element e)
+    {
+        bool modified = false;
+
+        var startGlobal = e.Window.TimeSinceGlobalStart(Tree);
+        if (ImGui.InputFloat("Press at (relative to pull)", ref startGlobal))
+        {
+            (e.Window.AttachNode, e.Window.Delay) = Tree.AbsoluteTimeToNodeAndDelay(startGlobal, PhaseBranches);
+            modified = true;
+        }
+
+        modified |= ImGui.InputFloat("Window length", ref e.Window.Duration);
+        return modified;
+    }
+
     protected bool ScreenPosInElement(Vector2 pos, Element e)
     {
         if (!IsEntryVisible(e.Window))

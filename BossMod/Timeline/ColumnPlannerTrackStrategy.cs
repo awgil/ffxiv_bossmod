@@ -28,5 +28,5 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
     }
 
     protected override List<string> DescribeElement(Element e) => UIStrategyValue.Preview(ref e.Value, config, moduleInfo);
-    protected override bool EditElement(Element e) => UIStrategyValue.DrawEditor(ref e.Value, config, moduleInfo, level);
+    protected override bool EditElement(Element e) => UIStrategyValue.DrawEditor(ref e.Value, config, moduleInfo, level) | EditElementWindow(e);
 }

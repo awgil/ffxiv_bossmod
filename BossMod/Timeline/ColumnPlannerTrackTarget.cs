@@ -25,6 +25,7 @@ public class ColumnPlannerTrackTarget(Timeline timeline, StateMachineTree tree, 
         var modified = false;
         modified |= UIStrategyValue.DrawEditorTarget(ref e.Value, ActionTargets.All, false, moduleInfo);
         modified |= ImGui.InputText("Comment", ref e.Value.Comment, 256);
+        modified |= EditElementWindow(e);
         return modified;
     }
 }
