@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Name = "Boss module window settings", Order = 1)]
+[ConfigDisplay(Name = "Boss Modules", Order = 1)]
 public class BossModuleConfig : ConfigNode
 {
     [PropertyDisplay("Arena scale factor")]

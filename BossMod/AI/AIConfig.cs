@@ -1,6 +1,6 @@
 ﻿namespace BossMod.AI;
 
-[ConfigDisplay(Name = "AI settings (very experimental!!!)", Order = 6)]
+[ConfigDisplay(Name = "AI Configuration", Order = 6)]
 sealed class AIConfig : ConfigNode
 {
     public enum Slot { One, Two, Three, Four }
