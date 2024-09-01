@@ -19,8 +19,8 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.ShadowWall).As<WallOption>("ShadowWall", "Wall", 550) //120s CD, 15s duration
             .AddOption(WallOption.None, "None", "Do not use automatically")
-            .AddOption(WallOption.ShadowWall, "Use", "Use ShadowWall", 120, 15, ActionTargets.Self, 38, 91)
-            .AddOption(WallOption.ShadowedVigil, "UseEx", "Use ShadowedVigil", 120, 15, ActionTargets.Self, 92)
+            .AddOption(WallOption.ShadowWall, "Use", "Use Shadow Wall", 120, 15, ActionTargets.Self, 38, 91)
+            .AddOption(WallOption.ShadowedVigil, "UseEx", "Use Shadowed Vigil", 120, 15, ActionTargets.Self, 92)
             .AddAssociatedActions(DRK.AID.ShadowWall, DRK.AID.ShadowedVigil);
 
         DefineSimpleConfig(res, Track.LivingDead, "LivingDead", "LD", 400, DRK.AID.LivingDead, 10); //300s CD, 10s duration
@@ -28,13 +28,14 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Oblation).As<OblationStrategy>("Oblation", "", 550) //60s (120s total), 10s duration, 2 charges
             .AddOption(OblationStrategy.None, "None", "Do not use automatically")
-            .AddOption(OblationStrategy.Force, "Use", "Use Oblation", 60, 10, ActionTargets.Self, 82)
+            .AddOption(OblationStrategy.Force, "Use", "Use Oblation", 60, 10, ActionTargets.Self | ActionTargets.Party, 82)
             .AddOption(OblationStrategy.Delay, "Don't use", "Delay Oblation")
             .AddAssociatedActions(DRK.AID.Oblation);
 
         DefineSimpleConfig(res, Track.DarkMissionary, "DarkMissionary", "Mission", 220, DRK.AID.DarkMissionary, 15); //90s CD, 15s duration
 
-        //DefineSimpleConfig(res, Track.Shadowstride, "Shadowstride", "Dash", 380, DRK.AID.Shadowstride); (TODO: Dash no longer does damage, consider how to add this)
+        // TODO: Plunge has been removed as of 7.0 DT. Shadowstride is its replacement dash and no longer does damage. Consider how to add this...
+        //DefineSimpleConfig(res, Track.Shadowstride, "Shadowstride", "Dash", 380, DRK.AID.Shadowstride); //30s CD (60s total), 2 charges
 
         return res;
     }
