@@ -99,6 +99,8 @@ public sealed class UIRotationWindow : UIWindow
             }
         }
 
+        ImGui.SameLine();
+
         ImGui.TextUnformatted("Presets:");
 
         foreach (var p in mgr.Database.Presets.PresetsForClass(mgr.Player.Class))
