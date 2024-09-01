@@ -85,18 +85,18 @@ public sealed class UIRotationWindow : UIWindow
         if (mgr.Player == null)
             return modified;
 
+        ImGui.TextUnformatted("Presets:");
+
+        ImGui.SameLine();
+
         using (ImRaii.PushColor(ImGuiCol.Button, 0xff000080, mgr.Preset == RotationModuleManager.ForceDisable))
         {
-            if (ImGui.Button("Disable"))
+            if (ImGui.Button("Disabled"))
             {
                 mgr.Preset = mgr.Preset == RotationModuleManager.ForceDisable ? null : RotationModuleManager.ForceDisable;
                 modified |= true;
             }
         }
-
-        ImGui.SameLine();
-
-        ImGui.TextUnformatted("Presets:");
 
         foreach (var p in mgr.Database.Presets.PresetsForClass(mgr.Player.Class))
         {
