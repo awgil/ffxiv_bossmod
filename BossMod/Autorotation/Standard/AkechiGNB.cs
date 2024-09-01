@@ -1,9 +1,4 @@
-﻿using BossMod.Autorotation.Legacy;
-using Dalamud.Game.ClientState.JobGauge.Types;
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using static BossMod.ActorCastEvent;
-using static BossMod.ActorState;
-using static BossMod.ClientState;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation;
 //Contribution by Akechi, with help provided by Veyn for framework & Xan for assistance. Discord @akechdz or Akechi on Puni.sh for maintenance
