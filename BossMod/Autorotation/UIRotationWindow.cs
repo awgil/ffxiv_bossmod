@@ -68,11 +68,6 @@ public sealed class UIRotationWindow : UIWindow
                     UIMisc.HelpMarker(() => "You have a preset activated, which fully overrides the CD plan!", FontAwesomeIcon.ExclamationTriangle);
                 }
             }
-
-            if (ImGui.Button("Open Boss Timeline"))
-            {
-                _ = new StateMachineWindow(activeModule);
-            }
         }
 
         // TODO: more fancy action history/queue...
