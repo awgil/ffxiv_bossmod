@@ -30,9 +30,10 @@ public sealed class ConfigUI : IDisposable
         _ws = ws;
         _mv = new(rotationDB?.Plans, ws);
         _presets = rotationDB != null ? new(rotationDB.Presets) : null;
-        _tabs.Add("Configs", () => DrawNodes(_roots));
-        _tabs.Add("Modules", () => _mv.Draw(_tree, _ws));
-        _tabs.Add("Presets", () => _presets?.Draw());
+        _tabs.Add("About", () => ConfigAboutTab.Draw());
+        _tabs.Add("Settings", () => DrawNodes(_roots));
+        _tabs.Add("Supported Duties", () => _mv.Draw(_tree, _ws));
+        _tabs.Add("Autorotation Presets", () => _presets?.Draw());
 
         Dictionary<Type, UINode> nodes = [];
         foreach (var n in config.Nodes)

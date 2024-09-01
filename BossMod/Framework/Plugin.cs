@@ -66,7 +66,7 @@ public sealed class Plugin : IDalamudPlugin
         Service.Config.Modified.Subscribe(() => Service.Config.SaveToFile(dalamud.ConfigFile));
 
         CommandManager = commandManager;
-        CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
+        CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod settings UI" });
 
         ActionDefinitions.Instance.UnlockCheck = QuestUnlocked; // ensure action definitions are initialized and set unlock check functor (we don't really store the quest progress in clientstate, for now at least)
 
@@ -157,7 +157,7 @@ public sealed class Plugin : IDalamudPlugin
     private void OpenConfigUI(string showTab = "")
     {
         _configUI.ShowTab(showTab);
-        _ = new UISimpleWindow("Boss mod config", _configUI.Draw, true, new(300, 300));
+        _ = new UISimpleWindow("Boss Mod Settings", _configUI.Draw, true, new(300, 300));
     }
 
     private void DrawUI()
