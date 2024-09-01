@@ -20,7 +20,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Aurora).As<AuroraStrategy>("Aurora", "", 550) //60s (120s total), 18s duration, 2 charges
             .AddOption(AuroraStrategy.None, "None", "Do not use automatically")
-            .AddOption(AuroraStrategy.Force, "Use", "Use Aurora", 60, 18, ActionTargets.Self, 45)
+            .AddOption(AuroraStrategy.Force, "Use", "Use Aurora", 60, 18, ActionTargets.Self | ActionTargets.Party, 45)
             .AddOption(AuroraStrategy.Delay, "Don't use", "Delay Aurora")
             .AddAssociatedActions(GNB.AID.Aurora);
 
