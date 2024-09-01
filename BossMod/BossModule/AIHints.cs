@@ -90,16 +90,24 @@ public sealed class AIHints
     {
         bool playerInFate = ws.Client.ActiveFate.ID != 0 && ws.Party.Player()?.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(ws.Client.ActiveFate.ID)?.ClassJobLevelMax;
         var allowedFateID = playerInFate ? ws.Client.ActiveFate.ID : 0;
-        foreach (var actor in ws.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead))
+        foreach (var actor in ws.Actors.Where(a => a.IsTargetable && !a.IsAlly && !a.IsDead))
         {
             // fate mob in fate we are NOT a part of, skip entirely. it's okay to "attack" these (i.e., they won't be added as forbidden targets) because we can't even hit them
             // (though aggro'd mobs will continue attacking us after we unsync, but who really cares)
             if (actor.FateID > 0 && actor.FateID != allowedFateID)
                 continue;
 
+            // target is dying; skip it so that AI retargets, but ensure that it's not marked as a forbidden target
+            // skip this check on striking dummies (name ID 541) as they die constantly
+            var predictedHP = ws.PendingEffects.PendingHPDifference(actor.InstanceID);
+            if (actor.HPMP.CurHP + predictedHP <= 0 && actor.NameID != 541)
+                continue;
+
             var allowedAttack = actor.InCombat && ws.Party.FindSlot(actor.TargetID) >= 0;
             // enemies in our enmity list can also be attacked, regardless of who they are targeting (since they are keeping us in combat)
             allowedAttack |= actor.AggroPlayer;
+            // all fate mobs can be attacked if we are level synced (non synced mobs are skipped above)
+            allowedAttack |= actor.FateID > 0;
 
             PotentialTargets.Add(new(actor, playerIsDefaultTank)
             {
