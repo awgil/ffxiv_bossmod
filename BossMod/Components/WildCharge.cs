@@ -67,8 +67,19 @@ public class GenericWildCharge(BossModule module, float halfWidth, ActionID aid 
         switch (PlayerRoles[slot])
         {
             case PlayerRole.Ignore:
-            case PlayerRole.Target: // TODO: consider hints for target?.. best is just to stay in place i guess...
+                break;
+            case PlayerRole.Target:
             case PlayerRole.TargetNotFirst: // TODO: consider some hint to hide behind others?..
+                // TODO: improve this - for now, just stack with closest player...
+                if (Source != null)
+                {
+                    var closest = Raid.WithSlot().WhereSlot(i => PlayerRoles[i] is PlayerRole.Share or PlayerRole.ShareNotFirst).Actors().Closest(actor.Position);
+                    if (closest != null)
+                    {
+                        var stack = GetAOEForTarget(Source.Position, closest.Position);
+                        hints.AddForbiddenZone(ShapeDistance.InvertedRect(stack.origin, stack.dir, stack.length, 0, HalfWidth * 0.5f), Activation);
+                    }
+                }
                 break;
             case PlayerRole.Share: // TODO: some hint to be first in line...
             case PlayerRole.ShareNotFirst:
