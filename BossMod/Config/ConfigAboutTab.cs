@@ -53,6 +53,15 @@ public sealed class ConfigAboutTab
             "Automatically moves your character based on safe zones determined by a boss's module, visible on the radar."
         });
 
+        DrawSection("Replays", new[]
+        {
+            "Useful for creating boss modules, analyzing problems with them, and making CD plans.",
+            "When asking for help, make sure to provide a replay!",
+            "Enabled in Settings > Show replay management UI (or enable auto recording).",
+            "Provide the replay file with your replay when reporting bugs or asking for modules to be made.",
+            "Files are located in '%appdata%/XIVLauncher/pluginConfigs/BossMod/replays'."
+        });
+
         ImGui.Spacing();
 
         float buttonWidth = 180f;
