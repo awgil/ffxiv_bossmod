@@ -3,6 +3,8 @@ using Dalamud.Interface.Utility;
 using ImGuiNET;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.InteropServices;
+using System.IO;
 
 namespace BossMod;
 
@@ -69,6 +71,8 @@ public sealed class ConfigAboutTab
         DrawButton("Boss Mod Repository", "https://github.com/awgil/ffxiv_bossmod", buttonWidth);
         ImGui.SameLine();
         DrawButton("Boss Mod Wiki Tutorials", "https://github.com/awgil/ffxiv_bossmod/wiki", buttonWidth);
+        ImGui.SameLine();
+        DrawOpenReplayFolderButton("Open Replay Folder", buttonWidth);
     }
 
     private static void DrawSection(string title, string[] bulletPoints)
@@ -107,7 +111,7 @@ public sealed class ConfigAboutTab
         ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Lerp(buttonColor, Vector4.One, 0.4f));
         if (ImGui.Button(label, new Vector2(width, 0)))
         {
-            Process.Start("explorer.exe", url);
+            OpenUrl(url);
         }
         ImGui.PopStyleColor(3);
     }
@@ -119,8 +123,63 @@ public sealed class ConfigAboutTab
         ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Lerp(discordButtonColor, Vector4.One, 0.4f));
         if (ImGui.Button(label, new Vector2(width, 0)))
         {
-            Process.Start("explorer.exe", url);
+            OpenUrl(url);
         }
         ImGui.PopStyleColor(3);
+    }
+
+    private static void DrawOpenReplayFolderButton(string label, float width)
+    {
+        string replayPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"XIVLauncher\pluginConfigs\BossMod\replays");
+
+        ImGui.PushStyleColor(ImGuiCol.Button, buttonColor);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Vector4.Lerp(buttonColor, Vector4.One, 0.2f));
+        ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Lerp(buttonColor, Vector4.One, 0.4f));
+        if (ImGui.Button(label, new Vector2(width, 0)))
+        {
+            OpenFolder(replayPath);
+        }
+        ImGui.PopStyleColor(3);
+    }
+
+    private static void OpenUrl(string url)
+    {
+        try
+        {
+            ProcessStartInfo psi = new ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true
+            };
+            Process.Start(psi);
+        }
+        catch
+        {
+            ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f), "Failed to open URL.");
+        }
+    }
+
+    private static void OpenFolder(string path)
+    {
+        try
+        {
+            if (Directory.Exists(path))
+            {
+                ProcessStartInfo psi = new ProcessStartInfo
+                {
+                    FileName = path,
+                    UseShellExecute = true
+                };
+                Process.Start(psi);
+            }
+            else
+            {
+                ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f), "Replay folder not found.");
+            }
+        }
+        catch
+        {
+            ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f), "Failed to open folder.");
+        }
     }
 }
