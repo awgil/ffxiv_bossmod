@@ -1,4 +1,4 @@
-﻿namespace BossMod.Heavensward.Dungeon.D03Aery.D031Rangda;
+namespace BossMod.Heavensward.Dungeon.D03Aery.D031Rangda;
 
 public enum OID : uint
 {
@@ -71,8 +71,19 @@ class LightningRod(BossModule module) : BossComponent(module)
 class Electrocution(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Electrocution), 17, stopAtWall: true);
 //class Electrocution2(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Electrocution2));
 class Reflux(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Reflux));
-class Adds(BossModule module) : Components.Adds(module, (uint)OID.Leyak);
-
+class Adds(BossModule module) : Components.Adds(module, (uint)OID.Leyak)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var e in hints.PotentialTargets)
+            e.Priority = (OID)e.Actor.OID switch
+            {
+                OID.Leyak => 2,
+                OID.Boss => 1,
+                _ => 0
+            };
+    }
+};
 class D031RangdaStates : StateMachineBuilder
 {
     public D031RangdaStates(BossModule module) : base(module)
@@ -80,17 +91,14 @@ class D031RangdaStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<ElectricPredation>()
             .ActivateOnEnter<ElectricCachexia>()
-            //.ActivateOnEnter<IonosphericCharge>()
             .ActivateOnEnter<LightningBolt>()
             .ActivateOnEnter<LightningRod>()
-            //.ActivateOnEnter<Ground>()
             .ActivateOnEnter<Electrocution>()
-            //.ActivateOnEnter<Electrocution2>()
             .ActivateOnEnter<Reflux>()
             .ActivateOnEnter<Adds>();
 
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "VeraNala, xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 39, NameID = 3452)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala, xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 39, NameID = 3452)]
 public class D031Rangda(WorldState ws, Actor primary) : BossModule(ws, primary, new(334.9f, -203), new ArenaBoundsCircle(26));

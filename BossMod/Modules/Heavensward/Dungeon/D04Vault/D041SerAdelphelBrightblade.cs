@@ -72,5 +72,5 @@ class D041SerAdelphelBrightbladeStates : StateMachineBuilder
 
     }
 }
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 34, NameID = 3849)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 34, NameID = 3849)]
 public class D041SerAdelphelBrightblade(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -100), new ArenaBoundsCircle(19.5f));

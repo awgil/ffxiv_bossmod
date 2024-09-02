@@ -80,7 +80,9 @@ public sealed class RotationModuleManager : IDisposable
         // forced target update
         if (Hints.ForcedTarget == null && Preset == null && Planner?.ActiveForcedTarget() is var forced && forced != null)
         {
-            Hints.ForcedTarget = ResolveTargetOverride(forced.Value);
+            Hints.ForcedTarget = forced.Value.Target != StrategyTarget.Automatic
+                ? ResolveTargetOverride(forced.Value.Target, forced.Value.TargetParam)
+                : (ResolveTargetOverride(StrategyTarget.EnemyWithHighestPriority, 0) ?? Bossmods.ActiveModule?.PrimaryActor);
         }
 
         // auto actions
@@ -93,13 +95,13 @@ public sealed class RotationModuleManager : IDisposable
         }
     }
 
-    public Actor? ResolveTargetOverride(in StrategyValue strategy) => strategy.Target switch
+    public Actor? ResolveTargetOverride(StrategyTarget strategy, int param) => strategy switch
     {
         StrategyTarget.Self => Player,
-        StrategyTarget.PartyByAssignment => _prc.SlotsPerAssignment(WorldState.Party) is var spa && strategy.TargetParam < spa.Length ? WorldState.Party[spa[strategy.TargetParam]] : null,
-        StrategyTarget.PartyWithLowestHP => WorldState.Party.WithoutSlot().Exclude(strategy.TargetParam != 0 ? null : Player).MinBy(a => a.HPMP.CurHP),
+        StrategyTarget.PartyByAssignment => _prc.SlotsPerAssignment(WorldState.Party) is var spa && param < spa.Length ? WorldState.Party[spa[param]] : null,
+        StrategyTarget.PartyWithLowestHP => WorldState.Party.WithoutSlot().Exclude(param != 0 ? null : Player).MinBy(a => a.HPMP.CurHP),
         StrategyTarget.EnemyWithHighestPriority => Player != null ? Hints.PriorityTargets.MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor : null,
-        StrategyTarget.EnemyByOID => Player != null && (uint)strategy.TargetParam is var oid && oid != 0 ? Hints.PotentialTargets.Where(e => e.Actor.OID == oid).MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor : null,
+        StrategyTarget.EnemyByOID => Player != null && (uint)param is var oid && oid != 0 ? Hints.PotentialTargets.Where(e => e.Actor.OID == oid).MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor : null,
         _ => null
     };
 
@@ -153,7 +155,7 @@ public sealed class RotationModuleManager : IDisposable
 
         CombatStart = actor.InCombat ? WorldState.CurrentTime : default; // keep track of combat time in case rotation modules want to do something special in openers
 
-        if (!actor.InCombat && (Preset == ForceDisable ? Config.ClearForceDisableOnCombatEnd : Config.ClearPresetOnCombatEnd))
+        if (!actor.InCombat && (Preset == ForceDisable || Config.ClearPresetOnCombatEnd))
         {
             // player exits combat => clear manual overrides
             Service.Log($"[RMM] Player exits combat => clear preset '{Preset?.Name ?? "<n/a>"}'");

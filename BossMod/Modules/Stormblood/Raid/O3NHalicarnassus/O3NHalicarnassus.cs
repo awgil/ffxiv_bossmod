@@ -1,4 +1,4 @@
-﻿namespace BossMod.Stormblood.Raid.O3NHalicarnassus;
+namespace BossMod.Stormblood.Raid.O3NHalicarnassus;
 public enum OID : uint
 {
     Boss = 0x1E14, // R0.5
@@ -65,9 +65,9 @@ class TheQueensWaltz2(BossModule module) : Components.GenericAOEs(module)
             int[] xOffsets = [-15, -5, 5, 15];
             int[] zOffsets = [-15, -5, 5, 15];
 
-            foreach (int zOffset in zOffsets)
+            foreach (var zOffset in zOffsets)
             {
-                foreach (int xOffset in xOffsets)
+                foreach (var xOffset in xOffsets)
                 {
                     if (xOffset != zOffset)
                     {
@@ -135,9 +135,9 @@ class TheGame(BossModule module) : Components.GenericAOEs(module)
             int[] xOffsets = [-15, -5, 5, 15];
             int[] zOffsets = [-15, -5, 5, 15];
 
-            foreach (int zOffset in zOffsets)
+            foreach (var zOffset in zOffsets)
             {
-                foreach (int xOffset in xOffsets)
+                foreach (var xOffset in xOffsets)
                 {
                     _aoes.Add(new(rect, new(xOffset, zOffset)));
                 }
@@ -171,5 +171,5 @@ class O3NHalicarnassusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 254, NameID = 5633)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 254, NameID = 5633)]
 public class O3NHalicarnassus(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsSquare(20));

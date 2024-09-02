@@ -55,7 +55,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         if (ImGui.Button("Import from clipboard"))
             ImportFromClipboard();
         ImGui.SameLine();
-        ImGui.SetNextItemWidth(100);
+        ImGui.SetNextItemWidth(150);
         Modified |= ImGui.InputText("Name", ref Plan.Name, 255);
 
         using (var popup = ImRaii.Popup("modules"))
@@ -136,7 +136,13 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         {
             Plan.PhaseDurations[selectedPhase] = selPhase.Duration;
             if (_syncTimings)
+            {
                 _tree.ApplyTimings(Plan.PhaseDurations);
+                foreach (var cols in _colsStrategy)
+                    foreach (var col in cols.Value)
+                        col.UpdateAllElements();
+                _colTarget.UpdateAllElements();
+            }
             Modified = true;
         }
 
@@ -164,6 +170,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                 Service.Log($"Failed to import: plan belongs to {plan.Class} {plan.Encounter} instead of {Plan.Class} {Plan.Encounter}");
                 return;
             }
+            plan.Guid = Plan.Guid;
 
             Modified = true;
             Plan = plan;
@@ -259,5 +266,5 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
     }
 
     private void AddEntry(List<Plan.Entry> list, ColumnPlannerTrack.Element elem)
-        => list.Add(new(elem.Value) { StateID = elem.Window.AttachNode.State.ID, TimeSinceActivation = elem.Window.Delay, WindowLength = elem.Window.Duration, Disabled = elem.Disabled });
+        => list.Add(new(elem.Value) { StateID = elem.Window.AttachNode.State.ID, TimeSinceActivation = elem.Window.Delay, WindowLength = elem.WindowLength, Disabled = elem.Disabled });
 }

@@ -5,32 +5,17 @@ class TagTeamLariatCombo(BossModule module) : Components.GenericAOEs(module)
     public readonly List<AOEInstance> AOEs = [];
     private readonly Actor?[] _tetherSource = new Actor?[PartyState.MaxPartySize];
 
-    private static readonly AOEShapeRect _shape = new(70, 17);
+    private static readonly AOEShapeRect _shapeReal = new(70, 17);
+    private static readonly AOEShapeRect _shapeInverted = new(70, 7); // offset is 12 => this should be equal to 12*2-17
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var aoe in AOEs)
         {
-            var safe = _tetherSource[slot]?.Position.AlmostEqual(aoe.Origin, 25) ?? false;
-            yield return aoe with { Color = safe ? ArenaColor.SafeFromAOE : ArenaColor.AOE, Risky = !safe };
+            yield return _tetherSource[slot]?.Position.AlmostEqual(aoe.Origin, 25) ?? false
+                ? new(_shapeInverted, Module.Center - (aoe.Origin - Module.Center), aoe.Rotation + 180.Degrees(), aoe.Activation)
+                : aoe;
         }
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        int hitByWrong = 0, notHitByNeeded = 0;
-        foreach (var aoe in ActiveAOEs(slot, actor).Where(aoe => aoe.Check(actor.Position) == aoe.Risky))
-        {
-            if (aoe.Risky)
-                ++hitByWrong;
-            else
-                ++notHitByNeeded;
-        }
-
-        if (hitByWrong > 0)
-            hints.Add(WarningText);
-        if (notHitByNeeded > 0)
-            hints.Add("Go into cleave!");
     }
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
@@ -44,7 +29,7 @@ class TagTeamLariatCombo(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.TagTeamLariatComboFirstRAOE or AID.TagTeamLariatComboFirstLAOE or AID.FusesOfFuryLariatComboFirstRAOE or AID.FusesOfFuryLariatComboFirstLAOE)
-            AOEs.Add(new(_shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+            AOEs.Add(new(_shapeReal, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -74,17 +59,11 @@ class TagTeamLariatCombo(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+// players always need to get hit by this mechanic
 class FusesOfFuryMurderousMist : Components.SelfTargetedAOEs
 {
-    public FusesOfFuryMurderousMist(BossModule module) : base(module, ActionID.MakeSpell(AID.FusesOfFuryMurderousMist), new AOEShapeCone(40, 135.Degrees()))
+    public FusesOfFuryMurderousMist(BossModule module) : base(module, ActionID.MakeSpell(AID.FusesOfFuryMurderousMist), new AOEShapeCone(40, 45.Degrees(), 180.Degrees()))
     {
-        Color = ArenaColor.SafeFromAOE;
-        Risky = false;
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (Casters.Any(c => !Shape.Check(actor.Position, c.Position, c.CastInfo!.Rotation)))
-            hints.Add("Go into cone!");
+        WarningText = "Get hit by mist!";
     }
 }

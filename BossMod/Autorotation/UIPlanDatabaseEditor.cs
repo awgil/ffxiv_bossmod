@@ -8,7 +8,7 @@ public sealed class UIPlanDatabaseEditor
     // utility: draw combo that allows selecting a plan from a list; used in variety of contexts
     public static int DrawPlanCombo(PlanDatabase.PlanList list, int selected, string label)
     {
-        ImGui.SetNextItemWidth(100);
+        ImGui.SetNextItemWidth(150);
         using var combo = ImRaii.Combo(label, selected >= 0 && selected < list.Plans.Count ? list.Plans[selected].Name : "<none>");
         if (combo)
         {

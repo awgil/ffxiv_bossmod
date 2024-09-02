@@ -94,11 +94,15 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
         foreach (var avoid in ActiveStacks.Where(s => s.Target != actor && s.ForbiddenPlayers[slot]))
             hints.AddForbiddenZone(ShapeDistance.Circle(avoid.Target.Position, avoid.Radius), avoid.Activation);
 
-        if (IsStackTarget(actor))
+        if (Stacks.FirstOrDefault(s => s.Target == actor) is var actorStack && actorStack.Target != null)
         {
             // forbid standing next to other stack markers
             foreach (var stackWith in ActiveStacks.Where(s => s.Target != actor))
                 hints.AddForbiddenZone(ShapeDistance.Circle(stackWith.Target.Position, stackWith.Radius), stackWith.Activation);
+            // and try to stack with closest non-stack/spread player
+            var closest = Raid.WithoutSlot().Where(p => p != actor && !IsSpreadTarget(p) && !IsStackTarget(p)).Closest(actor.Position);
+            if (closest != null)
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closest.Position, actorStack.Radius * 0.5f), actorStack.Activation);
         }
         else if (!IsSpreadTarget(actor))
         {

@@ -1,16 +1,48 @@
 immediate plans
-- drs review & update plans, fix br rotation
 - m2s ai/plan
-- m3s chains improve visu
-- mrd support
-- generic ai hints for stacks and baitaways
-- add hint that preset overrides plan
-- horizontal timeline
-- pet place
+- cdplanner should use real cds
+- auto avoid gaze
+- restore view-timeline to module ui
 
-autorotation v2 cleanup:
+general:
+- horizontal timeline / cooldown planner
+- module packs
+-- dlls, loaded as usual
+-- hotreload - just discard old version and load new one
+-- distributed as github releases, on startup query latest version and download if different
+-- rate limit gh requests to 1/hour
+-- dialog to add warns about arbitrary code execution
+-- update bm/rm registries on reload
+- add non-entities to worldstate
+- proper logging
+- consistently use Color instead of uint
+- refactor window system to dispose stuff properly and avoid CS1806 and `_ = new...` pattern
+- diagnostic to detect readonly mutable collections
+- introduce 'Game' class that would contain dalamud services and stuff like AMEx/IDScramble, instead of statics, to avoid uncontrolled access to game state (won't help with CS tho)
+- better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
+- constrain bossmodules to zone id (e.g. for T04)
+- revise module categories - consider merging fates/hunts/quests/gold saucer?/pvp? into outdoor?/casual?
+- refactor pendingeffects
+- better aoe targeting
+-- improve forbidden classification
+--- target absolutely forbidden to damage (eg tea doll, t01 blob, outdoor enemy that wasn't pulled yet)
+--- target is invulnerable, hitting it is a complete waste, won't advance combo/apply buffs/etc
+--- target is at 1hp, damage will be dealt but won't be logged, might be worth hitting for gauge or combo advance
+--- target can be damaged but it won't contribute to fight progress or log (various pointless adds)
+--- target is not a priority, but damaging it is a nice bonus (lower priority than max target)
+-- use that for targeting utils in aihints
+- debug utility to play action animations, spawn actors, play vfx, etc...
+
+boss modules:
+- timers
+- wipe should not fast forward all phases
+- fail log
+- boss module config presets/profiles
+
+autorotation:
+- global strategy for track
+- bulk override priorities?
 - preset/plan editors should properly react to external changes
-- ipc for autorotation
 - actiondefinitions
 -- action transforms?.. (combos, adjustment)
 -- adjusted casttime/cooldown/???
@@ -24,44 +56,6 @@ autorotation v2 cleanup:
 - spell out shared cooldowns in actiondefinitions comments instead of group?
 - delete/rework commonstate/legacy
 - delete autorotationlegacy dir
-
-general:
-- module packs
--- dlls, loaded as usual
--- hotreload - just discard old version and load new one
--- distributed as github releases, on startup query latest version and download if different
--- rate limit gh requests to 1/hour
--- dialog to add warns about arbitrary code execution
--- update bm/rm registries on reload
-- add non-entities to worldstate
-- proper logging
-- consistently use Color instead of uint
-- horizontal timeline / cooldown planner
-- refactor window system to dispose stuff properly and avoid CS1806 and `_ = new...` pattern
-- diagnostic to detect readonly mutable collections
-- introduce 'Game' class that would contain dalamud services and stuff like AMEx/IDScramble, instead of statics, to avoid uncontrolled access to game state (won't help with CS tho)
-- autoreplay improvements - react to module manager transitions?
-- better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
-- constrain bossmodules to zone id (e.g. for T04)
-- revise module categories - consider merging fates/hunts/quests/gold saucer?/pvp? into outdoor?/casual?
-- refactor pendingeffects
-- utility to inject custom ipcs to the stream for debugging?
-- better aoe targeting
--- improve forbidden classification
---- target absolutely forbidden to damage (eg tea doll, t01 blob, outdoor enemy that wasn't pulled yet)
---- target is invulnerable, hitting it is a complete waste, won't advance combo/apply buffs/etc
---- target is at 1hp, damage will be dealt but won't be logged, might be worth hitting for gauge or combo advance
---- target can be damaged but it won't contribute to fight progress or log (various pointless adds)
---- target is not a priority, but damaging it is a nice bonus (lower priority than max target)
--- use that for targeting utils in aihints
-
-boss modules:
-- timers
-- wipe should not fast forward all phases
-- fail log
-- boss module config presets/profiles
-
-autorotation:
 - dot/regen server tick tracking
 - brd
 -- aoe rotation (2/3/4+ targets, barrage usage)

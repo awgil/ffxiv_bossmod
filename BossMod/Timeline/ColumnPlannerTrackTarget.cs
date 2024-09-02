@@ -23,8 +23,9 @@ public class ColumnPlannerTrackTarget(Timeline timeline, StateMachineTree tree, 
     protected override bool EditElement(Element e)
     {
         var modified = false;
-        modified |= UIStrategyValue.DrawEditorTarget(ref e.Value, ActionTargets.All, false, moduleInfo);
+        modified |= UIStrategyValue.DrawEditorTarget(ref e.Value, ActionTargets.All, moduleInfo);
         modified |= ImGui.InputText("Comment", ref e.Value.Comment, 256);
+        modified |= EditElementWindow(e);
         return modified;
     }
 }

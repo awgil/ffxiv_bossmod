@@ -48,9 +48,24 @@ public class GenericBaitAway(BossModule module, ActionID aid = default, bool alw
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var b in ActiveBaitsNotOn(actor))
-            hints.AddForbiddenZone(b.Shape, BaitOrigin(b), b.Rotation, b.Activation);
-        //TODO: AI hints for when actor is the target
+        foreach (var b in ActiveBaits)
+        {
+            if (b.Target != actor)
+            {
+                hints.AddForbiddenZone(b.Shape, BaitOrigin(b), b.Rotation, b.Activation);
+            }
+            else
+            {
+                // add forbidden zones for as if all other players were baiting; this works fine only in common cases
+                foreach (var p in Raid.WithoutSlot().Exclude(actor))
+                {
+                    if (CenterAtTarget)
+                        hints.AddForbiddenZone(b.Shape, p.Position, b.Rotation, b.Activation);
+                    else if (b.Source != b.Target)
+                        hints.AddForbiddenZone(b.Shape, b.Source.Position, Angle.FromDirection(b.Target.Position - b.Source.Position), b.Activation);
+                }
+            }
+        }
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => ActiveBaitsOn(player).Any() ? BaiterPriority : PlayerPriority.Irrelevant;

@@ -156,7 +156,7 @@ class MotionSensor(BossModule module) : Components.StayMove(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Requirements[slot] == Requirement.Stay)
+        if (_expire[slot] != default && (_expire[slot] - WorldState.CurrentTime).TotalSeconds < 0.5f)
             hints.ForcedMovement = new();
     }
 

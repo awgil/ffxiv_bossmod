@@ -36,16 +36,13 @@ public sealed class UIRotationWindow : UIWindow
         var activeModule = _mgr.Bossmods.ActiveModule;
         if (activeModule != null)
         {
-            if (ImGui.Button("Timeline"))
-            {
-                _ = new StateMachineWindow(activeModule);
-            }
+            ImGui.TextUnformatted($"CD Plan:");
 
             if (activeModule.Info?.PlanLevel > 0)
             {
                 ImGui.SameLine();
                 var plans = _mgr.Database.Plans.GetPlans(activeModule.GetType(), player.Class);
-                var newSel = UIPlanDatabaseEditor.DrawPlanCombo(plans, plans.SelectedIndex, "Plan");
+                var newSel = UIPlanDatabaseEditor.DrawPlanCombo(plans, plans.SelectedIndex, "");
                 if (newSel != plans.SelectedIndex)
                 {
                     plans.SelectedIndex = newSel;
@@ -62,6 +59,13 @@ public sealed class UIRotationWindow : UIWindow
                         _mgr.Database.Plans.ModifyPlan(null, plan);
                     }
                     UIPlanDatabaseEditor.StartPlanEditor(_mgr.Database.Plans, plans.Plans[plans.SelectedIndex], activeModule.StateMachine);
+                }
+
+                if (newSel >= 0 && _mgr.Preset != null)
+                {
+                    ImGui.SameLine();
+                    using var style = ImRaii.PushColor(ImGuiCol.Text, 0xff00ffff);
+                    UIMisc.HelpMarker(() => "You have a preset activated, which fully overrides the CD plan!", FontAwesomeIcon.ExclamationTriangle);
                 }
             }
         }
@@ -81,9 +85,13 @@ public sealed class UIRotationWindow : UIWindow
         if (mgr.Player == null)
             return modified;
 
+        ImGui.TextUnformatted("Presets:");
+
+        ImGui.SameLine();
+
         using (ImRaii.PushColor(ImGuiCol.Button, 0xff000080, mgr.Preset == RotationModuleManager.ForceDisable))
         {
-            if (ImGui.Button("X"))
+            if (ImGui.Button("Disabled"))
             {
                 mgr.Preset = mgr.Preset == RotationModuleManager.ForceDisable ? null : RotationModuleManager.ForceDisable;
                 modified |= true;

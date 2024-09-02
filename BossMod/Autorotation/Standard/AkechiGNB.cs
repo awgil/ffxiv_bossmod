@@ -1,8 +1,4 @@
-﻿using BossMod.Autorotation.Legacy;
-using Dalamud.Game.ClientState.JobGauge.Types;
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using static BossMod.ActorState;
-using static BossMod.ClientState;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation;
 //Contribution by Akechi, with help provided by Veyn for framework & Xan for assistance. Discord @akechdz or Akechi on Puni.sh for maintenance
@@ -441,9 +437,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         _ => false
     };
 
-    private bool ShouldUseNoMercy(OffensiveStrategy strategy, Actor? player) => strategy switch
+    private bool ShouldUseNoMercy(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
-        OffensiveStrategy.Automatic => Player.InCombat && ActionReady(GNB.AID.NoMercy) && GCD < 0.9f &&
+        OffensiveStrategy.Automatic => (Player.InCombat || target != null) && ActionReady(GNB.AID.NoMercy) && GCD < 0.9f &&
         ((Ammo is 1 && BloodfestCD is 0 && Unlocked(GNB.AID.Bloodfest) && Unlocked(GNB.AID.DoubleDown)) || //Lv90+ Opener
         (Ammo >= 1 && BloodfestCD is 0 && Unlocked(GNB.AID.Bloodfest) && !Unlocked(GNB.AID.DoubleDown)) || //Lv80+ Opener
         (!Unlocked(GNB.AID.Bloodfest) && Ammo == MaxCartridges) || //Lv70 & below
@@ -594,7 +590,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     //Pots strategy
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
-        PotionStrategy.AlignWithRaidBuffs => IsPotionAlignedWithNM() && (RaidBuffsLeft > 0 || RaidBuffsIn < 30),
+        PotionStrategy.AlignWithRaidBuffs => IsPotionAlignedWithNM() && (CD(GNB.AID.NoMercy) < 5 && CD(GNB.AID.Bloodfest) < 15),
         PotionStrategy.Immediate => true,
         _ => false
     };

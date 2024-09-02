@@ -1,4 +1,4 @@
-﻿namespace BossMod.Heavensward.Dungeon.D03Aery.D033Nidhogg;
+namespace BossMod.Heavensward.Dungeon.D03Aery.D033Nidhogg;
 
 public enum OID : uint
 {
@@ -47,7 +47,21 @@ class SableWeave(BossModule module) : Components.SingleTargetDelayableCast(modul
 class TheSablePrice(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.TheSablePrice));
 class TheScarletPrice(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.TheScarletPrice));
 
-class MultiAddModule(BossModule module) : Components.AddsMulti(module, [(uint)OID.TheSablePrice, (uint)OID.Liegedrake, (uint)OID.Ahleh]);
+class MultiAddModule(BossModule module) : Components.AddsMulti(module, [(uint)OID.TheSablePrice, (uint)OID.Liegedrake, (uint)OID.Ahleh])
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var e in hints.PotentialTargets)
+            e.Priority = (OID)e.Actor.OID switch
+            {
+                OID.TheSablePrice => 4,
+                OID.Liegedrake => 3,
+                OID.Ahleh => 2,
+                OID.Boss => 1,
+                _ => 0
+            };
+    }
+};
 class Roast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Roast), new AOEShapeRect(30, 4));
 
 class D033NidhoggStates : StateMachineBuilder
@@ -57,11 +71,9 @@ class D033NidhoggStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<DeafeningBellow>()
             .ActivateOnEnter<HotTail>()
-            //.ActivateOnEnter<HotTail2>()
             .ActivateOnEnter<HotWing>()
             .ActivateOnEnter<Cauterize>()
             .ActivateOnEnter<HorridRoar>()
-            //.ActivateOnEnter<HorridRoar2>()
             .ActivateOnEnter<HorridBlaze>()
             .ActivateOnEnter<Touchdown>()
             .ActivateOnEnter<Massacre>()
@@ -74,6 +86,6 @@ class D033NidhoggStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 39, NameID = 3458)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 39, NameID = 3458)]
 public class D033Nidhogg(WorldState ws, Actor primary) : BossModule(ws, primary, new(34.9f, -267f), new ArenaBoundsCircle(30f));
 

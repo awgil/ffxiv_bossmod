@@ -7,17 +7,18 @@ namespace BossMod;
 // column representing single planner track (could be cooldowns or anything else)
 public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name) : ColumnGenericHistory(timeline, tree, phaseBranches, name)
 {
-    public sealed class Element(Entry window, bool disabled, StrategyValue value)
+    public sealed class Element(Entry window, float windowLength, bool disabled, StrategyValue value)
     {
-        public Entry Window = window;
+        public Entry Window = window; // entry duration is window length clamped to phase duration
         public Entry? Effect; // null if window length is >= than effect length
         public Entry? Cooldown; // null if cooldown is zero
+        public float WindowLength = windowLength;
         public float EffectLength;
         public float CooldownLength;
         public bool Disabled = disabled;
         public StrategyValue Value = value;
 
-        public float TotalLength => Math.Max(EffectLength, Window.Duration + CooldownLength);
+        public float TotalVisualLength => Math.Max(EffectLength, Window.Duration + CooldownLength);
     }
 
     private sealed class EditState(Element element, bool editingEnd)
@@ -64,14 +65,17 @@ public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tre
                     var (node, delay) = Tree.AbsoluteTimeToNodeAndDelay(Timeline.ScreenCoordToTime(lclickPos.Y), PhaseBranches);
                     toEdit = AddElement(node, delay, 0, false, GetDefaultValue());
                 }
+
                 _edit = new(toEdit, MathF.Abs(lclickPos.Y - Timeline.TimeToScreenCoord(toEdit.Window.TimeSinceGlobalStart(Tree) + toEdit.Window.Duration)) < 5);
+                if (_edit.EditingEnd)
+                    toEdit.WindowLength = toEdit.Window.Duration; // if we're starting edit of the window-end, ensure it's matching visual value (clamped to phase duration)
             }
 
             // continue editing
             var dt = Timeline.ScreenDeltaToTimeDelta(ImGui.GetIO().MouseDelta.Y);
             if (_edit.EditingEnd)
             {
-                _edit.Element.Window.Duration += dt;
+                _edit.Element.WindowLength += dt;
             }
             else
             {
@@ -87,8 +91,10 @@ public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tre
             {
                 // finish editing
                 float minTime = _edit.Element.Window.AttachNode.PhaseID == 0 && _edit.Element.Window.AttachNode.Predecessor == null ? Timeline.MinTime : 0;
-                _edit.Element.Window.Delay = Math.Max(MathF.Round(_edit.Element.Window.Delay, 1), minTime);
-                _edit.Element.Window.Duration = Math.Max(MathF.Round(_edit.Element.Window.Duration, 1), 0.1f);
+                if (_edit.EditingEnd)
+                    _edit.Element.WindowLength = Math.Max(MathF.Round(_edit.Element.WindowLength, 1), 0.1f);
+                else
+                    _edit.Element.Window.Delay = Math.Max(MathF.Round(_edit.Element.Window.Delay, 1), minTime);
                 UpdateElement(_edit.Element);
                 _edit = null;
                 NotifyModified();
@@ -146,7 +152,7 @@ public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tre
     {
         var w = new Entry(Entry.Type.Range, attachNode, delay, windowLength, "", Timeline.Colors.PlannerWindow[0]);
         Entries.Add(w);
-        var e = new Element(w, disabled, value);
+        var e = new Element(w, windowLength, disabled, value);
         Elements.Add(e);
         UpdateElement(e);
         return e;
@@ -168,10 +174,39 @@ public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tre
         NotifyModified();
     }
 
+    public void UpdateAllElements()
+    {
+        foreach (var e in Elements)
+            UpdateElement(e);
+    }
+
     protected abstract StrategyValue GetDefaultValue();
     protected abstract void RefreshElement(Element e);
     protected abstract bool EditElement(Element e);
     protected abstract List<string> DescribeElement(Element e);
+
+    protected bool EditElementWindow(Element e)
+    {
+        bool modified = false;
+
+        var startGlobal = e.Window.TimeSinceGlobalStart(Tree);
+        if (ImGui.InputFloat("Press at (relative to pull)", ref startGlobal))
+        {
+            (e.Window.AttachNode, e.Window.Delay) = Tree.AbsoluteTimeToNodeAndDelay(startGlobal, PhaseBranches);
+            modified = true;
+        }
+
+        var startPhase = e.Window.TimeSincePhaseStart();
+        if (ImGui.InputFloat("Press at (relative to phase)", ref startPhase))
+        {
+            (e.Window.AttachNode, e.Window.Delay) = Tree.PhaseTimeToNodeAndDelay(startPhase, e.Window.AttachNode.PhaseID, PhaseBranches);
+            modified = true;
+        }
+
+        modified |= ImGui.InputFloat("Press at (relative to state)", ref e.Window.Delay);
+        modified |= ImGui.InputFloat("Window length", ref e.WindowLength);
+        return modified;
+    }
 
     protected bool ScreenPosInElement(Vector2 pos, Element e)
     {
@@ -179,7 +214,7 @@ public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tre
             return false;
         var tStart = e.Window.TimeSinceGlobalStart(Tree);
         var yMin = Timeline.TimeToScreenCoord(tStart);
-        var yMax = Timeline.TimeToScreenCoord(tStart + e.TotalLength);
+        var yMax = Timeline.TimeToScreenCoord(tStart + e.TotalVisualLength);
         return pos.Y >= (yMin - 4) && pos.Y <= (yMax + 4);
     }
 
@@ -195,6 +230,9 @@ public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tre
         {
             RefreshElement(element);
         }
+
+        var maxWindow = Math.Max(0, Tree.Phases[element.Window.AttachNode.PhaseID].Duration - element.Window.TimeSincePhaseStart());
+        element.Window.Duration = Math.Min(element.WindowLength, maxWindow);
 
         var effectDuration = element.EffectLength - element.Window.Duration;
         if (effectDuration > 0)
@@ -244,7 +282,7 @@ public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tre
         else
             tooltip.Add($"Attached: {element.Window.Delay:f1}s after pull");
         tooltip.Add($"Next state: {element.Window.AttachNode.State.Duration - element.Window.Delay:f1}s before {element.Window.AttachNode.State.ID:X} '{element.Window.AttachNode.State.Name}' ({element.Window.AttachNode.State.Comment})");
-        tooltip.Add($"Window: {element.Window.Duration:f1}s");
+        tooltip.Add($"Window: {element.WindowLength:f1}s");
         if (element.Disabled)
             tooltip.Add("*** DISABLED *** (right-click to reenable, shift-right-click to delete)");
 

@@ -69,7 +69,7 @@ public enum AID : uint
     RelentlessBatterySoldier = 22580, // Soldier->self, 5.0s cast, single-target, visual (mechanic start)
     GreatBallOfFire = 22587, // Soldier->self, 3.0s cast, single-target, visual (create 2 big and 2 small fireballs)
     FoolsGambit = 22588, // Soldier->self, 6.0s cast, single-target, visual (give fireballs transfiguration buff)
-    AutomaticTurret = 22602, // Gunner->self, 3.0s cast, single-target, visual (create turrets)
+    AutomaticTurretGambit = 22602, // Gunner->self, 3.0s cast, single-target, visual (create turrets during gambit mechanics)
     Reading = 22603, // Gunner->self, 3.0s cast, single-target, visual (assign 'x unseen' statuses)
     BurnSmall = 22589, // RagingFlame->self, 1.5s cast, range 10 circle
     BurnBig = 22590, // ImmolatingFlame->self, 1.5s cast, range 18 circle
@@ -89,6 +89,11 @@ public enum AID : uint
     AvatarJump = 22584, // SoldierAvatar->location, no cast, single-target, teleport
     PawnOffReal = 22585, // SoldierAvatar->self, 7.0s cast, range 20 circle aoe
     PawnOffFake = 22586, // SoldierAvatar->self, 7.0s cast, range 20 circle fake aoe
+    AutomaticTurretNormal = 22597, // Gunner->self, 3.0s cast, single-target, visual (create turrets in the arena that need to be dodged)
+    TurretsTourNormal = 22598, // Gunner->self, 5.0s cast, single-target, visual (tower lines)
+    TurretsTourNormalAOE1 = 22599, // Helper->location, 5.0s cast, width 6 rect charge
+    TurretsTourNormalAOE2 = 22601, // AutomaticTurret->self, no cast, range 55 width 6 rect
+    TurretsTourNormalAOE3 = 22600, // AutomaticTurret->location, no cast, width 6 rect charge
 
     SpitefulSpirit = 22574, // Warrior->self, 5.0s cast, single-target, visual (summon spheres?)
     StrongpointDefense = 22558, // Knight->self, 5.0s cast, single-target, visual (summon wards?)
