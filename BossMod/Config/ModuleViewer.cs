@@ -151,7 +151,7 @@ public sealed class ModuleViewer : IDisposable
         for (var e = BossModuleInfo.Expansion.RealmReborn; e < BossModuleInfo.Expansion.Count; ++e)
         {
             ref var expansion = ref _expansions[(int)e];
-            UIMisc.ImageToggleButton(Service.Texture.GetFromGameIcon(expansion.icon), _iconSize, !_filterExpansions[(int)e], expansion.name);
+            UIMisc.ImageToggleButton(Service.Texture?.GetFromGameIcon(expansion.icon), _iconSize, !_filterExpansions[(int)e], expansion.name);
             if (ImGui.IsItemClicked())
             {
                 _filterExpansions.Toggle((int)e);
@@ -169,7 +169,7 @@ public sealed class ModuleViewer : IDisposable
         for (var c = BossModuleInfo.Category.Uncategorized; c < BossModuleInfo.Category.Count; ++c)
         {
             ref var category = ref _categories[(int)c];
-            UIMisc.ImageToggleButton(Service.Texture.GetFromGameIcon(category.icon), _iconSize, !_filterCategories[(int)c], category.name);
+            UIMisc.ImageToggleButton(Service.Texture?.GetFromGameIcon(category.icon), _iconSize, !_filterCategories[(int)c], category.name);
             if (ImGui.IsItemClicked())
             {
                 _filterCategories.Toggle((int)c);
@@ -201,9 +201,9 @@ public sealed class ModuleViewer : IDisposable
                 {
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    UIMisc.Image(Service.Texture.GetFromGameIcon(_expansions[i].icon), new(36));
+                    UIMisc.Image(Service.Texture?.GetFromGameIcon(_expansions[i].icon), new(36));
                     ImGui.SameLine();
-                    UIMisc.Image(Service.Texture.GetFromGameIcon(group.Info.Icon != 0 ? group.Info.Icon : _categories[j].icon), new(36));
+                    UIMisc.Image(Service.Texture?.GetFromGameIcon(group.Info.Icon != 0 ? group.Info.Icon : _categories[j].icon), new(36));
                     ImGui.TableNextColumn();
 
                     foreach (var ng in tree.Node($"{group.Info.Name}###{i}/{j}/{group.Info.Id}"))

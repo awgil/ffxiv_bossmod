@@ -96,9 +96,8 @@ public static class UIMisc
         if (ImGui.IsItemHovered())
         {
             using var tooltip = ImRaii.Tooltip();
-            ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35f);
+            using var wrap = ImRaii.TextWrapPos(ImGui.GetFontSize() * 35f);
             ImGui.TextUnformatted(helpText());
-            ImGui.PopTextWrapPos();
         }
     }
     public static void HelpMarker(string helpText, FontAwesomeIcon icon = FontAwesomeIcon.InfoCircle) => HelpMarker(() => helpText, icon);
