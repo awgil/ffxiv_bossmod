@@ -47,9 +47,9 @@ public sealed class ConfigAboutTab
 
         DrawSection("AI", new[]
         {
+            "Should not be used in any group content.",
             "Automates movement during boss fights.",
             "Can be hooked by other plugins to automate entire duties.",
-            "Can be used on its own to make a fight easier.",
             "Automatically moves your character based on safe zones determined by a boss's module, visible on the radar."
         });
 
@@ -58,7 +58,6 @@ public sealed class ConfigAboutTab
             "Useful for creating boss modules, analyzing problems with them, and making CD plans.",
             "When asking for help, make sure to provide a replay!",
             "Enabled in Settings > Show replay management UI (or enable auto recording).",
-            "Provide the replay file with your replay when reporting bugs or asking for modules to be made.",
             "Files are located in %%appdata%%\\XIVLauncher\\pluginConfigs\\BossMod\\replays."
         });
 
