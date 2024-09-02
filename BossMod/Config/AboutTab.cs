@@ -5,7 +5,7 @@ using System.IO;
 
 namespace BossMod;
 
-public sealed class ConfigAboutTab(DirectoryInfo? replayDir)
+public sealed class AboutTab(DirectoryInfo? replayDir)
 {
     private readonly Color TitleColor = Color.FromComponents(255, 165, 0);
     private readonly Color SectionBgColor = Color.FromComponents(38, 38, 38);
@@ -87,6 +87,8 @@ public sealed class ConfigAboutTab(DirectoryInfo? replayDir)
         using var colorBackground = ImRaii.PushColor(ImGuiCol.ChildBg, SectionBgColor.ABGR);
         using var colorBorder = ImRaii.PushColor(ImGuiCol.Border, BorderColor.ABGR);
         using var section = ImRaii.Child(title, new(0, 150), false, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.AlwaysUseWindowPadding);
+        if (!section)
+            return;
 
         using (ImRaii.PushColor(ImGuiCol.Text, TitleColor.ABGR))
         {

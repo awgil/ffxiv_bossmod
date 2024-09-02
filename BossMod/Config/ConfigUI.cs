@@ -20,7 +20,7 @@ public sealed class ConfigUI : IDisposable
     private readonly List<UINode> _roots = [];
     private readonly UITree _tree = new();
     private readonly UITabs _tabs = new();
-    private readonly ConfigAboutTab _about;
+    private readonly AboutTab _about;
     private readonly ModuleViewer _mv;
     private readonly ConfigRoot _root;
     private readonly WorldState _ws;
@@ -74,7 +74,8 @@ public sealed class ConfigUI : IDisposable
     private void DrawSettings()
     {
         using var child = ImRaii.Child("SettingsWindow", new Vector2(0, 0), true);
-        DrawNodes(_roots);
+        if (child)
+            DrawNodes(_roots);
     }
 
     public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws)
@@ -269,41 +270,42 @@ public sealed class ConfigUI : IDisposable
         var modified = false;
         foreach (var tn in tree.Node(label, false, v.Validate() ? 0xffffffff : 0xff00ffff, () => DrawPropertyContextMenu(node, member, v)))
         {
+            using var table = ImRaii.Table("table", group.Names.Length + 2, ImGuiTableFlags.SizingFixedFit);
+            if (!table)
+                continue;
+
+            foreach (var n in group.Names)
+                ImGui.TableSetupColumn(n);
+            ImGui.TableSetupColumn("----");
+            ImGui.TableSetupColumn("Name");
+            ImGui.TableHeadersRow();
+
             var assignments = root.Get<PartyRolesConfig>().SlotsPerAssignment(ws.Party);
-            if (ImGui.BeginTable("table", group.Names.Length + 2, ImGuiTableFlags.SizingFixedFit))
+            for (int i = 0; i < (int)PartyRolesConfig.Assignment.Unassigned; ++i)
             {
-                foreach (var n in group.Names)
-                    ImGui.TableSetupColumn(n);
-                ImGui.TableSetupColumn("----");
-                ImGui.TableSetupColumn("Name");
-                ImGui.TableHeadersRow();
-                for (int i = 0; i < (int)PartyRolesConfig.Assignment.Unassigned; ++i)
+                var r = (PartyRolesConfig.Assignment)i;
+                ImGui.TableNextRow();
+                for (int c = 0; c < group.Names.Length; ++c)
                 {
-                    var r = (PartyRolesConfig.Assignment)i;
-                    ImGui.TableNextRow();
-                    for (int c = 0; c < group.Names.Length; ++c)
-                    {
-                        ImGui.TableNextColumn();
-                        if (ImGui.RadioButton($"###{r}:{c}", v[r] == c))
-                        {
-                            v[r] = c;
-                            modified = true;
-                        }
-                    }
                     ImGui.TableNextColumn();
-                    if (ImGui.RadioButton($"###{r}:---", v[r] < 0 || v[r] >= group.Names.Length))
+                    if (ImGui.RadioButton($"###{r}:{c}", v[r] == c))
                     {
-                        v[r] = -1;
+                        v[r] = c;
                         modified = true;
                     }
-
-                    string name = r.ToString();
-                    if (assignments.Length > 0)
-                        name += $" ({ws.Party[assignments[i]]?.Name})";
-                    ImGui.TableNextColumn();
-                    ImGui.TextUnformatted(name);
                 }
-                ImGui.EndTable();
+                ImGui.TableNextColumn();
+                if (ImGui.RadioButton($"###{r}:---", v[r] < 0 || v[r] >= group.Names.Length))
+                {
+                    v[r] = -1;
+                    modified = true;
+                }
+
+                string name = r.ToString();
+                if (assignments.Length > 0)
+                    name += $" ({ws.Party[assignments[i]]?.Name})";
+                ImGui.TableNextColumn();
+                ImGui.TextUnformatted(name);
             }
         }
         return modified;
