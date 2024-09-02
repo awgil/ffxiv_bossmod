@@ -104,6 +104,8 @@ public sealed class UIRotationWindow : UIWindow
         {
             ImGui.SameLine();
             using var col = ImRaii.PushColor(ImGuiCol.Button, 0xff008080, mgr.Preset == p);
+            using var colHovered = ImRaii.PushColor(ImGuiCol.ButtonHovered, 0xff005050, mgr.Preset == p);
+            using var colActive = ImRaii.PushColor(ImGuiCol.ButtonActive, 0xff006060, mgr.Preset == p);
             if (ImGui.Button(p.Name))
             {
                 mgr.Preset = mgr.Preset == p ? null : p;
