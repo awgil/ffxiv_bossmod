@@ -7,7 +7,7 @@ public class ReplayManagementConfig : ConfigNode
     public bool ShowUI = false;
 
     [PropertyDisplay("Auto record replays on duty start/end")]
-    public bool AutoRecord = false;
+    public bool AutoRecord = true;
 
     [PropertyDisplay("Max replays to keep before removal")]
     [PropertySlider(0, 1000)]
