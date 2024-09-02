@@ -44,9 +44,9 @@ public sealed class ConfigAboutTab
         ImGui.TextUnformatted(text);
     }
 
-    private void LinkButton(string label, string url)
+    private void LinkButton(string label, string link)
     {
         if (ImGui.Button(label))
-            Process.Start("explorer.exe", url);
+            Process.Start("explorer.exe", link);
     }
 }
