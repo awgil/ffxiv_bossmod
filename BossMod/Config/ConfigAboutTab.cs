@@ -56,7 +56,7 @@ public sealed class ConfigAboutTab
         DrawSection("Replays", new[]
         {
             "Useful for creating boss modules, analyzing problems with them, and making CD plans.",
-            "When asking for help, make sure to provide a replay!",
+            "When asking for help, make sure to provide a replay! Please note that replays will contain your player name!",
             "Enabled in Settings > Show replay management UI (or enable auto recording).",
             "Files are located in %%appdata%%\\XIVLauncher\\pluginConfigs\\BossMod\\replays."
         });
