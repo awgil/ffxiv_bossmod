@@ -1,6 +1,8 @@
 ﻿using BossMod.Autorotation;
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
+using System.Diagnostics;
 using System.IO;
 
 namespace BossMod;
@@ -15,6 +17,8 @@ public class ReplayManagementWindow : UIWindow
     private ReplayRecorder? _recorder;
     private string _message = "";
     private bool _autoRecording;
+    private DirectoryInfo _replayDir;
+    private string _lastErrorMessage = "";
 
     private const string _windowID = "###Replay recorder";
 
@@ -24,6 +28,7 @@ public class ReplayManagementWindow : UIWindow
         _logDir = logDir;
         _config = Service.Config.Get<ReplayManagementConfig>();
         _manager = new(rotationDB, logDir.FullName);
+        _replayDir = logDir;
         _subscriptions = new
         (
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI),
@@ -77,6 +82,16 @@ public class ReplayManagementWindow : UIWindow
                 _ws.Execute(new WorldState.OpUserMarker(_message));
                 _message = "";
             }
+        }
+
+        ImGui.SameLine();
+        if (ImGui.Button("Open Replay Folder") && _replayDir != null)
+            _lastErrorMessage = OpenDirectory(_replayDir);
+
+        if (_lastErrorMessage.Length > 0)
+        {
+            using var color = ImRaii.PushColor(ImGuiCol.Text, 0xff0000ff);
+            ImGui.TextUnformatted(_lastErrorMessage);
         }
 
         ImGui.Separator();
@@ -179,5 +194,22 @@ public class ReplayManagementWindow : UIWindow
             prefix += "_NE";
 
         return prefix;
+    }
+
+    private string OpenDirectory(DirectoryInfo dir)
+    {
+        if (!dir.Exists)
+            return $"Directory '{dir}' not found.";
+
+        try
+        {
+            Process.Start(new ProcessStartInfo(dir.FullName) { UseShellExecute = true });
+            return "";
+        }
+        catch (Exception e)
+        {
+            Service.Log($"Error opening directory {dir}: {e}");
+            return $"Failed to open folder '{dir}', open it manually.";
+        }
     }
 }
