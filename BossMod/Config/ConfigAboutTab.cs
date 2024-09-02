@@ -18,6 +18,9 @@ public sealed class ConfigAboutTab
     private static readonly Vector4 buttonColor = new Vector4(0.2f, 0.5f, 0.8f, 1.0f);
     private static readonly ImFontPtr titleFont = ImGui.GetIO().Fonts.AddFontFromFileTTF("your-font-path.ttf", 28.0f);
 
+    // Class-level variable to store the last error message
+    private static string lastErrorMessage = string.Empty;
+
     public static void Draw()
     {
         ImGui.TextWrapped("Boss Mod (vbm) provides boss fight radar, auto-rotation, cooldown planning, and AI. All of its modules can be toggled individually. Support for it can be found in the Discord server linked at the bottom of this tab.");
@@ -73,6 +76,11 @@ public sealed class ConfigAboutTab
         DrawButton("Boss Mod Wiki Tutorials", "https://github.com/awgil/ffxiv_bossmod/wiki", buttonWidth);
         ImGui.SameLine();
         DrawOpenReplayFolderButton("Open Replay Folder", buttonWidth);
+
+        if (!string.IsNullOrEmpty(lastErrorMessage))
+        {
+            ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f), lastErrorMessage);
+        }
     }
 
     private static void DrawSection(string title, string[] bulletPoints)
@@ -152,10 +160,11 @@ public sealed class ConfigAboutTab
                 UseShellExecute = true
             };
             Process.Start(psi);
+            lastErrorMessage = string.Empty; 
         }
         catch
         {
-            ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f), "Failed to open URL.");
+            lastErrorMessage = "Failed to open URL.";
         }
     }
 
@@ -171,15 +180,16 @@ public sealed class ConfigAboutTab
                     UseShellExecute = true
                 };
                 Process.Start(psi);
+                lastErrorMessage = string.Empty; 
             }
             else
             {
-                ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f), "Replay folder not found.");
+                lastErrorMessage = "Replay folder not found.";
             }
         }
         catch
         {
-            ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f), "Failed to open folder.");
+            lastErrorMessage = "Failed to open folder.";
         }
     }
 }
