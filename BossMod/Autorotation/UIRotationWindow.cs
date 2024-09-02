@@ -90,8 +90,8 @@ public sealed class UIRotationWindow : UIWindow
         ImGui.SameLine();
 
         using (ImRaii.PushColor(ImGuiCol.Button, 0xff000080, mgr.Preset == RotationModuleManager.ForceDisable))
-        using (ImRaii.PushColor(ImGuiCol.ButtonHovered, 0x85000080, mgr.Preset == RotationModuleManager.ForceDisable))
-        using (ImRaii.PushColor(ImGuiCol.ButtonActive, 0xaa000080, mgr.Preset == RotationModuleManager.ForceDisable))
+        using (ImRaii.PushColor(ImGuiCol.ButtonHovered, 0xff000050, mgr.Preset == RotationModuleManager.ForceDisable))
+        using (ImRaii.PushColor(ImGuiCol.ButtonActive, 0xff000060, mgr.Preset == RotationModuleManager.ForceDisable))
         {
             if (ImGui.Button("Disabled"))
             {
