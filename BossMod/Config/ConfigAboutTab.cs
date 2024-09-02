@@ -59,7 +59,7 @@ public sealed class ConfigAboutTab
             "When asking for help, make sure to provide a replay!",
             "Enabled in Settings > Show replay management UI (or enable auto recording).",
             "Provide the replay file with your replay when reporting bugs or asking for modules to be made.",
-            "Files are located in '%appdata%/XIVLauncher/pluginConfigs/BossMod/replays'."
+            "Files are located in %%appdata%%\\XIVLauncher\\pluginConfigs\\BossMod\\replays."
         });
 
         ImGui.Spacing();
