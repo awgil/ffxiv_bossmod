@@ -2,21 +2,28 @@
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using System.Reflection;
+using System.Numerics;
 
 namespace BossMod;
 
 public sealed class ConfigUI : IDisposable
 {
-    private class UINode(ConfigNode node)
+    private class UINode
     {
-        public ConfigNode Node = node;
-        public string Name = "";
+        public ConfigNode Node;
+        public string Name;
         public int Order;
         public UINode? Parent;
-        public List<UINode> Children = [];
+        public List<UINode> Children = new();
+
+        public UINode(ConfigNode node)
+        {
+            Node = node;
+            Name = string.Empty;
+        }
     }
 
-    private readonly List<UINode> _roots = [];
+    private readonly List<UINode> _roots = new();
     private readonly UITree _tree = new();
     private readonly UITabs _tabs = new();
     private readonly ModuleViewer _mv;
@@ -30,12 +37,13 @@ public sealed class ConfigUI : IDisposable
         _ws = ws;
         _mv = new(rotationDB?.Plans, ws);
         _presets = rotationDB != null ? new(rotationDB.Presets) : null;
+
         _tabs.Add("About", ConfigAboutTab.Draw);
-        _tabs.Add("Settings", () => DrawNodes(_roots));
+        _tabs.Add("Settings", DrawSettings);
         _tabs.Add("Supported Duties", () => _mv.Draw(_tree, _ws));
         _tabs.Add("Autorotation Presets", () => _presets?.Draw());
 
-        Dictionary<Type, UINode> nodes = [];
+        var nodes = new Dictionary<Type, UINode>();
         foreach (var n in config.Nodes)
         {
             nodes[n.GetType()] = new(n);
@@ -46,13 +54,16 @@ public sealed class ConfigUI : IDisposable
             var props = t.GetCustomAttribute<ConfigDisplayAttribute>();
             n.Name = props?.Name ?? GenerateNodeName(t);
             n.Order = props?.Order ?? 0;
-            if (props?.Parent != null)
-                n.Parent = nodes.GetValueOrDefault(props.Parent);
+            n.Parent = props?.Parent != null ? nodes.GetValueOrDefault(props.Parent) : null;
 
             if (n.Parent != null)
+            {
                 n.Parent.Children.Add(n);
+            }
             else
+            {
                 _roots.Add(n);
+            }
         }
 
         SortByOrder(_roots);
@@ -67,22 +78,41 @@ public sealed class ConfigUI : IDisposable
 
     public void Draw()
     {
+        var style = ImGui.GetStyle();
+        var originalStyle = new ImGuiStyleSnapshot(style);
+
+        ApplyCustomStyling();
+
         _tabs.Draw();
+
+        originalStyle.Restore(style);
+    }
+
+    private void DrawSettings()
+    {
+        if (ImGui.BeginChild("SettingsWindow", new Vector2(0, 0), true))
+        {
+            foreach (var node in _tree.Nodes(_roots, n => new(n.Name)))
+            {
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 5);
+                DrawNode(node.Node, _root, _tree, _ws);
+                DrawNodes(node.Children);
+            }
+            ImGui.EndChild();
+        }
     }
 
     public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws)
     {
-        // draw standard properties
         foreach (var field in node.GetType().GetFields())
         {
             var props = field.GetCustomAttribute<PropertyDisplayAttribute>();
             if (props == null)
                 continue;
 
-            // draw tooltip marker with proper alignment
             var cursor = ImGui.GetCursorPosY();
             ImGui.SetCursorPosY(cursor + ImGui.GetStyle().FramePadding.Y);
-            if (props.Tooltip.Length > 0)
+            if (!string.IsNullOrEmpty(props.Tooltip))
             {
                 UIMisc.HelpMarker(props.Tooltip);
             }
@@ -94,7 +124,6 @@ public sealed class ConfigUI : IDisposable
             ImGui.SameLine();
             ImGui.SetCursorPosY(cursor);
 
-            // draw actual property value
             var value = field.GetValue(node);
             if (DrawProperty(props.Label, node, field, value, root, tree, ws))
             {
@@ -102,17 +131,23 @@ public sealed class ConfigUI : IDisposable
             }
         }
 
-        // draw custom stuff
         node.DrawCustom(tree, ws);
     }
 
-    private static string GenerateNodeName(Type t) => t.Name.EndsWith("Config", StringComparison.Ordinal) ? t.Name.Remove(t.Name.Length - "Config".Length) : t.Name;
+    private static string GenerateNodeName(Type t)
+    {
+        return t.Name.EndsWith("Config", StringComparison.Ordinal)
+            ? t.Name[..^"Config".Length]
+            : t.Name;
+    }
 
     private void SortByOrder(List<UINode> nodes)
     {
-        nodes.SortBy(e => e.Order);
+        nodes.Sort((a, b) => a.Order.CompareTo(b.Order));
         foreach (var n in nodes)
+        {
             SortByOrder(n.Children);
+        }
     }
 
     private void DrawNodes(List<UINode> nodes)
@@ -304,6 +339,66 @@ public sealed class ConfigUI : IDisposable
                     v.Assignments[i] = preset.Preset[i];
                 node.Modified.Fire();
             }
+        }
+    }
+
+    private void ApplyCustomStyling()
+    {
+        ImGuiStylePtr style = ImGui.GetStyle();
+        style.FramePadding = new Vector2(8, 4);
+        style.ItemSpacing = new Vector2(10, 6);
+        style.WindowPadding = new Vector2(10, 10);
+        style.FrameRounding = 4.0f;
+        style.GrabRounding = 4.0f;
+
+        style.Colors[(int)ImGuiCol.WindowBg] = new Vector4(0.15f, 0.15f, 0.15f, 1.0f);
+        style.Colors[(int)ImGuiCol.FrameBg] = new Vector4(0.20f, 0.20f, 0.20f, 1.0f);
+        style.Colors[(int)ImGuiCol.TitleBg] = new Vector4(0.09f, 0.30f, 0.50f, 1.0f);
+        style.Colors[(int)ImGuiCol.TitleBgActive] = new Vector4(0.12f, 0.40f, 0.60f, 1.0f);
+        style.Colors[(int)ImGuiCol.Button] = new Vector4(0.0f, 0.48f, 0.8f, 0.6f);
+        style.Colors[(int)ImGuiCol.ButtonHovered] = new Vector4(0.0f, 0.60f, 0.9f, 0.8f);
+        style.Colors[(int)ImGuiCol.ButtonActive] = new Vector4(0.0f, 0.72f, 1.0f, 1.0f);
+        style.Colors[(int)ImGuiCol.Header] = new Vector4(0.0f, 0.48f, 0.8f, 0.7f);
+        style.Colors[(int)ImGuiCol.HeaderHovered] = new Vector4(0.0f, 0.60f, 0.9f, 0.8f);
+        style.Colors[(int)ImGuiCol.HeaderActive] = new Vector4(0.0f, 0.72f, 1.0f, 0.9f);
+    }
+}
+
+public class ImGuiStyleSnapshot
+{
+    public Vector2 FramePadding { get; }
+    public Vector2 ItemSpacing { get; }
+    public Vector2 WindowPadding { get; }
+    public float FrameRounding { get; }
+    public float GrabRounding { get; }
+    public Vector4[] Colors { get; }
+
+    public ImGuiStyleSnapshot(ImGuiStylePtr style)
+    {
+        FramePadding = style.FramePadding;
+        ItemSpacing = style.ItemSpacing;
+        WindowPadding = style.WindowPadding;
+        FrameRounding = style.FrameRounding;
+        GrabRounding = style.GrabRounding;
+
+        Colors = new Vector4[style.Colors.Count];
+        for (int i = 0; i < style.Colors.Count; i++)
+        {
+            Colors[i] = style.Colors[i];
+        }
+    }
+
+    public void Restore(ImGuiStylePtr style)
+    {
+        style.FramePadding = FramePadding;
+        style.ItemSpacing = ItemSpacing;
+        style.WindowPadding = WindowPadding;
+        style.FrameRounding = FrameRounding;
+        style.GrabRounding = GrabRounding;
+
+        for (int i = 0; i < Colors.Length; i++)
+        {
+            style.Colors[i] = Colors[i];
         }
     }
 }
