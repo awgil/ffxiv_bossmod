@@ -196,10 +196,13 @@ public class MapVisualizer
         int y2 = _pathfind.NodeByIndex(from).ParentY;
         while (x1 != x2 || y1 != y2)
         {
-            dl.AddLine(tl + new Vector2(x1 + 0.5f, y1 + 0.5f) * ScreenPixelSize, tl + new Vector2(x2 + 0.5f, y2 + 0.5f) * ScreenPixelSize, 0xffff00ff, 2);
+            var to = y2 * Map.Width + x2;
+            var off1 = _pathfind.NodeByIndex(from).EnterOffset;
+            var off2 = _pathfind.NodeByIndex(to).EnterOffset;
+            dl.AddLine(tl + new Vector2(x1 + 0.5f + off1.X, y1 + 0.5f + off1.Y) * ScreenPixelSize, tl + new Vector2(x2 + 0.5f + off2.X, y2 + 0.5f + off2.Y) * ScreenPixelSize, 0xffff00ff, 2);
             x1 = x2;
             y1 = y2;
-            from = y1 * Map.Width + x1;
+            from = to;
             x2 = _pathfind.NodeByIndex(from).ParentX;
             y2 = _pathfind.NodeByIndex(from).ParentY;
         }
