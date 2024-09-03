@@ -51,7 +51,10 @@ public struct NavigationDecision
             numImminentZones = hints.ForbiddenZones.Count;
 
         // check whether player is inside each forbidden zone
-        var inZone = hints.ForbiddenZones.Select(f => f.shapeDistance(player.Position) <= 0).ToList();
+        // to avoid the situation where player is in safe cell, but inside aoe, or vice versa, instead of player's actual position we check the center of the cell containing the player
+        var playerCell = ctx.Map.WorldToGrid(player.Position);
+        var quantizedPlayerPos = ctx.Map.GridToWorld(playerCell.x, playerCell.y, 0.5f, 0.5f);
+        var inZone = hints.ForbiddenZones.Select(f => f.shapeDistance(quantizedPlayerPos) <= forbiddenZoneCushion).ToList();
         if (inZone.Any(inside => inside))
         {
             // we're in forbidden zone => find path to safety (and ideally to uptime zone)
