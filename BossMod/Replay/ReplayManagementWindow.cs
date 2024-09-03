@@ -17,7 +17,6 @@ public class ReplayManagementWindow : UIWindow
     private ReplayRecorder? _recorder;
     private string _message = "";
     private bool _autoRecording;
-    private DirectoryInfo _replayDir;
     private string _lastErrorMessage = "";
 
     private const string _windowID = "###Replay recorder";
@@ -28,7 +27,6 @@ public class ReplayManagementWindow : UIWindow
         _logDir = logDir;
         _config = Service.Config.Get<ReplayManagementConfig>();
         _manager = new(rotationDB, logDir.FullName);
-        _replayDir = logDir;
         _subscriptions = new
         (
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI),
@@ -85,8 +83,8 @@ public class ReplayManagementWindow : UIWindow
         }
 
         ImGui.SameLine();
-        if (ImGui.Button("Open Replay Folder") && _replayDir != null)
-            _lastErrorMessage = OpenDirectory(_replayDir);
+        if (ImGui.Button("Open Replay Folder") && _logDir != null)
+            _lastErrorMessage = OpenDirectory(_logDir);
 
         if (_lastErrorMessage.Length > 0)
         {
