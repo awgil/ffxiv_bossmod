@@ -72,18 +72,41 @@ class VolcanicDrop(BossModule module) : Components.SpreadFromCastTargets(module,
 
 class GreatFlood(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.GreatFlood), 25, kind: Kind.DirForward)
 {
+    private readonly List<Actor> _allfireCasters = [];
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var caster = Casters.FirstOrDefault();
-        if (caster?.CastInfo == null)
-            return;
+        foreach (var s in Sources(slot, actor))
+        {
+            if (IsImmune(slot, s.Activation))
+                continue;
 
-        var knockbackTime = Module.CastFinishAt(caster.CastInfo);
+            if (_allfireCasters.Count == 0)
+            {
+                // no aoes => everything closer than knockback distance (25) to the wall is unsafe
+                hints.AddForbiddenZone(ShapeDistance.Rect(Arena.Center, s.Direction, 20, 5, 20), s.Activation);
+            }
+            else
+            {
+                // safe zone is one a 10x10 rect (4 first allfires), offset by knockback distance
+                var center = _allfireCasters.PositionCentroid();
+                hints.AddForbiddenZone(ShapeDistance.InvertedRect(center, s.Direction, -15, 35, 10), s.Activation);
+            }
+        }
+    }
 
-        if (IsImmune(slot, knockbackTime))
-            return;
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+        if ((AID)spell.Action.ID == AID.Allfire1)
+            _allfireCasters.Add(caster);
+    }
 
-        hints.AddForbiddenZone(new AOEShapeRect(20, 20, 5), Arena.Center, caster.Rotation, knockbackTime);
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastFinished(caster, spell);
+        if ((AID)spell.Action.ID == AID.Allfire1)
+            _allfireCasters.Remove(caster);
     }
 }
 
@@ -110,7 +133,7 @@ class AuraSpheres : Components.PersistentInvertibleVoidzone
 {
     public AuraSpheres(BossModule module) : base(module, 2.5f, m => m.Enemies(OID.AuraSphere).Where(x => !x.IsDead))
     {
-        InvertResolveAt = DateTime.MaxValue;
+        InvertResolveAt = WorldState.CurrentTime;
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -121,27 +144,55 @@ class AuraSpheres : Components.PersistentInvertibleVoidzone
 }
 
 class EnduringGlory(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EnduringGlory));
+class BitingWind(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.BitingWind), 10);
 
-abstract class Windswrath(BossModule module, ActionID aid) : Components.KnockbackFromCastTarget(module, aid, 15)
+class WindswrathShort(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.WindswrathShort), 15)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var caster = Casters.FirstOrDefault();
-        if (caster?.CastInfo == null)
-            return;
-
-        var knockbackTime = Module.CastFinishAt(caster.CastInfo);
-
-        if (IsImmune(slot, knockbackTime))
-            return;
-
-        hints.AddForbiddenZone(new AOEShapeDonut(5, 60), caster.Position, activation: knockbackTime);
+        foreach (var s in Sources(slot, actor))
+        {
+            if (!IsImmune(slot, s.Activation))
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(s.Origin, 5), s.Activation);
+        }
     }
 }
-class WindswrathShort(BossModule module) : Windswrath(module, ActionID.MakeSpell(AID.WindswrathShort));
-class WindswrathLong(BossModule module) : Windswrath(module, ActionID.MakeSpell(AID.WindswrathLong));
 
-class BitingWind(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.BitingWind));
+class WindswrathLong(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.WindswrathLong), 15)
+{
+    private readonly IReadOnlyList<Actor> _tornadoes = module.Enemies(OID.BitingWind);
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var s in Sources(slot, actor))
+        {
+            if (IsImmune(slot, s.Activation))
+                continue;
+
+            if ((s.Activation - Module.WorldState.CurrentTime).TotalSeconds > 3)
+            {
+                // just prefer staying near center...
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(s.Origin, 5), s.Activation);
+            }
+            else
+            {
+                // ok knockback is imminent, calculate precise safe zone
+                List<Func<WPos, float>> funcs = [
+                    ShapeDistance.InvertedRect(Module.Center, new WDir(0, 1), 20, 20, 20),
+                    .. _tornadoes.Select(t => ShapeDistance.Capsule(t.Position, t.Rotation, 20, 4))
+                ];
+                float combined(WPos p)
+                {
+                    var offset = p - s.Origin;
+                    offset += offset.Normalized() * s.Distance;
+                    var adj = s.Origin + offset;
+                    return funcs.Min(f => f(adj));
+                }
+                hints.AddForbiddenZone(combined, s.Activation);
+            }
+        }
+    }
+}
 
 class D023GurfurlurStates : StateMachineBuilder
 {
@@ -156,9 +207,9 @@ class D023GurfurlurStates : StateMachineBuilder
             .ActivateOnEnter<Sledgehammer>()
             .ActivateOnEnter<AuraSpheres>()
             .ActivateOnEnter<EnduringGlory>()
+            .ActivateOnEnter<BitingWind>()
             .ActivateOnEnter<WindswrathShort>()
-            .ActivateOnEnter<WindswrathLong>()
-            .ActivateOnEnter<BitingWind>();
+            .ActivateOnEnter<WindswrathLong>();
     }
 }
 

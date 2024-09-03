@@ -152,6 +152,15 @@ public static class ShapeDistance
         return InvertedRect(from, dir / l, l, 0, halfWidth);
     }
 
+    public static Func<WPos, float> Capsule(WPos origin, WDir dir, float length, float radius) => p =>
+    {
+        var offset = p - origin;
+        var t = Math.Clamp(offset.Dot(dir), 0, length);
+        var proj = origin + t * dir;
+        return (p - proj).Length() - radius;
+    };
+    public static Func<WPos, float> Capsule(WPos origin, Angle direction, float length, float radius) => Capsule(origin, direction.ToDirection(), length, radius);
+
     public static Func<WPos, float> Cross(WPos origin, Angle direction, float length, float halfWidth)
     {
         var dir = direction.ToDirection();
@@ -190,6 +199,6 @@ public static class ShapeDistance
     }
     public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0) => ConvexPolygon(PolygonUtil.EnumerateEdges(vertices), cw, offset);
 
-    private static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Max(e => e(p)) - offset;
-    private static Func<WPos, float> Union(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Min(e => e(p)) - offset;
+    public static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Max(e => e(p)) - offset;
+    public static Func<WPos, float> Union(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Min(e => e(p)) - offset;
 }
