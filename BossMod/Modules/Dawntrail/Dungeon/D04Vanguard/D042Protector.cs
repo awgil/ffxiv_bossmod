@@ -127,7 +127,7 @@ class BatteryCircuit(BossModule module) : Components.GenericRotatingAOE(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.BatteryCircuitAOEFirst)
-            Sequences.Add(new(_shape, caster.Position, spell.Rotation, -11.Degrees(), Module.CastFinishAt(spell), 0.5f, 33, 10));
+            Sequences.Add(new(_shape, caster.Position, spell.Rotation, -11.Degrees(), Module.CastFinishAt(spell), 0.5f, 34, 10));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

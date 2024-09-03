@@ -51,7 +51,7 @@ public struct NavigationDecision
             numImminentZones = hints.ForbiddenZones.Count;
 
         // check whether player is inside each forbidden zone
-        var inZone = hints.ForbiddenZones.Select(f => f.shapeDistance(player.Position) <= forbiddenZoneCushion - 0.1f).ToList(); // we might have a situation where player's cell center is outside, but player is not, yet player is too close to center for navigation to work...
+        var inZone = hints.ForbiddenZones.Select(f => f.shapeDistance(player.Position) <= 0).ToList();
         if (inZone.Any(inside => inside))
         {
             // we're in forbidden zone => find path to safety (and ideally to uptime zone)

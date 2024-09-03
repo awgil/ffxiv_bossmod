@@ -200,6 +200,8 @@ public class MapVisualizer
             var off1 = _pathfind.NodeByIndex(from).EnterOffset;
             var off2 = _pathfind.NodeByIndex(to).EnterOffset;
             dl.AddLine(tl + new Vector2(x1 + 0.5f + off1.X, y1 + 0.5f + off1.Y) * ScreenPixelSize, tl + new Vector2(x2 + 0.5f + off2.X, y2 + 0.5f + off2.Y) * ScreenPixelSize, 0xffff00ff, 2);
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + Map.Width * ScreenPixelSize + 10);
+            ImGui.TextUnformatted($"Waypoint: {Map.GridToWorld(x1, y1, off1.X + 0.5f, off1.Y + 0.5f)}");
             x1 = x2;
             y1 = y2;
             from = to;
