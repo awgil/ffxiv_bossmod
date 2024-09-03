@@ -5,6 +5,7 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using System.IO;
 using System.Reflection;
 
 namespace BossMod;
@@ -85,11 +86,12 @@ public sealed class Plugin : IDalamudPlugin
         _ipc = new(_rotation, _amex, _movementOverride, _ai);
         _dtr = new(_rotation, _ai);
 
-        _configUI = new(Service.Config, _ws, _rotationDB);
+        var replayDir = new DirectoryInfo(dalamud.ConfigDirectory.FullName + "/replays");
+        _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
         _wndBossmod = new(_bossmod);
         _wndBossmodHints = new(_bossmod);
-        _wndReplay = new(_ws, _rotationDB, new(dalamud.ConfigDirectory.FullName + "/replays"));
-        _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Presets"));
+        _wndReplay = new(_ws, _rotationDB, replayDir);
+        _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
         _wndDebug = new(_ws, _rotation, _amex);
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;

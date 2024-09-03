@@ -1,6 +1,7 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
+using System.IO;
 using System.Reflection;
 
 namespace BossMod;
@@ -19,20 +20,22 @@ public sealed class ConfigUI : IDisposable
     private readonly List<UINode> _roots = [];
     private readonly UITree _tree = new();
     private readonly UITabs _tabs = new();
-    private readonly ConfigAboutTab _about = new();
+    private readonly AboutTab _about;
     private readonly ModuleViewer _mv;
     private readonly ConfigRoot _root;
     private readonly WorldState _ws;
     private readonly UIPresetDatabaseEditor? _presets;
 
-    public ConfigUI(ConfigRoot config, WorldState ws, RotationDatabase? rotationDB)
+    public ConfigUI(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
     {
         _root = config;
         _ws = ws;
+        _about = new(replayDir);
         _mv = new(rotationDB?.Plans, ws);
         _presets = rotationDB != null ? new(rotationDB.Presets) : null;
+
         _tabs.Add("About", _about.Draw);
-        _tabs.Add("Settings", () => DrawNodes(_roots));
+        _tabs.Add("Settings", DrawSettings);
         _tabs.Add("Supported Bosses", () => _mv.Draw(_tree, _ws));
         _tabs.Add("Autorotation Presets", () => _presets?.Draw());
 
@@ -47,13 +50,10 @@ public sealed class ConfigUI : IDisposable
             var props = t.GetCustomAttribute<ConfigDisplayAttribute>();
             n.Name = props?.Name ?? GenerateNodeName(t);
             n.Order = props?.Order ?? 0;
-            if (props?.Parent != null)
-                n.Parent = nodes.GetValueOrDefault(props.Parent);
+            n.Parent = props?.Parent != null ? nodes.GetValueOrDefault(props.Parent) : null;
 
-            if (n.Parent != null)
-                n.Parent.Children.Add(n);
-            else
-                _roots.Add(n);
+            var parentNodes = n.Parent?.Children ?? _roots;
+            parentNodes.Add(n);
         }
 
         SortByOrder(_roots);
@@ -69,6 +69,13 @@ public sealed class ConfigUI : IDisposable
     public void Draw()
     {
         _tabs.Draw();
+    }
+
+    private void DrawSettings()
+    {
+        using var child = ImRaii.Child("SettingsWindow", new Vector2(0, 0), true);
+        if (child)
+            DrawNodes(_roots);
     }
 
     public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws)
@@ -91,7 +98,7 @@ public sealed class ConfigUI : IDisposable
         node.DrawCustom(tree, ws);
     }
 
-    private static string GenerateNodeName(Type t) => t.Name.EndsWith("Config", StringComparison.Ordinal) ? t.Name.Remove(t.Name.Length - "Config".Length) : t.Name;
+    private static string GenerateNodeName(Type t) => t.Name.EndsWith("Config", StringComparison.Ordinal) ? t.Name[..^"Config".Length] : t.Name;
 
     private void SortByOrder(List<UINode> nodes)
     {
@@ -263,41 +270,42 @@ public sealed class ConfigUI : IDisposable
         var modified = false;
         foreach (var tn in tree.Node(label, false, v.Validate() ? 0xffffffff : 0xff00ffff, () => DrawPropertyContextMenu(node, member, v)))
         {
+            using var table = ImRaii.Table("table", group.Names.Length + 2, ImGuiTableFlags.SizingFixedFit);
+            if (!table)
+                continue;
+
+            foreach (var n in group.Names)
+                ImGui.TableSetupColumn(n);
+            ImGui.TableSetupColumn("----");
+            ImGui.TableSetupColumn("Name");
+            ImGui.TableHeadersRow();
+
             var assignments = root.Get<PartyRolesConfig>().SlotsPerAssignment(ws.Party);
-            if (ImGui.BeginTable("table", group.Names.Length + 2, ImGuiTableFlags.SizingFixedFit))
+            for (int i = 0; i < (int)PartyRolesConfig.Assignment.Unassigned; ++i)
             {
-                foreach (var n in group.Names)
-                    ImGui.TableSetupColumn(n);
-                ImGui.TableSetupColumn("----");
-                ImGui.TableSetupColumn("Name");
-                ImGui.TableHeadersRow();
-                for (int i = 0; i < (int)PartyRolesConfig.Assignment.Unassigned; ++i)
+                var r = (PartyRolesConfig.Assignment)i;
+                ImGui.TableNextRow();
+                for (int c = 0; c < group.Names.Length; ++c)
                 {
-                    var r = (PartyRolesConfig.Assignment)i;
-                    ImGui.TableNextRow();
-                    for (int c = 0; c < group.Names.Length; ++c)
-                    {
-                        ImGui.TableNextColumn();
-                        if (ImGui.RadioButton($"###{r}:{c}", v[r] == c))
-                        {
-                            v[r] = c;
-                            modified = true;
-                        }
-                    }
                     ImGui.TableNextColumn();
-                    if (ImGui.RadioButton($"###{r}:---", v[r] < 0 || v[r] >= group.Names.Length))
+                    if (ImGui.RadioButton($"###{r}:{c}", v[r] == c))
                     {
-                        v[r] = -1;
+                        v[r] = c;
                         modified = true;
                     }
-
-                    string name = r.ToString();
-                    if (assignments.Length > 0)
-                        name += $" ({ws.Party[assignments[i]]?.Name})";
-                    ImGui.TableNextColumn();
-                    ImGui.TextUnformatted(name);
                 }
-                ImGui.EndTable();
+                ImGui.TableNextColumn();
+                if (ImGui.RadioButton($"###{r}:---", v[r] < 0 || v[r] >= group.Names.Length))
+                {
+                    v[r] = -1;
+                    modified = true;
+                }
+
+                string name = r.ToString();
+                if (assignments.Length > 0)
+                    name += $" ({ws.Party[assignments[i]]?.Name})";
+                ImGui.TableNextColumn();
+                ImGui.TextUnformatted(name);
             }
         }
         return modified;
