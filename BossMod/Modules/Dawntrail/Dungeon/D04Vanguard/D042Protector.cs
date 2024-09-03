@@ -123,17 +123,18 @@ class FulminousFence(BossModule module) : BossComponent(module)
 class BatteryCircuit(BossModule module) : Components.GenericRotatingAOE(module)
 {
     private static readonly AOEShapeCone _shape = new(30, 15.Degrees());
+    private static readonly TimeSpan _reducedLeeway = TimeSpan.FromSeconds(1.5f); // aoes can appear mid mechanic and fuck up our careful plan
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.BatteryCircuitAOEFirst)
-            Sequences.Add(new(_shape, caster.Position, spell.Rotation, -11.Degrees(), Module.CastFinishAt(spell), 0.5f, 34, 10));
+            Sequences.Add(new(_shape, caster.Position, spell.Rotation, -11.Degrees(), Module.CastFinishAt(spell) - _reducedLeeway, 0.5f, 34, 10));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.BatteryCircuitAOEFirst or AID.BatteryCircuitAOERest)
-            AdvanceSequence(caster.Position, caster.Rotation, WorldState.CurrentTime);
+            AdvanceSequence(caster.Position, caster.Rotation, WorldState.CurrentTime - _reducedLeeway);
     }
 }
 

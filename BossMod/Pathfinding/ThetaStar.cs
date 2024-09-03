@@ -19,6 +19,10 @@ public class ThetaStar
     private readonly List<int> _openList = [];
     private float _deltaGSide;
 
+    private const float BorderCushion = 0.1f;
+    private const float MaxNeighbourOffset = 0.5f - BorderCushion;
+    private const float CenterToNeighbour = 0.5f + BorderCushion;
+
     public ref Node NodeByIndex(int index) => ref _nodes[index];
     public int CellIndex(int x, int y) => y * _map.Width + x;
     public WPos CellCenter(int index) => _map.GridToWorld(index % _map.Width, index / _map.Width, 0.5f, 0.5f);
@@ -72,23 +76,23 @@ public class ThetaStar
         var startOff = _nodes[nextNodeIndex].EnterOffset;
         if (haveN)
         {
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY - 1, nextNodeIndex - _map.Width, new(startOff.X, +0.5f), 0.5f + startOff.Y);
+            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY - 1, nextNodeIndex - _map.Width, new(startOff.X, +MaxNeighbourOffset), CenterToNeighbour + startOff.Y);
             if (haveW)
-                VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY - 1, nextNodeIndex - _map.Width - 1, new(+0.5f, +0.5f), Length(0.5f + startOff.X, 0.5f + startOff.Y));
+                VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY - 1, nextNodeIndex - _map.Width - 1, new(+MaxNeighbourOffset, +MaxNeighbourOffset), Length(CenterToNeighbour + startOff.X, CenterToNeighbour + startOff.Y));
             if (haveE)
-                VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY - 1, nextNodeIndex - _map.Width + 1, new(-0.5f, +0.5f), Length(0.5f - startOff.X, 0.5f + startOff.Y));
+                VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY - 1, nextNodeIndex - _map.Width + 1, new(-MaxNeighbourOffset, +MaxNeighbourOffset), Length(CenterToNeighbour - startOff.X, CenterToNeighbour + startOff.Y));
         }
         if (haveW)
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY, nextNodeIndex - 1, new(+0.5f, startOff.Y), 0.5f + startOff.X);
+            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY, nextNodeIndex - 1, new(+MaxNeighbourOffset, startOff.Y), CenterToNeighbour + startOff.X);
         if (haveE)
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY, nextNodeIndex + 1, new(-0.5f, startOff.Y), 0.5f - startOff.X);
+            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY, nextNodeIndex + 1, new(-MaxNeighbourOffset, startOff.Y), CenterToNeighbour - startOff.X);
         if (haveS)
         {
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY + 1, nextNodeIndex + _map.Width, new(startOff.X, -0.5f), 0.5f - startOff.Y);
+            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY + 1, nextNodeIndex + _map.Width, new(startOff.X, -MaxNeighbourOffset), CenterToNeighbour - startOff.Y);
             if (haveW)
-                VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY + 1, nextNodeIndex + _map.Width - 1, new(+0.5f, -0.5f), Length(0.5f + startOff.X, 0.5f - startOff.Y));
+                VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY + 1, nextNodeIndex + _map.Width - 1, new(+MaxNeighbourOffset, -MaxNeighbourOffset), Length(CenterToNeighbour + startOff.X, CenterToNeighbour - startOff.Y));
             if (haveE)
-                VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY + 1, nextNodeIndex + _map.Width + 1, new(-0.5f, -0.5f), Length(0.5f - startOff.X, 0.5f - startOff.Y));
+                VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY + 1, nextNodeIndex + _map.Width + 1, new(-MaxNeighbourOffset, -MaxNeighbourOffset), Length(CenterToNeighbour - startOff.X, CenterToNeighbour - startOff.Y));
         }
         return true;
     }
