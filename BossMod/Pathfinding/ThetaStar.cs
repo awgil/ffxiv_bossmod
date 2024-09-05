@@ -225,7 +225,7 @@ public class ThetaStar
         int grandParentX = _nodes[parentIndex].ParentX;
         int grandParentY = _nodes[parentIndex].ParentY;
         var grandParentIndex = _map.GridToIndex(grandParentX, grandParentY);
-        //if (_nodes[grandParentIndex].PathMinG >= _nodes[parentIndex].PathMinG)
+        if (_nodes[grandParentIndex].PathMinG >= _nodes[parentIndex].PathMinG)
         {
             var losLeeway = LineOfSight(grandParentX, grandParentY, _nodes[grandParentIndex].EnterOffset, nodeX, nodeY, out var grandParentOffset, out var grandParentDist);
             losLeeway = MathF.Min(_nodes[grandParentIndex].PathLeeway, losLeeway);
