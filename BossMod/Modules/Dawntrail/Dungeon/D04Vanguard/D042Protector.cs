@@ -157,7 +157,7 @@ class MotionSensor(BossModule module) : Components.StayMove(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_expire[slot] != default && (_expire[slot] - WorldState.CurrentTime).TotalSeconds < 0.5f)
+        if (_expire[slot] != default && (_expire[slot] - WorldState.CurrentTime).TotalSeconds < 1)
             hints.ForcedMovement = new();
     }
 
@@ -174,7 +174,12 @@ class MotionSensor(BossModule module) : Components.StayMove(module)
     }
 }
 
-class BlastCannon(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlastCannon), new AOEShapeRect(26, 2));
+// reduce the leeway to give enough time to resolve the motion sensor
+class BlastCannon(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlastCannon), new AOEShapeRect(26, 2))
+{
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo, -0.5f), Color, Risky));
+}
+
 class HeavyBlastCannon(BossModule module) : Components.SimpleLineStack(module, 4, 36, ActionID.MakeSpell(AID.HeavyBlastCannonTargetSelect), ActionID.MakeSpell(AID.HeavyBlastCannon), 8);
 class TrackingBolt(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.TrackingBoltAOE), 8);
 

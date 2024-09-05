@@ -23,7 +23,7 @@ class Platforms(BossModule module) : BossComponent(module)
     public static readonly (int lower, int upper)[] HighEdges = [(1, 0), (3, 7), (4, 7), (9, 12), (11, 12)];
     public static readonly (int lower, int upper)[] JumpEdges = [(3, 1), (4, 1), (4, 2), (4, 8), (5, 8), (5, 9), (8, 10), (8, 11), (9, 11)];
 
-    public static readonly Func<WPos, float>[] PlatformShapes = Enumerable.Range(0, HexaPlatformCenters.Length + 1).Select(i => ShapeDistance.ConvexPolygon(PlatformPoly(i), true, Pathfinding.NavigationDecision.DefaultForbiddenZoneCushion)).ToArray();
+    public static readonly Func<WPos, float>[] PlatformShapes = Enumerable.Range(0, HexaPlatformCenters.Length + 1).Select(i => ShapeDistance.ConvexPolygon(PlatformPoly(i), true, Pathfinding.NavigationDecision.ForbiddenZoneCushion)).ToArray();
     public static readonly Func<WPos, float>[] HighEdgeShapes = HighEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => ShapeDistance.Rect(e.Item1, e.Item2, 0)).ToArray();
     public static readonly (WPos p, WDir d, float l)[] JumpEdgeSegments = JumpEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => (e.Item1, (e.Item2 - e.Item1).Normalized(), (e.Item2 - e.Item1).Length())).ToArray();
 

@@ -45,7 +45,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
         {
             _pathfindVisualizer ??= BuildPathfindingVisualizer();
             _pathfindVisualizer!.Draw();
-            ImGui.TextUnformatted($"Decision: {_navi.DecisionType}, leeway={_navi.LeewaySeconds:f3}, ttg={_navi.TimeToGoal:f3}, dist={(_navi.Destination != null ? $"{(_navi.Destination.Value - player.Position).Length():f3}" : "---")}");
+            ImGui.TextUnformatted($"Leeway={_navi.LeewaySeconds:f3}, ttg={_navi.TimeToGoal:f3}, dist={(_navi.Destination != null ? $"{(_navi.Destination.Value - player.Position).Length():f3}" : "---")}");
         }
     }
 
@@ -53,8 +53,8 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
     {
         var map = new Map();
         hints.Bounds.PathfindMap(map, hints.Center);
-        map.BlockPixelsInside(shape, 0, NavigationDecision.DefaultForbiddenZoneCushion);
-        return new MapVisualizer(map, 0, player.Position);
+        map.BlockPixelsInside(shape, 0, NavigationDecision.ForbiddenZoneCushion);
+        return new MapVisualizer(map, player.Position, hints.Center, 3);
     }
 
     private MapVisualizer BuildPathfindingVisualizer()
@@ -62,17 +62,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
         var targetEnemy = targetID != 0 ? hints.PotentialTargets.FirstOrDefault(e => e.Actor.InstanceID == targetID) : null;
         var targeting = targetSelect(targetEnemy);
         _navi = BuildPathfind(targeting.enemy, targeting.range, targeting.pos, targeting.tank);
-        if (_navi.Map == null)
-        {
-            _navi.Map = new();
-            hints.Bounds.PathfindMap(_navi.Map, hints.Center);
-            var imm = NavigationDecision.ImminentExplosionTime(ws.CurrentTime);
-            foreach (var (shape, activation) in hints.ForbiddenZones)
-                NavigationDecision.AddBlockerZone(_navi.Map, imm, activation, shape, NavigationDecision.DefaultForbiddenZoneCushion);
-            if (targetEnemy != null)
-                _navi.MapGoal = NavigationDecision.AddTargetGoal(_navi.Map, targetEnemy.Actor.Position, targetEnemy.Actor.HitboxRadius + player.HitboxRadius + targeting.range, targetEnemy.Actor.Rotation, targeting.pos, 0);
-        }
-        return new MapVisualizer(_navi.Map, _navi.MapGoal, player.Position);
+        return new MapVisualizer(_naviCtx.Map, player.Position, _navi.GoalPos, _navi.GoalRadius);
     }
 
     private NavigationDecision BuildPathfind(AIHints.Enemy? target, float range, Positional positional, bool preferTanking)
