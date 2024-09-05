@@ -61,8 +61,8 @@ public class GenericBaitAway(BossModule module, ActionID aid = default, bool alw
                 {
                     if (CenterAtTarget)
                         hints.AddForbiddenZone(b.Shape, p.Position, b.Rotation, b.Activation);
-                    else if (b.Source != b.Target)
-                        hints.AddForbiddenZone(b.Shape, b.Source.Position, Angle.FromDirection(b.Target.Position - b.Source.Position), b.Activation);
+                    else if (b.Source != actor)
+                        hints.AddForbiddenZone(b.Shape, b.Source.Position, Angle.FromDirection(p.Position - b.Source.Position), b.Activation);
                 }
             }
         }
