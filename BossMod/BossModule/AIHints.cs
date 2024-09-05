@@ -47,6 +47,11 @@ public sealed class AIHints
     // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
     public List<(Func<WPos, float> shapeDistance, DateTime activation)> ForbiddenZones = [];
 
+    // positioning: rough target & radius of the movement; if not set, uses either target's position or module center instead
+    // used to somewhat prioritize movement direction and optimize pathfinding
+    public WPos? PathfindingHintDestination;
+    public float? PathfindingHintRadius;
+
     // positioning: next positional hint (TODO: reconsider, maybe it should be a list prioritized by in-gcds, and imminent should be in-gcds instead? or maybe it should be property of an enemy? do we need correct?)
     public (Actor? Target, Positional Pos, bool Imminent, bool Correct) RecommendedPositional;
 
@@ -77,6 +82,8 @@ public sealed class AIHints
         ForcedMovement = null;
         InteractWithTarget = null;
         ForbiddenZones.Clear();
+        PathfindingHintDestination = null;
+        PathfindingHintRadius = null;
         RecommendedPositional = default;
         RecommendedRangeToTarget = 0;
         ForbiddenDirections.Clear();

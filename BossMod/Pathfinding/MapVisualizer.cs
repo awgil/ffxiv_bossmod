@@ -5,8 +5,9 @@ namespace BossMod.Pathfinding;
 public class MapVisualizer
 {
     public Map Map;
-    public int GoalPriority;
     public WPos StartPos;
+    public WPos GoalPos;
+    public float GoalRadius;
     public float ScreenPixelSize = 10;
     public List<(WPos center, float ir, float or, Angle dir, Angle halfWidth)> Sectors = [];
     public List<(WPos origin, float lenF, float lenB, float halfWidth, Angle dir)> Rects = [];
@@ -14,11 +15,12 @@ public class MapVisualizer
 
     private ThetaStar _pathfind;
 
-    public MapVisualizer(Map map, int goalPriority, WPos startPos)
+    public MapVisualizer(Map map, WPos startPos, WPos goalPos, float goalRadius)
     {
         Map = map;
-        GoalPriority = goalPriority;
         StartPos = startPos;
+        GoalPos = goalPos;
+        GoalRadius = goalRadius;
         _pathfind = BuildPathfind();
         RunPathfind();
     }
@@ -54,7 +56,7 @@ public class MapVisualizer
                 }
                 else if (pix.Priority > 0)
                 {
-                    var alpha = pix.Priority / Map.MaxPriority;
+                    var alpha = Map.MaxPriority > 0 ? pix.Priority / Map.MaxPriority : 1;
                     uint c = 128 + (uint)(alpha * 127);
                     c = (c << 8) | 0xff000000;
                     dl.AddRectFilled(corner, cornerEnd, c);
@@ -73,17 +75,18 @@ public class MapVisualizer
                 if (ImGui.IsMouseHoveringRect(corner, cornerEnd))
                 {
                     ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
+                    var wpos = Map.GridToWorld(x, y, 0.5f, 0.5f);
                     if (pix.MaxG < float.MaxValue)
                     {
-                        ImGui.TextUnformatted($"Pixel at {x}x{y}: blocked, g={pix.MaxG:f3}");
+                        ImGui.TextUnformatted($"Pixel at {x}x{y} ({wpos}): blocked, g={pix.MaxG:f3}");
                     }
                     else if (pix.Priority != 0)
                     {
-                        ImGui.TextUnformatted($"Pixel at {x}x{y}: goal, prio={pix.Priority}");
+                        ImGui.TextUnformatted($"Pixel at {x}x{y} ({wpos}): goal, prio={pix.Priority}");
                     }
                     else
                     {
-                        ImGui.TextUnformatted($"Pixel at {x}x{y}: normal");
+                        ImGui.TextUnformatted($"Pixel at {x}x{y} ({wpos}): normal");
                     }
 
                     if (pfNode.OpenHeapIndex != 0)
@@ -126,15 +129,15 @@ public class MapVisualizer
         if (ImGui.Button("Run pf"))
             RunPathfind();
 
-        var pfRes = _pathfind.CurrentResult();
+        var pfRes = _pathfind.BestIndex;
         if (pfRes >= 0)
         {
             ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
-            ImGui.TextUnformatted($"Path length: {_pathfind.NodeByIndex(pfRes).GScore:f3}");
+            ImGui.TextUnformatted($"Path length: {_pathfind.NodeByIndex(pfRes).GScore:f3} to {_pathfind.CellCenter(pfRes)}");
         }
 
         if (pfPathNode == -1)
-            pfPathNode = _pathfind.CurrentResult();
+            pfPathNode = _pathfind.BestIndex;
         if (pfPathNode >= 0)
             DrawPath(dl, tl, pfPathNode);
 
@@ -213,7 +216,7 @@ public class MapVisualizer
     private ThetaStar BuildPathfind()
     {
         var res = new ThetaStar();
-        res.Start(Map, GoalPriority, StartPos, 1.0f / 6);
+        res.Start(Map, StartPos, GoalPos, GoalRadius, 1.0f / 6);
         return res;
     }
 }

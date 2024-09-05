@@ -87,14 +87,16 @@ class PathfindingTest : TestWindow
     private MapVisualizer RebuildMap()
     {
         Map map = new(_mapResolution, new(_mapCenter), _mapHalfSize.X, _mapHalfSize.Y, _mapRotationDeg.Degrees());
+        var now = DateTime.MinValue.AddSeconds(NavigationDecision.ActivationTimeCushion);
+        List<(Func<WPos, float> shapeDistance, DateTime activation)> zones = [];
         if (_blockCone)
-            map.BlockPixelsInside(ShapeDistance.DonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()), _blockConeG, _mapThreshold);
+            zones.Add((ShapeDistance.DonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()), now.AddSeconds(_blockConeG)));
         if (_blockRect)
-            map.BlockPixelsInside(ShapeDistance.Rect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth), _blockRectG, _mapThreshold);
-        map.AddGoal(ShapeDistance.Circle(new(_targetPos), _targetRadius), 0, 0, 10);
-        map.AddGoal(ShapeDistance.Cone(new(_targetPos), _targetRadius, _targetFacingDeg.Degrees(), 45.Degrees()), 0, 10, 5);
+            zones.Add((ShapeDistance.Rect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth), now.AddSeconds(_blockRectG)));
+        NavigationDecision.RasterizeForbiddenZones(map, zones, now);
+        NavigationDecision.RasterizeGoalZones(map, new(_targetPos), _targetRadius, _targetFacingDeg.Degrees(), Positional.Rear);
 
-        var visu = new MapVisualizer(map, _goalPrio, new(_startingPos));
+        var visu = new MapVisualizer(map, new(_startingPos), new(_targetPos), _targetRadius);
 
         if (_blockCone)
             visu.Sectors.Add((new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()));
