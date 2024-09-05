@@ -18,7 +18,6 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
     private NavigationDecision _naviDecision;
     private bool _afkMode;
     private bool _followMaster; // if true, our navigation target is master rather than primary target - this happens e.g. in outdoor or in dungeons during gathering trash
-    private float _maxCastTime;
     private WPos _masterPrevPos;
     private WPos _masterMovementStart;
     private DateTime _masterLastMoved;
@@ -62,13 +61,12 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
 
         bool masterIsMoving = TrackMasterMovement(master);
         bool moveWithMaster = masterIsMoving && (master == player || _followMaster);
-        _maxCastTime = moveWithMaster || ctrl.ForceFacing ? 0 : _naviDecision.LeewaySeconds;
+        ForceMovementIn = moveWithMaster || ctrl.ForceFacing ? 0 : _naviDecision.LeewaySeconds;
 
         // note: that there is a 1-frame delay if target and/or strategy changes - we don't really care?..
         if (!forbidActions)
         {
             autorot.Preset = target.Target != null ? AIPreset : null;
-            ForceMovementIn = _maxCastTime;
         }
 
         UpdateMovement(player, master, target, !forbidActions ? autorot.Hints.ActionsToExecute : null);
@@ -249,7 +247,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         }
         var player = WorldState.Party.Player();
         var dist = _naviDecision.Destination != null && player != null ? (_naviDecision.Destination.Value - player.Position).Length() : 0;
-        ImGui.TextUnformatted($"Max-cast={MathF.Min(_maxCastTime, 1000):f3}, afk={_afkMode}, follow={_followMaster}, \n{_naviDecision.Destination} (d={dist:f3}), master standing for {Math.Clamp((WorldState.CurrentTime - _masterLastMoved).TotalSeconds, 0, 1000):f1}");
+        ImGui.TextUnformatted($"Max-cast={MathF.Min(ForceMovementIn, 1000):f3}, afk={_afkMode}, follow={_followMaster}, \n{_naviDecision.Destination} (d={dist:f3}), master standing for {Math.Clamp((WorldState.CurrentTime - _masterLastMoved).TotalSeconds, 0, 1000):f1}");
     }
 
     private bool TargetIsForbidden(ulong actorId) => autorot.Hints.ForbiddenTargets.Any(e => e.Actor.InstanceID == actorId);
