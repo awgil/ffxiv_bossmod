@@ -253,7 +253,7 @@ public class ThetaStar
         }
     }
 
-    private float HeuristicDistance(int x, int y) => 0;// Math.Max(0, (_map.GridToWorld(x, y, 0.5f, 0.5f) - _goalPos).Length() - _goalRadius);
+    private float HeuristicDistance(int x, int y) => Math.Max(0, (_map.GridToWorld(x, y, 0.5f, 0.5f) - _goalPos).Length() - _goalRadius);
 
     private void AddToOpen(int nodeIndex)
     {

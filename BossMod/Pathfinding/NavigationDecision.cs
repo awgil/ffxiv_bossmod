@@ -11,6 +11,7 @@ public struct NavigationDecision
     // context that allows reusing large memory allocations
     public class Context
     {
+        public float[] Scratch = [];
         public Map Map = new();
         public ThetaStar ThetaStar = new();
     }
@@ -29,7 +30,7 @@ public struct NavigationDecision
     {
         // build a pathfinding map: rasterize all forbidden zones and goals
         hints.Bounds.PathfindMap(ctx.Map, hints.Center);
-        RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, ws.CurrentTime);
+        RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, ws.CurrentTime, ref ctx.Scratch);
         if (targetPos != null)
             RasterizeGoalZones(ctx.Map, targetPos.Value, targetRadius, targetRot, positional);
 
@@ -42,7 +43,7 @@ public struct NavigationDecision
         return new() { Destination = GetFirstWaypoint(ctx.ThetaStar, ctx.Map, bestNodeIndex), LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore, Map = ctx.Map, GoalPos = goalPos, GoalRadius = goalRadius };
     }
 
-    public static void RasterizeForbiddenZones(Map map, List<(Func<WPos, float> shapeDistance, DateTime activation)> zones, DateTime current)
+    public static void RasterizeForbiddenZones(Map map, List<(Func<WPos, float> shapeDistance, DateTime activation)> zones, DateTime current, ref float[] scratch)
     {
         // note that a zone can partially intersect a pixel; so what we do is check each corner and set the maxg value of a pixel equal to the minimum of 4 corners
         // to avoid 4x calculations, we do a slightly tricky loop:
@@ -50,6 +51,8 @@ public struct NavigationDecision
         // - inner loop calculates the g value at the left border, then iterates over all right corners and fills minimums of two g values to the cells
         // - second outer loop calculates values at 'bottom' edge and then updates the values of all cells to correspond to the cells rather than edges
         map.MaxG = zones.Count > 0 ? ActivationToG(zones[^1].activation, current) : 0;
+        if (scratch.Length < map.Pixels.Length)
+            scratch = new float[map.Pixels.Length];
 
         int iCell = 0;
         for (int y = 0; y < map.Height; ++y)
@@ -58,7 +61,7 @@ public struct NavigationDecision
             for (int x = 0; x < map.Width; ++x)
             {
                 var rightG = CalculateMaxG(zones, map, x + 1, y, current);
-                map.Pixels[iCell++].MaxG = Math.Min(leftG, rightG);
+                scratch[iCell++] = Math.Min(leftG, rightG);
                 leftG = rightG;
             }
         }
@@ -71,8 +74,8 @@ public struct NavigationDecision
             var jCell = iCell;
             for (int y = map.Height; y > 0; --y, jCell -= map.Width)
             {
-                var topG = map.Pixels[jCell].MaxG;
-                map.Pixels[jCell].MaxG = Math.Min(topG, bottomG);
+                var topG = scratch[jCell];
+                map.Pixels[jCell].MaxG = Math.Min(Math.Min(topG, bottomG), map.Pixels[jCell].MaxG);
                 bottomG = topG;
             }
             bleftG = brightG;
@@ -151,6 +154,10 @@ public struct NavigationDecision
 
     private static WPos? GetFirstWaypoint(ThetaStar pf, Map map, int cell)
     {
+        ref var startingNode = ref pf.NodeByIndex(cell);
+        if (startingNode.GScore == 0 && startingNode.PathMinG == float.MaxValue)
+            return null; // we're already in safe zone
+
         do
         {
             ref var node = ref pf.NodeByIndex(cell);
