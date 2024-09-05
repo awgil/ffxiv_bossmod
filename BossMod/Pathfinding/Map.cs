@@ -95,7 +95,7 @@ public class Map
         MaxG = MathF.Max(MaxG, maxG);
         foreach (var (x, y, center) in EnumeratePixels())
         {
-            if (shape(center) <= threshold)
+            if (shape(center) < threshold)
             {
                 ref var pixel = ref Pixels[y * Width + x];
                 pixel.MaxG = MathF.Min(pixel.MaxG, maxG);

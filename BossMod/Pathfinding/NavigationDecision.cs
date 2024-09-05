@@ -122,7 +122,7 @@ public struct NavigationDecision
     {
         var p = map.GridToWorld(x, y, 0, 0);
         foreach (var z in zones)
-            if (z.shapeDistance(p) <= ForbiddenZoneCushion)
+            if (z.shapeDistance(p) < ForbiddenZoneCushion)
                 return ActivationToG(z.activation, current);
         return float.MaxValue;
     }

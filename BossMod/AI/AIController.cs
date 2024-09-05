@@ -61,7 +61,7 @@ sealed class AIController(ActionManagerEx amex, MovementOverride movement)
         bool moveRequested = _movement.IsMoveRequested();
         bool castInProgress = player.CastInfo != null && !player.CastInfo.EventHappened;
         bool forbidMovement = moveRequested || !AllowInterruptingCastByMovement && _amex.MoveMightInterruptCast;
-        if (NaviTargetPos != null && !forbidMovement && /*(NaviTargetPos.Value - player.Position).LengthSq() > 0.01f*/ NaviTargetPos != player.Position) // note: better to overshoot
+        if (NaviTargetPos != null && !forbidMovement && (NaviTargetPos.Value - player.Position).LengthSq() > 0.01f)
         {
             var y = NaviTargetVertical != null && IsVerticalAllowed ? NaviTargetVertical.Value : player.PosRot.Y;
             desiredPosition = new(NaviTargetPos.Value.X, y, NaviTargetPos.Value.Z);
