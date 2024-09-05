@@ -76,6 +76,7 @@ public class Map
     }
 
     public int GridToIndex(int x, int y) => y * Width + x;
+    public (int x, int y) IndexToGrid(int index) => (index % Width, index / Width);
     public (int x, int y) FracToGrid(Vector2 frac) => ((int)MathF.Floor(frac.X), (int)MathF.Floor(frac.Y));
     public (int x, int y) WorldToGrid(WPos world) => FracToGrid(WorldToGridFrac(world));
     public (int x, int y) ClampToGrid((int x, int y) pos) => (Math.Clamp(pos.x, 0, Width - 1), Math.Clamp(pos.y, 0, Height - 1));

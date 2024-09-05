@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Interface.Utility.Raii;
+using ImGuiNET;
 
 namespace BossMod.Pathfinding;
 
@@ -8,7 +9,7 @@ public class MapVisualizer
     public WPos StartPos;
     public WPos GoalPos;
     public float GoalRadius;
-    public float ScreenPixelSize = 10;
+    public float ScreenPixelSize = 20;
     public List<(WPos center, float ir, float or, Angle dir, Angle halfWidth)> Sectors = [];
     public List<(WPos origin, float lenF, float lenB, float halfWidth, Angle dir)> Rects = [];
     public List<(WPos origin, WPos dest)> Lines = [];
@@ -27,18 +28,28 @@ public class MapVisualizer
 
     public void Draw()
     {
+        using var table = ImRaii.Table("table", 2);
+        if (!table)
+            return;
+
+        var size = new Vector2(Map.Width, Map.Height) * ScreenPixelSize;
+        ImGui.TableSetupColumn("Map", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoClip, size.X);
+        ImGui.TableSetupColumn("Control");
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+
         var tl = ImGui.GetCursorScreenPos();
-        var br = tl + new Vector2(Map.Width, Map.Height) * ScreenPixelSize;
+        var br = tl + size;
         var tr = new Vector2(br.X, tl.Y);
         var bl = new Vector2(tl.X, br.Y);
-        //ImGui.Dummy(br - tl);
-        var cursorEnd = ImGui.GetCursorPos();
-        cursorEnd.Y += Map.Height * ScreenPixelSize + 10;
         var dl = ImGui.GetWindowDrawList();
+
+        ImGui.Dummy(size);
 
         // blocked squares / goal
         int nodeIndex = 0;
-        int pfPathNode = -1;
+        int hoverNode = -1;
         for (int y = 0; y < Map.Height; ++y)
         {
             for (int x = 0; x < Map.Width; ++x, ++nodeIndex)
@@ -69,33 +80,12 @@ public class MapVisualizer
                 ref var pfNode = ref _pathfind.NodeByIndex(nodeIndex);
                 if (pfNode.OpenHeapIndex != 0)
                 {
-                    dl.AddCircle((corner + cornerEnd) / 2, 3, pfNode.OpenHeapIndex < 0 ? 0xff0000ff : 0xffff0080, 0, pfNode.OpenHeapIndex == 1 ? 2 : 1);
+                    dl.AddCircle((corner + cornerEnd) / 2, ScreenPixelSize * 0.5f - 2, pfNode.OpenHeapIndex < 0 ? 0xff0000ff : 0xffff0080, 0, pfNode.OpenHeapIndex == 1 ? 2 : 1);
                 }
 
                 if (ImGui.IsMouseHoveringRect(corner, cornerEnd))
                 {
-                    ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
-                    var wpos = Map.GridToWorld(x, y, 0.5f, 0.5f);
-                    if (pix.MaxG < float.MaxValue)
-                    {
-                        ImGui.TextUnformatted($"Pixel at {x}x{y} ({wpos}): blocked, g={pix.MaxG:f3}");
-                    }
-                    else if (pix.Priority != 0)
-                    {
-                        ImGui.TextUnformatted($"Pixel at {x}x{y} ({wpos}): goal, prio={pix.Priority}");
-                    }
-                    else
-                    {
-                        ImGui.TextUnformatted($"Pixel at {x}x{y} ({wpos}): normal");
-                    }
-
-                    if (pfNode.OpenHeapIndex != 0)
-                    {
-                        ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
-                        ImGui.TextUnformatted($"PF: g={pfNode.GScore:f3}, h={pfNode.HScore:f3}, g+h={pfNode.GScore + pfNode.HScore:f3}, parent={pfNode.ParentX}x{pfNode.ParentY}, index={pfNode.OpenHeapIndex}, leeway={pfNode.PathLeeway:f3}");
-
-                        pfPathNode = nodeIndex;
-                    }
+                    hoverNode = nodeIndex;
                 }
             }
         }
@@ -118,28 +108,7 @@ public class MapVisualizer
             dl.AddLine(tl + off, tr + off, 0xffffffff, 1);
         }
 
-        // pathfinding
-        ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
-        if (ImGui.Button("Reset pf"))
-            ResetPathfind();
-        ImGui.SameLine();
-        if (ImGui.Button("Step pf"))
-            StepPathfind();
-        ImGui.SameLine();
-        if (ImGui.Button("Run pf"))
-            RunPathfind();
-
-        var pfRes = _pathfind.BestIndex;
-        if (pfRes >= 0)
-        {
-            ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
-            ImGui.TextUnformatted($"Path length: {_pathfind.NodeByIndex(pfRes).GScore:f3} to {_pathfind.CellCenter(pfRes)}");
-        }
-
-        if (pfPathNode == -1)
-            pfPathNode = _pathfind.BestIndex;
-        if (pfPathNode >= 0)
-            DrawPath(dl, tl, pfPathNode);
+        DrawPath(dl, tl, hoverNode >= 0 ? hoverNode : _pathfind.BestIndex);
 
         // shapes
         foreach (var c in Sectors)
@@ -159,7 +128,61 @@ public class MapVisualizer
             dl.AddLine(tl + Map.WorldToGridFrac(l.origin) * ScreenPixelSize, tl + Map.WorldToGridFrac(l.dest) * ScreenPixelSize, 0xff0000ff);
         }
 
-        ImGui.SetCursorPos(cursorEnd);
+        ImGui.TableNextColumn();
+
+        if (hoverNode >= 0)
+        {
+            var (x, y) = Map.IndexToGrid(hoverNode);
+            var wpos = Map.GridToWorld(x, y, 0.5f, 0.5f);
+            var pix = Map[x, y];
+            if (pix.MaxG < float.MaxValue)
+            {
+                ImGui.TextUnformatted($"Pixel at {x}x{y} ({wpos}): blocked, g={pix.MaxG:f3}");
+            }
+            else if (pix.Priority != 0)
+            {
+                ImGui.TextUnformatted($"Pixel at {x}x{y} ({wpos}): goal, prio={pix.Priority}");
+            }
+            else
+            {
+                ImGui.TextUnformatted($"Pixel at {x}x{y} ({wpos}): normal");
+            }
+
+            ref var pfNode = ref _pathfind.NodeByIndex(hoverNode);
+            if (pfNode.OpenHeapIndex != 0)
+            {
+                ImGui.TextUnformatted($"PF: g={pfNode.GScore:f3}, h={pfNode.HScore:f3}, g+h={pfNode.GScore + pfNode.HScore:f3}, parent={pfNode.ParentX}x{pfNode.ParentY}, index={pfNode.OpenHeapIndex}, leeway={pfNode.PathLeeway}");
+
+                //if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                //    ;
+
+                ref var pfParent = ref _pathfind.NodeByIndex(Map.GridToIndex(pfNode.ParentX, pfNode.ParentY));
+                var grandParentIndex = Map.GridToIndex(pfParent.ParentX, pfParent.ParentY);
+                var losLeeway = _pathfind.LineOfSight(pfParent.ParentX, pfParent.ParentY, _pathfind.NodeByIndex(grandParentIndex).EnterOffset, x, y, pfNode.EnterOffset, out var grandParentDist);
+                ImGui.TextUnformatted($"PF: grandparent={pfParent.ParentX}x{pfParent.ParentY}, dist={grandParentDist}, losLeeway={losLeeway}");
+            }
+        }
+
+        // pathfinding
+        if (ImGui.Button("Reset pf"))
+            ResetPathfind();
+        ImGui.SameLine();
+        if (ImGui.Button("Step pf"))
+            StepPathfind();
+        ImGui.SameLine();
+        if (ImGui.Button("Run pf"))
+            RunPathfind();
+
+        var pfRes = _pathfind.BestIndex;
+        if (pfRes >= 0)
+        {
+            ref var node = ref _pathfind.NodeByIndex(pfRes);
+            ImGui.TextUnformatted($"Path length: {node.GScore:f3} to {_pathfind.CellCenter(pfRes)}, leeway={node.PathLeeway}");
+        }
+
+        using (var n = ImRaii.TreeNode("Waypoints"))
+            if (n)
+                DrawWaypoints(hoverNode >= 0 ? hoverNode : _pathfind.BestIndex);
     }
 
     public void StepPathfind() => _pathfind.ExecuteStep();
@@ -192,24 +215,51 @@ public class MapVisualizer
         if (startingIndex < 0)
             return;
 
-        int from = startingIndex;
-        int x1 = startingIndex % Map.Width;
-        int y1 = startingIndex / Map.Width;
-        int x2 = _pathfind.NodeByIndex(from).ParentX;
-        int y2 = _pathfind.NodeByIndex(from).ParentY;
+        ref var startingNode = ref _pathfind.NodeByIndex(startingIndex);
+        if (startingNode.OpenHeapIndex == 0)
+            return;
+
+        var color = 0xffffff00;
+        var (x1, y1) = Map.IndexToGrid(startingIndex);
+        int x2 = startingNode.ParentX;
+        int y2 = startingNode.ParentY;
         while (x1 != x2 || y1 != y2)
         {
-            var to = y2 * Map.Width + x2;
-            var off1 = _pathfind.NodeByIndex(from).EnterOffset;
+            var to = Map.GridToIndex(x2, y2);
+            var off1 = _pathfind.NodeByIndex(startingIndex).EnterOffset;
             var off2 = _pathfind.NodeByIndex(to).EnterOffset;
-            dl.AddLine(tl + new Vector2(x1 + 0.5f + off1.X, y1 + 0.5f + off1.Y) * ScreenPixelSize, tl + new Vector2(x2 + 0.5f + off2.X, y2 + 0.5f + off2.Y) * ScreenPixelSize, 0xffff00ff, 2);
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + Map.Width * ScreenPixelSize + 10);
-            ImGui.TextUnformatted($"Waypoint: {Map.GridToWorld(x1, y1, off1.X + 0.5f, off1.Y + 0.5f)}");
+            dl.AddLine(tl + new Vector2(x1 + 0.5f + off1.X, y1 + 0.5f + off1.Y) * ScreenPixelSize, tl + new Vector2(x2 + 0.5f + off2.X, y2 + 0.5f + off2.Y) * ScreenPixelSize, color, 2);
             x1 = x2;
             y1 = y2;
-            from = to;
-            x2 = _pathfind.NodeByIndex(from).ParentX;
-            y2 = _pathfind.NodeByIndex(from).ParentY;
+            startingIndex = to;
+            color = 0xffff00ff;
+            x2 = _pathfind.NodeByIndex(startingIndex).ParentX;
+            y2 = _pathfind.NodeByIndex(startingIndex).ParentY;
+        }
+    }
+
+    private void DrawWaypoints(int startingIndex)
+    {
+        if (startingIndex < 0)
+            return;
+
+        ref var startingNode = ref _pathfind.NodeByIndex(startingIndex);
+        if (startingNode.OpenHeapIndex == 0)
+            return;
+
+        var (x1, y1) = Map.IndexToGrid(startingIndex);
+        int x2 = startingNode.ParentX;
+        int y2 = startingNode.ParentY;
+        while (x1 != x2 || y1 != y2)
+        {
+            var to = Map.GridToIndex(x2, y2);
+            var off1 = _pathfind.NodeByIndex(startingIndex).EnterOffset;
+            using var node = ImRaii.TreeNode($"Waypoint: {Map.GridToWorld(x1, y1, off1.X + 0.5f, off1.Y + 0.5f)}", ImGuiTreeNodeFlags.Leaf);
+            x1 = x2;
+            y1 = y2;
+            startingIndex = to;
+            x2 = _pathfind.NodeByIndex(startingIndex).ParentX;
+            y2 = _pathfind.NodeByIndex(startingIndex).ParentY;
         }
     }
 
