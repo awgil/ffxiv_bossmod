@@ -79,13 +79,13 @@ public class ThetaStar
 
         var startOff = _nodes[nextNodeIndex].EnterOffset;
         if (nextNodeY > 0)
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY - 1, nextNodeIndex - _map.Width, new(startOff.X, +MaxNeighbourOffset), CenterToNeighbour + startOff.Y);
+            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY - 1, nextNodeIndex - _map.Width, CenterToNeighbour + startOff.Y);
         if (nextNodeX > 0)
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY, nextNodeIndex - 1, new(+MaxNeighbourOffset, startOff.Y), CenterToNeighbour + startOff.X);
+            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY, nextNodeIndex - 1, CenterToNeighbour + startOff.X);
         if (nextNodeX < _map.Width - 1)
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY, nextNodeIndex + 1, new(-MaxNeighbourOffset, startOff.Y), CenterToNeighbour - startOff.X);
+            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY, nextNodeIndex + 1, CenterToNeighbour - startOff.X);
         if (nextNodeY < _map.Height - 1)
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY + 1, nextNodeIndex + _map.Width, new(startOff.X, -MaxNeighbourOffset), CenterToNeighbour - startOff.Y);
+            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY + 1, nextNodeIndex + _map.Width, CenterToNeighbour - startOff.Y);
         return true;
     }
 
@@ -97,7 +97,7 @@ public class ThetaStar
     }
 
     // if node is the best we can hope to reach
-    public bool IsVeryGood(int nodeIndex) => false;// _map.Pixels[nodeIndex] == new Map.Pixel(float.MaxValue, _map.MaxPriority);
+    public bool IsVeryGood(int nodeIndex) => _map.Pixels[nodeIndex] == new Map.Pixel(float.MaxValue, _map.MaxPriority);
 
     public bool IsLeftBetter(ref Node nodeL, ref Map.Pixel pixL, ref Node nodeR, ref Map.Pixel pixR)
     {
@@ -125,17 +125,24 @@ public class ThetaStar
         if (semiSafeL != semiSafeR)
             return semiSafeL; // semi-safe (no immediate risk) is better than path going through danger
 
-        var gtfoL = pixL.MaxG == float.MaxValue;
-        var gtfoR = pixR.MaxG == float.MaxValue;
-        if (gtfoL != gtfoR)
-            return gtfoL; // unsafe but ultimately leading to safety is better than dying
+        var ultimatelySafeL = pixL.MaxG == float.MaxValue;
+        var ultimatelySafeR = pixR.MaxG == float.MaxValue;
+        if (ultimatelySafeL != ultimatelySafeR)
+            return ultimatelySafeL; // unsafe but ultimately leading to safety is better than dying
 
         // TODO: should we use leeway here or distance?..
         //return nodeL.PathLeeway > nodeR.PathLeeway;
         return IsLeftCloserToTarget(ref nodeL, ref nodeR);
     }
 
-    public float LineOfSight(int x1, int y1, Vector2 off1, int x2, int y2, Vector2 off2, out float length)
+    public Vector2 CalculateEnterOffset(int fromX, int fromY, Vector2 fromOff, int toX, int toY)
+    {
+        var x = fromX == toX ? fromOff.X : fromX < toX ? -MaxNeighbourOffset : +MaxNeighbourOffset;
+        var y = fromY == toY ? fromOff.Y : fromY < toY ? -MaxNeighbourOffset : +MaxNeighbourOffset;
+        return new(x, y);
+    }
+
+    public float LineOfSight(int x1, int y1, Vector2 off1, int x2, int y2, out Vector2 off2, out float length)
     {
         float minLeeway = float.MaxValue;
         int dx = x2 - x1;
@@ -145,6 +152,7 @@ public class ThetaStar
         var hsx = 0.5f * sx;
         var hsy = 0.5f * sy;
 
+        off2 = CalculateEnterOffset(x1, y1, off1, x2, y2);
         var ab = new Vector2(dx + off2.X - off1.X, dy + off2.Y - off1.Y);
         length = ab.Length();
         if (length < 0.01f)
@@ -189,7 +197,7 @@ public class ThetaStar
         return minLeeway;
     }
 
-    private void VisitNeighbour(int parentX, int parentY, int parentIndex, int nodeX, int nodeY, int nodeIndex, Vector2 enterOffset, float deltaGrid)
+    private void VisitNeighbour(int parentX, int parentY, int parentIndex, int nodeX, int nodeY, int nodeIndex, float deltaGrid)
     {
         ref var destNode = ref _nodes[nodeIndex];
         if (destNode.OpenHeapIndex < 0 && destNode.PathLeeway > 0)
@@ -207,7 +215,7 @@ public class ThetaStar
             ParentX = parentX,
             ParentY = parentY,
             OpenHeapIndex = destNode.OpenHeapIndex,
-            EnterOffset = enterOffset
+            EnterOffset = CalculateEnterOffset(parentX, parentY, _nodes[parentIndex].EnterOffset, nodeX, nodeY),
         };
         altNode.PathLeeway = MathF.Min(_nodes[parentIndex].PathLeeway, destPix.MaxG - altNode.GScore);
         //if (_nodes[parentIndex].PathLeeway > 0 && nodeLeeway <= 0)
@@ -217,17 +225,21 @@ public class ThetaStar
         int grandParentX = _nodes[parentIndex].ParentX;
         int grandParentY = _nodes[parentIndex].ParentY;
         var grandParentIndex = _map.GridToIndex(grandParentX, grandParentY);
-        var losLeeway = LineOfSight(grandParentX, grandParentY, _nodes[grandParentIndex].EnterOffset, nodeX, nodeY, enterOffset, out var grandParentDist);
-        losLeeway = MathF.Min(_nodes[grandParentIndex].PathLeeway, losLeeway);
-        if (losLeeway >= altNode.PathLeeway)
+        //if (_nodes[grandParentIndex].PathMinG >= _nodes[parentIndex].PathMinG)
         {
-            parentIndex = grandParentIndex;
-            altNode.GScore = _nodes[parentIndex].GScore + _deltaGSide * grandParentDist;
-            altNode.ParentX = grandParentX;
-            altNode.ParentY = grandParentY;
-            altNode.PathLeeway = losLeeway;
+            var losLeeway = LineOfSight(grandParentX, grandParentY, _nodes[grandParentIndex].EnterOffset, nodeX, nodeY, out var grandParentOffset, out var grandParentDist);
+            losLeeway = MathF.Min(_nodes[grandParentIndex].PathLeeway, losLeeway);
+            if (losLeeway >= altNode.PathLeeway)
+            {
+                parentIndex = grandParentIndex;
+                altNode.GScore = _nodes[parentIndex].GScore + _deltaGSide * grandParentDist;
+                altNode.ParentX = grandParentX;
+                altNode.ParentY = grandParentY;
+                altNode.PathLeeway = losLeeway;
+                altNode.EnterOffset = grandParentOffset;
+            }
         }
-        altNode.PathMinG = MathF.Min(_map.Pixels[parentIndex].MaxG, destPix.MaxG);
+        altNode.PathMinG = MathF.Min(_nodes[parentIndex].PathMinG, destPix.MaxG);
 
         //if (destNode.OpenHeapIndex < 0 && destNode.PathLeeway >= nodeLeeway)
         //    return; // node was already visited before, old path was bad, but new path is even worse

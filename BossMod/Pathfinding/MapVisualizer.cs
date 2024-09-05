@@ -151,15 +151,17 @@ public class MapVisualizer
             ref var pfNode = ref _pathfind.NodeByIndex(hoverNode);
             if (pfNode.OpenHeapIndex != 0)
             {
-                ImGui.TextUnformatted($"PF: g={pfNode.GScore:f3}, h={pfNode.HScore:f3}, g+h={pfNode.GScore + pfNode.HScore:f3}, parent={pfNode.ParentX}x{pfNode.ParentY}, index={pfNode.OpenHeapIndex}, leeway={pfNode.PathLeeway}");
+                ImGui.TextUnformatted($"PF: g={pfNode.GScore:f3}, h={pfNode.HScore:f3}, g+h={pfNode.GScore + pfNode.HScore:f3}, parent={pfNode.ParentX}x{pfNode.ParentY}, index={pfNode.OpenHeapIndex}, leeway={pfNode.PathLeeway}, off={pfNode.EnterOffset}");
 
                 //if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                //    ;
+                //{
+                //    var res = _pathfind.IsLeftBetter(ref _pathfind.NodeByIndex(hoverNode), ref Map.Pixels[hoverNode], ref _pathfind.NodeByIndex(_pathfind.BestIndex), ref Map.Pixels[_pathfind.BestIndex]);
+                //}
 
                 ref var pfParent = ref _pathfind.NodeByIndex(Map.GridToIndex(pfNode.ParentX, pfNode.ParentY));
                 var grandParentIndex = Map.GridToIndex(pfParent.ParentX, pfParent.ParentY);
-                var losLeeway = _pathfind.LineOfSight(pfParent.ParentX, pfParent.ParentY, _pathfind.NodeByIndex(grandParentIndex).EnterOffset, x, y, pfNode.EnterOffset, out var grandParentDist);
-                ImGui.TextUnformatted($"PF: grandparent={pfParent.ParentX}x{pfParent.ParentY}, dist={grandParentDist}, losLeeway={losLeeway}");
+                var losLeeway = _pathfind.LineOfSight(pfParent.ParentX, pfParent.ParentY, _pathfind.NodeByIndex(grandParentIndex).EnterOffset, x, y, out var grandParentOffset, out var grandParentDist);
+                ImGui.TextUnformatted($"PF: grandparent={pfParent.ParentX}x{pfParent.ParentY}, dist={grandParentDist}, losLeeway={losLeeway}, off={grandParentOffset}");
             }
         }
 
@@ -253,8 +255,9 @@ public class MapVisualizer
         while (x1 != x2 || y1 != y2)
         {
             var to = Map.GridToIndex(x2, y2);
-            var off1 = _pathfind.NodeByIndex(startingIndex).EnterOffset;
-            using var node = ImRaii.TreeNode($"Waypoint: {Map.GridToWorld(x1, y1, off1.X + 0.5f, off1.Y + 0.5f)}", ImGuiTreeNodeFlags.Leaf);
+            ref var node = ref _pathfind.NodeByIndex(startingIndex);
+            var off1 = node.EnterOffset;
+            using var n = ImRaii.TreeNode($"Waypoint: {x1}x{y1} ({Map.GridToWorld(x1, y1, off1.X + 0.5f, off1.Y + 0.5f)}), minG={node.PathMinG}, leeway={node.PathLeeway}", ImGuiTreeNodeFlags.Leaf);
             x1 = x2;
             y1 = y2;
             startingIndex = to;
