@@ -17,6 +17,9 @@ public class BossModuleConfig : ConfigNode
     public bool ShowDemo = false;
 
     // radar window settings
+    [PropertyDisplay("Enable radar")]
+    public bool Enable = true;
+
     [PropertyDisplay("Lock radar and hint window movement and mouse interaction")]
     public bool Lock = false;
 
