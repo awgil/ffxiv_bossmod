@@ -55,6 +55,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private readonly CooldownDelayTweak _cooldownTweak = new();
     private readonly RestoreRotationTweak _restoreRotTweak = new();
     private readonly CancelCastTweak _cancelCastTweak;
+    private readonly AutoDismountTweak _dismountTweak;
 
     private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
     private readonly HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
@@ -73,6 +74,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _movement = movement;
         _manualQueue = new(ws, hints);
         _cancelCastTweak = new(ws);
+        _dismountTweak = new(ws);
 
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
         _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
@@ -279,7 +281,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         // check whether movement is safe; block movement if not and if desired
         MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
         MoveMightInterruptCast |= imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f; // if we're not casting, but will start soon, moving might interrupt future cast
-        bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast;
+        bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast && _ws.Party.Player()?.MountId == 0;
 
         // restore rotation logic; note that movement abilities (like charge) can take multiple frames until they allow changing facing
         var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
@@ -301,6 +303,11 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
                 var res = ExecuteAction(actionAdj, targetID, AutoQueue.TargetPos);
                 //Service.Log($"[AMEx] Auto-execute {AutoQueue.Source} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(AutoQueue.TargetPos)} => {res}");
+            }
+            else if (_dismountTweak.IsMountPreventingAction(actionAdj))
+            {
+                Service.Log("[AMEx] Trying to dismount...");
+                _useActionHook.Original(_inst, CSActionType.Action, 4, 0xE0000000, 0, ActionManager.UseActionMode.None, 0, null);
             }
             else
             {
