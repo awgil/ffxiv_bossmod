@@ -9,8 +9,11 @@ public class ThetaStar
         public int ParentX;
         public int ParentY;
         public int OpenHeapIndex; // -1 if in closed list, 0 if not in any lists, otherwise (index+1)
-        public float PathLeeway;
+        public float PathLeeway; // min diff along path between node's g-value and cell's g-value
+        public float PathMinG; // minimum 'max g' value along path
         public Vector2 EnterOffset; // from cell center; up to +-0.5
+
+        public readonly float FScore => GScore + HScore;
     }
 
     private Map _map = new();
@@ -19,6 +22,7 @@ public class ThetaStar
     private Node[] _nodes = [];
     private readonly List<int> _openList = [];
     private float _deltaGSide;
+    private float _startMaxG;
 
     public int BestIndex { get; private set; }
 
@@ -48,13 +52,15 @@ public class ThetaStar
         int startIndex = BestIndex = _map.GridToIndex(start.x, start.y);
         startFrac.X -= start.x + 0.5f;
         startFrac.Y -= start.y + 0.5f;
+        _startMaxG = _map.Pixels[startIndex].MaxG;
         _nodes[startIndex] = new()
         {
             GScore = 0,
             HScore = HeuristicDistance(start.x, start.y),
             ParentX = start.x, // start's parent is self
             ParentY = start.y,
-            PathLeeway = _map.Pixels[startIndex].MaxG, // min diff along path between node's g-value and cell's g-value
+            PathLeeway = _startMaxG,
+            PathMinG = _startMaxG,
             EnterOffset = startFrac,
         };
         AddToOpen(startIndex);
@@ -68,7 +74,7 @@ public class ThetaStar
 
         int nextNodeIndex = PopMinOpen();
         var (nextNodeX, nextNodeY) = _map.IndexToGrid(nextNodeIndex);
-        if (IsBetter(nextNodeIndex, BestIndex))
+        if (HeapLess(nextNodeIndex, BestIndex))
             BestIndex = nextNodeIndex;
 
         var startOff = _nodes[nextNodeIndex].EnterOffset;
@@ -91,39 +97,42 @@ public class ThetaStar
     }
 
     // if node is the best we can hope to reach
-    public bool IsVeryGood(int nodeIndex) => _map.Pixels[nodeIndex] == new Map.Pixel(float.MaxValue, _map.MaxPriority);
+    public bool IsVeryGood(int nodeIndex) => false;// _map.Pixels[nodeIndex] == new Map.Pixel(float.MaxValue, _map.MaxPriority);
 
-    public bool IsBetter(int nodeIndex, int compIndex)
+    public bool IsLeftBetter(ref Node nodeL, ref Map.Pixel pixL, ref Node nodeR, ref Map.Pixel pixR)
     {
-        ref var testNode = ref _nodes[nodeIndex];
-        ref var compNode = ref _nodes[compIndex];
-        ref var testPix = ref _map.Pixels[nodeIndex];
-        ref var compPix = ref _map.Pixels[compIndex];
+        var safeL = pixL.MaxG == float.MaxValue && nodeL.PathLeeway > 0;
+        var safeR = pixR.MaxG == float.MaxValue && nodeR.PathLeeway > 0;
+        if (safeL != safeR)
+            return safeL; // safe is always better than unsafe
 
-        var testSafe = testPix.MaxG == float.MaxValue && testNode.PathLeeway > 0;
-        var compSafe = compPix.MaxG == float.MaxValue && compNode.PathLeeway > 0;
-        if (testSafe != compSafe)
-            return testSafe; // safe is always better than unsafe
-
-        if (testSafe)
+        if (safeL)
         {
-            return testPix.Priority != compPix.Priority
-                ? testPix.Priority > compPix.Priority // higher prio is better
-                : testNode.GScore + testNode.HScore < compNode.GScore + compNode.HScore; // TODO: use max-leeway as tiebreaker instead?..
+            if (pixL.Priority != pixR.Priority)
+                return pixL.Priority > pixR.Priority; // higher prio is better
+
+            // TODO: use max-leeway instead?..
+            return IsLeftCloserToTarget(ref nodeL, ref nodeR);
         }
 
-        var testSemiSafe = testNode.PathLeeway > 0;
-        var compSemiSafe = compNode.PathLeeway > 0;
-        if (testSemiSafe != compSemiSafe)
-            return testSemiSafe; // semi-safe (no immediate risk) is always better than path going through danger
+        var improveL = pixL.MaxG > _startMaxG && nodeL.PathMinG <= _startMaxG;
+        var improveR = pixR.MaxG > _startMaxG && nodeR.PathMinG <= _startMaxG;
+        if (improveL != improveR)
+            return improveL; // node that improves initial state (leaves some danger zone without entering even more dangerous ones) is better than a node that doesn't
 
-        var testGtfo = testPix.MaxG == float.MaxValue;
-        var compGtfo = compPix.MaxG == float.MaxValue;
-        if (testGtfo != compGtfo)
-            return testGtfo; // unsafe but ultimately leading to safety is better than dying
+        var semiSafeL = nodeL.PathLeeway > 0;
+        var semiSafeR = nodeR.PathLeeway > 0;
+        if (semiSafeL != semiSafeR)
+            return semiSafeL; // semi-safe (no immediate risk) is better than path going through danger
 
-        // both for semi-safe and dangerous paths max leeway is most important
-        return testNode.PathLeeway > compNode.PathLeeway;
+        var gtfoL = pixL.MaxG == float.MaxValue;
+        var gtfoR = pixR.MaxG == float.MaxValue;
+        if (gtfoL != gtfoR)
+            return gtfoL; // unsafe but ultimately leading to safety is better than dying
+
+        // TODO: should we use leeway here or distance?..
+        //return nodeL.PathLeeway > nodeR.PathLeeway;
+        return IsLeftCloserToTarget(ref nodeL, ref nodeR);
     }
 
     public float LineOfSight(int x1, int y1, Vector2 off1, int x2, int y2, Vector2 off2, out float length)
@@ -186,11 +195,23 @@ public class ThetaStar
         if (destNode.OpenHeapIndex < 0 && destNode.PathLeeway > 0)
             return; // in closed list already, and the previous path was decent - TODO: is it possible to visit again with lower cost?..
 
-        var nodeG = _nodes[parentIndex].GScore + _deltaGSide * deltaGrid;
-        var nodeLeeway = _map.Pixels[nodeIndex].MaxG - nodeG; // note: we visit the node even if it's blocked (eg we might be moving outside imminent aoe)
-        nodeLeeway = MathF.Min(_nodes[parentIndex].PathLeeway, nodeLeeway);
-        if (_nodes[parentIndex].PathLeeway > 0 && nodeLeeway <= 0)
-            return; // don't try to enter danger from safety
+        if (destNode.OpenHeapIndex == 0)
+            destNode.HScore = HeuristicDistance(nodeX, nodeY); // if this is the first time we visit this node, initialize h-score, we're going to add it to open list
+
+        // note: we may visit the node even if it's blocked (eg we might be moving outside imminent aoe)
+        ref var destPix = ref _map.Pixels[nodeIndex];
+        var altNode = new Node()
+        {
+            GScore = _nodes[parentIndex].GScore + _deltaGSide * deltaGrid,
+            HScore = destNode.HScore,
+            ParentX = parentX,
+            ParentY = parentY,
+            OpenHeapIndex = destNode.OpenHeapIndex,
+            EnterOffset = enterOffset
+        };
+        altNode.PathLeeway = MathF.Min(_nodes[parentIndex].PathLeeway, destPix.MaxG - altNode.GScore);
+        //if (_nodes[parentIndex].PathLeeway > 0 && nodeLeeway <= 0)
+        //    return; // don't try to enter danger from safety
 
         // check LoS from grandparent
         int grandParentX = _nodes[parentIndex].ParentX;
@@ -198,44 +219,29 @@ public class ThetaStar
         var grandParentIndex = _map.GridToIndex(grandParentX, grandParentY);
         var losLeeway = LineOfSight(grandParentX, grandParentY, _nodes[grandParentIndex].EnterOffset, nodeX, nodeY, enterOffset, out var grandParentDist);
         losLeeway = MathF.Min(_nodes[grandParentIndex].PathLeeway, losLeeway);
-        if (losLeeway >= nodeLeeway)
+        if (losLeeway >= altNode.PathLeeway)
         {
-            parentX = grandParentX;
-            parentY = grandParentY;
             parentIndex = grandParentIndex;
-            nodeG = _nodes[parentIndex].GScore + _deltaGSide * grandParentDist;
-            nodeLeeway = losLeeway;
+            altNode.GScore = _nodes[parentIndex].GScore + _deltaGSide * grandParentDist;
+            altNode.ParentX = grandParentX;
+            altNode.ParentY = grandParentY;
+            altNode.PathLeeway = losLeeway;
         }
+        altNode.PathMinG = MathF.Min(_map.Pixels[parentIndex].MaxG, destPix.MaxG);
 
-        if (destNode.OpenHeapIndex < 0 && destNode.PathLeeway >= nodeLeeway)
-            return; // node was already visited before, old path was bad, but new path is even worse
-        if (destNode.OpenHeapIndex > 0 && destNode.PathLeeway > 0 && nodeLeeway <= 0)
-            return; // node is already in scheduled for visit with a reasonable path, and new path is bad (even if it's shorter)
+        //if (destNode.OpenHeapIndex < 0 && destNode.PathLeeway >= nodeLeeway)
+        //    return; // node was already visited before, old path was bad, but new path is even worse
+        //if (destNode.OpenHeapIndex > 0 && destNode.PathLeeway > 0 && nodeLeeway <= 0)
+        //    return; // node is already in scheduled for visit with a reasonable path, and new path is bad (even if it's shorter)
 
-        if (destNode.OpenHeapIndex <= 0 || nodeG + 0.00001f < destNode.GScore)
+        if (destNode.OpenHeapIndex == 0 || IsLeftBetter(ref altNode, ref destPix, ref destNode, ref destPix))
         {
-            destNode.GScore = nodeG;
-            destNode.HScore = HeuristicDistance(nodeX, nodeY);
-            destNode.ParentX = parentX;
-            destNode.ParentY = parentY;
-            destNode.PathLeeway = nodeLeeway;
-            destNode.EnterOffset = enterOffset;
+            destNode = altNode;
             AddToOpen(nodeIndex);
-        }
-        else if (destNode.OpenHeapIndex > 0 && destNode.PathLeeway <= 0 && nodeLeeway > destNode.PathLeeway)
-        {
-            // we have a worse path, but with better leeway
-            destNode.GScore = nodeG;
-            destNode.HScore = HeuristicDistance(nodeX, nodeY);
-            destNode.ParentX = parentX;
-            destNode.ParentY = parentY;
-            destNode.PathLeeway = nodeLeeway;
-            destNode.EnterOffset = enterOffset;
-            PercolateDown(destNode.OpenHeapIndex - 1);
         }
     }
 
-    private float HeuristicDistance(int x, int y) => Math.Max(0, (_map.GridToWorld(x, y, 0.5f, 0.5f) - _goalPos).Length() - _goalRadius);
+    private float HeuristicDistance(int x, int y) => 0;// Math.Max(0, (_map.GridToWorld(x, y, 0.5f, 0.5f) - _goalPos).Length() - _goalRadius);
 
     private void AddToOpen(int nodeIndex)
     {
@@ -316,12 +322,10 @@ public class ThetaStar
         _nodes[nodeIndex].OpenHeapIndex = heapIndex + 1;
     }
 
-    private bool HeapLess(int nodeIndexLeft, int nodeIndexRight)
+    private bool IsLeftCloserToTarget(ref Node nodeL, ref Node nodeR)
     {
-        ref var nodeL = ref _nodes[nodeIndexLeft];
-        ref var nodeR = ref _nodes[nodeIndexRight];
-        var fl = nodeL.GScore + nodeL.HScore;
-        var fr = nodeR.GScore + nodeR.HScore;
+        var fl = nodeL.FScore;
+        var fr = nodeR.FScore;
         if (fl + 0.00001f < fr)
             return true;
         else if (fr + 0.00001f < fl)
@@ -329,4 +333,6 @@ public class ThetaStar
         else
             return nodeL.GScore > nodeR.GScore; // tie-break towards larger g-values
     }
+
+    private bool HeapLess(int nodeIndexLeft, int nodeIndexRight) => IsLeftBetter(ref _nodes[nodeIndexLeft], ref _map.Pixels[nodeIndexLeft], ref _nodes[nodeIndexRight], ref _map.Pixels[nodeIndexRight]);
 }

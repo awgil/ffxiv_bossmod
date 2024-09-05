@@ -9,7 +9,7 @@ public class MapVisualizer
     public WPos StartPos;
     public WPos GoalPos;
     public float GoalRadius;
-    public float ScreenPixelSize = 20;
+    public float ScreenPixelSize = 12;
     public List<(WPos center, float ir, float or, Angle dir, Angle halfWidth)> Sectors = [];
     public List<(WPos origin, float lenF, float lenB, float halfWidth, Angle dir)> Rects = [];
     public List<(WPos origin, WPos dest)> Lines = [];
