@@ -18,7 +18,7 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Troubadour).As<TroubOption>("Troubadour", "Troub", 500)
             .AddOption(TroubOption.Use87, "Use", "Use Troubadour", 120, 15, ActionTargets.Self, 62, 87)
-            .AddOption(TroubOption.Use88, "Use", "Use Troubadour", 90, 15, ActionTargets.Self, 88)
+            .AddOption(TroubOption.Use88, "Use88", "Use Troubadour", 90, 15, ActionTargets.Self, 88)
             .AddOption(TroubOption.DontUse, "None", "Do not use automatically")
             .AddAssociatedActions(BRD.AID.Troubadour);
 

@@ -19,7 +19,7 @@ public sealed class ClassMCHUtility(RotationModuleManager manager, Actor player)
         // Add track for Tactician: 15s long, 15% player damage received reduction
         res.Define(Track.Tactician).As<TactOption>("Tactician", "Tact", 400)
             .AddOption(TactOption.Use87, "Use", "Use Tactician", 120, 15, ActionTargets.Self, 56, 87)
-            .AddOption(TactOption.Use88, "Use", "Use Tactician", 90, 15, ActionTargets.Self, 88)
+            .AddOption(TactOption.Use88, "Use88", "Use Tactician", 90, 15, ActionTargets.Self, 88)
             .AddOption(TactOption.DontUse, "None", "Do not use automatically")
             .AddAssociatedActions(MCH.AID.Tactician);
 
