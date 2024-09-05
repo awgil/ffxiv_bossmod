@@ -88,9 +88,14 @@ public sealed class ConfigUI : IDisposable
                 continue;
 
             var value = field.GetValue(node);
-            if (DrawProperty(props.Label, props.Tooltip, props.Separator, node, field, value, root, tree, ws))
+            if (DrawProperty(props.Label, props.Tooltip, node, field, value, root, tree, ws))
             {
                 node.Modified.Fire();
+            }
+
+            if (props.Separator)
+            {
+                ImGui.Separator();
             }
         }
 
@@ -134,27 +139,19 @@ public sealed class ConfigUI : IDisposable
         ImGui.SetCursorPosY(cursor);
     }
 
-    private static void DrawSeparator(bool separator)
+    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, object? value, ConfigRoot root, UITree tree, WorldState ws) => value switch
     {
-        if (separator)
-        {
-            ImGui.Separator();
-        }
-    }
-
-    private static bool DrawProperty(string label, string tooltip, bool separator, ConfigNode node, FieldInfo member, object? value, ConfigRoot root, UITree tree, WorldState ws) => value switch
-    {
-        bool v => DrawProperty(label, tooltip, separator, node, member, v),
-        Enum v => DrawProperty(label, tooltip, separator, node, member, v),
-        float v => DrawProperty(label, tooltip, separator, node, member, v),
-        int v => DrawProperty(label, tooltip, separator, node, member, v),
-        Color v => DrawProperty(label, tooltip, separator, node, member, v),
-        Color[] v => DrawProperty(label, tooltip, separator, node, member, v),
-        GroupAssignment v => DrawProperty(label, tooltip, separator, node, member, v, root, tree, ws),
+        bool v => DrawProperty(label, tooltip, node, member, v),
+        Enum v => DrawProperty(label, tooltip, node, member, v),
+        float v => DrawProperty(label, tooltip, node, member, v),
+        int v => DrawProperty(label, tooltip, node, member, v),
+        Color v => DrawProperty(label, tooltip, node, member, v),
+        Color[] v => DrawProperty(label, tooltip, node, member, v),
+        GroupAssignment v => DrawProperty(label, tooltip, node, member, v, root, tree, ws),
         _ => false
     };
 
-    private static bool DrawProperty(string label, string tooltip, bool separator, ConfigNode node, FieldInfo member, bool v)
+    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, bool v)
     {
         DrawHelp(tooltip);
         var combo = member.GetCustomAttribute<PropertyComboAttribute>();
@@ -174,11 +171,10 @@ public sealed class ConfigUI : IDisposable
                 return true;
             }
         }
-        DrawSeparator(separator);
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, bool separator, ConfigNode node, FieldInfo member, Enum v)
+    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, Enum v)
     {
         DrawHelp(tooltip);
         if (UICombo.Enum(label, ref v))
@@ -186,11 +182,10 @@ public sealed class ConfigUI : IDisposable
             member.SetValue(node, v);
             return true;
         }
-        DrawSeparator(separator);
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, bool separator, ConfigNode node, FieldInfo member, float v)
+    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, float v)
     {
         DrawHelp(tooltip);
         var slider = member.GetCustomAttribute<PropertySliderAttribute>();
@@ -213,11 +208,10 @@ public sealed class ConfigUI : IDisposable
                 return true;
             }
         }
-        DrawSeparator(separator);
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, bool separator, ConfigNode node, FieldInfo member, int v)
+    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, int v)
     {
         DrawHelp(tooltip);
         var slider = member.GetCustomAttribute<PropertySliderAttribute>();
@@ -240,11 +234,10 @@ public sealed class ConfigUI : IDisposable
                 return true;
             }
         }
-        DrawSeparator(separator);
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, bool separator, ConfigNode node, FieldInfo member, Color v)
+    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, Color v)
     {
         DrawHelp(tooltip);
         var col = v.ToFloat4();
@@ -253,11 +246,10 @@ public sealed class ConfigUI : IDisposable
             member.SetValue(node, Color.FromFloat4(col));
             return true;
         }
-        DrawSeparator(separator);
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, bool separator, ConfigNode node, FieldInfo member, Color[] v)
+    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, Color[] v)
     {
         var modified = false;
         for (int i = 0; i < v.Length; ++i)
@@ -271,11 +263,10 @@ public sealed class ConfigUI : IDisposable
                 modified = true;
             }
         }
-        DrawSeparator(separator);
         return modified;
     }
 
-    private static bool DrawProperty(string label, string tooltip, bool separator, ConfigNode node, FieldInfo member, GroupAssignment v, ConfigRoot root, UITree tree, WorldState ws)
+    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, GroupAssignment v, ConfigRoot root, UITree tree, WorldState ws)
     {
         var group = member.GetCustomAttribute<GroupDetailsAttribute>();
         if (group == null)
@@ -322,7 +313,6 @@ public sealed class ConfigUI : IDisposable
                 ImGui.TextUnformatted(name);
             }
         }
-        DrawSeparator(separator);
         return modified;
     }
 
