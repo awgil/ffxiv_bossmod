@@ -26,6 +26,7 @@ public enum AID : uint
     SledgehammerLast = 39260, // Boss->self, no cast, range 60 width 8 rect
     ArcaneStomp = 36319, // Boss->self, 3.0s cast, single-target, visual (spawn buffing spheres)
     ShroudOfEons = 36321, // AuraSphere->player, no cast, single-target, damage up from touching spheres
+    ShroudOfEonsBoss = 36322, // AuraSphere->Boss, no cast, single-target, damage up if sphere reaches boss
     EnduringGlory = 36320, // Boss->self, 6.0s cast, range 60 circle, raidwide after spheres
     WindswrathShort = 36310, // Helper->self, 7.0s cast, range 40 circle, knockback 15
     WindswrathLong = 39074, // Helper->self, 15.0s cast, range 40 circle, knockback 15
@@ -83,8 +84,8 @@ class GreatFlood(BossModule module) : Components.KnockbackFromCastTarget(module,
 
             if (_allfireCasters.Count == 0)
             {
-                // no aoes => everything closer than knockback distance (25) to the wall is unsafe
-                hints.AddForbiddenZone(ShapeDistance.Rect(Arena.Center, s.Direction, 20, 5, 20), s.Activation);
+                // no aoes => everything closer than knockback distance (25) to the wall is unsafe; add an extra margin for safety
+                hints.AddForbiddenZone(ShapeDistance.Rect(Arena.Center, s.Direction, 20, 7, 20), s.Activation);
             }
             else
             {
@@ -144,7 +145,20 @@ class AuraSpheres : Components.PersistentInvertibleVoidzone
 }
 
 class EnduringGlory(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EnduringGlory));
-class BitingWind(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.BitingWind), 10);
+
+class BitingWind(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID.BitingWind))
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // we want to dodge out->in
+        foreach (var t in Sources(Module))
+        {
+            var dir = t.Rotation.ToDirection();
+            var distToCenter = Math.Abs(dir.OrthoL().Dot(t.Position - Module.Center));
+            hints.AddForbiddenZone(ShapeDistance.Capsule(t.Position, dir, distToCenter < 10 ? 40 : 15, 5));
+        }
+    }
+}
 
 class WindswrathShort(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.WindswrathShort), 15)
 {
@@ -153,7 +167,7 @@ class WindswrathShort(BossModule module) : Components.KnockbackFromCastTarget(mo
         foreach (var s in Sources(slot, actor))
         {
             if (!IsImmune(slot, s.Activation))
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(s.Origin, 5), s.Activation);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(s.Origin, 3), s.Activation);
         }
     }
 }
@@ -166,30 +180,22 @@ class WindswrathLong(BossModule module) : Components.KnockbackFromCastTarget(mod
     {
         foreach (var s in Sources(slot, actor))
         {
-            if (IsImmune(slot, s.Activation))
+            if (IsImmune(slot, s.Activation) || (s.Activation - Module.WorldState.CurrentTime).TotalSeconds > 3)
                 continue;
 
-            if ((s.Activation - Module.WorldState.CurrentTime).TotalSeconds > 3)
+            // ok knockback is imminent, calculate precise safe zone
+            List<Func<WPos, float>> funcs = [
+                ShapeDistance.InvertedRect(Module.Center, new WDir(0, 1), 20, 20, 20),
+                .. _tornadoes.Select(t => ShapeDistance.Capsule(t.Position, t.Rotation, 20, 5))
+            ];
+            float combined(WPos p)
             {
-                // just prefer staying near center...
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(s.Origin, 5), s.Activation);
+                var offset = p - s.Origin;
+                offset += offset.Normalized() * s.Distance;
+                var adj = s.Origin + offset;
+                return funcs.Min(f => f(adj)) - 1;
             }
-            else
-            {
-                // ok knockback is imminent, calculate precise safe zone
-                List<Func<WPos, float>> funcs = [
-                    ShapeDistance.InvertedRect(Module.Center, new WDir(0, 1), 20, 20, 20),
-                    .. _tornadoes.Select(t => ShapeDistance.Capsule(t.Position, t.Rotation, 20, 4))
-                ];
-                float combined(WPos p)
-                {
-                    var offset = p - s.Origin;
-                    offset += offset.Normalized() * s.Distance;
-                    var adj = s.Origin + offset;
-                    return funcs.Min(f => f(adj));
-                }
-                hints.AddForbiddenZone(combined, s.Activation);
-            }
+            hints.AddForbiddenZone(combined, s.Activation);
         }
     }
 }
