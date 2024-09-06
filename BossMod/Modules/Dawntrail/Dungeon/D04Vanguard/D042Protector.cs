@@ -80,7 +80,7 @@ class FulminousFence(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var (a, b) in ActiveLines())
-            Arena.AddLine(a, b, ArenaColor.Danger, 2);
+            Arena.AddLine(a, b, ArenaColor.Object, 2);
     }
 
     public override void OnEventEnvControl(byte index, uint state)
@@ -119,6 +119,10 @@ class FulminousFence(BossModule module) : BossComponent(module)
     private WPos ConvertEndpoint(WDir p) => new(Module.Center.X + p.X, Module.Center.Z + p.Z * _curPatternZMult);
 }
 
+class ElectrowhirlFirst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectrowhirlFirst), new AOEShapeCircle(6));
+class ElectrowhirlRest(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectrowhirlRest), new AOEShapeCircle(6));
+class Bombardment(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Bombardment), 5);
+
 // note: never seen ccw rotation, assume it's not possible
 class BatteryCircuit(BossModule module) : Components.GenericRotatingAOE(module)
 {
@@ -128,19 +132,23 @@ class BatteryCircuit(BossModule module) : Components.GenericRotatingAOE(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.BatteryCircuitAOEFirst)
-            Sequences.Add(new(_shape, caster.Position, spell.Rotation, -11.Degrees(), Module.CastFinishAt(spell) - _reducedLeeway, 0.5f, 34, 10));
+            Sequences.Add(new(_shape, caster.Position, spell.Rotation, -11.Degrees(), Module.CastFinishAt(spell) - _reducedLeeway, 0, 34, 10)); // for more reasonable dodge direction, initially set activation delta to 0
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.BatteryCircuitAOEFirst or AID.BatteryCircuitAOERest)
-            AdvanceSequence(caster.Position, caster.Rotation, WorldState.CurrentTime - _reducedLeeway);
+        {
+            var index = Sequences.FindIndex(s => s.Rotation.AlmostEqual(caster.Rotation, 0.05f));
+            if (index >= 0)
+            {
+                Sequences.Ref(index).SecondsBetweenActivations = 0.5f;
+                AdvanceSequence(index, WorldState.CurrentTime - _reducedLeeway);
+            }
+        }
     }
 }
 
-class ElectrowhirlFirst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectrowhirlFirst), new AOEShapeCircle(6));
-class ElectrowhirlRest(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectrowhirlRest), new AOEShapeCircle(6));
-class Bombardment(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Bombardment), 5);
 class RapidThunder(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.RapidThunder));
 
 class MotionSensor(BossModule module) : Components.StayMove(module)
@@ -192,10 +200,10 @@ class D042ProtectorStates : StateMachineBuilder
             .ActivateOnEnter<HomingCannon>()
             .ActivateOnEnter<Shock>()
             .ActivateOnEnter<FulminousFence>()
-            .ActivateOnEnter<BatteryCircuit>()
             .ActivateOnEnter<ElectrowhirlFirst>()
             .ActivateOnEnter<ElectrowhirlRest>()
             .ActivateOnEnter<Bombardment>()
+            .ActivateOnEnter<BatteryCircuit>()
             .ActivateOnEnter<RapidThunder>()
             .ActivateOnEnter<MotionSensor>()
             .ActivateOnEnter<BlastCannon>()
