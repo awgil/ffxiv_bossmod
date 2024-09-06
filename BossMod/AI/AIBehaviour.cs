@@ -57,7 +57,10 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
             target.PreferredRange = _config.MaxDistanceToTarget;
 
         _followMaster = master != player && (autorot.Bossmods.ActiveModule?.StateMachine.ActiveState == null || _config.FollowDuringActiveBossModule) && (!master.InCombat || _config.FollowDuringCombat || (_masterPrevPos - _masterMovementStart).LengthSq() > 100) && (player.InCombat || _config.FollowOutOfCombat);
-        _naviDecision = BuildNavigationDecision(player, master, ref target);
+
+        // note: if there are pending knockbacks, don't update navigation decision to avoid fucking up positioning
+        if (!WorldState.PendingEffects.PendingKnockbacks(player.InstanceID))
+            _naviDecision = BuildNavigationDecision(player, master, ref target);
 
         bool masterIsMoving = TrackMasterMovement(master);
         bool moveWithMaster = masterIsMoving && (master == player || _followMaster);
