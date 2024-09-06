@@ -151,34 +151,18 @@ class BatteryCircuit(BossModule module) : Components.GenericRotatingAOE(module)
 
 class RapidThunder(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.RapidThunder));
 
-class MotionSensor(BossModule module) : Components.StayMove(module)
+class MotionSensor(BossModule module) : Components.StayMove(module, 3)
 {
-    private readonly DateTime[] _expire = new DateTime[4];
-
-    public override void Update()
-    {
-        base.Update();
-        var deadline = WorldState.FutureTime(3);
-        for (int i = 0; i < _expire.Length; ++i)
-            Requirements[i] = _expire[i] != default && _expire[i] < deadline ? Requirement.Stay : Requirement.None;
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (_expire[slot] != default && (_expire[slot] - WorldState.CurrentTime).TotalSeconds < 1)
-            hints.ForcedMovement = new();
-    }
-
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID is SID.AccelerationBomb1 or SID.AccelerationBomb2 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-            _expire[slot] = status.ExpireAt;
+            PlayerStates[slot] = new(Requirement.Stay, status.ExpireAt);
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID is SID.AccelerationBomb1 or SID.AccelerationBomb2 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-            _expire[slot] = default;
+            PlayerStates[slot] = default;
     }
 }
 

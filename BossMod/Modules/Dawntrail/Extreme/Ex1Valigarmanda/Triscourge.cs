@@ -61,7 +61,7 @@ class FireScourgeOfIce(BossModule module) : Components.StayMove(module)
     {
         if (iconID == (uint)IconID.CalamitysChill && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
         {
-            Requirements[slot] = Requirement.Move;
+            PlayerStates[slot] = new(Requirement.Move, default);
             ++NumImminent;
         }
     }

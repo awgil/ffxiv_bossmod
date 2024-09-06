@@ -18,6 +18,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
         }
         tree.LeafNode($"Forced target: {hints.ForcedTarget}");
         tree.LeafNode($"Forced movement: {hints.ForcedMovement}");
+        tree.LeafNode($"Special movement: {hints.ImminentSpecialMode.mode} in {Math.Max(0, (hints.ImminentSpecialMode.activation - ws.CurrentTime).TotalSeconds):f3}s");
         foreach (var _1 in tree.Node("Forbidden zones", hints.ForbiddenZones.Count == 0))
         {
             for (int i = 0; i < hints.ForbiddenZones.Count; i++)

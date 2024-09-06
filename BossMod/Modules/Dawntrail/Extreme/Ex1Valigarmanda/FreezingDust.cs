@@ -1,13 +1,13 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex1Valigarmanda;
 
-class FreezingDust : Components.StayMove
+class FreezingDust(BossModule module) : Components.StayMove(module)
 {
     public int NumActiveFreezes;
 
-    public FreezingDust(BossModule module) : base(module)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        foreach (var (i, _) in module.Raid.WithSlot(true))
-            Requirements[i] = Requirement.Move;
+        if ((AID)spell.Action.ID == AID.FreezingDust)
+            Array.Fill(PlayerStates, new(Requirement.Move, Module.CastFinishAt(spell, 1)));
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)

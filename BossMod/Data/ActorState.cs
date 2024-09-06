@@ -50,6 +50,7 @@ public sealed class ActorState : IEnumerable<Actor>
     {
         foreach (var act in this)
         {
+            act.PrevPosRot = act.PosRot;
             if (act.CastInfo != null)
                 act.CastInfo.ElapsedTime += dt;
         }

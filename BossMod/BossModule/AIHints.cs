@@ -24,6 +24,14 @@ public sealed class AIHints
         public bool StayAtLongRange; // if set, players with ranged attacks don't bother coming closer than max range (TODO: reconsider)
     }
 
+    public enum SpecialMode
+    {
+        Normal,
+        Pyretic, // pyretic/acceleration bomb type of effects - no movement, no actions, no casting allowed at activation time
+        Freezing, // should be moving at activation time
+        // TODO: misdirection, etc
+    }
+
     public static readonly ArenaBounds DefaultBounds = new ArenaBoundsSquare(30);
 
     public WPos Center;
@@ -62,6 +70,9 @@ public sealed class AIHints
     // AI will rotate to face allowed orientation at last possible moment, potentially losing uptime
     public List<(Angle center, Angle halfWidth, DateTime activation)> ForbiddenDirections = [];
 
+    // closest special movement/targeting/action mode, if any
+    public (SpecialMode mode, DateTime activation) ImminentSpecialMode;
+
     // predicted incoming damage (raidwides, tankbusters, etc.)
     // AI will attempt to shield & mitigate
     public List<(BitMask players, DateTime activation)> PredictedDamage = [];
@@ -87,6 +98,7 @@ public sealed class AIHints
         RecommendedPositional = default;
         RecommendedRangeToTarget = 0;
         ForbiddenDirections.Clear();
+        ImminentSpecialMode = default;
         PredictedDamage.Clear();
         ActionsToExecute.Clear();
         StatusesToCancel.Clear();
@@ -125,6 +137,12 @@ public sealed class AIHints
 
     public void AddForbiddenZone(Func<WPos, float> shapeDistance, DateTime activation = new()) => ForbiddenZones.Add((shapeDistance, activation));
     public void AddForbiddenZone(AOEShape shape, WPos origin, Angle rot = new(), DateTime activation = new()) => ForbiddenZones.Add((shape.Distance(origin, rot), activation));
+
+    public void AddSpecialMode(SpecialMode mode, DateTime activation)
+    {
+        if (ImminentSpecialMode == default || ImminentSpecialMode.activation > activation)
+            ImminentSpecialMode = (mode, activation);
+    }
 
     // normalize all entries after gathering data: sort by priority / activation timestamp
     // TODO: note that the name is misleading - it actually happens mid frame, before all actions are gathered (eg before autorotation runs), but further steps (eg ai) might consume previously gathered data

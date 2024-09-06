@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using BossMod.Global.MaskedCarnivale.Stage01;
 using BossMod.Pathfinding;
 using Dalamud.Interface.Utility;
 using ImGuiNET;
@@ -37,7 +38,8 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
             FocusMaster(master);
 
         _afkMode = !master.InCombat && (WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
-        bool forbidActions = _config.ForbidActions || _afkMode || autorot.Preset != null && autorot.Preset != AIPreset;
+        bool pyreticImminent = autorot.Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && autorot.Hints.ImminentSpecialMode.activation <= WorldState.FutureTime(1);
+        bool forbidActions = _config.ForbidActions || _afkMode || pyreticImminent || autorot.Preset != null && autorot.Preset != AIPreset;
 
         Targeting target = new();
         if (!forbidActions)
@@ -72,7 +74,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
             autorot.Preset = target.Target != null ? AIPreset : null;
         }
 
-        UpdateMovement(player, master, target, !forbidActions ? autorot.Hints.ActionsToExecute : null);
+        UpdateMovement(player, master, target, pyreticImminent, !forbidActions ? autorot.Hints.ActionsToExecute : null);
     }
 
     // returns null if we're to be idle, otherwise target to attack
@@ -185,12 +187,12 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         return masterIsMoving;
     }
 
-    private void UpdateMovement(Actor player, Actor master, Targeting target, ActionQueue? queueForSprint)
+    private void UpdateMovement(Actor player, Actor master, Targeting target, bool pyreticImminent, ActionQueue? queueForSprint)
     {
         var destRot = AvoidGaze.Update(player, target.Target?.Actor.Position, autorot.Hints, WorldState.CurrentTime.AddSeconds(0.5));
-        if (destRot != null)
+        if (destRot != null || pyreticImminent)
         {
-            // rotation check imminent, drop any movement - we should have moved to safe zone already...
+            // rotation check or pyretic imminent, drop any movement - we should have moved to safe zone already...
             ctrl.NaviTargetPos = null;
             ctrl.NaviTargetRot = destRot;
             ctrl.NaviTargetVertical = null;

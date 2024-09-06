@@ -1,28 +1,38 @@
 ﻿namespace BossMod.Components;
 
 // component for mechanics that either require players to move or stay still
-public class StayMove(BossModule module) : BossComponent(module)
+public class StayMove(BossModule module, float maxTimeToShowHint = float.PositiveInfinity) : BossComponent(module)
 {
     public enum Requirement { None, Stay, Move }
+    public record struct PlayerState(Requirement Requirement, DateTime Activation);
 
-    public Requirement[] Requirements = new Requirement[PartyState.MaxPartySize];
-    private readonly (Vector3 prev, Vector3 curr)[] _lastPositions = new (Vector3, Vector3)[PartyState.MaxPartySize];
-
-    public override void Update()
-    {
-        for (int i = 0; i < _lastPositions.Length; ++i)
-            _lastPositions[i] = (_lastPositions[i].curr, Raid[i]?.PosRot.XYZ() ?? default);
-    }
+    public readonly PlayerState[] PlayerStates = new PlayerState[PartyState.MaxAllianceSize];
+    public float MaxTimeToShowHint = maxTimeToShowHint;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        switch (Requirements[slot])
+        switch (PlayerStates[slot].Requirement)
         {
             case Requirement.Stay:
-                hints.Add("Stay!", _lastPositions[slot].prev != _lastPositions[slot].curr || actor.CastInfo != null || actor.TargetID != 0); // note: assume if target is selected, we might autoattack...
+                if (float.IsInfinity(MaxTimeToShowHint) || PlayerStates[slot].Activation <= WorldState.FutureTime(MaxTimeToShowHint))
+                    hints.Add("Stay!", actor.PrevPosition != actor.PrevPosition || actor.CastInfo != null || actor.TargetID != 0); // note: assume if target is selected, we might autoattack...
                 break;
             case Requirement.Move:
-                hints.Add("Move!", _lastPositions[slot].prev == _lastPositions[slot].curr);
+                if (float.IsInfinity(MaxTimeToShowHint) || PlayerStates[slot].Activation <= WorldState.FutureTime(MaxTimeToShowHint))
+                    hints.Add("Move!", actor.PrevPosition == actor.PrevPosition);
+                break;
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        switch (PlayerStates[slot].Requirement)
+        {
+            case Requirement.Stay:
+                hints.AddSpecialMode(AIHints.SpecialMode.Pyretic, PlayerStates[slot].Activation);
+                break;
+            case Requirement.Move:
+                hints.AddSpecialMode(AIHints.SpecialMode.Freezing, PlayerStates[slot].Activation);
                 break;
         }
     }
