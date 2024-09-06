@@ -64,7 +64,7 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase(mana
     {
         Actor? lbTarget(float halfWidth) => FindBetterTargetBy(primaryTarget, 30, actor => Hints.NumPriorityTargetsInAOERect(Player.Position, Player.DirectionTo(actor), 30, halfWidth)).Target;
 
-        if (!strategy.Enabled(Track.LimitBreak) || World.Party.WithoutSlot().Count(x => x.Type == ActorType.Player) > 1)
+        if (!strategy.Enabled(Track.LimitBreak) || World.Party.WithoutSlot(includeDead: true).Count(x => x.Type == ActorType.Player) > 1)
             return;
 
         var bars = World.Party.LimitBreakLevel;
