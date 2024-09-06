@@ -1,5 +1,4 @@
 ﻿using BossMod.Autorotation;
-using BossMod.Global.MaskedCarnivale.Stage01;
 using BossMod.Pathfinding;
 using Dalamud.Interface.Utility;
 using ImGuiNET;
