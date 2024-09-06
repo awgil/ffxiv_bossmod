@@ -16,7 +16,9 @@ public class PersistentVoidzone(BossModule module, float radius, Func<BossModule
     {
         foreach (var s in Sources(Module))
         {
-            hints.AddForbiddenZone(MoveHintLength > 0 ? ShapeDistance.Capsule(s.Position, s.Rotation, MoveHintLength, Shape.Radius) : Shape.Distance(s.Position, s.Rotation));
+            hints.AddForbiddenZone(Shape.Distance(s.Position, s.Rotation));
+            if (MoveHintLength > 0)
+                hints.AddForbiddenZone(ShapeDistance.Capsule(s.Position, s.Rotation, MoveHintLength, Shape.Radius), WorldState.FutureTime(2));
         }
     }
 }

@@ -18,7 +18,7 @@ public sealed class ClassNINUtility(RotationModuleManager manager, Actor player)
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
-        ExecuteShared(strategy, IDLimitBreak3);
+        ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
         ExecuteSimple(strategy.Option(Track.ShadeShift), NIN.AID.ShadeShift, Player);
     }
 }
