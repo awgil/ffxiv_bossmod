@@ -10,11 +10,9 @@ namespace BossMod.AI;
 sealed class AIController(ActionManagerEx amex, MovementOverride movement)
 {
     public WPos? NaviTargetPos;
-    public WDir? NaviTargetRot;
     public float? NaviTargetVertical;
     public bool AllowInterruptingCastByMovement;
     public bool ForceCancelCast;
-    public bool ForceFacing;
     public bool WantJump;
 
     private readonly ActionManagerEx _amex = amex;
@@ -30,11 +28,9 @@ sealed class AIController(ActionManagerEx amex, MovementOverride movement)
     public void Clear()
     {
         NaviTargetPos = null;
-        NaviTargetRot = null;
         NaviTargetVertical = null;
         AllowInterruptingCastByMovement = false;
         ForceCancelCast = false;
-        ForceFacing = false;
         WantJump = false;
     }
 
@@ -52,10 +48,6 @@ sealed class AIController(ActionManagerEx amex, MovementOverride movement)
         }
 
         Vector3? desiredPosition = null;
-        if (ForceFacing && NaviTargetRot != null && player.Rotation.ToDirection().Dot(NaviTargetRot.Value) < 0.996f)
-        {
-            _amex.FaceDirection(NaviTargetRot.Value);
-        }
 
         // TODO this checks whether movement keys are pressed, we need a better solution
         bool moveRequested = _movement.IsMoveRequested();

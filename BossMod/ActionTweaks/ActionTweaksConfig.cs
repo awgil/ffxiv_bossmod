@@ -33,7 +33,7 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertyDisplay("Automatically cancel a cast when target is dead")]
     public bool CancelCastOnDeadTarget = false;
 
-    [PropertyDisplay("Restore character orientation after action use", tooltip: "There will be no effect if the \"auto face target\" setting in the game's settings is disabled")]
+    [PropertyDisplay("Restore character orientation after action use (deprecated)", tooltip: "Note: this is deprecated in favour of smart character orientation and will be removed in future")]
     public bool RestoreRotation = false;
 
     [PropertyDisplay("Use actions on mouseover target")]

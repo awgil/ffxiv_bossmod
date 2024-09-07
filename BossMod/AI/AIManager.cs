@@ -88,7 +88,7 @@ sealed class AIManager : IDisposable
 
         _controller.Update(player, _autorot.Hints, WorldState.CurrentTime);
         _aiStatus = $"AI: {(Behaviour != null ? $"on, {(_config.FollowTarget && target != null ? $"target={target.Name}" : $"master={master?.Name}[{((int)_config.FollowSlot) + 1}]")}" : "off")}";
-        _naviStatus = $"Navi={_controller.NaviTargetPos} / {_controller.NaviTargetRot}{(_controller.ForceFacing ? " forced" : "")}";
+        _naviStatus = $"Navi={_controller.NaviTargetPos}";
         _ui.IsOpen = player != null && _config.DrawUI;
         _ui.WindowName = _config.ShowStatusOnTitlebar ? $"{_aiStatus}, {_naviStatus}###AI" : $"AI###AI";
     }
