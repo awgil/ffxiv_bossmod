@@ -15,6 +15,8 @@ public class MapVisualizer
     public List<(WPos origin, WPos dest)> Lines = [];
 
     private ThetaStar _pathfind;
+    private float _lastExecTime;
+    private int _lastSteps;
 
     public MapVisualizer(Map map, WPos startPos, WPos goalPos, float goalRadius)
     {
@@ -174,6 +176,8 @@ public class MapVisualizer
         ImGui.SameLine();
         if (ImGui.Button("Run pf"))
             RunPathfind();
+        ImGui.SameLine();
+        ImGui.TextUnformatted($"Last op: {_lastExecTime:f3}s, last steps: {_lastSteps}");
 
         var pfRes = _pathfind.BestIndex;
         if (pfRes >= 0)
@@ -187,9 +191,21 @@ public class MapVisualizer
                 DrawWaypoints(hoverNode >= 0 ? hoverNode : _pathfind.BestIndex);
     }
 
-    public void StepPathfind() => _pathfind.ExecuteStep();
-    public void RunPathfind() => _pathfind.Execute();
-    public void ResetPathfind() => _pathfind = BuildPathfind();
+    public void StepPathfind() => ExecTimed(() => _pathfind.ExecuteStep());
+    public void RunPathfind() => ExecTimed(() =>
+    {
+        _lastSteps = 0;
+        while (!_pathfind.IsVeryGood(_pathfind.BestIndex) && _pathfind.ExecuteStep())
+            ++_lastSteps;
+    });
+    public void ResetPathfind() => ExecTimed(() => _pathfind = BuildPathfind());
+
+    private void ExecTimed(Action action)
+    {
+        var now = DateTime.Now;
+        action();
+        _lastExecTime = (float)(DateTime.Now - now).TotalSeconds;
+    }
 
     private void DrawSector(ImDrawListPtr dl, Vector2 tl, WPos center, float ir, float or, Angle dir, Angle halfWidth)
     {
