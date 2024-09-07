@@ -61,7 +61,11 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
 
         // note: if there are pending knockbacks, don't update navigation decision to avoid fucking up positioning
         if (!WorldState.PendingEffects.PendingKnockbacks(player.InstanceID))
+        {
             _naviDecision = BuildNavigationDecision(player, master, ref target);
+            // there is a difference between having a small positive leeway and having a negative one for pathfinding, prefer to keep positive
+            _naviDecision.LeewaySeconds = Math.Max(0, _naviDecision.LeewaySeconds - 0.1f);
+        }
 
         bool masterIsMoving = TrackMasterMovement(master);
         bool moveWithMaster = masterIsMoving && (master == player || _followMaster);
