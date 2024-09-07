@@ -132,7 +132,7 @@ class Sledgehammer(BossModule module) : Components.GenericWildCharge(module, 4, 
 
 class AuraSpheres : Components.PersistentInvertibleVoidzone
 {
-    public AuraSpheres(BossModule module) : base(module, 2.5f, m => m.Enemies(OID.AuraSphere).Where(x => !x.IsDead))
+    public AuraSpheres(BossModule module) : base(module, 2, m => m.Enemies(OID.AuraSphere).Where(x => !x.IsDead))
     {
         InvertResolveAt = WorldState.CurrentTime;
     }
