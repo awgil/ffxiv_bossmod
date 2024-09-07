@@ -70,7 +70,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
 
         bool masterIsMoving = TrackMasterMovement(master);
         bool moveWithMaster = masterIsMoving && (master == player || _followMaster);
-        ForceMovementIn = moveWithMaster || gazeImminent || gazeImminent ? 0 : _naviDecision.LeewaySeconds;
+        ForceMovementIn = moveWithMaster || gazeImminent || pyreticImminent ? 0 : _naviDecision.LeewaySeconds;
 
         // note: that there is a 1-frame delay if target and/or strategy changes - we don't really care?..
         if (!forbidActions)
