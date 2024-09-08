@@ -88,6 +88,7 @@ public class ReplayManagementWindow : UIWindow
 
         if (_lastErrorMessage.Length > 0)
         {
+            ImGui.SameLine();
             using var color = ImRaii.PushColor(ImGuiCol.Text, 0xff0000ff);
             ImGui.TextUnformatted(_lastErrorMessage);
         }
