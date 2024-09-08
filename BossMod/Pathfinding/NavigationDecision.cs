@@ -54,22 +54,38 @@ public struct NavigationDecision
         if (scratch.Length < map.Pixels.Length)
             scratch = new float[map.Pixels.Length];
 
+        // very slight difference in activation times cause issues for pathfinding - cluster them together
+        (Func<WPos, float> shapeDistance, DateTime activation)[] zonesFixed = [.. zones];
+        DateTime clusterStart = default, clusterEnd = default;
+        foreach (ref var z in zonesFixed.AsSpan())
+        {
+            if (z.activation < clusterEnd)
+            {
+                z.activation = clusterStart;
+            }
+            else
+            {
+                clusterStart = z.activation;
+                clusterEnd = z.activation.AddSeconds(0.5f);
+            }
+        }
+
         int iCell = 0;
         for (int y = 0; y < map.Height; ++y)
         {
-            var leftG = CalculateMaxG(zones, map, 0, y, current);
+            var leftG = CalculateMaxG(zonesFixed, map, 0, y, current);
             for (int x = 0; x < map.Width; ++x)
             {
-                var rightG = CalculateMaxG(zones, map, x + 1, y, current);
+                var rightG = CalculateMaxG(zonesFixed, map, x + 1, y, current);
                 scratch[iCell++] = Math.Min(leftG, rightG);
                 leftG = rightG;
             }
         }
-        var bleftG = CalculateMaxG(zones, map, 0, map.Height, current);
+        var bleftG = CalculateMaxG(zonesFixed, map, 0, map.Height, current);
         iCell -= map.Width;
         for (int x = 0; x < map.Width; ++x, ++iCell)
         {
-            var brightG = CalculateMaxG(zones, map, x + 1, map.Height, current);
+            var brightG = CalculateMaxG(zonesFixed, map, x + 1, map.Height, current);
             var bottomG = Math.Min(bleftG, brightG);
             var jCell = iCell;
             for (int y = map.Height; y > 0; --y, jCell -= map.Width)
@@ -121,10 +137,10 @@ public struct NavigationDecision
 
     private static float ActivationToG(DateTime activation, DateTime current) => MathF.Max(0, (float)(activation - current).TotalSeconds - ActivationTimeCushion);
 
-    private static float CalculateMaxG(List<(Func<WPos, float> shapeDistance, DateTime activation)> zones, Map map, int x, int y, DateTime current)
+    private static float CalculateMaxG(Span<(Func<WPos, float> shapeDistance, DateTime activation)> zones, Map map, int x, int y, DateTime current)
     {
         var p = map.GridToWorld(x, y, 0, 0);
-        foreach (var z in zones)
+        foreach (ref var z in zones)
             if (z.shapeDistance(p) < ForbiddenZoneCushion)
                 return ActivationToG(z.activation, current);
         return float.MaxValue;
