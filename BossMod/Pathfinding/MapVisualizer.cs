@@ -16,7 +16,6 @@ public class MapVisualizer
 
     private ThetaStar _pathfind;
     private float _lastExecTime;
-    private int _lastSteps;
 
     public MapVisualizer(Map map, WPos startPos, WPos goalPos, float goalRadius)
     {
@@ -177,7 +176,22 @@ public class MapVisualizer
         if (ImGui.Button("Run pf"))
             RunPathfind();
         ImGui.SameLine();
-        ImGui.TextUnformatted($"Last op: {_lastExecTime:f3}s, last steps: {_lastSteps}");
+        if (ImGui.Button("Step back") && _pathfind.NumSteps > 0)
+        {
+            var s = _pathfind.NumSteps - 1;
+            ResetPathfind();
+            while (_pathfind.NumSteps < s && _pathfind.ExecuteStep())
+                ;
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Run until reopen"))
+        {
+            var startR = _pathfind.NumReopens;
+            while (_pathfind.ExecuteStep() && _pathfind.NumReopens == startR)
+                ;
+        }
+        ImGui.SameLine();
+        ImGui.TextUnformatted($"Last op: {_lastExecTime:f3}s, num steps: {_pathfind.NumSteps}, num reopens: {_pathfind.NumReopens}");
 
         var pfRes = _pathfind.BestIndex;
         if (pfRes >= 0)
@@ -192,12 +206,7 @@ public class MapVisualizer
     }
 
     public void StepPathfind() => ExecTimed(() => _pathfind.ExecuteStep());
-    public void RunPathfind() => ExecTimed(() =>
-    {
-        _lastSteps = 0;
-        while (!_pathfind.IsVeryGood(_pathfind.BestIndex) && _pathfind.ExecuteStep())
-            ++_lastSteps;
-    });
+    public void RunPathfind() => ExecTimed(() => _pathfind.Execute());
     public void ResetPathfind() => ExecTimed(() => _pathfind = BuildPathfind());
 
     private void ExecTimed(Action action)

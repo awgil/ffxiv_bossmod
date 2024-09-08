@@ -25,6 +25,8 @@ public class ThetaStar
     private float _startMaxG;
 
     public int BestIndex { get; private set; }
+    public int NumSteps { get; private set; }
+    public int NumReopens { get; private set; }
 
     private const float BorderCushion = 0.1f;
     private const float MaxNeighbourOffset = 0.5f - BorderCushion;
@@ -46,6 +48,7 @@ public class ThetaStar
             Array.Fill(_nodes, default, 0, numPixels);
         _openList.Clear();
         _deltaGSide = map.Resolution * gMultiplier;
+        NumSteps = NumReopens = 0;
 
         var startFrac = map.WorldToGridFrac(startPos);
         var start = map.ClampToGrid(map.FracToGrid(startFrac));
@@ -72,6 +75,7 @@ public class ThetaStar
         if (_openList.Count == 0 /*|| _nodes[_openList[0]].HScore <= 0*/)
             return false;
 
+        ++NumSteps;
         int nextNodeIndex = PopMinOpen();
         var (nextNodeX, nextNodeY) = _map.IndexToGrid(nextNodeIndex);
         if (HeapLess(nextNodeIndex, BestIndex))
@@ -115,8 +119,10 @@ public class ThetaStar
             return IsLeftCloserToTarget(ref nodeL, ref nodeR);
         }
 
-        var improveL = pixL.MaxG > _startMaxG && nodeL.PathMinG <= _startMaxG;
-        var improveR = pixR.MaxG > _startMaxG && nodeR.PathMinG <= _startMaxG;
+        var improveThreshold = _startMaxG + 0.5f;
+        var pathThreshold = _startMaxG - 0.5f;
+        var improveL = pixL.MaxG > improveThreshold && nodeL.PathMinG >= pathThreshold;
+        var improveR = pixR.MaxG > improveThreshold && nodeR.PathMinG >= pathThreshold;
         if (improveL != improveR)
             return improveL; // node that improves initial state (leaves some danger zone without entering even more dangerous ones) is better than a node that doesn't
 
@@ -248,6 +254,13 @@ public class ThetaStar
 
         if (destNode.OpenHeapIndex == 0 || IsLeftBetter(ref altNode, ref destPix, ref destNode, ref destPix))
         {
+            if (destNode.OpenHeapIndex < 0)
+            {
+                // node was already visited before, ensure that new path is significantly better
+                if (altNode.PathLeeway < destNode.PathLeeway)
+                    return;
+                ++NumReopens;
+            }
             destNode = altNode;
             AddToOpen(nodeIndex);
         }
