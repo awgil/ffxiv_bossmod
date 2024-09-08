@@ -1,6 +1,5 @@
 ﻿using Dalamud.Interface.Windowing;
 using ImGuiNET;
-using static Dalamud.Interface.Windowing.Window;
 
 namespace BossMod;
 
@@ -65,7 +64,7 @@ public abstract class UIWindow : Window, IDisposable
 }
 
 // utility: window that uses custom delegate to perform drawing - allows avoiding creating derived classes in simple cases
-public class UISimpleWindow(string name, Action draw, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<TitleBarButton>? titleBarButtons = null)
+public class UISimpleWindow(string name, Action draw, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<Window.TitleBarButton>? titleBarButtons = null)
     : UIWindow(name, detached, initialSize, flags, titleBarButtons)
 {
     private readonly Action _draw = draw;
