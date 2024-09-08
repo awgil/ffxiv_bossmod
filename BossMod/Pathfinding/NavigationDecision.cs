@@ -128,7 +128,8 @@ public struct NavigationDecision
             {
                 var topP = map.Pixels[iCell].Priority;
                 var cellP = map.Pixels[iCell].Priority = Math.Min(topP, bottomP);
-                map.MaxPriority = Math.Max(map.MaxPriority, cellP);
+                if (map.Pixels[iCell].MaxG == float.MaxValue)
+                    map.MaxPriority = Math.Max(map.MaxPriority, cellP);
                 bottomP = topP;
             }
             bleftP = brightP;

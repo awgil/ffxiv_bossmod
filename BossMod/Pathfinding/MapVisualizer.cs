@@ -24,7 +24,7 @@ public class MapVisualizer
         GoalPos = goalPos;
         GoalRadius = goalRadius;
         _pathfind = BuildPathfind();
-        RunPathfind();
+        ExecTimed(() => _pathfind.Execute());
     }
 
     public void Draw()
@@ -109,7 +109,7 @@ public class MapVisualizer
             dl.AddLine(tl + off, tr + off, 0xffffffff, 1);
         }
 
-        DrawPath(dl, tl, hoverNode >= 0 ? hoverNode : _pathfind.BestIndex);
+        DrawPath(dl, tl, hoverNode >= 0 ? hoverNode : _pathfind.BestIndex());
 
         // shapes
         foreach (var c in Sectors)
@@ -152,7 +152,7 @@ public class MapVisualizer
             ref var pfNode = ref _pathfind.NodeByIndex(hoverNode);
             if (pfNode.OpenHeapIndex != 0)
             {
-                ImGui.TextUnformatted($"PF: g={pfNode.GScore:f3}, h={pfNode.HScore:f3}, g+h={pfNode.GScore + pfNode.HScore:f3}, parent={pfNode.ParentX}x{pfNode.ParentY}, index={pfNode.OpenHeapIndex}, leeway={pfNode.PathLeeway}, off={pfNode.EnterOffset}");
+                ImGui.TextUnformatted($"PF: g={pfNode.GScore:f3}, h={pfNode.HScore:f3}, g+h={pfNode.FScore:f3}, score={pfNode.Score}, parent={pfNode.ParentX}x{pfNode.ParentY}, index={pfNode.OpenHeapIndex}, leeway={pfNode.PathLeeway}, off={pfNode.EnterOffset}");
 
                 //if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 //{
@@ -161,39 +161,49 @@ public class MapVisualizer
 
                 ref var pfParent = ref _pathfind.NodeByIndex(Map.GridToIndex(pfNode.ParentX, pfNode.ParentY));
                 var grandParentIndex = Map.GridToIndex(pfParent.ParentX, pfParent.ParentY);
-                var losLeeway = _pathfind.LineOfSight(pfParent.ParentX, pfParent.ParentY, _pathfind.NodeByIndex(grandParentIndex).EnterOffset, x, y, out var grandParentOffset, out var grandParentDist);
-                ImGui.TextUnformatted($"PF: grandparent={pfParent.ParentX}x{pfParent.ParentY}, dist={grandParentDist}, losLeeway={losLeeway}, off={grandParentOffset}");
+                var losLeeway = _pathfind.LineOfSight(pfParent.ParentX, pfParent.ParentY, _pathfind.NodeByIndex(grandParentIndex).EnterOffset, x, y, out var grandParentOffset, out var grandParentDist, out var grandParentMinG);
+                ImGui.TextUnformatted($"PF: grandparent={pfParent.ParentX}x{pfParent.ParentY}, dist={grandParentDist}, losLeeway={losLeeway}, off={grandParentOffset}, minG={grandParentMinG}");
             }
         }
 
         // pathfinding
         if (ImGui.Button("Reset pf"))
-            ResetPathfind();
+            ExecTimed(() => _pathfind = BuildPathfind());
         ImGui.SameLine();
         if (ImGui.Button("Step pf"))
-            StepPathfind();
+            ExecTimed(() => _pathfind.ExecuteStep());
         ImGui.SameLine();
         if (ImGui.Button("Run pf"))
-            RunPathfind();
+            ExecTimed(() => _pathfind.Execute());
         ImGui.SameLine();
         if (ImGui.Button("Step back") && _pathfind.NumSteps > 0)
-        {
-            var s = _pathfind.NumSteps - 1;
-            ResetPathfind();
-            while (_pathfind.NumSteps < s && _pathfind.ExecuteStep())
-                ;
-        }
+            ExecTimed(() =>
+            {
+                var s = _pathfind.NumSteps - 1;
+                _pathfind = BuildPathfind();
+                while (_pathfind.NumSteps < s && _pathfind.ExecuteStep())
+                    ;
+            });
         ImGui.SameLine();
         if (ImGui.Button("Run until reopen"))
-        {
-            var startR = _pathfind.NumReopens;
-            while (_pathfind.ExecuteStep() && _pathfind.NumReopens == startR)
-                ;
-        }
+            ExecTimed(() =>
+            {
+                var startR = _pathfind.NumReopens;
+                while (_pathfind.ExecuteStep() && _pathfind.NumReopens == startR)
+                    ;
+            });
+        ImGui.SameLine();
+        if (ImGui.Button("Step x100"))
+            ExecTimed(() =>
+            {
+                var cntr = 0;
+                while (_pathfind.ExecuteStep() && ++cntr < 100)
+                    ;
+            });
         ImGui.SameLine();
         ImGui.TextUnformatted($"Last op: {_lastExecTime:f3}s, num steps: {_pathfind.NumSteps}, num reopens: {_pathfind.NumReopens}");
 
-        var pfRes = _pathfind.BestIndex;
+        var pfRes = _pathfind.BestIndex();
         if (pfRes >= 0)
         {
             ref var node = ref _pathfind.NodeByIndex(pfRes);
@@ -202,12 +212,8 @@ public class MapVisualizer
 
         using (var n = ImRaii.TreeNode("Waypoints"))
             if (n)
-                DrawWaypoints(hoverNode >= 0 ? hoverNode : _pathfind.BestIndex);
+                DrawWaypoints(hoverNode >= 0 ? hoverNode : _pathfind.BestIndex());
     }
-
-    public void StepPathfind() => ExecTimed(() => _pathfind.ExecuteStep());
-    public void RunPathfind() => ExecTimed(() => _pathfind.Execute());
-    public void ResetPathfind() => ExecTimed(() => _pathfind = BuildPathfind());
 
     private void ExecTimed(Action action)
     {

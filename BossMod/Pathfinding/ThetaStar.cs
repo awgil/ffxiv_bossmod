@@ -1,9 +1,22 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Reflection.Metadata;
 
 namespace BossMod.Pathfinding;
 
 public class ThetaStar
 {
+    public enum Score
+    {
+        JustBad, // the path is unsafe (there are cells along the path with negative leeway, and some cells have lower max-g than starting cell), destination is unsafe and has same or lower max-g than starting cell
+        UltimatelyBetter, // the path is unsafe (there are cells along the path with negative leeway, and some cells have lower max-g than starting cell), destination is unsafe but has larger max-g than starting cell
+        UltimatelySafe, // the path is unsafe (there are cells along the path with negative leeway, and some cells have lower max-g than starting cell), however destination is safe
+        UnsafeAsStart, // the path is unsafe (there are cells along the path with negative leeway, but no max-g lower than starting cell), destination is unsafe with same max-g as starting cell (starting cell will have this score if its max-g is <= 0)
+        SemiSafeAsStart, // the path is semi-safe (no cell along the path has negative leeway or max-g lower than starting cell), destination is unsafe with same max-g as starting cell (starting cell will have this score if its max-g is > 0)
+        UnsafeImprove, // the path is unsafe (there are cells along the path with negative leeway, but no max-g lower than starting cell), destination is at least better than start
+        SemiSafeImprove, // the path is semi-safe (no cell along the path has negative leeway or max-g lower than starting cell), destination is unsafe but better than start
+        Safe, // the path reaches safe cell and is fully safe (no cell along the path has negative leeway) (starting cell will have this score if it's safe)
+        SafeMaxPrio, // the path reaches safe cell with max goal priority and is fully safe (no cell along the path has negative leeway)
+    }
+
     public struct Node
     {
         public float GScore;
@@ -13,6 +26,7 @@ public class ThetaStar
         public int OpenHeapIndex; // -1 if in closed list, 0 if not in any lists, otherwise (index+1)
         public float PathLeeway; // min diff along path between node's g-value and cell's g-value
         public float PathMinG; // minimum 'max g' value along path
+        public Score Score;
         public Vector2 EnterOffset; // from cell center; up to +-0.5
 
         public readonly float FScore => GScore + HScore;
@@ -24,9 +38,14 @@ public class ThetaStar
     private Node[] _nodes = [];
     private readonly List<int> _openList = [];
     private float _deltaGSide;
+    private int _startNodeIndex;
     private float _startMaxG;
+    private Score _startScore;
 
-    public int BestIndex { get; private set; }
+    private int _bestIndex; // node with best score
+    private int _fallbackIndex; // best 'fallback' node: node that we don't necessarily want to go to, but might want to move closer to it (to the parent)
+
+    // statistics
     public int NumSteps { get; private set; }
     public int NumReopens { get; private set; }
 
@@ -50,15 +69,19 @@ public class ThetaStar
             Array.Fill(_nodes, default, 0, numPixels);
         _openList.Clear();
         _deltaGSide = map.Resolution * gMultiplier;
-        NumSteps = NumReopens = 0;
 
         var startFrac = map.WorldToGridFrac(startPos);
         var start = map.ClampToGrid(map.FracToGrid(startFrac));
-        int startIndex = BestIndex = _map.GridToIndex(start.x, start.y);
+        _startNodeIndex = _bestIndex = _fallbackIndex = _map.GridToIndex(start.x, start.y);
+        ref var startPix = ref _map.Pixels[_startNodeIndex];
+        _startMaxG = startPix.MaxG;
+        _startScore = CalculateScore(ref startPix, _startMaxG, _startMaxG);
+        NumSteps = NumReopens = 0;
+
         startFrac.X -= start.x + 0.5f;
         startFrac.Y -= start.y + 0.5f;
-        _startMaxG = _map.Pixels[startIndex].MaxG;
-        _nodes[startIndex] = new()
+        ref var startNode = ref _nodes[_startNodeIndex];
+        startNode = new()
         {
             GScore = 0,
             HScore = HeuristicDistance(start.x, start.y),
@@ -66,9 +89,10 @@ public class ThetaStar
             ParentY = start.y,
             PathLeeway = _startMaxG,
             PathMinG = _startMaxG,
+            Score = _startScore,
             EnterOffset = startFrac,
         };
-        AddToOpen(startIndex);
+        AddToOpen(_startNodeIndex);
     }
 
     // returns whether search is to be terminated; on success, first node of the open list would contain found goal
@@ -80,65 +104,119 @@ public class ThetaStar
         ++NumSteps;
         int nextNodeIndex = PopMinOpen();
         var (nextNodeX, nextNodeY) = _map.IndexToGrid(nextNodeIndex);
-        if (HeapLess(nextNodeIndex, BestIndex))
-            BestIndex = nextNodeIndex;
+        ref var nextNode = ref _nodes[nextNodeIndex];
 
-        var startOff = _nodes[nextNodeIndex].EnterOffset;
+        // update our best indices
+        if (HeapLess(nextNodeIndex, _bestIndex))
+            _bestIndex = nextNodeIndex;
+        if (nextNode.Score == Score.UltimatelySafe && (_fallbackIndex == _startNodeIndex || HeapLess(nextNodeIndex, _fallbackIndex)))
+            _fallbackIndex = nextNodeIndex;
+
         if (nextNodeY > 0)
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY - 1, nextNodeIndex - _map.Width, CenterToNeighbour + startOff.Y);
+            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY - 1, nextNodeIndex - _map.Width, CenterToNeighbour + nextNode.EnterOffset.Y);
         if (nextNodeX > 0)
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY, nextNodeIndex - 1, CenterToNeighbour + startOff.X);
+            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX - 1, nextNodeY, nextNodeIndex - 1, CenterToNeighbour + nextNode.EnterOffset.X);
         if (nextNodeX < _map.Width - 1)
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY, nextNodeIndex + 1, CenterToNeighbour - startOff.X);
+            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY, nextNodeIndex + 1, CenterToNeighbour - nextNode.EnterOffset.X);
         if (nextNodeY < _map.Height - 1)
-            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY + 1, nextNodeIndex + _map.Width, CenterToNeighbour - startOff.Y);
+            VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY + 1, nextNodeIndex + _map.Width, CenterToNeighbour - nextNode.EnterOffset.Y);
         return true;
     }
 
     public int Execute()
     {
-        while (!IsVeryGood(BestIndex) && ExecuteStep())
+        while (_nodes[_bestIndex].Score < Score.SafeMaxPrio && ExecuteStep())
             ;
-        return BestIndex;
+        return BestIndex();
     }
 
-    // if node is the best we can hope to reach
-    public bool IsVeryGood(int nodeIndex) => _map.Pixels[nodeIndex] == new Map.Pixel(float.MaxValue, _map.MaxPriority);
-
-    // return a 'score' difference: 0 if identical, -1 if left is somewhat better, -2 if left is significantly better, +1/+2 when right is better
-    public int CompareNodeScores(ref Node nodeL, ref Map.Pixel pixL, ref Node nodeR, ref Map.Pixel pixR)
+    public int BestIndex()
     {
-        var safeL = pixL.MaxG == float.MaxValue && nodeL.PathLeeway > 0;
-        var safeR = pixR.MaxG == float.MaxValue && nodeR.PathLeeway > 0;
-        if (safeL != safeR)
-            return safeL ? -2 : +2; // safe is always better than unsafe
+        if (_nodes[_bestIndex].Score > _startScore)
+            return _bestIndex; // we've found something better than start
 
-        if (safeL)
+        if (_fallbackIndex != _startNodeIndex)
         {
-            if (pixL.Priority != pixR.Priority)
-                return pixL.Priority > pixR.Priority ? -2 : +2; // higher prio is better
+            // find first parent of best-among-worst that is at least as good as start
+            var destIndex = _fallbackIndex;
+            var parentIndex = _map.GridToIndex(_nodes[destIndex].ParentX, _nodes[destIndex].ParentY);
+            while (_nodes[parentIndex].Score < _startScore)
+            {
+                destIndex = parentIndex;
+                parentIndex = _map.GridToIndex(_nodes[destIndex].ParentX, _nodes[destIndex].ParentY);
+            }
 
-            // TODO: use max-leeway instead?..
-            return CompareFScores(ref nodeL, ref nodeR);
+            // TODO: this is very similar to LineOfSight, try to unify implementations...
+            ref var startNode = ref _nodes[parentIndex];
+            ref var destNode = ref _nodes[destIndex];
+            var (x2, y2) = _map.IndexToGrid(destIndex);
+            var (x1, y1) = (destNode.ParentX, destNode.ParentY);
+            int dx = x2 - x1;
+            int dy = y2 - y1;
+            int sx = dx > 0 ? 1 : -1;
+            int sy = dy > 0 ? 1 : -1;
+            var hsx = 0.5f * sx;
+            var hsy = 0.5f * sy;
+
+            var ab = new Vector2(dx + destNode.EnterOffset.X - startNode.EnterOffset.X, dy + destNode.EnterOffset.Y - startNode.EnterOffset.Y);
+            ab /= ab.Length();
+            var invx = ab.X != 0 ? 1 / ab.X : float.MaxValue; // either can be infinite, but not both; we want to avoid actual infinities here, because 0*inf = NaN (and we'd rather have it be 0 in this case)
+            var invy = ab.Y != 0 ? 1 / ab.Y : float.MaxValue;
+            var off1 = startNode.EnterOffset;
+            while (x1 != x2 || y1 != y2)
+            {
+                var tx = (hsx - off1.X) * invx; // if negative, we'll never intersect it
+                var ty = (hsy - off1.Y) * invy;
+                if (tx < 0 || x1 == x2)
+                    tx = float.MaxValue;
+                if (ty < 0 || y1 == y2)
+                    ty = float.MaxValue;
+
+                if (tx < ty)
+                {
+                    x1 += sx;
+                    off1.X = -hsx;
+                    off1.Y = Math.Clamp(off1.Y + tx * ab.Y, -0.5f, +0.5f);
+                }
+                else
+                {
+                    y1 += sy;
+                    off1.Y = -hsy;
+                    off1.X = Math.Clamp(off1.X + ty * ab.X, -0.5f, +0.5f);
+                }
+
+                if (_nodes[_map.GridToIndex(x1, y1)].Score < _startScore)
+                {
+                    var (x, y) = tx < ty ? (x1 - sx, y1) : (x1, y1 - sy);
+                    return _map.GridToIndex(x, y);
+                }
+            }
         }
 
-        var improveThreshold = _startMaxG + 0.5f;
-        var pathThreshold = _startMaxG - 0.5f;
-        var improveL = pixL.MaxG > improveThreshold && nodeL.PathMinG >= pathThreshold;
-        var improveR = pixR.MaxG > improveThreshold && nodeR.PathMinG >= pathThreshold;
-        if (improveL != improveR)
-            return improveL ? -2 : +2; // node that improves initial state (leaves some danger zone without entering even more dangerous ones) is better than a node that doesn't
+        return _bestIndex;
+    }
 
-        var semiSafeL = nodeL.PathLeeway > 0;
-        var semiSafeR = nodeR.PathLeeway > 0;
-        if (semiSafeL != semiSafeR)
-            return semiSafeL ? -2 : +2; // semi-safe (no immediate risk) is better than path going through danger
+    public Score CalculateScore(ref Map.Pixel pix, float pathMinG, float pathLeeway)
+    {
+        var destSafe = pix.MaxG == float.MaxValue;
+        var pathSafe = pathLeeway > 0;
+        var destBetter = pix.MaxG > _startMaxG;
+        if (destSafe && pathSafe)
+            return pix.Priority == _map.MaxPriority ? Score.SafeMaxPrio : Score.Safe;
 
-        var ultimatelySafeL = pixL.MaxG == float.MaxValue;
-        var ultimatelySafeR = pixR.MaxG == float.MaxValue;
-        if (ultimatelySafeL != ultimatelySafeR)
-            return ultimatelySafeL ? -2 : +2; // unsafe but ultimately leading to safety is better than dying
+        if (pathMinG == _startMaxG) // TODO: some small threshold? should be solved by preprocessing...
+            return pathSafe
+                ? (destBetter ? Score.SemiSafeImprove : Score.SemiSafeAsStart) // note: if pix.MaxG is < _startMaxG, then PathMinG will be < too
+                : (destBetter ? Score.UnsafeImprove : Score.UnsafeAsStart);
 
+        return destSafe ? Score.UltimatelySafe : destBetter ? Score.UltimatelyBetter : Score.JustBad;
+    }
+
+    // return a 'score' difference: 0 if identical, -1 if left is somewhat better, -2 if left is significantly better, +1/+2 when right is better
+    public int CompareNodeScores(ref Node nodeL, ref Node nodeR)
+    {
+        if (nodeL.Score != nodeR.Score)
+            return nodeL.Score > nodeR.Score ? -2 : +2;
         // TODO: should we use leeway here or distance?..
         //return nodeL.PathLeeway > nodeR.PathLeeway;
         return CompareFScores(ref nodeL, ref nodeR);
@@ -151,9 +229,13 @@ public class ThetaStar
         return new(x, y);
     }
 
-    public float LineOfSight(int x1, int y1, Vector2 off1, int x2, int y2, out Vector2 off2, out float length)
+    public float LineOfSight(int x1, int y1, Vector2 off1, int x2, int y2, out Vector2 off2, out float length, out float minG)
     {
-        float minLeeway = float.MaxValue;
+        var startNodeIndex = _map.GridToIndex(x1, y1);
+        ref var startNode = ref _nodes[startNodeIndex];
+        float minLeeway = startNode.PathLeeway;
+        minG = startNode.PathMinG;
+
         int dx = x2 - x1;
         int dy = y2 - y1;
         int sx = dx > 0 ? 1 : -1;
@@ -171,7 +253,8 @@ public class ThetaStar
         var invx = ab.X != 0 ? 1 / ab.X : float.MaxValue; // either can be infinite, but not both; we want to avoid actual infinities here, because 0*inf = NaN (and we'd rather have it be 0 in this case)
         var invy = ab.Y != 0 ? 1 / ab.Y : float.MaxValue;
 
-        var curG = _nodes[_map.GridToIndex(x1, y1)].GScore;
+        var curG = startNode.GScore;
+        var prevPixMaxG = _map.Pixels[startNodeIndex].MaxG;
         while (x1 != x2 || y1 != y2)
         {
             var tx = (hsx - off1.X) * invx; // if negative, we'll never intersect it
@@ -197,11 +280,10 @@ public class ThetaStar
                 curG += ty * _deltaGSide;
             }
 
-            var curLeeway = _map[x1, y1].MaxG - curG;
-            if (curLeeway < 0)
-                return curLeeway;
-            else if (curLeeway < minLeeway)
-                minLeeway = curLeeway;
+            var pixG = _map.Pixels[_map.GridToIndex(x1, y1)].MaxG;
+            minLeeway = Math.Min(minLeeway, Math.Min(pixG, prevPixMaxG) - curG);
+            minG = Math.Min(minG, pixG);
+            prevPixMaxG = pixG;
         }
         return minLeeway;
     }
@@ -209,7 +291,7 @@ public class ThetaStar
     private void VisitNeighbour(int parentX, int parentY, int parentIndex, int nodeX, int nodeY, int nodeIndex, float deltaGrid)
     {
         ref var destNode = ref _nodes[nodeIndex];
-        if (destNode.OpenHeapIndex < 0 && destNode.PathLeeway > 0)
+        if (destNode.OpenHeapIndex < 0 && destNode.Score >= Score.SemiSafeAsStart)
             return; // in closed list already, and the previous path was decent - TODO: is it possible to visit again with lower cost?..
 
         if (destNode.OpenHeapIndex == 0)
@@ -217,16 +299,22 @@ public class ThetaStar
 
         // note: we may visit the node even if it's blocked (eg we might be moving outside imminent aoe)
         ref var destPix = ref _map.Pixels[nodeIndex];
+        var deltaG = _deltaGSide * deltaGrid;
+        var destGScore = _nodes[parentIndex].GScore + deltaG;
+        var destLeeway = MathF.Min(_nodes[parentIndex].PathLeeway, Math.Min(destPix.MaxG, _map.Pixels[parentIndex].MaxG) - destGScore);
+        var destMinG = MathF.Min(_nodes[parentIndex].PathMinG, destPix.MaxG);
         var altNode = new Node()
         {
-            GScore = _nodes[parentIndex].GScore + _deltaGSide * deltaGrid,
+            GScore = destGScore,
             HScore = destNode.HScore,
             ParentX = parentX,
             ParentY = parentY,
             OpenHeapIndex = destNode.OpenHeapIndex,
+            PathLeeway = destLeeway,
+            PathMinG = destMinG,
+            Score = CalculateScore(ref destPix, destMinG, destLeeway),
             EnterOffset = CalculateEnterOffset(parentX, parentY, _nodes[parentIndex].EnterOffset, nodeX, nodeY),
         };
-        altNode.PathLeeway = MathF.Min(_nodes[parentIndex].PathLeeway, destPix.MaxG - altNode.GScore);
         //if (_nodes[parentIndex].PathLeeway > 0 && nodeLeeway <= 0)
         //    return; // don't try to enter danger from safety
 
@@ -236,19 +324,21 @@ public class ThetaStar
         var grandParentIndex = _map.GridToIndex(grandParentX, grandParentY);
         if (_nodes[grandParentIndex].PathMinG >= _nodes[parentIndex].PathMinG)
         {
-            var losLeeway = LineOfSight(grandParentX, grandParentY, _nodes[grandParentIndex].EnterOffset, nodeX, nodeY, out var grandParentOffset, out var grandParentDist);
-            losLeeway = MathF.Min(_nodes[grandParentIndex].PathLeeway, losLeeway);
-            if (losLeeway >= altNode.PathLeeway)
+            var losLeeway = LineOfSight(grandParentX, grandParentY, _nodes[grandParentIndex].EnterOffset, nodeX, nodeY, out var grandParentOffset, out var grandParentDist, out var losMinG);
+            var losScore = CalculateScore(ref destPix, losMinG, losLeeway);
+            // accept direct route either if score is better, score is same and leeway is better, or score is safe and leeway is good enough
+            if (losScore > altNode.Score || losScore == altNode.Score && losLeeway >= (losScore >= Score.Safe ? 0 : altNode.PathLeeway))
             {
                 parentIndex = grandParentIndex;
                 altNode.GScore = _nodes[parentIndex].GScore + _deltaGSide * grandParentDist;
                 altNode.ParentX = grandParentX;
                 altNode.ParentY = grandParentY;
                 altNode.PathLeeway = losLeeway;
+                altNode.PathMinG = losMinG;
+                altNode.Score = losScore;
                 altNode.EnterOffset = grandParentOffset;
             }
         }
-        altNode.PathMinG = MathF.Min(_nodes[parentIndex].PathMinG, destPix.MaxG);
 
         //if (destNode.OpenHeapIndex < 0 && destNode.PathLeeway >= nodeLeeway)
         //    return; // node was already visited before, old path was bad, but new path is even worse
@@ -258,7 +348,7 @@ public class ThetaStar
         // - always visit nodes that were never visited before
         // - revisit nodes only if new path is much better
         // - update nodes scheduled for visit if new path is even somewhat better
-        var visit = destNode.OpenHeapIndex == 0 || CompareNodeScores(ref altNode, ref destPix, ref destNode, ref destPix) < (destNode.OpenHeapIndex < 0 ? -1 : 0);
+        var visit = destNode.OpenHeapIndex == 0 || CompareNodeScores(ref altNode, ref destNode) < (destNode.OpenHeapIndex < 0 ? -1 : 0);
         if (visit)
         {
             if (destNode.OpenHeapIndex < 0)
@@ -363,5 +453,5 @@ public class ThetaStar
             return 0;
     }
 
-    private bool HeapLess(int nodeIndexLeft, int nodeIndexRight) => CompareNodeScores(ref _nodes[nodeIndexLeft], ref _map.Pixels[nodeIndexLeft], ref _nodes[nodeIndexRight], ref _map.Pixels[nodeIndexRight]) < 0;
+    private bool HeapLess(int nodeIndexLeft, int nodeIndexRight) => CompareNodeScores(ref _nodes[nodeIndexLeft], ref _nodes[nodeIndexRight]) < 0;
 }
