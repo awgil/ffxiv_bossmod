@@ -2,9 +2,11 @@ using BossMod.Autorotation;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using ImGuiNET;
+using static Dalamud.Interface.Windowing.Window;
 
 namespace BossMod.AI;
 
@@ -45,11 +47,13 @@ sealed class AIManager : IDisposable
         _autorot = autorot;
         _controller = new(amex, movement);
         _config = Service.Config.Get<AIConfig>();
+        List<TitleBarButton> _titlebarButtons = [new() { Icon = FontAwesomeIcon.WindowClose, IconOffset = new(1, 1), Click = _ => _config.DrawUI = false }];
         _ui = new("###AI", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
         {
             RespectCloseHotkey = false,
             ShowCloseButton = false,
-            WindowName = $"AI: off###AI"
+            WindowName = $"AI: off###AI",
+            TitleBarButtons = _titlebarButtons
         };
         Service.ChatGui.ChatMessage += OnChatMessage;
         Service.CommandManager.AddHandler("/vbmai", new Dalamud.Game.Command.CommandInfo(OnCommand) { HelpMessage = "Toggle AI mode" });
