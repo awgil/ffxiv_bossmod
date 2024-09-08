@@ -306,7 +306,15 @@ public abstract class BossModule : IDisposable
         foreach (var (slot, player) in Raid.WithSlot().Exclude(pcSlot))
         {
             var (prio, color) = CalculateHighestPriority(pcSlot, pc, slot, player);
-            if (prio == BossComponent.PlayerPriority.Irrelevant && !WindowConfig.ShowIrrelevantPlayers)
+
+            bool isFocus = false;
+            if (Service.TargetManager.FocusTarget != null)
+            {
+                var focus = Service.TargetManager.FocusTarget;
+                isFocus = focus.DataId == player.OID;
+            }
+
+            if (prio == BossComponent.PlayerPriority.Irrelevant && !WindowConfig.ShowIrrelevantPlayers && !(isFocus && WindowConfig.ShowFocusTargetPlayer))
                 continue;
 
             if (color == 0)
@@ -318,6 +326,33 @@ public abstract class BossModule : IDisposable
                     BossComponent.PlayerPriority.Critical => ArenaColor.Vulnerable, // TODO: select some better color...
                     _ => ArenaColor.PlayerGeneric
                 };
+
+                if (color == ArenaColor.PlayerGeneric)
+                {
+                    if (isFocus)
+                    {
+                        color = ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 0, 1));
+                    }
+                    else if (WindowConfig.ColorPlayersBasedOnRole)
+                    {
+                        switch (player.Role)
+                        {
+                            case Role.Melee:
+                            case Role.Ranged:
+                                color = ImGui.ColorConvertFloat4ToU32(new Vector4(1, 0, 0, 1));
+                                break;
+                            case Role.Tank:
+                                color = ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 1, 1));
+                                break;
+                            case Role.Healer:
+                                color = ImGui.ColorConvertFloat4ToU32(new Vector4(0, 1, 0, 1));
+                                break;
+                            case Role.None:
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
             Arena.Actor(player, color);
         }

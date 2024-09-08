@@ -55,8 +55,14 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Show waymarks on radar")]
     public bool ShowWaymarks = false;
 
-    [PropertyDisplay("Always show all alive party members", separator: true)]
+    [PropertyDisplay("Always show all alive party members")]
     public bool ShowIrrelevantPlayers = false;
+
+    [PropertyDisplay("Show role-based colors on otherwise uncolored players in the radar")]
+    public bool ColorPlayersBasedOnRole = false;
+
+    [PropertyDisplay("Always show focus targeted party member", separator: true)]
+    public bool ShowFocusTargetPlayer = false;
 
     // hint window settings
     [PropertyDisplay("Show text hints in separate window", tooltip: "Separates the radar window from the hints window, allowing you to reposition the hints window")]
