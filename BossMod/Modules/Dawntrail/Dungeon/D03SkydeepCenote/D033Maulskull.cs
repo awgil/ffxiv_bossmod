@@ -133,8 +133,8 @@ class Impact(BossModule module) : Components.Knockback(module)
         }
         else if (_cleaves?.AOEs.Count > 0)
         {
-            // knockback to the corner that won't be cleaved
-            hints.AddForbiddenZone(SafeSpotInDirection(origin, (_cleaves.AOEs[0].Origin.X > Module.Center.X ? -35.Degrees() : 35.Degrees()).ToDirection()), AOEs[0].Activation);
+            // knockback to the corner that won't be cleaved, but not too far to easily move to other side
+            hints.AddForbiddenZone(SafeSpotInDirection(origin, (_cleaves.AOEs[0].Origin.X > Module.Center.X ? -15.Degrees() : 15.Degrees()).ToDirection()), AOEs[0].Activation);
         }
         else
         {
@@ -180,8 +180,8 @@ class DestructiveBuildingHeat(BossModule module) : Components.CastStackSpread(mo
 
 class Landing(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Landing), 8);
 class ShatterCenter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ShatterCenter), new AOEShapeRect(40, 10));
-class ShatterSideR(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ShatterSideR), new AOEShapeRect(45, 11));
-class ShatterSideL(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ShatterSideL), new AOEShapeRect(45, 11));
+class ShatterSideR(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ShatterSideR), new AOEShapeRect(45, 11, 5));
+class ShatterSideL(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ShatterSideL), new AOEShapeRect(45, 11, 5));
 
 class DeepThunder(BossModule module) : Components.GenericTowers(module)
 {
