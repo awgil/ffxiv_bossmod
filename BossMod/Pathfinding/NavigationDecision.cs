@@ -30,7 +30,7 @@ public struct NavigationDecision
     {
         // build a pathfinding map: rasterize all forbidden zones and goals
         hints.Bounds.PathfindMap(ctx.Map, hints.Center);
-        if (hints.ForbiddenDirections.Count > 0)
+        if (hints.ForbiddenZones.Count > 0)
             RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, ws.CurrentTime, ref ctx.Scratch);
         if (targetPos != null)
             RasterizeGoalZones(ctx.Map, targetPos.Value, targetRadius, targetRot, positional);
