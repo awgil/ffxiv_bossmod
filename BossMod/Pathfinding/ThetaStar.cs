@@ -1,4 +1,6 @@
-﻿namespace BossMod.Pathfinding;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BossMod.Pathfinding;
 
 public class ThetaStar
 {
@@ -103,20 +105,21 @@ public class ThetaStar
     // if node is the best we can hope to reach
     public bool IsVeryGood(int nodeIndex) => _map.Pixels[nodeIndex] == new Map.Pixel(float.MaxValue, _map.MaxPriority);
 
-    public bool IsLeftBetter(ref Node nodeL, ref Map.Pixel pixL, ref Node nodeR, ref Map.Pixel pixR)
+    // return a 'score' difference: 0 if identical, -1 if left is somewhat better, -2 if left is significantly better, +1/+2 when right is better
+    public int CompareNodeScores(ref Node nodeL, ref Map.Pixel pixL, ref Node nodeR, ref Map.Pixel pixR)
     {
         var safeL = pixL.MaxG == float.MaxValue && nodeL.PathLeeway > 0;
         var safeR = pixR.MaxG == float.MaxValue && nodeR.PathLeeway > 0;
         if (safeL != safeR)
-            return safeL; // safe is always better than unsafe
+            return safeL ? -2 : +2; // safe is always better than unsafe
 
         if (safeL)
         {
             if (pixL.Priority != pixR.Priority)
-                return pixL.Priority > pixR.Priority; // higher prio is better
+                return pixL.Priority > pixR.Priority ? -2 : +2; // higher prio is better
 
             // TODO: use max-leeway instead?..
-            return IsLeftCloserToTarget(ref nodeL, ref nodeR);
+            return CompareFScores(ref nodeL, ref nodeR);
         }
 
         var improveThreshold = _startMaxG + 0.5f;
@@ -124,21 +127,21 @@ public class ThetaStar
         var improveL = pixL.MaxG > improveThreshold && nodeL.PathMinG >= pathThreshold;
         var improveR = pixR.MaxG > improveThreshold && nodeR.PathMinG >= pathThreshold;
         if (improveL != improveR)
-            return improveL; // node that improves initial state (leaves some danger zone without entering even more dangerous ones) is better than a node that doesn't
+            return improveL ? -2 : +2; // node that improves initial state (leaves some danger zone without entering even more dangerous ones) is better than a node that doesn't
 
         var semiSafeL = nodeL.PathLeeway > 0;
         var semiSafeR = nodeR.PathLeeway > 0;
         if (semiSafeL != semiSafeR)
-            return semiSafeL; // semi-safe (no immediate risk) is better than path going through danger
+            return semiSafeL ? -2 : +2; // semi-safe (no immediate risk) is better than path going through danger
 
         var ultimatelySafeL = pixL.MaxG == float.MaxValue;
         var ultimatelySafeR = pixR.MaxG == float.MaxValue;
         if (ultimatelySafeL != ultimatelySafeR)
-            return ultimatelySafeL; // unsafe but ultimately leading to safety is better than dying
+            return ultimatelySafeL ? -2 : +2; // unsafe but ultimately leading to safety is better than dying
 
         // TODO: should we use leeway here or distance?..
         //return nodeL.PathLeeway > nodeR.PathLeeway;
-        return IsLeftCloserToTarget(ref nodeL, ref nodeR);
+        return CompareFScores(ref nodeL, ref nodeR);
     }
 
     public Vector2 CalculateEnterOffset(int fromX, int fromY, Vector2 fromOff, int toX, int toY)
@@ -252,15 +255,14 @@ public class ThetaStar
         //if (destNode.OpenHeapIndex > 0 && destNode.PathLeeway > 0 && nodeLeeway <= 0)
         //    return; // node is already in scheduled for visit with a reasonable path, and new path is bad (even if it's shorter)
 
-        if (destNode.OpenHeapIndex == 0 || IsLeftBetter(ref altNode, ref destPix, ref destNode, ref destPix))
+        // - always visit nodes that were never visited before
+        // - revisit nodes only if new path is much better
+        // - update nodes scheduled for visit if new path is even somewhat better
+        var visit = destNode.OpenHeapIndex == 0 || CompareNodeScores(ref altNode, ref destPix, ref destNode, ref destPix) < (destNode.OpenHeapIndex < 0 ? -1 : 0);
+        if (visit)
         {
             if (destNode.OpenHeapIndex < 0)
-            {
-                // node was already visited before, ensure that new path is significantly better
-                if (altNode.PathLeeway < destNode.PathLeeway)
-                    return;
                 ++NumReopens;
-            }
             destNode = altNode;
             AddToOpen(nodeIndex);
         }
@@ -347,17 +349,19 @@ public class ThetaStar
         _nodes[nodeIndex].OpenHeapIndex = heapIndex + 1;
     }
 
-    private bool IsLeftCloserToTarget(ref Node nodeL, ref Node nodeR)
+    private int CompareFScores(ref Node nodeL, ref Node nodeR)
     {
         var fl = nodeL.FScore;
         var fr = nodeR.FScore;
         if (fl + 0.00001f < fr)
-            return true;
+            return -1;
         else if (fr + 0.00001f < fl)
-            return false;
+            return +1;
+        else if (nodeL.GScore != nodeR.GScore)
+            return nodeL.GScore > nodeR.GScore ? -1 : 1; // tie-break towards larger g-values
         else
-            return nodeL.GScore > nodeR.GScore; // tie-break towards larger g-values
+            return 0;
     }
 
-    private bool HeapLess(int nodeIndexLeft, int nodeIndexRight) => IsLeftBetter(ref _nodes[nodeIndexLeft], ref _map.Pixels[nodeIndexLeft], ref _nodes[nodeIndexRight], ref _map.Pixels[nodeIndexRight]);
+    private bool HeapLess(int nodeIndexLeft, int nodeIndexRight) => CompareNodeScores(ref _nodes[nodeIndexLeft], ref _map.Pixels[nodeIndexLeft], ref _nodes[nodeIndexRight], ref _map.Pixels[nodeIndexRight]) < 0;
 }
