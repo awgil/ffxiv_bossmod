@@ -334,10 +334,13 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLCB"u8)] = ParseClientCombo,
             [new("CLST"u8)] = ParseClientPlayerStats,
             [new("CLCD"u8)] = ParseClientCooldown,
+            [new("CLDC"u8)] = ParseClientDutyActionCharges,
             [new("CLDA"u8)] = ParseClientDutyActions,
             [new("CLBH"u8)] = ParseClientBozjaHolster,
             [new("CLAF"u8)] = ParseClientActiveFate,
             [new("CLVL"u8)] = ParseClientClassJobLevels,
+            [new("BLUS"u8)] = ParseBlueSpells,
+            [new("PETS"u8)] = ParsePet,
             [new("IPCI"u8)] = ParseNetworkIDScramble,
             [new("IPCS"u8)] = ParseNetworkServerIPC,
         };
@@ -638,6 +641,8 @@ public sealed class ReplayParserLog : IDisposable
 
     private ClientState.OpDutyActionsChange ParseClientDutyActions() => new(_input.ReadAction(), _input.ReadAction());
 
+    private ClientState.OpDutyActionChargesChange ParseClientDutyActionCharges() => new(_input.ReadByte(false), _input.ReadByte(false));
+
     private ClientState.OpBozjaHolsterChange ParseClientBozjaHolster()
     {
         List<(BozjaHolsterID, byte)> contents = [];
@@ -656,6 +661,16 @@ public sealed class ReplayParserLog : IDisposable
             contents[i] = _input.ReadShort();
         return new(contents);
     }
+
+    private ClientState.OpBlueMageSpellsChange ParseBlueSpells()
+    {
+        var contents = new uint[_input.ReadByte(false)];
+        for (int i = 0; i < contents.Length; i++)
+            contents[i] = _input.ReadUInt(false);
+        return new(contents);
+    }
+
+    private ClientState.OpActivePetChange ParsePet() => new(new(_input.ReadUInt(false), _input.ReadByte(false), _input.ReadByte(false)));
 
     private NetworkState.OpIDScramble ParseNetworkIDScramble() => new(_input.ReadUInt(false));
     private NetworkState.OpServerIPC ParseNetworkServerIPC() => new(new((Network.ServerIPC.PacketID)_input.ReadInt(), _input.ReadUShort(false), _input.ReadUInt(false), _input.ReadUInt(true), new(_input.ReadLong()), _input.ReadBytes()));
