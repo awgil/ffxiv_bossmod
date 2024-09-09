@@ -58,22 +58,23 @@ public class MapVisualizer
                 var corner = tl + new Vector2(x, y) * ScreenPixelSize;
                 var cornerEnd = corner + new Vector2(ScreenPixelSize, ScreenPixelSize);
 
-                var pix = Map[x, y];
-                if (pix.MaxG < float.MaxValue)
+                var pixMaxG = Map.PixelMaxG[nodeIndex];
+                var pixPriority = Map.PixelPriority[nodeIndex];
+                if (pixMaxG < float.MaxValue)
                 {
-                    var alpha = 1 - (pix.MaxG > 0 ? pix.MaxG / Map.MaxG : 0);
+                    var alpha = 1 - (pixMaxG > 0 ? pixMaxG / Map.MaxG : 0);
                     uint c = 128 + (uint)(alpha * 127);
                     c = c | (c << 8) | 0xff000000;
                     dl.AddRectFilled(corner, cornerEnd, c);
                 }
-                else if (pix.Priority > 0)
+                else if (pixPriority > 0)
                 {
-                    var alpha = Map.MaxPriority > 0 ? pix.Priority / Map.MaxPriority : 1;
+                    var alpha = Map.MaxPriority > 0 ? pixPriority / Map.MaxPriority : 1;
                     uint c = 128 + (uint)(alpha * 127);
                     c = (c << 8) | 0xff000000;
                     dl.AddRectFilled(corner, cornerEnd, c);
                 }
-                else if (pix.Priority < 0)
+                else if (pixPriority < 0)
                 {
                     dl.AddRectFilled(corner, cornerEnd, 0xff808080);
                 }
@@ -135,14 +136,15 @@ public class MapVisualizer
         {
             var (x, y) = Map.IndexToGrid(hoverNode);
             var wpos = Map.GridToWorld(x, y, 0.5f, 0.5f);
-            var pix = Map[x, y];
-            if (pix.MaxG < float.MaxValue)
+            var pixMaxG = Map.PixelMaxG[hoverNode];
+            var pixPriority = Map.PixelPriority[hoverNode];
+            if (pixMaxG < float.MaxValue)
             {
-                ImGui.TextUnformatted($"Pixel at {x}x{y} ({wpos}): blocked, g={pix.MaxG:f3}");
+                ImGui.TextUnformatted($"Pixel at {x}x{y} ({wpos}): blocked, g={pixMaxG:f3}");
             }
-            else if (pix.Priority != 0)
+            else if (pixPriority != 0)
             {
-                ImGui.TextUnformatted($"Pixel at {x}x{y} ({wpos}): goal, prio={pix.Priority}");
+                ImGui.TextUnformatted($"Pixel at {x}x{y} ({wpos}): goal, prio={pixPriority}");
             }
             else
             {
@@ -152,17 +154,18 @@ public class MapVisualizer
             ref var pfNode = ref _pathfind.NodeByIndex(hoverNode);
             if (pfNode.OpenHeapIndex != 0)
             {
-                ImGui.TextUnformatted($"PF: g={pfNode.GScore:f3}, h={pfNode.HScore:f3}, g+h={pfNode.FScore:f3}, score={pfNode.Score}, parent={pfNode.ParentX}x{pfNode.ParentY}, index={pfNode.OpenHeapIndex}, leeway={pfNode.PathLeeway}, off={pfNode.EnterOffset}");
+                var (parentX, parentY) = Map.IndexToGrid(pfNode.ParentIndex);
+                ImGui.TextUnformatted($"PF: g={pfNode.GScore:f3}, h={pfNode.HScore:f3}, g+h={pfNode.FScore:f3}, score={pfNode.Score}, parent={parentX}x{parentY}, index={pfNode.OpenHeapIndex}, leeway={pfNode.PathLeeway}, off={pfNode.EnterOffset}");
 
                 //if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 //{
                 //    var res = _pathfind.IsLeftBetter(ref _pathfind.NodeByIndex(hoverNode), ref Map.Pixels[hoverNode], ref _pathfind.NodeByIndex(_pathfind.BestIndex), ref Map.Pixels[_pathfind.BestIndex]);
                 //}
 
-                ref var pfParent = ref _pathfind.NodeByIndex(Map.GridToIndex(pfNode.ParentX, pfNode.ParentY));
-                var grandParentIndex = Map.GridToIndex(pfParent.ParentX, pfParent.ParentY);
-                var losLeeway = _pathfind.LineOfSight(pfParent.ParentX, pfParent.ParentY, _pathfind.NodeByIndex(grandParentIndex).EnterOffset, x, y, out var grandParentOffset, out var grandParentDist, out var grandParentMinG);
-                ImGui.TextUnformatted($"PF: grandparent={pfParent.ParentX}x{pfParent.ParentY}, dist={grandParentDist}, losLeeway={losLeeway}, off={grandParentOffset}, minG={grandParentMinG}");
+                ref var pfParent = ref _pathfind.NodeByIndex(pfNode.ParentIndex);
+                var (grandParentX, grandParentY) = Map.IndexToGrid(pfParent.ParentIndex);
+                var losLeeway = _pathfind.LineOfSight(grandParentX, grandParentY, _pathfind.NodeByIndex(pfParent.ParentIndex).EnterOffset, x, y, out var grandParentOffset, out var grandParentDist, out var grandParentMinG);
+                ImGui.TextUnformatted($"PF: grandparent={grandParentX}x{grandParentY}, dist={grandParentDist}, losLeeway={losLeeway}, off={grandParentOffset}, minG={grandParentMinG}");
             }
         }
 
@@ -253,21 +256,19 @@ public class MapVisualizer
             return;
 
         var color = 0xffffff00;
+        var nextIndex = startingNode.ParentIndex;
         var (x1, y1) = Map.IndexToGrid(startingIndex);
-        int x2 = startingNode.ParentX;
-        int y2 = startingNode.ParentY;
+        var (x2, y2) = Map.IndexToGrid(startingNode.ParentIndex);
         while (x1 != x2 || y1 != y2)
         {
-            var to = Map.GridToIndex(x2, y2);
             var off1 = _pathfind.NodeByIndex(startingIndex).EnterOffset;
-            var off2 = _pathfind.NodeByIndex(to).EnterOffset;
+            var off2 = _pathfind.NodeByIndex(nextIndex).EnterOffset;
             dl.AddLine(tl + new Vector2(x1 + 0.5f + off1.X, y1 + 0.5f + off1.Y) * ScreenPixelSize, tl + new Vector2(x2 + 0.5f + off2.X, y2 + 0.5f + off2.Y) * ScreenPixelSize, color, 2);
-            x1 = x2;
-            y1 = y2;
-            startingIndex = to;
             color = 0xffff00ff;
-            x2 = _pathfind.NodeByIndex(startingIndex).ParentX;
-            y2 = _pathfind.NodeByIndex(startingIndex).ParentY;
+            startingIndex = nextIndex;
+            nextIndex = _pathfind.NodeByIndex(startingIndex).ParentIndex;
+            (x1, y1) = (x2, y2);
+            (x2, y2) = Map.IndexToGrid(nextIndex);
         }
     }
 
@@ -280,20 +281,20 @@ public class MapVisualizer
         if (startingNode.OpenHeapIndex == 0)
             return;
 
+        var nextIndex = startingNode.ParentIndex;
         var (x1, y1) = Map.IndexToGrid(startingIndex);
-        int x2 = startingNode.ParentX;
-        int y2 = startingNode.ParentY;
+        var (x2, y2) = Map.IndexToGrid(nextIndex);
         while (x1 != x2 || y1 != y2)
         {
-            var to = Map.GridToIndex(x2, y2);
             ref var node = ref _pathfind.NodeByIndex(startingIndex);
             var off1 = node.EnterOffset;
             using var n = ImRaii.TreeNode($"Waypoint: {x1}x{y1} ({Map.GridToWorld(x1, y1, off1.X + 0.5f, off1.Y + 0.5f)}), minG={node.PathMinG}, leeway={node.PathLeeway}", ImGuiTreeNodeFlags.Leaf);
             x1 = x2;
             y1 = y2;
-            startingIndex = to;
-            x2 = _pathfind.NodeByIndex(startingIndex).ParentX;
-            y2 = _pathfind.NodeByIndex(startingIndex).ParentY;
+            startingIndex = nextIndex;
+            nextIndex = node.ParentIndex;
+            (x1, y1) = (x2, y2);
+            (x2, y2) = Map.IndexToGrid(nextIndex);
         }
     }
 
