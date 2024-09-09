@@ -152,7 +152,7 @@ class HoneyBLiveBeat3BigBurst(BossModule module) : Components.UniformStackSpread
 {
     public int NumCasts;
     public int[] Order = new int[PartyState.MaxPartySize];
-    private readonly DateTime[] _activation = new DateTime[2];
+    public readonly DateTime[] Activation = new DateTime[2];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -166,7 +166,7 @@ class HoneyBLiveBeat3BigBurst(BossModule module) : Components.UniformStackSpread
         if ((SID)status.ID == SID.PoisonNPop)
         {
             var order = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds > 30 ? 1 : 0;
-            _activation[order] = status.ExpireAt;
+            Activation[order] = status.ExpireAt;
             var slot = Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
                 Order[slot] = order + 1;
@@ -178,7 +178,7 @@ class HoneyBLiveBeat3BigBurst(BossModule module) : Components.UniformStackSpread
         if ((AID)spell.Action.ID == AID.Fracture && Spreads.Count == 0)
         {
             var order = NumCasts == 0 ? 1 : 2;
-            AddSpreads(Raid.WithSlot(true).WhereSlot(i => Order[i] == order).Actors(), _activation[order - 1]);
+            AddSpreads(Raid.WithSlot(true).WhereSlot(i => Order[i] == order).Actors(), Activation[order - 1]);
         }
     }
 
