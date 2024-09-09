@@ -102,9 +102,9 @@ public class ThetaStar
         ref var nextNode = ref _nodes[nextNodeIndex];
 
         // update our best indices
-        if (HeapLess(nextNodeIndex, _bestIndex))
+        if (CompareNodeScores(ref nextNode, ref _nodes[_bestIndex]) < 0)
             _bestIndex = nextNodeIndex;
-        if (nextNode.Score == Score.UltimatelySafe && (_fallbackIndex == _startNodeIndex || HeapLess(nextNodeIndex, _fallbackIndex)))
+        if (nextNode.Score == Score.UltimatelySafe && (_fallbackIndex == _startNodeIndex || CompareNodeScores(ref nextNode, ref _nodes[_fallbackIndex]) < 0))
             _fallbackIndex = nextNodeIndex;
 
         if (nextNodeY > _map.MinY)
@@ -407,56 +407,62 @@ public class ThetaStar
 
     private void PercolateUp(int heapIndex)
     {
-        int nodeIndex = _openList[heapIndex];
-        int parent = (heapIndex - 1) >> 1;
-        while (heapIndex > 0 && HeapLess(nodeIndex, _openList[parent]))
+        var openSpan = _openList.AsSpan();
+        int nodeIndex = openSpan[heapIndex];
+        ref var node = ref _nodes[nodeIndex];
+        while (heapIndex > 0)
         {
-            _openList[heapIndex] = _openList[parent];
-            _nodes[_openList[heapIndex]].OpenHeapIndex = heapIndex + 1;
-            heapIndex = parent;
-            parent = (heapIndex - 1) >> 1;
+            int parentHeapIndex = (heapIndex - 1) >> 1;
+            ref int parentNodeIndex = ref openSpan[parentHeapIndex];
+            ref var parent = ref _nodes[parentNodeIndex];
+            if (CompareNodeScores(ref node, ref parent) >= 0)
+                break; // parent is 'less' (same/better), stop
+
+            openSpan[heapIndex] = parentNodeIndex;
+            parent.OpenHeapIndex = heapIndex + 1;
+            heapIndex = parentHeapIndex;
         }
-        _openList[heapIndex] = nodeIndex;
-        _nodes[nodeIndex].OpenHeapIndex = heapIndex + 1;
+        openSpan[heapIndex] = nodeIndex;
+        node.OpenHeapIndex = heapIndex + 1;
     }
 
     private void PercolateDown(int heapIndex)
     {
-        int nodeIndex = _openList[heapIndex];
-        int maxSize = _openList.Count;
+        var openSpan = _openList.AsSpan();
+        int nodeIndex = openSpan[heapIndex];
+        ref var node = ref _nodes[nodeIndex];
+
+        int maxSize = openSpan.Length;
         while (true)
         {
-            int child1 = (heapIndex << 1) + 1;
-            if (child1 >= maxSize)
-                break;
-            int child2 = child1 + 1;
-            if (child2 == maxSize || HeapLess(_openList[child1], _openList[child2]))
-            {
-                if (HeapLess(_openList[child1], nodeIndex))
-                {
-                    _openList[heapIndex] = _openList[child1];
-                    _nodes[_openList[heapIndex]].OpenHeapIndex = heapIndex + 1;
-                    heapIndex = child1;
-                }
-                else
-                {
-                    break;
-                }
-            }
-            else if (HeapLess(_openList[child2], nodeIndex))
-            {
-                _openList[heapIndex] = _openList[child2];
-                _nodes[_openList[heapIndex]].OpenHeapIndex = heapIndex + 1;
-                heapIndex = child2;
-            }
-            else
-            {
-                break;
-            }
-        }
-        _openList[heapIndex] = nodeIndex;
-        _nodes[nodeIndex].OpenHeapIndex = heapIndex + 1;
-    }
+            // find 'better' child
+            int childHeapIndex = (heapIndex << 1) + 1;
+            if (childHeapIndex >= maxSize)
+                break; // node is already a leaf
 
-    private bool HeapLess(int nodeIndexLeft, int nodeIndexRight) => CompareNodeScores(ref _nodes[nodeIndexLeft], ref _nodes[nodeIndexRight]) < 0;
+            int childNodeIndex = openSpan[childHeapIndex];
+            ref var child = ref _nodes[childNodeIndex];
+            int altChildHeapIndex = childHeapIndex + 1;
+            if (altChildHeapIndex < maxSize)
+            {
+                int altChildNodeIndex = openSpan[altChildHeapIndex];
+                ref var altChild = ref _nodes[altChildNodeIndex];
+                if (CompareNodeScores(ref altChild, ref child) < 0)
+                {
+                    childHeapIndex = altChildHeapIndex;
+                    childNodeIndex = altChildNodeIndex;
+                    child = ref altChild;
+                }
+            }
+
+            if (CompareNodeScores(ref node, ref child) < 0)
+                break; // node is better than best child, so should remain on top
+
+            openSpan[heapIndex] = childNodeIndex;
+            child.OpenHeapIndex = heapIndex + 1;
+            heapIndex = childHeapIndex;
+        }
+        openSpan[heapIndex] = nodeIndex;
+        node.OpenHeapIndex = heapIndex + 1;
+    }
 }
