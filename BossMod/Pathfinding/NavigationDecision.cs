@@ -106,7 +106,9 @@ public struct NavigationDecision
             for (int y = map.Height; y > 0; --y, jCell -= map.Width)
             {
                 var topG = scratch[jCell];
-                map.PixelMaxG[jCell] = Math.Min(Math.Min(topG, bottomG), map.PixelMaxG[jCell]);
+                var cellG = map.PixelMaxG[jCell] = Math.Min(Math.Min(topG, bottomG), map.PixelMaxG[jCell]);
+                if (cellG != float.MaxValue)
+                    map.PixelPriority[jCell] = sbyte.MinValue;
                 bottomG = topG;
             }
             bleftG = brightG;
@@ -151,9 +153,15 @@ public struct NavigationDecision
             for (int y = y1; y >= y0; --y, iCell -= map.Width)
             {
                 var topP = map.PixelPriority[iCell];
-                var cellP = map.PixelPriority[iCell] = Math.Min(topP, bottomP);
                 if (map.PixelMaxG[iCell] == float.MaxValue)
+                {
+                    var cellP = map.PixelPriority[iCell] = Math.Min(topP, bottomP);
                     map.MaxPriority = Math.Max(map.MaxPriority, cellP);
+                }
+                else
+                {
+                    map.PixelPriority[iCell] = sbyte.MinValue;
+                }
                 bottomP = topP;
             }
             bleftP = brightP;

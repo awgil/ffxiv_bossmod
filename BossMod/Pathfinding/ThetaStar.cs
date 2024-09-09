@@ -30,8 +30,8 @@ public class ThetaStar
     }
 
     private Map _map = new();
-    private Vector2 _goalFrac;
-    private float _goalRadius;
+    //private Vector2 _goalFrac;
+    //private float _goalRadius;
     private Node[] _nodes = [];
     private readonly List<int> _openList = [];
     private float _deltaGSide;
@@ -57,8 +57,8 @@ public class ThetaStar
     public void Start(Map map, WPos startPos, WPos goalPos, float goalRadius, float gMultiplier)
     {
         _map = map;
-        _goalFrac = map.WorldToGridFrac(goalPos);
-        _goalRadius = goalRadius;
+        //_goalFrac = map.WorldToGridFrac(goalPos);
+        //_goalRadius = goalRadius;
         var numPixels = map.Width * map.Height;
         if (_nodes.Length < numPixels)
             _nodes = new Node[numPixels];
@@ -66,6 +66,8 @@ public class ThetaStar
             Array.Fill(_nodes, default, 0, numPixels);
         _openList.Clear();
         _deltaGSide = map.Resolution * gMultiplier;
+
+        PrefillH();
 
         var startFrac = map.WorldToGridFrac(startPos);
         var start = map.ClampToGrid(map.FracToGrid(startFrac));
@@ -80,7 +82,7 @@ public class ThetaStar
         startNode = new()
         {
             GScore = 0,
-            HScore = HeuristicDistance(start.x, start.y),
+            HScore = startNode.HScore, //HeuristicDistance(start.x, start.y),
             ParentIndex = _startNodeIndex, // start's parent is self
             PathLeeway = _startMaxG,
             PathMinG = _startMaxG,
@@ -120,7 +122,7 @@ public class ThetaStar
 
     public int Execute()
     {
-        while (_nodes[_bestIndex].Score < Score.SafeMaxPrio && ExecuteStep())
+        while (_nodes[_bestIndex].HScore > 0 && _fallbackIndex == _startNodeIndex && ExecuteStep())
             ;
         return BestIndex();
     }
@@ -316,8 +318,8 @@ public class ThetaStar
         if (destNode.OpenHeapIndex < 0 && destNode.Score >= Score.SemiSafeAsStart)
             return; // in closed list already, and the previous path was decent - TODO: is it possible to visit again with lower cost?..
 
-        if (destNode.OpenHeapIndex == 0)
-            destNode.HScore = HeuristicDistance(nodeX, nodeY); // if this is the first time we visit this node, initialize h-score, we're going to add it to open list
+        //if (destNode.OpenHeapIndex == 0)
+        //    destNode.HScore = HeuristicDistance(nodeX, nodeY); // if this is the first time we visit this node, initialize h-score, we're going to add it to open list
 
         // note: we may visit the node even if it's blocked (eg we might be moving outside imminent aoe)
         var destPixG = _map.PixelMaxG[nodeIndex];
@@ -377,7 +379,65 @@ public class ThetaStar
         }
     }
 
-    private float HeuristicDistance(int x, int y) => Math.Max(0, (new Vector2(x + 0.5f, y + 0.5f) - _goalFrac).Length() * _deltaGSide - _goalRadius);
+    //private float HeuristicDistance(int x, int y) => Math.Max(0, (new Vector2(x + 0.5f, y + 0.5f) - _goalFrac).Length() * _deltaGSide - _goalRadius);
+
+    private void PrefillH()
+    {
+        int iCell = 0;
+        for (int y = 0; y < _map.Height; ++y)
+        {
+            for (int x = 0; x < _map.Width; ++x, ++iCell)
+            {
+                if (_map.PixelPriority[iCell] < _map.MaxPriority)
+                {
+                    ref var node = ref _nodes[iCell];
+                    node.HScore = float.MaxValue;
+                    if (x > 0)
+                        UpdateHNeighbour(x, y, ref node, x - 1, y, iCell - 1);
+                    if (y > 0)
+                        UpdateHNeighbour(x, y, ref node, x, y - 1, iCell - _map.Width);
+                }
+                // else: leave unfilled (H=0, parent=uninit)
+            }
+        }
+        --iCell;
+        for (int y0 = _map.Height - 1, y = y0; y >= 0; --y)
+        {
+            for (int x0 = _map.Width - 1, x = x0; x >= 0; --x, --iCell)
+            {
+                if (_map.PixelPriority[iCell] < _map.MaxPriority)
+                {
+                    ref var node = ref _nodes[iCell];
+                    if (x < x0)
+                        UpdateHNeighbour(x, y, ref node, x + 1, y, iCell + 1);
+                    if (y < y0)
+                        UpdateHNeighbour(x, y, ref node, x, y + 1, iCell + _map.Width);
+                }
+            }
+        }
+    }
+
+    private void UpdateHNeighbour(int x1, int y1, ref Node node, int x2, int y2, int neighIndex)
+    {
+        ref var neighbour = ref _nodes[neighIndex];
+        if (neighbour.HScore == 0)
+        {
+            node.HScore = _deltaGSide; // don't bother with min, it can't be lower
+            node.ParentIndex = neighIndex;
+        }
+        else
+        {
+            (x2, y2) = _map.IndexToGrid(neighbour.ParentIndex);
+            var dx = x2 - x1;
+            var dy = y2 - y1;
+            var hScore = _deltaGSide * MathF.Sqrt(dx * dx + dy * dy);
+            if (hScore < node.HScore)
+            {
+                node.HScore = hScore;
+                node.ParentIndex = neighbour.ParentIndex;
+            }
+        }
+    }
 
     private void AddToOpen(int nodeIndex)
     {
