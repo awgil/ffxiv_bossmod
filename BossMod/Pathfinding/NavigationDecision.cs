@@ -57,9 +57,14 @@ public struct NavigationDecision
 
         // very slight difference in activation times cause issues for pathfinding - cluster them together
         (Func<WPos, float> shapeDistance, DateTime activation)[] zonesFixed = [.. zones];
-        DateTime clusterStart = default, clusterEnd = default;
+        DateTime clusterStart = default, clusterEnd = default, globalStart = current, globalEnd = current.AddSeconds(120);
         foreach (ref var z in zonesFixed.AsSpan())
         {
+            if (z.activation < globalStart)
+                z.activation = globalStart;
+            else if (z.activation > globalEnd)
+                z.activation = globalEnd;
+
             if (z.activation < clusterEnd)
             {
                 z.activation = clusterStart;
