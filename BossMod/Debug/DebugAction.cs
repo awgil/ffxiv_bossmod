@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.Gui;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using ImGuiNET;
 
 namespace BossMod;
@@ -172,6 +173,22 @@ sealed unsafe class DebugAction : IDisposable
         foreach (var nr in _tree.Node("Player actions"))
         {
             DrawFilteredActions("Hostile + friendly", a => a.IsPlayerAction && a.CanTargetHostile && (a.CanTargetSelf || a.CanTargetParty || a.CanTargetFriendly || a.Unknown19 || a.Unknown22 || a.Unknown23));
+        }
+    }
+
+    public void DrawDutyActions()
+    {
+        var cd = EventFramework.Instance()->DirectorModule.ActiveContentDirector;
+        if (cd == null)
+        {
+            ImGui.TextUnformatted("Content director is unavailable");
+            return;
+        }
+        ImGui.TextUnformatted($"Excel rows: pending={cd->DutyActionManager.PendingContentExActionRowId}, current={cd->DutyActionManager.CurrentContentExActionRowId}");
+        ImGui.TextUnformatted($"Num valid slots: {cd->DutyActionManager.NumValidSlots}, actions present={cd->DutyActionManager.ActionsPresent}");
+        for (int i = 0; i < 2; ++i)
+        {
+            ImGui.TextUnformatted($"[{i}]: action={new ActionID(ActionType.Spell, cd->DutyActionManager.ActionId[i])}, active={cd->DutyActionManager.ActionActive[i]}, charges={cd->DutyActionManager.CurCharges[i]}/{cd->DutyActionManager.MaxCharges[i]}");
         }
     }
 

@@ -78,7 +78,8 @@ public abstract unsafe class PacketDecoder
         PacketID.ActionEffect24 when (ActionEffect24*)payload is var p => DecodeActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 24, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ)),
         PacketID.ActionEffect32 when (ActionEffect32*)payload is var p => DecodeActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 32, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ)),
         PacketID.StatusEffectListPlayer when (StatusEffectListPlayer*)payload is var p => DecodeStatusEffectListPlayer(p),
-        PacketID.UpdateRecastTimes when (UpdateRecastTimes*)payload is var p => DecodeUpdateRecastTimes(p),
+        PacketID.UpdateRecastTimes when (UpdateRecastTimes*)payload is var p => DecodeUpdateRecastTimes(new(p->Elapsed, 80), new(p->Total, 80)),
+        PacketID.UpdateDutyRecastTimes when (UpdateDutyRecastTimes*)payload is var p => DecodeUpdateRecastTimes(new(p->Elapsed, 2), new(p->Total, 2)),
         PacketID.ActorMove when (ActorMove*)payload is var p => new($"{Utils.Vec3String(IntToFloatCoords(p->X, p->Y, p->Z))} {IntToFloatAngle(p->Rotation)}, anim={p->AnimationFlags:X4}/{p->AnimationSpeed}, u={p->UnknownRotation:X2} {p->Unknown:X8}"),
         PacketID.ActorSetPos when (ActorSetPos*)payload is var p => new($"{Utils.Vec3String(new(p->X, p->Y, p->Z))} {IntToFloatAngle(p->Rotation)}, u={p->u2:X2} {p->u3:X2} {p->u4:X8} {p->u14:X8}"),
         PacketID.ActorCast when (ActorCast*)payload is var p => DecodeActorCast(p),
@@ -135,11 +136,11 @@ public abstract unsafe class PacketDecoder
         }
     }
 
-    private TextNode DecodeUpdateRecastTimes(UpdateRecastTimes* p)
+    private TextNode DecodeUpdateRecastTimes(ReadOnlySpan<float> elapsed, ReadOnlySpan<float> total)
     {
         var res = new TextNode("");
-        for (int i = 0; i < 80; ++i)
-            res.AddChild($"group {i}: {p->Elapsed[i]:f3}/{p->Total[i]:f3}s");
+        for (int i = 0; i < elapsed.Length; ++i)
+            res.AddChild($"group {i}: {elapsed[i]:f3}/{total[i]:f3}s");
         return res;
     }
 
@@ -197,6 +198,11 @@ public abstract unsafe class PacketDecoder
             ActorControlCategory.LimitBreakGauge => $"{p1} bars, {p2}/{p3}, uE={p4}, uF={p5}",
             ActorControlCategory.AchievementProgress => $"{p1} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Achievement>(p1)?.Name}': {p2}/{p3}",
             ActorControlCategory.ActionRejected => $"{Utils.LogMessageString(p1)}; action={new ActionID((ActionType)p2, p3)}, recast={p4 * 0.01f:f2}/{p5 * 0.01f:f2}, src-seq={p6}",
+            ActorControlCategory.SetDutyActionSet => $"row={p1}",
+            ActorControlCategory.SetDutyActionDetails => $"slot0: {new ActionID(ActionType.Spell, p1)} ({p5}/{p2} charges), slot1: {new ActionID(ActionType.Spell, p3)} ({p6}/{p4} charges)",
+            ActorControlCategory.SetDutyActionPresent => $"value={p1}",
+            ActorControlCategory.SetDutyActionActive => $"slot0={p1}, slot1={p2}",
+            ActorControlCategory.SetDutyActionCharges => $"slot0={p1}, slot1={p2}",
             ActorControlCategory.IncrementRecast => $"group {p1}: dt=dt={p2 * 0.01f:f2}s",
             _ => ""
         };
