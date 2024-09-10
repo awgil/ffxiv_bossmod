@@ -167,7 +167,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         return gcd->Total - gcd->Elapsed;
     }
 
-    public (ActionID Action, byte Charges) GetDutyAction(ushort slot)
+    public ClientState.DutyAction GetDutyAction(ushort slot)
     {
         var id = ActionManager.GetDutyActionId(slot);
         if (id == 0)
@@ -178,7 +178,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
         return new(action, dir == null ? default : *((byte*)dir + 1484 + slot));
     }
-    public ((ActionID, byte), (ActionID, byte)) GetDutyActions() => (GetDutyAction(0), GetDutyAction(1));
+    public (ClientState.DutyAction, ClientState.DutyAction) GetDutyActions() => (GetDutyAction(0), GetDutyAction(1));
 
     public uint GetAdjustedActionID(uint actionID) => _inst->GetAdjustedActionId(actionID);
 

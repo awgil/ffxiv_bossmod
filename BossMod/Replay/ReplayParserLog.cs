@@ -334,7 +334,6 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLCB"u8)] = ParseClientCombo,
             [new("CLST"u8)] = ParseClientPlayerStats,
             [new("CLCD"u8)] = ParseClientCooldown,
-            [new("CLDC"u8)] = ParseClientDutyActionCharges,
             [new("CLDA"u8)] = ParseClientDutyActions,
             [new("CLBH"u8)] = ParseClientBozjaHolster,
             [new("CLAF"u8)] = ParseClientActiveFate,
@@ -639,9 +638,7 @@ public sealed class ReplayParserLog : IDisposable
         return new(reset, cooldowns);
     }
 
-    private ClientState.OpDutyActionsChange ParseClientDutyActions() => new(_input.ReadAction(), _input.ReadAction());
-
-    private ClientState.OpDutyActionChargesChange ParseClientDutyActionCharges() => new(_input.ReadByte(false), _input.ReadByte(false));
+    private ClientState.OpDutyActionsChange ParseClientDutyActions() => new(new(_input.ReadAction(), _input.ReadByte(false)), new(_input.ReadAction(), _input.ReadByte(false)));
 
     private ClientState.OpBozjaHolsterChange ParseClientBozjaHolster()
     {

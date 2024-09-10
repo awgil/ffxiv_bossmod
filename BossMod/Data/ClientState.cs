@@ -39,6 +39,8 @@ public sealed class ClientState
 
     public record struct Pet(uint InstanceID, byte Order, byte Stance);
 
+    public record struct DutyAction(ActionID Action, byte Charges);
+
     public const int NumCooldownGroups = 82;
     public const int NumClassLevels = 32; // see ClassJob.ExpArrayIndex
 
@@ -49,8 +51,7 @@ public sealed class ClientState
     public Combo ComboState;
     public Stats PlayerStats;
     public readonly Cooldown[] Cooldowns = new Cooldown[NumCooldownGroups];
-    public readonly ActionID[] DutyActions = new ActionID[2];
-    public readonly byte[] DutyActionCharges = new byte[2];
+    public readonly DutyAction[] DutyActions = new DutyAction[2];
     public readonly byte[] BozjaHolster = new byte[(int)BozjaHolsterID.Count]; // number of copies in holster per item
     public readonly uint[] BlueMageSpells = new uint[24];
     public readonly short[] ClassJobLevels = new short[NumClassLevels];
@@ -90,10 +91,8 @@ public sealed class ClientState
         if (cooldowns.Count > 0)
             yield return new OpCooldown(false, cooldowns);
 
-        if (DutyActions.Any(a => a))
+        if (DutyActions.Any(a => a.Action || a.Charges > 0))
             yield return new OpDutyActionsChange(DutyActions[0], DutyActions[1]);
-        if (DutyActionCharges.Any(a => a > 0))
-            yield return new OpDutyActionChargesChange(DutyActionCharges[0], DutyActionCharges[1]);
 
         var bozjaHolster = BozjaHolster.Select((v, i) => ((BozjaHolsterID)i, v)).Where(iv => iv.v > 0).ToList();
         if (BozjaHolster.Any(count => count != 0))
@@ -231,7 +230,7 @@ public sealed class ClientState
     }
 
     public Event<OpDutyActionsChange> DutyActionsChanged = new();
-    public sealed record class OpDutyActionsChange(ActionID Slot0, ActionID Slot1) : WorldState.Operation
+    public sealed record class OpDutyActionsChange(DutyAction Slot0, DutyAction Slot1) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {
@@ -239,19 +238,7 @@ public sealed class ClientState
             ws.Client.DutyActions[1] = Slot1;
             ws.Client.DutyActionsChanged.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLDA"u8).Emit(Slot0).Emit(Slot1);
-    }
-
-    public Event<OpDutyActionChargesChange> DutyActionChargesChanged = new();
-    public sealed record class OpDutyActionChargesChange(byte Slot0, byte Slot1) : WorldState.Operation
-    {
-        protected override void Exec(WorldState ws)
-        {
-            ws.Client.DutyActionCharges[0] = Slot0;
-            ws.Client.DutyActionCharges[1] = Slot1;
-            ws.Client.DutyActionChargesChanged.Fire(this);
-        }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLDC"u8).Emit(Slot0).Emit(Slot1);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLDA"u8).Emit(Slot0.Action).Emit(Slot0.Charges).Emit(Slot1.Action).Emit(Slot1.Charges);
     }
 
     public Event<OpBozjaHolsterChange> BozjaHolsterChanged = new();
