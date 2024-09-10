@@ -4,7 +4,8 @@ class DropSplashOfVenom(BossModule module) : Components.UniformStackSpread(modul
 {
     public enum Mechanic { None, Pairs, Spread }
 
-    private Mechanic NextMechanic;
+    public Mechanic NextMechanic;
+    public DateTime Activation;
 
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -39,10 +40,12 @@ class DropSplashOfVenom(BossModule module) : Components.UniformStackSpread(modul
                 {
                     case Mechanic.Pairs:
                         // note: it's random whether dd or supports are hit, select supports arbitrarily
-                        AddStacks(Raid.WithoutSlot(true).Where(p => p.Class.IsSupport()), WorldState.FutureTime(4.5f));
+                        Activation = WorldState.FutureTime(4.5f);
+                        AddStacks(Raid.WithoutSlot(true).Where(p => p.Class.IsSupport()), Activation);
                         break;
                     case Mechanic.Spread:
-                        AddSpreads(Raid.WithoutSlot(true), WorldState.FutureTime(4.5f));
+                        Activation = WorldState.FutureTime(4.5f);
+                        AddSpreads(Raid.WithoutSlot(true), Activation);
                         break;
                 }
                 break;

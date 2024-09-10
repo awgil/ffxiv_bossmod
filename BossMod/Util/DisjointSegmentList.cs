@@ -6,40 +6,27 @@ public class DisjointSegmentList
     private readonly List<(float Min, float Max)> _segments = [];
     public IReadOnlyList<(float Min, float Max)> Segments => _segments;
 
+    public (float Min, float Max) this[Index index] => _segments[index];
+    public int Count => _segments.Count;
+
     public void Add(float min, float max)
     {
-        // find position of new (or modified) segment - skip segments that don't intersect (their max < new min)
-        var index = _segments.FindIndex(s => s.Max >= min);
-        if (index == -1)
-        {
-            // new segment is to be the last one
-            _segments.Add((min, max));
-            return;
-        }
-        var s = _segments[index];
-        if (max < s.Min)
+        var (index, count) = Intersect(min, max);
+        if (count == 0)
         {
             // new segment is disjoint with any existing ones, just insert
             _segments.Insert(index, (min, max));
-            return;
         }
-
-        // new segment intersects with segment at 'index' - merge them
-        min = Math.Min(min, s.Min);
-        max = Math.Max(max, s.Max);
-
-        // find first segment that won't intersect merged one
-        if (index + 1 < _segments.Count)
+        else
         {
-            var nextIndex = _segments.FindIndex(index + 1, s => s.Min > max);
-            if (nextIndex == -1)
-                nextIndex = _segments.Count;
-            max = Math.Max(max, _segments[nextIndex - 1].Max);
-            _segments.RemoveRange(index + 1, nextIndex - (index + 1));
-        }
+            // merge new and all intersecting into first
+            ref var seg = ref _segments.Ref(index);
+            seg.Min = Math.Min(min, seg.Min);
+            seg.Max = Math.Max(max, _segments[index + count - 1].Max);
 
-        // update merged segment
-        _segments[index] = (min, max);
+            // remove any other intersecting ones
+            _segments.RemoveRange(index + 1, count - 1);
+        }
     }
 
     public void Clear() => _segments.Clear();
@@ -48,5 +35,23 @@ public class DisjointSegmentList
     {
         var firstIndex = _segments.FindIndex(s => s.Max >= x);
         return firstIndex != -1 && _segments[firstIndex].Min <= x;
+    }
+
+    // if there is intersection - return index of the first intersecting segment and number of subsequent intersecting segments (touching by endpoint is considered an intersection)
+    // otherwise - return index of the first segment greater than range (i.e. insertion point) and 0
+    public (int first, int count) Intersect(float min, float max)
+    {
+        var index = _segments.FindIndex(s => s.Max >= min);
+        if (index < 0)
+            return (_segments.Count, 0); // greater than any existing segments
+
+        if (max < _segments[index].Min)
+            return (index, 0); // first or middle non-intersecting
+
+        // count intersections
+        var last = index + 1;
+        while (last < _segments.Count && _segments[last].Min <= max)
+            ++last;
+        return (index, last - index);
     }
 }

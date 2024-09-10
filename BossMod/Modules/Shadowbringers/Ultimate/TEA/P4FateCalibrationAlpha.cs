@@ -45,7 +45,7 @@ class P4FateCalibrationAlphaStillnessMotion(BossModule module) : Components.Stay
             1 => _second,
             _ => Requirement.None
         };
-        Array.Fill(Requirements, req);
+        Array.Fill(PlayerStates, new(req, default));
     }
 }
 

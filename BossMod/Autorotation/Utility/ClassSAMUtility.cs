@@ -23,7 +23,7 @@ public sealed class ClassSAMUtility(RotationModuleManager manager, Actor player)
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
-        ExecuteShared(strategy, IDLimitBreak3);
+        ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
 
         var eye = strategy.Option(Track.ThirdEye);
         var eyeAction = eye.As<EyeOption>() switch

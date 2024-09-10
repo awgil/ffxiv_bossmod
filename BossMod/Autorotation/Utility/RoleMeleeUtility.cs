@@ -21,7 +21,7 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
         DefineSimpleConfig(def, SharedTrack.ArmsLength, "ArmsLength", "ArmsL", 300, ClassShared.AID.ArmsLength, 6); // note: secondary effect 15s
     }
 
-    protected void ExecuteShared(StrategyValues strategy, ActionID lb3)
+    protected void ExecuteShared(StrategyValues strategy, ActionID lb3, Actor? primaryTarget)
     {
         ExecuteSimple(strategy.Option(SharedTrack.Sprint), ClassShared.AID.Sprint, Player);
         ExecuteSimple(strategy.Option(SharedTrack.SecondWind), ClassShared.AID.SecondWind, Player);
@@ -33,6 +33,6 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
         var lb = strategy.Option(SharedTrack.LB);
         var lbLevel = LBLevelToExecute(lb.As<LBOption>());
         if (lbLevel > 0)
-            Hints.ActionsToExecute.Push(lbLevel == 3 ? lb3 : ActionID.MakeSpell(lbLevel == 2 ? ClassShared.AID.Bladedance : ClassShared.AID.Braver), ResolveTargetOverride(lb.Value), ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(lbLevel == 3 ? lb3 : ActionID.MakeSpell(lbLevel == 2 ? ClassShared.AID.Bladedance : ClassShared.AID.Braver), ResolveTargetOverride(lb.Value) ?? primaryTarget, ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn);
     }
 }

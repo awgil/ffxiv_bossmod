@@ -63,11 +63,12 @@ class EnhancedMobility(BossModule module) : Components.GenericAOEs(module)
         };
         if (side != null && main != null)
         {
-            var activation = Module.CastFinishAt(spell);
-            _aoes.Add(new(side, caster.Position + offset * spell.Rotation.ToDirection().OrthoR(), spell.Rotation, activation));
-            _aoes.Add(new(main, caster.Position, spell.Rotation + rotation, activation.AddSeconds(1.3f)));
-            _aoes.Add(new(main, caster.Position, spell.Rotation + rotation * 3, activation.AddSeconds(1.6f)));
-            _aoes.Add(new(main, caster.Position, spell.Rotation + rotation * 5, activation.AddSeconds(1.9f)));
+            var activationSide = Module.CastFinishAt(spell);
+            var activationMain = activationSide.AddSeconds(1.3f); // note: the main cones are staggered by 0.3s, but it's not very good for ai...
+            _aoes.Add(new(side, caster.Position + offset * spell.Rotation.ToDirection().OrthoR(), spell.Rotation, activationSide));
+            _aoes.Add(new(main, caster.Position, spell.Rotation + rotation, activationMain));
+            _aoes.Add(new(main, caster.Position, spell.Rotation + rotation * 3, activationMain));
+            _aoes.Add(new(main, caster.Position, spell.Rotation + rotation * 5, activationMain));
         }
     }
 

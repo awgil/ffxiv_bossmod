@@ -92,6 +92,11 @@ public sealed class ConfigUI : IDisposable
             {
                 node.Modified.Fire();
             }
+
+            if (props.Separator)
+            {
+                ImGui.Separator();
+            }
         }
 
         // draw custom stuff
@@ -267,9 +272,11 @@ public sealed class ConfigUI : IDisposable
         if (group == null)
             return false;
 
+        DrawHelp(tooltip);
         var modified = false;
         foreach (var tn in tree.Node(label, false, v.Validate() ? 0xffffffff : 0xff00ffff, () => DrawPropertyContextMenu(node, member, v)))
         {
+            using var indent = ImRaii.PushIndent();
             using var table = ImRaii.Table("table", group.Names.Length + 2, ImGuiTableFlags.SizingFixedFit);
             if (!table)
                 continue;

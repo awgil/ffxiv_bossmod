@@ -158,4 +158,19 @@ public static class ActorEnumeration
         }
         return (match, mismatch);
     }
+
+    // find the centroid of actor positions
+    public static WPos PositionCentroid(this IEnumerable<Actor> range)
+    {
+        WDir sum = default;
+        int count = 0;
+        foreach (var a in range)
+        {
+            sum += a.Position.ToWDir();
+            ++count;
+        }
+        if (count > 0)
+            sum /= count;
+        return sum.ToWPos();
+    }
 }

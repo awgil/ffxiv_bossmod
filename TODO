@@ -1,11 +1,10 @@
 immediate plans
 - m2s ai/plan
-- cdplanner should use real cds
-- auto avoid gaze
-- restore view-timeline to module ui
 
 general:
 - horizontal timeline / cooldown planner
+- cdplanner should use real cds
+- restore view-timeline to module ui
 - module packs
 -- dlls, loaded as usual
 -- hotreload - just discard old version and load new one

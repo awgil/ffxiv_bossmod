@@ -80,7 +80,7 @@ class FulminousFence(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var (a, b) in ActiveLines())
-            Arena.AddLine(a, b, ArenaColor.Danger, 2);
+            Arena.AddLine(a, b, ArenaColor.Object, 2);
     }
 
     public override void OnEventEnvControl(byte index, uint state)
@@ -119,61 +119,59 @@ class FulminousFence(BossModule module) : BossComponent(module)
     private WPos ConvertEndpoint(WDir p) => new(Module.Center.X + p.X, Module.Center.Z + p.Z * _curPatternZMult);
 }
 
+class ElectrowhirlFirst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectrowhirlFirst), new AOEShapeCircle(6));
+class ElectrowhirlRest(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectrowhirlRest), new AOEShapeCircle(6));
+class Bombardment(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Bombardment), 5);
+
 // note: never seen ccw rotation, assume it's not possible
 class BatteryCircuit(BossModule module) : Components.GenericRotatingAOE(module)
 {
     private static readonly AOEShapeCone _shape = new(30, 15.Degrees());
+    private static readonly TimeSpan _reducedLeeway = TimeSpan.FromSeconds(1.5f); // aoes can appear mid mechanic and fuck up our careful plan
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.BatteryCircuitAOEFirst)
-            Sequences.Add(new(_shape, caster.Position, spell.Rotation, -11.Degrees(), Module.CastFinishAt(spell), 0.5f, 33, 10));
+            Sequences.Add(new(_shape, caster.Position, spell.Rotation, -11.Degrees(), Module.CastFinishAt(spell) - _reducedLeeway, 0, 34, 10)); // for more reasonable dodge direction, initially set activation delta to 0
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.BatteryCircuitAOEFirst or AID.BatteryCircuitAOERest)
-            AdvanceSequence(caster.Position, caster.Rotation, WorldState.CurrentTime);
+        {
+            var index = Sequences.FindIndex(s => s.Rotation.AlmostEqual(caster.Rotation, 0.05f));
+            if (index >= 0)
+            {
+                Sequences.Ref(index).SecondsBetweenActivations = 0.5f;
+                AdvanceSequence(index, WorldState.CurrentTime - _reducedLeeway);
+            }
+        }
     }
 }
 
-class ElectrowhirlFirst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectrowhirlFirst), new AOEShapeCircle(6));
-class ElectrowhirlRest(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectrowhirlRest), new AOEShapeCircle(6));
-class Bombardment(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Bombardment), 5);
 class RapidThunder(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.RapidThunder));
 
-class MotionSensor(BossModule module) : Components.StayMove(module)
+class MotionSensor(BossModule module) : Components.StayMove(module, 3)
 {
-    private readonly DateTime[] _expire = new DateTime[4];
-
-    public override void Update()
-    {
-        base.Update();
-        var deadline = WorldState.FutureTime(3);
-        for (int i = 0; i < _expire.Length; ++i)
-            Requirements[i] = _expire[i] != default && _expire[i] < deadline ? Requirement.Stay : Requirement.None;
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (_expire[slot] != default && (_expire[slot] - WorldState.CurrentTime).TotalSeconds < 0.5f)
-            hints.ForcedMovement = new();
-    }
-
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID is SID.AccelerationBomb1 or SID.AccelerationBomb2 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-            _expire[slot] = status.ExpireAt;
+            PlayerStates[slot] = new(Requirement.Stay, status.ExpireAt);
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID is SID.AccelerationBomb1 or SID.AccelerationBomb2 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-            _expire[slot] = default;
+            PlayerStates[slot] = default;
     }
 }
 
-class BlastCannon(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlastCannon), new AOEShapeRect(26, 2));
+// reduce the leeway to give enough time to resolve the motion sensor
+class BlastCannon(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlastCannon), new AOEShapeRect(26, 2))
+{
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo, -0.5f), Color, Risky));
+}
+
 class HeavyBlastCannon(BossModule module) : Components.SimpleLineStack(module, 4, 36, ActionID.MakeSpell(AID.HeavyBlastCannonTargetSelect), ActionID.MakeSpell(AID.HeavyBlastCannon), 8);
 class TrackingBolt(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.TrackingBoltAOE), 8);
 
@@ -186,10 +184,10 @@ class D042ProtectorStates : StateMachineBuilder
             .ActivateOnEnter<HomingCannon>()
             .ActivateOnEnter<Shock>()
             .ActivateOnEnter<FulminousFence>()
-            .ActivateOnEnter<BatteryCircuit>()
             .ActivateOnEnter<ElectrowhirlFirst>()
             .ActivateOnEnter<ElectrowhirlRest>()
             .ActivateOnEnter<Bombardment>()
+            .ActivateOnEnter<BatteryCircuit>()
             .ActivateOnEnter<RapidThunder>()
             .ActivateOnEnter<MotionSensor>()
             .ActivateOnEnter<BlastCannon>()

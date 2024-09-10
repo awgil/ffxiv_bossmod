@@ -100,6 +100,10 @@ class CrystalInOut(BossModule module) : Components.GenericAOEs(module)
             return _mechanic == Mechanic.Out ? dist : -dist;
         }
         hints.AddForbiddenZone(distance, _activation);
+
+        // for out-rects, if playing as ranged, duty support loves taking up entire mid, so gtfo...
+        if (_mechanic == Mechanic.Out && _sources[0].OutShape == _stormOut && actor.Role is not Role.Tank and not Role.Melee)
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 12), _activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

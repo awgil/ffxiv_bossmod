@@ -2,9 +2,11 @@ using BossMod.Autorotation;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using ImGuiNET;
+using static Dalamud.Interface.Windowing.Window;
 
 namespace BossMod.AI;
 
@@ -49,7 +51,8 @@ sealed class AIManager : IDisposable
         {
             RespectCloseHotkey = false,
             ShowCloseButton = false,
-            WindowName = $"AI: off###AI"
+            WindowName = $"AI: off###AI",
+            TitleBarButtons = [new() { Icon = FontAwesomeIcon.WindowClose, IconOffset = new(1, 1), Click = _ => _config.DrawUI = false }]
         };
         Service.ChatGui.ChatMessage += OnChatMessage;
         Service.CommandManager.AddHandler("/vbmai", new Dalamud.Game.Command.CommandInfo(OnCommand) { HelpMessage = "Toggle AI mode" });
@@ -88,7 +91,7 @@ sealed class AIManager : IDisposable
 
         _controller.Update(player, _autorot.Hints, WorldState.CurrentTime);
         _aiStatus = $"AI: {(Behaviour != null ? $"on, {(_config.FollowTarget && target != null ? $"target={target.Name}" : $"master={master?.Name}[{((int)_config.FollowSlot) + 1}]")}" : "off")}";
-        _naviStatus = $"Navi={_controller.NaviTargetPos} / {_controller.NaviTargetRot}{(_controller.ForceFacing ? " forced" : "")}";
+        _naviStatus = $"Navi={_controller.NaviTargetPos}";
         _ui.IsOpen = player != null && _config.DrawUI;
         _ui.WindowName = _config.ShowStatusOnTitlebar ? $"{_aiStatus}, {_naviStatus}###AI" : $"AI###AI";
     }

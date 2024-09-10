@@ -24,6 +24,14 @@ public sealed class AIHints
         public bool StayAtLongRange; // if set, players with ranged attacks don't bother coming closer than max range (TODO: reconsider)
     }
 
+    public enum SpecialMode
+    {
+        Normal,
+        Pyretic, // pyretic/acceleration bomb type of effects - no movement, no actions, no casting allowed at activation time
+        Freezing, // should be moving at activation time
+        // TODO: misdirection, etc
+    }
+
     public static readonly ArenaBounds DefaultBounds = new ArenaBoundsSquare(30);
 
     public WPos Center;
@@ -47,6 +55,11 @@ public sealed class AIHints
     // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
     public List<(Func<WPos, float> shapeDistance, DateTime activation)> ForbiddenZones = [];
 
+    // positioning: rough target & radius of the movement; if not set, uses either target's position or module center instead
+    // used to somewhat prioritize movement direction and optimize pathfinding
+    public WPos? PathfindingHintDestination;
+    public float? PathfindingHintRadius;
+
     // positioning: next positional hint (TODO: reconsider, maybe it should be a list prioritized by in-gcds, and imminent should be in-gcds instead? or maybe it should be property of an enemy? do we need correct?)
     public (Actor? Target, Positional Pos, bool Imminent, bool Correct) RecommendedPositional;
 
@@ -56,6 +69,9 @@ public sealed class AIHints
     // orientation restrictions (e.g. for gaze attacks): a list of forbidden orientation ranges, now or in near future
     // AI will rotate to face allowed orientation at last possible moment, potentially losing uptime
     public List<(Angle center, Angle halfWidth, DateTime activation)> ForbiddenDirections = [];
+
+    // closest special movement/targeting/action mode, if any
+    public (SpecialMode mode, DateTime activation) ImminentSpecialMode;
 
     // predicted incoming damage (raidwides, tankbusters, etc.)
     // AI will attempt to shield & mitigate
@@ -77,9 +93,12 @@ public sealed class AIHints
         ForcedMovement = null;
         InteractWithTarget = null;
         ForbiddenZones.Clear();
+        PathfindingHintDestination = null;
+        PathfindingHintRadius = null;
         RecommendedPositional = default;
         RecommendedRangeToTarget = 0;
         ForbiddenDirections.Clear();
+        ImminentSpecialMode = default;
         PredictedDamage.Clear();
         ActionsToExecute.Clear();
         StatusesToCancel.Clear();
@@ -118,6 +137,12 @@ public sealed class AIHints
 
     public void AddForbiddenZone(Func<WPos, float> shapeDistance, DateTime activation = new()) => ForbiddenZones.Add((shapeDistance, activation));
     public void AddForbiddenZone(AOEShape shape, WPos origin, Angle rot = new(), DateTime activation = new()) => ForbiddenZones.Add((shape.Distance(origin, rot), activation));
+
+    public void AddSpecialMode(SpecialMode mode, DateTime activation)
+    {
+        if (ImminentSpecialMode == default || ImminentSpecialMode.activation > activation)
+            ImminentSpecialMode = (mode, activation);
+    }
 
     // normalize all entries after gathering data: sort by priority / activation timestamp
     // TODO: note that the name is misleading - it actually happens mid frame, before all actions are gathered (eg before autorotation runs), but further steps (eg ai) might consume previously gathered data

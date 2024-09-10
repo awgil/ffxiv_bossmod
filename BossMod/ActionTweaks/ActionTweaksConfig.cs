@@ -33,7 +33,7 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertyDisplay("Automatically cancel a cast when target is dead")]
     public bool CancelCastOnDeadTarget = false;
 
-    [PropertyDisplay("Restore character orientation after action use", tooltip: "There will be no effect if the \"auto face target\" setting in the game's settings is disabled")]
+    [PropertyDisplay("Restore character orientation after action use (deprecated)", tooltip: "Note: this is deprecated in favour of smart character orientation and will be removed in future")]
     public bool RestoreRotation = false;
 
     [PropertyDisplay("Use actions on mouseover target")]
@@ -44,6 +44,9 @@ public sealed class ActionTweaksConfig : ConfigNode
 
     [PropertyDisplay("Use custom queueing for manually pressed actions", tooltip: "This setting allows better integration with autorotations and will prevent you from triple-weaving or drifting GCDs if you press a healing ability while autorotation is going on")]
     public bool UseManualQueue = false;
+
+    [PropertyDisplay("Automatically dismount to execute actions")]
+    public bool AutoDismount = true;
 
     public enum GroundTargetingMode
     {

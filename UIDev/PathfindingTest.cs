@@ -14,25 +14,24 @@ class PathfindingTest : TestWindow
     private Vector2 _mapHalfSize = new(20, 20);
     private float _mapRotationDeg;
 
-    private Vector2 _startingPos = new(-15, 0);
-    private Vector2 _targetPos = new(15, 0);
-    private float _targetRadius = 10;
+    private Vector2 _startingPos = new(15, 0);
+    private Vector2 _targetPos = new(-15, 0);
+    private float _targetRadius = 5;
     private float _targetFacingDeg;
-    private int _goalPrio = 15;
 
     private bool _blockCone = true;
-    private Vector2 _blockConeCenter = new(0, 1);
-    private Vector2 _blockConeRadius = new(0, 10);
-    private float _blockConeRotationDeg;
-    private float _blockConeHalfAngle = 180;
-    private float _blockConeG;
+    private Vector2 _blockConeCenter = new(0, 0);
+    private Vector2 _blockConeRadius = new(0, 30);
+    private float _blockConeRotationDeg = 90;
+    private float _blockConeHalfAngle = 90;
+    private float _blockConeG = 20;
 
-    private bool _blockRect;
+    private bool _blockRect = true;
     private Vector2 _blockRectCenter = new(0, 0);
     private Vector2 _blockRectLen = new(20, 20);
-    private float _blockRectHalfWidth = 20;
+    private float _blockRectHalfWidth = 5;
     private float _blockRectRotationDeg;
-    private float _blockRectG;
+    private float _blockRectG = 4;
 
     public PathfindingTest() : base("Pathfinding test", new(400, 400), ImGuiWindowFlags.None)
     {
@@ -56,8 +55,6 @@ class PathfindingTest : TestWindow
             rebuild |= ImGui.DragFloat2("Target position", ref _targetPos, 1, -30, 30);
             rebuild |= ImGui.DragFloat("Target radius", ref _targetRadius, 1, 0, 30);
             rebuild |= ImGui.DragFloat("Target direction", ref _targetFacingDeg, 5, -180, 180);
-
-            rebuild |= ImGui.DragInt("Goal priority", ref _goalPrio, 1, 0, 100);
 
             rebuild |= ImGui.Checkbox("Block cone", ref _blockCone);
             if (_blockCone)
@@ -87,14 +84,18 @@ class PathfindingTest : TestWindow
     private MapVisualizer RebuildMap()
     {
         Map map = new(_mapResolution, new(_mapCenter), _mapHalfSize.X, _mapHalfSize.Y, _mapRotationDeg.Degrees());
+        float[] scratch = [];
+        var now = DateTime.MinValue.AddSeconds(NavigationDecision.ActivationTimeCushion);
+        List<(Func<WPos, float> shapeDistance, DateTime activation)> zones = [];
         if (_blockCone)
-            map.BlockPixelsInside(ShapeDistance.DonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()), _blockConeG, _mapThreshold);
+            zones.Add((ShapeDistance.DonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()), now.AddSeconds(_blockConeG)));
         if (_blockRect)
-            map.BlockPixelsInside(ShapeDistance.Rect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth), _blockRectG, _mapThreshold);
-        map.AddGoal(ShapeDistance.Circle(new(_targetPos), _targetRadius), 0, 0, 10);
-        map.AddGoal(ShapeDistance.Cone(new(_targetPos), _targetRadius, _targetFacingDeg.Degrees(), 45.Degrees()), 0, 10, 5);
+            zones.Add((ShapeDistance.Rect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth), now.AddSeconds(_blockRectG)));
+        zones.SortBy(z => z.activation);
+        NavigationDecision.RasterizeForbiddenZones(map, zones, now, ref scratch);
+        NavigationDecision.RasterizeGoalZones(map, new(_targetPos), _targetRadius, _targetFacingDeg.Degrees(), Positional.Rear);
 
-        var visu = new MapVisualizer(map, _goalPrio, new(_startingPos));
+        var visu = new MapVisualizer(map, new(_startingPos), new(_targetPos), _targetRadius);
 
         if (_blockCone)
             visu.Sectors.Add((new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()));

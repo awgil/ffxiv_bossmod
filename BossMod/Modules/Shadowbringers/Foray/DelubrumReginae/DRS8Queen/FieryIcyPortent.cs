@@ -12,7 +12,7 @@ class FieryIcyPortent(BossModule module) : Components.StayMove(module)
         };
         if (req != Requirement.None)
         {
-            Array.Fill(Requirements, req);
+            Array.Fill(PlayerStates, new(req, default));
         }
     }
 
@@ -20,7 +20,7 @@ class FieryIcyPortent(BossModule module) : Components.StayMove(module)
     {
         if ((AID)spell.Action.ID is AID.FieryPortent or AID.IcyPortent)
         {
-            Array.Fill(Requirements, Requirement.None);
+            Array.Fill(PlayerStates, default);
         }
     }
 }

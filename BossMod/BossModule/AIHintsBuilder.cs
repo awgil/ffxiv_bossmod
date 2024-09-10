@@ -54,6 +54,16 @@ public sealed class AIHintsBuilder : IDisposable
         else
         {
             hints.Center = player.Position.Rounded(5);
+            // try to keep player near grid center
+            var playerOffset = player.Position - hints.Center;
+            if (playerOffset.X < -1.25f)
+                hints.Center.X -= 2.5f;
+            else if (playerOffset.X > 1.25f)
+                hints.Center.X += 2.5f;
+            if (playerOffset.Z < -1.25f)
+                hints.Center.Z -= 2.5f;
+            else if (playerOffset.Z > 1.25f)
+                hints.Center.Z += 2.5f;
             // keep default bounds
         }
 
