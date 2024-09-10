@@ -425,7 +425,7 @@ public class ThetaStar
             node.HScore = _deltaGSide; // don't bother with min, it can't be lower
             node.ParentIndex = neighIndex;
         }
-        else
+        else if (neighbour.HScore < float.MaxValue)
         {
             (x2, y2) = _map.IndexToGrid(neighbour.ParentIndex);
             var dx = x2 - x1;
