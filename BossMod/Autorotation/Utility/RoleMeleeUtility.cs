@@ -21,8 +21,8 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
 
         def.Define(SharedTrack.Feint).As<FeintOption>("Feint", "", 250)
             .AddOption(FeintOption.None, "None", "Do not use automatically")
-            .AddOption(FeintOption.Use, "Use", "Use Feint (10s)", 60, 10, ActionTargets.Self, 22, 97)
-            .AddOption(FeintOption.UseEx, "UseEx", "Use Feint (15s)", 60, 15, ActionTargets.Self, 98)
+            .AddOption(FeintOption.Use, "Use", "Use Feint (10s)", 90, 10, ActionTargets.Self, 22, 97)
+            .AddOption(FeintOption.UseEx, "UseEx", "Use Feint (15s)", 90, 15, ActionTargets.Self, 98)
             .AddAssociatedActions(ClassShared.AID.Feint);
 
         DefineSimpleConfig(def, SharedTrack.ArmsLength, "ArmsLength", "ArmsL", 300, ClassShared.AID.ArmsLength, 6); // note: secondary effect 15s
