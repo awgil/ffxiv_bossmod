@@ -307,13 +307,7 @@ public abstract class BossModule : IDisposable
         {
             var (prio, color) = CalculateHighestPriority(pcSlot, pc, slot, player);
 
-            bool isFocus = false;
-            if (Service.TargetManager.FocusTarget != null)
-            {
-                var focus = Service.TargetManager.FocusTarget;
-                isFocus = focus.DataId == player.OID;
-            }
-
+            bool isFocus = WorldState.Client.FocusTargetId == player.InstanceID;
             if (prio == BossComponent.PlayerPriority.Irrelevant && !WindowConfig.ShowIrrelevantPlayers && !(isFocus && WindowConfig.ShowFocusTargetPlayer))
                 continue;
 
@@ -329,28 +323,14 @@ public abstract class BossModule : IDisposable
 
                 if (color == ArenaColor.PlayerGeneric)
                 {
+                    var colors = Service.Config.Get<ColorConfig>();
                     if (isFocus)
                     {
-                        color = ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 0, 1));
+                        color = colors.FocusTargetColor.ABGR;
                     }
                     else if (WindowConfig.ColorPlayersBasedOnRole)
                     {
-                        switch (player.Role)
-                        {
-                            case Role.Melee:
-                            case Role.Ranged:
-                                color = ImGui.ColorConvertFloat4ToU32(new Vector4(1, 0, 0, 1));
-                                break;
-                            case Role.Tank:
-                                color = ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 1, 1));
-                                break;
-                            case Role.Healer:
-                                color = ImGui.ColorConvertFloat4ToU32(new Vector4(0, 1, 0, 1));
-                                break;
-                            case Role.None:
-                            default:
-                                break;
-                        }
+                        color = colors.PlayerColors[(int)player.Role].ABGR;
                     }
                 }
             }
