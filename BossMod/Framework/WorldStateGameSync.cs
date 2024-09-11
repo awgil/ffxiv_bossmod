@@ -2,6 +2,7 @@
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
@@ -578,26 +579,27 @@ sealed class WorldStateGameSync : IDisposable
         if (!MemoryExtensions.SequenceEqual(_ws.Client.BozjaHolster.AsSpan(), bozjaHolster))
             _ws.Execute(new ClientState.OpBozjaHolsterChange(CalcBozjaHolster(bozjaHolster)));
 
-        var curFate = FateManager.Instance()->CurrentFate;
-        ClientState.Fate activeFate = curFate != null ? new(curFate->FateId, curFate->Location, curFate->Radius) : default;
-        if (_ws.Client.ActiveFate != activeFate)
-            _ws.Execute(new ClientState.OpActiveFateChange(activeFate));
+        if (!MemoryExtensions.SequenceEqual(_ws.Client.BlueMageSpells.AsSpan(), actionManager->BlueMageActions))
+            _ws.Execute(new ClientState.OpBlueMageSpellsChange(actionManager->BlueMageActions.ToArray()));
 
         var levels = uiState->PlayerState.ClassJobLevels;
         if (!MemoryExtensions.SequenceEqual(_ws.Client.ClassJobLevels.AsSpan(), levels))
             _ws.Execute(new ClientState.OpClassJobLevelsChange(levels.ToArray()));
 
-        Span<uint> blueSpells = stackalloc uint[24];
-        blueSpells.Clear();
-        for (var i = 0; i < 24; i++)
-            blueSpells[i] = actionManager->GetActiveBlueMageActionInSlot(i);
-        if (!MemoryExtensions.SequenceEqual(_ws.Client.BlueMageSpells.AsSpan(), blueSpells))
-            _ws.Execute(new ClientState.OpBlueMageSpellsChange(blueSpells.ToArray()));
+        var curFate = FateManager.Instance()->CurrentFate;
+        ClientState.Fate activeFate = curFate != null ? new(curFate->FateId, curFate->Location, curFate->Radius) : default;
+        if (_ws.Client.ActiveFate != activeFate)
+            _ws.Execute(new ClientState.OpActiveFateChange(activeFate));
 
         var petinfo = uiState->Buddy.PetInfo;
         var pet = new ClientState.Pet(petinfo.Pet->EntityId, petinfo.Order, petinfo.Stance);
-        if (pet != _ws.Client.ActivePet)
+        if (_ws.Client.ActivePet != pet)
             _ws.Execute(new ClientState.OpActivePetChange(pet));
+
+        var focusTarget = TargetSystem.Instance()->FocusTarget;
+        var focusTargetId = focusTarget != null ? SanitizedObjectID(focusTarget->GetGameObjectId()) : 0;
+        if (_ws.Client.FocusTargetId != focusTargetId)
+            _ws.Execute(new ClientState.OpFocusTargetChange(focusTargetId));
     }
 
     private ulong SanitizedObjectID(ulong raw) => raw != InvalidEntityId ? raw : 0;

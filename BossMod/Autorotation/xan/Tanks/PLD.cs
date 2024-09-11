@@ -43,7 +43,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
-        var gauge = GetGauge<PaladinGauge>();
+        var gauge = World.Client.GetGauge<PaladinGauge>();
         OathGauge = gauge.OathGauge;
 
         FightOrFlight = StatusLeft(SID.FightOrFlight);
@@ -133,7 +133,6 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
             PushGCD(AID.FastBlade, primaryTarget);
         }
-
     }
 
     private void CalcNextBestOGCD(StrategyValues strategy, Actor? primaryTarget)

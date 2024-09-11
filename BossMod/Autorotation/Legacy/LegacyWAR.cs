@@ -127,7 +127,7 @@ public sealed class LegacyWAR : LegacyModule
         _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
         _state.HaveTankStance = Player.FindStatus(WAR.SID.Defiance) != null;
 
-        _state.Gauge = GetGauge<WarriorGauge>().BeastGauge;
+        _state.Gauge = World.Client.GetGauge<WarriorGauge>().BeastGauge;
         _state.SurgingTempestLeft = _state.StatusDetails(Player, WAR.SID.SurgingTempest, Player.InstanceID).Left;
         _state.NascentChaosLeft = _state.StatusDetails(Player, WAR.SID.NascentChaos, Player.InstanceID).Left;
         _state.PrimalRendLeft = _state.StatusDetails(Player, WAR.SID.PrimalRend, Player.InstanceID).Left;

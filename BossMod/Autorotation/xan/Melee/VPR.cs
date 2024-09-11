@@ -62,7 +62,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
-        var gauge = GetGauge<ViperGaugeEx>();
+        var gauge = World.Client.GetGauge<ViperGaugeEx>();
         DreadCombo = gauge.DreadCombo;
         Coil = gauge.RattlingCoilStacks;
         Offering = gauge.SerpentOffering;

@@ -84,22 +84,9 @@ public sealed record class ActionDefinition(ActionID ID)
 
     // for duty actions, the action definition always stores cooldown group 80, but in reality a different one might be used
     public int ActualMainCooldownGroup(ReadOnlySpan<ClientState.DutyAction> dutyActions)
-    {
-        if (MainCooldownGroup < ActionDefinitions.DutyAction0CDGroup)
-            return MainCooldownGroup;
-        var index = -1;
-        for (var i = 0; i < dutyActions.Length; i++)
-        {
-            if (dutyActions[i].Action == ID)
-            {
-                index = i;
-                break;
-            }
-        }
-        if (index < 0)
-            return MainCooldownGroup; // TODO: reconsider...
-        return MainCooldownGroup + index;
-    }
+        => MainCooldownGroup == ActionDefinitions.DutyAction0CDGroup && dutyActions[0].Action != ID && dutyActions[1].Action == ID
+            ? ActionDefinitions.DutyAction1CDGroup
+            : MainCooldownGroup;
 
     // for multi-charge abilities, action is ready when elapsed >= single-charge cd; assume that if any multi-charge actions share cooldown group, they have same cooldown - otherwise dunno how it should work
     // TODO: use adjusted cooldown

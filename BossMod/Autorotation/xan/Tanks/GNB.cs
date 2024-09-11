@@ -34,7 +34,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
-        var gauge = GetGauge<GunbreakerGauge>();
+        var gauge = World.Client.GetGauge<GunbreakerGauge>();
         Ammo = gauge.Ammo;
         AmmoCombo = gauge.AmmoComboStep;
 
@@ -112,7 +112,6 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
 
             PushGCD(AID.KeenEdge, primaryTarget);
         }
-
     }
 
     // TODO handle forced 2 cartridge burst

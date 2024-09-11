@@ -109,16 +109,6 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     // expected usage is `ResolveTargetOverride(strategy) ?? CustomSmartTargetingLogic(...)`
     protected Actor? ResolveTargetOverride(in StrategyValue strategy) => Manager.ResolveTargetOverride(strategy.Target, strategy.TargetParam);
 
-    // TODO: reconsider...
-    public unsafe T GetGauge<T>() where T : unmanaged
-    {
-        T res = default;
-        ((ulong*)&res)[1] = World.Client.GaugePayload.Low;
-        if (sizeof(T) > 16)
-            ((ulong*)&res)[2] = World.Client.GaugePayload.High;
-        return res;
-    }
-
     protected float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - World.CurrentTime).TotalSeconds, 0.0f);
 
     // this also checks pending statuses

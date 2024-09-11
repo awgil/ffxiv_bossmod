@@ -36,13 +36,12 @@ public sealed class ClientState
     public record struct Combo(uint Action, float Remaining);
     public record struct Gauge(ulong Low, ulong High);
     public record struct Stats(int SkillSpeed, int SpellSpeed, int Haste);
-
-    public record struct Pet(uint InstanceID, byte Order, byte Stance);
-
-    public record struct DutyAction(ActionID Action, byte Charges);
+    public record struct Pet(ulong InstanceID, byte Order, byte Stance);
+    public record struct DutyAction(ActionID Action, byte CurCharges, byte MaxCharges);
 
     public const int NumCooldownGroups = 82;
     public const int NumClassLevels = 32; // see ClassJob.ExpArrayIndex
+    public const int NumBlueMageSpells = 24;
 
     public float? CountdownRemaining;
     public Angle CameraAzimuth; // updated every frame by the frame-start event
@@ -53,10 +52,11 @@ public sealed class ClientState
     public readonly Cooldown[] Cooldowns = new Cooldown[NumCooldownGroups];
     public readonly DutyAction[] DutyActions = new DutyAction[2];
     public readonly byte[] BozjaHolster = new byte[(int)BozjaHolsterID.Count]; // number of copies in holster per item
-    public readonly uint[] BlueMageSpells = new uint[24];
+    public readonly uint[] BlueMageSpells = new uint[NumBlueMageSpells];
     public readonly short[] ClassJobLevels = new short[NumClassLevels];
     public Fate ActiveFate;
     public Pet ActivePet;
+    public ulong FocusTargetId;
 
     public int ClassJobLevel(Class c)
     {
@@ -64,6 +64,7 @@ public sealed class ClientState
         return index >= 0 && index < ClassJobLevels.Length ? ClassJobLevels[index] : -1;
     }
 
+    // TODO: think about how to improve it...
     public unsafe T GetGauge<T>() where T : unmanaged
     {
         T res = default;
@@ -91,21 +92,27 @@ public sealed class ClientState
         if (cooldowns.Count > 0)
             yield return new OpCooldown(false, cooldowns);
 
-        if (DutyActions.Any(a => a.Action || a.Charges > 0))
+        if (DutyActions.Any(a => a != default))
             yield return new OpDutyActionsChange(DutyActions[0], DutyActions[1]);
 
         var bozjaHolster = BozjaHolster.Select((v, i) => ((BozjaHolsterID)i, v)).Where(iv => iv.v > 0).ToList();
         if (BozjaHolster.Any(count => count != 0))
             yield return new OpBozjaHolsterChange(bozjaHolster);
 
-        if (ClassJobLevels.Any(a => a != 0))
-            yield return new OpClassJobLevelsChange(ClassJobLevels);
-
         if (BlueMageSpells.Any(a => a != 0))
             yield return new OpBlueMageSpellsChange(BlueMageSpells);
 
+        if (ClassJobLevels.Any(a => a != 0))
+            yield return new OpClassJobLevelsChange(ClassJobLevels);
+
+        if (ActiveFate.ID != 0)
+            yield return new OpActiveFateChange(ActiveFate);
+
         if (ActivePet.InstanceID != 0)
             yield return new OpActivePetChange(ActivePet);
+
+        if (FocusTargetId != 0)
+            yield return new OpFocusTargetChange(FocusTargetId);
     }
 
     public void Tick(float dt)
@@ -238,7 +245,7 @@ public sealed class ClientState
             ws.Client.DutyActions[1] = Slot1;
             ws.Client.DutyActionsChanged.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLDA"u8).Emit(Slot0.Action).Emit(Slot0.Charges).Emit(Slot1.Action).Emit(Slot1.Charges);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLDA"u8).Emit(Slot0.Action).Emit(Slot0.CurCharges).Emit(Slot0.MaxCharges).Emit(Slot1.Action).Emit(Slot1.CurCharges).Emit(Slot1.MaxCharges);
     }
 
     public Event<OpBozjaHolsterChange> BozjaHolsterChanged = new();
@@ -260,15 +267,23 @@ public sealed class ClientState
         }
     }
 
-    public Event<OpActiveFateChange> ActiveFateChanged = new();
-    public sealed record class OpActiveFateChange(Fate Value) : WorldState.Operation
+    public Event<OpBlueMageSpellsChange> BlueMageSpellsChanged = new();
+    public sealed record class OpBlueMageSpellsChange(uint[] Values) : WorldState.Operation
     {
+        public readonly uint[] Values = Values;
+
         protected override void Exec(WorldState ws)
         {
-            ws.Client.ActiveFate = Value;
-            ws.Client.ActiveFateChanged.Fire(this);
+            Array.Copy(Values, ws.Client.BlueMageSpells, NumBlueMageSpells);
+            ws.Client.BlueMageSpellsChanged.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLAF"u8).Emit(Value.ID).Emit(Value.Center).Emit(Value.Radius, "f3");
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("CBLU"u8);
+            output.Emit((byte)Values.Length);
+            foreach (var e in Values)
+                output.Emit(e);
+        }
     }
 
     public Event<OpClassJobLevelsChange> ClassJobLevelsChanged = new();
@@ -292,26 +307,15 @@ public sealed class ClientState
         }
     }
 
-    public Event<OpBlueMageSpellsChange> BlueMageSpellsChanged = new();
-    public sealed record class OpBlueMageSpellsChange(uint[] Values) : WorldState.Operation
+    public Event<OpActiveFateChange> ActiveFateChanged = new();
+    public sealed record class OpActiveFateChange(Fate Value) : WorldState.Operation
     {
-        public readonly uint[] Values = Values;
-
         protected override void Exec(WorldState ws)
         {
-            Array.Fill(ws.Client.BlueMageSpells, (ushort)0);
-            for (var i = 0; i < Values.Length; i++)
-                ws.Client.BlueMageSpells[i] = Values[i];
-            ws.Client.BlueMageSpellsChanged.Fire(this);
+            ws.Client.ActiveFate = Value;
+            ws.Client.ActiveFateChanged.Fire(this);
         }
-
-        public override void Write(ReplayRecorder.Output output)
-        {
-            output.EmitFourCC("BLUS"u8);
-            output.Emit((byte)Values.Length);
-            foreach (var e in Values)
-                output.Emit(e);
-        }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLAF"u8).Emit(Value.ID).Emit(Value.Center).Emit(Value.Radius, "f3");
     }
 
     public Event<OpActivePetChange> ActivePetChanged = new();
@@ -322,10 +326,17 @@ public sealed class ClientState
             ws.Client.ActivePet = Value;
             ws.Client.ActivePetChanged.Fire(this);
         }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CPET"u8).Emit(Value.InstanceID, "X8").Emit(Value.Order).Emit(Value.Stance);
+    }
 
-        public override void Write(ReplayRecorder.Output output)
+    public Event<OpFocusTargetChange> FocusTargetChanged = new();
+    public sealed record class OpFocusTargetChange(ulong Value) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
         {
-            output.EmitFourCC("PETS"u8).Emit(Value.InstanceID).Emit(Value.Order).Emit(Value.Stance);
+            ws.Client.FocusTargetId = Value;
+            ws.Client.FocusTargetChanged.Fire(this);
         }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLFT"u8).Emit(Value, "X8");
     }
 }

@@ -169,14 +169,10 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     public ClientState.DutyAction GetDutyAction(ushort slot)
     {
-        var id = ActionManager.GetDutyActionId(slot);
-        if (id == 0)
-            return default;
-
-        var action = new ActionID(ActionType.Spell, id);
-        var dir = EventFramework.Instance()->GetContentDirector();
-
-        return new(action, dir == null ? default : *((byte*)dir + 1484 + slot));
+        var cd = EventFramework.Instance()->GetContentDirector();
+        return cd == null || !cd->DutyActionManager.ActionsPresent || slot >= cd->DutyActionManager.NumValidSlots
+            ? default
+            : new(new(ActionType.Spell, cd->DutyActionManager.ActionId[slot]), cd->DutyActionManager.CurCharges[slot], cd->DutyActionManager.MaxCharges[slot]);
     }
     public (ClientState.DutyAction, ClientState.DutyAction) GetDutyActions() => (GetDutyAction(0), GetDutyAction(1));
 

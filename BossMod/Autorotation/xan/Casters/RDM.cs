@@ -89,7 +89,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
-        var gauge = GetGauge<RedMageGauge>();
+        var gauge = World.Client.GetGauge<RedMageGauge>();
         BlackMana = gauge.BlackMana;
         WhiteMana = gauge.WhiteMana;
         Stacks = gauge.ManaStacks;

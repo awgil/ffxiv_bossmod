@@ -54,7 +54,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
-        var gauge = GetGauge<DragoonGauge>();
+        var gauge = World.Client.GetGauge<DragoonGauge>();
 
         Eyes = gauge.EyeCount;
         Focus = gauge.FirstmindsFocusCount;

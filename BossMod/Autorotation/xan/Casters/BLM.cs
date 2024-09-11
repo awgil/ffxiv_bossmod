@@ -64,7 +64,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
 
-        var gauge = GetGauge<BlackMageGauge>();
+        var gauge = World.Client.GetGauge<BlackMageGauge>();
 
         Element = gauge.ElementStance;
         ElementLeft = gauge.ElementTimeRemaining * 0.001f;

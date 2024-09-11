@@ -45,7 +45,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
-        var gauge = GetGauge<WhiteMageGauge>();
+        var gauge = World.Client.GetGauge<WhiteMageGauge>();
 
         NextLily = 20f - gauge.LilyTimer * 0.001f;
         Lily = gauge.Lily;

@@ -197,7 +197,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
-        Gauge = GetGauge<WarriorGauge>().BeastGauge;
+        Gauge = World.Client.GetGauge<WarriorGauge>().BeastGauge;
         GCDLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
         SurgingTempestLeft = SelfStatusLeft(WAR.SID.SurgingTempest);
 

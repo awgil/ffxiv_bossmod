@@ -70,7 +70,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 3);
 
-        var gauge = GetGauge<SamuraiGauge>();
+        var gauge = World.Client.GetGauge<SamuraiGauge>();
         Kaeshi = gauge.Kaeshi;
         Kenki = gauge.Kenki;
         Meditation = gauge.MeditationStacks;

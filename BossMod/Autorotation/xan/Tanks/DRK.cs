@@ -52,7 +52,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
-        var gauge = GetGauge<DarkKnightGauge>();
+        var gauge = World.Client.GetGauge<DarkKnightGauge>();
         Darkside = gauge.DarksideTimer * 0.001f;
         Blood = gauge.Blood;
         DarkArts = gauge.DarkArtsState == 1;
@@ -95,7 +95,6 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
                         PushGCD(AID.Torcleaver, primaryTarget);
                         break;
                 }
-
             }
 
             if (ShouldBlood(strategy))

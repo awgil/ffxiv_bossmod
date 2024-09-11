@@ -93,7 +93,7 @@ public sealed class LegacyDRG : LegacyModule
     {
         _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
 
-        var gauge = GetGauge<DragoonGauge>();
+        var gauge = World.Client.GetGauge<DragoonGauge>();
         _state.FirstmindFocusCount = gauge.FirstmindsFocusCount;
         _state.EyeCount = gauge.EyeCount;
         _state.LifeOfTheDragonLeft = gauge.LotdState != 0 ? gauge.LotdTimer * 0.001f : 0;

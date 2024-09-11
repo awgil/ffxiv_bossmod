@@ -64,7 +64,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
-        var gauge = GetGauge<PictomancerGauge>();
+        var gauge = World.Client.GetGauge<PictomancerGauge>();
         Palette = gauge.PalleteGauge;
         Paint = gauge.Paint;
         Creature = gauge.CreatureMotifDrawn;
