@@ -13,6 +13,13 @@ public abstract class BossModule : IDisposable
     public readonly ModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
 
+    private readonly Color TankColor = Color.FromComponents(30, 50, 110);
+    private readonly Color HealerColor = Color.FromComponents(30, 110, 50);
+    private readonly Color MeleeColor = Color.FromComponents(110, 30, 30);
+    private readonly Color CasterColor = Color.FromComponents(70, 30, 110);
+    private readonly Color RangedColor = Color.FromComponents(110, 90, 30);
+    private readonly Color FocusColor = Color.FromComponents(0, 255, 255);
+
     private readonly EventSubscriptions _subscriptions;
 
     public Event<BossModule, BossComponent?, string> Error = new();
@@ -331,24 +338,26 @@ public abstract class BossModule : IDisposable
                 {
                     if (isFocus)
                     {
-                        color = ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 0, 1));
+                        color = FocusColor.ABGR;
                     }
                     else if (WindowConfig.ColorPlayersBasedOnRole)
                     {
-                        switch (player.Role)
+                        switch (player.ClassCategory)
                         {
-                            case Role.Melee:
-                            case Role.Ranged:
-                                color = ImGui.ColorConvertFloat4ToU32(new Vector4(1, 0, 0, 1));
+                            case ClassCategory.Tank:
+                                color = TankColor.ABGR;
                                 break;
-                            case Role.Tank:
-                                color = ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 1, 1));
+                            case ClassCategory.Healer:
+                                color = HealerColor.ABGR;
                                 break;
-                            case Role.Healer:
-                                color = ImGui.ColorConvertFloat4ToU32(new Vector4(0, 1, 0, 1));
+                            case ClassCategory.Melee:
+                                color = MeleeColor.ABGR;
                                 break;
-                            case Role.None:
-                            default:
+                            case ClassCategory.Caster:
+                                color = CasterColor.ABGR;
+                                break;
+                            case ClassCategory.PhysRanged:
+                                color = RangedColor.ABGR;
                                 break;
                         }
                     }
