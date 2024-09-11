@@ -8,7 +8,8 @@ public abstract class BossModule : IDisposable
 {
     public readonly WorldState WorldState;
     public readonly Actor PrimaryActor;
-    public readonly BossModuleConfig WindowConfig;
+    public readonly BossModuleConfig WindowConfig = Service.Config.Get<BossModuleConfig>();
+    public readonly ColorConfig ColorConfig = Service.Config.Get<ColorConfig>();
     public readonly MiniArena Arena;
     public readonly ModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
@@ -79,7 +80,6 @@ public abstract class BossModule : IDisposable
     {
         WorldState = ws;
         PrimaryActor = primary;
-        WindowConfig = Service.Config.Get<BossModuleConfig>();
         Arena = new(WindowConfig, center, bounds);
         Info = ModuleRegistry.FindByOID(primary.OID);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
@@ -323,31 +323,22 @@ public abstract class BossModule : IDisposable
 
                 if (color == ArenaColor.PlayerGeneric)
                 {
-                    var colors = Service.Config.Get<ColorConfig>();
+                    // optional focus/role-based overrides
                     if (isFocus)
                     {
-                        color = colors.PlayerColorsFocus.ABGR;
+                        color = ColorConfig.PlayerColorsFocus.ABGR;
                     }
                     else if (WindowConfig.ColorPlayersBasedOnRole)
                     {
-                        switch (player.ClassCategory)
+                        color = player.ClassCategory switch
                         {
-                            case ClassCategory.Tank:
-                                color = colors.PlayerColorsTank.ABGR;
-                                break;
-                            case ClassCategory.Healer:
-                                color = colors.PlayerColorsHealer.ABGR;
-                                break;
-                            case ClassCategory.Melee:
-                                color = colors.PlayerColorsMelee.ABGR;
-                                break;
-                            case ClassCategory.Caster:
-                                color = colors.PlayerColorsCaster.ABGR;
-                                break;
-                            case ClassCategory.PhysRanged:
-                                color = colors.PlayerColorsPhysRanged.ABGR;
-                                break;
-                        }
+                            ClassCategory.Tank => ColorConfig.PlayerColorsTank.ABGR,
+                            ClassCategory.Healer => ColorConfig.PlayerColorsHealer.ABGR,
+                            ClassCategory.Melee => ColorConfig.PlayerColorsMelee.ABGR,
+                            ClassCategory.Caster => ColorConfig.PlayerColorsCaster.ABGR,
+                            ClassCategory.PhysRanged => ColorConfig.PlayerColorsPhysRanged.ABGR,
+                            _ => color
+                        };
                     }
                 }
             }

@@ -22,20 +22,20 @@ public sealed class ColorConfig : ConfigNode
     public Color[] PlannerWindow = [new(0x800089b5), new(0x80164bcb), new(0x802f32dc), new(0x808236d3), new(0x80c4716c), new(0x80d28b26), new(0x8098a12a), new(0x80009985)]; // solarized accents
 
     [PropertyDisplay("Player colors: tank")]
-    public Color PlayerColorsTank = new(Color.FromComponents(30, 50, 110).ABGR);
+    public Color PlayerColorsTank = Color.FromComponents(30, 50, 110);
 
     [PropertyDisplay("Player colors: healer")]
-    public Color PlayerColorsHealer = new(Color.FromComponents(30, 110, 50).ABGR);
+    public Color PlayerColorsHealer = Color.FromComponents(30, 110, 50);
 
     [PropertyDisplay("Player colors: melee")]
-    public Color PlayerColorsMelee = new(Color.FromComponents(110, 30, 30).ABGR);
+    public Color PlayerColorsMelee = Color.FromComponents(110, 30, 30);
 
     [PropertyDisplay("Player colors: caster")]
-    public Color PlayerColorsCaster = new(Color.FromComponents(70, 30, 110).ABGR);
+    public Color PlayerColorsCaster = Color.FromComponents(70, 30, 110);
 
     [PropertyDisplay("Player colors: phys. ranged")]
-    public Color PlayerColorsPhysRanged = new(Color.FromComponents(110, 90, 30).ABGR);
+    public Color PlayerColorsPhysRanged = Color.FromComponents(110, 90, 30);
 
     [PropertyDisplay("Player colors: focus")]
-    public Color PlayerColorsFocus = new(Color.FromComponents(0, 255, 255).ABGR);
+    public Color PlayerColorsFocus = Color.FromComponents(0, 255, 255);
 }
