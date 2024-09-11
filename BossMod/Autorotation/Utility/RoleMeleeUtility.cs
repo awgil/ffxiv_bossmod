@@ -42,9 +42,9 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
         if (lbLevel > 0)
             Hints.ActionsToExecute.Push(lbLevel == 3 ? lb3 : ActionID.MakeSpell(lbLevel == 2 ? ClassShared.AID.Bladedance : ClassShared.AID.Braver), ResolveTargetOverride(lb.Value) ?? primaryTarget, ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn);
 
-        var Feint = strategy.Option(SharedTrack.Feint);
-        if (Feint.As<FeintOption>() != FeintOption.None)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Feint), Player, Feint.Priority(), Feint.Value.ExpireIn);
+        var feint = strategy.Option(SharedTrack.Feint);
+        if (feint.As<FeintOption>() != FeintOption.None)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Feint), Player, feint.Priority(), feint.Value.ExpireIn);
 
     }
 }
