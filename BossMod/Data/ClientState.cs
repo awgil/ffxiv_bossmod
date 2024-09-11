@@ -1,6 +1,4 @@
-﻿using System.Windows.Markup;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 public record struct ClientActionRequest
 (
@@ -39,6 +37,10 @@ public sealed class ClientState
     public record struct Gauge(ulong Low, ulong High);
     public record struct Stats(int SkillSpeed, int SpellSpeed, int Haste);
 
+    public record struct Pet(uint InstanceID, byte Order, byte Stance);
+
+    public record struct DutyAction(ActionID Action, byte Charges);
+
     public const int NumCooldownGroups = 82;
     public const int NumClassLevels = 32; // see ClassJob.ExpArrayIndex
 
@@ -49,15 +51,26 @@ public sealed class ClientState
     public Combo ComboState;
     public Stats PlayerStats;
     public readonly Cooldown[] Cooldowns = new Cooldown[NumCooldownGroups];
-    public readonly ActionID[] DutyActions = new ActionID[2];
+    public readonly DutyAction[] DutyActions = new DutyAction[2];
     public readonly byte[] BozjaHolster = new byte[(int)BozjaHolsterID.Count]; // number of copies in holster per item
+    public readonly uint[] BlueMageSpells = new uint[24];
     public readonly short[] ClassJobLevels = new short[NumClassLevels];
     public Fate ActiveFate;
+    public Pet ActivePet;
 
     public int ClassJobLevel(Class c)
     {
         var index = Service.LuminaRow<Lumina.Excel.GeneratedSheets.ClassJob>((uint)c)?.ExpArrayIndex ?? -1;
         return index >= 0 && index < ClassJobLevels.Length ? ClassJobLevels[index] : -1;
+    }
+
+    public unsafe T GetGauge<T>() where T : unmanaged
+    {
+        T res = default;
+        ((ulong*)&res)[1] = GaugePayload.Low;
+        if (sizeof(T) > 16)
+            ((ulong*)&res)[2] = GaugePayload.High;
+        return res;
     }
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
@@ -78,7 +91,7 @@ public sealed class ClientState
         if (cooldowns.Count > 0)
             yield return new OpCooldown(false, cooldowns);
 
-        if (DutyActions.Any(a => a))
+        if (DutyActions.Any(a => a.Action || a.Charges > 0))
             yield return new OpDutyActionsChange(DutyActions[0], DutyActions[1]);
 
         var bozjaHolster = BozjaHolster.Select((v, i) => ((BozjaHolsterID)i, v)).Where(iv => iv.v > 0).ToList();
@@ -87,6 +100,12 @@ public sealed class ClientState
 
         if (ClassJobLevels.Any(a => a != 0))
             yield return new OpClassJobLevelsChange(ClassJobLevels);
+
+        if (BlueMageSpells.Any(a => a != 0))
+            yield return new OpBlueMageSpellsChange(BlueMageSpells);
+
+        if (ActivePet.InstanceID != 0)
+            yield return new OpActivePetChange(ActivePet);
     }
 
     public void Tick(float dt)
@@ -211,7 +230,7 @@ public sealed class ClientState
     }
 
     public Event<OpDutyActionsChange> DutyActionsChanged = new();
-    public sealed record class OpDutyActionsChange(ActionID Slot0, ActionID Slot1) : WorldState.Operation
+    public sealed record class OpDutyActionsChange(DutyAction Slot0, DutyAction Slot1) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {
@@ -219,7 +238,7 @@ public sealed class ClientState
             ws.Client.DutyActions[1] = Slot1;
             ws.Client.DutyActionsChanged.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLDA"u8).Emit(Slot0).Emit(Slot1);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLDA"u8).Emit(Slot0.Action).Emit(Slot0.Charges).Emit(Slot1.Action).Emit(Slot1.Charges);
     }
 
     public Event<OpBozjaHolsterChange> BozjaHolsterChanged = new();
@@ -270,6 +289,43 @@ public sealed class ClientState
             output.Emit((byte)Values.Length);
             foreach (var e in Values)
                 output.Emit(e);
+        }
+    }
+
+    public Event<OpBlueMageSpellsChange> BlueMageSpellsChanged = new();
+    public sealed record class OpBlueMageSpellsChange(uint[] Values) : WorldState.Operation
+    {
+        public readonly uint[] Values = Values;
+
+        protected override void Exec(WorldState ws)
+        {
+            Array.Fill(ws.Client.BlueMageSpells, (ushort)0);
+            for (var i = 0; i < Values.Length; i++)
+                ws.Client.BlueMageSpells[i] = Values[i];
+            ws.Client.BlueMageSpellsChanged.Fire(this);
+        }
+
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("BLUS"u8);
+            output.Emit((byte)Values.Length);
+            foreach (var e in Values)
+                output.Emit(e);
+        }
+    }
+
+    public Event<OpActivePetChange> ActivePetChanged = new();
+    public sealed record class OpActivePetChange(Pet Value) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            ws.Client.ActivePet = Value;
+            ws.Client.ActivePetChanged.Fire(this);
+        }
+
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("PETS"u8).Emit(Value.InstanceID).Emit(Value.Order).Emit(Value.Stance);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Dalamud.Hooking;
 using Dalamud.Memory;
-using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
@@ -11,7 +10,6 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.Interop;
-using System.Runtime.CompilerServices;
 
 namespace BossMod;
 
@@ -588,6 +586,18 @@ sealed class WorldStateGameSync : IDisposable
         var levels = uiState->PlayerState.ClassJobLevels;
         if (!MemoryExtensions.SequenceEqual(_ws.Client.ClassJobLevels.AsSpan(), levels))
             _ws.Execute(new ClientState.OpClassJobLevelsChange(levels.ToArray()));
+
+        Span<uint> blueSpells = stackalloc uint[24];
+        blueSpells.Clear();
+        for (var i = 0; i < 24; i++)
+            blueSpells[i] = actionManager->GetActiveBlueMageActionInSlot(i);
+        if (!MemoryExtensions.SequenceEqual(_ws.Client.BlueMageSpells.AsSpan(), blueSpells))
+            _ws.Execute(new ClientState.OpBlueMageSpellsChange(blueSpells.ToArray()));
+
+        var petinfo = uiState->Buddy.PetInfo;
+        var pet = new ClientState.Pet(petinfo.Pet->EntityId, petinfo.Order, petinfo.Stance);
+        if (pet != _ws.Client.ActivePet)
+            _ws.Execute(new ClientState.OpActivePetChange(pet));
     }
 
     private ulong SanitizedObjectID(ulong raw) => raw != InvalidEntityId ? raw : 0;
