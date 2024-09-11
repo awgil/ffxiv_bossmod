@@ -326,11 +326,28 @@ public abstract class BossModule : IDisposable
                     var colors = Service.Config.Get<ColorConfig>();
                     if (isFocus)
                     {
-                        color = colors.FocusTargetColor.ABGR;
+                        color = colors.PlayerColorsFocus.ABGR;
                     }
                     else if (WindowConfig.ColorPlayersBasedOnRole)
                     {
-                        color = colors.PlayerColors[(int)player.Role].ABGR;
+                        switch (player.ClassCategory)
+                        {
+                            case ClassCategory.Tank:
+                                color = colors.PlayerColorsTank.ABGR;
+                                break;
+                            case ClassCategory.Healer:
+                                color = colors.PlayerColorsHealer.ABGR;
+                                break;
+                            case ClassCategory.Melee:
+                                color = colors.PlayerColorsMelee.ABGR;
+                                break;
+                            case ClassCategory.Caster:
+                                color = colors.PlayerColorsCaster.ABGR;
+                                break;
+                            case ClassCategory.PhysRanged:
+                                color = colors.PlayerColorsPhysRanged.ABGR;
+                                break;
+                        }
                     }
                 }
             }
