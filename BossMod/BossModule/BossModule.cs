@@ -13,13 +13,6 @@ public abstract class BossModule : IDisposable
     public readonly ModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
 
-    private readonly Color TankColor = Color.FromComponents(30, 50, 110);
-    private readonly Color HealerColor = Color.FromComponents(30, 110, 50);
-    private readonly Color MeleeColor = Color.FromComponents(110, 30, 30);
-    private readonly Color CasterColor = Color.FromComponents(70, 30, 110);
-    private readonly Color RangedColor = Color.FromComponents(110, 90, 30);
-    private readonly Color FocusColor = Color.FromComponents(0, 255, 255);
-
     private readonly EventSubscriptions _subscriptions;
 
     public Event<BossModule, BossComponent?, string> Error = new();
@@ -314,13 +307,7 @@ public abstract class BossModule : IDisposable
         {
             var (prio, color) = CalculateHighestPriority(pcSlot, pc, slot, player);
 
-            bool isFocus = false;
-            if (Service.TargetManager.FocusTarget != null)
-            {
-                var focus = Service.TargetManager.FocusTarget;
-                isFocus = focus.DataId == player.OID;
-            }
-
+            bool isFocus = WorldState.Client.FocusTargetId == player.InstanceID;
             if (prio == BossComponent.PlayerPriority.Irrelevant && !WindowConfig.ShowIrrelevantPlayers && !(isFocus && WindowConfig.ShowFocusTargetPlayer))
                 continue;
 
@@ -336,30 +323,14 @@ public abstract class BossModule : IDisposable
 
                 if (color == ArenaColor.PlayerGeneric)
                 {
+                    var colors = Service.Config.Get<ColorConfig>();
                     if (isFocus)
                     {
-                        color = FocusColor.ABGR;
+                        color = colors.FocusTargetColor.ABGR;
                     }
                     else if (WindowConfig.ColorPlayersBasedOnRole)
                     {
-                        switch (player.ClassCategory)
-                        {
-                            case ClassCategory.Tank:
-                                color = TankColor.ABGR;
-                                break;
-                            case ClassCategory.Healer:
-                                color = HealerColor.ABGR;
-                                break;
-                            case ClassCategory.Melee:
-                                color = MeleeColor.ABGR;
-                                break;
-                            case ClassCategory.Caster:
-                                color = CasterColor.ABGR;
-                                break;
-                            case ClassCategory.PhysRanged:
-                                color = RangedColor.ABGR;
-                                break;
-                        }
+                        color = colors.PlayerColors[(int)player.Role].ABGR;
                     }
                 }
             }
