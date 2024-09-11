@@ -41,7 +41,6 @@ public sealed class PropertySliderAttribute(float min, float max) : Attribute
     public float Min { get; } = min;
     public float Max { get; } = max;
     public bool Logarithmic { get; set; }
-    public int Width { get; set; } // sets the width of the slider in pixels
 }
 
 // base class for configuration nodes

@@ -194,10 +194,7 @@ public sealed class ConfigUI : IDisposable
             var flags = ImGuiSliderFlags.None;
             if (slider.Logarithmic)
                 flags |= ImGuiSliderFlags.Logarithmic;
-            if (slider.Width != 0)
-            {
-                ImGui.SetNextItemWidth(slider.Width);
-            }
+            ImGui.SetNextItemWidth(ImGui.GetWindowWidth() * 0.30f);
             if (ImGui.DragFloat(label, ref v, slider.Speed, slider.Min, slider.Max, "%.3f", flags))
             {
                 member.SetValue(node, v);
@@ -224,10 +221,7 @@ public sealed class ConfigUI : IDisposable
             var flags = ImGuiSliderFlags.None;
             if (slider.Logarithmic)
                 flags |= ImGuiSliderFlags.Logarithmic;
-            if (slider.Width != 0)
-            {
-                ImGui.SetNextItemWidth(slider.Width);
-            }
+            ImGui.SetNextItemWidth(ImGui.GetWindowWidth() * 0.30f);
             if (ImGui.DragInt(label, ref v, slider.Speed, (int)slider.Min, (int)slider.Max, "%d", flags))
             {
                 member.SetValue(node, v);

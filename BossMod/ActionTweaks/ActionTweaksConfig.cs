@@ -9,6 +9,7 @@ public sealed class ActionTweaksConfig : ConfigNode
 
     [PropertyDisplay("Animation lock max delay (read tooltip!)", tooltip: "Configures the maximum simulated delay in milliseconds when using animation lock removal - this is required and cannot be reduced to zero. Setting this to 20ms will enable triple-weaving when using autorotation. The minimum setting to remove triple-weaving is 26ms. The minimum of 20ms has been accepted by FFLogs and should not cause issues with your logs.")]
     [PropertySlider(20, 50, Speed = 0.1f, Width = 100)]
+    [PropertySlider(20, 50, Speed = 0.1f)]
     public int AnimationLockDelayMax = 26;
 
     [PropertyDisplay("Remove extra framerate-induced cooldown delay", tooltip: "Dynamically adjusts cooldown and animation locks to ensure queued actions resolve immediately regardless of framerate limitations")]
