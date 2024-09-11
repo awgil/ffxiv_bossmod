@@ -306,7 +306,9 @@ public abstract class BossModule : IDisposable
         foreach (var (slot, player) in Raid.WithSlot().Exclude(pcSlot))
         {
             var (prio, color) = CalculateHighestPriority(pcSlot, pc, slot, player);
-            if (prio == BossComponent.PlayerPriority.Irrelevant && !WindowConfig.ShowIrrelevantPlayers)
+
+            bool isFocus = WorldState.Client.FocusTargetId == player.InstanceID;
+            if (prio == BossComponent.PlayerPriority.Irrelevant && !WindowConfig.ShowIrrelevantPlayers && !(isFocus && WindowConfig.ShowFocusTargetPlayer))
                 continue;
 
             if (color == 0)
@@ -318,6 +320,36 @@ public abstract class BossModule : IDisposable
                     BossComponent.PlayerPriority.Critical => ArenaColor.Vulnerable, // TODO: select some better color...
                     _ => ArenaColor.PlayerGeneric
                 };
+
+                if (color == ArenaColor.PlayerGeneric)
+                {
+                    var colors = Service.Config.Get<ColorConfig>();
+                    if (isFocus)
+                    {
+                        color = colors.PlayerColorsFocus.ABGR;
+                    }
+                    else if (WindowConfig.ColorPlayersBasedOnRole)
+                    {
+                        switch (player.ClassCategory)
+                        {
+                            case ClassCategory.Tank:
+                                color = colors.PlayerColorsTank.ABGR;
+                                break;
+                            case ClassCategory.Healer:
+                                color = colors.PlayerColorsHealer.ABGR;
+                                break;
+                            case ClassCategory.Melee:
+                                color = colors.PlayerColorsMelee.ABGR;
+                                break;
+                            case ClassCategory.Caster:
+                                color = colors.PlayerColorsCaster.ABGR;
+                                break;
+                            case ClassCategory.PhysRanged:
+                                color = colors.PlayerColorsPhysRanged.ABGR;
+                                break;
+                        }
+                    }
+                }
             }
             Arena.Actor(player, color);
         }
