@@ -1,19 +1,22 @@
 ﻿namespace BossMod;
 
 // common color constants (ABGR)
+// TODO: migrate away to direct use of ColorConfig
 public static class ArenaColor
 {
-    public const uint Background = 0xc00f0f0f;
-    public const uint Border = 0xffffffff;
-    public const uint AOE = 0x80008080;
-    public const uint SafeFromAOE = 0x80008000;
-    public const uint Danger = 0xff00ffff;
-    public const uint Safe = 0xff00ff00;
-    public const uint Trap = 0x80000080; // TODO: reconsider?
-    public const uint PC = 0xff00ff00;
-    public const uint Enemy = 0xff0000ff;
-    public const uint Object = 0xff0080ff;
-    public const uint PlayerInteresting = 0xffc0c0c0;
-    public const uint PlayerGeneric = 0xff808080;
-    public const uint Vulnerable = 0xffff00ff;
+    private static readonly ColorConfig Config = Service.Config.Get<ColorConfig>();
+
+    public static uint Background => Config.ArenaBackground.ABGR;
+    public static uint Border => Config.ArenaBorder.ABGR;
+    public static uint AOE => Config.ArenaAOE.ABGR;
+    public static uint SafeFromAOE => Config.ArenaSafeFromAOE.ABGR;
+    public static uint Danger => Config.ArenaDanger.ABGR;
+    public static uint Safe => Config.ArenaSafe.ABGR;
+    public static uint Trap => 0x80000080; // TODO: reconsider?
+    public static uint PC => Config.ArenaPC.ABGR;
+    public static uint Enemy => Config.ArenaEnemy.ABGR;
+    public static uint Object => Config.ArenaObject.ABGR;
+    public static uint PlayerInteresting => Config.ArenaPlayerInteresting.ABGR;
+    public static uint PlayerGeneric => Config.ArenaPlayerGeneric.ABGR;
+    public static uint Vulnerable => Config.ArenaPlayerVulnerable.ABGR;
 }

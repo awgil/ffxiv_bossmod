@@ -326,17 +326,17 @@ public abstract class BossModule : IDisposable
                     // optional focus/role-based overrides
                     if (isFocus)
                     {
-                        color = ColorConfig.PlayerColorsFocus.ABGR;
+                        color = ColorConfig.ArenaPlayerGenericFocus.ABGR;
                     }
                     else if (WindowConfig.ColorPlayersBasedOnRole)
                     {
                         color = player.ClassCategory switch
                         {
-                            ClassCategory.Tank => ColorConfig.PlayerColorsTank.ABGR,
-                            ClassCategory.Healer => ColorConfig.PlayerColorsHealer.ABGR,
-                            ClassCategory.Melee => ColorConfig.PlayerColorsMelee.ABGR,
-                            ClassCategory.Caster => ColorConfig.PlayerColorsCaster.ABGR,
-                            ClassCategory.PhysRanged => ColorConfig.PlayerColorsPhysRanged.ABGR,
+                            ClassCategory.Tank => ColorConfig.ArenaPlayerGenericTank.ABGR,
+                            ClassCategory.Healer => ColorConfig.ArenaPlayerGenericHealer.ABGR,
+                            ClassCategory.Melee => ColorConfig.ArenaPlayerGenericMelee.ABGR,
+                            ClassCategory.Caster => ColorConfig.ArenaPlayerGenericCaster.ABGR,
+                            ClassCategory.PhysRanged => ColorConfig.ArenaPlayerGenericPhysRanged.ABGR,
                             _ => color
                         };
                     }
