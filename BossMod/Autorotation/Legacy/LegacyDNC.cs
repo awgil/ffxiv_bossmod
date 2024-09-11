@@ -147,7 +147,7 @@ public sealed class LegacyDNC : LegacyModule
         _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
         _state.AnimationLockDelay = MathF.Max(0.1f, _state.AnimationLockDelay);
 
-        var gauge = GetGauge<DancerGauge>();
+        var gauge = World.Client.GetGauge<DancerGauge>();
         var curStep = (uint)gauge.CurrentStep;
 
         _state.Feathers = gauge.Feathers;

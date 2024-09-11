@@ -67,6 +67,15 @@ class AiryBubbles(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _bubbles.Select(b => new AOEInstance(_shape, b.Position));
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var s in _bubbles)
+        {
+            hints.AddForbiddenZone(_shape.Distance(s.Position, s.Rotation));
+            hints.AddForbiddenZone(ShapeDistance.Capsule(s.Position, s.Rotation, 5, _shape.Radius), WorldState.FutureTime(2));
+        }
+    }
+
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID != OID.AiryBubble || actor.HitboxRadius > _shape.Radius + 0.01f)

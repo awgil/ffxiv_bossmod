@@ -83,19 +83,14 @@ public sealed record class ActionDefinition(ActionID ID)
     public bool IsGCD => MainCooldownGroup == ActionDefinitions.GCDGroup || ExtraCooldownGroup == ActionDefinitions.GCDGroup;
 
     // for duty actions, the action definition always stores cooldown group 80, but in reality a different one might be used
-    public int ActualMainCooldownGroup(ReadOnlySpan<ActionID> dutyActions)
-    {
-        if (MainCooldownGroup < ActionDefinitions.DutyAction0CDGroup)
-            return MainCooldownGroup;
-        var index = dutyActions.IndexOf(ID);
-        if (index < 0)
-            return MainCooldownGroup; // TODO: reconsider...
-        return MainCooldownGroup + index;
-    }
+    public int ActualMainCooldownGroup(ReadOnlySpan<ClientState.DutyAction> dutyActions)
+        => MainCooldownGroup == ActionDefinitions.DutyAction0CDGroup && dutyActions[0].Action != ID && dutyActions[1].Action == ID
+            ? ActionDefinitions.DutyAction1CDGroup
+            : MainCooldownGroup;
 
     // for multi-charge abilities, action is ready when elapsed >= single-charge cd; assume that if any multi-charge actions share cooldown group, they have same cooldown - otherwise dunno how it should work
     // TODO: use adjusted cooldown
-    public float MainReadyIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ActionID> dutyActions)
+    public float MainReadyIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ClientState.DutyAction> dutyActions)
     {
         if (MainCooldownGroup < 0)
             return 0;
@@ -104,10 +99,10 @@ public sealed record class ActionDefinition(ActionID ID)
     }
 
     public float ExtraReadyIn(ReadOnlySpan<Cooldown> cooldowns) => ExtraCooldownGroup >= 0 ? cooldowns[ExtraCooldownGroup].Remaining : 0;
-    public float ReadyIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ActionID> dutyActions) => Math.Max(MainReadyIn(cooldowns, dutyActions), ExtraReadyIn(cooldowns));
+    public float ReadyIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ClientState.DutyAction> dutyActions) => Math.Max(MainReadyIn(cooldowns, dutyActions), ExtraReadyIn(cooldowns));
 
     // return time until charges are capped (for multi-charge abilities; for single-charge this is equivalent to remaining cooldown)
-    public float ChargeCapIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ActionID> dutyActions, int level)
+    public float ChargeCapIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ClientState.DutyAction> dutyActions, int level)
     {
         if (MainCooldownGroup < 0)
             return 0;

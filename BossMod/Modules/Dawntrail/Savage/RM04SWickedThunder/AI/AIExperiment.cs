@@ -1,9 +1,10 @@
 ﻿#if DEBUG
+using BossMod.AI;
 using BossMod.Autorotation;
 
 namespace BossMod.Dawntrail.Savage.RM04SWickedThunder.AI;
 
-sealed class AIExperiment(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
+sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotationModule(manager, player)
 {
     public enum Track { ElectrifyingWitchHunt, WNWitchHunt, IonClusterPlatform }
     public enum ElectrifyingWitchHuntStrategy { None, NWNear }
@@ -68,14 +69,6 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : Rotatio
             });
         }
     }
-
-    private void SetForcedMovement(WPos pos, float tolerance = 0.1f)
-    {
-        var dir = pos - Player.Position;
-        Hints.ForcedMovement = dir.LengthSq() > tolerance * tolerance ? new(dir.X, Player.PosRot.Y, dir.Z) : default;
-    }
-
-    private float Speed() => Player.FindStatus(50) != null ? 7.8f : 6;
 
     // default spot: max melee at z=-5
     private WPos ElectrifyingWitchHuntInitialPosition(RM04SWickedThunder module, ElectrifyingWitchHuntStrategy strategy) => module.Center - new WDir(5.9f, 5);

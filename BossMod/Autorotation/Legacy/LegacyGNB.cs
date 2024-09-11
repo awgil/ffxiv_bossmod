@@ -107,7 +107,7 @@ public sealed class LegacyGNB : LegacyModule
         _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
         _state.HaveTankStance = Player.FindStatus(GNB.SID.RoyalGuard) != null;
 
-        var gauge = GetGauge<GunbreakerGauge>();
+        var gauge = World.Client.GetGauge<GunbreakerGauge>();
         _state.Ammo = gauge.Ammo;
         _state.GunComboStep = gauge.AmmoComboStep;
         _state.MaxCartridges = _state.Unlocked(GNB.TraitID.CartridgeChargeII) ? 3 : 2;

@@ -161,7 +161,7 @@ public sealed class LegacyBRD : LegacyModule
         if (_state.AnimationLockDelay < 0.1f)
             _state.AnimationLockDelay = 0.1f; // TODO: reconsider; we generally don't want triple weaves or extra-late proc weaves
 
-        var gauge = GetGauge<BardGauge>();
+        var gauge = World.Client.GetGauge<BardGauge>();
         _state.ActiveSong = (Song)((byte)gauge.SongFlags & 3);
         _state.ActiveSongLeft = gauge.SongTimer * 0.001f;
         _state.Repertoire = gauge.Repertoire;

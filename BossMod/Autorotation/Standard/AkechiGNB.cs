@@ -191,7 +191,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving) //Executes our actions
     {
         //GNBGauge ints
-        var gauge = GetGauge<GunbreakerGauge>(); //Our gauge
+        var gauge = World.Client.GetGauge<GunbreakerGauge>(); //Our gauge
         Ammo = gauge.Ammo; //Our cartridges
         GunComboStep = gauge.AmmoComboStep; //Our combo step relating to GnashingFang or ReignOfBeasts
         MaxCartridges = Unlocked(GNB.TraitID.CartridgeChargeII) ? 3 : 2; //Checks if we are the proper level for how many max cartridges we have

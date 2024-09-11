@@ -9,22 +9,24 @@
 // - goal and danger are mutually exclusive, 'danger' overriding 'goal' state
 public class Map
 {
-    // MaxG == MaxValue if not dangerous; Priority > 0 if goal
-    public record struct Pixel(float MaxG, int Priority);
-
     public float Resolution { get; private set; } // pixel size, in world units
     public int Width { get; private set; } // always even
     public int Height { get; private set; } // always even
-    public Pixel[] Pixels = [];
+    public float[] PixelMaxG = []; // == MaxValue if not dangerous (TODO: consider changing to a byte per pixel?)
+    public sbyte[] PixelPriority = [];
 
     public WPos Center { get; private set; } // position of map center in world units
     public Angle Rotation { get; private set; } // rotation relative to world space (=> ToDirection() is equal to direction of local 'height' axis in world space)
-    private WDir LocalZDivRes { get; set; }
+    public WDir LocalZDivRes { get; private set; }
 
     public float MaxG; // maximal 'maxG' value of all blocked pixels
     public int MaxPriority; // maximal 'priority' value of all goal pixels
 
-    public Pixel this[int x, int y] => InBounds(x, y) ? Pixels[GridToIndex(x, y)] : new(float.MaxValue, 0);
+    // min-max bounds of 'interesting' area, default to (0,0) to (width-1,height-1)
+    public int MinX;
+    public int MinY;
+    public int MaxX;
+    public int MaxY;
 
     public Map() { }
     public Map(float resolution, WPos center, float worldHalfWidth, float worldHalfHeight, Angle rotation = default) => Init(resolution, center, worldHalfWidth, worldHalfHeight, rotation);
@@ -36,9 +38,13 @@ public class Map
         Height = 2 * (int)MathF.Ceiling(worldHalfHeight / resolution);
 
         var numPixels = Width * Height;
-        if (Pixels.Length < numPixels)
-            Pixels = new Pixel[numPixels];
-        Array.Fill(Pixels, new Pixel(float.MaxValue, 0), 0, numPixels);
+        if (PixelMaxG.Length < numPixels)
+            PixelMaxG = new float[numPixels];
+        Array.Fill(PixelMaxG, float.MaxValue, 0, numPixels); // fill is unconditional, can we avoid it by changing storage?..
+        if (PixelPriority.Length < numPixels)
+            PixelPriority = new sbyte[numPixels];
+        else
+            Array.Fill(PixelPriority, (sbyte)0, 0, numPixels);
 
         Center = center;
         Rotation = rotation;
@@ -46,6 +52,10 @@ public class Map
 
         MaxG = 0;
         MaxPriority = 0;
+
+        MinX = MinY = 0;
+        MaxX = Width - 1;
+        MaxY = Height - 1;
     }
 
     public void Init(Map source, WPos center)
@@ -55,9 +65,12 @@ public class Map
         Height = source.Height;
 
         var numPixels = Width * Height;
-        if (Pixels.Length < numPixels)
-            Pixels = new Pixel[numPixels];
-        Array.Copy(source.Pixels, Pixels, numPixels);
+        if (PixelMaxG.Length < numPixels)
+            PixelMaxG = new float[numPixels];
+        Array.Copy(source.PixelMaxG, PixelMaxG, numPixels);
+        if (PixelPriority.Length < numPixels)
+            PixelPriority = new sbyte[numPixels];
+        Array.Copy(source.PixelPriority, PixelPriority, numPixels);
 
         Center = center;
         Rotation = source.Rotation;
@@ -65,6 +78,11 @@ public class Map
 
         MaxG = source.MaxG;
         MaxPriority = source.MaxPriority;
+
+        MinX = source.MinX;
+        MinY = source.MinY;
+        MaxX = source.MaxX;
+        MaxY = source.MaxY;
     }
 
     public Vector2 WorldToGridFrac(WPos world)
@@ -98,8 +116,8 @@ public class Map
         {
             if (shape(center) < threshold)
             {
-                ref var pixel = ref Pixels[y * Width + x];
-                pixel.MaxG = MathF.Min(pixel.MaxG, maxG);
+                ref var pixel = ref PixelMaxG[y * Width + x];
+                pixel = MathF.Min(pixel, maxG);
             }
         }
     }

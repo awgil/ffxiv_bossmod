@@ -132,7 +132,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
 
         var selPhase = _tree.Phases[selectedPhase];
         ImGui.SameLine();
-        if (ImGui.SliderFloat("###phase-duration", ref selPhase.Duration, 0, selPhase.MaxTime, $"{selPhase.Name}: %.1f"))
+        if (ImGui.SliderFloat("###phase-duration", ref selPhase.Duration, 0, selPhase.MaxTime, $"{selPhase.Name.Replace("%", "%%", StringComparison.Ordinal)}: %.1f"))
         {
             Plan.PhaseDurations[selectedPhase] = selPhase.Duration;
             if (_syncTimings)

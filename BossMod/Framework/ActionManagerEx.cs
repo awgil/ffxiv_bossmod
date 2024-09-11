@@ -1,12 +1,12 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using FFXIVClientStructs.FFXIV.Common.Configuration;
 using System.Runtime.InteropServices;
 using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
@@ -167,12 +167,14 @@ public sealed unsafe class ActionManagerEx : IDisposable
         return gcd->Total - gcd->Elapsed;
     }
 
-    public ActionID GetDutyAction(ushort slot)
+    public ClientState.DutyAction GetDutyAction(ushort slot)
     {
-        var id = ActionManager.GetDutyActionId(slot);
-        return id != 0 ? new(ActionType.Spell, id) : default;
+        var cd = EventFramework.Instance()->GetContentDirector();
+        return cd == null || !cd->DutyActionManager.ActionsPresent || slot >= cd->DutyActionManager.NumValidSlots
+            ? default
+            : new(new(ActionType.Spell, cd->DutyActionManager.ActionId[slot]), cd->DutyActionManager.CurCharges[slot], cd->DutyActionManager.MaxCharges[slot]);
     }
-    public (ActionID, ActionID) GetDutyActions() => (GetDutyAction(0), GetDutyAction(1));
+    public (ClientState.DutyAction, ClientState.DutyAction) GetDutyActions() => (GetDutyAction(0), GetDutyAction(1));
 
     public uint GetAdjustedActionID(uint actionID) => _inst->GetAdjustedActionId(actionID);
 

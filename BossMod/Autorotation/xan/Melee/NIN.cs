@@ -72,7 +72,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 3);
 
-        var gauge = GetGauge<NinjaGauge>();
+        var gauge = World.Client.GetGauge<NinjaGauge>();
         Ninki = gauge.Ninki;
         Kazematoi = gauge.Kazematoi;
 

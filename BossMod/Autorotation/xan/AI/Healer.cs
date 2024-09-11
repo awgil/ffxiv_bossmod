@@ -133,7 +133,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         var bestSTHealTarget = World.Party.WithoutSlot(false, true).MinBy(PredictedHPRatio)!;
         if (PredictedHPRatio(bestSTHealTarget) < 0.25)
         {
-            if (GetGauge<WhiteMageGauge>().Lily > 0)
+            if (World.Client.GetGauge<WhiteMageGauge>().Lily > 0)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.WHM.AID.AfflatusSolace), bestSTHealTarget, ActionQueue.Priority.VeryHigh);
 
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.WHM.AID.Tetragrammaton), bestSTHealTarget, ActionQueue.Priority.Medium);

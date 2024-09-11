@@ -30,7 +30,8 @@ public struct NavigationDecision
     {
         // build a pathfinding map: rasterize all forbidden zones and goals
         hints.Bounds.PathfindMap(ctx.Map, hints.Center);
-        RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, ws.CurrentTime, ref ctx.Scratch);
+        if (hints.ForbiddenZones.Count > 0)
+            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, ws.CurrentTime, ref ctx.Scratch);
         if (targetPos != null)
             RasterizeGoalZones(ctx.Map, targetPos.Value, targetRadius, targetRot, positional);
 
@@ -45,20 +46,16 @@ public struct NavigationDecision
 
     public static void RasterizeForbiddenZones(Map map, List<(Func<WPos, float> shapeDistance, DateTime activation)> zones, DateTime current, ref float[] scratch)
     {
-        // note that a zone can partially intersect a pixel; so what we do is check each corner and set the maxg value of a pixel equal to the minimum of 4 corners
-        // to avoid 4x calculations, we do a slightly tricky loop:
-        // - outer loop fills row i to with g values corresponding to the 'upper edge' of cell i
-        // - inner loop calculates the g value at the left border, then iterates over all right corners and fills minimums of two g values to the cells
-        // - second outer loop calculates values at 'bottom' edge and then updates the values of all cells to correspond to the cells rather than edges
-        map.MaxG = zones.Count > 0 ? ActivationToG(zones[^1].activation, current) : 0;
-        if (scratch.Length < map.Pixels.Length)
-            scratch = new float[map.Pixels.Length];
-
         // very slight difference in activation times cause issues for pathfinding - cluster them together
         (Func<WPos, float> shapeDistance, DateTime activation)[] zonesFixed = [.. zones];
-        DateTime clusterStart = default, clusterEnd = default;
+        DateTime clusterStart = default, clusterEnd = default, globalStart = current, globalEnd = current.AddSeconds(120);
         foreach (ref var z in zonesFixed.AsSpan())
         {
+            if (z.activation < globalStart)
+                z.activation = globalStart;
+            else if (z.activation > globalEnd)
+                z.activation = globalEnd;
+
             if (z.activation < clusterEnd)
             {
                 z.activation = clusterStart;
@@ -70,28 +67,48 @@ public struct NavigationDecision
             }
         }
 
+        // note that a zone can partially intersect a pixel; so what we do is check each corner and set the maxg value of a pixel equal to the minimum of 4 corners
+        // to avoid 4x calculations, we do a slightly tricky loop:
+        // - outer loop fills row i to with g values corresponding to the 'upper edge' of cell i
+        // - inner loop calculates the g value at the left border, then iterates over all right corners and fills minimums of two g values to the cells
+        // - second outer loop calculates values at 'bottom' edge and then updates the values of all cells to correspond to the cells rather than edges
+        map.MaxG = zonesFixed.Length > 0 ? ActivationToG(zonesFixed[^1].activation, current) : 0;
+        if (scratch.Length < map.PixelMaxG.Length)
+            scratch = new float[map.PixelMaxG.Length];
+
+        // see Map.EnumeratePixels, note that we care about corners rather than centers
+        var dy = map.LocalZDivRes * map.Resolution * map.Resolution;
+        var dx = dy.OrthoL();
+        var cy = map.Center - map.Width / 2 * dx - map.Height / 2 * dy;
+
         int iCell = 0;
         for (int y = 0; y < map.Height; ++y)
         {
-            var leftG = CalculateMaxG(zonesFixed, map, 0, y, current);
+            var cx = cy;
+            var leftG = CalculateMaxG(zonesFixed, map, cx, current);
             for (int x = 0; x < map.Width; ++x)
             {
-                var rightG = CalculateMaxG(zonesFixed, map, x + 1, y, current);
+                cx += dx;
+                var rightG = CalculateMaxG(zonesFixed, map, cx, current);
                 scratch[iCell++] = Math.Min(leftG, rightG);
                 leftG = rightG;
             }
+            cy += dy;
         }
-        var bleftG = CalculateMaxG(zonesFixed, map, 0, map.Height, current);
+        var bleftG = CalculateMaxG(zonesFixed, map, cy, current);
         iCell -= map.Width;
         for (int x = 0; x < map.Width; ++x, ++iCell)
         {
-            var brightG = CalculateMaxG(zonesFixed, map, x + 1, map.Height, current);
+            cy += dx;
+            var brightG = CalculateMaxG(zonesFixed, map, cy, current);
             var bottomG = Math.Min(bleftG, brightG);
             var jCell = iCell;
             for (int y = map.Height; y > 0; --y, jCell -= map.Width)
             {
                 var topG = scratch[jCell];
-                map.Pixels[jCell].MaxG = Math.Min(Math.Min(topG, bottomG), map.Pixels[jCell].MaxG);
+                var cellG = map.PixelMaxG[jCell] = Math.Min(Math.Min(topG, bottomG), map.PixelMaxG[jCell]);
+                if (cellG != float.MaxValue)
+                    map.PixelPriority[jCell] = sbyte.MinValue;
                 bottomG = topG;
             }
             bleftG = brightG;
@@ -105,30 +122,46 @@ public struct NavigationDecision
         var (x0, y0) = map.ClampToGrid((xc - halfSize, yc - halfSize));
         var (x1, y1) = map.ClampToGrid((xc + halfSize, yc + halfSize));
 
+        // see Map.EnumeratePixels, note that we care about corners rather than centers
+        var dy = map.LocalZDivRes * map.Resolution * map.Resolution;
+        var dx = dy.OrthoL();
+        var cy = map.Center + (x0 - map.Width / 2) * dx + (y0 - map.Height / 2) * dy;
+
         var targetDir = targetRot.ToDirection();
         for (int y = y0; y <= y1; ++y)
         {
-            var leftP = CalculateGoalPriority(targetPos, targetRadius, targetDir, positional, map, x0, y);
+            var cx = cy;
+            var leftP = CalculateGoalPriority(targetPos, targetRadius, targetDir, positional, map, cx);
             var iCell = map.GridToIndex(x0, y);
             for (int x = x0; x <= x1; ++x)
             {
-                var rightP = CalculateGoalPriority(targetPos, targetRadius, targetDir, positional, map, x + 1, y);
-                map.Pixels[iCell++].Priority = Math.Min(leftP, rightP);
+                cx += dx;
+                var rightP = CalculateGoalPriority(targetPos, targetRadius, targetDir, positional, map, cx);
+                map.PixelPriority[iCell++] = Math.Min(leftP, rightP);
                 leftP = rightP;
             }
+            cy += dy;
         }
-        var bleftP = CalculateGoalPriority(targetPos, targetRadius, targetDir, positional, map, x0, y1 + 1);
+        var bleftP = CalculateGoalPriority(targetPos, targetRadius, targetDir, positional, map, cy);
         var bCell = map.GridToIndex(x0, y1);
         for (int x = x0; x <= x1; ++x, ++bCell)
         {
-            var brightP = CalculateGoalPriority(targetPos, targetRadius, targetDir, positional, map, x + 1, y1 + 1);
+            cy += dx;
+            var brightP = CalculateGoalPriority(targetPos, targetRadius, targetDir, positional, map, cy);
             var bottomP = Math.Min(bleftP, brightP);
             var iCell = bCell;
             for (int y = y1; y >= y0; --y, iCell -= map.Width)
             {
-                var topP = map.Pixels[iCell].Priority;
-                var cellP = map.Pixels[iCell].Priority = Math.Min(topP, bottomP);
-                map.MaxPriority = Math.Max(map.MaxPriority, cellP);
+                var topP = map.PixelPriority[iCell];
+                if (map.PixelMaxG[iCell] == float.MaxValue)
+                {
+                    var cellP = map.PixelPriority[iCell] = Math.Min(topP, bottomP);
+                    map.MaxPriority = Math.Max(map.MaxPriority, cellP);
+                }
+                else
+                {
+                    map.PixelPriority[iCell] = sbyte.MinValue;
+                }
                 bottomP = topP;
             }
             bleftP = brightP;
@@ -137,18 +170,16 @@ public struct NavigationDecision
 
     private static float ActivationToG(DateTime activation, DateTime current) => MathF.Max(0, (float)(activation - current).TotalSeconds - ActivationTimeCushion);
 
-    private static float CalculateMaxG(Span<(Func<WPos, float> shapeDistance, DateTime activation)> zones, Map map, int x, int y, DateTime current)
+    private static float CalculateMaxG(Span<(Func<WPos, float> shapeDistance, DateTime activation)> zones, Map map, WPos p, DateTime current)
     {
-        var p = map.GridToWorld(x, y, 0, 0);
         foreach (ref var z in zones)
             if (z.shapeDistance(p) < ForbiddenZoneCushion)
                 return ActivationToG(z.activation, current);
         return float.MaxValue;
     }
 
-    private static int CalculateGoalPriority(WPos targetPos, float targetRadius, WDir targetDir, Positional positional, Map map, int x, int y)
+    private static sbyte CalculateGoalPriority(WPos targetPos, float targetRadius, WDir targetDir, Positional positional, Map map, WPos p)
     {
-        var p = map.GridToWorld(x, y, 0, 0);
         var offset = p - targetPos;
         var lsq = offset.LengthSq();
         if (lsq > targetRadius * targetRadius)
@@ -165,7 +196,7 @@ public struct NavigationDecision
             Positional.Front => front > side, // TODO: reconsider this...
             _ => false
         };
-        return inPositional ? 2 : 1;
+        return (sbyte)(inPositional ? 2 : 1);
     }
 
     private static WPos? GetFirstWaypoint(ThetaStar pf, Map map, int cell)
@@ -177,10 +208,9 @@ public struct NavigationDecision
         do
         {
             ref var node = ref pf.NodeByIndex(cell);
-            int parent = map.GridToIndex(node.ParentX, node.ParentY);
-            if (pf.NodeByIndex(parent).GScore == 0)
+            if (pf.NodeByIndex(node.ParentIndex).GScore == 0)
                 return pf.CellCenter(cell);
-            cell = parent;
+            cell = node.ParentIndex;
         }
         while (true);
     }

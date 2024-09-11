@@ -109,16 +109,6 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     // expected usage is `ResolveTargetOverride(strategy) ?? CustomSmartTargetingLogic(...)`
     protected Actor? ResolveTargetOverride(in StrategyValue strategy) => Manager.ResolveTargetOverride(strategy.Target, strategy.TargetParam);
 
-    // TODO: reconsider...
-    public unsafe T GetGauge<T>() where T : unmanaged
-    {
-        T res = default;
-        ((ulong*)&res)[1] = World.Client.GaugePayload.Low;
-        if (sizeof(T) > 16)
-            ((ulong*)&res)[2] = World.Client.GaugePayload.High;
-        return res;
-    }
-
     protected float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - World.CurrentTime).TotalSeconds, 0.0f);
 
     // this also checks pending statuses
@@ -147,12 +137,12 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     protected float PotionCD => World.Client.Cooldowns[ActionDefinitions.PotionCDGroup].Remaining; // variable max
 
     // find a slot containing specified duty action; returns -1 if not found
-    public int FindDutyActionSlot(ActionID action) => Array.IndexOf(World.Client.DutyActions, action);
+    public int FindDutyActionSlot(ActionID action) => Array.FindIndex(World.Client.DutyActions, d => d.Action == action);
     // find a slot containing specified duty action, if other duty action is the specified one; returns -1 if not found, or other action is different
     public int FindDutyActionSlot(ActionID action, ActionID other)
     {
         var slot = FindDutyActionSlot(action);
-        return slot >= 0 && World.Client.DutyActions[1 - slot] == other ? slot : -1;
+        return slot >= 0 && World.Client.DutyActions[1 - slot].Action == other ? slot : -1;
     }
 
     public float DutyActionCD(int slot) => slot is >= 0 and < 2 ? World.Client.Cooldowns[ActionDefinitions.DutyAction0CDGroup + slot].Remaining : float.MaxValue;

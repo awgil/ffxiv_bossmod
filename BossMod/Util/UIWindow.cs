@@ -17,13 +17,16 @@ public abstract class UIWindow : Window, IDisposable
 {
     public bool DisposeOnClose; // defaults to true for detached windows, false for normal windows
 
-    protected UIWindow(string name, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None) : base(name, flags)
+    protected UIWindow(string name, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<TitleBarButton>? titleBarButtons = null) : base(name, flags)
     {
         DisposeOnClose = detached;
         Size = initialSize;
         SizeCondition = ImGuiCond.FirstUseEver;
         AllowClickthrough = AllowPinning = false; // this breaks uidev
-
+        if (titleBarButtons != null)
+        {
+            TitleBarButtons = titleBarButtons;
+        }
         var existingWindow = Service.WindowSystem!.Windows.FirstOrDefault(w => w.WindowName == WindowName);
         if (existingWindow == null)
         {
@@ -61,8 +64,8 @@ public abstract class UIWindow : Window, IDisposable
 }
 
 // utility: window that uses custom delegate to perform drawing - allows avoiding creating derived classes in simple cases
-public class UISimpleWindow(string name, Action draw, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None)
-    : UIWindow(name, detached, initialSize, flags)
+public class UISimpleWindow(string name, Action draw, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<Window.TitleBarButton>? titleBarButtons = null)
+    : UIWindow(name, detached, initialSize, flags, titleBarButtons)
 {
     private readonly Action _draw = draw;
 

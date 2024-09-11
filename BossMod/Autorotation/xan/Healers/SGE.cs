@@ -51,7 +51,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
 
-        var gauge = GetGauge<SageGauge>();
+        var gauge = World.Client.GetGauge<SageGauge>();
 
         Gall = gauge.Addersgall;
         Sting = gauge.Addersting;
