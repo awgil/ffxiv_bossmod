@@ -43,7 +43,7 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
 
         var feint = strategy.Option(SharedTrack.Feint);
         if (feint.As<FeintOption>() != FeintOption.None)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Feint), primaryTarget, feint.Priority(), feint.Value.ExpireIn); 
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Feint), primaryTarget, feint.Priority(), feint.Value.ExpireIn);
 
     }
 }
