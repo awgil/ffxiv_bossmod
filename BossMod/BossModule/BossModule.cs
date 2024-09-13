@@ -8,7 +8,8 @@ public abstract class BossModule : IDisposable
 {
     public readonly WorldState WorldState;
     public readonly Actor PrimaryActor;
-    public readonly BossModuleConfig WindowConfig;
+    public readonly BossModuleConfig WindowConfig = Service.Config.Get<BossModuleConfig>();
+    public readonly ColorConfig ColorConfig = Service.Config.Get<ColorConfig>();
     public readonly MiniArena Arena;
     public readonly ModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
@@ -79,7 +80,6 @@ public abstract class BossModule : IDisposable
     {
         WorldState = ws;
         PrimaryActor = primary;
-        WindowConfig = Service.Config.Get<BossModuleConfig>();
         Arena = new(WindowConfig, center, bounds);
         Info = ModuleRegistry.FindByOID(primary.OID);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
@@ -306,7 +306,9 @@ public abstract class BossModule : IDisposable
         foreach (var (slot, player) in Raid.WithSlot().Exclude(pcSlot))
         {
             var (prio, color) = CalculateHighestPriority(pcSlot, pc, slot, player);
-            if (prio == BossComponent.PlayerPriority.Irrelevant && !WindowConfig.ShowIrrelevantPlayers)
+
+            bool isFocus = WorldState.Client.FocusTargetId == player.InstanceID;
+            if (prio == BossComponent.PlayerPriority.Irrelevant && !WindowConfig.ShowIrrelevantPlayers && !(isFocus && WindowConfig.ShowFocusTargetPlayer))
                 continue;
 
             if (color == 0)
@@ -318,6 +320,27 @@ public abstract class BossModule : IDisposable
                     BossComponent.PlayerPriority.Critical => ArenaColor.Vulnerable, // TODO: select some better color...
                     _ => ArenaColor.PlayerGeneric
                 };
+
+                if (color == ArenaColor.PlayerGeneric)
+                {
+                    // optional focus/role-based overrides
+                    if (isFocus)
+                    {
+                        color = ColorConfig.PlayerColorsFocus.ABGR;
+                    }
+                    else if (WindowConfig.ColorPlayersBasedOnRole)
+                    {
+                        color = player.ClassCategory switch
+                        {
+                            ClassCategory.Tank => ColorConfig.PlayerColorsTank.ABGR,
+                            ClassCategory.Healer => ColorConfig.PlayerColorsHealer.ABGR,
+                            ClassCategory.Melee => ColorConfig.PlayerColorsMelee.ABGR,
+                            ClassCategory.Caster => ColorConfig.PlayerColorsCaster.ABGR,
+                            ClassCategory.PhysRanged => ColorConfig.PlayerColorsPhysRanged.ABGR,
+                            _ => color
+                        };
+                    }
+                }
             }
             Arena.Actor(player, color);
         }

@@ -43,7 +43,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         ShortMitDuration: 8,
         AllyMit: Spell(BossMod.PLD.AID.Intervention),
         SmallMit: Spell(BossMod.PLD.AID.Bulwark),
-        ShortMitCheck: (mod) => mod.GetGauge<PaladinGauge>().OathGauge >= 50
+        ShortMitCheck: (mod) => mod.World.Client.GetGauge<PaladinGauge>().OathGauge >= 50
     );
     private static TankActions DRKActions = new(
         Ranged: Spell(BossMod.DRK.AID.Unmend),

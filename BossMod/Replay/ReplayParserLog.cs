@@ -336,8 +336,11 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLCD"u8)] = ParseClientCooldown,
             [new("CLDA"u8)] = ParseClientDutyActions,
             [new("CLBH"u8)] = ParseClientBozjaHolster,
-            [new("CLAF"u8)] = ParseClientActiveFate,
+            [new("CBLU"u8)] = ParseClientBlueMageSpells,
             [new("CLVL"u8)] = ParseClientClassJobLevels,
+            [new("CLAF"u8)] = ParseClientActiveFate,
+            [new("CPET"u8)] = ParseClientActivePet,
+            [new("CLFT"u8)] = ParseClientFocusTarget,
             [new("IPCI"u8)] = ParseNetworkIDScramble,
             [new("IPCS"u8)] = ParseNetworkServerIPC,
         };
@@ -636,7 +639,12 @@ public sealed class ReplayParserLog : IDisposable
         return new(reset, cooldowns);
     }
 
-    private ClientState.OpDutyActionsChange ParseClientDutyActions() => new(_input.ReadAction(), _input.ReadAction());
+    private ClientState.OpDutyActionsChange ParseClientDutyActions()
+    {
+        var slot0 = new ClientState.DutyAction(_input.ReadAction(), _version >= 20 ? _input.ReadByte(false) : (byte)1, _version >= 20 ? _input.ReadByte(false) : (byte)1);
+        var slot1 = new ClientState.DutyAction(_input.ReadAction(), _version >= 20 ? _input.ReadByte(false) : (byte)1, _version >= 20 ? _input.ReadByte(false) : (byte)1);
+        return new(slot0, slot1);
+    }
 
     private ClientState.OpBozjaHolsterChange ParseClientBozjaHolster()
     {
@@ -647,7 +655,14 @@ public sealed class ReplayParserLog : IDisposable
         return new(contents);
     }
 
-    private ClientState.OpActiveFateChange ParseClientActiveFate() => new(new(_input.ReadUInt(false), _input.ReadVec3(), _input.ReadFloat()));
+    private ClientState.OpBlueMageSpellsChange ParseClientBlueMageSpells()
+    {
+        var contents = new uint[ClientState.NumBlueMageSpells];
+        var count = _input.ReadByte(false);
+        for (int i = 0; i < count; i++)
+            contents[i] = _input.ReadUInt(false);
+        return new(contents);
+    }
 
     private ClientState.OpClassJobLevelsChange ParseClientClassJobLevels()
     {
@@ -656,6 +671,10 @@ public sealed class ReplayParserLog : IDisposable
             contents[i] = _input.ReadShort();
         return new(contents);
     }
+
+    private ClientState.OpActiveFateChange ParseClientActiveFate() => new(new(_input.ReadUInt(false), _input.ReadVec3(), _input.ReadFloat()));
+    private ClientState.OpActivePetChange ParseClientActivePet() => new(new(_input.ReadULong(true), _input.ReadByte(false), _input.ReadByte(false)));
+    private ClientState.OpFocusTargetChange ParseClientFocusTarget() => new(_input.ReadULong(true));
 
     private NetworkState.OpIDScramble ParseNetworkIDScramble() => new(_input.ReadUInt(false));
     private NetworkState.OpServerIPC ParseNetworkServerIPC() => new(new((Network.ServerIPC.PacketID)_input.ReadInt(), _input.ReadUShort(false), _input.ReadUInt(false), _input.ReadUInt(true), new(_input.ReadLong()), _input.ReadBytes()));

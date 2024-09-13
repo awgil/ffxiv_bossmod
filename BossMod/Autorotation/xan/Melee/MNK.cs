@@ -178,7 +178,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 3);
 
-        var gauge = GetGauge<MonkGauge>();
+        var gauge = World.Client.GetGauge<MonkGauge>();
 
         Chakra = gauge.Chakra;
         BeastChakra = gauge.BeastChakra;

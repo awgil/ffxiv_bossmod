@@ -192,7 +192,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
-        var gauge = GetGauge<SummonerGauge>();
+        var gauge = World.Client.GetGauge<SummonerGauge>();
         TranceFlags = (SmnFlags)gauge.AetherFlags;
         SummonLeft = gauge.SummonTimer * 0.001f;
         AttunementType = (AttunementType)(gauge.Attunement & 3);

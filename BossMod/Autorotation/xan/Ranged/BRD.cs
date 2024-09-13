@@ -65,7 +65,7 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
-        var gauge = GetGauge<BardGauge>();
+        var gauge = World.Client.GetGauge<BardGauge>();
 
         SongTimer = gauge.SongTimer * 0.001f;
         Repertoire = gauge.Repertoire;

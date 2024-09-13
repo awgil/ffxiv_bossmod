@@ -19,7 +19,7 @@ public sealed class AnimationLockTweak
     private float _lastReqInitialAnimLock;
     private int _lastReqSequence = -1;
 
-    public float DelayMax = 0.02f; // TODO: tweak
+    public float DelayMax => _config.AnimationLockDelayMax * .001f;
     public float DelaySmoothing = 0.8f; // TODO tweak
     public float DelayAverage { get; private set; } = 0.1f; // smoothed delay between client request and server response
     public float DelayEstimate => _config.RemoveAnimationLockDelay ? DelayMax : MathF.Min(DelayAverage * 1.5f, 0.1f); // this is a conservative estimate

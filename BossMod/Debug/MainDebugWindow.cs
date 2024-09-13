@@ -105,6 +105,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
         {
             _debugAction.DrawActionData();
         }
+        if (ImGui.CollapsingHeader("Duty actions"))
+        {
+            _debugAction.DrawDutyActions();
+        }
         if (ImGui.CollapsingHeader("Hate"))
         {
             _debugHate.Draw();

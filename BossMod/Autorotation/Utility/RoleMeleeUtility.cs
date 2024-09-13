@@ -4,6 +4,7 @@
 public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor player) : GenericUtility(manager, player)
 {
     public enum SharedTrack { Sprint, LB, SecondWind, LegSweep, Bloodbath, Feint, ArmsLength, Count }
+    public enum FeintOption { None, Use, UseEx }
 
     protected static void DefineShared(RotationModuleDefinition def, ActionID lb3)
     {
@@ -14,10 +15,16 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
             .AddAssociatedAction(lb3);
 
         // note: true north is a special case, even though it's a role action, it has custom handling by rotational modules
-        DefineSimpleConfig(def, SharedTrack.SecondWind, "SecondWind", "", 20, ClassShared.AID.SecondWind);
+        DefineSimpleConfig(def, SharedTrack.SecondWind, "SecondWind", "S.Wind", 20, ClassShared.AID.SecondWind);
         DefineSimpleConfig(def, SharedTrack.LegSweep, "LegSweep", "Stun", -150, ClassShared.AID.LegSweep, 3);
         DefineSimpleConfig(def, SharedTrack.Bloodbath, "Bloodbath", "", -50, ClassShared.AID.Bloodbath, 20);
-        DefineSimpleConfig(def, SharedTrack.Feint, "Feint", "", 500, ClassShared.AID.Feint, 10);
+
+        def.Define(SharedTrack.Feint).As<FeintOption>("Feint", "", 250)
+            .AddOption(FeintOption.None, "None", "Do not use automatically")
+            .AddOption(FeintOption.Use, "Use", "Use Feint (10s)", 90, 10, ActionTargets.Self, 22, 97)
+            .AddOption(FeintOption.UseEx, "UseEx", "Use Feint (15s)", 90, 15, ActionTargets.Self, 98)
+            .AddAssociatedActions(ClassShared.AID.Feint);
+
         DefineSimpleConfig(def, SharedTrack.ArmsLength, "ArmsLength", "ArmsL", 300, ClassShared.AID.ArmsLength, 6); // note: secondary effect 15s
     }
 
@@ -34,5 +41,10 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
         var lbLevel = LBLevelToExecute(lb.As<LBOption>());
         if (lbLevel > 0)
             Hints.ActionsToExecute.Push(lbLevel == 3 ? lb3 : ActionID.MakeSpell(lbLevel == 2 ? ClassShared.AID.Bladedance : ClassShared.AID.Braver), ResolveTargetOverride(lb.Value) ?? primaryTarget, ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn);
+
+        var feint = strategy.Option(SharedTrack.Feint);
+        if (feint.As<FeintOption>() != FeintOption.None)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Feint), Player, feint.Priority(), feint.Value.ExpireIn);
+
     }
 }

@@ -85,6 +85,7 @@ public enum PacketID
     StatusEffectListPlayer = 234,
     StatusEffectListPlayerDouble = 235,
     UpdateRecastTimes = 237,
+    UpdateDutyRecastTimes = 238,
     UpdateAllianceNormal = 239,
     UpdateAllianceSmall = 240,
     UpdatePartyMemberPositions = 241,
@@ -559,10 +560,11 @@ public enum ActorControlCategory : ushort
     StartDuelCountdown = 1506, // from dissector
     StartDuel = 1507, // from dissector
     DuelResultScreen = 1508, // from dissector
-    SetDutyActionId = 1512, // from dissector
-    SetDutyActionHud = 1513, // from dissector
-    SetDutyActionActive = 1514, // from dissector
-    SetDutyActionRemaining = 1515, // from dissector
+    SetDutyActionSet = 1512,
+    SetDutyActionDetails = 1513,
+    SetDutyActionPresent = 1514,
+    SetDutyActionActive = 1515,
+    SetDutyActionCharges = 1516,
     IncrementRecast = 1536, // p1=cooldown group, p2=delta time quantized to 100ms; example is brd mage ballad proc
     EurekaStep = 1850, // from dissector
 }
@@ -729,6 +731,13 @@ public unsafe struct UpdateRecastTimes
 {
     public fixed float Elapsed[80];
     public fixed float Total[80];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct UpdateDutyRecastTimes
+{
+    public fixed float Elapsed[2];
+    public fixed float Total[2];
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]

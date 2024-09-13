@@ -29,12 +29,12 @@ public abstract class CommonState(RotationModule module)
     public float SpellGCDTime;
 
     // find a slot containing specified duty action; returns -1 if not found
-    public int FindDutyActionSlot(ActionID action) => Array.IndexOf(Module.World.Client.DutyActions, action);
+    public int FindDutyActionSlot(ActionID action) => Array.FindIndex(Module.World.Client.DutyActions, d => d.Action == action);
     // find a slot containing specified duty action, if other duty action is the specified one; returns -1 if not found, or other action is different
     public int FindDutyActionSlot(ActionID action, ActionID other)
     {
         var slot = FindDutyActionSlot(action);
-        return slot >= 0 && Module.World.Client.DutyActions[1 - slot] == other ? slot : -1;
+        return slot >= 0 && Module.World.Client.DutyActions[1 - slot].Action == other ? slot : -1;
     }
 
     public float GCD => Module.World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining; // 2.5 max (decreased by SkS), 0 if not on gcd

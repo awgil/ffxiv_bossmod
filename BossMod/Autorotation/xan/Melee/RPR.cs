@@ -68,7 +68,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
-        var gauge = GetGauge<ReaperGauge>();
+        var gauge = World.Client.GetGauge<ReaperGauge>();
 
         RedGauge = gauge.Soul;
         BlueGauge = gauge.Shroud;

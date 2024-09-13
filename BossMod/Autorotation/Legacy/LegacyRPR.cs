@@ -125,7 +125,7 @@ public sealed class LegacyRPR : LegacyModule
         _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
         _state.HasSoulsow = Player.FindStatus(RPR.SID.Soulsow) != null;
 
-        var gauge = GetGauge<ReaperGauge>();
+        var gauge = World.Client.GetGauge<ReaperGauge>();
         _state.LemureShroudCount = gauge.LemureShroud;
         _state.VoidShroudCount = gauge.VoidShroud;
         _state.ShroudGauge = gauge.Shroud;

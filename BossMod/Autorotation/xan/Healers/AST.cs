@@ -41,7 +41,7 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
-        var gauge = GetGauge<AstrologianGauge>();
+        var gauge = World.Client.GetGauge<AstrologianGauge>();
 
         Cards = gauge.CurrentCards;
         Arcana = gauge.CurrentArcana;

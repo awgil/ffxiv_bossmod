@@ -107,6 +107,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public ActorStatus[] Statuses = new ActorStatus[60]; // empty slots have ID=0
 
     public Role Role => Class.GetRole();
+    public ClassCategory ClassCategory => Class.GetClassCategory();
     public WPos Position => new(PosRot.X, PosRot.Z);
     public WPos PrevPosition => new(PrevPosRot.X, PrevPosRot.Z);
     public Angle Rotation => PosRot.W.Radians();

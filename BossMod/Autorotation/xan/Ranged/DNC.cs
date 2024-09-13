@@ -65,7 +65,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
 
-        var gauge = GetGauge<DancerGauge>();
+        var gauge = World.Client.GetGauge<DancerGauge>();
         var curStep = (uint)gauge.CurrentStep;
 
         Feathers = gauge.Feathers;
