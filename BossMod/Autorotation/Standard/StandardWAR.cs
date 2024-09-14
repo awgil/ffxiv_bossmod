@@ -866,6 +866,10 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         if (irActive && unlockedNC)
             return (false, false);
 
+        // don't double infuriate during opener when NC is not yet unlocked (TODO: consider making it better)
+        if (Gauge >= 50 && !CanFitGCD(SurgingTempestLeft))
+            return (false, false);
+
         // at this point, use under burst or delay outside (TODO: reconsider, we might want to be smarter here...)
         return (CanFitGCD(BurstWindowLeft), true);
     }

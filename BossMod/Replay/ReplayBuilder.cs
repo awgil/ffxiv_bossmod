@@ -336,7 +336,7 @@ public sealed class ReplayBuilder : IDisposable
     {
         var p = GetOrCreateParticipant(actor.InstanceID);
         var mt = GetOrCreateOptionalParticipant(cast.MainTargetID);
-        var a = new Replay.Action(cast.Action, _ws.CurrentTime, p, mt, mt?.PosRotAt(_ws.CurrentTime).XYZ() ?? cast.TargetPos, cast.AnimationLockTime, cast.SourceSequence, cast.GlobalSequence);
+        var a = new Replay.Action(cast.Action, _ws.CurrentTime, p, mt, mt?.PosRotAt(_ws.CurrentTime).XYZ() ?? cast.TargetPos, cast.AnimationLockTime, cast.SourceSequence, cast.GlobalSequence, cast.Rotation);
         foreach (var t in cast.Targets)
         {
             var target = GetOrCreateParticipant(t.ID);

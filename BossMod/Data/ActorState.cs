@@ -337,6 +337,7 @@ public sealed class ActorState : IEnumerable<Actor>
             .Emit(Value.TargetPos)
             .Emit(Value.GlobalSequence)
             .Emit(Value.SourceSequence)
+            .Emit(Value.Rotation)
             .Emit(Value.Targets);
     }
 

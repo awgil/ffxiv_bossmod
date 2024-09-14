@@ -100,7 +100,7 @@ class AbilityInfo : CommonEnumInfo
         private readonly UIPlot _plot = new();
         private readonly List<(Instance Inst, Replay.Participant Target, float Normal, float Length, bool Hit)> _points = [];
 
-        public RectAnalysis(List<Instance> infos, bool originAtSource)
+        public RectAnalysis(List<Instance> infos, bool useActionRotation)
         {
             _plot.DataMin = new(-50, -50);
             _plot.DataMax = new(50, 50);
@@ -109,7 +109,7 @@ class AbilityInfo : CommonEnumInfo
             {
                 var sourcePosRot = i.Action.Source.PosRotAt(i.Action.Timestamp);
                 var origin = new WPos(sourcePosRot.XZ());
-                var dir = sourcePosRot.W.Radians().ToDirection();
+                var dir = (useActionRotation ? i.Action.Rotation : sourcePosRot.W.Radians()).ToDirection();
                 var left = dir.OrthoL();
                 foreach (var target in AlivePlayersAt(i.Replay, i.Action.Timestamp))
                 {
@@ -346,7 +346,8 @@ class AbilityInfo : CommonEnumInfo
         public ConeAnalysis? ConeAnalysisSourcePosRot;
         public ConeAnalysis? ConeAnalysisTargetPosSourceRot;
         public ConeAnalysis? ConeAnalysisSourcePosDirToTarget;
-        public RectAnalysis? RectAnalysis;
+        public RectAnalysis? RectAnalysisActionRot;
+        public RectAnalysis? RectAnalysisSourceRot;
         public DamageFalloffAnalysis? DamageFalloffAnalysisDist;
         public DamageFalloffAnalysis? DamageFalloffAnalysisDistFromSource;
         public DamageFalloffAnalysis? DamageFalloffAnalysisMinCoord;
@@ -452,10 +453,15 @@ class AbilityInfo : CommonEnumInfo
                 data.ConeAnalysisSourcePosDirToTarget ??= new(data.Instances, ConeAnalysis.Targeting.SourcePosDirToTarget);
                 data.ConeAnalysisSourcePosDirToTarget.Draw();
             }
-            foreach (var an in tree.Node("Rect analysis"))
+            foreach (var an in tree.Node("Rect analysis (rotation from action)"))
             {
-                data.RectAnalysis ??= new(data.Instances, true);
-                data.RectAnalysis.Draw();
+                data.RectAnalysisActionRot ??= new(data.Instances, true);
+                data.RectAnalysisActionRot.Draw();
+            }
+            foreach (var an in tree.Node("Rect analysis (rotation from source)"))
+            {
+                data.RectAnalysisSourceRot ??= new(data.Instances, false);
+                data.RectAnalysisSourceRot.Draw();
             }
             foreach (var an in tree.Node("Damage falloff analysis (by distance)"))
             {

@@ -580,6 +580,7 @@ public sealed class ReplayParserLog : IDisposable
         TargetPos = _version >= 6 ? _input.ReadVec3() : new(),
         GlobalSequence = _version >= 7 ? _input.ReadUInt(false) : 0,
         SourceSequence = _version >= 9 ? _input.ReadUInt(false) : 0,
+        Rotation = _version >= 21 ? _input.ReadAngle() : default,
         Targets = _input.ReadTargets()
     });
 

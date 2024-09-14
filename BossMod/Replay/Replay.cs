@@ -25,7 +25,7 @@ public sealed class Replay
     }
 
     // note: if main target is non-null, TargetPos corresponds to main target's position at cast event
-    public sealed record class Action(ActionID ID, DateTime Timestamp, Participant Source, Participant? MainTarget, Vector3 TargetPos, float AnimationLock, uint SourceSequence, uint GlobalSequence)
+    public sealed record class Action(ActionID ID, DateTime Timestamp, Participant Source, Participant? MainTarget, Vector3 TargetPos, float AnimationLock, uint SourceSequence, uint GlobalSequence, Angle Rotation)
     {
         public readonly List<ActionTarget> Targets = [];
         public ClientAction? ClientAction;

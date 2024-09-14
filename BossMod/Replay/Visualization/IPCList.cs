@@ -3,7 +3,7 @@ using ImGuiNET;
 
 namespace BossMod.ReplayVisualization;
 
-sealed class IPCList(Replay replay, IEnumerable<WorldState.Operation> ops, Action<DateTime> scrollTo)
+sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldState.Operation> ops, Action<DateTime> scrollTo)
 {
     sealed class Decoder(Replay replay) : PacketDecoder
     {
@@ -16,6 +16,7 @@ sealed class IPCList(Replay replay, IEnumerable<WorldState.Operation> ops, Actio
         }
     }
 
+    public readonly Replay.Encounter? Encounter = enc;
     private readonly Decoder _decoder = new(replay);
     private DateTime _relativeTS;
     private List<(int index, NetworkState.OpServerIPC op, PacketDecoder.TextNode data)>? _nodes;
