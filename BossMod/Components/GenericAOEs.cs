@@ -37,7 +37,7 @@ public class SelfTargetedAOEs(BossModule module, ActionID aid, AOEShape shape, i
 {
     public AOEShape Shape { get; init; } = shape;
     public int MaxCasts = maxCasts; // used for staggered aoes, when showing all active would be pointless
-    public uint Color = 0; // can be customized if needed
+    public uint Color; // can be customized if needed
     public bool Risky = true; // can be customized if needed
     public readonly List<Actor> Casters = [];
 
@@ -87,7 +87,7 @@ public class LocationTargetedAOEs(BossModule module, ActionID aid, float radius,
 {
     public AOEShapeCircle Shape { get; init; } = new(radius);
     public int MaxCasts = maxCasts; // used for staggered aoes, when showing all active would be pointless
-    public uint Color = 0; // can be customized if needed
+    public uint Color; // can be customized if needed
     public bool Risky = true; // can be customized if needed
     public readonly List<Actor> Casters = [];
 
