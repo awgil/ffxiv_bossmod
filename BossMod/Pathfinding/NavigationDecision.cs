@@ -122,11 +122,10 @@ public struct NavigationDecision
         {
             // everything is dangerous, clear least dangerous so that pathfinding works reasonably
             // note that max value could be smaller than MaxG, if more dangerous stuff overlaps it
-            var numPixes = map.Height * map.Width;
             float realMaxG = 0;
-            for (iCell = 0; iCell < numPixes; ++iCell)
+            for (iCell = 0; iCell < numBlockedCells; ++iCell)
                 realMaxG = Math.Max(realMaxG, map.PixelMaxG[iCell]);
-            for (iCell = 0; iCell < numPixes; ++iCell)
+            for (iCell = 0; iCell < numBlockedCells; ++iCell)
             {
                 if (map.PixelMaxG[iCell] == realMaxG)
                 {
