@@ -12,7 +12,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         var res = new RotationModuleDefinition("Utility: SCH", "Planner support for utility actions", "Akechi", RotationModuleQuality.WIP, BitMask.Build((int)Class.SCH), 100);
         DefineShared(res, IDLimitBreak3);
 
-        // DefineSimpleConfig(res, Track.x, "x", "", 100, x.AID.x, x);
+        // DefineSimpleConfig(res, Track.x, "x", "", 100, SCH.AID.x, x);
 
         return res;
     }
@@ -20,5 +20,6 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3);
+        //ExecuteSimple(strategy.Option(Track.x), SCH.AID.x, Player);
     }
 }
