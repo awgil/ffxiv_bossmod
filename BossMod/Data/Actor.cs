@@ -59,6 +59,7 @@ public sealed class ActorCastEvent
     public Vector3 TargetPos;
     public uint SourceSequence;
     public uint GlobalSequence;
+    public Angle Rotation;
 
     public WPos TargetXZ => new(TargetPos.XZ());
 

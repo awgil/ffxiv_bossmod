@@ -18,12 +18,12 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
         {
             foreach (var no in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_listsRaw.Ops)))
             {
-                _listsRaw.Ops ??= new(r, null, r.Ops, scrollTo);
+                _listsRaw.Ops ??= new(r, null, null, r.Ops, scrollTo);
                 _listsRaw.Ops.Draw(_tree, r.Ops[0].Timestamp);
             }
-            foreach (var no in _tree.Node("Server IPCs", contextMenu: () => IPCListContextMenu(_listsRaw.IPCs)))
+            foreach (var no in _tree.Node("Server IPCs", contextMenu: () => IPCListContextMenu(_listsRaw.IPCs, null)))
             {
-                _listsRaw.IPCs ??= new(r, r.Ops, scrollTo);
+                _listsRaw.IPCs ??= new(r, null, r.Ops, scrollTo);
                 _listsRaw.IPCs.Draw(_tree, r.Ops[0].Timestamp);
             }
 
@@ -36,12 +36,12 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
             ref var lists = ref CollectionsMarshal.GetValueRefOrAddDefault(_listsFiltered, e, out _);
             foreach (var n in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_listsFiltered[e].Ops)))
             {
-                lists.Ops ??= new(r, moduleInfo, r.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), scrollTo);
+                lists.Ops ??= new(r, e, moduleInfo, r.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), scrollTo);
                 lists.Ops.Draw(_tree, e.Time.Start);
             }
-            foreach (var n in _tree.Node("Server IPCs", contextMenu: () => IPCListContextMenu(_listsFiltered[e].IPCs)))
+            foreach (var n in _tree.Node("Server IPCs", contextMenu: () => IPCListContextMenu(_listsFiltered[e].IPCs, moduleInfo)))
             {
-                lists.IPCs ??= new(r, r.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), scrollTo);
+                lists.IPCs ??= new(r, e, r.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), scrollTo);
                 lists.IPCs.Draw(_tree, e.Time.Start);
             }
 
@@ -250,21 +250,37 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
 
     private void OpListContextMenu(OpList? list)
     {
+        if (list == null)
+            return;
+
         if (ImGui.MenuItem("Clear filters"))
         {
-            list?.ClearFilters();
+            list.ClearFilters();
         }
-        if (list != null && ImGui.MenuItem("Show actor-size events", "", list.ShowActorSizeEvents, true))
+        if (ImGui.MenuItem("Show actor-size events", "", list.ShowActorSizeEvents, true))
         {
             list.ShowActorSizeEvents = !list.ShowActorSizeEvents;
         }
+        if (ImGui.MenuItem("Pop out"))
+        {
+            var windowName = $"Raw ops: {r.Path}, {(list.Encounter != null ? $"{list.ModuleInfo?.ModuleType.Name}: {list.Encounter.InstanceID:X} @ {list.Encounter.Time.Start} + {list.Encounter.Time}" : "full")}";
+            _ = new UISimpleWindow(windowName, () => list.Draw(new(), list.Encounter?.Time.Start ?? r.Ops[0].Timestamp), true, new(1000, 1000));
+        }
     }
 
-    private void IPCListContextMenu(IPCList? list)
+    private void IPCListContextMenu(IPCList? list, ModuleRegistry.Info? moduleInfo)
     {
+        if (list == null)
+            return;
+
         if (ImGui.MenuItem("Clear filters"))
         {
-            list?.ClearFilters();
+            list.ClearFilters();
+        }
+        if (ImGui.MenuItem("Pop out"))
+        {
+            var windowName = $"Server IPCs: {r.Path}, {(list.Encounter != null ? $"{moduleInfo?.ModuleType.Name}: {list.Encounter.InstanceID:X} @ {list.Encounter.Time.Start} + {list.Encounter.Time}" : "full")}";
+            _ = new UISimpleWindow(windowName, () => list.Draw(new(), list.Encounter?.Time.Start ?? r.Ops[0].Timestamp), true, new(1000, 1000));
         }
     }
 }

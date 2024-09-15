@@ -47,7 +47,9 @@ public class ColumnActorStatuses : Timeline.ColumnGroup
     {
         var res = AddBefore(new ColumnGenericHistory(Timeline, _tree, _phaseBranches), _sep);
         DateTime prevEnd = default;
-        foreach (var s in _replay.EncounterStatuses(_enc).Where(s => s.ID == statusID && s.Source == source && s.Target == _target))
+
+        var minTime = _enc.Time.Start.AddSeconds(Timeline.MinTime);
+        foreach (var s in _replay.Statuses.SkipWhile(s => s.Time.Start < minTime).TakeWhile(s => s.Time.Start <= _enc.Time.End).Where(s => s.ID == statusID && s.Source == source && s.Target == _target))
         {
             var e = res.AddHistoryEntryRange(_enc.Time.Start, s.Time, $"{Utils.StatusString(statusID)} ({s.StartingExtra:X}) on {ReplayUtils.ParticipantString(_target, s.Time.Start)} from {ReplayUtils.ParticipantString(s.Source, s.Time.Start)}", 0x80808080);
             e.TooltipExtra = (res, t) =>

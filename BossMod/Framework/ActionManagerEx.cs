@@ -450,6 +450,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
             TargetPos = *targetPos,
             SourceSequence = header->SourceSequence,
             GlobalSequence = header->GlobalSequence,
+            Rotation = Network.PacketDecoder.IntToFloatAngle(header->RotationInt),
         };
         var rawEffects = (ulong*)effects;
         for (int i = 0; i < header->NumTargets; ++i)

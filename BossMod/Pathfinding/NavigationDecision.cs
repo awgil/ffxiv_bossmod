@@ -75,6 +75,7 @@ public struct NavigationDecision
         map.MaxG = zonesFixed.Length > 0 ? ActivationToG(zonesFixed[^1].activation, current) : 0;
         if (scratch.Length < map.PixelMaxG.Length)
             scratch = new float[map.PixelMaxG.Length];
+        var numBlockedCells = 0;
 
         // see Map.EnumeratePixels, note that we care about corners rather than centers
         var dy = map.LocalZDivRes * map.Resolution * map.Resolution;
@@ -108,10 +109,30 @@ public struct NavigationDecision
                 var topG = scratch[jCell];
                 var cellG = map.PixelMaxG[jCell] = Math.Min(Math.Min(topG, bottomG), map.PixelMaxG[jCell]);
                 if (cellG != float.MaxValue)
+                {
                     map.PixelPriority[jCell] = sbyte.MinValue;
+                    ++numBlockedCells;
+                }
                 bottomG = topG;
             }
             bleftG = brightG;
+        }
+
+        if (numBlockedCells == map.Width * map.Height)
+        {
+            // everything is dangerous, clear least dangerous so that pathfinding works reasonably
+            // note that max value could be smaller than MaxG, if more dangerous stuff overlaps it
+            float realMaxG = 0;
+            for (iCell = 0; iCell < numBlockedCells; ++iCell)
+                realMaxG = Math.Max(realMaxG, map.PixelMaxG[iCell]);
+            for (iCell = 0; iCell < numBlockedCells; ++iCell)
+            {
+                if (map.PixelMaxG[iCell] == realMaxG)
+                {
+                    map.PixelMaxG[iCell] = float.MaxValue;
+                    map.PixelPriority[iCell] = 0;
+                }
+            }
         }
     }
 
