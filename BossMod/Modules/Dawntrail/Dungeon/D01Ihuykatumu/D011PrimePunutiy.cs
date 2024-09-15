@@ -60,7 +60,7 @@ class Resurface(BossModule module) : Components.GenericAOEs(module)
     private Actor? _source;
     private DateTime _activation;
 
-    private static readonly AOEShapeCone _shape = new(100, 30.Degrees());
+    private static readonly AOEShapeCone _shape = new(100, 32.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
