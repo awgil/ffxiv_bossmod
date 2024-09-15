@@ -421,7 +421,7 @@ class AbilityInfo : CommonEnumInfo
             }
             foreach (var n in tree.Node("Instances", data.Instances.Count == 0))
             {
-                foreach (var an in tree.Nodes(data.Instances, inst => new($"{inst.TimestampString()}: {ReplayUtils.ParticipantPosRotString(inst.Action.Source, inst.Action.Timestamp)} -> {ReplayUtils.ParticipantString(inst.Action.MainTarget, inst.Action.Timestamp)} {Utils.Vec3String(inst.Action.TargetPos)} ({inst.Action.Targets.Count} affected)", inst.Action.Targets.Count == 0)))
+                foreach (var an in tree.Nodes(data.Instances, inst => new($"{inst.TimestampString()}: {ReplayUtils.ParticipantPosRotString(inst.Action.Source, inst.Action.Timestamp)} -> {ReplayUtils.ParticipantString(inst.Action.MainTarget, inst.Action.Timestamp)} {Utils.Vec3String(inst.Action.TargetPos)} / {inst.Action.Rotation} ({inst.Action.Targets.Count} affected)", inst.Action.Targets.Count == 0)))
                 {
                     foreach (var tn in tree.Nodes(an.Action.Targets, t => new(ReplayUtils.ActionTargetString(t, an.Action.Timestamp))))
                     {
