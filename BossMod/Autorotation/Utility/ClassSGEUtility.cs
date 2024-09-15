@@ -43,32 +43,32 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? target, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3);
-        ExecuteSimple(strategy.Option(Track.Kardia), SGE.AID.Kardia, target);
-        ExecuteSimple(strategy.Option(Track.Egeiro), SGE.AID.Egeiro, target);
+        ExecuteSimple(strategy.Option(Track.Kardia), SGE.AID.Kardia, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Egeiro), SGE.AID.Egeiro, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Physis), SGE.AID.Physis, Player);
         ExecuteSimple(strategy.Option(Track.Eukrasia), SGE.AID.Eukrasia, Player);
-        ExecuteSimple(strategy.Option(Track.Diagnosis), SGE.AID.Diagnosis, target);
+        ExecuteSimple(strategy.Option(Track.Diagnosis), SGE.AID.Diagnosis, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Prognosis), SGE.AID.Prognosis, Player);
-        ExecuteSimple(strategy.Option(Track.Druochole), SGE.AID.Druochole, target);
+        ExecuteSimple(strategy.Option(Track.Druochole), SGE.AID.Druochole, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Kerachole), SGE.AID.Kerachole, Player);
-        ExecuteSimple(strategy.Option(Track.Ixochole), SGE.AID.Ixochole, target);
+        ExecuteSimple(strategy.Option(Track.Ixochole), SGE.AID.Ixochole, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Zoe), SGE.AID.Zoe, Player);
         ExecuteSimple(strategy.Option(Track.Pepsis), SGE.AID.Pepsis, Player);
-        ExecuteSimple(strategy.Option(Track.Taurochole), SGE.AID.Taurochole, target);
-        ExecuteSimple(strategy.Option(Track.Haima), SGE.AID.Haima, target);
+        ExecuteSimple(strategy.Option(Track.Taurochole), SGE.AID.Taurochole, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Haima), SGE.AID.Haima, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Rhizomata), SGE.AID.Rhizomata, Player);
         ExecuteSimple(strategy.Option(Track.Holos), SGE.AID.Holos, Player);
         ExecuteSimple(strategy.Option(Track.Panhaima), SGE.AID.Panhaima, Player);
         ExecuteSimple(strategy.Option(Track.Krasis), SGE.AID.Krasis, Player);
         ExecuteSimple(strategy.Option(Track.Philosophia), SGE.AID.Philosophia, Player);
-        ExecuteSimple(strategy.Option(Track.Icarus), SGE.AID.Icarus, target);
+        ExecuteSimple(strategy.Option(Track.Icarus), SGE.AID.Icarus, primaryTarget);
         //ExecuteSimple(strategy.Option(Track.x), SGE.AID.x, Player);
 
         var physis = strategy.Option(Track.Physis);
         if (physis.As<PhysisOption>() != PhysisOption.None)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Physis), target, physis.Priority(), physis.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Physis), Player, physis.Priority(), physis.Value.ExpireIn);
     }
 }
