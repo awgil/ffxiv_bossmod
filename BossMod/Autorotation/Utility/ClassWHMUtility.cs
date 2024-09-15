@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Autorotation;
 
-public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player) : RoleMeleeUtility(manager, player)
+public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(WHM.AID.PulseOfLife);
 
