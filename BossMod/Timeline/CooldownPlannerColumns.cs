@@ -223,8 +223,12 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         uiOrder.SortByReverse(i => md.Configs[i].UIPriority);
         foreach (int i in uiOrder)
         {
-            var col = AddBefore(new ColumnPlannerTrackStrategy(Timeline, _tree, _phaseBranches, md.Configs[i], Plan.Level, moduleInfo), _colTarget);
-            col.Width = md.Configs[i].UIPriority >= 0 ? _trackWidth : 0;
+            var config = md.Configs[i];
+            if (config.Options.Count(opt => Plan.Level >= opt.MinLevel && Plan.Level <= opt.MaxLevel) <= 1)
+                continue; // don't bother showing tracks that have no customization options
+
+            var col = AddBefore(new ColumnPlannerTrackStrategy(Timeline, _tree, _phaseBranches, config, Plan.Level, moduleInfo), _colTarget);
+            col.Width = config.UIPriority >= 0 ? _trackWidth : 0;
             col.NotifyModified = () => OnModifiedStrategy(tracks[i], col);
             foreach (var entry in tracks[i])
             {
@@ -236,7 +240,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
             }
             foreach (var a in _playerActions)
             {
-                if (md.Configs[i].AssociatedActions.Contains(a.ID))
+                if (config.AssociatedActions.Contains(a.ID))
                 {
                     col.AddHistoryEntryDot(_encStart, a.Timestamp, $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}", 0xffffffff).AddActionTooltip(a);
                 }
