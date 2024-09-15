@@ -5,7 +5,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
     //public enum Track { x, x, x, x, x, x, x, Count }
     //public enum xOption { None, x, x }
 
-    public static readonly ActionID IDLimitBreak3  = ActionID.MakeSpell(SCH.AID.AngelFeathers);
+    public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SCH.AID.AngelFeathers);
 
     public static RotationModuleDefinition Definition()
     {
