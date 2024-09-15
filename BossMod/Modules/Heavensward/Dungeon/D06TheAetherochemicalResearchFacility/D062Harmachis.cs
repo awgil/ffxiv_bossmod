@@ -115,7 +115,7 @@ class CircleofFlame(BossModule module) : Components.UniformStackSpread(module, 0
 class FormNaga(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WeighingOfTheHeartNaga), "Naga Form, Gaze -> x2 Spread AOE's");
 class FormMachina(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WeighingOfTheHeartMachina), "Machina form, 2 Player Enum/Stack -> Party Stack");
 class FormCobra(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WeighingOfTheHeartCobra), "Cobra form, damage up + cleave");
-class GasousBomb(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, ActionID.MakeSpell(AID.GaseousBomb), 5, 0, 2, 4);
+class GasousBomb(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, ActionID.MakeSpell(AID.GaseousBomb), 5, 4.1f, 4, 4);
 class Ka(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Ka), new AOEShapeCone(45, 30.Degrees()));
 class Paradox(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Paradox), 5);
 class Petrifaction(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.Petrifaction));
@@ -138,5 +138,5 @@ class D062HarmachisStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 38, NameID = 3821)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 38, NameID = 3821)]
 public class D062Harmachis(WorldState ws, Actor primary) : BossModule(ws, primary, new(248, 272), new ArenaBoundsCircle(20));
