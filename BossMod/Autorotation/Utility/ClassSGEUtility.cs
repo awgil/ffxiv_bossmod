@@ -1,6 +1,4 @@
-﻿using static BossMod.Autorotation.RoleMeleeUtility;
-
-namespace BossMod.Autorotation;
+﻿namespace BossMod.Autorotation;
 
 public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
