@@ -2,10 +2,11 @@
 
 public sealed class ClassASTUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
-    public enum Track { Helios = SharedTrack.Count, Lightspeed, BeneficII, EssentialDignity, AspectedBenefic, AspectedHelios, Synastry, CollectiveUnconscious, CelestialOpposition, CelestialIntersection, Horoscope, NeutralSect, Exaltation, Macrocosmos, SunSign, Ascend }
+    public enum Track { Helios = SharedTrack.Count, Lightspeed, BeneficII, EssentialDignity, AspectedBenefic, AspectedHelios, Synastry, CollectiveUnconscious, CelestialOpposition, CelestialIntersection, Horoscope, NeutralSect, Exaltation, Macrocosmos, SunSign, Ascend, Play }
     public enum HoroscopeOption { None, Use, End }
     public enum MacrocosmosOption { None, Use, End }
     public enum HeliosOption { None, Use, UseEx }
+    public enum CardsOption { None, PlayII, PlayIII }
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(AST.AID.AstralStasis);
 
@@ -48,6 +49,12 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
 
         DefineSimpleConfig(def, Track.SunSign, "SunSign", "", 290, AST.AID.SunSign);
         DefineSimpleConfig(def, Track.Ascend, "Ascend", "Raise", 10, AST.AID.Ascend, 7);
+
+        def.Define(Track.Play).As<CardsOption>("Play", "Play", 130)
+            .AddOption(CardsOption.None, "None", "Do not use automatically")
+            .AddOption(CardsOption.PlayII, "PlayII", "Use Play II's Card", 1, 15, ActionTargets.Self | ActionTargets.Party, 30)
+            .AddOption(CardsOption.PlayIII, "PlayIII", "Use Play III's Card", 1, 15, ActionTargets.Self | ActionTargets.Party, 30)
+            .AddAssociatedActions(AST.AID.PlayII, AST.AID.PlayIII);
 
         return def;
     }
@@ -97,5 +104,15 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         };
         if (cosmosAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(cosmosAction), Player, cosmos.Priority(), cosmos.Value.ExpireIn);
+
+        var cards = strategy.Option(Track.Play);
+        var cardsAction = cards.As<CardsOption>() switch
+        {
+            CardsOption.PlayII => AST.AID.PlayII,
+            CardsOption.PlayIII => AST.AID.PlayIII,
+            _ => default
+        };
+        if (cardsAction != default)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(cardsAction), Player, cards.Priority(), cards.Value.ExpireIn);
     }
 }
