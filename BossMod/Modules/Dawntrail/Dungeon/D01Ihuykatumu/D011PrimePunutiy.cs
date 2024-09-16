@@ -57,30 +57,26 @@ class Hydrowave(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 
 class Resurface(BossModule module) : Components.GenericAOEs(module)
 {
-    private Actor? _source;
-    private DateTime _activation;
+    private AOEInstance? _aoe;
 
     private static readonly AOEShapeCone _shape = new(100, 30.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_source != null)
-            yield return new(_shape, _source.Position, _source.CastInfo?.Rotation ?? _source.Rotation, _activation);
-    }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Resurface)
         {
-            _source = caster;
-            _activation = Module.CastFinishAt(spell);
+            // the boss typically stays slightly in front of the border (15.40 rather than 15.00), and all cones other than first one originate from border, making them slightly bigger
+            var origin = Module.Center - Module.Bounds.Radius * spell.Rotation.ToDirection();
+            _aoe = new(_shape, origin, spell.Rotation, Module.CastFinishAt(spell));
         }
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ResurfacePersistent)
-            _source = null;
+            _aoe = null;
     }
 }
 
