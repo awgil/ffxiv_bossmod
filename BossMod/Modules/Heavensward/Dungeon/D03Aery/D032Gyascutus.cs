@@ -26,7 +26,7 @@ class Burst(BossModule module) : Components.LocationTargetedAOEs(module, ActionI
 class Burst2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Burst2), 10);
 class DeafeningBellow(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.DeafeningBellow));
 class AshenOuroboros(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AshenOuroboros), new AOEShapeDonut(11, 20));
-class BodySlam(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BodySlam), 20, stopAtWall: true);
+class BodySlam(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BodySlam), 10, stopAtWall: false);
 class CripplingBlow(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CripplingBlow));
 class D032GyascutusStates : StateMachineBuilder
 {
