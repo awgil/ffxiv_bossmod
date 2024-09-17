@@ -7,6 +7,12 @@ public abstract class AIRotationModule(RotationModuleManager manager, Actor play
     protected float Deadline(DateTime deadline) => Math.Max(0, (float)(deadline - Manager.WorldState.CurrentTime).TotalSeconds);
     protected float Speed() => Player.FindStatus(50) != null ? 7.8f : 6;
 
+    protected bool InMeleeRange(Actor target)
+    {
+        var maxRange = target.HitboxRadius + Player.HitboxRadius + 3;
+        return (target.Position - Player.Position).LengthSq() < maxRange * maxRange;
+    }
+
     protected void SetForcedMovement(WPos? pos, float tolerance = 0.1f)
     {
         var dir = (pos ?? Player.Position) - Player.Position;
