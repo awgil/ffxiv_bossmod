@@ -303,7 +303,7 @@ class GuloolJaJaStates : StateMachineBuilder
         CoiledStrike(id + 0xA0, 6.6f, bothCasts: false);
         ComponentCondition<SteeledStrikeShade>(id + 0xB0, 5, s => s.NumCasts > 0, "Cross 1")
             .DeactivateOnExit<SteeledStrikeShade>();
-        ComponentCondition<SteeledStrike>(id + 0x02, 3.6f, b => b.NumCasts > 0, "Cross 2")
+        ComponentCondition<SteeledStrike>(id + 0xB2, 3.6f, b => b.NumCasts > 0, "Cross 2")
             .DeactivateOnExit<SteeledStrike>();
 
         id += 0x10000;
