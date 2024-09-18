@@ -104,6 +104,7 @@ public unsafe partial class QuestBattleWindow : UIWindow
         }
     }
 
+#if DEBUG
     private void GenerateModule()
     {
         if (World.CurrentCFCID == 0)
@@ -153,6 +154,7 @@ public unsafe partial class QuestBattleWindow : UIWindow
             ImGui.SetClipboardText(module);
         }
     }
+#endif
 
     private void DrawObjectives(QuestBattle sqb)
     {

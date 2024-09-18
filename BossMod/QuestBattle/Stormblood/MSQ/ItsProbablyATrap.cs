@@ -8,7 +8,7 @@ public class ItsProbablyATrap(WorldState ws) : QuestBattle(ws)
         Bind = 280,
     }
 
-    private bool SmokeBomb = false;
+    private bool SmokeBomb;
 
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         // have to walk up the stairs to trigger dialogue
