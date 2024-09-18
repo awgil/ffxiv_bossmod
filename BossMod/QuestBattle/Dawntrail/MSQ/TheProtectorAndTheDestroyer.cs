@@ -1,9 +1,9 @@
 ﻿namespace BossMod.QuestBattle.Dawntrail.MSQ;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 998)]
+[Quest(BossModuleInfo.Maturity.WIP, 998)]
 public class TheProtectorAndTheDestroyer(WorldState ws) : QuestBattle(ws)
 {
-    public unsafe override List<QuestObjective> DefineObjectives(WorldState ws)
+    public override List<QuestObjective> DefineObjectives(WorldState ws)
     {
         if (ws.Party.Player()?.PosRot.Y > 50)
             return [];
@@ -32,6 +32,7 @@ public class TheProtectorAndTheDestroyer(WorldState ws) : QuestBattle(ws)
 
                 obj.AddAIHints += (player, hints) => {
                     if (!player.InCombat)
+                        // this doesn't work in replay viewer, we need to add layoutid to worldstate :(
                         hints.InteractWithTarget = null; // World.Actors.FirstOrDefault(x => sadCitizens.Contains(Utils.GameObjectInternal(Service.ObjectTable[x.SpawnIndex])->LayoutId) && x.IsTargetable);
                 };
             }),
