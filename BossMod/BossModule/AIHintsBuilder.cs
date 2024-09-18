@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using BossMod.QuestBattle;
+
+namespace BossMod;
 
 // utility that recalculates ai hints based on different data sources (eg active bossmodule, etc)
 // when there is no active bossmodule (eg in outdoor or on trash), we try to guess things based on world state (eg actor casts)
@@ -8,14 +10,16 @@ public sealed class AIHintsBuilder : IDisposable
 
     private readonly WorldState _ws;
     private readonly BossModuleManager _bmm;
+    private readonly QuestBattleDirector _qb;
     private readonly EventSubscriptions _subscriptions;
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = [];
     private ArenaBoundsCircle? _activeFateBounds;
 
-    public AIHintsBuilder(WorldState ws, BossModuleManager bmm)
+    public AIHintsBuilder(WorldState ws, BossModuleManager bmm, QuestBattleDirector qb)
     {
         _ws = ws;
         _bmm = bmm;
+        _qb = qb;
         _subscriptions = new
         (
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
@@ -26,7 +30,7 @@ public sealed class AIHintsBuilder : IDisposable
 
     public void Dispose() => _subscriptions.Dispose();
 
-    public void Update(AIHints hints, int playerSlot)
+    public void Update(AIHints hints, int playerSlot, float maxCastTime)
     {
         hints.Clear();
         var player = _ws.Party[playerSlot];
@@ -37,16 +41,20 @@ public sealed class AIHintsBuilder : IDisposable
             hints.FillPotentialTargets(_ws, playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !_ws.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank));
             hints.RecommendedRangeToTarget = player.Role is Role.Melee or Role.Tank ? 3 : 25;
             if (activeModule != null)
-                activeModule.CalculateAIHints(playerSlot, player, playerAssignment, hints);
+                activeModule.CalculateAIHints(playerSlot, player, playerAssignment, hints, maxCastTime);
             else
+            {
                 CalculateAutoHints(hints, player);
+                _qb.CurrentModule?.AddAIHints(player, hints, maxCastTime);
+            }
         }
         hints.Normalize();
     }
 
     private void CalculateAutoHints(AIHints hints, Actor player)
     {
-        if (_ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax)
+        var currentFateId = _ws.Client.ActiveFate.ID;
+        if (currentFateId != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(currentFateId)?.ClassJobLevelMax)
         {
             hints.Center = new(_ws.Client.ActiveFate.Center.XZ());
             hints.Bounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius));

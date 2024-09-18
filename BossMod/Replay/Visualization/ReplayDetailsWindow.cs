@@ -40,7 +40,7 @@ class ReplayDetailsWindow : UIWindow
         _player = new(data);
         _rotationDB = rotationDB;
         _mgr = new(_player.WorldState);
-        _hintsBuilder = new(_player.WorldState, _mgr);
+        _hintsBuilder = new(_player.WorldState, _mgr, new(_player.WorldState, _mgr));
         _rmm = new(rotationDB, _mgr, _hints);
         _curTime = _first = data.Ops[0].Timestamp;
         _last = data.Ops[^1].Timestamp;
@@ -75,7 +75,7 @@ class ReplayDetailsWindow : UIWindow
         ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
         ImGui.SameLine();
         ImGui.Checkbox("Override", ref _azimuthOverride);
-        _hintsBuilder.Update(_hints, _povSlot);
+        _hintsBuilder.Update(_hints, _povSlot, float.MaxValue);
         if (_mgr.ActiveModule != null)
         {
             _rmm.Update(0, float.MaxValue, false);
@@ -443,7 +443,7 @@ class ReplayDetailsWindow : UIWindow
             _mgr.Dispose();
             _player.Reset();
             _mgr = new(_player.WorldState);
-            _hintsBuilder = new(_player.WorldState, _mgr);
+            _hintsBuilder = new(_player.WorldState, _mgr, new(_player.WorldState, _mgr));
             _rmm = new(_rotationDB, _mgr, _hints);
         }
         _player.AdvanceTo(t, _mgr.Update);
