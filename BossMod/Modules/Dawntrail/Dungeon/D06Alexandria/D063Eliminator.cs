@@ -140,12 +140,20 @@ class LightOfSalvation(BossModule module) : Components.BaitAwayCast(module, Acti
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.LightOfSalvationAOE)
+        if ((AID)spell.Action.ID is AID.LightOfSalvationAOE or AID.Subroutine3End or AID.LightOfDevotionAOE)
             CurrentBaits.Clear();
     }
 }
 
-class LightOfDevotion(BossModule module) : Components.SimpleLineStack(module, 3, 40, ActionID.MakeSpell(AID.LightOfDevotionTargetSelect), ActionID.MakeSpell(AID.LightOfDevotionAOE), 5.6f);
+class LightOfDevotion(BossModule module) : Components.SimpleLineStack(module, 3, 40, ActionID.MakeSpell(AID.LightOfDevotionTargetSelect), ActionID.MakeSpell(AID.LightOfDevotionAOE), 5.6f)
+{
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.Subroutine3End)
+            spell.Action = ActionID.MakeSpell(AID.LightOfDevotionAOE);
+        base.OnEventCast(caster, spell);
+    }
+}
 
 class EliminationExplosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EliminationExplosion), new AOEShapeRect(25, 4, 25), 4);
 
