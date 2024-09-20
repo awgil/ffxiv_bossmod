@@ -34,7 +34,8 @@ public enum AID : uint
     MetamorphosisGreen = 36523, // GreenClot->self, 2.0s cast, single-target, die and turn into mimiclot
     MetamorphosisBlue = 36524, // BlueClot->self, 2.0s cast, single-target, die and turn into mimiclot
     MetamorphosisRed = 36525, // RedClot->self, 2.0s cast, single-target, die and turn into mimiclot
-    FlagrantSpread = 36522, // MimiclotBlue*->players, 5.0s cast, range 6 circle
+    FlagrantSpreadBlue = 36522, // MimiclotBlue*->players, 5.0s cast, range 6 circle
+    FlagrantSpreadGreen = 36485, // MimiclotGreen*->self, 5.0s cast, range 6 circle
 }
 
 public enum IconID : uint
@@ -49,7 +50,8 @@ class WallopNarrow(BossModule module) : Components.SelfTargetedAOEs(module, Acti
 class WallopWide(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WallopWide), new AOEShapeRect(40, 8));
 class Sneeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Sneeze), new AOEShapeCone(60, 75.Degrees()));
 class Mimiclots(BossModule module) : Components.AddsMulti(module, [(uint)OID.MimiclotGreen1, (uint)OID.MimiclotGreen2, (uint)OID.MimiclotBlue1, (uint)OID.MimiclotBlue2, (uint)OID.MimiclotBlue3, (uint)OID.MimiclotRed]);
-class FlagrantSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.FlagrantSpread), 6);
+class FlagrantSpreadBlue(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.FlagrantSpreadBlue), 6);
+class FlagrantSpreadGreen(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FlagrantSpreadGreen), 6);
 
 class D012DrowsieStates : StateMachineBuilder
 {
@@ -62,7 +64,8 @@ class D012DrowsieStates : StateMachineBuilder
             .ActivateOnEnter<WallopWide>()
             .ActivateOnEnter<Sneeze>()
             .ActivateOnEnter<Mimiclots>()
-            .ActivateOnEnter<FlagrantSpread>();
+            .ActivateOnEnter<FlagrantSpreadBlue>()
+            .ActivateOnEnter<FlagrantSpreadGreen>();
     }
 }
 
