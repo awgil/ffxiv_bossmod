@@ -275,45 +275,50 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             QueueGCD(WAR.AID.Tomahawk, primaryTarget, GCDPriority.ForcedTomahawk);
 
         // oGCDs
+        var stratIR = strategy.Option(Track.InnerRelease);
         if (InnerReleaseUnlocked)
         {
-            if (ShouldUseInnerRelease(strategy.Option(Track.InnerRelease).As<OffensiveStrategy>(), primaryTarget))
-                QueueOGCD(WAR.AID.InnerRelease, Player, OGCDPriority.InnerRelease);
+            if (ShouldUseInnerRelease(stratIR.As<OffensiveStrategy>(), primaryTarget))
+                QueueOGCD(WAR.AID.InnerRelease, Player, stratIR.Value.PriorityOverride, OGCDPriority.InnerRelease);
         }
         else if (Unlocked(WAR.AID.Berserk))
         {
-            if (ShouldUseBerserk(strategy.Option(Track.InnerRelease).As<OffensiveStrategy>(), primaryTarget, aoeTargets))
-                QueueOGCD(WAR.AID.Berserk, Player, OGCDPriority.InnerRelease);
+            if (ShouldUseBerserk(stratIR.As<OffensiveStrategy>(), primaryTarget, aoeTargets))
+                QueueOGCD(WAR.AID.Berserk, Player, stratIR.Value.PriorityOverride, OGCDPriority.InnerRelease);
         }
 
         if (Player.InCombat && Unlocked(WAR.AID.Infuriate))
         {
-            var inf = ShouldUseInfuriate(strategy.Option(Track.Infuriate).As<InfuriateStrategy>(), primaryTarget);
+            var stratInf = strategy.Option(Track.Infuriate);
+            var inf = ShouldUseInfuriate(stratInf.As<InfuriateStrategy>(), primaryTarget);
             if (inf.Use)
-                QueueOGCD(WAR.AID.Infuriate, Player, OGCDPriority.Infuriate, inf.Delayable ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low);
+                QueueOGCD(WAR.AID.Infuriate, Player, stratInf.Value.PriorityOverride, OGCDPriority.Infuriate, inf.Delayable ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low);
         }
 
-        if (Unlocked(WAR.AID.Upheaval) && ShouldUseUpheaval(strategy.Option(Track.Upheaval).As<OffensiveStrategy>()))
+        var stratUph = strategy.Option(Track.Upheaval);
+        if (Unlocked(WAR.AID.Upheaval) && ShouldUseUpheaval(stratUph.As<OffensiveStrategy>()))
         {
             var aoe = aoeTargets >= 3 && Unlocked(WAR.AID.Orogeny);
-            QueueOGCD(aoe ? WAR.AID.Orogeny : WAR.AID.Upheaval, aoe ? Player : primaryTarget, OGCDPriority.Upheaval);
+            QueueOGCD(aoe ? WAR.AID.Orogeny : WAR.AID.Upheaval, aoe ? Player : primaryTarget, stratUph.Value.PriorityOverride, OGCDPriority.Upheaval);
         }
 
-        if (aoeTargets > 0 && WrathfulLeft > World.Client.AnimationLock && ShouldUsePrimalWrath(strategy.Option(Track.Wrath).As<OffensiveStrategy>()))
+        var stratWrath = strategy.Option(Track.Wrath);
+        if (aoeTargets > 0 && WrathfulLeft > World.Client.AnimationLock && ShouldUsePrimalWrath(stratWrath.As<OffensiveStrategy>()))
         {
-            QueueOGCD(WAR.AID.PrimalWrath, Player, OGCDPriority.PrimalWrath);
+            QueueOGCD(WAR.AID.PrimalWrath, Player, stratWrath.Value.PriorityOverride, OGCDPriority.PrimalWrath);
         }
 
         if (Unlocked(WAR.AID.Onslaught))
         {
-            var onsStrategy = strategy.Option(Track.Onslaught).As<OnslaughtStrategy>();
-            if (ShouldUseOnslaught(onsStrategy, primaryTarget))
+            var stratOns = strategy.Option(Track.Onslaught);
+            var stratOnsOpt = stratOns.As<OnslaughtStrategy>();
+            if (ShouldUseOnslaught(stratOnsOpt, primaryTarget))
             {
                 // special case for use as gapcloser - it has to be very high priority
-                var (prio, basePrio) = onsStrategy == OnslaughtStrategy.GapClose ? (OGCDPriority.GapcloseOnslaught, ActionQueue.Priority.High)
+                var (prio, basePrio) = stratOnsOpt == OnslaughtStrategy.GapClose ? (OGCDPriority.GapcloseOnslaught, ActionQueue.Priority.High)
                     : LostBloodRageStacks is > 0 and < 4 ? (OGCDPriority.LostBanner, ActionQueue.Priority.Medium)
                     : (OGCDPriority.Onslaught, OnslaughtCD < GCDLength ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low);
-                QueueOGCD(WAR.AID.Onslaught, primaryTarget, prio, basePrio);
+                QueueOGCD(WAR.AID.Onslaught, primaryTarget, stratOns.Value.PriorityOverride, prio, basePrio);
             }
         }
 
@@ -344,11 +349,11 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         }
     }
 
-    private void QueueOGCD(WAR.AID aid, Actor? target, OGCDPriority prio, float basePrio = ActionQueue.Priority.Low)
+    private void QueueOGCD(WAR.AID aid, Actor? target, float prioOverride, OGCDPriority prio, float basePrio = ActionQueue.Priority.Low)
     {
         if (prio != OGCDPriority.None)
         {
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, basePrio + (int)prio);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, float.IsNaN(prioOverride) ? basePrio + (int)prio : prioOverride);
         }
     }
 

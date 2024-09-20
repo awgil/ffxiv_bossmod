@@ -119,20 +119,20 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
         {
             if (aoe.Shape is AOEShapeCircle)
             {
-                // out + cardinal
-                return module.Center + new WDir(0, -7.5f);
+                // out + cardinal, but get to melee first (in case we're moving after cross and gcd is imminent)
+                return InMeleeRange(module.PrimaryActor) ? module.Center + new WDir(0, -7.5f) : ClosestInMelee(Player.Position, module.PrimaryActor);
             }
             else if (aoe.Shape is AOEShapeDonut)
             {
-                // in + intercardinal
-                return module.Center + new WDir(-4.8f, -4.8f);
+                // in + intercardinal, but get to melee first (in case we're moving after cross and gcd is imminent)
+                return InMeleeRange(module.PrimaryActor) ? module.Center + new WDir(-4.8f, -4.8f) : ClosestInMelee(Player.Position, module.PrimaryActor);
             }
             else if (aoe.Shape is AOEShapeCross)
             {
                 var safespot = module.Center + new WDir(-7.2f, -7.2f);
                 return strategy == StageComboStrategy.NNWOrHeart && Player.FindStatus(SID.Hearts3) == null
                     ? module.Center + new WDir(0, -7.5f)
-                    : UptimeDowntimePos(ClosestInMelee(safespot, module.PrimaryActor), safespot, GCD, Deadline(aoe.Activation));
+                    : UptimeDowntimePos(ClosestInMelee(safespot, module.PrimaryActor), safespot, GCD, Deadline(aoe.Activation) - 0.5f);
             }
         }
         return ClosestInMelee(Player.Position, module.PrimaryActor);
@@ -154,28 +154,34 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
             if (delay > 4)
                 break; // too early, we might have a previous set of aoes active
 
-            WPos closestProj = default;
-            float closestProjDist = float.MaxValue;
-            foreach (var c in aoe1.Casters.Concat(aoe2.Casters))
-            {
-                var dir = (c.CastInfo?.Rotation ?? c.Rotation).ToDirection();
-                var proj = c.Position + dir * dir.Dot(Player.Position - c.Position);
-                var toPlayer = Player.Position - proj;
-                var dist = toPlayer.Dot(module.Center - proj) < 0 ? 0 : toPlayer.LengthSq();
-                if (dist < closestProjDist)
-                {
-                    closestProj = proj;
-                    closestProjDist = dist;
-                }
-            }
+            // find the orientation of the next set of aoes; each set has 4 casters with 90 degrees between them
+            var nextCaster = aoe1.Casters.Concat(aoe2.Casters).MinBy(c => c.CastInfo?.RemainingTime);
+            if (nextCaster == null)
+                break;
 
-            if (closestProj != default)
+            var orientation = nextCaster.CastInfo?.Rotation ?? nextCaster.Rotation;
+            var castDir = orientation.ToDirection();
+            var casterOffset = Math.Abs(castDir.OrthoL().Dot(nextCaster.Position - module.Center));
+            var playerOffset = Player.Position - module.Center;
+            var dirToPlayer = Angle.FromDirection(playerOffset);
+            var relDir = (dirToPlayer - orientation).Normalized();
+            var sectorMidpoint = relDir.Abs().Deg switch
             {
-                var toUptime = 5.2f * (Player.Position - closestProj).Normalized();
-                if (toUptime.Dot(module.Center - closestProj) < 0)
-                    toUptime = -toUptime;
-                return UptimeDowntimePos(closestProj + toUptime, closestProj - toUptime, GCD, delay);
-            }
+                < 45 => orientation,
+                > 135 => orientation + 180.Degrees(),
+                _ => relDir.Rad < 0 ? orientation - 90.Degrees() : orientation + 90.Degrees()
+            };
+            var sectorMidDir = sectorMidpoint.ToDirection();
+            var playerOrthoOffset = sectorMidDir.OrthoL().Dot(playerOffset);
+            var maxOrthoOffset = casterOffset - 5.2f;
+            playerOrthoOffset = Math.Clamp(playerOrthoOffset, -maxOrthoOffset, maxOrthoOffset);
+            var playerParrOffset = sectorMidDir.Dot(playerOffset);
+            if (playerParrOffset >= casterOffset + 5.5f)
+                return module.Center + playerParrOffset * sectorMidDir + playerOrthoOffset * sectorMidDir.OrthoL(); // already in downtime position, don't adjust other than to avoid orthogonal aoes
+            var projectedPos = module.Center + casterOffset * sectorMidDir + playerOrthoOffset * sectorMidDir.OrthoL();
+            var uptimePos = projectedPos - 5.2f * sectorMidDir;
+            var downtimePos = projectedPos + 5.5f * sectorMidDir;
+            return UptimeDowntimePos(uptimePos, downtimePos, GCD, delay);
         }
         return null;// ClosestInRange(Player.Position, module.Center, 4); // no baits on player - but we don't want to go in too early, not to clip aoes...
     }
@@ -196,7 +202,7 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
             if (defamOrder == playerOrder)
             {
                 wantSprint = true;
-                var safespot = module.Center + new WDir(0, -16);
+                var safespot = module.Center + new WDir(0, -17);
                 return UptimeDowntimePos(ClosestInMelee(safespot, module.PrimaryActor), safespot, GCD, Deadline(defams.Activation[defamOrder - 1]));
             }
             else

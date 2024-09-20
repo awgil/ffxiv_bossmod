@@ -70,7 +70,8 @@ public readonly record struct StrategyValues(List<StrategyConfig> Configs)
             return (OptionType)(object)Value.Option;
         }
 
-        public float Priority() => float.IsNaN(Value.PriorityOverride) ? Config.Options[Value.Option].DefaultPriority : Value.PriorityOverride;
+        public float Priority(float defaultPrio) => float.IsNaN(Value.PriorityOverride) ? defaultPrio : Value.PriorityOverride;
+        public float Priority() => Priority(Config.Options[Value.Option].DefaultPriority);
     }
 
     public readonly OptionRef Option<TrackIndex>(TrackIndex index) where TrackIndex : Enum
