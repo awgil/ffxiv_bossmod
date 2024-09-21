@@ -58,7 +58,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private readonly AutoDismountTweak _dismountTweak;
     private readonly RestoreRotationTweak _restoreRotTweak = new();
     private readonly SmartRotationTweak _smartRotationTweak;
-    private readonly OutOfCombatActionsTweak _oocActionsTweak = new();
+    private readonly OutOfCombatActionsTweak _oocActionsTweak;
 
     private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
     private readonly HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
@@ -79,6 +79,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _cancelCastTweak = new(ws);
         _dismountTweak = new(ws);
         _smartRotationTweak = new(ws, hints);
+        _oocActionsTweak = new(ws);
 
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
         _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
@@ -99,6 +100,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _useActionLocationHook.Dispose();
         _useActionHook.Dispose();
         _updateHook.Dispose();
+        _oocActionsTweak.Dispose();
     }
 
     public void QueueManualActions()
