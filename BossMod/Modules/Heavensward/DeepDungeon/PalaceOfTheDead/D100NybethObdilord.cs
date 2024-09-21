@@ -43,5 +43,5 @@ class D100NybethObdilordStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 208, NameID = 5356)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 208, NameID = 5356)]
 public class D100NybethObdilord(WorldState ws, Actor primary) : BossModule(ws, primary, new(300, 300), new ArenaBoundsCircle(24));
