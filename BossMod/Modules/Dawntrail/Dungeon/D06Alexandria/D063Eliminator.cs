@@ -140,6 +140,7 @@ class LightOfSalvation(BossModule module) : Components.BaitAwayCast(module, Acti
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
+        // note: actual aoe happens slightly after visual cast; but if adds are killed quickly enough, it might not happen at all
         if ((AID)spell.Action.ID is AID.LightOfSalvationAOE or AID.Subroutine3End or AID.LightOfDevotionAOE)
             CurrentBaits.Clear();
     }
@@ -149,9 +150,12 @@ class LightOfDevotion(BossModule module) : Components.SimpleLineStack(module, 3,
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.Subroutine3End)
-            spell.Action = ActionID.MakeSpell(AID.LightOfDevotionAOE);
         base.OnEventCast(caster, spell);
+        // note: actual aoe happens slightly after visual cast; but if adds are killed quickly enough, it might not happen at all
+        if ((AID)spell.Action.ID is AID.Subroutine3End)
+        {
+            Source = null;
+        }
     }
 }
 
