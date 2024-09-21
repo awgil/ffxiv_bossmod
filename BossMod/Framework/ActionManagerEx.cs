@@ -58,6 +58,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private readonly AutoDismountTweak _dismountTweak;
     private readonly RestoreRotationTweak _restoreRotTweak = new();
     private readonly SmartRotationTweak _smartRotationTweak;
+    private readonly OutOfCombatActionsTweak _oocActionsTweak = new();
 
     private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
     private readonly HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
@@ -110,9 +111,17 @@ public sealed unsafe class ActionManagerEx : IDisposable
     public void FinishActionGather()
     {
         var player = _ws.Party.Player();
-        AutoQueue = player != null ? _hints.ActionsToExecute.FindBest(_ws, player, _ws.Client.Cooldowns, EffectiveAnimationLock, _hints, _animLockTweak.DelayEstimate) : default;
-        if (AutoQueue.Delay > 0)
+        if (player != null)
+        {
+            _oocActionsTweak.FillActions(player, _hints);
+            AutoQueue = _hints.ActionsToExecute.FindBest(_ws, player, _ws.Client.Cooldowns, EffectiveAnimationLock, _hints, _animLockTweak.DelayEstimate);
+            if (AutoQueue.Delay > 0)
+                AutoQueue = default;
+        }
+        else
+        {
             AutoQueue = default;
+        }
     }
 
     public Vector3? GetWorldPosUnderCursor()
