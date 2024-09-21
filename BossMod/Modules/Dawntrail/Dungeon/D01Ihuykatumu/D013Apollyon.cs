@@ -95,7 +95,7 @@ class CuttingWind(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Whirlwind), 8);
+class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Whirlwind), 30);
 
 class D013ApollyonStates : StateMachineBuilder
 {
