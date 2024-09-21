@@ -49,6 +49,9 @@ public class GenericTowers(BossModule module, ActionID aid = default) : CastCoun
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        if (Towers.Count == 0)
+            return;
+
         // we consider some list of towers part of the same "group" if their activations are within 500ms, as there can be varying delays between helper actors in an encounter casting the "same" spell
         // generally, successive towers that are meant to be soaked by one player (i.e. in quest battles) activate no more frequently than about 2 seconds apart, so this is pretty conservative
         var firstActivation = Towers.MinBy(t => t.Activation).Activation;
