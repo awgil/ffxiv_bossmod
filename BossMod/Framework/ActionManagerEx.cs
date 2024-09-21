@@ -441,17 +441,8 @@ public sealed unsafe class ActionManagerEx : IDisposable
         // 1. action id is already unscrambled
         // 2. this function won't be called if caster object doesn't exist
         // the last point is deemed to be minor enough for us to not care, as it simplifies things (no need to hook 5 functions)
-        var info = new ActorCastEvent
-        {
-            Action = new ActionID((ActionType)header->ActionType, header->ActionId),
-            MainTargetID = header->AnimationTargetId,
-            AnimationLockTime = header->AnimationLock,
-            MaxTargets = header->NumTargets,
-            TargetPos = *targetPos,
-            SourceSequence = header->SourceSequence,
-            GlobalSequence = header->GlobalSequence,
-            Rotation = Network.PacketDecoder.IntToFloatAngle(header->RotationInt),
-        };
+        var info = new ActorCastEvent(new((ActionType)header->ActionType, header->ActionId), header->AnimationTargetId, header->AnimationLock, header->NumTargets, *targetPos,
+            header->GlobalSequence, header->SourceSequence, Network.PacketDecoder.IntToFloatAngle(header->RotationInt));
         var rawEffects = (ulong*)effects;
         for (int i = 0; i < header->NumTargets; ++i)
         {
