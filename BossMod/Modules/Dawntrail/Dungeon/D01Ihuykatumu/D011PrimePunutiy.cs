@@ -68,7 +68,7 @@ class Resurface(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.Resurface)
         {
             // the boss typically stays slightly in front of the border (15.40 rather than 15.00), and all cones other than first one originate from border, making them slightly bigger
-            var origin = Module.Center - Module.Bounds.Radius * spell.Rotation.ToDirection();
+            var origin = Module.Center - 20 * spell.Rotation.ToDirection();
             _aoe = new(_shape, origin, spell.Rotation, Module.CastFinishAt(spell));
         }
     }
