@@ -17,7 +17,28 @@ public enum AID : uint
     Valfodr = 7089, // Boss->player, 4.0s cast, width 6 rect charge, knockback 25, dir forward
 }
 
-class CleaveAuto(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.AutoAttack), new AOEShapeCone(11.92f, 45.Degrees()));
+class CleaveAuto(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.AutoAttack), new AOEShapeCone(11.92f, 45.Degrees()))
+{
+    private readonly Valfodr _charge = module.FindComponent<Valfodr>()!;
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (!_charge.ActiveBaits.Any())
+            base.AddHints(slot, actor, hints);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!_charge.ActiveBaits.Any())
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (!_charge.ActiveBaits.Any())
+            base.DrawArenaForeground(pcSlot, pc);
+    }
+}
 
 class Geirrothr(BossModule module) : Components.GenericAOEs(module)
 {
