@@ -2,13 +2,14 @@
 
 public class GenericTowers(BossModule module, ActionID aid = default) : CastCounter(module, aid)
 {
-    public struct Tower(WPos position, float radius, int minSoakers = 1, int maxSoakers = 1, BitMask forbiddenSoakers = default)
+    public struct Tower(WPos position, float radius, int minSoakers = 1, int maxSoakers = 1, BitMask forbiddenSoakers = default, DateTime activation = default)
     {
         public WPos Position = position;
         public float Radius = radius;
         public int MinSoakers = minSoakers;
         public int MaxSoakers = maxSoakers;
         public BitMask ForbiddenSoakers = forbiddenSoakers;
+        public DateTime Activation = activation;
 
         public readonly bool IsInside(WPos pos) => pos.InCircle(Position, Radius);
         public readonly bool IsInside(Actor actor) => IsInside(actor.Position);
@@ -46,6 +47,34 @@ public class GenericTowers(BossModule module, ActionID aid = default) : CastCoun
         }
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // draw hints for imminent, currently unsoaked towers
+        // we consider some list of towers part of the same "group" if their activations are within 500ms, as there can be varying delays between helper actors in an encounter casting the "same" spell
+        // generally, successive towers that are meant to be soaked by one player (i.e. in quest battles) activate no more frequently than about 2 seconds apart, so this is pretty conservative
+        var imminentMissedTowers = Towers.Where(t => ShouldHint(slot, actor, t))
+            .GroupBy(x => x.Activation.Round(TimeSpan.FromMilliseconds(500)))
+            .MinBy(gt => gt.Key);
+
+        if (imminentMissedTowers != null)
+        {
+            var zone = ShapeDistance.Intersection(imminentMissedTowers.Select(t => ShapeDistance.InvertedCircle(t.Position, t.Radius)));
+            hints.AddForbiddenZone(zone, imminentMissedTowers.Select(t => t.Activation).Min());
+        }
+    }
+
+    private bool ShouldHint(int slot, Actor actor, Tower t)
+    {
+        if (t.ForbiddenSoakers[slot])
+            return false;
+
+        // tower is soaked, but will not be if AI chooses to leave it - keep forbidden zone
+        if (t.NumInside(Module) == t.MinSoakers && t.IsInside(actor))
+            return true;
+
+        return !t.CorrectAmountInside(Module);
+    }
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var t in Towers)
@@ -62,7 +91,7 @@ public class CastTowers(BossModule module, ActionID aid, float radius, int minSo
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            Towers.Add(new(DeterminePosition(caster, spell), Radius, MinSoakers, MaxSoakers));
+            Towers.Add(new(DeterminePosition(caster, spell), Radius, MinSoakers, MaxSoakers, activation: Module.CastFinishAt(spell)));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
