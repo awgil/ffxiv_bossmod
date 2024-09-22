@@ -37,6 +37,10 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertyDisplay("Automatically cancel a cast when target is dead")]
     public bool CancelCastOnDeadTarget = false;
 
+    [PropertyDisplay("Prevent movement and action execution when pyretic-like mechanics are imminent (set to 0 to disable, otherwise increase threshold depending on your ping).")]
+    [PropertySlider(0, 10, Speed = 0.01f)]
+    public float PyreticThreshold = 1.0f;
+
     [PropertyDisplay("Restore character orientation after action use (deprecated)", tooltip: "Note: this is deprecated in favour of smart character orientation and will be removed in future")]
     public bool RestoreRotation = false;
 

@@ -166,10 +166,14 @@ class MotionSensor(BossModule module) : Components.StayMove(module, 3)
     }
 }
 
-// reduce the leeway to give enough time to resolve the motion sensor
 class BlastCannon(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlastCannon), new AOEShapeRect(26, 2))
 {
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo, -0.5f), Color, Risky));
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // add only imminent aoes to avoid having character move to the wall, reduce the leeway to give enough time to resolve the motion sensor
+        foreach (var c in Casters.Take(2))
+            hints.AddForbiddenZone(Shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo, -0.5f));
+    }
 }
 
 class HeavyBlastCannon(BossModule module) : Components.SimpleLineStack(module, 4, 36, ActionID.MakeSpell(AID.HeavyBlastCannonTargetSelect), ActionID.MakeSpell(AID.HeavyBlastCannon), 8);

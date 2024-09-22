@@ -34,10 +34,10 @@ public sealed class OutOfCombatActionsTweak : IDisposable
 
     public void FillActions(Actor player, AIHints hints)
     {
-        if (!_config.Enabled)
+        if (!_config.Enabled || player.InCombat || player.MountId != 0)
             return;
 
-        if (_config.AutoPeloton && player.ClassCategory == ClassCategory.PhysRanged && !player.InCombat && player.Position != player.PrevPosition && _ws.CurrentTime >= _nextAutoPeloton && player.FindStatus(BRD.SID.Peloton) == null)
+        if (_config.AutoPeloton && player.ClassCategory == ClassCategory.PhysRanged && player.Position != player.PrevPosition && _ws.CurrentTime >= _nextAutoPeloton && player.FindStatus(BRD.SID.Peloton) == null)
             hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Peloton), player, ActionQueue.Priority.VeryLow);
 
         // TODO: other things
