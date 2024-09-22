@@ -4,10 +4,10 @@ public enum OID : uint
 {
     Boss = 0x342C,
     DeathWall = 0x1EB27A,
-    _Gen_Venat = 0x233C, // R0.500, x22, Helper type
-    _Gen_TrueAeroIV = 0x342E, // R0.700, x0 (spawn during fight)
-    _Gen_Thelema = 0x342F, // R1.000, x0 (spawn during fight)
-    _Gen_ThelemaAgape = 0x3864, // R1.000, x0 (spawn during fight)
+    Helper = 0x233C, // R0.500, x22, Helper type
+    TrueAeroIV = 0x342E, // R0.700, x0 (spawn during fight)
+    Thelema = 0x342F, // R1.000, x0 (spawn during fight)
+    ThelemaAgape = 0x3864, // R1.000, x0 (spawn during fight)
 }
 
 public enum AID : uint
@@ -244,7 +244,7 @@ class TrueHoly(BossModule module) : Components.KnockbackFromCastTarget(module, A
 class TrueStoneIV(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TrueStoneIV), 10, maxCasts: 7);
 class EnomotosSmall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.EnomotosSmall), 4);
 
-class Adds(BossModule module) : Components.AddsMulti(module, [(uint)OID._Gen_Thelema, (uint)OID._Gen_ThelemaAgape])
+class Adds(BossModule module) : Components.AddsMulti(module, [(uint)OID.Thelema, (uint)OID.ThelemaAgape])
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
