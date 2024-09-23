@@ -16,10 +16,10 @@ public sealed class ClassDRGUtility(RotationModuleManager manager, Actor player)
         var res = new RotationModuleDefinition("Utility: DRG", "Planner support for utility actions", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.DRG), 100);
         DefineShared(res, IDLimitBreak3);
 
-        res.Define(Track.WingedGlide).As<DashStrategy>("Dash", uiPriority: 20)
-            .AddOption(DashStrategy.Automatic, "Automatic", "No use")
-            .AddOption(DashStrategy.Force, "Force", "Use ASAP")
-            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range")
+        res.Define(Track.WingedGlide).As<DashStrategy>("Winged Glide", "Dash", 20)
+            .AddOption(DashStrategy.Automatic, "Automatic", "No use.")
+            .AddOption(DashStrategy.Force, "Force", "Use ASAP", 60, 0, ActionTargets.Hostile, 45)
+            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 60, 0, ActionTargets.Hostile, 45)
             .AddAssociatedActions(DRG.AID.WingedGlide);
 
         return res;
@@ -37,7 +37,7 @@ public sealed class ClassDRGUtility(RotationModuleManager manager, Actor player)
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {
         DashStrategy.Automatic => false,
-        DashStrategy.Force => CDleft >= DashMinCD,
+        DashStrategy.Force => CDleft >= DashMinCD && !InMeleeRange(primaryTarget),
         DashStrategy.GapClose => !InMeleeRange(primaryTarget),
         _ => false,
     };

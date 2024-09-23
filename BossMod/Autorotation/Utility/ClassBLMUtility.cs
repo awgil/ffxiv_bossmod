@@ -3,9 +3,8 @@
 public sealed class ClassBLMUtility(RotationModuleManager manager, Actor player) : RoleMagicalUtility(manager, player)
 {
     public enum Track { Manaward = SharedTrack.Count, AetherialManipulation }
-    public enum DashStrategy { Automatic, Force, GapClose }
+    public enum DashStrategy { Automatic, Force }
     public float CDleft => World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining;
-    public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
 
     public const float DashMinCD = 0.8f; //Triple-weaving dash is not a good idea, since it might delay gcd for longer than normal anim lock
 
@@ -18,10 +17,9 @@ public sealed class ClassBLMUtility(RotationModuleManager manager, Actor player)
 
         DefineSimpleConfig(res, Track.Manaward, "Manaward", "", 600, BLM.AID.Manaward, 20);
 
-        res.Define(Track.AetherialManipulation).As<DashStrategy>("Dash", uiPriority: 20)
-            .AddOption(DashStrategy.Automatic, "Automatic", "No use")
-            .AddOption(DashStrategy.Force, "Force", "Use ASAP")
-            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range")
+        res.Define(Track.AetherialManipulation).As<DashStrategy>("Dash", "", 20)
+            .AddOption(DashStrategy.Automatic, "Automatic", "No use.")
+            .AddOption(DashStrategy.Force, "Force", "Use ASAP", 10, 0, ActionTargets.Party, 50)
             .AddAssociatedActions(BLM.AID.AetherialManipulation);
 
         return res;
@@ -41,7 +39,6 @@ public sealed class ClassBLMUtility(RotationModuleManager manager, Actor player)
     {
         DashStrategy.Automatic => false,
         DashStrategy.Force => CDleft >= DashMinCD,
-        DashStrategy.GapClose => !InMeleeRange(primaryTarget),
         _ => false,
     };
 }
