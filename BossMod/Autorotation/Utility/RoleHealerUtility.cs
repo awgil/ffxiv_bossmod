@@ -9,7 +9,7 @@ public abstract class RoleHealerUtility(RotationModuleManager manager, Actor pla
     {
         DefineSimpleConfig(def, SharedTrack.Sprint, "Sprint", "", 10, ClassShared.AID.Sprint, 10);
 
-        DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Self | ActionTargets.Party)
+        DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Self, 8)
             .AddAssociatedActions(ClassShared.AID.HealingWind, ClassShared.AID.BreathOfTheEarth)
             .AddAssociatedAction(lb3);
 
