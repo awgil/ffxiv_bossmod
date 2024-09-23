@@ -15,7 +15,12 @@ public enum AID : uint
     Croakdown = 39750, // Boss->self, 1.0s cast, range 12 circle
     Ribbitygibbet = 39752, // Boss->self, 1.0s cast, range 10-40 donut
     ChirpOTheWisp = 39753, // Boss->self, 1.0s cast, range 40 270-degree cone
-    // TODO: drop of venom
+    DropOfVenom = 39754, // Boss->player, 5.0s cast, range 6 circle stack
+}
+
+public enum IconID : uint
+{
+    DropOfVenom = 62, // player
 }
 
 class DoReMisery(BossModule module) : Components.GenericAOEs(module)
@@ -105,12 +110,15 @@ class DoReMisery(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+class DropOfVenom(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.DropOfVenom), 6, 4);
+
 class RaintrillerStates : StateMachineBuilder
 {
     public RaintrillerStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<DoReMisery>();
+            .ActivateOnEnter<DoReMisery>()
+            .ActivateOnEnter<DropOfVenom>();
     }
 }
 

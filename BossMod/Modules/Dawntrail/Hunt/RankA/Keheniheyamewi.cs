@@ -15,8 +15,8 @@ public enum AID : uint
     ScatterscourgeShort = 38650, // Boss->self, 1.5s cast, range 10-40 donut (immediately after charge)
     PoisonGas = 38652, // Boss->self, 5.0s cast, range 60 circle, raidwide + march debuffs
     BodyPress2 = 38651, // Boss->self, 4.0s cast, range 15 circle (how is it different from first one? happens after first one, between poison gas and march resolve)
-    MalignantMucus = 38653, // Boss->self, 5.0s cast, single-target, interruptible (?)
-    // TODO: poison mucus
+    MalignantMucus = 38653, // Boss->self, 5.0s cast, single-target, interruptible (casts several quick poison mucus puddles if not interrupted)
+    PoisonMucus = 38654, // Boss->location, 1.0s cast, range 6 circle
 }
 
 public enum SID : uint
@@ -60,6 +60,7 @@ class SlipperyScatterscourge(BossModule module) : Components.GenericAOEs(module)
 class PoisonGasRaidwide(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PoisonGas), "Raidwide + apply forced march");
 class PoisonGasMarch(BossModule module) : Components.StatusDrivenForcedMarch(module, 3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace, (uint)SID.ForcedMarch, 5.5f);
 class MalignantMucus(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.MalignantMucus));
+class PoisonMucus(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PoisonMucus), 6);
 
 class KeheniheyamewiStates : StateMachineBuilder
 {
@@ -72,7 +73,8 @@ class KeheniheyamewiStates : StateMachineBuilder
             .ActivateOnEnter<SlipperyScatterscourge>()
             .ActivateOnEnter<PoisonGasRaidwide>()
             .ActivateOnEnter<PoisonGasMarch>()
-            .ActivateOnEnter<MalignantMucus>();
+            .ActivateOnEnter<MalignantMucus>()
+            .ActivateOnEnter<PoisonMucus>();
     }
 }
 

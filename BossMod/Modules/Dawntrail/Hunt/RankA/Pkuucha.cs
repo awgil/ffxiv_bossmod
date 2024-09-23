@@ -15,7 +15,8 @@ public enum AID : uint
     MesmerizingMarchShort = 39755, // Boss->self, 1.5s cast, range 12 circle
     StirringSambaShort = 39756, // Boss->self, 1.0s cast, range 40 180-degree cone
     DeadlySwoop = 39799, // Boss->player, no cast, single-target, deadly damage on targets hit by sambas
-    // TODO: pecking flurry
+    PeckingFlurryFirst = 39760, // Boss->self, 5.0s cast, range 40 circle, raidwide (first in series of 3)
+    PeckingFlurryRest = 39761, // Boss->self, no cast, range 40 circle, raidwide (remaining ones)
 }
 
 class MesmerizingMarchStirringSamba(BossModule module) : Components.GenericAOEs(module)
@@ -68,6 +69,7 @@ class MesmerizingMarchStirringSamba(BossModule module) : Components.GenericAOEs(
 }
 
 class GlidingSwoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GlidingSwoop), new AOEShapeRect(18, 8));
+class PeckingFlurry(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PeckingFlurryFirst), "Raidwide x3");
 
 class PkuuchaStates : StateMachineBuilder
 {
@@ -75,7 +77,8 @@ class PkuuchaStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<MesmerizingMarchStirringSamba>()
-            .ActivateOnEnter<GlidingSwoop>();
+            .ActivateOnEnter<GlidingSwoop>()
+            .ActivateOnEnter<PeckingFlurry>();
     }
 }
 
