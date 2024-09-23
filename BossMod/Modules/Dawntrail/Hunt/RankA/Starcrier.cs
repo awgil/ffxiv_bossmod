@@ -12,7 +12,7 @@ public enum AID : uint
     StormwallWinds = 37039, // Boss->self, 5.0s cast, range 8-25 donut
     DirgeOfTheLost = 37040, // Boss->self, 3.0s cast, range 40 circle, apply temporary misdirection
     AeroIV = 37163, // Boss->self, 4.0s cast, range 20 circle, raidwide
-    // TODO: swiftwind serenade
+    SwiftwindSerenade = 37305, // Boss->self, 4.0s cast, range 40 width 8 rect
 }
 
 public enum SID : uint
@@ -24,6 +24,7 @@ class WingsbreadthWinds(BossModule module) : Components.SelfTargetedAOEs(module,
 class StormwallWinds(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StormwallWinds), new AOEShapeDonut(8, 25));
 class DirgeOfTheLost(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.DirgeOfTheLost), "Apply temporary misdirection");
 class AeroIV(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AeroIV));
+class SwiftwindSerenade(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SwiftwindSerenade), new AOEShapeRect(40, 4));
 
 class StarcrierStates : StateMachineBuilder
 {
@@ -33,7 +34,8 @@ class StarcrierStates : StateMachineBuilder
             .ActivateOnEnter<WingsbreadthWinds>()
             .ActivateOnEnter<StormwallWinds>()
             .ActivateOnEnter<DirgeOfTheLost>()
-            .ActivateOnEnter<AeroIV>();
+            .ActivateOnEnter<AeroIV>()
+            .ActivateOnEnter<SwiftwindSerenade>();
     }
 }
 
