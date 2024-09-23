@@ -58,6 +58,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private readonly AutoDismountTweak _dismountTweak;
     private readonly RestoreRotationTweak _restoreRotTweak = new();
     private readonly SmartRotationTweak _smartRotationTweak;
+    private readonly OutOfCombatActionsTweak _oocActionsTweak;
 
     private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
     private readonly HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
@@ -75,9 +76,10 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _hints = hints;
         _movement = movement;
         _manualQueue = new(ws, hints);
-        _cancelCastTweak = new(ws);
+        _cancelCastTweak = new(ws, hints);
         _dismountTweak = new(ws);
         _smartRotationTweak = new(ws, hints);
+        _oocActionsTweak = new(ws);
 
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
         _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
@@ -98,6 +100,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _useActionLocationHook.Dispose();
         _useActionHook.Dispose();
         _updateHook.Dispose();
+        _oocActionsTweak.Dispose();
     }
 
     public void QueueManualActions()
@@ -109,10 +112,17 @@ public sealed unsafe class ActionManagerEx : IDisposable
     // finish gathering candidate actions for this frame: sort by priority and select best action to execute
     public void FinishActionGather()
     {
+        AutoQueue = default;
         var player = _ws.Party.Player();
-        AutoQueue = player != null ? _hints.ActionsToExecute.FindBest(_ws, player, _ws.Client.Cooldowns, EffectiveAnimationLock, _hints, _animLockTweak.DelayEstimate) : default;
+        if (player == null)
+            return;
+
+        _oocActionsTweak.FillActions(player, _hints);
+        AutoQueue = _hints.ActionsToExecute.FindBest(_ws, player, _ws.Client.Cooldowns, EffectiveAnimationLock, _hints, _animLockTweak.DelayEstimate);
         if (AutoQueue.Delay > 0)
             AutoQueue = default;
+        if (Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold) && AutoQueue.Priority < ActionQueue.Priority.ManualEmergency)
+            AutoQueue = default; // do not execute non-emergency actions when pyretic is imminent
     }
 
     public Vector3? GetWorldPosUnderCursor()
@@ -318,6 +328,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
         MoveMightInterruptCast |= imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f; // if we're not casting, but will start soon, moving might interrupt future cast
         bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast && _ws.Party.Player()?.MountId == 0;
+        blockMovement |= Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold);
 
         // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
         bool actionImminent = EffectiveAnimationLock <= 0 && AutoQueue.Action && !IsRecastTimerActive(AutoQueue.Action) && !(blockMovement && _movement.IsMoving());

@@ -14,7 +14,9 @@ public static class DateTimeExtensions
     public static DateTime Round(this DateTime dt, TimeSpan interval)
     {
         var halfIntervalTicks = (interval.Ticks + 1) >> 1;
-
         return dt.AddTicks(halfIntervalTicks - (dt.Ticks + halfIntervalTicks) % interval.Ticks);
     }
+
+    public static DateTime Min(DateTime a, DateTime b) => a < b ? a : b;
+    public static DateTime Max(DateTime a, DateTime b) => a > b ? a : b;
 }

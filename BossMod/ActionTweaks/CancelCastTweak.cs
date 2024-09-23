@@ -2,7 +2,7 @@
 
 // Utility for automatically cancelling casts in some conditions (when target dies, when ai wants it, etc).
 // Since the game API is sending a packet, this implements some rate limiting.
-public sealed class CancelCastTweak(WorldState ws)
+public sealed class CancelCastTweak(WorldState ws, AIHints hints)
 {
     private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
     private readonly WorldState _ws = ws;
@@ -22,6 +22,9 @@ public sealed class CancelCastTweak(WorldState ws)
 
     private bool WantCancel()
     {
+        if (_config.PyreticThreshold > 0 && hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && hints.ImminentSpecialMode.activation < _ws.FutureTime(_config.PyreticThreshold))
+            return true;
+
         if (!_config.CancelCastOnDeadTarget)
             return false;
 

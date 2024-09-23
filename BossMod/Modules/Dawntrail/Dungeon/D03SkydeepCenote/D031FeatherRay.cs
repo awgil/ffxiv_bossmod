@@ -36,6 +36,14 @@ class WorrisomeWave(BossModule module) : Components.SelfTargetedAOEs(module, Act
 class WorrisomeWaveNuisance(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(24, 15.Degrees()), (uint)IconID.Nuisance, ActionID.MakeSpell(AID.WorrisomeWaveNuisance), 5.4f)
 {
     public override Actor? BaitSource(Actor target) => target;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        foreach (var b in ActiveBaitsOn(actor))
+            foreach (var p in Raid.WithoutSlot().Exclude(actor))
+                hints.ForbiddenDirections.Add((Angle.FromDirection(p.Position - actor.Position), 15.Degrees(), b.Activation));
+    }
 }
 
 class HydroRing(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.HydroRing))
