@@ -7,7 +7,7 @@ public sealed class ClassRDMUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: RDM", "Planner support for utility actions", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.RDM), 100);
+        var res = new RotationModuleDefinition("Utility: RDM", "Planner support for utility actions", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.RDM), 100);
         DefineShared(res, IDLimitBreak3);
 
         DefineSimpleConfig(res, Track.MagickBarrier, "Magick Barrier", "Barrier", 600, RDM.AID.MagickBarrier, 10);

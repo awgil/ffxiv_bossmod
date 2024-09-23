@@ -9,7 +9,7 @@ public sealed class ClassSMNUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: SMN", "Planner support for utility actions", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.SMN), 100);
+        var res = new RotationModuleDefinition("Utility: SMN", "Planner support for utility actions", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.SMN), 100);
         DefineShared(res, IDLimitBreak3);
 
         DefineSimpleConfig(res, Track.RadiantAegis, "Radiant Aegis", "Aegis", 600, SMN.AID.RadiantAegis, 30);
