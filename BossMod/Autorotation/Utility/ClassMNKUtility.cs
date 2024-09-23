@@ -3,7 +3,7 @@
 public sealed class ClassMNKUtility(RotationModuleManager manager, Actor player) : RoleMeleeUtility(manager, player)
 {
     public enum Track { Mantra = SharedTrack.Count, RiddleOfEarth, Thunderclap }
-    public enum DashStrategy { Automatic, Force, GapClose } //GapCloser strategy
+    public enum DashStrategy { Automatic, Force, GapClose }
     public float CDleft => World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining;
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
 
