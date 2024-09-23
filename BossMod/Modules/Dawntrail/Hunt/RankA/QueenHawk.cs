@@ -12,8 +12,8 @@ public enum AID : uint
     BeeBeHere = 39483, // Boss->self, 4.0s cast, range 10-40 donut 'voidzone'
     StingingVenom = 39488, // Boss->player, no cast, single-target, heavy damage if standing in 'voidzone'
     ResonantBuzz = 39486, // Boss->self, 5.0s cast, range 40 circle, raidwide + forced march
-    FrenziedSting = 39489, // Boss->player, 5.0s cast, single-target tankbuster (never seen one)
-    StraightSpindle = 39490, // Boss->self?, 4.0s cast, range 50 width 5 rect (never seen one)
+    FrenziedSting = 39489, // Boss->player, 5.0s cast, single-target tankbuster
+    StraightSpindle = 39490, // Boss->self, 4.0s cast, range 50 width 5 rect
 }
 
 public enum SID : uint
@@ -57,8 +57,8 @@ class BeeBeGoneHere(BossModule module) : Components.GenericAOEs(module, default,
 
 class ResonantBuzzRaidwide(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ResonantBuzz), "Raidwide + apply forced march");
 class ResonantBuzzMarch(BossModule module) : Components.StatusDrivenForcedMarch(module, 3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace);
-class FrenziedSting(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.FrenziedSting)); // TODO: verify, never seen one
-class StraightSpindle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StraightSpindle), new AOEShapeRect(50, 2.5f)); // TODO: verify, never seen one
+class FrenziedSting(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.FrenziedSting));
+class StraightSpindle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StraightSpindle), new AOEShapeRect(50, 2.5f));
 
 class QueenHawkStates : StateMachineBuilder
 {
