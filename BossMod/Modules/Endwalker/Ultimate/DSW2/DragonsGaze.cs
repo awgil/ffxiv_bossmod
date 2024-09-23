@@ -15,8 +15,8 @@ class DragonsGaze(BossModule module, OID bossOID) : Components.GenericGaze(modul
         // TODO: activation time
         if (_boss != null && NumCasts == 0)
         {
-            yield return new(_eyePosition, Risky: EnableHints);
-            yield return new(_boss.Position, Risky: EnableHints);
+            yield return new(_eyePosition, Range: EnableHints ? 10000 : 0);
+            yield return new(_boss.Position, Range: EnableHints ? 10000 : 0);
         }
     }
 
