@@ -10,7 +10,7 @@ public abstract class RoleMagicalUtility(RotationModuleManager manager, Actor pl
     {
         DefineSimpleConfig(def, SharedTrack.Sprint, "Sprint", "", 10, ClassShared.AID.Sprint, 10);
 
-        DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Self | ActionTargets.Party | ActionTargets.Hostile, 8)
+        DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Self, 8)
             .AddAssociatedActions(ClassShared.AID.Skyshard, ClassShared.AID.Starstorm)
             .AddAssociatedAction(lb3);
 
