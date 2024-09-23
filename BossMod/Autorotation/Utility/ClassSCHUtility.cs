@@ -58,6 +58,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(def, Track.Expedient, "Expedient", "Exped", 200, SCH.AID.Expedient, 20);
         DefineSimpleConfig(def, Track.Seraphism, "Seraphism", "", 300, SCH.AID.Seraphism, 20);
         DefineSimpleConfig(def, Track.Resurrection, "Resurrection", "Raise", 10, SCH.AID.Resurrection);
+
         // Pet Summons
         def.Define(Track.Summons).As<PetOption>("Pet", "", 180)
             .AddOption(PetOption.None, "None", "Do not use automatically")
@@ -72,21 +73,21 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
     {
         ExecuteShared(strategy, IDLimitBreak3);
         ExecuteSimple(strategy.Option(Track.WhisperingDawn), SCH.AID.WhisperingDawn, Player);
-        ExecuteSimple(strategy.Option(Track.Adloquium), SCH.AID.Adloquium, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Adloquium), SCH.AID.Adloquium, null);
         ExecuteSimple(strategy.Option(Track.FeyIllumination), SCH.AID.FeyIllumination, Player);
-        ExecuteSimple(strategy.Option(Track.Lustrate), SCH.AID.Lustrate, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.SacredSoil), SCH.AID.SacredSoil, null);
-        ExecuteSimple(strategy.Option(Track.Indomitability), SCH.AID.Indomitability, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.EmergencyTactics), SCH.AID.EmergencyTactics, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Dissipation), SCH.AID.Dissipation, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Excogitation), SCH.AID.Excogitation, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Aetherpact), SCH.AID.Aetherpact, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Lustrate), SCH.AID.Lustrate, null);
+        ExecuteSimple(strategy.Option(Track.SacredSoil), SCH.AID.SacredSoil, Player);
+        ExecuteSimple(strategy.Option(Track.Indomitability), SCH.AID.Indomitability, Player);
+        ExecuteSimple(strategy.Option(Track.EmergencyTactics), SCH.AID.EmergencyTactics, Player);
+        ExecuteSimple(strategy.Option(Track.Dissipation), SCH.AID.Dissipation, Player);
+        ExecuteSimple(strategy.Option(Track.Excogitation), SCH.AID.Excogitation, null);
+        ExecuteSimple(strategy.Option(Track.Aetherpact), SCH.AID.Aetherpact, null);
         ExecuteSimple(strategy.Option(Track.FeyBlessing), SCH.AID.FeyBlessing, Player);
         ExecuteSimple(strategy.Option(Track.Consolation), SCH.AID.Consolation, Player);
-        ExecuteSimple(strategy.Option(Track.Protraction), SCH.AID.Protraction, Player);
-        ExecuteSimple(strategy.Option(Track.Expedient), SCH.AID.Expedient, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Protraction), SCH.AID.Protraction, null);
+        ExecuteSimple(strategy.Option(Track.Expedient), SCH.AID.Expedient, Player);
         ExecuteSimple(strategy.Option(Track.Seraphism), SCH.AID.Seraphism, Player);
-        ExecuteSimple(strategy.Option(Track.Resurrection), SCH.AID.Resurrection, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Resurrection), SCH.AID.Resurrection, null);
 
         var succ = strategy.Option(Track.Succor);
         var succAction = succ.As<SuccorOption>() switch

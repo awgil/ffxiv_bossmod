@@ -73,18 +73,18 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         ExecuteShared(strategy, IDLimitBreak3);
         ExecuteSimple(strategy.Option(Track.Egeiro), SGE.AID.Egeiro, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Eukrasia), SGE.AID.Eukrasia, Player);
-        ExecuteSimple(strategy.Option(Track.Druochole), SGE.AID.Druochole, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Druochole), SGE.AID.Druochole, null);
         ExecuteSimple(strategy.Option(Track.Kerachole), SGE.AID.Kerachole, Player);
-        ExecuteSimple(strategy.Option(Track.Ixochole), SGE.AID.Ixochole, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Ixochole), SGE.AID.Ixochole, Player);
         ExecuteSimple(strategy.Option(Track.Pepsis), SGE.AID.Pepsis, Player);
-        ExecuteSimple(strategy.Option(Track.Taurochole), SGE.AID.Taurochole, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Haima), SGE.AID.Haima, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Taurochole), SGE.AID.Taurochole, null);
+        ExecuteSimple(strategy.Option(Track.Haima), SGE.AID.Haima, null);
         ExecuteSimple(strategy.Option(Track.Rhizomata), SGE.AID.Rhizomata, Player);
         ExecuteSimple(strategy.Option(Track.Holos), SGE.AID.Holos, Player);
         ExecuteSimple(strategy.Option(Track.Panhaima), SGE.AID.Panhaima, Player);
         ExecuteSimple(strategy.Option(Track.Krasis), SGE.AID.Krasis, Player);
         ExecuteSimple(strategy.Option(Track.Philosophia), SGE.AID.Philosophia, Player);
-        ExecuteSimple(strategy.Option(Track.Icarus), SGE.AID.Icarus, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Icarus), SGE.AID.Icarus, null);
 
         var kardia = strategy.Option(Track.Kardia);
         var kardiaAction = kardia.As<KardiaOption>() switch

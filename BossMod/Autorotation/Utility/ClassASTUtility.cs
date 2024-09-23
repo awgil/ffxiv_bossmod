@@ -2,59 +2,52 @@
 
 public sealed class ClassASTUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
-    public enum Track { Helios = SharedTrack.Count, Lightspeed, BeneficII, EssentialDignity, AspectedBenefic, AspectedHelios, Synastry, CollectiveUnconscious, CelestialOpposition, CelestialIntersection, Horoscope, NeutralSect, Exaltation, Macrocosmos, SunSign, Ascend, Play }
+    public enum Track { Helios = SharedTrack.Count, Lightspeed, BeneficII, EssentialDignity, AspectedBenefic, AspectedHelios, Synastry, CollectiveUnconscious, CelestialOpposition, CelestialIntersection, Horoscope, NeutralSect, Exaltation, Macrocosmos, SunSign, Ascend }
     public enum HoroscopeOption { None, Use, End }
     public enum MacrocosmosOption { None, Use, End }
     public enum HeliosOption { None, Use, UseEx }
-    public enum CardsOption { None, PlayII, PlayIII }
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(AST.AID.AstralStasis);
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Utility: AST", "Planner support for utility actions", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.AST), 100);
+        var def = new RotationModuleDefinition("Utility: AST", "Planner support for utility actions", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.AST), 100);
         DefineShared(def, IDLimitBreak3);
 
         DefineSimpleConfig(def, Track.Helios, "Helios", "", 140, AST.AID.Helios);
-        DefineSimpleConfig(def, Track.Lightspeed, "Lightspeed", "L.Speed", 140, AST.AID.Lightspeed, 15);
-        DefineSimpleConfig(def, Track.BeneficII, "BeneficII", "Bene2", 100, AST.AID.BeneficII);
-        DefineSimpleConfig(def, Track.EssentialDignity, "EssentialDignity", "E.Dig", 140, AST.AID.EssentialDignity);
-        DefineSimpleConfig(def, Track.AspectedBenefic, "AspectedBenefic", "A.Benefic", 100, AST.AID.AspectedBenefic, 15);
+        DefineSimpleConfig(def, Track.Lightspeed, "Lightspeed", "L.Speed", 140, AST.AID.Lightspeed, 15); //Self oGCD, 60s CD (120s total), 2 charges, 15s effect duration
+        DefineSimpleConfig(def, Track.BeneficII, "BeneficII", "Bene2", 100, AST.AID.BeneficII); //ST GCD heal
+        DefineSimpleConfig(def, Track.EssentialDignity, "EssentialDignity", "E.Dig", 140, AST.AID.EssentialDignity); //ST oGCD heal, 40s CD (120s Total), 3 charges
+        DefineSimpleConfig(def, Track.AspectedBenefic, "AspectedBenefic", "A.Benefic", 100, AST.AID.AspectedBenefic, 15); //ST GCD regen, 15s effect duration
 
-        def.Define(Track.AspectedHelios).As<HeliosOption>("AspectedHelios", "A.Helios", 130)
-            .AddOption(HeliosOption.None, "None", "Do not use automatically")
+        def.Define(Track.AspectedHelios).As<HeliosOption>("AspectedHelios", "A.Helios", 130) //AoE 15s GCD heal/regen, 15s effect duration
+            .AddOption(HeliosOption.None, "None", "Do not use automatically") 
             .AddOption(HeliosOption.Use, "Use", "Use Aspected Helios", 1, 15, ActionTargets.Self, 40, 95)
             .AddOption(HeliosOption.UseEx, "UseEx", "Use Helios Conjunction", 1, 15, ActionTargets.Self, 96)
             .AddAssociatedActions(AST.AID.AspectedHelios, AST.AID.HeliosConjunction);
 
-        DefineSimpleConfig(def, Track.Synastry, "Synastry", "", 200, AST.AID.Synastry, 20);
-        DefineSimpleConfig(def, Track.CollectiveUnconscious, "CollectiveUnconscious", "C.Uncon", 100, AST.AID.CollectiveUnconscious, 5); //15s regen also
-        DefineSimpleConfig(def, Track.CelestialOpposition, "CelestialOpposition", "C.Oppo", 100, AST.AID.CelestialOpposition, 15);
-        DefineSimpleConfig(def, Track.CelestialIntersection, "CelestialIntersection", "C.Inter", 100, AST.AID.CelestialIntersection, 30);
+        DefineSimpleConfig(def, Track.Synastry, "Synastry", "", 200, AST.AID.Synastry, 20); //ST oGCD "kardia"-like heal, 120s CD, 20s effect duration
+        DefineSimpleConfig(def, Track.CollectiveUnconscious, "CollectiveUnconscious", "C.Uncon", 100, AST.AID.CollectiveUnconscious, 5); //AoE oGCD mit/regen, 60s CD, 5s mitigation / 15s regen effect durations 
+        DefineSimpleConfig(def, Track.CelestialOpposition, "CelestialOpposition", "C.Oppo", 100, AST.AID.CelestialOpposition, 15); //AoE oGCD heal/regen, 60s CD, 15s effect duration
+        DefineSimpleConfig(def, Track.CelestialIntersection, "CelestialIntersection", "C.Inter", 100, AST.AID.CelestialIntersection, 30); //ST oGCD heal/shield, 30s CD (60s Total), 2 charges
 
-        def.Define(Track.Horoscope).As<HoroscopeOption>("Horoscope", "Horo", 130)
+        def.Define(Track.Horoscope).As<HoroscopeOption>("Horoscope", "Horo", 130) //Conditional AoE heal, 60s CD, 30s effect duration
             .AddOption(HoroscopeOption.None, "None", "Do not use automatically")
             .AddOption(HoroscopeOption.Use, "Use", "Use Horoscope", 60, 10, ActionTargets.Self, 76)
-            .AddOption(HoroscopeOption.End, "UseEx", "End Horoscope", 0, 1, ActionTargets.Self, 76)
+            .AddOption(HoroscopeOption.End, "UseEx", "Use Enhanced Horoscope", 0, 1, ActionTargets.Self, 76)
             .AddAssociatedActions(AST.AID.Horoscope, AST.AID.HoroscopeEnd);
 
-        DefineSimpleConfig(def, Track.NeutralSect, "NeutralSect", "Sect", 250, AST.AID.NeutralSect, 30);
-        DefineSimpleConfig(def, Track.Exaltation, "Exaltation", "Exalt", 100, AST.AID.Exaltation, 8);
+        DefineSimpleConfig(def, Track.NeutralSect, "NeutralSect", "Sect", 250, AST.AID.NeutralSect, 30); //Self oGCD buffs, 120s CD, 20s heal+ / 30s buffed Aspected casts effect duration  
+        DefineSimpleConfig(def, Track.Exaltation, "Exaltation", "Exalt", 100, AST.AID.Exaltation, 8); //ST oGCD mit, 60s CD, 8s effect duration
 
-        def.Define(Track.Macrocosmos).As<MacrocosmosOption>("Macrocosmos", "Macro", 300)
+        def.Define(Track.Macrocosmos).As<MacrocosmosOption>("Macrocosmos", "Macro", 300) //AoE GCD heal (after damage taken), 180s CD, 15s effect duration
             .AddOption(MacrocosmosOption.None, "None", "Do not use automatically")
             .AddOption(MacrocosmosOption.Use, "Use", "Use Macrocosmos", 120, 2, ActionTargets.Hostile, 90)
             .AddOption(MacrocosmosOption.End, "UseEx", "Use Microcosmos", 0, 1, ActionTargets.Hostile, 90)
             .AddAssociatedActions(AST.AID.Macrocosmos, AST.AID.MicrocosmosEnd);
 
-        DefineSimpleConfig(def, Track.SunSign, "SunSign", "", 290, AST.AID.SunSign);
-        DefineSimpleConfig(def, Track.Ascend, "Ascend", "Raise", 10, AST.AID.Ascend, 7);
-
-        def.Define(Track.Play).As<CardsOption>("Play", "Play", 130)
-            .AddOption(CardsOption.None, "None", "Do not use automatically")
-            .AddOption(CardsOption.PlayII, "PlayII", "Use Play II's Card", 1, 15, ActionTargets.Self | ActionTargets.Party, 30)
-            .AddOption(CardsOption.PlayIII, "PlayIII", "Use Play III's Card", 1, 15, ActionTargets.Self | ActionTargets.Party, 30)
-            .AddAssociatedActions(AST.AID.PlayII, AST.AID.PlayIII);
+        DefineSimpleConfig(def, Track.SunSign, "SunSign", "", 290, AST.AID.SunSign, 15); //AoE oGCD mit (only can use when under NeutralSect), 15s effect duration
+        DefineSimpleConfig(def, Track.Ascend, "Ascend", "Raise", 10, AST.AID.Ascend, 7); //Raise
 
         return def;
     }
@@ -104,15 +97,5 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         };
         if (cosmosAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(cosmosAction), Player, cosmos.Priority(), cosmos.Value.ExpireIn);
-
-        var cards = strategy.Option(Track.Play);
-        var cardsAction = cards.As<CardsOption>() switch
-        {
-            CardsOption.PlayII => AST.AID.PlayII,
-            CardsOption.PlayIII => AST.AID.PlayIII,
-            _ => default
-        };
-        if (cardsAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(cardsAction), Player, cards.Priority(), cards.Value.ExpireIn);
     }
 }
