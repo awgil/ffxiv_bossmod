@@ -5,7 +5,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
     public enum Track { Camouflage = SharedTrack.Count, Nebula, Aurora, Superbolide, HeartOfLight, HeartOfCorundum, Trajectory }
     public enum HoCOption { None, HeartOfStone, HeartOfCorundum }
     public enum AuroraStrategy { None, Force, Delay }
-    public enum DashStrategy { Automatic, Forbid, Force, GapClose } //GapCloser strategy
+    public enum DashStrategy { Automatic, Force, GapClose } //GapCloser strategy
     public float CDleft => World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining;
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
 

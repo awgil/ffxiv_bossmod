@@ -8,7 +8,7 @@ public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: PCT", "Planner support for utility actions", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.PCT), 100);
+        var res = new RotationModuleDefinition("Utility: PCT", "Planner support for utility actions", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.PCT), 100);
         DefineShared(res, IDLimitBreak3);
 
         DefineSimpleConfig(res, Track.TemperaCoat, "Tempora Coat", "T.Coat", 600, PCT.AID.TemperaCoat, 10);

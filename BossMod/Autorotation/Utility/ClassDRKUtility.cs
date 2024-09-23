@@ -5,7 +5,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
     public enum Track { DarkMind = SharedTrack.Count, ShadowWall, LivingDead, TheBlackestNight, Oblation, DarkMissionary, Shadowstride }
     public enum WallOption { None, ShadowWall, ShadowedVigil }
     public enum OblationStrategy { None, Force, Delay }
-    public enum DashStrategy { Automatic, Forbid, Force, GapClose } //GapCloser strategy
+    public enum DashStrategy { Automatic, Force, GapClose } //GapCloser strategy
     public float CDleft => World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining;
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
 
