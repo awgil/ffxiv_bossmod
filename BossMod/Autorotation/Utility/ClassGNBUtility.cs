@@ -2,17 +2,21 @@
 
 public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player) : RoleTankUtility(manager, player)
 {
-    public enum Track { Camouflage = SharedTrack.Count, Nebula, Aurora, Superbolide, HeartOfLight, HeartOfCorundum }
+    public enum Track { Camouflage = SharedTrack.Count, Nebula, Aurora, Superbolide, HeartOfLight, HeartOfCorundum, Trajectory }
     public enum HoCOption { None, HeartOfStone, HeartOfCorundum }
     public enum AuroraStrategy { None, Force, Delay }
+    public enum DashStrategy { Automatic, Forbid, Force, GapClose } //GapCloser strategy
+    public float CDleft => World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining;
+    public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
 
+    public const float DashMinCD = 0.8f; //Triple-weaving dash is not a good idea, since it might delay gcd for longer than normal anim lock
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(GNB.AID.GunmetalSoul);
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(GNB.AID.RoyalGuard);
     public static readonly ActionID IDStanceRemove = ActionID.MakeSpell(GNB.AID.ReleaseRoyalGuard);
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: GNB", "Planner support for utility actions", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.GNB), 100); //How we plan our use of Utility skills
+        var res = new RotationModuleDefinition("Utility: GNB", "Planner support for utility actions", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.GNB), 100); //How we plan our use of Utility skills
         DefineShared(res, IDLimitBreak3, IDStanceApply, IDStanceRemove); //Stance & LB
 
         DefineSimpleConfig(res, Track.Camouflage, "Camouflage", "Camo", 450, GNB.AID.Camouflage, 20); //90s CD, 20s duration
@@ -33,8 +37,12 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
             .AddOption(HoCOption.HeartOfCorundum, "HoC", "Use Heart of Corundum", 25, 4, ActionTargets.Self | ActionTargets.Party, 82)
             .AddAssociatedActions(GNB.AID.HeartOfStone, GNB.AID.HeartOfCorundum);
 
-        // TODO: RoughDivide has been removed as of 7.0 DT. Trajectory is its replacement dash and no longer does damage. Consider how to add this...
-        // DefineSimpleConfig(res, Track.Trajectory, "Trajectory", "Dash", 400, GNB.AID.Trajectory, 30s); //30s CD (60s total), 2 charges
+        //Trajectory strategy
+        res.Define(Track.Trajectory).As<DashStrategy>("Dash", uiPriority: 20)
+            .AddOption(DashStrategy.Automatic, "Automatic", "No use")
+            .AddOption(DashStrategy.Force, "Force", "Use ASAP")
+            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range")
+            .AddAssociatedActions(GNB.AID.Trajectory);
 
         return res;
     }
@@ -66,5 +74,17 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         };
         if (aid != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), ResolveTargetOverride(hoc.Value) ?? CoTank() ?? Player, hoc.Priority(), hoc.Value.ExpireIn);
+
+        var dashStrategy = strategy.Option(Track.Trajectory).As<DashStrategy>();
+        if (ShouldUseDash(dashStrategy, primaryTarget))
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(GNB.AID.Trajectory), Player, hoc.Priority());
     }
+    private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
+    {
+        DashStrategy.Automatic => false,
+        DashStrategy.Force => CDleft >= DashMinCD,
+        DashStrategy.GapClose => !InMeleeRange(primaryTarget),
+        _ => false,
+    };
+
 }
