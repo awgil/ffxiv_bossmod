@@ -39,10 +39,10 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
 
         DefineSimpleConfig(res, Track.DarkMissionary, "DarkMissionary", "Mission", 220, DRK.AID.DarkMissionary, 15); //90s CD, 15s duration
 
-        res.Define(Track.Shadowstride).As<DashStrategy>("Dash", uiPriority: 20)
+        res.Define(Track.Shadowstride).As<DashStrategy>("Shadowstride", "Dash", 20)
             .AddOption(DashStrategy.Automatic, "Automatic", "No use")
-            .AddOption(DashStrategy.Force, "Force", "Use ASAP")
-            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range")
+            .AddOption(DashStrategy.Force, "Force", "Use ASAP", 30, 0, ActionTargets.Hostile, 56)
+            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 30, 0, ActionTargets.Hostile, 56)
             .AddAssociatedActions(DRK.AID.Shadowstride);
 
         return res;

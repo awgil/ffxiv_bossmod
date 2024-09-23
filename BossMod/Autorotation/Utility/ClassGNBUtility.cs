@@ -37,11 +37,10 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
             .AddOption(HoCOption.HeartOfCorundum, "HoC", "Use Heart of Corundum", 25, 4, ActionTargets.Self | ActionTargets.Party, 82)
             .AddAssociatedActions(GNB.AID.HeartOfStone, GNB.AID.HeartOfCorundum);
 
-        //Trajectory strategy
-        res.Define(Track.Trajectory).As<DashStrategy>("Dash", uiPriority: 20)
+        res.Define(Track.Trajectory).As<DashStrategy>("Trajectory", "Dash", 20)
             .AddOption(DashStrategy.Automatic, "Automatic", "No use")
-            .AddOption(DashStrategy.Force, "Force", "Use ASAP")
-            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range")
+            .AddOption(DashStrategy.Force, "Force", "Use ASAP", 30, 0, ActionTargets.Hostile, 56)
+            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 30, 0, ActionTargets.Hostile, 56)
             .AddAssociatedActions(GNB.AID.Trajectory);
 
         return res;
