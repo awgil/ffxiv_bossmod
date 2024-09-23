@@ -12,7 +12,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     public enum LightningShotStrategy { OpenerRanged, Opener, Force, Ranged } //RangedUptime strategy
     public enum CartridgeStrategy { Automatic, Delay, ForceDD, ForceGF, ForceBS, ForceFC, ForceAll } //Cartridge usage strategy
     public enum OffensiveStrategy { Automatic, Force, Delay } //CDs strategies
-    public enum TrajectoryStrategy { Automatic, Forbid, Force, GapClose } //GapCloser strategy
 
     public static RotationModuleDefinition Definition()
     {
@@ -107,13 +106,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Bow Shock")
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Bow Shock")
             .AddAssociatedActions(GNB.AID.BowShock);
-        //Trajectory strategy
-        res.Define(Track.Trajectory).As<TrajectoryStrategy>("Dash", uiPriority: 20)
-            .AddOption(TrajectoryStrategy.Automatic, "Automatic", "No use")
-            .AddOption(TrajectoryStrategy.Forbid, "Forbid", "No use")
-            .AddOption(TrajectoryStrategy.Force, "Force", "Use ASAP")
-            .AddOption(TrajectoryStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range")
-            .AddAssociatedActions(GNB.AID.Trajectory);
 
         return res;
     }
@@ -164,7 +156,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     private float RipLeft; //10s
     private float TearLeft; //10s
     private float GougeLeft; //10s
-    private float TrajectoryCD; //30s dash
     private float PotionLeft; //30s buff from Pots
     private float RaidBuffsLeft; //Typically always 20s-22s
     private float RaidBuffsIn; //Typically always 20s-22s
@@ -174,8 +165,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     private bool ReadyToReign; //0s if not up, 30s if Bloodfest just used
     public GNB.AID NextGCD; //This is needed to estimate carts and make a decision on burst
     private GCDPriority NextGCDPrio; //This is needed to estimate priority and make a decision on CDs
-
-    private const float TrajectoryMinGCD = 0.8f; //Triple-weaving Trajectory is not a good idea, since it might delay gcd for longer than normal anim lock
 
     private bool Unlocked(GNB.AID aid) => ActionUnlocked(ActionID.MakeSpell(aid)); //Checks if desired ability is unlocked
     private bool Unlocked(GNB.TraitID tid) => TraitUnlocked((uint)tid); //Checks if desired trait is unlocked
@@ -201,7 +190,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //Floats - '() > 0' assumes you have the buff, good for using as a "HasBuff" call
         BloodfestCD = CD(GNB.AID.Bloodfest); //120s cooldown
         NoMercyCD = CD(GNB.AID.NoMercy); //60s cooldown
-        TrajectoryCD = CD(GNB.AID.Trajectory); //Dash
         GCDLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
         NoMercyLeft = SelfStatusLeft(GNB.SID.NoMercy); //20s buff
         BreakLeft = SelfStatusLeft(GNB.SID.ReadyToBreak); //30s buff
@@ -313,19 +301,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //LightningShot usage
         if (ShouldUseLightningShot(primaryTarget, strategy.Option(Track.LightningShot).As<LightningShotStrategy>()))
             QueueGCD(GNB.AID.LightningShot, primaryTarget, GCDPriority.ForcedLightningShot);
-        //Trajectory usage
-        if (Unlocked(GNB.AID.Trajectory))
-        {
-            var onsStrategy = strategy.Option(Track.Trajectory).As<TrajectoryStrategy>();
-            if (ShouldUseTrajectory(onsStrategy, primaryTarget))
-            {
-                //Special case for use as gapcloser - it has to be very high priority
-                var (prio, basePrio) = onsStrategy == TrajectoryStrategy.GapClose
-                    ? (OGCDPriority.GapcloseTrajectory, ActionQueue.Priority.High)
-                    : (OGCDPriority.Trajectory, TrajectoryCD < GCDLength ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low);
-                QueueOGCD(GNB.AID.Trajectory, primaryTarget, prio, basePrio);
-            }
-        }
 
         //Potion should be used as late as possible in ogcd window, so that if playing at <2.5 gcd, it can cover 13 gcds
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
@@ -514,16 +489,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         OffensiveStrategy.Force => true,
         OffensiveStrategy.Delay => false,
         _ => false
-    };
-
-    //How we use our gapcloser
-    private bool ShouldUseTrajectory(TrajectoryStrategy strategy, Actor? target) => strategy switch
-    {
-        TrajectoryStrategy.Automatic => false,
-        TrajectoryStrategy.Forbid => false,
-        TrajectoryStrategy.Force => GCD >= TrajectoryMinGCD,
-        TrajectoryStrategy.GapClose => !InMeleeRange(target),
-        _ => false,
     };
 
     //How we use SonicBreak

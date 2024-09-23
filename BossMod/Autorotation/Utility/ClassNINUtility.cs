@@ -8,7 +8,7 @@ public sealed class ClassNINUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: NIN", "Planner support for utility actions", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.NIN), 100);
+        var res = new RotationModuleDefinition("Utility: NIN", "Planner support for utility actions", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.NIN), 100);
         DefineShared(res, IDLimitBreak3);
 
         DefineSimpleConfig(res, Track.ShadeShift, "Shade", "", 400, NIN.AID.ShadeShift, 20);

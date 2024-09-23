@@ -8,10 +8,9 @@ public sealed class ClassDNCUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: DNC", "Planner support for utility actions", "xan", RotationModuleQuality.WIP, BitMask.Build((int)Class.DNC), 100);
+        var res = new RotationModuleDefinition("Utility: DNC", "Planner support for utility actions", "xan", RotationModuleQuality.Excellent, BitMask.Build((int)Class.DNC), 100);
         DefineShared(res, IDLimitBreak3);
 
-        // TODO: en avant (not sure how it can be planned really...)
         DefineSimpleConfig(res, Track.CuringWaltz, "CuringWaltz", "Waltz", 400, DNC.AID.CuringWaltz);
         DefineSimpleConfig(res, Track.ShieldSamba, "ShieldSamba", "Samba", 500, DNC.AID.ShieldSamba, 15);
         DefineSimpleConfig(res, Track.Improvisation, "Improvisation", "Improv", 300, DNC.AID.Improvisation, 15);
