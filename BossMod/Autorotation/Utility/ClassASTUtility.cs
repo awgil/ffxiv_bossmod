@@ -16,7 +16,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         DefineShared(def, IDLimitBreak3);
 
         DefineSimpleConfig(def, Track.Helios, "Helios", "", 140, AST.AID.Helios);
-        DefineSimpleConfig(def, Track.Lightspeed, "Lightspeed", "L.Speed", 140, AST.AID.Lightspeed);
+        DefineSimpleConfig(def, Track.Lightspeed, "Lightspeed", "L.Speed", 140, AST.AID.Lightspeed, 15);
         DefineSimpleConfig(def, Track.BeneficII, "BeneficII", "Bene2", 100, AST.AID.BeneficII);
         DefineSimpleConfig(def, Track.EssentialDignity, "EssentialDignity", "E.Dig", 140, AST.AID.EssentialDignity);
         DefineSimpleConfig(def, Track.AspectedBenefic, "AspectedBenefic", "A.Benefic", 100, AST.AID.AspectedBenefic, 15);
