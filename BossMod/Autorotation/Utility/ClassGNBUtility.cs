@@ -82,7 +82,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {
         DashStrategy.Automatic => false,
-        DashStrategy.Force => CDleft >= DashMinCD,
+        DashStrategy.Force => CDleft >= DashMinCD && !InMeleeRange(primaryTarget),
         DashStrategy.GapClose => !InMeleeRange(primaryTarget),
         _ => false,
     };
