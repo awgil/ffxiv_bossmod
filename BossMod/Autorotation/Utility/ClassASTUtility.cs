@@ -21,7 +21,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(def, Track.AspectedBenefic, "AspectedBenefic", "A.Benefic", 100, AST.AID.AspectedBenefic, 15); //ST GCD regen, 15s effect duration
 
         def.Define(Track.AspectedHelios).As<HeliosOption>("AspectedHelios", "A.Helios", 130) //AoE 15s GCD heal/regen, 15s effect duration
-            .AddOption(HeliosOption.None, "None", "Do not use automatically") 
+            .AddOption(HeliosOption.None, "None", "Do not use automatically")
             .AddOption(HeliosOption.Use, "Use", "Use Aspected Helios", 1, 15, ActionTargets.Self, 40, 95)
             .AddOption(HeliosOption.UseEx, "UseEx", "Use Helios Conjunction", 1, 15, ActionTargets.Self, 96)
             .AddAssociatedActions(AST.AID.AspectedHelios, AST.AID.HeliosConjunction);
