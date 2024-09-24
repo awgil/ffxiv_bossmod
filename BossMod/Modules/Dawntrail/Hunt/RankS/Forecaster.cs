@@ -66,7 +66,8 @@ class Forecast(BossModule module) : Components.GenericAOEs(module)
     {
         if (_shapes.Count > 0)
         {
-            hints.Add($"Sequence: {string.Join(" -> ", _shapes.Select(s => s switch {
+            hints.Add($"Sequence: {string.Join(" -> ", _shapes.Select(s => s switch
+            {
                 AOEShapeDonut => "In",
                 AOEShapeCircle => "Out",
                 AOEShapeRect => "Behind",
