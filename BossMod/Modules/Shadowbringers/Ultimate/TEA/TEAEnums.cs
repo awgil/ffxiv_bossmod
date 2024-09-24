@@ -203,7 +203,7 @@ public enum AID : uint
     FateCalibrationBetaJJump = 18565, // PerfectAlexander[clone]->location, no cast, range 10 circle baited jump
     FateCalibrationBetaResolveOpticalSightSpread = 18861, // PerfectAlexander->self, no cast, single-target, visual (spread fx)
     FateCalibrationBetaResolveOpticalSightStack = 18862, // PerfectAlexander->self, no cast, single-target, visual (stack fx)
-    FateCalibrationBetaRadiantSacrament = 18566, // PerfectAlexander->self, no cast, range ?-60 donut
+    FateCalibrationBetaRadiantSacrament = 18566, // PerfectAlexander->self, no cast, range 8-60 donut
     AlmightyJudgment = 18574, // PerfectAlexander->self, 3.0s cast, single-target, visual (exatrines mechanic start)
     AlmightyJudgmentVisual = 18575, // Helper->self, 1.5s cast, range 6 circle, visual
     AlmightyJudgmentAOE = 18576, // Helper->self, no cast, range 6 circle aoe
