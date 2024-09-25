@@ -50,7 +50,7 @@ public enum IconID : uint
     ChasingAOE = 197, // player
 }
 
-class Comet(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(4), ActionID.MakeSpell(AID.CometFirst), ActionID.MakeSpell(AID.CometRest), 10, 1.5f, 9);
+class Comet(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.CometFirst), 4);
 class CometFirst(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.CometFirst), 4);
 class CometRest(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.CometRest), 4);
 
@@ -172,7 +172,7 @@ class D032HunterOfBardamStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 240, NameID = 6180)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team (Malediktus), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 240, NameID = 6180)]
 public class D032HunterOfBardam(WorldState ws, Actor primary) : BossModule(ws, primary, new(-28.5f, -14), new ArenaBoundsCircle(19.5f))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

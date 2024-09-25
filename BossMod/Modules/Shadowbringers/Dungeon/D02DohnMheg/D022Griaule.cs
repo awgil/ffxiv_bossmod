@@ -75,7 +75,7 @@ class D022GriauleStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 649, NameID = 8143)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team (Malediktus), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 649, NameID = 8143)]
 public class D022Griaule(WorldState ws, Actor primary) : BossModule(ws, primary, new(7.17f, -339), new ArenaBoundsCircle(24.6f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

@@ -149,7 +149,7 @@ class D033AencThonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 649, NameID = 8146)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team (Malediktus), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 649, NameID = 8146)]
 public class D033AencThon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-128.5f, -244), arena)
 {
     public static readonly ArenaBounds arena = new ArenaBoundsCircle(19.75f);
