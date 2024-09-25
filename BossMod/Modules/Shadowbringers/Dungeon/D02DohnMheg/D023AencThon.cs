@@ -62,8 +62,8 @@ class FunambulistsFantasia(BossModule module) : BossComponent(module)
     {
         if ((AID)spell.Action.ID == AID.FunambulistsFantasia)
         {
-            Arena.Bounds = new ArenaBoundsCircle(1f);
-            Arena.Center = new(0, 0);
+            Arena.Bounds = new ArenaBoundsCircle(5f);
+            Arena.Center = new(-128.42f, -228);
         }
         else if ((AID)spell.Action.ID == AID.Finale)
         {

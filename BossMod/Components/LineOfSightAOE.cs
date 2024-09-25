@@ -1,4 +1,6 @@
-﻿namespace BossMod.Components;
+﻿using static BossMod.Components.GenericAOEs;
+
+namespace BossMod.Components;
 
 // generic component that shows line-of-sight cones for arbitrary origin and blocking shapes
 public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, float maxRange, bool blockersImpassable) : CastCounter(module, aid)
@@ -9,6 +11,9 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
     public WPos? Origin { get; private set; } // inactive if null
     public List<(WPos Center, float Radius)> Blockers { get; private set; } = [];
     public List<(float Distance, Angle Dir, Angle HalfWidth)> Visibility { get; private set; } = [];
+    public List<AOEInstance> Safezones = [];
+    public List<AOEShape> UnionShapes = [];
+    public List<AOEShape> DifferenceShapes = [];
 
     public void Modify(WPos? origin, IEnumerable<(WPos Center, float Radius)> blockers, DateTime nextExplosion = default)
     {
@@ -78,13 +83,23 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
                 Arena.ZoneCone(Origin.Value, v.Distance, 1000, v.Dir, v.HalfWidth, ArenaColor.SafeFromAOE);
         }
     }
+
+    //From BMR
+    public void AddSafezone(DateTime activation, Angle rotation = default)
+    {
+        if (Origin != null)
+        {
+            foreach (var v in Visibility)
+                Safezones.Add(new(new AOEShapeDonutSector(v.Distance + 0.2f, MaxRange, v.HalfWidth, v.Dir), Origin.Value, v.Dir, activation, ArenaColor.SafeFromAOE));
+        }
+    }
 }
 
 // simple line-of-sight aoe that happens at the end of the cast
 public abstract class CastLineOfSightAOE : GenericLineOfSightAOE
 {
-    private readonly List<Actor> _casters = [];
-    public Actor? ActiveCaster => _casters.MinBy(c => c.CastInfo!.RemainingTime);
+    public List<Actor> Casters = [];
+    public Actor? ActiveCaster => Casters.MinBy(c => c.CastInfo!.RemainingTime);
 
     protected CastLineOfSightAOE(BossModule module, ActionID aid, float maxRange, bool blockersImpassable) : base(module, aid, maxRange, blockersImpassable)
     {
@@ -97,7 +112,7 @@ public abstract class CastLineOfSightAOE : GenericLineOfSightAOE
     {
         if (spell.Action == WatchedAction)
         {
-            _casters.Add(caster);
+            Casters.Add(caster);
             Refresh();
         }
     }
@@ -106,12 +121,12 @@ public abstract class CastLineOfSightAOE : GenericLineOfSightAOE
     {
         if (spell.Action == WatchedAction)
         {
-            _casters.Remove(caster);
+            Casters.Remove(caster);
             Refresh();
         }
     }
 
-    private void Refresh()
+    public void Refresh()
     {
         var caster = ActiveCaster;
         WPos? position = caster != null ? (WorldState.Actors.Find(caster.CastInfo!.TargetID)?.Position ?? caster.CastInfo!.LocXZ) : null;
