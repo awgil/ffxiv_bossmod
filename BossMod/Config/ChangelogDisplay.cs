@@ -74,7 +74,7 @@ public static class ChangelogDisplay
         // version is always 0.0.0.0 in debug, making it useless for testing
         return new(0, 0, 0, 999);
 #endif
-        return Assembly.GetExecutingAssembly().GetName().Version;
+        return Assembly.GetExecutingAssembly().GetName().Version!;
     }
 
     private static Version GetPreviousPluginVersion(ChangelogProperties props)
