@@ -4,7 +4,7 @@
 class OutOfCombatActionsConfig : ConfigNode
 {
     [PropertyDisplay("Enable the feature")]
-    public bool Enabled = true;
+    public bool Enabled = false;
 
     [PropertyDisplay("Auto use Peloton when moving out of combat")]
     public bool AutoPeloton = true;
@@ -34,7 +34,7 @@ public sealed class OutOfCombatActionsTweak : IDisposable
 
     public void FillActions(Actor player, AIHints hints)
     {
-        if (!_config.Enabled || player.InCombat || player.MountId != 0)
+        if (!_config.Enabled || player.InCombat || _ws.Client.CountdownRemaining != null || player.MountId != 0)
             return;
 
         if (_config.AutoPeloton && player.ClassCategory == ClassCategory.PhysRanged && player.Position != player.PrevPosition && _ws.CurrentTime >= _nextAutoPeloton && player.FindStatus(BRD.SID.Peloton) == null)
