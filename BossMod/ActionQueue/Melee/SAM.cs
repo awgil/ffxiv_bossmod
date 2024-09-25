@@ -87,7 +87,10 @@ public enum SID : uint
     Higanbana = 1228, // applied by Higanbana to target
     Fuka = 1299, // applied by Kasha to self
     MeikyoShisui = 1233, // applied by Meikyo Shisui to self
-    TsubameGaeshiReady = 3852, // applied by Meikyo Shisui to self
+    KaeshiGoken = 3852, // applied by Tenka Goken to self
+    KaeshiSetsugekka = 4216, // applied by Midare Setsugekka to self
+    TendoKaeshiGoken = 4217, // applied by Tendo Goken to self
+    TendoKaeshiSetsugekka = 4218, // applied by Tendo Setsugekka to self
     TrueNorth = 1250, // applied by True North to self
     EnhancedEnpi = 1236, // applied by Hissatsu: Yaten to self
     Meditate = 1231, // applied by Meditate to self
