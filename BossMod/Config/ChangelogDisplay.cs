@@ -80,7 +80,8 @@ public static class ChangelogDisplay
     private static Version GetPreviousPluginVersion(ChangelogProperties props)
     {
 #if DEBUG
-        return new(0, 0, 0, 0);
+        // change value to something sensible if you want to test the changelog stuff
+        return new(0, 0, 0, 999);
 #endif
         return props.BossModVersion;
     }
