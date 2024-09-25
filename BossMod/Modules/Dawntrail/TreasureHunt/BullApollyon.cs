@@ -1,4 +1,4 @@
-﻿namespace BossMod.Modules.Dawntrail.TreasureHunt.BullApollyon;
+﻿namespace BossMod.Dawntrail.TreasureHunt.BullApollyon;
 
 public enum OID : uint
 {
@@ -101,5 +101,5 @@ class BullApollyonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 993, NameID = 13247)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 993, NameID = 13247)]
 public class BullApollyon(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -372), new ArenaBoundsCircle(20));

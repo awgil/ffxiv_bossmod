@@ -1,4 +1,4 @@
-﻿namespace BossMod.Modules.Stormblood.Dungeon.D15GhimlytDark.D153JuliaQuoSoranus;
+﻿namespace BossMod.Stormblood.Dungeon.D15GhimlytDark.D153JuliaQuoSoranus;
 
 public enum OID : uint
 {
