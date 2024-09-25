@@ -17,7 +17,7 @@ public class GenericWildCharge(BossModule module, float halfWidth, ActionID aid 
     public float FixedLength = fixedLength; // if == 0, length is up to target
     public Actor? Source; // if null, mechanic is not active
     public DateTime Activation;
-    public PlayerRole[] PlayerRoles = new PlayerRole[PartyState.MaxAllianceSize];
+    public PlayerRole[] PlayerRoles = new PlayerRole[PartyState.MaxAllies];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

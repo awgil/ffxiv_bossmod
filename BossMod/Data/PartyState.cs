@@ -49,19 +49,12 @@ public sealed class PartyState
     }
 
     // select non-null and optionally alive raid members
-    public IEnumerable<Actor> WithoutSlot(bool includeDead = false, bool partyOnly = false)
+    public IEnumerable<Actor> WithoutSlot(bool includeDead = false, bool excludeAlliance = false)
     {
-        for (int i = 0, size = partyOnly ? MaxPartySize : MaxAllianceSize; i < size; ++i)
+        for (int i = 0; i < MaxAllies; ++i)
         {
-            var player = _actors[i];
-            if (player == null)
+            if (excludeAlliance && i is >= MaxPartySize and < MaxAllianceSize)
                 continue;
-            if (player.IsDead && !includeDead)
-                continue;
-            yield return player;
-        }
-        for (int i = MaxAllianceSize; i < MaxAllies; ++i)
-        {
             var player = _actors[i];
             if (player == null)
                 continue;
@@ -71,19 +64,12 @@ public sealed class PartyState
         }
     }
 
-    public IEnumerable<(int, Actor)> WithSlot(bool includeDead = false, bool partyOnly = false)
+    public IEnumerable<(int, Actor)> WithSlot(bool includeDead = false, bool excludeAlliance = false)
     {
-        for (int i = 0, size = partyOnly ? MaxPartySize : MaxAllianceSize; i < size; ++i)
+        for (int i = 0; i < MaxAllies; ++i)
         {
-            var player = _actors[i];
-            if (player == null)
+            if (excludeAlliance && i is >= MaxPartySize and < MaxAllianceSize)
                 continue;
-            if (player.IsDead && !includeDead)
-                continue;
-            yield return (i, player);
-        }
-        for (int i = MaxAllianceSize; i < MaxAllies; ++i)
-        {
             var player = _actors[i];
             if (player == null)
                 continue;

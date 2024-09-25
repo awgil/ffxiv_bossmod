@@ -520,7 +520,7 @@ sealed class WorldStateGameSync : IDisposable
                 continue;
             if (_ws.Party.FindSlot(actor.InstanceID) == -1)
             {
-                var slot = FindFreeNPCAllySlot();
+                var slot = FindFreePartySlot(PartyState.MaxAllianceSize, PartyState.MaxAllies);
                 if (slot > 0)
                     UpdatePartySlot(slot, new PartyState.Member(0, actor.InstanceID, false, actor.Name));
                 else
@@ -538,17 +538,9 @@ sealed class WorldStateGameSync : IDisposable
         return false;
     }
 
-    private int FindFreePartySlot()
+    private int FindFreePartySlot(int firstSlot, int lastSlot)
     {
-        for (int i = 1; i < PartyState.MaxPartySize; ++i)
-            if (!_ws.Party.Members[i].IsValid())
-                return i;
-        return -1;
-    }
-
-    private int FindFreeNPCAllySlot()
-    {
-        for (int i = PartyState.MaxAllianceSize; i < PartyState.MaxAllies; ++i)
+        for (int i = firstSlot; i < lastSlot; ++i)
             if (!_ws.Party.Members[i].IsValid())
                 return i;
         return -1;
@@ -558,7 +550,7 @@ sealed class WorldStateGameSync : IDisposable
 
     private void AddPartyMember(PartyState.Member m)
     {
-        var freeSlot = FindFreePartySlot();
+        var freeSlot = FindFreePartySlot(1, PartyState.MaxPartySize);
         if (freeSlot >= 0)
             _ws.Execute(new PartyState.OpModify(freeSlot, m));
         else
