@@ -129,15 +129,24 @@ class PyreOfRebirthPyretic(BossModule module) : Components.StayMove(module)
 {
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID.Boiling or SID.Pyretic && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-            PlayerStates[slot] = new(Requirement.Stay, (SID)status.ID == SID.Boiling ? status.ExpireAt : WorldState.CurrentTime);
+        var state = StateForStatus(status);
+        if (state.Requirement != Requirement.None)
+            SetState(Raid.FindSlot(actor.InstanceID), state);
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID.Boiling or SID.Pyretic && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-            PlayerStates[slot] = default;
+        var state = StateForStatus(status);
+        if (state.Requirement != Requirement.None)
+            ClearState(Raid.FindSlot(actor.InstanceID), state.Priority);
     }
+
+    private PlayerState StateForStatus(ActorStatus status) => (SID)status.ID switch
+    {
+        SID.Boiling => new(Requirement.Stay, status.ExpireAt),
+        SID.Pyretic => new(Requirement.Stay, WorldState.CurrentTime, 1),
+        _ => default
+    };
 }
 
 class CaptiveBolt(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.CaptiveBolt), 6, 4);
