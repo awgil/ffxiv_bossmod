@@ -257,21 +257,34 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         {
             var pr = strategy.Option(Track.PrimalRend);
             var target = ResolveTargetOverride(pr.Value) ?? primaryTarget;
-            var prio = PRPriority(pr.As<PrimalRendStrategy>(), target);
-            QueueGCD(PrimalRuinationActive ? WAR.AID.PrimalRuination : WAR.AID.PrimalRend, target, prio);
+            if (target != null && !target.IsAlly)
+            {
+                var prio = PRPriority(pr.As<PrimalRendStrategy>(), target);
+                QueueGCD(PrimalRuinationActive ? WAR.AID.PrimalRuination : WAR.AID.PrimalRend, target, prio);
+            }
         }
 
         if (Gauge >= 50 || InnerReleaseUnlocked && CanFitGCD(InnerReleaseLeft))
         {
             var action = FellCleaveAction(aoeTargets);
-            var prio = InnerReleaseUnlocked ? FellCleavePriorityIR() : FellCleavePriorityBerserk();
-            QueueGCD(action, action is WAR.AID.InnerBeast or WAR.AID.FellCleave or WAR.AID.InnerChaos ? primaryTarget : Player, prio);
+            var needTarget = action is WAR.AID.InnerBeast or WAR.AID.FellCleave or WAR.AID.InnerChaos;
+            if (!needTarget || primaryTarget != null && !primaryTarget.IsAlly)
+            {
+                var prio = InnerReleaseUnlocked ? FellCleavePriorityIR() : FellCleavePriorityBerserk();
+                QueueGCD(action, needTarget ? primaryTarget : Player, prio);
+            }
         }
 
-        var (comboAction, comboPrio) = ComboActionPriority(aoeStrategy, aoeTargets, burstStrategy, burst.Value.ExpireIn);
-        QueueGCD(comboAction, comboAction is WAR.AID.Overpower or WAR.AID.MythrilTempest ? Player : primaryTarget, comboPrio);
+        {
+            var (comboAction, comboPrio) = ComboActionPriority(aoeStrategy, aoeTargets, burstStrategy, burst.Value.ExpireIn);
+            var selfTarget = comboAction is WAR.AID.Overpower or WAR.AID.MythrilTempest;
+            if (selfTarget || primaryTarget != null && !primaryTarget.IsAlly)
+            {
+                QueueGCD(comboAction, selfTarget ? Player : primaryTarget, comboPrio);
+            }
+        }
 
-        if (ShouldUseTomahawk(primaryTarget, strategy.Option(Track.Tomahawk).As<TomahawkStrategy>()))
+        if (ShouldUseTomahawk(primaryTarget, strategy.Option(Track.Tomahawk).As<TomahawkStrategy>()) && primaryTarget != null && !primaryTarget.IsAlly)
             QueueGCD(WAR.AID.Tomahawk, primaryTarget, GCDPriority.ForcedTomahawk);
 
         // oGCDs
@@ -299,7 +312,10 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         if (Unlocked(WAR.AID.Upheaval) && ShouldUseUpheaval(stratUph.As<OffensiveStrategy>()))
         {
             var aoe = aoeTargets >= 3 && Unlocked(WAR.AID.Orogeny);
-            QueueOGCD(aoe ? WAR.AID.Orogeny : WAR.AID.Upheaval, aoe ? Player : primaryTarget, stratUph.Value.PriorityOverride, OGCDPriority.Upheaval);
+            if (aoe || primaryTarget != null && !primaryTarget.IsAlly)
+            {
+                QueueOGCD(aoe ? WAR.AID.Orogeny : WAR.AID.Upheaval, aoe ? Player : primaryTarget, stratUph.Value.PriorityOverride, OGCDPriority.Upheaval);
+            }
         }
 
         var stratWrath = strategy.Option(Track.Wrath);
@@ -312,13 +328,14 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         {
             var stratOns = strategy.Option(Track.Onslaught);
             var stratOnsOpt = stratOns.As<OnslaughtStrategy>();
-            if (ShouldUseOnslaught(stratOnsOpt, primaryTarget))
+            var target = ResolveTargetOverride(stratOns.Value) ?? primaryTarget;
+            if (target != null && !target.IsAlly && ShouldUseOnslaught(stratOnsOpt, target))
             {
                 // special case for use as gapcloser - it has to be very high priority
                 var (prio, basePrio) = stratOnsOpt == OnslaughtStrategy.GapClose ? (OGCDPriority.GapcloseOnslaught, ActionQueue.Priority.High)
                     : LostBloodRageStacks is > 0 and < 4 ? (OGCDPriority.LostBanner, ActionQueue.Priority.Medium)
                     : (OGCDPriority.Onslaught, OnslaughtCD < GCDLength ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low);
-                QueueOGCD(WAR.AID.Onslaught, primaryTarget, stratOns.Value.PriorityOverride, prio, basePrio);
+                QueueOGCD(WAR.AID.Onslaught, target, stratOns.Value.PriorityOverride, prio, basePrio);
             }
         }
 
@@ -895,7 +912,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         _ => false
     };
 
-    private bool WantOnslaught(Actor? target, bool reserveLastCharge)
+    private bool WantOnslaught(Actor target, bool reserveLastCharge)
     {
         if (!Player.InCombat)
             return false; // don't use out of combat
@@ -932,7 +949,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         return onslaughtCapIn <= BurstWindowIn; // use if we won't be able to delay until next raid buffs
     }
 
-    private bool ShouldUseOnslaught(OnslaughtStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseOnslaught(OnslaughtStrategy strategy, Actor target) => strategy switch
     {
         OnslaughtStrategy.Automatic => GCD >= OnslaughtMinGCD && WantOnslaught(target, true),
         OnslaughtStrategy.Forbid => false,
