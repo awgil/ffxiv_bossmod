@@ -56,55 +56,55 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.NoMercy).As<OffensiveStrategy>("NM", uiPriority: 60)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP (even during downtime)", 60, 20, ActionTargets.Self, 2)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay", 0, 0, ActionTargets.Hostile, 2)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay", 0, 0, ActionTargets.None, 2)
             .AddAssociatedActions(GNB.AID.NoMercy);
         //SonicBreak strategy
         res.Define(Track.SonicBreak).As<OffensiveStrategy>("SB", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Sonic Break")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Sonic Break", 0, 30, ActionTargets.Hostile, 54)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Sonic Break", 0, 0, ActionTargets.Hostile, 54)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Sonic Break", 0, 0, ActionTargets.None, 54)
             .AddAssociatedActions(GNB.AID.SonicBreak);
         //GnashingFang strategy
         res.Define(Track.GnashingFang).As<OffensiveStrategy>("GF", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Gnashing Fang")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Gnashing Fang", 30, 0, ActionTargets.Hostile, 60)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Gnashing Fang", 0, 0, ActionTargets.Hostile, 60)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Gnashing Fang", 0, 0, ActionTargets.None, 60)
             .AddAssociatedActions(GNB.AID.GnashingFang, GNB.AID.SavageClaw, GNB.AID.WickedTalon);
         //DoubleDown strategy
         res.Define(Track.DoubleDown).As<OffensiveStrategy>("DD", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Double Down")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Double Down", 60, 0, ActionTargets.Hostile, 90)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Double Down", 0, 0, ActionTargets.Hostile, 90)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Double Down", 0, 0, ActionTargets.None, 90)
             .AddAssociatedActions(GNB.AID.DoubleDown);
         //BurstStrike strategy
         res.Define(Track.BurstStrike).As<OffensiveStrategy>("BS", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Burst Strike")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Burst Strike", 0, 0, ActionTargets.Hostile, 30)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Burst Strike", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Burst Strike", 0, 0, ActionTargets.None, 30)
             .AddAssociatedActions(GNB.AID.BurstStrike);
         //FatedCircle strategy
         res.Define(Track.FatedCircle).As<OffensiveStrategy>("FC", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Fated Circle")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Fated Circle", 0, 0, ActionTargets.Hostile, 72)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Fated Circle", 0, 0, ActionTargets.Hostile, 72)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Fated Circle", 0, 0, ActionTargets.None, 72)
             .AddAssociatedActions(GNB.AID.FatedCircle);
         //Zone strategy
         res.Define(Track.Zone).As<OffensiveStrategy>("Zone", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP", 30, 0, ActionTargets.Hostile, 18)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay", 0, 0, ActionTargets.Hostile, 18)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay", 0, 0, ActionTargets.None, 18)
             .AddAssociatedActions(GNB.AID.BlastingZone, GNB.AID.DangerZone);
         //Bloodfest strategy
         res.Define(Track.Bloodfest).As<OffensiveStrategy>("BF", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Bloodfest")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Bloodfest", 120, 0, ActionTargets.Hostile, 80)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Bloodfest", 0, 0, ActionTargets.Hostile, 80)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Bloodfest", 0, 0, ActionTargets.None, 80)
             .AddAssociatedActions(GNB.AID.Bloodfest);
         //BowShock strategy
         res.Define(Track.BowShock).As<OffensiveStrategy>("BShock", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Bow Shock")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Bow Shock", 60, 15, ActionTargets.Self, 62)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Bow Shock", 0, 0, ActionTargets.Hostile, 62)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Bow Shock", 0, 0, ActionTargets.None, 62)
             .AddAssociatedActions(GNB.AID.BowShock);
 
         return res;
