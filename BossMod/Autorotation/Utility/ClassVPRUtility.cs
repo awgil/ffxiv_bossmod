@@ -3,7 +3,7 @@
 public sealed class ClassVPRUtility(RotationModuleManager manager, Actor player) : RoleMeleeUtility(manager, player)
 {
     public enum Track { Slither = SharedTrack.Count }
-    public enum DashStrategy { Automatic, Force, GapClose } //GapCloser strategy
+    public enum DashStrategy { None, Force, GapClose } //GapCloser strategy
     public float CDleft => World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining;
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
 
@@ -16,7 +16,7 @@ public sealed class ClassVPRUtility(RotationModuleManager manager, Actor player)
         DefineShared(res, IDLimitBreak3);
 
         res.Define(Track.Slither).As<DashStrategy>("Slither", "", 20)
-            .AddOption(DashStrategy.Automatic, "Automatic", "No use")
+            .AddOption(DashStrategy.None, "None", "No use")
             .AddOption(DashStrategy.Force, "Force", "Use ASAP", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 40)
             .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 40)
             .AddAssociatedActions(VPR.AID.Slither);
@@ -36,8 +36,8 @@ public sealed class ClassVPRUtility(RotationModuleManager manager, Actor player)
 
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {
-        DashStrategy.Automatic => false,
-        DashStrategy.Force => CDleft >= DashMinCD && !InMeleeRange(null),
+        DashStrategy.None => false,
+        DashStrategy.Force => CDleft >= DashMinCD,
         DashStrategy.GapClose => !InMeleeRange(primaryTarget),
         _ => false,
     };

@@ -9,7 +9,7 @@ public sealed class ClassMCHUtility(RotationModuleManager manager, Actor player)
     // Add Machinist LB3
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(MCH.AID.SatelliteBeam);
 
-    public enum TactOption { None, Use, UseEx }
+    public enum TactOption { None, Use87, Use88 }
 
     public static RotationModuleDefinition Definition()
     {
@@ -19,8 +19,8 @@ public sealed class ClassMCHUtility(RotationModuleManager manager, Actor player)
         // Add track for Tactician: 15s long, 15% player damage received reduction
         res.Define(Track.Tactician).As<TactOption>("Tactician", "Tact", 400)
             .AddOption(TactOption.None, "None", "Do not use automatically")
-            .AddOption(TactOption.Use, "Use", "Use Tactician", 120, 15, ActionTargets.Self, 56, 87)
-            .AddOption(TactOption.UseEx, "Use88", "Use Tactician", 90, 15, ActionTargets.Self, 88)
+            .AddOption(TactOption.Use87, "Use", "Use Tactician", 120, 15, ActionTargets.Self, 56, 87)
+            .AddOption(TactOption.Use88, "Use88", "Use Tactician", 90, 15, ActionTargets.Self, 88)
             .AddAssociatedActions(MCH.AID.Tactician);
 
         // Add track for Dismantle: 10s long, 10% target damage reduction

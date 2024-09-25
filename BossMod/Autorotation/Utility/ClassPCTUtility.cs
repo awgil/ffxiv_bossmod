@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Autorotation;
 
-public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player) : RoleMagicalUtility(manager, player)
+public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player) : RoleCasterUtility(manager, player)
 {
     public enum Track { TemperaCoat = SharedTrack.Count }
 

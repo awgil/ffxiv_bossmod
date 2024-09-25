@@ -6,7 +6,7 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(BRD.AID.SagittariusArrow);
 
-    public enum TroubOption { None, Use, UseEx }
+    public enum TroubOption { None, Use87, Use88 }
 
     public static RotationModuleDefinition Definition()
     {
@@ -17,8 +17,8 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Troubadour).As<TroubOption>("Troubadour", "Troub", 500)
             .AddOption(TroubOption.None, "None", "Do not use automatically")
-            .AddOption(TroubOption.Use, "Use", "Use Troubadour", 120, 15, ActionTargets.Self, 62, 87)
-            .AddOption(TroubOption.UseEx, "UseEx", "Use Troubadour", 90, 15, ActionTargets.Self, 88)
+            .AddOption(TroubOption.Use87, "Use", "Use Troubadour", 120, 15, ActionTargets.Self, 62, 87)
+            .AddOption(TroubOption.Use88, "Use88", "Use Troubadour", 90, 15, ActionTargets.Self, 88)
             .AddAssociatedActions(BRD.AID.Troubadour);
 
         DefineSimpleConfig(res, Track.NaturesMinne, "NaturesMinne", "Minne", 400, BRD.AID.NaturesMinne, 15);

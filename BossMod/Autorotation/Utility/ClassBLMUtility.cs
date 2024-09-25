@@ -1,12 +1,9 @@
 ﻿namespace BossMod.Autorotation;
 
-public sealed class ClassBLMUtility(RotationModuleManager manager, Actor player) : RoleMagicalUtility(manager, player)
+public sealed class ClassBLMUtility(RotationModuleManager manager, Actor player) : RoleCasterUtility(manager, player)
 {
     public enum Track { Manaward = SharedTrack.Count, AetherialManipulation }
-    public enum DashStrategy { Automatic, Force }
-    public float CDleft => World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining;
-
-    public const float DashMinCD = 0.8f; //Triple-weaving dash is not a good idea, since it might delay gcd for longer than normal anim lock
+    public enum DashStrategy { None, Force }
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(BLM.AID.Meteor);
 
@@ -18,7 +15,7 @@ public sealed class ClassBLMUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Manaward, "Manaward", "", 600, BLM.AID.Manaward, 20);
 
         res.Define(Track.AetherialManipulation).As<DashStrategy>("Dash", "", 20)
-            .AddOption(DashStrategy.Automatic, "Automatic", "No use.")
+            .AddOption(DashStrategy.None, "None", "No use.")
             .AddOption(DashStrategy.Force, "Force", "Use ASAP", 10, 0, ActionTargets.Party, 50)
             .AddAssociatedActions(BLM.AID.AetherialManipulation);
 
@@ -37,8 +34,8 @@ public sealed class ClassBLMUtility(RotationModuleManager manager, Actor player)
     }
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {
-        DashStrategy.Automatic => false,
-        DashStrategy.Force => CDleft >= DashMinCD,
+        DashStrategy.None => false,
+        DashStrategy.Force => true,
         _ => false,
     };
 }

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Autorotation;
 
-public sealed class ClassRDMUtility(RotationModuleManager manager, Actor player) : RoleMagicalUtility(manager, player)
+public sealed class ClassRDMUtility(RotationModuleManager manager, Actor player) : RoleCasterUtility(manager, player)
 {
     public enum Track { MagickBarrier = SharedTrack.Count }
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(RDM.AID.VermilionScourge);

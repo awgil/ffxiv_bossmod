@@ -8,6 +8,8 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
     public enum ProgOption { None, Use, UseEP, UseEPEx }
     public enum PhysisOption { None, Use, UseEx }
     public enum ZoeOption { None, Use, UseEx }
+    public enum DashStrategy { None, Force, GapClose } //GapCloser strategy
+    public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SGE.AID.TechneMakre);
 
@@ -63,7 +65,12 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Panhaima, "Panhaima", "", 250, SGE.AID.Panhaima, 15); //Panhaima
         DefineSimpleConfig(res, Track.Krasis, "Krasis", "", 210, SGE.AID.Krasis, 10); //Krasis
         DefineSimpleConfig(res, Track.Philosophia, "Philosophia", "Philo", 260, SGE.AID.Philosophia, 20); //Philosophia
-        DefineSimpleConfig(res, Track.Icarus, "Icarus", "", 10, SGE.AID.Icarus, 45); //Dash
+
+        res.Define(Track.Icarus).As<DashStrategy>("Icarus", "", 20)
+            .AddOption(DashStrategy.None, "None", "No use")
+            .AddOption(DashStrategy.Force, "Force", "Use ASAP", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 45)
+            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 45)
+            .AddAssociatedActions(SGE.AID.Icarus);
 
         return res;
     }
@@ -84,7 +91,6 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Panhaima), SGE.AID.Panhaima, Player);
         ExecuteSimple(strategy.Option(Track.Krasis), SGE.AID.Krasis, Player);
         ExecuteSimple(strategy.Option(Track.Philosophia), SGE.AID.Philosophia, Player);
-        ExecuteSimple(strategy.Option(Track.Icarus), SGE.AID.Icarus, null);
 
         var kardia = strategy.Option(Track.Kardia);
         var kardiaAction = kardia.As<KardiaOption>() switch
@@ -124,5 +130,17 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         var zoe = strategy.Option(Track.Zoe);
         if (zoe.As<ZoeOption>() != ZoeOption.None)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Zoe), Player, zoe.Priority(), zoe.Value.ExpireIn);
+
+        var dash = strategy.Option(Track.Icarus);
+        var dashStrategy = strategy.Option(Track.Icarus).As<DashStrategy>();
+        if (ShouldUseDash(dashStrategy, null))
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Icarus), null, dash.Priority());
     }
+    private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
+    {
+        DashStrategy.None => false,
+        DashStrategy.Force => true,
+        DashStrategy.GapClose => !InMeleeRange(primaryTarget),
+        _ => false,
+    };
 }

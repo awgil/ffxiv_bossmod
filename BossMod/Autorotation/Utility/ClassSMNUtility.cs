@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Autorotation;
 
-public sealed class ClassSMNUtility(RotationModuleManager manager, Actor player) : RoleMagicalUtility(manager, player)
+public sealed class ClassSMNUtility(RotationModuleManager manager, Actor player) : RoleCasterUtility(manager, player)
 {
     public enum Track { RadiantAegis = SharedTrack.Count }
     public enum AegisStrategy { None, Use }

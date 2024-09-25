@@ -5,11 +5,8 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
     public enum Track { DarkMind = SharedTrack.Count, ShadowWall, LivingDead, TheBlackestNight, Oblation, DarkMissionary, Shadowstride }
     public enum WallOption { None, ShadowWall, ShadowedVigil }
     public enum OblationStrategy { None, Force, Delay }
-    public enum DashStrategy { Automatic, Force, GapClose } //GapCloser strategy
-    public float CDleft => World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining;
+    public enum DashStrategy { None, GapClose } //GapCloser strategy
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
-
-    public const float DashMinCD = 0.8f; //Triple-weaving dash is not a good idea, since it might delay gcd for longer than normal anim lock
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(DRK.AID.DarkForce);
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(DRK.AID.Grit);
@@ -40,8 +37,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.DarkMissionary, "DarkMissionary", "Mission", 220, DRK.AID.DarkMissionary, 15); //90s CD, 15s duration
 
         res.Define(Track.Shadowstride).As<DashStrategy>("Shadowstride", "Dash", 20)
-            .AddOption(DashStrategy.Automatic, "Automatic", "No use")
-            .AddOption(DashStrategy.Force, "Force", "Use ASAP", 30, 0, ActionTargets.Hostile, 56)
+            .AddOption(DashStrategy.None, "None", "No use")
             .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 30, 0, ActionTargets.Hostile, 56)
             .AddAssociatedActions(DRK.AID.Shadowstride);
 
@@ -82,8 +78,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
     }
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {
-        DashStrategy.Automatic => false,
-        DashStrategy.Force => CDleft >= DashMinCD && !InMeleeRange(primaryTarget),
+        DashStrategy.None => false,
         DashStrategy.GapClose => !InMeleeRange(primaryTarget),
         _ => false,
     };

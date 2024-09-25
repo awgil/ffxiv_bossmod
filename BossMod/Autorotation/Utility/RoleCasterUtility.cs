@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Autorotation;
 
-public abstract class RoleMagicalUtility(RotationModuleManager manager, Actor player) : GenericUtility(manager, player)
+public abstract class RoleCasterUtility(RotationModuleManager manager, Actor player) : GenericUtility(manager, player)
 {
     public enum SharedTrack { Sprint, LB, Addle, Sleep, LucidDreaming, Swiftcast, Surecast, Count }
     public enum AddleOption { None, Use, UseEx }

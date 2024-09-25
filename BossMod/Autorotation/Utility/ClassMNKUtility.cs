@@ -3,7 +3,7 @@
 public sealed class ClassMNKUtility(RotationModuleManager manager, Actor player) : RoleMeleeUtility(manager, player)
 {
     public enum Track { Mantra = SharedTrack.Count, RiddleOfEarth, Thunderclap }
-    public enum DashStrategy { Automatic, Force, GapClose }
+    public enum DashStrategy { None, Force, GapClose }
     public float CDleft => World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining;
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
 
@@ -20,7 +20,7 @@ public sealed class ClassMNKUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.RiddleOfEarth, "RiddleOfEarth", "RoE", 150, MNK.AID.RiddleOfEarth, 10); // note: secondary effect is 15s hot
 
         res.Define(Track.Thunderclap).As<DashStrategy>("Thunderclap", "Dash", 20)
-            .AddOption(DashStrategy.Automatic, "Automatic", "No use")
+            .AddOption(DashStrategy.None, "None", "No use")
             .AddOption(DashStrategy.Force, "Force", "Use ASAP", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 35)
             .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 35)
             .AddAssociatedActions(MNK.AID.Thunderclap);
@@ -42,8 +42,8 @@ public sealed class ClassMNKUtility(RotationModuleManager manager, Actor player)
 
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {
-        DashStrategy.Automatic => false,
-        DashStrategy.Force => CDleft >= DashMinCD && !InMeleeRange(null),
+        DashStrategy.None => false,
+        DashStrategy.Force => CDleft >= DashMinCD,
         DashStrategy.GapClose => !InMeleeRange(primaryTarget),
         _ => false,
     };
