@@ -127,7 +127,7 @@ public enum AID : uint
     UltimateSuppression = 11597, // UltimaWeapon->self, 3.0s cast, single-target, visual
     LightPillar = 11138, // UltimaWeapon->self, 2.0s cast, single-target, visual
     LightPillarAOE = 11139, // Helper->location, 1.0s cast, range 3 circle aoe
-    MistralSongCone = 11150, // Garuda->self, 2.0s cast, range 20+R ?-degree cone
+    MistralSongCone = 11150, // Garuda->self, 2.0s cast, range 20+R 150-degree cone
     AetherochemicalLaserCenter = 11140, // UltimaWeapon->self, 3.0s cast, range 40+R width 8 rect aoe
     AetherochemicalLaserRight = 11141, // UltimaWeapon->self, 3.0s cast, range 40+R width 8 rect aoe
     AetherochemicalLaserLeft = 11142, // UltimaWeapon->self, 3.0s cast, range 40+R width 8 rect aoe
