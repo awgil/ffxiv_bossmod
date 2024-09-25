@@ -13,7 +13,7 @@ public sealed class ClassMCHUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: MCH", "Planner support for utility actions", "Aimsucks", RotationModuleQuality.Ok, BitMask.Build((int)Class.MCH), 100);
+        var res = new RotationModuleDefinition("Utility: MCH", "Planner support for utility actions", "Aimsucks", RotationModuleQuality.Excellent, BitMask.Build((int)Class.MCH), 100);
         DefineShared(res, IDLimitBreak3);
 
         // Add track for Tactician: 15s long, 15% player damage received reduction
