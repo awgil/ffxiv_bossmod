@@ -233,7 +233,7 @@ class D064AscianPrimeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus, LTS, ", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 38, NameID = 3823)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 38, NameID = 3823)]
 public class D064AscianPrime(WorldState ws, Actor primary) : BossModule(ws, primary, new(230, 80), new ArenaBoundsCircle(21))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
