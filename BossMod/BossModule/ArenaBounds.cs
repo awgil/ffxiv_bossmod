@@ -275,7 +275,7 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
         // faster than using a shapedistance method, high accuracy due to 9 sample points per pixel
         var polygon = Offset != 0 ? Poly.Offset(Offset) : Poly;
 
-        var (halfWidth, halfHeight) = CalculatePolygonProperties(polygon);
+        var (halfWidth, halfHeight) = CalculatePolygonProperties(polygon); // calculate bounding box to ensure the smallest amount of pixels need to be checked
         var map = new Pathfinding.Map(MapResolution, default, halfWidth, halfHeight);
         var halfSample = MapResolution / 2 - 1e-5f; // tiny offset to account for floating point inaccuracies
         WDir[] sampleOffsets =
@@ -296,7 +296,7 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
             var (x, y, pos) = pixel;
             var relativeCenter = new WDir(pos.X, pos.Z);
             var allInside = true;
-            for (var i = 0; i < sampleOffsets.Length; i++)
+            for (var i = 0; i < 9; i++)
             {
                 var samplePoint = relativeCenter + sampleOffsets[i];
                 if (!Poly.Contains(samplePoint))
@@ -305,8 +305,7 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
                     break;
                 }
             }
-            var pixelIndex = map.GridToIndex(x, y);
-            map.PixelMaxG[pixelIndex] = allInside ? float.MaxValue : 0;
+            map.PixelMaxG[map.GridToIndex(x, y)] = allInside ? float.MaxValue : 0;
         });
 
         return map;
