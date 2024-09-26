@@ -27,6 +27,13 @@ public class StateMachine(List<StateMachine.Phase> phases)
         VulnerableEnd = 1 << 11, // at state end vulnerability phase ends
     }
 
+    [Flags]
+    public enum PhaseHint
+    {
+        None = 0,
+        StartWithDowntime = 1 << 0, // the phase starts with downtime
+    }
+
     public class State
     {
         public uint ID;
@@ -48,6 +55,7 @@ public class StateMachine(List<StateMachine.Phase> phases)
         public Action? Enter; // callbacks executed when phase is activated
         public Action? Exit; // callbacks executed when phase is deactivated; note that this can happen unexpectedly, e.g. due to external reset
         public Func<bool>? Update; // callback executed every frame when phase is active; should return whether transition to next phase should happen
+        public PhaseHint Hint = PhaseHint.None; // special flags for phase
     }
 
     public List<Phase> Phases { get; private init; } = phases;

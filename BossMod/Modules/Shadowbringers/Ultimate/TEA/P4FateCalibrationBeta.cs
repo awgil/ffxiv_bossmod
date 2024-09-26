@@ -204,7 +204,7 @@ class P4FateCalibrationBetaRadiantSacrament(BossModule module) : Components.Gene
     private Actor? _caster;
     private bool _enabled;
 
-    private static readonly AOEShapeDonut _shape = new(10, 60); // TODO: verify inner radius
+    private static readonly AOEShapeDonut _shape = new(8, 60);
 
     public void Show() => _enabled = true;
 

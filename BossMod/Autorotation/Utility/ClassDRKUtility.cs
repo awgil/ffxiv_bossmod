@@ -2,9 +2,11 @@
 
 public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player) : RoleTankUtility(manager, player)
 {
-    public enum Track { DarkMind = SharedTrack.Count, ShadowWall, LivingDead, TheBlackestNight, Oblation, DarkMissionary }
+    public enum Track { DarkMind = SharedTrack.Count, ShadowWall, LivingDead, TheBlackestNight, Oblation, DarkMissionary, Shadowstride }
     public enum WallOption { None, ShadowWall, ShadowedVigil }
     public enum OblationStrategy { None, Force, Delay }
+    public enum DashStrategy { None, GapClose } //GapCloser strategy
+    public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(DRK.AID.DarkForce);
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(DRK.AID.Grit);
@@ -12,7 +14,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: DRK", "Planner support for utility actions", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.DRK), 100);
+        var res = new RotationModuleDefinition("Utility: DRK", "Planner support for utility actions", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.DRK), 100);
         DefineShared(res, IDLimitBreak3, IDStanceApply, IDStanceRemove);
 
         DefineSimpleConfig(res, Track.DarkMind, "DarkMind", "DMind", 450, DRK.AID.DarkMind, 10); //120s CD, 15s duration
@@ -34,8 +36,10 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
 
         DefineSimpleConfig(res, Track.DarkMissionary, "DarkMissionary", "Mission", 220, DRK.AID.DarkMissionary, 15); //90s CD, 15s duration
 
-        // TODO: Plunge has been removed as of 7.0 DT. Shadowstride is its replacement dash and no longer does damage. Consider how to add this...
-        //DefineSimpleConfig(res, Track.Shadowstride, "Shadowstride", "Dash", 380, DRK.AID.Shadowstride); //30s CD (60s total), 2 charges
+        res.Define(Track.Shadowstride).As<DashStrategy>("Shadowstride", "Dash", 20)
+            .AddOption(DashStrategy.None, "None", "No use")
+            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 30, 0, ActionTargets.Hostile, 56)
+            .AddAssociatedActions(DRK.AID.Shadowstride);
 
         return res;
     }
@@ -45,10 +49,8 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         ExecuteShared(strategy, IDLimitBreak3, IDStanceApply, IDStanceRemove, (uint)DRK.SID.Grit, primaryTarget); //Execution of our shared abilities
         ExecuteSimple(strategy.Option(Track.DarkMind), DRK.AID.DarkMind, Player); //Execution of DarkMind
         ExecuteSimple(strategy.Option(Track.LivingDead), DRK.AID.LivingDead, Player); //Execution of LivingDead
-        ExecuteSimple(strategy.Option(Track.TheBlackestNight), DRK.AID.TheBlackestNight, Player); //Execution of TheBlackestNight
+        ExecuteSimple(strategy.Option(Track.TheBlackestNight), DRK.AID.TheBlackestNight, null); //Execution of TheBlackestNight
         ExecuteSimple(strategy.Option(Track.DarkMissionary), DRK.AID.DarkMissionary, Player); //Execution of DarkMissionary
-
-        //ExecuteSimple(strategy.Option(Track.Shadowstride), DRK.AID.Shadowstride, primaryTarget); (TODO: Dash no longer does damage, consider how to add this)
 
         var obl = strategy.Option(Track.Oblation);
         var oblAction = obl.As<OblationStrategy>() switch
@@ -69,5 +71,15 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         };
         if (wallAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(wallAction), Player, wall.Priority(), wall.Value.ExpireIn); //Checking proper use of said option
+
+        var dashStrategy = strategy.Option(Track.Shadowstride).As<DashStrategy>();
+        if (ShouldUseDash(dashStrategy, primaryTarget))
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Shadowstride), Player, obl.Priority());
     }
+    private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
+    {
+        DashStrategy.None => false,
+        DashStrategy.GapClose => !InMeleeRange(primaryTarget),
+        _ => false,
+    };
 }

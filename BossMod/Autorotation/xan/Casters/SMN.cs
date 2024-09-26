@@ -333,7 +333,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
                 {
                     static float HPRatio(Actor a) => (float)a.HPMP.CurHP / a.HPMP.MaxHP;
 
-                    var rekindleTarget = World.Party.WithoutSlot(partyOnly: true).Where(x => HPRatio(x) < 1).MinBy(HPRatio);
+                    var rekindleTarget = World.Party.WithoutSlot(excludeAlliance: true).Where(x => HPRatio(x) < 1).MinBy(HPRatio);
                     if (rekindleTarget is Actor a)
                         PushOGCD(AID.Rekindle, a);
 

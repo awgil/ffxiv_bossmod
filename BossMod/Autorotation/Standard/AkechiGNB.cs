@@ -12,7 +12,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     public enum LightningShotStrategy { OpenerRanged, Opener, Force, Ranged } //RangedUptime strategy
     public enum CartridgeStrategy { Automatic, Delay, ForceDD, ForceGF, ForceBS, ForceFC, ForceAll } //Cartridge usage strategy
     public enum OffensiveStrategy { Automatic, Force, Delay } //CDs strategies
-    public enum TrajectoryStrategy { Automatic, Forbid, Force, GapClose } //GapCloser strategy
 
     public static RotationModuleDefinition Definition()
     {
@@ -33,8 +32,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //Pots strategy
         res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 70)
             .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
-            .AddOption(PotionStrategy.AlignWithRaidBuffs, "AlignWithRaidBuffs", "Align with 2-minute raid buffs (0/6, 2/8, etc)")
-            .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, even if without ST and with IR on cd (0/4:30/9)")
+            .AddOption(PotionStrategy.AlignWithRaidBuffs, "AlignWithRaidBuffs", "Align with 2-minute raid buffs (0/6, 2/8, etc)", 270, 30, ActionTargets.Self)
+            .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, even if without ST and with IR on cd (0/4:30/9)", 270, 30, ActionTargets.Self)
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         //RangedUptime strategy
         res.Define(Track.LightningShot).As<LightningShotStrategy>("LShot", uiPriority: 10)
@@ -47,73 +46,66 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.Cartridge).As<CartridgeStrategy>("Carts", uiPriority: 50)
             .AddOption(CartridgeStrategy.Automatic, "Automatic", "Use optimally")
             .AddOption(CartridgeStrategy.Delay, "Delay", "Delay")
-            .AddOption(CartridgeStrategy.ForceDD, "Force Double Down", "Force use Double Down ASAP (even without No Mercy)")
-            .AddOption(CartridgeStrategy.ForceGF, "Force Gnashing Fang", "Force use Gnashing Fang")
-            .AddOption(CartridgeStrategy.ForceBS, "Force Burst Strike", "Force use Burst Strike")
-            .AddOption(CartridgeStrategy.ForceFC, "Force Fated Circle", "Force use Fated Circle")
+            .AddOption(CartridgeStrategy.ForceDD, "Force Double Down", "Force use Double Down ASAP (even without No Mercy)", 0, 0, ActionTargets.Hostile, 90)
+            .AddOption(CartridgeStrategy.ForceGF, "Force Gnashing Fang", "Force use Gnashing Fang", 30, 0, ActionTargets.Hostile, 60)
+            .AddOption(CartridgeStrategy.ForceBS, "Force Burst Strike", "Force use Burst Strike", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(CartridgeStrategy.ForceFC, "Force Fated Circle", "Force use Fated Circle", 0, 0, ActionTargets.Hostile, 72)
             .AddOption(CartridgeStrategy.ForceAll, "Force All", "Force use ASAP (even without No Mercy)")
             .AddAssociatedActions(GNB.AID.DoubleDown, GNB.AID.GnashingFang, GNB.AID.BurstStrike, GNB.AID.FatedCircle);
         //NoMercy strategy
         res.Define(Track.NoMercy).As<OffensiveStrategy>("NM", uiPriority: 60)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP (even during downtime)")
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP (even during downtime)", 60, 20, ActionTargets.Self, 2)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay", 0, 0, ActionTargets.None, 2)
             .AddAssociatedActions(GNB.AID.NoMercy);
         //SonicBreak strategy
         res.Define(Track.SonicBreak).As<OffensiveStrategy>("SB", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Sonic Break")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Sonic Break")
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Sonic Break")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Sonic Break", 0, 30, ActionTargets.Hostile, 54)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Sonic Break", 0, 0, ActionTargets.None, 54)
             .AddAssociatedActions(GNB.AID.SonicBreak);
         //GnashingFang strategy
         res.Define(Track.GnashingFang).As<OffensiveStrategy>("GF", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Gnashing Fang")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Gnashing Fang")
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Gnashing Fang")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Gnashing Fang", 30, 0, ActionTargets.Hostile, 60)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Gnashing Fang", 0, 0, ActionTargets.None, 60)
             .AddAssociatedActions(GNB.AID.GnashingFang, GNB.AID.SavageClaw, GNB.AID.WickedTalon);
         //DoubleDown strategy
         res.Define(Track.DoubleDown).As<OffensiveStrategy>("DD", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Double Down")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Double Down")
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Double Down")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Double Down", 60, 0, ActionTargets.Hostile, 90)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Double Down", 0, 0, ActionTargets.None, 90)
             .AddAssociatedActions(GNB.AID.DoubleDown);
         //BurstStrike strategy
         res.Define(Track.BurstStrike).As<OffensiveStrategy>("BS", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Burst Strike")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Burst Strike")
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Burst Strike")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Burst Strike", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Burst Strike", 0, 0, ActionTargets.None, 30)
             .AddAssociatedActions(GNB.AID.BurstStrike);
         //FatedCircle strategy
         res.Define(Track.FatedCircle).As<OffensiveStrategy>("FC", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Fated Circle")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Fated Circle")
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Fated Circle")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Fated Circle", 0, 0, ActionTargets.Hostile, 72)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Fated Circle", 0, 0, ActionTargets.None, 72)
             .AddAssociatedActions(GNB.AID.FatedCircle);
         //Zone strategy
         res.Define(Track.Zone).As<OffensiveStrategy>("Zone", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP")
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP", 30, 0, ActionTargets.Hostile, 18)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay", 0, 0, ActionTargets.None, 18)
             .AddAssociatedActions(GNB.AID.BlastingZone, GNB.AID.DangerZone);
         //Bloodfest strategy
         res.Define(Track.Bloodfest).As<OffensiveStrategy>("BF", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Bloodfest")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Bloodfest")
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Bloodfest")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Bloodfest", 120, 0, ActionTargets.Hostile, 80)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Bloodfest", 0, 0, ActionTargets.None, 80)
             .AddAssociatedActions(GNB.AID.Bloodfest);
         //BowShock strategy
         res.Define(Track.BowShock).As<OffensiveStrategy>("BShock", uiPriority: 40)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Bow Shock")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Bow Shock")
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Bow Shock")
+            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Bow Shock", 60, 15, ActionTargets.Self, 62)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Bow Shock", 0, 0, ActionTargets.None, 62)
             .AddAssociatedActions(GNB.AID.BowShock);
-        //Trajectory strategy
-        res.Define(Track.Trajectory).As<TrajectoryStrategy>("Dash", uiPriority: 20)
-            .AddOption(TrajectoryStrategy.Automatic, "Automatic", "No use")
-            .AddOption(TrajectoryStrategy.Forbid, "Forbid", "No use")
-            .AddOption(TrajectoryStrategy.Force, "Force", "Use ASAP")
-            .AddOption(TrajectoryStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range")
-            .AddAssociatedActions(GNB.AID.Trajectory);
 
         return res;
     }
@@ -164,7 +156,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     private float RipLeft; //10s
     private float TearLeft; //10s
     private float GougeLeft; //10s
-    private float TrajectoryCD; //30s dash
     private float PotionLeft; //30s buff from Pots
     private float RaidBuffsLeft; //Typically always 20s-22s
     private float RaidBuffsIn; //Typically always 20s-22s
@@ -174,8 +165,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     private bool ReadyToReign; //0s if not up, 30s if Bloodfest just used
     public GNB.AID NextGCD; //This is needed to estimate carts and make a decision on burst
     private GCDPriority NextGCDPrio; //This is needed to estimate priority and make a decision on CDs
-
-    private const float TrajectoryMinGCD = 0.8f; //Triple-weaving Trajectory is not a good idea, since it might delay gcd for longer than normal anim lock
 
     private bool Unlocked(GNB.AID aid) => ActionUnlocked(ActionID.MakeSpell(aid)); //Checks if desired ability is unlocked
     private bool Unlocked(GNB.TraitID tid) => TraitUnlocked((uint)tid); //Checks if desired trait is unlocked
@@ -201,7 +190,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //Floats - '() > 0' assumes you have the buff, good for using as a "HasBuff" call
         BloodfestCD = CD(GNB.AID.Bloodfest); //120s cooldown
         NoMercyCD = CD(GNB.AID.NoMercy); //60s cooldown
-        TrajectoryCD = CD(GNB.AID.Trajectory); //Dash
         GCDLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
         NoMercyLeft = SelfStatusLeft(GNB.SID.NoMercy); //20s buff
         BreakLeft = SelfStatusLeft(GNB.SID.ReadyToBreak); //30s buff
@@ -255,7 +243,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             QueueOGCD(GNB.AID.NoMercy, Player, OGCDPriority.NoMercy);
         //Zone usage
         if (ShouldUseZone(strategy.Option(Track.Zone).As<OffensiveStrategy>(), primaryTarget))
-            QueueOGCD(GNB.AID.BlastingZone, primaryTarget, OGCDPriority.Zone);
+            QueueOGCD(Unlocked(GNB.AID.BlastingZone) ? GNB.AID.BlastingZone : GNB.AID.DangerZone, primaryTarget, OGCDPriority.Zone);
         //BowShock usage
         if (ShouldUseBowShock(strategy.Option(Track.BowShock).As<OffensiveStrategy>(), primaryTarget))
             QueueOGCD(GNB.AID.BowShock, primaryTarget, OGCDPriority.BowShock);
@@ -313,19 +301,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //LightningShot usage
         if (ShouldUseLightningShot(primaryTarget, strategy.Option(Track.LightningShot).As<LightningShotStrategy>()))
             QueueGCD(GNB.AID.LightningShot, primaryTarget, GCDPriority.ForcedLightningShot);
-        //Trajectory usage
-        if (Unlocked(GNB.AID.Trajectory))
-        {
-            var onsStrategy = strategy.Option(Track.Trajectory).As<TrajectoryStrategy>();
-            if (ShouldUseTrajectory(onsStrategy, primaryTarget))
-            {
-                //Special case for use as gapcloser - it has to be very high priority
-                var (prio, basePrio) = onsStrategy == TrajectoryStrategy.GapClose
-                    ? (OGCDPriority.GapcloseTrajectory, ActionQueue.Priority.High)
-                    : (OGCDPriority.Trajectory, TrajectoryCD < GCDLength ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low);
-                QueueOGCD(GNB.AID.Trajectory, primaryTarget, prio, basePrio);
-            }
-        }
 
         //Potion should be used as late as possible in ogcd window, so that if playing at <2.5 gcd, it can cover 13 gcds
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
@@ -514,16 +489,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         OffensiveStrategy.Force => true,
         OffensiveStrategy.Delay => false,
         _ => false
-    };
-
-    //How we use our gapcloser
-    private bool ShouldUseTrajectory(TrajectoryStrategy strategy, Actor? target) => strategy switch
-    {
-        TrajectoryStrategy.Automatic => false,
-        TrajectoryStrategy.Forbid => false,
-        TrajectoryStrategy.Force => GCD >= TrajectoryMinGCD,
-        TrajectoryStrategy.GapClose => !InMeleeRange(target),
-        _ => false,
     };
 
     //How we use SonicBreak
