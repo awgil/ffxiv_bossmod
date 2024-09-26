@@ -112,14 +112,54 @@ public class Map
     public void BlockPixelsInside(Func<WPos, float> shape, float maxG, float threshold)
     {
         MaxG = MathF.Max(MaxG, maxG);
-        foreach (var (x, y, center) in EnumeratePixels())
+
+        Parallel.For(MinY, MaxY + 1, y =>
         {
-            if (shape(center) < threshold)
+            for (var x = MinX; x <= MaxX; ++x)
             {
-                ref var pixel = ref PixelMaxG[y * Width + x];
-                pixel = MathF.Min(pixel, maxG);
+                var center = GridToWorld(x, y, 0.5f, 0.5f);
+                if (shape(center) < threshold)
+                {
+                    ref var pixel = ref PixelMaxG[y * Width + x];
+                    pixel = MathF.Min(pixel, maxG);
+                }
             }
-        }
+        });
+    }
+
+    // for testing 9 points per pixel for increased accuracy
+    public void BlockPixelsInsideAccuracy(Func<WPos, float> shape, float maxG, float threshold)
+    {
+        MaxG = MathF.Max(MaxG, maxG);
+        float[] offsets = [1e-5f, 0.5f, 1 - 1e-5f];
+        Parallel.ForEach(Partitioner.Create(0, PixelMaxG.Length), range =>
+        {
+            for (var i = range.Item1; i < range.Item2; i++)
+            {
+                var x = i % Width;
+                var y = i / Width;
+                var blocked = false;
+                foreach (var dx in offsets)
+                {
+                    foreach (var dy in offsets)
+                    {
+                        var point = GridToWorld(x, y, dx, dy);
+                        if (shape(point) <= threshold)
+                        {
+                            blocked = true;
+                            break;
+                        }
+                    }
+                    if (blocked)
+                        break;
+                }
+                if (blocked)
+                {
+                    ref var pixel = ref PixelMaxG[y * Width + x];
+                    pixel = MathF.Min(pixel, maxG);
+                }
+            }
+        });
     }
 
     public IEnumerable<(int x, int y, WPos center)> EnumeratePixels()

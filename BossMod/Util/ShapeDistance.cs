@@ -2,6 +2,7 @@
 
 // shapes can be defined by distance from point to shape's border; distance is positive for points outside shape and negative for points inside shape
 // union is min, intersection is max
+
 public static class ShapeDistance
 {
     public static Func<WPos, float> HalfPlane(WPos point, WDir normal) => p => normal.Dot(p - point);
@@ -11,18 +12,20 @@ public static class ShapeDistance
 
     public static Func<WPos, float> Donut(WPos origin, float innerRadius, float outerRadius)
     {
-        if (outerRadius <= 0 || innerRadius >= outerRadius)
-            return _ => float.MaxValue;
-        if (innerRadius <= 0)
-            return Circle(origin, outerRadius);
-        return p =>
+        return outerRadius <= 0 || innerRadius >= outerRadius ? (_ => float.MaxValue) : innerRadius <= 0 ? Circle(origin, outerRadius) : (p =>
         {
             // intersection of outer circle and inverted inner circle
             var distOrigin = (p - origin).Length();
             var distOuter = distOrigin - outerRadius;
             var distInner = innerRadius - distOrigin;
             return Math.Max(distOuter, distInner);
-        };
+        });
+    }
+
+    public static Func<WPos, float> InvertedDonut(WPos origin, float innerRadius, float outerRadius)
+    {
+        var donut = Donut(origin, innerRadius, outerRadius);
+        return p => -donut(p);
     }
 
     public static Func<WPos, float> Cone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
@@ -77,6 +80,12 @@ public static class ShapeDistance
         };
     }
 
+    public static Func<WPos, float> InvertedDonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
+    {
+        var donutSectir = DonutSector(origin, innerRadius, outerRadius, centerDir, halfAngle);
+        return p => -donutSectir(p);
+    }
+
     public static Func<WPos, float> Tri(WPos origin, RelTriangle tri)
     {
         var ab = tri.B - tri.A;
@@ -102,6 +111,13 @@ public static class ShapeDistance
             return Math.Max(Math.Max(d1, d2), d3);
         };
     }
+
+    public static Func<WPos, float> InvertedTri(WPos origin, RelTriangle tri)
+    {
+        var triangle = Tri(origin, tri);
+        return p => -triangle(p);
+    }
+
     public static Func<WPos, float> TriList(WPos origin, List<RelTriangle> tris) => Union([.. tris.Select(tri => Tri(origin, tri))]);
 
     public static Func<WPos, float> Rect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
@@ -130,19 +146,8 @@ public static class ShapeDistance
 
     public static Func<WPos, float> InvertedRect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
-        // dir points outside far side
-        var normal = dir.OrthoL(); // points outside left side
-        return p =>
-        {
-            var offset = p - origin;
-            var distParr = offset.Dot(dir);
-            var distOrtho = offset.Dot(normal);
-            var distFront = distParr - lenFront;
-            var distBack = -distParr - lenBack;
-            var distLeft = distOrtho - halfWidth;
-            var distRight = -distOrtho - halfWidth;
-            return -Math.Max(Math.Max(distFront, distBack), Math.Max(distLeft, distRight));
-        };
+        var rect = Rect(origin, dir, lenFront, lenBack, halfWidth);
+        return p => -rect(p);
     }
     public static Func<WPos, float> InvertedRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => InvertedRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
     public static Func<WPos, float> InvertedRect(WPos from, WPos to, float halfWidth)
@@ -184,6 +189,12 @@ public static class ShapeDistance
         };
     }
 
+    public static Func<WPos, float> InvertedCross(WPos origin, Angle direction, float length, float halfWidth)
+    {
+        var cross = Cross(origin, direction, length, halfWidth);
+        return p => -cross(p);
+    }
+
     // positive offset increases area
     public static Func<WPos, float> ConvexPolygon(IEnumerable<(WPos, WPos)> edges, bool cw, float offset = 0)
     {
@@ -197,7 +208,14 @@ public static class ShapeDistance
         }
         return Intersection([.. edges.Select(edge)], offset);
     }
+
     public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0) => ConvexPolygon(PolygonUtil.EnumerateEdges(vertices), cw, offset);
+
+    public static Func<WPos, float> InvertedConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0)
+    {
+        var convexPolygon = ConvexPolygon(vertices, cw, offset);
+        return p => -convexPolygon(p);
+    }
 
     public static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Max(e => e(p)) - offset;
     public static Func<WPos, float> Union(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Min(e => e(p)) - offset;
