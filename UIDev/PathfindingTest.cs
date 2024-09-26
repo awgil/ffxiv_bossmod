@@ -93,9 +93,12 @@ class PathfindingTest : TestWindow
             zones.Add((ShapeDistance.Rect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth), now.AddSeconds(_blockRectG)));
         zones.SortBy(z => z.activation);
         NavigationDecision.RasterizeForbiddenZones(map, zones, now, ref scratch);
-        NavigationDecision.RasterizeGoalZones(map, new(_targetPos), _targetRadius, _targetFacingDeg.Degrees(), Positional.Rear);
 
-        var visu = new MapVisualizer(map, new(_startingPos), new(_targetPos), _targetRadius);
+        List<Func<WPos, float>> goals = [];
+        goals.Add(new AIHints().GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius));
+        NavigationDecision.RasterizeGoalZones(map, goals);
+
+        var visu = new MapVisualizer(map, new(_startingPos));
 
         if (_blockCone)
             visu.Sectors.Add((new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()));

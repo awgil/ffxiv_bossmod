@@ -350,6 +350,18 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfPower), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostFont);
         if (ShouldUseLostBuff(LostBannerCD, 90))
             Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.BannerHonoredSacrifice), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostBanner);
+
+        // ai hints for positioning
+        var goalST = primaryTarget != null ? Hints.GoalSingleTarget(primaryTarget, 3) : null;
+        var goalAOE = Hints.GoalAOECircle(3);
+        var goal = aoeStrategy switch
+        {
+            AOEStrategy.SingleTarget => goalST,
+            AOEStrategy.ForceAOE => goalAOE,
+            _ => goalST != null ? Hints.GoalCombined(goalST, goalAOE, 3) : goalAOE
+        };
+        if (goal != null)
+            Hints.GoalZones.Add(goal);
     }
 
     private void QueueGCD(WAR.AID aid, Actor? target, GCDPriority prio)

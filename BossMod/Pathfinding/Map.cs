@@ -13,14 +13,14 @@ public class Map
     public int Width { get; private set; } // always even
     public int Height { get; private set; } // always even
     public float[] PixelMaxG = []; // == MaxValue if not dangerous (TODO: consider changing to a byte per pixel?)
-    public sbyte[] PixelPriority = [];
+    public float[] PixelPriority = [];
 
     public WPos Center { get; private set; } // position of map center in world units
     public Angle Rotation { get; private set; } // rotation relative to world space (=> ToDirection() is equal to direction of local 'height' axis in world space)
     public WDir LocalZDivRes { get; private set; }
 
     public float MaxG; // maximal 'maxG' value of all blocked pixels
-    public int MaxPriority; // maximal 'priority' value of all goal pixels
+    public float MaxPriority; // maximal 'priority' value of all goal pixels
 
     // min-max bounds of 'interesting' area, default to (0,0) to (width-1,height-1)
     public int MinX;
@@ -42,9 +42,9 @@ public class Map
             PixelMaxG = new float[numPixels];
         Array.Fill(PixelMaxG, float.MaxValue, 0, numPixels); // fill is unconditional, can we avoid it by changing storage?..
         if (PixelPriority.Length < numPixels)
-            PixelPriority = new sbyte[numPixels];
+            PixelPriority = new float[numPixels];
         else
-            Array.Fill(PixelPriority, (sbyte)0, 0, numPixels);
+            Array.Fill(PixelPriority, 0, 0, numPixels);
 
         Center = center;
         Rotation = rotation;
@@ -69,7 +69,7 @@ public class Map
             PixelMaxG = new float[numPixels];
         Array.Copy(source.PixelMaxG, PixelMaxG, numPixels);
         if (PixelPriority.Length < numPixels)
-            PixelPriority = new sbyte[numPixels];
+            PixelPriority = new float[numPixels];
         Array.Copy(source.PixelPriority, PixelPriority, numPixels);
 
         Center = center;

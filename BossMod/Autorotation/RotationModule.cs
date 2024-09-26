@@ -80,7 +80,6 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
 
 // base class for rotation modules
 // each rotation module should contain a `public static RotationModuleDefinition Definition()` function
-// TODO: i don't think it should know about manager, rework this...
 public abstract class RotationModule(RotationModuleManager manager, Actor player)
 {
     public readonly RotationModuleManager Manager = manager;
