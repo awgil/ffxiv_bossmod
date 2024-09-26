@@ -43,7 +43,6 @@ public enum AID : uint
     ShadowFlare = 31885, // Igeyorhm/Boss->self, 5.0s cast, range 40 circle
 }
 
-
 public enum TetherID : uint
 {
     StarTether = 110 // BurningStar/FrozenStar->BurningStar/FrozenStar

@@ -27,7 +27,15 @@ class Catapult(BossModule module) : Components.LocationTargetedAOEs(module, Acti
 class CorseAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.BicephalicCorse, (uint)OID.GiantCorse, (uint)OID.IronCorse]);
 class Doom(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Doom), new AOEShapeCone(47.4f, 60.Degrees()));
 class Shackle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shackle), new AOEShapeRect(52.4f, 4, 0));
-class SummonDarkness(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SummonDarkness), "Summoning the corses, use Resolution if you want them permanently dead");
+class SummonDarkness(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SummonDarkness), "Summoning the corses, incoming Adds!");
+
+class EncounterHints(BossModule module) : BossComponent(module)
+{
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        hints.Add($"There is 3 sets of adds that spawn at HP %'s -> (90%, 65%, 40%) \nA resolution can make the adds permanently dissapear once they are at 0% HP/the corpse are just laying on the floor.\nResolution is also does high damage to the adds + 0.3% to the Boss\nSolo tip: Either pop a resolution on all add packs, or pop lust -> resolution on 2nd ad pack. Make sure to keep regen up!");
+    }
+}
 
 class D100NybethObdilordStates : StateMachineBuilder
 {
@@ -39,7 +47,8 @@ class D100NybethObdilordStates : StateMachineBuilder
             .ActivateOnEnter<CorseAdds>()
             .ActivateOnEnter<Doom>()
             .ActivateOnEnter<Shackle>()
-            .ActivateOnEnter<SummonDarkness>();
+            .ActivateOnEnter<SummonDarkness>()
+            .ActivateOnEnter<EncounterHints>();
     }
 }
 
