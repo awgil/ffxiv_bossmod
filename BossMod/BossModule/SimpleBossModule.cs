@@ -4,7 +4,6 @@
 // these always center map around PC
 public abstract class SimpleBossModule(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(30))
 {
-    protected override void UpdateModule() => Arena.Center = WorldState.Party.Player()?.Position ?? default;
-
     public override bool CheckReset() => !PrimaryActor.InCombat;
+    protected override void UpdateModule() => Arena.Center = WorldState.Party.Player()?.Position ?? default;
 }
