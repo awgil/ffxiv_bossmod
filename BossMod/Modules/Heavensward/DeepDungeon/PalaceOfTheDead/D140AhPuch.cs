@@ -38,8 +38,6 @@ class EntropicFlame(BossModule module) : Components.SelfTargetedAOEs(module, Act
 class Scream(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Scream), "Raidwide + Fear, Adds need to be dead by now");
 class ShadowFlare(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ShadowFlare));
 
-
-
 class D140AhPuchStates : StateMachineBuilder
 {
     public D140AhPuchStates(BossModule module) : base(module)

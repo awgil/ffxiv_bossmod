@@ -10,7 +10,7 @@ public enum OID : uint
 public enum AID : uint
 {
     Attack = 6497, // Boss->player, no cast, single-target
-    Charybdis = 7096, // Boss->location, 3.0s cast, range 6 circle // Cast that sets the tornado location 
+    Charybdis = 7096, // Boss->location, 3.0s cast, range 6 circle // Cast that sets the tornado location
     TornadoVoidzone = 7164, // 18F0->self, no cast, range 6 circle
     EclipticMeteor = 7099, // Boss->self, 20.0s cast, range 50 circle
     Maelstrom = 7167, // 18F0->self, 1.3s cast, range 10 circle
@@ -24,11 +24,14 @@ class Trounce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.
 class EclipticMeteor(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EclipticMeteor), "Kill him before he kills you! 80% max HP damage incoming!");
 class Thunderbolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Thunderbolt), new AOEShapeCone(16.6f, 60.Degrees()));
 
+// things to do:
+// add a hint counter to tell the player where the boss is going to cast Trounce next
+// It's always East wall -> West wall -> East... ect
 class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"{Module.PrimaryActor.Name} will use Ecliptic Meteor.\nYou must either kill him before he cast it multiple times, or heal through it.");
+        hints.Add($"{Module.PrimaryActor.Name} will cast Trounce (Cone AOE) from the East and West wall. \nMake sure to stay near him to dodge the AOE. \n{Module.PrimaryActor.Name} will also cast Ecliptic Meteor at 10% HP, plan accordingly!");
     }
 }
 
