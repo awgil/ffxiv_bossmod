@@ -202,22 +202,46 @@ public sealed class AIHints
     }
     public Func<WPos, float> GoalSingleTarget(Actor target, Positional positional, float range = 3) => GoalSingleTarget(target.Position, target.Rotation, positional, range + target.HitboxRadius);
 
-    // simple goal zone that returns number of targets in aoes
-    public Func<WPos, float> GoalAOECircle(float radius) => p => NumPriorityTargetsInAOECircle(p, radius);
-    public Func<WPos, float> GoalAOECone(Actor primaryTarget, float radius, Angle halfAngle) => p =>
+    // simple goal zone that returns number of targets in aoes; note that performance is a concern for these functions, and perfection isn't required, so eg they ignore forbidden targets, etc
+    public Func<WPos, float> GoalAOECircle(float radius)
     {
-        var toTarget = primaryTarget.Position - p;
-        var lenSq = toTarget.LengthSq();
+        List<(WPos pos, float radius)> targets = [.. PriorityTargets.Select(e => (e.Actor.Position, e.Actor.HitboxRadius))];
+        return p => targets.Count(t => t.pos.InCircle(p, radius + t.radius));
+    }
+
+    public Func<WPos, float> GoalAOECone(Actor primaryTarget, float radius, Angle halfAngle)
+    {
+        List<(WPos pos, float radius)> targets = [.. PriorityTargets.Select(e => (e.Actor.Position, e.Actor.HitboxRadius))];
+        var aimPoint = primaryTarget.Position;
         var effRange = radius + primaryTarget.HitboxRadius;
-        return lenSq <= effRange * effRange ? NumPriorityTargetsInAOECone(p, radius, toTarget / MathF.Sqrt(lenSq), halfAngle) : 0;
-    };
-    public Func<WPos, float> GoalAOERect(Actor primaryTarget, float lenFront, float halfWidth, float lenBack = 0) => p =>
+        var effRsq = effRange * effRange;
+        return p =>
+        {
+            var toTarget = aimPoint - p;
+            var lenSq = toTarget.LengthSq();
+            if (lenSq > effRsq)
+                return 0;
+            var dir = toTarget / MathF.Sqrt(lenSq);
+            return targets.Count(t => t.pos.InCircleCone(p, radius + t.radius, dir, halfAngle));
+        };
+    }
+
+    public Func<WPos, float> GoalAOERect(Actor primaryTarget, float lenFront, float halfWidth, float lenBack = 0)
     {
-        var toTarget = primaryTarget.Position - p;
-        var lenSq = toTarget.LengthSq();
+        List<(WPos pos, float radius)> targets = [.. PriorityTargets.Select(e => (e.Actor.Position, e.Actor.HitboxRadius))];
+        var aimPoint = primaryTarget.Position;
         var effRange = lenFront + primaryTarget.HitboxRadius;
-        return lenSq <= effRange * effRange ? NumPriorityTargetsInAOERect(p, toTarget / MathF.Sqrt(lenSq), lenFront, halfWidth, lenBack) : 0;
-    };
+        var effRsq = effRange * effRange;
+        return p =>
+        {
+            var toTarget = aimPoint - p;
+            var lenSq = toTarget.LengthSq();
+            if (lenSq > effRsq)
+                return 0;
+            var dir = toTarget / MathF.Sqrt(lenSq);
+            return targets.Count(t => t.pos.InRect(p, dir, lenFront, lenBack, halfWidth));
+        };
+    }
 
     // combined goal zone: returns 'aoe' priority if targets hit are at or above minimum, otherwise returns 'single-target' priority
     public Func<WPos, float> GoalCombined(Func<WPos, float> singleTarget, Func<WPos, float> aoe, int minAOETargets)
