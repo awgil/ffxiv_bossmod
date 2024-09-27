@@ -86,6 +86,16 @@ public sealed class BossModuleManager : IDisposable
                 continue;
             }
 
+            // if module is active and wants to be reset, oblige
+            if (isActive && m.CheckReset())
+            {
+                var actor = m.PrimaryActor;
+                UnloadModule(i--);
+                if (!actor.IsDestroyed)
+                    ActorAdded(actor);
+                continue;
+            }
+
             // module remains loaded
             int priority = ModuleDisplayPriority(m);
             if (priority > bestPriority)
