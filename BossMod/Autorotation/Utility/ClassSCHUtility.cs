@@ -2,7 +2,11 @@
 
 public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
-    public enum Track { WhisperingDawn = SharedTrack.Count, Adloquium, Succor, FeyIllumination, Lustrate, SacredSoil, Indomitability, DeploymentTactics, EmergencyTactics, Dissipation, Excogitation, Aetherpact, Recitation, FeyBlessing, Consolation, Protraction, Expedient, Seraphism, Resurrection, Summons, PetActions }
+    public enum Track
+    {
+        WhisperingDawn = SharedTrack.Count, Adloquium, Succor, FeyIllumination, Lustrate, SacredSoil, Indomitability, DeploymentTactics,
+        EmergencyTactics, Dissipation, Excogitation, Aetherpact, Recitation, FeyBlessing, Consolation, Protraction, Expedient, Seraphism, Resurrection, PetActions
+    }
     public enum SuccorOption { None, Succor, Concitation }
     public enum DeployOption { None, Use, UseEx }
     public enum AetherpactOption { None, Use, End }
@@ -60,7 +64,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Resurrection, "Resurrection", "Raise", 10, SCH.AID.Resurrection);
 
         // Pet Summons
-        res.Define(Track.Summons).As<PetOption>("Pet", "", 180)
+        res.Define(Track.PetActions).As<PetOption>("Pet", "", 180)
             .AddOption(PetOption.None, "None", "Do not use automatically")
             .AddOption(PetOption.Eos, "Eos", "Summon Eos", 2, 0, ActionTargets.Self, 4)
             .AddOption(PetOption.Seraph, "Seraph", "Summon Seraph", 120, 22, ActionTargets.Self, 80)
@@ -81,7 +85,6 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.EmergencyTactics), SCH.AID.EmergencyTactics, Player);
         ExecuteSimple(strategy.Option(Track.Dissipation), SCH.AID.Dissipation, Player);
         ExecuteSimple(strategy.Option(Track.Excogitation), SCH.AID.Excogitation, null);
-        ExecuteSimple(strategy.Option(Track.Aetherpact), SCH.AID.Aetherpact, null);
         ExecuteSimple(strategy.Option(Track.FeyBlessing), SCH.AID.FeyBlessing, Player);
         ExecuteSimple(strategy.Option(Track.Consolation), SCH.AID.Consolation, Player);
         ExecuteSimple(strategy.Option(Track.Protraction), SCH.AID.Protraction, null);
@@ -104,7 +107,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.DeploymentTactics), Player, deploy.Priority(), deploy.Value.ExpireIn);
 
         var pact = strategy.Option(Track.Aetherpact);
-        var pactAction = succ.As<AetherpactOption>() switch
+        var pactAction = pact.As<AetherpactOption>() switch
         {
             AetherpactOption.Use => SCH.AID.Aetherpact,
             AetherpactOption.End => SCH.AID.DissolveUnion,
@@ -118,7 +121,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.Recitation), Player, recit.Priority(), recit.Value.ExpireIn);
 
         var pet = strategy.Option(Track.PetActions);
-        var petAction = succ.As<PetOption>() switch
+        var petAction = pet.As<PetOption>() switch
         {
             PetOption.Eos => SCH.AID.SummonEos,
             PetOption.Seraph => SCH.AID.SummonSeraph,
@@ -126,6 +129,5 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         };
         if (petAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(petAction), Player, pet.Priority(), pet.Value.ExpireIn);
-
     }
 }
