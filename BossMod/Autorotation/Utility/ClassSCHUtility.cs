@@ -2,7 +2,7 @@
 
 public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
-    public enum Track { WhisperingDawn = SharedTrack.Count, Adloquium, Succor, FeyIllumination, Lustrate, SacredSoil, Indomitability, DeploymentTactics, EmergencyTactics, Dissipation, Excogitation, Aetherpact, Recitation, FeyBlessing, Consolation, Protraction, Expedient, Seraphism, Resurrection, Summons, PetActions }
+    public enum Track { WhisperingDawn = SharedTrack.Count, Adloquium, Succor, FeyIllumination, Lustrate, SacredSoil, Indomitability, DeploymentTactics, EmergencyTactics, Dissipation, Excogitation, Aetherpact, Recitation, FeyBlessing, Consolation, Protraction, Expedient, Seraphism, Resurrection, Summons }
     public enum SuccorOption { None, Succor, Concitation }
     public enum DeployOption { None, Use, UseEx }
     public enum AetherpactOption { None, Use, End }
@@ -81,7 +81,6 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.EmergencyTactics), SCH.AID.EmergencyTactics, Player);
         ExecuteSimple(strategy.Option(Track.Dissipation), SCH.AID.Dissipation, Player);
         ExecuteSimple(strategy.Option(Track.Excogitation), SCH.AID.Excogitation, null);
-        ExecuteSimple(strategy.Option(Track.Aetherpact), SCH.AID.Aetherpact, null);
         ExecuteSimple(strategy.Option(Track.FeyBlessing), SCH.AID.FeyBlessing, Player);
         ExecuteSimple(strategy.Option(Track.Consolation), SCH.AID.Consolation, Player);
         ExecuteSimple(strategy.Option(Track.Protraction), SCH.AID.Protraction, null);
@@ -104,7 +103,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.DeploymentTactics), Player, deploy.Priority(), deploy.Value.ExpireIn);
 
         var pact = strategy.Option(Track.Aetherpact);
-        var pactAction = succ.As<AetherpactOption>() switch
+        var pactAction = pact.As<AetherpactOption>() switch
         {
             AetherpactOption.Use => SCH.AID.Aetherpact,
             AetherpactOption.End => SCH.AID.DissolveUnion,
@@ -117,15 +116,15 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         if (recit.As<RecitationOption>() != RecitationOption.None)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.Recitation), Player, recit.Priority(), recit.Value.ExpireIn);
 
-        var pet = strategy.Option(Track.PetActions);
-        var petAction = succ.As<PetOption>() switch
+        var pet = strategy.Option(Track.Summons);
+        var petSummons = pet.As<PetOption>() switch
         {
             PetOption.Eos => SCH.AID.SummonEos,
             PetOption.Seraph => SCH.AID.SummonSeraph,
             _ => default
         };
-        if (petAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(petAction), Player, pet.Priority(), pet.Value.ExpireIn);
+        if (petSummons != default)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(petSummons), Player, pet.Priority(), pet.Value.ExpireIn);
 
     }
 }
