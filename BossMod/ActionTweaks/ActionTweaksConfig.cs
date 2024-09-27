@@ -53,6 +53,9 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertyDisplay("Use custom queueing for manually pressed actions", tooltip: "This setting allows better integration with autorotations and will prevent you from triple-weaving or drifting GCDs if you press a healing ability while autorotation is going on")]
     public bool UseManualQueue = false;
 
+    [PropertyDisplay("Automatically manage auto attacks", tooltip: "This setting prevents starting autos early during countdown, starts them automatically at pull, when switching targets and when using any actions that don't explicitly cancel autos.")]
+    public bool AutoAutos = false;
+
     [PropertyDisplay("Automatically dismount to execute actions")]
     public bool AutoDismount = true;
 

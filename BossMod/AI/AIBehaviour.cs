@@ -105,7 +105,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
         // now give class module a chance to improve targeting
         // typically it would switch targets for multidotting, or to hit more targets with AOE
         // in case of ties, it should prefer to return original target - this would prevent useless switches
-        var targeting = new Targeting(target!, autorot.Hints.RecommendedRangeToTarget - 0.1f);
+        var targeting = new Targeting(target!, player.Role is Role.Melee or Role.Tank ? 2.9f : 24.5f);
 
         var pos = autorot.Hints.RecommendedPositional;
         if (pos.Target != null && targeting.Target.Actor == pos.Target)
@@ -137,26 +137,18 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
     {
         if (_config.ForbidMovement)
             return new() { LeewaySeconds = float.MaxValue };
-        if (_followMaster)
-            return NavigationDecision.Build(_naviCtx, WorldState, autorot.Hints, player, master.Position, _config.OverrideRange ? _config.MaxDistanceToSlot : 1, new(), Positional.Any);
-        if (targeting.Target == null)
-            return NavigationDecision.Build(_naviCtx, WorldState, autorot.Hints, player, null, 0, new(), Positional.Any);
 
-        var adjRange = targeting.PreferredRange + player.HitboxRadius + targeting.Target.Actor.HitboxRadius;
-        if (targeting.PreferTanking)
+        if (_followMaster)
         {
-            // see whether we need to move target
-            // TODO: think more about keeping uptime while tanking, this is tricky...
-            var desiredToTarget = targeting.Target.Actor.Position - targeting.Target.DesiredPosition;
-            if (desiredToTarget.LengthSq() > 4 /*&& (_autorot.ClassActions?.GetState().GCD ?? 0) > 0.5f*/)
-            {
-                var dest = autorot.Hints.ClampToBounds(targeting.Target.DesiredPosition - adjRange * desiredToTarget.Normalized());
-                return NavigationDecision.Build(_naviCtx, WorldState, autorot.Hints, player, dest, 0.5f, new(), Positional.Any);
-            }
+            autorot.Hints.GoalZones.Clear();
+            autorot.Hints.GoalZones.Add(autorot.Hints.GoalSingleTarget(master.Position, _config.OverrideRange ? _config.MaxDistanceToSlot : 1));
+            return NavigationDecision.Build(_naviCtx, WorldState, autorot.Hints, player);
         }
 
-        var adjRotation = targeting.PreferTanking ? targeting.Target.DesiredRotation : targeting.Target.Actor.Rotation;
-        return NavigationDecision.Build(_naviCtx, WorldState, autorot.Hints, player, targeting.Target.Actor.Position, adjRange, adjRotation, targeting.PreferredPosition);
+        // TODO: remove this once all rotation modules are fixed
+        if (autorot.Hints.GoalZones.Count == 0 && targeting.Target != null)
+            autorot.Hints.GoalZones.Add(autorot.Hints.GoalSingleTarget(targeting.Target.Actor, targeting.PreferredRange));
+        return NavigationDecision.Build(_naviCtx, WorldState, autorot.Hints, player);
     }
 
     private void FocusMaster(Actor master)

@@ -35,7 +35,6 @@ public sealed class AIHintsBuilder : IDisposable
             var playerAssignment = Service.Config.Get<PartyRolesConfig>()[_ws.Party.Members[playerSlot].ContentId];
             var activeModule = _bmm.ActiveModule?.StateMachine.ActivePhase != null ? _bmm.ActiveModule : null;
             hints.FillPotentialTargets(_ws, playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !_ws.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank));
-            hints.RecommendedRangeToTarget = player.Role is Role.Melee or Role.Tank ? 3 : 25;
             if (activeModule != null)
                 activeModule.CalculateAIHints(playerSlot, player, playerAssignment, hints);
             else

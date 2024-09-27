@@ -58,8 +58,14 @@ class SapSpiller(BossModule module) : Components.GenericAOEs(module)
     {
         if (_nextAOE != null)
         {
-            if (_futureRotations.Count > 0)
-                yield return new(_shape, Module.PrimaryActor.Position, _nextAOE.Value.Rotation + _futureRotations[0], _nextAOE.Value.Activation.AddSeconds(2.2f));
+            var futureDir = _nextAOE.Value.Rotation;
+            var futureActivation = _nextAOE.Value.Activation;
+            foreach (var offset in _futureRotations)
+            {
+                futureDir += offset;
+                futureActivation = futureActivation.AddSeconds(2.2f);
+                yield return new(_shape, Module.PrimaryActor.Position, futureDir, futureActivation);
+            }
             yield return _nextAOE.Value;
         }
     }
@@ -130,7 +136,7 @@ class RavagingRoots(BossModule module) : Components.GenericRotatingAOE(module)
         };
         if (increment != default)
         {
-            Sequences.Add(new(_shape, caster.Position, spell.Rotation, increment, Module.CastFinishAt(spell), 2.5f, 8, 1));
+            Sequences.Add(new(_shape, caster.Position, spell.Rotation, increment, Module.CastFinishAt(spell), 2.5f, 8));
         }
     }
 

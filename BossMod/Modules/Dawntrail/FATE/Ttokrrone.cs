@@ -107,7 +107,6 @@ class SandspoutDustdevil(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        // TODO: later in the fight, we start getting 4 casts rather than 7...
         var (offset, increment, casts) = (AID)spell.Action.ID switch
         {
             AID.FangwardSandspout => (default, default, 1),
@@ -122,8 +121,8 @@ class SandspoutDustdevil(BossModule module) : Components.GenericAOEs(module)
         };
         if (casts > 0)
         {
-            if (_remainingCasts > 0)
-                casts = _numDustdevilCasts -= _remainingCasts;
+            if (casts == 7 && _remainingCasts > 0)
+                casts = _numDustdevilCasts = 4; // TODO: later in the fight, we start getting 4 casts rather than 7 - this is a heuristic to try to guess this
 
             _nextRotation = spell.Rotation + offset;
             _increment = increment;

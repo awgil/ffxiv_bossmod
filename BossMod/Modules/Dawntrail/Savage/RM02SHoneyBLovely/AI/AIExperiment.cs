@@ -38,7 +38,7 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
-        if (Manager.Bossmods.ActiveModule is not RM02SHoneyBLovely module)
+        if (Bossmods.ActiveModule is not RM02SHoneyBLovely module)
             return;
 
         var drag = strategy.Option(Track.DragBoss).As<DragBossStrategy>();

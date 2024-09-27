@@ -30,8 +30,6 @@ public class ThetaStar
     }
 
     private Map _map = new();
-    //private Vector2 _goalFrac;
-    //private float _goalRadius;
     private Node[] _nodes = [];
     private readonly List<int> _openList = [];
     private float _deltaGSide;
@@ -54,11 +52,9 @@ public class ThetaStar
     public WPos CellCenter(int index) => _map.GridToWorld(index % _map.Width, index / _map.Width, 0.5f, 0.5f);
 
     // gMultiplier is typically inverse speed, which turns g-values into time
-    public void Start(Map map, WPos startPos, WPos goalPos, float goalRadius, float gMultiplier)
+    public void Start(Map map, WPos startPos, float gMultiplier)
     {
         _map = map;
-        //_goalFrac = map.WorldToGridFrac(goalPos);
-        //_goalRadius = goalRadius;
         var numPixels = map.Width * map.Height;
         if (_nodes.Length < numPixels)
             _nodes = new Node[numPixels];
@@ -378,8 +374,6 @@ public class ThetaStar
             AddToOpen(nodeIndex);
         }
     }
-
-    //private float HeuristicDistance(int x, int y) => Math.Max(0, (new Vector2(x + 0.5f, y + 0.5f) - _goalFrac).Length() * _deltaGSide - _goalRadius);
 
     private void PrefillH()
     {

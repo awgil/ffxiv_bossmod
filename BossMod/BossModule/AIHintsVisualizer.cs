@@ -3,7 +3,7 @@ using ImGuiNET;
 
 namespace BossMod;
 
-public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong targetID, Func<AIHints.Enemy?, (AIHints.Enemy? enemy, float range, Positional pos, bool tank)> targetSelect)
+public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float preferredDistance)
 {
     private readonly MapVisualizer?[] _zoneVisualizers = new MapVisualizer?[hints.ForbiddenZones.Count];
     private MapVisualizer? _pathfindVisualizer;
@@ -55,36 +55,15 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
         var map = new Map();
         hints.Bounds.PathfindMap(map, hints.Center);
         map.BlockPixelsInside(shape, 0, NavigationDecision.ForbiddenZoneCushion);
-        return new MapVisualizer(map, player.Position, hints.Center, 3);
+        return new MapVisualizer(map, player.Position);
     }
 
     private MapVisualizer BuildPathfindingVisualizer()
     {
-        var targetEnemy = targetID != 0 ? hints.PotentialTargets.FirstOrDefault(e => e.Actor.InstanceID == targetID) : null;
-        var targeting = targetSelect(targetEnemy);
-        _navi = BuildPathfind(targeting.enemy, targeting.range, targeting.pos, targeting.tank);
-        return new MapVisualizer(_naviCtx.Map, player.Position, _navi.GoalPos, _navi.GoalRadius);
-    }
-
-    private NavigationDecision BuildPathfind(AIHints.Enemy? target, float range, Positional positional, bool preferTanking)
-    {
-        if (target == null)
-            return NavigationDecision.Build(_naviCtx, ws, hints, player, null, 0, new(), Positional.Any);
-
-        var adjRange = range + player.HitboxRadius + target.Actor.HitboxRadius;
-        if (preferTanking)
-        {
-            // see whether we need to move target
-            // TODO: think more about keeping uptime while tanking, this is tricky...
-            var desiredToTarget = target.Actor.Position - target.DesiredPosition;
-            if (desiredToTarget.LengthSq() > 4 /* && gcd check*/)
-            {
-                var dest = target.DesiredPosition - adjRange * desiredToTarget.Normalized();
-                return NavigationDecision.Build(_naviCtx, ws, hints, player, dest, 0.5f, new(), Positional.Any);
-            }
-        }
-
-        var adjRotation = preferTanking ? target.DesiredRotation : target.Actor.Rotation;
-        return NavigationDecision.Build(_naviCtx, ws, hints, player, target.Actor.Position, adjRange, adjRotation, positional);
+        // TODO: remove once the similar thing in AIBehaviour.BuildNavigationDecision is removed
+        if (hints.GoalZones.Count == 0 && ws.Actors.Find(player.TargetID) is var target && target != null)
+            hints.GoalZones.Add(hints.GoalSingleTarget(target, preferredDistance));
+        _navi = NavigationDecision.Build(_naviCtx, ws, hints, player);
+        return new MapVisualizer(_naviCtx.Map, player.Position);
     }
 }

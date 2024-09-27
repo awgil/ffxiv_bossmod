@@ -116,8 +116,23 @@ public record class ArenaBoundsCircle(float Radius, float MapResolution = 0.5f) 
 
     private Pathfinding.Map BuildMap()
     {
+        // circle is convex, and pathfinding always aims to cell centers, so we can only block pixels which centers are out of bounds
         var map = new Pathfinding.Map(MapResolution, default, Radius, Radius);
-        map.BlockPixelsInside(ShapeDistance.InvertedCircle(default, Radius), 0, 0);
+        int iCell = 0;
+        var threshold = Radius * Radius / (MapResolution * MapResolution); // square of bounds radius, in grid coordinates
+        var dy = -map.Height / 2 + 0.5f;
+        for (int y = 0; y < map.Height; ++y, ++dy)
+        {
+            var dx = -map.Width / 2 + 0.5f;
+            for (int x = 0; x < map.Width; ++x, ++dx)
+            {
+                if (dx * dx + dy * dy > threshold)
+                {
+                    map.PixelMaxG[iCell] = 0;
+                }
+                ++iCell;
+            }
+        }
         return map;
     }
 }
@@ -182,9 +197,44 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
 
     private Pathfinding.Map BuildMap()
     {
+        // since polygon is potentially concave, we need to rasterize conservatively: if any of the pixel corners is outside bounds, block the pixel
         var map = new Pathfinding.Map(MapResolution, default, Radius, Radius);
-        var tri = ShapeDistance.TriList(default, Poly.Triangulate());
-        map.BlockPixelsInside(p => -tri(p), 0, 0);
+        // first pass: block [x,y] if any of two top corners is outside
+        int iCell = 0;
+        var cy = new WDir(-map.Width / 2 * MapResolution, -map.Height / 2 * MapResolution);
+        for (int y = 0; y < map.Height; ++y)
+        {
+            var cx = cy;
+            var leftOutside = !Poly.Contains(cx);
+            for (int x = 0; x < map.Width; ++x)
+            {
+                cx.X += MapResolution;
+                var rightOutside = !Poly.Contains(cx);
+                if (leftOutside || rightOutside)
+                    map.PixelMaxG[iCell] = 0;
+                leftOutside = rightOutside;
+                ++iCell;
+            }
+            cy.Z += MapResolution;
+        }
+        // second pass: check bottom corners
+        var bleftOutside = !Poly.Contains(cy);
+        iCell -= map.Width;
+        for (int x = 0; x < map.Width; ++x, ++iCell)
+        {
+            cy.X += MapResolution;
+            var brightOutside = !Poly.Contains(cy);
+            var bottomOutside = bleftOutside || brightOutside;
+            var jCell = iCell;
+            for (int y = map.Height; y > 0; --y, jCell -= map.Width)
+            {
+                var topOutside = map.PixelMaxG[jCell] == 0;
+                if (bottomOutside)
+                    map.PixelMaxG[jCell] = 0;
+                bottomOutside = topOutside;
+            }
+            bleftOutside = brightOutside;
+        }
         return map;
     }
 }

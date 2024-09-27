@@ -55,16 +55,14 @@ public sealed class AIHints
     // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
     public List<(Func<WPos, float> shapeDistance, DateTime activation)> ForbiddenZones = [];
 
-    // positioning: rough target & radius of the movement; if not set, uses either target's position or module center instead
-    // used to somewhat prioritize movement direction and optimize pathfinding
-    public WPos? PathfindingHintDestination;
-    public float? PathfindingHintRadius;
+    // positioning: list of goal functions
+    // AI will try to move to reach non-forbidden point with highest goal value (sum of values returned by all functions)
+    // guideline: rotation modules should return 1 if it would use single-target action from that spot, 2 if it is also a positional, 3 if it would use aoe that would hit minimal viable number of targets, +1 for each extra target
+    // other parts of the code can return small (e.g. 0.01) values to slightly (de)prioritize some positions, or large (e.g. 1000) values to effectively soft-override target position (but still utilize pathfinding)
+    public List<Func<WPos, float>> GoalZones = [];
 
     // positioning: next positional hint (TODO: reconsider, maybe it should be a list prioritized by in-gcds, and imminent should be in-gcds instead? or maybe it should be property of an enemy? do we need correct?)
     public (Actor? Target, Positional Pos, bool Imminent, bool Correct) RecommendedPositional;
-
-    // positioning: recommended range to target (TODO: reconsider?)
-    public float RecommendedRangeToTarget;
 
     // orientation restrictions (e.g. for gaze attacks): a list of forbidden orientation ranges, now or in near future
     // AI will rotate to face allowed orientation at last possible moment, potentially losing uptime
@@ -93,10 +91,8 @@ public sealed class AIHints
         ForcedMovement = null;
         InteractWithTarget = null;
         ForbiddenZones.Clear();
-        PathfindingHintDestination = null;
-        PathfindingHintRadius = null;
+        GoalZones.Clear();
         RecommendedPositional = default;
-        RecommendedRangeToTarget = 0;
         ForbiddenDirections.Clear();
         ImminentSpecialMode = default;
         PredictedDamage.Clear();
@@ -168,6 +164,96 @@ public sealed class AIHints
     public bool TargetInAOECircle(Actor target, WPos origin, float radius) => target.Position.InCircle(origin, radius + target.HitboxRadius);
     public bool TargetInAOECone(Actor target, WPos origin, float radius, WDir direction, Angle halfAngle) => target.Position.InCircleCone(origin, radius + target.HitboxRadius, direction, halfAngle);
     public bool TargetInAOERect(Actor target, WPos origin, WDir direction, float lenFront, float halfWidth, float lenBack = 0) => target.Position.InRect(origin, direction, lenFront + target.HitboxRadius, lenBack, halfWidth);
+
+    // goal zones
+    // simple goal zone that returns 1 if target is in range, useful for single-target actions
+    public Func<WPos, float> GoalSingleTarget(WPos target, float radius)
+    {
+        var effRsq = radius * radius;
+        return p => (p - target).LengthSq() <= effRsq ? 1 : 0;
+    }
+    public Func<WPos, float> GoalSingleTarget(Actor target, float range) => GoalSingleTarget(target.Position, range + target.HitboxRadius + 0.5f);
+
+    // simple goal zone that returns 1 if target is in range (usually melee), 2 if it's also in correct positional
+    public Func<WPos, float> GoalSingleTarget(WPos target, Angle rotation, Positional positional, float radius)
+    {
+        if (positional == Positional.Any)
+            return GoalSingleTarget(target, radius); // more efficient implementation
+        var effRsq = radius * radius;
+        var targetDir = rotation.ToDirection();
+        return p =>
+        {
+            var offset = p - target;
+            var lsq = offset.LengthSq();
+            if (lsq > effRsq)
+                return 0; // out of range
+            // note: this assumes that extra dot is cheaper than sqrt?..
+            var front = targetDir.Dot(offset);
+            var side = Math.Abs(targetDir.Dot(offset.OrthoL()));
+            var inPositional = positional switch
+            {
+                Positional.Flank => side > Math.Abs(front),
+                Positional.Rear => -front > side,
+                Positional.Front => front > side, // TODO: reconsider this, it's not a real positional?..
+                _ => false
+            };
+            return inPositional ? 2 : 1;
+        };
+    }
+    public Func<WPos, float> GoalSingleTarget(Actor target, Positional positional, float range = 3) => GoalSingleTarget(target.Position, target.Rotation, positional, range + target.HitboxRadius);
+
+    // simple goal zone that returns number of targets in aoes; note that performance is a concern for these functions, and perfection isn't required, so eg they ignore forbidden targets, etc
+    public Func<WPos, float> GoalAOECircle(float radius)
+    {
+        List<(WPos pos, float radius)> targets = [.. PriorityTargets.Select(e => (e.Actor.Position, e.Actor.HitboxRadius))];
+        return p => targets.Count(t => t.pos.InCircle(p, radius + t.radius));
+    }
+
+    public Func<WPos, float> GoalAOECone(Actor primaryTarget, float radius, Angle halfAngle)
+    {
+        List<(WPos pos, float radius)> targets = [.. PriorityTargets.Select(e => (e.Actor.Position, e.Actor.HitboxRadius))];
+        var aimPoint = primaryTarget.Position;
+        var effRange = radius + primaryTarget.HitboxRadius;
+        var effRsq = effRange * effRange;
+        return p =>
+        {
+            var toTarget = aimPoint - p;
+            var lenSq = toTarget.LengthSq();
+            if (lenSq > effRsq)
+                return 0;
+            var dir = toTarget / MathF.Sqrt(lenSq);
+            return targets.Count(t => t.pos.InCircleCone(p, radius + t.radius, dir, halfAngle));
+        };
+    }
+
+    public Func<WPos, float> GoalAOERect(Actor primaryTarget, float lenFront, float halfWidth, float lenBack = 0)
+    {
+        List<(WPos pos, float radius)> targets = [.. PriorityTargets.Select(e => (e.Actor.Position, e.Actor.HitboxRadius))];
+        var aimPoint = primaryTarget.Position;
+        var effRange = lenFront + primaryTarget.HitboxRadius;
+        var effRsq = effRange * effRange;
+        return p =>
+        {
+            var toTarget = aimPoint - p;
+            var lenSq = toTarget.LengthSq();
+            if (lenSq > effRsq)
+                return 0;
+            var dir = toTarget / MathF.Sqrt(lenSq);
+            return targets.Count(t => t.pos.InRect(p, dir, lenFront, lenBack, halfWidth));
+        };
+    }
+
+    // combined goal zone: returns 'aoe' priority if targets hit are at or above minimum, otherwise returns 'single-target' priority
+    public Func<WPos, float> GoalCombined(Func<WPos, float> singleTarget, Func<WPos, float> aoe, int minAOETargets)
+    {
+        if (minAOETargets >= 50)
+            return singleTarget; // assume aoe is never efficient, so don't bother
+        return p =>
+        {
+            var aoeTargets = aoe(p) - minAOETargets;
+            return aoeTargets >= 0 ? 3 + aoeTargets : singleTarget(p);
+        };
+    }
 
     public WPos ClampToBounds(WPos position) => Center + Bounds.ClampToBounds(position - Center);
 }

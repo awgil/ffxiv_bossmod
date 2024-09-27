@@ -7,8 +7,6 @@ public class MapVisualizer
 {
     public Map Map;
     public WPos StartPos;
-    public WPos GoalPos;
-    public float GoalRadius;
     public float ScreenPixelSize = 12;
     public List<(WPos center, float ir, float or, Angle dir, Angle halfWidth)> Sectors = [];
     public List<(WPos origin, float lenF, float lenB, float halfWidth, Angle dir)> Rects = [];
@@ -17,12 +15,10 @@ public class MapVisualizer
     private ThetaStar _pathfind;
     private float _lastExecTime;
 
-    public MapVisualizer(Map map, WPos startPos, WPos goalPos, float goalRadius)
+    public MapVisualizer(Map map, WPos startPos)
     {
         Map = map;
         StartPos = startPos;
-        GoalPos = goalPos;
-        GoalRadius = goalRadius;
         _pathfind = BuildPathfind();
         ExecTimed(() => _pathfind.Execute());
     }
@@ -301,7 +297,7 @@ public class MapVisualizer
     private ThetaStar BuildPathfind()
     {
         var res = new ThetaStar();
-        res.Start(Map, StartPos, GoalPos, GoalRadius, 1.0f / 6);
+        res.Start(Map, StartPos, 1.0f / 6);
         return res;
     }
 }
