@@ -10,7 +10,8 @@ public enum AID : uint
     VeilOfHeat = 39283, // Boss->self, 5.0s cast, range 15 circle
     HaloOfHeat = 39284, // Boss->self, 5.0s cast, range 10-40 donut
     FiresDomain = 39285, // Boss->players, 5.0s cast, width 6 rect charge
-    Twinscorch = 39602, // Boss->self, 4.0s cast, range 40 180-degree cone, visual (two cleaves)
+    TwinscorchL = 39601, // Boss->self, 4.0s cast, range 40 180-degree cone, visual (L->R cleaves)
+    TwinscorchR = 39602, // Boss->self, 4.0s cast, range 40 180-degree cone, visual (R->L cleaves)
     ScorchingLeftFirst = 39557, // Boss->self, no cast, range 40 180-degree cone
     ScorchingRightFirst = 39558, // Boss->self, no cast, range 40 180-degree cone
     ScorchingLeftSecond = 39528, // Boss->self, 1.0s cast, range 40 180-degree cone
@@ -64,7 +65,8 @@ class VeilHaloTwinscorch(BossModule module) : Components.GenericAOEs(module)
             case AID.HaloOfHeat:
                 _aoes.Add(new(_shapeIn, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
                 break;
-            case AID.Twinscorch:
+            case AID.TwinscorchL:
+            case AID.TwinscorchR:
                 _aoes.Add(new(_shapeCleave, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 0.2f)));
                 _aoes.Add(new(_shapeCleave, caster.Position, spell.Rotation + 180.Degrees(), Module.CastFinishAt(spell, 2.4f)));
                 break;
