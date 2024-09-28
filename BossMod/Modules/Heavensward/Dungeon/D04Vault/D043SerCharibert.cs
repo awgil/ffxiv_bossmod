@@ -45,7 +45,7 @@ class SacredFlame(BossModule module) : Components.RaidwideCast(module, ActionID.
 class March(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _knights = [];
-    private static readonly AOEShapeRect rect = new(8, 2, -1);
+    private static readonly AOEShapeRect rect = new(12, 2, -1);
     private static readonly AOEShapeCircle circ = new(2.5f);
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
