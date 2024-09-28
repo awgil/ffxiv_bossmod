@@ -334,7 +334,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
                 // special case for use as gapcloser - it has to be very high priority
                 var (prio, basePrio) = stratOnsOpt == OnslaughtStrategy.GapClose ? (OGCDPriority.GapcloseOnslaught, ActionQueue.Priority.High)
                     : LostBloodRageStacks is > 0 and < 4 ? (OGCDPriority.LostBanner, ActionQueue.Priority.Medium)
-                    : (OGCDPriority.Onslaught, OnslaughtCD < GCDLength ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low);
+                    : (OGCDPriority.Onslaught, OnslaughtCapIn < GCDLength ? ActionQueue.Priority.Low : ActionQueue.Priority.VeryLow);
                 QueueOGCD(WAR.AID.Onslaught, target, stratOns.Value.PriorityOverride, prio, basePrio);
             }
         }

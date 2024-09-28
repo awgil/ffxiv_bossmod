@@ -43,6 +43,7 @@ public enum AID : uint
     Friction = 11080, // Garuda->players, 2.0s cast, range 5 circle
     SuperCyclone1 = 11079, // Helper->location, no cast, raidwide on thermal low 1 cleanse
     SuperCyclone2 = 11189, // Helper->location, no cast, raidwide on thermal low 2 cleanse
+    SuperCyclone3 = 11190, // Helper->location, no cast, deadly raidwide on thermal low 3 cleanse
     EyeOfTheStorm = 11090, // Helper->self, 3.0s cast, range 12-25 donut
     WickedWheel = 11086, // Garuda->self, 3.0s cast, range 7+R circle aoe
     WickedTornado = 11087, // Helper->self, no cast, range ?-20 donut
@@ -53,7 +54,7 @@ public enum AID : uint
     Gigastorm = 11078, // SpinyPlume->self, 3.0s cast, range 6+R circle aoe on death
 
     AutoAttackIfrit = 11089, // Ifrit->player, no cast, single-target
-    //??? = 461, // Ifrit->self, no cast, single-target, visual ???
+    SpawnNails = 461, // Ifrit->self, no cast, single-target, visual ???
     CrimsonCyclone = 11103, // Ifrit->self, 3.0s cast, range 44+R width 18 rect aoe
     CrimsonCycloneCross = 11104, // Helper->self, no cast, range 44+R width 10 rect aoe
     RadiantPlumeAOE = 11105, // Helper->location, 4.0s cast, range 8 circle aoe
