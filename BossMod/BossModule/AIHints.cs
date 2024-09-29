@@ -36,6 +36,7 @@ public sealed class AIHints
 
     public WPos Center;
     public ArenaBounds Bounds = DefaultBounds;
+    public WaypointManager WaypointManager { get; private set; } = new WaypointManager();
 
     // list of potential targets
     public List<Enemy> PotentialTargets = [];
