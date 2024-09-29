@@ -82,7 +82,10 @@ internal class Bounds(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Bridge)
-            hints.RecommendedRangeToTarget = 0;
+        {
+            var goal = Module.PrimaryActor.Position;
+            hints.GoalZones.Add(p => (goal - p).LengthSq() < 0.25f ? 100 : 0);
+        }
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
