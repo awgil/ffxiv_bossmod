@@ -4,11 +4,6 @@ using System.Reflection;
 
 namespace BossMod;
 
-public sealed class ConfigChangelogProperties : ConfigNode
-{
-    public Version BossModVersion { get; set; } = new(0, 0, 0, 0);
-}
-
 public sealed record class VersionedField(ConfigNode Node, FieldInfo FieldInfo, Version AddedVersion)
 {
     public string FieldKey => $"{Node}.{FieldInfo.Name}";
@@ -21,11 +16,18 @@ public class ConfigChangelogWindow : UIWindow
 
     public ConfigChangelogWindow() : base("VBM Changelog", true, new(400, 300))
     {
-        var props = Service.Config.Get<ConfigChangelogProperties>();
-        PreviousVersion = GetPreviousPluginVersion(props);
-        props.BossModVersion = GetCurrentPluginVersion();
+        PreviousVersion = GetPreviousPluginVersion();
+        Service.Config.AssemblyVersion = GetCurrentPluginVersion();
+        if (Service.Config.AssemblyVersion != PreviousVersion)
+        {
+            Service.Config.Modified.Fire();
+            Fields = GetAllFields().Where(f => f.AddedVersion > PreviousVersion).ToList();
+        }
+        else
+        {
+            Fields = [];
+        }
 
-        Fields = GetAllFields().Where(f => f.AddedVersion > PreviousVersion).ToList();
         if (Fields.Count == 0)
         {
             // nothing interesting to show...
@@ -69,12 +71,11 @@ public class ConfigChangelogWindow : UIWindow
     private void SetOption(VersionedField field, bool value)
     {
         field.FieldInfo.SetValue(field.Node, value);
+        Service.Config.Modified.Fire();
+
         Fields.Remove(field);
         if (Fields.Count == 0)
-        {
             IsOpen = false;
-            Service.Config.Modified.Fire();
-        }
     }
 
     private static IEnumerable<VersionedField> GetAllFields()
@@ -107,13 +108,13 @@ public class ConfigChangelogWindow : UIWindow
 #endif
     }
 
-    private static Version GetPreviousPluginVersion(ConfigChangelogProperties props)
+    private static Version GetPreviousPluginVersion()
     {
 #if DEBUG
         // change value to something sensible if you want to test the changelog stuff
         return new(0, 0, 0, 999);
 #else
-        return props.BossModVersion;
+        return Service.Config.AssemblyVersion;
 #endif
     }
 }
