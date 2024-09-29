@@ -416,7 +416,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     }
 
     private float DesiredFireWindow => GCDLength * 10;
-    private float EarliestRoF(float estimatedDelay) => MathF.Max(estimatedDelay + 0.6f, 20.6f - DesiredFireWindow);
+    private float EarliestRoF(float estimatedDelay) => MathF.Max(estimatedDelay + 0.8f, 20.6f - DesiredFireWindow);
 
     private void Potion() => Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Low + 100 + (float)OGCDPriority.Potion);
 
