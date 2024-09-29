@@ -6,10 +6,10 @@ namespace EarcutNet;
 
 public class Earcut
 {
-    public static List<int> Tessellate(IList<double> data, IList<int> holeIndices)
+    public static List<int> Tessellate(ReadOnlySpan<double> data, IList<int> holeIndices)
     {
         var hasHoles = holeIndices.Count > 0;
-        var outerLen = hasHoles ? holeIndices[0] * 2 : data.Count;
+        var outerLen = hasHoles ? holeIndices[0] * 2 : data.Length;
         var outerNode = LinkedList(data, 0, outerLen, true);
         var triangles = new List<int>();
 
@@ -30,7 +30,7 @@ public class Earcut
         }
 
         // if the shape is not too simple, we'll use z-order curve hash later; calculate polygon bbox
-        if (data.Count > 80 * 2)
+        if (data.Length > 80 * 2)
         {
             for (int i = 0; i < outerLen; i += 2)
             {
@@ -69,7 +69,7 @@ public class Earcut
     }
 
     // Creates a circular doubly linked list from polygon points in the specified winding order.
-    static Node LinkedList(IList<double> data, int start, int end, bool clockwise)
+    static Node LinkedList(ReadOnlySpan<double> data, int start, int end, bool clockwise)
     {
         var last = default(Node);
 
@@ -370,7 +370,7 @@ public class Earcut
     }
 
     // link every hole into the outer loop, producing a single-ring polygon without holes
-    static Node EliminateHoles(IList<double> data, IList<int> holeIndices, Node outerNode)
+    static Node EliminateHoles(ReadOnlySpan<double> data, IList<int> holeIndices, Node outerNode)
     {
         var queue = new List<Node>();
 
@@ -379,7 +379,7 @@ public class Earcut
         for (var i = 0; i < len; i++)
         {
             var start = holeIndices[i] * 2;
-            var end = i < len - 1 ? holeIndices[i + 1] * 2 : data.Count;
+            var end = i < len - 1 ? holeIndices[i + 1] * 2 : data.Length;
             var list = LinkedList(data, start, end, false);
             if (list == list.next)
             {
@@ -822,7 +822,7 @@ public class Earcut
         }
     }
 
-    static double SignedArea(IList<double> data, int start, int end)
+    static double SignedArea(ReadOnlySpan<double> data, int start, int end)
     {
         var sum = default(double);
 
@@ -837,26 +837,26 @@ public class Earcut
 
     // return a percentage difference between the polygon area and its triangulation area;
     // used to verify correctness of triangulation
-    public static double Deviation(IList<double> data, IList<int> holeIndices, IList<int> triangles)
+    public static double Deviation(ReadOnlySpan<double> data, ReadOnlySpan<int> holeIndices, ReadOnlySpan<int> triangles)
     {
-        var hasHoles = holeIndices.Count > 0;
-        var outerLen = hasHoles ? holeIndices[0] * 2 : data.Count;
+        var hasHoles = holeIndices.Length > 0;
+        var outerLen = hasHoles ? holeIndices[0] * 2 : data.Length;
 
         var polygonArea = Math.Abs(SignedArea(data, 0, outerLen));
         if (hasHoles)
         {
-            var len = holeIndices.Count;
+            var len = holeIndices.Length;
 
             for (var i = 0; i < len; i++)
             {
                 var start = holeIndices[i] * 2;
-                var end = i < len - 1 ? holeIndices[i + 1] * 2 : data.Count;
+                var end = i < len - 1 ? holeIndices[i + 1] * 2 : data.Length;
                 polygonArea -= Math.Abs(SignedArea(data, start, end));
             }
         }
 
         var trianglesArea = default(double);
-        for (var i = 0; i < triangles.Count; i += 3)
+        for (var i = 0; i < triangles.Length; i += 3)
         {
             var a = triangles[i] * 2;
             var b = triangles[i + 1] * 2;
