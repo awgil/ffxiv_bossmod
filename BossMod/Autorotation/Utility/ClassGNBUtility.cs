@@ -73,7 +73,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
 
         var dashStrategy = strategy.Option(Track.Trajectory).As<DashStrategy>();
         if (ShouldUseDash(dashStrategy, primaryTarget))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(GNB.AID.Trajectory), Player, hoc.Priority());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(GNB.AID.Trajectory), primaryTarget, hoc.Priority());
     }
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {
