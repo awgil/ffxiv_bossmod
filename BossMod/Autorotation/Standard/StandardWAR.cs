@@ -724,7 +724,9 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             }
         }
         var nextAction = wantAOEAction ? NextComboAOE(comboStepsRemaining == 0) : NextComboSingleTarget(wantSERoute, comboStepsRemaining == 0);
-        var riskOvercappingGauge = Gauge + GaugeGainedFromAction(nextAction) > 100;
+
+        var needInfuriateSoon = Unlocked(WAR.AID.Infuriate) && !CanFitGCD(InfuriateCD - InfuriateCDReduction - InfuriateCDLeeway, 1);
+        var riskOvercappingGauge = Gauge + GaugeGainedFromAction(nextAction) > (needInfuriateSoon ? 50 : 100);
 
         // first deal with forced combo; for ST extension, we generally want to minimize overcap by using combo finisher as late as possible
         // TODO: reconsider what to do if we can't fit in combo - do we still want to do partial combo? especially if it would cause gauge overcap
