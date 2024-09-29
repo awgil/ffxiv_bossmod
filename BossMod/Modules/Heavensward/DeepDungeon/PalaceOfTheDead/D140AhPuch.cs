@@ -1,32 +1,31 @@
-namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D40Ixtab;
+﻿namespace BossMod.Modules.Heavensward.DeepDungeon.PalaceOfTheDead.D140AhPuch;
 
 public enum OID : uint
 {
-    Boss = 0x16B9, // R3.800, x1
+    Boss = 0x181B, // R3.800, x1
+    DeepPalaceFollower = 0x1906, // R1.800, x0 (spawn during fight)
     AccursedPoxVoidZone = 0x1E8EA9, // R0.500, x0 (spawn during fight), EventObj type
-    NightmareBhoot = 0x1764, // R1.800, x0 (spawn during fight)
 }
 
 public enum AID : uint
 {
     AutoAttack = 6498, // Boss->player, no cast, single-target
-
-    AccursedPox = 6434, // Boss->location, 3.0s cast, range 8 circle
-    AncientEruption = 6430, // Boss->location, 2.5s cast, range 4 circle
-    Blizzard = 967, // NightmareBhoot->player, 1.0s cast, single-target
-    EntropicFlame = 6431, // Boss->self, 3.0s cast, range 50+R width 8 rect
-    Scream = 6433, // Boss->self, 3.0s cast, range 25 circle
-    ShadowFlare = 6432, // Boss->self, 3.0s cast, range 25+R circle
+    AccursedPox = 7146, // Boss->location, 3.0s cast, range 8 circle
+    AncientEruption = 7142, // Boss->location, 2.5s cast, range 4 circle
+    Blizzard = 967, // DeepPalaceFollower->player, 1.0s cast, single-target
+    EntropicFlame = 7143, // Boss->self, 3.0s cast, range 50+R width 8 rect
+    Scream = 7145, // Boss->self, 3.0s cast, range 30 circle
+    ShadowFlare = 7144, // Boss->self, 3.0s cast, range 25+R circle
 }
 
-class Adds(BossModule module) : Components.Adds(module, (uint)OID.NightmareBhoot)
+class Adds(BossModule module) : Components.Adds(module, (uint)OID.DeepPalaceFollower)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var e in hints.PotentialTargets)
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.NightmareBhoot => 2,
+                OID.DeepPalaceFollower => 2,
                 OID.Boss => 1,
                 _ => 0
             };
@@ -39,9 +38,9 @@ class EntropicFlame(BossModule module) : Components.SelfTargetedAOEs(module, Act
 class Scream(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Scream), "Raidwide + Fear, Adds need to be dead by now");
 class ShadowFlare(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ShadowFlare));
 
-class D40IxtabStates : StateMachineBuilder
+class D140AhPuchStates : StateMachineBuilder
 {
-    public D40IxtabStates(BossModule module) : base(module)
+    public D140AhPuchStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Adds>()
@@ -54,5 +53,5 @@ class D40IxtabStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 177, NameID = 5025)]
-public class D40Ixtab(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -225), new ArenaBoundsCircle(25));
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 212, NameID = 5410)]
+public class D140AhPuch(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -237), new ArenaBoundsCircle(25));
