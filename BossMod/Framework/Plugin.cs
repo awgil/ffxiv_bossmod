@@ -1,5 +1,4 @@
 ﻿using BossMod.Autorotation;
-using BossMod.Config;
 using Dalamud.Common;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
@@ -99,7 +98,7 @@ public sealed class Plugin : IDalamudPlugin
         dalamud.UiBuilder.Draw += DrawUI;
         dalamud.UiBuilder.OpenConfigUi += () => OpenConfigUI();
 
-        ChangelogDisplay.UpdateAndNotifyUser();
+        _ = new ConfigChangelogWindow();
     }
 
     public void Dispose()
