@@ -108,6 +108,7 @@ public class ConfigChangelogWindow : UIWindow
 #endif
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1024:Use properties where appropriate")]
     private static Version GetPreviousPluginVersion()
     {
 #if DEBUG
