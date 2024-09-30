@@ -155,7 +155,6 @@ class D032HunterOfBardamStates : StateMachineBuilder
     public D032HunterOfBardamStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<Comet>()
             .ActivateOnEnter<CometFirst>()
             .ActivateOnEnter<CometRest>()
             .ActivateOnEnter<Tremblor>()
