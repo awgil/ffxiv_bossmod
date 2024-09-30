@@ -55,7 +55,7 @@ class CometRest(BossModule module) : Components.LocationTargetedAOEs(module, Act
 
 class MeteorImpact(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.MeteorImpact), 50, false)
 {
-    private DateTime activation;
+    //private DateTime activation;
 
     public override IEnumerable<Actor> BlockerActors()
     {
@@ -63,7 +63,7 @@ class MeteorImpact(BossModule module) : Components.CastLineOfSightAOE(module, Ac
         return starshard.Count() == 1 ? starshard : [];
     }
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    /*public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
         {
@@ -79,7 +79,7 @@ class MeteorImpact(BossModule module) : Components.CastLineOfSightAOE(module, Ac
             Refresh();
             AddSafezone(activation);
         }
-    }
+    }*/
 }
 
 class Charge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Charge), new AOEShapeRect(41.25f, 2.5f, 5));
