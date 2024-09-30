@@ -35,8 +35,8 @@ public abstract class C011Silkie(WorldState ws, Actor primary) : BossModule(ws, 
     public static readonly AOEShapeCone ShapeYellow = new(60, 22.5f.Degrees());
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11369, SortOrder = 5)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11369, SortOrder = 5, PlanLevel = 90)]
 public class C011NSilkie(WorldState ws, Actor primary) : C011Silkie(ws, primary);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11369, SortOrder = 5)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11369, SortOrder = 5, PlanLevel = 90)]
 public class C011SSilkie(WorldState ws, Actor primary) : C011Silkie(ws, primary);

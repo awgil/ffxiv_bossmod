@@ -109,7 +109,7 @@ class OpList(Replay replay, Replay.Encounter? enc, ModuleRegistry.Info? moduleIn
             ActorState.OpHPMP => false,
             ActorState.OpTargetable op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ActorState.OpDead op => FilterInterestingActor(op.InstanceID, op.Timestamp, true),
-            ActorState.OpCombat => false,
+            ActorState.OpCombat op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ActorState.OpEventState op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ActorState.OpTarget op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ActorState.OpCastInfo op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(FindCast(replay.FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null)?.ID ?? new()),

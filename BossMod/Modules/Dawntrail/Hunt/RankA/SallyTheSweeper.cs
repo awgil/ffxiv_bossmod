@@ -27,6 +27,7 @@ class ExecutionModel(BossModule module) : Components.GenericAOEs(module)
     private readonly List<AOEShape> _shapes = [];
     private bool _reverse;
     private DateTime _activation;
+    private Angle _rotation;
 
     private static readonly AOEShapeCircle _shapeCircle = new(10);
     private static readonly AOEShapeDonut _shapeDonut = new(10, 40);
@@ -35,7 +36,7 @@ class ExecutionModel(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default && _shapes.Count > 0)
-            yield return new(_shapes[_reverse ? ^1 : 0], Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation);
+            yield return new(_shapes[_reverse ? ^1 : 0], Module.PrimaryActor.Position, _rotation, _activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -50,6 +51,7 @@ class ExecutionModel(BossModule module) : Components.GenericAOEs(module)
                 break;
             case AID.ExecutionModelCross:
                 _shapes.Add(_shapeCross);
+                _rotation = spell.Rotation;
                 break;
             case AID.CodeExecutionFirstCircle:
             case AID.CodeExecutionFirstDonut:
