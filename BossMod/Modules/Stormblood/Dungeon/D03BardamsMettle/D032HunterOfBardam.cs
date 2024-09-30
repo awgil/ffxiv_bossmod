@@ -55,31 +55,20 @@ class CometRest(BossModule module) : Components.LocationTargetedAOEs(module, Act
 
 class MeteorImpact(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.MeteorImpact), 50, false)
 {
-    //private DateTime activation;
+    private Actor? castActor;
+    public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.StarShard).Where(x => !x.IsDead);
 
-    public override IEnumerable<Actor> BlockerActors()
-    {
-        var starshard = Module.Enemies(OID.StarShard).Where(x => !x.IsDead);
-        return starshard.Count() == 1 ? starshard : [];
-    }
-
-    /*public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-        {
-            Casters.Add(caster);
-            activation = Module.CastFinishAt(spell);
-        }
+            castActor = caster;
     }
 
     public override void Update()
     {
-        if (BlockerActors().Any() && Safezones.Count == 0)
-        {
-            Refresh();
-            AddSafezone(activation);
-        }
-    }*/
+        if (BlockerActors().Count() == 1)
+            Modify(castActor?.Position, [(BlockerActors().First().Position, 2)]);
+    }
 }
 
 class Charge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Charge), new AOEShapeRect(41.25f, 2.5f, 5));
@@ -170,7 +159,7 @@ class D032HunterOfBardamStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team (Malediktus), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 240, NameID = 6180)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team (Malediktus), Ported by Herculezz (MeteorImpact rewritten with help from Xan)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 240, NameID = 6180)]
 public class D032HunterOfBardam(WorldState ws, Actor primary) : BossModule(ws, primary, new(-28.5f, -14), new ArenaBoundsCircle(19.5f))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
