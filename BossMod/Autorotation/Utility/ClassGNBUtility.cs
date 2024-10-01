@@ -2,11 +2,11 @@
 
 public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player) : RoleTankUtility(manager, player)
 {
-    public enum Track { Camouflage = SharedTrack.Count, Nebula, Aurora, Superbolide, HeartOfLight, HeartOfCorundum, Trajectory }
-    public enum HoCOption { None, HeartOfStone, HeartOfCorundum }
-    public enum AuroraStrategy { None, Force, Delay }
-    public enum DashStrategy { None, GapClose } //GapCloser strategy
-    public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
+    public enum Track { Camouflage = SharedTrack.Count, Nebula, Aurora, Superbolide, HeartOfLight, HeartOfCorundum, Trajectory } //Our defensives and utilities
+    public enum HoCOption { None, HeartOfStone, HeartOfCorundum } //Checks for proper HoC
+    public enum AuroraStrategy { None, Force } //Aurora
+    public enum DashStrategy { None, GapClose } //Gapcloser purposes
+    public bool InMeleeRange(Actor? primaryTarget) => Player.DistanceToHitbox(primaryTarget) <= 3; //Checks if we're inside melee range
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(GNB.AID.GunmetalSoul);
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(GNB.AID.RoyalGuard);
@@ -23,7 +23,6 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         res.Define(Track.Aurora).As<AuroraStrategy>("Aurora", "", 550) //60s (120s total), 18s duration, 2 charges
             .AddOption(AuroraStrategy.None, "None", "Do not use automatically")
             .AddOption(AuroraStrategy.Force, "Use", "Use Aurora", 60, 18, ActionTargets.Self | ActionTargets.Party, 45)
-            .AddOption(AuroraStrategy.Delay, "Don't use", "Delay Aurora")
             .AddAssociatedActions(GNB.AID.Aurora);
 
         DefineSimpleConfig(res, Track.Superbolide, "Superbolide", "Bolide", 400, GNB.AID.Superbolide, 10); //360s CD, 10s duration
@@ -51,17 +50,21 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Superbolide), GNB.AID.Superbolide, Player);
         ExecuteSimple(strategy.Option(Track.HeartOfLight), GNB.AID.HeartOfLight, Player);
 
+        //Aurora execution
         var aur = strategy.Option(Track.Aurora);
+        var aurTarget = ResolveTargetOverride(aur.Value) ?? primaryTarget; //Smart-Targeting
+        var aurStatus = StatusDetails(aurTarget, GNB.SID.Aurora, Player.InstanceID, 18).Left > 1; //Checks if status is present
         var aurora = aur.As<AuroraStrategy>() switch
         {
             AuroraStrategy.Force => GNB.AID.Aurora,
-            AuroraStrategy.Delay => GNB.AID.None,
             _ => default
         };
-        if (aurora != default && SelfStatusLeft(GNB.SID.Aurora) <= 3f)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aurora), Player, aur.Priority(), aur.Value.ExpireIn);
+        if (aurora != default && !aurStatus)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(GNB.AID.Aurora), aurTarget, aur.Priority(), aur.Value.ExpireIn);
 
+        //Heart of Corundum execution
         var hoc = strategy.Option(Track.HeartOfCorundum);
+        var hocTarget = ResolveTargetOverride(hoc.Value) ?? CoTank() ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
         var aid = hoc.As<HoCOption>() switch
         {
             HoCOption.HeartOfStone => GNB.AID.HeartOfStone,
@@ -69,7 +72,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (aid != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), ResolveTargetOverride(hoc.Value) ?? CoTank() ?? Player, hoc.Priority(), hoc.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), hocTarget, hoc.Priority(), hoc.Value.ExpireIn);
 
         var dashStrategy = strategy.Option(Track.Trajectory).As<DashStrategy>();
         if (ShouldUseDash(dashStrategy, primaryTarget))

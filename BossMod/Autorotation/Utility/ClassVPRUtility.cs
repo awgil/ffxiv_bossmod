@@ -29,9 +29,10 @@ public sealed class ClassVPRUtility(RotationModuleManager manager, Actor player)
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
 
         var dash = strategy.Option(Track.Slither);
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
         var dashStrategy = strategy.Option(Track.Slither).As<DashStrategy>();
-        if (ShouldUseDash(dashStrategy, null))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(VPR.AID.Slither), null, dash.Priority());
+        if (ShouldUseDash(dashStrategy, dashTarget))
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(VPR.AID.Slither), dashTarget, dash.Priority());
     }
 
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch

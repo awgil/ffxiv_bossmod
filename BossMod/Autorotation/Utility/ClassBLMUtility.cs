@@ -28,9 +28,10 @@ public sealed class ClassBLMUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Manaward), BLM.AID.Manaward, Player);
 
         var dash = strategy.Option(Track.AetherialManipulation);
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
         var dashStrategy = strategy.Option(Track.AetherialManipulation).As<DashStrategy>();
-        if (ShouldUseDash(dashStrategy, null))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(BLM.AID.AetherialManipulation), null, dash.Priority());
+        if (ShouldUseDash(dashStrategy, dashTarget))
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(BLM.AID.AetherialManipulation), dashTarget, dash.Priority());
     }
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {

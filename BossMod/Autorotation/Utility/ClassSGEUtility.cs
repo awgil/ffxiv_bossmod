@@ -78,14 +78,14 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving) //How we're executing our skills listed below
     {
         ExecuteShared(strategy, IDLimitBreak3);
-        ExecuteSimple(strategy.Option(Track.Egeiro), SGE.AID.Egeiro, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Egeiro), SGE.AID.Egeiro, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.Eukrasia), SGE.AID.Eukrasia, Player);
-        ExecuteSimple(strategy.Option(Track.Druochole), SGE.AID.Druochole, null);
+        ExecuteSimple(strategy.Option(Track.Druochole), SGE.AID.Druochole, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.Kerachole), SGE.AID.Kerachole, Player);
         ExecuteSimple(strategy.Option(Track.Ixochole), SGE.AID.Ixochole, Player);
         ExecuteSimple(strategy.Option(Track.Pepsis), SGE.AID.Pepsis, Player);
-        ExecuteSimple(strategy.Option(Track.Taurochole), SGE.AID.Taurochole, null);
-        ExecuteSimple(strategy.Option(Track.Haima), SGE.AID.Haima, null);
+        ExecuteSimple(strategy.Option(Track.Taurochole), SGE.AID.Taurochole, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.Haima), SGE.AID.Haima, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.Rhizomata), SGE.AID.Rhizomata, Player);
         ExecuteSimple(strategy.Option(Track.Holos), SGE.AID.Holos, Player);
         ExecuteSimple(strategy.Option(Track.Panhaima), SGE.AID.Panhaima, Player);
@@ -100,7 +100,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (kardiaAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(kardiaAction), null, kardia.Priority(), kardia.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(kardiaAction), primaryTarget, kardia.Priority(), kardia.Value.ExpireIn);
 
         var diag = strategy.Option(Track.Diagnosis);
         var diagAction = diag.As<DiagOption>() switch
@@ -110,7 +110,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (diagAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(diagAction), null, diag.Priority(), diag.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(diagAction), primaryTarget, diag.Priority(), diag.Value.ExpireIn);
 
         var prog = strategy.Option(Track.Prognosis);
         var progAction = prog.As<ProgOption>() switch
@@ -132,9 +132,10 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Zoe), Player, zoe.Priority(), zoe.Value.ExpireIn);
 
         var dash = strategy.Option(Track.Icarus);
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
         var dashStrategy = strategy.Option(Track.Icarus).As<DashStrategy>();
-        if (ShouldUseDash(dashStrategy, null))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Icarus), null, dash.Priority());
+        if (ShouldUseDash(dashStrategy, dashTarget))
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Icarus), dashTarget, dash.Priority());
     }
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {

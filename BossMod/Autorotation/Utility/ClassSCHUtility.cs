@@ -73,20 +73,20 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
     {
         ExecuteShared(strategy, IDLimitBreak3);
         ExecuteSimple(strategy.Option(Track.WhisperingDawn), SCH.AID.WhisperingDawn, Player);
-        ExecuteSimple(strategy.Option(Track.Adloquium), SCH.AID.Adloquium, null);
+        ExecuteSimple(strategy.Option(Track.Adloquium), SCH.AID.Adloquium, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.FeyIllumination), SCH.AID.FeyIllumination, Player);
-        ExecuteSimple(strategy.Option(Track.Lustrate), SCH.AID.Lustrate, null);
+        ExecuteSimple(strategy.Option(Track.Lustrate), SCH.AID.Lustrate, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.SacredSoil), SCH.AID.SacredSoil, Player);
         ExecuteSimple(strategy.Option(Track.Indomitability), SCH.AID.Indomitability, Player);
         ExecuteSimple(strategy.Option(Track.EmergencyTactics), SCH.AID.EmergencyTactics, Player);
         ExecuteSimple(strategy.Option(Track.Dissipation), SCH.AID.Dissipation, Player);
-        ExecuteSimple(strategy.Option(Track.Excogitation), SCH.AID.Excogitation, null);
+        ExecuteSimple(strategy.Option(Track.Excogitation), SCH.AID.Excogitation, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.FeyBlessing), SCH.AID.FeyBlessing, Player);
         ExecuteSimple(strategy.Option(Track.Consolation), SCH.AID.Consolation, Player);
-        ExecuteSimple(strategy.Option(Track.Protraction), SCH.AID.Protraction, null);
+        ExecuteSimple(strategy.Option(Track.Protraction), SCH.AID.Protraction, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.Expedient), SCH.AID.Expedient, Player);
         ExecuteSimple(strategy.Option(Track.Seraphism), SCH.AID.Seraphism, Player);
-        ExecuteSimple(strategy.Option(Track.Resurrection), SCH.AID.Resurrection, null);
+        ExecuteSimple(strategy.Option(Track.Resurrection), SCH.AID.Resurrection, primaryTarget ?? Player);
 
         var succ = strategy.Option(Track.Succor);
         var succAction = succ.As<SuccorOption>() switch
@@ -110,7 +110,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (pactAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(pactAction), Player, pact.Priority(), pact.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(pactAction), primaryTarget ?? Player, pact.Priority(), pact.Value.ExpireIn);
 
         var recit = strategy.Option(Track.Recitation);
         if (recit.As<RecitationOption>() != RecitationOption.None)

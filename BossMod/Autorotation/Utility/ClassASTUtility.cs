@@ -56,15 +56,15 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
     {
         ExecuteShared(strategy, IDLimitBreak3);
         ExecuteSimple(strategy.Option(Track.Lightspeed), AST.AID.Lightspeed, Player);
-        ExecuteSimple(strategy.Option(Track.BeneficII), AST.AID.BeneficII, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.EssentialDignity), AST.AID.EssentialDignity, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.AspectedBenefic), AST.AID.AspectedBenefic, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Synastry), AST.AID.Synastry, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.BeneficII), AST.AID.BeneficII, primaryTarget ?? Player ?? Player);
+        ExecuteSimple(strategy.Option(Track.EssentialDignity), AST.AID.EssentialDignity, primaryTarget ?? Player ?? Player);
+        ExecuteSimple(strategy.Option(Track.AspectedBenefic), AST.AID.AspectedBenefic, primaryTarget ?? Player ?? Player);
+        ExecuteSimple(strategy.Option(Track.Synastry), AST.AID.Synastry, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.CollectiveUnconscious), AST.AID.CollectiveUnconscious, Player);
         ExecuteSimple(strategy.Option(Track.CelestialOpposition), AST.AID.CelestialOpposition, Player);
         ExecuteSimple(strategy.Option(Track.CelestialIntersection), AST.AID.CelestialIntersection, Player);
         ExecuteSimple(strategy.Option(Track.NeutralSect), AST.AID.NeutralSect, Player);
-        ExecuteSimple(strategy.Option(Track.Exaltation), AST.AID.Exaltation, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Exaltation), AST.AID.Exaltation, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.SunSign), AST.AID.SunSign, Player);
         ExecuteSimple(strategy.Option(Track.Ascend), AST.AID.Ascend, primaryTarget);
 
