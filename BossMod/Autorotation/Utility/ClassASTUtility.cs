@@ -56,9 +56,9 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
     {
         ExecuteShared(strategy, IDLimitBreak3);
         ExecuteSimple(strategy.Option(Track.Lightspeed), AST.AID.Lightspeed, Player);
-        ExecuteSimple(strategy.Option(Track.BeneficII), AST.AID.BeneficII, primaryTarget ?? Player ?? Player);
-        ExecuteSimple(strategy.Option(Track.EssentialDignity), AST.AID.EssentialDignity, primaryTarget ?? Player ?? Player);
-        ExecuteSimple(strategy.Option(Track.AspectedBenefic), AST.AID.AspectedBenefic, primaryTarget ?? Player ?? Player);
+        ExecuteSimple(strategy.Option(Track.BeneficII), AST.AID.BeneficII, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.EssentialDignity), AST.AID.EssentialDignity, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.AspectedBenefic), AST.AID.AspectedBenefic, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.Synastry), AST.AID.Synastry, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.CollectiveUnconscious), AST.AID.CollectiveUnconscious, Player);
         ExecuteSimple(strategy.Option(Track.CelestialOpposition), AST.AID.CelestialOpposition, Player);
