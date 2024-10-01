@@ -10,16 +10,18 @@ public sealed class ConfigDisplayAttribute : Attribute
     public string? Name { get; set; }
     public int Order { get; set; }
     public Type? Parent { get; set; }
+    public string? Since { get; set; }
 }
 
 // attribute that specifies how config node field or enumeration value is shown in the UI
 [AttributeUsage(AttributeTargets.Field)]
-public sealed class PropertyDisplayAttribute(string label, uint color = 0xffffffff, string tooltip = "", bool separator = false) : Attribute
+public sealed class PropertyDisplayAttribute(string label, uint color = 0xffffffff, string tooltip = "", bool separator = false, string? since = null) : Attribute
 {
     public string Label { get; } = label;
     public uint Color { get; } = color;
     public string Tooltip { get; } = tooltip;
     public bool Separator { get; } = separator;
+    public string? Since { get; } = since;
 }
 
 // attribute that specifies combobox should be used for displaying int/bool property

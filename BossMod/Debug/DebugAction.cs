@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.Gui;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using ImGuiNET;
 
 namespace BossMod;
@@ -12,20 +13,21 @@ sealed unsafe class DebugAction : IDisposable
     private readonly WorldState _ws;
     private readonly ActionManagerEx _amex;
 
-    //private delegate uint GetActionStatusBallistaDelegate(Vector3* source, float radius, float minRange, float maxRange, Vector3* target, Vector3* aimPoint, uint* outOptExtraInfo);
-    //private readonly HookAddress<GetActionStatusBallistaDelegate> _gasHook;
+    private bool _autoAttack;
+    //private delegate byte SetAutoAttackDelegate(byte* self, byte value, byte sendPacket, byte isInstant);
+    //private readonly HookAddress<SetAutoAttackDelegate> _hook;
 
     public DebugAction(WorldState ws, ActionManagerEx amex)
     {
         _ws = ws;
         _amex = amex;
-        //_gasHook = new(Service.SigScanner.Module.BaseAddress + 0xB5F300, GetActionStatusBallistaDetour);
+        //_hook = new(Service.SigScanner.Module.BaseAddress + 0xAD3740, SetAutoAttackDetour);
         Service.Log("---");
     }
 
     public void Dispose()
     {
-        //_gasHook.Dispose();
+        //_hook.Dispose();
     }
 
     public void DrawActionManagerExtensions()
@@ -192,6 +194,15 @@ sealed unsafe class DebugAction : IDisposable
         }
     }
 
+    public void DrawAutoAttack()
+    {
+        var aa = UIState.Instance()->WeaponState.IsAutoAttacking;
+        if (_autoAttack != aa)
+            Service.Log($"AA state changed: {_autoAttack} -> {aa}");
+        _autoAttack = aa;
+        ImGui.TextUnformatted($"Auto-attack: {aa}");
+    }
+
     private void DrawStatus(string prompt, ActionID action, bool checkRecast, bool checkCasting)
     {
         uint extra;
@@ -210,10 +221,10 @@ sealed unsafe class DebugAction : IDisposable
         }
     }
 
-    //private uint GetActionStatusBallistaDetour(Vector3* source, float radius, float minRange, float maxRange, Vector3* target, Vector3* aimPoint, uint* outOptExtraInfo)
+    //private byte SetAutoAttackDetour(byte* self, byte value, byte sendPacket, byte isInstant)
     //{
-    //    var res = _gasHook.Original(source, radius, minRange, maxRange, target, aimPoint, outOptExtraInfo);
-    //    Service.Log($"gas: {*source} R{radius} {minRange}-{maxRange} @ {*target} / {*aimPoint} (m={_amex.GetWorldPosUnderCursor()}) -> {res} ({*outOptExtraInfo})");
-    //    return res;
+    //    if (*self != 0 || value != 0)
+    //        Service.Log($"SAA: {*self} -> {value} ({sendPacket}, {isInstant})");
+    //    return _hook.Original(self, value, sendPacket, isInstant);
     //}
 }

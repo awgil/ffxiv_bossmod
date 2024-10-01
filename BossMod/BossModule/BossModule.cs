@@ -244,6 +244,10 @@ public abstract class BossModule : IDisposable
     // default implementation activates if primary target is both targetable and in combat
     protected virtual bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat; }
 
+    // called during update if module is active; should return true if module is to be reset (i.e. deleted and new instance recreated for same actor)
+    // default implementation never resets, but it's useful for outdoor bosses that can be leashed
+    public virtual bool CheckReset() => false;
+
     protected virtual void UpdateModule() { }
     protected virtual void DrawArenaBackground(int pcSlot, Actor pc) { } // before modules background
     protected virtual void DrawArenaForeground(int pcSlot, Actor pc) { } // after border, before modules foreground

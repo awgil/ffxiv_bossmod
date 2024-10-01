@@ -71,8 +71,9 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (NumAOETargets >= needAOETargets)
         {
-            if (needAOETargets == 1)
-                Hints.RecommendedRangeToTarget = 5f;
+            // TODO: fixme xan!
+            //if (needAOETargets == 1)
+            //    Hints.RecommendedRangeToTarget = 5f;
 
             PushGCD(AID.ArtOfWar1, Player);
         }

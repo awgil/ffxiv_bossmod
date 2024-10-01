@@ -107,8 +107,9 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget);
         (BestConeTarget, NumConeTargets) = SelectTarget(strategy, primaryTarget, 8, (primary, other) => Hints.TargetInAOECone(other, Player.Position, 8, Player.DirectionTo(primary), 60.Degrees()));
 
-        if (Swordplay > 0 || LowestMana >= 50 || InCombo)
-            Hints.RecommendedRangeToTarget = 3;
+        // TODO: fixme xan!
+        //if (Swordplay > 0 || LowestMana >= 50 || InCombo)
+        //    Hints.RecommendedRangeToTarget = 3;
 
         if (CountdownRemaining > 0)
         {
@@ -118,8 +119,9 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
-        if (Swordplay > 0 || LowestMana >= 50 || InCombo)
-            Hints.RecommendedRangeToTarget = 3f;
+        // TODO: fixme xan!
+        //if (Swordplay > 0 || LowestMana >= 50 || InCombo)
+        //    Hints.RecommendedRangeToTarget = 3f;
 
         OGCD(strategy, primaryTarget);
 

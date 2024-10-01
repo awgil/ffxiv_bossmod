@@ -1,7 +1,6 @@
 immediate plans
+- nechuciho - seen incorrect rotations...
 - merge prs!
-- auto control
-- goal priority for aoes
 - collisions for pathfinding
 - brd rotation
 
@@ -35,6 +34,7 @@ general:
 --- target is not a priority, but damaging it is a nice bonus (lower priority than max target)
 -- use that for targeting utils in aihints
 - debug utility to play action animations, spawn actors, play vfx, etc...
+- encounter hints (to show before pull)
 
 boss modules:
 - timers

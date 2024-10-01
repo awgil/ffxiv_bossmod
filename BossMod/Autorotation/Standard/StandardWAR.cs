@@ -334,7 +334,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
                 // special case for use as gapcloser - it has to be very high priority
                 var (prio, basePrio) = stratOnsOpt == OnslaughtStrategy.GapClose ? (OGCDPriority.GapcloseOnslaught, ActionQueue.Priority.High)
                     : LostBloodRageStacks is > 0 and < 4 ? (OGCDPriority.LostBanner, ActionQueue.Priority.Medium)
-                    : (OGCDPriority.Onslaught, OnslaughtCD < GCDLength ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low);
+                    : (OGCDPriority.Onslaught, OnslaughtCapIn < GCDLength ? ActionQueue.Priority.Low : ActionQueue.Priority.VeryLow);
                 QueueOGCD(WAR.AID.Onslaught, target, stratOns.Value.PriorityOverride, prio, basePrio);
             }
         }
@@ -350,6 +350,18 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfPower), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostFont);
         if (ShouldUseLostBuff(LostBannerCD, 90))
             Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.BannerHonoredSacrifice), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostBanner);
+
+        // ai hints for positioning
+        var goalST = primaryTarget != null ? Hints.GoalSingleTarget(primaryTarget, 3) : null;
+        var goalAOE = Hints.GoalAOECircle(3);
+        var goal = aoeStrategy switch
+        {
+            AOEStrategy.SingleTarget => goalST,
+            AOEStrategy.ForceAOE => goalAOE,
+            _ => goalST != null ? Hints.GoalCombined(goalST, goalAOE, 3) : goalAOE
+        };
+        if (goal != null)
+            Hints.GoalZones.Add(goal);
     }
 
     private void QueueGCD(WAR.AID aid, Actor? target, GCDPriority prio)
@@ -712,7 +724,9 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             }
         }
         var nextAction = wantAOEAction ? NextComboAOE(comboStepsRemaining == 0) : NextComboSingleTarget(wantSERoute, comboStepsRemaining == 0);
-        var riskOvercappingGauge = Gauge + GaugeGainedFromAction(nextAction) > 100;
+
+        var needInfuriateSoon = Unlocked(WAR.AID.Infuriate) && !CanFitGCD(InfuriateCD - InfuriateCDReduction - InfuriateCDLeeway, 1);
+        var riskOvercappingGauge = Gauge + GaugeGainedFromAction(nextAction) > (needInfuriateSoon ? 50 : 100);
 
         // first deal with forced combo; for ST extension, we generally want to minimize overcap by using combo finisher as late as possible
         // TODO: reconsider what to do if we can't fit in combo - do we still want to do partial combo? especially if it would cause gauge overcap

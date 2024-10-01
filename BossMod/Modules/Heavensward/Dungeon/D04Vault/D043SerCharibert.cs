@@ -45,7 +45,7 @@ class SacredFlame(BossModule module) : Components.RaidwideCast(module, ActionID.
 class March(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _knights = [];
-    private static readonly AOEShapeRect rect = new(8, 2, -1);
+    private static readonly AOEShapeRect rect = new(12, 2, -1);
     private static readonly AOEShapeCircle circ = new(2.5f);
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -67,6 +67,14 @@ class March(BossModule module) : Components.GenericAOEs(module)
         if ((OID)actor.OID is OID.DawnKnight or OID.DuskKnight)
         {
             _knights.Remove(actor);
+        }
+    }
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var b in _knights)
+        {
+            hints.AddForbiddenZone(ShapeDistance.Capsule(b.Position, b.Rotation.ToDirection(), 12, 2));
+            hints.AddForbiddenZone(ShapeDistance.Circle(b.Position, 2.5f));
         }
     }
 };

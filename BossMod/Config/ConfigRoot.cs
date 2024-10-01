@@ -10,6 +10,7 @@ public class ConfigRoot
     private const int _version = 10;
 
     public Event Modified = new();
+    public Version AssemblyVersion = new(); // we use this to show newly added config options
     private readonly Dictionary<Type, ConfigNode> _nodes = [];
 
     public IEnumerable<ConfigNode> Nodes => _nodes.Values;
@@ -45,6 +46,7 @@ public class ConfigRoot
                 var node = type != null ? _nodes.GetValueOrDefault(type) : null;
                 node?.Deserialize(jconfig.Value, ser);
             }
+            AssemblyVersion = json.RootElement.TryGetProperty(nameof(AssemblyVersion), out var jver) ? new(jver.GetString() ?? "") : new();
         }
         catch (Exception e)
         {
@@ -66,6 +68,7 @@ public class ConfigRoot
                     n.Serialize(jwriter, ser);
                 }
                 jwriter.WriteEndObject();
+                jwriter.WriteString(nameof(AssemblyVersion), AssemblyVersion.ToString());
             });
         }
         catch (Exception e)

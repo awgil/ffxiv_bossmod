@@ -59,6 +59,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private readonly RestoreRotationTweak _restoreRotTweak = new();
     private readonly SmartRotationTweak _smartRotationTweak;
     private readonly OutOfCombatActionsTweak _oocActionsTweak;
+    private readonly AutoAutosTweak _autoAutosTweak;
 
     private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
     private readonly HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
@@ -80,6 +81,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _dismountTweak = new(ws);
         _smartRotationTweak = new(ws, hints);
         _oocActionsTweak = new(ws);
+        _autoAutosTweak = new(ws, hints);
 
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
         _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
@@ -374,6 +376,10 @@ public sealed unsafe class ActionManagerEx : IDisposable
         if (_ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(_ws.CurrentTime, ForceCancelCastNextFrame))
             UIState.Instance()->Hotbar.CancelCast();
         ForceCancelCastNextFrame = false;
+
+        var autosEnabled = UIState.Instance()->WeaponState.IsAutoAttacking;
+        if (_autoAutosTweak.GetDesiredState(autosEnabled) != autosEnabled)
+            _inst->UseAction(CSActionType.GeneralAction, 1);
     }
 
     // note: targetId is usually your current primary target (or 0xE0000000 if you don't target anyone), unless you do something like /ac XXX <f> etc
@@ -418,10 +424,17 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     private bool UseActionLocationDetour(ActionManager* self, CSActionType actionType, uint actionId, ulong targetId, Vector3* location, uint extraParam)
     {
+        var targetSystem = TargetSystem.Instance();
         var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         var prevSeq = _inst->LastUsedActionSequence;
         var prevRot = player != null ? player->Rotation.Radians() : default;
+        var hardTarget = targetSystem->Target;
+        var preventAutos = _autoAutosTweak.ShouldPreventAutoActivation(ActionManager.GetSpellIdForAction(actionType, actionId));
+        if (preventAutos)
+            targetSystem->Target = null;
         bool ret = _useActionLocationHook.Original(self, actionType, actionId, targetId, location, extraParam);
+        if (preventAutos)
+            targetSystem->Target = hardTarget;
         var currSeq = _inst->LastUsedActionSequence;
         var currRot = player != null ? player->Rotation.Radians() : default;
         if (currSeq != prevSeq)

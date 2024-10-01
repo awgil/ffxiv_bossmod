@@ -79,7 +79,7 @@ class HigherPower(BossModule module) : Components.GenericAOEs(module)
         if (offset != default)
         {
             for (int i = 0; i < _numCharges; ++i)
-                _aoes.Add(new(_shapeSpinshock, caster.Position, spell.Rotation + i * 90.Degrees(), Module.CastFinishAt(spell, i * 2.7f)));
+                _aoes.Add(new(_shapeSpinshock, caster.Position, spell.Rotation + i * offset, Module.CastFinishAt(spell, i * 2.7f)));
             _aoes.Add(new(_shapeCross, caster.Position, spell.Rotation + _crossOffset, Module.CastFinishAt(spell, _numCharges * 2.7f + 3.7f)));
         }
     }
