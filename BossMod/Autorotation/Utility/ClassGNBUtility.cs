@@ -6,7 +6,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
     public enum HoCOption { None, HeartOfStone, HeartOfCorundum } //Checks for proper HoC
     public enum AuroraStrategy { None, Force } //Aurora
     public enum DashStrategy { None, GapClose } //Gapcloser purposes
-    public bool InMeleeRange(Actor? primaryTarget) => Player.DistanceToHitbox(primaryTarget) <= 3; //Checks if we're inside melee range
+    public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(GNB.AID.GunmetalSoul);
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(GNB.AID.RoyalGuard);
