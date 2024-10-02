@@ -2,7 +2,7 @@
 
 public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
-    public enum Track { Kardia = SharedTrack.Count, Egeiro, Physis, Eukrasia, Diagnosis, Prognosis, Druochole, Kerachole, Ixochole, Zoe, Pepsis, Taurochole, Haima, Rhizomata, Holos, Panhaima, Krasis, Philosophia, Icarus }
+    public enum Track { Kardia = SharedTrack.Count, Physis, Eukrasia, Diagnosis, Prognosis, Druochole, Kerachole, Ixochole, Zoe, Pepsis, Taurochole, Haima, Rhizomata, Holos, Panhaima, Krasis, Philosophia, Icarus }
     public enum KardiaOption { None, Kardia, Soteria }
     public enum DiagOption { None, Use, UseED }
     public enum ProgOption { None, Use, UseEP, UseEPEx }
@@ -23,8 +23,6 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             .AddOption(KardiaOption.Kardia, "Kardia", "Use Kardia", 5, 0, ActionTargets.Self | ActionTargets.Party, 4)
             .AddOption(KardiaOption.Soteria, "Soteria", "Use Soteria", 60, 15, ActionTargets.Self, 35)
             .AddAssociatedActions(SGE.AID.Kardia, SGE.AID.Soteria);
-
-        DefineSimpleConfig(res, Track.Egeiro, "Egeiro", "Raise", 100, SGE.AID.Egeiro); //Raise
 
         res.Define(Track.Physis).As<PhysisOption>("Physis", "", 200) //Physis
             .AddOption(PhysisOption.None, "None", "Do not use automatically")
@@ -78,7 +76,6 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving) //How we're executing our skills listed below
     {
         ExecuteShared(strategy, IDLimitBreak3);
-        ExecuteSimple(strategy.Option(Track.Egeiro), SGE.AID.Egeiro, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.Eukrasia), SGE.AID.Eukrasia, Player);
         ExecuteSimple(strategy.Option(Track.Druochole), SGE.AID.Druochole, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.Kerachole), SGE.AID.Kerachole, Player);

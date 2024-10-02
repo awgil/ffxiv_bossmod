@@ -2,7 +2,7 @@
 
 public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
-    public enum Track { WhisperingDawn = SharedTrack.Count, Adloquium, Succor, FeyIllumination, Lustrate, SacredSoil, Indomitability, DeploymentTactics, EmergencyTactics, Dissipation, Excogitation, Aetherpact, Recitation, FeyBlessing, Consolation, Protraction, Expedient, Seraphism, Resurrection, Summons }
+    public enum Track { WhisperingDawn = SharedTrack.Count, Adloquium, Succor, FeyIllumination, Lustrate, SacredSoil, Indomitability, DeploymentTactics, EmergencyTactics, Dissipation, Excogitation, Aetherpact, Recitation, FeyBlessing, Consolation, Protraction, Expedient, Seraphism, Summons }
     public enum SuccorOption { None, Succor, Concitation }
     public enum DeployOption { None, Use, UseEx }
     public enum AetherpactOption { None, Use, End }
@@ -57,7 +57,6 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Protraction, "Protraction", "Prot", 110, SCH.AID.Protraction, 10);
         DefineSimpleConfig(res, Track.Expedient, "Expedient", "Exped", 200, SCH.AID.Expedient, 20);
         DefineSimpleConfig(res, Track.Seraphism, "Seraphism", "", 300, SCH.AID.Seraphism, 20);
-        DefineSimpleConfig(res, Track.Resurrection, "Resurrection", "Raise", 10, SCH.AID.Resurrection);
 
         // Pet Summons
         res.Define(Track.Summons).As<PetOption>("Pet", "", 180)
@@ -86,7 +85,6 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Protraction), SCH.AID.Protraction, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.Expedient), SCH.AID.Expedient, Player);
         ExecuteSimple(strategy.Option(Track.Seraphism), SCH.AID.Seraphism, Player);
-        ExecuteSimple(strategy.Option(Track.Resurrection), SCH.AID.Resurrection, primaryTarget ?? Player);
 
         var succ = strategy.Option(Track.Succor);
         var succAction = succ.As<SuccorOption>() switch

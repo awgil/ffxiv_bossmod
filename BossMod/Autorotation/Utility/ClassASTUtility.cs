@@ -1,8 +1,11 @@
-﻿namespace BossMod.Autorotation;
+﻿using static BossMod.Autorotation.ClassGNBUtility;
+using static BossMod.Autorotation.xan.HealerAI;
+
+namespace BossMod.Autorotation;
 
 public sealed class ClassASTUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
-    public enum Track { Helios = SharedTrack.Count, Lightspeed, BeneficII, EssentialDignity, AspectedBenefic, AspectedHelios, Synastry, CollectiveUnconscious, CelestialOpposition, CelestialIntersection, Horoscope, NeutralSect, Exaltation, Macrocosmos, SunSign, Ascend }
+    public enum Track { Helios = SharedTrack.Count, Lightspeed, BeneficII, EssentialDignity, AspectedBenefic, AspectedHelios, Synastry, CollectiveUnconscious, CelestialOpposition, CelestialIntersection, Horoscope, NeutralSect, Exaltation, Macrocosmos, SunSign }
     public enum HoroscopeOption { None, Use, End }
     public enum MacrocosmosOption { None, Use, End }
     public enum HeliosOption { None, Use, UseEx }
@@ -47,7 +50,6 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
             .AddAssociatedActions(AST.AID.Macrocosmos, AST.AID.MicrocosmosEnd);
 
         DefineSimpleConfig(res, Track.SunSign, "SunSign", "", 290, AST.AID.SunSign, 15); //AoE oGCD mit (only can use when under NeutralSect), 15s effect duration
-        DefineSimpleConfig(res, Track.Ascend, "Ascend", "Raise", 10, AST.AID.Ascend, 7); //Raise
 
         return res;
     }
@@ -66,7 +68,6 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.NeutralSect), AST.AID.NeutralSect, Player);
         ExecuteSimple(strategy.Option(Track.Exaltation), AST.AID.Exaltation, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.SunSign), AST.AID.SunSign, Player);
-        ExecuteSimple(strategy.Option(Track.Ascend), AST.AID.Ascend, primaryTarget);
 
         //Aspected Helios full execution
         var helios = strategy.Option(Track.AspectedHelios);
@@ -90,7 +91,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         if (horoAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(horoAction), Player, horo.Priority(), horo.Value.ExpireIn);
 
-        //Macrocosmos full execution
+
         var cosmos = strategy.Option(Track.Macrocosmos);
         var cosmosAction = cosmos.As<MacrocosmosOption>() switch
         {
@@ -100,5 +101,6 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         };
         if (cosmosAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(cosmosAction), Player, cosmos.Priority(), cosmos.Value.ExpireIn);
+
     }
 }

@@ -127,7 +127,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     protected (float Left, int Stacks) SelfStatusDetails<SID>(SID sid, float pendingDuration = 1000) where SID : Enum => StatusDetails(Player, sid, Player.InstanceID, pendingDuration);
 
     // checks if Status effect is on self
-    // for buffs/effects that stay on player (i.e. 'Eukrasia')
+    // for buffs/effects that have no duration (i.e. 'Eukrasia')
     protected bool SelfStatusCheck(uint sid) => Player.FindStatus(sid, Player.InstanceID) != null;
     protected float SelfStatusLeft(uint sid, float pendingDuration = 1000) => SelfStatusDetails(sid, pendingDuration).Left;
     protected float SelfStatusLeft<SID>(SID sid, float pendingDuration = 1000) where SID : Enum => SelfStatusDetails(sid, pendingDuration).Left;

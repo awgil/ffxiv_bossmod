@@ -32,7 +32,7 @@ public sealed class ClassMCHUtility(RotationModuleManager manager, Actor player)
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3);
-        ExecuteSimple(strategy.Option(Track.Dismantle), MCH.AID.Dismantle, Player);
+        ExecuteSimple(strategy.Option(Track.Dismantle), MCH.AID.Dismantle, primaryTarget);
 
         var tact = strategy.Option(Track.Tactician);
         if (tact.As<TactOption>() != TactOption.None)
