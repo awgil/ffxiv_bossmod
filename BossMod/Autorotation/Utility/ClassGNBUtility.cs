@@ -52,8 +52,8 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
 
         //Aurora execution
         var aur = strategy.Option(Track.Aurora);
-        var aurTarget = ResolveTargetOverride(aur.Value) ?? primaryTarget; //Smart-Targeting
-        var aurStatus = StatusDetails(aurTarget, GNB.SID.Aurora, Player.InstanceID, 18).Left > 1; //Checks if status is present
+        var aurTarget = ResolveTargetOverride(aur.Value) ?? primaryTarget ?? Player; //Smart-Targeting
+        var aurStatus = TargetStatusCheck(aurTarget, GNB.SID.Aurora); //Checks if status is present
         var aurora = aur.As<AuroraStrategy>() switch
         {
             AuroraStrategy.Force => GNB.AID.Aurora,

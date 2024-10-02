@@ -101,7 +101,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(kardiaAction), primaryTarget, kardia.Priority(), kardia.Value.ExpireIn);
 
         //Diagnosis full execution
-        var hasEukrasia = SelfStatusCheck(2606); //Eukrasia
+        var hasEukrasia = SelfStatusCheck(SGE.SID.Eukrasia); //Eukrasia
         var diag = strategy.Option(Track.Diagnosis);
         var diagAction = diag.As<DiagOption>() switch
         {

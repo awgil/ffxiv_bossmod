@@ -63,13 +63,13 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
             TBNStrategy.Force => DRK.AID.TheBlackestNight,
             _ => default
         };
-        if (tbnight != default)
+        if (tbnight != default && Player.HPMP.CurMP >= 3000)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.TheBlackestNight), tbnTarget, tbn.Priority(), tbn.Value.ExpireIn);
 
         //Oblation execution
         var obl = strategy.Option(Track.Oblation);
         var oblTarget = ResolveTargetOverride(obl.Value) ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
-        var oblStatus = StatusDetails(oblTarget, DRK.SID.Oblation, Player.InstanceID, 20).Left > 1; //Checks if status is present
+        var oblStatus = TargetStatusCheck(oblTarget, DRK.SID.Oblation); //Checks if status is present
         var oblat = obl.As<OblationStrategy>() switch
         {
             OblationStrategy.Force => DRK.AID.Oblation,

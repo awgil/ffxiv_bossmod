@@ -1,7 +1,4 @@
-﻿using static BossMod.Autorotation.ClassGNBUtility;
-using static BossMod.Autorotation.xan.HealerAI;
-
-namespace BossMod.Autorotation;
+﻿namespace BossMod.Autorotation;
 
 public sealed class ClassASTUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
@@ -91,7 +88,6 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         };
         if (horoAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(horoAction), Player, horo.Priority(), horo.Value.ExpireIn);
-
 
         var cosmos = strategy.Option(Track.Macrocosmos);
         var cosmosAction = cosmos.As<MacrocosmosOption>() switch
