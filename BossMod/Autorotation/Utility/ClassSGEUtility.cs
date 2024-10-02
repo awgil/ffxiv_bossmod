@@ -92,6 +92,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Krasis), SGE.AID.Krasis, Player);
         ExecuteSimple(strategy.Option(Track.Philosophia), SGE.AID.Philosophia, Player);
 
+        //Kardia full execution
         var kardia = strategy.Option(Track.Kardia);
         var kardiaAction = kardia.As<KardiaOption>() switch
         {
@@ -102,6 +103,8 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         if (kardiaAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(kardiaAction), primaryTarget, kardia.Priority(), kardia.Value.ExpireIn);
 
+        //Diagnosis full execution
+        var hasEukrasia = SelfStatusCheck(2606); //Eukrasia
         var diag = strategy.Option(Track.Diagnosis);
         var diagAction = diag.As<DiagOption>() switch
         {
@@ -109,28 +112,66 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             DiagOption.UseED => SGE.AID.EukrasianDiagnosis,
             _ => default
         };
-        if (diagAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(diagAction), primaryTarget, diag.Priority(), diag.Value.ExpireIn);
 
+        if (diagAction != default)
+        {
+            if (!hasEukrasia)
+            {
+                // Push the primary action based on the selected option
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(diagAction), primaryTarget, diag.Priority(), diag.Value.ExpireIn);
+            }
+
+            // Check for EukrasianDiagnosis if the effect is active
+            if (hasEukrasia)
+            {
+                if (diag.As<DiagOption>() == DiagOption.UseED)
+                {
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianDiagnosis), primaryTarget, diag.Priority(), diag.Value.ExpireIn);
+                }
+            }
+        }
+
+        //Prognosis full execution
         var prog = strategy.Option(Track.Prognosis);
         var progAction = prog.As<ProgOption>() switch
         {
             ProgOption.Use => SGE.AID.Prognosis,
-            ProgOption.UseEP => SGE.AID.EukrasianPrognosis,
-            ProgOption.UseEPEx => SGE.AID.EukrasianPrognosisII,
+            ProgOption.UseEP => SGE.AID.Eukrasia,
+            ProgOption.UseEPEx => SGE.AID.Eukrasia,
             _ => default
         };
-        if (progAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(progAction), Player, prog.Priority(), prog.Value.ExpireIn);
 
+        if (progAction != default)
+        {
+            if (!hasEukrasia)// Push the primary action based on the selected option
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(progAction), Player, prog.Priority(), prog.Value.ExpireIn);
+
+            if (hasEukrasia)
+            {
+                // Check if UseEP is selected and push EukrasianPrognosis
+                if (prog.As<ProgOption>() == ProgOption.UseEP)
+                {
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianPrognosis), Player, prog.Priority(), prog.Value.ExpireIn);
+                }
+                // Check if UseEPEx is selected and push EukrasianPrognosisII
+                else if (prog.As<ProgOption>() == ProgOption.UseEPEx)
+                {
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianPrognosisII), Player, prog.Priority(), prog.Value.ExpireIn);
+                }
+            }
+        }
+
+        //Physis execution
         var physis = strategy.Option(Track.Physis);
         if (physis.As<PhysisOption>() != PhysisOption.None)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Physis), Player, physis.Priority(), physis.Value.ExpireIn);
 
+        //Zoe execution
         var zoe = strategy.Option(Track.Zoe);
         if (zoe.As<ZoeOption>() != ZoeOption.None)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Zoe), Player, zoe.Priority(), zoe.Value.ExpireIn);
 
+        //Icarus execution
         var dash = strategy.Option(Track.Icarus);
         var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
         var dashStrategy = strategy.Option(Track.Icarus).As<DashStrategy>();

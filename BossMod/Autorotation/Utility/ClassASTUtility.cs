@@ -68,6 +68,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.SunSign), AST.AID.SunSign, Player);
         ExecuteSimple(strategy.Option(Track.Ascend), AST.AID.Ascend, primaryTarget);
 
+        //Aspected Helios full execution
         var helios = strategy.Option(Track.AspectedHelios);
         var heliosAction = helios.As<HeliosOption>() switch
         {
@@ -78,6 +79,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         if (heliosAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(heliosAction), Player, helios.Priority(), helios.Value.ExpireIn);
 
+        //Horoscope full execution
         var horo = strategy.Option(Track.Horoscope);
         var horoAction = horo.As<HoroscopeOption>() switch
         {
@@ -88,6 +90,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         if (horoAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(horoAction), Player, horo.Priority(), horo.Value.ExpireIn);
 
+        //Macrocosmos full execution
         var cosmos = strategy.Option(Track.Macrocosmos);
         var cosmosAction = cosmos.As<MacrocosmosOption>() switch
         {
