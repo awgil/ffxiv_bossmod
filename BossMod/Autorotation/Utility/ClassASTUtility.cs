@@ -70,6 +70,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.SunSign), AST.AID.SunSign, Player);
 
         //Aspected Helios full execution
+        var heliosUp = PartyStatusCheck(AST.SID.AspectedHelios) || PartyStatusCheck(AST.SID.HeliosConjunction);
         var helios = strategy.Option(Track.AspectedHelios);
         var heliosAction = helios.As<HeliosOption>() switch
         {
@@ -77,7 +78,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
             HeliosOption.UseEx => AST.AID.HeliosConjunction,
             _ => default
         };
-        if (heliosAction != default)
+        if (heliosAction != default && !heliosUp)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(heliosAction), Player, helios.Priority(), helios.Value.ExpireIn);
 
         //Horoscope full execution

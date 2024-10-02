@@ -86,6 +86,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Expedient), SCH.AID.Expedient, Player);
         ExecuteSimple(strategy.Option(Track.Seraphism), SCH.AID.Seraphism, Player);
 
+        var alreadyUp = PartyStatusCheck(SGE.SID.EukrasianPrognosis) || PartyStatusCheck(SCH.SID.Galvanize);
         var succ = strategy.Option(Track.Succor);
         var succAction = succ.As<SuccorOption>() switch
         {
@@ -93,7 +94,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             SuccorOption.Concitation => SCH.AID.Concitation,
             _ => default
         };
-        if (succAction != default)
+        if (succAction != default && !alreadyUp)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(succAction), Player, succ.Priority(), succ.Value.ExpireIn);
 
         var deploy = strategy.Option(Track.DeploymentTactics);

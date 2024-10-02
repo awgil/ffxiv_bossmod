@@ -129,6 +129,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         }
 
         //Prognosis full execution
+        var alreadyUp = PartyStatusCheck(SGE.SID.EukrasianPrognosis) || PartyStatusCheck(SCH.SID.Galvanize);
         var prog = strategy.Option(Track.Prognosis);
         var progAction = prog.As<ProgOption>() switch
         {
@@ -143,7 +144,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             if (!hasEukrasia)// Push the primary action based on the selected option
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(progAction), Player, prog.Priority(), prog.Value.ExpireIn);
 
-            if (hasEukrasia)
+            if (hasEukrasia && !alreadyUp)
             {
                 // Check if UseEP is selected and push EukrasianPrognosis
                 if (prog.As<ProgOption>() == ProgOption.UseEP)

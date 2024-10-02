@@ -128,7 +128,15 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
     // checks if Status effect is on self
     // for buffs/effects that have no duration (i.e. 'Eukrasia')
-    protected bool SelfStatusCheck(uint sid) => Player.FindStatus(sid, Player.InstanceID) != null;
+    protected bool SelfStatusCheck<SID>(SID sid) where SID : Enum => Player.FindStatus((uint)(object)sid, Player.InstanceID) != null;
+
+    // checks if Status effect is on target
+    protected bool TargetStatusCheck<SID>(Actor target, SID sid) where SID : Enum => target?.Statuses.Any(s => s.ID == (uint)(object)sid) ?? false;
+
+    // checks if Status effect is on any party member
+    // mainly used for not overwriting each other's statuses (i.e. 'EukrasianPrognosis' + 'Succor')
+    protected bool PartyStatusCheck<SID>(SID sid) where SID : Enum => World.Party.WithoutSlot().Any(actor => actor.Statuses.Any(s => s.ID == (uint)(object)sid));
+
     protected float SelfStatusLeft(uint sid, float pendingDuration = 1000) => SelfStatusDetails(sid, pendingDuration).Left;
     protected float SelfStatusLeft<SID>(SID sid, float pendingDuration = 1000) where SID : Enum => SelfStatusDetails(sid, pendingDuration).Left;
     protected float PotionStatusLeft() => SelfStatusLeft(49, 30);
