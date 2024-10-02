@@ -68,7 +68,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.SunSign), AST.AID.SunSign, Player);
         ExecuteSimple(strategy.Option(Track.Ascend), AST.AID.Ascend, primaryTarget);
 
-        var helios = strategy.Option(Track.Macrocosmos);
+        var helios = strategy.Option(Track.AspectedHelios);
         var heliosAction = helios.As<HeliosOption>() switch
         {
             HeliosOption.Use => AST.AID.AspectedHelios,
