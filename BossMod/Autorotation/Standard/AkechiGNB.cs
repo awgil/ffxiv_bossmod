@@ -11,7 +11,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     //Actions tracked for Cooldown Planner execution
     public enum Track
     {
-        AoE,             //Area of Effect actions
+        AoE,             //ST&AoE actions
         Burst,           //Burst damage actions
         Potion,          //Potion usage tracking
         LightningShot,   //Ranged attack tracking
