@@ -238,11 +238,11 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     private bool hasNM; //Checks self for No Mercy buff
     private bool hasBreak; //Checks self for Ready To Break buff
     private bool hasReign; //Checks self for Ready To Reign buff
-    private bool hasBlast; //Checks self for No Mercy buff
-    private bool hasRaze; //Checks self for No Mercy buff
-    private bool hasRip; //Checks self for No Mercy buff
-    private bool hasTear; //Checks self for No Mercy buff
-    private bool hasGouge; //Checks self for No Mercy buff
+    private bool hasBlast; //Checks self for Ready To Blast buff
+    private bool hasRaze; //Checks self for Ready To Raze buff
+    private bool hasRip; //Checks self for Ready To Rip buff
+    private bool hasTear; //Checks self for Ready To Tear buff
+    private bool hasGouge; //Checks self for Ready To Gouge buff
 
     public GNB.AID NextGCD; //Next global cooldown action to be used (needed for cartridge management)
     private GCDPriority NextGCDPrio; //Priority of the next GCD, used for decision making on cooldowns
