@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -29,4 +30,17 @@ public static class Serialization
     }
 
     public static Utf8JsonWriter WriteJson(Stream fstream, bool indented = true) => new(fstream, new JsonWriterOptions() { Indented = indented });
+
+    public static unsafe T ReadStruct<T>(this Stream stream) where T : unmanaged
+    {
+        T res = default;
+        stream.Read(new(&res, sizeof(T)));
+        return res;
+    }
+
+    public static unsafe void WriteStruct<T>(this Stream stream, in T value) where T : unmanaged
+    {
+        fixed (T* ptr = &value)
+            stream.Write(new(ptr, sizeof(T)));
+    }
 }

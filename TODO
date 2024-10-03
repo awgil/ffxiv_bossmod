@@ -1,12 +1,16 @@
 immediate plans
+- investigate https://discord.com/channels/1001823907193552978/1191076246860349450/1290280745453092949
 - nechuciho - seen incorrect rotations...
 - merge prs!
 - collisions for pathfinding
+-- editor / vnav import / validation
+-- embedded mode
 - brd rotation
 
 general:
 - horizontal timeline / cooldown planner
 - cdplanner should use real cds
+- assignments per ui order rather than per player + class-specific assignments
 - restore view-timeline to module ui
 - module packs
 -- dlls, loaded as usual
