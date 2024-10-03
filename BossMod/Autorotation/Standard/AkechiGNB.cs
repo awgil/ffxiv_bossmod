@@ -8,19 +8,83 @@ namespace BossMod.Autorotation;
 
 public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { AoE, Burst, Potion, LightningShot, GnashingFang, NoMercy, SonicBreak, DoubleDown, BurstStrike, FatedCircle, Zone, Bloodfest, BowShock, Trajectory } //What we're tracking for Cooldown Planner execution
-    public enum AOEStrategy { SingleTarget, ForceAoE, Auto, AutoFinishCombo } //Targeting strategy
-    public enum BurstStrategy { Automatic, ConserveCarts, UnderRaidBuffs, UnderPotion } //Burst strategy
-    public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate } //Pots strategy
-    public enum LightningShotStrategy { OpenerRanged, Opener, Force, Ranged, Forbid } //RangedUptime strategy
-    public enum GnashingStrategy { Automatic, ForceGnash, ForceClaw, ForceTalon, Delay } //GnashingFang combo strategy
-    public enum OffensiveStrategy { Automatic, Force, Delay } //CDs strategies
+    //Actions tracked for Cooldown Planner execution
+    public enum Track
+    {
+        AoE,             //Area of Effect actions
+        Burst,           //Burst damage actions
+        Potion,          //Potion usage tracking
+        LightningShot,   //Ranged attack tracking
+        GnashingFang,    //Gnashing Fang action tracking
+        NoMercy,         //No Mercy ability tracking
+        SonicBreak,      //Sonic Break ability tracking
+        DoubleDown,      //Double Down ability tracking
+        BurstStrike,     //Burst Strike ability tracking
+        FatedCircle,     //Fated Circle ability tracking
+        Zone,            //Blasting Zone or Danger Zone tracking
+        Bloodfest,       //Bloodfest ability tracking
+        BowShock,        //Bow Shock ability tracking
+        Trajectory       //Tracking for projectile trajectory
+    }
+
+    //Defines the strategy for using ST/AoE actions based on the current target selection and conditions
+    public enum AOEStrategy
+    {
+        SingleTarget,      //Prioritize single target actions
+        ForceAoE,         //Force the use of AoE actions regardless of targets
+        Auto,             //Automatically decide based on target count
+        AutoFinishCombo   //Automatically finish the current combo if possible
+    }
+
+    //Defines different strategies for executing burst damage actions based on cooldown and resource availability
+    public enum BurstStrategy
+    {
+        Automatic,          //Automatically execute based on conditions
+        ConserveCarts,      //Conserve cartridges for future use
+        UnderRaidBuffs,     //Execute during raid buffs for maximum effect
+        UnderPotion         //Execute while under the effects of a potion
+    }
+
+    //Defines strategies for potion usage in combat, determining when and how to consume potions based on the situation
+    public enum PotionStrategy
+    {
+        Manual,                //Manual potion usage
+        AlignWithRaidBuffs,    //Align potion usage with raid buffs
+        Immediate              //Use potions immediately when available
+    }
+
+    //Defines strategies for using Lightning Shot during combat based on various conditions
+    public enum LightningShotStrategy
+    {
+        OpenerRanged,   //Use Lightning Shot as part of the opener
+        Opener,         //Use Lightning Shot at the start of combat
+        Force,          //Always use Lightning Shot regardless of conditions
+        Ranged,         //Use Lightning Shot when ranged attacks are necessary
+        Forbid          //Prohibit the use of Lightning Shot
+    }
+
+    //Defines the strategy for using Gnashing Fang in combos, allowing for different behaviors based on combat scenarios
+    public enum GnashingStrategy
+    {
+        Automatic,        //Automatically decide when to use Gnashing Fang
+        ForceGnash,       //Force the use of Gnashing Fang regardless of conditions
+        ForceClaw,        //Force the use of Savage Claw action when in combo
+        ForceTalon,       //Force the use of Wicked Talon action when in combo
+        Delay             //Delay the use of Gnashing Fang for strategic reasons
+    }
+
+    //Defines different offensive strategies that dictate how abilities and resources are used during combat
+    public enum OffensiveStrategy
+    {
+        Automatic,      //Automatically decide when to use offensive abilities
+        Force,          //Force the use of offensive abilities regardless of conditions
+        Delay           //Delay the use of offensive abilities for strategic reasons
+    }
 
     public static RotationModuleDefinition Definition()
     {
         //Module title & signature
-        var res = new RotationModuleDefinition("GNB (Akechi)", "Standard Rotation Module", "Akechi",
-            RotationModuleQuality.Ok, BitMask.Build((int)Class.GNB), 100);
+        var res = new RotationModuleDefinition("GNB (Akechi)", "Standard Rotation Module", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.GNB), 100);
 
         //Custom strategies
         //Targeting strategy
@@ -144,7 +208,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     public enum OGCDPriority //Priority for oGCDs used
     {
         None = 0,
-        Trajectory = 500,
         Continuation = 510,
         Zone = 540,
         BowShock = 550,
