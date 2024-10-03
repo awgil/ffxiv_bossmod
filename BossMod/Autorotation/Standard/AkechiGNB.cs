@@ -24,16 +24,15 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         Zone,            //Blasting Zone or Danger Zone tracking
         Bloodfest,       //Bloodfest ability tracking
         BowShock,        //Bow Shock ability tracking
-        Trajectory       //Tracking for projectile trajectory
     }
 
     //Defines the strategy for using ST/AoE actions based on the current target selection and conditions
     public enum AOEStrategy
     {
-        SingleTarget,      //Prioritize single target actions
+        SingleTarget,     //Prioritize single target actions
         ForceAoE,         //Force the use of AoE actions regardless of targets
         Auto,             //Automatically decide based on target count
-        AutoFinishCombo   //Automatically finish the current combo if possible
+        AutoFinishCombo,  //Automatically finish the current combo if possible
     }
 
     //Defines different strategies for executing burst damage actions based on cooldown and resource availability
@@ -203,6 +202,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         ForcedDoubleDown = 880,
         ForcedGnashing = 890,
         ForcedGCD = 900,
+        StopAll = 980,
     }
 
     public enum OGCDPriority //Priority for oGCDs used
@@ -215,7 +215,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         Bloodfest = 600,
         NoMercy = 850,
         Potion = 900,
-        ContiunuationNeed = 950
+        ContiunuationNeed = 950,
+        StopAll = 980,
     }
 
     public byte Ammo; //Range: 0-2, 0-3 - current ammo count
