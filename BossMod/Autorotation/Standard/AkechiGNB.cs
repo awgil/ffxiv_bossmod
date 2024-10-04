@@ -120,8 +120,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.GnashingFang).As<GnashingStrategy>("Gnashing Fang", "GF", uiPriority: 50)
             .AddOption(GnashingStrategy.Automatic, "Auto", "Normal use of Gnashing Fang")
             .AddOption(GnashingStrategy.ForceGnash, "Force", "Force use of Gnashing Fang (Step 1)", 30, 0, ActionTargets.Hostile, 60)
-            .AddOption(GnashingStrategy.ForceClaw, "Force", "Force use of Savage Claw (Step 2)", 30, 0, ActionTargets.Hostile, 60)
-            .AddOption(GnashingStrategy.ForceTalon, "Force", "Force use of Wicked Talon (Step 3)", 30, 0, ActionTargets.Hostile, 60)
+            .AddOption(GnashingStrategy.ForceClaw, "Force", "Force use of Savage Claw (Step 2)", 0, 0, ActionTargets.Hostile, 60)
+            .AddOption(GnashingStrategy.ForceTalon, "Force", "Force use of Wicked Talon (Step 3)", 0, 0, ActionTargets.Hostile, 60)
             .AddOption(GnashingStrategy.Delay, "Delay", "Delay use of Gnashing Fang", 0, 0, ActionTargets.None, 60)
             .AddAssociatedActions(GNB.AID.GnashingFang, GNB.AID.SavageClaw, GNB.AID.WickedTalon);
 
