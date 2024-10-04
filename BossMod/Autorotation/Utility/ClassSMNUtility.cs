@@ -12,7 +12,9 @@ public sealed class ClassSMNUtility(RotationModuleManager manager, Actor player)
         var res = new RotationModuleDefinition("Utility: SMN", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.SMN), 100);
         DefineShared(res, IDLimitBreak3);
 
-        DefineSimpleConfig(res, Track.RadiantAegis, "Radiant Aegis", "Aegis", 600, SMN.AID.RadiantAegis, 30);
+        res.Define(Track.RadiantAegis).As<AegisStrategy>("Radiant Aegis", "Aegis", 20)
+            .AddOption(AegisStrategy.None, "None", "No use")
+            .AddOption(AegisStrategy.Use, "Use", "Use Radiant Aegis", 60, 30, ActionTargets.Self, 2);
 
         return res;
     }
@@ -22,12 +24,8 @@ public sealed class ClassSMNUtility(RotationModuleManager manager, Actor player)
         ExecuteShared(strategy, IDLimitBreak3);
 
         var radi = strategy.Option(Track.RadiantAegis);
-        var radiant = radi.As<AegisStrategy>() switch
-        {
-            AegisStrategy.Use => SMN.AID.RadiantAegis,
-            _ => default
-        };
-        if (radiant != default && SelfStatusLeft(SMN.SID.RadiantAegis) <= 3f)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(radiant), Player, radi.Priority(), radi.Value.ExpireIn);
+        var hasAegis = SelfStatusCheck(SMN.SID.RadiantAegis);
+        if (radi.As<AegisStrategy>() != AegisStrategy.None && !hasAegis)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SMN.AID.RadiantAegis), primaryTarget, radi.Priority(), radi.Value.ExpireIn);
     }
 }
