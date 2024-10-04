@@ -190,9 +190,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     {
         None = 0,
         Combo123 = 350,
-        NormalSB = 670,
         NormalBS = 600,
-        GF23 = 670,
+        NormalSB = 670,
+        GF23 = 660,
         NormalDD = 680,
         GF1 = 690,
         NormalGCD = 700,
@@ -412,8 +412,18 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             QueueGCD(GNB.AID.LionHeart, primaryTarget, GCDPriority.NormalGCD);
 
         //SonicBreak execution
-        if (canSonic && ShouldUseSonicBreak(strategy.Option(Track.SonicBreak).As<OffensiveStrategy>(), primaryTarget))
-            QueueGCD(GNB.AID.SonicBreak, primaryTarget, GCDPriority.NormalSB);
+        var forceBreak = strategy.Option(Track.SonicBreak).As<OffensiveStrategy>();
+        if (canSonic && hasNM)
+        {
+            if (forceBreak == OffensiveStrategy.Force) //Force without it breaking Autorot
+            {
+                QueueGCD(GNB.AID.SonicBreak, primaryTarget, GCDPriority.ForcedSonicBreak);
+            }
+            else if (ShouldUseSonicBreak(forceBreak, primaryTarget))
+            {
+                QueueGCD(GNB.AID.SonicBreak, primaryTarget, GCDPriority.NormalSB);
+            }
+        }
 
         //BurstStrike execution
         if (canBSlv80 && ShouldUseBurstStrike(strategy.Option(Track.BurstStrike).As<OffensiveStrategy>(), primaryTarget))
@@ -606,7 +616,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseSonicBreak(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            Player.InCombat && In3y(target) && nmLeft <= 2.45f,
+            Player.InCombat && In3y(target) && hasNM && hasBreak,
         OffensiveStrategy.Force => true,
         OffensiveStrategy.Delay => false,
         _ => false
