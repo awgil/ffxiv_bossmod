@@ -10,8 +10,8 @@ class BitmapEditorTest : TestWindow
         protected override void DrawSidebar()
         {
             base.DrawSidebar();
-
-            ImGui.TextUnformatted($"Size: {Bitmap.Width}x{Bitmap.Height}, Brush radius: {BrushRadius}");
+            ImGui.SameLine();
+            ImGui.TextUnformatted($"Size: {Bitmap.Width}x{Bitmap.Height}");
 
             if (ImGui.Button("+1 on left"))
             {
@@ -25,6 +25,7 @@ class BitmapEditorTest : TestWindow
                 var newBitmap = new Bitmap(Bitmap.Width * 2, Bitmap.Height * 2, Bitmap.Color0, Bitmap.Color1, Bitmap.Resolution * 2);
                 Bitmap.FullRegion.UpsampleTo(newBitmap, 0, 0);
                 CheckpointNoClone(newBitmap);
+                --ZoomLevel;
             }
 
             if (ImGui.Button("downscale"))
@@ -32,6 +33,7 @@ class BitmapEditorTest : TestWindow
                 var newBitmap = new Bitmap(Bitmap.Width / 2, Bitmap.Height / 2, Bitmap.Color0, Bitmap.Color1, Bitmap.Resolution / 2);
                 Bitmap.FullRegion.DownsampleTo(newBitmap, 0, 0, true);
                 CheckpointNoClone(newBitmap);
+                ++ZoomLevel;
             }
 
             if (ImGui.Button("save"))
@@ -43,6 +45,11 @@ class BitmapEditorTest : TestWindow
             {
                 CheckpointNoClone(new("D:\\test.bmp"));
             }
+        }
+
+        protected override IEnumerable<(int x, int y, Color c)> HighlighedCells()
+        {
+            yield return (1, 2, new(0xffff0000));
         }
     }
 

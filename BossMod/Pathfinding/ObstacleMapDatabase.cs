@@ -7,6 +7,13 @@ public sealed class ObstacleMapDatabase
 {
     public sealed record class Entry(Vector3 MinBounds, Vector3 MaxBounds, WPos Origin, int ViewWidth, int ViewHeight, string Filename)
     {
+        public Vector3 MinBounds = MinBounds;
+        public Vector3 MaxBounds = MaxBounds;
+        public WPos Origin = Origin;
+        public int ViewWidth = ViewWidth;
+        public int ViewHeight = ViewHeight;
+        public string Filename = Filename;
+
         public bool Contains(Vector3 p) => p.X >= MinBounds.X && p.Y >= MinBounds.Y && p.Z >= MinBounds.Z && p.X <= MaxBounds.X && p.Y <= MaxBounds.Y && p.Z <= MaxBounds.Z;
     }
 

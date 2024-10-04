@@ -12,16 +12,16 @@ public sealed class ObstacleMapConfig : ConfigNode
 
 public sealed class ObstacleMapManager : IDisposable
 {
+    public readonly WorldState World;
+    public readonly ObstacleMapDatabase Database = new();
+    public string RootPath { get; private set; } = ""; // empty or ends with slash
     private readonly ObstacleMapConfig _config = Service.Config.Get<ObstacleMapConfig>();
-    private readonly WorldState _ws;
     private readonly EventSubscriptions _subscriptions;
-    private readonly ObstacleMapDatabase _db = new();
     private readonly List<(ObstacleMapDatabase.Entry entry, Bitmap data)> _entries = [];
-    private string _root = ""; // empty or ends with slash
 
     public ObstacleMapManager(WorldState ws)
     {
-        _ws = ws;
+        World = ws;
         _subscriptions = new(
             _config.Modified.Subscribe(ReloadDatabase),
             ws.CurrentZoneChanged.Subscribe(op => LoadMaps(op.Zone, op.CFCID))
@@ -35,24 +35,35 @@ public sealed class ObstacleMapManager : IDisposable
     }
 
     public (ObstacleMapDatabase.Entry? entry, Bitmap? data) Find(Vector3 pos) => _entries.FirstOrDefault(e => e.entry.Contains(pos));
+    public bool CanEditDatabase() => _config.LoadFromSource;
+    public uint ZoneKey(ushort zoneId, ushort cfcId) => ((uint)zoneId << 16) | cfcId;
+    public uint CurrentKey() => ZoneKey(World.CurrentZone, World.CurrentCFCID);
 
-    private void ReloadDatabase()
+    public void ReloadDatabase()
     {
         var dbPath = _config.LoadFromSource ? _config.SourcePath : ""; // TODO: load from near assembly instead
-        _db.Load(dbPath);
-        _root = dbPath[..(dbPath.LastIndexOf('/') + 1)];
-        LoadMaps(_ws.CurrentZone, _ws.CurrentCFCID);
+        Service.Log($"Loading obstacle database from '{dbPath}'");
+        Database.Load(dbPath);
+        RootPath = dbPath[..(dbPath.LastIndexOfAny(['\\', '/']) + 1)];
+        LoadMaps(World.CurrentZone, World.CurrentCFCID);
+    }
+
+    public void SaveDatabase()
+    {
+        if (!_config.LoadFromSource)
+            return;
+        Database.Save(_config.SourcePath);
+        LoadMaps(World.CurrentZone, World.CurrentCFCID);
     }
 
     private void LoadMaps(ushort zoneId, ushort cfcId)
     {
         _entries.Clear();
-        var key = ((uint)zoneId << 16) | cfcId;
-        if (_db.Entries.TryGetValue(key, out var entries))
+        if (Database.Entries.TryGetValue(ZoneKey(zoneId, cfcId), out var entries))
         {
             foreach (var e in entries)
             {
-                var filename = _root + e.Filename;
+                var filename = RootPath + e.Filename;
                 try
                 {
                     var bitmap = new Bitmap(filename);

@@ -92,7 +92,7 @@ public sealed class Plugin : IDalamudPlugin
         _wndBossmodHints = new(_bossmod);
         _wndReplay = new(_ws, _rotationDB, replayDir);
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
-        _wndDebug = new(_ws, _rotation, _amex);
+        _wndDebug = new(_ws, _rotation, _amex, _hintsBuilder, dalamud);
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
         dalamud.UiBuilder.Draw += DrawUI;

@@ -6,9 +6,9 @@ public sealed class AIHintsBuilder : IDisposable
 {
     private const float RaidwideSize = 30;
 
+    public readonly Pathfinding.ObstacleMapManager Obstacles;
     private readonly WorldState _ws;
     private readonly BossModuleManager _bmm;
-    private readonly Pathfinding.ObstacleMapManager _obstacles;
     private readonly EventSubscriptions _subscriptions;
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = [];
     private ArenaBoundsCircle? _activeFateBounds;
@@ -17,7 +17,7 @@ public sealed class AIHintsBuilder : IDisposable
     {
         _ws = ws;
         _bmm = bmm;
-        _obstacles = new(ws);
+        Obstacles = new(ws);
         _subscriptions = new
         (
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
@@ -29,7 +29,7 @@ public sealed class AIHintsBuilder : IDisposable
     public void Dispose()
     {
         _subscriptions.Dispose();
-        _obstacles.Dispose();
+        Obstacles.Dispose();
     }
 
     public void Update(AIHints hints, int playerSlot)
@@ -51,7 +51,7 @@ public sealed class AIHintsBuilder : IDisposable
 
     private void CalculateAutoHints(AIHints hints, Actor player)
     {
-        var (e, bitmap) = _obstacles.Find(player.PosRot.XYZ());
+        var (e, bitmap) = Obstacles.Find(player.PosRot.XYZ());
         var resolution = bitmap?.PixelSize ?? 0.5f;
         if (_ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax)
         {
@@ -61,7 +61,7 @@ public sealed class AIHintsBuilder : IDisposable
         }
         else if (e != null && bitmap != null)
         {
-            var originCell = ((player.Position - e.Origin) / resolution).Rounded();
+            var originCell = (player.Position - e.Origin) / resolution;
             var originX = (int)originCell.X;
             var originZ = (int)originCell.Z;
             // if player is too close to the border, adjust origin
@@ -71,8 +71,8 @@ public sealed class AIHintsBuilder : IDisposable
             originZ = Math.Max(originZ, e.ViewHeight);
             // TODO: consider quantizing even more, to reduce jittering when player moves?..
             hints.PathfindMapCenter = e.Origin + resolution * new WDir(originX, originZ);
-            hints.PathfindMapBounds = new ArenaBoundsRect(e.ViewWidth, e.ViewHeight, MapResolution: resolution); // note: we don't bother caching these bounds, they are very lightweight
-            hints.PathfindMapObstacles = new(bitmap, new(originX, originZ, originX + 2 * e.ViewWidth, originZ + 2 * e.ViewHeight));
+            hints.PathfindMapBounds = new ArenaBoundsRect(e.ViewWidth * resolution, e.ViewHeight * resolution, MapResolution: resolution); // note: we don't bother caching these bounds, they are very lightweight
+            hints.PathfindMapObstacles = new(bitmap, new(originX - e.ViewWidth, originZ - e.ViewHeight, originX + e.ViewWidth, originZ + e.ViewHeight));
         }
         else
         {

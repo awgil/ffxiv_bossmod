@@ -36,7 +36,7 @@ public sealed class Bitmap
         {
             var offX = destX - Rect.Left;
             var offY = destY - Rect.Top;
-            var r = Rect.Clamped(Bitmap.FullRect, 0, 0).Clamped(dest.FullRect, offX, offY);
+            var r = Rect.Clamped(Bitmap.FullRect).Clamped(dest.FullRect, offX, offY);
             if (r.Width <= 0)
                 return; // nothing to copy
 
@@ -51,49 +51,52 @@ public sealed class Bitmap
         }
 
         // upsample a region into destination bitmap: each source pixel is converted into 2x2 destination pixels of same value
-        // note: if dest x/y are odd, they are rounded down
         public readonly void UpsampleTo(Bitmap dest, int destX, int destY)
         {
             // work in lower-resolution coordinates
+            var subX = destX & 1;
+            var subY = destY & 1;
             destX >>= 1;
             destY >>= 1;
             var offX = destX - Rect.Left;
             var offY = destY - Rect.Top;
-            var r = Rect.Clamped(Bitmap.FullRect, 0, 0).Clamped(new(0, 0, dest.Width >> 1, dest.Height >> 1), offX, offY);
+            var r = Rect.Clamped(Bitmap.FullRect).Clamped(new(0, 0, (dest.Width - subX) >> 1, (dest.Height - subY) >> 1), offX, offY);
             if (r.Width <= 0)
                 return; // nothing to copy
 
             // note: this could be optimized if needed...
-            for (int y = r.Top; y < r.Bottom; ++y)
+            for (int y = r.Top, dy = ((r.Top + offY) << 1) + subY; y < r.Bottom; ++y, dy += 2)
             {
-                for (int x = r.Left; x < r.Right; ++x)
+                for (int x = r.Left, dx = ((r.Left + offX) << 1) + subX; x < r.Right; ++x, dx += 2)
                 {
-                    dest[(x + offX) << 1, (y + offY) << 1] = dest[((x + offX) << 1) + 1, (y + offY) << 1] = dest[(x + offX) << 1, ((y + offY) << 1) + 1] = dest[((x + offX) << 1) + 1, ((y + offY) << 1) + 1] = Bitmap[x, y];
+                    dest[dx, dy] = dest[dx + 1, dy] = dest[dx, dy + 1] = dest[dx + 1, dy + 1] = Bitmap[x, y];
                 }
             }
         }
 
         // downsample a region into destination bitmap; each 2x2 group of source pixels are copied into destination pixel if equal, otherwise destination is set to fallback value
-        // note: if source x/y/w/h are odd, they are rounded down
+        // if this region's width or height are odd, last column/row is ignored
         public readonly void DownsampleTo(Bitmap dest, int destX, int destY, bool fallback)
         {
             // work in lower-resolution coordinates
+            var subX = Rect.Left & 1;
+            var subY = Rect.Top & 1;
             var r = new Rect(Rect.Left >> 1, Rect.Top >> 1, Rect.Right >> 1, Rect.Bottom >> 1);
             var offX = destX - r.Left;
             var offY = destY - r.Top;
-            r = r.Clamped(new(0, 0, Bitmap.Width >> 1, Bitmap.Height >> 1), 0, 0).Clamped(dest.FullRect, offX, offY);
+            r = r.Clamped(new(0, 0, (Bitmap.Width - subX) >> 1, (Bitmap.Height - subY) >> 1)).Clamped(dest.FullRect, offX, offY);
             if (r.Width <= 0)
                 return; // nothing to copy
 
             // note: this could be optimized if needed...
-            for (int y = r.Top; y < r.Bottom; ++y)
+            for (int y = r.Top, sy = (r.Top << 1) + subY; y < r.Bottom; ++y, sy += 2)
             {
-                for (int x = r.Left; x < r.Right; ++x)
+                for (int x = r.Left, sx = (r.Left << 1) + subX; x < r.Right; ++x, sx += 2)
                 {
-                    var v = Bitmap[x << 1, y << 1];
-                    if (v != Bitmap[(x << 1) + 1, y << 1] || v != Bitmap[x << 1, (y << 1) + 1] || v != Bitmap[(x << 1) + 1, (y << 1) + 1])
+                    var v = Bitmap[sx, sy];
+                    if (v != Bitmap[sx + 1, sy] || v != Bitmap[sx, sy + 1] || v != Bitmap[sx + 1, sy + 1])
                         v = fallback;
-                    dest[x, y] = v;
+                    dest[x + offX, y + offY] = v;
                 }
             }
         }

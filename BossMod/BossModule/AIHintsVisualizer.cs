@@ -44,6 +44,8 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
         }
         foreach (var _1 in tree.Node("Pathfinding"))
         {
+            ImGui.TextUnformatted($"Center={hints.PathfindMapCenter}, Bounds={hints.PathfindMapBounds}");
+            ImGui.TextUnformatted($"Obstacles={hints.PathfindMapObstacles}");
             _pathfindVisualizer ??= BuildPathfindingVisualizer();
             _pathfindVisualizer!.Draw();
             ImGui.TextUnformatted($"Leeway={_navi.LeewaySeconds:f3}, ttg={_navi.TimeToGoal:f3}, dist={(_navi.Destination != null ? $"{(_navi.Destination.Value - player.Position).Length():f3}" : "---")}");
