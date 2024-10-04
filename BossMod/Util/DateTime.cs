@@ -19,4 +19,5 @@ public static class DateTimeExtensions
 
     public static DateTime Min(DateTime a, DateTime b) => a < b ? a : b;
     public static DateTime Max(DateTime a, DateTime b) => a > b ? a : b;
+    public static DateTime Clamp(this DateTime dt, DateTime min, DateTime max) => dt < min ? min : dt > max ? max : dt;
 }

@@ -219,8 +219,8 @@ public abstract class BossModule : IDisposable
 
     public void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        hints.Center = Center;
-        hints.Bounds = Bounds;
+        hints.PathfindMapCenter = Center;
+        hints.PathfindMapBounds = Bounds;
         foreach (var comp in _components)
             comp.AddAIHints(slot, actor, assignment, hints);
         CalculateModuleAIHints(slot, actor, assignment, hints);

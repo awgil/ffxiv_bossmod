@@ -8,6 +8,7 @@ public sealed class AIHintsBuilder : IDisposable
 
     private readonly WorldState _ws;
     private readonly BossModuleManager _bmm;
+    private readonly Pathfinding.ObstacleMapManager _obstacles;
     private readonly EventSubscriptions _subscriptions;
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = [];
     private ArenaBoundsCircle? _activeFateBounds;
@@ -16,6 +17,7 @@ public sealed class AIHintsBuilder : IDisposable
     {
         _ws = ws;
         _bmm = bmm;
+        _obstacles = new(ws);
         _subscriptions = new
         (
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
@@ -24,7 +26,11 @@ public sealed class AIHintsBuilder : IDisposable
         );
     }
 
-    public void Dispose() => _subscriptions.Dispose();
+    public void Dispose()
+    {
+        _subscriptions.Dispose();
+        _obstacles.Dispose();
+    }
 
     public void Update(AIHints hints, int playerSlot)
     {
@@ -45,24 +51,42 @@ public sealed class AIHintsBuilder : IDisposable
 
     private void CalculateAutoHints(AIHints hints, Actor player)
     {
+        var (e, bitmap) = _obstacles.Find(player.PosRot.XYZ());
+        var resolution = bitmap?.PixelSize ?? 0.5f;
         if (_ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax)
         {
-            hints.Center = new(_ws.Client.ActiveFate.Center.XZ());
-            hints.Bounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius));
+            hints.PathfindMapCenter = new(_ws.Client.ActiveFate.Center.XZ());
+            hints.PathfindMapBounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius));
+            // TODO: obstactles for fates, if we care?..
+        }
+        else if (e != null && bitmap != null)
+        {
+            var originCell = ((player.Position - e.Origin) / resolution).Rounded();
+            var originX = (int)originCell.X;
+            var originZ = (int)originCell.Z;
+            // if player is too close to the border, adjust origin
+            originX = Math.Min(originX, bitmap.Width - e.ViewWidth);
+            originZ = Math.Min(originZ, bitmap.Height - e.ViewHeight);
+            originX = Math.Max(originX, e.ViewWidth);
+            originZ = Math.Max(originZ, e.ViewHeight);
+            // TODO: consider quantizing even more, to reduce jittering when player moves?..
+            hints.PathfindMapCenter = e.Origin + resolution * new WDir(originX, originZ);
+            hints.PathfindMapBounds = new ArenaBoundsRect(e.ViewWidth, e.ViewHeight, MapResolution: resolution); // note: we don't bother caching these bounds, they are very lightweight
+            hints.PathfindMapObstacles = new(bitmap, new(originX, originZ, originX + 2 * e.ViewWidth, originZ + 2 * e.ViewHeight));
         }
         else
         {
-            hints.Center = player.Position.Rounded(5);
+            hints.PathfindMapCenter = player.Position.Rounded(5);
             // try to keep player near grid center
-            var playerOffset = player.Position - hints.Center;
+            var playerOffset = player.Position - hints.PathfindMapCenter;
             if (playerOffset.X < -1.25f)
-                hints.Center.X -= 2.5f;
+                hints.PathfindMapCenter.X -= 2.5f;
             else if (playerOffset.X > 1.25f)
-                hints.Center.X += 2.5f;
+                hints.PathfindMapCenter.X += 2.5f;
             if (playerOffset.Z < -1.25f)
-                hints.Center.Z -= 2.5f;
+                hints.PathfindMapCenter.Z -= 2.5f;
             else if (playerOffset.Z > 1.25f)
-                hints.Center.Z += 2.5f;
+                hints.PathfindMapCenter.Z += 2.5f;
             // keep default bounds
         }
 

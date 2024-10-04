@@ -54,7 +54,8 @@ public class UIBitmapEditor
     public bool CanRedo() => _curUndoPos < _bitmaps.Count - 1;
     public void Undo() => _curUndoPos = Math.Max(0, _curUndoPos - 1);
     public void Redo() => _curUndoPos = Math.Min(_bitmaps.Count - 1, _curUndoPos + 1);
-    public void Checkpoint() => CheckpointImpl(_bitmaps[_curUndoPos].Clone());
+    public void Checkpoint() => Checkpoint(_bitmaps[_curUndoPos]);
+    public void Checkpoint(Bitmap image) => CheckpointNoClone(image.Clone());
 
     protected int RegisterMode(string name)
     {
@@ -62,34 +63,19 @@ public class UIBitmapEditor
         return _modeNames.Count;
     }
 
+    // note: assumes newState has no other references
+    protected void CheckpointNoClone(Bitmap newState)
+    {
+        if (_curUndoPos < _bitmaps.Count - 1)
+            _bitmaps.RemoveRange(_curUndoPos + 1, _bitmaps.Count - _curUndoPos - 1);
+        _bitmaps.Add(newState);
+        ++_curUndoPos;
+    }
+
     protected virtual void DrawSidebar()
     {
         DrawModeButtons();
         DrawUndoRedoButtons();
-
-        // debug stuff
-        ImGui.TextUnformatted($"Size: {Bitmap.Width}x{Bitmap.Height}, Brush radius: {BrushRadius}");
-
-        if (ImGui.Button("+1 on left"))
-        {
-            var newBitmap = new Bitmap(Bitmap.Width + 1, Bitmap.Height);
-            newBitmap.CopyRegion(Bitmap, 0, 0, Bitmap.Width, Bitmap.Height, 1, 0);
-            CheckpointImpl(newBitmap);
-        }
-
-        if (ImGui.Button("upscale"))
-        {
-            var newBitmap = new Bitmap(Bitmap.Width * 2, Bitmap.Height * 2);
-            newBitmap.UpsampleRegion(Bitmap, 0, 0, Bitmap.Width, Bitmap.Height, 0, 0);
-            CheckpointImpl(newBitmap);
-        }
-
-        if (ImGui.Button("downscale"))
-        {
-            var newBitmap = new Bitmap(Bitmap.Width / 2, Bitmap.Height / 2);
-            newBitmap.DownsampleRegion(Bitmap, 0, 0, Bitmap.Width, Bitmap.Height, 0, 0, true);
-            CheckpointImpl(newBitmap);
-        }
     }
 
     protected void DrawModeButtons()
@@ -148,6 +134,8 @@ public class UIBitmapEditor
         var screenY0 = y0 * bitmapToScreenScale - ScreenOffset.Y;
         var pixelWeight = 1.0f / (numBitmapPixelsPerScreenPixel * numBitmapPixelsPerScreenPixel);
 
+        var c0 = Bitmap.Color0.ToFloat4();
+        var c1 = Bitmap.Color1.ToFloat4();
         for (int y = y0; y < y1; y += numBitmapPixelsPerScreenPixel)
         {
             var corner = tl + new Vector2(screenX0, screenY0);
@@ -165,7 +153,7 @@ public class UIBitmapEditor
                         for (int sx = x; sx < subXMax; ++sx)
                             if (Bitmap[sx, sy])
                                 opacity += pixelWeight;
-                    var color = new Vector4(1, 0.5f, 0, 1) * opacity;
+                    var color = Vector4.Lerp(c0, c1, opacity);
                     dl.AddRectFilled(cellTL, cellBR, Color.FromFloat4(color).ABGR);
                 }
                 corner.X += numScreenPixelsPerBitmapPixel;
@@ -294,15 +282,6 @@ public class UIBitmapEditor
             ScreenOffset.X = MathF.Round(ScreenOffset.X);
             ScreenOffset.Y = MathF.Round(ScreenOffset.Y);
         }
-    }
-
-    // note: assumes newState has no other references
-    private void CheckpointImpl(Bitmap newState)
-    {
-        if (_curUndoPos < _bitmaps.Count - 1)
-            _bitmaps.RemoveRange(_curUndoPos + 1, _bitmaps.Count - _curUndoPos - 1);
-        _bitmaps.Add(newState);
-        ++_curUndoPos;
     }
 
     private static bool IntersectCirclePixel(Vector2 center, float radius, int x, int y)

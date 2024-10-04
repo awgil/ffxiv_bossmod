@@ -53,7 +53,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
     private MapVisualizer BuildZoneVisualizer(Func<WPos, float> shape)
     {
         var map = new Map();
-        hints.Bounds.PathfindMap(map, hints.Center);
+        hints.InitPathfindMap(map);
         map.BlockPixelsInside(shape, 0, NavigationDecision.ForbiddenZoneCushion);
         return new MapVisualizer(map, player.Position);
     }
