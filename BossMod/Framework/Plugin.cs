@@ -13,6 +13,7 @@ namespace BossMod;
 public sealed class Plugin : IDalamudPlugin
 {
     public string Name => "Boss Mod";
+    internal static Plugin BossMod = null!;
 
     private ICommandManager CommandManager { get; init; }
 
@@ -33,11 +34,11 @@ public sealed class Plugin : IDalamudPlugin
 
     // windows
     private readonly ConfigUI _configUI; // TODO: should be a proper window!
-    private readonly BossModuleMainWindow _wndBossmod;
-    private readonly BossModuleHintsWindow _wndBossmodHints;
-    private readonly ReplayManagementWindow _wndReplay;
-    private readonly UIRotationWindow _wndRotation;
-    private readonly MainDebugWindow _wndDebug;
+    internal readonly BossModuleMainWindow _wndBossmod;
+    internal readonly BossModuleHintsWindow _wndBossmodHints;
+    internal readonly ReplayManagementWindow _wndReplay;
+    internal readonly UIRotationWindow _wndRotation;
+    internal readonly MainDebugWindow _wndDebug;
 
     public unsafe Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner, IDataManager dataManager)
     {
@@ -98,6 +99,7 @@ public sealed class Plugin : IDalamudPlugin
         dalamud.UiBuilder.Draw += DrawUI;
         dalamud.UiBuilder.OpenConfigUi += () => OpenConfigUI();
 
+        BossMod = this;
         _ = new ConfigChangelogWindow();
     }
 
@@ -239,8 +241,12 @@ public sealed class Plugin : IDalamudPlugin
             case "toggle":
                 ParseAutorotationSetCommand(cmd.Length > 2 ? cmd[2] : "", true);
                 break;
-            default:
+            case "?":
+            case "help":
                 PrintAutorotationHelp();
+                break;
+            default:
+                _wndRotation.IsOpen ^= true;
                 break;
         }
     }

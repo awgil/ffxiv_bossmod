@@ -30,7 +30,7 @@ internal sealed class DTRProvider : IDisposable
         _aiEntry.OnClick = () =>
         {
             if (UIInputData.Instance()->MouseButtonHeldThrottledFlags.HasFlag(MouseButtonFlags.RBUTTON))
-                _aiConfig.DrawUI ^= true;
+                AIManager.UI.IsOpen ^= true;
             else
                 _aiConfig.Enabled ^= true;
         };

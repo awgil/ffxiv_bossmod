@@ -1,4 +1,8 @@
-﻿using Dalamud.Interface.Utility.Raii;
+﻿using BossMod.AI;
+using Dalamud.Interface;
+using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using System.Diagnostics;
 using System.IO;
@@ -34,7 +38,7 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
             "Go to the \"Autorotation Presets\" tab to create a preset.",
             "Maturity of each rotation module is present in a tooltip.",
             "Guide for using this feature can be found on the project's GitHub wiki.",
-        ]);
+        ], () => Plugin.BossMod._wndRotation.IsOpen ^= true);
         ImGui.Spacing();
         DrawSection("CD Planner",
         [
@@ -50,7 +54,7 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
             "Automatically moves your character based on safe zones determined by a boss's module, visible on the radar.",
             "Should not be used in any group content.",
             "Can be hooked by other plugins to automate entire duties.",
-        ]);
+        ], () => AIManager.UI.IsOpen ^= true);
         ImGui.Spacing();
         DrawSection("Replays",
         [
@@ -82,7 +86,7 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
         }
     }
 
-    private void DrawSection(string title, string[] bulletPoints)
+    private void DrawSection(string title, string[] bulletPoints, Action? buttonAction = null)
     {
         using var colorBackground = ImRaii.PushColor(ImGuiCol.ChildBg, SectionBgColor.ABGR);
         using var colorBorder = ImRaii.PushColor(ImGuiCol.Border, BorderColor.ABGR);
@@ -93,6 +97,15 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
         using (ImRaii.PushColor(ImGuiCol.Text, TitleColor.ABGR))
         {
             ImGui.TextUnformatted(title);
+        }
+
+        if (buttonAction != null)
+        {
+            ImGui.SameLine();
+            var buttonSize = ImGuiHelpers.GetButtonSize(FontAwesomeIcon.FileImport.ToIconString());
+            ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - buttonSize.X - ImGui.GetStyle().WindowPadding.X);
+            if (ImGuiComponents.IconButton(title, FontAwesomeIcon.ShareSquare))
+                buttonAction?.Invoke();
         }
 
         ImGui.Separator();
