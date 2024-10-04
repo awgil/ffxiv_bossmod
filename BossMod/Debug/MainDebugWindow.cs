@@ -25,7 +25,6 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
 
     protected override void Dispose(bool disposing)
     {
-        _debugObstacles.Dispose();
         _debugAction.Dispose();
         _debugInput.Dispose();
         _debugClassDefinitions.Dispose();

@@ -27,7 +27,7 @@ public sealed class ObstacleMapDatabase
             using var json = Serialization.ReadJson(listPath);
             foreach (var jentries in json.RootElement.EnumerateObject())
             {
-                var sep = jentries.Name.IndexOf('.');
+                var sep = jentries.Name.IndexOf('.', StringComparison.Ordinal);
                 var zone = sep >= 0 ? uint.Parse(jentries.Name.AsSpan()[..sep]) : uint.Parse(jentries.Name);
                 var cfc = sep >= 0 ? uint.Parse(jentries.Name.AsSpan()[(sep + 1)..]) : 0;
                 var entries = Entries[(zone << 16) | cfc] = [];

@@ -6,7 +6,7 @@ using System.IO;
 
 namespace BossMod;
 
-class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterface dalamud) : IDisposable
+sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterface dalamud)
 {
     class Editor(DebugObstacles owner, Bitmap bm, ObstacleMapDatabase.Entry e) : UIBitmapEditor(bm)
     {
@@ -128,14 +128,10 @@ class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterface dalam
         }
     }
 
-    protected readonly ObstacleMapManager Obstacles = obstacles;
+    internal readonly ObstacleMapManager Obstacles = obstacles;
     private readonly UITree _tree = new();
     private readonly Func<Vector3, string, float, (Vector3, Vector3)> _createMap = (startingPos, filename, pixelSize) => dalamud.GetIpcSubscriber<Vector3, string, float, (Vector3, Vector3)>("vnavmesh.Nav.BuildBitmap").InvokeFunc(startingPos, filename, pixelSize);
     private bool _dbModified;
-
-    public void Dispose()
-    {
-    }
 
     public void Draw()
     {
@@ -161,7 +157,7 @@ class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterface dalam
             DrawEntries(n.Value);
     }
 
-    protected void MarkModified() => _dbModified = true;
+    internal void MarkModified() => _dbModified = true;
 
     private void DrawEntries(List<ObstacleMapDatabase.Entry> entries)
     {
@@ -232,10 +228,9 @@ class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterface dalam
         }
     }
 
-    private UIBitmapEditor OpenEditor(ObstacleMapDatabase.Entry entry)
+    private void OpenEditor(ObstacleMapDatabase.Entry entry)
     {
         var editor = new Editor(this, new(Obstacles.RootPath + entry.Filename), entry);
         _ = new UISimpleWindow($"Obstacle map {entry.Filename}", editor.Draw, true, new(1000, 1000));
-        return editor;
     }
 }
