@@ -428,7 +428,7 @@ class UWUStates : StateMachineBuilder
             .DeactivateOnExit<P4Freefire>();
         ComponentCondition<P4MagitekBits>(id + 0x1000, 2.2f, comp => comp.Active, "Caster LB")
             .ActivateOnEnter<P4MagitekBits>();
-        ComponentCondition<P4Blight>(id + 0x2000, 11.5f, comp => comp.NumCasts > 0, "Heal LB")
+        ComponentCondition<P4Blight>(id + 0x2000, 11.5f, comp => comp.NumCasts > 0, "Heal LB", 10) // note: timing variance is extreme (up to 16s), 11.5 is minimal seen
             .ActivateOnEnter<P4Blight>()
             .DeactivateOnExit<P4Blight>();
         ActorTargetable(id + 0x3000, _module.Lahabrea, true, 9.1f, "Melee LB")
