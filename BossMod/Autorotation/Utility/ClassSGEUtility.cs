@@ -10,6 +10,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
     public enum ZoeOption { None, Use, UseEx }
     public enum DashStrategy { None, Force, GapClose } //GapCloser strategy
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
+    public bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus((uint)(object)sid, Player.InstanceID) != null; //Checks if Status effect is on self
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SGE.AID.TechneMakre);
 
@@ -101,7 +102,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(kardiaAction), primaryTarget, kardia.Priority(), kardia.Value.ExpireIn);
 
         //Diagnosis full execution
-        var hasEukrasia = SelfStatusCheck(SGE.SID.Eukrasia); //Eukrasia
+        var hasEukrasia = HasEffect(SGE.SID.Eukrasia); //Eukrasia
         var diag = strategy.Option(Track.Diagnosis);
         var diagAction = diag.As<DiagOption>() switch
         {
@@ -129,7 +130,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         }
 
         //Prognosis full execution
-        var alreadyUp = PartyStatusCheck(SGE.SID.EukrasianPrognosis) || PartyStatusCheck(SCH.SID.Galvanize);
+        var alreadyUp = HasEffect(SGE.SID.EukrasianPrognosis) || HasEffect(SCH.SID.Galvanize);
         var prog = strategy.Option(Track.Prognosis);
         var progAction = prog.As<ProgOption>() switch
         {

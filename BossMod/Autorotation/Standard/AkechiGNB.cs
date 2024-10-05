@@ -87,21 +87,21 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
 
         //Custom strategies
         //Targeting strategy
-        res.Define(Track.AoE).As<AOEStrategy>("Combo Option", "AoE", uiPriority: 90)
+        res.Define(Track.AoE).As<AOEStrategy>("Combo Option", "AoE", uiPriority: 200)
             .AddOption(AOEStrategy.SingleTarget, "ST", "Use ST rotation")
             .AddOption(AOEStrategy.ForceAoE, "AoE", "Use AoE rotation")
             .AddOption(AOEStrategy.Auto, "Auto", "Use AoE rotation if 3+ targets would be hit, otherwise use ST rotation; break combo if necessary")
             .AddOption(AOEStrategy.AutoFinishCombo, "Auto Finish Combo", "Use AoE rotation if 3+ targets would be hit, otherwise use ST rotation; finish combo before switching");
 
         //Burst strategy
-        res.Define(Track.Burst).As<BurstStrategy>("Burst", uiPriority: 80)
+        res.Define(Track.Burst).As<BurstStrategy>("Burst", uiPriority: 190)
             .AddOption(BurstStrategy.Automatic, "Automatic", "Spend cartridges optimally")
             .AddOption(BurstStrategy.ConserveCarts, "Conserve", "Conserve everything (cartridges & GCDs)")
             .AddOption(BurstStrategy.UnderRaidBuffs, "Under RaidBuffs", "Spend under raid buffs, otherwise conserve; ignores potion")
             .AddOption(BurstStrategy.UnderPotion, "Under Potion", "Spend under potion, otherwise conserve; ignores raid buffs");
 
         //Potion strategy
-        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 70)
+        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 180)
             .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
             .AddOption(PotionStrategy.AlignWithRaidBuffs, "AlignWithRaidBuffs", "Align with 2-minute raid buffs (0/6, 2/8, etc)", 270, 30, ActionTargets.Self)
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
@@ -117,7 +117,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             .AddAssociatedActions(GNB.AID.LightningShot);
 
         //GnashingFang strategy
-        res.Define(Track.GnashingFang).As<GnashingStrategy>("Gnashing Fang", "GF", uiPriority: 50)
+        res.Define(Track.GnashingFang).As<GnashingStrategy>("Gnashing Fang", "GF", uiPriority: 160)
             .AddOption(GnashingStrategy.Automatic, "Auto", "Normal use of Gnashing Fang")
             .AddOption(GnashingStrategy.ForceGnash, "Force", "Force use of Gnashing Fang (Step 1)", 30, 0, ActionTargets.Hostile, 60)
             .AddOption(GnashingStrategy.ForceClaw, "Force", "Force use of Savage Claw (Step 2)", 0, 0, ActionTargets.Hostile, 60)
@@ -127,56 +127,56 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
 
         //Offensive Strategies
         //NoMercy strategy
-        res.Define(Track.NoMercy).As<OffensiveStrategy>("No Mercy", "NM", uiPriority: 60)
+        res.Define(Track.NoMercy).As<OffensiveStrategy>("No Mercy", "NM", uiPriority: 170)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP (even during downtime)", 60, 20, ActionTargets.Self, 2)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay", 0, 0, ActionTargets.None, 2)
             .AddAssociatedActions(GNB.AID.NoMercy);
 
         //SonicBreak strategy
-        res.Define(Track.SonicBreak).As<OffensiveStrategy>("Sonic Break", "SB", uiPriority: 40)
+        res.Define(Track.SonicBreak).As<OffensiveStrategy>("Sonic Break", "SB", uiPriority: 150)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Sonic Break")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Sonic Break", 0, 30, ActionTargets.Hostile, 54)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Sonic Break", 0, 0, ActionTargets.None, 54)
             .AddAssociatedActions(GNB.AID.SonicBreak);
 
         //DoubleDown strategy
-        res.Define(Track.DoubleDown).As<OffensiveStrategy>("Double Down", "DD", uiPriority: 50)
+        res.Define(Track.DoubleDown).As<OffensiveStrategy>("Double Down", "DD", uiPriority: 160)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Double Down")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Double Down", 60, 0, ActionTargets.Hostile, 90)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Double Down", 0, 0, ActionTargets.None, 90)
             .AddAssociatedActions(GNB.AID.DoubleDown);
 
         //BurstStrike strategy
-        res.Define(Track.BurstStrike).As<OffensiveStrategy>("Burst Strike", "BS", uiPriority: 30)
+        res.Define(Track.BurstStrike).As<OffensiveStrategy>("Burst Strike", "BS", uiPriority: 140)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Burst Strike")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Burst Strike", 0, 0, ActionTargets.Hostile, 30)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Burst Strike", 0, 0, ActionTargets.None, 30)
             .AddAssociatedActions(GNB.AID.BurstStrike);
 
         //FatedCircle strategy
-        res.Define(Track.FatedCircle).As<OffensiveStrategy>("Fated Circle", "FC", uiPriority: 30)
+        res.Define(Track.FatedCircle).As<OffensiveStrategy>("Fated Circle", "FC", uiPriority: 140)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Fated Circle")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Fated Circle", 0, 0, ActionTargets.Hostile, 72)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Fated Circle", 0, 0, ActionTargets.None, 72)
             .AddAssociatedActions(GNB.AID.FatedCircle);
 
         //Zone strategy
-        res.Define(Track.Zone).As<OffensiveStrategy>("Blasting Zone", "Zone", uiPriority: 40)
+        res.Define(Track.Zone).As<OffensiveStrategy>("Blasting Zone", "Zone", uiPriority: 150)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP", 30, 0, ActionTargets.Hostile, 18)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay", 0, 0, ActionTargets.None, 18)
             .AddAssociatedActions(GNB.AID.BlastingZone, GNB.AID.DangerZone);
 
         //Bloodfest strategy
-        res.Define(Track.Bloodfest).As<OffensiveStrategy>("Bloodfest", "BF", uiPriority: 60)
+        res.Define(Track.Bloodfest).As<OffensiveStrategy>("Bloodfest", "BF", uiPriority: 170)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Bloodfest")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Bloodfest", 120, 0, ActionTargets.Hostile, 80)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Bloodfest", 0, 0, ActionTargets.None, 80)
             .AddAssociatedActions(GNB.AID.Bloodfest);
 
         //BowShock strategy
-        res.Define(Track.BowShock).As<OffensiveStrategy>("Bow Shock", "BShock", uiPriority: 40)
+        res.Define(Track.BowShock).As<OffensiveStrategy>("Bow Shock", "BShock", uiPriority: 150)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Bow Shock")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Bow Shock", 60, 15, ActionTargets.Self, 62)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Bow Shock", 0, 0, ActionTargets.None, 62)
@@ -280,6 +280,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     //Checks if the potion should be used before raid buffs expire
     private bool IsPotionBeforeRaidbuffs() => RaidBuffsLeft == 0 && PotionLeft > RaidBuffsIn + 17.5f;
 
+    //Checks if Status effect is on self
+    public bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus((uint)(object)sid, Player.InstanceID) != null;
+
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
     {
         //Gauge values
@@ -298,14 +301,14 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         PotionLeft = PotionStatusLeft(); //Remaining time for potion buff (30s)
 
         //Buff and cooldown checks
-        hasBreak = SelfStatusCheck(GNB.SID.ReadyToBreak); //Checks for the Ready To Break buff for Reign of Beasts after Bloodfest
-        hasReign = SelfStatusCheck(GNB.SID.ReadyToReign); //Checks for the Ready To Reign buff
+        hasBreak = HasEffect(GNB.SID.ReadyToBreak); //Checks for the Ready To Break buff for Reign of Beasts after Bloodfest
+        hasReign = HasEffect(GNB.SID.ReadyToReign); //Checks for the Ready To Reign buff
         hasNM = nmCD is >= 40 and <= 60; //Checks if No Mercy is active based on cooldown instead of buff tick
-        hasBlast = SelfStatusCheck(GNB.SID.ReadyToBlast); //Checks for the Ready To Blast buff
-        hasRaze = SelfStatusCheck(GNB.SID.ReadyToRaze); //Checks for the Ready To Raze buff
-        hasRip = SelfStatusCheck(GNB.SID.ReadyToRip); //Checks for the Ready To Rip buff
-        hasTear = SelfStatusCheck(GNB.SID.ReadyToTear); //Checks for the Ready To Tear buff
-        hasGouge = SelfStatusCheck(GNB.SID.ReadyToGouge); //Checks for the Ready To Gouge buff
+        hasBlast = HasEffect(GNB.SID.ReadyToBlast); //Checks for the Ready To Blast buff
+        hasRaze = HasEffect(GNB.SID.ReadyToRaze); //Checks for the Ready To Raze buff
+        hasRip = HasEffect(GNB.SID.ReadyToRip); //Checks for the Ready To Rip buff
+        hasTear = HasEffect(GNB.SID.ReadyToTear); //Checks for the Ready To Tear buff
+        hasGouge = HasEffect(GNB.SID.ReadyToGouge); //Checks for the Ready To Gouge buff
 
         //Raid buff timings
         (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);

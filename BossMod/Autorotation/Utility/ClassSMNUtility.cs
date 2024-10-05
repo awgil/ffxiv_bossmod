@@ -4,6 +4,7 @@ public sealed class ClassSMNUtility(RotationModuleManager manager, Actor player)
 {
     public enum Track { RadiantAegis = SharedTrack.Count }
     public enum AegisStrategy { None, Use }
+    public bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus((uint)(object)sid, Player.InstanceID) != null; //Checks if Status effect is on self
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SMN.AID.Teraflare);
 
@@ -24,7 +25,7 @@ public sealed class ClassSMNUtility(RotationModuleManager manager, Actor player)
         ExecuteShared(strategy, IDLimitBreak3);
 
         var radi = strategy.Option(Track.RadiantAegis);
-        var hasAegis = SelfStatusCheck(SMN.SID.RadiantAegis);
+        var hasAegis = HasEffect(SMN.SID.RadiantAegis);
         if (radi.As<AegisStrategy>() != AegisStrategy.None && !hasAegis)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(SMN.AID.RadiantAegis), primaryTarget, radi.Priority(), radi.Value.ExpireIn);
     }

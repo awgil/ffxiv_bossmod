@@ -7,6 +7,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
     public enum AuroraStrategy { None, Force } //Aurora
     public enum DashStrategy { None, GapClose } //Gapcloser purposes
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
+    public bool TargetHasEffect<SID>(Actor target, SID sid) where SID : Enum => target?.FindStatus((uint)(object)sid, Player.InstanceID) != null; //Checks if Status effect is on target
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(GNB.AID.GunmetalSoul);
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(GNB.AID.RoyalGuard);
@@ -17,18 +18,18 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         var res = new RotationModuleDefinition("Utility: GNB", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.GNB), 100); //How we plan our use of Utility skills
         DefineShared(res, IDLimitBreak3, IDStanceApply, IDStanceRemove); //Stance & LB
 
-        DefineSimpleConfig(res, Track.Camouflage, "Camouflage", "Camo", 450, GNB.AID.Camouflage, 20); //90s CD, 20s duration
+        DefineSimpleConfig(res, Track.Camouflage, "Camouflage", "Camo", 500, GNB.AID.Camouflage, 20); //90s CD, 20s duration
         DefineSimpleConfig(res, Track.Nebula, "Nebula", "Nebula", 550, GNB.AID.Nebula, 15); //120s CD, 15s duration
 
-        res.Define(Track.Aurora).As<AuroraStrategy>("Aurora", "", 550) //60s (120s total), 18s duration, 2 charges
+        res.Define(Track.Aurora).As<AuroraStrategy>("Aurora", "", 150) //60s (120s total), 18s duration, 2 charges
             .AddOption(AuroraStrategy.None, "None", "Do not use automatically")
             .AddOption(AuroraStrategy.Force, "Use", "Use Aurora", 60, 18, ActionTargets.Self | ActionTargets.Party, 45)
             .AddAssociatedActions(GNB.AID.Aurora);
 
-        DefineSimpleConfig(res, Track.Superbolide, "Superbolide", "Bolide", 400, GNB.AID.Superbolide, 10); //360s CD, 10s duration
-        DefineSimpleConfig(res, Track.HeartOfLight, "HeartOfLight", "HoL", 220, GNB.AID.HeartOfLight, 15); //90s CD, 15s duration
+        DefineSimpleConfig(res, Track.Superbolide, "Superbolide", "Bolide", 600, GNB.AID.Superbolide, 10); //360s CD, 10s duration
+        DefineSimpleConfig(res, Track.HeartOfLight, "HeartOfLight", "HoL", 245, GNB.AID.HeartOfLight, 15); //90s CD, 15s duration
 
-        res.Define(Track.HeartOfCorundum).As<HoCOption>("HeartOfCorundum", "HoC", uiPriority: 350) //25s CD, 4s duration is what we really care about
+        res.Define(Track.HeartOfCorundum).As<HoCOption>("HeartOfCorundum", "HoC", 350) //25s CD, 4s duration is what we really care about
             .AddOption(HoCOption.None, "None", "Do not use automatically")
             .AddOption(HoCOption.HeartOfStone, "HoS", "Use Heart of Stone", 25, 7, ActionTargets.Self | ActionTargets.Party, 68, 81)
             .AddOption(HoCOption.HeartOfCorundum, "HoC", "Use Heart of Corundum", 25, 4, ActionTargets.Self | ActionTargets.Party, 82)
@@ -53,7 +54,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         //Aurora execution
         var aur = strategy.Option(Track.Aurora);
         var aurTarget = ResolveTargetOverride(aur.Value) ?? primaryTarget ?? Player; //Smart-Targeting
-        var aurStatus = TargetStatusCheck(aurTarget, GNB.SID.Aurora); //Checks if status is present
+        var aurStatus = TargetHasEffect(aurTarget, GNB.SID.Aurora); //Checks if status is present
         var aurora = aur.As<AuroraStrategy>() switch
         {
             AuroraStrategy.Force => GNB.AID.Aurora,

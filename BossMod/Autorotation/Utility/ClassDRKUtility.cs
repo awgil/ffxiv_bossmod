@@ -8,6 +8,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
     public enum OblationStrategy { None, Force }
     public enum DashStrategy { None, GapClose } //GapCloser strategy
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
+    public bool TargetHasEffect<SID>(Actor target, SID sid) where SID : Enum => target?.FindStatus((uint)(object)sid, Player.InstanceID) != null; //Checks if Status effect is on target
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(DRK.AID.DarkForce);
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(DRK.AID.Grit);
@@ -69,7 +70,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         //Oblation execution
         var obl = strategy.Option(Track.Oblation);
         var oblTarget = ResolveTargetOverride(obl.Value) ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
-        var oblStatus = TargetStatusCheck(oblTarget, DRK.SID.Oblation); //Checks if status is present
+        var oblStatus = TargetHasEffect(oblTarget, DRK.SID.Oblation); //Checks if status is present
         var oblat = obl.As<OblationStrategy>() switch
         {
             OblationStrategy.Force => DRK.AID.Oblation,

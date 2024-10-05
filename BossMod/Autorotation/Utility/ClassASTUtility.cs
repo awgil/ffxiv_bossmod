@@ -6,6 +6,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
     public enum HoroscopeOption { None, Use, End }
     public enum MacrocosmosOption { None, Use, End }
     public enum HeliosOption { None, Use, UseEx }
+    public bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus((uint)(object)sid, Player.InstanceID) != null; //Checks if Status effect is on self
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(AST.AID.AstralStasis);
 
@@ -67,7 +68,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.SunSign), AST.AID.SunSign, Player);
 
         //Aspected Helios full execution
-        var heliosUp = PartyStatusCheck(AST.SID.AspectedHelios) || PartyStatusCheck(AST.SID.HeliosConjunction);
+        var heliosUp = HasEffect(AST.SID.AspectedHelios) || HasEffect(AST.SID.HeliosConjunction);
         var helios = strategy.Option(Track.AspectedHelios);
         var heliosAction = helios.As<HeliosOption>() switch
         {
