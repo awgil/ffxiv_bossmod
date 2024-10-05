@@ -7,6 +7,13 @@ public sealed class ObstacleMapDatabase
 {
     public sealed record class Entry(Vector3 MinBounds, Vector3 MaxBounds, WPos Origin, int ViewWidth, int ViewHeight, string Filename)
     {
+        public Vector3 MinBounds = MinBounds;
+        public Vector3 MaxBounds = MaxBounds;
+        public WPos Origin = Origin;
+        public int ViewWidth = ViewWidth;
+        public int ViewHeight = ViewHeight;
+        public string Filename = Filename;
+
         public bool Contains(Vector3 p) => p.X >= MinBounds.X && p.Y >= MinBounds.Y && p.Z >= MinBounds.Z && p.X <= MaxBounds.X && p.Y <= MaxBounds.Y && p.Z <= MaxBounds.Z;
     }
 
@@ -20,7 +27,7 @@ public sealed class ObstacleMapDatabase
             using var json = Serialization.ReadJson(listPath);
             foreach (var jentries in json.RootElement.EnumerateObject())
             {
-                var sep = jentries.Name.IndexOf('.');
+                var sep = jentries.Name.IndexOf('.', StringComparison.Ordinal);
                 var zone = sep >= 0 ? uint.Parse(jentries.Name.AsSpan()[..sep]) : uint.Parse(jentries.Name);
                 var cfc = sep >= 0 ? uint.Parse(jentries.Name.AsSpan()[(sep + 1)..]) : 0;
                 var entries = Entries[(zone << 16) | cfc] = [];

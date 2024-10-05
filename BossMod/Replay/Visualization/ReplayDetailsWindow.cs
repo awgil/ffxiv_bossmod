@@ -77,11 +77,10 @@ class ReplayDetailsWindow : UIWindow
         ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
         ImGui.SameLine();
         ImGui.Checkbox("Override", ref _azimuthOverride);
-        _hintsBuilder.Update(_hints, _povSlot);
+        _hintsBuilder.Update(_hints, _povSlot, float.MaxValue);
+        _rmm.Update(0, false);
         if (_mgr.ActiveModule != null)
         {
-            _rmm.Update(0, float.MaxValue, false);
-
             var drawTimerPre = DateTime.Now;
             _mgr.ActiveModule.Draw(_azimuthOverride ? _azimuth.Degrees() : _mgr.WorldState.Client.CameraAzimuth, _povSlot, true, true);
             var drawTimerPost = DateTime.Now;
