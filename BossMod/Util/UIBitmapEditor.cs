@@ -22,6 +22,7 @@ public class UIBitmapEditor
     public int ZoomLevel = 4; // 0 is 1:1 screen to bitmap, positive if bitmap pixel is bigger than screen pixel (upscaled bitmap), negative otherwise
     public int CurrentMode;
     public float BrushRadius = 1;
+    public (int x, int y) HoveredPixel;
 
     public Bitmap Bitmap => _bitmaps[_curUndoPos];
 
@@ -54,7 +55,8 @@ public class UIBitmapEditor
     public bool CanRedo() => _curUndoPos < _bitmaps.Count - 1;
     public void Undo() => _curUndoPos = Math.Max(0, _curUndoPos - 1);
     public void Redo() => _curUndoPos = Math.Min(_bitmaps.Count - 1, _curUndoPos + 1);
-    public void Checkpoint() => CheckpointImpl(_bitmaps[_curUndoPos].Clone());
+    public void Checkpoint() => Checkpoint(_bitmaps[_curUndoPos]);
+    public void Checkpoint(Bitmap image) => CheckpointNoClone(image.Clone());
 
     protected int RegisterMode(string name)
     {
@@ -62,35 +64,30 @@ public class UIBitmapEditor
         return _modeNames.Count;
     }
 
+    // note: assumes newState has no other references
+    protected void CheckpointNoClone(Bitmap newState)
+    {
+        if (_curUndoPos < _bitmaps.Count - 1)
+            _bitmaps.RemoveRange(_curUndoPos + 1, _bitmaps.Count - _curUndoPos - 1);
+        _bitmaps.Add(newState);
+        ++_curUndoPos;
+    }
+
     protected virtual void DrawSidebar()
     {
         DrawModeButtons();
         DrawUndoRedoButtons();
-
-        // debug stuff
-        ImGui.TextUnformatted($"Size: {Bitmap.Width}x{Bitmap.Height}, Brush radius: {BrushRadius}");
-
-        if (ImGui.Button("+1 on left"))
+        UIMisc.HelpMarker("Wheel to zoom, shift-wheel to change brush size");
+        ImGui.SameLine();
+        ImGui.TextUnformatted($"Brush radius: {BrushRadius}");
+        if (HoveredPixel.x >= 0 && HoveredPixel.y >= 0)
         {
-            var newBitmap = new Bitmap(Bitmap.Width + 1, Bitmap.Height);
-            newBitmap.CopyRegion(Bitmap, 0, 0, Bitmap.Width, Bitmap.Height, 1, 0);
-            CheckpointImpl(newBitmap);
-        }
-
-        if (ImGui.Button("upscale"))
-        {
-            var newBitmap = new Bitmap(Bitmap.Width * 2, Bitmap.Height * 2);
-            newBitmap.UpsampleRegion(Bitmap, 0, 0, Bitmap.Width, Bitmap.Height, 0, 0);
-            CheckpointImpl(newBitmap);
-        }
-
-        if (ImGui.Button("downscale"))
-        {
-            var newBitmap = new Bitmap(Bitmap.Width / 2, Bitmap.Height / 2);
-            newBitmap.DownsampleRegion(Bitmap, 0, 0, Bitmap.Width, Bitmap.Height, 0, 0, true);
-            CheckpointImpl(newBitmap);
+            ImGui.SameLine();
+            ImGui.TextUnformatted($"Hovered pixel: {HoveredPixel.x}x{HoveredPixel.y}");
         }
     }
+
+    protected virtual IEnumerable<(int x, int y, Color c)> HighlighedCells() => [];
 
     protected void DrawModeButtons()
     {
@@ -148,6 +145,18 @@ public class UIBitmapEditor
         var screenY0 = y0 * bitmapToScreenScale - ScreenOffset.Y;
         var pixelWeight = 1.0f / (numBitmapPixelsPerScreenPixel * numBitmapPixelsPerScreenPixel);
 
+        HoveredPixel = (-1, -1);
+        if (mouseOffset.X >= 0 && mouseOffset.Y >= 0 && mouseOffset.X < ScreenSize.X && mouseOffset.Y < ScreenSize.Y)
+        {
+            var c = (mouseOffset + ScreenOffset) / numScreenPixelsPerBitmapPixel;
+            var x = (int)MathF.Floor(c.X);
+            var y = (int)MathF.Floor(c.Y);
+            if (x >= 0 && y >= 0 && x < Bitmap.Width && y < Bitmap.Height)
+                HoveredPixel = (x, y);
+        }
+
+        var c0 = Bitmap.Color0.ToFloat4();
+        var c1 = Bitmap.Color1.ToFloat4();
         for (int y = y0; y < y1; y += numBitmapPixelsPerScreenPixel)
         {
             var corner = tl + new Vector2(screenX0, screenY0);
@@ -165,7 +174,7 @@ public class UIBitmapEditor
                         for (int sx = x; sx < subXMax; ++sx)
                             if (Bitmap[sx, sy])
                                 opacity += pixelWeight;
-                    var color = new Vector4(1, 0.5f, 0, 1) * opacity;
+                    var color = Vector4.Lerp(c0, c1, opacity);
                     dl.AddRectFilled(cellTL, cellBR, Color.FromFloat4(color).ABGR);
                 }
                 corner.X += numScreenPixelsPerBitmapPixel;
@@ -213,6 +222,18 @@ public class UIBitmapEditor
         if ((CurrentMode == BrushModeId || CurrentMode == EraseModeId) && ImGui.IsItemHovered())
         {
             dl.AddCircle(tl + mouseOffset, BrushRadius * bitmapToScreenScale, 0xffff00ff);
+        }
+
+        // highlights
+        if (numScreenPixelsPerBitmapPixel >= 3)
+        {
+            foreach (var (x, y, c) in HighlighedCells())
+            {
+                if (x >= x0 && x < x1 && y >= y0 && y < y1)
+                {
+                    dl.AddCircle(tl + new Vector2(x + 0.5f, y + 0.5f) * bitmapToScreenScale - ScreenOffset, (numScreenPixelsPerBitmapPixel >> 1) - 1, c.ABGR);
+                }
+            }
         }
 
         ImGui.PopClipRect();
@@ -294,15 +315,6 @@ public class UIBitmapEditor
             ScreenOffset.X = MathF.Round(ScreenOffset.X);
             ScreenOffset.Y = MathF.Round(ScreenOffset.Y);
         }
-    }
-
-    // note: assumes newState has no other references
-    private void CheckpointImpl(Bitmap newState)
-    {
-        if (_curUndoPos < _bitmaps.Count - 1)
-            _bitmaps.RemoveRange(_curUndoPos + 1, _bitmaps.Count - _curUndoPos - 1);
-        _bitmaps.Add(newState);
-        ++_curUndoPos;
     }
 
     private static bool IntersectCirclePixel(Vector2 center, float radius, int x, int y)

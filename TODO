@@ -2,11 +2,13 @@ immediate plans
 - nechuciho - seen incorrect rotations...
 - merge prs!
 - collisions for pathfinding
+-- embedded mode
 - brd rotation
 
 general:
 - horizontal timeline / cooldown planner
 - cdplanner should use real cds
+- assignments per ui order rather than per player + class-specific assignments
 - restore view-timeline to module ui
 - module packs
 -- dlls, loaded as usual

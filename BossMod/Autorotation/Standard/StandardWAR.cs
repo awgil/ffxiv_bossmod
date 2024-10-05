@@ -574,7 +574,8 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         // second, if we're under IR, delaying FC/IC might then force us to spam FC/IC to avoid losing IR stacks, without being able to infuriate, and thus overcap it
         // this can only happen if we won't be able to fit extra IC though
         // note: if IR is imminent, this doesn't matter - 6 gcds is more than enough to use all FC/IC
-        if (irActive && !CanFitGCD(InnerReleaseLeft, effectiveIRStacks + 1) && !CanFitGCD(InfuriateCD - InfuriateCDReduction * effectiveIRStacks - InfuriateCDLeeway, effectiveIRStacks))
+        var numFCBeforeInf = InnerReleaseStacks + ((ncActive || Gauge > 50) ? 1 : 0);
+        if (irActive && !CanFitGCD(InnerReleaseLeft, numFCBeforeInf + 1) && !CanFitGCD(InfuriateCD - InfuriateCDReduction * numFCBeforeInf - InfuriateCDLeeway, numFCBeforeInf))
             return GCDPriority.AvoidOvercapInfuriateIR;
 
         // third, if IR is imminent, we have high (>50) gauge, we won't be able to spend this gauge (and use infuriate) before spending IR stacks
@@ -902,8 +903,19 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         if (irActive && unlockedNC)
             return (false, false);
 
+        // don't infuriate if we need to use combo for ST, and it would overcap gauge
+        // assume if ST is about to drop, we prioritize combo actions anyway
+        var (stRefreshGauge, stRefreshGCDs) = NextGCD switch
+        {
+            WAR.AID.HeavySwing => (20, 3),
+            WAR.AID.Maim => (20, 2),
+            WAR.AID.StormEye => (10, 1),
+            WAR.AID.Overpower => (20, 2),
+            WAR.AID.MythrilTempest => (20, 1),
+            _ => (30, 4)
+        };
         // don't double infuriate during opener when NC is not yet unlocked (TODO: consider making it better)
-        if (Gauge >= 50 && !CanFitGCD(SurgingTempestLeft))
+        if (Gauge + stRefreshGauge + 50 > 100 && !CanFitGCD(SurgingTempestLeft, stRefreshGCDs))
             return (false, false);
 
         // at this point, use under burst or delay outside (TODO: reconsider, we might want to be smarter here...)
