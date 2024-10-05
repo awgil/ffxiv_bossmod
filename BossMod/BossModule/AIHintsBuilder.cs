@@ -32,9 +32,10 @@ public sealed class AIHintsBuilder : IDisposable
         Obstacles.Dispose();
     }
 
-    public void Update(AIHints hints, int playerSlot)
+    public void Update(AIHints hints, int playerSlot, float maxCastTime)
     {
         hints.Clear();
+        hints.MaxCastTimeEstimate = maxCastTime;
         var player = _ws.Party[playerSlot];
         if (player != null)
         {

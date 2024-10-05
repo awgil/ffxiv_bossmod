@@ -33,7 +33,7 @@ public sealed class StrikingDummyRotation(RotationModuleManager manager, Actor p
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (strategy.Option(Track.Test).As<Strategy>() == Strategy.Some && primaryTarget != null)
         {

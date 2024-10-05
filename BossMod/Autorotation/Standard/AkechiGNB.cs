@@ -177,7 +177,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
 
     private bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f; //Beginning of combat
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving) //Executes our actions
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
     {
         //GNBGauge ints
         var gauge = World.Client.GetGauge<GunbreakerGauge>(); //Our gauge

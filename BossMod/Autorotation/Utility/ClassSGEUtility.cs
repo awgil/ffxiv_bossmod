@@ -75,7 +75,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving) //How we're executing our skills listed below
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //How we're executing our skills listed below
     {
         ExecuteShared(strategy, IDLimitBreak3);
         ExecuteSimple(strategy.Option(Track.Egeiro), SGE.AID.Egeiro, primaryTarget);
