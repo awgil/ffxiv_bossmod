@@ -12,7 +12,7 @@ public sealed class ClassVPRUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: VPR", "Planner support for utility actions", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.VPR), 100);
+        var res = new RotationModuleDefinition("Utility: VPR", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.VPR), 100);
         DefineShared(res, IDLimitBreak3);
 
         res.Define(Track.Slither).As<DashStrategy>("Slither", "", 20)
@@ -29,9 +29,10 @@ public sealed class ClassVPRUtility(RotationModuleManager manager, Actor player)
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
 
         var dash = strategy.Option(Track.Slither);
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
         var dashStrategy = strategy.Option(Track.Slither).As<DashStrategy>();
-        if (ShouldUseDash(dashStrategy, null))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(VPR.AID.Slither), null, dash.Priority());
+        if (ShouldUseDash(dashStrategy, dashTarget))
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(VPR.AID.Slither), dashTarget, dash.Priority());
     }
 
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
