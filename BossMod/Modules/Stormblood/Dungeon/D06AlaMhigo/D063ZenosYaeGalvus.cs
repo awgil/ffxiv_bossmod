@@ -140,5 +140,5 @@ class ZenosYaeGalvusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 247, NameID = 6039)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 247, NameID = 6039)]
 public class ZenosYaeGalvus(WorldState ws, Actor primary) : BossModule(ws, primary, new(250, -353), new ArenaBoundsCircle(20));
