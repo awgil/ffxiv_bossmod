@@ -3,6 +3,10 @@ immediate plans
 - merge prs!
 - collisions for pathfinding
 -- embedded mode
+- zone module manager
+-- drawing in main/hint windows and in replays
+-- replay visualization
+-- sastasha as example
 - brd rotation
 
 general:
