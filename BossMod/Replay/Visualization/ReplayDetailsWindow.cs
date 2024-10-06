@@ -9,6 +9,7 @@ class ReplayDetailsWindow : UIWindow
     private readonly RotationDatabase _rotationDB;
     private readonly AIHints _hints = new();
     private BossModuleManager _mgr;
+    private ZoneModuleManager _zmm;
     private AIHintsBuilder _hintsBuilder;
     private RotationModuleManager _rmm;
     private readonly DateTime _first;
@@ -40,7 +41,8 @@ class ReplayDetailsWindow : UIWindow
         _player = new(data);
         _rotationDB = rotationDB;
         _mgr = new(_player.WorldState);
-        _hintsBuilder = new(_player.WorldState, _mgr);
+        _zmm = new(_player.WorldState);
+        _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
         _rmm = new(rotationDB, _mgr, _hints);
         _curTime = _first = data.Ops[0].Timestamp;
         _last = data.Ops[^1].Timestamp;
@@ -56,6 +58,7 @@ class ReplayDetailsWindow : UIWindow
         _config.Dispose();
         _rmm.Dispose();
         _hintsBuilder.Dispose();
+        _zmm.Dispose();
         _mgr.Dispose();
         base.Dispose(disposing);
     }
@@ -444,10 +447,12 @@ class ReplayDetailsWindow : UIWindow
         {
             _rmm.Dispose();
             _hintsBuilder.Dispose();
+            _zmm.Dispose();
             _mgr.Dispose();
             _player.Reset();
             _mgr = new(_player.WorldState);
-            _hintsBuilder = new(_player.WorldState, _mgr);
+            _zmm = new(_player.WorldState);
+            _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
             _rmm = new(_rotationDB, _mgr, _hints);
         }
         _player.AdvanceTo(t, _mgr.Update);

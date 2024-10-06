@@ -20,6 +20,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly WorldState _ws;
     private readonly AIHints _hints;
     private readonly BossModuleManager _bossmod;
+    private readonly ZoneModuleManager _zonemod;
     private readonly AIHintsBuilder _hintsBuilder;
     private readonly MovementOverride _movementOverride;
     private readonly ActionManagerEx _amex;
@@ -76,7 +77,8 @@ public sealed class Plugin : IDalamudPlugin
         _ws = new(qpf, gameVersion);
         _hints = new();
         _bossmod = new(_ws);
-        _hintsBuilder = new(_ws, _bossmod);
+        _zonemod = new(_ws);
+        _hintsBuilder = new(_ws, _bossmod, _zonemod);
         _movementOverride = new();
         _amex = new(_ws, _hints, _movementOverride);
         _wsSync = new(_ws, _amex);
@@ -117,6 +119,7 @@ public sealed class Plugin : IDalamudPlugin
         _amex.Dispose();
         _movementOverride.Dispose();
         _hintsBuilder.Dispose();
+        _zonemod.Dispose();
         _bossmod.Dispose();
         _dtr.Dispose();
         ActionDefinitions.Instance.Dispose();
@@ -175,6 +178,7 @@ public sealed class Plugin : IDalamudPlugin
         Camera.Instance?.Update();
         _wsSync.Update(_prevUpdateTime);
         _bossmod.Update();
+        _zonemod.ActiveModule?.Update();
         _hintsBuilder.Update(_hints, PartyState.PlayerSlot, maxCastTime);
         _amex.QueueManualActions();
         _rotation.Update(_amex.AnimationLockDelayEstimate, _movementOverride.IsMoving());
