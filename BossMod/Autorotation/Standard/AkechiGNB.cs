@@ -36,8 +36,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         Auto,               //Decide action based on target count; may break combo if needed
         AutoFinishCombo,    //Decide action based on target count but finish current combo if possible
         GenerateDowntime,   //Generate cartridges before downtime
-
-
     }
 
     //Defines different strategies for executing burst damage actions based on cooldown and resource availability
@@ -380,7 +378,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         }
 
         //Estimate time to next downtime
-        var downtimeIn = Manager.Planner?.EstimateTimeToNextDowntime().Item2 ?? float.MaxValue; 
+        var downtimeIn = Manager.Planner?.EstimateTimeToNextDowntime().Item2 ?? float.MaxValue;
         var comboStepsRemaining = ComboLastMove switch
         {
             GNB.AID.KeenEdge => Unlocked(GNB.AID.SolidBarrel) ? 2 : Unlocked(GNB.AID.BrutalShell) ? 1 : 0,
@@ -534,7 +532,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
     }
-
 
     //QueueGCD execution
     private void QueueGCD(GNB.AID aid, Actor? target, GCDPriority prio)
