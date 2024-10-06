@@ -150,6 +150,7 @@ class SandspoutDustdevil(BossModule module) : Components.GenericAOEs(module)
         {
             --_remainingCasts;
             _nextRotation += _increment;
+            _nextActivation = WorldState.FutureTime(2.6f);
         }
     }
 }
