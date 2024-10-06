@@ -139,7 +139,7 @@ sealed class AnalysisManager : IDisposable
         {
             _global.Draw(_tree);
         }
-        foreach (var n in _tree.Nodes(_perEncounter, kv => new($"Encounter analysis for {kv.Key:X} ({ModuleRegistry.FindByOID(kv.Key)?.ModuleType.Name})")))
+        foreach (var n in _tree.Nodes(_perEncounter, kv => new($"Encounter analysis for {kv.Key:X} ({BossModuleRegistry.FindByOID(kv.Key)?.ModuleType.Name})")))
         {
             n.Value.Draw(_tree);
         }

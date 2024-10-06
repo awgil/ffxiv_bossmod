@@ -17,7 +17,7 @@ class StatusInfo : CommonEnumInfo
 
     public StatusInfo(List<Replay> replays, uint oid)
     {
-        var moduleInfo = ModuleRegistry.FindByOID(oid);
+        var moduleInfo = BossModuleRegistry.FindByOID(oid);
         _oidType = moduleInfo?.ObjectIDType;
         _sidType = moduleInfo?.StatusIDType;
         foreach (var replay in replays)

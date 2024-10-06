@@ -158,7 +158,7 @@ public sealed class BossModuleManager : IDisposable
 
     private void ActorAdded(Actor actor)
     {
-        var m = ModuleRegistry.CreateModuleForActor(WorldState, actor, Config.MinMaturity);
+        var m = BossModuleRegistry.CreateModuleForActor(WorldState, actor, Config.MinMaturity);
         if (m != null)
         {
             LoadModule(m);
