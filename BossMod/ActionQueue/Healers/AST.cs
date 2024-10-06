@@ -99,6 +99,9 @@ public enum SID : uint
     Swiftcast = 167, // applied by Swiftcast to self
     Surecast = 160, // applied by Surecast to self
     Combust = 838,
+    AspectedHelios = 836,
+    AspectedBenefic = 835,
+    HeliosConjunction = 3894,
     Lightspeed = 841,
     CombustII = 843,
     CombustIII = 1881,

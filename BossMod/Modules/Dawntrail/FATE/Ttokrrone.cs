@@ -94,6 +94,10 @@ class SandspoutDustdevil(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
+        if (_remainingCasts > 2)
+        {
+            yield return new(_shapeCleave, Module.PrimaryActor.Position, _nextRotation + 2 * _increment, _nextActivation.AddSeconds(5.2f));
+        }
         if (_remainingCasts > 1)
         {
             yield return new(_shapeCleave, Module.PrimaryActor.Position, _nextRotation + _increment, _nextActivation.AddSeconds(2.6f));

@@ -22,6 +22,7 @@ public class UIBitmapEditor
     public int ZoomLevel = 4; // 0 is 1:1 screen to bitmap, positive if bitmap pixel is bigger than screen pixel (upscaled bitmap), negative otherwise
     public int CurrentMode;
     public float BrushRadius = 1;
+    public (int x, int y) HoveredPixel;
 
     public Bitmap Bitmap => _bitmaps[_curUndoPos];
 
@@ -76,7 +77,17 @@ public class UIBitmapEditor
     {
         DrawModeButtons();
         DrawUndoRedoButtons();
+        UIMisc.HelpMarker("Wheel to zoom, shift-wheel to change brush size");
+        ImGui.SameLine();
+        ImGui.TextUnformatted($"Brush radius: {BrushRadius}");
+        if (HoveredPixel.x >= 0 && HoveredPixel.y >= 0)
+        {
+            ImGui.SameLine();
+            ImGui.TextUnformatted($"Hovered pixel: {HoveredPixel.x}x{HoveredPixel.y}");
+        }
     }
+
+    protected virtual IEnumerable<(int x, int y, Color c)> HighlighedCells() => [];
 
     protected void DrawModeButtons()
     {
@@ -133,6 +144,16 @@ public class UIBitmapEditor
         var screenX0 = x0 * bitmapToScreenScale - ScreenOffset.X;
         var screenY0 = y0 * bitmapToScreenScale - ScreenOffset.Y;
         var pixelWeight = 1.0f / (numBitmapPixelsPerScreenPixel * numBitmapPixelsPerScreenPixel);
+
+        HoveredPixel = (-1, -1);
+        if (mouseOffset.X >= 0 && mouseOffset.Y >= 0 && mouseOffset.X < ScreenSize.X && mouseOffset.Y < ScreenSize.Y)
+        {
+            var c = (mouseOffset + ScreenOffset) / numScreenPixelsPerBitmapPixel;
+            var x = (int)MathF.Floor(c.X);
+            var y = (int)MathF.Floor(c.Y);
+            if (x >= 0 && y >= 0 && x < Bitmap.Width && y < Bitmap.Height)
+                HoveredPixel = (x, y);
+        }
 
         var c0 = Bitmap.Color0.ToFloat4();
         var c1 = Bitmap.Color1.ToFloat4();
@@ -201,6 +222,18 @@ public class UIBitmapEditor
         if ((CurrentMode == BrushModeId || CurrentMode == EraseModeId) && ImGui.IsItemHovered())
         {
             dl.AddCircle(tl + mouseOffset, BrushRadius * bitmapToScreenScale, 0xffff00ff);
+        }
+
+        // highlights
+        if (numScreenPixelsPerBitmapPixel >= 3)
+        {
+            foreach (var (x, y, c) in HighlighedCells())
+            {
+                if (x >= x0 && x < x1 && y >= y0 && y < y1)
+                {
+                    dl.AddCircle(tl + new Vector2(x + 0.5f, y + 0.5f) * bitmapToScreenScale - ScreenOffset, (numScreenPixelsPerBitmapPixel >> 1) - 1, c.ABGR);
+                }
+            }
         }
 
         ImGui.PopClipRect();

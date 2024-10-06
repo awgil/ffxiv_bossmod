@@ -143,6 +143,7 @@ public sealed class ConfigUI : IDisposable
         Enum v => DrawProperty(label, tooltip, node, member, v),
         float v => DrawProperty(label, tooltip, node, member, v),
         int v => DrawProperty(label, tooltip, node, member, v),
+        string v => DrawProperty(label, tooltip, node, member, v),
         Color v => DrawProperty(label, tooltip, node, member, v),
         Color[] v => DrawProperty(label, tooltip, node, member, v),
         GroupAssignment v => DrawProperty(label, tooltip, node, member, v, root, tree, ws),
@@ -233,6 +234,17 @@ public sealed class ConfigUI : IDisposable
                 member.SetValue(node, v);
                 return true;
             }
+        }
+        return false;
+    }
+
+    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, string v)
+    {
+        DrawHelp(tooltip);
+        if (ImGui.InputText(label, ref v, 256))
+        {
+            member.SetValue(node, v);
+            return true;
         }
         return false;
     }

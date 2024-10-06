@@ -69,6 +69,8 @@ public class ThetaStar
         var start = map.ClampToGrid(map.FracToGrid(startFrac));
         _startNodeIndex = _bestIndex = _fallbackIndex = _map.GridToIndex(start.x, start.y);
         _startMaxG = _map.PixelMaxG[_startNodeIndex];
+        //if (_startMaxG < 0)
+        //    _startMaxG = float.MaxValue; // TODO: this is a hack that allows navigating outside the obstacles, reconsider...
         _startScore = CalculateScore(_startMaxG, _startMaxG, _startMaxG, _startNodeIndex);
         NumSteps = NumReopens = 0;
 

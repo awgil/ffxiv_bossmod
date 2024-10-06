@@ -88,6 +88,7 @@ public enum SID : uint
     Sprint = 50, // applied by Sprint to self
     Surecast = 160, // applied by Surecast to self
     Swiftcast = 167, // applied by Swiftcast to self
+    Eukrasia = 2606,
     Kardion = 2605, // applied by Kardia to self
     Kardia = 2604, // applied by Kardia to self
     LucidDreaming = 1204, // applied by Lucid Dreaming to self

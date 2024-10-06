@@ -93,7 +93,7 @@ public sealed class Plugin : IDalamudPlugin
         _wndBossmodHints = new(_bossmod);
         _wndReplay = new(_ws, _rotationDB, replayDir);
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
-        _wndDebug = new(_ws, _rotation, _amex);
+        _wndDebug = new(_ws, _rotation, _amex, _hintsBuilder, dalamud);
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
         dalamud.UiBuilder.Draw += DrawUI;
@@ -170,14 +170,16 @@ public sealed class Plugin : IDalamudPlugin
     {
         var tsStart = DateTime.Now;
 
+        var userPreventingCast = _movementOverride.IsMoveRequested() && !_amex.Config.PreventMovingWhileCasting;
+        var maxCastTime = userPreventingCast ? 0 : _ai.ForceMovementIn;
+
         _dtr.Update();
         Camera.Instance?.Update();
         _wsSync.Update(_prevUpdateTime);
         _bossmod.Update();
-        _hintsBuilder.Update(_hints, PartyState.PlayerSlot);
+        _hintsBuilder.Update(_hints, PartyState.PlayerSlot, maxCastTime);
         _amex.QueueManualActions();
-        var userPreventingCast = _movementOverride.IsMoveRequested() && !_amex.Config.PreventMovingWhileCasting;
-        _rotation.Update(_amex.AnimationLockDelayEstimate, userPreventingCast ? 0 : _ai.ForceMovementIn, _movementOverride.IsMoving());
+        _rotation.Update(_amex.AnimationLockDelayEstimate, _movementOverride.IsMoving());
         _ai.Update();
         _broadcast.Update();
         _amex.FinishActionGather();
