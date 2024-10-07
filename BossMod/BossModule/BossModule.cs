@@ -11,7 +11,7 @@ public abstract class BossModule : IDisposable
     public readonly BossModuleConfig WindowConfig = Service.Config.Get<BossModuleConfig>();
     public readonly ColorConfig ColorConfig = Service.Config.Get<ColorConfig>();
     public readonly MiniArena Arena;
-    public readonly ModuleRegistry.Info? Info;
+    public readonly BossModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
 
     private readonly EventSubscriptions _subscriptions;
@@ -81,7 +81,7 @@ public abstract class BossModule : IDisposable
         WorldState = ws;
         PrimaryActor = primary;
         Arena = new(WindowConfig, center, bounds);
-        Info = ModuleRegistry.FindByOID(primary.OID);
+        Info = BossModuleRegistry.FindByOID(primary.OID);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
 
         _subscriptions = new
@@ -219,8 +219,8 @@ public abstract class BossModule : IDisposable
 
     public void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        hints.Center = Center;
-        hints.Bounds = Bounds;
+        hints.PathfindMapCenter = Center;
+        hints.PathfindMapBounds = Bounds;
         foreach (var comp in _components)
             comp.AddAIHints(slot, actor, assignment, hints);
         CalculateModuleAIHints(slot, actor, assignment, hints);

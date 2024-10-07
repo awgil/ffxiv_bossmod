@@ -361,7 +361,7 @@ class AbilityInfo : CommonEnumInfo
 
     public AbilityInfo(List<Replay> replays, uint oid)
     {
-        var moduleInfo = ModuleRegistry.FindByOID(oid);
+        var moduleInfo = BossModuleRegistry.FindByOID(oid);
         _oidType = moduleInfo?.ObjectIDType;
         _aidType = moduleInfo?.ActionIDType;
         foreach (var replay in replays)

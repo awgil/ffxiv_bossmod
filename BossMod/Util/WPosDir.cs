@@ -33,6 +33,10 @@ public record struct WDir(float X, float Z)
     public readonly bool AlmostZero(float eps) => AlmostZero(this, eps);
     public static bool AlmostEqual(WDir a, WDir b, float eps) => AlmostZero(a - b, eps);
     public readonly bool AlmostEqual(WDir b, float eps) => AlmostZero(this - b, eps);
+    public readonly WDir Scaled(float multiplier) => new(X * multiplier, Z * multiplier);
+    public readonly WDir Rounded() => new(MathF.Round(X), MathF.Round(Z));
+    public readonly WDir Rounded(float precision) => Scaled(1.0f / precision).Rounded().Scaled(precision);
+    public readonly WDir Floor() => new(MathF.Floor(X), MathF.Floor(Z));
 
     public override readonly string ToString() => $"({X:f3}, {Z:f3})";
     public override readonly int GetHashCode() => (X, Z).GetHashCode(); // TODO: this is a hack, the default should be good enough, but for whatever reason (X, -Z).GetHashCode() == (-X, Z).GetHashCode()...

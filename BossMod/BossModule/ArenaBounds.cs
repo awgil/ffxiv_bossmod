@@ -128,7 +128,7 @@ public record class ArenaBoundsCircle(float Radius, float MapResolution = 0.5f) 
             {
                 if (dx * dx + dy * dy > threshold)
                 {
-                    map.PixelMaxG[iCell] = 0;
+                    map.PixelMaxG[iCell] = -1000;
                 }
                 ++iCell;
             }
@@ -211,7 +211,7 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
                 cx.X += MapResolution;
                 var rightOutside = !Poly.Contains(cx);
                 if (leftOutside || rightOutside)
-                    map.PixelMaxG[iCell] = 0;
+                    map.PixelMaxG[iCell] = -1000;
                 leftOutside = rightOutside;
                 ++iCell;
             }
@@ -228,9 +228,9 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
             var jCell = iCell;
             for (int y = map.Height; y > 0; --y, jCell -= map.Width)
             {
-                var topOutside = map.PixelMaxG[jCell] == 0;
+                var topOutside = map.PixelMaxG[jCell] <= 0;
                 if (bottomOutside)
-                    map.PixelMaxG[jCell] = 0;
+                    map.PixelMaxG[jCell] = -1000;
                 bottomOutside = topOutside;
             }
             bleftOutside = brightOutside;

@@ -62,7 +62,7 @@ public sealed class RotationModuleManager : IDisposable
         _subscriptions.Dispose();
     }
 
-    public void Update(float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public void Update(float estimatedAnimLockDelay, bool isMoving)
     {
         // see whether current plan matches what should be active, and update if not; only rebuild actions if there is no active override
         var expectedPlan = CalculateExpectedPlan();
@@ -90,7 +90,7 @@ public sealed class RotationModuleManager : IDisposable
         {
             var mt = m.Module.GetType();
             var values = Preset?.ActiveStrategyOverrides(mt) ?? Planner?.ActiveStrategyOverrides(mt) ?? throw new InvalidOperationException("Both preset and plan are null, but there are active modules");
-            m.Module.Execute(values, target, estimatedAnimLockDelay, forceMovementIn, isMoving);
+            m.Module.Execute(values, target, estimatedAnimLockDelay, isMoving);
         }
     }
 

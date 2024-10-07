@@ -30,9 +30,9 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
             DrawContents(null, null);
             DrawUserMarkers();
         }
-        foreach (var e in _tree.Nodes(r.Encounters, e => new($"{ModuleRegistry.FindByOID(e.OID)?.ModuleType.Name}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}, countdown on pull={e.CountdownOnPull:f3}")))
+        foreach (var e in _tree.Nodes(r.Encounters, e => new($"{BossModuleRegistry.FindByOID(e.OID)?.ModuleType.Name}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}, countdown on pull={e.CountdownOnPull:f3}")))
         {
-            var moduleInfo = ModuleRegistry.FindByOID(e.OID);
+            var moduleInfo = BossModuleRegistry.FindByOID(e.OID);
             ref var lists = ref CollectionsMarshal.GetValueRefOrAddDefault(_listsFiltered, e, out _);
             foreach (var n in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_listsFiltered[e].Ops)))
             {
@@ -51,7 +51,7 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
         }
     }
 
-    private void DrawContents(Replay.Encounter? filter, ModuleRegistry.Info? moduleInfo)
+    private void DrawContents(Replay.Encounter? filter, BossModuleRegistry.Info? moduleInfo)
     {
         var oidType = moduleInfo?.ObjectIDType;
         var aidType = moduleInfo?.ActionIDType;
@@ -268,7 +268,7 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
         }
     }
 
-    private void IPCListContextMenu(IPCList? list, ModuleRegistry.Info? moduleInfo)
+    private void IPCListContextMenu(IPCList? list, BossModuleRegistry.Info? moduleInfo)
     {
         if (list == null)
             return;

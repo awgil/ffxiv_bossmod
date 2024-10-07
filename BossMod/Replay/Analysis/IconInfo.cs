@@ -16,7 +16,7 @@ class IconInfo : CommonEnumInfo
 
     public IconInfo(List<Replay> replays, uint oid)
     {
-        var moduleInfo = ModuleRegistry.FindByOID(oid);
+        var moduleInfo = BossModuleRegistry.FindByOID(oid);
         _oidType = moduleInfo?.ObjectIDType;
         _iidType = moduleInfo?.IconIDType;
         foreach (var replay in replays)
