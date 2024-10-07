@@ -107,9 +107,6 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
             return;
         }
 
-        if (targeting.Target.Actor.Omnidirectional)
-            targeting.PreferredPosition = Positional.Any;
-
         // if target-of-target is player, don't try flanking, it's probably impossible... - unless target is currently casting (TODO: reconsider?)
         // skip if targeting a dummy, they don't rotate
         if (targeting.Target.Actor.TargetID == player.InstanceID && targeting.Target.Actor.CastInfo == null && targeting.Target.Actor.OID != 0x385)
