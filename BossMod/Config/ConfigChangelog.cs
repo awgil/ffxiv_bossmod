@@ -9,10 +9,48 @@ public sealed record class VersionedField(ConfigNode Node, FieldInfo FieldInfo, 
     public string FieldKey => $"{Node}.{FieldInfo.Name}";
 }
 
+abstract class ChangelogNotice
+{
+    public abstract Version Since { get; }
+    public abstract void Draw();
+}
+
+class AINotice1 : ChangelogNotice
+{
+    public override Version Since => new(0, 0, 0, 253);
+
+    private void Bullet(string txt)
+    {
+        ImGui.Bullet();
+        ImGui.SameLine();
+        ImGui.TextWrapped(txt);
+    }
+
+    public override void Draw()
+    {
+        ImGui.TextUnformatted("The following AI configuration options have been removed:");
+        Bullet("AI Preset: AI mode will no longer attempt to control which preset is active, and the presence or absence of a preset will not affect targeting behavior.");
+        Bullet("Override positional");
+        Bullet("Override follow range");
+        Bullet("Follow target: This option had no effect.");
+        Bullet("Follow during active boss module");
+        Bullet("Follow during combat");
+        Bullet("Follow out of combat");
+        Bullet("Show advanced options in the UI");
+        ImGui.Spacing();
+        ImGui.TextUnformatted("The following AI configuration options have been renamed:");
+        Bullet("Forbid movement: renamed to Disable movement. Behavior is unchanged.");
+        Bullet("Forbid actions: renamed to Disable auto-target. Behavior is unchanged.");
+    }
+}
+
 public class ConfigChangelogWindow : UIWindow
 {
     private readonly Version PreviousVersion;
     private readonly List<VersionedField> Fields;
+    private readonly List<ChangelogNotice> Notices;
+
+    private int StuffCount => Fields.Count + Notices.Count;
 
     public ConfigChangelogWindow() : base("VBM Changelog", true, new(400, 300))
     {
@@ -22,13 +60,15 @@ public class ConfigChangelogWindow : UIWindow
         {
             Service.Config.Modified.Fire();
             Fields = GetAllFields().Where(f => f.AddedVersion > PreviousVersion).ToList();
+            Notices = GetNotices().Where(f => f.Since > PreviousVersion).ToList();
         }
         else
         {
             Fields = [];
+            Notices = [];
         }
 
-        if (Fields.Count == 0)
+        if (StuffCount == 0)
         {
             // nothing interesting to show...
             IsOpen = false;
@@ -43,6 +83,17 @@ public class ConfigChangelogWindow : UIWindow
         ImGui.Separator();
 
         Action? postIteration = null;
+
+        foreach (var n in Notices)
+        {
+            using var id = ImRaii.PushId($"notice{n.GetType()}");
+            n.Draw();
+            if (ImGui.Button("OK"))
+                postIteration += () => Acknowledge(n);
+
+            ImGui.Separator();
+        }
+
         foreach (var group in Fields.GroupBy(f => f.Node.GetType()))
         {
             ImGui.TextUnformatted(group.Key.GetCustomAttribute<ConfigDisplayAttribute>()?.Name ?? "");
@@ -68,13 +119,20 @@ public class ConfigChangelogWindow : UIWindow
         postIteration?.Invoke();
     }
 
+    private void Acknowledge(ChangelogNotice n)
+    {
+        Notices.Remove(n);
+        if (StuffCount == 0)
+            IsOpen = false;
+    }
+
     private void SetOption(VersionedField field, bool value)
     {
         field.FieldInfo.SetValue(field.Node, value);
         Service.Config.Modified.Fire();
 
         Fields.Remove(field);
-        if (Fields.Count == 0)
+        if (StuffCount == 0)
             IsOpen = false;
     }
 
@@ -95,6 +153,16 @@ public class ConfigChangelogWindow : UIWindow
                 else if (f.GetCustomAttribute<PropertyDisplayAttribute>()?.Since is string sinceVersion)
                     yield return new(n, f, Version.Parse(sinceVersion));
             }
+        }
+    }
+
+    private static IEnumerable<ChangelogNotice> GetNotices()
+    {
+        foreach (var t in Utils.GetDerivedTypes<ChangelogNotice>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
+        {
+            var inst = Activator.CreateInstance(t);
+            if (inst != null)
+                yield return (ChangelogNotice)inst;
         }
     }
 
