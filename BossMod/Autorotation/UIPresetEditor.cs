@@ -15,6 +15,8 @@ public sealed class UIPresetEditor
     private readonly List<int> _orderedTrackList = []; // for current module, by UI order
     private readonly List<int> _settingGuids = []; // a hack to keep track of held item during drag-n-drop
 
+    public bool IsDefaultPreset => Preset.Name == PresetDatabase.DefaultPresetName;
+
     public UIPresetEditor(PresetDatabase db, int index, Type? initiallySelectedModuleType)
     {
         _db = db;
@@ -116,6 +118,9 @@ public sealed class UIPresetEditor
                 }
             }
         }
+
+        using var d = ImRaii.Disabled(IsDefaultPreset);
+
         if (ImGui.Button("Add##module", width))
             ImGui.OpenPopup("add_module");
 
@@ -167,6 +172,8 @@ public sealed class UIPresetEditor
             ImGui.TextUnformatted("Add or select rotation module to configure its strategies");
             return;
         }
+
+        using var d = ImRaii.Disabled(IsDefaultPreset);
 
         var width = new Vector2(ImGui.GetContentRegionAvail().X, 0);
         var md = RotationModuleRegistry.Modules[SelectedModuleType].Definition;

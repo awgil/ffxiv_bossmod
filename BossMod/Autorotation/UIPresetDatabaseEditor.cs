@@ -12,7 +12,10 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
     private Type? _selectedModuleType; // we want module selection to be persistent when changing presets
     private UIPresetEditor? _selectedPreset;
 
+    private readonly AutorotationConfig _cfg = Service.Config.Get<AutorotationConfig>();
+
     private bool HaveUnsavedModifications => _selectedPreset?.Modified ?? false;
+    private bool DefaultSelected => _selectedPreset?.IsDefaultPreset ?? false;
 
     public void Draw()
     {
@@ -95,6 +98,9 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
                 for (int i = 0; i < db.Presets.Count; ++i)
                 {
                     var preset = db.Presets[i];
+                    if (preset.Name == PresetDatabase.DefaultPresetName && _cfg.HideDefaultPreset)
+                        continue;
+
                     if (ImGui.Selectable(preset.Name, _selectedPresetIndex == i))
                     {
                         _pendingSelectPresetIndex = i;
@@ -134,7 +140,7 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
         if (UIMisc.Button("Copy", 0, (HaveUnsavedModifications, "Current preset is modified, save or discard changes"), (_selectedPresetIndex < 0, "No preset is selected")))
             CreateNewPreset(_selectedPresetIndex);
         ImGui.SameLine();
-        if (UIMisc.Button("Delete", 0, (!ImGui.GetIO().KeyShift, "Hold shift to delete"), (_selectedPresetIndex < 0, "No preset is selected")))
+        if (UIMisc.Button("Delete", 0, DefaultSelected ? (true, "The default preset can't be deleted. If you would like to hide it, you can do so in Settings -> Autorotation.") : (!ImGui.GetIO().KeyShift, "Hold shift to delete"), (_selectedPresetIndex < 0, "No preset is selected")))
             DeleteCurrentPreset();
         ImGui.SameLine();
         if (UIMisc.Button("Export", _selectedPreset == null, "No preset is selected"))

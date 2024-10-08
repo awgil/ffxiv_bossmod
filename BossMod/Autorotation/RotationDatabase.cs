@@ -7,7 +7,7 @@ public sealed class RotationDatabase
     public readonly PresetDatabase Presets;
     public readonly PlanDatabase Plans;
 
-    public RotationDatabase(DirectoryInfo rootPath, FileInfo? defaultPresets)
+    public RotationDatabase(DirectoryInfo rootPath, FileInfo defaultPresets)
     {
         if (!rootPath.Exists)
             rootPath.Create();
