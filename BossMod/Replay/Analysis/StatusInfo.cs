@@ -5,11 +5,14 @@ namespace BossMod.ReplayAnalysis;
 
 class StatusInfo : CommonEnumInfo
 {
+    public record struct Instance(Replay r, Replay.Status s);
+
     private class StatusData
     {
-        public HashSet<uint> SourceOIDs = [];
-        public HashSet<uint> TargetOIDs = [];
-        public HashSet<ushort> Extras = [];
+        public readonly HashSet<uint> SourceOIDs = [];
+        public readonly HashSet<uint> TargetOIDs = [];
+        public readonly HashSet<ushort> Extras = [];
+        public readonly List<Instance> Instances = [];
     }
 
     private readonly Type? _sidType;
@@ -31,6 +34,7 @@ class StatusInfo : CommonEnumInfo
                         data.SourceOIDs.Add(status.Source.Type != ActorType.DutySupport ? status.Source.OID : 0);
                     data.TargetOIDs.Add(status.Target.Type != ActorType.DutySupport ? status.Target.OID : 0);
                     data.Extras.Add(status.StartingExtra);
+                    data.Instances.Add(new(replay, status));
                 }
             }
         }
@@ -48,6 +52,10 @@ class StatusInfo : CommonEnumInfo
             tree.LeafNode($"Source IDs: {OIDListString(data.SourceOIDs)}");
             tree.LeafNode($"Target IDs: {OIDListString(data.TargetOIDs)}");
             tree.LeafNode($"Extras: {string.Join(", ", data.Extras.Select(extra => $"{extra:X}"))}");
+            foreach (var n in tree.Node($"Instances ({data.Instances.Count})###instances"))
+            {
+                tree.LeafNodes(data.Instances, i => $"{i.r.Path} @ {i.s.Time.Start}: at {ReplayUtils.ParticipantString(i.s.Target, i.s.Time.Start)}");
+            }
         }
     }
 
