@@ -5,7 +5,7 @@ namespace BossMod.ReplayAnalysis;
 
 class StatusInfo : CommonEnumInfo
 {
-    public record struct Instance(Replay r, Replay.Status s);
+    public record struct Instance(Replay Replay, Replay.Status Status);
 
     private class StatusData
     {
@@ -54,7 +54,7 @@ class StatusInfo : CommonEnumInfo
             tree.LeafNode($"Extras: {string.Join(", ", data.Extras.Select(extra => $"{extra:X}"))}");
             foreach (var n in tree.Node($"Instances ({data.Instances.Count})###instances"))
             {
-                tree.LeafNodes(data.Instances, i => $"{i.r.Path} @ {i.s.Time.Start}: at {ReplayUtils.ParticipantString(i.s.Target, i.s.Time.Start)}");
+                tree.LeafNodes(data.Instances, i => $"{i.Replay.Path} @ {i.Status.Time.Start}: at {ReplayUtils.ParticipantString(i.Status.Target, i.Status.Time.Start)}");
             }
         }
     }
