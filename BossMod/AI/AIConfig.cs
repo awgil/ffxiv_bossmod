@@ -9,9 +9,6 @@ sealed class AIConfig : ConfigNode
     [PropertyDisplay("Enable AI", tooltip: "Disclaimer: AI is very experimental, use at your own risk!")]
     public bool Enabled = false;
 
-    [PropertyDisplay("Show in-game UI")]
-    public bool DrawUI = true;
-
     [PropertyDisplay("Show advanced options in the UI")]
     public bool ShowExtraUIOptions = true;
 
