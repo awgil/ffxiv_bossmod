@@ -363,6 +363,8 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
 public abstract class Targetxan(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
+    protected T GetGauge<T>() where T : unmanaged => World.Client.GetGauge<T>();
+
     protected (Actor? Target, P Priority) FindBetterTargetBy<P>(Actor? initial, float maxDistanceFromPlayer, Func<Actor, P> prioFunc, Func<AIHints.Enemy, bool>? filterFunc = null) where P : struct, IComparable
     {
         var bestTarget = initial;
