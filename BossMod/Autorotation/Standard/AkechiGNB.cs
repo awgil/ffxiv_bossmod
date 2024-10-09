@@ -223,6 +223,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         NoMercy = 850,
         Potion = 900,
         ContinuationNeed = 950,
+        ForcedOGCD = 900,
         StopAll = 980,
     }
 
@@ -353,7 +354,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //GCD minimal conditions
         var canSonic = hasBreak && Unlocked(GNB.AID.SonicBreak);
         var canDD = Ammo >= 2 && Unlocked(GNB.AID.DoubleDown);
-        var canBSlv80 = Ammo >= 1 && Unlocked(GNB.AID.BurstStrike) && Unlocked(GNB.AID.Bloodfest);
+        //var canBSlv80 = Ammo >= 1 && Unlocked(GNB.AID.BurstStrike) && Unlocked(GNB.AID.Bloodfest);
         var canBSlv70 = ((Ammo == MaxCartridges && ComboLastMove is GNB.AID.BrutalShell) ||
                          (nmLeft > 0 && Ammo > 0)) &&
                         Unlocked(GNB.AID.BurstStrike) && !Unlocked(GNB.AID.Bloodfest);
@@ -365,17 +366,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         QueueGCD(comboAction, comboAction is GNB.AID.DemonSlice or GNB.AID.DemonSlaughter ? Player : primaryTarget, comboPrio);
 
         //Focused actions for AoE strategies
-        if (AOEStrategy == AOEStrategy.FocusSingleTarget)
-        {
-            var action = NextForceSingleTarget();
-            QueueGCD(action, primaryTarget, GCDPriority.ForcedGCD);
-        }
-
-        if (AOEStrategy == AOEStrategy.FocusAoE)
-        {
-            var action = NextForceAoE();
-            QueueGCD(action, primaryTarget, GCDPriority.ForcedGCD);
-        }
+        if (AOEStrategy == AOEStrategy.FocusSingleTarget) //ST (without overcap protection)
+            QueueGCD(NextForceSingleTarget(), primaryTarget, GCDPriority.ForcedGCD);
+        if (AOEStrategy == AOEStrategy.FocusAoE) //AoE (without overcap protection)
+            QueueGCD(NextForceAoE(), primaryTarget, GCDPriority.ForcedGCD);
 
         //Estimate time to next downtime
         var downtimeIn = Manager.Planner?.EstimateTimeToNextDowntime().Item2 ?? float.MaxValue;
@@ -442,23 +436,28 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
                 QueueGCD(NextForceSingleTarget(), primaryTarget, GCDPriority.ForcedGCD);
         }
 
-        //No Mercy execution
-        if (!hold && ShouldUseNoMercy(strategy.Option(Track.NoMercy).As<OffensiveStrategy>(), primaryTarget))
-            QueueOGCD(GNB.AID.NoMercy, Player, OGCDPriority.NoMercy);
+        // No Mercy execution
+        var nmStrat = strategy.Option(Track.NoMercy).As<OffensiveStrategy>();
+        if (!hold && ShouldUseNoMercy(nmStrat, primaryTarget))
+            QueueOGCD(GNB.AID.NoMercy, Player, nmStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.NoMercy);
 
-        //Zone execution
-        if (!hold && ShouldUseZone(strategy.Option(Track.Zone).As<OffensiveStrategy>(), primaryTarget))
-            QueueOGCD(Unlocked(GNB.AID.BlastingZone) ? GNB.AID.BlastingZone : GNB.AID.DangerZone, primaryTarget, OGCDPriority.Zone);
+        // Zone execution (Blasting Zone / Danger Zone)
+        var zoneAction = Unlocked(GNB.AID.BlastingZone) ? GNB.AID.BlastingZone : GNB.AID.DangerZone;
+        var zoneStrat = strategy.Option(Track.Zone).As<OffensiveStrategy>();
+        if (!hold && ShouldUseZone(zoneStrat, primaryTarget))
+            QueueOGCD(zoneAction, primaryTarget, zoneStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Zone);
 
-        //BowShock execution
-        if (!hold && ShouldUseBowShock(strategy.Option(Track.BowShock).As<OffensiveStrategy>(), primaryTarget))
-            QueueOGCD(GNB.AID.BowShock, primaryTarget, OGCDPriority.BowShock);
+        // Bow Shock execution
+        var bowStrat = strategy.Option(Track.BowShock).As<OffensiveStrategy>();
+        if (!hold && ShouldUseBowShock(bowStrat, primaryTarget))
+            QueueOGCD(GNB.AID.BowShock, Player, bowStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.BowShock);
 
-        //Bloodfest execution
-        if (!hold && ShouldUseBloodfest(strategy.Option(Track.Bloodfest).As<OffensiveStrategy>(), primaryTarget))
-            QueueOGCD(GNB.AID.Bloodfest, primaryTarget, OGCDPriority.Bloodfest);
+        // Bloodfest execution
+        var bfStrat = strategy.Option(Track.Bloodfest).As<OffensiveStrategy>();
+        if (!hold && ShouldUseBloodfest(bfStrat, primaryTarget))
+            QueueOGCD(GNB.AID.Bloodfest, primaryTarget, bfStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Bloodfest);
 
-        //Continuation execution
+        // Continuation execution
         if (Unlocked(GNB.AID.Continuation))
         {
             if (hasRip)
@@ -473,64 +472,58 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
                 QueueOGCD(GNB.AID.FatedBrand, primaryTarget, OGCDPriority.ContinuationNeed);
         }
 
-        //Gnashing Fang execution
-        if (!hold && canGF && ShouldUseGnashingFang(strategy.Option(Track.GnashingFang).As<GnashingStrategy>(), primaryTarget))
-            QueueGCD(GNB.AID.GnashingFang, primaryTarget, GCDPriority.GF1);
+        // Gnashing Fang execution
+        var gfStrat = strategy.Option(Track.GnashingFang).As<GnashingStrategy>();
+        if (!hold && canGF && ShouldUseGnashingFang(gfStrat, primaryTarget))
+            QueueGCD(GNB.AID.GnashingFang, primaryTarget, gfStrat == GnashingStrategy.ForceGnash ? GCDPriority.ForcedGCD : GCDPriority.GF1);
 
-        //Double Down execution
-        if (!hold && canDD && ShouldUseDoubleDown(strategy.Option(Track.DoubleDown).As<OffensiveStrategy>(), primaryTarget))
-            QueueGCD(GNB.AID.DoubleDown, primaryTarget, GCDPriority.NormalDD);
+        // Double Down execution
+        var ddStrat = strategy.Option(Track.DoubleDown).As<OffensiveStrategy>();
+        if (canDD && ShouldUseDoubleDown(ddStrat, primaryTarget))
+            QueueGCD(GNB.AID.DoubleDown, primaryTarget, ddStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.NormalDD);
 
-        //Gnashing Fang's Combo execution
-        if (GunComboStep is 1)
-            QueueGCD(GNB.AID.SavageClaw, primaryTarget, GCDPriority.GF23);
-        if (GunComboStep is 2)
-            QueueGCD(GNB.AID.WickedTalon, primaryTarget, GCDPriority.GF23);
+        // Gnashing Fang Combo execution
+        if (GunComboStep == 1)
+            QueueGCD(GNB.AID.SavageClaw, primaryTarget, gfStrat == GnashingStrategy.ForceClaw ? GCDPriority.ForcedGCD : GCDPriority.GF23);
+        if (GunComboStep == 2)
+            QueueGCD(GNB.AID.WickedTalon, primaryTarget, gfStrat == GnashingStrategy.ForceTalon ? GCDPriority.ForcedGCD : GCDPriority.GF23);
 
-        //Reign Of Beasts execution
-        if (hasReign && GunComboStep is 0 && !ActionReady(GNB.AID.DoubleDown))
+        // Reign of Beasts execution
+        if (hasReign && GunComboStep == 0 && !ActionReady(GNB.AID.DoubleDown))
             QueueGCD(GNB.AID.ReignOfBeasts, primaryTarget, GCDPriority.NormalGCD);
 
-        //Reign Combo execution
-        if (GunComboStep is 3)
+        // Reign Combo execution
+        if (GunComboStep == 3)
             QueueGCD(GNB.AID.NobleBlood, primaryTarget, GCDPriority.NormalGCD);
-        if (GunComboStep is 4)
+        if (GunComboStep == 4)
             QueueGCD(GNB.AID.LionHeart, primaryTarget, GCDPriority.NormalGCD);
 
-        //Sonic Break execution
-        var forceBreak = strategy.Option(Track.SonicBreak).As<OffensiveStrategy>();
-        if (canSonic && hasNM)
-        {
-            if (forceBreak == OffensiveStrategy.Force) //Force without breaking Autorot
-            {
-                QueueGCD(GNB.AID.SonicBreak, primaryTarget, GCDPriority.ForcedSonicBreak);
-            }
-            else if (ShouldUseSonicBreak(forceBreak, primaryTarget))
-            {
-                QueueGCD(GNB.AID.SonicBreak, primaryTarget, GCDPriority.NormalSB);
-            }
-        }
+        // Sonic Break execution
+        var sbStrat = strategy.Option(Track.SonicBreak).As<OffensiveStrategy>();
+        if (canSonic && hasNM && ShouldUseSonicBreak(sbStrat, primaryTarget))
+            QueueGCD(GNB.AID.SonicBreak, primaryTarget, sbStrat == OffensiveStrategy.Force ? GCDPriority.ForcedSonicBreak : GCDPriority.NormalSB);
 
-        //Burst Strike execution
-        if (canBSlv80 && ShouldUseBurstStrike(strategy.Option(Track.BurstStrike).As<OffensiveStrategy>(), primaryTarget))
-            QueueGCD(GNB.AID.BurstStrike, primaryTarget, GCDPriority.NormalBS);
+        // Burst Strike execution
+        var strikeStrat = strategy.Option(Track.BurstStrike).As<OffensiveStrategy>();
+        if (Ammo >= 1 && Unlocked(GNB.AID.BurstStrike) && ShouldUseBurstStrike(strikeStrat, primaryTarget))
+            QueueGCD(GNB.AID.BurstStrike, primaryTarget, strikeStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.NormalBS);
 
-        //Fated Circle execution
-        if (canFC && ShouldUseFatedCircle(strategy.Option(Track.FatedCircle).As<OffensiveStrategy>(), primaryTarget))
-            QueueGCD(GNB.AID.BurstStrike, primaryTarget, GCDPriority.NormalBS);
-        else if (!canFC && canBSlv70)
-        {
-            var action = UseCorrectBS(AoETargets);
-            QueueGCD(action, primaryTarget, GCDPriority.NormalBS);
-        }
+        // Fated Circle execution
+        var fcStrat = strategy.Option(Track.FatedCircle).As<OffensiveStrategy>();
+        if (canFC && ShouldUseFatedCircle(fcStrat, primaryTarget))
+            QueueGCD(GNB.AID.FatedCircle, primaryTarget, fcStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.NormalBS);
+        if (!canFC && canBSlv70)
+            QueueGCD(UseCorrectBS(AoETargets), primaryTarget, GCDPriority.NormalBS);
 
-        //Lightning Shot execution
+        // Lightning Shot execution
+        var lsStrat = strategy.Option(Track.LightningShot).As<LightningShotStrategy>();
         if (ShouldUseLightningShot(primaryTarget, strategy.Option(Track.LightningShot).As<LightningShotStrategy>()))
-            QueueGCD(GNB.AID.LightningShot, primaryTarget, GCDPriority.ForcedLightningShot);
+            QueueGCD(GNB.AID.LightningShot, primaryTarget, lsStrat == LightningShotStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.NormalGCD);
 
-        //Potion execution
+        // Potion execution
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
+
     }
 
     //QueueGCD execution
