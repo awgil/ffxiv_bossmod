@@ -22,8 +22,8 @@ sealed class IPCProvider : IDisposable
         Register("ActiveModuleComponentList", () => autorotation.Bossmods.ActiveModule?.Components.Select(c => c.GetType().Name).ToList() ?? default);
         Register("ActiveModuleHasComponent", (string name) => autorotation.Bossmods.ActiveModule?.Components.Any(c => c.GetType().Name == name || c.GetType().BaseType?.Name == name) ?? false);
 
-        Register("HasModule", (IGameObject obj) => ModuleRegistry.FindByOID(obj.DataId) != null);
-        Register("HasModuleByDataId", (uint dataId) => ModuleRegistry.FindByOID(dataId) != null);
+        Register("HasModule", (IGameObject obj) => BossModuleRegistry.FindByOID(obj.DataId) != null);
+        Register("HasModuleByDataId", (uint dataId) => BossModuleRegistry.FindByOID(dataId) != null);
         Register("IsMoving", movement.IsMoving);
         Register("ForbiddenZonesCount", () => autorotation.Hints.ForbiddenZones.Count);
         Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(args, save));

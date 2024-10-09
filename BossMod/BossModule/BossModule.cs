@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Interface.Utility.Raii;
+using ImGuiNET;
 
 namespace BossMod;
 
@@ -11,7 +12,7 @@ public abstract class BossModule : IDisposable
     public readonly BossModuleConfig WindowConfig = Service.Config.Get<BossModuleConfig>();
     public readonly ColorConfig ColorConfig = Service.Config.Get<ColorConfig>();
     public readonly MiniArena Arena;
-    public readonly ModuleRegistry.Info? Info;
+    public readonly BossModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
 
     private readonly EventSubscriptions _subscriptions;
@@ -81,7 +82,7 @@ public abstract class BossModule : IDisposable
         WorldState = ws;
         PrimaryActor = primary;
         Arena = new(WindowConfig, center, bounds);
-        Info = ModuleRegistry.FindByOID(primary.OID);
+        Info = BossModuleRegistry.FindByOID(primary.OID);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
 
         _subscriptions = new
@@ -261,13 +262,12 @@ public abstract class BossModule : IDisposable
 
     private void DrawGlobalHints(BossComponent.GlobalHints hints)
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, 0xffffff00);
+        using var color = ImRaii.PushColor(ImGuiCol.Text, 0xffffff00);
         foreach (var hint in hints)
         {
             ImGui.TextUnformatted(hint);
             ImGui.SameLine();
         }
-        ImGui.PopStyleColor();
         ImGui.NewLine();
     }
 
@@ -275,9 +275,8 @@ public abstract class BossModule : IDisposable
     {
         foreach ((var hint, bool risk) in hints)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, risk ? ArenaColor.Danger : ArenaColor.Safe);
+            using var color = ImRaii.PushColor(ImGuiCol.Text, risk ? ArenaColor.Danger : ArenaColor.Safe);
             ImGui.TextUnformatted(hint);
-            ImGui.PopStyleColor();
             ImGui.SameLine();
         }
         ImGui.NewLine();

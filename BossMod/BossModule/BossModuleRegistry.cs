@@ -2,7 +2,7 @@
 
 namespace BossMod;
 
-public static class ModuleRegistry
+public static class BossModuleRegistry
 {
     public class Info
     {
@@ -167,7 +167,7 @@ public static class ModuleRegistry
     private static readonly Dictionary<uint, Info> _modulesByOID = []; // [primary-actor-oid] = module info
     private static readonly Dictionary<Type, Info> _modulesByType = []; // [module-type] = module info
 
-    static ModuleRegistry()
+    static BossModuleRegistry()
     {
         foreach (var t in Utils.GetDerivedTypes<BossModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract && t != typeof(DemoModule)))
         {

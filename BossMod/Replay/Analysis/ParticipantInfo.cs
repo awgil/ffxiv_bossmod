@@ -23,7 +23,7 @@ class ParticipantInfo : CommonEnumInfo
 
     public ParticipantInfo(List<Replay> replays, uint oid)
     {
-        var moduleInfo = ModuleRegistry.FindByOID(oid);
+        var moduleInfo = BossModuleRegistry.FindByOID(oid);
         _oidType = moduleInfo?.ObjectIDType;
         foreach (var replay in replays)
         {

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Pathfinding;
 
-[ConfigDisplay(Name = "Obstacle map development", Order = 7)]
+[ConfigDisplay(Name = "Obstacle map development", Order = 8)]
 public sealed class ObstacleMapConfig : ConfigNode
 {
     [PropertyDisplay("Developer mode: load obstacle maps from source rather than from plugin distribution")]
