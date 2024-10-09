@@ -6,7 +6,7 @@ class EnvControlInfo
 
     public EnvControlInfo(List<Replay> replays, uint oid)
     {
-        var moduleInfo = ModuleRegistry.FindByOID(oid);
+        var moduleInfo = BossModuleRegistry.FindByOID(oid);
         foreach (var replay in replays)
         {
             foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))

@@ -17,7 +17,7 @@ class TetherInfo : CommonEnumInfo
 
     public TetherInfo(List<Replay> replays, uint oid)
     {
-        var moduleInfo = ModuleRegistry.FindByOID(oid);
+        var moduleInfo = BossModuleRegistry.FindByOID(oid);
         _oidType = moduleInfo?.ObjectIDType;
         _tidType = moduleInfo?.TetherIDType;
         foreach (var replay in replays)

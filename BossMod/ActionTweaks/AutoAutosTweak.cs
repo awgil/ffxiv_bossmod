@@ -23,7 +23,7 @@ public sealed class AutoAutosTweak(WorldState ws, AIHints hints)
             return currentState;
 
         var player = ws.Party.Player();
-        if (player == null || player.Statuses.Any(s => s.ID is 418 or 2648)) // transcendent
+        if (player == null || player.IsDead || player.Statuses.Any(s => s.ID is 418 or 2648)) // transcendent
             return currentState;
 
         var target = ws.Actors.Find(player.TargetID);

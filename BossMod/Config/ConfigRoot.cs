@@ -234,7 +234,7 @@ public class ConfigRoot
                 foreach (var (k, planData) in plans)
                 {
                     var oid = uint.Parse(k);
-                    var info = ModuleRegistry.FindByOID(oid);
+                    var info = BossModuleRegistry.FindByOID(oid);
                     var config = info?.PlanLevel > 0 ? info.ConfigType : null;
                     if (config?.FullName == null)
                         continue;
@@ -399,7 +399,7 @@ public class ConfigRoot
                     jplan.WriteString("Name", plan!["Name"]!.GetValue<string>());
                     jplan.WriteString("Encounter", t);
                     jplan.WriteString("Class", cls);
-                    jplan.WriteNumber("Level", type != null ? ModuleRegistry.FindByType(type)?.PlanLevel ?? 0 : 0);
+                    jplan.WriteNumber("Level", type != null ? BossModuleRegistry.FindByType(type)?.PlanLevel ?? 0 : 0);
                     jplan.WriteStartArray("PhaseDurations");
                     foreach (var d in plan["Timings"]!["PhaseDurations"]!.AsArray())
                         jplan.WriteNumberValue(d!.GetValue<float>());

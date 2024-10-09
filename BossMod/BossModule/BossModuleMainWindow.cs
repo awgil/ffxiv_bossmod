@@ -6,21 +6,24 @@ namespace BossMod;
 public class BossModuleMainWindow : UIWindow
 {
     private readonly BossModuleManager _mgr;
+    private readonly ZoneModuleManager _zmm;
 
     private const string _windowID = "###Boss module";
 
-    public BossModuleMainWindow(BossModuleManager mgr) : base(_windowID, false, new(400, 400))
+    public BossModuleMainWindow(BossModuleManager mgr, ZoneModuleManager zmm) : base(_windowID, false, new(400, 400))
     {
         _mgr = mgr;
+        _zmm = zmm;
         RespectCloseHotkey = false;
         TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => OpenModuleConfig() });
     }
 
     public override void PreOpenCheck()
     {
-        IsOpen = _mgr.Config.Enable && _mgr.LoadedModules.Count > 0;
-        ShowCloseButton = _mgr.ActiveModule != null;
-        WindowName = (_mgr.ActiveModule != null ? $"Boss module ({_mgr.ActiveModule.GetType().Name})" : "Loaded boss modules") + _windowID;
+        var showZoneModule = ShowZoneModule();
+        IsOpen = _mgr.Config.Enable && (_mgr.LoadedModules.Count > 0 || showZoneModule);
+        ShowCloseButton = _mgr.ActiveModule != null && !showZoneModule;
+        WindowName = (showZoneModule ? $"Zone module ({_zmm.ActiveModule?.GetType().Name})" : _mgr.ActiveModule != null ? $"Boss module ({_mgr.ActiveModule.GetType().Name})" : "Loaded boss modules") + _windowID;
         Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
         if (_mgr.Config.TrishaMode)
             Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
@@ -31,12 +34,12 @@ public class BossModuleMainWindow : UIWindow
 
     public override void OnOpen()
     {
-        Service.Log($"[BMM] Opening main window; there are {_mgr.LoadedModules.Count} loaded modules, active is {_mgr.ActiveModule?.GetType().FullName ?? "<n/a>"}");
+        Service.Log($"[BMM] Opening main window; there are {_mgr.LoadedModules.Count} loaded modules, active is {_mgr.ActiveModule?.GetType().FullName ?? "<n/a>"}; zone module is {_zmm.ActiveModule?.GetType().FullName ?? "<n/a>"}");
     }
 
     public override void OnClose()
     {
-        Service.Log($"[BMM] Closing main window; there are {_mgr.LoadedModules.Count} loaded modules, active is {_mgr.ActiveModule?.GetType().FullName ?? "<n/a>"}");
+        Service.Log($"[BMM] Closing main window; there are {_mgr.LoadedModules.Count} loaded modules, active is {_mgr.ActiveModule?.GetType().FullName ?? "<n/a>"}; zone module is {_zmm.ActiveModule?.GetType().FullName ?? "<n/a>"}");
     }
 
     public override void PostDraw()
@@ -53,7 +56,11 @@ public class BossModuleMainWindow : UIWindow
 
     public override void Draw()
     {
-        if (_mgr.ActiveModule != null)
+        if (ShowZoneModule())
+        {
+            _zmm.ActiveModule?.DrawGlobalHints();
+        }
+        else if (_mgr.ActiveModule != null)
         {
             try
             {
@@ -71,7 +78,7 @@ public class BossModuleMainWindow : UIWindow
         {
             foreach (var m in _mgr.LoadedModules)
             {
-                var oidType = ModuleRegistry.FindByOID(m.PrimaryActor.OID)?.ObjectIDType;
+                var oidType = BossModuleRegistry.FindByOID(m.PrimaryActor.OID)?.ObjectIDType;
                 var oidName = oidType?.GetEnumName(m.PrimaryActor.OID);
                 if (ImGui.Button($"{m.GetType()} ({m.PrimaryActor.InstanceID:X} '{m.PrimaryActor.Name}' {oidName})"))
                     _mgr.ActiveModule = m;
@@ -102,4 +109,6 @@ public class BossModuleMainWindow : UIWindow
         if (_mgr.ActiveModule?.Info != null)
             _ = new BossModuleConfigWindow(_mgr.ActiveModule.Info, _mgr.WorldState);
     }
+
+    private bool ShowZoneModule() => _mgr.Config.ShowGlobalHints && !_mgr.Config.HintsInSeparateWindow && _mgr.ActiveModule?.StateMachine.ActivePhase == null && (_zmm.ActiveModule?.WantToBeDrawn() ?? false);
 }

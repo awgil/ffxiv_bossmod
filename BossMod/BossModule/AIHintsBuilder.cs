@@ -9,14 +9,16 @@ public sealed class AIHintsBuilder : IDisposable
     public readonly Pathfinding.ObstacleMapManager Obstacles;
     private readonly WorldState _ws;
     private readonly BossModuleManager _bmm;
+    private readonly ZoneModuleManager _zmm;
     private readonly EventSubscriptions _subscriptions;
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = [];
     private ArenaBoundsCircle? _activeFateBounds;
 
-    public AIHintsBuilder(WorldState ws, BossModuleManager bmm)
+    public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm)
     {
         _ws = ws;
         _bmm = bmm;
+        _zmm = zmm;
         Obstacles = new(ws);
         _subscriptions = new
         (
@@ -43,9 +45,14 @@ public sealed class AIHintsBuilder : IDisposable
             var activeModule = _bmm.ActiveModule?.StateMachine.ActivePhase != null ? _bmm.ActiveModule : null;
             hints.FillPotentialTargets(_ws, playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !_ws.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank));
             if (activeModule != null)
+            {
                 activeModule.CalculateAIHints(playerSlot, player, playerAssignment, hints);
+            }
             else
+            {
                 CalculateAutoHints(hints, player);
+                _zmm.ActiveModule?.CalculateAIHints(player, hints);
+            }
         }
         hints.Normalize();
     }

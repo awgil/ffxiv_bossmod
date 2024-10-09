@@ -5,16 +5,18 @@ namespace BossMod;
 public class BossModuleHintsWindow : UIWindow
 {
     private readonly BossModuleManager _mgr;
+    private readonly ZoneModuleManager _zmm;
 
-    public BossModuleHintsWindow(BossModuleManager mgr) : base("Boss module hints", false, new(400, 100))
+    public BossModuleHintsWindow(BossModuleManager mgr, ZoneModuleManager zmm) : base("Boss module hints", false, new(400, 100))
     {
         _mgr = mgr;
+        _zmm = zmm;
         RespectCloseHotkey = false;
     }
 
     public override void PreOpenCheck()
     {
-        IsOpen = _mgr.Config.HintsInSeparateWindow && _mgr.ActiveModule != null;
+        IsOpen = _mgr.Config.HintsInSeparateWindow && (_mgr.ActiveModule != null || ShowZoneModule());
         Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
         if (_mgr.Config.Lock)
             Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
@@ -22,14 +24,23 @@ public class BossModuleHintsWindow : UIWindow
 
     public override void Draw()
     {
-        try
+        if (ShowZoneModule())
         {
-            _mgr.ActiveModule?.Draw(default, PartyState.PlayerSlot, true, false);
+            _zmm.ActiveModule?.DrawGlobalHints();
         }
-        catch (Exception ex)
+        else
         {
-            Service.Log($"Boss module draw-hints crashed: {ex}");
-            _mgr.ActiveModule = null;
+            try
+            {
+                _mgr.ActiveModule?.Draw(default, PartyState.PlayerSlot, true, false);
+            }
+            catch (Exception ex)
+            {
+                Service.Log($"Boss module draw-hints crashed: {ex}");
+                _mgr.ActiveModule = null;
+            }
         }
     }
+
+    private bool ShowZoneModule() => _mgr.ActiveModule?.StateMachine.ActivePhase == null && (_zmm.ActiveModule?.WantToBeDrawn() ?? false);
 }

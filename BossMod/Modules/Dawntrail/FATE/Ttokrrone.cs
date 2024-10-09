@@ -1,4 +1,6 @@
-﻿namespace BossMod.Dawntrail.FATE.Ttokrrone;
+﻿using ImGuiNET;
+
+namespace BossMod.Dawntrail.FATE.Ttokrrone;
 
 public enum OID : uint
 {
@@ -105,6 +107,16 @@ class SandspoutDustdevil(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        // this is rotating quickly, we really want to stay as close to the imminent aoe as possible
+        if (_remainingCasts > 2)
+            hints.AddForbiddenZone(_shapeCleave.Distance(Module.PrimaryActor.Position, _nextRotation + 2 * _increment), _nextActivation.AddSeconds(5.2f));
+        if (_remainingCasts > 3)
+            hints.AddForbiddenZone(ShapeDistance.Cone(Module.PrimaryActor.Position, _shapeCleave.Radius, _nextRotation + 2.9f * _increment, 0.9f * _shapeCleave.HalfAngle), _nextActivation.AddSeconds(5.2f));
+    }
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var (offset, increment, casts) = (AID)spell.Action.ID switch
@@ -138,6 +150,7 @@ class SandspoutDustdevil(BossModule module) : Components.GenericAOEs(module)
         {
             --_remainingCasts;
             _nextRotation += _increment;
+            _nextActivation = WorldState.FutureTime(2.6f);
         }
     }
 }
