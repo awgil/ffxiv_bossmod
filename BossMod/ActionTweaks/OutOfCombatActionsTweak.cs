@@ -34,7 +34,7 @@ public sealed class OutOfCombatActionsTweak : IDisposable
 
     public void FillActions(Actor player, AIHints hints)
     {
-        if (!_config.Enabled || player.InCombat || _ws.Client.CountdownRemaining != null || player.MountId != 0)
+        if (!_config.Enabled || player.InCombat || _ws.Client.CountdownRemaining != null || player.MountId != 0 || player.Statuses.Any(s => s.ID is 418 or 2648)) // note: in overworld content, you leave combat on death...
             return;
 
         if (_config.AutoPeloton && player.ClassCategory == ClassCategory.PhysRanged && player.Position != player.PrevPosition && _ws.CurrentTime >= _nextAutoPeloton && player.FindStatus(BRD.SID.Peloton) == null)

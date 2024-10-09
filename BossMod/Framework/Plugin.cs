@@ -20,6 +20,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly WorldState _ws;
     private readonly AIHints _hints;
     private readonly BossModuleManager _bossmod;
+    private readonly ZoneModuleManager _zonemod;
     private readonly AIHintsBuilder _hintsBuilder;
     private readonly MovementOverride _movementOverride;
     private readonly ActionManagerEx _amex;
@@ -76,7 +77,8 @@ public sealed class Plugin : IDalamudPlugin
         _ws = new(qpf, gameVersion);
         _hints = new();
         _bossmod = new(_ws);
-        _hintsBuilder = new(_ws, _bossmod);
+        _zonemod = new(_ws);
+        _hintsBuilder = new(_ws, _bossmod, _zonemod);
         _movementOverride = new();
         _amex = new(_ws, _hints, _movementOverride);
         _wsSync = new(_ws, _amex);
@@ -88,8 +90,8 @@ public sealed class Plugin : IDalamudPlugin
 
         var replayDir = new DirectoryInfo(dalamud.ConfigDirectory.FullName + "/replays");
         _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
-        _wndBossmod = new(_bossmod);
-        _wndBossmodHints = new(_bossmod);
+        _wndBossmod = new(_bossmod, _zonemod);
+        _wndBossmodHints = new(_bossmod, _zonemod);
         _wndReplay = new(_ws, _rotationDB, replayDir);
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
         _wndDebug = new(_ws, _rotation, _amex, _hintsBuilder, dalamud);
@@ -117,6 +119,7 @@ public sealed class Plugin : IDalamudPlugin
         _amex.Dispose();
         _movementOverride.Dispose();
         _hintsBuilder.Dispose();
+        _zonemod.Dispose();
         _bossmod.Dispose();
         _dtr.Dispose();
         ActionDefinitions.Instance.Dispose();
@@ -168,14 +171,17 @@ public sealed class Plugin : IDalamudPlugin
     {
         var tsStart = DateTime.Now;
 
+        var userPreventingCast = _movementOverride.IsMoveRequested() && !_amex.Config.PreventMovingWhileCasting;
+        var maxCastTime = userPreventingCast ? 0 : _ai.ForceMovementIn;
+
         _dtr.Update();
         Camera.Instance?.Update();
         _wsSync.Update(_prevUpdateTime);
         _bossmod.Update();
-        _hintsBuilder.Update(_hints, PartyState.PlayerSlot);
+        _zonemod.ActiveModule?.Update();
+        _hintsBuilder.Update(_hints, PartyState.PlayerSlot, maxCastTime);
         _amex.QueueManualActions();
-        var userPreventingCast = _movementOverride.IsMoveRequested() && !_amex.Config.PreventMovingWhileCasting;
-        _rotation.Update(_amex.AnimationLockDelayEstimate, userPreventingCast ? 0 : _ai.ForceMovementIn, _movementOverride.IsMoving());
+        _rotation.Update(_amex.AnimationLockDelayEstimate, _movementOverride.IsMoving());
         _ai.Update();
         _broadcast.Update();
         _amex.FinishActionGather();

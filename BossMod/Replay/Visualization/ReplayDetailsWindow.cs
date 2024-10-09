@@ -9,6 +9,7 @@ class ReplayDetailsWindow : UIWindow
     private readonly RotationDatabase _rotationDB;
     private readonly AIHints _hints = new();
     private BossModuleManager _mgr;
+    private ZoneModuleManager _zmm;
     private AIHintsBuilder _hintsBuilder;
     private RotationModuleManager _rmm;
     private readonly DateTime _first;
@@ -40,7 +41,8 @@ class ReplayDetailsWindow : UIWindow
         _player = new(data);
         _rotationDB = rotationDB;
         _mgr = new(_player.WorldState);
-        _hintsBuilder = new(_player.WorldState, _mgr);
+        _zmm = new(_player.WorldState);
+        _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
         _rmm = new(rotationDB, _mgr, _hints);
         _curTime = _first = data.Ops[0].Timestamp;
         _last = data.Ops[^1].Timestamp;
@@ -56,6 +58,7 @@ class ReplayDetailsWindow : UIWindow
         _config.Dispose();
         _rmm.Dispose();
         _hintsBuilder.Dispose();
+        _zmm.Dispose();
         _mgr.Dispose();
         base.Dispose(disposing);
     }
@@ -71,17 +74,17 @@ class ReplayDetailsWindow : UIWindow
 
         DrawControlRow();
         DrawTimelineRow();
-        ImGui.TextUnformatted($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.LoadedModules.Count(m => m.StateMachine.ActiveState != null)}, active module: {_mgr.ActiveModule?.GetType()}");
+        ImGui.TextUnformatted($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.LoadedModules.Count(m => m.StateMachine.ActiveState != null)}, active module: {_mgr.ActiveModule?.GetType()}, zone module: {_zmm.ActiveModule?.GetType()}");
+        _zmm.ActiveModule?.DrawGlobalHints();
         if (!_azimuthOverride)
             _azimuth = _mgr.WorldState.Client.CameraAzimuth.Deg;
         ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
         ImGui.SameLine();
         ImGui.Checkbox("Override", ref _azimuthOverride);
-        _hintsBuilder.Update(_hints, _povSlot);
+        _hintsBuilder.Update(_hints, _povSlot, float.MaxValue);
+        _rmm.Update(0, false);
         if (_mgr.ActiveModule != null)
         {
-            _rmm.Update(0, float.MaxValue, false);
-
             var drawTimerPre = DateTime.Now;
             _mgr.ActiveModule.Draw(_azimuthOverride ? _azimuth.Degrees() : _mgr.WorldState.Client.CameraAzimuth, _povSlot, true, true);
             var drawTimerPost = DateTime.Now;
@@ -368,7 +371,7 @@ class ReplayDetailsWindow : UIWindow
 
     private void DrawEnemyTable(uint oid, ICollection<Actor> actors)
     {
-        var moduleInfo = _mgr.ActiveModule != null ? ModuleRegistry.FindByOID(_mgr.ActiveModule.PrimaryActor.OID) : null;
+        var moduleInfo = _mgr.ActiveModule != null ? BossModuleRegistry.FindByOID(_mgr.ActiveModule.PrimaryActor.OID) : null;
         var oidName = moduleInfo?.ObjectIDType?.GetEnumName(oid);
         if (!ImGui.CollapsingHeader($"Enemy {oid:X} {oidName ?? ""}") || actors.Count == 0)
             return;
@@ -445,10 +448,12 @@ class ReplayDetailsWindow : UIWindow
         {
             _rmm.Dispose();
             _hintsBuilder.Dispose();
+            _zmm.Dispose();
             _mgr.Dispose();
             _player.Reset();
             _mgr = new(_player.WorldState);
-            _hintsBuilder = new(_player.WorldState, _mgr);
+            _zmm = new(_player.WorldState);
+            _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
             _rmm = new(_rotationDB, _mgr, _hints);
         }
         _player.AdvanceTo(t, _mgr.Update);

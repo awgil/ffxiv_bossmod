@@ -34,7 +34,7 @@ public sealed class UIPlanDatabaseEditor
 
     public static void StartPlanEditor(PlanDatabase db, Plan plan)
     {
-        var m = ModuleRegistry.CreateModuleForConfigPlanning(plan.Encounter);
+        var m = BossModuleRegistry.CreateModuleForConfigPlanning(plan.Encounter);
         if (m != null)
             StartPlanEditor(db, plan, m.StateMachine);
     }

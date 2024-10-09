@@ -9,7 +9,7 @@ public class ColumnEnemiesCastEvents : Timeline.ColumnGroup
     private readonly StateMachineTree _tree;
     private readonly List<int> _phaseBranches;
     private readonly Replay.Encounter _encounter;
-    private readonly ModuleRegistry.Info? _moduleInfo;
+    private readonly BossModuleRegistry.Info? _moduleInfo;
     private readonly List<Replay.Action> _actions;
     private readonly Dictionary<ActionID, List<(Replay.Participant source, BitMask cols)>> _filters = []; // [action][sourceid]
 
@@ -20,7 +20,7 @@ public class ColumnEnemiesCastEvents : Timeline.ColumnGroup
         _tree = tree;
         _phaseBranches = phaseBranches;
         _encounter = enc;
-        _moduleInfo = ModuleRegistry.FindByOID(enc.OID);
+        _moduleInfo = BossModuleRegistry.FindByOID(enc.OID);
         _actions = replay.EncounterActions(enc).Where(a => a.Source.Type is not (ActorType.Player or ActorType.Pet or ActorType.Chocobo)).ToList();
         foreach (var a in _actions)
         {

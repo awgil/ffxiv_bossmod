@@ -17,7 +17,7 @@ public sealed class PresetDatabase
         if (!_dbPath.Exists && (defaultPresets?.Exists ?? false))
             defaultPresets.CopyTo(_dbPath.FullName);
 
-        if (_dbPath.Exists)
+        if (File.Exists(_dbPath.FullName))
         {
             try
             {

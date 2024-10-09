@@ -2,7 +2,7 @@
 
 namespace BossMod;
 
-public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, StrategyConfig config, int level, ModuleRegistry.Info? moduleInfo)
+public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, StrategyConfig config, int level, BossModuleRegistry.Info? moduleInfo)
     : ColumnPlannerTrack(timeline, tree, phaseBranches, config.UIName)
 {
     protected override StrategyValue GetDefaultValue()
