@@ -147,7 +147,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, Prese
 
         // TODO: remove this once all rotation modules are fixed
         if (autorot.Hints.GoalZones.Count == 0 && targeting.Target != null)
-            autorot.Hints.GoalZones.Add(autorot.Hints.GoalSingleTarget(targeting.Target.Actor, targeting.PreferredRange));
+            autorot.Hints.GoalZones.Add(autorot.Hints.GoalSingleTarget(targeting.Target.Actor, targeting.PreferredPosition, targeting.PreferredRange));
         return NavigationDecision.Build(_naviCtx, WorldState, autorot.Hints, player);
     }
 
