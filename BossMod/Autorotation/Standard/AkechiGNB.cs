@@ -789,42 +789,4 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         PotionStrategy.Immediate => true,
         _ => false
     };
-
-    /* WIP NoMercy options
-    private bool ShouldUseNoMercy(NoMercyStrategy strategy, Actor? player)
-    {
-        var nm = strategy.Option(Track.NoMercy);
-        var nmStrat = nm.As<NoMercyStrategy>();
-        if (nmStrat == NoMercyStrategy.Delay)
-        {
-            return false;
-        }
-        else if (nmStrat == NoMercyStrategy.Force)
-        {
-            return true;
-        }
-        else
-        {
-            bool GFready = CD(GNB.AID.GnashingFang) < GCD && Unlocked(GNB.AID.GnashingFang); 
-            bool SBready = nmCD >= 40 && Unlocked(GNB.AID.SonicBreak) && ReadyToBreak;
-            bool DDready = CD(GNB.AID.DoubleDown) < GCD && Unlocked(GNB.AID.DoubleDown);
-            bool sublv30NM = Player.InCombat && !Unlocked(GNB.AID.BurstStrike);
-            bool fastBurstReady = Player.InCombat && Unlocked(GNB.AID.Bloodfest) && (Ammo is 1 || Ammo == MaxCartridges) && GCD < 0.8 && GFready;
-            /* bool slowBurstReady = Player.InCombat && Unlocked(GNB.AID.Bloodfest) && (Ammo == 0 || Ammo == MaxCartridges) && GCD < 0.8;
-
-            bool slowNM = //(!gnbConfig.fastNM &&
-                (GFready || SBready || DDready)
-                && Player.InCombat
-                && ((Ammo == MaxCartridges)
-                || (Ammo == MaxCartridges - 1 && ComboLastMove == GNB.AID.BrutalShell && bfCD > 20)
-                || (bfCD < 15 && Ammo == 1 && Unlocked(GNB.AID.Bloodfest)))) || shouldUseEarlyNoMercy; 
-
-            bool fastNM = //(gnbConfig.fastNM &&
-                GCD < 0.8f &&
-                (GFready || SBready || DDready)
-                && Player.InCombat
-                && fastBurstReady;
-            return slowNM || fastNM || sublv30NM;
-        }
-    }*/
 }
