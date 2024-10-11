@@ -75,15 +75,15 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         Delay             //Delay the use of Gnashing Fang for strategic reasons
     }
 
-    // Defines the strategy for using No Mercy, allowing for different behaviors based on combat scenarios
+    //Defines the strategy for using No Mercy, allowing for different behaviors based on combat scenarios
     public enum NoMercyStrategy
     {
-        Automatic,      // Automatically decide when to use No Mercy
-        Force,          // Force the use of No Mercy regardless of conditions
-        ForceLW,        // Force the use of No Mercy in next possible 2nd oGCD slot
-        Force2,         // Force the use of No Mercy when 2 cartridges are available
-        Force3,         // Force the use of No Mercy when 3 cartridges are available
-        Delay           // Delay the use of No Mercy for strategic reasons
+        Automatic,      //Automatically decide when to use No Mercy
+        Force,          //Force the use of No Mercy regardless of conditions
+        ForceLW,        //Force the use of No Mercy in next possible 2nd oGCD slot
+        Force2,         //Force the use of No Mercy when 2 cartridges are available
+        Force3,         //Force the use of No Mercy when 3 cartridges are available
+        Delay           //Delay the use of No Mercy for strategic reasons
     }
 
     //Defines different offensive strategies that dictate how abilities and resources are used during combat
@@ -548,23 +548,23 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
 
     private GNB.AID UseCorrectBS(int AoETargets)
     {
-        // If under No Mercy and Fated Circle is not unlocked, use Burst Strike even in single-target situations
+        //If under No Mercy and Fated Circle is not unlocked, use Burst Strike even in single-target situations
         if (Ammo == MaxCartridges && ComboLastMove is GNB.AID.BrutalShell)
             return Unlocked(GNB.AID.FatedCircle) ? GNB.AID.FatedCircle : GNB.AID.BurstStrike;
 
-        // Optimal AoE usage for specific target counts
+        //Optimal AoE usage for specific target counts
         var hasStrike = Unlocked(GNB.AID.BurstStrike);
         var hasCircle = Unlocked(GNB.AID.FatedCircle);
 
-        // If Fated Circle is unlocked and there are 2+ targets, use Fated Circle for AoE
+        //If Fated Circle is unlocked and there are 2+ targets, use Fated Circle for AoE
         if (hasCircle && AoETargets >= 2)
             return GNB.AID.FatedCircle;
 
-        // If Fated Circle is not unlocked but Burst Strike is available, use Burst Strike on 2+ targets to prevent overcapping
+        //If Fated Circle is not unlocked but Burst Strike is available, use Burst Strike on 2+ targets to prevent overcapping
         if (!hasCircle && hasStrike && AoETargets >= 2)
             return GNB.AID.BurstStrike;
 
-        // If none of the conditions match, return Burst Strike for default
+        //If none of the conditions match, return Burst Strike for default
         return GNB.AID.BurstStrike;
     }
 
