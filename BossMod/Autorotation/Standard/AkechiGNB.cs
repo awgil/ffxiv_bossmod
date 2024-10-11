@@ -1,6 +1,4 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using static BossMod.ActorCastEvent;
-using static BossMod.Autorotation.xan.MNK;
 
 namespace BossMod.Autorotation;
 //Contribution by Akechi
@@ -364,9 +362,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //CDs minimal conditions
         var canSonic = hasBreak && Unlocked(GNB.AID.SonicBreak); //SonicBreak conditions
         var canDD = Ammo >= 2 && Unlocked(GNB.AID.DoubleDown); //DoubleDown conditions
-        var canBS79down = Ammo >= 1 && Unlocked(GNB.AID.BurstStrike) && !Unlocked(GNB.AID.Bloodfest); //BurstStrike Lv79 & below conditions
-        var canGF = Ammo >= 1 && Unlocked(GNB.AID.GnashingFang);
-        var canFC = Ammo >= 1 && Unlocked(GNB.AID.FatedCircle);
+        var canBS = Unlocked(GNB.AID.BurstStrike); //BurstStrike conditions
+        var canGF = Ammo >= 1 && Unlocked(GNB.AID.GnashingFang); //GnashingFang conditions
+        var canFC = Unlocked(GNB.AID.FatedCircle); //FatedCircle conditions
 
         //Determine and queue combo action
         var (comboAction, comboPrio) = ComboActionPriority(AOEStrategy, AoETargets, burstStrategy, burst.Value.ExpireIn);
@@ -502,15 +500,18 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
 
         //Burst Strike execution
         var strikeStrat = strategy.Option(Track.BurstStrike).As<OffensiveStrategy>();
-        if (Ammo >= 1 && Unlocked(GNB.AID.BurstStrike) && ShouldUseBurstStrike(strikeStrat, primaryTarget))
+        if (Ammo >= 1 && Unlocked(GNB.AID.BurstStrike) && Unlocked(GNB.AID.Bloodfest) && ShouldUseBurstStrike(strikeStrat, primaryTarget))
             QueueGCD(GNB.AID.BurstStrike, primaryTarget, strikeStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.NormalBS);
 
         //Fated Circle execution
         var fcStrat = strategy.Option(Track.FatedCircle).As<OffensiveStrategy>();
         if (canFC && ShouldUseFatedCircle(fcStrat, primaryTarget))
             QueueGCD(GNB.AID.FatedCircle, primaryTarget, fcStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.NormalBS);
-        if (!canFC && canBS79down)
-            QueueGCD(UseCorrectBS(AoETargets), primaryTarget, GCDPriority.NormalBS);
+        if (!canFC && canBS)
+        {
+            if (Ammo > 0 && ShouldUseBurstStrike(strikeStrat, primaryTarget))
+                QueueGCD(UseCorrectBS(AoETargets), primaryTarget, GCDPriority.NormalBS);
+        }
 
         //Lightning Shot execution
         var lsStrat = strategy.Option(Track.LightningShot).As<LightningShotStrategy>();
@@ -545,25 +546,25 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         }
     }
 
-    private GNB.AID UseCorrectBS(int AoETargets) //Determines whether to use Burst Strike or Fated Circle based on conditions
+    private GNB.AID UseCorrectBS(int AoETargets)
     {
-        //If under No Mercy and Fated Circle is not unlocked, use Burst Strike even in single-target situations
+        // If under No Mercy and Fated Circle is not unlocked, use Burst Strike even in single-target situations
         if (Ammo == MaxCartridges && ComboLastMove is GNB.AID.BrutalShell)
             return Unlocked(GNB.AID.FatedCircle) ? GNB.AID.FatedCircle : GNB.AID.BurstStrike;
 
-        //Optimal AoE usage for specific target counts
+        // Optimal AoE usage for specific target counts
         var hasStrike = Unlocked(GNB.AID.BurstStrike);
         var hasCircle = Unlocked(GNB.AID.FatedCircle);
 
-        //If Fated Circle is unlocked and there are 2+ targets, use Fated Circle for AoE
+        // If Fated Circle is unlocked and there are 2+ targets, use Fated Circle for AoE
         if (hasCircle && AoETargets >= 2)
             return GNB.AID.FatedCircle;
 
-        //If Fated Circle is not unlocked but Burst Strike is available, use Burst Strike on 2+ targets to prevent overcapping
+        // If Fated Circle is not unlocked but Burst Strike is available, use Burst Strike on 2+ targets to prevent overcapping
         if (!hasCircle && hasStrike && AoETargets >= 2)
             return GNB.AID.BurstStrike;
 
-        //Default to Burst Strike
+        // If none of the conditions match, return Burst Strike for default
         return GNB.AID.BurstStrike;
     }
 
