@@ -19,7 +19,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Veyn BRD", "Standard rotation module", "veyn", RotationModuleQuality.WIP, BitMask.Build((int)Class.BRD, (int)Class.ARC), 100);
+        var res = new RotationModuleDefinition("Veyn BRD", "Standard rotation module", "veyn", RotationModuleQuality.Basic, BitMask.Build((int)Class.BRD, (int)Class.ARC), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 110)
             .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target actions")
@@ -174,7 +174,6 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
     private float RadiantEncoreLeft;
     private float FullBuffsLeft;
     private float FullBuffsIn;
-    private float NextBuffIn; // this is relevant for BL delay
     private float BloodletterCDTotal; // 30 or 45, depending on max charges
     private float BloodletterCDElapsed; // [0,15) if we have 0 charges, [15,30) if we have 1, [30,45) if we have 2, 45 if we have 3; always <= Total
     private float TargetCausticLeft;
@@ -224,7 +223,6 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         var unlockedRF = Unlocked(BRD.AID.RadiantFinale);
         FullBuffsLeft = Math.Min(RagingStrikesLeft, Math.Min(unlockedBV ? BattleVoiceLeft : float.MaxValue, unlockedRF ? RadiantFinaleLeft : float.MaxValue));
         FullBuffsIn = CD(BRD.AID.RagingStrikes);
-        NextBuffIn = Math.Min(FullBuffsIn, unlockedBV ? CD(BRD.AID.BattleVoice) : float.MaxValue);
 
         BloodletterCDTotal = Player.Class == Class.BRD && Unlocked(BRD.TraitID.EnhancedBloodletter) ? 45 : 30;
         ref readonly var bloodletterCD = ref World.Client.Cooldowns[ActionDefinitions.Instance.Spell(BRD.AID.Bloodletter)!.MainCooldownGroup];
@@ -310,10 +308,10 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         if (CanFitGCD(BlastArrowLeft) && strategyBA.As<OffensiveStrategy>() != OffensiveStrategy.Delay)
             QueueGCDAtHostile(BRD.AID.BlastArrow, ResolveTargetOverride(strategyBA.Value) ?? primaryTarget, GCDPriority.FlexibleBA);
         var strategyReso = strategy.Option(Track.ResonantArrow);
-        if (CanFitGCD(ResonantArrowLeft) && strategyReso.As<OffensiveStrategy>() != OffensiveStrategy.Delay)
+        if (CanFitGCD(ResonantArrowLeft) && ShouldUseResoEncore(strategyReso.As<OffensiveStrategy>()))
             QueueGCDAtHostile(BRD.AID.ResonantArrow, ResolveTargetOverride(strategyReso.Value) ?? primaryTarget, GCDPriority.FlexibleReso);
         var strategyEncore = strategy.Option(Track.RadiantEncore);
-        if (CanFitGCD(RadiantEncoreLeft) && strategyEncore.As<OffensiveStrategy>() != OffensiveStrategy.Delay)
+        if (CanFitGCD(RadiantEncoreLeft) && ShouldUseResoEncore(strategyEncore.As<OffensiveStrategy>()))
             QueueGCDAtHostile(BRD.AID.RadiantEncore, ResolveTargetOverride(strategyEncore.Value) ?? primaryTarget, GCDPriority.FlexibleEncore);
 
         // songs (can only be used in combat)
@@ -352,7 +350,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
 
         // bloodletter / rain of death
         var strategyBL = strategy.Option(Track.Bloodletter);
-        if (Unlocked(BRD.AID.Bloodletter) && ShouldUseBloodletter(strategyBL.As<BloodletterStrategy>()))
+        if (Unlocked(BRD.AID.Bloodletter) && ShouldUseBloodletter(strategyBL.As<BloodletterStrategy>(), unlockedBV ? CD(BRD.AID.BattleVoice) : float.MaxValue))
         {
             var (aoeBestTarget, aoeTargetCount) = Unlocked(BRD.AID.RainOfDeath) ? CheckAOETargeting(aoeStrategy, primaryTarget, 25, NumTargetsHitByRainOfDeath, IsHitByRainOfDeath) : (null, 0);
             var useAOE = aoeTargetCount >= 2; // 100*N vs 130/180
@@ -385,10 +383,9 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         var strategyBuffsVal = strategyBuffs.As<BuffsStrategy>();
         if (unlockedRF && NumCoda > 0 && ShouldUseRadiantFinale(strategyBuffsVal, isUptime))
         {
-            // late-weave RF in opener, so that we cover gcd slot immediately covering EA (TODO: verify with buff application delays?..)
-            // slightly delay RF in burst, so that we maybe cover 9th gcd? (TODO: this really depends on buff application delay being large)
-            // TODO: verify all this on real logs
-            var idealTimeBeforeGCD = ArmysMuseLeft == 0 ? 1.0f : 1.2f + 2 * estimatedAnimLockDelay;
+            // late-weave RF in opener, so that we cover ogcd slot immediately after EA
+            // slightly delay RF in burst, so that we cover 9 gcds (bare minimum is 2 * (0.6+animlockdelay))
+            var idealTimeBeforeGCD = ArmysMuseLeft == 0 ? 1.0f : 1.4f;
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BRD.AID.RadiantFinale), Player, strategyBuffs.Priority(ActionQueue.Priority.Medium + (int)OGCDPriority.RadiantFinale), delay: GCD - idealTimeBeforeGCD);
         }
 
@@ -402,16 +399,17 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
 
         if (Unlocked(BRD.AID.RagingStrikes) && ShouldUseRagingStrikes(strategyBuffsVal, isUptime))
         {
-            // late-weave under muse, so that we cover 9th gcd (TODO: verify buff application delay)
-            var delay = ArmysMuseLeft == 0 ? 0 : GCD - 1.0f;
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(BRD.AID.RagingStrikes), Player, strategyBuffs.Priority(ActionQueue.Priority.Medium + (int)OGCDPriority.RagingStrikes), delay: delay);
+            // late-weave under muse, so that we cover 9th gcd, and so that we can early-weave bloodletter
+            // during opener, we want to delay it ever so slightly, so that first EA is pushed to after GCD (otherwise it might not catch the buff)
+            var idealTimeBeforeGCD = ArmysMuseLeft == 0 ? 1.1f : 0.8f;
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(BRD.AID.RagingStrikes), Player, strategyBuffs.Priority(ActionQueue.Priority.Medium + (int)OGCDPriority.RagingStrikes), delay: GCD - idealTimeBeforeGCD);
         }
 
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>(), isUptime))
         {
             // late-weave under muse (TODO: verify timings)
             var delay = ArmysMuseLeft == 0 ? 0 : GCD - 1.0f;
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Low + (int)OGCDPriority.Potion, delay: delay);
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Low + (int)OGCDPriority.Potion, delay: delay);
         }
 
         // ai hints for positioning - ladonsbite is the most restrictive generally
@@ -426,6 +424,28 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         if (goal != null)
             Hints.GoalZones.Add(goal);
     }
+
+    // TODO: consider moving to class definitions and autogenerating?
+    private float EffectApplicationDelay(BRD.AID aid) => aid switch
+    {
+        BRD.AID.BurstShot => 1.45f,
+        BRD.AID.RefulgentArrow => 1.45f,
+        BRD.AID.Stormbite => 1.0f, // note: in reality, it is 1.3, but we want to be able to prepull with BL
+        BRD.AID.CausticBite => 1.3f,
+        BRD.AID.IronJaws => 0.6f,
+        BRD.AID.ApexArrow => 1.05f,
+        BRD.AID.BlastArrow => 1.65f,
+        BRD.AID.Bloodletter => 1.6f,
+        BRD.AID.HeartbreakShot => 1.65f,
+        BRD.AID.RainOfDeath => 1.65f,
+        BRD.AID.EmpyrealArrow => 1.0f,
+        BRD.AID.PitchPerfect => 0.8f,
+        BRD.AID.Sidewinder => 0.55f,
+        BRD.AID.RagingStrikes => 0.5f,
+        BRD.AID.BattleVoice => 0.6f,
+        BRD.AID.RadiantFinale => 0.6f,
+        _ => 0
+    };
 
     private int NumTargetsHitByLadonsbite(Actor primary) => Hints.NumPriorityTargetsInAOECone(Player.Position, 12, (primary.Position - Player.Position).Normalized(), 45.Degrees());
     private int NumTargetsHitByShadowbite(Actor primary) => Hints.NumPriorityTargetsInAOECircle(primary.Position, 4);
@@ -447,7 +467,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
     {
         if (target != null && !target.IsAlly)
         {
-            var delay = !Player.InCombat && World.Client.CountdownRemaining > 0 ? Math.Max(0, World.Client.CountdownRemaining.Value /*- EffectApplicationDelay(aid)*/) : 0;
+            var delay = !Player.InCombat && World.Client.CountdownRemaining > 0 ? Math.Max(0, World.Client.CountdownRemaining.Value - EffectApplicationDelay(aid)) : 0;
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, prio, delay: delay);
             return true;
         }
@@ -486,7 +506,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
             return GCDPriority.None; // early extend is forbidden by strategy
 
         // ok, dots aren't falling off imminently, and they are not buffed - see if we want to ij early and overwrite last ticks
-        if (strategy != DotStrategy.ExtendIgnoreBuffs && CanFitGCD(RagingStrikesLeft))
+        if (strategy != DotStrategy.ExtendIgnoreBuffs && CanFitGCD(FullBuffsLeft))
             return GCDPriority.FlexibleIJ; // we're inside buff window, so use ij when we don't have anything higher priority (eg using hawk eye proc or 100-gauge AA)
         // finally, outside buff window refresh up to 2 gcds earlier - this gives us chance to use higher priority stuff (hawk eye/100-gauge AA) if needed
         // TODO: this isn't really a concern before L76 - we don't have AA and IJ can't proc hawk's eye..
@@ -510,6 +530,14 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
                 : FullBuffsIn - GCD is >= 45 and < 55, // outside buffs, delay unless we risk entering a window where next buffs are imminent and we can't AA (TODO: reconsider window size)
             _ => false // never use AA at <80 gauge automatically; assume manual planning for things like end-of-fight or downtimes
         }
+    };
+
+    // normally we want to use burst gcds (reso/encore) under full buff stack
+    private bool ShouldUseResoEncore(OffensiveStrategy strategy) => strategy switch
+    {
+        OffensiveStrategy.Delay => false,
+        OffensiveStrategy.Force => true,
+        _ => CanFitGCD(FullBuffsLeft),
     };
 
     private float SwitchAtRemainingSongTimer(SongStrategy strategy) => strategy switch
@@ -590,9 +618,9 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
 
             // see whether window overlaps GCD
             if (GCD < ppWindowStart + animLockSlot)
-                ppWindowStart = Math.Min(ppWindowStart, GCD + animLockSlot); // it's not possible to fit PP before GCD, earliest is after
+                ppWindowStart = Math.Max(ppWindowStart, GCD + animLockSlot); // it's not possible to fit PP before GCD, earliest is after
             if (GCD + animLockSlot > ppWindowEnd)
-                ppWindowEnd = Math.Max(ppWindowEnd, GCD - animLockSlot); // it's not possible to fit PP after GCD, latest is before
+                ppWindowEnd = Math.Min(ppWindowEnd, GCD - animLockSlot); // it's not possible to fit PP after GCD, latest is before
             return ppWindowStart > ppWindowEnd; // use PP2 if there's no window after accounting for GCD
         }
 
@@ -610,13 +638,13 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
     };
 
     // by default, we pool bloodletter for burst
-    private bool ShouldUseBloodletter(BloodletterStrategy strategy) => strategy switch
+    private bool ShouldUseBloodletter(BloodletterStrategy strategy, float cdBV) => strategy switch
     {
         BloodletterStrategy.Delay => false,
         BloodletterStrategy.Force => true,
         BloodletterStrategy.KeepOneCharge => BloodletterCDElapsed + World.Client.AnimationLock >= 30,
         BloodletterStrategy.KeepTwoCharges => BloodletterCDElapsed + World.Client.AnimationLock >= 45,
-        _ => BloodletterCDElapsed + NextBuffIn >= BloodletterCDTotal // use if we'll cap before next buff window (note: this is iffy, reconsider)
+        _ => BloodletterCDElapsed + cdBV >= BloodletterCDTotal // use if we'll cap before BV comes off cooldown
     };
 
     // by default, we use barrage under raid buffs, but not in downtime
@@ -635,7 +663,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         _ => FullBuffsIn > 45 // TODO: consider exact delay condition
     };
 
-    // by default, use RF under WM (but not immediately after it), and if all buffs can be cast by the end of next gcd
+    // by default, use RF under WM (1-2 gcds later, depending on muse), and if all buffs can be cast by the end of next gcd
     // if player did not unlock WM by the time he gets RF, too fucking bad
     private bool ShouldUseRadiantFinale(BuffsStrategy strategy, bool isUptime) => strategy switch
     {
@@ -670,9 +698,9 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
     };
 
     // true if GCD seconds in future, time since song start will be greater than N gcd lengths
-    // buff application logic
     private bool MinGCDsSinceSongStart(int numGCDs) => 45 - ActiveSongLeft + GCD > numGCDs * GCDLength;
-    private bool WantRF() => ActiveSong == Song.WanderersMinuet && MinGCDsSinceSongStart(1) && !CanFitGCD(FullBuffsIn, 1);
-    private bool WantBV() => Unlocked(BRD.AID.RadiantFinale) ? RadiantFinaleLeft > 0 : Unlocked(BRD.AID.WanderersMinuet) ? ActiveSong == Song.WanderersMinuet && MinGCDsSinceSongStart(2) : ActiveSong == Song.MagesBallad;
-    private bool WantRS() => Unlocked(BRD.AID.BattleVoice) ? BattleVoiceLeft > 0 : ActiveSong == Song.MagesBallad || !Unlocked(BRD.AID.MagesBallad);
+    // buff application logic (note that we use cooldowns instead of status timings, because of status application delay)
+    private bool WantRF() => ActiveSong == Song.WanderersMinuet && MinGCDsSinceSongStart(ArmysMuseLeft == 0 ? 1 : 2) && !CanFitGCD(FullBuffsIn, 1);
+    private bool WantBV() => Unlocked(BRD.AID.RadiantFinale) ? CD(BRD.AID.RadiantFinale) > 90 : Unlocked(BRD.AID.WanderersMinuet) ? ActiveSong == Song.WanderersMinuet && MinGCDsSinceSongStart(2) : ActiveSong == Song.MagesBallad;
+    private bool WantRS() => Unlocked(BRD.AID.BattleVoice) ? CD(BRD.AID.BattleVoice) > 100 : ActiveSong == Song.MagesBallad || !Unlocked(BRD.AID.MagesBallad);
 }
