@@ -26,9 +26,9 @@ public static class ZoneModuleRegistry
                 Service.Log($"Zone module {t} has no ZoneModuleInfo attribute, skipping");
                 continue;
             }
-            if (_modulesByCFC.TryGetValue(attr.CFCID, out var mod))
+            if (_modulesByCFC.TryGetValue(attr.CFCID, out var existingModule))
             {
-                Service.Log($"Two zone modules have same CFCID: {t.Name} and {mod.ModuleType.Name}");
+                Service.Log($"Two zone modules have same CFCID: {t.Name} and {existingModule.ModuleType.Name}");
                 continue;
             }
             _modulesByCFC[attr.CFCID] = new Info(t, attr, New<ZoneModule>.ConstructorDerived<WorldState>(t));

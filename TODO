@@ -3,10 +3,6 @@ immediate plans
 - merge prs!
 - collisions for pathfinding
 -- embedded mode
-- zone module manager
--- drawing in main/hint windows and in replays
--- replay visualization
--- sastasha as example
 - brd rotation
 
 general:
@@ -41,6 +37,8 @@ general:
 -- use that for targeting utils in aihints
 - debug utility to play action animations, spawn actors, play vfx, etc...
 - encounter hints (to show before pull)
+- zone modules: replay visualization
+- zone modules: module info ui
 
 boss modules:
 - timers

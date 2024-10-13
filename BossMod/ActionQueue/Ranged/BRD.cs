@@ -11,9 +11,9 @@ public enum AID : uint
     RagingStrikes = 101, // L4, instant, 120.0s CD (group 14), range 0, single-target, targets=Self
     VenomousBite = 100, // L6, instant, GCD, range 25, single-target, targets=Hostile
     Bloodletter = 110, // L12, instant, 15.0s CD (group 9/70) (2-3 charges), range 25, single-target, targets=Hostile
-    RepellingShot = 112, // L15, instant, 30.0s CD (group 5), range 15, single-target, targets=Hostile, animLock=0.800s?
+    RepellingShot = 112, // L15, instant, 30.0s CD (group 5), range 15, single-target, targets=Hostile, animLock=0.800s
     QuickNock = 106, // L18, instant, GCD, range 12, AOE 12+R ?-degree cone, targets=Hostile
-    WideVolley = 36974, // L25, instant, GCD, range 25, AOE 5 circle, targets=Hostile, animLock=???
+    WideVolley = 36974, // L25, instant, GCD, range 25, AOE 5 circle, targets=Hostile
     MagesBallad = 114, // L30, instant, 120.0s CD (group 15), range 0, single-target, targets=Self
     Windbite = 113, // L30, instant, GCD, range 25, single-target, targets=Hostile
     WardensPaean = 3561, // L35, instant, 45.0s CD (group 10), range 30, single-target, targets=Self/Party
@@ -37,9 +37,9 @@ public enum AID : uint
     Ladonsbite = 25783, // L82, instant, GCD, range 12, AOE 12+R ?-degree cone, targets=Hostile
     BlastArrow = 25784, // L86, instant, GCD, range 25, AOE 25+R width 4 rect, targets=Hostile
     RadiantFinale = 25785, // L90, instant, 110.0s CD (group 13), range 0, AOE 30 circle, targets=Self
-    HeartbreakShot = 36975, // L92, instant, 15.0s CD (group 9/70) (3? charges), range 25, single-target, targets=Hostile, animLock=???
-    ResonantArrow = 36976, // L96, instant, GCD, range 25, AOE 5 circle, targets=Hostile, animLock=???
-    RadiantEncore = 36977, // L100, instant, GCD, range 25, AOE 5 circle, targets=Hostile, animLock=???
+    HeartbreakShot = 36975, // L92, instant, 15.0s CD (group 9/70) (3 charges), range 25, single-target, targets=Hostile
+    ResonantArrow = 36976, // L96, instant, GCD, range 25, AOE 5 circle, targets=Hostile
+    RadiantEncore = 36977, // L100, instant, GCD, range 25, AOE 5 circle, targets=Hostile
 
     // Shared
     BigShot = ClassShared.AID.BigShot, // LB1, 2.0s cast, range 30, AOE 30+R width 4 rect, targets=Hostile, animLock=3.100s?
@@ -94,15 +94,16 @@ public enum SID : uint
     BlastArrowReady = 2692, // applied by Apex Arrow to self
     RadiantFinale = 2964, // applied by Radiant Finale to self/target
     RadiantFinaleVisual = 2722, // applied by Radiant Finale to self
-    StraightShotReady = 122, // applied by Barrage, Iron Jaws, Caustic Bite, Stormbite, Burst Shot to self
+    //StraightShotReady = 122, // applied by Barrage, Iron Jaws, Caustic Bite, Stormbite, Burst Shot to self
     VenomousBite = 124, // applied by Venomous Bite, dot
     Windbite = 129, // applied by Windbite, dot
-    ShadowbiteReady = 3002, // applied by Ladonsbite to self
+    //ShadowbiteReady = 3002, // applied by Ladonsbite to self
     NaturesMinne = 1202, // applied by Nature's Minne to self
     WardensPaean = 866, // applied by the Warden's Paean to self
     Troubadour = 1934, // applied by Troubadour to self
     Bind = 13, // applied by Foot Graze to target
-    ArmysMuse = 1932, // applied when leaving army's paeon
+    ArmysMuse = 1932, // applied when using song when either army's paeon is active or army's ethos is up
+    ArmysEthos = 1933, // applied when leaving army's paeon without starting new song
     ResonantArrowReady = 3862, // applied by Barrage to self
     RadiantEncoreReady = 3863, // applied by Radiant Finale to self
 }
@@ -117,9 +118,9 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.RagingStrikes, true);
         d.RegisterSpell(AID.VenomousBite, true);
         d.RegisterSpell(AID.Bloodletter, true);
-        d.RegisterSpell(AID.RepellingShot, true, instantAnimLock: 0.80f); // animLock=0.800s?
+        d.RegisterSpell(AID.RepellingShot, true, instantAnimLock: 0.80f);
         d.RegisterSpell(AID.QuickNock, true);
-        d.RegisterSpell(AID.WideVolley, true); // animLock=???
+        d.RegisterSpell(AID.WideVolley, true);
         d.RegisterSpell(AID.MagesBallad, true);
         d.RegisterSpell(AID.Windbite, true);
         d.RegisterSpell(AID.WardensPaean, true);
@@ -143,9 +144,9 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Ladonsbite, true);
         d.RegisterSpell(AID.BlastArrow, true);
         d.RegisterSpell(AID.RadiantFinale, true);
-        d.RegisterSpell(AID.HeartbreakShot, true); // animLock=???
-        d.RegisterSpell(AID.ResonantArrow, true); // animLock=???
-        d.RegisterSpell(AID.RadiantEncore, true); // animLock=???
+        d.RegisterSpell(AID.HeartbreakShot, true);
+        d.RegisterSpell(AID.ResonantArrow, true);
+        d.RegisterSpell(AID.RadiantEncore, true);
 
         Customize(d);
     }

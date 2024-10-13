@@ -158,4 +158,20 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
         cycleTime %= 120;
         return cycleTime < 20 ? (20 - cycleTime, 0) : (0, 120 - cycleTime);
     }
+
+    protected (Actor? Target, P Priority) FindBetterTargetBy<P>(Actor? initial, float maxDistanceFromPlayer, Func<Actor, P> prioFunc, Func<AIHints.Enemy, bool>? filterFunc = null) where P : struct, IComparable
+    {
+        var bestTarget = initial;
+        var bestPrio = initial != null ? prioFunc(initial) : default;
+        foreach (var enemy in Hints.PriorityTargets.Where(x => x.Actor != initial && x.Actor.Position.InCircle(Player.Position, maxDistanceFromPlayer + x.Actor.HitboxRadius) && (filterFunc?.Invoke(x) ?? true)))
+        {
+            var newPrio = prioFunc(enemy.Actor);
+            if (newPrio.CompareTo(bestPrio) > 0)
+            {
+                bestPrio = newPrio;
+                bestTarget = enemy.Actor;
+            }
+        }
+        return (bestTarget, bestPrio);
+    }
 }

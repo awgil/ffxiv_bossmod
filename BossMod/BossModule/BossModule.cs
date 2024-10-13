@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Interface.Utility.Raii;
+using ImGuiNET;
 
 namespace BossMod;
 
@@ -261,13 +262,12 @@ public abstract class BossModule : IDisposable
 
     private void DrawGlobalHints(BossComponent.GlobalHints hints)
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, 0xffffff00);
+        using var color = ImRaii.PushColor(ImGuiCol.Text, 0xffffff00);
         foreach (var hint in hints)
         {
             ImGui.TextUnformatted(hint);
             ImGui.SameLine();
         }
-        ImGui.PopStyleColor();
         ImGui.NewLine();
     }
 
@@ -275,9 +275,8 @@ public abstract class BossModule : IDisposable
     {
         foreach ((var hint, bool risk) in hints)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, risk ? ArenaColor.Danger : ArenaColor.Safe);
+            using var color = ImRaii.PushColor(ImGuiCol.Text, risk ? ArenaColor.Danger : ArenaColor.Safe);
             ImGui.TextUnformatted(hint);
-            ImGui.PopStyleColor();
             ImGui.SameLine();
         }
         ImGui.NewLine();

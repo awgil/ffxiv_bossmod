@@ -90,8 +90,8 @@ public sealed class Plugin : IDalamudPlugin
 
         var replayDir = new DirectoryInfo(dalamud.ConfigDirectory.FullName + "/replays");
         _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
-        _wndBossmod = new(_bossmod);
-        _wndBossmodHints = new(_bossmod);
+        _wndBossmod = new(_bossmod, _zonemod);
+        _wndBossmodHints = new(_bossmod, _zonemod);
         _wndReplay = new(_ws, _rotationDB, replayDir);
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
         _wndDebug = new(_ws, _rotation, _amex, _hintsBuilder, dalamud);
@@ -253,7 +253,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private void ParseAutorotationSetCommand(string presetName, bool toggle)
     {
-        var preset = presetName.Length > 0 ? _rotation.Database.Presets.Presets.FirstOrDefault(p => p.Name == presetName) : RotationModuleManager.ForceDisable;
+        var preset = presetName.Length > 0 ? _rotation.Database.Presets.VisiblePresets.FirstOrDefault(p => p.Name == presetName) : RotationModuleManager.ForceDisable;
         if (preset != null)
         {
             var newPreset = toggle && _rotation.Preset == preset ? null : preset;

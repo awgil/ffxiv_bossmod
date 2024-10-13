@@ -3,6 +3,7 @@ using ImGuiScene;
 using BossMod;
 using System.Reflection;
 using BossMod.Autorotation;
+using System.IO;
 
 namespace UIDev;
 
@@ -32,7 +33,11 @@ class UITestWindow : UIWindow
         Service.Config.LoadFromFile(new(configPath));
         _onConfigModified = Service.Config.Modified.Subscribe(() => ConfigModified = true);
 
-        _rotationDB = new(new(rotationRoot), null);
+        var defaultPresets = "\\BossMod\\DefaultRotationPresets.json";
+        var dir = new FileInfo(Assembly.GetCallingAssembly().Location).Directory;
+        while (!File.Exists(dir!.FullName + defaultPresets))
+            dir = dir.Parent;
+        _rotationDB = new(new(rotationRoot), new(dir!.FullName + defaultPresets));
         _replayManager = new(_rotationDB, ".");
     }
 
