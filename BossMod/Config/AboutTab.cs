@@ -1,5 +1,4 @@
-﻿using BossMod.AI;
-using Dalamud.Interface;
+﻿using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -21,7 +20,6 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
     public void Draw()
     {
         using var wrap = ImRaii.TextWrapPos(0);
-
         ImGui.TextUnformatted("Boss Mod (vbm) provides boss fight radar, auto-rotation, cooldown planning, and AI. All of its modules can be toggled individually. Support for it can be found in the Discord server linked at the bottom of this tab.");
         ImGui.Spacing();
         DrawSection("Radar",
@@ -38,7 +36,7 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
             "Go to the \"Autorotation Presets\" tab to create a preset.",
             "Maturity of each rotation module is present in a tooltip.",
             "Guide for using this feature can be found on the project's GitHub wiki.",
-        ], () => Plugin.BossMod._wndRotation.IsOpen ^= true);
+        ]);
         ImGui.Spacing();
         DrawSection("CD Planner",
         [
@@ -54,7 +52,7 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
             "Automatically moves your character based on safe zones determined by a boss's module, visible on the radar.",
             "Should not be used in any group content.",
             "Can be hooked by other plugins to automate entire duties.",
-        ], () => AIManager.UI.IsOpen ^= true);
+        ]);
         ImGui.Spacing();
         DrawSection("Replays",
         [

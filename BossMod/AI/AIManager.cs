@@ -2,12 +2,10 @@ using BossMod.Autorotation;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using ImGuiNET;
-using static Dalamud.Interface.Windowing.Window;
 
 namespace BossMod.AI;
 
@@ -19,6 +17,7 @@ sealed class AIManager : IDisposable
     private int MasterSlot => (int)_config.FollowSlot; // non-zero means corresponding player is master
     private Positional DesiredPositional => _config.DesiredPositional;
     private Preset? _aiPreset;
+    public readonly UISimpleWindow _ui;
     private WorldState WorldState => _autorot.Bossmods.WorldState;
     private string _aiStatus = "";
     private string _naviStatus = "";
@@ -26,7 +25,6 @@ sealed class AIManager : IDisposable
     public string GetAIPreset => _aiPreset?.Name ?? string.Empty;
     public float ForceMovementIn => Behaviour?.ForceMovementIn ?? float.MaxValue;
     public AIBehaviour? Behaviour { get; private set; }
-    public static UISimpleWindow UI = null!;
 
     private bool Enabled
     {
@@ -48,7 +46,7 @@ sealed class AIManager : IDisposable
         _autorot = autorot;
         _controller = new(amex, movement);
         _config = Service.Config.Get<AIConfig>();
-        UI = new("###AI", DrawOverlay, false, new(100, 100), () => WorldState.Party.Player() != null, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
+        _ui = new("###AI", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
         {
             RespectCloseHotkey = false,
             WindowName = $"AI: off###AI",
@@ -60,7 +58,7 @@ sealed class AIManager : IDisposable
     public void Dispose()
     {
         SwitchToIdle();
-        UI.Dispose();
+        _ui.Dispose();
         Service.ChatGui.ChatMessage -= OnChatMessage;
         Service.CommandManager.RemoveHandler("/vbmai");
     }
@@ -91,7 +89,17 @@ sealed class AIManager : IDisposable
         _controller.Update(player, _autorot.Hints, WorldState.CurrentTime);
         _aiStatus = $"AI: {(Behaviour != null ? $"on, {(_config.FollowTarget && target != null ? $"target={target.Name}" : $"master={master?.Name}[{((int)_config.FollowSlot) + 1}]")}" : "off")}";
         _naviStatus = $"Navi={_controller.NaviTargetPos}";
-        UI.WindowName = _config.ShowStatusOnTitlebar ? $"{_aiStatus}, {_naviStatus}###AI" : $"AI###AI";
+        _ui.IsOpen = player != null && _config.DrawUI;
+        _ui.WindowName = _config.ShowStatusOnTitlebar ? $"{_aiStatus}, {_naviStatus}###AI" : $"AI###AI";
+    }
+
+    public void SetVisible(bool vis)
+    {
+        if (_config.DrawUI != vis)
+        {
+            _config.DrawUI = vis;
+            _config.Modified.Fire();
+        }
     }
 
     public void SetAIPreset(Preset? p)
@@ -270,7 +278,7 @@ sealed class AIManager : IDisposable
 
                 break;
             case "ui":
-                UI.IsOpen ^= true;
+                SetVisible(!_ui.IsOpen);
                 break;
             default:
                 List<string> list = [];
@@ -281,7 +289,7 @@ sealed class AIManager : IDisposable
                 {
                     if (messageData[0].IsNullOrEmpty())
                     {
-                        UI.IsOpen ^= true;
+                        SetVisible(!_ui.IsOpen);
                         break;
                     }
 

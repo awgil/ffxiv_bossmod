@@ -18,9 +18,13 @@ public sealed class UIRotationWindow : UIWindow
         TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => openConfig() });
     }
 
-    public override void PreOpenCheck() => DrawPositional();
+    public override void PreOpenCheck()
+    {
+        IsOpen = _config.ShowUI && _mgr.WorldState.Party.Player() != null;
+        DrawPositional();
+    }
 
-    public override bool DrawConditions() => _mgr.WorldState.Party.Player() != null;
+    public override void OnClose() => SetVisible(false);
 
     public override void Draw()
     {
@@ -129,6 +133,15 @@ public sealed class UIRotationWindow : UIWindow
                     Camera.Instance?.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3, pos.Target.Rotation + 180.Degrees(), 45.Degrees(), color);
                     break;
             }
+        }
+    }
+
+    public void SetVisible(bool vis)
+    {
+        if (_config.ShowUI != vis)
+        {
+            _config.ShowUI = vis;
+            _config.Modified.Fire();
         }
     }
 

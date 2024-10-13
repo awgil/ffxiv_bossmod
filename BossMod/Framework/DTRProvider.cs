@@ -4,8 +4,6 @@ using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Plugin.Services;
-using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 
@@ -30,7 +28,7 @@ internal sealed class DTRProvider : IDisposable
         _aiEntry.OnClick = () =>
         {
             if (UIInputData.Instance()->MouseButtonHeldThrottledFlags.HasFlag(MouseButtonFlags.RBUTTON))
-                AIManager.UI.IsOpen ^= true;
+                _aiConfig.DrawUI ^= true;
             else
                 _aiConfig.Enabled ^= true;
         };
