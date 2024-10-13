@@ -363,6 +363,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
 public abstract class Targetxan(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
+    protected T GetGauge<T>() where T : unmanaged => World.Client.GetGauge<T>();
 }
 
 static class Extendxan
