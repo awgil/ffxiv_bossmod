@@ -87,8 +87,16 @@ sealed class IPCProvider : IDisposable
             return false;
         });
 
-        Register("AI.SetPreset", (string name) => ai.SetAIPreset(autorotation.Database.Presets.VisiblePresets.FirstOrDefault(x => x.Name == name)));
-        Register("AI.GetPreset", () => ai.GetAIPreset);
+        Register("AI.SetPreset", (string name) =>
+        {
+            Service.Log($"calling deprecated method AI.SetPreset - use Presets.SetActive instead");
+            autorotation.Preset = autorotation.Database.Presets.VisiblePresets.FirstOrDefault(x => x.Name == name);
+        });
+        Register("AI.GetPreset", () =>
+        {
+            Service.Log($"calling deprecated method AI.GetPreset - use Presets.GetActive instead");
+            return autorotation.Preset?.Name ?? string.Empty;
+        });
     }
 
     public void Dispose() => _disposeActions?.Invoke();
