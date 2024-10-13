@@ -71,6 +71,7 @@ sealed unsafe class DebugAction : IDisposable
 
     public void DrawActionData()
     {
+        var mgr = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
         ImGui.InputInt("Action to show details for", ref _customAction);
         if (_customAction != 0)
         {
@@ -84,10 +85,15 @@ sealed unsafe class DebugAction : IDisposable
                 ImGui.TextUnformatted($"Cooldown group: {data.CooldownGroup}");
                 ImGui.TextUnformatted($"Max charges: {data.MaxCharges}");
                 ImGui.TextUnformatted($"Category: {data.ActionCategory.Row} ({data.ActionCategory.Value?.Name})");
+
+                if (data.CooldownGroup > 0 && data.CooldownGroup <= mgr->Cooldowns.Length)
+                {
+                    ref var cd = ref mgr->Cooldowns[data.CooldownGroup - 1];
+                    ImGui.TextUnformatted($"Cooldown: active={cd.IsActive}, {cd.Elapsed:f3}/{cd.Total:f3}");
+                }
             }
         }
 
-        var mgr = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
         var hover = Service.GameGui.HoveredAction;
         if (hover.ActionID != 0)
         {

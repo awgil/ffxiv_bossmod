@@ -159,7 +159,7 @@ sealed class AIManager : IDisposable
         {
             if (presetCombo)
             {
-                foreach (var p in _autorot.Database.Presets.Presets)
+                foreach (var p in _autorot.Database.Presets.VisiblePresets)
                 {
                     if (ImGui.Selectable(p.Name, p == _aiPreset))
                     {

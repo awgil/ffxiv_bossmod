@@ -530,7 +530,7 @@ class ClassDefinitions
             4 => $"AOE {data.EffectRange}+R width {data.XAxisModifier} rect",
             5 => $"AOE {data.EffectRange}+R circle",
             8 => $"AOE width {data.XAxisModifier} rect charge",
-            10 => $"AOE {DetermineDonutInner(data).ToString() ?? "?"}-{data.EffectRange} donut",
+            10 => $"AOE {DetermineDonutInner(data)?.ToString() ?? "?"}-{data.EffectRange} donut",
             11 => $"AOE {data.EffectRange} width {data.XAxisModifier} cross",
             12 => $"AOE {data.EffectRange} width {data.XAxisModifier} rect",
             13 => $"AOE {data.EffectRange} {DetermineConeAngle(data)?.ToString() ?? "?"}-degree cone",
