@@ -6,57 +6,51 @@ namespace BossMod.Autorotation;
 // note: presets in the database are immutable (otherwise eg. manager won't see the changes in active preset)
 public sealed class PresetDatabase
 {
-    public const string DefaultPresetName = "VBM Default";
-
     private readonly AutorotationConfig _cfg = Service.Config.Get<AutorotationConfig>();
 
-    public readonly List<Preset> Presets = [];
+    public readonly List<Preset> DefaultPresets; // default presets, distributed as part of the plugin
+    public readonly List<Preset> UserPresets; // user-defined presets, stored in user's preset db
     public Event<Preset?, Preset?> PresetModified = new(); // (old, new); old == null if preset is added, new == null if preset is removed
 
     private readonly FileInfo _dbPath;
 
+    public IEnumerable<Preset> VisiblePresets => _cfg.HideDefaultPreset ? UserPresets : DefaultPresets.Concat(UserPresets);
+
     public PresetDatabase(string rootPath, FileInfo defaultPresets)
     {
         _dbPath = new(rootPath + ".db.json");
-
-        if (defaultPresets.Exists)
-            Presets.AddRange(LoadPresetsFromFile(defaultPresets.FullName));
-        else
-            Service.Log($"Failed to load default presets from '{defaultPresets}': file is missing");
-
-        if (File.Exists(_dbPath.FullName))
-        {
-            try
-            {
-                Presets.AddRange(LoadPresetsFromFile(_dbPath.FullName));
-            }
-            catch (Exception ex)
-            {
-                Service.Log($"Failed to parse preset database '{_dbPath}': {ex}");
-            }
-        }
+        DefaultPresets = LoadPresetsFromFile(defaultPresets);
+        UserPresets = LoadPresetsFromFile(_dbPath);
     }
 
-    private List<Preset> LoadPresetsFromFile(string path)
+    private List<Preset> LoadPresetsFromFile(FileInfo file)
     {
-        using var json = Serialization.ReadJson(path);
-        var version = json.RootElement.GetProperty("version").GetInt32();
-        var payload = json.RootElement.GetProperty("payload");
-        return payload.Deserialize<List<Preset>>(Serialization.BuildSerializationOptions()) ?? [];
+        try
+        {
+            using var json = Serialization.ReadJson(file.FullName);
+            var version = json.RootElement.GetProperty("version").GetInt32();
+            var payload = json.RootElement.GetProperty("payload");
+            return payload.Deserialize<List<Preset>>(Serialization.BuildSerializationOptions()) ?? [];
+        }
+        catch (Exception ex)
+        {
+            Service.Log($"Failed to parse preset database '{file.FullName}': {ex}");
+            return [];
+        }
     }
 
     // if index >= 0: replace or delete
     // if index == -1: add (if replacement is non-null) or notify about reordering (otherwise)
     public void Modify(int index, Preset? replacement)
     {
-        var previous = index >= 0 ? Presets[index] : null;
+        var previous = index >= 0 ? UserPresets[index] : null;
 
         if (index < 0 && replacement != null)
-            Presets.Add(replacement);
+            UserPresets.Add(replacement);
         else if (index >= 0 && replacement == null)
-            Presets.RemoveAt(index);
+            UserPresets.RemoveAt(index);
         else if (index >= 0 && replacement != null)
-            Presets[index] = replacement;
+            UserPresets[index] = replacement;
 
         if (previous != null || replacement != null)
             PresetModified.Fire(previous, replacement);
@@ -73,7 +67,7 @@ public sealed class PresetDatabase
             jwriter.WriteStartObject();
             jwriter.WriteNumber("version", 0);
             jwriter.WritePropertyName("payload");
-            JsonSerializer.Serialize(jwriter, Presets.Where(p => p.Name != DefaultPresetName), Serialization.BuildSerializationOptions());
+            JsonSerializer.Serialize(jwriter, UserPresets, Serialization.BuildSerializationOptions());
             jwriter.WriteEndObject();
             Service.Log($"Database saved successfully to '{_dbPath.FullName}'");
         }
@@ -83,5 +77,5 @@ public sealed class PresetDatabase
         }
     }
 
-    public IEnumerable<Preset> PresetsForClass(Class c) => Presets.Where(p => (p.Name != DefaultPresetName || !_cfg.HideDefaultPreset) && p.Modules.Any(m => RotationModuleRegistry.Modules[m.Key].Definition.Classes[(int)c]));
+    public IEnumerable<Preset> PresetsForClass(Class c) => VisiblePresets.Where(p => p.Modules.Any(m => RotationModuleRegistry.Modules[m.Key].Definition.Classes[(int)c]));
 }
