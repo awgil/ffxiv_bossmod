@@ -7,7 +7,7 @@ namespace BossMod.Autorotation;
 // TODO: low level (<84): 2-charge bloodletter, esp verify ARC
 public sealed class VeynBRD(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { AOE, Songs, Buffs, Potion, DOTs, ApexArrow, BlastArrow, ResonantArrow, RadiantEncore, Bloodletter, EmpyrealArrow, Barrage, Sidewinder }
+    public enum Track { AOE, Songs, Buffs, Potion, DOTs, ApexArrow, BlastArrow, ResonantArrow, RadiantEncore, Bloodletter, EmpyrealArrow, Barrage, Sidewinder, GCDDelay }
     public enum AOEStrategy { SingleTarget, AutoTargetHitPrimary, AutoTargetHitMost, AutoOnPrimary, ForceAOE }
     public enum SongStrategy { Automatic, Extend, Overextend, ForceWM, ForceMB, ForceAP, ForcePP, Delay }
     public enum BuffsStrategy { Automatic, Delay, ForceRF, ForceBV, ForceRS }
@@ -16,6 +16,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
     public enum ApexArrowStrategy { Automatic, Delay, ForceAnyGauge, ForceHighGauge, ForceCapGauge }
     public enum OffensiveStrategy { Automatic, Delay, Force }
     public enum BloodletterStrategy { Automatic, Delay, Force, KeepOneCharge, KeepTwoCharges }
+    public enum GCDDelayStrategy { NoPrepull, EarlyPrepull, Delay }
 
     public static RotationModuleDefinition Definition()
     {
@@ -116,6 +117,11 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP", supportedTargets: ActionTargets.Hostile)
             .AddAssociatedActions(BRD.AID.Sidewinder);
+
+        res.Define(Track.GCDDelay).As<GCDDelayStrategy>("GCDDelay", "GCD", uiPriority: 5)
+            .AddOption(GCDDelayStrategy.NoPrepull, "NoPrepull", "Delay first GCD until pull (for better raidbuff timings)")
+            .AddOption(GCDDelayStrategy.EarlyPrepull, "EarlyPrepull", "Use first GCD as early as possible, so that it hits boss exactly at countdown end")
+            .AddOption(GCDDelayStrategy.Delay, "Delay", "Do not use any GCDs");
 
         return res;
     }
@@ -236,6 +242,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
 
         var isUptime = Player.InCombat && primaryTarget != null && !primaryTarget.IsAlly;
         var aoeStrategy = strategy.Option(Track.AOE).As<AOEStrategy>();
+        var gcdStrategy = strategy.Option(Track.GCDDelay).As<GCDDelayStrategy>();
         var unlockedEA = Unlocked(BRD.AID.EmpyrealArrow);
         var cdEA = unlockedEA ? CD(BRD.AID.EmpyrealArrow) : float.MaxValue;
 
@@ -271,7 +278,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
             var useAOE = aoeTargetCount >= (haveBarrage ? 4 : 2);
             var target = useAOE ? aoeBestTarget : primaryTarget;
             var priority = haveBarrage && !CanFitGCD(BarrageLeft, 1) ? GCDPriority.LastChanceBarrage : haveHawkEye ? GCDPriority.FlexibleHawkEye : GCDPriority.FlexibleBarrage;
-            if (QueueGCDAtHostile(useAOE ? BestShadowbite : BestRefulgentArrow, target, priority))
+            if (QueueGCDAtHostile(useAOE ? BestShadowbite : BestRefulgentArrow, target, priority, gcdStrategy))
                 fillerBetterThanDots = useAOE && aoeTargetCount >= 3;
         }
         else
@@ -280,7 +287,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
             var (aoeBestTarget, aoeTargetCount) = Unlocked(BRD.AID.QuickNock) ? CheckAOETargeting(aoeStrategy, primaryTarget, 12, NumTargetsHitByLadonsbite, IsHitByLadonsbite) : (null, 0);
             var useAOE = aoeTargetCount >= 2;
             var target = useAOE ? aoeBestTarget : primaryTarget;
-            if (QueueGCDAtHostile(useAOE ? BestLadonsbite : BestBurstShot, target, GCDPriority.Filler))
+            if (QueueGCDAtHostile(useAOE ? BestLadonsbite : BestBurstShot, target, GCDPriority.Filler, gcdStrategy))
                 fillerBetterThanDots = useAOE && aoeTargetCount >= 4;
         }
 
@@ -294,25 +301,25 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
             _ => !fillerBetterThanDots
         };
         if (allowApplyDOTs && !CanFitGCD(TargetStormbiteLeft) && Unlocked(BRD.AID.Windbite))
-            QueueGCDAtHostile(BestStormbite, dotTarget, GCDPriority.ApplyStormbite);
+            QueueGCDAtHostile(BestStormbite, dotTarget, GCDPriority.ApplyStormbite, gcdStrategy);
         if (allowApplyDOTs && !CanFitGCD(TargetCausticLeft) && Unlocked(BRD.AID.VenomousBite))
-            QueueGCDAtHostile(BestCausticBite, dotTarget, GCDPriority.ApplyCausticBite);
+            QueueGCDAtHostile(BestCausticBite, dotTarget, GCDPriority.ApplyCausticBite, gcdStrategy);
         if (Unlocked(BRD.AID.IronJaws))
-            QueueGCDAtHostile(BRD.AID.IronJaws, dotTarget, IronJawsPriority(strategyDOTs));
+            QueueGCDAtHostile(BRD.AID.IronJaws, dotTarget, IronJawsPriority(strategyDOTs), gcdStrategy);
 
         // misc gcds
         var strategyAA = strategy.Option(Track.ApexArrow);
         if (ShouldUseApexArrow(strategyAA.As<ApexArrowStrategy>()))
-            QueueGCDAtHostile(BRD.AID.ApexArrow, ResolveTargetOverride(strategyAA.Value) ?? primaryTarget, GCDPriority.ApexArrow);
+            QueueGCDAtHostile(BRD.AID.ApexArrow, ResolveTargetOverride(strategyAA.Value) ?? primaryTarget, GCDPriority.ApexArrow, gcdStrategy);
         var strategyBA = strategy.Option(Track.BlastArrow);
         if (CanFitGCD(BlastArrowLeft) && strategyBA.As<OffensiveStrategy>() != OffensiveStrategy.Delay)
-            QueueGCDAtHostile(BRD.AID.BlastArrow, ResolveTargetOverride(strategyBA.Value) ?? primaryTarget, GCDPriority.FlexibleBA);
+            QueueGCDAtHostile(BRD.AID.BlastArrow, ResolveTargetOverride(strategyBA.Value) ?? primaryTarget, GCDPriority.FlexibleBA, gcdStrategy);
         var strategyReso = strategy.Option(Track.ResonantArrow);
         if (CanFitGCD(ResonantArrowLeft) && ShouldUseResoEncore(strategyReso.As<OffensiveStrategy>()))
-            QueueGCDAtHostile(BRD.AID.ResonantArrow, ResolveTargetOverride(strategyReso.Value) ?? primaryTarget, GCDPriority.FlexibleReso);
+            QueueGCDAtHostile(BRD.AID.ResonantArrow, ResolveTargetOverride(strategyReso.Value) ?? primaryTarget, GCDPriority.FlexibleReso, gcdStrategy);
         var strategyEncore = strategy.Option(Track.RadiantEncore);
         if (CanFitGCD(RadiantEncoreLeft) && ShouldUseResoEncore(strategyEncore.As<OffensiveStrategy>()))
-            QueueGCDAtHostile(BRD.AID.RadiantEncore, ResolveTargetOverride(strategyEncore.Value) ?? primaryTarget, GCDPriority.FlexibleEncore);
+            QueueGCDAtHostile(BRD.AID.RadiantEncore, ResolveTargetOverride(strategyEncore.Value) ?? primaryTarget, GCDPriority.FlexibleEncore, gcdStrategy);
 
         // songs (can only be used in combat)
         var strategySongs = strategy.Option(Track.Songs);
@@ -345,7 +352,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         {
             var basePrio = AllowClippingGCDByEA(cdEA, estimatedAnimLockDelay) ? ActionQueue.Priority.High : ActionQueue.Priority.Medium;
             var deltaPrio = ActiveSong == Song.MagesBallad && cdEA > 0.5f ? OGCDPriority.EmpyrealArrowAfterSong : OGCDPriority.EmpyrealArrow; // allow very slight delay of EA by AP
-            QueueAtHostile(BRD.AID.EmpyrealArrow, ResolveTargetOverride(strategyEA.Value) ?? primaryTarget, strategyEA.Priority(basePrio + (int)deltaPrio));
+            QueueOGCDAtHostile(BRD.AID.EmpyrealArrow, ResolveTargetOverride(strategyEA.Value) ?? primaryTarget, deltaPrio, strategyEA.Value.PriorityOverride, basePrio);
         }
 
         // bloodletter / rain of death
@@ -463,19 +470,21 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         _ => (null, 0)
     };
 
-    private bool QueueAtHostile(BRD.AID aid, Actor? target, float prio)
+    private bool QueueAtHostile(BRD.AID aid, Actor? target, float prio, float maxPrepull)
     {
         if (target != null && !target.IsAlly)
         {
-            var delay = !Player.InCombat && World.Client.CountdownRemaining > 0 ? Math.Max(0, World.Client.CountdownRemaining.Value - EffectApplicationDelay(aid)) : 0;
+            var delay = !Player.InCombat && World.Client.CountdownRemaining > 0 ? World.Client.CountdownRemaining.Value - maxPrepull : 0;
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, prio, delay: delay);
             return true;
         }
         return false;
     }
 
-    private bool QueueGCDAtHostile(BRD.AID aid, Actor? target, GCDPriority prio) => prio != GCDPriority.None && QueueAtHostile(aid, target, ActionQueue.Priority.High + (int)prio);
-    private bool QueueOGCDAtHostile(BRD.AID aid, Actor? target, OGCDPriority prio, float prioOverride, float basePrio = ActionQueue.Priority.Low) => prio != OGCDPriority.None && QueueAtHostile(aid, target, float.IsNaN(prioOverride) ? basePrio + (int)prio : prioOverride);
+    private bool QueueGCDAtHostile(BRD.AID aid, Actor? target, GCDPriority prio, GCDDelayStrategy strategy)
+        => strategy != GCDDelayStrategy.Delay && prio != GCDPriority.None && QueueAtHostile(aid, target, ActionQueue.Priority.High + (int)prio, strategy == GCDDelayStrategy.NoPrepull ? 0 : EffectApplicationDelay(aid));
+    private bool QueueOGCDAtHostile(BRD.AID aid, Actor? target, OGCDPriority prio, float prioOverride, float basePrio = ActionQueue.Priority.Low)
+        => prio != OGCDPriority.None && QueueAtHostile(aid, target, float.IsNaN(prioOverride) ? basePrio + (int)prio : prioOverride, EffectApplicationDelay(aid));
 
     // heuristic to determine whether currently active dots were applied under raidbuffs (assumes dots are actually active)
     // it's not easy to directly determine active dot potency
@@ -548,7 +557,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         {
             Song.WanderersMinuet => 3, // WM->MB transition when no more repertoire ticks left
             Song.MagesBallad => 6, // MB->AP transition generally wants to be delayed as much as possible, but losing last tick leads to better 120s cycle (3-6-9 rotation)
-            Song.ArmysPaeon => Repertoire == 4 ? 15 : 3, // AP->WM transition asap if we have full repertoire
+            Song.ArmysPaeon => Repertoire == 4 ? 9 : 3, // AP->WM transition asap if we have full repertoire; note that if there's micro downtime, we should delay a bit rather switch at e.g. 10s, as then we might not have BV/RS available when needed
             _ => 3
         },
     };
@@ -637,6 +646,17 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         _ => ActiveSong != Song.None && FullBuffsIn > 0
     };
 
+    private bool PreferPoolingBloodletters(float cdBV)
+    {
+        if (FullBuffsLeft > 0)
+            return false; // buffs up, no point delaying
+        var capIn = BloodletterCDTotal - BloodletterCDElapsed;
+        if (BattleVoiceLeft > 0)
+            return CanFitGCD(capIn - 0.6f, 1); // partial buffs up: use before RS only if cap is imminent (next gcd after RS is filled with EA+PP)
+        // no buffs - pool if it won't cap before next BV
+        return capIn > cdBV;
+    }
+
     // by default, we pool bloodletter for burst
     private bool ShouldUseBloodletter(BloodletterStrategy strategy, float cdBV) => strategy switch
     {
@@ -644,7 +664,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         BloodletterStrategy.Force => true,
         BloodletterStrategy.KeepOneCharge => BloodletterCDElapsed + World.Client.AnimationLock >= 30,
         BloodletterStrategy.KeepTwoCharges => BloodletterCDElapsed + World.Client.AnimationLock >= 45,
-        _ => BloodletterCDElapsed + cdBV >= BloodletterCDTotal // use if we'll cap before BV comes off cooldown
+        _ => !PreferPoolingBloodletters(cdBV)
     };
 
     // by default, we use barrage under raid buffs, but not in downtime
