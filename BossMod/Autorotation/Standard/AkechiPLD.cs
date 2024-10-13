@@ -17,8 +17,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         Requiescat,       // Tracking for Requiescat
         GoringBlade,      // Tracking for Sonic Break
         BladeCombo,       // Tracking for Blade Combo actions
-        HolySpirit,       // Tracking for Burst Strike
-        HolyCircle,       // Tracking for Fated Circle
+        HolySpirit,       // Tracking for Holy Spirit
+        HolyCircle,       // Tracking for Holy Circle
         SpiritsWithin,    // Tracking for Spirits Within
         CircleOfScorn,    // Tracking for Circle of Scorn
         BladeOfHonor,     // Tracking for Blade of Honor
@@ -194,7 +194,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             .AddAssociatedActions(PLD.AID.GoringBlade);
 
         // Holy Spirit Strategy
-        res.Define(Track.HolySpirit).As<OffensiveStrategy>("Holy Spirit Strategy", "Burst Strike", uiPriority: 140)
+        res.Define(Track.HolySpirit).As<OffensiveStrategy>("Holy Spirit Strategy", "Holy Spirit", uiPriority: 140)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Holy Spirit normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Holy Spirit ASAP", 0, 0, ActionTargets.Hostile, 30)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Holy Spirit", 0, 0, ActionTargets.None, 30)
@@ -208,7 +208,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             .AddAssociatedActions(PLD.AID.Requiescat, PLD.AID.Imperator);
 
         // Holy Circle Strategy
-        res.Define(Track.HolyCircle).As<OffensiveStrategy>("Holy Circle Strategy", "Fated Circle", uiPriority: 140)
+        res.Define(Track.HolyCircle).As<OffensiveStrategy>("Holy Circle Strategy", "Holy Circle", uiPriority: 140)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Holy Circle normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Holy Circle ASAP", 0, 0, ActionTargets.Hostile, 72)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Holy Circle", 0, 0, ActionTargets.None, 72)
@@ -444,41 +444,35 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             QueueGCD(PLD.AID.Confiteor, primaryTarget, GCDPriority.NormalGCD);
 
         //Blade Combo execution
-        if (BladeComboStep is 1)
-            QueueGCD(PLD.AID.BladeOfFaith, primaryTarget, GCDPriority.NormalGCD);
-        if (BladeComboStep is 2)
-            QueueGCD(PLD.AID.BladeOfTruth, primaryTarget, GCDPriority.NormalGCD);
-        if (BladeComboStep is 3)
-            QueueGCD(PLD.AID.BladeOfValor, primaryTarget, GCDPriority.NormalGCD);
-
-        //Sonic Break execution
-        var forceBreak = strategy.Option(Track.GoringBlade).As<OffensiveStrategy>();
-        if (canGB && hasFoF)
+        if (canBlade)
         {
-            if (forceBreak == OffensiveStrategy.Force) //Force without breaking Autorot
-            {
-                QueueGCD(PLD.AID.GoringBlade, primaryTarget, GCDPriority.ForcedGoringBlade);
-            }
-            else if (ShouldUseGoringBlade(forceBreak, primaryTarget))
-            {
-                QueueGCD(PLD.AID.GoringBlade, primaryTarget, GCDPriority.NormalGB);
-            }
+            if (BladeComboStep is 1)
+                QueueGCD(PLD.AID.BladeOfFaith, primaryTarget, GCDPriority.NormalGCD);
+            if (BladeComboStep is 2)
+                QueueGCD(PLD.AID.BladeOfTruth, primaryTarget, GCDPriority.NormalGCD);
+            if (BladeComboStep is 3)
+                QueueGCD(PLD.AID.BladeOfValor, primaryTarget, GCDPriority.NormalGCD);
         }
 
-        //Burst Strike execution
+        //Sonic Break execution
+        var gbStrat = strategy.Option(Track.GoringBlade).As<OffensiveStrategy>();
+        if (canGB && hasFoF)
+            QueueGCD(PLD.AID.GoringBlade, primaryTarget, gbStrat is OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.NormalGCD);
+
+        //Holy Spirit execution
         if (canHS && ShouldUseHolySpirit(strategy.Option(Track.HolySpirit).As<OffensiveStrategy>(), primaryTarget))
             QueueGCD(PLD.AID.HolySpirit, primaryTarget, GCDPriority.NormalHS);
 
-        //Fated Circle execution
+        //Holy Circle execution
         if (canHC && ShouldUseHolyCircle(strategy.Option(Track.HolyCircle).As<OffensiveStrategy>(), primaryTarget))
             QueueGCD(PLD.AID.HolyCircle, primaryTarget, GCDPriority.NormalHS);
         if (!canHC && canHS)
             QueueGCD(PLD.AID.HolySpirit, primaryTarget, GCDPriority.NormalHS);
 
-        if (ShouldUseDash(strategy.Option(Track.Dash).As<DashStrategy>(), primaryTarget))
+        if (canDash && ShouldUseDash(strategy.Option(Track.Dash).As<DashStrategy>(), primaryTarget))
             QueueOGCD(PLD.AID.Intervene, primaryTarget, OGCDPriority.NormalOGCD);
 
-        //Lightning Shot execution
+        //Ranged skills execution
         if (ShouldUseRanged(primaryTarget, strategy.Option(Track.Ranged).As<RangedStrategy>()))
             QueueGCD(PLD.AID.ShieldLob, primaryTarget, GCDPriority.ForcedShieldLob);
 
@@ -564,128 +558,127 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         return (nextAction, GCDPriority.Combo123);
     }
 
-    //Determines when to use Lightning Shot
+    // Determines when to use Ranged skills
     private bool ShouldUseRanged(Actor? target, RangedStrategy strategy) => strategy switch
     {
-        RangedStrategy.OpenerRanged => IsFirstGCD() && !In3y(target),
-        RangedStrategy.Opener => IsFirstGCD(),
-        RangedStrategy.Force => true,
-        RangedStrategy.Ranged => !In3y(target),
-        RangedStrategy.Forbid => false,
+        RangedStrategy.OpenerRanged => IsFirstGCD() && !In3y(target), // Use if it's the first GCD and target is not within 3y
+        RangedStrategy.Opener => IsFirstGCD(), // Use if it's the first GCD
+        RangedStrategy.Force => true, // Always use
+        RangedStrategy.Ranged => !In3y(target), // Use if target is not within 3y
+        RangedStrategy.Forbid => false, // Never use
         _ => false
     };
 
-    //Determines when to use Fight or Flight
+    // Determines when to use Fight or Flight
     private bool ShouldUseFightOrFlight(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            Player.InCombat && target != null && ActionReady(PLD.AID.FightOrFlight),
-        OffensiveStrategy.Force => true,
-        OffensiveStrategy.Delay => false,
+            Player.InCombat && target != null && ActionReady(PLD.AID.FightOrFlight), // Use if in combat, target is valid, and action is ready
+        OffensiveStrategy.Force => true, // Always use
+        OffensiveStrategy.Delay => false, // Never use
         _ => false
     };
 
-    //Determines when to use Requiescat
+    // Determines when to use Requiescat
     private bool ShouldUseRequiescat(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            Player.InCombat && target != null && ActionReady(PLD.AID.Requiescat) && hasFoF,
-        OffensiveStrategy.Force => true,
-        OffensiveStrategy.Delay => false,
+            Player.InCombat && target != null && ActionReady(PLD.AID.Requiescat) && hasFoF, // Use if in combat, target is valid, action is ready, and has Fight or Flight
+        OffensiveStrategy.Force => true, // Always use
+        OffensiveStrategy.Delay => false, // Never use
         _ => false
     };
 
-    //Determines when to use SpiritsWithin
+    // Determines when to use Spirits Within
     private bool ShouldUseSpiritsWithin(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            Player.InCombat && In3y(target) && fofCD is < 57.55f and > 17 &&
-            ActionReady(Unlocked(PLD.AID.Expiacion) ? PLD.AID.Expiacion : PLD.AID.SpiritsWithin),
-        OffensiveStrategy.Force => true,
-        OffensiveStrategy.Delay => false,
+            Player.InCombat && In3y(target) && fofCD is < 57.55f and > 17 && // Use if in combat, target is in range, and cooldown is within limits
+            ActionReady(Unlocked(PLD.AID.Expiacion) ? PLD.AID.Expiacion : PLD.AID.SpiritsWithin), // Action is ready, prioritizing Expiacion if unlocked
+        OffensiveStrategy.Force => true, // Always use
+        OffensiveStrategy.Delay => false, // Never use
         _ => false
     };
 
-    //Determines when to use CircleOfScorn
+    // Determines when to use Circle of Scorn
     private bool ShouldUseCircleOfScorn(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            Player.InCombat && ActionReady(PLD.AID.CircleOfScorn) && In5y(target) && fofCD is < 57.55f and > 17,
-        OffensiveStrategy.Force => true,
-        OffensiveStrategy.Delay => false,
+            Player.InCombat && ActionReady(PLD.AID.CircleOfScorn) && In5y(target) && fofCD is < 57.55f and > 17, // Use if in combat, action is ready, target is within 5y, and cooldown is within limits
+        OffensiveStrategy.Force => true, // Always use
+        OffensiveStrategy.Delay => false, // Never use
         _ => false
     };
 
-    //Determines when to use Sonic Break
+    // Determines when to use Goring Blade
     private bool ShouldUseGoringBlade(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            Player.InCombat && In3y(target) && fofLeft <= GCDLength,
-        OffensiveStrategy.Force => true,
-        OffensiveStrategy.Delay => false,
+            Player.InCombat && In3y(target) && fofLeft <= GCDLength, // Use if in combat, target is in range, and time left is less than or equal to GCD
+        OffensiveStrategy.Force => true, // Always use
+        OffensiveStrategy.Delay => false, // Never use
         _ => false
     };
 
-    //Determines when to use Double Down
+    // Determines when to use Blade Combo
     private bool ShouldUseBladeCombo(BladeComboStrategy strategy, Actor? target) => strategy switch
     {
         BladeComboStrategy.Automatic =>
-            Player.InCombat && HasEffect(PLD.SID.ConfiteorReady) && hasFoF && BladeComboStep is 0,
-        BladeComboStrategy.ForceConfiteor => HasEffect(PLD.SID.ConfiteorReady) && BladeComboStep is 0,
-        BladeComboStrategy.ForceFaith => BladeComboStep is 1,
-        BladeComboStrategy.ForceTruth => BladeComboStep is 2,
-        BladeComboStrategy.ForceValor => BladeComboStep is 3,
-        BladeComboStrategy.Delay => false,
+            Player.InCombat && HasEffect(PLD.SID.ConfiteorReady) && hasFoF && BladeComboStep is 0, // Use if in combat, Confiteor is ready, has Fight or Flight, and it's the first step
+        BladeComboStrategy.ForceConfiteor => HasEffect(PLD.SID.ConfiteorReady) && BladeComboStep is 0, // Force use of Confiteor if ready and it's the first step
+        BladeComboStrategy.ForceFaith => BladeComboStep is 1, // Force use of Faith if it's the second step
+        BladeComboStrategy.ForceTruth => BladeComboStep is 2, // Force use of Truth if it's the third step
+        BladeComboStrategy.ForceValor => BladeComboStep is 3, // Force use of Valor if it's the fourth step
+        BladeComboStrategy.Delay => false, // Never use
         _ => false
     };
 
-    //Determines when to use Atonement
-    private bool ShouldUseAtonement(AtonementStrategy strategy, Actor? target)
+    // Determines when to use Atonement
+    private bool ShouldUseAtonement(AtonementStrategy strategy, Actor? target) => strategy switch
     {
-        return strategy switch
-        {
-            AtonementStrategy.Automatic =>
-                Player.InCombat && In3y(target) && HasEffect(PLD.SID.AtonementReady),
-            AtonementStrategy.ForceAtonement => HasEffect(PLD.SID.AtonementReady),
-            AtonementStrategy.ForceSupplication => HasEffect(PLD.SID.SupplicationReady),
-            AtonementStrategy.ForceSepulchre => HasEffect(PLD.SID.SepulchreReady),
-            AtonementStrategy.Delay => false,
-            _ => false
-        };
-    }
+        AtonementStrategy.Automatic =>
+            Player.InCombat && In3y(target) && HasEffect(PLD.SID.AtonementReady), // Use if in combat, target is in range, and Atonement is ready
+        AtonementStrategy.ForceAtonement => HasEffect(PLD.SID.AtonementReady), // Force use of Atonement if ready
+        AtonementStrategy.ForceSupplication => HasEffect(PLD.SID.SupplicationReady), // Force use of Supplication if ready
+        AtonementStrategy.ForceSepulchre => HasEffect(PLD.SID.SepulchreReady), // Force use of Sepulchre if ready
+        AtonementStrategy.Delay => false, // Never use
+        _ => false
+    };
 
-    //Determines when to use Burst Strike
+    // Determines when to use Holy Spirit
     private bool ShouldUseHolySpirit(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            Player.InCombat && In3y(target) &&
-            hasMight && hasMPforMight && !hasReq,
-        OffensiveStrategy.Force => true,
-        OffensiveStrategy.Delay => false,
+            Player.InCombat && In3y(target) && // Use if in combat and target is in range
+            hasMight && hasMPforMight && !hasReq, // Check if we have Might, sufficient MP for Might, and not under Requiescat
+        OffensiveStrategy.Force => true, // Always use
+        OffensiveStrategy.Delay => false, // Never use
         _ => false
     };
 
-    //Determines when to use Fated Circle
+    // Determines when to use Holy Circle
     private bool ShouldUseHolyCircle(OffensiveStrategy strategy, Actor? AoETargets) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            Player.InCombat && In3y(AoETargets) &&
-            hasMight && hasMPforMight && NumTargetsHitByAoE() >= 3 && !hasReq,
-        OffensiveStrategy.Force => true,
-        OffensiveStrategy.Delay => false,
+            Player.InCombat && In3y(AoETargets) && // Use if in combat and AoE targets are in range
+            hasMight && hasMPforMight && NumTargetsHitByAoE() >= 3 && !hasReq, // Check if we have Might, sufficient MP for Might, hit at least 3 targets, and not under Requiescat
+        OffensiveStrategy.Force => true, // Always use
+        OffensiveStrategy.Delay => false, // Never use
         _ => false
     };
 
+    // Determines when to use Dash
     private bool ShouldUseDash(DashStrategy strategy, Actor? target) => strategy switch
     {
-        DashStrategy.Force => true,
-        DashStrategy.Conserve1 => CD(PLD.AID.Intervene) > 30,
-        DashStrategy.GapClose => !In3y(target),
-        _ => Player.InCombat && target != null & hasFoF,
+        DashStrategy.Force => true, // Always use
+        DashStrategy.Conserve1 => CD(PLD.AID.Intervene) > 30, // Use if cooldown is greater than 30 seconds
+        DashStrategy.GapClose => !In3y(target), // Use if target is out of range
+        _ => Player.InCombat && target != null && hasFoF // Check if in combat with valid target and has Fight or Flight
     };
 
+
     //Potion Helpers
-    //Determines if potions are aligned with Fight or Flight
+    //Determines if potions are aligned with buffs
     private bool IsPotionAlignedWithNM()
     {
         //Use potion before Solid Barrel in opener
