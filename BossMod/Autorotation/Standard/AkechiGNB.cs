@@ -68,11 +68,11 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     //Defines the strategy for using Gnashing Fang in combos, allowing for different behaviors based on combat scenarios
     public enum GnashingStrategy
     {
-        Automatic,        //Automatically decide when to use Gnashing Fang
-        ForceGnash,       //Force the use of Gnashing Fang regardless of conditions
-        ForceClaw,        //Force the use of Savage Claw action when in combo
-        ForceTalon,       //Force the use of Wicked Talon action when in combo
-        Delay             //Delay the use of Gnashing Fang for strategic reasons
+        Automatic,      //Automatically decide when to use Gnashing Fang
+        ForceGnash,     //Force the use of Gnashing Fang regardless of conditions
+        ForceClaw,      //Force the use of Savage Claw action when in combo
+        ForceTalon,     //Force the use of Wicked Talon action when in combo
+        Delay           //Delay the use of Gnashing Fang for strategic reasons
     }
 
     //Defines the strategy for using No Mercy, allowing for different behaviors based on combat scenarios
@@ -82,8 +82,20 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         Force,          //Force the use of No Mercy regardless of conditions
         ForceLW,        //Force the use of No Mercy in next possible 2nd oGCD slot
         Force2,         //Force the use of No Mercy when 2 cartridges are available
+        Force2LW,       //Force the use of No Mercy in next possible 2nd oGCD slot & 2 cartridges are available
         Force3,         //Force the use of No Mercy when 3 cartridges are available
+        Force3LW,       //Force the use of No Mercy in next possible 2nd oGCD slot & 3 cartridges are available
         Delay           //Delay the use of No Mercy for strategic reasons
+    }
+
+    //Defines the strategy for using Sonic Break, allowing for different behaviors based on combat scenarios
+    public enum SonicBreakStrategy
+    {
+        Automatic,      //Automatically decide when to use Sonic Break
+        Force,          //Force the use of Sonic Break regardless of conditions
+        EarlySB,        //Force the use of Sonic Break on the first GCD slot inside No Mercy window
+        LateSB,         //Force the use of Sonic Break on the last GCD slot inside No Mercy window
+        Delay           //Delay the use of Sonic Break for strategic reasons
     }
 
     //Defines different offensive strategies that dictate how abilities and resources are used during combat
@@ -147,19 +159,22 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             .AddOption(NoMercyStrategy.Automatic, "Automatic", "Use normally")
             .AddOption(NoMercyStrategy.Force, "Force", "Force use ASAP (even during downtime)", 60, 20, ActionTargets.Self, 2)
             .AddOption(NoMercyStrategy.ForceLW, "Force Late-weave", "Uses as soon as in next possible late-weave slot", 60, 20, ActionTargets.Self, 2)
-            .AddOption(NoMercyStrategy.Force2, "Force (2+ carts)", "Use as soon as you have 2 (or more) cartridges", 60, 20, ActionTargets.Self, 30)
-            .AddOption(NoMercyStrategy.Force3, "Force (3 carts)", "Use as soon as you have 3 cartridges", 60, 20, ActionTargets.Self, 88)
+            .AddOption(NoMercyStrategy.Force2, "Force (2+ carts)", "Use as soon as you have 2 (or more) cartridges (SlowGNB)", 60, 20, ActionTargets.Self, 30)
+            .AddOption(NoMercyStrategy.Force2LW, "Force Late-weave (2+ carts)", "Use as soon as you have 2+ cartridges & in next possible late-weave slot (FastGNB)", 60, 20, ActionTargets.Self, 30)
+            .AddOption(NoMercyStrategy.Force3, "Force (3 carts)", "Use as soon as you have 3 cartridges (SlowGNB)", 60, 20, ActionTargets.Self, 88)
+            .AddOption(NoMercyStrategy.Force3LW, "Force Late-weave (3 carts)", "Use as soon as you have 3 cartridges & in next possible late-weave slot (FastGNB)", 60, 20, ActionTargets.Self, 88)
             .AddOption(NoMercyStrategy.Delay, "Delay", "Delay", 0, 0, ActionTargets.None, 2)
             .AddAssociatedActions(GNB.AID.NoMercy);
-
-        //Offensive Strategies
         //SonicBreak strategy
-        res.Define(Track.SonicBreak).As<OffensiveStrategy>("Sonic Break", "S.Break", uiPriority: 150)
-            .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Sonic Break")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Sonic Break", 0, 30, ActionTargets.Hostile, 54)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Sonic Break", 0, 0, ActionTargets.None, 54)
+        res.Define(Track.SonicBreak).As<SonicBreakStrategy>("Sonic Break", "S.Break", uiPriority: 150)
+            .AddOption(SonicBreakStrategy.Automatic, "Auto", "Normal use of Sonic Break")
+            .AddOption(SonicBreakStrategy.Force, "Force", "Force use of Sonic Break", 0, 30, ActionTargets.Hostile, 54)
+            .AddOption(SonicBreakStrategy.EarlySB, "Early Sonic Break", "Uses Sonic Break as the very first GCD when in No Mercy", 0, 30, ActionTargets.Hostile, 54)
+            .AddOption(SonicBreakStrategy.LateSB, "Late Sonic Break", "Uses Sonic Break as the very last GCD when in No Mercy", 0, 30, ActionTargets.Hostile, 54)
+            .AddOption(SonicBreakStrategy.Delay, "Delay", "Delay use of Sonic Break", 0, 0, ActionTargets.None, 54)
             .AddAssociatedActions(GNB.AID.SonicBreak);
 
+        //Offensive Strategies
         //DoubleDown strategy
         res.Define(Track.DoubleDown).As<OffensiveStrategy>("Double Down", "D.Down", uiPriority: 160)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Double Down")
@@ -434,7 +449,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //No Mercy execution
         var nmStrat = strategy.Option(Track.NoMercy).As<NoMercyStrategy>();
         if (!hold && ShouldUseNoMercy(nmStrat, primaryTarget))
-            QueueOGCD(GNB.AID.NoMercy, Player, nmStrat is NoMercyStrategy.Force or NoMercyStrategy.ForceLW or NoMercyStrategy.Force2 or NoMercyStrategy.Force3 ? OGCDPriority.ForcedOGCD : OGCDPriority.NoMercy);
+            QueueOGCD(GNB.AID.NoMercy, Player, nmStrat is NoMercyStrategy.Force or NoMercyStrategy.ForceLW or NoMercyStrategy.Force2 or NoMercyStrategy.Force2LW or NoMercyStrategy.Force3 or NoMercyStrategy.Force3LW ? OGCDPriority.ForcedOGCD : OGCDPriority.NoMercy);
 
         //Zone execution (Blasting Zone / Danger Zone)
         var zoneAction = Unlocked(GNB.AID.BlastingZone) ? GNB.AID.BlastingZone : GNB.AID.DangerZone;
@@ -494,9 +509,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             QueueGCD(GNB.AID.LionHeart, primaryTarget, GCDPriority.NormalGCD);
 
         //Sonic Break execution
-        var sbStrat = strategy.Option(Track.SonicBreak).As<OffensiveStrategy>();
+        var sbStrat = strategy.Option(Track.SonicBreak).As<SonicBreakStrategy>();
         if (canSonic && hasNM && ShouldUseSonicBreak(sbStrat, primaryTarget))
-            QueueGCD(GNB.AID.SonicBreak, primaryTarget, sbStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.NormalSB);
+            QueueGCD(GNB.AID.SonicBreak, primaryTarget, sbStrat is SonicBreakStrategy.Force or SonicBreakStrategy.EarlySB ? GCDPriority.ForcedGCD : GCDPriority.NormalSB);
 
         //Burst Strike execution
         var strikeStrat = strategy.Option(Track.BurstStrike).As<OffensiveStrategy>();
@@ -506,11 +521,11 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //Fated Circle execution
         var fcStrat = strategy.Option(Track.FatedCircle).As<OffensiveStrategy>();
         if (canFC && ShouldUseFatedCircle(fcStrat, primaryTarget))
-            QueueGCD(GNB.AID.FatedCircle, primaryTarget, fcStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.NormalBS);
+            QueueGCD(GNB.AID.FatedCircle, primaryTarget, fcStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.NormalGCD);
         if (!canFC && canBS)
         {
             if (Ammo > 0 && ShouldUseBurstStrike(strikeStrat, primaryTarget))
-                QueueGCD(UseCorrectBS(AoETargets), primaryTarget, GCDPriority.NormalBS);
+                QueueGCD(UseCorrectBS(), primaryTarget, GCDPriority.NormalBS);
         }
 
         //Lightning Shot execution
@@ -546,10 +561,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         }
     }
 
-    private GNB.AID UseCorrectBS(int AoETargets)
+    private GNB.AID UseCorrectBS()
     {
         //If under No Mercy and Fated Circle is not unlocked, use Burst Strike even in single-target situations
-        if (Ammo == MaxCartridges && ComboLastMove is GNB.AID.BrutalShell)
+        if (Ammo == MaxCartridges && ComboLastMove is GNB.AID.DemonSlice)
             return Unlocked(GNB.AID.FatedCircle) ? GNB.AID.FatedCircle : GNB.AID.BurstStrike;
 
         //Optimal AoE usage for specific target counts
@@ -557,11 +572,11 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         var hasCircle = Unlocked(GNB.AID.FatedCircle);
 
         //If Fated Circle is unlocked and there are 2+ targets, use Fated Circle for AoE
-        if (hasCircle && AoETargets >= 2)
+        if (hasCircle && NumTargetsHitByAoE() >= 2)
             return GNB.AID.FatedCircle;
 
         //If Fated Circle is not unlocked but Burst Strike is available, use Burst Strike on 2+ targets to prevent overcapping
-        if (!hasCircle && hasStrike && AoETargets >= 2)
+        if (!hasCircle && hasStrike && NumTargetsHitByAoE() >= 2)
             return GNB.AID.BurstStrike;
 
         //If none of the conditions match, return Burst Strike for default
@@ -630,7 +645,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             AOEStrategy.Auto => AoETargets >= 3,
             AOEStrategy.AutoFinishCombo => comboStepsRemaining > 0
                 ? doingAOECombo
-                : (Unlocked(GNB.AID.DoubleDown) ? AoETargets >= 3 : AoETargets >= 2),
+                : (Unlocked(GNB.AID.Continuation) ? AoETargets >= 3 : AoETargets >= 2),
             AOEStrategy.GenerateDowntime => false,
             _ => false
         };
@@ -674,7 +689,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         NoMercyStrategy.Force => true,
         NoMercyStrategy.ForceLW => Player.InCombat && GCD < 0.9f,
         NoMercyStrategy.Force2 => Ammo >= 2,
+        NoMercyStrategy.Force2LW => Player.InCombat && GCD < 0.9f && Ammo >= 2,
         NoMercyStrategy.Force3 => Ammo == 3,
+        NoMercyStrategy.Force3LW => Player.InCombat && GCD < 0.9f && Ammo == 3,
         NoMercyStrategy.Delay => false,
         _ => false
     };
@@ -711,12 +728,14 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     };
 
     //Determines when to use Sonic Break
-    private bool ShouldUseSonicBreak(OffensiveStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseSonicBreak(SonicBreakStrategy strategy, Actor? target) => strategy switch
     {
-        OffensiveStrategy.Automatic =>
+        SonicBreakStrategy.Automatic =>
             Player.InCombat && In3y(target) && hasNM && hasBreak,
-        OffensiveStrategy.Force => true,
-        OffensiveStrategy.Delay => false,
+        SonicBreakStrategy.Force => true,
+        SonicBreakStrategy.EarlySB => nmCD is >= 57.5f || hasBreak,
+        SonicBreakStrategy.LateSB => nmLeft <= GCDLength,
+        SonicBreakStrategy.Delay => false,
         _ => false
     };
 
