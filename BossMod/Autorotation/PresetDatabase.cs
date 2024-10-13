@@ -6,31 +6,43 @@ namespace BossMod.Autorotation;
 // note: presets in the database are immutable (otherwise eg. manager won't see the changes in active preset)
 public sealed class PresetDatabase
 {
+    public const string DefaultPresetName = "VBM Default";
+
+    private readonly AutorotationConfig _cfg = Service.Config.Get<AutorotationConfig>();
+
     public readonly List<Preset> Presets = [];
     public Event<Preset?, Preset?> PresetModified = new(); // (old, new); old == null if preset is added, new == null if preset is removed
 
     private readonly FileInfo _dbPath;
 
-    public PresetDatabase(string rootPath, FileInfo? defaultPresets)
+    public PresetDatabase(string rootPath, FileInfo defaultPresets)
     {
         _dbPath = new(rootPath + ".db.json");
-        if (!_dbPath.Exists && (defaultPresets?.Exists ?? false))
-            defaultPresets.CopyTo(_dbPath.FullName);
+
+        if (defaultPresets.Exists)
+            Presets.AddRange(LoadPresetsFromFile(defaultPresets.FullName));
+        else
+            Service.Log($"Failed to load default presets from '{defaultPresets}': file is missing");
 
         if (File.Exists(_dbPath.FullName))
         {
             try
             {
-                using var json = Serialization.ReadJson(_dbPath.FullName);
-                var version = json.RootElement.GetProperty("version").GetInt32();
-                var payload = json.RootElement.GetProperty("payload");
-                Presets = payload.Deserialize<List<Preset>>(Serialization.BuildSerializationOptions()) ?? [];
+                Presets.AddRange(LoadPresetsFromFile(_dbPath.FullName));
             }
             catch (Exception ex)
             {
                 Service.Log($"Failed to parse preset database '{_dbPath}': {ex}");
             }
         }
+    }
+
+    private List<Preset> LoadPresetsFromFile(string path)
+    {
+        using var json = Serialization.ReadJson(path);
+        var version = json.RootElement.GetProperty("version").GetInt32();
+        var payload = json.RootElement.GetProperty("payload");
+        return payload.Deserialize<List<Preset>>(Serialization.BuildSerializationOptions()) ?? [];
     }
 
     // if index >= 0: replace or delete
@@ -61,7 +73,7 @@ public sealed class PresetDatabase
             jwriter.WriteStartObject();
             jwriter.WriteNumber("version", 0);
             jwriter.WritePropertyName("payload");
-            JsonSerializer.Serialize(jwriter, Presets, Serialization.BuildSerializationOptions());
+            JsonSerializer.Serialize(jwriter, Presets.Where(p => p.Name != DefaultPresetName), Serialization.BuildSerializationOptions());
             jwriter.WriteEndObject();
             Service.Log($"Database saved successfully to '{_dbPath.FullName}'");
         }
@@ -71,5 +83,5 @@ public sealed class PresetDatabase
         }
     }
 
-    public IEnumerable<Preset> PresetsForClass(Class c) => Presets.Where(p => p.Modules.Any(m => RotationModuleRegistry.Modules[m.Key].Definition.Classes[(int)c]));
+    public IEnumerable<Preset> PresetsForClass(Class c) => Presets.Where(p => (p.Name != DefaultPresetName || !_cfg.HideDefaultPreset) && p.Modules.Any(m => RotationModuleRegistry.Modules[m.Key].Definition.Classes[(int)c]));
 }
