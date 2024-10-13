@@ -396,6 +396,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         var canScorn = Unlocked(PLD.AID.CircleOfScorn) && ActionReady(PLD.AID.CircleOfScorn);
         var canSpirit = Unlocked(PLD.AID.SpiritsWithin) && ActionReady(PLD.AID.SpiritsWithin);
         var canGB = Unlocked(PLD.AID.GoringBlade) && ActionReady(PLD.AID.GoringBlade);
+        var canHS = Unlocked(PLD.AID.HolySpirit);
+        var canHC = Unlocked(PLD.AID.HolyCircle);
         var canAtone = Unlocked(PLD.AID.Atonement);
         var canDash = Unlocked(PLD.AID.Intervene) && CD(PLD.AID.Intervene) > 29f;
         var canConfiteor = Unlocked(PLD.AID.Confiteor) && HasEffect(PLD.SID.ConfiteorReady) && BladeComboStep is 0;
@@ -438,7 +440,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             QueueGCD(PLD.AID.Sepulchre, primaryTarget, GCDPriority.AC23);
 
         //Confiteor execution
-        if (canConfiteor && BladeComboStep is 0 && ShouldUseBladeCombo(strategy.Option(Track.BladeCombo).As<OffensiveStrategy>(), primaryTarget))
+        if (canConfiteor && BladeComboStep is 0 && ShouldUseBladeCombo(strategy.Option(Track.BladeCombo).As<BladeComboStrategy>(), primaryTarget))
             QueueGCD(PLD.AID.Confiteor, primaryTarget, GCDPriority.NormalGCD);
 
         //Blade Combo execution
@@ -464,20 +466,20 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         }
 
         //Burst Strike execution
-        if (canBSlv80 && ShouldUseHolySpirit(strategy.Option(Track.HolySpirit).As<OffensiveStrategy>(), primaryTarget))
+        if (canHS && ShouldUseHolySpirit(strategy.Option(Track.HolySpirit).As<OffensiveStrategy>(), primaryTarget))
             QueueGCD(PLD.AID.HolySpirit, primaryTarget, GCDPriority.NormalHS);
 
         //Fated Circle execution
-        if (canFC && ShouldUseHolyCircle(strategy.Option(Track.HolyCircle).As<OffensiveStrategy>(), primaryTarget))
+        if (canHC && ShouldUseHolyCircle(strategy.Option(Track.HolyCircle).As<OffensiveStrategy>(), primaryTarget))
+            QueueGCD(PLD.AID.HolyCircle, primaryTarget, GCDPriority.NormalHS);
+        if (!canHC && canHS)
             QueueGCD(PLD.AID.HolySpirit, primaryTarget, GCDPriority.NormalHS);
-        else if (!canFC && canBSlv70)
-        {
-            var action = UseCorrectBS(AoETargets);
-            QueueGCD(action, primaryTarget, GCDPriority.NormalHS);
-        }
+
+        if (ShouldUseDash(strategy.Option(Track.Dash).As<DashStrategy>(), primaryTarget))
+            QueueOGCD(PLD.AID.Intervene, primaryTarget, OGCDPriority.NormalOGCD);
 
         //Lightning Shot execution
-        if (ShouldUseShieldLob(primaryTarget, strategy.Option(Track.ShieldLob).As<RangedStrategy>()))
+        if (ShouldUseRanged(primaryTarget, strategy.Option(Track.Ranged).As<RangedStrategy>()))
             QueueGCD(PLD.AID.ShieldLob, primaryTarget, GCDPriority.ForcedShieldLob);
 
         //Potion execution
@@ -544,7 +546,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             AOEStrategy.ForceAoE => true,
             AOEStrategy.Auto => AoETargets >= 3,
             AOEStrategy.AutoFinishCombo => comboStepsRemaining > 0
-                ? doingAOECombo ? AoETargets >= 3 : AoETargets >= 2,
+                ? doingAOECombo : AoETargets >= 3,
             _ => false
         };
 
@@ -628,8 +630,11 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseBladeCombo(BladeComboStrategy strategy, Actor? target) => strategy switch
     {
         BladeComboStrategy.Automatic =>
-            Player.InCombat && ActionReady(PLD.AID.BladeCombo) && In5y(target) && hasFoF && Ammo >= 2,
-        BladeComboStrategy.Force => true,
+            Player.InCombat && HasEffect(PLD.SID.ConfiteorReady) && hasFoF && BladeComboStep is 0,
+        BladeComboStrategy.ForceConfiteor => HasEffect(PLD.SID.ConfiteorReady) && BladeComboStep is 0,
+        BladeComboStrategy.ForceFaith => BladeComboStep is 1,
+        BladeComboStrategy.ForceTruth => BladeComboStep is 2,
+        BladeComboStrategy.ForceValor => BladeComboStep is 3,
         BladeComboStrategy.Delay => false,
         _ => false
     };
