@@ -70,48 +70,6 @@ public sealed class QuestBattleDirector : IDisposable
         this.bmm = bmm;
 
         _subscriptions = new(
-#if DEBUG
-            ws.Actors.StatusGain.Subscribe((a, i) =>
-            {
-                if (a.OID == 0)
-                    return;
-                Log($"{a} gain {a.Statuses[i]}");
-            }),
-            ws.Actors.StatusLose.Subscribe((a, i) =>
-            {
-                if (a.OID == 0)
-                    return;
-                Log($"{a} lose {a.Statuses[i]}");
-            }),
-            ws.Actors.ModelStateChanged.Subscribe(a =>
-            {
-                if (a.OID == 0)
-                    return;
-                Log($"{a} model state: {a.ModelState}");
-            }),
-            ws.Actors.EventStateChanged.Subscribe(a =>
-            {
-                if (a.OID == 0)
-                    return;
-                Log($"{a} event state: {a.EventState}");
-            }),
-            ws.DirectorUpdate.Subscribe(diru =>
-            {
-                Log($"Director update: U:0x{diru.UpdateID:X} P1:0x{diru.Param1:X} P2:0x{diru.Param2:X} P3:0x{diru.Param3:X} P4:0x{diru.Param4:X}");
-            }),
-            ws.Actors.EventObjectStateChange.Subscribe((act, u) =>
-            {
-                Log($"EObjState: {act} => 0x{u:X}");
-            }),
-            ws.Actors.EventObjectAnimation.Subscribe((act, p1, p2) =>
-            {
-                Log($"EObjAnim: {act}, {p1}, {p2}");
-            }),
-            ws.EnvControl.Subscribe(op =>
-            {
-                Log($"EnvControl: {op}");
-            }),
-#endif
             ws.CurrentZoneChanged.Subscribe(OnZoneChange),
             ObjectiveChanged.Subscribe(OnObjectiveChanged),
             ObjectiveCleared.Subscribe(OnObjectiveCleared)
