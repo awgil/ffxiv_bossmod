@@ -2,7 +2,7 @@
 
 namespace BossMod.Autorotation.xan;
 
-public abstract class AIBase(RotationModuleManager manager, Actor player) : Targetxan(manager, player)
+public abstract class AIBase(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     internal bool Unlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
     internal float NextChargeIn<AID>(AID aid) where AID : Enum => NextChargeIn(ActionID.MakeSpell(aid));
@@ -18,10 +18,7 @@ public abstract class AIBase(RotationModuleManager manager, Actor player) : Targ
     internal bool IsCastReactable(Actor act)
     {
         var castInfo = act.CastInfo;
-        if (castInfo == null || castInfo.TotalTime <= 1.5 || castInfo.EventHappened)
-            return false;
-
-        return castInfo.NPCTotalTime - castInfo.NPCRemainingTime > 1;
+        return !(castInfo == null || castInfo.TotalTime <= 1.5 || castInfo.EventHappened);
     }
 
     internal IEnumerable<AIHints.Enemy> EnemiesAutoingMe => Hints.PriorityTargets.Where(x => x.Actor.CastInfo == null && x.Actor.TargetID == Player.InstanceID && Player.DistanceToHitbox(x.Actor) <= 6);
