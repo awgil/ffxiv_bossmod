@@ -38,6 +38,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly BossModuleHintsWindow _wndBossmodHints;
     private readonly ReplayManagementWindow _wndReplay;
     private readonly UIRotationWindow _wndRotation;
+    private readonly AI.AIWindow _wndAI;
     private readonly MainDebugWindow _wndDebug;
 
     public unsafe Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner, IDataManager dataManager)
@@ -69,6 +70,7 @@ public sealed class Plugin : IDalamudPlugin
 
         CommandManager = commandManager;
         CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod settings UI" });
+        CommandManager.AddHandler("/vbmai", new CommandInfo((cmd, args) => ParseAICommands(args.Split(' ', StringSplitOptions.RemoveEmptyEntries)))); //TODO: deprecated
 
         ActionDefinitions.Instance.UnlockCheck = QuestUnlocked; // ensure action definitions are initialized and set unlock check functor (we don't really store the quest progress in clientstate, for now at least)
 
@@ -94,6 +96,7 @@ public sealed class Plugin : IDalamudPlugin
         _wndBossmodHints = new(_bossmod, _zonemod);
         _wndReplay = new(_ws, _rotationDB, replayDir);
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
+        _wndAI = new(_ai);
         _wndDebug = new(_ws, _rotation, _amex, _hintsBuilder, dalamud);
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
@@ -107,6 +110,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         Service.Condition.ConditionChange -= OnConditionChanged;
         _wndDebug.Dispose();
+        _wndAI.Dispose();
         _wndRotation.Dispose();
         _wndReplay.Dispose();
         _wndBossmodHints.Dispose();
@@ -124,6 +128,7 @@ public sealed class Plugin : IDalamudPlugin
         _dtr.Dispose();
         ActionDefinitions.Instance.Dispose();
         CommandManager.RemoveHandler("/vbm");
+        CommandManager.RemoveHandler("/vbmai"); // TODO: deprecated
     }
 
     private void OnCommand(string cmd, string args)
@@ -143,7 +148,7 @@ public sealed class Plugin : IDalamudPlugin
                 _wndDebug.BringToFront();
                 break;
             case "cfg":
-                var output = Service.Config.ConsoleCommand(new ArraySegment<string>(split, 1, split.Length - 1));
+                var output = Service.Config.ConsoleCommand(split.AsSpan(1));
                 foreach (var msg in output)
                     Service.ChatGui.Print(msg);
                 break;
@@ -157,6 +162,9 @@ public sealed class Plugin : IDalamudPlugin
                 break;
             case "ar":
                 ParseAutorotationCommands(split);
+                break;
+            case "ai":
+                ParseAICommands(split.AsSpan(1));
                 break;
         }
     }
@@ -245,6 +253,11 @@ public sealed class Plugin : IDalamudPlugin
             case "toggle":
                 ParseAutorotationSetCommand(cmd.Length > 2 ? cmd[2] : "", true);
                 break;
+            case "ui":
+                _wndRotation.SetVisible(!_wndRotation.IsOpen);
+                break;
+            case "help":
+            case "?":
             default:
                 PrintAutorotationHelp();
                 break;
@@ -274,6 +287,98 @@ public sealed class Plugin : IDalamudPlugin
         Service.ChatGui.Print("* /vbm ar set Preset - start executing specified preset");
         Service.ChatGui.Print("* /vbm ar toggle - force disable autorotation if not already; otherwise clear overrides");
         Service.ChatGui.Print("* /vbm ar toggle Preset - start executing specified preset unless it's already active; clear otherwise");
+        Service.ChatGui.Print("* /vbm ar ui - toggle autorotation ui");
+    }
+
+    private void ParseAICommands(ReadOnlySpan<string> cmd)
+    {
+        switch (cmd.Length > 0 ? cmd[0] : "")
+        {
+            case "on":
+                _ai.Enabled = true;
+                break;
+            case "off":
+                _ai.Enabled = false;
+                break;
+            case "toggle":
+                _ai.Enabled ^= true;
+                break;
+            case "follow":
+                if (cmd.Length < 1)
+                {
+                    PrintAIHelp();
+                    return;
+                }
+
+                var masterString = cmd.Length > 1 ? $"{cmd[0]} {cmd[1]}" : cmd[0];
+                var masterStringIsSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? Convert.ToInt32(masterString.Substring(4, 1)) : 0;
+                var master = masterStringIsSlot > 0 ? (masterStringIsSlot - 1, _ws.Party[masterStringIsSlot - 1]) : _ws.Party.WithSlot().FirstOrDefault(x => x.Item2.Name.Equals(masterString, StringComparison.OrdinalIgnoreCase));
+                if (master.Item2 is null)
+                {
+                    Service.ChatGui.PrintError($"[AI] [Follow] Error: can't find {masterString} in our party");
+                    return;
+                }
+                _ai.SwitchToFollow(master.Item1);
+                _ai.Enabled = true;
+                break;
+            case "ui":
+                _wndAI.SetVisible(!_wndAI.IsOpen);
+                break;
+            case "help":
+            case "?":
+            case "":
+                PrintAIHelp();
+                break;
+            default:
+                // TODO: this should really be removed, it's synonym for /vbm cfg AIConfig ...
+                List<string> list = [];
+                list.Add("AIConfig");
+                list.AddRange(cmd);
+
+                if (list.Count == 2)
+                {
+                    //toggle
+                    var result = Service.Config.ConsoleCommand(list.AsSpan());
+                    if (bool.TryParse(result[0], out var resultBool))
+                    {
+                        list.Add((!resultBool).ToString());
+                        Service.Config.ConsoleCommand(list.AsSpan());
+                    }
+                    else
+                    {
+                        Service.Log($"[AI] Unknown command: {cmd[0]}");
+                    }
+                }
+                else if (list.Count == 3)
+                {
+                    //set
+                    var onOffReplace = list[2].Replace("on", "true", StringComparison.InvariantCultureIgnoreCase).Replace("off", "false", StringComparison.InvariantCultureIgnoreCase);
+                    if (list[2] == "on")
+                        list[2] = "true";
+                    else if (list[2] == "off")
+                        list[2] = "false";
+
+                    if (Service.Config.ConsoleCommand(list.AsSpan()).Count > 0)
+                        Service.Log($"[AI] Unknown command: {cmd[0]}");
+                }
+                else
+                {
+                    Service.Log($"[AI] Unknown command: {cmd[0]}");
+                }
+
+                break;
+        }
+    }
+
+    private void PrintAIHelp()
+    {
+        Service.ChatGui.Print("AI commands:");
+        Service.ChatGui.Print("* /vbm ai on - enable AI mode");
+        Service.ChatGui.Print("* /vbm ai off - disable AI mode");
+        Service.ChatGui.Print("* /vbm ai toggle - toggle AI mode");
+        Service.ChatGui.Print("* /vbm ai follow <name> - enable AI mode and follow party member with specified name");
+        Service.ChatGui.Print("* /vbm ai follow slot<N> - enable AI mode and follow party member at slot #N (1-8)");
+        Service.ChatGui.Print("* /vbm ai ui - toggle AI ui");
     }
 
     private void OnConditionChanged(ConditionFlag flag, bool value)

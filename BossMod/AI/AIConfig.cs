@@ -19,6 +19,7 @@ sealed class AIConfig : ConfigNode
     public bool ShowDTR = true;
 
     // ai settings
+    // TODO: this is really bad, it should not be here! it's a transient thing, doesn't make sense to preserve in config
     [PropertyDisplay($"Follow slot")]
     public Slot FollowSlot = 0;
 
