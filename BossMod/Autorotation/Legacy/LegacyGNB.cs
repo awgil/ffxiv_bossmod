@@ -102,7 +102,7 @@ public sealed class LegacyGNB : LegacyModule
         _state = new(this);
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
         _state.HaveTankStance = Player.FindStatus(GNB.SID.RoyalGuard) != null;
@@ -264,14 +264,6 @@ public sealed class LegacyGNB : LegacyModule
                 }
             }
         }
-
-        if (Service.Config.Get<GNBConfig>().Skscheck && _state.Ammo == _state.MaxCartridges - 1 && _state.ComboLastMove == GNB.AID.BrutalShell && _state.GunComboStep == 0 && _state.CD(GNB.AID.GnashingFang) < 2.5)
-            return GNB.AID.SolidBarrel;
-        if (!Service.Config.Get<GNBConfig>().Skscheck && _state.Ammo == _state.MaxCartridges - 1 && _state.ComboLastMove == GNB.AID.BrutalShell && _state.GunComboStep == 0 && _state.CD(GNB.AID.GnashingFang) < 2.5 && (_state.CD(GNB.AID.Bloodfest) > 20 && _state.Unlocked(GNB.AID.Bloodfest)))
-            return GNB.AID.SolidBarrel;
-
-        if (Service.Config.Get<GNBConfig>().EarlySonicBreak && _state.CD(GNB.AID.NoMercy) > 40 && _state.ReadyToBreak > 27.5)
-            return GNB.AID.SonicBreak;
 
         // Lv30-53 NM proc ST
         if (_state.Unlocked(GNB.AID.NoMercy))
@@ -536,52 +528,18 @@ public sealed class LegacyGNB : LegacyModule
     private bool ShouldUsePotion(StrategyValues strategy) => strategy.Option(Track.Potion).As<PotionStrategy>() switch
     {
         PotionStrategy.Manual => false,
-        PotionStrategy.Immediate => (!Service.Config.Get<GNBConfig>().EarlyNoMercy && _state.ComboLastMove == GNB.AID.KeenEdge && _state.Ammo == 0) || (_state.CD(GNB.AID.NoMercy) < 5.5 && _state.CD(GNB.AID.Bloodfest) < 15 /*&& strategy.CombatTimer > 30*/) || (Service.Config.Get<GNBConfig>().EarlyNoMercy && _state.CD(GNB.AID.NoMercy) < 5.5 && _state.CD(GNB.AID.Bloodfest) < 15),
+        PotionStrategy.Immediate => true,
         PotionStrategy.Special => _state.ComboLastMove == GNB.AID.BrutalShell && _state.Ammo == 3 && _state.CD(GNB.AID.NoMercy) < 3 && _state.CD(GNB.AID.Bloodfest) < 15,
         PotionStrategy.Force => true,
         _ => false
     };
 
-    private bool ShouldUseNoMercy(StrategyValues strategy)
+    private bool ShouldUseNoMercy(StrategyValues strategy) => strategy.Option(Track.NoMercy).As<OffensiveStrategy>() switch
     {
-        var noMergyStrategy = strategy.Option(Track.NoMercy).As<OffensiveStrategy>();
-        if (noMergyStrategy == OffensiveStrategy.Delay)
-        {
-            return false;
-        }
-        else if (noMergyStrategy == OffensiveStrategy.Force)
-        {
-            return true;
-        }
-        else
-        {
-            var gnbConfig = Service.Config.Get<GNBConfig>();
-            bool isEarlyNoMercy = gnbConfig.EarlyNoMercy;
-
-            bool isGnashingFangReady = _state.CD(GNB.AID.GnashingFang) < 2.5 && _state.Unlocked(GNB.AID.GnashingFang);
-            bool isSonicBreakReady = _state.CD(GNB.AID.NoMercy) >= 40 && _state.Unlocked(GNB.AID.SonicBreak) && _state.ReadyToBreak > 0;
-            bool isDoubleDownReady = _state.CD(GNB.AID.DoubleDown) < 2.5 && _state.Unlocked(GNB.AID.DoubleDown);
-            bool justusewhenever = !_state.Unlocked(GNB.AID.BurstStrike) && _state.TargetingEnemy && _state.RangeToTarget < 5;
-
-            bool shouldUseEarlyNoMercy = _state.TargetingEnemy && ((!isEarlyNoMercy && _state.ComboLastMove == GNB.AID.BrutalShell) || (isEarlyNoMercy && _state.ComboLastMove == GNB.AID.KeenEdge)) && _state.Unlocked(GNB.AID.Bloodfest) && (_state.Ammo == 0 || _state.Ammo == _state.MaxCartridges) && ((_state.GCD < 0.8 && gnbConfig.Skscheck) || (!gnbConfig.Skscheck));
-
-            bool shouldUseRegularNoMercy = (!gnbConfig.Skscheck
-                && (isGnashingFangReady || isSonicBreakReady || isDoubleDownReady)
-                && _state.TargetingEnemy
-                && ((_state.Ammo == _state.MaxCartridges)
-                || (_state.Ammo == _state.MaxCartridges - 1 && _state.ComboLastMove == GNB.AID.BrutalShell && _state.CD(GNB.AID.Bloodfest) > 20)
-                || (_state.CD(GNB.AID.Bloodfest) < 15 && _state.Ammo == 1 && _state.Unlocked(GNB.AID.Bloodfest)))) || shouldUseEarlyNoMercy;
-
-            bool shouldUseSksCheck = (gnbConfig.Skscheck && _state.GCD < 0.8
-                && (isGnashingFangReady || isSonicBreakReady || isDoubleDownReady)
-                && _state.TargetingEnemy
-                && (_state.Ammo == _state.MaxCartridges
-                || (_state.CD(GNB.AID.Bloodfest) < 15 && _state.Ammo == 1 && _state.Unlocked(GNB.AID.Bloodfest))
-                || (_state.Ammo == _state.MaxCartridges - 1 && _state.ComboLastMove == GNB.AID.BrutalShell && _state.CD(GNB.AID.Bloodfest) > 20 && _state.Unlocked(GNB.AID.Bloodfest)))) || shouldUseEarlyNoMercy;
-
-            return shouldUseRegularNoMercy || shouldUseSksCheck || justusewhenever;
-        }
-    }
+        OffensiveStrategy.Delay => false,
+        OffensiveStrategy.Force => true,
+        _ => Player.InCombat && _state.TargetingEnemy && _state.Ammo == 3
+    };
 
     private bool ShouldUseGnash(StrategyValues strategy) => strategy.Option(Track.Gnash).As<OffensiveStrategy>() switch
     {

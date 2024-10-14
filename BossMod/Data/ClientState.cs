@@ -65,14 +65,15 @@ public sealed class ClientState
     }
 
     // TODO: think about how to improve it...
-    public unsafe T GetGauge<T>() where T : unmanaged
+    public static unsafe T GetGauge<T>(in Gauge gauge) where T : unmanaged
     {
         T res = default;
-        ((ulong*)&res)[1] = GaugePayload.Low;
+        ((ulong*)&res)[1] = gauge.Low;
         if (sizeof(T) > 16)
-            ((ulong*)&res)[2] = GaugePayload.High;
+            ((ulong*)&res)[2] = gauge.High;
         return res;
     }
+    public unsafe T GetGauge<T>() where T : unmanaged => GetGauge<T>(GaugePayload);
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.AI;
 
-[ConfigDisplay(Name = "AI Configuration", Order = 6)]
+[ConfigDisplay(Name = "AI Configuration", Order = 7)]
 sealed class AIConfig : ConfigNode
 {
     public enum Slot { One, Two, Three, Four }
@@ -12,9 +12,6 @@ sealed class AIConfig : ConfigNode
     [PropertyDisplay("Show in-game UI")]
     public bool DrawUI = true;
 
-    [PropertyDisplay("Show advanced options in the UI")]
-    public bool ShowExtraUIOptions = true;
-
     [PropertyDisplay("Show AI status in the in-game UI's title bar")]
     public bool ShowStatusOnTitlebar = true;
 
@@ -22,41 +19,18 @@ sealed class AIConfig : ConfigNode
     public bool ShowDTR = true;
 
     // ai settings
-    [PropertyDisplay($"Override positional")]
-    public bool OverridePositional = false;
-
-    [PropertyDisplay("Desired positional")]
-    public Positional DesiredPositional = 0;
-
+    // TODO: this is really bad, it should not be here! it's a transient thing, doesn't make sense to preserve in config
     [PropertyDisplay($"Follow slot")]
     public Slot FollowSlot = 0;
 
-    [PropertyDisplay($"Override follow range")]
-    public bool OverrideRange = false;
-
-    [PropertyDisplay($"Follow slot range")]
-    public float MaxDistanceToSlot = 1;
-
-    [PropertyDisplay($"Follow target")]
-    public bool FollowTarget = false;
-
-    [PropertyDisplay($"Follow target range")]
-    public float MaxDistanceToTarget = 2.6f;
-
-    [PropertyDisplay("Follow during active boss module")]
-    public bool FollowDuringActiveBossModule = false;
-
-    [PropertyDisplay("Follow during combat")]
-    public bool FollowDuringCombat = false;
-
-    [PropertyDisplay("Follow out of combat")]
-    public bool FollowOutOfCombat = false;
-
-    [PropertyDisplay("Forbid movement")]
+    [PropertyDisplay("Disable movement")]
     public bool ForbidMovement = false;
 
-    [PropertyDisplay("Forbid actions")]
+    [PropertyDisplay("Disable auto-target")]
     public bool ForbidActions = false;
+
+    [PropertyDisplay("Automatically engage FATE mobs", since: "0.0.0.253")]
+    public bool AutoFate = true;
 
     [PropertyDisplay("Focus target master")]
     public bool FocusTargetMaster = false;

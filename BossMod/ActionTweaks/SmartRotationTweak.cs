@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Name = "Smart character orientation", Parent = typeof(ActionTweaksConfig))]
+[ConfigDisplay(Name = "Smart character orientation", Parent = typeof(ActionTweaksConfig), Since = "0.0.0.229")]
 class SmartRotationConfig : ConfigNode
 {
     [PropertyDisplay("Enable the feature", tooltip: "Replace in-game 'auto face target' option with a smarter alternative.\nWhen using an action, changes direction only if target is not in frontal cone.\nDuring cast, keep character facing the target.")]

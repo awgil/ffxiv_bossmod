@@ -78,8 +78,11 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         _ => default
     };
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
+        if (Player.MountId > 0)
+            return;
+
         // ranged
         if (strategy.Enabled(Track.Ranged) && Player.DistanceToHitbox(primaryTarget) is > 5 and <= 20 && primaryTarget!.Type is ActorType.Enemy && !primaryTarget.IsAlly)
             Hints.ActionsToExecute.Push(JobActions.Ranged, primaryTarget, ActionQueue.Priority.Low);

@@ -68,7 +68,7 @@ class Resurface(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.Resurface)
         {
             // the boss typically stays slightly in front of the border (15.40 rather than 15.00), and all cones other than first one originate from border, making them slightly bigger
-            var origin = Module.Center - Module.Bounds.Radius * spell.Rotation.ToDirection();
+            var origin = Module.Center - 20 * spell.Rotation.ToDirection();
             _aoe = new(_shape, origin, spell.Rotation, Module.CastFinishAt(spell));
         }
     }
@@ -183,4 +183,4 @@ class D011PrimePunutiyStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12723)]
-public class D011PrimePunutiy(WorldState ws, Actor primary) : BossModule(ws, primary, new(35, -95), new ArenaBoundsSquare(20));
+public class D011PrimePunutiy(WorldState ws, Actor primary) : BossModule(ws, primary, new(35, -95), new ArenaBoundsSquare(19.5f));

@@ -109,7 +109,7 @@ class VoidCall(BossModule module) : BossComponent(module)
         if ((OID)actor.OID is OID.SummonPad)
         {
             _pads.Remove(actor);
-            _towers.RemoveAll(t => t.Position.AlmostEqual(actor.Position, 1));
+            _towers.RemoveAll(t => t.Position.AlmostEqual(actor.Position, 0.5f));
         }
     }
 
@@ -139,23 +139,23 @@ class VoidCall(BossModule module) : BossComponent(module)
         var maxEval = -1;
         foreach (var t in _towers)
         {
-            var curEval = Raid.WithSlot().InRadius(t.Position, 2).Count();
+            var curEval = Raid.WithSlot().InRadius(t.Position, 1.5f).Count();
             if (curEval > maxEval)
             {
                 maxEval = curEval;
                 bestTower = t;
             }
         }
-        var curSoakers = Raid.WithSlot().InRadius(bestTower.Position, 2).Count();
+        var curSoakers = Raid.WithSlot().InRadius(bestTower.Position, 1.5f).Count();
         if (minSoakers == 3 && curSoakers == 2 ||
             minSoakers == 2 && curSoakers == 1 ||
             minSoakers == 1 && curSoakers == 0)
         {
-            hints.AddForbiddenZone(new AOEShapeDonut(2, 50), bestTower.Position);
+            hints.AddForbiddenZone(new AOEShapeDonut(1.5f, 50), bestTower.Position);
         }
         else if (curSoakers < minSoakers)
         {
-            hints.AddForbiddenZone(new AOEShapeDonut(2, 50), bestTower.Position);
+            hints.AddForbiddenZone(new AOEShapeDonut(1.5f, 50), bestTower.Position);
         }
         else
             _towers.Remove(bestTower);

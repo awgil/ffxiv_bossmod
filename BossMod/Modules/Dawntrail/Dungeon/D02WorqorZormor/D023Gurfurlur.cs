@@ -142,6 +142,13 @@ class AuraSpheres : Components.PersistentInvertibleVoidzone
         if (Sources(Module).Any(x => !Shape.Check(actor.Position, x)))
             hints.Add("Touch the balls!");
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var shapes = Sources(Module).Select(s => ShapeDistance.InvertedCircle(s.Position + Shape.Radius * s.Rotation.ToDirection(), Shape.Radius)).ToList();
+        if (shapes.Count > 0)
+            hints.AddForbiddenZone(ShapeDistance.Intersection(shapes));
+    }
 }
 
 class EnduringGlory(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EnduringGlory));

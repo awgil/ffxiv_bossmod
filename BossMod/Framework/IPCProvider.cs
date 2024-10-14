@@ -22,16 +22,16 @@ sealed class IPCProvider : IDisposable
         Register("ActiveModuleComponentList", () => autorotation.Bossmods.ActiveModule?.Components.Select(c => c.GetType().Name).ToList() ?? default);
         Register("ActiveModuleHasComponent", (string name) => autorotation.Bossmods.ActiveModule?.Components.Any(c => c.GetType().Name == name || c.GetType().BaseType?.Name == name) ?? false);
 
-        Register("HasModule", (IGameObject obj) => ModuleRegistry.FindByOID(obj.DataId) != null);
-        Register("HasModuleByDataId", (uint dataId) => ModuleRegistry.FindByOID(dataId) != null);
+        Register("HasModule", (IGameObject obj) => BossModuleRegistry.FindByOID(obj.DataId) != null);
+        Register("HasModuleByDataId", (uint dataId) => BossModuleRegistry.FindByOID(dataId) != null);
         Register("IsMoving", movement.IsMoving);
         Register("ForbiddenZonesCount", () => autorotation.Hints.ForbiddenZones.Count);
-        Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(args, save));
+        Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(string.Join(' ', args), save));
         //Register("InitiateCombat", () => autorotation.ClassActions?.UpdateAutoAction(CommonActions.AutoActionAIFight, float.MaxValue, true));
         //Register("SetAutorotationState", (bool state) => Service.Config.Get<AutorotationConfig>().Enabled = state);
 
-        Register("Presets.List", () => Serialize(autorotation.Database.Presets.Presets));
-        Register("Presets.Get", (string name) => SerializeN(autorotation.Database.Presets.Presets.FirstOrDefault(x => x.Name == name)));
+        Register("Presets.List", () => Serialize(autorotation.Database.Presets.VisiblePresets));
+        Register("Presets.Get", (string name) => SerializeN(autorotation.Database.Presets.FindPresetByName(name)));
         Register("Presets.ForClass", (byte classId) => Serialize(autorotation.Database.Presets.PresetsForClass((Class)classId)));
         Register("Presets.Create", (string presetSerialized, bool overwrite) =>
         {
@@ -39,15 +39,16 @@ sealed class IPCProvider : IDisposable
             if (p == null)
                 return false;
 
-            if (autorotation.Database.Presets.Presets.Any(x => x.Name == p.Name) && !overwrite)
+            var index = autorotation.Database.Presets.UserPresets.FindIndex(x => x.Name == p.Name);
+            if (index >= 0 && !overwrite)
                 return false;
 
-            autorotation.Database.Presets.Modify(-1, p);
+            autorotation.Database.Presets.Modify(index, p);
             return true;
         });
         Register("Presets.Delete", (string name) =>
         {
-            var i = autorotation.Database.Presets.Presets.FindIndex(x => x.Name == name);
+            var i = autorotation.Database.Presets.UserPresets.FindIndex(x => x.Name == name);
             if (i >= 0)
                 autorotation.Database.Presets.Modify(i, null);
 
@@ -57,7 +58,7 @@ sealed class IPCProvider : IDisposable
         Register("Presets.GetActive", () => autorotation.Preset?.Name);
         Register("Presets.SetActive", (string name) =>
         {
-            var preset = autorotation.Database.Presets.Presets.FirstOrDefault(x => x.Name == name);
+            var preset = autorotation.Database.Presets.FindPresetByName(name);
             if (preset != null)
             {
                 autorotation.Preset = preset;
@@ -86,8 +87,16 @@ sealed class IPCProvider : IDisposable
             return false;
         });
 
-        Register("AI.SetPreset", (string name) => ai.SetAIPreset(autorotation.Database.Presets.Presets.FirstOrDefault(x => x.Name == name)));
-        Register("AI.GetPreset", () => ai.GetAIPreset);
+        Register("AI.SetPreset", (string name) =>
+        {
+            Service.Log($"calling deprecated method AI.SetPreset - use Presets.SetActive instead");
+            autorotation.Preset = autorotation.Database.Presets.FindPresetByName(name);
+        });
+        Register("AI.GetPreset", () =>
+        {
+            Service.Log($"calling deprecated method AI.GetPreset - use Presets.GetActive instead");
+            return autorotation.Preset?.Name ?? string.Empty;
+        });
     }
 
     public void Dispose() => _disposeActions?.Invoke();

@@ -4,7 +4,7 @@ namespace BossMod.AI;
 
 public abstract class AIRotationModule(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    protected float Deadline(DateTime deadline) => Math.Max(0, (float)(deadline - Manager.WorldState.CurrentTime).TotalSeconds);
+    protected float Deadline(DateTime deadline) => Math.Max(0, (float)(deadline - World.CurrentTime).TotalSeconds);
     protected float Speed() => Player.FindStatus(50) != null ? 7.8f : 6;
 
     protected bool InMeleeRange(Actor target)
@@ -47,7 +47,7 @@ public abstract class AIRotationModule(RotationModuleManager manager, Actor play
         var playerDotTargetMove = targetMoveDir.Dot(ideal - Player.Position);
         if (playerDotTargetMove < 0)
             ideal -= playerDotTargetMove * targetMoveDir; // don't move towards boss, though
-        var targetRemaining = (ideal - target.Position).Length() - target.HitboxRadius - targetMeleeRange - (target.Position - target.PrevPosition).Length() / Manager.WorldState.Frame.Duration * nextAction - Speed() * nextAction;
+        var targetRemaining = (ideal - target.Position).Length() - target.HitboxRadius - targetMeleeRange - (target.Position - target.PrevPosition).Length() / World.Frame.Duration * nextAction - Speed() * nextAction;
         if (targetRemaining > 0)
             ideal += targetRemaining * (target.Position - ideal).Normalized();
         return ideal;

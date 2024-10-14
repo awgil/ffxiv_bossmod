@@ -52,7 +52,7 @@ public class JsonPlanConverter : JsonConverter<Plan>
         var name = jdoc.RootElement.GetProperty(nameof(Plan.Name)).GetString() ?? "";
         var encName = jdoc.RootElement.GetProperty(nameof(Plan.Encounter)).GetString() ?? "";
         var encType = Type.GetType(encName);
-        var encInfo = encType != null ? ModuleRegistry.FindByType(encType) : null;
+        var encInfo = encType != null ? BossModuleRegistry.FindByType(encType) : null;
         if (encInfo == null)
         {
             Service.Log($"Error while deserializing plan {name}: failed to find encounter {encName}");

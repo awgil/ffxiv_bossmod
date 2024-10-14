@@ -47,19 +47,12 @@ public sealed record class ActorCastInfo
     public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);
 }
 
-public sealed class ActorCastEvent
+// note: 'main' target could be completely different and unrelated to actual affected targets
+public sealed record class ActorCastEvent(ActionID Action, ulong MainTargetID, float AnimationLockTime, uint MaxTargets, Vector3 TargetPos, uint GlobalSequence, uint SourceSequence, Angle Rotation)
 {
     public readonly record struct Target(ulong ID, ActionEffects Effects);
 
-    public ActionID Action;
-    public ulong MainTargetID; // note that actual affected targets could be completely different
-    public float AnimationLockTime;
-    public uint MaxTargets;
-    public List<Target> Targets = [];
-    public Vector3 TargetPos;
-    public uint SourceSequence;
-    public uint GlobalSequence;
-    public Angle Rotation;
+    public readonly List<Target> Targets = [];
 
     public WPos TargetXZ => new(TargetPos.XZ());
 
@@ -114,6 +107,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public Angle Rotation => PosRot.W.Radians();
     public bool Omnidirectional => Utils.CharacterIsOmnidirectional(OID);
     public bool IsDeadOrDestroyed => IsDead || IsDestroyed;
+    public bool IsFriendlyNPC => Type == ActorType.Enemy && IsAlly && IsTargetable;
 
     public ActorStatus? FindStatus(uint sid)
     {

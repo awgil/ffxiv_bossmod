@@ -418,9 +418,7 @@ class UWUStates : StateMachineBuilder
         P4BeforeAnnihilation(id + 0x30000, 2.0f);
         P4Annihilation(id + 0x40000, 2.3f);
         P4BeforeSuppression(id + 0x50000, 0.7f);
-
-        SimpleState(id + 0xFF0000, 100, "???")
-            .ActivateOnEnter<P1EyeOfTheStorm>();
+        SimpleState(id + 0x60000, 3.1f, "Suppression start");
     }
 
     private void P4Lahabrea(uint id, float delay)
@@ -430,7 +428,7 @@ class UWUStates : StateMachineBuilder
             .DeactivateOnExit<P4Freefire>();
         ComponentCondition<P4MagitekBits>(id + 0x1000, 2.2f, comp => comp.Active, "Caster LB")
             .ActivateOnEnter<P4MagitekBits>();
-        ComponentCondition<P4Blight>(id + 0x2000, 11.5f, comp => comp.NumCasts > 0, "Heal LB")
+        ComponentCondition<P4Blight>(id + 0x2000, 11.5f, comp => comp.NumCasts > 0, "Heal LB", 10) // note: timing variance is extreme (up to 16s), 11.5 is minimal seen
             .ActivateOnEnter<P4Blight>()
             .DeactivateOnExit<P4Blight>();
         ActorTargetable(id + 0x3000, _module.Lahabrea, true, 9.1f, "Melee LB")
@@ -623,8 +621,19 @@ class UWUStates : StateMachineBuilder
         ComponentCondition<P1EyeOfTheStorm>(id + 0x302, 2.0f, comp => comp.NumCasts > 0)
             .DeactivateOnExit<P1EyeOfTheStorm>();
 
-        // TODO: homing lasers > eots + knockback > diffractive ?
-        //P4HomingLasers(id + 0x400, 10);
+        P4HomingLasers(id + 0x400, 2.8f);
+
+        ComponentCondition<P1EyeOfTheStorm>(id + 0x500, 3.1f, comp => comp.Casters.Count > 0)
+            .ActivateOnEnter<P1EyeOfTheStorm>()
+            .ActivateOnEnter<P4VulcanBurst>()
+            .ActivateOnEnter<P4DiffractiveLaser>(); // show hint early...
+        ComponentCondition<P4VulcanBurst>(id + 0x501, 1.0f, comp => comp.NumCasts > 0, "Knockback")
+            .DeactivateOnExit<P4VulcanBurst>();
+        ComponentCondition<P1EyeOfTheStorm>(id + 0x502, 2.0f, comp => comp.NumCasts > 0)
+            .DeactivateOnExit<P1EyeOfTheStorm>();
+
+        ComponentCondition<P4DiffractiveLaser>(id + 0x600, 1.5f, comp => comp.NumCasts > 0, "Tankbuster")
+            .DeactivateOnExit<P4DiffractiveLaser>();
     }
 
     private void P4HomingLasers(uint id, float delay)

@@ -4,10 +4,10 @@ using System.Text;
 
 namespace BossMod.ReplayVisualization;
 
-class OpList(Replay replay, Replay.Encounter? enc, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldState.Operation> ops, Action<DateTime> scrollTo)
+class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? moduleInfo, IEnumerable<WorldState.Operation> ops, Action<DateTime> scrollTo)
 {
     public readonly Replay.Encounter? Encounter = enc;
-    public readonly ModuleRegistry.Info? ModuleInfo = moduleInfo;
+    public readonly BossModuleRegistry.Info? ModuleInfo = moduleInfo;
     private DateTime _relativeTS;
     private readonly List<(int Index, DateTime Timestamp, string Text, Action<UITree>? Children, Action? ContextMenu)> _nodes = [];
     private readonly HashSet<uint> _filteredOIDs = [];
@@ -109,7 +109,7 @@ class OpList(Replay replay, Replay.Encounter? enc, ModuleRegistry.Info? moduleIn
             ActorState.OpHPMP => false,
             ActorState.OpTargetable op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ActorState.OpDead op => FilterInterestingActor(op.InstanceID, op.Timestamp, true),
-            ActorState.OpCombat => false,
+            ActorState.OpCombat op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ActorState.OpEventState op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ActorState.OpTarget op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ActorState.OpCastInfo op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(FindCast(replay.FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null)?.ID ?? new()),

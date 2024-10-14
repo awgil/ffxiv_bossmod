@@ -112,9 +112,8 @@ public sealed class LegacyBRD : LegacyModule
         public int Repertoire;
         public int SoulVoice;
         public int NumCoda;
-        public float StraightShotLeft;
+        public float HawkEyeLeft;
         public float BlastArrowLeft;
-        public float ShadowbiteLeft;
         public float RagingStrikesLeft;
         public float BattleVoiceLeft;
         public float RadiantFinaleLeft;
@@ -144,7 +143,7 @@ public sealed class LegacyBRD : LegacyModule
 
         public override string ToString()
         {
-            return $"g={ActiveSong}/{ActiveSongLeft:f3}/{Repertoire}/{SoulVoice}/{NumCoda}, AOE={NumRainOfDeathTargets}/{NumLadonsbiteTargets}, no-dots={ForbidDOTs}, RB={RaidBuffsLeft:f3}, SS={StraightShotLeft:f3}, BA={BlastArrowLeft:f3}, SB={ShadowbiteLeft:f3}, Buffs={RagingStrikesLeft:f3}/{BattleVoiceLeft:f3}/{RadiantFinaleLeft:f3}, Muse={ArmysMuseLeft:f3}, Barr={BarrageLeft:f3}, Dots={TargetStormbiteLeft:f3}/{TargetCausticLeft:f3}, PotCD={PotionCD:f3}, BVCD={CD(BRD.AID.BattleVoice):f3}, BLCD={CD(BRD.AID.Bloodletter):f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
+            return $"g={ActiveSong}/{ActiveSongLeft:f3}/{Repertoire}/{SoulVoice}/{NumCoda}, AOE={NumRainOfDeathTargets}/{NumLadonsbiteTargets}, no-dots={ForbidDOTs}, RB={RaidBuffsLeft:f3}, SS={HawkEyeLeft:f3}, BA={BlastArrowLeft:f3}, Buffs={RagingStrikesLeft:f3}/{BattleVoiceLeft:f3}/{RadiantFinaleLeft:f3}, Muse={ArmysMuseLeft:f3}, Barr={BarrageLeft:f3}, Dots={TargetStormbiteLeft:f3}/{TargetCausticLeft:f3}, PotCD={PotionCD:f3}, BVCD={CD(BRD.AID.BattleVoice):f3}, BLCD={CD(BRD.AID.Bloodletter):f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}";
         }
     }
 
@@ -155,7 +154,7 @@ public sealed class LegacyBRD : LegacyModule
         _state = new(this);
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
         if (_state.AnimationLockDelay < 0.1f)
@@ -168,9 +167,8 @@ public sealed class LegacyBRD : LegacyModule
         _state.SoulVoice = gauge.SoulVoice;
         _state.NumCoda = BitOperations.PopCount((uint)gauge.SongFlags & 0x70);
 
-        _state.StraightShotLeft = _state.StatusDetails(Player, BRD.SID.HawksEye, Player.InstanceID, 30).Left;
+        _state.HawkEyeLeft = _state.StatusDetails(Player, BRD.SID.HawksEye, Player.InstanceID, 30).Left;
         _state.BlastArrowLeft = _state.StatusDetails(Player, BRD.SID.BlastArrowReady, Player.InstanceID, 10).Left;
-        _state.ShadowbiteLeft = _state.StatusDetails(Player, BRD.SID.ShadowbiteReady, Player.InstanceID, 30).Left;
         _state.RagingStrikesLeft = _state.StatusDetails(Player, BRD.SID.RagingStrikes, Player.InstanceID, 20).Left;
         _state.BattleVoiceLeft = _state.StatusDetails(Player, BRD.SID.BattleVoice, Player.InstanceID, 15).Left;
         _state.RadiantFinaleLeft = _state.StatusDetails(Player, BRD.SID.RadiantFinale, Player.InstanceID, 15).Left;
@@ -268,14 +266,14 @@ public sealed class LegacyBRD : LegacyModule
             return false; // never extend buffed dots early: we obviously don't want to use multiple IJs in a single buff window, and outside buff window we don't want to overwrite buffed ticks, even if that means risking losing a proc
 
         // ok, dots aren't falling off imminently, and they are not buffed - see if we want to ij early and overwrite last ticks
-        if (_state.StraightShotLeft <= _state.GCD && refreshDotsDeadline <= _state.GCD + 5 && !ShouldUseApexArrow(aaStrategy) && (_state.BlastArrowLeft <= _state.GCD || baStrategy == OffensiveStrategy.Delay))
+        if (_state.HawkEyeLeft <= _state.GCD && refreshDotsDeadline <= _state.GCD + 5 && !ShouldUseApexArrow(aaStrategy) && (_state.BlastArrowLeft <= _state.GCD || baStrategy == OffensiveStrategy.Delay))
             return true; // refresh 1 gcd early, if we would be forced to cast BS otherwise - if so, we could proc RA and then overwrite it by IJ on next gcd (TODO: i don't really like these conditions...)
         if (_state.BattleVoiceLeft <= _state.GCD)
             return false; // outside buff window, so no more reasons to extend early
 
         // under buffs, we might want to do early IJ, so that AA can be slightly delayed, or so that we don't risk proc overwrites
         int maxRemainingGCDs = 1; // by default, refresh on last possible GCD before we either drop dots or drop major buffs
-        if (_state.StraightShotLeft <= _state.GCD)
+        if (_state.HawkEyeLeft <= _state.GCD)
             ++maxRemainingGCDs; // 1 extra gcd if we don't have RA proc (if we don't refresh early, we might use filler, which could give us a proc; then on next gcd we'll be forced to IJ to avoid dropping dots, which might give another proc)
         // if we're almost at the gauge cap, we want to delay AA/BA (but still fit them into buff window), so we want to IJ earlier
         if (_state.SoulVoice is > 50 and < 100) // best we can hope for over 4 gcds is ~25 gauge (4 ticks + EA) - TODO: improve condition
@@ -287,7 +285,7 @@ public sealed class LegacyBRD : LegacyModule
     {
         DotStrategy.Forbid => false,
         DotStrategy.ForceExtend => true,
-        DotStrategy.ExtendIgnoreBuffs => CanRefreshDOTsIn(_state.StraightShotLeft <= _state.GCD ? 2 : 1),
+        DotStrategy.ExtendIgnoreBuffs => CanRefreshDOTsIn(_state.HawkEyeLeft <= _state.GCD ? 2 : 1),
         DotStrategy.ExtendDelayed => CanRefreshDOTsIn(1),
         _ => ShouldUseIronJawsAutomatic(aaStrategy, baStrategy)
     };
@@ -371,8 +369,8 @@ public sealed class LegacyBRD : LegacyModule
         _ => Player.InCombat // in combat
             && (_state.Unlocked(BRD.AID.BattleVoice) ? _state.BattleVoiceLeft : _state.RagingStrikesLeft) > 0 // and under raid buffs
             && (_state.NumLadonsbiteTargets < 2
-                ? _state.StraightShotLeft <= _state.GCD // in non-aoe situation - if there is no RA proc already
-                : _state.NumLadonsbiteTargets >= 4 && _state.ShadowbiteLeft > _state.GCD) // in aoe situations - use on shadowbite on 4+ targets (TODO: verify!!!)
+                ? _state.HawkEyeLeft <= _state.GCD // in non-aoe situation - if there is no RA proc already
+                : _state.NumLadonsbiteTargets >= 4 && _state.HawkEyeLeft > _state.GCD) // in aoe situations - use on shadowbite on 4+ targets (TODO: verify!!!)
     };
 
     // by default, we use sidewinder asap, unless raid buffs are imminent
@@ -399,7 +397,7 @@ public sealed class LegacyBRD : LegacyModule
 
             // TODO: barraged RA on 3 targets?..
             // TODO: better shadowbite targeting (it might hit fewer targets)
-            return _state.ShadowbiteLeft > _state.GCD ? BRD.AID.Shadowbite : _state.BestLadonsbite;
+            return _state.HawkEyeLeft > _state.GCD ? BRD.AID.Shadowbite : _state.BestLadonsbite;
         }
         else
         {
@@ -423,7 +421,7 @@ public sealed class LegacyBRD : LegacyModule
                 // - if barrage is about to come off CD, we don't want to delay it needlessly
                 // - if delaying RA would force us to IJ on next gcd (potentially overwriting proc)
                 // we only do that if there are no explicit AA/BA force strategies (in that case we assume just doing AA/BA is more important than wasting a proc)
-                bool highPriorityRA = _state.StraightShotLeft > _state.GCD // RA ready
+                bool highPriorityRA = _state.HawkEyeLeft > _state.GCD // RA ready
                     && strategyAA is ApexArrowStrategy.Automatic or ApexArrowStrategy.Delay // no forced AA
                     && strategyBA != OffensiveStrategy.Force // no forced BA
                     && (_state.CD(BRD.AID.Barrage) < _state.GCD + 2.5f || CanRefreshDOTsIn(2)); // either barrage coming off cd or dots falling off imminent
@@ -439,7 +437,7 @@ public sealed class LegacyBRD : LegacyModule
                     return BRD.AID.ApexArrow;
 
                 // RA/BS
-                return _state.StraightShotLeft > _state.GCD ? _state.BestRefulgentArrow : _state.BestBurstShot;
+                return _state.HawkEyeLeft > _state.GCD ? _state.BestRefulgentArrow : _state.BestBurstShot;
             }
             else
             {
@@ -451,7 +449,7 @@ public sealed class LegacyBRD : LegacyModule
                     return BRD.AID.Windbite;
                 if (!forbidApplyDOTs && _state.Unlocked(BRD.AID.VenomousBite) && _state.TargetCausticLeft < _state.GCD + 3)
                     return BRD.AID.VenomousBite;
-                return _state.StraightShotLeft > _state.GCD ? BRD.AID.StraightShot : BRD.AID.HeavyShot;
+                return _state.HawkEyeLeft > _state.GCD ? BRD.AID.StraightShot : BRD.AID.HeavyShot;
             }
         }
     }

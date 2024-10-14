@@ -9,7 +9,7 @@ public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool 
         WPos Position,
         DateTime Activation = new(),
         Angle Forward = new(), // if non-zero, treat specified side as 'forward' for hit calculations
-        bool Risky = true);
+        float Range = 10000);
 
     public bool Inverted = inverted; // if inverted, player should face eyes instead of averting
 
@@ -24,7 +24,7 @@ public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool 
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (ActiveEyes(slot, actor).Any(eye => eye.Risky && HitByEye(actor, eye) != Inverted))
+        if (ActiveEyes(slot, actor).Any(eye => actor.Position.InCircle(eye.Position, eye.Range) && HitByEye(actor, eye) != Inverted))
             hints.Add(Inverted ? "Face the eye!" : "Turn away from gaze!");
     }
 
@@ -32,12 +32,12 @@ public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool 
     {
         if (Inverted)
         {
-            foreach (var eye in ActiveEyes(slot, actor).Where(eye => eye.Risky))
+            foreach (var eye in ActiveEyes(slot, actor).Where(eye => actor.Position.InCircle(eye.Position, eye.Range)))
                 hints.ForbiddenDirections.Add((Angle.FromDirection(actor.Position - eye.Position) - eye.Forward, 135.Degrees(), eye.Activation));
         }
         else
         {
-            foreach (var eye in ActiveEyes(slot, actor).Where(eye => eye.Risky))
+            foreach (var eye in ActiveEyes(slot, actor).Where(eye => actor.Position.InCircle(eye.Position, eye.Range)))
                 hints.ForbiddenDirections.Add((Angle.FromDirection(eye.Position - actor.Position) - eye.Forward, 45.Degrees(), eye.Activation));
         }
     }
@@ -54,7 +54,7 @@ public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool 
             dl.PathFillConvex(danger ? ArenaColor.Enemy : ArenaColor.PC);
             dl.AddCircleFilled(eyeCenter, _eyeInnerR, ArenaColor.Border);
 
-            if (eye.Risky)
+            if (pc.Position.InCircle(eye.Position, eye.Range))
             {
                 var (min, max) = Inverted ? (45, 315) : (-45, 45);
                 Arena.PathArcTo(pc.Position, 1, (pc.Rotation + eye.Forward + min.Degrees()).Rad, (pc.Rotation + eye.Forward + max.Degrees()).Rad);
@@ -80,11 +80,11 @@ public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool 
 }
 
 // gaze that happens on cast end
-public class CastGaze(BossModule module, ActionID aid, bool inverted = false) : GenericGaze(module, aid, inverted)
+public class CastGaze(BossModule module, ActionID aid, bool inverted = false, float range = 10000) : GenericGaze(module, aid, inverted)
 {
     private readonly List<Actor> _casters = [];
 
-    public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor) => _casters.Select(c => new Eye(c.Position, Module.CastFinishAt(c.CastInfo)));
+    public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor) => _casters.Where(c => c.CastInfo?.TargetID != actor.InstanceID).Select(c => new Eye(EyePosition(c), Module.CastFinishAt(c.CastInfo), Range: range));
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -97,6 +97,8 @@ public class CastGaze(BossModule module, ActionID aid, bool inverted = false) : 
         if (spell.Action == WatchedAction)
             _casters.Remove(caster);
     }
+
+    protected WPos EyePosition(Actor caster) => caster.CastInfo == null || caster.CastInfo.TargetID == caster.InstanceID ? caster.Position : WorldState.Actors.Find(caster.CastInfo.TargetID)?.Position ?? caster.CastInfo.LocXZ;
 }
 
 // cast weakpoint component: a number of casts (with supposedly non-intersecting shapes), player should face specific side determined by active status to the caster for aoe he's in

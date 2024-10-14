@@ -18,7 +18,7 @@ public class StateMachineTree
         public Node? Predecessor;
         public List<Node> Successors = [];
 
-        internal Node(float t, int phaseID, int branchID, StateMachine.State state, Node? pred)
+        internal Node(float t, int phaseID, int branchID, StateMachine.State state, StateMachine.Phase phase, Node? pred)
         {
             Time = t;
             PhaseID = phaseID;
@@ -26,7 +26,8 @@ public class StateMachineTree
             if (pred == null)
             {
                 InGroup = true;
-                BossIsCasting = IsDowntime = IsPositioning = IsVulnerable = false;
+                BossIsCasting = IsPositioning = IsVulnerable = false;
+                IsDowntime = phase.Hint.HasFlag(StateMachine.PhaseHint.StartWithDowntime);
             }
             else
             {
@@ -102,7 +103,7 @@ public class StateMachineTree
     {
         for (int i = 0; i < sm.Phases.Count; ++i)
         {
-            var (startingNode, maxTime) = LayoutNodeAndSuccessors(0, i, TotalBranches, sm.Phases[i].InitialState, null);
+            var (startingNode, maxTime) = LayoutNodeAndSuccessors(0, i, TotalBranches, sm.Phases[i].InitialState, sm.Phases[i], null);
             _phases.Add(new(sm.Phases[i], startingNode, maxTime));
             TotalBranches += startingNode.NumBranches;
             TotalMaxTime = Math.Max(TotalMaxTime, maxTime);
@@ -149,16 +150,16 @@ public class StateMachineTree
         return PhaseTimeToNodeAndDelay(t - Phases[phaseIndex].StartTime, phaseIndex, phaseBranches);
     }
 
-    private (Node, float) LayoutNodeAndSuccessors(float t, int phaseID, int branchID, StateMachine.State state, Node? pred)
+    private (Node, float) LayoutNodeAndSuccessors(float t, int phaseID, int branchID, StateMachine.State state, StateMachine.Phase phase, Node? pred)
     {
-        var node = _nodes[state.ID] = new Node(t + state.Duration, phaseID, branchID, state, pred);
+        var node = _nodes[state.ID] = new Node(t + state.Duration, phaseID, branchID, state, phase, pred);
         float succDuration = 0;
 
         if (state.NextStates?.Length > 0)
         {
             foreach (var s in state.NextStates)
             {
-                var (succ, dur) = LayoutNodeAndSuccessors(t + state.Duration, phaseID, branchID + node.NumBranches, s, node);
+                var (succ, dur) = LayoutNodeAndSuccessors(t + state.Duration, phaseID, branchID + node.NumBranches, s, phase, node);
                 node.Successors.Add(succ);
                 succDuration = Math.Max(succDuration, dur);
                 node.NumBranches += succ.NumBranches;

@@ -10,10 +10,9 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: BRD", "Planner support for utility actions", "veyn", RotationModuleQuality.WIP, BitMask.Build((int)Class.BRD), 100);
+        var res = new RotationModuleDefinition("Utility: BRD", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "veyn", RotationModuleQuality.Excellent, BitMask.Build((int)Class.BRD), 100);
         DefineShared(res, IDLimitBreak3);
 
-        // TODO: repelling shot (not sure how it can be planned really...)
         DefineSimpleConfig(res, Track.WardensPaean, "WardensPaean", "Dispel", -10, BRD.AID.WardensPaean, 30);
 
         res.Define(Track.Troubadour).As<TroubOption>("Troubadour", "Troub", 500)
@@ -27,7 +26,7 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3);
         ExecuteSimple(strategy.Option(Track.WardensPaean), BRD.AID.WardensPaean, Player);

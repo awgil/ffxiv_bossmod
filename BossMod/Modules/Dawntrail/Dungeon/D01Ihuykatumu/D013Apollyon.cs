@@ -95,15 +95,7 @@ class CuttingWind(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Whirlwind))
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-        if (Sources(Module).FirstOrDefault() is Actor w)
-            hints.AddForbiddenZone(new AOEShapeRect(6, 4, 4), w.Position, w.Rotation);
-    }
-}
+class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Whirlwind), 30);
 
 class D013ApollyonStates : StateMachineBuilder
 {

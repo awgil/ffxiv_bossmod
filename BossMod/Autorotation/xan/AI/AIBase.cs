@@ -2,7 +2,7 @@
 
 namespace BossMod.Autorotation.xan;
 
-public abstract class AIBase(RotationModuleManager manager, Actor player) : Targetxan(manager, player)
+public abstract class AIBase(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     internal bool Unlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
     internal float NextChargeIn<AID>(AID aid) where AID : Enum => NextChargeIn(ActionID.MakeSpell(aid));
@@ -18,10 +18,7 @@ public abstract class AIBase(RotationModuleManager manager, Actor player) : Targ
     internal bool IsCastReactable(Actor act)
     {
         var castInfo = act.CastInfo;
-        if (castInfo == null || castInfo.TotalTime <= 1.5 || castInfo.EventHappened)
-            return false;
-
-        return castInfo.NPCTotalTime - castInfo.NPCRemainingTime > 1;
+        return !(castInfo == null || castInfo.TotalTime <= 1.5 || castInfo.EventHappened);
     }
 
     internal IEnumerable<AIHints.Enemy> EnemiesAutoingMe => Hints.PriorityTargets.Where(x => x.Actor.CastInfo == null && x.Actor.TargetID == Player.InstanceID && Player.DistanceToHitbox(x.Actor) <= 6);
@@ -32,14 +29,14 @@ public abstract class AIBase(RotationModuleManager manager, Actor player) : Targ
     internal uint PredictedHP(Actor actor) => (uint)Math.Clamp(actor.HPMP.CurHP + World.PendingEffects.PendingHPDifference(actor.InstanceID), 0, actor.HPMP.MaxHP);
     internal float PredictedHPRatio(Actor actor) => (float)PredictedHP(actor) / actor.HPMP.MaxHP;
 
-    internal IEnumerable<DateTime> Raidwides => Hints.PredictedDamage.Where(d => World.Party.WithSlot(partyOnly: true).IncludedInMask(d.players).Count() >= 2).Select(t => t.activation);
+    internal IEnumerable<DateTime> Raidwides => Hints.PredictedDamage.Where(d => World.Party.WithSlot(excludeAlliance: true).IncludedInMask(d.players).Count() >= 2).Select(t => t.activation);
     internal IEnumerable<(Actor, DateTime)> Tankbusters
     {
         get
         {
             foreach (var d in Hints.PredictedDamage)
             {
-                var targets = World.Party.WithSlot(partyOnly: true).IncludedInMask(d.players).GetEnumerator();
+                var targets = World.Party.WithSlot(excludeAlliance: true).IncludedInMask(d.players).GetEnumerator();
                 targets.MoveNext();
                 var target1 = targets.Current;
                 if (targets.MoveNext())

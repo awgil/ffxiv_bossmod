@@ -100,7 +100,7 @@ class Mouser(BossModule module) : Components.GenericAOEs(module)
 class ElevateAndEviscerate(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.ElevateAndEviscerateShockwave))
 {
     private readonly Mouser? _mouser = module.FindComponent<Mouser>();
-    private Actor? _nextTarget; // target selection icon appears before cast start
+    private Actor? _nextTarget; // target selection icon appears in random order compared to cast start
     public Actor? CurrentTarget; // for current mechanic
     private DateTime _currentDeadline; // for current target - expected time when stun starts, which is deadline for positioning
     private int _currentKnockbackDistance;
@@ -162,23 +162,25 @@ class ElevateAndEviscerate(BossModule module) : Components.CastCounter(module, A
             return;
         if (_nextTarget != null)
             ReportError($"Next target icon before previous was consumed");
+
         _nextTarget = actor;
+        if (_currentDeadline != default)
+            CurrentTarget = actor;
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.ElevateAndEviscerateKnockback or AID.ElevateAndEviscerateHit)
         {
-            if (_nextTarget == null)
+            if (_currentDeadline != default)
             {
-                ReportError("Cast started before target selection");
+                ReportError("Cast started before previous jump is resolved");
                 return;
             }
 
             CurrentTarget = _nextTarget;
             _currentDeadline = Module.CastFinishAt(spell, 1.8f);
             _currentKnockbackDistance = (AID)spell.Action.ID == AID.ElevateAndEviscerateKnockback ? 10 : 0;
-            _nextTarget = null;
         }
     }
 
@@ -187,7 +189,7 @@ class ElevateAndEviscerate(BossModule module) : Components.CastCounter(module, A
         if (spell.Action == WatchedAction)
         {
             ++NumCasts;
-            CurrentTarget = null;
+            _nextTarget = CurrentTarget = null;
             _currentDeadline = default;
             _currentKnockbackDistance = 0;
         }

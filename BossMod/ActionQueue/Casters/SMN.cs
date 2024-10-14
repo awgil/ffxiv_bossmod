@@ -132,6 +132,7 @@ public enum SID : uint
     SearingLight = 2703, // applied by Searing Light to self/target
     TitansFavor = 2853, // applied by Topaz Rite, Topaz Catastrophe to self
     Rekindle = 2704, // applied by Rekindle to self
+    RadiantAegis = 2702,
     Slipstream = 2706, // applied by Slipstream to self
     IfritsFavor = 2724, // applied by Summon Ifrit II to self
     GarudasFavor = 2725, // applied by Summon Garuda II to self

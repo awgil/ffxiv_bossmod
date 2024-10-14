@@ -34,7 +34,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         _playerActions = playerActions;
         _encStart = encStart;
 
-        _colTarget = Add(new ColumnPlannerTrackTarget(timeline, tree, phaseBranches, ModuleRegistry.FindByType(plan.Encounter)));
+        _colTarget = Add(new ColumnPlannerTrackTarget(timeline, tree, phaseBranches, BossModuleRegistry.FindByType(plan.Encounter)));
         _colTarget.Width = _trackWidth;
         _colTarget.NotifyModified = OnModifiedTargets;
 
@@ -215,7 +215,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
 
     private void AddStrategyColumns(Type t)
     {
-        var moduleInfo = ModuleRegistry.FindByType(Plan.Encounter);
+        var moduleInfo = BossModuleRegistry.FindByType(Plan.Encounter);
         var cols = _colsStrategy[t] = [];
         var md = RotationModuleRegistry.Modules[t].Definition;
         var tracks = Plan.Modules[t];

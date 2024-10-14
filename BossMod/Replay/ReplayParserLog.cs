@@ -37,7 +37,7 @@ public sealed class ReplayParserLog : IDisposable
         public abstract ActionID ReadAction();
         public abstract Class ReadClass();
         public abstract ActorStatus ReadStatus();
-        public abstract List<ActorCastEvent.Target> ReadTargets();
+        public abstract void ReadTargets(List<ActorCastEvent.Target> list);
         public abstract (float, float) ReadFloatPair();
         public abstract (DateTime, float) ReadTimePair();
         public abstract ulong ReadActorID();
@@ -121,18 +121,16 @@ public sealed class ReplayParserLog : IDisposable
             int sep = sid.IndexOf(' ', StringComparison.Ordinal);
             return new(uint.Parse(sep >= 0 ? sid.AsSpan(0, sep) : sid.AsSpan()), ushort.Parse(ReadString(), NumberStyles.HexNumber), Timestamp.AddSeconds(ReadFloat()), ReadActorID());
         }
-        public override List<ActorCastEvent.Target> ReadTargets()
+        public override void ReadTargets(List<ActorCastEvent.Target> list)
         {
-            List<ActorCastEvent.Target> res = [];
             while (CanRead())
             {
                 var parts = ReadString().Split('!');
                 var effects = new ActionEffects();
                 for (int j = 1; j < parts.Length; ++j)
                     effects[j - 1] = ulong.Parse(parts[j], NumberStyles.HexNumber);
-                res.Add(new(ParseActorID(parts[0]), effects));
+                list.Add(new(ParseActorID(parts[0]), effects));
             }
-            return res;
         }
         public override (float, float) ReadFloatPair()
         {
@@ -195,19 +193,18 @@ public sealed class ReplayParserLog : IDisposable
         public override ActionID ReadAction() => new(_input.ReadUInt32());
         public override Class ReadClass() => (Class)_input.ReadByte();
         public override ActorStatus ReadStatus() => new(_input.ReadUInt32(), _input.ReadUInt16(), new(_input.ReadInt64()), _input.ReadUInt64());
-        public override List<ActorCastEvent.Target> ReadTargets()
+        public override void ReadTargets(List<ActorCastEvent.Target> list)
         {
             var count = _input.ReadInt32();
-            List<ActorCastEvent.Target> res = new(count);
+            list.Capacity = count;
             for (int i = 0; i < count; ++i)
             {
                 var id = _input.ReadUInt64();
                 var effects = new ActionEffects();
                 for (int j = 0; j < ActionEffects.MaxCount; ++j)
                     effects[j] = _input.ReadUInt64();
-                res.Add(new(id, effects));
+                list.Add(new(id, effects));
             }
-            return res;
         }
         public override (float, float) ReadFloatPair() => (_input.ReadSingle(), _input.ReadSingle());
         public override (DateTime, float) ReadTimePair() => (new(_input.ReadInt64()), _input.ReadSingle());
@@ -571,18 +568,17 @@ public sealed class ReplayParserLog : IDisposable
         return new(instanceID, cast);
     }
 
-    private ActorState.OpCastEvent ParseActorCastEvent() => new(_input.ReadActorID(), new()
+    private ActorState.OpCastEvent ParseActorCastEvent()
     {
-        Action = _input.ReadAction(),
-        MainTargetID = _input.ReadActorID(),
-        AnimationLockTime = _input.ReadFloat(),
-        MaxTargets = _input.ReadUInt(false),
-        TargetPos = _version >= 6 ? _input.ReadVec3() : new(),
-        GlobalSequence = _version >= 7 ? _input.ReadUInt(false) : 0,
-        SourceSequence = _version >= 9 ? _input.ReadUInt(false) : 0,
-        Rotation = _version >= 21 ? _input.ReadAngle() : default,
-        Targets = _input.ReadTargets()
-    });
+        var actor = _input.ReadActorID();
+        var value = new ActorCastEvent(_input.ReadAction(), _input.ReadActorID(), _input.ReadFloat(), _input.ReadUInt(false),
+            _version >= 6 ? _input.ReadVec3() : default,
+            _version >= 7 ? _input.ReadUInt(false) : 0,
+            _version >= 9 ? _input.ReadUInt(false) : 0,
+            _version >= 21 ? _input.ReadAngle() : default);
+        _input.ReadTargets(value.Targets);
+        return new(actor, value);
+    }
 
     private ActorState.OpEffectResult ParseActorEffectResult() => new(_input.ReadActorID(), _input.ReadUInt(false), _input.ReadInt());
     private ActorState.OpStatus ParseActorStatus(bool gainOrUpdate) => new(_input.ReadActorID(), _input.ReadInt(), gainOrUpdate ? _input.ReadStatus() : default);

@@ -58,6 +58,8 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private readonly AutoDismountTweak _dismountTweak;
     private readonly RestoreRotationTweak _restoreRotTweak = new();
     private readonly SmartRotationTweak _smartRotationTweak;
+    private readonly OutOfCombatActionsTweak _oocActionsTweak;
+    private readonly AutoAutosTweak _autoAutosTweak;
 
     private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
     private readonly HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
@@ -75,9 +77,11 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _hints = hints;
         _movement = movement;
         _manualQueue = new(ws, hints);
-        _cancelCastTweak = new(ws);
+        _cancelCastTweak = new(ws, hints);
         _dismountTweak = new(ws);
         _smartRotationTweak = new(ws, hints);
+        _oocActionsTweak = new(ws);
+        _autoAutosTweak = new(ws, hints);
 
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
         _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
@@ -98,6 +102,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _useActionLocationHook.Dispose();
         _useActionHook.Dispose();
         _updateHook.Dispose();
+        _oocActionsTweak.Dispose();
     }
 
     public void QueueManualActions()
@@ -109,10 +114,17 @@ public sealed unsafe class ActionManagerEx : IDisposable
     // finish gathering candidate actions for this frame: sort by priority and select best action to execute
     public void FinishActionGather()
     {
+        AutoQueue = default;
         var player = _ws.Party.Player();
-        AutoQueue = player != null ? _hints.ActionsToExecute.FindBest(_ws, player, _ws.Client.Cooldowns, EffectiveAnimationLock, _hints, _animLockTweak.DelayEstimate) : default;
+        if (player == null)
+            return;
+
+        _oocActionsTweak.FillActions(player, _hints);
+        AutoQueue = _hints.ActionsToExecute.FindBest(_ws, player, _ws.Client.Cooldowns, EffectiveAnimationLock, _hints, _animLockTweak.DelayEstimate);
         if (AutoQueue.Delay > 0)
             AutoQueue = default;
+        if (Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold) && AutoQueue.Priority < ActionQueue.Priority.ManualEmergency)
+            AutoQueue = default; // do not execute non-emergency actions when pyretic is imminent
     }
 
     public Vector3? GetWorldPosUnderCursor()
@@ -318,6 +330,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
         MoveMightInterruptCast |= imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f; // if we're not casting, but will start soon, moving might interrupt future cast
         bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast && _ws.Party.Player()?.MountId == 0;
+        blockMovement |= Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold);
 
         // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
         bool actionImminent = EffectiveAnimationLock <= 0 && AutoQueue.Action && !IsRecastTimerActive(AutoQueue.Action) && !(blockMovement && _movement.IsMoving());
@@ -363,6 +376,10 @@ public sealed unsafe class ActionManagerEx : IDisposable
         if (_ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(_ws.CurrentTime, ForceCancelCastNextFrame))
             UIState.Instance()->Hotbar.CancelCast();
         ForceCancelCastNextFrame = false;
+
+        var autosEnabled = UIState.Instance()->WeaponState.IsAutoAttacking;
+        if (_autoAutosTweak.GetDesiredState(autosEnabled) != autosEnabled)
+            _inst->UseAction(CSActionType.GeneralAction, 1);
     }
 
     // note: targetId is usually your current primary target (or 0xE0000000 if you don't target anyone), unless you do something like /ac XXX <f> etc
@@ -407,10 +424,17 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     private bool UseActionLocationDetour(ActionManager* self, CSActionType actionType, uint actionId, ulong targetId, Vector3* location, uint extraParam)
     {
+        var targetSystem = TargetSystem.Instance();
         var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         var prevSeq = _inst->LastUsedActionSequence;
         var prevRot = player != null ? player->Rotation.Radians() : default;
+        var hardTarget = targetSystem->Target;
+        var preventAutos = _autoAutosTweak.ShouldPreventAutoActivation(ActionManager.GetSpellIdForAction(actionType, actionId));
+        if (preventAutos)
+            targetSystem->Target = null;
         bool ret = _useActionLocationHook.Original(self, actionType, actionId, targetId, location, extraParam);
+        if (preventAutos)
+            targetSystem->Target = hardTarget;
         var currSeq = _inst->LastUsedActionSequence;
         var currRot = player != null ? player->Rotation.Radians() : default;
         if (currSeq != prevSeq)
@@ -441,17 +465,8 @@ public sealed unsafe class ActionManagerEx : IDisposable
         // 1. action id is already unscrambled
         // 2. this function won't be called if caster object doesn't exist
         // the last point is deemed to be minor enough for us to not care, as it simplifies things (no need to hook 5 functions)
-        var info = new ActorCastEvent
-        {
-            Action = new ActionID((ActionType)header->ActionType, header->ActionId),
-            MainTargetID = header->AnimationTargetId,
-            AnimationLockTime = header->AnimationLock,
-            MaxTargets = header->NumTargets,
-            TargetPos = *targetPos,
-            SourceSequence = header->SourceSequence,
-            GlobalSequence = header->GlobalSequence,
-            Rotation = Network.PacketDecoder.IntToFloatAngle(header->RotationInt),
-        };
+        var info = new ActorCastEvent(new((ActionType)header->ActionType, header->ActionId), header->AnimationTargetId, header->AnimationLock, header->NumTargets, *targetPos,
+            header->GlobalSequence, header->SourceSequence, Network.PacketDecoder.IntToFloatAngle(header->RotationInt));
         var rawEffects = (ulong*)effects;
         for (int i = 0; i < header->NumTargets; ++i)
         {

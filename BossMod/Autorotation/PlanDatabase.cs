@@ -60,7 +60,7 @@ public sealed class PlanDatabase
                 foreach (var enc in payload.EnumerateObject())
                 {
                     var encType = Type.GetType(enc.Name);
-                    var encInfo = encType != null ? ModuleRegistry.FindByType(encType) : null;
+                    var encInfo = encType != null ? BossModuleRegistry.FindByType(encType) : null;
                     if (encInfo == null)
                     {
                         Service.Log($"Error while deserializing plan database: failed to find encounter {enc.Name}");

@@ -1,9 +1,13 @@
 immediate plans
-- m2s ai/plan
+- nechuciho - seen incorrect rotations...
+- questbattles
+- collisions for pathfinding
+-- embedded mode
 
 general:
 - horizontal timeline / cooldown planner
 - cdplanner should use real cds
+- assignments per ui order rather than per player + class-specific assignments
 - restore view-timeline to module ui
 - module packs
 -- dlls, loaded as usual
@@ -31,6 +35,10 @@ general:
 --- target is not a priority, but damaging it is a nice bonus (lower priority than max target)
 -- use that for targeting utils in aihints
 - debug utility to play action animations, spawn actors, play vfx, etc...
+- encounter hints (to show before pull)
+- zone modules: replay visualization
+- zone modules: module info ui
+- refactor ipc/dtr
 
 boss modules:
 - timers
@@ -50,14 +58,12 @@ autorotation:
 -- target selection should be part of a module/preset
 -- ai manager should use selected preset for combat, out of combat use forcedtarget
 - action history/queue visualization
-- proper gcd time calculations?
 - simulation in replay analysis
 - spell out shared cooldowns in actiondefinitions comments instead of group?
 - delete/rework commonstate/legacy
 - delete autorotationlegacy dir
 - dot/regen server tick tracking
 - brd
--- aoe rotation (2/3/4+ targets, barrage usage)
 -- take traits into account (ij proccing rs, ea proccing repertoire)
 - drg
 -- priorities...

@@ -195,7 +195,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
     private bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3;
     private bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f;
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         Gauge = World.Client.GetGauge<WarriorGauge>().BeastGauge;
         GCDLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
@@ -257,21 +257,34 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         {
             var pr = strategy.Option(Track.PrimalRend);
             var target = ResolveTargetOverride(pr.Value) ?? primaryTarget;
-            var prio = PRPriority(pr.As<PrimalRendStrategy>(), target);
-            QueueGCD(PrimalRuinationActive ? WAR.AID.PrimalRuination : WAR.AID.PrimalRend, target, prio);
+            if (target != null && !target.IsAlly)
+            {
+                var prio = PRPriority(pr.As<PrimalRendStrategy>(), target);
+                QueueGCD(PrimalRuinationActive ? WAR.AID.PrimalRuination : WAR.AID.PrimalRend, target, prio);
+            }
         }
 
         if (Gauge >= 50 || InnerReleaseUnlocked && CanFitGCD(InnerReleaseLeft))
         {
             var action = FellCleaveAction(aoeTargets);
-            var prio = InnerReleaseUnlocked ? FellCleavePriorityIR() : FellCleavePriorityBerserk();
-            QueueGCD(action, action is WAR.AID.InnerBeast or WAR.AID.FellCleave or WAR.AID.InnerChaos ? primaryTarget : Player, prio);
+            var needTarget = action is WAR.AID.InnerBeast or WAR.AID.FellCleave or WAR.AID.InnerChaos;
+            if (!needTarget || primaryTarget != null && !primaryTarget.IsAlly)
+            {
+                var prio = InnerReleaseUnlocked ? FellCleavePriorityIR() : FellCleavePriorityBerserk();
+                QueueGCD(action, needTarget ? primaryTarget : Player, prio);
+            }
         }
 
-        var (comboAction, comboPrio) = ComboActionPriority(aoeStrategy, aoeTargets, burstStrategy, burst.Value.ExpireIn);
-        QueueGCD(comboAction, comboAction is WAR.AID.Overpower or WAR.AID.MythrilTempest ? Player : primaryTarget, comboPrio);
+        {
+            var (comboAction, comboPrio) = ComboActionPriority(aoeStrategy, aoeTargets, burstStrategy, burst.Value.ExpireIn);
+            var selfTarget = comboAction is WAR.AID.Overpower or WAR.AID.MythrilTempest;
+            if (selfTarget || primaryTarget != null && !primaryTarget.IsAlly)
+            {
+                QueueGCD(comboAction, selfTarget ? Player : primaryTarget, comboPrio);
+            }
+        }
 
-        if (ShouldUseTomahawk(primaryTarget, strategy.Option(Track.Tomahawk).As<TomahawkStrategy>()))
+        if (ShouldUseTomahawk(primaryTarget, strategy.Option(Track.Tomahawk).As<TomahawkStrategy>()) && primaryTarget != null && !primaryTarget.IsAlly)
             QueueGCD(WAR.AID.Tomahawk, primaryTarget, GCDPriority.ForcedTomahawk);
 
         // oGCDs
@@ -299,7 +312,10 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         if (Unlocked(WAR.AID.Upheaval) && ShouldUseUpheaval(stratUph.As<OffensiveStrategy>()))
         {
             var aoe = aoeTargets >= 3 && Unlocked(WAR.AID.Orogeny);
-            QueueOGCD(aoe ? WAR.AID.Orogeny : WAR.AID.Upheaval, aoe ? Player : primaryTarget, stratUph.Value.PriorityOverride, OGCDPriority.Upheaval);
+            if (aoe || primaryTarget != null && !primaryTarget.IsAlly)
+            {
+                QueueOGCD(aoe ? WAR.AID.Orogeny : WAR.AID.Upheaval, aoe ? Player : primaryTarget, stratUph.Value.PriorityOverride, OGCDPriority.Upheaval);
+            }
         }
 
         var stratWrath = strategy.Option(Track.Wrath);
@@ -312,13 +328,14 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         {
             var stratOns = strategy.Option(Track.Onslaught);
             var stratOnsOpt = stratOns.As<OnslaughtStrategy>();
-            if (ShouldUseOnslaught(stratOnsOpt, primaryTarget))
+            var target = ResolveTargetOverride(stratOns.Value) ?? primaryTarget;
+            if (target != null && !target.IsAlly && ShouldUseOnslaught(stratOnsOpt, target))
             {
                 // special case for use as gapcloser - it has to be very high priority
                 var (prio, basePrio) = stratOnsOpt == OnslaughtStrategy.GapClose ? (OGCDPriority.GapcloseOnslaught, ActionQueue.Priority.High)
                     : LostBloodRageStacks is > 0 and < 4 ? (OGCDPriority.LostBanner, ActionQueue.Priority.Medium)
-                    : (OGCDPriority.Onslaught, OnslaughtCD < GCDLength ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low);
-                QueueOGCD(WAR.AID.Onslaught, primaryTarget, stratOns.Value.PriorityOverride, prio, basePrio);
+                    : (OGCDPriority.Onslaught, OnslaughtCapIn < GCDLength ? ActionQueue.Priority.Low : ActionQueue.Priority.VeryLow);
+                QueueOGCD(WAR.AID.Onslaught, target, stratOns.Value.PriorityOverride, prio, basePrio);
             }
         }
 
@@ -333,6 +350,18 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfPower), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostFont);
         if (ShouldUseLostBuff(LostBannerCD, 90))
             Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.BannerHonoredSacrifice), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostBanner);
+
+        // ai hints for positioning
+        var goalST = primaryTarget != null ? Hints.GoalSingleTarget(primaryTarget, 3) : null;
+        var goalAOE = Hints.GoalAOECircle(3);
+        var goal = aoeStrategy switch
+        {
+            AOEStrategy.SingleTarget => goalST,
+            AOEStrategy.ForceAOE => goalAOE,
+            _ => goalST != null ? Hints.GoalCombined(goalST, goalAOE, 3) : goalAOE
+        };
+        if (goal != null)
+            Hints.GoalZones.Add(goal);
     }
 
     private void QueueGCD(WAR.AID aid, Actor? target, GCDPriority prio)
@@ -545,7 +574,8 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         // second, if we're under IR, delaying FC/IC might then force us to spam FC/IC to avoid losing IR stacks, without being able to infuriate, and thus overcap it
         // this can only happen if we won't be able to fit extra IC though
         // note: if IR is imminent, this doesn't matter - 6 gcds is more than enough to use all FC/IC
-        if (irActive && !CanFitGCD(InnerReleaseLeft, effectiveIRStacks + 1) && !CanFitGCD(InfuriateCD - InfuriateCDReduction * effectiveIRStacks - InfuriateCDLeeway, effectiveIRStacks))
+        var numFCBeforeInf = InnerReleaseStacks + ((ncActive || Gauge > 50) ? 1 : 0);
+        if (irActive && !CanFitGCD(InnerReleaseLeft, numFCBeforeInf + 1) && !CanFitGCD(InfuriateCD - InfuriateCDReduction * numFCBeforeInf - InfuriateCDLeeway, numFCBeforeInf))
             return GCDPriority.AvoidOvercapInfuriateIR;
 
         // third, if IR is imminent, we have high (>50) gauge, we won't be able to spend this gauge (and use infuriate) before spending IR stacks
@@ -695,7 +725,9 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             }
         }
         var nextAction = wantAOEAction ? NextComboAOE(comboStepsRemaining == 0) : NextComboSingleTarget(wantSERoute, comboStepsRemaining == 0);
-        var riskOvercappingGauge = Gauge + GaugeGainedFromAction(nextAction) > 100;
+
+        var needInfuriateSoon = Unlocked(WAR.AID.Infuriate) && !CanFitGCD(InfuriateCD - InfuriateCDReduction - InfuriateCDLeeway, 1);
+        var riskOvercappingGauge = Gauge + GaugeGainedFromAction(nextAction) > (needInfuriateSoon ? 50 : 100);
 
         // first deal with forced combo; for ST extension, we generally want to minimize overcap by using combo finisher as late as possible
         // TODO: reconsider what to do if we can't fit in combo - do we still want to do partial combo? especially if it would cause gauge overcap
@@ -871,8 +903,19 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         if (irActive && unlockedNC)
             return (false, false);
 
+        // don't infuriate if we need to use combo for ST, and it would overcap gauge
+        // assume if ST is about to drop, we prioritize combo actions anyway
+        var (stRefreshGauge, stRefreshGCDs) = NextGCD switch
+        {
+            WAR.AID.HeavySwing => (20, 3),
+            WAR.AID.Maim => (20, 2),
+            WAR.AID.StormEye => (10, 1),
+            WAR.AID.Overpower => (20, 2),
+            WAR.AID.MythrilTempest => (20, 1),
+            _ => (30, 4)
+        };
         // don't double infuriate during opener when NC is not yet unlocked (TODO: consider making it better)
-        if (Gauge >= 50 && !CanFitGCD(SurgingTempestLeft))
+        if (Gauge + stRefreshGauge + 50 > 100 && !CanFitGCD(SurgingTempestLeft, stRefreshGCDs))
             return (false, false);
 
         // at this point, use under burst or delay outside (TODO: reconsider, we might want to be smarter here...)
@@ -895,7 +938,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         _ => false
     };
 
-    private bool WantOnslaught(Actor? target, bool reserveLastCharge)
+    private bool WantOnslaught(Actor target, bool reserveLastCharge)
     {
         if (!Player.InCombat)
             return false; // don't use out of combat
@@ -932,7 +975,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         return onslaughtCapIn <= BurstWindowIn; // use if we won't be able to delay until next raid buffs
     }
 
-    private bool ShouldUseOnslaught(OnslaughtStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseOnslaught(OnslaughtStrategy strategy, Actor target) => strategy switch
     {
         OnslaughtStrategy.Automatic => GCD >= OnslaughtMinGCD && WantOnslaught(target, true),
         OnslaughtStrategy.Forbid => false,

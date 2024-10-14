@@ -30,8 +30,6 @@ public class ThetaStar
     }
 
     private Map _map = new();
-    //private Vector2 _goalFrac;
-    //private float _goalRadius;
     private Node[] _nodes = [];
     private readonly List<int> _openList = [];
     private float _deltaGSide;
@@ -54,11 +52,9 @@ public class ThetaStar
     public WPos CellCenter(int index) => _map.GridToWorld(index % _map.Width, index / _map.Width, 0.5f, 0.5f);
 
     // gMultiplier is typically inverse speed, which turns g-values into time
-    public void Start(Map map, WPos startPos, WPos goalPos, float goalRadius, float gMultiplier)
+    public void Start(Map map, WPos startPos, float gMultiplier)
     {
         _map = map;
-        //_goalFrac = map.WorldToGridFrac(goalPos);
-        //_goalRadius = goalRadius;
         var numPixels = map.Width * map.Height;
         if (_nodes.Length < numPixels)
             _nodes = new Node[numPixels];
@@ -73,6 +69,8 @@ public class ThetaStar
         var start = map.ClampToGrid(map.FracToGrid(startFrac));
         _startNodeIndex = _bestIndex = _fallbackIndex = _map.GridToIndex(start.x, start.y);
         _startMaxG = _map.PixelMaxG[_startNodeIndex];
+        //if (_startMaxG < 0)
+        //    _startMaxG = float.MaxValue; // TODO: this is a hack that allows navigating outside the obstacles, reconsider...
         _startScore = CalculateScore(_startMaxG, _startMaxG, _startMaxG, _startNodeIndex);
         NumSteps = NumReopens = 0;
 
@@ -323,9 +321,12 @@ public class ThetaStar
 
         // note: we may visit the node even if it's blocked (eg we might be moving outside imminent aoe)
         var destPixG = _map.PixelMaxG[nodeIndex];
+        var parentPixG = _map.PixelMaxG[parentIndex];
+        if (destPixG < 0 && parentPixG >= 0)
+            return; // don't try to enter impassable area (TODO: do we need parent-G check? it's not needed if starting point is on impassable border pixel, but is needed if it's deep inside impassable area)
         var deltaG = _deltaGSide * deltaGrid;
         var destGScore = _nodes[parentIndex].GScore + deltaG;
-        var destLeeway = MathF.Min(_nodes[parentIndex].PathLeeway, Math.Min(destPixG, _map.PixelMaxG[parentIndex]) - destGScore);
+        var destLeeway = MathF.Min(_nodes[parentIndex].PathLeeway, Math.Min(destPixG, parentPixG) - destGScore);
         var destMinG = MathF.Min(_nodes[parentIndex].PathMinG, destPixG);
         var altNode = new Node()
         {
@@ -378,8 +379,6 @@ public class ThetaStar
             AddToOpen(nodeIndex);
         }
     }
-
-    //private float HeuristicDistance(int x, int y) => Math.Max(0, (new Vector2(x + 0.5f, y + 0.5f) - _goalFrac).Length() * _deltaGSide - _goalRadius);
 
     private void PrefillH()
     {

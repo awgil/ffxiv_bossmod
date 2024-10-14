@@ -37,7 +37,7 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
     public bool IgnoreImmunes { get; init; } = ignoreImmunes;
     public bool StopAtWall = stopAtWall; // use if wall is solid rather than deadly
     public int MaxCasts = maxCasts; // use to limit number of drawn knockbacks
-    protected PlayerImmuneState[] PlayerImmunes = new PlayerImmuneState[PartyState.MaxAllianceSize];
+    protected PlayerImmuneState[] PlayerImmunes = new PlayerImmuneState[PartyState.MaxAllies];
 
     public bool IsImmune(int slot, DateTime time) => !IgnoreImmunes && PlayerImmunes[slot].ImmuneAt(time);
 

@@ -5,7 +5,8 @@ namespace BossMod.StrikingDummy;
 
 public enum OID : uint
 {
-    Boss = 0x385,
+    Boss = 0x385, // normal striking dummy
+    Boss = 0x41CD, // L100 trial
 }
 
 class StrikingDummyStates : StateMachineBuilder
@@ -33,7 +34,7 @@ public sealed class StrikingDummyRotation(RotationModuleManager manager, Actor p
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (strategy.Option(Track.Test).As<Strategy>() == Strategy.Some && primaryTarget != null)
         {

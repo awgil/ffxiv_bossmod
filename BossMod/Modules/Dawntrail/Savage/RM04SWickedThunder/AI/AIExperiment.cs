@@ -27,9 +27,9 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (Manager.Bossmods.ActiveModule is not RM04SWickedThunder module)
+        if (Bossmods.ActiveModule is not RM04SWickedThunder module)
             return;
 
         var ewh = strategy.Option(Track.ElectrifyingWitchHunt).As<ElectrifyingWitchHuntStrategy>();

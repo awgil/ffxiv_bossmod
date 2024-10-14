@@ -20,51 +20,41 @@ public struct NavigationDecision
     public float LeewaySeconds; // can be used for finishing casts / slidecasting etc.
     public float TimeToGoal;
     public Map? Map;
-    public WPos GoalPos;
-    public float GoalRadius;
 
     public const float ForbiddenZoneCushion = 0; // increase to fatten forbidden zones
     public const float ActivationTimeCushion = 1; // reduce time between now and activation by this value in seconds; increase for more conservativeness
 
-    public static NavigationDecision Build(Context ctx, WorldState ws, AIHints hints, Actor player, WPos? targetPos, float targetRadius, Angle targetRot, Positional positional, float playerSpeed = 6)
+    public static NavigationDecision Build(Context ctx, WorldState ws, AIHints hints, Actor player, float playerSpeed = 6)
     {
         // build a pathfinding map: rasterize all forbidden zones and goals
-        hints.Bounds.PathfindMap(ctx.Map, hints.Center);
+        hints.InitPathfindMap(ctx.Map);
         if (hints.ForbiddenZones.Count > 0)
             RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, ws.CurrentTime, ref ctx.Scratch);
-        if (targetPos != null)
-            RasterizeGoalZones(ctx.Map, targetPos.Value, targetRadius, targetRot, positional);
+        if (hints.GoalZones.Count > 0)
+            RasterizeGoalZones(ctx.Map, hints.GoalZones);
 
         // execute pathfinding
-        var goalPos = hints.PathfindingHintDestination ?? targetPos ?? hints.Center;
-        var goalRadius = hints.PathfindingHintRadius ?? targetRadius;
-        ctx.ThetaStar.Start(ctx.Map, player.Position, goalPos, goalRadius, 1.0f / playerSpeed);
+        ctx.ThetaStar.Start(ctx.Map, player.Position, 1.0f / playerSpeed);
         var bestNodeIndex = ctx.ThetaStar.Execute();
         ref var bestNode = ref ctx.ThetaStar.NodeByIndex(bestNodeIndex);
-        return new() { Destination = GetFirstWaypoint(ctx.ThetaStar, ctx.Map, bestNodeIndex), LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore, Map = ctx.Map, GoalPos = goalPos, GoalRadius = goalRadius };
+        return new() { Destination = GetFirstWaypoint(ctx.ThetaStar, ctx.Map, bestNodeIndex), LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore, Map = ctx.Map };
     }
 
     public static void RasterizeForbiddenZones(Map map, List<(Func<WPos, float> shapeDistance, DateTime activation)> zones, DateTime current, ref float[] scratch)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
-        (Func<WPos, float> shapeDistance, DateTime activation)[] zonesFixed = [.. zones];
-        DateTime clusterStart = default, clusterEnd = default, globalStart = current, globalEnd = current.AddSeconds(120);
-        foreach (ref var z in zonesFixed.AsSpan())
+        var zonesFixed = new (Func<WPos, float> shapeDistance, float g)[zones.Count];
+        DateTime clusterEnd = default, globalStart = current, globalEnd = current.AddSeconds(120);
+        float clusterG = 0;
+        for (int i = 0; i < zonesFixed.Length; ++i)
         {
-            if (z.activation < globalStart)
-                z.activation = globalStart;
-            else if (z.activation > globalEnd)
-                z.activation = globalEnd;
-
-            if (z.activation < clusterEnd)
+            var activation = zones[i].activation.Clamp(globalStart, globalEnd);
+            if (activation > clusterEnd)
             {
-                z.activation = clusterStart;
+                clusterG = ActivationToG(activation, current);
+                clusterEnd = activation.AddSeconds(0.5f);
             }
-            else
-            {
-                clusterStart = z.activation;
-                clusterEnd = z.activation.AddSeconds(0.5f);
-            }
+            zonesFixed[i] = (zones[i].shapeDistance, clusterG);
         }
 
         // note that a zone can partially intersect a pixel; so what we do is check each corner and set the maxg value of a pixel equal to the minimum of 4 corners
@@ -72,7 +62,7 @@ public struct NavigationDecision
         // - outer loop fills row i to with g values corresponding to the 'upper edge' of cell i
         // - inner loop calculates the g value at the left border, then iterates over all right corners and fills minimums of two g values to the cells
         // - second outer loop calculates values at 'bottom' edge and then updates the values of all cells to correspond to the cells rather than edges
-        map.MaxG = zonesFixed.Length > 0 ? ActivationToG(zonesFixed[^1].activation, current) : 0;
+        map.MaxG = clusterG;
         if (scratch.Length < map.PixelMaxG.Length)
             scratch = new float[map.PixelMaxG.Length];
         var numBlockedCells = 0;
@@ -86,22 +76,22 @@ public struct NavigationDecision
         for (int y = 0; y < map.Height; ++y)
         {
             var cx = cy;
-            var leftG = CalculateMaxG(zonesFixed, map, cx, current);
+            var leftG = CalculateMaxG(zonesFixed, cx);
             for (int x = 0; x < map.Width; ++x)
             {
                 cx += dx;
-                var rightG = CalculateMaxG(zonesFixed, map, cx, current);
+                var rightG = CalculateMaxG(zonesFixed, cx);
                 scratch[iCell++] = Math.Min(leftG, rightG);
                 leftG = rightG;
             }
             cy += dy;
         }
-        var bleftG = CalculateMaxG(zonesFixed, map, cy, current);
+        var bleftG = CalculateMaxG(zonesFixed, cy);
         iCell -= map.Width;
         for (int x = 0; x < map.Width; ++x, ++iCell)
         {
             cy += dx;
-            var brightG = CalculateMaxG(zonesFixed, map, cy, current);
+            var brightG = CalculateMaxG(zonesFixed, cy);
             var bottomG = Math.Min(bleftG, brightG);
             var jCell = iCell;
             for (int y = map.Height; y > 0; --y, jCell -= map.Width)
@@ -110,7 +100,7 @@ public struct NavigationDecision
                 var cellG = map.PixelMaxG[jCell] = Math.Min(Math.Min(topG, bottomG), map.PixelMaxG[jCell]);
                 if (cellG != float.MaxValue)
                 {
-                    map.PixelPriority[jCell] = sbyte.MinValue;
+                    map.PixelPriority[jCell] = float.MinValue; // mark here, in case we don't have goals
                     ++numBlockedCells;
                 }
                 bottomG = topG;
@@ -136,52 +126,46 @@ public struct NavigationDecision
         }
     }
 
-    public static void RasterizeGoalZones(Map map, WPos targetPos, float targetRadius, Angle targetRot, Positional positional)
+    public static void RasterizeGoalZones(Map map, List<Func<WPos, float>> goals)
     {
-        var (xc, yc) = map.WorldToGrid(targetPos);
-        var halfSize = (int)(targetRadius / map.Resolution) + 2;
-        var (x0, y0) = map.ClampToGrid((xc - halfSize, yc - halfSize));
-        var (x1, y1) = map.ClampToGrid((xc + halfSize, yc + halfSize));
-
         // see Map.EnumeratePixels, note that we care about corners rather than centers
         var dy = map.LocalZDivRes * map.Resolution * map.Resolution;
         var dx = dy.OrthoL();
-        var cy = map.Center + (x0 - map.Width / 2) * dx + (y0 - map.Height / 2) * dy;
+        var cy = map.Center - map.Width / 2 * dx - map.Height / 2 * dy;
 
-        var targetDir = targetRot.ToDirection();
-        for (int y = y0; y <= y1; ++y)
+        int iCell = 0;
+        for (int y = 0; y < map.Height; ++y)
         {
             var cx = cy;
-            var leftP = CalculateGoalPriority(targetPos, targetRadius, targetDir, positional, map, cx);
-            var iCell = map.GridToIndex(x0, y);
-            for (int x = x0; x <= x1; ++x)
+            var leftP = goals.Sum(g => g(cx));
+            for (int x = 0; x < map.Width; ++x)
             {
                 cx += dx;
-                var rightP = CalculateGoalPriority(targetPos, targetRadius, targetDir, positional, map, cx);
+                var rightP = goals.Sum(g => g(cx));
                 map.PixelPriority[iCell++] = Math.Min(leftP, rightP);
                 leftP = rightP;
             }
             cy += dy;
         }
-        var bleftP = CalculateGoalPriority(targetPos, targetRadius, targetDir, positional, map, cy);
-        var bCell = map.GridToIndex(x0, y1);
-        for (int x = x0; x <= x1; ++x, ++bCell)
+        var bleftP = goals.Sum(g => g(cy));
+        iCell -= map.Width;
+        for (int x = 0; x < map.Width; ++x, ++iCell)
         {
             cy += dx;
-            var brightP = CalculateGoalPriority(targetPos, targetRadius, targetDir, positional, map, cy);
+            var brightP = goals.Sum(g => g(cy));
             var bottomP = Math.Min(bleftP, brightP);
-            var iCell = bCell;
-            for (int y = y1; y >= y0; --y, iCell -= map.Width)
+            var jCell = iCell;
+            for (int y = map.Height; y > 0; --y, jCell -= map.Width)
             {
-                var topP = map.PixelPriority[iCell];
-                if (map.PixelMaxG[iCell] == float.MaxValue)
+                var topP = map.PixelPriority[jCell];
+                if (map.PixelMaxG[jCell] == float.MaxValue)
                 {
-                    var cellP = map.PixelPriority[iCell] = Math.Min(topP, bottomP);
+                    var cellP = map.PixelPriority[jCell] = Math.Min(topP, bottomP);
                     map.MaxPriority = Math.Max(map.MaxPriority, cellP);
                 }
                 else
                 {
-                    map.PixelPriority[iCell] = sbyte.MinValue;
+                    map.PixelPriority[jCell] = float.MinValue;
                 }
                 bottomP = topP;
             }
@@ -191,33 +175,12 @@ public struct NavigationDecision
 
     private static float ActivationToG(DateTime activation, DateTime current) => MathF.Max(0, (float)(activation - current).TotalSeconds - ActivationTimeCushion);
 
-    private static float CalculateMaxG(Span<(Func<WPos, float> shapeDistance, DateTime activation)> zones, Map map, WPos p, DateTime current)
+    private static float CalculateMaxG(Span<(Func<WPos, float> shapeDistance, float g)> zones, WPos p)
     {
         foreach (ref var z in zones)
             if (z.shapeDistance(p) < ForbiddenZoneCushion)
-                return ActivationToG(z.activation, current);
+                return z.g;
         return float.MaxValue;
-    }
-
-    private static sbyte CalculateGoalPriority(WPos targetPos, float targetRadius, WDir targetDir, Positional positional, Map map, WPos p)
-    {
-        var offset = p - targetPos;
-        var lsq = offset.LengthSq();
-        if (lsq > targetRadius * targetRadius)
-            return 0;
-        if (positional == Positional.Any)
-            return 1;
-
-        var front = targetDir.Dot(offset);
-        var side = Math.Abs(targetDir.Dot(offset.OrthoL()));
-        var inPositional = positional switch
-        {
-            Positional.Flank => side > Math.Abs(front),
-            Positional.Rear => -front > side,
-            Positional.Front => front > side, // TODO: reconsider this...
-            _ => false
-        };
-        return (sbyte)(inPositional ? 2 : 1);
     }
 
     private static WPos? GetFirstWaypoint(ThetaStar pf, Map map, int cell)
