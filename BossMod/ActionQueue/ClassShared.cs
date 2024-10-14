@@ -4,7 +4,6 @@ public enum AID : uint
 {
     None = 0,
     Sprint = 3,
-    Dismount = 10057,
 
     // Tank
     ShieldWall = 197, // LB1, instant, range 0, AOE 50 circle, targets=self, animLock=1.930
