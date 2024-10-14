@@ -26,12 +26,12 @@ sealed class IPCProvider : IDisposable
         Register("HasModuleByDataId", (uint dataId) => BossModuleRegistry.FindByOID(dataId) != null);
         Register("IsMoving", movement.IsMoving);
         Register("ForbiddenZonesCount", () => autorotation.Hints.ForbiddenZones.Count);
-        Register("Configuration", (List<string> args, bool save) => Service.Config.ConsoleCommand(args.AsSpan(), save));
+        Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(string.Join(' ', args), save));
         //Register("InitiateCombat", () => autorotation.ClassActions?.UpdateAutoAction(CommonActions.AutoActionAIFight, float.MaxValue, true));
         //Register("SetAutorotationState", (bool state) => Service.Config.Get<AutorotationConfig>().Enabled = state);
 
         Register("Presets.List", () => Serialize(autorotation.Database.Presets.VisiblePresets));
-        Register("Presets.Get", (string name) => SerializeN(autorotation.Database.Presets.VisiblePresets.FirstOrDefault(x => x.Name == name)));
+        Register("Presets.Get", (string name) => SerializeN(autorotation.Database.Presets.FindPresetByName(name)));
         Register("Presets.ForClass", (byte classId) => Serialize(autorotation.Database.Presets.PresetsForClass((Class)classId)));
         Register("Presets.Create", (string presetSerialized, bool overwrite) =>
         {
@@ -58,7 +58,7 @@ sealed class IPCProvider : IDisposable
         Register("Presets.GetActive", () => autorotation.Preset?.Name);
         Register("Presets.SetActive", (string name) =>
         {
-            var preset = autorotation.Database.Presets.VisiblePresets.FirstOrDefault(x => x.Name == name);
+            var preset = autorotation.Database.Presets.FindPresetByName(name);
             if (preset != null)
             {
                 autorotation.Preset = preset;
@@ -90,7 +90,7 @@ sealed class IPCProvider : IDisposable
         Register("AI.SetPreset", (string name) =>
         {
             Service.Log($"calling deprecated method AI.SetPreset - use Presets.SetActive instead");
-            autorotation.Preset = autorotation.Database.Presets.VisiblePresets.FirstOrDefault(x => x.Name == name);
+            autorotation.Preset = autorotation.Database.Presets.FindPresetByName(name);
         });
         Register("AI.GetPreset", () =>
         {

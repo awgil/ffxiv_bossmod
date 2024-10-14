@@ -5,7 +5,6 @@ immediate plans
 -- embedded mode
 
 general:
-- refactor ipc/dtr/slashcommands
 - horizontal timeline / cooldown planner
 - cdplanner should use real cds
 - assignments per ui order rather than per player + class-specific assignments
@@ -39,6 +38,7 @@ general:
 - encounter hints (to show before pull)
 - zone modules: replay visualization
 - zone modules: module info ui
+- refactor ipc/dtr
 
 boss modules:
 - timers

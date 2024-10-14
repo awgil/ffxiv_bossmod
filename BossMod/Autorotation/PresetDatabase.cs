@@ -78,4 +78,12 @@ public sealed class PresetDatabase
     }
 
     public IEnumerable<Preset> PresetsForClass(Class c) => VisiblePresets.Where(p => p.Modules.Any(m => RotationModuleRegistry.Modules[m.Key].Definition.Classes[(int)c]));
+
+    public Preset? FindPresetByName(ReadOnlySpan<char> name, StringComparison cmp = StringComparison.CurrentCultureIgnoreCase)
+    {
+        foreach (var p in VisiblePresets)
+            if (name.Equals(p.Name, cmp))
+                return p;
+        return null;
+    }
 }
