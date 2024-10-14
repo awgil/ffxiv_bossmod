@@ -3,7 +3,7 @@
 [Quest(BossModuleInfo.Maturity.Contributed, 998)]
 public class TheProtectorAndTheDestroyer(WorldState ws) : QuestBattle(ws)
 {
-    public unsafe override List<QuestObjective> DefineObjectives(WorldState ws)
+    public override List<QuestObjective> DefineObjectives(WorldState ws)
     {
         if (ws.Party.Player()?.PosRot.Y > 50)
             return [];
