@@ -214,8 +214,8 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
         if (!strategy.BuffsOk())
             return false;
 
-        if (CD(AID.RagingStrikes) > 55)
-            return CD(AID.RagingStrikes) < 60 || Soul == 100;
+        if (ReadyIn(AID.RagingStrikes) > 55)
+            return ReadyIn(AID.RagingStrikes) < 60 || Soul == 100;
 
         // use in 2min
         return RagingStrikes > GCD;
