@@ -18,7 +18,7 @@ public sealed class ASeriesOfUnfortunateEvents(WorldState ws) : QuestBattle(ws)
         new QuestObjective(ws).Named("Escort Emmanellain to safety")
             .Hints((player, hints) =>
             {
-                hints.Bounds = OverworldBounds;
+                hints.PathfindMapBounds = OverworldBounds;
 
                 var emmanellain = World.Actors.FirstOrDefault(i => i.OID == 0x1003);
                 if (emmanellain != null)

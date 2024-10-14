@@ -7,8 +7,8 @@ public class AFeastOfLies(WorldState ws) : QuestBattle(ws)
         new QuestObjective(ws)
             .WithConnection(new Vector3(0.02f, 5.96f, -56.50f))
             .Hints((player, hints) => {
-                hints.Center = player.Position with { X = 0 };
-                hints.Bounds = new ArenaBoundsRect(8, 20);
+                hints.PathfindMapCenter = player.Position with { X = 0 };
+                hints.PathfindMapBounds = new ArenaBoundsRect(8, 20);
             })
             .With(obj => {
                 obj.OnEventObjectStateChanged += (act, state) => obj.CompleteIf(act.OID == 0x1EACEF && state == 2);
@@ -17,8 +17,8 @@ public class AFeastOfLies(WorldState ws) : QuestBattle(ws)
         new QuestObjective(ws)
             .WithConnection(new Vector3(-0.00f, 6.00f, -29.00f))
             .Hints((player, hints) => {
-                hints.Center = new(0, -28.5f);
-                hints.Bounds = new ArenaBoundsRect(11, 16);
+                hints.PathfindMapCenter = new(0, -28.5f);
+                hints.PathfindMapBounds = new ArenaBoundsRect(11, 16);
             })
             .With(obj => {
                 var redDead = false;
@@ -31,6 +31,10 @@ public class AFeastOfLies(WorldState ws) : QuestBattle(ws)
             }),
 
         new QuestObjective(ws)
-            .WithConnection(new Vector3(0, 82.00f, 18))
+            .WithConnection(new Vector3(0, 82.9f, -38))
+            .CompleteOnCreated(0x295A),
+
+        new QuestObjective(ws)
+            .Hints((player, hints) => hints.ForcedMovement = new(0, 0, 1))
     ];
 }

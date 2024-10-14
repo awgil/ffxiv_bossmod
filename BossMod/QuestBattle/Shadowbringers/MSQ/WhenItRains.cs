@@ -37,13 +37,13 @@ public class WhenItRains(WorldState ws) : QuestBattle(ws)
             .Hints((player, hints) => {
                 if (World.Actors.FirstOrDefault(x => x.OID == 0x1EA4D5) is Actor minibossArena)
                 {
-                    hints.Center = minibossArena.Position;
-                    hints.Bounds = new ArenaBoundsCircle(19.5f);
+                    hints.PathfindMapCenter = minibossArena.Position;
+                    hints.PathfindMapBounds = new ArenaBoundsCircle(19.5f);
                 }
             })
     ];
 
-    public override void AddQuestAIHints(Actor player, AIHints hints, float maxCastTime)
+    public override void AddQuestAIHints(Actor player, AIHints hints)
     {
         foreach (var h in hints.PotentialTargets)
             h.Priority = 0;

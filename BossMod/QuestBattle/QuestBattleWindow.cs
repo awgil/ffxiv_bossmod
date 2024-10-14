@@ -44,6 +44,12 @@ public unsafe partial class QuestBattleWindow : UIWindow
 
     public override void Draw()
     {
+        if (UIMisc.Button("Leave duty", !ImGui.GetIO().KeyShift, "Hold shift to leave"))
+            abandonDutyHook.Invoke(false);
+
+        ImGui.SameLine();
+        UIMisc.HelpMarker("Attempt to leave duty by directly sending the \"abandon duty\" packet, which may be able to bypass the out-of-combat restriction. Only works in some duties.");
+
         if (_director.CurrentModule is QuestBattle qb)
         {
             ImGui.Text($"Module: {qb.GetType().Name}");
@@ -167,12 +173,6 @@ public unsafe partial class QuestBattleWindow : UIWindow
             _director.Paused = true;
 
         ImGui.SameLine();
-
-        if (UIMisc.Button("Leave duty", !ImGui.GetIO().KeyShift, "Hold shift to leave"))
-            abandonDutyHook.Invoke(false);
-
-        ImGui.SameLine();
-        UIMisc.HelpMarker("Attempt to leave duty by directly sending the \"abandon duty\" packet, which may be able to bypass the out-of-combat restriction. Only works in some duties.");
 
         if (ImGui.Button("Skip current step"))
             sqb.Advance();

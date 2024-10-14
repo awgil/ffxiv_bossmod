@@ -87,6 +87,9 @@ public sealed class AIHints
     // buffs to be canceled asap
     public List<(uint statusId, ulong sourceId)> StatusesToCancel = [];
 
+    public bool WantJump;
+    public bool Dismount;
+
     // clear all stored data
     public void Clear()
     {
@@ -106,6 +109,8 @@ public sealed class AIHints
         MaxCastTimeEstimate = float.MaxValue;
         ActionsToExecute.Clear();
         StatusesToCancel.Clear();
+        WantJump = false;
+        Dismount = false;
     }
 
     // fill list of potential targets from world state
@@ -212,10 +217,10 @@ public sealed class AIHints
 
     // goal zones
     // simple goal zone that returns 1 if target is in range, useful for single-target actions
-    public Func<WPos, float> GoalSingleTarget(WPos target, float radius)
+    public Func<WPos, float> GoalSingleTarget(WPos target, float radius, float weight = 1)
     {
         var effRsq = radius * radius;
-        return p => (p - target).LengthSq() <= effRsq ? 1 : 0;
+        return p => (p - target).LengthSq() <= effRsq ? weight : 0;
     }
     public Func<WPos, float> GoalSingleTarget(Actor target, float range) => GoalSingleTarget(target.Position, range + target.HitboxRadius + 0.5f);
 

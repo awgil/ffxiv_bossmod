@@ -2,7 +2,7 @@
 
 namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
-class AutoEstinien(WorldState ws) : StatelessRotation(ws, 10)
+class AutoEstinien(WorldState ws) : UnmanagedRotation(ws, 10)
 {
     protected override void Exec(Actor? primaryTarget)
     {
@@ -36,13 +36,13 @@ public class VowsOfVirtueDeedsOfCruelty(WorldState ws) : QuestBattle(ws)
                 obj.OnConditionChange += (flag, val) => obj.CompleteIf(flag == Dalamud.Game.ClientState.Conditions.ConditionFlag.Jumping61 && !val);
             })
             .Hints((player, hints) => {
-                hints.Center = player.Position with { Z = 400 };
-                hints.Bounds = new ArenaBoundsRect(20, 14);
+                hints.PathfindMapCenter = player.Position with { Z = 400 };
+                hints.PathfindMapBounds = new ArenaBoundsRect(20, 14);
             }),
 
         new QuestObjective(ws)
             .WithConnection(new Vector3(240, -40, 287))
     ];
 
-    public override void AddQuestAIHints(Actor player, AIHints hints, float maxCastTime) => _ai.Execute(player, hints, maxCastTime);
+    public override void AddQuestAIHints(Actor player, AIHints hints) => _ai.Execute(player, hints);
 }

@@ -34,7 +34,22 @@ public sealed class RotationModuleManager : IDisposable
     public DateTime CombatStart { get; private set; } // default value when player is not in combat, otherwise timestamp when player entered combat
     public (DateTime Time, ActorCastEvent? Data) LastCast { get; private set; }
 
-    public static bool IsRoleplayStatus(ActorStatus st) => (Roleplay.SID)st.ID is Roleplay.SID.RolePlaying or Roleplay.SID.BorrowedFlesh;
+    // list of status effects that disable the player's default action set, but do not disable *all* actions
+    // in these cases, we want to prevent active rotation modules from queueing any actions, because they might affect positioning or rotation, or interfere with player's attempt to manually use an action
+    // TODO can this be sourced entirely from sheet data? i can't find a field that uniquely identifies these statuses while excluding "stuns" and transformations that do not inhibit the use of actions
+    public static readonly uint[] TransformationStatuses = [
+        // used for almost all solo duties
+        (uint)Roleplay.SID.RolePlaying,
+        // used specifically for In from the Cold (Endwalker)
+        (uint)Roleplay.SID.BorrowedFlesh,
+        // sapphire weapon quest
+        (uint)Roleplay.SID.FreshPerspective,
+
+        // "Transfiguration" from certain pomanders in Palace of the Dead
+        565,
+    ];
+
+    public static bool IsTransformStatus(ActorStatus st) => TransformationStatuses.Contains(st.ID);
 
     public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AIHints hints, int playerSlot = PartyState.PlayerSlot)
     {
@@ -126,7 +141,7 @@ public sealed class RotationModuleManager : IDisposable
         var player = Player;
         if (player != null)
         {
-            var isRPMode = player.Statuses.Any(IsRoleplayStatus);
+            var isRPMode = player.Statuses.Any(IsTransformStatus);
             foreach (var m in types)
             {
                 if (!RotationModuleRegistry.Modules.TryGetValue(m, out var def))

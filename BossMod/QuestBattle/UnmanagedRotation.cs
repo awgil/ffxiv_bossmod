@@ -1,27 +1,29 @@
-﻿namespace BossMod.Autorotation;
-public abstract class StatelessRotation(WorldState ws, float effectiveRange)
+﻿namespace BossMod.QuestBattle;
+public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
 {
     protected AIHints Hints = null!;
     protected Actor Player = null!;
     protected WorldState World => ws;
-    private float _maxCast;
+    protected float MaxCastTime;
     protected uint MP;
 
     protected Roleplay.AID ComboAction => (Roleplay.AID)World.Client.ComboState.Action;
 
     protected abstract void Exec(Actor? primaryTarget);
 
-    public void Execute(Actor player, AIHints hints, float maxCastTime)
+    public void Execute(Actor player, AIHints hints)
     {
-        _maxCast = maxCastTime;
+        MaxCastTime = hints.MaxCastTimeEstimate;
         Hints = hints;
         Player = player;
 
         MP = (uint)Math.Max(0, Player.HPMP.CurMP + World.PendingEffects.PendingHPDifference(Player.InstanceID));
 
-        Hints.RecommendedRangeToTarget = effectiveRange;
+        var primary = World.Actors.Find(player.TargetID);
+        if (primary != null)
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(primary, effectiveRange));
 
-        Exec(World.Actors.Find(player.TargetID));
+        Exec(primary);
     }
 
     protected void UseAction(Roleplay.AID action, Actor? target, float additionalPriority = 0, Vector3 targetPos = default) => UseAction(ActionID.MakeSpell(action), target, additionalPriority, targetPos);
@@ -35,7 +37,7 @@ public abstract class StatelessRotation(WorldState ws, float effectiveRange)
         if (def.CastTime > 0)
         {
             var totalCastTime = def.CastTime + def.CastAnimLock;
-            if (_maxCast < totalCastTime - 0.5f)
+            if (MaxCastTime < totalCastTime - 0.5f)
                 return;
         }
 
@@ -56,3 +58,4 @@ public abstract class StatelessRotation(WorldState ws, float effectiveRange)
     }
     protected (float Left, int Stacks) StatusDetails<SID>(Actor? actor, SID sid, ulong sourceID, float pendingDuration = 1000) where SID : Enum => StatusDetails(actor, (uint)(object)sid, sourceID, pendingDuration);
 }
+

@@ -85,6 +85,16 @@ public enum AID : uint
     Stardiver = 18780,
     DragonshadowDive = 18781,
 
+    AetherCannon = 20489,
+    Aethersaber = 20490,
+    Aethercut = 20491,
+    FinalFlourish = 20492,
+    UltimaBuster = 20493,
+    PyreticBooster = 20494,
+    AetherialAegis = 20495,
+    AetherMine = 20496,
+    AutoRestoration = 20940,
+
     // Alisaie - DUD
     ShbVerfire = 20529,
     ShbVeraero = 20530,
@@ -124,9 +134,22 @@ public enum AID : uint
     Break = 21921,
 
     // Thancred - Frosty Reception
+    SwiftDeception = 27432,
+    SilentTakedown = 27433,
     KeenEdgeFR = 27427,
     BrutalShellFR = 27428,
     SolidBarrelFR = 27429,
+    BewildermentBomb = 27434,
+
+    FastBladeIFTC = 26249,
+    RiotBladeIFTC = 26250,
+    RageOfHaloneIFTC = 26251,
+    FightOrFlightIFTC = 26252,
+    RampartIFTC = 26253,
+    MedicalKit = 27315,
+    MagitekCannonIFTC = 26231,
+    DiffractiveMagitekCannonIFTC = 26232,
+    HighPoweredMagitekCannonIFTC = 26233,
 
     // Alphinaud - As the Heavens Burn
     Diagnosis = 26224,
@@ -166,6 +189,15 @@ public enum AID : uint
     Engravement = 31785,
     Bloodbath = 33013,
 
+    // Godbert - Generational Bonding
+    GentlemanlySmash = 31393,
+    GentlemanlyThrust = 31394,
+    RageOfTheGentleman = 31395,
+    MandervilleDropkick = 31397,
+    MandervilleSprint = 31398,
+    ManderdoubleLariat = 31396,
+    MandervilleLB = 31399,
+
     // Wuk Lamat
     ClawOfTheBraax = 37120,
     FangsOfTheBraax = 37121,
@@ -202,6 +234,13 @@ public enum SID : uint
     // estinien VOVDOC phase 2
     StabWound = 1466,
 
+    // sapphire weapon duty
+    FreshPerspective = 2379,
+    SafetyLockPyreticBooster = 2307,
+    SafetyLockAetherialAegis = 2308,
+    PyreticBooster = 2294,
+    AetherialAegis = 2295,
+
     // urianger
     DestinyDrawn = 2571,
 
@@ -212,7 +251,11 @@ public enum SID : uint
     // thancred - Frosty Reception
     SwiftDeception = 2957,
 
+    // alphinaud
     LeveilleurDosisIII = 2650,
+
+    // godbert
+    GlovesOff = 3458,
 }
 
 public sealed class Definitions : IDisposable
@@ -291,6 +334,16 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Stardiver, instantAnimLock: 1.5f);
         d.RegisterSpell(AID.DragonshadowDive);
 
+        d.RegisterSpell(AID.AetherCannon, instantAnimLock: 0.2f);
+        d.RegisterSpell(AID.Aethersaber, instantAnimLock: 0.2f);
+        d.RegisterSpell(AID.Aethercut, instantAnimLock: 0.2f);
+        d.RegisterSpell(AID.FinalFlourish, instantAnimLock: 0.2f);
+        d.RegisterSpell(AID.UltimaBuster);
+        d.RegisterSpell(AID.PyreticBooster, instantAnimLock: 1.1f);
+        d.RegisterSpell(AID.AetherialAegis);
+        d.RegisterSpell(AID.AetherMine);
+        d.RegisterSpell(AID.AutoRestoration, instantAnimLock: 0.2f);
+
         d.RegisterSpell(AID.ShbVerfire);
         d.RegisterSpell(AID.ShbVeraero);
         d.RegisterSpell(AID.ShbVerstone);
@@ -326,9 +379,22 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.MedicaII);
         d.RegisterSpell(AID.Break);
 
+        d.RegisterSpell(AID.SwiftDeception);
+        d.RegisterSpell(AID.SilentTakedown);
         d.RegisterSpell(AID.KeenEdgeFR);
         d.RegisterSpell(AID.BrutalShellFR);
         d.RegisterSpell(AID.SolidBarrelFR);
+        d.RegisterSpell(AID.BewildermentBomb);
+
+        d.RegisterSpell(AID.FastBladeIFTC);
+        d.RegisterSpell(AID.RiotBladeIFTC);
+        d.RegisterSpell(AID.RageOfHaloneIFTC);
+        d.RegisterSpell(AID.FightOrFlightIFTC);
+        d.RegisterSpell(AID.RampartIFTC);
+        d.RegisterSpell(AID.MedicalKit);
+        d.RegisterSpell(AID.MagitekCannonIFTC);
+        d.RegisterSpell(AID.DiffractiveMagitekCannonIFTC);
+        d.RegisterSpell(AID.HighPoweredMagitekCannonIFTC);
 
         d.RegisterSpell(AID.Diagnosis);
         d.RegisterSpell(AID.Prognosis);
@@ -361,9 +427,17 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.InfernalSlice);
         d.RegisterSpell(AID.SpinningScythe);
         d.RegisterSpell(AID.NightmareScythe);
-        d.RegisterSpell(AID.Communio);
-        d.RegisterSpell(AID.Engravement);
+        d.RegisterSpell(AID.Communio, instantAnimLock: 1.1f);
+        d.RegisterSpell(AID.Engravement, instantAnimLock: 1.1f);
         d.RegisterSpell(AID.Bloodbath);
+
+        d.RegisterSpell(AID.GentlemanlySmash);
+        d.RegisterSpell(AID.GentlemanlyThrust);
+        d.RegisterSpell(AID.RageOfTheGentleman);
+        d.RegisterSpell(AID.MandervilleDropkick);
+        d.RegisterSpell(AID.MandervilleSprint);
+        d.RegisterSpell(AID.ManderdoubleLariat);
+        d.RegisterSpell(AID.MandervilleLB);
 
         d.RegisterSpell(AID.ClawOfTheBraax);
         d.RegisterSpell(AID.FangsOfTheBraax);

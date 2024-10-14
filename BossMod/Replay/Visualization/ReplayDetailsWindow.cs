@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using BossMod.QuestBattle;
 using ImGuiNET;
 
 namespace BossMod.ReplayVisualization;

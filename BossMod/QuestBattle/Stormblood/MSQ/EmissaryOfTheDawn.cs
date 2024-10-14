@@ -2,7 +2,7 @@
 
 namespace BossMod.QuestBattle.Stormblood.MSQ;
 
-public class AutoAlphi(WorldState ws) : StatelessRotation(ws, 25)
+public class AutoAlphi(WorldState ws) : UnmanagedRotation(ws, 25)
 {
     private Actor? Carby => World.Actors.FirstOrDefault(x => x.OID == 0x2343);
 
@@ -33,5 +33,5 @@ public class EmissaryOfTheDawn(WorldState ws) : QuestBattle(ws)
             .WithInteract(0x1EA9D9)
     ];
 
-    public override void AddQuestAIHints(Actor player, AIHints hints, float maxCastTime) => _ai.Execute(player, hints, maxCastTime);
+    public override void AddQuestAIHints(Actor player, AIHints hints) => _ai.Execute(player, hints);
 }

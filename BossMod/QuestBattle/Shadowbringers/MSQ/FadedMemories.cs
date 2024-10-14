@@ -9,12 +9,13 @@ public class FadedMemories(WorldState ws) : QuestBattle(ws)
     }
 
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+        QuestObjective.Combat(ws, new Vector3(-96.48f, -281.11f, 226.96f)).Named("Scions"),
+
         new QuestObjective(ws)
-            .Named("Scions + Dialogue 1")
-            .WithConnection(new Vector3(-96.48f, -281.11f, 226.96f))
+            .Named("Dialogue 1")
             .WithInteract(0x2F0D)
             .With(obj => {
-                obj.OnDirectorUpdate += (diru) => obj.CompleteIf(diru.Param1 == 0x801202 && diru.Param2 == 0xF119);
+                obj.OnDirectorUpdate += (diru) => obj.CompleteIf(diru.Param1 == 0x801202 && diru.Param2 == 0);
             }),
 
         QuestObjective.Combat(ws, new Vector3(-121.18f, -281.11f, 176.96f)).Named("Garleans"),

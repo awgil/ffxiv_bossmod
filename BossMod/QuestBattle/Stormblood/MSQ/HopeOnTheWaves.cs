@@ -13,5 +13,5 @@ public class HopeOnTheWaves(WorldState ws) : QuestBattle(ws)
             .WithConnection(new Vector3(551.57f, 12.94f, 751.91f))
     ];
 
-    public override void AddQuestAIHints(Actor player, AIHints hints, float maxCastTime) => hints.PrioritizeAll();
+    public override void AddQuestAIHints(Actor player, AIHints hints) => hints.PrioritizeAll();
 }

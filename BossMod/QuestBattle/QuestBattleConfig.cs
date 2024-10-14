@@ -7,7 +7,7 @@ public sealed class QuestBattleConfig : ConfigNode
     public bool Enabled = false;
 
     [PropertyDisplay("Show VBM Quest UI")]
-    public bool ShowUI = true;
+    public bool ShowUI = false;
 
     [PropertyDisplay("Required maturity for quest modules to be loaded")]
     public BossModuleInfo.Maturity MinMaturity = BossModuleInfo.Maturity.Contributed;

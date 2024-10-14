@@ -38,22 +38,25 @@ public class QuestObjective(WorldState ws)
     public bool ForceStopNavigation;
     public bool Completed;
 
-    public Action<Actor, AIHints> AddAIHints = (_, _) => { };
-    public Action<Actor> OnModelStateChanged = (_) => { };
-    public Action<Actor, ActorStatus> OnStatusGain = (_, _) => { };
-    public Action<Actor, ActorStatus> OnStatusLose = (_, _) => { };
-    public Action<Actor> OnActorEventStateChanged = (_) => { };
-    public Action<Actor, ushort> OnEventObjectStateChanged = (_, _) => { };
-    public Action<Actor, ushort, ushort> OnEventObjectAnimation = (_, _, _) => { };
-    public Action<Actor> OnActorCreated = (_) => { };
-    public Action<Actor> OnActorDestroyed = (_) => { };
-    public Action<Actor> OnActorCombatChanged = (_) => { };
-    public Action<Actor> OnActorKilled = (_) => { };
-    public Action<Actor> OnActorTargetableChanged = (_) => { };
-    public Action<WorldState.OpDirectorUpdate> OnDirectorUpdate = (_) => { };
-    public Action<ConditionFlag, bool> OnConditionChange = (_, _) => { };
-    public Action OnNavigationComplete = () => { };
-    public Action Update = () => { };
+    public Action<Actor, AIHints>? AddAIHints;
+    public Action<Actor>? OnModelStateChanged;
+    public Action<Actor, ActorStatus>? OnStatusGain;
+    public Action<Actor, ActorStatus>? OnStatusLose;
+    public Action<Actor>? OnActorEventStateChanged;
+    public Action<Actor, ushort>? OnEventObjectStateChanged;
+    public Action<Actor, ushort, ushort>? OnEventObjectAnimation;
+    public Action<Actor>? OnActorCreated;
+    public Action<Actor>? OnActorDestroyed;
+    public Action<Actor>? OnActorCombatChanged;
+    public Action<Actor>? OnActorKilled;
+    public Action<Actor>? OnActorTargetableChanged;
+    public Action<Actor, ActorCastEvent>? OnEventCast;
+    public Action<WorldState.OpEnvControl>? OnEnvControl;
+    public Action<WorldState.OpDirectorUpdate>? OnDirectorUpdate;
+    public Action<ClientState.OpDutyActionsChange>? OnDutyActionsChange;
+    public Action<ConditionFlag, bool>? OnConditionChange;
+    public Action? OnNavigationComplete;
+    public Action? Update;
 
     public QuestObjective Named(string name)
     {
@@ -85,6 +88,17 @@ public class QuestObjective(WorldState ws)
         return this;
     }
 
+    public QuestObjective MoveHint(WPos destination, float weight = 0.5f)
+    {
+        AddAIHints += (player, hints) =>
+        {
+            hints.GoalZones.Add(p => p.InCircle(destination, 2) ? weight : 0);
+        };
+        return this;
+    }
+
+    public QuestObjective MoveHint(Vector3 destination) => MoveHint(new WPos(destination.XZ()));
+
     public QuestObjective PauseForCombat(bool pause)
     {
         NavigationStrategy = pause ? NavigationStrategy.Pause : NavigationStrategy.Continue;
@@ -109,9 +123,14 @@ public class QuestObjective(WorldState ws)
         return this;
     }
 
-    public QuestObjective CompleteOnKilled(uint oid)
+    public QuestObjective CompleteOnKilled(uint oid, int required = 1)
     {
-        OnActorKilled += (act) => CompleteIf(act.OID == oid);
+        var killed = 0;
+        OnActorKilled += (act) =>
+        {
+            if (act.OID == oid && ++killed >= required)
+                Completed = true;
+        };
         return this;
     }
 
@@ -167,6 +186,11 @@ public class QuestObjective(WorldState ws)
                 obj.OnActorCombatChanged += (act) => obj.CompleteIf(act.OID == 0 && !act.InCombat);
             });
 
+    public static QuestObjective StandardInteract(WorldState ws, uint oid, params Vector3[] connections) => new QuestObjective(ws)
+        .WithConnections(connections)
+        .WithInteract(oid)
+        .CompleteOnState7(oid);
+
     public override string ToString() => $"{Name}{(Connections.Count == 0 ? "" : Utils.Vec3String(Connections.Last().Position))}";
 
     public void CompleteIf(bool c) { Completed |= c; }
@@ -205,22 +229,25 @@ public abstract class QuestBattle : IDisposable
         World = ws;
 
         _subscriptions = new(
-            ws.Actors.EventStateChanged.Subscribe(act => CurrentObjective?.OnActorEventStateChanged(act)),
-            ws.Actors.StatusLose.Subscribe((act, ix) => CurrentObjective?.OnStatusLose(act, act.Statuses[ix])),
-            ws.Actors.StatusGain.Subscribe((act, ix) => CurrentObjective?.OnStatusGain(act, act.Statuses[ix])),
-            ws.Actors.ModelStateChanged.Subscribe(act => CurrentObjective?.OnModelStateChanged(act)),
-            ws.Actors.Added.Subscribe(act => CurrentObjective?.OnActorCreated(act)),
-            ws.Actors.Removed.Subscribe(act => CurrentObjective?.OnActorDestroyed(act)),
-            ws.Actors.InCombatChanged.Subscribe(act => CurrentObjective?.OnActorCombatChanged(act)),
+            ws.Actors.EventStateChanged.Subscribe(act => CurrentObjective?.OnActorEventStateChanged?.Invoke(act)),
+            ws.Actors.CastEvent.Subscribe((a, b) => CurrentObjective?.OnEventCast?.Invoke(a, b)),
+            ws.Actors.StatusLose.Subscribe((act, ix) => CurrentObjective?.OnStatusLose?.Invoke(act, act.Statuses[ix])),
+            ws.Actors.StatusGain.Subscribe((act, ix) => CurrentObjective?.OnStatusGain?.Invoke(act, act.Statuses[ix])),
+            ws.Actors.ModelStateChanged.Subscribe(act => CurrentObjective?.OnModelStateChanged?.Invoke(act)),
+            ws.Actors.Added.Subscribe(act => CurrentObjective?.OnActorCreated?.Invoke(act)),
+            ws.Actors.Removed.Subscribe(act => CurrentObjective?.OnActorDestroyed?.Invoke(act)),
+            ws.Actors.InCombatChanged.Subscribe(act => CurrentObjective?.OnActorCombatChanged?.Invoke(act)),
             ws.Actors.IsDeadChanged.Subscribe(act =>
             {
                 if (act.IsDead)
-                    CurrentObjective?.OnActorKilled(act);
+                    CurrentObjective?.OnActorKilled?.Invoke(act);
             }),
-            ws.Actors.EventObjectStateChange.Subscribe((act, u) => CurrentObjective?.OnEventObjectStateChanged(act, u)),
-            ws.Actors.EventObjectAnimation.Subscribe((act, p1, p2) => CurrentObjective?.OnEventObjectAnimation(act, p1, p2)),
-            ws.DirectorUpdate.Subscribe(op => CurrentObjective?.OnDirectorUpdate(op)),
-            ws.Actors.IsTargetableChanged.Subscribe(act => CurrentObjective?.OnActorTargetableChanged(act))
+            ws.Actors.EventObjectStateChange.Subscribe((act, u) => CurrentObjective?.OnEventObjectStateChanged?.Invoke(act, u)),
+            ws.Actors.EventObjectAnimation.Subscribe((act, p1, p2) => CurrentObjective?.OnEventObjectAnimation?.Invoke(act, p1, p2)),
+            ws.DirectorUpdate.Subscribe(op => CurrentObjective?.OnDirectorUpdate?.Invoke(op)),
+            ws.EnvControl.Subscribe(op => CurrentObjective?.OnEnvControl?.Invoke(op)),
+            ws.Actors.IsTargetableChanged.Subscribe(act => CurrentObjective?.OnActorTargetableChanged?.Invoke(act)),
+            ws.Client.DutyActionsChanged.Subscribe(op => CurrentObjective?.OnDutyActionsChange?.Invoke(op))
         );
         if (Service.Condition == null)
             Service.Log($"[QuestBattle] UIDev detected, not registering hook");
@@ -237,21 +264,21 @@ public abstract class QuestBattle : IDisposable
 
     public void Update()
     {
-        CurrentObjective?.Update();
+        CurrentObjective?.Update?.Invoke();
         if (CurrentObjective?.Completed ?? false)
             CurrentObjectiveIndex++;
     }
     public void OnNavigationComplete()
     {
-        CurrentObjective?.OnNavigationComplete();
+        CurrentObjective?.OnNavigationComplete?.Invoke();
     }
-    public virtual void AddQuestAIHints(Actor player, AIHints hints, float maxCastTime) { }
-    public void AddAIHints(Actor player, AIHints hints, float maxCastTime)
+    public virtual void AddQuestAIHints(Actor player, AIHints hints) { }
+    public void AddAIHints(Actor player, AIHints hints)
     {
-        AddQuestAIHints(player, hints, maxCastTime);
-        CurrentObjective?.AddAIHints(player, hints);
+        AddQuestAIHints(player, hints);
+        CurrentObjective?.AddAIHints?.Invoke(player, hints);
     }
     public void Advance() => CurrentObjectiveIndex++;
     public void Reset() => CurrentObjectiveIndex = 0;
-    public void OnConditionChange(ConditionFlag flag, bool value) => CurrentObjective?.OnConditionChange(flag, value);
+    public void OnConditionChange(ConditionFlag flag, bool value) => CurrentObjective?.OnConditionChange?.Invoke(flag, value);
 }

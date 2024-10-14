@@ -1,8 +1,6 @@
-﻿using BossMod.Autorotation;
+﻿namespace BossMod.QuestBattle.Shadowbringers.RoleQuests;
 
-namespace BossMod.QuestBattle.Shadowbringers.RoleQuests;
-
-public class AutoNyelbert(WorldState ws) : StatelessRotation(ws, 25)
+public class AutoNyelbert(WorldState ws) : UnmanagedRotation(ws, 25)
 {
     protected override void Exec(Actor? primaryTarget)
     {
@@ -11,7 +9,7 @@ public class AutoNyelbert(WorldState ws) : StatelessRotation(ws, 25)
 
         if (World.Party.LimitBreakCur == 10000)
         {
-            Hints.RecommendedRangeToTarget = 20;
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 20));
             if ((primaryTarget.Position - Player.Position).Length() < 25)
                 UseAction(Roleplay.AID.FallingStar, null, 10, primaryTarget.PosRot.XYZ());
         }
@@ -48,12 +46,12 @@ public class NyelbertsLament(WorldState ws) : QuestBattle(ws)
             .WithConnection(new Vector3(-440.00f, -121.67f, -676.00f))
     ];
 
-    public override void AddQuestAIHints(Actor player, AIHints hints, float maxCastTime)
+    public override void AddQuestAIHints(Actor player, AIHints hints)
     {
         foreach (var h in hints.PotentialTargets)
             if (h.Actor.InCombat)
                 h.Priority = 0;
 
-        _ai.Execute(player, hints, maxCastTime);
+        _ai.Execute(player, hints);
     }
 }
