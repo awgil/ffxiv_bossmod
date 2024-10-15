@@ -5,7 +5,8 @@ namespace BossMod.StrikingDummy;
 
 public enum OID : uint
 {
-    Boss = 0x385,
+    Boss = 0x385, // normal striking dummy
+    Boss = 0x41CD, // L100 trial
 }
 
 class StrikingDummyStates : StateMachineBuilder

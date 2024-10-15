@@ -2,7 +2,7 @@
   "version": 0,
   "payload": [
     {
-      "Name": "Default",
+      "Name": "VBM Default",
       "Modules": {
         "BossMod.Autorotation.xan.DNC": [
           {

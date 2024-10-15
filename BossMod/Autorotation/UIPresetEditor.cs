@@ -7,6 +7,7 @@ public sealed class UIPresetEditor
 {
     private readonly PresetDatabase _db;
     private int _sourcePresetIndex;
+    private bool _sourcePresetDefault;
     public readonly Preset Preset;
     public bool Modified { get; private set; }
     public bool NameConflict { get; private set; }
@@ -15,13 +16,14 @@ public sealed class UIPresetEditor
     private readonly List<int> _orderedTrackList = []; // for current module, by UI order
     private readonly List<int> _settingGuids = []; // a hack to keep track of held item during drag-n-drop
 
-    public UIPresetEditor(PresetDatabase db, int index, Type? initiallySelectedModuleType)
+    public UIPresetEditor(PresetDatabase db, int index, bool isDefaultPreset, Type? initiallySelectedModuleType)
     {
         _db = db;
         _sourcePresetIndex = index;
+        _sourcePresetDefault = isDefaultPreset;
         if (index >= 0)
         {
-            Preset = db.Presets[index].MakeClone();
+            Preset = (isDefaultPreset ? db.DefaultPresets : db.UserPresets)[index].MakeClone();
         }
         else
         {
@@ -59,10 +61,13 @@ public sealed class UIPresetEditor
 
     public void Draw()
     {
-        if (ImGui.InputText("Name", ref Preset.Name, 256))
+        using (ImRaii.Disabled(_sourcePresetDefault))
         {
-            Modified = true;
-            NameConflict = CheckNameConflict();
+            if (ImGui.InputText("Name", ref Preset.Name, 256))
+            {
+                Modified = true;
+                NameConflict = CheckNameConflict();
+            }
         }
 
         using var table = ImRaii.Table("preset_details", 3);
@@ -83,6 +88,7 @@ public sealed class UIPresetEditor
     public void DetachFromSource()
     {
         _sourcePresetIndex = -1;
+        _sourcePresetDefault = false;
         NameConflict = CheckNameConflict();
     }
 
@@ -116,6 +122,9 @@ public sealed class UIPresetEditor
                 }
             }
         }
+
+        using var d = ImRaii.Disabled(_sourcePresetDefault);
+
         if (ImGui.Button("Add##module", width))
             ImGui.OpenPopup("add_module");
 
@@ -167,6 +176,8 @@ public sealed class UIPresetEditor
             ImGui.TextUnformatted("Add or select rotation module to configure its strategies");
             return;
         }
+
+        using var d = ImRaii.Disabled(_sourcePresetDefault);
 
         var width = new Vector2(ImGui.GetContentRegionAvail().X, 0);
         var md = RotationModuleRegistry.Modules[SelectedModuleType].Definition;
@@ -265,6 +276,7 @@ public sealed class UIPresetEditor
 
     private void DrawSettingDetails(Type moduleType, List<Preset.ModuleSetting> ms)
     {
+        using var d = ImRaii.Disabled(_sourcePresetDefault);
         var md = RotationModuleRegistry.Modules[moduleType].Definition;
         ref var s = ref ms.Ref(_selectedSettingIndex);
         var cfg = md.Configs[s.Track];
@@ -291,8 +303,8 @@ public sealed class UIPresetEditor
 
     private bool CheckNameConflict()
     {
-        for (int i = 0; i < _db.Presets.Count; ++i)
-            if (i != _sourcePresetIndex && _db.Presets[i].Name == Preset.Name)
+        for (int i = 0; i < _db.UserPresets.Count; ++i)
+            if (i != _sourcePresetIndex && _db.UserPresets[i].Name == Preset.Name)
                 return true;
         return false;
     }
