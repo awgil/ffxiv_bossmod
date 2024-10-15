@@ -1,6 +1,6 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
-namespace BossMod.Autorotation;
+namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
@@ -359,9 +359,9 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         //Phase and condition monitoring
         isDivineMightExpiring = SelfStatusLeft(PLD.SID.DivineMight) < 6; //Check if the Divine Might buff is about to expire
         isAtonementExpiring =
-          (HasEffect(PLD.SID.AtonementReady) && SelfStatusLeft(PLD.SID.AtonementReady) < 6) ||
-          (HasEffect(PLD.SID.SupplicationReady) && SelfStatusLeft(PLD.SID.SupplicationReady) < 6) ||
-          (HasEffect(PLD.SID.SepulchreReady) && SelfStatusLeft(PLD.SID.SepulchreReady) < 6); //Check if any Atonement buffs are close to expiring
+          HasEffect(PLD.SID.AtonementReady) && SelfStatusLeft(PLD.SID.AtonementReady) < 6 ||
+          HasEffect(PLD.SID.SupplicationReady) && SelfStatusLeft(PLD.SID.SupplicationReady) < 6 ||
+          HasEffect(PLD.SID.SepulchreReady) && SelfStatusLeft(PLD.SID.SepulchreReady) < 6; //Check if any Atonement buffs are close to expiring
 
         GCDLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level); //Calculate GCD based on skill speed and haste
 
@@ -395,7 +395,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             BurstStrategy.Automatic => (RaidBuffsIn, IsPotionBeforeRaidbuffs() ? 0 : Math.Max(PotionLeft, RaidBuffsLeft)), //Automatically calculate based on current buffs and potions
             BurstStrategy.UnderRaidBuffs => (RaidBuffsIn, RaidBuffsLeft), //Under raid buffs, use remaining durations
             BurstStrategy.UnderPotion => (PotionCD, PotionLeft), //Under potion effects, use potion cooldown and remaining duration
-            _ => (0, 0) : no burst window
+            _ => (0, 0), //no burst window
         };
 
         //Check GCD (Global Cooldown) conditions for various abilities
@@ -547,7 +547,6 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         PLD.AID.TotalEclipse => PLD.AID.Prominence, //If Total Eclipse was last used, use Prominence next
         _ => PLD.AID.TotalEclipse, //Default to Total Eclipse if no recognized last action
     };
-
 
     //Method to determine the next combo action and its priority based on AoE strategy, target count, and burst strategy
     private (PLD.AID, GCDPriority) ComboActionPriority(AOEStrategy aoeStrategy, int AoETargets, BurstStrategy burstStrategy, float burstStrategyExpire)
@@ -730,16 +729,16 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     {
         //Use potion before FoF/Req in opener
         //Use for 6m window
-        return (ActionReady(PLD.AID.FightOrFlight) &&
+        return ActionReady(PLD.AID.FightOrFlight) &&
                 (ActionReady(PLD.AID.Requiescat) || //Opener
-                reqCD < 15)); //Use if Requiescat is on cooldown for less than 15 seconds
+                reqCD < 15); //Use if Requiescat is on cooldown for less than 15 seconds
     }
 
     //Determines when to use a potion based on strategy
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
         PotionStrategy.AlignWithRaidBuffs =>
-            (IsPotionAlignedWithNM() || (fofCD < 5 && reqCD < 15)), //Align potions with major buffs
+            IsPotionAlignedWithNM() || fofCD < 5 && reqCD < 15, //Align potions with major buffs
         PotionStrategy.Immediate => true, //Force potion immediately
         _ => false,
     };
