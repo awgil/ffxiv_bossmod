@@ -97,6 +97,7 @@ public enum SID : uint
 
 public sealed class Definitions : IDisposable
 {
+    private readonly PLDConfig _config = Service.Config.Get<PLDConfig>();
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.LastBastion, instantAnimLock: 3.86f);
@@ -148,6 +149,8 @@ public sealed class Definitions : IDisposable
     private void Customize(ActionDefinitions d)
     {
         d.Spell(AID.Intervention)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
+        d.Spell(AID.HolySpirit)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyHolySpirit && !player.InCombat && ws.Client.CountdownRemaining > 1.75f;
+        d.Spell(AID.ShieldLob)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyShieldLob && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
         //d.Spell(AID.LastBastion)!.EffectDuration = 8;
         //d.Spell(AID.FightOrFlight)!.EffectDuration = 20;
         //d.Spell(AID.Sheltron)!.EffectDuration = 4; // TODO: duration increases to 6...
