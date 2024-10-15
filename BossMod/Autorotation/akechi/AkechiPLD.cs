@@ -571,7 +571,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             AOEStrategy.UseST => false, //Explicitly using single-target strategy, so AoE action is not desired
             AOEStrategy.ForceST => false, //Forcing single-target, so AoE action is not desired
             AOEStrategy.UseAoE => true, //Explicitly using AoE strategy, so AoE action is desired
-            AOEStrategy.ForceAoE => true, //Forcing AoE action, so AoE action is desired
+            AOEStrategy.ForceAoE => false, //Forcing AoE action but this is mainly for planning, so AoE not action is desired
             AOEStrategy.Auto => AoETargets >= 3, //Automatically choose AoE if there are 3 or more targets
             AOEStrategy.AutoFinishCombo => comboStepsRemaining > 0
                 ? doingAOECombo : AoETargets >= 3, //Continue combo if ongoing, otherwise switch to AoE if targets are sufficient
@@ -694,7 +694,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseHolySpirit(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            Player.InCombat && In3y(target) && //Use if in combat and target is in range
+            Player.InCombat && //Use if in combat
             hasMight && hasMPforMight && !hasReq, //Check if we have Might, sufficient MP for Might, and not under Requiescat
         OffensiveStrategy.Force => true, //Force
         OffensiveStrategy.Delay => false, //Delay usage
@@ -705,7 +705,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseHolyCircle(OffensiveStrategy strategy, Actor? AoETargets) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            Player.InCombat && In3y(AoETargets) && //Use if in combat and AoE targets are in range
+            Player.InCombat && //Use if in combat
             hasMight && hasMPforMight && NumTargetsHitByAoE() >= 3 && !hasReq, //Check if we have Might, sufficient MP for Might, hit at least 3 targets, and not under Requiescat
         OffensiveStrategy.Force => true, //Force
         OffensiveStrategy.Delay => false, //Delay usage
