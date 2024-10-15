@@ -783,8 +783,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     {
         OffensiveStrategy.Automatic =>
             Player.InCombat && In3y(AoETargets) &&
-            (hasNM && !ActionReady(GNB.AID.DoubleDown) && Ammo > 0 ||
-            ComboLastMove == GNB.AID.DemonSlice && Ammo == MaxCartridges),
+            ((hasNM && !ActionReady(GNB.AID.DoubleDown) && Ammo > 0) ||
+            (ComboLastMove == GNB.AID.DemonSlice && Ammo == MaxCartridges)),
         OffensiveStrategy.Force => true,
         OffensiveStrategy.Delay => false,
         _ => false
@@ -795,9 +795,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     {
         //Use potion before Solid Barrel in opener
         //Use for 6m window
-        return Ammo == 1 && ActionReady(GNB.AID.GnashingFang) &&
+        return (Ammo == 1 && ActionReady(GNB.AID.GnashingFang) &&
                 ActionReady(GNB.AID.DoubleDown) &&
-                ActionReady(GNB.AID.Bloodfest) || //Opener
+                ActionReady(GNB.AID.Bloodfest)) || //Opener
                 (bfCD < 15 || ActionReady(GNB.AID.Bloodfest)) && Ammo == 3;
     }
 
