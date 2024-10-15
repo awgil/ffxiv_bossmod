@@ -1,9 +1,8 @@
 immediate plans
 - nechuciho - seen incorrect rotations...
-- merge prs!
+- questbattles
 - collisions for pathfinding
 -- embedded mode
-- brd rotation
 
 general:
 - horizontal timeline / cooldown planner
@@ -39,6 +38,7 @@ general:
 - encounter hints (to show before pull)
 - zone modules: replay visualization
 - zone modules: module info ui
+- refactor ipc/dtr
 
 boss modules:
 - timers
@@ -58,14 +58,12 @@ autorotation:
 -- target selection should be part of a module/preset
 -- ai manager should use selected preset for combat, out of combat use forcedtarget
 - action history/queue visualization
-- proper gcd time calculations?
 - simulation in replay analysis
 - spell out shared cooldowns in actiondefinitions comments instead of group?
 - delete/rework commonstate/legacy
 - delete autorotationlegacy dir
 - dot/regen server tick tracking
 - brd
--- aoe rotation (2/3/4+ targets, barrage usage)
 -- take traits into account (ij proccing rs, ea proccing repertoire)
 - drg
 -- priorities...

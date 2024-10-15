@@ -59,6 +59,12 @@ public abstract class UIWindow : Window, IDisposable
             Dispose();
     }
 
+    public void OpenAndBringToFront()
+    {
+        IsOpen = true;
+        BringToFront();
+    }
+
     // note: it won't be called for a detached window that was never registered...
     protected virtual void Dispose(bool disposing) => Service.WindowSystem?.RemoveWindow(this);
 }

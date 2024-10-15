@@ -97,12 +97,13 @@ public enum SID : uint
     //StraightShotReady = 122, // applied by Barrage, Iron Jaws, Caustic Bite, Stormbite, Burst Shot to self
     VenomousBite = 124, // applied by Venomous Bite, dot
     Windbite = 129, // applied by Windbite, dot
-    ShadowbiteReady = 3002, // applied by Ladonsbite to self
+    //ShadowbiteReady = 3002, // applied by Ladonsbite to self
     NaturesMinne = 1202, // applied by Nature's Minne to self
     WardensPaean = 866, // applied by the Warden's Paean to self
     Troubadour = 1934, // applied by Troubadour to self
     Bind = 13, // applied by Foot Graze to target
-    ArmysMuse = 1932, // applied when leaving army's paeon
+    ArmysMuse = 1932, // applied when using song when either army's paeon is active or army's ethos is up
+    ArmysEthos = 1933, // applied when leaving army's paeon without starting new song
     ResonantArrowReady = 3862, // applied by Barrage to self
     RadiantEncoreReady = 3863, // applied by Radiant Finale to self
 }
