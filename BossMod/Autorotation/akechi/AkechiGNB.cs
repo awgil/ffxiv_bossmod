@@ -405,39 +405,39 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         {
             if (comboStepsRemaining == 0) //Not in any combo
             {
-                if (downtimeIn == GCD * 2 && Ammo == 2 ||
-                    downtimeIn == GCD * 4 && Ammo == 1 ||
-                    downtimeIn == GCD * 6 && Ammo == 0)
+                if ((downtimeIn == GCD * 2 && Ammo == 2) ||
+                    (downtimeIn == GCD * 4 && Ammo == 1) ||
+                    (downtimeIn == GCD * 6 && Ammo == 0))
                     QueueGCD(GNB.AID.DemonSlice, Player, GCDPriority.ForcedGCD);
 
-                if (downtimeIn == GCD * 3 && Ammo == 2 ||
-                    downtimeIn == GCD * 5 && Ammo == 1 ||
-                    downtimeIn == GCD * 8 && Ammo == 0 ||
-                    downtimeIn == GCD * 9 && Ammo == 0)
+                if ((downtimeIn == GCD * 3 && Ammo == 2) ||
+                    (downtimeIn == GCD * 5 && Ammo == 1) ||
+                    (downtimeIn == GCD * 8 && Ammo == 0) ||
+                    (downtimeIn == GCD * 9 && Ammo == 0))
                     QueueGCD(GNB.AID.KeenEdge, primaryTarget, GCDPriority.ForcedGCD);
             }
 
             if (comboStepsRemaining == 1) //Combo initiated
             {
-                if ((downtimeIn == GCD && Ammo == 2 ||
-                    downtimeIn == GCD * 3 && Ammo == 1 ||
-                    downtimeIn == GCD * 5 && Ammo == 0) &&
+                if (((downtimeIn == GCD && Ammo == 2) ||
+                    (downtimeIn == GCD * 3 && Ammo == 1) ||
+                    (downtimeIn == GCD * 5 && Ammo == 0)) &&
                     ComboLastMove == GNB.AID.DemonSlice)
                     QueueGCD(GNB.AID.DemonSlaughter, Player, GCDPriority.ForcedGCD);
 
-                if ((downtimeIn == GCD * 2 && Ammo == 2 ||
-                    downtimeIn == GCD * 4 && Ammo == 1 ||
-                    downtimeIn == GCD * 7 && Ammo == 2 ||
-                    downtimeIn == GCD * 8 && Ammo == 2) &&
+                if (((downtimeIn == GCD * 2 && Ammo == 2) ||
+                    (downtimeIn == GCD * 4 && Ammo == 1) ||
+                    (downtimeIn == GCD * 7 && Ammo == 2) ||
+                    (downtimeIn == GCD * 8 && Ammo == 2)) &&
                     ComboLastMove == GNB.AID.KeenEdge)
                     QueueGCD(GNB.AID.BrutalShell, primaryTarget, GCDPriority.ForcedGCD);
             }
 
             if (comboStepsRemaining == 2)
             {
-                if ((downtimeIn == GCD && (Ammo == 2 || Ammo == 3) ||
-                    downtimeIn == GCD * 4 && Ammo == 1 ||
-                    downtimeIn == GCD * 7 && Ammo == 0) &&
+                if (((downtimeIn == GCD && (Ammo == 2 || Ammo == 3)) ||
+                    (downtimeIn == GCD * 4 && Ammo == 1) ||
+                    (downtimeIn == GCD * 7 && Ammo == 0)) &&
                     ComboLastMove == GNB.AID.BrutalShell)
                     QueueGCD(GNB.AID.SolidBarrel, primaryTarget, GCDPriority.ForcedGCD);
             }
@@ -682,9 +682,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     {
         NoMercyStrategy.Automatic =>
             Player.InCombat && target != null && ActionReady(GNB.AID.NoMercy) && GCD < 0.9f &&
-                (Ammo == 1 && bfCD == 0 && Unlocked(GNB.AID.Bloodfest) && Unlocked(GNB.AID.DoubleDown) || //Lv90+ Opener
-                Ammo >= 1 && bfCD == 0 && Unlocked(GNB.AID.Bloodfest) && !Unlocked(GNB.AID.DoubleDown) || //Lv80+ Opener
-                !Unlocked(GNB.AID.Bloodfest) && Ammo >= 1 && ActionReady(GNB.AID.GnashingFang) || //Lv70 & below
+                ((Ammo == 1 && bfCD == 0 && Unlocked(GNB.AID.Bloodfest) && Unlocked(GNB.AID.DoubleDown)) || //Lv90+ Opener
+                (Ammo >= 1 && bfCD == 0 && Unlocked(GNB.AID.Bloodfest) && !Unlocked(GNB.AID.DoubleDown)) || //Lv80+ Opener
+                (!Unlocked(GNB.AID.Bloodfest) && Ammo >= 1 && ActionReady(GNB.AID.GnashingFang)) || //Lv70 & below
                 Ammo == MaxCartridges), //60s & 120s burst windows
         NoMercyStrategy.Force => true,
         NoMercyStrategy.ForceLW => Player.InCombat && GCD < 0.9f,
@@ -768,9 +768,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         OffensiveStrategy.Automatic =>
             Player.InCombat && In3y(target) &&
             (
-                Unlocked(GNB.AID.DoubleDown) && hasNM && !ActionReady(GNB.AID.DoubleDown) && GunComboStep == 0 && !hasReign || //Lv90+
-                !Unlocked(GNB.AID.DoubleDown) && !ActionReady(GNB.AID.GnashingFang) && hasNM && GunComboStep == 0 || //Lv80 & Below
-                ComboLastMove == GNB.AID.BrutalShell && Ammo == MaxCartridges //Overcap
+                (Unlocked(GNB.AID.DoubleDown) && hasNM && !ActionReady(GNB.AID.DoubleDown) && GunComboStep == 0 && !hasReign) || //Lv90+
+                (!Unlocked(GNB.AID.DoubleDown) && !ActionReady(GNB.AID.GnashingFang) && hasNM && GunComboStep == 0) || //Lv80 & Below
+                (ComboLastMove == GNB.AID.BrutalShell && Ammo == MaxCartridges) //Overcap
             ),
         OffensiveStrategy.Force => true,
         OffensiveStrategy.Delay => false,
@@ -804,7 +804,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
         PotionStrategy.AlignWithRaidBuffs =>
-            IsPotionAlignedWithNM() || nmCD < 5 && bfCD < 15,
+            IsPotionAlignedWithNM() || (nmCD < 5 && bfCD < 15),
         PotionStrategy.Immediate => true,
         _ => false
     };
