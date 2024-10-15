@@ -147,9 +147,9 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
     public enum OGCDPriority
     {
         None = 0,
-        Barrage = 270, // barrage should simply be used on CD (with even uses inside buff window), but otherwise is flexible
-        Sidewinder = 280, // sidewinder should simply be used on CD in buff window, but otherwise is flexible
-        Bloodletter = 290, // we don't want to overcap BL, but that can only happen at the beginning of the burst when we pool charges
+        Barrage = 670, // barrage should simply be used on CD (with even uses inside buff window), but otherwise is flexible
+        Sidewinder = 680, // sidewinder should simply be used on CD in buff window, but otherwise is flexible
+        Bloodletter = 690, // we don't want to overcap BL, but that can only happen at the beginning of the burst when we pool charges
         Potion = 900, // shouldn't conflict with anything
         EmpyrealArrowAfterSong = 910, // when switching to AP, we might want to delay EA a tiny bit
         Song = 920, // switching songs in time sometimes requires clipping gcds
@@ -350,8 +350,8 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         var strategyEA = strategy.Option(Track.EmpyrealArrow);
         if (unlockedEA && ShouldUseEmpyrealArrow(strategyEA.As<OffensiveStrategy>()))
         {
-            var basePrio = AllowClippingGCDByEA(cdEA, estimatedAnimLockDelay) ? ActionQueue.Priority.High : ActionQueue.Priority.Medium;
-            var deltaPrio = ActiveSong == Song.MagesBallad && cdEA > 0.5f ? OGCDPriority.EmpyrealArrowAfterSong : OGCDPriority.EmpyrealArrow; // allow very slight delay of EA by AP
+            var basePrio = AllowClippingGCDByEA(cdEA, estimatedAnimLockDelay) ? ActionQueue.Priority.High : ActionQueue.Priority.Low;
+            var deltaPrio = ActiveSong == Song.MagesBallad && cdEA > World.Client.AnimationLock + 0.1f ? OGCDPriority.EmpyrealArrowAfterSong : OGCDPriority.EmpyrealArrow; // allow very slight delay of EA by AP
             QueueOGCDAtHostile(BRD.AID.EmpyrealArrow, ResolveTargetOverride(strategyEA.Value) ?? primaryTarget, deltaPrio, strategyEA.Value.PriorityOverride, basePrio);
         }
 
@@ -362,7 +362,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
             var (aoeBestTarget, aoeTargetCount) = Unlocked(BRD.AID.RainOfDeath) ? CheckAOETargeting(aoeStrategy, primaryTarget, 25, NumTargetsHitByRainOfDeath, IsHitByRainOfDeath) : (null, 0);
             var useAOE = aoeTargetCount >= 2; // 100*N vs 130/180
             var target = useAOE ? aoeBestTarget : primaryTarget;
-            var basePrio = BloodletterCDElapsed + GCDLength < BloodletterCDTotal ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low;
+            var basePrio = World.Client.CountdownRemaining > 0 ? ActionQueue.Priority.High : BloodletterCDElapsed + GCDLength < BloodletterCDTotal ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low;
             QueueOGCDAtHostile(useAOE ? BRD.AID.RainOfDeath : BestBloodletter, ResolveTargetOverride(strategyBL.Value) ?? target, OGCDPriority.Bloodletter, strategyBL.Value.PriorityOverride, basePrio);
         }
 
@@ -437,7 +437,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
     {
         BRD.AID.BurstShot => 1.45f,
         BRD.AID.RefulgentArrow => 1.45f,
-        BRD.AID.Stormbite => 1.0f, // note: in reality, it is 1.3, but we want to be able to prepull with BL
+        BRD.AID.Stormbite => 1.3f,
         BRD.AID.CausticBite => 1.3f,
         BRD.AID.IronJaws => 0.6f,
         BRD.AID.ApexArrow => 1.05f,
@@ -712,7 +712,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
     private bool ShouldUsePotion(PotionStrategy strategy, bool isUptime) => strategy switch
     {
         PotionStrategy.Manual => false,
-        PotionStrategy.Burst => isUptime && ActiveSong == Song.WanderersMinuet && MinGCDsSinceSongStart(1),
+        PotionStrategy.Burst => isUptime && ActiveSong == Song.WanderersMinuet && FullBuffsIn < 10 && MinGCDsSinceSongStart(1),
         PotionStrategy.Force => true,
         _ => false
     };
