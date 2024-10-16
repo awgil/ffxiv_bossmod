@@ -13,7 +13,9 @@ public abstract class SimpleBossModule(WorldState ws, Actor primary) : BossModul
     {
         // we don't want to change pathfinding map origin every time player slightly moves, it makes movement jittery
         // instead, (a) quantize origin and (b) only update it when player moves sufficiently far away
-        hints.PathfindMapCenter = _prevFramePathfindCenter.AlmostEqual(Arena.Center, 5) ? _prevFramePathfindCenter : (_prevFramePathfindCenter = Arena.Center.Rounded());
+        if (!_prevFramePathfindCenter.AlmostEqual(Arena.Center, 5))
+            _prevFramePathfindCenter = Arena.Center.Rounded();
+        hints.PathfindMapCenter = _prevFramePathfindCenter;
         hints.PathfindMapBounds = AIHints.DefaultBounds;
     }
 }
