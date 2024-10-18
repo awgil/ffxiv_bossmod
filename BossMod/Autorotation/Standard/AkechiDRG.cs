@@ -12,7 +12,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         AoE,                   //Area of Effect actions
         Burst,                 //Burst actions
         Potion,                //Potion usage
-        Dives,                 //Dive abilities
         LifeSurge,             //Life Surge ability
         Jump,                  //Jump ability
         DragonfireDive,        //Dragonfire Dive ability
