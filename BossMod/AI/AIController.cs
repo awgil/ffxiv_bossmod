@@ -13,12 +13,10 @@ sealed class AIController(ActionManagerEx amex, MovementOverride movement)
     public float? NaviTargetVertical;
     public bool AllowInterruptingCastByMovement;
     public bool ForceCancelCast;
-    public bool WantJump;
 
     private readonly ActionManagerEx _amex = amex;
     private readonly MovementOverride _movement = movement;
     private DateTime _nextInteract;
-    private DateTime _nextJump;
 
     public bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas] || Service.Condition[ConditionFlag.OccupiedInQuestEvent];
     public bool IsVerticalAllowed => Service.Condition[ConditionFlag.InFlight];
@@ -31,7 +29,6 @@ sealed class AIController(ActionManagerEx amex, MovementOverride movement)
         NaviTargetVertical = null;
         AllowInterruptingCastByMovement = false;
         ForceCancelCast = false;
-        WantJump = false;
     }
 
     public void SetFocusTarget(Actor? actor)
@@ -57,8 +54,6 @@ sealed class AIController(ActionManagerEx amex, MovementOverride movement)
         {
             var y = NaviTargetVertical != null && IsVerticalAllowed ? NaviTargetVertical.Value : player.PosRot.Y;
             desiredPosition = new(NaviTargetPos.Value.X, y, NaviTargetPos.Value.Z);
-            if (WantJump)
-                ExecuteJump(now);
         }
         else
         {
@@ -81,13 +76,5 @@ sealed class AIController(ActionManagerEx amex, MovementOverride movement)
             return;
         TargetSystem.Instance()->OpenObjectInteraction(obj);
         _nextInteract = now.AddMilliseconds(100);
-    }
-
-    private unsafe void ExecuteJump(DateTime now)
-    {
-        if (now < _nextJump)
-            return;
-        FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance()->UseAction(FFXIVClientStructs.FFXIV.Client.Game.ActionType.GeneralAction, 2);
-        _nextJump = now.AddMilliseconds(100);
     }
 }

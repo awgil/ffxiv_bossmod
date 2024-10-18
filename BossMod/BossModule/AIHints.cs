@@ -87,6 +87,10 @@ public sealed class AIHints
     // buffs to be canceled asap
     public List<(uint statusId, ulong sourceId)> StatusesToCancel = [];
 
+    // misc stuff to execute
+    public bool WantJump;
+    public bool WantDismount;
+
     // clear all stored data
     public void Clear()
     {
@@ -106,6 +110,8 @@ public sealed class AIHints
         MaxCastTimeEstimate = float.MaxValue;
         ActionsToExecute.Clear();
         StatusesToCancel.Clear();
+        WantJump = false;
+        WantDismount = false;
     }
 
     // fill list of potential targets from world state
