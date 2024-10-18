@@ -277,4 +277,29 @@ public sealed class AIHints
             return aoeTargets >= 0 ? 3 + aoeTargets : singleTarget(p);
         };
     }
+
+    public Actor? FarthestTargetWithinRadius(WPos origin, float radius = 15f)
+    {
+        Actor? farthestTarget = null;
+        float maxDistanceSquared = 0f;
+
+        // Iterate through all potential targets
+        foreach (var target in PotentialTargets)
+        {
+            var distanceSquared = (target.Actor.Position - origin).LengthSq();
+
+            // Check if the target is within the given radius
+            if (distanceSquared <= radius * radius)
+            {
+                // If this target is farther than the current farthest, update it
+                if (distanceSquared > maxDistanceSquared)
+                {
+                    maxDistanceSquared = distanceSquared;
+                    farthestTarget = target.Actor;
+                }
+            }
+        }
+
+        return farthestTarget;
+    }
 }

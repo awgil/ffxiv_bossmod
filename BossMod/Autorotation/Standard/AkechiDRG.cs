@@ -322,6 +322,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     public DRG.AID NextGCD; //Next global cooldown action to be used
     private GCDPriority NextGCDPrio; //Priority of the next GCD, used for decision making on cooldowns
 
+    private Actor? FarthestTarget;
+
     //Check if the desired ability is unlocked
     private bool Unlocked(DRG.AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
 
@@ -393,9 +395,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         );  //Get remaining time for Chaos Thrust and Chaotic Spring
         PotionLeft = PotionStatusLeft();  //Get remaining potion status
         (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);  //Estimate remaining raid buffs
-
         NextGCD = DRG.AID.None;  //Set next GCD ability
         NextGCDPrio = GCDPriority.None;  //Set next GCD priority
+        FarthestTarget = Hints.FarthestTargetWithinRadius(Player.Position, 15);  //Get farthest target within 5-yalm radius
 
         var AOEStrategy = strategy.Option(Track.AoE).As<AOEStrategy>();  //Get AoE strategy
         var AoETargets = AOEStrategy switch  //Determine AoE target count
@@ -463,7 +465,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Execute Geirskogul if available
         var geirskogul = strategy.Option(Track.Geirskogul).As<GeirskogulStrategy>();
         if (!hold && ShouldUseGeirskogul(geirskogul, primaryTarget))
-            QueueOGCD(DRG.AID.Geirskogul, primaryTarget, geirskogul == GeirskogulStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Geirskogul);
+            QueueOGCD(DRG.AID.Geirskogul, FarthestTarget, geirskogul == GeirskogulStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Geirskogul);
 
         //Execute Mirage Dive if available
         var mirageStrat = strategy.Option(Track.MirageDive).As<OffensiveStrategy>();
@@ -473,7 +475,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Execute Nastrond if available
         var nastrondStrat = strategy.Option(Track.Nastrond).As<OffensiveStrategy>();
         if (!hold && ShouldUseNastrond(nastrondStrat, primaryTarget))
-            QueueOGCD(DRG.AID.Nastrond, primaryTarget, nastrondStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Nastrond);
+            QueueOGCD(DRG.AID.Nastrond, FarthestTarget, nastrondStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Nastrond);
 
         //Execute Stardiver if available
         var sdStrat = strategy.Option(Track.Stardiver).As<StardiverStrategy>();
@@ -483,7 +485,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Execute Wyrmwind Thrust if available
         var wtStrat = strategy.Option(Track.WyrmwindThrust).As<OffensiveStrategy>();
         if (!hold && ShouldUseWyrmwindThrust(wtStrat, primaryTarget))
-            QueueOGCD(DRG.AID.WyrmwindThrust, primaryTarget, wtStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.WyrmwindThrust);
+            QueueOGCD(DRG.AID.WyrmwindThrust, FarthestTarget, wtStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.WyrmwindThrust);
 
         //Execute Rise of the Dragon if available
         var riseStrat = strategy.Option(Track.RiseOfTheDragon).As<OffensiveStrategy>();
