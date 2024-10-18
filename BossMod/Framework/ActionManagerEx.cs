@@ -381,7 +381,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         if (_autoAutosTweak.GetDesiredState(autosEnabled) != autosEnabled)
             _inst->UseAction(CSActionType.GeneralAction, 1);
 
-        if (_hints.WantDismount && _dismountTweak.CheckThrottle())
+        if (_hints.WantDismount)
             _inst->UseAction(CSActionType.Action, 4);
     }
 
