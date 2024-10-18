@@ -49,10 +49,28 @@ class VeilHaloTwinscorch(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_aoes.Count > 1)
-            yield return _aoes[1] with { Risky = false };
+        foreach (var aoe in _aoes.Skip(1))
+            yield return aoe with { Risky = false };
         if (_aoes.Count > 0)
             yield return _aoes[0] with { Color = ArenaColor.Danger };
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (_aoes.Count > 1)
+        {
+            // if next is another cleave, stay close
+            if (_aoes[1].Shape == _shapeCleave)
+                hints.AddForbiddenZone(ShapeDistance.Rect(_aoes[1].Origin, _aoes[1].Rotation, 40, -3, 40), _aoes[1].Activation);
+            // if last is out, we should really stay at max melee, otherwise because of pyretic we might not get out in time
+            if (_aoes[^1].Shape == _shapeOut)
+                hints.AddForbiddenZone(ShapeDistance.Circle(_aoes[^1].Origin, 6), _aoes[^1].Activation);
+            // if last is in, just add it as-is, no reason to stay out
+            if (_aoes[^1].Shape == _shapeIn)
+                hints.AddForbiddenZone(_aoes[^1].Shape.Distance(_aoes[^1].Origin, default), _aoes[^1].Activation);
+        }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

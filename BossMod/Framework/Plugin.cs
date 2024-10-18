@@ -2,7 +2,6 @@
 using Dalamud.Common;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Game.Command;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using System.IO;
@@ -13,8 +12,6 @@ namespace BossMod;
 public sealed class Plugin : IDalamudPlugin
 {
     public string Name => "Boss Mod";
-
-    private ICommandManager CommandManager { get; init; }
 
     private readonly RotationDatabase _rotationDB;
     private readonly WorldState _ws;
@@ -30,7 +27,9 @@ public sealed class Plugin : IDalamudPlugin
     private readonly AI.Broadcast _broadcast;
     private readonly IPCProvider _ipc;
     private readonly DTRProvider _dtr;
+    private readonly SlashCommandProvider _slashCmd;
     private TimeSpan _prevUpdateTime;
+    private DateTime _throttleJump;
 
     // windows
     private readonly ConfigUI _configUI; // TODO: should be a proper window!
@@ -38,6 +37,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly BossModuleHintsWindow _wndBossmodHints;
     private readonly ReplayManagementWindow _wndReplay;
     private readonly UIRotationWindow _wndRotation;
+    private readonly AI.AIWindow _wndAI;
     private readonly MainDebugWindow _wndDebug;
 
     public unsafe Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner, IDataManager dataManager)
@@ -67,9 +67,6 @@ public sealed class Plugin : IDalamudPlugin
         Service.Config.LoadFromFile(dalamud.ConfigFile);
         Service.Config.Modified.Subscribe(() => Service.Config.SaveToFile(dalamud.ConfigFile));
 
-        CommandManager = commandManager;
-        CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod settings UI" });
-
         ActionDefinitions.Instance.UnlockCheck = QuestUnlocked; // ensure action definitions are initialized and set unlock check functor (we don't really store the quest progress in clientstate, for now at least)
 
         var qpf = (ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency;
@@ -87,18 +84,22 @@ public sealed class Plugin : IDalamudPlugin
         _broadcast = new();
         _ipc = new(_rotation, _amex, _movementOverride, _ai);
         _dtr = new(_rotation, _ai);
+        _slashCmd = new(commandManager, "/vbm");
 
         var replayDir = new DirectoryInfo(dalamud.ConfigDirectory.FullName + "/replays");
         _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
         _wndBossmod = new(_bossmod, _zonemod);
         _wndBossmodHints = new(_bossmod, _zonemod);
-        _wndReplay = new(_ws, _rotationDB, replayDir);
+        _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir);
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
+        _wndAI = new(_ai);
         _wndDebug = new(_ws, _rotation, _amex, _hintsBuilder, dalamud);
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
         dalamud.UiBuilder.Draw += DrawUI;
+        dalamud.UiBuilder.OpenMainUi += () => OpenConfigUI();
         dalamud.UiBuilder.OpenConfigUi += () => OpenConfigUI();
+        RegisterSlashCommands();
 
         _ = new ConfigChangelogWindow();
     }
@@ -107,11 +108,14 @@ public sealed class Plugin : IDalamudPlugin
     {
         Service.Condition.ConditionChange -= OnConditionChanged;
         _wndDebug.Dispose();
+        _wndAI.Dispose();
         _wndRotation.Dispose();
         _wndReplay.Dispose();
         _wndBossmodHints.Dispose();
         _wndBossmod.Dispose();
         _configUI.Dispose();
+        _slashCmd.Dispose();
+        _dtr.Dispose();
         _ipc.Dispose();
         _ai.Dispose();
         _rotation.Dispose();
@@ -121,44 +125,121 @@ public sealed class Plugin : IDalamudPlugin
         _hintsBuilder.Dispose();
         _zonemod.Dispose();
         _bossmod.Dispose();
-        _dtr.Dispose();
         ActionDefinitions.Instance.Dispose();
-        CommandManager.RemoveHandler("/vbm");
     }
 
-    private void OnCommand(string cmd, string args)
+    private void RegisterSlashCommands()
     {
-        Service.Log($"OnCommand: {cmd} {args}");
-        var split = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (split.Length == 0)
+        _slashCmd.SetSimpleHandler("show boss mod settings UI", () => OpenConfigUI());
+        _slashCmd.AddSubcommand("r").SetSimpleHandler("show/hide replay management window", () => _wndReplay.SetVisible(!_wndReplay.IsOpen));
+        RegisterAutorotationSlashCommands(_slashCmd.AddSubcommand("ar"));
+        RegisterAISlashCommands(_slashCmd.AddSubcommand("ai"));
+        _slashCmd.AddSubcommand("cfg").SetComplexHandler("<config-type> <field> [<value>]", "query or modify configuration setting", args =>
         {
-            OpenConfigUI();
-            return;
+            var output = Service.Config.ConsoleCommand(args);
+            foreach (var msg in output)
+                Service.ChatGui.Print(msg);
+            return true;
+        });
+        _slashCmd.AddSubcommand("d").SetSimpleHandler("show debug UI", _wndDebug.OpenAndBringToFront);
+        _slashCmd.AddSubcommand("gc").SetSimpleHandler("execute C# garbage collector", () =>
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        });
+
+        _slashCmd.Register();
+        _slashCmd.RegisterAlias("/vbmai", "ai"); // TODO: deprecated
+    }
+
+    private void RegisterAutorotationSlashCommands(SlashCommandHandler cmd)
+    {
+        void SetOrToggle(Preset preset, bool toggle)
+        {
+            var newPreset = toggle && _rotation.Preset == preset ? null : preset;
+            Service.Log($"Console: {(toggle ? "toggle" : "set")} changes preset from '{_rotation.Preset?.Name ?? "<n/a>"}' to '{newPreset?.Name ?? "<n/a>"}'");
+            _rotation.Preset = newPreset;
         }
 
-        switch (split[0])
+        void SetOrToggleByName(ReadOnlySpan<char> presetName, bool toggle)
         {
-            case "d":
-                _wndDebug.IsOpen = true;
-                _wndDebug.BringToFront();
-                break;
-            case "cfg":
-                var output = Service.Config.ConsoleCommand(new ArraySegment<string>(split, 1, split.Length - 1));
-                foreach (var msg in output)
-                    Service.ChatGui.Print(msg);
-                break;
-            case "gc":
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
-                break;
-            case "r":
-                _wndReplay.SetVisible(!_wndReplay.IsOpen);
-                break;
-            case "ar":
-                ParseAutorotationCommands(split);
-                break;
+            var preset = _rotation.Database.Presets.FindPresetByName(presetName);
+            if (preset != null)
+                SetOrToggle(preset, toggle);
+            else
+                Service.ChatGui.PrintError($"Failed to find preset '{presetName}'");
         }
+
+        cmd.SetSimpleHandler("toggle autorotation ui", () => _wndRotation.SetVisible(!_wndRotation.IsOpen));
+        cmd.AddSubcommand("clear").SetSimpleHandler("clear current preset; autorotation will do nothing unless plan is active", () =>
+        {
+            Service.Log($"Console: clearing autorotation preset '{_rotation.Preset?.Name ?? "<n/a>"}'");
+            _rotation.Preset = null;
+        });
+        cmd.AddSubcommand("disable").SetSimpleHandler("force disable autorotation; no actions will be executed automatically even if plan is active", () =>
+        {
+            Service.Log($"Console: force-disabling from preset '{_rotation.Preset?.Name ?? "<n/a>"}'");
+            _rotation.Preset = RotationModuleManager.ForceDisable;
+        });
+        cmd.AddSubcommand("set").SetComplexHandler("<preset>", "start executing specified preset", preset =>
+        {
+            SetOrToggleByName(preset, false);
+            return true;
+        });
+        var toggle = cmd.AddSubcommand("toggle");
+        toggle.SetSimpleHandler("force disable autorotation if not already; otherwise clear overrides", () => SetOrToggle(RotationModuleManager.ForceDisable, true));
+        toggle.SetComplexHandler("<preset>", "start executing specified preset unless it's already active; clear otherwise", preset =>
+        {
+            SetOrToggleByName(preset, true);
+            return true;
+        });
+    }
+
+    private void RegisterAISlashCommands(SlashCommandHandler cmd)
+    {
+        cmd.SetSimpleHandler("toggle AI ui", () => _wndAI.SetVisible(!_wndAI.IsOpen));
+        cmd.AddSubcommand("on").SetSimpleHandler("enable AI mode", () => _ai.Enabled = true);
+        cmd.AddSubcommand("off").SetSimpleHandler("disable AI mode", () => _ai.Enabled = false);
+        cmd.AddSubcommand("toggle").SetSimpleHandler("toggle AI mode", () => _ai.Enabled ^= true);
+        cmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "enable AI mode and follow party member with specified name or at specified slot", masterString =>
+        {
+            var masterSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? int.Parse(masterString[4..]) - 1 : _ws.Party.FindSlot(masterString);
+            if (_ws.Party[masterSlot] != null)
+            {
+                _ai.SwitchToFollow(masterSlot);
+                _ai.Enabled = true;
+            }
+            else
+            {
+                Service.ChatGui.PrintError($"[AI] [Follow] Error: can't find {masterString} in our party");
+            }
+            return true;
+        });
+
+        // TODO: this should really be removed, it's a weird synonym for /vbm cfg AIConfig ...
+        cmd.SetComplexHandler("", "", args =>
+        {
+            Span<Range> ranges = stackalloc Range[2];
+            var numRanges = args.Split(ranges, ' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (numRanges == 1)
+            {
+                // toggle
+                var value = Service.Config.ConsoleCommand($"AIConfig {args}");
+                return bool.TryParse(value[0], out var boolValue) && Service.Config.ConsoleCommand($"AIConfig {args} {!boolValue}").Count == 0;
+            }
+            else if (numRanges == 2)
+            {
+                // set
+                var value = args[ranges[1]];
+                if (value.Equals("on", StringComparison.InvariantCultureIgnoreCase))
+                    value = "true";
+                else if (value.Equals("off", StringComparison.InvariantCultureIgnoreCase))
+                    value = "false";
+                return Service.Config.ConsoleCommand($"AIConfig {args[ranges[0]]} {value}").Count == 0;
+            }
+            return false;
+        });
     }
 
     private void OpenConfigUI(string showTab = "")
@@ -222,58 +303,12 @@ public sealed class Plugin : IDalamudPlugin
             var res = FFXIVClientStructs.FFXIV.Client.Game.StatusManager.ExecuteStatusOff(s.statusId, s.sourceId != 0 ? (uint)s.sourceId : 0xE0000000);
             Service.Log($"[ExecHints] Canceling status {s.statusId} from {s.sourceId:X} -> {res}");
         }
-    }
-
-    private void ParseAutorotationCommands(string[] cmd)
-    {
-        switch (cmd.Length > 1 ? cmd[1] : "")
+        if (_hints.WantJump && _ws.CurrentTime > _throttleJump)
         {
-            case "clear":
-                Service.Log($"Console: clearing autorotation preset '{_rotation.Preset?.Name ?? "<n/a>"}'");
-                _rotation.Preset = null;
-                break;
-            case "disable":
-                Service.Log($"Console: force-disabling from preset '{_rotation.Preset?.Name ?? "<n/a>"}'");
-                _rotation.Preset = RotationModuleManager.ForceDisable;
-                break;
-            case "set":
-                if (cmd.Length <= 2)
-                    PrintAutorotationHelp();
-                else
-                    ParseAutorotationSetCommand(cmd[2], false);
-                break;
-            case "toggle":
-                ParseAutorotationSetCommand(cmd.Length > 2 ? cmd[2] : "", true);
-                break;
-            default:
-                PrintAutorotationHelp();
-                break;
+            //Service.Log($"[ExecHints] Jumping...");
+            FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance()->UseAction(FFXIVClientStructs.FFXIV.Client.Game.ActionType.GeneralAction, 2);
+            _throttleJump = _ws.CurrentTime.AddMilliseconds(100);
         }
-    }
-
-    private void ParseAutorotationSetCommand(string presetName, bool toggle)
-    {
-        var preset = presetName.Length > 0 ? _rotation.Database.Presets.Presets.FirstOrDefault(p => p.Name == presetName) : RotationModuleManager.ForceDisable;
-        if (preset != null)
-        {
-            var newPreset = toggle && _rotation.Preset == preset ? null : preset;
-            Service.Log($"Console: {(toggle ? "toggle" : "set")} changes preset from '{_rotation.Preset?.Name ?? "<n/a>"}' to '{newPreset?.Name ?? "<n/a>"}'");
-            _rotation.Preset = newPreset;
-        }
-        else
-        {
-            Service.ChatGui.PrintError($"Failed to find preset '{presetName}'");
-        }
-    }
-
-    private void PrintAutorotationHelp()
-    {
-        Service.ChatGui.Print("Autorotation commands:");
-        Service.ChatGui.Print("* /vbm ar clear - clear current preset; autorotation will do nothing unless plan is active");
-        Service.ChatGui.Print("* /vbm ar disable - force disable autorotation; no actions will be executed automatically even if plan is active");
-        Service.ChatGui.Print("* /vbm ar set Preset - start executing specified preset");
-        Service.ChatGui.Print("* /vbm ar toggle - force disable autorotation if not already; otherwise clear overrides");
-        Service.ChatGui.Print("* /vbm ar toggle Preset - start executing specified preset unless it's already active; clear otherwise");
     }
 
     private void OnConditionChanged(ConditionFlag flag, bool value)

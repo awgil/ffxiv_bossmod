@@ -9,21 +9,41 @@ public sealed class UIRotationWindow : UIWindow
     private readonly RotationModuleManager _mgr;
     private readonly ActionManagerEx _amex;
     private readonly AutorotationConfig _config = Service.Config.Get<AutorotationConfig>();
+    private readonly EventSubscriptions _subscriptions;
 
     public UIRotationWindow(RotationModuleManager mgr, ActionManagerEx amex, Action openConfig) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _mgr = mgr;
         _amex = amex;
-        ShowCloseButton = false;
+        _subscriptions = new
+        (
+            _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI)
+        );
         RespectCloseHotkey = false;
         TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => openConfig() });
     }
 
+    protected override void Dispose(bool disposing)
+    {
+        _subscriptions.Dispose();
+        base.Dispose(disposing);
+    }
+
+    public void SetVisible(bool vis)
+    {
+        if (_config.ShowUI != vis)
+        {
+            _config.ShowUI = vis;
+            _config.Modified.Fire();
+        }
+    }
+
     public override void PreOpenCheck()
     {
-        IsOpen = _config.ShowUI && _mgr.WorldState.Party.Player() != null;
         DrawPositional();
     }
+
+    public override bool DrawConditions() => _mgr.WorldState.Party.Player() != null;
 
     public override void Draw()
     {
@@ -78,6 +98,8 @@ public sealed class UIRotationWindow : UIWindow
             ImGui.TextUnformatted($"> {a.Action} ({a.Priority:f2})");
         }
     }
+
+    public override void OnClose() => SetVisible(false);
 
     public static bool DrawRotationSelector(RotationModuleManager mgr)
     {
