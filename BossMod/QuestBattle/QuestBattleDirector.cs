@@ -1,19 +1,18 @@
 ﻿using BossMod.AI;
 using BossMod.Autorotation;
 using Dalamud.Plugin.Ipc;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace BossMod.QuestBattle;
 
-class PathfindNoop : ICallGateSubscriber<Vector3, Vector3, bool, CancellationToken, Task<List<Vector3>>?>
+class PathfindNoop : ICallGateSubscriber<Vector3, Vector3, bool, Task<List<Vector3>>?>
 {
     bool ICallGateSubscriber.HasAction => false;
     bool ICallGateSubscriber.HasFunction => true;
-    public void InvokeAction(Vector3 arg1, Vector3 arg2, bool arg3, CancellationToken arg4) { }
-    public Task<List<Vector3>>? InvokeFunc(Vector3 arg1, Vector3 arg2, bool arg3, CancellationToken arg4) => null;
-    public void Subscribe(Action<Vector3, Vector3, bool, CancellationToken> action) { }
-    public void Unsubscribe(Action<Vector3, Vector3, bool, CancellationToken> action) { }
+    public void InvokeAction(Vector3 arg1, Vector3 arg2, bool arg3) { }
+    public Task<List<Vector3>>? InvokeFunc(Vector3 arg1, Vector3 arg2, bool arg3) => null;
+    public void Subscribe(Action<Vector3, Vector3, bool> action) { }
+    public void Unsubscribe(Action<Vector3, Vector3, bool> action) { }
 }
 
 class PathReadyNoop : ICallGateSubscriber<bool>
@@ -37,7 +36,6 @@ public sealed class QuestBattleDirector : IDisposable
     public readonly record struct NavigationWaypoint(Vector3 Position, bool SpecifiedInPath);
 
     private Task<List<NavigationWaypoint>>? PathfindTask;
-    private readonly CancellationTokenSource Cancel = new();
 
     public List<NavigationWaypoint> CurrentWaypoints { get; private set; } = [];
     public QuestBattle? CurrentModule { get; private set; }
@@ -54,7 +52,7 @@ public sealed class QuestBattleDirector : IDisposable
 
     public const float Tolerance = 0.25f;
 
-    private readonly ICallGateSubscriber<Vector3, Vector3, bool, CancellationToken, Task<List<Vector3>>?> _pathfind;
+    private readonly ICallGateSubscriber<Vector3, Vector3, bool, Task<List<Vector3>>?> _pathfind;
     private readonly ICallGateSubscriber<bool> _isMeshReady;
 
     private bool _combatFlag;
@@ -83,12 +81,12 @@ public sealed class QuestBattleDirector : IDisposable
         }
         else
         {
-            _pathfind = Service.PluginInterface.GetIpcSubscriber<Vector3, Vector3, bool, CancellationToken, Task<List<Vector3>>?>("vnavmesh.Nav.PathfindCancelable");
+            _pathfind = Service.PluginInterface.GetIpcSubscriber<Vector3, Vector3, bool, Task<List<Vector3>>?>("vnavmesh.Nav.Pathfind");
             _isMeshReady = Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
         }
     }
 
-    private Task<List<Vector3>>? Pathfind(Vector3 source, Vector3 target, CancellationToken cancel) => _pathfind.InvokeFunc(source, target, false, cancel);
+    private Task<List<Vector3>>? Pathfind(Vector3 source, Vector3 target) => _pathfind.InvokeFunc(source, target, false);
     private bool IsMeshReady() => _isMeshReady.InvokeFunc();
 
     private void Clear()
@@ -97,7 +95,6 @@ public sealed class QuestBattleDirector : IDisposable
         CurrentObjective = null;
         CurrentModule?.Dispose();
         CurrentModule = null;
-        Cancel.Cancel();
         PathfindTask = null;
     }
 
@@ -216,7 +213,7 @@ public sealed class QuestBattleDirector : IDisposable
         }
     }
 
-    public static bool HaveTarget(Actor player, AIHints hints) => player.InCombat || hints.PriorityTargets.Any(x => hints.PathfindMapBounds.Contains(x.Actor.Position - hints.PathfindMapCenter));
+    public static bool HaveTarget(Actor player, AIHints hints) => hints.PriorityTargets.Any(x => hints.PathfindMapBounds.Contains(x.Actor.Position - hints.PathfindMapCenter));
 
     enum ActionsProhibitedStatus : uint
     {
@@ -288,20 +285,15 @@ public sealed class QuestBattleDirector : IDisposable
             return;
         }
 
-        Log("canceling previous pathfind (TryPathfind)");
-        Cancel.Cancel();
-        PathfindTask?.Wait();
-        Log("queueing new pathfind");
-        PathfindTask = TryPathfind([new Waypoint(start), .. connections], Cancel.Token, maxRetries);
-        Log($"task: {PathfindTask}");
+        PathfindTask = Task.Run(() => TryPathfind([new Waypoint(start), .. connections], maxRetries));
     }
 
-    private async Task<List<NavigationWaypoint>> TryPathfind(IEnumerable<Waypoint> connectionPoints, CancellationToken cancel, int maxRetries = 5)
+    private async Task<List<NavigationWaypoint>> TryPathfind(IEnumerable<Waypoint> connectionPoints, int maxRetries = 5)
     {
         if (!IsMeshReady())
         {
             await Task.Delay(500).ConfigureAwait(true);
-            return await TryPathfind(connectionPoints, cancel, maxRetries - 1).ConfigureAwait(true);
+            return await TryPathfind(connectionPoints, maxRetries - 1).ConfigureAwait(true);
         }
         var points = connectionPoints.Take(3).ToList();
         if (points.Count < 2)
@@ -316,7 +308,7 @@ public sealed class QuestBattleDirector : IDisposable
 
         if (end.Pathfind)
         {
-            var task = Pathfind(start.Position, end.Position, cancel);
+            var task = Pathfind(start.Position, end.Position);
             if (task == null)
             {
                 Log($"Pathfind failure");
@@ -337,21 +329,18 @@ public sealed class QuestBattleDirector : IDisposable
         }
 
         if (points.Count > 2)
-            thesePoints.AddRange(await TryPathfind(connectionPoints.Skip(1), cancel).ConfigureAwait(true));
+            thesePoints.AddRange(await TryPathfind(connectionPoints.Skip(1)).ConfigureAwait(true));
         return thesePoints;
     }
 
     public void Dispose()
     {
         _subscriptions.Dispose();
-        Cancel.Dispose();
     }
 
     private void OnObjectiveChanged(QuestObjective obj)
     {
         CurrentObjectiveNavigationProgress = 0;
-        Cancel.Cancel();
-        PathfindTask?.Wait();
         Log($"next objective: {obj}");
         if (World.Party.Player() is Actor player && (!_combatFlag || obj.NavigationStrategy == NavigationStrategy.Continue))
             TryPathfind(player.PosRot.XYZ(), obj.Connections);
@@ -360,8 +349,6 @@ public sealed class QuestBattleDirector : IDisposable
     private void OnObjectiveCleared(QuestObjective obj)
     {
         CurrentObjectiveNavigationProgress = 0;
-        Cancel.Cancel();
-        PathfindTask?.Wait();
         Log($"cleared objective: {obj}");
         CurrentWaypoints.Clear();
     }

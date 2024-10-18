@@ -227,6 +227,7 @@ public abstract class QuestBattle : IDisposable
     protected QuestBattle(WorldState ws)
     {
         World = ws;
+        Objectives = DefineObjectives(ws);
 
         _subscriptions = new(
             ws.Actors.EventStateChanged.Subscribe(act => CurrentObjective?.OnActorEventStateChanged?.Invoke(act)),

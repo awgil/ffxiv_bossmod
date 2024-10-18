@@ -11,6 +11,9 @@ public class ItsProbablyATrap(WorldState ws) : QuestBattle(ws)
     private bool SmokeBomb;
 
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+        new QuestObjective(ws)
+            .With(obj => obj.Update += () => obj.CompleteIf(World.Client.DutyActions[0].Action.ID == 7816)),
+
         // have to walk up the stairs to trigger dialogue
         new QuestObjective(ws)
             .WithConnection(new Vector3(-80.82f, -3.00f, 46.31f))
