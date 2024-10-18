@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using BossMod.QuestBattle;
+
+namespace BossMod;
 
 // utility that recalculates ai hints based on different data sources (eg active bossmodule, etc)
 // when there is no active bossmodule (eg in outdoor or on trash), we try to guess things based on world state (eg actor casts)
@@ -10,16 +12,18 @@ public sealed class AIHintsBuilder : IDisposable
     private readonly WorldState _ws;
     private readonly BossModuleManager _bmm;
     private readonly ZoneModuleManager _zmm;
+    private readonly QuestBattleDirector _qb;
     private readonly EventSubscriptions _subscriptions;
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = [];
     private ArenaBoundsCircle? _activeFateBounds;
 
-    public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm)
+    public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm, QuestBattleDirector qb)
     {
         _ws = ws;
         _bmm = bmm;
         _zmm = zmm;
         Obstacles = new(ws);
+        _qb = qb;
         _subscriptions = new
         (
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
@@ -51,6 +55,7 @@ public sealed class AIHintsBuilder : IDisposable
             else
             {
                 CalculateAutoHints(hints, player);
+                _qb.AddAIHints(player, hints);
                 _zmm.ActiveModule?.CalculateAIHints(player, hints);
             }
         }

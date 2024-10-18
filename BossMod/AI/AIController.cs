@@ -19,8 +19,9 @@ sealed class AIController(ActionManagerEx amex, MovementOverride movement)
     private readonly MovementOverride _movement = movement;
     private DateTime _nextInteract;
     private DateTime _nextJump;
+    private DateTime _nextDismount;
 
-    public bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas] || Service.Condition[ConditionFlag.OccupiedInQuestEvent];
+    public static bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas] || Service.Condition[ConditionFlag.OccupiedInQuestEvent];
     public bool IsVerticalAllowed => Service.Condition[ConditionFlag.InFlight];
     public Angle CameraFacing => (Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees();
     public Angle CameraAltitude => (Camera.Instance?.CameraAltitude ?? 0).Radians();
@@ -68,8 +69,19 @@ sealed class AIController(ActionManagerEx amex, MovementOverride movement)
         if (hints.ForcedMovement == null && desiredPosition != null)
             hints.ForcedMovement = desiredPosition.Value - player.PosRot.XYZ();
 
+        if (hints.Dismount && player.MountId > 0)
+            ExecuteDismount(now);
+
         if (hints.InteractWithTarget is Actor tar && player.DistanceToHitbox(tar) <= 3)
             ExecuteInteract(now, tar);
+    }
+
+    private unsafe void ExecuteDismount(DateTime now)
+    {
+        if (now < _nextDismount)
+            return;
+        FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance()->UseAction(FFXIVClientStructs.FFXIV.Client.Game.ActionType.GeneralAction, 23);
+        _nextDismount = now.AddMilliseconds(100);
     }
 
     private unsafe void ExecuteInteract(DateTime now, Actor target)
