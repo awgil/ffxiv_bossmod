@@ -6,12 +6,13 @@ namespace BossMod.Autorotation;
 
 public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    //Enum representing different actions tracked for Cooldown Planner execution
+    //Abilities representing different actions tracked for Cooldown Planner execution
     public enum Track
     {
         AoE,                   //Area of Effect actions
         Burst,                 //Burst actions
         Potion,                //Potion usage
+        Dives,                 //Dive abilities
         LifeSurge,             //Life Surge ability
         Jump,                  //Jump ability
         DragonfireDive,        //Dragonfire Dive ability
@@ -27,7 +28,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         Starcross              //Starcross ability
     }
 
-    //specifying AoE strategy preferences
+    //Specifying AoE strategy preferences
     public enum AOEStrategy
     {
         UseST,                 //Use single-target abilities
@@ -40,7 +41,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         AutoFinishCombo        //Auto AoE finish combo if conditions met
     }
 
-    //burst strategy options
+    //Burst strategy options
     public enum BurstStrategy
     {
         Automatic,             //Automatic burst under general conditions
@@ -49,7 +50,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         UnderPotion            //Burst when a potion is active
     }
 
-    //potion usage strategies
+    //Potion usage strategies
     public enum PotionStrategy
     {
         Manual,                //Manual potion usage
@@ -60,7 +61,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     //Piercing Talon strategy
     public enum PiercingTalonStrategy
     {
-        OpenerRanged,          //Use Piercing Talon as a ranged opener
+        Automatic,             //Use Piercing Talon when appropriate
         Opener,                //Use Piercing Talon as an opener
         Force,                 //Force use of Piercing Talon
         Ranged,                //Use Piercing Talon for ranged situations
@@ -195,7 +196,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         //Piercing Talon strategy
         res.Define(Track.PiercingTalon).As<PiercingTalonStrategy>("Piercing Talon", "Talon", uiPriority: 20)
-            .AddOption(PiercingTalonStrategy.OpenerRanged, "Opener Ranged", "Use Piercing Talon as the first GCD, only if outside melee range")
+            .AddOption(PiercingTalonStrategy.Automatic, "Automatic", "Use Piercing Talon only if already in combat & outside melee range")
             .AddOption(PiercingTalonStrategy.Opener, "Opener", "Use Piercing Talon as the first GCD, regardless of range")
             .AddOption(PiercingTalonStrategy.Force, "Force", "Force Piercing Talon usage ASAP (even in melee range)")
             .AddOption(PiercingTalonStrategy.Ranged, "Ranged", "Use Piercing Talon if outside melee range")
@@ -753,7 +754,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         DragonfireStrategy.Automatic =>
             //Use Dragonfire Dive automatically if the player is in combat, the target is valid, and both Lance Charge and Battle Litany are active
-            Player.InCombat && target != null && canDragonfire && hasLC && hasBL,
+            Player.InCombat && target != null && In3y(target) && canDragonfire && hasLC && hasBL,
         DragonfireStrategy.Force => true, //Always use if forced
         DragonfireStrategy.ForceEX => true, //Always use in ForceEX strategy
         DragonfireStrategy.Delay => false, //Delay usage if strategy is set to delay
@@ -799,7 +800,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         StardiverStrategy.Automatic =>
             //Use Stardiver automatically if the player is in combat, the target is valid, the action is ready, and Life of the Dragon (LOTD) is active
-            Player.InCombat && target != null && canStardive && hasLOTD,
+            Player.InCombat && target != null && In3y(target) && canStardive && hasLOTD,
         StardiverStrategy.Force => true, //Always use if forced
         StardiverStrategy.ForceEX => true, //Always use if forced
         StardiverStrategy.Delay => false, //Delay usage if strategy is set to delay
@@ -842,9 +843,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     //Determines when to use Piercing Talon
     private bool ShouldUsePiercingTalon(Actor? target, PiercingTalonStrategy strategy) => strategy switch
     {
-        PiercingTalonStrategy.OpenerRanged =>
-            //Use Piercing Talon as the first GCD if the target is not within 3y range
-            IsFirstGCD() && !In3y(target),
+        PiercingTalonStrategy.Automatic =>
+            //Use Piercing Talon if the target is not within 3y range and already in combat
+            Player.InCombat && target != null && !In3y(target),
         PiercingTalonStrategy.Opener =>
             //Use Piercing Talon as the first GCD
             IsFirstGCD(),
