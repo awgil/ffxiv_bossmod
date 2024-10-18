@@ -51,7 +51,6 @@ public enum AID : uint
     TrueNorth = ClassShared.AID.TrueNorth, // L50, instant, 45.0s CD (group 45/50) (2 charges), range 0, single-target, targets=Self
 }
 
-
 public enum TraitID : uint
 {
     None = 0,
@@ -164,30 +163,5 @@ public sealed class Definitions : IDisposable
         //d.Spell(AID.TrueThrust)!.TransformAction = d.Spell(AID.RaidenThrust)!.TransformAction = () => ActionID.MakeSpell(_state.BestTrueThrust);
         //d.Spell(AID.DoomSpike)!.TransformAction = d.Spell(AID.DraconianFury)!.TransformAction = () => ActionID.MakeSpell(_state.BestDoomSpike);
         //d.Spell(AID.Geirskogul)!.TransformAction = d.Spell(AID.Nastrond)!.TransformAction = () => ActionID.MakeSpell(_state.BestGeirskogul);
-    }
-
-    // smart targeting utility: return target (if friendly) or mouseover (if friendly) or other tank (if available) or null (otherwise)
-    public static Actor? SmartTargetDragonSight(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => ActionDefinitions.SmartTargetFriendly(primaryTarget) ?? FindBestDragonSightTarget(ws, player);
-    public static Actor FindBestDragonSightTarget(WorldState ws, Actor player)
-    {
-        // TODO: allow designating specific player as target in config
-        var bestPartyMember = ws.Party.WithoutSlot().Exclude(player).MaxBy(p => p.Class switch
-        {
-            Class.SAM => 1.00f,
-            Class.NIN => 0.99f,
-            Class.RPR => 0.89f,
-            Class.MNK => 0.88f,
-            Class.DRG => 0.88f,
-            Class.DNC => 0.86f,
-            Class.BRD => 0.86f,
-            Class.BLM => 0.82f,
-            Class.RDM => 0.77f,
-            Class.GNB => 0.68f,
-            Class.DRK => 0.67f,
-            Class.MCH => 0.67f,
-            Class.SMN => 0.66f,
-            _ => 0.01f
-        });
-        return bestPartyMember ?? player;
     }
 }
