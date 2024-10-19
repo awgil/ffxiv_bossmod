@@ -850,10 +850,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
     private bool ShouldUseLifeSurge(SurgeStrategy strategy, Actor? target) => strategy switch
     {
-        SurgeStrategy.Automatic => Player.InCombat && target != null && canLS &&
-            CD(DRG.AID.BattleLitany) > 50 && HasEffect(DRG.SID.LanceCharge) &&
-            (((ComboLastMove == DRG.AID.WheelingThrust || ComboLastMove == DRG.AID.FangAndClaw) && Unlocked(DRG.AID.Drakesbane)) ||
-            ((ComboLastMove == DRG.AID.VorpalThrust || ComboLastMove == DRG.AID.LanceBarrage) && Unlocked(DRG.AID.FullThrust))),
+        SurgeStrategy.Automatic => Player.InCombat && target != null && canLS && hasLC &&
+            (CD(DRG.AID.LifeSurge) < 40 || CD(DRG.AID.BattleLitany) > 50) &&
+            (ComboLastMove == DRG.AID.WheelingThrust || ComboLastMove == DRG.AID.FangAndClaw) && Unlocked(DRG.AID.Drakesbane) ||
+            (ComboLastMove == DRG.AID.VorpalThrust || ComboLastMove == DRG.AID.LanceBarrage) && Unlocked(DRG.AID.FullThrust),
         SurgeStrategy.Force => true,
         SurgeStrategy.Delay => false,
         _ => false
