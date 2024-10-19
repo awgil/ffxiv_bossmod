@@ -31,6 +31,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly DTRProvider _dtr;
     private readonly SlashCommandProvider _slashCmd;
     private TimeSpan _prevUpdateTime;
+    private DateTime _throttleJump;
 
     // windows
     private readonly ConfigUI _configUI; // TODO: should be a proper window!
@@ -93,7 +94,7 @@ public sealed class Plugin : IDalamudPlugin
         _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
         _wndBossmod = new(_bossmod, _zonemod);
         _wndBossmodHints = new(_bossmod, _zonemod);
-        _wndReplay = new(_ws, _rotationDB, replayDir);
+        _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir);
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
         _wndAI = new(_ai);
         _wndDebug = new(_ws, _rotation, _amex, _hintsBuilder, dalamud);
@@ -309,6 +310,12 @@ public sealed class Plugin : IDalamudPlugin
         {
             var res = FFXIVClientStructs.FFXIV.Client.Game.StatusManager.ExecuteStatusOff(s.statusId, s.sourceId != 0 ? (uint)s.sourceId : 0xE0000000);
             Service.Log($"[ExecHints] Canceling status {s.statusId} from {s.sourceId:X} -> {res}");
+        }
+        if (_hints.WantJump && _ws.CurrentTime > _throttleJump)
+        {
+            //Service.Log($"[ExecHints] Jumping...");
+            FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance()->UseAction(FFXIVClientStructs.FFXIV.Client.Game.ActionType.GeneralAction, 2);
+            _throttleJump = _ws.CurrentTime.AddMilliseconds(100);
         }
     }
 

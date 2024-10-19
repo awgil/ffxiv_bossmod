@@ -7,7 +7,6 @@ namespace BossMod;
 public sealed class AutoDismountTweak(WorldState ws)
 {
     private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
-    private DateTime _rateLimit;
 
     public bool IsMountPreventingAction(ActionID action)
     {
@@ -26,15 +25,11 @@ public sealed class AutoDismountTweak(WorldState ws)
 
     public bool AllowAutoDismount()
     {
-        if (!_config.AutoDismount || ws.CurrentTime < _rateLimit)
+        if (!_config.AutoDismount)
             return false;
 
         var player = ws.Party.Player();
         var mountData = player != null && player.MountId != 0 ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Mount>(player.MountId) : null;
-        if (mountData == null || mountData.Order < 0)
-            return false;
-
-        _rateLimit = ws.CurrentTime.AddSeconds(0.1f);
-        return true;
+        return mountData != null && mountData.Order >= 0;
     }
 }

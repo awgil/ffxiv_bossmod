@@ -108,8 +108,6 @@ public class T01Caduceus : BossModule
         ActivateComponent<Platforms>();
     }
 
-    public override bool NeedToJump(WPos from, WDir dir) => Platforms.IntersectJumpEdge(from, dir, 2.5f);
-
     // don't activate module created for clone (this is a hack...)
     protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat && PrimaryActor.HPMP.CurHP > PrimaryActor.HPMP.MaxHP / 2; }
 }
