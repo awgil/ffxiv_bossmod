@@ -1,4 +1,5 @@
-﻿using Dalamud.Hooking;
+﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Hooking;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -414,7 +415,8 @@ sealed class WorldStateGameSync : IDisposable
             var ui = UIState.Instance();
             if (ui->PlayerState.IsLoaded != 0)
             {
-                player = new(ui->PlayerState.ContentId, ui->PlayerState.EntityId, false, ui->PlayerState.CharacterNameString);
+                var inCutscene = Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas] || Service.Condition[ConditionFlag.OccupiedInQuestEvent];
+                player = new(ui->PlayerState.ContentId, ui->PlayerState.EntityId, inCutscene, ui->PlayerState.CharacterNameString);
                 if (pc != null && (pc->ContentId != player.ContentId || pc->EntityId != player.InstanceId))
                     Service.Log($"[WSG] Object #0 is valid ({pc->AccountId:X}.{pc->ContentId:X}, {pc->EntityId:X8} '{pc->NameString}') but different from playerstate ({player})");
             }
@@ -439,7 +441,7 @@ sealed class WorldStateGameSync : IDisposable
 
         var member = player.InstanceId != 0 ? group->GetPartyMemberByEntityId((uint)player.InstanceId) : null;
         if (member != null)
-            player.InCutscene = (member->Flags & 0x10) != 0;
+            player.InCutscene |= (member->Flags & 0x10) != 0;
         UpdatePartySlot(PartyState.PlayerSlot, player);
         return member;
     }

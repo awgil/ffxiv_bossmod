@@ -26,7 +26,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
     public void Execute(Actor player, Actor master)
     {
         ForceMovementIn = float.MaxValue;
-        if (player.IsDead || ctrl.InCutscene)
+        if (player.IsDead)
             return;
 
         // keep master in focus

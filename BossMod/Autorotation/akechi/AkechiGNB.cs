@@ -1,10 +1,10 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
-namespace BossMod.Autorotation;
+namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
 //Discord @akechdz or 'Akechi' on Puni.sh for maintenance
-//This module currently supports only <=2.47 SkS rotation, as it's the easiest to function & requires way less conditions to operate
-//2.5 SkS support will be added later when optimizing this module further
+//This module supports <=2.47 SkS rotation as default (or 'Automatic')
+//With user adjustment, 'SlowGNB' or 'FastGNB' usage is achievable
 
 public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
@@ -120,8 +120,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             .AddOption(AOEStrategy.FocusAoE, "AoE", "Use AoE rotation (without overcap protection)")
             .AddOption(AOEStrategy.Auto, "Auto", "Use AoE rotation if 3+ targets would be hit, otherwise use ST rotation; break combo if necessary")
             .AddOption(AOEStrategy.AutoFinishCombo, "Auto Finish Combo", "Use AoE rotation if 3+ targets would be hit, otherwise use ST rotation; finish combo before switching")
-            .AddOption(AOEStrategy.GenerateDowntime, "Generate before Downtime", "Estimates time until disengagement & determines when to use ST or AoE combo to generate carts appropriately before downtime")
-            ;
+            .AddOption(AOEStrategy.GenerateDowntime, "Generate before Downtime", "Estimates time until disengagement & determines when to use ST or AoE combo to generate carts appropriately before downtime");
 
         //Burst strategy
         res.Define(Track.Burst).As<BurstStrategy>("Burst", uiPriority: 190)
@@ -154,6 +153,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             .AddOption(GnashingStrategy.ForceTalon, "Force", "Force use of Wicked Talon (Step 3)", 0, 0, ActionTargets.Hostile, 60)
             .AddOption(GnashingStrategy.Delay, "Delay", "Delay use of Gnashing Fang", 0, 0, ActionTargets.None, 60)
             .AddAssociatedActions(GNB.AID.GnashingFang, GNB.AID.SavageClaw, GNB.AID.WickedTalon);
+
         //NoMercy strategy
         res.Define(Track.NoMercy).As<NoMercyStrategy>("No Mercy", "N.Mercy", uiPriority: 170)
             .AddOption(NoMercyStrategy.Automatic, "Automatic", "Use normally")
@@ -165,6 +165,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             .AddOption(NoMercyStrategy.Force3LW, "Force Late-weave (3 carts)", "Use as soon as you have 3 cartridges & in next possible late-weave slot (FastGNB)", 60, 20, ActionTargets.Self, 88)
             .AddOption(NoMercyStrategy.Delay, "Delay", "Delay", 0, 0, ActionTargets.None, 2)
             .AddAssociatedActions(GNB.AID.NoMercy);
+
         //SonicBreak strategy
         res.Define(Track.SonicBreak).As<SonicBreakStrategy>("Sonic Break", "S.Break", uiPriority: 150)
             .AddOption(SonicBreakStrategy.Automatic, "Auto", "Normal use of Sonic Break")
@@ -593,7 +594,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     private GNB.AID NextComboAoE() => ComboLastMove switch //Determines the next AoE action based on the last action used
     {
         GNB.AID.DemonSlice => Ammo == MaxCartridges
-                              ? (Unlocked(GNB.AID.FatedCircle) ? GNB.AID.FatedCircle : GNB.AID.BurstStrike)
+                              ? Unlocked(GNB.AID.FatedCircle) ? GNB.AID.FatedCircle : GNB.AID.BurstStrike
                               : GNB.AID.DemonSlaughter,
         _ => GNB.AID.DemonSlice,
     };
@@ -645,7 +646,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             AOEStrategy.Auto => AoETargets >= 3,
             AOEStrategy.AutoFinishCombo => comboStepsRemaining > 0
                 ? doingAOECombo
-                : (Unlocked(GNB.AID.Continuation) ? AoETargets >= 3 : AoETargets >= 2),
+                : Unlocked(GNB.AID.Continuation) ? AoETargets >= 3 : AoETargets >= 2,
             AOEStrategy.GenerateDowntime => false,
             _ => false
         };
@@ -685,7 +686,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
                 ((Ammo == 1 && bfCD == 0 && Unlocked(GNB.AID.Bloodfest) && Unlocked(GNB.AID.DoubleDown)) || //Lv90+ Opener
                 (Ammo >= 1 && bfCD == 0 && Unlocked(GNB.AID.Bloodfest) && !Unlocked(GNB.AID.DoubleDown)) || //Lv80+ Opener
                 (!Unlocked(GNB.AID.Bloodfest) && Ammo >= 1 && ActionReady(GNB.AID.GnashingFang)) || //Lv70 & below
-                (Ammo == MaxCartridges)), //60s & 120s burst windows
+                Ammo == MaxCartridges), //60s & 120s burst windows
         NoMercyStrategy.Force => true,
         NoMercyStrategy.ForceLW => Player.InCombat && GCD < 0.9f,
         NoMercyStrategy.Force2 => Ammo >= 2,
@@ -796,15 +797,15 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //Use for 6m window
         return (Ammo == 1 && ActionReady(GNB.AID.GnashingFang) &&
                 ActionReady(GNB.AID.DoubleDown) &&
-                ActionReady(GNB.AID.Bloodfest) || //Opener
-                (bfCD < 15 || ActionReady(GNB.AID.Bloodfest)) && Ammo == 3);
+                ActionReady(GNB.AID.Bloodfest)) || //Opener
+                (bfCD < 15 || ActionReady(GNB.AID.Bloodfest)) && Ammo == 3;
     }
 
     //Determines when to use a potion based on strategy
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
         PotionStrategy.AlignWithRaidBuffs =>
-            (IsPotionAlignedWithNM() || (nmCD < 5 && bfCD < 15)),
+            IsPotionAlignedWithNM() || (nmCD < 5 && bfCD < 15),
         PotionStrategy.Immediate => true,
         _ => false
     };

@@ -7,7 +7,7 @@ namespace BossMod.AI;
 // utility for simulating user actions based on AI decisions:
 // - navigation
 // - using actions safely (without spamming, not in cutscenes, etc)
-sealed class AIController(ActionManagerEx amex, MovementOverride movement)
+sealed class AIController(WorldState ws, ActionManagerEx amex, MovementOverride movement)
 {
     public WPos? NaviTargetPos;
     public float? NaviTargetVertical;
@@ -18,7 +18,6 @@ sealed class AIController(ActionManagerEx amex, MovementOverride movement)
     private readonly MovementOverride _movement = movement;
     private DateTime _nextInteract;
 
-    public bool InCutscene => Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas] || Service.Condition[ConditionFlag.OccupiedInQuestEvent];
     public bool IsVerticalAllowed => Service.Condition[ConditionFlag.InFlight];
     public Angle CameraFacing => (Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees();
     public Angle CameraAltitude => (Camera.Instance?.CameraAltitude ?? 0).Radians();
@@ -39,7 +38,7 @@ sealed class AIController(ActionManagerEx amex, MovementOverride movement)
 
     public void Update(Actor? player, AIHints hints, DateTime now)
     {
-        if (player == null || player.IsDead || InCutscene)
+        if (player == null || player.IsDead || ws.Party.Members[PartyState.PlayerSlot].InCutscene)
         {
             return;
         }

@@ -22,7 +22,7 @@ public class D01Sastasha(WorldState ws) : ZoneModule(ws)
     {
         if (_switchColor == Switch.Unknown)
         {
-            _switchColor = (OID)(WorldState.Actors.FirstOrDefault(a => a.IsTargetable && (OID)a.OID is OID.BloodyMemoBlue or OID.BloodyMemoRed or OID.BloodyMemoGreen)?.OID ?? 0) switch
+            _switchColor = (OID)(World.Actors.FirstOrDefault(a => a.IsTargetable && (OID)a.OID is OID.BloodyMemoBlue or OID.BloodyMemoRed or OID.BloodyMemoGreen)?.OID ?? 0) switch
             {
                 OID.BloodyMemoBlue => Switch.Blue,
                 OID.BloodyMemoRed => Switch.Red,
@@ -30,7 +30,7 @@ public class D01Sastasha(WorldState ws) : ZoneModule(ws)
                 _ => Switch.Unknown
             };
         }
-        else if (_switchColor != Switch.Resolved && WorldState.Actors.Any(a => a.IsTargetable && (OID)a.OID == OID.InconspicuousSwitch))
+        else if (_switchColor != Switch.Resolved && World.Actors.Any(a => a.IsTargetable && (OID)a.OID == OID.InconspicuousSwitch))
         {
             _switchColor = Switch.Resolved;
         }
