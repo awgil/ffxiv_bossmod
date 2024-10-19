@@ -307,7 +307,10 @@ public abstract class QuestBattle : ZoneModule
         }
 
         // start first objective
-        OnObjectiveChanged();
+        var player = ws.Party.Player();
+        var curObjective = CurrentObjective;
+        if (player != null && curObjective != null)
+            TryPathfind(player.PosRot.XYZ(), curObjective.Connections);
     }
 
     protected override void Dispose(bool disposing)
