@@ -40,7 +40,7 @@ sealed class AIManager : IDisposable
     public AIManager(RotationModuleManager autorot, ActionManagerEx amex, MovementOverride movement)
     {
         _autorot = autorot;
-        _controller = new(amex, movement);
+        _controller = new(autorot.WorldState, amex, movement);
         Service.ChatGui.ChatMessage += OnChatMessage;
     }
 
@@ -63,7 +63,7 @@ sealed class AIManager : IDisposable
         var player = WorldState.Party.Player();
         var master = WorldState.Party[MasterSlot];
 
-        if (Behaviour != null && player != null && master != null)
+        if (Behaviour != null && player != null && master != null && !WorldState.Party.Members[PartyState.PlayerSlot].InCutscene)
         {
             Behaviour.Execute(player, master);
         }

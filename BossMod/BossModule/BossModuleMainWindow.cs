@@ -62,6 +62,7 @@ public class BossModuleMainWindow : UIWindow
         if (ShowZoneModule())
         {
             _zmm.ActiveModule?.DrawGlobalHints();
+            _zmm.ActiveModule?.DrawExtra();
         }
         else if (_mgr.ActiveModule != null)
         {

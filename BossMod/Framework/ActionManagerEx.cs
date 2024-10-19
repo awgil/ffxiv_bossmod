@@ -360,7 +360,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
             else if (_dismountTweak.IsMountPreventingAction(actionAdj))
             {
                 Service.Log("[AMEx] Trying to dismount...");
-                _useActionHook.Original(_inst, CSActionType.Action, 4, 0xE0000000, 0, ActionManager.UseActionMode.None, 0, null);
+                _hints.WantDismount |= _dismountTweak.AutoDismountEnabled;
             }
             else
             {
@@ -380,6 +380,9 @@ public sealed unsafe class ActionManagerEx : IDisposable
         var autosEnabled = UIState.Instance()->WeaponState.IsAutoAttacking;
         if (_autoAutosTweak.GetDesiredState(autosEnabled) != autosEnabled)
             _inst->UseAction(CSActionType.GeneralAction, 1);
+
+        if (_hints.WantDismount && _dismountTweak.AllowDismount())
+            _inst->UseAction(CSActionType.Action, 4);
     }
 
     // note: targetId is usually your current primary target (or 0xE0000000 if you don't target anyone), unless you do something like /ac XXX <f> etc
