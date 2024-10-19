@@ -1,15 +1,16 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
-namespace BossMod.Autorotation;
+namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
 public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    //Abilities representing different actions tracked for Cooldown Planner execution
+    #region Enums: Abilities / Strategies
+
     public enum Track
     {
-        AoE,                   //Area of Effect actions
+        AOE,                   //Area of Effect actions
         Burst,                 //Burst actions
         Potion,                //Potion usage
         LifeSurge,             //Life Surge ability
@@ -27,17 +28,16 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         Starcross              //Starcross ability
     }
 
-    //Specifying AoE strategy preferences
+    //Specifying AOE strategy preferences
     public enum AOEStrategy
     {
-        UseST,                 //Use single-target abilities
+        AutoTargetHitPrimary,  //Auto-target AOE actions to hit primary target as well
+        AutoTargetHitMost,     //Auto-target AOE actions to hit most targets
+        AutoOnPrimary,         //Use AOE actions on primary target
         ForceST,               //Force single-target abilities
         Force123ST,            //Force single-target 123 combo
         ForceBuffsST,          //Force single-target buffs combo
-        UseAoE,                //Use Area of Effect abilities
-        ForceAoE,              //Force Area of Effect abilities
-        Auto,                  //Auto-determined strategy
-        AutoFinishCombo        //Auto AoE finish combo if conditions met
+        ForceAOE               //Force Area of Effect abilities
     }
 
     //Burst strategy options
@@ -121,22 +121,36 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         Delay                  //Delay offensive abilities
     }
 
+    /*
+    //TODO: Positional shit
+    public enum TrueNorthStrategy
+    {
+        Automatic,      //Late-Weave
+        ASAP,           //Use ASAP
+        Rear,           //Use only when in Rear
+        Flank,          //Use only when in Flank
+        Force,          //Force
+        Delay           //Delay
+    }
+    */
+
+    #endregion
+
     public static RotationModuleDefinition Definition()
     {
         //Module title & signature
         var res = new RotationModuleDefinition("DRG (Akechi)", "Standard Rotation Module", "Akechi", RotationModuleQuality.Ok, BitMask.Build(Class.LNC, Class.DRG), 100);
 
-        //Custom strategies
+        #region Custom Strategies
         //Targeting strategy
-        res.Define(Track.AoE).As<AOEStrategy>("Combo Option", "AoE", uiPriority: 200)
-            .AddOption(AOEStrategy.UseST, "ST", "Use Single-Target rotation")
+        res.Define(Track.AOE).As<AOEStrategy>("Combo Option", "AOE", uiPriority: 200)
+            .AddOption(AOEStrategy.AutoTargetHitPrimary, "AutoTargetHitPrimary", "Use AOE actions if profitable, select best target that ensures primary target is hit")
+            .AddOption(AOEStrategy.AutoTargetHitMost, "AutoTargetHitMost", "Use AOE actions if profitable, select a target that ensures maximal number of targets are hit")
+            .AddOption(AOEStrategy.AutoOnPrimary, "AutoOnPrimary", "Use AOE actions on primary target if profitable")
             .AddOption(AOEStrategy.ForceST, "Force ST", "Force Single-Target rotation")
             .AddOption(AOEStrategy.Force123ST, "Only 1-2-3 ST", "Force only ST 1-2-3 rotation (No Buffs)")
             .AddOption(AOEStrategy.ForceBuffsST, "Only 1-4-5 ST", "Force only ST 1-4-5 rotation (No 1/1.5-2-3)")
-            .AddOption(AOEStrategy.UseAoE, "AoE", "Use AoE rotation if 3+ targets are present")
-            .AddOption(AOEStrategy.ForceAoE, "Force AoE", "Force AoE rotation, even if less than 3 targets")
-            .AddOption(AOEStrategy.Auto, "Automatic", "Use AoE rotation if 3+ targets are present, otherwise use ST rotation")
-            .AddOption(AOEStrategy.AutoFinishCombo, "Auto Finish Combo", "Use AoE if 3+ targets, otherwise finish ST combo before switching");
+            .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation, even if less than 3 targets");
 
         //Burst strategy
         res.Define(Track.Burst).As<BurstStrategy>("Burst", uiPriority: 190)
@@ -202,7 +216,21 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             .AddOption(PiercingTalonStrategy.Forbid, "Forbid", "Do not use Piercing Talon at all")
             .AddAssociatedActions(DRG.AID.PiercingTalon);
 
-        //Offensive Strategies
+        /* TODO: Positional shit
+        //True North strategy
+        res.Define(Track.TrueNorth).As<TrueNorthStrategy>("True North", "T.North", uiPriority: 10)
+            .AddOption(TrueNorthStrategy.Automatic, "Automatic", "Late-weaves True North when out of positional")
+            .AddOption(TrueNorthStrategy.ASAP, "ASAP", "Use True North as soon as possible when out of positional", 45, 10, ActionTargets.Self, 50)
+            .AddOption(TrueNorthStrategy.Rear, "Rear", "Use True North for rear positional only", 45, 10, ActionTargets.Self, 50)
+            .AddOption(TrueNorthStrategy.Flank, "Flank", "Use True North for flank positional only", 45, 10, ActionTargets.Self, 50)
+            .AddOption(TrueNorthStrategy.Delay, "Delay", "Delay True North usage", 0, 0, ActionTargets.None, 50)
+            .AddOption(TrueNorthStrategy.Force, "Force", "Force True North usage", 45, 10, ActionTargets.Self, 50)
+            .AddAssociatedActions(ClassShared.AID.TrueNorth);
+        */
+
+        #endregion
+
+        #region Offensive Strategies
         //Lance Charge strategy
         res.Define(Track.LanceCharge).As<OffensiveStrategy>("Lance Charge", "L.Charge", uiPriority: 165)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Lance Charge normally")
@@ -252,191 +280,259 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay Starcross usage", 0, 0, ActionTargets.None, 100)
             .AddAssociatedActions(DRG.AID.Starcross);
 
+        #endregion
+
         return res;
     }
 
-    public enum GCDPriority //Priority for GCDs used
+    #region Priorities
+
+    // Priorities for Global Cooldowns (GCDs)
+    public enum GCDPriority
     {
-        None = 0,
-        Combo123 = 350,
-        NormalGCD = 500,
-        ForcedGCD = 900,
+        None = 0,               // No priority
+        Combo123 = 350,         // Priority for the first three combo actions
+        NormalGCD = 500,        // Standard priority for normal GCD actions
+        ForcedGCD = 900,        // High priority for forced GCD actions
     }
 
-    public enum OGCDPriority //Priority for oGCDs used
+    // Priorities for Off Global Cooldowns (oGCDs)
+    public enum OGCDPriority
     {
-        None = 0,
-        //Flexible
-        MirageDive = 500,
-        Nastrond = 540,
-        RiseOfTheDragon = 550,
-        Starcross = 550,
-        WyrmwindThrust = 590,
-        Stardiver = 600,
-        //Non-flexible
-        Jump = 680,
-        DragonfireDive = 690,
-        Geirskogul = 700,
-        Buffs = 800,
-        ForcedOGCD = 900,
+        None = 0,                  // No priority
+        // Flexible actions with varying priorities
+        MirageDive = 500,          // Priority for Mirage Dive
+        Nastrond = 540,            // Priority for Nastrond
+        RiseOfTheDragon = 550,     // Priority for Rise of the Dragon
+        Starcross = 550,           // Priority for Starcross
+        WyrmwindThrust = 590,      // Priority for Wyrmwind Thrust
+        TrueNorth = 595,           // Priority for True North
+        Stardiver = 600,           // Priority for Stardiver
+        // Non-flexible actions with fixed priorities
+        Jump = 680,                // Priority for Jump
+        DragonfireDive = 690,      // Priority for Dragonfire Dive
+        Geirskogul = 700,          // Priority for Geirskogul
+        Buffs = 800,               // Priority for buffs
+        ForcedOGCD = 900,          // High priority for forced oGCD actions
     }
 
-    private int focusCount;
+    #endregion
 
-    private float GCDLength;
-    private float blCD;
-    private float lcLeft;
-    private float lcCD;
-    private float powerLeft;
+    #region Placeholders for Variables
 
-    public float chaosLeft;
-    private float PotionLeft;
-    private float RaidBuffsLeft;
-    private float RaidBuffsIn;
+    private float GCDLength; // Length of the global cooldown
+    private float blCD; // Cooldown for Battle Litany
+    private float lcLeft; // Time remaining for Lance Charge
+    private float lcCD; // Cooldown for Lance Charge
+    private float powerLeft; // Time remaining for Power Surge
+    private float chaosLeft; // Remaining time for Chaotic Spring effect
 
-    public float BurstWindowLeft;
-    public float BurstWindowIn;
+    public float downtimeIn; // Duration of downtime in combat
+    private float PotionLeft; // Remaining time for potion effect
+    private float RaidBuffsLeft; // Time left for raid buffs
+    private float RaidBuffsIn; // Time until next raid buffs are applied
+    public float BurstWindowLeft; // Time left in the burst window
+    public float BurstWindowIn; // Time until the next burst window starts
 
-    private bool hasLOTD;
-    private bool hasLC;
-    private bool hasBL;
-    private bool hasMirage;
-    private bool hasFlight;
-    private bool hasCross;
-    private bool hasNastrond;
-    private bool canCharge;
-    private bool canLitany;
-    private bool canSurge;
-    private bool canJump;
-    private bool canDragonfire;
-    private bool canGeirskogul;
-    private bool canMirage;
-    private bool canNastrond;
-    private bool canStardive;
-    private bool canThrust;
-    private bool canRise;
-    private bool canCross;
+    private int focusCount; // Count of Firstmind's Focus gauge
 
-    public float downtimeIn;
+    private bool hasLOTD; // Flag for Life of the Dragon status
+    private bool hasLC; // Flag for Lance Charge status
+    private bool hasBL; // Flag for Battle Litany status
+    private bool hasMD; // Flag for Mirage Dive status
+    private bool hasDF; // Flag for Dragon's Flight status
+    private bool hasSC; // Flag for Starcross status
+    private bool hasNastrond; // Flag for Nastrond status
 
-    public DRG.AID NextGCD; //Next global cooldown action to be used
-    private GCDPriority NextGCDPrio; //Priority of the next GCD, used for decision making on cooldowns
+    private bool canLC; // Ability to use Lance Charge
+    private bool canBL; // Ability to use Blood of the Dragon
+    private bool canLS; // Ability to use Life Surge
+    private bool canJump; // Ability to use Jump
+    private bool canDD; // Ability to use Dragonfire Dive
+    private bool canGeirskogul; // Ability to use Geirskogul
+    private bool canMD; // Ability to use Mirage Dive
+    private bool canNastrond; // Ability to use Nastrond
+    private bool canSD; // Ability to use Sonic Dance
+    private bool canWT; // Ability to use Wyrmwind Thrust
+    private bool canROTD; // Ability to use Rise of the Dragon
+    private bool canSC; // Ability to use Starcross
 
-    private Actor? FarthestTarget;
+    public DRG.AID NextGCD; // Next global cooldown action to be used
+    private GCDPriority NextGCDPrio; // Priority of the next GCD for cooldown decision making
 
-    //Check if the desired ability is unlocked
+    #endregion
+
+    #region Module Helpers
+
+    // Check if the desired ability is unlocked
     private bool Unlocked(DRG.AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
 
-    //Get remaining cooldown time for the specified action
+    // Get remaining cooldown time for the specified action
     private float CD(DRG.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
 
-    //Check if we can fit an additional GCD within the provided deadline
-    private bool CanFitGCD(float deadline, int extraGCDs = 0) => GCD + GCDLength * extraGCDs < deadline;
-
-    //Get the last action used in the combo sequence
+    // Get the last action used in the combo sequence
     private DRG.AID ComboLastMove => (DRG.AID)World.Client.ComboState.Action;
 
-    //Check if the target is within melee range (3 yalms)
+    // Check if the target is within melee range (3 yalms)
     private bool In3y(Actor? target) => Player.DistanceToHitbox(target) <= 3;
 
-    //Check if the target is within 5 yalms
+    // Check if the target is within 5 yalms
     private bool In15y(Actor? target) => Player.DistanceToHitbox(target) <= 14.75;
 
-    //Check if the desired action is ready (cooldown less than 0.6 seconds)
+    // Check if the desired action is ready (cooldown < 0.6 seconds)
     private bool ActionReady(DRG.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining < 0.6f;
 
-    //Check if this is the first GCD in combat
+    // Check if this is the first GCD in combat
     private bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f;
 
-    //Returns the number of targets hit by AoE within a 5-yalm radius around the player
-    private int NumTargetsHitByAoE() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
-
-    //Checks if the potion should be used before raid buffs expire
+    // Check if the potion should be used before raid buffs expire
     private bool IsPotionBeforeRaidbuffs() => RaidBuffsLeft == 0 && PotionLeft > RaidBuffsIn + 17.5f;
 
-    //Checks if Status effect is on self
+    // Check if status effect is on self
     public bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus((uint)(object)sid, Player.InstanceID) != null;
+
+    // Count number of targets hit by AOE attack
+    private int NumTargetsHitByAOE(Actor primary) => Hints.NumPriorityTargetsInAOECone(Player.Position, 10, (primary.Position - Player.Position).Normalized(), 45.Degrees());
+
+    // Check if a target is hit by AOE
+    private bool IsHitByAOE(Actor primary, Actor check) => Hints.TargetInAOECone(check, Player.Position, 10, (primary.Position - Player.Position).Normalized(), 45.Degrees());
+
+    // Count number of targets hit by spear attack
+    private int NumTargetsHitBySpear(Actor primary) => Hints.NumPriorityTargetsInAOERect(Player.Position, (primary.Position - Player.Position).Normalized(), 15, 2);
+
+    // Check if a target is hit by spear
+    private bool IsHitBySpear(Actor primary, Actor check) => Hints.TargetInAOERect(check, Player.Position, (primary.Position - Player.Position).Normalized(), 15, 2);
+
+    // Check targeting for AOE strategies
+    private (Actor?, int) CheckAOETargeting(AOEStrategy strategy, Actor? primaryTarget, float range, Func<Actor, int> numTargets, Func<Actor, Actor, bool> check) => strategy switch
+    {
+        AOEStrategy.AutoTargetHitPrimary => FindBetterTargetBy(primaryTarget, range, t => primaryTarget == null || check(t, primaryTarget) ? numTargets(t) : 0),
+        AOEStrategy.AutoTargetHitMost => FindBetterTargetBy(primaryTarget, range, numTargets),
+        AOEStrategy.AutoOnPrimary => (primaryTarget, primaryTarget != null ? numTargets(primaryTarget) : 0),
+        AOEStrategy.ForceAOE => (primaryTarget, int.MaxValue),
+        _ => (null, 0)
+    };
+
+    #endregion
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var gauge = World.Client.GetGauge<DragoonGauge>();  //Get Dragoon gauge
-        focusCount = gauge.FirstmindsFocusCount;  //Update focus count
-        hasLOTD = gauge.LotdTimer > 0;  //Check for LOTD
-        lcCD = CD(DRG.AID.LanceCharge);  //Get Lance Charge cooldown
-        lcLeft = SelfStatusLeft(DRG.SID.LanceCharge);  //Get remaining Lance Charge status
-        powerLeft = SelfStatusLeft(DRG.SID.PowerSurge);  //Get remaining Power Surge status
-        blCD = CD(DRG.AID.BattleLitany);  //Get Battle Litany cooldown
-        GCDLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);  //Calculate GCD
-        hasMirage = HasEffect(DRG.SID.DiveReady);  //Check if Mirage Dive is ready
-        hasNastrond = HasEffect(DRG.SID.NastrondReady);  //Check if Nastrond is ready
-        hasLC = lcCD is >= 40 and <= 60;  //Checks for Lance Charge buff
-        hasBL = blCD is >= 100 and <= 120;  //Checks for Battle Litany buff
-        hasFlight = HasEffect(DRG.SID.DragonsFlight);  //Check if Dragon's Flight is active
-        hasCross = HasEffect(DRG.SID.StarcrossReady);  //Check if Starcross is ready
+        #region Variables
 
-        //Ability readiness checks
-        canCharge = Unlocked(DRG.AID.LanceCharge) && ActionReady(DRG.AID.LanceCharge);
-        canLitany = Unlocked(DRG.AID.BattleLitany) && ActionReady(DRG.AID.BattleLitany);
-        canSurge = Unlocked(DRG.AID.LifeSurge) && CD(DRG.AID.LifeSurge) >= 40;
-        canJump = Unlocked(DRG.AID.Jump) && ActionReady(DRG.AID.Jump);
-        canDragonfire = Unlocked(DRG.AID.DragonfireDive) && ActionReady(DRG.AID.DragonfireDive);
-        canGeirskogul = Unlocked(DRG.AID.Geirskogul) && ActionReady(DRG.AID.Geirskogul);
-        canMirage = Unlocked(DRG.AID.MirageDive) && hasMirage;
-        canNastrond = Unlocked(DRG.AID.Nastrond) && hasNastrond;
-        canStardive = Unlocked(DRG.AID.Stardiver) && ActionReady(DRG.AID.Stardiver);
-        canThrust = Unlocked(DRG.AID.WyrmwindThrust) && ActionReady(DRG.AID.WyrmwindThrust);
-        canRise = Unlocked(DRG.AID.RiseOfTheDragon) && hasFlight;
-        canCross = Unlocked(DRG.AID.Starcross) && hasCross;
+        #region Cooldown-related
 
+        // Gauge management
+        var gauge = World.Client.GetGauge<DragoonGauge>();  // Retrieve Dragoon gauge data
+        focusCount = gauge.FirstmindsFocusCount;  // Update focus count from the gauge
+        hasLOTD = gauge.LotdTimer > 0;  // Check if Life of the Dragon (LOTD) is active
+
+        // Cooldown checks
+        lcCD = CD(DRG.AID.LanceCharge);  // Get cooldown for Lance Charge
+        lcLeft = SelfStatusLeft(DRG.SID.LanceCharge, 20);  // Get remaining time for Lance Charge effect
+        powerLeft = SelfStatusLeft(DRG.SID.PowerSurge, 5);  // Get remaining time for Power Surge effect
+        chaosLeft = MathF.Max(StatusDetails(primaryTarget, DRG.SID.ChaosThrust, Player.InstanceID).Left,
+                              StatusDetails(primaryTarget, DRG.SID.ChaoticSpring, Player.InstanceID).Left);  // Get max remaining time for Chaos Thrust and Chaotic Spring
+        blCD = CD(DRG.AID.BattleLitany);  // Get cooldown for Battle Litany
+        GCDLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);  // Calculate rounded global cooldown (GCD) duration
+        hasMD = HasEffect(DRG.SID.DiveReady);  // Check if Mirage Dive is ready
+        hasNastrond = HasEffect(DRG.SID.NastrondReady);  // Check if Nastrond is ready
+        hasLC = lcCD is >= 40 and <= 60;  // Check if Lance Charge is within cooldown range
+        hasBL = blCD is >= 100 and <= 120;  // Check if Battle Litany is within cooldown range
+        hasDF = HasEffect(DRG.SID.DragonsFlight);  // Check if Dragon's Flight effect is active
+        hasSC = HasEffect(DRG.SID.StarcrossReady);  // Check if Starcross is ready
+
+        // Cooldown availability checks
+        canLC = Unlocked(DRG.AID.LanceCharge) && ActionReady(DRG.AID.LanceCharge);  // Can use Lance Charge?
+        canBL = Unlocked(DRG.AID.BattleLitany) && ActionReady(DRG.AID.BattleLitany);  // Can use Battle Litany?
+        canLS = Unlocked(DRG.AID.LifeSurge) && CD(DRG.AID.LifeSurge) >= 40;  // Can use Life Surge if cooldown is sufficient
+        canJump = Unlocked(DRG.AID.Jump) && ActionReady(DRG.AID.Jump);  // Can use Jump?
+        canDD = Unlocked(DRG.AID.DragonfireDive) && ActionReady(DRG.AID.DragonfireDive);  // Can use Dragonfire Dive?
+        canGeirskogul = Unlocked(DRG.AID.Geirskogul) && ActionReady(DRG.AID.Geirskogul);  // Can use Geirskogul?
+        canMD = Unlocked(DRG.AID.MirageDive) && hasMD;  // Can use Mirage Dive if it's ready
+        canNastrond = Unlocked(DRG.AID.Nastrond) && hasNastrond;  // Can use Nastrond if it's ready
+        canSD = Unlocked(DRG.AID.Stardiver) && ActionReady(DRG.AID.Stardiver);  // Can use Stardiver?
+        canWT = Unlocked(DRG.AID.WyrmwindThrust) && ActionReady(DRG.AID.WyrmwindThrust);  // Can use Wyrmwind Thrust?
+        canROTD = Unlocked(DRG.AID.RiseOfTheDragon) && hasDF;  // Can use Rise of the Dragon if Dragon's Flight is active
+        canSC = Unlocked(DRG.AID.Starcross) && hasSC;  // Can use Starcross if it's ready
+
+        #endregion
+
+        #region Miscellaneous
         downtimeIn = Manager.Planner?.EstimateTimeToNextDowntime().Item2 ?? float.MaxValue;  //Estimate downtime until next action
-        chaosLeft = MathF.Max(
-            StatusDetails(primaryTarget, DRG.SID.ChaosThrust, Player.InstanceID).Left,
-            StatusDetails(primaryTarget, DRG.SID.ChaoticSpring, Player.InstanceID).Left
-        );  //Get remaining time for Chaos Thrust and Chaotic Spring
         PotionLeft = PotionStatusLeft();  //Get remaining potion status
         (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);  //Estimate remaining raid buffs
         NextGCD = DRG.AID.None;  //Set next GCD ability
         NextGCDPrio = GCDPriority.None;  //Set next GCD priority
-        FarthestTarget = Hints.FarthestTargetWithinRadius(Player.Position, 15);  //Get farthest target within 5-yalm radius
 
-        var AOEStrategy = strategy.Option(Track.AoE).As<AOEStrategy>();  //Get AoE strategy
-        var AoETargets = AOEStrategy switch  //Determine AoE target count
-        {
-            AOEStrategy.UseST => NumTargetsHitByAoE() > 0 ? 1 : 0,
-            AOEStrategy.ForceST => NumTargetsHitByAoE() > 0 ? 1 : 0,
-            AOEStrategy.Force123ST => NumTargetsHitByAoE() > 0 ? 1 : 0,
-            AOEStrategy.ForceBuffsST => NumTargetsHitByAoE() > 0 ? 1 : 0,
-            AOEStrategy.UseAoE => NumTargetsHitByAoE() > 0 ? 100 : 0,
-            AOEStrategy.ForceAoE => NumTargetsHitByAoE() > 0 ? 100 : 0,
-            _ => NumTargetsHitByAoE()
-        };
+        #endregion
 
-        var burst = strategy.Option(Track.Burst);  //Get burst strategy
-        var burstStrategy = burst.As<BurstStrategy>();
-        var hold = burstStrategy == BurstStrategy.Conserve;  //Check if burst should be conserved
+        #endregion
 
-        //Set burst window timings
+        #region AOEStrategy 'Force' Execution
+
+        var AOEStrategy = strategy.Option(Track.AOE).As<AOEStrategy>();  // Retrieve the current AOE strategy
+
+        // Force specific actions based on the AOE strategy selected
+        if (AOEStrategy == AOEStrategy.ForceST)  // If forced single target
+            QueueGCD(NextFullST(), primaryTarget, GCDPriority.ForcedGCD);  // Queue the next single target action
+
+        if (AOEStrategy == AOEStrategy.Force123ST)  // If forced 123 combo
+            QueueGCD(UseOnly123ST(), primaryTarget, GCDPriority.ForcedGCD);  // Queue the 123 combo action
+
+        if (AOEStrategy == AOEStrategy.ForceBuffsST)  // If forced buffs combo
+            QueueGCD(UseOnly145ST(), primaryTarget, GCDPriority.ForcedGCD);  // Queue the buffed 145 combo action
+
+        if (AOEStrategy == AOEStrategy.ForceAOE)  // If forced AOE action
+            QueueGCD(NextFullAOE(), primaryTarget, GCDPriority.ForcedGCD);  // Queue the next AOE action
+
+        #endregion
+
+        #region Burst Window Strategy
+        var burst = strategy.Option(Track.Burst);  // Retrieve the current burst strategy
+        var burstStrategy = burst.As<BurstStrategy>();  // Cast to BurstStrategy type
+        var hold = burstStrategy == BurstStrategy.Conserve;  // Check if the burst should be conserved
+
+        // Set burst window timings based on the selected burst strategy
         (BurstWindowIn, BurstWindowLeft) = burstStrategy switch
         {
-            BurstStrategy.Automatic => (RaidBuffsIn, IsPotionBeforeRaidbuffs() ? 0 : Math.Max(PotionLeft, RaidBuffsLeft)),
-            BurstStrategy.UnderRaidBuffs => (RaidBuffsIn, RaidBuffsLeft),
-            BurstStrategy.UnderPotion => (PotionCD, PotionLeft),
-            _ => (0, 0)
+            BurstStrategy.Automatic => (RaidBuffsIn, IsPotionBeforeRaidbuffs() ? 0 : Math.Max(PotionLeft, RaidBuffsLeft)),  // Automatic mode: Set timings based on raid buffs and potion availability
+            BurstStrategy.UnderRaidBuffs => (RaidBuffsIn, RaidBuffsLeft),  // Under Raid Buffs: Set timings directly from raid buffs
+            BurstStrategy.UnderPotion => (PotionCD, PotionLeft),  // Under Potion: Use potion cooldown and remaining time
+            _ => (0, 0)  // Default case: Set timings to zero
         };
 
-        var (comboAction, comboPrio) = ComboActionPriority(AOEStrategy, AoETargets, burstStrategy, burst.Value.ExpireIn);  //Get combo action and priority
-        QueueGCD(comboAction, comboAction is DRG.AID.TrueThrust or DRG.AID.RaidenThrust or DRG.AID.DoomSpike or DRG.AID.DraconianFury ? primaryTarget : primaryTarget, comboPrio);
+        #endregion
 
-        //Force specific actions
-        if (AOEStrategy == AOEStrategy.ForceST)
-            QueueGCD(NextFullST(), primaryTarget, GCDPriority.ForcedGCD);
-        if (AOEStrategy == AOEStrategy.Force123ST)
-            QueueGCD(UseOnly123ST(), primaryTarget, GCDPriority.ForcedGCD);
-        if (AOEStrategy == AOEStrategy.ForceBuffsST)
-            QueueGCD(UseOnly145ST(), primaryTarget, GCDPriority.ForcedGCD);
-        if (AOEStrategy == AOEStrategy.ForceAoE)
-            QueueGCD(NextFullAoE(), primaryTarget, GCDPriority.ForcedGCD);
+        #region Targeting
 
+        // Check if Doom Spike is unlocked; if so, determine the best AOE target and count
+        var (AOEBestTarget, AOETargetCount) = Unlocked(DRG.AID.DoomSpike)
+            ? CheckAOETargeting(AOEStrategy, primaryTarget, 10, NumTargetsHitByAOE, IsHitByAOE)
+            : (null, 0);  // Set to null and count 0 if not unlocked
+
+        // Check if Geirskogul is unlocked; if so, determine the best spear target and count
+        var (SpearBestTarget, SpearTargetCount) = Unlocked(DRG.AID.Geirskogul)
+            ? CheckAOETargeting(AOEStrategy, primaryTarget, 15, NumTargetsHitBySpear, IsHitBySpear)
+            : (null, 0);  // Set to null and count 0 if not unlocked
+
+        // Determine if using AOE is viable (at least 3 targets hit)
+        var useAOE = AOETargetCount >= 3;
+
+        // Determine if using Spear is viable (at least 1 target hit)
+        var useSpear = SpearTargetCount > 0;
+
+        // Select the best target for Spear based on whether it's viable, or default to primary target
+        var bestSpeartarget = useSpear ? SpearBestTarget : primaryTarget;
+
+        // Select the best target for AOE based on whether it's viable, or default to primary target
+        var bestAOEtarget = useAOE ? AOEBestTarget : primaryTarget;
+
+        #endregion
+
+        #region Combo & Cooldown Execution
+
+        //Combo Action evecution
+        QueueGCD(useAOE ? NextFullAOE() : NextFullST(), bestAOEtarget, GCDPriority.Combo123);
         //Execute Lance Charge if available
         var lcStrat = strategy.Option(Track.LanceCharge).As<OffensiveStrategy>();
         if (!hold && ShouldUseLanceCharge(lcStrat, primaryTarget))
@@ -465,7 +561,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Execute Geirskogul if available
         var geirskogul = strategy.Option(Track.Geirskogul).As<GeirskogulStrategy>();
         if (!hold && ShouldUseGeirskogul(geirskogul, primaryTarget))
-            QueueOGCD(DRG.AID.Geirskogul, FarthestTarget, geirskogul == GeirskogulStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Geirskogul);
+            QueueOGCD(DRG.AID.Geirskogul, bestSpeartarget, geirskogul == GeirskogulStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Geirskogul);
 
         //Execute Mirage Dive if available
         var mirageStrat = strategy.Option(Track.MirageDive).As<OffensiveStrategy>();
@@ -475,7 +571,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Execute Nastrond if available
         var nastrondStrat = strategy.Option(Track.Nastrond).As<OffensiveStrategy>();
         if (!hold && ShouldUseNastrond(nastrondStrat, primaryTarget))
-            QueueOGCD(DRG.AID.Nastrond, FarthestTarget, nastrondStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Nastrond);
+            QueueOGCD(DRG.AID.Nastrond, bestSpeartarget, nastrondStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Nastrond);
 
         //Execute Stardiver if available
         var sdStrat = strategy.Option(Track.Stardiver).As<StardiverStrategy>();
@@ -485,7 +581,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Execute Wyrmwind Thrust if available
         var wtStrat = strategy.Option(Track.WyrmwindThrust).As<OffensiveStrategy>();
         if (!hold && ShouldUseWyrmwindThrust(wtStrat, primaryTarget))
-            QueueOGCD(DRG.AID.WyrmwindThrust, FarthestTarget, wtStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.WyrmwindThrust);
+            QueueOGCD(DRG.AID.WyrmwindThrust, bestSpeartarget, wtStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.WyrmwindThrust);
 
         //Execute Rise of the Dragon if available
         var riseStrat = strategy.Option(Track.RiseOfTheDragon).As<OffensiveStrategy>();
@@ -506,14 +602,58 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.ForcedOGCD, 0, GCD - 0.9f);
 
+        #endregion
     }
 
-    //QueueGCD execution
+    #region Core Execution Helpers
+
+    // Determine the effect application delay for specific abilities
+    private float EffectApplicationDelay(DRG.AID aid) => aid switch
+    {
+        DRG.AID.ChaoticSpring => 0.45f,         // Chaotic Spring delay
+        DRG.AID.HighJump => 0.49f,              // High Jump delay
+        DRG.AID.CoerthanTorment => 0.49f,       // Coerthan Torment delay
+        DRG.AID.BattleLitany => 0.62f,          // Battle Litany delay
+        DRG.AID.LanceBarrage => 0.62f,          // Lance Barrage delay
+        DRG.AID.FangAndClaw => 0.62f,           // Fang and Claw delay
+        DRG.AID.RaidenThrust => 0.62f,          // Raiden Thrust delay
+        DRG.AID.Geirskogul => 0.67f,             // Geirskogul delay
+        DRG.AID.WheelingThrust => 0.67f,         // Wheeling Thrust delay
+        DRG.AID.HeavensThrust => 0.71f,          // Heavens Thrust delay
+        DRG.AID.DraconianFury => 0.76f,          // Draconian Fury delay
+        DRG.AID.Nastrond => 0.76f,               // Nastrond delay
+        DRG.AID.TrueThrust => 0.76f,             // True Thrust delay
+        DRG.AID.DragonfireDive => 0.8f,          // Dragonfire Dive delay
+        DRG.AID.MirageDive => 0.8f,              // Mirage Dive delay
+        DRG.AID.SonicThrust => 0.8f,             // Sonic Thrust delay
+        DRG.AID.PiercingTalon => 0.85f,          // Piercing Talon delay
+        DRG.AID.Starcross => 0.98f,              // Starcross delay
+        DRG.AID.VorpalThrust => 1.02f,           // Vorpal Thrust delay
+        DRG.AID.RiseOfTheDragon => 1.16f,        // Rise of the Dragon delay
+        DRG.AID.WyrmwindThrust => 1.2f,          // Wyrmwind Thrust delay
+        DRG.AID.DoomSpike => 1.29f,              // Doom Spike delay
+        DRG.AID.Stardiver => 1.29f,              // Stardiver delay
+        DRG.AID.SpiralBlow => 1.38f,             // Spiral Blow delay
+        DRG.AID.Disembowel => 1.65f,             // Disembowel delay
+        DRG.AID.DragonsongDive => 2.23f,         // Dragonsong Dive delay
+        _ => 0                                   // Default case for unknown abilities
+    };
+
+    // Queue a global cooldown (GCD) action
     private void QueueGCD(DRG.AID aid, Actor? target, GCDPriority prio)
     {
-        if (prio != GCDPriority.None)
+        if (prio != GCDPriority.None)  // Check if priority is not None
         {
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + (int)prio);
+            // Calculate delay based on combat status and countdown
+            var delay = !Player.InCombat && World.Client.CountdownRemaining > 0
+                ? Math.Max(0, World.Client.CountdownRemaining.Value - EffectApplicationDelay(aid))
+                : 0;
+
+            // Push action to execute with appropriate priority and delay
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + (int)prio,
+                delay: delay);
+
+            // Update next GCD and its priority if the new priority is higher
             if (prio > NextGCDPrio)
             {
                 NextGCD = aid;
@@ -522,81 +662,92 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         }
     }
 
-    //QueueOGCD execution
-    private void QueueOGCD(DRG.AID aid, Actor? target, OGCDPriority prio, float basePrio = ActionQueue.Priority.Medium)
+    // Queue an off-global cooldown (oGCD) action
+    private void QueueOGCD(DRG.AID aid, Actor? target, OGCDPriority prio, float basePrio = ActionQueue.Priority.Low)
     {
-        if (prio != OGCDPriority.None)
+        if (prio != OGCDPriority.None)  // Check if priority is not None
         {
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, basePrio + (int)prio);
+            // Calculate delay based on combat status and countdown
+            var delay = !Player.InCombat && World.Client.CountdownRemaining > 0
+                ? Math.Max(0, World.Client.CountdownRemaining.Value - EffectApplicationDelay(aid))
+                : 0;
+
+            // Push action to execute with appropriate base priority and delay
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, basePrio + (int)prio,
+                delay: delay);
         }
     }
+
+    #endregion
+
+    #region Single-Target Helpers
 
     //Determines the next skill in the single-target (ST) combo chain based on the last used action.
     private DRG.AID NextFullST() => ComboLastMove switch
     {
         //Starting combo with TrueThrust or RaidenThrust
         DRG.AID.TrueThrust or DRG.AID.RaidenThrust =>
-            //If Disembowel is unlocked and power is low or Chaotic Spring is 0, use Disembowel or SpiralBlow, else VorpalThrust or LanceBarrage
-            (Unlocked(DRG.AID.Disembowel) && (powerLeft <= GCDLength * 6 || chaosLeft <= GCDLength * 4))
-            ? (Unlocked(DRG.AID.SpiralBlow) ? DRG.AID.SpiralBlow : DRG.AID.Disembowel)
-            : (Unlocked(DRG.AID.LanceBarrage) ? DRG.AID.LanceBarrage : DRG.AID.VorpalThrust),
+            //If Disembowel is Unlocked and power is low or Chaotic Spring is 0, use Disembowel or SpiralBlow, else VorpalThrust or LanceBarrage
+            Unlocked(DRG.AID.Disembowel) && (powerLeft <= GCDLength * 6 || chaosLeft <= GCDLength * 4)
+            ? Unlocked(DRG.AID.SpiralBlow) ? DRG.AID.SpiralBlow : DRG.AID.Disembowel
+            : Unlocked(DRG.AID.LanceBarrage) ? DRG.AID.LanceBarrage : DRG.AID.VorpalThrust,
 
         //Follow-up after Disembowel or SpiralBlow
         DRG.AID.Disembowel or DRG.AID.SpiralBlow =>
-            Unlocked(DRG.AID.ChaoticSpring) ? DRG.AID.ChaoticSpring //Use ChaoticSpring if unlocked
-            : Unlocked(DRG.AID.ChaosThrust) ? DRG.AID.ChaosThrust //Use ChaosThrust if unlocked
+            Unlocked(DRG.AID.ChaoticSpring) ? DRG.AID.ChaoticSpring //Use ChaoticSpring if Unlocked
+            : Unlocked(DRG.AID.ChaosThrust) ? DRG.AID.ChaosThrust //Use ChaosThrust if Unlocked
             : DRG.AID.TrueThrust, //Return to TrueThrust otherwise
 
         //Follow-up after VorpalThrust or LanceBarrage
         DRG.AID.VorpalThrust or DRG.AID.LanceBarrage =>
-            (Unlocked(DRG.AID.HeavensThrust) ? DRG.AID.HeavensThrust //Use HeavensThrust if unlocked
-            : Unlocked(DRG.AID.FullThrust) ? DRG.AID.FullThrust //Use FullThrust if unlocked
-            : DRG.AID.TrueThrust), //Return to TrueThrust otherwise
+            Unlocked(DRG.AID.HeavensThrust) ? DRG.AID.HeavensThrust //Use HeavensThrust if Unlocked
+            : Unlocked(DRG.AID.FullThrust) ? DRG.AID.FullThrust //Use FullThrust if Unlocked
+            : DRG.AID.TrueThrust, //Return to TrueThrust otherwise
 
         //After FullThrust or HeavensThrust in the combo
         DRG.AID.FullThrust or DRG.AID.HeavensThrust =>
-            (Unlocked(DRG.AID.FangAndClaw) ? DRG.AID.FangAndClaw //Use FangAndClaw if unlocked
-            : DRG.AID.TrueThrust), //Return to TrueThrust otherwise
+            Unlocked(DRG.AID.FangAndClaw) ? DRG.AID.FangAndClaw //Use FangAndClaw if Unlocked
+            : DRG.AID.TrueThrust, //Return to TrueThrust otherwise
 
         //After ChaosThrust or ChaoticSpring in the combo
         DRG.AID.ChaosThrust or DRG.AID.ChaoticSpring =>
-            (Unlocked(DRG.AID.WheelingThrust) ? DRG.AID.WheelingThrust //Use WheelingThrust if unlocked
-            : DRG.AID.TrueThrust), //Return to TrueThrust otherwise
+            Unlocked(DRG.AID.WheelingThrust) ? DRG.AID.WheelingThrust //Use WheelingThrust if Unlocked
+            : DRG.AID.TrueThrust, //Return to TrueThrust otherwise
 
         //After WheelingThrust or FangAndClaw in the combo
         DRG.AID.WheelingThrust or DRG.AID.FangAndClaw =>
-            (Unlocked(DRG.AID.Drakesbane) ? DRG.AID.Drakesbane //Use Drakesbane if unlocked
-            : DRG.AID.TrueThrust), //Return to TrueThrust otherwise
+            Unlocked(DRG.AID.Drakesbane) ? DRG.AID.Drakesbane //Use Drakesbane if Unlocked
+            : DRG.AID.TrueThrust, //Return to TrueThrust otherwise
 
         //If no combo active and Draconian Fire buff is up, use RaidenThrust
         _ => HasEffect(DRG.SID.DraconianFire) ? DRG.AID.RaidenThrust //RaidenThrust if DraconianFire is active
             : DRG.AID.TrueThrust, //No combo, start with TrueThrust
     };
 
-    //Limits the combo sequence to just 1-2-3 ST skills, ignoring other unlocked actions.
+    //Limits the combo sequence to just 1-2-3 ST skills, ignoring other Unlocked actions.
     private DRG.AID UseOnly123ST() => ComboLastMove switch
     {
         //Start combo with TrueThrust
         DRG.AID.TrueThrust =>
-            (Unlocked(DRG.AID.LanceBarrage) ? DRG.AID.LanceBarrage //LanceBarrage if unlocked
+            Unlocked(DRG.AID.LanceBarrage) ? DRG.AID.LanceBarrage //LanceBarrage if Unlocked
             : Unlocked(DRG.AID.VorpalThrust) ? DRG.AID.VorpalThrust //VorpalThrust otherwise
-            : DRG.AID.TrueThrust), //Else return to TrueThrust
+            : DRG.AID.TrueThrust, //Else return to TrueThrust
 
         //After VorpalThrust or LanceBarrage
         DRG.AID.VorpalThrust or DRG.AID.LanceBarrage =>
-            (Unlocked(DRG.AID.HeavensThrust) ? DRG.AID.HeavensThrust //HeavensThrust if unlocked
+            Unlocked(DRG.AID.HeavensThrust) ? DRG.AID.HeavensThrust //HeavensThrust if Unlocked
             : Unlocked(DRG.AID.FullThrust) ? DRG.AID.FullThrust //FullThrust to end combo
-            : DRG.AID.TrueThrust), //Else return to TrueThrust
+            : DRG.AID.TrueThrust, //Else return to TrueThrust
 
         //After FullThrust or HeavensThrust
         DRG.AID.FullThrust or DRG.AID.HeavensThrust =>
-            (Unlocked(DRG.AID.FangAndClaw) ? DRG.AID.FangAndClaw //FangAndClaw if unlocked
-            : DRG.AID.TrueThrust), //Else return to TrueThrust
+            Unlocked(DRG.AID.FangAndClaw) ? DRG.AID.FangAndClaw //FangAndClaw if Unlocked
+            : DRG.AID.TrueThrust, //Else return to TrueThrust
 
         //After WheelingThrust or FangAndClaw
         DRG.AID.WheelingThrust or DRG.AID.FangAndClaw =>
-            (Unlocked(DRG.AID.Drakesbane) ? DRG.AID.Drakesbane //Drakesbane if unlocked
-            : DRG.AID.TrueThrust), //Else return to TrueThrust
+            Unlocked(DRG.AID.Drakesbane) ? DRG.AID.Drakesbane //Drakesbane if Unlocked
+            : DRG.AID.TrueThrust, //Else return to TrueThrust
 
         //If Draconian Fire buff is up, use RaidenThrust
         _ => HasEffect(DRG.SID.DraconianFire) ? DRG.AID.RaidenThrust //RaidenThrust if DraconianFire is active
@@ -608,107 +759,62 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         //Start combo with TrueThrust
         DRG.AID.TrueThrust =>
-            (Unlocked(DRG.AID.Disembowel) && powerLeft <= GCD * 6)
-            ? (Unlocked(DRG.AID.SpiralBlow) ? DRG.AID.SpiralBlow : DRG.AID.Disembowel) //Disembowel/SpiralBlow if unlocked
+            Unlocked(DRG.AID.Disembowel) && powerLeft <= GCD * 6
+            ? Unlocked(DRG.AID.SpiralBlow) ? DRG.AID.SpiralBlow : DRG.AID.Disembowel //Disembowel/SpiralBlow if Unlocked
             : DRG.AID.TrueThrust, //Else return to TrueThrust
 
         //After Disembowel or SpiralBlow
         DRG.AID.Disembowel or DRG.AID.SpiralBlow =>
-            Unlocked(DRG.AID.ChaoticSpring) ? DRG.AID.ChaoticSpring //ChaoticSpring if unlocked
-            : (Unlocked(DRG.AID.ChaosThrust) ? DRG.AID.ChaosThrust //ChaosThrust if unlocked
-            : DRG.AID.TrueThrust), //Else return to TrueThrust
+            Unlocked(DRG.AID.ChaoticSpring) ? DRG.AID.ChaoticSpring //ChaoticSpring if Unlocked
+            : Unlocked(DRG.AID.ChaosThrust) ? DRG.AID.ChaosThrust //ChaosThrust if Unlocked
+            : DRG.AID.TrueThrust, //Else return to TrueThrust
 
         //After ChaosThrust or ChaoticSpring
         DRG.AID.ChaosThrust or DRG.AID.ChaoticSpring =>
-            (Unlocked(DRG.AID.WheelingThrust) ? DRG.AID.WheelingThrust  //WheelingThrust if unlocked
-            : DRG.AID.TrueThrust), //Else return to TrueThrust
+            Unlocked(DRG.AID.WheelingThrust) ? DRG.AID.WheelingThrust  //WheelingThrust if Unlocked
+            : DRG.AID.TrueThrust, //Else return to TrueThrust
 
         //After WheelingThrust or FangAndClaw
         DRG.AID.WheelingThrust or DRG.AID.FangAndClaw =>
-            (Unlocked(DRG.AID.Drakesbane) ? DRG.AID.Drakesbane //Drakesbane if unlocked
-            : DRG.AID.TrueThrust), //Else return to TrueThrust
+            Unlocked(DRG.AID.Drakesbane) ? DRG.AID.Drakesbane //Drakesbane if Unlocked
+            : DRG.AID.TrueThrust, //Else return to TrueThrust
 
         //If Draconian Fire buff is up, use RaidenThrust
         _ => HasEffect(DRG.SID.DraconianFire) ? DRG.AID.RaidenThrust //RaidenThrust if DraconianFire is active
             : DRG.AID.TrueThrust, //No combo, start with TrueThrust
     };
 
-    //Determines the next action in the AoE combo based on the last action used.
-    private DRG.AID NextFullAoE() => ComboLastMove switch
-    {
-        //Start AoE combo with DoomSpike
-        DRG.AID.DoomSpike =>
-            (Unlocked(DRG.AID.SonicThrust) ? DRG.AID.SonicThrust : DRG.AID.DoomSpike),  //SonicThrust if unlocked, else DoomSpike
+    #endregion
 
-        //Continue AoE combo with SonicThrust
+    #region AOE Helpers
+
+    //Determines the next action in the AOE combo based on the last action used.
+    private DRG.AID NextFullAOE() => ComboLastMove switch
+    {
+        //Start AOE combo with DoomSpike
+        DRG.AID.DoomSpike =>
+            Unlocked(DRG.AID.SonicThrust) ? DRG.AID.SonicThrust : DRG.AID.DoomSpike,  //SonicThrust if Unlocked, else DoomSpike
+
+        //Continue AOE combo with SonicThrust
         DRG.AID.SonicThrust =>
-            (Unlocked(DRG.AID.CoerthanTorment) ? DRG.AID.CoerthanTorment : DRG.AID.DoomSpike),  //CoerthanTorment if unlocked, else DoomSpike
+            Unlocked(DRG.AID.CoerthanTorment) ? DRG.AID.CoerthanTorment : DRG.AID.DoomSpike,  //CoerthanTorment if Unlocked, else DoomSpike
 
         //If Draconian Fire buff is up, use DraconianFury
         _ => HasEffect(DRG.SID.DraconianFire)
-            ? (Unlocked(DRG.AID.DraconianFury) ? DRG.AID.DraconianFury : DRG.AID.DoomSpike)  //DraconianFury if unlocked, else DoomSpike
+            ? Unlocked(DRG.AID.DraconianFury) ? DRG.AID.DraconianFury : DRG.AID.DoomSpike  //DraconianFury if Unlocked, else DoomSpike
             : DRG.AID.DoomSpike,  //No DraconianFire active, default to DoomSpike
     };
 
-    private (DRG.AID, GCDPriority) ComboActionPriority(AOEStrategy aoeStrategy, int AoETargets, BurstStrategy burstStrategy, float burstStrategyExpire)
-    {
-        //Determine how many combo steps are remaining based on the last action
-        var comboStepsRemaining = ComboLastMove switch
-        {
-            //Single-target combo progression
-            DRG.AID.TrueThrust or DRG.AID.HeavensThrust =>
-                Unlocked(DRG.AID.Drakesbane) ? 4 :
-                (Unlocked(DRG.AID.WheelingThrust) || Unlocked(DRG.AID.FangAndClaw)) ? 3 :
-                (Unlocked(DRG.AID.FullThrust) || Unlocked(DRG.AID.HeavensThrust) || Unlocked(DRG.AID.ChaosThrust) || Unlocked(DRG.AID.ChaoticSpring)) ? 2 :
-                (Unlocked(DRG.AID.VorpalThrust) || Unlocked(DRG.AID.Disembowel) || Unlocked(DRG.AID.LanceBarrage) || Unlocked(DRG.AID.SpiralBlow)) ? 1 : 0,
+    #endregion
 
-            //AoE combo progression
-            DRG.AID.DoomSpike or DRG.AID.DraconianFury =>
-                Unlocked(DRG.AID.CoerthanTorment) ? 2 : Unlocked(DRG.AID.SonicThrust) ? 1 : 0,
-            _ => 0
-        };
-
-        //Check if we can fit the remaining GCD in the combo window
-        if (comboStepsRemaining > 0 && !CanFitGCD(World.Client.ComboState.Remaining))
-            comboStepsRemaining = 0;
-
-        //Determine if we're in the middle of an AoE combo
-        var doingAOECombo = ComboLastMove is DRG.AID.DoomSpike or DRG.AID.DraconianFury;
-
-        //Decide if an AoE action is desirable based on the AoE strategy and number of targets
-        var wantAOEAction = Unlocked(DRG.AID.DoomSpike) && aoeStrategy switch
-        {
-            AOEStrategy.UseST => false,
-            AOEStrategy.ForceST => false,
-            AOEStrategy.Force123ST => false,
-            AOEStrategy.ForceBuffsST => false,
-            AOEStrategy.UseAoE => true,
-            AOEStrategy.ForceAoE => true,
-            AOEStrategy.Auto => AoETargets >= 3,
-            AOEStrategy.AutoFinishCombo => comboStepsRemaining > 0 ? doingAOECombo : AoETargets >= 3,
-            _ => false
-        };
-
-        //Reset combo steps if switching between AoE and single-target combos
-        if (comboStepsRemaining > 0 && wantAOEAction != doingAOECombo)
-            comboStepsRemaining = 0;
-
-        //Choose the next action based on whether we're focusing on AoE or single-target
-        var nextAction = wantAOEAction ? NextFullAoE() : NextFullST();
-
-        //Return combo priority based on the ability to fit GCDs and remaining combo steps
-        if (comboStepsRemaining > 0 && !CanFitGCD(World.Client.ComboState.Remaining, 1))
-            return (nextAction, GCDPriority.Combo123);
-
-        return (nextAction, GCDPriority.Combo123); //If no combo steps are remaining or can fit GCD, return normal priority
-    }
+    #region Cooldown Helpers
 
     //Determines when to use Lance Charge
     private bool ShouldUseLanceCharge(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
             //Use Lance Charge automatically if the player is in combat, the target is valid, the action is ready, and there is power remaining
-            Player.InCombat && target != null && canCharge && powerLeft > 0,
+            Player.InCombat && target != null && canLC && powerLeft > 0,
         OffensiveStrategy.Force => true, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
@@ -719,7 +825,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         OffensiveStrategy.Automatic =>
             //Use Battle Litany automatically if the player is in combat, the target is valid, the action is ready, and there is power remaining
-            Player.InCombat && target != null && canLitany && powerLeft > 0,
+            Player.InCombat && target != null && canBL && powerLeft > 0,
         OffensiveStrategy.Force => true, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
@@ -727,10 +833,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
     private bool ShouldUseLifeSurge(SurgeStrategy strategy, Actor? target) => strategy switch
     {
-        SurgeStrategy.Automatic => Player.InCombat && target != null && canSurge &&
+        SurgeStrategy.Automatic => Player.InCombat && target != null && canLS &&
             CD(DRG.AID.BattleLitany) > 50 && HasEffect(DRG.SID.LanceCharge) &&
-            ((ComboLastMove == DRG.AID.WheelingThrust || ComboLastMove == DRG.AID.FangAndClaw) && Unlocked(DRG.AID.Drakesbane)) ||
-            ((ComboLastMove == DRG.AID.VorpalThrust || ComboLastMove == DRG.AID.LanceBarrage) && Unlocked(DRG.AID.FullThrust)),
+            (((ComboLastMove == DRG.AID.WheelingThrust || ComboLastMove == DRG.AID.FangAndClaw) && Unlocked(DRG.AID.Drakesbane)) ||
+            ((ComboLastMove == DRG.AID.VorpalThrust || ComboLastMove == DRG.AID.LanceBarrage) && Unlocked(DRG.AID.FullThrust))),
         SurgeStrategy.Force => true,
         SurgeStrategy.Delay => false,
         _ => false
@@ -753,7 +859,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         DragonfireStrategy.Automatic =>
             //Use Dragonfire Dive automatically if the player is in combat, the target is valid, and both Lance Charge and Battle Litany are active
-            Player.InCombat && target != null && In3y(target) && canDragonfire && hasLC && hasBL,
+            Player.InCombat && target != null && In3y(target) && canDD && hasLC && hasBL,
         DragonfireStrategy.Force => true, //Always use if forced
         DragonfireStrategy.ForceEX => true, //Always use in ForceEX strategy
         DragonfireStrategy.Delay => false, //Delay usage if strategy is set to delay
@@ -777,7 +883,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         OffensiveStrategy.Automatic =>
             //Use Mirage Dive automatically if the player is in combat, the target is valid, and Dive Ready effect is active
-            Player.InCombat && target != null && canMirage,
+            Player.InCombat && target != null && canMD,
         OffensiveStrategy.Force => true, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
@@ -799,7 +905,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         StardiverStrategy.Automatic =>
             //Use Stardiver automatically if the player is in combat, the target is valid, the action is ready, and Life of the Dragon (LOTD) is active
-            Player.InCombat && target != null && In3y(target) && canStardive && hasLOTD,
+            Player.InCombat && target != null && In3y(target) && canSD && hasLOTD,
         StardiverStrategy.Force => true, //Always use if forced
         StardiverStrategy.ForceEX => true, //Always use if forced
         StardiverStrategy.Delay => false, //Delay usage if strategy is set to delay
@@ -811,7 +917,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         OffensiveStrategy.Automatic =>
             //Use Wyrmwind Thrust automatically if the player is in combat, the target is within 15y, and focus count is exactly 2
-            Player.InCombat && target != null && In15y(target) && canThrust && focusCount is 2,
+            Player.InCombat && target != null && In15y(target) && canWT && focusCount is 2,
         OffensiveStrategy.Force => true, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
@@ -822,7 +928,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         OffensiveStrategy.Automatic =>
             //Use Rise of the Dragon automatically if the player is in combat, the target is valid, and Dragon's Flight effect is active
-            Player.InCombat && target != null && canRise,
+            Player.InCombat && target != null && canROTD,
         OffensiveStrategy.Force => true, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
@@ -833,7 +939,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         OffensiveStrategy.Automatic =>
             //Use Starcross automatically if the player is in combat, the target is valid, and Starcross Ready effect is active
-            Player.InCombat && target != null && canCross,
+            Player.InCombat && target != null && canSC,
         OffensiveStrategy.Force => true, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
@@ -865,4 +971,19 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         PotionStrategy.Immediate => true, //Use the potion immediately
         _ => false
     };
+
+    /*
+    private bool ShouldUseTrueNorth(TrueNorthStrategy strategy, Actor? target) => strategy switch
+    {
+        TrueNorthStrategy.Automatic => target != null && Player.InCombat,
+        TrueNorthStrategy.ASAP => ,
+        TrueNorthStrategy.Flank => ,
+        TrueNorthStrategy.Rear => ,
+        TrueNorthStrategy.Force => true,
+        TrueNorthStrategy.Delay => false,
+        _ => false
+    };
+    */
+
+    #endregion
 }
