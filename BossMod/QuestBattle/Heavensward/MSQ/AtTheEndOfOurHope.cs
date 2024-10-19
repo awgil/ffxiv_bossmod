@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.MSQ;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 416)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 416)]
 public sealed class AtTheEndOfOurHope(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

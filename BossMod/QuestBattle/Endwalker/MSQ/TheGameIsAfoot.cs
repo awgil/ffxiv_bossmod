@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Endwalker.MSQ;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 960)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 960)]
 internal class TheGameIsAfoot(WorldState ws) : QuestBattle(ws)
 {
     private QuestObjective AutoSkip() => new QuestObjective(World)

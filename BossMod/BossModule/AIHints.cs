@@ -145,7 +145,12 @@ public sealed class AIHints
         }
     }
 
-    public void PrioritizeTargetsByOID(uint oid, int priority = 0) => PrioritizeTargetsByOID([oid], priority);
+    public void PrioritizeTargetsByOID(uint oid, int priority = 0)
+    {
+        foreach (var h in PotentialTargets)
+            if (h.Actor.OID == oid)
+                h.Priority = Math.Max(priority, h.Priority);
+    }
     public void PrioritizeTargetsByOID<OID>(OID oid, int priority = 0) where OID : Enum => PrioritizeTargetsByOID((uint)(object)oid, priority);
 
     public void PrioritizeTargetsByOID(uint[] oids, int priority = 0)
@@ -161,10 +166,7 @@ public sealed class AIHints
             h.Priority = Math.Max(h.Priority, 0);
     }
 
-    public void InteractWithOID(WorldState ws, uint oid)
-    {
-        InteractWithTarget = ws.Actors.FirstOrDefault(a => a.OID == oid && a.IsTargetable);
-    }
+    public void InteractWithOID(WorldState ws, uint oid) => InteractWithTarget = ws.Actors.FirstOrDefault(a => a.OID == oid && a.IsTargetable);
     public void InteractWithOID<OID>(WorldState ws, OID oid) where OID : Enum => InteractWithOID(ws, (uint)(object)oid);
 
     public void AddForbiddenZone(Func<WPos, float> shapeDistance, DateTime activation = new()) => ForbiddenZones.Add((shapeDistance, activation));

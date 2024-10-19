@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 681)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 681)]
 public class LegendsOfTheNotSoHiddenTemple(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws)

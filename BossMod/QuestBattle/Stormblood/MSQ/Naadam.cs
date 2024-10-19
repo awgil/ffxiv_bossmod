@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.MSQ;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 246)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 246)]
 public sealed class Naadam(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

@@ -1,4 +1,5 @@
 ﻿namespace BossMod.QuestBattle;
+
 public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
 {
     protected AIHints Hints = null!;

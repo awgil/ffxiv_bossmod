@@ -24,7 +24,7 @@ class AutoEstinien(WorldState ws) : UnmanagedRotation(ws, 10)
     }
 }
 
-[Quest(BossModuleInfo.Maturity.Contributed, 702)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 702)]
 public class VowsOfVirtueDeedsOfCruelty(WorldState ws) : QuestBattle(ws)
 {
     private readonly AutoEstinien _ai = new(ws);

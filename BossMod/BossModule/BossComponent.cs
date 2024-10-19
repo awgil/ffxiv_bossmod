@@ -39,10 +39,6 @@ public class BossComponent(BossModule module)
     public virtual void AddMovementHints(int slot, Actor actor, MovementHints movementHints) { } // gather movement hints for specified raid member
     public virtual void AddGlobalHints(GlobalHints hints) { } // gather any relevant pieces of advice for whole raid
     public virtual void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // gather AI hints for specified raid member
-    public virtual void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints, float maxCastTime)
-    {
-        AddAIHints(slot, actor, assignment, hints);
-    }
     public virtual PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => PlayerPriority.Irrelevant; // determine how particular party member should be drawn; if custom color is left untouched, standard color is selected
     public virtual void DrawArenaBackground(int pcSlot, Actor pc) { } // called at the beginning of arena draw, good place to draw aoe zones
     public virtual void DrawArenaForeground(int pcSlot, Actor pc) { } // called after arena background and borders are drawn, good place to draw actors, tethers, etc.

@@ -1,5 +1,4 @@
 ﻿using BossMod.Autorotation;
-using BossMod.QuestBattle;
 using Dalamud.Common;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
@@ -19,7 +18,6 @@ public sealed class Plugin : IDalamudPlugin
     private readonly AIHints _hints;
     private readonly BossModuleManager _bossmod;
     private readonly ZoneModuleManager _zonemod;
-    private readonly QuestBattleDirector _qb;
     private readonly AIHintsBuilder _hintsBuilder;
     private readonly MovementOverride _movementOverride;
     private readonly ActionManagerEx _amex;
@@ -41,7 +39,6 @@ public sealed class Plugin : IDalamudPlugin
     private readonly UIRotationWindow _wndRotation;
     private readonly AI.AIWindow _wndAI;
     private readonly MainDebugWindow _wndDebug;
-    private readonly QuestBattleWindow _qbWindow;
 
     public unsafe Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner, IDataManager dataManager)
     {
@@ -78,8 +75,7 @@ public sealed class Plugin : IDalamudPlugin
         _hints = new();
         _bossmod = new(_ws);
         _zonemod = new(_ws);
-        _qb = new(_ws, _bossmod);
-        _hintsBuilder = new(_ws, _bossmod, _zonemod, _qb);
+        _hintsBuilder = new(_ws, _bossmod, _zonemod);
         _movementOverride = new();
         _amex = new(_ws, _hints, _movementOverride);
         _wsSync = new(_ws, _amex);
@@ -98,7 +94,6 @@ public sealed class Plugin : IDalamudPlugin
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
         _wndAI = new(_ai);
         _wndDebug = new(_ws, _rotation, _amex, _hintsBuilder, dalamud);
-        _qbWindow = new(_qb);
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
         dalamud.UiBuilder.Draw += DrawUI;
@@ -112,7 +107,6 @@ public sealed class Plugin : IDalamudPlugin
     public void Dispose()
     {
         Service.Condition.ConditionChange -= OnConditionChanged;
-        _qbWindow.Dispose();
         _wndDebug.Dispose();
         _wndAI.Dispose();
         _wndRotation.Dispose();
@@ -125,7 +119,6 @@ public sealed class Plugin : IDalamudPlugin
         _ipc.Dispose();
         _ai.Dispose();
         _rotation.Dispose();
-        _qb.Dispose();
         _wsSync.Dispose();
         _amex.Dispose();
         _movementOverride.Dispose();
@@ -270,7 +263,6 @@ public sealed class Plugin : IDalamudPlugin
         _hintsBuilder.Update(_hints, PartyState.PlayerSlot, maxCastTime);
         _amex.QueueManualActions();
         _rotation.Update(_amex.AnimationLockDelayEstimate, _movementOverride.IsMoving());
-        _qb.Update(_hints);
         _ai.Update();
         _broadcast.Update();
         _amex.FinishActionGather();

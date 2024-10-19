@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 764)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 764)]
 internal class TheGreatShipVylbrand(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

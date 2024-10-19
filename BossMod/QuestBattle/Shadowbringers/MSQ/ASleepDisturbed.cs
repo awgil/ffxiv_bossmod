@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 724)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 724)]
 public class ASleepDisturbed(WorldState ws) : QuestBattle(ws)
 {
     private static readonly ICollection<int> InteractTargets =

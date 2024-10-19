@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.PLD;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 318)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 318)]
 internal class TheRematch(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

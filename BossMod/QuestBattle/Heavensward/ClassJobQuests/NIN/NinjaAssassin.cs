@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.NIN;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 421)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 421)]
 internal class NinjaAssassin(WorldState ws) : QuestBattle(ws)
 {
     public override void AddQuestAIHints(Actor player, AIHints hints)

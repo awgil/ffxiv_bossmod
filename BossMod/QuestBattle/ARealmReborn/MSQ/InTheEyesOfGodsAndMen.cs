@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.MSQ;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 343)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 343)]
 internal class InTheEyesOfGodsAndMen(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 662)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 662)]
 internal class TheOracleOfLight(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

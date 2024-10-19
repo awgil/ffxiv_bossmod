@@ -2,7 +2,7 @@
 
 namespace BossMod.QuestBattle.Shadowbringers.RoleQuests;
 
-public class AutoNyelbert(WorldState ws) : UnmanagedRotation(ws, 25)
+public class AutoNyelbert(WorldState ws) : UnmanagedRotation(ws, 20)
 {
     protected override void Exec(Actor? primaryTarget)
     {
@@ -11,7 +11,7 @@ public class AutoNyelbert(WorldState ws) : UnmanagedRotation(ws, 25)
 
         if (World.Party.LimitBreakCur == 10000)
         {
-            Hints.RecommendedRangeToTarget = 20;
+            //Hints.RecommendedRangeToTarget = 20;
             if ((primaryTarget.Position - Player.Position).Length() < 25)
                 UseAction(Roleplay.AID.FallingStar, null, 10, primaryTarget.PosRot.XYZ());
         }
@@ -38,7 +38,7 @@ public class AutoNyelbert(WorldState ws) : UnmanagedRotation(ws, 25)
     }
 }
 
-[Quest(BossModuleInfo.Maturity.Contributed, 686)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 686)]
 public class NyelbertsLament(WorldState ws) : QuestBattle(ws)
 {
     private readonly AutoNyelbert _ai = new(ws);

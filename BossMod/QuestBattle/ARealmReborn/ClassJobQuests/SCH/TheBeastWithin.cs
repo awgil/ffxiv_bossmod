@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.SCH;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 378)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 378)]
 internal class TheBeastWithin(WorldState ws) : QuestBattle(ws)
 {
     private void CompleteOnSpawn(QuestObjective obj, int count)

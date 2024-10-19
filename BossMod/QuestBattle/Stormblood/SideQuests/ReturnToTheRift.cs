@@ -2,7 +2,7 @@
 
 namespace BossMod.QuestBattle.Stormblood.SideQuests;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 471)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 471)]
 internal class ReturnToTheRift(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

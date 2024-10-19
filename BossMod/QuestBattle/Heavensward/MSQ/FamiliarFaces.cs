@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.MSQ;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 401)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 401)]
 internal class FamiliarFaces(WorldState ws) : QuestBattle(ws)
 {
     public override void AddQuestAIHints(Actor player, AIHints hints)

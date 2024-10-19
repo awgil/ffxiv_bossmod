@@ -111,7 +111,7 @@ class AlisaieAI(WorldState ws) : UnmanagedRotation(ws, 25)
     }
 }
 
-[Quest(BossModuleInfo.Maturity.Contributed, 804)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 804)]
 internal class AsTheHeavensBurn(WorldState ws) : QuestBattle(ws)
 {
     private readonly AlphinaudAI _alphi = new(ws);

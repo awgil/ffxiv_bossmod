@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.BLM;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 403)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 403)]
 internal class TheDefiantOnes(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

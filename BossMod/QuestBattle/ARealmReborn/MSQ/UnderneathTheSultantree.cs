@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.MSQ;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 335)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 335)]
 public class UnderneathTheSultantree(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

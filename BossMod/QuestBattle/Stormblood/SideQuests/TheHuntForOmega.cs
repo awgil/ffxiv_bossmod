@@ -2,7 +2,7 @@
 
 namespace BossMod.QuestBattle.Stormblood.SideQuests;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 275)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 275)]
 internal class TheHuntForOmega(WorldState ws) : QuestBattle(ws)
 {
     public override unsafe List<QuestObjective> DefineObjectives(WorldState ws) => [

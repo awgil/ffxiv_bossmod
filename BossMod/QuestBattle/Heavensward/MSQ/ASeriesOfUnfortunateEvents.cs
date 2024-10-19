@@ -2,7 +2,7 @@
 
 namespace BossMod.QuestBattle.Heavensward.MSQ;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 395)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 395)]
 public sealed class ASeriesOfUnfortunateEvents(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

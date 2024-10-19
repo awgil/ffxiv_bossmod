@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.SMN;
 
-[Quest(BossModuleInfo.Maturity.Contributed, 439)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 439)]
 internal class ICouldHaveTrancedAllNight(WorldState ws) : QuestBattle(ws)
 {
     public override void AddQuestAIHints(Actor player, AIHints hints)

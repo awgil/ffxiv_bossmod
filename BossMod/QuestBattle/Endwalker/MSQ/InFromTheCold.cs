@@ -43,7 +43,7 @@ class ImperialAI(WorldState ws) : UnmanagedRotation(ws, 3)
     }
 }
 
-[Quest(BossModuleInfo.Maturity.Contributed, 793)]
+[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 793)]
 internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 {
     private readonly ImperialAI _ai = new(ws);
@@ -125,7 +125,7 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
         new QuestObjective(ws)
             .Named("Help the townspeople")
             .Hints((player, hints) => {
-                hints.Dismount = true;
+                hints.WantDismount = true;
                 hints.GoalZones.Add(hints.GoalSingleTarget(new WPos(12, -148), 5, 0.5f));
                 hints.GoalZones.Add(hints.GoalSingleTarget(new WPos(-81, -180), 5, 0.75f));
             })
