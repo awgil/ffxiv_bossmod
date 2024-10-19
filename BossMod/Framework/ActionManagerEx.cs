@@ -360,7 +360,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
             else if (_dismountTweak.IsMountPreventingAction(actionAdj))
             {
                 Service.Log("[AMEx] Trying to dismount...");
-                _hints.WantDismount |= _dismountTweak.AllowAutoDismount();
+                _hints.WantDismount |= _dismountTweak.AutoDismountEnabled;
             }
             else
             {
@@ -381,7 +381,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         if (_autoAutosTweak.GetDesiredState(autosEnabled) != autosEnabled)
             _inst->UseAction(CSActionType.GeneralAction, 1);
 
-        if (_hints.WantDismount)
+        if (_hints.WantDismount && _dismountTweak.AllowDismount())
             _inst->UseAction(CSActionType.Action, 4);
     }
 
