@@ -8,6 +8,8 @@ public sealed class AutoDismountTweak(WorldState ws)
 {
     private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
 
+    public bool AutoDismountEnabled => _config.AutoDismount;
+
     public bool IsMountPreventingAction(ActionID action)
     {
         var player = ws.Party.Player();
@@ -23,11 +25,8 @@ public sealed class AutoDismountTweak(WorldState ws)
         return !canUseWhileMounted;
     }
 
-    public bool AllowAutoDismount()
+    public bool AllowDismount()
     {
-        if (!_config.AutoDismount)
-            return false;
-
         var player = ws.Party.Player();
         var mountData = player != null && player.MountId != 0 ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Mount>(player.MountId) : null;
         return mountData != null && mountData.Order >= 0;
