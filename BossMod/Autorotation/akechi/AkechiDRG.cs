@@ -603,6 +603,23 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.ForcedOGCD, 0, GCD - 0.9f);
 
         #endregion
+
+        #region AI
+        // AI hints for positioning
+        var goalST = primaryTarget != null ? Hints.GoalSingleTarget(primaryTarget, 3) : null;
+        var goalAOE = primaryTarget != null ? Hints.GoalAOECone(primaryTarget, 10, 45.Degrees()) : null;
+        var goal = AOEStrategy switch
+        {
+            AOEStrategy.ForceST => goalST,
+            AOEStrategy.Force123ST => goalST,
+            AOEStrategy.ForceBuffsST => goalST,
+            AOEStrategy.ForceAOE => goalAOE,
+            _ => goalST != null && goalAOE != null ? Hints.GoalCombined(goalST, goalAOE, 2) : goalAOE
+        };
+        if (goal != null)
+            Hints.GoalZones.Add(goal);
+        #endregion
+
     }
 
     #region Core Execution Helpers
