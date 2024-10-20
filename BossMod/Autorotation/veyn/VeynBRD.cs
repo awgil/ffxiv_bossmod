@@ -20,7 +20,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Veyn BRD", "Standard rotation module", "veyn", RotationModuleQuality.Basic, BitMask.Build((int)Class.BRD, (int)Class.ARC), 100);
+        var res = new RotationModuleDefinition("Veyn BRD", "Standard rotation module", "Standard rotation (veyn)", "veyn", RotationModuleQuality.Basic, BitMask.Build((int)Class.BRD, (int)Class.ARC), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 110)
             .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target actions")

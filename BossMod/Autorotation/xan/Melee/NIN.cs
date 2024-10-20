@@ -12,7 +12,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan NIN", "Ninja", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ROG, Class.NIN), 100);
+        var def = new RotationModuleDefinition("xan NIN", "Ninja", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ROG, Class.NIN), 100);
 
         def.DefineShared().AddAssociatedActions(AID.Dokumori);
 

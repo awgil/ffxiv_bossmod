@@ -5,6 +5,12 @@ namespace BossMod.Autorotation;
 
 public sealed class UIPresetEditor
 {
+    private class ModuleCategory
+    {
+        public SortedDictionary<string, ModuleCategory> Subcategories = [];
+        public List<Type> Leafs = [];
+    }
+
     private readonly PresetDatabase _db;
     private int _sourcePresetIndex;
     private bool _sourcePresetDefault;
@@ -15,12 +21,14 @@ public sealed class UIPresetEditor
     private int _selectedSettingIndex = -1;
     private readonly List<int> _orderedTrackList = []; // for current module, by UI order
     private readonly List<int> _settingGuids = []; // a hack to keep track of held item during drag-n-drop
+    private readonly ModuleCategory _modulesByCategory;
 
     public UIPresetEditor(PresetDatabase db, int index, bool isDefaultPreset, Type? initiallySelectedModuleType)
     {
         _db = db;
         _sourcePresetIndex = index;
         _sourcePresetDefault = isDefaultPreset;
+        _modulesByCategory = SplitModulesByCategory();
         if (index >= 0)
         {
             Preset = (isDefaultPreset ? db.DefaultPresets : db.UserPresets)[index].MakeClone(false);
@@ -39,6 +47,7 @@ public sealed class UIPresetEditor
     {
         _db = db;
         _sourcePresetIndex = -1;
+        _modulesByCategory = SplitModulesByCategory();
         Preset = preset;
         NameConflict = CheckNameConflict();
         Modified = true;
@@ -106,7 +115,9 @@ public sealed class UIPresetEditor
 
     public void DrawModulesList()
     {
-        DrawModuleAddPopup();
+        using (var popup = ImRaii.Popup("add_module"))
+            if (popup)
+                DrawModuleAddPopup(_modulesByCategory);
 
         var width = new Vector2(ImGui.GetContentRegionAvail().X, 0);
         using (var list = ImRaii.ListBox("###modules", width))
@@ -136,20 +147,29 @@ public sealed class UIPresetEditor
         }
     }
 
-    private void DrawModuleAddPopup()
+    private void DrawModuleAddPopup(ModuleCategory cat)
     {
-        using var popup = ImRaii.Popup("add_module");
-        if (!popup)
-            return;
-        foreach (var m in RotationModuleRegistry.Modules)
+        foreach (var sub in cat.Subcategories)
         {
-            if (m.Value.Definition.RelatedBossModule == null && !Preset.Modules.ContainsKey(m.Key))
+            if (HaveModulesToAddInCategory(sub.Value))
             {
-                if (DrawModule(m.Key, m.Value.Definition))
+                if (ImGui.BeginMenu(sub.Key))
                 {
-                    Preset.Modules[m.Key] = new();
+                    DrawModuleAddPopup(sub.Value);
+                    ImGui.EndMenu();
+                }
+            }
+        }
+
+        foreach (var leaf in cat.Leafs)
+        {
+            if (!Preset.Modules.ContainsKey(leaf))
+            {
+                if (DrawModule(leaf, RotationModuleRegistry.Modules[leaf].Definition))
+                {
+                    Preset.Modules[leaf] = new();
                     Modified = true;
-                    SelectModule(m.Key);
+                    SelectModule(leaf);
                 }
             }
         }
@@ -321,4 +341,22 @@ public sealed class UIPresetEditor
         if (SelectedModuleType != null && Preset.Modules.TryGetValue(SelectedModuleType, out var ms))
             _settingGuids.AddRange(Enumerable.Range(0, ms.Settings.Count));
     }
+
+    private ModuleCategory SplitModulesByCategory()
+    {
+        ModuleCategory res = new();
+        foreach (var m in RotationModuleRegistry.Modules)
+        {
+            if (m.Value.Definition.RelatedBossModule != null)
+                continue; // don't care about boss-specific modules for presets
+
+            var cat = res;
+            foreach (var part in m.Value.Definition.Category.Split('|', StringSplitOptions.RemoveEmptyEntries))
+                cat = cat.Subcategories.GetOrAdd(part);
+            cat.Leafs.Add(m.Key);
+        }
+        return res;
+    }
+
+    private bool HaveModulesToAddInCategory(ModuleCategory cat) => cat.Leafs.Any(leaf => !Preset.Modules.ContainsKey(leaf)) || cat.Subcategories.Values.Any(HaveModulesToAddInCategory);
 }
