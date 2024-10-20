@@ -1,5 +1,4 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using static BossMod.Autorotation.Legacy.LegacyDRG;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
@@ -9,6 +8,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 {
     #region Enums: Abilities / Strategies
 
+    //Which abilities/strategies we're tracking
     public enum Track
     {
         AOE,                   //Area of Effect actions
@@ -115,6 +115,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         Forbid                 //Forbid the use of Piercing Talon
     }
 
+    //True North strategy
     public enum TrueNorthStrategy
     {
         Automatic,      //Late-Weave
@@ -125,7 +126,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         Delay           //Delay
     }
 
-    //general offensive strategies
+    //Offensive strategies
     public enum OffensiveStrategy
     {
         Automatic,             //Automatically use offensive abilities
@@ -135,6 +136,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
     #endregion
 
+    //Module Definitions
     public static RotationModuleDefinition Definition()
     {
         //Module title & signature
@@ -1002,6 +1004,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         _ => false
     };
 
+    //Determines when to use True North
+    //TODO: reconsider this method, it's jank as fuck but it works
     private bool ShouldUseTrueNorth(TrueNorthStrategy strategy, Actor? target) => strategy switch
     {
         TrueNorthStrategy.Automatic =>
