@@ -310,6 +310,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Non-flexible actions with fixed priorities
         Jump = 680,                //Priority for Jump
         DragonfireDive = 690,      //Priority for Dragonfire Dive
+        WyrmwindThrustOpti = 695,  //Priority for Wyrmwind Thrust (optimal)
         Geirskogul = 700,          //Priority for Geirskogul
         Buffs = 800,               //Priority for buffs
         ForcedOGCD = 900,          //High priority for forced oGCD actions
@@ -594,7 +595,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Execute Wyrmwind Thrust if available
         var wtStrat = strategy.Option(Track.WyrmwindThrust).As<OffensiveStrategy>();
         if (!hold && ShouldUseWyrmwindThrust(wtStrat, primaryTarget))
-            QueueOGCD(DRG.AID.WyrmwindThrust, bestSpeartarget, wtStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : (ComboLastMove is DRG.AID.Drakesbane ? OGCDPriority.Jump : OGCDPriority.WyrmwindThrust));
+            QueueOGCD(DRG.AID.WyrmwindThrust, bestSpeartarget, wtStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : (ComboLastMove is DRG.AID.Drakesbane ? OGCDPriority.WyrmwindThrustOpti : OGCDPriority.WyrmwindThrust));
 
         //Execute Rise of the Dragon if available
         var riseStrat = strategy.Option(Track.RiseOfTheDragon).As<OffensiveStrategy>();
