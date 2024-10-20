@@ -1,4 +1,5 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.Autorotation.Legacy.LegacyDRG;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
@@ -19,6 +20,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         Geirskogul,            //Geirskogul ability
         Stardiver,             //Stardiver ability
         PiercingTalon,         //Piercing Talon ability
+        TrueNorth,             //True North ability
         LanceCharge,           //Lance Charge ability
         BattleLitany,          //Battle Litany ability
         MirageDive,            //Mirage Dive ability
@@ -55,16 +57,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         Manual,                //Manual potion usage
         AlignWithRaidBuffs,    //Align potion use with raid buffs
         Immediate              //Use potion immediately
-    }
-
-    //Piercing Talon strategy
-    public enum PiercingTalonStrategy
-    {
-        Automatic,             //Use Piercing Talon when appropriate
-        Opener,                //Use Piercing Talon as an opener
-        Force,                 //Force use of Piercing Talon
-        Ranged,                //Use Piercing Talon for ranged situations
-        Forbid                 //Forbid the use of Piercing Talon
     }
 
     //Life Surge strategy
@@ -113,16 +105,16 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         Delay                  //Delay use of Stardiver
     }
 
-    //general offensive strategies
-    public enum OffensiveStrategy
+    //Piercing Talon strategy
+    public enum PiercingTalonStrategy
     {
-        Automatic,             //Automatically use offensive abilities
-        Force,                 //Force offensive abilities
-        Delay                  //Delay offensive abilities
+        Automatic,             //Use Piercing Talon when appropriate
+        Opener,                //Use Piercing Talon as an opener
+        Force,                 //Force use of Piercing Talon
+        Ranged,                //Use Piercing Talon for ranged situations
+        Forbid                 //Forbid the use of Piercing Talon
     }
 
-    /*
-    //TODO: Positional shit
     public enum TrueNorthStrategy
     {
         Automatic,      //Late-Weave
@@ -132,7 +124,14 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         Force,          //Force
         Delay           //Delay
     }
-    */
+
+    //general offensive strategies
+    public enum OffensiveStrategy
+    {
+        Automatic,             //Automatically use offensive abilities
+        Force,                 //Force offensive abilities
+        Delay                  //Delay offensive abilities
+    }
 
     #endregion
 
@@ -216,17 +215,15 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             .AddOption(PiercingTalonStrategy.Forbid, "Forbid", "Do not use Piercing Talon at all")
             .AddAssociatedActions(DRG.AID.PiercingTalon);
 
-        /* TODO: Positional shit
         //True North strategy
         res.Define(Track.TrueNorth).As<TrueNorthStrategy>("True North", "T.North", uiPriority: 10)
             .AddOption(TrueNorthStrategy.Automatic, "Automatic", "Late-weaves True North when out of positional")
             .AddOption(TrueNorthStrategy.ASAP, "ASAP", "Use True North as soon as possible when out of positional", 45, 10, ActionTargets.Self, 50)
             .AddOption(TrueNorthStrategy.Rear, "Rear", "Use True North for rear positional only", 45, 10, ActionTargets.Self, 50)
             .AddOption(TrueNorthStrategy.Flank, "Flank", "Use True North for flank positional only", 45, 10, ActionTargets.Self, 50)
-            .AddOption(TrueNorthStrategy.Delay, "Delay", "Delay True North usage", 0, 0, ActionTargets.None, 50)
             .AddOption(TrueNorthStrategy.Force, "Force", "Force True North usage", 45, 10, ActionTargets.Self, 50)
+            .AddOption(TrueNorthStrategy.Delay, "Delay", "Delay True North usage", 0, 0, ActionTargets.None, 50)
             .AddAssociatedActions(ClassShared.AID.TrueNorth);
-        */
 
         #endregion
 
@@ -412,6 +409,16 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         AOEStrategy.ForceAOE => (primaryTarget, int.MaxValue),
         _ => (null, 0)
     };
+
+    private Positional GetCurrentPositional(Actor target) => (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch
+    {
+        < -0.7071068f => Positional.Rear,
+        < 0.7071068f => Positional.Flank,
+        _ => Positional.Front
+    };
+
+    private bool IsOnRear(Actor target) => GetCurrentPositional(target) == Positional.Rear;
+    private bool IsOnFlank(Actor target) => GetCurrentPositional(target) == Positional.Flank;
 
     #endregion
 
@@ -601,6 +608,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Execute Potion if available
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.ForcedOGCD, 0, GCD - 0.9f);
+
+        //Execute Starcross if available
+        if (!hold && ShouldUseTrueNorth(strategy.Option(Track.TrueNorth).As<TrueNorthStrategy>(), primaryTarget))
+            QueueOGCD(DRG.AID.TrueNorth, Player, OGCDPriority.TrueNorth);
 
         #endregion
 
@@ -991,18 +1002,32 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         _ => false
     };
 
-    /*
     private bool ShouldUseTrueNorth(TrueNorthStrategy strategy, Actor? target) => strategy switch
     {
-        TrueNorthStrategy.Automatic => target != null && Player.InCombat,
-        TrueNorthStrategy.ASAP => ,
-        TrueNorthStrategy.Flank => ,
-        TrueNorthStrategy.Rear => ,
-        TrueNorthStrategy.Force => true,
+        TrueNorthStrategy.Automatic =>
+            target != null && Player.InCombat && !HasEffect(ClassShared.SID.TrueNorth) && GCD < 1.25f &&
+            ((!IsOnRear(target) &&
+            (ComboLastMove is DRG.AID.Disembowel or DRG.AID.SpiralBlow or DRG.AID.ChaosThrust or DRG.AID.ChaoticSpring)) ||
+            (!IsOnFlank(target) &&
+            (ComboLastMove is DRG.AID.HeavensThrust or DRG.AID.FullThrust))),
+        TrueNorthStrategy.ASAP =>
+            target != null && Player.InCombat && !HasEffect(ClassShared.SID.TrueNorth) &&
+            ((!IsOnRear(target) &&
+            (ComboLastMove is DRG.AID.Disembowel or DRG.AID.SpiralBlow or DRG.AID.ChaosThrust or DRG.AID.ChaoticSpring)) ||
+            (!IsOnFlank(target) &&
+            (ComboLastMove is DRG.AID.HeavensThrust or DRG.AID.FullThrust))),
+        TrueNorthStrategy.Flank =>
+            target != null && Player.InCombat && !HasEffect(ClassShared.SID.TrueNorth) && GCD < 1.25f &&
+            (!IsOnFlank(target) &&
+            (ComboLastMove is DRG.AID.HeavensThrust or DRG.AID.FullThrust)),
+        TrueNorthStrategy.Rear =>
+            target != null && Player.InCombat && !HasEffect(ClassShared.SID.TrueNorth) && GCD < 1.25f &&
+            (!IsOnRear(target) &&
+            (ComboLastMove is DRG.AID.Disembowel or DRG.AID.SpiralBlow or DRG.AID.ChaosThrust or DRG.AID.ChaoticSpring)),
+        TrueNorthStrategy.Force => !HasEffect(ClassShared.SID.TrueNorth),
         TrueNorthStrategy.Delay => false,
         _ => false
     };
-    */
 
     #endregion
 }
