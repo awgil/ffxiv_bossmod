@@ -46,11 +46,22 @@ class Orbs(BossModule module) : Components.GenericAOEs(module, default, "GTFO fr
         foreach (var p in _orbs)
             yield return new(circle, p.Position);
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var p in _orbs)
+        {
+            hints.AddForbiddenZone(circle.Distance(p.Position, p.Rotation));
+            hints.AddForbiddenZone(ShapeDistance.Rect(p.Position, p.Rotation, 15, 0, circle.Radius), WorldState.FutureTime(2));
+        }
+    }
+
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Orbs)
             _orbs.Add(actor);
     }
+
     public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state == 0x00040008)
