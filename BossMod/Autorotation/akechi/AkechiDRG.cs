@@ -308,9 +308,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         TrueNorth = 595,           //Priority for True North
         Stardiver = 600,           //Priority for Stardiver
         //Non-flexible actions with fixed priorities
-        Jump = 680,                //Priority for Jump
-        DragonfireDive = 690,      //Priority for Dragonfire Dive
-        WyrmwindThrustOpti = 695,  //Priority for Wyrmwind Thrust (optimal)
+        Jump = 670,                //Priority for Jump
+        DragonfireDive = 680,      //Priority for Dragonfire Dive
+        WyrmwindThrustOpti = 690,  //Priority for Wyrmwind Thrust (optimal)
         Geirskogul = 700,          //Priority for Geirskogul
         Buffs = 800,               //Priority for buffs
         ForcedOGCD = 900,          //High priority for forced oGCD actions
