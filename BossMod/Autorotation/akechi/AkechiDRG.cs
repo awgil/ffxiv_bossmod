@@ -594,7 +594,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Execute Wyrmwind Thrust if available
         var wtStrat = strategy.Option(Track.WyrmwindThrust).As<OffensiveStrategy>();
         if (!hold && ShouldUseWyrmwindThrust(wtStrat, primaryTarget))
-            QueueOGCD(DRG.AID.WyrmwindThrust, bestSpeartarget, wtStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.WyrmwindThrust);
+            QueueOGCD(DRG.AID.WyrmwindThrust, bestSpeartarget, wtStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : (ComboLastMove is DRG.AID.Drakesbane ? OGCDPriority.Jump : OGCDPriority.WyrmwindThrust));
 
         //Execute Rise of the Dragon if available
         var riseStrat = strategy.Option(Track.RiseOfTheDragon).As<OffensiveStrategy>();
@@ -953,7 +953,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         OffensiveStrategy.Automatic =>
             //Use Wyrmwind Thrust automatically if the player is in combat, the target is within 15y, and focus count is exactly 2
-            Player.InCombat && target != null && In15y(target) && canWT && focusCount is 2,
+            Player.InCombat && target != null && In15y(target) && canWT && focusCount is 2 && lcCD > GCDLength * 3,
         OffensiveStrategy.Force => true, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
