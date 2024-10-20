@@ -412,6 +412,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         _ => (null, 0)
     };
 
+    //Check which positional Player is on
     private Positional GetCurrentPositional(Actor target) => (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch
     {
         < -0.7071068f => Positional.Rear,
@@ -419,7 +420,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         _ => Positional.Front
     };
 
+    //Check if Player is on Rear (back) positional 
     private bool IsOnRear(Actor target) => GetCurrentPositional(target) == Positional.Rear;
+
+    //Check if Player is on Flank (side) positional 
     private bool IsOnFlank(Actor target) => GetCurrentPositional(target) == Positional.Flank;
 
     #endregion
