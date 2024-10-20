@@ -56,13 +56,27 @@ public class GenericBaitAway(BossModule module, ActionID aid = default, bool alw
             }
             else
             {
-                // add forbidden zones for as if all other players were baiting; this works fine only in common cases
+                // add forbidden zones to prevent clipping others (best effort)
                 foreach (var p in Raid.WithoutSlot().Exclude(actor))
                 {
                     if (CenterAtTarget)
+                    {
+                        // works fine for circles & donuts
                         hints.AddForbiddenZone(b.Shape, p.Position, b.Rotation, b.Activation);
+                    }
                     else if (b.Source != b.Target)
-                        hints.AddForbiddenZone(b.Shape, b.Source.Position, b.Source.AngleTo(p), b.Activation);
+                    {
+                        if (b.Shape is AOEShapeCone)
+                        {
+                            // to avoid clipping player with a cone, we need to avoid the cone with same half-angle centered on other player
+                            hints.AddForbiddenZone(b.Shape, b.Source.Position, b.Source.AngleTo(p), b.Activation);
+                        }
+                        else if (b.Shape is AOEShapeRect shapeRect)
+                        {
+                            // to avoid clipping player with a rect, we need to avoid the cone with half-angle = asin(halfWidth/distance) centered on other player
+                            hints.AddForbiddenZone(ShapeDistance.Cone(b.Source.Position, 100, b.Source.AngleTo(p), Angle.Asin(shapeRect.HalfWidth / (p.Position - b.Source.Position).Length())), b.Activation);
+                        }
+                    }
                 }
             }
         }
