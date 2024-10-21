@@ -23,21 +23,30 @@ public sealed record class Preset(string Name)
         public StrategyValue Value = Value;
     }
 
-    public string Name = Name;
-    public Dictionary<Type, List<ModuleSetting>> Modules = [];
+    public record class ModuleSettings
+    {
+        public readonly List<ModuleSetting> Settings = [];
+        public int NumSerialized; // entries above this are transient and are not serialized
+    }
 
-    public Preset MakeClone()
+    public string Name = Name;
+    public Dictionary<Type, ModuleSettings> Modules = [];
+
+    public Preset MakeClone(bool includeTransient)
     {
         var res = new Preset(Name);
         foreach (var kv in Modules)
-            res.Modules[kv.Key] = [.. kv.Value];
+        {
+            var ms = res.Modules[kv.Key] = new() { NumSerialized = kv.Value.NumSerialized };
+            ms.Settings.AddRange(includeTransient ? kv.Value.Settings : kv.Value.Settings.Take(kv.Value.NumSerialized));
+        }
         return res;
     }
 
     public StrategyValues ActiveStrategyOverrides(Type type, Modifier mods)
     {
         var res = new StrategyValues(RotationModuleRegistry.Modules[type].Definition.Configs);
-        foreach (ref var s in Modules[type].AsSpan())
+        foreach (ref var s in Modules[type].Settings.AsSpan())
             if ((s.Mod & mods) == s.Mod)
                 res.Values[s.Track] = s.Value;
         return res;
@@ -74,7 +83,7 @@ public class JsonPresetConverter : JsonConverter<Preset>
                 continue;
             }
 
-            var m = res.Modules[mt] = [];
+            var m = res.Modules[mt] = new();
             foreach (var js in jm.Value.EnumerateArray())
             {
                 var s = new Preset.ModuleSetting() { Value = new() };
@@ -106,7 +115,8 @@ public class JsonPresetConverter : JsonConverter<Preset>
                 if (js.TryGetProperty(nameof(StrategyValue.Comment), out var jcomment))
                     s.Value.Comment = jcomment.GetString() ?? "";
 
-                m.Add(s);
+                m.Settings.Add(s);
+                ++m.NumSerialized;
             }
         }
         return res;
@@ -121,7 +131,7 @@ public class JsonPresetConverter : JsonConverter<Preset>
         {
             writer.WriteStartArray(m.Key.FullName!);
             var md = RotationModuleRegistry.Modules[m.Key].Definition;
-            foreach (var s in m.Value)
+            foreach (ref var s in m.Value.Settings.AsSpan()[..m.Value.NumSerialized])
             {
                 writer.WriteStartObject();
                 writer.WriteString(nameof(Preset.ModuleSetting.Track), md.Configs[s.Track].InternalName);

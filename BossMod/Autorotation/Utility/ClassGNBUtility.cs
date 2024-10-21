@@ -15,7 +15,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: GNB", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.GNB), 100); //How we plan our use of Utility skills
+        var res = new RotationModuleDefinition("Utility: GNB", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.GNB), 100); //How we plan our use of Utility skills
         DefineShared(res, IDLimitBreak3, IDStanceApply, IDStanceRemove); //Stance & LB
 
         DefineSimpleConfig(res, Track.Camouflage, "Camouflage", "Camo", 500, GNB.AID.Camouflage, 20); //90s CD, 20s duration

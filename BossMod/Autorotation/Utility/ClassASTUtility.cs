@@ -12,7 +12,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: AST", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.AST), 100);
+        var res = new RotationModuleDefinition("Utility: AST", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.AST), 100);
         DefineShared(res, IDLimitBreak3);
 
         DefineSimpleConfig(res, Track.Helios, "Helios", "", 140, AST.AID.Helios);

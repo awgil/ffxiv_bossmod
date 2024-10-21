@@ -139,7 +139,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     public static RotationModuleDefinition Definition()
     {
         //Module title & signature
-        var res = new RotationModuleDefinition("DRG (Akechi)", "Standard Rotation Module", "Akechi", RotationModuleQuality.Ok, BitMask.Build(Class.LNC, Class.DRG), 100);
+        var res = new RotationModuleDefinition("DRG (Akechi)", "Standard Rotation Module", "Standard rotation (Akechi)", "Akechi", RotationModuleQuality.Ok, BitMask.Build(Class.LNC, Class.DRG), 100);
 
         #region Custom Strategies
         //Targeting strategy

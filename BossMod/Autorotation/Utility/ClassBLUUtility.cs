@@ -7,7 +7,7 @@ public sealed class ClassBLUUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: BLU", "Planner support for utility actions\nNOTE: There are a lot of Utility actions for Blue Mage.\nFor better accessibility:\n  1. Select 'Column Visibility' tab\n  2. Choose which skills you would like to keep visible or invisible", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.BLU), 80);
+        var res = new RotationModuleDefinition("Utility: BLU", "Planner support for utility actions\nNOTE: There are a lot of Utility actions for Blue Mage.\nFor better accessibility:\n  1. Select 'Column Visibility' tab\n  2. Choose which skills you would like to keep visible or invisible", "Utility for planner", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.BLU), 80);
         DefineShared(res, IDLimitBreak3);
 
         DefineSimpleConfig(res, Track.Bristle, "Bristle", "Bristle", 100, BLU.AID.Bristle, 30);

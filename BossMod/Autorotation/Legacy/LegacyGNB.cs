@@ -14,7 +14,7 @@ public sealed class LegacyGNB : LegacyModule
     {
         // TODO: add in "Hold Double Down" option?
         // TODO: think about target overrides where they make sense (ST stuff, esp things like onslaught?)
-        var res = new RotationModuleDefinition("Legacy GNB", "Old pre-refactoring module", "LazyLemo, Akechi-kun", RotationModuleQuality.WIP, BitMask.Build((int)Class.GNB), 100);
+        var res = new RotationModuleDefinition("Legacy GNB", "Old pre-refactoring module", "Legacy (pre-DT)", "LazyLemo, Akechi-kun", RotationModuleQuality.WIP, BitMask.Build((int)Class.GNB), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 90)
             .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target rotation")

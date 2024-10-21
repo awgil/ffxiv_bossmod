@@ -5,7 +5,7 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
 {
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan AST", "Astrologian", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.AST), 100);
+        var def = new RotationModuleDefinition("xan AST", "Astrologian", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.AST), 100);
 
         def.DefineShared().AddAssociatedActions(AID.Divination);
 

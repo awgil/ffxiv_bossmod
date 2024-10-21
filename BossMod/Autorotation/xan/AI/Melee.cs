@@ -5,7 +5,7 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase(manag
     public enum Track { SecondWind, Bloodbath, Stun, LimitBreak }
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Melee DPS AI", "Utilities for melee - bloodbath, second wind, stun", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PGL, Class.MNK, Class.LNC, Class.DRG, Class.ROG, Class.NIN, Class.SAM, Class.RPR, Class.VPR), 100);
+        var def = new RotationModuleDefinition("Melee DPS AI", "Utilities for melee - bloodbath, second wind, stun", "AI (xan)", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PGL, Class.MNK, Class.LNC, Class.DRG, Class.ROG, Class.NIN, Class.SAM, Class.RPR, Class.VPR), 100);
 
         def.AbilityTrack(Track.SecondWind, "Second Wind");
         def.AbilityTrack(Track.Bloodbath, "Bloodbath");

@@ -15,7 +15,7 @@ public sealed class LegacyWAR : LegacyModule
     public static RotationModuleDefinition Definition()
     {
         // TODO: think about target overrides where they make sense (ST stuff, esp things like onslaught?)
-        var res = new RotationModuleDefinition("Legacy WAR", "Old pre-refactoring module", "veyn", RotationModuleQuality.WIP, BitMask.Build((int)Class.WAR), 100);
+        var res = new RotationModuleDefinition("Legacy WAR", "Old pre-refactoring module", "Legacy (pre-DT)", "veyn", RotationModuleQuality.WIP, BitMask.Build((int)Class.WAR), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 90)
             .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target rotation")

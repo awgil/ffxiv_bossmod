@@ -43,7 +43,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: SCH", "Planner support for utility actions", "xan", RotationModuleQuality.WIP, BitMask.Build((int)Class.SCH), 100);
+        var res = new RotationModuleDefinition("Utility: SCH", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.SCH), 100);
         DefineShared(res, IDLimitBreak3);
 
         DefineSimpleConfig(res, Track.WhisperingDawn, "WhisperingDawn", "WD", 100, SCH.AID.WhisperingDawn, 21);

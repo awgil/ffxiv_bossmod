@@ -13,7 +13,7 @@ public sealed class LegacyDNC : LegacyModule
     public static RotationModuleDefinition Definition()
     {
         // TODO: think about target overrides where they make sense
-        var res = new RotationModuleDefinition("Legacy DNC", "Old pre-refactoring module", "xan", RotationModuleQuality.WIP, BitMask.Build((int)Class.DNC), 100);
+        var res = new RotationModuleDefinition("Legacy DNC", "Old pre-refactoring module", "Legacy (pre-DT)", "xan", RotationModuleQuality.WIP, BitMask.Build((int)Class.DNC), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 90)
             .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target actions")

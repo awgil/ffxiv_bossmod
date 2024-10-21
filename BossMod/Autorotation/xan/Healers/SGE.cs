@@ -11,7 +11,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan SGE", "Sage", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SGE), 100);
+        var def = new RotationModuleDefinition("xan SGE", "Sage", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SGE), 100);
 
         def.DefineShared();
 

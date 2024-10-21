@@ -16,7 +16,7 @@ public sealed class LegacyBRD : LegacyModule
     public static RotationModuleDefinition Definition()
     {
         // TODO: think about target overrides where they make sense
-        var res = new RotationModuleDefinition("Legacy BRD", "Old pre-refactoring module", "veyn", RotationModuleQuality.WIP, BitMask.Build((int)Class.BRD), 100);
+        var res = new RotationModuleDefinition("Legacy BRD", "Old pre-refactoring module", "Legacy (pre-DT)", "veyn", RotationModuleQuality.WIP, BitMask.Build((int)Class.BRD), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 110)
             .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target actions")

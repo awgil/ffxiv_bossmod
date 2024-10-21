@@ -110,7 +110,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     public static RotationModuleDefinition Definition()
     {
         //Define the rotation module
-        var res = new RotationModuleDefinition("PLD (Akechi)", "Standard Rotation Module", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.GLA, (int)Class.PLD), 100);
+        var res = new RotationModuleDefinition("PLD (Akechi)", "Standard Rotation Module", "Standard rotation (Akechi)", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.GLA, (int)Class.PLD), 100);
 
         //AoE Strategy: Manage AoE versus single-target rotations
         res.Define(Track.AoE).As<AOEStrategy>("AoE", uiPriority: 200)

@@ -16,7 +16,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan MCH", "Machinist", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.MCH), 100);
+        var def = new RotationModuleDefinition("xan MCH", "Machinist", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.MCH), 100);
 
         def.DefineShared().AddAssociatedActions(AID.BarrelStabilizer, AID.Wildfire);
 

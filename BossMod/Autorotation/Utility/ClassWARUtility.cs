@@ -12,7 +12,7 @@ public sealed class ClassWARUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: WAR", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "veyn", RotationModuleQuality.Good, BitMask.Build((int)Class.WAR), 100);
+        var res = new RotationModuleDefinition("Utility: WAR", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "veyn", RotationModuleQuality.Good, BitMask.Build((int)Class.WAR), 100);
         DefineShared(res, IDLimitBreak3, IDStanceApply, IDStanceRemove);
 
         DefineSimpleConfig(res, Track.Thrill, "ThrillOfBattle", "Thrill", 450, WAR.AID.ThrillOfBattle, 10);
