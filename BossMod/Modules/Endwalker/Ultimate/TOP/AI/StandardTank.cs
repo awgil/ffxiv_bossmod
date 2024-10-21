@@ -8,7 +8,7 @@ internal class StandardTank(RotationModuleManager manager, Actor player) : AIRot
 {
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("TOP Mitty - Tank", "TOP Mitty - Tank", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.PLD, Class.WAR, Class.GNB, Class.DRK), 90, 90, typeof(TOP));
+        return new RotationModuleDefinition("TOP Mitty - Tank", "TOP Mitty - Tank", "TOP", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.PLD, Class.WAR, Class.GNB, Class.DRK), 90, 90, typeof(TOP));
     }
 
     private readonly PartyRolesConfig _config = Service.Config.Get<PartyRolesConfig>();

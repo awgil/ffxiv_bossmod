@@ -26,7 +26,7 @@ public sealed class StrikingDummyRotation(RotationModuleManager manager, Actor p
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Custom dummy rotation", "Example encounter-specific rotation", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, typeof(StrikingDummy));
+        var res = new RotationModuleDefinition("Custom dummy rotation", "Example encounter-specific rotation", "Other", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, typeof(StrikingDummy));
         res.Define(Track.Test).As<Strategy>("Test")
             .AddOption(Strategy.None, "None", "Do nothing")
             .AddOption(Strategy.Some, "Some", "I have some strategy and I follow it");

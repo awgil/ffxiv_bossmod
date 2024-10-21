@@ -5,7 +5,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
     public enum Track { Potion }
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Deep Dungeon AI", "Utilities for deep dungeon - potion/pomander user", "xan", RotationModuleQuality.Basic, new BitMask(~0ul), 100);
+        var def = new RotationModuleDefinition("Deep Dungeon AI", "Utilities for deep dungeon - potion/pomander user", "AI (xan)", "xan", RotationModuleQuality.Basic, new BitMask(~0ul), 100);
 
         def.AbilityTrack(Track.Potion, "Potion");
 
