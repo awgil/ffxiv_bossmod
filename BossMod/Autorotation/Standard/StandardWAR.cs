@@ -17,7 +17,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Standard WAR", "Standard rotation module", "veyn", RotationModuleQuality.Good, BitMask.Build((int)Class.WAR, (int)Class.MRD), 100);
+        var res = new RotationModuleDefinition("Standard WAR", "Standard rotation module", "Standard rotation (veyn)", "veyn", RotationModuleQuality.Good, BitMask.Build((int)Class.WAR, (int)Class.MRD), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 90)
             .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target rotation")

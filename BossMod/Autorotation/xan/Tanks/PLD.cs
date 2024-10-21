@@ -9,7 +9,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan PLD", "Paladin", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA), 100);
+        var def = new RotationModuleDefinition("xan PLD", "Paladin", "Standard rotation (xan)|Tanks", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA), 100);
 
         def.DefineShared().AddAssociatedActions(AID.FightOrFlight);
         def.DefineSimple(Track.Intervene, "Dash").AddAssociatedActions(AID.Intervene);

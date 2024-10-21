@@ -16,7 +16,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan DRG", "Dragoon", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DRG, Class.LNC), 100);
+        var def = new RotationModuleDefinition("xan DRG", "Dragoon", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DRG, Class.LNC), 100);
 
         def.DefineShared().AddAssociatedActions(AID.BattleLitany, AID.LanceCharge);
 

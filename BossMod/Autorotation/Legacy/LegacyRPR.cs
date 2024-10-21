@@ -13,7 +13,7 @@ public sealed class LegacyRPR : LegacyModule
     public static RotationModuleDefinition Definition()
     {
         // TODO: think about target overrides where they make sense
-        var res = new RotationModuleDefinition("Legacy RPR", "Old pre-refactoring module", "lazylemo", RotationModuleQuality.WIP, BitMask.Build((int)Class.RPR), 100);
+        var res = new RotationModuleDefinition("Legacy RPR", "Old pre-refactoring module", "Legacy (pre-DT)", "lazylemo", RotationModuleQuality.WIP, BitMask.Build((int)Class.RPR), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 100)
             .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target actions")

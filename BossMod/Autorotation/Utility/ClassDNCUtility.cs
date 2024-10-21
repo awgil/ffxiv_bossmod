@@ -8,7 +8,7 @@ public sealed class ClassDNCUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: DNC", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "xan", RotationModuleQuality.Excellent, BitMask.Build((int)Class.DNC), 100);
+        var res = new RotationModuleDefinition("Utility: DNC", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "xan", RotationModuleQuality.Excellent, BitMask.Build((int)Class.DNC), 100);
         DefineShared(res, IDLimitBreak3);
 
         DefineSimpleConfig(res, Track.CuringWaltz, "CuringWaltz", "Waltz", 400, DNC.AID.CuringWaltz);

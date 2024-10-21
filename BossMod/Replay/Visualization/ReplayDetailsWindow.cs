@@ -98,59 +98,59 @@ class ReplayDetailsWindow : UIWindow
                 povOffsetString = $"{povOffset} [R={povOffset.Length():f3}, dir={Angle.FromDirection(povOffset)}]";
             }
             ImGui.TextUnformatted($"Current state: {_mgr.ActiveModule.StateMachine.ActiveState?.ID:X}, Time since pull: {_mgr.ActiveModule.StateMachine.TimeSinceActivation:f3}, Draw time: {(drawTimerPost - drawTimerPre).TotalMilliseconds:f3}ms, Components: {compList}, Player offset: {povOffsetString}, Draw cache: {_mgr.ActiveModule.Arena.DrawCacheStats()}");
+        }
 
-            if (ImGui.CollapsingHeader("Plan execution"))
+        if (ImGui.CollapsingHeader("Plan execution"))
+        {
+            resetPF |= UIRotationWindow.DrawRotationSelector(_rmm);
+
+            if (_mgr.ActiveModule != null && ImGui.Button("Timeline"))
             {
-                resetPF |= UIRotationWindow.DrawRotationSelector(_rmm);
+                _ = new StateMachineWindow(_mgr.ActiveModule);
+            }
 
-                if (ImGui.Button("Timeline"))
+            if (_mgr.ActiveModule?.Info?.PlanLevel > 0)
+            {
+                ImGui.SameLine();
+                var plans = _rotationDB.Plans.GetPlans(_mgr.ActiveModule.GetType(), _mgr.WorldState.Party.Player()?.Class ?? Class.None);
+                var newSel = UIPlanDatabaseEditor.DrawPlanCombo(plans, plans.SelectedIndex, "Plan");
+                if (newSel != plans.SelectedIndex)
                 {
-                    _ = new StateMachineWindow(_mgr.ActiveModule);
+                    plans.SelectedIndex = newSel;
+                    _rotationDB.Plans.ModifyManifest(_mgr.ActiveModule.GetType(), _mgr.WorldState.Party.Player()?.Class ?? Class.None);
+                    resetPF = true;
                 }
 
-                if (_mgr.ActiveModule.Info?.PlanLevel > 0)
+                ImGui.SameLine();
+                if (ImGui.Button(plans.SelectedIndex >= 0 ? "Edit" : "New"))
                 {
-                    ImGui.SameLine();
-                    var plans = _rotationDB.Plans.GetPlans(_mgr.ActiveModule.GetType(), _mgr.WorldState.Party.Player()?.Class ?? Class.None);
-                    var newSel = UIPlanDatabaseEditor.DrawPlanCombo(plans, plans.SelectedIndex, "Plan");
-                    if (newSel != plans.SelectedIndex)
+                    if (plans.SelectedIndex < 0)
                     {
-                        plans.SelectedIndex = newSel;
-                        _rotationDB.Plans.ModifyManifest(_mgr.ActiveModule.GetType(), _mgr.WorldState.Party.Player()?.Class ?? Class.None);
-                        resetPF = true;
+                        var plan = new Plan($"New {plans.Plans.Count + 1}", _mgr.ActiveModule.GetType()) { Guid = Guid.NewGuid().ToString(), Class = _mgr.WorldState.Party.Player()?.Class ?? Class.None, Level = _mgr.ActiveModule.Info.PlanLevel };
+                        plans.SelectedIndex = plans.Plans.Count;
+                        _rotationDB.Plans.ModifyPlan(null, plan);
                     }
 
-                    ImGui.SameLine();
-                    if (ImGui.Button(plans.SelectedIndex >= 0 ? "Edit" : "New"))
+                    var enc = _player.Replay.Encounters.FirstOrDefault(e => e.InstanceID == _mgr.ActiveModule.PrimaryActor.InstanceID);
+                    if (enc != null)
                     {
-                        if (plans.SelectedIndex < 0)
-                        {
-                            var plan = new Plan($"New {plans.Plans.Count + 1}", _mgr.ActiveModule.GetType()) { Guid = Guid.NewGuid().ToString(), Class = _mgr.WorldState.Party.Player()?.Class ?? Class.None, Level = _mgr.ActiveModule.Info.PlanLevel };
-                            plans.SelectedIndex = plans.Plans.Count;
-                            _rotationDB.Plans.ModifyPlan(null, plan);
-                        }
-
-                        var enc = _player.Replay.Encounters.FirstOrDefault(e => e.InstanceID == _mgr.ActiveModule.PrimaryActor.InstanceID);
-                        if (enc != null)
-                        {
-                            _ = new ReplayTimelineWindow(_player.Replay, enc, new(1), _rotationDB.Plans, this);
-                        }
+                        _ = new ReplayTimelineWindow(_player.Replay, enc, new(1), _rotationDB.Plans, this);
                     }
                 }
+            }
 
-                // TODO: more fancy action history/queue...
-                ImGui.TextUnformatted($"Modules: {_rmm}");
-                ImGui.TextUnformatted($"GCD={_mgr.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f3}, AnimLock={_mgr.WorldState.Client.AnimationLock:f3}, Combo={_mgr.WorldState.Client.ComboState.Remaining:f3}, RBIn={_mgr.RaidCooldowns.NextDamageBuffIn():f3}");
-                var player = _mgr.WorldState.Party.Player();
-                if (player != null)
-                {
-                    var best = _hints.ActionsToExecute.FindBest(_mgr.WorldState, player, _mgr.WorldState.Client.Cooldowns, _mgr.WorldState.Client.AnimationLock, _hints, 0.02f);
-                    ImGui.TextUnformatted($"! {best.Action} ({best.Priority:f2}) in {best.Delay:f3} @ {best.Target}");
-                }
-                foreach (var a in _hints.ActionsToExecute.Entries)
-                {
-                    ImGui.TextUnformatted($"> {a.Action} ({a.Priority:f2}) in {a.Delay:f3} @ {a.Target}");
-                }
+            // TODO: more fancy action history/queue...
+            ImGui.TextUnformatted($"Modules: {_rmm}");
+            ImGui.TextUnformatted($"GCD={_mgr.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f3}, AnimLock={_mgr.WorldState.Client.AnimationLock:f3}, Combo={_mgr.WorldState.Client.ComboState.Remaining:f3}, RBIn={_mgr.RaidCooldowns.NextDamageBuffIn():f3}");
+            var player = _mgr.WorldState.Party.Player();
+            if (player != null)
+            {
+                var best = _hints.ActionsToExecute.FindBest(_mgr.WorldState, player, _mgr.WorldState.Client.Cooldowns, _mgr.WorldState.Client.AnimationLock, _hints, 0.02f);
+                ImGui.TextUnformatted($"! {best.Action} ({best.Priority:f2}) in {best.Delay:f3} @ {best.Target}");
+            }
+            foreach (var a in _hints.ActionsToExecute.Entries)
+            {
+                ImGui.TextUnformatted($"> {a.Action} ({a.Priority:f2}) in {a.Delay:f3} @ {a.Target}");
             }
         }
 

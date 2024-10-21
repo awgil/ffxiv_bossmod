@@ -33,7 +33,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Healer AI", "Auto-healer", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.CNJ, Class.WHM, Class.ACN, Class.SCH, Class.SGE, Class.AST), 100);
+        var def = new RotationModuleDefinition("Healer AI", "Auto-healer", "AI (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.CNJ, Class.WHM, Class.ACN, Class.SCH, Class.SGE, Class.AST), 100);
 
         def.Define(Track.Raise).As<RaiseStrategy>("Raise")
             .AddOption(RaiseStrategy.None, "Don't automatically raise")
