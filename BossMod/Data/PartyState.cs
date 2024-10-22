@@ -58,8 +58,6 @@ public sealed class PartyState
                 break;
             if (excludeAlliance && i is >= MaxPartySize and < MaxAllianceSize)
                 continue;
-            if (excludeNPCs && i >= MaxAllianceSize)
-                continue;
             var player = _actors[i];
             if (player == null)
                 continue;
