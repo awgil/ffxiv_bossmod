@@ -67,7 +67,6 @@ public enum AID : uint
 public enum SID : uint
 {
     None = 0,
-    Sprint = 3,
 
     // Tank
     Reprisal = 1193, // L22, instant, 60.0s CD (group 44), range 0, AOE 5 circle, targets=self
