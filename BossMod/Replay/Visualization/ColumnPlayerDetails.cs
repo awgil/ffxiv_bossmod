@@ -14,7 +14,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
     private readonly Replay.Participant _player;
     private readonly Class _playerClass;
     private readonly PlanDatabase _planDatabase;
-    private readonly ModuleRegistry.Info? _moduleInfo;
+    private readonly BossModuleRegistry.Info? _moduleInfo;
 
     private readonly ColumnPlayerActions _actions;
     private readonly ColumnActorStatuses _statuses;
@@ -39,7 +39,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         _player = player;
         _playerClass = playerClass;
         _planDatabase = planDB;
-        _moduleInfo = ModuleRegistry.FindByOID(enc.OID);
+        _moduleInfo = BossModuleRegistry.FindByOID(enc.OID);
 
         _actions = Add(new ColumnPlayerActions(timeline, tree, phaseBranches, replay, enc, player, playerClass));
         _actions.Name = player.NameHistory.FirstOrDefault().Value.name;

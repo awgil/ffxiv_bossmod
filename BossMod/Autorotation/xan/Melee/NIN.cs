@@ -12,7 +12,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan NIN", "Ninja", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ROG, Class.NIN), 100);
+        var def = new RotationModuleDefinition("xan NIN", "Ninja", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ROG, Class.NIN), 100);
 
         def.DefineShared().AddAssociatedActions(AID.Dokumori);
 
@@ -49,7 +49,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
     private Actor? BestRangedAOETarget;
 
     // these aren't the same cdgroup :(
-    public float AssassinateCD => CD(Unlocked(AID.DreamWithinADream) ? AID.DreamWithinADream : AID.Assassinate);
+    public float AssassinateCD => ReadyIn(Unlocked(AID.DreamWithinADream) ? AID.DreamWithinADream : AID.Assassinate);
 
     private ReadOnlyCollection<int> Mudras => Array.AsReadOnly([Mudra.Param & 3, (Mudra.Param >> 2) & 3, (Mudra.Param >> 4) & 3]);
 
@@ -66,7 +66,25 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         [AID.Suiton] = (3, 3)
     };
 
+    private AID CurrentNinjutsu => Mudras switch
+    {
+    [1 or 2 or 3, 0, 0] => AID.FumaShuriken,
+    [_, 1, 0] => Kassatsu > GCD ? AID.GokaMekkyaku : AID.Katon,
+    [_, 2, 0] => AID.Raiton,
+    [_, 3, 0] => Kassatsu > GCD ? AID.Hyoton : AID.HyoshoRanryu,
+    [_, _, 1] => AID.Huton,
+    [_, _, 2] => AID.Doton,
+    [_, _, 3] => AID.Suiton,
+        _ => AID.Ninjutsu
+    };
+
     private bool Hidden => HiddenStatus || ShadowWalker > World.Client.AnimationLock;
+
+    private bool CanTrickInCombat => Unlocked(AID.Suiton);
+
+    private static readonly uint[] NoUnhideZones = [
+        452
+    ];
 
     public override void Exec(StrategyValues strategy, Actor? primaryTarget)
     {
@@ -94,14 +112,15 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         Meisui = StatusLeft(SID.Meisui);
         TenriJindo = StatusLeft(SID.TenriJindoReady);
 
-        if (HiddenStatus)
+        if (HiddenStatus && !NoUnhideZones.Contains(World.CurrentCFCID))
             Hints.StatusesToCancel.Add(((uint)SID.Hidden, Player.InstanceID));
 
         (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy, primaryTarget, 20, IsSplashTarget);
 
         NumAOETargets = NumMeleeAOETargets(strategy);
 
-        UpdatePositionals(primaryTarget, GetNextPositional(primaryTarget), TrueNorthLeft > GCD);
+        var pos = GetNextPositional(primaryTarget);
+        UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
 
         OGCD(strategy, primaryTarget);
 
@@ -112,6 +131,8 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
             return;
         }
+
+        GoalZoneCombined(3, Hints.GoalAOECircle(5), 3, pos.Item1);
 
         if (TenChiJin.Left > GCD)
         {
@@ -146,26 +167,26 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
             if (strategy.Option(Track.ForkedRaiju).As<RaijuStrategy>() == RaijuStrategy.Automatic && Player.DistanceToHitbox(primaryTarget) is > 3 and <= 20)
                 PushGCD(AID.ForkedRaiju, primaryTarget);
 
-            if (CD(AID.TenChiJin) > 0)
+            if (OnCooldown(AID.TenChiJin))
                 PushGCD(AID.FleetingRaiju, primaryTarget);
         }
 
-        var useAOE = NumRangedAOETargets > 2;
+        var useNinjutsuAOE = NumRangedAOETargets > 2;
 
         // TODO save charges for trick
         if (Unlocked(AID.Raiton))
         {
-            if (CD(AID.TrickAttack) < 15 && ShadowWalker == 0)
+            if (Unlocked(AID.Huton) && ReadyIn(AID.TrickAttack) < 15 && ShadowWalker == 0)
             {
-                if (useAOE)
+                if (useNinjutsuAOE)
                     UseMudra(AID.Huton, BestRangedAOETarget);
                 else
                     UseMudra(AID.Suiton, primaryTarget);
             }
 
-            if (CD(AID.Kassatsu) > 0 && AssassinateCD > Kassatsu && CD(AID.TrickAttack) > Kassatsu)
+            if (OnCooldown(AID.Kassatsu) && AssassinateCD > Kassatsu && (ReadyIn(AID.TrickAttack) > Kassatsu || !CanTrickInCombat))
             {
-                if (useAOE)
+                if (useNinjutsuAOE)
                     // this will get auto transformed to goka mekkyaku
                     UseMudra(AID.Katon, BestRangedAOETarget);
                 else
@@ -175,7 +196,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
             // some condition changed during cast
             if (Mudra.Left > 0)
             {
-                if (useAOE)
+                if (useNinjutsuAOE)
                     PushGCD(AID.Katon, BestRangedAOETarget);
                 else
                     PushGCD(AID.Raiton, primaryTarget);
@@ -184,7 +205,9 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         else
             UseMudra(AID.FumaShuriken, primaryTarget);
 
-        if (useAOE && Unlocked(AID.DeathBlossom))
+        var useMeleeAOE = NumAOETargets > 2;
+
+        if (useMeleeAOE && Unlocked(AID.DeathBlossom))
         {
             if (ComboLastMove == AID.DeathBlossom)
                 PushGCD(AID.HakkeMujinsatsu, Player);
@@ -225,14 +248,14 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         if (Kazematoi >= 4)
             return AID.AeolianEdge;
 
-        return GetCurrentPositional(primaryTarget) == Positional.Rear ? AID.AeolianEdge : AID.ArmorCrush;
+        return primaryTarget.Omnidirectional || GetCurrentPositional(primaryTarget) == Positional.Rear ? AID.AeolianEdge : AID.ArmorCrush;
     }
 
     private void UseMudra(AID mudra, Actor? target, bool startCondition = true, bool endCondition = true)
     {
         (var aid, var tar) = PickMudra(mudra, target, startCondition, endCondition);
         if (aid != AID.None)
-            PushGCD(aid, tar);
+            PushGCD(aid == AID.Ninjutsu ? CurrentNinjutsu : aid, tar);
     }
 
     private (AID action, Actor? target) PickMudra(AID mudra, Actor? target, bool startCondition, bool endCondition)
@@ -241,7 +264,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
             return (AID.None, null);
 
         // no charges remaining and no kassatsu = we can't use it
-        if (Mudra.Param == 0 && CD(AID.Ten1) - 20 > GCD && Kassatsu == 0)
+        if (Mudra.Param == 0 && ReadyIn(AID.Ten1) > GCD && Kassatsu == 0)
             return (AID.None, null);
 
         // do nothing if start condition failed - since this could be something like checking ninjutsu CD, we skip it otherwise
@@ -257,6 +280,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
         var ten1 = Kassatsu > 0 ? AID.Ten2 : AID.Ten1;
         var jin1 = Kassatsu > 0 ? AID.Jin2 : AID.Jin1;
+        var chi1 = Kassatsu > 0 ? AID.Chi2 : AID.Chi1;
 
         if (len == 1)
         {
@@ -273,7 +297,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
                 return (AID.Ninjutsu, target);
 
             if (Mudras[0] == 0)
-                return (last == 1 ? jin1 : ten1, Player);
+                return (last == 1 ? (Unlocked(jin1) ? jin1 : chi1) : ten1, Player);
 
             if (Mudras[1] == 0)
                 return (last == 1 ? AID.Ten2 : last == 2 ? AID.Chi2 : AID.Jin2, Player);
@@ -310,24 +334,28 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
     private void OGCD(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (!Player.InCombat || primaryTarget == null)
+        if (!Player.InCombat)
         {
             if (strategy.Option(Track.Hide).As<HideStrategy>() == HideStrategy.Automatic
                 && Mudra.Left == 0
                 && GCD == 0
-                && CD(AID.Ten1) > 0)
+                && Unlocked(AID.Ten1)
+                && OnCooldown(AID.Ten1))
                 PushOGCD(AID.Hide, Player);
 
             return;
         }
 
-        if (ShadowWalker > 0 && CD(AID.TrickAttack) > ShadowWalker)
+        if (primaryTarget == null)
+            return;
+
+        if (ShadowWalker > 0 && ReadyIn(AID.TrickAttack) > ShadowWalker)
             PushOGCD(AID.Meisui, Player);
 
-        if (TenriJindo > 0)
+        if (TenriJindo > 0 && TenChiJin.Left == 0)
             PushOGCD(AID.TenriJindo, BestRangedAOETarget);
 
-        if (CD(AID.TrickAttack) < 5)
+        if (ReadyIn(AID.TrickAttack) < 5)
             PushOGCD(AID.Kassatsu, Player);
 
         var buffsOk = strategy.BuffsOk();
@@ -337,18 +365,18 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
             if (!Unlocked(TraitID.Shukiho) || Ninki >= 10)
                 PushOGCD(AID.Mug, primaryTarget);
 
-            if (CD(AID.Ten1) - 20 > GCD && Mudra.Left == 0 && Kassatsu == 0 && ShadowWalker == 0 && ForceMovementIn > GCD + 2)
+            if (ReadyIn(AID.Ten1) > GCD && Mudra.Left == 0 && Kassatsu == 0 && ShadowWalker == 0 && ForceMovementIn > GCD + 2)
                 PushOGCD(AID.TenChiJin, Player);
 
             if (Ninki >= 50)
                 PushOGCD(AID.Bunshin, Player);
         }
 
-        if (Hidden && (CD(AID.Mug) > 0 || !buffsOk))
+        if (Hidden && (OnCooldown(AID.Mug) || !buffsOk))
             // late weave trick during 2min windows with mug/dokumori active; otherwise use on cooldown
             PushOGCD(AID.TrickAttack, primaryTarget, delay: TargetMugLeft == 0 ? 0 : GCD - 0.8f);
 
-        if (CD(AID.TrickAttack) > 10)
+        if (ReadyIn(AID.TrickAttack) > 10 || !CanTrickInCombat)
             PushOGCD(Unlocked(AID.DreamWithinADream) ? AID.DreamWithinADream : AID.Assassinate, primaryTarget);
 
         if (ShouldBhava(strategy))
@@ -356,7 +384,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
             if (NumRangedAOETargets > 2 || !Unlocked(AID.Bhavacakra))
                 PushOGCD(AID.HellfrogMedium, BestRangedAOETarget);
 
-            PushOGCD(AID.Bhavacakra, primaryTarget, priority: Meisui > 0 ? 50 : 0);
+            PushOGCD(AID.Bhavacakra, primaryTarget, priority: Meisui > 0 ? 50 : 1);
         }
     }
 

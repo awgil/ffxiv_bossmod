@@ -7,7 +7,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
     public enum Track { Stance, Ranged, Interject, Stun, ArmsLength, Mit, Invuln, Protect }
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Tank AI", "Utilities for tank AI - stance, provoke, interrupt, ranged attack", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA, Class.WAR, Class.MRD, Class.DRK, Class.GNB), 100);
+        var def = new RotationModuleDefinition("Tank AI", "Utilities for tank AI - stance, provoke, interrupt, ranged attack", "AI (xan)", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA, Class.WAR, Class.MRD, Class.DRK, Class.GNB), 100);
 
         def.AbilityTrack(Track.Stance, "Stance");
         def.AbilityTrack(Track.Ranged, "Ranged GCD");
@@ -78,8 +78,11 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         _ => default
     };
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
+        if (Player.MountId > 0)
+            return;
+
         // ranged
         if (strategy.Enabled(Track.Ranged) && Player.DistanceToHitbox(primaryTarget) is > 5 and <= 20 && primaryTarget!.Type is ActorType.Enemy && !primaryTarget.IsAlly)
             Hints.ActionsToExecute.Push(JobActions.Ranged, primaryTarget, ActionQueue.Priority.Low);

@@ -8,7 +8,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 {
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan VPR", "Viper", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.VPR), 100);
+        var def = new RotationModuleDefinition("xan VPR", "Viper", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.VPR), 100);
 
         def.DefineShared().AddAssociatedActions(AID.Reawaken);
 
@@ -111,7 +111,8 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         BestGenerationTarget = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget).Best;
         NumAOETargets = NumMeleeAOETargets(strategy);
 
-        UpdatePositionals(primaryTarget, GetPositional(strategy), TrueNorthLeft > GCD);
+        var pos = GetPositional(strategy);
+        UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
 
         OGCD(strategy, primaryTarget);
 
@@ -272,7 +273,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         return Offering == 100 && ComboLastMove is AID.HuntersSting or AID.SwiftskinsSting or AID.HuntersBite or AID.SwiftskinsBite;
     }
 
-    private bool ShouldVice(StrategyValues strategy) => Swiftscaled > GCD && DreadCombo == 0 && NextChargeIn(AID.Vicewinder) <= GCD;
+    private bool ShouldVice(StrategyValues strategy) => Swiftscaled > GCD && DreadCombo == 0 && ReadyIn(AID.Vicewinder) <= GCD;
 
     private bool ShouldCoil(StrategyValues strategy) => Coil > 1 && Swiftscaled > GCD && DreadCombo == 0;
 

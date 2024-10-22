@@ -5,7 +5,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
-    public enum Track { Potion = SharedTrack.Count, SSS, Meditation, FiresReply }
+    public enum Track { Potion = SharedTrack.Buffs, SSS, Meditation, FormShift, FiresReply, Nadi, RoF, RoW, PB, BH, TC, Blitz, Engage }
     public enum PotionStrategy
     {
         Manual,
@@ -26,30 +26,114 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         Force,
         Delay
     }
+    public enum NadiStrategy
+    {
+        Automatic,
+        [PropertyDisplay("Lunar", 0xFFDB8BCA)]
+        Lunar,
+        [PropertyDisplay("Solar", 0xFF8EE6FA)]
+        Solar
+    }
+    public enum RoWStrategy
+    {
+        Automatic,
+        Force,
+        Delay
+    }
+    public enum PBStrategy
+    {
+        Automatic,
+        ForceOpo,
+        Force,
+        Delay,
+        DowntimeSolar,
+        DowntimeLunar
+    }
+    public enum TCStrategy
+    {
+        None,
+        GapClose
+    }
+    public enum BlitzStrategy
+    {
+        Automatic,
+        RoF,
+        Multi,
+        MultiRoF,
+        Delay
+    }
+    public enum EngageStrategy
+    {
+        TC,
+        Sprint,
+        FacepullDK,
+        FacepullDemo
+    }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan MNK", "Monk", "xan", RotationModuleQuality.Good, BitMask.Build(Class.MNK, Class.PGL), 100);
+        var def = new RotationModuleDefinition("xan MNK", "Monk", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Good, BitMask.Build(Class.MNK, Class.PGL), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.RiddleOfFire, AID.RiddleOfWind, AID.Brotherhood);
+        def.DefineSharedTA();
         def.Define(Track.Potion).As<PotionStrategy>("Pot")
             .AddOption(PotionStrategy.Manual, "Do not automatically use")
             .AddOption(PotionStrategy.PreBuffs, "Use ~4 GCDs before raid buff window")
             .AddOption(PotionStrategy.Now, "Use ASAP");
 
-        def.DefineSimple(Track.SSS, "SixSidedStar");
+        def.DefineSimple(Track.SSS, "SixSidedStar", minLevel: 80).AddAssociatedActions(AID.SixSidedStar);
 
         def.Define(Track.Meditation).As<MeditationStrategy>("Meditate")
             .AddOption(MeditationStrategy.Safe, "Use out of combat, during countdown, or if no enemies are targetable")
             .AddOption(MeditationStrategy.Greedy, "Allow using when primary enemy is targetable, but out of range")
             .AddOption(MeditationStrategy.Force, "Use even if enemy is in melee range")
-            .AddOption(MeditationStrategy.Delay, "Do not use");
+            .AddOption(MeditationStrategy.Delay, "Do not use")
+            .AddAssociatedActions(AID.SteeledMeditation);
+
+        def.DefineSimple(Track.FormShift, "FormShift", minLevel: 52).AddAssociatedActions(AID.FormShift);
 
         def.Define(Track.FiresReply).As<FRStrategy>("FiresReply")
-            .AddOption(FRStrategy.Automatic, "Use after Opo GCD")
-            .AddOption(FRStrategy.Ranged, "Use when out of melee range, or if about to expire")
-            .AddOption(FRStrategy.Force, "Use ASAP")
-            .AddOption(FRStrategy.Delay, "Do not use");
+            .AddOption(FRStrategy.Automatic, "Use after Opo GCD", minLevel: 100)
+            .AddOption(FRStrategy.Ranged, "Use when out of melee range, or if about to expire", minLevel: 100)
+            .AddOption(FRStrategy.Force, "Use ASAP", minLevel: 100)
+            .AddOption(FRStrategy.Delay, "Do not use", minLevel: 100)
+            .AddAssociatedActions(AID.FiresReply);
+
+        def.Define(Track.Nadi).As<NadiStrategy>("Nadi")
+            .AddOption(NadiStrategy.Automatic, "Automatically choose best nadi (double lunar opener, otherwise alternate)", minLevel: 60)
+            .AddOption(NadiStrategy.Lunar, "Lunar", minLevel: 60)
+            .AddOption(NadiStrategy.Solar, "Solar", minLevel: 60);
+
+        def.DefineSimple(Track.RoF, "RoF", minLevel: 68).AddAssociatedActions(AID.RiddleOfFire);
+        def.DefineSimple(Track.RoW, "RoW", minLevel: 72).AddAssociatedActions(AID.RiddleOfWind);
+
+        def.Define(Track.PB).As<PBStrategy>("PB")
+            .AddOption(PBStrategy.Automatic, "Automatically use after Opo before or during Riddle of Fire", minLevel: 50)
+            .AddOption(PBStrategy.ForceOpo, "Use ASAP after next Opo", minLevel: 50)
+            .AddOption(PBStrategy.Force, "Use ASAP", minLevel: 50)
+            .AddOption(PBStrategy.Delay, "Do not use", minLevel: 50)
+            .AddOption(PBStrategy.DowntimeSolar, "Downtime prep: Solar", minLevel: 60, effect: 39)
+            .AddOption(PBStrategy.DowntimeLunar, "Downtime prep: Lunar", minLevel: 60, effect: 39)
+            .AddAssociatedActions(AID.PerfectBalance);
+
+        def.DefineSimple(Track.BH, "BH", minLevel: 70).AddAssociatedActions(AID.Brotherhood);
+        def.Define(Track.TC).As<TCStrategy>("TC")
+            .AddOption(TCStrategy.None, "Do not use", minLevel: 35)
+            .AddOption(TCStrategy.GapClose, "Use if outside melee range", minLevel: 35)
+            .AddAssociatedActions(AID.Thunderclap);
+
+        def.Define(Track.Blitz).As<BlitzStrategy>("Blitz")
+            .AddOption(BlitzStrategy.Automatic, "Use ASAP", minLevel: 60)
+            .AddOption(BlitzStrategy.RoF, "Hold blitz until Riddle of Fire is active", minLevel: 60)
+            .AddOption(BlitzStrategy.Multi, "Hold blitz until at least two targets will be hit", minLevel: 60)
+            .AddOption(BlitzStrategy.MultiRoF, "Hold blitz until Riddle of Fire and 2+ targets", minLevel: 60)
+            .AddOption(BlitzStrategy.Delay, "Do not use", minLevel: 60)
+            .AddAssociatedActions(AID.ElixirField, AID.FlintStrike, AID.TornadoKick, AID.ElixirBurst, AID.RisingPhoenix, AID.PhantomRush);
+
+        def.Define(Track.Engage).As<EngageStrategy>("Engage")
+            .AddOption(EngageStrategy.TC, "Thunderclap to target")
+            .AddOption(EngageStrategy.Sprint, "Sprint to melee range")
+            .AddOption(EngageStrategy.FacepullDK, "Precast Dragon Kick from melee range")
+            .AddOption(EngageStrategy.FacepullDemo, "Precast Demolish from melee range");
 
         return def;
     }
@@ -64,6 +148,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     public NadiFlags Nadi;
 
     public Form CurrentForm;
+    public Form EffectiveForm;
     public float FormLeft; // 0 if no form, 30 max
 
     public float BlitzLeft; // 20 max
@@ -84,9 +169,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     private Actor? BestRangedTarget; // fire's reply
     private Actor? BestLineTarget; // enlightenment, wind's reply
 
-    public bool HasLunar => Nadi.HasFlag(NadiFlags.Lunar);
-    public bool HasSolar => Nadi.HasFlag(NadiFlags.Solar);
-    public bool HasBothNadi => HasLunar && HasSolar;
+    public bool HaveLunar => Nadi.HasFlag(NadiFlags.Lunar);
+    public bool HaveSolar => Nadi.HasFlag(NadiFlags.Solar);
+    public bool HaveBothNadi => HaveLunar && HaveSolar;
 
     protected override float GetCastTime(AID aid) => 0;
 
@@ -95,7 +180,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         if (BeastCount != 3)
             return (AID.None, false);
 
-        if (HasBothNadi)
+        if (HaveBothNadi)
             return (Unlocked(AID.PhantomRush) ? AID.PhantomRush : AID.TornadoKick, true);
 
         var bc = BeastChakra;
@@ -107,8 +192,8 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     }
 
     public int BeastCount => BeastChakra.Count(x => x != BeastChakraType.None);
-    public bool ForcedLunar => BeastCount > 1 && BeastChakra[0] == BeastChakra[1] && !HasBothNadi;
-    public bool ForcedSolar => BeastCount > 1 && BeastChakra[0] != BeastChakra[1] && !HasBothNadi;
+    public bool ForcedLunar => BeastCount > 1 && BeastChakra[0] == BeastChakra[1] && !HaveBothNadi;
+    public bool ForcedSolar => BeastCount > 1 && BeastChakra[0] != BeastChakra[1] && !HaveBothNadi;
 
     public bool CanFormShift => Unlocked(AID.FormShift) && PerfectBalanceLeft == 0;
 
@@ -117,49 +202,52 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     public bool UseAOE => NumAOETargets >= AOEBreakpoint;
 
     public int BuffedGCDsLeft => FireLeft > GCD ? (int)MathF.Floor((FireLeft - GCD) / AttackGCDLength) + 1 : 0;
-    public int PBGCDsLeft => PerfectBalance.Stacks + (NextChargeIn(AID.PerfectBalance) <= GCD ? 3 : 0);
+    public int PBGCDsLeft => PerfectBalance.Stacks + (ReadyIn(AID.PerfectBalance) <= GCD ? 3 : 0);
 
     private (Positional, bool) NextPositional
     {
         get
         {
-            if (UseAOE)
+            if (UseAOE || !Unlocked(AID.SnapPunch))
                 return (Positional.Any, false);
 
-            var pos = CoeurlStacks > 0 ? Positional.Flank : Positional.Rear;
+            var pos = Unlocked(AID.Demolish) && CoeurlStacks == 0 ? Positional.Rear : Positional.Flank;
             var imm = EffectiveForm == Form.Coeurl && NextGCD is not AID.WindsReply and not AID.FiresReply;
 
             return (pos, imm);
         }
     }
 
+    private bool HaveTarget;
+
     public enum GCDPriority
     {
-        None = -1,
-        Meditate = 50,
+        None = 0,
+        Meditate = 1,
         WindRanged = 100,
         FireRanged = 200,
         Basic = 300,
         AOE = 400,
         SSS = 500,
+        Blitz = 600,
         FiresReply = 700,
         WindsReply = 800,
-        Blitz = 900,
+        PR = 900,
         MeditateForce = 950,
     }
 
     // some monk OGCDs will be queued with higher prio than what user presses manually - the rotation is very drift-sensitive and monk has much less time to weave than other classes do
     public enum OGCDPriority
     {
-        None = -1,
+        None = 0,
         TrueNorth = 100,
         TFC = 150,
         Potion = 200,
         RiddleOfWind = 300,
-        ManualOGCD = 1901, // included for reference, not used here - actual value is 1901 + Low (2000) + 100 (in base class) = 4001
-        RiddleOfFire = 1910,
-        Brotherhood = 1915,
-        PerfectBalance = 1920
+        ManualOGCD = 2001, // included for reference, not used here - actual value is 2001 + Low (2000) = 4001
+        RiddleOfFire = 2002,
+        Brotherhood = 2003,
+        PerfectBalance = 2004
     }
 
     private float GetApplicationDelay(AID action) => action switch
@@ -177,6 +265,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     public override void Exec(StrategyValues strategy, Actor? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 3);
+        HaveTarget = primaryTarget != null && Player.InCombat;
 
         var gauge = World.Client.GetGauge<MonkGauge>();
 
@@ -221,34 +310,30 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         BestRangedTarget = SelectTarget(strategy, primaryTarget, 20, IsSplashTarget).Best;
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, IsEnlightenmentTarget);
 
-        UpdatePositionals(primaryTarget, NextPositional, TrueNorthLeft > GCD);
+        EffectiveForm = GetEffectiveForm(strategy);
+
+        var pos = NextPositional;
+        UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
 
         Meditate(strategy, primaryTarget);
+        FormShift(strategy, primaryTarget);
 
-        if (Chakra < 5 && Unlocked(AID.SteeledMeditation) && (!Player.InCombat || primaryTarget == null))
-            PushGCD(AID.SteeledMeditation, Player);
+        var sprint = StatusLeft(BossMod.SGE.SID.Sprint);
 
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining is > 2 and < 11.8f && FormShiftLeft == 0)
+            if (CountdownRemaining is > 3 and < 15 && FormShiftLeft == 0)
                 PushGCD(AID.FormShift, Player);
 
-            if (CountdownRemaining < 1 && Player.DistanceToHitbox(primaryTarget) is > 3 and < 25)
-                PushGCD(AID.Thunderclap, primaryTarget);
-
-            // uncomment/fix once we are able to manually delay starting autoattacks
-            //if (Player.DistanceToHitbox(primaryTarget) < 3 && CountdownRemaining < GetApplicationDelay(AID.DragonKick))
-            //{
-            //    Hints.ForcedTarget = null;
-            //    PushGCD(AID.DragonKick, primaryTarget);
-            //}
-
+            SmartEngage(strategy, primaryTarget);
             return;
         }
 
-        if (NumBlitzTargets > 0)
-            PushGCD(currentBlitz, BestBlitzTarget, GCDPriority.Blitz);
+        GoalZoneCombined(3, Hints.GoalAOECircle(5), AOEBreakpoint, pos.Item1);
 
+        OGCD(strategy, primaryTarget);
+
+        UseBlitz(strategy, currentBlitz);
         FiresReply(strategy);
         WindsReply();
 
@@ -266,11 +351,17 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         switch (EffectiveForm)
         {
             case Form.Coeurl:
-                PushGCD(CoeurlStacks == 0 && Unlocked(AID.Demolish) ? AID.Demolish : AID.SnapPunch, primaryTarget, GCDPriority.Basic); break;
+                PushGCD(CoeurlStacks == 0 && Unlocked(AID.Demolish) ? AID.Demolish : AID.SnapPunch, primaryTarget, GCDPriority.Basic);
+                break;
             case Form.Raptor:
-                PushGCD(RaptorStacks == 0 && Unlocked(AID.TwinSnakes) ? AID.TwinSnakes : AID.TrueStrike, primaryTarget, GCDPriority.Basic); break;
+                PushGCD(RaptorStacks == 0 && Unlocked(AID.TwinSnakes) ? AID.TwinSnakes : AID.TrueStrike, primaryTarget, GCDPriority.Basic);
+                break;
+            case Form.OpoOpo:
+                PushGCD(OpoStacks == 0 && Unlocked(AID.DragonKick) ? AID.DragonKick : AID.Bootshine, primaryTarget, GCDPriority.Basic);
+                break;
             default:
-                PushGCD(OpoStacks == 0 && Unlocked(AID.DragonKick) ? AID.DragonKick : AID.Bootshine, primaryTarget, GCDPriority.Basic); break;
+                PushGCD(OpoStacks > 0 && FormShiftLeft > GCD ? AID.Bootshine : Unlocked(AID.DragonKick) ? AID.DragonKick : AID.Bootshine, primaryTarget, GCDPriority.Basic);
+                break;
         }
 
         switch (strategy.Simple(Track.SSS))
@@ -279,110 +370,239 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 PushGCD(AID.SixSidedStar, primaryTarget, GCDPriority.SSS);
                 break;
             case OffensiveStrategy.Automatic:
-                if (!CanFitGCD(DowntimeIn - GetApplicationDelay(AID.SixSidedStar), 1))
+                if (DowntimeIn > 0 && !CanFitGCD(DowntimeIn - GetApplicationDelay(AID.SixSidedStar), 1))
                     PushGCD(AID.SixSidedStar, primaryTarget, GCDPriority.SSS);
                 break;
         }
 
-        OGCD(strategy, primaryTarget);
+        Prep(strategy);
     }
 
-    private Form EffectiveForm
+    private void Prep(StrategyValues strategy)
     {
-        get
+        bool lunar;
+        switch (strategy.Option(Track.PB).As<PBStrategy>())
         {
-            if (PerfectBalanceLeft == 0)
-                return CurrentForm;
-
-            // force lunar PB iff we are in opener, have lunar nadi already, and this is our last PB charge, aka double lunar opener
-            // if we have lunar but this is NOT our last charge, it means we came out of downtime with lunar nadi (i.e. dungeon), so solar -> pr is optimal
-            // this condition is unfortunately a little contrived. there are no other general cases in the monk rotation where we want to overwrite a lunar, as it's overall a dps loss
-            // NextChargeIn(PerfectBalance) > GCD is also not quite correct. ideally this would test whether a PB charge will come up during the riddle of fire window
-            // but in fights with extended downtime, nadis will already be explicitly planned out, so this isn't super important
-            var forceDoubleLunar = CombatTimer < 30 && HasLunar && NextChargeIn(AID.PerfectBalance) > GCD;
-            var forcedSolar = ForcedSolar || HasLunar && !HasSolar && !forceDoubleLunar;
-
-            var canCoeurl = forcedSolar;
-            var canRaptor = forcedSolar;
-            var canOpo = true;
-
-            foreach (var chak in BeastChakra)
-            {
-                canCoeurl &= chak != BeastChakraType.Coeurl;
-                canRaptor &= chak != BeastChakraType.Raptor;
-                if (ForcedSolar)
-                    canOpo &= chak != BeastChakraType.OpoOpo;
-            }
-
-            return canRaptor ? Form.Raptor : canCoeurl ? Form.Coeurl : Form.OpoOpo;
+            case PBStrategy.DowntimeSolar:
+                lunar = false;
+                break;
+            case PBStrategy.DowntimeLunar:
+                lunar = true;
+                break;
+            default:
+                return;
         }
+
+        if (PerfectBalanceLeft == 0)
+            return;
+
+        var deadlineAll = MathF.Min(UptimeIn ?? float.MaxValue, PerfectBalanceLeft) - 0.5f;
+        var gcdsLeft = 3 - BeastCount;
+        var deadlineNext = deadlineAll - gcdsLeft * AttackGCDLength;
+        if (lunar)
+            PushGCD(AID.ArmOfTheDestroyer, Player, GCDPriority.Basic, deadlineNext);
+        else
+            PushGCD(BeastCount switch
+            {
+                0 => AID.Rockbreaker,
+                1 => AID.FourPointFury,
+                _ => AID.ArmOfTheDestroyer
+            }, Player, GCDPriority.Basic, deadlineNext);
     }
 
-    private void QueuePB(StrategyValues strategy)
+    private Form GetEffectiveForm(StrategyValues strategy)
     {
-        if (CurrentForm != Form.Raptor || BeastChakra[0] != BeastChakraType.None || NextGCD == AID.FiresReply)
+        if (PerfectBalanceLeft == 0)
+            return CurrentForm;
+
+        var nadi = strategy.Option(Track.Nadi).As<NadiStrategy>();
+
+        // TODO throw away all this crap and fix odd lunar PB (it should not be used before rof)
+
+        // force lunar PB iff we are in opener, have lunar nadi already, and this is our last PB charge, aka double lunar opener
+        // if we have lunar but this is NOT our last charge, it means we came out of downtime with lunar nadi (i.e. dungeon), so solar -> pr is optimal
+        // this condition is unfortunately a little contrived. there are no other general cases in the monk rotation where we want to overwrite a lunar, as it's overall a dps loss
+        // NextChargeIn(PerfectBalance) > GCD is also not quite correct. ideally this would test whether a PB charge will come up during the riddle of fire window
+        // but in fights with extended downtime, nadis will already be explicitly planned out, so this isn't super important
+        var forcedDoubleLunar = CombatTimer < 30 && HaveLunar && ReadyIn(AID.PerfectBalance) > GCD && CanFitGCD(FireLeft, 3);
+        var forcedSolar = nadi == NadiStrategy.Solar
+            || ForcedSolar
+            || HaveLunar && !HaveSolar && !forcedDoubleLunar;
+
+        var canCoeurl = forcedSolar;
+        var canRaptor = forcedSolar;
+        var canOpo = true;
+
+        foreach (var chak in BeastChakra)
+        {
+            canCoeurl &= chak != BeastChakraType.Coeurl;
+            canRaptor &= chak != BeastChakraType.Raptor;
+            if (ForcedSolar)
+                canOpo &= chak != BeastChakraType.OpoOpo;
+        }
+
+        return canRaptor ? Form.Raptor : canCoeurl ? Form.Coeurl : Form.OpoOpo;
+    }
+
+    private void QueuePB(StrategyValues strategy, Actor? primaryTarget)
+    {
+        var pbstrat = strategy.Option(Track.PB).As<PBStrategy>();
+
+        if (BeastChakra[0] != BeastChakraType.None || NextGCD == AID.FiresReply || pbstrat == PBStrategy.Delay || PerfectBalanceLeft > 0)
             return;
+
+        if (pbstrat == PBStrategy.Force || pbstrat is PBStrategy.DowntimeSolar or PBStrategy.DowntimeLunar && primaryTarget is null)
+        {
+            PushOGCD(AID.PerfectBalance, Player, OGCDPriority.PerfectBalance);
+            return;
+        }
+
+        if (CurrentForm != Form.Raptor)
+            return;
+
+        if (pbstrat == PBStrategy.ForceOpo || !Unlocked(AID.RiddleOfFire))
+        {
+            PushOGCD(AID.PerfectBalance, Player, OGCDPriority.PerfectBalance);
+            return;
+        }
 
         // prevent odd window double blitz
         // TODO figure out the actual mathematical equation that differentiates odd windows, this is stupid
-        if (BrotherhoodLeft == 0 && CD(AID.PerfectBalance) > 30)
+        if (BrotherhoodLeft == 0 && MaxChargesIn(AID.PerfectBalance) > 30)
             return;
 
-        if (CanWeave(AID.RiddleOfFire, 3) || CanFitGCD(FireLeft, 3))
+        if (ShouldRoF(strategy, 3) || CanFitGCD(FireLeft, 3))
+        {
+            // in case of drift or whatever, if we end up wanting to triple weave after opo, delay PB in favor of using FR to get formless
+            // check if BH cooldown is >118s. if we only checked CanWeave for both then autorotation would do BH -> PB because RoF is slightly delayed to get the optimal late weave
+            var bhImminentOrUsed = CanWeave(AID.Brotherhood) || ReadyIn(AID.Brotherhood) + AttackGCDLength > 120;
+
+            if (CombatTimer > 10 && bhImminentOrUsed && CanWeave(AID.RiddleOfFire) && Unlocked(AID.FiresReply))
+                return;
+
             PushOGCD(AID.PerfectBalance, Player, OGCDPriority.PerfectBalance);
+        }
     }
 
     private void OGCD(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (!Player.InCombat || GCD == 0 || primaryTarget == null)
-            return;
-
-        if (strategy.Option(Track.Potion).As<PotionStrategy>() == PotionStrategy.Now)
-            Potion();
-
-        if (strategy.BuffsOk())
+        switch (strategy.Option(Track.Potion).As<PotionStrategy>())
         {
-            if (strategy.Option(Track.Potion).As<PotionStrategy>() == PotionStrategy.PreBuffs && CanWeave(AID.Brotherhood, 4))
+            case PotionStrategy.Now:
                 Potion();
-
-            QueuePB(strategy);
-
-            if (CombatTimer >= 10 || BeastCount == 2)
-                PushOGCD(AID.Brotherhood, Player, OGCDPriority.Brotherhood);
-
-            if (ShouldRoF)
-                PushOGCD(AID.RiddleOfFire, Player, OGCDPriority.RiddleOfFire, GCD - EarliestRoF(AnimationLockDelay));
-
-            if (!CanWeave(AID.RiddleOfFire))
-                PushOGCD(AID.RiddleOfWind, Player, OGCDPriority.RiddleOfWind);
-
-            if (NextPositionalImminent && !NextPositionalCorrect)
-                PushOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth, ShouldRoF ? 0 : GCD - 0.8f);
+                break;
+            case PotionStrategy.PreBuffs:
+                if (HaveTarget && CanWeave(AID.Brotherhood, 4))
+                    Potion();
+                break;
         }
 
-        if (Chakra >= 5)
+        Brotherhood(strategy, primaryTarget);
+        QueuePB(strategy, primaryTarget);
+
+        var useRof = ShouldRoF(strategy);
+
+        if (useRof)
+            PushOGCD(AID.RiddleOfFire, Player, OGCDPriority.RiddleOfFire, GCD - EarliestRoF(AnimationLockDelay));
+
+        if (ShouldRoW(strategy))
+            PushOGCD(AID.RiddleOfWind, Player, OGCDPriority.RiddleOfWind);
+
+        if (NextPositionalImminent && !NextPositionalCorrect)
+            PushOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth, useRof ? 0 : GCD - 0.8f);
+
+        if (HaveTarget && Chakra >= 5 && !CanWeave(AID.RiddleOfFire))
         {
             if (NumLineTargets >= 3)
                 PushOGCD(AID.HowlingFist, BestLineTarget, OGCDPriority.TFC);
 
             PushOGCD(AID.SteelPeak, primaryTarget, OGCDPriority.TFC);
         }
+
+        if (strategy.Option(Track.TC).As<TCStrategy>() == TCStrategy.GapClose && Player.DistanceToHitbox(primaryTarget) is > 3 and < 25)
+            PushOGCD(AID.Thunderclap, primaryTarget, OGCDPriority.TrueNorth);
+    }
+
+    private void Brotherhood(StrategyValues strategy, Actor? primaryTarget)
+    {
+        switch (strategy.Simple(Track.BH))
+        {
+            case OffensiveStrategy.Automatic:
+                if (HaveTarget && (CombatTimer > 10 || BeastCount == 2) && DowntimeIn > World.Client.AnimationLock + 20 && GCD > 0)
+                    PushOGCD(AID.Brotherhood, Player, OGCDPriority.Brotherhood);
+                break;
+            case OffensiveStrategy.Force:
+                PushOGCD(AID.Brotherhood, Player, OGCDPriority.Brotherhood);
+                break;
+            default:
+                return;
+        }
     }
 
     private void Meditate(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (Chakra >= 5 || !Unlocked(AID.SteeledMeditation))
+        if (Chakra >= 5 || !Unlocked(AID.SteeledMeditation) || Player.MountId > 0)
             return;
 
-        var prio = strategy.Option(Track.Meditation).As<MeditationStrategy>() switch
+        var prio = GCDPriority.None;
+
+        switch (strategy.Option(Track.Meditation).As<MeditationStrategy>())
         {
-            MeditationStrategy.Force => GCDPriority.MeditateForce,
-            MeditationStrategy.Safe => Player.InCombat && primaryTarget != null ? GCDPriority.None : GCDPriority.Meditate,
-            MeditationStrategy.Greedy => Player.DistanceToHitbox(primaryTarget) > 3 ? GCDPriority.Meditate : GCDPriority.None,
-            _ => GCDPriority.None,
-        };
+            case MeditationStrategy.Force:
+                prio = GCDPriority.MeditateForce;
+                break;
+            case MeditationStrategy.Safe:
+                if (!Player.InCombat)
+                    prio = GCDPriority.Meditate;
+
+                // gross
+                if (primaryTarget == null && (UptimeIn ?? float.MaxValue) > GCD + 1)
+                    prio = GCDPriority.Meditate;
+                break;
+            case MeditationStrategy.Greedy:
+                if (Player.DistanceToHitbox(primaryTarget) > 3)
+                    prio = GCDPriority.Meditate;
+                break;
+        }
 
         PushGCD(AID.SteeledMeditation, Player, prio);
+    }
+
+    private void FormShift(StrategyValues strategy, Actor? primaryTarget)
+    {
+        if (!Unlocked(AID.FormShift) || PerfectBalanceLeft > 0)
+            return;
+
+        var prio = GCDPriority.None;
+
+        switch (strategy.Simple(Track.FormShift))
+        {
+            case OffensiveStrategy.Force:
+                prio = GCDPriority.MeditateForce;
+                break;
+            case OffensiveStrategy.Automatic:
+                if (UptimeIn > MathF.Max(GCD + AttackGCDLength, FormShiftLeft) && UptimeIn < 25)
+                    prio = GCDPriority.Meditate;
+                break;
+        }
+
+        PushGCD(AID.FormShift, Player, prio);
+    }
+
+    private void UseBlitz(StrategyValues strategy, AID currentBlitz)
+    {
+        var should = NumBlitzTargets > 0;
+        should &= strategy.Option(Track.Blitz).As<BlitzStrategy>() switch
+        {
+            BlitzStrategy.Automatic => true,
+            BlitzStrategy.RoF => FireLeft > GCD,
+            BlitzStrategy.Multi => NumBlitzTargets > 1,
+            BlitzStrategy.MultiRoF => FireLeft > GCD && NumBlitzTargets > 1,
+            _ => false
+        };
+
+        if (should)
+            PushGCD(currentBlitz, BestBlitzTarget, currentBlitz is AID.TornadoKick or AID.PhantomRush ? GCDPriority.PR : GCDPriority.Blitz);
     }
 
     private void FiresReply(StrategyValues strategy)
@@ -403,13 +623,14 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     private void WindsReply()
     {
-        if (WindsReplyLeft <= GCD || PerfectBalanceLeft > GCD || BlitzLeft > GCD)
+        if (WindsReplyLeft <= GCD)
             return;
 
+        // always queue with low prio, this lets us fallback to winds reply when out of range for melee GCDs
         var prio = GCDPriority.WindRanged;
 
-        // use early during buffs, or use now if about to expire
-        if (FireLeft > GCD || !CanFitGCD(WindsReplyLeft, 1))
+        // if riddle of fire is about to expire, or if the WR buff itself is about to expire, use ASAP
+        if (FireLeft > GCD && !CanFitGCD(FireLeft, 1) || !CanFitGCD(WindsReplyLeft, 1))
             prio = GCDPriority.WindsReply;
 
         PushGCD(AID.WindsReply, BestLineTarget, prio);
@@ -420,7 +641,25 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     private void Potion() => Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Low + 100 + (float)OGCDPriority.Potion);
 
-    private bool ShouldRoF => CanWeave(AID.RiddleOfFire) && !CanWeave(AID.Brotherhood);
+    private bool ShouldRoF(StrategyValues strategy, int extraGCDs = 0)
+    {
+        if (!CanWeave(AID.RiddleOfFire, extraGCDs))
+            return false;
+
+        return strategy.Simple(Track.RoF) switch
+        {
+            OffensiveStrategy.Automatic => HaveTarget && (extraGCDs > 0 || !CanWeave(AID.Brotherhood)) && DowntimeIn > World.Client.AnimationLock + 20,
+            OffensiveStrategy.Force => true,
+            _ => false
+        };
+    }
+
+    private bool ShouldRoW(StrategyValues strategy) => strategy.Simple(Track.RoW) switch
+    {
+        OffensiveStrategy.Automatic => HaveTarget && !CanWeave(AID.RiddleOfFire) && DowntimeIn > World.Client.AnimationLock + 15,
+        OffensiveStrategy.Force => true,
+        _ => false
+    };
 
     private bool IsEnlightenmentTarget(Actor primary, Actor other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 2);
 
@@ -438,5 +677,55 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         s = StatusLeft(SID.CoeurlForm);
 
         return s > 0 ? (Form.Coeurl, s) : (Form.None, 0);
+    }
+
+    private void SmartEngage(StrategyValues strategy, Actor? primaryTarget)
+    {
+        if (primaryTarget == null)
+            return;
+        var facepullAction = AID.None;
+
+        // invariant: countdown is > 0
+        switch (strategy.Option(Track.Engage).As<EngageStrategy>())
+        {
+            case EngageStrategy.TC:
+                if (CountdownRemaining < 0.7f && Player.DistanceToHitbox(primaryTarget) > 3)
+                    PushGCD(AID.Thunderclap, primaryTarget);
+
+                if (CountdownRemaining < GetApplicationDelay(AID.DragonKick))
+                    PushGCD(AID.DragonKick, primaryTarget);
+                return;
+
+            case EngageStrategy.Sprint:
+                if (CountdownRemaining < 10)
+                    PushGCD(AID.Sprint, Player);
+
+                var distToMelee = Player.DistanceToHitbox(primaryTarget) - 3;
+                var secToMelee = distToMelee / 7.8f;
+                // TODO account for acceleration
+                if (CountdownRemaining < secToMelee + 0.5f)
+                {
+                    Hints.ForcedMovement = Player.DirectionTo(primaryTarget).ToVec3();
+                    PushGCD(AID.DragonKick, primaryTarget);
+                }
+
+                return;
+
+            case EngageStrategy.FacepullDK:
+                facepullAction = AID.DragonKick;
+                break;
+            case EngageStrategy.FacepullDemo:
+                facepullAction = AID.Demolish;
+                break;
+        }
+
+        if (facepullAction == default)
+            return;
+
+        if (Player.DistanceToHitbox(primaryTarget) > 3)
+            Hints.ForcedMovement = Player.DirectionTo(primaryTarget).ToVec3();
+
+        if (CountdownRemaining < GetApplicationDelay(facepullAction))
+            PushGCD(facepullAction, primaryTarget);
     }
 }

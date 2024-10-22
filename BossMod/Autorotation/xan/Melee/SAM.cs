@@ -16,7 +16,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan SAM", "Samurai", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SAM), 100);
+        var def = new RotationModuleDefinition("xan SAM", "Samurai", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SAM), 100);
 
         def.DefineShared().AddAssociatedActions(AID.Ikishoten, AID.HissatsuSenei);
 
@@ -151,7 +151,8 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
                 break;
         }
 
-        UpdatePositionals(primaryTarget, GetNextPositional(strategy), TrueNorthLeft > GCD);
+        var pos = GetNextPositional(strategy);
+        UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
 
         OGCD(strategy, primaryTarget);
 
@@ -166,7 +167,9 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        EmergencyMeikyo(strategy);
+        GoalZoneCombined(3, Hints.GoalAOECircle(NumStickers == 2 ? 8 : 5), 3, pos.Item1);
+
+        EmergencyMeikyo(strategy, primaryTarget);
         UseKaeshi(primaryTarget);
         UseIaijutsu(primaryTarget);
 
@@ -319,10 +322,10 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private void EmergencyMeikyo(StrategyValues strategy)
+    private void EmergencyMeikyo(StrategyValues strategy, Actor? primaryTarget)
     {
         // special case for if we got thrust into combat with no prep
-        if (MeikyoLeft == 0 && !HaveFugetsu && CombatTimer < 5)
+        if (MeikyoLeft == 0 && !HaveFugetsu && CombatTimer < 5 && primaryTarget != null)
             PushGCD(AID.MeikyoShisui, Player);
     }
 
@@ -386,7 +389,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         if (Meditation == 3)
             PushOGCD(AID.Shoha, BestLineTarget);
 
-        if (Kenki >= 25 && NextChargeIn(AID.HissatsuGuren) > 10 && Zanshin == 0)
+        if (Kenki >= 25 && ReadyIn(AID.HissatsuGuren) > 10 && Zanshin == 0)
         {
             if (NumAOECircleTargets > 2)
                 PushOGCD(AID.HissatsuKyuten, Player);

@@ -54,7 +54,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan SMN", "Summoner", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SMN, Class.ACN), 100);
+        var def = new RotationModuleDefinition("xan SMN", "Summoner", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SMN, Class.ACN), 100);
 
         def.DefineShared().AddAssociatedActions(AID.SearingLight);
 
@@ -188,6 +188,26 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         _ => Unlocked(AID.TriDisaster) ? AID.TriDisaster : AID.Outburst,
     };
 
+    public AID BestAethercharge
+    {
+        get
+        {
+            if (TranceFlags.HasFlag(SmnFlags.SolarBahamut))
+                return AID.SummonSolarBahamut;
+
+            if (TranceFlags.HasFlag(SmnFlags.Phoenix))
+                return AID.SummonPhoenix;
+
+            if (Unlocked(AID.SummonBahamut))
+                return AID.SummonBahamut;
+
+            if (Unlocked(AID.DreadwyrmTrance))
+                return AID.DreadwyrmTrance;
+
+            return AID.Aethercharge;
+        }
+    }
+
     public override void Exec(StrategyValues strategy, Actor? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
@@ -217,7 +237,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         (BestAOETarget, NumAOETargets) = SelectTargetByHP(strategy, primaryTarget, 25, IsSplashTarget);
         (BestMeleeTarget, NumMeleeTargets) = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget);
 
-        if (Carbuncle == null)
+        if (Carbuncle == null && Player.MountId == 0)
             PushGCD(AID.SummonCarbuncle, Player);
 
         if (primaryTarget == null)
@@ -234,7 +254,10 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         OGCDs(strategy, primaryTarget);
 
         if (ComboLastMove == AID.CrimsonCyclone)
+        {
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 3));
             PushGCD(AID.CrimsonStrike, BestMeleeTarget);
+        }
 
         if (Favor == Favor.Garuda)
             PushGCD(AID.Slipstream, BestAOETarget);
@@ -275,11 +298,10 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         {
             // TODO make this configurable - this will summon baha/phoenix and ignore current gems
             // balance says to default to summons if you don't know whether you will lose a usage or not
-            if (CD(AID.Aethercharge) <= GCD)
+            if (ReadyIn(AID.Aethercharge) <= GCD && Player.InCombat)
             {
-                var isTargeted = Unlocked(TraitID.AetherchargeMastery);
                 // scarlet flame and wyrmwave are both single target, this is ok
-                PushGCD(AID.Aethercharge, isTargeted ? primaryTarget : Player);
+                PushGCD(BestAethercharge, primaryTarget);
             }
 
             if (TranceFlags.HasFlag(SmnFlags.Topaz))
@@ -329,7 +351,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
             case Trance.Phoenix:
                 PushOGCD(AID.EnkindlePhoenix, BestAOETarget);
 
-                if (CD(AID.Rekindle) == 0)
+                if (CanWeave(AID.Rekindle))
                 {
                     static float HPRatio(Actor a) => (float)a.HPMP.CurHP / a.HPMP.MaxHP;
 

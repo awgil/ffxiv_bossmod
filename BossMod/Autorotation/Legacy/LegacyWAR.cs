@@ -15,7 +15,7 @@ public sealed class LegacyWAR : LegacyModule
     public static RotationModuleDefinition Definition()
     {
         // TODO: think about target overrides where they make sense (ST stuff, esp things like onslaught?)
-        var res = new RotationModuleDefinition("Legacy WAR", "Old pre-refactoring module", "veyn", RotationModuleQuality.WIP, BitMask.Build((int)Class.WAR), 100);
+        var res = new RotationModuleDefinition("Legacy WAR", "Old pre-refactoring module", "Legacy (pre-DT)", "veyn", RotationModuleQuality.WIP, BitMask.Build((int)Class.WAR), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 90)
             .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target rotation")
@@ -122,7 +122,7 @@ public sealed class LegacyWAR : LegacyModule
         _state = new(this);
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
         _state.HaveTankStance = Player.FindStatus(WAR.SID.Defiance) != null;

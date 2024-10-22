@@ -77,10 +77,13 @@ public class ConfigRoot
         }
     }
 
-    public List<string> ConsoleCommand(IReadOnlyList<string> args, bool save = true)
+    public List<string> ConsoleCommand(ReadOnlySpan<char> cmd, bool save = true)
     {
+        Span<Range> ranges = stackalloc Range[3];
+        var numRanges = cmd.Split(ranges, ' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
         List<string> result = [];
-        if (args.Count == 0)
+        if (numRanges == 0)
         {
             result.Add("Usage: /vbm cfg <config-type> <field> <value>");
             result.Add("Both config-type and field can be shortened. Valid config-types:");
@@ -89,9 +92,10 @@ public class ConfigRoot
         }
         else
         {
+            var cmdType = cmd[ranges[0]];
             List<ConfigNode> matchingNodes = [];
             foreach (var (t, n) in _nodes)
-                if (t.Name.Contains(args[0], StringComparison.CurrentCultureIgnoreCase))
+                if (t.Name.AsSpan().Contains(cmdType, StringComparison.CurrentCultureIgnoreCase))
                     matchingNodes.Add(n);
             if (matchingNodes.Count == 0)
             {
@@ -105,7 +109,7 @@ public class ConfigRoot
                 foreach (var n in matchingNodes)
                     result.Add($"- {n.GetType().Name}");
             }
-            else if (args.Count == 1)
+            else if (numRanges == 1)
             {
                 result.Add("Usage: /vbm cfg <config-type> <field> <value>");
                 result.Add($"Valid fields for {matchingNodes[0].GetType().Name}:");
@@ -114,13 +118,14 @@ public class ConfigRoot
             }
             else
             {
+                var cmdField = cmd[ranges[1]];
                 List<FieldInfo> matchingFields = [];
                 foreach (var f in matchingNodes[0].GetType().GetFields().Where(f => f.GetCustomAttribute<PropertyDisplayAttribute>() != null))
-                    if (f.Name.Contains(args[1], StringComparison.CurrentCultureIgnoreCase))
+                    if (f.Name.AsSpan().Contains(cmdField, StringComparison.CurrentCultureIgnoreCase))
                         matchingFields.Add(f);
                 if (matchingFields.Count == 0)
                 {
-                    result.Add($"Field not found {args[1]}, Valid fields:");
+                    result.Add($"Field not found {cmdField}, Valid fields:");
                     foreach (var f in matchingNodes[0].GetType().GetFields().Where(f => f.GetCustomAttribute<PropertyDisplayAttribute>() != null))
                         result.Add($"- {f.Name}");
                 }
@@ -130,38 +135,37 @@ public class ConfigRoot
                     foreach (var f in matchingFields)
                         result.Add($"- {f.Name}");
                 }
-                /*else if (args.Count == 2)
-                {
-                    result.Add("Usage: /vbm cfg <config-type> <field> <value>");
-                    result.Add($"Type of {matchingNodes[0].GetType().Name}.{matchingFields[0].Name} is {matchingFields[0].FieldType.Name}");
-                }*/
-                else
+                else if (numRanges == 2)
                 {
                     try
                     {
-                        if (args.Count == 2)
-                            result.Add(matchingFields[0].GetValue(matchingNodes[0])?.ToString() ?? $"Failed to get value of '{args[2]}'");
+                        result.Add(matchingFields[0].GetValue(matchingNodes[0])?.ToString() ?? $"Failed to get value of {matchingNodes[0].GetType().Name}.{matchingFields[0].Name}");
+                    }
+                    catch (Exception e)
+                    {
+                        result.Add($"Failed to get value of {matchingNodes[0].GetType().Name}.{matchingFields[0].Name} : {e}");
+                    }
+                }
+                else
+                {
+                    var cmdValue = cmd[ranges[2]];
+                    try
+                    {
+                        var val = FromConsoleString(cmdValue, matchingFields[0].FieldType);
+                        if (val == null)
+                        {
+                            result.Add($"Failed to convert '{cmdValue}' to {matchingFields[0].FieldType}");
+                        }
                         else
                         {
-                            var val = FromConsoleString(args[2], matchingFields[0].FieldType);
-                            if (val == null)
-                            {
-                                result.Add($"Failed to convert '{args[2]}' to {matchingFields[0].FieldType}");
-                            }
-                            else
-                            {
-                                matchingFields[0].SetValue(matchingNodes[0], val);
-                                if (save)
-                                    matchingNodes[0].Modified.Fire();
-                            }
+                            matchingFields[0].SetValue(matchingNodes[0], val);
+                            if (save)
+                                matchingNodes[0].Modified.Fire();
                         }
                     }
                     catch (Exception e)
                     {
-                        if (args.Count == 2)
-                            result.Add($"Failed to get value of {matchingNodes[0].GetType().Name}.{matchingFields[0].Name} : {e}");
-                        else
-                            result.Add($"Failed to set {matchingNodes[0].GetType().Name}.{matchingFields[0].Name} to {args[2]}: {e}");
+                        result.Add($"Failed to set {matchingNodes[0].GetType().Name}.{matchingFields[0].Name} to {cmdValue}: {e}");
                     }
                 }
             }
@@ -169,7 +173,7 @@ public class ConfigRoot
         return result;
     }
 
-    private object? FromConsoleString(string str, Type t)
+    private object? FromConsoleString(ReadOnlySpan<char> str, Type t)
         => t == typeof(bool) ? bool.Parse(str)
         : t == typeof(float) ? float.Parse(str)
         : t == typeof(int) ? int.Parse(str)
@@ -234,7 +238,7 @@ public class ConfigRoot
                 foreach (var (k, planData) in plans)
                 {
                     var oid = uint.Parse(k);
-                    var info = ModuleRegistry.FindByOID(oid);
+                    var info = BossModuleRegistry.FindByOID(oid);
                     var config = info?.PlanLevel > 0 ? info.ConfigType : null;
                     if (config?.FullName == null)
                         continue;
@@ -399,7 +403,7 @@ public class ConfigRoot
                     jplan.WriteString("Name", plan!["Name"]!.GetValue<string>());
                     jplan.WriteString("Encounter", t);
                     jplan.WriteString("Class", cls);
-                    jplan.WriteNumber("Level", type != null ? ModuleRegistry.FindByType(type)?.PlanLevel ?? 0 : 0);
+                    jplan.WriteNumber("Level", type != null ? BossModuleRegistry.FindByType(type)?.PlanLevel ?? 0 : 0);
                     jplan.WriteStartArray("PhaseDurations");
                     foreach (var d in plan["Timings"]!["PhaseDurations"]!.AsArray())
                         jplan.WriteNumberValue(d!.GetValue<float>());

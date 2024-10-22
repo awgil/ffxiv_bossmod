@@ -69,6 +69,8 @@ public class ThetaStar
         var start = map.ClampToGrid(map.FracToGrid(startFrac));
         _startNodeIndex = _bestIndex = _fallbackIndex = _map.GridToIndex(start.x, start.y);
         _startMaxG = _map.PixelMaxG[_startNodeIndex];
+        //if (_startMaxG < 0)
+        //    _startMaxG = float.MaxValue; // TODO: this is a hack that allows navigating outside the obstacles, reconsider...
         _startScore = CalculateScore(_startMaxG, _startMaxG, _startMaxG, _startNodeIndex);
         NumSteps = NumReopens = 0;
 
@@ -319,9 +321,12 @@ public class ThetaStar
 
         // note: we may visit the node even if it's blocked (eg we might be moving outside imminent aoe)
         var destPixG = _map.PixelMaxG[nodeIndex];
+        var parentPixG = _map.PixelMaxG[parentIndex];
+        if (destPixG < 0 && parentPixG >= 0)
+            return; // don't try to enter impassable area (TODO: do we need parent-G check? it's not needed if starting point is on impassable border pixel, but is needed if it's deep inside impassable area)
         var deltaG = _deltaGSide * deltaGrid;
         var destGScore = _nodes[parentIndex].GScore + deltaG;
-        var destLeeway = MathF.Min(_nodes[parentIndex].PathLeeway, Math.Min(destPixG, _map.PixelMaxG[parentIndex]) - destGScore);
+        var destLeeway = MathF.Min(_nodes[parentIndex].PathLeeway, Math.Min(destPixG, parentPixG) - destGScore);
         var destMinG = MathF.Min(_nodes[parentIndex].PathMinG, destPixG);
         var altNode = new Node()
         {

@@ -7,7 +7,7 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
 {
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan BRD", "Bard", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ARC, Class.BRD), 100);
+        var def = new RotationModuleDefinition("xan BRD", "Bard", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ARC, Class.BRD), 100);
 
         def.DefineShared().AddAssociatedActions(AID.RagingStrikes, AID.MagesBallad, AID.ArmysPaeon, AID.WanderersMinuet, AID.BattleVoice, AID.ApexArrow);
 
@@ -214,8 +214,8 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
         if (!strategy.BuffsOk())
             return false;
 
-        if (CD(AID.RagingStrikes) > 55)
-            return CD(AID.RagingStrikes) < 60 || Soul == 100;
+        if (ReadyIn(AID.RagingStrikes) > 55)
+            return ReadyIn(AID.RagingStrikes) < 60 || Soul == 100;
 
         // use in 2min
         return RagingStrikes > GCD;

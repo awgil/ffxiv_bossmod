@@ -2,7 +2,7 @@
 
 public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
-    public enum Track { Kardia = SharedTrack.Count, Egeiro, Physis, Eukrasia, Diagnosis, Prognosis, Druochole, Kerachole, Ixochole, Zoe, Pepsis, Taurochole, Haima, Rhizomata, Holos, Panhaima, Krasis, Philosophia, Icarus }
+    public enum Track { Kardia = SharedTrack.Count, Physis, Eukrasia, Diagnosis, Prognosis, Druochole, Kerachole, Ixochole, Zoe, Pepsis, Taurochole, Haima, Rhizomata, Holos, Panhaima, Krasis, Philosophia, Icarus }
     public enum KardiaOption { None, Kardia, Soteria }
     public enum DiagOption { None, Use, UseED }
     public enum ProgOption { None, Use, UseEP, UseEPEx }
@@ -10,12 +10,13 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
     public enum ZoeOption { None, Use, UseEx }
     public enum DashStrategy { None, Force, GapClose } //GapCloser strategy
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
+    public bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus((uint)(object)sid, Player.InstanceID) != null; //Checks if Status effect is on self
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SGE.AID.TechneMakre);
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: SGE", "Planner support for utility actions", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.SGE), 100); //How we're planning our skills listed below
+        var res = new RotationModuleDefinition("Utility: SGE", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.SGE), 100); //How we're planning our skills listed below
         DefineShared(res, IDLimitBreak3); //Shared Healer actions
 
         res.Define(Track.Kardia).As<KardiaOption>("Kardia", "", 200) //Kardia & Soteria
@@ -23,8 +24,6 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             .AddOption(KardiaOption.Kardia, "Kardia", "Use Kardia", 5, 0, ActionTargets.Self | ActionTargets.Party, 4)
             .AddOption(KardiaOption.Soteria, "Soteria", "Use Soteria", 60, 15, ActionTargets.Self, 35)
             .AddAssociatedActions(SGE.AID.Kardia, SGE.AID.Soteria);
-
-        DefineSimpleConfig(res, Track.Egeiro, "Egeiro", "Raise", 100, SGE.AID.Egeiro); //Raise
 
         res.Define(Track.Physis).As<PhysisOption>("Physis", "", 200) //Physis
             .AddOption(PhysisOption.None, "None", "Do not use automatically")
@@ -75,23 +74,23 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving) //How we're executing our skills listed below
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //How we're executing our skills listed below
     {
         ExecuteShared(strategy, IDLimitBreak3);
-        ExecuteSimple(strategy.Option(Track.Egeiro), SGE.AID.Egeiro, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Eukrasia), SGE.AID.Eukrasia, Player);
-        ExecuteSimple(strategy.Option(Track.Druochole), SGE.AID.Druochole, null);
+        ExecuteSimple(strategy.Option(Track.Druochole), SGE.AID.Druochole, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.Kerachole), SGE.AID.Kerachole, Player);
         ExecuteSimple(strategy.Option(Track.Ixochole), SGE.AID.Ixochole, Player);
         ExecuteSimple(strategy.Option(Track.Pepsis), SGE.AID.Pepsis, Player);
-        ExecuteSimple(strategy.Option(Track.Taurochole), SGE.AID.Taurochole, null);
-        ExecuteSimple(strategy.Option(Track.Haima), SGE.AID.Haima, null);
+        ExecuteSimple(strategy.Option(Track.Taurochole), SGE.AID.Taurochole, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.Haima), SGE.AID.Haima, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.Rhizomata), SGE.AID.Rhizomata, Player);
         ExecuteSimple(strategy.Option(Track.Holos), SGE.AID.Holos, Player);
         ExecuteSimple(strategy.Option(Track.Panhaima), SGE.AID.Panhaima, Player);
         ExecuteSimple(strategy.Option(Track.Krasis), SGE.AID.Krasis, Player);
         ExecuteSimple(strategy.Option(Track.Philosophia), SGE.AID.Philosophia, Player);
 
+        //Kardia full execution
         var kardia = strategy.Option(Track.Kardia);
         var kardiaAction = kardia.As<KardiaOption>() switch
         {
@@ -100,8 +99,10 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (kardiaAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(kardiaAction), null, kardia.Priority(), kardia.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(kardiaAction), primaryTarget, kardia.Priority(), kardia.Value.ExpireIn);
 
+        //Diagnosis full execution
+        var hasEukrasia = HasEffect(SGE.SID.Eukrasia); //Eukrasia
         var diag = strategy.Option(Track.Diagnosis);
         var diagAction = diag.As<DiagOption>() switch
         {
@@ -109,32 +110,72 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             DiagOption.UseED => SGE.AID.EukrasianDiagnosis,
             _ => default
         };
-        if (diagAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(diagAction), null, diag.Priority(), diag.Value.ExpireIn);
 
+        if (diagAction != default)
+        {
+            if (!hasEukrasia)
+            {
+                // Push the primary action based on the selected option
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(diagAction), primaryTarget, diag.Priority(), diag.Value.ExpireIn);
+            }
+
+            // Check for EukrasianDiagnosis if the effect is active
+            if (hasEukrasia)
+            {
+                if (diag.As<DiagOption>() == DiagOption.UseED)
+                {
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianDiagnosis), primaryTarget, diag.Priority(), diag.Value.ExpireIn);
+                }
+            }
+        }
+
+        //Prognosis full execution
+        var alreadyUp = HasEffect(SGE.SID.EukrasianPrognosis) || HasEffect(SCH.SID.Galvanize);
         var prog = strategy.Option(Track.Prognosis);
         var progAction = prog.As<ProgOption>() switch
         {
             ProgOption.Use => SGE.AID.Prognosis,
-            ProgOption.UseEP => SGE.AID.EukrasianPrognosis,
-            ProgOption.UseEPEx => SGE.AID.EukrasianPrognosisII,
+            ProgOption.UseEP => SGE.AID.Eukrasia,
+            ProgOption.UseEPEx => SGE.AID.Eukrasia,
             _ => default
         };
-        if (progAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(progAction), Player, prog.Priority(), prog.Value.ExpireIn);
 
+        if (progAction != default)
+        {
+            if (!hasEukrasia)// Push the primary action based on the selected option
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(progAction), Player, prog.Priority(), prog.Value.ExpireIn);
+
+            if (hasEukrasia && !alreadyUp)
+            {
+                // Check if UseEP is selected and push EukrasianPrognosis
+                if (prog.As<ProgOption>() == ProgOption.UseEP)
+                {
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianPrognosis), Player, prog.Priority(), prog.Value.ExpireIn);
+                }
+                // Check if UseEPEx is selected and push EukrasianPrognosisII
+                else if (prog.As<ProgOption>() == ProgOption.UseEPEx)
+                {
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianPrognosisII), Player, prog.Priority(), prog.Value.ExpireIn);
+                }
+            }
+        }
+
+        //Physis execution
         var physis = strategy.Option(Track.Physis);
         if (physis.As<PhysisOption>() != PhysisOption.None)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Physis), Player, physis.Priority(), physis.Value.ExpireIn);
 
+        //Zoe execution
         var zoe = strategy.Option(Track.Zoe);
         if (zoe.As<ZoeOption>() != ZoeOption.None)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Zoe), Player, zoe.Priority(), zoe.Value.ExpireIn);
 
+        //Icarus execution
         var dash = strategy.Option(Track.Icarus);
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
         var dashStrategy = strategy.Option(Track.Icarus).As<DashStrategy>();
-        if (ShouldUseDash(dashStrategy, null))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Icarus), null, dash.Priority());
+        if (ShouldUseDash(dashStrategy, dashTarget))
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Icarus), dashTarget, dash.Priority());
     }
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {

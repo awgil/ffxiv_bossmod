@@ -16,7 +16,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan MCH", "Machinist", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.MCH), 100);
+        var def = new RotationModuleDefinition("xan MCH", "Machinist", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.MCH), 100);
 
         def.DefineShared().AddAssociatedActions(AID.BarrelStabilizer, AID.Wildfire);
 
@@ -93,7 +93,15 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        if (Overheated)
+        if (primaryTarget != null)
+        {
+            var aoebreakpoint = 3;
+            if (Overheated && Unlocked(AID.AutoCrossbow))
+                aoebreakpoint = 4;
+            GoalZoneCombined(25, Hints.GoalAOECone(primaryTarget, 12, 60.Degrees()), aoebreakpoint);
+        }
+
+        if (Overheated && Unlocked(AID.HeatBlast))
         {
             if (FMFLeft > GCD)
                 PushGCD(AID.FullMetalField, BestRangedAOETarget);
@@ -110,15 +118,17 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         if (ExcavatorLeft > GCD)
             PushGCD(AID.Excavator, BestRangedAOETarget);
 
-        if (Unlocked(AID.AirAnchor))
+        if (ReadyIn(AID.AirAnchor) <= GCD)
             PushGCD(AID.AirAnchor, primaryTarget, priority: 20);
 
-        PushGCD(AID.ChainSaw, BestChainsawTarget, 10);
+        if (ReadyIn(AID.ChainSaw) <= GCD)
+            PushGCD(AID.ChainSaw, BestChainsawTarget, 10);
 
-        if (NumAOETargets > 2)
-            PushGCD(AID.Bioblaster, BestAOETarget);
+        if (ReadyIn(AID.Bioblaster) <= GCD && NumAOETargets > 2)
+            PushGCD(AID.Bioblaster, BestAOETarget, priority: MaxChargesIn(AID.Bioblaster) <= GCD ? 20 : 2);
 
-        PushGCD(AID.Drill, primaryTarget, priority: CD(AID.Drill) <= GCD ? 20 : 0);
+        if (ReadyIn(AID.Drill) <= GCD)
+            PushGCD(AID.Drill, primaryTarget, priority: MaxChargesIn(AID.Drill) <= GCD ? 20 : 2);
 
         // TODO work out priorities
         if (FMFLeft > GCD && ExcavatorLeft == 0)
@@ -128,7 +138,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             PushGCD(AID.Scattergun, BestAOETarget);
 
         // different cdgroup?
-        if (!Unlocked(AID.AirAnchor))
+        if (!Unlocked(AID.AirAnchor) && ReadyIn(AID.HotShot) <= GCD)
             PushGCD(AID.HotShot, primaryTarget);
 
         if (NumAOETargets > 2 && Unlocked(AID.SpreadShot))
@@ -149,6 +159,9 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
     {
         if (CountdownRemaining is > 0 and < 5 && ReassembleLeft == 0)
             PushOGCD(AID.Reassemble, Player);
+
+        if (CountdownRemaining == null && !Player.InCombat && Player.DistanceToHitbox(primaryTarget) <= 25 && NextToolCharge == 0 && ReassembleLeft == 0)
+            PushGCD(AID.Reassemble, Player, 30);
 
         if (IsPausedForFlamethrower || !Player.InCombat || primaryTarget == null)
             return;
@@ -171,7 +184,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.Hypercharge, Player);
     }
 
-    private float NextToolCharge => MathF.Min(NextChargeIn(AID.Drill), MathF.Min(NextChargeIn(AID.ChainSaw), NextChargeIn(AID.AirAnchor)));
+    private float NextToolCharge => MathF.Min(ReadyIn(AID.Drill), MathF.Min(ReadyIn(AID.ChainSaw), ReadyIn(AID.AirAnchor)));
     private float NextToolCap => MathF.Min(MaxChargesIn(AID.Drill), MathF.Min(MaxChargesIn(AID.ChainSaw), MaxChargesIn(AID.AirAnchor)));
 
     private float MaxGaussCD => MaxChargesIn(AID.GaussRound);
@@ -179,8 +192,8 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
     private void UseCharges(StrategyValues strategy, Actor? primaryTarget)
     {
-        var gaussRoundCD = NextChargeIn(AID.GaussRound);
-        var ricochetCD = NextChargeIn(AID.Ricochet);
+        var gaussRoundCD = ReadyIn(AID.GaussRound);
+        var ricochetCD = ReadyIn(AID.Ricochet);
 
         var canGauss = Unlocked(AID.GaussRound) && CanWeave(gaussRoundCD, 0.6f);
         var canRicochet = Unlocked(AID.Ricochet) && CanWeave(ricochetCD, 0.6f);
@@ -209,8 +222,8 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             UseRicochet(primaryTarget);
     }
 
-    private void UseGauss(Actor? primaryTarget) => PushOGCD(AID.GaussRound, Unlocked(AID.DoubleCheck) ? BestRangedAOETarget : primaryTarget, -50);
-    private void UseRicochet(Actor? primaryTarget) => PushOGCD(AID.Ricochet, BestRangedAOETarget, -50);
+    private void UseGauss(Actor? primaryTarget) => Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.GaussRound), Unlocked(AID.DoubleCheck) ? BestRangedAOETarget : primaryTarget, ActionQueue.Priority.Low - 50);
+    private void UseRicochet(Actor? primaryTarget) => Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Ricochet), BestRangedAOETarget, ActionQueue.Priority.Low - 50);
 
     private bool ShouldReassemble(StrategyValues strategy, Actor? primaryTarget)
     {
@@ -224,7 +237,9 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             return false;
 
         if (!Unlocked(AID.Drill))
-            return ComboLastMove == AID.SlugShot;
+        {
+            return ComboLastMove == (Unlocked(AID.CleanShot) ? AID.SlugShot : AID.SplitShot);
+        }
 
         return NextToolCharge <= GCD;
     }
@@ -251,7 +266,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
         // avoid delaying wildfire
         // TODO figure out how long we actually need to wait to ensure enough heat
-        if (CD(AID.Wildfire) < 20 && !ShouldWildfire(strategy))
+        if (ReadyIn(AID.Wildfire) < 20 && !ShouldWildfire(strategy))
             return false;
 
         // we can't early weave if the overheat window will contain a regular GCD, because then it will expire before last HB
@@ -280,7 +295,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         if (!Unlocked(AID.BarrelStabilizer) || !CanWeave(AID.BarrelStabilizer) || !strategy.BuffsOk())
             return false;
 
-        return CD(AID.Drill) > 0;
+        return OnCooldown(AID.Drill);
     }
 
     private PositionCheck IsConeAOETarget => (playerTarget, targetToTest) => Hints.TargetInAOECone(targetToTest, Player.Position, 12, Player.DirectionTo(playerTarget), 60.Degrees());

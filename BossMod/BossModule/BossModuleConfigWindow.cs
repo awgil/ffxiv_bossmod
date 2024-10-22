@@ -10,7 +10,7 @@ public class BossModuleConfigWindow : UIWindow
     private readonly UITree _tree = new();
     private readonly UITabs _tabs = new();
 
-    public BossModuleConfigWindow(ModuleRegistry.Info info, WorldState ws) : base($"{info.ModuleType.Name} config", true, new(1200, 800))
+    public BossModuleConfigWindow(BossModuleRegistry.Info info, WorldState ws) : base($"{info.ModuleType.Name} config", true, new(1200, 800))
     {
         _node = info.ConfigType != null ? Service.Config.Get<ConfigNode>(info.ConfigType) : null;
         _ws = ws;

@@ -12,7 +12,7 @@ public sealed class LegacyDRG : LegacyModule
     public static RotationModuleDefinition Definition()
     {
         // TODO: think about target overrides where they make sense
-        var res = new RotationModuleDefinition("Legacy DRG", "Old pre-refactoring module", "veyn, lazylemo", RotationModuleQuality.WIP, BitMask.Build((int)Class.DRG), 100);
+        var res = new RotationModuleDefinition("Legacy DRG", "Old pre-refactoring module", "Legacy (pre-DT)", "veyn, lazylemo", RotationModuleQuality.WIP, BitMask.Build((int)Class.DRG), 100);
 
         // TODO: 'force' flavour for continuing vs breaking combo?
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 90)
@@ -89,7 +89,7 @@ public sealed class LegacyDRG : LegacyModule
         _state = new(this);
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         _state.UpdateCommon(primaryTarget, estimatedAnimLockDelay);
 

@@ -12,7 +12,7 @@ namespace BossMod;
 
 public sealed class ModuleViewer : IDisposable
 {
-    private record struct ModuleInfo(ModuleRegistry.Info Info, string Name, int SortOrder);
+    private record struct ModuleInfo(BossModuleRegistry.Info Info, string Name, int SortOrder);
     private record struct ModuleGroupInfo(string Name, uint Id, uint SortOrder, uint Icon = 0);
     private record struct ModuleGroup(ModuleGroupInfo Info, List<ModuleInfo> Modules);
 
@@ -78,7 +78,7 @@ public sealed class ModuleViewer : IDisposable
             for (int j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
                 _groups[i, j] = [];
 
-        foreach (var info in ModuleRegistry.RegisteredModules.Values)
+        foreach (var info in BossModuleRegistry.RegisteredModules.Values)
         {
             var groups = _groups[(int)info.Expansion, (int)info.Category];
             var (groupInfo, moduleInfo) = Classify(info);
@@ -254,7 +254,7 @@ public sealed class ModuleViewer : IDisposable
     private static string FixCase(SeString? str) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(str ?? "");
     private static string BNpcName(uint id) => FixCase(Service.LuminaRow<BNpcName>(id)?.Singular);
 
-    private (ModuleGroupInfo, ModuleInfo) Classify(ModuleRegistry.Info module)
+    private (ModuleGroupInfo, ModuleInfo) Classify(BossModuleRegistry.Info module)
     {
         var groupId = (uint)module.GroupType << 24;
         switch (module.GroupType)
@@ -308,7 +308,7 @@ public sealed class ModuleViewer : IDisposable
         return sb.ToString();
     }
 
-    private void ModulePlansPopup(ModuleRegistry.Info info)
+    private void ModulePlansPopup(BossModuleRegistry.Info info)
     {
         if (_planDB == null)
             return;

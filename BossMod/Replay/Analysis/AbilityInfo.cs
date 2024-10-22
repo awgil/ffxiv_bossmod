@@ -361,7 +361,7 @@ class AbilityInfo : CommonEnumInfo
 
     public AbilityInfo(List<Replay> replays, uint oid)
     {
-        var moduleInfo = ModuleRegistry.FindByOID(oid);
+        var moduleInfo = BossModuleRegistry.FindByOID(oid);
         _oidType = moduleInfo?.ObjectIDType;
         _aidType = moduleInfo?.ActionIDType;
         foreach (var replay in replays)
@@ -589,7 +589,7 @@ class AbilityInfo : CommonEnumInfo
         4 => $"range {data.EffectRange}+R width {data.XAxisModifier} rect",
         5 => $"range {data.EffectRange}+R circle",
         8 => $"width {data.XAxisModifier} rect charge",
-        10 => $"range {DetermineDonutInner(data).ToString() ?? "?"}-{data.EffectRange} donut",
+        10 => $"range {DetermineDonutInner(data)?.ToString() ?? "?"}-{data.EffectRange} donut",
         11 => $"range {data.EffectRange} width {data.XAxisModifier} cross",
         12 => $"range {data.EffectRange} width {data.XAxisModifier} rect",
         13 => $"range {data.EffectRange} {DetermineConeAngle(data)?.ToString() ?? "?"}-degree cone",

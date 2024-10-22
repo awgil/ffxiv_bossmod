@@ -71,7 +71,7 @@ class ReplayTimelineWindow : UIWindow
     private (StateMachineTree, List<int>) BuildStateData(Replay.Encounter enc)
     {
         // build state tree with expected timings
-        var m = ModuleRegistry.CreateModuleForTimeline(enc.OID) ?? throw new ArgumentException($"Encounter module not available");
+        var m = BossModuleRegistry.CreateModuleForTimeline(enc.OID) ?? throw new ArgumentException($"Encounter module not available");
         Dictionary<uint, (StateMachine.State state, StateMachine.State? pred)> stateLookup = [];
         foreach (var p in m.StateMachine.Phases)
             GatherStates(stateLookup, p.InitialState, null);

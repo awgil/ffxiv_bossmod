@@ -16,7 +16,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan DRG", "Dragoon", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DRG, Class.LNC), 100);
+        var def = new RotationModuleDefinition("xan DRG", "Dragoon", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DRG, Class.LNC), 100);
 
         def.DefineShared().AddAssociatedActions(AID.BattleLitany, AID.LanceCharge);
 
@@ -77,12 +77,15 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         (BestLongAOETarget, NumLongAOETargets) = SelectTarget(strategy, primaryTarget, 15, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 15, 2));
         (BestDiveTarget, NumDiveTargets) = SelectTarget(strategy, primaryTarget, 20, IsSplashTarget);
 
-        UpdatePositionals(primaryTarget, GetPositional(strategy, primaryTarget), TrueNorthLeft > GCD);
+        var pos = GetPositional(strategy, primaryTarget);
+        UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
 
         OGCD(strategy, primaryTarget);
 
         if (primaryTarget == null)
             return;
+
+        GoalZoneCombined(3, Hints.GoalAOERect(primaryTarget, 10, 2), 3, pos.Item1);
 
         if (NumAOETargets > 2)
         {
@@ -153,7 +156,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         var posOk = PosLockOk(strategy);
 
         if (NextPositionalImminent && !NextPositionalCorrect)
-            PushOGCD(AID.TrueNorth, Player, priority: -20, delay: GCD - 0.8f);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.TrueNorth), Player, ActionQueue.Priority.Low - 20, delay: GCD - 0.8f);
 
         if (strategy.BuffsOk())
         {
@@ -164,7 +167,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         // delay all damaging ogcds until we've used lance charge
         // first one (jump) unlocks at level 30, same as lance charge, so we don't need extra checks
         // TODO check if this is actually a good idea
-        if (CD(AID.LanceCharge) == 0)
+        if (CanWeave(AID.LanceCharge))
             return;
 
         if (LanceCharge > GCD && ShouldLifeSurge())

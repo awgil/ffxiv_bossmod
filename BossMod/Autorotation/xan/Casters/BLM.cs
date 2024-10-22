@@ -5,11 +5,22 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player)
 {
+    public enum Track { Scathe = SharedTrack.Count }
+    public enum ScatheStrategy
+    {
+        Forbid,
+        Allow
+    }
+
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan BLM", "Black Mage", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.BLM, Class.THM), 100);
+        var def = new RotationModuleDefinition("xan BLM", "Black Mage", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.BLM, Class.THM), 100);
 
         def.DefineShared().AddAssociatedActions(AID.LeyLines);
+
+        def.Define(Track.Scathe).As<ScatheStrategy>("Scathe")
+            .AddOption(ScatheStrategy.Forbid, "Forbid")
+            .AddOption(ScatheStrategy.Allow, "Allow");
 
         return def;
     }
@@ -22,7 +33,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     public int AstralSoul; // max 6
     public bool Paradox;
 
-    public float Triplecast;
+    public float TriplecastLeft => Triplecast.Left;
+    public (float Left, int Stacks) Triplecast;
     public float Thunderhead;
     public float Firestarter;
     public bool InLeyLines;
@@ -40,7 +52,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     protected override float GetCastTime(AID aid)
     {
-        if (Triplecast > GCD)
+        if (TriplecastLeft > GCD)
             return 0;
 
         var aspect = ActionDefinitions.Instance.Spell(aid)!.Aspect;
@@ -74,7 +86,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         Paradox = gauge.ParadoxActive;
         AstralSoul = gauge.AstralSoulStacks;
 
-        Triplecast = StatusLeft(SID.Triplecast);
+        Triplecast = Status(SID.Triplecast);
         Thunderhead = StatusLeft(SID.Thunderhead);
         Firestarter = StatusLeft(SID.Firestarter);
         InLeyLines = Player.FindStatus(SID.CircleOfPower) != null;
@@ -100,7 +112,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (primaryTarget == null)
         {
-            if (Fire > 0 && Unlocked(AID.Transpose) && Unlocked(AID.UmbralSoul) && CD(AID.Transpose) == 0)
+            if (Fire > 0 && Unlocked(AID.Transpose) && Unlocked(AID.UmbralSoul) && ReadyIn(AID.Transpose) == 0)
                 PushOGCD(AID.Transpose, Player);
 
             if (Unlocked(AID.UmbralSoul) && Ice > 0 && (Ice < 3 || Hearts < MaxHearts || ElementLeft < 14))
@@ -108,6 +120,13 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
             return;
         }
+
+        if (PlayerTarget != null)
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget, 25));
+
+        var ll = World.Actors.FirstOrDefault(x => x.OID == 0x179 && x.OwnerID == Player.InstanceID);
+        if (ll != null)
+            Hints.GoalZones.Add(p => (p - ll.Position).Length() <= 3 ? 0.5f : 0);
 
         if (Unlocked(AID.Swiftcast))
             PushOGCD(AID.Swiftcast, Player);
@@ -143,6 +162,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
             PushGCD(AID.Xenoglossy, primaryTarget);
         }
+
+        if (strategy.Option(Track.Scathe).As<ScatheStrategy>() == ScatheStrategy.Allow && MP >= 800)
+            PushGCD(AID.Scathe, primaryTarget);
     }
 
     private void FirePhase(StrategyValues strategy, Actor? primaryTarget)
@@ -174,6 +196,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         if (Unlocked(AID.Fire4))
         {
             var minF4Time = MathF.Max(GCDLength, GetCastTime(AID.Fire4) + 0.1f);
+            var f4Cost = Hearts > 0 ? 800 : 1600;
 
             if (Fire == 3)
             {
@@ -187,29 +210,41 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
                         TryInstantCast(strategy, primaryTarget);
 
                     PushGCD(AID.Blizzard3, primaryTarget);
+                    return;
                 }
+
                 // breakpoint at which despair is more damage than f1 despair, because it speeds up next fire phase
-                else if (MP <= 2400 && ElementLeft > GetSlidecastEnd(AID.Despair))
+                if (MP <= 2400 && ElementLeft > GetSlidecastEnd(AID.Despair))
                     PushGCD(AID.Despair, primaryTarget);
-                // AF3 will last *at least* another two F4s, ok to cast
+
+                // AF3 will last at least for this F4, plus another one - keep chugging
                 // TODO in the case where we have one triplecast stack left, this will end up checking (timer > 2.5 + 2.5) instead of (timer > 2.5 + 3.1) - i think it's ok?
-                else if (ElementLeft > NextCastStart + minF4Time * 2)
+                if (ElementLeft > NextCastStart + minF4Time * 2 && MP >= f4Cost)
                 {
                     if (Polyglot == MaxPolyglot && NextPolyglot < 5)
                         PushGCD(AID.Xenoglossy, primaryTarget);
 
                     PushGCD(AID.Fire4, primaryTarget);
                 }
-                // AF3 will last long enough for us to refresh using Paradox
+
+                // check if AF3 will last long enough for us to refresh using Paradox or F3 (or a triplecasted spell)
                 // TODO the extra 0.1 is a guesstimate for how long it actually takes instant fire spells to refresh the timer, should look at replays to be sure
-                else if (ElementLeft > NextCastStart + minF4Time + 0.1f && Paradox)
+                var soonestPossibleRefresh = NextCastStart + minF4Time + 0.1f;
+                var haveInstantFire = Paradox || Firestarter > soonestPossibleRefresh || Triplecast.Stacks > 1;
+
+                if (ElementLeft > soonestPossibleRefresh && MP >= f4Cost && haveInstantFire)
                     PushGCD(AID.Fire4, primaryTarget);
-                else if (Paradox)
+
+                if (Paradox)
                     PushGCD(AID.Paradox, primaryTarget);
-                else if (Firestarter > GCD)
+
+                if (Firestarter > GCD)
                     PushGCD(AID.Fire3, primaryTarget);
-                else
-                    PushGCD(AID.Blizzard3, primaryTarget);
+
+                if (MP >= 1600 && ElementLeft > GetSlidecastEnd(AID.Fire1))
+                    PushGCD(AID.Fire1, primaryTarget);
+
+                PushGCD(AID.Blizzard3, primaryTarget);
             }
         }
         else if (Unlocked(AID.Fire3))
@@ -218,9 +253,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             // 1. is this a DPS gain 2. does anyone actually care about level 50
             if (MP < 1600)
             {
-                // F3 unlocks from leveling but B3 unlocks from a job quest (CRINGE)
-                if (Unlocked(AID.Blizzard3))
-                    PushGCD(AID.Blizzard3, primaryTarget);
+                // may get skipped - B3 is unlocked via quest, not level
+                PushGCD(AID.Blizzard3, primaryTarget);
 
                 TryInstantOrTranspose(strategy, primaryTarget);
             }
@@ -240,6 +274,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     {
         if (Thunderhead > GCD && TargetThunderLeft < 5 && ElementLeft > GCDLength + AnimationLockDelay)
             PushGCD(AID.Thunder2, BestAOETarget);
+
+        if (Fire == 0)
+            PushGCD(AID.Fire2, BestAOETarget);
 
         if (AstralSoul == 6)
             PushGCD(AID.FlareStar, BestAOETarget);
@@ -294,6 +331,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         if (Thunderhead > GCD && TargetThunderLeft < 5 && ElementLeft > GCDLength + AnimationLockDelay)
             PushGCD(AID.Thunder1, primaryTarget);
 
+        if (Paradox)
+            PushGCD(AID.Paradox, primaryTarget);
+
         if (Ice < 3 && Unlocked(AID.Blizzard3))
             PushGCD(AID.Blizzard3, primaryTarget);
 
@@ -301,7 +341,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         {
             var nextGCD = GCD + GCDLength;
 
-            if (ElementLeft > nextGCD && Firestarter > nextGCD && CanWeave(AID.Transpose, 1) && SwiftcastLeft == 0 && Triplecast == 0)
+            if (ElementLeft > nextGCD && Firestarter > nextGCD && CanWeave(AID.Transpose, 1) && SwiftcastLeft == 0 && TriplecastLeft == 0)
                 TryInstantCast(strategy, primaryTarget, useFirestarter: false);
 
             PushGCD(AID.Fire3, primaryTarget);
@@ -357,9 +397,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     private void Choose(AID st, AID aoe, Actor? primaryTarget, int additionalPrio = 0)
     {
         if (NumAOETargets > 2 && Unlocked(aoe))
-            PushGCD(aoe, BestAOETarget, additionalPrio);
+            PushGCD(aoe, BestAOETarget, additionalPrio + 1);
         else
-            PushGCD(st, primaryTarget, additionalPrio);
+            PushGCD(st, primaryTarget, additionalPrio + 1);
     }
 
     private void TryInstantCast(StrategyValues strategy, Actor? primaryTarget, bool useFirestarter = true, bool useThunderhead = true, bool usePolyglot = true)
@@ -391,7 +431,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Transpose, Player);
     }
 
-    private bool ShouldTriplecast(StrategyValues strategy) => Triplecast == 0 && (ShouldUseLeylines(strategy) || InLeyLines);
+    private bool ShouldTriplecast(StrategyValues strategy) => TriplecastLeft == 0 && (ShouldUseLeylines(strategy) || InLeyLines);
 
     private bool ShouldUseLeylines(StrategyValues strategy, int extraGCDs = 0)
         => CanWeave(AID.LeyLines, extraGCDs)

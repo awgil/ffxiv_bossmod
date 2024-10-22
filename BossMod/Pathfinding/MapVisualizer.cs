@@ -56,7 +56,11 @@ public class MapVisualizer
 
                 var pixMaxG = Map.PixelMaxG[nodeIndex];
                 var pixPriority = Map.PixelPriority[nodeIndex];
-                if (pixMaxG < float.MaxValue)
+                if (pixMaxG < 0)
+                {
+                    dl.AddRectFilled(corner, cornerEnd, 0xff007fff);
+                }
+                else if (pixMaxG < float.MaxValue)
                 {
                     var alpha = 1 - (pixMaxG > 0 ? pixMaxG / Map.MaxG : 0);
                     uint c = 128 + (uint)(alpha * 127);

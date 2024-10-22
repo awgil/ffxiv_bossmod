@@ -2,18 +2,19 @@
 
 public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
-    public enum Track { WhisperingDawn = SharedTrack.Count, Adloquium, Succor, FeyIllumination, Lustrate, SacredSoil, Indomitability, DeploymentTactics, EmergencyTactics, Dissipation, Excogitation, Aetherpact, Recitation, FeyBlessing, Consolation, Protraction, Expedient, Seraphism, Resurrection, Summons }
+    public enum Track { WhisperingDawn = SharedTrack.Count, Adloquium, Succor, FeyIllumination, Lustrate, SacredSoil, Indomitability, DeploymentTactics, EmergencyTactics, Dissipation, Excogitation, Aetherpact, Recitation, FeyBlessing, Consolation, Protraction, Expedient, Seraphism, Summons }
     public enum SuccorOption { None, Succor, Concitation }
     public enum DeployOption { None, Use, UseEx }
     public enum AetherpactOption { None, Use, End }
     public enum RecitationOption { None, Use, UseEx }
     public enum PetOption { None, Eos, Seraph }
+    public bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus((uint)(object)sid, Player.InstanceID) != null; //Checks if Status effect is on self
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SCH.AID.AngelFeathers);
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: SCH", "Planner support for utility actions", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.SCH), 100);
+        var res = new RotationModuleDefinition("Utility: SCH", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.SCH), 100);
         DefineShared(res, IDLimitBreak3);
 
         DefineSimpleConfig(res, Track.WhisperingDawn, "WhisperingDawn", "W.Dawn", 140, SCH.AID.WhisperingDawn, 21);
@@ -57,7 +58,6 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Protraction, "Protraction", "Prot", 110, SCH.AID.Protraction, 10);
         DefineSimpleConfig(res, Track.Expedient, "Expedient", "Exped", 200, SCH.AID.Expedient, 20);
         DefineSimpleConfig(res, Track.Seraphism, "Seraphism", "", 300, SCH.AID.Seraphism, 20);
-        DefineSimpleConfig(res, Track.Resurrection, "Resurrection", "Raise", 10, SCH.AID.Resurrection);
 
         // Pet Summons
         res.Define(Track.Summons).As<PetOption>("Pet", "", 180)
@@ -69,25 +69,25 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3);
         ExecuteSimple(strategy.Option(Track.WhisperingDawn), SCH.AID.WhisperingDawn, Player);
-        ExecuteSimple(strategy.Option(Track.Adloquium), SCH.AID.Adloquium, null);
+        ExecuteSimple(strategy.Option(Track.Adloquium), SCH.AID.Adloquium, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.FeyIllumination), SCH.AID.FeyIllumination, Player);
-        ExecuteSimple(strategy.Option(Track.Lustrate), SCH.AID.Lustrate, null);
+        ExecuteSimple(strategy.Option(Track.Lustrate), SCH.AID.Lustrate, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.SacredSoil), SCH.AID.SacredSoil, Player);
         ExecuteSimple(strategy.Option(Track.Indomitability), SCH.AID.Indomitability, Player);
         ExecuteSimple(strategy.Option(Track.EmergencyTactics), SCH.AID.EmergencyTactics, Player);
         ExecuteSimple(strategy.Option(Track.Dissipation), SCH.AID.Dissipation, Player);
-        ExecuteSimple(strategy.Option(Track.Excogitation), SCH.AID.Excogitation, null);
+        ExecuteSimple(strategy.Option(Track.Excogitation), SCH.AID.Excogitation, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.FeyBlessing), SCH.AID.FeyBlessing, Player);
         ExecuteSimple(strategy.Option(Track.Consolation), SCH.AID.Consolation, Player);
-        ExecuteSimple(strategy.Option(Track.Protraction), SCH.AID.Protraction, null);
+        ExecuteSimple(strategy.Option(Track.Protraction), SCH.AID.Protraction, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.Expedient), SCH.AID.Expedient, Player);
         ExecuteSimple(strategy.Option(Track.Seraphism), SCH.AID.Seraphism, Player);
-        ExecuteSimple(strategy.Option(Track.Resurrection), SCH.AID.Resurrection, null);
 
+        var alreadyUp = HasEffect(SGE.SID.EukrasianPrognosis) || HasEffect(SCH.SID.Galvanize);
         var succ = strategy.Option(Track.Succor);
         var succAction = succ.As<SuccorOption>() switch
         {
@@ -95,7 +95,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             SuccorOption.Concitation => SCH.AID.Concitation,
             _ => default
         };
-        if (succAction != default)
+        if (succAction != default && !alreadyUp)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(succAction), Player, succ.Priority(), succ.Value.ExpireIn);
 
         var deploy = strategy.Option(Track.DeploymentTactics);
@@ -110,7 +110,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (pactAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(pactAction), Player, pact.Priority(), pact.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(pactAction), primaryTarget ?? Player, pact.Priority(), pact.Value.ExpireIn);
 
         var recit = strategy.Option(Track.Recitation);
         if (recit.As<RecitationOption>() != RecitationOption.None)

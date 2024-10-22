@@ -4,9 +4,11 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
 {
     public enum Track { DarkMind = SharedTrack.Count, ShadowWall, LivingDead, TheBlackestNight, Oblation, DarkMissionary, Shadowstride }
     public enum WallOption { None, ShadowWall, ShadowedVigil }
-    public enum OblationStrategy { None, Force, Delay }
+    public enum TBNStrategy { None, Force }
+    public enum OblationStrategy { None, Force }
     public enum DashStrategy { None, GapClose } //GapCloser strategy
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
+    public bool TargetHasEffect<SID>(Actor target, SID sid) where SID : Enum => target?.FindStatus((uint)(object)sid, Player.InstanceID) != null; //Checks if Status effect is on target
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(DRK.AID.DarkForce);
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(DRK.AID.Grit);
@@ -14,7 +16,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: DRK", "Planner support for utility actions", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.DRK), 100);
+        var res = new RotationModuleDefinition("Utility: DRK", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.DRK), 100);
         DefineShared(res, IDLimitBreak3, IDStanceApply, IDStanceRemove);
 
         DefineSimpleConfig(res, Track.DarkMind, "DarkMind", "DMind", 450, DRK.AID.DarkMind, 10); //120s CD, 15s duration
@@ -26,12 +28,15 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
             .AddAssociatedActions(DRK.AID.ShadowWall, DRK.AID.ShadowedVigil);
 
         DefineSimpleConfig(res, Track.LivingDead, "LivingDead", "LD", 400, DRK.AID.LivingDead, 10); //300s CD, 10s duration
-        DefineSimpleConfig(res, Track.TheBlackestNight, "The Blackest Night", "TBN", 400, DRK.AID.TheBlackestNight, 7); //15s CD, 7s duration, 3000MP cost
+
+        res.Define(Track.TheBlackestNight).As<TBNStrategy>("TheBlackestNight", "TBN", 550) //60s (120s total), 10s duration, 2 charges
+            .AddOption(TBNStrategy.None, "None", "Do not use automatically")
+            .AddOption(TBNStrategy.Force, "Use", "Use The Blackest Night", 15, 7, ActionTargets.Self | ActionTargets.Party, 70)
+            .AddAssociatedActions(DRK.AID.TheBlackestNight);
 
         res.Define(Track.Oblation).As<OblationStrategy>("Oblation", "", 550) //60s (120s total), 10s duration, 2 charges
             .AddOption(OblationStrategy.None, "None", "Do not use automatically")
             .AddOption(OblationStrategy.Force, "Use", "Use Oblation", 60, 10, ActionTargets.Self | ActionTargets.Party, 82)
-            .AddOption(OblationStrategy.Delay, "Don't use", "Delay Oblation")
             .AddAssociatedActions(DRK.AID.Oblation);
 
         DefineSimpleConfig(res, Track.DarkMissionary, "DarkMissionary", "Mission", 220, DRK.AID.DarkMissionary, 15); //90s CD, 15s duration
@@ -44,23 +49,35 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3, IDStanceApply, IDStanceRemove, (uint)DRK.SID.Grit, primaryTarget); //Execution of our shared abilities
         ExecuteSimple(strategy.Option(Track.DarkMind), DRK.AID.DarkMind, Player); //Execution of DarkMind
         ExecuteSimple(strategy.Option(Track.LivingDead), DRK.AID.LivingDead, Player); //Execution of LivingDead
-        ExecuteSimple(strategy.Option(Track.TheBlackestNight), DRK.AID.TheBlackestNight, null); //Execution of TheBlackestNight
         ExecuteSimple(strategy.Option(Track.DarkMissionary), DRK.AID.DarkMissionary, Player); //Execution of DarkMissionary
 
-        var obl = strategy.Option(Track.Oblation);
-        var oblAction = obl.As<OblationStrategy>() switch
+        //TBN execution
+        var tbn = strategy.Option(Track.TheBlackestNight);
+        var tbnTarget = ResolveTargetOverride(tbn.Value) ?? CoTank() ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
+        var tbnight = tbn.As<TBNStrategy>() switch
         {
-            OblationStrategy.Force => DRK.AID.Oblation,
-            OblationStrategy.Delay => DRK.AID.None,
+            TBNStrategy.Force => DRK.AID.TheBlackestNight,
             _ => default
         };
-        if (oblAction != default && SelfStatusLeft(DRK.SID.Oblation) <= 3f)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(oblAction), Player, obl.Priority(), obl.Value.ExpireIn); //Checking proper use of said option
+        if (tbnight != default && Player.HPMP.CurMP >= 3000)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.TheBlackestNight), tbnTarget, tbn.Priority(), tbn.Value.ExpireIn);
+
+        //Oblation execution
+        var obl = strategy.Option(Track.Oblation);
+        var oblTarget = ResolveTargetOverride(obl.Value) ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
+        var oblStatus = TargetHasEffect(oblTarget, DRK.SID.Oblation); //Checks if status is present
+        var oblat = obl.As<OblationStrategy>() switch
+        {
+            OblationStrategy.Force => DRK.AID.Oblation,
+            _ => default
+        };
+        if (oblat != default && !oblStatus)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Oblation), oblTarget, obl.Priority(), obl.Value.ExpireIn);
 
         var wall = strategy.Option(Track.ShadowWall);
         var wallAction = wall.As<WallOption>() switch

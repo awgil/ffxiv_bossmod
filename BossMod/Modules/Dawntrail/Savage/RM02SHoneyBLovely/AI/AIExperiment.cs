@@ -15,7 +15,7 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, typeof(RM02SHoneyBLovely));
+        var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, typeof(RM02SHoneyBLovely));
         res.Define(Track.DragBoss).As<DragBossStrategy>("DragBoss", "Drag")
             .AddOption(DragBossStrategy.None, "None", "Do nothing")
             .AddOption(DragBossStrategy.SCenterFaceN, "SCenterFaceN", "Position boss in center or slightly to the south, then face north")
@@ -36,7 +36,7 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (Bossmods.ActiveModule is not RM02SHoneyBLovely module)
             return;

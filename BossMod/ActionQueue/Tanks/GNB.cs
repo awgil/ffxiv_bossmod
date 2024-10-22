@@ -160,7 +160,8 @@ public sealed class Definitions : IDisposable
         d.RegisterChargeIncreaseTrait(AID.Aurora, TraitID.EnhancedAurora);
 
         d.Spell(AID.LightningShot)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyLightningShot && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
-        d.Spell(AID.Aurora)!.ForbidExecute = (_, player, _, _) => player.HPMP.CurHP >= player.HPMP.MaxHP; // don't use at full hp
+
+        //d.Spell(AID.Aurora)!.ForbidExecute = (_, player, _, _) => player.HPMP.CurHP >= player.HPMP.MaxHP; // don't use at full hp
 
         // upgrades (TODO: don't think we actually care...)
         //d.Spell(AID.RoyalGuard)!.TransformAction = d.Spell(AID.ReleaseRoyalGuard)!.TransformAction = () => ActionID.MakeSpell(_state.HaveTankStance ? AID.ReleaseRoyalGuard : AID.RoyalGuard);

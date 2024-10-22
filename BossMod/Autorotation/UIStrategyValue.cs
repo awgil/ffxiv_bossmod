@@ -14,7 +14,7 @@ public static class UIStrategyValue
         ("Very High", ActionQueue.Priority.VeryHigh),
     ];
 
-    public static List<string> Preview(ref StrategyValue value, StrategyConfig cfg, ModuleRegistry.Info? moduleInfo)
+    public static List<string> Preview(ref StrategyValue value, StrategyConfig cfg, BossModuleRegistry.Info? moduleInfo)
     {
         var opt = cfg.Options[value.Option];
         return [
@@ -25,7 +25,7 @@ public static class UIStrategyValue
         ];
     }
 
-    public static string PreviewTarget(ref StrategyValue value, ModuleRegistry.Info? moduleInfo)
+    public static string PreviewTarget(ref StrategyValue value, BossModuleRegistry.Info? moduleInfo)
     {
         var targetDetails = value.Target switch
         {
@@ -37,7 +37,7 @@ public static class UIStrategyValue
         return targetDetails.Length > 0 ? $"{value.Target} ({targetDetails})" : $"{value.Target}";
     }
 
-    public static bool DrawEditor(ref StrategyValue value, StrategyConfig cfg, ModuleRegistry.Info? moduleInfo, int? level)
+    public static bool DrawEditor(ref StrategyValue value, StrategyConfig cfg, BossModuleRegistry.Info? moduleInfo, int? level)
     {
         var modified = false;
         modified |= DrawEditorOption(ref value, cfg, level);
@@ -133,7 +133,7 @@ public static class UIStrategyValue
         return modified;
     }
 
-    public static bool DrawEditorTarget(ref StrategyValue value, ActionTargets supportedTargets, ModuleRegistry.Info? moduleInfo)
+    public static bool DrawEditorTarget(ref StrategyValue value, ActionTargets supportedTargets, BossModuleRegistry.Info? moduleInfo)
     {
         var modified = false;
         using (var combo = ImRaii.Combo("Target", value.Target.ToString()))
@@ -189,7 +189,7 @@ public static class UIStrategyValue
         return modified;
     }
 
-    public static bool AllowTarget(StrategyTarget t, ActionTargets supported, ModuleRegistry.Info? moduleInfo) => t switch
+    public static bool AllowTarget(StrategyTarget t, ActionTargets supported, BossModuleRegistry.Info? moduleInfo) => t switch
     {
         StrategyTarget.Self => supported.HasFlag(ActionTargets.Self),
         StrategyTarget.PartyByAssignment => supported.HasFlag(ActionTargets.Party),

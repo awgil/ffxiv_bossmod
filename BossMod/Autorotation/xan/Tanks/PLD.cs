@@ -5,11 +5,14 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
+    public enum Track { Intervene = SharedTrack.Count }
+
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan PLD", "Paladin", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA), 100);
+        var def = new RotationModuleDefinition("xan PLD", "Paladin", "Standard rotation (xan)|Tanks", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA), 100);
 
         def.DefineShared().AddAssociatedActions(AID.FightOrFlight);
+        def.DefineSimple(Track.Intervene, "Dash").AddAssociatedActions(AID.Intervene);
 
         return def;
     }
@@ -72,10 +75,12 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         if (CountdownRemaining > 0)
         {
             if (CountdownRemaining < GetCastTime(AID.HolySpirit))
-                PushGCD(AID.HolySpirit, BestRangedTarget);
+                PushGCD(AID.HolySpirit, primaryTarget);
 
             return;
         }
+
+        GoalZoneCombined(3, Hints.GoalAOECircle(5), 3);
 
         if (ConfiteorCombo != AID.None && MP >= 1000)
             PushGCD(ConfiteorCombo, BestRangedTarget);
@@ -103,7 +108,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         {
             // fallback - cast holy spirit if we don't have a melee
             if (DivineMight > GCD && MP >= 1000)
-                PushGCD(AID.HolySpirit, primaryTarget, -50);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.HolySpirit), primaryTarget, ActionQueue.Priority.High - 50);
 
             if (Requiescat.Left > GCD || DivineMight > GCD && FightOrFlight > GCD)
                 PushGCD(AID.HolySpirit, primaryTarget);
@@ -137,13 +142,16 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
     private void CalcNextBestOGCD(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (AtonementReady > 0 || Requiescat.Left > 0 || DivineMight > 0)
+        if (primaryTarget == null || CountdownRemaining > 0)
+            return;
+
+        if (ShouldFoF(strategy, primaryTarget))
             PushOGCD(AID.FightOrFlight, Player);
 
         if (BladeOfHonorReady > 0)
             PushOGCD(AID.BladeOfHonor, BestRangedTarget);
 
-        if (CD(AID.FightOrFlight) > 40)
+        if (ReadyIn(AID.FightOrFlight) > 40)
         {
             if (Unlocked(AID.Imperator))
                 PushOGCD(AID.Imperator, BestRangedTarget);
@@ -151,7 +159,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
                 PushOGCD(AID.Requiescat, primaryTarget);
         }
 
-        if (FightOrFlight > 0 || CD(AID.FightOrFlight) > 15)
+        if (FightOrFlight > 0 || ReadyIn(AID.FightOrFlight) > 15)
         {
             PushOGCD(AID.SpiritsWithin, primaryTarget);
 
@@ -159,7 +167,24 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
                 PushOGCD(AID.CircleOfScorn, Player);
         }
 
-        if (FightOrFlight > 0)
-            PushOGCD(AID.Intervene, primaryTarget);
+        switch (strategy.Simple(Track.Intervene))
+        {
+            case OffensiveStrategy.Automatic:
+                if (FightOrFlight > 0)
+                    PushOGCD(AID.Intervene, primaryTarget);
+                break;
+            case OffensiveStrategy.Force:
+                PushOGCD(AID.Intervene, primaryTarget);
+                break;
+        }
+    }
+
+    private bool ShouldFoF(StrategyValues strategy, Actor? primaryTarget)
+    {
+        if (!Unlocked(TraitID.DivineMagicMastery1))
+            return true;
+
+        // hold FoF until 3rd GCD for opener, otherwise use on cooldown
+        return DivineMight > 0 || CombatTimer > 30;
     }
 }

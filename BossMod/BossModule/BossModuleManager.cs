@@ -12,6 +12,8 @@ public sealed class BossModuleManager : IDisposable
     public IReadOnlyList<BossModule> LoadedModules => _loadedModules;
     public Event<BossModule> ModuleLoaded = new();
     public Event<BossModule> ModuleUnloaded = new();
+    public Event<BossModule> ModuleActivated = new();
+    public Event<BossModule> ModuleDeactivated = new();
 
     // drawn module among loaded modules; this can be changed explicitly if needed
     // usually we don't have multiple concurrently active modules, since this prevents meaningful cd planning, raid cooldown tracking, etc.
@@ -79,6 +81,10 @@ public sealed class BossModuleManager : IDisposable
                 isActive = false;
             }
 
+            // if module was activated or deactivated, notify listeners
+            if (isActive != wasActive)
+                (isActive ? ModuleActivated : ModuleDeactivated).Fire(m);
+
             // unload module either if it became deactivated or its primary actor disappeared without ever activating
             if (!isActive && (wasActive || m.PrimaryActor.IsDestroyed))
             {
@@ -89,6 +95,7 @@ public sealed class BossModuleManager : IDisposable
             // if module is active and wants to be reset, oblige
             if (isActive && m.CheckReset())
             {
+                ModuleDeactivated.Fire(m);
                 var actor = m.PrimaryActor;
                 UnloadModule(i--);
                 if (!actor.IsDestroyed)
@@ -158,7 +165,7 @@ public sealed class BossModuleManager : IDisposable
 
     private void ActorAdded(Actor actor)
     {
-        var m = ModuleRegistry.CreateModuleForActor(WorldState, actor, Config.MinMaturity);
+        var m = BossModuleRegistry.CreateModuleForActor(WorldState, actor, Config.MinMaturity);
         if (m != null)
         {
             LoadModule(m);

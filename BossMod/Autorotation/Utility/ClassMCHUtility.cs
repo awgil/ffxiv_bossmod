@@ -13,7 +13,7 @@ public sealed class ClassMCHUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: MCH", "Planner support for utility actions", "Aimsucks", RotationModuleQuality.Excellent, BitMask.Build((int)Class.MCH), 100);
+        var res = new RotationModuleDefinition("Utility: MCH", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Aimsucks", RotationModuleQuality.Excellent, BitMask.Build((int)Class.MCH), 100);
         DefineShared(res, IDLimitBreak3);
 
         // Add track for Tactician: 15s long, 15% player damage received reduction
@@ -29,10 +29,10 @@ public sealed class ClassMCHUtility(RotationModuleManager manager, Actor player)
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3);
-        ExecuteSimple(strategy.Option(Track.Dismantle), MCH.AID.Dismantle, Player);
+        ExecuteSimple(strategy.Option(Track.Dismantle), MCH.AID.Dismantle, primaryTarget);
 
         var tact = strategy.Option(Track.Tactician);
         if (tact.As<TactOption>() != TactOption.None)

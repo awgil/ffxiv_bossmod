@@ -11,7 +11,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan SGE", "Sage", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SGE), 100);
+        var def = new RotationModuleDefinition("xan SGE", "Sage", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SGE), 100);
 
         def.DefineShared();
 
@@ -36,7 +36,6 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
     public int NumPhlegmaTargets;
     public int NumPneumaTargets;
 
-    public int NumNearbyDotTargets;
     public float TargetDotLeft;
 
     private Actor? BestPhlegmaTarget; // 6y/5y
@@ -62,23 +61,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
         (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
         (BestPneumaTarget, NumPneumaTargets) = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget);
 
-        NumAOETargets = 0;
-        NumNearbyDotTargets = 0;
-        foreach (var t in Hints.PotentialTargets.Where(x => x.Actor.DistanceToHitbox(Player) <= 5))
-        {
-            if (t.Priority < 0)
-            {
-                NumAOETargets = 0;
-                NumNearbyDotTargets = 0;
-                break;
-            }
-            NumAOETargets++;
-            if (DotDuration(t.Actor) < 3)
-                NumNearbyDotTargets++;
-        }
-
-        NumAOETargets = AdjustNumTargets(strategy, NumAOETargets);
-        NumNearbyDotTargets = AdjustNumTargets(strategy, NumNearbyDotTargets);
+        NumAOETargets = NumNearbyTargets(strategy, 5);
 
         (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, DotDuration, 2);
 
@@ -95,50 +78,51 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
             && !World.Party.Members[World.Party.FindSlot(kardiaTarget.InstanceID)].InCutscene)
             PushGCD(AID.Kardia, kardiaTarget);
 
-        if (!Player.InCombat && Unlocked(AID.Eukrasia) && !Eukrasia)
+        if (!Player.InCombat && Unlocked(AID.Eukrasia) && !Eukrasia && Player.MountId == 0)
             PushGCD(AID.Eukrasia, Player);
 
-        if (Unlocked(AID.Eukrasia))
+        if (Unlocked(AID.Eukrasia) && !CanFitGCD(TargetDotLeft, 1))
         {
-            if (NumNearbyDotTargets > 1 && Unlocked(AID.EukrasianDyskrasia))
-            {
-                if (!Eukrasia)
-                    PushGCD(AID.Eukrasia, Player);
+            if (!Eukrasia)
+                PushGCD(AID.Eukrasia, Player);
 
-                PushGCD(AID.Dyskrasia, Player);
-            }
-            else if (!CanFitGCD(TargetDotLeft, 1))
-            {
-                if (!Eukrasia)
-                    PushGCD(AID.Eukrasia, Player);
-
-                PushGCD(AID.Dosis, BestDotTarget);
-            }
+            PushGCD(AID.Dosis, BestDotTarget);
         }
 
-        if (CD(AID.Pneuma) <= GCD && NumPneumaTargets > 1)
+        if (ReadyIn(AID.Pneuma) <= GCD && NumPneumaTargets > 1)
             PushGCD(AID.Pneuma, BestPneumaTarget);
 
-        if (NumPhlegmaTargets > 2 && CD(AID.Phlegma) - 40 <= GCD || CD(AID.Phlegma) <= GCD)
+        if (ShouldPhlegma(strategy))
+        {
+            if (ReadyIn(AID.Phlegma) <= GCD && primaryTarget is Actor t)
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(t, 6));
+
             PushGCD(AID.Phlegma, BestPhlegmaTarget);
+        }
+
+        if (NumRangedAOETargets > 1 && Sting > 0)
+            PushGCD(AID.Toxikon, BestPhlegmaTarget);
 
         if (NumAOETargets > 1)
-        {
-            if (Sting > 0 && NumPhlegmaTargets > 1)
-                PushGCD(AID.Toxikon, BestPhlegmaTarget);
-
             PushGCD(AID.Dyskrasia, Player);
-        }
 
         PushGCD(AID.Dosis, primaryTarget);
 
-        // fallbacks for forced movement
-        if (CD(AID.Phlegma) - 40 <= GCD && NumPhlegmaTargets > 0)
-            PushGCD(AID.Phlegma, BestPhlegmaTarget);
         if (NumRangedAOETargets > 0 && Sting > 0)
             PushGCD(AID.Toxikon, BestRangedAOETarget);
         if (NumAOETargets > 0)
             PushGCD(AID.Dyskrasia, Player);
+    }
+
+    private bool ShouldPhlegma(StrategyValues strategy)
+    {
+        if (MaxChargesIn(AID.Phlegma) <= GCD)
+            return true;
+
+        if (ReadyIn(AID.Phlegma) > GCD)
+            return false;
+
+        return NumPhlegmaTargets > 2 || RaidBuffsLeft > GCD || RaidBuffsIn > 9000;
     }
 
     private void DoOGCD(StrategyValues strategy, Actor? primaryTarget)
@@ -151,7 +135,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
 
         if ((Gall == 3 || Gall == 2 && NextGall < 2.5f) && Player.HPMP.CurMP <= 9000 && strategy.Option(Track.Druo).As<DruoStrategy>() == DruoStrategy.Auto)
         {
-            var healTarget = World.Party.WithoutSlot(excludeAlliance: true).MinBy(x => x.HPMP.CurHP / x.HPMP.MaxHP);
+            var healTarget = World.Party.WithoutSlot(excludeAlliance: true).MinBy(x => (float)x.HPMP.CurHP / x.HPMP.MaxHP);
             PushOGCD(AID.Druochole, healTarget);
         }
 
@@ -181,11 +165,10 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
 
     private Actor? FindKardiaTarget()
     {
-        var party = World.Party.WithoutSlot(excludeAlliance: true);
         var total = 0;
         var tanks = 0;
         Actor? tank = null;
-        foreach (var actor in party)
+        foreach (var actor in World.Party.WithoutSlot(excludeAlliance: true))
         {
             total++;
             if (actor.Class.GetRole() == Role.Tank)

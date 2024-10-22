@@ -12,7 +12,7 @@ public class Map
     public float Resolution { get; private set; } // pixel size, in world units
     public int Width { get; private set; } // always even
     public int Height { get; private set; } // always even
-    public float[] PixelMaxG = []; // == MaxValue if not dangerous (TODO: consider changing to a byte per pixel?)
+    public float[] PixelMaxG = []; // == MaxValue if not dangerous (TODO: consider changing to a byte per pixel?), < 0 if impassable
     public float[] PixelPriority = [];
 
     public WPos Center { get; private set; } // position of map center in world units

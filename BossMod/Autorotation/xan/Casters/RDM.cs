@@ -21,7 +21,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan RDM", "Red Mage", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.RDM), 100);
+        var def = new RotationModuleDefinition("xan RDM", "Red Mage", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.RDM), 100);
 
         def.DefineShared().AddAssociatedActions(AID.Embolden, AID.Manafication);
 
@@ -61,7 +61,10 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
     private Actor? BestConeTarget;
     private Actor? BestLineTarget;
 
-    private bool InCombo => ComboLastMove is AID.Zwerchhau or AID.Riposte or AID.EnchantedMoulinetDeux or AID.EnchantedMoulinet;
+    private bool InCombo
+        => ComboLastMove == AID.Riposte && Unlocked(AID.Zwerchhau)
+        || ComboLastMove == AID.Zwerchhau && Unlocked(AID.Redoublement)
+        || ComboLastMove is AID.EnchantedMoulinetDeux or AID.EnchantedMoulinet;
 
     protected override float GetCastTime(AID aid)
     {
@@ -107,10 +110,6 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget);
         (BestConeTarget, NumConeTargets) = SelectTarget(strategy, primaryTarget, 8, (primary, other) => Hints.TargetInAOECone(other, Player.Position, 8, Player.DirectionTo(primary), 60.Degrees()));
 
-        // TODO: fixme xan!
-        //if (Swordplay > 0 || LowestMana >= 50 || InCombo)
-        //    Hints.RecommendedRangeToTarget = 3;
-
         if (CountdownRemaining > 0)
         {
             if (CountdownRemaining < GetCastTime(AID.Veraero))
@@ -119,9 +118,12 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
-        // TODO: fixme xan!
-        //if (Swordplay > 0 || LowestMana >= 50 || InCombo)
-        //    Hints.RecommendedRangeToTarget = 3f;
+        var comboMana = Unlocked(AID.Redoublement) ? 50
+            : Unlocked(AID.Zwerchhau) ? 35
+            : 20;
+
+        if (primaryTarget is Actor tar && (Swordplay > 0 || LowestMana >= comboMana || InCombo))
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(tar, 3));
 
         OGCD(strategy, primaryTarget);
 
@@ -134,10 +136,10 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         if (Stacks == 3)
             PushGCD(BlackMana > WhiteMana ? AID.Verholy : AID.Verflare, BestAOETarget);
 
-        if (ComboLastMove == AID.Zwerchhau)
+        if (ComboLastMove == AID.Zwerchhau && Unlocked(AID.Redoublement))
             PushGCD(AID.Redoublement, primaryTarget);
 
-        if (ComboLastMove == AID.Riposte)
+        if (ComboLastMove == AID.Riposte && Unlocked(AID.Zwerchhau))
             PushGCD(AID.Zwerchhau, primaryTarget);
 
         if (ComboLastMove == AID.EnchantedMoulinetDeux)
@@ -163,7 +165,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Verthunder, primaryTarget);
         }
 
-        if (Dualcast == 0 && (Swordplay > 0 || LowestMana >= 50))
+        if (Dualcast == 0 && (Swordplay > 0 || LowestMana >= comboMana))
         {
             if (NumConeTargets > 2)
                 PushGCD(AID.EnchantedMoulinet, BestConeTarget);

@@ -2,16 +2,17 @@
 
 public sealed class ClassASTUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
-    public enum Track { Helios = SharedTrack.Count, Lightspeed, BeneficII, EssentialDignity, AspectedBenefic, AspectedHelios, Synastry, CollectiveUnconscious, CelestialOpposition, CelestialIntersection, Horoscope, NeutralSect, Exaltation, Macrocosmos, SunSign, Ascend }
+    public enum Track { Helios = SharedTrack.Count, Lightspeed, BeneficII, EssentialDignity, AspectedBenefic, AspectedHelios, Synastry, CollectiveUnconscious, CelestialOpposition, CelestialIntersection, Horoscope, NeutralSect, Exaltation, Macrocosmos, SunSign }
     public enum HoroscopeOption { None, Use, End }
     public enum MacrocosmosOption { None, Use, End }
     public enum HeliosOption { None, Use, UseEx }
+    public bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus((uint)(object)sid, Player.InstanceID) != null; //Checks if Status effect is on self
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(AST.AID.AstralStasis);
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: AST", "Planner support for utility actions", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.AST), 100);
+        var res = new RotationModuleDefinition("Utility: AST", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.AST), 100);
         DefineShared(res, IDLimitBreak3);
 
         DefineSimpleConfig(res, Track.Helios, "Helios", "", 140, AST.AID.Helios);
@@ -47,37 +48,38 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
             .AddAssociatedActions(AST.AID.Macrocosmos, AST.AID.MicrocosmosEnd);
 
         DefineSimpleConfig(res, Track.SunSign, "SunSign", "", 290, AST.AID.SunSign, 15); //AoE oGCD mit (only can use when under NeutralSect), 15s effect duration
-        DefineSimpleConfig(res, Track.Ascend, "Ascend", "Raise", 10, AST.AID.Ascend, 7); //Raise
 
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, float forceMovementIn, bool isMoving)
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3);
         ExecuteSimple(strategy.Option(Track.Lightspeed), AST.AID.Lightspeed, Player);
-        ExecuteSimple(strategy.Option(Track.BeneficII), AST.AID.BeneficII, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.EssentialDignity), AST.AID.EssentialDignity, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.AspectedBenefic), AST.AID.AspectedBenefic, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Synastry), AST.AID.Synastry, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.BeneficII), AST.AID.BeneficII, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.EssentialDignity), AST.AID.EssentialDignity, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.AspectedBenefic), AST.AID.AspectedBenefic, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.Synastry), AST.AID.Synastry, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.CollectiveUnconscious), AST.AID.CollectiveUnconscious, Player);
         ExecuteSimple(strategy.Option(Track.CelestialOpposition), AST.AID.CelestialOpposition, Player);
         ExecuteSimple(strategy.Option(Track.CelestialIntersection), AST.AID.CelestialIntersection, Player);
         ExecuteSimple(strategy.Option(Track.NeutralSect), AST.AID.NeutralSect, Player);
-        ExecuteSimple(strategy.Option(Track.Exaltation), AST.AID.Exaltation, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Exaltation), AST.AID.Exaltation, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.SunSign), AST.AID.SunSign, Player);
-        ExecuteSimple(strategy.Option(Track.Ascend), AST.AID.Ascend, primaryTarget);
 
-        var helios = strategy.Option(Track.Macrocosmos);
+        //Aspected Helios full execution
+        var heliosUp = HasEffect(AST.SID.AspectedHelios) || HasEffect(AST.SID.HeliosConjunction);
+        var helios = strategy.Option(Track.AspectedHelios);
         var heliosAction = helios.As<HeliosOption>() switch
         {
             HeliosOption.Use => AST.AID.AspectedHelios,
             HeliosOption.UseEx => AST.AID.HeliosConjunction,
             _ => default
         };
-        if (heliosAction != default)
+        if (heliosAction != default && !heliosUp)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(heliosAction), Player, helios.Priority(), helios.Value.ExpireIn);
 
+        //Horoscope full execution
         var horo = strategy.Option(Track.Horoscope);
         var horoAction = horo.As<HoroscopeOption>() switch
         {
@@ -97,5 +99,6 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         };
         if (cosmosAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(cosmosAction), Player, cosmos.Priority(), cosmos.Value.ExpireIn);
+
     }
 }

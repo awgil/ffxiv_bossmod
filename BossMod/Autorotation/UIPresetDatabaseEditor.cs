@@ -8,9 +8,13 @@ namespace BossMod.Autorotation;
 public sealed class UIPresetDatabaseEditor(PresetDatabase db)
 {
     private int _selectedPresetIndex = -1;
+    private bool _selectedPresetDefault;
     private int _pendingSelectPresetIndex = -1; // if >= 0, we want to select different preset, but current one has modifications
+    private bool _pendingSelectPresetDefault;
     private Type? _selectedModuleType; // we want module selection to be persistent when changing presets
     private UIPresetEditor? _selectedPreset;
+
+    private readonly AutorotationConfig _cfg = Service.Config.Get<AutorotationConfig>();
 
     private bool HaveUnsavedModifications => _selectedPreset?.Modified ?? false;
 
@@ -88,33 +92,13 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
         ImGui.SameLine();
 
         ImGui.SetNextItemWidth(200);
-        using (var combo = ImRaii.Combo("Preset", _selectedPreset == null ? "" : _selectedPresetIndex < 0 ? "<new>" : db.Presets[_selectedPresetIndex].Name))
+        using (var combo = ImRaii.Combo("Preset", _selectedPreset == null ? "" : _selectedPresetIndex < 0 ? "<new>" : (_selectedPresetDefault ? db.DefaultPresets : db.UserPresets)[_selectedPresetIndex].Name))
         {
             if (combo)
             {
-                for (int i = 0; i < db.Presets.Count; ++i)
-                {
-                    var preset = db.Presets[i];
-                    if (ImGui.Selectable(preset.Name, _selectedPresetIndex == i))
-                    {
-                        _pendingSelectPresetIndex = i;
-                    }
-
-                    if (ImGui.IsItemActive() && !ImGui.IsItemHovered())
-                    {
-                        var j = ImGui.GetMouseDragDelta().Y < 0 ? i - 1 : i + 1;
-                        if (j >= 0 && j < db.Presets.Count)
-                        {
-                            (db.Presets[i], db.Presets[j]) = (db.Presets[j], db.Presets[i]);
-                            if (_selectedPresetIndex == i)
-                                _selectedPresetIndex = j;
-                            else if (_selectedPresetIndex == j)
-                                _selectedPresetIndex = i;
-                            db.Modify(-1, null);
-                            ImGui.ResetMouseDragDelta();
-                        }
-                    }
-                }
+                if (!_cfg.HideDefaultPreset)
+                    DrawPresetListElements(true);
+                DrawPresetListElements(false);
             }
         }
 
@@ -129,12 +113,12 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
             RevertCurrentPreset();
         ImGui.SameLine();
         if (UIMisc.Button("New", HaveUnsavedModifications, "Current preset is modified, save or discard changes"))
-            CreateNewPreset(-1);
+            CreateNewPreset(-1, false);
         ImGui.SameLine();
         if (UIMisc.Button("Copy", 0, (HaveUnsavedModifications, "Current preset is modified, save or discard changes"), (_selectedPresetIndex < 0, "No preset is selected")))
-            CreateNewPreset(_selectedPresetIndex);
+            CreateNewPreset(_selectedPresetIndex, _selectedPresetDefault);
         ImGui.SameLine();
-        if (UIMisc.Button("Delete", 0, (!ImGui.GetIO().KeyShift, "Hold shift to delete"), (_selectedPresetIndex < 0, "No preset is selected")))
+        if (UIMisc.Button("Delete", 0, (_selectedPresetDefault, "The default preset can't be deleted. If you would like to hide it, you can do so in Settings -> Autorotation."), (!ImGui.GetIO().KeyShift, "Hold shift to delete"), (_selectedPresetIndex < 0, "No preset is selected")))
             DeleteCurrentPreset();
         ImGui.SameLine();
         if (UIMisc.Button("Export", _selectedPreset == null, "No preset is selected"))
@@ -144,22 +128,51 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
             ImportNewPresetFromClipboard();
     }
 
+    private void DrawPresetListElements(bool defaultPresets)
+    {
+        var presets = defaultPresets ? db.DefaultPresets : db.UserPresets;
+        for (int i = 0; i < presets.Count; ++i)
+        {
+            var preset = presets[i];
+            if (ImGui.Selectable(preset.Name, _selectedPresetDefault == defaultPresets && _selectedPresetIndex == i))
+            {
+                _pendingSelectPresetIndex = i;
+                _pendingSelectPresetDefault = defaultPresets;
+            }
+
+            if (!defaultPresets && ImGui.IsItemActive() && !ImGui.IsItemHovered())
+            {
+                var j = ImGui.GetMouseDragDelta().Y < 0 ? i - 1 : i + 1;
+                if (j >= 0 && j < presets.Count)
+                {
+                    (presets[i], presets[j]) = (presets[j], presets[i]);
+                    if (_selectedPresetIndex == i && _selectedPresetDefault == defaultPresets)
+                        _selectedPresetIndex = j;
+                    else if (_selectedPresetIndex == j && _selectedPresetDefault == defaultPresets)
+                        _selectedPresetIndex = i;
+                    db.Modify(-1, null);
+                    ImGui.ResetMouseDragDelta();
+                }
+            }
+        }
+    }
+
     private bool DrawSaveCurrentPresetButton() => UIMisc.Button("Save", 0, (!HaveUnsavedModifications, "Current preset is not modified"), (_selectedPreset?.NameConflict ?? false, "Current preset name is empty or duplicates name of other existing preset"));
 
-    private void RevertCurrentPreset() => _selectedPreset = new(db, _selectedPresetIndex, _selectedModuleType);
+    private void RevertCurrentPreset() => _selectedPreset = new(db, _selectedPresetIndex, _selectedPresetDefault, _selectedModuleType);
 
     private void SaveCurrentPreset()
     {
-        if (_selectedPreset != null && _selectedPreset.Modified && !_selectedPreset.NameConflict)
+        if (!_selectedPresetDefault && _selectedPreset != null && _selectedPreset.Modified && !_selectedPreset.NameConflict)
         {
             db.Modify(_selectedPresetIndex, _selectedPreset.Preset);
             if (_selectedPresetIndex < 0)
-                _selectedPresetIndex = db.Presets.Count - 1;
+                _selectedPresetIndex = db.UserPresets.Count - 1;
             RevertCurrentPreset();
         }
         else
         {
-            Service.Log($"[PD] Save called when current preset #{_selectedPresetIndex} is not modified or has bad name '{_selectedPreset?.Preset.Name}'");
+            Service.Log($"[PD] Save called when current preset #{_selectedPresetIndex} (default={_selectedPresetDefault}) is not modified or has bad name '{_selectedPreset?.Preset.Name}'");
         }
     }
 
@@ -169,7 +182,8 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
         {
             _selectedPreset.DetachFromSource();
             _selectedPreset.MakeNameUnique();
-            _selectedPresetIndex = db.Presets.Count;
+            _selectedPresetIndex = db.UserPresets.Count;
+            _selectedPresetDefault = false;
             db.Modify(-1, _selectedPreset.Preset);
             RevertCurrentPreset();
         }
@@ -179,17 +193,18 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
         }
     }
 
-    private void CreateNewPreset(int referenceIndex)
+    private void CreateNewPreset(int referenceIndex, bool referenceDefault)
     {
         _selectedPresetIndex = -1;
-        _selectedPreset = new(db, referenceIndex, _selectedModuleType);
+        _selectedPresetDefault = false;
+        _selectedPreset = new(db, referenceIndex, referenceDefault, _selectedModuleType);
         _selectedPreset.DetachFromSource();
         _selectedPreset.MakeNameUnique();
     }
 
     private void DeleteCurrentPreset()
     {
-        if (_selectedPresetIndex >= 0)
+        if (!_selectedPresetDefault && _selectedPresetIndex >= 0)
         {
             db.Modify(_selectedPresetIndex, null);
             _selectedPresetIndex = -1;
@@ -197,14 +212,16 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
         }
         else
         {
-            Service.Log($"[PD] Delete called no preset is selected");
+            Service.Log($"[PD] Delete called default or no preset is selected (index={_selectedPresetIndex}, default={_selectedPresetDefault})");
         }
     }
 
     private void CompleteChangeCurrentPreset()
     {
         _selectedPresetIndex = _pendingSelectPresetIndex;
+        _selectedPresetDefault = _pendingSelectPresetDefault;
         _pendingSelectPresetIndex = -1;
+        _pendingSelectPresetDefault = false;
         RevertCurrentPreset();
     }
 
@@ -226,6 +243,7 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
         {
             var preset = JsonSerializer.Deserialize<Preset>(ImGui.GetClipboardText(), Serialization.BuildSerializationOptions())!;
             _selectedPresetIndex = -1;
+            _selectedPresetDefault = false;
             _selectedPreset = new(db, preset, _selectedModuleType);
         }
         catch (Exception ex)

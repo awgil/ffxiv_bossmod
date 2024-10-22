@@ -7,7 +7,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
 {
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan GNB", "Gunbreaker", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.GNB), 100);
+        var def = new RotationModuleDefinition("xan GNB", "Gunbreaker", "Standard rotation (xan)|Tanks", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.GNB), 100);
 
         def.DefineShared().AddAssociatedActions(AID.Bloodfest);
 
@@ -51,10 +51,12 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
         if (CountdownRemaining > 0)
             return;
 
-        if (CD(AID.NoMercy) > 20 && Ammo > 0)
+        GoalZoneCombined(3, Hints.GoalAOECircle(5), Unlocked(AID.FatedCircle) && Ammo > 0 ? 2 : 3);
+
+        if (ReadyIn(AID.NoMercy) > 20 && Ammo > 0)
             PushGCD(AID.GnashingFang, primaryTarget);
 
-        if (NumAOETargets > 0 && Ammo >= 2 && NoMercy > GCD)
+        if (NumAOETargets > 0 && Ammo >= 2 && NoMercy > GCD && ReadyIn(AID.DoubleDown) <= GCD)
             PushGCD(AID.DoubleDown, Player);
 
         if (SonicBreak > GCD)
@@ -76,18 +78,17 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
                 return;
         }
 
-        if (Reign > GCD && CD(AID.GnashingFang) > 0 && CD(AID.DoubleDown) > 0 && SonicBreak == 0)
+        if (Reign > GCD && OnCooldown(AID.GnashingFang) && OnCooldown(AID.DoubleDown) && SonicBreak == 0)
             PushGCD(AID.ReignOfBeasts, BestReignTarget);
 
-        if (NumAOETargets > 1 && Unlocked(AID.DemonSlice))
+        if (NumAOETargets > 1 && ShouldBust(strategy, AID.BurstStrike))
         {
-            if (ShouldBust(strategy, AID.BurstStrike))
-            {
-                PushGCD(AID.FatedCircle, Player);
+            PushGCD(AID.FatedCircle, Player);
+            PushGCD(AID.BurstStrike, primaryTarget);
+        }
 
-                PushGCD(AID.BurstStrike, primaryTarget);
-            }
-
+        if (NumAOETargets > 2 && Unlocked(AID.DemonSlice))
+        {
             if (ComboLastMove == AID.BrutalShell)
                 PushGCD(AID.SolidBarrel, primaryTarget);
 
@@ -96,22 +97,20 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
 
             PushGCD(AID.DemonSlice, Player);
         }
-        else
-        {
-            if (ShouldBust(strategy, AID.BurstStrike))
-                PushGCD(AID.BurstStrike, primaryTarget);
 
-            if (ComboLastMove == AID.DemonSlice && NumAOETargets > 0)
-                PushGCD(AID.DemonSlaughter, Player);
+        if (ShouldBust(strategy, AID.BurstStrike))
+            PushGCD(AID.BurstStrike, primaryTarget);
 
-            if (ComboLastMove == AID.BrutalShell)
-                PushGCD(AID.SolidBarrel, primaryTarget);
+        if (ComboLastMove == AID.DemonSlice && NumAOETargets > 0)
+            PushGCD(AID.DemonSlaughter, Player);
 
-            if (ComboLastMove == AID.KeenEdge)
-                PushGCD(AID.BrutalShell, primaryTarget);
+        if (ComboLastMove == AID.BrutalShell)
+            PushGCD(AID.SolidBarrel, primaryTarget);
 
-            PushGCD(AID.KeenEdge, primaryTarget);
-        }
+        if (ComboLastMove == AID.KeenEdge)
+            PushGCD(AID.BrutalShell, primaryTarget);
+
+        PushGCD(AID.KeenEdge, primaryTarget);
     }
 
     // TODO handle forced 2 cartridge burst
@@ -121,7 +120,9 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
             return false;
 
         if (NoMercy > GCD)
-            return CD(AID.DoubleDown) > NoMercy || Ammo == MaxAmmo || (Ammo == 1 && CD(AID.DoubleDown) < NoMercy);
+            return ReadyIn(AID.DoubleDown) > NoMercy
+                || Ammo == MaxAmmo
+                || Ammo == 1 && ReadyIn(AID.DoubleDown) < NoMercy;
 
         return ComboLastMove is AID.BrutalShell or AID.DemonSlice && Ammo == MaxAmmo;
     }
@@ -139,11 +140,11 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
 
         UseNoMercy(strategy);
 
-        var usedNM = CD(AID.NoMercy) > 20;
+        var usedNM = ReadyIn(AID.NoMercy) > 20;
 
         if (usedNM)
         {
-            PushOGCD(AID.BlastingZone, primaryTarget);
+            PushOGCD(AID.DangerZone, primaryTarget);
 
             if (NumAOETargets > 0)
                 PushOGCD(AID.BowShock, Player);

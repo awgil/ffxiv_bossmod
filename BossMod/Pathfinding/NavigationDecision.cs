@@ -27,7 +27,7 @@ public struct NavigationDecision
     public static NavigationDecision Build(Context ctx, WorldState ws, AIHints hints, Actor player, float playerSpeed = 6)
     {
         // build a pathfinding map: rasterize all forbidden zones and goals
-        hints.Bounds.PathfindMap(ctx.Map, hints.Center);
+        hints.InitPathfindMap(ctx.Map);
         if (hints.ForbiddenZones.Count > 0)
             RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, ws.CurrentTime, ref ctx.Scratch);
         if (hints.GoalZones.Count > 0)
@@ -43,24 +43,18 @@ public struct NavigationDecision
     public static void RasterizeForbiddenZones(Map map, List<(Func<WPos, float> shapeDistance, DateTime activation)> zones, DateTime current, ref float[] scratch)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
-        (Func<WPos, float> shapeDistance, DateTime activation)[] zonesFixed = [.. zones];
-        DateTime clusterStart = default, clusterEnd = default, globalStart = current, globalEnd = current.AddSeconds(120);
-        foreach (ref var z in zonesFixed.AsSpan())
+        var zonesFixed = new (Func<WPos, float> shapeDistance, float g)[zones.Count];
+        DateTime clusterEnd = default, globalStart = current, globalEnd = current.AddSeconds(120);
+        float clusterG = 0;
+        for (int i = 0; i < zonesFixed.Length; ++i)
         {
-            if (z.activation < globalStart)
-                z.activation = globalStart;
-            else if (z.activation > globalEnd)
-                z.activation = globalEnd;
-
-            if (z.activation < clusterEnd)
+            var activation = zones[i].activation.Clamp(globalStart, globalEnd);
+            if (activation > clusterEnd)
             {
-                z.activation = clusterStart;
+                clusterG = ActivationToG(activation, current);
+                clusterEnd = activation.AddSeconds(0.5f);
             }
-            else
-            {
-                clusterStart = z.activation;
-                clusterEnd = z.activation.AddSeconds(0.5f);
-            }
+            zonesFixed[i] = (zones[i].shapeDistance, clusterG);
         }
 
         // note that a zone can partially intersect a pixel; so what we do is check each corner and set the maxg value of a pixel equal to the minimum of 4 corners
@@ -68,7 +62,7 @@ public struct NavigationDecision
         // - outer loop fills row i to with g values corresponding to the 'upper edge' of cell i
         // - inner loop calculates the g value at the left border, then iterates over all right corners and fills minimums of two g values to the cells
         // - second outer loop calculates values at 'bottom' edge and then updates the values of all cells to correspond to the cells rather than edges
-        map.MaxG = zonesFixed.Length > 0 ? ActivationToG(zonesFixed[^1].activation, current) : 0;
+        map.MaxG = clusterG;
         if (scratch.Length < map.PixelMaxG.Length)
             scratch = new float[map.PixelMaxG.Length];
         var numBlockedCells = 0;
@@ -82,22 +76,22 @@ public struct NavigationDecision
         for (int y = 0; y < map.Height; ++y)
         {
             var cx = cy;
-            var leftG = CalculateMaxG(zonesFixed, map, cx, current);
+            var leftG = CalculateMaxG(zonesFixed, cx);
             for (int x = 0; x < map.Width; ++x)
             {
                 cx += dx;
-                var rightG = CalculateMaxG(zonesFixed, map, cx, current);
+                var rightG = CalculateMaxG(zonesFixed, cx);
                 scratch[iCell++] = Math.Min(leftG, rightG);
                 leftG = rightG;
             }
             cy += dy;
         }
-        var bleftG = CalculateMaxG(zonesFixed, map, cy, current);
+        var bleftG = CalculateMaxG(zonesFixed, cy);
         iCell -= map.Width;
         for (int x = 0; x < map.Width; ++x, ++iCell)
         {
             cy += dx;
-            var brightG = CalculateMaxG(zonesFixed, map, cy, current);
+            var brightG = CalculateMaxG(zonesFixed, cy);
             var bottomG = Math.Min(bleftG, brightG);
             var jCell = iCell;
             for (int y = map.Height; y > 0; --y, jCell -= map.Width)
@@ -181,11 +175,11 @@ public struct NavigationDecision
 
     private static float ActivationToG(DateTime activation, DateTime current) => MathF.Max(0, (float)(activation - current).TotalSeconds - ActivationTimeCushion);
 
-    private static float CalculateMaxG(Span<(Func<WPos, float> shapeDistance, DateTime activation)> zones, Map map, WPos p, DateTime current)
+    private static float CalculateMaxG(Span<(Func<WPos, float> shapeDistance, float g)> zones, WPos p)
     {
         foreach (ref var z in zones)
             if (z.shapeDistance(p) < ForbiddenZoneCushion)
-                return ActivationToG(z.activation, current);
+                return z.g;
         return float.MaxValue;
     }
 
