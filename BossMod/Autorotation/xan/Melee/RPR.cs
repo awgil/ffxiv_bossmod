@@ -7,7 +7,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 {
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan RPR", "Reaper", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.RPR), 100);
+        var def = new RotationModuleDefinition("xan RPR", "Reaper", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.RPR), 100);
 
         def.DefineShared().AddAssociatedActions(AID.ArcaneCircle);
 

@@ -21,7 +21,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan RDM", "Red Mage", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.RDM), 100);
+        var def = new RotationModuleDefinition("xan RDM", "Red Mage", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.RDM), 100);
 
         def.DefineShared().AddAssociatedActions(AID.Embolden, AID.Manafication);
 
