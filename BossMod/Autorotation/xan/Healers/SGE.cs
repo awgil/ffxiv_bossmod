@@ -86,6 +86,8 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
+        GoalZoneCombined(25, Hints.GoalAOECircle(5), 2);
+
         if (!Player.InCombat && Unlocked(AID.Eukrasia) && !Eukrasia && Player.MountId == 0)
             PushGCD(AID.Eukrasia, Player);
 

@@ -7,7 +7,7 @@ using ImGuiNET;
 
 namespace BossMod;
 
-class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManagerEx amex, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud) : UIWindow("Boss mod debug UI", false, new(300, 200))
+class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleManager zmm, ActionManagerEx amex, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud) : UIWindow("Boss mod debug UI", false, new(300, 200))
 {
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
     private readonly DebugObjects _debugObjects = new();
@@ -90,6 +90,13 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
         if (ImGui.CollapsingHeader("Autorotation"))
         {
             _debugAutorot.Draw();
+        }
+        if (ImGui.CollapsingHeader("Solo duty module"))
+        {
+            if (zmm.ActiveModule is QuestBattle.QuestBattle qb)
+                qb.DrawExtra();
+            else
+                ImGui.Text("Inactive");
         }
         if (ImGui.CollapsingHeader("Graphics scene"))
         {

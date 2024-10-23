@@ -280,7 +280,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool ShouldVice(StrategyValues strategy) => Swiftscaled > GCD && DreadCombo == 0 && ReadyIn(AID.Vicewinder) <= GCD;
 
-    private bool ShouldCoil(StrategyValues strategy) => Coil > 1 && Swiftscaled > GCD && DreadCombo == 0;
+    private bool ShouldCoil(StrategyValues strategy) => Coil == CoilMax && Swiftscaled > GCD && DreadCombo == 0;
 
     private void OGCD(StrategyValues strategy, Actor? primaryTarget)
     {
@@ -336,6 +336,12 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
             if (DreadCombo == DreadCombo.SwiftskinsCoil)
                 return (Positional.Flank, true);
+
+            if (DreadCombo is DreadCombo.HuntersDen or DreadCombo.SwiftskinsDen or DreadCombo.PitOfDread)
+                return (Positional.Any, false);
+
+            if (NumAOETargets > 2)
+                return (Positional.Any, false);
 
             return ComboLastMove switch
             {
