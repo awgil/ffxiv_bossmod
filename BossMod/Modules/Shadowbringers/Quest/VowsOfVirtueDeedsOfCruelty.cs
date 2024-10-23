@@ -81,7 +81,7 @@ class EstinienAI(WorldState ws) : UnmanagedRotation(ws, 3)
         if (primaryTarget == null)
             return;
 
-        if (Hints.PotentialTargets.Any(x => x.Actor.OID == (uint)OID.SigniferPraetorianus))
+        if (Hints.PotentialTargets.Any(x => (OID)x.Actor.OID is OID.SigniferPraetorianus or OID.MagitekBit))
             UseAction(Roleplay.AID.HorridRoar, Player);
 
         if (World.Party.LimitBreakCur == 10000)
