@@ -325,7 +325,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private float lcLeft; //Time remaining for Lance Charge
     private float lcCD; //Cooldown for Lance Charge
     private float powerLeft; //Time remaining for Power Surge
-    private float chaosLeft; //Remaining time for Chaotic Spring effect
+    private float chaosLeft; //Remaining time for Chaotic Spring DoT
 
     public float downtimeIn; //Duration of downtime in combat
     private float PotionLeft; //Remaining time for potion effect
@@ -345,14 +345,14 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private bool hasNastrond; //Flag for Nastrond status
 
     private bool canLC; //Ability to use Lance Charge
-    private bool canBL; //Ability to use Blood of the Dragon
+    private bool canBL; //Ability to use Battle Litany
     private bool canLS; //Ability to use Life Surge
     private bool canJump; //Ability to use Jump
     private bool canDD; //Ability to use Dragonfire Dive
     private bool canGeirskogul; //Ability to use Geirskogul
     private bool canMD; //Ability to use Mirage Dive
     private bool canNastrond; //Ability to use Nastrond
-    private bool canSD; //Ability to use Sonic Dance
+    private bool canSD; //Ability to use Stardiver
     private bool canWT; //Ability to use Wyrmwind Thrust
     private bool canROTD; //Ability to use Rise of the Dragon
     private bool canSC; //Ability to use Starcross
@@ -435,12 +435,12 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         #region Cooldown-related
 
-        //Gauge management
+        //Gauge Management
         var gauge = World.Client.GetGauge<DragoonGauge>();  //Retrieve Dragoon gauge data
         focusCount = gauge.FirstmindsFocusCount;  //Update focus count from the gauge
         hasLOTD = gauge.LotdTimer > 0;  //Check if Life of the Dragon (LOTD) is active
 
-        //Cooldown checks
+        //Cooldown Checks
         lcCD = CD(DRG.AID.LanceCharge);  //Get cooldown for Lance Charge
         lcLeft = SelfStatusLeft(DRG.SID.LanceCharge, 20);  //Get remaining time for Lance Charge effect
         powerLeft = SelfStatusLeft(DRG.SID.PowerSurge, 30);  //Get remaining time for Power Surge effect
@@ -455,19 +455,19 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         hasDF = HasEffect(DRG.SID.DragonsFlight);  //Check if Dragon's Flight effect is active
         hasSC = HasEffect(DRG.SID.StarcrossReady);  //Check if Starcross is ready
 
-        //Cooldown availability checks
-        canLC = Unlocked(DRG.AID.LanceCharge) && ActionReady(DRG.AID.LanceCharge);  //Can use Lance Charge?
-        canBL = Unlocked(DRG.AID.BattleLitany) && ActionReady(DRG.AID.BattleLitany);  //Can use Battle Litany?
-        canLS = Unlocked(DRG.AID.LifeSurge);  //Can use Life Surge if cooldown is sufficient
-        canJump = Unlocked(DRG.AID.Jump) && ActionReady(DRG.AID.Jump);  //Can use Jump?
-        canDD = Unlocked(DRG.AID.DragonfireDive) && ActionReady(DRG.AID.DragonfireDive);  //Can use Dragonfire Dive?
-        canGeirskogul = Unlocked(DRG.AID.Geirskogul) && ActionReady(DRG.AID.Geirskogul);  //Can use Geirskogul?
-        canMD = Unlocked(DRG.AID.MirageDive) && hasMD;  //Can use Mirage Dive if it's ready
-        canNastrond = Unlocked(DRG.AID.Nastrond) && hasNastrond;  //Can use Nastrond if it's ready
-        canSD = Unlocked(DRG.AID.Stardiver) && ActionReady(DRG.AID.Stardiver);  //Can use Stardiver?
-        canWT = Unlocked(DRG.AID.WyrmwindThrust) && ActionReady(DRG.AID.WyrmwindThrust);  //Can use Wyrmwind Thrust?
-        canROTD = Unlocked(DRG.AID.RiseOfTheDragon) && hasDF;  //Can use Rise of the Dragon if Dragon's Flight is active
-        canSC = Unlocked(DRG.AID.Starcross) && hasSC;  //Can use Starcross if it's ready
+        //Minimum Conditions
+        canLC = Unlocked(DRG.AID.LanceCharge) && ActionReady(DRG.AID.LanceCharge);  //minimum condition(s) to execute Lance Charge
+        canBL = Unlocked(DRG.AID.BattleLitany) && ActionReady(DRG.AID.BattleLitany);  //minimum condition(s) to execute Battle Litany
+        canLS = Unlocked(DRG.AID.LifeSurge);  //minimum condition(s) to execute Life Surge
+        canJump = Unlocked(DRG.AID.Jump) && ActionReady(DRG.AID.Jump);  //minimum condition(s) to execute Jump
+        canDD = Unlocked(DRG.AID.DragonfireDive) && ActionReady(DRG.AID.DragonfireDive);  //minimum condition(s) to execute Dragonfire Dive
+        canGeirskogul = Unlocked(DRG.AID.Geirskogul) && ActionReady(DRG.AID.Geirskogul);  //minimum condition(s) to execute Geirskogul
+        canMD = Unlocked(DRG.AID.MirageDive) && hasMD;  //minimum condition(s) to execute Mirage Dive
+        canNastrond = Unlocked(DRG.AID.Nastrond) && hasNastrond;  //minimum condition(s) to execute Nastrond
+        canSD = Unlocked(DRG.AID.Stardiver) && ActionReady(DRG.AID.Stardiver);  //minimum condition(s) to execute Stardiver
+        canWT = Unlocked(DRG.AID.WyrmwindThrust) && ActionReady(DRG.AID.WyrmwindThrust);  //minimum condition(s) to execute Wyrmwind Thrust
+        canROTD = Unlocked(DRG.AID.RiseOfTheDragon) && hasDF;  //minimum condition(s) to execute Rise of the Dragon
+        canSC = Unlocked(DRG.AID.Starcross) && hasSC;  //minimum condition(s) to execute Starcross
 
         #endregion
 
