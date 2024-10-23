@@ -140,7 +140,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     public static RotationModuleDefinition Definition()
     {
         //Module title & signature
-        var res = new RotationModuleDefinition("DRG (Akechi)", "Standard Rotation Module", "Standard rotation (Akechi)", "Akechi", RotationModuleQuality.Ok, BitMask.Build(Class.LNC, Class.DRG), 100);
+        var res = new RotationModuleDefinition("DRG (Akechi)", "Standard Rotation Module", "Standard rotation (Akechi)", "Akechi", RotationModuleQuality.Good, BitMask.Build(Class.LNC, Class.DRG), 100);
 
         #region Custom Strategies
         //Targeting strategy
@@ -302,15 +302,15 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Flexible actions with varying priorities
         MirageDive = 500,          //Priority for Mirage Dive
         Nastrond = 540,            //Priority for Nastrond
-        RiseOfTheDragon = 550,     //Priority for Rise of the Dragon
-        Starcross = 550,           //Priority for Starcross
-        WyrmwindThrust = 590,      //Priority for Wyrmwind Thrust
-        TrueNorth = 595,           //Priority for True North
-        Stardiver = 600,           //Priority for Stardiver
+        Stardiver = 550,           //Priority for Stardiver
+        RiseOfTheDragon = 560,     //Priority for Rise of the Dragon
+        Starcross = 560,           //Priority for Starcross
+        WyrmwindThrust = 570,      //Priority for Wyrmwind Thrust (normal)
+        TrueNorth = 580,           //Priority for True North
         //Non-flexible actions with fixed priorities
-        Jump = 670,                //Priority for Jump
+        Jump = 660,                //Priority for Jump
+        WyrmwindThrustOpti = 670,  //Priority for Wyrmwind Thrust (optimal)
         DragonfireDive = 680,      //Priority for Dragonfire Dive
-        WyrmwindThrustOpti = 690,  //Priority for Wyrmwind Thrust (optimal)
         Geirskogul = 700,          //Priority for Geirskogul
         Buffs = 800,               //Priority for buffs
         ForcedOGCD = 900,          //High priority for forced oGCD actions
@@ -532,8 +532,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Determine if using AOE is viable (at least 3 targets hit)
         var useAOE = AOETargetCount >= 3;
 
-        //Determine if using Spear is viable (at least 1 target hit)
-        var useSpear = SpearTargetCount > 0;
+        //Determine if using Spear is viable (at least 2 targets hit)
+        var useSpear = SpearTargetCount > 1;
 
         //Select the best target for Spear based on whether it's viable, or default to primary target
         var bestSpeartarget = useSpear ? SpearBestTarget : primaryTarget;
@@ -595,7 +595,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Execute Wyrmwind Thrust if available
         var wtStrat = strategy.Option(Track.WyrmwindThrust).As<OffensiveStrategy>();
         if (!hold && ShouldUseWyrmwindThrust(wtStrat, primaryTarget))
-            QueueOGCD(DRG.AID.WyrmwindThrust, bestSpeartarget, wtStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : (ComboLastMove is DRG.AID.Drakesbane ? OGCDPriority.WyrmwindThrustOpti : OGCDPriority.WyrmwindThrust));
+            QueueOGCD(DRG.AID.WyrmwindThrust, bestSpeartarget, wtStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : (HasEffect(DRG.SID.LanceCharge) ? OGCDPriority.WyrmwindThrustOpti : OGCDPriority.WyrmwindThrust));
 
         //Execute Rise of the Dragon if available
         var riseStrat = strategy.Option(Track.RiseOfTheDragon).As<OffensiveStrategy>();
@@ -931,7 +931,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         OffensiveStrategy.Automatic =>
             //Use Nastrond automatically if the player is in combat, has Nastrond ready, the target is within 15y, and Lance Charge is active
-            Player.InCombat && In15y(target) && canNastrond && hasLC,
+            Player.InCombat && In15y(target) && canNastrond,
         OffensiveStrategy.Force => true, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
