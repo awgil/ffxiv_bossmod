@@ -1,6 +1,4 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using System;
-using static BossMod.ActorCastEvent;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
