@@ -137,6 +137,9 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
         {
             autorot.Hints.GoalZones.Clear();
             autorot.Hints.GoalZones.Add(autorot.Hints.GoalSingleTarget(forceDestination, forceDestinationRange));
+            // 99.9% of interact objects have a range of 3.5y, so add a fallback
+            if (forceDestinationRange == 2.09f)
+                autorot.Hints.GoalZones.Add(autorot.Hints.GoalSingleTarget(forceDestination, 3.5f));
             return NavigationDecision.Build(_naviCtx, WorldState, autorot.Hints, player);
         }
 
