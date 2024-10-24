@@ -1,4 +1,3 @@
-using BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.SecretPegasus;
 namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D80Gudanna;
 
 public enum OID : uint
