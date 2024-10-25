@@ -379,9 +379,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     //Check if the desired action is ready (cooldown < 0.6 seconds)
     private bool ActionReady(DRG.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining < 0.6f;
 
-    //Check if this is the first GCD in combat
-    private bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f;
-
     //Check if the potion should be used before raid buffs expire
     private bool IsPotionBeforeRaidbuffs() => RaidBuffsLeft == 0 && PotionLeft > RaidBuffsIn + 17.5f;
 
