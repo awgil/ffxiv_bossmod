@@ -104,6 +104,9 @@ public enum SID : uint
     Sleep = 3, // applied by Repose to target
     BanefulImpaction = 3883, // applied by Baneful Impaction to target
     ImpactImminent = 3882, // applied by Chain Stratagem to self
+
+    //Shared
+    Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
 public sealed class Definitions : IDisposable

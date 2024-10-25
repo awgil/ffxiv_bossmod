@@ -1,4 +1,4 @@
-﻿namespace BossMod.Modules.Heavensward.DeepDungeon.PalaceOfTheDead.D120Kirtimukha;
+﻿namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D120Kirtimukha;
 
 public enum OID : uint
 {

@@ -1,4 +1,4 @@
-namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D30Ningishzida;
+namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D30Ningishzida;
 
 public enum OID : uint
 {

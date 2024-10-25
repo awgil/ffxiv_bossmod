@@ -85,6 +85,9 @@ public enum SID : uint
     Delirium = 1972,
     EnhancedDelirium = 3836,
     Scorn = 3837,
+
+    //Shared
+    Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
 }
 
 public sealed class Definitions : IDisposable

@@ -98,7 +98,6 @@ public enum SID : uint
     ThrillOfBattle = 87, // applied by Thrill of Battle to self
     Holmgang = 409, // applied by Holmgang to self
     EquilibriumRegen = 2681, // applied by Equilibrium to self, hp regen
-    Reprisal = 1193, // applied by Reprisal to target
     ShakeItOff = 1457, // applied by Shake It Off to self/target, damage shield
     ShakeItOffHOT = 2108, // applied by Shake It Off to self/target
     RawIntuition = 735, // applied by Raw Intuition to self
@@ -118,6 +117,9 @@ public enum SID : uint
     LostFontOfPower = 2346,
     LostBloodRage = 2566,
     BloodRush = 2567,
+
+    //Shared
+    Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
 }
 
 public sealed class Definitions : IDisposable

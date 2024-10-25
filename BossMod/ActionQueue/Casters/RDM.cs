@@ -97,7 +97,10 @@ public enum SID : uint
     MagickedSwordplay = 3875,
     ThornedFlourish = 3876,
     GrandImpactReady = 3877,
-    PrefulgenceReady = 3878
+    PrefulgenceReady = 3878,
+
+    //Shared
+    Addle = ClassShared.SID.Addle, // applied by Addle to target
 }
 
 public sealed class Definitions : IDisposable

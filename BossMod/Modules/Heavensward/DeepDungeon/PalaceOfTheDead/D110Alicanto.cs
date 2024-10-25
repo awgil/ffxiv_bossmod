@@ -1,4 +1,4 @@
-namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D110Alicanto;
+namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D110Alicanto;
 
 public enum OID : uint
 {

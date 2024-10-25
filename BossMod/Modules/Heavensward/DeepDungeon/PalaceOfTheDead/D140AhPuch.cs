@@ -1,4 +1,4 @@
-﻿namespace BossMod.Modules.Heavensward.DeepDungeon.PalaceOfTheDead.D140AhPuch;
+﻿namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D140AhPuch;
 
 public enum OID : uint
 {

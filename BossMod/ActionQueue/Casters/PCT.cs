@@ -100,6 +100,9 @@ public enum SID : uint
     Hyperphantasia = 3688, // applied by Starry Muse to self
     Starstruck = 3681, // applied by Starry Muse to self
     RainbowBright = 3679,
+
+    //Shared
+    Addle = ClassShared.SID.Addle, // applied by Addle to target
 }
 
 public sealed class Definitions : IDisposable

@@ -93,6 +93,9 @@ public enum SID : uint
     SupplicationReady = 3827, // applied by Atonement to self
     SepulchreReady = 3828, // applied by Supplication to self
     BladeOfHonorReady = 3831, // applied by Requiescat to self
+
+    //Shared
+    Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
 }
 
 public sealed class Definitions : IDisposable

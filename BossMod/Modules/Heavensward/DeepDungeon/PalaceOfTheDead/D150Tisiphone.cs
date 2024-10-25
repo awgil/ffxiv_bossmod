@@ -1,4 +1,4 @@
-namespace BossMod.Modules.Heavensward.DeepDungeon.PalaceOfTheDead.D150Tisiphone;
+namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D150Tisiphone;
 
 public enum OID : uint
 {

@@ -86,13 +86,15 @@ public enum SID : uint
     DraconianFire = 1863, // applied by Fang and Claw, Wheeling Thrust to self
     RightEye = 1910, // applied by Dragon Sight to self
     DiveReady = 1243, // applied by Jump to self
-    TrueNorth = 1250, // applied by True North to self, ignore positionals
     Bloodbath = 84, // applied by Bloodbath to self, lifesteal
-    Feint = 1195, // applied by Feint to target, -10% phys and -5% magic damage dealt
     Stun = 2, // applied by Leg Sweep to target
     NastrondReady = 3844, // applied by Geirskogul to self
     DragonsFlight = 3845, // applied by Dragonfire Dive to self
     StarcrossReady = 3846, // applied by Stardiver to self
+
+    //Shared
+    Feint = ClassShared.SID.Feint, // applied by Feint to target
+    TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
 public sealed class Definitions : IDisposable

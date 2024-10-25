@@ -1,4 +1,4 @@
-namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D90TheGodmother;
+namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D90TheGodmother;
 
 public enum OID : uint
 {

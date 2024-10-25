@@ -1,4 +1,4 @@
-namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D10PalaceDeathgaze;
+namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D10PalaceDeathgaze;
 
 public enum OID : uint
 {

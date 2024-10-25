@@ -107,7 +107,6 @@ public enum SID : uint
     Bloodbath = 84, // applied by Bloodbath to self
     TrickAttack = 3254, // applied by Trick Attack to target
     KunaisBane = 3906, // applied by Kunai's Bane to target
-    Feint = 1195, // applied by Feint to target
     TenChiJin = 1186, // applied by Ten Chi Jin to self
     Mudra = 496, // applied by Ten, Ten, Chi, Chi, Jin, Jin to self
     RaijuReady = 2690, // applied by Raiton, Raiton to self
@@ -120,6 +119,10 @@ public enum SID : uint
     Meisui = 2689, // applied by Meisui to self
     Bunshin = 1954, // applied by Bunshin to self
     PhantomKamaitachiReady = 2723, // applied by Bunshin to self
+
+    //Shared
+    Feint = ClassShared.SID.Feint, // applied by Feint to target
+    TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
 public sealed class Definitions : IDisposable

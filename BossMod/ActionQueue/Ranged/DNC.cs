@@ -110,12 +110,14 @@ public enum SID : uint
     ThreefoldFanDance = 1820, // applied by Flourish, Fan Dance, Fan Dance II to self
     FourfoldFanDance = 2699, // applied by Flourish to self
     SilkenFlow = 2694, // applied by Fountain to self
-    Peloton = 1199, // applied by Peloton to self
     DancePartner = 1824, // applied by Closed Position to target
     ClosedPosition = 1823, // applied by Closed Position to self
     LastDanceReady = 3867,
     FinishingMoveReady = 3868,
     DanceOfTheDawnReady = 3869,
+
+    //Shared
+    Peloton = ClassShared.SID.Peloton, // applied by Peloton to self/party
 }
 
 public sealed class Definitions : IDisposable

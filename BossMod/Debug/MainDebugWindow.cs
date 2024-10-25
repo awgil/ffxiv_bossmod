@@ -94,9 +94,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         if (ImGui.CollapsingHeader("Solo duty module"))
         {
             if (zmm.ActiveModule is QuestBattle.QuestBattle qb)
-                qb.DrawExtra();
-            else
-                ImGui.Text("Inactive");
+                qb.DrawDebugInfo();
         }
         if (ImGui.CollapsingHeader("Graphics scene"))
         {

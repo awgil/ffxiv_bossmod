@@ -124,8 +124,6 @@ public enum TraitID : uint
 public enum SID : uint
 {
     None = 0,
-    Addle = 1203, // applied by Addle to target, -5% phys and -10% magic damage dealt
-    Swiftcast = 167, // applied by Swiftcast to self, next cast is instant
     Sleep = 3, // applied by Sleep to target
     FurtherRuin = 2701, // applied by Energy Drain, Energy Siphon to self
     LucidDreaming = 1204, // applied by Lucid Dreaming to self
@@ -138,6 +136,11 @@ public enum SID : uint
     GarudasFavor = 2725, // applied by Summon Garuda II to self
     RubysGlimmer = 3873, // applied by Searing Light to self
     RefulgentLux = 3874, // applied by Summon Solar Bahamut to self
+
+    //Shared
+    Addle = ClassShared.SID.Addle, // applied by Addle to target
+    Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
+
 }
 
 public sealed class Definitions : IDisposable

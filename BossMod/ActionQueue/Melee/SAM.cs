@@ -83,7 +83,6 @@ public enum SID : uint
 {
     None = 0,
     Fugetsu = 1298, // applied by Jinpu, Gekko to self
-    Feint = 1195, // applied by Feint to target
     Higanbana = 1228, // applied by Higanbana to target
     Fuka = 1299, // applied by Kasha to self
     MeikyoShisui = 1233, // applied by Meikyo Shisui to self
@@ -91,13 +90,16 @@ public enum SID : uint
     KaeshiSetsugekka = 4216, // applied by Midare Setsugekka to self
     TendoKaeshiGoken = 4217, // applied by Tendo Goken to self
     TendoKaeshiSetsugekka = 4218, // applied by Tendo Setsugekka to self
-    TrueNorth = 1250, // applied by True North to self
     EnhancedEnpi = 1236, // applied by Hissatsu: Yaten to self
     Meditate = 1231, // applied by Meditate to self
     OgiNamikiriReady = 2959, // applied by Ikishoten to self
     Tengentsu = 3853, // applied by Tengentsu to self
     ZanshinReady = 3855, // applied by Ikishoten to self
     Tendo = 3856, // applied by Meikyo Shisui to self
+
+    //Shared
+    Feint = ClassShared.SID.Feint, // applied by Feint to target
+    TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
 public sealed class Definitions : IDisposable

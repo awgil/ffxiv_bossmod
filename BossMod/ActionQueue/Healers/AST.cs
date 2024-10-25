@@ -96,7 +96,6 @@ public enum SID : uint
 {
     None = 0,
     LucidDreaming = 1204, // applied by Lucid Dreaming to self
-    Swiftcast = 167, // applied by Swiftcast to self
     Surecast = 160, // applied by Surecast to self
     Combust = 838,
     AspectedHelios = 836,
@@ -109,6 +108,9 @@ public enum SID : uint
     TheBalance = 3887,
     TheSpear = 3889,
     Divining = 3893,
+
+    //Shared
+    Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
 public sealed class Definitions : IDisposable

@@ -63,6 +63,26 @@ public enum AID : uint
     DeflectVeryEasy = 18863
 }
 
+public enum SID : uint
+{
+    None = 0,
+
+    // Tank
+    Reprisal = 1193, // applied by Reprisal to target
+
+    // Melee
+    Feint = 1195, // applied by Feint to self
+    TrueNorth = 1250, // applied by True North to self
+
+    // PhysRanged
+    Peloton = 1199, // applied by Peloton to self/party
+
+    // Caster/Healer
+    Addle = 1203, // applied by Addle to target
+    Swiftcast = 167, // applied by Swiftcast to self
+    Raise = 148, // applied by Raise to target
+}
+
 public sealed class Definitions : IDisposable
 {
     public Definitions(ActionDefinitions d)
