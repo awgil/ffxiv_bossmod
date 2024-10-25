@@ -110,7 +110,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         Forbid,                //Forbid the use of Piercing Talon
         Allow,                 //Use Piercing Talon when appropriate
-        Opener,                //Use Piercing Talon as an opener
         Force,                 //Force use of Piercing Talon
     }
 
