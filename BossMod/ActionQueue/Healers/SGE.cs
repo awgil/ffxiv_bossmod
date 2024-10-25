@@ -87,7 +87,6 @@ public enum SID : uint
     None = 0,
     Sprint = 50, // applied by Sprint to self
     Surecast = 160, // applied by Surecast to self
-    Swiftcast = 167, // applied by Swiftcast to self
     Eukrasia = 2606,
     Kardion = 2605, // applied by Kardia to self
     Kardia = 2604, // applied by Kardia to self
@@ -113,6 +112,9 @@ public enum SID : uint
     EukrasianDosisII = 2615, // applied by Eukrasian Dosis II to target
     EukrasianDosisIII = 2616, // applied by Eukrasian Dosis III to target
     EukrasianDyskrasia = 3897, // applied by Eukrasian Dyskrasia to target
+
+    //Shared
+    Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
 public sealed class Definitions : IDisposable

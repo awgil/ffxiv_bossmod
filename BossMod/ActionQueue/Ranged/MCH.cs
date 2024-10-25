@@ -91,6 +91,9 @@ public enum SID : uint
     Flamethrower = 1205, // applied by Flamethrower to self
     ExcavatorReady = 3865, // applied by Chain Saw to self
     FullMetalMachinist = 3866, // applied by Hypercharge to self
+
+    //Shared
+    Peloton = ClassShared.SID.Peloton, // applied by Peloton to self/party
 }
 
 public sealed class Definitions : IDisposable

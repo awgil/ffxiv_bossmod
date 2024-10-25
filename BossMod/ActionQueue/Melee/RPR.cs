@@ -95,15 +95,17 @@ public enum SID : uint
     Threshold = 2595,
     CircleofSacrifice = 2600,
     BloodsownCircle = 2972,
-    TrueNorth = 1250,
     Bloodbath = 84,
-    Feint = 1195,
     Stun = 2,
     IdealHost = 3905,
     Oblatio = 3857,
     Executioner = 3858,
     PerfectioOcculta = 3859,
-    PerfectioParata = 3860
+    PerfectioParata = 3860,
+
+    //Shared
+    Feint = ClassShared.SID.Feint, // applied by Feint to target
+    TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
 public sealed class Definitions : IDisposable

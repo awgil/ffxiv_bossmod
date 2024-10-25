@@ -106,6 +106,10 @@ public enum SID : uint
     TwinbloodfangAOE = 3774, // applied by Swiftskin's Den, Hunter's Den to self
     PoisedForTwinfang = 3665, // applied by Uncoiled Fury, Uncoiled Twinblood to self
     PoisedForTwinblood = 3666, // applied by Uncoiled Fury, Uncoiled Twinfang to self
+
+    //Shared
+    Feint = ClassShared.SID.Feint, // applied by Feint to target
+    TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
 public sealed class Definitions : IDisposable

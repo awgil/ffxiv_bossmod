@@ -84,7 +84,6 @@ public enum SID : uint
 {
     None = 0,
     RagingStrikes = 125, // applied by Raging Strikes to self
-    Peloton = 1199, // applied by Peloton to self/target
     ArmsLength = 1209, // applied by Arm's Length to self
     Barrage = 128, // applied by Barrage to self
     BattleVoice = 141, // applied by Battle Voice to self/target
@@ -106,6 +105,9 @@ public enum SID : uint
     ArmysEthos = 1933, // applied when leaving army's paeon without starting new song
     ResonantArrowReady = 3862, // applied by Barrage to self
     RadiantEncoreReady = 3863, // applied by Radiant Finale to self
+
+    //Shared
+    Peloton = ClassShared.SID.Peloton, // applied by Peloton to self/party
 }
 
 public sealed class Definitions : IDisposable

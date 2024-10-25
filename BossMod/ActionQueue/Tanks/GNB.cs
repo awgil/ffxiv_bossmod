@@ -88,7 +88,6 @@ public enum SID : uint
     ReadyToBlast = 2686, // applied by Burst Strike to self
     Nebula = 1834, // applied by Nebula to self
     Rampart = 1191, // applied by Rampart to self
-    Reprisal = 1193, // applied by Reprisal to target
     Camouflage = 1832, // applied by Camouflage to self
     ArmsLength = 1209, // applied by Arm's Length to self
     HeartOfLight = 1839, // applied by Heart of Light to self
@@ -103,6 +102,9 @@ public enum SID : uint
     ReadyToRaze = 3839, // applied by Fated Circle to self
     ReadyToBreak = 3886, // applied by No mercy to self
     ReadyToReign = 3840, // applied by Bloodfest to target
+
+    //Shared
+    Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
 }
 
 public sealed class Definitions : IDisposable
