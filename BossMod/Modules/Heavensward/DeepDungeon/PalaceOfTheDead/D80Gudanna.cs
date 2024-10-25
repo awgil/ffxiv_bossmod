@@ -24,9 +24,59 @@ class Trounce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.
 class EclipticMeteor(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EclipticMeteor), "Kill him before he kills you! 80% max HP damage incoming!");
 class Thunderbolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Thunderbolt), new AOEShapeCone(16.6f, 60.Degrees()));
 
-// things to do:
-// add a hint counter to tell the player where the boss is going to cast Trounce next
-// It's always East wall -> West wall -> East... ect
+class EncounterHints(BossModule module) : BossComponent(module)
+{
+    private int NumCast { get; set; }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.Charybdis or AID.Trounce or AID.Thunderbolt)
+            ++NumCast;
+
+        if ((AID)spell.Action.ID is AID.EclipticMeteor)
+            NumCast = 9;
+
+        if (NumCast == 8)
+        {
+            // reset the rotation back to the beginning. This loops continuously until you hit the hp threshold (10.0% here)
+            NumCast = 0;
+        }
+    }
+
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        switch (NumCast)
+        {
+            case 0:
+                hints.Add("Thunderbolt -> Charybdis -> Thunderbolt -> Trounce from East Wall");
+                break;
+            case 1:
+                hints.Add("Charybdis -> Thunderbolt -> Trounce from East Wall");
+                break;
+            case 2:
+                hints.Add("Thunderbolt -> Trounce from East Wall");
+                break;
+            case 3:
+                hints.Add("Trounce from East Wall");
+                break;
+            case 4:
+                hints.Add("Charybdis -> Thunderbolt -> Charybdis -> Trounce from West Wall.");
+                break;
+            case 5:
+                hints.Add("Thunderbolt -> Charybdis -> Trounce from West Wall.");
+                break;
+            case 6:
+                hints.Add("Charybdis -> Trounce from West Wall!");
+                break;
+            case 7:
+                hints.Add("Trounce from West Wall!");
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
@@ -45,7 +95,8 @@ class D80GudannaStates : StateMachineBuilder
             .ActivateOnEnter<Maelstrom>()
             .ActivateOnEnter<Trounce>()
             .ActivateOnEnter<EclipticMeteor>()
-            .DeactivateOnEnter<Hints>();
+            .DeactivateOnEnter<Hints>()
+            .ActivateOnEnter<EncounterHints>();
     }
 }
 
