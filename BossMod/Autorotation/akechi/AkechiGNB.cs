@@ -245,7 +245,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         FatedCircle = 400,
         BurstStrike = 500,
         Reign = 525,
-        GF23 = 550,
+        comboNeed = 550,
+        GF23 = 575,
         SonicBreak = 600,
         DoubleDown = 675,
         GF1 = 700,
@@ -463,7 +464,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         #region Rotation Execution
         //Determine and queue combo actions
         var (comboAction, comboPrio) = ComboActionPriority(AOEStrategy, AoETargets, burstStrategy, burst.Value.ExpireIn);
-        QueueGCD(comboAction, comboAction is GNB.AID.DemonSlice or GNB.AID.DemonSlaughter ? Player : primaryTarget, comboPrio);
+        QueueGCD(comboAction, comboAction is GNB.AID.DemonSlice or GNB.AID.DemonSlaughter ? Player : primaryTarget, Ammo == 0 ? GCDPriority.comboNeed : comboPrio);
 
         #region OGCDs
         //No Mercy execution
@@ -512,7 +513,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //Double Down execution
         var ddStrat = strategy.Option(Track.DoubleDown).As<OffensiveStrategy>();
         if (ShouldUseDoubleDown(ddStrat, primaryTarget))
-            QueueGCD(GNB.AID.DoubleDown, primaryTarget, ddStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.DoubleDown);
+            QueueGCD(GNB.AID.DoubleDown, primaryTarget, ((ddStrat == OffensiveStrategy.Force) || Ammo == 2) ? GCDPriority.ForcedGCD : GCDPriority.DoubleDown);
 
         //Gnashing Fang Combo execution
         if (GunComboStep == 1)
@@ -686,7 +687,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     };
 
     //Determines when to use No Mercy
-    //NOTE: Using SkS GNB for now; use No Mercy as soon as full cartridges are available
     private bool ShouldUseNoMercy(NoMercyStrategy strategy, Actor? target) => strategy switch
     {
         NoMercyStrategy.Automatic =>
