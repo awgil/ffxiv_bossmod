@@ -1,4 +1,4 @@
-namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D40Ixtab;
+namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D40Ixtab;
 
 public enum OID : uint
 {

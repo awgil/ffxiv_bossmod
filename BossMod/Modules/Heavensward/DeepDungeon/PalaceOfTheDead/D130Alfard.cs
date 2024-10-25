@@ -1,6 +1,4 @@
-﻿using BossMod.Heavensward.Dungeon.D06AetherochemicalResearchFacility.D062Harmachis;
-
-namespace BossMod.Modules.Heavensward.DeepDungeon.PalaceOfTheDead.D130Alfard;
+﻿namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D130Alfard;
 
 public enum OID : uint
 {

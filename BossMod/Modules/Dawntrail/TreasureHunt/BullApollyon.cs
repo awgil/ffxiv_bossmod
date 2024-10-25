@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x4305, // R7.000, x1
     Helper = 0x233C, // R0.500, x16, Helper type
-    // The following 5 need to be killed in order from 1->5 to maximize the rewards 
+    // The following 5 need to be killed in order from 1->5 to maximize the rewards
     TuraliOnion = 0x4300, // R0.840, // Icon #1
     TuraliEggplant = 0x4301, // R0.840, x0 // Icon #2
     TuraliGarlic = 0x4302, // R0.840, x0 // Icon #3
@@ -101,5 +101,5 @@ class BullApollyonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 993, NameID = 13247)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 993, NameID = 13247)]
 public class BullApollyon(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -372), new ArenaBoundsCircle(20));
