@@ -1,4 +1,4 @@
-namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D20Spurge;
+namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D20Spurge;
 
 public enum OID : uint
 {

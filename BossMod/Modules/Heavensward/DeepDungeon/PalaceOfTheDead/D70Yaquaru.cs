@@ -1,4 +1,4 @@
-namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D70Taquaru;
+namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D70Taquaru;
 
 public enum OID : uint
 {

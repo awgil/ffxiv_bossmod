@@ -1,4 +1,4 @@
-namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D100NybethObdilord;
+namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D100NybethObdilord;
 
 public enum OID : uint
 {
