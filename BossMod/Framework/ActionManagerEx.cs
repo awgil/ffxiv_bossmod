@@ -259,15 +259,29 @@ public sealed unsafe class ActionManagerEx : IDisposable
             var holsterIndex = state != null ? state->HolsterActions.IndexOf((byte)action.ID) : -1;
             return holsterIndex >= 0 && PublicContentBozja.GetInstance()->UseFromHolster((uint)holsterIndex, action.Type == ActionType.BozjaHolsterSlot1 ? 1u : 0);
         }
-        else if (action.Type == ActionType.PetAction && action.ID == 3)
+        else if (action.Type == ActionType.PetAction)
         {
-            // pet actions are special; TODO support actions other than place (3), these use different send-packet function
-            var now = DateTime.Now;
-            if (_nextAllowedExecuteCommand > now)
-                return false;
-            _nextAllowedExecuteCommand = now.AddMilliseconds(100);
-            _executeCommandGT(1800, &targetPos, action.ID, 0, 0, 0);
-            return true;
+            // pet action "Place" - uses location targeting but doesn't interact with UseActionLocation at all, meaning it requires its own send-packet function
+            if (action.ID == 3)
+            {
+                var now = DateTime.Now;
+                if (_nextAllowedExecuteCommand > now)
+                    return false;
+                _nextAllowedExecuteCommand = now.AddMilliseconds(100);
+                _executeCommandGT(1800, &targetPos, action.ID, 0, 0, 0);
+                return true;
+            }
+            else
+            {
+                // all other pet actions can be used as normal through UA (not UAL)
+                return _useActionHook.Original(_inst, CSActionType.PetAction, action.ID, targetId, 0, ActionManager.UseActionMode.None, 0, null);
+            }
+        }
+        else if (action.Type == ActionType.General)
+        {
+            // TODO: are there any general actions that require (or even work with) UAL?
+            // 23 Dismount does not, haven't tested others
+            return _useActionHook.Original(_inst, CSActionType.GeneralAction, action.ID, targetId, 0, ActionManager.UseActionMode.None, 0, null);
         }
         else
         {
