@@ -1,4 +1,4 @@
-﻿namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D190TheGodfather;
+﻿namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D190TheGodfather;
 
 public enum OID : uint
 {

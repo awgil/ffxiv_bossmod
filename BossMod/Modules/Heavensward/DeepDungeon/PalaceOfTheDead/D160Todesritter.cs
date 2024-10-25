@@ -1,4 +1,4 @@
-namespace BossMod.Modules.Heavensward.DeepDungeon.PalaceOfTheDead.D160Todesritter;
+namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D160Todesritter;
 
 public enum OID : uint
 {

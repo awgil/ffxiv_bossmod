@@ -1,4 +1,4 @@
-namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D50EddaBlackbosom;
+namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D50EddaBlackbosom;
 
 public enum OID : uint
 {

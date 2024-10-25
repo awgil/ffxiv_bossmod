@@ -1,4 +1,4 @@
-﻿namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D180Dendainsonne;
+﻿namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D180Dendainsonne;
 
 public enum OID : uint
 {

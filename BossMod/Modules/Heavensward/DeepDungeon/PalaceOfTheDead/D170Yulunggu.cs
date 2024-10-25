@@ -1,4 +1,4 @@
-﻿namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D170Yulunggu;
+﻿namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D170Yulunggu;
 
 public enum OID : uint
 {

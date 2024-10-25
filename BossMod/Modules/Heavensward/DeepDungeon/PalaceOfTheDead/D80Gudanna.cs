@@ -1,4 +1,4 @@
-namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D80Gudanna;
+namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.D80Gudanna;
 
 public enum OID : uint
 {
