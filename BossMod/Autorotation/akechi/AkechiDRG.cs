@@ -110,7 +110,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         Forbid,                //Forbid the use of Piercing Talon
         Allow,                 //Use Piercing Talon when appropriate
-        Opener,                //Use Piercing Talon as an opener
         Force,                 //Force use of Piercing Talon
     }
 
@@ -209,7 +208,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         //Piercing Talon strategy
         res.Define(Track.PiercingTalon).As<PiercingTalonStrategy>("Piercing Talon", "Talon", uiPriority: 20)
-            .AddOption(PiercingTalonStrategy.Forbid, "Forbid", "Forbid use of Piercing Talon at all")
+            .AddOption(PiercingTalonStrategy.Forbid, "Forbid", "Forbid use of Piercing Talon")
             .AddOption(PiercingTalonStrategy.Allow, "Allow", "Allow use of Piercing Talon only if already in combat & outside melee range")
             .AddOption(PiercingTalonStrategy.Force, "Force", "Force Piercing Talon usage ASAP (even in melee range)")
             .AddAssociatedActions(DRG.AID.PiercingTalon);
