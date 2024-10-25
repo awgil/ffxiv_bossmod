@@ -150,7 +150,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             .AddOption(AOEStrategy.AutoOnPrimary, "AutoOnPrimary", "Use AOE actions on primary target if profitable")
             .AddOption(AOEStrategy.ForceST, "Force ST", "Force Single-Target rotation")
             .AddOption(AOEStrategy.Force123ST, "Only 1-2-3 ST", "Force only ST 1-2-3 rotation (No Buffs)")
-            .AddOption(AOEStrategy.ForceBuffsST, "Only 1-4-5 ST", "Force only ST 1-4-5 rotation (No 1/1.5-2-3)")
+            .AddOption(AOEStrategy.ForceBuffsST, "Only 1-4-5 ST", "Force only ST 1-4-5 rotation (Buffs Only)")
             .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation, even if less than 3 targets");
 
         //Burst strategy
@@ -763,7 +763,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private DRG.AID UseOnly123ST() => ComboLastMove switch
     {
         //Start combo with TrueThrust
-        DRG.AID.TrueThrust =>
+        DRG.AID.TrueThrust or DRG.AID.RaidenThrust =>
             Unlocked(DRG.AID.LanceBarrage) ? DRG.AID.LanceBarrage //LanceBarrage if Unlocked
             : Unlocked(DRG.AID.VorpalThrust) ? DRG.AID.VorpalThrust //VorpalThrust otherwise
             : DRG.AID.TrueThrust, //Else return to TrueThrust
@@ -793,8 +793,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private DRG.AID UseOnly145ST() => ComboLastMove switch
     {
         //Start combo with TrueThrust
-        DRG.AID.TrueThrust =>
-            Unlocked(DRG.AID.Disembowel) && powerLeft <= GCD * 6
+        DRG.AID.TrueThrust or DRG.AID.RaidenThrust =>
+            Unlocked(DRG.AID.Disembowel)
             ? Unlocked(DRG.AID.SpiralBlow) ? DRG.AID.SpiralBlow : DRG.AID.Disembowel //Disembowel/SpiralBlow if Unlocked
             : DRG.AID.TrueThrust, //Else return to TrueThrust
 
