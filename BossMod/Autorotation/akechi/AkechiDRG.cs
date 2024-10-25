@@ -108,11 +108,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     //Piercing Talon strategy
     public enum PiercingTalonStrategy
     {
-        Automatic,             //Use Piercing Talon when appropriate
+        Forbid,                //Forbid the use of Piercing Talon
+        Allow,                 //Use Piercing Talon when appropriate
         Opener,                //Use Piercing Talon as an opener
         Force,                 //Force use of Piercing Talon
-        Ranged,                //Use Piercing Talon for ranged situations
-        Forbid                 //Forbid the use of Piercing Talon
     }
 
     //True North strategy
@@ -210,11 +209,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         //Piercing Talon strategy
         res.Define(Track.PiercingTalon).As<PiercingTalonStrategy>("Piercing Talon", "Talon", uiPriority: 20)
-            .AddOption(PiercingTalonStrategy.Automatic, "Automatic", "Use Piercing Talon only if already in combat & outside melee range")
-            .AddOption(PiercingTalonStrategy.Opener, "Opener", "Use Piercing Talon as the first GCD, regardless of range")
+            .AddOption(PiercingTalonStrategy.Forbid, "Forbid", "Forbid use of Piercing Talon at all")
+            .AddOption(PiercingTalonStrategy.Allow, "Allow", "Allow use of Piercing Talon only if already in combat & outside melee range")
             .AddOption(PiercingTalonStrategy.Force, "Force", "Force Piercing Talon usage ASAP (even in melee range)")
-            .AddOption(PiercingTalonStrategy.Ranged, "Ranged", "Use Piercing Talon if outside melee range")
-            .AddOption(PiercingTalonStrategy.Forbid, "Forbid", "Do not use Piercing Talon at all")
             .AddAssociatedActions(DRG.AID.PiercingTalon);
 
         //True North strategy
@@ -616,7 +613,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.ForcedOGCD, 0, GCD - 0.9f);
 
-        //Execute Starcross if available
+        //Execute True North if available
         if (!hold && ShouldUseTrueNorth(strategy.Option(Track.TrueNorth).As<TrueNorthStrategy>(), primaryTarget))
             QueueOGCD(DRG.AID.TrueNorth, Player, OGCDPriority.TrueNorth);
 
@@ -850,7 +847,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         OffensiveStrategy.Automatic =>
             //Use Lance Charge automatically if the player is in combat, the target is valid, the action is ready, and there is power remaining
             Player.InCombat && target != null && canLC && powerLeft > 0,
-        OffensiveStrategy.Force => true, //Always use if forced
+        OffensiveStrategy.Force => canLC, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -861,7 +858,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         OffensiveStrategy.Automatic =>
             //Use Battle Litany automatically if the player is in combat, the target is valid, the action is ready, and there is power remaining
             Player.InCombat && target != null && canBL && powerLeft > 0,
-        OffensiveStrategy.Force => true, //Always use if forced
+        OffensiveStrategy.Force => canBL, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -874,7 +871,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             (CD(DRG.AID.LifeSurge) < 40 || CD(DRG.AID.BattleLitany) > 50) &&
             (ComboLastMove is DRG.AID.WheelingThrust or DRG.AID.FangAndClaw && Unlocked(DRG.AID.Drakesbane) ||
             ComboLastMove is DRG.AID.VorpalThrust or DRG.AID.LanceBarrage && Unlocked(DRG.AID.FullThrust)),
-        SurgeStrategy.Force => true,
+        SurgeStrategy.Force => canLS,
         SurgeStrategy.Delay => false,
         _ => false
     };
@@ -885,8 +882,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         JumpStrategy.Automatic =>
             //Use Jump automatically if the player is in combat, the target is valid, and Lance Charge-related conditions are met
             Player.InCombat && target != null && canJump && (lcLeft > 0 || hasLC || lcCD is < 35 and > 17),
-        JumpStrategy.ForceEX => true, //Always use in ForceEX strategy
-        JumpStrategy.ForceEX2 => true, //Always use in ForceEX2 strategy
+        JumpStrategy.ForceEX => canJump, //Always use in ForceEX strategy
+        JumpStrategy.ForceEX2 => canJump, //Always use in ForceEX2 strategy
         JumpStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -897,8 +894,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         DragonfireStrategy.Automatic =>
             //Use Dragonfire Dive automatically if the player is in combat, the target is valid, and both Lance Charge and Battle Litany are active
             Player.InCombat && target != null && In3y(target) && canDD && hasLC && hasBL,
-        DragonfireStrategy.Force => true, //Always use if forced
-        DragonfireStrategy.ForceEX => true, //Always use in ForceEX strategy
+        DragonfireStrategy.Force => canDD, //Always use if forced
+        DragonfireStrategy.ForceEX => canDD, //Always use in ForceEX strategy
         DragonfireStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -909,8 +906,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         GeirskogulStrategy.Automatic =>
             //Use Geirskogul automatically if the player is in combat, the action is ready, the target is within 15y, and Lance Charge is active
             Player.InCombat && In15y(target) && canGeirskogul && hasLC,
-        GeirskogulStrategy.Force => true, //Always use if forced
-        GeirskogulStrategy.ForceEX => true, //Always use if forced
+        GeirskogulStrategy.Force => canGeirskogul, //Always use if forced
+        GeirskogulStrategy.ForceEX => canGeirskogul, //Always use if forced
         GeirskogulStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -921,7 +918,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         OffensiveStrategy.Automatic =>
             //Use Mirage Dive automatically if the player is in combat, the target is valid, and Dive Ready effect is active
             Player.InCombat && target != null && canMD,
-        OffensiveStrategy.Force => true, //Always use if forced
+        OffensiveStrategy.Force => canMD, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -932,7 +929,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         OffensiveStrategy.Automatic =>
             //Use Nastrond automatically if the player is in combat, has Nastrond ready, the target is within 15y, and Lance Charge is active
             Player.InCombat && In15y(target) && canNastrond,
-        OffensiveStrategy.Force => true, //Always use if forced
+        OffensiveStrategy.Force => canNastrond, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -943,8 +940,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         StardiverStrategy.Automatic =>
             //Use Stardiver automatically if the player is in combat, the target is valid, the action is ready, and Life of the Dragon (LOTD) is active
             Player.InCombat && target != null && In3y(target) && canSD && hasLOTD,
-        StardiverStrategy.Force => true, //Always use if forced
-        StardiverStrategy.ForceEX => true, //Always use if forced
+        StardiverStrategy.Force => canSD, //Always use if forced
+        StardiverStrategy.ForceEX => canSD, //Always use if forced
         StardiverStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -955,7 +952,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         OffensiveStrategy.Automatic =>
             //Use Wyrmwind Thrust automatically if the player is in combat, the target is within 15y, and focus count is exactly 2
             Player.InCombat && target != null && In15y(target) && canWT && focusCount is 2 && lcCD > GCDLength * 3,
-        OffensiveStrategy.Force => true, //Always use if forced
+        OffensiveStrategy.Force => canWT, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -966,7 +963,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         OffensiveStrategy.Automatic =>
             //Use Rise of the Dragon automatically if the player is in combat, the target is valid, and Dragon's Flight effect is active
             Player.InCombat && target != null && canROTD,
-        OffensiveStrategy.Force => true, //Always use if forced
+        OffensiveStrategy.Force => canROTD, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -977,7 +974,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         OffensiveStrategy.Automatic =>
             //Use Starcross automatically if the player is in combat, the target is valid, and Starcross Ready effect is active
             Player.InCombat && target != null && canSC,
-        OffensiveStrategy.Force => true, //Always use if forced
+        OffensiveStrategy.Force => canSC, //Always use if forced
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -985,17 +982,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     //Determines when to use Piercing Talon
     private bool ShouldUsePiercingTalon(Actor? target, PiercingTalonStrategy strategy) => strategy switch
     {
-        PiercingTalonStrategy.Automatic =>
+        PiercingTalonStrategy.Forbid => false, //Never use if forbidden
+        PiercingTalonStrategy.Allow =>
             //Use Piercing Talon if the target is not within 3y range and already in combat
             Player.InCombat && target != null && !In3y(target),
-        PiercingTalonStrategy.Opener =>
-            //Use Piercing Talon as the first GCD
-            IsFirstGCD(),
         PiercingTalonStrategy.Force => true, //Always use if forced
-        PiercingTalonStrategy.Ranged =>
-            //Use Piercing Talon if the target is not within 3y range
-            !In3y(target),
-        PiercingTalonStrategy.Forbid => false, //Never use if forbidden
         _ => false
     };
 
@@ -1014,26 +1005,36 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseTrueNorth(TrueNorthStrategy strategy, Actor? target) => strategy switch
     {
         TrueNorthStrategy.Automatic =>
-            target != null && Player.InCombat && !HasEffect(ClassShared.SID.TrueNorth) && GCD < 1.25f &&
-            ((!IsOnRear(target) &&
-            (ComboLastMove is DRG.AID.Disembowel or DRG.AID.SpiralBlow or DRG.AID.ChaosThrust or DRG.AID.ChaoticSpring)) ||
-            (!IsOnFlank(target) &&
+            target != null && Player.InCombat &&
+            !HasEffect(ClassShared.SID.TrueNorth) &&
+            GCD < 1.25f &&
+            ((!IsOnRear(target) && //Side
+            (ComboLastMove is DRG.AID.Disembowel or DRG.AID.SpiralBlow
+            or DRG.AID.ChaosThrust or DRG.AID.ChaoticSpring)) ||
+            (!IsOnFlank(target) && //Back
             (ComboLastMove is DRG.AID.HeavensThrust or DRG.AID.FullThrust))),
         TrueNorthStrategy.ASAP =>
-            target != null && Player.InCombat && !HasEffect(ClassShared.SID.TrueNorth) &&
-            ((!IsOnRear(target) &&
-            (ComboLastMove is DRG.AID.Disembowel or DRG.AID.SpiralBlow or DRG.AID.ChaosThrust or DRG.AID.ChaoticSpring)) ||
-            (!IsOnFlank(target) &&
+            target != null && Player.InCombat &&
+            !HasEffect(ClassShared.SID.TrueNorth) &&
+            ((!IsOnRear(target) && //Side
+            (ComboLastMove is DRG.AID.Disembowel or DRG.AID.SpiralBlow
+            or DRG.AID.ChaosThrust or DRG.AID.ChaoticSpring)) ||
+            (!IsOnFlank(target) && //Back
             (ComboLastMove is DRG.AID.HeavensThrust or DRG.AID.FullThrust))),
         TrueNorthStrategy.Flank =>
-            target != null && Player.InCombat && !HasEffect(ClassShared.SID.TrueNorth) && GCD < 1.25f &&
-            (!IsOnFlank(target) &&
+            target != null && Player.InCombat &&
+            !HasEffect(ClassShared.SID.TrueNorth) &&
+            GCD < 1.25f &&
+            (!IsOnFlank(target) && //Back
             (ComboLastMove is DRG.AID.HeavensThrust or DRG.AID.FullThrust)),
         TrueNorthStrategy.Rear =>
-            target != null && Player.InCombat && !HasEffect(ClassShared.SID.TrueNorth) && GCD < 1.25f &&
-            (!IsOnRear(target) &&
-            (ComboLastMove is DRG.AID.Disembowel or DRG.AID.SpiralBlow or DRG.AID.ChaosThrust or DRG.AID.ChaoticSpring)),
-        TrueNorthStrategy.Force => !HasEffect(ClassShared.SID.TrueNorth),
+            target != null && Player.InCombat &&
+            !HasEffect(ClassShared.SID.TrueNorth) &&
+            GCD < 1.25f &&
+            (!IsOnRear(target) && //Side
+            (ComboLastMove is DRG.AID.Disembowel or DRG.AID.SpiralBlow
+            or DRG.AID.ChaosThrust or DRG.AID.ChaoticSpring)),
+        TrueNorthStrategy.Force => !HasEffect(DRG.SID.TrueNorth),
         TrueNorthStrategy.Delay => false,
         _ => false
     };

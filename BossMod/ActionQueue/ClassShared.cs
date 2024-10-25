@@ -62,27 +62,24 @@ public enum AID : uint
     DeflectVeryEasy = 18863
 }
 
-// TODO: Add usecases for these
-// most include overwriting statuses (double Reprisal, double Feint, etc.)
 public enum SID : uint
 {
     None = 0,
 
     // Tank
-    Reprisal = 1193, // L22, instant, 60.0s CD (group 44), range 0, AOE 5 circle, targets=self
+    Reprisal = 1193, // applied by Reprisal to target
 
     // Melee
-    Feint = 1195, // L22, instant, 90.0s CD (group 47), range 10, single-target, targets=hostile
-    TrueNorth = 1250, // L50, instant, 45.0s CD (group 45/50) (2 charges), range 0, single-target, targets=self
+    Feint = 1195, // applied by Feint to self
+    TrueNorth = 1250, // applied by True North to self
 
     // PhysRanged
-    Peloton = 1199, // L20, instant, 5.0s CD (group 40), range 0, AOE 30 circle, targets=self
+    Peloton = 1199, // applied by Peloton to self/party
 
-    // Caster
-    Addle = 1203, // L8 BLM/SMN/RDM/BLU, instant, 90.0s CD (group 46), range 25, single-target, targets=hostile
-
-    // Misc
-    Raise = 148, // 8.0s cast, GCD, range 30, single-target, targets=party/alliance/friendly
+    // Caster/Healer
+    Addle = 1203, // applied by Addle to target
+    Swiftcast = 167, // applied by Swiftcast to self
+    Raise = 148, // applied by Raise to target
 }
 
 public sealed class Definitions : IDisposable

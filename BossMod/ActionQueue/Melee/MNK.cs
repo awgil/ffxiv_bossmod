@@ -105,14 +105,16 @@ public enum SID : uint
     SixSidedStar = 2514, // applied by Six-Sided Star to self
     OpoOpoForm = 107, // applied by Demolish, Pouncing Coeurl to self
     PerfectBalance = 110, // applied by Perfect Balance to self
-    Feint = 1195, // applied by Feint to target
-    TrueNorth = 1250, // applied by True North to self, ignore positionals
     Stun = 2, // applied by Leg Sweep to target
 
     LostFontofPower = 2346,
     BannerHonoredSacrifice = 2327,
     LostExcellence = 2564,
     Memorable = 2565,
+
+    //Shared
+    Feint = ClassShared.SID.Feint, // applied by Feint to target
+    TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
 public sealed class Definitions : IDisposable

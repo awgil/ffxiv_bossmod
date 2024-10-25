@@ -97,10 +97,12 @@ public enum SID : uint
     Biolysis = 1895,
     Galvanize = 297, // applied by Adloquium to target, shield
     LucidDreaming = 1204, // applied by Lucid Dreaming to self
-    Swiftcast = 167, // applied by Swiftcast to self
     Sleep = 3, // applied by Repose to target
     BanefulImpaction = 3883, // applied by Baneful Impaction to target
     ImpactImminent = 3882, // applied by Chain Stratagem to self
+
+    //Shared
+    Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
 public sealed class Definitions : IDisposable

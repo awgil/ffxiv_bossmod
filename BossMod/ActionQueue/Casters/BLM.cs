@@ -84,7 +84,6 @@ public enum TraitID : uint
 public enum SID : uint
 {
     None = 0,
-    Addle = 1203, // applied by Addle to target
     LucidDreaming = 1204, // applied by Lucid Dreaming to self
     Swiftcast = 167, // applied by Swiftcast to self
     Manaward = 168, // applied by Manaward to self
@@ -99,6 +98,9 @@ public enum SID : uint
     Thunderhead = 3870,
     HighThunder = 3871, // applied by High Thunder to target
     HighThunderII = 3872, // applied by High Thunder II to target
+
+    //Shared
+    Addle = ClassShared.SID.Addle, // applied by Addle to target
 }
 
 public sealed class Definitions : IDisposable
