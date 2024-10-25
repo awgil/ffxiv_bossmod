@@ -16,8 +16,8 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
 
         // note: true north is a special case, even though it's a role action, it has custom handling by rotational modules
         DefineSimpleConfig(def, SharedTrack.SecondWind, "SecondWind", "S.Wind", 20, ClassShared.AID.SecondWind);
-        DefineSimpleConfig(def, SharedTrack.LegSweep, "LegSweep", "Stun", -150, ClassShared.AID.LegSweep, 3);
-        DefineSimpleConfig(def, SharedTrack.Bloodbath, "Bloodbath", "", -50, ClassShared.AID.Bloodbath, 20);
+        DefineSimpleConfig(def, SharedTrack.LegSweep, "LegSweep", "Stun", 150, ClassShared.AID.LegSweep, 3);
+        DefineSimpleConfig(def, SharedTrack.Bloodbath, "Bloodbath", "", 50, ClassShared.AID.Bloodbath, 20);
 
         def.Define(SharedTrack.Feint).As<FeintOption>("Feint", "", 250)
             .AddOption(FeintOption.None, "None", "Do not use automatically")
