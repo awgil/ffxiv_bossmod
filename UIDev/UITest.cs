@@ -22,7 +22,7 @@ class UITest
         {
             Title = "UI Test",
             XPos = 10,
-            YPos = 80,
+            YPos = -2100,
             Width = 2400,
             Height = 1300,
             TransparentColor = null
