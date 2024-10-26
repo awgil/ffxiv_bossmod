@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Dungeon.D08Troia.D081EvilDreamer;
+﻿namespace BossMod.Endwalker.Dungeon.D10Troia.D101EvilDreamer;
 
 public enum OID : uint
 {

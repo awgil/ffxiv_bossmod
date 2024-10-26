@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Dungeon.D08Troia.D082Beatrice;
+﻿namespace BossMod.Endwalker.Dungeon.D10Troia.D102Beatrice;
 
 public enum OID : uint
 {

@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Dungeon.D08Troia.D083Scarmiglione;
+﻿namespace BossMod.Endwalker.Dungeon.D10Troia.D103Scarmiglione;
 
 public enum OID : uint
 {
