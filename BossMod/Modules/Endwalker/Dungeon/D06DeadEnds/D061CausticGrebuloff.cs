@@ -68,7 +68,7 @@ class CravenCompanionship(BossModule module) : BossComponent(module)
     {
         if (Expires[slot] != default)
         {
-            var nearestAlly = Raid.WithoutSlot().Exclude(actor).MinBy(p => p.DistanceToHitbox(actor));
+            var nearestAlly = Raid.WithoutSlot(excludeNPCs: true, excludeAlliance: true).Exclude(actor).MinBy(p => p.DistanceToHitbox(actor));
             if (nearestAlly != null)
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(nearestAlly.Position, 3), Expires[slot]);
         }

@@ -156,12 +156,6 @@ public sealed class ActionDefinitions : IDisposable
     public static readonly ActionID IDGeneralDuty1 = new(ActionType.General, 26);
     public static readonly ActionID IDGeneralDuty2 = new(ActionType.General, 27);
 
-    // pet actions
-    public static readonly ActionID IDPetAway = new(ActionType.PetAction, 1);
-    public static readonly ActionID IDPetHeel = new(ActionType.PetAction, 2);
-    public static readonly ActionID IDPetPlace = new(ActionType.PetAction, 3);
-    public static readonly ActionID IDPetStay = new(ActionType.PetAction, 4);
-
     public static readonly ActionDefinitions Instance = new();
 
     public Func<uint, bool>? UnlockCheck;
