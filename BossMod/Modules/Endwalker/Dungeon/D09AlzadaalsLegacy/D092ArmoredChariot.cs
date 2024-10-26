@@ -75,7 +75,7 @@ class AssaultCannon(BossModule module) : Components.GenericAOEs(module)
     private static readonly AOEShapeCone cone = new(30, 45.Degrees());
     private static readonly AOEShapeRect rectShort = new(28, 4);
     private static readonly AOEShapeRect rectLong = new(40, 4);
-    private static readonly Angle[] angles = [Angle.FromDirection(new(1, 1)), Angle.FromDirection(new(1, -1)), Angle.FromDirection(new(-1, -1)), Angle.FromDirection(new(-1, 1))];
+    private static readonly Angle[] angles = [-45.003f.Degrees(), 44.998f.Degrees(), 134.999f.Degrees(), -135.005f.Degrees()];
     private static readonly HashSet<WPos> cornerPositions = [new(-20.5f, -202.5f), new(20.5f, -161.5f), new(-20.5f, -161.5f), new(20.5f, -202.5f)];
     private int numCastsReflections;
     private int numCastsCannons;
