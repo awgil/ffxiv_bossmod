@@ -57,19 +57,19 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Shield).As<ShieldStrategy>("Shield", "Shield", 150)
             .AddOption(ShieldStrategy.None, "None")
-            .AddOption(ShieldStrategy.Succor, "Succor", minLevel: 35)
-            .AddOption(ShieldStrategy.CritSuccor, "Recitation + Succor", minLevel: 74)
-            .AddOption(ShieldStrategy.Spreadlo, "Adloquium + Deployment Tactics (Spreadlo)", minLevel: 56)
-            .AddOption(ShieldStrategy.CritSpreadlo, "Recitation + Spreadlo", minLevel: 74)
-            .AddOption(ShieldStrategy.ProSpreadlo, "Spreadlo + Protraction", minLevel: 86)
-            .AddOption(ShieldStrategy.CritProSpreadlo, "Recitation + Spreadlo + Protraction", minLevel: 86);
+            .AddOption(ShieldStrategy.Succor, "Succor", minLevel: 35, effect: 30)
+            .AddOption(ShieldStrategy.CritSuccor, "Recitation + Succor", minLevel: 74, effect: 30, cooldown: 90)
+            .AddOption(ShieldStrategy.Spreadlo, "Adloquium + Deployment Tactics (Spreadlo)", minLevel: 56, effect: 30, cooldown: 90)
+            .AddOption(ShieldStrategy.CritSpreadlo, "Recitation + Spreadlo", minLevel: 74, effect: 30, cooldown: 90)
+            .AddOption(ShieldStrategy.ProSpreadlo, "Spreadlo + Protraction", minLevel: 86, effect: 30, cooldown: 90)
+            .AddOption(ShieldStrategy.CritProSpreadlo, "Recitation + Spreadlo + Protraction", minLevel: 86, effect: 30, cooldown: 90);
 
         DefineSimpleConfig(res, Track.EmergencyTactics, "EmergencyTactics", "Emerg", 105, SCH.AID.EmergencyTactics, 15);
         DefineSimpleConfig(res, Track.Dissipation, "Dissipation", "Disp", 106, SCH.AID.Dissipation, 30);
         DefineSimpleConfig(res, Track.Excog, "Excogitation", "Excog", 107, SCH.AID.Excogitation);
         DefineSimpleConfig(res, Track.Aetherpact, "Aetherpact", "FeyUnion", 108, SCH.AID.Aetherpact);
         DefineSimpleConfig(res, Track.FeyBlessing, "FeyBlessing", "Blessing", 109, SCH.AID.FeyBlessing);
-        DefineSimpleConfig(res, Track.Seraph, "SummonSeraph", "Seraph", 110, SCH.AID.SummonSeraph);
+        DefineSimpleConfig(res, Track.Seraph, "SummonSeraph", "Seraph", 110, SCH.AID.SummonSeraph, effect: 22f);
         DefineSimpleConfig(res, Track.Expedient, "Expedient", "Exped", 180, SCH.AID.Expedient, 20);
         DefineSimpleConfig(res, Track.Seraphism, "Seraphism", "Seraphism", 112, SCH.AID.Seraphism);
 
