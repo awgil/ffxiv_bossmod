@@ -80,10 +80,16 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         var pos = GetPositional(strategy, primaryTarget);
         UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
 
-        OGCD(strategy, primaryTarget);
-
         if (primaryTarget == null)
             return;
+
+        if (CountdownRemaining > 0)
+        {
+            if (CountdownRemaining < 0.7f)
+                PushGCD(AID.WingedGlide, primaryTarget);
+
+            return;
+        }
 
         GoalZoneCombined(3, Hints.GoalAOERect(primaryTarget, 10, 2), 3, pos.Item1);
 
@@ -145,6 +151,8 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         PushGCD(DraconianFire > GCD ? AID.RaidenThrust : AID.TrueThrust, primaryTarget);
+
+        OGCD(strategy, primaryTarget);
     }
 
     private void OGCD(StrategyValues strategy, Actor? primaryTarget)
@@ -187,7 +195,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (DiveReady == 0 && posOk)
             PushOGCD(AID.Jump, primaryTarget);
 
-        if (moveOk)
+        if (moveOk && strategy.BuffsOk())
             PushOGCD(AID.DragonfireDive, BestDiveTarget);
 
         if (NastrondReady > 0)

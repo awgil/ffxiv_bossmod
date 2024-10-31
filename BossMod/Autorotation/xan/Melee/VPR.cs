@@ -119,7 +119,14 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         if (primaryTarget == null)
             return;
 
-        GoalZoneCombined(3, Hints.GoalAOECircle(5), 3, pos.Item1);
+        var aoeBreakpoint = DreadCombo switch
+        {
+            DreadCombo.Dreadwinder or DreadCombo.HuntersCoil or DreadCombo.SwiftskinsCoil => 50,
+            DreadCombo.HuntersDen or DreadCombo.SwiftskinsDen or DreadCombo.PitOfDread => 1,
+            _ => Anguine > 0 ? 50 : 3
+        };
+
+        GoalZoneCombined(3, Hints.GoalAOECircle(5), aoeBreakpoint, pos.Item1);
 
         if (CombatTimer < 1 && Player.DistanceToHitbox(primaryTarget) is > 3 and < 20)
             PushGCD(AID.Slither, primaryTarget);
