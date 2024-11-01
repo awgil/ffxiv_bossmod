@@ -250,18 +250,28 @@ class ReplayDetailsWindow : UIWindow
     // x, z, rot, hp, name, target, cast, statuses
     private void DrawCommonColumns(Actor actor)
     {
+        (WPos center, float radius) bounds = _mgr.ActiveModule == null ? (new(100, 100), 20) : (_mgr.ActiveModule.Center, _mgr.ActiveModule.Bounds.Radius);
+        var minx = bounds.center.X - bounds.radius;
+        var maxx = bounds.center.X + bounds.radius;
+        var minz = bounds.center.Z - bounds.radius;
+        var maxz = bounds.center.Z + bounds.radius;
+
         var posX = actor.Position.X;
         var posZ = actor.Position.Z;
         var rot = actor.Rotation.Deg;
         bool modified = false;
         ImGui.TableNextColumn();
-        modified |= ImGui.DragFloat("###X", ref posX, 0.25f, 80, 120);
+        modified |= ImGui.DragFloat("###X", ref posX, 0.25f, minx, maxx);
         ImGui.TableNextColumn();
-        modified |= ImGui.DragFloat("###Z", ref posZ, 0.25f, 80, 120);
+        modified |= ImGui.DragFloat("###Z", ref posZ, 0.25f, minz, maxz);
         ImGui.TableNextColumn();
         modified |= ImGui.DragFloat("###Rot", ref rot, 1, -180, 180);
         if (modified)
+        {
             actor.PosRot = new(posX, actor.PosRot.Y, posZ, rot.Degrees().Rad);
+            if (actor.OID == 0)
+                ResetPF();
+        }
 
         ImGui.TableNextColumn();
         if (actor.HPMP.MaxHP > 0)
