@@ -25,7 +25,7 @@ public enum OID : uint
     DirtPile = 0x1EAEAE
 }
 
-class Tribulation(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Spell_Tribulation), 3);
+class Tribulation(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 3, ActionID.MakeSpell(AID._Spell_Tribulation), m => m.Enemies(OID.DirtPile).Where(x => x.EventState != 7), 0);
 class ImmortalAnathema(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Spell_ImmortalAnathema));
 class DarkPulse(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID._Spell_DarkPulse), 6);
 class DarkWell(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID._Spell_DarkWell), 5);
@@ -39,7 +39,10 @@ class Sweep(BossModule module) : Components.PersistentVoidzone(module, 4, m => m
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var t in Sources(Module))
+        {
             hints.AddForbiddenZone(ShapeDistance.Capsule(t.Position, t.Rotation, 2, 4));
+            hints.AddForbiddenZone(ShapeDistance.Capsule(t.Position, t.Rotation, 6, 4), WorldState.FutureTime(2));
+        }
     }
 }
 
@@ -81,10 +84,15 @@ class DeepClean(BossModule module) : Components.GenericAOEs(module)
     private void ScheduleAOEs()
     {
         var dirtOrdered = Module.Enemies(OID.DirtPile).OrderBy(d => d.Position.Z).ToList();
-        // deep cleans always trigger in order (from north to south) 1 2 4 5 3
-        // so just take actor #3 and stick it at the end of the list
-        dirtOrdered.Add(dirtOrdered[2]);
-        dirtOrdered.RemoveAt(2);
+        var brooms = Module.Enemies(OID.MagickedBroom).ToList();
+
+        float DistanceToBroom(Actor dirt)
+        {
+            var closestBroom = brooms.MinBy(b => MathF.Abs(b.Position.Z - dirt.Position.Z))!;
+            return MathF.Abs(closestBroom.Position.X - dirt.Position.X);
+        }
+
+        dirtOrdered.SortBy(DistanceToBroom);
         foreach (var (dirt, delay) in dirtOrdered.Zip(CleaningTime))
             Cleanings.Add(new(dirt, WorldState.FutureTime(delay), null));
     }
@@ -102,7 +110,8 @@ class SeekerOfSolitudeStates : StateMachineBuilder
             .ActivateOnEnter<Tribulation>()
             .ActivateOnEnter<ImmortalAnathema>()
             .ActivateOnEnter<DarkShock>()
-            .ActivateOnEnter<Shadowbolt>();
+            .ActivateOnEnter<Shadowbolt>()
+            .Raw.Update = () => module.PrimaryActor.IsDeadOrDestroyed || module.PrimaryActor.HPMP.CurHP == 1 && !module.PrimaryActor.IsTargetable;
     }
 }
 
