@@ -1,4 +1,4 @@
-namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.DD30TiamatsClone;
+namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.D30TiamatsClone;
 
 public enum OID : uint
 {
@@ -59,9 +59,9 @@ class CreatureOfDarkness(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class DD30TiamatsCloneStates : StateMachineBuilder
+class D30TiamatsCloneStates : StateMachineBuilder
 {
-    public DD30TiamatsCloneStates(BossModule module) : base(module)
+    public D30TiamatsCloneStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<DarkWyrmwing>()
@@ -73,4 +73,4 @@ class DD30TiamatsCloneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 899, NameID = 12242)]
-public class DD30TiamatsClone(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsSquare(20));
+public class D30TiamatsClone(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsSquare(20));

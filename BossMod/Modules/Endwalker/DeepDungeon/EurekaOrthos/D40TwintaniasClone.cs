@@ -1,4 +1,4 @@
-namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.DD40TwintaniasClone;
+namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.D40TwintaniasClone;
 
 public enum OID : uint
 {
@@ -78,9 +78,9 @@ class Turbine(BossModule module) : Components.KnockbackFromCastTarget(module, Ac
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<BitingWind>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.InBounds(pos);
 }
 
-class DD40TwintaniasCloneStates : StateMachineBuilder
+class D40TwintaniasCloneStates : StateMachineBuilder
 {
-    public DD40TwintaniasCloneStates(BossModule module) : base(module)
+    public D40TwintaniasCloneStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Twister>()
@@ -94,4 +94,4 @@ class DD40TwintaniasCloneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 900, NameID = 12263)]
-public class DD40TwintaniasClone(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsCircle(20));
+public class D40TwintaniasClone(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsCircle(20));
