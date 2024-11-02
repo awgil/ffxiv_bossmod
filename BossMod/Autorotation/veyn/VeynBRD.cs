@@ -317,10 +317,10 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         if (CanFitGCD(BlastArrowLeft) && strategyBA.As<OffensiveStrategy>() != OffensiveStrategy.Delay)
             QueueGCDAtHostile(BRD.AID.BlastArrow, ResolveTargetOverride(strategyBA.Value) ?? primaryTarget, GCDPriority.FlexibleBA, gcdStrategy);
         var strategyReso = strategy.Option(Track.ResonantArrow);
-        if (CanFitGCD(ResonantArrowLeft) && ShouldUseResoEncore(strategyReso.As<OffensiveStrategy>()))
+        if (CanFitGCD(ResonantArrowLeft) && ShouldUseResoEncore(strategyReso.As<OffensiveStrategy>(), ResonantArrowLeft))
             QueueGCDAtHostile(BRD.AID.ResonantArrow, ResolveTargetOverride(strategyReso.Value) ?? primaryTarget, GCDPriority.FlexibleReso, gcdStrategy);
         var strategyEncore = strategy.Option(Track.RadiantEncore);
-        if (CanFitGCD(RadiantEncoreLeft) && ShouldUseResoEncore(strategyEncore.As<OffensiveStrategy>()))
+        if (CanFitGCD(RadiantEncoreLeft) && ShouldUseResoEncore(strategyEncore.As<OffensiveStrategy>(), RadiantEncoreLeft))
             QueueGCDAtHostile(BRD.AID.RadiantEncore, ResolveTargetOverride(strategyEncore.Value) ?? primaryTarget, GCDPriority.FlexibleEncore, gcdStrategy);
 
         // songs (can only be used in combat)
@@ -546,12 +546,12 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         }
     };
 
-    // normally we want to use burst gcds (reso/encore) under full buff stack
-    private bool ShouldUseResoEncore(OffensiveStrategy strategy) => strategy switch
+    // normally we want to use burst gcds (reso/encore) under full buff stack, or if buffs aren't happening any time soon
+    private bool ShouldUseResoEncore(OffensiveStrategy strategy, float remainingWindow) => strategy switch
     {
         OffensiveStrategy.Delay => false,
         OffensiveStrategy.Force => true,
-        _ => CanFitGCD(FullBuffsLeft),
+        _ => CanFitGCD(FullBuffsLeft) || FullBuffsIn >= remainingWindow,
     };
 
     private float SwitchAtRemainingSongTimer(SongStrategy strategy) => strategy switch
@@ -642,7 +642,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
     }
 
     private bool AllowClippingGCDByEA(float cdEA, float animLockDelay) => false;
-    private bool AllowClippingGCDByBuffs(float cd) => cd + 0.4f <= GCD;
+    private bool AllowClippingGCDByBuffs(float cd) => cd + 0.3f <= GCD;
 
     // by default, we use EA asap if song is up and if we're not delaying for buffs
     private bool ShouldUseEmpyrealArrow(OffensiveStrategy strategy) => strategy switch
