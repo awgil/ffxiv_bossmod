@@ -138,6 +138,22 @@ public sealed class Definitions : IDisposable
         // Misc
         d.RegisterSpell(AID.Resurrection);
 
+        var place = new ActionID(ActionType.PetAction, 3);
+        d.Register(place, new ActionDefinition(place)
+        {
+            AllowedClasses = new BitMask(~0ul),
+            Range = 30,
+            AllowedTargets = ActionTargets.Area
+        });
+
+        var heel = new ActionID(ActionType.PetAction, 2);
+        d.Register(heel, new ActionDefinition(heel)
+        {
+            AllowedClasses = new BitMask(~0ul),
+            Range = 0,
+            AllowedTargets = ActionTargets.Self
+        });
+
         // duty actions
         d.RegisterSpell(AID.SmokeScreen);
         d.RegisterSpell(AID.AethericSiphon);
