@@ -24,7 +24,6 @@ public enum AID : uint
     _Ability_ = 18278, // Helper->self, no cast, range 80 circle
     _Weaponskill_Plummet = 18279, // Helper->self, 1.6s cast, range 3 circle
     _Weaponskill_ScorchingLeft = 18275, // Boss->self, 5.0s cast, range 40 180-degree cone
-    _Weaponskill_FiresDomain2 = 18271, // Boss->player, no cast, width 4 rect charge
 }
 
 public enum SID : uint
@@ -100,19 +99,36 @@ class BlackFlame(BossModule module) : BossComponent(module)
         base.AddAIHints(slot, actor, assignment, hints);
         if (targets[slot])
             foreach (var ally in Furniture)
-                hints.AddForbiddenZone(new AOEShapeCross(10 + ally.HitboxRadius, 2 + ally.HitboxRadius), ally.Position, default, activation);
+                hints.AddForbiddenZone(p => IntersectFurniture(ally, p) ? -1 : 1, activation);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (targets[slot])
-            hints.Add("Bait away from furniture!", Furniture.Any(f => ShapeDistance.Cross(f.Position, default, 10 + f.HitboxRadius, 2 + f.HitboxRadius)(actor.Position) < 0));
+            hints.Add("Bait away from furniture!", Furniture.Any(f => IntersectFurniture(f, actor.Position)));
+    }
+
+    private bool IntersectFurniture(Actor furniture, WPos player) => IntersectBubble(furniture, player, 2, 10) || IntersectBubble(furniture, player, 10, 2);
+
+    private bool IntersectBubble(Actor furniture, WPos rectCenter, float halfWidth, float halfHeight)
+    {
+        var radius = furniture.HitboxRadius;
+
+        var circleCenter = furniture.Position;
+        var off1 = (rectCenter - circleCenter).Abs();
+        if (off1.X > halfWidth + radius || off1.Z > halfHeight + radius)
+            return false;
+
+        if (off1.X <= halfWidth || off1.Z <= halfHeight)
+            return true;
+
+        return (off1 - new WDir(halfWidth, halfHeight)).Length() <= radius;
     }
 }
 
 class MortalFlame(BossModule module) : BossComponent(module)
 {
-    private readonly float[] Timers = Utils.MakeArray(PartyState.MaxPartySize, 0f);
+    private readonly float[] Timers = Utils.MakeArray(PartyState.MaxAllies, 0f);
 
     private IEnumerable<Actor> Furniture => Raid.WithoutSlot().Where(x => x.Type == ActorType.Enemy);
 
@@ -126,7 +142,7 @@ class MortalFlame(BossModule module) : BossComponent(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_MortalFlame)
+        if ((SID)status.ID == SID._Gen_MortalFlame && actor.Type != ActorType.Enemy)
             SetTimer(Raid.FindSlot(actor.InstanceID), (float)(status.ExpireAt - WorldState.CurrentTime).TotalSeconds);
     }
 
@@ -155,6 +171,13 @@ class MortalFlame(BossModule module) : BossComponent(module)
             if (furnitures.Count > 0)
                 hints.AddForbiddenZone(ShapeDistance.Intersection(furnitures), WorldState.FutureTime(Timers[slot]));
         }
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        if (Timers[pcSlot] > 0)
+            foreach (var f in Furniture)
+                Arena.ZoneCircle(f.Position, 2, ArenaColor.SafeFromAOE);
     }
 }
 
@@ -200,6 +223,27 @@ class FiresDomain(BossModule module) : BossComponent(module)
             Arena.AddRect(from.Position, from.DirectionTo(to), (from.Position - to.Position).Length(), 0, 2, ArenaColor.Danger);
         else
             Arena.ZoneRect(from.Position, to.Position, 2, ArenaColor.AOE);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (Baits.Count == 0)
+            return;
+
+        var baitAOE = ShapeDistance.Rect(Module.PrimaryActor.Position, Baits[0].Position, 2);
+
+        var order = Baits.IndexOf(actor);
+        if (order == 0)
+        {
+            hints.Add("Stretch tether!", (actor.Position - Module.PrimaryActor.Position).Length() < 12);
+            if (Raid.WithoutSlot().Exclude(actor).Any(a => baitAOE(a.Position) < 0))
+                hints.Add("GTFO from raid!");
+        }
+        else
+        {
+            if (baitAOE(actor.Position) < 0)
+                hints.Add("GTFO from charge!");
+        }
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
