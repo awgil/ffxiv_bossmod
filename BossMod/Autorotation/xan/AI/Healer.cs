@@ -65,6 +65,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         Health.Update(Hints);
 
+        List<(WPos pos, float radius)> allies = [.. World.Party.WithoutSlot(excludeAlliance: true).Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
+        Hints.GoalZones.Add(p => allies.Count(a => a.pos.InCircle(p, a.radius + Player.HitboxRadius + 15)));
+
         AutoRaise(strategy);
 
         if (strategy.Enabled(Track.Esuna))
