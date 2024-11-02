@@ -248,7 +248,7 @@ class ReplayDetailsWindow : UIWindow
     }
 
     // x, z, rot, hp, name, target, cast, statuses
-    private void DrawCommonColumns(Actor actor)
+    private bool DrawCommonColumns(Actor actor)
     {
         (WPos center, float radius) bounds = _mgr.ActiveModule == null ? (new(100, 100), 20) : (_mgr.ActiveModule.Center, _mgr.ActiveModule.Bounds.Radius);
         var minx = bounds.center.X - bounds.radius;
@@ -267,11 +267,7 @@ class ReplayDetailsWindow : UIWindow
         ImGui.TableNextColumn();
         modified |= ImGui.DragFloat("###Rot", ref rot, 1, -180, 180);
         if (modified)
-        {
             actor.PosRot = new(posX, actor.PosRot.Y, posZ, rot.Degrees().Rad);
-            if (actor.OID == 0)
-                ResetPF();
-        }
 
         ImGui.TableNextColumn();
         if (actor.HPMP.MaxHP > 0)
@@ -306,6 +302,8 @@ class ReplayDetailsWindow : UIWindow
             ImGui.TextUnformatted($"{Utils.StatusString(s.ID)} ({s.Extra}): {Utils.StatusTimeString(s.ExpireAt, _player.WorldState.CurrentTime)}");
             ImGui.SameLine();
         }
+
+        return modified;
     }
 
     private bool DrawPartyTable()
@@ -343,7 +341,9 @@ class ReplayDetailsWindow : UIWindow
             ImGui.TableNextColumn();
             ImGui.TextUnformatted(player.Class.ToString());
 
-            DrawCommonColumns(player);
+            var moved = DrawCommonColumns(player);
+            if (moved && _povSlot == slot)
+                resetPF = true;
 
             ImGui.TableNextColumn();
             if (_mgr.ActiveModule != null)
