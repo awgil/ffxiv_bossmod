@@ -8,9 +8,9 @@ namespace CodeAnalysis;
 public class Analyzer : DiagnosticAnalyzer
 {
     private static readonly List<DiagnosticDescriptor> s_diagnostics = [];
-    private static DiagnosticDescriptor Register(string title, string message)
+    private static DiagnosticDescriptor Register(string title, string message, DiagnosticSeverity severity = DiagnosticSeverity.Error)
     {
-        var res = new DiagnosticDescriptor($"VBM{s_diagnostics.Count + 1:d3}", title, message, "Custom rules", DiagnosticSeverity.Error, true);
+        var res = new DiagnosticDescriptor($"VBM{s_diagnostics.Count + 1:d3}", title, message, "Custom rules", severity, true);
         s_diagnostics.Add(res);
         return res;
     }
@@ -20,7 +20,7 @@ public class Analyzer : DiagnosticAnalyzer
         "Field {0} of component or module {1} is a mutable static, which introduces a risk of different instances of modules affecting each other");
     private static readonly DiagnosticDescriptor RuleNoBitmaskProperties = Register("Bitmasks should not be exposed as read/write properties",
         "Property {0} of type {1} is a read/write bitmask, which introduces a risk of mutating a temporary");
-    private static readonly DiagnosticDescriptor RuleNoEmptyFirstLine = Register("First line of the file should not be empty", "Empty first line is pointless");
+    private static readonly DiagnosticDescriptor RuleNoEmptyFirstLine = Register("First line of the file should not be empty", "Empty first line is pointless", DiagnosticSeverity.Warning);
 
     public override void Initialize(AnalysisContext context)
     {
