@@ -183,6 +183,7 @@ class MortalFlame(BossModule module) : BossComponent(module)
 
 class FiresDomain(BossModule module) : BossComponent(module)
 {
+    public const float TetherLength = 16f;
     private readonly List<Actor> Baits = [];
     private DateTime NextCharge;
 
@@ -235,7 +236,7 @@ class FiresDomain(BossModule module) : BossComponent(module)
         var order = Baits.IndexOf(actor);
         if (order == 0)
         {
-            hints.Add("Stretch tether!", (actor.Position - Module.PrimaryActor.Position).Length() < 12);
+            hints.Add("Stretch tether!", (actor.Position - Module.PrimaryActor.Position).Length() < TetherLength);
             if (Raid.WithoutSlot().Exclude(actor).Any(a => baitAOE(a.Position) < 0))
                 hints.Add("GTFO from raid!");
         }
@@ -256,7 +257,7 @@ class FiresDomain(BossModule module) : BossComponent(module)
         {
             var source = Module.PrimaryActor;
             // stretch tether
-            hints.AddForbiddenZone(ShapeDistance.Circle(source.Position, 12), NextCharge);
+            hints.AddForbiddenZone(ShapeDistance.Circle(source.Position, TetherLength), NextCharge);
             // don't clip any other party member with charge
             foreach (var p in Raid.WithoutSlot(excludeNPCs: true).Exclude(actor))
                 hints.AddForbiddenZone(ShapeDistance.Cone(source.Position, 100, source.AngleTo(p), Angle.Asin(2f / (p.Position - source.Position).Length())), NextCharge);
@@ -264,7 +265,7 @@ class FiresDomain(BossModule module) : BossComponent(module)
         else
         {
             // try to preposition away from previous party member in line
-            hints.AddForbiddenZone(ShapeDistance.Circle(Baits[baitOrder - 1].Position, 12), NextCharge.AddSeconds(4.4f * baitOrder));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Baits[baitOrder - 1].Position, TetherLength), NextCharge.AddSeconds(4.4f * baitOrder));
             // stay out of boss's charge aoe
             hints.AddForbiddenZone(ShapeDistance.Rect(Module.PrimaryActor.Position, Baits[0].Position, 2), NextCharge);
         }
