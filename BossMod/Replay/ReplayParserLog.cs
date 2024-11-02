@@ -216,6 +216,12 @@ public sealed class ReplayParserLog : IDisposable
         try
         {
             Input? input = null;
+
+            // strip off double quote characters added by Windows Explorer when you copy a file as a path
+            // (presumably this feature was added to ensure that windows explorer cannot possibly ever be useful to anyone)
+            if (path[0] == '"' && path[^1] == '"')
+                path = path[1..^1];
+
             Stream rawStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
             Span<byte> header = stackalloc byte[4];
             if (rawStream.Read(header) == header.Length)
