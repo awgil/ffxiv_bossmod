@@ -170,7 +170,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
 
         if (deploy)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.Adloquium), highestHPPartyMember, opt.Priority());
-        else
+        else if (Player.FindStatus(SCH.SID.Galvanize) == null)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.Succor), Player, ActionQueue.Priority.VeryHigh);
     }
 
