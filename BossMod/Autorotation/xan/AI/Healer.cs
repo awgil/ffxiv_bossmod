@@ -327,14 +327,14 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         RunForTank((tank, tankState) =>
         {
-            if (!Player.InCombat && !tank.InCombat && tankState.IsMovingFor(World, 1.5f))
+            if (!Player.InCombat && (World.CurrentTime - tankState.LastCombat).TotalSeconds > 1)
             {
                 if (NextChargeIn(BossMod.SCH.AID.Excogitation) == 0)
                     UseOGCD(BossMod.SCH.AID.Recitation, Player, 5);
                 UseOGCD(BossMod.SCH.AID.Excogitation, tank);
             }
 
-            if (tank.InCombat && tankState.IsStandingFor(World, 2) && Bossmods.ActiveModule is null)
+            if (tank.InCombat && Bossmods.ActiveModule is null && tankState.MoveDelta < 1f)
                 UseSoil(tank.PosRot.XYZ());
         });
 

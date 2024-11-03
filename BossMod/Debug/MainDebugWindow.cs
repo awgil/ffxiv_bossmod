@@ -206,12 +206,16 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     {
         foreach (var st in PartyHealth.PartyMemberStates)
         {
-            if (ws.Party[st.Slot] == null)
+            var player = ws.Party[st.Slot];
+            if (player == null)
                 continue;
 
-            Dalamud.Utility.Util.ShowObject(st);
-            ImGui.TextUnformatted($"Moving for 5s? {st.IsMovingFor(ws, 5)}");
-            ImGui.TextUnformatted($"Standing for 5s? {st.IsStandingFor(ws, 5)}");
+            ImGui.TextUnformatted(player.Name);
+            ImGui.Indent();
+            ImGui.TextUnformatted($"HP: {st.PredictedHP} minus {st.PredictedHPMissing} ({st.PredictedHPRatio:f3})");
+            var pos = player.Position.ToVec2();
+            ImGui.TextUnformatted($"Position: <{pos.X:f2}, {pos.Y:f2}> (delta {st.MoveDelta:f2})");
+            ImGui.Unindent();
         }
     }
 
