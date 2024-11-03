@@ -146,4 +146,11 @@ public class SimpleLineStack(BossModule module, float halfWidth, float fixedLeng
             Array.Fill(PlayerRoles, PlayerRole.Ignore);
         }
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (Source != null)
+            hints.PredictedDamage.Add((Raid.WithSlot().Mask(), Activation));
+    }
 }

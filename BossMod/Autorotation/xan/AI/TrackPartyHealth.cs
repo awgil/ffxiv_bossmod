@@ -193,6 +193,11 @@ public class TrackPartyHealth(WorldState World)
                     state.PredictedHPRatio -= enemy.AttackStrength;
             }
         }
+
+        foreach (var predicted in Hints.PredictedDamage)
+            foreach (var bit in predicted.players.SetBits())
+                PartyMemberStates[bit].PredictedHPRatio -= 0.30f;
+
         PartyHealth = CalculatePartyHealthState(_ => true);
     }
 }

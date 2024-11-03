@@ -199,17 +199,16 @@ class Drains(BossModule module) : BossComponent(module)
                 Positions[index++] = new(xPositions[i], zStart + j * zStep);
     }
 
+    private void Reset()
+    {
+        activation = default;
+        Array.Fill(DrainStates, DrainState.Inactive);
+    }
+
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (index is not (>= 0x0F and <= 0x16))
             return;
-
-        if (state == 0x00200004)
-        {
-            activation = default;
-            Array.Fill(DrainStates, DrainState.Inactive);
-            return;
-        }
 
         var ix = index - 0x0F;
         var prev = DrainStates[ix];
@@ -221,6 +220,12 @@ class Drains(BossModule module) : BossComponent(module)
         };
         if (prev == DrainState.Inactive)
             activation = WorldState.FutureTime(NumActiveDrains > 4 ? 16 : 12);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.SeabedCeremony)
+            Reset();
     }
 
     private IEnumerable<(WPos Position, bool Blocked)> GetActiveDrains()

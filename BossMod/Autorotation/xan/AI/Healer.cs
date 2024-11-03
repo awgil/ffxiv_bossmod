@@ -279,9 +279,15 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
     {
         void UseSoil(Vector3? location = null)
         {
+            if (World.Client.GetGauge<ScholarGauge>().Aetherflow == 0)
+                return;
             location ??= GetArenaCenter() ?? Player.PosRot.XYZ();
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.SCH.AID.SacredSoil), null, ActionQueue.Priority.Medium, targetPos: location.Value);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.SCH.AID.SacredSoil), null, ActionQueue.Priority.Medium + 5, targetPos: location.Value);
         }
+
+        // TODO make this configurable
+        if (primaryTarget != null)
+            UseOGCD(BossMod.SCH.AID.ChainStratagem, primaryTarget);
 
         var gauge = World.Client.GetGauge<ScholarGauge>();
 
@@ -334,7 +340,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
                 UseOGCD(BossMod.SCH.AID.Excogitation, tank);
             }
 
-            if (tank.InCombat && Bossmods.ActiveModule is null && tankState.MoveDelta < 1f)
+            if (tank.InCombat && Bossmods.ActiveModule is null && tankState.MoveDelta < 0.75f)
                 UseSoil(tank.PosRot.XYZ());
         });
 
