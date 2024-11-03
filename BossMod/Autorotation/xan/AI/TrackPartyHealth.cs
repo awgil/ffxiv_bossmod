@@ -19,6 +19,10 @@ public class TrackPartyHealth(WorldState World)
         public float NoHealStatusRemaining;
         // Doom (1769 and possibly other statuses) is only removed once a player reaches full HP, must be healed asap
         public float DoomRemaining;
+        public (DateTime Changed, bool Moving) MoveHistory;
+
+        public readonly bool IsMovingFor(WorldState ws, float seconds) => MoveHistory.Moving && (ws.CurrentTime - MoveHistory.Changed).TotalSeconds >= seconds;
+        public readonly bool IsStandingFor(WorldState ws, float seconds) => !MoveHistory.Moving && (ws.CurrentTime - MoveHistory.Changed).TotalSeconds >= seconds;
     }
 
     public record PartyHealthState
@@ -40,9 +44,7 @@ public class TrackPartyHealth(WorldState World)
     {
         if (_esunaCache.TryGetValue(statusID, out var value))
             return value;
-        var check = Utils.StatusIsRemovable(statusID);
-        _esunaCache[statusID] = check;
-        return check;
+        return _esunaCache[statusID] = Utils.StatusIsRemovable(statusID);
     }
 
     private static readonly uint[] NoHealStatuses = [
@@ -146,6 +148,10 @@ public class TrackPartyHealth(WorldState World)
                     if (s.ID == 1769)
                         state.DoomRemaining = StatusDuration(s.ExpireAt);
                 }
+                var isMoving = actor.PrevPosition != actor.Position;
+                var wasMoving = state.MoveHistory.Moving;
+                if (isMoving != wasMoving)
+                    state.MoveHistory = (World.CurrentTime, isMoving);
             }
         }
 

@@ -67,10 +67,12 @@ public sealed class PartyState
         }
     }
 
-    public IEnumerable<(int, Actor)> WithSlot(bool includeDead = false, bool excludeAlliance = false)
+    public IEnumerable<(int, Actor)> WithSlot(bool includeDead = false, bool excludeAlliance = false, bool excludeNPCs = false)
     {
         for (int i = 0; i < MaxAllies; ++i)
         {
+            if (excludeNPCs && i >= MaxAllianceSize)
+                break;
             if (excludeAlliance && i is >= MaxPartySize and < MaxAllianceSize)
                 continue;
             var player = _actors[i];

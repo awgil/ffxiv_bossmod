@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation.xan.AI;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.Autorotation.xan.AI.TrackPartyHealth;
 
 namespace BossMod.Autorotation.xan;
 
@@ -52,10 +53,30 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         return def;
     }
 
-    private void HealSingle(Action<Actor, TrackPartyHealth.PartyMemberState> healFun)
+    private void HealSingle(Action<Actor, PartyMemberState> healFun)
     {
         if (Health.BestSTHealTarget is (var a, var b))
             healFun(a, b);
+    }
+
+    /// <summary>
+    /// Run the given Action if the party has exactly one tank, otherwise do nothing
+    /// </summary>
+    /// <param name="tankFun"></param>
+    private void RunForTank(Action<Actor, PartyMemberState> tankFun)
+    {
+        var tankSlot = -1;
+        foreach (var (slot, actor) in World.Party.WithSlot(excludeAlliance: true))
+            if (actor.ClassCategory == ClassCategory.Tank)
+            {
+                if (tankSlot >= 0)
+                    return;
+                else
+                    tankSlot = slot;
+            }
+
+        if (tankSlot >= 0)
+            tankFun(World.Party[tankSlot]!, Health.PartyMemberStates[tankSlot]!);
     }
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
@@ -238,8 +259,24 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.AST.AID.EarthlyStar), Player, ActionQueue.Priority.Medium, targetPos: Player.PosRot.XYZ());
     }
 
+    private Vector3? GetArenaCenter()
+    {
+        if (Bossmods.ActiveModule is BossModule m)
+        {
+            var center = m.Arena.Center;
+            return new Vector3(center.X, Player.PosRot.Y, center.Z);
+        }
+        return null;
+    }
+
     private void AutoSCH(StrategyValues strategy, Actor? primaryTarget)
     {
+        void UseSoil(Vector3? location = null)
+        {
+            location ??= GetArenaCenter() ?? Player.PosRot.XYZ();
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.SCH.AID.SacredSoil), null, ActionQueue.Priority.Medium, targetPos: location.Value);
+        }
+
         var gauge = World.Client.GetGauge<ScholarGauge>();
 
         var pet = World.Client.ActivePet.InstanceID == 0xE0000000 ? null : World.Actors.Find(World.Client.ActivePet.InstanceID);
@@ -253,8 +290,15 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         if (pet != null)
         {
-            if (haveEos && ShouldHealInArea(pet.Position, 20, 0.5f))
-                UseOGCD(BossMod.SCH.AID.FeyBlessing, Player);
+            if (ShouldHealInArea(pet.Position, 30, 0.5f))
+            {
+                if (haveSeraph)
+                    UseOGCD(BossMod.SCH.AID.Consolation, Player);
+                else if (NextChargeIn(BossMod.SCH.AID.SummonSeraph) == 0)
+                    UseOGCD(BossMod.SCH.AID.SummonSeraph, Player);
+                else
+                    UseOGCD(BossMod.SCH.AID.FeyBlessing, Player);
+            }
 
             if (ShouldHealInArea(pet.Position, 15, 0.8f))
                 UseOGCD(BossMod.SCH.AID.WhisperingDawn, Player);
@@ -271,9 +315,26 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
                     UseOGCD(BossMod.SCH.AID.Lustrate, target);
                 }
                 else
-                    UseGCD(BossMod.SCH.AID.Physick, target);
+                    UseGCD(BossMod.SCH.AID.Adloquium, target);
             }
         });
+
+        RunForTank((tank, tankState) =>
+        {
+            if (!Player.InCombat && !tank.InCombat && tankState.IsMovingFor(World, 1.5f))
+            {
+                if (NextChargeIn(BossMod.SCH.AID.Excogitation) == 0)
+                    UseOGCD(BossMod.SCH.AID.Recitation, Player, 5);
+                UseOGCD(BossMod.SCH.AID.Excogitation, tank);
+            }
+
+            if (tank.InCombat && tankState.IsStandingFor(World, 2) && tankState.AttackerStrength > 0.1)
+                UseSoil(tank.PosRot.XYZ());
+        });
+
+        foreach (var rw in Raidwides)
+            if ((rw - World.CurrentTime).TotalSeconds < 5)
+                UseSoil();
     }
 
     private void AutoSGE(StrategyValues strategy, Actor? primaryTarget)
@@ -305,9 +366,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         });
 
         foreach (var rw in Raidwides)
-        {
             if ((rw - World.CurrentTime).TotalSeconds < 15 && haveBalls)
                 UseOGCD(BossMod.SGE.AID.Kerachole, Player);
-        }
     }
 }

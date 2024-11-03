@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using BossMod.Autorotation.xan.AI;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
@@ -21,6 +22,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly DebugClassDefinitions _debugClassDefinitions = new(ws);
     private readonly DebugAddon _debugAddon = new();
     private readonly DebugTiming _debugTiming = new();
+    private readonly TrackPartyHealth PartyHealth = new(ws);
     //private readonly DebugVfx _debugVfx = new();
 
     protected override void Dispose(bool disposing)
@@ -44,6 +46,8 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         var eventFwk = FFXIVClientStructs.FFXIV.Client.Game.Event.EventFramework.Instance();
         var instanceDirector = eventFwk != null ? eventFwk->GetInstanceContentDirector() : null;
         ImGui.TextUnformatted($"Content time left: {(instanceDirector != null ? $"{instanceDirector->ContentDirector.ContentTimeLeft:f1}" : "n/a")}");
+
+        PartyHealth.Update(autorot.Hints);
 
         if (ImGui.Button("Perform full dump"))
         {
@@ -95,6 +99,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         {
             if (zmm.ActiveModule is QuestBattle.QuestBattle qb)
                 qb.DrawDebugInfo();
+        }
+        if (ImGui.CollapsingHeader("Party health"))
+        {
+            DrawPartyHealth();
         }
         if (ImGui.CollapsingHeader("Graphics scene"))
         {
@@ -191,6 +199,19 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
                 }
                 ImGui.TreePop();
             }
+        }
+    }
+
+    private void DrawPartyHealth()
+    {
+        foreach (var st in PartyHealth.PartyMemberStates)
+        {
+            if (ws.Party[st.Slot] == null)
+                continue;
+
+            Dalamud.Utility.Util.ShowObject(st);
+            ImGui.TextUnformatted($"Moving for 5s? {st.IsMovingFor(ws, 5)}");
+            ImGui.TextUnformatted($"Standing for 5s? {st.IsStandingFor(ws, 5)}");
         }
     }
 
