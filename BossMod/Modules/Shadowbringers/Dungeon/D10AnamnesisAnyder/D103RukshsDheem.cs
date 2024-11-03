@@ -83,9 +83,9 @@ class Voidzones(BossModule module) : BossComponent(module)
 
         Arena.Bounds = Current switch
         {
-            Configuration.Split => D103RukshsDheem.SplitBounds,
-            Configuration.Narrow => D103RukshsDheem.NarrowBounds,
-            _ => D103RukshsDheem.DefaultBounds,
+            Configuration.Split => RukshsDheem.SplitBounds,
+            Configuration.Narrow => RukshsDheem.NarrowBounds,
+            _ => RukshsDheem.DefaultBounds,
         };
     }
 }
@@ -246,7 +246,7 @@ class Drains(BossModule module) : BossComponent(module)
             if (handBlockers.Any(b => pos.InRect(b.Position, b.Rotation, 21, 0, 5)))
                 continue;
 
-            yield return (Positions[i], st == DrainState.Covered);
+            yield return (pos, st == DrainState.Covered);
         }
     }
 
@@ -269,8 +269,9 @@ class Drains(BossModule module) : BossComponent(module)
         List<Func<WPos, float>> zones = [];
         foreach (var drain in GetActiveDrains())
         {
-            var numBlockers = Raid.WithoutSlot().Count(p => p.Position.AlmostEqual(drain.Position, 1.25f));
-            if (numBlockers == 0 || numBlockers == 1 && actor.Position.AlmostEqual(drain.Position, 1.25f))
+            bool inDrain(WPos p) => p.AlmostEqual(drain.Position, 1.25f);
+            var numBlockers = Raid.WithoutSlot().Count(p => inDrain(p.Position));
+            if (numBlockers == 0 || numBlockers == 1 && inDrain(actor.Position))
                 zones.Add(ShapeDistance.Rect(drain.Position, default(Angle), 1.25f, 1.25f, 1.25f));
         }
         if (zones.Count == 0)
@@ -301,7 +302,7 @@ class RukshsDheemStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 714, NameID = 9264)]
-public class D103RukshsDheem(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -450), DefaultBounds)
+public class RukshsDheem(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -450), DefaultBounds)
 {
     private static ArenaBoundsCustom MakeSplitBounds()
     {
