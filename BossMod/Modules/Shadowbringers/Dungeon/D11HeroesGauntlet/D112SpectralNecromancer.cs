@@ -1,205 +1,175 @@
 namespace BossMod.Shadowbringers.Dungeon.D11HeroesGauntlet.D112SpectralNecromancer;
+
 public enum OID : uint
 {
-    Boss = 0x2DF1, // R2.300, x? 
-    Necrobomb1 = 0x2DF2, // R0.750, x?
-    Necrobomb2 = 0x2DF3, // R0.750, x?
-    Necrobomb3 = 0x2DF4, // R0.750, x?
-    Necrobomb4 = 0x2DF5, // R0.750, x?
-    Necrobomb5 = 0x2DF6, // R0.750, x?
-    Necrobomb6 = 0x2DF7, // R0.750, x?
-    Necrobomb7 = 0x2DF8, // R0.750, x?
-    Necrobomb8 = 0x2DF9, // R0.750, x?
-    Voidzone = 0x1EB02C,
-    FetterZombieObject = 0x1EB07A,
-    Helper = 0x233C,
 
+    Boss = 0x2DF1, // R2.3
+    Necrobomb1 = 0x2DF2, // R0.75
+    Necrobomb2 = 0x2DF3, // R0.75
+    Necrobomb3 = 0x2DF4, // R0.75
+    Necrobomb4 = 0x2DF5, // R0.75
+    Necrobomb5 = 0x2DF6, // R0.75
+    Necrobomb6 = 0x2DF7, // R0.75
+    Necrobomb7 = 0x2DF8, // R0.75
+    Necrobomb8 = 0x2DF9, // R0.75
+    BleedVoidzone = 0x1EB02C,
+    NecroPortal = 0x1EB07A,
+    Helper = 0x233C
 }
+
 public enum AID : uint
 {
-    FellForces = 20305, // 2DF1->player, no cast, single-target
-    AbsoluteDarkII = 20321, // 2DF1->self, 5.0s cast, range 40 120-degree cone
-    TwistedTouch = 20318, // 2DF1->player, 4.0s cast, single-target
-    PainMire = 20387, // 2DF1->self, no cast, single-target
-    PainMireLocation = 20388, // 233C->location, 5.5s cast, range 9 circle
-    ChaosStorm = 20320, // 2DF1->self, 4.0s cast, range 40 circle
-    DarkDeluge = 20316, // 2DF1->self, 4.0s cast, single-target
-    DarkDelugeLocation = 20317, // 233C->location, 5.0s cast, range 5 circle
+    AutoAttack = 6499, // Necrobomb3/Necrobomb4/Necrobomb1/Necrobomb2->player, no cast, single-target
+    FellForces = 20305, // Boss->player, no cast, single-target
 
-    Attack = 6499, // 2DF3/2DF2/2DF5/2DF4->player, no cast, single-target
-    Necromancy = 20311, // 2DF1->self, 3.0s cast, single-target
-    Necromancy2 = 20312, // 2DF1->self, 3.0s cast, single-target
-    DeathThroes = 20323, // 2DF9/2DF6/2DF7/2DF8->player, no cast, single-target
-    Necroburst = 20313, // 2DF1->self, 4.3s cast, single-target
-    Necroburst2 = 20314, // 2DF1->self, 4.3s cast, single-target
-    Burst1 = 20322, // 2DF2->self, 4.0s cast, range 8 circle
-    Burst2 = 21429, // 2DF3->self, 4.0s cast, range 8 circle
-    Burst3 = 21430, // 2DF4->self, 4.0s cast, range 8 circle
-    Burst4 = 21431, // 2DF5->self, 4.0s cast, range 8 circle
-    Burst5 = 20324, // 2DF6->self, 4.0s cast, range 8 circle
-    Burst6 = 21432, // 2DF7->self, 4.0s cast, range 8 circle
-    Burst7 = 21433, // 2DF8->self, 4.0s cast, range 8 circle
-    Burst8 = 21434, // 2DF9->self, 4.0s cast, range 8 circle
+    AbsoluteDarkII = 20321, // Boss->self, 5.0s cast, range 40 120-degree cone
+
+    TwistedTouch = 20318, // Boss->player, 4.0s cast, single-target
+    Necromancy1 = 20311, // Boss->self, 3.0s cast, single-target
+    Necromancy2 = 20312, // Boss->self, 3.0s cast, single-target
+    Necroburst1 = 20313, // Boss->self, 4.3s cast, single-target
+    Necroburst2 = 20314, // Boss->self, 4.3s cast, single-target
+
+    Burst1 = 20322, // Necrobomb1->self, 4.0s cast, range 8 circle
+    Burst2 = 21429, // Necrobomb2->self, 4.0s cast, range 8 circle
+    Burst3 = 21430, // Necrobomb3->self, 4.0s cast, range 8 circle
+    Burst4 = 21431, // Necrobomb4->self, 4.0s cast, range 8 circle
+    Burst5 = 20324, // Necrobomb5->self, 4.0s cast, range 8 circle
+    Burst6 = 21432, // Necrobomb6->self, 4.0s cast, range 8 circle
+    Burst7 = 21433, // Necrobomb7->self, 4.0s cast, range 8 circle
+    Burst8 = 21434, // Necrobomb8->self, 4.0s cast, range 8 circle
+
+    PainMireVisual = 20387, // Boss->self, no cast, single-target
+    PainMire = 20388, // Helper->location, 5.5s cast, range 9 circle, spawns voidzone smaller than AOE
+    DeathThroes = 20323, // Necrobomb5/Necrobomb6/Necrobomb7/Necrobomb8->player, no cast, single-target
+
+    ChaosStorm = 20320, // Boss->self, 4.0s cast, range 40 circle, raidwide
+    DarkDelugeVisual = 20316, // Boss->self, 4.0s cast, single-target
+    DarkDeluge = 20317 // Helper->location, 5.0s cast, range 5 circle
 }
-public enum SID : uint
-{
-    ZombieActive = 2056,
-}
+
 public enum IconID : uint
 {
-    ZombieFetter = 23,
-    Tankbuster = 198,
+    Baitaway = 23, // player
+    Tankbuster = 198 // player
 }
+
+public enum SID : uint
+{
+    Doom = 910 // Boss->player, extra=0x0
+}
+
 public enum TetherID : uint
 {
-    ZombieChase = 17,
-    ZombieFetterTether = 79,
+    WalkingNecrobombs = 17, // Necrobomb3/Necrobomb1/Necrobomb2/Necrobomb4->2753/player/2757/2752
+    CrawlingNecrobombs = 79 // Necrobomb7/Necrobomb8/Necrobomb5/Necrobomb6->player/2753/2757/2752
 }
+
 class AbsoluteDarkII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AbsoluteDarkII), new AOEShapeCone(40, 60.Degrees()));
-class PainMireLocation(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PainMireLocation), 9);
-class PainMireVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 9, ActionID.MakeSpell(AID.PainMireLocation), m => m.Enemies(OID.Voidzone).Where(z => z.EventState == 7), 0.5f);
-class ChaosStorm(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ChaosStorm));
-class DarkDelugeLocation(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DarkDelugeLocation), 5);
-class Necromancy(BossModule module) : Components.GenericAOEs(module)
+class PainMire(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PainMire), 9)
 {
-    private readonly List<AOEInstance> _necroAOEs = [];
-    private DateTime delay;
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_necroAOEs.Count > 0)
-        {
-            for (var i = 0; i < _necroAOEs.Count; i++)
-            {
-                yield return _necroAOEs[i] with { Color = ArenaColor.AOE };
-            }
-        }
-    }
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_necroAOEs.Count > 0)
-        {
-            hints.AddForbiddenZone(ShapeDistance.Circle(WorldState.Party.Player()!.Position, 4), delay);
-        }
-    }
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID is AID.Necromancy2)
-        {
-            delay = Module.CastFinishAt(spell).AddSeconds(8);
-            _necroAOEs.Add(new AOEInstance(new AOEShapeCircle(4f), WorldState.Party.Player()!.Position, default, delay));
-        }
-    }
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID is AID.Necromancy2)
-        {
-            _necroAOEs.Clear();
-        }
+        if (Module.Enemies(OID.BleedVoidzone).Any(x => x.EventState != 7))
+        { }
+        else
+            base.AddAIHints(slot, actor, assignment, hints);
     }
 }
-class NecroFetter(BossModule module) : Components.UniformStackSpread(module, 0, 8f, 0, 0, true)
-{
-    private readonly List<Actor> activeChasers = [];
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
-    {
-        if (tether.ID is (uint)TetherID.ZombieChase)
-        {
-            activeChasers.Add(source);
-            return;
-        }
-        else if (tether.ID is (uint)TetherID.ZombieFetterTether)
-        {
-            if (activeChasers.Count == 0)
-            {
-                foreach (var player in WorldState.Party.WithoutSlot())
-                {
-                    Spreads.Add(new(player, 8f));
-                }
-            }
-        }
-    }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+class BleedVoidzone(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.BleedVoidzone).Where(x => x.EventState != 7));
+class TwistedTouch(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TwistedTouch));
+class ChaosStorm(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ChaosStorm));
+class DarkDeluge(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DarkDeluge), 5);
+class NecrobombBaitAway(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(9.25f), (uint)IconID.Baitaway, ActionID.MakeSpell(AID.DeathThroes), centerAtTarget: true); // note: explosion is not always exactly the position of player, if zombie teleports to player it is player + zombie hitboxradius = 1.25 away
+
+class Necrobombs(BossModule module) : BossComponent(module)
+{
+    private readonly NecrobombBaitAway _ba = module.FindComponent<NecrobombBaitAway>()!;
+    private static readonly AOEShapeCircle circle = new(8);
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (tether.ID is (uint)TetherID.ZombieChase)
-        {
-            activeChasers.Remove(source);
+        if (_ba.ActiveBaits.Any())
             return;
-        }
-        else if (tether.ID is (uint)TetherID.ZombieFetterTether)
-        {
-            Spreads.Clear();
-        }
+        var forbidden = new List<Func<WPos, float>>();
+        foreach (var e in WorldState.Actors.Where(x => !x.IsAlly && x.Tether.ID == (uint)TetherID.CrawlingNecrobombs))
+            forbidden.Add(circle.Distance(e.Position, default));
+        if (forbidden.Count > 0)
+            hints.AddForbiddenZone(p => forbidden.Min(f => f(p)));
     }
 }
-class NecroBurst(BossModule module) : Components.GenericAOEs(module)
+
+class Burst(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
-    private DateTime delay;
-    private IEnumerable<Actor> ChaserZombies
+    private static readonly AOEShapeCircle circle = new(8);
+    private static readonly HashSet<AID> casts = [AID.Burst1, AID.Burst2, AID.Burst3, AID.Burst4, AID.Burst5, AID.Burst6, AID.Burst7, AID.Burst8];
+    // Note: Burst5 to Burst8 locations are unknown until players unable to move, so they are irrelevant and not drawn
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+
+    public override void OnActorModelStateChange(Actor actor, byte modelState, byte animState1, byte animState2)
     {
-        get
-        {
-            return Module.Enemies(OID.Necrobomb1)
-                   .Concat(Module.Enemies(OID.Necrobomb2))
-                   .Concat(Module.Enemies(OID.Necrobomb3))
-                   .Concat(Module.Enemies(OID.Necrobomb4))
-                   .Where(e => !e.IsTargetable && !e.IsDead);
-        }
+        if (modelState == 54)
+            _aoes.Add(new(circle, actor.Position, default, WorldState.FutureTime(6))); // activation time can be vastly different, even twice as high so we take a conservative delay
     }
-    private readonly IEnumerable<AID> Bursts = [AID.Burst1, AID.Burst2, AID.Burst3, AID.Burst4];
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_aoes.Count > 0)
-        {
-            for (var i = 0; i < _aoes.Count; i++)
-            {
-                yield return _aoes[i] with { Color = ArenaColor.AOE };
-            }
-        }
-    }
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (Bursts.Contains((AID)spell.Action.ID))
-        {
-            delay = Module.CastFinishAt(spell).AddSeconds(4);
-            foreach (var e in ChaserZombies)
-            {
-                _aoes.Add(new AOEInstance(new AOEShapeCircle(10f), e.Position, default, delay));
-            }
-        }
-    }
+
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (Bursts.Contains((AID)spell.Action.ID))
+        if (casts.Contains((AID)spell.Action.ID))
             _aoes.Clear();
     }
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+}
+
+class Doom(BossModule module) : BossComponent(module)
+{
+    private readonly List<Actor> _doomed = [];
+
+    public static bool CanActorCureDoom(Actor actor) => actor.Role == Role.Healer || actor.Class == Class.BRD;
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if (tether.ID is (uint)TetherID.ZombieChase)
-        {
-            foreach (var e in ChaserZombies)
+        if ((SID)status.ID == SID.Doom)
+            _doomed.Add(actor);
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.Doom)
+            _doomed.Remove(actor);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_doomed.Count > 0 && CanActorCureDoom(actor))
+            for (var i = 0; i < _doomed.Count; ++i)
             {
-                _aoes.Add(new AOEInstance(new AOEShapeCircle(10f), e.Position, default, delay));
+                var doomed = _doomed[i];
+                if (actor.Role == Role.Healer)
+                    hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Esuna), doomed, ActionQueue.Priority.High);
+                else if (actor.Class == Class.BRD)
+                    hints.ActionsToExecute.Push(ActionID.MakeSpell(BRD.AID.WardensPaean), doomed, ActionQueue.Priority.High);
             }
-        }
     }
 }
+
 class D112SpectralNecromancerStates : StateMachineBuilder
 {
     public D112SpectralNecromancerStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<AbsoluteDarkII>()
-            .ActivateOnEnter<PainMireLocation>()
-            .ActivateOnEnter<PainMireVoidzone>()
+            .ActivateOnEnter<PainMire>()
+            .ActivateOnEnter<BleedVoidzone>()
+            .ActivateOnEnter<TwistedTouch>()
             .ActivateOnEnter<ChaosStorm>()
-            .ActivateOnEnter<DarkDelugeLocation>()
-            .ActivateOnEnter<Necromancy>()
-            .ActivateOnEnter<NecroBurst>()
-            .ActivateOnEnter<NecroFetter>();
+            .ActivateOnEnter<DarkDeluge>()
+            .ActivateOnEnter<NecrobombBaitAway>()
+            .ActivateOnEnter<Necrobombs>()
+            .ActivateOnEnter<Burst>()
+            .ActivateOnEnter<Doom>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 737, NameID = 9511)]
-public class D112SpectralNecromancer(WorldState ws, Actor primary) : BossModule(ws, primary, new(-449.6f, -531.6f), new ArenaBoundsCircle(17));
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 737, NameID = 9508)]
+public class D112SpectralNecromancer(WorldState ws, Actor primary) : BossModule(ws, primary, new(-450, -531), new ArenaBoundsCircle(19.5f));
