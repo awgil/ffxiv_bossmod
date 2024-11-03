@@ -38,6 +38,8 @@ public class TrackPartyHealth(WorldState World)
     public readonly PartyMemberState[] PartyMemberStates = new PartyMemberState[PartyState.MaxAllies];
     public PartyHealthState PartyHealth { get; private set; } = new();
 
+    public bool HaveRealPartyMembers { get; private set; }
+
     // looking up this field in sheets is noticeably expensive somehow
     private static readonly Dictionary<uint, bool> _esunaCache = [];
     private static bool StatusIsRemovable(uint statusID)
@@ -117,18 +119,35 @@ public class TrackPartyHealth(WorldState World)
         foreach (var caster in World.Party.WithoutSlot(excludeAlliance: true).Where(a => a.CastInfo?.IsSpell(BossMod.WHM.AID.Esuna) ?? false))
             esunas.Set(World.Party.FindSlot(caster.CastInfo!.TargetID));
 
+        HaveRealPartyMembers = false;
+
         for (var i = 0; i < PartyState.MaxAllies; i++)
         {
+            var shouldSkip = false;
+            if (i >= PartyState.MaxPartySize)
+            {
+                // if we are running content with normal party, either duty support or human players, NPC allies should be ignored entirely
+                if (HaveRealPartyMembers)
+                    shouldSkip = true;
+
+                // otherwise alliance should be skipped since healing actions generally can't target them
+                if (i < PartyState.MaxAllianceSize)
+                    shouldSkip = true;
+            }
+
             var actor = World.Party[i];
             ref var state = ref PartyMemberStates[i];
             state.Slot = i;
-            if (actor == null || actor.IsDead || actor.HPMP.MaxHP == 0)
+            if (actor == null || actor.IsDead || actor.HPMP.MaxHP == 0 || shouldSkip)
             {
                 state.PredictedHP = state.PredictedHPMissing = 0;
                 state.PredictedHPRatio = state.PendingHPRatio = 1;
             }
             else
             {
+                if (i is > 0 and < PartyState.MaxPartySize)
+                    HaveRealPartyMembers = true;
+
                 state.PredictedHP = (int)actor.HPMP.CurHP + World.PendingEffects.PendingHPDifference(actor.InstanceID);
                 state.PredictedHPMissing = (int)actor.HPMP.MaxHP - state.PredictedHP;
                 state.PredictedHPRatio = state.PendingHPRatio = (float)state.PredictedHP / actor.HPMP.MaxHP;

@@ -8,7 +8,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 {
     private readonly TrackPartyHealth Health = new(manager.WorldState);
 
-    public enum Track { Raise, RaiseTarget, Heal, Esuna }
+    public enum Track { Raise, RaiseTarget, Heal, Esuna, StayNearParty }
     public enum RaiseStrategy
     {
         None,
@@ -49,6 +49,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         def.AbilityTrack(Track.Heal, "Heal");
         def.AbilityTrack(Track.Esuna, "Esuna");
+        def.AbilityTrack(Track.StayNearParty, "Stay near party");
 
         return def;
     }
@@ -79,6 +80,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
             tankFun(World.Party[tankSlot]!, Health.PartyMemberStates[tankSlot]!);
     }
 
+    private IEnumerable<Actor> LightParty => World.Party.WithoutSlot(excludeAlliance: true, excludeNPCs: Health.HaveRealPartyMembers);
+
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (Player.MountId > 0)
@@ -86,8 +89,11 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         Health.Update(Hints);
 
-        List<(WPos pos, float radius)> allies = [.. World.Party.WithoutSlot(excludeAlliance: true).Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
-        Hints.GoalZones.Add(p => allies.Count(a => a.pos.InCircle(p, a.radius + Player.HitboxRadius + 15)));
+        if (strategy.Enabled(Track.StayNearParty))
+        {
+            List<(WPos pos, float radius)> allies = [.. LightParty.Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
+            Hints.GoalZones.Add(p => allies.Count(a => a.pos.InCircle(p, a.radius + Player.HitboxRadius + 15)));
+        }
 
         AutoRaise(strategy);
 
@@ -184,8 +190,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         var candidates = strategy.Option(Track.RaiseTarget).As<RaiseTarget>() switch
         {
             RaiseTarget.Everyone => World.Actors.Where(x => x.Type is ActorType.Player or ActorType.DutySupport && x.IsAlly),
-            RaiseTarget.Alliance => World.Party.WithoutSlot(true, false),
-            _ => World.Party.WithoutSlot(true, true)
+            RaiseTarget.Alliance => World.Party.WithoutSlot(true, false, true),
+            _ => World.Party.WithoutSlot(true, true, true)
         };
 
         return candidates.Where(x => x.IsDead && Player.DistanceToHitbox(x) <= 30 && !BeingRaised(x)).MaxBy(actor => actor.Class.GetRole() switch
@@ -328,13 +334,17 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
                 UseOGCD(BossMod.SCH.AID.Excogitation, tank);
             }
 
-            if (tank.InCombat && tankState.IsStandingFor(World, 2) && tankState.AttackerStrength > 0.1)
+            if (tank.InCombat && tankState.IsStandingFor(World, 2) && Bossmods.ActiveModule is null)
                 UseSoil(tank.PosRot.XYZ());
         });
 
         foreach (var rw in Raidwides)
             if ((rw - World.CurrentTime).TotalSeconds < 5)
-                UseSoil();
+            {
+                var allies = LightParty.ToList();
+                var centroid = allies.Aggregate(allies[0].PosRot.XYZ(), (pos, actor) => (pos + actor.PosRot.XYZ()) / 2f);
+                UseSoil(centroid);
+            }
     }
 
     private void AutoSGE(StrategyValues strategy, Actor? primaryTarget)
