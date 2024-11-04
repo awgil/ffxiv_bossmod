@@ -19,7 +19,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
     public float Reign;
 
     public float SonicBreak;
-    public bool Continuation;
+    public AID Continuation;
     public float NoMercy;
 
     public int NumAOETargets;
@@ -40,7 +40,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
 
         Reign = StatusLeft(SID.ReadyToReign);
         SonicBreak = StatusLeft(SID.ReadyToBreak);
-        Continuation = Player.Statuses.Any(s => IsContinuationStatus((SID)s.ID));
+        Continuation = GetContinuation();
         NoMercy = StatusLeft(SID.NoMercy);
 
         NumAOETargets = NumMeleeAOETargets(strategy);
@@ -132,8 +132,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
         if (!Player.InCombat || primaryTarget == null)
             return;
 
-        if (Continuation)
-            PushOGCD(AID.Continuation, primaryTarget);
+        PushOGCD(Continuation, primaryTarget);
 
         if (strategy.BuffsOk() && Unlocked(AID.Bloodfest) && Ammo == 0)
             PushOGCD(AID.Bloodfest, primaryTarget);
@@ -162,5 +161,25 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.NoMercy, Player, delay: GCD - 0.8f);
     }
 
-    private bool IsContinuationStatus(SID sid) => sid is SID.ReadyToBlast or SID.ReadyToRaze or SID.ReadyToGouge or SID.ReadyToTear or SID.ReadyToRip;
+    private AID GetContinuation()
+    {
+        foreach (var s in Player.Statuses)
+        {
+            switch ((SID)s.ID)
+            {
+                case SID.ReadyToBlast:
+                    return AID.Hypervelocity;
+                case SID.ReadyToRaze:
+                    return AID.FatedBrand;
+                case SID.ReadyToRip:
+                    return AID.JugularRip;
+                case SID.ReadyToGouge:
+                    return AID.EyeGouge;
+                case SID.ReadyToTear:
+                    return AID.AbdomenTear;
+            }
+        }
+
+        return AID.None;
+    }
 }
