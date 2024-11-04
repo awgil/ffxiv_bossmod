@@ -154,7 +154,7 @@ class Barbeque(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (active)
-            hints.GoalZones.Add(p => p.X >= 15 ? 10 : 0);
+            hints.GoalZones.Add(p => p.X >= 15 ? 50 : 0);
     }
 }
 
@@ -175,7 +175,7 @@ class MotherPorxieStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 746, NameID = 9741)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 746, NameID = 9741, Contributors = "Malediktus, xan")]
 public class MotherPorxie(WorldState ws, Actor primary) : BossModule(ws, primary, default, new ArenaBoundsSquare(19.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
