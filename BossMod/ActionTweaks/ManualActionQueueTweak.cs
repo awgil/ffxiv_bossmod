@@ -150,6 +150,12 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
                 return true;
             }
 
+            if (def.TransformPosition?.Invoke(ws, player, ws.Actors.Find(targetId), hints) is Vector3 p)
+            {
+                targetPos = p;
+                return true;
+            }
+
             // ground-targeted actions have special targeting
             var (gtTarget, gtPos) = getAreaTarget();
             if (gtPos != null)
