@@ -58,7 +58,7 @@ class BrittleBreccia(BossModule module) : Components.ConcentricAOEs(module, _sha
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.BrittleBreccia1)
-            AddSequence(caster.Position, Module.CastFinishAt(spell), spell.Rotation);
+            AddSequence(caster.Position, Module.CastFinishAt(spell), caster.Rotation);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -72,7 +72,7 @@ class BrittleBreccia(BossModule module) : Components.ConcentricAOEs(module, _sha
                 AID.BrittleBreccia3 => 2,
                 _ => -1
             };
-            AdvanceSequence(order, caster.Position, WorldState.FutureTime(1.5f), spell.Rotation);
+            AdvanceSequence(order, caster.Position, WorldState.FutureTime(1.5f), caster.Rotation);
         }
     }
 }
@@ -164,9 +164,9 @@ class RockyRoll(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 
-class D121MudmanStates : StateMachineBuilder
+class MudmanStates : StateMachineBuilder
 {
-    public D121MudmanStates(BossModule module) : base(module)
+    public MudmanStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<BrittleBreccia>()
@@ -180,4 +180,4 @@ class D121MudmanStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 746, NameID = 9735)]
-public class D121Mudman(WorldState ws, Actor primary) : BossModule(ws, primary, new(-180, -140), new ArenaBoundsCircle(19.5f));
+public class Mudman(WorldState ws, Actor primary) : BossModule(ws, primary, new(-180, -140), new ArenaBoundsCircle(19.5f));
