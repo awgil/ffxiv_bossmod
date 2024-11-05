@@ -12,6 +12,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.Interop;
+using System.Text;
 
 namespace BossMod;
 
@@ -70,8 +71,13 @@ sealed class WorldStateGameSync : IDisposable
         _startTime = DateTime.Now;
         _startQPC = Framework.Instance()->PerformanceCounterValue;
         _interceptor.ServerIPCReceived += ServerIPCReceived;
+        _interceptor.ClientIPCSent += ClientIPCSent;
 
-        _netConfig = Service.Config.GetAndSubscribe<ReplayManagementConfig>(config => _interceptor.Active = config.RecordServerPackets || config.DumpServerPackets);
+        _netConfig = Service.Config.GetAndSubscribe<ReplayManagementConfig>(config =>
+        {
+            _interceptor.ActiveRecv = config.RecordServerPackets || config.DumpServerPackets;
+            _interceptor.ActiveSend = config.DumpClientPackets;
+        });
         _subscriptions = new
         (
             amex.ActionRequestExecuted.Subscribe(OnActionRequested),
@@ -676,8 +682,19 @@ sealed class WorldStateGameSync : IDisposable
         var ipc = new NetworkState.ServerIPC(id, opcode, epoch, sourceServerActor, sendTimestamp, [.. payload]);
         if (_netConfig.Data.RecordServerPackets)
             _globalOps.Add(new NetworkState.OpServerIPC(ipc));
-        if (_netConfig.Data.DumpServerPackets)
+        if (_netConfig.Data.DumpServerPackets && (!_netConfig.Data.DumpServerPacketsPlayerOnly || sourceServerActor == UIState.Instance()->PlayerState.EntityId))
             _decoder.LogNode(_decoder.Decode(ipc, DateTime.UtcNow), "");
+    }
+
+    private unsafe void ClientIPCSent(uint opcode, Span<byte> payload)
+    {
+        if (_netConfig.Data.DumpClientPackets)
+        {
+            var sb = new StringBuilder($"Client IPC [0x{opcode:X4}]: data=");
+            foreach (byte b in payload)
+                sb.Append($"{b:X2}");
+            _decoder.LogNode(new(sb.ToString()), "");
+        }
     }
 
     private void OnActionRequested(ClientActionRequest arg)
