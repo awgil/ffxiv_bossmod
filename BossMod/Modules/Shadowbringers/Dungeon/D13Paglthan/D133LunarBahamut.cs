@@ -1,6 +1,4 @@
-﻿
-
-namespace BossMod.Shadowbringers.Dungeon.D13Paglthan.D133LunarBahamut;
+﻿namespace BossMod.Shadowbringers.Dungeon.D13Paglthan.D133LunarBahamut;
 
 public enum OID : uint
 {

@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Shadowbringers.Dungeon.D12MatoyasRelict.D123MotherPorxie;
+﻿namespace BossMod.Shadowbringers.Dungeon.D12MatoyasRelict.D123MotherPorxie;
 
 public enum OID : uint
 {

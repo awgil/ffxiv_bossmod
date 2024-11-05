@@ -1,6 +1,4 @@
-﻿
-
-namespace BossMod.Shadowbringers.Dungeon.D13Paglthan.D131Amhuluk;
+﻿namespace BossMod.Shadowbringers.Dungeon.D13Paglthan.D131Amhuluk;
 
 public enum OID : uint
 {
@@ -9,7 +7,6 @@ public enum OID : uint
     _Gen_BallOfLevin = 0x31A2, // R1.300, x0 (spawn during fight)
     _Gen_SuperchargedLevin = 0x31A3, // R2.300, x0 (spawn during fight)
 }
-
 
 public enum AID : uint
 {
