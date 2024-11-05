@@ -90,7 +90,10 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
         if (UseCards)
         {
             if (HaveBuffCard)
-                PushOGCD(AID.PlayI, FindBestCardTarget(strategy, isRanged: Cards[0] == AstrologianCard.Spear));
+            {
+                var isRanged = Cards[0] == AstrologianCard.Spear;
+                PushOGCD(isRanged ? AID.TheSpear : AID.TheBalance, FindBestCardTarget(strategy, isRanged: isRanged));
+            }
 
             if (HaveLord && NumCrownTargets > 0)
                 PushOGCD(AID.LordOfCrowns, Player);
