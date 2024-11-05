@@ -33,60 +33,67 @@ public enum TetherID : uint
 class JitteringGlare(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.JitteringGlare), new AOEShapeCone(40, 15.Degrees()));
 class JitteringJab(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.JitteringJab));
 
-class JitteringJounce(BossModule module) : BossComponent(module)
+class JitteringJounceAOE(BossModule module) : Components.GenericLineOfSightAOE(module, ActionID.MakeSpell(AID.JitteringJounceCharge), 100, false)
 {
-    private readonly List<(Actor, int, Actor)> Tethers = [];
-    private IEnumerable<Actor> Meteors => Module.Enemies(OID.Stardust).Where(x => !x.IsDead);
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if (tether.ID == (uint)TetherID.JitteringJounce)
+        {
+            var slot = Raid.FindSlot(tether.Target);
+            if (slot >= 0)
+            {
+                Modify(Module.PrimaryActor.Position, Module.Enemies(OID.Stardust).Where(e => !e.IsDead).Select(s => (s.Position, 1f)), WorldState.FutureTime(6), BitMask.Build(slot));
+            }
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.JitteringJounceCharge)
+            Modify(null, []);
+    }
+}
+
+class JitteringJounceTether(BossModule module) : BossComponent(module)
+{
+    private Actor? Target;
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if (tether.ID == (uint)TetherID.JitteringJounce && WorldState.Actors.Find(tether.Target) is Actor tar)
-            Tethers.Add((source, Raid.FindSlot(tether.Target), tar));
+        if (tether.ID == (uint)TetherID.JitteringJounce)
+            Target = WorldState.Actors.Find(tether.Target);
     }
 
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.JitteringJounce)
-            Tethers.RemoveAll(t => t.Item3.InstanceID == tether.Target);
+            Target = null;
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        foreach (var (src, slot, target) in Tethers)
-        {
-            if (slot == pcSlot)
-            {
-                Arena.AddRect(src.Position, src.DirectionTo(target), (target.Position - src.Position).Length(), 0, 3, ArenaColor.Danger);
-                foreach (var m in Meteors)
-                    Arena.ZoneCircle(m.Position, 2, ArenaColor.SafeFromAOE);
-            }
-            else
-                Arena.ZoneRect(src.Position, target.Position, 3, ArenaColor.AOE);
-        }
-    }
+        if (Target == null)
+            return;
 
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        foreach (var (src, tslot, tar) in Tethers)
-        {
-            if (tslot == slot)
-                hints.Add("Hide behind meteor!");
-            else if (actor.Position.InRect(src.Position, tar.Position - src.Position, 3))
-                hints.Add("GTFO from aoe!");
-        }
+        var src = Module.PrimaryActor.Position;
+        var dst = Target.Position;
+        var shape = new AOEShapeRect((dst - src).Length(), 3);
+        var angle = Angle.FromDirection(dst - src);
+        if (Target == pc)
+            shape.Outline(Module.Arena, src, angle, ArenaColor.Danger);
+        else
+            shape.Draw(Module.Arena, src, angle, ArenaColor.AOE);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var (src, tslot, tar) in Tethers)
-        {
-            if (tslot == slot)
-                hints.AddForbiddenZone(ShapeDistance.Intersection(Meteors.Select(st => ShapeDistance.InvertedCircle(st.Position, st.HitboxRadius)).ToList()), Module.CastFinishAt(src.CastInfo));
-            else
-                hints.AddForbiddenZone(new AOEShapeRect((tar.Position - src.Position).Length(), 3), src.Position, src.AngleTo(tar), Module.CastFinishAt(src.CastInfo));
-        }
+        if (Target == null || Target == actor)
+            return;
+
+        hints.AddForbiddenZone(ShapeDistance.Rect(Module.PrimaryActor.Position, Target.Position, 3), Module.CastFinishAt(Module.PrimaryActor.CastInfo, 0.5f));
     }
 }
+
 class Stardust(BossModule module) : BossComponent(module)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc) => Arena.Actors(Module.Enemies(OID.Stardust).Where(x => !x.IsDead), ArenaColor.Object, true);
@@ -104,7 +111,8 @@ class ZiggyStates : StateMachineBuilder
             .ActivateOnEnter<GyratingGlare>()
             .ActivateOnEnter<MysticLight>()
             .ActivateOnEnter<DeepFracture>()
-            .ActivateOnEnter<JitteringJounce>()
+            .ActivateOnEnter<JitteringJounceAOE>()
+            .ActivateOnEnter<JitteringJounceTether>()
             .ActivateOnEnter<JitteringJab>()
             .ActivateOnEnter<JitteringGlare>();
     }
