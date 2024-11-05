@@ -42,6 +42,7 @@ public enum AID : uint
     _Ability_2TonzeMagitekMissile = 23701, // Helper->location, 5.0s cast, range 12 circle
 }
 
+class DefensiveReaction(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_DefensiveReaction));
 class Aethershot(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Ability_Aethershot), 6);
 class Exhaust(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Exhaust), new AOEShapeRect(40, 3.5f));
 
@@ -205,7 +206,8 @@ class MagitekCoreStates : StateMachineBuilder
             .ActivateOnEnter<Aethershot>()
             .ActivateOnEnter<Exhaust>()
             .ActivateOnEnter<MagitekMissile>()
-            .ActivateOnEnter<TwoTonze>();
+            .ActivateOnEnter<TwoTonze>()
+            .ActivateOnEnter<DefensiveReaction>();
     }
 }
 
