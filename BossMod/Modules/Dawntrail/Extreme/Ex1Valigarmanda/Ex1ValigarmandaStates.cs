@@ -403,10 +403,10 @@ class Ex1ValigarmandaStates : StateMachineBuilder
     {
         Cast(id, AID.RuinForetold, delay, 5, "Raidwide")
             .SetHint(StateMachine.StateHint.Raidwide);
-        Targetable(id + 0x10, false, 0.9f, "Boss disappears");
+        Targetable(id + 0x10, false, 0.9f, "Boss disappears")
+            .ClearHint(StateMachine.StateHint.DowntimeStart); // downtime is like <1s
         ComponentCondition<Beacons>(id + 0x11, 1.0f, comp => comp.ActiveActors.Any(), "Adds appear")
-            .ActivateOnEnter<Beacons>()
-            .SetHint(StateMachine.StateHint.DowntimeEnd);
+            .ActivateOnEnter<Beacons>();
         Targetable(id + 0x100, true, 50, "Adds enrage") // boss becomes targetable immediately when last adds becomes untargetable
             .ActivateOnEnter<CalamitousCry>() // 7.2s, then every 6s
             .ActivateOnEnter<CalamitousEcho>() // 7.2s, then every 6s
