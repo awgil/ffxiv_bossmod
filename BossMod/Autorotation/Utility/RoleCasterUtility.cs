@@ -35,7 +35,7 @@ public abstract class RoleCasterUtility(RotationModuleManager manager, Actor pla
     protected void ExecuteShared(StrategyValues strategy, ActionID lb3, Actor? primaryTarget)
     {
         ExecuteSimple(strategy.Option(SharedTrack.Sprint), ClassShared.AID.Sprint, Player);
-        ExecuteSimple(strategy.Option(SharedTrack.Sleep), ClassShared.AID.Sleep, Player);
+        ExecuteSimple(strategy.Option(SharedTrack.Sleep), ClassShared.AID.Sleep, primaryTarget);
         ExecuteSimple(strategy.Option(SharedTrack.LucidDreaming), ClassShared.AID.LucidDreaming, Player);
         ExecuteSimple(strategy.Option(SharedTrack.Surecast), ClassShared.AID.Surecast, Player);
 
