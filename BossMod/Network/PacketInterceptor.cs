@@ -18,23 +18,48 @@ unsafe struct ReceivedPacket
     [FieldOffset(0x18)] public long SendTimestamp;
 }
 
+[StructLayout(LayoutKind.Explicit, Size = 0x10)]
+unsafe struct SentIPCHeader
+{
+    [FieldOffset(0x00)] public uint Opcode;
+    [FieldOffset(0x08)] public ulong PayloadSize; // 0x10 (payload header) + actual data size
+}
+
 internal sealed class PacketInterceptor : IDisposable
 {
     public delegate void ServerIPCReceivedDelegate(DateTime sendTimestamp, uint sourceServerActor, uint targetServerActor, ushort opcode, uint epoch, Span<byte> payload);
     public event ServerIPCReceivedDelegate? ServerIPCReceived;
 
+    public delegate void ClientIPCSentDelegate(uint opcode, Span<byte> payload);
+    public event ClientIPCSentDelegate? ClientIPCSent;
+
     private unsafe delegate bool FetchReceivedPacketDelegate(void* self, ReceivedPacket* outData);
     private readonly HookAddress<FetchReceivedPacketDelegate>? _fetchHook;
 
-    public bool Active
+    private unsafe delegate byte SendPacketDelegate(void* self, SentIPCHeader* packet, int* a3, byte a4);
+    private readonly HookAddress<SendPacketDelegate>? _sendHook;
+
+    public bool ActiveRecv
     {
         get => _fetchHook?.Enabled ?? false;
         set
         {
             if (_fetchHook == null)
-                Service.Log($"[NPI] Hook not found!");
+                Service.Log($"[NPI] Recv hook not found!");
             else
                 _fetchHook.Enabled = value;
+        }
+    }
+
+    public bool ActiveSend
+    {
+        get => _sendHook?.Enabled ?? false;
+        set
+        {
+            if (_sendHook == null)
+                Service.Log($"[NPI] Send hook not found!");
+            else
+                _sendHook.Enabled = value;
         }
     }
 
@@ -49,12 +74,17 @@ internal sealed class PacketInterceptor : IDisposable
         if (foundFetchAddress)
             _fetchHook = new(fetchAddress, FetchReceivedPacketDetour, false);
 
+        _sendHook = new("48 89 5C 24 ?? 48 89 74 24 ?? 4C 89 64 24 ?? 55 41 56 41 57 48 8B EC 48 83 EC 70", SendPacketDetour, false);
+
         // potentially useful sigs from dalamud:
         // server ipc handler: 40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 8B F2 --- void(void* self, uint targetId, void* dataPtr)
-        // client ipc handler: 48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 41 56 41 57 48 83 EC 70 8B 81 ?? ?? ?? ?? --- byte(void* self, void* dataPtr, void* a3, byte a4)
     }
 
-    public void Dispose() => _fetchHook?.Dispose();
+    public void Dispose()
+    {
+        _fetchHook?.Dispose();
+        _sendHook?.Dispose();
+    }
 
     private unsafe bool FetchReceivedPacketDetour(void* self, ReceivedPacket* outData)
     {
@@ -70,5 +100,11 @@ internal sealed class PacketInterceptor : IDisposable
                 new(outData->IPC->PacketData + 1, (int)outData->IPC->PacketSize - sizeof(ServerIPC.IPCHeader)));
         }
         return res;
+    }
+
+    private unsafe byte SendPacketDetour(void* self, SentIPCHeader* packet, int* a3, byte a4)
+    {
+        ClientIPCSent?.Invoke(packet->Opcode, new((byte*)packet + 0x20, (int)packet->PayloadSize - 0x10));
+        return _sendHook!.Original(self, packet, a3, a4);
     }
 }

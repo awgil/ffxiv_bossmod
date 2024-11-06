@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace BossMod.Network.ServerIPC;
 
@@ -50,11 +51,13 @@ public enum PacketID
     BlackList = 155,
     LinkshellList = 161,
     MailDeleteRequest = 162,
-    MarketBoardItemListingCount = 166,
+    MarketBoardItemListingCount = 167,
     MarketBoardItemListing = 168,
+    PlayerRetainerInfo = 169,
     MarketBoardPurchase = 170,
     MarketBoardItemListingHistory = 172,
     RetainerSaleHistory = 173,
+    RetainerState = 174,
     MarketBoardSearchResult = 175,
     FreeCompanyInfo = 177,
     ExamineFreeCompanyInfo = 179,
@@ -120,7 +123,9 @@ public enum PacketID
     ModelEquip = 291,
     Examine = 292,
     CharaNameReq = 295,
+    RetainerSummary = 298,
     RetainerInformation = 299,
+    ItemMarketBoardSummary = 300,
     ItemMarketBoardInfo = 301,
     ItemInfo = 303,
     ContainerInfo = 304,
@@ -156,6 +161,9 @@ public enum PacketID
     Mount = 361,
     DirectorVars = 363,
     ContentDirectorSync = 364,
+    ServerRequestCallbackResponse1 = 372,
+    ServerRequestCallbackResponse2 = 373,
+    ServerRequestCallbackResponse3 = 374,
     EnvControl = 396,
     SystemLogMessage1 = 402,
     SystemLogMessage2 = 403,
@@ -266,6 +274,76 @@ public unsafe struct CountdownCancel
     public ushort u4;
     public ushort u6;
     public fixed byte Text[32];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct MarketBoardItemListingCount
+{
+    public uint Error;
+    public byte NumItems;
+    public fixed byte Padding[3];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct MarketBoardItemListingEntry
+{
+    public ulong ListingId;
+    public ulong SellingRetainerContentId;
+    public ulong SellingPlayerContentId;
+    public ulong ArtisanId;
+    public uint UnitPrice;
+    public uint TotalTax;
+    public uint Quantity;
+    public uint ItemId;
+    public ushort ContainerId;
+    public ushort Durability;
+    public ushort Spiritbond;
+    public fixed ushort Materia[5];
+    public uint Unk40;
+    public ushort Unk44;
+    public fixed byte RetainerName[32];
+    public fixed byte Unk66[32];
+    public byte IsHQ;
+    public byte MateriaCount;
+    public byte Unk88;
+    public byte TownId;
+    public byte Stain0Id;
+    public byte Stain1Id;
+    public uint Unk8C;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct MarketBoardItemListing
+{
+    public fixed byte EntriesRaw[10 * 0x90];
+    public byte NextPageIndex;
+    public byte FirstPageIndex;
+    public byte RequestId;
+    public fixed byte Padding[5];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct MarketBoardPurchase
+{
+    public uint ItemId;
+    public uint ErrorLogId;
+    public uint Quantity;
+    public byte Stackable;
+    public fixed byte Padding[3];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct RetainerState
+{
+    public ulong RetainerId;
+    public ulong Flags; // high byte & 0xF is town, highest bit is whether retainer is now selling
+    public uint CustomMessageId;
+    public byte StateChange; // % 10 is type (1 for rename?, 3 for start sell, 4 for stop sell)
+    public fixed byte Name[32];
+    public fixed byte Padding[3];
+
+    public readonly byte Town => (byte)((Flags >> 56) & 0xF);
+    public readonly bool IsSelling => (Flags >> 63) != 0;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -532,6 +610,7 @@ public enum ActorControlCategory : ushort
     GearSetEquipMsg = 801, // from dissector
     SetFestival = 902, // from dissector
     ToggleOrchestrionUnlock = 918, // from dissector
+    ServerRequestCallbackResponse = 925,
     SetMountSpeed = 927, // from dissector
     Dismount = 929, // from dissector
     BeginReplayAck = 930, // from dissector
@@ -871,6 +950,64 @@ public struct UpdateClassInfoBozja
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct RetainerSummary
+{
+    public uint SequenceId;
+    public byte NumInformationPackets;
+    public byte MaxRetainerEntitlement;
+    public byte IsResponseToServerCallbackRequest;
+    public byte Pad1;
+    public uint ServerCallbackListenerIndex;
+    public fixed byte DisplayOrder[10];
+    public fixed byte Pad2[2];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct RetainerInformation
+{
+    public uint SequenceId;
+    public uint Pad1;
+    public ulong RetainerId;
+    public byte Index;
+    public byte NumItemsInInventory;
+    public ushort Pad2;
+    public uint Gil;
+    public byte NumItemsOnMarket;
+    public byte Town;
+    public byte ClassJob;
+    public byte Level;
+    public uint MarketExpire;
+    public ushort VentureId;
+    public ushort Pad3;
+    public uint VentureComplete;
+    public byte Available;
+    public byte Pad4;
+    public ushort Unk2A;
+    public byte Unk2C;
+    public fixed byte Name[32];
+    public fixed byte Pad5[3];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct ItemMarketBoardSummary
+{
+    public uint SequenceId;
+    public uint NumItemPackets;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct ItemMarketBoardInfo
+{
+    public uint SequenceId;
+    public uint InventoryType;
+    public ushort Slot;
+    public fixed byte Pad1[6];
+    public ulong Unk10;
+    public uint Unk18;
+    public uint Pad2;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
 public unsafe struct EventPlayN
 {
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
@@ -971,6 +1108,16 @@ public unsafe struct EventPlayN
     public byte pad2;
     public ushort pad3;
     public fixed uint Payload[1]; // N = 1/4/8/16/32/64/128/255
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct DecodeServerRequestCallbackResponse
+{
+    public uint ListenerIndex;
+    public uint ListenerRequestType;
+    public byte DataCount;
+    public fixed byte Padding[3];
+    public fixed uint Data[1]; // variable length
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
