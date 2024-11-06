@@ -22,11 +22,11 @@ public sealed class ClassSMNUtility(RotationModuleManager manager, Actor player)
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        ExecuteShared(strategy, IDLimitBreak3);
+        ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
 
         var radi = strategy.Option(Track.RadiantAegis);
-        var hasAegis = HasEffect(SMN.SID.RadiantAegis);
+        var hasAegis = SelfStatusLeft(SMN.SID.RadiantAegis, 30) > 0;
         if (radi.As<AegisStrategy>() != AegisStrategy.None && !hasAegis)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SMN.AID.RadiantAegis), primaryTarget, radi.Priority(), radi.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SMN.AID.RadiantAegis), primaryTarget ?? Player, radi.Priority(), radi.Value.ExpireIn);
     }
 }

@@ -32,7 +32,7 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
     {
         ExecuteSimple(strategy.Option(SharedTrack.Sprint), ClassShared.AID.Sprint, Player);
         ExecuteSimple(strategy.Option(SharedTrack.SecondWind), ClassShared.AID.SecondWind, Player);
-        ExecuteSimple(strategy.Option(SharedTrack.LegSweep), ClassShared.AID.LegSweep, null);
+        ExecuteSimple(strategy.Option(SharedTrack.LegSweep), ClassShared.AID.LegSweep, primaryTarget);
         ExecuteSimple(strategy.Option(SharedTrack.Bloodbath), ClassShared.AID.Bloodbath, Player);
         ExecuteSimple(strategy.Option(SharedTrack.ArmsLength), ClassShared.AID.ArmsLength, Player);
 

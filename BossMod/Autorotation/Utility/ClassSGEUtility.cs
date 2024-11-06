@@ -76,7 +76,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //How we're executing our skills listed below
     {
-        ExecuteShared(strategy, IDLimitBreak3);
+        ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Eukrasia), SGE.AID.Eukrasia, Player);
         ExecuteSimple(strategy.Option(Track.Druochole), SGE.AID.Druochole, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.Kerachole), SGE.AID.Kerachole, Player);
