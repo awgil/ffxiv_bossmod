@@ -80,7 +80,7 @@ sealed class AIController(WorldState ws, ActionManagerEx amex, MovementOverride 
         if (pobj == null || tobj == null)
             return false;
 
-        return EventFramework.Instance()->IsInInteractRange(pobj, tobj, 1, false);
+        return EventFramework.Instance()->CheckInteractRange(pobj, tobj, 1, false);
     }
 
     private static unsafe GameObject* ActorToObj(Actor t)
