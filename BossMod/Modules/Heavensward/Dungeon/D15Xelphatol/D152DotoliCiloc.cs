@@ -1,26 +1,23 @@
-﻿
-
-namespace BossMod.Heavensward.Dungeon.D15Xelphatol.D151DotoliCiloc;
+﻿namespace BossMod.Heavensward.Dungeon.D15Xelphatol.D151DotoliCiloc;
 
 public enum OID : uint
 {
     Boss = 0x179F, // R1.980, x?
-    _Gen_Whirlwind = 0x17A0, // R1.000, x?
+    Whirlwind = 0x17A0, // R1.000, x?
 }
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 872, // Boss->player, no cast, single-target
-    _Weaponskill_OnLow = 6606, // Boss->self, 4.0s cast, range 9+R 120-degree cone
-    _Weaponskill_OnHigh = 6607, // Boss->self, 3.0s cast, range 50+R circle
-    _Weaponskill_DarkWings = 32556, // Boss->player, no cast, range 6 circle
-    _Ability_Swiftfeather = 6609, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_Stormcoming = 32557, // Boss->location, 4.0s cast, range 6 circle
-    _Weaponskill_TerribleFlurry = 6610, // _Gen_Whirlwind->self, no cast, range 6 circle
+    OnLow = 6606, // Boss->self, 4.0s cast, range 9+R 120-degree cone
+    OnHigh = 6607, // Boss->self, 3.0s cast, range 50+R circle
+    DarkWings = 32556, // Boss->player, no cast, range 6 circle
+    Swiftfeather = 6609, // Boss->self, 3.0s cast, single-target
+    Stormcoming = 32557, // Boss->location, 4.0s cast, range 6 circle
+    TerribleFlurry = 6610, // _Gen_Whirlwind->self, no cast, range 6 circle
 }
 
-class Stormcoming(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID._Weaponskill_Stormcoming), m => m.Enemies(OID._Gen_Whirlwind).Where(w => w.EventState != 7), 0);
-class Swiftfeather(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID._Ability_Swiftfeather))
+class Stormcoming(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.Stormcoming), m => m.Enemies(OID.Whirlwind).Where(w => w.EventState != 7), 0);
+class Swiftfeather(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.Swiftfeather))
 {
     // 2.3f delay
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -28,12 +25,12 @@ class Swiftfeather(BossModule module) : Components.GenericBaitAway(module, Actio
         if (spell.Action == WatchedAction)
             CurrentBaits.Add(new(caster, WorldState.Actors.Find(caster.TargetID)!, new AOEShapeCone(11, 60.Degrees()), Module.CastFinishAt(spell, 2.3f)));
 
-        if ((AID)spell.Action.ID == AID._Weaponskill_OnLow)
+        if ((AID)spell.Action.ID == AID.OnLow)
             CurrentBaits.Clear();
     }
 }
-class OnLow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_OnLow), new AOEShapeCone(11, 60.Degrees()));
-class OnHigh(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID._Weaponskill_OnHigh))
+class OnLow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OnLow), new AOEShapeCone(11, 60.Degrees()));
+class OnHigh(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.OnHigh))
 {
     private readonly List<Actor> Casters = [];
     private static readonly Angle[] Walls = [default, 90.Degrees(), 180.Degrees(), 270.Degrees()];
@@ -57,7 +54,7 @@ class OnHigh(BossModule module) : Components.Knockback(module, ActionID.MakeSpel
 
     public override void OnActorCreated(Actor actor)
     {
-        if ((OID)actor.OID == OID._Gen_Whirlwind)
+        if ((OID)actor.OID == OID.Whirlwind)
         {
             for (var i = 0; i < Walls.Length; i++)
             {
@@ -72,7 +69,7 @@ class OnHigh(BossModule module) : Components.Knockback(module, ActionID.MakeSpel
 
     public override void OnActorDestroyed(Actor actor)
     {
-        if ((OID)actor.OID == OID._Gen_Whirlwind)
+        if ((OID)actor.OID == OID.Whirlwind)
             BlockedWalls.Reset();
     }
 
@@ -124,10 +121,10 @@ class DotoliCilocStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 182, NameID = 5269)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 182, NameID = 5269, Contributors = "xan")]
 public class DotoliCiloc(WorldState ws, Actor primary) : BossModule(ws, primary, DefaultCenter, new ArenaBoundsCircle(25))
 {
-    // based on where boss casts On High (knockback) from
+    // position of boss casting On High (knockback from arena center)
     public static readonly WPos DefaultCenter = new(245.289f, 13.626f);
 }
 
