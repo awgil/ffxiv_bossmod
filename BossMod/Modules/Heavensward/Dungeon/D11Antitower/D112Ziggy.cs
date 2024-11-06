@@ -1,4 +1,4 @@
-﻿namespace BossMod.Heavensward.Dungeon.D07Antitower.D072Ziggy;
+﻿namespace BossMod.Heavensward.Dungeon.D11Antitower.D112Ziggy;
 
 public enum OID : uint
 {
@@ -118,6 +118,6 @@ class ZiggyStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 141, NameID = 4808)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 141, NameID = 4808, Contributors = "xan")]
 public class Ziggy(WorldState ws, Actor primary) : BossModule(ws, primary, new(185.78f, 137.5f), new ArenaBoundsCircle(20));
 

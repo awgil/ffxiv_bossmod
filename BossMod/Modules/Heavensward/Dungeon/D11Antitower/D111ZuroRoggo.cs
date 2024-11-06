@@ -1,4 +1,4 @@
-﻿namespace BossMod.Modules.Heavensward.Dungeon.D07Antitower.D071ZuroRoggo;
+﻿namespace BossMod.Heavensward.Dungeon.D11Antitower.D111ZuroRoggo;
 
 public enum OID : uint
 {
@@ -10,16 +10,13 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 872, // Boss->player, no cast, single-target
-    _Weaponskill_WaterBomb = 5538, // Helper->location, 3.0s cast, range 6 circle
-    _Weaponskill_WaterBomb1 = 5537, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_ = 5542, // Boss->self, no cast, single-target
-    _Weaponskill_OdiousCroak = 5540, // Helper->self, no cast, range 11+R ?-degree cone
-    _Weaponskill_1 = 32370, // Helper->self, 4.0s cast, range 40+R ?-degree cone
-    _Weaponskill_DiscordantHarmony = 5543, // Chirp->self, no cast, range 6 circle
-    _Weaponskill_FrogSong = 5541, // Helper->self, no cast, range 40 circle
-    _Weaponskill_WaterBomb2 = 5979, // Helper->location, 3.0s cast, range 6 circle
-    _Weaponskill_WaterBomb3 = 5977, // Helper->location, 3.0s cast, range 6 circle
+    WaterBomb1 = 5538, // Helper->location, 3.0s cast, range 6 circle
+    WaterBombVisual = 5537, // Boss->self, 3.0s cast, single-target
+    OdiousCroak = 5540, // Helper->self, no cast, range 11+R ?-degree cone
+    DiscordantHarmony = 5543, // Chirp->self, no cast, range 6 circle
+    FrogSong = 5541, // Helper->self, no cast, range 40 circle
+    WaterBomb2 = 5979, // Helper->location, 3.0s cast, range 6 circle
+    WaterBomb3 = 5977, // Helper->location, 3.0s cast, range 6 circle
 }
 
 class Choirtoad(BossModule module) : Components.Adds(module, (uint)OID.PoroggoChoirtoad)
@@ -41,7 +38,7 @@ class Chirp(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID == (uint)AID._Weaponskill_DiscordantHarmony)
+        if (spell.Action.ID == (uint)AID.DiscordantHarmony)
             Sources.RemoveAll(x => x.Item1 == caster);
     }
 }
@@ -55,7 +52,7 @@ class OdiousCroak(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID == (uint)AID._Weaponskill_OdiousCroak)
+        if (spell.Action.ID == (uint)AID.OdiousCroak)
         {
             if (AOE is PersistentAOE p)
             {
@@ -84,13 +81,13 @@ class WaterBomb(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_WaterBomb or AID._Weaponskill_WaterBomb2 or AID._Weaponskill_WaterBomb3)
+        if ((AID)spell.Action.ID is AID.WaterBomb1 or AID.WaterBomb2 or AID.WaterBomb3)
             aoes.Add((spell.LocXZ, Module.CastFinishAt(spell)));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_WaterBomb or AID._Weaponskill_WaterBomb2 or AID._Weaponskill_WaterBomb3)
+        if ((AID)spell.Action.ID is AID.WaterBomb1 or AID.WaterBomb2 or AID.WaterBomb3)
             aoes.RemoveAll(a => a.Item1.AlmostEqual(spell.LocXZ, 1));
     }
 }
@@ -107,6 +104,6 @@ class ZuroRoggoStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 141, NameID = 4805)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 141, NameID = 4805, Contributors = "xan")]
 public class ZuroRoggo(WorldState ws, Actor primary) : BossModule(ws, primary, new(-365, -250), new ArenaBoundsCircle(20));
 
