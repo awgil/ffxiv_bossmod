@@ -29,7 +29,7 @@ public sealed class SmartRotationTweak(WorldState ws, AIHints hints)
     // return 'ideal orientation' for a spell, or null if spell is not oriented (self-targeted or does not require facing)
     public Angle? GetSpellOrientation(uint spellId, WPos playerPos, bool targetIsSelf, WPos? targetPos, WPos targetLoc)
     {
-        var data = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(spellId);
+        var data = Service.LuminaRow<Lumina.Excel.Sheets.Action>(spellId);
         if (data == null || !data.Unknown26) // does not require facing
             return null;
         if (data.TargetArea)

@@ -272,7 +272,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
         var uiState = UIState.Instance();
         var level = (uint)uiState->PlayerState.CurrentLevel;
-        var paramGrow = Service.LuminaRow<Lumina.Excel.GeneratedSheets.ParamGrow>(level);
+        var paramGrow = Service.LuminaRow<Lumina.Excel.Sheets.ParamGrow>(level);
         if (paramGrow != null)
         {
             ImGui.TextUnformatted($"Level: {level}, baseSpeed={paramGrow.BaseSpeed}, levelMod={paramGrow.LevelModifier}");

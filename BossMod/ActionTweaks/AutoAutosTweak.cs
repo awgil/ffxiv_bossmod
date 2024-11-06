@@ -12,7 +12,7 @@ public sealed class AutoAutosTweak(WorldState ws, AIHints hints)
 
     public bool ShouldPreventAutoActivation(uint spellId)
     {
-        var actionData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(spellId);
+        var actionData = Service.LuminaRow<Lumina.Excel.Sheets.Action>(spellId);
         _lastActionDisabledAutos = actionData?.Unknown50 is 3 or 6 or 7;
         return Enabled && ws.Client.CountdownRemaining > PrePullThreshold && !(ws.Party.Player()?.InCombat ?? false);
     }

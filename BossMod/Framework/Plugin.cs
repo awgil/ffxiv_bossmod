@@ -283,7 +283,7 @@ public sealed class Plugin : IDalamudPlugin
         // see ActionManager.IsActionUnlocked
         var gameMain = FFXIVClientStructs.FFXIV.Client.Game.GameMain.Instance();
         return link == 0
-            || Service.LuminaRow<Lumina.Excel.GeneratedSheets.TerritoryType>(gameMain->CurrentTerritoryTypeId)?.TerritoryIntendedUse == 31 // deep dungeons check is hardcoded in game
+            || Service.LuminaRow<Lumina.Excel.Sheets.TerritoryType>(gameMain->CurrentTerritoryTypeId)?.TerritoryIntendedUse == 31 // deep dungeons check is hardcoded in game
             || FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(link);
     }
 

@@ -22,10 +22,10 @@ sealed class DebugClassDefinitions : IDisposable
         public Type? CDGType;
         public Type? SIDType;
         public Type? TraitIDType;
-        public List<Lumina.Excel.GeneratedSheets.Action> Actions = [];
-        public List<Lumina.Excel.GeneratedSheets.Trait> Traits = [];
+        public List<Lumina.Excel.Sheets.Action> Actions = [];
+        public List<Lumina.Excel.Sheets.Trait> Traits = [];
         public List<uint>? Unlocks;
-        public SortedDictionary<int, List<Lumina.Excel.GeneratedSheets.Action>> CooldownGroups = [];
+        public SortedDictionary<int, List<Lumina.Excel.Sheets.Action>> CooldownGroups = [];
 
         public ClassData(Class c)
         {
@@ -34,13 +34,13 @@ sealed class DebugClassDefinitions : IDisposable
             SIDType = Type.GetType($"BossMod.{c}.SID");
             TraitIDType = Type.GetType($"BossMod.{c}.TraitID");
 
-            var cp = typeof(Lumina.Excel.GeneratedSheets.ClassJobCategory).GetProperty(c.ToString());
-            bool actionIsInteresting(Lumina.Excel.GeneratedSheets.Action a) => !a.IsPvP && a.ClassJobLevel > 0 && (cp?.GetValue(a.ClassJobCategory.Value) as bool? ?? false);
-            Actions = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(actionIsInteresting).ToList() ?? [];
+            var cp = typeof(Lumina.Excel.Sheets.ClassJobCategory).GetProperty(c.ToString());
+            bool actionIsInteresting(Lumina.Excel.Sheets.Action a) => !a.IsPvP && a.ClassJobLevel > 0 && (cp?.GetValue(a.ClassJobCategory.Value) as bool? ?? false);
+            Actions = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()?.Where(actionIsInteresting).ToList() ?? [];
             Actions.SortBy(e => e.ClassJobLevel);
 
-            bool traitIsInteresting(Lumina.Excel.GeneratedSheets.Trait t) => cp?.GetValue(t.ClassJobCategory.Value) as bool? ?? false;
-            Traits = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.Trait>()?.Where(traitIsInteresting).ToList() ?? [];
+            bool traitIsInteresting(Lumina.Excel.Sheets.Trait t) => cp?.GetValue(t.ClassJobCategory.Value) as bool? ?? false;
+            Traits = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>()?.Where(traitIsInteresting).ToList() ?? [];
             Traits.SortBy(e => e.Level);
 
             foreach (var action in Actions)
@@ -70,7 +70,7 @@ sealed class DebugClassDefinitions : IDisposable
             var index = quests.FindIndex(q => q.Item1 == questID);
             if (index < 0)
             {
-                var q = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Quest>(questID);
+                var q = Service.LuminaRow<Lumina.Excel.Sheets.Quest>(questID);
                 if (q != null && AddToDepChain(quests, q))
                     index = quests.Count - 1;
             }
@@ -82,7 +82,7 @@ sealed class DebugClassDefinitions : IDisposable
             return quests;
         }
 
-        private bool AddToDepChain(List<(uint, bool)> list, Lumina.Excel.GeneratedSheets.Quest item)
+        private bool AddToDepChain(List<(uint, bool)> list, Lumina.Excel.Sheets.Quest item)
         {
             var prereq = item.PreviousQuest[0].Value;
             if (prereq == null)
@@ -329,7 +329,7 @@ sealed class DebugClassDefinitions : IDisposable
             var sb = new StringBuilder("public enum SID : uint\n{\n    None = 0,");
             foreach (var (id, data) in _seenStatuses)
             {
-                var name = cd.SIDType?.GetEnumName(id) ?? Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(id)?.Name ?? $"Status{id}");
+                var name = cd.SIDType?.GetEnumName(id) ?? Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.Sheets.Status>(id)?.Name ?? $"Status{id}");
                 sb.Append($"\n    {name} = {id}, // applied by {data.AppliedByString()} to {data.AppliedToString()}");
             }
             sb.Append("\n}\n");
@@ -337,14 +337,14 @@ sealed class DebugClassDefinitions : IDisposable
         }
     }
 
-    private UITree.NodeProperties ActionNode(ClassData cd, Lumina.Excel.GeneratedSheets.Action action)
+    private UITree.NodeProperties ActionNode(ClassData cd, Lumina.Excel.Sheets.Action action)
     {
         var aidEnum = cd.AIDType?.GetEnumName(action.RowId);
         var name = $"{action.RowId} '{action.Name}' ({aidEnum}): L{action.ClassJobLevel}";
         return new(name, false, aidEnum == null ? 0xff0000ff : _seenActionLocks.ContainsKey(new ActionID(ActionType.Spell, action.RowId)) ? 0xffffffff : 0xff00ffff);
     }
 
-    private string ActionEnumString(ClassData cd, Lumina.Excel.GeneratedSheets.Action action)
+    private string ActionEnumString(ClassData cd, Lumina.Excel.Sheets.Action action)
     {
         var aidEnum = cd.AIDType?.GetEnumName(action.RowId) ?? Utils.StringToIdentifier(action.Name);
         var sb = new StringBuilder($"{aidEnum} = {action.RowId}, // L{action.ClassJobLevel}, {CastTimeString(action)}");
@@ -364,15 +364,15 @@ sealed class DebugClassDefinitions : IDisposable
 
     private string UnlockLinkString(uint link)
     {
-        return $"unlocked by quest {link} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Quest>(link)?.Name}'";
+        return $"unlocked by quest {link} '{Service.LuminaRow<Lumina.Excel.Sheets.Quest>(link)?.Name}'";
     }
 
-    private string CastTimeString(Lumina.Excel.GeneratedSheets.Action action)
+    private string CastTimeString(Lumina.Excel.Sheets.Action action)
     {
         return action.Cast100ms != 0 ? $"{action.Cast100ms * 0.1f:f1}s cast" : "instant";
     }
 
-    private string CooldownString(Lumina.Excel.GeneratedSheets.Action action)
+    private string CooldownString(Lumina.Excel.Sheets.Action action)
     {
         var cg = action.CooldownGroup - 1;
         var res = cg == ActionDefinitions.GCDGroup ? "GCD" : $"{action.Recast100ms * 0.1f:f1}s CD (group {cg})";
@@ -382,7 +382,7 @@ sealed class DebugClassDefinitions : IDisposable
         return res;
     }
 
-    private string TargetsString(Lumina.Excel.GeneratedSheets.Action action)
+    private string TargetsString(Lumina.Excel.Sheets.Action action)
     {
         var res = new List<string>();
         if (action.CanTargetSelf)

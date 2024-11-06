@@ -10,7 +10,7 @@ class ClassDefinitions
 
     private readonly record struct Entry(Replay Replay, Replay.Action Action);
 
-    private record class ActionData(ActionID ID, ActionDefinition? Definition, Lumina.Excel.GeneratedSheets.Action? Row)
+    private record class ActionData(ActionID ID, ActionDefinition? Definition, Lumina.Excel.Sheets.Action? Row)
     {
         public bool CanBePutOnActionBar => Row?.IsPlayerAction ?? false;
         public bool IsRoleAction => Row?.IsRoleAction ?? false;
@@ -54,7 +54,7 @@ class ClassDefinitions
     {
         public readonly List<ActionData> Actions = [];
         public readonly SortedDictionary<int, List<ActionData>> ByCDGroup = [];
-        public readonly List<Lumina.Excel.GeneratedSheets.Trait> Traits = [];
+        public readonly List<Lumina.Excel.Sheets.Trait> Traits = [];
         public readonly Dictionary<uint, StatusData> Statuses = [];
     }
 
@@ -67,10 +67,10 @@ class ClassDefinitions
 
     public ClassDefinitions(List<Replay> replays)
     {
-        var actionSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.Action>()!;
-        var classSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.ClassJob>()!;
-        var cjcSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.ClassJobCategory>()!;
-        var traitSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.Trait>()!;
+        var actionSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
+        var classSheet = Service.LuminaSheet<Lumina.Excel.Sheets.ClassJob>()!;
+        var cjcSheet = Service.LuminaSheet<Lumina.Excel.Sheets.ClassJobCategory>()!;
+        var traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>()!;
 
         // we don't care about base classes and DoH/DoL here...
         for (var i = (uint)Class.PLD; i < classSheet.RowCount; ++i)
@@ -84,14 +84,14 @@ class ClassDefinitions
             var baseClass = curClass == Class.SCH ? Class.SCH : (Class)row.ClassJobParent.Row; // both SCH and SMN are based on ACN, but SMN is closer
             var classData = _classData[curClass] = new(curClass, baseClass);
 
-            bool actionIsInteresting(Lumina.Excel.GeneratedSheets.Action a) => !a.IsPvP && ((int)a.ClassJob.Row != -1 || a.IsRoleAction) && a.ClassJobLevel > 0 && (cjcSheet.GetRowParser(a.ClassJobCategory.Row)?.ReadColumn<bool>((int)i + 1) ?? false);
+            bool actionIsInteresting(Lumina.Excel.Sheets.Action a) => !a.IsPvP && ((int)a.ClassJob.Row != -1 || a.IsRoleAction) && a.ClassJobLevel > 0 && (cjcSheet.GetRowParser(a.ClassJobCategory.Row)?.ReadColumn<bool>((int)i + 1) ?? false);
             foreach (var a in actionSheet.Where(actionIsInteresting))
                 RegisterAction(new ActionID(ActionType.Spell, a.RowId), a, classData, out _);
             RegisterLimitBreak(row.LimitBreak1.Row, classData, 1);
             RegisterLimitBreak(row.LimitBreak2.Row, classData, 2);
             RegisterLimitBreak(row.LimitBreak3.Row, classData, 3);
 
-            bool traitIsInteresting(Lumina.Excel.GeneratedSheets.Trait t) => cjcSheet?.GetRowParser(t.ClassJobCategory.Row)?.ReadColumn<bool>((int)i + 1) ?? false;
+            bool traitIsInteresting(Lumina.Excel.Sheets.Trait t) => cjcSheet?.GetRowParser(t.ClassJobCategory.Row)?.ReadColumn<bool>((int)i + 1) ?? false;
             classData.Traits.AddRange(traitSheet.Where(traitIsInteresting));
             classData.Traits.SortBy(e => e.Level);
         }
@@ -240,7 +240,7 @@ class ClassDefinitions
         }
     }
 
-    private bool RegisterAction(ActionID action, Lumina.Excel.GeneratedSheets.Action? row, ClassData owner, out ActionData actionData)
+    private bool RegisterAction(ActionID action, Lumina.Excel.Sheets.Action? row, ClassData owner, out ActionData actionData)
     {
         var newlyCreated = false;
         if (!_actionData.TryGetValue(action, out var data))
@@ -261,7 +261,7 @@ class ClassDefinitions
     {
         if (id != 0)
         {
-            RegisterAction(new(ActionType.Spell, id), Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(id), owner, out var data);
+            RegisterAction(new(ActionType.Spell, id), Service.LuminaRow<Lumina.Excel.Sheets.Action>(id), owner, out var data);
             data.LimitBreakLevel = level;
         }
     }
@@ -522,7 +522,7 @@ class ClassDefinitions
                 : $" (??? charges)";
         }
 
-        private string DescribeShape(Lumina.Excel.GeneratedSheets.Action? data) => data != null ? data.CastType switch
+        private string DescribeShape(Lumina.Excel.Sheets.Action? data) => data != null ? data.CastType switch
         {
             1 => "single-target",
             2 => $"AOE {data.EffectRange} circle",
@@ -537,7 +537,7 @@ class ClassDefinitions
             _ => "???"
         } : "???";
 
-        private Angle? DetermineConeAngle(Lumina.Excel.GeneratedSheets.Action data)
+        private Angle? DetermineConeAngle(Lumina.Excel.Sheets.Action data)
         {
             var omen = data.Omen.Value;
             if (omen == null)
@@ -548,7 +548,7 @@ class ClassDefinitions
             return pos >= 0 && pos + 6 <= path.Length && int.TryParse(path.AsSpan(pos + 3, 3), out var angle) ? angle.Degrees() : null;
         }
 
-        private float? DetermineDonutInner(Lumina.Excel.GeneratedSheets.Action data)
+        private float? DetermineDonutInner(Lumina.Excel.Sheets.Action data)
         {
             var omen = data.Omen.Value;
             if (omen == null)
@@ -641,13 +641,13 @@ class ClassDefinitions
     {
         var res = $"L{level}";
         if (link != 0)
-            res += $" (unlocked by quest {link} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Quest>(link)?.Name}')";
+            res += $" (unlocked by quest {link} '{Service.LuminaRow<Lumina.Excel.Sheets.Quest>(link)?.Name}')";
         return res;
     }
 
     private static string ActionIDName(string ns, ActionID aid) => Type.GetType($"BossMod.{ns}.AID")?.GetEnumName(aid.ID) ?? Utils.StringToIdentifier(aid.Name());
-    private static string TraitIDName(string ns, Lumina.Excel.GeneratedSheets.Trait trait) => Type.GetType($"BossMod.{ns}.TraitID")?.GetEnumName(trait.RowId) ?? Utils.StringToIdentifier(trait.Name);
-    private static string StatusIDName(string ns, uint sid) => Type.GetType($"BossMod.{ns}.SID")?.GetEnumName(sid) ?? Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(sid)?.Name ?? $"Status{sid}");
+    private static string TraitIDName(string ns, Lumina.Excel.Sheets.Trait trait) => Type.GetType($"BossMod.{ns}.TraitID")?.GetEnumName(trait.RowId) ?? Utils.StringToIdentifier(trait.Name);
+    private static string StatusIDName(string ns, uint sid) => Type.GetType($"BossMod.{ns}.SID")?.GetEnumName(sid) ?? Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.Sheets.Status>(sid)?.Name ?? $"Status{sid}");
 
     private static string AnimLockString(ActionData action)
     {

@@ -61,7 +61,7 @@ public sealed class AIHintsBuilder : IDisposable
     {
         var (e, bitmap) = Obstacles.Find(player.PosRot.XYZ());
         var resolution = bitmap?.PixelSize ?? 0.5f;
-        if (_ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax)
+        if (_ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.Sheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax)
         {
             hints.PathfindMapCenter = new(_ws.Client.ActiveFate.Center.XZ());
             hints.PathfindMapBounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius));
@@ -118,7 +118,7 @@ public sealed class AIHintsBuilder : IDisposable
     {
         if (actor.Type != ActorType.Enemy || actor.IsAlly)
             return;
-        var data = actor.CastInfo!.IsSpell() ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(actor.CastInfo.Action.ID) : null;
+        var data = actor.CastInfo!.IsSpell() ? Service.LuminaRow<Lumina.Excel.Sheets.Action>(actor.CastInfo.Action.ID) : null;
         if (data == null || data.CastType == 1)
             return;
         //if (data.Omen.Row == 0)
@@ -151,7 +151,7 @@ public sealed class AIHintsBuilder : IDisposable
 
     private void OnCastFinished(Actor actor) => _activeAOEs.Remove(actor.InstanceID);
 
-    private Angle DetermineConeAngle(Lumina.Excel.GeneratedSheets.Action data)
+    private Angle DetermineConeAngle(Lumina.Excel.Sheets.Action data)
     {
         var omen = data.Omen.Value;
         if (omen == null)
@@ -169,7 +169,7 @@ public sealed class AIHintsBuilder : IDisposable
         return angle.Degrees();
     }
 
-    private float DetermineDonutInner(Lumina.Excel.GeneratedSheets.Action data)
+    private float DetermineDonutInner(Lumina.Excel.Sheets.Action data)
     {
         var omen = data.Omen.Value;
         if (omen == null)
