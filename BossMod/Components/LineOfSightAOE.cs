@@ -6,17 +6,20 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
     public DateTime NextExplosion;
     public bool BlockersImpassable = blockersImpassable;
     public float MaxRange { get; private set; } = maxRange;
+    public BitMask AffectedPlayers = new(~0ul);
     public WPos? Origin { get; private set; } // inactive if null
     public List<(WPos Center, float Radius)> Blockers { get; private set; } = [];
     public List<(float Distance, Angle Dir, Angle HalfWidth)> Visibility { get; private set; } = [];
 
-    public void Modify(WPos? origin, IEnumerable<(WPos Center, float Radius)> blockers, DateTime nextExplosion = default)
+    public void Modify(WPos? origin, IEnumerable<(WPos Center, float Radius)> blockers, DateTime nextExplosion = default, BitMask affectedPlayers = default)
     {
         NextExplosion = nextExplosion;
         Origin = origin;
         Blockers.Clear();
         Blockers.AddRange(blockers);
         Visibility.Clear();
+        if (affectedPlayers != default)
+            AffectedPlayers = affectedPlayers;
         if (origin != null)
         {
             foreach (var b in Blockers)
@@ -32,6 +35,7 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
     {
         if (Origin != null
             && actor.Position.InCircle(Origin.Value, MaxRange)
+            && AffectedPlayers[slot]
             && !Visibility.Any(v => !actor.Position.InCircle(Origin.Value, v.Distance) && actor.Position.InCone(Origin.Value, v.Dir, v.HalfWidth)))
         {
             hints.Add("Hide behind obstacle!");
@@ -40,7 +44,7 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Origin != null)
+        if (Origin != null && AffectedPlayers[slot])
         {
             // inverse of a union of inverted max-range circle and a bunch of infinite cones minus inner cirles
             var normals = Visibility.Select(v => (v.Distance, (v.Dir + v.HalfWidth).ToDirection().OrthoL(), (v.Dir - v.HalfWidth).ToDirection().OrthoR())).ToArray();
@@ -71,7 +75,7 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         // TODO: reconsider, this looks like shit...
-        if (Origin != null)
+        if (Origin != null && AffectedPlayers[pcSlot])
         {
             Arena.ZoneDonut(Origin.Value, MaxRange, 1000, ArenaColor.SafeFromAOE);
             foreach (var v in Visibility)
