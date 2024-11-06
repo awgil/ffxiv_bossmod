@@ -166,6 +166,6 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
             return def;
         }
 
-        return World.Party.WithoutSlot().Where(actor => Player.DistanceToHitbox(actor) <= 30 && !HasCard(actor)).MaxBy(Prio) ?? Player;
+        return World.Party.WithoutSlot(excludeAlliance: true, excludeNPCs: true).Where(actor => Player.DistanceToHitbox(actor) <= 30 && !HasCard(actor)).MaxBy(Prio) ?? Player;
     }
 }
