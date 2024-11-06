@@ -267,7 +267,7 @@ public sealed class ActionDefinitions : IDisposable
 
     // see ActionManager.GetActionRange
     // note that actions with range == -1 use data from equipped weapon; currently all weapons for phys-ranged classes have range 25, others have range 3
-    public int SpellRange(Lumina.Excel.GeneratedSheets.Action? data, bool isPhysRanged = false)
+    public int SpellRange(Lumina.Excel.Sheets.Action? data, bool isPhysRanged = false)
     {
         if ((SCH.AID)(data?.RowId ?? 0) is SCH.AID.PetEmbrace or SCH.AID.PetFeyUnion or SCH.AID.PetSeraphicVeil)
             return 30; // these are hardcoded
