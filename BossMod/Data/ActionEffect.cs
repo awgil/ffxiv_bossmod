@@ -226,7 +226,7 @@ public static class ActionEffectParser
                 break;
             case ActionEffectType.Knockback:
                 var kbData = Service.LuminaRow<Lumina.Excel.Sheets.Knockback>(eff.Value);
-                res.Append($"row={eff.Value}, dist={kbData?.Distance}+{eff.Param0}, dir={(KnockbackDirection?)kbData?.Direction}{(kbData?.Direction == (byte)KnockbackDirection.Arg ? $" ({kbData.DirectionArg}deg)" : "")}, speed={kbData?.Speed}");
+                res.Append($"row={eff.Value}, dist={kbData?.Distance}+{eff.Param0}, dir={(KnockbackDirection?)kbData?.Direction}{(kbData?.Direction == (byte)KnockbackDirection.Arg ? $" ({kbData?.DirectionArg}deg)" : "")}, speed={kbData?.Speed}");
                 break;
             case ActionEffectType.Attract1:
             case ActionEffectType.Attract2:

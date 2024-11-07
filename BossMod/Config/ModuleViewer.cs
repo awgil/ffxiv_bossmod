@@ -4,6 +4,7 @@ using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using Lumina.Excel.Sheets;
 using Lumina.Text;
+using Lumina.Text.ReadOnly;
 using System.Data;
 using System.Globalization;
 using System.Text;
@@ -38,31 +39,31 @@ public sealed class ModuleViewer : IDisposable
         _expansions = Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon)).ToArray();
         _categories = Enum.GetNames<BossModuleInfo.Category>().Take((int)BossModuleInfo.Category.Count).Select(n => (n, defaultIcon)).ToArray();
 
-        var exVersion = Service.LuminaSheet<ExVersion>();
-        Customize(BossModuleInfo.Expansion.RealmReborn, 61875, exVersion?.GetRow(0)?.Name);
-        Customize(BossModuleInfo.Expansion.Heavensward, 61876, exVersion?.GetRow(1)?.Name);
-        Customize(BossModuleInfo.Expansion.Stormblood, 61877, exVersion?.GetRow(2)?.Name);
-        Customize(BossModuleInfo.Expansion.Shadowbringers, 61878, exVersion?.GetRow(3)?.Name);
-        Customize(BossModuleInfo.Expansion.Endwalker, 61879, exVersion?.GetRow(4)?.Name);
-        Customize(BossModuleInfo.Expansion.Dawntrail, 61880, exVersion?.GetRow(5)?.Name);
+        var exVersion = Service.LuminaSheet<ExVersion>()!;
+        Customize(BossModuleInfo.Expansion.RealmReborn, 61875, exVersion.GetRow(0).Name);
+        Customize(BossModuleInfo.Expansion.Heavensward, 61876, exVersion.GetRow(1).Name);
+        Customize(BossModuleInfo.Expansion.Stormblood, 61877, exVersion.GetRow(2).Name);
+        Customize(BossModuleInfo.Expansion.Shadowbringers, 61878, exVersion.GetRow(3).Name);
+        Customize(BossModuleInfo.Expansion.Endwalker, 61879, exVersion.GetRow(4).Name);
+        Customize(BossModuleInfo.Expansion.Dawntrail, 61880, exVersion.GetRow(5).Name);
 
-        var contentType = Service.LuminaSheet<ContentType>();
-        Customize(BossModuleInfo.Category.Dungeon, contentType?.GetRow(2));
-        Customize(BossModuleInfo.Category.Trial, contentType?.GetRow(4));
-        Customize(BossModuleInfo.Category.Raid, contentType?.GetRow(5));
-        Customize(BossModuleInfo.Category.PVP, contentType?.GetRow(6));
-        Customize(BossModuleInfo.Category.Quest, contentType?.GetRow(7));
-        Customize(BossModuleInfo.Category.FATE, contentType?.GetRow(8));
-        Customize(BossModuleInfo.Category.TreasureHunt, contentType?.GetRow(9));
-        Customize(BossModuleInfo.Category.GoldSaucer, contentType?.GetRow(19));
-        Customize(BossModuleInfo.Category.DeepDungeon, contentType?.GetRow(21));
-        Customize(BossModuleInfo.Category.Ultimate, contentType?.GetRow(28));
-        Customize(BossModuleInfo.Category.Criterion, contentType?.GetRow(30));
+        var contentType = Service.LuminaSheet<ContentType>()!;
+        Customize(BossModuleInfo.Category.Dungeon, contentType.GetRow(2));
+        Customize(BossModuleInfo.Category.Trial, contentType.GetRow(4));
+        Customize(BossModuleInfo.Category.Raid, contentType.GetRow(5));
+        Customize(BossModuleInfo.Category.PVP, contentType.GetRow(6));
+        Customize(BossModuleInfo.Category.Quest, contentType.GetRow(7));
+        Customize(BossModuleInfo.Category.FATE, contentType.GetRow(8));
+        Customize(BossModuleInfo.Category.TreasureHunt, contentType.GetRow(9));
+        Customize(BossModuleInfo.Category.GoldSaucer, contentType.GetRow(19));
+        Customize(BossModuleInfo.Category.DeepDungeon, contentType.GetRow(21));
+        Customize(BossModuleInfo.Category.Ultimate, contentType.GetRow(28));
+        Customize(BossModuleInfo.Category.Criterion, contentType.GetRow(30));
 
-        var playStyle = Service.LuminaSheet<CharaCardPlayStyle>();
-        Customize(BossModuleInfo.Category.Foray, playStyle?.GetRow(6));
-        Customize(BossModuleInfo.Category.MaskedCarnivale, playStyle?.GetRow(8));
-        Customize(BossModuleInfo.Category.Hunt, playStyle?.GetRow(10));
+        var playStyle = Service.LuminaSheet<CharaCardPlayStyle>()!;
+        Customize(BossModuleInfo.Category.Foray, playStyle.GetRow(6));
+        Customize(BossModuleInfo.Category.MaskedCarnivale, playStyle.GetRow(8));
+        Customize(BossModuleInfo.Category.Hunt, playStyle.GetRow(10));
 
         _categories[(int)BossModuleInfo.Category.Extreme].icon = _categories[(int)BossModuleInfo.Category.Trial].icon;
         _categories[(int)BossModuleInfo.Category.Unreal].icon = _categories[(int)BossModuleInfo.Category.Trial].icon;
@@ -70,8 +71,8 @@ public sealed class ModuleViewer : IDisposable
         _categories[(int)BossModuleInfo.Category.Alliance].icon = _categories[(int)BossModuleInfo.Category.Raid].icon;
         //_categories[(int)BossModuleInfo.Category.Event].icon = GetIcon(61757);
 
-        _iconFATE = contentType?.GetRow(8)?.Icon ?? 0;
-        _iconHunt = (uint)(playStyle?.GetRow(10)?.Icon ?? 0);
+        _iconFATE = contentType.GetRow(8).Icon;
+        _iconHunt = (uint)playStyle.GetRow(10).Icon;
 
         _groups = new List<ModuleGroup>[(int)BossModuleInfo.Expansion.Count, (int)BossModuleInfo.Category.Count];
         for (int i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
@@ -239,20 +240,14 @@ public sealed class ModuleViewer : IDisposable
         }
     }
 
-    private void Customize((string name, uint icon)[] array, int element, uint iconId, SeString? name)
-    {
-        array[element].icon = iconId;
-        if (name != null)
-            array[element].name = name;
-    }
-    private void Customize(BossModuleInfo.Expansion expansion, uint iconId, SeString? name) => Customize(_expansions, (int)expansion, iconId, name);
-    private void Customize(BossModuleInfo.Category category, uint iconId, SeString? name) => Customize(_categories, (int)category, iconId, name);
-    private void Customize(BossModuleInfo.Category category, ContentType? ct) => Customize(category, ct?.Icon ?? 0, ct?.Name);
-    private void Customize(BossModuleInfo.Category category, CharaCardPlayStyle? ps) => Customize(category, (uint)(ps?.Icon ?? 0), ps?.Name);
+    private void Customize(BossModuleInfo.Expansion expansion, uint iconId, ReadOnlySeString name) => _expansions[(int)expansion] = (name.ToString(), iconId);
+    private void Customize(BossModuleInfo.Category category, uint iconId, ReadOnlySeString name) => _categories[(int)category] = (name.ToString(), iconId);
+    private void Customize(BossModuleInfo.Category category, ContentType ct) => Customize(category, ct.Icon, ct.Name);
+    private void Customize(BossModuleInfo.Category category, CharaCardPlayStyle ps) => Customize(category, (uint)ps.Icon, ps.Name);
 
     //private static IDalamudTextureWrap? GetIcon(uint iconId) => iconId != 0 ? Service.Texture?.GetIcon(iconId, Dalamud.Plugin.Services.ITextureProvider.IconFlags.HiRes) : null;
-    private static string FixCase(SeString? str) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(str ?? "");
-    private static string BNpcName(uint id) => FixCase(Service.LuminaRow<BNpcName>(id)?.Singular);
+    private static string FixCase(ReadOnlySeString str) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(str.ToString());
+    private static string BNpcName(uint id) => FixCase(Service.LuminaRow<BNpcName>(id)!.Value.Singular);
 
     private (ModuleGroupInfo, ModuleInfo) Classify(BossModuleRegistry.Info module)
     {
@@ -261,37 +256,36 @@ public sealed class ModuleViewer : IDisposable
         {
             case BossModuleInfo.GroupType.CFC:
                 groupId |= module.GroupID;
-                var cfcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID);
-                var cfcSort = cfcRow?.SortKey ?? 0u;
-                var cfcName = FixCase(cfcRow?.Name);
-                return (new(cfcName, groupId, cfcSort != 0 ? cfcSort : groupId), new(module, BNpcName(module.NameID), module.SortOrder));
+                var cfcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value;
+                var cfcSort = cfcRow.SortKey;
+                return (new(FixCase(cfcRow.Name), groupId, cfcSort != 0 ? cfcSort : groupId), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.MaskedCarnivale:
                 groupId |= module.GroupID;
-                var mcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID);
-                var mcSort = uint.Parse((mcRow?.ShortCode ?? "").AsSpan(3), CultureInfo.InvariantCulture); // 'aozNNN'
-                var mcName = $"Stage {mcSort}: {FixCase(mcRow?.Name)}";
+                var mcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value;
+                var mcSort = uint.Parse(mcRow.ShortCode.ToString().AsSpan(3), CultureInfo.InvariantCulture); // 'aozNNN'
+                var mcName = $"Stage {mcSort}: {FixCase(mcRow.Name)}";
                 return (new(mcName, groupId, mcSort), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.RemovedUnreal:
                 return (new("Removed Content", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.Quest:
-                var questRow = Service.LuminaRow<Quest>(module.GroupID);
-                groupId |= questRow?.JournalGenre.Row ?? 0;
-                var questCategoryName = questRow?.JournalGenre.Value?.Name ?? "";
-                return (new(questCategoryName, groupId, groupId), new(module, $"{questRow?.Name}: {BNpcName(module.NameID)}", module.SortOrder));
+                var questRow = Service.LuminaRow<Quest>(module.GroupID)!.Value;
+                groupId |= questRow.JournalGenre.RowId;
+                var questCategoryName = questRow.JournalGenre.Value.Name.ToString();
+                return (new(questCategoryName, groupId, groupId), new(module, $"{questRow.Name}: {BNpcName(module.NameID)}", module.SortOrder));
             case BossModuleInfo.GroupType.Fate:
-                var fateRow = Service.LuminaRow<Fate>(module.GroupID);
-                return (new($"{module.Expansion.ShortName()} FATE", groupId, groupId, _iconFATE), new(module, $"{fateRow?.Name}: {BNpcName(module.NameID)}", module.SortOrder));
+                var fateRow = Service.LuminaRow<Fate>(module.GroupID)!.Value;
+                return (new($"{module.Expansion.ShortName()} FATE", groupId, groupId, _iconFATE), new(module, $"{fateRow.Name}: {BNpcName(module.NameID)}", module.SortOrder));
             case BossModuleInfo.GroupType.Hunt:
                 groupId |= module.GroupID;
                 return (new($"{module.Expansion.ShortName()} Hunt {(BossModuleInfo.HuntRank)module.GroupID}", groupId, groupId, _iconHunt), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.BozjaCE:
                 groupId |= module.GroupID;
-                var ceName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)?.Name)} CE";
-                return (new(ceName, groupId, groupId), new(module, Service.LuminaRow<DynamicEvent>(module.NameID)?.Name ?? "", module.SortOrder));
+                var ceName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name)} CE";
+                return (new(ceName, groupId, groupId), new(module, Service.LuminaRow<DynamicEvent>(module.NameID)!.Value.Name.ToString(), module.SortOrder));
             case BossModuleInfo.GroupType.BozjaDuel:
                 groupId |= module.GroupID;
-                var duelName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)?.Name)} Duel";
-                return (new(duelName, groupId, groupId), new(module, Service.LuminaRow<DynamicEvent>(module.NameID)?.Name ?? "", module.SortOrder));
+                var duelName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name)} Duel";
+                return (new(duelName, groupId, groupId), new(module, Service.LuminaRow<DynamicEvent>(module.NameID)!.Value.Name.ToString(), module.SortOrder));
             case BossModuleInfo.GroupType.GoldSaucer:
                 return (new("Gold saucer", groupId, groupId), new(module, $"{Service.LuminaRow<GoldSaucerTextData>(module.GroupID)?.Text}: {BNpcName(module.NameID)}", module.SortOrder));
             default:

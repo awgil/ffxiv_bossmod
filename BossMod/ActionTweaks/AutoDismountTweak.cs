@@ -18,7 +18,7 @@ public sealed class AutoDismountTweak(WorldState ws)
 
         var canUseWhileMounted = action.Type switch
         {
-            ActionType.Spell => Service.LuminaRow<Lumina.Excel.Sheets.Action>(action.ID) is var data && data != null && (data.Unknown65 || data.SecondaryCostType == 25),
+            ActionType.Spell => Service.LuminaRow<Lumina.Excel.Sheets.Action>(action.ID) is var data && data != null && (data.Value.Unknown24 || data.Value.SecondaryCostType == 25),
             ActionType.General => action.ID == 20, // dig
             _ => false
         };
@@ -29,6 +29,6 @@ public sealed class AutoDismountTweak(WorldState ws)
     {
         var player = ws.Party.Player();
         var mountData = player != null && player.MountId != 0 ? Service.LuminaRow<Lumina.Excel.Sheets.Mount>(player.MountId) : null;
-        return mountData != null && mountData.Order >= 0;
+        return mountData != null && mountData.Value.Order >= 0;
     }
 }
