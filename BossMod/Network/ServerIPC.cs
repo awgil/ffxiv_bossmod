@@ -332,6 +332,24 @@ public unsafe struct MarketBoardPurchase
     public fixed byte Padding[3];
 }
 
+[StructLayout(LayoutKind.Explicit, Size = 0x30)]
+public unsafe struct MarketBoardItemListingHistoryEntry
+{
+    [FieldOffset(0x00)] public uint UnitPrice;
+    [FieldOffset(0x04)] public uint SaleUnixTimestamp;
+    [FieldOffset(0x08)] public uint Quantity;
+    [FieldOffset(0x0C)] public byte IsHQ;
+    [FieldOffset(0x0D)] public byte UnkD;
+    [FieldOffset(0x0E)] public fixed byte RetainerName[32];
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 0x3C8)]
+public unsafe struct MarketBoardItemListingHistory
+{
+    [FieldOffset(0x00)] public uint ItemId;
+    [FieldOffset(0x04)] public fixed byte RawEntries[20 * 0x30];
+}
+
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public unsafe struct RetainerState
 {

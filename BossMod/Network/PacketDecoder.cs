@@ -58,6 +58,7 @@ public abstract unsafe class PacketDecoder
         PacketID.MarketBoardItemListingCount when (MarketBoardItemListingCount*)payload is var p => new($"{p->NumItems} items, {p->Error:X} error"),
         PacketID.MarketBoardItemListing when (MarketBoardItemListing*)payload is var p => DecodeMarketBoardItemListing(p),
         PacketID.MarketBoardPurchase when (MarketBoardPurchase*)payload is var p => new($"{p->Quantity}x {p->ItemId} (stackable={p->Stackable}), error={Utils.LogMessageString(p->ErrorLogId)}"),
+        PacketID.MarketBoardItemListingHistory when (MarketBoardItemListingHistory*)payload is var p => DecodeMarketBoardItemHistory(p),
         PacketID.RetainerState when (RetainerState*)payload is var p => new($"{p->RetainerId:X} '{MemoryHelper.ReadStringNullTerminated((nint)p->Name)}', change={p->StateChange}, flags={p->Flags:X16} (town={p->Town}, selling={p->IsSelling}), custom message={Utils.LogMessageString(p->CustomMessageId)}"),
         PacketID.StatusEffectList when (StatusEffectList*)payload is var p => DecodeStatusEffectList(p),
         PacketID.StatusEffectListEureka when (StatusEffectListEureka*)payload is var p => DecodeStatusEffectList(&p->Data, $", rank={p->Rank}/{p->Element}/{p->u2}, pad={p->pad3:X2}"),
@@ -124,6 +125,17 @@ public abstract unsafe class PacketDecoder
             var s1 = MemoryHelper.ReadString((nint)item + 0x46, 32);
             var s2 = MemoryHelper.ReadString((nint)item + 0x66, 32);
             res.AddChild($"{item->ListingId:X}: {item->Quantity}x {item->ItemId} @ {item->UnitPrice}+{item->TotalTax}, cont={item->ContainerId}, nmat={item->MateriaCount}, s1={s1}, s2={s2}, unks={item->Unk40:X8} {item->Unk44:X4} {item->Unk88:X2} {item->Unk8C:X8}");
+        }
+        return res;
+    }
+
+    private TextNode DecodeMarketBoardItemHistory(MarketBoardItemListingHistory* p)
+    {
+        var res = new TextNode($"item {p->ItemId}");
+        for (int i = 0; i < 20; ++i)
+        {
+            var entry = (MarketBoardItemListingHistoryEntry*)p->RawEntries + i;
+            res.AddChild($"{entry->Quantity}x at {entry->UnitPrice} @ {DateTimeOffset.FromUnixTimeSeconds(entry->SaleUnixTimestamp)} from {MemoryHelper.ReadStringNullTerminated((nint)entry->RetainerName)}");
         }
         return res;
     }
