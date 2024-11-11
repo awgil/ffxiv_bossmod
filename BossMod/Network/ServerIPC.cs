@@ -55,6 +55,7 @@ public enum PacketID
     MarketBoardItemListing = 168,
     PlayerRetainerInfo = 169,
     MarketBoardPurchase = 170,
+    MarketBoardSale = 171,
     MarketBoardItemListingHistory = 172,
     RetainerSaleHistory = 173,
     RetainerState = 174,
@@ -330,6 +331,17 @@ public unsafe struct MarketBoardPurchase
     public uint Quantity;
     public byte Stackable;
     public fixed byte Padding[3];
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 0x18)]
+public unsafe struct MarketBoardSale
+{
+    [FieldOffset(0x00)] public uint ItemId;
+    [FieldOffset(0x04)] public uint Quantity;
+    [FieldOffset(0x08)] public uint UnitPrice;
+    [FieldOffset(0x0C)] public uint TotalTax;
+    [FieldOffset(0x10)] public byte SaleType; // 1 = normal sale, 2 = everything sold, 3 = mannequin
+    [FieldOffset(0x11)] public byte TownId;
 }
 
 [StructLayout(LayoutKind.Explicit, Size = 0x30)]

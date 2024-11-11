@@ -58,6 +58,7 @@ public abstract unsafe class PacketDecoder
         PacketID.MarketBoardItemListingCount when (MarketBoardItemListingCount*)payload is var p => new($"{p->NumItems} items, {p->Error:X} error"),
         PacketID.MarketBoardItemListing when (MarketBoardItemListing*)payload is var p => DecodeMarketBoardItemListing(p),
         PacketID.MarketBoardPurchase when (MarketBoardPurchase*)payload is var p => new($"{p->Quantity}x {p->ItemId} (stackable={p->Stackable}), error={Utils.LogMessageString(p->ErrorLogId)}"),
+        PacketID.MarketBoardSale when (MarketBoardSale*)payload is var p => new($"{p->Quantity}x {p->ItemId} at {p->UnitPrice} minus {p->TotalTax} tax in {p->TownId} town; type={p->SaleType}"),
         PacketID.MarketBoardItemListingHistory when (MarketBoardItemListingHistory*)payload is var p => DecodeMarketBoardItemHistory(p),
         PacketID.RetainerState when (RetainerState*)payload is var p => new($"{p->RetainerId:X} '{MemoryHelper.ReadStringNullTerminated((nint)p->Name)}', change={p->StateChange}, flags={p->Flags:X16} (town={p->Town}, selling={p->IsSelling}), custom message={Utils.LogMessageString(p->CustomMessageId)}"),
         PacketID.StatusEffectList when (StatusEffectList*)payload is var p => DecodeStatusEffectList(p),
