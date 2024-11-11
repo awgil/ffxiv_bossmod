@@ -372,8 +372,8 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     private new (float Left, float In) EstimateRaidBuffTimings(Actor? primaryTarget)
     {
-        // striking dummy that spawns in Explorer Mode
-        if (primaryTarget?.OID != 0x2DE0)
+        // level 100 stone sky sea
+        if (primaryTarget?.OID != 0x41CD)
             return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), Bossmods.RaidCooldowns.NextDamageBuffIn2());
 
         // hack for a dummy: expect that raidbuffs appear at 7.8s and then every 120s

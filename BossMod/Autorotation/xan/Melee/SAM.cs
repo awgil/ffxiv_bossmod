@@ -173,7 +173,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         UseKaeshi(primaryTarget);
         UseIaijutsu(primaryTarget);
 
-        if (OgiLeft > GCD && TargetDotLeft > 10 && HaveFugetsu)
+        if (OgiLeft > GCD && TargetDotLeft > 10 && HaveFugetsu && (RaidBuffsLeft > GCD || RaidBuffsIn > 1000))
             PushGCD(AID.OgiNamikiri, BestOgiTarget);
 
         if (MeikyoLeft > GCD)
@@ -368,28 +368,31 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             return;
 
         if (strategy.BuffsOk())
-        {
             PushOGCD(AID.Ikishoten, Player);
 
-            if (Zanshin > World.Client.AnimationLock && Kenki >= 50)
-                PushOGCD(AID.Zanshin, BestOgiTarget);
+        var animlock = World.Client.AnimationLock;
 
-            if (Kenki >= 25 && Zanshin == 0)
-            {
-                if (NumLineTargets > 1)
-                    PushOGCD(AID.HissatsuGuren, BestLineTarget);
-
-                // queue senei since guren may not be unlocked (gated by job quest)
-                PushOGCD(AID.HissatsuSenei, primaryTarget);
-                // queue guren since senei may not be unlocked (unlocks at level 72)
+        if (Kenki >= 25 && (RaidBuffsLeft > animlock || RaidBuffsIn > (Unlocked(TraitID.EnhancedHissatsu) ? 40 : 100)))
+        {
+            if (NumLineTargets > 1)
                 PushOGCD(AID.HissatsuGuren, BestLineTarget);
-            }
+
+            // queue senei since guren may not be unlocked (gated by job quest)
+            PushOGCD(AID.HissatsuSenei, primaryTarget);
+            // queue guren since senei may not be unlocked (unlocks at level 72)
+            PushOGCD(AID.HissatsuGuren, BestLineTarget);
         }
+
+        if (Kenki >= 50 && Zanshin > 0 && ReadyIn(AID.HissatsuSenei) > 30)
+            PushOGCD(AID.Zanshin, BestOgiTarget);
 
         if (Meditation == 3)
             PushOGCD(AID.Shoha, BestLineTarget);
 
-        if (Kenki >= 25 && ReadyIn(AID.HissatsuGuren) > 10 && Zanshin == 0)
+        var saveKenki = RaidBuffsLeft <= animlock || Zanshin > 0 || ReadyIn(AID.HissatsuSenei) < 10;
+        var maxKenki = ReadyIn(AID.Ikishoten) < 15 ? 50 : 90;
+
+        if (Kenki >= (saveKenki ? maxKenki : 25))
         {
             if (NumAOECircleTargets > 2)
                 PushOGCD(AID.HissatsuKyuten, Player);
