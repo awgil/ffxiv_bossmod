@@ -60,7 +60,7 @@ public class DebugObjects
                 if (character != null)
                 {
                     _tree.LeafNode($"Category: {ActionManager.ClassifyTarget(internalChara)}");
-                    _tree.LeafNode($"Class: {(Class)character.ClassJob.Id} ({character.ClassJob.Id})");
+                    _tree.LeafNode($"Class: {(Class)character.ClassJob.RowId} ({character.ClassJob.RowId})");
                     _tree.LeafNode($"HP: {character.CurrentHp}/{character.MaxHp} ({internalChara->ShieldValue})");
                     _tree.LeafNode($"Status flags: {character.StatusFlags}");
                 }
@@ -143,7 +143,7 @@ public class DebugObjects
                 foreach (var status in chara!.StatusList)
                 {
                     var src = status.SourceObject != null ? Utils.ObjectString(status.SourceObject) : "none";
-                    res.Append($"\n  status {status.StatusId} '{status.GameData.Name}': param={status.Param}, stacks={status.StackCount}, time={status.RemainingTime:f2}, source={src}");
+                    res.Append($"\n  status {status.StatusId} '{status.GameData.Value.Name}': param={status.Param}, stacks={status.StackCount}, time={status.RemainingTime:f2}, source={src}");
                 }
             }
         }

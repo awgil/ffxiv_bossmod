@@ -61,7 +61,7 @@ public sealed class AIHintsBuilder : IDisposable
     {
         var (e, bitmap) = Obstacles.Find(player.PosRot.XYZ());
         var resolution = bitmap?.PixelSize ?? 0.5f;
-        if (_ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax)
+        if (_ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.Sheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax)
         {
             hints.PathfindMapCenter = new(_ws.Client.ActiveFate.Center.XZ());
             hints.PathfindMapBounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius));
@@ -118,66 +118,66 @@ public sealed class AIHintsBuilder : IDisposable
     {
         if (actor.Type != ActorType.Enemy || actor.IsAlly)
             return;
-        var data = actor.CastInfo!.IsSpell() ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(actor.CastInfo.Action.ID) : null;
-        if (data == null || data.CastType == 1)
+        var data = actor.CastInfo!.IsSpell() ? Service.LuminaRow<Lumina.Excel.Sheets.Action>(actor.CastInfo.Action.ID) : null;
+        if (data == null || data.Value.CastType == 1)
             return;
         //if (data.Omen.Row == 0)
         //    return; // to consider: ignore aoes without omen, such aoes typically need a module to resolve...
-        if (data.CastType is 2 or 5 && data.EffectRange >= RaidwideSize)
+        if (data.Value.CastType is 2 or 5 && data.Value.EffectRange >= RaidwideSize)
             return;
-        AOEShape? shape = data.CastType switch
+        AOEShape? shape = data.Value.CastType switch
         {
-            2 => new AOEShapeCircle(data.EffectRange), // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
-            3 => new AOEShapeCone(data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data) * 0.5f),
-            4 => new AOEShapeRect(data.EffectRange + actor.HitboxRadius, data.XAxisModifier * 0.5f),
-            5 => new AOEShapeCircle(data.EffectRange + actor.HitboxRadius),
+            2 => new AOEShapeCircle(data.Value.EffectRange), // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
+            3 => new AOEShapeCone(data.Value.EffectRange + actor.HitboxRadius, DetermineConeAngle(data.Value) * 0.5f),
+            4 => new AOEShapeRect(data.Value.EffectRange + actor.HitboxRadius, data.Value.XAxisModifier * 0.5f),
+            5 => new AOEShapeCircle(data.Value.EffectRange + actor.HitboxRadius),
             //6 => ???
-            //7 => new AOEShapeCircle(data.EffectRange), - used for player ground-targeted circles a-la asylum
+            //7 => new AOEShapeCircle(data.Value.EffectRange), - used for player ground-targeted circles a-la asylum
             //8 => charge rect
-            10 => new AOEShapeDonut(DetermineDonutInner(data), data.EffectRange),
-            11 => new AOEShapeCross(data.EffectRange, data.XAxisModifier * 0.5f),
-            12 => new AOEShapeRect(data.EffectRange, data.XAxisModifier * 0.5f),
-            13 => new AOEShapeCone(data.EffectRange, DetermineConeAngle(data) * 0.5f),
+            10 => new AOEShapeDonut(DetermineDonutInner(data.Value), data.Value.EffectRange),
+            11 => new AOEShapeCross(data.Value.EffectRange, data.Value.XAxisModifier * 0.5f),
+            12 => new AOEShapeRect(data.Value.EffectRange, data.Value.XAxisModifier * 0.5f),
+            13 => new AOEShapeCone(data.Value.EffectRange, DetermineConeAngle(data.Value) * 0.5f),
             _ => null
         };
         if (shape == null)
         {
-            Service.Log($"[AutoHints] Unknown cast type {data.CastType} for {actor.CastInfo.Action}");
+            Service.Log($"[AutoHints] Unknown cast type {data.Value.CastType} for {actor.CastInfo.Action}");
             return;
         }
         var target = _ws.Actors.Find(actor.CastInfo.TargetID);
-        _activeAOEs[actor.InstanceID] = (actor, target, shape, data.CastType == 8);
+        _activeAOEs[actor.InstanceID] = (actor, target, shape, data.Value.CastType == 8);
     }
 
     private void OnCastFinished(Actor actor) => _activeAOEs.Remove(actor.InstanceID);
 
-    private Angle DetermineConeAngle(Lumina.Excel.GeneratedSheets.Action data)
+    private Angle DetermineConeAngle(Lumina.Excel.Sheets.Action data)
     {
-        var omen = data.Omen.Value;
+        var omen = data.Omen.ValueNullable;
         if (omen == null)
         {
             Service.Log($"[AutoHints] No omen data for {data.RowId} '{data.Name}'...");
             return 180.Degrees();
         }
-        var path = omen.Path.ToString();
+        var path = omen.Value.Path.ToString();
         var pos = path.IndexOf("fan", StringComparison.Ordinal);
         if (pos < 0 || pos + 6 > path.Length || !int.TryParse(path.AsSpan(pos + 3, 3), out var angle))
         {
-            Service.Log($"[AutoHints] Can't determine angle from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
+            Service.Log($"[AutoHints] Can't determine angle from omen ({path}/{omen.Value.PathAlly}) for {data.RowId} '{data.Name}'...");
             return 180.Degrees();
         }
         return angle.Degrees();
     }
 
-    private float DetermineDonutInner(Lumina.Excel.GeneratedSheets.Action data)
+    private float DetermineDonutInner(Lumina.Excel.Sheets.Action data)
     {
-        var omen = data.Omen.Value;
+        var omen = data.Omen.ValueNullable;
         if (omen == null)
         {
             Service.Log($"[AutoHints] No omen data for {data.RowId} '{data.Name}'...");
             return 0;
         }
-        var path = omen.Path.ToString();
+        var path = omen.Value.Path.ToString();
         var pos = path.IndexOf("sircle_", StringComparison.Ordinal);
         if (pos >= 0 && pos + 11 <= path.Length && int.TryParse(path.AsSpan(pos + 9, 2), out var inner))
             return inner;
@@ -186,7 +186,7 @@ public sealed class AIHintsBuilder : IDisposable
         if (pos >= 0 && pos + 10 <= path.Length && int.TryParse(path.AsSpan(pos + 8, 2), out inner))
             return inner;
 
-        Service.Log($"[AutoHints] Can't determine inner radius from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
+        Service.Log($"[AutoHints] Can't determine inner radius from omen ({path}/{omen.Value.PathAlly}) for {data.RowId} '{data.Name}'...");
         return 0;
     }
 }

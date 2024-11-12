@@ -2,7 +2,6 @@
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using FFXIVClientStructs.Interop;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
 
 namespace BossMod;
 
@@ -103,7 +102,7 @@ public sealed unsafe class DebugAddon : IDisposable
                 FFXIVClientStructs.FFXIV.Component.GUI.ValueType.String => $"string",
                 FFXIVClientStructs.FFXIV.Component.GUI.ValueType.String8 => $"string8",
                 FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Vector => $"vector",
-                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Texture => $"texture",
+                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Pointer => $"pointer",
                 FFXIVClientStructs.FFXIV.Component.GUI.ValueType.ManagedString => $"astring",
                 FFXIVClientStructs.FFXIV.Component.GUI.ValueType.ManagedVector => $"avector",
                 _ => $"{values[i].Type} unknown"

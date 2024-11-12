@@ -673,23 +673,23 @@ public abstract class QuestBattle : ZoneModule
 
         if (ImGui.Button("Generate module stub"))
         {
-            var cfc = Service.LuminaRow<Lumina.Excel.GeneratedSheets.ContentFinderCondition>(World.CurrentCFCID);
+            var cfc = Service.LuminaRow<Lumina.Excel.Sheets.ContentFinderCondition>(World.CurrentCFCID);
             if (cfc == null)
                 return;
 
             string name;
-            if (cfc.ContentLinkType == 5)
+            if (cfc.Value.ContentLinkType == 5)
             {
-                var qb = Service.LuminaRow<Lumina.Excel.GeneratedSheets.QuestBattle>(cfc.Content)!;
-                var quest = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Quest>((uint)qb.Quest)!;
-                name = quest.Name;
+                var qb = Service.LuminaRow<Lumina.Excel.Sheets.QuestBattle>(cfc.Value.Content.RowId)!;
+                var quest = Service.LuminaRow<Lumina.Excel.Sheets.Quest>(qb.Value.Quest.RowId)!;
+                name = quest.Value.Name.ToString();
             }
             else
             {
-                name = cfc.Name;
+                name = cfc.Value.Name.ToString();
             }
 
-            var expansion = cfc.ClassJobLevelSync switch
+            var expansion = cfc.Value.ClassJobLevelSync switch
             {
                 > 0 and <= 50 => "ARealmReborn",
                 > 50 and <= 60 => "Heavensward",

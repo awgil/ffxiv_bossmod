@@ -33,13 +33,13 @@ public static partial class Utils
     public static string Vec3String(Vector3 pos) => $"[{pos.X:f3}, {pos.Y:f3}, {pos.Z:f3}]";
     public static string QuatString(Quaternion q) => $"[{q.X:f2}, {q.Y:f2}, {q.Z:f2}, {q.W:f2}]";
     public static string PosRotString(Vector4 posRot) => $"[{posRot.X:f2}, {posRot.Y:f2}, {posRot.Z:f2}, {posRot.W.Radians()}]";
-    public static bool CharacterIsOmnidirectional(uint oid) => Service.LuminaRow<Lumina.Excel.GeneratedSheets.BNpcBase>(oid)?.Unknown10 ?? false;
-    public static string StatusString(uint statusID) => $"{statusID} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(statusID)?.Name ?? "<not found>"}'";
-    public static bool StatusIsRemovable(uint statusID) => Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(statusID)?.CanDispel ?? false;
+    public static bool CharacterIsOmnidirectional(uint oid) => Service.LuminaRow<Lumina.Excel.Sheets.BNpcBase>(oid)?.IsOmnidirectional ?? false;
+    public static string StatusString(uint statusID) => $"{statusID} '{Service.LuminaRow<Lumina.Excel.Sheets.Status>(statusID)?.Name ?? "<not found>"}'";
+    public static bool StatusIsRemovable(uint statusID) => Service.LuminaRow<Lumina.Excel.Sheets.Status>(statusID)?.CanDispel ?? false;
     public static string StatusTimeString(DateTime expireAt, DateTime now) => $"{Math.Max(0, (expireAt - now).TotalSeconds):f3}";
     public static string CastTimeString(float current, float total) => $"{current:f2}/{total:f2}";
     public static string CastTimeString(ActorCastInfo cast, DateTime now) => CastTimeString(cast.ElapsedTime, cast.TotalTime);
-    public static string LogMessageString(uint id) => $"{id} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(id)?.Text}'";
+    public static string LogMessageString(uint id) => $"{id} '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(id)?.Text}'";
 
     public static unsafe T ReadField<T>(void* address, int offset) where T : unmanaged => *(T*)((IntPtr)address + offset);
     public static unsafe void WriteField<T>(void* address, int offset, T value) where T : unmanaged => *(T*)((IntPtr)address + offset) = value;

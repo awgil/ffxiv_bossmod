@@ -2,7 +2,7 @@
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System.Diagnostics;
 using System.IO;
 
@@ -210,7 +210,7 @@ public class ReplayManagementWindow : UIWindow
         if (_ws.CurrentCFCID != 0)
             prefix = Service.LuminaRow<ContentFinderCondition>(_ws.CurrentCFCID)?.Name.ToString();
         if (_ws.CurrentZone != 0)
-            prefix ??= Service.LuminaRow<TerritoryType>(_ws.CurrentZone)?.PlaceName.Value?.NameNoArticle.ToString();
+            prefix ??= Service.LuminaRow<TerritoryType>(_ws.CurrentZone)?.PlaceName.ValueNullable?.NameNoArticle.ToString();
         prefix ??= "World";
         prefix = Utils.StringToIdentifier(prefix);
 
