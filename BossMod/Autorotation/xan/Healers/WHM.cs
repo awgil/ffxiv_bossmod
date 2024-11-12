@@ -68,6 +68,8 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
+        GoalZoneCombined(25, Hints.GoalAOECircle(8), 3);
+
         if (!CanFitGCD(TargetDotLeft, 1))
             PushGCD(AID.Aero1, BestDotTarget);
 
@@ -90,12 +92,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
 
         // TODO make a track for this
         if (Lily == 3 || !CanFitGCD(NextLily, 2) && Lily == 2)
-        {
-            if (World.Party.WithoutSlot(excludeAlliance: true).Average(PredictedHPRatio) < 0.8 && NumSolaceTargets == World.Party.WithoutSlot(excludeAlliance: true).Count())
-                PushGCD(AID.AfflatusRapture, Player, 1);
-
-            PushGCD(AID.AfflatusSolace, World.Party.WithoutSlot(excludeAlliance: true).MinBy(PredictedHPRatio), 1);
-        }
+            PushGCD(AID.AfflatusSolace, World.Party.WithoutSlot(excludeAlliance: true).Where(m => Player.DistanceToHitbox(m) <= 30).MinBy(PredictedHPRatio));
 
         if (SacredSight > 0)
             PushGCD(AID.GlareIV, primaryTarget);
