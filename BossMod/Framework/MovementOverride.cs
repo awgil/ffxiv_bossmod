@@ -2,6 +2,7 @@
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.System.Input;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 using System.Runtime.InteropServices;
@@ -40,7 +41,7 @@ public sealed unsafe class MovementOverride : IDisposable
         ActionTweaksConfig.ModifierKey.Ctrl => ImGui.GetIO().KeyCtrl,
         ActionTweaksConfig.ModifierKey.Alt => ImGui.GetIO().KeyAlt,
         ActionTweaksConfig.ModifierKey.Shift => ImGui.GetIO().KeyShift,
-        ActionTweaksConfig.ModifierKey.M12 => UIInputData.Instance()->MouseButtonHeldFlags.HasFlag(MouseButtonFlags.LBUTTON | MouseButtonFlags.RBUTTON),
+        ActionTweaksConfig.ModifierKey.M12 => UIInputData.Instance()->UIFilteredCursorInputs.MouseButtonHeldFlags.HasFlag(MouseButtonFlags.LBUTTON | MouseButtonFlags.RBUTTON),
         _ => false,
     };
 
