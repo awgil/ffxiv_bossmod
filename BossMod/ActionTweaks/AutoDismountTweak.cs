@@ -1,7 +1,4 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.Game.Character;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // Tweak to automatically dismount when trying to use an action and failing due to being mounted.
 public sealed class AutoDismountTweak(WorldState ws)

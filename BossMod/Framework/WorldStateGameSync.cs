@@ -19,7 +19,7 @@ namespace BossMod;
 // utility that updates a world state to correspond to game state
 sealed class WorldStateGameSync : IDisposable
 {
-    private const int ObjectTableSize = 629; // should match CS; note that different ranges are used for different purposes - consider splitting?..
+    private const int ObjectTableSize = 819; // should match CS; note that different ranges are used for different purposes - consider splitting?..
     private const uint InvalidEntityId = 0xE0000000;
 
     private readonly WorldState _ws;
@@ -383,7 +383,7 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe void UpdateParty()
     {
-        var replay = Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback];
+        var replay = Service.Condition[ConditionFlag.DutyRecorderPlayback];
         var group = GroupManager.Instance()->GetGroup(replay);
 
         // update party members

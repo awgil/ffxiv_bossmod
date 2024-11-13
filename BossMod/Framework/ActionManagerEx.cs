@@ -1,7 +1,6 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
-using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
@@ -156,6 +155,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     public void GetCooldowns(Span<Cooldown> cooldowns)
     {
+        // TODO: 7.1: there are now 87 cdgroups
         // [0,80) are stored in actionmanager, [80,81) are stored in director
         var rg = _inst->GetRecastGroupDetail(0);
         for (int i = 0; i < 80; ++i)
@@ -181,10 +181,11 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     public ClientState.DutyAction GetDutyAction(ushort slot)
     {
-        var cd = EventFramework.Instance()->GetContentDirector();
-        return cd == null || !cd->DutyActionManager.ActionsPresent || slot >= cd->DutyActionManager.NumValidSlots
+        // TODO: 7.1: there are now 5 actions, but only 2 charges...
+        var dm = DutyActionManager.GetInstanceIfReady();
+        return dm == null || !dm->ActionsPresent || slot >= dm->NumValidSlots
             ? default
-            : new(new(ActionType.Spell, cd->DutyActionManager.ActionId[slot]), cd->DutyActionManager.CurCharges[slot], cd->DutyActionManager.MaxCharges[slot]);
+            : new(new(ActionType.Spell, dm->ActionId[slot]), dm->CurCharges[slot], dm->MaxCharges[slot]);
     }
     public (ClientState.DutyAction, ClientState.DutyAction) GetDutyActions() => (GetDutyAction(0), GetDutyAction(1));
 
@@ -337,7 +338,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         var desiredRotation = CalculateDesiredOrientation(actionImminent);
 
         // execute rotation, if needed
-        var autoRotateConfig = Framework.Instance()->SystemConfig.GetConfigOption((uint)ConfigOption.AutoFaceTargetOnAction);
+        var autoRotateConfig = fwk->SystemConfig.GetConfigOption(/*(uint)ConfigOption.AutoFaceTargetOnAction*/225); // TODO: 7.1: update config option
         var autoRotateOriginal = autoRotateConfig->Value.UInt;
         if (desiredRotation != null)
         {

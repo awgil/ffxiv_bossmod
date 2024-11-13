@@ -1,6 +1,4 @@
 ﻿using Dalamud.Game.Config;
-using Dalamud.Hooking;
-using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Input;
 using FFXIVClientStructs.FFXIV.Client.UI;
