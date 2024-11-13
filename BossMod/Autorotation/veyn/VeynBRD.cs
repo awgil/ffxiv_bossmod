@@ -395,7 +395,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         {
             // late-weave RF in opener, so that we cover ogcd slot immediately after EA
             // slightly delay RF in burst, so that we cover 9 gcds (bare minimum is 2 * (0.6+animlockdelay))
-            var idealTimeBeforeGCD = ArmysMuseLeft == 0 ? 1.0f : 1.4f;
+            var idealTimeBeforeGCD = ArmysMuseLeft == 0 ? 0.8f : 1.3f;
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BRD.AID.RadiantFinale), Player, strategyBuffs.Priority(ActionQueue.Priority.Medium + (int)OGCDPriority.RadiantFinale), delay: GCD - idealTimeBeforeGCD);
         }
 

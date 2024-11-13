@@ -270,7 +270,7 @@ public sealed class ModuleViewer : IDisposable
             case BossModuleInfo.GroupType.Quest:
                 var questRow = Service.LuminaRow<Quest>(module.GroupID)!.Value;
                 groupId |= questRow.JournalGenre.RowId;
-                var questCategoryName = questRow.JournalGenre.Value.Name.ToString();
+                var questCategoryName = questRow.JournalGenre.ValueNullable?.Name.ToString() ?? "";
                 return (new(questCategoryName, groupId, groupId), new(module, $"{questRow.Name}: {BNpcName(module.NameID)}", module.SortOrder));
             case BossModuleInfo.GroupType.Fate:
                 var fateRow = Service.LuminaRow<Fate>(module.GroupID)!.Value;

@@ -415,7 +415,7 @@ class AbilityInfo : CommonEnumInfo
                     tree.LeafNode($"Effect range: {row?.EffectRange}");
                     tree.LeafNode($"Effect width: {row?.XAxisModifier}");
                     tree.LeafNode($"Omen: {row?.Omen.ValueNullable?.Path} / {row?.Omen.ValueNullable?.PathAlly}");
-                    var omenAlt = row != null ? Service.LuminaRow<Lumina.Excel.Sheets.Omen>(row.Value.Unknown0) : null;
+                    var omenAlt = row != null ? Service.LuminaRow<Lumina.Excel.Sheets.Omen>(row.Value.OmenAlt.RowId) : null;
                     tree.LeafNode($"Omen alt: {omenAlt?.Path} / {omenAlt?.PathAlly}");
                 }
             }
