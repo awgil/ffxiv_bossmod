@@ -27,7 +27,7 @@ internal sealed class DTRProvider : IDisposable
         _autorotationEntry.Tooltip = "Left Click => Choose Preset, Right Click => Disable Current Preset";
         _autorotationEntry.OnClick = () =>
         {
-            if (UIInputData.Instance()->MouseButtonHeldThrottledFlags.HasFlag(MouseButtonFlags.RBUTTON))
+            if (UIInputData.Instance()->UIFilteredCursorInputs.MouseButtonHeldThrottledFlags.HasFlag(MouseButtonFlags.RBUTTON))
                 _mgr.Preset = null;
             else
                 _wantOpenPopup = true;
