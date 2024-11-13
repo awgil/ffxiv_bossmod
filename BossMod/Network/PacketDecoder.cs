@@ -108,7 +108,7 @@ public abstract unsafe class PacketDecoder
         PacketID.EventPlay255 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 255)),
         PacketID.ServerRequestCallbackResponse1 when (DecodeServerRequestCallbackResponse*)payload is var p => DecodeServerRequestCallbackResponse(p),
         PacketID.EnvControl when (EnvControl*)payload is var p => new($"{p->DirectorID:X8}.{p->Index} = {p->State1:X4} {p->State2:X4}, pad={p->pad9:X2} {p->padA:X4} {p->padC:X8}"),
-        PacketID.NpcYell when (NpcYell*)payload is var p => new($"{DecodeActor(p->SourceID)}: {p->Message} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.NpcYell>(p->Message)?.Text}' (u8={p->u8}, uE={p->uE}, u10={p->u10}, u18={p->u18})"),
+        PacketID.NpcYell when (NpcYell*)payload is var p => new($"{DecodeActor(p->SourceID)}: {p->Message} '{Service.LuminaRow<Lumina.Excel.Sheets.NpcYell>(p->Message)?.Text}' (u8={p->u8}, uE={p->uE}, u10={p->u10}, u18={p->u18})"),
         PacketID.WaymarkPreset when (WaymarkPreset*)payload is var p => DecodeWaymarkPreset(p),
         PacketID.Waymark when (ServerIPC.Waymark*)payload is var p => DecodeWaymark(p),
         PacketID.ActorGauge when (ActorGauge*)payload is var p => new($"{p->ClassJobID} = {p->Payload:X16}"),
@@ -212,14 +212,14 @@ public abstract unsafe class PacketDecoder
             ActorControlCategory.SetTarget => $"{DecodeActor(targetID)}",
             ActorControlCategory.SetAnimationState => $"#{p1} = {p2}",
             ActorControlCategory.SetModelState => $"{p1}",
-            ActorControlCategory.SetName => $"'{Service.LuminaRow<Lumina.Excel.GeneratedSheets.BNpcName>(p1)?.Singular}' ({p1})",
+            ActorControlCategory.SetName => $"'{Service.LuminaRow<Lumina.Excel.Sheets.BNpcName>(p1)?.Singular}' ({p1})",
             ActorControlCategory.SetCompanionOwnerId => $"{DecodeActor(p1)}",
             ActorControlCategory.ForcedMovement => $"dest={Utils.Vec3String(IntToFloatCoords((ushort)p1, (ushort)p2, (ushort)p3))}, rot={IntToFloatAngle((ushort)p4)}deg over {p5 * 0.0001:f4}s, type={p6}",
             ActorControlCategory.PlayActionTimeline => $"{p1:X4}",
             ActorControlCategory.EObjSetState => $"{p1:X4}, housing={(p3 != 0 ? p4 : null)}",
             ActorControlCategory.EObjAnimation => $"{p1:X4} {p2:X4}",
             ActorControlCategory.LimitBreakGauge => $"{p1} bars, {p2}/{p3}, uE={p4}, uF={p5}",
-            ActorControlCategory.AchievementProgress => $"{p1} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Achievement>(p1)?.Name}': {p2}/{p3}",
+            ActorControlCategory.AchievementProgress => $"{p1} '{Service.LuminaRow<Lumina.Excel.Sheets.Achievement>(p1)?.Name}': {p2}/{p3}",
             ActorControlCategory.ActionRejected => $"{Utils.LogMessageString(p1)}; action={new ActionID((ActionType)p2, p3)}, recast={p4 * 0.01f:f2}/{p5 * 0.01f:f2}, src-seq={p6}",
             ActorControlCategory.ServerRequestCallbackResponse => $"listener index={p1}, listener request type={p2}, data={p3} {p4} {p5} {p6}",
             ActorControlCategory.SetDutyActionSet => $"row={p1}",
@@ -314,13 +314,13 @@ public abstract unsafe class PacketDecoder
                             craftingNode.AddChild($"Unks: {cp->OpReturnedReagents.u0} {cp->OpReturnedReagents.u4} {cp->OpReturnedReagents.u8}");
                         for (int i = 0; i < 8; ++i)
                             if (cp->OpReturnedReagents.ItemIds[i] != 0)
-                                craftingNode.AddChild($"{i}: {cp->OpReturnedReagents.ItemIds[i]} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Item>(cp->OpReturnedReagents.ItemIds[i])?.Name}' {cp->OpReturnedReagents.NumNQ[i]}nq/{cp->OpReturnedReagents.NumHQ[i]}hq");
+                                craftingNode.AddChild($"{i}: {cp->OpReturnedReagents.ItemIds[i]} '{Service.LuminaRow<Lumina.Excel.Sheets.Item>(cp->OpReturnedReagents.ItemIds[i])?.Name}' {cp->OpReturnedReagents.NumNQ[i]}nq/{cp->OpReturnedReagents.NumHQ[i]}hq");
                         break;
                     case EventPlayN.PayloadCrafting.OperationId.AdvanceCraftAction:
                     case EventPlayN.PayloadCrafting.OperationId.AdvanceNormalAction:
                         var actionName = cp->OpId == EventPlayN.PayloadCrafting.OperationId.AdvanceCraftAction
-                            ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.CraftAction>((uint)cp->OpAdvanceStep.LastActionId)?.Name
-                            : Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>((uint)cp->OpAdvanceStep.LastActionId)?.Name;
+                            ? Service.LuminaRow<Lumina.Excel.Sheets.CraftAction>((uint)cp->OpAdvanceStep.LastActionId)?.Name
+                            : Service.LuminaRow<Lumina.Excel.Sheets.Action>((uint)cp->OpAdvanceStep.LastActionId)?.Name;
                         craftingNode.AddChild($"Step #{cp->OpAdvanceStep.StepIndex}, condition={cp->OpAdvanceStep.Condition} ({cp->OpAdvanceStep.ConditionParam}), delta-cp={cp->OpAdvanceStep.DeltaCP}");
                         craftingNode.AddChild($"Action: {cp->OpAdvanceStep.LastActionId} '{actionName}' ({(cp->OpAdvanceStep.Flags.HasFlag(EventPlayN.PayloadCrafting.StepFlags.LastActionSucceeded) ? "succeeded" : "failed")})");
                         craftingNode.AddChild($"Progress: {cp->OpAdvanceStep.CurProgress} (delta={cp->OpAdvanceStep.DeltaProgress})");

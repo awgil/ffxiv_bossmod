@@ -9,7 +9,7 @@ public static class ActionSpeed
     // speed (sks/sps) stat is converted to modifier based on player's level
     public static int SpeedStatToModifier(int stat, int level)
     {
-        var paramGrow = Service.LuminaRow<Lumina.Excel.GeneratedSheets.ParamGrow>((uint)level)!;
+        var paramGrow = Service.LuminaRow<Lumina.Excel.Sheets.ParamGrow>((uint)level)!.Value;
         return 1000 - 130 * (stat - paramGrow.BaseSpeed) / paramGrow.LevelModifier;
     }
 

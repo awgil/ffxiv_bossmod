@@ -1,4 +1,4 @@
-﻿using Lumina.Excel.GeneratedSheets;
+﻿using Lumina.Excel.Sheets;
 
 namespace BossMod;
 
@@ -122,15 +122,12 @@ public static class BozjaActionID
 
     static BozjaActionID()
     {
-        var sheet = Service.LuminaSheet<MYCTemporaryItem>();
+        var sheet = Service.LuminaSheet<MYCTemporaryItem>()!;
         for (int i = 0; i < _normalActions.Length; i++)
         {
-            var row = sheet?.GetRow((uint)i);
-            if (row != null)
-            {
-                _normalActions[i] = new(ActionType.Spell, row.Action.Row);
-                _holsterActions[i] = row.Type == 2 ? _normalActions[i] : SlotFromHolsterAction;
-            }
+            var row = sheet.GetRow((uint)i);
+            _normalActions[i] = new(ActionType.Spell, row.Action.RowId);
+            _holsterActions[i] = row.Type == 2 ? _normalActions[i] : SlotFromHolsterAction;
         }
     }
 }

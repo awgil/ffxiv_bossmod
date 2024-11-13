@@ -81,7 +81,7 @@ class StatusInfo : CommonEnumInfo
 
     private string EnumMemberString(uint sid, StatusData data)
     {
-        string name = _sidType?.GetEnumName(sid) ?? $"_Gen_{Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(sid)?.Name.ToString() ?? $"Status{sid}")}";
+        string name = _sidType?.GetEnumName(sid) ?? $"_Gen_{Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.Sheets.Status>(sid)?.Name.ToString() ?? $"Status{sid}")}";
         return $"{name} = {sid}, // {OIDListString(data.SourceOIDs)}->{OIDListString(data.TargetOIDs)}, extra={JoinStrings(data.Extras.Select(extra => $"0x{extra:X}"))}";
     }
 }

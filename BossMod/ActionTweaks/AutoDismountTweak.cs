@@ -15,7 +15,7 @@ public sealed class AutoDismountTweak(WorldState ws)
 
         var canUseWhileMounted = action.Type switch
         {
-            ActionType.Spell => Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(action.ID) is var data && data != null && (data.Unknown65 || data.SecondaryCostType == 25),
+            ActionType.Spell => Service.LuminaRow<Lumina.Excel.Sheets.Action>(action.ID) is var data && data != null && (data.Value.Unknown24 || data.Value.SecondaryCostType == 25),
             ActionType.General => action.ID == 20, // dig
             _ => false
         };

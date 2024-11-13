@@ -1,4 +1,4 @@
-﻿using Lumina.Excel.GeneratedSheets;
+﻿using Lumina.Excel.Sheets;
 
 namespace BossMod.QuestBattle.Heavensward.MSQ;
 
