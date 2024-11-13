@@ -1,5 +1,5 @@
 ﻿using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System.Globalization;
 using System.Text;
 
@@ -94,7 +94,7 @@ class ParticipantInfo : CommonEnumInfo
             foreach (var n in tree.Node($"Types ({data.Types.Count})", data.Types.Count == 0))
                 tree.LeafNodes(data.Types, t => t.ToString());
             foreach (var n in tree.Node($"Zones ({data.Zones.Count})", data.Zones.Count == 0))
-                tree.LeafNodes(data.Zones, z => $"{z.zoneId} '{Service.LuminaRow<TerritoryType>(z.zoneId)?.PlaceName.Value?.Name}' (cfc={z.cfcId})");
+                tree.LeafNodes(data.Zones, z => $"{z.zoneId} '{Service.LuminaRow<TerritoryType>(z.zoneId)?.PlaceName.ValueNullable?.Name}' (cfc={z.cfcId})");
             foreach (var n in tree.Node($"Names ({data.Names.Count})", data.Names.Count == 0))
                 tree.LeafNodes(data.Names, n => $"[{n.id}] {n.name}");
             tree.LeafNode($"Spawned pre fight: {string.Join(", ", data.SpawnedPreFight)}");

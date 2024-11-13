@@ -75,20 +75,20 @@ sealed unsafe class DebugAction : IDisposable
         ImGui.InputInt("Action to show details for", ref _customAction);
         if (_customAction != 0)
         {
-            var data = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>((uint)_customAction);
+            var data = Service.LuminaRow<Lumina.Excel.Sheets.Action>((uint)_customAction);
             if (data != null)
             {
-                ImGui.TextUnformatted($"Name: {data.Name}");
-                ImGui.TextUnformatted($"Cast time: {data.Cast100ms * 0.1f:f1} + {data.Unknown38 * 0.1f:f1}");
-                ImGui.TextUnformatted($"Range: {data.Range}");
-                ImGui.TextUnformatted($"Effect range: {data.EffectRange}");
-                ImGui.TextUnformatted($"Cooldown group: {data.CooldownGroup}");
-                ImGui.TextUnformatted($"Max charges: {data.MaxCharges}");
-                ImGui.TextUnformatted($"Category: {data.ActionCategory.Row} ({data.ActionCategory.Value?.Name})");
+                ImGui.TextUnformatted($"Name: {data.Value.Name}");
+                ImGui.TextUnformatted($"Cast time: {data.Value.Cast100ms * 0.1f:f1} + {data.Value.ExtraCastTime100ms * 0.1f:f1}");
+                ImGui.TextUnformatted($"Range: {data.Value.Range}");
+                ImGui.TextUnformatted($"Effect range: {data.Value.EffectRange}");
+                ImGui.TextUnformatted($"Cooldown group: {data.Value.CooldownGroup}");
+                ImGui.TextUnformatted($"Max charges: {data.Value.MaxCharges}");
+                ImGui.TextUnformatted($"Category: {data.Value.ActionCategory.RowId} ({data.Value.ActionCategory.ValueNullable?.Name})");
 
-                if (data.CooldownGroup > 0 && data.CooldownGroup <= mgr->Cooldowns.Length)
+                if (data.Value.CooldownGroup > 0 && data.Value.CooldownGroup <= mgr->Cooldowns.Length)
                 {
-                    ref var cd = ref mgr->Cooldowns[data.CooldownGroup - 1];
+                    ref var cd = ref mgr->Cooldowns[data.Value.CooldownGroup - 1];
                     ImGui.TextUnformatted($"Cooldown: active={cd.IsActive}, {cd.Elapsed:f3}/{cd.Total:f3}");
                 }
             }
@@ -97,36 +97,36 @@ sealed unsafe class DebugAction : IDisposable
         var hover = Service.GameGui.HoveredAction;
         if (hover.ActionID != 0)
         {
-            var mnemonic = Service.ClientState.LocalPlayer?.ClassJob.GameData?.Abbreviation.ToString();
+            var mnemonic = Service.ClientState.LocalPlayer?.ClassJob.ValueNullable?.Abbreviation.ToString();
             var rotationType = mnemonic != null ? Type.GetType($"BossMod.{mnemonic}Rotation")?.GetNestedType("AID") : null;
             ImGui.TextUnformatted($"Hover action: {hover.ActionKind} {hover.ActionID} (base={hover.BaseActionID}) ({mnemonic}: {rotationType?.GetEnumName(hover.ActionID)})");
 
-            Lumina.Text.SeString? name = null;
+            string name = "";
             var type = FFXIVClientStructs.FFXIV.Client.Game.ActionType.None;
             uint unlockLink = 0;
             if ((int)hover.ActionKind == 24) // action
             {
-                var data = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(hover.ActionID);
-                name = data?.Name;
+                var data = Service.LuminaRow<Lumina.Excel.Sheets.Action>(hover.ActionID);
+                name = data?.Name.ToString() ?? "";
                 type = FFXIVClientStructs.FFXIV.Client.Game.ActionType.Action;
-                unlockLink = data?.UnlockLink ?? 0;
+                unlockLink = data?.UnlockLink.RowId ?? 0;
             }
             else if (hover.ActionKind == HoverActionKind.GeneralAction)
             {
-                var data = Service.LuminaRow<Lumina.Excel.GeneratedSheets.GeneralAction>(hover.ActionID);
-                name = data?.Name;
+                var data = Service.LuminaRow<Lumina.Excel.Sheets.GeneralAction>(hover.ActionID);
+                name = data?.Name.ToString() ?? "";
                 type = FFXIVClientStructs.FFXIV.Client.Game.ActionType.GeneralAction;
                 unlockLink = data?.UnlockLink ?? 0;
             }
             else if (hover.ActionKind == HoverActionKind.Trait)
             {
-                var data = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Trait>(hover.ActionID);
-                name = data?.Name;
-                unlockLink = data?.Quest.Row ?? 0;
+                var data = Service.LuminaRow<Lumina.Excel.Sheets.Trait>(hover.ActionID);
+                name = data?.Name.ToString() ?? "";
+                unlockLink = data?.Quest.RowId ?? 0;
             }
 
             ImGui.TextUnformatted($"Name: {name}");
-            ImGui.TextUnformatted($"Unlock: {unlockLink} ({Service.LuminaRow<Lumina.Excel.GeneratedSheets.Quest>(unlockLink)?.Name}) = {FFXIVClientStructs.FFXIV.Client.Game.QuestManager.IsQuestComplete(unlockLink)}");
+            ImGui.TextUnformatted($"Unlock: {unlockLink} ({Service.LuminaRow<Lumina.Excel.Sheets.Quest>(unlockLink)?.Name}) = {FFXIVClientStructs.FFXIV.Client.Game.QuestManager.IsQuestComplete(unlockLink)}");
             if (hover.ActionKind == HoverActionKind.Action)
             {
                 ImGui.TextUnformatted($"Range: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionRange(hover.ActionID)}");
@@ -159,7 +159,7 @@ sealed unsafe class DebugAction : IDisposable
             uint itemID = (uint)Service.GameGui.HoveredItem % 1000000;
             bool isHQ = Service.GameGui.HoveredItem / 1000000 > 0;
             ImGui.TextUnformatted($"Hover item: {Service.GameGui.HoveredItem}");
-            ImGui.TextUnformatted($"Name: {Service.LuminaRow<Lumina.Excel.GeneratedSheets.Item>(itemID)?.Name}{(isHQ ? " (HQ)" : "")}");
+            ImGui.TextUnformatted($"Name: {Service.LuminaRow<Lumina.Excel.Sheets.Item>(itemID)?.Name}{(isHQ ? " (HQ)" : "")}");
             ImGui.TextUnformatted($"Count: {FFXIVClientStructs.FFXIV.Client.Game.InventoryManager.Instance()->GetInventoryItemCount(itemID, isHQ, false, false)}");
             ImGui.TextUnformatted($"Status: {mgr->GetActionStatus(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID)}");
             ImGui.TextUnformatted($"Adjusted recast: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetAdjustedRecastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID):f2}");
@@ -180,7 +180,7 @@ sealed unsafe class DebugAction : IDisposable
 
         foreach (var nr in _tree.Node("Player actions"))
         {
-            DrawFilteredActions("Hostile + friendly", a => a.IsPlayerAction && a.CanTargetHostile && (a.CanTargetSelf || a.CanTargetParty || a.CanTargetFriendly || a.Unknown19 || a.Unknown22 || a.Unknown23));
+            DrawFilteredActions("Hostile + friendly", a => a.IsPlayerAction && a.CanTargetHostile && (a.CanTargetSelf || a.CanTargetParty || a.CanTargetAlliance || a.CanTargetAlly || a.CanTargetOwnPet || a.CanTargetPartyPet));
         }
     }
 
@@ -213,14 +213,14 @@ sealed unsafe class DebugAction : IDisposable
     {
         uint extra;
         var status = _amex.GetActionStatus(action, Service.ClientState.LocalPlayer?.TargetObjectId ?? 0xE0000000, checkRecast, checkCasting, &extra);
-        ImGui.TextUnformatted($"{prompt}: {status} [{extra}] '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(status)?.Text}'");
+        ImGui.TextUnformatted($"{prompt}: {status} [{extra}] '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(status)?.Text}'");
     }
 
-    private void DrawFilteredActions(string tag, Func<Lumina.Excel.GeneratedSheets.Action, bool> filter)
+    private void DrawFilteredActions(string tag, Func<Lumina.Excel.Sheets.Action, bool> filter)
     {
         foreach (var nr in _tree.Node(tag))
         {
-            foreach (var a in Service.LuminaSheet<Lumina.Excel.GeneratedSheets.Action>()!.Where(filter))
+            foreach (var a in Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!.Where(filter))
             {
                 _tree.LeafNode($"#{a.RowId} {a.Name}");
             }

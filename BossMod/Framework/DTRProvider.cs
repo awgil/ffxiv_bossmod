@@ -4,6 +4,7 @@ using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Utility.Raii;
+using FFXIVClientStructs.FFXIV.Client.System.Input;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 
@@ -27,7 +28,7 @@ internal sealed class DTRProvider : IDisposable
         _aiEntry.Tooltip = "Left Click => Toggle Enabled, Right Click => Toggle DrawUI";
         _aiEntry.OnClick = () =>
         {
-            if (UIInputData.Instance()->MouseButtonHeldThrottledFlags.HasFlag(MouseButtonFlags.RBUTTON))
+            if (UIInputData.Instance()->UIFilteredCursorInputs.MouseButtonHeldThrottledFlags.HasFlag(MouseButtonFlags.RBUTTON))
                 _aiConfig.DrawUI ^= true;
             else
                 _aiConfig.Enabled ^= true;

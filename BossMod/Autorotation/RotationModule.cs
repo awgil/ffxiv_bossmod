@@ -98,8 +98,8 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
     public bool TraitUnlocked(uint id)
     {
-        var trait = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Trait>(id);
-        var unlock = trait?.Quest.Row ?? 0;
+        var trait = Service.LuminaRow<Lumina.Excel.Sheets.Trait>(id);
+        var unlock = trait?.Quest.RowId ?? 0;
         var level = trait?.Level ?? 0;
         return Player.Level >= level && (ActionDefinitions.Instance.UnlockCheck?.Invoke(unlock) ?? true);
     }

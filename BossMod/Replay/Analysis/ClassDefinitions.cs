@@ -10,7 +10,7 @@ class ClassDefinitions
 
     private readonly record struct Entry(Replay Replay, Replay.Action Action);
 
-    private record class ActionData(ActionID ID, ActionDefinition? Definition, Lumina.Excel.GeneratedSheets.Action? Row)
+    private record class ActionData(ActionID ID, ActionDefinition? Definition, Lumina.Excel.Sheets.Action? Row)
     {
         public bool CanBePutOnActionBar => Row?.IsPlayerAction ?? false;
         public bool IsRoleAction => Row?.IsRoleAction ?? false;
@@ -54,7 +54,7 @@ class ClassDefinitions
     {
         public readonly List<ActionData> Actions = [];
         public readonly SortedDictionary<int, List<ActionData>> ByCDGroup = [];
-        public readonly List<Lumina.Excel.GeneratedSheets.Trait> Traits = [];
+        public readonly List<Lumina.Excel.Sheets.Trait> Traits = [];
         public readonly Dictionary<uint, StatusData> Statuses = [];
     }
 
@@ -67,13 +67,13 @@ class ClassDefinitions
 
     public ClassDefinitions(List<Replay> replays)
     {
-        var actionSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.Action>()!;
-        var classSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.ClassJob>()!;
-        var cjcSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.ClassJobCategory>()!;
-        var traitSheet = Service.LuminaSheet<Lumina.Excel.GeneratedSheets.Trait>()!;
+        var actionSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
+        var classSheet = Service.LuminaSheet<Lumina.Excel.Sheets.ClassJob>()!;
+        var cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory")!;
+        var traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>()!;
 
         // we don't care about base classes and DoH/DoL here...
-        for (var i = (uint)Class.PLD; i < classSheet.RowCount; ++i)
+        for (var i = (uint)Class.PLD; i < classSheet.Count; ++i)
         {
             var row = classSheet.GetRow(i)!;
             var curClass = (Class)i;
@@ -81,17 +81,17 @@ class ClassDefinitions
                 continue;
 
             _classPerCategory[(int)curClass.GetClassCategory()].Set((int)i);
-            var baseClass = curClass == Class.SCH ? Class.SCH : (Class)row.ClassJobParent.Row; // both SCH and SMN are based on ACN, but SMN is closer
+            var baseClass = curClass == Class.SCH ? Class.SCH : (Class)row.ClassJobParent.RowId; // both SCH and SMN are based on ACN, but SMN is closer
             var classData = _classData[curClass] = new(curClass, baseClass);
 
-            bool actionIsInteresting(Lumina.Excel.GeneratedSheets.Action a) => !a.IsPvP && ((int)a.ClassJob.Row != -1 || a.IsRoleAction) && a.ClassJobLevel > 0 && (cjcSheet.GetRowParser(a.ClassJobCategory.Row)?.ReadColumn<bool>((int)i + 1) ?? false);
+            bool actionIsInteresting(Lumina.Excel.Sheets.Action a) => !a.IsPvP && ((int)a.ClassJob.RowId != -1 || a.IsRoleAction) && a.ClassJobLevel > 0 && cjcSheet.GetRow(a.ClassJobCategory.RowId).ReadBoolColumn((int)i + 1);
             foreach (var a in actionSheet.Where(actionIsInteresting))
                 RegisterAction(new ActionID(ActionType.Spell, a.RowId), a, classData, out _);
-            RegisterLimitBreak(row.LimitBreak1.Row, classData, 1);
-            RegisterLimitBreak(row.LimitBreak2.Row, classData, 2);
-            RegisterLimitBreak(row.LimitBreak3.Row, classData, 3);
+            RegisterLimitBreak(row.LimitBreak1.RowId, classData, 1);
+            RegisterLimitBreak(row.LimitBreak2.RowId, classData, 2);
+            RegisterLimitBreak(row.LimitBreak3.RowId, classData, 3);
 
-            bool traitIsInteresting(Lumina.Excel.GeneratedSheets.Trait t) => cjcSheet?.GetRowParser(t.ClassJobCategory.Row)?.ReadColumn<bool>((int)i + 1) ?? false;
+            bool traitIsInteresting(Lumina.Excel.Sheets.Trait t) => cjcSheet.GetRow(t.ClassJobCategory.RowId).ReadBoolColumn((int)i + 1);
             classData.Traits.AddRange(traitSheet.Where(traitIsInteresting));
             classData.Traits.SortBy(e => e.Level);
         }
@@ -161,7 +161,7 @@ class ClassDefinitions
                 ActionType.Mount => "Mount",
                 ActionType.Ornament => "Ornament",
                 ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1 => "Bozja holster",
-                _ => data.Row?.ClassJobCategory.Value?.Name ?? "???"
+                _ => data.Row?.ClassJobCategory.ValueNullable?.Name.ToString() ?? "???"
             };
             _byCategory.GetOrAdd(category).Add(data);
             AddActionsToCDGroups(data, data.MainCDGroup);
@@ -210,7 +210,7 @@ class ClassDefinitions
                 }
                 foreach (var nt in tree.Node("Traits"))
                 {
-                    tree.LeafNodes(nc.Value.Traits, t => $"{t.RowId} '{t.Name}': {UnlockString(t.Level, t.Quest.Row)}");
+                    tree.LeafNodes(nc.Value.Traits, t => $"{t.RowId} '{t.Name}': {UnlockString(t.Level, t.Quest.RowId)}");
                 }
             }
         }
@@ -240,7 +240,7 @@ class ClassDefinitions
         }
     }
 
-    private bool RegisterAction(ActionID action, Lumina.Excel.GeneratedSheets.Action? row, ClassData owner, out ActionData actionData)
+    private bool RegisterAction(ActionID action, Lumina.Excel.Sheets.Action? row, ClassData owner, out ActionData actionData)
     {
         var newlyCreated = false;
         if (!_actionData.TryGetValue(action, out var data))
@@ -261,7 +261,7 @@ class ClassDefinitions
     {
         if (id != 0)
         {
-            RegisterAction(new(ActionType.Spell, id), Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(id), owner, out var data);
+            RegisterAction(new(ActionType.Spell, id), Service.LuminaRow<Lumina.Excel.Sheets.Action>(id), owner, out var data);
             data.LimitBreakLevel = level;
         }
     }
@@ -286,8 +286,8 @@ class ClassDefinitions
         foreach (var na in tree.Nodes(actions, kv => new($"L{kv.Row?.ClassJobLevel} {kv.ID}{suffix(kv.OwningClasses)}", false, kv.Error ? 0xff0000ff : kv.Warning ? 0xff00ffff : 0xffffffff)))
         {
             tree.LeafNode($"Definition: {na.Definition}");
-            tree.LeafNode($"Row: {na.Row}, raw range: {na.Row?.Range}, class: {na.Row?.ClassJob.Value?.Abbreviation}, category: {na.Row?.ClassJobCategory.Value?.Name}");
-            tree.LeafNode($"Unlock: {UnlockString(na.Row?.ClassJobLevel ?? 0, na.Row?.UnlockLink ?? 0)}");
+            tree.LeafNode($"Row: {na.Row}, raw range: {na.Row?.Range}, class: {na.Row?.ClassJob.ValueNullable?.Abbreviation}, category: {na.Row?.ClassJobCategory.ValueNullable?.Name}");
+            tree.LeafNode($"Unlock: {UnlockString(na.Row?.ClassJobLevel ?? 0, na.Row?.UnlockLink.RowId ?? 0)}");
             tree.LeafNode($"Warnings: {(na.PotentiallyRemoved ? "PR " : "")}{(na.ReplayOnly ? "RO " : "")}", na.PotentiallyRemoved || na.ReplayOnly ? 0xff0000ff : 0xffffffff);
             tree.LeafNode($"Targets: [{ActionDefinitions.Instance.ActionAllowedTargets(na.ID)}]");
             tree.LeafNode($"Can be put on action bar: {na.CanBePutOnActionBar}");
@@ -488,7 +488,7 @@ class ClassDefinitions
         }
 
         public string Comment(ActionData action, bool allowClasses)
-            => $"{LevelString(action, allowClasses)}, {CastTimeString(action)}{CooldownString(action)}{ChargesString(action)}, range {ActionDefinitions.Instance.ActionRange(action.ID, action.IsPhysRanged)}, {DescribeShape(action.Row)}, targets={ActionDefinitions.Instance.ActionAllowedTargets(action.ID).ToString().Replace(", ", "/", StringComparison.InvariantCulture)}{AnimLockString(action)}";
+            => $"{LevelString(action, allowClasses)}, {CastTimeString(action)}{CooldownString(action)}{ChargesString(action)}, range {ActionDefinitions.Instance.ActionRange(action.ID, action.IsPhysRanged)}, {(action.Row != null ? DescribeShape(action.Row.Value) : "????")}, targets={ActionDefinitions.Instance.ActionAllowedTargets(action.ID).ToString().Replace(", ", "/", StringComparison.InvariantCulture)}{AnimLockString(action)}";
 
         private string LevelString(ActionData action, bool allowClasses)
         {
@@ -522,7 +522,7 @@ class ClassDefinitions
                 : $" (??? charges)";
         }
 
-        private string DescribeShape(Lumina.Excel.GeneratedSheets.Action? data) => data != null ? data.CastType switch
+        private string DescribeShape(Lumina.Excel.Sheets.Action data) => data.CastType switch
         {
             1 => "single-target",
             2 => $"AOE {data.EffectRange} circle",
@@ -535,26 +535,26 @@ class ClassDefinitions
             12 => $"AOE {data.EffectRange} width {data.XAxisModifier} rect",
             13 => $"AOE {data.EffectRange} {DetermineConeAngle(data)?.ToString() ?? "?"}-degree cone",
             _ => "???"
-        } : "???";
+        };
 
-        private Angle? DetermineConeAngle(Lumina.Excel.GeneratedSheets.Action data)
+        private Angle? DetermineConeAngle(Lumina.Excel.Sheets.Action data)
         {
-            var omen = data.Omen.Value;
+            var omen = data.Omen.ValueNullable;
             if (omen == null)
                 return null;
 
-            var path = omen.Path.ToString();
+            var path = omen.Value.Path.ToString();
             var pos = path.IndexOf("fan", StringComparison.Ordinal);
             return pos >= 0 && pos + 6 <= path.Length && int.TryParse(path.AsSpan(pos + 3, 3), out var angle) ? angle.Degrees() : null;
         }
 
-        private float? DetermineDonutInner(Lumina.Excel.GeneratedSheets.Action data)
+        private float? DetermineDonutInner(Lumina.Excel.Sheets.Action data)
         {
-            var omen = data.Omen.Value;
+            var omen = data.Omen.ValueNullable;
             if (omen == null)
                 return null;
 
-            var path = omen.Path.ToString();
+            var path = omen.Value.Path.ToString();
             var pos = path.IndexOf("sircle_", StringComparison.Ordinal);
             if (pos >= 0 && pos + 11 <= path.Length && int.TryParse(path.AsSpan(pos + 9, 2), out var inner))
                 return inner;
@@ -641,13 +641,13 @@ class ClassDefinitions
     {
         var res = $"L{level}";
         if (link != 0)
-            res += $" (unlocked by quest {link} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Quest>(link)?.Name}')";
+            res += $" (unlocked by quest {link} '{Service.LuminaRow<Lumina.Excel.Sheets.Quest>(link)?.Name}')";
         return res;
     }
 
     private static string ActionIDName(string ns, ActionID aid) => Type.GetType($"BossMod.{ns}.AID")?.GetEnumName(aid.ID) ?? Utils.StringToIdentifier(aid.Name());
-    private static string TraitIDName(string ns, Lumina.Excel.GeneratedSheets.Trait trait) => Type.GetType($"BossMod.{ns}.TraitID")?.GetEnumName(trait.RowId) ?? Utils.StringToIdentifier(trait.Name);
-    private static string StatusIDName(string ns, uint sid) => Type.GetType($"BossMod.{ns}.SID")?.GetEnumName(sid) ?? Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.GeneratedSheets.Status>(sid)?.Name ?? $"Status{sid}");
+    private static string TraitIDName(string ns, Lumina.Excel.Sheets.Trait trait) => Type.GetType($"BossMod.{ns}.TraitID")?.GetEnumName(trait.RowId) ?? Utils.StringToIdentifier(trait.Name.ToString());
+    private static string StatusIDName(string ns, uint sid) => Type.GetType($"BossMod.{ns}.SID")?.GetEnumName(sid) ?? Utils.StringToIdentifier(Service.LuminaRow<Lumina.Excel.Sheets.Status>(sid)?.Name.ToString() ?? $"Status{sid}");
 
     private static string AnimLockString(ActionData action)
     {

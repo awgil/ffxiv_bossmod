@@ -4,6 +4,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.Interop;
 using ImGuiNET;
 using System.Text;
 
@@ -19,6 +20,7 @@ public class DebugObjects
     {
         ImGui.Checkbox("Show players, minions and mounts", ref _showCrap);
 
+        Span<nint> handlers = stackalloc nint[32];
         IGameObject? selected = null;
         for (int i = 0; i < Service.ObjectTable.Length; ++i)
         {
@@ -46,10 +48,19 @@ public class DebugObjects
                 _tree.LeafNode($"Targetable: {obj.IsTargetable}");
                 _tree.LeafNode($"Is character: {internalObj->IsCharacter()}");
                 _tree.LeafNode($"Event state: {Utils.GameObjectInternal(obj)->EventState}");
+                foreach (var n1 in _tree.Node("Event IDs"))
+                {
+                    _tree.LeafNode($"Primary: {internalObj->EventId.Id:X}");
+                    if (internalObj->EventHandler != null)
+                        _tree.LeafNode($"EH: {internalObj->EventHandler->Info.EventId.Id:X}");
+                    var numHandlers = internalObj->GetEventHandlersImpl((FFXIVClientStructs.FFXIV.Client.Game.Event.EventHandler**)handlers.GetPointer(0));
+                    for (int iH = 0; iH < numHandlers; iH++)
+                        _tree.LeafNode($"[{iH}]: {((FFXIVClientStructs.FFXIV.Client.Game.Event.EventHandler*)handlers[iH])->Info.EventId.Id:X}");
+                }
                 if (character != null)
                 {
                     _tree.LeafNode($"Category: {ActionManager.ClassifyTarget(internalChara)}");
-                    _tree.LeafNode($"Class: {(Class)character.ClassJob.Id} ({character.ClassJob.Id})");
+                    _tree.LeafNode($"Class: {(Class)character.ClassJob.RowId} ({character.ClassJob.RowId})");
                     _tree.LeafNode($"HP: {character.CurrentHp}/{character.MaxHp} ({internalChara->ShieldValue})");
                     _tree.LeafNode($"Status flags: {character.StatusFlags}");
                 }
@@ -132,7 +143,7 @@ public class DebugObjects
                 foreach (var status in chara!.StatusList)
                 {
                     var src = status.SourceObject != null ? Utils.ObjectString(status.SourceObject) : "none";
-                    res.Append($"\n  status {status.StatusId} '{status.GameData.Name}': param={status.Param}, stacks={status.StackCount}, time={status.RemainingTime:f2}, source={src}");
+                    res.Append($"\n  status {status.StatusId} '{status.GameData.Value.Name}': param={status.Param}, stacks={status.StackCount}, time={status.RemainingTime:f2}, source={src}");
                 }
             }
         }

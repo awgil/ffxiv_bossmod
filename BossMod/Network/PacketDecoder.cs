@@ -1,5 +1,6 @@
 ﻿using BossMod.Network.ServerIPC;
 using Dalamud.Memory;
+using Dalamud.Utility;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -54,6 +55,12 @@ public abstract unsafe class PacketDecoder
         PacketID.RSVData when (RSVData*)payload is var p => new($"{MemoryHelper.ReadStringNullTerminated((nint)p->Key)} = {MemoryHelper.ReadString((nint)p->Value, p->ValueLength)} [{p->ValueLength}]"),
         PacketID.Countdown when (Countdown*)payload is var p => new($"{p->Time}s from {DecodeActor(p->SenderID)}{(p->FailedInCombat != 0 ? " fail-in-combat" : "")} '{MemoryHelper.ReadStringNullTerminated((nint)p->Text)}' u={p->u4:X4} {p->u9:X2} {p->u10:X2}"),
         PacketID.CountdownCancel when (CountdownCancel*)payload is var p => new($"from {DecodeActor(p->SenderID)} '{MemoryHelper.ReadStringNullTerminated((nint)p->Text)}' u={p->u4:X4} {p->u6:X4}"),
+        PacketID.MarketBoardItemListingCount when (MarketBoardItemListingCount*)payload is var p => new($"{p->NumItems} items, {p->Error:X} error"),
+        PacketID.MarketBoardItemListing when (MarketBoardItemListing*)payload is var p => DecodeMarketBoardItemListing(p),
+        PacketID.MarketBoardPurchase when (MarketBoardPurchase*)payload is var p => new($"{p->Quantity}x {p->ItemId} (stackable={p->Stackable}), error={Utils.LogMessageString(p->ErrorLogId)}"),
+        PacketID.MarketBoardSale when (MarketBoardSale*)payload is var p => new($"{p->Quantity}x {p->ItemId} at {p->UnitPrice} minus {p->TotalTax} tax in {p->TownId} town; type={p->SaleType}"),
+        PacketID.MarketBoardItemListingHistory when (MarketBoardItemListingHistory*)payload is var p => DecodeMarketBoardItemHistory(p),
+        PacketID.RetainerState when (RetainerState*)payload is var p => new($"{p->RetainerId:X} '{MemoryHelper.ReadStringNullTerminated((nint)p->Name)}', change={p->StateChange}, flags={p->Flags:X16} (town={p->Town}, selling={p->IsSelling}), custom message={Utils.LogMessageString(p->CustomMessageId)}"),
         PacketID.StatusEffectList when (StatusEffectList*)payload is var p => DecodeStatusEffectList(p),
         PacketID.StatusEffectListEureka when (StatusEffectListEureka*)payload is var p => DecodeStatusEffectList(&p->Data, $", rank={p->Rank}/{p->Element}/{p->u2}, pad={p->pad3:X2}"),
         PacketID.StatusEffectListBozja when (StatusEffectListBozja*)payload is var p => DecodeStatusEffectList(&p->Data, $", rank={p->Rank}, pad={p->pad1:X2}{p->pad2:X4}"),
@@ -89,6 +96,10 @@ public abstract unsafe class PacketDecoder
         PacketID.UpdateClassInfo when (UpdateClassInfo*)payload is var p => DecodeUpdateClassInfo(p),
         PacketID.UpdateClassInfoEureka when (UpdateClassInfoEureka*)payload is var p => DecodeUpdateClassInfo(&p->Data, $", rank={p->Rank}/{p->Element}/{p->u2}, pad={p->pad3:X2}"),
         PacketID.UpdateClassInfoBozja when (UpdateClassInfoBozja*)payload is var p => DecodeUpdateClassInfo(&p->Data, $", rank={p->Rank}, pad={p->pad1:X2}{p->pad2:X4}"),
+        PacketID.RetainerSummary when (RetainerSummary*)payload is var p => new($"#{p->SequenceId}, {p->NumInformationPackets} packets, {p->MaxRetainerEntitlement} max retainers, response={p->IsResponseToServerCallbackRequest != 0} (listener index={p->ServerCallbackListenerIndex})"),
+        PacketID.RetainerInformation when (RetainerInformation*)payload is var p => new($"#{p->SequenceId}.{p->Index}: {p->RetainerId:X} '{MemoryHelper.ReadSeStringNullTerminated((nint)p->Name)}', {p->NumItemsInInventory}/{p->NumItemsOnMarket} items, avail={p->Available}, u={p->Unk2A} {p->Unk2C}"),
+        PacketID.ItemMarketBoardSummary when (ItemMarketBoardSummary*)payload is var p => new($"#{p->SequenceId}, {p->NumItemPackets} items"),
+        PacketID.ItemMarketBoardInfo when (ItemMarketBoardInfo*)payload is var p => new($"#{p->SequenceId}, at {p->InventoryType}.{p->Slot}, unk={p->Unk10} {p->Unk18}"),
         PacketID.EventPlay when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 1)),
         PacketID.EventPlay4 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 4)),
         PacketID.EventPlay8 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 8)),
@@ -97,13 +108,38 @@ public abstract unsafe class PacketDecoder
         PacketID.EventPlay64 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 64)),
         PacketID.EventPlay128 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 128)),
         PacketID.EventPlay255 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 255)),
+        PacketID.ServerRequestCallbackResponse1 when (DecodeServerRequestCallbackResponse*)payload is var p => DecodeServerRequestCallbackResponse(p),
         PacketID.EnvControl when (EnvControl*)payload is var p => new($"{p->DirectorID:X8}.{p->Index} = {p->State1:X4} {p->State2:X4}, pad={p->pad9:X2} {p->padA:X4} {p->padC:X8}"),
-        PacketID.NpcYell when (NpcYell*)payload is var p => new($"{DecodeActor(p->SourceID)}: {p->Message} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.NpcYell>(p->Message)?.Text}' (u8={p->u8}, uE={p->uE}, u10={p->u10}, u18={p->u18})"),
+        PacketID.NpcYell when (NpcYell*)payload is var p => new($"{DecodeActor(p->SourceID)}: {p->Message} '{Service.LuminaRow<Lumina.Excel.Sheets.NpcYell>(p->Message)?.Text}' (u8={p->u8}, uE={p->uE}, u10={p->u10}, u18={p->u18})"),
         PacketID.WaymarkPreset when (WaymarkPreset*)payload is var p => DecodeWaymarkPreset(p),
         PacketID.Waymark when (ServerIPC.Waymark*)payload is var p => DecodeWaymark(p),
         PacketID.ActorGauge when (ActorGauge*)payload is var p => new($"{p->ClassJobID} = {p->Payload:X16}"),
         _ => null
     };
+
+    private TextNode DecodeMarketBoardItemListing(MarketBoardItemListing* p)
+    {
+        var res = new TextNode($"request {p->RequestId}, page {p->FirstPageIndex}-{p->NextPageIndex}");
+        for (int i = 0; i < 10; ++i)
+        {
+            var item = (MarketBoardItemListingEntry*)p->EntriesRaw + i;
+            var s1 = MemoryHelper.ReadString((nint)item + 0x46, 32);
+            var s2 = MemoryHelper.ReadString((nint)item + 0x66, 32);
+            res.AddChild($"{item->ListingId:X}: {item->Quantity}x {item->ItemId} @ {item->UnitPrice}+{item->TotalTax}, cont={item->ContainerId}, nmat={item->MateriaCount}, s1={s1}, s2={s2}, unks={item->Unk40:X8} {item->Unk44:X4} {item->Unk88:X2} {item->Unk8C:X8}");
+        }
+        return res;
+    }
+
+    private TextNode DecodeMarketBoardItemHistory(MarketBoardItemListingHistory* p)
+    {
+        var res = new TextNode($"item {p->ItemId}");
+        for (int i = 0; i < 20; ++i)
+        {
+            var entry = (MarketBoardItemListingHistoryEntry*)p->RawEntries + i;
+            res.AddChild($"{entry->Quantity}x at {entry->UnitPrice} @ {DateTimeOffset.FromUnixTimeSeconds(entry->SaleUnixTimestamp)} from {MemoryHelper.ReadStringNullTerminated((nint)entry->RetainerName)}");
+        }
+        return res;
+    }
 
     private TextNode DecodeStatusEffectList(StatusEffectList* p, string extra = "")
     {
@@ -189,15 +225,16 @@ public abstract unsafe class PacketDecoder
             ActorControlCategory.SetTarget => $"{DecodeActor(targetID)}",
             ActorControlCategory.SetAnimationState => $"#{p1} = {p2}",
             ActorControlCategory.SetModelState => $"{p1}",
-            ActorControlCategory.SetName => $"'{Service.LuminaRow<Lumina.Excel.GeneratedSheets.BNpcName>(p1)?.Singular}' ({p1})",
+            ActorControlCategory.SetName => $"'{Service.LuminaRow<Lumina.Excel.Sheets.BNpcName>(p1)?.Singular}' ({p1})",
             ActorControlCategory.SetCompanionOwnerId => $"{DecodeActor(p1)}",
             ActorControlCategory.ForcedMovement => $"dest={Utils.Vec3String(IntToFloatCoords((ushort)p1, (ushort)p2, (ushort)p3))}, rot={IntToFloatAngle((ushort)p4)}deg over {p5 * 0.0001:f4}s, type={p6}",
             ActorControlCategory.PlayActionTimeline => $"{p1:X4}",
             ActorControlCategory.EObjSetState => $"{p1:X4}, housing={(p3 != 0 ? p4 : null)}",
             ActorControlCategory.EObjAnimation => $"{p1:X4} {p2:X4}",
             ActorControlCategory.LimitBreakGauge => $"{p1} bars, {p2}/{p3}, uE={p4}, uF={p5}",
-            ActorControlCategory.AchievementProgress => $"{p1} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Achievement>(p1)?.Name}': {p2}/{p3}",
+            ActorControlCategory.AchievementProgress => $"{p1} '{Service.LuminaRow<Lumina.Excel.Sheets.Achievement>(p1)?.Name}': {p2}/{p3}",
             ActorControlCategory.ActionRejected => $"{Utils.LogMessageString(p1)}; action={new ActionID((ActionType)p2, p3)}, recast={p4 * 0.01f:f2}/{p5 * 0.01f:f2}, src-seq={p6}",
+            ActorControlCategory.ServerRequestCallbackResponse => $"listener index={p1}, listener request type={p2}, data={p3} {p4} {p5} {p6}",
             ActorControlCategory.SetDutyActionSet => $"row={p1}",
             ActorControlCategory.SetDutyActionDetails => $"slot0: {new ActionID(ActionType.Spell, p1)} ({p5}/{p2} charges), slot1: {new ActionID(ActionType.Spell, p3)} ({p6}/{p4} charges)",
             ActorControlCategory.SetDutyActionPresent => $"value={p1}",
@@ -290,13 +327,13 @@ public abstract unsafe class PacketDecoder
                             craftingNode.AddChild($"Unks: {cp->OpReturnedReagents.u0} {cp->OpReturnedReagents.u4} {cp->OpReturnedReagents.u8}");
                         for (int i = 0; i < 8; ++i)
                             if (cp->OpReturnedReagents.ItemIds[i] != 0)
-                                craftingNode.AddChild($"{i}: {cp->OpReturnedReagents.ItemIds[i]} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Item>(cp->OpReturnedReagents.ItemIds[i])?.Name}' {cp->OpReturnedReagents.NumNQ[i]}nq/{cp->OpReturnedReagents.NumHQ[i]}hq");
+                                craftingNode.AddChild($"{i}: {cp->OpReturnedReagents.ItemIds[i]} '{Service.LuminaRow<Lumina.Excel.Sheets.Item>(cp->OpReturnedReagents.ItemIds[i])?.Name}' {cp->OpReturnedReagents.NumNQ[i]}nq/{cp->OpReturnedReagents.NumHQ[i]}hq");
                         break;
                     case EventPlayN.PayloadCrafting.OperationId.AdvanceCraftAction:
                     case EventPlayN.PayloadCrafting.OperationId.AdvanceNormalAction:
                         var actionName = cp->OpId == EventPlayN.PayloadCrafting.OperationId.AdvanceCraftAction
-                            ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.CraftAction>((uint)cp->OpAdvanceStep.LastActionId)?.Name
-                            : Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>((uint)cp->OpAdvanceStep.LastActionId)?.Name;
+                            ? Service.LuminaRow<Lumina.Excel.Sheets.CraftAction>((uint)cp->OpAdvanceStep.LastActionId)?.Name
+                            : Service.LuminaRow<Lumina.Excel.Sheets.Action>((uint)cp->OpAdvanceStep.LastActionId)?.Name;
                         craftingNode.AddChild($"Step #{cp->OpAdvanceStep.StepIndex}, condition={cp->OpAdvanceStep.Condition} ({cp->OpAdvanceStep.ConditionParam}), delta-cp={cp->OpAdvanceStep.DeltaCP}");
                         craftingNode.AddChild($"Action: {cp->OpAdvanceStep.LastActionId} '{actionName}' ({(cp->OpAdvanceStep.Flags.HasFlag(EventPlayN.PayloadCrafting.StepFlags.LastActionSucceeded) ? "succeeded" : "failed")})");
                         craftingNode.AddChild($"Progress: {cp->OpAdvanceStep.CurProgress} (delta={cp->OpAdvanceStep.DeltaProgress})");
@@ -315,6 +352,14 @@ public abstract unsafe class PacketDecoder
                 break;
         }
         return res;
+    }
+
+    private TextNode DecodeServerRequestCallbackResponse(DecodeServerRequestCallbackResponse* p)
+    {
+        var sb = new StringBuilder($"listener index={p->ListenerIndex}, listener request type={p->ListenerRequestType}, data=[{p->DataCount}]");
+        for (int i = 0; i < p->DataCount; ++i)
+            sb.Append($" {p->Data[i]}");
+        return new(sb.ToString());
     }
 
     private TextNode DecodeWaymarkPreset(WaymarkPreset* p)

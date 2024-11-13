@@ -225,12 +225,12 @@ public static class ActionEffectParser
                 res.Append($"aid={eff.Value}");
                 break;
             case ActionEffectType.Knockback:
-                var kbData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Knockback>(eff.Value);
-                res.Append($"row={eff.Value}, dist={kbData?.Distance}+{eff.Param0}, dir={(KnockbackDirection?)kbData?.Direction}{(kbData?.Direction == (byte)KnockbackDirection.Arg ? $" ({kbData.DirectionArg}deg)" : "")}, speed={kbData?.Speed}");
+                var kbData = Service.LuminaRow<Lumina.Excel.Sheets.Knockback>(eff.Value);
+                res.Append($"row={eff.Value}, dist={kbData?.Distance}+{eff.Param0}, dir={(KnockbackDirection?)kbData?.Direction}{(kbData?.Direction == (byte)KnockbackDirection.Arg ? $" ({kbData?.DirectionArg}deg)" : "")}, speed={kbData?.Speed}");
                 break;
             case ActionEffectType.Attract1:
             case ActionEffectType.Attract2:
-                var attrData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Attract>(eff.Value);
+                var attrData = Service.LuminaRow<Lumina.Excel.Sheets.Attract>(eff.Value);
                 res.Append($"row={eff.Value}, dist<={attrData?.MaxDistance} up to {attrData?.MinRemainingDistance} between {(attrData?.UseDistanceBetweenHitboxes == true ? "hitboxes" : "centers")}, dir={attrData?.Direction}, speed={attrData?.Speed}");
                 break;
             case ActionEffectType.AttractCustom1:
@@ -239,7 +239,7 @@ public static class ActionEffectParser
                 res.Append($"dist={eff.Value} (min={eff.Param1}), speed={eff.Param0}");
                 break;
             case ActionEffectType.Mount:
-                res.Append($"{eff.Value} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Mount>(eff.Value)?.Singular}'");
+                res.Append($"{eff.Value} '{Service.LuminaRow<Lumina.Excel.Sheets.Mount>(eff.Value)?.Singular}'");
                 break;
             case ActionEffectType.FullResistStatus:
                 res.Append(Utils.StatusString(eff.Value));

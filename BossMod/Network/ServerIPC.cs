@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace BossMod.Network.ServerIPC;
 
@@ -28,205 +29,216 @@ public enum PacketID
     Playtime = 111,
     CFRegistered = 112,
     Chat = 115,
-    RSVData = 125,
-    RSFData = 126,
-    SocialMessage = 127,
-    SocialMessage2 = 128,
-    SocialList = 130,
-    SocialRequestResponse = 131,
-    ExamineSearchInfo = 132,
-    UpdateSearchInfo = 133,
-    InitSearchInfo = 134,
-    ExamineSearchComment = 135,
-    ServerNoticeShort = 138,
-    ServerNotice = 139,
-    SetOnlineStatus = 140,
-    LogMessage = 141,
-    Countdown = 145,
-    CountdownCancel = 146,
-    PartyMessage = 151,
-    PlayerAddedToBlacklist = 153,
-    PlayerRemovedFromBlacklist = 154,
-    BlackList = 155,
-    LinkshellList = 161,
-    MailDeleteRequest = 162,
-    MarketBoardItemListingCount = 166,
-    MarketBoardItemListing = 168,
-    MarketBoardPurchase = 170,
-    MarketBoardItemListingHistory = 172,
-    RetainerSaleHistory = 173,
-    MarketBoardSearchResult = 175,
-    FreeCompanyInfo = 177,
-    ExamineFreeCompanyInfo = 179,
-    FreeCompanyDialog = 180,
-    StatusEffectList = 205,
-    StatusEffectListEureka = 206,
-    StatusEffectListBozja = 207,
-    StatusEffectListDouble = 208,
-    EffectResult1 = 210,
-    EffectResult4 = 211,
-    EffectResult8 = 212,
-    EffectResult16 = 213,
-    EffectResultBasic1 = 215,
-    EffectResultBasic4 = 216,
-    EffectResultBasic8 = 217,
-    EffectResultBasic16 = 218,
-    EffectResultBasic32 = 219,
-    EffectResultBasic64 = 220,
-    ActorControl = 221,
-    ActorControlSelf = 222,
-    ActorControlTarget = 223,
-    UpdateHpMpTp = 224,
-    ActionEffect1 = 225,
-    ActionEffect8 = 228,
-    ActionEffect16 = 229,
-    ActionEffect24 = 230,
-    ActionEffect32 = 231,
-    StatusEffectListPlayer = 234,
-    StatusEffectListPlayerDouble = 235,
-    UpdateRecastTimes = 237,
-    UpdateDutyRecastTimes = 238,
-    UpdateAllianceNormal = 239,
-    UpdateAllianceSmall = 240,
-    UpdatePartyMemberPositions = 241,
-    UpdateAllianceNormalMemberPositions = 242,
-    UpdateAllianceSmallMemberPositions = 243,
-    GCAffiliation = 246,
-    SpawnPlayer = 264,
-    SpawnNPC = 265,
-    SpawnBoss = 266,
-    DespawnCharacter = 267,
-    ActorMove = 268,
-    Transfer = 270,
-    ActorSetPos = 271,
-    ActorCast = 273,
-    PlayerUpdateLook = 274,
-    UpdateParty = 275,
-    InitZone = 276,
-    ApplyIDScramble = 277,
-    UpdateHate = 278,
-    UpdateHater = 279,
-    SpawnObject = 280,
-    DespawnObject = 281,
-    UpdateClassInfo = 282,
-    UpdateClassInfoEureka = 283,
-    UpdateClassInfoBozja = 284,
-    PlayerSetup = 285,
-    PlayerStats = 286,
-    FirstAttack = 287,
-    PlayerStateFlags = 288,
-    PlayerClassInfo = 289,
-    PlayerBlueMageActions = 290,
-    ModelEquip = 291,
-    Examine = 292,
-    CharaNameReq = 295,
-    RetainerInformation = 299,
-    ItemMarketBoardInfo = 301,
-    ItemInfo = 303,
-    ContainerInfo = 304,
-    InventoryTransactionFinish = 305,
-    InventoryTransaction = 306,
-    CurrencyCrystalInfo = 307,
-    InventoryActionAck = 309,
-    UpdateInventorySlot = 310,
-    OpenTreasure = 312,
-    LootMessage = 315,
-    CreateTreasure = 319,
-    TreasureFadeOut = 320,
-    HuntingLogEntry = 321,
-    EventPlay = 323,
-    EventPlay4 = 324,
-    EventPlay8 = 325,
-    EventPlay16 = 326,
-    EventPlay32 = 327,
-    EventPlay64 = 328,
-    EventPlay128 = 329,
-    EventPlay255 = 330,
-    EventStart = 332,
-    EventFinish = 333,
-    EventContinue = 344,
-    ResultDialog = 346,
-    DesynthResult = 347,
-    QuestActiveList = 352,
-    QuestUpdate = 353,
-    QuestCompleteList = 354,
-    QuestFinish = 355,
-    MSQTrackerComplete = 358,
-    QuestTracker = 360,
-    Mount = 361,
-    DirectorVars = 363,
-    ContentDirectorSync = 364,
-    EnvControl = 396,
-    SystemLogMessage1 = 402,
-    SystemLogMessage2 = 403,
-    SystemLogMessage4 = 404,
-    SystemLogMessage8 = 405,
-    SystemLogMessage16 = 406,
-    BattleTalk2 = 408,
-    BattleTalk4 = 409,
-    BattleTalk8 = 410,
-    MapUpdate = 412,
-    MapUpdate4 = 413,
-    MapUpdate8 = 414,
-    MapUpdate16 = 415,
-    MapUpdate32 = 416,
-    MapUpdate64 = 417,
-    MapUpdate128 = 418,
-    BalloonTalk2 = 420,
-    BalloonTalk4 = 421,
-    BalloonTalk8 = 422,
-    WeatherChange = 424,
-    PlayerTitleList = 425,
-    Discovery = 426,
-    EorzeaTimeOffset = 428,
-    EquipDisplayFlags = 441,
-    NpcYell = 442,
-    FateInfo = 447,
-    CompletedAchievements = 452,
-    LandSetInitialize = 461,
-    LandUpdate = 462,
-    YardObjectSpawn = 463,
-    HousingIndoorInitialize = 464,
-    LandAvailability = 465,
-    LandPriceUpdate = 467,
-    LandInfoSign = 468,
-    LandRename = 469,
-    HousingEstateGreeting = 470,
-    HousingUpdateLandFlagsSlot = 471,
-    HousingLandFlags = 472,
-    HousingShowEstateGuestAccess = 473,
-    HousingObjectInitialize = 475,
-    HousingInternalObjectSpawn = 476,
-    HousingWardInfo = 478,
-    HousingObjectMove = 479,
-    HousingObjectDye = 480,
-    SharedEstateSettingsResponse = 492,
-    DailyQuests = 504,
-    DailyQuestRepeatFlags = 506,
-    LandUpdateHouseName = 508,
-    AirshipTimers = 519,
-    PlaceMarker = 527,
-    WaymarkPreset = 528,
-    Waymark = 529,
-    UnMount = 532,
-    CeremonySetActorAppearance = 535,
-    AirshipStatusList = 541,
-    AirshipStatus = 542,
-    AirshipExplorationResult = 543,
-    SubmarineStatusList = 544,
-    SubmarineProgressionStatus = 545,
-    SubmarineExplorationResult = 546,
-    SubmarineTimers = 548,
-    PrepareZoning = 578,
-    ActorGauge = 579,
-    CharaVisualEffect = 580,
-    LandSetMap = 581,
-    Fall = 582,
-    PlayMotionSync = 631,
-    CEDirector = 640,
-    IslandWorkshopDemandResearch = 659,
-    IslandWorkshopSupplyDemand = 662,
-    IslandWorkshopFavors = 678,
+    RSVData = 127,
+    RSFData = 128,
+    SocialMessage = 129,
+    SocialMessage2 = 130,
+    SocialList = 132,
+    SocialRequestResponse = 133,
+    ExamineSearchInfo = 134,
+    UpdateSearchInfo = 135,
+    InitSearchInfo = 136,
+    ExamineSearchComment = 137,
+    ServerNoticeShort = 140,
+    ServerNotice = 141,
+    SetOnlineStatus = 142,
+    LogMessage = 143,
+    Countdown = 147,
+    CountdownCancel = 148,
+    PartyMessage = 153,
+    PlayerAddedToBlacklist = 155,
+    PlayerRemovedFromBlacklist = 156,
+    BlackList = 157,
+    LinkshellList = 163,
+    MailDeleteRequest = 164,
+    MarketBoardItemListingCount = 169,
+    MarketBoardItemListing = 170,
+    PlayerRetainerInfo = 171,
+    MarketBoardPurchase = 172,
+    MarketBoardSale = 173,
+    MarketBoardItemListingHistory = 174,
+    RetainerSaleHistory = 175,
+    RetainerState = 176,
+    MarketBoardSearchResult = 177,
+    FreeCompanyInfo = 179,
+    ExamineFreeCompanyInfo = 181,
+    FreeCompanyDialog = 182,
+    StatusEffectList = 207,
+    StatusEffectListEureka = 208,
+    StatusEffectListBozja = 209,
+    StatusEffectListForay3 = 210,
+    StatusEffectListDouble = 211,
+    EffectResult1 = 213,
+    EffectResult4 = 214,
+    EffectResult8 = 215,
+    EffectResult16 = 216,
+    EffectResultBasic1 = 218,
+    EffectResultBasic4 = 219,
+    EffectResultBasic8 = 220,
+    EffectResultBasic16 = 221,
+    EffectResultBasic32 = 222,
+    EffectResultBasic64 = 223,
+    ActorControl = 224,
+    ActorControlSelf = 225,
+    ActorControlTarget = 226,
+    UpdateHpMpTp = 227,
+    ActionEffect1 = 228,
+    ActionEffect8 = 231,
+    ActionEffect16 = 232,
+    ActionEffect24 = 233,
+    ActionEffect32 = 234,
+    StatusEffectListPlayer = 237,
+    StatusEffectListPlayerDouble = 238,
+    UpdateRecastTimes = 240,
+    UpdateDutyRecastTimes = 241,
+    UpdateDutyRecastTimes5 = 242,
+    UpdateAllianceNormal = 243,
+    UpdateAllianceSmall = 244,
+    UpdatePartyMemberPositions = 245,
+    UpdateAllianceNormalMemberPositions = 246,
+    UpdateAllianceSmallMemberPositions = 247,
+    GCAffiliation = 250,
+    SpawnPlayer = 268,
+    SpawnNPC = 269,
+    SpawnBoss = 270,
+    DespawnCharacter = 271,
+    ActorMove = 272,
+    Transfer = 274,
+    ActorSetPos = 275,
+    ActorCast = 277,
+    PlayerUpdateLook = 278,
+    UpdateParty = 279,
+    InitZone = 280,
+    ApplyIDScramble = 281,
+    UpdateHate = 282,
+    UpdateHater = 283,
+    SpawnObject = 284,
+    DespawnObject = 285,
+    UpdateClassInfo = 286,
+    UpdateClassInfoEureka = 287,
+    UpdateClassInfoBozja = 288,
+    UpdateClassInfoForay3 = 289,
+    PlayerSetup = 290,
+    PlayerStats = 291,
+    FirstAttack = 292,
+    PlayerStateFlags = 293,
+    PlayerClassInfo = 294,
+    PlayerBlueMageActions = 295,
+    ModelEquip = 296,
+    Examine = 297,
+    CharaNameReq = 300,
+    RetainerSummary = 304,
+    RetainerInformation = 305,
+    ItemMarketBoardSummary = 306,
+    ItemMarketBoardInfo = 307,
+    ItemInfo = 309,
+    ContainerInfo = 310,
+    InventoryTransactionFinish = 311,
+    InventoryTransaction = 312,
+    CurrencyCrystalInfo = 313,
+    InventoryActionAck = 315,
+    UpdateInventorySlot = 316,
+    OpenTreasure = 318,
+    LootMessage = 321,
+    CreateTreasure = 325,
+    TreasureFadeOut = 326,
+    HuntingLogEntry = 327,
+    EventPlay = 329,
+    EventPlay4 = 330,
+    EventPlay8 = 331,
+    EventPlay16 = 332,
+    EventPlay32 = 333,
+    EventPlay64 = 334,
+    EventPlay128 = 335,
+    EventPlay255 = 336,
+    EventStart = 338,
+    EventFinish = 339,
+    EventContinue = 350,
+    ResultDialog = 352,
+    DesynthResult = 353,
+    QuestActiveList = 358,
+    QuestUpdate = 359,
+    QuestCompleteList = 360,
+    QuestFinish = 361,
+    MSQTrackerComplete = 364,
+    QuestTracker = 366,
+    Mount = 367,
+    DirectorVars = 369,
+    ContentDirectorSync = 370,
+    ServerRequestCallbackResponse1 = 378,
+    ServerRequestCallbackResponse2 = 379,
+    ServerRequestCallbackResponse3 = 380,
+    EnvControl = 402,
+    SystemLogMessage1 = 408,
+    SystemLogMessage2 = 409,
+    SystemLogMessage4 = 410,
+    SystemLogMessage8 = 411,
+    SystemLogMessage16 = 412,
+    BattleTalk2 = 414,
+    BattleTalk4 = 415,
+    BattleTalk8 = 416,
+    MapUpdate = 418,
+    MapUpdate4 = 419,
+    MapUpdate8 = 420,
+    MapUpdate16 = 421,
+    MapUpdate32 = 422,
+    MapUpdate64 = 423,
+    MapUpdate128 = 424,
+    BalloonTalk2 = 426,
+    BalloonTalk4 = 427,
+    BalloonTalk8 = 428,
+    WeatherChange = 430,
+    PlayerTitleList = 431,
+    Discovery = 432,
+    EorzeaTimeOffset = 434,
+    EquipDisplayFlags = 447,
+    NpcYell = 448,
+    FateInfo = 453,
+    CompletedAchievements = 458,
+    LandSetInitialize = 467,
+    LandUpdate = 468,
+    YardObjectSpawn = 469,
+    HousingIndoorInitialize = 470,
+    LandAvailability = 471,
+    LandPriceUpdate = 473,
+    LandInfoSign = 474,
+    LandRename = 475,
+    HousingEstateGreeting = 476,
+    HousingUpdateLandFlagsSlot = 477,
+    HousingLandFlags = 478,
+    HousingShowEstateGuestAccess = 479,
+    HousingObjectInitialize = 481,
+    HousingInternalObjectSpawn = 482,
+    HousingWardInfo = 484,
+    HousingObjectMove = 485,
+    HousingObjectDye = 486,
+    SharedEstateSettingsResponse = 498,
+    DailyQuests = 510,
+    DailyQuestRepeatFlags = 512,
+    LandUpdateHouseName = 514,
+    AirshipTimers = 525,
+    PlaceMarker = 533,
+    WaymarkPreset = 534,
+    Waymark = 535,
+    UnMount = 538,
+    CeremonySetActorAppearance = 541,
+    AirshipStatusList = 547,
+    AirshipStatus = 548,
+    AirshipExplorationResult = 549,
+    SubmarineStatusList = 550,
+    SubmarineProgressionStatus = 551,
+    SubmarineExplorationResult = 552,
+    SubmarineTimers = 554,
+    PrepareZoning = 584,
+    ActorGauge = 585,
+    CharaVisualEffect = 586,
+    LandSetMap = 587,
+    Fall = 588,
+    PlayMotionSync = 637,
+    CEDirector = 646,
+    IslandWorkshopDemandResearch = 665,
+    IslandWorkshopSupplyDemand = 668,
+    IslandWorkshopFavors = 684,
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -266,6 +278,105 @@ public unsafe struct CountdownCancel
     public ushort u4;
     public ushort u6;
     public fixed byte Text[32];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct MarketBoardItemListingCount
+{
+    public uint Error;
+    public byte NumItems;
+    public fixed byte Padding[3];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct MarketBoardItemListingEntry
+{
+    public ulong ListingId;
+    public ulong SellingRetainerContentId;
+    public ulong SellingPlayerContentId;
+    public ulong ArtisanId;
+    public uint UnitPrice;
+    public uint TotalTax;
+    public uint Quantity;
+    public uint ItemId;
+    public ushort ContainerId;
+    public ushort Durability;
+    public ushort Spiritbond;
+    public fixed ushort Materia[5];
+    public uint Unk40;
+    public ushort Unk44;
+    public fixed byte RetainerName[32];
+    public fixed byte Unk66[32];
+    public byte IsHQ;
+    public byte MateriaCount;
+    public byte Unk88;
+    public byte TownId;
+    public byte Stain0Id;
+    public byte Stain1Id;
+    public uint Unk8C;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct MarketBoardItemListing
+{
+    public fixed byte EntriesRaw[10 * 0x90];
+    public byte NextPageIndex;
+    public byte FirstPageIndex;
+    public byte RequestId;
+    public fixed byte Padding[5];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct MarketBoardPurchase
+{
+    public uint ItemId;
+    public uint ErrorLogId;
+    public uint Quantity;
+    public byte Stackable;
+    public fixed byte Padding[3];
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 0x18)]
+public unsafe struct MarketBoardSale
+{
+    [FieldOffset(0x00)] public uint ItemId;
+    [FieldOffset(0x04)] public uint Quantity;
+    [FieldOffset(0x08)] public uint UnitPrice;
+    [FieldOffset(0x0C)] public uint TotalTax;
+    [FieldOffset(0x10)] public byte SaleType; // 1 = normal sale, 2 = everything sold, 3 = mannequin
+    [FieldOffset(0x11)] public byte TownId;
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 0x30)]
+public unsafe struct MarketBoardItemListingHistoryEntry
+{
+    [FieldOffset(0x00)] public uint UnitPrice;
+    [FieldOffset(0x04)] public uint SaleUnixTimestamp;
+    [FieldOffset(0x08)] public uint Quantity;
+    [FieldOffset(0x0C)] public byte IsHQ;
+    [FieldOffset(0x0D)] public byte UnkD;
+    [FieldOffset(0x0E)] public fixed byte RetainerName[32];
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 0x3C8)]
+public unsafe struct MarketBoardItemListingHistory
+{
+    [FieldOffset(0x00)] public uint ItemId;
+    [FieldOffset(0x04)] public fixed byte RawEntries[20 * 0x30];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct RetainerState
+{
+    public ulong RetainerId;
+    public ulong Flags; // high byte & 0xF is town, highest bit is whether retainer is now selling
+    public uint CustomMessageId;
+    public byte StateChange; // % 10 is type (1 for rename?, 3 for start sell, 4 for stop sell)
+    public fixed byte Name[32];
+    public fixed byte Padding[3];
+
+    public readonly byte Town => (byte)((Flags >> 56) & 0xF);
+    public readonly bool IsSelling => (Flags >> 63) != 0;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -532,6 +643,7 @@ public enum ActorControlCategory : ushort
     GearSetEquipMsg = 801, // from dissector
     SetFestival = 902, // from dissector
     ToggleOrchestrionUnlock = 918, // from dissector
+    ServerRequestCallbackResponse = 925,
     SetMountSpeed = 927, // from dissector
     Dismount = 929, // from dissector
     BeginReplayAck = 930, // from dissector
@@ -871,6 +983,64 @@ public struct UpdateClassInfoBozja
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct RetainerSummary
+{
+    public uint SequenceId;
+    public byte NumInformationPackets;
+    public byte MaxRetainerEntitlement;
+    public byte IsResponseToServerCallbackRequest;
+    public byte Pad1;
+    public uint ServerCallbackListenerIndex;
+    public fixed byte DisplayOrder[10];
+    public fixed byte Pad2[2];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct RetainerInformation
+{
+    public uint SequenceId;
+    public uint Pad1;
+    public ulong RetainerId;
+    public byte Index;
+    public byte NumItemsInInventory;
+    public ushort Pad2;
+    public uint Gil;
+    public byte NumItemsOnMarket;
+    public byte Town;
+    public byte ClassJob;
+    public byte Level;
+    public uint MarketExpire;
+    public ushort VentureId;
+    public ushort Pad3;
+    public uint VentureComplete;
+    public byte Available;
+    public byte Pad4;
+    public ushort Unk2A;
+    public byte Unk2C;
+    public fixed byte Name[32];
+    public fixed byte Pad5[3];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct ItemMarketBoardSummary
+{
+    public uint SequenceId;
+    public uint NumItemPackets;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct ItemMarketBoardInfo
+{
+    public uint SequenceId;
+    public uint InventoryType;
+    public ushort Slot;
+    public fixed byte Pad1[6];
+    public ulong Unk10;
+    public uint Unk18;
+    public uint Pad2;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
 public unsafe struct EventPlayN
 {
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
@@ -971,6 +1141,16 @@ public unsafe struct EventPlayN
     public byte pad2;
     public ushort pad3;
     public fixed uint Payload[1]; // N = 1/4/8/16/32/64/128/255
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct DecodeServerRequestCallbackResponse
+{
+    public uint ListenerIndex;
+    public uint ListenerRequestType;
+    public byte DataCount;
+    public fixed byte Padding[3];
+    public fixed uint Data[1]; // variable length
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]

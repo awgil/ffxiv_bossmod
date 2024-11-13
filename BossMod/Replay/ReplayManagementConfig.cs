@@ -19,8 +19,11 @@ public class ReplayManagementConfig : ConfigNode
     [PropertyDisplay("Dump server packets into dalamud.log")]
     public bool DumpServerPackets = false;
 
-    //[PropertyDisplay("Store client packets in the replay")]
-    //public bool DumpClientPackets = false;
+    [PropertyDisplay("Ignore packets for other players when dumping to dalamud.log")]
+    public bool DumpServerPacketsPlayerOnly = false;
+
+    [PropertyDisplay("Dump client packets into dalamud.log")]
+    public bool DumpClientPackets = false;
 
     [PropertyDisplay("Format for recorded logs")]
     public ReplayLogFormat WorldLogFormat = ReplayLogFormat.BinaryCompressed;

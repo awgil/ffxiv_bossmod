@@ -60,7 +60,7 @@ public sealed class ClientState
 
     public int ClassJobLevel(Class c)
     {
-        var index = Service.LuminaRow<Lumina.Excel.GeneratedSheets.ClassJob>((uint)c)?.ExpArrayIndex ?? -1;
+        var index = Service.LuminaRow<Lumina.Excel.Sheets.ClassJob>((uint)c)?.ExpArrayIndex ?? -1;
         return index >= 0 && index < ClassJobLevels.Length ? ClassJobLevels[index] : -1;
     }
 

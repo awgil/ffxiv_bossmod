@@ -33,7 +33,7 @@ public sealed class CancelCastTweak(WorldState ws, AIHints hints)
         if (target == null)
             return false;
 
-        var isRaise = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(cast?.Action.SpellId() ?? 0)?.Unknown24 == 1;
+        var isRaise = Service.LuminaRow<Lumina.Excel.Sheets.Action>(cast?.Action.SpellId() ?? 0)?.DeadTargetBehaviour == 1;
         if (!isRaise)
             return target.IsDead;
 
