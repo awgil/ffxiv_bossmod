@@ -1,4 +1,4 @@
-namespace BossMod.Shadowbringers.Foray.Duel.Duel6Lyon;
+namespace BossMod.Modules.Shadowbringers.Foray.Duel;
 
 public enum OID : uint
 {
@@ -30,8 +30,8 @@ public enum AID : uint
     MoveMountains2 = 0x5D34, // Boss->self, no cast, second attack
     MoveMountains3 = 0x5D35, // Helper->self, 5s cast, first line
     MoveMountains4 = 0x5D36, // Helper->self, no cast, second line
-    WindsPeak1 = 0x5D2A, // Boss->self, 3.0s cast, range 5 circle
-    WindsPeak2 = 0x5D2B, // Helper->self, 4.0s cast, range 50 circle
+    WindsPeakAOE = 0x5D2A, // Boss->self, 3.0s cast, range 5 circle
+    WindsPeakKnockback = 0x5D2B, // Helper->self, 4.0s cast, range 50 circle
     NaturesBlood1 = 0x5D28, // Helper->self, 7.5s cast, range 4 circle
     NaturesBlood2 = 0x5D29, // Helper->self, no cast, range 4 circle
     SplittingRage = 0x5D37, // Boss->self, 3.0s cast, range 50 circle
@@ -59,14 +59,14 @@ class OnFire(BossModule module) : BossComponent(module)
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_isCasting)
-            hints.Add("Applies On Fire to Lyon. Use Dispell to remove it");
+            hints.Add("Prepare to dispel!", false);
         if (_hasBuff)
-            hints.Add("Lyon has 'On Fire'. Use Dispell to remove it!");
+            hints.Add("Use Lost Dispel!");
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if (actor == Module.PrimaryActor && (SID)status.ID == SID.OnFire)
+        if ((SID)status.ID == SID.OnFire)
             _hasBuff = true;
     }
 
@@ -84,8 +84,14 @@ class OnFire(BossModule module) : BossComponent(module)
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if (actor == Module.PrimaryActor && (SID)status.ID == SID.OnFire)
+        if ((SID)status.ID == SID.OnFire)
             _hasBuff = false;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_hasBuff)
+            hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostDispel), Module.PrimaryActor, ActionQueue.Priority.VeryHigh);
     }
 }
 
@@ -102,7 +108,7 @@ class HeavenAndEarth(BossModule module) : Components.GenericRotatingAOE(module)
     private void UpdateIncrement(Angle increment)
     {
         _increment = increment;
-        for (int i = 0; i < Sequences.Count; i++)
+        for (var i = 0; i < Sequences.Count; i++)
         {
             var sequence = Sequences[i];
             sequence.Increment = _increment;
@@ -118,17 +124,19 @@ class HeavenAndEarth(BossModule module) : Components.GenericRotatingAOE(module)
             UpdateIncrement(30.Degrees());
 
         if ((AID)spell.Action.ID == AID.HeavenAndEarthStart)
-            Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, Module.CastFinishAt(spell), 1.2f, 3));
+            Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, Module.CastFinishAt(spell), 1.2f, 4));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.HeavenAndEarthMove && Sequences.Count > 0)
+        if ((AID)spell.Action.ID is AID.HeavenAndEarthStart or AID.HeavenAndEarthMove && Sequences.Count > 0)
         {
             AdvanceSequence(_index++ % Sequences.Count, WorldState.CurrentTime);
         }
     }
 }
+
+class HeartOfNatureRaidwide(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HeartOfNature));
 
 class HeartOfNatureConcentric(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
@@ -151,8 +159,21 @@ class HeartOfNatureConcentric(BossModule module) : Components.ConcentricAOEs(mod
                 AID.NaturesPulse3 or AID.NaturesPulse6 => 2,
                 _ => -1
             };
-            AdvanceSequence(order, caster.Position, WorldState.FutureTime(1.5f));
+            if (AdvanceSequence(order, caster.Position, WorldState.FutureTime(1.5f)))
+            {
+                if (Sequences.All(s => s.NumCastsDone >= 3))
+                    Sequences.Clear();
+            }
         }
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (Sequences.Count == 0 || Sequences[0].NumCastsDone > 0)
+            return;
+
+        var countdown = Sequences[0].NextActivation - WorldState.CurrentTime;
+        hints.Add($"Earthquakes start in {countdown.TotalSeconds:F1}s", false);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -174,27 +195,44 @@ class HeartOfNatureConcentric(BossModule module) : Components.ConcentricAOEs(mod
 
 class CagedHeartOfNature(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CagedHeartOfNature), new AOEShapeCircle(6));
 
-class WindsPeak(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WindsPeak1), new AOEShapeCircle(5));
+class WindsPeak(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WindsPeakAOE), new AOEShapeCircle(5));
 
 class WindsPeakKB(BossModule module) : Components.Knockback(module)
 {
-    private DateTime _time;
-    private bool _watched;
-    private DateTime _activation;
+    public DateTime? Activation { get; private set; }
+    public bool Active => Activation > WorldState.CurrentTime;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        if (_watched && WorldState.CurrentTime < _time.AddSeconds(4.4f))
-            yield return new(Module.PrimaryActor.Position, 15, _activation);
+        if (Activation is DateTime dt)
+            yield return new(Module.PrimaryActor.Position, 15, dt);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.WindsPeak1)
+        if ((AID)spell.Action.ID == AID.WindsPeakAOE)
+            Activation = Module.CastFinishAt(spell, 1);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.WindsPeakKnockback)
+            Activation = null;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Activation is not DateTime dt || IsImmune(slot, dt))
+            return;
+
+        var delay = dt - WorldState.CurrentTime;
+        if (delay.TotalSeconds > 1)
         {
-            _watched = true;
-            _time = WorldState.CurrentTime;
-            _activation = Module.CastFinishAt(spell);
+            hints.AddForbiddenZone(new AOEShapeDonut(7, 50), Module.PrimaryActor.Position, default, Module.CastFinishAt(Module.PrimaryActor.CastInfo));
+        }
+        else
+        {
+            hints.AddForbiddenZone(new AOEShapeDonut(5, 50), Module.PrimaryActor.Position, default, dt);
         }
     }
 }
@@ -229,11 +267,20 @@ class NaturesBlood(BossModule module) : Components.Exaflare(module, 4)
     {
         if (Lines.Count > 0 && (AID)spell.Action.ID is AID.NaturesBlood1 or AID.NaturesBlood2 or AID.NaturesBlood3 or AID.NaturesBlood4)
         {
-            int index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
+            var index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
             AdvanceLine(Lines[index], caster.Position);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);
         }
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (Lines.Count == 0 || Lines[0].ExplosionsLeft < 7)
+            return;
+
+        var cd = Lines[0].NextExplosion - WorldState.CurrentTime;
+        hints.Add($"Exaflares start in {cd.TotalSeconds:F1}s", false);
     }
 }
 
@@ -277,16 +324,59 @@ class MoveMountains(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class FlamesMeet(BossModule module) : Components.GenericAOEs(module)
+class DuelOrDie(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<AOEInstance> _aoes = [];
-    private static readonly AOEShapeCross _shape = new(40, 7);
+    private readonly AOEShape _tasteOfBloodShape = new AOEShapeCone(40, 90.Degrees());
+    public readonly List<Actor> Casters = [];
+    public readonly List<Actor> Duelers = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        for (int i = 0; i < _aoes.Count; i++)
+        foreach (var caster in Casters)
         {
-            AOEInstance aoe = _aoes[i];
+            // If the caster did Duel Or Die, the player must get hit by their attack.
+            // This is represented by pointing the AOE behind the caster so their front is safe.
+            var angle = Duelers.Contains(caster) ? caster.Rotation + 180.Degrees() : caster.Rotation;
+            yield return new AOEInstance(_tasteOfBloodShape, caster.Position, angle, Module.CastFinishAt(caster.CastInfo));
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.TasteOfBlood)
+            Casters.Add(caster);
+
+        if ((AID)spell.Action.ID == AID.DuelOrDie)
+            Duelers.Add(caster);
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.TasteOfBlood)
+        {
+            Casters.Remove(caster);
+            Duelers.Remove(caster);
+        }
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var d in Casters.Exclude(Module.PrimaryActor))
+            Arena.Actor(d.Position, d.Rotation, ArenaColor.Danger);
+    }
+}
+
+class FlamesMeet(BossModule module) : Components.GenericAOEs(module)
+{
+    public readonly List<AOEInstance> Crosses = [];
+    private static readonly AOEShapeCross _shape = new(40, 7);
+    private WindsPeakKB? knockback;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        for (var i = 0; i < Crosses.Count; i++)
+        {
+            var aoe = Crosses[i];
             if (i == 0)
                 aoe.Color = ArenaColor.Danger;
             yield return aoe;
@@ -299,13 +389,29 @@ class FlamesMeet(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.FlamesMeet2)
-            _aoes.Add(new(_shape, caster.Position));
+            Crosses.Add(new(_shape, caster.Position, default, Module.CastFinishAt(spell)));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.FlamesMeet2 && _aoes.Count > 0)
-            _aoes.RemoveAt(0);
+        if ((AID)spell.Action.ID == AID.FlamesMeet2 && Crosses.Count > 0)
+            Crosses.RemoveAt(0);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        knockback ??= Module.FindComponent<WindsPeakKB>();
+
+        if (knockback != null && knockback.Active && !knockback.IsImmune(slot, knockback.Activation!.Value) && Crosses.Count >= 2)
+        {
+            hints.AddForbiddenZone(ShapeDistance.Cone(Module.PrimaryActor.Position, 50, Angle.FromDirection(Module.PrimaryActor.DirectionTo(Crosses[1].Origin)), 157.5f.Degrees()), knockback.Activation!.Value);
+            return;
+        }
+
+        if (Crosses.Count > 0 && (Crosses[0].Activation - WorldState.CurrentTime).TotalSeconds > 5)
+            return;
+
+        base.AddAIHints(slot, actor, assignment, hints);
     }
 }
 
@@ -320,34 +426,17 @@ class Duel6LyonStates : StateMachineBuilder
             .ActivateOnEnter<WildfiresFury>()
             .ActivateOnEnter<HeavenAndEarth>()
             .ActivateOnEnter<HeartOfNatureConcentric>()
-            .ActivateOnEnter<TasteOfBloodAndDuelOrDie>()
+            .ActivateOnEnter<DuelOrDie>()
             .ActivateOnEnter<FlamesMeet>()
             .ActivateOnEnter<WindsPeak>()
             .ActivateOnEnter<WindsPeakKB>()
             .ActivateOnEnter<SplittingRage>()
             .ActivateOnEnter<NaturesBlood>()
             .ActivateOnEnter<MoveMountains>()
-            .ActivateOnEnter<WildfireCrucible>();
+            .ActivateOnEnter<WildfireCrucible>()
+            .ActivateOnEnter<HeartOfNatureRaidwide>();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "SourP", GroupType = BossModuleInfo.GroupType.BozjaDuel, GroupID = 778, NameID = 31)]
-public class Duel6Lyon(WorldState ws, Actor primary) : BossModule(ws, primary, new(50f, -410f), new ArenaBoundsCircle(20))
-{
-    protected override void DrawEnemies(int pcSlot, Actor pc)
-    {
-        var tasteOfBlood = FindComponent<TasteOfBloodAndDuelOrDie>();
-        if (tasteOfBlood?.Casters.Count > 0)
-        {
-            foreach (var caster in tasteOfBlood.Casters)
-            {
-                bool isDueler = tasteOfBlood.Duelers.Contains(caster);
-                Arena.Actor(caster, isDueler ? ArenaColor.Danger : ArenaColor.Enemy, true);
-            }
-        }
-        else
-        {
-            base.DrawEnemies(pcSlot, pc);
-        }
-    }
-}
+public class Duel6Lyon(WorldState ws, Actor primary) : BossModule(ws, primary, new(50f, -410f), new ArenaBoundsCircle(20));

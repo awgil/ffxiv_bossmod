@@ -22,7 +22,8 @@ public class Zadnor : ZoneModule
     {
         _subscriptions = new(
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
-            ws.Actors.CastFinished.Subscribe(OnCastFinished)
+            ws.Actors.CastFinished.Subscribe(OnCastFinished),
+            ws.Client.ActiveFateChanged.Subscribe(OnFateChanged)
         );
     }
 
@@ -44,6 +45,15 @@ public class Zadnor : ZoneModule
     {
         if (caster.CastInfo?.Action.ID == 24769)
             _adHocAOEs.Clear();
+    }
+
+    void OnFateChanged(ClientState.OpActiveFateChange fate)
+    {
+        if (fate.Value.ID == 1739 && _config.RearGuard)
+        {
+            _config.RearGuard = false;
+            _config.Modified.Fire();
+        }
     }
 
     private IEnumerable<(string, uint)> FarmOIDs
