@@ -12,6 +12,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.Interop;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace BossMod;
@@ -631,7 +632,7 @@ sealed class WorldStateGameSync : IDisposable
         if (!MemoryExtensions.SequenceEqual(_ws.Client.ClassJobLevels.AsSpan(), levels))
             _ws.Execute(new ClientState.OpClassJobLevelsChange(levels.ToArray()));
 
-        var curFate = FateManager.Instance()->CurrentFate;
+        var curFate = (FateContextNew*)FateManager.Instance()->CurrentFate;
         ClientState.Fate activeFate = curFate != null ? new(curFate->FateId, curFate->Location, curFate->Radius) : default;
         if (_ws.Client.ActiveFate != activeFate)
             _ws.Execute(new ClientState.OpActiveFateChange(activeFate));
@@ -805,4 +806,15 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketRSVDataHook.Original(packet);
         _globalOps.Add(new WorldState.OpRSVData(MemoryHelper.ReadStringNullTerminated((nint)(packet + 4)), MemoryHelper.ReadString((nint)(packet + 0x34), *(int*)packet)));
     }
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 4256)]
+partial struct FateContextNew
+{
+    [FieldOffset(0x018)]
+    public ushort FateId;
+    [FieldOffset(0x460)]
+    public Vector3 Location;
+    [FieldOffset(0x474)]
+    public float Radius;
 }

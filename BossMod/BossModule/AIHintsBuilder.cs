@@ -64,8 +64,9 @@ public sealed class AIHintsBuilder : IDisposable
         if (_ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.Sheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax)
         {
             var center = new WPos(_ws.Client.ActiveFate.Center.XZ());
+            var radius = _ws.Client.ActiveFate.Radius;
             hints.PathfindMapCenter = center;
-            hints.PathfindMapBounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius));
+            hints.PathfindMapBounds = (_activeFateBounds ??= new ArenaBoundsCircle(radius, radius > 30 ? 1f : 0.5f));
             if (e != null && bitmap != null)
             {
                 var centerCell = (center - e.Origin) / resolution;
@@ -108,7 +109,7 @@ public sealed class AIHintsBuilder : IDisposable
 
         foreach (var aoe in _activeAOEs.Values)
         {
-            var target = aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ;
+            var target = aoe.Target == aoe.Caster ? aoe.Caster.CastInfo!.LocXZ : (aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ);
             var rot = aoe.Caster.CastInfo!.Rotation;
             var finishAt = _ws.FutureTime(aoe.Caster.CastInfo.NPCRemainingTime);
             if (aoe.IsCharge)
