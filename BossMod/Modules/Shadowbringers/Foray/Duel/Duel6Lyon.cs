@@ -191,6 +191,16 @@ class HeartOfNatureConcentric(BossModule module) : Components.ConcentricAOEs(mod
             }, Sequences[0].NextActivation);
         }
     }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        foreach (var s in Sequences)
+        {
+            Shapes[s.NumCastsDone].Draw(Arena, s.Origin, s.Rotation, ArenaColor.AOE);
+            if (s.NumCastsDone < 2)
+                Shapes[s.NumCastsDone + 1].Draw(Arena, s.Origin, s.Rotation, 0x40008080);
+        }
+    }
 }
 
 class CagedHeartOfNature(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CagedHeartOfNature), new AOEShapeCircle(6));
@@ -201,6 +211,13 @@ class WindsPeakKB(BossModule module) : Components.Knockback(module)
 {
     public DateTime? Activation { get; private set; }
     public bool Active => Activation > WorldState.CurrentTime;
+    private const float Delay = 1.6f;
+
+    public override void Update()
+    {
+        if (Activation is DateTime dt && WorldState.CurrentTime > dt)
+            Activation = null;
+    }
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
@@ -211,13 +228,8 @@ class WindsPeakKB(BossModule module) : Components.Knockback(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WindsPeakAOE)
-            Activation = Module.CastFinishAt(spell, 1);
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID.WindsPeakKnockback)
-            Activation = null;
+            // 1 second for cast event + ~.6s for effect result because god hates us
+            Activation = Module.CastFinishAt(spell, Delay);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -226,14 +238,10 @@ class WindsPeakKB(BossModule module) : Components.Knockback(module)
             return;
 
         var delay = dt - WorldState.CurrentTime;
-        if (delay.TotalSeconds > 1)
-        {
+        if (delay.TotalSeconds > Delay)
             hints.AddForbiddenZone(new AOEShapeDonut(7, 50), Module.PrimaryActor.Position, default, Module.CastFinishAt(Module.PrimaryActor.CastInfo));
-        }
         else
-        {
             hints.AddForbiddenZone(new AOEShapeDonut(5, 50), Module.PrimaryActor.Position, default, dt);
-        }
     }
 }
 
@@ -300,8 +308,19 @@ class MoveMountains(BossModule module) : Components.GenericAOEs(module)
         {
             aoes.Add(new AOEInstance(Shape, caster.Position, caster.Rotation, Module.CastFinishAt(spell), ArenaColor.Danger));
             if (aoes.Count == 7)
-                foreach (var offset in Pattern2)
-                    aoes.Add(new AOEInstance(Shape, caster.Position, Module.PrimaryActor.Rotation + offset, Module.CastFinishAt(spell, 2.3f)));
+            {
+                foreach (var aoe in aoes)
+                {
+                    if (!aoes.Any(b => b.Rotation.AlmostEqual(aoe.Rotation + 180.Degrees(), 0.1f)))
+                    {
+                        foreach (var offset in Pattern2)
+                        {
+                            aoes.Add(new AOEInstance(Shape, caster.Position, aoe.Rotation + offset, Module.CastFinishAt(spell, 2.3f)));
+                        }
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -425,6 +444,7 @@ class Duel6LyonStates : StateMachineBuilder
             .ActivateOnEnter<OnFire>()
             .ActivateOnEnter<WildfiresFury>()
             .ActivateOnEnter<HeavenAndEarth>()
+            .ActivateOnEnter<HeartOfNatureRaidwide>()
             .ActivateOnEnter<HeartOfNatureConcentric>()
             .ActivateOnEnter<DuelOrDie>()
             .ActivateOnEnter<FlamesMeet>()
@@ -434,7 +454,7 @@ class Duel6LyonStates : StateMachineBuilder
             .ActivateOnEnter<NaturesBlood>()
             .ActivateOnEnter<MoveMountains>()
             .ActivateOnEnter<WildfireCrucible>()
-            .ActivateOnEnter<HeartOfNatureRaidwide>();
+            .ActivateOnEnter<CagedHeartOfNature>();
     }
 }
 
