@@ -167,6 +167,8 @@ public sealed class PendingEffects
         return null;
     }
 
+    public bool PendingStatusLoss(ulong target, uint statusID) => PendingEffectsAtTarget(_entries, target).Any(e => e.Type == ActionEffectType.RecoveredFromStatusEffect && e.Value == statusID);
+
     public bool PendingKnockbacks(ulong target) => PendingEffectsAtTarget(_entries, target).Any(eff => eff.Type is >= ActionEffectType.Knockback and <= ActionEffectType.AttractCustom3);
 
     private static IEnumerable<ActionEffect> PendingEffectsAtTarget(IEnumerable<Entry> entries, ulong target)
