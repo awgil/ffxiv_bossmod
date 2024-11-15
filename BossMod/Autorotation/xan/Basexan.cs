@@ -372,6 +372,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     private new (float Left, float In) EstimateRaidBuffTimings(Actor? primaryTarget)
     {
+        if (Bossmods.ActiveModule?.Info?.GroupType is BossModuleInfo.GroupType.BozjaDuel)
+            return (float.MaxValue, 0);
+
         // level 100 stone sky sea
         if (primaryTarget?.OID != 0x41CD)
             return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), Bossmods.RaidCooldowns.NextDamageBuffIn2());
