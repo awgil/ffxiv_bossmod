@@ -4,7 +4,7 @@
 // TODO: verify width
 class P1MistralSongBoss(BossModule module) : Components.GenericWildCharge(module, 5, ActionID.MakeSpell(AID.MistralSongBoss), 40)
 {
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.MistralSong)
         {
@@ -53,7 +53,7 @@ class P1MistralSongAdds(BossModule module) : Components.CastCounter(module, Acti
         Arena.Actors(_sisters, ArenaColor.Object, true);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.MistralSong)
         {

@@ -43,7 +43,7 @@ class FlamesOfFuryBait(BossModule module) : Components.GenericBaitAway(module)
     private bool targeted;
     private Actor? target;
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Baitaway)
         {

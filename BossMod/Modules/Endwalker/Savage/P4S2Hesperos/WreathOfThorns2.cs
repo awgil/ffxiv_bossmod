@@ -140,7 +140,7 @@ class WreathOfThorns2(BossModule module) : BossComponent(module)
             CurState = State.Done;
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var slot = Raid.FindSlot(actor.InstanceID);
         if (slot == -1)

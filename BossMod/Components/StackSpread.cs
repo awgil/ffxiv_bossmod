@@ -242,7 +242,7 @@ public class IconStackSpread(BossModule module, uint stackIcon, uint spreadIcon,
     public int NumFinishedStacks { get; protected set; }
     public int NumFinishedSpreads { get; protected set; }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == StackIcon)
         {

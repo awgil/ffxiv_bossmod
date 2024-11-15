@@ -11,7 +11,7 @@ class DragonsDescent(BossModule module) : Components.Knockback(module, ActionID.
             yield return new(_source.Position, 13, _activation);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.DragonsDescent)
         {
@@ -23,7 +23,7 @@ class DragonsDescent(BossModule module) : Components.Knockback(module, ActionID.
 
 class DoubleMeteor(BossModule module) : Components.UniformStackSpread(module, 0, 15, alwaysShowSpreads: true) // TODO: verify falloff
 {
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.DoubleMeteor)
             AddSpread(actor, WorldState.FutureTime(11.1f));
@@ -84,7 +84,7 @@ class Explosion(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((IconID)iconID is IconID.DoubleMeteor or IconID.DragonsDescent)
             _forbidden.Set(Raid.FindSlot(actor.InstanceID));

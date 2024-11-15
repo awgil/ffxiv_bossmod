@@ -32,7 +32,7 @@ class KampeosHarma(BossModule module) : Components.CastCounter(module, ActionID.
             Arena.AddCircle(pos.Value, 1, ArenaColor.Safe);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID is >= 145 and <= 152)
         {

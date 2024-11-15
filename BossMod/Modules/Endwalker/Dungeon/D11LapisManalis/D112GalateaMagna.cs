@@ -63,7 +63,7 @@ class ScarecrowChase(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var icon = (IconID)iconID;
         if (icon is >= IconID.Icon1 and <= IconID.Icon4)

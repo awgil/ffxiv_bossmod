@@ -80,7 +80,7 @@ public sealed class Replay
         public TimeRange Time;
     }
 
-    public sealed record class Icon(uint ID, Participant Target, DateTime Timestamp);
+    public sealed record class Icon(uint ID, Participant Source, Participant? Target, DateTime Timestamp);
 
     public sealed record class DirectorUpdate(uint DirectorID, uint UpdateID, uint Param1, uint Param2, uint Param3, uint Param4, DateTime Timestamp);
 

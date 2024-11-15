@@ -17,7 +17,7 @@ class Echoes(BossModule module) : Components.UniformStackSpread(module, 6, 0, 8)
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Echoes)
             AddStack(actor);

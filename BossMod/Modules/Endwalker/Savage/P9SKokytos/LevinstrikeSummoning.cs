@@ -8,7 +8,7 @@ class LevinstrikeSummoningIcemeld(BossModule module) : Components.GenericBaitAwa
 
     private static readonly AOEShapeCircle _shape = new(20);
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Icemeld)
         {
@@ -42,7 +42,7 @@ class LevinstrikeSummoningFiremeld(BossModule module) : Components.GenericBaitAw
 
     private static readonly AOEShapeCircle _shape = new(6);
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         int order = (IconID)iconID switch
         {
@@ -123,7 +123,7 @@ class LevinstrikeSummoningShock(BossModule module) : Components.GenericAOEs(modu
             Arena.AddCircle(_explodeOrder[NumTowers], 3, _soakerOrder[NumTowers] == pc ? ArenaColor.Safe : ArenaColor.Danger, 2);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var (order, isBall) = (IconID)iconID switch
         {

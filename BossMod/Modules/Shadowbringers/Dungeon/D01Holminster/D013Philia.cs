@@ -99,7 +99,7 @@ class Chains(BossModule module) : BossComponent(module)
                 };
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.ChainTarget)
         {
@@ -158,7 +158,7 @@ class PendulumFlare(BossModule module) : Components.GenericBaitAway(module)
     private bool targeted;
     private Actor? target;
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.SpreadFlare)
         {

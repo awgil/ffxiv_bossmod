@@ -10,7 +10,7 @@ class P1FlintedFoehn(BossModule module) : Components.UniformStackSpread(module, 
             ++NumCasts;
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.FlintedFoehn)
             AddStack(actor, WorldState.FutureTime(5.1f));
@@ -27,7 +27,7 @@ class P2FlintedFoehn(BossModule module) : Components.UniformStackSpread(module, 
             ++NumCasts;
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.FlintedFoehn)
             AddStack(actor, WorldState.FutureTime(5.1f));

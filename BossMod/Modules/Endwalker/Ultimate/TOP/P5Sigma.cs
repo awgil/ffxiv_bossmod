@@ -79,7 +79,7 @@ class P5Sigma(BossModule module) : BossComponent(module)
             _waveCannonsDone = true;
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var slot = Raid.FindSlot(actor.InstanceID);
         if (slot < 0)
@@ -228,7 +228,7 @@ class P5SigmaWaveCannon(BossModule module) : Components.GenericBaitAway(module, 
                 CurrentBaits.Add(new(caster, p, _shapeWaveCannon));
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.SigmaWaveCannon)
             _waveCannonTargets.Set(Raid.FindSlot(actor.InstanceID));
@@ -332,7 +332,7 @@ class P5SigmaRearLasers(BossModule module) : Components.GenericAOEs(module)
             yield return new(_shape, Module.Center, StartingDir + NumCasts * Rotation, _activation.AddSeconds(0.6 * NumCasts), ArenaColor.Danger);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((OID)actor.OID != OID.RearPowerUnit)
             return;

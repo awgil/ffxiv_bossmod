@@ -117,7 +117,7 @@ class PlanarTacticsForcedMarch : Components.GenericForcedMarch
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var rot = (IconID)iconID switch
         {

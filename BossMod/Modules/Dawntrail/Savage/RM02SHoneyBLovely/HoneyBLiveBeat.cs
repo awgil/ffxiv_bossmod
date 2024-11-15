@@ -75,7 +75,7 @@ class Fracture2(BossModule module) : Fracture(module)
         return forbidden;
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         // spread targets should never take towers
         if (iconID == (uint)IconID.Heartsore)

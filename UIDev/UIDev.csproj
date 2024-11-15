@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+    <DalamudLibPath>E:\sources\ff14\dalamud\Dalamud\bin\Debug\</DalamudLibPath>
   </PropertyGroup>
 
   <ItemGroup>

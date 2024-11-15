@@ -8,7 +8,9 @@ class IconInfo : CommonEnumInfo
 {
     private class IconData
     {
+        public HashSet<uint> SourceOIDs = [];
         public HashSet<uint> TargetOIDs = [];
+        public bool SeenTargetNonSelf;
     }
 
     private readonly Type? _iidType;
@@ -26,7 +28,12 @@ class IconInfo : CommonEnumInfo
                 foreach (var icon in replay.EncounterIcons(enc))
                 {
                     var data = _data.GetOrAdd(icon.ID);
-                    data.TargetOIDs.Add(icon.Target.Type != ActorType.DutySupport ? icon.Target.OID : 0);
+                    data.SourceOIDs.Add(icon.Source.Type != ActorType.DutySupport ? icon.Source.OID : 0);
+                    if (icon.Target != null)
+                    {
+                        data.TargetOIDs.Add(icon.Target.Type != ActorType.DutySupport ? icon.Target.OID : 0);
+                        data.SeenTargetNonSelf |= icon.Target != icon.Source;
+                    }
                 }
             }
         }
@@ -41,7 +48,8 @@ class IconInfo : CommonEnumInfo
         }
         foreach (var (iid, data) in tree.Nodes(_data, map))
         {
-            tree.LeafNode($"Target IDs: {OIDListString(data.TargetOIDs)}");
+            tree.LeafNode($"Source IDs: {OIDListString(data.SourceOIDs)}");
+            tree.LeafNode($"Target IDs: {(data.TargetOIDs.Count == 0 ? "???" : data.SeenTargetNonSelf ? OIDListString(data.TargetOIDs) : "self")}");
             tree.LeafNode($"VFX: {Service.LuminaRow<Lockon>(iid)?.Unknown0}");
         }
     }
@@ -69,6 +77,6 @@ class IconInfo : CommonEnumInfo
     private string EnumMemberString(uint iid, IconData data)
     {
         var name = _iidType?.GetEnumName(iid) ?? $"_Gen_Icon_{iid}";
-        return $"{name} = {iid}, // {OIDListString(data.TargetOIDs)}";
+        return $"{name} = {iid}, // {OIDListString(data.SourceOIDs)}->{(data.TargetOIDs.Count == 0 ? "???" : data.SeenTargetNonSelf ? OIDListString(data.TargetOIDs) : "self")}";
     }
 }

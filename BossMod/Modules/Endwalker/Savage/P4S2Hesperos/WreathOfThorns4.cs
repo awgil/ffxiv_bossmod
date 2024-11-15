@@ -176,7 +176,7 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
             ++_doneTowers;
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var slot = Raid.FindSlot(actor.InstanceID);
         if (slot >= 0)
