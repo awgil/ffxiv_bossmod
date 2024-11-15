@@ -42,7 +42,7 @@ class ChimericSuccession(BossModule module) : Components.UniformStackSpread(modu
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         int order = (IconID)iconID switch
         {

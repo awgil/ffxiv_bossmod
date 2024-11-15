@@ -21,7 +21,7 @@ class P3Earthshaker(BossModule module) : Components.GenericAOEs(module, ActionID
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => _targets[playerSlot] ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((IconID)iconID == IconID.Earthshaker)
             _targets.Set(Raid.FindSlot(actor.InstanceID));

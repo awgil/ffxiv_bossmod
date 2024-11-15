@@ -39,7 +39,7 @@ class Hieroglyphika(BossModule module) : Components.GenericAOEs(module, ActionID
             SafeSideDir = dir;
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var dir = (IconID)iconID switch
         {

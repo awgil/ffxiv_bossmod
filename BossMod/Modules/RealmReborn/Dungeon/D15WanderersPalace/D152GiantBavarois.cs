@@ -38,7 +38,7 @@ class AmorphicFlail(BossModule module) : BossComponent(module)
             hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 8));
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.AmorphicFlail)
             _kiter = actor;

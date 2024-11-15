@@ -18,7 +18,7 @@ class FireScourgeOfFire(BossModule module) : Components.UniformStackSpread(modul
         return max;
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.CalamitysInferno)
         {
@@ -57,7 +57,7 @@ class FireScourgeOfIce(BossModule module) : Components.StayMove(module)
             --NumActiveFreezes;
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.CalamitysChill && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
         {
@@ -79,7 +79,7 @@ class ThunderScourgeOfIceThunder(BossModule module) : Components.UniformStackSpr
     public int NumCasts;
     private readonly ThunderPlatform? _platform = module.FindComponent<ThunderPlatform>();
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((IconID)iconID is IconID.CalamitysBolt or IconID.CalamitysChill)
         {

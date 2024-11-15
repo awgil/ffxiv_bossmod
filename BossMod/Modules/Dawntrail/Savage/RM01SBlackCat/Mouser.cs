@@ -156,7 +156,7 @@ class ElevateAndEviscerate(BossModule module) : Components.CastCounter(module, A
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID != (uint)IconID.ElevateAndEviscerate)
             return;

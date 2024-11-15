@@ -58,7 +58,7 @@ class P2PartySynergy(BossModule module) : CommonAssignments(module)
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         // assuming standard 'blue-purple-orange-green' order
         var order = (IconID)iconID switch
@@ -275,7 +275,7 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Spotlight && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && _synergy != null)
         {
@@ -331,7 +331,7 @@ class P2PartySynergySpotlight(BossModule module) : Components.UniformStackSpread
 {
     private readonly List<Actor> _stackTargets = []; // don't show anything until knockbacks are done, to reduce visual clutter
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Spotlight)
             _stackTargets.Add(actor);

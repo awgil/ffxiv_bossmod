@@ -23,7 +23,7 @@ class Silkspit(BossModule module) : Components.UniformStackSpread(module, 0, 7)
             Spreads.Clear();
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Silkspit)
             AddSpread(actor, WorldState.FutureTime(8));

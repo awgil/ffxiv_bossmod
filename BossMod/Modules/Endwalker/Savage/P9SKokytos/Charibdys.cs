@@ -93,7 +93,7 @@ class Thunderbolt(BossModule module) : Components.GenericBaitAway(module, Action
 
 class EclipticMeteor(BossModule module) : Components.GenericLineOfSightAOE(module, ActionID.MakeSpell(AID.EclipticMeteorAOE), 60, false)
 {
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.EclipticMeteor)
         {

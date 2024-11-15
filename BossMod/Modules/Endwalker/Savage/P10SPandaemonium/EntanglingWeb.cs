@@ -38,7 +38,7 @@ class EntanglingWebHints(BossModule module) : BossComponent(module)
             _targets.RemoveAt(0);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.EntanglingWeb)
             _targets.Add(actor);

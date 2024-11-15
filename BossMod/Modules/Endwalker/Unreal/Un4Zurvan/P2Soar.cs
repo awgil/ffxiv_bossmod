@@ -35,7 +35,7 @@ class P2SoarTwinSpirit(BossModule module) : Components.GenericAOEs(module)
 
 class P2SoarFlamingHalberd(BossModule module) : Components.UniformStackSpread(module, 0, 12, alwaysShowSpreads: true)
 {
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.FlamingHalberd)
             AddSpread(actor, WorldState.FutureTime(5.1f));
@@ -52,7 +52,7 @@ class P2SoarFlamingHalberdVoidzone(BossModule module) : Components.PersistentVoi
 
 class P2SoarDemonicDiveCoolFlame(BossModule module) : Components.UniformStackSpread(module, 7, 8, 7, alwaysShowSpreads: true)
 {
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         switch ((IconID)iconID)
         {

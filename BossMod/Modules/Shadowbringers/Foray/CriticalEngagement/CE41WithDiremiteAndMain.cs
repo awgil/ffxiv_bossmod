@@ -125,7 +125,7 @@ class Hailfire(BossModule module) : Components.GenericAOEs(module, ActionID.Make
         base.OnEventCast(caster, spell);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var order = (IconID)iconID switch
         {

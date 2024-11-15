@@ -63,7 +63,7 @@ class FlamespireClaw(BossModule module) : Components.GenericBaitAway(module, Act
             _tethers.Clear(Raid.FindSlot(source.InstanceID));
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID is >= (uint)IconID.FlamespireClaw1 and <= (uint)IconID.FlamespireClaw8)
         {

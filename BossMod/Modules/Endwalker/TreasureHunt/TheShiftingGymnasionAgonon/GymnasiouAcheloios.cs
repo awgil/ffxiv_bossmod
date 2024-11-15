@@ -55,7 +55,7 @@ class Slammer(BossModule module) : Components.GenericRotatingAOE(module)
     private DateTime _activation;
     private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         // note that boss switches hands, so CW rotation means CCW aoe sequence and vice versa
         var increment = (IconID)iconID switch

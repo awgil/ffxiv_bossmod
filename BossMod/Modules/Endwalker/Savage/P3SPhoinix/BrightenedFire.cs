@@ -45,7 +45,7 @@ class BrightenedFire(BossModule module) : Components.CastCounter(module, ActionI
         Arena.AddCircle(pc.Position, _aoeRange, ArenaColor.Danger);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID is >= 268 and <= 275)
         {

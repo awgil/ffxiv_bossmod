@@ -178,7 +178,7 @@ class P1WaveCannonKyrios(BossModule module) : Components.GenericBaitAway(module)
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.WaveCannonKyrios)
             CurrentBaits.Add(new(Module.PrimaryActor, actor, _shape));

@@ -15,7 +15,7 @@ class P5WrathOfTheHeavensSkywardLeap(BossModule module) : Components.UniformStac
             Arena.AddCircle(safespot, 1, ArenaColor.Safe);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.SkywardLeapP5)
             AddSpread(actor, WorldState.FutureTime(6.4f));
@@ -149,7 +149,7 @@ class P5WrathOfTheHeavensCauterizeBait(BossModule module) : BossComponent(module
             Arena.AddCircle(SafeSpot(), 1, ArenaColor.Safe);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Cauterize)
             _target = actor;

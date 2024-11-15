@@ -106,7 +106,7 @@ class AncientCircle(BossModule module) : Components.BaitAwayIcon(module, new AOE
 class DarkWhispers(BossModule module) : Components.UniformStackSpread(module, 0, 6, alwaysShowSpreads: true)
 {
     // regular spread component won't work because this is self targeted
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.DarkWhispers)
             AddSpread(actor, WorldState.FutureTime(5));

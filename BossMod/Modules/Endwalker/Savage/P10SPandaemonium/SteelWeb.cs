@@ -10,7 +10,7 @@ class SteelWebStack(BossModule module) : Components.UniformStackSpread(module, 6
             _forbidden.Set(Raid.FindSlot(tether.Target));
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         switch ((IconID)iconID)
         {

@@ -47,7 +47,7 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
         AddSpreads(Raid.WithoutSlot(true), WorldState.FutureTime(2.6f));
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.MegaflareStack)
             _stackTargets.Set(Raid.FindSlot(actor.InstanceID));

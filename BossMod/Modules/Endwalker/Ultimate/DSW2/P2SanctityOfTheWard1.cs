@@ -31,7 +31,7 @@ class P2SanctityOfTheWard1Sever(BossModule module) : Components.UniformStackSpre
             Stacks.Clear();
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         switch ((IconID)iconID)
         {
@@ -95,7 +95,7 @@ class P2SanctityOfTheWard1Flares(BossModule module) : Components.GenericAOEs(mod
     }
 
     // note: currently we initialize charges when we get sever icons, but we should be able to do that a bit earlier: PATE 1E43 happens ~1.1s before icons
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID != (uint)IconID.SacredSever1)
             return;

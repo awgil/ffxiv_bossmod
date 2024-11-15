@@ -23,7 +23,7 @@ class P2EarthMissileIce(BossModule module) : Components.PersistentVoidzoneAtCast
 // TODO: add hint for spread target to stay close to tornado...
 class P2Enumeration(BossModule module) : Components.UniformStackSpread(module, 5, 6, 3, 3, true, false) // TODO: verify enumeration radius
 {
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         switch ((IconID)iconID)
         {

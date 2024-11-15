@@ -20,7 +20,7 @@ class DarkMatter(BossModule module) : Components.GenericBaitAway(module, centerA
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.DarkMatter)
         {
@@ -51,7 +51,7 @@ class ForkedLightningDarkBeckons(BossModule module) : Components.UniformStackSpr
             AddSpread(actor, status.ExpireAt);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         switch ((IconID)iconID)
         {

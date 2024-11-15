@@ -50,7 +50,7 @@ class SwivelGun(BossModule module) : Components.GenericStackSpread(module)
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Stackmarker)
             Stacks.Add(new(actor, 10, activation: WorldState.FutureTime(5), forbiddenPlayers: _forbidden));

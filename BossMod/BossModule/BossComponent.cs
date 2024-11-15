@@ -53,7 +53,7 @@ public class BossComponent(BossModule module)
     public virtual void OnCastStarted(Actor caster, ActorCastInfo spell) { } // note: action is always a spell; not called for player spells
     public virtual void OnCastFinished(Actor caster, ActorCastInfo spell) { } // note: action is always a spell; not called for player spells
     public virtual void OnEventCast(Actor caster, ActorCastEvent spell) { } // note: action is always a spell; not called for player spells
-    public virtual void OnEventIcon(Actor actor, uint iconID) { }
+    public virtual void OnEventIcon(Actor actor, uint iconID, ulong targetID) { }
     public virtual void OnActorEState(Actor actor, ushort state) { }
     public virtual void OnActorEAnim(Actor actor, uint state) { }
     public virtual void OnActorPlayActionTimelineEvent(Actor actor, ushort id) { }

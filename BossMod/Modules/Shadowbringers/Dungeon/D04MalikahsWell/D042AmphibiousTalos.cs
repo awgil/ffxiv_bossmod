@@ -33,7 +33,7 @@ class SwiftSpillRotation(BossModule module) : Components.GenericRotatingAOE(modu
     private DateTime _activation;
     private static readonly AOEShapeCone _shape = new(50, 30.Degrees());
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var increment = (IconID)iconID switch
         {

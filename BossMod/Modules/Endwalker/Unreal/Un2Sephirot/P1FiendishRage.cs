@@ -36,7 +36,7 @@ class P1FiendishRage(BossModule module) : Components.CastCounter(module, ActionI
             Arena.AddCircle(target.Item2.Position, _range, ArenaColor.Danger);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((IconID)iconID == IconID.FiendishRage)
             _targets.Set(Raid.FindSlot(actor.InstanceID));

@@ -41,7 +41,7 @@ class DadJoke(BossModule module) : Components.Knockback(module)
             yield return new(Module.PrimaryActor.Position, 15, _activation, Direction: Angle.FromDirection(actor.Position - Module.PrimaryActor.Position), Kind: Kind.DirForward);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.BaitKnockback)
             _activation = WorldState.FutureTime(5);

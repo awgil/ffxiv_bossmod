@@ -168,7 +168,7 @@ class P5Delta(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((OID)actor.OID is OID.LeftArmUnit or OID.RightArmUnit)
         {

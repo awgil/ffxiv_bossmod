@@ -113,7 +113,7 @@ public class BaitAwayEveryone : GenericBaitAway
 }
 
 // component for mechanics requiring tether targets to bait their aoe away from raid
-public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, ActionID aid = default) : GenericBaitAway(module, aid)
+public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, ActionID aid = default, bool centerAtTarget = false) : GenericBaitAway(module, aid, centerAtTarget: centerAtTarget)
 {
     public AOEShape Shape = shape;
     public uint TID = tetherID;
@@ -181,7 +181,7 @@ public class BaitAwayIcon(BossModule module, AOEShape shape, uint iconID, Action
 
     public virtual Actor? BaitSource(Actor target) => Module.PrimaryActor;
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == IID && BaitSource(actor) is var source && source != null)
             CurrentBaits.Add(new(source, actor, Shape, WorldState.FutureTime(ActivationDelay)));

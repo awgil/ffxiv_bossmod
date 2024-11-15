@@ -27,7 +27,7 @@ class Fireworks(BossModule module) : Components.UniformStackSpread(module, 3, 20
             TetheredAdds[slot] = source;
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         switch ((IconID)iconID)
         {
@@ -132,7 +132,7 @@ class FireSpread(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var rot = (IconID)iconID switch
         {

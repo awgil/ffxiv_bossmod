@@ -4,7 +4,7 @@ class FlamingCrush(BossModule module) : Components.UniformStackSpread(module, 4,
 {
     protected BitMask Avoid;
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.FlamingCrush)
         {

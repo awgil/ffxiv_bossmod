@@ -25,7 +25,7 @@ class CaloricTheory1Part1(BossModule module) : Components.UniformStackSpread(mod
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.CaloricTheory1InitialFire)
             _initialMarkers.Set(Raid.FindSlot(actor.InstanceID));

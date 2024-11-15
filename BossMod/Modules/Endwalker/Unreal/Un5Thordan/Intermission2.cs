@@ -76,7 +76,7 @@ class SkywardLeap(BossModule module) : Components.GenericBaitAway(module, Action
 {
     private static readonly AOEShapeCircle _shape = new(20); // not sure about the spread radius, 15 seems to be enough but damage goes up to 20
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.SkywardLeap)
             CurrentBaits.Add(new(Module.PrimaryActor, actor, _shape));

@@ -87,7 +87,7 @@ class DeepestPit(BossModule module) : Components.GenericAOEs(module, default, "G
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((IconID)iconID == IconID.DeepestPitTarget)
         {

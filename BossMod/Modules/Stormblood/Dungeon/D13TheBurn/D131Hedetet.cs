@@ -179,7 +179,7 @@ class Hailfire(BossModule module) : Components.GenericAOEs(module)
             Refresh();
         }
     }
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == IID && BaitSource(actor) is var source && source != null)
         {

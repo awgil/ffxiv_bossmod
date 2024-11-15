@@ -42,7 +42,7 @@ class BigBoot(BossModule module) : Components.Knockback(module, ActionID.MakeSpe
     {
         yield return new Source(Module.PrimaryActor.Position, 20, Kind: Kind.AwayFromOrigin);
     }
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID is (uint)IconID.BigBoot)
         {
@@ -73,7 +73,7 @@ class Corrosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 class RestraintCollar(BossModule module) : BossComponent(module)
 {
     private Actor? _fetterTarget;
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID is (uint)IconID.RestraintCollar)
         {

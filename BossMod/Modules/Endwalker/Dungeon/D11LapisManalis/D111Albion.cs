@@ -162,7 +162,7 @@ class IcyThroes(BossModule module) : Components.GenericBaitAway(module)
 {
     private readonly List<Actor> _targets = [];
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Spreadmarker)
         {
@@ -201,7 +201,7 @@ class Icebreaker(BossModule module) : Components.GenericAOEs(module)
                 yield return new(circle, c.Position, default, _activation);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Target)
         {

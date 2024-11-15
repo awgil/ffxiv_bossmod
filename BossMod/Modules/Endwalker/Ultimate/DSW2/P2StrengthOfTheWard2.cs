@@ -58,7 +58,7 @@ class P2StrengthOfTheWard2SpreadStack : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((IconID)iconID == IconID.SkywardLeapP2)
             AddSpread(actor);

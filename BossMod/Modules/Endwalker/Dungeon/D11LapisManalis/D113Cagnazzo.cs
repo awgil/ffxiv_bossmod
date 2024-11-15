@@ -134,7 +134,7 @@ class Hydrovent(BossModule module) : Components.LocationTargetedAOEs(module, Act
 
 class NeapTide(BossModule module) : Components.UniformStackSpread(module, 0, 6, alwaysShowSpreads: true)
 {
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Spreadmarker)
             AddSpread(actor);
@@ -149,7 +149,7 @@ class NeapTide(BossModule module) : Components.UniformStackSpread(module, 0, 6, 
 
 class Stackmarkers(BossModule module) : Components.UniformStackSpread(module, 6, 0) // Hydrofall and Springtide, both use the same icon
 {
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Stackmarker)
             AddStack(actor);

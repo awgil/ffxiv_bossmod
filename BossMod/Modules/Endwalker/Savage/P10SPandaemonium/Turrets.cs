@@ -62,7 +62,7 @@ class Turrets(BossModule module) : Components.Knockback(module, ActionID.MakeSpe
             _forbidden.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var order = (IconID)iconID switch
         {

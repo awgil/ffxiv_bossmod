@@ -87,7 +87,7 @@ class ChasmOfVollokPlayer(BossModule module) : Components.GenericAOEs(module, Ac
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => PlayerPriority.Normal;
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.ChasmOfVollok)
         {

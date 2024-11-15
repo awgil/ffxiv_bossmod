@@ -141,7 +141,7 @@ class P3WormholeEnumeration(BossModule module) : Components.UniformStackSpread(m
     private BitMask _targets; // we start showing stacks only after incinerating heat is resolved
     private DateTime _activation;
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Enumeration)
         {

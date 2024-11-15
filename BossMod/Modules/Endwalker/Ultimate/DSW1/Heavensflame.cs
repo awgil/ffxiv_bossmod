@@ -73,7 +73,7 @@ class HeavensflameKnockback(BossModule module) : Components.KnockbackFromCastTar
         _brokenTethers.Set(Raid.FindSlot(tether.Target));
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         int icon = (IconID)iconID switch
         {

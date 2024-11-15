@@ -22,7 +22,7 @@ class FirebreatheRotating(BossModule module) : Components.GenericRotatingAOE(mod
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var angle = (IconID)iconID switch
         {

@@ -17,7 +17,7 @@ class Palladion(BossModule module) : BossComponent(module)
             hints.Add($"Order: {order + 1}", false);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var (target, partner) = (IconID)iconID switch
         {

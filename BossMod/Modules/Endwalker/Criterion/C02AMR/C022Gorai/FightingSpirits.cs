@@ -33,7 +33,7 @@ class WorldlyPursuitBait(BossModule module) : Components.GenericBaitAway(module,
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var order = (IconID)iconID switch
         {

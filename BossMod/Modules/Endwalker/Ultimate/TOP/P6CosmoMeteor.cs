@@ -24,7 +24,7 @@ class P6CosmoMeteorSpread : Components.UniformStackSpread
 
 class P6CosmoMeteorFlares(BossModule module) : Components.UniformStackSpread(module, 6, 20, 5, alwaysShowSpreads: true) // TODO: verify flare falloff
 {
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((IconID)iconID == IconID.OptimizedMeteor)
         {

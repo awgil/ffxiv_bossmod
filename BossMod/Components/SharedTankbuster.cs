@@ -90,7 +90,7 @@ public class IconSharedTankbuster(BossModule module, uint iconId, ActionID aid, 
 
     public virtual Actor? BaitSource(Actor target) => Module.PrimaryActor;
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == iconId)
         {

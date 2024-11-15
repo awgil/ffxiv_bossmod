@@ -95,7 +95,7 @@ class ParhelionCone(BossModule module) : Components.GenericRotatingAOE(module)
             AdvanceSequence(caster.Position, caster.Rotation, WorldState.CurrentTime);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == 168)
             NextDirection = Direction.CCW;
