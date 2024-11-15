@@ -121,7 +121,7 @@ class AgeOfEndlessFrost(BossModule module) : Components.GenericAOEs(module)
     private readonly List<Angle> _angles = [];
     private DateTime _nextActivation;
 
-    private static readonly AOEShapeCone _shape = new(40, 10.Degrees());
+    private static readonly AOEShapeCone _shape = new(40, 11.25f.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
