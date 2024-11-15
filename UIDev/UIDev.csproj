@@ -10,10 +10,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <DalamudLibPath>E:\sources\ff14\dalamud\Dalamud\bin\Debug\</DalamudLibPath>
+  	<DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
 
-  <ItemGroup>
+	<ItemGroup>
     <Using Include="System" />
     <Using Include="System.Collections" />
     <Using Include="System.Collections.Generic" />
