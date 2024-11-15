@@ -34,7 +34,7 @@ class Flatten(BossModule module) : Components.SingleTargetCast(module, ActionID.
 class KanRhaiBait(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
     public static readonly AOEShape Cross = new AOEShapeCross(15, 3);
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == 260)
             CurrentBaits.Add(new(Module.PrimaryActor, actor, Cross, IgnoreRotation: true));

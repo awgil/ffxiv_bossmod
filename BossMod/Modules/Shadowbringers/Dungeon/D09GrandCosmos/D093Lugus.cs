@@ -59,7 +59,7 @@ class BlackFlame(BossModule module) : BossComponent(module)
 
     private IEnumerable<Actor> Furniture => Raid.WithoutSlot().Where(x => x.Type == ActorType.Enemy);
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == 25)
         {
@@ -187,7 +187,7 @@ class FiresDomain(BossModule module) : BossComponent(module)
     private readonly List<Actor> Baits = [];
     private DateTime NextCharge;
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((IconID)iconID is >= IconID.Target1 and <= IconID.Target4)
         {
