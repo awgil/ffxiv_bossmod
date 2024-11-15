@@ -1,6 +1,4 @@
-﻿using Dalamud.Logging.Internal;
-
-namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn;
 
 public enum OID : uint
 {
@@ -37,6 +35,7 @@ public enum SID : uint
     Tracking = 2056, // none->Escort2, extra=0x87
     FrontUnseen = 2644, // Boss->player, extra=0x120
     BackUnseen = 1709, // Boss->player, extra=0xE8
+    Invincibility = 775
 }
 
 public enum IconID : uint
@@ -177,5 +176,12 @@ public class CE64FeelingTheBurn : BossModule
     {
         base.DrawEnemies(pcSlot, pc);
         Arena.Actors(Escorts, ArenaColor.Enemy);
+    }
+
+    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var a in hints.PotentialTargets)
+            if (a.Actor.OID == 0x32FD)
+                a.Priority = 5;
     }
 }
