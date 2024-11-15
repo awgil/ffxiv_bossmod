@@ -276,7 +276,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         // use to weave in opener
         if (ShouldSubtract(strategy, 1))
             prio = GCDPriority.Standard;
-        if (CombatTimer < 10 && !CreatureFlags.HasFlag(CreatureFlags.Pom))
+        if (CombatTimer < 10 && !CreatureFlags.HasFlag(CreatureFlags.Pom) && CanvasFlags.HasFlag(CanvasFlags.Pom) && CanWeave(AID.LivingMuse, 1))
             prio = GCDPriority.Standard;
 
         // use comet to prevent overcap or during buffs
