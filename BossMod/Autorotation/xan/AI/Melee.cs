@@ -39,6 +39,14 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase(manag
         if (Player.Class == Class.SAM)
             AISAM();
 
+        if (Player.FindStatus(2324) != null && Bossmods.ActiveModule?.Info?.GroupType is BossModuleInfo.GroupType.BozjaDuel)
+        {
+            var gcdLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
+            var fopLeft = Player.FindStatus(2346) is ActorStatus st ? StatusDuration(st.ExpireAt) : 0;
+            if (GCD + gcdLength < fopLeft)
+                Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostAssassination), primaryTarget, ActionQueue.Priority.Low);
+        }
+
         ExecLB(strategy, primaryTarget);
     }
 
