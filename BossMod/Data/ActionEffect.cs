@@ -31,7 +31,8 @@ public enum ActionEffectType : byte
     EnmityAmountDown = 26, // 0x1A
     StartActionCombo = 27, // 0x1B
     Retaliation = 29, // 0x1D - 'vengeance' has value = 7, 'arms length' has value = 0
-    Knockback = 32, // 0x20
+    Knockback1 = 31, // 0x1F
+    Knockback2 = 32, // 0x20
     Attract1 = 33, // 0x21
     Attract2 = 34, // 0x22
     AttractCustom1 = 35, // 0x23
@@ -254,7 +255,8 @@ public static class ActionEffectParser
             case ActionEffectType.StartActionCombo:
                 res.Append($"aid={eff.Value}");
                 break;
-            case ActionEffectType.Knockback:
+            case ActionEffectType.Knockback1:
+            case ActionEffectType.Knockback2:
                 var kbData = Service.LuminaRow<Lumina.Excel.Sheets.Knockback>(eff.Value);
                 res.Append($"row={eff.Value}, dist={kbData?.Distance}+{eff.Param0}, dir={(KnockbackDirection?)kbData?.Direction}{(kbData?.Direction == (byte)KnockbackDirection.Arg ? $" ({kbData?.DirectionArg}deg)" : "")}, speed={kbData?.Speed}");
                 break;
@@ -353,7 +355,8 @@ public static class ActionEffectParser
                     return "non-zero params";
                 else
                     return $"param0={eff.Param0}, value={eff.Value}"; // this has some meaning, TODO investigate
-            case ActionEffectType.Knockback:
+            case ActionEffectType.Knockback1:
+            case ActionEffectType.Knockback2:
                 return eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0 ? "non-zero params" : "";
             case ActionEffectType.Attract1:
             case ActionEffectType.Attract2:

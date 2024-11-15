@@ -222,7 +222,8 @@ class AbilityInfo : CommonEnumInfo
                     {
                         switch (eff.Type)
                         {
-                            case ActionEffectType.Knockback:
+                            case ActionEffectType.Knockback1:
+                            case ActionEffectType.Knockback2:
                                 var kbData = Service.LuminaRow<Lumina.Excel.Sheets.Knockback>(eff.Value);
                                 var kind = kbData != null ? (KnockbackDirection)kbData.Value.Direction switch
                                 {
