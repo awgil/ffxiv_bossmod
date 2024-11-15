@@ -21,9 +21,9 @@ public enum AID : uint
     AutoAttackP1 = 40968, // QueenEternalHandP1->player, no cast, single-target
     Aethertithe = 40972, // BossP1->self, 3.0s cast, single-target, visual (three cones with 4-man line stacks)
     AethertitheRaidwide = 40973, // Helper->self, no cast, range 100 circle, multi-hit light aoe
-    AethertitheAOER = 40974, // BossP1->self, no cast, range 100 ?-degree cone (right side cleave)
-    AethertitheAOEC = 40975, // BossP1->self, no cast, range 100 ?-degree cone (center cleave)
-    AethertitheAOEL = 40976, // BossP1->self, no cast, range 100 ?-degree cone (left side cleave)
+    AethertitheAOER = 40974, // BossP1->self, no cast, range 100 70-degree cone (right side cleave)
+    AethertitheAOEC = 40975, // BossP1->self, no cast, range 100 70-degree cone (center cleave)
+    AethertitheAOEL = 40976, // BossP1->self, no cast, range 100 70-degree cone (left side cleave)
     Retribute = 40977, // BossP1->self, no cast, single-target, visual (two line stacks on healers)
     RetributeAOE = 40978, // Helper->self, no cast, range 60 width 8 rect
     LegitimateForceFirstR = 40990, // BossP1->self, 8.0s cast, range 60 width 30 rect (right->left cleave)

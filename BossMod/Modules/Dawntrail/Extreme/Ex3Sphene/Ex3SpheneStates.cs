@@ -117,10 +117,10 @@ class Ex3SpheneStates : StateMachineBuilder
             .DeactivateOnExit<AbsoluteAuthorityKnockback>();
     }
 
-    // TODO: bounds
     private void P1VirtualShiftWind(uint id, float delay)
     {
         Cast(id, AID.VirtualShiftWind, delay, 5, "Raidwide (wind platform)")
+            .OnExit(() => _module.Arena.Bounds = Ex3Sphene.WindBounds)
             .SetHint(StateMachine.StateHint.Raidwide);
         Cast(id + 0x10, AID.LawsOfWind, 5.2f, 4);
         ComponentCondition<Aeroquell>(id + 0x20, 0.1f, comp => comp.Active)
@@ -143,6 +143,7 @@ class Ex3SpheneStates : StateMachineBuilder
             .DeactivateOnExit<MissingLink>();
 
         Cast(id + 0x300, AID.WorldShatterP1, 3, 5, "Raidwide + platform end")
+            .OnExit(() => _module.Arena.Bounds = Ex3Sphene.NormalBounds)
             .SetHint(StateMachine.StateHint.Raidwide);
         ComponentCondition<AeroquellTwister>(id + 0x310, 2.6f, comp => !comp.Sources(Module).Any())
             .DeactivateOnExit<AeroquellTwister>();
@@ -150,7 +151,6 @@ class Ex3SpheneStates : StateMachineBuilder
         P1ProsecutionOfWar(id + 0x1000, 4.5f);
     }
 
-    // TODO: bounds
     private void P1VirtualShiftEarth(uint id, float delay)
     {
         Cast(id, AID.VirtualShiftEarth, delay, 5, "Raidwide (earth platform)")
@@ -197,17 +197,19 @@ class Ex3SpheneStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
-    // TODO: bounds
     private void P1VirtualShiftIce(uint id, float delay)
     {
         Cast(id, AID.VirtualShiftIce, delay, 5, "Raidwide (ice platform)")
+            .OnExit(() => _module.Arena.Bounds = Ex3Sphene.IceBounds)
             .SetHint(StateMachine.StateHint.Raidwide);
         CastStart(id + 0x10, AID.LawsOfIce, 5.2f);
         CastEnd(id + 0x11, 4)
             .ActivateOnEnter<LawsOfIce>();
-        ComponentCondition<LawsOfIce>(id + 0x12, 1, comp => comp.NumCasts > 0, "Move");
+        ComponentCondition<LawsOfIce>(id + 0x12, 1, comp => comp.NumCasts > 0, "Move")
+            .OnExit(() => _module.Arena.Bounds = Ex3Sphene.IceBridgeBounds);
 
         ComponentCondition<Rush>(id + 0x100, 4.3f, comp => comp.Activation != default)
+            .ActivateOnEnter<VirtualShiftIce>()
             .ActivateOnEnter<Rush>()
             .DeactivateOnExit<LawsOfIce>();
         CastStartMulti(id + 0x101, [AID.LegitimateForceFirstR, AID.LegitimateForceFirstL], 11.9f);
@@ -232,6 +234,8 @@ class Ex3SpheneStates : StateMachineBuilder
             .DeactivateOnExit<RaisedTribute>();
 
         Cast(id + 0x300, AID.WorldShatterP1, 3.1f, 5, "Raidwide + platform end")
+            .DeactivateOnExit<VirtualShiftIce>()
+            .OnExit(() => _module.Arena.Bounds = Ex3Sphene.NormalBounds)
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
@@ -244,22 +248,23 @@ class Ex3SpheneStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.DowntimeEnd);
     }
 
-    // TODO: platforms
     private void P2RadicalShift(uint id, float delay)
     {
         ActorCast(id, _module.BossP2, AID.RadicalShift, delay, 11, true, "Raidwide (platform change)")
-            .ActivateOnEnter<RadicalShiftAOE>()
+            .ActivateOnEnter<RadicalShift>()
             .SetHint(StateMachine.StateHint.Raidwide);
         ComponentCondition<RadicalShiftAOE>(id + 0x10, 5.2f, comp => comp.NumFinishedSpreads > 0, "Spread")
+            .ActivateOnEnter<RadicalShiftAOE>()
             .DeactivateOnExit<RadicalShiftAOE>();
 
         ActorCast(id + 0x100, _module.BossP2, AID.RadicalShift, 3, 11, true, "Raidwide (platform change)")
-            .ActivateOnEnter<RadicalShiftAOE>()
             .SetHint(StateMachine.StateHint.Raidwide);
         ComponentCondition<RadicalShiftAOE>(id + 0x110, 5.2f, comp => comp.NumFinishedSpreads > 0, "Spread")
+            .ActivateOnEnter<RadicalShiftAOE>()
             .DeactivateOnExit<RadicalShiftAOE>();
 
         ActorCast(id + 0x200, _module.BossP2, AID.WorldShatterP2, 3, 5, true, "Raidwide + platform end")
+            .OnExit(() => _module.Arena.Bounds = Ex3Sphene.NormalBounds)
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 

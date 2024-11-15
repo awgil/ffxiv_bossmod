@@ -17,7 +17,7 @@ class VirtualShiftEarth(BossModule module) : BossComponent(module)
         return off.X <= HalfExtent.X && off.Z <= HalfExtent.Z;
     }
 
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         Arena.AddRect(Midpoint + CenterOffset, new(0, 1), HalfExtent.Z, HalfExtent.Z, HalfExtent.X, ArenaColor.Border, 2);
         Arena.AddRect(Midpoint - CenterOffset, new(0, 1), HalfExtent.Z, HalfExtent.Z, HalfExtent.X, ArenaColor.Border, 2);
