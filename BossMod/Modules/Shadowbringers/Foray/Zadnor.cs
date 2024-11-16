@@ -5,6 +5,8 @@ namespace BossMod.Shadowbringers.Foray.Zadnor;
 [ConfigDisplay(Parent = typeof(ShadowbringersConfig))]
 class ZadnorFarmConfig : ConfigNode
 {
+    [PropertyDisplay("4th Legion Hexadrone (Dabog)")]
+    public bool Hexadrone = false;
     [PropertyDisplay("4th Legion Death Machine (Menenius)")]
     public bool DeathMachine = false;
     [PropertyDisplay("4th Legion Rearguard (Lyon II)")]
@@ -49,14 +51,14 @@ public class Zadnor : ZoneModule
 
     void OnFateChanged(ClientState.OpActiveFateChange fate)
     {
-        if (fate.Value.ID == 1739 && _config.RearGuard)
-        {
-            _config.RearGuard = false;
-            _config.Modified.Fire();
-        }
         if (fate.Value.ID == 1727 && _config.DeathMachine)
         {
             _config.DeathMachine = false;
+            _config.Modified.Fire();
+        }
+        if (fate.Value.ID == 1739 && _config.RearGuard)
+        {
+            _config.RearGuard = false;
             _config.Modified.Fire();
         }
     }
@@ -65,10 +67,12 @@ public class Zadnor : ZoneModule
     {
         get
         {
-            if (_config.RearGuard)
-                yield return ("Rearguard", 0x329E);
+            if (_config.Hexadrone)
+                yield return ("Hexadrone", 0x327A);
             if (_config.DeathMachine)
                 yield return ("Death Machine", 0x3284);
+            if (_config.RearGuard)
+                yield return ("Rearguard", 0x329E);
         }
     }
 
