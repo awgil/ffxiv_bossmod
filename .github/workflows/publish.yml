@@ -24,7 +24,7 @@ jobs:
         with:
           dotnet-version: 8.0.x
           
-      - name: Download Dalamud Latest (TODO: revert back to master!)
+      - name: Download Dalamud Latest
         run: |
           wget https://goatcorp.github.io/dalamud-distrib/stg/latest.zip -O ${{ env.DALAMUD_HOME }}.zip
           unzip ${{ env.DALAMUD_HOME }}.zip -d ${{ env.DALAMUD_HOME }}
