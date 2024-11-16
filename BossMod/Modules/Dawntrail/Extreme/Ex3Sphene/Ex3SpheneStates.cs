@@ -24,8 +24,11 @@ class Ex3SpheneStates : StateMachineBuilder
         P1Coronation(id + 0x60000, 3.1f);
         P1AbsoluteAuthority(id + 0x70000, 6.2f);
         P1VirtualShiftIce(id + 0x80000, 12.3f);
-        // TODO: prosecution > royal domain > legitimate force > royal domain > enrage
-        SimpleState(id + 0xFF0000, 10000, "???");
+        P1ProsecutionOfWar(id + 0x90000, 8.1f);
+        P1RoyalDomain(id + 0xA0000, 8.2f);
+        P1LegitimateForce(id + 0xB0000, 6.3f);
+        P1RoyalDomain(id + 0xC0000, 3.1f);
+        Cast(id + 0xD0000, AID.AuthorityEternal, 3.2f, 10, "Enrage");
     }
 
     private void Phase2(uint id)
@@ -86,6 +89,14 @@ class Ex3SpheneStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
+    private void P1LegitimateForce(uint id, float delay)
+    {
+        CastMulti(id, [AID.LegitimateForceFirstR, AID.LegitimateForceFirstL], delay, 8, "Side 1")
+            .ActivateOnEnter<LegitimateForce>();
+        ComponentCondition<LegitimateForce>(id + 0x10, 3.1f, comp => comp.NumCasts > 1, "Side 2")
+            .DeactivateOnExit<LegitimateForce>();
+    }
+
     private void P1Coronation(uint id, float delay)
     {
         Cast(id, AID.Coronation, delay, 3);
@@ -94,9 +105,9 @@ class Ex3SpheneStates : StateMachineBuilder
         Cast(id + 0x20, AID.AtomicRay, 1.1f, 3);
         ComponentCondition<AtomicRay>(id + 0x30, 1.2f, comp => comp.Active)
             .ActivateOnEnter<AtomicRay>();
-        ComponentCondition<Coronation>(id + 0x40, 5, comp => comp.NumCasts > 0, "Coronation")
+        ComponentCondition<Coronation>(id + 0x40, 4.9f, comp => comp.NumCasts > 0, "Coronation")
             .DeactivateOnExit<Coronation>();
-        ComponentCondition<AtomicRay>(id + 0x41, 1, comp => comp.NumFinishedSpreads > 0, "Spread")
+        ComponentCondition<AtomicRay>(id + 0x41, 1.1f, comp => comp.NumFinishedSpreads > 0, "Spread")
             .DeactivateOnExit<AtomicRay>();
     }
 
@@ -159,10 +170,7 @@ class Ex3SpheneStates : StateMachineBuilder
             .ActivateOnEnter<VirtualShiftEarth>();
         CastEnd(id + 0x11, 4);
 
-        CastMulti(id + 0x100, [AID.LegitimateForceFirstR, AID.LegitimateForceFirstL], 3.2f, 8, "Side 1")
-            .ActivateOnEnter<LegitimateForce>();
-        ComponentCondition<LegitimateForce>(id + 0x110, 3.1f, comp => comp.NumCasts > 1, "Side 2")
-            .DeactivateOnExit<LegitimateForce>();
+        P1LegitimateForce(id + 0x100, 3.2f);
         ComponentCondition<LawsOfEarthBurst>(id + 0x120, 5, comp => comp.NumCasts > 0, "Towers")
             .ActivateOnEnter<LawsOfEarthBurst1>()
             .DeactivateOnExit<LawsOfEarthBurst>();
@@ -264,6 +272,7 @@ class Ex3SpheneStates : StateMachineBuilder
             .DeactivateOnExit<RadicalShiftAOE>();
 
         ActorCast(id + 0x200, _module.BossP2, AID.WorldShatterP2, 3, 5, true, "Raidwide + platform end")
+            .DeactivateOnExit<RadicalShift>()
             .OnExit(() => _module.Arena.Bounds = Ex3Sphene.NormalBounds)
             .SetHint(StateMachine.StateHint.Raidwide);
     }

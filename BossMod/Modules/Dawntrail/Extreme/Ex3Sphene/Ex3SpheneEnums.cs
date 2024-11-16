@@ -91,6 +91,7 @@ public enum AID : uint
 
     AuthorityEternal = 41034, // BossP1->self, 10.0s cast, single-target, visual (phase change)
     AuthorityEternalAOE = 41035, // BossP1->self, no cast, range 100 circle, raidwide
+    AuthorityEternalEnrage = 41036, // BossP1->self, no cast, range 100 circle, enrage
     IntermissionEnd = 41037, // BossP2->self, no cast, single-target, visual (intermission end)
 
     AutoAttackP2 = 40969, // QueenEternalHandP2->player, no cast, single-target
