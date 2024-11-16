@@ -18,7 +18,7 @@ class IntermissionOrbAratama(BossModule module) : Components.GenericAOEs(module,
 {
     public readonly List<AOEInstance> AOEs = [];
 
-    public static readonly AOEShapeCircle _shape = new(2);
+    private static readonly AOEShapeCircle _shape = new(2);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs;
 
