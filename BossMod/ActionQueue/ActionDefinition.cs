@@ -392,12 +392,12 @@ public sealed class ActionDefinitions : IDisposable
         var normalAction = BozjaActionID.GetNormal(id);
         bool isItem = normalAction == BozjaActionID.GetHolster(id);
         RegisterSpell(normalAction, instantAnimLock: isItem ? 1.1f : 0.6f);
-        if (!isItem)
+        if (!isItem || id == BozjaHolsterID.LightCurtain)
         {
             var aid1 = ActionID.MakeBozjaHolster(id, 0);
-            _definitions[aid1] = new(aid1) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
+            _definitions[aid1] = new(aid1) { AllowedTargets = ActionTargets.Self, InstantAnimLock = isItem ? 1.1f : 2.1f };
             var aid2 = ActionID.MakeBozjaHolster(id, 1);
-            _definitions[aid2] = new(aid2) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
+            _definitions[aid2] = new(aid2) { AllowedTargets = ActionTargets.Self, InstantAnimLock = isItem ? 1.1f : 2.1f };
         }
     }
 
