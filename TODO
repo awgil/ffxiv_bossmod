@@ -1,8 +1,4 @@
 immediate plans
-- 7.1
--- revert csproj changes
--- bump api version in workflow
--- remove icontarget hack
 - nechuciho - seen incorrect rotations...
 - questbattles
 - collisions for pathfinding

@@ -338,7 +338,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         var desiredRotation = CalculateDesiredOrientation(actionImminent);
 
         // execute rotation, if needed
-        var autoRotateConfig = fwk->SystemConfig.GetConfigOption(/*(uint)ConfigOption.AutoFaceTargetOnAction*/225); // TODO: 7.1: update config option
+        var autoRotateConfig = fwk->SystemConfig.GetConfigOption((uint)ConfigOption.AutoFaceTargetOnAction);
         var autoRotateOriginal = autoRotateConfig->Value.UInt;
         if (desiredRotation != null)
         {
