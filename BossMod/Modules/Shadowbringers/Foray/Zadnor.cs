@@ -54,6 +54,11 @@ public class Zadnor : ZoneModule
             _config.RearGuard = false;
             _config.Modified.Fire();
         }
+        if (fate.Value.ID == 1727 && _config.DeathMachine)
+        {
+            _config.DeathMachine = false;
+            _config.Modified.Fire();
+        }
     }
 
     private IEnumerable<(string, uint)> FarmOIDs

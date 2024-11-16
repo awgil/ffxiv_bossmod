@@ -72,6 +72,7 @@ class Duel5MeneniusStates : StateMachineBuilder
     {
         Cast(id, AID.CallousCrossfire, delay, 4, "Turret Crossfire")
             .ActivateOnEnter<CallousCrossfire>()
+            .ActivateOnEnter<Reflect>()
             .DeactivateOnExit<CallousCrossfire>();
     }
 

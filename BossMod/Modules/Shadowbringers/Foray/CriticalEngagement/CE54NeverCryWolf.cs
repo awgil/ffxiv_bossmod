@@ -115,59 +115,45 @@ class ThermalGust(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class AgeOfEndlessFrost(BossModule module) : Components.GenericAOEs(module)
+class AgeOfEndlessFrost(BossModule module) : Components.GenericRotatingAOE(module)
 {
-    private Angle _increment;
-    private readonly List<Angle> _angles = [];
-    private DateTime _nextActivation;
-
-    private static readonly AOEShapeCone _shape = new(40, 11.25f.Degrees());
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        return _angles.Select(a => new AOEInstance(_shape, Module.PrimaryActor.Position, a, _nextActivation));
-    }
+    private static readonly AOEShape Cone = new AOEShapeCone(40, 10.Degrees());
+    private Angle? Increment;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        switch ((AID)spell.Action.ID)
+        if ((AID)spell.Action.ID is AID.AgeOfEndlessFrostFirstAOE)
         {
-            case AID.AgeOfEndlessFrostFirstCW:
-                _increment = -40.Degrees();
-                _nextActivation = Module.CastFinishAt(spell);
-                break;
-            case AID.AgeOfEndlessFrostFirstCCW:
-                _increment = 40.Degrees();
-                _nextActivation = Module.CastFinishAt(spell);
-                break;
-            case AID.AgeOfEndlessFrostFirstAOE:
-                NumCasts = 0;
-                _angles.Add(spell.Rotation);
-                break;
+            Sequences.Add(new(Cone, caster.Position, caster.Rotation, 0.Degrees(), Module.CastFinishAt(spell), 2.05f, 7));
+            UpdateAngle();
+        }
+
+        if ((AID)spell.Action.ID is AID.AgeOfEndlessFrostFirstCW)
+        {
+            Increment = -40.Degrees();
+            UpdateAngle();
+        }
+
+        if ((AID)spell.Action.ID is AID.AgeOfEndlessFrostFirstCCW)
+        {
+            Increment = 40.Degrees();
+            UpdateAngle();
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.AgeOfEndlessFrostFirstCCW or AID.AgeOfEndlessFrostFirstCW or AID.AgeOfEndlessFrostRest)
-        {
-            if (NumCasts == 0)
-            {
-                _nextActivation = WorldState.FutureTime(2.6f);
-            }
-            else if (NumCasts < 6)
-            {
-                _nextActivation = WorldState.FutureTime(2.1f);
-            }
-            else
-            {
-                _angles.Clear();
-            }
+        if ((AID)spell.Action.ID is AID.AgeOfEndlessFrostFirstAOE or AID.AgeOfEndlessFrostRestAOE)
+            AdvanceSequence(caster.Position, caster.Rotation, WorldState.CurrentTime);
+    }
 
-            ++NumCasts;
-            for (int i = 0; i < _angles.Count; ++i)
-                _angles[i] += _increment;
-        }
+    private void UpdateAngle()
+    {
+        if (Increment == null || Sequences.Count < 6)
+            return;
+
+        for (var i = 0; i < Sequences.Count; i++)
+            Sequences.Ref(i).Increment = Increment.Value;
     }
 }
 

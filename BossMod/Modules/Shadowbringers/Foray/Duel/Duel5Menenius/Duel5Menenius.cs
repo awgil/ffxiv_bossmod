@@ -1,7 +1,22 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel5Menenius;
 
-class SpiralScourge(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SpiralScourge), "Use Manawall, Excellence, or Invuln.");
-class CallousCrossfire(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CallousCrossfire), "Use Light Curtain / Reflect.");
+class SpiralScourge(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.SpiralScourge), "Use Manawall, Excellence, or Invuln.");
+class CallousCrossfire(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.CallousCrossfire), "Use Light Curtain / Reflect.");
+
+class Reflect(BossModule module) : BossComponent(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var reflectLeft = actor.FindStatus(2337) is ActorStatus st ? (st.ExpireAt - WorldState.CurrentTime).TotalSeconds : 0;
+
+        var mechanicActive = Module.Enemies(OID.MagitekTurret).Any(e => !e.IsDead);
+
+        var soonestRefresh = WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Total + WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining + 0.94f;
+
+        if (Module.Enemies(OID.MagitekTurret).Any(e => !e.IsDead) && reflectLeft < soonestRefresh)
+            hints.ActionsToExecute.Push(ActionID.MakeBozjaHolster(BozjaHolsterID.LightCurtain, 0), null, ActionQueue.Priority.VeryHigh);
+    }
+}
 
 class ReactiveMunition(BossModule module) : Components.StayMove(module)
 {

@@ -4,6 +4,7 @@ public enum OID : uint
 {
     Boss = 0x31C4,
     Helper = 0x233C,
+    MagitekTurret = 0x31C5
 }
 
 public enum AID : uint
