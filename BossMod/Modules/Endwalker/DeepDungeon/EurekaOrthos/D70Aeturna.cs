@@ -1,4 +1,4 @@
-namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.DD70Aeturna;
+namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.D70Aeturna;
 
 public enum OID : uint
 {
@@ -163,9 +163,9 @@ class Roar(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpe
 class FallingRock(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FallingRock), new AOEShapeCircle(3));
 class Impact(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Impact), new AOEShapeCircle(5));
 
-class DD70AeturnaStates : StateMachineBuilder
+class D70AeturnaStates : StateMachineBuilder
 {
-    public DD70AeturnaStates(BossModule module) : base(module)
+    public D70AeturnaStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<SteelClaw>()
@@ -181,4 +181,4 @@ class DD70AeturnaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 903, NameID = 12246)]
-public class DD70Aeturna(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(20));
+public class D70Aeturna(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(20));

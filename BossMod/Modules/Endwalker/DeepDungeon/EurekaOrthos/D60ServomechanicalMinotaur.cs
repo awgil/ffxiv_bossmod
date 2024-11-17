@@ -1,4 +1,4 @@
-namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.DD60ServomechanicalMinotaur;
+namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.D60ServomechanicalMinotaur;
 
 public enum OID : uint
 {
@@ -59,9 +59,9 @@ class OctupleSwipe(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class DD60ServomechanicalMinotaurStates : StateMachineBuilder
+class D60ServomechanicalMinotaurStates : StateMachineBuilder
 {
-    public DD60ServomechanicalMinotaurStates(BossModule module) : base(module)
+    public D60ServomechanicalMinotaurStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<BullishSwipeSingle>()
@@ -73,4 +73,4 @@ class DD60ServomechanicalMinotaurStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 902, NameID = 12267)]
-public class DD60ServomechanicalMinotaur(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsCircle(20));
+public class D60ServomechanicalMinotaur(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsCircle(20));
