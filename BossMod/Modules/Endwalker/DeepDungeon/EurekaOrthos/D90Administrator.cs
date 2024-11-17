@@ -69,7 +69,7 @@ class AetherochemicalLaserCombo(BossModule module) : Components.GenericAOEs(modu
             yield return new(_boss.Shape, _boss.Origin, _boss.Rotation, _boss.Activation, ArenaColor.Danger);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public void OnEventIcon(Actor actor, uint iconID)
     {
         var shapeIndex = (OID)actor.OID switch
         {
