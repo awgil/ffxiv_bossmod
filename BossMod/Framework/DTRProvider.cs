@@ -28,10 +28,11 @@ internal sealed class DTRProvider : IDisposable
         _aiEntry.Tooltip = "Left Click => Toggle Enabled, Right Click => Toggle DrawUI";
         _aiEntry.OnClick = () =>
         {
-            if (UIInputData.Instance()->UIFilteredCursorInputs.MouseButtonHeldThrottledFlags.HasFlag(MouseButtonFlags.RBUTTON))
+            if (UIInputData.Instance()->CursorInputs.MouseButtonHeldThrottledFlags.HasFlag(MouseButtonFlags.RBUTTON))
                 _aiConfig.DrawUI ^= true;
             else
                 _aiConfig.Enabled ^= true;
+            _aiConfig.Modified.Fire();
         };
     }
 
