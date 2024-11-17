@@ -32,10 +32,10 @@ public abstract class RoleCasterUtility(RotationModuleManager manager, Actor pla
         DefineSimpleConfig(def, SharedTrack.Surecast, "Surecast", "Anti-KB", 10, ClassShared.AID.Surecast, 6); // note: secondary effect 15s
     }
 
-    protected void ExecuteShared(StrategyValues strategy, ActionID lb3)
+    protected void ExecuteShared(StrategyValues strategy, ActionID lb3, Actor? primaryTarget)
     {
         ExecuteSimple(strategy.Option(SharedTrack.Sprint), ClassShared.AID.Sprint, Player);
-        ExecuteSimple(strategy.Option(SharedTrack.Sleep), ClassShared.AID.Sleep, null);
+        ExecuteSimple(strategy.Option(SharedTrack.Sleep), ClassShared.AID.Sleep, primaryTarget);
         ExecuteSimple(strategy.Option(SharedTrack.LucidDreaming), ClassShared.AID.LucidDreaming, Player);
         ExecuteSimple(strategy.Option(SharedTrack.Surecast), ClassShared.AID.Surecast, Player);
 
@@ -46,7 +46,7 @@ public abstract class RoleCasterUtility(RotationModuleManager manager, Actor pla
 
         var addle = strategy.Option(SharedTrack.Addle);
         if (addle.As<AddleOption>() != AddleOption.None)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Addle), null, addle.Priority(), addle.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Addle), primaryTarget, addle.Priority(), addle.Value.ExpireIn);
 
         var swift = strategy.Option(SharedTrack.Swiftcast);
         if (swift.As<SwiftcastOption>() != SwiftcastOption.None)
