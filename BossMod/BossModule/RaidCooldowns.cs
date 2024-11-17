@@ -51,7 +51,7 @@ public sealed class RaidCooldowns : IDisposable
     public static bool IsDamageBuff(uint statusID) => statusID
         is (uint)AST.SID.Divination or (uint)DRG.SID.BattleLitany or (uint)RPR.SID.ArcaneCircle or (uint)MNK.SID.Brotherhood
         or (uint)BRD.SID.BattleVoice or (uint)DNC.SID.TechnicalFinish or (uint)SMN.SID.SearingLight or (uint)RDM.SID.Embolden
-        or (uint)PCT.SID.StarryMuse;
+        or (uint)PCT.SID.StarryMuse or (uint)ClassShared.SID.MagicBurst or (uint)ClassShared.SID.BannerOfHonoredSacrifice or (uint)ClassShared.SID.BannerOfNobleEnds or (uint)ClassShared.SID.LostFontOfPower or (uint)ClassShared.SID.ClericStance or (uint)ClassShared.SID.LostExcellence or (uint)ClassShared.SID.Memorable or (uint)ClassShared.SID.BloodRush;
 
     public float DamageBuffLeft(Actor target)
     {

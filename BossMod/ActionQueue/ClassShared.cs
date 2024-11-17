@@ -81,6 +81,18 @@ public enum SID : uint
     Addle = 1203, // applied by Addle to target
     Swiftcast = 167, // applied by Swiftcast to self
     Raise = 148, // applied by Raise to target
+
+    // Bozja
+    LostChainspell = 2560, // instant cast
+
+    MagicBurst = 1652, // magic damage increase
+    BannerOfNobleEnds = 2326, // damage increase + healing disable
+    BannerOfHonoredSacrifice = 2327, // damage increase + hp drain
+    LostFontOfPower = 2346, // damage/crit increase
+    ClericStance = 2484, // damage increase (from seraph strike)
+    LostExcellence = 2564, // damage increase + invincibility
+    Memorable = 2565, // damage increase
+    BloodRush = 2567, // damage increase + ability haste
 }
 
 public sealed class Definitions : IDisposable

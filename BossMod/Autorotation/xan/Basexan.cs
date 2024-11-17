@@ -341,10 +341,10 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         NextGCD = default;
         NextGCDPrio = 0;
 
-        var pelo = Player.FindStatus(BossMod.BRD.SID.Peloton);
+        var pelo = Player.FindStatus(ClassShared.SID.Peloton);
         PelotonLeft = pelo != null ? StatusDuration(pelo.Value.ExpireAt) : 0;
-        SwiftcastLeft = StatusLeft(BossMod.WHM.SID.Swiftcast);
-        TrueNorthLeft = StatusLeft(BossMod.DRG.SID.TrueNorth);
+        SwiftcastLeft = MathF.Max(StatusLeft(ClassShared.SID.Swiftcast), StatusLeft(ClassShared.SID.LostChainspell));
+        TrueNorthLeft = StatusLeft(ClassShared.SID.TrueNorth);
 
         ForceMovementIn = Hints.MaxCastTimeEstimate;
         AnimationLockDelay = estimatedAnimLockDelay;
