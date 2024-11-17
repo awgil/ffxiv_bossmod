@@ -32,6 +32,7 @@ public enum AID : uint
     UnrelentingAnguish = 39950, // Boss->self, 3.0s cast, single-target, visual (orbs)
     UnrelentingAnguishAratama = 39958, // AratamaForce->self, no cast, range 2 circle, orb explosion
     OminousWind = 39948, // Boss->self, no cast, single-target, apply bubbles
+    OminousWindAOE = 39949, // Helper->self, no cast, range 6 circle, if bubbles touch
     FireAndLightningBoss = 39930, // Boss->self, 4.0s cast, range 50+R width 20 rect
 
     DanceOfTheIncomplete = 39924, // Boss->self, no cast, single-target, visual (split off tiger)
@@ -65,7 +66,9 @@ public enum AID : uint
     Bombogenesis = 39944, // Boss->self, no cast, single-target, visual (3 baited puddle icons)
     GaleForce = 39945, // Helper->self, no cast, range 6 circle, baited puddle
     VacuumClaw = 39946, // Helper->self, no cast, range ? circle, growing voidzone aoe
-    VacuumBlade = 39947, // Helper->self, no cast, range 100 circle, raidwide
+    VacuumBlade = 39947, // Helper->self, no cast, range 100 circle, ??? (raidwide with vuln, sometimes happens after vacuum claws)
+
+    StormPulseEnrage = 39969, // Boss->self, 8.0s cast, range 100 circle
 }
 
 public enum SID : uint
