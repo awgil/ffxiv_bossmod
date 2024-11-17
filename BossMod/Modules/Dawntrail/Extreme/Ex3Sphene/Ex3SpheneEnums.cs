@@ -110,6 +110,7 @@ public enum AID : uint
     RoyalBanishment = 41050, // BossP2->location, 5.0s cast, visual
     RoyalBanishmentAOE = 41051, // Helper->self, no cast, range 60 width 10 rect, line stack
     RoyalBanishmentLast = 41052, // Helper->self, no cast, range 60 width 10 rect, line stack
+    Preservation = 41053, // BossP2->self, 14.0s cast, range 100 circle, enrage
 }
 
 public enum SID : uint

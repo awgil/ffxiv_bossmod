@@ -38,8 +38,7 @@ class Ex3SpheneStates : StateMachineBuilder
         P2DimensionalDistortion(id + 0x20000, 7.2f);
         P2DyingMemory(id + 0x30000, 1.3f);
         P2RadicalShift(id + 0x40000, 11.4f);
-        // TODO: enrage
-        SimpleState(id + 0xFF0000, 10000, "???");
+        ActorCast(id + 0x50000, _module.BossP2, AID.Preservation, 7.3f, 14, true, "Enrage");
     }
 
     private void P1Aethertithe(uint id, float delay)
