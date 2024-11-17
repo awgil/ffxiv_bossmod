@@ -6,7 +6,7 @@ class P3EarthShaker(BossModule module) : Components.GenericBaitAway(module, Acti
 
     private static readonly AOEShapeCone _shape = new(60, 45.Degrees());
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Earthshaker && Module.Enemies(OID.BahamutPrime).FirstOrDefault() is var source && source != null)
         {
@@ -48,7 +48,7 @@ class P3EarthShakerVoidzone(BossModule module) : Components.GenericAOEs(module, 
             _predicted.Clear();
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Earthshaker)
             _targets.Set(Raid.FindSlot(actor.InstanceID));

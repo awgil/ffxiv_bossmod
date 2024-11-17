@@ -125,7 +125,7 @@ class HeavenlyCyclone(BossModule module) : Components.GenericRotatingAOE(module)
     private DateTime _activation;
     private static readonly AOEShapeCone _shape = new(28, 90.Degrees());
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var increment = (IconID)iconID switch
         {

@@ -10,7 +10,7 @@ class Styx(BossModule module) : Components.UniformStackSpread(module, 5, 0, 8)
             ++NumCasts;
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Styx)
             AddStack(actor);

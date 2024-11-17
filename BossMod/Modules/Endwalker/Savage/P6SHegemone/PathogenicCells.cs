@@ -11,7 +11,7 @@ class PathogenicCells(BossModule module) : Components.CastCounter(module, Action
             hints.Add($"Order: {_order[slot]}", false);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID is >= (uint)IconID.Pathogenic1 and <= (uint)IconID.Pathogenic8)
         {

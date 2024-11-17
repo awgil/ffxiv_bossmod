@@ -77,7 +77,7 @@ class RightArmRayBuffed(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var increment = (IconID)iconID switch
         {

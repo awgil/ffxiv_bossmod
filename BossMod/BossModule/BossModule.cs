@@ -418,10 +418,10 @@ public abstract class BossModule : IDisposable
             comp.OnStatusLose(actor, actor.Statuses[index]);
     }
 
-    private void OnActorIcon(Actor actor, uint iconID)
+    private void OnActorIcon(Actor actor, uint iconID, ulong targetID)
     {
         foreach (var comp in _components)
-            comp.OnEventIcon(actor, iconID);
+            comp.OnEventIcon(actor, iconID, targetID);
     }
 
     private void OnActorCastEvent(Actor actor, ActorCastEvent cast)

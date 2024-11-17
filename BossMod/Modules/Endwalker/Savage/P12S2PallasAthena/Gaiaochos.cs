@@ -53,7 +53,7 @@ class Geocentrism(BossModule module) : Components.GenericAOEs(module)
 
 class DivineExcoriation(BossModule module) : Components.UniformStackSpread(module, 0, 1)
 {
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.DivineExcoriation)
             AddSpread(actor, WorldState.FutureTime(3.1f));

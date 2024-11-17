@@ -93,7 +93,7 @@ class ClassicalConcepts(BossModule module, bool invert) : BossComponent(module)
             _states[slot].Debuff = debuff;
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var column = (IconID)iconID switch
         {

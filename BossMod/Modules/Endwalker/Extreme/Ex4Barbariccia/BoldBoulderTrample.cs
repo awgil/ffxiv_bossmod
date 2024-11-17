@@ -14,7 +14,7 @@ class BoldBoulderTrample(BossModule module) : Components.UniformStackSpread(modu
             Spreads.RemoveAll(s => s.Target.InstanceID == spell.TargetID);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((IconID)iconID == IconID.Trample)
             AddStack(actor);

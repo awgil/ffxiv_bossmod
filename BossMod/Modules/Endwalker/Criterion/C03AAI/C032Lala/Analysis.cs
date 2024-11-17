@@ -85,7 +85,7 @@ class TargetedLight(BossModule module) : Components.GenericGaze(module, default,
             _rotationCount[slot] = count;
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var rot = (IconID)iconID switch
         {

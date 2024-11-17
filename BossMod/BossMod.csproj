@@ -38,7 +38,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <DalamudLibPath>E:\sources\ff14\dalamud\Dalamud\bin\Debug\</DalamudLibPath>
+    <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))'">

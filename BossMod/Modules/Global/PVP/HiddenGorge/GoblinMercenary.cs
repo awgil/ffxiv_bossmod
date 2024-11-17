@@ -75,7 +75,7 @@ class GobfireShootypops(BossModule module) : Components.GenericRotatingAOE(modul
 
     private static readonly AOEShapeRect _shape = new(32, 3);
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var increment = (IconID)iconID switch
         {

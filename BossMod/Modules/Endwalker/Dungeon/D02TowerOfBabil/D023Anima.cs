@@ -216,7 +216,7 @@ class CoffinScratch(BossModule module) : Components.StandardChasingAOEs(module, 
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.ChasingAOE)
         {

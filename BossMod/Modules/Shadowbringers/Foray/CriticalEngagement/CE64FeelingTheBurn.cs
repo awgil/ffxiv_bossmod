@@ -57,7 +57,7 @@ class AntiPersonnelMissile(BossModule module) : Components.GenericAOEs(module, A
         return _positions.Take(2).Select(p => new AOEInstance(_shape, p));
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         // TODO: activation time (icon pairs are ~3s apart, but explosion pairs are ~2.6s apart; first explosion is ~2.1s after visual cast end)
         if ((IconID)iconID == IconID.BallisticImpact)

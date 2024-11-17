@@ -46,7 +46,7 @@ class MagitektSlashRotation(BossModule module) : Components.GenericRotatingAOE(m
     private DateTime _activation;
     public static readonly AOEShapeCone Cone = new(23.5f, 30.Degrees());
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var increment = (IconID)iconID switch
         {

@@ -327,9 +327,9 @@ public sealed class ReplayBuilder : IDisposable
         _statuses.Remove((actor.InstanceID, index));
     }
 
-    private void EventIcon(Actor actor, uint iconID)
+    private void EventIcon(Actor actor, uint iconID, ulong targetId)
     {
-        _res.Icons.Add(new(iconID, GetOrCreateParticipant(actor.InstanceID), _ws.CurrentTime));
+        _res.Icons.Add(new(iconID, GetOrCreateParticipant(actor.InstanceID), targetId != 0 ? GetOrCreateParticipant(targetId) : null, _ws.CurrentTime));
     }
 
     private void EventCast(Actor actor, ActorCastEvent cast)

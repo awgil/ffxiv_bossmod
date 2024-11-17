@@ -41,7 +41,7 @@ class PelagicCleaverRotation(BossModule module) : Components.GenericRotatingAOE(
     private DateTime _activation;
     private static readonly AOEShapeCone _shape = new(40, 30.Degrees());
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var increment = (IconID)iconID switch
         {

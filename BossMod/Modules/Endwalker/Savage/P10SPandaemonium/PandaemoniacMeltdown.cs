@@ -59,7 +59,7 @@ class PandaemoniacMeltdown(BossModule module) : Components.CastCounter(module, A
             _stackTarget = WorldState.Actors.Find(spell.MainTargetID);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.PandaemoniacMeltdownSpread)
             _spreadTargets.Add(actor);

@@ -50,7 +50,7 @@ class LimitCut(BossModule module, float alphaDelay) : Components.GenericBaitAway
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID is >= 79 and <= 86)
         {

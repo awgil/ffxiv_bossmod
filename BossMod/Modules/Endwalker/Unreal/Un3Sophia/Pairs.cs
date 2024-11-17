@@ -35,7 +35,7 @@ class Pairs(BossModule module) : BossComponent(module)
             Arena.AddCircle(p.Item2.Position, _radius, _players2[pcSlot] ? ArenaColor.Danger : ArenaColor.Safe);
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         switch ((IconID)iconID)
         {
