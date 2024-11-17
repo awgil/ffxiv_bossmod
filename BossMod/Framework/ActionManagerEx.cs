@@ -253,49 +253,45 @@ public sealed unsafe class ActionManagerEx : IDisposable
     // skips queueing etc
     private bool ExecuteAction(ActionID action, ulong targetId, Vector3 targetPos)
     {
-        if (action.Type is ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1)
+        switch (action.Type)
         {
-            // fake action type - using action from bozja holster
-            var state = PublicContentBozja.GetState(); // note: if it's non-null, the director instance can't be null too
-            var holsterIndex = state != null ? state->HolsterActions.IndexOf((byte)action.ID) : -1;
-            return holsterIndex >= 0 && PublicContentBozja.GetInstance()->UseFromHolster((uint)holsterIndex, action.Type == ActionType.BozjaHolsterSlot1 ? 1u : 0);
-        }
-        else if (action.Type == ActionType.PetAction)
-        {
-            // pet action "Place" - uses location targeting but doesn't interact with UseActionLocation at all, meaning it requires its own send-packet function
-            if (action.ID == 3)
-            {
-                var now = DateTime.Now;
-                if (_nextAllowedExecuteCommand > now)
-                    return false;
-                _nextAllowedExecuteCommand = now.AddMilliseconds(100);
-                _executeCommandGT(1800, &targetPos, action.ID, 0, 0, 0);
-                return true;
-            }
-            else
-            {
-                // all other pet actions can be used as normal through UA (not UAL)
-                return _useActionHook.Original(_inst, CSActionType.PetAction, action.ID, targetId, 0, ActionManager.UseActionMode.None, 0, null);
-            }
-        }
-        else if (action.Type == ActionType.General)
-        {
-            // TODO: are there any general actions that require (or even work with) UAL?
-            // 23 Dismount does not, haven't tested others
-            return _useActionHook.Original(_inst, CSActionType.GeneralAction, action.ID, targetId, 0, ActionManager.UseActionMode.None, 0, null);
-        }
-        else
-        {
-            // real action type, just execute our UAL hook
-            // note that for items extraParam should be 0xFFFF (since we want to use any item, not from first inventory slot)
-            // note that for 'summon carbuncle/eos/titan/ifrit/garuda' actions, extraParam can be used to select glamour
-            var extraParam = action.Type switch
-            {
-                ActionType.Spell => ActionManager.GetExtraParamForSummonAction(action.ID), // will return 0 for non-summon actions
-                ActionType.Item => 0xFFFFu,
-                _ => 0u
-            };
-            return _inst->UseActionLocation((CSActionType)action.Type, action.ID, targetId, &targetPos, extraParam);
+            case ActionType.Spell:
+                // for spells, execute our UAL hook
+                // note that for 'summon carbuncle/eos/titan/ifrit/garuda' actions, extraParam can be used to select glamour; the function will return 0 for non-summon actions
+                return _inst->UseActionLocation(CSActionType.Action, action.ID, targetId, &targetPos, ActionManager.GetExtraParamForSummonAction(action.ID));
+            case ActionType.Item:
+                // note that for items extraParam should be 0xFFFF (since we want to use any item, not from first inventory slot)
+                return _inst->UseActionLocation(CSActionType.Item, action.ID, targetId, &targetPos, 0xFFFFu);
+            case ActionType.General:
+                // TODO: are there any general actions that require (or even work with) UAL?
+                // 23 Dismount does not, haven't tested others
+                return _useActionHook.Original(_inst, CSActionType.GeneralAction, action.ID, targetId, 0, ActionManager.UseActionMode.None, 0, null);
+            case ActionType.PetAction:
+                if (action.ID == 3)
+                {
+                    // pet action "Place" - uses location targeting but doesn't interact with UseActionLocation at all, meaning it requires its own send-packet function
+                    var now = DateTime.Now;
+                    if (_nextAllowedExecuteCommand > now)
+                        return false;
+                    _nextAllowedExecuteCommand = now.AddMilliseconds(100);
+                    _executeCommandGT(1800, &targetPos, action.ID, 0, 0, 0);
+                    return true;
+                }
+                else
+                {
+                    // all other pet actions can be used as normal through UA (not UAL)
+                    // TODO: consider calling UsePetAction instead?..
+                    return _useActionHook.Original(_inst, CSActionType.PetAction, action.ID, targetId, 0, ActionManager.UseActionMode.None, 0, null);
+                }
+            case ActionType.BozjaHolsterSlot0:
+            case ActionType.BozjaHolsterSlot1:
+                // fake action type - using action from bozja holster
+                var state = PublicContentBozja.GetState(); // note: if it's non-null, the director instance can't be null too
+                var holsterIndex = state != null ? state->HolsterActions.IndexOf((byte)action.ID) : -1;
+                return holsterIndex >= 0 && PublicContentBozja.GetInstance()->UseFromHolster((uint)holsterIndex, action.Type == ActionType.BozjaHolsterSlot1 ? 1u : 0);
+            default:
+                // fall back to UAL hook for everything not covered explicitly
+                return _inst->UseActionLocation((CSActionType)action.Type, action.ID, targetId, &targetPos, 0);
         }
     }
 
