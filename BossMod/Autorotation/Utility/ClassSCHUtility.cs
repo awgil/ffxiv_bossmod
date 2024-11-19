@@ -78,7 +78,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        ExecuteShared(strategy, IDLimitBreak3);
+        ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
 
         // TODO add Consolation
 

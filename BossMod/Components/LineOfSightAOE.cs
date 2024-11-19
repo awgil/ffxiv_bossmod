@@ -11,15 +11,13 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
     public List<(WPos Center, float Radius)> Blockers { get; private set; } = [];
     public List<(float Distance, Angle Dir, Angle HalfWidth)> Visibility { get; private set; } = [];
 
-    public void Modify(WPos? origin, IEnumerable<(WPos Center, float Radius)> blockers, DateTime nextExplosion = default, BitMask affectedPlayers = default)
+    public void Modify(WPos? origin, IEnumerable<(WPos Center, float Radius)> blockers, DateTime nextExplosion = default)
     {
         NextExplosion = nextExplosion;
         Origin = origin;
         Blockers.Clear();
         Blockers.AddRange(blockers);
         Visibility.Clear();
-        if (affectedPlayers != default)
-            AffectedPlayers = affectedPlayers;
         if (origin != null)
         {
             foreach (var b in Blockers)
@@ -36,7 +34,6 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
         if (Origin != null
             && !IgnoredPlayers[slot]
             && actor.Position.InCircle(Origin.Value, MaxRange)
-            && AffectedPlayers[slot]
             && !Visibility.Any(v => !actor.Position.InCircle(Origin.Value, v.Distance) && actor.Position.InCone(Origin.Value, v.Dir, v.HalfWidth)))
         {
             hints.Add("Hide behind obstacle!");
