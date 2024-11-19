@@ -11,6 +11,7 @@ public enum OID : uint
     AratamaPuddle = 0x1E8EA9, // R0.500, x0 (spawn during fight), EventObj type
     IntermissionHelper = 0x1EA87E, // R0.500, x0 (spawn during fight), EventObj type
     VacuumClaw = 0x1EA957, // R0.500, x0 (spawn during fight), EventObj type
+    ArenaFeatures = 0x1EA1A1, // R2.000, x1, EventObj type
 }
 
 public enum AID : uint

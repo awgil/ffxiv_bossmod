@@ -14,6 +14,17 @@ class VoiceOfThunder : Components.PersistentInvertibleVoidzone
     }
 }
 
+class Intermission(BossModule module) : BossComponent(module)
+{
+    public bool Active;
+
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if ((OID)actor.OID == OID.ArenaFeatures && state is 0x00040008 or 0x00100020)
+            Active = state == 0x00040008;
+    }
+}
+
 class IntermissionOrbAratama(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.IntermissionOrbAratama), "GTFO from puddle!")
 {
     public readonly List<AOEInstance> AOEs = [];

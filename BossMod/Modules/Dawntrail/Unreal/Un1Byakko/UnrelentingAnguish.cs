@@ -40,7 +40,7 @@ class VacuumClaw(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
 {
     private readonly IReadOnlyList<Actor> _sources = module.Enemies(OID.VacuumClaw);
 
-    private static readonly AOEShapeCircle _shape = new(10); // TODO: verify radius; initial voidzone is 6, but spell radius is 1 in sheets; after 5th hit we get 4 stacks of area-of-influence increase
+    private static readonly AOEShapeCircle _shape = new(12); // TODO: verify radius; initial voidzone is 6, but spell radius is 1 in sheets; after 5th hit we get 4 stacks of area-of-influence increase
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _sources.Select(s => new AOEInstance(_shape, s.Position));
 }
