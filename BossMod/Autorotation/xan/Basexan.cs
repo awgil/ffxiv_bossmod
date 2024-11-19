@@ -2,7 +2,7 @@
 
 public enum Targeting { Manual, Auto, AutoPrimary, AutoTryPri }
 public enum OffensiveStrategy { Automatic, Delay, Force }
-public enum AOEStrategy { ST, AOE, ForceAOE, ForceST }
+public enum AOEStrategy { AOE, ST, ForceAOE, ForceST }
 
 public enum SharedTrack { Targeting, AOE, Buffs, Count }
 
@@ -432,8 +432,8 @@ static class Extendxan
             .AddOption(xan.Targeting.AutoTryPri, "AutoTryPri", "Automatically select best target for AOE actions - if player has a target, ensure that target is hit");
 
         def.Define(SharedTrack.AOE).As<AOEStrategy>("AOE")
-            .AddOption(AOEStrategy.ST, "ST", "Use single-target actions")
             .AddOption(AOEStrategy.AOE, "AOE", "Use AOE actions if beneficial")
+            .AddOption(AOEStrategy.ST, "ST", "Use single-target actions")
             .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Always use AOE actions, even on one target")
             .AddOption(AOEStrategy.ForceST, "ForceST", "Forbid any action that can hit multiple targets");
 
