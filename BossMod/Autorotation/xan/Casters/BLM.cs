@@ -55,6 +55,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         if (TriplecastLeft > GCD)
             return 0;
 
+        if (aid == AID.Despair && Unlocked(TraitID.EnhancedAstralFire))
+            return 0;
+
         var aspect = ActionDefinitions.Instance.Spell(aid)!.Aspect;
 
         if (aid == AID.Fire3 && Firestarter > GCD
@@ -434,7 +437,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     private bool ShouldTriplecast(StrategyValues strategy) => TriplecastLeft == 0 && (ShouldUseLeylines(strategy) || InLeyLines);
 
     private bool ShouldUseLeylines(StrategyValues strategy, int extraGCDs = 0)
-        => CanWeave(AID.LeyLines, extraGCDs)
+        => CanWeave(MaxChargesIn(AID.LeyLines), extraGCDs)
         && ForceMovementIn >= 30
         && strategy.Option(SharedTrack.Buffs).As<OffensiveStrategy>() != OffensiveStrategy.Delay;
 

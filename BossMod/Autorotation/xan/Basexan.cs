@@ -380,16 +380,27 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             return (float.MaxValue, 0);
 
         // level 100 stone sky sea
-        if (primaryTarget?.OID != 0x41CD)
-            return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), Bossmods.RaidCooldowns.NextDamageBuffIn2());
+        if (primaryTarget?.OID == 0x41CD)
+        {
+            // hack for a dummy: expect that raidbuffs appear at 7.8s and then every 120s
+            var cycleTime = CombatTimer - 7.8f;
+            if (cycleTime < 0)
+                return (0, 7.8f - CombatTimer); // very beginning of a fight
 
-        // hack for a dummy: expect that raidbuffs appear at 7.8s and then every 120s
-        var cycleTime = CombatTimer - 7.8f;
-        if (cycleTime < 0)
-            return (0, 7.8f - CombatTimer); // very beginning of a fight
+            cycleTime %= 120;
+            return cycleTime < 20 ? (20 - cycleTime, 0) : (0, 120 - cycleTime);
+        }
 
-        cycleTime %= 120;
-        return cycleTime < 20 ? (20 - cycleTime, 0) : (0, 120 - cycleTime);
+        var buffsIn = Bossmods.RaidCooldowns.NextDamageBuffIn2();
+        if (buffsIn == null)
+        {
+            if (CombatTimer < 8)
+                buffsIn = 8 - CombatTimer;
+            else
+                buffsIn = float.MaxValue;
+        }
+
+        return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), buffsIn.Value);
     }
 
     public abstract void Exec(StrategyValues strategy, Actor? primaryTarget);

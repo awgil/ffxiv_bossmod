@@ -39,10 +39,10 @@ public sealed class RaidCooldowns : IDisposable
     }
 
     // TODO: why do we need two versions?..
-    public float NextDamageBuffIn2()
+    public float? NextDamageBuffIn2()
     {
         if (_damageCooldowns.Count == 0)
-            return float.MaxValue;
+            return null;
 
         var firstAvailable = _damageCooldowns.Select(e => e.AvailableAt).Min();
         return MathF.Min(float.MaxValue, (float)(firstAvailable - _ws.CurrentTime).TotalSeconds);
