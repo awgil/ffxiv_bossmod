@@ -20,7 +20,7 @@ public sealed class ClassDNCUtility(RotationModuleManager manager, Actor player)
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        ExecuteShared(strategy, IDLimitBreak3);
+        ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
         ExecuteSimple(strategy.Option(Track.CuringWaltz), DNC.AID.CuringWaltz, Player);
         ExecuteSimple(strategy.Option(Track.ShieldSamba), DNC.AID.ShieldSamba, Player);
         ExecuteSimple(strategy.Option(Track.Improvisation), DNC.AID.Improvisation, Player);

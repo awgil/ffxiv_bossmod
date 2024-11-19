@@ -4,7 +4,7 @@ class Aethertithe(BossModule module) : Components.GenericAOEs(module)
 {
     public AOEInstance? AOE;
 
-    private static readonly AOEShapeCone _shape = new(100, 30.Degrees()); // TODO: verify angle
+    private static readonly AOEShapeCone _shape = new(100, 35.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(AOE);
 
@@ -14,9 +14,9 @@ class Aethertithe(BossModule module) : Components.GenericAOEs(module)
             return;
         Angle? dir = state switch
         {
-            0x04000100 => -60.Degrees(),
+            0x04000100 => -55.Degrees(),
             0x08000100 => 0.Degrees(),
-            0x10000100 => 60.Degrees(),
+            0x10000100 => 55.Degrees(),
             _ => null
         };
         if (dir != null)

@@ -1,4 +1,4 @@
-namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.DD20CloningNode;
+namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.D20CloningNode;
 
 public enum OID : uint
 {
@@ -82,9 +82,9 @@ class EncounterHints(BossModule module) : BossComponent(module)
     }
 }
 
-class DD20CloningNodeStates : StateMachineBuilder
+class D20CloningNodeStates : StateMachineBuilder
 {
-    public DD20CloningNodeStates(BossModule module) : base(module)
+    public D20CloningNodeStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<FlameBreath>()
@@ -94,9 +94,9 @@ class DD20CloningNodeStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 898, NameID = 12261)]
-public class DD20CloningNode : BossModule
+public class D20CloningNode : BossModule
 {
-    public DD20CloningNode(WorldState ws, Actor primary) : base(ws, primary, new(-300, -300), new ArenaBoundsCircle(19.5f))
+    public D20CloningNode(WorldState ws, Actor primary) : base(ws, primary, new(-300, -300), new ArenaBoundsCircle(19.5f))
     {
         ActivateComponent<EncounterHints>();
     }

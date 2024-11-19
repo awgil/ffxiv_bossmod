@@ -17,7 +17,7 @@ class VirtualShiftEarth(BossModule module) : BossComponent(module)
         return off.X <= HalfExtent.X && off.Z <= HalfExtent.Z;
     }
 
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         Arena.AddRect(Midpoint + CenterOffset, new(0, 1), HalfExtent.Z, HalfExtent.Z, HalfExtent.X, ArenaColor.Border, 2);
         Arena.AddRect(Midpoint - CenterOffset, new(0, 1), HalfExtent.Z, HalfExtent.Z, HalfExtent.X, ArenaColor.Border, 2);
@@ -140,7 +140,7 @@ class MeteorImpact(BossModule module) : Components.CastCounter(module, default)
         if (_meteorsAbovePlatforms[slot] != shouldBeAbovePlatform)
             hints.Add(shouldBeAbovePlatform ? "Fly above platform!" : "GTFO from platform!");
 
-        var shouldNotBeStacked = _meteorsAbovePlatforms[slot] ? Raid.WithoutSlot() : Raid.WithSlot().IncludedInMask(_meteorsAbovePlatforms).Actors();
+        var shouldNotBeStacked = _meteorsAbovePlatforms[slot] ? Raid.WithoutSlot() : Raid.WithSlot(true).IncludedInMask(_meteorsAbovePlatforms).Actors();
         if (shouldNotBeStacked.InRadiusExcluding(actor, 4).Any())
             hints.Add("Spread!");
 
@@ -151,7 +151,7 @@ class MeteorImpact(BossModule module) : Components.CastCounter(module, default)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var p in Raid.WithSlot().IncludedInMask(_meteorsAbovePlatforms).Actors())
+        foreach (var p in Raid.WithSlot(true).IncludedInMask(_meteorsAbovePlatforms).Actors())
             Arena.AddCircle(p.Position, 4, ArenaColor.Danger);
     }
 

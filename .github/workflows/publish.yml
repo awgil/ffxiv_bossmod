@@ -26,7 +26,7 @@ jobs:
           
       - name: Download Dalamud Latest
         run: |
-          wget https://goatcorp.github.io/dalamud-distrib/latest.zip -O ${{ env.DALAMUD_HOME }}.zip
+          wget https://goatcorp.github.io/dalamud-distrib/stg/latest.zip -O ${{ env.DALAMUD_HOME }}.zip
           unzip ${{ env.DALAMUD_HOME }}.zip -d ${{ env.DALAMUD_HOME }}
 
       - name: Restore Project
@@ -44,6 +44,6 @@ jobs:
           version_number: ${{ env.tag }}
           path: "BossMod/bin/Release/BossMod/latest.zip"
           type: "latest"
-          dalamud_version: "10"
+          dalamud_version: "11"
         env:
           PUBLISHER_KEY: ${{ secrets.PUBLISHER_KEY }}

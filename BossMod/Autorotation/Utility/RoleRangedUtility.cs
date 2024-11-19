@@ -20,13 +20,13 @@ public abstract class RoleRangedUtility(RotationModuleManager manager, Actor pla
         DefineSimpleConfig(def, SharedTrack.ArmsLength, "ArmsLength", "ArmsL", 300, ClassShared.AID.ArmsLength, 6); // note: secondary effect 15s
     }
 
-    protected void ExecuteShared(StrategyValues strategy, ActionID lb3)
+    protected void ExecuteShared(StrategyValues strategy, ActionID lb3, Actor? primaryTarget)
     {
         ExecuteSimple(strategy.Option(SharedTrack.Sprint), ClassShared.AID.Sprint, Player);
-        ExecuteSimple(strategy.Option(SharedTrack.LegGraze), ClassShared.AID.LegGraze, null);
+        ExecuteSimple(strategy.Option(SharedTrack.LegGraze), ClassShared.AID.LegGraze, primaryTarget);
         ExecuteSimple(strategy.Option(SharedTrack.SecondWind), ClassShared.AID.SecondWind, Player);
-        ExecuteSimple(strategy.Option(SharedTrack.FootGraze), ClassShared.AID.FootGraze, null);
-        ExecuteSimple(strategy.Option(SharedTrack.HeadGraze), ClassShared.AID.HeadGraze, null);
+        ExecuteSimple(strategy.Option(SharedTrack.FootGraze), ClassShared.AID.FootGraze, primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.HeadGraze), ClassShared.AID.HeadGraze, primaryTarget);
         ExecuteSimple(strategy.Option(SharedTrack.ArmsLength), ClassShared.AID.ArmsLength, Player);
 
         var lb = strategy.Option(SharedTrack.LB);

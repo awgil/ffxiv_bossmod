@@ -361,7 +361,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         canBreak = hasBreak && Unlocked(GNB.AID.SonicBreak); //SonicBreak conditions
         canBow = Unlocked(GNB.AID.BowShock) && ActionReady(GNB.AID.BowShock); //BowShock conditions
         canContinue = Unlocked(GNB.AID.Continuation); //Continuation conditions
-        canReign = Unlocked(GNB.AID.ReignOfBeasts); //ReignOfBeasts conditions
+        canReign = Unlocked(GNB.AID.ReignOfBeasts) && hasReign; //ReignOfBeasts conditions
         #endregion
 
         #endregion

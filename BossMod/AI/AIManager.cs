@@ -6,10 +6,9 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 
 namespace BossMod.AI;
 
-sealed class AIManager : IDisposable
+sealed class AIManager(RotationModuleManager autorot, ActionManagerEx amex, MovementOverride movement) : IDisposable
 {
-    private readonly RotationModuleManager _autorot;
-    private readonly AIController _controller;
+    private readonly AIController _controller = new(autorot.WorldState, amex, movement);
 
     public readonly AIConfig Config = Service.Config.Get<AIConfig>();
     public AIBehaviour? Behaviour { get; private set; }
@@ -17,7 +16,7 @@ sealed class AIManager : IDisposable
     public string NaviStatus { get; private set; } = "";
 
     public int MasterSlot => (int)Config.FollowSlot; // non-zero means corresponding player is master
-    public WorldState WorldState => _autorot.Bossmods.WorldState;
+    public WorldState WorldState => autorot.Bossmods.WorldState;
     public float ForceMovementIn => Behaviour?.ForceMovementIn ?? float.MaxValue;
 
     // TODO: this is not good, callers should use SwitchToXXX directly
@@ -36,17 +35,9 @@ sealed class AIManager : IDisposable
         }
     }
 
-    public AIManager(RotationModuleManager autorot, ActionManagerEx amex, MovementOverride movement)
-    {
-        _autorot = autorot;
-        _controller = new(autorot.WorldState, amex, movement);
-        //Service.ChatGui.ChatMessage += OnChatMessage;
-    }
-
     public void Dispose()
     {
         SwitchToIdle();
-        //Service.ChatGui.ChatMessage -= OnChatMessage;
     }
 
     public void Update()
@@ -71,7 +62,7 @@ sealed class AIManager : IDisposable
             _controller.Clear();
         }
 
-        _controller.Update(player, _autorot.Hints, WorldState.CurrentTime);
+        _controller.Update(player, autorot.Hints, WorldState.CurrentTime);
         AIStatus = $"AI: {(Behaviour != null ? $"on, {$"master={master?.Name}[{(int)Config.FollowSlot + 1}]"}" : "off")}";
         var dist = _controller.NaviTargetPos != null && player != null ? (_controller.NaviTargetPos.Value - player.Position).Length() : 0;
         NaviStatus = $"Navi={_controller.NaviTargetPos?.ToString() ?? "<none>"} (d={dist:f3}, max-cast={MathF.Min(Behaviour?.ForceMovementIn ?? float.MaxValue, 1000):f3})";
@@ -92,52 +83,6 @@ sealed class AIManager : IDisposable
         SwitchToIdle();
         Config.FollowSlot = (AIConfig.Slot)masterSlot;
         Config.Modified.Fire();
-        Behaviour = new AIBehaviour(_controller, _autorot);
+        Behaviour = new AIBehaviour(_controller, autorot);
     }
-
-    //private unsafe int FindPartyMemberSlotFromSender(SeString sender)
-    //{
-    //    if (sender.Payloads.FirstOrDefault() is not PlayerPayload source)
-    //        return -1;
-    //    var group = GroupManager.Instance()->GetGroup();
-    //    var slot = -1;
-    //    for (int i = 0; i < group->MemberCount; ++i)
-    //    {
-    //        if (group->PartyMembers[i].HomeWorld == source.World.RowId && group->PartyMembers[i].NameString == source.PlayerName)
-    //        {
-    //            slot = i;
-    //            break;
-    //        }
-    //    }
-    //    return slot >= 0 ? Array.FindIndex(WorldState.Party.Members, m => m.ContentId == group->PartyMembers[slot].ContentId) : -1;
-    //}
-
-    //private void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
-    //{
-    //    if (!Config.Enabled || type != XivChatType.Party)
-    //        return;
-
-    //    var messagePrefix = message.Payloads.FirstOrDefault() as TextPayload;
-    //    if (messagePrefix?.Text == null || !messagePrefix.Text.StartsWith("vbmai ", StringComparison.Ordinal))
-    //        return;
-
-    //    var messageData = messagePrefix.Text.Split(' ');
-    //    if (messageData.Length < 2)
-    //        return;
-
-    //    switch (messageData[1])
-    //    {
-    //        case "follow":
-    //            var master = FindPartyMemberSlotFromSender(sender);
-    //            if (master >= 0)
-    //                SwitchToFollow(master);
-    //            break;
-    //        case "cancel":
-    //            SwitchToIdle();
-    //            break;
-    //        default:
-    //            Service.Log($"[AI] Unknown command: {messageData[1]}");
-    //            break;
-    //    }
-    //}
 }

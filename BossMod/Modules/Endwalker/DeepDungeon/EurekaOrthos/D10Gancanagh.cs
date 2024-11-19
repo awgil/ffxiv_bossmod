@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.DD10Gancanagh;
+﻿namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.D10Gancanagh;
 
 public enum OID : uint
 {
@@ -19,9 +19,9 @@ class MandrashockSingle(BossModule module) : Components.SelfTargetedAOEs(module,
 class MandraShockTitan(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MandrashockTitan), new AOEShapeCircle(10f), 6); // made this 6 at the second to keep the safe spot shown for 3rd hit.
 class MandraStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mandrastorm), new AOEShapeCircle(18.5f));
 
-class DD10GancanaghStates : StateMachineBuilder
+class D10GancanaghStates : StateMachineBuilder
 {
-    public DD10GancanaghStates(BossModule module) : base(module)
+    public D10GancanaghStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<MandrashockSingle>()
@@ -31,4 +31,4 @@ class DD10GancanaghStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Puni.sh Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 897, NameID = 12240)]
-public class DD10Gancanagh(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsSquare(20));
+public class D10Gancanagh(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsSquare(20));

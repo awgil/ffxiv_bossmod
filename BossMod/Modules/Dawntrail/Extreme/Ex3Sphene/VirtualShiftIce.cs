@@ -1,5 +1,42 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex3Sphene;
 
+class VirtualShiftIce(BossModule module) : Components.GenericAOEs(module, default, "GTFO from broken bridge!")
+{
+    private readonly List<AOEInstance> _unsafeBridges = [];
+
+    private static readonly AOEShapeRect _shape = new(2, 3, 2);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _unsafeBridges;
+
+    public override void OnEventEnvControl(byte index, uint state)
+    {
+        if (state is not 0x00200010 and not 0x00400001)
+            return;
+
+        WDir offset = index switch
+        {
+            4 => new(-5, -4),
+            5 => new(-5, +4),
+            6 => new(+5, -4),
+            7 => new(+5, +4),
+            _ => default
+        };
+        if (offset == default)
+            return;
+
+        var center = Module.Center + offset;
+        switch (state)
+        {
+            case 0x00200010:
+                _unsafeBridges.Add(new(_shape, center));
+                break;
+            case 0x00400001:
+                _unsafeBridges.RemoveAll(s => s.Origin.AlmostEqual(center, 1));
+                break;
+        }
+    }
+}
+
 class LawsOfIce(BossModule module) : Components.StayMove(module)
 {
     public int NumCasts;

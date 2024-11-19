@@ -45,7 +45,7 @@ public sealed class ClassBLUUtility(RotationModuleManager manager, Actor player)
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        ExecuteShared(strategy, IDLimitBreak3);
+        ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Bristle), BLU.AID.Bristle, Player);
         ExecuteSimple(strategy.Option(Track.WhiteWind), BLU.AID.WhiteWind, Player);
         ExecuteSimple(strategy.Option(Track.IceSpikes), BLU.AID.IceSpikes, Player);

@@ -27,14 +27,14 @@ public abstract class RoleHealerUtility(RotationModuleManager manager, Actor pla
         DefineSimpleConfig(def, SharedTrack.Rescue, "Rescue", "", 50, ClassShared.AID.Rescue);
     }
 
-    protected void ExecuteShared(StrategyValues strategy, ActionID lb3)
+    protected void ExecuteShared(StrategyValues strategy, ActionID lb3, Actor? primaryTarget)
     {
         ExecuteSimple(strategy.Option(SharedTrack.Sprint), ClassShared.AID.Sprint, Player);
-        ExecuteSimple(strategy.Option(SharedTrack.Repose), ClassShared.AID.Repose, null);
-        ExecuteSimple(strategy.Option(SharedTrack.Esuna), ClassShared.AID.Esuna, null);
+        ExecuteSimple(strategy.Option(SharedTrack.Repose), ClassShared.AID.Repose, primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.Esuna), ClassShared.AID.Esuna, primaryTarget);
         ExecuteSimple(strategy.Option(SharedTrack.LucidDreaming), ClassShared.AID.LucidDreaming, Player);
         ExecuteSimple(strategy.Option(SharedTrack.Surecast), ClassShared.AID.Surecast, Player);
-        ExecuteSimple(strategy.Option(SharedTrack.Rescue), ClassShared.AID.Rescue, null);
+        ExecuteSimple(strategy.Option(SharedTrack.Rescue), ClassShared.AID.Rescue, primaryTarget);
 
         var lb = strategy.Option(SharedTrack.LB);
         var lbLevel = LBLevelToExecute(lb.As<LBOption>());

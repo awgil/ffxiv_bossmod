@@ -19,8 +19,8 @@ public enum IconID : uint
 public enum AID : uint
 {
     Admonishment = 29889, // Boss->self, 4.0s cast, range 40 width 12 rect // done
-    AkhMornCast = 29283, // Boss->players, 5.0s cast, range 6 circle 
-    AkhMornFollowup = 29284, // Boss->players, no cast, range 6 circle 
+    AkhMornCast = 29283, // Boss->players, 5.0s cast, range 6 circle
+    AkhMornFollowup = 29284, // Boss->players, no cast, range 6 circle
     Animadversion = 29281, // Boss->self, 7.0s cast, range 50 circle // done
     AntipathyBoss = 29285, // Boss->self, 4.0s cast, single-target
     AntipathyCast1 = 29286, // Helper->self, 4.0s cast, range 6 circle // done
