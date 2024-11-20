@@ -414,10 +414,10 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         if (PerfectBalanceLeft == 0)
             return CurrentForm;
 
-        if (ForcedLunar)
-            return Form.OpoOpo;
-
         var nadi = strategy.Option(Track.Nadi).As<NadiStrategy>();
+
+        if (ForcedLunar || nadi == NadiStrategy.Lunar)
+            return Form.OpoOpo;
 
         // TODO throw away all this crap and fix odd lunar PB (it should not be used before rof)
 
