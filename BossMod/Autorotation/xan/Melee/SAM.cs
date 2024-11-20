@@ -164,6 +164,9 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             if (TrueNorthLeft == 0 && Hints.PotentialTargets.Any(x => !x.Actor.Omnidirectional) && CountdownRemaining < 5)
                 PushGCD(AID.TrueNorth, Player);
 
+            if (MeikyoLeft > CountdownRemaining && CountdownRemaining < 0.76f)
+                PushGCD(AID.Gekko, primaryTarget);
+
             return;
         }
 
