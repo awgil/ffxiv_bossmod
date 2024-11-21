@@ -56,7 +56,7 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
 
         OGCD(strategy, primaryTarget);
 
-        if (CountdownRemaining != null)
+        if (CountdownRemaining > 0)
         {
             if (CountdownRemaining < GetCastTime(AID.Malefic))
                 PushGCD(AID.Malefic, primaryTarget);

@@ -156,7 +156,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
         OGCD(strategy, primaryTarget);
 
-        if (CountdownRemaining != null)
+        if (CountdownRemaining > 0)
         {
             if (MeikyoLeft == 0 && CountdownRemaining < 14)
                 PushGCD(AID.MeikyoShisui, Player);
@@ -367,7 +367,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
     private void OGCD(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (primaryTarget == null || !HaveFugetsu)
+        if (primaryTarget == null || !HaveFugetsu || !Player.InCombat)
             return;
 
         if (strategy.BuffsOk())

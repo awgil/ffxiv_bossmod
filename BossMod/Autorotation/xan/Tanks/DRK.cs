@@ -70,7 +70,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
 
         OGCD(strategy, primaryTarget);
 
-        if (CountdownRemaining != null)
+        if (CountdownRemaining > 0)
             return;
 
         GoalZoneCombined(3, Hints.GoalAOECircle(5), 3);

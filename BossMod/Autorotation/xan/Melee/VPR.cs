@@ -116,7 +116,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
         OGCD(strategy, primaryTarget);
 
-        if (primaryTarget == null)
+        if (CountdownRemaining > 0 || primaryTarget == null)
             return;
 
         var aoeBreakpoint = DreadCombo switch

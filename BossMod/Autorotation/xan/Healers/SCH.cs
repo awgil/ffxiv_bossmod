@@ -87,7 +87,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
         if (primaryTarget == null)
             return;
 
-        if (CountdownRemaining != null)
+        if (CountdownRemaining > 0)
         {
             if (CountdownRemaining <= GetCastTime(AID.Broil1))
                 PushGCD(AID.Broil1, primaryTarget);
@@ -157,7 +157,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
 
         void autoplace()
         {
-            if (FairyOrder != PetOrder.Place && (Player.InCombat || CountdownRemaining != null))
+            if (FairyOrder != PetOrder.Place && (Player.InCombat || CountdownRemaining > 0))
             {
                 if (Bossmods.ActiveModule?.Arena.Center is WPos p)
                     Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 3), null, ActionQueue.Priority.VeryHigh, targetPos: new(p.X, Player.PosRot.Y, p.Z));

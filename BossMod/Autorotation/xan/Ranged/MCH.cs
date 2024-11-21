@@ -85,7 +85,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         if (IsPausedForFlamethrower)
             return;
 
-        if (CountdownRemaining != null)
+        if (CountdownRemaining > 0)
         {
             if (CountdownRemaining < 0.4)
                 PushGCD(AID.AirAnchor, primaryTarget);

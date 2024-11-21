@@ -92,7 +92,7 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
 
         OGCD(strategy, primaryTarget);
 
-        if (CountdownRemaining != null)
+        if (CountdownRemaining > 0)
         {
             if (CountdownRemaining < EffectApplicationDelay(AID.Stormbite))
                 PushGCD(AID.Stormbite, primaryTarget);

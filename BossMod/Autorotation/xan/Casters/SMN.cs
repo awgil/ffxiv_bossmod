@@ -243,7 +243,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         if (primaryTarget == null)
             return;
 
-        if (CountdownRemaining != null)
+        if (CountdownRemaining > 0)
         {
             if (CountdownRemaining <= GetCastTime(AID.Ruin1))
                 PushGCD(AID.Ruin1, primaryTarget);
@@ -327,7 +327,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void OGCDs(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (!Player.InCombat)
+        if (!Player.InCombat || primaryTarget == null)
             return;
 
         if (Favor == Favor.Titan)

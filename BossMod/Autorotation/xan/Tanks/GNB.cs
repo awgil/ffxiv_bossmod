@@ -48,7 +48,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
 
         CalcNextBestOGCD(strategy, primaryTarget);
 
-        if (CountdownRemaining != null)
+        if (CountdownRemaining > 0)
             return;
 
         GoalZoneCombined(3, Hints.GoalAOECircle(5), Unlocked(AID.FatedCircle) && Ammo > 0 ? 2 : 3);

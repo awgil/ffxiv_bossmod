@@ -83,7 +83,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (primaryTarget == null)
             return;
 
-        if (CountdownRemaining != null)
+        if (CountdownRemaining > 0)
         {
             if (CountdownRemaining < 0.7f)
                 PushGCD(AID.WingedGlide, primaryTarget);

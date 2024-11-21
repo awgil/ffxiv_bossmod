@@ -70,15 +70,15 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
         NumAOETargets = NumMeleeAOETargets(strategy);
 
-        CalcNextBestOGCD(strategy, primaryTarget);
-
-        if (CountdownRemaining != null)
+        if (CountdownRemaining > 0)
         {
             if (CountdownRemaining < GetCastTime(AID.HolySpirit))
                 PushGCD(AID.HolySpirit, primaryTarget);
 
             return;
         }
+
+        CalcNextBestOGCD(strategy, primaryTarget);
 
         GoalZoneCombined(3, Hints.GoalAOECircle(5), 3);
 
@@ -142,7 +142,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
     private void CalcNextBestOGCD(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (primaryTarget == null)
+        if (primaryTarget == null || !Player.InCombat)
             return;
 
         if (ShouldFoF(strategy, primaryTarget))
