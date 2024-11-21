@@ -72,7 +72,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
         CalcNextBestOGCD(strategy, primaryTarget);
 
-        if (CountdownRemaining > 0)
+        if (CountdownRemaining != null)
         {
             if (CountdownRemaining < GetCastTime(AID.HolySpirit))
                 PushGCD(AID.HolySpirit, primaryTarget);
@@ -142,7 +142,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
     private void CalcNextBestOGCD(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (primaryTarget == null || CountdownRemaining != null)
+        if (primaryTarget == null)
             return;
 
         if (ShouldFoF(strategy, primaryTarget))

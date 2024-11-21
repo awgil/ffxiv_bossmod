@@ -124,7 +124,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
         OGCD(strategy, primaryTarget);
 
-        if (CountdownRemaining > 0)
+        if (CountdownRemaining != null)
         {
             if (CountdownRemaining < 6)
                 UseMudra(AID.Suiton, primaryTarget, endCondition: CountdownRemaining < 1);

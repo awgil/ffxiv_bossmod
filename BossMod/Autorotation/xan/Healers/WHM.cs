@@ -60,7 +60,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
 
         NumSolaceTargets = World.Party.WithoutSlot(excludeAlliance: true).Count(x => Player.DistanceToHitbox(x) <= 20);
 
-        if (CountdownRemaining > 0)
+        if (CountdownRemaining != null)
         {
             if (CountdownRemaining < GetCastTime(AID.Stone1))
                 PushGCD(AID.Stone1, primaryTarget);

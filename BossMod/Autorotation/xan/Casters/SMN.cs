@@ -243,7 +243,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         if (primaryTarget == null)
             return;
 
-        if (CountdownRemaining > 0)
+        if (CountdownRemaining != null)
         {
             if (CountdownRemaining <= GetCastTime(AID.Ruin1))
                 PushGCD(AID.Ruin1, primaryTarget);
@@ -300,8 +300,9 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
             // balance says to default to summons if you don't know whether you will lose a usage or not
             if (ReadyIn(AID.Aethercharge) <= GCD && Player.InCombat)
             {
-                // scarlet flame and wyrmwave are both single target, this is ok
-                PushGCD(BestAethercharge, primaryTarget);
+                if (!Unlocked(AID.DreadwyrmTrance) || DowntimeIn > GCD + 15)
+                    // scarlet flame and wyrmwave are both single target, this is ok
+                    PushGCD(BestAethercharge, primaryTarget);
             }
 
             if (TranceFlags.HasFlag(SmnFlags.Topaz))

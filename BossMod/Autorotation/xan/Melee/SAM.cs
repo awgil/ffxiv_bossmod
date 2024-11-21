@@ -156,7 +156,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
         OGCD(strategy, primaryTarget);
 
-        if (CountdownRemaining > 0)
+        if (CountdownRemaining != null)
         {
             if (MeikyoLeft == 0 && CountdownRemaining < 14)
                 PushGCD(AID.MeikyoShisui, Player);

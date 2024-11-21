@@ -320,7 +320,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
         var sprint = StatusLeft(BossMod.SGE.SID.Sprint);
 
-        if (CountdownRemaining > 0)
+        if (CountdownRemaining != null)
         {
             if (CountdownRemaining is > 3 and < 15 && FormShiftLeft == 0)
                 PushGCD(AID.FormShift, Player);

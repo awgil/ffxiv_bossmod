@@ -78,7 +78,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
             && !World.Party.Members[World.Party.FindSlot(kardiaTarget.InstanceID)].InCutscene)
             PushGCD(AID.Kardia, kardiaTarget);
 
-        if (CountdownRemaining > 0)
+        if (CountdownRemaining != null)
         {
             if (CountdownRemaining < GetCastTime(AID.Dosis))
                 PushGCD(AID.Dosis, primaryTarget);
