@@ -152,7 +152,10 @@ class Un1ByakkoStates : StateMachineBuilder
             .ActivateOnEnter<VoiceOfThunder>()
             .DeactivateOnExit<VoiceOfThunder>()
             .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.DowntimeStart);
-        ComponentCondition<IntermissionSweepTheLeg>(id + 0x20, 42.2f, comp => comp.NumCasts > 0, "Donut 1")
+        ComponentCondition<Intermission>(id + 0x12, 5.7f, comp => comp.Active)
+            .ActivateOnEnter<Intermission>()
+            .OnExit(() => Module.Arena.Bounds = Un1Byakko.IntermissionBounds);
+        ComponentCondition<IntermissionSweepTheLeg>(id + 0x20, 36.5f, comp => comp.NumCasts > 0, "Donut 1")
             .ActivateOnEnter<IntermissionOrbAratama>()
             .ActivateOnEnter<IntermissionSweepTheLeg>();
         ComponentCondition<ImperialGuard>(id + 0x21, 5.7f, comp => comp.NumCasts > 0, "Line 1")
@@ -163,7 +166,10 @@ class Un1ByakkoStates : StateMachineBuilder
             .DeactivateOnExit<IntermissionSweepTheLeg>();
         ComponentCondition<ImperialGuard>(id + 0x24, 3.4f, comp => comp.NumCasts > 2, "Line 3")
             .DeactivateOnExit<ImperialGuard>();
-        ComponentCondition<FellSwoop>(id + 0x25, 27.7f, comp => comp.NumCasts > 0, "Raidwide")
+        ComponentCondition<Intermission>(id + 0x25, 7.5f, comp => !comp.Active)
+            .DeactivateOnExit<Intermission>()
+            .OnExit(() => Module.Arena.Bounds = Un1Byakko.NormalBounds);
+        ComponentCondition<FellSwoop>(id + 0x26, 20.2f, comp => comp.NumCasts > 0, "Raidwide")
             .ActivateOnEnter<FellSwoop>()
             .DeactivateOnExit<FellSwoop>()
             .SetHint(StateMachine.StateHint.Raidwide);

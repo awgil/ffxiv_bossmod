@@ -12,7 +12,7 @@ class FieryIcyPortent(BossModule module) : Components.StayMove(module)
         };
         if (req != Requirement.None)
         {
-            Array.Fill(PlayerStates, new(req, default));
+            Array.Fill(PlayerStates, new(req, Module.CastFinishAt(spell)));
         }
     }
 

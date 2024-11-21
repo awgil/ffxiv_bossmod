@@ -72,7 +72,7 @@ class AethermodynamicsStayMove(BossModule module) : Components.StayMove(module, 
         SID.Heatstroke => new(Requirement.Stay, status.ExpireAt),
         SID.Pyretic => new(Requirement.Stay, WorldState.CurrentTime, 1),
         SID.ColdSweats => new(Requirement.Move, status.ExpireAt.AddSeconds(1)),
-        SID.FreezingUp => new(Requirement.Move, status.ExpireAt, 1),
+        SID.FreezingUp => new(Requirement.Move, WorldState.CurrentTime, 1),
         _ => default
     };
 }

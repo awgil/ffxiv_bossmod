@@ -23,7 +23,10 @@ class ReactiveMunition(BossModule module) : Components.StayMove(module)
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID is SID.AccelerationBomb)
-            SetState(Raid.FindSlot(actor.InstanceID), new(Requirement.Stay, status.ExpireAt));
+        {
+            if (Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+                PlayerStates[slot] = new(Requirement.Stay, status.ExpireAt);
+        }
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
@@ -38,7 +41,10 @@ class SenseWeakness(BossModule module) : Components.StayMove(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SenseWeakness)
-            SetState(Raid.FindSlot(caster.TargetID), new(Requirement.Move, Module.CastFinishAt(spell)));
+        {
+            if (Raid.FindSlot(caster.TargetID) is var slot && slot >= 0)
+                PlayerStates[slot] = new(Requirement.Move, Module.CastFinishAt(spell));
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

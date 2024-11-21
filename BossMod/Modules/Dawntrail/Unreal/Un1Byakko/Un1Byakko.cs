@@ -10,8 +10,11 @@ class DistantClap(BossModule module) : Components.SelfTargetedAOEs(module, Actio
 class SweepTheLegBoss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SweepTheLegBoss), new AOEShapeCone(28.3f, 135.Degrees()));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1007, NameID = 7092, PlanLevel = 100)]
-public class Un1Byakko(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20))
+public class Un1Byakko(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), NormalBounds)
 {
+    public static readonly ArenaBoundsCircle NormalBounds = new(20);
+    public static readonly ArenaBoundsCircle IntermissionBounds = new(15);
+
     private Actor? _hakutei;
     public Actor? Boss() => PrimaryActor;
     public Actor? Hakutei() => _hakutei;
