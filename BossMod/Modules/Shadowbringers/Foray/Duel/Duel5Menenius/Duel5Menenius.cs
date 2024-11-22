@@ -10,7 +10,7 @@ class ReactiveMunition(BossModule module) : Components.StayMove(module)
         if ((SID)status.ID is SID.AccelerationBomb)
         {
             if (Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-                PlayerStates[slot] = new(Requirement.Stay, default);
+                PlayerStates[slot] = new(Requirement.Stay, status.ExpireAt);
         }
     }
 
@@ -31,7 +31,7 @@ class SenseWeakness(BossModule module) : Components.StayMove(module)
         if ((AID)spell.Action.ID == AID.SenseWeakness)
         {
             if (Raid.FindSlot(caster.TargetID) is var slot && slot >= 0)
-                PlayerStates[slot] = new(Requirement.Move, default);
+                PlayerStates[slot] = new(Requirement.Move, Module.CastFinishAt(spell));
         }
     }
 

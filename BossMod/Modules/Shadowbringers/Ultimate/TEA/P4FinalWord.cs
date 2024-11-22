@@ -62,7 +62,7 @@ class P4FinalWordStillnessMotion(BossModule module) : Components.StayMove(module
         if (req != Requirement.None)
         {
             _first = req;
-            Array.Fill(PlayerStates, new(req, default));
+            Array.Fill(PlayerStates, new(req, Module.CastFinishAt(spell)));
         }
     }
 
@@ -73,7 +73,7 @@ class P4FinalWordStillnessMotion(BossModule module) : Components.StayMove(module
             var slot = Raid.FindSlot(spell.MainTargetID);
             if (slot >= 0)
             {
-                PlayerStates[slot].Requirement = PlayerStates[slot].Requirement != _first ? Requirement.None : _first == Requirement.Move ? Requirement.Stay : Requirement.Move;
+                PlayerStates[slot] = PlayerStates[slot].Requirement != _first ? default : new(_first == Requirement.Move ? Requirement.Stay : Requirement.Move, WorldState.FutureTime(11));
             }
         }
     }
