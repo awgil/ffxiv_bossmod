@@ -354,7 +354,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         canBS = Unlocked(GNB.AID.BurstStrike) && Ammo > 0; //BurstStrike conditions; -1 Ammo ST
         canGF = Unlocked(GNB.AID.GnashingFang) && ActionReady(GNB.AID.GnashingFang) && Ammo > 0; //GnashingFang conditions; -1 Ammo ST
         canFC = Unlocked(GNB.AID.FatedCircle) && Ammo > 0; //FatedCircle conditions; -1 Ammo AOE
-        canDD = Unlocked(GNB.AID.DoubleDown) && ActionReady(GNB.AID.DoubleDown) && Ammo > 0; //DoubleDown conditions; -2 Ammo AOE
+        canDD = Unlocked(GNB.AID.DoubleDown) && ActionReady(GNB.AID.DoubleDown) && Ammo > 0; //DoubleDown conditions; -1 Ammo AOE
         canBF = Unlocked(GNB.AID.Bloodfest) && ActionReady(GNB.AID.Bloodfest); //Bloodfest conditions; +all Ammo (must have target)
         //Cooldown-relative
         canZone = Unlocked(GNB.AID.DangerZone) && ActionReady(GNB.AID.DangerZone); //Zone conditions
