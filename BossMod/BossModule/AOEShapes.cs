@@ -121,3 +121,12 @@ public sealed record class AOEShapeTriCone(float SideLength, Angle HalfAngle, An
     public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = 0) => arena.AddTriangle(origin, origin + SideLength * (rotation + HalfAngle).ToDirection(), origin + SideLength * (rotation - HalfAngle).ToDirection(), color);
     public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Tri(origin, new(default, SideLength * (rotation + HalfAngle).ToDirection(), SideLength * (rotation - HalfAngle).ToDirection()));
 }
+
+public sealed record class AOEShapeCustom(RelSimplifiedComplexPolygon Poly, Angle DirectionOffset = default) : AOEShape
+{
+    public override string ToString() => $"Custom: off={DirectionOffset}";
+    public override bool Check(WPos position, WPos origin, Angle rotation) => Poly.Contains((position - origin).Rotate(-rotation - DirectionOffset));
+    public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = 0) => arena.ZoneComplex(origin, rotation + DirectionOffset, Poly, color);
+    public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = 0) => arena.AddComplexPolygon(origin, (rotation + DirectionOffset).ToDirection(), Poly, color);
+    public override Func<WPos, float> Distance(WPos origin, Angle rotation) => _ => float.MaxValue; // TODO: implement!
+}

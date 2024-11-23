@@ -95,7 +95,7 @@ public sealed class Replay
 
     public sealed record class EncounterPhase(int ID, uint LastStateID, DateTime Exit);
 
-    public sealed record class EncounterState(uint ID, string Name, string Comment, float ExpectedDuration, DateTime Exit)
+    public sealed record class EncounterState(uint ID, string Name, string Comment, float ExpectedDuration, List<uint> ExpectedSuccessors, DateTime Exit)
     {
         public string FullName => $"{ID:X} '{Name}' ({Comment})";
     }
