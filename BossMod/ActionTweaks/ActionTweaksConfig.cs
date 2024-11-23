@@ -41,6 +41,10 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertySlider(0, 10, Speed = 0.01f)]
     public float PyreticThreshold = 1.0f;
 
+    [PropertyDisplay("Auto misdirection: prevent movement under misdirection if angle between normal movement and misdirected is greater than this threshold (set to 180 to disable).")]
+    [PropertySlider(0, 180)]
+    public float MisdirectionThreshold = 180;
+
     [PropertyDisplay("Restore character orientation after action use (deprecated)", tooltip: "Note: this is deprecated in favour of smart character orientation and will be removed in future")]
     public bool RestoreRotation = false;
 

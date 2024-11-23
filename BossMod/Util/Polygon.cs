@@ -63,6 +63,9 @@ public record class RelPolygonWithHoles(List<WDir> Vertices, List<int> HoleStart
         return result;
     }
 
+    // build a new polygon by transformation
+    public RelPolygonWithHoles Transform(WDir offset, WDir rotation) => new([.. Vertices.Select(v => v.Rotate(rotation) + offset)], [.. HoleStarts]);
+
     // point-in-polygon test; point is defined as offset from shape center
     public bool Contains(WDir p)
     {
@@ -121,6 +124,9 @@ public record class RelSimplifiedComplexPolygon(List<RelPolygonWithHoles> Parts)
             p.Triangulate(result);
         return result;
     }
+
+    // build a new polygon by transformation
+    public RelSimplifiedComplexPolygon Transform(WDir offset, WDir rotation) => new([.. Parts.Select(p => p.Transform(offset, rotation))]);
 
     // point-in-polygon test; point is defined as offset from shape center
     public bool Contains(WDir p) => Parts.Any(part => part.Contains(p));

@@ -324,48 +324,48 @@ public class StateMachineBuilder(BossModule module)
         => ActorCastStartFork(id, () => Module.PrimaryActor, dispatch, delay, true, name);
 
     // create a state triggered by cast end by arbitrary actor
-    public State ActorCastEnd(uint id, Func<Actor?> actorAcc, float castTime, bool isBoss = false, string name = "")
+    public State ActorCastEnd(uint id, Func<Actor?> actorAcc, float castTime, bool isBoss = false, string name = "", bool interruptible = false)
     {
         var state = SimpleState(id, castTime, name).SetHint(StateMachine.StateHint.BossCastEnd, isBoss);
-        state.Raw.Comment = "Cast end";
-        state.Raw.Update = _ => actorAcc()?.CastInfo == null ? 0 : -1;
+        state.Raw.Comment = interruptible ? "Interruptible cast end" : "Cast end";
+        state.Raw.Update = timeSinceTransition => actorAcc()?.CastInfo == null && (!interruptible || timeSinceTransition >= state.Raw.Duration) ? 0 : -1;
         return state;
     }
 
     // create a state triggered by cast end by a primary actor
-    public State CastEnd(uint id, float castTime, string name = "")
-        => ActorCastEnd(id, () => Module.PrimaryActor, castTime, true, name);
+    public State CastEnd(uint id, float castTime, string name = "", bool interruptible = false)
+        => ActorCastEnd(id, () => Module.PrimaryActor, castTime, true, name, interruptible);
 
     // create a chain of states: ActorCastStart -> ActorCastEnd; second state uses id+1
-    public State ActorCast<AID>(uint id, Func<Actor?> actorAcc, AID aid, float delay, float castTime, bool isBoss = false, string name = "")
+    public State ActorCast<AID>(uint id, Func<Actor?> actorAcc, AID aid, float delay, float castTime, bool isBoss = false, string name = "", bool interruptible = false)
         where AID : Enum
     {
         ActorCastStart(id, actorAcc, aid, delay, isBoss, "");
-        return ActorCastEnd(id + 1, actorAcc, castTime, isBoss, name);
+        return ActorCastEnd(id + 1, actorAcc, castTime, isBoss, name, interruptible);
     }
 
     // create a chain of states: CastStart -> CastEnd; second state uses id+1
-    public State Cast<AID>(uint id, AID aid, float delay, float castTime, string name = "")
+    public State Cast<AID>(uint id, AID aid, float delay, float castTime, string name = "", bool interruptible = false)
         where AID : Enum
     {
         CastStart(id, aid, delay, "");
-        return CastEnd(id + 1, castTime, name);
+        return CastEnd(id + 1, castTime, name, interruptible);
     }
 
     // create a chain of states: ActorCastStartMulti -> ActorCastEnd; second state uses id+1
-    public State ActorCastMulti<AID>(uint id, Func<Actor?> actorAcc, IEnumerable<AID> aids, float delay, float castTime, bool isBoss = false, string name = "")
+    public State ActorCastMulti<AID>(uint id, Func<Actor?> actorAcc, IEnumerable<AID> aids, float delay, float castTime, bool isBoss = false, string name = "", bool interruptible = false)
         where AID : Enum
     {
         ActorCastStartMulti(id, actorAcc, aids, delay, isBoss, "");
-        return ActorCastEnd(id + 1, actorAcc, castTime, isBoss, name);
+        return ActorCastEnd(id + 1, actorAcc, castTime, isBoss, name, interruptible);
     }
 
     // create a chain of states: CastStartMulti -> CastEnd; second state uses id+1
-    public State CastMulti<AID>(uint id, IEnumerable<AID> aids, float delay, float castTime, string name = "")
+    public State CastMulti<AID>(uint id, IEnumerable<AID> aids, float delay, float castTime, string name = "", bool interruptible = false)
         where AID : Enum
     {
         CastStartMulti(id, aids, delay, "");
-        return CastEnd(id + 1, castTime, name);
+        return CastEnd(id + 1, castTime, name, interruptible);
     }
 
     // create a state triggered by arbitrary actor becoming (un)targetable

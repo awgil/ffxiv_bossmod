@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.Config;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Input;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -28,13 +29,15 @@ public sealed unsafe class MovementOverride : IDisposable
     private float ActualMoveLeft;
     private float ActualMoveUp;
 
+    private readonly ActionTweaksConfig _tweaksConfig = Service.Config.Get<ActionTweaksConfig>();
     private bool _movementBlocked;
+    private bool _controlBlocked;
     private bool _legacyMode;
 
     public bool IsMoving() => ActualMoveLeft != 0 || ActualMoveUp != 0;
     public bool IsMoveRequested() => UserMoveLeft != 0 || UserMoveUp != 0;
 
-    public bool IsForceUnblocked() => Service.Config.Get<ActionTweaksConfig>().MoveEscapeHatch switch
+    public bool IsForceUnblocked() => _tweaksConfig.MoveEscapeHatch switch
     {
         ActionTweaksConfig.ModifierKey.Ctrl => ImGui.GetIO().KeyCtrl,
         ActionTweaksConfig.ModifierKey.Alt => ImGui.GetIO().KeyAlt,
@@ -49,6 +52,8 @@ public sealed unsafe class MovementOverride : IDisposable
         set => _movementBlocked = value;
     }
 
+    public static readonly float* ForcedMovementDirection = (float*)Service.SigScanner.GetStaticAddressFromSig("F3 0F 11 0D ?? ?? ?? ?? 48 85 DB");
+
     private delegate bool RMIWalkIsInputEnabled(void* self);
     private readonly RMIWalkIsInputEnabled _rmiWalkIsInputEnabled1;
     private readonly RMIWalkIsInputEnabled _rmiWalkIsInputEnabled2;
@@ -57,7 +62,11 @@ public sealed unsafe class MovementOverride : IDisposable
     private readonly HookAddress<RMIWalkDelegate> _rmiWalkHook;
 
     private delegate void RMIFlyDelegate(void* self, PlayerMoveControllerFlyInput* result);
-    private readonly HookAddress<RMIFlyDelegate> _rmiFlyHook = null!;
+    private readonly HookAddress<RMIFlyDelegate> _rmiFlyHook;
+
+    // input source flags: 1 = kb/mouse, 2 = gamepad
+    private delegate byte MoveControlIsInputActiveDelegate(void* self, byte inputSourceFlags);
+    private readonly HookAddress<MoveControlIsInputActiveDelegate> _mcIsInputActiveHook;
 
     public MovementOverride()
     {
@@ -70,6 +79,7 @@ public sealed unsafe class MovementOverride : IDisposable
 
         _rmiWalkHook = new("E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D", RMIWalkDetour);
         _rmiFlyHook = new("E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8", RMIFlyDetour);
+        _mcIsInputActiveHook = new("E8 ?? ?? ?? ?? 84 C0 74 09 84 DB 74 1A", MCIsInputActiveDetour);
 
         Service.GameConfig.UiControlChanged += OnConfigChanged;
         UpdateLegacyMode();
@@ -83,12 +93,14 @@ public sealed unsafe class MovementOverride : IDisposable
         UserMoveUp = 0;
         ActualMoveLeft = 0;
         ActualMoveUp = 0;
+        _mcIsInputActiveHook.Dispose();
         _rmiWalkHook.Dispose();
         _rmiFlyHook.Dispose();
     }
 
     private void RMIWalkDetour(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk)
     {
+        _controlBlocked = false;
         _rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
         UserMoveLeft = *sumLeft;
         UserMoveUp = *sumForward;
@@ -108,12 +120,25 @@ public sealed unsafe class MovementOverride : IDisposable
             *sumLeft = dir.X;
             *sumForward = dir.Z;
         }
+
+        if (_tweaksConfig.MisdirectionThreshold < 180 && PlayerHasMisdirection())
+        {
+            var currentDir = Angle.FromDirection(new(*sumLeft, *sumForward)) + ForwardMovementDirection();
+            var dirDelta = currentDir - ForcedMovementDirection->Radians();
+            if (dirDelta.Normalized().Abs().Deg > _tweaksConfig.MisdirectionThreshold)
+            {
+                *sumLeft = *sumForward = 0;
+                _controlBlocked = true;
+            }
+        }
+
         ActualMoveLeft = *sumLeft;
         ActualMoveUp = *sumForward;
     }
 
     private void RMIFlyDetour(void* self, PlayerMoveControllerFlyInput* result)
     {
+        _controlBlocked = false;
         _rmiFlyHook.Original(self, result);
         // TODO: we really need to introduce some extra checks that PlayerMoveController::readInput does - sometimes it skips reading input, and returning something non-zero breaks stuff...
         if (result->Forward == 0 && result->Left == 0 && result->Up == 0 && DirectionToDestination(true) is var relDir && relDir != null)
@@ -123,6 +148,14 @@ public sealed unsafe class MovementOverride : IDisposable
             result->Left = dir.X;
             result->Up = relDir.Value.v.Rad;
         }
+    }
+
+    private byte MCIsInputActiveDetour(void* self, byte inputSourceFlags)
+    {
+        var res = _mcIsInputActiveHook.Original(self, inputSourceFlags);
+        if (res != 0 && _controlBlocked)
+            res = 0;
+        return res;
     }
 
     private (Angle h, Angle v)? DirectionToDestination(bool allowVertical)
@@ -137,11 +170,21 @@ public sealed unsafe class MovementOverride : IDisposable
         var dxz = new WDir(DesiredDirection.Value.X, DesiredDirection.Value.Z);
         var dirH = Angle.FromDirection(dxz);
         var dirV = allowVertical ? Angle.FromDirection(new(DesiredDirection.Value.Y, dxz.Length())) : default;
+        return (dirH - ForwardMovementDirection(), dirV);
+    }
 
-        var refDir = _legacyMode
-            ? Camera.Instance!.CameraAzimuth.Radians() + 180.Degrees()
-            : player->Rotation.Radians();
-        return (dirH - refDir, dirV);
+    private Angle ForwardMovementDirection() => _legacyMode ? Camera.Instance!.CameraAzimuth.Radians() + 180.Degrees() : GameObjectManager.Instance()->Objects.IndexSorted[0].Value->Rotation.Radians();
+
+    private bool PlayerHasMisdirection()
+    {
+        var player = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        var sm = player != null && player->IsCharacter() ? player->GetStatusManager() : null;
+        if (sm == null)
+            return false;
+        for (int i = 0; i < sm->NumValidStatuses; ++i)
+            if (sm->Status[i].StatusId is 1422 or 2936 or 3694 or 3909)
+                return true;
+        return false;
     }
 
     private void OnConfigChanged(object? sender, ConfigChangeEvent evt) => UpdateLegacyMode();
