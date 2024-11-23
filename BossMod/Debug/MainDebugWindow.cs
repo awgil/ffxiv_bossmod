@@ -1,6 +1,8 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using ImGuiNET;
@@ -164,8 +166,16 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         }
     }
 
-    private void DrawStatuses()
+    private unsafe void DrawStatuses()
     {
+        ImGui.TextUnformatted($"Forced movement direction: {MovementOverride.ForcedMovementDirection->Radians()}");
+        ImGui.SameLine();
+        if (ImGui.Button("Add misdirection"))
+        {
+            var player = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+            player->GetStatusManager()->SetStatus(20, 3909, 20.0f, 100, 0xE0000000, true);
+        }
+
         foreach (var elem in ws.Actors)
         {
             var obj = (elem.InstanceID >> 32) == 0 ? Service.ObjectTable.SearchById((uint)elem.InstanceID) : null;
