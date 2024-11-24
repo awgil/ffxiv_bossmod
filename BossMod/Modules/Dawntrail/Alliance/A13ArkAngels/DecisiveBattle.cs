@@ -14,6 +14,14 @@ class DecisiveBattle(BossModule module) : BossComponent(module)
         }
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (slot < _assignedBoss.Length && _assignedBoss[slot] != null)
+            foreach (var enemy in hints.PotentialTargets)
+                if (enemy.Actor != _assignedBoss[slot])
+                    enemy.Priority = AIHints.Enemy.PriorityForbidFully;
+    }
+
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.DecisiveBattle && Raid.FindSlot(source.InstanceID) is var slot && slot >= 0)

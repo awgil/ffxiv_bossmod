@@ -6,6 +6,14 @@ class KnuckleSandwich(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(1);
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        // extra ai hint: stay close to the edge of the first aoe
+        if (_aoes.Count == 2 && _aoes[1].Shape is AOEShapeDonut donut)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_aoes[0].Origin, donut.InnerRadius + 2), _aoes[0].Activation);
+    }
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         AOEShape? shape = (AID)spell.Action.ID switch

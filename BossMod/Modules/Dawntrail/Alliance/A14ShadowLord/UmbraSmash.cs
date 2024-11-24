@@ -2,6 +2,13 @@
 
 class UmbraSmash(BossModule module) : Components.Exaflare(module, new AOEShapeRect(5, 30))
 {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // use only imminent aoes for hints
+        foreach (var (c, t, r) in ImminentAOEs())
+            hints.AddForbiddenZone(Shape, c, r, t);
+    }
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.UmbraSmashAOE1 or AID.UmbraSmashAOE2 or AID.UmbraSmashAOE3 or AID.UmbraSmashAOE4 or AID.UmbraSmashAOEClone)
