@@ -92,6 +92,12 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
         foreach (var spreadFrom in ActiveSpreads.Where(s => s.Target != actor))
             hints.AddForbiddenZone(ShapeDistance.Circle(spreadFrom.Target.Position, spreadFrom.Radius + ExtraAISpreadThreshold), spreadFrom.Activation);
 
+        // if player has spread himself, stay away from everyone else
+        var actorSpread = Spreads.FirstOrDefault(s => s.Target == actor);
+        if (actorSpread.Target != null)
+            foreach (var p in Raid.WithoutSlot().Exclude(actor))
+                hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, actorSpread.Radius), actorSpread.Activation);
+
         foreach (var avoid in ActiveStacks.Where(s => s.Target != actor && s.ForbiddenPlayers[slot]))
             hints.AddForbiddenZone(ShapeDistance.Circle(avoid.Target.Position, avoid.Radius), avoid.Activation);
 
@@ -105,7 +111,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
             if (closest != null)
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closest.Position, actorStack.Radius * 0.5f), actorStack.Activation);
         }
-        else if (!IsSpreadTarget(actor))
+        else if (actorSpread.Target == null)
         {
             // TODO: handle multi stacks better...
             var closestStack = ActiveStacks.Where(s => !s.ForbiddenPlayers[slot]).MinBy(s => (s.Target.Position - actor.Position).LengthSq());

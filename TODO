@@ -1,5 +1,5 @@
 immediate plans
-- new dungeon
+- nechuciho - more omen statuses
 - freeze
 - rotation modules in preset/plan to be ordered (incl ui)
 - get rid of legacyxxx
@@ -43,7 +43,6 @@ general:
 - zone modules: replay visualization
 - zone modules: module info ui
 - refactor ipc/dtr
-- nechuciho - seen incorrect rotations...
 - questbattles
 - collisions for pathfinding
 -- embedded mode
@@ -54,6 +53,7 @@ boss modules:
 - fail log
 - boss module config presets/profiles
 - jeuno
+-- review recent logs
 -- a11:
 --- mechanic repeats
 --- ai hints for spikes+uppercut

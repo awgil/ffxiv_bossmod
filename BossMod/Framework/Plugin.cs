@@ -290,6 +290,7 @@ public sealed class Plugin : IDalamudPlugin
     private unsafe void ExecuteHints()
     {
         _movementOverride.DesiredDirection = _hints.ForcedMovement;
+        _movementOverride.MisdirectionThreshold = _hints.MisdirectionThreshold;
         // update forced target, if needed (TODO: move outside maybe?)
         if (_hints.ForcedTarget != null)
         {

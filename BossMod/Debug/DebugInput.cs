@@ -150,6 +150,7 @@ internal sealed unsafe class DebugInput : IDisposable
         _prevPos = curPos;
         _prevSpeed = speedAbs;
         ImGui.TextUnformatted($"Speed={speedAbs:f3}, SpeedH={speed.XZ().Length():f3}, SpeedV={speed.Y:f3}, Accel={accel:f3}, Azimuth={Angle.FromDirection(new(speed.XZ()))}, Altitude={Angle.FromDirection(new(speed.Y, speed.XZ().Length()))}");
+        ImGui.TextUnformatted($"MO: desired={_move.DesiredDirection}, user={_move.UserMove}, actual={_move.ActualMove}");
         //Service.Log($"Speed: {speedAbs:f3}, accel: {accel:f3}");
 
         ImGui.SliderFloat("Move direction", ref _moveDir, -180, 180);

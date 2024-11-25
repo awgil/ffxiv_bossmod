@@ -166,7 +166,7 @@ class LeapingEarthSpiral(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.LeapingEarthSpiral)
         {
             NumCasts = 0;
-            _direction = spell.Rotation.ToDirection();
+            _direction = (-spell.Rotation).ToDirection();
             _firstActivation = WorldState.FutureTime(4.5f);
         }
     }
@@ -208,7 +208,7 @@ class RockBlast(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
         if (spell.Action == WatchedAction && _aoes.Count == 0)
         {
             var toCaster = caster.Position - Module.Center;
-            var cw = toCaster.OrthoL().Dot(spell.Rotation.ToDirection()) > 0;
+            var cw = toCaster.OrthoL().Dot(spell.Rotation.ToDirection()) < 0;
             var delta = (cw ? -22.5f : 22.5f).Degrees().ToDirection();
             for (int i = 0; i < 15; ++i)
             {
@@ -261,8 +261,8 @@ public class D093Lunipyati(WorldState ws, Actor primary) : BossModule(ws, primar
 
     private static ArenaBoundsCustom BuildHoleBounds()
     {
-        var poly = new RelPolygonWithHoles([.. CurveApprox.Circle(15, 0.1f)]);
-        poly.AddHole(CurveApprox.Circle(11, 0.1f));
+        var poly = new RelPolygonWithHoles([.. CurveApprox.Circle(15, 0.05f)]);
+        poly.AddHole(CurveApprox.Circle(11, 0.05f));
         return new(NormalBounds.Radius, new([poly]));
     }
 }

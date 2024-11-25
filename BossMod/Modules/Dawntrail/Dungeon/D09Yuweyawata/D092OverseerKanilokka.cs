@@ -113,7 +113,16 @@ class TelltaleTears : Components.SpreadFromCastTargets
     }
 }
 
-class Necrohazard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Necrohazard), new AOEShapeCircle(18)); // TODO: verify falloff
+class Necrohazard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Necrohazard), new AOEShapeCircle(18)) // TODO: verify falloff
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (Casters.Count > 0)
+            hints.AddSpecialMode(AIHints.SpecialMode.Misdirection, default);
+    }
+}
+
 class Bloodburst(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Bloodburst));
 class SoulDouse(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.SoulDouse), 6, 4);
 
@@ -144,7 +153,7 @@ public class D092OverseerKanilokka(WorldState ws, Actor primary) : BossModule(ws
     public static readonly ArenaBoundsCustom ComplexBounds1 = BuildComplexBounds1();
     public static readonly ArenaBoundsCustom ComplexBounds2 = BuildComplexBounds2();
 
-    private static ArenaBoundsCustom BuildCircularBounds(float radius) => new(InitialBounds.Radius, InitialBounds.Clipper.Simplify(new(CurveApprox.Circle(radius, 0.1f))));
+    private static ArenaBoundsCustom BuildCircularBounds(float radius) => new(InitialBounds.Radius, InitialBounds.Clipper.Simplify(new(CurveApprox.Circle(radius, 0.05f))));
 
     private static ArenaBoundsCustom BuildComplexBounds1()
     {
@@ -157,7 +166,7 @@ public class D092OverseerKanilokka(WorldState ws, Actor primary) : BossModule(ws
             new(-4.9f, +0.2f), new(-7.1f, -0.5f), new(-9.3f, -3.9f), new(-11.4f, -3.1f), new(-14.2f, -1.0f), new(-17.5f, -1.5f), new(-19.6f, -3.9f), new(-25, +25)]);
         remove.AddContour([new(-18.8f, -6.6f), new(-17.4f, -4.5f), new(-15.1f, -4.1f), new(-12.7f, -6.9f), new(-8.0f, -7.0f), new(-5.4f, -4.0f), new(-3.2f, -3.7f),
             new(-2.0f, -4.4f), new(0, -6.8f), new(-3.0f, -11.6f), new(-2.3f, -14.9f), new(+1.2f, -17.9f), new(+4.0f, -19.6f), new(-25, -25)]);
-        return new(InitialBounds.Radius, InitialBounds.Clipper.Difference(new(CurveApprox.Circle(19.5f, 0.1f)), remove));
+        return new(InitialBounds.Radius, InitialBounds.Clipper.Difference(new(CurveApprox.Circle(19.5f, 0.05f)), remove));
     }
 
     private static ArenaBoundsCustom BuildComplexBounds2()
@@ -172,6 +181,6 @@ public class D092OverseerKanilokka(WorldState ws, Actor primary) : BossModule(ws
         remove.AddContour([new(-25, +8.7f), new(-17.9f, +8.7f), new(-15.9f, +7.6f), new(-13.2f, +8.9f), new(-12.0f, +8.1f), new(-12.1f, +6.8f), new(-12.8f, +5.6f), new(-12.3f, +3.6f), new(-11.3f, +1.6f),
             new(-10.4f, +0.8f), new(-8.8f, +0.5f), new(-5.3f, +0.6f), new(-5.0f, +0.3f), new(-2.7f, -4.1f), new(-2.6f, -6.4f), new(-5.1f, -8.8f), new(-5.1f, -10.0f), new(-4.8f, -11.5f),
             new(-3.9f, -12.9f), new(-1.3f, -13.7f), new(0, -13.8f), new(+1.1f, -14.1f), new(+1.5f, -14.9f), new(+1.7f, -16.3f), new(-1.1f, -18.1f), new(-1.4f, -19.9f), new(-1.4f, -25), new(-25, -25)]);
-        return new(InitialBounds.Radius, InitialBounds.Clipper.Union(new(InitialBounds.Clipper.Difference(new(CurveApprox.Circle(19.5f, 0.1f)), remove)), new(CurveApprox.Circle(5, 0.1f))));
+        return new(InitialBounds.Radius, InitialBounds.Clipper.Union(new(InitialBounds.Clipper.Difference(new(CurveApprox.Circle(19.5f, 0.05f)), remove)), new(CurveApprox.Circle(5, 0.05f))));
     }
 }

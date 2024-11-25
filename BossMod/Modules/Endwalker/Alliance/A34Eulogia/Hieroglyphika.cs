@@ -22,8 +22,8 @@ class Hieroglyphika(BossModule module) : Components.GenericAOEs(module, ActionID
     {
         WDir dir = (IconID)iconID switch
         {
-            IconID.HieroglyphikaCW => new(1, 0),
-            IconID.HieroglyphikaCCW => new(-1, 0),
+            IconID.HieroglyphikaCW => new(-1, 0),
+            IconID.HieroglyphikaCCW => new(1, 0),
             _ => default
         };
         if (dir == default)
