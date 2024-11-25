@@ -6,10 +6,17 @@ public sealed class StayWithinLeylines(RotationModuleManager manager, Actor play
 {
     public enum Tracks
     {
-        UseRetrace
+        UseRetrace,
+        UseBetweenTheLines
     }
 
     public enum RetraceDefinition
+    {
+        No = 0,
+        Yes = 1,
+    }
+
+    public enum BetweenTheLinesDefinition
     {
         No = 0,
         Yes = 1,
@@ -19,10 +26,13 @@ public sealed class StayWithinLeylines(RotationModuleManager manager, Actor play
     {
         RotationModuleDefinition def = new("Misc AI: Stay within leylines when active", "Black Mage utility module.", "Misc", "Taurenkey", RotationModuleQuality.Basic, BitMask.Build(Class.BLM), 1000);
 
-        var config = def.Define(Tracks.UseRetrace).As<RetraceDefinition>("Use Retrace", "Use Retrace");
+        var retrace = def.Define(Tracks.UseRetrace).As<RetraceDefinition>("Use Retrace", "Use Retrace");
+        retrace.AddOption(RetraceDefinition.No, "No");
+        retrace.AddOption(RetraceDefinition.Yes, "Yes");
 
-        config.AddOption(RetraceDefinition.No, "No");
-        config.AddOption(RetraceDefinition.Yes, "Yes");
+        var btl = def.Define(Tracks.UseBetweenTheLines).As<BetweenTheLinesDefinition>("Use Between The Lines", "Use Between The Lines");
+        btl.AddOption(BetweenTheLinesDefinition.No, "No");
+        btl.AddOption(BetweenTheLinesDefinition.Yes, "Yes");
 
         return def;
     }
@@ -37,10 +47,16 @@ public sealed class StayWithinLeylines(RotationModuleManager manager, Actor play
             if (zone != null)
             {
                 var retrace = ActionID.MakeSpell(BLM.AID.Retrace);
-                var cd = ActionDefinitions.Instance.Spell(BLM.AID.Retrace)?.MainCooldownGroup;
-                var strat = strategy.Option(Tracks.UseRetrace).As<RetraceDefinition>();
-                //try Retrace First
-                if (strat == RetraceDefinition.Yes && ActionUnlocked(retrace) && cd.HasValue && World.Client.Cooldowns[cd.Value].Elapsed <= 2f && !isMoving)
+                var btl = ActionID.MakeSpell(BLM.AID.BetweenTheLines);
+                var retraceCd = ActionDefinitions.Instance.Spell(BLM.AID.Retrace)?.MainCooldownGroup;
+                var btlCd = ActionDefinitions.Instance.Spell(BLM.AID.BetweenTheLines)?.MainCooldownGroup;
+                var retraceStrat = strategy.Option(Tracks.UseRetrace).As<RetraceDefinition>();
+                var btlStrat = strategy.Option(Tracks.UseBetweenTheLines).As<BetweenTheLinesDefinition>();
+
+                //BTL first, followed by retrace, then walk
+                if (btlStrat == BetweenTheLinesDefinition.Yes && ActionUnlocked(btl) && btlCd.HasValue && World.Client.Cooldowns[btlCd.Value].Elapsed <= 2f && !isMoving)
+                    Hints.ActionsToExecute.Push(btl, Player, Priority.Low, targetPos: zone.PosRot.XYZ());
+                else if (retraceStrat == RetraceDefinition.Yes && ActionUnlocked(retrace) && retraceCd.HasValue && World.Client.Cooldowns[retraceCd.Value].Elapsed <= 2f && !isMoving)
                     Hints.ActionsToExecute.Push(retrace, null, Priority.Low, targetPos: Player.PosRot.XYZ());
                 else
                     Hints.GoalZones.Add(Hints.GoalSingleTarget(zone.Position, 1f));
