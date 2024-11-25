@@ -31,7 +31,7 @@ public sealed unsafe class MovementOverride : IDisposable
 
     private readonly ActionTweaksConfig _tweaksConfig = Service.Config.Get<ActionTweaksConfig>();
     private bool _movementBlocked;
-    private bool _controlBlocked;
+    private bool? _forcedControlState;
     private bool _legacyMode;
 
     public bool IsMoving() => ActualMoveLeft != 0 || ActualMoveUp != 0;
@@ -100,7 +100,7 @@ public sealed unsafe class MovementOverride : IDisposable
 
     private void RMIWalkDetour(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk)
     {
-        _controlBlocked = false;
+        _forcedControlState = null;
         _rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
         UserMoveLeft = *sumLeft;
         UserMoveUp = *sumForward;
@@ -123,13 +123,29 @@ public sealed unsafe class MovementOverride : IDisposable
 
         if (_tweaksConfig.MisdirectionThreshold < 180 && PlayerHasMisdirection())
         {
-            var currentDir = Angle.FromDirection(new(*sumLeft, *sumForward)) + ForwardMovementDirection();
-            var dirDelta = currentDir - ForcedMovementDirection->Radians();
-            if (dirDelta.Normalized().Abs().Deg > _tweaksConfig.MisdirectionThreshold)
+            if (!movementAllowed)
             {
-                *sumLeft = *sumForward = 0;
-                _controlBlocked = true;
+                // we are already moving, see whether we need to force stop it
+                // unfortunately, the base implementation would not sample the input if movement is disabled - force it
+                float realLeft = 0, realForward = 0, realTurn = 0;
+                byte realStrafe = 0, realUnk = 0;
+                if (!MovementBlocked)
+                    _rmiWalkHook.Original(self, &realLeft, &realForward, &realTurn, &realStrafe, &realUnk, 1);
+                var desiredRelDir = realLeft != 0 || realForward != 0 ? Angle.FromDirection(new(realLeft, realForward)) : DirectionToDestination(false)?.h;
+                _forcedControlState = desiredRelDir != null && (desiredRelDir.Value + ForwardMovementDirection() - ForcedMovementDirection->Radians()).Normalized().Abs().Deg <= _tweaksConfig.MisdirectionThreshold;
             }
+            else if (*sumLeft != 0 || *sumForward != 0)
+            {
+                var currentDir = Angle.FromDirection(new(*sumLeft, *sumForward)) + ForwardMovementDirection();
+                var dirDelta = currentDir - ForcedMovementDirection->Radians();
+                _forcedControlState = dirDelta.Normalized().Abs().Deg <= _tweaksConfig.MisdirectionThreshold;
+                if (!_forcedControlState.Value)
+                {
+                    // forbid movement for now
+                    *sumLeft = *sumForward = 0;
+                }
+            }
+            // else: movement is allowed (so we're not already moving), but we don't want to move anywhere, do nothing
         }
 
         ActualMoveLeft = *sumLeft;
@@ -138,7 +154,7 @@ public sealed unsafe class MovementOverride : IDisposable
 
     private void RMIFlyDetour(void* self, PlayerMoveControllerFlyInput* result)
     {
-        _controlBlocked = false;
+        _forcedControlState = null;
         _rmiFlyHook.Original(self, result);
         // TODO: we really need to introduce some extra checks that PlayerMoveController::readInput does - sometimes it skips reading input, and returning something non-zero breaks stuff...
         if (result->Forward == 0 && result->Left == 0 && result->Up == 0 && DirectionToDestination(true) is var relDir && relDir != null)
@@ -152,10 +168,7 @@ public sealed unsafe class MovementOverride : IDisposable
 
     private byte MCIsInputActiveDetour(void* self, byte inputSourceFlags)
     {
-        var res = _mcIsInputActiveHook.Original(self, inputSourceFlags);
-        if (res != 0 && _controlBlocked)
-            res = 0;
-        return res;
+        return _forcedControlState != null ? (byte)(_forcedControlState.Value ? 1 : 0) : _mcIsInputActiveHook.Original(self, inputSourceFlags);
     }
 
     private (Angle h, Angle v)? DirectionToDestination(bool allowVertical)

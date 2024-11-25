@@ -23,6 +23,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
     public bool AlwaysShowSpreads = alwaysShowSpreads; // if false, we only shown own spread radius for spread targets - this reduces visual clutter
     public bool RaidwideOnResolve = raidwideOnResolve; // if true, assume even if mechanic is correctly resolved everyone will still take damage
     public bool IncludeDeadTargets = includeDeadTargets; // if false, stacks & spreads with dead targets are ignored
+    public int ExtraAISpreadThreshold = 1;
     public List<Stack> Stacks = [];
     public List<Spread> Spreads = [];
 
@@ -89,7 +90,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
         // TODO: think how to improve this, current implementation works, but isn't particularly good - e.g. nearby players tend to move to same spot, turn around, etc.
         // ideally we should provide per-mechanic spread spots, but for simple cases we should try to let melee spread close and healers/rdd spread far from main target...
         foreach (var spreadFrom in ActiveSpreads.Where(s => s.Target != actor))
-            hints.AddForbiddenZone(ShapeDistance.Circle(spreadFrom.Target.Position, spreadFrom.Radius + 1), spreadFrom.Activation);
+            hints.AddForbiddenZone(ShapeDistance.Circle(spreadFrom.Target.Position, spreadFrom.Radius + ExtraAISpreadThreshold), spreadFrom.Activation);
 
         foreach (var avoid in ActiveStacks.Where(s => s.Target != actor && s.ForbiddenPlayers[slot]))
             hints.AddForbiddenZone(ShapeDistance.Circle(avoid.Target.Position, avoid.Radius), avoid.Activation);

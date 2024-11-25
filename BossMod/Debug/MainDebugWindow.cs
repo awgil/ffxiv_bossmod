@@ -9,7 +9,7 @@ using ImGuiNET;
 
 namespace BossMod;
 
-class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleManager zmm, ActionManagerEx amex, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud) : UIWindow("Boss mod debug UI", false, new(300, 200))
+class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleManager zmm, ActionManagerEx amex, MovementOverride move, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud) : UIWindow("Boss mod debug UI", false, new(300, 200))
 {
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
     private readonly DebugObjects _debugObjects = new();
@@ -18,7 +18,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly DebugGraphics _debugGraphics = new();
     private readonly DebugAction _debugAction = new(ws, amex);
     private readonly DebugHate _debugHate = new();
-    private readonly DebugInput _debugInput = new(autorot);
+    private readonly DebugInput _debugInput = new(autorot, move);
     private readonly DebugAutorotation _debugAutorot = new(autorot);
     private readonly DebugAddon _debugAddon = new();
     private readonly DebugTiming _debugTiming = new();
