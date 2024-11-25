@@ -40,7 +40,7 @@ public sealed class StayWithinLeylines(RotationModuleManager manager, Actor play
                 var cd = ActionDefinitions.Instance.Spell(BLM.AID.Retrace)?.MainCooldownGroup;
                 var strat = strategy.Option(Tracks.UseRetrace).As<RetraceDefinition>();
                 //try Retrace First
-                if (strat == RetraceDefinition.Yes && ActionUnlocked(retrace) && cd.HasValue && World.Client.Cooldowns[cd.Value].Elapsed <= 2f)
+                if (strat == RetraceDefinition.Yes && ActionUnlocked(retrace) && cd.HasValue && World.Client.Cooldowns[cd.Value].Elapsed <= 2f && !isMoving)
                     Hints.ActionsToExecute.Push(retrace, null, Priority.Low, targetPos: Player.PosRot.XYZ());
                 else
                     Hints.GoalZones.Add(Hints.GoalSingleTarget(zone.Position, 1f));

@@ -54,7 +54,7 @@ class EngravementOfSouls1Spread(BossModule module) : Components.UniformStackSpre
                     WDir[] offsets = [new(+1, -1), new(+1, +1), new(-1, +1), new(-1, -1)]; // CW from N
                     var relevantTether = _states[slot].Debuff == DebuffType.Light ? EngravementOfSoulsTethers.TetherType.Dark : EngravementOfSoulsTethers.TetherType.Light;
                     var expectedPositions = _tethers.States.Where(s => s.Source != null).Select(s => (s.Source!.Position + 40 * s.Source.Rotation.ToDirection(), s.Tether == relevantTether)).ToList();
-                    var offsetsOrdered = (Raid[slot]?.Class.IsSupport() ?? false) ? offsets.AsEnumerable() : Enumerable.Reverse(offsets);
+                    var offsetsOrdered = (Raid[slot]?.Class.IsSupport() ?? false) ? offsets.AsEnumerable() : offsets.Reverse();
                     var positionsOrdered = offsetsOrdered.Select(d => Module.Center + 7 * d);
                     var firstMatch = positionsOrdered.First(p => expectedPositions.MinBy(ep => (ep.Item1 - p).LengthSq()).Item2);
                     _states[slot].CachedSafespot = firstMatch;
