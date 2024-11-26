@@ -4,6 +4,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using System.Collections.Concurrent;
 
 namespace BossMod;
 
@@ -33,10 +34,10 @@ public sealed class Service
     public static Action<string>? LogHandler;
     public static void Log(string msg) => LogHandler?.Invoke(msg);
 
-    public static object LuminaRSVLock = new(); // TODO: replace with System.Threading.Lock
     public static Lumina.GameData? LuminaGameData;
     public static Lumina.Excel.ExcelSheet<T>? LuminaSheet<T>() where T : struct, Lumina.Excel.IExcelRow<T> => LuminaGameData?.GetExcelSheet<T>(Lumina.Data.Language.English);
     public static T? LuminaRow<T>(uint row) where T : struct, Lumina.Excel.IExcelRow<T> => LuminaSheet<T>()?.GetRowOrDefault(row);
+    public static ConcurrentDictionary<Lumina.Text.ReadOnly.ReadOnlySeString, Lumina.Text.ReadOnly.ReadOnlySeString> LuminaRSV = []; // TODO: reconsider
 
     public static WindowSystem? WindowSystem;
 #pragma warning restore CA2211
