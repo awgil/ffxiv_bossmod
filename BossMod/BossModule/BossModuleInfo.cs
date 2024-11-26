@@ -79,9 +79,6 @@ public static class BossModuleInfo
         Expansion.Dawntrail => "DT",
         _ => e.ToString()
     };
-
-    [Obsolete("Use actual actor OID instead")]
-    public const uint PrimaryActorNone = 0xFFFFFFF0;
 }
 
 // attribute that allows customizing boss module's metadata; it is optional, each field has some defaults that are fine in most cases

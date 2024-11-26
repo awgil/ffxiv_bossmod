@@ -1,4 +1,4 @@
-namespace BossMod.Modules.Shadowbringers.Foray.Duel;
+namespace BossMod.Shadowbringers.Foray.Duel.Duel6Lyon;
 
 public enum OID : uint
 {
