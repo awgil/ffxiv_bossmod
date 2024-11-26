@@ -28,11 +28,6 @@ public enum AID : uint
 
 public enum SID : uint
 {
-    RearwardOmen = 4154, // Boss->Boss, extra=0x0
-    LeftwardOmen1 = 4155, // Boss->Boss, extra=0x0
-    RightwardOmen1 = 4156, // Boss->Boss, extra=0x0
-    LeftwardOmen2 = 4151, // Boss->Boss, extra=0x0
-    RightwardOmen2 = 4152, // Boss->Boss, extra=0x0
     DelayedNeurotoxicity = 3940, // Boss->player, extra=0x0
     DownForTheCount = 3908, // Boss->player, extra=0xEC7
     Heavy = 2391, // Boss->player, extra=0x3C

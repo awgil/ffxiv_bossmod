@@ -23,19 +23,18 @@ public unsafe struct PlayerMoveControllerFlyInput
 public sealed unsafe class MovementOverride : IDisposable
 {
     public Vector3? DesiredDirection;
+    public Angle MisdirectionThreshold;
 
-    private float UserMoveLeft;
-    private float UserMoveUp;
-    private float ActualMoveLeft;
-    private float ActualMoveUp;
+    public WDir UserMove { get; private set; } // unfiltered movement direction, as read from input
+    public WDir ActualMove { get; private set; } // actual movement direction, as of last input read
 
     private readonly ActionTweaksConfig _tweaksConfig = Service.Config.Get<ActionTweaksConfig>();
     private bool _movementBlocked;
-    private bool _controlBlocked;
+    private bool? _forcedControlState;
     private bool _legacyMode;
 
-    public bool IsMoving() => ActualMoveLeft != 0 || ActualMoveUp != 0;
-    public bool IsMoveRequested() => UserMoveLeft != 0 || UserMoveUp != 0;
+    public bool IsMoving() => ActualMove != default;
+    public bool IsMoveRequested() => UserMove != default;
 
     public bool IsForceUnblocked() => _tweaksConfig.MoveEscapeHatch switch
     {
@@ -89,10 +88,6 @@ public sealed unsafe class MovementOverride : IDisposable
     {
         Service.GameConfig.UiControlChanged -= OnConfigChanged;
         _movementBlocked = false;
-        UserMoveLeft = 0;
-        UserMoveUp = 0;
-        ActualMoveLeft = 0;
-        ActualMoveUp = 0;
         _mcIsInputActiveHook.Dispose();
         _rmiWalkHook.Dispose();
         _rmiFlyHook.Dispose();
@@ -100,45 +95,61 @@ public sealed unsafe class MovementOverride : IDisposable
 
     private void RMIWalkDetour(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk)
     {
-        _controlBlocked = false;
+        _forcedControlState = null;
         _rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
-        UserMoveLeft = *sumLeft;
-        UserMoveUp = *sumForward;
-
-        // TODO: this allows AI mode to move even if movement is "blocked", is this the right behavior? AI mode should try to avoid moving while casting anyway...
-        if (MovementBlocked)
-        {
-            *sumLeft = 0;
-            *sumForward = 0;
-        }
 
         // TODO: we really need to introduce some extra checks that PlayerMoveController::readInput does - sometimes it skips reading input, and returning something non-zero breaks stuff...
-        var movementAllowed = bAdditiveUnk == 0 && _rmiWalkIsInputEnabled1(self) && _rmiWalkIsInputEnabled2(self); //&& !_movementBlocked
-        if (movementAllowed && *sumLeft == 0 && *sumForward == 0 && DirectionToDestination(false) is var relDir && relDir != null)
+        var movementAllowed = bAdditiveUnk == 0 && _rmiWalkIsInputEnabled1(self) && _rmiWalkIsInputEnabled2(self);
+        var misdirectionMode = PlayerHasMisdirection();
+        if (!movementAllowed && misdirectionMode)
         {
-            var dir = relDir.Value.h.ToDirection();
-            *sumLeft = dir.X;
-            *sumForward = dir.Z;
+            // in misdirection mode, when we are already moving, the 'original' call will not actually sample input and just return immediately
+            // we actually want to know the direction, in case user changes input mid movement - so force sample raw input
+            float realTurn = 0;
+            byte realStrafe = 0, realUnk = 0;
+            _rmiWalkHook.Original(self, sumLeft, sumForward, &realTurn, &realStrafe, &realUnk, 1);
         }
 
-        if (_tweaksConfig.MisdirectionThreshold < 180 && PlayerHasMisdirection())
+        // at this point, UserMove contains true user input
+        UserMove = new(*sumLeft, *sumForward);
+
+        // apply movement block logic
+        // note: currently movement block is ignored in misdirection mode
+        // the assumption is that, with misdirection active, it's not safe to block movement just because player is casting or doing something else (as arrow will rotate away)
+        ActualMove = !MovementBlocked || misdirectionMode ? UserMove : default;
+
+        // movement override logic
+        // note: currently we follow desired direction, only if user does not have any input _or_ if manual movement is blocked
+        // this allows AI mode to move even if movement is blocked (TODO: is this the right behavior? AI mode should try to avoid moving while casting anyway...)
+        if ((movementAllowed || misdirectionMode) && ActualMove == default && DirectionToDestination(false) is var relDir && relDir != null)
         {
-            var currentDir = Angle.FromDirection(new(*sumLeft, *sumForward)) + ForwardMovementDirection();
-            var dirDelta = currentDir - ForcedMovementDirection->Radians();
-            if (dirDelta.Normalized().Abs().Deg > _tweaksConfig.MisdirectionThreshold)
+            ActualMove = relDir.Value.h.ToDirection();
+        }
+
+        // misdirection override logic
+        if (misdirectionMode)
+        {
+            var thresholdDeg = UserMove != default ? _tweaksConfig.MisdirectionThreshold : MisdirectionThreshold.Deg;
+            if (thresholdDeg < 180)
             {
-                *sumLeft = *sumForward = 0;
-                _controlBlocked = true;
+                // note: if we are already moving, it doesn't matter what we do here, only whether 'is input active' function returns true or false
+                _forcedControlState = ActualMove != default && (Angle.FromDirection(ActualMove) + ForwardMovementDirection() - ForcedMovementDirection->Radians()).Normalized().Abs().Deg <= thresholdDeg;
             }
         }
 
-        ActualMoveLeft = *sumLeft;
-        ActualMoveUp = *sumForward;
+        // finally, update output
+        var output = !misdirectionMode ? ActualMove // standard mode - just return desired movement
+            : !movementAllowed ? default // misdirection and already moving - always return 0, as game does
+            : _forcedControlState == null ? ActualMove // misdirection mode, but we're not trying to help user
+            : _forcedControlState.Value ? ActualMove // misdirection mode, not moving yet, but want to start - can return anything really
+            : default; // misdirection mode, not moving yet and don't want to
+        *sumLeft = output.X;
+        *sumForward = output.Z;
     }
 
     private void RMIFlyDetour(void* self, PlayerMoveControllerFlyInput* result)
     {
-        _controlBlocked = false;
+        _forcedControlState = null;
         _rmiFlyHook.Original(self, result);
         // TODO: we really need to introduce some extra checks that PlayerMoveController::readInput does - sometimes it skips reading input, and returning something non-zero breaks stuff...
         if (result->Forward == 0 && result->Left == 0 && result->Up == 0 && DirectionToDestination(true) is var relDir && relDir != null)
@@ -152,10 +163,7 @@ public sealed unsafe class MovementOverride : IDisposable
 
     private byte MCIsInputActiveDetour(void* self, byte inputSourceFlags)
     {
-        var res = _mcIsInputActiveHook.Original(self, inputSourceFlags);
-        if (res != 0 && _controlBlocked)
-            res = 0;
-        return res;
+        return _forcedControlState != null ? (byte)(_forcedControlState.Value ? 1 : 0) : _mcIsInputActiveHook.Original(self, inputSourceFlags);
     }
 
     private (Angle h, Angle v)? DirectionToDestination(bool allowVertical)

@@ -17,6 +17,7 @@ public struct NavigationDecision
     }
 
     public WPos? Destination;
+    public float NextTurn; // > 0 if we turn left after reaching first waypoint, < 0 if we turn right, 0 otherwise (no more waypoints)
     public float LeewaySeconds; // can be used for finishing casts / slidecasting etc.
     public float TimeToGoal;
     public Map? Map;
@@ -37,7 +38,8 @@ public struct NavigationDecision
         ctx.ThetaStar.Start(ctx.Map, player.Position, 1.0f / playerSpeed);
         var bestNodeIndex = ctx.ThetaStar.Execute();
         ref var bestNode = ref ctx.ThetaStar.NodeByIndex(bestNodeIndex);
-        return new() { Destination = GetFirstWaypoint(ctx.ThetaStar, ctx.Map, bestNodeIndex), LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore, Map = ctx.Map };
+        var (destination, turn) = GetFirstWaypoint(ctx.ThetaStar, ctx.Map, bestNodeIndex, player.Position);
+        return new() { Destination = destination, NextTurn = turn, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore, Map = ctx.Map };
     }
 
     public static void RasterizeForbiddenZones(Map map, List<(Func<WPos, float> shapeDistance, DateTime activation)> zones, DateTime current, ref float[] scratch)
@@ -183,17 +185,23 @@ public struct NavigationDecision
         return float.MaxValue;
     }
 
-    private static WPos? GetFirstWaypoint(ThetaStar pf, Map map, int cell)
+    private static (WPos? destination, float turn) GetFirstWaypoint(ThetaStar pf, Map map, int cell, WPos startingPos)
     {
         ref var startingNode = ref pf.NodeByIndex(cell);
         if (startingNode.GScore == 0 && startingNode.PathMinG == float.MaxValue)
-            return null; // we're already in safe zone
+            return (null, 0); // we're already in safe zone
 
+        var nextCell = cell;
         do
         {
             ref var node = ref pf.NodeByIndex(cell);
             if (pf.NodeByIndex(node.ParentIndex).GScore == 0)
-                return pf.CellCenter(cell);
+            {
+                var dest = pf.CellCenter(cell);
+                var next = pf.CellCenter(nextCell);
+                return (dest, (dest - startingPos).OrthoL().Dot(next - dest));
+            }
+            nextCell = cell;
             cell = node.ParentIndex;
         }
         while (true);

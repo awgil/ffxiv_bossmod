@@ -14,7 +14,7 @@ class Hieroglyphika(BossModule module) : Components.GenericAOEs(module, ActionID
     public readonly List<AOEInstance> AOEs = [];
 
     private static readonly AOEShapeRect _shape = new(6, 6, 6);
-    private static readonly WDir[] _canonicalSafespots = [new(-6, 18), new(18, -18)];
+    private static readonly WDir[] _canonicalSafespots = [new(6, -18), new(-18, 18)];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs;
 
@@ -31,7 +31,7 @@ class Hieroglyphika(BossModule module) : Components.GenericAOEs(module, ActionID
 
         WDir dir = index switch
         {
-            0x17 => new(1, 0),
+            0x17 => new(-1, 0),
             0x4A => new(0, 1),
             _ => default
         };

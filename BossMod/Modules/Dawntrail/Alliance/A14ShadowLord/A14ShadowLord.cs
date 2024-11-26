@@ -7,7 +7,7 @@ class DarkNova(BossModule module) : Components.SpreadFromCastTargets(module, Act
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1015, NameID = 13653)]
 public class A14ShadowLord(WorldState ws, Actor primary) : BossModule(ws, primary, new(150, 800), NormalBounds)
 {
-    public static readonly ArenaBoundsCircle NormalBounds = new(30);
+    public static readonly ArenaBoundsCircle NormalBounds = new(30); // TODO: verify radius
     public static readonly ArenaBoundsCustom ChtonicBounds = BuildChtonicBounds();
 
     public static ArenaBoundsCustom BuildChtonicBounds()

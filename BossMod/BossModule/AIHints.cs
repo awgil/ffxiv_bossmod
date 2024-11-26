@@ -31,7 +31,7 @@ public sealed class AIHints
         Normal,
         Pyretic, // pyretic/acceleration bomb type of effects - no movement, no actions, no casting allowed at activation time
         Freezing, // should be moving at activation time
-        // TODO: misdirection, etc
+        Misdirection, // temporary misdirection - if current time is greater than activation, use special pathfinding codepath
     }
 
     private readonly AIConfig _config = Service.Config.Get<AIConfig>();
@@ -77,6 +77,9 @@ public sealed class AIHints
     // closest special movement/targeting/action mode, if any
     public (SpecialMode mode, DateTime activation) ImminentSpecialMode;
 
+    // for misdirection: if forced movement is set, make real direction be within this angle
+    public Angle MisdirectionThreshold;
+
     // predicted incoming damage (raidwides, tankbusters, etc.)
     // AI will attempt to shield & mitigate
     public List<(BitMask players, DateTime activation)> PredictedDamage = [];
@@ -110,6 +113,7 @@ public sealed class AIHints
         RecommendedPositional = default;
         ForbiddenDirections.Clear();
         ImminentSpecialMode = default;
+        MisdirectionThreshold = 15.Degrees();
         PredictedDamage.Clear();
         MaxCastTimeEstimate = float.MaxValue;
         ActionsToExecute.Clear();

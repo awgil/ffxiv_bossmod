@@ -18,7 +18,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
         }
         tree.LeafNode($"Forced target: {hints.ForcedTarget}");
         tree.LeafNode($"Interact target: {hints.InteractWithTarget}");
-        tree.LeafNode($"Forced movement: {hints.ForcedMovement}");
+        tree.LeafNode($"Forced movement: {hints.ForcedMovement} (misdirection threshold={hints.MisdirectionThreshold})");
         tree.LeafNode($"Special movement: {hints.ImminentSpecialMode.mode} in {Math.Max(0, (hints.ImminentSpecialMode.activation - ws.CurrentTime).TotalSeconds):f3}s");
         foreach (var _1 in tree.Node("Forbidden zones", hints.ForbiddenZones.Count == 0))
         {

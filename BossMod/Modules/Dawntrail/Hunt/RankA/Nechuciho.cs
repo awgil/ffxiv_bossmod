@@ -9,24 +9,25 @@ public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast, single-target
     WordOfTheWood = 39872, // Boss->self, 5.0s cast, range 30 180-degree cone
-    WhisperOfTheWood1 = 39493, // Boss->self, 3.0s cast, single-target, visual (cleaves: forward->right->left->back)
-    WhisperOfTheWood2 = 39494, // Boss->self, 3.0s cast, single-target, visual (cleaves: left->forward->back->right)
-    WhisperOfTheWood3 = 39495, // Boss->self, 3.0s cast, single-target, visual (cleaves: back->left->right->forward)
+    WhisperOfTheWoodFRLB = 39493, // Boss->self, 3.0s cast, single-target, visual (cleaves: forward->right->left->back)
+    WhisperOfTheWoodLFBR = 39494, // Boss->self, 3.0s cast, single-target, visual (cleaves: left->forward->back->right)
+    WhisperOfTheWoodBLRF = 39495, // Boss->self, 3.0s cast, single-target, visual (cleaves: back->left->right->forward)
     WordOfTheWoodMulti = 39496, // Boss->self, 7.0s cast, single-target, visual (first cleave)
-    WordOfTheWoodAOEForward = 39785, // Boss->self, no cast, range 30 180-degree cone
-    WordOfTheWoodAOERearward = 39786, // Boss->self, no cast, range 30 180-degree cone
-    WordOfTheWoodAOELeftward = 39787, // Boss->self, no cast, range 30 180-degree cone
-    WordOfTheWoodAOERightward = 39788, // Boss->self, no cast, range 30 180-degree cone
+    WordOfTheWoodAOEOldF = 39785, // Boss->self, no cast, range 30 180-degree cone, before 7.1
+    WordOfTheWoodAOEOldB = 39786, // Boss->self, no cast, range 30 180-degree cone, before 7.1
+    WordOfTheWoodAOEOldL = 39787, // Boss->self, no cast, range 30 180-degree cone, before 7.1
+    WordOfTheWoodAOEOldR = 39788, // Boss->self, no cast, range 30 180-degree cone, before 7.1
+    WordOfTheWoodAOEMidF = 42168, // Boss->self, no cast, range 30 180-degree cone, casts 1-3
+    WordOfTheWoodAOEMidB = 42169, // Boss->self, no cast, range 30 180-degree cone, casts 1-3
+    WordOfTheWoodAOEMidL = 42170, // Boss->self, no cast, range 30 180-degree cone, casts 1-3
+    WordOfTheWoodAOEMidR = 42171, // Boss->self, no cast, range 30 180-degree cone, casts 1-3
+    WordOfTheWoodAOEEndF = 42168, // Boss->self, no cast, range 30 180-degree cone, cast 4
+    WordOfTheWoodAOEEndB = 42169, // Boss->self, no cast, range 30 180-degree cone, cast 4
+    WordOfTheWoodAOEEndL = 42170, // Boss->self, no cast, range 30 180-degree cone, cast 4
+    WordOfTheWoodAOEEndR = 42171, // Boss->self, no cast, range 30 180-degree cone, cast 4
+
     Level5DeathSentence = 39492, // Boss->self, 5.0s cast, range 30 circle, interruptible spell applying dooms
     SentinelRoar = 39491, // Boss->self, 5.0s cast, range 40 circle, raidwide
-}
-
-public enum SID : uint
-{
-    ForwardOmen = 4153, // Boss->Boss, extra=0x0
-    RearwardOmen = 4154, // Boss->Boss, extra=0x0
-    LeftwardOmen = 4155, // Boss->Boss, extra=0x0
-    RightwardOmen = 4156, // Boss->Boss, extra=0x0
 }
 
 class WordOfTheWood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WordOfTheWood), new AOEShapeCone(30, 90.Degrees()));
@@ -46,21 +47,19 @@ class WhisperOfTheWood(BossModule module) : Components.GenericAOEs(module)
             yield return new(_shape, Module.PrimaryActor.Position, _directions[0], _nextActivation, ArenaColor.Danger);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        Angle? dir = (SID)status.ID switch
+        switch ((AID)spell.Action.ID)
         {
-            SID.ForwardOmen => 0.Degrees(),
-            SID.RearwardOmen => 180.Degrees(),
-            SID.LeftwardOmen => 90.Degrees(),
-            SID.RightwardOmen => -90.Degrees(),
-            _ => null
-        };
-        if (dir != null)
-        {
-            var prevDir = _directions.Count > 0 ? _directions[^1] : actor.Rotation;
-            _directions.Add(prevDir + dir.Value);
-            _nextActivation = WorldState.FutureTime(8.8f);
+            case AID.WhisperOfTheWoodFRLB:
+                StartSequence(Module.CastFinishAt(spell, 9.6f), spell.Rotation, 0.Degrees(), -90.Degrees(), 90.Degrees(), 180.Degrees());
+                break;
+            case AID.WhisperOfTheWoodLFBR:
+                StartSequence(Module.CastFinishAt(spell, 9.6f), spell.Rotation, 90.Degrees(), 0.Degrees(), 180.Degrees(), -90.Degrees());
+                break;
+            case AID.WhisperOfTheWoodBLRF:
+                StartSequence(Module.CastFinishAt(spell, 9.6f), spell.Rotation, 180.Degrees(), 90.Degrees(), -90.Degrees(), 0.Degrees());
+                break;
         }
     }
 
@@ -68,10 +67,10 @@ class WhisperOfTheWood(BossModule module) : Components.GenericAOEs(module)
     {
         Angle? dir = (AID)spell.Action.ID switch
         {
-            AID.WordOfTheWoodAOEForward => 0.Degrees(),
-            AID.WordOfTheWoodAOERearward => 180.Degrees(),
-            AID.WordOfTheWoodAOELeftward => 90.Degrees(),
-            AID.WordOfTheWoodAOERightward => -90.Degrees(),
+            AID.WordOfTheWoodAOEOldF or AID.WordOfTheWoodAOEMidF or AID.WordOfTheWoodAOEEndF => 0.Degrees(),
+            AID.WordOfTheWoodAOEOldB or AID.WordOfTheWoodAOEMidB or AID.WordOfTheWoodAOEEndB => 180.Degrees(),
+            AID.WordOfTheWoodAOEOldL or AID.WordOfTheWoodAOEMidL or AID.WordOfTheWoodAOEEndL => 90.Degrees(),
+            AID.WordOfTheWoodAOEOldR or AID.WordOfTheWoodAOEMidR or AID.WordOfTheWoodAOEEndR => -90.Degrees(),
             _ => null
         };
         if (dir == null)
@@ -87,6 +86,16 @@ class WhisperOfTheWood(BossModule module) : Components.GenericAOEs(module)
             ReportError($"Unexpected rotation: {spell.Action} @ {caster.Rotation} (boss @ {Module.PrimaryActor.Rotation}), expected {_directions[0]}");
         _directions.RemoveAt(0);
         _nextActivation = WorldState.FutureTime(2);
+    }
+
+    private void StartSequence(DateTime activation, Angle starting, params Angle[] angles)
+    {
+        _nextActivation = activation;
+        foreach (var a in angles)
+        {
+            starting += a;
+            _directions.Add(starting);
+        }
     }
 }
 

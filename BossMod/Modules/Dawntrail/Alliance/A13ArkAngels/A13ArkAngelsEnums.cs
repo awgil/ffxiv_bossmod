@@ -61,7 +61,8 @@ public enum AID : uint
     CrossReaver = 41091, // BossHM->self, 3.0s cast, single-target, visual (cross)
     CrossReaverAOE = 41092, // Helper->self, 6.0s cast, range 50 width 12 cross
     DominionSlash = 41093, // BossEV->self, 5.0s cast, range 100 circle, raidwide + orbs
-    DivineDominion = 41094, // Helper->self, 2.0s cast, range 6 circle, orb explosion
+    DivineDominion = 41094, // Helper->self, 2.0s cast, range 6 circle, orb explosion when it expires normally
+    DivineDominionFail = 40628, // Helper->self, no cast, range 6 circle, orb explosion when it is touched early
     Holy = 41097, // BossEV->self, 5.0s cast, range 100 circle, raidwide
     ProudPalisade = 42056, // BossEV->self, no cast, single-target, visual (create shield)
     MijinGakure = 41100, // BossHM->self, 30.0s cast, range 100 circle, interruptible enrage
