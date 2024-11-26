@@ -19,7 +19,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
     private WPos _masterPrevPos;
     private DateTime _masterLastMoved;
     private DateTime? _navDecisionTimeMade;
-    private TimeSpan _navDecisionTime => _navDecisionTimeMade != null ? WorldState.CurrentTime - _navDecisionTimeMade!.Value : TimeSpan.Zero;
+    private TimeSpan NavDecisionTime => _navDecisionTimeMade != null ? WorldState.CurrentTime - _navDecisionTimeMade!.Value : TimeSpan.Zero;
 
     public void Dispose()
     {
@@ -207,7 +207,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
         {
             var toDest = _naviDecision.Destination != null ? _naviDecision.Destination.Value - player.Position : new();
             var distSq = toDest.LengthSq();
-            ctrl.NaviTargetPos = _navDecisionTime.TotalMilliseconds >= (_config.MoveDelay * 1000) ? _naviDecision.Destination : null;
+            ctrl.NaviTargetPos = NavDecisionTime.TotalMilliseconds >= (_config.MoveDelay * 1000) ? _naviDecision.Destination : null;
             ctrl.NaviTargetVertical = master != player ? master.PosRot.Y : null;
             ctrl.AllowInterruptingCastByMovement = player.CastInfo != null && _naviDecision.LeewaySeconds <= player.CastInfo.RemainingTime - 0.5;
             ctrl.ForceCancelCast = false;
