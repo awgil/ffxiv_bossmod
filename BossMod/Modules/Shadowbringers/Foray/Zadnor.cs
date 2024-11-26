@@ -24,7 +24,7 @@ public abstract class FarmModule(WorldState ws) : ZoneModule(ws)
         if (World.Client.ActiveFate.ID > 0)
             return;
 
-        hints.PathfindMapBounds = new ArenaBoundsSquare(120, 2);
+        hints.PathfindMapBounds = new ArenaBoundsSquare(90, 1.5f);
 
         var oids = Targets().Select(t => t.OID).ToList();
 
