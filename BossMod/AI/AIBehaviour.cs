@@ -18,6 +18,8 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
     private bool _followMaster; // if true, our navigation target is master rather than primary target - this happens e.g. in outdoor or in dungeons during gathering trash
     private WPos _masterPrevPos;
     private DateTime _masterLastMoved;
+    private DateTime? _navDecisionTimeMade;
+    private TimeSpan _navDecisionTime => _navDecisionTimeMade != null ? WorldState.CurrentTime - _navDecisionTimeMade!.Value : TimeSpan.Zero;
 
     public void Dispose()
     {
@@ -61,6 +63,12 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
         bool masterIsMoving = TrackMasterMovement(master);
         bool moveWithMaster = masterIsMoving && _followMaster && master != player;
         ForceMovementIn = moveWithMaster || gazeImminent || pyreticImminent ? 0 : _naviDecision.LeewaySeconds;
+
+        if (_naviDecision.Destination == null)
+            _navDecisionTimeMade = null;
+
+        if (_naviDecision.Destination != null && _navDecisionTimeMade == null)
+            _navDecisionTimeMade = WorldState.CurrentTime;
 
         UpdateMovement(player, master, target, gazeImminent || pyreticImminent, misdirectionMode ? autorot.Hints.MisdirectionThreshold : default, !forbidTargeting ? autorot.Hints.ActionsToExecute : null);
     }
@@ -199,7 +207,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
         {
             var toDest = _naviDecision.Destination != null ? _naviDecision.Destination.Value - player.Position : new();
             var distSq = toDest.LengthSq();
-            ctrl.NaviTargetPos = _naviDecision.Destination;
+            ctrl.NaviTargetPos = _navDecisionTime.TotalMilliseconds >= (_config.MoveDelay * 1000) ? _naviDecision.Destination : null;
             ctrl.NaviTargetVertical = master != player ? master.PosRot.Y : null;
             ctrl.AllowInterruptingCastByMovement = player.CastInfo != null && _naviDecision.LeewaySeconds <= player.CastInfo.RemainingTime - 0.5;
             ctrl.ForceCancelCast = false;
