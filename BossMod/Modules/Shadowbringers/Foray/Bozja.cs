@@ -6,6 +6,8 @@ namespace BossMod.Shadowbringers.Foray.Bozja;
 [ConfigDisplay(Parent = typeof(ShadowbringersConfig))]
 class BozjaConfig : ConfigNode
 {
+    [PropertyDisplay("4th Legion Vanguard (Lyon)")]
+    public bool Vanguard = false;
     [PropertyDisplay("4th Legion Scorpion (Sartauvoir)")]
     public bool Scorpion = false;
 }
@@ -39,5 +41,7 @@ public class Bozja : FarmModule
     {
         if (_config.Scorpion)
             yield return ("Scorpion", 0x2E53);
+        if (_config.Vanguard)
+            yield return ("Vanguard", 0x2E36);
     }
 }
