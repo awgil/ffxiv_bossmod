@@ -352,9 +352,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         #region Minimal Requirements
         //Ammo-relative
         canBS = Unlocked(GNB.AID.BurstStrike) && Ammo > 0; //BurstStrike conditions; -1 Ammo ST
-        canGF = Unlocked(GNB.AID.GnashingFang) && ActionReady(GNB.AID.GnashingFang) && Ammo >= 1; //GnashingFang conditions; -1 Ammo ST
+        canGF = Unlocked(GNB.AID.GnashingFang) && ActionReady(GNB.AID.GnashingFang) && Ammo > 0; //GnashingFang conditions; -1 Ammo ST
         canFC = Unlocked(GNB.AID.FatedCircle) && Ammo > 0; //FatedCircle conditions; -1 Ammo AOE
-        canDD = Unlocked(GNB.AID.DoubleDown) && ActionReady(GNB.AID.DoubleDown) && Ammo >= 2; //DoubleDown conditions; -2 Ammo AOE
+        canDD = Unlocked(GNB.AID.DoubleDown) && ActionReady(GNB.AID.DoubleDown) && Ammo > 0; //DoubleDown conditions; -1 Ammo AOE
         canBF = Unlocked(GNB.AID.Bloodfest) && ActionReady(GNB.AID.Bloodfest); //Bloodfest conditions; +all Ammo (must have target)
         //Cooldown-relative
         canZone = Unlocked(GNB.AID.DangerZone) && ActionReady(GNB.AID.DangerZone); //Zone conditions
@@ -513,7 +513,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //Double Down execution
         var ddStrat = strategy.Option(Track.DoubleDown).As<OffensiveStrategy>();
         if (ShouldUseDoubleDown(ddStrat, primaryTarget))
-            QueueGCD(GNB.AID.DoubleDown, primaryTarget, ((ddStrat == OffensiveStrategy.Force) || Ammo == 2) ? GCDPriority.ForcedGCD : GCDPriority.DoubleDown);
+            QueueGCD(GNB.AID.DoubleDown, primaryTarget, ((ddStrat == OffensiveStrategy.Force) || Ammo == 1) ? GCDPriority.ForcedGCD : GCDPriority.DoubleDown);
 
         //Gnashing Fang Combo execution
         if (GunComboStep == 1)
@@ -537,7 +537,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //Burst Strike execution
         var strikeStrat = strategy.Option(Track.BurstStrike).As<OffensiveStrategy>();
         if (Unlocked(GNB.AID.BurstStrike) && Unlocked(GNB.AID.Bloodfest) && ShouldUseBurstStrike(strikeStrat, primaryTarget))
-            QueueGCD(GNB.AID.BurstStrike, primaryTarget, strikeStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.BurstStrike);
+            QueueGCD(GNB.AID.BurstStrike, primaryTarget, strikeStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : nmCD < 1 ? GCDPriority.ForcedGCD : GCDPriority.BurstStrike);
 
         //Fated Circle execution
         var fcStrat = strategy.Option(Track.FatedCircle).As<OffensiveStrategy>();
@@ -691,10 +691,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     {
         NoMercyStrategy.Automatic =>
             Player.InCombat && target != null && ActionReady(GNB.AID.NoMercy) && GCD < 0.9f &&
-            ((Ammo == 1 && bfCD == 0 && Unlocked(GNB.AID.Bloodfest) && Unlocked(GNB.AID.DoubleDown)) || //Lv90+ Opener
+            ((Ammo < 3) || //Lv90+ Opener
             (Ammo >= 1 && bfCD == 0 && Unlocked(GNB.AID.Bloodfest) && !Unlocked(GNB.AID.DoubleDown)) || //Lv80+ Opener
-            (!Unlocked(GNB.AID.Bloodfest) && Ammo >= 1 && ActionReady(GNB.AID.GnashingFang)) || //Lv70 & below
-            Ammo == MaxCartridges), //60s & 120s burst windows
+            (!Unlocked(GNB.AID.Bloodfest) && Ammo >= 1 && ActionReady(GNB.AID.GnashingFang))), //Lv70 & below 
         NoMercyStrategy.Force => true,
         NoMercyStrategy.ForceLW => Player.InCombat && GCD < 0.9f,
         NoMercyStrategy.Force2 => Ammo >= 2,
@@ -710,7 +709,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     {
         BloodfestStrategy.Automatic =>
             Player.InCombat && target != null &&
-            canBF && Ammo == 0 && hasNM,
+            canBF && Ammo == 0,
         BloodfestStrategy.Force => canBF,
         BloodfestStrategy.Force0 => canBF && Ammo == 0,
         BloodfestStrategy.Delay => false,
@@ -779,7 +778,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     {
         OffensiveStrategy.Automatic =>
             Player.InCombat && target != null && In3y(target) && canBS &&
-            ((Unlocked(GNB.AID.DoubleDown) && hasNM && !ActionReady(GNB.AID.DoubleDown) && GunComboStep == 0 && !hasReign) || //Lv90+
+            ((nmCD < 1.5f) ||
+            (Unlocked(GNB.AID.DoubleDown) && hasNM && !ActionReady(GNB.AID.DoubleDown) && GunComboStep == 0 && !hasReign) || //Lv90+
             (!Unlocked(GNB.AID.DoubleDown) && !ActionReady(GNB.AID.GnashingFang) && hasNM && GunComboStep == 0) || //Lv80 & Below
             (ComboLastMove == GNB.AID.BrutalShell && Ammo == MaxCartridges)), //Overcap protection
         OffensiveStrategy.Force => canBS,
