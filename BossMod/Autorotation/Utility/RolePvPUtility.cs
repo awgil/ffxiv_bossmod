@@ -56,7 +56,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("PvP: Utility", "PvP Rotation Module", "Utility Actions (PvP)", "Akechi", RotationModuleQuality.Excellent,
+        var res = new RotationModuleDefinition("Utility: PvP", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic,
             BitMask.Build(
                 Class.PLD, Class.WAR, Class.DRK, Class.GNB,
                 Class.WHM, Class.SCH, Class.AST, Class.SGE,

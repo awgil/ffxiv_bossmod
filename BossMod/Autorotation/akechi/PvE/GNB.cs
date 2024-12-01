@@ -123,7 +123,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : RotationM
     public static RotationModuleDefinition Definition()
     {
         //Module title & signature
-        var res = new RotationModuleDefinition("GNB (Akechi)", "Standard Rotation Module", "Standard rotation (Akechi)", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.GNB), 100);
+        var res = new RotationModuleDefinition("Akechi GNB", "Standard Rotation Module", "Standard rotation (Akechi)", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.GNB), 100);
 
         #region Custom strategies
         //Targeting strategy
