@@ -136,6 +136,20 @@ public class GroupAssignmentUnique : GroupAssignment
         return r;
     }
 
+    public static GroupAssignmentUnique DefaultRoles()
+    {
+        GroupAssignmentUnique r = new();
+        r[PartyRolesConfig.Assignment.MT] = 0;
+        r[PartyRolesConfig.Assignment.OT] = 1;
+        r[PartyRolesConfig.Assignment.H1] = 2;
+        r[PartyRolesConfig.Assignment.H2] = 3;
+        r[PartyRolesConfig.Assignment.M1] = 4;
+        r[PartyRolesConfig.Assignment.M2] = 5;
+        r[PartyRolesConfig.Assignment.R1] = 6;
+        r[PartyRolesConfig.Assignment.R2] = 7;
+        return r;
+    }
+
     public override bool Validate()
     {
         BitMask mask = new();
