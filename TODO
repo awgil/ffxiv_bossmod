@@ -1,8 +1,11 @@
 immediate plans
-- nechuciho - seen incorrect rotations...
-- questbattles
-- collisions for pathfinding
--- embedded mode
+- freeze
+- rotation modules in preset/plan to be ordered (incl ui)
+- get rid of legacyxxx
+- ex3 p2 ice bridges
+- on ex1 the cleave is still telegraphed a bit too wide
+- for p2 thordan cleavebuster the telegraph on the minimap is narrower than the actual hitbox
+- alt style for player indicator on arena
 
 general:
 - horizontal timeline / cooldown planner
@@ -39,12 +42,27 @@ general:
 - zone modules: replay visualization
 - zone modules: module info ui
 - refactor ipc/dtr
+- questbattles
+- collisions for pathfinding
+-- embedded mode
 
 boss modules:
 - timers
 - wipe should not fast forward all phases
 - fail log
 - boss module config presets/profiles
+- jeuno
+-- review recent logs
+-- a11:
+--- mechanic repeats
+--- ai hints for spikes+uppercut
+-- a12:
+--- concrete postures
+--- dragon breath disappearing
+--- hw2+
+-- a14:
+--- complex aoe hints (cthonic, battlements)
+--- dark nebula kb hints
 
 autorotation:
 - global strategy for track

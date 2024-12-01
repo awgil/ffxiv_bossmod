@@ -27,6 +27,8 @@ public class StayMove(BossModule module, float maxTimeToShowHint = float.Positiv
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        if (PlayerStates[slot].Activation == default)
+            return;
         switch (PlayerStates[slot].Requirement)
         {
             case Requirement.Stay:
