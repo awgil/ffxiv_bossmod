@@ -284,17 +284,19 @@ public class MapVisualizer
         var nextIndex = startingNode.ParentIndex;
         var (x1, y1) = Map.IndexToGrid(startingIndex);
         var (x2, y2) = Map.IndexToGrid(nextIndex);
+        var futureCenter = _pathfind.CellCenter(startingIndex);
         while (x1 != x2 || y1 != y2)
         {
             ref var node = ref _pathfind.NodeByIndex(startingIndex);
-            var off1 = node.EnterOffset;
-            using var n = ImRaii.TreeNode($"Waypoint: {x1}x{y1} ({Map.GridToWorld(x1, y1, off1.X + 0.5f, off1.Y + 0.5f)}), minG={node.PathMinG}, leeway={node.PathLeeway}", ImGuiTreeNodeFlags.Leaf);
-            x1 = x2;
-            y1 = y2;
+            var curCenter = _pathfind.CellCenter(startingIndex);
+            var prevCenter = _pathfind.CellCenter(node.ParentIndex);
+            var turn = (curCenter - prevCenter).OrthoL().Dot(futureCenter - curCenter);
+            using var n = ImRaii.TreeNode($"Waypoint: {x1}x{y1} ({Map.GridToWorld(x1, y1, node.EnterOffset.X + 0.5f, node.EnterOffset.Y + 0.5f)}), minG={node.PathMinG}, leeway={node.PathLeeway}, turn={turn}", ImGuiTreeNodeFlags.Leaf);
             startingIndex = nextIndex;
-            nextIndex = node.ParentIndex;
+            nextIndex = _pathfind.NodeByIndex(node.ParentIndex).ParentIndex;
             (x1, y1) = (x2, y2);
             (x2, y2) = Map.IndexToGrid(nextIndex);
+            futureCenter = curCenter;
         }
     }
 

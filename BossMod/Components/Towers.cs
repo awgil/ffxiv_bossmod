@@ -81,8 +81,11 @@ public class GenericTowers(BossModule module, ActionID aid = default) : CastCoun
                 zones.Add(ShapeDistance.Circle(t.Position, t.Radius));
             }
         }
-        var zoneUnion = ShapeDistance.Union(zones);
-        hints.AddForbiddenZone(haveTowersToSoak ? p => -zoneUnion(p) : zoneUnion, firstActivation);
+        if (zones.Count > 0)
+        {
+            var zoneUnion = ShapeDistance.Union(zones);
+            hints.AddForbiddenZone(haveTowersToSoak ? p => -zoneUnion(p) : zoneUnion, firstActivation);
+        }
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
