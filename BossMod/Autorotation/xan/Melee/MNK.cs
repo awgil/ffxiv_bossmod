@@ -620,6 +620,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             _ => GCDPriority.None
         };
 
+        if (!CanFitGCD(FiresReplyLeft, 1))
+            prio = GCDPriority.FiresReply;
+
         PushGCD(AID.FiresReply, BestRangedTarget, prio);
     }
 

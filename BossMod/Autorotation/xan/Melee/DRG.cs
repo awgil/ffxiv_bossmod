@@ -182,8 +182,6 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.LifeSurge, Player);
 
         if (StarcrossReady > 0)
-            // TODO we *technically* should select a specific target for starcross because it's a 3y range 5y radius circle...
-            // but it's always gonna get used immediately after stardiver and we'll be melee range...so fuck it
             PushOGCD(AID.Starcross, primaryTarget);
 
         if (LotD > 0 && moveOk)

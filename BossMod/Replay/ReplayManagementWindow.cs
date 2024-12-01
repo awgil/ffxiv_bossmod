@@ -1,5 +1,4 @@
 ﻿using BossMod.Autorotation;
-using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using Lumina.Excel.Sheets;
@@ -121,7 +120,7 @@ public class ReplayManagementWindow : UIWindow
         if (!_config.AutoRecord || _recordingManual)
             return false; // don't care
 
-        var isDuty = cfcId != 0;
+        var isDuty = cfcId is not (0 or 735 or 778); // do not auto-record bozja or zadnor
         if (_recordingDuty == isDuty)
             return false; // don't care
         _recordingDuty = isDuty;
