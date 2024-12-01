@@ -10,11 +10,11 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
     #region Enums: Abilities / Strategies
     public enum Track
     {
-        Elixir,           //Solid Barrel combo tracking
-        Recuperate,    //Gnashing Fang action tracking
-        Guard,     //Rough Divide ability tracking
-        Purify,     //Fated Circle ability tracking
-        Sprint,           //Burst tracking
+        Elixir,
+        Recuperate,
+        Guard,
+        Purify,
+        Sprint,
     }
     public enum ElixirStrategy
     {
@@ -28,90 +28,86 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
 
     public enum RecuperateStrategy
     {
-        Automatic,        //Automatically execute based on conditions
-        Seventy,          //Execute at 70% HP
-        Fifty,            //Execute at 50% HP
-        Thirty,           //Execute at 30% HP
-        Force,            //Force burst actions regardless of conditions
-        Hold              //Conserve resources and cooldowns
+        Automatic,
+        Seventy,
+        Fifty,
+        Thirty,
+        Force,
+        Hold
     }
 
     public enum GuardStrategy
     {
-        Automatic,        //Automatically execute based on conditions
-        Seventy,          //Execute at 70% HP
-        Fifty,            //Execute at 50% HP
-        Thirty,           //Execute at 30% HP
-        Force,            //Force burst actions regardless of conditions
-        Hold              //Conserve resources and cooldowns
+        Automatic,
+        Seventy,
+        Fifty,
+        Thirty,
+        Force,
+        Hold
     }
 
     public enum DefensiveStrategy
     {
-        Automatic,      //Automatically decide when to use Defensive abilities
-        Force,          //Force the use of Defensive abilities regardless of conditions
-        Delay           //Delay the use of Defensive abilities for strategic reasons
+        Automatic,
+        Force,
+        Delay
     }
-
     #endregion
 
     public static RotationModuleDefinition Definition()
     {
         var res = new RotationModuleDefinition("PvP: Utility", "PvP Rotation Module", "Utility Actions (PvP)", "Akechi", RotationModuleQuality.Excellent,
             BitMask.Build(
-                Class.PLD, Class.WAR, Class.DRK, Class.GNB, //Tank
-                Class.WHM, Class.SCH, Class.AST, Class.SGE, //Healer    
-                Class.MNK, Class.DRG, Class.NIN, Class.SAM, Class.RPR, Class.VPR, //Melee
-                Class.BRD, Class.MCH, Class.DNC, //Ranged
-                Class.BLM, Class.SMN, Class.RDM, Class.PCT), 30); //Caster
+                Class.PLD, Class.WAR, Class.DRK, Class.GNB,
+                Class.WHM, Class.SCH, Class.AST, Class.SGE,
+                Class.MNK, Class.DRG, Class.NIN, Class.SAM, Class.RPR, Class.VPR,
+                Class.BRD, Class.MCH, Class.DNC,
+                Class.BLM, Class.SMN, Class.RDM, Class.PCT), 30);
 
         res.Define(Track.Elixir).As<ElixirStrategy>("Elixir", uiPriority: 150)
-            .AddOption(ElixirStrategy.Automatic, "Automatic", "Use normally")
-            .AddOption(ElixirStrategy.Close, "Close", "Use when target is close (within 10y or further)")
-            .AddOption(ElixirStrategy.Mid, "Mid", "Use when target is mid-range (within 20y or further)")
-            .AddOption(ElixirStrategy.Far, "Far", "Use when target is far (within 30y or further)")
-            .AddOption(ElixirStrategy.Force, "Force", "Force")
-            .AddOption(ElixirStrategy.Hold, "Hold", "Hold")
+            .AddOption(ElixirStrategy.Automatic, "Automatic")
+            .AddOption(ElixirStrategy.Close, "Close")
+            .AddOption(ElixirStrategy.Mid, "Mid")
+            .AddOption(ElixirStrategy.Far, "Far")
+            .AddOption(ElixirStrategy.Force, "Force")
+            .AddOption(ElixirStrategy.Hold, "Hold")
             .AddAssociatedActions(AID.Elixir);
         res.Define(Track.Recuperate).As<RecuperateStrategy>("Recuperate", uiPriority: 150)
-            .AddOption(RecuperateStrategy.Automatic, "Automatic", "Use normally")
-            .AddOption(RecuperateStrategy.Seventy, "Seventy", "Use at 70% HP")
-            .AddOption(RecuperateStrategy.Fifty, "Fifty", "Use at 50% HP")
-            .AddOption(RecuperateStrategy.Thirty, "Thirty", "Use at 30% HP")
-            .AddOption(RecuperateStrategy.Force, "Force", "Force")
-            .AddOption(RecuperateStrategy.Hold, "Hold", "Hold")
+            .AddOption(RecuperateStrategy.Automatic, "Automatic")
+            .AddOption(RecuperateStrategy.Seventy, "Seventy")
+            .AddOption(RecuperateStrategy.Fifty, "Fifty")
+            .AddOption(RecuperateStrategy.Thirty, "Thirty")
+            .AddOption(RecuperateStrategy.Force, "Force")
+            .AddOption(RecuperateStrategy.Hold, "Hold")
             .AddAssociatedActions(AID.Recuperate);
         res.Define(Track.Guard).As<GuardStrategy>("Guard", uiPriority: 150)
-            .AddOption(GuardStrategy.Automatic, "Automatic", "Use normally")
-            .AddOption(GuardStrategy.Seventy, "Seventy", "Use at 70% HP")
-            .AddOption(GuardStrategy.Fifty, "Fifty", "Use at 50% HP")
-            .AddOption(GuardStrategy.Thirty, "Thirty", "Use at 30% HP")
-            .AddOption(GuardStrategy.Force, "Force", "Force")
-            .AddOption(GuardStrategy.Hold, "Hold", "Hold")
+            .AddOption(GuardStrategy.Automatic, "Automatic")
+            .AddOption(GuardStrategy.Seventy, "Seventy")
+            .AddOption(GuardStrategy.Fifty, "Fifty")
+            .AddOption(GuardStrategy.Thirty, "Thirty")
+            .AddOption(GuardStrategy.Force, "Force")
+            .AddOption(GuardStrategy.Hold, "Hold")
             .AddAssociatedActions(AID.Guard);
         res.Define(Track.Purify).As<DefensiveStrategy>("Purify", uiPriority: 150)
-            .AddOption(DefensiveStrategy.Automatic, "Automatic", "Use normally")
-            .AddOption(DefensiveStrategy.Force, "Force", "Force")
-            .AddOption(DefensiveStrategy.Delay, "Delay", "Delay")
+            .AddOption(DefensiveStrategy.Automatic, "Automatic")
+            .AddOption(DefensiveStrategy.Force, "Force")
+            .AddOption(DefensiveStrategy.Delay, "Delay")
             .AddAssociatedActions(AID.Purify);
         res.Define(Track.Sprint).As<DefensiveStrategy>("Sprint", uiPriority: 150)
-            .AddOption(DefensiveStrategy.Automatic, "Automatic", "Use normally")
-            .AddOption(DefensiveStrategy.Force, "Force", "Force")
-            .AddOption(DefensiveStrategy.Delay, "Delay", "Delay")
+            .AddOption(DefensiveStrategy.Automatic, "Automatic")
+            .AddOption(DefensiveStrategy.Force, "Force")
+            .AddOption(DefensiveStrategy.Delay, "Delay")
             .AddAssociatedActions(AID.Sprint);
         return res;
-
     }
 
     #region Priorities
-    //Priority for GCDs used
     public enum GCDPriority
     {
         None = 0,
         Elixir = 500,
         ForcedGCD = 900,
     }
-    //Priority for oGCDs used
     public enum OGCDPriority
     {
         None = 0,
@@ -124,27 +120,25 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
     #endregion
 
     #region Placeholders for Variables
-    //Cooldown Related
-    private bool hasSprint; //Checks if Sprint is active
-    private bool canElixir; //can Keen Edge
-    private bool canRecuperate; //can Brutal Shell
-    private bool canGuard; //can Solid Barrel
-    private bool canPurify; //can Burst Strike
-    private bool canSprint; //can Gnashing Fang
+    private bool hasSprint;
+    private bool canElixir;
+    private bool canRecuperate;
+    private bool canGuard;
+    private bool canPurify;
+    private bool canSprint;
 
-    //Misc
-    public float GCDLength; //Current GCD length, adjusted by skill speed/haste (2.5s baseline)
-    public AID NextGCD; //Next global cooldown action to be used (needed for cartridge management)
-    private GCDPriority NextGCDPrio; //Priority of the next GCD, used for decision making on cooldowns
+    public float GCDLength;
+    public AID NextGCD;
+    private GCDPriority NextGCDPrio;
     #endregion
 
     #region Module Helpers
-    private bool In10y(Actor? target) => Player.DistanceToHitbox(target) <= 9.9; //Check if the target is within 10 yalms
-    private bool In20y(Actor? target) => Player.DistanceToHitbox(target) <= 19.9; //Check if the target is within 20 yalms
-    private bool In30y(Actor? target) => Player.DistanceToHitbox(target) <= 29.9; //Check if the target is within 30 yalms
-    private bool IsOffCooldown(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining < 0.6f; //Check if the desired action is ready (cooldown less than 0.6 seconds)
-    public bool HasEffect(SID sid) => SelfStatusLeft(sid) > 0; //Check if the player has the specified status effect
-    public bool TargetHasEffect(SID sid, Actor? target) => StatusDetails(target, sid, Player.InstanceID, 1000).Left > 0; //Check if the target has the specified status effect
+    private bool In10y(Actor? target) => Player.DistanceToHitbox(target) <= 9.9;
+    private bool In20y(Actor? target) => Player.DistanceToHitbox(target) <= 19.9;
+    private bool In30y(Actor? target) => Player.DistanceToHitbox(target) <= 29.9;
+    private bool IsOffCooldown(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining < 0.6f;
+    public bool HasEffect(SID sid) => SelfStatusLeft(sid) > 0;
+    public bool TargetHasEffect(SID sid, Actor? target) => StatusDetails(target, sid, Player.InstanceID, 1000).Left > 0;
     #endregion
     public float DebuffsLeft(Actor? target)
     {
@@ -160,10 +154,10 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
     }
     public bool HasAnyDebuff(Actor? target) => DebuffsLeft(target) > 0;
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
+    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         #region Variables
-        hasSprint = HasEffect(SID.SprintPvP); //Checks if Sprint is active
+        hasSprint = HasEffect(SID.SprintPvP);
 
         #region Minimal Requirements
         canElixir = IsOffCooldown(AID.Elixir) && strategy.Option(Track.Elixir).As<ElixirStrategy>() != ElixirStrategy.Hold;
@@ -174,34 +168,28 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
         #endregion
         #endregion
 
-        //Elixir execution
         var elixirStrat = strategy.Option(Track.Elixir).As<ElixirStrategy>();
         if (ShouldUseElixir(elixirStrat, primaryTarget))
             QueueGCD(AID.Elixir, Player, elixirStrat == ElixirStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.Elixir);
 
-        //Recuperate execution
         var recuperateStrat = strategy.Option(Track.Recuperate).As<RecuperateStrategy>();
         if (ShouldUseRecuperate(recuperateStrat))
             QueueOGCD(AID.Recuperate, Player, recuperateStrat == RecuperateStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Recuperate);
 
-        //Guard execution
         var guardStrat = strategy.Option(Track.Guard).As<GuardStrategy>();
         if (ShouldUseGuard(guardStrat, primaryTarget))
             QueueOGCD(AID.Guard, Player, guardStrat == GuardStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Guard);
 
-        //Purify execution
         var purifyStrat = strategy.Option(Track.Purify).As<DefensiveStrategy>();
         if (ShouldUsePurify(purifyStrat, primaryTarget))
             QueueOGCD(AID.Purify, Player, purifyStrat == DefensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Purify);
 
-        //Sprint execution
         var sprintStrat = strategy.Option(Track.Sprint).As<DefensiveStrategy>();
         if (ShouldUseSprint(sprintStrat, primaryTarget))
             QueueOGCD(AID.SprintPvP, Player, sprintStrat == DefensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Sprint);
     }
 
     #region Core Execution Helpers
-    //QueueGCD execution
     private void QueueGCD(AID aid, Actor? target, GCDPriority prio)
     {
         if (prio != GCDPriority.None)
@@ -214,7 +202,6 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
             }
         }
     }
-    //QueueOGCD execution
     private void QueueOGCD(AID aid, Actor? target, OGCDPriority prio, float basePrio = ActionQueue.Priority.Medium)
     {
         if (prio != OGCDPriority.None)
