@@ -2,11 +2,11 @@
 using AID = BossMod.GNB.AID;
 using SID = BossMod.GNB.SID;
 
-namespace BossMod.Autorotation.akechi.PvP;
+namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
 //Discord @akechdz or 'Akechi' on Puni.sh for maintenance
 
-public sealed class GNB(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
+public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     #region Enums: Abilities / Strategies
     public enum Track
@@ -63,7 +63,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : RotationM
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi GNB (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.GNB), 100);
+        var res = new RotationModuleDefinition("Akechi GNB (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.GNB), 100, 30);
 
         #region Custom strategies
         res.Define(Track.Burst).As<BurstStrategy>("Burst", uiPriority: 190)

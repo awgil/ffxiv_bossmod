@@ -62,7 +62,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
                 Class.WHM, Class.SCH, Class.AST, Class.SGE,
                 Class.MNK, Class.DRG, Class.NIN, Class.SAM, Class.RPR, Class.VPR,
                 Class.BRD, Class.MCH, Class.DNC,
-                Class.BLM, Class.SMN, Class.RDM, Class.PCT), 30);
+                Class.BLM, Class.SMN, Class.RDM, Class.PCT), 100, 30);
 
         res.Define(Track.Elixir).As<ElixirStrategy>("Elixir", uiPriority: 150)
             .AddOption(ElixirStrategy.Automatic, "Automatic")
