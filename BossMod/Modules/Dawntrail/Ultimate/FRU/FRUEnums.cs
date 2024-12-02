@@ -1,0 +1,182 @@
+﻿namespace BossMod.Dawntrail.Ultimate.FRU;
+
+public enum OID : uint
+{
+    Boss = 0x459B, // R5.004, x1
+    Helper = 0x233C, // R0.500, x24, Helper type
+    FatebreakersImage = 0x459C, // R5.004, x15
+    FatebreakersImageHelper = 0x45B0, // R1.800, x8
+    HaloOfFlame = 0x459D, // R1.000, x0 (spawn during fight)
+    HaloOfLevin = 0x459E, // R1.000, x0 (spawn during fight)
+
+    BossP2 = 0x459F, // R6.125, x0 (spawn during fight)
+    OraclesReflection = 0x45A0, // R6.125, x0 (spawn during fight)
+    FrozenMirror = 0x45A1, // R1.000, x0 (spawn during fight)
+    HolyLight = 0x45A2, // R2.000, x0 (spawn during fight) (light rampant orb)
+    SinboundHolyVoidzone = 0x1EBC4F, // R0.500, x0 (spawn during fight), EventObj type
+
+    CrystalOfLight = 0x45A3, // R1.500, x0 (spawn during fight)
+    CrystalOfDarkness = 0x45A4, // R1.500, x0 (spawn during fight)
+    IceVeil = 0x45A5, // R5.000, x0 (spawn during fight)
+    Gaia = 0x45A6, // R1.000, x0 (spawn during fight)
+    //_Gen_OracleOfDarkness = 0x45A7, // R7.040, x0 (spawn during fight)
+    //_Gen_CrystalOfLight = 0x464F, // R1.000, x0 (spawn during fight)
+    HiemalRayVoidzone = 0x1EA1CB, // R0.500, x0 (spawn during fight), EventObj type
+}
+
+public enum AID : uint
+{
+    // P1
+    AutoAttackP1 = 40116, // Boss->player, no cast, single-target
+    TeleportP1 = 40173, // Boss->location, no cast, ???
+
+    PowderMarkTrail = 40168, // Boss->player, 5.0s cast, single-target
+    BurnMark = 40169, // Helper->self, no cast, range 10 circle, spread on tankbuster target and closest player
+    BurnishedGlory = 40170, // Boss->self, 5.0s cast, range 40 circle, raidwide with bleed
+
+    CyclonicBreakBossStack = 40144, // Boss->self, 6.5s cast, single-target, visual (proteans + pairs)
+    CyclonicBreakBossSpread = 40148, // Boss->self, 6.5s cast, single-target, visual (proteans + spread)
+    CyclonicBreakImageStack = 40329, // FatebreakersImage->self, 7.0s cast, single-target, visual (proteans + pairs)
+    CyclonicBreakImageSpread = 40330, // FatebreakersImage->self, 7.0s cast, single-target, visual (proteans + spread)
+    CyclonicBreakAOEFirst = 40145, // Helper->self, no cast, range 60 ?-degree cone
+    CyclonicBreakAOERest = 40146, // Helper->self, no cast, range 50 ?-degree cone
+    CyclonicBreakSinsmoke = 40147, // Helper->players, no cast, range 6 circle, 2-man stack
+    CyclonicBreakSinsmite = 40149, // Helper->players, no cast, range 6 circle spread
+
+    UtopianSkyStack = 40154, // Boss->self, 4.0s cast, single-target, visual (3 lines + stack)
+    UtopianSkySpread = 40155, // Boss->self, 4.0s cast, single-target, visual (3 lines + spread)
+    BlastingZoneAOE = 40157, // FatebreakersImage->self, no cast, range 50 width 16 rect
+    BlastingZone = 40158, // FatebreakersImageHelper->self, 10.0s cast, single-target, visual (line aoe)
+    SinboundFire = 40159, // Helper->players, no cast, range 6 circle 4-man stack
+    SinboundThunder = 40160, // Helper->players, no cast, range 5 circle spread
+
+    TurnOfHeavensFire = 40150, // FatebreakersImage->self, 7.0s cast, single-target, visual (large fire)
+    TurnOfHeavensLightning = 40151, // FatebreakersImage->self, 7.0s cast, single-target, visual (large lightning)
+    TurnOfHeavensBurntStrikeFire = 40161, // FatebreakersImage->self, 8.0s cast, range 80 width 10 rect, followed by knockback
+    TurnOfHeavensBlastburn = 40162, // Helper->self, 10.0s cast, range 80 width 50 rect, knockback 15 to the side
+    TurnOfHeavensBurntStrikeLightning = 40163, // FatebreakersImage->self, 8.0s cast, range 80 width 10 rect, followed by wide aoe
+    TurnOfHeavensBurnout = 40164, // Helper->self, 9.7s cast, range 80 width 20 rect
+    BrightfireSmall = 40152, // HaloOfFlame/HaloOfLevin->self, 8.0s cast, range 5 circle
+    BrightfireLarge = 40153, // HaloOfFlame/HaloOfLevin->self, 8.0s cast, range 10 circle
+    BoundOfFaith = 40165, // FatebreakersImage->self, 10.0s cast, single-target, visual (tethers for stacks)
+    FloatingFetters = 40171, // FatebreakersImage/Boss->player, no cast, single-target, apply floating on stack targets
+    TurnOfHeavensSolemnCharge = 40166, // FatebreakersImage->player, no cast, single-target, visual (stack)
+    BoundOfFaithSinsmoke = 40167, // Helper->players, no cast, range 6 circle, 4-man stack
+    FatedBurnMark = 40331, // Helper->location, no cast, range 100 circle, raidwide if tether target dies
+
+    FallOfFaithFire = 40137, // Boss/FatebreakersImage->self, 9.0s cast, single-target, visual (fire tether -> shared cone)
+    FallOfFaithLightning = 40140, // Boss/FatebreakersImage->self, 9.0s cast, single-target, visual (lightning tether -> proteans)
+    FallOfFaithApply = 40172, // Helper->player, no cast, single-target, ??? (attract to current position, right before applying fetters)
+    FallOfFaithSolemnChargeFire = 40138, // FatebreakersImage/Boss->player, no cast, single-target, visual (tether resolve)
+    FallOfFaithSolemnChargeLightning = 40141, // Boss/FatebreakersImage->player, no cast, single-target, visual (tether resolve)
+    FallOfFaithSinsmite = 40142, // Helper->player, no cast, single-target, primary target hit
+    FallOfFaithBowShock = 40143, // Helper->self, no cast, range 60 120-degree cone, protean
+    FallOfFaithSinblaze = 40156, // Helper->self, no cast, range 60 90-degree cone, 4-man stack
+
+    ExplosionBurntStrikeFire = 40129, // Boss->self, 6.5s cast, range 80 width 10 rect, followed by knockback
+    ExplosionBlastburn = 40130, // Helper->self, 8.5s cast, range 80 width 50 rect, knockback 15 to the side
+    ExplosionBurntStrikeLightning = 40133, // Boss->self, 6.5s cast, range 80 width 10 rect, followed by wide aoe
+    ExplosionBurnout = 40134, // Helper->self, 8.2s cast, range 80 width 20 rect
+    Explosion11 = 40135, // Helper->self, 10.5s cast, range 4 circle, 1-man tower
+    Explosion12 = 40131, // Helper->self, 10.5s cast, range 4 circle, 1-man tower
+    Explosion21 = 40125, // Helper->self, 10.5s cast, range 4 circle, 2-man tower
+    Explosion22 = 40122, // Helper->self, 10.5s cast, range 4 circle, 2-man tower
+    Explosion31 = 40126, // Helper->self, 10.5s cast, range 4 circle, 3-man tower
+    Explosion32 = 40123, // Helper->self, 10.5s cast, range 4 circle, 3-man tower
+    Explosion41 = 40124, // Helper->self, 10.5s cast, range 4 circle, 4-man tower
+    Explosion42 = 40127, // Helper->self, 10.5s cast, range 4 circle, 4-man tower
+    UnmitigatedExplosion1 = 40132, // Helper->self, no cast, range 40 circle, raidwide if not enough soakers
+    UnmitigatedExplosion2 = 40136, // Helper->self, no cast, range 40 circle, raidwide if not enough soakers (what's the difference?)
+
+    EnrageP1 = 40128, // Boss->self, 10.0s cast, range 40 circle, enrage
+
+    // P2
+    AutoAttackP2 = 40176, // BossP2->player, no cast, single-target
+    TeleportP2 = 40175, // BossP2/OraclesReflection->location, no cast, single-target
+    QuadrupleSlapFirst = 40191, // BossP2->player, 5.0s cast, single-target, tankbuster with vuln
+    QuadrupleSlapSecond = 40192, // BossP2->player, 2.5s cast, single-target, tankbuster second hit
+
+    MirrorImage = 40180, // BossP2->self, 3.0s cast, single-target, visual (show clones)
+    DiamondDust = 40197, // BossP2->self, 5.0s cast, range 40 circle, raidwide
+    AxeKick = 40202, // OraclesReflection->self, 6.0s cast, range 16 circle
+    ScytheKick = 40203, // OraclesReflection/BossP2->self, 6.0s cast, range 4-20 donut
+    HouseOfLight = 40206, // Helper->self, no cast, range 60 ?-degree cone, baited on 4 closest
+    FrigidStone = 40199, // Helper->location, no cast, range 5 circle, baited on icons
+    IcicleImpact = 40198, // Helper->location, 9.0s cast, range 10 circle, circles at cardinals/intercardinals
+    FrigidNeedleCircle = 40200, // Helper->self, 5.0s cast, range 5 circle
+    FrigidNeedleCross = 40201, // Helper->self, 5.0s cast, range 40 width 5 cross
+    HeavenlyStrike = 40207, // BossP2->self, no cast, range 40 circle, knockback 12
+    SinboundHoly = 40208, // OraclesReflection->self, 5.0s cast, single-target, visual (multi-hit light party stacks)
+    SinboundHolyAOE = 40209, // Helper->location, no cast, range 6 circle, 4-man stack on healers
+    ShiningArmor = 40185, // Helper->self, no cast, range 40 circle, gaze (stun + damage down)
+    FrostArmor = 40184, // Helper->self, no cast, single-target, visual (thin ice)
+    TwinStillnessFirst = 40193, // OraclesReflection->self, 3.5s cast, range 30 270-degree cone (front)
+    TwinStillnessSecond = 40196, // OraclesReflection->self, no cast, range 40 90-degree cone (back)
+    TwinSilenceFirst = 40194, // OraclesReflection->self, 3.5s cast, range 40 90-degree cone (back)
+    TwinSilenceSecond = 40195, // OraclesReflection->self, no cast, range 30 270-degree cone (front)
+
+    HallowedRay = 40210, // BossP2->self, 5.0s cast, single-target, visual (line stack)
+    HallowedRayAOE = 40211, // BossP2->self, no cast, range 65 width 6 rect, line stack
+
+    MirrorMirror = 40179, // BossP2->self, 3.0s cast, single-target, visual (mechanic start)
+    ReflectedScytheKickBlue = 40204, // FrozenMirror->self, no cast, range 4-20 donut
+    ReflectedScytheKickRed = 40205, // FrozenMirror->self, 10.0s cast, range 4-20 donut
+    BanishStack = 40220, // BossP2->self, 5.0s cast, single-target, visual (pairs)
+    BanishStackAOE = 40222, // Helper->location, no cast, range 5 circle
+    BanishSpread = 40221, // BossP2->self, 5.0s cast, single-target, visual (spread)
+    BanishSpreadAOE = 40223, // Helper->location, no cast, range 5 circle
+
+    LightRampant = 40212, // BossP2->self, 5.0s cast, range 40 circle, raidwide + mechanic start
+    LuminousHammer = 40218, // Helper->player, no cast, range 6 circle, baited puddle
+    BrightHunger = 40213, // Helper->location, no cast, range 4 circle, tower
+    //_Weaponskill_RefulgentFate = 40215, // Helper->location, no cast, range 40 circle
+    //_Weaponskill_InescapableIllumination = 40214, // Helper->location, no cast, range 40 circle
+    HolyLightBurst = 40219, // HolyLight->self, 5.0s cast, range 11 circle
+    PowerfulLight = 40217, // Helper->players, no cast, range 5 circle stack
+    HouseOfLightBoss = 40189, // BossP2->self, 5.0s cast, single-target, visual (proteans)
+    HouseOfLightBossAOE = 40188, // Helper->self, no cast, range 60 ?-degree cone
+    //_Weaponskill_Lightsteep = 40216, // Helper->players, no cast, range 40 circle
+
+    AbsoluteZero = 40224, // BossP2->self, 10.0s cast, single-target, visual (raidwide + intermission start)
+    AbsoluteZeroAOE = 40333, // Helper->self, no cast, range 100 circle, raidwide
+    SwellingFrost = 40225, // Helper->self, no cast, range 40 circle, knockback 10 + freeze
+    EndlessIceAge = 40259, // IceVeil->self, 40.0s cast, range 100 circle, enrage
+    SinboundBlizzard = 40258, // CrystalOfDarkness->self, 3.3s cast, single-target, visual (baited cone)
+    SinboundBlizzardAOE = 40262, // Helper->self, 3.3s cast, range 50 ?-degree cone
+    HiemalStorm = 40255, // CrystalOfLight->self, no cast, single-target, visual (baited puddle)
+    HiemalStormAOE = 40256, // Helper->location, 3.3s cast, range 7 circle
+    HiemalRay = 40257, // Helper->player, no cast, range 4 circle
+}
+
+public enum SID : uint
+{
+    PowderMarkTrail = 4166, // Boss->player, extra=0x0
+    Concealed = 1621, // none->FatebreakersImage, extra=0x1
+    Prey = 1051, // none->player, extra=0x0
+    FatedBurnMark = 4165, // none->player, extra=0x0
+    FloatingFetters = 2304, // FatebreakersImage/Boss->player, extra=0xC8
+    MarkOfMortality = 4372, // Helper->player, extra=0x1
+    ChainsOfEverlastingLight = 4157, // none->player, extra=0x0, light rampant first tether
+    CurseOfEverlastingLight = 4158, // none->player, extra=0x0, light rampant second tether
+    WeightOfLight = 4159, // none->player, extra=0x0, light rampant stack
+    Lightsteeped = 2257, // Helper/HolyLight->player, extra=0x1/0x2/0x3/0x4/0x5
+}
+
+public enum IconID : uint
+{
+    PowderMarkTrail = 218, // player->self
+    FrigidStone = 345, // player->self
+    HallowedRay = 525, // BossP2->player
+    LuminousHammer = 375, // player->self
+}
+
+public enum TetherID : uint
+{
+    Fire = 249, // Boss/FatebreakersImage->player
+    Lightning = 287, // Boss/FatebreakersImage->player
+    LightRampantChains = 110, // player->player
+    LightRampantCurse = 111, // player->player
+    IntermissionGaia = 112, // Gaia->IceVeil
+    IntermissionCrystal = 8, // CrystalOfLight/CrystalOfDarkness->IceVeil
+    HiemalRay = 84, // CrystalOfLight->player
+}

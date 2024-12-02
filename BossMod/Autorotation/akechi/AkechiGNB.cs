@@ -518,6 +518,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         if (ShouldUseDoubleDown(ddStrat, primaryTarget))
             QueueGCD(AID.DoubleDown, primaryTarget, ddStrat == OffensiveStrategy.Force || Ammo == 1 ? GCDPriority.ForcedGCD : GCDPriority.DoubleDown);
 
+
         //Gnashing Fang Combo execution
         if (GunComboStep == 1)
             QueueGCD(AID.SavageClaw, primaryTarget, gfStrat == GnashingStrategy.ForceClaw ? GCDPriority.ForcedGCD : GCDPriority.GF23);
@@ -541,6 +542,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         var strikeStrat = strategy.Option(Track.BurstStrike).As<OffensiveStrategy>();
         if (Unlocked(AID.BurstStrike) && Unlocked(AID.Bloodfest) && ShouldUseBurstStrike(strikeStrat, primaryTarget))
             QueueGCD(AID.BurstStrike, primaryTarget, strikeStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : nmCD < 1 ? GCDPriority.ForcedGCD : GCDPriority.BurstStrike);
+
 
         //Fated Circle execution
         var fcStrat = strategy.Option(Track.FatedCircle).As<OffensiveStrategy>();
@@ -785,6 +787,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             Unlocked(AID.DoubleDown) && hasNM && !ActionReady(AID.DoubleDown) && GunComboStep == 0 && !hasReign || //Lv90+
             !Unlocked(AID.DoubleDown) && !ActionReady(AID.GnashingFang) && hasNM && GunComboStep == 0 || //Lv80 & Below
             ComboLastMove == AID.BrutalShell && Ammo == MaxCartridges), //Overcap protection
+
         OffensiveStrategy.Force => canBS,
         OffensiveStrategy.Delay => false,
         _ => false
