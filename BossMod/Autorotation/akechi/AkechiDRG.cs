@@ -2,11 +2,11 @@
 using AID = BossMod.DRG.AID;
 using SID = BossMod.DRG.SID;
 
-namespace BossMod.Autorotation.akechi.PvE;
+namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
-public sealed class DRG(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
+public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     #region Enums: Abilities / Strategies
 

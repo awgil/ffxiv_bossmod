@@ -2,11 +2,11 @@
 using AID = BossMod.PLD.AID;
 using SID = BossMod.PLD.SID;
 
-namespace BossMod.Autorotation.akechi.PvE;
+namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
-public sealed class PLD(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
+public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     //Actions tracked for Cooldown Planner execution
     public enum Track
@@ -417,7 +417,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : RotationM
         //Determine and queue the next combo action based on AoE strategy
         var (comboAction, comboPrio) = ComboActionPriority(AOEStrategy, AoETargets, burstStrategy, burst.Value.ExpireIn);
         QueueGCD(comboAction, comboAction is AID.TotalEclipse or AID.Prominence ? Player : primaryTarget,
-            AOEStrategy is PLD.AOEStrategy.ForceST or PLD.AOEStrategy.ForceAoE ? GCDPriority.ForcedGCD : comboPrio);
+            AOEStrategy is AOEStrategy.ForceST or AOEStrategy.ForceAoE ? GCDPriority.ForcedGCD : comboPrio);
 
         //Execute Fight or Flight if conditions are met
         var fofStrat = strategy.Option(Track.FightOrFlight).As<OffensiveStrategy>();

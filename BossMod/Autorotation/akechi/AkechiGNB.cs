@@ -3,13 +3,13 @@ using AID = BossMod.GNB.AID;
 using SID = BossMod.GNB.SID;
 using TraitID = BossMod.GNB.TraitID;
 
-namespace BossMod.Autorotation.akechi.PvE;
+namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
 //Discord @akechdz or 'Akechi' on Puni.sh for maintenance
 //This module supports <=2.47 SkS rotation as default (or 'Automatic')
 //With user adjustment, 'SlowGNB' or 'FastGNB' usage is achievable
 
-public sealed class GNB(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
+public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     #region Enums: Abilities / Strategies
     //Actions tracked for Cooldown Planner execution
