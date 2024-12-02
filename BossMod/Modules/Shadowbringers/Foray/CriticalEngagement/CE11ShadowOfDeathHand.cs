@@ -57,7 +57,22 @@ class BroadsideBarrage(BossModule module) : Components.SelfTargetedAOEs(module, 
 class BlindsideBarrage(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BlindsideBarrage), "Raidwide + deathwall appears");
 class RollingBarrage(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RollingBarrageAOE), new AOEShapeCircle(8));
 class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Whirlwind));
-class Wind(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.WindVisual), 30, kind: Kind.DirForward);
+class Wind(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.WindVisual), 30, kind: Kind.DirForward)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        foreach (var c in Casters)
+        {
+            hints.AddForbiddenZone(p =>
+            {
+                var proj = p + c.Rotation.ToDirection().Normalized() * 30;
+                return proj.InCircle(Arena.Center, 20) ? 0 : -1;
+            }, Module.CastFinishAt(c.CastInfo));
+        }
+    }
+}
 class PiercingBarrageCrow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PiercingBarrageCrow), new AOEShapeRect(40, 4));
 
 class CE11ShadowOfDeathHandStates : StateMachineBuilder
