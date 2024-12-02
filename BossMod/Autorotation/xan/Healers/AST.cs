@@ -50,7 +50,7 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
         DivinationLeft = StatusDetails(Player, SID.Divination, Player.InstanceID, 20).Left;
         Divining = StatusLeft(SID.Divining);
 
-        (BestAOETarget, NumAOETargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
+        (BestAOETarget, NumAOETargets) = SelectTarget(strategy, primaryTarget, 25, (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 8));
         NumCrownTargets = NumNearbyTargets(strategy, 20);
         (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, CombustLeft, 2);
 
