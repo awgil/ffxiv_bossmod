@@ -18,6 +18,29 @@ public enum ActionTargets
     All = (1 << 9) - 1,
 }
 
+public enum ActionCategory : byte
+{
+    None,
+    Autoattack,
+    Spell,
+    Weaponskill,
+    Ability,
+    Item,
+    DoLAbility,
+    DoHAbility,
+    Event,
+    LimitBreak9,
+    System10,
+    System11,
+    Mount,
+    Special,
+    ItemManipulation,
+    LimitBreak15,
+    Unk1,
+    Artillery,
+    Unk2
+}
+
 // used for BLM calculations and possibly BLU optimization
 public enum ActionAspect : byte
 {
@@ -48,6 +71,7 @@ public sealed record class ActionDefinition(ActionID ID)
     public ActionTargets AllowedTargets;
     public float Range; // 0 for self-targeted abilities
     public float CastTime; // 0 for instant-cast; can be adjusted by a number of factors (TODO: add functor)
+    public ActionCategory Category;
     public int MainCooldownGroup = -1;
     public int ExtraCooldownGroup = -1;
     public float Cooldown; // for single charge (if multi-charge action); can be adjusted by a number of factors (TODO: add functor)
@@ -84,6 +108,31 @@ public sealed record class ActionDefinition(ActionID ID)
     public float CooldownAtFirstCharge => (MaxChargesAtCap() - 1) * Cooldown;
     public bool IsGCD => MainCooldownGroup == ActionDefinitions.GCDGroup || ExtraCooldownGroup == ActionDefinitions.GCDGroup;
 
+    private float GetAdjustedCooldown(ClientState.Stats stats, int playerLevel)
+    {
+        if (!IsGCD || ExtraCooldownGroup < 0)
+            return Cooldown;
+
+        // 2-charge drill is hardcoded to 20s recast, unaffected by stats
+        if (ID.ID == 16498 && MaxChargesAtLevel(playerLevel) > 1)
+            return Cooldown;
+
+        int speedStat;
+        switch (Category)
+        {
+            case ActionCategory.Spell:
+                speedStat = stats.SpellSpeed;
+                break;
+            case ActionCategory.Weaponskill:
+                speedStat = stats.SkillSpeed;
+                break;
+            default:
+                return Cooldown;
+        }
+
+        return ActionSpeed.Round(ActionSpeed.AdjustRecastMS((int)(Cooldown * 1000), ActionSpeed.SpeedStatToModifier(speedStat, playerLevel), stats.Haste));
+    }
+
     // for duty actions, the action definition always stores cooldown group 80, but in reality a different one might be used
     public int ActualMainCooldownGroup(ReadOnlySpan<ClientState.DutyAction> dutyActions)
         => MainCooldownGroup == ActionDefinitions.DutyAction0CDGroup && dutyActions[0].Action != ID && dutyActions[1].Action == ID
@@ -92,24 +141,25 @@ public sealed record class ActionDefinition(ActionID ID)
 
     // for multi-charge abilities, action is ready when elapsed >= single-charge cd; assume that if any multi-charge actions share cooldown group, they have same cooldown - otherwise dunno how it should work
     // TODO: use adjusted cooldown
-    public float MainReadyIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ClientState.DutyAction> dutyActions)
+    public float MainReadyIn(ClientState state, int playerLevel)
     {
         if (MainCooldownGroup < 0)
             return 0;
-        var cdg = cooldowns[ActualMainCooldownGroup(dutyActions)];
-        return !IsMultiCharge || cdg.Total < Cooldown ? cdg.Remaining : Cooldown - cdg.Elapsed;
+        var cdg = state.Cooldowns[ActualMainCooldownGroup(state.DutyActions)];
+        var adjCooldown = GetAdjustedCooldown(state.PlayerStats, playerLevel);
+        return !IsMultiCharge || cdg.Total < adjCooldown ? cdg.Remaining : adjCooldown - cdg.Elapsed;
     }
 
     public float ExtraReadyIn(ReadOnlySpan<Cooldown> cooldowns) => ExtraCooldownGroup >= 0 ? cooldowns[ExtraCooldownGroup].Remaining : 0;
-    public float ReadyIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ClientState.DutyAction> dutyActions) => Math.Max(MainReadyIn(cooldowns, dutyActions), ExtraReadyIn(cooldowns));
+    public float ReadyIn(ClientState state, int playerLevel) => Math.Max(MainReadyIn(state, playerLevel), ExtraReadyIn(state.Cooldowns));
 
     // return time until charges are capped (for multi-charge abilities; for single-charge this is equivalent to remaining cooldown)
-    public float ChargeCapIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ClientState.DutyAction> dutyActions, int level)
+    public float ChargeCapIn(ClientState state, int level)
     {
         if (MainCooldownGroup < 0)
             return 0;
-        var cdg = cooldowns[ActualMainCooldownGroup(dutyActions)];
-        return cdg.Total > 0 ? (MaxChargesAtLevel(level) * Cooldown - cdg.Elapsed) : 0;
+        var cdg = state.Cooldowns[ActualMainCooldownGroup(state.DutyActions)];
+        return cdg.Total > 0 ? (MaxChargesAtLevel(level) * GetAdjustedCooldown(state.PlayerStats, level) - cdg.Elapsed) : 0;
     }
 
     public bool IsUnlocked(WorldState ws, Actor player)
@@ -346,7 +396,8 @@ public sealed class ActionDefinitions : IDisposable
             MaxChargesBase = SpellBaseMaxCharges(data),
             InstantAnimLock = instantAnimLock,
             CastAnimLock = castAnimLock,
-            IsRoleAction = data.IsRoleAction
+            IsRoleAction = data.IsRoleAction,
+            Category = (ActionCategory)data.ActionCategory.RowId
         };
         Register(aid, def);
     }

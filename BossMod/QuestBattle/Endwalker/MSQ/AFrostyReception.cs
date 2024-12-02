@@ -1,6 +1,4 @@
-﻿using BossMod.Autorotation;
-
-namespace BossMod.QuestBattle.Endwalker.MSQ;
+﻿namespace BossMod.QuestBattle.Endwalker.MSQ;
 
 class AutoThancred(WorldState ws) : UnmanagedRotation(ws, 3)
 {
@@ -138,7 +136,7 @@ internal class AFrostyReception(WorldState ws) : QuestBattle(ws)
                         return;
 
                     var cd = ActionDefinitions.Instance[ActionID.MakeSpell(Roleplay.AID.SwiftDeception)];
-                    obj.CompleteIf(cd?.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) < 0.5f);
+                    obj.CompleteIf(cd?.ReadyIn(World.Client, World.Party.Player()?.Level ?? 0) < 0.5f);
                 };
             }),
 
