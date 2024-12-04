@@ -59,13 +59,22 @@ public sealed class AIHintsBuilder : IDisposable
 
     private void CalculateAutoHints(AIHints hints, Actor player)
     {
-        var (e, bitmap) = Obstacles.Find(player.PosRot.XYZ());
+        var inFate = _ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.Sheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax;
+        var center = inFate ? _ws.Client.ActiveFate.Center : player.PosRot.XYZ();
+        var (e, bitmap) = Obstacles.Find(center);
         var resolution = bitmap?.PixelSize ?? 0.5f;
-        if (_ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.Sheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax)
+        if (inFate)
         {
             hints.PathfindMapCenter = new(_ws.Client.ActiveFate.Center.XZ());
-            hints.PathfindMapBounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius));
-            // TODO: obstactles for fates, if we care?..
+            hints.PathfindMapBounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius, resolution));
+            if (e != null && bitmap != null)
+            {
+                var originCell = (hints.PathfindMapCenter - e.Origin) / resolution;
+                var originX = (int)originCell.X;
+                var originZ = (int)originCell.Z;
+                var halfSize = (int)(_ws.Client.ActiveFate.Radius / resolution);
+                hints.PathfindMapObstacles = new(bitmap, new(originX - halfSize, originZ - halfSize, originX + halfSize, originZ + halfSize));
+            }
         }
         else if (e != null && bitmap != null)
         {
