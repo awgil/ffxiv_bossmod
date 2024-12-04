@@ -34,6 +34,7 @@ class StateTransitionTimings
     private readonly List<(Replay, Replay.Encounter, Replay.EncounterError)> _errors = [];
     private readonly List<(Replay, Replay.Encounter)> _encounters = [];
     private float _lastSecondsToIgnore;
+    private bool _showTransitionsToEnd;
     private object? _selected;
 
     public StateTransitionTimings(List<Replay> replays, uint oid)
@@ -85,6 +86,7 @@ class StateTransitionTimings
 
     public void Draw(UITree tree)
     {
+        ImGui.Checkbox("Show transitions to end", ref _showTransitionsToEnd);
         foreach (var n in tree.Node("Encounters", _encounters.Count == 0))
         {
             tree.LeafNodes(_encounters, e => $"{e.Item1.Path} @ {e.Item2.Time.Start:O} ({e.Item2.Time.Duration:f3}s)");
@@ -112,7 +114,8 @@ class StateTransitionTimings
                 //bool warn = from.ExpectedTime < Math.Round(m.MinTime, 1) || from.ExpectedTime > Math.Round(m.MaxTime, 1);
                 return new($"{name}: {value}###{name}", kv.Value.Instances.Count == 0, color);
             }
-            foreach (var (toID, m) in tree.Nodes(from.Transitions, map, kv => TransitionContextMenu(from, kv.Key, kv.Value, tree, ref actions), select: kv => _selected = kv.Value))
+            var transitions = _showTransitionsToEnd ? from.Transitions : from.Transitions.Where(kv => kv.Key != uint.MaxValue);
+            foreach (var (toID, m) in tree.Nodes(transitions, map, kv => TransitionContextMenu(from, kv.Key, kv.Value, tree, ref actions), select: kv => _selected = kv.Value))
             {
                 foreach (var inst in m.Instances)
                 {

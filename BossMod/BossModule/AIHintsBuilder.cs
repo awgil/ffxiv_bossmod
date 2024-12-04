@@ -59,22 +59,22 @@ public sealed class AIHintsBuilder : IDisposable
 
     private void CalculateAutoHints(AIHints hints, Actor player)
     {
-        var (e, bitmap) = Obstacles.Find(player.PosRot.XYZ());
+        var inFate = _ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.Sheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax;
+        var center = inFate ? _ws.Client.ActiveFate.Center : player.PosRot.XYZ();
+        var (e, bitmap) = Obstacles.Find(center);
         var resolution = bitmap?.PixelSize ?? 0.5f;
-        if (_ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.Sheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax)
+        if (inFate)
         {
-            var center = new WPos(_ws.Client.ActiveFate.Center.XZ());
-            var radius = _ws.Client.ActiveFate.Radius;
-            hints.PathfindMapCenter = center;
-            hints.PathfindMapBounds = (_activeFateBounds ??= new ArenaBoundsCircle(radius, radius > 30 ? 1f : 0.5f));
+            hints.PathfindMapCenter = new(_ws.Client.ActiveFate.Center.XZ());
+            hints.PathfindMapBounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius, resolution));
             if (e != null && bitmap != null)
             {
-                var centerCell = (center - e.Origin) / resolution;
-                var centerX = (int)centerCell.X;
-                var centerZ = (int)centerCell.Z;
-                hints.PathfindMapObstacles = new(bitmap, new(centerX - e.ViewWidth, centerZ - e.ViewHeight, centerX + e.ViewWidth, centerZ + e.ViewHeight));
+                var originCell = (hints.PathfindMapCenter - e.Origin) / resolution;
+                var originX = (int)originCell.X;
+                var originZ = (int)originCell.Z;
+                var halfSize = (int)(_ws.Client.ActiveFate.Radius / resolution);
+                hints.PathfindMapObstacles = new(bitmap, new(originX - halfSize, originZ - halfSize, originX + halfSize, originZ + halfSize));
             }
-            // TODO: obstactles for fates, if we care?..
         }
         else if (e != null && bitmap != null)
         {
