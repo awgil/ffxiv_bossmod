@@ -66,6 +66,7 @@ public class Zadnor : FarmModule
     protected override void Dispose(bool disposing)
     {
         _subscriptions.Dispose();
+        base.Dispose(disposing);
     }
 
     void OnCastStarted(Actor caster)
