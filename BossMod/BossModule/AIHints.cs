@@ -145,9 +145,23 @@ public sealed class AIHints
             // all fate mobs can be attacked if we are level synced (non synced mobs are skipped above)
             allowedAttack |= actor.FateID > 0;
 
+            int prio;
+            if (allowedAttack)
+            {
+                // Forlorn Maiden / The Forlorn - grant xp bonus to fate participants
+                if (actor.NameID is 6737 or 6738)
+                    prio = 1;
+                else
+                    prio = 0;
+            }
+            else
+            {
+                prio = Enemy.PriorityForbidAI;
+            }
+
             PotentialTargets.Add(new(actor, playerIsDefaultTank)
             {
-                Priority = allowedAttack ? 0 : Enemy.PriorityForbidAI
+                Priority = prio
             });
         }
     }
