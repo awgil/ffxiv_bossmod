@@ -40,46 +40,6 @@ class CleaveAuto(BossModule module) : Components.Cleave(module, ActionID.MakeSpe
     }
 }
 
-class Geirrothr(BossModule module) : Components.GenericAOEs(module)
-{
-    private DateTime _activation;
-    private static readonly AOEShapeCone cone = new(9.92f, 45.Degrees());
-    private bool Pulled;
-
-    public override void Update()
-    {
-        if (!Pulled)
-        {
-            _activation = WorldState.FutureTime(5.1f);
-            Pulled = true;
-        }
-    }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_activation != default)
-            yield return new(cone, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation);
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.Valfodr) // boss can move after cast started, so we can't use aoe instance, since that would cause outdated position data to be used
-            _activation = WorldState.FutureTime(7.1f);
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID.Geirrothr)
-            _activation = default;
-        if ((AID)spell.Action.ID == AID.HallOfSorrow)
-        {
-            ++NumCasts;
-            if (NumCasts % 2 == 0)
-                _activation = WorldState.FutureTime(8.1f);
-        }
-    }
-}
-
 class Infaturation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Infaturation), new AOEShapeCircle(7));
 class HallOfSorrow(BossModule module) : Components.PersistentVoidzone(module, 9, m => m.Enemies(OID.Voidzone).Where(z => z.EventState != 7));
 class Valfodr(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.Valfodr), 3);
@@ -111,7 +71,6 @@ class D60TheBlackRiderStates : StateMachineBuilder
     public D60TheBlackRiderStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<Geirrothr>()
             .ActivateOnEnter<Infaturation>()
             .ActivateOnEnter<HallOfSorrow>()
             .ActivateOnEnter<Valfodr>()

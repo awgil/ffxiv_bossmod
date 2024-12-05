@@ -1,48 +1,14 @@
-﻿namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.Zone;
+﻿namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.FloorModule;
 
-public abstract class PalaceFloorModule : ZoneModule
+public abstract class PalaceFloorModule(WorldState ws) : ZoneModule(ws)
 {
-    private readonly EventSubscriptions _subscriptions;
+    private static readonly uint[] RevealedTrapOIDs = [0x1EA092, 0x1EA091, 0x1EA08E];
 
-    private bool _passageOpen = false;
-
-    private static readonly uint[] RevealedTrapOIDs = [0x1EA091, 0x1EA08E];
-
-    public PalaceFloorModule(WorldState ws) : base(ws)
-    {
-        _subscriptions = new(
-            ws.Party.Modified.Subscribe(OnPartyChange),
-            ws.Actors.EventObjectAnimation.Subscribe(OnEObjAnim)
-        );
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        _subscriptions.Dispose();
-        base.Dispose(disposing);
-    }
-
-    private void OnPartyChange(PartyState.OpModify modify)
-    {
-        if (modify.Slot == 0 && modify.Member.InCutscene)
-        {
-            Service.Log($"player entered cutscene, clearing passage flag");
-            _passageOpen = false;
-        }
-    }
-
-    private void OnEObjAnim(Actor actor, ushort p1, ushort p2)
-    {
-        if (actor.OID != 0x1EA094)
-            return;
-
-        if (p1 == 4 && p2 == 8)
-            _passageOpen = true;
-    }
+    private DeepDungeonState Palace => World.Client.DeepDungeonState;
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
-        if (player.InCombat)
+        if (player.InCombat || player.IsTransformed)
             return;
 
         Actor? coffer = null;
@@ -70,7 +36,7 @@ public abstract class PalaceFloorModule : ZoneModule
         }
 
         hints.InteractWithTarget = hoard ?? coffer;
-        if (_passageOpen && passage is Actor c)
+        if (Palace.PassageActive && passage is Actor c)
             hints.GoalZones.Add(hints.GoalSingleTarget(c.Position, 2));
 
         if (revealedTraps.Count > 0)
@@ -79,8 +45,9 @@ public abstract class PalaceFloorModule : ZoneModule
         //if (hoardLight is Actor h)
         //    hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));
 
-        foreach (var p in hints.PotentialTargets)
-            p.Priority = 0;
+        if (!Palace.PassageActive)
+            foreach (var p in hints.PotentialTargets)
+                p.Priority = 0;
     }
 }
 

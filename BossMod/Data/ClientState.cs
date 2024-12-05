@@ -28,6 +28,19 @@ public record struct Cooldown(float Elapsed, float Total)
     public override readonly string ToString() => $"{Elapsed:f3}/{Total:f3}";
 }
 
+public record struct DeepDungeonState
+(
+    byte Floor,
+    byte WeaponLevel,
+    byte ArmorLevel,
+    byte ReturnProgress,
+    byte PassageProgress
+)
+{
+    public readonly bool ReturnActive => ReturnProgress >= 11;
+    public readonly bool PassageActive => PassageProgress >= 11;
+}
+
 // client-specific state and events (action requests, gauge, etc)
 // this is generally not available for non-player party members, but we can try to guess
 public sealed class ClientState
@@ -57,6 +70,7 @@ public sealed class ClientState
     public Fate ActiveFate;
     public Pet ActivePet;
     public ulong FocusTargetId;
+    public DeepDungeonState DeepDungeonState;
 
     public int ClassJobLevel(Class c)
     {
@@ -339,5 +353,16 @@ public sealed class ClientState
             ws.Client.FocusTargetChanged.Fire(this);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLFT"u8).Emit(Value, "X8");
+    }
+
+    public Event<OpDeepDungeonStateChange> DeepDungeonStateChanged = new();
+    public sealed record class OpDeepDungeonStateChange(DeepDungeonState Value) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            ws.Client.DeepDungeonState = Value;
+            ws.Client.DeepDungeonStateChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLDD"u8).Emit(Value.Floor).Emit(Value.WeaponLevel).Emit(Value.ArmorLevel).Emit(Value.ReturnProgress).Emit(Value.PassageProgress);
     }
 }

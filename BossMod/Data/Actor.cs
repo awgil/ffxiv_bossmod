@@ -110,6 +110,8 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public bool IsDeadOrDestroyed => IsDead || IsDestroyed;
     public bool IsFriendlyNPC => Type == ActorType.Enemy && IsAlly && IsTargetable;
 
+    public bool IsTransformed => Statuses.Any(Autorotation.RotationModuleManager.IsTransformStatus);
+
     public ActorStatus? FindStatus(uint sid)
     {
         var i = Array.FindIndex(Statuses, x => x.ID == sid);

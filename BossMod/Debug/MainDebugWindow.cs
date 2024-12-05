@@ -3,6 +3,7 @@ using BossMod.Autorotation.xan.AI;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -26,6 +27,15 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly TrackPartyHealth PartyHealth = new(ws);
     //private readonly DebugVfx _debugVfx = new();
 
+    private HookAddress<EventFramework.Delegates.CheckInteractRange> _checkInteractHook = null!;
+
+    private unsafe bool CheckInteractDetour(EventFramework* thisPtr, GameObject* source, GameObject* target, byte interactionType, bool logErrorsToUser)
+    {
+        var result = _checkInteractHook.Original(thisPtr, source, target, interactionType, logErrorsToUser);
+        Service.Log($"CheckInteractRange: {(nint)source} ({source->ObjectKind}) -> {(nint)target} ({target->ObjectKind}) (interact type {interactionType}) (show errors = {logErrorsToUser})");
+        return result;
+    }
+
     protected override void Dispose(bool disposing)
     {
         _debugAction.Dispose();
@@ -37,6 +47,8 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
     public override unsafe void Draw()
     {
+        _checkInteractHook ??= new(EventFramework.Addresses.CheckInteractRange, CheckInteractDetour);
+
         var playerCID = UIState.Instance()->PlayerState.ContentId;
         var player = Service.ClientState.LocalPlayer;
         ImGui.TextUnformatted($"Current zone: {ws.CurrentZone} (CFC: {ws.CurrentCFCID}), player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={playerCID:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
@@ -99,6 +111,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         {
             if (zmm.ActiveModule is QuestBattle.QuestBattle qb)
                 qb.DrawDebugInfo();
+        }
+        if (ImGui.CollapsingHeader("Deep dungeon"))
+        {
+            DrawDeepDungeon();
         }
         if (ImGui.CollapsingHeader("Party health"))
         {
@@ -204,6 +220,31 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
                 ImGui.TreePop();
             }
         }
+    }
+
+    private unsafe void DrawDeepDungeon()
+    {
+        var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+        if (dd == null)
+        {
+            ImGui.TextUnformatted("Not in a dungeon");
+            return;
+        }
+
+        ImGui.TextUnformatted($"Floor: {dd->Floor}");
+        ImGui.TextUnformatted($"Return progress: {dd->ReturnProgress}");
+        ImGui.TextUnformatted($"Passage progress: {dd->PassageProgress}");
+        ImGui.TextUnformatted($"Weapon level: {dd->WeaponLevel}");
+        ImGui.TextUnformatted($"Armor level: {dd->ArmorLevel}");
+        ImGui.TextUnformatted($"Hoard count: {dd->HoardCount}");
+
+        if (ImGui.CollapsingHeader("Items"))
+            foreach (var item in dd->Items)
+                Dalamud.Utility.Util.ShowObject(item);
+
+        if (ImGui.CollapsingHeader("Chests"))
+            foreach (var chest in dd->Chests)
+                Dalamud.Utility.Util.ShowObject(chest);
     }
 
     private void DrawPartyHealth()

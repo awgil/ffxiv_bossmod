@@ -4,6 +4,7 @@ using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
@@ -646,6 +647,11 @@ sealed class WorldStateGameSync : IDisposable
         var focusTargetId = focusTarget != null ? SanitizedObjectID(focusTarget->GetGameObjectId()) : 0;
         if (_ws.Client.FocusTargetId != focusTargetId)
             _ws.Execute(new ClientState.OpFocusTargetChange(focusTargetId));
+
+        var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+        var dds = dd == null ? default : new DeepDungeonState(dd->Floor, dd->WeaponLevel, dd->ArmorLevel, dd->ReturnProgress, dd->PassageProgress);
+        if (_ws.Client.DeepDungeonState != dds)
+            _ws.Execute(new ClientState.OpDeepDungeonStateChange(dds));
     }
 
     private ulong SanitizedObjectID(ulong raw) => raw != InvalidEntityId ? raw : 0;
