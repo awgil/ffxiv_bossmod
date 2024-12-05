@@ -17,10 +17,10 @@ public enum AID : uint
     WordOfTheWoodAOEOldB = 39786, // Boss->self, no cast, range 30 180-degree cone, before 7.1
     WordOfTheWoodAOEOldL = 39787, // Boss->self, no cast, range 30 180-degree cone, before 7.1
     WordOfTheWoodAOEOldR = 39788, // Boss->self, no cast, range 30 180-degree cone, before 7.1
-    WordOfTheWoodAOEMidF = 42168, // Boss->self, no cast, range 30 180-degree cone, casts 1-3
-    WordOfTheWoodAOEMidB = 42169, // Boss->self, no cast, range 30 180-degree cone, casts 1-3
-    WordOfTheWoodAOEMidL = 42170, // Boss->self, no cast, range 30 180-degree cone, casts 1-3
-    WordOfTheWoodAOEMidR = 42171, // Boss->self, no cast, range 30 180-degree cone, casts 1-3
+    WordOfTheWoodAOEMidF = 42164, // Boss->self, no cast, range 30 180-degree cone, casts 1-3
+    WordOfTheWoodAOEMidB = 42165, // Boss->self, no cast, range 30 180-degree cone, casts 1-3
+    WordOfTheWoodAOEMidL = 42166, // Boss->self, no cast, range 30 180-degree cone, casts 1-3
+    WordOfTheWoodAOEMidR = 42167, // Boss->self, no cast, range 30 180-degree cone, casts 1-3
     WordOfTheWoodAOEEndF = 42168, // Boss->self, no cast, range 30 180-degree cone, cast 4
     WordOfTheWoodAOEEndB = 42169, // Boss->self, no cast, range 30 180-degree cone, cast 4
     WordOfTheWoodAOEEndL = 42170, // Boss->self, no cast, range 30 180-degree cone, cast 4

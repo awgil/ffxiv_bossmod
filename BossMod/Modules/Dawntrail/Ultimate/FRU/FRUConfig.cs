@@ -32,4 +32,14 @@ public class FRUConfig() : ConfigNode()
 
     [PropertyDisplay("P2 Diamond Dust: DD go to CCW intercardinal")]
     public bool P2DiamondDustDDCCW;
+
+    [PropertyDisplay("P2 Light Rampant: conga spots (lower numbers to the west, assume CW rotation)")]
+    [GroupDetails(["N1", "N2", "N3", "N4", "S1", "S2", "S3", "S4"])]
+    [GroupPreset("HHTT/RRMM", [2, 3, 0, 1, 6, 7, 4, 5])]
+    public GroupAssignmentUnique P2LightRampantAssignment = GroupAssignmentUnique.DefaultRoles();
+
+    [PropertyDisplay("P3 Ultimate Relativity: spot assignments (lower number goes NW/SW)")]
+    [GroupDetails(["1", "2", "3", "4"])]
+    [GroupPreset("HTTH/RMMR", [1, 2, 0, 3, 1, 2, 0, 3])]
+    public GroupAssignmentDDSupportPairs P3UltimateRelativityAssignment = GroupAssignmentDDSupportPairs.DefaultMeleeTogether();
 }

@@ -11,7 +11,10 @@ class FRUStates : StateMachineBuilder
             .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed;
         SimplePhase(1, Phase2, "P2: Usurper of Frost")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => !Module.PrimaryActor.IsDead || (_module.BossP2()?.IsDeadOrDestroyed ?? false);
+            .Raw.Update = () => !Module.PrimaryActor.IsDead || (_module.BossP2()?.IsDeadOrDestroyed ?? false) || (_module.IceVeil()?.IsDeadOrDestroyed ?? false);
+        SimplePhase(2, Phase3, "P3: Oracle of Darkness")
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
+            .Raw.Update = () => !Module.PrimaryActor.IsDead || (_module.BossP2()?.IsDeadOrDestroyed ?? false) && (_module.BossP3()?.IsDeadOrDestroyed ?? true);
     }
 
     private void Phase1(uint id)
@@ -37,6 +40,12 @@ class FRUStates : StateMachineBuilder
         P2MirrorMirror(id + 0x40000, 6.1f);
         P2LightRampant(id + 0x50000, 4.4f);
         P2AbsoluteZero(id + 0x60000, 8.4f);
+    }
+
+    private void Phase3(uint id)
+    {
+        P3JunctionHellsJudgment(id, 13.3f);
+        P3UltimateRelativity(id + 0x10000, 4.3f);
 
         SimpleState(id + 0xFF0000, 100, "???");
     }
@@ -255,6 +264,7 @@ class FRUStates : StateMachineBuilder
         ActorCast(id, _module.BossP2, AID.LightRampant, delay, 5, true, "Raidwide (light rampant)")
             .SetHint(StateMachine.StateHint.Raidwide);
         ActorTargetable(id + 0x10, _module.BossP2, false, 3.1f, "Boss disappears")
+            .ActivateOnEnter<P2LightRampant>()
             .ActivateOnEnter<P2LuminousHammer>()
             .ActivateOnEnter<P2BrightHunger1>()
             .SetHint(StateMachine.StateHint.DowntimeStart);
@@ -267,10 +277,11 @@ class FRUStates : StateMachineBuilder
             .ActivateOnEnter<P2PowerfulLight>()
             .DeactivateOnExit<P2LuminousHammer>() // last puddle is baited right before holy light burst casts start
             .DeactivateOnExit<P2PowerfulLight>();
-        ComponentCondition<P2HolyLightBurst>(id + 0x50, 2.4f, comp => comp.NumCasts > 0, "Orbs 1") // tethers resolve somewhere here?..
+        ComponentCondition<P2HolyLightBurst>(id + 0x50, 2.4f, comp => comp.NumCasts > 0, "Orbs 1")
             .ActivateOnEnter<P2BrightHunger2>();
         ComponentCondition<P2HolyLightBurst>(id + 0x60, 3, comp => comp.NumCasts > 3, "Orbs 2")
-            .DeactivateOnExit<P2HolyLightBurst>();
+            .DeactivateOnExit<P2HolyLightBurst>()
+            .DeactivateOnExit<P2LightRampant>(); // tethers resolve right after first orbs
 
         ActorCastStartMulti(id + 0x70, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 1.7f, true);
         ComponentCondition<P2BrightHunger2>(id + 0x71, 1.9f, comp => comp.NumCasts > 0, "Central tower")
@@ -312,5 +323,43 @@ class FRUStates : StateMachineBuilder
             .DeactivateOnExit<P2SinboundBlizzard>()
             .DeactivateOnExit<P2HiemalStorm>()
             .DeactivateOnExit<P2HiemalRay>();
+    }
+
+    private void P3JunctionHellsJudgment(uint id, float delay)
+    {
+        ComponentCondition<P3Junction>(id, delay, comp => comp.NumCasts > 0, "Raidwide")
+            .ActivateOnEnter<P3Junction>()
+            .DeactivateOnExit<P3Junction>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ActorTargetable(id + 0x10, _module.BossP3, true, 14.2f, "Boss appears")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
+        ActorCast(id + 0x20, _module.BossP3, AID.HellsJudgment, 0.1f, 4, true, "1hp")
+            .SetHint(StateMachine.StateHint.Raidwide);
+    }
+
+    private void P3UltimateRelativity(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP3, AID.UltimateRelativity, delay, 10, true, "Raidwide (relativity)")
+            .ActivateOnEnter<P3UltimateRelativity>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ActorCast(id + 0x10, _module.BossP3, AID.UltimateRelativitySpeed, 4.1f, 5.5f, true)
+            .ActivateOnEnter<P3UltimateRelativityDarkFireUnholyDarkness>();
+        ComponentCondition<P3UltimateRelativity>(id + 0x20, 2.3f, comp => comp.NumCasts >= 1, "Spread/stack 1")
+            .DeactivateOnExit<P3UltimateRelativityDarkFireUnholyDarkness>();
+        ComponentCondition<P3UltimateRelativity>(id + 0x30, 5.1f, comp => comp.NumCasts >= 2, "Lasers 1")
+            .ActivateOnEnter<P3UltimateRelativitySinboundMeltdownBait>()
+            .ActivateOnEnter<P3UltimateRelativitySinboundMeltdownAOE>();
+        ComponentCondition<P3UltimateRelativity>(id + 0x40, 4.9f, comp => comp.NumCasts >= 3, "Spread/stack 2")
+            .ActivateOnEnter<P3UltimateRelativityDarkBlizzard>()
+            .ActivateOnEnter<P3UltimateRelativityDarkFireUnholyDarkness>()
+            .DeactivateOnExit<P3UltimateRelativityDarkBlizzard>()
+            .DeactivateOnExit<P3UltimateRelativityDarkFireUnholyDarkness>();
+        ComponentCondition<P3UltimateRelativity>(id + 0x50, 5.1f, comp => comp.NumCasts >= 4, "Lasers 2");
+        ComponentCondition<P3UltimateRelativity>(id + 0x60, 4.9f, comp => comp.NumCasts >= 5, "Spread/stack 3")
+            .ActivateOnEnter<P3UltimateRelativityDarkFireUnholyDarkness>()
+            .DeactivateOnExit<P3UltimateRelativityDarkFireUnholyDarkness>();
+        ComponentCondition<P3UltimateRelativity>(id + 0x70, 5.1f, comp => comp.NumCasts >= 6, "Lasers 3")
+            .DeactivateOnExit<P3UltimateRelativitySinboundMeltdownBait>();
+        // TODO: resolve > stack > tankbuster
     }
 }
