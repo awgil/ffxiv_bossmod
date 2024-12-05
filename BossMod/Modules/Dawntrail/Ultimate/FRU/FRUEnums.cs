@@ -19,9 +19,12 @@ public enum OID : uint
     CrystalOfDarkness = 0x45A4, // R1.500, x0 (spawn during fight)
     IceVeil = 0x45A5, // R5.000, x0 (spawn during fight)
     Gaia = 0x45A6, // R1.000, x0 (spawn during fight)
-    //_Gen_OracleOfDarkness = 0x45A7, // R7.040, x0 (spawn during fight)
     //_Gen_CrystalOfLight = 0x464F, // R1.000, x0 (spawn during fight)
     HiemalRayVoidzone = 0x1EA1CB, // R0.500, x0 (spawn during fight), EventObj type
+    //_Gen_EternalIceFragment = 0x1EBBF8, // R0.500, x0 (spawn during fight), EventObj type
+
+    BossP3 = 0x45A7, // R7.040, x0 (spawn during fight)
+    DelightsHourglass = 0x45A8, // R1.000, x0 (spawn during fight)
 }
 
 public enum AID : uint
@@ -129,16 +132,17 @@ public enum AID : uint
     LightRampant = 40212, // BossP2->self, 5.0s cast, range 40 circle, raidwide + mechanic start
     LuminousHammer = 40218, // Helper->player, no cast, range 6 circle, baited puddle
     BrightHunger = 40213, // Helper->location, no cast, range 4 circle, tower
-    //_Weaponskill_RefulgentFate = 40215, // Helper->location, no cast, range 40 circle
-    //_Weaponskill_InescapableIllumination = 40214, // Helper->location, no cast, range 40 circle
+    InescapableIllumination = 40214, // Helper->location, no cast, range 40 circle, raidwide when player with lightsteeped dies?
+    RefulgentFate = 40215, // Helper->location, no cast, range 40 circle, raidwide with damage down when tether breaks incorrectly (eg a target dies)
+    Lightsteep = 40216, // Helper->players, no cast, range 40 circle, raidwide on reaching 5+ stacks of lightsteeped
     HolyLightBurst = 40219, // HolyLight->self, 5.0s cast, range 11 circle
     PowerfulLight = 40217, // Helper->players, no cast, range 5 circle stack
     HouseOfLightBoss = 40189, // BossP2->self, 5.0s cast, single-target, visual (proteans)
     HouseOfLightBossAOE = 40188, // Helper->self, no cast, range 60 ?-degree cone
-    //_Weaponskill_Lightsteep = 40216, // Helper->players, no cast, range 40 circle
 
     AbsoluteZero = 40224, // BossP2->self, 10.0s cast, single-target, visual (raidwide + intermission start)
     AbsoluteZeroAOE = 40333, // Helper->self, no cast, range 100 circle, raidwide
+    AbsoluteZeroEnrage = 40334, // Helper->self, no cast, range 100 circle, enrage if boss is at >20%
     SwellingFrost = 40225, // Helper->self, no cast, range 40 circle, knockback 10 + freeze
     EndlessIceAge = 40259, // IceVeil->self, 40.0s cast, range 100 circle, enrage
     SinboundBlizzard = 40258, // CrystalOfDarkness->self, 3.3s cast, single-target, visual (baited cone)
@@ -146,6 +150,22 @@ public enum AID : uint
     HiemalStorm = 40255, // CrystalOfLight->self, no cast, single-target, visual (baited puddle)
     HiemalStormAOE = 40256, // Helper->location, 3.3s cast, range 7 circle
     HiemalRay = 40257, // Helper->player, no cast, range 4 circle
+
+    // P3
+    Junction = 40226, // Helper->self, no cast, range 40 circle, raidwide
+    HellsJudgment = 40265, // BossP3->self, 4.0s cast, range 100 circle, maxhp-1 raidwide
+    TeleportP3 = 40117, // BossP3->location, no cast, single-target
+
+    UltimateRelativity = 40266, // BossP3->self, 10.0s cast, range 100 circle, raidwide + mechanic start
+    UltimateRelativitySpeed = 40293, // BossP3->self, 5.5s cast, single-target, visual (change hourglass resolve speed)
+    UltimateRelativityQuicken = 40294, // Helper->DelightsHourglass, no cast, single-target, visual (resolve early)
+    UltimateRelativitySlow = 40295, // Helper->DelightsHourglass, no cast, single-target, visual (resolve late)
+    UltimateRelativityDarkFire = 40276, // Helper->players, no cast, range 8 circle spread
+    UltimateRelativityUnholyDarkness = 40277, // Helper->players, no cast, range 6 circle stack
+    UltimateRelativitySinboundMeltdown = 40291, // DelightsHourglass->self, 4.0s cast, single-target, visual (baited laser)
+    UltimateRelativitySinboundMeltdownAOEFirst = 40235, // Helper->self, no cast, range 60 width 5 rect
+    UltimateRelativitySinboundMeltdownAOERest = 40292, // Helper->self, no cast, range 50 width 5 rect
+    UltimateRelativityDarkBlizzard = 40279, // Helper->player, no cast, range ?-12 donut
 }
 
 public enum SID : uint
@@ -160,6 +180,14 @@ public enum SID : uint
     CurseOfEverlastingLight = 4158, // none->player, extra=0x0, light rampant second tether
     WeightOfLight = 4159, // none->player, extra=0x0, light rampant stack
     Lightsteeped = 2257, // Helper/HolyLight->player, extra=0x1/0x2/0x3/0x4/0x5
+    SpellInWaitingUnholyDarkness = 2454, // none->player, extra=0x0, stack
+    SpellInWaitingDarkFire = 2455, // none->player, extra=0x0, large spread
+    SpellInWaitingShadoweye = 2456, // none->player, extra=0x0, delayed gaze
+    SpellInWaitingDarkEruption = 2460, // none->player, extra=0x0, delayed small spread
+    SpellInWaitingDarkWater = 2461, // none->player, extra=0x0, delayed stack
+    SpellInWaitingDarkBlizzard = 2462, // none->player, extra=0x0, donut
+    SpellInWaitingReturn = 2464, // none->player, extra=0x0
+    DelightsHourglassRotation = 2970, // none->DelightsHourglass, extra=0x10D (ccw)/0x15C (cw)
 }
 
 public enum IconID : uint
@@ -179,4 +207,6 @@ public enum TetherID : uint
     IntermissionGaia = 112, // Gaia->IceVeil
     IntermissionCrystal = 8, // CrystalOfLight/CrystalOfDarkness->IceVeil
     HiemalRay = 84, // CrystalOfLight->player
+    UltimateRelativitySlow = 133, // DelightsHourglass->BossP3
+    UltimateRelativityQuicken = 134, // DelightsHourglass->BossP3
 }
