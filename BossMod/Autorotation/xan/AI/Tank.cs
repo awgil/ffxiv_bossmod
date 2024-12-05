@@ -197,7 +197,12 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         if (EnemiesAutoingMe.Count() > 1)
         {
             if (HPRatio() < 0.8)
-                Hints.ActionsToExecute.Push(JobActions.ShortMit.ID, Player, ActionQueue.Priority.Minimal);
+            {
+                var delay = 0f;
+                if (JobActions.ShortMit.ID == ActionID.MakeSpell(WAR.AID.RawIntuition))
+                    delay = GCD - 0.8f;
+                Hints.ActionsToExecute.Push(JobActions.ShortMit.ID, Player, ActionQueue.Priority.Minimal, delay: delay);
+            }
 
             if (HPRatio() < 0.6)
                 // set arbitrary deadline to 1 second in the future
