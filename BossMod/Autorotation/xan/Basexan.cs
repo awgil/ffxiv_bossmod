@@ -372,7 +372,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     // other classes have timed personal buffs to plan around, like blm leylines, mch overheat, gnb nomercy
     // war could also be here but i dont have a war rotation
-    private bool IsSelfish(Class cls) => cls is Class.VPR or Class.SAM;
+    private bool IsSelfish(Class cls) => cls is Class.VPR or Class.SAM or Class.WHM or Class.SGE;
 
     private new (float Left, float In) EstimateRaidBuffTimings(Actor? primaryTarget)
     {
@@ -394,14 +394,34 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         var buffsIn = Bossmods.RaidCooldowns.NextDamageBuffIn2();
         if (buffsIn == null)
         {
-            if (CombatTimer < 8)
-                buffsIn = 8 - CombatTimer;
+            if (CombatTimer < 7.8f && World.Party.WithoutSlot(false, true, true).Skip(1).Any(HavePartyBuff))
+                buffsIn = 7.8f - CombatTimer;
             else
                 buffsIn = float.MaxValue;
         }
 
         return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), buffsIn.Value);
     }
+
+    private bool HavePartyBuff(Actor player) => player.Class switch
+    {
+        Class.MNK => player.Level >= 70, // brotherhood
+        Class.DRG => player.Level >= 52, // battle litany
+        Class.NIN => player.Level >= 45, // mug/dokumori - level check is for suiton/huton, which grant Shadow Walker
+        Class.RPR => player.Level >= 72, // arcane circle
+
+        Class.SMN => player.Level >= 66, // searing light
+        Class.RDM => player.Level >= 58, // embolden
+        Class.PCT => player.Level >= 70, // starry muse
+
+        Class.BRD => player.Level >= 50, // battle voice - not counting songs since they are permanent kinda
+        Class.DNC => player.Level >= 70, // tech finish
+
+        Class.SCH => player.Level >= 66, // chain
+        Class.AST => player.Level >= 50, // divination
+
+        _ => false
+    };
 
     public abstract void Exec(StrategyValues strategy, Actor? primaryTarget);
 

@@ -251,6 +251,8 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
+        Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 25));
+
         OGCDs(strategy, primaryTarget);
 
         if (ComboLastMove == AID.CrimsonCyclone)

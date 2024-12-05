@@ -132,6 +132,9 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
+        if (primaryTarget != null)
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 25));
+
         if (!Player.InCombat && primaryTarget != null && Paint == 0)
             PushGCD(AID.RainbowDrip, primaryTarget, GCDPriority.Standard);
 

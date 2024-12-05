@@ -240,9 +240,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             return false;
 
         if (!Unlocked(AID.Drill))
-        {
             return ComboLastMove == (Unlocked(AID.CleanShot) ? AID.SlugShot : AID.SplitShot);
-        }
 
         return NextToolCharge <= GCD;
     }
