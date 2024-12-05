@@ -507,6 +507,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         if (useRof)
             PushOGCD(AID.RiddleOfFire, Player, OGCDPriority.RiddleOfFire, GCD - EarliestRoF(AnimationLockDelay));
 
+        if (strategy.Simple(Track.RoF) == OffensiveStrategy.Force && !HaveTarget)
+            PushOGCD(AID.RiddleOfFire, Player, OGCDPriority.RiddleOfFire);
+
         if (ShouldRoW(strategy))
             PushOGCD(AID.RiddleOfWind, Player, OGCDPriority.RiddleOfWind);
 
