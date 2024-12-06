@@ -2,7 +2,7 @@
 
 <img align="right" width="150" height="150" src="/Data/icon.png">
 
-Boss Mod (vbm) is a Dalamud plugin for FFXIV that provides boss fight radar, auto-rotation, cooldown planning, and AI. All of the its modules can be toggled individually. Support for it can be found in the [Puni.sh Discord server](https://discord.gg/punishxiv).
+Boss Mod (vbm) is a Dalamud plugin for FFXIV that provides boss fight radar, auto-rotation, cooldown planning, and AI. All of the its modules can be toggled individually. Support for it can be found in the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 
 _Licensed under the terms of the ![BSD 3-Clause License](/LICENSE)_
 
@@ -42,7 +42,7 @@ VBM's AI module was created to automate movement during boss fights. With the he
 
 The AI will move your character based on safe zones determined by a boss's module, which are also displayed on the radar. It also tries to keep you within range of the enemies you are attacking while you're in combat with them.
 
-An example of a plugin that utilizies VBM's AI module is [AutoDuty](https://github.com/ffxivcode/AutoDuty), which is supported in the same [Discord server](https://discord.gg/punishxiv) that VBM is supported in.
+An example of a plugin that utilizies VBM's AI module is [AutoDuty](https://github.com/ffxivcode/AutoDuty), which is supported in the same [Discord server](https://discord.gg/Zzrcc8kmvy) that VBM is supported in.
 
 <br />
 <hr />
@@ -57,7 +57,7 @@ Settings can be accessed via the Plugin Installer or using the chat command `/vb
 
 When you've found a bug or think you have some issue with the plugin, please do the following:
 
-1. Ask in [Discord](https://discord.gg/punishxiv): it might be a known issue or people might be able to help you quickly
+1. Ask in [Discord](https://discord.gg/Zzrcc8kmvy): it might be a known issue or people might be able to help you quickly
 2. Gather extra information to aid in investigating the issue:
    1. Set log level to "Debug" (type `/xldev`, select "Dalamud" -> "Set log level" -> "Debug")
    2. Start replay recording (type `/vbm r` and hit "Start Recording")
