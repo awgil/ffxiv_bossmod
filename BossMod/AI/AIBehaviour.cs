@@ -18,8 +18,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
     private bool _followMaster; // if true, our navigation target is master rather than primary target - this happens e.g. in outdoor or in dungeons during gathering trash
     private WPos _masterPrevPos;
     private DateTime _masterLastMoved;
-    private DateTime? _navDecisionTimeMade;
-    private TimeSpan NavDecisionTime => _navDecisionTimeMade != null ? WorldState.CurrentTime - _navDecisionTimeMade!.Value : TimeSpan.Zero;
+    private DateTime _navStartTime; // if current time is < this, navigation won't start
 
     public void Dispose()
     {
@@ -40,6 +39,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
         bool pyreticImminent = autorot.Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && autorot.Hints.ImminentSpecialMode.activation <= WorldState.FutureTime(1);
         bool misdirectionMode = autorot.Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Misdirection && autorot.Hints.ImminentSpecialMode.activation <= WorldState.CurrentTime;
         bool forbidTargeting = _config.ForbidActions || _afkMode || gazeImminent || pyreticImminent;
+        bool hadNavi = _naviDecision.Destination != null;
 
         Targeting target = new();
         if (!forbidTargeting)
@@ -64,11 +64,8 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
         bool moveWithMaster = masterIsMoving && _followMaster && master != player;
         ForceMovementIn = moveWithMaster || gazeImminent || pyreticImminent ? 0 : _naviDecision.LeewaySeconds;
 
-        if (_naviDecision.Destination == null)
-            _navDecisionTimeMade = null;
-
-        if (_naviDecision.Destination != null && _navDecisionTimeMade == null)
-            _navDecisionTimeMade = WorldState.CurrentTime;
+        if (_config.MoveDelay > 0 && !hadNavi && _naviDecision.Destination != null)
+            _navStartTime = WorldState.FutureTime(_config.MoveDelay);
 
         UpdateMovement(player, master, target, gazeImminent || pyreticImminent, misdirectionMode ? autorot.Hints.MisdirectionThreshold : default, !forbidTargeting ? autorot.Hints.ActionsToExecute : null);
     }
@@ -207,7 +204,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
         {
             var toDest = _naviDecision.Destination != null ? _naviDecision.Destination.Value - player.Position : new();
             var distSq = toDest.LengthSq();
-            ctrl.NaviTargetPos = NavDecisionTime.TotalMilliseconds >= (_config.MoveDelay * 1000) ? _naviDecision.Destination : null;
+            ctrl.NaviTargetPos = WorldState.CurrentTime >= _navStartTime ? _naviDecision.Destination : null;
             ctrl.NaviTargetVertical = master != player ? master.PosRot.Y : null;
             ctrl.AllowInterruptingCastByMovement = player.CastInfo != null && _naviDecision.LeewaySeconds <= player.CastInfo.RemainingTime - 0.5;
             ctrl.ForceCancelCast = false;
