@@ -39,47 +39,7 @@ class DouseHaste(BossModule module) : BossComponent(module)
     }
 }
 
-class Drench(BossModule module) : Components.GenericAOEs(module)
-{
-    private DateTime _activation;
-    private static readonly AOEShapeCone cone = new(15.75f, 45.Degrees());
-    private bool Pulled;
-
-    public override void Update()
-    {
-        if (!Pulled)
-        {
-            _activation = WorldState.FutureTime(5.1f);
-            Pulled = true;
-        }
-    }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_activation != default)
-            yield return new(cone, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation);
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.Electrogenesis) // boss can move after cast started, so we can't use aoe instance, since that would cause outdated position data to be used
-        {
-            ++NumCasts;
-            if (NumCasts % 2 == 0)
-                _activation = WorldState.FutureTime(7.3f);
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID.Drench)
-            _activation = default;
-        if ((AID)spell.Action.ID == AID.FangsEnd)
-            _activation = WorldState.FutureTime(7.1f);
-    }
-}
-
-class Electrogenesis(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Electrogenesis), 8, "Get out of the AOE");
+class Electrogenesis(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Electrogenesis), 8);
 
 class D70TaquaruStates : StateMachineBuilder
 {
@@ -88,7 +48,6 @@ class D70TaquaruStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<Douse>()
             .ActivateOnEnter<DouseHaste>()
-            .ActivateOnEnter<Drench>()
             .ActivateOnEnter<Electrogenesis>();
     }
 }

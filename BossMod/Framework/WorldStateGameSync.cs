@@ -13,7 +13,6 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.Interop;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace BossMod;
@@ -633,7 +632,7 @@ sealed class WorldStateGameSync : IDisposable
         if (!MemoryExtensions.SequenceEqual(_ws.Client.ClassJobLevels.AsSpan(), levels))
             _ws.Execute(new ClientState.OpClassJobLevelsChange(levels.ToArray()));
 
-        var curFate = (FateContextNew*)FateManager.Instance()->CurrentFate;
+        var curFate = FateManager.Instance()->CurrentFate;
         ClientState.Fate activeFate = curFate != null ? new(curFate->FateId, curFate->Location, curFate->Radius) : default;
         if (_ws.Client.ActiveFate != activeFate)
             _ws.Execute(new ClientState.OpActiveFateChange(activeFate));
@@ -648,10 +647,60 @@ sealed class WorldStateGameSync : IDisposable
         if (_ws.Client.FocusTargetId != focusTargetId)
             _ws.Execute(new ClientState.OpFocusTargetChange(focusTargetId));
 
+        var dd = GetDeepDungeonState();
+        if (_ws.Client.DeepDungeonState != dd)
+            _ws.Execute(new ClientState.OpDeepDungeonStateChange(dd));
+    }
+
+    private static unsafe DeepDungeonState GetDeepDungeonState()
+    {
         var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
-        var dds = dd == null ? default : new DeepDungeonState(dd->Floor, dd->WeaponLevel, dd->ArmorLevel, dd->ReturnProgress, dd->PassageProgress);
-        if (_ws.Client.DeepDungeonState != dds)
-            _ws.Execute(new ClientState.OpDeepDungeonStateChange(dds));
+        if (dd == null)
+            return default;
+
+        var state = new DeepDungeonState
+        {
+            Floor = dd->Floor,
+            WeaponLevel = dd->WeaponLevel,
+            ArmorLevel = dd->ArmorLevel,
+
+            SyncedGearLevel = *((byte*)dd + 0x1F0A),
+            HoardCount = *((byte*)dd + 0x1F0B),
+
+            ReturnProgress = dd->ReturnProgress,
+            PassageProgress = dd->PassageProgress,
+
+            PartyInfo = new DeepDungeonState.PartyMember[4],
+            ItemInfo = new DeepDungeonState.Item[16],
+            ChestInfo = new DeepDungeonState.Chest[16]
+        };
+
+        var ddParty = new Span<InstanceContentDeepDungeon.DeepDungeonPartyInfo>((void*)((nint)dd + 0x1E88), 4);
+        for (var i = 0; i < 4; i++)
+        {
+            ref var pinfo = ref state.PartyInfo[i];
+            pinfo.EntityId = ddParty[i].EntityId;
+            pinfo.RoomIndex = ddParty[i].RoomIndex;
+        }
+
+        var ddItem = new Span<InstanceContentDeepDungeon.DeepDungeonItemInfo>((void*)((nint)dd + 0x1EA8), 16);
+        for (var i = 0; i < ddItem.Length; i++)
+        {
+            ref var pitem = ref state.ItemInfo[i];
+            pitem.ItemId = ddItem[i].ItemId;
+            pitem.Count = ddItem[i].Count;
+            pitem.Flags = ddItem[i].Flags;
+        }
+
+        var ddChest = new Span<InstanceContentDeepDungeon.DeepDungeonChestInfo>((void*)((nint)dd + 0x1ED8), 16);
+        for (var i = 0; i < ddChest.Length; i++)
+        {
+            ref var pchest = ref state.ChestInfo[i];
+            pchest.ChestType = ddChest[i].ChestType;
+            pchest.RoomIndex = ddChest[i].RoomIndex;
+        }
+
+        return state;
     }
 
     private ulong SanitizedObjectID(ulong raw) => raw != InvalidEntityId ? raw : 0;
@@ -812,15 +861,4 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketRSVDataHook.Original(packet);
         _globalOps.Add(new WorldState.OpRSVData(MemoryHelper.ReadStringNullTerminated((nint)(packet + 4)), MemoryHelper.ReadString((nint)(packet + 0x34), *(int*)packet)));
     }
-}
-
-[StructLayout(LayoutKind.Explicit, Size = 4256)]
-partial struct FateContextNew
-{
-    [FieldOffset(0x018)]
-    public ushort FateId;
-    [FieldOffset(0x460)]
-    public Vector3 Location;
-    [FieldOffset(0x474)]
-    public float Radius;
 }

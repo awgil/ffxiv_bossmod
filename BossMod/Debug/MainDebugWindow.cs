@@ -224,27 +224,15 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
     private unsafe void DrawDeepDungeon()
     {
-        var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
-        if (dd == null)
-        {
-            ImGui.TextUnformatted("Not in a dungeon");
-            return;
-        }
-
-        ImGui.TextUnformatted($"Floor: {dd->Floor}");
-        ImGui.TextUnformatted($"Return progress: {dd->ReturnProgress}");
-        ImGui.TextUnformatted($"Passage progress: {dd->PassageProgress}");
-        ImGui.TextUnformatted($"Weapon level: {dd->WeaponLevel}");
-        ImGui.TextUnformatted($"Armor level: {dd->ArmorLevel}");
-        ImGui.TextUnformatted($"Hoard count: {dd->HoardCount}");
-
-        if (ImGui.CollapsingHeader("Items"))
-            foreach (var item in dd->Items)
-                Dalamud.Utility.Util.ShowObject(item);
-
-        if (ImGui.CollapsingHeader("Chests"))
-            foreach (var chest in dd->Chests)
-                Dalamud.Utility.Util.ShowObject(chest);
+        Dalamud.Utility.Util.ShowObject(ws.Client.DeepDungeonState);
+        ImGui.Indent();
+        if (ImGui.CollapsingHeader("Item info"))
+            foreach (var it in ws.Client.DeepDungeonState.ItemInfo)
+                Dalamud.Utility.Util.ShowObject(it);
+        if (ImGui.CollapsingHeader("Chest info"))
+            foreach (var it in ws.Client.DeepDungeonState.ChestInfo)
+                Dalamud.Utility.Util.ShowObject(it);
+        ImGui.Unindent();
     }
 
     private void DrawPartyHealth()
