@@ -44,6 +44,7 @@ public sealed class RotationModuleManager : IDisposable
         (uint)Roleplay.SID.FreshPerspective, // sapphire weapon quest
         1448, // "Transfiguration" from some boss in some dungeon
         565, // "Transfiguration" from certain pomanders in Palace of the Dead
+        439, // "Toad", palace of the dead
         404, // "Transporting", not a transformation but prevents actions
     ];
 
