@@ -1,5 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Alliance.A12Fafnir;
 
+class ShudderingEarth(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.ShudderingEarth));
 class SharpSpike(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(4), (uint)IconID.SharpSpike, ActionID.MakeSpell(AID.SharpSpikeAOE), 6.2f, true);
 class Darter(BossModule module) : Components.Adds(module, (uint)OID.Darter);
 class AbsoluteTerror(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AbsoluteTerrorAOE), new AOEShapeRect(70, 10));

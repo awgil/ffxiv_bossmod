@@ -4,33 +4,43 @@ class A12FafnirStates : StateMachineBuilder
 {
     public A12FafnirStates(BossModule module) : base(module)
     {
-        DeathPhase(0, SinglePhase)
-            .ActivateOnEnter<SpikeFlail>()
-            .ActivateOnEnter<Touchdown>()
-            .ActivateOnEnter<DragonBreath>() // this lingers for next mechanic typically
+        SimplePhase(0, Phase1, "P1: Until 85%")
+            .ActivateOnEnter<ShudderingEarth>()
+            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || Module.FindComponent<ShudderingEarth>()?.NumCasts > 0;
+        SimplePhase(1, Phase2, "P2: Until 15%")
+            .ActivateOnEnter<Darter>()
+            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || (Module.PrimaryActor.CastInfo?.IsSpell(AID.DarkMatterBlast) ?? false);
+        DeathPhase(2, Phase3)
             .ActivateOnEnter<Darter>();
     }
 
-    private void SinglePhase(uint id)
+    private void Phase1(uint id)
     {
         DarkMatterBlast(id, 6.2f);
-        OffensivePosture(id + 0x10000, 5.1f); // TODO: always cone?
-        OffensivePosture(id + 0x20000, 6.2f); // TODO: always out?
-        OffensivePosture(id + 0x30000, 10.4f); // TODO: always in?
-        OffensivePosture(id + 0x40000, 11.0f); // TODO: always out?
-        OffensivePosture(id + 0x50000, 4.2f); // TODO: always cone?
-        BalefulBreath(id + 0x60000, 3.2f);
-        SharpSpike(id + 0x70000, 3.7f);
-        HurricaneWing(id + 0x80000, 14.2f);
-        OffensivePosture(id + 0x90000, 2.6f); // TODO: always cone?
-        BalefulBreath(id + 0xA0000, 3.2f);
-        AbsoluteWingedTerror(id + 0xB0000, 14.3f);
-        AbsoluteWingedTerror(id + 0xC0000, 10.8f);
-        DarkMatterBlast(id + 0xD0000, 4.8f);
-        HorridRoarOffensivePosture(id + 0xE0000, 6.2f);
-        SharpSpike(id + 0xF0000, 3.2f);
-        // then: offensive posture cone > ???
-        //HurricaneWing(id + 0x100000, 12.2f); // TODO: hurricane wing 2 is different, includes absolute/winged terror, does not have adds
+        OffensivePostureSpikeFlail(id + 0x10000, 5.2f);
+        OffensivePostureTouchdown(id + 0x20000, 5.2f);
+        SimpleState(id + 0x30000, 5.2f, "Next phase (85% hp)");
+    }
+
+    private void Phase2(uint id)
+    {
+        OffensivePostureDragonBreathTouchdown(id, 4.5f);
+        OffensivePostureSpikeFlail(id + 0x10000, 3.0f);
+        BalefulBreath(id + 0x20000, 2.2f);
+        SharpSpike(id + 0x30000, 3.7f);
+        HurricaneWing1(id + 0x40000, 14.2f);
+        OffensivePostureSpikeFlail(id + 0x50000, 2.6f);
+        BalefulBreath(id + 0x60000, 2.2f);
+        AbsoluteWingedTerror(id + 0x70000, 14.4f);
+        AbsoluteWingedTerror(id + 0x80000, 10.7f);
+        SimpleState(id + 0x90000, 4.8f, "Next phase (15% hp)");
+    }
+
+    private void Phase3(uint id)
+    {
+        Phase3Repeat(id, 0, true);
+        Phase3Repeat(id + 0x100000, 10.3f, false);
+
         SimpleState(id + 0xFF0000, 10000, "???")
             .ActivateOnEnter<BalefulBreath>()
             .ActivateOnEnter<SharpSpike>()
@@ -42,15 +52,45 @@ class A12FafnirStates : StateMachineBuilder
             .ActivateOnEnter<WingedTerror>();
     }
 
+    private void Phase3Repeat(uint id, float delay, bool first)
+    {
+        DarkMatterBlast(id, delay);
+        HorridRoarOffensivePosture(id + 0x10000, first ? 6.2f : 9.2f);
+        SharpSpike(id + 0x20000, 2.0f);
+        HurricaneWing2(id + 0x30000, 12.2f);
+        OffensivePostureSpikeFlail(id + 0x40000, 6.8f);
+        BalefulBreath(id + 0x50000, 2.2f);
+    }
+
     private void DarkMatterBlast(uint id, float delay)
     {
         Cast(id, AID.DarkMatterBlast, delay, 5, "Raidwide")
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
-    private State OffensivePosture(uint id, float delay)
+    private void OffensivePostureSpikeFlail(uint id, float delay)
     {
-        return CastMulti(id, [AID.OffensivePostureSpikeFlail, AID.OffensivePostureDragonBreath, AID.OffensivePostureTouchdown], delay, 8, "Cone/in/out");
+        Cast(id, AID.OffensivePostureSpikeFlail, delay, 8)
+            .ActivateOnEnter<SpikeFlail>();
+        ComponentCondition<SpikeFlail>(id + 2, 1, comp => comp.NumCasts > 0, "Back cleave")
+            .DeactivateOnExit<SpikeFlail>();
+    }
+
+    private State OffensivePostureTouchdown(uint id, float delay)
+    {
+        Cast(id, AID.OffensivePostureTouchdown, delay, 8)
+            .ActivateOnEnter<Touchdown>();
+        return ComponentCondition<Touchdown>(id + 2, 1.2f, comp => comp.NumCasts > 0, "Out")
+            .DeactivateOnExit<Touchdown>();
+    }
+
+    private void OffensivePostureDragonBreathTouchdown(uint id, float delay)
+    {
+        Cast(id, AID.OffensivePostureDragonBreath, delay, 8)
+            .ActivateOnEnter<DragonBreath>();
+        ComponentCondition<DragonBreath>(id + 2, 1.2f, comp => comp.NumCasts > 0, "In");
+        OffensivePostureTouchdown(id + 0x1000, 9.5f)
+            .DeactivateOnExit<DragonBreath>();
     }
 
     private void BalefulBreath(uint id, float delay)
@@ -58,7 +98,7 @@ class A12FafnirStates : StateMachineBuilder
         CastStart(id, AID.BalefulBreath, delay)
             .ActivateOnEnter<BalefulBreath>();
         CastEnd(id + 1, 8);
-        ComponentCondition<BalefulBreath>(id + 0x10, 0.2f, comp => comp.NumCasts > 0, "Line stack 1");
+        ComponentCondition<BalefulBreath>(id + 0x10, 0.3f, comp => comp.NumCasts > 0, "Line stack 1");
         ComponentCondition<BalefulBreath>(id + 0x20, 5.2f, comp => comp.NumCasts >= 4, "Line stack 4")
             .DeactivateOnExit<BalefulBreath>();
     }
@@ -73,22 +113,27 @@ class A12FafnirStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Tankbuster);
     }
 
-    private void HurricaneWing(uint id, float delay)
+    private void HurricaneWingRaidwide(uint id, float delay)
     {
         Cast(id, AID.HurricaneWingRaidwide, delay, 3);
-        ComponentCondition<HurricaneWingRaidwide>(id + 0x10, 2.8f, comp => comp.NumCasts > 0, "Raidwide 1")
+        ComponentCondition<HurricaneWingRaidwide>(id + 0x10, 2.7f, comp => comp.NumCasts > 0, "Raidwide 1")
             .ActivateOnEnter<HurricaneWingRaidwide>()
             .SetHint(StateMachine.StateHint.Raidwide);
         ComponentCondition<HurricaneWingRaidwide>(id + 0x20, 8.5f, comp => comp.NumCasts >= 9, "Raidwide 9")
             .DeactivateOnExit<HurricaneWingRaidwide>()
             .SetHint(StateMachine.StateHint.Raidwide);
+    }
+
+    private void HurricaneWing1(uint id, float delay)
+    {
+        HurricaneWingRaidwide(id, delay);
 
         ComponentCondition<HurricaneWingAOE>(id + 0x100, 2, comp => comp.AOEs.Count > 0)
             .ActivateOnEnter<HurricaneWingAOE>();
         ComponentCondition<GreatWhirlwind>(id + 0x110, 2.5f, comp => comp.AOEs.Count > 0)
             .ActivateOnEnter<GreatWhirlwind>();
         ComponentCondition<HurricaneWingAOE>(id + 0x120, 2.5f, comp => comp.NumCasts > 0, "Concentric 1");
-        CastStart(id + 0x121, AID.HorridRoar, 0.9f); // TODO: happens way earlier on second??
+        CastStart(id + 0x121, AID.HorridRoar, 0.9f);
         ComponentCondition<GreatWhirlwind>(id + 0x122, 1.1f, comp => comp.NumCasts > 0, "Whirlwinds");
         CastEnd(id + 0x123, 1.9f);
         ComponentCondition<HurricaneWingAOE>(id + 0x130, 2.1f, comp => comp.NumCasts >= 4)
@@ -101,7 +146,7 @@ class A12FafnirStates : StateMachineBuilder
         ComponentCondition<HurricaneWingAOE>(id + 0x221, 1.9f, comp => comp.NumCasts >= 4);
         CastEnd(id + 0x222, 1.1f);
 
-        ComponentCondition<HurricaneWingAOE>(id + 0x300, 4, comp => comp.NumCasts >= 1, "Concentric 3");
+        ComponentCondition<HurricaneWingAOE>(id + 0x300, 4, comp => comp.NumCasts > 0, "Concentric 3");
         Cast(id + 0x310, AID.HorridRoar, 0.2f, 3);
         ComponentCondition<HurricaneWingAOE>(id + 0x320, 2.8f, comp => comp.NumCasts >= 4)
             .DeactivateOnExit<HurricaneWingAOE>();
@@ -112,12 +157,12 @@ class A12FafnirStates : StateMachineBuilder
             .DeactivateOnExit<HorridRoarSpread>();
     }
 
-    private void AbsoluteWingedTerror(uint id, float delay)
+    private State AbsoluteWingedTerror(uint id, float delay)
     {
         CastMulti(id, [AID.AbsoluteTerror, AID.WingedTerror], delay, 6)
             .ActivateOnEnter<AbsoluteTerror>()
             .ActivateOnEnter<WingedTerror>();
-        Condition(id + 2, 1.4f, () => Module.FindComponent<AbsoluteTerror>()?.NumCasts > 0 || Module.FindComponent<WingedTerror>()?.NumCasts > 0, "Center/sides")
+        return Condition(id + 2, 1.4f, () => Module.FindComponent<AbsoluteTerror>()?.NumCasts > 0 || Module.FindComponent<WingedTerror>()?.NumCasts > 0, "Center/sides")
             .DeactivateOnExit<AbsoluteTerror>()
             .DeactivateOnExit<WingedTerror>();
     }
@@ -128,8 +173,51 @@ class A12FafnirStates : StateMachineBuilder
         ComponentCondition<HorridRoarPuddle>(id + 0x10, 1.1f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<HorridRoarPuddle>();
         ComponentCondition<HorridRoarPuddle>(id + 0x11, 4, comp => comp.NumCasts > 0, "Puddles");
-        OffensivePosture(id + 0x100, 3); // TODO: always in?
-        OffensivePosture(id + 0x200, 9.5f) // TODO: always cone or out?
+
+        Cast(id + 0x1000, AID.OffensivePostureDragonBreath, 2.9f, 8)
+            .ActivateOnEnter<DragonBreath>();
+        ComponentCondition<DragonBreath>(id + 0x1002, 1.2f, comp => comp.NumCasts > 0, "In");
+
+        CastMulti(id + 0x2000, [AID.OffensivePostureSpikeFlail, AID.OffensivePostureTouchdown], 7.2f, 8)
+            .ActivateOnEnter<SpikeFlail>()
+            .ActivateOnEnter<Touchdown>()
             .DeactivateOnExit<HorridRoarPuddle>();
+        Condition(id + 0x2002, 1.1f, () => Module.FindComponent<SpikeFlail>()?.NumCasts > 0 || Module.FindComponent<Touchdown>()?.NumCasts > 0, "Out/Back cleave")
+            .DeactivateOnExit<SpikeFlail>()
+            .DeactivateOnExit<Touchdown>()
+            .DeactivateOnExit<DragonBreath>();
+    }
+
+    private void HurricaneWing2(uint id, float delay)
+    {
+        HurricaneWingRaidwide(id, delay);
+
+        ComponentCondition<HurricaneWingAOE>(id + 0x100, 2, comp => comp.AOEs.Count > 0)
+            .ActivateOnEnter<HurricaneWingAOE>();
+        ComponentCondition<GreatWhirlwind>(id + 0x110, 2.5f, comp => comp.AOEs.Count > 0)
+            .ActivateOnEnter<GreatWhirlwind>();
+        CastStart(id + 0x120, AID.HorridRoar, 1.4f);
+        ComponentCondition<HurricaneWingAOE>(id + 0x121, 1.1f, comp => comp.NumCasts > 0, "Concentric 1");
+        CastEnd(id + 0x122, 1.9f, "Whirlwinds");
+        ComponentCondition<HurricaneWingAOE>(id + 0x130, 4.1f, comp => comp.NumCasts >= 4)
+            .ActivateOnEnter<HorridRoarPuddle>()
+            .ActivateOnEnter<HorridRoarSpread>();
+
+        CastStart(id + 0x200, AID.HorridRoar, 0.1f);
+        ComponentCondition<HurricaneWingAOE>(id + 0x201, 1, comp => comp.AOEs.Count > 0);
+        CastEnd(id + 0x202, 2);
+        ComponentCondition<HurricaneWingAOE>(id + 0x203, 2, comp => comp.NumCasts > 0, "Concentric 2");
+        Cast(id + 0x210, AID.HorridRoar, 2.1f, 3);
+        ComponentCondition<HurricaneWingAOE>(id + 0x220, 0.9f, comp => comp.NumCasts >= 4);
+
+        ComponentCondition<HurricaneWingAOE>(id + 0x300, 1.1f, comp => comp.AOEs.Count > 0);
+        ComponentCondition<HurricaneWingAOE>(id + 0x301, 4, comp => comp.NumCasts > 0, "Concentric 3");
+        ComponentCondition<HurricaneWingAOE>(id + 0x310, 6, comp => comp.NumCasts >= 4)
+            .DeactivateOnExit<HurricaneWingAOE>();
+
+        AbsoluteWingedTerror(id + 0x400, 3.2f)
+            .DeactivateOnExit<GreatWhirlwind>()
+            .DeactivateOnExit<HorridRoarPuddle>()
+            .DeactivateOnExit<HorridRoarSpread>();
     }
 }
