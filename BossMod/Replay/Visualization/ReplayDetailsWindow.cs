@@ -271,10 +271,12 @@ class ReplayDetailsWindow : UIWindow
         }
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted($"{(actor.IsDead ? "(Dead) " : "")}{actor} (r={actor.HitboxRadius:f2})");
+        ImGui.TextUnformatted($"{(actor.IsDead ? "(Dead) " : "")}{actor} (r={actor.HitboxRadius:f2}, s={(actor.Position - actor.PrevPosition).Length() / _player.WorldState.Frame.Duration:f3})");
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted($"{_player.WorldState.Actors.Find(actor.TargetID)}");
+        var target = _player.WorldState.Actors.Find(actor.TargetID);
+        if (target != null)
+            ImGui.TextUnformatted($"{target} (d={(target.Position - actor.Position).Length():f3})");
 
         ImGui.TableNextColumn();
         if (actor.CastInfo != null)
