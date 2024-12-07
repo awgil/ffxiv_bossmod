@@ -9,9 +9,11 @@ class A12FafnirStates : StateMachineBuilder
             .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || Module.FindComponent<ShudderingEarth>()?.NumCasts > 0;
         SimplePhase(1, Phase2, "P2: Until 15%")
             .ActivateOnEnter<Darter>()
+            .ActivateOnEnter<Venom>()
             .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || (Module.PrimaryActor.CastInfo?.IsSpell(AID.DarkMatterBlast) ?? false);
         DeathPhase(2, Phase3)
-            .ActivateOnEnter<Darter>();
+            .ActivateOnEnter<Darter>()
+            .ActivateOnEnter<Venom>();
     }
 
     private void Phase1(uint id)

@@ -30,6 +30,7 @@ public enum AID : uint
 
     AutoAttackAdd = 40633, // Darter->player, no cast, single-target
     PestilentSphere = 40859, // Darter->player, 5.0s cast, single-target, single-target damage
+    Venom = 40858, // Darter->self, 4.0s cast, range 30 120-degree cone
     HurricaneWingRaidwide = 40817, // Boss->self, 3.0+2.5s cast, single-target, visual (multi-hit raidwide)
     HurricaneWingRaidwideAOE1 = 40818, // Helper->self, no cast, range 70 circle
     HurricaneWingRaidwideAOE2 = 40819, // Helper->self, no cast, range 70 circle
