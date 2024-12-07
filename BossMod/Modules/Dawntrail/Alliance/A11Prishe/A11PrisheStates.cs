@@ -25,16 +25,6 @@ class A11PrisheStates : StateMachineBuilder
             [AID.BanishgaIV] = ((id >> 24) + 2, ForkBanishgaFirst)
         };
         CastStartFork(id + 0xC0000, fork, 9.9f, "Exaflares -or- Orbs");
-
-        // from now on, we have a loop with following mechanics in random order:
-        // - banishga iv (raidwide + orbs) _or_ banish storm (exaflares) overlapping with knuckle sandwich _or_ thorns+uppercut (4 options total, each iteration of loop will have 2 combos with all mechanics seen once)
-        // - holy
-        // - nullifying dropkick
-        // - asuran fists
-        // hypothesis: actually it's one branch and loop repeats exactly:
-        // 1. banish storm + knuckle sandwich > dropkick > banishga + uppercut > holy > fists
-        // 2. banishga + knuckle sandwich > holy > banish storm + uppercut > dropkick > fists (seen in video - however, on second iteration dropkick happened before banish storm...)
-
     }
 
     private void ForkBanishStormFirst(uint id)
