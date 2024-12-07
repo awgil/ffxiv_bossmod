@@ -17,8 +17,8 @@ public enum AID : uint
 }
 
 class Dissever(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Dissever), new AOEShapeCone(10.8f, 45.Degrees()), activeWhileCasting: false);
-class BallofFire(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.FireVoidPuddle).Where(z => z.EventState != 7));
-class BallofIce(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.IceVoidPuddle).Where(z => z.EventState != 7));
+class BallofFire(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.BallOfFire), m => m.Enemies(OID.FireVoidPuddle).Where(z => z.EventState != 7), 2.1f);
+class BallofIce(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.BallOfIce), m => m.Enemies(OID.IceVoidPuddle).Where(z => z.EventState != 7), 2.1f);
 class FearItself(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FearItself), new AOEShapeDonut(5, 50));
 
 class Hints(BossModule module) : BossComponent(module)

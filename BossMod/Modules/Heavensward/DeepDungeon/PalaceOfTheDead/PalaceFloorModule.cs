@@ -3,14 +3,16 @@
 [ConfigDisplay(Name = "Palace of the Dead", Parent = typeof(HeavenswardConfig))]
 class PotDConfig : ConfigNode
 {
+    [PropertyDisplay("Enable module")]
+    public bool Enable = true;
+    [PropertyDisplay("Prioritize Cairn of Passage over coffers")]
+    public bool PassageNow = false;
     [PropertyDisplay("Open gold coffers")]
     public bool GoldCoffer = true;
     [PropertyDisplay("Open silver coffers")]
     public bool SilverCoffer = true;
     [PropertyDisplay("Open bronze coffers")]
     public bool BronzeCoffer = true;
-    [PropertyDisplay("Open normal coffers")]
-    public bool NormalCoffer = true;
 }
 
 public abstract class PalaceFloorModule : ZoneModule
@@ -57,10 +59,9 @@ public abstract class PalaceFloorModule : ZoneModule
         _skipChests.Clear();
     }
 
-    private bool OpenGold => _config.GoldCoffer && (Palace[PomanderID.Strength].Count < 3 || Palace[PomanderID.Steel].Count < 3 || Palace.Floor > 80 && Palace[PomanderID.Resolution].Count < 3);
+    private bool OpenGold => _config.GoldCoffer && Palace.ItemInfo.Any(i => i.Count < 3);
     private bool OpenSilver => _config.SilverCoffer && Palace.WeaponLevel + Palace.ArmorLevel < 198;
     private bool OpenBronze => _config.BronzeCoffer;
-    private bool OpenNormal => _config.NormalCoffer;
 
     // public override bool WantToBeDrawn() => true;
 
@@ -68,12 +69,11 @@ public abstract class PalaceFloorModule : ZoneModule
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
-        if (player.InCombat || player.IsTransformed || Palace.Floor % 10 == 0)
+        if (!_config.Enable || player.InCombat || player.IsTransformed || Palace.Floor % 10 == 0 || player.Statuses.Any(s => s.ID is 7 or 620))
             return;
 
         Actor? coffer = null;
         Actor? hoardLight = null;
-        Actor? hoard = null;
         Actor? passage = null;
         List<Func<WPos, float>> revealedTraps = [];
 
@@ -86,8 +86,7 @@ public abstract class PalaceFloorModule : ZoneModule
             if (a.IsTargetable && (
                 oid == OID.GoldCoffer && OpenGold ||
                 oid == OID.SilverCoffer && OpenSilver ||
-                oid == OID.BronzeCoffer && OpenBronze ||
-                oid == OID.NormalCoffer && OpenNormal ||
+                oid is OID.BronzeCoffer1 or OID.BronzeCoffer2 or OID.BronzeCoffer3 && OpenBronze ||
                 oid == OID.BandedCoffer
             ))
             {
@@ -112,20 +111,26 @@ public abstract class PalaceFloorModule : ZoneModule
             return;
         }
 
-        hints.InteractWithTarget = hoard ?? coffer;
-        var haveChest = hints.InteractWithTarget is Actor t && InBounds(hints, t.Position);
+        var haveChest = false;
+        if (coffer is Actor t && InBounds(hints, t.Position))
+        {
+            hints.InteractWithTarget = coffer;
+            haveChest = true;
+        }
 
         var havePassage = false;
         if (Palace.PassageActive && passage is Actor c)
         {
             havePassage = true;
-            hints.GoalZones.Add(hints.GoalSingleTarget(c.Position, 2));
+            hints.GoalZones.Add(hints.GoalSingleTarget(c.Position, 2, 0.5f));
+            if (haveChest && player.DistanceToHitbox(c) < player.DistanceToHitbox(coffer) && _config.PassageNow)
+                hints.InteractWithTarget = null;
         }
 
         if (revealedTraps.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Union(revealedTraps));
 
-        if (hoardLight is Actor h && Palace.ItemInfo[13].Active)
+        if (hoardLight is Actor h && Palace[PomanderID.Intuition].Active && InBounds(hints, h.Position))
         {
             hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));
             hints.InteractWithTarget = null;
@@ -145,8 +150,10 @@ enum OID : uint
     CairnOfPassage = 0x1EA094,
     SilverCoffer = 0x1EA13D,
     GoldCoffer = 0x1EA13E,
-    BronzeCoffer = 0x322,
-    NormalCoffer = 0x323,
+    BronzeCoffer0 = 0x313,
+    BronzeCoffer1 = 0x322,
+    BronzeCoffer2 = 0x323,
+    BronzeCoffer3 = 0x324,
     BandedCofferIndicator = 0x1EA1F6,
     BandedCoffer = 0x1EA1F7,
 }
@@ -158,6 +165,8 @@ public class Palace10(WorldState ws) : PalaceFloorModule(ws);
 public class Palace20(WorldState ws) : PalaceFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 176)]
 public class Palace30(WorldState ws) : PalaceFloorModule(ws);
+[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 177)]
+public class Palace40(WorldState ws) : PalaceFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 204)]
 public class Palace60(WorldState ws) : PalaceFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 205)]
@@ -168,3 +177,13 @@ public class Palace80(WorldState ws) : PalaceFloorModule(ws);
 public class Palace90(WorldState ws) : PalaceFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 208)]
 public class Palace100(WorldState ws) : PalaceFloorModule(ws);
+[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 209)]
+public class Palace110(WorldState ws) : PalaceFloorModule(ws);
+[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 210)]
+public class Palace120(WorldState ws) : PalaceFloorModule(ws);
+[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 211)]
+public class Palace130(WorldState ws) : PalaceFloorModule(ws);
+[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 212)]
+public class Palace140(WorldState ws) : PalaceFloorModule(ws);
+[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 213)]
+public class Palace150(WorldState ws) : PalaceFloorModule(ws);

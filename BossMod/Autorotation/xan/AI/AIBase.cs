@@ -10,8 +10,9 @@ public abstract class AIBase(RotationModuleManager manager, Actor player) : Rota
 
     internal static ActionID Spell<AID>(AID aid) where AID : Enum => ActionID.MakeSpell(aid);
 
-    internal bool ShouldInterrupt(Actor act) => IsCastReactable(act) && act.CastInfo!.Interruptible;
-    internal bool ShouldStun(Actor act) => IsCastReactable(act) && !act.CastInfo!.Interruptible && !IsBossFromIcon(act.OID);
+    // note "in combat" check here, as deep dungeon enemies can randomly cast interruptible spells out of combat - interjecting causes aggro
+    internal bool ShouldInterrupt(Actor act) => act.InCombat && IsCastReactable(act) && act.CastInfo!.Interruptible;
+    internal bool ShouldStun(Actor act) => act.InCombat && IsCastReactable(act) && !act.CastInfo!.Interruptible && !IsBossFromIcon(act.OID);
 
     private static bool IsBossFromIcon(uint oid) => Service.LuminaRow<BNpcBase>(oid)?.Rank is 1 or 2 or 6;
 

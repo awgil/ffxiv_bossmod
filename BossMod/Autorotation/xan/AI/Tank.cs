@@ -115,7 +115,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
             return;
 
         // ranged
-        if (strategy.Enabled(Track.Ranged) && Player.DistanceToHitbox(primaryTarget) is > 5 and <= 20 && primaryTarget!.Type is ActorType.Enemy && !primaryTarget.IsAlly)
+        if (ShouldRanged(strategy, primaryTarget))
             Hints.ActionsToExecute.Push(JobActions.Ranged, primaryTarget, ActionQueue.Priority.Low);
 
         // stance
@@ -157,6 +157,14 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
                 ExecuteWAR(strategy);
                 break;
         }
+    }
+
+    private bool ShouldRanged(StrategyValues strategy, Actor? primaryTarget)
+    {
+        return strategy.Enabled(Track.Ranged)
+            && Player.DistanceToHitbox(primaryTarget) is > 5 and <= 20
+            && !primaryTarget!.IsAlly
+            && !Player.Statuses.Any(x => x.ID is (uint)WAR.SID.Berserk or (uint)WAR.SID.InnerRelease);
     }
 
     private void AutoProtect()
