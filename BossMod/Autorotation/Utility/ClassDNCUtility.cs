@@ -15,10 +15,10 @@ public sealed class ClassDNCUtility(RotationModuleManager manager, Actor player)
 
         DefineSimpleConfig(res, Track.CuringWaltz, "CuringWaltz", "C.Waltz", 400, DNC.AID.CuringWaltz);
 
-        res.Define(Track.ShieldSamba).As<SambaOption>("ShieldSamba", "S.Samba", 500)
+        res.Define(Track.ShieldSamba).As<SambaOption>("Shield Samba", "S.Samba", 500)
             .AddOption(SambaOption.None, "None", "Do not use automatically")
-            .AddOption(SambaOption.Use87, "Use", "Use ShieldSamba", 120, 15, ActionTargets.Self, 56, 87)
-            .AddOption(SambaOption.Use88, "Use88", "Use ShieldSamba", 90, 15, ActionTargets.Self, 88)
+            .AddOption(SambaOption.Use87, "Use", "Use Shield Samba", 120, 15, ActionTargets.Self, 56, 87)
+            .AddOption(SambaOption.Use88, "Use88", "Use Shield Samba", 90, 15, ActionTargets.Self, 88)
             .AddAssociatedActions(DNC.AID.ShieldSamba);
 
         DefineSimpleConfig(res, Track.Improvisation, "Improvisation", "Improv", 300, DNC.AID.Improvisation, 15);
