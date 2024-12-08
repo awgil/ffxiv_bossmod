@@ -2,6 +2,7 @@
 
 public enum AID : uint
 {
+    #region PvE
     None = 0,
     Sprint = ClassShared.AID.Sprint,
 
@@ -55,6 +56,38 @@ public enum AID : uint
     Reprisal = ClassShared.AID.Reprisal, // L22, instant, 60.0s CD (group 44), range 0, AOE 5 circle, targets=self
     ArmsLength = ClassShared.AID.ArmsLength, // L32, instant, 120.0s CD (group 48), range 0, single-target, targets=self
     Shirk = ClassShared.AID.Shirk, // L48, instant, 120.0s CD (group 49), range 25, single-target, targets=party
+    #endregion
+
+    #region PvP
+    KeenEdgePvP = 29098, // instant, GCD, range 3, single-target, targets=hostile
+    BrutalShellPvP = 29099, // instant, GCD, range 3, single-target, targets=hostile
+    SolidBarrelPvP = 29100, // instant, GCD, range 3, single-target, targets=hostile
+    BurstStrikePvP = 29101, // instant, GCD, range 5, single-target, targets=hostile
+    GnashingFangPvP = 29102, // instant, GCD, range 5, single-target, targets=hostile
+    FatedCirclePvP = 41511, // instant, GCD, range 0, AOE 5, targets=self
+    ContinuationPvP = 29106, // instant, oGCD, range 5, single-target, targets=hostile
+    RoughDividePvP = 29123, // instant, oGCD, range 20, single-target, targets=hostile
+    BlastingZonePvP = 29128, // instant, oGCD, range 5, single-target, targets=hostile
+    HeartOfCorundumPvP = 41443, // instant, oGCD, range 20, single-target, targets=party
+    SavageClawPvP = 29103, // instant, GCD, range 5, single-target, targets=hostile
+    WickedTalonPvP = 29104, // instant, GCD, range 5, single-target, targets=hostile
+    HypervelocityPvP = 29107, // instant, oGCD, range 5, single-target, targets=hostile
+    FatedBrandPvP = 41442, // instant, oGCD, range 5, single-target, targets=hostile
+    JugularRipPvP = 29108, // instant, oGCD, range 5, single-target, targets=hostile
+    AbdomenTearPvP = 29109, // instant, oGCD, range 5, single-target, targets=hostile
+    EyeGougePvP = 29110, // instant, oGCD, range 5, single-target, targets=hostile
+
+    //LBs
+    RelentlessRushPvP = 29130,
+    TerminalTriggerPvP = 29131,
+
+    //Shared
+    Elixir = ClassShared.AID.Elixir,
+    Recuperate = ClassShared.AID.Recuperate,
+    Purify = ClassShared.AID.Purify,
+    Guard = ClassShared.AID.Guard,
+    SprintPvP = ClassShared.AID.SprintPvP
+    #endregion
 }
 
 public enum TraitID : uint
@@ -77,6 +110,7 @@ public enum TraitID : uint
 // TODO: regenerate
 public enum SID : uint
 {
+    #region PvE
     None = 0,
     BrutalShell = 1898, // applied by Brutal Shell to self
     NoMercy = 1831, // applied by No Mercy to self
@@ -105,6 +139,36 @@ public enum SID : uint
 
     //Shared
     Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
+    #endregion PvE
+
+    #region PvP
+    ReadyToBlastPvP = 3041, // applied by Burst Strike to self
+    ReadyToRazePvP = 4293, // applied by Fated Circle to self
+    ReadyToRipPvP = 2002, // applied by Gnashing Fang to self
+    ReadyToTearPvP = 2003, // applied by Savage Claw to self
+    ReadyToGougePvP = 2004, // applied by Wicked Talon to self
+    NebulaPvP = 3051, // applied by Nebula to self
+    NoMercyPvP = 3042, // applied by No Mercy to self
+    HeartOfCorundumPvP = 4295, // applied by Heart of Corundum to self
+    CatharsisOfCorundumPvP = 4296, // applied by Heart of Corundum to self
+    RelentlessRushPvP = 3052,
+
+    //Shared
+    Elixir = ClassShared.AID.Elixir,
+    Recuperate = ClassShared.AID.Recuperate,
+    Purify = ClassShared.AID.Purify,
+    Guard = ClassShared.AID.Guard,
+    SprintPvP = ClassShared.AID.SprintPvP,
+    Silence = ClassShared.SID.Silence,
+    Bind = ClassShared.SID.Bind,
+    StunPvP = ClassShared.SID.StunPvP,
+    HalfAsleep = ClassShared.SID.HalfAsleep,
+    Sleep = ClassShared.SID.Sleep,
+    DeepFreeze = ClassShared.SID.DeepFreeze,
+    Heavy = ClassShared.SID.Heavy,
+    Unguarded = ClassShared.SID.Unguarded,
+
+    #endregion
 }
 
 public sealed class Definitions : IDisposable
@@ -113,6 +177,7 @@ public sealed class Definitions : IDisposable
 
     public Definitions(ActionDefinitions d)
     {
+        #region PvE
         d.RegisterSpell(AID.GunmetalSoul, instantAnimLock: 3.86f);
         d.RegisterSpell(AID.KeenEdge);
         d.RegisterSpell(AID.NoMercy);
@@ -151,6 +216,29 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.ReignOfBeasts);
         d.RegisterSpell(AID.NobleBlood);
         d.RegisterSpell(AID.LionHeart);
+        #endregion
+
+        #region PvP
+        d.RegisterSpell(AID.KeenEdgePvP);
+        d.RegisterSpell(AID.BrutalShellPvP);
+        d.RegisterSpell(AID.SolidBarrelPvP);
+        d.RegisterSpell(AID.BurstStrikePvP);
+        d.RegisterSpell(AID.GnashingFangPvP);
+        d.RegisterSpell(AID.SavageClawPvP);
+        d.RegisterSpell(AID.WickedTalonPvP);
+        d.RegisterSpell(AID.AbdomenTearPvP);
+        d.RegisterSpell(AID.JugularRipPvP);
+        d.RegisterSpell(AID.EyeGougePvP);
+        d.RegisterSpell(AID.ContinuationPvP);
+        d.RegisterSpell(AID.FatedCirclePvP);
+        d.RegisterSpell(AID.BlastingZonePvP);
+        d.RegisterSpell(AID.HeartOfCorundumPvP);
+        d.RegisterSpell(AID.HypervelocityPvP);
+        d.RegisterSpell(AID.FatedBrandPvP);
+        d.RegisterSpell(AID.RoughDividePvP);
+        d.RegisterSpell(AID.RelentlessRushPvP);
+        d.RegisterSpell(AID.TerminalTriggerPvP);
+        #endregion
 
         Customize(d);
     }

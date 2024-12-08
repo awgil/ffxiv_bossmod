@@ -64,7 +64,7 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
 
         using (ImRaii.PushColor(ImGuiCol.Button, DiscordColor.ABGR))
             if (ImGui.Button("Puni.sh Discord", new(180, 0)))
-                _lastErrorMessage = OpenLink("https://discord.gg/punishxiv");
+                _lastErrorMessage = OpenLink("https://discord.gg/Zzrcc8kmvy");
         ImGui.SameLine();
         if (ImGui.Button("Boss Mod Repository", new(180, 0)))
             _lastErrorMessage = OpenLink("https://github.com/awgil/ffxiv_bossmod");

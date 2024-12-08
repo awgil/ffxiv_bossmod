@@ -18,6 +18,9 @@ sealed class AIConfig : ConfigNode
     [PropertyDisplay("Show AI status in the server info bar")]
     public bool ShowDTR = true;
 
+    [PropertyDisplay("Delay on Movement (seconds)", tooltip: "Keep this value low! Too high and it won't move in time for some mechanics")]
+    public float MoveDelay = 0f;
+
     // ai settings
     // TODO: this is really bad, it should not be here! it's a transient thing, doesn't make sense to preserve in config
     [PropertyDisplay($"Follow slot")]

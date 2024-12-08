@@ -24,6 +24,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly DebugAutorotation _debugAutorot = new(autorot);
     private readonly DebugAddon _debugAddon = new();
     private readonly DebugTiming _debugTiming = new();
+    private readonly DebugQuests _debugQuests = new();
     private readonly TrackPartyHealth PartyHealth = new(ws);
     //private readonly DebugVfx _debugVfx = new();
 
@@ -191,6 +192,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         if (ImGui.CollapsingHeader("Limit break"))
         {
             DrawLimitBreak();
+        }
+        if (ImGui.CollapsingHeader("Quests"))
+        {
+            _debugQuests.Draw();
         }
     }
 

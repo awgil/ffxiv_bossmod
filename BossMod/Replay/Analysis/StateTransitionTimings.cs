@@ -86,10 +86,11 @@ class StateTransitionTimings
 
     public void Draw(UITree tree)
     {
+        Action? actions = null;
         ImGui.Checkbox("Show transitions to end", ref _showTransitionsToEnd);
         foreach (var n in tree.Node("Encounters", _encounters.Count == 0))
         {
-            tree.LeafNodes(_encounters, e => $"{e.Item1.Path} @ {e.Item2.Time.Start:O} ({e.Item2.Time.Duration:f3}s)");
+            tree.LeafNodes(_encounters, e => $"{e.Item1.Path} @ {e.Item2.Time.Start:O} ({e.Item2.Time.Duration:f3}s)", e => EncounterContextMenu(e.Item2, ref actions));
         }
 
         foreach (var n in tree.Node("Errors", _errors.Count == 0))
@@ -98,7 +99,6 @@ class StateTransitionTimings
             tree.LeafNodes(_errors.Where(e => (e.Item2.Time.End - e.Item3.Timestamp).TotalSeconds >= _lastSecondsToIgnore), error => $"{LocationString(error.Item1, error.Item2, error.Item3.Timestamp)} [{error.Item3.CompType}] {error.Item3.Message}");
         }
 
-        Action? actions = null;
         foreach (var from in _metrics.Values)
         {
             UITree.NodeProperties map(KeyValuePair<uint, TransitionMetrics> kv)
@@ -148,6 +148,28 @@ class StateTransitionTimings
         else
         {
             trans.MinTime = trans.MaxTime = trans.AvgTime = trans.StdDev = 0;
+        }
+    }
+
+    private void EncounterContextMenu(Replay.Encounter enc, ref Action? actions)
+    {
+        if (ImGui.MenuItem("Ignore this encounter"))
+        {
+            actions += () =>
+            {
+                foreach (var (from, metrics) in _metrics)
+                {
+                    foreach (var (to, metric) in metrics.Transitions)
+                    {
+                        if (metric.Instances.RemoveAll(i => i.Encounter == enc) > 0)
+                        {
+                            RecalculateMetrics(metric);
+                        }
+                    }
+                }
+                _errors.RemoveAll(e => e.Item2 == enc);
+                _encounters.RemoveAll(e => e.Item2 == enc);
+            };
         }
     }
 

@@ -1,4 +1,6 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using AID = BossMod.PLD.AID;
+using SID = BossMod.PLD.SID;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
@@ -110,7 +112,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     public static RotationModuleDefinition Definition()
     {
         //Define the rotation module
-        var res = new RotationModuleDefinition("PLD (Akechi)", "Standard Rotation Module", "Standard rotation (Akechi)", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.GLA, (int)Class.PLD), 100);
+        var res = new RotationModuleDefinition("Akechi PLD", "Standard Rotation Module", "Standard rotation (Akechi)", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.GLA, (int)Class.PLD), 100);
 
         //AoE Strategy: Manage AoE versus single-target rotations
         res.Define(Track.AoE).As<AOEStrategy>("AoE", uiPriority: 200)
@@ -142,7 +144,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             .AddOption(AtonementStrategy.ForceSupplication, "Force Supplication", "Force use of Supplication", 0, 0, ActionTargets.Hostile, 76)
             .AddOption(AtonementStrategy.ForceSepulchre, "Force Sepulchre", "Force use of Sepulchre", 0, 0, ActionTargets.Hostile, 76)
             .AddOption(AtonementStrategy.Delay, "Delay", "Delay use of Atonement", 0, 0, ActionTargets.None, 60)
-            .AddAssociatedActions(PLD.AID.Atonement, PLD.AID.Supplication, PLD.AID.Sepulchre);
+            .AddAssociatedActions(AID.Atonement, AID.Supplication, AID.Sepulchre);
 
         //Blade Combo Strategy: Manage the Blade Combo actions
         res.Define(Track.BladeCombo).As<BladeComboStrategy>("Blade Combo", "Blades", uiPriority: 160)
@@ -152,7 +154,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             .AddOption(BladeComboStrategy.ForceTruth, "Force Truth", "Force use of Blade of Truth", 0, 0, ActionTargets.Hostile, 90)
             .AddOption(BladeComboStrategy.ForceValor, "Force Valor", "Force use of Blade of Valor", 0, 0, ActionTargets.Hostile, 90)
             .AddOption(BladeComboStrategy.Delay, "Delay", "Delay use of Confiteor & Blade Combo", 0, 0, ActionTargets.None, 80)
-            .AddAssociatedActions(PLD.AID.BladeOfFaith, PLD.AID.BladeOfTruth, PLD.AID.BladeOfValor);
+            .AddAssociatedActions(AID.BladeOfFaith, AID.BladeOfTruth, AID.BladeOfValor);
 
         //Dash Strategy: Control the use of the Intervene ability
         res.Define(Track.Dash).As<DashStrategy>("Intervene", "Dash", uiPriority: 150)
@@ -161,7 +163,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             .AddOption(DashStrategy.Conserve1, "Conserve 1", "Conserve one use of Intervene for manual usage", 30, 0, ActionTargets.Hostile, 74)
             .AddOption(DashStrategy.GapClose, "Gap Close", "Use as gap closer if outside melee range", 30, 0, ActionTargets.None, 74)
             .AddOption(DashStrategy.Delay, "Delay", "Delay use of Intervene", 30, 0, ActionTargets.None, 74)
-            .AddAssociatedActions(PLD.AID.Intervene);
+            .AddAssociatedActions(AID.Intervene);
 
         //Ranged Strategy: Manage ranged attacks when outside melee range
         res.Define(Track.Ranged).As<RangedStrategy>("Ranged", uiPriority: 20)
@@ -174,63 +176,63 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             .AddOption(RangedStrategy.Ranged, "Ranged", "Use Shield Lob when outside melee range")
             .AddOption(RangedStrategy.RangedCast, "Ranged Cast", "Use Holy Spirit when outside melee range", 0, 0, ActionTargets.Hostile, 64)
             .AddOption(RangedStrategy.Forbid, "Forbid", "Prohibit use of both ranged attacks")
-            .AddAssociatedActions(PLD.AID.ShieldLob, PLD.AID.HolySpirit);
+            .AddAssociatedActions(AID.ShieldLob, AID.HolySpirit);
 
         //Fight or Flight Strategy: Manage offensive cooldowns
         res.Define(Track.FightOrFlight).As<OffensiveStrategy>("Fight or Flight", "FoF", uiPriority: 170)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Fight or Flight normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Fight or Flight", 60, 20, ActionTargets.Self, 2)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Fight or Flight", 0, 0, ActionTargets.None, 2)
-            .AddAssociatedActions(PLD.AID.FightOrFlight);
+            .AddAssociatedActions(AID.FightOrFlight);
 
         //Requiescat Strategy: Control the use of Requiescat ability
         res.Define(Track.Requiescat).As<OffensiveStrategy>("Requiescat", "Req", uiPriority: 170)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Requiescat normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Requiescat / Imperator", 60, 20, ActionTargets.Self, 68)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Requiescat / Imperator", 0, 0, ActionTargets.None, 68)
-            .AddAssociatedActions(PLD.AID.Requiescat, PLD.AID.Imperator);
+            .AddAssociatedActions(AID.Requiescat, AID.Imperator);
 
         //Spirits Within Strategy: Manage usage of Spirits Within ability
         res.Define(Track.SpiritsWithin).As<OffensiveStrategy>("Spirits Within", "S.Within", uiPriority: 150)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Spirits Within normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Spirits Within / Expiacion", 30, 0, ActionTargets.Hostile, 30)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Spirits Within / Expiacion", 0, 0, ActionTargets.None, 30)
-            .AddAssociatedActions(PLD.AID.SpiritsWithin, PLD.AID.Expiacion);
+            .AddAssociatedActions(AID.SpiritsWithin, AID.Expiacion);
 
         //Circle of Scorn Strategy: Control the use of Circle of Scorn
         res.Define(Track.CircleOfScorn).As<OffensiveStrategy>("Circle of Scorn Strategy", "Circle of Scorn", uiPriority: 150)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Circle of Scorn normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Circle of Scorn ASAP", 60, 15, ActionTargets.Hostile, 50)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Circle of Scorn", 0, 0, ActionTargets.None, 50)
-            .AddAssociatedActions(PLD.AID.CircleOfScorn);
+            .AddAssociatedActions(AID.CircleOfScorn);
 
         //Goring Blade Strategy: Manage the Goring Blade action
         res.Define(Track.GoringBlade).As<OffensiveStrategy>("Goring Blade Strategy", "Sonic Break", uiPriority: 150)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Goring Blade normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Goring Blade ASAP", 0, 30, ActionTargets.Hostile, 54)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Goring Blade", 0, 0, ActionTargets.None, 54)
-            .AddAssociatedActions(PLD.AID.GoringBlade);
+            .AddAssociatedActions(AID.GoringBlade);
 
         //Holy Spirit Strategy: Control usage of Holy Spirit ability
         res.Define(Track.HolySpirit).As<OffensiveStrategy>("Holy Spirit Strategy", "Holy Spirit", uiPriority: 140)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Holy Spirit normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Holy Spirit ASAP", 0, 0, ActionTargets.Hostile, 30)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Holy Spirit", 0, 0, ActionTargets.None, 30)
-            .AddAssociatedActions(PLD.AID.HolySpirit);
+            .AddAssociatedActions(AID.HolySpirit);
 
         //Holy Circle Strategy: Manage usage of Holy Circle ability
         res.Define(Track.HolyCircle).As<OffensiveStrategy>("Holy Circle Strategy", "Holy Circle", uiPriority: 140)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Holy Circle normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Holy Circle ASAP", 0, 0, ActionTargets.Hostile, 72)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Holy Circle", 0, 0, ActionTargets.None, 72)
-            .AddAssociatedActions(PLD.AID.HolyCircle);
+            .AddAssociatedActions(AID.HolyCircle);
 
         //Blade of Honor Strategy: Manage usage of Blade of Honor ability
         res.Define(Track.BladeOfHonor).As<OffensiveStrategy>("Blade of Honor Strategy", "Blade of Honor", uiPriority: 150)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Blade of Honor normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Blade of Honor ASAP", 0, 0, ActionTargets.Hostile, 100)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Blade of Honor", 0, 0, ActionTargets.None, 100)
-            .AddAssociatedActions(PLD.AID.BladeOfHonor);
+            .AddAssociatedActions(AID.BladeOfHonor);
 
         return res;
 
@@ -297,20 +299,20 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     public bool isDivineMightExpiring; //Indicates if the Divine Might buff is nearing expiration
     public bool isAtonementExpiring; //Indicates if any Atonement buffs are about to expire
 
-    public PLD.AID NextGCD; //The next action to be executed during the global cooldown (for cartridge management)
+    public AID NextGCD; //The next action to be executed during the global cooldown (for cartridge management)
     private GCDPriority NextGCDPrio; //Priority of the next global cooldown action for decision-making on cooldowns
 
     //Check if the desired ability is unlocked
-    private bool Unlocked(PLD.AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
+    private bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
 
     //Get remaining cooldown time for the specified action
-    private float CD(PLD.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
+    private float CD(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
 
     //Check if we can fit an additional GCD within the provided deadline
     private bool CanFitGCD(float deadline, int extraGCDs = 0) => GCD + GCDLength * extraGCDs < deadline;
 
     //Get the last action used in the combo sequence
-    private PLD.AID ComboLastMove => (PLD.AID)World.Client.ComboState.Action;
+    private AID ComboLastMove => (AID)World.Client.ComboState.Action;
 
     //Check if the target is within melee range (3 yalms)
     private bool In3y(Actor? target) => Player.DistanceToHitbox(target) <= 3;
@@ -319,7 +321,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     private bool In5y(Actor? target) => Player.DistanceToHitbox(target) <= 4.75;
 
     //Check if the desired action is ready (cooldown less than 0.6 seconds)
-    private bool ActionReady(PLD.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining < 0.6f;
+    private bool ActionReady(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining < 0.6f;
 
     //Check if this is the first GCD in combat
     private bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f;
@@ -344,24 +346,24 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         BladeComboStep = gauge.ConfiteorComboStep; //Get the current step in the Confiteor/Blades combo
 
         //Buff and cooldown management
-        fofCD = CD(PLD.AID.FightOrFlight); //Remaining cooldown for the Fight or Flight ability
-        fofLeft = SelfStatusLeft(PLD.SID.FightOrFlight); //Remaining duration of the Fight or Flight buff
-        reqCD = CD(PLD.AID.Requiescat); //Remaining cooldown for the Requiescat ability
+        fofCD = CD(AID.FightOrFlight); //Remaining cooldown for the Fight or Flight ability
+        fofLeft = SelfStatusLeft(SID.FightOrFlight); //Remaining duration of the Fight or Flight buff
+        reqCD = CD(AID.Requiescat); //Remaining cooldown for the Requiescat ability
         playerMP = Player.HPMP.CurMP; //Current mana points (MP) of the player
 
         //Buff status checks
         hasFoF = fofCD is >= 40 and <= 60; //Check if the Fight or Flight buff is active (within cooldown range)
-        hasReq = HasEffect(PLD.AID.Requiescat); //Check if the Requiescat buff is active
-        hasMight = HasEffect(PLD.SID.DivineMight); //Check if the Divine Might buff is active
+        hasReq = HasEffect(AID.Requiescat); //Check if the Requiescat buff is active
+        hasMight = HasEffect(SID.DivineMight); //Check if the Divine Might buff is active
         hasMPforMight = playerMP >= 1000; //Check if there is enough MP for Holy Spirit while using Divine Might
         hasMPforReq = playerMP >= 1000 * 3.6; //Check if there is enough MP for Holy Spirit under the Requiescat buff
 
         //Phase and condition monitoring
-        isDivineMightExpiring = SelfStatusLeft(PLD.SID.DivineMight) < 6; //Check if the Divine Might buff is about to expire
+        isDivineMightExpiring = SelfStatusLeft(SID.DivineMight) < 6; //Check if the Divine Might buff is about to expire
         isAtonementExpiring =
-          HasEffect(PLD.SID.AtonementReady) && SelfStatusLeft(PLD.SID.AtonementReady) < 6 ||
-          HasEffect(PLD.SID.SupplicationReady) && SelfStatusLeft(PLD.SID.SupplicationReady) < 6 ||
-          HasEffect(PLD.SID.SepulchreReady) && SelfStatusLeft(PLD.SID.SepulchreReady) < 6; //Check if any Atonement buffs are close to expiring
+          HasEffect(SID.AtonementReady) && SelfStatusLeft(SID.AtonementReady) < 6 ||
+          HasEffect(SID.SupplicationReady) && SelfStatusLeft(SID.SupplicationReady) < 6 ||
+          HasEffect(SID.SepulchreReady) && SelfStatusLeft(SID.SepulchreReady) < 6; //Check if any Atonement buffs are close to expiring
 
         GCDLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level); //Calculate GCD based on skill speed and haste
 
@@ -372,7 +374,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget); //Estimate remaining and incoming raid buff durations
 
         //Next global cooldown action
-        NextGCD = PLD.AID.None; //Initialize next action as none
+        NextGCD = AID.None; //Initialize next action as none
         NextGCDPrio = GCDPriority.None; //Set next GCD priority to none
 
         //Define the AoE strategy and determine the number of targets hit
@@ -399,104 +401,104 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         };
 
         //Check GCD (Global Cooldown) conditions for various abilities
-        var canFoF = Unlocked(PLD.AID.FightOrFlight) && ActionReady(PLD.AID.FightOrFlight); //Fight or Flight ability
-        var canReq = Unlocked(PLD.AID.Requiescat) && ActionReady(PLD.AID.Requiescat); //Requiescat ability
-        var canScorn = Unlocked(PLD.AID.CircleOfScorn) && ActionReady(PLD.AID.CircleOfScorn); //Circle of Scorn ability
-        var canSpirit = Unlocked(PLD.AID.SpiritsWithin) && ActionReady(PLD.AID.SpiritsWithin); //Spirits Within ability
-        var canGB = Unlocked(PLD.AID.GoringBlade) && HasEffect(PLD.SID.GoringBladeReady); //Goring Blade ability readiness
-        var canHS = Unlocked(PLD.AID.HolySpirit); //Holy Spirit ability
-        var canHC = Unlocked(PLD.AID.HolyCircle); //Holy Circle ability
-        var canAtone = Unlocked(PLD.AID.Atonement) && HasEffect(PLD.SID.AtonementReady); //Atonement ability readiness
-        var canDash = Unlocked(PLD.AID.Intervene) && CD(PLD.AID.Intervene) <= 30; //Intervene ability with cooldown check
-        var canConfiteor = Unlocked(PLD.AID.Confiteor) && HasEffect(PLD.SID.ConfiteorReady) && BladeComboStep is 0; //Confiteor ability readiness and combo step check
-        var canBlade = Unlocked(PLD.AID.BladeOfValor) && BladeComboStep is not 0; //Blade abilities, only if combo step is not zero
-        var canHonor = Unlocked(PLD.AID.BladeOfHonor) && HasEffect(PLD.SID.BladeOfHonorReady); //Blade of Honor ability readiness
+        var canFoF = Unlocked(AID.FightOrFlight) && ActionReady(AID.FightOrFlight); //Fight or Flight ability
+        var canReq = Unlocked(AID.Requiescat) && ActionReady(AID.Requiescat); //Requiescat ability
+        var canScorn = Unlocked(AID.CircleOfScorn) && ActionReady(AID.CircleOfScorn); //Circle of Scorn ability
+        var canSpirit = Unlocked(AID.SpiritsWithin) && ActionReady(AID.SpiritsWithin); //Spirits Within ability
+        var canGB = Unlocked(AID.GoringBlade) && HasEffect(SID.GoringBladeReady); //Goring Blade ability readiness
+        var canHS = Unlocked(AID.HolySpirit); //Holy Spirit ability
+        var canHC = Unlocked(AID.HolyCircle); //Holy Circle ability
+        var canAtone = Unlocked(AID.Atonement) && HasEffect(SID.AtonementReady); //Atonement ability readiness
+        var canDash = Unlocked(AID.Intervene) && CD(AID.Intervene) <= 30; //Intervene ability with cooldown check
+        var canConfiteor = Unlocked(AID.Confiteor) && HasEffect(SID.ConfiteorReady) && BladeComboStep is 0; //Confiteor ability readiness and combo step check
+        var canBlade = Unlocked(AID.BladeOfValor) && BladeComboStep is not 0; //Blade abilities, only if combo step is not zero
+        var canHonor = Unlocked(AID.BladeOfHonor) && HasEffect(SID.BladeOfHonorReady); //Blade of Honor ability readiness
 
         //Determine and queue the next combo action based on AoE strategy
         var (comboAction, comboPrio) = ComboActionPriority(AOEStrategy, AoETargets, burstStrategy, burst.Value.ExpireIn);
-        QueueGCD(comboAction, comboAction is PLD.AID.TotalEclipse or PLD.AID.Prominence ? Player : primaryTarget,
+        QueueGCD(comboAction, comboAction is AID.TotalEclipse or AID.Prominence ? Player : primaryTarget,
             AOEStrategy is AOEStrategy.ForceST or AOEStrategy.ForceAoE ? GCDPriority.ForcedGCD : comboPrio);
 
         //Execute Fight or Flight if conditions are met
         var fofStrat = strategy.Option(Track.FightOrFlight).As<OffensiveStrategy>();
         if (!hold && canFoF && ShouldUseFightOrFlight(fofStrat, primaryTarget))
-            QueueOGCD(PLD.AID.FightOrFlight, Player, fofStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.FightOrFlight);
+            QueueOGCD(AID.FightOrFlight, Player, fofStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.FightOrFlight);
 
         //Execute Requiescat if conditions are met
         var reqStrat = strategy.Option(Track.Requiescat).As<OffensiveStrategy>();
         if (!hold && canReq && ShouldUseRequiescat(reqStrat, primaryTarget))
-            QueueOGCD(Unlocked(PLD.AID.Imperator) ? PLD.AID.Imperator : PLD.AID.Requiescat, primaryTarget, reqStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Requiescat);
+            QueueOGCD(Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat, primaryTarget, reqStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Requiescat);
 
         //Execute Confiteor if conditions are met
         var bladeStrat = strategy.Option(Track.BladeCombo).As<BladeComboStrategy>();
         if (canConfiteor && BladeComboStep is 0 && ShouldUseBladeCombo(bladeStrat, primaryTarget))
-            QueueGCD(PLD.AID.Confiteor, primaryTarget, bladeStrat is BladeComboStrategy.ForceConfiteor ? GCDPriority.ForcedGCD : GCDPriority.Confiteor);
+            QueueGCD(AID.Confiteor, primaryTarget, bladeStrat is BladeComboStrategy.ForceConfiteor ? GCDPriority.ForcedGCD : GCDPriority.Confiteor);
 
         //Execute Circle of Scorn if conditions are met
         var scornStrat = strategy.Option(Track.CircleOfScorn).As<OffensiveStrategy>();
         if (!hold && canScorn && ShouldUseCircleOfScorn(scornStrat, primaryTarget))
-            QueueOGCD(PLD.AID.CircleOfScorn, primaryTarget, scornStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.CircleOfScorn);
+            QueueOGCD(AID.CircleOfScorn, primaryTarget, scornStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.CircleOfScorn);
 
         //Execute Spirits Within if conditions are met
         var spiritsStrat = strategy.Option(Track.SpiritsWithin).As<OffensiveStrategy>();
         if (!hold && canSpirit && ShouldUseSpiritsWithin(spiritsStrat, primaryTarget))
-            QueueOGCD(Unlocked(PLD.AID.Expiacion) ? PLD.AID.Expiacion : PLD.AID.SpiritsWithin, primaryTarget, spiritsStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.SpiritsWithin);
+            QueueOGCD(Unlocked(AID.Expiacion) ? AID.Expiacion : AID.SpiritsWithin, primaryTarget, spiritsStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.SpiritsWithin);
 
         //Execute Blade Combo actions based on the current combo step
         if (canBlade)
         {
             if (BladeComboStep is 1)
-                QueueGCD(PLD.AID.BladeOfFaith, primaryTarget, bladeStrat is BladeComboStrategy.ForceFaith ? GCDPriority.ForcedGCD : GCDPriority.Faith);
+                QueueGCD(AID.BladeOfFaith, primaryTarget, bladeStrat is BladeComboStrategy.ForceFaith ? GCDPriority.ForcedGCD : GCDPriority.Faith);
             if (BladeComboStep is 2)
-                QueueGCD(PLD.AID.BladeOfTruth, primaryTarget, bladeStrat is BladeComboStrategy.ForceTruth ? GCDPriority.ForcedGCD : GCDPriority.Truth);
+                QueueGCD(AID.BladeOfTruth, primaryTarget, bladeStrat is BladeComboStrategy.ForceTruth ? GCDPriority.ForcedGCD : GCDPriority.Truth);
             if (BladeComboStep is 3)
-                QueueGCD(PLD.AID.BladeOfValor, primaryTarget, bladeStrat is BladeComboStrategy.ForceValor ? GCDPriority.ForcedGCD : GCDPriority.Valor);
+                QueueGCD(AID.BladeOfValor, primaryTarget, bladeStrat is BladeComboStrategy.ForceValor ? GCDPriority.ForcedGCD : GCDPriority.Valor);
         }
 
         //Execute Intervene if conditions are met
         var dashStrat = strategy.Option(Track.Dash).As<DashStrategy>();
         if (canDash && ShouldUseDash(dashStrat, primaryTarget))
-            QueueOGCD(PLD.AID.Intervene, primaryTarget, dashStrat is DashStrategy.Force or DashStrategy.GapClose ? OGCDPriority.ForcedOGCD : OGCDPriority.Intervene);
+            QueueOGCD(AID.Intervene, primaryTarget, dashStrat is DashStrategy.Force or DashStrategy.GapClose ? OGCDPriority.ForcedOGCD : OGCDPriority.Intervene);
 
         //Execute Goring Blade if conditions are met
         var gbStrat = strategy.Option(Track.GoringBlade).As<OffensiveStrategy>();
         if (!hold && canGB && ShouldUseGoringBlade(gbStrat, primaryTarget))
-            QueueGCD(PLD.AID.GoringBlade, primaryTarget, gbStrat is OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.GoringBlade);
+            QueueGCD(AID.GoringBlade, primaryTarget, gbStrat is OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.GoringBlade);
 
         //Execute Blade of Honor if conditions are met
         var bohStrat = strategy.Option(Track.GoringBlade).As<OffensiveStrategy>();
         if (!hold && canHonor && ShouldUseGoringBlade(bohStrat, primaryTarget))
-            QueueOGCD(PLD.AID.BladeOfHonor, primaryTarget, bohStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.BladeOfHonor);
+            QueueOGCD(AID.BladeOfHonor, primaryTarget, bohStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.BladeOfHonor);
 
         //Execute Atonement if conditions are met
         var atoneStrat = strategy.Option(Track.Atonement).As<AtonementStrategy>();
         if (!hold && canAtone && ShouldUseAtonement(atoneStrat, primaryTarget))
-            QueueGCD(PLD.AID.Atonement, primaryTarget, atoneStrat is AtonementStrategy.ForceAtonement ? GCDPriority.ForcedGCD : GCDPriority.Atonement1);
+            QueueGCD(AID.Atonement, primaryTarget, atoneStrat is AtonementStrategy.ForceAtonement ? GCDPriority.ForcedGCD : GCDPriority.Atonement1);
 
         //Execute Atonement Combo actions based on readiness
-        if (HasEffect(PLD.SID.SupplicationReady))
-            QueueGCD(PLD.AID.Supplication, primaryTarget, atoneStrat is AtonementStrategy.ForceSupplication ? GCDPriority.ForcedGCD : GCDPriority.Atonement2);
-        if (HasEffect(PLD.SID.SepulchreReady))
-            QueueGCD(PLD.AID.Sepulchre, primaryTarget, atoneStrat is AtonementStrategy.ForceSepulchre ? GCDPriority.ForcedGCD : GCDPriority.Atonement3);
+        if (HasEffect(SID.SupplicationReady))
+            QueueGCD(AID.Supplication, primaryTarget, atoneStrat is AtonementStrategy.ForceSupplication ? GCDPriority.ForcedGCD : GCDPriority.Atonement2);
+        if (HasEffect(SID.SepulchreReady))
+            QueueGCD(AID.Sepulchre, primaryTarget, atoneStrat is AtonementStrategy.ForceSepulchre ? GCDPriority.ForcedGCD : GCDPriority.Atonement3);
 
         //Execute Holy Spirit if conditions are met
         var hsStrat = strategy.Option(Track.HolySpirit).As<OffensiveStrategy>();
         var hcStrat = strategy.Option(Track.HolyCircle).As<OffensiveStrategy>();
         if (canHS && ShouldUseHolySpirit(hsStrat, primaryTarget))
-            QueueGCD(PLD.AID.HolySpirit, primaryTarget, hsStrat is OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.HolySpirit);
+            QueueGCD(AID.HolySpirit, primaryTarget, hsStrat is OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.HolySpirit);
 
         //Execute Holy Circle if conditions are met
         if (canHC && ShouldUseHolyCircle(hcStrat, primaryTarget))
-            QueueGCD(PLD.AID.HolyCircle, primaryTarget, hcStrat is OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.HolyCircle);
+            QueueGCD(AID.HolyCircle, primaryTarget, hcStrat is OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.HolyCircle);
         if (!canHC && canHS)
-            QueueGCD(PLD.AID.HolySpirit, primaryTarget, hsStrat is OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.HolySpirit);
+            QueueGCD(AID.HolySpirit, primaryTarget, hsStrat is OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.HolySpirit);
 
         //Execute ranged skills based on strategy
         var rangedStrat = strategy.Option(Track.Ranged).As<RangedStrategy>();
         if (ShouldUseRangedLob(primaryTarget, rangedStrat))
-            QueueGCD(PLD.AID.ShieldLob, primaryTarget, rangedStrat is RangedStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.NormalGCD);
+            QueueGCD(AID.ShieldLob, primaryTarget, rangedStrat is RangedStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.NormalGCD);
         if (ShouldUseRangedCast(primaryTarget, rangedStrat))
-            QueueGCD(PLD.AID.HolySpirit, primaryTarget, rangedStrat is RangedStrategy.ForceCast ? GCDPriority.ForcedGCD : GCDPriority.NormalGCD);
+            QueueGCD(AID.HolySpirit, primaryTarget, rangedStrat is RangedStrategy.ForceCast ? GCDPriority.ForcedGCD : GCDPriority.NormalGCD);
 
         //Execute potion if conditions are met
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
@@ -505,7 +507,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     }
 
     //Method to queue a GCD (Global Cooldown) action
-    private void QueueGCD(PLD.AID aid, Actor? target, GCDPriority prio)
+    private void QueueGCD(AID aid, Actor? target, GCDPriority prio)
     {
         //Check if the priority for this action is valid
         if (prio != GCDPriority.None)
@@ -523,7 +525,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     }
 
     //Method to queue an OGCD (Off Global Cooldown) action
-    private void QueueOGCD(PLD.AID aid, Actor? target, OGCDPriority prio, float basePrio = ActionQueue.Priority.Medium)
+    private void QueueOGCD(AID aid, Actor? target, OGCDPriority prio, float basePrio = ActionQueue.Priority.Medium)
     {
         //Check if the priority for this action is valid
         if (prio != OGCDPriority.None)
@@ -534,28 +536,28 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     }
 
     //Method to determine the next single-target action based on the last action used
-    private PLD.AID NextComboSingleTarget() => ComboLastMove switch
+    private AID NextComboSingleTarget() => ComboLastMove switch
     {
-        PLD.AID.RiotBlade => Unlocked(PLD.AID.RoyalAuthority) ? PLD.AID.RoyalAuthority : PLD.AID.RageOfHalone, //If Riot Blade was last used, choose Royal Authority if available, otherwise Rage of Halone
-        PLD.AID.FastBlade => PLD.AID.RiotBlade, //If Fast Blade was last used, go back to Riot Blade
-        _ => PLD.AID.FastBlade, //Default to Fast Blade if no recognized last action
+        AID.RiotBlade => Unlocked(AID.RoyalAuthority) ? AID.RoyalAuthority : AID.RageOfHalone, //If Riot Blade was last used, choose Royal Authority if available, otherwise Rage of Halone
+        AID.FastBlade => AID.RiotBlade, //If Fast Blade was last used, go back to Riot Blade
+        _ => AID.FastBlade, //Default to Fast Blade if no recognized last action
     };
 
     //Method to determine the next AoE action based on the last action used
-    private PLD.AID NextComboAoE() => ComboLastMove switch
+    private AID NextComboAoE() => ComboLastMove switch
     {
-        PLD.AID.TotalEclipse => PLD.AID.Prominence, //If Total Eclipse was last used, use Prominence next
-        _ => PLD.AID.TotalEclipse, //Default to Total Eclipse if no recognized last action
+        AID.TotalEclipse => AID.Prominence, //If Total Eclipse was last used, use Prominence next
+        _ => AID.TotalEclipse, //Default to Total Eclipse if no recognized last action
     };
 
     //Method to determine the next combo action and its priority based on AoE strategy, target count, and burst strategy
-    private (PLD.AID, GCDPriority) ComboActionPriority(AOEStrategy aoeStrategy, int AoETargets, BurstStrategy burstStrategy, float burstStrategyExpire)
+    private (AID, GCDPriority) ComboActionPriority(AOEStrategy aoeStrategy, int AoETargets, BurstStrategy burstStrategy, float burstStrategyExpire)
     {
         //Determine how many combo steps are remaining based on the last action
         var comboStepsRemaining = ComboLastMove switch
         {
-            PLD.AID.FastBlade => Unlocked(PLD.AID.RiotBlade) ? 2 : Unlocked(PLD.AID.RoyalAuthority) ? 1 : 0, //Fast Blade allows up to 2 or 1 additional combo actions based on availability
-            PLD.AID.TotalEclipse => Unlocked(PLD.AID.Prominence) ? 1 : 0, //Total Eclipse allows 1 more combo action if Prominence is unlocked
+            AID.FastBlade => Unlocked(AID.RiotBlade) ? 2 : Unlocked(AID.RoyalAuthority) ? 1 : 0, //Fast Blade allows up to 2 or 1 additional combo actions based on availability
+            AID.TotalEclipse => Unlocked(AID.Prominence) ? 1 : 0, //Total Eclipse allows 1 more combo action if Prominence is unlocked
             _ => 0 //Default to no combo steps if the last action doesn't match
         };
 
@@ -563,10 +565,10 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         if (comboStepsRemaining > 0 && !CanFitGCD(World.Client.ComboState.Remaining))
             comboStepsRemaining = 0; //Reset combo steps if not enough time to complete them
 
-        var doingAOECombo = ComboLastMove == PLD.AID.TotalEclipse; //Track if currently performing an AoE combo
+        var doingAOECombo = ComboLastMove == AID.TotalEclipse; //Track if currently performing an AoE combo
 
         //Determine if an AoE action is desirable based on target count and strategy
-        var wantAOEAction = Unlocked(PLD.AID.TotalEclipse) && aoeStrategy switch
+        var wantAOEAction = Unlocked(AID.TotalEclipse) && aoeStrategy switch
         {
             AOEStrategy.UseST => false, //Explicitly using single-target strategy, so AoE action is not desired
             AOEStrategy.ForceST => false, //Forcing single-target, so AoE action is not desired
@@ -618,7 +620,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseFightOrFlight(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            Player.InCombat && target != null && ActionReady(PLD.AID.FightOrFlight) && CombatTimer >= GCDLength * 2 + 0.5f, //Use if in combat, target is valid, action is ready
+            Player.InCombat && target != null && ActionReady(AID.FightOrFlight) && CombatTimer >= GCDLength * 2 + 0.5f, //Use if in combat, target is valid, action is ready
         OffensiveStrategy.Force => true, //Force
         OffensiveStrategy.Delay => false, //Delay usage
         _ => false
@@ -628,7 +630,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseRequiescat(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            Player.InCombat && target != null && ActionReady(PLD.AID.Requiescat) && hasFoF, //Use if in combat, target is valid, action is ready, and has Fight or Flight
+            Player.InCombat && target != null && ActionReady(AID.Requiescat) && hasFoF, //Use if in combat, target is valid, action is ready, and has Fight or Flight
         OffensiveStrategy.Force => true, //Force
         OffensiveStrategy.Delay => false, //Delay usage
         _ => false
@@ -639,7 +641,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     {
         OffensiveStrategy.Automatic =>
             Player.InCombat && In3y(target) && fofCD is < 57.55f and > 17 && //Use if in combat, target is in range, and cooldown is within limits
-            ActionReady(Unlocked(PLD.AID.Expiacion) ? PLD.AID.Expiacion : PLD.AID.SpiritsWithin), //Action is ready, prioritizing Expiacion if unlocked
+            ActionReady(Unlocked(AID.Expiacion) ? AID.Expiacion : AID.SpiritsWithin), //Action is ready, prioritizing Expiacion if unlocked
         OffensiveStrategy.Force => true, //Force
         OffensiveStrategy.Delay => false, //Delay usage
         _ => false
@@ -649,7 +651,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseCircleOfScorn(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            Player.InCombat && ActionReady(PLD.AID.CircleOfScorn) && In5y(target) && fofCD is < 57.55f and > 17, //Use if in combat, action is ready, target is within 5y, and cooldown is within limits
+            Player.InCombat && ActionReady(AID.CircleOfScorn) && In5y(target) && fofCD is < 57.55f and > 17, //Use if in combat, action is ready, target is within 5y, and cooldown is within limits
         OffensiveStrategy.Force => true, //Force
         OffensiveStrategy.Delay => false, //Delay usage
         _ => false
@@ -669,8 +671,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseBladeCombo(BladeComboStrategy strategy, Actor? target) => strategy switch
     {
         BladeComboStrategy.Automatic =>
-            Player.InCombat && HasEffect(PLD.SID.ConfiteorReady) && hasFoF && BladeComboStep is 0, //Use if in combat, Confiteor is ready, has Fight or Flight, and it's the first step
-        BladeComboStrategy.ForceConfiteor => HasEffect(PLD.SID.ConfiteorReady) && BladeComboStep is 0, //Force use of Confiteor if ready and it's the first step
+            Player.InCombat && HasEffect(SID.ConfiteorReady) && hasFoF && BladeComboStep is 0, //Use if in combat, Confiteor is ready, has Fight or Flight, and it's the first step
+        BladeComboStrategy.ForceConfiteor => HasEffect(SID.ConfiteorReady) && BladeComboStep is 0, //Force use of Confiteor if ready and it's the first step
         BladeComboStrategy.ForceFaith => BladeComboStep is 1, //Force use of Faith if it's the second step
         BladeComboStrategy.ForceTruth => BladeComboStep is 2, //Force use of Truth if it's the third step
         BladeComboStrategy.ForceValor => BladeComboStep is 3, //Force use of Valor if it's the fourth step
@@ -682,10 +684,10 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseAtonement(AtonementStrategy strategy, Actor? target) => strategy switch
     {
         AtonementStrategy.Automatic =>
-            Player.InCombat && In3y(target) && HasEffect(PLD.SID.AtonementReady), //Use if in combat, target is in range, and Atonement is ready
-        AtonementStrategy.ForceAtonement => HasEffect(PLD.SID.AtonementReady), //Force use of Atonement if ready
-        AtonementStrategy.ForceSupplication => HasEffect(PLD.SID.SupplicationReady), //Force use of Supplication if ready
-        AtonementStrategy.ForceSepulchre => HasEffect(PLD.SID.SepulchreReady), //Force use of Sepulchre if ready
+            Player.InCombat && In3y(target) && HasEffect(SID.AtonementReady), //Use if in combat, target is in range, and Atonement is ready
+        AtonementStrategy.ForceAtonement => HasEffect(SID.AtonementReady), //Force use of Atonement if ready
+        AtonementStrategy.ForceSupplication => HasEffect(SID.SupplicationReady), //Force use of Supplication if ready
+        AtonementStrategy.ForceSepulchre => HasEffect(SID.SepulchreReady), //Force use of Sepulchre if ready
         AtonementStrategy.Delay => false, //Delay usage
         _ => false
     };
@@ -718,7 +720,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         DashStrategy.Automatic =>
             Player.InCombat && target != null && hasFoF, //Use in Fight or Flight
         DashStrategy.Force => true, //Force
-        DashStrategy.Conserve1 => CD(PLD.AID.Intervene) > 30, //Use if cooldown is greater than 30 seconds
+        DashStrategy.Conserve1 => CD(AID.Intervene) > 30, //Use if cooldown is greater than 30 seconds
         DashStrategy.GapClose => !In3y(target), //Use if target is out of range
         _ => false
     };
@@ -729,8 +731,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     {
         //Use potion before FoF/Req in opener
         //Use for 6m window
-        return ActionReady(PLD.AID.FightOrFlight) &&
-                (ActionReady(PLD.AID.Requiescat) || //Opener
+        return ActionReady(AID.FightOrFlight) &&
+                (ActionReady(AID.Requiescat) || //Opener
                 reqCD < 15); //Use if Requiescat is on cooldown for less than 15 seconds
     }
 

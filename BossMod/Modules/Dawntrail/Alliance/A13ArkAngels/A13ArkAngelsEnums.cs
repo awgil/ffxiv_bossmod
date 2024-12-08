@@ -43,7 +43,8 @@ public enum AID : uint
     TachiKasha = 41083, // Helper->self, 12.0s cast, range 4+16 circle, out
     ConcertedDissolution = 41084, // Helper->self, 6.0s cast, range 40 ?-degree cone
     LightsChain = 41085, // Helper->self, 8.0s cast, range ?-40 donut
-    Meteor = 41098, // BossTT->self, 11.0s cast, single-target, interruptible ???
+    Meteor = 41098, // BossTT->self, 11.0s cast, single-target, interruptible (heavy raidwide with vuln)
+    MeteorAOE = 41099, // Helper->location, no cast, range 100 circle, heavy raidwide with vuln
     HavocSpiral = 41067, // BossMR->self, 5.0+0.5s cast, single-target, visual (rotating cones)
     HavocSpiralFirst = 41070, // Helper->self, 5.5s cast, range 30 30-degree cone
     HavocSpiralRest = 41071, // Helper->self, no cast, range 30 30-degree cone
@@ -77,6 +78,7 @@ public enum AID : uint
     MightyStrikesBoss = 41364, // BossHM->self, 5.0s cast, single-target, gain mighty strikes buff
     CriticalReaverRaidwide = 41365, // BossHM->self, no cast, range 100 circle, raidwide
     CriticalReaverEnrage = 41275, // BossHM->self, 10.0s cast, range 100 circle, interruptible enrage
+    Raiton = 41109, // BossHM->self, 5.0s cast, range 100 circle, raidwide
 }
 
 public enum SID : uint
