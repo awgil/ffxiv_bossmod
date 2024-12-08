@@ -16,24 +16,33 @@ class A13ArkAngelsStates : StateMachineBuilder
         Cloudsplitter(id + 0x10000, 4.2f);
         MeikyoShisui(id + 0x20000, 4.6f);
         Meteor(id + 0x30000, 2.1f);
-        HavocSpiral(id + 0x40000, 3.1f);
+        HavocSpiral(id + 0x40000, 3.2f);
         Dragonfall(id + 0x50000, 5.6f);
         Guillotine(id + 0x60000, 2.4f);
 
         Intermission(id + 0x100000, 10.2f);
         UtsusemiDominionSlash(id + 0x110000, 3.2f);
-        Holy(id + 0x120000, 4.0f);
-        MijinGakure(id + 0x130000, 8.1f);
+        Holy(id + 0x120000, 4.2f);
+        MijinGakure(id + 0x130000, 7.9f);
         Rampage(id + 0x140000, 5.8f);
         Guillotine(id + 0x150000, 6.0f);
-        MeikyoShisuiCrossReaverMeteor(id + 0x160000, 4.3f);
-        ArroganceIncarnate(id + 0x170000, 4.3f);
+        MeikyoShisuiCrossReaverMeteor(id + 0x160000, 4.4f);
+        ArroganceIncarnate(id + 0x170000, 4.2f);
         Cloudsplitter(id + 0x180000, 1.0f);
-        Rampage(id + 0x190000, 13.8f);
+        Rampage(id + 0x190000, 12.7f);
         Guillotine(id + 0x1A0000, 0.6f);
-        CriticalReaver(id + 0x1B0000, 6.9f);
+        CriticalReaver(id + 0x1B0000, 7.0f);
 
-        // TODO: rest is random? seen dominion slash and havok spiral...
+        DominionSlashHavokSpiral(id + 0x200000, 9.2f);
+        Meteor(id + 0x210000, 7.2f);
+        MeikyoShisuiCrossReaver(id + 0x220000, 5.1f);
+        Cloudsplitter(id + 0x230000, 3.0f);
+        Raiton(id + 0x240000, 8.2f);
+        DominionSlashCrossReaver(id + 0x250000, 2.9f);
+        Dragonfall(id + 0x260000, 1.3f);
+        ArroganceIncarnate(id + 0x270000, 15.2f);
+        Rampage(id + 0x280000, 15.1f);
+
         SimpleState(id + 0xFF0000, 10000, "???")
             .ActivateOnEnter<Cloudsplitter>()
             .ActivateOnEnter<TachiYukikaze>()
@@ -67,18 +76,18 @@ class A13ArkAngelsStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Tankbuster);
     }
 
-    private void MeikyoShisui(uint id, float delay)
+    private void MeikyoShisuiStart(uint id, float delay)
     {
         ActorCast(id, _module.BossGK, AID.MeikyoShisui, delay, 4, true);
-        ComponentCondition<TachiYukikaze>(id + 0x10, 1, comp => comp.Casters.Count > 0)
+        ComponentCondition<TachiYukikaze>(id + 0x10, 1.1f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<TachiYukikaze>()
             .ActivateOnEnter<TachiGekko>()
             .ActivateOnEnter<TachiKasha>();
-        ComponentCondition<TachiYukikaze>(id + 0x11, 3, comp => comp.NumCasts > 0, "Criss-cross 1");
+        ComponentCondition<TachiYukikaze>(id + 0x11, 3, comp => comp.Casters.Count == 0, "Criss-cross 1");
         ComponentCondition<TachiYukikaze>(id + 0x12, 1.6f, comp => comp.Casters.Count > 0);
         ComponentCondition<TachiGekko>(id + 0x13, 2.4f, comp => comp.NumCasts > 0, "Gaze")
             .DeactivateOnExit<TachiGekko>();
-        ComponentCondition<TachiYukikaze>(id + 0x14, 0.6f, comp => comp.NumCasts > 10, "Criss-cross 2")
+        ComponentCondition<TachiYukikaze>(id + 0x14, 0.6f, comp => comp.Casters.Count == 0, "Criss-cross 2")
             .DeactivateOnExit<TachiYukikaze>();
         ComponentCondition<ConcertedDissolution>(id + 0x15, 1.5f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<ConcertedDissolution>();
@@ -86,9 +95,14 @@ class A13ArkAngelsStates : StateMachineBuilder
             .DeactivateOnExit<TachiKasha>();
         ComponentCondition<LightsChain>(id + 0x17, 0.6f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<LightsChain>();
-        ComponentCondition<ConcertedDissolution>(id + 0x18, 2.5f, comp => comp.NumCasts > 0, "Cones")
+    }
+
+    private void MeikyoShisui(uint id, float delay)
+    {
+        MeikyoShisuiStart(id, delay);
+        ComponentCondition<ConcertedDissolution>(id + 0x100, 2.5f, comp => comp.NumCasts > 0, "Cones")
             .DeactivateOnExit<ConcertedDissolution>();
-        ComponentCondition<LightsChain>(id + 0x19, 5.5f, comp => comp.NumCasts > 0, "Donut")
+        ComponentCondition<LightsChain>(id + 0x110, 5.5f, comp => comp.NumCasts > 0, "Donut")
             .DeactivateOnExit<LightsChain>();
     }
 
@@ -99,7 +113,7 @@ class A13ArkAngelsStates : StateMachineBuilder
             .DeactivateOnExit<Meteor>();
     }
 
-    private void HavocSpiral(uint id, float delay)
+    private State HavocSpiral(uint id, float delay)
     {
         ActorCastStart(id, _module.BossMR, AID.HavocSpiral, delay, true)
             .ActivateOnEnter<HavokSpiral>();
@@ -108,7 +122,7 @@ class A13ArkAngelsStates : StateMachineBuilder
         ActorCast(id + 0x10, _module.BossMR, AID.SpiralFinish, 0.6f, 11, true)
             .ActivateOnEnter<SpiralFinish>()
             .DeactivateOnExit<HavokSpiral>();
-        ComponentCondition<SpiralFinish>(id + 0x12, 0.5f, comp => comp.NumCasts > 0, "Knockback")
+        return ComponentCondition<SpiralFinish>(id + 0x12, 0.5f, comp => comp.NumCasts > 0, "Knockback")
             .DeactivateOnExit<SpiralFinish>();
     }
 
@@ -116,9 +130,9 @@ class A13ArkAngelsStates : StateMachineBuilder
     {
         ActorCast(id, _module.BossGK, AID.Dragonfall, delay, 9, true)
             .ActivateOnEnter<Dragonfall>();
-        ComponentCondition<Dragonfall>(id + 2, 0.4f, comp => comp.NumCasts > 0, "Stack 1");
-        ComponentCondition<Dragonfall>(id + 3, 2.3f, comp => comp.NumCasts > 1, "Stack 2");
-        ComponentCondition<Dragonfall>(id + 4, 2.3f, comp => comp.NumCasts > 2, "Stack 3")
+        ComponentCondition<Dragonfall>(id + 2, 0.3f, comp => comp.NumCasts > 0, "Stack 1");
+        ComponentCondition<Dragonfall>(id + 3, 2.4f, comp => comp.NumCasts > 1, "Stack 2");
+        ComponentCondition<Dragonfall>(id + 4, 2.4f, comp => comp.NumCasts > 2, "Stack 3")
             .DeactivateOnExit<Dragonfall>();
     }
 
@@ -181,40 +195,36 @@ class A13ArkAngelsStates : StateMachineBuilder
             .DeactivateOnExit<Rampage>();
     }
 
+    private void MeikyoShisuiCrossReaverStart(uint id, float delay)
+    {
+        MeikyoShisuiStart(id, delay);
+
+        ActorCastStart(id + 0x100, _module.BossHM, AID.CrossReaver, 1.9f, true);
+        ComponentCondition<ConcertedDissolution>(id + 0x101, 0.6f, comp => comp.NumCasts > 0, "Cones")
+            .DeactivateOnExit<ConcertedDissolution>();
+        ActorCastEnd(id + 0x102, _module.BossHM, 2.4f, true);
+        ComponentCondition<CrossReaver>(id + 0x103, 1, comp => comp.Casters.Count > 0)
+            .ActivateOnEnter<CrossReaver>();
+        ComponentCondition<LightsChain>(id + 0x104, 2.1f, comp => comp.NumCasts > 0, "Donut")
+            .DeactivateOnExit<LightsChain>();
+    }
+
+    private void MeikyoShisuiCrossReaver(uint id, float delay)
+    {
+        MeikyoShisuiCrossReaverStart(id, delay);
+        ComponentCondition<CrossReaver>(id + 0x200, 3.9f, comp => comp.NumCasts > 0, "Cross")
+            .DeactivateOnExit<CrossReaver>();
+    }
+
     private void MeikyoShisuiCrossReaverMeteor(uint id, float delay)
     {
-        ActorCast(id, _module.BossGK, AID.MeikyoShisui, delay, 4, true);
-        ComponentCondition<TachiYukikaze>(id + 0x10, 1, comp => comp.Casters.Count > 0)
-            .ActivateOnEnter<TachiYukikaze>()
-            .ActivateOnEnter<TachiGekko>()
-            .ActivateOnEnter<TachiKasha>();
-        ComponentCondition<TachiYukikaze>(id + 0x11, 3, comp => comp.NumCasts > 0, "Criss-cross 1");
-        ComponentCondition<TachiYukikaze>(id + 0x12, 1.6f, comp => comp.Casters.Count > 0);
-        ComponentCondition<TachiGekko>(id + 0x13, 2.4f, comp => comp.NumCasts > 0, "Gaze")
-            .DeactivateOnExit<TachiGekko>();
-        ComponentCondition<TachiYukikaze>(id + 0x14, 0.6f, comp => comp.NumCasts > 10, "Criss-cross 2")
-            .DeactivateOnExit<TachiYukikaze>();
-        ComponentCondition<ConcertedDissolution>(id + 0x15, 1.5f, comp => comp.Casters.Count > 0)
-            .ActivateOnEnter<ConcertedDissolution>();
-        ComponentCondition<TachiKasha>(id + 0x16, 2.9f, comp => comp.NumCasts > 0, "Out")
-            .DeactivateOnExit<TachiKasha>();
-        ComponentCondition<LightsChain>(id + 0x17, 0.7f, comp => comp.Casters.Count > 0)
-            .ActivateOnEnter<LightsChain>();
+        MeikyoShisuiCrossReaverStart(id, delay);
 
-        ActorCastStart(id + 0x20, _module.BossHM, AID.CrossReaver, 1.9f, true);
-        ComponentCondition<ConcertedDissolution>(id + 0x21, 0.5f, comp => comp.NumCasts > 0, "Cones")
-            .DeactivateOnExit<ConcertedDissolution>();
-        ActorCastEnd(id + 0x22, _module.BossHM, 2.5f, true);
-        ComponentCondition<CrossReaver>(id + 0x23, 1, comp => comp.Casters.Count > 0)
-            .ActivateOnEnter<CrossReaver>();
-        ComponentCondition<LightsChain>(id + 0x24, 2.1f, comp => comp.NumCasts > 0, "Donut")
-            .DeactivateOnExit<LightsChain>();
-
-        ActorCastStart(id + 0x30, _module.BossTT, AID.Meteor, 1, true);
-        ComponentCondition<CrossReaver>(id + 0x31, 2.9f, comp => comp.NumCasts > 0, "Cross")
+        ActorCastStart(id + 0x200, _module.BossTT, AID.Meteor, 1.1f, true);
+        ComponentCondition<CrossReaver>(id + 0x201, 2.8f, comp => comp.NumCasts > 0, "Cross")
             .ActivateOnEnter<Meteor>()
             .DeactivateOnExit<CrossReaver>();
-        ActorCastEnd(id + 0x32, _module.BossTT, 8.1f, true, "Interrupt", true)
+        ActorCastEnd(id + 0x202, _module.BossTT, 8.2f, true, "Interrupt", true)
             .DeactivateOnExit<Meteor>();
     }
 
@@ -244,5 +254,35 @@ class A13ArkAngelsStates : StateMachineBuilder
         ActorCast(id + 0x20, _module.BossHM, AID.CriticalReaverEnrage, 2.1f, 10, true, "Interrupt", true)
             .ActivateOnEnter<CriticalReaverEnrage>()
             .DeactivateOnExit<CriticalReaverEnrage>();
+    }
+
+    private void DominionSlashHavokSpiral(uint id, float delay)
+    {
+        ActorCast(id, _module.BossEV, AID.DominionSlash, delay, 5, true, "Raidwide")
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ComponentCondition<DominionSlash>(id + 2, 0.7f, comp => comp.AOEs.Count > 0)
+            .ActivateOnEnter<DominionSlash>();
+        HavocSpiral(id + 0x100, 2.6f)
+            .DeactivateOnExit<DominionSlash>();
+    }
+
+    private void Raiton(uint id, float delay)
+    {
+        ActorCast(id, _module.BossHM, AID.Raiton, delay, 5, true, "Raidwide")
+            .SetHint(StateMachine.StateHint.Raidwide);
+    }
+
+    private void DominionSlashCrossReaver(uint id, float delay)
+    {
+        ActorCast(id, _module.BossEV, AID.DominionSlash, delay, 5, true, "Raidwide")
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ComponentCondition<DominionSlash>(id + 2, 0.7f, comp => comp.AOEs.Count > 0)
+            .ActivateOnEnter<DominionSlash>();
+        ActorCast(id + 0x10, _module.BossHM, AID.CrossReaver, 8.8f, 3, true);
+        ComponentCondition<CrossReaver>(id + 0x20, 1, comp => comp.Casters.Count > 0)
+            .ActivateOnEnter<CrossReaver>();
+        ComponentCondition<CrossReaver>(id + 0x30, 6, comp => comp.NumCasts > 0, "Cross")
+            .DeactivateOnExit<DominionSlash>()
+            .DeactivateOnExit<CrossReaver>();
     }
 }
