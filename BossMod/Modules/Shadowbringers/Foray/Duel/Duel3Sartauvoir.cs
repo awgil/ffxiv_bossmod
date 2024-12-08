@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Shadowbringers.Foray.Duel.Duel3Sartauvoir;
+﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel3Sartauvoir;
 
 public enum OID : uint
 {
