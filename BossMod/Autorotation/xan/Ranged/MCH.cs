@@ -5,7 +5,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
-    public enum Track { Queen = SharedTrack.Count }
+    public enum Track { Queen = SharedTrack.Count, Hypercharge }
     public enum QueenStrategy
     {
         MinGauge,
@@ -26,6 +26,8 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(QueenStrategy.RaidBuffsOnly, "Buffed", "Delay summon until raid buffs, regardless of gauge")
             .AddOption(QueenStrategy.Never, "Never", "Do not automatically summon Queen at all")
             .AddAssociatedActions(AID.AutomatonQueen, AID.RookAutoturret);
+
+        def.DefineSimple(Track.Hypercharge, "Hypercharge");
 
         return def;
     }
@@ -262,7 +264,22 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool ShouldHypercharge(StrategyValues strategy)
     {
-        if (!Unlocked(AID.Hypercharge) || HyperchargedLeft == 0 && Heat < 50 || Overheated || ReassembleLeft > GCD)
+        // strategy-independent preconditions, hypercharge cannot be used at all in these cases 
+        if (!Unlocked(AID.Hypercharge) || HyperchargedLeft == 0 && Heat < 50 || Overheated)
+            return false;
+
+        switch (strategy.Simple(Track.Hypercharge))
+        {
+            case OffensiveStrategy.Force:
+                return true;
+            case OffensiveStrategy.Delay:
+                return false;
+            default:
+                break;
+        }
+
+        // don't want to use reassemble on heat blast
+        if (ReassembleLeft > GCD)
             return false;
 
         // avoid delaying wildfire

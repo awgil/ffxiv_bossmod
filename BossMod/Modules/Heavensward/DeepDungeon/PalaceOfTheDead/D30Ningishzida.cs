@@ -59,4 +59,4 @@ class D30NingishzidaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 176, NameID = 5012)]
-public class D30Ningishzida(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -235), new ArenaBoundsCircle(25));
+public class D30Ningishzida(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -236), new ArenaBoundsCircle(25));

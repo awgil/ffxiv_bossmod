@@ -5,8 +5,10 @@ class PotDConfig : ConfigNode
 {
     [PropertyDisplay("Enable module")]
     public bool Enable = true;
-    [PropertyDisplay("Prioritize Cairn of Passage over coffers")]
-    public bool PassageNow = false;
+    [PropertyDisplay("Prioritize opening coffers over Cairn of Passage")]
+    public bool OpenChestsFirst = false;
+    [PropertyDisplay("Prioritize clearing floor over Cairn of Passage")]
+    public bool FullClear = false;
     [PropertyDisplay("Open gold coffers")]
     public bool GoldCoffer = true;
     [PropertyDisplay("Open silver coffers")]
@@ -21,8 +23,8 @@ public abstract class PalaceFloorModule : ZoneModule
 
     private readonly PotDConfig _config = Service.Config.Get<PotDConfig>();
     private readonly EventSubscriptions _subscriptions;
-    private readonly HashSet<ulong> _skipChests = [];
-    private bool _skipThisChest;
+    private readonly Dictionary<ulong, PomanderID> _chestContents = [];
+    private PomanderID? _lastChestContents;
 
     private DeepDungeonState Palace => World.Client.DeepDungeonState;
 
@@ -46,7 +48,7 @@ public abstract class PalaceFloorModule : ZoneModule
         {
             var messageId = BitConverter.ToInt32(ipc.Payload, 4);
             if (messageId == 7222) // pomander overcap
-                _skipThisChest = true;
+                _lastChestContents = (PomanderID)ipc.Payload[12];
 
             if (messageId == 7248) // transference initiated
                 ClearState();
@@ -55,8 +57,8 @@ public abstract class PalaceFloorModule : ZoneModule
 
     private void ClearState()
     {
-        _skipThisChest = false;
-        _skipChests.Clear();
+        _lastChestContents = null;
+        _chestContents.Clear();
     }
 
     private bool OpenGold => _config.GoldCoffer && Palace.ItemInfo.Any(i => i.Count < 3);
@@ -65,7 +67,7 @@ public abstract class PalaceFloorModule : ZoneModule
 
     // public override bool WantToBeDrawn() => true;
 
-    public override List<string> CalculateGlobalHints() => [$"Chests to skip: {string.Join(", ", _skipChests)}"];
+    // public override List<string> CalculateGlobalHints() => [$"Chests to skip: {string.Join(", ", _skipChests)}"];
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
@@ -79,14 +81,14 @@ public abstract class PalaceFloorModule : ZoneModule
 
         foreach (var a in World.Actors)
         {
-            if (_skipChests.Contains(a.InstanceID))
+            if (_chestContents.TryGetValue(a.InstanceID, out var pid) && Palace[pid].Count == 3)
                 continue;
 
             var oid = (OID)a.OID;
             if (a.IsTargetable && (
                 oid == OID.GoldCoffer && OpenGold ||
                 oid == OID.SilverCoffer && OpenSilver ||
-                oid is OID.BronzeCoffer1 or OID.BronzeCoffer2 or OID.BronzeCoffer3 && OpenBronze ||
+                (a.OID is >= 0x310 and <= 0x316 || a.OID is >= 0x322 and <= 0x325) && OpenBronze ||
                 oid == OID.BandedCoffer
             ))
             {
@@ -104,10 +106,10 @@ public abstract class PalaceFloorModule : ZoneModule
                 revealedTraps.Add(ShapeDistance.Circle(a.Position, 2));
         }
 
-        if (coffer != null && _skipThisChest)
+        if (coffer != null && _lastChestContents is PomanderID p)
         {
-            _skipChests.Add(coffer.InstanceID);
-            _skipThisChest = false;
+            _chestContents[coffer.InstanceID] = p;
+            _lastChestContents = null;
             return;
         }
 
@@ -118,12 +120,10 @@ public abstract class PalaceFloorModule : ZoneModule
             haveChest = true;
         }
 
-        var havePassage = false;
         if (Palace.PassageActive && passage is Actor c)
         {
-            havePassage = true;
             hints.GoalZones.Add(hints.GoalSingleTarget(c.Position, 2, 0.5f));
-            if (haveChest && player.DistanceToHitbox(c) < player.DistanceToHitbox(coffer) && _config.PassageNow)
+            if (haveChest && player.DistanceToHitbox(c) < player.DistanceToHitbox(coffer) && !_config.OpenChestsFirst)
                 hints.InteractWithTarget = null;
         }
 
@@ -131,15 +131,11 @@ public abstract class PalaceFloorModule : ZoneModule
             hints.AddForbiddenZone(ShapeDistance.Union(revealedTraps));
 
         if (hoardLight is Actor h && Palace[PomanderID.Intuition].Active && InBounds(hints, h.Position))
-        {
             hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));
-            hints.InteractWithTarget = null;
-            return;
-        }
 
-        if (!(havePassage || haveChest))
-            foreach (var p in hints.PotentialTargets)
-                p.Priority = 0;
+        if (_config.FullClear || !Palace.PassageActive)
+            foreach (var pp in hints.PotentialTargets)
+                pp.Priority = 0;
     }
 
     private bool InBounds(AIHints hints, WPos pos) => hints.PathfindMapBounds.Contains(pos - hints.PathfindMapCenter);
@@ -150,10 +146,6 @@ enum OID : uint
     CairnOfPassage = 0x1EA094,
     SilverCoffer = 0x1EA13D,
     GoldCoffer = 0x1EA13E,
-    BronzeCoffer0 = 0x313,
-    BronzeCoffer1 = 0x322,
-    BronzeCoffer2 = 0x323,
-    BronzeCoffer3 = 0x324,
     BandedCofferIndicator = 0x1EA1F6,
     BandedCoffer = 0x1EA1F7,
 }
@@ -167,6 +159,8 @@ public class Palace20(WorldState ws) : PalaceFloorModule(ws);
 public class Palace30(WorldState ws) : PalaceFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 177)]
 public class Palace40(WorldState ws) : PalaceFloorModule(ws);
+[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 178)]
+public class Palace50(WorldState ws) : PalaceFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 204)]
 public class Palace60(WorldState ws) : PalaceFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 205)]
