@@ -1,4 +1,6 @@
-﻿namespace BossMod.Pathfinding;
+﻿using System.Reflection;
+
+namespace BossMod.Pathfinding;
 
 [ConfigDisplay(Name = "Obstacle map development", Order = 8)]
 public sealed class ObstacleMapConfig : ConfigNode
@@ -18,6 +20,8 @@ public sealed class ObstacleMapManager : IDisposable
     private readonly ObstacleMapConfig _config = Service.Config.Get<ObstacleMapConfig>();
     private readonly EventSubscriptions _subscriptions;
     private readonly List<(ObstacleMapDatabase.Entry entry, Bitmap data)> _entries = [];
+
+    public bool LoadFromSource => _config.LoadFromSource;
 
     public ObstacleMapManager(WorldState ws)
     {
@@ -41,10 +45,19 @@ public sealed class ObstacleMapManager : IDisposable
 
     public void ReloadDatabase()
     {
-        var dbPath = _config.LoadFromSource ? _config.SourcePath : ""; // TODO: load from near assembly instead
-        Service.Log($"Loading obstacle database from '{dbPath}'");
-        Database.Load(dbPath);
-        RootPath = dbPath[..(dbPath.LastIndexOfAny(['\\', '/']) + 1)];
+        if (LoadFromSource)
+        {
+            var dbPath = _config.SourcePath;
+            Service.Log($"Loading obstacle database from '{dbPath}'");
+            Database.LoadFromFile(dbPath);
+            RootPath = dbPath[..(dbPath.LastIndexOfAny(['\\', '/']) + 1)];
+        }
+        else
+        {
+            Service.Log($"Loading embedded obstacle database");
+            Database.LoadFromAssembly();
+        }
+
         LoadMaps(World.CurrentZone, World.CurrentCFCID);
     }
 
@@ -63,15 +76,36 @@ public sealed class ObstacleMapManager : IDisposable
         {
             foreach (var e in entries)
             {
-                var filename = RootPath + e.Filename;
-                try
+                if (LoadFromSource)
                 {
-                    var bitmap = new Bitmap(filename);
-                    _entries.Add((e, bitmap));
+                    var filename = RootPath + e.Filename;
+                    try
+                    {
+                        var bitmap = new Bitmap(filename);
+                        _entries.Add((e, bitmap));
+                    }
+                    catch (Exception ex)
+                    {
+                        Service.Log($"Failed to load map {filename} for {zoneId}.{cfcId}: {ex}");
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    Service.Log($"Failed to load map {filename} for {zoneId}.{cfcId}: {ex}");
+                    using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"BossMod.Pathfinding.ObstacleMaps.{e.Filename}");
+                    if (stream == null)
+                    {
+                        Service.Log($"Embedded map missing for {zoneId}.{cfcId}");
+                        continue;
+                    }
+                    try
+                    {
+                        var bitmap = new Bitmap(stream);
+                        _entries.Add((e, bitmap));
+                    }
+                    catch (Exception ex)
+                    {
+                        Service.Log($"Failed to load embedded map for {zoneId}.{cfcId}: {ex}");
+                    }
                 }
             }
         }

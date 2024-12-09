@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Reflection;
 using System.Text.Json;
 
 namespace BossMod.Pathfinding;
@@ -19,34 +20,53 @@ public sealed class ObstacleMapDatabase
 
     public readonly Dictionary<uint, List<Entry>> Entries = [];
 
-    public void Load(string listPath)
+    public void LoadFromAssembly()
     {
-        Entries.Clear();
         try
         {
-            using var json = Serialization.ReadJson(listPath);
-            foreach (var jentries in json.RootElement.EnumerateObject())
-            {
-                var sep = jentries.Name.IndexOf('.', StringComparison.Ordinal);
-                var zone = sep >= 0 ? uint.Parse(jentries.Name.AsSpan()[..sep]) : uint.Parse(jentries.Name);
-                var cfc = sep >= 0 ? uint.Parse(jentries.Name.AsSpan()[(sep + 1)..]) : 0;
-                var entries = Entries[(zone << 16) | cfc] = [];
-                foreach (var jentry in jentries.Value.EnumerateArray())
-                {
-                    entries.Add(new(
-                        ReadVec3(jentry, nameof(Entry.MinBounds)),
-                        ReadVec3(jentry, nameof(Entry.MaxBounds)),
-                        ReadWPos(jentry, nameof(Entry.Origin)),
-                        jentry.GetProperty(nameof(Entry.ViewWidth)).GetInt32(),
-                        jentry.GetProperty(nameof(Entry.ViewHeight)).GetInt32(),
-                        jentry.GetProperty(nameof(Entry.Filename)).GetString() ?? ""
-                    ));
-                }
-            }
+            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("BossMod.Pathfinding.ObstacleMaps.maplist.json") ?? throw new InvalidDataException("Embedded obstacle map file missing");
+            LoadInternal(stream);
+        }
+        catch (Exception ex)
+        {
+            Service.Log($"Failed to load embedded obstacle map database: {ex}");
+        }
+    }
+
+    public void LoadFromFile(string listPath)
+    {
+        using var fstream = File.OpenRead(listPath);
+        try
+        {
+            LoadInternal(fstream);
         }
         catch (Exception ex)
         {
             Service.Log($"Failed to load obstacle map database '{listPath}': {ex}");
+        }
+    }
+
+    private void LoadInternal(Stream stream)
+    {
+        Entries.Clear();
+        using var json = JsonDocument.Parse(stream, new JsonDocumentOptions() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip });
+        foreach (var jentries in json.RootElement.EnumerateObject())
+        {
+            var sep = jentries.Name.IndexOf('.', StringComparison.Ordinal);
+            var zone = sep >= 0 ? uint.Parse(jentries.Name.AsSpan()[..sep]) : uint.Parse(jentries.Name);
+            var cfc = sep >= 0 ? uint.Parse(jentries.Name.AsSpan()[(sep + 1)..]) : 0;
+            var entries = Entries[(zone << 16) | cfc] = [];
+            foreach (var jentry in jentries.Value.EnumerateArray())
+            {
+                entries.Add(new(
+                    ReadVec3(jentry, nameof(Entry.MinBounds)),
+                    ReadVec3(jentry, nameof(Entry.MaxBounds)),
+                    ReadWPos(jentry, nameof(Entry.Origin)),
+                    jentry.GetProperty(nameof(Entry.ViewWidth)).GetInt32(),
+                    jentry.GetProperty(nameof(Entry.ViewHeight)).GetInt32(),
+                    jentry.GetProperty(nameof(Entry.Filename)).GetString() ?? ""
+                ));
+            }
         }
     }
 
