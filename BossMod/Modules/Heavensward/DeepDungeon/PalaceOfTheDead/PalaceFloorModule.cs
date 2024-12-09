@@ -95,9 +95,6 @@ public abstract class PalaceFloorModule : ZoneModule
 
         foreach (var a in World.Actors)
         {
-            if (!_config.AutoMoveTreasure && player.DistanceToHitbox(a) > 3.5f)
-                continue;
-
             if (_chestContents.TryGetValue(a.InstanceID, out var pid) && Palace.Items[pid].Count == 3 && a.IsTargetable)
             {
                 if (CanAutoUse(pid))
@@ -141,7 +138,7 @@ public abstract class PalaceFloorModule : ZoneModule
             hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)p2), null, ActionQueue.Priority.Low);
 
         var haveChest = false;
-        if (coffer is Actor t && InBounds(hints, t.Position))
+        if (coffer is Actor t && InBounds(hints, t.Position) && (_config.AutoMoveTreasure || player.DistanceToHitbox(t) < 3.5f))
         {
             hints.InteractWithTarget = coffer;
             haveChest = true;
