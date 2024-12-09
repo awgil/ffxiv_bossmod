@@ -59,4 +59,4 @@ class D130AlfardStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 211, NameID = 5397)]
-public class D130Alfard(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -235), new ArenaBoundsCircle(25));
+public class D130Alfard(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -236), new ArenaBoundsCircle(24));

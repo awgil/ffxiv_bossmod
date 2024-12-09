@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 public record struct ClientActionRequest
 (
@@ -30,26 +28,6 @@ public record struct Cooldown(float Elapsed, float Total)
     public override readonly string ToString() => $"{Elapsed:f3}/{Total:f3}";
 }
 
-public enum PomanderID : uint
-{
-    Safety = 1,
-    Sight = 2,
-    Strength = 3,
-    Steel = 4,
-    Affluence = 5,
-    Flight = 6,
-    Alteration = 7,
-    Purity = 8,
-    Fortune = 9,
-    Witching = 10,
-    Serenity = 11,
-    Rage = 12,
-    Lust = 13,
-    Intuition = 14,
-    Raising = 15,
-    Resolution = 16
-}
-
 public record struct DeepDungeonState
 (
     byte Floor,
@@ -60,23 +38,26 @@ public record struct DeepDungeonState
     byte ReturnProgress,
     byte PassageProgress,
     DeepDungeonState.PartyMember[] PartyInfo,
-    DeepDungeonState.Item[] ItemInfo,
+    DeepDungeonState.ItemList Items,
     DeepDungeonState.Chest[] ChestInfo
 )
 {
     public record struct PartyMember(uint EntityId, sbyte RoomIndex);
+    public record struct Chest(byte ChestType, sbyte RoomIndex);
     public record struct Item(byte ItemId, byte Count, byte Flags)
     {
         public readonly bool Usable => (Flags & (1 << 0)) != 0;
         public readonly bool Active => (Flags & (1 << 1)) != 0;
     }
-    public record struct Chest(byte ChestType, sbyte RoomIndex);
+    public record struct ItemList(Item[] Values) : IEnumerable<Item>
+    {
+        public readonly IEnumerator<Item> GetEnumerator() => ((IEnumerable<Item>)Values).GetEnumerator();
+        readonly IEnumerator IEnumerable.GetEnumerator() => Values.GetEnumerator();
+        public readonly Item this[PomanderID index] => index == PomanderID.None ? default : Values[(uint)index - 1];
+    }
 
     public readonly bool ReturnActive => ReturnProgress >= 11;
     public readonly bool PassageActive => PassageProgress >= 11;
-
-    [IndexerName("WhyWouldAnyoneWantThis")]
-    public readonly Item this[PomanderID id] => ItemInfo[(int)id - 1];
 }
 
 // client-specific state and events (action requests, gauge, etc)
@@ -403,7 +384,7 @@ public sealed class ClientState
         }
         public override void Write(ReplayRecorder.Output output)
         {
-            return;
+            /*
             output.EmitFourCC("CLDD"u8)
                 .Emit(Value.Floor)
                 .Emit(Value.WeaponLevel)
@@ -418,6 +399,7 @@ public sealed class ClientState
                 output.Emit(item.ItemId).Emit(item.Count).Emit(item.Flags);
             foreach (var chest in Value.ChestInfo)
                 output.Emit(chest.ChestType).Emit(chest.RoomIndex);
+            */
         }
     }
 }

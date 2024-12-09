@@ -25,6 +25,7 @@ public enum ActionType : byte
     // below are custom additions, these aren't proper actions from game's point of view, but it makes sense for us to treat them as such
     BozjaHolsterSlot0 = 0xE0, // id = BozjaHolsterID, use from holster to replace duty action 0
     BozjaHolsterSlot1 = 0xE1, // id = BozjaHolsterID, use from holster to replace duty action 1
+    Pomander = 0xE2, // id = PomanderID
 }
 
 public enum Positional { Any, Flank, Rear, Front }
@@ -48,6 +49,7 @@ public readonly record struct ActionID(uint Raw)
         ActionType.Item => $"{Service.LuminaRow<Lumina.Excel.Sheets.Item>(ID % 1000000)?.Name ?? "<not found>"}{(ID > 1000000 ? " (HQ)" : "")}", // see Dalamud.Game.Text.SeStringHandling.Payloads.GetAdjustedId; TODO: id > 500000 is "collectible", >2000000 is "event" ??
         ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1 => $"{(BozjaHolsterID)ID}",
         ActionType.PetAction => Service.LuminaRow<Lumina.Excel.Sheets.PetAction>(ID)?.Name.ExtractText() ?? "<not found>",
+        ActionType.Pomander => Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeonItem>(ID)?.Name.ExtractText() ?? "<not found>",
         _ => ""
     };
 

@@ -3,11 +3,24 @@
 public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
 {
     public enum Track { Potion }
+
+    public enum PotionStrategy
+    {
+        Disabled,
+        Always,
+        Boss,
+        BossOrHigh
+    }
+
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("Deep Dungeon AI", "Utilities for deep dungeon - potion/pomander user", "AI (xan)", "xan", RotationModuleQuality.Basic, new BitMask(~0ul), 100);
 
-        def.AbilityTrack(Track.Potion, "Potion");
+        def.Define(Track.Potion).As<PotionStrategy>("Potion")
+            .AddOption(PotionStrategy.Disabled, "Do not use")
+            .AddOption(PotionStrategy.Always, "Use below 80% HP if status is not present")
+            .AddOption(PotionStrategy.Boss, "Use during boss fights")
+            .AddOption(PotionStrategy.BossOrHigh, "Use during boss fights, or above floor 100");
 
         return def;
     }
@@ -21,19 +34,28 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (strategy.Enabled(Track.Potion))
-        {
-            var potAction = default(ActionID);
+        var potAction = default(ActionID);
 
-            if (PalaceCFCs.Contains(World.CurrentCFCID))
-                potAction = ActionDefinitions.IDPotionPalace;
+        if (PalaceCFCs.Contains(World.CurrentCFCID))
+            potAction = ActionDefinitions.IDPotionPalace;
 
-            if (potAction != default && Player.HPMP.CurHP <= Player.HPMP.MaxHP * 0.6f && Player.FindStatus(648) == null && Player.InCombat)
-                Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.Medium);
-        }
+        if (potAction != default && ShouldPotion(strategy))
+            Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.Medium);
 
         foreach (var h in Hints.PriorityTargets)
             if (h.Actor.CastInfo is { Action.ID: 6953 } ci)
                 Hints.ForbiddenDirections.Add((Player.AngleTo(h.Actor), 45.Degrees(), World.FutureTime(ci.NPCRemainingTime)));
+    }
+
+    private bool ShouldPotion(StrategyValues strategy)
+    {
+        var use = Player.HPMP.CurHP <= Player.HPMP.MaxHP * 0.8f && Player.FindStatus(648) == null && Player.InCombat;
+        return use && strategy.Option(Track.Potion).As<PotionStrategy>() switch
+        {
+            PotionStrategy.Always => true,
+            PotionStrategy.Boss => World.Client.DeepDungeonState.Floor % 10 == 0,
+            PotionStrategy.BossOrHigh => World.Client.DeepDungeonState.Floor is var floor && (floor % 10 == 0 || floor > 100),
+            _ => false
+        };
     }
 }

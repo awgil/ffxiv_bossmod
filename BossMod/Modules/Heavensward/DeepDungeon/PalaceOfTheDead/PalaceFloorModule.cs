@@ -47,11 +47,15 @@ public abstract class PalaceFloorModule : ZoneModule
         if (ipc.ID == Network.ServerIPC.PacketID.SystemLogMessage1)
         {
             var messageId = BitConverter.ToInt32(ipc.Payload, 4);
-            if (messageId == 7222) // pomander overcap
-                _lastChestContents = (PomanderID)ipc.Payload[12];
-
-            if (messageId == 7248) // transference initiated
-                ClearState();
+            switch (messageId)
+            {
+                case 7222: // pomander overcap
+                    _lastChestContents = (PomanderID)ipc.Payload[12];
+                    break;
+                case 7248: // transference initiated
+                    ClearState();
+                    break;
+            }
         }
     }
 
@@ -61,13 +65,15 @@ public abstract class PalaceFloorModule : ZoneModule
         _chestContents.Clear();
     }
 
-    private bool OpenGold => _config.GoldCoffer && Palace.ItemInfo.Any(i => i.Count < 3);
+    private bool OpenGold => _config.GoldCoffer && Palace.Items.Any(i => i.Count < 3);
     private bool OpenSilver => _config.SilverCoffer && Palace.WeaponLevel + Palace.ArmorLevel < 198;
     private bool OpenBronze => _config.BronzeCoffer;
 
     // public override bool WantToBeDrawn() => true;
 
     // public override List<string> CalculateGlobalHints() => [$"Chests to skip: {string.Join(", ", _skipChests)}"];
+
+    private bool CanAutoUse(PomanderID p) => p is not (PomanderID.Lust or PomanderID.Rage or PomanderID.Resolution or PomanderID.Purity);
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
@@ -79,10 +85,15 @@ public abstract class PalaceFloorModule : ZoneModule
         Actor? passage = null;
         List<Func<WPos, float>> revealedTraps = [];
 
+        PomanderID? pomanderToUseHere = null;
+
         foreach (var a in World.Actors)
         {
-            if (_chestContents.TryGetValue(a.InstanceID, out var pid) && Palace[pid].Count == 3)
+            if (_chestContents.TryGetValue(a.InstanceID, out var pid) && CanAutoUse(pid) && Palace.Items[pid].Count == 3 && a.IsTargetable)
+            {
+                pomanderToUseHere ??= pid;
                 continue;
+            }
 
             var oid = (OID)a.OID;
             if (a.IsTargetable && (
@@ -106,12 +117,18 @@ public abstract class PalaceFloorModule : ZoneModule
                 revealedTraps.Add(ShapeDistance.Circle(a.Position, 2));
         }
 
-        if (coffer != null && _lastChestContents is PomanderID p)
+        if (coffer != null)
         {
-            _chestContents[coffer.InstanceID] = p;
-            _lastChestContents = null;
-            return;
+            if (_lastChestContents is PomanderID p)
+            {
+                _chestContents[coffer.InstanceID] = p;
+                _lastChestContents = null;
+                return;
+            }
         }
+
+        if (pomanderToUseHere is PomanderID p2 && player.FindStatus(1094) == null)
+            hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)p2), null, ActionQueue.Priority.Low);
 
         var haveChest = false;
         if (coffer is Actor t && InBounds(hints, t.Position))
@@ -130,7 +147,7 @@ public abstract class PalaceFloorModule : ZoneModule
         if (revealedTraps.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Union(revealedTraps));
 
-        if (hoardLight is Actor h && Palace[PomanderID.Intuition].Active && InBounds(hints, h.Position))
+        if (hoardLight is Actor h && Palace.Items[PomanderID.Intuition].Active && InBounds(hints, h.Position))
             hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));
 
         if (_config.FullClear || !Palace.PassageActive)

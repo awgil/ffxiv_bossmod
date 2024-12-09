@@ -7,6 +7,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 
 namespace BossMod;
@@ -28,6 +29,9 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly TrackPartyHealth PartyHealth = new(ws);
     //private readonly DebugVfx _debugVfx = new();
 
+    private unsafe delegate void DeepDungeonVf363(void* self, int a2, uint a3, uint a4, int a5);
+
+    private HookAddress<AgentDeepDungeonStatus.Delegates.ReceiveEvent> _receiveEventHook = null!;
     private HookAddress<EventFramework.Delegates.CheckInteractRange> _checkInteractHook = null!;
 
     private unsafe bool CheckInteractDetour(EventFramework* thisPtr, GameObject* source, GameObject* target, byte interactionType, bool logErrorsToUser)
@@ -35,6 +39,13 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         var result = _checkInteractHook.Original(thisPtr, source, target, interactionType, logErrorsToUser);
         Service.Log($"CheckInteractRange: {(nint)source} ({source->ObjectKind}) -> {(nint)target} ({target->ObjectKind}) (interact type {interactionType}) (show errors = {logErrorsToUser})");
         return result;
+    }
+
+    private unsafe AtkValue* ReceiveEventDetour(AgentDeepDungeonStatus* thisPtr, AtkValue* a2, AtkValue* a3, uint a4, ulong a5)
+    {
+        var res = _receiveEventHook.Original(thisPtr, a2, a3, a4, a5);
+        Service.Log($"DeepDungeonStatus receive event({(nint)thisPtr:X}, {a2->Type}, {a3->Type}, {a4}, {a5}) = {(nint)res}");
+        return res;
     }
 
     protected override void Dispose(bool disposing)
@@ -48,7 +59,8 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
     public override unsafe void Draw()
     {
-        _checkInteractHook ??= new(EventFramework.Addresses.CheckInteractRange, CheckInteractDetour);
+        // _checkInteractHook ??= new(EventFramework.Addresses.CheckInteractRange, CheckInteractDetour);
+        // _receiveEventHook ??= new("48 89 5C 24 ?? 48 89 74 24 ?? 48 89 7C 24 ?? 41 56 48 83 EC 20 48 8B D9 49 8B F8", ReceiveEventDetour);
 
         var playerCID = UIState.Instance()->PlayerState.ContentId;
         var player = Service.ClientState.LocalPlayer;
@@ -232,7 +244,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         Dalamud.Utility.Util.ShowObject(ws.Client.DeepDungeonState);
         ImGui.Indent();
         if (ImGui.CollapsingHeader("Item info"))
-            foreach (var it in ws.Client.DeepDungeonState.ItemInfo)
+            foreach (var it in ws.Client.DeepDungeonState.Items)
                 Dalamud.Utility.Util.ShowObject(it);
         if (ImGui.CollapsingHeader("Chest info"))
             foreach (var it in ws.Client.DeepDungeonState.ChestInfo)

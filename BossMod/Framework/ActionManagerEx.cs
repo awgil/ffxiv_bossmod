@@ -1,6 +1,7 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
@@ -64,11 +65,14 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private readonly HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
     private readonly HookAddress<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
     private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
+    private readonly HookAddress<UsePomanderDelegate> _usePomanderHook;
     private readonly HookAddress<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
 
     private delegate void ExecuteCommandGTDelegate(uint commandId, Vector3* position, uint param1, uint param2, uint param3, uint param4);
     private readonly ExecuteCommandGTDelegate _executeCommandGT;
     private DateTime _nextAllowedExecuteCommand;
+
+    private delegate void* UsePomanderDelegate(InstanceContentDeepDungeon* thisPtr, uint id);
 
     public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement)
     {
@@ -87,6 +91,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _useActionHook = new(ActionManager.Addresses.UseAction, UseActionDetour);
         _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
         _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
+        _usePomanderHook = new("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8D 4F 10 E8 ?? ?? ?? ?? 48 63 F8", UsePomanderDetour);
         _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
 
         var executeCommandGTAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 1E 48 8B 53 08");
@@ -292,6 +297,9 @@ public sealed unsafe class ActionManagerEx : IDisposable
                 var state = PublicContentBozja.GetState(); // note: if it's non-null, the director instance can't be null too
                 var holsterIndex = state != null ? state->HolsterActions.IndexOf((byte)action.ID) : -1;
                 return holsterIndex >= 0 && PublicContentBozja.GetInstance()->UseFromHolster((uint)holsterIndex, action.Type == ActionType.BozjaHolsterSlot1 ? 1u : 0);
+            case ActionType.Pomander:
+                var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+                return dd != null && _usePomanderHook.Original(dd, action.ID - 1) != null;
             default:
                 // fall back to UAL hook for everything not covered explicitly
                 return _inst->UseActionLocation((CSActionType)action.Type, action.ID, targetId, &targetPos, 0);
@@ -473,6 +481,13 @@ public sealed unsafe class ActionManagerEx : IDisposable
             HandleActionRequest(ActionID.MakeBozjaHolster(entry, (int)slot), 0, 0xE0000000, default, prevRot, currRot);
         }
         return res;
+    }
+
+    private void* UsePomanderDetour(InstanceContentDeepDungeon* self, uint pomanderId)
+    {
+        var src = _usePomanderHook.Original(self, pomanderId);
+        Service.Log($"pomander use: {pomanderId} ({(PomanderID)(pomanderId + 1)})");
+        return src;
     }
 
     private void ProcessPacketActionEffectDetour(uint casterID, Character* casterObj, Vector3* targetPos, ActionEffectHandler.Header* header, ActionEffectHandler.TargetEffects* effects, GameObjectId* targets)

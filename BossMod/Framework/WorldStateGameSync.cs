@@ -664,18 +664,18 @@ sealed class WorldStateGameSync : IDisposable
             WeaponLevel = dd->WeaponLevel,
             ArmorLevel = dd->ArmorLevel,
 
-            SyncedGearLevel = *((byte*)dd + 0x1F0A),
-            HoardCount = *((byte*)dd + 0x1F0B),
+            SyncedGearLevel = dd->SyncedGearLevel,
+            HoardCount = dd->HoardCount,
 
             ReturnProgress = dd->ReturnProgress,
             PassageProgress = dd->PassageProgress,
 
             PartyInfo = new DeepDungeonState.PartyMember[4],
-            ItemInfo = new DeepDungeonState.Item[16],
+            Items = new(new DeepDungeonState.Item[16]),
             ChestInfo = new DeepDungeonState.Chest[16]
         };
 
-        var ddParty = new Span<InstanceContentDeepDungeon.DeepDungeonPartyInfo>((void*)((nint)dd + 0x1E88), 4);
+        var ddParty = dd->Party;
         for (var i = 0; i < 4; i++)
         {
             ref var pinfo = ref state.PartyInfo[i];
@@ -683,16 +683,16 @@ sealed class WorldStateGameSync : IDisposable
             pinfo.RoomIndex = ddParty[i].RoomIndex;
         }
 
-        var ddItem = new Span<InstanceContentDeepDungeon.DeepDungeonItemInfo>((void*)((nint)dd + 0x1EA8), 16);
+        var ddItem = dd->Items;
         for (var i = 0; i < ddItem.Length; i++)
         {
-            ref var pitem = ref state.ItemInfo[i];
+            ref var pitem = ref state.Items.Values[i];
             pitem.ItemId = ddItem[i].ItemId;
             pitem.Count = ddItem[i].Count;
             pitem.Flags = ddItem[i].Flags;
         }
 
-        var ddChest = new Span<InstanceContentDeepDungeon.DeepDungeonChestInfo>((void*)((nint)dd + 0x1ED8), 16);
+        var ddChest = dd->Chests;
         for (var i = 0; i < ddChest.Length; i++)
         {
             ref var pchest = ref state.ChestInfo[i];
