@@ -200,7 +200,9 @@ public sealed class ActionDefinitions : IDisposable
     public static readonly ActionID IDPotionInt = new(ActionType.Item, 1044165); // hq grade 2 gemdraught of intelligence
     public static readonly ActionID IDPotionMnd = new(ActionType.Item, 1044166); // hq grade 2 gemdraught of mind
 
-    public static readonly ActionID IDPotionPalace = new(ActionType.Item, 20309); // Sustaining Potion
+    // deep dungeon consumables
+    public static readonly ActionID IDSustainingPotion = new(ActionType.Item, 20309); // Sustaining Potion
+    public static readonly ActionID IDMaxPotion = new(ActionType.Item, 1013637); // hq Max-Potion
 
     // special general actions that we support
     public static readonly ActionID IDGeneralLimitBreak = new(ActionType.General, 3);
@@ -248,7 +250,8 @@ public sealed class ActionDefinitions : IDisposable
         RegisterPotion(IDPotionInt);
         RegisterPotion(IDPotionMnd);
 
-        RegisterPotion(IDPotionPalace);
+        RegisterPotion(IDSustainingPotion);
+        RegisterPotion(IDMaxPotion);
 
         // bozja actions
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)

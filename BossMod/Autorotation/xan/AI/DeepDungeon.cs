@@ -37,7 +37,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         var potAction = default(ActionID);
 
         if (PalaceCFCs.Contains(World.CurrentCFCID))
-            potAction = ActionDefinitions.IDPotionPalace;
+            potAction = ActionDefinitions.IDSustainingPotion;
 
         if (potAction != default && ShouldPotion(strategy))
             Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.Medium);
