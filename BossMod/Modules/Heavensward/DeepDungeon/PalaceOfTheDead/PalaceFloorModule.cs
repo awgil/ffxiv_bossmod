@@ -208,3 +208,11 @@ public class Palace130(WorldState ws) : PalaceFloorModule(ws);
 public class Palace140(WorldState ws) : PalaceFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 213)]
 public class Palace150(WorldState ws) : PalaceFloorModule(ws);
+[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 214)]
+public class Palace160(WorldState ws) : PalaceFloorModule(ws);
+[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 215)]
+public class Palace170(WorldState ws) : PalaceFloorModule(ws);
+[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 216)]
+public class Palace180(WorldState ws) : PalaceFloorModule(ws);
+[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 217)]
+public class Palace190(WorldState ws) : PalaceFloorModule(ws);
