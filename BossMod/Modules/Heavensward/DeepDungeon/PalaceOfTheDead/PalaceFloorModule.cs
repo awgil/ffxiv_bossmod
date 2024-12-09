@@ -5,6 +5,12 @@ class PotDConfig : ConfigNode
 {
     [PropertyDisplay("Enable module")]
     public bool Enable = true;
+    [PropertyDisplay("Automatically navigate to Cairn of Passage")]
+    public bool AutoPassage = true;
+    [PropertyDisplay("Automatically target mobs until Passage is open")]
+    public bool AutoClear = true;
+    [PropertyDisplay("Automatically navigate to coffers")]
+    public bool AutoMoveTreasure = true;
     [PropertyDisplay("Prioritize opening coffers over Cairn of Passage")]
     public bool OpenChestsFirst = false;
     [PropertyDisplay("Prioritize clearing floor over Cairn of Passage")]
@@ -73,7 +79,7 @@ public abstract class PalaceFloorModule : ZoneModule
 
     // public override List<string> CalculateGlobalHints() => [$"Chests to skip: {string.Join(", ", _skipChests)}"];
 
-    private bool CanAutoUse(PomanderID p) => p is not (PomanderID.Lust or PomanderID.Rage or PomanderID.Resolution or PomanderID.Purity);
+    private bool CanAutoUse(PomanderID p) => p is PomanderID.Steel or PomanderID.Strength or PomanderID.Sight;
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
@@ -89,9 +95,13 @@ public abstract class PalaceFloorModule : ZoneModule
 
         foreach (var a in World.Actors)
         {
-            if (_chestContents.TryGetValue(a.InstanceID, out var pid) && CanAutoUse(pid) && Palace.Items[pid].Count == 3 && a.IsTargetable)
+            if (!_config.AutoMoveTreasure && player.DistanceToHitbox(a) > 3.5f)
+                continue;
+
+            if (_chestContents.TryGetValue(a.InstanceID, out var pid) && Palace.Items[pid].Count == 3 && a.IsTargetable)
             {
-                pomanderToUseHere ??= pid;
+                if (CanAutoUse(pid))
+                    pomanderToUseHere ??= pid;
                 continue;
             }
 
@@ -137,7 +147,7 @@ public abstract class PalaceFloorModule : ZoneModule
             haveChest = true;
         }
 
-        if (Palace.PassageActive && passage is Actor c)
+        if (_config.AutoPassage && Palace.PassageActive && passage is Actor c)
         {
             hints.GoalZones.Add(hints.GoalSingleTarget(c.Position, 2, 0.5f));
             if (haveChest && player.DistanceToHitbox(c) < player.DistanceToHitbox(coffer) && !_config.OpenChestsFirst)
@@ -147,10 +157,10 @@ public abstract class PalaceFloorModule : ZoneModule
         if (revealedTraps.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Union(revealedTraps));
 
-        if (hoardLight is Actor h && Palace.Items[PomanderID.Intuition].Active && InBounds(hints, h.Position))
+        if (_config.AutoMoveTreasure && hoardLight is Actor h && Palace.Items[PomanderID.Intuition].Active && InBounds(hints, h.Position))
             hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));
 
-        if (_config.FullClear || !Palace.PassageActive)
+        if (_config.AutoClear && (_config.FullClear || !Palace.PassageActive))
             foreach (var pp in hints.PotentialTargets)
                 pp.Priority = 0;
     }

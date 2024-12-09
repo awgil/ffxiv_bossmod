@@ -54,7 +54,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         {
             PotionStrategy.Always => true,
             PotionStrategy.Boss => World.Client.DeepDungeonState.Floor % 10 == 0,
-            PotionStrategy.BossOrHigh => World.Client.DeepDungeonState.Floor is var floor && (floor % 10 == 0 || floor > 100),
+            PotionStrategy.BossOrHigh => World.Client.DeepDungeonState.Floor is var floor && (floor % 10 == 0 || floor > 140),
             _ => false
         };
     }

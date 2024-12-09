@@ -268,6 +268,10 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         if (!Unlocked(AID.Hypercharge) || HyperchargedLeft == 0 && Heat < 50 || Overheated)
             return false;
 
+        // don't want to use reassemble on heat blast, even if strategy is Force, since presumably next GCD will be a tool charge
+        if (ReassembleLeft > GCD)
+            return false;
+
         switch (strategy.Simple(Track.Hypercharge))
         {
             case OffensiveStrategy.Force:
@@ -277,10 +281,6 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             default:
                 break;
         }
-
-        // don't want to use reassemble on heat blast
-        if (ReassembleLeft > GCD)
-            return false;
 
         // avoid delaying wildfire
         // TODO figure out how long we actually need to wait to ensure enough heat
