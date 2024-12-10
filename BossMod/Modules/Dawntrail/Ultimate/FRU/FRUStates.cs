@@ -46,6 +46,8 @@ class FRUStates : StateMachineBuilder
     {
         P3JunctionHellsJudgment(id, 13.3f);
         P3UltimateRelativity(id + 0x10000, 4.3f);
+        P3BlackHalo(id + 0x20000, 3.2f);
+        P3Apocalypse(id + 0x30000, 7.2f);
 
         SimpleState(id + 0xFF0000, 100, "???");
     }
@@ -358,8 +360,74 @@ class FRUStates : StateMachineBuilder
         ComponentCondition<P3UltimateRelativity>(id + 0x60, 4.9f, comp => comp.NumCasts >= 5, "Spread/stack 3")
             .ActivateOnEnter<P3UltimateRelativityDarkFireUnholyDarkness>()
             .DeactivateOnExit<P3UltimateRelativityDarkFireUnholyDarkness>();
-        ComponentCondition<P3UltimateRelativity>(id + 0x70, 5.1f, comp => comp.NumCasts >= 6, "Lasers 3")
+        ComponentCondition<P3UltimateRelativity>(id + 0x70, 6.1f, comp => comp.NumCasts >= 6, "Lasers 3")
             .DeactivateOnExit<P3UltimateRelativitySinboundMeltdownBait>();
-        // TODO: resolve > stack > tankbuster
+        ComponentCondition<P3UltimateRelativity>(id + 0x80, 2.8f, comp => comp.NumReturnStuns > 0, "Return")
+            .ActivateOnEnter<P3UltimateRelativityShadoweye>() // note: there are no hints for stack or eruption, as they should have been resolved earlier...
+            .SetHint(StateMachine.StateHint.DowntimeStart);
+
+        ActorCastStart(id + 0x90, _module.BossP3, AID.ShellCrusher, 3.9f, true, "Relativity resolve")
+            .DeactivateOnExit<P3UltimateRelativityShadoweye>()
+            .DeactivateOnExit<P3UltimateRelativity>()
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
+        ActorCastEnd(id + 0x91, _module.BossP3, 3, true)
+            .ActivateOnEnter<P3ShellCrusher>();
+        ComponentCondition<P3ShellCrusher>(id + 0x92, 0.4f, comp => comp.Stacks.Count == 0, "Stack")
+            .DeactivateOnExit<P3ShellCrusher>();
+
+        ActorCast(id + 0x1000, _module.BossP3, AID.ShockwavePulsar, 3.5f, 5, true, "Raidwide")
+            .DeactivateOnExit<P3UltimateRelativitySinboundMeltdownAOE>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+    }
+
+    private void P3BlackHalo(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP3, AID.BlackHalo, delay, 5, true)
+            .ActivateOnEnter<P3BlackHalo>();
+        ComponentCondition<P3BlackHalo>(id + 2, 0.2f, comp => comp.NumCasts > 0, "Tankbuster")
+            .DeactivateOnExit<P3BlackHalo>()
+            .SetHint(StateMachine.StateHint.Tankbuster);
+    }
+
+    private void P3Apocalypse(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP3, AID.SpellInWaitingRefrain, delay, 2, true);
+        ActorCast(id + 0x10, _module.BossP3, AID.ApocalypseDarkWater, 3.2f, 5, true);
+        ComponentCondition<P3ApocalypseDarkWater>(id + 0x12, 0.6f, comp => comp.NumStatuses >= 6)
+            .ActivateOnEnter<P3Apocalypse>()
+            .ActivateOnEnter<P3ApocalypseDarkWater>()
+            .ExecOnExit<P3ApocalypseDarkWater>(comp => comp.ShowOrder(1));
+        ActorCast(id + 0x20, _module.BossP3, AID.Apocalypse, 2.6f, 4, true);
+        ActorCastStart(id + 0x30, _module.BossP3, AID.SpiritTaker, 2.2f, true);
+        ComponentCondition<P3ApocalypseDarkWater>(id + 0x31, 1.3f, comp => comp.Stacks.Count == 0, "Stack 1");
+        ActorCastEnd(id + 0x32, _module.BossP3, 1.7f, true)
+            .ActivateOnEnter<P3SpiritTaker>();
+        ComponentCondition<P3SpiritTaker>(id + 0x33, 0.3f, comp => comp.Spreads.Count == 0, "Jump")
+            .DeactivateOnExit<P3SpiritTaker>();
+        ActorCastStart(id + 0x40, _module.BossP3, AID.ApocalypseDarkEruption, 6.2f, true)
+            .ExecOnEnter<P3Apocalypse>(comp => comp.Show(8.5f))
+            .ActivateOnEnter<P3ApocalypseDarkEruption>();
+        ComponentCondition<P3Apocalypse>(id + 0x41, 2.4f, comp => comp.NumCasts > 0, "Apocalypse start");
+        ActorCastEnd(id + 0x42, _module.BossP3, 1.6f, true);
+        ComponentCondition<P3Apocalypse>(id + 0x43, 0.4f, comp => comp.NumCasts > 4);
+        ComponentCondition<P3ApocalypseDarkEruption>(id + 0x44, 0.7f, comp => comp.NumFinishedSpreads > 0, "Spread")
+            .DeactivateOnExit<P3ApocalypseDarkEruption>()
+            .ExecOnExit<P3ApocalypseDarkWater>(comp => comp.ShowOrder(2));
+        ComponentCondition<P3Apocalypse>(id + 0x45, 1.3f, comp => comp.NumCasts > 10);
+        ActorCastStart(id + 0x50, _module.BossP3, AID.DarkestDance, 1.3f, true);
+        ComponentCondition<P3Apocalypse>(id + 0x51, 0.7f, comp => comp.NumCasts > 16);
+        ComponentCondition<P3Apocalypse>(id + 0x52, 2.0f, comp => comp.NumCasts > 22);
+        ComponentCondition<P3ApocalypseDarkWater>(id + 0x53, 0.5f, comp => comp.Stacks.Count == 0, "Stack 2");
+        ComponentCondition<P3Apocalypse>(id + 0x54, 1.5f, comp => comp.NumCasts > 22)
+            .ActivateOnEnter<P3DarkestDanceBait>()
+            .DeactivateOnExit<P3Apocalypse>();
+        ActorCastEnd(id + 0x55, _module.BossP3, 0.3f, true);
+        ComponentCondition<P3DarkestDanceBait>(id + 0x56, 0.4f, comp => comp.NumCasts > 0, "Tankbuster")
+            .DeactivateOnExit<P3DarkestDanceBait>()
+            .ExecOnExit<P3ApocalypseDarkWater>(comp => comp.ShowOrder(3))
+            .SetHint(StateMachine.StateHint.Tankbuster);
+        // +2.8s: kb
+        // +???: stack 3
+        // then: shockwave pulsar raidwide > memory end enrage
     }
 }

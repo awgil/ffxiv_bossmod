@@ -10,13 +10,18 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
         public int LaserOrder;
         public bool HaveDark;
         public WDir AssignedDir;
+        public WPos ReturnPos;
     }
 
     public readonly PlayerState[] States = new PlayerState[PartyState.MaxPartySize];
+    public readonly List<(Actor origin, Angle rotation, DateTime activation)> LaserRotations = [];
+    public int NumReturnStuns;
     private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
     private WDir _relNorth;
     private int _numYellowTethers;
     private DateTime _nextProgress;
+
+    public Angle LaserRotationAt(WPos pos) => LaserRotations.FirstOrDefault(r => r.origin.Position.AlmostEqual(pos, 1)).rotation;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -31,8 +36,13 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         var assignedDir = States[pcSlot].AssignedDir;
-        if (assignedDir != default)
-            Arena.AddCircle(Module.Center + RangeHint(States[pcSlot], pc.Class.IsSupport(), NumCasts) * assignedDir, 1, ArenaColor.Safe);
+        if (assignedDir != default && NumCasts < 6)
+        {
+            var safespot = Module.Center + RangeHint(States[pcSlot], pc.Class.IsSupport(), NumCasts) * assignedDir;
+            if (IsBaitingLaser(States[pcSlot], NumCasts) && LaserRotationAt(safespot) is var rot && rot != default)
+                safespot += 2 * (Angle.FromDirection(assignedDir) - 4.5f * rot).ToDirection();
+            Arena.AddCircle(safespot, 1, ArenaColor.Safe);
+        }
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -72,6 +82,36 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
                 slot = Raid.FindSlot(actor.InstanceID);
                 if (slot >= 0)
                     States[slot].RewindOrder = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds < 20 ? 1 : 2;
+                break;
+            case SID.DelightsHourglassRotation:
+                var rot = status.Extra switch
+                {
+                    0x10D => 15.Degrees(),
+                    0x15C => -15.Degrees(),
+                    _ => default
+                };
+                if (rot != default)
+                    LaserRotations.Add((actor, rot, status.ExpireAt));
+                else
+                    ReportError($"Unexpected rotation status param: {status.Extra:X}");
+                break;
+            case SID.Return:
+                slot = Raid.FindSlot(actor.InstanceID);
+                if (slot >= 0)
+                    States[slot].ReturnPos = actor.Position;
+                break;
+            case SID.Stun:
+                ++NumReturnStuns;
+                break;
+        }
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        switch ((SID)status.ID)
+        {
+            case SID.Stun:
+                --NumReturnStuns;
                 break;
         }
     }
@@ -146,6 +186,14 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
         _ => 180.Degrees()
     };
 
+    private bool IsBaitingLaser(in PlayerState state, int order) => order switch
+    {
+        1 => state.LaserOrder == 1,
+        3 => state.LaserOrder == 2,
+        5 => state.LaserOrder == 3,
+        _ => false
+    };
+
     private float RangeHint(in PlayerState state, bool isSupport, int order) => order switch
     {
         0 => state.FireOrder == 1 ? 12 : 5,
@@ -191,21 +239,21 @@ class P3UltimateRelativityDarkFireUnholyDarkness(BossModule module) : Components
 class P3UltimateRelativitySinboundMeltdownBait(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.UltimateRelativitySinboundMeltdownAOEFirst))
 {
     private readonly P3UltimateRelativity? _rel = module.FindComponent<P3UltimateRelativity>();
-    private readonly List<(Actor origin, Angle rotation, DateTime activation)> _rotations = [];
 
     private static readonly AOEShapeRect _shape = new(60, 2.5f);
-
-    public Angle RotationAt(WPos pos) => _rotations.FirstOrDefault(r => r.origin.Position.AlmostEqual(pos, 1)).rotation;
 
     public override void Update()
     {
         CurrentBaits.Clear();
-        for (int i = NumCasts; i < _rotations.Count; ++i)
+        if (_rel != null)
         {
-            var closest = Raid.WithoutSlot().Closest(_rotations[i].origin.Position);
-            if (closest != null)
+            for (int i = NumCasts; i < _rel.LaserRotations.Count; ++i)
             {
-                CurrentBaits.Add(new(_rotations[i].origin, closest, _shape, _rotations[i].activation));
+                var closest = Raid.WithoutSlot().Closest(_rel.LaserRotations[i].origin.Position);
+                if (closest != null)
+                {
+                    CurrentBaits.Add(new(_rel.LaserRotations[i].origin, closest, _shape, _rel.LaserRotations[i].activation));
+                }
             }
         }
     }
@@ -213,6 +261,9 @@ class P3UltimateRelativitySinboundMeltdownBait(BossModule module) : Components.G
     // TODO: hints for proper baiting?..
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
+        if (CurrentBaits.Count == 0)
+            return;
+
         var shouldBait = (_rel?.States[slot].LaserOrder ?? 0) == CurrentOrder;
         var baitIndex = CurrentBaits.FindIndex(b => b.Target == actor);
         var isBaiting = baitIndex >= 0;
@@ -231,30 +282,13 @@ class P3UltimateRelativitySinboundMeltdownBait(BossModule module) : Components.G
 
         foreach (ref var b in CurrentBaits.AsSpan())
         {
-            if (b.Target == pc && b.Source.Position.AlmostEqual(AssignedHourglass(pcSlot), 1))
+            if (b.Target == pc && b.Source.Position.AlmostEqual(AssignedHourglass(pcSlot), 1) && _rel != null)
             {
                 // draw extra rotation hints for correctly baited hourglass
-                var rot = RotationAt(b.Source.Position);
+                var rot = _rel.LaserRotationAt(b.Source.Position);
                 for (int i = 1; i < 10; ++i)
                     _shape.Outline(Arena, b.Source.Position, b.Rotation + i * rot);
             }
-        }
-    }
-
-    public override void OnStatusGain(Actor actor, ActorStatus status)
-    {
-        if ((OID)actor.OID == OID.DelightsHourglass && (SID)status.ID == SID.DelightsHourglassRotation)
-        {
-            var rot = status.Extra switch
-            {
-                0x10D => 15.Degrees(),
-                0x15C => -15.Degrees(),
-                _ => default
-            };
-            if (rot != default)
-                _rotations.Add((actor, rot, status.ExpireAt));
-            else
-                ReportError($"Unexpected rotation status param: {status.Extra:X}");
         }
     }
 
@@ -271,7 +305,7 @@ class P3UltimateRelativitySinboundMeltdownBait(BossModule module) : Components.G
 
 class P3UltimateRelativitySinboundMeltdownAOE(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly P3UltimateRelativitySinboundMeltdownBait? _baits = module.FindComponent<P3UltimateRelativitySinboundMeltdownBait>();
+    private readonly P3UltimateRelativity? _rel = module.FindComponent<P3UltimateRelativity>();
     private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shape = new(50, 2.5f);
@@ -283,7 +317,7 @@ class P3UltimateRelativitySinboundMeltdownAOE(BossModule module) : Components.Ge
         switch ((AID)spell.Action.ID)
         {
             case AID.UltimateRelativitySinboundMeltdownAOEFirst:
-                var rot = _baits?.RotationAt(caster.Position) ?? default;
+                var rot = _rel?.LaserRotationAt(caster.Position) ?? default;
                 for (int i = 1; i < 10; ++i)
                     _aoes.Add(new(_shape, caster.Position, spell.Rotation + i * rot, WorldState.FutureTime(i + 1)));
                 break;
@@ -316,6 +350,93 @@ class P3UltimateRelativityDarkBlizzard(BossModule module) : Components.GenericAO
         {
             _source = actor;
             _activation = status.ExpireAt;
+        }
+    }
+}
+
+class P3UltimateRelativityShadoweye(BossModule module) : BossComponent(module)
+{
+    private readonly P3UltimateRelativity? _rel = module.FindComponent<P3UltimateRelativity>();
+    private readonly List<WPos> _eyes = [];
+    private DateTime _activation;
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        var pos = _rel?.States[slot].ReturnPos ?? actor.Position;
+        if (_eyes.Any(eye => eye != pos && HitByEye(pos, actor.Rotation, eye)))
+            hints.Add("Turn away from gaze!");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var pos = _rel?.States[slot].ReturnPos ?? actor.Position;
+        foreach (var eye in _eyes)
+            if (eye != pos)
+                hints.ForbiddenDirections.Add((Angle.FromDirection(eye - pos), 45.Degrees(), _activation));
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        var pos = _rel?.States[pcSlot].ReturnPos ?? pc.Position;
+        Arena.Actor(pos, pc.Rotation, ArenaColor.Object);
+        Arena.AddLine(pos, pc.Position, ArenaColor.Safe);
+        foreach (var eye in _eyes)
+        {
+            if (eye == pos)
+                continue;
+
+            bool danger = HitByEye(pos, pc.Rotation, eye);
+            var eyeCenter = Arena.WorldPositionToScreenPosition(eye);
+            Components.GenericGaze.DrawEye(eyeCenter, danger);
+
+            var (min, max) = (-45, 45);
+            Arena.PathArcTo(pos, 1, (pc.Rotation + min.Degrees()).Rad, (pc.Rotation + max.Degrees()).Rad);
+            Arena.PathStroke(false, ArenaColor.Enemy);
+        }
+    }
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        switch ((SID)status.ID)
+        {
+            case SID.SpellInWaitingShadoweye:
+                var slot = Raid.FindSlot(actor.InstanceID);
+                if (slot >= 0 && _rel != null)
+                    _eyes.Add(_rel.States[slot].ReturnPos);
+                break;
+            case SID.Return:
+                _activation = status.ExpireAt;
+                return;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.UltimateRelativityShadoweye)
+            _eyes.Clear();
+    }
+
+    private bool HitByEye(WPos pos, Angle rot, WPos eye) => rot.ToDirection().Dot((eye - pos).Normalized()) >= 0.707107f; // 45-degree
+}
+
+class P3ShellCrusher(BossModule module) : Components.UniformStackSpread(module, 6, 0, 8, 8, includeDeadTargets: true)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.ShellCrusher)
+        {
+            // note: target is random?..
+            var target = WorldState.Actors.Find(caster.TargetID);
+            if (target != null)
+                AddStack(target, Module.CastFinishAt(spell, 0.4f));
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.ShellCrusherAOE)
+        {
+            Stacks.Clear();
         }
     }
 }

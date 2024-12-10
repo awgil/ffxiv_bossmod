@@ -2,7 +2,7 @@
 
 class P2MirrorMirrorReflectedScytheKickBlue(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.ReflectedScytheKickBlue))
 {
-    private WPos _position;
+    private WDir _blueMirror;
     private AOEInstance? _aoe;
 
     private static readonly AOEShapeDonut _shape = new(4, 20);
@@ -11,20 +11,27 @@ class P2MirrorMirrorReflectedScytheKickBlue(BossModule module) : Components.Gene
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (_position != default)
-            Arena.Actor(_position, Angle.FromDirection(Module.Center - _position), ArenaColor.Object);
+        if (_blueMirror != default)
+        {
+            Arena.Actor(Module.Center + 20 * _blueMirror, Angle.FromDirection(-_blueMirror), ArenaColor.Object);
+            if (_aoe == null)
+            {
+                // draw hint for melees
+                Arena.AddCircle(Module.Center - 11 * _blueMirror, 1, ArenaColor.Safe);
+            }
+        }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.ScytheKick && _position != default)
-            _aoe = new(_shape, _position, default, Module.CastFinishAt(spell));
+        if ((AID)spell.Action.ID == AID.ScytheKick && _blueMirror != default)
+            _aoe = new(_shape, Module.Center + 20 * _blueMirror, default, Module.CastFinishAt(spell));
     }
 
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (index is >= 1 and <= 8 && state == 0x00020001)
-            _position = Module.Center + 20 * (225 - index * 45).Degrees().ToDirection();
+            _blueMirror = (225 - index * 45).Degrees().ToDirection();
     }
 }
 
@@ -41,7 +48,7 @@ class P2MirrorMirrorHouseOfLight(BossModule module) : Components.GenericBaitAway
     private WPos _mirror;
     private readonly List<(Actor source, DateTime activation)> _sources = [];
 
-    private static readonly AOEShapeCone _shape = new(60, 20.Degrees()); // TODO: verify angle
+    private static readonly AOEShapeCone _shape = new(60, 15.Degrees());
 
     public override void Update()
     {

@@ -19,7 +19,7 @@ class P2DiamondDustHouseOfLight(BossModule module) : Components.GenericBaitAway(
     private Actor? _source;
     private DateTime _activation;
 
-    private static readonly AOEShapeCone _shape = new(60, 20.Degrees()); // TODO: verify angle
+    private static readonly AOEShapeCone _shape = new(60, 15.Degrees());
 
     public override void Update()
     {

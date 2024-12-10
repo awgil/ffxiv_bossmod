@@ -25,6 +25,7 @@ public enum OID : uint
 
     BossP3 = 0x45A7, // R7.040, x0 (spawn during fight)
     DelightsHourglass = 0x45A8, // R1.000, x0 (spawn during fight)
+    ApocalypseLight = 0x1EB0FF, // R0.500, x0 (spawn during fight), EventObj type
 }
 
 public enum AID : uint
@@ -103,7 +104,7 @@ public enum AID : uint
     DiamondDust = 40197, // BossP2->self, 5.0s cast, range 40 circle, raidwide
     AxeKick = 40202, // OraclesReflection->self, 6.0s cast, range 16 circle
     ScytheKick = 40203, // OraclesReflection/BossP2->self, 6.0s cast, range 4-20 donut
-    HouseOfLight = 40206, // Helper->self, no cast, range 60 ?-degree cone, baited on 4 closest
+    HouseOfLight = 40206, // Helper->self, no cast, range 60 30-degree cone, baited on 4 closest
     FrigidStone = 40199, // Helper->location, no cast, range 5 circle, baited on icons
     IcicleImpact = 40198, // Helper->location, 9.0s cast, range 10 circle, circles at cardinals/intercardinals
     FrigidNeedleCircle = 40200, // Helper->self, 5.0s cast, range 5 circle
@@ -154,6 +155,7 @@ public enum AID : uint
     // P3
     Junction = 40226, // Helper->self, no cast, range 40 circle, raidwide
     HellsJudgment = 40265, // BossP3->self, 4.0s cast, range 100 circle, maxhp-1 raidwide
+    AutoAttackP3 = 40264, // BossP3->player, no cast, single-target
     TeleportP3 = 40117, // BossP3->location, no cast, single-target
 
     UltimateRelativity = 40266, // BossP3->self, 10.0s cast, range 100 circle, raidwide + mechanic start
@@ -166,6 +168,26 @@ public enum AID : uint
     UltimateRelativitySinboundMeltdownAOEFirst = 40235, // Helper->self, no cast, range 60 width 5 rect
     UltimateRelativitySinboundMeltdownAOERest = 40292, // Helper->self, no cast, range 50 width 5 rect
     UltimateRelativityDarkBlizzard = 40279, // Helper->player, no cast, range ?-12 donut
+    UltimateRelativityShadoweye = 40278, // Helper->self, no cast, gaze
+    DarkEruption = 40274, // Helper->player, no cast, range 6 circle
+    DarkWater = 40271, // Helper->players, no cast, range 6 circle, 4-man stack
+    ShellCrusher = 40286, // BossP3->self, 3.0s cast, single-target, visual (stack)
+    ShellCrusherAOE = 40287, // BossP3->players, no cast, range 6 circle stack
+
+    ShockwavePulsar = 40282, // BossP3->self, 5.0s cast, range 40 circle, raidwide
+    BlackHalo = 40290, // BossP3->self/player, 5.0s cast, range 60 ?-degree cone, shared tankbuster
+
+    SpellInWaitingRefrain = 40269, // BossP3->self, 2.0s cast, single-target, visual (next dark water is staggered)
+    ApocalypseDarkWater = 40270, // BossP3->self, 5.0s cast, single-target, visual (apply staggered stacks)
+    ApocalypseDarkWaterVisual = 40272, // Helper->player, no cast, single-target, visual (player stacks)
+    Apocalypse = 40296, // BossP3->self, 4.0s cast, single-target, visual (exploding lights)
+    ApocalypseAOE = 40297, // Helper->self, no cast, range 9 circle
+    SpiritTaker = 40288, // BossP3->self, 3.0s cast, single-target, visual (jump on random target)
+    SpiritTakerAOE = 40289, // BossP3->player, no cast, range 5 circle, jump on random target, knockback 40 on everyone else in aoe
+    ApocalypseDarkEruption = 40273, // BossP3->self, 4.0+1.0s cast, single-target, visual (spread)
+    DarkestDance = 40181, // BossP3->self, 5.0s cast, single-target, visual (baited tankbuster)
+    DarkestDanceBait = 40182, // BossP3->players, no cast, range 8 circle, baited tankbuster
+    DarkestDanceKnockback = 40183, // BossP3->self, no cast, range 40 circle, ???
 }
 
 public enum SID : uint
@@ -188,6 +210,10 @@ public enum SID : uint
     SpellInWaitingDarkBlizzard = 2462, // none->player, extra=0x0, donut
     SpellInWaitingReturn = 2464, // none->player, extra=0x0
     DelightsHourglassRotation = 2970, // none->DelightsHourglass, extra=0x10D (ccw)/0x15C (cw)
+    Return = 2452, // none->player, extra=0x0
+    Stun = 4163, // none->player, extra=0x0
+    //SpellInWaitingRefrain = 4373, // BossP3->BossP3, extra=0x0
+    //_Gen_ = 2458, // none->player, extra=0x0
 }
 
 public enum IconID : uint
@@ -196,6 +222,10 @@ public enum IconID : uint
     FrigidStone = 345, // player->self
     HallowedRay = 525, // BossP2->player
     LuminousHammer = 375, // player->self
+    BlackHalo = 259, // player->self
+    DelayedDarkWater = 62, // player->self
+    DarkWater = 184, // player->self
+    DarkEruption = 139, // player->self
 }
 
 public enum TetherID : uint

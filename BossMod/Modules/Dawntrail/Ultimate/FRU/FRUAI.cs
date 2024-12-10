@@ -47,9 +47,9 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
 
     private WPos DragToCenterPosition(FRU module)
     {
-        if (module.PrimaryActor.Position.Z >= 100)
+        if (module.PrimaryActor.Position.Z >= module.Center.Z - 1)
             return module.Center - new WDir(0, 6); // boss is positioned, go to N clockspot
-        var dragSpot = module.Center + new WDir(0, 7.5f); // we need to stay approx here, it's fine to overshoot a little bit - then when boss teleports, it won't turn
+        var dragSpot = module.Center + new WDir(0, 7.75f); // we need to stay approx here, it's fine to overshoot a little bit - then when boss teleports, it won't turn
         var meleeSpot = ClosestInMelee(dragSpot, module.PrimaryActor);
         return UptimeDowntimePos(dragSpot, meleeSpot, 0, GCD);
     }
