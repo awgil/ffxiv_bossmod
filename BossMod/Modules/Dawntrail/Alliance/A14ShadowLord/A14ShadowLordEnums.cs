@@ -66,15 +66,21 @@ public enum AID : uint
     BindingSigilPreview = 41513, // Helper->self, 1.5s cast, range 9 circle, visual
     SoulBinding = 41514, // Helper->self, 1.0s cast, range 9 circle, apply debuff
     SoulBindingBurst = 41531, // Helper->self, no cast, vuln on debuffed people
-    DamningStrikes = 40791, // Boss->self, 8.0s cast, single-target, visual (towers)
+    DamningStrikes1 = 40791, // Boss->self, 8.0s cast, single-target, visual (towers)
+    DamningStrikes2 = 41054, // Boss->self, 8.7s cast, single-target, visual (towers, much more rare, ??? difference)
     DamningStrikesGrab = 41530, // Helper->player, no cast, single-target, grab target
-    DamningStrikesTeleport1 = 41816, // Boss->location, no cast, single-target, teleport before first hit
-    DamningStrikesTeleport2 = 41815, // Boss->location, no cast, single-target, teleport before second & third hits
-    DamningStrikesVisual1 = 42052, // Boss->self, no cast, single-target, visual before first and second hits
-    DamningStrikesVisual2 = 40793, // Boss->self, no cast, single-target, visual before third hit
+    DamningStrikesTeleport1 = 40794, // Boss->location, no cast, single-target, teleport before hit
+    DamningStrikesTeleport2 = 41815, // Boss->location, no cast, single-target, teleport before hit
+    DamningStrikesTeleport3 = 41816, // Boss->location, no cast, single-target, teleport before hit
+    DamningStrikesTeleport4 = 42054, // Boss->location, no cast, single-target, teleport before hit
+    DamningStrikesTeleport5 = 42055, // Boss->location, no cast, single-target, teleport before hit
+    DamningStrikesVisual1 = 40793, // Boss->self, no cast, single-target, visual before hit
+    DamningStrikesVisual2 = 42052, // Boss->self, no cast, single-target, visual before hit
+    DamningStrikesVisual3 = 42053, // Boss->self, no cast, single-target, visual before hit
     DamningStrikesImpact1 = 40792, // Helper->self, 10.5s cast, range 3 circle, tower 1
     DamningStrikesImpact2 = 41110, // Helper->self, 13.0s cast, range 3 circle, tower 2
     DamningStrikesImpact3 = 41111, // Helper->self, 15.7s cast, range 3 circle, tower 3
+    DamningStrikesShockwave = 41112, // Helper->self, no cast, range 100 circle, raidwide with dot if tower is not soaked
     DoomArc = 40806, // Boss->self, 15.0s cast, range 100 circle, raidwide with bleed + damage up
 }
 
