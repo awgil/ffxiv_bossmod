@@ -202,7 +202,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
 
     private void AutoMit()
     {
-        if (EnemiesAutoingMe.Count() > 1)
+        if (EnemiesAutoingMe.Any())
         {
             if (HPRatio() < 0.8)
             {

@@ -34,12 +34,19 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var potAction = default(ActionID);
+        ActionID regenAction = default;
+        ActionID potAction = default;
 
         if (PalaceCFCs.Contains(World.CurrentCFCID))
-            potAction = ActionDefinitions.IDSustainingPotion;
+        {
+            regenAction = ActionDefinitions.IDSustainingPotion;
+            potAction = ActionDefinitions.IDMaxPotion;
+        }
 
-        if (potAction != default && ShouldPotion(strategy))
+        if (regenAction != default && ShouldPotion(strategy))
+            Hints.ActionsToExecute.Push(regenAction, Player, ActionQueue.Priority.Medium);
+
+        if (potAction != default && PredictedHPRatio(Player) <= 0.3f)
             Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.Medium);
 
         foreach (var h in Hints.PriorityTargets)
@@ -49,7 +56,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
     private bool ShouldPotion(StrategyValues strategy)
     {
-        var use = Player.HPMP.CurHP <= Player.HPMP.MaxHP * 0.8f && Player.FindStatus(648) == null && Player.InCombat;
+        var use = PredictedHPRatio(Player) < 0.8f && Player.FindStatus(648) == null && Player.InCombat;
         return use && strategy.Option(Track.Potion).As<PotionStrategy>() switch
         {
             PotionStrategy.Always => true,
