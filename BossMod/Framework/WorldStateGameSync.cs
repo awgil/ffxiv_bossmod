@@ -670,6 +670,8 @@ sealed class WorldStateGameSync : IDisposable
             ReturnProgress = dd->ReturnProgress,
             PassageProgress = dd->PassageProgress,
 
+            RevealedRooms = new sbyte[25],
+
             PartyInfo = new DeepDungeonState.PartyMember[4],
             Items = new(new DeepDungeonState.Item[16]),
             ChestInfo = new DeepDungeonState.Chest[16]
@@ -699,6 +701,13 @@ sealed class WorldStateGameSync : IDisposable
             pchest.ChestType = ddChest[i].ChestType;
             pchest.RoomIndex = ddChest[i].RoomIndex;
         }
+
+        Array.Fill<sbyte>(state.RevealedRooms, -1);
+
+        var mapAgent = AgentDeepDungeonMap.Instance();
+        if (mapAgent != null)
+            for (var i = 0; i < mapAgent->Data->RoomIndex.Length; i++)
+                state.RevealedRooms[i] = mapAgent->Data->RoomIndex[i];
 
         return state;
     }

@@ -1946,8 +1946,8 @@
       "MaxBoundsZ": -147,
       "OriginX": 171.5,
       "OriginZ": -429,
-      "ViewWidth": 60,
-      "ViewHeight": 60,
+      "ViewWidth": 100,
+      "ViewHeight": 100,
       "Filename": "595.206.1.bmp"
     },
     {
@@ -1959,8 +1959,8 @@
       "MaxBoundsZ": 445,
       "OriginX": -433,
       "OriginZ": 163,
-      "ViewWidth": 60,
-      "ViewHeight": 60,
+      "ViewWidth": 100,
+      "ViewHeight": 100,
       "Filename": "595.206.2.bmp"
     }
   ],

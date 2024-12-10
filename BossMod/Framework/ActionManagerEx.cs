@@ -102,6 +102,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
     public void Dispose()
     {
         _processPacketActionEffectHook.Dispose();
+        _usePomanderHook.Dispose();
         _useBozjaFromHolsterDirectorHook.Dispose();
         _useActionLocationHook.Dispose();
         _useActionHook.Dispose();
