@@ -1,10 +1,15 @@
-﻿namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.FloorModule;
+﻿using System.Data.SQLite;
+using System.IO;
+
+namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.FloorModule;
 
 [ConfigDisplay(Name = "Palace of the Dead", Parent = typeof(HeavenswardConfig))]
 class PotDConfig : ConfigNode
 {
     [PropertyDisplay("Enable module")]
     public bool Enable = true;
+    [PropertyDisplay("Try to avoid traps")]
+    public bool TrapHints = true;
     [PropertyDisplay("Automatically navigate to Cairn of Passage")]
     public bool AutoPassage = true;
     [PropertyDisplay("Automatically target mobs until Passage is open")]
@@ -29,8 +34,11 @@ public abstract class PalaceFloorModule : ZoneModule
 
     private readonly PotDConfig _config = Service.Config.Get<PotDConfig>();
     private readonly EventSubscriptions _subscriptions;
+    private readonly List<WPos> _trapsCurrentZone = [];
+
     private readonly Dictionary<ulong, PomanderID> _chestContents = [];
     private PomanderID? _lastChestContents;
+    private bool _showTrapHints = true;
 
     private DeepDungeonState Palace => World.Client.DeepDungeonState;
 
@@ -39,6 +47,8 @@ public abstract class PalaceFloorModule : ZoneModule
         _subscriptions = new(
             ws.Network.ServerIPCReceived.Subscribe(OnServerIPC)
         );
+
+        _trapsCurrentZone = PalacePalInterop.GetTrapLocationsForZone(ws.CurrentZone);
     }
 
     protected override void Dispose(bool disposing)
@@ -61,6 +71,10 @@ public abstract class PalaceFloorModule : ZoneModule
                 case 7248: // transference initiated
                     ClearState();
                     break;
+                case 7255: // safety used
+                case 7256: // sight used
+                    _showTrapHints = false;
+                    break;
             }
         }
     }
@@ -68,6 +82,7 @@ public abstract class PalaceFloorModule : ZoneModule
     private void ClearState()
     {
         _lastChestContents = null;
+        _showTrapHints = true;
         _chestContents.Clear();
     }
 
@@ -77,13 +92,23 @@ public abstract class PalaceFloorModule : ZoneModule
 
     // public override bool WantToBeDrawn() => true;
 
-    // public override List<string> CalculateGlobalHints() => [$"Chests to skip: {string.Join(", ", _skipChests)}"];
+    // public override List<string> CalculateGlobalHints() => [$"Number of traps in current zone: {_trapsCurrentZone.Count}"];
 
     private bool CanAutoUse(PomanderID p) => p is PomanderID.Steel or PomanderID.Strength or PomanderID.Sight;
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
-        if (!_config.Enable || player.InCombat || player.IsTransformed || Palace.Floor % 10 == 0 || player.Statuses.Any(s => s.ID is 7 or 620))
+        if (!_config.Enable)
+            return;
+
+        if (_config.TrapHints && _showTrapHints)
+        {
+            var traps = _trapsCurrentZone.Where(t => hints.PathfindMapBounds.Contains(t - hints.PathfindMapCenter)).Select(t => ShapeDistance.Circle(t, 2)).ToList();
+            if (traps.Count > 0)
+                hints.AddForbiddenZone(ShapeDistance.Union(traps));
+        }
+
+        if (player.InCombat || player.IsTransformed || Palace.Floor % 10 == 0 || player.Statuses.Any(s => s.ID is 7 or 620))
             return;
 
         Actor? coffer = null;
@@ -213,3 +238,36 @@ public class Palace170(WorldState ws) : PalaceFloorModule(ws);
 public class Palace180(WorldState ws) : PalaceFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 217)]
 public class Palace190(WorldState ws) : PalaceFloorModule(ws);
+
+static class PalacePalInterop
+{
+    private static readonly string PalacePalDbFile = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs", "PalacePal", "palace-pal.data.sqlite3");
+
+    public static List<WPos> GetTrapLocationsForZone(uint zone)
+    {
+        List<WPos> locations = [];
+
+        using (var connection = new SQLiteConnection($"Data Source={PalacePalDbFile}"))
+        {
+            connection.Open();
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                select X,Z from Locations where Type = 1 and TerritoryType = $tt
+            ";
+            command.Parameters.AddWithValue("$tt", zone);
+
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    var x = reader.GetFloat(0);
+                    var z = reader.GetFloat(1);
+                    locations.Add(new(x, z));
+                }
+            }
+        }
+
+        return locations;
+    }
+}
