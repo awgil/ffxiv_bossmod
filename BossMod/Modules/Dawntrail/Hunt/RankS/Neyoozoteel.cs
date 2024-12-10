@@ -14,11 +14,14 @@ public enum AID : uint
     WhirlingOmenRLB = 37378, // Boss->self, 3.0s cast, single-target, visual (apply omens: right-left-back)
     WhirlingOmenLBL = 37379, // Boss->self, 3.0s cast, single-target, visual (apply omens: left-back-left)
     SapSpiller = 37397, // Boss->self, 12.0s cast, single-target, visual (consume omens, cast instant saps)
-    NoxiousSapRear = 37394, // Boss->self, no cast, range 30 120-degree cone (consume rear)
-    NoxiousSapRight1 = 37395, // Boss->self, no cast, range 30 120-degree cone (consume first right)
-    NoxiousSapLeft1 = 37396, // Boss->self, no cast, range 30 120-degree cone (consume first left)
-    NoxiousSapRight2 = 37370, // Boss->self, no cast, range 30 120-degree cone (consume second right)
-    NoxiousSapLeft2 = 37371, // Boss->self, no cast, range 30 120-degree cone (consume second left)
+    NoxiousSapRear = 37394, // Boss->self, no cast, range 30 120-degree cone (consume rear?)
+    NoxiousSapRight1 = 37395, // Boss->self, no cast, range 30 120-degree cone (consume first right?)
+    NoxiousSapLeft1 = 37396, // Boss->self, no cast, range 30 120-degree cone (consume first left?)
+    NoxiousSapRight2 = 37370, // Boss->self, no cast, range 30 120-degree cone (consume second right?)
+    NoxiousSapLeft2 = 37371, // Boss->self, no cast, range 30 120-degree cone (consume second left?)
+    NoxiousSapNew1 = 42172, // Boss->self, no cast, range 30 120-degree cone (???)
+    NoxiousSapNew2 = 42173, // Boss->self, no cast, range 30 120-degree cone (consume back in RLB?)
+    NoxiousSapNew3 = 42174, // Boss->self, no cast, range 30 120-degree cone (???)
     Neurotoxify = 38331, // Boss->self, 5.0s cast, range 40 circle, raidwide + apply delayed stun
     Cocopult = 37307, // Boss->players, 5.0s cast, range 5 circle stack
     RavagingRootsCW = 37373, // Boss->self, 5.0s cast, range 30 width 6 cross
@@ -97,7 +100,7 @@ class SapSpiller(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.NoxiousSapRear or AID.NoxiousSapRight1 or AID.NoxiousSapLeft1 or AID.NoxiousSapRight2 or AID.NoxiousSapLeft2 && _nextAOE != null)
+        if ((AID)spell.Action.ID is AID.NoxiousSapRear or AID.NoxiousSapRight1 or AID.NoxiousSapLeft1 or AID.NoxiousSapRight2 or AID.NoxiousSapLeft2 or AID.NoxiousSapNew1 or AID.NoxiousSapNew2 or AID.NoxiousSapNew3 && _nextAOE != null)
         {
             if (!_nextAOE.Value.Rotation.AlmostEqual(spell.Rotation, 0.1f))
                 ReportError($"Unexpected rotation: got {spell.Rotation}, expected {_nextAOE.Value.Rotation}");
