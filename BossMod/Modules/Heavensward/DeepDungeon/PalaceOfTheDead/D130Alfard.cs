@@ -43,6 +43,14 @@ class Hints(BossModule module) : BossComponent(module)
         if (NumCasts >= 4)
             hints.Add($"Run to the middle of the arena! \n{Module.PrimaryActor.Name} is about to cast a donut AOE!");
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (NumCasts < 4)
+            hints.AddForbiddenZone(new AOEShapeCircle(11), Arena.Center, activation: WorldState.FutureTime(10f));
+        else
+            hints.AddForbiddenZone(new AOEShapeDonut(5, 50), Arena.Center, activation: WorldState.FutureTime(10f));
+    }
 }
 
 class D130AlfardStates : StateMachineBuilder

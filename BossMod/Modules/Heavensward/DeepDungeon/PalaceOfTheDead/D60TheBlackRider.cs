@@ -13,15 +13,14 @@ public enum AID : uint
     AutoAttack = 7179, // Boss->player, no cast, range 8+R 90-degree cone
     Geirrothr = 7087, // Boss->self, no cast, range 6+R 90-degree cone, 5.1s after pull, 7.1s after Valfodr + 8.1s after every 2nd HallofSorrow
     HallOfSorrow = 7088, // Boss->location, no cast, range 9 circle
-    Infaturation = 7157, // VoidsentDiscarnate->self, 6.5s cast, range 6+R circle
+    Infatuation = 7157, // VoidsentDiscarnate->self, 6.5s cast, range 6+R circle
     Valfodr = 7089, // Boss->player, 4.0s cast, width 6 rect charge, knockback 25, dir forward
 }
 
 class CleaveAuto(BossModule module) : Components.Cleave(module, default, new AOEShapeCone(11.92f, 45.Degrees()), activeWhileCasting: false);
-class Infatuation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Infaturation), new AOEShapeCircle(7));
+class Infatuation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Infatuation), new AOEShapeCircle(7));
 class HallOfSorrow(BossModule module) : Components.PersistentVoidzone(module, 9, m => m.Enemies(OID.Voidzone).Where(z => z.EventState != 7));
 class Valfodr(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.Valfodr), 3);
-
 class ValfodrKB(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.Valfodr), stopAtWall: true) // note actual knockback is delayed by upto 1.2s in replay
 {
     private int _target;
