@@ -150,9 +150,8 @@ public sealed class Bitmap
         Pixels = new byte[height * BytesPerRow];
     }
 
-    public Bitmap(string filename)
+    public Bitmap(Stream fstream, string filename = "<none>")
     {
-        using var fstream = File.OpenRead(filename);
         using var reader = new BinaryReader(fstream);
         var fileHeader = fstream.ReadStruct<FileHeader>();
         if (fileHeader.Type != Magic)
@@ -182,6 +181,8 @@ public sealed class Bitmap
         Color1 = Color.FromARGB(reader.ReadUInt32());
         Pixels = reader.ReadBytes(Height * BytesPerRow);
     }
+
+    public Bitmap(string filename) : this(File.OpenRead(filename), filename) { }
 
     public void Save(string filename)
     {
