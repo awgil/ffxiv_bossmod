@@ -89,7 +89,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         Health.Update(Hints);
 
-        if (strategy.Enabled(Track.StayNearParty))
+        if (strategy.Enabled(Track.StayNearParty) && Player.InCombat)
         {
             List<(WPos pos, float radius)> allies = [.. LightParty.Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
             Hints.GoalZones.Add(p => allies.Count(a => a.pos.InCircle(p, a.radius + Player.HitboxRadius + 15)));
