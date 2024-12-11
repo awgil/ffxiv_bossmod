@@ -92,4 +92,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <EmbeddedResource Include="Pathfinding\ObstacleMaps\maplist.json" />
+    <EmbeddedResource Include="Pathfinding\ObstacleMaps\*.bmp" />
+  </ItemGroup>
 </Project>
