@@ -150,28 +150,28 @@ public sealed class Bitmap
         Pixels = new byte[height * BytesPerRow];
     }
 
-    public Bitmap(Stream fstream, string filename = "<none>")
+    public Bitmap(Stream stream)
     {
-        using var reader = new BinaryReader(fstream);
-        var fileHeader = fstream.ReadStruct<FileHeader>();
+        using var reader = new BinaryReader(stream);
+        var fileHeader = stream.ReadStruct<FileHeader>();
         if (fileHeader.Type != Magic)
-            throw new ArgumentException($"File '{filename}' is not a bitmap: magic is {fileHeader.Type:X4}");
+            throw new ArgumentException($"Not a bitmap: magic is {fileHeader.Type:X4}");
 
-        var header = fstream.ReadStruct<BitmapInfoHeader>();
+        var header = stream.ReadStruct<BitmapInfoHeader>();
         if (header.SizeInBytes != Marshal.SizeOf<BitmapInfoHeader>())
-            throw new ArgumentException($"Bitmap '{filename}' has unsupported header size {header.SizeInBytes}");
+            throw new ArgumentException($"Bitmap has unsupported header size {header.SizeInBytes}");
         if (header.Width <= 0)
-            throw new ArgumentException($"Bitmap '{filename}' has non-positive width {header.Width}");
+            throw new ArgumentException($"Bitmap has non-positive width {header.Width}");
         if (header.Height >= 0)
-            throw new ArgumentException($"Bitmap '{filename}' is not top-down (height={header.Height})");
+            throw new ArgumentException($"Bitmap is not top-down (height={header.Height})");
         if (header.BitCount != 1)
-            throw new ArgumentException($"Bitmap '{filename}' is not 1bpp (bitcount={header.BitCount})");
+            throw new ArgumentException($"Bitmap is not 1bpp (bitcount={header.BitCount})");
         if (header.Compression != 0)
-            throw new ArgumentException($"Bitmap '{filename}' has unsupported compression method {header.Compression:X8}");
+            throw new ArgumentException($"Bitmap has unsupported compression method {header.Compression:X8}");
         if (header.XPixelsPerMeter != header.YPixelsPerMeter || header.XPixelsPerMeter <= 0)
-            throw new ArgumentException($"Bitmap '{filename}' has inconsistent or non-positive resolution {header.XPixelsPerMeter}x{header.YPixelsPerMeter}");
+            throw new ArgumentException($"Bitmap has inconsistent or non-positive resolution {header.XPixelsPerMeter}x{header.YPixelsPerMeter}");
         if (header.ColorUsedCount is not 0 or 2)
-            throw new ArgumentException($"Bitmap '{filename}' has wrong palette size {header.ColorUsedCount}");
+            throw new ArgumentException($"Bitmap has wrong palette size {header.ColorUsedCount}");
 
         Width = header.Width;
         Height = -header.Height;
@@ -181,8 +181,6 @@ public sealed class Bitmap
         Color1 = Color.FromARGB(reader.ReadUInt32());
         Pixels = reader.ReadBytes(Height * BytesPerRow);
     }
-
-    public Bitmap(string filename) : this(File.OpenRead(filename), filename) { }
 
     public void Save(string filename)
     {

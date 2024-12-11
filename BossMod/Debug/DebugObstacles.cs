@@ -51,7 +51,8 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
             ImGui.SameLine();
             if (ImGui.Button("Reload"))
             {
-                CheckpointNoClone(new(owner.Obstacles.RootPath + e.Filename));
+                using var stream = File.OpenRead(owner.Obstacles.RootPath + e.Filename);
+                CheckpointNoClone(new(stream));
             }
 
             ImGui.SetNextItemWidth(100);
@@ -162,6 +163,7 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
     private void DrawEntries(List<ObstacleMapDatabase.Entry> entries)
     {
         Action? modifications = null;
+        using var disableScope = ImRaii.Disabled(!Obstacles.CanEditDatabase());
         for (int i = 0; i < entries.Count; ++i)
         {
             using var id = ImRaii.PushId(i);
@@ -174,9 +176,8 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
                 if (ImGui.Button("Move down"))
                     modifications += () => (entries[index], entries[index + 1]) = (entries[index + 1], entries[index]);
             ImGui.SameLine();
-            using (ImRaii.Disabled(!Obstacles.CanEditDatabase()))
-                if (ImGui.Button("Delete"))
-                    modifications += () => DeleteMap(entries, index);
+            if (ImGui.Button("Delete"))
+                modifications += () => DeleteMap(entries, index);
             ImGui.SameLine();
             if (ImGui.Button("Edit"))
                 OpenEditor(entries[index]);
@@ -230,7 +231,8 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
 
     private void OpenEditor(ObstacleMapDatabase.Entry entry)
     {
-        var editor = new Editor(this, new(Obstacles.RootPath + entry.Filename), entry);
+        using var stream = File.OpenRead(Obstacles.RootPath + entry.Filename);
+        var editor = new Editor(this, new(stream), entry);
         _ = new UISimpleWindow($"Obstacle map {entry.Filename}", editor.Draw, true, new(1000, 1000));
     }
 }

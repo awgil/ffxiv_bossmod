@@ -94,7 +94,6 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <EmbeddedResource Include="Pathfinding\ObstacleMaps\maplist.json" />
-    <EmbeddedResource Include="Pathfinding\ObstacleMaps\*.bmp" />
+    <EmbeddedResource Include="Pathfinding\ObstacleMaps\*" />
   </ItemGroup>
 </Project>

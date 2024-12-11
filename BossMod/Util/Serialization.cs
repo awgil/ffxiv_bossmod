@@ -26,9 +26,10 @@ public static class Serialization
     public static JsonDocument ReadJson(string path)
     {
         using var fstream = File.OpenRead(path);
-        return JsonDocument.Parse(fstream, new JsonDocumentOptions() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip });
+        return ReadJson(fstream);
     }
 
+    public static JsonDocument ReadJson(Stream stream) => JsonDocument.Parse(stream, new JsonDocumentOptions() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip });
     public static Utf8JsonWriter WriteJson(Stream fstream, bool indented = true) => new(fstream, new JsonWriterOptions() { Indented = indented });
 
     public static unsafe T ReadStruct<T>(this Stream stream) where T : unmanaged
