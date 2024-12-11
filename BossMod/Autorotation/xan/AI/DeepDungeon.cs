@@ -20,7 +20,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             .AddOption(PotionStrategy.Disabled, "Do not use")
             .AddOption(PotionStrategy.Always, "Use below 80% HP if status is not present")
             .AddOption(PotionStrategy.Boss, "Use during boss fights")
-            .AddOption(PotionStrategy.BossOrHigh, "Use during boss fights, or above floor 100");
+            .AddOption(PotionStrategy.BossOrHigh, "Use during boss fights, or above floor 140");
 
         return def;
     }
@@ -46,7 +46,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         if (regenAction != default && ShouldPotion(strategy))
             Hints.ActionsToExecute.Push(regenAction, Player, ActionQueue.Priority.Medium);
 
-        if (potAction != default && PredictedHPRatio(Player) <= 0.3f)
+        if (potAction != default && HPRatio() <= 0.3f)
             Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.Medium);
 
         foreach (var h in Hints.PriorityTargets)
@@ -56,7 +56,8 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
     private bool ShouldPotion(StrategyValues strategy)
     {
-        var use = PredictedHPRatio(Player) < 0.8f && Player.FindStatus(648) == null && Player.InCombat;
+        var ratio = Player.ClassCategory is ClassCategory.Tank ? 0.6f : 0.8f;
+        var use = PredictedHPRatio(Player) < ratio && Player.FindStatus(648) == null && Player.InCombat;
         return use && strategy.Option(Track.Potion).As<PotionStrategy>() switch
         {
             PotionStrategy.Always => true,

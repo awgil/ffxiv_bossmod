@@ -514,6 +514,9 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe void UpdatePartyNPCs()
     {
+        if (_ws.CurrentCFCID == 0)
+            return;
+
         for (int i = PartyState.MaxAllianceSize; i < PartyState.MaxAllies; ++i)
         {
             ref var m = ref _ws.Party.Members[i];

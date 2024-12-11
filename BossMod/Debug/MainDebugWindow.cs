@@ -3,11 +3,10 @@ using BossMod.Autorotation.xan.AI;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using FFXIVClientStructs.FFXIV.Client.Game.Event;
+using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 
 namespace BossMod;
@@ -29,23 +28,16 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly TrackPartyHealth PartyHealth = new(ws);
     //private readonly DebugVfx _debugVfx = new();
 
-    private unsafe delegate void DeepDungeonVf363(void* self, int a2, uint a3, uint a4, int a5);
+    // private unsafe delegate void DeepDungeonVf363(void* self, int a2, uint a3, uint a4, int a5);
+    private unsafe delegate bool DoLayoutDelegate(InstanceContentDeepDungeon* thisPtr, ulong a2, byte* a3);
 
-    private HookAddress<AgentDeepDungeonStatus.Delegates.ReceiveEvent> _receiveEventHook = null!;
-    private HookAddress<EventFramework.Delegates.CheckInteractRange> _checkInteractHook = null!;
+    private HookAddress<DoLayoutDelegate> _doLayoutHook = null!;
 
-    private unsafe bool CheckInteractDetour(EventFramework* thisPtr, GameObject* source, GameObject* target, byte interactionType, bool logErrorsToUser)
+    private unsafe bool DoLayoutDetour(InstanceContentDeepDungeon* thisPtr, ulong a2, byte* a3)
     {
-        var result = _checkInteractHook.Original(thisPtr, source, target, interactionType, logErrorsToUser);
-        Service.Log($"CheckInteractRange: {(nint)source} ({source->ObjectKind}) -> {(nint)target} ({target->ObjectKind}) (interact type {interactionType}) (show errors = {logErrorsToUser})");
-        return result;
-    }
-
-    private unsafe AtkValue* ReceiveEventDetour(AgentDeepDungeonStatus* thisPtr, AtkValue* a2, AtkValue* a3, uint a4, ulong a5)
-    {
-        var res = _receiveEventHook.Original(thisPtr, a2, a3, a4, a5);
-        Service.Log($"DeepDungeonStatus receive event({(nint)thisPtr:X}, {a2->Type}, {a3->Type}, {a4}, {a5}) = {(nint)res}");
-        return res;
+        var orig = _doLayoutHook.Original(thisPtr, a2, a3);
+        Service.Log($"{(nint)thisPtr:X} {a2:X} {(nint)a3:X} = {orig}");
+        return orig;
     }
 
     protected override void Dispose(bool disposing)
@@ -59,6 +51,8 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
     public override unsafe void Draw()
     {
+        _doLayoutHook ??= new("E8 ?? ?? ?? ?? 48 81 C3 ?? ?? ?? ?? 48 8D 3D ?? ?? ?? ??", DoLayoutDetour);
+        //_processPacket561Hook ??= new("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 42 06", ProcessPacket561Detour);
         // _checkInteractHook ??= new(EventFramework.Addresses.CheckInteractRange, CheckInteractDetour);
         // _receiveEventHook ??= new("48 89 5C 24 ?? 48 89 74 24 ?? 48 89 7C 24 ?? 41 56 48 83 EC 20 48 8B D9 49 8B F8", ReceiveEventDetour);
 
