@@ -39,17 +39,46 @@ class CthonicFury(BossModule module) : BossComponent(module)
     }
 }
 
-class BurningCourt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BurningCourt), new AOEShapeCircle(8));
-class BurningMoat(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BurningMoat), new AOEShapeDonut(5, 15));
-class BurningKeep(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BurningKeep), new AOEShapeRect(11.5f, 11.5f, 11.5f));
-class BurningBattlements(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BurningBattlements), new AOEShapeCustom(BuildPolygon()))
+class BurningCourtMoatKeepBattlements(BossModule module) : Components.GenericAOEs(module)
 {
-    public static RelSimplifiedComplexPolygon BuildPolygon()
+    public readonly List<AOEInstance> AOEs = [];
+
+    private static readonly AOEShape _shapeC = new AOEShapeCircle(8);
+    private static readonly AOEShape _shapeM = new AOEShapeDonut(5, 15);
+    private static readonly AOEShape _shapeK = new AOEShapeRect(11.5f, 11.5f, 11.5f);
+    private static readonly AOEShape _shapeB = new AOEShapeCustom(BuildBattlementsPolygon());
+
+    private static RelSimplifiedComplexPolygon BuildBattlementsPolygon()
     {
         RelPolygonWithHoles poly = new([.. CurveApprox.Rect(new(100, 0), new(0, 100))]);
         poly.AddHole(CurveApprox.Rect(new(11.5f, 0), new(0, 11.5f)));
         return new([poly]);
     }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        var shape = ShapeForAction(spell.Action);
+        if (shape != null)
+            AOEs.Add(new(shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        var shape = ShapeForAction(spell.Action);
+        if (shape != null)
+            AOEs.RemoveAll(aoe => aoe.Shape == shape && aoe.Origin.AlmostEqual(caster.Position, 1));
+    }
+
+    private AOEShape? ShapeForAction(ActionID aid) => (AID)aid.ID switch
+    {
+        AID.BurningCourt => _shapeC,
+        AID.BurningMoat => _shapeM,
+        AID.BurningKeep => _shapeK,
+        AID.BurningBattlements => _shapeB,
+        _ => null
+    };
 }
 
 class DarkNebula(BossModule module) : Components.Knockback(module)

@@ -9,35 +9,56 @@ class A14ShadowLordStates : StateMachineBuilder
 
     private void SinglePhase(uint id)
     {
-        GigaSlash(id, 10.2f);
-        UmbraSmashGigaSlash(id + 0x10000, 6.5f);
-        FlamesOfHatred(id + 0x20000, 4.1f);
-        Implosion(id + 0x30000, 3.1f);
-        CthonicFury1(id + 0x40000, 3.5f);
-        NightfallTeraSlash(id + 0x50000, 4.8f);
+        // note: this is a very weird fight, if you wipe, it uses a slightly different script (no initial giga slash and slightly different cthonic fury 1)
+        Dictionary<bool, (uint seqID, Action<uint> buildState)> dispatch = new()
+        {
+            [true] = (1, SinglePhaseInitial),
+            [false] = (2, SinglePhaseAfterWipe),
+        };
+        ConditionFork(id, 10.2f, () => Module.PrimaryActor.CastInfo != null || Module.FindComponent<Teleport>()?.NumCasts > 0, () => (AID)(Module.PrimaryActor.CastInfo?.Action.ID ?? 0) is AID.GigaSlashL or AID.GigaSlashR, dispatch, "First mechanic...")
+            .ActivateOnEnter<Teleport>()
+            .DeactivateOnExit<Teleport>();
+    }
 
-        GigaSlashNightfall(id + 0x100000, 12.2f);
-        ShadowSpawnGigaSlashNightfallImplosion(id + 0x110000, 5.4f);
-        UnbridledRage(id + 0x120000, 2.6f);
-        EchoesOfAgony(id + 0x130000, 1.2f, 7);
-        BindingSigil(id + 0x140000, 2.6f);
-        DamningStrikes(id + 0x150000, 3.5f);
-        CthonicFury2(id + 0x160000, 9.1f);
-        ShadowSpawnUmbraSmashGigaSlashNightfall(id + 0x170000, 4.5f);
-        DoomArc(id + 0x180000, 2.9f);
-
-        // TODO: mechanic repeats?..
-        GigaSlashNightfall(id + 0x200000, 10.2f);
-        ShadowSpawnGigaSlashNightfallImplosion(id + 0x210000, 5.4f);
-        UnbridledRage(id + 0x220000, 2.6f); // TODO: never seen this and below...
-        EchoesOfAgony(id + 0x230000, 1.2f, 7);
-        BindingSigil(id + 0x240000, 2.6f);
-        DamningStrikes(id + 0x250000, 3.5f);
-        CthonicFury2(id + 0x260000, 9.1f);
-        ShadowSpawnUmbraSmashGigaSlashNightfall(id + 0x270000, 4.5f);
-        DoomArc(id + 0x280000, 2.9f);
-
+    private void SinglePhaseInitial(uint id)
+    {
+        GigaSlash(id, 0);
+        PhaseInitial(id + 0x100000, 6.5f, true);
+        PhaseRepeats(id + 0x200000, 12.2f);
+        PhaseRepeats(id + 0x300000, 10.2f);
+        PhaseRepeats(id + 0x400000, 10.2f);
         SimpleState(id + 0xFF0000, 10000, "???");
+    }
+
+    private void SinglePhaseAfterWipe(uint id)
+    {
+        PhaseInitial(id + 0x100000, 2.4f, false);
+        PhaseRepeats(id + 0x200000, 12.2f);
+        PhaseRepeats(id + 0x300000, 10.2f);
+        PhaseRepeats(id + 0x400000, 10.2f);
+        SimpleState(id + 0xFF0000, 10000, "???");
+    }
+
+    private void PhaseInitial(uint id, float delay, bool initialPull)
+    {
+        UmbraSmashGigaSlash(id, delay);
+        FlamesOfHatred(id + 0x10000, 4.1f);
+        Implosion(id + 0x20000, 3.2f);
+        CthonicFury1(id + 0x30000, 3.6f, initialPull);
+        NightfallTeraSlash(id + 0x40000, 4.8f);
+    }
+
+    private void PhaseRepeats(uint id, float delay)
+    {
+        GigaSlashNightfall(id, delay);
+        ShadowSpawnGigaSlashNightfallImplosion(id + 0x10000, 5.4f);
+        UnbridledRage(id + 0x20000, 2.6f);
+        EchoesOfAgony(id + 0x30000, 1.2f, 7);
+        BindingSigil(id + 0x40000, 2.6f);
+        DamningStrikes(id + 0x50000, 3.5f);
+        CthonicFury2(id + 0x60000, 9.0f);
+        ShadowSpawnUmbraSmashGigaSlashNightfall(id + 0x70000, 4.6f);
+        DoomArc(id + 0x80000, 3);
     }
 
     private State GigaSlash(uint id, float delay)
@@ -72,18 +93,12 @@ class A14ShadowLordStates : StateMachineBuilder
             .DeactivateOnExit<Implosion>();
     }
 
-    private void BurningCourtMoat(uint id, float delay, bool withRect)
+    private void BurningCourtMoat(uint id, float delay)
     {
-        Condition(id, delay, () => Module.FindComponent<BurningCourt>()?.Casters.Count > 0 || Module.FindComponent<BurningMoat>()?.Casters.Count > 0)
-            .ActivateOnEnter<BurningCourt>()
-            .ActivateOnEnter<BurningMoat>()
-            .ActivateOnEnter<BurningKeep>(withRect)
-            .ActivateOnEnter<BurningBattlements>(withRect);
-        Condition(id + 1, 7, () => Module.FindComponent<BurningCourt>()?.NumCasts > 0 || Module.FindComponent<BurningMoat>()?.NumCasts > 0, "Platform in/out")
-            .DeactivateOnExit<BurningCourt>()
-            .DeactivateOnExit<BurningMoat>()
-            .DeactivateOnExit<BurningKeep>(withRect)
-            .DeactivateOnExit<BurningBattlements>(withRect);
+        ComponentCondition<BurningCourtMoatKeepBattlements>(id, delay, comp => comp.AOEs.Count > 0)
+            .ActivateOnEnter<BurningCourtMoatKeepBattlements>();
+        ComponentCondition<BurningCourtMoatKeepBattlements>(id + 1, 7, comp => comp.AOEs.Count == 0, "Platform in/out")
+            .DeactivateOnExit<BurningCourtMoatKeepBattlements>();
     }
 
     private void EchoesOfAgony(uint id, float delay, int numCasts)
@@ -119,14 +134,22 @@ class A14ShadowLordStates : StateMachineBuilder
             .DeactivateOnExit<DarkNebula>();
     }
 
-    private void CthonicFury1(uint id, float delay)
+    private void CthonicFury1(uint id, float delay, bool initialPull)
     {
         CthonicFuryStart(id, delay);
-        BurningCourtMoat(id + 0x1000, 8.2f, false);
-        BurningCourtMoat(id + 0x2000, 3, false);
-        DarkNebula(id + 0x3000, 6);
-        Implosion(id + 0x4000, 4);
-        BurningCourtMoat(id + 0x5000, 2.2f, true);
+        if (initialPull)
+        {
+            BurningCourtMoat(id + 0x1000, 8.2f);
+            BurningCourtMoat(id + 0x2000, 3.1f);
+            DarkNebula(id + 0x3000, 6);
+        }
+        else
+        {
+            BurningCourtMoat(id + 0x1000, 3.2f);
+            DarkNebula(id + 0x3000, 3);
+        }
+        Implosion(id + 0x4000, 4.1f);
+        BurningCourtMoat(id + 0x5000, 2.2f);
         EchoesOfAgony(id + 0x6000, 4, 5);
         CthonicFuryEnd(id + 0x7000, 1.7f);
     }
@@ -189,7 +212,7 @@ class A14ShadowLordStates : StateMachineBuilder
     {
         Cast(id, AID.BindingSigil, delay, 12)
             .ActivateOnEnter<BindingSigil>();
-        ComponentCondition<BindingSigil>(id + 2, 2.2f, comp => comp.NumCasts > 0, "Puddles 1"); // 8 or 9
+        ComponentCondition<BindingSigil>(id + 2, 2.1f, comp => comp.NumCasts > 0, "Puddles 1"); // 8 or 9
         ComponentCondition<BindingSigil>(id + 3, 2.5f, comp => comp.NumCasts > 9, "Puddles 2"); // 16 or 17
         ComponentCondition<BindingSigil>(id + 4, 2.5f, comp => comp.NumCasts > 17, "Puddles 3") // 25
             .DeactivateOnExit<BindingSigil>();
@@ -197,7 +220,7 @@ class A14ShadowLordStates : StateMachineBuilder
 
     private void DamningStrikes(uint id, float delay)
     {
-        Cast(id, AID.DamningStrikes, delay, 8)
+        CastMulti(id, [AID.DamningStrikes1, AID.DamningStrikes2], delay, 8) // note: alt cast is longer by 0.7s, whatever...
             .ActivateOnEnter<DamningStrikes>();
         ComponentCondition<DamningStrikes>(id + 2, 2.5f, comp => comp.NumCasts >= 1, "Tower 1");
         ComponentCondition<DamningStrikes>(id + 3, 2.5f, comp => comp.NumCasts >= 2, "Tower 2");
@@ -208,7 +231,7 @@ class A14ShadowLordStates : StateMachineBuilder
     private void DarkNebulaGigaSlashNightfall(uint id, float delay)
     {
         Cast(id, AID.DarkNebula, delay, 3);
-        ComponentCondition<DarkNebula>(id + 0x10, 1.1f, comp => comp.Casters.Count > 0)
+        ComponentCondition<DarkNebula>(id + 0x10, 1.2f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<DarkNebula>();
         ComponentCondition<DarkNebula>(id + 0x20, 13, comp => comp.NumCasts > 0, "Knockback 1");
         ComponentCondition<DarkNebula>(id + 0x21, 3, comp => comp.NumCasts > 1, "Knockback 2");
@@ -228,18 +251,18 @@ class A14ShadowLordStates : StateMachineBuilder
     {
         CthonicFuryStart(id, delay);
         DarkNebulaGigaSlashNightfall(id + 0x1000, 3.2f);
-        BurningCourtMoat(id + 0x2000, 3, true);
+        BurningCourtMoat(id + 0x2000, 3);
         DarkNova(id + 0x3000, 5.4f);
-        CthonicFuryEnd(id + 0x4000, 2);
+        CthonicFuryEnd(id + 0x4000, 2.1f);
     }
 
     private void ShadowSpawnUmbraSmashGigaSlashNightfall(uint id, float delay)
     {
         Cast(id, AID.ShadowSpawn, delay, 3);
-        Cast(id + 0x10, AID.UmbraSmashBoss, 4.1f, 4)
+        Cast(id + 0x10, AID.UmbraSmashBoss, 4.2f, 4)
             .ActivateOnEnter<UmbraSmash>();
         ComponentCondition<UmbraSmash>(id + 0x20, 0.5f, comp => comp.NumCasts > 0, "Exalines");
-        GigaSlashNightfall(id + 0x100, 12)
+        GigaSlashNightfall(id + 0x100, 12.2f)
             .DeactivateOnExit<UmbraSmash>();
     }
 

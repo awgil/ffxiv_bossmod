@@ -42,4 +42,13 @@ public class FRUConfig() : ConfigNode()
     [GroupDetails(["1", "2", "3", "4"])]
     [GroupPreset("HTTH/RMMR", [1, 2, 0, 3, 1, 2, 0, 3])]
     public GroupAssignmentDDSupportPairs P3UltimateRelativityAssignment = GroupAssignmentDDSupportPairs.DefaultMeleeTogether();
+
+    [PropertyDisplay("P3 Apocalypse: assignments (G1 CCW from N, G2 CW from NE, in case of conflict 'lower' number flexes)")]
+    [GroupDetails(["G1 prio1", "G1 prio2", "G1 prio3", "G1 prio4", "G2 prio1", "G2 prio2", "G2 prio3", "G2 prio4"])]
+    [GroupPreset("TTHH/MMRR", [0, 1, 2, 3, 4, 5, 6, 7])]
+    [GroupPreset("TMRH/TMRH", [0, 4, 3, 7, 1, 5, 2, 6])]
+    public GroupAssignmentUnique P3ApocalypseAssignments = GroupAssignmentUnique.DefaultRoles();
+
+    [PropertyDisplay("P3 Apocalypse: uptime swaps (only consider swaps within prio 1/2 and 3/4, assuming these are melee and ranged)")]
+    public bool P3ApocalypseUptime;
 }
