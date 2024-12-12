@@ -50,6 +50,7 @@ public sealed class AIHintsBuilder : IDisposable
             }
             else
             {
+                _zmm.ActiveModule?.BeforeCalculateAIHints(playerSlot, player, hints);
                 CalculateAutoHints(hints, player);
                 _zmm.ActiveModule?.CalculateAIHints(playerSlot, player, hints);
             }
@@ -109,6 +110,9 @@ public sealed class AIHintsBuilder : IDisposable
 
         foreach (var aoe in _activeAOEs.Values)
         {
+            if (aoe.Target == player || hints.HintedActions.Contains(aoe.Caster.CastInfo!.Action))
+                continue;
+
             var target = aoe.Target == aoe.Caster ? aoe.Caster.CastInfo!.LocXZ : (aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ);
             var rot = aoe.Caster.CastInfo!.Rotation;
             var finishAt = _ws.FutureTime(aoe.Caster.CastInfo.NPCRemainingTime);

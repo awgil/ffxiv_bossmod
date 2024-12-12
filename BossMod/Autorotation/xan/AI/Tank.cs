@@ -217,6 +217,10 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
                 UseOneMit(1);
         }
 
+        // TODO figure out how consistent this is or if we should use predictively instead
+        if (PendingHP(Player) <= 0)
+            Hints.ActionsToExecute.Push(JobActions.Invuln.ID, Player, ActionQueue.Priority.VeryHigh);
+
         foreach (var t in Tankbusters)
             if (t.Item1 == Player)
                 UseOneMit((float)(t.Item2 - World.CurrentTime).TotalSeconds);

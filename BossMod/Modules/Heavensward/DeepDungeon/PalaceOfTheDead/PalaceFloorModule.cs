@@ -1,5 +1,6 @@
 ﻿using System.Data.SQLite;
 using System.IO;
+using System.Text;
 
 namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.FloorModule;
 
@@ -28,6 +29,30 @@ class PotDConfig : ConfigNode
     public bool BronzeCoffer = true;
 }
 
+enum OID : uint
+{
+    CairnOfPassage = 0x1EA094,
+    SilverCoffer = 0x1EA13D,
+    GoldCoffer = 0x1EA13E,
+    BandedCofferIndicator = 0x1EA1F6,
+    BandedCoffer = 0x1EA1F7,
+}
+
+enum AID : uint
+{
+    StoneGaze = 6351, // 3.5s cast, single target, gaze, inflicts petrification
+    Chirp = 6365, // 2.5s cast, 21.6 radius, deals no damage, inflicts sleep
+    MysteriousLight = 6953, // 3s cast, 30 radius, gaze, inflicts damage if failed
+    Tornado = 7028, // 1s cast, 6 radius, targets player, deals minor damage
+}
+
+enum SID : uint
+{
+    Silence = 7,
+    Pacification = 620,
+    ItemPenalty = 1094
+}
+
 public abstract class PalaceFloorModule : ZoneModule
 {
     private static readonly uint[] RevealedTrapOIDs = [0x1EA08E, 0x1EA08F, 0x1EA090, 0x1EA091, 0x1EA092];
@@ -40,15 +65,44 @@ public abstract class PalaceFloorModule : ZoneModule
     private PomanderID? _lastChestContents;
     private bool _showTrapHints = true;
 
+    private readonly List<(Actor Source, DateTime Activation)> _gazes = [];
+
     private DeepDungeonState Palace => World.Client.DeepDungeonState;
 
     public PalaceFloorModule(WorldState ws) : base(ws)
     {
         _subscriptions = new(
-            ws.Network.ServerIPCReceived.Subscribe(OnServerIPC)
+            ws.Network.ServerIPCReceived.Subscribe(OnServerIPC),
+            ws.Actors.CastStarted.Subscribe(OnCastStarted),
+            ws.Actors.CastFinished.Subscribe(OnCastFinished)
         );
 
         _trapsCurrentZone = PalacePalInterop.GetTrapLocationsForZone(ws.CurrentZone);
+    }
+
+    private void OnCastStarted(Actor actor)
+    {
+        if (World.Party.Player() is not { } player)
+            return;
+
+        switch ((AID)actor.CastInfo!.Action.ID)
+        {
+            case AID.MysteriousLight:
+            case AID.StoneGaze:
+                _gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime)));
+                break;
+        }
+    }
+
+    private void OnCastFinished(Actor actor)
+    {
+        switch ((AID)actor.CastInfo!.Action.ID)
+        {
+            case AID.MysteriousLight:
+            case AID.StoneGaze:
+                _gazes.RemoveAll(d => d.Source == actor);
+                break;
+        }
     }
 
     protected override void Dispose(bool disposing)
@@ -83,6 +137,7 @@ public abstract class PalaceFloorModule : ZoneModule
     {
         _lastChestContents = null;
         _showTrapHints = true;
+        _gazes.Clear();
         _chestContents.Clear();
     }
 
@@ -90,26 +145,46 @@ public abstract class PalaceFloorModule : ZoneModule
     private bool OpenSilver => _config.SilverCoffer && Palace.WeaponLevel + Palace.ArmorLevel < 198;
     private bool OpenBronze => _config.BronzeCoffer;
 
-    // public override bool WantToBeDrawn() => true;
+    public override bool WantToBeDrawn() => true;
 
-    // public override List<string> CalculateGlobalHints() => [$"Number of traps in current zone: {_trapsCurrentZone.Count}"];
+    public override List<string> CalculateGlobalHints()
+    {
+        StringBuilder sb = new();
+        for (var i = 0; i < 25; i++)
+        {
+            var open = Palace.MapData[i] > 0 ? "X" : " ";
+            sb.Append($"{open} ");
+            if (i % 5 == 4)
+                sb.Append('\n');
+        }
+        return [sb.ToString()];
+    }
 
     private bool CanAutoUse(PomanderID p) => p is PomanderID.Steel or PomanderID.Strength or PomanderID.Sight;
 
+    public override void BeforeCalculateAIHints(int playerSlot, Actor player, AIHints hints)
+    {
+        hints.HintedActions.Add(ActionID.MakeSpell(AID.Chirp));
+        hints.HintedActions.Add(ActionID.MakeSpell(AID.Tornado));
+    }
+
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
-        if (!_config.Enable)
+        if (!_config.Enable || Palace.Floor % 10 == 0)
             return;
+
+        foreach (var d in _gazes)
+            hints.ForbiddenDirections.Add((player.AngleTo(d.Source), 45.Degrees(), d.Activation));
 
         if (_config.TrapHints && _showTrapHints)
         {
-            var traps = _trapsCurrentZone.Where(t => hints.PathfindMapBounds.Contains(t - hints.PathfindMapCenter)).Select(t => ShapeDistance.Circle(t, 2)).ToList();
+            var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30)).Select(t => ShapeDistance.Circle(t, 2)).ToList();
             if (traps.Count > 0)
                 hints.AddForbiddenZone(ShapeDistance.Union(traps));
         }
 
-        if (player.InCombat || player.IsTransformed || Palace.Floor % 10 == 0 || player.Statuses.Any(s => s.ID is 7 or 620))
-            return;
+        var isStunned = player.IsTransformed || player.Statuses.Any(s => (SID)s.ID is SID.Silence or SID.Pacification);
+        var isOccupied = player.InCombat || isStunned;
 
         Actor? coffer = null;
         Actor? hoardLight = null;
@@ -149,27 +224,24 @@ public abstract class PalaceFloorModule : ZoneModule
                 revealedTraps.Add(ShapeDistance.Circle(a.Position, 2));
         }
 
-        if (coffer != null)
+        if (coffer != null && _lastChestContents is PomanderID p)
         {
-            if (_lastChestContents is PomanderID p)
-            {
-                _chestContents[coffer.InstanceID] = p;
-                _lastChestContents = null;
-                return;
-            }
+            _chestContents[coffer.InstanceID] = p;
+            _lastChestContents = null;
+            return;
         }
 
-        if (pomanderToUseHere is PomanderID p2 && player.FindStatus(1094) == null)
+        if (!isOccupied && pomanderToUseHere is PomanderID p2 && player.FindStatus(SID.ItemPenalty) == null)
             hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)p2), null, ActionQueue.Priority.Low);
 
         var haveChest = false;
-        if (coffer is Actor t && InBounds(hints, t.Position) && (_config.AutoMoveTreasure || player.DistanceToHitbox(t) < 3.5f))
+        if (!isStunned && coffer is Actor t && InBounds(hints, t.Position) && (_config.AutoMoveTreasure || player.DistanceToHitbox(t) < 3.5f))
         {
             hints.InteractWithTarget = coffer;
             haveChest = true;
         }
 
-        if (_config.AutoPassage && Palace.PassageActive && passage is Actor c)
+        if (!player.InCombat && _config.AutoPassage && Palace.PassageActive && passage is Actor c)
         {
             hints.GoalZones.Add(hints.GoalSingleTarget(c.Position, 2, 0.5f));
             if (haveChest && player.DistanceToHitbox(c) < player.DistanceToHitbox(coffer) && !_config.OpenChestsFirst)
@@ -179,24 +251,15 @@ public abstract class PalaceFloorModule : ZoneModule
         if (revealedTraps.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Union(revealedTraps));
 
-        if (_config.AutoMoveTreasure && hoardLight is Actor h && Palace.Items[PomanderID.Intuition].Active && InBounds(hints, h.Position))
+        if (!isOccupied && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.Items[PomanderID.Intuition].Active && InBounds(hints, h.Position))
             hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));
 
-        if (_config.AutoClear && (_config.FullClear || !Palace.PassageActive))
+        if (!isOccupied && _config.AutoClear && (_config.FullClear || !Palace.PassageActive))
             foreach (var pp in hints.PotentialTargets)
                 pp.Priority = 0;
     }
 
     private bool InBounds(AIHints hints, WPos pos) => hints.PathfindMapBounds.Contains(pos - hints.PathfindMapCenter);
-}
-
-enum OID : uint
-{
-    CairnOfPassage = 0x1EA094,
-    SilverCoffer = 0x1EA13D,
-    GoldCoffer = 0x1EA13E,
-    BandedCofferIndicator = 0x1EA1F6,
-    BandedCoffer = 0x1EA1F7,
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 174)]

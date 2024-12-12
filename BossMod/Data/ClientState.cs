@@ -37,7 +37,7 @@ public record struct DeepDungeonState
     byte HoardCount,
     byte ReturnProgress,
     byte PassageProgress,
-    sbyte[] RevealedRooms, // stored in order of exploration; -1 means no data (since room indices start at 0) - note that the first room in this list is the spawn room and is guaranteed to be safe
+    byte[] MapData, // 25-element array, ordered top left -> bottom right
     DeepDungeonState.PartyMember[] PartyInfo,
     DeepDungeonState.ItemList Items,
     DeepDungeonState.Chest[] ChestInfo
@@ -90,7 +90,7 @@ public sealed class ClientState
     public Fate ActiveFate;
     public Pet ActivePet;
     public ulong FocusTargetId;
-    public DeepDungeonState DeepDungeonState;
+    public DeepDungeonState DeepDungeonState = new(138, 0, 0, 0, 0, 0, 0, new byte[25], new DeepDungeonState.PartyMember[4], new DeepDungeonState.ItemList(new DeepDungeonState.Item[16]), new DeepDungeonState.Chest[16]);
 
     public int ClassJobLevel(Class c)
     {

@@ -94,6 +94,8 @@ public sealed class AIHints
     // buffs to be canceled asap
     public List<(uint statusId, ulong sourceId)> StatusesToCancel = [];
 
+    public HashSet<ActionID> HintedActions = [];
+
     // misc stuff to execute
     public bool WantJump;
     public bool WantDismount;
@@ -118,6 +120,7 @@ public sealed class AIHints
         MaxCastTimeEstimate = float.MaxValue;
         ActionsToExecute.Clear();
         StatusesToCancel.Clear();
+        HintedActions.Clear();
         WantJump = false;
         WantDismount = false;
     }

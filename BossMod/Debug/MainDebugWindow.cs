@@ -3,6 +3,7 @@ using BossMod.Autorotation.xan.AI;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
@@ -28,15 +29,12 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly TrackPartyHealth PartyHealth = new(ws);
     //private readonly DebugVfx _debugVfx = new();
 
-    // private unsafe delegate void DeepDungeonVf363(void* self, int a2, uint a3, uint a4, int a5);
-    private unsafe delegate bool DoLayoutDelegate(InstanceContentDeepDungeon* thisPtr, ulong a2, byte* a3);
-
+    private unsafe delegate char* DoLayoutDelegate(InstanceContentDeepDungeon* thisPtr, char a2, ulong a3);
     private HookAddress<DoLayoutDelegate> _doLayoutHook = null!;
 
-    private unsafe bool DoLayoutDetour(InstanceContentDeepDungeon* thisPtr, ulong a2, byte* a3)
+    private unsafe char* DoLayoutDetour(InstanceContentDeepDungeon* thisPtr, char a2, ulong a3)
     {
         var orig = _doLayoutHook.Original(thisPtr, a2, a3);
-        Service.Log($"{(nint)thisPtr:X} {a2:X} {(nint)a3:X} = {orig}");
         return orig;
     }
 
@@ -51,10 +49,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
     public override unsafe void Draw()
     {
-        _doLayoutHook ??= new("E8 ?? ?? ?? ?? 48 81 C3 ?? ?? ?? ?? 48 8D 3D ?? ?? ?? ??", DoLayoutDetour);
-        //_processPacket561Hook ??= new("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 42 06", ProcessPacket561Detour);
-        // _checkInteractHook ??= new(EventFramework.Addresses.CheckInteractRange, CheckInteractDetour);
-        // _receiveEventHook ??= new("48 89 5C 24 ?? 48 89 74 24 ?? 48 89 7C 24 ?? 41 56 48 83 EC 20 48 8B D9 49 8B F8", ReceiveEventDetour);
+        _doLayoutHook ??= new("E8 ?? ?? ?? ?? 0F B6 8B ?? ?? ?? ?? 48 89 B3 ?? ?? ?? ??", DoLayoutDetour);
 
         var playerCID = UIState.Instance()->PlayerState.ContentId;
         var player = Service.ClientState.LocalPlayer;
@@ -235,15 +230,11 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
     private unsafe void DrawDeepDungeon()
     {
-        Dalamud.Utility.Util.ShowObject(ws.Client.DeepDungeonState);
-        ImGui.Indent();
-        if (ImGui.CollapsingHeader("Item info"))
-            foreach (var it in ws.Client.DeepDungeonState.Items)
-                Dalamud.Utility.Util.ShowObject(it);
-        if (ImGui.CollapsingHeader("Chest info"))
-            foreach (var it in ws.Client.DeepDungeonState.ChestInfo)
-                Dalamud.Utility.Util.ShowObject(it);
-        ImGui.Unindent();
+        var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+        if (dd == null)
+            return;
+
+        Dalamud.Utility.Util.ShowStruct(dd);
     }
 
     private void DrawPartyHealth()

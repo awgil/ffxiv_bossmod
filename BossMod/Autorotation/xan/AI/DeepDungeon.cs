@@ -57,7 +57,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
     private bool ShouldPotion(StrategyValues strategy)
     {
         var ratio = Player.ClassCategory is ClassCategory.Tank ? 0.6f : 0.8f;
-        var use = PredictedHPRatio(Player) < ratio && Player.FindStatus(648) == null && Player.InCombat;
+        var use = PendingHPRatio(Player) < ratio && Player.FindStatus(648) == null && Player.InCombat;
         return use && strategy.Option(Track.Potion).As<PotionStrategy>() switch
         {
             PotionStrategy.Always => true,
