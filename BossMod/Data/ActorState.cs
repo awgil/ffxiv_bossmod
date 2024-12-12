@@ -52,7 +52,7 @@ public sealed class ActorState : IEnumerable<Actor>
         {
             act.PrevPosRot = act.PosRot;
             if (act.CastInfo != null)
-                act.CastInfo.ElapsedTime += dt;
+                act.CastInfo.ElapsedTime = Math.Min(act.CastInfo.ElapsedTime + dt, act.CastInfo.AdjustedTotalTime);
         }
     }
 
