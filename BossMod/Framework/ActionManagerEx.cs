@@ -370,25 +370,34 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
         if (actionImminent)
         {
-            var actionAdj = NormalizeActionForQueue(AutoQueue.Action);
-            var targetID = AutoQueue.Target?.InstanceID ?? 0xE0000000;
-            var status = GetActionStatus(actionAdj, targetID);
-            if (status == 0)
+            var targetForbidden = AutoQueue.Target is Actor tar && _hints.GetEnemy(tar)?.Priority == AIHints.Enemy.PriorityForbidFully;
+            if (targetForbidden)
             {
-                // disable in-game auto rotation, to prevent fucking up with our logic
-                autoRotateConfig->Value.UInt = _smartRotationTweak.Enabled ? 0 : autoRotateOriginal;
-                var res = ExecuteAction(actionAdj, targetID, AutoQueue.TargetPos);
-                //Service.Log($"[AMEx] Auto-execute {AutoQueue.Source} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(AutoQueue.TargetPos)} => {res}");
-            }
-            else if (_dismountTweak.IsMountPreventingAction(actionAdj))
-            {
-                Service.Log("[AMEx] Trying to dismount...");
-                _hints.WantDismount |= _dismountTweak.AutoDismountEnabled;
+                Service.Log($"[AMEx] Not using action on forbidden target {AutoQueue.Target}");
+                blockMovement = false;
             }
             else
             {
-                Service.Log($"[AMEx] Can't execute prio {AutoQueue.Priority} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(status)?.Text}'");
-                blockMovement = false;
+                var actionAdj = NormalizeActionForQueue(AutoQueue.Action);
+                var targetID = AutoQueue.Target?.InstanceID ?? 0xE0000000;
+                var status = GetActionStatus(actionAdj, targetID);
+                if (status == 0)
+                {
+                    // disable in-game auto rotation, to prevent fucking up with our logic
+                    autoRotateConfig->Value.UInt = _smartRotationTweak.Enabled ? 0 : autoRotateOriginal;
+                    var res = ExecuteAction(actionAdj, targetID, AutoQueue.TargetPos);
+                    //Service.Log($"[AMEx] Auto-execute {AutoQueue.Source} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(AutoQueue.TargetPos)} => {res}");
+                }
+                else if (_dismountTweak.IsMountPreventingAction(actionAdj))
+                {
+                    Service.Log("[AMEx] Trying to dismount...");
+                    _hints.WantDismount |= _dismountTweak.AutoDismountEnabled;
+                }
+                else
+                {
+                    Service.Log($"[AMEx] Can't execute prio {AutoQueue.Priority} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(status)?.Text}'");
+                    blockMovement = false;
+                }
             }
         }
 

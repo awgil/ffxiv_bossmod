@@ -48,10 +48,6 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
         if (potAction != default && HPRatio() <= 0.3f)
             Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.Medium);
-
-        foreach (var h in Hints.PriorityTargets)
-            if (h.Actor.CastInfo is { Action.ID: 6953 } ci)
-                Hints.ForbiddenDirections.Add((Player.AngleTo(h.Actor), 45.Degrees(), World.FutureTime(ci.NPCRemainingTime)));
     }
 
     private bool ShouldPotion(StrategyValues strategy)

@@ -44,6 +44,10 @@ public sealed class AIHints
     public Bitmap.Region PathfindMapObstacles;
 
     // list of potential targets
+    private readonly Enemy?[] _enemies = new Enemy?[99];
+    public Enemy? GetEnemy(Actor actor) => actor.SpawnIndex % 2 == 0 ? _enemies[actor.SpawnIndex / 2] : null;
+
+    // every non-null element of enemy list in priority order
     public List<Enemy> PotentialTargets = [];
     public int HighestPotentialTargetPriority;
 
@@ -106,6 +110,7 @@ public sealed class AIHints
         PathfindMapCenter = default;
         PathfindMapBounds = DefaultBounds;
         PathfindMapObstacles = default;
+        Array.Fill(_enemies, null);
         PotentialTargets.Clear();
         ForcedTarget = null;
         ForcedMovement = null;
@@ -162,10 +167,10 @@ public sealed class AIHints
                 prio = Enemy.PriorityForbidAI;
             }
 
-            PotentialTargets.Add(new(actor, playerIsDefaultTank)
-            {
-                Priority = prio
-            });
+            var enemy = new Enemy(actor, playerIsDefaultTank) { Priority = prio };
+
+            PotentialTargets.Add(enemy);
+            _enemies[actor.SpawnIndex / 2] = enemy;
         }
     }
 
