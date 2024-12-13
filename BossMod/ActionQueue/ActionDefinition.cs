@@ -250,8 +250,8 @@ public sealed class ActionDefinitions : IDisposable
         RegisterPotion(IDPotionInt);
         RegisterPotion(IDPotionMnd);
 
-        RegisterPotion(IDSustainingPotion);
-        RegisterPotion(IDMaxPotion);
+        RegisterPotion(IDSustainingPotion, 1.1f);
+        RegisterPotion(IDMaxPotion, 1.1f);
 
         // bozja actions
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
@@ -421,7 +421,7 @@ public sealed class ActionDefinitions : IDisposable
 
     public void Register(ActionID aid, ActionDefinition definition) => _definitions.Add(aid, definition);
 
-    private void RegisterPotion(ActionID aid)
+    private void RegisterPotion(ActionID aid, float animLock = 0.6f)
     {
         var baseId = aid.ID % 500000;
         var item = ItemData(baseId);
@@ -440,6 +440,7 @@ public sealed class ActionDefinitions : IDisposable
             CastTime = castTime,
             MainCooldownGroup = cdgroup,
             Cooldown = cooldown,
+            InstantAnimLock = animLock
         };
         var aidHQ = new ActionID(ActionType.Item, baseId + 1000000);
         _definitions[aidHQ] = new(aidHQ)
@@ -449,6 +450,7 @@ public sealed class ActionDefinitions : IDisposable
             CastTime = castTime,
             MainCooldownGroup = cdgroup,
             Cooldown = cooldown * 0.9f,
+            InstantAnimLock = animLock
         };
     }
 

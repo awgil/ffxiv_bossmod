@@ -35,9 +35,6 @@ class TerrorEye(BossModule module) : Components.LocationTargetedAOEs(module, Act
 class VoidAero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VoidAero), new AOEShapeRect(42.3f, 4));
 class VoidFireII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFireII), 5);
 class VoidFireIV(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFireIV), 10);
-class ZombieGrab(BossModule module) : Components.PersistentVoidzone(module, 2, m => m.Enemies(OID.FanaticZombie)); // Future note to Ice(self): Not entirely sure if I'm happy with this per se? It shows to essentially stay away from the zombies but, maybe a better hint when I can think of one
-
-// TODO: Add a switch to target the zombie that is currently attached to you. Missing the status effect that it gives when caught.
 
 class EncounterHints(BossModule module) : BossComponent(module)
 {
@@ -62,7 +59,6 @@ class D150TisiphoneStates : StateMachineBuilder
             .ActivateOnEnter<VoidAero>()
             .ActivateOnEnter<VoidFireII>()
             .ActivateOnEnter<VoidFireIV>()
-            .ActivateOnEnter<ZombieGrab>()
             .DeactivateOnEnter<EncounterHints>();
     }
 }

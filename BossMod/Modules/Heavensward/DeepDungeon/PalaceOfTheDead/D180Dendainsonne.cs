@@ -89,6 +89,24 @@ class Hints(BossModule module) : BossComponent(module)
     }
 }
 
+class ManualBurst(BossModule module) : BossComponent(module)
+{
+    private float HPRatio => Module.PrimaryActor.HPMP.CurHP / (float)Module.PrimaryActor.HPMP.MaxHP;
+    private bool Hold => HPRatio is > 0.15f and < 0.158f;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Hold && hints.FindEnemy(Module.PrimaryActor) is { } e)
+            e.Priority = AIHints.Enemy.PriorityForbidFully;
+    }
+
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (HPRatio is > 0.15f and < 0.20f)
+            hints.Add("Autorotation will not attack if boss HP is between 15 and 16% - press buttons manually when ready to start burst");
+    }
+}
+
 class D180DendainsonneStates : StateMachineBuilder
 {
     public D180DendainsonneStates(BossModule module) : base(module)
@@ -100,6 +118,7 @@ class D180DendainsonneStates : StateMachineBuilder
             .ActivateOnEnter<Trounce>()
             .ActivateOnEnter<EclipticMeteor>()
             .ActivateOnEnter<EncounterHints>()
+            .ActivateOnEnter<ManualBurst>()
             .DeactivateOnEnter<Hints>();
     }
 }
