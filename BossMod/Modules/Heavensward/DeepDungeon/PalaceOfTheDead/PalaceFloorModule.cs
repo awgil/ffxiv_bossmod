@@ -42,6 +42,8 @@ enum AID : uint
 {
     StoneGaze = 6351, // 3.5s cast, single target, gaze, inflicts petrification
     Chirp = 6365, // 2.5s cast, 21.6 radius, deals no damage, inflicts sleep
+    Infatuation = 6397, // 3s cast, applies pox
+    IceSpikes = 6943, // 1.5s cast, applies thorns to self
     MysteriousLight = 6953, // 3s cast, 30 radius, gaze, inflicts damage if failed
     Tornado = 7028, // 1s cast, 6 radius, targets player, deals minor damage
 }
@@ -50,7 +52,9 @@ enum SID : uint
 {
     Silence = 7,
     Pacification = 620,
-    ItemPenalty = 1094
+    ItemPenalty = 1094,
+
+    IceSpikes = 198,
 }
 
 public abstract class PalaceFloorModule : ZoneModule
@@ -66,6 +70,8 @@ public abstract class PalaceFloorModule : ZoneModule
     private bool _showTrapHints = true;
 
     private readonly List<(Actor Source, DateTime Activation)> _gazes = [];
+    private readonly List<Actor> _interrupts = [];
+    private readonly List<Actor> _forbiddenTargets = [];
 
     private DeepDungeonState Palace => World.Client.DeepDungeonState;
 
@@ -74,7 +80,9 @@ public abstract class PalaceFloorModule : ZoneModule
         _subscriptions = new(
             ws.Network.ServerIPCReceived.Subscribe(OnServerIPC),
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
-            ws.Actors.CastFinished.Subscribe(OnCastFinished)
+            ws.Actors.CastFinished.Subscribe(OnCastFinished),
+            ws.Actors.StatusGain.Subscribe(OnStatusGain),
+            ws.Actors.StatusLose.Subscribe(OnStatusLose)
         );
 
         _trapsCurrentZone = PalacePalInterop.GetTrapLocationsForZone(ws.CurrentZone);
@@ -82,14 +90,15 @@ public abstract class PalaceFloorModule : ZoneModule
 
     private void OnCastStarted(Actor actor)
     {
-        if (World.Party.Player() is not { } player)
-            return;
-
         switch ((AID)actor.CastInfo!.Action.ID)
         {
             case AID.MysteriousLight:
             case AID.StoneGaze:
                 _gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime)));
+                break;
+            case AID.Infatuation:
+            case AID.IceSpikes:
+                _interrupts.Add(actor);
                 break;
         }
     }
@@ -101,6 +110,32 @@ public abstract class PalaceFloorModule : ZoneModule
             case AID.MysteriousLight:
             case AID.StoneGaze:
                 _gazes.RemoveAll(d => d.Source == actor);
+                break;
+            case AID.Infatuation:
+            case AID.IceSpikes:
+                _interrupts.Remove(actor);
+                break;
+        }
+    }
+
+    private void OnStatusGain(Actor actor, int index)
+    {
+        var status = actor.Statuses[index];
+        switch ((SID)status.ID)
+        {
+            case SID.IceSpikes:
+                _forbiddenTargets.Add(actor);
+                break;
+        }
+    }
+
+    private void OnStatusLose(Actor actor, int index)
+    {
+        var status = actor.Statuses[index];
+        switch ((SID)status.ID)
+        {
+            case SID.IceSpikes:
+                _forbiddenTargets.Remove(actor);
                 break;
         }
     }
@@ -137,6 +172,8 @@ public abstract class PalaceFloorModule : ZoneModule
     {
         _lastChestContents = null;
         _showTrapHints = true;
+        _interrupts.Clear();
+        _forbiddenTargets.Clear();
         _gazes.Clear();
         _chestContents.Clear();
     }
@@ -175,6 +212,14 @@ public abstract class PalaceFloorModule : ZoneModule
 
         foreach (var d in _gazes)
             hints.ForbiddenDirections.Add((player.AngleTo(d.Source), 45.Degrees(), d.Activation));
+
+        foreach (var d in _interrupts)
+            if (hints.FindEnemy(d) is { } e)
+                e.ShouldBeInterrupted = true;
+
+        foreach (var d in _forbiddenTargets)
+            if (hints.FindEnemy(d) is { } e)
+                e.Priority = AIHints.Enemy.PriorityForbidFully;
 
         if (_config.TrapHints && _showTrapHints)
         {
