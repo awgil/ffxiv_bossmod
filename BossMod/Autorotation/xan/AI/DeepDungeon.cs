@@ -14,7 +14,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Deep Dungeon AI", "Utilities for deep dungeon - potion/pomander user", "AI (xan)", "xan", RotationModuleQuality.Basic, new BitMask(~0ul), 100);
+        var def = new RotationModuleDefinition("Deep Dungeon AI", "Utilities for deep dungeon - potion/pomander user", "AI (xan)", "xan", RotationModuleQuality.Basic, new BitMask(~0ul), 100, CanUseWhileRoleplaying: true);
 
         def.Define(Track.Potion).As<PotionStrategy>("Potion")
             .AddOption(PotionStrategy.Disabled, "Do not use")
@@ -32,10 +32,36 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         214, 215, 216, 217, 218
     ];
 
+    enum Transformation : uint
+    {
+        None,
+        Manticore,
+        Succubus,
+        Kuribu
+    }
+
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ActionID regenAction = default;
         ActionID potAction = default;
+
+        var transformation = Transformation.None;
+        if (Player.FindStatus(565) is { } status)
+        {
+            transformation = (status.Extra & 0xFF) switch
+            {
+                42 => Transformation.Manticore,
+                43 => Transformation.Succubus,
+                49 => Transformation.Kuribu,
+                _ => Transformation.None
+            };
+        }
+
+        if (transformation != Transformation.None)
+        {
+            DoTransformActions(strategy, primaryTarget, transformation);
+            return;
+        }
 
         if (PalaceCFCs.Contains(World.CurrentCFCID))
         {
@@ -48,6 +74,44 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
         if (potAction != default && HPRatio() <= 0.3f)
             Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.Medium);
+    }
+
+    private void DoTransformActions(StrategyValues strategy, Actor? primaryTarget, Transformation t)
+    {
+        if (primaryTarget == null)
+            return;
+
+        Func<WPos, float> goal = _ => 0f;
+        ActionID attack = default;
+        var numTargets = 0;
+
+        switch (t)
+        {
+            case Transformation.Manticore:
+                goal = Hints.GoalSingleTarget(primaryTarget, 3);
+                numTargets = 1;
+                attack = ActionID.MakeSpell(Roleplay.AID.Pummel);
+                break;
+            case Transformation.Succubus:
+                goal = Hints.GoalSingleTarget(primaryTarget, 25);
+                numTargets = Hints.NumPriorityTargetsInAOECircle(primaryTarget.Position, 5);
+                attack = ActionID.MakeSpell(Roleplay.AID.VoidFireII);
+                break;
+            case Transformation.Kuribu:
+                // heavenly judge is ground targeted
+                goal = Hints.GoalSingleTarget(primaryTarget.Position, 25);
+                numTargets = Hints.NumPriorityTargetsInAOECircle(primaryTarget.Position, 6);
+                attack = ActionID.MakeSpell(Roleplay.AID.HeavenlyJudge);
+                break;
+            default:
+                return;
+        }
+
+        if (numTargets == 0)
+            return;
+
+        Hints.GoalZones.Add(goal);
+        Hints.ActionsToExecute.Push(attack, primaryTarget, ActionQueue.Priority.High, targetPos: primaryTarget.PosRot.XYZ());
     }
 
     private bool ShouldPotion(StrategyValues strategy)

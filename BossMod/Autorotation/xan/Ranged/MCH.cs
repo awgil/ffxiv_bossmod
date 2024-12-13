@@ -5,7 +5,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
-    public enum Track { Queen = SharedTrack.Count, Hypercharge }
+    public enum Track { Queen = SharedTrack.Count, Hypercharge, Tools }
     public enum QueenStrategy
     {
         MinGauge,
@@ -27,7 +27,8 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(QueenStrategy.Never, "Never", "Do not automatically summon Queen at all")
             .AddAssociatedActions(AID.AutomatonQueen, AID.RookAutoturret);
 
-        def.DefineSimple(Track.Hypercharge, "Hypercharge");
+        def.DefineSimple(Track.Hypercharge, "Hypercharge").AddAssociatedActions(AID.Hypercharge);
+        def.DefineSimple(Track.Tools, "Tools").AddAssociatedActions(AID.Drill, AID.AirAnchor, AID.ChainSaw, AID.Bioblaster);
 
         return def;
     }
@@ -123,17 +124,22 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         if (ExcavatorLeft > GCD)
             PushGCD(AID.Excavator, BestRangedAOETarget);
 
-        if (ReadyIn(AID.AirAnchor) <= GCD)
-            PushGCD(AID.AirAnchor, primaryTarget, priority: 20);
+        var toolOk = strategy.Simple(Track.Tools) != OffensiveStrategy.Delay;
 
-        if (ReadyIn(AID.ChainSaw) <= GCD)
-            PushGCD(AID.ChainSaw, BestChainsawTarget, 10);
+        if (toolOk)
+        {
+            if (ReadyIn(AID.AirAnchor) <= GCD)
+                PushGCD(AID.AirAnchor, primaryTarget, priority: 20);
 
-        if (ReadyIn(AID.Bioblaster) <= GCD && NumAOETargets > 2)
-            PushGCD(AID.Bioblaster, BestAOETarget, priority: MaxChargesIn(AID.Bioblaster) <= GCD ? 20 : 2);
+            if (ReadyIn(AID.ChainSaw) <= GCD)
+                PushGCD(AID.ChainSaw, BestChainsawTarget, 10);
 
-        if (ReadyIn(AID.Drill) <= GCD)
-            PushGCD(AID.Drill, primaryTarget, priority: MaxChargesIn(AID.Drill) <= GCD ? 20 : 2);
+            if (ReadyIn(AID.Bioblaster) <= GCD && NumAOETargets > 2)
+                PushGCD(AID.Bioblaster, BestAOETarget, priority: MaxChargesIn(AID.Bioblaster) <= GCD ? 20 : 2);
+
+            if (ReadyIn(AID.Drill) <= GCD)
+                PushGCD(AID.Drill, primaryTarget, priority: MaxChargesIn(AID.Drill) <= GCD ? 20 : 2);
+        }
 
         // TODO work out priorities
         if (FMFLeft > GCD && ExcavatorLeft == 0)
@@ -143,7 +149,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             PushGCD(AID.Scattergun, BestAOETarget);
 
         // different cdgroup?
-        if (!Unlocked(AID.AirAnchor) && ReadyIn(AID.HotShot) <= GCD)
+        if (!Unlocked(AID.AirAnchor) && ReadyIn(AID.HotShot) <= GCD && toolOk)
             PushGCD(AID.HotShot, primaryTarget);
 
         if (NumAOETargets > 2 && Unlocked(AID.SpreadShot))
@@ -243,6 +249,10 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
         if (!Unlocked(AID.Drill))
             return ComboLastMove == (Unlocked(AID.CleanShot) ? AID.SlugShot : AID.SplitShot);
+
+        // past 58 we only reassemble on tool charges so don't bother
+        if (strategy.Simple(Track.Tools) == OffensiveStrategy.Delay)
+            return false;
 
         return NextToolCharge <= GCD;
     }
