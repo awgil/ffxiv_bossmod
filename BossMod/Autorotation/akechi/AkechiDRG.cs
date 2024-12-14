@@ -14,6 +14,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     public enum Track
     {
         AOE,                   //Area of Effect actions
+        Spears,                //Spear actions
         Burst,                 //Burst actions
         Potion,                //Potion usage
         LifeSurge,             //Life Surge ability
@@ -44,6 +45,12 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         ForceAOE               //Force Area of Effect abilities
     }
 
+    public enum SpearTargetingStrategy
+    {
+        AutoTargetHitPrimary, //Auto-target spear to hit primary target
+        AutoTargetHitMost,    //Auto-target spear to hit most targets
+    }
+
     //Burst strategy options
     public enum BurstStrategy
     {
@@ -66,7 +73,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         Automatic,             //Automatically use Life Surge
         Force,                 //Force use of Life Surge
-        ForceEX,               //Force use of Life Surge (EX)
+        ForceWeave,            //Force use of Life Surge inside the next possible weave window
+        ForceNextOpti,         //Force use of Life Surge in the next possible optimal window
+        ForceNextOptiWeave,    //Force use of Life Surge optimally inside the next possible weave window
         Delay                  //Delay use of Life Surge
     }
 
@@ -77,6 +86,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         Force,                 //Force use of Jump
         ForceEX,               //Force use of Jump EX)
         ForceEX2,              //Force use of High Jump
+        ForceWeave,            //Force use of Jump inside the
         Delay                  //Delay use of Jump
     }
 
@@ -86,6 +96,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         Automatic,             //Automatically use Dragonfire Dive
         Force,                 //Force use of Dragonfire Dive
         ForceEX,               //Force use of Dragonfire Dive (EX))
+        ForceWeave,            //Force use of Dragonfire Dive inside the next possible weave window
         Delay                  //Delay use of Dragonfire Dive
     }
 
@@ -95,6 +106,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         Automatic,             //Automatically use Geirskogul
         Force,                 //Force use of Geirskogul
         ForceEX,               //Force use of Geirskogul (EX)
+        ForceWeave,            //Force use of Geirskogul inside the next possible weave window
         Delay                  //Delay use of Geirskogul
     }
 
@@ -104,6 +116,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         Automatic,             //Automatically use Stardiver
         Force,                 //Force use of Stardiver
         ForceEX,               //Force use of Stardiver (EX)
+        ForceWeave,            //Force use of Stardiver inside the next possible weave window
         Delay                  //Delay use of Stardiver
     }
 
@@ -112,13 +125,15 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         Forbid,                //Forbid the use of Piercing Talon
         Allow,                 //Use Piercing Talon when appropriate
+        AllowEX,               //Use Piercing Talon when Enhanced
         Force,                 //Force use of Piercing Talon
+        ForceEX,               //Force use of Piercing Talon when Enhanced
     }
 
     //True North strategy
     public enum TrueNorthStrategy
     {
-        Automatic,      //Late-Weave
+        Automatic,      //Weave
         ASAP,           //Use ASAP
         Rear,           //Use only when in Rear
         Flank,          //Use only when in Flank
@@ -131,6 +146,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         Automatic,             //Automatically use offensive abilities
         Force,                 //Force offensive abilities
+        ForceWeave,            //Force offensive abilities only inside the next possible weave window
         Delay                  //Delay offensive abilities
     }
 
@@ -153,6 +169,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             .AddOption(AOEStrategy.ForceBuffsST, "Only 1-4-5 ST", "Force only ST 1-4-5 rotation (Buffs Only)")
             .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation, even if less than 3 targets");
 
+        //Spear targeting strategy
+        res.Define(Track.Spears).As<SpearTargetingStrategy>("Spear Targeting", "Spears", uiPriority: 195)
+            .AddOption(SpearTargetingStrategy.AutoTargetHitPrimary, "AutoTargetHitPrimary", "Selects best target within range that hits as many targets as possible whilst also hitting current target")
+            .AddOption(SpearTargetingStrategy.AutoTargetHitMost, "AutoTargetHitMost", "Selects best target within range that hits as many targets, regardless if current target is hit");
+
         //Burst strategy
         res.Define(Track.Burst).As<BurstStrategy>("Burst", uiPriority: 190)
             .AddOption(BurstStrategy.Automatic, "Automatic", "Use Burst optimally based on situation")
@@ -170,8 +191,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Life Surge Strategy
         res.Define(Track.LifeSurge).As<SurgeStrategy>("Life Surge", "L. Surge", uiPriority: 160)
             .AddOption(SurgeStrategy.Automatic, "Automatic", "Use Life Surge normally")
-            .AddOption(SurgeStrategy.Force, "Force", "Force Life Surge usage", 40, 5, ActionTargets.Hostile, 6, 87)
-            .AddOption(SurgeStrategy.ForceEX, "ForceEX", "Force Life Surge (2 charges)", 40, 5, ActionTargets.Hostile, 88) //2 charges
+            .AddOption(SurgeStrategy.Force, "Force", "Force Life Surge usage", 40, 5, ActionTargets.Hostile, 6)
+            .AddOption(SurgeStrategy.ForceWeave, "Force Weave", "Force Life Surge usage inside the next possible weave window", 40, 5, ActionTargets.Hostile, 6)
+            .AddOption(SurgeStrategy.ForceNextOpti, "Force Optimally", "Force Life Surge usage in next possible optimal window", 40, 5, ActionTargets.Hostile, 6)
+            .AddOption(SurgeStrategy.ForceNextOptiWeave, "Force Weave Optimally", "Force Life Surge optimally inside the next possible weave window", 40, 5, ActionTargets.Hostile, 6)
             .AddOption(SurgeStrategy.Delay, "Delay", "Delay the use of Life Surge", 0, 0, ActionTargets.None, 6)
             .AddAssociatedActions(AID.LifeSurge);
 
@@ -181,6 +204,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             .AddOption(JumpStrategy.Force, "Force Jump", "Force Jump usage", 30, 0, ActionTargets.Self, 30, 67)
             .AddOption(JumpStrategy.ForceEX, "Force Jump (EX)", "Force Jump usage (Grants Dive Ready buff)", 30, 15, ActionTargets.Self, 68, 74)
             .AddOption(JumpStrategy.ForceEX2, "Force High Jump", "Force High Jump usage", 30, 15, ActionTargets.Self, 75)
+            .AddOption(JumpStrategy.ForceWeave, "Force Weave", "Force Jump usage inside the next possible weave window", 30, 15, ActionTargets.Hostile, 68)
             .AddOption(JumpStrategy.Delay, "Delay", "Delay Jump usage", 0, 0, ActionTargets.None, 30)
             .AddAssociatedActions(AID.Jump, AID.HighJump);
 
@@ -189,6 +213,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             .AddOption(DragonfireStrategy.Automatic, "Automatic", "Use Dragonfire Dive normally")
             .AddOption(DragonfireStrategy.Force, "Force", "Force Dragonfire Dive usage", 120, 0, ActionTargets.Hostile, 50, 91)
             .AddOption(DragonfireStrategy.ForceEX, "ForceEX", "Force Dragonfire Dive (Grants Dragon's Flight)", 120, 30, ActionTargets.Hostile, 92)
+            .AddOption(DragonfireStrategy.ForceWeave, "Force Weave", "Force Dragonfire Dive usage inside the next possible weave window", 120, 0, ActionTargets.Hostile, 68)
             .AddOption(DragonfireStrategy.Delay, "Delay", "Delay Dragonfire Dive usage", 0, 0, ActionTargets.None, 50)
             .AddAssociatedActions(AID.DragonfireDive);
 
@@ -197,6 +222,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             .AddOption(GeirskogulStrategy.Automatic, "Automatic", "Use Geirskogul normally")
             .AddOption(GeirskogulStrategy.Force, "Force", "Force Geirskogul usage", 60, 0, ActionTargets.Hostile, 60, 69)
             .AddOption(GeirskogulStrategy.ForceEX, "ForceEX", "Force Geirskogul (Grants Life of the Dragon & 3x Nastrond)", 60, 20, ActionTargets.Hostile, 70)
+            .AddOption(GeirskogulStrategy.ForceWeave, "Force Weave", "Force Geirskogul usage inside the next possible weave window", 60, 20, ActionTargets.Hostile, 70)
             .AddOption(GeirskogulStrategy.Delay, "Delay", "Delay Geirskogul usage", 0, 0, ActionTargets.None, 60)
             .AddAssociatedActions(AID.Geirskogul);
 
@@ -205,6 +231,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             .AddOption(StardiverStrategy.Automatic, "Automatic", "Use Stardiver normally")
             .AddOption(StardiverStrategy.Force, "Force", "Force Stardiver usage", 30, 0, ActionTargets.Hostile, 80, 99)
             .AddOption(StardiverStrategy.ForceEX, "ForceEX", "Force Stardiver (Grants Starcross Ready)", 30, 0, ActionTargets.Hostile, 100)
+            .AddOption(StardiverStrategy.ForceWeave, "Force Weave", "Force Stardiver usage inside the next possible weave window", 30, 0, ActionTargets.Hostile, 80)
             .AddOption(StardiverStrategy.Delay, "Delay", "Delay Stardiver usage", 0, 0, ActionTargets.None, 80)
             .AddAssociatedActions(AID.Stardiver);
 
@@ -212,12 +239,14 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.PiercingTalon).As<PiercingTalonStrategy>("Piercing Talon", "Talon", uiPriority: 20)
             .AddOption(PiercingTalonStrategy.Forbid, "Forbid", "Forbid use of Piercing Talon")
             .AddOption(PiercingTalonStrategy.Allow, "Allow", "Allow use of Piercing Talon only if already in combat & outside melee range")
+            .AddOption(PiercingTalonStrategy.AllowEX, "AllowEX", "Allow use of Piercing Talon only if Enhanced")
             .AddOption(PiercingTalonStrategy.Force, "Force", "Force Piercing Talon usage ASAP (even in melee range)")
+            .AddOption(PiercingTalonStrategy.ForceEX, "ForceEX", "Force Piercing Talon usage ASAP when Enhanced")
             .AddAssociatedActions(AID.PiercingTalon);
 
         //True North strategy
         res.Define(Track.TrueNorth).As<TrueNorthStrategy>("True North", "T.North", uiPriority: 10)
-            .AddOption(TrueNorthStrategy.Automatic, "Automatic", "Late-weaves True North when out of positional")
+            .AddOption(TrueNorthStrategy.Automatic, "Automatic", "weaves True North when out of positional")
             .AddOption(TrueNorthStrategy.ASAP, "ASAP", "Use True North as soon as possible when out of positional", 45, 10, ActionTargets.Self, 50)
             .AddOption(TrueNorthStrategy.Rear, "Rear", "Use True North for rear positional only", 45, 10, ActionTargets.Self, 50)
             .AddOption(TrueNorthStrategy.Flank, "Flank", "Use True North for flank positional only", 45, 10, ActionTargets.Self, 50)
@@ -232,6 +261,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.LanceCharge).As<OffensiveStrategy>("Lance Charge", "L.Charge", uiPriority: 165)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Lance Charge normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force Lance Charge usage ASAP (even during downtime)", 60, 20, ActionTargets.Self, 30)
+            .AddOption(OffensiveStrategy.ForceWeave, "Force Weave", "Force Lance Charge usage inside the next possible weave window", 60, 20, ActionTargets.Self, 30)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay Lance Charge usage", 0, 0, ActionTargets.None, 30)
             .AddAssociatedActions(AID.LanceCharge);
 
@@ -239,6 +269,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.BattleLitany).As<OffensiveStrategy>("Battle Litany", "B.Litany", uiPriority: 170)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Battle Litany normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force Battle Litany usage ASAP (even during downtime)", 120, 20, ActionTargets.Self, 52)
+            .AddOption(OffensiveStrategy.ForceWeave, "Force Weave", "Force Battle Litany usage inside the next possible weave window", 120, 20, ActionTargets.Self, 52)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay Battle Litany usage", 0, 0, ActionTargets.None, 52)
             .AddAssociatedActions(AID.BattleLitany);
 
@@ -246,6 +277,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.MirageDive).As<OffensiveStrategy>("Mirage Dive", "M.Dive", uiPriority: 105)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Mirage Dive normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force Mirage Dive usage", 0, 0, ActionTargets.Hostile, 68)
+            .AddOption(OffensiveStrategy.ForceWeave, "Force Weave", "Force Mirage Dive usage inside the next possible weave window", 0, 0, ActionTargets.Hostile, 68)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay Mirage Dive usage", 0, 0, ActionTargets.None, 68)
             .AddAssociatedActions(AID.MirageDive);
 
@@ -253,6 +285,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.Nastrond).As<OffensiveStrategy>("Nastrond", "Nast.", uiPriority: 125)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Nastrond normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force Nastrond usage", 0, 2, ActionTargets.Hostile, 70)
+            .AddOption(OffensiveStrategy.ForceWeave, "Force Weave", "Force Nastrond usage inside the next possible weave window", 0, 2, ActionTargets.Hostile, 70)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay Nastrond usage", 0, 0, ActionTargets.None, 70)
             .AddAssociatedActions(AID.Nastrond);
 
@@ -260,6 +293,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.WyrmwindThrust).As<OffensiveStrategy>("Wyrmwind Thrust", "W.Thrust", uiPriority: 120)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Wyrmwind Thrust normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force Wyrmwind Thrust usage ASAP", 0, 10, ActionTargets.Hostile, 90)
+            .AddOption(OffensiveStrategy.ForceWeave, "Force Weave", "Force Nastrond usage inside the next possible weave window", 0, 10, ActionTargets.Hostile, 90)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay Wyrmwind Thrust usage", 0, 0, ActionTargets.None, 90)
             .AddAssociatedActions(AID.WyrmwindThrust);
 
@@ -267,13 +301,15 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.RiseOfTheDragon).As<OffensiveStrategy>("Rise Of The Dragon", "RotD", uiPriority: 145)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Rise Of The Dragon normally")
             .AddOption(OffensiveStrategy.Force, "Force", "Force Rise Of The Dragon usage", 0, 0, ActionTargets.Hostile, 92)
+            .AddOption(OffensiveStrategy.ForceWeave, "Force Weave", "Force Rise Of The Dragon usage inside the next possible weave window", 0, 0, ActionTargets.Hostile, 92)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay Rise Of The Dragon usage", 0, 0, ActionTargets.None, 92)
             .AddAssociatedActions(AID.RiseOfTheDragon);
 
         //Starcross strategy
         res.Define(Track.Starcross).As<OffensiveStrategy>("Starcross", "S.cross", uiPriority: 135)
             .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use Starcross normally")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force Starcross usage", 0, 0, ActionTargets.Self, 100)
+            .AddOption(OffensiveStrategy.Force, "Force", "Force Starcross usage", 0, 0, ActionTargets.Hostile, 100)
+            .AddOption(OffensiveStrategy.ForceWeave, "Force Weave", "Force Starcross usage inside the next possible weave window", 0, 0, ActionTargets.Hostile, 100)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay Starcross usage", 0, 0, ActionTargets.None, 100)
             .AddAssociatedActions(AID.Starcross);
 
@@ -325,6 +361,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private float powerLeft; //Time remaining for Power Surge
     private float chaosLeft; //Remaining time for Chaotic Spring DoT
 
+    private bool canWeave; //Inside Weave window
+    private bool canWeaveInStardiver; //We can weave in Stardiver
     public float downtimeIn; //Duration of downtime in combat
     private float PotionLeft; //Remaining time for potion effect
     private float RaidBuffsLeft; //Time left for raid buffs
@@ -361,15 +399,20 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     #endregion
 
     #region Module Helpers
-
     //Check if the desired ability is unlocked
     private bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
 
-    //Get remaining cooldown time for the specified action
-    private float CD(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
-
     //Get the last action used in the combo sequence
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
+
+    //Check if status effect is on self
+    public bool HasEffect(SID sid) => SelfStatusLeft(sid) > 0;
+
+    //Check if the desired action is ready (cooldown < 0.6 seconds)
+    private bool ActionReady(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining < 0.6f;
+
+    //Get remaining cooldown time for the specified action
+    private float CD(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
 
     //Check if the target is within melee range (3 yalms)
     private bool In3y(Actor? target) => Player.DistanceToHitbox(target) <= 3;
@@ -377,15 +420,13 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     //Check if the target is within 15 yalms
     private bool In15y(Actor? target) => Player.DistanceToHitbox(target) <= 14.75;
 
-    //Check if the desired action is ready (cooldown < 0.6 seconds)
-    private bool ActionReady(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining < 0.6f;
+    //Checks if we can weave an ability
+    public bool CanWeave(AID aid, double weaveTime = 0.7) => CD(aid) > weaveTime;
 
     //Check if the potion should be used before raid buffs expire
     private bool IsPotionBeforeRaidbuffs() => RaidBuffsLeft == 0 && PotionLeft > RaidBuffsIn + 17.5f;
 
-    //Check if status effect is on self
-    public bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus((uint)(object)sid, Player.InstanceID) != null;
-
+    #region Targeting Helpers
     //Count number of targets hit by AOE attack
     private int NumTargetsHitByAOE(Actor primary) => Hints.NumPriorityTargetsInAOECone(Player.Position, 10, (primary.Position - Player.Position).Normalized(), 45.Degrees());
 
@@ -408,6 +449,16 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         _ => (null, 0)
     };
 
+    private (Actor?, int) CheckSpearTargeting(SpearTargetingStrategy strategy, Actor? primaryTarget, float range, Func<Actor, int> numTargets, Func<Actor, Actor, bool> check) => strategy switch
+    {
+        SpearTargetingStrategy.AutoTargetHitPrimary => FindBetterTargetBy(primaryTarget, range, t => primaryTarget == null || check(t, primaryTarget) ? numTargets(t) : 0),
+        SpearTargetingStrategy.AutoTargetHitMost => FindBetterTargetBy(primaryTarget, range, numTargets),
+        _ => (null, 0)
+    };
+
+    #endregion
+
+    #region True North Helpers
     //Check which positional Player is on
     private Positional GetCurrentPositional(Actor target) => (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch
     {
@@ -421,6 +472,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
     //Check if Player is on Flank (side) positional 
     private bool IsOnFlank(Actor target) => GetCurrentPositional(target) == Positional.Flank;
+    #endregion
 
     #endregion
 
@@ -467,6 +519,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         #endregion
 
         #region Miscellaneous
+        canWeave = CanWeave(AID.TrueThrust);  //Check if weaving is possible
+        canWeaveInStardiver = GCD is < 2.5f and > 1.49f;  //Check if weaving Stardiver is possible
         downtimeIn = Manager.Planner?.EstimateTimeToNextDowntime().Item2 ?? float.MaxValue;  //Estimate downtime until next action
         PotionLeft = PotionStatusLeft();  //Get remaining potion status
         (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);  //Estimate remaining raid buffs
@@ -480,6 +534,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         #region AOEStrategy 'Force' Execution
 
         var AOEStrategy = strategy.Option(Track.AOE).As<AOEStrategy>();  //Retrieve the current AOE strategy
+        var SpearStrategy = strategy.Option(Track.Spears).As<SpearTargetingStrategy>();  //Retrieve the current Spear targeting strategy
 
         //Force specific actions based on the AOE strategy selected
         if (AOEStrategy == AOEStrategy.ForceST)  //If forced single target
@@ -519,10 +574,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             ? CheckAOETargeting(AOEStrategy, primaryTarget, 10, NumTargetsHitByAOE, IsHitByAOE)
             : (null, 0);  //Set to null and count 0 if not unlocked
 
-        //Check if Geirskogul is unlocked; if so, determine the best spear target and count
         var (SpearBestTarget, SpearTargetCount) = Unlocked(AID.Geirskogul)
-            ? CheckAOETargeting(AOEStrategy, primaryTarget, 15, NumTargetsHitBySpear, IsHitBySpear)
-            : (null, 0);  //Set to null and count 0 if not unlocked
+            ? CheckSpearTargeting(SpearStrategy, primaryTarget, 15, NumTargetsHitBySpear, IsHitBySpear)
+            : (null, 0);  // Set to null and count 0 if not unlocked
 
         //Determine if using AOE is viable (at least 3 targets hit)
         var useAOE = AOETargetCount >= 3;
@@ -545,67 +599,67 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Execute Lance Charge if available
         var lcStrat = strategy.Option(Track.LanceCharge).As<OffensiveStrategy>();
         if (!hold && ShouldUseLanceCharge(lcStrat, primaryTarget))
-            QueueOGCD(AID.LanceCharge, Player, lcStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
+            QueueOGCD(AID.LanceCharge, Player, lcStrat is OffensiveStrategy.Force or OffensiveStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
 
         //Execute Battle Litany if available
         var blStrat = strategy.Option(Track.BattleLitany).As<OffensiveStrategy>();
         if (!hold && ShouldUseBattleLitany(blStrat, primaryTarget))
-            QueueOGCD(AID.BattleLitany, Player, blStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
+            QueueOGCD(AID.BattleLitany, Player, blStrat is OffensiveStrategy.Force or OffensiveStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
 
         //Execute Life Surge if conditions met
         var lsStrat = strategy.Option(Track.LifeSurge).As<SurgeStrategy>();
         if (!hold && ShouldUseLifeSurge(lsStrat, primaryTarget))
-            QueueOGCD(AID.LifeSurge, Player, lsStrat is SurgeStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
+            QueueOGCD(AID.LifeSurge, Player, lsStrat is SurgeStrategy.Force or SurgeStrategy.ForceWeave or SurgeStrategy.ForceNextOpti or SurgeStrategy.ForceNextOptiWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
 
         //Execute Jump ability if available
         var jumpStrat = strategy.Option(Track.Jump).As<JumpStrategy>();
         if (!hold && ShouldUseJump(jumpStrat, primaryTarget))
-            QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump, primaryTarget, jumpStrat == JumpStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Jump);
+            QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump, primaryTarget, jumpStrat is JumpStrategy.Force or JumpStrategy.ForceEX or JumpStrategy.ForceEX2 or JumpStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Jump);
 
         //Execute Dragonfire Dive if available
         var ddStrat = strategy.Option(Track.DragonfireDive).As<DragonfireStrategy>();
         if (!hold && ShouldUseDragonfireDive(ddStrat, primaryTarget))
-            QueueOGCD(AID.DragonfireDive, primaryTarget, ddStrat is DragonfireStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.DragonfireDive);
+            QueueOGCD(AID.DragonfireDive, primaryTarget, ddStrat is DragonfireStrategy.Force or DragonfireStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.DragonfireDive);
 
         //Execute Geirskogul if available
         var geirskogul = strategy.Option(Track.Geirskogul).As<GeirskogulStrategy>();
         if (!hold && ShouldUseGeirskogul(geirskogul, primaryTarget))
-            QueueOGCD(AID.Geirskogul, bestSpeartarget, geirskogul == GeirskogulStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Geirskogul);
+            QueueOGCD(AID.Geirskogul, bestSpeartarget, geirskogul is GeirskogulStrategy.Force or GeirskogulStrategy.ForceEX or GeirskogulStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Geirskogul);
 
         //Execute Mirage Dive if available
         var mirageStrat = strategy.Option(Track.MirageDive).As<OffensiveStrategy>();
         if (!hold && ShouldUseMirageDive(mirageStrat, primaryTarget))
-            QueueOGCD(AID.MirageDive, primaryTarget, mirageStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.MirageDive);
+            QueueOGCD(AID.MirageDive, primaryTarget, mirageStrat is OffensiveStrategy.Force or OffensiveStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.MirageDive);
 
         //Execute Nastrond if available
         var nastrondStrat = strategy.Option(Track.Nastrond).As<OffensiveStrategy>();
         if (!hold && ShouldUseNastrond(nastrondStrat, primaryTarget))
-            QueueOGCD(AID.Nastrond, bestSpeartarget, nastrondStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Nastrond);
+            QueueOGCD(AID.Nastrond, bestSpeartarget, nastrondStrat is OffensiveStrategy.Force or OffensiveStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Nastrond);
 
         //Execute Stardiver if available
         var sdStrat = strategy.Option(Track.Stardiver).As<StardiverStrategy>();
         if (!hold && ShouldUseStardiver(sdStrat, primaryTarget))
-            QueueOGCD(AID.Stardiver, primaryTarget, sdStrat == StardiverStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Stardiver);
+            QueueOGCD(AID.Stardiver, primaryTarget, sdStrat is StardiverStrategy.Force or StardiverStrategy.ForceEX or StardiverStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Stardiver);
 
         //Execute Wyrmwind Thrust if available
         var wtStrat = strategy.Option(Track.WyrmwindThrust).As<OffensiveStrategy>();
         if (!hold && ShouldUseWyrmwindThrust(wtStrat, primaryTarget))
-            QueueOGCD(AID.WyrmwindThrust, bestSpeartarget, wtStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : HasEffect(SID.LanceCharge) ? OGCDPriority.WyrmwindThrustOpti : OGCDPriority.WyrmwindThrust);
+            QueueOGCD(AID.WyrmwindThrust, bestSpeartarget, wtStrat is OffensiveStrategy.Force or OffensiveStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : HasEffect(SID.LanceCharge) ? OGCDPriority.WyrmwindThrustOpti : OGCDPriority.WyrmwindThrust);
 
         //Execute Rise of the Dragon if available
         var riseStrat = strategy.Option(Track.RiseOfTheDragon).As<OffensiveStrategy>();
         if (!hold && ShouldUseRiseOfTheDragon(riseStrat, primaryTarget))
-            QueueOGCD(AID.RiseOfTheDragon, primaryTarget, riseStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
+            QueueOGCD(AID.RiseOfTheDragon, primaryTarget, riseStrat is OffensiveStrategy.Force or OffensiveStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
 
         //Execute Starcross if available
         var crossStrat = strategy.Option(Track.Starcross).As<OffensiveStrategy>();
         if (!hold && ShouldUseStarcross(crossStrat, primaryTarget))
-            QueueOGCD(AID.Starcross, primaryTarget, crossStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Starcross);
+            QueueOGCD(AID.Starcross, primaryTarget, crossStrat is OffensiveStrategy.Force or OffensiveStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Starcross);
 
         //Execute Piercing Talon if available
         var ptStrat = strategy.Option(Track.PiercingTalon).As<PiercingTalonStrategy>();
         if (ShouldUsePiercingTalon(primaryTarget, ptStrat))
-            QueueGCD(AID.PiercingTalon, primaryTarget, ptStrat == PiercingTalonStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.NormalGCD);
+            QueueGCD(AID.PiercingTalon, primaryTarget, ptStrat is PiercingTalonStrategy.Force or PiercingTalonStrategy.ForceEX ? GCDPriority.ForcedGCD : GCDPriority.NormalGCD);
 
         //Execute Potion if available
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
@@ -846,6 +900,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             //Use Lance Charge automatically if the player is in combat, the target is valid, the action is ready, and there is power remaining
             Player.InCombat && target != null && canLC && powerLeft > 0,
         OffensiveStrategy.Force => canLC, //Always use if forced
+        OffensiveStrategy.ForceWeave => canLC && canWeave, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -857,6 +912,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             //Use Battle Litany automatically if the player is in combat, the target is valid, the action is ready, and there is power remaining
             Player.InCombat && target != null && canBL && powerLeft > 0,
         OffensiveStrategy.Force => canBL, //Always use if forced
+        OffensiveStrategy.ForceWeave => canBL && canWeave, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -870,6 +926,13 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) ||
             ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)),
         SurgeStrategy.Force => canLS,
+        SurgeStrategy.ForceWeave => canLS && canWeave, //Always use if inside weave window
+        SurgeStrategy.ForceNextOpti => canLS &&
+            (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) ||
+            ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)),
+        SurgeStrategy.ForceNextOptiWeave => canLS && canWeave &&
+            (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) ||
+            ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)),
         SurgeStrategy.Delay => false,
         _ => false
     };
@@ -882,6 +945,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             Player.InCombat && target != null && canJump && (lcLeft > 0 || hasLC || lcCD is < 35 and > 17),
         JumpStrategy.ForceEX => canJump, //Always use in ForceEX strategy
         JumpStrategy.ForceEX2 => canJump, //Always use in ForceEX2 strategy
+        JumpStrategy.ForceWeave => canJump && canWeave, //Always use if inside weave window
         JumpStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -894,6 +958,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             Player.InCombat && target != null && In3y(target) && canDD && hasLC && hasBL,
         DragonfireStrategy.Force => canDD, //Always use if forced
         DragonfireStrategy.ForceEX => canDD, //Always use in ForceEX strategy
+        DragonfireStrategy.ForceWeave => canDD && canWeave, //Always use if inside weave window
         DragonfireStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -906,6 +971,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             Player.InCombat && In15y(target) && canGeirskogul && hasLC,
         GeirskogulStrategy.Force => canGeirskogul, //Always use if forced
         GeirskogulStrategy.ForceEX => canGeirskogul, //Always use if forced
+        GeirskogulStrategy.ForceWeave => canGeirskogul && canWeave, //Always use if inside weave window
         GeirskogulStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -917,6 +983,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             //Use Mirage Dive automatically if the player is in combat, the target is valid, and Dive Ready effect is active
             Player.InCombat && target != null && canMD,
         OffensiveStrategy.Force => canMD, //Always use if forced
+        OffensiveStrategy.ForceWeave => canMD && canWeave, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -928,6 +995,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             //Use Nastrond automatically if the player is in combat, has Nastrond ready, the target is within 15y, and Lance Charge is active
             Player.InCombat && In15y(target) && canNastrond,
         OffensiveStrategy.Force => canNastrond, //Always use if forced
+        OffensiveStrategy.ForceWeave => canNastrond && canWeave, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -940,6 +1008,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             Player.InCombat && target != null && In3y(target) && canSD && hasLOTD,
         StardiverStrategy.Force => canSD, //Always use if forced
         StardiverStrategy.ForceEX => canSD, //Always use if forced
+        StardiverStrategy.ForceWeave => canSD && canWeaveInStardiver, //Always use if inside weave window
         StardiverStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -951,6 +1020,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             //Use Wyrmwind Thrust automatically if the player is in combat, the target is within 15y, and focus count is exactly 2
             Player.InCombat && target != null && In15y(target) && canWT && focusCount is 2 && lcCD > GCDLength * 3,
         OffensiveStrategy.Force => canWT, //Always use if forced
+        OffensiveStrategy.ForceWeave => canWT && canWeave, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -962,6 +1032,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             //Use Rise of the Dragon automatically if the player is in combat, the target is valid, and Dragon's Flight effect is active
             Player.InCombat && target != null && canROTD,
         OffensiveStrategy.Force => canROTD, //Always use if forced
+        OffensiveStrategy.ForceWeave => canROTD && canWeave, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -973,6 +1044,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             //Use Starcross automatically if the player is in combat, the target is valid, and Starcross Ready effect is active
             Player.InCombat && target != null && canSC,
         OffensiveStrategy.Force => canSC, //Always use if forced
+        OffensiveStrategy.ForceWeave => canSC && canWeave, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -982,9 +1054,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         PiercingTalonStrategy.Forbid => false, //Never use if forbidden
         PiercingTalonStrategy.Allow =>
-            //Use Piercing Talon if the target is not within 3y range and already in combat
             Player.InCombat && target != null && !In3y(target),
+        PiercingTalonStrategy.AllowEX =>
+            Player.InCombat && target != null && !In3y(target) && HasEffect(SID.EnhancedPiercingTalon),
         PiercingTalonStrategy.Force => true, //Always use if forced
+        PiercingTalonStrategy.ForceEX => HasEffect(SID.EnhancedPiercingTalon),
         _ => false
     };
 
@@ -1004,7 +1078,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         TrueNorthStrategy.Automatic =>
             target != null && Player.InCombat &&
-            !HasEffect(ClassShared.SID.TrueNorth) &&
+            !HasEffect(SID.TrueNorth) &&
             GCD < 1.25f &&
             (!IsOnRear(target) && //Side
             ComboLastMove is AID.Disembowel or AID.SpiralBlow
@@ -1013,7 +1087,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             ComboLastMove is AID.HeavensThrust or AID.FullThrust),
         TrueNorthStrategy.ASAP =>
             target != null && Player.InCombat &&
-            !HasEffect(ClassShared.SID.TrueNorth) &&
+            !HasEffect(SID.TrueNorth) &&
             (!IsOnRear(target) && //Side
             ComboLastMove is AID.Disembowel or AID.SpiralBlow
             or AID.ChaosThrust or AID.ChaoticSpring ||
@@ -1021,13 +1095,13 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             ComboLastMove is AID.HeavensThrust or AID.FullThrust),
         TrueNorthStrategy.Flank =>
             target != null && Player.InCombat &&
-            !HasEffect(ClassShared.SID.TrueNorth) &&
+            !HasEffect(SID.TrueNorth) &&
             GCD < 1.25f &&
             !IsOnFlank(target) && //Back
             ComboLastMove is AID.HeavensThrust or AID.FullThrust,
         TrueNorthStrategy.Rear =>
             target != null && Player.InCombat &&
-            !HasEffect(ClassShared.SID.TrueNorth) &&
+            !HasEffect(SID.TrueNorth) &&
             GCD < 1.25f &&
             !IsOnRear(target) && //Side
             ComboLastMove is AID.Disembowel or AID.SpiralBlow
