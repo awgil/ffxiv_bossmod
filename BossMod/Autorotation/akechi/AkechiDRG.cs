@@ -361,7 +361,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private float powerLeft; //Time remaining for Power Surge
     private float chaosLeft; //Remaining time for Chaotic Spring DoT
 
-    private bool canWeave; //Inside Weave window
+    private bool canWeaveIn; //Inside Weave window
     private bool canWeaveInStardiver; //We can weave in Stardiver
     public float downtimeIn; //Duration of downtime in combat
     private float PotionLeft; //Remaining time for potion effect
@@ -519,7 +519,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         #endregion
 
         #region Miscellaneous
-        canWeave = CanWeave(AID.TrueThrust);  //Check if weaving is possible
+        canWeaveIn = CanWeave(AID.TrueThrust);  //Check if weaving is possible
         canWeaveInStardiver = GCD is < 2.5f and > 1.49f;  //Check if weaving Stardiver is possible
         downtimeIn = Manager.Planner?.EstimateTimeToNextDowntime().Item2 ?? float.MaxValue;  //Estimate downtime until next action
         PotionLeft = PotionStatusLeft();  //Get remaining potion status
@@ -900,7 +900,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             //Use Lance Charge automatically if the player is in combat, the target is valid, the action is ready, and there is power remaining
             Player.InCombat && target != null && canLC && powerLeft > 0,
         OffensiveStrategy.Force => canLC, //Always use if forced
-        OffensiveStrategy.ForceWeave => canLC && canWeave, //Always use if inside weave window
+        OffensiveStrategy.ForceWeave => canLC && canWeaveIn, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -912,7 +912,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             //Use Battle Litany automatically if the player is in combat, the target is valid, the action is ready, and there is power remaining
             Player.InCombat && target != null && canBL && powerLeft > 0,
         OffensiveStrategy.Force => canBL, //Always use if forced
-        OffensiveStrategy.ForceWeave => canBL && canWeave, //Always use if inside weave window
+        OffensiveStrategy.ForceWeave => canBL && canWeaveIn, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -926,11 +926,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) ||
             ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)),
         SurgeStrategy.Force => canLS,
-        SurgeStrategy.ForceWeave => canLS && canWeave, //Always use if inside weave window
+        SurgeStrategy.ForceWeave => canLS && canWeaveIn, //Always use if inside weave window
         SurgeStrategy.ForceNextOpti => canLS &&
             (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) ||
             ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)),
-        SurgeStrategy.ForceNextOptiWeave => canLS && canWeave &&
+        SurgeStrategy.ForceNextOptiWeave => canLS && canWeaveIn &&
             (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) ||
             ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)),
         SurgeStrategy.Delay => false,
@@ -945,7 +945,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             Player.InCombat && target != null && canJump && (lcLeft > 0 || hasLC || lcCD is < 35 and > 17),
         JumpStrategy.ForceEX => canJump, //Always use in ForceEX strategy
         JumpStrategy.ForceEX2 => canJump, //Always use in ForceEX2 strategy
-        JumpStrategy.ForceWeave => canJump && canWeave, //Always use if inside weave window
+        JumpStrategy.ForceWeave => canJump && canWeaveIn, //Always use if inside weave window
         JumpStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -958,7 +958,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             Player.InCombat && target != null && In3y(target) && canDD && hasLC && hasBL,
         DragonfireStrategy.Force => canDD, //Always use if forced
         DragonfireStrategy.ForceEX => canDD, //Always use in ForceEX strategy
-        DragonfireStrategy.ForceWeave => canDD && canWeave, //Always use if inside weave window
+        DragonfireStrategy.ForceWeave => canDD && canWeaveIn, //Always use if inside weave window
         DragonfireStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -971,7 +971,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             Player.InCombat && In15y(target) && canGeirskogul && hasLC,
         GeirskogulStrategy.Force => canGeirskogul, //Always use if forced
         GeirskogulStrategy.ForceEX => canGeirskogul, //Always use if forced
-        GeirskogulStrategy.ForceWeave => canGeirskogul && canWeave, //Always use if inside weave window
+        GeirskogulStrategy.ForceWeave => canGeirskogul && canWeaveIn, //Always use if inside weave window
         GeirskogulStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -983,7 +983,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             //Use Mirage Dive automatically if the player is in combat, the target is valid, and Dive Ready effect is active
             Player.InCombat && target != null && canMD,
         OffensiveStrategy.Force => canMD, //Always use if forced
-        OffensiveStrategy.ForceWeave => canMD && canWeave, //Always use if inside weave window
+        OffensiveStrategy.ForceWeave => canMD && canWeaveIn, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -995,7 +995,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             //Use Nastrond automatically if the player is in combat, has Nastrond ready, the target is within 15y, and Lance Charge is active
             Player.InCombat && In15y(target) && canNastrond,
         OffensiveStrategy.Force => canNastrond, //Always use if forced
-        OffensiveStrategy.ForceWeave => canNastrond && canWeave, //Always use if inside weave window
+        OffensiveStrategy.ForceWeave => canNastrond && canWeaveIn, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -1020,7 +1020,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             //Use Wyrmwind Thrust automatically if the player is in combat, the target is within 15y, and focus count is exactly 2
             Player.InCombat && target != null && In15y(target) && canWT && focusCount is 2 && lcCD > GCDLength * 3,
         OffensiveStrategy.Force => canWT, //Always use if forced
-        OffensiveStrategy.ForceWeave => canWT && canWeave, //Always use if inside weave window
+        OffensiveStrategy.ForceWeave => canWT && canWeaveIn, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -1032,7 +1032,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             //Use Rise of the Dragon automatically if the player is in combat, the target is valid, and Dragon's Flight effect is active
             Player.InCombat && target != null && canROTD,
         OffensiveStrategy.Force => canROTD, //Always use if forced
-        OffensiveStrategy.ForceWeave => canROTD && canWeave, //Always use if inside weave window
+        OffensiveStrategy.ForceWeave => canROTD && canWeaveIn, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
@@ -1044,7 +1044,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             //Use Starcross automatically if the player is in combat, the target is valid, and Starcross Ready effect is active
             Player.InCombat && target != null && canSC,
         OffensiveStrategy.Force => canSC, //Always use if forced
-        OffensiveStrategy.ForceWeave => canSC && canWeave, //Always use if inside weave window
+        OffensiveStrategy.ForceWeave => canSC && canWeaveIn, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
