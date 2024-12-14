@@ -5,6 +5,10 @@ public enum OID : uint
     Boss = 0x4233, // R6.500, x1
 }
 
+// 7.11+
+// RLB -> 37370 > 37371 > 42173
+// LBR -> 37396 > 37394 > 37395
+// LBL -> 37396 > 37394 > 42174
 public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast, single-target
@@ -14,14 +18,14 @@ public enum AID : uint
     WhirlingOmenRLB = 37378, // Boss->self, 3.0s cast, single-target, visual (apply omens: right-left-back)
     WhirlingOmenLBL = 37379, // Boss->self, 3.0s cast, single-target, visual (apply omens: left-back-left)
     SapSpiller = 37397, // Boss->self, 12.0s cast, single-target, visual (consume omens, cast instant saps)
-    NoxiousSapRear = 37394, // Boss->self, no cast, range 30 120-degree cone (consume rear?)
-    NoxiousSapRight1 = 37395, // Boss->self, no cast, range 30 120-degree cone (consume first right?)
-    NoxiousSapLeft1 = 37396, // Boss->self, no cast, range 30 120-degree cone (consume first left?)
-    NoxiousSapRight2 = 37370, // Boss->self, no cast, range 30 120-degree cone (consume second right?)
-    NoxiousSapLeft2 = 37371, // Boss->self, no cast, range 30 120-degree cone (consume second left?)
-    NoxiousSapNew1 = 42172, // Boss->self, no cast, range 30 120-degree cone (???)
-    NoxiousSapNew2 = 42173, // Boss->self, no cast, range 30 120-degree cone (consume back in RLB?)
-    NoxiousSapNew3 = 42174, // Boss->self, no cast, range 30 120-degree cone (???)
+    NoxiousSapR1 = 37370, // Boss->self, no cast, range 30 120-degree cone (consume first right?)
+    NoxiousSapL2 = 37371, // Boss->self, no cast, range 30 120-degree cone (consume second left?)
+    NoxiousSapB2 = 37394, // Boss->self, no cast, range 30 120-degree cone (consume second rear?)
+    NoxiousSapR3 = 37395, // Boss->self, no cast, range 30 120-degree cone (consume third right?)
+    NoxiousSapL1 = 37396, // Boss->self, no cast, range 30 120-degree cone (consume first left?)
+    NoxiousSapR2 = 42172, // Boss->self, no cast, range 30 120-degree cone (???)
+    NoxiousSapB3 = 42173, // Boss->self, no cast, range 30 120-degree cone (consume third back?)
+    NoxiousSapL3 = 42174, // Boss->self, no cast, range 30 120-degree cone (consume third left?)
     Neurotoxify = 38331, // Boss->self, 5.0s cast, range 40 circle, raidwide + apply delayed stun
     Cocopult = 37307, // Boss->players, 5.0s cast, range 5 circle stack
     RavagingRootsCW = 37373, // Boss->self, 5.0s cast, range 30 width 6 cross
@@ -100,7 +104,7 @@ class SapSpiller(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.NoxiousSapRear or AID.NoxiousSapRight1 or AID.NoxiousSapLeft1 or AID.NoxiousSapRight2 or AID.NoxiousSapLeft2 or AID.NoxiousSapNew1 or AID.NoxiousSapNew2 or AID.NoxiousSapNew3 && _nextAOE != null)
+        if ((AID)spell.Action.ID is AID.NoxiousSapR1 or AID.NoxiousSapR2 or AID.NoxiousSapR3 or AID.NoxiousSapL1 or AID.NoxiousSapL2 or AID.NoxiousSapL3 or AID.NoxiousSapB2 or AID.NoxiousSapB3 && _nextAOE != null)
         {
             if (!_nextAOE.Value.Rotation.AlmostEqual(spell.Rotation, 0.1f))
                 ReportError($"Unexpected rotation: got {spell.Rotation}, expected {_nextAOE.Value.Rotation}");

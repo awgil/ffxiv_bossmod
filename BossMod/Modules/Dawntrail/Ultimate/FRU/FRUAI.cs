@@ -33,7 +33,7 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
     {
         MovementStrategy.Prepull => PrepullPosition(module, assignment),
         MovementStrategy.DragToCenter => DragToCenterPosition(module),
-        MovementStrategy.MaxMeleeNearest => primaryTarget != null ? ClosestInMelee(Player.Position, primaryTarget) : Player.Position,
+        MovementStrategy.MaxMeleeNearest => primaryTarget != null ? primaryTarget.Position + 7.5f * (Player.Position - primaryTarget.Position).Normalized() : Player.Position,
         MovementStrategy.ClockSpot => ClockSpotPosition(module, assignment, 6),
         _ => Player.Position
     };
@@ -45,13 +45,18 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
         _ => module.PrimaryActor.Position + new WDir(0, 12.5f)
     };
 
+    // notes on boss movement: boss top speed is ~8.5m, it moves up to distance 7.5m (both hitboxes + 2m)
+    // empyrically, if i stand still, i can start moving when boss is ~11m away and it will still be dragged to intended spot
     private WPos DragToCenterPosition(FRU module)
     {
         if (module.PrimaryActor.Position.Z >= module.Center.Z - 1)
             return module.Center - new WDir(0, 6); // boss is positioned, go to N clockspot
-        var dragSpot = module.Center + new WDir(0, 7.75f); // we need to stay approx here, it's fine to overshoot a little bit - then when boss teleports, it won't turn
-        var meleeSpot = ClosestInMelee(dragSpot, module.PrimaryActor);
-        return UptimeDowntimePos(dragSpot, meleeSpot, 0, GCD);
+        var dragDistance = module.PrimaryActor.HitboxRadius + Player.HitboxRadius + 2.25f; // we need to stay approx here, it's fine to overshoot a little bit - then when boss teleports, it won't turn
+        var meleeDistance = module.PrimaryActor.HitboxRadius + Player.HitboxRadius + 2.75f; // -0.25 is a small extra leeway
+        var dragDir = (module.Center - module.PrimaryActor.Position).Normalized();
+        var dragSpot = module.Center + dragDistance * dragDir;
+        var timeToMelee = ((dragSpot - module.PrimaryActor.Position).Length() - meleeDistance) / (Speed() + 8.5f); // assume 8.5 boss speed...
+        return GCD > timeToMelee + 0.1f ? dragSpot : module.PrimaryActor.Position + meleeDistance * dragDir;
     }
 
     private WPos ClockSpotPosition(FRU module, PartyRolesConfig.Assignment assignment, float range) => assignment switch
