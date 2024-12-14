@@ -28,8 +28,8 @@ class HypothermalCombustion(BossModule module) : Components.SelfTargetedAOEs(mod
     {
         base.AddAIHints(slot, actor, assignment, hints);
 
-        if (Casters.Count > 0 && Module.PrimaryActor.Position.InCircle(Casters[0].Position, 7.2f))
-            hints.SetPriority(Casters[0], -2);
+        if (Module.Enemies(OID.GiddyBomb).FirstOrDefault() is Actor g && Module.PrimaryActor.Position.InCircle(g.Position, 7.2f))
+            hints.SetPriority(g, -2);
     }
 }
 class MassiveBurst(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MassiveBurst), "Knock the Giddy bomb into the boss and let it explode on the boss. \n or else take 99% damage!");
