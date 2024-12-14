@@ -39,7 +39,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         AutoTargetHitPrimary,  //Auto-target AOE actions to hit primary target as well
         AutoTargetHitMost,     //Auto-target AOE actions to hit most targets
-        AutoonPrimary,         //Use AOE actions on primary target
+        AutoOnPrimary,         //Use AOE actions on primary target
         ForceST,               //Force single-target abilities
         Force123ST,            //Force single-target 123 combo
         ForceBuffsST,          //Force single-target buffs combo
@@ -178,7 +178,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.AOE).As<AOEStrategy>("Combo Option", "AOE", uiPriority: 200)
             .AddOption(AOEStrategy.AutoTargetHitPrimary, "AutoTargetHitPrimary", "Use AOE actions if profitable, select best target that ensures primary target is hit")
             .AddOption(AOEStrategy.AutoTargetHitMost, "AutoTargetHitMost", "Use AOE actions if profitable, select a target that ensures maximal number of targets are hit")
-            .AddOption(AOEStrategy.AutoonPrimary, "AutoonPrimary", "Use AOE actions on primary target if profitable")
+            .AddOption(AOEStrategy.AutoOnPrimary, "AutoOnPrimary", "Use AOE actions on primary target if profitable")
             .AddOption(AOEStrategy.ForceST, "Force ST", "Force Single-Target rotation")
             .AddOption(AOEStrategy.Force123ST, "only 1-2-3 ST", "Force only ST 1-2-3 rotation (No Buffs)")
             .AddOption(AOEStrategy.ForceBuffsST, "only 1-4-5 ST", "Force only ST 1-4-5 rotation (Buffs only)")
@@ -462,7 +462,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         AOEStrategy.AutoTargetHitPrimary => FindBetterTargetBy(primaryTarget, range, t => primaryTarget == null || check(t, primaryTarget) ? numTargets(t) : 0),
         AOEStrategy.AutoTargetHitMost => FindBetterTargetBy(primaryTarget, range, numTargets),
-        AOEStrategy.AutoonPrimary => (primaryTarget, primaryTarget != null ? numTargets(primaryTarget) : 0),
+        AOEStrategy.AutoOnPrimary => (primaryTarget, primaryTarget != null ? numTargets(primaryTarget) : 0),
         AOEStrategy.ForceAOE => (primaryTarget, int.MaxValue),
         _ => (null, 0)
     };
