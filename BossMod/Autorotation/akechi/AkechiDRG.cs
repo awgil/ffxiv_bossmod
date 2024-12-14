@@ -48,8 +48,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
     public enum SpearTargetingStrategy
     {
-        AutoTargetHitPrimary, //Auto-target spear to hit primary target
-        AutoTargetHitMost,    //Auto-target spear to hit most targets
+        AutoTargetHitPrimary,  //Auto-target spear to hit primary target
+        AutoTargetHitMost,     //Auto-target spear to hit most targets
     }
 
     //Burst strategy options
@@ -63,9 +63,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
     public enum DivesStrategy
     {
-        AllowMaxMelee,        //Allow Dives only at max melee range
-        AllowCloseMelee,      //Allow Dives only at close melee range
-        Allow,                //Allow the use of Dives
+        AllowMaxMelee,         //Allow Dives only at max melee range
+        AllowCloseMelee,       //Allow Dives only at close melee range
+        Allow,                 //Allow the use of Dives
         Forbid,                //Forbid the use of Dives
     }
 
@@ -142,21 +142,21 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     //True North strategy
     public enum TrueNorthStrategy
     {
-        Automatic,      //Weave
-        ASAP,           //Use ASAP
-        Rear,           //Use only when in Rear
-        Flank,          //Use only when in Flank
-        Force,          //Force
-        Delay           //Delay
+        Automatic,              //Weave
+        ASAP,                   //Use ASAP
+        Rear,                   //Use only when in Rear
+        Flank,                  //Use only when in Flank
+        Force,                  //Force
+        Delay                   //Delay
     }
 
     //Offensive strategies
     public enum OffensiveStrategy
     {
-        Automatic,             //Automatically use offensive abilities
-        Force,                 //Force offensive abilities
-        ForceWeave,            //Force offensive abilities only inside the next possible weave window
-        Delay                  //Delay offensive abilities
+        Automatic,              //Automatically use offensive abilities
+        Force,                  //Force offensive abilities
+        ForceWeave,             //Force offensive abilities only inside the next possible weave window
+        Delay                   //Delay offensive abilities
     }
 
     #endregion
@@ -180,8 +180,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             .AddOption(AOEStrategy.AutoTargetHitMost, "AutoTargetHitMost", "Use AOE actions if profitable, select a target that ensures maximal number of targets are hit")
             .AddOption(AOEStrategy.AutoOnPrimary, "AutoOnPrimary", "Use AOE actions on primary target if profitable")
             .AddOption(AOEStrategy.ForceST, "Force ST", "Force Single-Target rotation")
-            .AddOption(AOEStrategy.Force123ST, "only 1-2-3 ST", "Force only ST 1-2-3 rotation (No Buffs)")
-            .AddOption(AOEStrategy.ForceBuffsST, "only 1-4-5 ST", "Force only ST 1-4-5 rotation (Buffs only)")
+            .AddOption(AOEStrategy.Force123ST, "Only 1-2-3 ST", "Force only ST 1-2-3 rotation (No Buffs)")
+            .AddOption(AOEStrategy.ForceBuffsST, "Only 1-4-5 ST", "Force only ST 1-4-5 rotation (Buffs only)")
             .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation, even if less than 3 targets");
 
         //Spear targeting strategy
