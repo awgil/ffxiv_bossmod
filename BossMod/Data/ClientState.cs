@@ -39,10 +39,12 @@ public record struct DeepDungeonState
     byte PassageProgress,
     byte[] MapData, // 25-element array, ordered top left -> bottom right
     DeepDungeonState.PartyMember[] PartyInfo,
-    DeepDungeonState.ItemList Items,
+    DeepDungeonState.Item[] Items,
     DeepDungeonState.Chest[] ChestInfo
 )
 {
+    public DeepDungeonState() : this(0, 0, 0, 0, 0, 0, 0, new byte[25], new PartyMember[4], new Item[16], new Chest[16]) { }
+
     public record struct PartyMember(uint EntityId, sbyte RoomIndex);
     public record struct Chest(byte ChestType, sbyte RoomIndex);
     public record struct Item(byte ItemId, byte Count, byte Flags)
@@ -50,12 +52,8 @@ public record struct DeepDungeonState
         public readonly bool Usable => (Flags & (1 << 0)) != 0;
         public readonly bool Active => (Flags & (1 << 1)) != 0;
     }
-    public record struct ItemList(Item[] Values) : IEnumerable<Item>
-    {
-        public readonly IEnumerator<Item> GetEnumerator() => ((IEnumerable<Item>)Values).GetEnumerator();
-        readonly IEnumerator IEnumerable.GetEnumerator() => Values.GetEnumerator();
-        public readonly Item this[PomanderID index] => index == PomanderID.None ? default : Values[(uint)index - 1];
-    }
+
+    public readonly Item GetItem(PomanderID pid) => pid == PomanderID.None ? default : Items[(uint)pid - 1];
 
     public readonly bool ReturnActive => ReturnProgress >= 11;
     public readonly bool PassageActive => PassageProgress >= 11;
@@ -90,7 +88,7 @@ public sealed class ClientState
     public Fate ActiveFate;
     public Pet ActivePet;
     public ulong FocusTargetId;
-    public DeepDungeonState DeepDungeonState = new(138, 0, 0, 0, 0, 0, 0, new byte[25], new DeepDungeonState.PartyMember[4], new DeepDungeonState.ItemList(new DeepDungeonState.Item[16]), new DeepDungeonState.Chest[16]);
+    public DeepDungeonState DeepDungeon;
 
     public int ClassJobLevel(Class c)
     {
@@ -148,6 +146,9 @@ public sealed class ClientState
 
         if (FocusTargetId != 0)
             yield return new OpFocusTargetChange(FocusTargetId);
+
+        if (DeepDungeon != new DeepDungeonState())
+            yield return new OpDeepDungeonStateChange(DeepDungeon);
     }
 
     public void Tick(float dt)
@@ -380,12 +381,11 @@ public sealed class ClientState
     {
         protected override void Exec(WorldState ws)
         {
-            ws.Client.DeepDungeonState = Value;
+            ws.Client.DeepDungeon = Value;
             ws.Client.DeepDungeonStateChanged.Fire(this);
         }
         public override void Write(ReplayRecorder.Output output)
         {
-            /*
             output.EmitFourCC("CLDD"u8)
                 .Emit(Value.Floor)
                 .Emit(Value.WeaponLevel)
@@ -393,14 +393,14 @@ public sealed class ClientState
                 .Emit(Value.SyncedGearLevel)
                 .Emit(Value.HoardCount)
                 .Emit(Value.ReturnProgress)
-                .Emit(Value.PassageProgress);
+                .Emit(Value.PassageProgress)
+                .Emit(Value.MapData);
             foreach (var member in Value.PartyInfo)
                 output.Emit(member.EntityId).Emit(member.RoomIndex);
-            foreach (var item in Value.ItemInfo)
+            foreach (var item in Value.Items)
                 output.Emit(item.ItemId).Emit(item.Count).Emit(item.Flags);
             foreach (var chest in Value.ChestInfo)
                 output.Emit(chest.ChestType).Emit(chest.RoomIndex);
-            */
         }
     }
 }

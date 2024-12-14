@@ -65,6 +65,9 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe delegate void ProcessPacketRSVDataDelegate(byte* packet);
     private readonly Hook<ProcessPacketRSVDataDelegate> _processPacketRSVDataHook;
 
+    private unsafe delegate void ProcessPacketOpenTreasureDelegate(uint actorID, byte* packet);
+    private readonly Hook<ProcessPacketOpenTreasureDelegate> _processPacketOpenTreasureHook;
+
     public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
     {
         _ws = ws;
@@ -113,6 +116,10 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketRSVDataHook = Service.Hook.HookFromSignature<ProcessPacketRSVDataDelegate>("44 8B 09 4C 8D 41 34", ProcessPacketRSVDataDetour);
         _processPacketRSVDataHook.Enable();
         Service.Log($"[WSG] ProcessPacketRSVData address = 0x{_processPacketRSVDataHook.Address:X}");
+
+        _processPacketOpenTreasureHook = Service.Hook.HookFromSignature<ProcessPacketOpenTreasureDelegate>("40 53 48 83 EC 20 48 8B DA 48 8D 0D ?? ?? ?? ?? 8B 52 10 E8 ?? ?? ?? ?? 48 85 C0 74 1B", ProcessPacketOpenTreasureDetour);
+        _processPacketOpenTreasureHook.Enable();
+        Service.Log($"[WSG] ProcessPacketOpenTreasure address = 0x{_processPacketOpenTreasureHook.Address:X}");
     }
 
     public void Dispose()
@@ -651,7 +658,7 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ClientState.OpFocusTargetChange(focusTargetId));
 
         var dd = GetDeepDungeonState();
-        if (_ws.Client.DeepDungeonState != dd)
+        if (_ws.Client.DeepDungeon != dd)
             _ws.Execute(new ClientState.OpDeepDungeonStateChange(dd));
     }
 
@@ -676,7 +683,7 @@ sealed class WorldStateGameSync : IDisposable
             MapData = new byte[25],
 
             PartyInfo = new DeepDungeonState.PartyMember[4],
-            Items = new(new DeepDungeonState.Item[16]),
+            Items = new DeepDungeonState.Item[16],
             ChestInfo = new DeepDungeonState.Chest[16]
         };
 
@@ -691,7 +698,7 @@ sealed class WorldStateGameSync : IDisposable
         var ddItem = dd->Items;
         for (var i = 0; i < ddItem.Length; i++)
         {
-            ref var pitem = ref state.Items.Values[i];
+            ref var pitem = ref state.Items[i];
             pitem.ItemId = ddItem[i].ItemId;
             pitem.Count = ddItem[i].Count;
             pitem.Flags = ddItem[i].Flags;
@@ -867,5 +874,11 @@ sealed class WorldStateGameSync : IDisposable
     {
         _processPacketRSVDataHook.Original(packet);
         _globalOps.Add(new WorldState.OpRSVData(MemoryHelper.ReadStringNullTerminated((nint)(packet + 4)), MemoryHelper.ReadString((nint)(packet + 0x34), *(int*)packet)));
+    }
+
+    private unsafe void ProcessPacketOpenTreasureDetour(uint actorID, byte* packet)
+    {
+        _processPacketOpenTreasureHook.Original(actorID, packet);
+        _actorOps.GetOrAdd(actorID).Add(new ActorState.OpEventOpenTreasure(actorID));
     }
 }

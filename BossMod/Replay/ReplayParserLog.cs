@@ -324,6 +324,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("EANM"u8)] = ParseActorEventObjectAnimation,
             [new("PATE"u8)] = ParseActorPlayActionTimelineEvent,
             [new("NYEL"u8)] = ParseActorEventNpcYell,
+            [new("OPNT"u8)] = ParseActorEventOpenTreasure,
             [new("PAR "u8)] = ParsePartyModify,
             [new("PAR+"u8)] = ParsePartyModify, // legacy (up to v3)
             [new("PAR-"u8)] = ParsePartyLeave, // legacy (up to v3)
@@ -344,6 +345,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLAF"u8)] = ParseClientActiveFate,
             [new("CPET"u8)] = ParseClientActivePet,
             [new("CLFT"u8)] = ParseClientFocusTarget,
+            [new("CLDD"u8)] = ParseClientDeepDungeon,
             [new("IPCI"u8)] = ParseNetworkIDScramble,
             [new("IPCS"u8)] = ParseNetworkServerIPC,
         };
@@ -593,6 +595,7 @@ public sealed class ReplayParserLog : IDisposable
     private ActorState.OpEventObjectAnimation ParseActorEventObjectAnimation() => new(_input.ReadActorID(), _input.ReadUShort(true), _input.ReadUShort(true));
     private ActorState.OpPlayActionTimelineEvent ParseActorPlayActionTimelineEvent() => new(_input.ReadActorID(), _input.ReadUShort(true));
     private ActorState.OpEventNpcYell ParseActorEventNpcYell() => new(_input.ReadActorID(), _input.ReadUShort(false));
+    private ActorState.OpEventOpenTreasure ParseActorEventOpenTreasure() => new(_input.ReadActorID());
 
     private PartyState.OpModify ParsePartyModify() => new(_input.ReadInt(), new(_input.ReadULong(true), _input.ReadULong(true), _version >= 15 && _input.ReadBool(), _version < 15 ? "" : _input.ReadString()));
     private PartyState.OpModify ParsePartyLeave() => new(_input.ReadInt(), new(0, 0, false, ""));
@@ -679,6 +682,27 @@ public sealed class ReplayParserLog : IDisposable
     private ClientState.OpActiveFateChange ParseClientActiveFate() => new(new(_input.ReadUInt(false), _input.ReadVec3(), _input.ReadFloat()));
     private ClientState.OpActivePetChange ParseClientActivePet() => new(new(_input.ReadULong(true), _input.ReadByte(false), _input.ReadByte(false)));
     private ClientState.OpFocusTargetChange ParseClientFocusTarget() => new(_input.ReadULong(true));
+    private ClientState.OpDeepDungeonStateChange ParseClientDeepDungeon()
+    {
+        var dd = new DeepDungeonState
+        {
+            Floor = _input.ReadByte(false),
+            WeaponLevel = _input.ReadByte(false),
+            ArmorLevel = _input.ReadByte(false),
+            SyncedGearLevel = _input.ReadByte(false),
+            HoardCount = _input.ReadByte(false),
+            ReturnProgress = _input.ReadByte(false),
+            PassageProgress = _input.ReadByte(false),
+            MapData = _input.ReadBytes()
+        };
+        for (var i = 0; i < 4; i++)
+            dd.PartyInfo[i] = new(_input.ReadUInt(false), _input.ReadSByte());
+        for (var i = 0; i < 16; i++)
+            dd.Items[i] = new(_input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false));
+        for (var i = 0; i < 16; i++)
+            dd.ChestInfo[i] = new(_input.ReadByte(false), _input.ReadSByte());
+        return new(dd);
+    }
 
     private NetworkState.OpIDScramble ParseNetworkIDScramble() => new(_input.ReadUInt(false));
     private NetworkState.OpServerIPC ParseNetworkServerIPC() => new(new((Network.ServerIPC.PacketID)_input.ReadInt(), _input.ReadUShort(false), _input.ReadUInt(false), _input.ReadUInt(true), new(_input.ReadLong()), _input.ReadBytes()));

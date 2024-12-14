@@ -40,12 +40,22 @@ enum OID : uint
 
 enum AID : uint
 {
-    StoneGaze = 6351, // 3.5s cast, single target, gaze, inflicts petrification
-    Chirp = 6365, // 2.5s cast, 21.6 radius, deals no damage, inflicts sleep
+    // gazes
+    StoneGazeSingle = 6351, // 3.5s cast, single target, inflicts petrification
+    StoneGazeCone = 6356, // 2.5s cast, range 8.2 90-degree cone, inflicts petrification
+    MysteriousLight = 6953, // 3s cast, 30 radius, inflicts damage
+
+    // interruptible casts
+    ParalyzeIII = 6386, // 5s cast, 6 radius on target (player), applies paralysis
+    ParalyzeIII2 = 6388, // exactly the same as above but different action for some reason
     Infatuation = 6397, // 3s cast, applies pox
-    IceSpikes = 6943, // 1.5s cast, applies thorns to self
-    MysteriousLight = 6953, // 3s cast, 30 radius, gaze, inflicts damage if failed
-    Tornado = 7028, // 1s cast, 6 radius, targets player, deals minor damage
+    VoidBlizzard = 7049, // 2.5s cast, applies slow to target, interruptible
+    Mucin = 7014, // 3s cast, applies stoneskin to mob
+    BladeOfSuffering = 7029, // 3s cast, applies drain touch to self
+    HorroisonousBlast = 7058, // 4s cast, 20 radius, interruptible, can't be dodged due to the heavy
+
+    // should be ignored
+    Chirp = 6365, // 2.5s cast, 21.6 radius, deals no damage, inflicts sleep
 }
 
 enum SID : uint
@@ -67,14 +77,15 @@ public abstract class PalaceFloorModule : ZoneModule
     private readonly List<WPos> _trapsCurrentZone = [];
 
     private readonly Dictionary<ulong, PomanderID> _chestContents = [];
+    private readonly HashSet<ulong> _openedChests = [];
     private PomanderID? _lastChestContents;
     private bool _showTrapHints = true;
 
-    private readonly List<(Actor Source, DateTime Activation)> _gazes = [];
+    private readonly List<(Actor Source, DateTime Activation, AOEShape? Shape)> _gazes = [];
     private readonly List<Actor> _interrupts = [];
     private readonly List<Actor> _forbiddenTargets = [];
 
-    private DeepDungeonState Palace => World.Client.DeepDungeonState;
+    private DeepDungeonState Palace => World.Client.DeepDungeon;
 
     public PalaceFloorModule(WorldState ws) : base(ws)
     {
@@ -83,7 +94,8 @@ public abstract class PalaceFloorModule : ZoneModule
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
             ws.Actors.CastFinished.Subscribe(OnCastFinished),
             ws.Actors.StatusGain.Subscribe(OnStatusGain),
-            ws.Actors.StatusLose.Subscribe(OnStatusLose)
+            ws.Actors.StatusLose.Subscribe(OnStatusLose),
+            ws.Actors.EventOpenTreasure.Subscribe(OnOpenTreasure)
         );
 
         _trapsCurrentZone = PalacePalInterop.GetTrapLocationsForZone(ws.CurrentZone);
@@ -94,11 +106,16 @@ public abstract class PalaceFloorModule : ZoneModule
         switch ((AID)actor.CastInfo!.Action.ID)
         {
             case AID.MysteriousLight:
-            case AID.StoneGaze:
-                _gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime)));
+            case AID.StoneGazeSingle:
+                _gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), null));
                 break;
             case AID.Infatuation:
-            case AID.IceSpikes:
+            case AID.VoidBlizzard:
+            case AID.HorroisonousBlast:
+            case AID.Mucin:
+            case AID.BladeOfSuffering:
+            case AID.ParalyzeIII:
+            case AID.ParalyzeIII2:
                 _interrupts.Add(actor);
                 break;
         }
@@ -109,11 +126,16 @@ public abstract class PalaceFloorModule : ZoneModule
         switch ((AID)actor.CastInfo!.Action.ID)
         {
             case AID.MysteriousLight:
-            case AID.StoneGaze:
+            case AID.StoneGazeSingle:
                 _gazes.RemoveAll(d => d.Source == actor);
                 break;
             case AID.Infatuation:
-            case AID.IceSpikes:
+            case AID.VoidBlizzard:
+            case AID.HorroisonousBlast:
+            case AID.Mucin:
+            case AID.BladeOfSuffering:
+            case AID.ParalyzeIII:
+            case AID.ParalyzeIII2:
                 _interrupts.Remove(actor);
                 break;
         }
@@ -171,6 +193,12 @@ public abstract class PalaceFloorModule : ZoneModule
         }
     }
 
+    private void OnOpenTreasure(Actor chest)
+    {
+        Service.Log($"treasure chest opened: {chest}");
+        _openedChests.Add(chest.InstanceID);
+    }
+
     private void ClearState()
     {
         _lastChestContents = null;
@@ -179,6 +207,7 @@ public abstract class PalaceFloorModule : ZoneModule
         _forbiddenTargets.Clear();
         _gazes.Clear();
         _chestContents.Clear();
+        _openedChests.Clear();
     }
 
     private bool OpenGold => _config.GoldCoffer && Palace.Items.Any(i => i.Count < 3);
@@ -205,7 +234,7 @@ public abstract class PalaceFloorModule : ZoneModule
     public override void BeforeCalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
         hints.HintedActions.Add(ActionID.MakeSpell(AID.Chirp));
-        hints.HintedActions.Add(ActionID.MakeSpell(AID.Tornado));
+        hints.HintedActions.Add(ActionID.MakeSpell(AID.StoneGazeCone));
     }
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
@@ -214,7 +243,8 @@ public abstract class PalaceFloorModule : ZoneModule
             return;
 
         foreach (var d in _gazes)
-            hints.ForbiddenDirections.Add((player.AngleTo(d.Source), 45.Degrees(), d.Activation));
+            if (d.Shape == null || d.Shape.Check(player.Position, d.Source))
+                hints.ForbiddenDirections.Add((player.AngleTo(d.Source), 45.Degrees(), d.Activation));
 
         foreach (var d in _interrupts)
             if (hints.FindEnemy(d) is { } e)
@@ -243,12 +273,15 @@ public abstract class PalaceFloorModule : ZoneModule
 
         foreach (var a in World.Actors)
         {
-            if (_chestContents.TryGetValue(a.InstanceID, out var pid) && Palace.Items[pid].Count == 3 && a.IsTargetable)
+            if (_chestContents.TryGetValue(a.InstanceID, out var pid) && Palace.GetItem(pid).Count == 3 && a.IsTargetable)
             {
                 if (CanAutoUse(pid))
                     pomanderToUseHere ??= pid;
                 continue;
             }
+
+            if (_openedChests.Contains(a.InstanceID))
+                continue;
 
             var oid = (OID)a.OID;
             if (a.IsTargetable && (
@@ -299,7 +332,7 @@ public abstract class PalaceFloorModule : ZoneModule
         if (revealedTraps.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Union(revealedTraps));
 
-        if (!isOccupied && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.Items[PomanderID.Intuition].Active && InBounds(hints, h.Position))
+        if (!isOccupied && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.GetItem(PomanderID.Intuition).Active && InBounds(hints, h.Position))
             hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));
 
         if (!isOccupied && _config.AutoClear && (_config.FullClear || !Palace.PassageActive))
