@@ -54,6 +54,7 @@ enum SID : uint
     Pacification = 620,
     ItemPenalty = 1094,
 
+    BlazeSpikes = 197,
     IceSpikes = 198,
 }
 
@@ -123,6 +124,7 @@ public abstract class PalaceFloorModule : ZoneModule
         var status = actor.Statuses[index];
         switch ((SID)status.ID)
         {
+            case SID.BlazeSpikes:
             case SID.IceSpikes:
                 _forbiddenTargets.Add(actor);
                 break;
@@ -134,6 +136,7 @@ public abstract class PalaceFloorModule : ZoneModule
         var status = actor.Statuses[index];
         switch ((SID)status.ID)
         {
+            case SID.BlazeSpikes:
             case SID.IceSpikes:
                 _forbiddenTargets.Remove(actor);
                 break;

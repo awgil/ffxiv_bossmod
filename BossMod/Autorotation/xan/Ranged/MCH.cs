@@ -5,7 +5,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
-    public enum Track { Queen = SharedTrack.Count, Hypercharge, Tools }
+    public enum Track { Queen = SharedTrack.Count, Wildfire, Hypercharge, Tools }
     public enum QueenStrategy
     {
         MinGauge,
@@ -13,12 +13,18 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         RaidBuffsOnly,
         Never
     }
+    public enum WildfireStrategy
+    {
+        ASAP,
+        Delay,
+        Hypercharge
+    }
 
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("xan MCH", "Machinist", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.MCH), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.BarrelStabilizer, AID.Wildfire);
+        def.DefineShared().AddAssociatedActions(AID.BarrelStabilizer);
 
         def.Define(Track.Queen).As<QueenStrategy>("Queen", "Queen")
             .AddOption(QueenStrategy.MinGauge, "Min", "Summon at 50+ gauge")
@@ -26,6 +32,11 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(QueenStrategy.RaidBuffsOnly, "Buffed", "Delay summon until raid buffs, regardless of gauge")
             .AddOption(QueenStrategy.Never, "Never", "Do not automatically summon Queen at all")
             .AddAssociatedActions(AID.AutomatonQueen, AID.RookAutoturret);
+
+        def.Define(Track.Wildfire).As<WildfireStrategy>("WF", "Wildfire")
+            .AddOption(WildfireStrategy.ASAP, "ASAP", "Use as soon as possible (delay in opener until after Full Metal Field)")
+            .AddOption(WildfireStrategy.Delay, "Delay", "Do not use")
+            .AddOption(WildfireStrategy.Hypercharge, "Hypercharge", "Delay until Hypercharge window");
 
         def.DefineSimple(Track.Hypercharge, "Hypercharge").AddAssociatedActions(AID.Hypercharge);
         def.DefineSimple(Track.Tools, "Tools").AddAssociatedActions(AID.Drill, AID.AirAnchor, AID.ChainSaw, AID.Bioblaster);
@@ -311,8 +322,13 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool ShouldWildfire(StrategyValues strategy)
     {
-        if (!Unlocked(AID.Wildfire) || !CanWeave(AID.Wildfire) || !strategy.BuffsOk())
+        var wfStrat = strategy.Option(Track.Wildfire).As<WildfireStrategy>();
+
+        if (!Unlocked(AID.Wildfire) || !CanWeave(AID.Wildfire) || wfStrat == WildfireStrategy.Delay)
             return false;
+
+        if (wfStrat == WildfireStrategy.Hypercharge)
+            return Overheated || HyperchargedLeft > 0 || Heat >= 50;
 
         // hack for opener - delay until all 4 tool charges are used
         if (CombatTimer < 60)

@@ -23,6 +23,8 @@ class FearItself(BossModule module) : Components.SelfTargetedAOEs(module, Action
 
 class Hints(BossModule module) : BossComponent(module)
 {
+    // arena is like a weird octagon and the boss also doesn't cast from the center
+    private static readonly WPos FearCastSource = new(-300, -236);
     public int NumCasts { get; private set; }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -47,9 +49,9 @@ class Hints(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (NumCasts < 4)
-            hints.AddForbiddenZone(new AOEShapeCircle(11), Arena.Center, activation: WorldState.FutureTime(10f));
+            hints.AddForbiddenZone(new AOEShapeCircle(11), FearCastSource, activation: WorldState.FutureTime(10f));
         else
-            hints.AddForbiddenZone(new AOEShapeDonut(5, 50), Arena.Center, activation: WorldState.FutureTime(10f));
+            hints.AddForbiddenZone(new AOEShapeDonut(5, 50), FearCastSource, activation: WorldState.FutureTime(10f));
     }
 }
 
@@ -67,4 +69,4 @@ class D30NingishzidaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 176, NameID = 5012)]
-public class D30Ningishzida(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -236), new ArenaBoundsCircle(24));
+public class D30Ningishzida(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -237), new ArenaBoundsCircle(24));
