@@ -86,7 +86,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         Force,                 //Force use of Jump
         ForceEX,               //Force use of Jump EX)
         ForceEX2,              //Force use of High Jump
-        ForceWeave,            //Force use of Jump inside the
+        ForceWeave,            //Force use of Jump inside the next possible weave window
         Delay                  //Delay use of Jump
     }
 
@@ -123,11 +123,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     //Piercing Talon strategy
     public enum PiercingTalonStrategy
     {
-        Forbid,                //Forbid the use of Piercing Talon
-        Allow,                 //Use Piercing Talon when appropriate
         AllowEX,               //Use Piercing Talon when Enhanced
+        Allow,                 //Use Piercing Talon when appropriate
         Force,                 //Force use of Piercing Talon
         ForceEX,               //Force use of Piercing Talon when Enhanced
+        Forbid,                //Forbid the use of Piercing Talon
     }
 
     //True North strategy
@@ -237,11 +237,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         //Piercing Talon strategy
         res.Define(Track.PiercingTalon).As<PiercingTalonStrategy>("Piercing Talon", "Talon", uiPriority: 20)
-            .AddOption(PiercingTalonStrategy.Forbid, "Forbid", "Forbid use of Piercing Talon")
-            .AddOption(PiercingTalonStrategy.Allow, "Allow", "Allow use of Piercing Talon only if already in combat & outside melee range")
-            .AddOption(PiercingTalonStrategy.AllowEX, "AllowEX", "Allow use of Piercing Talon only if Enhanced")
+            .AddOption(PiercingTalonStrategy.AllowEX, "AllowEX", "Allow use of Piercing Talon if already in combat, outside melee range, & is Enhanced")
+            .AddOption(PiercingTalonStrategy.Allow, "Allow", "Allow use of Piercing Talon if already in combat & outside melee range")
             .AddOption(PiercingTalonStrategy.Force, "Force", "Force Piercing Talon usage ASAP (even in melee range)")
             .AddOption(PiercingTalonStrategy.ForceEX, "ForceEX", "Force Piercing Talon usage ASAP when Enhanced")
+            .AddOption(PiercingTalonStrategy.Forbid, "Forbid", "Forbid use of Piercing Talon")
             .AddAssociatedActions(AID.PiercingTalon);
 
         //True North strategy
@@ -1052,13 +1052,13 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     //Determines when to use Piercing Talon
     private bool ShouldUsePiercingTalon(Actor? target, PiercingTalonStrategy strategy) => strategy switch
     {
-        PiercingTalonStrategy.Forbid => false, //Never use if forbidden
-        PiercingTalonStrategy.Allow =>
-            Player.InCombat && target != null && !In3y(target),
         PiercingTalonStrategy.AllowEX =>
             Player.InCombat && target != null && !In3y(target) && HasEffect(SID.EnhancedPiercingTalon),
+        PiercingTalonStrategy.Allow =>
+            Player.InCombat && target != null && !In3y(target),
         PiercingTalonStrategy.Force => true, //Always use if forced
         PiercingTalonStrategy.ForceEX => HasEffect(SID.EnhancedPiercingTalon),
+        PiercingTalonStrategy.Forbid => false, //Never use if forbidden
         _ => false
     };
 

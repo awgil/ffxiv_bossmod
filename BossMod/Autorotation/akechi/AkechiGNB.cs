@@ -5,7 +5,7 @@ using TraitID = BossMod.GNB.TraitID;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
-//Discord @akechdz or 'Akechi' on Puni.sh for maintenance
+//Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 //This module supports <=2.47 SkS rotation as default (or 'Automatic')
 //With user adjustment, 'SlowGNB' or 'FastGNB' usage is achievable
 
@@ -518,7 +518,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         if (ShouldUseDoubleDown(ddStrat, primaryTarget))
             QueueGCD(AID.DoubleDown, primaryTarget, ddStrat == OffensiveStrategy.Force || Ammo == 1 ? GCDPriority.ForcedGCD : GCDPriority.DoubleDown);
 
-
         //Gnashing Fang Combo execution
         if (GunComboStep == 1)
             QueueGCD(AID.SavageClaw, primaryTarget, gfStrat == GnashingStrategy.ForceClaw ? GCDPriority.ForcedGCD : GCDPriority.GF23);
@@ -542,7 +541,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         var strikeStrat = strategy.Option(Track.BurstStrike).As<OffensiveStrategy>();
         if (Unlocked(AID.BurstStrike) && Unlocked(AID.Bloodfest) && ShouldUseBurstStrike(strikeStrat, primaryTarget))
             QueueGCD(AID.BurstStrike, primaryTarget, strikeStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : nmCD < 1 ? GCDPriority.ForcedGCD : GCDPriority.BurstStrike);
-
 
         //Fated Circle execution
         var fcStrat = strategy.Option(Track.FatedCircle).As<OffensiveStrategy>();
