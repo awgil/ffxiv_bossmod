@@ -88,7 +88,7 @@ public sealed class ClientState
     public Fate ActiveFate;
     public Pet ActivePet;
     public ulong FocusTargetId;
-    public DeepDungeonState DeepDungeon;
+    public DeepDungeonState DeepDungeon = new();
 
     public int ClassJobLevel(Class c)
     {

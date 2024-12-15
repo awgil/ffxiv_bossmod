@@ -307,7 +307,15 @@ public sealed unsafe class ActionManagerEx : IDisposable
                 return holsterIndex >= 0 && PublicContentBozja.GetInstance()->UseFromHolster((uint)holsterIndex, action.Type == ActionType.BozjaHolsterSlot1 ? 1u : 0);
             case ActionType.Pomander:
                 var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
-                return dd != null && _usePomanderHook.Original(dd, action.ID - 1) != null;
+                var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+                var prevRot = player != null ? player->Rotation.Radians() : default;
+                if (dd != null && _usePomanderHook.Original(dd, action.ID - 1) != null)
+                {
+                    var currRot = player != null ? player->Rotation.Radians() : default;
+                    HandleActionRequest(action, 0, targetId, targetPos, prevRot, currRot);
+                    return true;
+                }
+                return false;
             default:
                 // fall back to UAL hook for everything not covered explicitly
                 return _inst->UseActionLocation((CSActionType)action.Type, action.ID, targetId, &targetPos, 0);
@@ -493,9 +501,10 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     private void* UsePomanderDetour(InstanceContentDeepDungeon* self, uint pomanderId)
     {
-        var src = _usePomanderHook.Original(self, pomanderId);
-        Service.Log($"pomander use: {pomanderId} ({(PomanderID)(pomanderId + 1)})");
-        return src;
+        if (_manualQueue.Push(new ActionID(ActionType.Pomander, pomanderId + 1), 0xE0000000, false, () => (0xE0000000, null)))
+            return null;
+
+        return _usePomanderHook.Original(self, pomanderId);
     }
 
     private void ProcessPacketActionEffectDetour(uint casterID, Character* casterObj, Vector3* targetPos, ActionEffectHandler.Header* header, ActionEffectHandler.TargetEffects* effects, GameObjectId* targets)
