@@ -345,7 +345,12 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLAF"u8)] = ParseClientActiveFate,
             [new("CPET"u8)] = ParseClientActivePet,
             [new("CLFT"u8)] = ParseClientFocusTarget,
-            [new("CLDD"u8)] = ParseClientDeepDungeon,
+            [new("DDPG"u8)] = ParseDeepDungeonProgress,
+            [new("DDMP"u8)] = ParseDeepDungeonMap,
+            [new("DDPT"u8)] = ParseDeepDungeonParty,
+            [new("DDIT"u8)] = ParseDeepDungeonItems,
+            [new("DDCT"u8)] = ParseDeepDungeonChests,
+            [new("SLOG"u8)] = ParseSystemLog,
             [new("IPCI"u8)] = ParseNetworkIDScramble,
             [new("IPCS"u8)] = ParseNetworkServerIPC,
         };
@@ -682,26 +687,51 @@ public sealed class ReplayParserLog : IDisposable
     private ClientState.OpActiveFateChange ParseClientActiveFate() => new(new(_input.ReadUInt(false), _input.ReadVec3(), _input.ReadFloat()));
     private ClientState.OpActivePetChange ParseClientActivePet() => new(new(_input.ReadULong(true), _input.ReadByte(false), _input.ReadByte(false)));
     private ClientState.OpFocusTargetChange ParseClientFocusTarget() => new(_input.ReadULong(true));
-    private ClientState.OpDeepDungeonStateChange ParseClientDeepDungeon()
+
+    private DeepDungeonState.OpProgressChange ParseDeepDungeonProgress() => new(new DeepDungeonState.DungeonProgress(_input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false)));
+    private DeepDungeonState.OpMapDataChange ParseDeepDungeonMap() => new(_input.ReadBytes());
+    private DeepDungeonState.OpPartyStateChange ParseDeepDungeonParty()
     {
-        var dd = new DeepDungeonState
+        var pt = new DeepDungeonState.PartyMember[4];
+        for (var i = 0; i < pt.Length; i++)
         {
-            Floor = _input.ReadByte(false),
-            WeaponLevel = _input.ReadByte(false),
-            ArmorLevel = _input.ReadByte(false),
-            SyncedGearLevel = _input.ReadByte(false),
-            HoardCount = _input.ReadByte(false),
-            ReturnProgress = _input.ReadByte(false),
-            PassageProgress = _input.ReadByte(false),
-            MapData = _input.ReadBytes()
-        };
-        for (var i = 0; i < 4; i++)
-            dd.PartyInfo[i] = new(_input.ReadUInt(false), _input.ReadSByte());
-        for (var i = 0; i < 16; i++)
-            dd.Items[i] = new(_input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false));
-        for (var i = 0; i < 16; i++)
-            dd.ChestInfo[i] = new(_input.ReadByte(false), _input.ReadSByte());
-        return new(dd);
+            ref var p = ref pt[i];
+            p.EntityId = _input.ReadActorID();
+            p.Room = _input.ReadByte(false);
+        }
+        return new(pt);
+    }
+    private DeepDungeonState.OpItemsChange ParseDeepDungeonItems()
+    {
+        var it = new DeepDungeonState.Item[16];
+        for (var i = 0; i < it.Length; i++)
+        {
+            ref var item = ref it[i];
+            item.Count = _input.ReadByte(false);
+            item.Flags = _input.ReadByte(true);
+        }
+        return new(it);
+    }
+    private DeepDungeonState.OpChestsChange ParseDeepDungeonChests()
+    {
+        var ct = new DeepDungeonState.Chest[16];
+        for (var i = 0; i < ct.Length; i++)
+        {
+            ref var chest = ref ct[i];
+            chest.Type = _input.ReadByte(false);
+            chest.Room = _input.ReadByte(false);
+        }
+        return new(ct);
+    }
+
+    private WorldState.OpSystemLogMessage ParseSystemLog()
+    {
+        var id = _input.ReadUInt(false);
+        var argCount = _input.ReadInt();
+        var args = new int[argCount];
+        for (var i = 0; i < argCount; i++)
+            args[i] = _input.ReadInt();
+        return new(id, args);
     }
 
     private NetworkState.OpIDScramble ParseNetworkIDScramble() => new(_input.ReadUInt(false));

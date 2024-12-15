@@ -16,6 +16,7 @@ public sealed class WorldState
     public readonly ActorState Actors = new();
     public readonly PartyState Party;
     public readonly ClientState Client = new();
+    public readonly DeepDungeonState DeepDungeon = new();
     public readonly NetworkState Network = new();
     public readonly PendingEffects PendingEffects = new();
 
@@ -67,6 +68,8 @@ public sealed class WorldState
         foreach (var o in Party.CompareToInitial())
             yield return o;
         foreach (var o in Client.CompareToInitial())
+            yield return o;
+        foreach (var o in DeepDungeon.CompareToInitial())
             yield return o;
         foreach (var o in Network.CompareToInitial())
             yield return o;
@@ -142,5 +145,18 @@ public sealed class WorldState
     {
         protected override void Exec(WorldState ws) => ws.EnvControl.Fire(this);
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ENVC"u8).Emit(Index, "X2").Emit(State, "X8");
+    }
+
+    public Event<OpSystemLogMessage> SystemLogMessage = new();
+    public sealed record class OpSystemLogMessage(uint MessageId, int[] Args) : Operation
+    {
+        protected override void Exec(WorldState ws) => ws.SystemLogMessage.Fire(this);
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("SLOG"u8).Emit(MessageId);
+            output.Emit(Args.Length);
+            foreach (var arg in Args)
+                output.Emit(arg);
+        }
     }
 }

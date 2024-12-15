@@ -85,7 +85,7 @@ public abstract class PalaceFloorModule : ZoneModule
     private readonly List<Actor> _interrupts = [];
     private readonly List<Actor> _forbiddenTargets = [];
 
-    private DeepDungeonState Palace => World.Client.DeepDungeon;
+    private DeepDungeonState Palace => World.DeepDungeon;
 
     public PalaceFloorModule(WorldState ws) : base(ws)
     {
@@ -215,7 +215,7 @@ public abstract class PalaceFloorModule : ZoneModule
     }
 
     private bool OpenGold => _config.GoldCoffer && Palace.Items.Any(i => i.Count < 3);
-    private bool OpenSilver => _config.SilverCoffer && Palace.WeaponLevel + Palace.ArmorLevel < 198;
+    private bool OpenSilver => _config.SilverCoffer && Palace.Progress.WeaponLevel + Palace.Progress.ArmorLevel < 198;
     private bool OpenBronze => _config.BronzeCoffer;
 
     public override bool WantToBeDrawn() => true;
@@ -243,7 +243,7 @@ public abstract class PalaceFloorModule : ZoneModule
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
-        if (!_config.Enable || Palace.Floor % 10 == 0)
+        if (!_config.Enable || Palace.Progress.Floor % 10 == 0)
             return;
 
         foreach (var d in _gazes)

@@ -68,6 +68,9 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe delegate void ProcessPacketOpenTreasureDelegate(uint actorID, byte* packet);
     private readonly Hook<ProcessPacketOpenTreasureDelegate> _processPacketOpenTreasureHook;
 
+    private unsafe delegate ulong ProcessSystemLogMessageDelegate(uint entityId, uint logMessageId, int* args, byte argCount);
+    private readonly Hook<ProcessSystemLogMessageDelegate> _processSystemLogMessageHook;
+
     public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
     {
         _ws = ws;
@@ -117,6 +120,10 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketRSVDataHook.Enable();
         Service.Log($"[WSG] ProcessPacketRSVData address = 0x{_processPacketRSVDataHook.Address:X}");
 
+        _processSystemLogMessageHook = Service.Hook.HookFromSignature<ProcessSystemLogMessageDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B6 43 28", ProcessSystemLogMessageDetour);
+        _processSystemLogMessageHook.Enable();
+        Service.Log($"[WSG] ProcessSystemLogMessage address = 0x{_processSystemLogMessageHook:X}");
+
         _processPacketOpenTreasureHook = Service.Hook.HookFromSignature<ProcessPacketOpenTreasureDelegate>("40 53 48 83 EC 20 48 8B DA 48 8D 0D ?? ?? ?? ?? 8B 52 10 E8 ?? ?? ?? ?? 48 85 C0 74 1B", ProcessPacketOpenTreasureDetour);
         _processPacketOpenTreasureHook.Enable();
         Service.Log($"[WSG] ProcessPacketOpenTreasure address = 0x{_processPacketOpenTreasureHook.Address:X}");
@@ -131,6 +138,8 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketNpcYellHook.Dispose();
         _processEnvControlHook.Dispose();
         _processPacketRSVDataHook.Dispose();
+        _processSystemLogMessageHook.Dispose();
+        _processPacketOpenTreasureHook.Dispose();
         _subscriptions.Dispose();
         _netConfig.Dispose();
         _interceptor.Dispose();
@@ -185,6 +194,7 @@ sealed class WorldStateGameSync : IDisposable
         UpdateActors();
         UpdateParty();
         UpdateClient();
+        UpdateDeepDungeon();
     }
 
     private unsafe void UpdateWaymarks()
@@ -656,19 +666,32 @@ sealed class WorldStateGameSync : IDisposable
         var focusTargetId = focusTarget != null ? SanitizedObjectID(focusTarget->GetGameObjectId()) : 0;
         if (_ws.Client.FocusTargetId != focusTargetId)
             _ws.Execute(new ClientState.OpFocusTargetChange(focusTargetId));
-
-        var dd = GetDeepDungeonState();
-        if (_ws.Client.DeepDungeon != dd)
-            _ws.Execute(new ClientState.OpDeepDungeonStateChange(dd));
     }
 
-    private static unsafe DeepDungeonState GetDeepDungeonState()
+    private unsafe void UpdateDeepDungeon()
+    {
+        var ddold = _ws.DeepDungeon;
+        var ddnew = GetDeepDungeonState();
+
+        if (ddold.Progress != ddnew.Progress)
+            _ws.Execute(new DeepDungeonState.OpProgressChange(ddnew.Progress));
+        if (!MemoryExtensions.SequenceEqual<byte>(ddold.MapData, ddnew.MapData))
+            _ws.Execute(new DeepDungeonState.OpMapDataChange(ddnew.MapData));
+        if (!MemoryExtensions.SequenceEqual<DeepDungeonState.PartyMember>(ddold.Party, ddnew.Party))
+            _ws.Execute(new DeepDungeonState.OpPartyStateChange(ddnew.Party));
+        if (!MemoryExtensions.SequenceEqual<DeepDungeonState.Item>(ddold.Items, ddnew.Items))
+            _ws.Execute(new DeepDungeonState.OpItemsChange(ddnew.Items));
+        if (!MemoryExtensions.SequenceEqual<DeepDungeonState.Chest>(ddold.Chests, ddnew.Chests))
+            _ws.Execute(new DeepDungeonState.OpChestsChange(ddnew.Chests));
+    }
+
+    private unsafe DeepDungeonState GetDeepDungeonState()
     {
         var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
         if (dd == null)
-            return default;
+            return new();
 
-        var state = new DeepDungeonState
+        var progress = new DeepDungeonState.DungeonProgress
         {
             Floor = dd->Floor,
             WeaponLevel = dd->WeaponLevel,
@@ -679,27 +702,27 @@ sealed class WorldStateGameSync : IDisposable
 
             ReturnProgress = dd->ReturnProgress,
             PassageProgress = dd->PassageProgress,
-
-            MapData = new byte[25],
-
-            PartyInfo = new DeepDungeonState.PartyMember[4],
-            Items = new DeepDungeonState.Item[16],
-            ChestInfo = new DeepDungeonState.Chest[16]
         };
+
+        var state = new DeepDungeonState
+        {
+            Progress = progress
+        };
+
+        dd->MapData.CopyTo(state.MapData);
 
         var ddParty = dd->Party;
         for (var i = 0; i < 4; i++)
         {
-            ref var pinfo = ref state.PartyInfo[i];
-            pinfo.EntityId = ddParty[i].EntityId;
-            pinfo.RoomIndex = ddParty[i].RoomIndex;
+            ref var pinfo = ref state.Party[i];
+            pinfo.EntityId = (uint)SanitizedObjectID(ddParty[i].EntityId);
+            pinfo.Room = (byte)(ddParty[i].RoomIndex + 1);
         }
 
         var ddItem = dd->Items;
         for (var i = 0; i < ddItem.Length; i++)
         {
             ref var pitem = ref state.Items[i];
-            pitem.ItemId = ddItem[i].ItemId;
             pitem.Count = ddItem[i].Count;
             pitem.Flags = ddItem[i].Flags;
         }
@@ -707,12 +730,10 @@ sealed class WorldStateGameSync : IDisposable
         var ddChest = dd->Chests;
         for (var i = 0; i < ddChest.Length; i++)
         {
-            ref var pchest = ref state.ChestInfo[i];
-            pchest.ChestType = ddChest[i].ChestType;
-            pchest.RoomIndex = ddChest[i].RoomIndex;
+            ref var pchest = ref state.Chests[i];
+            pchest.Type = ddChest[i].ChestType;
+            pchest.Room = (byte)(ddChest[i].RoomIndex + 1);
         }
-
-        dd->MapData.CopyTo(state.MapData);
 
         return state;
     }
@@ -880,5 +901,13 @@ sealed class WorldStateGameSync : IDisposable
     {
         _processPacketOpenTreasureHook.Original(actorID, packet);
         _actorOps.GetOrAdd(actorID).Add(new ActorState.OpEventOpenTreasure(actorID));
+    }
+
+    private unsafe ulong ProcessSystemLogMessageDetour(uint entityId, uint messageId, int* args, byte argCount)
+    {
+        var argsArray = new Span<int>(args, argCount);
+        var res = _processSystemLogMessageHook.Original(entityId, messageId, args, argCount);
+        _globalOps.Add(new WorldState.OpSystemLogMessage(messageId, argsArray.ToArray()));
+        return res;
     }
 }

@@ -125,8 +125,8 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         return use && strategy.Option(Track.Potion).As<PotionStrategy>() switch
         {
             PotionStrategy.Always => true,
-            PotionStrategy.Boss => World.Client.DeepDungeon.Floor % 10 == 0,
-            PotionStrategy.BossOrHigh => World.Client.DeepDungeon.Floor is var floor && (floor % 10 == 0 || floor > 140),
+            PotionStrategy.Boss => World.DeepDungeon.Progress.Floor % 10 == 0,
+            PotionStrategy.BossOrHigh => World.DeepDungeon.Progress.Floor is var floor && (floor % 10 == 0 || floor > 140),
             _ => false
         };
     }
