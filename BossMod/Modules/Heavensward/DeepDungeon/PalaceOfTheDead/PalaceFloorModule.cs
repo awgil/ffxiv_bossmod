@@ -109,6 +109,9 @@ public abstract class PalaceFloorModule : ZoneModule
             case AID.StoneGazeSingle:
                 _gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), null));
                 break;
+            case AID.StoneGazeCone:
+                _gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), new AOEShapeCone(8.2f, 45.Degrees())));
+                break;
             case AID.Infatuation:
             case AID.VoidBlizzard:
             case AID.HorroisonousBlast:
@@ -127,6 +130,7 @@ public abstract class PalaceFloorModule : ZoneModule
         {
             case AID.MysteriousLight:
             case AID.StoneGazeSingle:
+            case AID.StoneGazeCone:
                 _gazes.RemoveAll(d => d.Source == actor);
                 break;
             case AID.Infatuation:

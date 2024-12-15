@@ -84,6 +84,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         Func<WPos, float> goal = _ => 0f;
         ActionID attack = default;
         var numTargets = 0;
+        var castTime = 0f;
 
         switch (t)
         {
@@ -96,12 +97,14 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
                 goal = Hints.GoalSingleTarget(primaryTarget, 25);
                 numTargets = Hints.NumPriorityTargetsInAOECircle(primaryTarget.Position, 5);
                 attack = ActionID.MakeSpell(Roleplay.AID.VoidFireII);
+                castTime = 2.5f;
                 break;
             case Transformation.Kuribu:
                 // heavenly judge is ground targeted
                 goal = Hints.GoalSingleTarget(primaryTarget.Position, 25);
                 numTargets = Hints.NumPriorityTargetsInAOECircle(primaryTarget.Position, 6);
                 attack = ActionID.MakeSpell(Roleplay.AID.HeavenlyJudge);
+                castTime = 2.5f;
                 break;
             default:
                 return;
@@ -111,7 +114,8 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             return;
 
         Hints.GoalZones.Add(goal);
-        Hints.ActionsToExecute.Push(attack, primaryTarget, ActionQueue.Priority.High, targetPos: primaryTarget.PosRot.XYZ());
+        if (castTime == 0 || Hints.MaxCastTimeEstimate >= (castTime - 0.5f))
+            Hints.ActionsToExecute.Push(attack, primaryTarget, ActionQueue.Priority.High, targetPos: primaryTarget.PosRot.XYZ());
     }
 
     private bool ShouldPotion(StrategyValues strategy)
