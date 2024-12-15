@@ -1,9 +1,12 @@
 ﻿using BossMod.Autorotation;
+using BossMod.Pathfinding;
 
 namespace BossMod.AI;
 
 public abstract class AIRotationModule(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
+    protected NavigationDecision.Context NavigationContext = new();
+
     protected float Deadline(DateTime deadline) => Math.Max(0, (float)(deadline - World.CurrentTime).TotalSeconds);
     protected float Speed() => Player.FindStatus(50) != null ? 7.8f : 6;
 
