@@ -3,19 +3,12 @@
 // TODO: more positioning options?..
 class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
 {
-    private struct PlayerState
-    {
-        public int TetherOrder; // 0 if no tether, otherwise 1-4
-        public bool? OddGroup;
-        public WPos Spot1;
-        public WPos Spot2;
-    }
-
     private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
-    private readonly PlayerState[] _states = new PlayerState[PartyState.MaxPartySize];
+    private readonly int[] _playerOrder = new int[PartyState.MaxPartySize]; // 0 if not assigned, 1-4 if tethered, 5-8 for conga help order (5/6 help group 1, 7/8 help group 2)
     private readonly List<Actor> _tetherTargets = [];
     private readonly List<Actor> _currentBaiters = [];
     private BitMask _fireTethers; // bit i is set if i'th tether is fire
+    private int _numFetters;
 
     private static readonly AOEShapeCone _shapeFire = new(60, 45.Degrees());
     private static readonly AOEShapeCone _shapeLightning = new(60, 60.Degrees());
@@ -32,11 +25,11 @@ class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        ref var state = ref _states[slot];
-        if (state.TetherOrder != 0)
-            hints.Add($"Order: {state.TetherOrder}", false);
-        else if (state.OddGroup != null)
-            hints.Add($"Help group {(state.OddGroup.Value ? 1 : 2)}", false);
+        var order = _playerOrder[slot];
+        if (order > 4)
+            hints.Add($"Help group {(order < 7 ? 1 : 2)}", false);
+        else if (order > 0)
+            hints.Add($"Order: {order}", false);
 
         if (ActiveBaits(slot, actor, true).Any(bait => bait.shape.Check(actor.Position, bait.origin, bait.dir)))
             hints.Add("GTFO from baited aoe!");
@@ -50,7 +43,12 @@ class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
             hints.Add(string.Join(" -> ", Enumerable.Range(NumCasts, _tetherTargets.Count - NumCasts).Select(i => _fireTethers[i] ? "Fire" : "Lightning")));
     }
 
-    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => PlayerPriority.Normal;
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    {
+        // if player should bait, highlight source and other assistants
+        var source = AssignedBaitSource(pcSlot);
+        return source == player ? PlayerPriority.Danger : source != null && source == AssignedBaitSource(playerSlot) ? PlayerPriority.Interesting : PlayerPriority.Normal;
+    }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
@@ -63,11 +61,19 @@ class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
         foreach (var bait in ActiveBaits(pcSlot, pc, false))
             bait.shape.Outline(Arena, bait.origin, bait.dir, _fireTethers[NumCasts] ? ArenaColor.Safe : ArenaColor.Danger);
 
-        ref var state = ref _states[pcSlot];
-        var firstBait = state.OddGroup == true ? 0 : 1;
-        var safespot = NumCasts <= firstBait ? state.Spot1 : NumCasts <= firstBait + 2 ? state.Spot2 : default;
-        if (safespot != default)
-            Arena.AddCircle(safespot, 1, ArenaColor.Safe);
+        var baitOrder = NextAssignedBaitOrder(pcSlot);
+        if (baitOrder > 0)
+        {
+            var tetherSpot = TetherSpot(baitOrder);
+            var isBaiter = _playerOrder[pcSlot] == baitOrder;
+            Arena.AddCircle(tetherSpot, 1, isBaiter ? ArenaColor.Safe : ArenaColor.Danger);
+            if (!isBaiter)
+            {
+                var offset = BaitOffset(_playerOrder[pcSlot], _fireTethers[baitOrder - 1]);
+                if (offset != default)
+                    Arena.AddCircle(tetherSpot + offset, 1, ArenaColor.Safe);
+            }
+        }
     }
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
@@ -83,12 +89,12 @@ class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
             var slot = Raid.FindSlot(tether.Target);
             if (slot >= 0)
             {
-                var order = _states[slot].TetherOrder = _tetherTargets.Count;
-                var odd = (order & 1) != 0;
-                var firstBait = order <= 2;
-                _states[slot].OddGroup = odd;
-                _states[slot].Spot1 = TetherSpot(odd, !firstBait);
-                _states[slot].Spot2 = TetherSpot(odd, firstBait);
+                _playerOrder[slot] = _tetherTargets.Count;
+                //var odd = (order & 1) != 0;
+                //var firstBait = order <= 2;
+                //_states[slot].OddGroup = odd;
+                //_states[slot].Spot1 = TetherSpot(odd, !firstBait);
+                //_states[slot].Spot2 = TetherSpot(odd, firstBait);
             }
 
             if (_tetherTargets.Count == 4)
@@ -98,9 +104,15 @@ class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.FallOfFaithSinsmite or AID.FallOfFaithSinblaze)
+        switch ((AID)spell.Action.ID)
         {
-            ++NumCasts;
+            case AID.FloatingFetters:
+                ++_numFetters;
+                break;
+            case AID.FallOfFaithSinsmite:
+            case AID.FallOfFaithSinblaze:
+                ++NumCasts;
+                break;
         }
     }
 
@@ -108,49 +120,71 @@ class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
     {
         List<(int slot, int prio)> conga = [];
         foreach (var (slot, group) in _config.P1FallOfFaithAssignment.Resolve(Raid))
-            if (_states[slot].TetherOrder == 0)
+            if (_playerOrder[slot] == 0)
                 conga.Add((slot, group));
         if (conga.Count != 4)
             return; // no assignments
-
         conga.SortBy(c => c.prio);
-        InitNormalSpots(conga[0].slot, true, true);
-        InitNormalSpots(conga[1].slot, true, false);
-        InitNormalSpots(conga[2].slot, false, false);
-        InitNormalSpots(conga[3].slot, false, true);
+        for (int i = 0; i < conga.Count; ++i)
+            _playerOrder[conga[i].slot] = i + 5;
+
+        //InitNormalSpots(conga[0].slot, true, true);
+        //InitNormalSpots(conga[1].slot, true, false);
+        //InitNormalSpots(conga[2].slot, false, false);
+        //InitNormalSpots(conga[3].slot, false, true);
     }
 
-    private WPos TetherSpot(bool odd, bool far)
+    private bool IsGroupEven(int order) => order is 2 or 4 or 7 or 8;
+
+    private int NextAssignedBaitOrder(int slot)
     {
+        var order = _playerOrder[slot];
+        if (order == 0)
+            return 0;
+        var nextCast = IsGroupEven(order) ? 1 : 0;
+        if (NumCasts > nextCast)
+            nextCast += 2; // first bait is done
+        return NumCasts <= nextCast && nextCast < _tetherTargets.Count ? nextCast + 1 : 0;
+    }
+
+    private Actor? AssignedBaitSource(int slot)
+    {
+        var order = NextAssignedBaitOrder(slot);
+        return order > 0 ? _tetherTargets[order - 1] : null;
+    }
+
+    private WDir GroupDirection(int order)
+    {
+        if (order == 0)
+            return default;
         var dir = _config.P1FallOfFaithEW ? 90.Degrees() : 0.Degrees();
-        if (odd)
+        if (!IsGroupEven(order))
             dir -= 180.Degrees();
-        return Module.Center + (far ? 7 : 4) * dir.ToDirection();
+        return dir.ToDirection();
     }
 
-    private WPos ProteanSpot(bool odd, bool close)
+    // note: if target is fettered, it can no longer move
+    private WPos TetherSpot(int order) => order <= _numFetters ? _tetherTargets[order - 1].Position : Module.Center + 5.5f * GroupDirection(order);
+
+    private WDir CenterBaitOffset(int order) => GroupDirection(order) * 2;
+
+    private WDir ProteanBaitOffset(int order)
     {
-        var baiter = TetherSpot(odd, false);
-        var offset = close ? 3 : -3;
+        if (order < 5)
+            return default;
         WDir dir = _config.P1FallOfFaithEW ? new(0, -1) : new(1, 0);
-        return baiter + offset * dir;
+        return (order is 5 or 8 ? 2 : -2) * dir;
     }
 
-    private WPos NormalSpot(bool odd, bool close, int order) => _fireTethers[order] ? TetherSpot(odd, true) : ProteanSpot(odd, close);
-
-    private void InitNormalSpots(int slot, bool odd, bool close)
-    {
-        ref var state = ref _states[slot];
-        state.OddGroup = odd;
-        state.Spot1 = NormalSpot(odd, close, odd ? 0 : 1);
-        state.Spot2 = NormalSpot(odd, close, odd ? 2 : 3);
-    }
+    private WDir BaitOffset(int order, bool fire) => order == 0 ? default : order < 5 || fire ? CenterBaitOffset(order) : ProteanBaitOffset(order);
 
     private bool ShouldBeBaiting(int slot)
     {
-        var nextBaitsOdd = (NumCasts & 1) == 0;
-        ref var state = ref _states[slot];
-        return state.OddGroup == null || state.OddGroup == nextBaitsOdd; // if there are no assignments, we don't actually know whether player should be baiting...
+        var order = _playerOrder[slot];
+        if (order == 0)
+            return true; // if there are no assignments, we don't actually know whether player should be baiting...
+        var nextBaitsEven = (NumCasts & 1) != 0;
+        return IsGroupEven(order) == nextBaitsEven;
     }
 
     private IEnumerable<(AOEShapeCone shape, WPos origin, Angle dir)> ActiveBaits(int slot, Actor actor, bool wantDangerous)

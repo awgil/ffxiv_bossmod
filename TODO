@@ -44,8 +44,6 @@ general:
 - zone modules: module info ui
 - refactor ipc/dtr
 - questbattles
-- collisions for pathfinding
--- embedded mode
 
 boss modules:
 - timers

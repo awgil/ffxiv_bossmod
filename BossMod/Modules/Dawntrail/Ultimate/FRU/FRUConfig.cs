@@ -49,6 +49,34 @@ public class FRUConfig() : ConfigNode()
     [GroupPreset("TMRH/TMRH", [0, 4, 3, 7, 1, 5, 2, 6])]
     public GroupAssignmentUnique P3ApocalypseAssignments = GroupAssignmentUnique.DefaultRoles();
 
-    [PropertyDisplay("P3 Apocalypse: uptime swaps (only consider swaps within prio 1/2 and 3/4, assuming these are melee and ranged)")]
+    [PropertyDisplay("P3 Apocalypse: uptime swaps (only consider swaps within prio 1/2 and 3/4, assuming these are melee and ranged)", separator: true)]
     public bool P3ApocalypseUptime;
+
+    // ai-only settings
+    [PropertyDisplay("P1 Cyclonic Break (proteans): bait clock spots (supports should be near dd to resolve pairs)", tooltip: "Only used by AI")]
+    [GroupDetails(["N", "NE", "E", "SE", "S", "SW", "W", "NW"])]
+    [GroupPreset("Default", [0, 4, 6, 2, 5, 3, 7, 1])]
+    public GroupAssignmentUnique P1CyclonicBreakSpots = new() { Assignments = [0, 4, 6, 2, 5, 3, 7, 1] };
+
+    [PropertyDisplay("P1 Cyclonic Break (proteans): pairs dodge direction", tooltip: "Only used by AI")]
+    [PropertyCombo("Supports CW, DD CCW", "Supports CCW, DD CW")]
+    public bool P1CyclonicBreakStackSupportsCCW = true;
+
+    [PropertyDisplay("P1 Cyclonic Break (proteans): spread dodge direction for supports", tooltip: "Only used by AI")]
+    [PropertyCombo("CW", "CCW")]
+    public bool P1CyclonicBreakSpreadSupportsCCW;
+
+    [PropertyDisplay("P1 Cyclonic Break (proteans): spread dodge direction for DD", tooltip: "Only used by AI")]
+    [PropertyCombo("CW", "CCW")]
+    public bool P1CyclonicBreakSpreadDDCCW;
+
+    [PropertyDisplay("P1 Utopian Sky: initial clock spots (MT should be near OT to resolve tankbuster)", tooltip: "Only used by AI")]
+    [GroupDetails(["N", "NE", "E", "SE", "S", "SW", "W", "NW"])]
+    [GroupPreset("Default", [0, 1, 6, 2, 5, 3, 7, 4])]
+    public GroupAssignmentUnique P1UtopianSkyInitialSpots = new() { Assignments = [0, 1, 6, 2, 5, 3, 7, 4] };
+
+    [PropertyDisplay("P1 Utopian Sky: spread spots (G1 CCW from N, G2 CW from NE")]
+    [GroupDetails(["G1 Close", "G1 Far Center", "G1 Far Left", "G1 Far Right", "G2 Close", "G2 Far Center", "G2 Far Left", "G2 Far Right"])]
+    [GroupPreset("Default", [1, 5, 0, 4, 2, 6, 3, 7])]
+    public GroupAssignmentUnique P1UtopianSkySpreadSpots = new() { Assignments = [1, 5, 0, 4, 2, 6, 3, 7] };
 }

@@ -36,6 +36,17 @@ class P3Apocalypse(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(6);
 
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        // draw safespots (TODO: improve - account for concrete assignments, show different spots at different mechanic stages)
+        if (_aoes.Count > 0 && NumCasts < 16 && _starting != null)
+        {
+            var safeOff = 10 * (_starting.Value - _rotation).ToDirection();
+            Arena.AddCircle(Module.Center + safeOff, 1, ArenaColor.Safe);
+            Arena.AddCircle(Module.Center - safeOff, 1, ArenaColor.Safe);
+        }
+    }
+
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.ApocalypseLight)

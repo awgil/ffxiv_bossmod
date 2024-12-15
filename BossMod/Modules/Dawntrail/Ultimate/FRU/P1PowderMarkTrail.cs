@@ -30,6 +30,8 @@ class P1PowderMarkTrail(BossModule module) : Components.GenericBaitAway(module, 
         }
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // TODO: hints for late micro adjusts
+
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.PowderMarkTrail)

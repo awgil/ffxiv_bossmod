@@ -1,5 +1,6 @@
 ﻿using BossMod;
 using ImGuiNET;
+using System.IO;
 
 namespace UIDev;
 
@@ -43,7 +44,8 @@ class BitmapEditorTest : TestWindow
 
             if (ImGui.Button("load"))
             {
-                CheckpointNoClone(new("D:\\test.bmp"));
+                using var stream = File.OpenRead("D:\\test.bmp");
+                CheckpointNoClone(new(stream));
             }
         }
 

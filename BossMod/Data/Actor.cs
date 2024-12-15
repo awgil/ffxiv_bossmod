@@ -42,6 +42,7 @@ public sealed record class ActorCastInfo
     public float RemainingTime => TotalTime - ElapsedTime;
     public float NPCTotalTime => TotalTime + NPCFinishDelay;
     public float NPCRemainingTime => NPCTotalTime - ElapsedTime;
+    public float AdjustedTotalTime => TotalTime + Action.CastTimeExtra();
 
     public bool IsSpell() => Action.Type == ActionType.Spell;
     public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);

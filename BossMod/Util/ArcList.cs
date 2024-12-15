@@ -72,6 +72,37 @@ public class ArcList(WPos center, float radius)
         }
     }
 
+    public (Angle min, Angle max) NextAllowed(Angle dir, bool ccw)
+    {
+        if (Forbidden.Count == 0)
+            return (dir - 180.Degrees(), dir + 180.Degrees()); // everything is allowed
+
+        (Angle, Angle) boundsBefore(int index)
+        {
+            var min = index == 0 ? Forbidden.Segments[^1].Max.Radians() - 2 * MathF.PI.Radians() : Forbidden.Segments[index - 1].Max.Radians();
+            var max = index >= Forbidden.Segments.Count ? Forbidden.Segments[0].Min.Radians() + 2 * MathF.PI.Radians() : Forbidden.Segments[index].Min.Radians();
+            return (min, max);
+        }
+
+        var forbidden = Forbidden.Intersect(dir.Rad, dir.Rad);
+        if (forbidden.count == 0)
+        {
+            // current direction is not forbidden, find bounds
+            // note: since we did not find intersection, the returned bounds are guaranteed to be non-empty
+            return boundsBefore(forbidden.first);
+        }
+        else if (ccw)
+        {
+            var (min, max) = boundsBefore(forbidden.first + 1);
+            return forbidden.first == Forbidden.Segments.Count - 1 && min.Rad >= max.Rad && Forbidden.Count > 1 ? boundsBefore(1) : (min, max);
+        }
+        else
+        {
+            var (min, max) = boundsBefore(forbidden.first);
+            return forbidden.first == 0 && min.Rad >= max.Rad && Forbidden.Count > 1 ? boundsBefore(forbidden.first - 1) : (min, max);
+        }
+    }
+
     private (Angle, Angle) IntersectLine(WPos origin, WDir dir)
     {
         var oo = origin - Center;

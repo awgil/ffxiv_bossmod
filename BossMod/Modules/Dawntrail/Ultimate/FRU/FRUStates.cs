@@ -56,17 +56,23 @@ class FRUStates : StateMachineBuilder
     {
         ActorCastMulti(id, _module.BossP1, [AID.CyclonicBreakBossStack, AID.CyclonicBreakBossSpread], delay, 6.5f, true)
             .ActivateOnEnter<P1CyclonicBreakSpreadStack>()
-            .ActivateOnEnter<P1CyclonicBreakProtean>();
+            .ActivateOnEnter<P1CyclonicBreakProtean>()
+            .ActivateOnEnter<P1CyclonicBreakAIBait>();
         ComponentCondition<P1CyclonicBreakProtean>(id + 0x10, 0.6f, comp => comp.NumCasts > 0, "Protean 1")
             .ActivateOnEnter<P1CyclonicBreakCone>()
-            .DeactivateOnExit<P1CyclonicBreakProtean>();
+            .DeactivateOnExit<P1CyclonicBreakProtean>()
+            .DeactivateOnExit<P1CyclonicBreakAIBait>();
         ComponentCondition<P1CyclonicBreakCone>(id + 0x11, 2.1f, comp => comp.NumCasts > 0, "Protean 2 + Spread/Stack") // both happen at the same time
+            .ActivateOnEnter<P1CyclonicBreakAIDodgeSpreadStack>()
+            .DeactivateOnExit<P1CyclonicBreakAIDodgeSpreadStack>()
             .DeactivateOnExit<P1CyclonicBreakSpreadStack>();
-        ComponentCondition<P1CyclonicBreakCone>(id + 0x12, 2.1f, comp => comp.NumCasts > 1, "Protean 3");
+        ComponentCondition<P1CyclonicBreakCone>(id + 0x12, 2.1f, comp => comp.NumCasts > 1, "Protean 3")
+            .ActivateOnEnter<P1CyclonicBreakAIDodgeRest>();
 
         ActorCastStart(id + 0x100, _module.BossP1, AID.PowderMarkTrail, 0.8f, true);
         ComponentCondition<P1CyclonicBreakCone>(id + 0x101, 1.3f, comp => comp.NumCasts > 2, "Protean 4")
-            .DeactivateOnExit<P1CyclonicBreakCone>();
+            .DeactivateOnExit<P1CyclonicBreakCone>()
+            .DeactivateOnExit<P1CyclonicBreakAIDodgeRest>();
         ActorCastEnd(id + 0x102, _module.BossP1, 3.7f, true, "Tankbuster")
             .SetHint(StateMachine.StateHint.Tankbuster);
     }
@@ -78,14 +84,18 @@ class FRUStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.DowntimeStart);
         ComponentCondition<P1UtopianSkyBlastingZone>(id + 0x10, 5.2f, comp => comp.AOEs.Count > 0)
             .ActivateOnEnter<P1PowderMarkTrail>()
-            .ActivateOnEnter<P1UtopianSkyBlastingZone>();
+            .ActivateOnEnter<P1UtopianSkyBlastingZone>()
+            .ActivateOnEnter<P1UtopianSkyAIInitial>();
         ComponentCondition<P1PowderMarkTrail>(id + 0x11, 0.2f, comp => comp.NumCasts > 0, "Tankbusters")
             .DeactivateOnExit<P1PowderMarkTrail>()
+            .DeactivateOnExit<P1UtopianSkyAIInitial>()
             .SetHint(StateMachine.StateHint.Tankbuster);
         ComponentCondition<P1UtopianSkyBlastingZone>(id + 0x20, 8.9f, comp => comp.NumCasts > 0, "Lines")
             .ExecOnEnter<P1UtopianSkySpreadStack>(comp => comp.Show(Module.WorldState.FutureTime(9.7f)))
+            .ActivateOnEnter<P1UtopianSkyAIResolve>()
             .DeactivateOnExit<P1UtopianSkyBlastingZone>();
         ComponentCondition<P1UtopianSkySpreadStack>(id + 0x21, 0.8f, comp => !comp.Active, "Spread/stack")
+            .DeactivateOnExit<P1UtopianSkyAIResolve>()
             .DeactivateOnExit<P1UtopianSkySpreadStack>();
     }
 
@@ -95,11 +105,17 @@ class FRUStates : StateMachineBuilder
             .ActivateOnEnter<P1CyclonicBreakSpreadStack>()
             .ActivateOnEnter<P1CyclonicBreakProtean>()
             .ActivateOnEnter<P1CyclonicBreakCone>()
+            .ActivateOnEnter<P1CyclonicBreakAIBait>()
+            .DeactivateOnExit<P1CyclonicBreakAIBait>()
             .DeactivateOnExit<P1CyclonicBreakProtean>();
         ComponentCondition<P1CyclonicBreakCone>(id + 1, 2.1f, comp => comp.NumCasts > 0, "Protean 2 + Spread/Stack") // both happen at the same time
+            .ActivateOnEnter<P1CyclonicBreakAIDodgeSpreadStack>()
+            .DeactivateOnExit<P1CyclonicBreakAIDodgeSpreadStack>()
             .DeactivateOnExit<P1CyclonicBreakSpreadStack>();
-        ComponentCondition<P1CyclonicBreakCone>(id + 2, 2.1f, comp => comp.NumCasts > 1, "Protean 3");
+        ComponentCondition<P1CyclonicBreakCone>(id + 2, 2.1f, comp => comp.NumCasts > 1, "Protean 3")
+            .ActivateOnEnter<P1CyclonicBreakAIDodgeRest>();
         ComponentCondition<P1CyclonicBreakCone>(id + 3, 2.1f, comp => comp.NumCasts > 2, "Protean 4")
+            .DeactivateOnExit<P1CyclonicBreakAIDodgeRest>()
             .DeactivateOnExit<P1CyclonicBreakCone>();
     }
 
