@@ -90,7 +90,7 @@ public abstract class PalaceFloorModule : ZoneModule
     public PalaceFloorModule(WorldState ws) : base(ws)
     {
         _subscriptions = new(
-            ws.Network.ServerIPCReceived.Subscribe(OnServerIPC),
+            ws.SystemLogMessage.Subscribe(OnSystemLogMessage),
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
             ws.Actors.CastFinished.Subscribe(OnCastFinished),
             ws.Actors.StatusGain.Subscribe(OnStatusGain),
@@ -99,6 +99,12 @@ public abstract class PalaceFloorModule : ZoneModule
         );
 
         _trapsCurrentZone = PalacePalInterop.GetTrapLocationsForZone(ws.CurrentZone);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        _subscriptions.Dispose();
+        base.Dispose(disposing);
     }
 
     private void OnCastStarted(Actor actor)
@@ -169,39 +175,24 @@ public abstract class PalaceFloorModule : ZoneModule
         }
     }
 
-    protected override void Dispose(bool disposing)
+    private void OnSystemLogMessage(WorldState.OpSystemLogMessage op)
     {
-        _subscriptions.Dispose();
-        base.Dispose(disposing);
-    }
-
-    private void OnServerIPC(NetworkState.OpServerIPC op)
-    {
-        var ipc = op.Packet;
-        if (ipc.ID == Network.ServerIPC.PacketID.SystemLogMessage1)
+        switch (op.MessageId)
         {
-            var messageId = BitConverter.ToInt32(ipc.Payload, 4);
-            switch (messageId)
-            {
-                case 7222: // pomander overcap
-                    _lastChestContents = (PomanderID)ipc.Payload[12];
-                    break;
-                case 7248: // transference initiated
-                    ClearState();
-                    break;
-                case 7255: // safety used
-                case 7256: // sight used
-                    _showTrapHints = false;
-                    break;
-            }
+            case 7222: // pomander overcap
+                _lastChestContents = (PomanderID)op.Args[0];
+                break;
+            case 7248: // transference initiated
+                ClearState();
+                break;
+            case 7255: // safety used
+            case 7256: // sight used
+                _showTrapHints = false;
+                break;
         }
     }
 
-    private void OnOpenTreasure(Actor chest)
-    {
-        Service.Log($"treasure chest opened: {chest}");
-        _openedChests.Add(chest.InstanceID);
-    }
+    private void OnOpenTreasure(Actor chest) => _openedChests.Add(chest.InstanceID);
 
     private void ClearState()
     {

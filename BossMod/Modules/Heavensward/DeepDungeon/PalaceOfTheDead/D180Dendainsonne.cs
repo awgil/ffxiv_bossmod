@@ -143,7 +143,8 @@ class D180DendainsonneStates : StateMachineBuilder
             .ActivateOnEnter<Thunderbolt>()
             .ActivateOnEnter<Charybdis>()
             .ActivateOnEnter<Maelstrom>()
-            .ActivateOnEnter<Trounce>();
+            .ActivateOnEnter<Trounce>()
+            .ActivateOnEnter<ManualBurst>();
     }
 }
 

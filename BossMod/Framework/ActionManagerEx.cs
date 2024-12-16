@@ -136,7 +136,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
     }
 
     // todo: figure out a less dumb solution
-    private bool CanUseOnForbiddenTarget(ActionQueue.Entry entry) => entry.Priority >= ActionQueue.Priority.ManualEmergency
+    private bool CanUseOnForbiddenTarget(ActionQueue.Entry entry) => entry.Priority >= ActionQueue.Priority.ManualGCD
         || (ClassShared.AID)entry.Action.ID is ClassShared.AID.Interject or ClassShared.AID.HeadGraze;
 
     public Vector3? GetWorldPosUnderCursor()

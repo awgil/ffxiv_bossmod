@@ -760,8 +760,8 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
 
     private bool ShouldUseTomahawk(Actor? target, TomahawkStrategy strategy) => strategy switch
     {
-        TomahawkStrategy.OpenerRanged => IsFirstGCD() && !InMeleeRange(target),
-        TomahawkStrategy.Opener => IsFirstGCD(),
+        TomahawkStrategy.OpenerRanged => IsFirstGCD() && !InMeleeRange(target) && InnerReleaseStacks == 0,
+        TomahawkStrategy.Opener => IsFirstGCD() && InnerReleaseStacks == 0,
         TomahawkStrategy.Force => true,
         TomahawkStrategy.Ranged => !InMeleeRange(target),
         _ => false
