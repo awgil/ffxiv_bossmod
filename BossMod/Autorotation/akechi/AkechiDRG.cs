@@ -15,7 +15,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         AOE,                   //Area of Effect actions
         Spears,                //Spear actions
-        Burst,                 //Burst actions
+        Cooldowns,             //Cooldown actions
         Dives,                 //Dive actions
         Potion,                //Potion usage
         LifeSurge,             //Life Surge ability
@@ -39,7 +39,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         AutoTargetHitPrimary,  //Auto-target AOE actions to hit primary target as well
         AutoTargetHitMost,     //Auto-target AOE actions to hit most targets
-        AutoOnPrimary,         //Use AOE actions on primary target
         ForceST,               //Force single-target abilities
         Force123ST,            //Force single-target 123 combo
         ForceBuffsST,          //Force single-target buffs combo
@@ -52,13 +51,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         AutoTargetHitMost,     //Auto-target spear to hit most targets
     }
 
-    //Burst strategy options
-    public enum BurstStrategy
+    //Cooldowns strategy options
+    public enum CooldownStrategy
     {
-        Automatic,             //Automatic burst under general conditions
-        Conserve,              //Conserve burst for later
-        UnderRaidBuffs,        //Burst during raid buffs
-        UnderPotion            //Burst when a potion is active
+        Automatic,             //Automatic Cooldowns under general conditions
+        Hold,                  //Hold Cooldowns for later
     }
 
     public enum DivesStrategy
@@ -178,10 +175,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.AOE).As<AOEStrategy>("Combo Option", "AOE", uiPriority: 200)
             .AddOption(AOEStrategy.AutoTargetHitPrimary, "AutoTargetHitPrimary", "Use AOE actions if profitable, select best target that ensures primary target is hit")
             .AddOption(AOEStrategy.AutoTargetHitMost, "AutoTargetHitMost", "Use AOE actions if profitable, select a target that ensures maximal number of targets are hit")
-            .AddOption(AOEStrategy.AutoOnPrimary, "AutoOnPrimary", "Use AOE actions on primary target if profitable")
             .AddOption(AOEStrategy.ForceST, "Force ST", "Force Single-Target rotation")
-            .AddOption(AOEStrategy.Force123ST, "Only 1-2-3 ST", "Force only ST 1-2-3 rotation (No Buffs)")
-            .AddOption(AOEStrategy.ForceBuffsST, "Only 1-4-5 ST", "Force only ST 1-4-5 rotation (Buffs only)")
+            .AddOption(AOEStrategy.Force123ST, "Only 1-2-3 ST", "Force only ST 1-2-3 rotation (No Buff or DoT)")
+            .AddOption(AOEStrategy.ForceBuffsST, "Only 1-4-5 ST", "Force only ST 1-4-5 rotation (Buff & DoT only)")
             .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation, even if less than 3 targets");
 
         //Spear targeting strategy
@@ -189,22 +185,21 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             .AddOption(SpearTargetingStrategy.AutoTargetHitPrimary, "AutoTargetHitPrimary", "Selects best target within range that hits as many targets as possible whilst also hitting current target")
             .AddOption(SpearTargetingStrategy.AutoTargetHitMost, "AutoTargetHitMost", "Selects best target within range that hits as many targets, regardless if current target is hit");
 
-        //Burst strategy
-        res.Define(Track.Burst).As<BurstStrategy>("Burst", uiPriority: 190)
-            .AddOption(BurstStrategy.Automatic, "Automatic", "Use Burst optimally based on situation")
-            .AddOption(BurstStrategy.Conserve, "Conserve", "Conserve all cooldowns")
-            .AddOption(BurstStrategy.UnderRaidBuffs, "Under Raid Buffs", "Burst under raid buffs; conserve otherwise (ignores potion usage)")
-            .AddOption(BurstStrategy.UnderPotion, "Under Potion", "Burst under potion, conserve otherwise (ignores raid buffs)");
+        //Cooldowns strategy
+        res.Define(Track.Cooldowns).As<CooldownStrategy>("Cooldowns", "CDs", uiPriority: 190)
+            .AddOption(CooldownStrategy.Automatic, "Automatic", "Use Cooldowns optimally based on situation")
+            .AddOption(CooldownStrategy.Hold, "Hold", "Hold all cooldowns & resources");
 
         //Dives strategy
         res.Define(Track.Dives).As<DivesStrategy>("Dives", uiPriority: 185)
             .AddOption(DivesStrategy.AllowMaxMelee, "Allow Max Melee", "Allow Jump, Stardiver, & Dragonfire Dive only at max melee range (within 3y)")
             .AddOption(DivesStrategy.AllowCloseMelee, "Allow Close Melee", "Allow Jump, Stardiver, & Dragonfire Dive only at close melee range (within 1y)")
             .AddOption(DivesStrategy.Allow, "Allow", "Allow the use of Jump, Stardiver, & Dragonfire Dive at any distance")
-            .AddOption(DivesStrategy.Forbid, "Forbid", "Forbid the use of Jump, Stardiver, & Dragonfire Dive");
+            .AddOption(DivesStrategy.Forbid, "Forbid", "Forbid the use of Jump, Stardiver, & Dragonfire Dive")
+            .AddAssociatedActions(AID.Jump, AID.HighJump, AID.DragonfireDive, AID.Stardiver);
 
         //Potion strategy
-        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 180)
+        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 20)
             .AddOption(PotionStrategy.Manual, "Manual", "Do not use potions automatically")
             .AddOption(PotionStrategy.AlignWithRaidBuffs, "Align With Raid Buffs", "Use potion in sync with 2-minute raid buffs (e.g., 0/6, 2/8)")
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use potion as soon as possible, regardless of any buffs")
@@ -258,7 +253,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             .AddAssociatedActions(AID.Stardiver);
 
         //Piercing Talon strategy
-        res.Define(Track.PiercingTalon).As<PiercingTalonStrategy>("Piercing Talon", "P.Talon", uiPriority: 20)
+        res.Define(Track.PiercingTalon).As<PiercingTalonStrategy>("Piercing Talon", "P.Talon", uiPriority: 25)
             .AddOption(PiercingTalonStrategy.AllowEX, "AllowEX", "Allow use of Piercing Talon if already in combat, outside melee range, & is Enhanced")
             .AddOption(PiercingTalonStrategy.Allow, "Allow", "Allow use of Piercing Talon if already in combat & outside melee range")
             .AddOption(PiercingTalonStrategy.Force, "Force", "Force Piercing Talon usage ASAP (even in melee range)")
@@ -342,8 +337,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
     #region Priorities
 
-    //Priorities for Global Cooldowns (GCDs)
-    public enum GCDPriority
+    public enum GCDPriority //Priorities for Global Cooldowns (GCDs)
+
     {
         None = 0,               //No priority
         Combo123 = 350,         //Priority for the first three combo actions
@@ -351,8 +346,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         ForcedGCD = 900,        //High priority for forced GCD actions
     }
 
-    //Priorities for Off Global Cooldowns (oGCDs)
-    public enum OGCDPriority
+    public enum OGCDPriority //Priorities for Off Global Cooldowns (oGCDs)
+
     {
         None = 0,                  //No priority
         //Flexible actions with varying priorities
@@ -402,95 +397,109 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private float lcCD; //Cooldown for Lance Charge
     private float powerLeft; //Time remaining for Power Surge
     private float chaosLeft; //Remaining time for Chaotic Spring DoT
-    private float PotionLeft; //Remaining time for potion effect
-    private float RaidBuffsLeft; //Time left for raid buffs
-    private float RaidBuffsIn; //Time until next raid buffs are applied
     public float downtimeIn; //Duration of downtime in combat
-    public float BurstWindowLeft; //Time left in the burst window
-    public float BurstWindowIn; //Time until the next burst window starts
     private int focusCount; //Count of Firstmind's Focus gauge
     public AID NextGCD; //Next global cooldown action to be used
     private GCDPriority NextGCDPrio; //Priority of the next GCD for cooldown decision making
     #endregion
 
     #region Module Helpers
-    //Checks if the desired ability is unlocked
-    private bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
-
-    //Gets the last action used in the combo sequence
-    private AID ComboLastMove => (AID)World.Client.ComboState.Action;
-
-    //Checks if status effect is on Self
-    public bool HasEffect(SID sid) => SelfStatusLeft(sid) > 0;
-
-    //Checks if the desired action is ready (cooldown < 0.6 seconds)
-    private bool ActionReady(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining < 0.6f;
-
-    //Get remaining cooldown time for the specified action
-    private float CD(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
-
-    //Checks if the target is within max melee range (3 yalms)
-    private bool In3y(Actor? target) => Player.DistanceToHitbox(target) < 4;
-
-    //Checks if the target is within close melee range (1 yalm)
-    private bool In1y(Actor? target) => Player.DistanceToHitbox(target) < 1;
-
-    //Checks if the target is within 15 yalms
-    private bool In15y(Actor? target) => Player.DistanceToHitbox(target) <= 14.9;
-
-    //Checks if we can weave an ability
-    public bool CanWeave(AID aid, double weaveTime = 0.7) => CD(aid) > weaveTime;
-
-    //Checks if the potion should be used before raid buffs expire
-    private bool IsPotionBeforeRaidbuffs() => RaidBuffsLeft == 0 && PotionLeft > RaidBuffsIn + 17.5f;
+    private bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid)); //Checks if the desired ability is unlocked
+    private AID ComboLastMove => (AID)World.Client.ComboState.Action; //Gets the last action used in the combo sequence
+    public bool HasEffect(SID sid) => SelfStatusLeft(sid) > 0; //Checks if status effect is on Self
+    private bool ActionReady(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining < 0.6f; //Checks if the desired ability is ready
+    private float CD(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining; //Get remaining cooldown time for the specified ability
+    private bool In3y(Actor? target) => Player.DistanceToHitbox(target) < 4; //Checks if the target is within max melee range (3 yalms)
+    private bool In1y(Actor? target) => Player.DistanceToHitbox(target) < 1; //Checks if the target is within close melee range (1 yalm)
+    private bool In15y(Actor? target) => Player.DistanceToHitbox(target) <= 14.9; //Checks if the target is within 15 yalms
+    public bool CanWeave(AID aid, double weaveTime = 0.7) => CD(aid) > weaveTime; //Checks if we can weave an ability
 
     #region Targeting Helpers
-    //Count number of targets hit by AOE attack
-    private int NumTargetsHitByAOE(Actor primary) => Hints.NumPriorityTargetsInAOECone(Player.Position, 10, (primary.Position - Player.Position).Normalized(), 45.Degrees());
+    private int NumTargetsHitByAOE(Actor primary) //Count number of targets hit by AOE cone
+        => Hints.NumPriorityTargetsInAOECone( //Use Hints to count number of targets in AOE cone
+            Player.Position, //from Player's position
+            10, //AOE cone radius
+            (primary.Position - Player.Position) //direction of AOE cone
+            .Normalized(), //normalized direction
+            45.Degrees()); //cone angle
 
-    //Check if a target is hit by AOE
-    private bool IsHitByAOE(Actor primary, Actor check) => Hints.TargetInAOECone(check, Player.Position, 10, (primary.Position - Player.Position).Normalized(), 45.Degrees());
+    private bool IsHitByAOE(Actor primary, Actor check) //Check if target has been hit by AOE cone
+        => Hints.TargetInAOECone( //Use Hints to check if target is in AOE cone
+            check, //check the target
+            Player.Position, //from Player's position
+            10, //AOE cone radius
+            (primary.Position - Player.Position) //direction of AOE cone
+            .Normalized(), //normalized direction
+            45.Degrees()); //cone angle
 
-    //Count number of targets hit by spear attack
-    private int NumTargetsHitBySpear(Actor primary) => Hints.NumPriorityTargetsInAOERect(Player.Position, (primary.Position - Player.Position).Normalized(), 15, 2);
+    private int NumTargetsHitBySpear(Actor primary) //Count number of targets hit by spear attack
+        => Hints.NumPriorityTargetsInAOERect( //Use Hints to count number of targets in AOE rectangle
+            Player.Position, //from Player's position
+            (primary.Position - Player.Position) //direction of AOE rectangle
+            .Normalized(), //normalized direction
+            15, //AOE rectangle length
+            2); //AOE rectangle width
 
-    //Check if a target is hit by spear
-    private bool IsHitBySpear(Actor primary, Actor check) => Hints.TargetInAOERect(check, Player.Position, (primary.Position - Player.Position).Normalized(), 15, 2);
+    private bool IsHitBySpear(Actor primary, Actor check) //Check if target has been hit by spear attack
+        => Hints.TargetInAOERect( //Use Hints to check if target is in AOE rectangle
+            check, //check the target
+            Player.Position, //from Player's position
+            (primary.Position - Player.Position) //direction of AOE rectangle
+            .Normalized(), //normalized direction
+            15, //AOE rectangle length
+            2); //AOE rectangle width
 
     //Check targeting for AOE strategies
     private (Actor?, int) CheckAOETargeting(AOEStrategy strategy, Actor? primaryTarget, float range, Func<Actor, int> numTargets, Func<Actor, Actor, bool> check) => strategy switch
     {
-        AOEStrategy.AutoTargetHitPrimary => FindBetterTargetBy(primaryTarget, range, t => primaryTarget == null || check(t, primaryTarget) ? numTargets(t) : 0),
-        AOEStrategy.AutoTargetHitMost => FindBetterTargetBy(primaryTarget, range, numTargets),
-        AOEStrategy.AutoOnPrimary => (primaryTarget, primaryTarget != null ? numTargets(primaryTarget) : 0),
-        AOEStrategy.ForceAOE => (primaryTarget, int.MaxValue),
+        AOEStrategy.AutoTargetHitPrimary //if AutoTargetHitPrimary strategy is selected
+            => FindBetterTargetBy( //Find a better target based on conditions
+                primaryTarget, //primary target
+                range, //range of the action
+                t => primaryTarget == null //if primary target is null
+                || check(t, primaryTarget) //or check if target is hit by primary target
+                ? numTargets(t) //if true, count number of targets hit by AOE
+                : 0), //if false, return 0
+        AOEStrategy.AutoTargetHitMost //if AutoTargetHitMost strategy is selected
+            => FindBetterTargetBy( //Find a better target based on conditions
+                primaryTarget, //primary target
+                range, //range of the action
+                numTargets), //count number of targets hit by AOE
+        AOEStrategy.ForceAOE //if ForceAOE strategy is selected
+            => (primaryTarget, //return primary target
+                int.MaxValue), //return maximum number of targets
         _ => (null, 0)
     };
 
     //Check targeting for Spear strategies
     private (Actor?, int) CheckSpearTargeting(SpearTargetingStrategy strategy, Actor? primaryTarget, float range, Func<Actor, int> numTargets, Func<Actor, Actor, bool> check) => strategy switch
     {
-        SpearTargetingStrategy.AutoTargetHitPrimary => FindBetterTargetBy(primaryTarget, range, t => primaryTarget == null || check(t, primaryTarget) ? numTargets(t) : 0),
-        SpearTargetingStrategy.AutoTargetHitMost => FindBetterTargetBy(primaryTarget, range, numTargets),
+        SpearTargetingStrategy.AutoTargetHitPrimary //if AutoTargetHitPrimary strategy is selected
+            => FindBetterTargetBy( //Find a better target based on conditions
+                primaryTarget, //on primary target
+                range, //range of the action
+                t => primaryTarget == null //if primary target is null
+                || check(t, primaryTarget) //or check if target is hit by primary target
+                ? numTargets(t) //if true, count number of targets hit by AOE
+                : 0), //if false, return 0
+        SpearTargetingStrategy.AutoTargetHitMost //if AutoTargetHitMost strategy is selected
+            => FindBetterTargetBy( //Find a better target based on conditions
+                primaryTarget, //on primary target
+                range, //range of the action
+                numTargets), //count number of targets hit by AOE
         _ => (null, 0)
     };
-
     #endregion
 
     #region True North Helpers
-    //Check which positional Player is on
-    private Positional GetCurrentPositional(Actor target) => (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch
+    private Positional GetCurrentPositional(Actor target) => (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch //Check current positional based on target
     {
-        < -0.7071068f => Positional.Rear,
-        < 0.7071068f => Positional.Flank,
-        _ => Positional.Front
+        < -0.7071068f => Positional.Rear, //value for Rear positional
+        < 0.7071068f => Positional.Flank, //value for Flank positional
+        _ => Positional.Front //default to Front positional if not on Rear or Flank
     };
-
-    //Check if Player is on Rear (back) positional 
-    private bool IsonRear(Actor target) => GetCurrentPositional(target) == Positional.Rear;
-
-    //Check if Player is on Flank (side) positional 
-    private bool IsonFlank(Actor target) => GetCurrentPositional(target) == Positional.Flank;
+    private bool IsOnRear(Actor target) => GetCurrentPositional(target) == Positional.Rear; //Check if target is on Rear positional
+    private bool IsOnFlank(Actor target) => GetCurrentPositional(target) == Positional.Flank; //Check if target is on Flank positional
     #endregion
 
     #endregion
@@ -537,10 +546,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         canWeaveIn = CanWeave(AID.TrueThrust);  //Check if weaving is possible
         canWeaveInStardiver = GCD is < 2.5f and > 1.49f;  //Check if weaving Stardiver is possible
         downtimeIn = Manager.Planner?.EstimateTimeToNextDowntime().Item2 ?? float.MaxValue;  //Estimate downtime until next action
-        PotionLeft = PotionStatusLeft();  //Get remaining potion status
-        (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);  //Estimate remaining raid buffs
         NextGCD = AID.None;  //Set next GCD ability
         NextGCDPrio = GCDPriority.None;  //Set next GCD priority
+        var hold = strategy.Option(Track.Cooldowns).As<CooldownStrategy>() == CooldownStrategy.Hold;  //Check if the Cooldowns should be held or delayed
         #endregion
 
         #endregion
@@ -552,30 +560,12 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         //Force specific actions based on the AOE strategy selected
         if (AOEStrategy == AOEStrategy.ForceST)  //if forced single target
             QueueGCD(NextFullST(), primaryTarget, GCDPriority.ForcedGCD);  //Queue the next single target action
-
         if (AOEStrategy == AOEStrategy.Force123ST)  //if forced 123 combo
             QueueGCD(Useonly123ST(), primaryTarget, GCDPriority.ForcedGCD);  //Queue the 123 combo action
-
         if (AOEStrategy == AOEStrategy.ForceBuffsST)  //if forced buffs combo
             QueueGCD(Useonly145ST(), primaryTarget, GCDPriority.ForcedGCD);  //Queue the buffed 145 combo action
-
         if (AOEStrategy == AOEStrategy.ForceAOE)  //if forced AOE action
             QueueGCD(NextFullAOE(), primaryTarget, GCDPriority.ForcedGCD);  //Queue the next AOE action
-        #endregion
-
-        #region Burst Window Strategy
-        var burst = strategy.Option(Track.Burst);  //Retrieve the current burst strategy
-        var burstStrategy = burst.As<BurstStrategy>();  //Cast to BurstStrategy type
-        var hold = burstStrategy == BurstStrategy.Conserve;  //Check if the burst should be conserved
-
-        //Set burst window timings based on the selected burst strategy
-        (BurstWindowIn, BurstWindowLeft) = burstStrategy switch
-        {
-            BurstStrategy.Automatic => (RaidBuffsIn, IsPotionBeforeRaidbuffs() ? 0 : Math.Max(PotionLeft, RaidBuffsLeft)),  //Set timings based on raid buffs and potion availability
-            BurstStrategy.UnderRaidBuffs => (RaidBuffsIn, RaidBuffsLeft),  //Set timings directly from raid buffs
-            BurstStrategy.UnderPotion => (PotionCD, PotionLeft),  //Use potion cooldown and remaining time
-            _ => (0, 0)  //Set timings to zero
-        };
         #endregion
 
         #region Dives Strategy
@@ -589,7 +579,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             DivesStrategy.Forbid => false, //Never allow dives
             _ => false,
         };
-
         var maxMelee = dive == DivesStrategy.AllowMaxMelee; //Check if max melee is allowed
         var closeMelee = dive == DivesStrategy.AllowCloseMelee; //Check if close melee is allowed
         var allowed = dive == DivesStrategy.Allow; //Check if dives are allowed
@@ -605,7 +594,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         var (SpearBestTarget, SpearTargetCount) = Unlocked(AID.Geirskogul)
             ? CheckSpearTargeting(SpearStrategy, primaryTarget, 15, NumTargetsHitBySpear, IsHitBySpear)
-            : (null, 0);  // Set to null and count 0 if not unlocked
+            : (null, 0);  //Set to null and count 0 if not unlocked
 
         //Determine if using AOE is viable (at least 3 targets hit)
         var useAOE = AOETargetCount >= 3;
@@ -625,7 +614,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         QueueGCD(useAOE ? NextFullAOE() : NextFullST(), bestAOEtarget, GCDPriority.Combo123);
         //Execute Lance Charge if available
         var lcStrat = strategy.Option(Track.LanceCharge).As<OffensiveStrategy>(); //Retrieve the Lance Charge strategy
-        if (!hold && //if not holding burst
+        if (!hold && //if not holding Cooldowns
             ShouldUseLanceCharge(lcStrat, primaryTarget)) //if Lance Charge should be used
             QueueOGCD(AID.LanceCharge, //Queue Lance Charge
                 Player, //on Self
@@ -636,7 +625,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         //Execute Battle Litany if available
         var blStrat = strategy.Option(Track.BattleLitany).As<OffensiveStrategy>(); //Retrieve the Battle Litany strategy
-        if (!hold && //if not holding burst
+        if (!hold && //if not holding Cooldowns
             ShouldUseBattleLitany(blStrat, primaryTarget)) //if Battle Litany should be used
             QueueOGCD(AID.BattleLitany, //Queue Battle Litany
                 Player, //on Self
@@ -647,7 +636,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         //Execute Life Surge if conditions met
         var lsStrat = strategy.Option(Track.LifeSurge).As<SurgeStrategy>(); //Retrieve the Life Surge strategy
-        if (!hold && //if not holding burst
+        if (!hold && //if not holding Cooldowns
             ShouldUseLifeSurge(lsStrat, primaryTarget)) //if Life Surge should be used
             QueueOGCD(AID.LifeSurge, //Queue Life Surge
                 Player, //on Self
@@ -660,7 +649,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         //Execute Jump ability if available
         var jumpStrat = strategy.Option(Track.Jump).As<JumpStrategy>(); //Retrieve the Jump strategy
-        if (!hold && divesGood && //if not holding burst and dives are good
+        if (!hold && divesGood && //if not holding Cooldowns and dives are good
             ShouldUseJump(jumpStrat, primaryTarget)) //if Jump should be used
             QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump, //Queue High Jump if unlocked, otherwise Jump
                 primaryTarget, //on the primary target
@@ -673,7 +662,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         //Execute Dragonfire Dive if available
         var ddStrat = strategy.Option(Track.DragonfireDive).As<DragonfireStrategy>(); //Retrieve the Dragonfire Dive strategy
-        if (!hold && divesGood && //if not holding burst and dives are good
+        if (!hold && divesGood && //if not holding Cooldowns and dives are good
             ShouldUseDragonfireDive(ddStrat, primaryTarget)) //if Dragonfire Dive should be used
             QueueOGCD(AID.DragonfireDive, //Queue Dragonfire Dive
                 primaryTarget, //on the primary target
@@ -684,7 +673,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         //Execute Geirskogul if available
         var geirskogul = strategy.Option(Track.Geirskogul).As<GeirskogulStrategy>(); //Retrieve the Geirskogul strategy
-        if (!hold && //if not holding burst
+        if (!hold && //if not holding Cooldowns
             ShouldUseGeirskogul(geirskogul, primaryTarget)) //if Geirskogul should be used
             QueueOGCD(AID.Geirskogul, //Queue Geirskogul
                 bestSpeartarget, //on the best Spear target
@@ -696,7 +685,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         //Execute Mirage Dive if available
         var mirageStrat = strategy.Option(Track.MirageDive).As<OffensiveStrategy>(); //Retrieve the Mirage Dive strategy
-        if (!hold && //if not holding burst
+        if (!hold && //if not holding Cooldowns
             ShouldUseMirageDive(mirageStrat, primaryTarget)) //if Mirage Dive should be used
             QueueOGCD(AID.MirageDive, //Queue Mirage Dive
                 primaryTarget, //on the primary target
@@ -707,7 +696,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         //Execute Nastrond if available
         var nastrondStrat = strategy.Option(Track.Nastrond).As<OffensiveStrategy>(); //Retrieve the Nastrond strategy
-        if (!hold && //if not holding burst
+        if (!hold && //if not holding Cooldowns
             ShouldUseNastrond(nastrondStrat, primaryTarget)) //if Nastrond should be used
             QueueOGCD(AID.Nastrond, //Queue Nastrond
                 bestSpeartarget, //on the best Spear target
@@ -718,7 +707,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         //Execute Stardiver if available
         var sdStrat = strategy.Option(Track.Stardiver).As<StardiverStrategy>(); //Retrieve the Stardiver strategy
-        if (!hold && divesGood && //if not holding burst and dives are good
+        if (!hold && divesGood && //if not holding Cooldowns and dives are good
             ShouldUseStardiver(sdStrat, primaryTarget)) //if Stardiver should be used
             QueueOGCD(AID.Stardiver, //Queue Stardiver
                 primaryTarget, //on the primary target
@@ -730,7 +719,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         //Execute Wyrmwind Thrust if available
         var wtStrat = strategy.Option(Track.WyrmwindThrust).As<OffensiveStrategy>(); //Retrieve the Wyrmwind Thrust strategy
-        if (!hold && //if not holding burst
+        if (!hold && //if not holding Cooldowns
             ShouldUseWyrmwindThrust(wtStrat, primaryTarget)) //if Wyrmwind Thrust should be used
             QueueOGCD(AID.WyrmwindThrust, //Queue Wyrmwind Thrust
                 bestSpeartarget, wtStrat is OffensiveStrategy.Force //on the best Spear target
@@ -777,7 +766,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
                 ActionQueue.Priority.VeryHigh + (int)OGCDPriority.ForcedOGCD, 0, GCD - 0.9f); //set priority to Forced oGCD
 
         //Execute True North if available
-        if (!hold && //if not holding burst
+        if (!hold && //if not holding Cooldowns
             ShouldUseTrueNorth(strategy.Option(Track.TrueNorth).As<TrueNorthStrategy>(), primaryTarget)) //if True North should be used
             QueueOGCD(AID.TrueNorth, //Queue True North
                 Player, //on Self
@@ -1009,8 +998,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseLanceCharge(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            //Use Lance Charge automatically if the player is in combat, the target is valid, the action is ready, and there is power remaining
-            Player.InCombat && target != null && canLC && powerLeft > 0,
+            Player.InCombat &&
+        target != null &&
+        canLC && powerLeft > 0,
         OffensiveStrategy.Force => canLC, //Always use if forced
         OffensiveStrategy.ForceWeave => canLC && canWeaveIn, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
@@ -1189,33 +1179,34 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseTrueNorth(TrueNorthStrategy strategy, Actor? target) => strategy switch
     {
         TrueNorthStrategy.Automatic =>
-            target != null && Player.InCombat &&
-            !HasEffect(SID.TrueNorth) &&
+            target != null && //if has target
+            Player.InCombat && //if in combat
+            !HasEffect(SID.TrueNorth) && //
             GCD < 1.25f &&
-            (!IsonRear(target) && //Side
+            (!IsOnRear(target) && //Side
             ComboLastMove is AID.Disembowel or AID.SpiralBlow
             or AID.ChaosThrust or AID.ChaoticSpring ||
-            !IsonFlank(target) && //Back
+            !IsOnFlank(target) && //Back
             ComboLastMove is AID.HeavensThrust or AID.FullThrust),
         TrueNorthStrategy.ASAP =>
             target != null && Player.InCombat &&
             !HasEffect(SID.TrueNorth) &&
-            (!IsonRear(target) && //Side
+            (!IsOnRear(target) && //Side
             ComboLastMove is AID.Disembowel or AID.SpiralBlow
             or AID.ChaosThrust or AID.ChaoticSpring ||
-            !IsonFlank(target) && //Back
+            !IsOnFlank(target) && //Back
             ComboLastMove is AID.HeavensThrust or AID.FullThrust),
         TrueNorthStrategy.Flank =>
             target != null && Player.InCombat &&
             !HasEffect(SID.TrueNorth) &&
             GCD < 1.25f &&
-            !IsonFlank(target) && //Back
+            !IsOnFlank(target) && //Back
             ComboLastMove is AID.HeavensThrust or AID.FullThrust,
         TrueNorthStrategy.Rear =>
             target != null && Player.InCombat &&
             !HasEffect(SID.TrueNorth) &&
             GCD < 1.25f &&
-            !IsonRear(target) && //Side
+            !IsOnRear(target) && //Side
             ComboLastMove is AID.Disembowel or AID.SpiralBlow
             or AID.ChaosThrust or AID.ChaoticSpring,
         TrueNorthStrategy.Force => !HasEffect(SID.TrueNorth),
