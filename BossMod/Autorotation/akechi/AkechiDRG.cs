@@ -411,7 +411,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private float CD(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining; //Get remaining cooldown time for the specified ability
     private bool In3y(Actor? target) => Player.DistanceToHitbox(target) < 4; //Checks if the target is within max melee range (3 yalms)
     private bool In1y(Actor? target) => Player.DistanceToHitbox(target) < 1; //Checks if the target is within close melee range (1 yalm)
-    private bool In15y(Actor? target) => Player.DistanceToHitbox(target) <= 14.9; //Checks if the target is within 15 yalms
+    private bool In15y(Actor? target) => Player.DistanceToHitbox(target) <= 14.9f; //Checks if the target is within 15 yalms
+    private bool In20y(Actor? target) => Player.DistanceToHitbox(target) <= 19.9f; //Checks if the target is within 20 yalms
     public bool CanWeave(AID aid, double weaveTime = 0.7) => CD(aid) > weaveTime; //Checks if we can weave an ability
 
     #region Targeting Helpers
@@ -537,7 +538,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         canMD = Unlocked(AID.MirageDive) && hasMD;  //minimum condition(s) to execute Mirage Dive
         canNastrond = Unlocked(AID.Nastrond) && hasNastrond;  //minimum condition(s) to execute Nastrond
         canSD = Unlocked(AID.Stardiver) && ActionReady(AID.Stardiver);  //minimum condition(s) to execute Stardiver
-        canWT = Unlocked(AID.WyrmwindThrust) && ActionReady(AID.WyrmwindThrust);  //minimum condition(s) to execute Wyrmwind Thrust
+        canWT = Unlocked(AID.WyrmwindThrust) && ActionReady(AID.WyrmwindThrust) && focusCount == 2;  //minimum condition(s) to execute Wyrmwind Thrust
         canROTD = Unlocked(AID.RiseOfTheDragon) && hasDF;  //minimum condition(s) to execute Rise of the Dragon
         canSC = Unlocked(AID.Starcross) && hasSC;  //minimum condition(s) to execute Starcross
         #endregion
@@ -994,13 +995,15 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
     #region Cooldown Helpers
 
+    #region Buffs
     //Determines when to use Lance Charge
     private bool ShouldUseLanceCharge(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            Player.InCombat &&
-        target != null &&
-        canLC && powerLeft > 0,
+            Player.InCombat && //if in combat
+            target != null && //if has target
+            canLC && //if Lance Charge is ready
+            powerLeft > 0, //if Power Surge is active
         OffensiveStrategy.Force => canLC, //Always use if forced
         OffensiveStrategy.ForceWeave => canLC && canWeaveIn, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
@@ -1011,8 +1014,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseBattleLitany(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            //Use Battle Litany automatically if the player is in combat, the target is valid, the action is ready, and there is power remaining
-            Player.InCombat && target != null && canBL && powerLeft > 0,
+            Player.InCombat && //if in combat
+            target != null && //if has target
+            canBL && //if Battle Litany is ready
+            powerLeft > 0, //if Power Surge is active
         OffensiveStrategy.Force => canBL, //Always use if forced
         OffensiveStrategy.ForceWeave => canBL && canWeaveIn, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
@@ -1022,20 +1027,45 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     //Determines when to use Life Surge
     private bool ShouldUseLifeSurge(SurgeStrategy strategy, Actor? target) => strategy switch
     {
-        SurgeStrategy.Automatic => Player.InCombat && target != null && canLS && hasLC &&
-            !HasEffect(SID.LifeSurge) &&
-            (CD(AID.LifeSurge) < 40 || CD(AID.BattleLitany) > 50) &&
-            (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) ||
-            ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)),
-        SurgeStrategy.Force => canLS,
+        SurgeStrategy.Automatic =>
+            Player.InCombat && //if in combat
+            target != null && //if has target
+            canLS && //if Life Surge is ready
+            hasLC && //if Lance Charge is active
+            !HasEffect(SID.LifeSurge) && //if Life Surge is not already active
+            (CD(AID.LifeSurge) < 40 || //if Life Surge cooldown is less than 40s
+            CD(AID.BattleLitany) > 50) && //or Battle Litany cooldown is greater than 50s
+            (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) || //if Wheeling Thrust or Fang and Claw was just used & Drakesbane is Unlocked
+            ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)), //or Vorpal Thrust or Lance Barrage was just used & Full Thrust is Unlocked
+        SurgeStrategy.Force => canLS, //Always use if forced
         SurgeStrategy.ForceWeave => canLS && canWeaveIn, //Always use if inside weave window
-        SurgeStrategy.ForceNextOpti => canLS &&
-            (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) ||
-            ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)),
-        SurgeStrategy.ForceNextOptiWeave => canLS && canWeaveIn &&
-            (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) ||
-            ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)),
-        SurgeStrategy.Delay => false,
+        SurgeStrategy.ForceNextOpti => canLS && //if Life Surge is ready
+            (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) || //if Wheeling Thrust or Fang and Claw was just used & Drakesbane is Unlocked
+            ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)), //or Vorpal Thrust or Lance Barrage was just used & Full Thrust is Unlocked
+        SurgeStrategy.ForceNextOptiWeave => canLS && canWeaveIn && //Always use if Life Surge is ready and inside weave window
+            (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) || //if Wheeling Thrust or Fang and Claw was just used & Drakesbane is Unlocked
+            ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)), //or Vorpal Thrust or Lance Barrage was just used & Full Thrust is Unlocked
+        SurgeStrategy.Delay => false, //Delay usage if strategy is set to delay
+        _ => false
+    };
+    #endregion
+
+    #region Dives
+    //Determines when to use Dragonfire Dive
+    private bool ShouldUseDragonfireDive(DragonfireStrategy strategy, Actor? target) => strategy switch
+    {
+        DragonfireStrategy.Automatic =>
+            Player.InCombat && //if in combat
+            target != null && //if has target
+            In20y(target) && //if within 20 yalms
+            canDD && //if Dragonfire Dive is ready
+            hasLC && //if Lance Charge is active
+            hasBL && //if Battle Litany is active
+            hasLOTD, //if Life of the Dragon is active
+        DragonfireStrategy.Force => canDD, //Always use if forced
+        DragonfireStrategy.ForceEX => canDD, //Always use in ForceEX strategy
+        DragonfireStrategy.ForceWeave => canDD && canWeaveIn, //Always use if inside weave window
+        DragonfireStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
 
@@ -1044,7 +1074,12 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         JumpStrategy.Automatic =>
             //Use Jump automatically if the player is in combat, the target is valid, and Lance Charge-related conditions are met
-            Player.InCombat && target != null && canJump && (lcLeft > 0 || hasLC || lcCD is < 35 and > 17),
+            Player.InCombat && //if in combat
+            target != null && //if has target
+            In20y(target) && //if within 20 yalms
+            canJump && //if Jump is ready
+            (lcLeft > 0 || hasLC || //if Lance Charge is active
+            lcCD is < 35 and > 17), //or greater than 17s remaining on Lance Charge cooldown
         JumpStrategy.ForceEX => canJump, //Always use in ForceEX strategy
         JumpStrategy.ForceEX2 => canJump, //Always use in ForceEX2 strategy
         JumpStrategy.ForceWeave => canJump && canWeaveIn, //Always use if inside weave window
@@ -1052,62 +1087,15 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         _ => false
     };
 
-    //Determines when to use Dragonfire Dive
-    private bool ShouldUseDragonfireDive(DragonfireStrategy strategy, Actor? target) => strategy switch
-    {
-        DragonfireStrategy.Automatic =>
-            //Use Dragonfire Dive automatically if the player is in combat, the target is valid, and both Lance Charge and Battle Litany are active
-            Player.InCombat && target != null && In3y(target) && canDD && hasLC && hasBL,
-        DragonfireStrategy.Force => canDD, //Always use if forced
-        DragonfireStrategy.ForceEX => canDD, //Always use in ForceEX strategy
-        DragonfireStrategy.ForceWeave => canDD && canWeaveIn, //Always use if inside weave window
-        DragonfireStrategy.Delay => false, //Delay usage if strategy is set to delay
-        _ => false
-    };
-
-    //Determines when to use Geirskogul
-    private bool ShouldUseGeirskogul(GeirskogulStrategy strategy, Actor? target) => strategy switch
-    {
-        GeirskogulStrategy.Automatic =>
-            //Use Geirskogul automatically if the player is in combat, the action is ready, the target is within 15y, and Lance Charge is active
-            Player.InCombat && In15y(target) && canGeirskogul && hasLC,
-        GeirskogulStrategy.Force => canGeirskogul, //Always use if forced
-        GeirskogulStrategy.ForceEX => canGeirskogul, //Always use if forced
-        GeirskogulStrategy.ForceWeave => canGeirskogul && canWeaveIn, //Always use if inside weave window
-        GeirskogulStrategy.Delay => false, //Delay usage if strategy is set to delay
-        _ => false
-    };
-
-    //Determines when to use Mirage Dive
-    private bool ShouldUseMirageDive(OffensiveStrategy strategy, Actor? target) => strategy switch
-    {
-        OffensiveStrategy.Automatic =>
-            //Use Mirage Dive automatically if the player is in combat, the target is valid, and Dive Ready effect is active
-            Player.InCombat && target != null && canMD,
-        OffensiveStrategy.Force => canMD, //Always use if forced
-        OffensiveStrategy.ForceWeave => canMD && canWeaveIn, //Always use if inside weave window
-        OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
-        _ => false
-    };
-
-    //Determines when to use Nastrond
-    private bool ShouldUseNastrond(OffensiveStrategy strategy, Actor? target) => strategy switch
-    {
-        OffensiveStrategy.Automatic =>
-            //Use Nastrond automatically if the player is in combat, has Nastrond ready, the target is within 15y, and Lance Charge is active
-            Player.InCombat && In15y(target) && canNastrond,
-        OffensiveStrategy.Force => canNastrond, //Always use if forced
-        OffensiveStrategy.ForceWeave => canNastrond && canWeaveIn, //Always use if inside weave window
-        OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
-        _ => false
-    };
-
     //Determines when to use Stardiver
     private bool ShouldUseStardiver(StardiverStrategy strategy, Actor? target) => strategy switch
     {
         StardiverStrategy.Automatic =>
-            //Use Stardiver automatically if the player is in combat, the target is valid, the action is ready, and Life of the Dragon (LOTD) is active
-            Player.InCombat && target != null && In3y(target) && canSD && hasLOTD,
+            Player.InCombat && //if in combat
+            target != null && //if has target
+            In20y(target) && //if within 20 yalms
+            canSD && //if Stardiver is ready
+            hasLOTD, //if Life of the Dragon is active
         StardiverStrategy.Force => canSD, //Always use if forced
         StardiverStrategy.ForceEX => canSD, //Always use if forced
         StardiverStrategy.ForceWeave => canSD && canWeaveInStardiver, //Always use if inside weave window
@@ -1115,24 +1103,74 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         _ => false
     };
 
+    //Determines when to use Mirage Dive
+    private bool ShouldUseMirageDive(OffensiveStrategy strategy, Actor? target) => strategy switch
+    {
+        OffensiveStrategy.Automatic =>
+            Player.InCombat && //if in combat
+            target != null && //if has target
+            In20y(target) && //if within 20 yalms
+            canMD, //if Mirage Dive is ready
+        OffensiveStrategy.Force => canMD, //Always use if forced
+        OffensiveStrategy.ForceWeave => canMD && canWeaveIn, //Always use if inside weave window
+        OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
+        _ => false
+    };
+    #endregion
+
+    #region Spears
+    //Determines when to use Geirskogul
+    private bool ShouldUseGeirskogul(GeirskogulStrategy strategy, Actor? target) => strategy switch
+    {
+        GeirskogulStrategy.Automatic =>
+            Player.InCombat && //if in combat
+            In15y(target) && //if within 15 yalms
+            canGeirskogul && //if Geirskogul is ready
+            hasLC, //if Lance Charge is active
+        GeirskogulStrategy.Force => canGeirskogul, //Always use if forced
+        GeirskogulStrategy.ForceEX => canGeirskogul, //Always use if forced
+        GeirskogulStrategy.ForceWeave => canGeirskogul && canWeaveIn, //Always use if inside weave window
+        GeirskogulStrategy.Delay => false, //Delay usage if strategy is set to delay
+        _ => false
+    };
+
+    //Determines when to use Nastrond
+    private bool ShouldUseNastrond(OffensiveStrategy strategy, Actor? target) => strategy switch
+    {
+        OffensiveStrategy.Automatic =>
+            Player.InCombat && //if in combat
+            In15y(target) && //if within 15 yalms
+            canNastrond, //if Nastrond is ready
+        OffensiveStrategy.Force => canNastrond, //Always use if forced
+        OffensiveStrategy.ForceWeave => canNastrond && canWeaveIn, //Always use if inside weave window
+        OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
+        _ => false
+    };
+
     //Determines when to use Wyrmwind Thrust
     private bool ShouldUseWyrmwindThrust(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            //Use Wyrmwind Thrust automatically if the player is in combat, the target is within 15y, and focus count is exactly 2
-            Player.InCombat && target != null && In15y(target) && canWT && focusCount is 2 && lcCD > GCDLength * 3,
+            Player.InCombat && //if in combat
+            target != null && //if has target
+            In15y(target) && //if within 15 yalms
+            canWT && //if Wyrmwind Thrust is ready
+            lcCD > GCDLength * 2, //if Lance Charge is imminent, hold until buff is active
         OffensiveStrategy.Force => canWT, //Always use if forced
         OffensiveStrategy.ForceWeave => canWT && canWeaveIn, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
         _ => false
     };
+    #endregion
 
     //Determines when to use Rise of the Dragon
     private bool ShouldUseRiseOfTheDragon(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
         OffensiveStrategy.Automatic =>
-            //Use Rise of the Dragon automatically if the player is in combat, the target is valid, and Dragon's Flight effect is active
-            Player.InCombat && target != null && canROTD,
+            Player.InCombat && //if in combat
+            target != null && //if has target
+            In20y(target) && //if within 20 yalms
+            canROTD, //if Rise of the Dragon is ready
         OffensiveStrategy.Force => canROTD, //Always use if forced
         OffensiveStrategy.ForceWeave => canROTD && canWeaveIn, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
@@ -1144,7 +1182,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     {
         OffensiveStrategy.Automatic =>
             //Use Starcross automatically if the player is in combat, the target is valid, and Starcross Ready effect is active
-            Player.InCombat && target != null && canSC,
+            Player.InCombat && //if in combat
+            target != null && //if has target
+            In20y(target) && //if within 20 yalms
+            canSC, //if Starcross is ready
         OffensiveStrategy.Force => canSC, //Always use if forced
         OffensiveStrategy.ForceWeave => canSC && canWeaveIn, //Always use if inside weave window
         OffensiveStrategy.Delay => false, //Delay usage if strategy is set to delay
@@ -1155,11 +1196,16 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUsePiercingTalon(Actor? target, PiercingTalonStrategy strategy) => strategy switch
     {
         PiercingTalonStrategy.AllowEX =>
-            Player.InCombat && target != null && !In3y(target) && HasEffect(SID.EnhancedPiercingTalon),
+            Player.InCombat && //if in combat
+            target != null && //if has target
+            !In3y(target) && //if not in melee range
+            HasEffect(SID.EnhancedPiercingTalon), //if Enhanced Piercing Talon is active
         PiercingTalonStrategy.Allow =>
-            Player.InCombat && target != null && !In3y(target),
+            Player.InCombat && //if in combat
+            target != null && //if has target
+            !In3y(target), //if not in melee range
         PiercingTalonStrategy.Force => true, //Always use if forced
-        PiercingTalonStrategy.ForceEX => HasEffect(SID.EnhancedPiercingTalon),
+        PiercingTalonStrategy.ForceEX => HasEffect(SID.EnhancedPiercingTalon), //Use if Enhanced Piercing Talon is active
         PiercingTalonStrategy.Forbid => false, //Never use if forbidden
         _ => false
     };
@@ -1168,8 +1214,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
         PotionStrategy.AlignWithRaidBuffs =>
-            //Use potion when Lance Charge and Battle Litany cooldowns align with raid buffs (GCD timing)
-            lcCD <= GCD * 3 && blCD <= GCD * 3,
+            lcCD <= GCD * 2 && //Lance Charge is imminent
+            blCD <= GCD * 2, //Battle Litany is imminent
         PotionStrategy.Immediate => true, //Use the potion immediately
         _ => false
     };
@@ -1179,9 +1225,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseTrueNorth(TrueNorthStrategy strategy, Actor? target) => strategy switch
     {
         TrueNorthStrategy.Automatic =>
-            target != null && //if has target
-            Player.InCombat && //if in combat
-            !HasEffect(SID.TrueNorth) && //
+            target != null &&
+            Player.InCombat &&
+            !HasEffect(SID.TrueNorth) &&
             GCD < 1.25f &&
             (!IsOnRear(target) && //Side
             ComboLastMove is AID.Disembowel or AID.SpiralBlow
