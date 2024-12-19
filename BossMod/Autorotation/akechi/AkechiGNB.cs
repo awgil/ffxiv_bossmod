@@ -315,10 +315,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     public enum OGCDPriority //priorities for oGCDs (higher number = higher priority)
     {
         None = 0,           //default
+        Continuation = 500, //Continuation procs
         Zone = 550,         //Blasting Zone
         BowShock = 600,     //Bow Shock
         Bloodfest = 700,    //Bloodfest
-        Continuation = 800, //Continuation procs
         NoMercy = 875,      //No Mercy
         Potion = 900,       //Potion
         ForcedOGCD = 900,   //Forced oGCDs
@@ -401,14 +401,15 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         : canBS //Otherwise, if Burst Strike is available
         ? AID.BurstStrike //Use Burst Strike
         : NextBestRotation(); //Otherwise, use the next best rotation
+
     private AID BestContinuation //Determine the best Continuation to use
-        => canContinue //Continuation is available
-        && hasRip ? AID.JugularRip //Jugular Rip
-        : hasTear ? AID.AbdomenTear //Abdomen Tear
-        : hasGouge ? AID.EyeGouge //Eye Gouge
-        : hasRaze ? AID.FatedBrand //Fated Brand
-        : hasBlast ? AID.Hypervelocity //Hypervelocity
-        : AID.Continuation; //Otherwise, return Original Hook
+        => canContinue //And we can use Continuation
+        && hasBlast ? AID.Hypervelocity //If we have Ready To Blast buff
+        : hasRaze ? AID.FatedBrand //If we have Ready To Raze buff
+        : hasRip ? AID.JugularRip //If we have Ready To Rip buff
+        : hasTear ? AID.AbdomenTear //If we have Ready To Tear buff
+        : hasGouge ? AID.EyeGouge //If we have Ready To Gouge buff
+        : AID.Continuation; //Otherwise, dfault to original hook
     #endregion
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
@@ -434,9 +435,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         hasGouge = HasEffect(SID.ReadyToGouge); //Checks for Ready To Gouge buff
 
         //GCD & Weaving
-        canWeaveIn = GCD is < 2.5f and > 0.6f; //Can weave in oGCDs
-        canWeaveEarly = GCD is < 2.5f and > 1.5f; //Can weave in oGCDs early
-        canWeaveLate = GCD is <= 1.5f and > 0.6f; //Can weave in oGCDs late
+        canWeaveIn = GCD is <= 2.5f and >= 0.1f; //Can weave in oGCDs
+        canWeaveEarly = GCD is <= 2.5f and >= 1.25f; //Can weave in oGCDs early
+        canWeaveLate = GCD is <= 1.25f and >= 0.1f; //Can weave in oGCDs late
         quarterWeave = GCD < 0.9f; //Can last second weave oGCDs
         GCDLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level); //GCD based on skill speed and haste
         NextGCD = AID.None; //Next global cooldown action to be used
@@ -460,7 +461,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         canDD = Unlocked(AID.DoubleDown) && ActionReady(AID.DoubleDown) && Ammo > 0; //Double Down conditions; -1 Ammo AOE
         canBF = Unlocked(AID.Bloodfest) && ActionReady(AID.Bloodfest); //Bloodfest conditions; +all Ammo (must have target)
         //Cooldown-relative
-        canZone = Unlocked(AID.DangerZone) && ActionReady(BestZone); //Zone conditions
+        canZone = Unlocked(AID.DangerZone) && ActionReady(AID.DangerZone); //Zone conditions
         canBreak = hasBreak && Unlocked(AID.SonicBreak); //Sonic Break conditions
         canBow = Unlocked(AID.BowShock) && ActionReady(AID.BowShock); //Bow Shock conditions
         canContinue = Unlocked(AID.Continuation); //Continuation conditions
@@ -640,17 +641,18 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         }
 
         //Continuation execution
-        if (canContinue) //if Continuation is available
-        {
-            if (hasRip || //if Jugular Rip is ready
-                hasTear || //or Abdomen Tear is ready
-                hasGouge || //or Eye Gouge is ready
-                hasRaze || //or Fated Brand is ready
-                hasBlast) //or Hypervelocity is ready
-                QueueOGCD(BestContinuation, //queue the best Continuation action
-                    primaryTarget, //on the primary target
-                    OGCDPriority.Continuation); //with priority for needed Continuation actions
-        }
+        if (canContinue && //if Continuation is available
+            hasBlast || //and Ready To Blast buff is active
+            hasRaze || //or Ready To Raze buff is active
+            hasRip || //or Ready To Rip buff is active
+            hasTear || //or Ready To Tear buff is active
+            hasGouge) //or Ready To Gouge buff is active
+            QueueOGCD(BestContinuation, //queue the best Continuation action
+                primaryTarget, //on the primary target
+                canWeaveLate //if inside second weave slot & still havent used
+                ? OGCDPriority.ForcedOGCD //use priority for forced oGCDs
+                : OGCDPriority.Continuation); //otherwise, use intended priority
+
         #endregion
 
         #region GCDs
@@ -859,12 +861,12 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         NoMercyStrategy.Force => canNM, //Force No Mercy, regardless of correct weaving
         NoMercyStrategy.ForceW => canNM && canWeaveIn, //Force No Mercy into any weave slot 
         NoMercyStrategy.ForceQW => canNM && quarterWeave, //Force No Mercy into last possible second weave slot
-        NoMercyStrategy.Force1 => canNM && Ammo >= 1, //Force No Mercy if ready and 1 cartridge, regardless of weaving
-        NoMercyStrategy.Force1W => canNM && canWeaveIn && Ammo >= 1, //Force No Mercy into any weave slot if ready and 1 cartridge
-        NoMercyStrategy.Force1QW => canNM && quarterWeave && Ammo >= 1, //Force No Mercy into last possible second weave slot if ready and 1 cartridge
-        NoMercyStrategy.Force2 => canNM && Ammo >= 2, //Force No Mercy if ready and 2 cartridges, regardless of weaving
-        NoMercyStrategy.Force2W => canNM && canWeaveIn && Ammo >= 2, //Force No Mercy into any weave slot if ready and 2 cartridges
-        NoMercyStrategy.Force2QW => canNM && quarterWeave && Ammo >= 2, //Force No Mercy into last possible second weave slot if ready and 2 cartridges
+        NoMercyStrategy.Force1 => canNM && Ammo == 1, //Force No Mercy if ready and 1 cartridge, regardless of weaving
+        NoMercyStrategy.Force1W => canNM && canWeaveIn && Ammo == 1, //Force No Mercy into any weave slot if ready and 1 cartridge
+        NoMercyStrategy.Force1QW => canNM && quarterWeave && Ammo == 1, //Force No Mercy into last possible second weave slot if ready and 1 cartridge
+        NoMercyStrategy.Force2 => canNM && Ammo == 2, //Force No Mercy if ready and 2 cartridges, regardless of weaving
+        NoMercyStrategy.Force2W => canNM && canWeaveIn && Ammo == 2, //Force No Mercy into any weave slot if ready and 2 cartridges
+        NoMercyStrategy.Force2QW => canNM && quarterWeave && Ammo == 2, //Force No Mercy into last possible second weave slot if ready and 2 cartridges
         NoMercyStrategy.Force3 => canNM && Ammo == 3, //Force No Mercy if ready and 3 cartridges, regardless of weaving
         NoMercyStrategy.Force3W => canNM && canWeaveIn && Ammo == 3, //Force No Mercy into any weave slot if ready and 3 cartridges
         NoMercyStrategy.Force3QW => canNM && quarterWeave && Ammo == 3, //Force No Mercy into last possible second weave slot if ready and 3 cartridges
@@ -973,7 +975,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             target != null && //Target exists
             In3y(target) && //Target in melee range
             canBS && //Burst Strike is available
-            (hasNM || nmCD < 1), //No Mercy is active or almost ready
+            (hasNM || //No Mercy is active
+            nmCD < 1 && Ammo == 3), //No Mercy is almost ready and full carts
         _ => false
     };
 
@@ -985,7 +988,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             target != null && //Target exists
             In5y(target) && //Target in range
             canFC && //Fated Circle is available
-            (hasNM || nmCD < 1), //No Mercy is active or almost ready
+            (hasNM || //No Mercy is active
+            nmCD < 1 && Ammo == 3), //No Mercy is almost ready and full carts
         _ => false
     };
 
