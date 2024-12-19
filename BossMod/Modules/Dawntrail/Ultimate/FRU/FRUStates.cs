@@ -48,25 +48,30 @@ class FRUStates : StateMachineBuilder
         P3UltimateRelativity(id + 0x10000, 4.3f);
         P3BlackHalo(id + 0x20000, 3.2f);
         P3Apocalypse(id + 0x30000, 7.2f);
-
-        SimpleState(id + 0xFF0000, 100, "???");
+        ActorCast(id + 0x40000, _module.BossP3, AID.MemorysEnd, 3.7f, 10, true, "Enrage");
     }
 
     private void P1CyclonicBreakPowderMarkTrail(uint id, float delay)
     {
         ActorCastMulti(id, _module.BossP1, [AID.CyclonicBreakBossStack, AID.CyclonicBreakBossSpread], delay, 6.5f, true)
             .ActivateOnEnter<P1CyclonicBreakSpreadStack>()
-            .ActivateOnEnter<P1CyclonicBreakProtean>();
+            .ActivateOnEnter<P1CyclonicBreakProtean>()
+            .ActivateOnEnter<P1CyclonicBreakAIBait>();
         ComponentCondition<P1CyclonicBreakProtean>(id + 0x10, 0.6f, comp => comp.NumCasts > 0, "Protean 1")
             .ActivateOnEnter<P1CyclonicBreakCone>()
-            .DeactivateOnExit<P1CyclonicBreakProtean>();
+            .DeactivateOnExit<P1CyclonicBreakProtean>()
+            .DeactivateOnExit<P1CyclonicBreakAIBait>();
         ComponentCondition<P1CyclonicBreakCone>(id + 0x11, 2.1f, comp => comp.NumCasts > 0, "Protean 2 + Spread/Stack") // both happen at the same time
+            .ActivateOnEnter<P1CyclonicBreakAIDodgeSpreadStack>()
+            .DeactivateOnExit<P1CyclonicBreakAIDodgeSpreadStack>()
             .DeactivateOnExit<P1CyclonicBreakSpreadStack>();
-        ComponentCondition<P1CyclonicBreakCone>(id + 0x12, 2.1f, comp => comp.NumCasts > 1, "Protean 3");
+        ComponentCondition<P1CyclonicBreakCone>(id + 0x12, 2.1f, comp => comp.NumCasts > 1, "Protean 3")
+            .ActivateOnEnter<P1CyclonicBreakAIDodgeRest>();
 
         ActorCastStart(id + 0x100, _module.BossP1, AID.PowderMarkTrail, 0.8f, true);
         ComponentCondition<P1CyclonicBreakCone>(id + 0x101, 1.3f, comp => comp.NumCasts > 2, "Protean 4")
-            .DeactivateOnExit<P1CyclonicBreakCone>();
+            .DeactivateOnExit<P1CyclonicBreakCone>()
+            .DeactivateOnExit<P1CyclonicBreakAIDodgeRest>();
         ActorCastEnd(id + 0x102, _module.BossP1, 3.7f, true, "Tankbuster")
             .SetHint(StateMachine.StateHint.Tankbuster);
     }
@@ -78,14 +83,18 @@ class FRUStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.DowntimeStart);
         ComponentCondition<P1UtopianSkyBlastingZone>(id + 0x10, 5.2f, comp => comp.AOEs.Count > 0)
             .ActivateOnEnter<P1PowderMarkTrail>()
-            .ActivateOnEnter<P1UtopianSkyBlastingZone>();
+            .ActivateOnEnter<P1UtopianSkyBlastingZone>()
+            .ActivateOnEnter<P1UtopianSkyAIInitial>();
         ComponentCondition<P1PowderMarkTrail>(id + 0x11, 0.2f, comp => comp.NumCasts > 0, "Tankbusters")
             .DeactivateOnExit<P1PowderMarkTrail>()
+            .DeactivateOnExit<P1UtopianSkyAIInitial>()
             .SetHint(StateMachine.StateHint.Tankbuster);
         ComponentCondition<P1UtopianSkyBlastingZone>(id + 0x20, 8.9f, comp => comp.NumCasts > 0, "Lines")
             .ExecOnEnter<P1UtopianSkySpreadStack>(comp => comp.Show(Module.WorldState.FutureTime(9.7f)))
+            .ActivateOnEnter<P1UtopianSkyAIResolve>()
             .DeactivateOnExit<P1UtopianSkyBlastingZone>();
         ComponentCondition<P1UtopianSkySpreadStack>(id + 0x21, 0.8f, comp => !comp.Active, "Spread/stack")
+            .DeactivateOnExit<P1UtopianSkyAIResolve>()
             .DeactivateOnExit<P1UtopianSkySpreadStack>();
     }
 
@@ -95,11 +104,17 @@ class FRUStates : StateMachineBuilder
             .ActivateOnEnter<P1CyclonicBreakSpreadStack>()
             .ActivateOnEnter<P1CyclonicBreakProtean>()
             .ActivateOnEnter<P1CyclonicBreakCone>()
+            .ActivateOnEnter<P1CyclonicBreakAIBait>()
+            .DeactivateOnExit<P1CyclonicBreakAIBait>()
             .DeactivateOnExit<P1CyclonicBreakProtean>();
         ComponentCondition<P1CyclonicBreakCone>(id + 1, 2.1f, comp => comp.NumCasts > 0, "Protean 2 + Spread/Stack") // both happen at the same time
+            .ActivateOnEnter<P1CyclonicBreakAIDodgeSpreadStack>()
+            .DeactivateOnExit<P1CyclonicBreakAIDodgeSpreadStack>()
             .DeactivateOnExit<P1CyclonicBreakSpreadStack>();
-        ComponentCondition<P1CyclonicBreakCone>(id + 2, 2.1f, comp => comp.NumCasts > 1, "Protean 3");
+        ComponentCondition<P1CyclonicBreakCone>(id + 2, 2.1f, comp => comp.NumCasts > 1, "Protean 3")
+            .ActivateOnEnter<P1CyclonicBreakAIDodgeRest>();
         ComponentCondition<P1CyclonicBreakCone>(id + 3, 2.1f, comp => comp.NumCasts > 2, "Protean 4")
+            .DeactivateOnExit<P1CyclonicBreakAIDodgeRest>()
             .DeactivateOnExit<P1CyclonicBreakCone>();
     }
 
@@ -375,8 +390,13 @@ class FRUStates : StateMachineBuilder
         ComponentCondition<P3ShellCrusher>(id + 0x92, 0.4f, comp => comp.Stacks.Count == 0, "Stack")
             .DeactivateOnExit<P3ShellCrusher>();
 
-        ActorCast(id + 0x1000, _module.BossP3, AID.ShockwavePulsar, 3.5f, 5, true, "Raidwide")
-            .DeactivateOnExit<P3UltimateRelativitySinboundMeltdownAOE>()
+        P3ShockwavePulsar(id + 0x1000, 3.5f)
+            .DeactivateOnExit<P3UltimateRelativitySinboundMeltdownAOE>();
+    }
+
+    private State P3ShockwavePulsar(uint id, float delay)
+    {
+        return ActorCast(id, _module.BossP3, AID.ShockwavePulsar, delay, 5, true, "Raidwide")
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
@@ -418,16 +438,20 @@ class FRUStates : StateMachineBuilder
         ComponentCondition<P3Apocalypse>(id + 0x51, 0.7f, comp => comp.NumCasts > 16);
         ComponentCondition<P3Apocalypse>(id + 0x52, 2.0f, comp => comp.NumCasts > 22);
         ComponentCondition<P3ApocalypseDarkWater>(id + 0x53, 0.5f, comp => comp.Stacks.Count == 0, "Stack 2");
-        ComponentCondition<P3Apocalypse>(id + 0x54, 1.5f, comp => comp.NumCasts > 22)
+        ComponentCondition<P3Apocalypse>(id + 0x54, 1.5f, comp => comp.NumCasts > 28)
             .ActivateOnEnter<P3DarkestDanceBait>()
             .DeactivateOnExit<P3Apocalypse>();
         ActorCastEnd(id + 0x55, _module.BossP3, 0.3f, true);
         ComponentCondition<P3DarkestDanceBait>(id + 0x56, 0.4f, comp => comp.NumCasts > 0, "Tankbuster")
+            .ActivateOnEnter<P3DarkestDanceKnockback>()
             .DeactivateOnExit<P3DarkestDanceBait>()
             .ExecOnExit<P3ApocalypseDarkWater>(comp => comp.ShowOrder(3))
             .SetHint(StateMachine.StateHint.Tankbuster);
-        // +2.8s: kb
-        // +???: stack 3
-        // then: shockwave pulsar raidwide > memory end enrage
+        ComponentCondition<P3DarkestDanceKnockback>(id + 0x57, 2.8f, comp => comp.NumCasts > 0, "Knockback")
+            .DeactivateOnExit<P3DarkestDanceKnockback>();
+        ComponentCondition<P3ApocalypseDarkWater>(id + 0x60, 4.1f, comp => comp.Stacks.Count == 0, "Stack 3")
+            .DeactivateOnExit<P3ApocalypseDarkWater>();
+
+        P3ShockwavePulsar(id + 0x1000, 0.3f);
     }
 }

@@ -264,3 +264,30 @@ class P3DarkestDanceBait(BossModule module) : Components.GenericBaitAway(module,
         }
     }
 }
+
+class P3DarkestDanceKnockback(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.DarkestDanceKnockback), true) // TODO: verify whether it ignores immunes
+{
+    private Actor? _source;
+    private DateTime _activation;
+
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
+    {
+        if (_source != null)
+            yield return new(_source.Position, 21, _activation);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.DarkestDanceBait:
+                _source = caster;
+                _activation = WorldState.FutureTime(2.8f);
+                break;
+            case AID.DarkestDanceKnockback:
+                _source = null;
+                ++NumCasts;
+                break;
+        }
+    }
+}

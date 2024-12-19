@@ -20,7 +20,6 @@ public struct NavigationDecision
     public float NextTurn; // > 0 if we turn left after reaching first waypoint, < 0 if we turn right, 0 otherwise (no more waypoints)
     public float LeewaySeconds; // can be used for finishing casts / slidecasting etc.
     public float TimeToGoal;
-    public Map? Map;
 
     public const float ForbiddenZoneCushion = 0; // increase to fatten forbidden zones
     public const float ActivationTimeCushion = 1; // reduce time between now and activation by this value in seconds; increase for more conservativeness
@@ -39,7 +38,7 @@ public struct NavigationDecision
         var bestNodeIndex = ctx.ThetaStar.Execute();
         ref var bestNode = ref ctx.ThetaStar.NodeByIndex(bestNodeIndex);
         var (destination, turn) = GetFirstWaypoint(ctx.ThetaStar, ctx.Map, bestNodeIndex, player.Position);
-        return new() { Destination = destination, NextTurn = turn, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore, Map = ctx.Map };
+        return new() { Destination = destination, NextTurn = turn, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore };
     }
 
     public static void RasterizeForbiddenZones(Map map, List<(Func<WPos, float> shapeDistance, DateTime activation)> zones, DateTime current, ref float[] scratch)

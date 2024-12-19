@@ -22,6 +22,7 @@ class ReplayDetailsWindow : UIWindow
     private int _povSlot = PartyState.PlayerSlot;
     private readonly ConfigUI _config;
     private bool _showConfig;
+    private bool _showDebug;
     private readonly EventList _events;
     private readonly ReplayAnalysis.AnalysisManager _analysis;
 
@@ -88,6 +89,13 @@ class ReplayDetailsWindow : UIWindow
             var drawTimerPre = DateTime.Now;
             _mgr.ActiveModule.Draw(_azimuthOverride ? _azimuth.Degrees() : _mgr.WorldState.Client.CameraAzimuth, _povSlot, true, true);
             var drawTimerPost = DateTime.Now;
+
+            if (_showDebug && _hints.ForcedMovement != null && _mgr.ActiveModule.Raid[_povSlot] is var pc && pc != null)
+            {
+                var movementDest = pc.Position + new WDir(_hints.ForcedMovement.Value.XZ());
+                _mgr.ActiveModule.Arena.AddLine(pc.Position, movementDest, 0x80ff00ff);
+                _mgr.ActiveModule.Arena.AddCircle(movementDest, 0.5f, 0x80ff00ff);
+            }
 
             var compList = string.Join(", ", _mgr.ActiveModule.Components.Select(c => c.GetType().Name));
             var pov = _mgr.WorldState.Party[_povSlot];
@@ -201,10 +209,11 @@ class ReplayDetailsWindow : UIWindow
 
         ImGui.SameLine();
         ImGui.Checkbox("Show config", ref _showConfig);
+        ImGui.SameLine();
+        ImGui.Checkbox("Show debug", ref _showDebug);
+
         if (_showConfig)
-        {
             _config.Draw();
-        }
     }
 
     private void DrawTimelineRow()

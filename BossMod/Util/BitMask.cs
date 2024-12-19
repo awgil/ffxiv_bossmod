@@ -36,6 +36,8 @@ public record struct BitMask(ulong Raw)
     public static BitMask operator &(BitMask a, BitMask b) => new(a.Raw & b.Raw);
     public static BitMask operator |(BitMask a, BitMask b) => new(a.Raw | b.Raw);
     public static BitMask operator ^(BitMask a, BitMask b) => new(a.Raw ^ b.Raw);
+    public static BitMask operator <<(BitMask a, int bits) => new(a.Raw << bits);
+    public static BitMask operator >>(BitMask a, int bits) => new(a.Raw >> bits);
 
     public static BitMask Build<A>(params A[] bits) where A : Enum
     {
