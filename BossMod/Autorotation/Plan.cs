@@ -172,6 +172,10 @@ public class JsonPlanConverter : JsonConverter<Plan>
             entry.Value.Target = Enum.Parse<StrategyTarget>(jtarget.GetString() ?? "");
         if (jelem.TryGetProperty(nameof(StrategyValue.TargetParam), out var jtp))
             entry.Value.TargetParam = jtp.GetInt32();
+        if (jelem.TryGetProperty(nameof(StrategyValue.Offset1), out var joff1))
+            entry.Value.Offset1 = joff1.GetSingle();
+        if (jelem.TryGetProperty(nameof(StrategyValue.Offset2), out var joff2))
+            entry.Value.Offset2 = joff2.GetSingle();
         if (jelem.TryGetProperty(nameof(StrategyValue.Comment), out var jcomment))
             entry.Value.Comment = jcomment.GetString() ?? "";
     }
@@ -189,6 +193,10 @@ public class JsonPlanConverter : JsonConverter<Plan>
             writer.WriteString(nameof(StrategyValue.Target), entry.Value.Target.ToString());
         if (entry.Value.TargetParam != 0)
             writer.WriteNumber(nameof(StrategyValue.TargetParam), entry.Value.TargetParam);
+        if (entry.Value.Offset1 != 0)
+            writer.WriteNumber(nameof(StrategyValue.Offset1), entry.Value.Offset1);
+        if (entry.Value.Offset2 != 0)
+            writer.WriteNumber(nameof(StrategyValue.Offset2), entry.Value.Offset2);
         if (entry.Value.Comment.Length > 0)
             writer.WriteString(nameof(StrategyValue.Comment), entry.Value.Comment);
     }

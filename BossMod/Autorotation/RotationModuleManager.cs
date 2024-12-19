@@ -116,6 +116,13 @@ public sealed class RotationModuleManager : IDisposable
         _ => null
     };
 
+    public WPos ResolveTargetLocation(StrategyTarget strategy, int param, float off1, float off2) => strategy switch
+    {
+        StrategyTarget.PointAbsolute => new(off1, off2),
+        StrategyTarget.PointCenter => (Bossmods.ActiveModule?.Center ?? Player?.Position ?? default) + off1 * off2.Degrees().ToDirection(),
+        _ => (ResolveTargetOverride(strategy, param)?.Position ?? Player?.Position ?? default) + off1 * off2.Degrees().ToDirection(),
+    };
+
     private Plan? CalculateExpectedPlan()
     {
         var player = Player;

@@ -8,7 +8,7 @@ namespace BossMod.Dawntrail.Ultimate.FRU;
 sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModule(manager, player)
 {
     public enum Track { Movement }
-    public enum MovementStrategy { None, Pathfind, Prepull, DragToCenter, MaxMeleeNearest, ClockSpot }
+    public enum MovementStrategy { None, Pathfind, Explicit, Prepull, DragToCenter, MaxMeleeNearest }
 
     public static RotationModuleDefinition Definition()
     {
@@ -16,10 +16,10 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
         res.Define(Track.Movement).As<MovementStrategy>("Movement", "Movement")
             .AddOption(MovementStrategy.None, "None", "No automatic movement")
             .AddOption(MovementStrategy.Pathfind, "Pathfind", "Use standard pathfinding to move")
+            .AddOption(MovementStrategy.Explicit, "Explicit", "Move to specific point", supportedTargets: ActionTargets.Area)
             .AddOption(MovementStrategy.Prepull, "Prepull", "Pre-pull position: as close to the clock-spot as possible")
             .AddOption(MovementStrategy.DragToCenter, "DragToCenter", "Drag boss to the arena center")
-            .AddOption(MovementStrategy.MaxMeleeNearest, "MaxMeleeNearest", "Move to nearest spot in max-melee")
-            .AddOption(MovementStrategy.ClockSpot, "ClockSpot", "Move to role-based clock-spot");
+            .AddOption(MovementStrategy.MaxMeleeNearest, "MaxMeleeNearest", "Move to nearest spot in max-melee");
         return res;
     }
 
@@ -29,17 +29,17 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
     {
         if (Bossmods.ActiveModule is FRU module && module.Raid.FindSlot(Player.InstanceID) is var playerSlot && playerSlot >= 0)
         {
-            SetForcedMovement(CalculateDestination(module, primaryTarget, strategy.Option(Track.Movement).As<MovementStrategy>(), Service.Config.Get<PartyRolesConfig>()[module.Raid.Members[playerSlot].ContentId]));
+            SetForcedMovement(CalculateDestination(module, primaryTarget, strategy.Option(Track.Movement), Service.Config.Get<PartyRolesConfig>()[module.Raid.Members[playerSlot].ContentId]));
         }
     }
 
-    private WPos CalculateDestination(FRU module, Actor? primaryTarget, MovementStrategy strategy, PartyRolesConfig.Assignment assignment) => strategy switch
+    private WPos CalculateDestination(FRU module, Actor? primaryTarget, StrategyValues.OptionRef strategy, PartyRolesConfig.Assignment assignment) => strategy.As<MovementStrategy>() switch
     {
         MovementStrategy.Pathfind => PathfindPosition(),
+        MovementStrategy.Explicit => ResolveTargetLocation(strategy.Value),
         MovementStrategy.Prepull => PrepullPosition(module, assignment),
         MovementStrategy.DragToCenter => DragToCenterPosition(module),
         MovementStrategy.MaxMeleeNearest => primaryTarget != null ? primaryTarget.Position + 7.5f * (Player.Position - primaryTarget.Position).Normalized() : Player.Position,
-        MovementStrategy.ClockSpot => ClockSpotPosition(module, assignment, 6),
         _ => Player.Position
     };
 
@@ -54,11 +54,15 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
     private WPos PrepullPosition(FRU module, PartyRolesConfig.Assignment assignment)
     {
         var safeRange = 12.5f;
-        var pos = ClockSpotPosition(module, assignment, assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.M2 ? 5 : 10);
-        var off = pos - module.PrimaryActor.Position;
+        var desiredRange = assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.M2 ? 5 : 10;
+        var dir = _config.P1CyclonicBreakSpots[assignment];
+        if (dir < 0)
+            dir = 0;
+        var desiredPos = module.Center + desiredRange * (180 - 45 * dir).Degrees().ToDirection();
+        var off = desiredPos - module.PrimaryActor.Position;
         var distSq = off.LengthSq();
         if (distSq >= safeRange * safeRange)
-            return pos;
+            return desiredPos;
         off /= MathF.Sqrt(distSq);
         return module.PrimaryActor.Position + off * safeRange;
     }
@@ -75,11 +79,5 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
         var dragSpot = module.Center + dragDistance * dragDir;
         var timeToMelee = ((dragSpot - module.PrimaryActor.Position).Length() - meleeDistance) / (Speed() + 8.5f); // assume 8.5 boss speed...
         return GCD > timeToMelee + 0.1f ? dragSpot : module.PrimaryActor.Position + meleeDistance * dragDir;
-    }
-
-    private WPos ClockSpotPosition(FRU module, PartyRolesConfig.Assignment assignment, float range)
-    {
-        var dir = _config.P1CyclonicBreakSpots[assignment];
-        return dir >= 0 ? module.Center + range * (180 - 45 * dir).Degrees().ToDirection() : Player.Position;
     }
 }

@@ -112,6 +112,10 @@ public class JsonPresetConverter : JsonConverter<Preset>
                     s.Value.Target = Enum.Parse<StrategyTarget>(jtarget.GetString() ?? "");
                 if (js.TryGetProperty(nameof(StrategyValue.TargetParam), out var jtp))
                     s.Value.TargetParam = jtp.GetInt32();
+                if (js.TryGetProperty(nameof(StrategyValue.Offset1), out var joff1))
+                    s.Value.Offset1 = joff1.GetSingle();
+                if (js.TryGetProperty(nameof(StrategyValue.Offset2), out var joff2))
+                    s.Value.Offset2 = joff2.GetSingle();
                 if (js.TryGetProperty(nameof(StrategyValue.Comment), out var jcomment))
                     s.Value.Comment = jcomment.GetString() ?? "";
 
@@ -144,6 +148,10 @@ public class JsonPresetConverter : JsonConverter<Preset>
                     writer.WriteString(nameof(StrategyValue.Target), s.Value.Target.ToString());
                 if (s.Value.TargetParam != 0)
                     writer.WriteNumber(nameof(StrategyValue.TargetParam), s.Value.TargetParam);
+                if (s.Value.Offset1 != 0)
+                    writer.WriteNumber(nameof(StrategyValue.Offset1), s.Value.Offset1);
+                if (s.Value.Offset2 != 0)
+                    writer.WriteNumber(nameof(StrategyValue.Offset2), s.Value.Offset2);
                 if (s.Value.Comment.Length > 0)
                     writer.WriteString(nameof(StrategyValue.Comment), s.Value.Comment);
                 writer.WriteEndObject();
