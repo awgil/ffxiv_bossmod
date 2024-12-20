@@ -51,8 +51,7 @@ sealed class AIController(WorldState ws, ActionManagerEx amex, MovementOverride 
         bool forbidMovement = moveRequested || !AllowInterruptingCastByMovement && _amex.MoveMightInterruptCast;
         if (NaviTargetPos != null && !forbidMovement && (NaviTargetPos.Value - player.Position).LengthSq() > 0.01f)
         {
-            var y = NaviTargetVertical != null && IsVerticalAllowed ? NaviTargetVertical.Value : player.PosRot.Y;
-            desiredPosition = new(NaviTargetPos.Value.X, y, NaviTargetPos.Value.Z);
+            desiredPosition = NaviTargetPos.Value.ToVec3(NaviTargetVertical != null && IsVerticalAllowed ? NaviTargetVertical.Value : player.PosRot.Y);
         }
         else
         {

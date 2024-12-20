@@ -8,7 +8,7 @@ namespace BossMod.Dawntrail.Ultimate.FRU;
 sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModule(manager, player)
 {
     public enum Track { Movement }
-    public enum MovementStrategy { None, Pathfind, Explicit, Prepull, DragToCenter, MaxMeleeNearest }
+    public enum MovementStrategy { None, Pathfind, Explicit, Prepull, DragToCenter }
 
     public static RotationModuleDefinition Definition()
     {
@@ -18,8 +18,7 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
             .AddOption(MovementStrategy.Pathfind, "Pathfind", "Use standard pathfinding to move")
             .AddOption(MovementStrategy.Explicit, "Explicit", "Move to specific point", supportedTargets: ActionTargets.Area)
             .AddOption(MovementStrategy.Prepull, "Prepull", "Pre-pull position: as close to the clock-spot as possible")
-            .AddOption(MovementStrategy.DragToCenter, "DragToCenter", "Drag boss to the arena center")
-            .AddOption(MovementStrategy.MaxMeleeNearest, "MaxMeleeNearest", "Move to nearest spot in max-melee");
+            .AddOption(MovementStrategy.DragToCenter, "DragToCenter", "Drag boss to the arena center");
         return res;
     }
 
@@ -39,7 +38,6 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
         MovementStrategy.Explicit => ResolveTargetLocation(strategy.Value),
         MovementStrategy.Prepull => PrepullPosition(module, assignment),
         MovementStrategy.DragToCenter => DragToCenterPosition(module),
-        MovementStrategy.MaxMeleeNearest => primaryTarget != null ? primaryTarget.Position + 7.5f * (Player.Position - primaryTarget.Position).Normalized() : Player.Position,
         _ => Player.Position
     };
 

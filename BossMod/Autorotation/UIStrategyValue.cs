@@ -193,7 +193,7 @@ public static class UIStrategyValue
             if (value.Target == StrategyTarget.PointAbsolute)
             {
                 modified |= ImGui.InputFloat("X", ref value.Offset1);
-                modified |= ImGui.InputFloat("Y", ref value.Offset2);
+                modified |= ImGui.InputFloat("Z", ref value.Offset2);
             }
             else
             {

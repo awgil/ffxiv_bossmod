@@ -95,8 +95,8 @@ public class BossModuleMainWindow : UIWindow
 
         foreach ((var start, var end, uint color) in arrows)
         {
-            Vector3 start3 = new(start.X, y, start.Z);
-            Vector3 end3 = new(end.X, y, end.Z);
+            Vector3 start3 = start.ToVec3(y);
+            Vector3 end3 = end.ToVec3(y);
             Camera.Instance.DrawWorldLine(start3, end3, color);
             var dir = Vector3.Normalize(end3 - start3);
             var arrowStart = end3 - 0.4f * dir;
