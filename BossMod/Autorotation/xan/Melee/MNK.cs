@@ -5,7 +5,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
-    public enum Track { Potion = SharedTrack.Buffs, SSS, Meditation, FormShift, FiresReply, Nadi, RoF, RoW, PB, BH, TC, Blitz, Engage }
+    public enum Track { Potion = SharedTrack.Buffs, SSS, Meditation, FormShift, FiresReply, Nadi, RoF, RoW, PB, BH, TC, Blitz, Engage, TN }
     public enum PotionStrategy
     {
         Manual,
@@ -134,6 +134,8 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(EngageStrategy.Sprint, "Sprint to melee range")
             .AddOption(EngageStrategy.FacepullDK, "Precast Dragon Kick from melee range")
             .AddOption(EngageStrategy.FacepullDemo, "Precast Demolish from melee range");
+
+        def.DefineSimple(Track.TN, "TrueNorth", minLevel: 50).AddAssociatedActions(AID.TrueNorth);
 
         return def;
     }
@@ -513,8 +515,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         if (ShouldRoW(strategy))
             PushOGCD(AID.RiddleOfWind, Player, OGCDPriority.RiddleOfWind);
 
-        if (NextPositionalImminent && !NextPositionalCorrect && Player.DistanceToHitbox(primaryTarget) < 6)
-            PushOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth, useRof ? 0 : GCD - 0.8f);
+        UseTN(strategy, primaryTarget, useRof);
 
         if (HaveTarget && Chakra >= 5 && !useRof)
         {
@@ -668,6 +669,21 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         OffensiveStrategy.Force => true,
         _ => false
     };
+
+    private void UseTN(StrategyValues strategy, Actor? primaryTarget, bool rofPlanned)
+    {
+        switch (strategy.Simple(Track.TN))
+        {
+            case OffensiveStrategy.Automatic:
+                if (NextPositionalImminent && !NextPositionalCorrect && Player.DistanceToHitbox(primaryTarget) < 6)
+                    PushOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth, rofPlanned ? 0 : GCD - 0.8f);
+                break;
+            case OffensiveStrategy.Force:
+                if (TrueNorthLeft == 0)
+                    PushOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth);
+                break;
+        }
+    }
 
     private bool IsEnlightenmentTarget(Actor primary, Actor other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 2);
 
