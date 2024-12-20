@@ -112,9 +112,9 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
         if (primaryTarget != null)
         {
-            var aoebreakpoint = 3;
-            if (Overheated && Unlocked(AID.AutoCrossbow))
-                aoebreakpoint = 4;
+            var aoebreakpoint = strategy.AOEOk()
+                ? Overheated && Unlocked(AID.AutoCrossbow) ? 4 : 3
+                : 50;
             GoalZoneCombined(25, Hints.GoalAOECone(primaryTarget, 12, 60.Degrees()), aoebreakpoint);
         }
 
@@ -182,7 +182,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         if (CountdownRemaining is > 0 and < 5 && ReassembleLeft == 0)
             PushOGCD(AID.Reassemble, Player);
 
-        if (CountdownRemaining == null && !Player.InCombat && Player.DistanceToHitbox(primaryTarget) <= 25 && NextToolCharge == 0 && ReassembleLeft == 0)
+        if (CountdownRemaining == null && !Player.InCombat && Player.DistanceToHitbox(primaryTarget) <= 25 && NextToolCharge == 0 && ReassembleLeft == 0 && !Overheated)
             PushGCD(AID.Reassemble, Player, 30);
 
         if (IsPausedForFlamethrower || !Player.InCombat || primaryTarget == null)
