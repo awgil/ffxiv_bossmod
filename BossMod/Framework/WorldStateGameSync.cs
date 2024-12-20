@@ -68,7 +68,7 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe delegate void ProcessPacketOpenTreasureDelegate(uint actorID, byte* packet);
     private readonly Hook<ProcessPacketOpenTreasureDelegate> _processPacketOpenTreasureHook;
 
-    private unsafe delegate ulong ProcessSystemLogMessageDelegate(uint entityId, uint logMessageId, int* args, byte argCount);
+    private unsafe delegate void* ProcessSystemLogMessageDelegate(uint entityId, uint logMessageId, int* args, byte argCount);
     private readonly Hook<ProcessSystemLogMessageDelegate> _processSystemLogMessageHook;
 
     public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
@@ -903,11 +903,10 @@ sealed class WorldStateGameSync : IDisposable
         _actorOps.GetOrAdd(actorID).Add(new ActorState.OpEventOpenTreasure(actorID));
     }
 
-    private unsafe ulong ProcessSystemLogMessageDetour(uint entityId, uint messageId, int* args, byte argCount)
+    private unsafe void* ProcessSystemLogMessageDetour(uint entityId, uint messageId, int* args, byte argCount)
     {
-        var argsArray = new Span<int>(args, argCount);
         var res = _processSystemLogMessageHook.Original(entityId, messageId, args, argCount);
-        _globalOps.Add(new WorldState.OpSystemLogMessage(messageId, argsArray.ToArray()));
+        _globalOps.Add(new WorldState.OpSystemLogMessage(messageId, new Span<int>(args, argCount).ToArray()));
         return res;
     }
 }
