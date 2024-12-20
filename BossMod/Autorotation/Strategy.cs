@@ -9,6 +9,8 @@ public enum StrategyTarget
     PartyWithLowestHP, // parameter is whether self is allowed (1) or not (0)
     EnemyWithHighestPriority, // selects closest if there are multiple
     EnemyByOID, // parameter is oid; not really useful outside planner; selects closest if there are multiple
+    PointAbsolute, // absolute x/y coordinates
+    PointCenter, // offset from arena center
 
     Count
 }
@@ -49,6 +51,8 @@ public record struct StrategyValue()
     public float PriorityOverride = float.NaN; // priority override for the action controlled by the config; not all configs support it, if not set the default priority is used
     public StrategyTarget Target; // target selection strategy
     public int TargetParam; // strategy-specific parameter
+    public float Offset1; // x or r coordinate
+    public float Offset2; // y or phi coordinate
     public string Comment = ""; // user-editable comment string
     public float ExpireIn = float.MaxValue; // time until strategy expires
 }

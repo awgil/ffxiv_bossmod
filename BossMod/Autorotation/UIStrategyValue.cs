@@ -34,7 +34,8 @@ public static class UIStrategyValue
             StrategyTarget.EnemyByOID => $"{(moduleInfo?.ObjectIDType != null ? Enum.ToObject(moduleInfo.ObjectIDType, (uint)value.TargetParam).ToString() : "???")} (0x{value.TargetParam:X})",
             _ => ""
         };
-        return targetDetails.Length > 0 ? $"{value.Target} ({targetDetails})" : $"{value.Target}";
+        var offsetDetails = value.Target == StrategyTarget.PointAbsolute ? $" {value.Offset1}x{value.Offset2}" : value.Offset1 != 0 ? $" + R{value.Offset1}, dir={value.Offset2}" : "";
+        return (targetDetails.Length > 0 ? $"{value.Target} ({targetDetails})" : $"{value.Target}") + offsetDetails;
     }
 
     public static bool DrawEditor(ref StrategyValue value, StrategyConfig cfg, BossModuleRegistry.Info? moduleInfo, int? level)
@@ -186,16 +187,34 @@ public static class UIStrategyValue
                 }
                 break;
         }
+
+        if (supportedTargets.HasFlag(ActionTargets.Area))
+        {
+            if (value.Target == StrategyTarget.PointAbsolute)
+            {
+                modified |= ImGui.InputFloat("X", ref value.Offset1);
+                modified |= ImGui.InputFloat("Z", ref value.Offset2);
+            }
+            else
+            {
+                modified |= ImGui.DragFloat("Offset", ref value.Offset1, 0.1f, 0, 30);
+                modified |= ImGui.DragFloat("Direction", ref value.Offset2, 1, -180, 180);
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip($"In degrees; 0 is south, increases CCW (so 90 is E, 180 is N, -90 is W)");
+            }
+        }
+
         return modified;
     }
 
-    public static bool AllowTarget(StrategyTarget t, ActionTargets supported, BossModuleRegistry.Info? moduleInfo) => t switch
+    public static bool AllowTarget(StrategyTarget t, ActionTargets supported, BossModuleRegistry.Info? moduleInfo) => supported.HasFlag(ActionTargets.Area) || t switch
     {
         StrategyTarget.Self => supported.HasFlag(ActionTargets.Self),
         StrategyTarget.PartyByAssignment => supported.HasFlag(ActionTargets.Party),
         StrategyTarget.PartyWithLowestHP => supported.HasFlag(ActionTargets.Party),
         StrategyTarget.EnemyWithHighestPriority => supported.HasFlag(ActionTargets.Hostile),
         StrategyTarget.EnemyByOID => supported.HasFlag(ActionTargets.Hostile) && moduleInfo != null,
+        StrategyTarget.PointAbsolute or StrategyTarget.PointCenter => false,
         _ => true
     };
 }

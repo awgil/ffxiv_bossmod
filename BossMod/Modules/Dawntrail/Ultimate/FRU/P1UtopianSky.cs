@@ -142,7 +142,7 @@ class P1UtopianSkyAIResolve(BossModule module) : BossComponent(module)
         if (WorldState.FutureTime(5) > _aoes.Activation)
         {
             // can't wait any longer for people to think...
-            _seenDangerSpot = folded;
+            _seenDangerSpot = folded & new BitMask(0xF);
             return;
         }
 

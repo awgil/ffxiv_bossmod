@@ -48,7 +48,7 @@ class P1CyclonicBreakCone(BossModule module) : Components.GenericAOEs(module)
     public readonly List<AOEInstance> AOEs = [];
     private DateTime _currentBundle;
 
-    public static readonly AOEShapeCone Shape = new(60, 11.25f.Degrees()); // TODO: verify angle
+    public static readonly AOEShapeCone Shape = new(60, 11.5f.Degrees()); // TODO: verify angle
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs;
 
@@ -88,7 +88,7 @@ class P1CyclonicBreakAIBait(BossModule module) : BossComponent(module)
             return; // no assignment
         var assignedDirection = (180 - 45 * clockspot).Degrees();
         // TODO: think about melee vs ranged distance...
-        hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, assignedDirection, 20, -5, 1), _spreadStack.Activation);
+        hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, assignedDirection, 10, -6, 1), _spreadStack.Activation);
     }
 }
 

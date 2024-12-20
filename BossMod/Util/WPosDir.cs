@@ -5,8 +5,8 @@ public record struct WDir(float X, float Z)
 {
     public WDir(Vector2 v) : this(v.X, v.Y) { }
     public readonly Vector2 ToVec2() => new(X, Z);
-    public readonly Vector3 ToVec3() => new(X, 0, Z);
-    public readonly Vector4 ToVec4() => new(X, 0, Z, 0);
+    public readonly Vector3 ToVec3(float y = 0) => new(X, y, Z);
+    public readonly Vector4 ToVec4(float y = 0, float w = 0) => new(X, y, Z, w);
     public readonly WPos ToWPos() => new(X, Z);
 
     public static WDir operator +(WDir a, WDir b) => new(a.X + b.X, a.Z + b.Z);
@@ -55,6 +55,8 @@ public record struct WPos(float X, float Z)
 {
     public WPos(Vector2 v) : this(v.X, v.Y) { }
     public readonly Vector2 ToVec2() => new(X, Z);
+    public readonly Vector3 ToVec3(float y = 0) => new(X, y, Z);
+    public readonly Vector4 ToVec4(float y = 0, float w = 0) => new(X, y, Z, w);
     public readonly WDir ToWDir() => new(X, Z);
 
     public static WPos operator +(WPos a, WDir b) => new(a.X + b.X, a.Z + b.Z);
