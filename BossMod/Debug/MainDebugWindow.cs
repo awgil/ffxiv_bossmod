@@ -240,7 +240,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
             {
                 ref var md = ref dd->MapData[i];
                 if (md > 0)
-                    md |= 0b10000000;
+                    md |= (byte)InstanceContentDeepDungeon.RoomFlags.Revealed;
             }
         }
 
