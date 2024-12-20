@@ -234,6 +234,16 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         if (dd == null)
             return;
 
+        if (ImGui.Button("Reveal map"))
+        {
+            for (var i = 0; i < dd->MapData.Length; i++)
+            {
+                ref var md = ref dd->MapData[i];
+                if (md > 0)
+                    md |= 0b10000000;
+            }
+        }
+
         Dalamud.Utility.Util.ShowStruct(dd);
     }
 
