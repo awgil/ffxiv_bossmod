@@ -147,6 +147,8 @@ public sealed class WorldState
     public Event<OpSystemLogMessage> SystemLogMessage = new();
     public sealed record class OpSystemLogMessage(uint MessageId, int[] Args) : Operation
     {
+        public readonly int[] Args = Args;
+
         protected override void Exec(WorldState ws) => ws.SystemLogMessage.Fire(this);
         public override void Write(ReplayRecorder.Output output)
         {
