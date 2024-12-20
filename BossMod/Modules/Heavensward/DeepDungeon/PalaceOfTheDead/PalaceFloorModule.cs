@@ -7,20 +7,32 @@ namespace BossMod.Heavensward.DeepDungeon.PalaceOfTheDead.FloorModule;
 [ConfigDisplay(Name = "Palace of the Dead", Parent = typeof(HeavenswardConfig))]
 class PotDConfig : ConfigNode
 {
+    public enum ClearBehavior
+    {
+        [PropertyDisplay("Do not auto target")]
+        None,
+        [PropertyDisplay("Stop when passage opens")]
+        Passage,
+        [PropertyDisplay("Target everything if not at level cap, otherwise stop when passage opens")]
+        Leveling,
+        [PropertyDisplay("Target everything")]
+        All,
+    }
+
     [PropertyDisplay("Enable module")]
     public bool Enable = true;
-    [PropertyDisplay("Try to avoid traps")]
+    [PropertyDisplay("Try to avoid traps", tooltip: "Avoid known trap locations sourced from PalacePal data. (Traps revealed by a Pomander of Sight will always be avoided regardless of this setting.)")]
     public bool TrapHints = true;
     [PropertyDisplay("Automatically navigate to Cairn of Passage")]
     public bool AutoPassage = true;
-    [PropertyDisplay("Automatically target mobs until Passage is open")]
-    public bool AutoClear = true;
+
+    [PropertyDisplay("Automatic mob targeting behavior")]
+    public ClearBehavior AutoClear = ClearBehavior.Leveling;
+
     [PropertyDisplay("Automatically navigate to coffers")]
     public bool AutoMoveTreasure = true;
     [PropertyDisplay("Prioritize opening coffers over Cairn of Passage")]
     public bool OpenChestsFirst = false;
-    [PropertyDisplay("Prioritize clearing floor over Cairn of Passage")]
-    public bool FullClear = false;
     [PropertyDisplay("Open gold coffers")]
     public bool GoldCoffer = true;
     [PropertyDisplay("Open silver coffers")]
@@ -205,7 +217,7 @@ public abstract class PalaceFloorModule : ZoneModule
         _openedChests.Clear();
     }
 
-    private bool OpenGold => _config.GoldCoffer && Palace.Items.Any(i => i.Count < 3);
+    private bool OpenGold => _config.GoldCoffer;
     private bool OpenSilver => _config.SilverCoffer && Palace.Progress.WeaponLevel + Palace.Progress.ArmorLevel < 198;
     private bool OpenBronze => _config.BronzeCoffer;
 
@@ -216,8 +228,7 @@ public abstract class PalaceFloorModule : ZoneModule
         StringBuilder sb = new();
         for (var i = 0; i < 25; i++)
         {
-            var open = Palace.MapData[i] > 0 ? "X" : " ";
-            sb.Append($"{open} ");
+            sb.Append($"{Palace.MapData[i]:X2} ");
             if (i % 5 == 4)
                 sb.Append('\n');
         }
@@ -330,7 +341,15 @@ public abstract class PalaceFloorModule : ZoneModule
         if (!isOccupied && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.GetItem(PomanderID.Intuition).Active && InBounds(hints, h.Position))
             hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));
 
-        if (!isOccupied && _config.AutoClear && (_config.FullClear || !Palace.PassageActive))
+        var shouldTargetMobs = !isOccupied && _config.AutoClear switch
+        {
+            PotDConfig.ClearBehavior.Passage => !Palace.PassageActive,
+            PotDConfig.ClearBehavior.Leveling => player.Level != 60 || !Palace.PassageActive,
+            PotDConfig.ClearBehavior.All => true,
+            _ => false
+        };
+
+        if (shouldTargetMobs)
             foreach (var pp in hints.PotentialTargets)
                 pp.Priority = 0;
     }
@@ -377,6 +396,8 @@ public class Palace170(WorldState ws) : PalaceFloorModule(ws);
 public class Palace180(WorldState ws) : PalaceFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 217)]
 public class Palace190(WorldState ws) : PalaceFloorModule(ws);
+[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 218)]
+public class Palace200(WorldState ws) : PalaceFloorModule(ws);
 
 static class PalacePalInterop
 {

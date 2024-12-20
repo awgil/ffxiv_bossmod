@@ -29,8 +29,8 @@ class Flashthoom(BossModule module) : Components.SelfTargetedAOEs(module, Action
     {
         base.AddAIHints(slot, actor, assignment, hints);
 
-        if (Casters.Count > 0 && Module.PrimaryActor.Position.InCircle(Casters[0].Position, 7.2f))
-            hints.SetPriority(Casters[0], -2);
+        if (Module.Enemies(OID.LavaBomb).FirstOrDefault() is Actor g && Module.PrimaryActor.Position.InCircle(g.Position, 7.2f))
+            hints.SetPriority(g, -2);
     }
 }
 class Sap(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Sap), 8);
