@@ -673,8 +673,8 @@ sealed class WorldStateGameSync : IDisposable
         var ddold = _ws.DeepDungeon;
         var ddnew = GetDeepDungeonState();
 
-        if (ddold.Progress != ddnew.Progress)
-            _ws.Execute(new DeepDungeonState.OpProgressChange(ddnew.Progress));
+        if (ddold.DungeonId != ddnew.DungeonId || ddold.Progress != ddnew.Progress)
+            _ws.Execute(new DeepDungeonState.OpProgressChange(ddnew.DungeonId, ddnew.Progress));
         if (!MemoryExtensions.SequenceEqual<byte>(ddold.MapData, ddnew.MapData))
             _ws.Execute(new DeepDungeonState.OpMapDataChange(ddnew.MapData));
         if (!MemoryExtensions.SequenceEqual<DeepDungeonState.PartyMember>(ddold.Party, ddnew.Party))
@@ -706,7 +706,8 @@ sealed class WorldStateGameSync : IDisposable
 
         var state = new DeepDungeonState
         {
-            Progress = progress
+            Progress = progress,
+            DungeonId = AgentDeepDungeonMap.Instance()->Data->DeepDungeonId
         };
 
         dd->MapData.CopyTo(state.MapData);

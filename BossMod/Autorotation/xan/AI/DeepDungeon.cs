@@ -29,7 +29,9 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         174, 175, 176, 177, 178,
         204, 205, 206, 207, 208,
         209, 210, 211, 212, 213,
-        214, 215, 216, 217, 218
+        214, 215, 216, 217, 218,
+        540, 541, 542, 543, 544,
+        545, 546, 547, 548, 549
     ];
 
     enum Transformation : uint
@@ -42,9 +44,6 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        ActionID regenAction = default;
-        ActionID potAction = default;
-
         var transformation = Transformation.None;
         if (Player.FindStatus(565) is { } status)
         {
@@ -63,11 +62,12 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             return;
         }
 
-        if (PalaceCFCs.Contains(World.CurrentCFCID))
+        var (regenAction, potAction) = World.DeepDungeon.Type switch
         {
-            regenAction = ActionDefinitions.IDSustainingPotion;
-            potAction = ActionDefinitions.IDMaxPotion;
-        }
+            DeepDungeonState.DungeonType.POTD => (ActionDefinitions.IDSustainingPotion, ActionDefinitions.IDMaxPotion),
+            DeepDungeonState.DungeonType.HOH => (ActionDefinitions.IDEmpyreanPotion, ActionDefinitions.IDSuperPotion),
+            _ => (default, default)
+        };
 
         if (regenAction != default && ShouldPotion(strategy))
             Hints.ActionsToExecute.Push(regenAction, Player, ActionQueue.Priority.Medium);

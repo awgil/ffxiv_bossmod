@@ -1,12 +1,28 @@
-﻿namespace BossMod;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
+using System.Runtime.InteropServices;
+
+namespace BossMod;
 
 public sealed class DeepDungeonState
 {
     public DungeonProgress Progress;
+    public byte DungeonId;
     public byte[] MapData = new byte[25];
     public PartyMember[] Party = new PartyMember[4];
     public Item[] Items = new Item[16];
     public Chest[] Chests = new Chest[16];
+
+    public enum DungeonType : byte
+    {
+        None = 0,
+        POTD = 1,
+        HOH = 2,
+        EO = 3
+    }
+
+    public ReadOnlySpan<InstanceContentDeepDungeon.RoomFlags> Map => MemoryMarshal.Cast<byte, InstanceContentDeepDungeon.RoomFlags>(MapData);
+
+    public DungeonType Type => (DungeonType)DungeonId;
 
     public record struct DungeonProgress(byte Floor, byte WeaponLevel, byte ArmorLevel, byte SyncedGearLevel, byte HoardCount, byte ReturnProgress, byte PassageProgress);
     public record struct PartyMember(ulong EntityId, byte Room);
@@ -17,15 +33,22 @@ public sealed class DeepDungeonState
     }
     public record struct Chest(byte Type, byte Room);
 
-    public Item GetItem(PomanderID pid) => pid == PomanderID.None ? default : Items[(uint)pid - 1];
+    public Item GetItem(PomanderID pid) => GetSlotForPomander(pid) is var s && s >= 0 ? Items[s] : default;
+
+    public int GetSlotForPomander(PomanderID pid) => Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeon>(DungeonId)!.Value.PomanderSlot.ToList().FindIndex(p => p.RowId == (uint)pid);
+    public PomanderID GetPomanderInSlot(int slot)
+    {
+        var slots = Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeon>(DungeonId)!.Value.PomanderSlot;
+        return slot >= 0 && slot < slots.Count ? (PomanderID)slots[slot].RowId : PomanderID.None;
+    }
 
     public bool ReturnActive => Progress.ReturnProgress >= 11;
     public bool PassageActive => Progress.PassageProgress >= 11;
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {
-        if (Progress != default)
-            yield return new OpProgressChange(Progress);
+        if (Progress != default || DungeonId != 0)
+            yield return new OpProgressChange(DungeonId, Progress);
 
         if (MapData.Any(m => m > 0))
             yield return new OpMapDataChange(MapData);
@@ -41,16 +64,18 @@ public sealed class DeepDungeonState
     }
 
     public Event<OpProgressChange> ProgressChanged = new();
-    public sealed record class OpProgressChange(DungeonProgress Value) : WorldState.Operation
+    public sealed record class OpProgressChange(byte DungeonId, DungeonProgress Value) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {
+            ws.DeepDungeon.DungeonId = DungeonId;
             ws.DeepDungeon.Progress = Value;
             ws.DeepDungeon.ProgressChanged.Fire(this);
         }
         public override void Write(ReplayRecorder.Output output)
         {
             output.EmitFourCC("DDPG"u8)
+                .Emit(DungeonId)
                 .Emit(Value.Floor)
                 .Emit(Value.WeaponLevel)
                 .Emit(Value.ArmorLevel)

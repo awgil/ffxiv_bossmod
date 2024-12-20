@@ -309,7 +309,8 @@ public sealed unsafe class ActionManagerEx : IDisposable
                 var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
                 var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
                 var prevRot = player != null ? player->Rotation.Radians() : default;
-                if (dd != null && _usePomanderHook.Original(dd, action.ID - 1) != null)
+                var slot = _ws.DeepDungeon.GetSlotForPomander((PomanderID)action.ID);
+                if (dd != null && slot >= 0 && _usePomanderHook.Original(dd, (uint)slot) != null)
                 {
                     var currRot = player != null ? player->Rotation.Radians() : default;
                     HandleActionRequest(action, 0, targetId, targetPos, prevRot, currRot);
@@ -499,12 +500,12 @@ public sealed unsafe class ActionManagerEx : IDisposable
         return res;
     }
 
-    private void* UsePomanderDetour(InstanceContentDeepDungeon* self, uint pomanderId)
+    private void* UsePomanderDetour(InstanceContentDeepDungeon* self, uint pomanderSlot)
     {
-        if (_manualQueue.Push(new ActionID(ActionType.Pomander, pomanderId + 1), 0xE0000000, false, () => (0xE0000000, null)))
+        if (_manualQueue.Push(new ActionID(ActionType.Pomander, (uint)_ws.DeepDungeon.GetPomanderInSlot((int)pomanderSlot)), 0xE0000000, false, () => (0xE0000000, null)))
             return null;
 
-        return _usePomanderHook.Original(self, pomanderId);
+        return _usePomanderHook.Original(self, pomanderSlot);
     }
 
     private void ProcessPacketActionEffectDetour(uint casterID, Character* casterObj, Vector3* targetPos, ActionEffectHandler.Header* header, ActionEffectHandler.TargetEffects* effects, GameObjectId* targets)

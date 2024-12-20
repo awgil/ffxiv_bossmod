@@ -3,6 +3,8 @@
 public enum PomanderID : uint
 {
     None,
+
+    // Pomanders - PotD/HoH
     Safety,
     Sight,
     Strength,
@@ -14,11 +16,32 @@ public enum PomanderID : uint
     Fortune,
     Witching,
     Serenity,
-    Rage,
-    Lust,
+    Rage, // palace only
+    Lust, // palace only
     Intuition,
     Raising,
-    Resolution,
+    Resolution, // palace only
+    Frailty, // HoH only
+    Concealment, // HoH only
+    Petrification, // HoH only
+
+    // Protomanders - EO
+    ProtoLethargy,
+    ProtoStorms,
+    ProtoDread,
+    ProtoSafety,
+    ProtoSight,
+    ProtoStrength,
+    ProtoSteel,
+    ProtoAffluence,
+    ProtoFlight,
+    ProtoAlteration,
+    ProtoPurity,
+    ProtoFortune,
+    ProtoWitching,
+    ProtoSerenity,
+    ProtoIntuition,
+    ProtoRaising,
 
     Count
 }
