@@ -10,7 +10,11 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
     public enum ZoeOption { None, Use, UseEx }
     public enum DashStrategy { None, Force, GapClose } //GapCloser strategy
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
-    public bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus((uint)(object)sid, Player.InstanceID) != null; //Checks if Status effect is on self
+    public float GetStatusDetail(Actor target, SGE.SID sid) => StatusDetails(target, sid, Player.InstanceID).Left; //Checks if Status effect is on target
+    public bool HasEffect(Actor target, SGE.SID sid, float duration) => GetStatusDetail(target, sid) < duration; //Checks if anyone has a status effect
+    public float GetStatusDetail(Actor target, SCH.SID sid) => StatusDetails(target, sid, Player.InstanceID).Left; //Checks if Status effect is on target
+    public bool HasEffect(Actor target, SCH.SID sid, float duration) => GetStatusDetail(target, sid) < duration; //Checks if anyone has a status effect
+    public Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value);
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SGE.AID.TechneMakre);
 
@@ -78,12 +82,12 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Eukrasia), SGE.AID.Eukrasia, Player);
-        ExecuteSimple(strategy.Option(Track.Druochole), SGE.AID.Druochole, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.Druochole), SGE.AID.Druochole, TargetChoice(strategy.Option(Track.Druochole)) ?? Player);
         ExecuteSimple(strategy.Option(Track.Kerachole), SGE.AID.Kerachole, Player);
         ExecuteSimple(strategy.Option(Track.Ixochole), SGE.AID.Ixochole, Player);
         ExecuteSimple(strategy.Option(Track.Pepsis), SGE.AID.Pepsis, Player);
-        ExecuteSimple(strategy.Option(Track.Taurochole), SGE.AID.Taurochole, primaryTarget ?? Player);
-        ExecuteSimple(strategy.Option(Track.Haima), SGE.AID.Haima, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.Taurochole), SGE.AID.Taurochole, TargetChoice(strategy.Option(Track.Taurochole)) ?? Player);
+        ExecuteSimple(strategy.Option(Track.Haima), SGE.AID.Haima, TargetChoice(strategy.Option(Track.Haima)) ?? Player);
         ExecuteSimple(strategy.Option(Track.Rhizomata), SGE.AID.Rhizomata, Player);
         ExecuteSimple(strategy.Option(Track.Holos), SGE.AID.Holos, Player);
         ExecuteSimple(strategy.Option(Track.Panhaima), SGE.AID.Panhaima, Player);
@@ -99,10 +103,10 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (kardiaAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(kardiaAction), primaryTarget, kardia.Priority(), kardia.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(kardiaAction), TargetChoice(kardia) ?? Player, kardia.Priority(), kardia.Value.ExpireIn);
 
         //Diagnosis full execution
-        var hasEukrasia = HasEffect(SGE.SID.Eukrasia); //Eukrasia
+        var hasEukrasia = HasEffect(Player, SGE.SID.Eukrasia, 1000); //Eukrasia
         var diag = strategy.Option(Track.Diagnosis);
         var diagAction = diag.As<DiagOption>() switch
         {
@@ -115,22 +119,20 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         {
             if (!hasEukrasia)
             {
-                // Push the primary action based on the selected option
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(diagAction), primaryTarget, diag.Priority(), diag.Value.ExpireIn);
             }
 
-            // Check for EukrasianDiagnosis if the effect is active
             if (hasEukrasia)
             {
                 if (diag.As<DiagOption>() == DiagOption.UseED)
                 {
-                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianDiagnosis), primaryTarget, diag.Priority(), diag.Value.ExpireIn);
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianDiagnosis), TargetChoice(diag) ?? Player, diag.Priority(), diag.Value.ExpireIn);
                 }
             }
         }
 
         //Prognosis full execution
-        var alreadyUp = HasEffect(SGE.SID.EukrasianPrognosis) || HasEffect(SCH.SID.Galvanize);
+        var alreadyUp = HasEffect(Player, SGE.SID.EukrasianPrognosis, 30) || HasEffect(Player, SCH.SID.Galvanize, 30);
         var prog = strategy.Option(Track.Prognosis);
         var progAction = prog.As<ProgOption>() switch
         {
@@ -147,13 +149,11 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
 
             if (hasEukrasia && !alreadyUp)
             {
-                // Check if UseEP is selected and push EukrasianPrognosis
                 if (prog.As<ProgOption>() == ProgOption.UseEP)
                 {
                     Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianPrognosis), Player, prog.Priority(), prog.Value.ExpireIn);
                 }
-                // Check if UseEPEx is selected and push EukrasianPrognosisII
-                else if (prog.As<ProgOption>() == ProgOption.UseEPEx)
+                if (prog.As<ProgOption>() == ProgOption.UseEPEx)
                 {
                     Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianPrognosisII), Player, prog.Priority(), prog.Value.ExpireIn);
                 }
@@ -175,7 +175,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
         var dashStrategy = strategy.Option(Track.Icarus).As<DashStrategy>();
         if (ShouldUseDash(dashStrategy, dashTarget))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Icarus), dashTarget, dash.Priority());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Icarus), dashTarget, dash.Priority(), dash.Value.ExpireIn);
     }
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {

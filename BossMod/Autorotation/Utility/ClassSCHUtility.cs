@@ -8,7 +8,11 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
     public enum AetherpactOption { None, Use, End }
     public enum RecitationOption { None, Use, UseEx }
     public enum PetOption { None, Eos, Seraph }
-    public bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus((uint)(object)sid, Player.InstanceID) != null; //Checks if Status effect is on self
+    public float GetStatusDetail(Actor target, SGE.SID sid) => StatusDetails(target, sid, Player.InstanceID).Left; //Checks if Status effect is on target
+    public bool HasEffect(Actor target, SGE.SID sid, float duration) => GetStatusDetail(target, sid) < duration; //Checks if anyone has a status effect
+    public float GetStatusDetail(Actor target, SCH.SID sid) => StatusDetails(target, sid, Player.InstanceID).Left; //Checks if Status effect is on target
+    public bool HasEffect(Actor target, SCH.SID sid, float duration) => GetStatusDetail(target, sid) < duration; //Checks if anyone has a status effect
+    public Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value);
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SCH.AID.AngelFeathers);
 
@@ -73,21 +77,21 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
         ExecuteSimple(strategy.Option(Track.WhisperingDawn), SCH.AID.WhisperingDawn, Player);
-        ExecuteSimple(strategy.Option(Track.Adloquium), SCH.AID.Adloquium, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.Adloquium), SCH.AID.Adloquium, TargetChoice(strategy.Option(Track.Adloquium)) ?? Player);
         ExecuteSimple(strategy.Option(Track.FeyIllumination), SCH.AID.FeyIllumination, Player);
-        ExecuteSimple(strategy.Option(Track.Lustrate), SCH.AID.Lustrate, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.Lustrate), SCH.AID.Lustrate, TargetChoice(strategy.Option(Track.Lustrate)) ?? Player);
         ExecuteSimple(strategy.Option(Track.SacredSoil), SCH.AID.SacredSoil, Player);
         ExecuteSimple(strategy.Option(Track.Indomitability), SCH.AID.Indomitability, Player);
         ExecuteSimple(strategy.Option(Track.EmergencyTactics), SCH.AID.EmergencyTactics, Player);
         ExecuteSimple(strategy.Option(Track.Dissipation), SCH.AID.Dissipation, Player);
-        ExecuteSimple(strategy.Option(Track.Excogitation), SCH.AID.Excogitation, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.Excogitation), SCH.AID.Excogitation, TargetChoice(strategy.Option(Track.Excogitation)) ?? Player);
         ExecuteSimple(strategy.Option(Track.FeyBlessing), SCH.AID.FeyBlessing, Player);
         ExecuteSimple(strategy.Option(Track.Consolation), SCH.AID.Consolation, Player);
-        ExecuteSimple(strategy.Option(Track.Protraction), SCH.AID.Protraction, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.Protraction), SCH.AID.Protraction, TargetChoice(strategy.Option(Track.Protraction)) ?? Player);
         ExecuteSimple(strategy.Option(Track.Expedient), SCH.AID.Expedient, Player);
         ExecuteSimple(strategy.Option(Track.Seraphism), SCH.AID.Seraphism, Player);
 
-        var alreadyUp = HasEffect(SGE.SID.EukrasianPrognosis) || HasEffect(SCH.SID.Galvanize);
+        var alreadyUp = HasEffect(Player, SGE.SID.EukrasianPrognosis, 30) || HasEffect(Player, SCH.SID.Galvanize, 30);
         var succ = strategy.Option(Track.Succor);
         var succAction = succ.As<SuccorOption>() switch
         {
@@ -110,7 +114,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (pactAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(pactAction), primaryTarget ?? Player, pact.Priority(), pact.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(pactAction), TargetChoice(pact) ?? Player, pact.Priority(), pact.Value.ExpireIn);
 
         var recit = strategy.Option(Track.Recitation);
         if (recit.As<RecitationOption>() != RecitationOption.None)

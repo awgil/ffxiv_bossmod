@@ -31,10 +31,10 @@ public abstract class RoleHealerUtility(RotationModuleManager manager, Actor pla
     {
         ExecuteSimple(strategy.Option(SharedTrack.Sprint), ClassShared.AID.Sprint, Player);
         ExecuteSimple(strategy.Option(SharedTrack.Repose), ClassShared.AID.Repose, primaryTarget);
-        ExecuteSimple(strategy.Option(SharedTrack.Esuna), ClassShared.AID.Esuna, primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.Esuna), ClassShared.AID.Esuna, ResolveTargetOverride(strategy.Option(SharedTrack.Esuna).Value) ?? primaryTarget);
         ExecuteSimple(strategy.Option(SharedTrack.LucidDreaming), ClassShared.AID.LucidDreaming, Player);
         ExecuteSimple(strategy.Option(SharedTrack.Surecast), ClassShared.AID.Surecast, Player);
-        ExecuteSimple(strategy.Option(SharedTrack.Rescue), ClassShared.AID.Rescue, primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.Rescue), ClassShared.AID.Rescue, ResolveTargetOverride(strategy.Option(SharedTrack.Rescue).Value) ?? primaryTarget);
 
         var lb = strategy.Option(SharedTrack.LB);
         var lbLevel = LBLevelToExecute(lb.As<LBOption>());
