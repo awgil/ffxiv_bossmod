@@ -78,13 +78,14 @@ public enum TraitID : uint
 public enum SID : uint
 {
     None = 0,
-    Oblation = 2682,
-    BloodWeapon = 742,
-    Grit = 743,
-    SaltedEarth = 749,
-    Delirium = 1972,
-    EnhancedDelirium = 3836,
-    Scorn = 3837,
+    BloodWeapon = 742, // applied by BloodWeapon to self
+    Grit = 743, // applied by Grit to self
+    SaltedEarth = 749, // applied by Salted Earth
+    TheBlackestNight = 1308, // applied by The Blackest Night to target
+    Delirium = 1972, // applied by Delirium to self
+    Oblation = 2682, // applied by Oblation to target
+    EnhancedDelirium = 3836, // applied by Delirium to self (Lv96+)
+    Scorn = 3837, // applied by Living Shadow to self
 
     //Shared
     Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
