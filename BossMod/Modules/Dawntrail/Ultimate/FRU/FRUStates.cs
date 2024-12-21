@@ -124,6 +124,7 @@ class FRUStates : StateMachineBuilder
             .ActivateOnEnter<P1BoundOfFaith>()
             .ActivateOnEnter<P1TurnOfHeavensBurntStrikeLightning>()
             .ActivateOnEnter<P1TurnOfHeavensBurnout>()
+            .ActivateOnEnter<P1BoundOfFaithAIKnockback>()
             .DeactivateOnExit<P1TurnOfHeavensBurntStrikeLightning>();
         ComponentCondition<P1TurnOfHeavensBurnout>(id + 0x10, 1.7f, comp => comp.NumCasts > 0, "Line 2")
             .DeactivateOnExit<P1TurnOfHeavensBurnout>();
@@ -131,15 +132,20 @@ class FRUStates : StateMachineBuilder
             .ActivateOnEnter<P1TurnOfHeavensBurntStrikeFire>()
             .ActivateOnEnter<P1Blastburn>()
             .ActivateOnEnter<P1BrightfireSmall>()
-            .ActivateOnEnter<P1BrightfireLarge>();
+            .ActivateOnEnter<P1BrightfireLarge>()
+            .ExecOnEnter<P1BrightfireLarge>(comp => comp.Risky = false); // it's fine to stay in aoes before kb
         ComponentCondition<P1TurnOfHeavensBurntStrikeFire>(id + 0x12, 3.9f, comp => comp.NumCasts > 0, "Line 3")
             .DeactivateOnExit<P1TurnOfHeavensBurntStrikeFire>();
         ComponentCondition<P1Blastburn>(id + 0x13, 2, comp => comp.NumCasts > 0, "Knockback")
+            .DeactivateOnExit<P1BoundOfFaithAIKnockback>()
             .DeactivateOnExit<P1Blastburn>();
         ComponentCondition<P1BrightfireSmall>(id + 0x20, 2.1f, comp => comp.NumCasts > 0, "Circles")
+            .ActivateOnEnter<P1BoundOfFaithAIStack>()
+            .ExecOnEnter<P1BrightfireLarge>(comp => comp.Risky = true)
             .DeactivateOnExit<P1BrightfireSmall>()
             .DeactivateOnExit<P1BrightfireLarge>();
         ComponentCondition<P1BoundOfFaith>(id + 0x30, 4, comp => !comp.Active, "Stacks") // note: won't happen if both targets die, but that's a wipe anyway
+            .DeactivateOnExit<P1BoundOfFaithAIStack>()
             .DeactivateOnExit<P1BoundOfFaith>();
         ActorTargetable(id + 0x100, _module.BossP1, true, 1.4f, "Boss reappears")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
@@ -169,17 +175,19 @@ class FRUStates : StateMachineBuilder
         ComponentCondition<P1Explosion>(id + 0x100, 5.1f, comp => comp.Towers.Count > 0)
             .ActivateOnEnter<P1Explosion>();
         Condition(id + 0x101, 6.5f, () => Module.FindComponent<P1ExplosionBurntStrikeFire>()?.NumCasts > 0 || Module.FindComponent<P1ExplosionBurntStrikeLightning>()?.NumCasts > 0, "Narrow line")
-            .ActivateOnEnter<P1PowderMarkTrail>()
             .ActivateOnEnter<P1ExplosionBurntStrikeFire>()
             .ActivateOnEnter<P1ExplosionBurntStrikeLightning>()
             .ActivateOnEnter<P1ExplosionBurnout>()
             .ActivateOnEnter<P1Blastburn>()
+            .ExecOnEnter<P1ExplosionBurnout>(comp => comp.Risky = false) // fine to greed
             .DeactivateOnExit<P1ExplosionBurntStrikeFire>()
             .DeactivateOnExit<P1ExplosionBurntStrikeLightning>();
         Condition(id + 0x102, 2, () => Module.FindComponent<P1ExplosionBurnout>()?.NumCasts > 0 || Module.FindComponent<P1Blastburn>()?.NumCasts > 0, "Line/Knockback", checkDelay: 2) // note: kb and wide line have slightly different cast time...
+            .ExecOnEnter<P1ExplosionBurnout>(comp => comp.Risky = true)
             .DeactivateOnExit<P1ExplosionBurnout>()
             .DeactivateOnExit<P1Blastburn>();
         ComponentCondition<P1Explosion>(id + 0x103, 2, comp => comp.NumCasts > 0, "Towers")
+            .ActivateOnEnter<P1PowderMarkTrail>()
             .DeactivateOnExit<P1Explosion>();
         ComponentCondition<P1PowderMarkTrail>(id + 0x104, 0.5f, comp => comp.NumCasts > 0, "Tankbusters")
             .DeactivateOnExit<P1PowderMarkTrail>()
