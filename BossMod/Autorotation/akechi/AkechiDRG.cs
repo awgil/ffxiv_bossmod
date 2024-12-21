@@ -171,13 +171,13 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
             100); //Max Level supported
 
         #region Custom Strategies
-        //Targeting strategy
+        //AOE strategy
         res.Define(Track.AOE).As<AOEStrategy>("Combo Option", "AOE", uiPriority: 200)
-            .AddOption(AOEStrategy.AutoTargetHitPrimary, "AutoTargetHitPrimary", "Use AOE actions if profitable, select best target that ensures primary target is hit")
-            .AddOption(AOEStrategy.AutoTargetHitMost, "AutoTargetHitMost", "Use AOE actions if profitable, select a target that ensures maximal number of targets are hit")
-            .AddOption(AOEStrategy.ForceST, "Force ST", "Force Single-Target rotation")
-            .AddOption(AOEStrategy.Force123ST, "Only 1-2-3 ST", "Force only ST 1-2-3 rotation (No Buff or DoT)")
-            .AddOption(AOEStrategy.ForceBuffsST, "Only 1-4-5 ST", "Force only ST 1-4-5 rotation (Buff & DoT only)")
+            .AddOption(AOEStrategy.AutoTargetHitPrimary, "AutoTargetHitPrimary", "Use AOE actions if profitable, select best target that ensures primary target is hit", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.AutoTargetHitMost, "AutoTargetHitMost", "Use AOE actions if profitable, select a target that ensures maximal number of targets are hit", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.ForceST, "Force ST", "Force Single-Target rotation", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.Force123ST, "Only 1-2-3 ST", "Force only ST 1-2-3 rotation (No Buff or DoT)", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.ForceBuffsST, "Only 1-4-5 ST", "Force only ST 1-4-5 rotation (Buff & DoT only)", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation, even if less than 3 targets");
 
         //Spear targeting strategy
@@ -555,18 +555,20 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         #endregion
 
         #region AOEStrategy 'Force' Execution
-        var AOEStrategy = strategy.Option(Track.AOE).As<AOEStrategy>();  //Retrieve the current AOE strategy
+        var AOE = strategy.Option(Track.AOE);
+        var AOEStrategy = AOE.As<AOEStrategy>();  //Retrieve the current AOE strategy
+        var AOETargetChoice = ResolveTargetOverride(AOE.Value) ?? primaryTarget;  //Retrieve the current AOE strategy's target choice
         var SpearStrategy = strategy.Option(Track.Spears).As<SpearTargetingStrategy>();  //Retrieve the current Spear targeting strategy
 
         //Force specific actions based on the AOE strategy selected
         if (AOEStrategy == AOEStrategy.ForceST)  //if forced single target
-            QueueGCD(NextFullST(), primaryTarget, GCDPriority.ForcedGCD);  //Queue the next single target action
+            QueueGCD(NextFullST(), AOETargetChoice, GCDPriority.ForcedGCD);  //Queue the next single target action
         if (AOEStrategy == AOEStrategy.Force123ST)  //if forced 123 combo
-            QueueGCD(Useonly123ST(), primaryTarget, GCDPriority.ForcedGCD);  //Queue the 123 combo action
+            QueueGCD(Useonly123ST(), AOETargetChoice, GCDPriority.ForcedGCD);  //Queue the 123 combo action
         if (AOEStrategy == AOEStrategy.ForceBuffsST)  //if forced buffs combo
-            QueueGCD(Useonly145ST(), primaryTarget, GCDPriority.ForcedGCD);  //Queue the buffed 145 combo action
+            QueueGCD(Useonly145ST(), AOETargetChoice, GCDPriority.ForcedGCD);  //Queue the buffed 145 combo action
         if (AOEStrategy == AOEStrategy.ForceAOE)  //if forced AOE action
-            QueueGCD(NextFullAOE(), primaryTarget, GCDPriority.ForcedGCD);  //Queue the next AOE action
+            QueueGCD(NextFullAOE(), AOETargetChoice, GCDPriority.ForcedGCD);  //Queue the next AOE action
         #endregion
 
         #region Dives Strategy
@@ -612,7 +614,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
         #region Combo & Cooldown Execution
         //Combo Action evecution
-        QueueGCD(useAOE ? NextFullAOE() : NextFullST(), bestAOEtarget, GCDPriority.Combo123);
+        QueueGCD(useAOE //if should use AOE
+            ? NextFullAOE() //use AOE combo
+            : NextFullST(), //otherwise, use single target combo
+            bestAOEtarget, //on best AOE target
+            GCDPriority.Combo123); //set priority to Combo 123
         //Execute Lance Charge if available
         var lcStrat = strategy.Option(Track.LanceCharge).As<OffensiveStrategy>(); //Retrieve the Lance Charge strategy
         if (!hold && //if not holding Cooldowns
@@ -649,11 +655,13 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
                 : OGCDPriority.Buffs); //otherwise, set priority to Buffs
 
         //Execute Jump ability if available
-        var jumpStrat = strategy.Option(Track.Jump).As<JumpStrategy>(); //Retrieve the Jump strategy
+        var jump = strategy.Option(Track.Jump); //Retrieve the Jump track
+        var jumpStrat = jump.As<JumpStrategy>(); //Retrieve the Jump strategy
         if (!hold && divesGood && //if not holding Cooldowns and dives are good
             ShouldUseJump(jumpStrat, primaryTarget)) //if Jump should be used
             QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump, //Queue High Jump if unlocked, otherwise Jump
-                primaryTarget, //on the primary target
+                ResolveTargetOverride(jump.Value) //Check target choice
+                ?? primaryTarget, //if none, choose the primary target
                 jumpStrat is JumpStrategy.Force //if strategy is Force
                 or JumpStrategy.ForceEX //or Force EX
                 or JumpStrategy.ForceEX2 //or Force EX2
@@ -662,56 +670,66 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
                 : OGCDPriority.Jump); //otherwise, set priority to Jump
 
         //Execute Dragonfire Dive if available
-        var ddStrat = strategy.Option(Track.DragonfireDive).As<DragonfireStrategy>(); //Retrieve the Dragonfire Dive strategy
+        var dd = strategy.Option(Track.DragonfireDive); //Retrieve the Dragonfire Dive track
+        var ddStrat = dd.As<DragonfireStrategy>(); //Retrieve the Dragonfire Dive strategy
         if (!hold && divesGood && //if not holding Cooldowns and dives are good
             ShouldUseDragonfireDive(ddStrat, primaryTarget)) //if Dragonfire Dive should be used
             QueueOGCD(AID.DragonfireDive, //Queue Dragonfire Dive
-                primaryTarget, //on the primary target
+                ResolveTargetOverride(dd.Value) //Check target choice
+                ?? primaryTarget, //if none, choose the primary target
                 ddStrat is DragonfireStrategy.Force //if strategy is Force
                 or DragonfireStrategy.ForceWeave //or Force Weave
                 ? OGCDPriority.ForcedOGCD //set priority to Forced oGCD
                 : OGCDPriority.DragonfireDive); //otherwise, set priority to Dragonfire Dive
 
         //Execute Geirskogul if available
-        var geirskogul = strategy.Option(Track.Geirskogul).As<GeirskogulStrategy>(); //Retrieve the Geirskogul strategy
+        var geirskogul = strategy.Option(Track.Geirskogul); //Retrieve the Geirskogul track
+        var geirskogulStrat = geirskogul.As<GeirskogulStrategy>(); //Retrieve the Geirskogul strategy
         if (!hold && //if not holding Cooldowns
-            ShouldUseGeirskogul(geirskogul, primaryTarget)) //if Geirskogul should be used
+            ShouldUseGeirskogul(geirskogulStrat, primaryTarget)) //if Geirskogul should be used
             QueueOGCD(AID.Geirskogul, //Queue Geirskogul
-                bestSpeartarget, //on the best Spear target
-                geirskogul is GeirskogulStrategy.Force //if strategy is Force
+                ResolveTargetOverride(geirskogul.Value) //Check target choice
+                ?? bestSpeartarget, //if none, choose the best spear target
+                geirskogulStrat is GeirskogulStrategy.Force //if strategy is Force
                 or GeirskogulStrategy.ForceEX //or Force EX
                 or GeirskogulStrategy.ForceWeave //or Force Weave
                 ? OGCDPriority.ForcedOGCD //set priority to Forced oGCD
                 : OGCDPriority.Geirskogul); //otherwise, set priority to Geirskogul
 
         //Execute Mirage Dive if available
-        var mirageStrat = strategy.Option(Track.MirageDive).As<OffensiveStrategy>(); //Retrieve the Mirage Dive strategy
+        var mirage = strategy.Option(Track.MirageDive); //Retrieve the Mirage Dive track
+        var mirageStrat = mirage.As<OffensiveStrategy>(); //Retrieve the Mirage Dive strategy
         if (!hold && //if not holding Cooldowns
             ShouldUseMirageDive(mirageStrat, primaryTarget)) //if Mirage Dive should be used
             QueueOGCD(AID.MirageDive, //Queue Mirage Dive
-                primaryTarget, //on the primary target
+                ResolveTargetOverride(mirage.Value) //Check target choice
+                ?? primaryTarget, //if none, choose the primary target
                 mirageStrat is OffensiveStrategy.Force //if strategy is Force
                 or OffensiveStrategy.ForceWeave //or Force Weave
                 ? OGCDPriority.ForcedOGCD //set priority to Forced oGCD
                 : OGCDPriority.MirageDive); //otherwise, set priority to Mirage Dive
 
         //Execute Nastrond if available
-        var nastrondStrat = strategy.Option(Track.Nastrond).As<OffensiveStrategy>(); //Retrieve the Nastrond strategy
+        var nastrond = strategy.Option(Track.Nastrond); //Retrieve the Nastrond track
+        var nastrondStrat = nastrond.As<OffensiveStrategy>(); //Retrieve the Nastrond strategy
         if (!hold && //if not holding Cooldowns
             ShouldUseNastrond(nastrondStrat, primaryTarget)) //if Nastrond should be used
             QueueOGCD(AID.Nastrond, //Queue Nastrond
-                bestSpeartarget, //on the best Spear target
+                ResolveTargetOverride(geirskogul.Value) //Check target choice
+                ?? bestSpeartarget, //if none, choose the best spear target
                 nastrondStrat is OffensiveStrategy.Force //if strategy is Force
                 or OffensiveStrategy.ForceWeave //or Force Weave
                 ? OGCDPriority.ForcedOGCD //set priority to Forced oGCD
                 : OGCDPriority.Nastrond); //otherwise, set priority to Nastrond
 
         //Execute Stardiver if available
-        var sdStrat = strategy.Option(Track.Stardiver).As<StardiverStrategy>(); //Retrieve the Stardiver strategy
+        var sd = strategy.Option(Track.Stardiver); //Retrieve the Stardiver track
+        var sdStrat = sd.As<StardiverStrategy>(); //Retrieve the Stardiver strategy
         if (!hold && divesGood && //if not holding Cooldowns and dives are good
             ShouldUseStardiver(sdStrat, primaryTarget)) //if Stardiver should be used
             QueueOGCD(AID.Stardiver, //Queue Stardiver
-                primaryTarget, //on the primary target
+                ResolveTargetOverride(sd.Value) //Check target choice
+                ?? primaryTarget, //if none, choose the primary target
                 sdStrat is StardiverStrategy.Force //on the primary target
                 or StardiverStrategy.ForceEX //or Force EX
                 or StardiverStrategy.ForceWeave //or Force Weave
@@ -719,11 +737,14 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
                 : OGCDPriority.Stardiver); //otherwise, set priority to Stardiver
 
         //Execute Wyrmwind Thrust if available
-        var wtStrat = strategy.Option(Track.WyrmwindThrust).As<OffensiveStrategy>(); //Retrieve the Wyrmwind Thrust strategy
+        var wt = strategy.Option(Track.WyrmwindThrust); //Retrieve the Wyrmwind Thrust track
+        var wtStrat = wt.As<OffensiveStrategy>(); //Retrieve the Wyrmwind Thrust strategy
         if (!hold && //if not holding Cooldowns
             ShouldUseWyrmwindThrust(wtStrat, primaryTarget)) //if Wyrmwind Thrust should be used
             QueueOGCD(AID.WyrmwindThrust, //Queue Wyrmwind Thrust
-                bestSpeartarget, wtStrat is OffensiveStrategy.Force //on the best Spear target
+                ResolveTargetOverride(wt.Value) //Check target choice
+                ?? bestSpeartarget, //if none, choose the best spear target
+                wtStrat is OffensiveStrategy.Force //if strategy is Force
                 or OffensiveStrategy.ForceWeave //or Force Weave
                 ? OGCDPriority.ForcedOGCD //set priority to Forced oGCD
                 : HasEffect(SID.LanceCharge) //if Lance Charge is active
@@ -731,30 +752,36 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
                 : OGCDPriority.WyrmwindThrust); //otherwise, set priority to Wyrmwind Thrust
 
         //Execute Rise of the Dragon if available
-        var riseStrat = strategy.Option(Track.RiseOfTheDragon).As<OffensiveStrategy>(); //Retrieve the Rise of the Dragon strategy
+        var rise = strategy.Option(Track.RiseOfTheDragon); //Retrieve the Rise of the Dragon track
+        var riseStrat = rise.As<OffensiveStrategy>(); //Retrieve the Rise of the Dragon strategy
         if (ShouldUseRiseOfTheDragon(riseStrat, primaryTarget)) //if Rise of the Dragon should be used
             QueueOGCD(AID.RiseOfTheDragon, //Queue Rise of the Dragon
-                primaryTarget, //on the primary target
+                ResolveTargetOverride(rise.Value) //Check target choice
+                ?? primaryTarget, //if none, choose the primary target
                 riseStrat is OffensiveStrategy.Force //if strategy is Force
                 or OffensiveStrategy.ForceWeave //or Force Weave
                 ? OGCDPriority.ForcedOGCD //set priority to Forced oGCD
                 : OGCDPriority.Buffs); //otherwise, set priority to Buffs
 
         //Execute Starcross if available
-        var crossStrat = strategy.Option(Track.Starcross).As<OffensiveStrategy>(); //Retrieve the Starcross strategy
+        var cross = strategy.Option(Track.Starcross); //Retrieve the Starcross track
+        var crossStrat = cross.As<OffensiveStrategy>(); //Retrieve the Starcross strategy
         if (ShouldUseStarcross(crossStrat, primaryTarget)) //if Starcross should be used
             QueueOGCD(AID.Starcross, //Queue Starcross
-                primaryTarget, //on the primary target
+                ResolveTargetOverride(cross.Value) //Check target choice
+                ?? primaryTarget, //if none, choose the primary target
                 crossStrat is OffensiveStrategy.Force //if strategy is Force
                 or OffensiveStrategy.ForceWeave //or Force Weave
                 ? OGCDPriority.ForcedOGCD //set priority to Forced oGCD
                 : OGCDPriority.Starcross); //otherwise, set priority to Starcross
 
         //Execute Piercing Talon if available
-        var ptStrat = strategy.Option(Track.PiercingTalon).As<PiercingTalonStrategy>(); //Retrieve the Piercing Talon strategy
+        var pt = strategy.Option(Track.PiercingTalon); //Retrieve the Piercing Talon track
+        var ptStrat = pt.As<PiercingTalonStrategy>(); //Retrieve the Piercing Talon strategy
         if (ShouldUsePiercingTalon(primaryTarget, ptStrat)) //if Piercing Talon should be used
             QueueGCD(AID.PiercingTalon, //Queue Piercing Talon
-                primaryTarget, //on the primary target
+                ResolveTargetOverride(pt.Value) //Check target choice
+                ?? primaryTarget, //if none, choose the primary target
                 ptStrat is PiercingTalonStrategy.Force or //if strategy is Force
                 PiercingTalonStrategy.ForceEX //or Force EX
                 ? GCDPriority.ForcedGCD //set priority to Forced GCD
@@ -1259,6 +1286,5 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
         TrueNorthStrategy.Delay => false,
         _ => false
     };
-
     #endregion
 }

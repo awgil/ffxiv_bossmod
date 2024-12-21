@@ -170,10 +170,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         #region Custom strategies
         //AOE strategy
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 200)
-            .AddOption(AOEStrategy.AutoFinishCombo, "Auto (Finish Combo)", "Auto-selects best rotation dependant on targets; Finishes combo first")
-            .AddOption(AOEStrategy.AutoBreakCombo, "Auto (Break Combo)", "Auto-selects best rotation dependant on targets; Breaks combo if needed")
-            .AddOption(AOEStrategy.ForceSTwithO, "Force ST with Overcap", "Force single-target rotation with overcap protection")
-            .AddOption(AOEStrategy.ForceSTwithoutO, "Force ST without Overcap", "Force ST rotation without overcap protection")
+            .AddOption(AOEStrategy.AutoFinishCombo, "Auto (Finish Combo)", "Auto-selects best rotation dependant on targets; Finishes combo first", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.AutoBreakCombo, "Auto (Break Combo)", "Auto-selects best rotation dependant on targets; Breaks combo if needed", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.ForceSTwithO, "Force ST with Overcap", "Force single-target rotation with overcap protection", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.ForceSTwithoutO, "Force ST without Overcap", "Force ST rotation without overcap protection", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceAOEwithO, "Force AOE with Overcap", "Force AOE rotation with overcap protection")
             .AddOption(AOEStrategy.ForceAOEwithoutO, "Force AOE without Overcap", "Force AOE rotation without overcap protection")
             .AddOption(AOEStrategy.GenerateDowntime, "Generate Downtime", "Generate cartridges before downtime");
@@ -185,10 +185,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
 
         //Cartridges strategy
         res.Define(Track.Cartridges).As<CartridgeStrategy>("Cartridges", "Carts", uiPriority: 180)
-            .AddOption(CartridgeStrategy.Automatic, "Automatic", "Automatically decide when to use cartridges; uses them optimally")
-            .AddOption(CartridgeStrategy.BurstStrike, "Burst Strike", "Force the use of Burst Strike; consumes 1 cartridge")
+            .AddOption(CartridgeStrategy.Automatic, "Automatic", "Automatically decide when to use cartridges; uses them optimally", supportedTargets: ActionTargets.Hostile)
+            .AddOption(CartridgeStrategy.BurstStrike, "Burst Strike", "Force the use of Burst Strike; consumes 1 cartridge", supportedTargets: ActionTargets.Hostile)
             .AddOption(CartridgeStrategy.FatedCircle, "Fated Circle", "Force the use of Fated Circle; consumes 1 cartridge")
-            .AddOption(CartridgeStrategy.GnashingFang, "Gnashing Fang", "Force the use of Gnashing Fang (cooldown only, no combo or CDs); consumes 1 cartridge")
+            .AddOption(CartridgeStrategy.GnashingFang, "Gnashing Fang", "Force the use of Gnashing Fang (cooldown only, no combo or CDs); consumes 1 cartridge", supportedTargets: ActionTargets.Hostile)
             .AddOption(CartridgeStrategy.DoubleDown, "Double Down", "Force the use of Double Down; consumes 1 cartridge")
             .AddOption(CartridgeStrategy.Conserve, "Conserve", "Prohibit use of all cartridge-related abilities; will not use any of these actions listed above")
             .AddAssociatedActions(AID.BurstStrike, AID.FatedCircle, AID.GnashingFang, AID.DoubleDown);
@@ -202,10 +202,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
 
         //LightningShot strategy
         res.Define(Track.LightningShot).As<LightningShotStrategy>("Lightning Shot", "L.Shot", uiPriority: 30)
-            .AddOption(LightningShotStrategy.OpenerFar, "Far (Opener)", "Use Lightning Shot in pre-pull & out of melee range")
-            .AddOption(LightningShotStrategy.OpenerForce, "Force (Opener)", "Force use Lightning Shot in pre-pull in any range")
-            .AddOption(LightningShotStrategy.Force, "Force", "Force use Lightning Shot in any range")
-            .AddOption(LightningShotStrategy.Allow, "Allow", "Allow use of Lightning Shot when out of melee range")
+            .AddOption(LightningShotStrategy.OpenerFar, "Far (Opener)", "Use Lightning Shot in pre-pull & out of melee range", supportedTargets: ActionTargets.Hostile)
+            .AddOption(LightningShotStrategy.OpenerForce, "Force (Opener)", "Force use Lightning Shot in pre-pull in any range", supportedTargets: ActionTargets.Hostile)
+            .AddOption(LightningShotStrategy.Force, "Force", "Force use Lightning Shot in any range", supportedTargets: ActionTargets.Hostile)
+            .AddOption(LightningShotStrategy.Allow, "Allow", "Allow use of Lightning Shot when out of melee range", supportedTargets: ActionTargets.Hostile)
             .AddOption(LightningShotStrategy.Forbid, "Forbid", "Prohibit use of Lightning Shot")
             .AddAssociatedActions(AID.LightningShot);
 
@@ -469,19 +469,30 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         #endregion
 
         #region Strategy Definitions
-        var AOEStrategy = strategy.Option(Track.AOE).As<AOEStrategy>(); //AOE strategy
+        var AOE = strategy.Option(Track.AOE); //AOE track
+        var AOEStrategy = AOE.As<AOEStrategy>(); //AOE strategy
+        var carts = strategy.Option(Track.Cartridges); //Cartridges track
+        var cartStrat = carts.As<CartridgeStrategy>(); //Cartridges strategy
+        var nm = strategy.Option(Track.NoMercy); //No Mercy track
+        var nmStrat = nm.As<NoMercyStrategy>(); //No Mercy strategy
+        var zone = strategy.Option(Track.Zone); //Zone track
+        var zoneStrat = zone.As<OGCDStrategy>(); //Zone strategy
+        var bow = strategy.Option(Track.BowShock); //Bow Shock track
+        var bowStrat = bow.As<OGCDStrategy>(); //Bow Shock strategy
+        var bf = strategy.Option(Track.Bloodfest); //Bloodfest track
+        var bfStrat = bf.As<BloodfestStrategy>(); //Bloodfest strategy
+        var dd = strategy.Option(Track.DoubleDown); //Double Down track
+        var ddStrat = dd.As<GCDStrategy>(); //Double Down strategy
+        var gf = strategy.Option(Track.GnashingFang); //Gnashing Fang track
+        var gfStrat = gf.As<GnashingStrategy>(); //Gnashing Fang strategy
+        var reign = strategy.Option(Track.Reign); //Reign of Beasts track
+        var reignStrat = reign.As<ReignStrategy>(); //Reign of Beasts strategy
+        var sb = strategy.Option(Track.SonicBreak); //Sonic Break track
+        var sbStrat = sb.As<SonicBreakStrategy>(); //Sonic Break strategy
+        var ls = strategy.Option(Track.LightningShot); //Lightning Shot track
+        var lsStrat = ls.As<LightningShotStrategy>(); //Lightning Shot strategy
         var hold = strategy.Option(Track.Cooldowns).As<CooldownStrategy>() == CooldownStrategy.Hold; //Determine if holding resources
         var conserve = strategy.Option(Track.Cartridges).As<CartridgeStrategy>() == CartridgeStrategy.Conserve; //Determine if conserving cartridges
-        var cartStrat = strategy.Option(Track.Cartridges).As<CartridgeStrategy>(); //Cartridge strategy
-        var nmStrat = strategy.Option(Track.NoMercy).As<NoMercyStrategy>(); //No Mercy strategy
-        var zoneStrat = strategy.Option(Track.Zone).As<OGCDStrategy>(); //Zone strategy
-        var bowStrat = strategy.Option(Track.BowShock).As<OGCDStrategy>(); //Bow Shock strategy
-        var bfStrat = strategy.Option(Track.Bloodfest).As<BloodfestStrategy>(); //Bloodfest strategy
-        var gfStrat = strategy.Option(Track.GnashingFang).As<GnashingStrategy>(); //Gnashing Fang strategy
-        var ddStrat = strategy.Option(Track.DoubleDown).As<GCDStrategy>(); //Double Down strategy
-        var sbStrat = strategy.Option(Track.SonicBreak).As<SonicBreakStrategy>(); //Sonic Break strategy
-        var reignStrat = strategy.Option(Track.Reign).As<ReignStrategy>(); //Reign of Beasts strategy
-        var lsStrat = strategy.Option(Track.LightningShot).As<LightningShotStrategy>(); //Lightning Shot strategy
         #endregion
 
         #endregion
@@ -493,11 +504,13 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         #region Force Execution
         if (AOEStrategy is AOEStrategy.ForceSTwithO) //if Single-target (with overcap protection) option is selected
             QueueGCD(NextComboSingleTarget(), //queue the next single-target combo action with overcap protection
-                primaryTarget, //on the primary target
+                ResolveTargetOverride(AOE.Value) //Get target choice
+                ?? primaryTarget, //if none, choose primary target
                 GCDPriority.ForcedGCD); //with priority for forced GCDs
         if (AOEStrategy is AOEStrategy.ForceSTwithoutO) //if Single-target (without overcap protection) option is selected
             QueueGCD(NextForceSingleTarget(), //queue the next single-target combo action without overcap protection
-                primaryTarget, //on the primary target
+                ResolveTargetOverride(AOE.Value) //Get target choice
+                ?? primaryTarget, //if none, choose primary target
                 GCDPriority.ForcedGCD); //with priority for forced GCDs
         if (AOEStrategy is AOEStrategy.ForceAOEwithO) //if AOE (with overcap protection) option is selected
             QueueGCD(NextComboAOE(), //queue the next AOE combo action with overcap protection
@@ -571,13 +584,15 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
                     GCDPriority.Combo123); //with priority for 123/12 combo actions
             if (!ShouldUseAOE)
                 QueueGCD(NextComboSingleTarget(), //queue the next single-target combo action
-                    primaryTarget, //on the primary target
+                    ResolveTargetOverride(AOE.Value) //Get target choice
+                    ?? primaryTarget, //if none, choose primary target
                     GCDPriority.Combo123); //with priority for 123/12 combo actions
         }
         if (AOEStrategy == AOEStrategy.AutoFinishCombo) //if Finish Combo option is selected
         {
             QueueGCD(NextBestRotation(), //queue the next single-target combo action only if combo is finished
-                primaryTarget, //on the primary target
+                ResolveTargetOverride(AOE.Value) //Get target choice
+                ?? primaryTarget, //if none, choose primary target
                 GCDPriority.Combo123); //with priority for 123/12 combo actions
         }
         #endregion
@@ -609,7 +624,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             //Zone execution (Blasting Zone / Danger Zone)
             if (ShouldUseZone(zoneStrat, primaryTarget)) //if Zone should be used
                 QueueOGCD(BestZone, //queue the best Zone action
-                    primaryTarget, //on the primary target
+                    ResolveTargetOverride(zone.Value) //Get target choice
+                    ?? primaryTarget, //if none, choose primary target
                     zoneStrat is OGCDStrategy.Force //if strategy option is Force
                     or OGCDStrategy.AnyWeave //or any Weave
                     or OGCDStrategy.EarlyWeave //or Early Weave
@@ -631,7 +647,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             //Bloodfest execution
             if (ShouldUseBloodfest(bfStrat, primaryTarget)) //if Bloodfest should be used
                 QueueOGCD(AID.Bloodfest, //queue Bloodfest
-                    primaryTarget, //on the primary target
+                    ResolveTargetOverride(bf.Value) //Get target choice
+                    ?? primaryTarget, //if none, choose primary target
                     bfStrat is BloodfestStrategy.Force //if strategy option is Force
                     or BloodfestStrategy.ForceW //or Force weave
                     or BloodfestStrategy.Force0 //or Force with 0 cartridges
@@ -672,7 +689,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
                 //Gnashing Fang execution
                 if (ShouldUseGnashingFang(gfStrat, primaryTarget)) //if Gnashing Fang should be used
                     QueueGCD(AID.GnashingFang, //queue Gnashing Fang
-                        primaryTarget, //on the primary target
+                        ResolveTargetOverride(gf.Value) //Get target choice
+                        ?? primaryTarget, //if none, choose primary target
                         cartStrat == CartridgeStrategy.GnashingFang || //if Gnashing Fang is selected on Cartridge strategy
                         gfStrat == GnashingStrategy.ForceGnash //or Force Gnashing Fang is selected on Gnashing Fang strategy
                         ? GCDPriority.ForcedGCD //use priority for forced GCDs
@@ -683,14 +701,16 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
                     //Optimal targeting & execution for both gauge spenders
                     if (cartStrat == CartridgeStrategy.Automatic) //if Automatic Cartridge strategy is selected
                         QueueGCD(BestCartSpender, //queue the best cartridge spender
-                            primaryTarget, //on the primary target
+                            ResolveTargetOverride(carts.Value) //Get target choice
+                            ?? primaryTarget, //if none, choose primary target
                             nmCD < 1 && Ammo == 3 //if No Mercy is imminent and 3 cartridges are available
                             ? GCDPriority.ForcedGCD //use priority for forced GCDs
                             : GCDPriority.Gauge); //otherwise, use priority for gauge actions
                     //Burst Strike forced execution
                     if (cartStrat == CartridgeStrategy.BurstStrike) //if Burst Strike Cartridge strategy is selected
                         QueueGCD(AID.BurstStrike, //queue Burst Strike
-                            primaryTarget, //on the primary target
+                            ResolveTargetOverride(carts.Value) //Get target choice
+                            ?? primaryTarget, //if none, choose primary target
                             GCDPriority.Gauge); //with priority for gauge actions
                     //Fated Circle forced execution
                     if (cartStrat == CartridgeStrategy.FatedCircle) //if Fated Circle Cartridge strategy is selected
@@ -703,7 +723,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             //Sonic Break execution
             if (ShouldUseSonicBreak(sbStrat, primaryTarget)) //if Sonic Break should be used
                 QueueGCD(AID.SonicBreak, //queue Sonic Break
-                    primaryTarget, //on the primary target
+                    ResolveTargetOverride(sb.Value) //Get target choice
+                    ?? primaryTarget, //if none, choose primary target
                     sbStrat is SonicBreakStrategy.Force //if strategy option is Force
                     or SonicBreakStrategy.Early //or Early
                     ? GCDPriority.ForcedGCD //use priority for forced GCDs
@@ -711,7 +732,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             //Reign of Beasts execution
             if (ShouldUseReign(reignStrat, primaryTarget)) //if Reign of Beasts should be used
                 QueueGCD(AID.ReignOfBeasts, //queue Reign of Beasts
-                    primaryTarget, //on the primary target
+                    ResolveTargetOverride(reign.Value) //Get target choice
+                    ?? primaryTarget, //if none, choose primary target
                     reignStrat == ReignStrategy.ForceReign //if Force Reign of Beasts is selected on Reign of Beasts strategy
                     ? GCDPriority.ForcedGCD //use priority for forced GCDs
                     : GCDPriority.Reign); //otherwise, use intended priority
@@ -746,7 +768,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         //Lightning Shot execution
         if (ShouldUseLightningShot(primaryTarget, lsStrat)) //if Lightning Shot should be used
             QueueGCD(AID.LightningShot, //queue Lightning Shot
-                primaryTarget, //on the primary target
+                ResolveTargetOverride(ls.Value) //Get target choice
+                ?? primaryTarget, //if none, choose primary target
                 lsStrat is LightningShotStrategy.Force //if strategy option is Force
                 or LightningShotStrategy.Allow //or Allow
                 ? GCDPriority.ForcedGCD //use priority for forced GCDs
