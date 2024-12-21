@@ -64,7 +64,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         if (tbn.As<TBNStrategy>() == TBNStrategy.Force &&
             canTBN &&
             !HasEffect(tbnTarget, DRK.SID.TheBlackestNight, 7))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.TheBlackestNight), tbnTarget, tbn.Priority());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.TheBlackestNight), tbnTarget, tbn.Priority(), tbn.Value.ExpireIn);
 
         //Oblation execution
         var canObl = ActionUnlocked(ActionID.MakeSpell(DRK.AID.Oblation));
@@ -73,7 +73,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         if (obl.As<OblationStrategy>() == OblationStrategy.Force &&
             canObl &&
             !HasEffect(oblTarget, DRK.SID.Oblation, 9))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Oblation), oblTarget, obl.Priority());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Oblation), oblTarget, obl.Priority(), obl.Value.ExpireIn);
 
         //Shadow Wall / Vigil execution
         var wall = strategy.Option(Track.ShadowWall);
@@ -87,9 +87,11 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(wallAction), Player, wall.Priority(), wall.Value.ExpireIn); //Checking proper use of said option
 
         //Shadowstride execution
+        var dash = strategy.Option(Track.Shadowstride);
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget;
         var dashStrategy = strategy.Option(Track.Shadowstride).As<DashStrategy>();
         if (ShouldUseDash(dashStrategy, primaryTarget))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Shadowstride), primaryTarget, obl.Priority());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Shadowstride), dashTarget, dash.Priority(), dash.Value.ExpireIn);
     }
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {

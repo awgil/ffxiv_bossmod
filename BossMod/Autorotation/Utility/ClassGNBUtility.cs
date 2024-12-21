@@ -77,9 +77,11 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ActionUnlocked(ActionID.MakeSpell(GNB.AID.HeartOfCorundum)) ? GNB.AID.HeartOfCorundum : GNB.AID.HeartOfStone), hocTarget, hoc.Priority(), hoc.Value.ExpireIn);
 
         //Trajectory execution
+        var dash = strategy.Option(Track.Trajectory);
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget;
         var dashStrategy = strategy.Option(Track.Trajectory).As<DashStrategy>();
         if (ShouldUseDash(dashStrategy, primaryTarget))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(GNB.AID.Trajectory), primaryTarget, hoc.Priority());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(GNB.AID.Trajectory), dashTarget, dash.Priority(), dash.Value.ExpireIn);
     }
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {
