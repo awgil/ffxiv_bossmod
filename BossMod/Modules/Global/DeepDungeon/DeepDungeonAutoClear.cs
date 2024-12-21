@@ -70,8 +70,11 @@ public abstract class DeepDungeonAutoClear : ZoneModule
         // EO
         1541, 1542, 1543, 1544, 1545, 1546, 1547, 1548, 1549, 1550, 1551, 1552, 1553, 1554
     ];
+    public static readonly HashSet<uint> RevealedTrapOIDs = [0x1EA08E, 0x1EA08F, 0x1EA090, 0x1EA091, 0x1EA092, 0x1EA9A0];
 
-    private static readonly uint[] RevealedTrapOIDs = [0x1EA08E, 0x1EA08F, 0x1EA090, 0x1EA091, 0x1EA092, 0x1EA9A0];
+    protected readonly List<(Actor Source, DateTime Activation, AOEShape? Shape)> Gazes = [];
+    protected readonly List<Actor> Interrupts = [];
+    protected readonly List<Actor> ForbiddenTargets = [];
 
     protected readonly AutoDDConfig _config = Service.Config.Get<AutoDDConfig>();
     private readonly EventSubscriptions _subscriptions;
@@ -133,15 +136,15 @@ public abstract class DeepDungeonAutoClear : ZoneModule
 
     private void OnOpenTreasure(Actor chest) => _openedChests.Add(chest.InstanceID);
 
-    protected virtual void ResetState() { }
-
     private void ClearState()
     {
+        Gazes.Clear();
+        Interrupts.Clear();
+        ForbiddenTargets.Clear();
         _lastChestContents = null;
         _showTrapHints = true;
         _chestContents.Clear();
         _openedChests.Clear();
-        ResetState();
     }
 
     private bool OpenGold => _config.GoldCoffer;
@@ -186,10 +189,29 @@ public abstract class DeepDungeonAutoClear : ZoneModule
 
     private bool CanAutoUse(PomanderID p) => p is PomanderID.Steel or PomanderID.Strength or PomanderID.Sight;
 
+    protected virtual IEnumerable<ActionID> ActionsToIgnore() => [];
+
+    public override void BeforeCalculateAIHints(int playerSlot, Actor player, AIHints hints)
+    {
+        hints.HintedActions.UnionWith(ActionsToIgnore());
+    }
+
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
         if (!_config.Enable || Palace.Progress.Floor % 10 == 0)
             return;
+
+        foreach (var d in Gazes)
+            if (d.Shape == null || d.Shape.Check(player.Position, d.Source))
+                hints.ForbiddenDirections.Add((player.AngleTo(d.Source), 45.Degrees(), d.Activation));
+
+        foreach (var d in Interrupts)
+            if (hints.FindEnemy(d) is { } e)
+                e.ShouldBeInterrupted = true;
+
+        foreach (var d in ForbiddenTargets)
+            if (hints.FindEnemy(d) is { } e)
+                e.Priority = AIHints.Enemy.PriorityForbidFully;
 
         if (_config.TrapHints && _showTrapHints)
         {
@@ -223,7 +245,7 @@ public abstract class DeepDungeonAutoClear : ZoneModule
             var oid = (OID)a.OID;
             if (a.IsTargetable && (
                 oid == OID.GoldCoffer && OpenGold ||
-                oid == OID.SilverCoffer && OpenSilver ||
+                oid == OID.SilverCoffer && OpenSilver && player.HPMP.CurHP > player.HPMP.MaxHP * 0.7f ||
                 BronzeChestIDs.Contains(a.OID) && OpenBronze ||
                 oid == OID.BandedCoffer
             ))

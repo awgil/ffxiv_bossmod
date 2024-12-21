@@ -30,9 +30,10 @@ enum SID : uint
 
 public abstract class PalaceFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 60)
 {
-    private readonly List<(Actor Source, DateTime Activation, AOEShape? Shape)> _gazes = [];
-    private readonly List<Actor> _interrupts = [];
-    private readonly List<Actor> _forbiddenTargets = [];
+    protected override IEnumerable<ActionID> ActionsToIgnore() => [
+        ActionID.MakeSpell(AID.Chirp),
+        ActionID.MakeSpell(AID.StoneGazeCone)
+    ];
 
     protected override void OnCastStarted(Actor actor)
     {
@@ -40,10 +41,10 @@ public abstract class PalaceFloorModule(WorldState ws) : DeepDungeonAutoClear(ws
         {
             case AID.MysteriousLight:
             case AID.StoneGazeSingle:
-                _gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), null));
+                Gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), null));
                 break;
             case AID.StoneGazeCone:
-                _gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), new AOEShapeCone(8.2f, 45.Degrees())));
+                Gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), new AOEShapeCone(8.2f, 45.Degrees())));
                 break;
             case AID.Infatuation:
             case AID.VoidBlizzard:
@@ -52,7 +53,7 @@ public abstract class PalaceFloorModule(WorldState ws) : DeepDungeonAutoClear(ws
             case AID.BladeOfSuffering:
             case AID.ParalyzeIII:
             case AID.ParalyzeIII2:
-                _interrupts.Add(actor);
+                Interrupts.Add(actor);
                 break;
         }
     }
@@ -64,7 +65,7 @@ public abstract class PalaceFloorModule(WorldState ws) : DeepDungeonAutoClear(ws
             case AID.MysteriousLight:
             case AID.StoneGazeSingle:
             case AID.StoneGazeCone:
-                _gazes.RemoveAll(d => d.Source == actor);
+                Gazes.RemoveAll(d => d.Source == actor);
                 break;
             case AID.Infatuation:
             case AID.VoidBlizzard:
@@ -73,7 +74,7 @@ public abstract class PalaceFloorModule(WorldState ws) : DeepDungeonAutoClear(ws
             case AID.BladeOfSuffering:
             case AID.ParalyzeIII:
             case AID.ParalyzeIII2:
-                _interrupts.Remove(actor);
+                Interrupts.Remove(actor);
                 break;
         }
     }
@@ -85,7 +86,7 @@ public abstract class PalaceFloorModule(WorldState ws) : DeepDungeonAutoClear(ws
         {
             case SID.BlazeSpikes:
             case SID.IceSpikes:
-                _forbiddenTargets.Add(actor);
+                ForbiddenTargets.Add(actor);
                 break;
         }
     }
@@ -97,42 +98,9 @@ public abstract class PalaceFloorModule(WorldState ws) : DeepDungeonAutoClear(ws
         {
             case SID.BlazeSpikes:
             case SID.IceSpikes:
-                _forbiddenTargets.Remove(actor);
+                ForbiddenTargets.Remove(actor);
                 break;
         }
-    }
-
-    protected override void ResetState()
-    {
-        _interrupts.Clear();
-        _forbiddenTargets.Clear();
-        _gazes.Clear();
-    }
-
-    public override void BeforeCalculateAIHints(int playerSlot, Actor player, AIHints hints)
-    {
-        hints.HintedActions.Add(ActionID.MakeSpell(AID.Chirp));
-        hints.HintedActions.Add(ActionID.MakeSpell(AID.StoneGazeCone));
-    }
-
-    public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
-    {
-        if (!_config.Enable || Palace.Progress.Floor % 10 == 0)
-            return;
-
-        foreach (var d in _gazes)
-            if (d.Shape == null || d.Shape.Check(player.Position, d.Source))
-                hints.ForbiddenDirections.Add((player.AngleTo(d.Source), 45.Degrees(), d.Activation));
-
-        foreach (var d in _interrupts)
-            if (hints.FindEnemy(d) is { } e)
-                e.ShouldBeInterrupted = true;
-
-        foreach (var d in _forbiddenTargets)
-            if (hints.FindEnemy(d) is { } e)
-                e.Priority = AIHints.Enemy.PriorityForbidFully;
-
-        base.CalculateAIHints(playerSlot, player, hints);
     }
 }
 

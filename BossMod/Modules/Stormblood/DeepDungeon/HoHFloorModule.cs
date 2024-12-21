@@ -1,7 +1,37 @@
 ﻿using BossMod.Global.DeepDungeon;
 
 namespace BossMod.Stormblood.DeepDungeon;
-public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 70);
+
+public enum AID : uint
+{
+    StoneGaze = 6351, // 22AF->player, 3.5s cast, single-target
+    NightmarishLight = 12322, // 22BC->self, 4.0s cast, range 30+R circle
+}
+
+public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 70)
+{
+    protected override void OnCastStarted(Actor actor)
+    {
+        switch ((AID)actor.CastInfo!.Action.ID)
+        {
+            case AID.StoneGaze:
+            case AID.NightmarishLight:
+                Gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), null));
+                break;
+        }
+    }
+
+    protected override void OnCastFinished(Actor actor)
+    {
+        switch ((AID)actor.CastInfo!.Action.ID)
+        {
+            case AID.StoneGaze:
+            case AID.NightmarishLight:
+                Gazes.RemoveAll(g => g.Source == actor);
+                break;
+        }
+    }
+}
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 540)]
 public class HoH10(WorldState ws) : HoHFloorModule(ws);

@@ -36,7 +36,7 @@ public sealed class DeepDungeonState
     public Item GetItem(PomanderID pid) => GetSlotForPomander(pid) is var s && s >= 0 ? Items[s] : default;
 
     public int GetSlotForPomander(PomanderID pid) => Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeon>(DungeonId)!.Value.PomanderSlot.ToList().FindIndex(p => p.RowId == (uint)pid);
-    public PomanderID GetPomanderInSlot(int slot)
+    public PomanderID GetPomanderForSlot(int slot)
     {
         var slots = Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeon>(DungeonId)!.Value.PomanderSlot;
         return slot >= 0 && slot < slots.Count ? (PomanderID)slots[slot].RowId : PomanderID.None;

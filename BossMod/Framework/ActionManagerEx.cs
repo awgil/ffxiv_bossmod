@@ -502,7 +502,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     private void* UsePomanderDetour(InstanceContentDeepDungeon* self, uint pomanderSlot)
     {
-        if (_manualQueue.Push(new ActionID(ActionType.Pomander, (uint)_ws.DeepDungeon.GetPomanderInSlot((int)pomanderSlot)), 0xE0000000, false, () => (0xE0000000, null)))
+        if (_manualQueue.Push(new ActionID(ActionType.Pomander, (uint)_ws.DeepDungeon.GetPomanderForSlot((int)pomanderSlot)), 0xE0000000, false, () => (0xE0000000, null)))
             return null;
 
         return _usePomanderHook.Original(self, pomanderSlot);
