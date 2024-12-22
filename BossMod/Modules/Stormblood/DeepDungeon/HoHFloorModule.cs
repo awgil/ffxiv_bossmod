@@ -5,6 +5,7 @@ namespace BossMod.Stormblood.DeepDungeon;
 public enum AID : uint
 {
     StoneGaze = 6351, // 22AF->player, 3.5s cast, single-target
+    BlindingBurst = 12174, // 22C3->self, 3.0s cast, range 25 circle
     NightmarishLight = 12322, // 22BC->self, 4.0s cast, range 30+R circle
 }
 
@@ -15,6 +16,7 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
         switch ((AID)actor.CastInfo!.Action.ID)
         {
             case AID.StoneGaze:
+            case AID.BlindingBurst:
             case AID.NightmarishLight:
                 Gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), null));
                 break;
@@ -26,11 +28,14 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
         switch ((AID)actor.CastInfo!.Action.ID)
         {
             case AID.StoneGaze:
+            case AID.BlindingBurst:
             case AID.NightmarishLight:
                 Gazes.RemoveAll(g => g.Source == actor);
                 break;
         }
     }
+
+    protected override IEnumerable<ActionID> ActionsToIgnore() => [ActionID.MakeSpell(AID.BlindingBurst)];
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 540)]
