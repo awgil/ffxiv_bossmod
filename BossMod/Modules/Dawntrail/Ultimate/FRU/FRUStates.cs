@@ -12,9 +12,9 @@ class FRUStates : StateMachineBuilder
         SimplePhase(1, Phase2, "P2: Usurper of Frost")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => !Module.PrimaryActor.IsDead || (_module.BossP2()?.IsDeadOrDestroyed ?? false) || (_module.IceVeil()?.IsDeadOrDestroyed ?? false);
-        SimplePhase(2, Phase3, "P3: Oracle of Darkness")
+        SimplePhase(2, Phase34, "P3/4: Oracle of Darkness & Both")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => !Module.PrimaryActor.IsDead || (_module.BossP2()?.IsDeadOrDestroyed ?? false) && (_module.BossP3()?.IsDeadOrDestroyed ?? true);
+            .Raw.Update = () => !Module.PrimaryActor.IsDead || (_module.BossP2()?.IsDeadOrDestroyed ?? false) && (_module.BossP3()?.IsDeadOrDestroyed ?? true) && (_module.BossP4Oracle()?.IsDeadOrDestroyed ?? true);
     }
 
     private void Phase1(uint id)
@@ -42,13 +42,18 @@ class FRUStates : StateMachineBuilder
         P2AbsoluteZero(id + 0x60000, 8.4f);
     }
 
-    private void Phase3(uint id)
+    private void Phase34(uint id)
     {
         P3JunctionHellsJudgment(id, 13.3f);
         P3UltimateRelativity(id + 0x10000, 4.3f);
         P3BlackHalo(id + 0x20000, 3.2f);
         P3Apocalypse(id + 0x30000, 7.2f);
-        ActorCast(id + 0x40000, _module.BossP3, AID.MemorysEnd, 3.7f, 10, true, "Enrage");
+        P3Enrage(id + 0x40000, 3.7f);
+
+        P4AkhRhai(id + 0x100000, 5.5f);
+        P4DarklitDragonsong(id + 0x110000, 1.9f);
+
+        SimpleState(id + 0xFF0000, 100, "???");
     }
 
     private void P1CyclonicBreakPowderMarkTrail(uint id, float delay)
@@ -216,33 +221,43 @@ class FRUStates : StateMachineBuilder
             .ActivateOnEnter<P2FrigidStone>()
             .ActivateOnEnter<P2DiamondDustHouseOfLight>()
             .ActivateOnEnter<P2DiamondDustSafespots>()
+            .ExecOnEnter<P2IcicleImpact>(comp => comp.Risky = false) // it's fine to bait stuff into these aoes...
             .SetHint(StateMachine.StateHint.DowntimeStart);
         Condition(id + 0x30, 5.7f, () => Module.FindComponent<P2AxeKick>()?.NumCasts > 0 || Module.FindComponent<P2ScytheKick>()?.NumCasts > 0, "In/out")
             .DeactivateOnExit<P2AxeKick>()
             .DeactivateOnExit<P2ScytheKick>();
         ComponentCondition<P2DiamondDustHouseOfLight>(id + 0x31, 0.8f, comp => comp.NumCasts > 0, "Proteans")
+            .ExecOnEnter<P2FrigidStone>(comp => comp.EnableHints = true)
             .DeactivateOnExit<P2DiamondDustHouseOfLight>();
         ComponentCondition<P2FrigidStone>(id + 0x32, 1.6f, comp => comp.NumCasts > 0, "Ice baits")
             .DeactivateOnExit<P2FrigidStone>()
             .DeactivateOnExit<P2DiamondDustSafespots>();
-        ComponentCondition<P2IcicleImpact>(id + 0x33, 0.4f, comp => comp.NumCasts > 0, "Ice circle 1");
+        ComponentCondition<P2IcicleImpact>(id + 0x33, 0.4f, comp => comp.NumCasts > 0, "Ice circle 1")
+            .ActivateOnEnter<P2HeavenlyStrike>() // activate a bit early, so that it can observe first circle direction
+            .ExecOnEnter<P2IcicleImpact>(comp => comp.Risky = true);
         ComponentCondition<P2HeavenlyStrike>(id + 0x40, 3.9f, comp => comp.NumCasts > 0, "Knockback")
             .ActivateOnEnter<P2FrigidNeedleCircle>()
             .ActivateOnEnter<P2FrigidNeedleCross>()
-            .ActivateOnEnter<P2SinboundHoly>()
-            .ActivateOnEnter<P2HeavenlyStrike>()
             .ActivateOnEnter<P2TwinStillnessSilence>() // show the cone caster early, to simplify finding movement direction...
+            .ExecOnEnter<P2FrigidNeedleCircle>(comp => comp.Risky = false)
+            .ExecOnEnter<P2FrigidNeedleCross>(comp => comp.Risky = false)
             .DeactivateOnExit<P2HeavenlyStrike>();
         ComponentCondition<P2FrigidNeedleCross>(id + 0x50, 2.8f, comp => comp.NumCasts > 0, "Stars")
+            .ActivateOnEnter<P2SinboundHoly>()
+            .ExecOnEnter<P2FrigidNeedleCircle>(comp => comp.Risky = true)
+            .ExecOnEnter<P2FrigidNeedleCross>(comp => comp.Risky = true)
             .DeactivateOnExit<P2FrigidNeedleCircle>()
             .DeactivateOnExit<P2FrigidNeedleCross>();
-        ComponentCondition<P2SinboundHoly>(id + 0x60, 1.3f, comp => comp.NumCasts > 0);
+        ComponentCondition<P2SinboundHoly>(id + 0x60, 1.3f, comp => comp.NumCasts > 0)
+            .ActivateOnEnter<P2SinboundHolyAIBait>();
         ComponentCondition<P2SinboundHoly>(id + 0x70, 4.7f, comp => comp.NumCasts >= 4)
             .ActivateOnEnter<P2SinboundHolyVoidzone>()
             .ActivateOnEnter<P2ShiningArmor>()
             .DeactivateOnExit<P2IcicleImpact>() // last icicle explodes together with first stack
+            .DeactivateOnExit<P2SinboundHolyAIBait>()
             .DeactivateOnExit<P2SinboundHoly>();
         ComponentCondition<P2ShiningArmor>(id + 0x80, 3.7f, comp => comp.NumCasts > 0, "Gaze")
+            .ExecOnEnter<P2TwinStillnessSilence>(comp => comp.EnableAIHints = true)
             .DeactivateOnExit<P2ShiningArmor>();
         ComponentCondition<P2TwinStillnessSilence>(id + 0x90, 3.0f, comp => comp.AOEs.Count > 0);
         ComponentCondition<P2TwinStillnessSilence>(id + 0x91, 3.5f, comp => comp.NumCasts > 0, "Front/back");
@@ -461,5 +476,36 @@ class FRUStates : StateMachineBuilder
             .DeactivateOnExit<P3ApocalypseDarkWater>();
 
         P3ShockwavePulsar(id + 0x1000, 0.3f);
+    }
+
+    private void P3Enrage(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP3, AID.MemorysEnd, delay, 10, true, "Enrage");
+        ActorTargetable(id + 0x10, _module.BossP3, false, 3.5f, "Boss disappears")
+            .SetHint(StateMachine.StateHint.DowntimeStart);
+    }
+
+    private void P4AkhRhai(uint id, float delay)
+    {
+        ActorTargetable(id, _module.BossP4Usurper, true, delay, "Usurper appears")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
+        ActorCast(id + 0x10, _module.BossP4Usurper, AID.Materialization, 5.1f, 3, true);
+        ComponentCondition<P4AhkRhai>(id + 0x20, 11.2f, comp => comp.AOEs.Count > 0, "Puddle baits")
+            .ActivateOnEnter<P4AhkRhai>();
+        ComponentCondition<P4AhkRhai>(id + 0x30, 2.6f, comp => comp.NumCasts > 0);
+        ComponentCondition<P4EdgeOfOblivion>(id + 0x40, 2.4f, comp => comp.NumCasts > 0, "Raidwide")
+            .ActivateOnEnter<P4EdgeOfOblivion>()
+            .DeactivateOnExit<P4EdgeOfOblivion>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ActorTargetable(id + 0x50, _module.BossP4Oracle, true, 1.2f, "Oracle appears");
+        ComponentCondition<P4AhkRhai>(id + 0x60, 1.6f, comp => comp.NumCasts >= 10 * comp.AOEs.Count, "Puddle resolve")
+            .DeactivateOnExit<P4AhkRhai>();
+    }
+
+    private void P4DarklitDragonsong(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP4Usurper, AID.DarklitDragonsongUsurper, delay, 5, true, "Raidwide (darklit)")
+            .SetHint(StateMachine.StateHint.Raidwide);
+        // TODO: more...
     }
 }

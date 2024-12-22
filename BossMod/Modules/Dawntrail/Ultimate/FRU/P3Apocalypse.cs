@@ -265,7 +265,7 @@ class P3DarkestDanceBait(BossModule module) : Components.GenericBaitAway(module,
     }
 }
 
-class P3DarkestDanceKnockback(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.DarkestDanceKnockback), true) // TODO: verify whether it ignores immunes
+class P3DarkestDanceKnockback(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.DarkestDanceKnockback), true)
 {
     private Actor? _source;
     private DateTime _activation;
