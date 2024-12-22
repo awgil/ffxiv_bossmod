@@ -1,20 +1,30 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.FRU;
 
+class P1TurnOfHeavensBurntStrikeFire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TurnOfHeavensBurntStrikeFire), new AOEShapeRect(40, 5, 40));
+class P1TurnOfHeavensBurntStrikeLightning(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TurnOfHeavensBurntStrikeLightning), new AOEShapeRect(40, 5, 40));
+class P1TurnOfHeavensBurnout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TurnOfHeavensBurnout), new AOEShapeRect(40, 10, 40));
+class P1BrightfireSmall(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BrightfireSmall), new AOEShapeCircle(5));
+class P1BrightfireLarge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BrightfireLarge), new AOEShapeCircle(10));
+
 // TODO: fixed tethers strat variant (tether target with clone on safe side goes S, other goes N, if any group has 5 players prio1 adjusts)
 class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4, 4)
 {
+    public WDir SafeSide;
+    public DateTime Activation;
+    public readonly int[] AssignedGroups = new int[PartyState.MaxPartySize];
     private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
-    private readonly int[] _assignedGroups = new int[PartyState.MaxPartySize];
     private OID _safeHalo;
-    private int _safeSide; // -1 if X<0, +1 if X>0
+
+    public WDir AssignedLane(int slot) => new(0, AssignedGroups[slot] * 5.4f);
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // we have dedicated components for this
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         base.DrawArenaForeground(pcSlot, pc);
-        if (_assignedGroups[pcSlot] != 0 && _safeSide != 0)
+        if (AssignedGroups[pcSlot] != 0 && SafeSide.X != 0)
         {
-            var safeDir = _safeSide * (90 - _assignedGroups[pcSlot] * 22.5f).Degrees();
-            Arena.AddCircle(Module.Center + 19 * safeDir.ToDirection(), 1, ArenaColor.Safe);
+            Arena.AddCircle(Module.Center + SafeSide * 18.2f + AssignedLane(pcSlot), 1, ArenaColor.Safe);
         }
     }
 
@@ -32,7 +42,8 @@ class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(module, 
     {
         if (tether.ID == (uint)TetherID.Fire && WorldState.Actors.Find(tether.Target) is var target && target != null)
         {
-            AddStack(target, WorldState.FutureTime(10.6f));
+            Activation = WorldState.FutureTime(10.6f);
+            AddStack(target, Activation);
             if (Stacks.Count == 2)
                 InitAssignments();
         }
@@ -41,9 +52,7 @@ class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(module, 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.BoundOfFaithSinsmoke)
-        {
             Stacks.Clear();
-        }
     }
 
     private void InitAssignments()
@@ -53,7 +62,7 @@ class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(module, 
             WDir averageOffset = default;
             foreach (var aoe in Module.Enemies(_safeHalo))
                 averageOffset += aoe.Position - Module.Center;
-            _safeSide = averageOffset.X > 0 ? 1 : -1;
+            SafeSide.X = averageOffset.X > 0 ? 1 : -1;
         }
 
         // initial assignments
@@ -61,28 +70,94 @@ class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(module, 
         Span<int> prio = [0, 0, 0, 0, 0, 0, 0, 0];
         foreach (var (slot, group) in _config.P1BoundOfFaithAssignment.Resolve(Raid))
         {
-            _assignedGroups[slot] = group < 4 ? -1 : 1;
+            AssignedGroups[slot] = group < 4 ? -1 : 1;
             prio[slot] = group & 3;
             if (IsStackTarget(Raid[slot]))
                 tetherSlots[tetherSlots[0] < 0 ? 0 : 1] = slot;
         }
 
         // swaps
-        if (tetherSlots[0] >= 0 && _assignedGroups[tetherSlots[0]] == _assignedGroups[tetherSlots[1]])
+        if (tetherSlots[0] >= 0 && AssignedGroups[tetherSlots[0]] == AssignedGroups[tetherSlots[1]])
         {
             // flex tether with lower prio
             var tetherFlexSlot = prio[tetherSlots[0]] < prio[tetherSlots[1]] ? tetherSlots[0] : tetherSlots[1];
-            _assignedGroups[tetherFlexSlot] = -_assignedGroups[tetherFlexSlot];
+            AssignedGroups[tetherFlexSlot] = -AssignedGroups[tetherFlexSlot];
 
             // now the group where we've moved flex slot has 5 people, find untethered with lowest prio
             for (var normalFlexSlot = 0; normalFlexSlot < PartyState.MaxPartySize; ++normalFlexSlot)
             {
-                if (normalFlexSlot != tetherFlexSlot && prio[normalFlexSlot] == 0 && _assignedGroups[normalFlexSlot] == _assignedGroups[tetherFlexSlot])
+                if (normalFlexSlot != tetherFlexSlot && prio[normalFlexSlot] == 0 && AssignedGroups[normalFlexSlot] == AssignedGroups[tetherFlexSlot])
                 {
-                    _assignedGroups[normalFlexSlot] = -_assignedGroups[normalFlexSlot];
+                    AssignedGroups[normalFlexSlot] = -AssignedGroups[normalFlexSlot];
                     break;
                 }
             }
         }
+    }
+}
+
+class P1BoundOfFaithAIKnockback(BossModule module) : BossComponent(module)
+{
+    private readonly P1BoundOfFaith? _comp = module.FindComponent<P1BoundOfFaith>();
+    private bool _horizDone;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_comp == null || _comp.SafeSide == default)
+            return;
+
+        var sideOffset = _horizDone ? 0 : 7; // before horizonal aoes are done, we don't show knockback, so adjust the unsafe zone
+        hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center + sideOffset * _comp.SafeSide, _comp.SafeSide), _comp.Activation);
+
+        var lane = _comp.AssignedLane(slot);
+        if (_horizDone && lane.Z != 0)
+        {
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.Center + lane, new WDir(1, 0), 20, 20, 0.7f), _comp.Activation);
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.TurnOfHeavensBurnout)
+            _horizDone = true;
+    }
+}
+
+class P1BoundOfFaithAIStack(BossModule module) : BossComponent(module)
+{
+    private readonly P1BoundOfFaith? _comp = module.FindComponent<P1BoundOfFaith>();
+    private bool _haveFetters;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_comp == null)
+            return;
+
+        if (_haveFetters)
+        {
+            foreach (var s in _comp.Stacks)
+            {
+                var targetSlot = Raid.FindSlot(s.Target.InstanceID);
+                var targetGroup = targetSlot >= 0 ? _comp.AssignedGroups[targetSlot] : 0;
+                if (targetGroup == _comp.AssignedGroups[slot])
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(s.Target.Position, 6), _comp.Activation);
+                else
+                    hints.AddForbiddenZone(ShapeDistance.Circle(s.Target.Position, 6), _comp.Activation);
+            }
+
+            // all else being equal, try staying closer to center
+            hints.GoalZones.Add(hints.GoalSingleTarget(Module.Center, 7.5f, 0.5f));
+        }
+        else
+        {
+            // just go to center
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.Center, new WDir(1, 0), 1, 1, 20), DateTime.MaxValue);
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.FloatingFetters)
+            _haveFetters = true;
     }
 }

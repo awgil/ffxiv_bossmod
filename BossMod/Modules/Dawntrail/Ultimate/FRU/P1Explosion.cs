@@ -1,45 +1,113 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.FRU;
 
+class P1ExplosionBurntStrikeFire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExplosionBurntStrikeFire), new AOEShapeRect(40, 5, 40));
+class P1ExplosionBurntStrikeLightning(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExplosionBurntStrikeLightning), new AOEShapeRect(40, 5, 40));
+class P1ExplosionBurnout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExplosionBurnout), new AOEShapeRect(40, 10, 40));
+
 // TODO: non-fixed conga?
 class P1Explosion(BossModule module) : Components.GenericTowers(module)
 {
+    public WDir TowerDir;
+    public DateTime Activation;
     private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private bool _isWideLine;
+    private bool _lineDone;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var role = _config.P1ExplosionsAssignment[assignment];
+        if (role < 0 || TowerDir == default)
+            return;
+
+        if (role < 2)
+        {
+            // tanks: stay opposite towers on N/S side
+            // tweak for WAR: if PR is up, assume player will want to maintain full uptime on wide line by using it right before resolve - we want to stay far to increase travel time
+            var horizOffset = _isWideLine && !_lineDone && actor.Class == Class.WAR && actor.FindStatus(WAR.SID.PrimalRend) != null ? 17 : 0;
+            hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center - horizOffset * TowerDir, -TowerDir), Activation);
+
+            var vertDir = new WDir(0, role == 0 ? -1 : +1);
+            hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center + 5 * vertDir, vertDir), Activation);
+        }
+        else
+        {
+            // others: soak assigned tower, or at least stay in lane with it (if knockback is imminent, or always for ranged)
+            var index = Towers.FindIndex(t => !t.ForbiddenSoakers[slot]);
+            if (index >= 0)
+            {
+                var needSoak = _lineDone || _isWideLine && actor.Role is Role.Healer or Role.Ranged;
+                ref var t = ref Towers.Ref(index);
+                if (needSoak)
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(t.Position, t.Radius), t.Activation);
+                else
+                    hints.AddForbiddenZone(ShapeDistance.InvertedRect(new(Module.Center.X, t.Position.Z), TowerDir, 20, 0, t.Radius), t.Activation);
+            }
+        }
+    }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        var numSoakers = (AID)spell.Action.ID switch
+        switch ((AID)spell.Action.ID)
         {
-            AID.Explosion11 or AID.Explosion12 => 1,
-            AID.Explosion21 or AID.Explosion22 => 2,
-            AID.Explosion31 or AID.Explosion32 => 3,
-            AID.Explosion41 or AID.Explosion42 => 4,
-            _ => 0
-        };
-        if (numSoakers != 0)
-        {
-            Towers.Add(new(caster.Position, 4, numSoakers, numSoakers, default, Module.CastFinishAt(spell)));
-            if (Towers.Count == 3)
-                InitAssignments();
+            case AID.Explosion11:
+            case AID.Explosion12:
+                AddTower(caster.Position, 1, Module.CastFinishAt(spell));
+                break;
+            case AID.Explosion21:
+            case AID.Explosion22:
+                AddTower(caster.Position, 2, Module.CastFinishAt(spell));
+                break;
+            case AID.Explosion31:
+            case AID.Explosion32:
+                AddTower(caster.Position, 3, Module.CastFinishAt(spell));
+                break;
+            case AID.Explosion41:
+            case AID.Explosion42:
+                AddTower(caster.Position, 4, Module.CastFinishAt(spell));
+                break;
+            case AID.ExplosionBurnout:
+                _isWideLine = true;
+                break;
         }
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID.Explosion11 or AID.Explosion12 or AID.Explosion21 or AID.Explosion22 or AID.Explosion31 or AID.Explosion32 or AID.Explosion41 or AID.Explosion42)
+        switch ((AID)spell.Action.ID)
         {
-            ++NumCasts;
-            Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
+            case AID.Explosion11:
+            case AID.Explosion12:
+            case AID.Explosion21:
+            case AID.Explosion22:
+            case AID.Explosion31:
+            case AID.Explosion32:
+            case AID.Explosion41:
+            case AID.Explosion42:
+                ++NumCasts;
+                Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
+                break;
+            case AID.ExplosionBurnout:
+            case AID.ExplosionBlastburn:
+                _lineDone = true;
+                break;
         }
     }
 
-    private void InitAssignments()
+    private void AddTower(WPos pos, int numSoakers, DateTime activation)
     {
-        Towers.SortBy(t => t.Position.Z);
-        if (Towers.Count != 3 || Towers.Sum(t => t.MinSoakers) != 6)
+        Activation = activation;
+        Towers.Add(new(pos, 4, numSoakers, numSoakers, default, activation));
+        if (Towers.Count != 3)
+            return;
+
+        // init assignments
+        if (Towers.Sum(t => t.MinSoakers) != 6)
         {
             ReportError($"Unexpected tower state");
             return;
         }
+        Towers.SortBy(t => t.Position.Z);
+        TowerDir.X = Towers.Sum(t => t.Position.X - Module.Center.X) > 0 ? 1 : -1;
 
         Span<int> slotByGroup = [-1, -1, -1, -1, -1, -1, -1, -1];
         foreach (var (slot, group) in _config.P1ExplosionsAssignment.Resolve(Raid))

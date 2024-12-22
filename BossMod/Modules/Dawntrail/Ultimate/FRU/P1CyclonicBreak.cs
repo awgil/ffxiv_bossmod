@@ -88,7 +88,7 @@ class P1CyclonicBreakAIBait(BossModule module) : BossComponent(module)
             return; // no assignment
         var assignedDirection = (180 - 45 * clockspot).Degrees();
         // TODO: think about melee vs ranged distance...
-        hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, assignedDirection, 10, -6, 1), _spreadStack.Activation);
+        hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, assignedDirection, 15, -5, 1), _spreadStack.Activation);
     }
 }
 

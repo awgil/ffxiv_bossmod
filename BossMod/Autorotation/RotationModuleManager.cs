@@ -105,7 +105,7 @@ public sealed class RotationModuleManager : IDisposable
 
             Hints.ForcedTarget = forced.Value.Target != StrategyTarget.Automatic
                 ? ResolveTargetOverride(forced.Value.Target, forced.Value.TargetParam)
-                : (ResolveTargetOverride(StrategyTarget.EnemyWithHighestPriority, 0) ?? primary);
+                : (ResolveTargetOverride(StrategyTarget.EnemyWithHighestPriority, 0) ?? (Bossmods.ActiveModule?.PrimaryActor is var primary && primary != null && !primary.IsDeadOrDestroyed && primary.IsTargetable ? primary : null));
         }
 
         // auto actions

@@ -292,7 +292,7 @@ public sealed class Plugin : IDalamudPlugin
         _movementOverride.DesiredDirection = _hints.ForcedMovement;
         _movementOverride.MisdirectionThreshold = _hints.MisdirectionThreshold;
         // update forced target, if needed (TODO: move outside maybe?)
-        if (_hints.ForcedTarget != null)
+        if (_hints.ForcedTarget != null && _hints.ForcedTarget.IsTargetable)
         {
             var obj = _hints.ForcedTarget.SpawnIndex >= 0 ? FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.IndexSorted[_hints.ForcedTarget.SpawnIndex].Value : null;
             if (obj != null && obj->EntityId != _hints.ForcedTarget.InstanceID)

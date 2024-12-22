@@ -7,6 +7,7 @@ class P1PowderMarkTrail(BossModule module) : Components.GenericBaitAway(module, 
     private DateTime _activation;
 
     private static readonly AOEShapeCircle _shape = new(10);
+    private const float _avoidBaitDistance = 13;
 
     public override void Update()
     {
@@ -30,7 +31,28 @@ class P1PowderMarkTrail(BossModule module) : Components.GenericBaitAway(module, 
         }
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // TODO: hints for late micro adjusts
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (WorldState.FutureTime(2) < _activation)
+            return; // start micro adjusts only when activation is imminent; before that we have other components providing coarse positioning
+        var isTank = actor.Role == Role.Tank;
+        foreach (var p in Raid.WithoutSlot().Exclude(actor))
+        {
+            var otherTank = p.Role == Role.Tank;
+            if (isTank && otherTank)
+            {
+                // tanks should stay near but not too near other tank
+                hints.AddForbiddenZone(_shape.Distance(p.Position, default), _activation);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(p.Position, _avoidBaitDistance), _activation);
+            }
+            else if (isTank != otherTank)
+            {
+                // tanks should avoid non-tanks and vice versa
+                hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, _avoidBaitDistance), _activation);
+            }
+            // else: non-tanks don't care about non-tanks
+        }
+    }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

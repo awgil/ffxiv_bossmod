@@ -19,9 +19,9 @@ public class FRUConfig() : ConfigNode()
     public bool P1FallOfFaithEW = false;
 
     [PropertyDisplay("P1 Explosions: tower fill priority (lower number goes north)")]
-    [GroupDetails(["MT (ignore)", "OT (ignore)", "Fixed N", "Fixed Center", "Fixed S", "Flex 1", "Flex 2", "Flex 3"])]
+    [GroupDetails(["Tank N", "Tank S", "Fixed N", "Fixed Center", "Fixed S", "Flex 1", "Flex 2", "Flex 3"])]
     [GroupPreset("H1-R2-H2 fixed, M1-M2-R1 flex", [0, 1, 2, 4, 5, 6, 7, 3])]
-    public GroupAssignmentUnique P1ExplosionsAssignment = GroupAssignmentUnique.DefaultRoles();
+    public GroupAssignmentUnique P1ExplosionsAssignment = new() { Assignments = [0, 1, 2, 4, 5, 6, 7, 3] };
 
     [PropertyDisplay("P2 Diamond Dust: cardinal assignments")]
     [GroupDetails(["Support N", "Support E", "Support S", "Support W", "DD N", "DD E", "DD S", "DD W"])]
@@ -75,7 +75,7 @@ public class FRUConfig() : ConfigNode()
     [GroupPreset("Default", [0, 1, 6, 2, 5, 3, 7, 4])]
     public GroupAssignmentUnique P1UtopianSkyInitialSpots = new() { Assignments = [0, 1, 6, 2, 5, 3, 7, 4] };
 
-    [PropertyDisplay("P1 Utopian Sky: spread spots (G1 CCW from N, G2 CW from NE")]
+    [PropertyDisplay("P1 Utopian Sky: spread spots (G1 CCW from N, G2 CW from NE", tooltip: "Only used by AI")]
     [GroupDetails(["G1 Close", "G1 Far Center", "G1 Far Left", "G1 Far Right", "G2 Close", "G2 Far Center", "G2 Far Left", "G2 Far Right"])]
     [GroupPreset("Default", [1, 5, 0, 4, 2, 6, 3, 7])]
     public GroupAssignmentUnique P1UtopianSkySpreadSpots = new() { Assignments = [1, 5, 0, 4, 2, 6, 3, 7] };
