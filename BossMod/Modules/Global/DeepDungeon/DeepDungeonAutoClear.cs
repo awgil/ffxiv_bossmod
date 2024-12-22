@@ -74,6 +74,7 @@ public abstract class DeepDungeonAutoClear : ZoneModule
 
     protected readonly List<(Actor Source, DateTime Activation, AOEShape? Shape)> Gazes = [];
     protected readonly List<Actor> Interrupts = [];
+    protected readonly List<Actor> Stuns = [];
     protected readonly List<Actor> ForbiddenTargets = [];
 
     protected readonly AutoDDConfig _config = Service.Config.Get<AutoDDConfig>();
@@ -208,6 +209,10 @@ public abstract class DeepDungeonAutoClear : ZoneModule
         foreach (var d in Interrupts)
             if (hints.FindEnemy(d) is { } e)
                 e.ShouldBeInterrupted = true;
+
+        foreach (var d in Stuns)
+            if (hints.FindEnemy(d) is { } e)
+                e.ShouldBeStunned = true;
 
         foreach (var d in ForbiddenTargets)
             if (hints.FindEnemy(d) is { } e)

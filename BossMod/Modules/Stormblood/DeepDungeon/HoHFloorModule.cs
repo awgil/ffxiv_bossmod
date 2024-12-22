@@ -7,6 +7,9 @@ public enum AID : uint
     StoneGaze = 6351, // 22AF->player, 3.5s cast, single-target
     BlindingBurst = 12174, // 22C3->self, 3.0s cast, range 25 circle
     NightmarishLight = 12322, // 22BC->self, 4.0s cast, range 30+R circle
+    Malice = 12313, // 2355->player, 3.0s cast, single-target
+    ShiftingLight = 12357, // 22DC->self, 3.0s cast, range 30+R circle
+    Cry = 12350, // 22D9->self, 5.0s cast, range 12+R circle
 }
 
 public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 70)
@@ -18,7 +21,14 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
             case AID.StoneGaze:
             case AID.BlindingBurst:
             case AID.NightmarishLight:
+            case AID.ShiftingLight:
                 Gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), null));
+                break;
+            case AID.Cry:
+                Stuns.Add(actor);
+                break;
+            case AID.Malice:
+                Interrupts.Add(actor);
                 break;
         }
     }
@@ -30,7 +40,14 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
             case AID.StoneGaze:
             case AID.BlindingBurst:
             case AID.NightmarishLight:
+            case AID.ShiftingLight:
                 Gazes.RemoveAll(g => g.Source == actor);
+                break;
+            case AID.Cry:
+                Stuns.Remove(actor);
+                break;
+            case AID.Malice:
+                Interrupts.Remove(actor);
                 break;
         }
     }
