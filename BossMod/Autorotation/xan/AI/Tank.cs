@@ -44,7 +44,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         Ranged: Spell(WAR.AID.Tomahawk),
         Stance: Spell(WAR.AID.Defiance),
         StanceBuff: (uint)WAR.SID.Defiance,
-        Invuln: new(WAR.AID.Holmgang, 10, 0.45f),
+        Invuln: new(WAR.AID.Holmgang, 10, 0),
         PartyMit: new(WAR.AID.ShakeItOff, 30),
         LongMit: new(WAR.AID.Vengeance, 15, 0.62f),
 
@@ -59,7 +59,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         Ranged: Spell(BossMod.PLD.AID.ShieldLob),
         Stance: Spell(BossMod.PLD.AID.IronWill),
         StanceBuff: (uint)BossMod.PLD.SID.IronWill,
-        Invuln: new(BossMod.PLD.AID.HallowedGround, 10, 0.62f),
+        Invuln: new(BossMod.PLD.AID.HallowedGround, 10, 0),
         PartyMit: new(BossMod.PLD.AID.DivineVeil, 30),
         LongMit: new(BossMod.PLD.AID.Sentinel, 15, 0.62f),
         SmallMit: new(BossMod.PLD.AID.Bulwark, 10, 0.62f),
@@ -75,7 +75,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         Ranged: Spell(BossMod.DRK.AID.Unmend),
         Stance: Spell(BossMod.DRK.AID.Grit),
         StanceBuff: (uint)BossMod.DRK.SID.Grit,
-        Invuln: new(BossMod.DRK.AID.LivingDead, 10, 0.62f),
+        Invuln: new(BossMod.DRK.AID.LivingDead, 10, 0),
         PartyMit: new(BossMod.DRK.AID.DarkMissionary, 15, 0.62f),
         LongMit: new(BossMod.DRK.AID.ShadowWall, 15, 0.62f),
         SmallMit: new(BossMod.DRK.AID.DarkMind, 10, 0.62f),
@@ -88,14 +88,14 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         Ranged: Spell(BossMod.GNB.AID.LightningShot),
         Stance: Spell(BossMod.GNB.AID.RoyalGuard),
         StanceBuff: (uint)BossMod.GNB.SID.RoyalGuard,
-        Invuln: new(BossMod.GNB.AID.Superbolide, 10, 0.62f),
+        Invuln: new(BossMod.GNB.AID.Superbolide, 10, 0),
         PartyMit: new(BossMod.GNB.AID.HeartOfLight, 15, 0.62f),
         LongMit: new(BossMod.GNB.AID.Nebula, 15, 0.54f),
         SmallMit: new(BossMod.GNB.AID.Camouflage, 20, 0.62f),
 
         // 8s 15% mit, 4s of an additional 15% mit, 20s excog
-        ShortMit: new(BossMod.GNB.AID.HeartOfCorundum, 8, 0.62f),
-        AllyMit: new(BossMod.GNB.AID.HeartOfCorundum, 8, 0.62f)
+        ShortMit: new(BossMod.GNB.AID.HeartOfStone, 8, 0.62f),
+        AllyMit: new(BossMod.GNB.AID.HeartOfStone, 8, 0.62f)
     );
 
     public static TankActions ActionsForJob(Class c) => c switch
