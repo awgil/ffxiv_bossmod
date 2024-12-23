@@ -27,8 +27,8 @@ public record struct WDir(float X, float Z)
     public readonly WDir Rotate(Angle dir) => Rotate(dir.ToDirection());
     public readonly float LengthSq() => X * X + Z * Z;
     public readonly float Length() => MathF.Sqrt(LengthSq());
-    public static WDir Normalize(WDir a) => a / a.Length();
-    public readonly WDir Normalized() => this / Length();
+    public static WDir Normalize(WDir a, float zeroThreshold = 0) => a.Length() is var len && len > zeroThreshold ? a / len : default;
+    public readonly WDir Normalized(float zeroThreshold = 0) => Normalize(this, zeroThreshold);
     public static bool AlmostZero(WDir a, float eps) => Math.Abs(a.X) <= eps && Math.Abs(a.Z) <= eps;
     public readonly bool AlmostZero(float eps) => AlmostZero(this, eps);
     public static bool AlmostEqual(WDir a, WDir b, float eps) => AlmostZero(a - b, eps);

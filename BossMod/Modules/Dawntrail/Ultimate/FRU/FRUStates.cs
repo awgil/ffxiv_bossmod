@@ -221,7 +221,6 @@ class FRUStates : StateMachineBuilder
             .ActivateOnEnter<P2FrigidStone>()
             .ActivateOnEnter<P2DiamondDustHouseOfLight>()
             .ActivateOnEnter<P2DiamondDustSafespots>()
-            .ExecOnEnter<P2IcicleImpact>(comp => comp.Risky = false) // it's fine to bait stuff into these aoes...
             .SetHint(StateMachine.StateHint.DowntimeStart);
         Condition(id + 0x30, 5.7f, () => Module.FindComponent<P2AxeKick>()?.NumCasts > 0 || Module.FindComponent<P2ScytheKick>()?.NumCasts > 0, "In/out")
             .DeactivateOnExit<P2AxeKick>()
@@ -232,10 +231,9 @@ class FRUStates : StateMachineBuilder
         ComponentCondition<P2FrigidStone>(id + 0x32, 1.6f, comp => comp.NumCasts > 0, "Ice baits")
             .DeactivateOnExit<P2FrigidStone>()
             .DeactivateOnExit<P2DiamondDustSafespots>();
-        ComponentCondition<P2IcicleImpact>(id + 0x33, 0.4f, comp => comp.NumCasts > 0, "Ice circle 1")
-            .ActivateOnEnter<P2HeavenlyStrike>() // activate a bit early, so that it can observe first circle direction
-            .ExecOnEnter<P2IcicleImpact>(comp => comp.Risky = true);
+        ComponentCondition<P2IcicleImpact>(id + 0x33, 0.4f, comp => comp.NumCasts > 0, "Ice circle 1");
         ComponentCondition<P2HeavenlyStrike>(id + 0x40, 3.9f, comp => comp.NumCasts > 0, "Knockback")
+            .ActivateOnEnter<P2HeavenlyStrike>()
             .ActivateOnEnter<P2FrigidNeedleCircle>()
             .ActivateOnEnter<P2FrigidNeedleCross>()
             .ActivateOnEnter<P2TwinStillnessSilence>() // show the cone caster early, to simplify finding movement direction...
@@ -248,16 +246,14 @@ class FRUStates : StateMachineBuilder
             .ExecOnEnter<P2FrigidNeedleCross>(comp => comp.Risky = true)
             .DeactivateOnExit<P2FrigidNeedleCircle>()
             .DeactivateOnExit<P2FrigidNeedleCross>();
-        ComponentCondition<P2SinboundHoly>(id + 0x60, 1.3f, comp => comp.NumCasts > 0)
-            .ActivateOnEnter<P2SinboundHolyAIBait>();
+        ComponentCondition<P2SinboundHoly>(id + 0x60, 1.3f, comp => comp.NumCasts > 0);
         ComponentCondition<P2SinboundHoly>(id + 0x70, 4.7f, comp => comp.NumCasts >= 4)
             .ActivateOnEnter<P2SinboundHolyVoidzone>()
             .ActivateOnEnter<P2ShiningArmor>()
             .DeactivateOnExit<P2IcicleImpact>() // last icicle explodes together with first stack
-            .DeactivateOnExit<P2SinboundHolyAIBait>()
             .DeactivateOnExit<P2SinboundHoly>();
         ComponentCondition<P2ShiningArmor>(id + 0x80, 3.7f, comp => comp.NumCasts > 0, "Gaze")
-            .ExecOnEnter<P2TwinStillnessSilence>(comp => comp.EnableAIHints = true)
+            .ExecOnEnter<P2TwinStillnessSilence>(comp => comp.EnableAIHints())
             .DeactivateOnExit<P2ShiningArmor>();
         ComponentCondition<P2TwinStillnessSilence>(id + 0x90, 3.0f, comp => comp.AOEs.Count > 0);
         ComponentCondition<P2TwinStillnessSilence>(id + 0x91, 3.5f, comp => comp.NumCasts > 0, "Front/back");
