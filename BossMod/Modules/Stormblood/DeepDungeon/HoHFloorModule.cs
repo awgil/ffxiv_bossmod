@@ -10,10 +10,15 @@ public enum AID : uint
     Malice = 12313, // 2355->player, 3.0s cast, single-target
     ShiftingLight = 12357, // 22DC->self, 3.0s cast, range 30+R circle
     Cry = 12350, // 22D9->self, 5.0s cast, range 12+R circle
+    Eyeshine = 12261, // 230E->self, 3.5s cast, range 38+R circle
+    AtropineSpore = 12415, // 22FF->self, 4.0s cast, range ?-41 donut
+    FrondFatale = 12416, // 22FF->self, 3.0s cast, range 40 circle
 }
 
 public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 70)
 {
+    private readonly List<(Actor Source, DateTime Activation)> Donuts = [];
+
     protected override void OnCastStarted(Actor actor)
     {
         switch ((AID)actor.CastInfo!.Action.ID)
@@ -22,6 +27,8 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
             case AID.BlindingBurst:
             case AID.NightmarishLight:
             case AID.ShiftingLight:
+            case AID.Eyeshine:
+            case AID.FrondFatale:
                 Gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), null));
                 break;
             case AID.Cry:
@@ -29,6 +36,9 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
                 break;
             case AID.Malice:
                 Interrupts.Add(actor);
+                break;
+            case AID.AtropineSpore:
+                Donuts.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime)));
                 break;
         }
     }
@@ -41,6 +51,8 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
             case AID.BlindingBurst:
             case AID.NightmarishLight:
             case AID.ShiftingLight:
+            case AID.Eyeshine:
+            case AID.FrondFatale:
                 Gazes.RemoveAll(g => g.Source == actor);
                 break;
             case AID.Cry:
@@ -49,10 +61,24 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
             case AID.Malice:
                 Interrupts.Remove(actor);
                 break;
+            case AID.AtropineSpore:
+                Donuts.RemoveAll(g => g.Source == actor);
+                break;
         }
     }
 
-    protected override IEnumerable<ActionID> ActionsToIgnore() => [ActionID.MakeSpell(AID.BlindingBurst)];
+    public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
+    {
+        base.CalculateAIHints(playerSlot, player, hints);
+
+        if (!_config.Enable)
+            return;
+
+        foreach (var d in Donuts)
+            hints.AddForbiddenZone(new AOEShapeDonut(10, 100), d.Source.Position, default, d.Activation);
+    }
+
+    protected override IEnumerable<ActionID> ActionsToIgnore() => [ActionID.MakeSpell(AID.BlindingBurst), ActionID.MakeSpell(AID.AtropineSpore)];
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 540)]

@@ -20,19 +20,10 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             .AddOption(PotionStrategy.Disabled, "Do not use")
             .AddOption(PotionStrategy.Always, "Use below 80% HP if status is not present")
             .AddOption(PotionStrategy.Boss, "Use during boss fights")
-            .AddOption(PotionStrategy.BossOrHigh, "Use during boss fights, or above floor 140");
+            .AddOption(PotionStrategy.BossOrHigh, "Use during boss fights or at high floors");
 
         return def;
     }
-
-    private static readonly uint[] PalaceCFCs = [
-        174, 175, 176, 177, 178,
-        204, 205, 206, 207, 208,
-        209, 210, 211, 212, 213,
-        214, 215, 216, 217, 218,
-        540, 541, 542, 543, 544,
-        545, 546, 547, 548, 549
-    ];
 
     enum Transformation : uint
     {
@@ -42,10 +33,16 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         Kuribu
     }
 
+    enum SID : uint
+    {
+        Transfiguration = 565,
+        ItemPenalty = 1094,
+    }
+
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var transformation = Transformation.None;
-        if (Player.FindStatus(565) is { } status)
+        if (Player.FindStatus(SID.Transfiguration) is { } status)
         {
             transformation = (status.Extra & 0xFF) switch
             {
@@ -61,6 +58,9 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             DoTransformActions(strategy, primaryTarget, transformation);
             return;
         }
+
+        if (Player.FindStatus(SID.ItemPenalty) != null)
+            return;
 
         var (regenAction, potAction) = World.DeepDungeon.Type switch
         {
@@ -81,9 +81,9 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         if (primaryTarget == null)
             return;
 
-        Func<WPos, float> goal = _ => 0f;
-        ActionID attack = default;
-        var numTargets = 0;
+        Func<WPos, float> goal;
+        ActionID attack;
+        int numTargets;
         var castTime = 0f;
 
         switch (t)
@@ -126,8 +126,10 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         {
             PotionStrategy.Always => true,
             PotionStrategy.Boss => World.DeepDungeon.Progress.Floor % 10 == 0,
-            PotionStrategy.BossOrHigh => World.DeepDungeon.Progress.Floor is var floor && (floor % 10 == 0 || floor > 140),
+            PotionStrategy.BossOrHigh => IsHighFloor(World.DeepDungeon) || World.DeepDungeon.Progress.Floor % 10 == 0,
             _ => false
         };
     }
+
+    private bool IsHighFloor(DeepDungeonState st) => st.Progress.Floor > (st.Type == DeepDungeonState.DungeonType.POTD ? 100 : 50);
 }

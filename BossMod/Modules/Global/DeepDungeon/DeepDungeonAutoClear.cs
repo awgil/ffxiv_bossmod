@@ -44,7 +44,7 @@ public class AutoDDConfig : ConfigNode
 enum OID : uint
 {
     CairnPalace = 0x1EA094,
-    CairnHoH = 0x1EA9A3,
+    BeaconHoH = 0x1EA9A3,
     SilverCoffer = 0x1EA13D,
     GoldCoffer = 0x1EA13E,
     BandedCofferIndicator = 0x1EA1F6,
@@ -83,6 +83,7 @@ public abstract class DeepDungeonAutoClear : ZoneModule
 
     private readonly Dictionary<ulong, PomanderID> _chestContents = [];
     private readonly HashSet<ulong> _openedChests = [];
+    private readonly HashSet<ulong> _fakeExits = [];
     private PomanderID? _lastChestContents;
     private bool _showTrapHints = true;
 
@@ -98,7 +99,8 @@ public abstract class DeepDungeonAutoClear : ZoneModule
             ws.Actors.CastFinished.Subscribe(OnCastFinished),
             ws.Actors.StatusGain.Subscribe(OnStatusGain),
             ws.Actors.StatusLose.Subscribe(OnStatusLose),
-            ws.Actors.EventOpenTreasure.Subscribe(OnOpenTreasure)
+            ws.Actors.EventOpenTreasure.Subscribe(OnOpenTreasure),
+            ws.Actors.EventObjectAnimation.Subscribe(OnEObjAnim)
         );
 
         _trapsCurrentZone = PalacePalInterop.GetTrapLocationsForZone(ws.CurrentZone);
@@ -137,6 +139,13 @@ public abstract class DeepDungeonAutoClear : ZoneModule
 
     private void OnOpenTreasure(Actor chest) => _openedChests.Add(chest.InstanceID);
 
+    private void OnEObjAnim(Actor actor, ushort p1, ushort p2)
+    {
+        // fake beacon deactivation; accompanied by system log #9217 but it does not indicate a specific actor
+        if (actor.OID == (uint)OID.BeaconHoH && p1 == 0x0400 && p2 == 0x0800)
+            _fakeExits.Add(actor.InstanceID);
+    }
+
     private void ClearState()
     {
         Gazes.Clear();
@@ -146,6 +155,7 @@ public abstract class DeepDungeonAutoClear : ZoneModule
         _showTrapHints = true;
         _chestContents.Clear();
         _openedChests.Clear();
+        _fakeExits.Clear();
     }
 
     private bool OpenGold => _config.GoldCoffer;
@@ -157,18 +167,23 @@ public abstract class DeepDungeonAutoClear : ZoneModule
             if (!_config.SilverCoffer)
                 return false;
 
-            // always a good idea to upgrade weapon
+            // sanity check
+            if (World.Party.Player() is not { } player)
+                return false;
+
+            // explosive silver chests deal 70% max hp damage
+            if (player.HPMP.CurHP <= player.HPMP.MaxHP * 0.7f)
+                return false;
+
+            // upgrade weapon if desired
             if (Palace.Progress.WeaponLevel + Palace.Progress.ArmorLevel < 198)
                 return true;
 
-            switch (Palace.Type)
+            return Palace.Type switch
             {
-                case DeepDungeonState.DungeonType.HOH:
-                    // magicite start dropping on floor 7
-                    return Palace.Progress.Floor >= 7;
-                default:
-                    return false;
-            }
+                DeepDungeonState.DungeonType.HOH or DeepDungeonState.DungeonType.EO => Palace.Progress.Floor >= 7,// magicite/demiclones start dropping on floor 7
+                _ => false,
+            };
         }
     }
 
@@ -244,7 +259,7 @@ public abstract class DeepDungeonAutoClear : ZoneModule
                 continue;
             }
 
-            if (_openedChests.Contains(a.InstanceID))
+            if (_openedChests.Contains(a.InstanceID) || _fakeExits.Contains(a.InstanceID))
                 continue;
 
             var oid = (OID)a.OID;
@@ -255,14 +270,14 @@ public abstract class DeepDungeonAutoClear : ZoneModule
                 oid == OID.BandedCoffer
             ))
             {
-                if (coffer == null || a.DistanceToHitbox(player) < coffer.DistanceToHitbox(player))
+                if ((coffer?.DistanceToHitbox(player) ?? float.MaxValue) > a.DistanceToHitbox(player))
                     coffer = a;
             }
 
             if (a.OID == (uint)OID.BandedCofferIndicator)
                 hoardLight = a;
 
-            if ((OID)a.OID is OID.CairnPalace or OID.CairnHoH)
+            if ((OID)a.OID is OID.CairnPalace or OID.BeaconHoH && (passage?.DistanceToHitbox(player) ?? float.MaxValue) > a.DistanceToHitbox(player))
                 passage = a;
 
             if (RevealedTrapOIDs.Contains(a.OID))
