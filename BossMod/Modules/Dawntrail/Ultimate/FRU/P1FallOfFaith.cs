@@ -52,10 +52,7 @@ class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
         var dest = TetherSpot(baitOrder);
         if (_playerOrder[slot] != baitOrder)
             dest += BaitOffset(_playerOrder[slot], _fireTethers[baitOrder - 1]);
-        // note: the baits need to be very precise
-        var destCellSize = 0.5f * Module.Bounds.MapResolution;
-        var destCellCenter = Module.Center + ((dest - Module.Center) / Module.Bounds.MapResolution).Floor() * Module.Bounds.MapResolution + new WDir(destCellSize, destCellSize);
-        hints.AddForbiddenZone(p => p.AlmostEqual(destCellCenter, destCellSize) ? 1 : -1);
+        hints.AddForbiddenZone(ShapeDistance.PrecisePosition(dest, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)

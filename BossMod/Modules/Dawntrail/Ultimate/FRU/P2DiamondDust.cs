@@ -34,14 +34,20 @@ class P2DiamondDustHouseOfLight(BossModule module) : Components.GenericBaitAway(
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
+        if (CurrentBaits.Count == 0)
+            return;
+
+        var baitIndex = CurrentBaits.FindIndex(b => b.Target == actor);
         if (ForbiddenPlayers[slot])
         {
-            if (ActiveBaitsOn(actor).Any())
+            if (baitIndex >= 0)
                 hints.Add("Stay farther away!");
         }
         else
         {
-            if (ActiveBaitsOn(actor).Any(b => PlayersClippedBy(b).Any()))
+            if (baitIndex < 0)
+                hints.Add("Stay closer to bait!");
+            else if (PlayersClippedBy(CurrentBaits[baitIndex]).Any())
                 hints.Add("Bait cone away from raid!");
         }
 
@@ -78,7 +84,7 @@ class P2DiamondDustSafespots(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_safeOffs[slot] != default)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.Center + _safeOffs[slot], new WDir(0, 1), Module.Bounds.MapResolution, Module.Bounds.MapResolution, Module.Bounds.MapResolution));
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + _safeOffs[slot], new WDir(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

@@ -196,7 +196,13 @@ public struct NavigationDecision
             ref var node = ref pf.NodeByIndex(cell);
             if (pf.NodeByIndex(node.ParentIndex).GScore == 0)
             {
-                var dest = pf.CellCenter(cell);
+                //var dest = pf.CellCenter(cell);
+                // if destination coord matches player coord, do not move along that coordinate, this is used for precise positioning
+                var destCoord = map.IndexToGrid(cell);
+                var playerCoordFrac = map.WorldToGridFrac(startingPos);
+                var playerCoord = map.FracToGrid(playerCoordFrac);
+                var dest = map.GridToWorld(destCoord.x, destCoord.y, destCoord.x == playerCoord.x ? playerCoordFrac.X - playerCoord.x : 0.5f, destCoord.y == playerCoord.y ? playerCoordFrac.Y - playerCoord.y : 0.5f);
+
                 var next = pf.CellCenter(nextCell);
                 return (dest, (dest - startingPos).OrthoL().Dot(next - dest));
             }
