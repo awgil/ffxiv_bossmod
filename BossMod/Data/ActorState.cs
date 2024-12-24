@@ -409,4 +409,14 @@ public sealed class ActorState : IEnumerable<Actor>
         protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.EventNpcYell.Fire(actor, Message);
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("NYEL"u8).EmitActor(InstanceID).Emit(Message);
     }
+
+    public Event<Actor> EventOpenTreasure = new();
+    public sealed record class OpEventOpenTreasure(ulong InstanceID) : Operation(InstanceID)
+    {
+        protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.EventOpenTreasure.Fire(actor);
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("OPNT"u8).EmitActor(InstanceID);
+        }
+    }
 }

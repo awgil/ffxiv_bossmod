@@ -64,6 +64,12 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe delegate void ProcessPacketRSVDataDelegate(byte* packet);
     private readonly Hook<ProcessPacketRSVDataDelegate> _processPacketRSVDataHook;
 
+    private unsafe delegate void ProcessPacketOpenTreasureDelegate(uint actorID, byte* packet);
+    private readonly Hook<ProcessPacketOpenTreasureDelegate> _processPacketOpenTreasureHook;
+
+    private unsafe delegate void* ProcessSystemLogMessageDelegate(uint entityId, uint logMessageId, int* args, byte argCount);
+    private readonly Hook<ProcessSystemLogMessageDelegate> _processSystemLogMessageHook;
+
     public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
     {
         _ws = ws;
@@ -112,6 +118,14 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketRSVDataHook = Service.Hook.HookFromSignature<ProcessPacketRSVDataDelegate>("44 8B 09 4C 8D 41 34", ProcessPacketRSVDataDetour);
         _processPacketRSVDataHook.Enable();
         Service.Log($"[WSG] ProcessPacketRSVData address = 0x{_processPacketRSVDataHook.Address:X}");
+
+        _processSystemLogMessageHook = Service.Hook.HookFromSignature<ProcessSystemLogMessageDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B6 43 28", ProcessSystemLogMessageDetour);
+        _processSystemLogMessageHook.Enable();
+        Service.Log($"[WSG] ProcessSystemLogMessage address = 0x{_processSystemLogMessageHook:X}");
+
+        _processPacketOpenTreasureHook = Service.Hook.HookFromSignature<ProcessPacketOpenTreasureDelegate>("40 53 48 83 EC 20 48 8B DA 48 8D 0D ?? ?? ?? ?? 8B 52 10 E8 ?? ?? ?? ?? 48 85 C0 74 1B", ProcessPacketOpenTreasureDetour);
+        _processPacketOpenTreasureHook.Enable();
+        Service.Log($"[WSG] ProcessPacketOpenTreasure address = 0x{_processPacketOpenTreasureHook.Address:X}");
     }
 
     public void Dispose()
@@ -123,6 +137,8 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketNpcYellHook.Dispose();
         _processEnvControlHook.Dispose();
         _processPacketRSVDataHook.Dispose();
+        _processSystemLogMessageHook.Dispose();
+        _processPacketOpenTreasureHook.Dispose();
         _subscriptions.Dispose();
         _netConfig.Dispose();
         _interceptor.Dispose();
@@ -795,5 +811,17 @@ sealed class WorldStateGameSync : IDisposable
     {
         _processPacketRSVDataHook.Original(packet);
         _globalOps.Add(new WorldState.OpRSVData(MemoryHelper.ReadStringNullTerminated((nint)(packet + 4)), MemoryHelper.ReadString((nint)(packet + 0x34), *(int*)packet)));
+    }
+    private unsafe void ProcessPacketOpenTreasureDetour(uint actorID, byte* packet)
+    {
+        _processPacketOpenTreasureHook.Original(actorID, packet);
+        _actorOps.GetOrAdd(actorID).Add(new ActorState.OpEventOpenTreasure(actorID));
+    }
+
+    private unsafe void* ProcessSystemLogMessageDetour(uint entityId, uint messageId, int* args, byte argCount)
+    {
+        var res = _processSystemLogMessageHook.Original(entityId, messageId, args, argCount);
+        _globalOps.Add(new WorldState.OpSystemLogMessage(messageId, new Span<int>(args, argCount).ToArray()));
+        return res;
     }
 }
