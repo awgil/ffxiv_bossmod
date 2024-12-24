@@ -91,6 +91,7 @@ public enum SID : uint
     NastrondReady = 3844, // applied by Geirskogul to self
     DragonsFlight = 3845, // applied by Dragonfire Dive to self
     StarcrossReady = 3846, // applied by Stardiver to self
+    EnhancedPiercingTalon = 1870, // applied by Elusive Jump to self
 
     //Shared
     Feint = ClassShared.SID.Feint, // applied by Feint to target

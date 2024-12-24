@@ -96,6 +96,7 @@ public enum SID : uint
     Tengentsu = 3853, // applied by Tengentsu to self
     ZanshinReady = 3855, // applied by Ikishoten to self
     Tendo = 3856, // applied by Meikyo Shisui to self
+    TsubameReady = 4216, // applied by Midare Setsugekka to self
 
     //Shared
     Feint = ClassShared.SID.Feint, // applied by Feint to target

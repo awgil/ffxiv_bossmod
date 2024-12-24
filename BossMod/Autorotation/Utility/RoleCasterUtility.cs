@@ -46,7 +46,7 @@ public abstract class RoleCasterUtility(RotationModuleManager manager, Actor pla
 
         var addle = strategy.Option(SharedTrack.Addle);
         if (addle.As<AddleOption>() != AddleOption.None)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Addle), primaryTarget, addle.Priority(), addle.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Addle), ResolveTargetOverride(strategy.Option(SharedTrack.Addle).Value) ?? primaryTarget, addle.Priority(), addle.Value.ExpireIn);
 
         var swift = strategy.Option(SharedTrack.Swiftcast);
         if (swift.As<SwiftcastOption>() != SwiftcastOption.None)

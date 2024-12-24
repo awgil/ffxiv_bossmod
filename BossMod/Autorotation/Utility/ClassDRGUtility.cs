@@ -26,9 +26,10 @@ public sealed class ClassDRGUtility(RotationModuleManager manager, Actor player)
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
 
         var dash = strategy.Option(Track.WingedGlide);
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget;
         var dashStrategy = strategy.Option(Track.WingedGlide).As<DashStrategy>();
         if (ShouldUseDash(dashStrategy, primaryTarget))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRG.AID.WingedGlide), primaryTarget, dash.Priority());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRG.AID.WingedGlide), dashTarget, dash.Priority(), dash.Value.ExpireIn);
     }
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {

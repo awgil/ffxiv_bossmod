@@ -3,12 +3,13 @@
 public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player) : RoleTankUtility(manager, player)
 {
     public enum Track { DarkMind = SharedTrack.Count, ShadowWall, LivingDead, TheBlackestNight, Oblation, DarkMissionary, Shadowstride }
-    public enum WallOption { None, ShadowWall, ShadowedVigil }
-    public enum TBNStrategy { None, Force }
-    public enum OblationStrategy { None, Force }
+    public enum WallOption { None, ShadowWall, ShadowedVigil } //ShadowWall strategy
+    public enum TBNStrategy { None, Force } //TheBlackestNight strategy
+    public enum OblationStrategy { None, Force } //Oblation strategy
     public enum DashStrategy { None, GapClose } //GapCloser strategy
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
-    public bool TargetHasEffect<SID>(Actor target, SID sid) where SID : Enum => target?.FindStatus((uint)(object)sid, Player.InstanceID) != null; //Checks if Status effect is on target
+    public float GetStatusDetail(Actor target, DRK.SID sid) => StatusDetails(target, sid, Player.InstanceID).Left; //Checks if Status effect is on target
+    public bool HasEffect(Actor target, DRK.SID sid, float duration) => GetStatusDetail(target, sid) < duration; //Checks if anyone has a status effect
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(DRK.AID.DarkForce);
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(DRK.AID.Grit);
@@ -57,28 +58,24 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.DarkMissionary), DRK.AID.DarkMissionary, Player); //Execution of DarkMissionary
 
         //TBN execution
+        var canTBN = ActionUnlocked(ActionID.MakeSpell(DRK.AID.TheBlackestNight)) && Player.HPMP.CurMP >= 3000;
         var tbn = strategy.Option(Track.TheBlackestNight);
         var tbnTarget = ResolveTargetOverride(tbn.Value) ?? CoTank() ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
-        var tbnight = tbn.As<TBNStrategy>() switch
-        {
-            TBNStrategy.Force => DRK.AID.TheBlackestNight,
-            _ => default
-        };
-        if (tbnight != default && Player.HPMP.CurMP >= 3000)
+        if (tbn.As<TBNStrategy>() == TBNStrategy.Force &&
+            canTBN &&
+            !HasEffect(tbnTarget, DRK.SID.TheBlackestNight, 7))
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.TheBlackestNight), tbnTarget, tbn.Priority(), tbn.Value.ExpireIn);
 
         //Oblation execution
+        var canObl = ActionUnlocked(ActionID.MakeSpell(DRK.AID.Oblation));
         var obl = strategy.Option(Track.Oblation);
         var oblTarget = ResolveTargetOverride(obl.Value) ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
-        var oblStatus = TargetHasEffect(oblTarget, DRK.SID.Oblation); //Checks if status is present
-        var oblat = obl.As<OblationStrategy>() switch
-        {
-            OblationStrategy.Force => DRK.AID.Oblation,
-            _ => default
-        };
-        if (oblat != default && !oblStatus)
+        if (obl.As<OblationStrategy>() == OblationStrategy.Force &&
+            canObl &&
+            !HasEffect(oblTarget, DRK.SID.Oblation, 9))
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Oblation), oblTarget, obl.Priority(), obl.Value.ExpireIn);
 
+        //Shadow Wall / Vigil execution
         var wall = strategy.Option(Track.ShadowWall);
         var wallAction = wall.As<WallOption>() switch
         {
@@ -89,9 +86,12 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         if (wallAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(wallAction), Player, wall.Priority(), wall.Value.ExpireIn); //Checking proper use of said option
 
+        //Shadowstride execution
+        var dash = strategy.Option(Track.Shadowstride);
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget;
         var dashStrategy = strategy.Option(Track.Shadowstride).As<DashStrategy>();
         if (ShouldUseDash(dashStrategy, primaryTarget))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Shadowstride), primaryTarget, obl.Priority());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Shadowstride), dashTarget, dash.Priority(), dash.Value.ExpireIn);
     }
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {
