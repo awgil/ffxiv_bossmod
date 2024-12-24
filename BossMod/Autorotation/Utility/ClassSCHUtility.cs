@@ -22,54 +22,53 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         var res = new RotationModuleDefinition("Utility: SCH", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.SCH), 100);
         DefineShared(res, IDLimitBreak3);
 
-        DefineSimpleConfig(res, Track.WhisperingDawn, "WhisperingDawn", "W.Dawn", 140, SCH.AID.WhisperingDawn, 21);
-        DefineSimpleConfig(res, Track.Adloquium, "Adloquium", "Adlo", 100, SCH.AID.Adloquium, 30);
+        DefineSimpleConfig(res, Track.WhisperingDawn, "Whispering Dawn", "W.Dawn", 140, SCH.AID.WhisperingDawn, 21);
+        DefineSimpleConfig(res, Track.Adloquium, "Adloquium", "Adlo.", 100, SCH.AID.Adloquium, 30);
 
-        res.Define(Track.Succor).As<SuccorOption>("Succor", "", 200)
+        res.Define(Track.Succor).As<SuccorOption>("Succor", "Succor", 200)
             .AddOption(SuccorOption.None, "None", "Do not use automatically")
             .AddOption(SuccorOption.Succor, "Use", "Use Succor", 2, 30, ActionTargets.Self, 35, 95)
             .AddOption(SuccorOption.Concitation, "UseEx", "Use Concitation", 2, 30, ActionTargets.Self, 96)
             .AddAssociatedActions(SCH.AID.Succor, SCH.AID.Concitation);
 
-        DefineSimpleConfig(res, Track.FeyIllumination, "FeyIllumination", "FeyIll", 240, SCH.AID.FeyIllumination, 20);
-        DefineSimpleConfig(res, Track.Lustrate, "Lustrate", "Lust", 150, SCH.AID.Lustrate);
+        DefineSimpleConfig(res, Track.FeyIllumination, "Fey Illumination", "F.Illum.", 240, SCH.AID.FeyIllumination, 20);
+        DefineSimpleConfig(res, Track.Lustrate, "Lustrate", "Lustrate", 150, SCH.AID.Lustrate);
 
-        res.Define(Track.SacredSoil).As<SacredSoilOption>("Soil", "", 200)
+        res.Define(Track.SacredSoil).As<SacredSoilOption>("Sacred Soil", "S.Soil", 200)
             .AddOption(SacredSoilOption.None, "None", "Do not use automatically")
             .AddOption(SacredSoilOption.Use, "Use", "Use Sacred Soil", 30, 15, ActionTargets.All, 50, 77)
             .AddOption(SacredSoilOption.UseEx, "UseEx", "Use Enhanced Sacred Soil", 30, 15, ActionTargets.All, 78)
             .AddAssociatedActions(SCH.AID.SacredSoil);
 
-        DefineSimpleConfig(res, Track.Indomitability, "Indomitability", "Indom", 90, SCH.AID.Indomitability);
+        DefineSimpleConfig(res, Track.Indomitability, "Indomitability", "Indom.", 90, SCH.AID.Indomitability);
 
-        res.Define(Track.DeploymentTactics).As<DeployOption>("DeploymentTactics", "Deploy", 150)
+        res.Define(Track.DeploymentTactics).As<DeployOption>("DeploymentTactics", "Deploy.", 150)
             .AddOption(DeployOption.None, "None", "Do not use automatically")
             .AddOption(DeployOption.Use, "Use", "Use Deployment Tactics", 120, 0, ActionTargets.Self, 56, 87)
             .AddOption(DeployOption.UseEx, "UseEx", "Use Enhanced Deployment Tactics", 90, 0, ActionTargets.Self, 88)
             .AddAssociatedActions(SCH.AID.DeploymentTactics);
 
-        DefineSimpleConfig(res, Track.EmergencyTactics, "EmergencyTactics", "Emerg", 100, SCH.AID.EmergencyTactics, 15);
-        DefineSimpleConfig(res, Track.Dissipation, "Dissipation", "Dissi", 290, SCH.AID.Dissipation, 15);
-        DefineSimpleConfig(res, Track.Excogitation, "Excogitation", "Excog", 100, SCH.AID.Excogitation, 45);
+        DefineSimpleConfig(res, Track.EmergencyTactics, "EmergencyTactics", "Emerg.", 100, SCH.AID.EmergencyTactics, 15);
+        DefineSimpleConfig(res, Track.Dissipation, "Dissipation", "Dissi.", 290, SCH.AID.Dissipation, 15);
+        DefineSimpleConfig(res, Track.Excogitation, "Excogitation", "Excog.", 100, SCH.AID.Excogitation, 45);
 
-        res.Define(Track.Aetherpact).As<AetherpactOption>("Aetherpact", "", 300)
+        res.Define(Track.Aetherpact).As<AetherpactOption>("Aetherpact", "A.pact", 300)
             .AddOption(AetherpactOption.None, "None", "Do not use automatically")
             .AddOption(AetherpactOption.Use, "Use", "Use Aetherpact", 0, 0, ActionTargets.Self | ActionTargets.Party, 70)
             .AddOption(AetherpactOption.End, "UseEx", "End Aetherpact", 0, 0, ActionTargets.Self | ActionTargets.Party, 70)
             .AddAssociatedActions(SCH.AID.Aetherpact, SCH.AID.DissolveUnion);
 
-        res.Define(Track.Recitation).As<RecitationOption>("Recitation", "Recit", 130)
+        res.Define(Track.Recitation).As<RecitationOption>("Recitation", "Recit.", 130)
             .AddOption(RecitationOption.None, "None", "Do not use automatically")
             .AddOption(RecitationOption.Use, "Use", "Use Recitation", 90, 0, ActionTargets.Self, 74, 97)
             .AddOption(RecitationOption.UseEx, "UseEx", "Use Enhanced Recitation", 60, 0, ActionTargets.Self, 98)
             .AddAssociatedActions(SCH.AID.Recitation);
 
-        DefineSimpleConfig(res, Track.FeyBlessing, "FeyBlessing", "Bless", 120, SCH.AID.FeyBlessing);
         DefineSimpleConfig(res, Track.FeyBlessing, "FeyBlessing", "F.Blessing", 120, SCH.AID.FeyBlessing);
         DefineSimpleConfig(res, Track.Consolation, "Consolation", "Consol.", 80, SCH.AID.Consolation, 30);
         DefineSimpleConfig(res, Track.Protraction, "Protraction", "Prot.", 110, SCH.AID.Protraction, 10);
         DefineSimpleConfig(res, Track.Expedient, "Expedient", "Exped.", 200, SCH.AID.Expedient, 20);
-        DefineSimpleConfig(res, Track.Seraphism, "Seraphism", "", 300, SCH.AID.Seraphism, 20);
+        DefineSimpleConfig(res, Track.Seraphism, "Seraphism", "Seraphism", 300, SCH.AID.Seraphism, 20);
 
         // Pet Summons
         res.Define(Track.Summons).As<PetOption>("Pet", "", 180)
