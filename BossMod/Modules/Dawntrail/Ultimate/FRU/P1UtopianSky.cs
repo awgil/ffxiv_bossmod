@@ -113,17 +113,6 @@ class P1UtopianSkyAIInitial(BossModule module) : BossComponent(module)
             var assignedDirection = (180 - 45 * clockspot).Degrees();
             hints.AddForbiddenZone(ShapeDistance.InvertedCone(Module.Center, 50, assignedDirection, 5.Degrees()), DateTime.MaxValue);
         }
-
-        //if (assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT)
-        //{
-        //    // adjust slightly to neighbouring tank slot
-        //    var coTankSpot = _config.P1UtopianSkyInitialSpots[assignment == PartyRolesConfig.Assignment.MT ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT];
-        //    if (coTankSpot == ((clockspot + 1) & 7))
-        //        assignedDirection -= 4.Degrees();
-        //    else if (coTankSpot == ((clockspot + 7) & 7))
-        //        assignedDirection += 4.Degrees();
-        //}
-        //hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center + 18 * assignedDirection.ToDirection(), 1));
     }
 }
 

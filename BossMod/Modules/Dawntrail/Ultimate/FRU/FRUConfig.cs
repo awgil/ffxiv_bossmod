@@ -25,13 +25,18 @@ public class FRUConfig() : ConfigNode()
 
     [PropertyDisplay("P2 Diamond Dust: cardinal assignments")]
     [GroupDetails(["Support N", "Support E", "Support S", "Support W", "DD N", "DD E", "DD S", "DD W"])]
-    public GroupAssignmentUnique P2DiamondDustCardinals = GroupAssignmentUnique.DefaultRoles();
+    [GroupPreset("Default", [0, 2, 3, 1, 7, 6, 4, 5])]
+    public GroupAssignmentUnique P2DiamondDustCardinals = new() { Assignments = [0, 2, 3, 1, 7, 6, 4, 5] };
 
     [PropertyDisplay("P2 Diamond Dust: supports go to CCW intercardinal")]
     public bool P2DiamondDustSupportsCCW;
 
     [PropertyDisplay("P2 Diamond Dust: DD go to CCW intercardinal")]
     public bool P2DiamondDustDDCCW;
+
+    [PropertyDisplay("P2 Diamond Dust: knockback groups")]
+    [GroupDetails(["G1 (CCW from N)", "G2 (CW from NE)"])]
+    public GroupAssignmentLightParties P2DiamondDustKnockbacks = GroupAssignmentLightParties.DefaultLightParties();
 
     [PropertyDisplay("P2 Light Rampant: conga spots (lower numbers to the west, assume CW rotation)")]
     [GroupDetails(["N1", "N2", "N3", "N4", "S1", "S2", "S3", "S4"])]

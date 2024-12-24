@@ -21,11 +21,18 @@ public enum OID : uint
     Gaia = 0x45A6, // R1.000, x0 (spawn during fight)
     //_Gen_CrystalOfLight = 0x464F, // R1.000, x0 (spawn during fight)
     HiemalRayVoidzone = 0x1EA1CB, // R0.500, x0 (spawn during fight), EventObj type
-    //_Gen_EternalIceFragment = 0x1EBBF8, // R0.500, x0 (spawn during fight), EventObj type
+    EternalIceFragment = 0x1EBBF8, // R0.500, x0 (spawn during fight), EventObj type, spawns if dark crystals are killed
 
     BossP3 = 0x45A7, // R7.040, x0 (spawn during fight)
     DelightsHourglass = 0x45A8, // R1.000, x0 (spawn during fight)
     ApocalypseLight = 0x1EB0FF, // R0.500, x0 (spawn during fight), EventObj type
+
+    UsurperOfFrostP4 = 0x45A9, // R6.125, x0 (spawn during fight)
+    OracleOfDarknessP4 = 0x45AB, // R7.040, x0 (spawn during fight)
+    VisionOfRyne = 0x45B4, // R0.750, x0 (spawn during fight)
+    VisionOfGaia = 0x45B5, // R1.500, x0 (spawn during fight)
+    FragmentOfFate = 0x45B1, // R3.500, x0 (spawn during fight)
+    GreatWyrm = 0x45AA, // R3.500, x0 (spawn during fight), Part type
 }
 
 public enum AID : uint
@@ -151,6 +158,7 @@ public enum AID : uint
     HiemalStorm = 40255, // CrystalOfLight->self, no cast, single-target, visual (baited puddle)
     HiemalStormAOE = 40256, // Helper->location, 3.3s cast, range 7 circle
     HiemalRay = 40257, // Helper->player, no cast, range 4 circle
+    Icecrusher = 40121, // Gaia->IceVeil, no cast, single-target, 50% hp hit on large crystal
 
     // P3
     Junction = 40226, // Helper->self, no cast, range 40 circle, raidwide
@@ -189,7 +197,21 @@ public enum AID : uint
     DarkestDanceKnockback = 40183, // BossP3->self, no cast, range 40 circle, knockback 21
 
     MemorysEnd = 40300, // BossP3->self, 10.0s cast, single-target, visual (enrage)
-    MemorysEndAOE = 40336, // Helper->self, no cast, range 100 circle, enrage
+    MemorysEndRaidwide = 40335, // Helper->self, no cast, range 100 circle, raidwide if boss is <20%
+    MemorysEndEnrage = 40336, // Helper->self, no cast, range 100 circle, enrage if boss is >20%
+
+    // P4
+    Materialization = 40246, // UsurperOfFrostP4->self, 3.0s cast, single-target, visual (create visions)
+    DrachenArmor = 40186, // Helper->self, no cast, single-target, visual (wings appear)
+    AutoAttackP4Wyrm = 40178, // GreatWyrm->player, no cast, single-target
+    AutoAttackP4Usurper = 40177, // UsurperOfFrostP4->player, no cast, single-target
+    EdgeOfOblivion = 40174, // FragmentOfFate->self, 5.0s cast, range 100 circle, raidwide
+    AkhRhai = 40237, // Helper->location, 2.5s cast, range 4 circle, visual (puddle)
+    AkhRhaiAOE = 40238, // Helper->location, no cast, range 4 circle, repeated puddle x10
+
+    DarklitDragonsongUsurper = 40239, // UsurperOfFrostP4->self, 5.0s cast, range 100 circle, raidwide
+    DarklitDragonsongOracle = 40301, // OracleOfDarknessP4->self, 5.0s cast, single-target, visual
+    //_Weaponskill_ThePathOfLight = 40187, // UsurperOfFrostP4->self, 8.0s cast, single-target
 }
 
 public enum SID : uint
@@ -200,6 +222,7 @@ public enum SID : uint
     FatedBurnMark = 4165, // none->player, extra=0x0
     FloatingFetters = 2304, // FatebreakersImage/BossP1->player, extra=0xC8
     MarkOfMortality = 4372, // Helper->player, extra=0x1
+    ThinIce = 911, // none->player, extra=0x140
     ChainsOfEverlastingLight = 4157, // none->player, extra=0x0, light rampant first tether
     CurseOfEverlastingLight = 4158, // none->player, extra=0x0, light rampant second tether
     WeightOfLight = 4159, // none->player, extra=0x0, light rampant stack
@@ -214,8 +237,6 @@ public enum SID : uint
     DelightsHourglassRotation = 2970, // none->DelightsHourglass, extra=0x10D (ccw)/0x15C (cw)
     Return = 2452, // none->player, extra=0x0
     Stun = 4163, // none->player, extra=0x0
-    //SpellInWaitingRefrain = 4373, // BossP3->BossP3, extra=0x0
-    //_Gen_ = 2458, // none->player, extra=0x0
 }
 
 public enum IconID : uint
@@ -238,6 +259,7 @@ public enum TetherID : uint
     LightRampantCurse = 111, // player->player
     IntermissionGaia = 112, // Gaia->IceVeil
     IntermissionCrystal = 8, // CrystalOfLight/CrystalOfDarkness->IceVeil
+    IntermissionCrystalGaia = 37, // CrystalOfDarkness->Gaia/CrystalOfDarkness
     HiemalRay = 84, // CrystalOfLight->player
     UltimateRelativitySlow = 133, // DelightsHourglass->BossP3
     UltimateRelativityQuicken = 134, // DelightsHourglass->BossP3

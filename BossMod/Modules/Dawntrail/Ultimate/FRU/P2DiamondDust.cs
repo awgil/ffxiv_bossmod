@@ -2,7 +2,49 @@
 
 class P2AxeKick(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AxeKick), new AOEShapeCircle(16));
 class P2ScytheKick(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScytheKick), new AOEShapeDonut(4, 20));
-class P2IcicleImpact(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IcicleImpact), new AOEShapeCircle(10));
+
+class P2IcicleImpact(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.IcicleImpact))
+{
+    public readonly List<AOEInstance> AOEs = []; // note: we don't remove finished aoes, since we use them in other components to detect safespots
+
+    private static readonly AOEShapeCircle _shape = new(10);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs.Skip(NumCasts);
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            // initially all aoes start as non-risky
+            AOEs.Add(new(_shape, caster.Position, default, Module.CastFinishAt(spell), 0, false));
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.IcicleImpact:
+                ++NumCasts;
+                break;
+            case AID.HouseOfLight:
+                // after proteans are baited, first two aoes become risky; remaining are still not - stones are supposed to be baited into them
+                MarkAsRisky(0, Math.Min(2, AOEs.Count));
+                break;
+            case AID.FrigidStone:
+                // after stones are baited, all aoes should be marked as risky
+                MarkAsRisky(2, AOEs.Count);
+                break;
+        }
+    }
+
+    private void MarkAsRisky(int start, int end)
+    {
+        for (int i = start; i < end; ++i)
+            AOEs.Ref(i).Risky = true;
+    }
+}
+
 class P2FrigidNeedleCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FrigidNeedleCircle), new AOEShapeCircle(5));
 class P2FrigidNeedleCross(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FrigidNeedleCross), new AOEShapeCross(40, 2.5f));
 
@@ -10,8 +52,11 @@ class P2FrigidStone : Components.BaitAwayIcon
 {
     public P2FrigidStone(BossModule module) : base(module, new AOEShapeCircle(5), (uint)IconID.FrigidStone, ActionID.MakeSpell(AID.FrigidStone), 8.1f, true)
     {
+        EnableHints = false;
         IgnoreOtherBaits = true;
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { }
 }
 
 class P2DiamondDustHouseOfLight(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.HouseOfLight))
@@ -31,20 +76,28 @@ class P2DiamondDustHouseOfLight(BossModule module) : Components.GenericBaitAway(
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
+        if (CurrentBaits.Count == 0)
+            return;
+
+        var baitIndex = CurrentBaits.FindIndex(b => b.Target == actor);
         if (ForbiddenPlayers[slot])
         {
-            if (ActiveBaitsOn(actor).Any())
+            if (baitIndex >= 0)
                 hints.Add("Stay farther away!");
         }
         else
         {
-            if (ActiveBaitsOn(actor).Any(b => PlayersClippedBy(b).Any()))
+            if (baitIndex < 0)
+                hints.Add("Stay closer to bait!");
+            else if (PlayersClippedBy(CurrentBaits[baitIndex]).Any())
                 hints.Add("Bait cone away from raid!");
         }
 
         if (ActiveBaitsNotOn(actor).Any(b => IsClippedBy(actor, b)))
             hints.Add("GTFO from baited cone!");
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -68,12 +121,18 @@ class P2DiamondDustSafespots(BossModule module) : BossComponent(module)
     private bool? _out;
     private bool? _supportsBaitCones;
     private bool? _conesAtCardinals;
-    private readonly WPos[] _safespots = new WPos[PartyState.MaxPartySize];
+    private readonly WDir[] _safeOffs = new WDir[PartyState.MaxPartySize];
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_safeOffs[slot] != default)
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + _safeOffs[slot], new WDir(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
+    }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (_safespots[pcSlot] != default)
-            Arena.AddCircle(_safespots[pcSlot], 1, ArenaColor.Safe);
+        if (_safeOffs[pcSlot] != default)
+            Arena.AddCircle(Module.Center + _safeOffs[pcSlot], 1, ArenaColor.Safe);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -81,8 +140,11 @@ class P2DiamondDustSafespots(BossModule module) : BossComponent(module)
         switch ((AID)spell.Action.ID)
         {
             case AID.IcicleImpact:
-                _conesAtCardinals ??= IsCardinal(caster.Position - Module.Center);
-                InitIfReady();
+                if (_conesAtCardinals == null)
+                {
+                    _conesAtCardinals = IsCardinal(caster.Position - Module.Center);
+                    InitIfReady();
+                }
                 break;
             case AID.AxeKick:
                 _out = true;
@@ -95,11 +157,30 @@ class P2DiamondDustSafespots(BossModule module) : BossComponent(module)
         }
     }
 
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.AxeKick:
+                // out done => cone baiters go in, ice baiters stay
+                for (int i = 0; i < _safeOffs.Length; ++i)
+                    if (_safeOffs[i] != default && Raid[i]?.Class.IsSupport() == _supportsBaitCones)
+                        _safeOffs[i] = 4 * _safeOffs[i].Normalized();
+                break;
+            case AID.ScytheKick:
+                // in done => cone baiters stay, ice baiters go out
+                for (int i = 0; i < _safeOffs.Length; ++i)
+                    if (_safeOffs[i] != default && Raid[i]?.Class.IsSupport() != _supportsBaitCones)
+                        _safeOffs[i] = 8 * _safeOffs[i].Normalized();
+                break;
+        }
+    }
+
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if (iconID == (uint)IconID.FrigidStone)
+        if (iconID == (uint)IconID.FrigidStone && _supportsBaitCones == null)
         {
-            _supportsBaitCones ??= actor.Class.IsDD();
+            _supportsBaitCones = actor.Class.IsDD();
             InitIfReady();
         }
     }
@@ -118,7 +199,7 @@ class P2DiamondDustSafespots(BossModule module) : BossComponent(module)
             var dir = 180.Degrees() - (group & 3) * 90.Degrees();
             dir += support ? offsetTH : offsetDD;
             var radius = (_out.Value ? 16 : 0) + (baitCone ? 1 : 3);
-            _safespots[slot] = Module.Center + radius * dir.ToDirection();
+            _safeOffs[slot] = radius * dir.ToDirection();
         }
     }
 
@@ -127,11 +208,40 @@ class P2DiamondDustSafespots(BossModule module) : BossComponent(module)
 
 class P2HeavenlyStrike(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.HeavenlyStrike))
 {
+    private readonly WDir[] _safeDirs = BuildSafeDirs(module);
     private readonly DateTime _activation = module.WorldState.FutureTime(3.9f);
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         yield return new(Module.Center, 12, _activation);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_safeDirs[slot] != default)
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + 6 * _safeDirs[slot], new(1, 0), Module.Bounds.MapResolution, actor.Position, 0.25f), _activation);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
+        if (_safeDirs[pcSlot] != default)
+            Arena.AddCircle(Module.Center + 18 * _safeDirs[pcSlot], 1, ArenaColor.Safe);
+    }
+
+    private static WDir[] BuildSafeDirs(BossModule module)
+    {
+        var res = new WDir[PartyState.MaxPartySize];
+        var icicle = module.FindComponent<P2IcicleImpact>();
+        if (icicle?.AOEs.Count > 0)
+        {
+            var safeDir = (icicle.AOEs[0].Origin - module.Center).Normalized();
+            if (safeDir.X > 0.5f || safeDir.Z > 0.8f)
+                safeDir = -safeDir; // G1
+            foreach (var (slot, group) in Service.Config.Get<FRUConfig>().P2DiamondDustKnockbacks.Resolve(module.Raid))
+                res[slot] = group == 1 ? -safeDir : safeDir;
+        }
+        return res;
     }
 }
 
@@ -139,6 +249,54 @@ class P2SinboundHoly(BossModule module) : Components.UniformStackSpread(module, 
 {
     public int NumCasts;
     private DateTime _nextExplosion;
+    private readonly WDir _destinationDir = CalculateDestination(module);
+
+    private static WDir CalculateDestination(BossModule module)
+    {
+        // if oracle jumps directly to one of the initial safespots, both groups run opposite in one (arbitrary, CW) direction, and the one that ends up behind boss slides across - in that case we return zero destination
+        // note: we assume that when this is called oracle is already at position
+        var icicles = module.FindComponent<P2IcicleImpact>();
+        var oracle = module.Enemies(OID.OraclesReflection).FirstOrDefault();
+        if (icicles == null || icicles.AOEs.Count == 0 || oracle == null)
+            return default;
+
+        var idealDir = (module.Center - oracle.Position).Normalized(); // ideally we wanna stay as close as possible to across the oracle
+        var destDir = (icicles.AOEs[0].Origin - module.Center).Normalized().OrthoL(); // actual destination is one of the last icicles
+        return destDir.Dot(idealDir) switch
+        {
+            > 0.5f => destDir,
+            < -0.5f => -destDir,
+            _ => default, // fast movement mode
+        };
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var master = actor.Role != Role.Healer ? Stacks.MinBy(s => (s.Target.Position - actor.Position).LengthSq()).Target : null;
+        if (master != null && ((master.Position - actor.Position).LengthSq() > 100 || (master.Position - Module.Center).LengthSq() < 196))
+            master = null; // our closest healer is too far away or too close to center, something is wrong (maybe kb didn't finish yet, or healer fucked up)
+
+        if (master != null)
+        {
+            // non-healers should just stack with whatever closest healer is
+            var moveDir = master.LastFrameMovement.Normalized();
+            var capsule = ShapeDistance.Capsule(master.Position + 2 * moveDir, moveDir, 4, 2);
+            hints.AddForbiddenZone(p => -capsule(p), DateTime.MaxValue);
+        }
+
+        // note: other hints have to be 'later' than immediate (to make getting out of voidzones higher prio), but 'earlier' than stack-with-healer:
+        // healer's position is often overlapped by new voidzones, if healer is moving slowly - in that case we still need to dodge in correct direction
+        var hintTime = WorldState.FutureTime(50);
+
+        // stay near border
+        hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 16), hintTime);
+
+        // prefer moving towards safety (CW is arbitrary)
+        var moveQuickly = _destinationDir == default;
+        var preferredDir = !moveQuickly ? _destinationDir : (actor.Position - Module.Center).Normalized().OrthoR();
+        var planeOffset = moveQuickly && master == null && NumCasts > 0 ? 2 : -2; // if we're moving quickly, mark our current spot as forbidden (don't bother if we have master or waiting for first cast, though)
+        hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center + planeOffset * preferredDir, preferredDir), hintTime);
+    }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -183,19 +341,100 @@ class P2ShiningArmor(BossModule module) : Components.GenericGaze(module, ActionI
 
 class P2TwinStillnessSilence(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly Actor? _source = module.Enemies(OID.OraclesReflection).FirstOrDefault();
     public readonly List<AOEInstance> AOEs = [];
+    private readonly Actor? _source = module.Enemies(OID.OraclesReflection).FirstOrDefault();
+    private BitMask _thinIce;
+    private P2SinboundHolyVoidzone? _voidzones; // used for hints only
 
+    private const float SlideDistance = 32;
     private readonly AOEShapeCone _shapeFront = new(30, 135.Degrees());
     private readonly AOEShapeCone _shapeBack = new(30, 45.Degrees());
 
+    public void EnableAIHints()
+    {
+        _voidzones = Module.FindComponent<P2SinboundHolyVoidzone>();
+    }
+
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs.Take(1);
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_voidzones == null || _source == null)
+            return;
+
+        if (!_thinIce[slot])
+        {
+            // preposition
+            // this is a bit hacky - we need to stay either far away from boss, or close (and slide over at the beginning of the ice)
+            // the actual shape is quite complicated ('primary' shape is a set of points at distance X from a cone behind boss, 'secondary' is a set of points at distance X from primary), so we use a rough approximation
+
+            // first, find a set of allowed angles along the border
+            var zoneList = new ArcList(Module.Center, 17);
+            foreach (var z in _voidzones.Sources(Module))
+                zoneList.ForbidCircle(z.Position, _voidzones.Shape.Radius);
+
+            // now find closest allowed zone
+            var actorDir = Angle.FromDirection(actor.Position - Module.Center);
+            var closest = zoneList.Allowed(5.Degrees()).MinBy(z => actorDir.DistanceToRange(z.min, z.max).Abs().Rad);
+            if (closest != default)
+            {
+                var desiredDir = (closest.min + closest.max) * 0.5f;
+                var halfWidth = (closest.max - closest.min) * 0.5f;
+                if (halfWidth.Deg > 5)
+                {
+                    // destination is very wide, narrow it down a bit to be in line with the boss
+                    halfWidth = 5.Degrees();
+                    var sourceDir = Angle.FromDirection(_source.Position - Module.Center);
+                    var sourceDist = sourceDir.DistanceToRange(closest.min + halfWidth, closest.max - halfWidth);
+                    var oppositeDist = (sourceDir + 180.Degrees()).DistanceToRange(closest.min + halfWidth, closest.max - halfWidth);
+                    desiredDir = oppositeDist.Abs().Rad < sourceDist.Abs().Rad ? (sourceDir + 180.Degrees() + oppositeDist) : (sourceDir + sourceDist);
+                }
+                hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 16), WorldState.FutureTime(50));
+                hints.AddForbiddenZone(ShapeDistance.InvertedCone(Module.Center, 100, desiredDir, halfWidth), DateTime.MaxValue);
+            }
+            return;
+        }
+
+        // at this point, we have thin ice, so we can either stay or move fixed distance
+        hints.AddForbiddenZone(ShapeDistance.Donut(actor.Position, 1, 31));
+        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(actor.Position, 33));
+
+        if (AOEs.Count == 0)
+        {
+            // if we're behind boss, slide over
+            hints.AddForbiddenZone(ShapeDistance.Rect(_source.Position, _source.Rotation, 20, 20, 20), DateTime.MaxValue);
+        }
+        else
+        {
+            // otherwise just dodge next aoe
+            ref var nextAOE = ref AOEs.Ref(0);
+            hints.AddForbiddenZone(nextAOE.Shape.Distance(nextAOE.Origin, nextAOE.Rotation), nextAOE.Activation);
+        }
+
+        // ensure we don't slide over voidzones
+        foreach (var z in _voidzones.Sources(Module))
+        {
+            var offset = z.Position - actor.Position;
+            var dist = offset.Length();
+            if (dist > _voidzones.Shape.Radius)
+                hints.AddForbiddenZone(ShapeDistance.Cone(actor.Position, 100, Angle.FromDirection(offset), Angle.Asin(dist / _voidzones.Shape.Radius)));
+        }
+    }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         Arena.Actor(_source, ArenaColor.Object, true);
-        if (AOEs.Count > 0)
-            Arena.AddCircle(pc.Position, 32, ArenaColor.Safe);
+        if (_thinIce[pcSlot])
+        {
+            Arena.AddCircle(pc.Position, SlideDistance, ArenaColor.Vulnerable);
+            Arena.AddLine(pc.Position, pc.Position - SlideDistance * WorldState.Client.CameraAzimuth.ToDirection(), ArenaColor.Vulnerable);
+        }
+    }
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.ThinIce)
+            _thinIce.Set(Raid.FindSlot(actor.InstanceID));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

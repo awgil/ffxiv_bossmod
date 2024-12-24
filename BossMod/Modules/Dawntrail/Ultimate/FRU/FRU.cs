@@ -4,6 +4,7 @@ class P2QuadrupleSlap(BossModule module) : Components.TankSwap(module, ActionID.
 class P2CrystalOfLight(BossModule module) : Components.Adds(module, (uint)OID.CrystalOfLight);
 class P3Junction(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Junction));
 class P3BlackHalo(BossModule module) : Components.CastSharedTankbuster(module, ActionID.MakeSpell(AID.BlackHalo), new AOEShapeCone(60, 45.Degrees())); // TODO: verify angle
+class P4EdgeOfOblivion(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.EdgeOfOblivion));
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1006, NameID = 9707, PlanLevel = 100)]
 public class FRU(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20))
@@ -11,11 +12,15 @@ public class FRU(WorldState ws, Actor primary) : BossModule(ws, primary, new(100
     private Actor? _bossP2;
     private Actor? _iceVeil;
     private Actor? _bossP3;
+    private Actor? _bossP4Usurper;
+    private Actor? _bossP4Oracle;
 
     public Actor? BossP1() => PrimaryActor;
     public Actor? BossP2() => _bossP2;
     public Actor? IceVeil() => _iceVeil;
     public Actor? BossP3() => _bossP3;
+    public Actor? BossP4Usurper() => _bossP4Usurper;
+    public Actor? BossP4Oracle() => _bossP4Oracle;
 
     protected override void UpdateModule()
     {
@@ -24,6 +29,8 @@ public class FRU(WorldState ws, Actor primary) : BossModule(ws, primary, new(100
         _bossP2 ??= StateMachine.ActivePhaseIndex == 1 ? Enemies(OID.BossP2).FirstOrDefault() : null;
         _iceVeil ??= StateMachine.ActivePhaseIndex == 1 ? Enemies(OID.IceVeil).FirstOrDefault() : null;
         _bossP3 ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.BossP3).FirstOrDefault() : null;
+        _bossP4Usurper ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.UsurperOfFrostP4).FirstOrDefault() : null;
+        _bossP4Oracle ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.OracleOfDarknessP4).FirstOrDefault() : null;
     }
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
@@ -32,5 +39,7 @@ public class FRU(WorldState ws, Actor primary) : BossModule(ws, primary, new(100
         Arena.Actor(_bossP2, ArenaColor.Enemy);
         Arena.Actor(_iceVeil, ArenaColor.Enemy);
         Arena.Actor(_bossP3, ArenaColor.Enemy);
+        Arena.Actor(_bossP4Usurper, ArenaColor.Enemy);
+        Arena.Actor(_bossP4Oracle, ArenaColor.Enemy);
     }
 }

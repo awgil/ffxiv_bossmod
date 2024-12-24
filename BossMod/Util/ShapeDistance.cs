@@ -201,4 +201,25 @@ public static class ShapeDistance
 
     public static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Max(e => e(p)) - offset;
     public static Func<WPos, float> Union(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Min(e => e(p)) - offset;
+
+    // special distance function for precise positioning, finer than map resolution
+    // it's an inverted rect of a size equal to one grid cell, with a special adjustment if starting position is in the same cell, but farther than tolerance
+    public static Func<WPos, float> PrecisePosition(WPos origin, WDir dir, float cellSize, WPos starting, float tolerance)
+    {
+        var delta = starting - origin;
+        var dparr = delta.Dot(dir);
+        if (dparr > tolerance && dparr <= cellSize)
+            origin -= cellSize * dir;
+        else if (dparr < -tolerance && dparr >= -cellSize)
+            origin += cellSize * dir;
+
+        var normal = dir.OrthoL();
+        var dortho = delta.Dot(normal);
+        if (dortho > tolerance && dortho <= cellSize)
+            origin -= cellSize * normal;
+        else if (dortho < -tolerance && dortho >= -cellSize)
+            origin += cellSize * normal;
+
+        return InvertedRect(origin, dir, cellSize, cellSize, cellSize);
+    }
 }

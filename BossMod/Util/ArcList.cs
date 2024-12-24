@@ -40,8 +40,12 @@ public class ArcList(WPos center, float radius)
     {
         var oo = origin - Center;
         var center = Angle.FromDirection(oo);
-        var halfWidth = MathF.Acos((oo.LengthSq() + Radius * Radius - radius * radius) / (2 * oo.Length() * Radius));
-        ForbidArcByLength(center, halfWidth.Radians());
+        var cos = (oo.LengthSq() + Radius * Radius - radius * radius) / (2 * oo.Length() * Radius);
+        if (cos is <= 1 and >= -1)
+        {
+            var halfWidth = MathF.Acos(cos);
+            ForbidArcByLength(center, halfWidth.Radians());
+        }
     }
 
     public void ForbidInfiniteRect(WPos origin, Angle dir, float halfWidth)
@@ -55,7 +59,7 @@ public class ArcList(WPos center, float radius)
         ForbidArc(i2.Item2, i1.Item2);
     }
 
-    public IEnumerable<(Angle, Angle)> Allowed(Angle cushion)
+    public IEnumerable<(Angle min, Angle max)> Allowed(Angle cushion)
     {
         if (Forbidden.Segments.Count == 0)
         {
