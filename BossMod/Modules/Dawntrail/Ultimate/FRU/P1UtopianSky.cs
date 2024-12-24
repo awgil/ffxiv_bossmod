@@ -104,20 +104,15 @@ class P1UtopianSkyAIInitial(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 18)); // stay on edge
+
         var clockspot = _config.P1UtopianSkyInitialSpots[assignment];
-        if (clockspot < 0)
-            return; // no assignment
-        var assignedDirection = (180 - 45 * clockspot).Degrees();
-        if (assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT)
+        if (clockspot >= 0)
         {
-            // adjust slightly to neighbouring tank slot
-            var coTankSpot = _config.P1UtopianSkyInitialSpots[assignment == PartyRolesConfig.Assignment.MT ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT];
-            if (coTankSpot == ((clockspot + 1) & 7))
-                assignedDirection -= 4.Degrees();
-            else if (coTankSpot == ((clockspot + 7) & 7))
-                assignedDirection += 4.Degrees();
+            // ... and in assigned cone
+            var assignedDirection = (180 - 45 * clockspot).Degrees();
+            hints.AddForbiddenZone(ShapeDistance.InvertedCone(Module.Center, 50, assignedDirection, 5.Degrees()), DateTime.MaxValue);
         }
-        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center + 18 * assignedDirection.ToDirection(), 1));
     }
 }
 

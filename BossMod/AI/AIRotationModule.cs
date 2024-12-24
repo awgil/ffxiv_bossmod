@@ -10,16 +10,18 @@ public abstract class AIRotationModule(RotationModuleManager manager, Actor play
     protected float Deadline(DateTime deadline) => Math.Max(0, (float)(deadline - World.CurrentTime).TotalSeconds);
     protected float Speed() => Player.FindStatus(50) != null ? 7.8f : 6;
 
-    protected bool InMeleeRange(Actor target)
+    protected bool InMeleeRange(Actor target, WPos position)
     {
         var maxRange = target.HitboxRadius + Player.HitboxRadius + 3;
-        return (target.Position - Player.Position).LengthSq() < maxRange * maxRange;
+        return (target.Position - position).LengthSq() < maxRange * maxRange;
     }
+
+    protected bool InMeleeRange(Actor target) => InMeleeRange(target, Player.Position);
 
     protected void SetForcedMovement(WPos? pos, float tolerance = 0.1f)
     {
         var dir = (pos ?? Player.Position) - Player.Position;
-        Hints.ForcedMovement = dir.LengthSq() > tolerance * tolerance ? new(dir.X, Player.PosRot.Y, dir.Z) : default;
+        Hints.ForcedMovement = dir.LengthSq() > tolerance * tolerance ? dir.ToVec3(Player.PosRot.Y) : default;
     }
 
     protected WPos ClosestInRange(WPos pos, WPos target, float maxRange)

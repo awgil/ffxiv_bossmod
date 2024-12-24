@@ -180,6 +180,12 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
             var player = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
             player->GetStatusManager()->SetStatus(20, 3909, 20.0f, 100, 0xE0000000, true);
         }
+        ImGui.SameLine();
+        if (ImGui.Button("Add thin ice"))
+        {
+            var player = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+            player->GetStatusManager()->SetStatus(20, 911, 20.0f, 320, 0xE0000000, true); // param = distance * 10
+        }
 
         foreach (var elem in ws.Actors)
         {

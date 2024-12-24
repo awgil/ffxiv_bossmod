@@ -9,6 +9,7 @@ class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
     private readonly List<Actor> _currentBaiters = [];
     private BitMask _fireTethers; // bit i is set if i'th tether is fire
     private int _numFetters;
+    private DateTime _minHelpMove; // we want conga members to start moving with a slight delay
 
     private static readonly AOEShapeCone _shapeFire = new(60, 45.Degrees());
     private static readonly AOEShapeCone _shapeLightning = new(60, 60.Degrees());
@@ -41,6 +42,17 @@ class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
     {
         if (_tetherTargets.Count > NumCasts)
             hints.Add(string.Join(" -> ", Enumerable.Range(NumCasts, _tetherTargets.Count - NumCasts).Select(i => _fireTethers[i] ? "Fire" : "Lightning")));
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var baitOrder = NextAssignedBaitOrder(slot);
+        if (baitOrder == 0 || _playerOrder[slot] >= 5 && WorldState.CurrentTime < _minHelpMove)
+            return;
+        var dest = TetherSpot(baitOrder);
+        if (_playerOrder[slot] != baitOrder)
+            dest += BaitOffset(_playerOrder[slot], _fireTethers[baitOrder - 1]);
+        hints.AddForbiddenZone(ShapeDistance.PrecisePosition(dest, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
@@ -88,14 +100,7 @@ class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
 
             var slot = Raid.FindSlot(tether.Target);
             if (slot >= 0)
-            {
                 _playerOrder[slot] = _tetherTargets.Count;
-                //var odd = (order & 1) != 0;
-                //var firstBait = order <= 2;
-                //_states[slot].OddGroup = odd;
-                //_states[slot].Spot1 = TetherSpot(odd, !firstBait);
-                //_states[slot].Spot2 = TetherSpot(odd, firstBait);
-            }
 
             if (_tetherTargets.Count == 4)
                 InitAssignments();
@@ -127,11 +132,7 @@ class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
         conga.SortBy(c => c.prio);
         for (int i = 0; i < conga.Count; ++i)
             _playerOrder[conga[i].slot] = i + 5;
-
-        //InitNormalSpots(conga[0].slot, true, true);
-        //InitNormalSpots(conga[1].slot, true, false);
-        //InitNormalSpots(conga[2].slot, false, false);
-        //InitNormalSpots(conga[3].slot, false, true);
+        _minHelpMove = WorldState.FutureTime(1);
     }
 
     private bool IsGroupEven(int order) => order is 2 or 4 or 7 or 8;

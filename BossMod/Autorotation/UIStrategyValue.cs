@@ -193,12 +193,14 @@ public static class UIStrategyValue
             if (value.Target == StrategyTarget.PointAbsolute)
             {
                 modified |= ImGui.InputFloat("X", ref value.Offset1);
-                modified |= ImGui.InputFloat("Y", ref value.Offset2);
+                modified |= ImGui.InputFloat("Z", ref value.Offset2);
             }
             else
             {
                 modified |= ImGui.DragFloat("Offset", ref value.Offset1, 0.1f, 0, 30);
                 modified |= ImGui.DragFloat("Direction", ref value.Offset2, 1, -180, 180);
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip($"In degrees; 0 is south, increases CCW (so 90 is E, 180 is N, -90 is W)");
             }
         }
 

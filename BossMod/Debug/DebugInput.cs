@@ -171,8 +171,7 @@ internal sealed unsafe class DebugInput : IDisposable
         }
         if (_wannaMove)
         {
-            var dir = _moveDir.Degrees().ToDirection();
-            _move.DesiredDirection = new(dir.X, 0, dir.Z);
+            _move.DesiredDirection = _moveDir.Degrees().ToDirection().ToVec3();
         }
         //_navi.Update(player);
 
