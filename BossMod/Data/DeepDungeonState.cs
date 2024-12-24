@@ -11,6 +11,7 @@ public sealed class DeepDungeonState
     public PartyMember[] Party = new PartyMember[4];
     public Item[] Items = new Item[16];
     public Chest[] Chests = new Chest[16];
+    public byte[] Magicite = new byte[3];
 
     public enum DungeonType : byte
     {
@@ -61,6 +62,9 @@ public sealed class DeepDungeonState
 
         if (Chests.Any(c => c != default))
             yield return new OpChestsChange(Chests);
+
+        if (Magicite.Any(c => c > 0))
+            yield return new OpMagiciteChange(Magicite);
     }
 
     public Event<OpProgressChange> ProgressChanged = new();
@@ -145,6 +149,20 @@ public sealed class DeepDungeonState
             output.EmitFourCC("DDCT"u8);
             foreach (var chest in Value)
                 output.Emit(chest.Type).Emit(chest.Room);
+        }
+    }
+
+    public Event<OpMagiciteChange> MagiciteChanged = new();
+    public sealed record class OpMagiciteChange(byte[] Value) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            ws.DeepDungeon.Magicite = Value;
+            ws.DeepDungeon.MagiciteChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("DDMG"u8).Emit(Value);
         }
     }
 }

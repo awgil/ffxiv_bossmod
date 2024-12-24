@@ -17,7 +17,7 @@ public enum AID : uint
 
 public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 70)
 {
-    private readonly List<(Actor Source, DateTime Activation)> Donuts = [];
+    private readonly List<(Actor Source, DateTime Activation, float Radius)> Donuts = [];
 
     protected override void OnCastStarted(Actor actor)
     {
@@ -38,7 +38,7 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
                 Interrupts.Add(actor);
                 break;
             case AID.AtropineSpore:
-                Donuts.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime)));
+                Donuts.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), 10));
                 break;
         }
     }
@@ -75,7 +75,7 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
             return;
 
         foreach (var d in Donuts)
-            hints.AddForbiddenZone(new AOEShapeDonut(10, 100), d.Source.Position, default, d.Activation);
+            hints.AddForbiddenZone(new AOEShapeDonut(d.Radius, 100), d.Source.Position, default, d.Activation);
     }
 
     protected override IEnumerable<ActionID> ActionsToIgnore() => [ActionID.MakeSpell(AID.BlindingBurst), ActionID.MakeSpell(AID.AtropineSpore)];

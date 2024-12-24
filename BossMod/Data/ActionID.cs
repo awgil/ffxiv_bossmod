@@ -26,6 +26,7 @@ public enum ActionType : byte
     BozjaHolsterSlot0 = 0xE0, // id = BozjaHolsterID, use from holster to replace duty action 0
     BozjaHolsterSlot1 = 0xE1, // id = BozjaHolsterID, use from holster to replace duty action 1
     Pomander = 0xE2, // id = PomanderID
+    Magicite = 0xE3, // id = slot (1-3)
 }
 
 public enum Positional { Any, Flank, Rear, Front }
@@ -50,6 +51,7 @@ public readonly record struct ActionID(uint Raw)
         ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1 => $"{(BozjaHolsterID)ID}",
         ActionType.PetAction => Service.LuminaRow<Lumina.Excel.Sheets.PetAction>(ID)?.Name.ExtractText() ?? "<not found>",
         ActionType.Pomander => Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeonItem>(ID)?.Name.ExtractText() ?? "<not found>",
+        ActionType.Magicite => $"Magicite {ID}",
         _ => ""
     };
 

@@ -1,6 +1,4 @@
-﻿using Clipper2Lib;
-
-namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D30Hiruko;
+﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D30Hiruko;
 
 public enum OID : uint
 {
@@ -19,7 +17,25 @@ public enum AID : uint
 }
 
 class LightningStrike(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightningStrike), new AOEShapeRect(55.25f, 3));
-class LightningBolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightningBolt), new AOEShapeCircle(8)); // problem child. Need to create a safe area for players to stand in with the proxy AOE.
+class Shiko(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shiko), new AOEShapeCircle(6));
+class LightningBolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightningBolt), new AOEShapeCircle(8))
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Casters.Count == 20)
+        {
+            var closest = Casters
+                .Where(c => !c.Position.InCircle(Arena.Center, 10) && !c.Position.InCircle(Module.PrimaryActor.Position, 8))
+                .MinBy(c => c.DistanceToHitbox(actor))!;
+            hints.AddForbiddenZone(new AOEShapeDonut(2, 100), closest.Position, default, Module.CastFinishAt(Module.PrimaryActor.CastInfo));
+        }
+        else
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
+        }
+    }
+}
+class Supercell(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Supercell), new AOEShapeRect(50, 50));
 
 class D30HirukoStates : StateMachineBuilder
 {
@@ -27,6 +43,8 @@ class D30HirukoStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<LightningStrike>()
+            .ActivateOnEnter<Shiko>()
+            .ActivateOnEnter<Supercell>()
             .ActivateOnEnter<LightningBolt>();
     }
 }

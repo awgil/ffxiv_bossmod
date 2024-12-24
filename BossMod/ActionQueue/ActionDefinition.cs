@@ -256,6 +256,16 @@ public sealed class ActionDefinitions : IDisposable
                 AllowedTargets = ActionTargets.Self
             };
         }
+
+        for (var i = 1u; i <= 3; i++)
+        {
+            var mid = new ActionID(ActionType.Magicite, i);
+            _definitions[mid] = new(mid)
+            {
+                InstantAnimLock = 2.1f,
+                AllowedTargets = ActionTargets.Self
+            };
+        }
     }
 
     public void Dispose()

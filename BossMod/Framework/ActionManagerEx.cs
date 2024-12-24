@@ -65,7 +65,6 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private readonly HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
     private readonly HookAddress<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
     private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
-    private readonly HookAddress<UsePomanderDelegate> _usePomanderHook;
     private readonly HookAddress<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
 
     private delegate void ExecuteCommandGTDelegate(uint commandId, Vector3* position, uint param1, uint param2, uint param3, uint param4);
@@ -73,6 +72,10 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private DateTime _nextAllowedExecuteCommand;
 
     private delegate void* UsePomanderDelegate(InstanceContentDeepDungeon* thisPtr, uint id);
+    private readonly HookAddress<UsePomanderDelegate> _usePomanderHook;
+
+    private delegate void UseMagiciteDelegate(InstanceContentDeepDungeon* thisPtr, uint slot);
+    private readonly HookAddress<UseMagiciteDelegate> _useMagiciteHook;
 
     public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement)
     {
@@ -92,6 +95,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
         _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
         _usePomanderHook = new("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8D 4F 10 E8 ?? ?? ?? ?? 48 63 F8", UsePomanderDetour);
+        _useMagiciteHook = new("E8 ?? ?? ?? ?? EB 70 48 8D 4F 10", UseMagiciteDetour);
         _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
 
         var executeCommandGTAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 1E 48 8B 53 08");
@@ -317,6 +321,18 @@ public sealed unsafe class ActionManagerEx : IDisposable
                     return true;
                 }
                 return false;
+            case ActionType.Magicite:
+                var dd2 = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+                var player2 = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+                var prevRot2 = player2 != null ? player2->Rotation.Radians() : default;
+                if (dd2 != null)
+                {
+                    _useMagiciteHook.Original(dd2, action.ID);
+                    var currRot2 = player2 != null ? player2->Rotation.Radians() : default;
+                    HandleActionRequest(action, 0, targetId, targetPos, prevRot2, currRot2);
+                    return true;
+                }
+                return false;
             default:
                 // fall back to UAL hook for everything not covered explicitly
                 return _inst->UseActionLocation((CSActionType)action.Type, action.ID, targetId, &targetPos, 0);
@@ -506,6 +522,14 @@ public sealed unsafe class ActionManagerEx : IDisposable
             return null;
 
         return _usePomanderHook.Original(self, pomanderSlot);
+    }
+
+    private void UseMagiciteDetour(InstanceContentDeepDungeon* self, uint magiciteSlot)
+    {
+        if (_manualQueue.Push(new ActionID(ActionType.Magicite, magiciteSlot), 0xE0000000, false, () => (0xE0000000, null)))
+            return;
+
+        _useMagiciteHook.Original(self, magiciteSlot);
     }
 
     private void ProcessPacketActionEffectDetour(uint casterID, Character* casterObj, Vector3* targetPos, ActionEffectHandler.Header* header, ActionEffectHandler.TargetEffects* effects, GameObjectId* targets)
