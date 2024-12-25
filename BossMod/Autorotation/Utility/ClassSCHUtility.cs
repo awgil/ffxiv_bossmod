@@ -114,7 +114,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (soilAction != default)
-            QueueOGCD(soilAction, TargetChoice(soil) ?? primaryTarget);
+            QueueOGCD(soilAction, TargetChoice(soil) ?? primaryTarget ?? Player);
 
         var deploy = strategy.Option(Track.DeploymentTactics);
         if (deploy.As<DeployOption>() != DeployOption.None)
