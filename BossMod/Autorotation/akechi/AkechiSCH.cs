@@ -14,9 +14,9 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         AOE,             //ST&AOE rotations tracking
         DOT,             //DOT abilities tracking
         Potion,          //Potion item tracking
+        EnergyDrain,     //Energy Drain tracking
         ChainStratagem,  //Chain Stratagem tracking
         Aetherflow,      //Aetherflow tracking
-        EnergyDrain,     //Energy Drain tracking
     }
     public enum AOEStrategy
     {
@@ -42,6 +42,13 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         Manual,                //Manual potion usage
         AlignWithRaidBuffs,    //Align potion usage with raid buffs
         Immediate              //Use potions immediately when available
+    }
+    public enum EnergyStrategy
+    {
+        Use3,                //Use all stacks of Aetherflow for Energy Drain
+        Use2,                //Use 2 stacks of Aetherflow for Energy Drain
+        Use1,                //Use 1 stack of Aetherflow for Energy Drain
+        Delay                //Delay the use of Energy Drain
     }
     public enum OffensiveStrategy
     {
@@ -87,6 +94,12 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
             .AddOption(PotionStrategy.AlignWithRaidBuffs, "AlignWithRaidBuffs", "Align with No Mercy & Bloodfest together (to ensure use on 2-minute windows)", 270, 30, ActionTargets.Self)
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
+        res.Define(Track.EnergyDrain).As<EnergyStrategy>("Energy Drain", "E.Drain", uiPriority: 150)
+            .AddOption(EnergyStrategy.Use3, "UseAll", "Uses all stacks of Aetherflow for Energy Drain; conserves no stacks for manual usage", 0, 0, ActionTargets.Hostile, 45)
+            .AddOption(EnergyStrategy.Use2, "Use2", "Uses 2 stacks of Aetherflow for Energy Drain; conserves 1 stack for manual usage", 0, 0, ActionTargets.Hostile, 45)
+            .AddOption(EnergyStrategy.Use1, "Use1", "Uses 1 stacks of Aetherflow for Energy Drain; conserves 1 stack for manual usage", 0, 0, ActionTargets.Hostile, 45)
+            .AddOption(EnergyStrategy.Delay, "Delay", "Delay use of Energy Drain", 0, 0, ActionTargets.None, 45)
+            .AddAssociatedActions(AID.EnergyDrain);
         #endregion
 
         #region Offensive Strategies
@@ -106,14 +119,6 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
             .AddOption(OffensiveStrategy.LateWeave, "Late Weave", "Force use of Aetherflow in very next LAST weave slot only", 60, 10, ActionTargets.Self, 45)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Aetherflow", 0, 0, ActionTargets.None, 45)
             .AddAssociatedActions(AID.Aetherflow);
-        res.Define(Track.EnergyDrain).As<OffensiveStrategy>("Energy Drain", "E.Drain", uiPriority: 150)
-            .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Energy Drain")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use of Energy Drain", 60, 10, ActionTargets.Hostile, 45)
-            .AddOption(OffensiveStrategy.AnyWeave, "Any Weave", "Force use of Energy Drain in any next possible weave slot", 60, 10, ActionTargets.Hostile, 45)
-            .AddOption(OffensiveStrategy.EarlyWeave, "Early Weave", "Force use of Energy Drain in very next FIRST weave slot only", 60, 10, ActionTargets.Hostile, 45)
-            .AddOption(OffensiveStrategy.LateWeave, "Late Weave", "Force use of Energy Drain in very next LAST weave slot only", 60, 10, ActionTargets.Hostile, 45)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Energy Drain", 0, 0, ActionTargets.None, 45)
-            .AddAssociatedActions(AID.EnergyDrain);
         #endregion
 
         return res;
@@ -139,6 +144,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
     #endregion
 
     #region Placeholders for Variables
+    private (int Stacks, bool IsActive) Aetherflow; //Current Aetherflow stacks (max: 3)
     private bool canAF; //Checks if Aetherflow is completely available
     private bool canED; //Checks if Energy Drain is completely available
     private bool canCS; //Checks if Chain Stratagem is completely available
@@ -215,13 +221,13 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         #region Variables
         //Gauge
         var gauge = World.Client.GetGauge<ScholarGauge>(); //Retrieve Scholar gauge
-        var aetherflowStacks = gauge.Aetherflow; //Current Aetherflow stacks (max: 3)
-        var hasAetherflow = aetherflowStacks > 0; //Checks if Aetherflow is available
+        Aetherflow.Stacks = gauge.Aetherflow; //Current Aetherflow stacks
+        Aetherflow.IsActive = Aetherflow.Stacks > 0; //Checks if Aetherflow is available
         bioLeft = StatusDetails(primaryTarget, BestDOT, Player.InstanceID).Left;
         stratagemLeft = StatusDetails(primaryTarget, SID.ChainStratagem, Player.InstanceID).Left;
         canCS = ActionReady(AID.ChainStratagem); //Chain Stratagem is available
-        canED = Unlocked(AID.EnergyDrain) && hasAetherflow; //Energy Drain is available
-        canAF = ActionReady(AID.Aetherflow) && !hasAetherflow; //Aetherflow is available
+        canED = Unlocked(AID.EnergyDrain) && Aetherflow.IsActive; //Energy Drain is available
+        canAF = ActionReady(AID.Aetherflow) && !Aetherflow.IsActive; //Aetherflow is available
         canWeaveIn = GCD is <= 2.5f and >= 0.1f; //Can weave in oGCDs
         canWeaveEarly = GCD is <= 2.5f and >= 1.25f; //Can weave in oGCDs early
         canWeaveLate = GCD is <= 1.25f and >= 0.1f; //Can weave in oGCDs late
@@ -241,7 +247,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         var af = strategy.Option(Track.Aetherflow); //Aetherflow track
         var afStrat = af.As<OffensiveStrategy>(); //Aetherflow strategy
         var ed = strategy.Option(Track.EnergyDrain); //Energy Drain track
-        var edStrat = ed.As<OffensiveStrategy>(); //Energy Drain strategy
+        var edStrat = ed.As<EnergyStrategy>(); //Energy Drain strategy
         #endregion
 
         #endregion
@@ -272,7 +278,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
                 QueueGCD(BestAOE, Player, GCDPriority.Standard);
             if (In25y(STtarget) &&
                 (!ShouldUseAOE || IsFirstGCD()))
-                QueueGCD(BestST, STtarget, GCDPriority.Standard);
+                QueueGCD(isMoving ? BestRuin : BestST, STtarget, GCDPriority.Standard);
         }
         if (ShouldUseDOTs(primaryTarget, DOTStrategy))
             QueueGCD(BestBio, ResolveTargetOverride(DOT.Value) ?? primaryTarget, GCDPriority.ForcedGCD);
@@ -283,11 +289,13 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
                 QueueGCD(AID.BanefulImpaction, ResolveTargetOverride(DOT.Value) ?? primaryTarget, GCDPriority.Standard + 15);
         }
         if (ShouldUseChainStratagem(primaryTarget, csStrat))
-            QueueGCD(AID.ChainStratagem, ResolveTargetOverride(cs.Value) ?? primaryTarget, GCDPriority.Standard + 500);
+            QueueOGCD(AID.ChainStratagem, ResolveTargetOverride(cs.Value) ?? primaryTarget, OGCDPriority.ChainStratagem);
         if (ShouldUseAetherflow(primaryTarget, afStrat))
-            QueueGCD(AID.Aetherflow, Player, GCDPriority.Standard + 400);
+            QueueOGCD(AID.Aetherflow, Player, OGCDPriority.Aetherflow);
         if (ShouldUseEnergyDrain(primaryTarget, edStrat))
-            QueueGCD(AID.EnergyDrain, ResolveTargetOverride(ed.Value) ?? primaryTarget, GCDPriority.Standard + 300);
+            QueueOGCD(AID.EnergyDrain, ResolveTargetOverride(ed.Value) ?? primaryTarget, OGCDPriority.EnergyDrain);
+        if (Player.HPMP.CurMP <= 9000 && canWeaveIn && ActionReady(AID.LucidDreaming))
+            QueueOGCD(AID.LucidDreaming, Player, OGCDPriority.EnergyDrain);
         if (potion is PotionStrategy.AlignWithRaidBuffs && CD(AID.ChainStratagem) < 5 ||
             potion is PotionStrategy.Immediate)
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.ForcedOGCD, 0, GCD - 0.9f);
@@ -387,14 +395,12 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         _ => false
     };
 
-    private bool ShouldUseEnergyDrain(Actor? target, OffensiveStrategy strategy) => strategy switch
+    private bool ShouldUseEnergyDrain(Actor? target, EnergyStrategy strategy) => strategy switch
     {
-        OffensiveStrategy.Automatic => Player.InCombat && target != null && canED && canWeaveIn && In25y(target),
-        OffensiveStrategy.Force => canED,
-        OffensiveStrategy.AnyWeave => canED && canWeaveIn,
-        OffensiveStrategy.EarlyWeave => canED && canWeaveEarly,
-        OffensiveStrategy.LateWeave => canED && canWeaveLate,
-        OffensiveStrategy.Delay => false,
+        EnergyStrategy.Use3 => canED && Aetherflow.IsActive,
+        EnergyStrategy.Use2 => canED && Aetherflow.Stacks > 1,
+        EnergyStrategy.Use1 => canED && Aetherflow.Stacks > 2,
+        EnergyStrategy.Delay => false,
         _ => false
     };
     #endregion
