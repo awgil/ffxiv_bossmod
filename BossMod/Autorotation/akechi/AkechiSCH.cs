@@ -266,7 +266,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         {
             if (DOTStrategy is DOTStrategy.BanefulImpaction &&
             PlayerHasEffect(SID.ImpactImminent, 30))
-                QueueGCD(AID.BanefulImpaction, ResolveTargetOverride(DOT.Value) ?? primaryTarget, GCDPriority.ForcedGCD);
+                QueueOGCD(AID.BanefulImpaction, ResolveTargetOverride(DOT.Value) ?? primaryTarget, OGCDPriority.ForcedOGCD);
         }
         #endregion
 
@@ -281,12 +281,12 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
                 QueueGCD(isMoving ? BestRuin : BestST, STtarget, GCDPriority.Standard);
         }
         if (ShouldUseDOTs(primaryTarget, DOTStrategy))
-            QueueGCD(BestBio, ResolveTargetOverride(DOT.Value) ?? primaryTarget, GCDPriority.ForcedGCD);
+            QueueGCD(BestBio, ResolveTargetOverride(DOT.Value) ?? primaryTarget, GCDPriority.DOT);
 
         if (DOTStrategy == DOTStrategy.Auto)
         {
             if (PlayerHasEffect(SID.ImpactImminent, 30))
-                QueueGCD(AID.BanefulImpaction, ResolveTargetOverride(DOT.Value) ?? primaryTarget, GCDPriority.Standard + 15);
+                QueueOGCD(AID.BanefulImpaction, ResolveTargetOverride(DOT.Value) ?? primaryTarget, OGCDPriority.ChainStratagem);
         }
         if (ShouldUseChainStratagem(primaryTarget, csStrat))
             QueueOGCD(AID.ChainStratagem, ResolveTargetOverride(cs.Value) ?? primaryTarget, OGCDPriority.ChainStratagem);
@@ -383,7 +383,6 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         OffensiveStrategy.Delay => false,
         _ => false
     };
-
     private bool ShouldUseAetherflow(Actor? target, OffensiveStrategy strategy) => strategy switch
     {
         OffensiveStrategy.Automatic => Player.InCombat && target != null && canAF && canWeaveIn,
@@ -394,7 +393,6 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         OffensiveStrategy.Delay => false,
         _ => false
     };
-
     private bool ShouldUseEnergyDrain(Actor? target, EnergyStrategy strategy) => strategy switch
     {
         EnergyStrategy.Use3 => canED && Aetherflow.IsActive,
