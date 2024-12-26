@@ -427,7 +427,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         nmLeft = SelfStatusLeft(SID.NoMercy, 20); //Remaining time for No Mercy buff (20s)
         hasBreak = HasEffect(SID.ReadyToBreak); //Checks for Ready To Break buff
         hasReign = HasEffect(SID.ReadyToReign); //Checks for Ready To Reign buff
-        hasNM = nmCD is >= 40 and <= 60; //Checks if No Mercy is active
+        hasNM = nmCD is >= 39.5f and <= 60; //Checks if No Mercy is active
         hasBlast = Unlocked(AID.Hypervelocity) && HasEffect(SID.ReadyToBlast); //Checks for Ready To Blast buff
         hasRaze = Unlocked(AID.FatedBrand) && HasEffect(SID.ReadyToRaze); //Checks for Ready To Raze buff
         hasRip = HasEffect(SID.ReadyToRip); //Checks for Ready To Rip buff
