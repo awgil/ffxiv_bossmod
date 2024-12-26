@@ -11,53 +11,51 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
     #region Enums: Abilities / Strategies
     public enum Track
     {
-        AOE,             //ST&AOE rotations tracking
-        DOT,             //DOT abilities tracking
-        Potion,          //Potion item tracking
-        EnergyDrain,     //Energy Drain tracking
-        ChainStratagem,  //Chain Stratagem tracking
-        Aetherflow,      //Aetherflow tracking
+        AOE,                 //ST&AOE rotations tracking
+        Bio,                 //Bio tracking
+        Potion,              //Potion item tracking
+        EnergyDrain,         //Energy Drain tracking
+        ChainStratagem,      //Chain Stratagem tracking
+        Aetherflow,          //Aetherflow tracking
     }
     public enum AOEStrategy
     {
-        Auto,               //Automatically decide when to use ST or AOE abilities
-        Ruin2,              //Force use of Ruin II only 
-        Broil,              //Force use of Broil only
-        ArtOfWar,           //Force use of Art of War only
+        Auto,                //Automatically decide when to use ST or AOE abilities
+        Ruin2,               //Force use of Ruin II only 
+        Broil,               //Force use of Broil only
+        ArtOfWar,            //Force use of Art of War only
     }
-    public enum DOTStrategy
+    public enum BioStrategy
     {
-        Auto,               //Automatically decide when to use damage-over-time abilities
-        Bio,                //Force use of Bio (ST, 30s duration)
-        Bio2,               //Force use of Bio II (ST, 30s duration)
-        Biolysis,           //Force use of Biolysis (ST, 30s duration)
-        BioOpti,            //Force use of Bio (ST, 30s duration) if target does not have DOT effect
-        Bio2Opti,           //Force use of Bio II (ST, 30s duration) if target does not have DOT effect
-        BiolysisOpti,       //Force use of Biolysis (ST, 30s duration) if target does not have DOT effect
-        BanefulImpaction,   //Force use of Baneful Impaction (AOE, 15s duration)
-        Forbid,             //Forbids the use of all abilities with a cooldown
+        Bio3,                //Force use of Bio if target has 3s or less remaining on DOT effect
+        Bio6,                //Force use of Bio if target has 6s or less remaining on DOT effect
+        Bio9,                //Force use of Bio if target has 9s or less remaining on DOT effect
+        Bio0,                //Force use of Bio if target has does not have DOT effect
+        Force,               //Force use of Bio regardless of DOT effect
+        Delay                //Delay the use of Bio for manual or strategic usage
     }
     public enum PotionStrategy
     {
-        Manual,                //Manual potion usage
-        AlignWithRaidBuffs,    //Align potion usage with raid buffs
-        Immediate              //Use potions immediately when available
+        Manual,              //Manual potion usage
+        AlignWithRaidBuffs,  //Align potion usage with raid buffs
+        Immediate            //Use potions immediately when available
     }
     public enum EnergyStrategy
     {
         Use3,                //Use all stacks of Aetherflow for Energy Drain
         Use2,                //Use 2 stacks of Aetherflow for Energy Drain
         Use1,                //Use 1 stack of Aetherflow for Energy Drain
+        Force,               //Force the use of Energy Drain if any Aetherflow is available
         Delay                //Delay the use of Energy Drain
     }
     public enum OffensiveStrategy
     {
-        Automatic,       //Automatically decide when to use off-global offensive abilities
-        Force,           //Force the use of off-global offensive abilities, regardless of weaving conditions
-        AnyWeave,        //Force the use of off-global offensive abilities in any next possible weave slot
-        EarlyWeave,      //Force the use of off-global offensive abilities in very next FIRST weave slot only
-        LateWeave,       //Force the use of off-global offensive abilities in very next LAST weave slot only
-        Delay            //Delay the use of offensive abilities for strategic reasons
+        Automatic,           //Automatically decide when to use off-global offensive abilities
+        Force,               //Force the use of off-global offensive abilities, regardless of weaving conditions
+        AnyWeave,            //Force the use of off-global offensive abilities in any next possible weave slot
+        EarlyWeave,          //Force the use of off-global offensive abilities in very next FIRST weave slot only
+        LateWeave,           //Force the use of off-global offensive abilities in very next LAST weave slot only
+        Delay                //Delay the use of offensive abilities for strategic reasons
     }
     #endregion
 
@@ -67,7 +65,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
             "Standard Rotation Module", //Description
             "Standard rotation (Akechi)", //Category
             "Akechi", //Contributor
-            RotationModuleQuality.Basic, //Quality
+            RotationModuleQuality.Ok, //Quality
             BitMask.Build((int)Class.SCH), //Job
             100); //Level supported
 
@@ -78,17 +76,14 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
             .AddOption(AOEStrategy.Broil, "Broil", "Force use of Broil only (hardcast ST, more DPS)", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ArtOfWar, "Art of War", "Force use of Art of War only (instant cast AOE)", supportedTargets: ActionTargets.Hostile)
             .AddAssociatedActions(AID.Ruin2, AID.Broil1, AID.Broil2, AID.Broil3, AID.Broil4, AID.ArtOfWar1, AID.ArtOfWar2);
-        res.Define(Track.DOT).As<DOTStrategy>("Damage Over Time", "DOTs", uiPriority: 190)
-            .AddOption(DOTStrategy.Auto, "Allow", "Automatically decide when to use DoT abilities")
-            .AddOption(DOTStrategy.Bio, "Bio", "Force use of Bio (ST, 30s duration)", 0, 30, ActionTargets.Hostile, 2, 26)
-            .AddOption(DOTStrategy.Bio2, "Bio II", "Force use of Bio II (ST, 30s duration)", 0, 30, ActionTargets.Hostile, 26, 72)
-            .AddOption(DOTStrategy.Biolysis, "Biolysis", "Force use of Biolysis (ST, 30s duration)", 0, 30, ActionTargets.Hostile, 72)
-            .AddOption(DOTStrategy.BioOpti, "Bio Opti", "Force use of Bio (ST, 30s duration) if target does NOT have DOT effect", 0, 30, ActionTargets.Hostile, 2, 26)
-            .AddOption(DOTStrategy.Bio2Opti, "Bio II Opti", "Force use of Bio II (ST, 30s duration) if target does NOT have DOT effect", 0, 30, ActionTargets.Hostile, 26, 72)
-            .AddOption(DOTStrategy.BiolysisOpti, "Biolysis Opti", "Force use of Biolysis (ST, 30s duration) if target does NOT have DOT effect", 0, 30, ActionTargets.Hostile, 72)
-            .AddOption(DOTStrategy.BanefulImpaction, "Baneful Impaction", "Force use of Baneful Impaction (AOE, 15s duration)", 0, 15, ActionTargets.Self, 92)
-            .AddOption(DOTStrategy.Forbid, "Forbid", "Forbid the use of all DoT abilities", 0, 0, ActionTargets.None)
-            .AddAssociatedActions(AID.Bio1, AID.Bio2, AID.Biolysis, AID.BanefulImpaction);
+        res.Define(Track.Bio).As<BioStrategy>("Damage Over Time", "Bio", uiPriority: 190)
+            .AddOption(BioStrategy.Bio3, "Bio3", "Use Bio if target has 3s or less remaining on DoT effect", 0, 30, ActionTargets.Hostile, 2)
+            .AddOption(BioStrategy.Bio6, "Bio6", "Use Bio if target has 6s or less remaining on DoT effect", 0, 30, ActionTargets.Hostile, 2)
+            .AddOption(BioStrategy.Bio9, "Bio9", "Use Bio if target has 9s or less remaining on DoT effect", 0, 30, ActionTargets.Hostile, 2)
+            .AddOption(BioStrategy.Bio0, "Bio0", "Use Bio if target does not have DoT effect", 0, 30, ActionTargets.Hostile, 2)
+            .AddOption(BioStrategy.Force, "Force", "Force use of Bio regardless of DoT effect", 0, 30, ActionTargets.Hostile, 2)
+            .AddOption(BioStrategy.Delay, "Delay", "Delay the use of Bio for manual or strategic usage", 0, 0, ActionTargets.Hostile, 2)
+            .AddAssociatedActions(AID.Bio1, AID.Bio2, AID.Biolysis);
         res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 180)
             .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
             .AddOption(PotionStrategy.AlignWithRaidBuffs, "AlignWithRaidBuffs", "Align with No Mercy & Bloodfest together (to ensure use on 2-minute windows)", 270, 30, ActionTargets.Self)
@@ -97,7 +92,8 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.EnergyDrain).As<EnergyStrategy>("Energy Drain", "E.Drain", uiPriority: 150)
             .AddOption(EnergyStrategy.Use3, "UseAll", "Uses all stacks of Aetherflow for Energy Drain; conserves no stacks for manual usage", 0, 0, ActionTargets.Hostile, 45)
             .AddOption(EnergyStrategy.Use2, "Use2", "Uses 2 stacks of Aetherflow for Energy Drain; conserves 1 stack for manual usage", 0, 0, ActionTargets.Hostile, 45)
-            .AddOption(EnergyStrategy.Use1, "Use1", "Uses 1 stacks of Aetherflow for Energy Drain; conserves 1 stack for manual usage", 0, 0, ActionTargets.Hostile, 45)
+            .AddOption(EnergyStrategy.Use1, "Use1", "Uses 1 stack of Aetherflow for Energy Drain; conserves 2 stacks for manual usage", 0, 0, ActionTargets.Hostile, 45)
+            .AddOption(EnergyStrategy.Force, "Force", "Force use of Energy Drain if any Aetherflow is available", 0, 0, ActionTargets.None, 45)
             .AddOption(EnergyStrategy.Delay, "Delay", "Delay use of Energy Drain", 0, 0, ActionTargets.None, 45)
             .AddAssociatedActions(AID.EnergyDrain);
         #endregion
@@ -161,13 +157,12 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
     public float SpS; //Current GCD length, adjusted by spell speed/haste (2.5s baseline)
     public float BurstWindowLeft; //Time left in current burst window (typically 20s-22s)
     public float BurstWindowIn; //Time until next burst window (typically 20s-22s)
-    public AID NextGCD; //Next global cooldown action to be used (needed for cartridge management)
+    public AID NextGCD; //Next global cooldown action to be used
     #endregion
 
     #region Module Helpers
     private bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid)); //Check if the desired ability is unlocked
     private float CD(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining; //Get remaining cooldown time for the specified action
-    private bool In20y(Actor? target) => Player.DistanceToHitbox(target) <= 19.9f; //Check if the target is within ST range
     private bool In25y(Actor? target) => Player.DistanceToHitbox(target) <= 24.99f; //Check if the target is within 25 yalms
     private bool ActionReady(AID aid) => Unlocked(aid) && CD(aid) < 0.6f; //Check if the desired action is ready (cooldown less than 0.6 seconds)
     private bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f; //Check if this is the first GCD in combat
@@ -184,42 +179,35 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         : Unlocked(AID.Broil2) //Otherwise, if Broil II is unlocked
         ? AID.Broil2 //Use Broil II
         : AID.Broil1; //Otherwise, default to Broil I
-
     private AID BestRuin //Determine the best Ruin to use
         => Unlocked(AID.Ruin2) //Otherwise, if Ruin II is unlocked
         ? AID.Ruin2 //Use Ruin II
         : AID.Ruin1; //Otherwise, default to Ruin I
-
     private AID BestBio //Determine the best DOT to use
         => Unlocked(AID.Biolysis) //If Biolysis is unlocked
         ? AID.Biolysis //Use Biolysis
         : Unlocked(AID.Bio2) //Otherwise, if Bio II is unlocked
         ? AID.Bio2 //Use Bio II
         : AID.Bio1; //Otherwise, default to Bio I
-
     private SID BestDOT //Determine the best DOT to use
         => Unlocked(AID.Biolysis) //If Biolysis is unlocked
         ? SID.Biolysis //Use Biolysis
         : Unlocked(AID.Bio2) //Otherwise, if Bio II is unlocked
         ? SID.Bio2 //Use Bio II
         : SID.Bio1; //Otherwise, default to Bio I
-
     private AID BestST //Determine the best ST to use
         => Unlocked(AID.Broil1) //If Broil I is unlocked
         ? BestBroil //Use the best Broil
         : BestRuin; //Otherwise, default to best Ruin
-
     private AID BestAOE //Determine the best AOE to use
         => Unlocked(AID.ArtOfWar2) //If Art of War II is unlocked
         ? AID.ArtOfWar2 //Use Art of War II
         : AID.ArtOfWar1; //Otherwise, default to Art of War
-
     #endregion
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
     {
         #region Variables
-        //Gauge
         var gauge = World.Client.GetGauge<ScholarGauge>(); //Retrieve Scholar gauge
         Aetherflow.Stacks = gauge.Aetherflow; //Current Aetherflow stacks
         Aetherflow.IsActive = Aetherflow.Stacks > 0; //Checks if Aetherflow is available
@@ -231,7 +219,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         canWeaveIn = GCD is <= 2.5f and >= 0.1f; //Can weave in oGCDs
         canWeaveEarly = GCD is <= 2.5f and >= 1.25f; //Can weave in oGCDs early
         canWeaveLate = GCD is <= 1.25f and >= 0.1f; //Can weave in oGCDs late
-        SpS = ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level); //GCD based on skill speed and haste
+        SpS = ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level); //GCD based on spell speed and haste
         NextGCD = AID.None; //Next global cooldown action to be used
         PotionLeft = PotionStatusLeft(); //Remaining time for potion buff (30s)
         ShouldUseAOE = TargetsInAOERange() > 1; //otherwise, use AOE if 2+ targets would be hit
@@ -239,8 +227,8 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         #region Strategy Definitions
         var AOE = strategy.Option(Track.AOE); //AOE track
         var AOEStrategy = AOE.As<AOEStrategy>(); //AOE strategy
-        var DOT = strategy.Option(Track.DOT); //DOT track
-        var DOTStrategy = DOT.As<DOTStrategy>(); //DOT strategy
+        var Bio = strategy.Option(Track.Bio); //Bio track
+        var BioStrategy = Bio.As<BioStrategy>(); //Bio strategy
         var potion = strategy.Option(Track.Potion).As<PotionStrategy>(); //Potion strategy
         var cs = strategy.Option(Track.ChainStratagem); //Chain Stratagem track
         var csStrat = cs.As<OffensiveStrategy>(); //Chain Stratagem strategy
@@ -253,21 +241,12 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         #endregion
 
         #region Force Execution
-        if (In20y(primaryTarget))
-        {
-            if (AOEStrategy is AOEStrategy.Ruin2)
-                QueueGCD(BestRuin, ResolveTargetOverride(AOE.Value) ?? primaryTarget, GCDPriority.ForcedGCD);
-            if (AOEStrategy is AOEStrategy.Broil)
-                QueueGCD(BestBroil, ResolveTargetOverride(AOE.Value) ?? primaryTarget, GCDPriority.ForcedGCD);
-            if (AOEStrategy is AOEStrategy.ArtOfWar)
-                QueueGCD(BestAOE, Player, GCDPriority.ForcedGCD);
-        }
-        if (In25y(primaryTarget))
-        {
-            if (DOTStrategy is DOTStrategy.BanefulImpaction &&
-            PlayerHasEffect(SID.ImpactImminent, 30))
-                QueueOGCD(AID.BanefulImpaction, ResolveTargetOverride(DOT.Value) ?? primaryTarget, OGCDPriority.ForcedOGCD);
-        }
+        if (AOEStrategy is AOEStrategy.Ruin2)
+            QueueGCD(BestRuin, ResolveTargetOverride(AOE.Value) ?? primaryTarget, GCDPriority.ForcedGCD);
+        if (AOEStrategy is AOEStrategy.Broil)
+            QueueGCD(BestBroil, ResolveTargetOverride(AOE.Value) ?? primaryTarget, GCDPriority.ForcedGCD);
+        if (AOEStrategy is AOEStrategy.ArtOfWar)
+            QueueGCD(BestAOE, Player, GCDPriority.ForcedGCD);
         #endregion
 
         #region Standard Execution
@@ -280,25 +259,21 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
                 (!ShouldUseAOE || IsFirstGCD()))
                 QueueGCD(isMoving ? BestRuin : BestST, STtarget, GCDPriority.Standard);
         }
-        if (ShouldUseDOTs(primaryTarget, DOTStrategy))
-            QueueGCD(BestBio, ResolveTargetOverride(DOT.Value) ?? primaryTarget, GCDPriority.DOT);
-
-        if (DOTStrategy == DOTStrategy.Auto)
-        {
-            if (PlayerHasEffect(SID.ImpactImminent, 30))
-                QueueOGCD(AID.BanefulImpaction, ResolveTargetOverride(DOT.Value) ?? primaryTarget, OGCDPriority.ChainStratagem);
-        }
+        if (ShouldUseBio(primaryTarget, BioStrategy))
+            QueueGCD(BestBio, ResolveTargetOverride(Bio.Value) ?? primaryTarget, GCDPriority.DOT);
+        if (PlayerHasEffect(SID.ImpactImminent, 30))
+            QueueOGCD(AID.BanefulImpaction, ResolveTargetOverride(Bio.Value) ?? primaryTarget, OGCDPriority.ChainStratagem);
         if (ShouldUseChainStratagem(primaryTarget, csStrat))
-            QueueOGCD(AID.ChainStratagem, ResolveTargetOverride(cs.Value) ?? primaryTarget, OGCDPriority.ChainStratagem);
+            QueueOGCD(AID.ChainStratagem, ResolveTargetOverride(cs.Value) ?? primaryTarget, csStrat is OffensiveStrategy.Force or OffensiveStrategy.AnyWeave or OffensiveStrategy.EarlyWeave or OffensiveStrategy.LateWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.ChainStratagem);
         if (ShouldUseAetherflow(primaryTarget, afStrat))
-            QueueOGCD(AID.Aetherflow, Player, OGCDPriority.Aetherflow);
+            QueueOGCD(AID.Aetherflow, Player, afStrat is OffensiveStrategy.Force or OffensiveStrategy.AnyWeave or OffensiveStrategy.EarlyWeave or OffensiveStrategy.LateWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Aetherflow);
         if (ShouldUseEnergyDrain(primaryTarget, edStrat))
-            QueueOGCD(AID.EnergyDrain, ResolveTargetOverride(ed.Value) ?? primaryTarget, OGCDPriority.EnergyDrain);
+            QueueOGCD(AID.EnergyDrain, ResolveTargetOverride(ed.Value) ?? primaryTarget, edStrat is EnergyStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.EnergyDrain);
         if (Player.HPMP.CurMP <= 9000 && canWeaveIn && ActionReady(AID.LucidDreaming))
             QueueOGCD(AID.LucidDreaming, Player, OGCDPriority.EnergyDrain);
         if (potion is PotionStrategy.AlignWithRaidBuffs && CD(AID.ChainStratagem) < 5 ||
             potion is PotionStrategy.Immediate)
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.ForcedOGCD, 0, GCD - 0.9f);
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
         #endregion
     }
 
@@ -360,17 +335,14 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
     #endregion
 
     #region Cooldown Helpers
-    private bool ShouldUseDOTs(Actor? target, DOTStrategy strategy) => strategy switch
+    private bool ShouldUseBio(Actor? target, BioStrategy strategy) => strategy switch
     {
-        DOTStrategy.Auto => Player.InCombat && target != null && bioLeft <= 3 && In25y(target),
-        DOTStrategy.Bio => true,
-        DOTStrategy.Bio2 => true,
-        DOTStrategy.Biolysis => true,
-        DOTStrategy.BioOpti => bioLeft <= 3,
-        DOTStrategy.Bio2Opti => bioLeft <= 3,
-        DOTStrategy.BiolysisOpti => bioLeft <= 3,
-        DOTStrategy.BanefulImpaction => PlayerHasEffect(SID.ImpactImminent, 30),
-        DOTStrategy.Forbid => false,
+        BioStrategy.Bio3 => Player.InCombat && target != null && bioLeft <= 3 && In25y(target),
+        BioStrategy.Bio6 => Player.InCombat && target != null && bioLeft <= 3 && In25y(target),
+        BioStrategy.Bio9 => Player.InCombat && target != null && bioLeft <= 3 && In25y(target),
+        BioStrategy.Bio0 => Player.InCombat && target != null && bioLeft <= 3 && In25y(target),
+        BioStrategy.Force => true,
+        BioStrategy.Delay => false,
         _ => false
     };
     private bool ShouldUseChainStratagem(Actor? target, OffensiveStrategy strategy) => strategy switch
@@ -395,9 +367,10 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
     };
     private bool ShouldUseEnergyDrain(Actor? target, EnergyStrategy strategy) => strategy switch
     {
-        EnergyStrategy.Use3 => canED && Aetherflow.IsActive,
-        EnergyStrategy.Use2 => canED && Aetherflow.Stacks > 1,
-        EnergyStrategy.Use1 => canED && Aetherflow.Stacks > 2,
+        EnergyStrategy.Use3 => canED && In25y(target) && canWeaveIn,
+        EnergyStrategy.Use2 => canED && Aetherflow.Stacks > 1 && In25y(target) && canWeaveIn,
+        EnergyStrategy.Use1 => canED && Aetherflow.Stacks > 2 && In25y(target) && canWeaveIn,
+        EnergyStrategy.Force => canED,
         EnergyStrategy.Delay => false,
         _ => false
     };
