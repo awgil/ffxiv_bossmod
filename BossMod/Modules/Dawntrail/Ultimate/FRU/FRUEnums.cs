@@ -28,11 +28,12 @@ public enum OID : uint
     ApocalypseLight = 0x1EB0FF, // R0.500, x0 (spawn during fight), EventObj type
 
     UsurperOfFrostP4 = 0x45A9, // R6.125, x0 (spawn during fight)
+    GreatWyrm = 0x45AA, // R3.500, x0 (spawn during fight), Part type
     OracleOfDarknessP4 = 0x45AB, // R7.040, x0 (spawn during fight)
+    SorrowsHourglass = 0x45AD, // R1.000, x0 (spawn during fight)
+    FragmentOfFate = 0x45B1, // R3.500, x0 (spawn during fight)
     VisionOfRyne = 0x45B4, // R0.750, x0 (spawn during fight)
     VisionOfGaia = 0x45B5, // R1.500, x0 (spawn during fight)
-    FragmentOfFate = 0x45B1, // R3.500, x0 (spawn during fight)
-    GreatWyrm = 0x45AA, // R3.500, x0 (spawn during fight), Part type
 }
 
 public enum AID : uint
@@ -211,7 +212,23 @@ public enum AID : uint
 
     DarklitDragonsongUsurper = 40239, // UsurperOfFrostP4->self, 5.0s cast, range 100 circle, raidwide
     DarklitDragonsongOracle = 40301, // OracleOfDarknessP4->self, 5.0s cast, single-target, visual
-    //_Weaponskill_ThePathOfLight = 40187, // UsurperOfFrostP4->self, 8.0s cast, single-target
+    PathOfLight = 40187, // UsurperOfFrostP4->self, 8.0s cast, single-target, visual (towers + proteans)
+    PathOfLightAOE = 40190, // Helper->self, no cast, range 60 60?-degree cone protean on 4 closest targets
+    HallowedWingsL = 40227, // UsurperOfFrostP4->self, 5.0s cast, range 80 width 40 rect, side cleave
+    HallowedWingsR = 40228, // UsurperOfFrostP4->self, 5.0s cast, range 80 width 40 rect, side cleave
+    SomberDance = 40283, // OracleOfDarknessP4->self, 5.0s cast, single-target, visual (baited tankbusters)
+    SomberDanceAOE1 = 40284, // OracleOfDarknessP4->player, no cast, range 8 circle, tankbuster on farthest
+    SomberDanceAOE2 = 40285, // OracleOfDarknessP4->players, no cast, range 8 circle, tankbuster on closest
+    AkhMornUsurper = 40247, // UsurperOfFrostP4->self, 4.0s cast, single-target, visual (4-hit party stacks)
+    AkhMornOracle = 40302, // OracleOfDarknessP4->self, 4.0s cast, single-target, visual (4-hit party stacks)
+    AkhMornAOEUsurper = 40248, // Helper->players, no cast, range 4 circle, 4-hit 4-man stack
+    AkhMornAOEOracle = 40303, // Helper->players, no cast, range 4 circle, 4-hit 4-man stack
+    MornAfahUsurper = 40249, // UsurperOfFrostP4->self, 6.0s cast, single-target, visual (full raid stack, lethal if hp difference is large)
+    MornAfahOracle = 40304, // OracleOfDarknessP4->self, 6.0s cast, single-target, visual (full raid stack, lethal if hp difference is large)
+    MornAfahAOE = 40250, // Helper->players, no cast, range 4 circle, wipe if hp difference check fails ?
+
+    CrystallizeTimeUsurper = 40240, // UsurperOfFrostP4->self, 10.0s cast, single-target, visual
+    CrystallizeTimeOracle = 40298, // OracleOfDarknessP4->self, 10.0s cast, range 100 circle, raidwide
 }
 
 public enum SID : uint
@@ -227,6 +244,7 @@ public enum SID : uint
     CurseOfEverlastingLight = 4158, // none->player, extra=0x0, light rampant second tether
     WeightOfLight = 4159, // none->player, extra=0x0, light rampant stack
     Lightsteeped = 2257, // Helper/HolyLight->player, extra=0x1/0x2/0x3/0x4/0x5
+    Invincibility = 775, // none->IceVeil, extra=0x0
     SpellInWaitingUnholyDarkness = 2454, // none->player, extra=0x0, stack
     SpellInWaitingDarkFire = 2455, // none->player, extra=0x0, large spread
     SpellInWaitingShadoweye = 2456, // none->player, extra=0x0, delayed gaze
@@ -237,6 +255,12 @@ public enum SID : uint
     DelightsHourglassRotation = 2970, // none->DelightsHourglass, extra=0x10D (ccw)/0x15C (cw)
     Return = 2452, // none->player, extra=0x0
     Stun = 4163, // none->player, extra=0x0
+    Wyrmclaw = 3263, // none->player, extra=0x0
+    Wyrmfang = 3264, // none->player, extra=0x0
+    SpellInWaitingQuietus = 4174, // none->player, extra=0x0
+    SpellInWaitingDarkAero = 2463, // none->player, extra=0x0
+    //SpellInWaitingReturn = 4208, // none->player, extra=0x0
+    //SpellInWaitingReturnII = 4171, // Helper->UsurperOfFrostP4, extra=0x0
 }
 
 public enum IconID : uint
@@ -263,4 +287,5 @@ public enum TetherID : uint
     HiemalRay = 84, // CrystalOfLight->player
     UltimateRelativitySlow = 133, // DelightsHourglass->BossP3
     UltimateRelativityQuicken = 134, // DelightsHourglass->BossP3
+    MornAfahHPCheck = 1, // UsurperOfFrostP4->OracleOfDarknessP4
 }

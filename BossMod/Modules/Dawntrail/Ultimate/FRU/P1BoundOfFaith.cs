@@ -9,6 +9,7 @@ class P1BrightfireLarge(BossModule module) : Components.SelfTargetedAOEs(module,
 // TODO: fixed tethers strat variant (tether target with clone on safe side goes S, other goes N, if any group has 5 players prio1 adjusts)
 class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4, 4)
 {
+    public bool EnableHints;
     public WDir SafeSide;
     public DateTime Activation;
     public readonly int[] AssignedGroups = new int[PartyState.MaxPartySize];
@@ -16,6 +17,12 @@ class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(module, 
     private OID _safeHalo;
 
     public WDir AssignedLane(int slot) => new(0, AssignedGroups[slot] * 5.4f);
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (EnableHints)
+            base.AddHints(slot, actor, hints);
+    }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // we have dedicated components for this
 
@@ -140,7 +147,7 @@ class P1BoundOfFaithAIStack(BossModule module) : BossComponent(module)
                 var targetSlot = Raid.FindSlot(s.Target.InstanceID);
                 var targetGroup = targetSlot >= 0 ? _comp.AssignedGroups[targetSlot] : 0;
                 if (targetGroup == _comp.AssignedGroups[slot])
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(s.Target.Position, 6), _comp.Activation);
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(s.Target.Position, 4), _comp.Activation); // stay a bit closer to the target to avoid spooking people
                 else
                     hints.AddForbiddenZone(ShapeDistance.Circle(s.Target.Position, 6), _comp.Activation);
             }
