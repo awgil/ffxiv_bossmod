@@ -875,7 +875,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             canNM && //No Mercy is available
             GCD < 0.9f && //GCD is less than 0.9s
             ((Unlocked(AID.DoubleDown) && //Double Down is unlocked, indicating Lv90 or above
-            Ammo < 3) || //Ammo is not 3
+            ((bfCD is <= 90 and >= 30 && (Ammo >= 2 || (Ammo == 1 && ComboLastMove is AID.BrutalShell))) || //In Odd Window & conditions are met
+            (bfCD is not <= 90 and not >= 30 && Ammo < 3))) || //In Even Window & conditions are met
             (!Unlocked(AID.DoubleDown) && Unlocked(AID.Bloodfest) && //Double Down is not unlocked but Bloodfest is, indicating Lv80-89
             Ammo >= 1 && //Ammo is 1 or more
             bfCD is < 5 or 0) || //Bloodfest is ready or about to be
