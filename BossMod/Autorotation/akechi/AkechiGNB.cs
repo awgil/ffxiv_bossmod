@@ -492,7 +492,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         var ls = strategy.Option(Track.LightningShot); //Lightning Shot track
         var lsStrat = ls.As<LightningShotStrategy>(); //Lightning Shot strategy
         var hold = strategy.Option(Track.Cooldowns).As<CooldownStrategy>() == CooldownStrategy.Hold; //Determine if holding resources
-        var conserve = strategy.Option(Track.Cartridges).As<CartridgeStrategy>() == CartridgeStrategy.Conserve; //Determine if conserving cartridges
+        var conserve = cartStrat == CartridgeStrategy.Conserve; //Determine if conserving cartridges
         #endregion
 
         #endregion
@@ -875,11 +875,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             canNM && //No Mercy is available
             GCD < 0.9f && //GCD is less than 0.9s
             ((Unlocked(AID.DoubleDown) && //Double Down is unlocked, indicating Lv90 or above
-            ((bfCD is <= 90 and >= 30 && (Ammo >= 2 || (Ammo == 1 && ComboLastMove is AID.BrutalShell))) || //In Odd Window & conditions are met
-            (bfCD is not <= 90 and not >= 30 && Ammo < 3))) || //In Even Window & conditions are met
+            (((bfCD <= 90 && bfCD >= 30) && (Ammo >= 2 || (Ammo == 1 && ComboLastMove is AID.BrutalShell))) || //In Odd Window & conditions are met
+            (!(bfCD <= 90 && bfCD >= 30) && Ammo < 3))) || //In Even Window & conditions are met
             (!Unlocked(AID.DoubleDown) && Unlocked(AID.Bloodfest) && //Double Down is not unlocked but Bloodfest is, indicating Lv80-89
-            Ammo >= 1 && //Ammo is 1 or more
-            bfCD is < 5 or 0) || //Bloodfest is ready or about to be
+            Ammo >= 1) || //Ammo is 1 or more
             (!Unlocked(AID.Bloodfest) && canGF) || //Bloodfest is not unlocked but Gnashing Fang is, indicating Lv60-79
             !Unlocked(AID.GnashingFang)), //Gnashing Fang is not unlocked, indicating Lv59 and below
         NoMercyStrategy.Force => canNM, //Force No Mercy, regardless of correct weaving
@@ -1000,7 +999,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             In3y(target) && //Target in melee range
             canBS && //Burst Strike is available
             (hasNM || //No Mercy is active
-            nmCD < 1 && Ammo == 3), //No Mercy is almost ready and full carts
+            (!(bfCD is <= 90 and >= 30) &&
+            nmCD < 1 &&
+            Ammo == 3)), //No Mercy is almost ready and full carts
         _ => false
     };
 
@@ -1013,7 +1014,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             In5y(target) && //Target in range
             canFC && //Fated Circle is available
             (hasNM || //No Mercy is active
-            nmCD < 1 && Ammo == 3), //No Mercy is almost ready and full carts
+            (!(bfCD is <= 90 and >= 30) &&
+            nmCD < 1 &&
+            Ammo == 3)), //No Mercy is almost ready and full carts
         _ => false
     };
 
