@@ -142,14 +142,15 @@ class P1BoundOfFaithAIStack(BossModule module) : BossComponent(module)
 
         if (_haveFetters)
         {
+            // stack with closest (note: we could also stack with assigned, but that won't work well if people swap and assignments end up wrong)
+            //var stackWith = _comp.Stacks.FirstOrDefault(s => _comp.AssignedGroups[Raid.FindSlot(s.Target.InstanceID)] == _comp.AssignedGroups[slot]);
+            var stackWith = _comp.Stacks.MinBy(s => (s.Target.Position - actor.Position).LengthSq());
             foreach (var s in _comp.Stacks)
             {
-                var targetSlot = Raid.FindSlot(s.Target.InstanceID);
-                var targetGroup = targetSlot >= 0 ? _comp.AssignedGroups[targetSlot] : 0;
-                if (targetGroup == _comp.AssignedGroups[slot])
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(s.Target.Position, 4), _comp.Activation); // stay a bit closer to the target to avoid spooking people
-                else
-                    hints.AddForbiddenZone(ShapeDistance.Circle(s.Target.Position, 6), _comp.Activation);
+                var zone = s.Target == stackWith.Target
+                    ? ShapeDistance.InvertedCircle(s.Target.Position, 4) // stay a bit closer to the target to avoid spooking people
+                    : ShapeDistance.Circle(s.Target.Position, 6);
+                hints.AddForbiddenZone(zone, _comp.Activation);
             }
 
             // all else being equal, try staying closer to center

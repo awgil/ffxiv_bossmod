@@ -33,14 +33,14 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
         }
     }
 
-    private WPos CalculateDestination(FRU module, Actor? primaryTarget, StrategyValues.OptionRef strategy, PartyRolesConfig.Assignment assignment) => strategy.As<MovementStrategy>() switch
+    private WPos? CalculateDestination(FRU module, Actor? primaryTarget, StrategyValues.OptionRef strategy, PartyRolesConfig.Assignment assignment) => strategy.As<MovementStrategy>() switch
     {
         MovementStrategy.Pathfind => PathfindPosition(null),
         MovementStrategy.PathfindMeleeGreed => PathfindPosition(ResolveTargetOverride(strategy.Value) ?? primaryTarget),
         MovementStrategy.Explicit => ResolveTargetLocation(strategy.Value),
         MovementStrategy.Prepull => PrepullPosition(module, assignment),
         MovementStrategy.DragToCenter => DragToCenterPosition(module),
-        _ => Player.Position
+        _ => null
     };
 
     // TODO: account for leeway for casters

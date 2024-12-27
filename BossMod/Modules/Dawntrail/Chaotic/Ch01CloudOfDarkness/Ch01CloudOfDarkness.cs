@@ -71,7 +71,7 @@ public class Ch01CloudOfDarkness(WorldState ws, Actor primary) : BossModule(ws, 
     public static readonly ArenaBoundsCircle InitialBounds = new(40);
     public static readonly ArenaBoundsCustom Phase1Bounds = new(InitialBounds.Radius, new(BuildPhase1BoundsContour()));
     public static readonly ArenaBoundsCustom Phase2Bounds = new(InitialBounds.Radius, BuildPhase2BoundsPoly());
-    public static readonly WPos Phase1Midpoint = DefaultCenter + Phase1Bounds.Poly.Parts[0].Vertices[1] + Phase1Bounds.Poly.Parts[0].Vertices[3];
+    public static readonly WPos Phase1Midpoint = DefaultCenter + (Phase1Bounds.Poly.Parts[0].Vertices[1] + Phase1Bounds.Poly.Parts[0].Vertices[3]) * 0.5f;
 
     public static List<WDir> BuildPhase1BoundsContour()
     {
