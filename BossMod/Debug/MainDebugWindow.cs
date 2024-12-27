@@ -25,6 +25,8 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly DebugQuests _debugQuests = new();
     //private readonly DebugVfx _debugVfx = new();
 
+    private int _fooState;
+
     protected override void Dispose(bool disposing)
     {
         _debugAction.Dispose();
@@ -45,6 +47,14 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         var eventFwk = FFXIVClientStructs.FFXIV.Client.Game.Event.EventFramework.Instance();
         var instanceDirector = eventFwk != null ? eventFwk->GetInstanceContentDirector() : null;
         ImGui.TextUnformatted($"Content time left: {(instanceDirector != null ? $"{instanceDirector->ContentDirector.ContentTimeLeft:f1}" : "n/a")}");
+
+        // TODO: debug...
+        if (ImGui.Button($"Advance foo: {_fooState}"))
+            _fooState = (_fooState + 1) % 4;
+        if (_fooState is 1 or 2)
+            autorot.Hints.ForcedMovement = new(0, 0, -1);
+        if (_fooState is 2 or 3)
+            autorot.Hints.ForbiddenDirections.Add((180.Degrees(), 45.Degrees(), default));
 
         if (ImGui.Button("Perform full dump"))
         {
