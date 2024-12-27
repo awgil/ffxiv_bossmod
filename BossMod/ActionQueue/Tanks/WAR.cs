@@ -178,6 +178,8 @@ public sealed class Definitions : IDisposable
         d.Spell(AID.Equilibrium)!.ForbidExecute = (_, player, _, _) => player.HPMP.CurHP >= player.HPMP.MaxHP; // don't use equilibrium at full hp
         d.Spell(AID.NascentFlash)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
 
+        d.Spell(AID.Onslaught)!.ForbidExecute = ActionDefinitions.GapCloserSafetyCheck;
+
         // upgrades (TODO: don't think we actually care...)
         //d.Spell(AID.Defiance)!.TransformAction = d.Spell(AID.ReleaseDefiance)!.TransformAction = () => ActionID.MakeSpell(_state.HaveTankStance ? AID.ReleaseDefiance : AID.Defiance);
         //d.Spell(AID.InnerBeast)!.TransformAction = d.Spell(AID.FellCleave)!.TransformAction = d.Spell(AID.InnerChaos)!.TransformAction = () => ActionID.MakeSpell(_state.BestFellCleave);

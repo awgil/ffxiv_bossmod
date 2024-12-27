@@ -157,6 +157,8 @@ public sealed class Definitions : IDisposable
         // hardcoded mechanics
         d.RegisterChargeIncreaseTrait(AID.MeikyoShisui, TraitID.EnhancedMeikyoShisui);
 
+        d.Spell(AID.HissatsuGyoten)!.ForbidExecute = ActionDefinitions.GapCloserSafetyCheck;
+
         // upgrades (TODO: don't think we actually care...)
         //d.Spell(AID.Iaijutsu)!.TransformAction = () => ActionID.MakeSpell(_state.BestIai);
         //d.Spell(AID.MeikyoShisui)!.Condition = _ => _state.MeikyoLeft == 0;

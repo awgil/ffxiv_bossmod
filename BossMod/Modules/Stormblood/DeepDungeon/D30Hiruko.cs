@@ -17,7 +17,7 @@ public enum AID : uint
 }
 
 class LightningStrike(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightningStrike), new AOEShapeRect(55.25f, 3));
-class Shiko(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shiko), new AOEShapeCircle(6));
+class Shiko(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shiko), new AOEShapeCircle(10));
 class LightningBolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightningBolt), new AOEShapeCircle(8))
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -25,7 +25,7 @@ class LightningBolt(BossModule module) : Components.SelfTargetedAOEs(module, Act
         if (Casters.Count == 20)
         {
             var closest = Casters
-                .Where(c => !c.Position.InCircle(Arena.Center, 10) && !c.Position.InCircle(Module.PrimaryActor.Position, 8))
+                .Where(c => !c.Position.InCircle(Arena.Center, 10) && !c.Position.InCircle(Module.PrimaryActor.Position, 10))
                 .MinBy(c => c.DistanceToHitbox(actor))!;
             hints.AddForbiddenZone(new AOEShapeDonut(2, 100), closest.Position, default, Module.CastFinishAt(Module.PrimaryActor.CastInfo));
         }

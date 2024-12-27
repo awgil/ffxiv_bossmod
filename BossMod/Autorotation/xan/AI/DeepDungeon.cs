@@ -2,7 +2,7 @@
 
 public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
 {
-    public enum Track { Potion }
+    public enum Track { Potion, Kite2 }
 
     public enum PotionStrategy
     {
@@ -22,6 +22,12 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             .AddOption(PotionStrategy.Boss, "Use during boss fights")
             .AddOption(PotionStrategy.BossOrHigh, "Use during boss fights or at high floors");
 
+        def.Define(Track.Kite2).As<PotionStrategy>("Kite enemies")
+            .AddOption(PotionStrategy.Disabled, "Don't")
+            .AddOption(PotionStrategy.Always, "Always")
+            .AddOption(PotionStrategy.Boss, "During boss fights")
+            .AddOption(PotionStrategy.BossOrHigh, "During boss fights or at high floors");
+
         return def;
     }
 
@@ -30,7 +36,8 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         None,
         Manticore,
         Succubus,
-        Kuribu
+        Kuribu,
+        Dreadnought
     }
 
     enum SID : uint
@@ -49,6 +56,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
                 42 => Transformation.Manticore,
                 43 => Transformation.Succubus,
                 49 => Transformation.Kuribu,
+                244 => Transformation.Dreadnought,
                 _ => Transformation.None
             };
         }
@@ -66,14 +74,41 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         {
             DeepDungeonState.DungeonType.POTD => (ActionDefinitions.IDSustainingPotion, ActionDefinitions.IDMaxPotion),
             DeepDungeonState.DungeonType.HOH => (ActionDefinitions.IDEmpyreanPotion, ActionDefinitions.IDSuperPotion),
+            DeepDungeonState.DungeonType.EO => (ActionDefinitions.IDOrthosPotion, ActionDefinitions.IDHyperPotion),
             _ => (default, default)
         };
 
         if (regenAction != default && ShouldPotion(strategy))
-            Hints.ActionsToExecute.Push(regenAction, Player, ActionQueue.Priority.Medium);
+            Hints.ActionsToExecute.Push(regenAction, Player, ActionQueue.Priority.Low);
 
         if (potAction != default && HPRatio() <= 0.3f)
-            Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.Medium);
+            Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.VeryHigh);
+
+        SetupKiteZone(strategy, primaryTarget);
+    }
+
+    private void SetupKiteZone(StrategyValues strategy, Actor? primaryTarget)
+    {
+        if (Player.Class.GetRole() is not (Role.Ranged or Role.Healer) || primaryTarget == null || !Player.InCombat || !IsFloorAppropriate(strategy.Option(Track.Kite2).As<PotionStrategy>()))
+            return;
+
+        // "heavenly maruishi" doesn't autoattack
+        if (primaryTarget.OID == 0x22EF)
+            return;
+
+        // assume we don't need to kite if mob is busy casting (TODO: some mob spells can be cast while moving, maybe there's a column in sheets for it)
+        if (primaryTarget.CastInfo != null)
+            return;
+
+        var primaryPos = primaryTarget.Position;
+        var total = 25 + Player.HitboxRadius + primaryTarget.HitboxRadius;
+        float goalFactor = 0.05f;
+        Hints.GoalZones.Add(pos =>
+        {
+            var dist = (pos - primaryPos).Length();
+            // discretize longer range zones into a small number of bands to avoid jitter
+            return dist > total ? 0 : MathF.Ceiling(dist / total * 3) / 3 * goalFactor;
+        });
     }
 
     private void DoTransformActions(StrategyValues strategy, Actor? primaryTarget, Transformation t)
@@ -106,6 +141,11 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
                 attack = ActionID.MakeSpell(Roleplay.AID.HeavenlyJudge);
                 castTime = 2.5f;
                 break;
+            case Transformation.Dreadnought:
+                goal = Hints.GoalSingleTarget(primaryTarget, 3);
+                numTargets = 1;
+                attack = ActionID.MakeSpell(Roleplay.AID.Rotosmash);
+                break;
             default:
                 return;
         }
@@ -122,14 +162,16 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
     {
         var ratio = Player.ClassCategory is ClassCategory.Tank ? 0.6f : 0.8f;
         var use = PendingHPRatio(Player) < ratio && Player.FindStatus(648) == null && Player.InCombat;
-        return use && strategy.Option(Track.Potion).As<PotionStrategy>() switch
-        {
-            PotionStrategy.Always => true,
-            PotionStrategy.Boss => World.DeepDungeon.Progress.Floor % 10 == 0,
-            PotionStrategy.BossOrHigh => IsHighFloor(World.DeepDungeon) || World.DeepDungeon.Progress.Floor % 10 == 0,
-            _ => false
-        };
+        return use && IsFloorAppropriate(strategy.Option(Track.Potion).As<PotionStrategy>());
     }
+
+    private bool IsFloorAppropriate(PotionStrategy p) => p switch
+    {
+        PotionStrategy.Always => true,
+        PotionStrategy.Boss => World.DeepDungeon.Progress.Floor % 10 == 0,
+        PotionStrategy.BossOrHigh => IsHighFloor(World.DeepDungeon) || World.DeepDungeon.Progress.Floor % 10 == 0,
+        _ => false
+    };
 
     private bool IsHighFloor(DeepDungeonState st) => st.Progress.Floor > (st.Type == DeepDungeonState.DungeonType.POTD ? 100 : 50);
 }

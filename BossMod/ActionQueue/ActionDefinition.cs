@@ -190,6 +190,8 @@ public sealed class ActionDefinitions : IDisposable
     public static readonly ActionID IDMaxPotion = new(ActionType.Item, 1013637);
     public static readonly ActionID IDEmpyreanPotion = new(ActionType.Item, 23163);
     public static readonly ActionID IDSuperPotion = new(ActionType.Item, 1023167);
+    public static readonly ActionID IDOrthosPotion = new(ActionType.Item, 38944);
+    public static readonly ActionID IDHyperPotion = new(ActionType.Item, 1038956);
 
     // special general actions that we support
     public static readonly ActionID IDGeneralLimitBreak = new(ActionType.General, 3);
@@ -241,6 +243,8 @@ public sealed class ActionDefinitions : IDisposable
         RegisterPotion(IDMaxPotion, 1.1f);
         RegisterPotion(IDEmpyreanPotion, 1.1f);
         RegisterPotion(IDSuperPotion, 1.1f);
+        RegisterPotion(IDOrthosPotion, 1.1f);
+        RegisterPotion(IDHyperPotion, 1.1f);
 
         // bozja actions
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
@@ -280,6 +284,20 @@ public sealed class ActionDefinitions : IDisposable
     // smart targeting utility: return target (if friendly) or other tank (if available) or null (otherwise)
     public static Actor? FindCoTank(WorldState ws, Actor player) => ws.Party.WithoutSlot().Exclude(player).FirstOrDefault(a => a.Role == Role.Tank);
     public static Actor? SmartTargetCoTank(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? FindCoTank(ws, player);
+
+    // assuming that the given action is a gap closer and that the user has the "prevent unsafe dashes" option checked, determine whether executing the action will move the player into a forbidden zone
+    // TODO: should this worry about crossing forbidden zones too? probably not
+    public static bool GapCloserSafetyCheck(WorldState _, Actor player, Actor? target, AIHints hints)
+    {
+        if (target == null || !Service.Config.Get<ActionTweaksConfig>().DashSafely)
+            return false;
+
+        var dist = player.DistanceToHitbox(target);
+        var dir = player.DirectionTo(target).Normalized();
+        var src = player.Position;
+        var proj = dist > 0 ? src + dir * MathF.Max(0, dist) : src;
+        return !hints.ForbiddenZones.Any(d => d.shapeDistance(proj) < 0);
+    }
 
     // smart targeting utility: return target (if friendly) or any esunable player (if any) or self (otherwise)
     public static Actor? FindEsunaTarget(WorldState ws) => ws.Party.WithoutSlot().FirstOrDefault(p => p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)));

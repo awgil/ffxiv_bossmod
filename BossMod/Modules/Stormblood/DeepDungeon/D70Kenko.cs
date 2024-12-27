@@ -1,8 +1,4 @@
-﻿
-
-
-
-namespace BossMod.Stormblood.DeepDungeon.D70Kenko;
+﻿namespace BossMod.Stormblood.DeepDungeon.D70Kenko;
 
 public enum OID : uint
 {

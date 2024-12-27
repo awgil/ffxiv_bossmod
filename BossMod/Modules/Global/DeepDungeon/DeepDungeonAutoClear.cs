@@ -45,6 +45,7 @@ enum OID : uint
 {
     CairnPalace = 0x1EA094,
     BeaconHoH = 0x1EA9A3,
+    PylonEO = 0x1EB867,
     SilverCoffer = 0x1EA13D,
     GoldCoffer = 0x1EA13E,
     BandedCofferIndicator = 0x1EA1F6,
@@ -203,7 +204,10 @@ public abstract class DeepDungeonAutoClear : ZoneModule
         return [sb.ToString()];
     }
 
-    private bool CanAutoUse(PomanderID p) => p is PomanderID.Steel or PomanderID.Strength or PomanderID.Sight;
+    private bool CanAutoUse(PomanderID p) => p
+        is PomanderID.Steel or PomanderID.Strength or PomanderID.Sight or PomanderID.Raising
+        or PomanderID.ProtoSteel or PomanderID.ProtoStrength or PomanderID.ProtoSight or PomanderID.ProtoRaising
+        or PomanderID.ProtoLethargy;
 
     protected virtual IEnumerable<ActionID> ActionsToIgnore() => [];
 
@@ -211,6 +215,8 @@ public abstract class DeepDungeonAutoClear : ZoneModule
     {
         hints.HintedActions.UnionWith(ActionsToIgnore());
     }
+
+    private bool OnBeacon(WPos pos) => pos.AlmostEqual(new WPos(259.7f, 307.14f), 1);
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
@@ -235,7 +241,7 @@ public abstract class DeepDungeonAutoClear : ZoneModule
 
         if (_config.TrapHints && _showTrapHints)
         {
-            var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30)).Select(t => ShapeDistance.Circle(t, 2)).ToList();
+            var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30) && !OnBeacon(t)).Select(t => ShapeDistance.Circle(t, 2)).ToList();
             if (traps.Count > 0)
                 hints.AddForbiddenZone(ShapeDistance.Union(traps));
         }
@@ -277,7 +283,7 @@ public abstract class DeepDungeonAutoClear : ZoneModule
             if (a.OID == (uint)OID.BandedCofferIndicator)
                 hoardLight = a;
 
-            if ((OID)a.OID is OID.CairnPalace or OID.BeaconHoH && (passage?.DistanceToHitbox(player) ?? float.MaxValue) > a.DistanceToHitbox(player))
+            if ((OID)a.OID is OID.CairnPalace or OID.BeaconHoH or OID.PylonEO && (passage?.DistanceToHitbox(player) ?? float.MaxValue) > a.DistanceToHitbox(player))
                 passage = a;
 
             if (RevealedTrapOIDs.Contains(a.OID))

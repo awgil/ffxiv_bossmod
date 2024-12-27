@@ -13,6 +13,10 @@ public enum AID : uint
     Eyeshine = 12261, // 230E->self, 3.5s cast, range 38+R circle
     AtropineSpore = 12415, // 22FF->self, 4.0s cast, range ?-41 donut
     FrondFatale = 12416, // 22FF->self, 3.0s cast, range 40 circle
+    TheDragonsVoice = 12432, // 2311->self, 4.5s cast, range 30 circle
+    Hex = 12442, // 2314->self, 4.0s cast, range 30 circle
+    HorrisonousBlast = 12258, // 230D->self, 4.0s cast, range 16+R circle
+    Northerlies = 12227, // 230C->self, 5.0s cast, range 40+R circle
 }
 
 public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 70)
@@ -29,16 +33,22 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
             case AID.ShiftingLight:
             case AID.Eyeshine:
             case AID.FrondFatale:
+            case AID.Hex:
                 Gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), null));
                 break;
             case AID.Cry:
                 Stuns.Add(actor);
                 break;
             case AID.Malice:
+            case AID.HorrisonousBlast:
+            case AID.Northerlies:
                 Interrupts.Add(actor);
                 break;
             case AID.AtropineSpore:
                 Donuts.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), 10));
+                break;
+            case AID.TheDragonsVoice:
+                Donuts.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), 8));
                 break;
         }
     }
@@ -53,15 +63,19 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
             case AID.ShiftingLight:
             case AID.Eyeshine:
             case AID.FrondFatale:
+            case AID.Hex:
                 Gazes.RemoveAll(g => g.Source == actor);
                 break;
             case AID.Cry:
                 Stuns.Remove(actor);
                 break;
             case AID.Malice:
+            case AID.HorrisonousBlast:
+            case AID.Northerlies:
                 Interrupts.Remove(actor);
                 break;
             case AID.AtropineSpore:
+            case AID.TheDragonsVoice:
                 Donuts.RemoveAll(g => g.Source == actor);
                 break;
         }
@@ -78,7 +92,7 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
             hints.AddForbiddenZone(new AOEShapeDonut(d.Radius, 100), d.Source.Position, default, d.Activation);
     }
 
-    protected override IEnumerable<ActionID> ActionsToIgnore() => [ActionID.MakeSpell(AID.BlindingBurst), ActionID.MakeSpell(AID.AtropineSpore)];
+    protected override IEnumerable<ActionID> ActionsToIgnore() => [ActionID.MakeSpell(AID.BlindingBurst), ActionID.MakeSpell(AID.AtropineSpore), ActionID.MakeSpell(AID.TheDragonsVoice)];
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 540)]
