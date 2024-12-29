@@ -134,7 +134,7 @@ class P1UtopianSkyAIResolve(BossModule module) : BossComponent(module)
             return;
 
         var folded = _aoes.DangerousSpots | (_aoes.DangerousSpots >> 4);
-        if (WorldState.FutureTime(5) > _aoes.Activation)
+        if (WorldState.FutureTime(6) > _aoes.Activation)
         {
             // can't wait any longer for people to think...
             _seenDangerSpot = folded & new BitMask(0xF);
@@ -144,7 +144,7 @@ class P1UtopianSkyAIResolve(BossModule module) : BossComponent(module)
         foreach (var (slot, group) in _config.P1UtopianSkyInitialSpots.Resolve(Raid))
         {
             var spot = group & 3;
-            if (folded[spot] && !_seenDangerSpot[spot] && Raid[slot] is var p && p != null && p.Position.InCircle(Module.Center, 12))
+            if (folded[spot] && !_seenDangerSpot[spot] && Raid[slot] is var p && p != null && !p.Position.InDonutCone(Module.Center, 12, 20, (180 - 45 * group).Degrees(), 30.Degrees()))
                 _seenDangerSpot.Set(spot);
         }
     }

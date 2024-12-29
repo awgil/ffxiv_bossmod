@@ -52,6 +52,8 @@ class FRUStates : StateMachineBuilder
 
         P4AkhRhai(id + 0x100000, 5.5f);
         P4DarklitDragonsong(id + 0x110000, 1.9f);
+        P4AkhMornMornAfah(id + 0x120000, 2.4f);
+        P4CrystallizeTime(id + 0x130000, 4.6f);
 
         SimpleState(id + 0xFF0000, 100, "???");
     }
@@ -147,6 +149,7 @@ class FRUStates : StateMachineBuilder
         ComponentCondition<P1BrightfireSmall>(id + 0x20, 2.1f, comp => comp.NumCasts > 0, "Circles")
             .ActivateOnEnter<P1BoundOfFaithAIStack>()
             .ExecOnEnter<P1BrightfireLarge>(comp => comp.Risky = true)
+            .ExecOnEnter<P1BoundOfFaith>(comp => comp.EnableHints = true)
             .DeactivateOnExit<P1BrightfireSmall>()
             .DeactivateOnExit<P1BrightfireLarge>();
         ComponentCondition<P1BoundOfFaith>(id + 0x30, 4, comp => !comp.Active, "Stacks") // note: won't happen if both targets die, but that's a wipe anyway
@@ -486,22 +489,85 @@ class FRUStates : StateMachineBuilder
         ActorTargetable(id, _module.BossP4Usurper, true, delay, "Usurper appears")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCast(id + 0x10, _module.BossP4Usurper, AID.Materialization, 5.1f, 3, true);
-        ComponentCondition<P4AhkRhai>(id + 0x20, 11.2f, comp => comp.AOEs.Count > 0, "Puddle baits")
-            .ActivateOnEnter<P4AhkRhai>();
-        ComponentCondition<P4AhkRhai>(id + 0x30, 2.6f, comp => comp.NumCasts > 0);
+        ComponentCondition<P4AkhRhai>(id + 0x20, 11.2f, comp => comp.AOEs.Count > 0, "Puddle baits")
+            .ActivateOnEnter<P4AkhRhai>();
+        ComponentCondition<P4AkhRhai>(id + 0x30, 2.6f, comp => comp.NumCasts > 0);
         ComponentCondition<P4EdgeOfOblivion>(id + 0x40, 2.4f, comp => comp.NumCasts > 0, "Raidwide")
             .ActivateOnEnter<P4EdgeOfOblivion>()
             .DeactivateOnExit<P4EdgeOfOblivion>()
             .SetHint(StateMachine.StateHint.Raidwide);
         ActorTargetable(id + 0x50, _module.BossP4Oracle, true, 1.2f, "Oracle appears");
-        ComponentCondition<P4AhkRhai>(id + 0x60, 1.6f, comp => comp.NumCasts >= 10 * comp.AOEs.Count, "Puddle resolve")
-            .DeactivateOnExit<P4AhkRhai>();
+        ComponentCondition<P4AkhRhai>(id + 0x60, 1.6f, comp => comp.NumCasts >= 10 * comp.AOEs.Count, "Puddle resolve")
+            .ActivateOnEnter<P4MornAfahHPCheck>()
+            .DeactivateOnExit<P4AkhRhai>();
     }
 
     private void P4DarklitDragonsong(uint id, float delay)
     {
         ActorCast(id, _module.BossP4Usurper, AID.DarklitDragonsongUsurper, delay, 5, true, "Raidwide (darklit)")
+            .ActivateOnEnter<P4DarklitDragonsong>()
+            .ActivateOnEnter<P4DarklitDragonsongBrightHunger>()
+            .ActivateOnEnter<P4DarklitDragonsongPathOfLight>()
             .SetHint(StateMachine.StateHint.Raidwide);
-        // TODO: more...
+        ActorCast(id + 0x10, _module.BossP4Usurper, AID.PathOfLight, 3.2f, 8);
+        ActorCastStart(id + 0x20, _module.BossP4Oracle, AID.SpiritTaker, 0.1f, true, "Towers") // towers resolve right as cast starts
+            .DeactivateOnExit<P4DarklitDragonsongBrightHunger>();
+        ComponentCondition<P4DarklitDragonsongPathOfLight>(id + 0x21, 0.8f, comp => comp.NumCasts > 0, "Proteans")
+            .DeactivateOnExit<P4DarklitDragonsongPathOfLight>();
+        ActorCastEnd(id + 0x22, _module.BossP4Oracle, 2.2f, true)
+            .ActivateOnEnter<P3SpiritTaker>();
+        ActorCastStartMulti(id + 0x23, _module.BossP4Usurper, [AID.HallowedWingsL, AID.HallowedWingsR], 0.1f, true);
+        ComponentCondition<P3SpiritTaker>(id + 0x24, 0.3f, comp => comp.Spreads.Count == 0, "Jump")
+            .DeactivateOnExit<P3SpiritTaker>();
+        ActorCastStart(id + 0x25, _module.BossP4Oracle, AID.SomberDance, 2.8f)
+            .ActivateOnEnter<P4HallowedWingsL>()
+            .ActivateOnEnter<P4HallowedWingsR>()
+            .ActivateOnEnter<P4DarklitDragonsongDarkWater>();
+        ComponentCondition<P4DarklitDragonsongDarkWater>(id + 0x26, 1.7f, comp => comp.Stacks.Count == 0, "Stacks")
+            .DeactivateOnExit<P4DarklitDragonsongDarkWater>();
+        ActorCastEnd(id + 0x27, _module.BossP4Usurper, 0.2f, false, "Side cleave")
+            .ActivateOnEnter<P4SomberDance>()
+            .DeactivateOnExit<P4HallowedWingsL>()
+            .DeactivateOnExit<P4HallowedWingsR>()
+            .DeactivateOnExit<P4DarklitDragonsong>();
+        ActorCastEnd(id + 0x28, _module.BossP4Oracle, 3.1f, true);
+        ComponentCondition<P4SomberDance>(id + 0x29, 0.4f, comp => comp.NumCasts > 0, "Tankbuster 1")
+            .SetHint(StateMachine.StateHint.Tankbuster);
+        ComponentCondition<P4SomberDance>(id + 0x2A, 3.2f, comp => comp.NumCasts > 1, "Tankbuster 2")
+            .DeactivateOnExit<P4SomberDance>()
+            .SetHint(StateMachine.StateHint.Tankbuster);
+
+        ComponentCondition<P4EdgeOfOblivion>(id + 0x30, 3.4f, comp => comp.NumCasts > 0, "Raidwide")
+            .ActivateOnEnter<P4EdgeOfOblivion>()
+            .DeactivateOnExit<P4EdgeOfOblivion>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+    }
+
+    private void P4AkhMornMornAfah(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP4Usurper, AID.AkhMornUsurper, delay, 4, true)
+            .ActivateOnEnter<P4AkhMorn>();
+        ComponentCondition<P4AkhMorn>(id + 0x10, 0.9f, comp => comp.NumCasts >= 1, "Party stack 1");
+        ComponentCondition<P4AkhMorn>(id + 0x11, 1.1f, comp => comp.NumCasts >= 2, "Party stack 2");
+        ComponentCondition<P4AkhMorn>(id + 0x12, 1.1f, comp => comp.NumCasts >= 3, "Party stack 3");
+        ComponentCondition<P4AkhMorn>(id + 0x13, 1.1f, comp => comp.NumCasts >= 4, "Party stack 4")
+            .DeactivateOnExit<P4AkhMorn>();
+
+        ActorCast(id + 0x1000, _module.BossP4Usurper, AID.MornAfahUsurper, 0.1f, 6, true)
+            .ActivateOnEnter<P4MornAfah>();
+        ComponentCondition<P4MornAfah>(id + 0x1010, 0.9f, comp => comp.Stacks.Count == 0, "Raid stack + HP check")
+            .DeactivateOnExit<P4MornAfah>();
+    }
+
+    private void P4CrystallizeTime(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP4Oracle, AID.CrystallizeTimeOracle, delay, 10, true, "Raidwide (crystallize)")
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ActorTargetable(id + 0x10, _module.BossP4Usurper, false, 3.1f, "Usurper disappears")
+            .ActivateOnEnter<P4CrystallizeTime>();
+        ActorTargetable(id + 0x11, _module.BossP4Oracle, false, 1.1f, "Oracle disappears")
+            .SetHint(StateMachine.StateHint.DowntimeStart);
+        ActorCast(id + 0x20, _module.BossP4Oracle, AID.UltimateRelativitySpeed, 0.1f, 5.5f, true);
+        // TODO: ...
     }
 }

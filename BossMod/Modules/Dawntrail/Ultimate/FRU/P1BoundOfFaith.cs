@@ -9,6 +9,7 @@ class P1BrightfireLarge(BossModule module) : Components.SelfTargetedAOEs(module,
 // TODO: fixed tethers strat variant (tether target with clone on safe side goes S, other goes N, if any group has 5 players prio1 adjusts)
 class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4, 4)
 {
+    public bool EnableHints;
     public WDir SafeSide;
     public DateTime Activation;
     public readonly int[] AssignedGroups = new int[PartyState.MaxPartySize];
@@ -16,6 +17,12 @@ class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(module, 
     private OID _safeHalo;
 
     public WDir AssignedLane(int slot) => new(0, AssignedGroups[slot] * 5.4f);
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (EnableHints)
+            base.AddHints(slot, actor, hints);
+    }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // we have dedicated components for this
 
@@ -135,14 +142,15 @@ class P1BoundOfFaithAIStack(BossModule module) : BossComponent(module)
 
         if (_haveFetters)
         {
+            // stack with closest (note: we could also stack with assigned, but that won't work well if people swap and assignments end up wrong)
+            //var stackWith = _comp.Stacks.FirstOrDefault(s => _comp.AssignedGroups[Raid.FindSlot(s.Target.InstanceID)] == _comp.AssignedGroups[slot]);
+            var stackWith = _comp.Stacks.MinBy(s => (s.Target.Position - actor.Position).LengthSq());
             foreach (var s in _comp.Stacks)
             {
-                var targetSlot = Raid.FindSlot(s.Target.InstanceID);
-                var targetGroup = targetSlot >= 0 ? _comp.AssignedGroups[targetSlot] : 0;
-                if (targetGroup == _comp.AssignedGroups[slot])
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(s.Target.Position, 6), _comp.Activation);
-                else
-                    hints.AddForbiddenZone(ShapeDistance.Circle(s.Target.Position, 6), _comp.Activation);
+                var zone = s.Target == stackWith.Target
+                    ? ShapeDistance.InvertedCircle(s.Target.Position, 4) // stay a bit closer to the target to avoid spooking people
+                    : ShapeDistance.Circle(s.Target.Position, 6);
+                hints.AddForbiddenZone(zone, _comp.Activation);
             }
 
             // all else being equal, try staying closer to center

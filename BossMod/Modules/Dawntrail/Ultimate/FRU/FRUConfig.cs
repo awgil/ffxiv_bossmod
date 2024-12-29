@@ -57,6 +57,11 @@ public class FRUConfig() : ConfigNode()
     [PropertyDisplay("P3 Apocalypse: uptime swaps (only consider swaps within prio 1/2 and 3/4, assuming these are melee and ranged)", separator: true)]
     public bool P3ApocalypseUptime;
 
+    [PropertyDisplay("P4 Darklit Dragonsong: assignments (lower prio stays more clockwise, lowest prio support takes N tower)")]
+    [GroupDetails(["Support prio1", "Support prio2", "Support prio3", "Support prio4", "DD prio1", "DD prio2", "DD prio3", "DD prio4"])]
+    [GroupPreset("Default (healer N)", [2, 3, 0, 1, 4, 5, 6, 7])]
+    public GroupAssignmentUnique P4DarklitDragonsongAssignments = new() { Assignments = [2, 3, 0, 1, 4, 5, 6, 7] };
+
     // ai-only settings
     [PropertyDisplay("P1 Cyclonic Break (proteans): bait clock spots (supports should be near dd to resolve pairs)", tooltip: "Only used by AI")]
     [GroupDetails(["N", "NE", "E", "SE", "S", "SW", "W", "NW"])]

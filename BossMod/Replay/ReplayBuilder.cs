@@ -214,11 +214,11 @@ public sealed class ReplayBuilder : IDisposable
         p.EffectiveExistence.End = DateTime.MaxValue; // until it is destroyed
         p.WorldExistence.Add(new(_ws.CurrentTime));
         if (p.NameHistory.Count == 0 ? (actor.Name.Length > 0 || actor.NameID != 0) : p.NameHistory.Values[^1] != (actor.Name, actor.NameID))
-            p.NameHistory.Add(_ws.CurrentTime, (actor.Name, actor.NameID));
+            p.NameHistory[_ws.CurrentTime] = (actor.Name, actor.NameID);
         if (actor.IsTargetable)
-            p.TargetableHistory.Add(_ws.CurrentTime, true);
-        p.PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
-        p.HPMPHistory.Add(_ws.CurrentTime, actor.HPMP);
+            p.TargetableHistory[_ws.CurrentTime] = true;
+        p.PosRotHistory[_ws.CurrentTime] = actor.PosRot;
+        p.HPMPHistory[_ws.CurrentTime] = actor.HPMP;
         p.MinRadius = Math.Min(p.MinRadius, actor.HitboxRadius);
         p.MaxRadius = Math.Max(p.MaxRadius, actor.HitboxRadius);
 
