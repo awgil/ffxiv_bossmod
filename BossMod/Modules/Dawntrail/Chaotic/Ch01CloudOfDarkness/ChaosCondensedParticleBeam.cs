@@ -16,6 +16,9 @@ class ChaosCondensedParticleBeam(BossModule module) : Components.GenericWildChar
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.ChaosCondensedParticleBeamAOE1 or AID.ChaosCondensedParticleBeamAOE2)
+        {
+            ++NumCasts;
             Source = null;
+        }
     }
 }

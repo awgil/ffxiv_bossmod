@@ -238,22 +238,22 @@ public sealed class ReplayBuilder : IDisposable
 
     private void ActorRenamed(Actor actor)
     {
-        _participants[actor.InstanceID].NameHistory.Add(_ws.CurrentTime, (actor.Name, actor.NameID));
+        _participants[actor.InstanceID].NameHistory[_ws.CurrentTime] = (actor.Name, actor.NameID);
     }
 
     private void ActorTargetable(Actor actor)
     {
-        _participants[actor.InstanceID].TargetableHistory.Add(_ws.CurrentTime, actor.IsTargetable);
+        _participants[actor.InstanceID].TargetableHistory[_ws.CurrentTime] = actor.IsTargetable;
     }
 
     private void ActorDead(Actor actor)
     {
-        _participants[actor.InstanceID].DeadHistory.Add(_ws.CurrentTime, actor.IsDead);
+        _participants[actor.InstanceID].DeadHistory[_ws.CurrentTime] = actor.IsDead;
     }
 
     private void ActorMoved(Actor actor)
     {
-        _participants[actor.InstanceID].PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
+        _participants[actor.InstanceID].PosRotHistory[_ws.CurrentTime] = actor.PosRot;
     }
 
     private void ActorSize(Actor actor)
@@ -265,7 +265,7 @@ public sealed class ReplayBuilder : IDisposable
 
     private void ActorHPMP(Actor actor)
     {
-        _participants[actor.InstanceID].HPMPHistory.Add(_ws.CurrentTime, actor.HPMP);
+        _participants[actor.InstanceID].HPMPHistory[_ws.CurrentTime] = actor.HPMP;
     }
 
     private void CastStart(Actor actor)

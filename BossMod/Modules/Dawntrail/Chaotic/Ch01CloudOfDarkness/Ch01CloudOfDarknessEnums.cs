@@ -38,7 +38,6 @@ public enum AID : uint
     GrimEmbraceVisual = 40507, // DeathsHand->self, no cast, single-target, visual (hand spawn)
     GrimEmbraceAOE = 40508, // Helper->self, 1.0s cast, range 8 width 8 rect
     RazingVolleyParticleBeam = 40511, // CloudletOfDarkness->self, 8.0s cast, range 45 width 8 rect, criss-cross
-
     RapidSequenceParticleBeam = 40512, // Boss->self, 7.0+0.7s cast, single-target, visual (party line stacks)
     RapidSequenceParticleBeamRepeat = 40513, // Boss->self, no cast, single-target, visual (repeat)
     RapidSequenceParticleBeamAOE = 40514, // Helper->self, no cast, range 50 width 6 rect
@@ -64,13 +63,14 @@ public enum AID : uint
     FlareAOE = 40537, // Helper->players, no cast, range 60 circle with 25 falloff
     UnholyDarkness = 41261, // Boss->self, 5.0s cast, single-target, visual (4-man stacks on healers)
     UnholyDarknessAOE = 41262, // Helper->players, no cast, range 6 circle, 4-man stack
+    FloodOfDarkness1 = 40510, // Boss->location, 7.0s cast, range 60 circle, raidwide + arena transition to normal
 
-    FloodOfDarkness = 40510, // Boss->location, 7.0s cast, range 60 circle, raidwide + arena transition to normal
     DelugeOfDarkness2 = 40449, // Boss->location, 8.0s cast, range 60 circle, raidwide + arena transition
     Teleport2 = 40450, // Boss->location, no cast, single-target
     AutoAttackAdd = 40501, // StygianShadow->player, no cast, single-target
     DarkDominion = 40456, // Boss->self, 5.0s cast, range 60 circle, raidwide
     TeleportAdd = 40494, // StygianShadow->location, no cast, single-target
+    Excruciate = 40502, // StygianShadow->player, 5.0s cast, range 4 circle, tankbuster
     FloodOfDarknessAdd = 40503, // StygianShadow->self, 6.0s cast, range 40 circle, interruptible raidwide
 
     ThirdArtOfDarknessR = 40480, // StygianShadow->self, 10.0+0.4s cast, single-target, visual (right first)
@@ -123,12 +123,18 @@ public enum AID : uint
     ActivePivotParticleBeamCCWRepeat = 40470, // Boss->self, no cast, single-target
     ActivePivotParticleBeamAOE = 40471, // Helper->self, no cast, range 80 width 18 rect
 
-    Excruciate = 40502, // StygianShadow->player, 5.0s cast, range 4 circle, tankbuster
     LoomingChaosAdd = 41673, // StygianShadow->self, 7.0s cast, single-target, visual (position swaps)
     LoomingChaosBoss = 41674, // Boss->self, 7.0s cast, single-target, visual (position swaps)
     LoomingChaosAOE = 41675, // Helper->self, 7.7s cast, range 50 circle, raidwide + position swaps
 
-    //_Weaponskill_FeintParticleBeam = 40477, // Boss->self, 6.0+0.7s cast, single-target
+    FeintParticleBeam = 40477, // Boss->self, 6.0+0.7s cast, single-target, visual (chasers)
+    FeintParticleBeamAOEFirst = 40478, // Helper->location, 4.0s cast, range 3 circle
+    FeintParticleBeamAOERest = 40479, // Helper->location, no cast, range 3 circle
+
+    Evaporation = 40454, // StygianShadow->Boss, 2.0s cast, single-target, destroy add and transfer damage done to boss
+    FloodOfDarkness2 = 40455, // Boss->location, 7.0s cast, range 60 circle, raidwide + arena transition to normal
+
+    Enrage = 40533, // Boss->location, 12.0s cast, range 100 circle, enrage
 }
 
 public enum SID : uint
@@ -136,28 +142,17 @@ public enum SID : uint
     //_Gen_ArcaneDesign = 4180, // Boss->Boss, extra=0x0
     //_Gen_LightningResistanceDown = 4386, // Helper/Boss->player, extra=0x1/0x2/0x3/0x4/0x5/0x6/0x7/0x8/0x9/0xA/0xB/0xC/0xD/0xE/0xF/0x10
     DeadlyEmbrace = 4181, // none->player, extra=0x0
-    //_Gen_ = 2970, // none->player, extra=0x358
-    //_Gen_Heavy = 1595, // none->player, extra=0x4B
     AbyssalEdge = 4182, // Boss->Boss, extra=0x0 (endeath/enaero stored)
-    //_Gen_Doom = 3364, // Helper/BallOfNaught->player, extra=0x0
-    //_Gen_MagicVulnerabilityUp = 2941, // Helper->player, extra=0x0
-    //_Gen_BrinkOfDeath = 44, // none->player, extra=0x0
-    //_Gen_Petrification = 3007, // Helper->player, extra=0x0
     //_Gen_VeilOfDarkness = 4179, // Boss->Boss, extra=0x0
     //_Gen_CloyingCondensation = 2532, // none->player, extra=0x0
     //_Gen_ = 4388, // none->StygianShadow, extra=0x1052
     //_Gen_ = 4387, // none->Boss, extra=0x1051
-    //_Gen_InnerDarkness = 4177, // none->player, extra=0x0
-    //_Gen_OuterDarkness = 4178, // none->player, extra=0x0
-    //_Gen_VulnerabilityDown = 2198, // none->StygianShadow/Boss, extra=0x0
-    //_Gen_DamageUp = 3129, // none->StygianShadow/Boss, extra=0x0
+    InnerDarkness = 4177, // none->player, extra=0x0, on main platform
+    OuterDarkness = 4178, // none->player, extra=0x0, on side platform
     //_Gen_Rehabilitation = 4191, // none->Boss, extra=0x1/0x4/0x3/0x2
     //_Gen_LifeDrain = 1377, // none->player, extra=0x0
     //_Gen_CraftersGrace = 45, // player->player, extra=0x50
-    //_Gen_VulnerabilityUp = 4375, // none->player, extra=0x10/0x2/0xA/0x7/0x6/0x1/0x3/0x5/0x4/0x9/0x8/0xF
-    //_Gen_Terror = 66, // Helper->player, extra=0x0
     CurseOfDarkness = 2387, // none->player, extra=0x0
-    //_Gen_SustainedDamage = 4149, // Helper/StygianTendrils/StygianShadow->player, extra=0x1/0x2/0x3
     //_Gen_StabWound = 3061, // none->player, extra=0x0
     //_Gen_StabWound = 3062, // none->player, extra=0x0
     //_Gen_ThornyVine = 445, // none->player, extra=0x0
@@ -167,7 +162,6 @@ public enum SID : uint
     //_Gen_LeftWithThee = 2242, // none->player, extra=0x341
     //_Gen_Stun = 2656, // none->player, extra=0x0
     //_Gen_RightWithThee = 2243, // none->player, extra=0x342
-    //_Gen_Bleeding = 3077, // none->player, extra=0x0
 }
 
 public enum IconID : uint
@@ -180,11 +174,12 @@ public enum IconID : uint
     ThirdArtOfDarknessStack = 241, // StygianShadow->self
     ThirdArtOfDarknessSpread = 242, // StygianShadow->self
     EvilSeed = 551, // player->self
-    ThornyVine = 569, // StygianTendrils->self
-    //_Gen_Icon_12 = 12, // player->self
+    ThornyVineHatch = 569, // StygianTendrils->self
+    ThornyVineBait = 12, // player->self
     RotateCW = 564, // Boss->self
     RotateCCW = 565, // Boss->self
     Excruciate = 342, // player->self
+    FeintParticleBeam = 197, // player->self
 }
 
 public enum TetherID : uint
@@ -192,8 +187,8 @@ public enum TetherID : uint
     GrimEmbraceForward = 300, // player->Boss
     GrimEmbraceBackward = 301, // player->Boss
     //_Gen_Tether_14 = 14, // Boss/StygianShadow->StygianShadow/Boss
-    //_Gen_Tether_165 = 165, // 4620->player
+    //_Gen_Tether_165 = 165, // Atomos->player
     ThornyVine = 18, // StygianTendrils/player->player
-    //_Gen_Tether_38 = 38, // player->player
+    LoomingChaos = 38, // player->player
     //_Gen_Tether_1 = 1, // StygianTendrils->StygianTendrils
 }

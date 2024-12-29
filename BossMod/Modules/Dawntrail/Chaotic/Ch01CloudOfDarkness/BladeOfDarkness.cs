@@ -24,6 +24,9 @@ class BladeOfDarkness(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.BladeOfDarknessLAOE or AID.BladeOfDarknessRAOE or AID.BladeOfDarknessCAOE)
+        {
             _aoe = null;
+            ++NumCasts;
+        }
     }
 }

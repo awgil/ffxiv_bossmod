@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Chaotic.Ch01CloudOfDarkness;
 
-class CurseOfDarkness(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CurseOfDarknessAOE), "Raidwide + bait debuffs");
+class CurseOfDarkness(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.CurseOfDarknessAOE));
 
 class DarkEnergyParticleBeam(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.DarkEnergyParticleBeam))
 {

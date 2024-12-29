@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Chaotic.Ch01CloudOfDarkness;
 
-class EndeathVortex(BossModule module) : Components.Knockback(module)
+class EndeathVortex(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.EndeathVortex))
 {
     private Source? _source;
     private bool _delayed;
@@ -51,6 +51,7 @@ class EndeathVortex(BossModule module) : Components.Knockback(module)
         {
             case AID.DeathVortex:
             case AID.EndeathVortex:
+                ++NumCasts;
                 _source = null;
                 break;
             case AID.BladeOfDarknessLAOE:
@@ -61,7 +62,11 @@ class EndeathVortex(BossModule module) : Components.Knockback(module)
         }
     }
 
-    private void Start(DateTime activation) => _source = new(Ch01CloudOfDarkness.Phase1Midpoint, 15, activation, Kind: Kind.TowardsOrigin);
+    private void Start(DateTime activation)
+    {
+        NumCasts = 0;
+        _source = new(Ch01CloudOfDarkness.Phase1Midpoint, 15, activation, Kind: Kind.TowardsOrigin);
+    }
 }
 
 class EndeathAOE(BossModule module) : Components.GenericAOEs(module)
@@ -109,6 +114,7 @@ class EndeathAOE(BossModule module) : Components.GenericAOEs(module)
 
     private void Start(DateTime activation)
     {
+        NumCasts = 0;
         _aoes.Add(new(_shapeOut, Ch01CloudOfDarkness.Phase1Midpoint, default, activation.AddSeconds(2)));
         _aoes.Add(new(_shapeIn, Ch01CloudOfDarkness.Phase1Midpoint, default, activation.AddSeconds(4)));
         _delayed = false;
