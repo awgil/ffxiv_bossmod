@@ -15,6 +15,13 @@ class P1Blastburn(BossModule module) : Components.Knockback(module, default, tru
         }
     }
 
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        // don't show kb hints until aoe is done
+        if (_aoeDone)
+            base.AddHints(slot, actor, hints);
+    }
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_caster != null)

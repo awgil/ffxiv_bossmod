@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using ImGuiNET;
 
 namespace BossMod;
 
@@ -12,5 +13,8 @@ class DebugAutorotation(RotationModuleManager autorot)
         if (player == null)
             return;
         new AIHintsVisualizer(autorot.Hints, autorot.Bossmods.WorldState, player, 3).Draw(_tree);
+
+        if (ImGui.Button("Gaze!"))
+            autorot.Hints.ForbiddenDirections.Add((player.Rotation, 45.Degrees(), default));
     }
 }

@@ -90,7 +90,7 @@ internal sealed unsafe class DebugInput : IDisposable
     private readonly AIHints _hints;
     private readonly MovementOverride _move;
     //private readonly AI.AIController _navi;
-    private Vector3 _prevPos;
+    private Vector4 _prevPosRot;
     private float _prevSpeed;
     private bool _wannaMove;
     private float _moveDir;
@@ -143,13 +143,16 @@ internal sealed unsafe class DebugInput : IDisposable
         var dt = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->FrameDeltaTime;
 
         var player = _ws.Party.Player();
-        var curPos = player?.PosRot.XYZ() ?? new();
-        var speed = (curPos - _prevPos) / dt;
+        var curPosRot = player?.PosRot ?? new();
+        var speed = (curPosRot.XYZ() - _prevPosRot.XYZ()) / dt;
         var speedAbs = speed.Length();
         var accel = (speedAbs - _prevSpeed) / dt;
-        _prevPos = curPos;
+        var rotSpeed = (curPosRot.W - _prevPosRot.W).Radians().Normalized() / dt;
+        //if (curPosRot.W != _prevPosRot.W)
+        //    Service.Log($"ROT: {_prevPosRot.W.Radians()} -> {curPosRot.W.Radians()} over {dt} (s={rotSpeed})");
+        _prevPosRot = curPosRot;
         _prevSpeed = speedAbs;
-        ImGui.TextUnformatted($"Speed={speedAbs:f3}, SpeedH={speed.XZ().Length():f3}, SpeedV={speed.Y:f3}, Accel={accel:f3}, Azimuth={Angle.FromDirection(new(speed.XZ()))}, Altitude={Angle.FromDirection(new(speed.Y, speed.XZ().Length()))}");
+        ImGui.TextUnformatted($"Speed={speedAbs:f3}, SpeedH={speed.XZ().Length():f3}, SpeedV={speed.Y:f3}, RSpeed={rotSpeed}, Accel={accel:f3}, Azimuth={Angle.FromDirection(new(speed.XZ()))}, Altitude={Angle.FromDirection(new(speed.Y, speed.XZ().Length()))}");
         ImGui.TextUnformatted($"MO: desired={_move.DesiredDirection}, user={_move.UserMove}, actual={_move.ActualMove}");
         //Service.Log($"Speed: {speedAbs:f3}, accel: {accel:f3}");
 

@@ -20,8 +20,11 @@ public abstract class AIRotationModule(RotationModuleManager manager, Actor play
 
     protected void SetForcedMovement(WPos? pos, float tolerance = 0.1f)
     {
-        var dir = (pos ?? Player.Position) - Player.Position;
-        Hints.ForcedMovement = dir.LengthSq() > tolerance * tolerance ? dir.ToVec3(Player.PosRot.Y) : default;
+        if (pos != null)
+        {
+            var dir = pos.Value - Player.Position;
+            Hints.ForcedMovement = dir.LengthSq() > tolerance * tolerance ? dir.ToVec3(Player.PosRot.Y) : default;
+        }
     }
 
     protected WPos ClosestInRange(WPos pos, WPos target, float maxRange)
