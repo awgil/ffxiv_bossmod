@@ -163,6 +163,6 @@ public sealed class Definitions : IDisposable
         //d.Spell(AID.DivineVeil)!.EffectDuration = 30;
         // TODO: Intervention effect duration?
 
-        d.Spell(AID.Intervene)!.ForbidExecute = ActionDefinitions.GapCloserSafetyCheck;
+        d.Spell(AID.Intervene)!.ForbidExecute = ActionDefinitions.GapCloserDangerCheck;
     }
 }

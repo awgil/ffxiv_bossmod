@@ -158,7 +158,7 @@ public sealed class Definitions : IDisposable
             _ => null
         };
 
-        d.Spell(AID.Stardiver)!.ForbidExecute = d.Spell(AID.DragonfireDive)!.ForbidExecute = ActionDefinitions.GapCloserSafetyCheck;
+        d.Spell(AID.Stardiver)!.ForbidExecute = d.Spell(AID.DragonfireDive)!.ForbidExecute = ActionDefinitions.GapCloserDangerCheck;
 
         // upgrades (TODO: don't think we actually care...)
         //d.Spell(AID.FullThrust)!.TransformAction = d.Spell(AID.HeavensThrust)!.TransformAction = () => ActionID.MakeSpell(_state.BestHeavensThrust);

@@ -73,6 +73,7 @@ public abstract class DeepDungeonAutoClear : ZoneModule
     ];
     public static readonly HashSet<uint> RevealedTrapOIDs = [0x1EA08E, 0x1EA08F, 0x1EA090, 0x1EA091, 0x1EA092, 0x1EA9A0];
 
+    protected readonly List<(Actor Source, DateTime Activation, float Radius)> Donuts = [];
     protected readonly List<(Actor Source, DateTime Activation, AOEShape? Shape)> Gazes = [];
     protected readonly List<Actor> Interrupts = [];
     protected readonly List<Actor> Stuns = [];
@@ -227,6 +228,9 @@ public abstract class DeepDungeonAutoClear : ZoneModule
             if (d.Shape == null || d.Shape.Check(player.Position, d.Source))
                 hints.ForbiddenDirections.Add((player.AngleTo(d.Source), 45.Degrees(), d.Activation));
 
+        foreach (var d in Donuts)
+            hints.AddForbiddenZone(new AOEShapeDonut(d.Radius, 100), d.Source.Position, default, d.Activation);
+
         foreach (var d in Interrupts)
             if (hints.FindEnemy(d) is { } e)
                 e.ShouldBeInterrupted = true;
@@ -332,7 +336,7 @@ public abstract class DeepDungeonAutoClear : ZoneModule
         };
 
         if (shouldTargetMobs)
-            foreach (var pp in hints.PotentialTargets)
+            foreach (var pp in hints.PotentialTargets.Where(t => t.Actor.FindStatus(2056) == null))
                 pp.Priority = 0;
     }
 

@@ -285,9 +285,13 @@ public sealed class ActionDefinitions : IDisposable
     public static Actor? FindCoTank(WorldState ws, Actor player) => ws.Party.WithoutSlot().Exclude(player).FirstOrDefault(a => a.Role == Role.Tank);
     public static Actor? SmartTargetCoTank(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? FindCoTank(ws, player);
 
+    // smart targeting utility: return target (if friendly) or any esunable player (if any) or self (otherwise)
+    public static Actor? FindEsunaTarget(WorldState ws) => ws.Party.WithoutSlot().FirstOrDefault(p => p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)));
+    public static Actor? SmartTargetEsunable(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? FindEsunaTarget(ws) ?? player;
+
     // assuming that the given action is a gap closer and that the user has the "prevent unsafe dashes" option checked, determine whether executing the action will move the player into a forbidden zone
     // TODO: should this worry about crossing forbidden zones too? probably not
-    public static bool GapCloserSafetyCheck(WorldState _, Actor player, Actor? target, AIHints hints)
+    public static bool GapCloserDangerCheck(WorldState _, Actor player, Actor? target, AIHints hints)
     {
         if (target == null || !Service.Config.Get<ActionTweaksConfig>().DashSafely)
             return false;
@@ -296,12 +300,8 @@ public sealed class ActionDefinitions : IDisposable
         var dir = player.DirectionTo(target).Normalized();
         var src = player.Position;
         var proj = dist > 0 ? src + dir * MathF.Max(0, dist) : src;
-        return !hints.ForbiddenZones.Any(d => d.shapeDistance(proj) < 0);
+        return hints.ForbiddenZones.Any(d => d.shapeDistance(proj) < 0);
     }
-
-    // smart targeting utility: return target (if friendly) or any esunable player (if any) or self (otherwise)
-    public static Actor? FindEsunaTarget(WorldState ws) => ws.Party.WithoutSlot().FirstOrDefault(p => p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)));
-    public static Actor? SmartTargetEsunable(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? FindEsunaTarget(ws) ?? player;
 
     public BitMask SpellAllowedClasses(Lumina.Excel.Sheets.Action data)
     {

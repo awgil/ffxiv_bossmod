@@ -87,13 +87,22 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         SetupKiteZone(strategy, primaryTarget);
     }
 
+    private static readonly HashSet<uint> NoMeleeAutos = [
+        // spellcasters
+        0x3DCC, // Orthos Imp
+        0x3DD2, // water sprite
+
+        // doesn't autoattack at all
+        0x22EF, // Heavenly Maruishi
+    ];
+
     private void SetupKiteZone(StrategyValues strategy, Actor? primaryTarget)
     {
         if (Player.Class.GetRole() is not (Role.Ranged or Role.Healer) || primaryTarget == null || !Player.InCombat || !IsFloorAppropriate(strategy.Option(Track.Kite2).As<PotionStrategy>()))
             return;
 
         // "heavenly maruishi" doesn't autoattack
-        if (primaryTarget.OID == 0x22EF)
+        if (NoMeleeAutos.Contains(primaryTarget.OID))
             return;
 
         // assume we don't need to kite if mob is busy casting (TODO: some mob spells can be cast while moving, maybe there's a column in sheets for it)
