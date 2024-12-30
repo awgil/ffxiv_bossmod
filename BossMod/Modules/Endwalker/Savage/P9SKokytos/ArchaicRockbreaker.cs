@@ -112,7 +112,7 @@ class ArchaicRockbreakerCombination(BossModule module) : Components.GenericAOEs(
             {
                 foreach (var a in safespots.Allowed(default))
                 {
-                    var mid = ((a.Item1.Rad + a.Item2.Rad) * 0.5f).Radians();
+                    var mid = ((a.min.Rad + a.max.Rad) * 0.5f).Radians();
                     yield return safespots.Center + safespots.Radius * mid.ToDirection();
                 }
             }

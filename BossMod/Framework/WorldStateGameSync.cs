@@ -812,6 +812,7 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketRSVDataHook.Original(packet);
         _globalOps.Add(new WorldState.OpRSVData(MemoryHelper.ReadStringNullTerminated((nint)(packet + 4)), MemoryHelper.ReadString((nint)(packet + 0x34), *(int*)packet)));
     }
+
     private unsafe void ProcessPacketOpenTreasureDetour(uint actorID, byte* packet)
     {
         _processPacketOpenTreasureHook.Original(actorID, packet);

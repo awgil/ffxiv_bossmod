@@ -29,11 +29,14 @@ public sealed class CancelCastTweak(WorldState ws, AIHints hints)
             return false;
 
         var cast = _ws.Party.Player()?.CastInfo;
-        var target = _ws.Actors.Find(cast?.TargetID ?? 0);
+        if (cast == null || cast.Action.Type == ActionType.KeyItem) // don't auto cancel quest items, that's never a good idea
+            return false;
+
+        var target = _ws.Actors.Find(cast.TargetID);
         if (target == null)
             return false;
 
-        var isRaise = Service.LuminaRow<Lumina.Excel.Sheets.Action>(cast?.Action.SpellId() ?? 0)?.DeadTargetBehaviour == 1;
+        var isRaise = Service.LuminaRow<Lumina.Excel.Sheets.Action>(cast.Action.SpellId())?.DeadTargetBehaviour == 1;
         if (!isRaise)
             return target.IsDead;
 
