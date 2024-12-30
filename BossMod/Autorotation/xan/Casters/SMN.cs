@@ -77,6 +77,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
     public float SearingLightLeft;
     public float SearingFlash;
     public float RefulgentLux;
+    public bool CrimsonStrikeReady;
 
     public int Aetherflow => TranceFlags.HasFlag(SmnFlags.Aetherflow2) ? 2 : TranceFlags.HasFlag(SmnFlags.Aetherflow) ? 1 : 0;
 
@@ -233,6 +234,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         SearingFlash = StatusLeft(SID.RubysGlimmer);
         SearingLightLeft = Player.FindStatus(SID.SearingLight) is ActorStatus s ? StatusDuration(s.ExpireAt) : 0;
         RefulgentLux = StatusLeft(SID.RefulgentLux);
+        CrimsonStrikeReady = Player.FindStatus(SID.CrimsonStrikeReady) != null;
 
         (BestAOETarget, NumAOETargets) = SelectTargetByHP(strategy, primaryTarget, 25, IsSplashTarget);
         (BestMeleeTarget, NumMeleeTargets) = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget);
@@ -255,7 +257,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
 
         OGCDs(strategy, primaryTarget);
 
-        if (ComboLastMove == AID.CrimsonCyclone)
+        if (CrimsonStrikeReady)
         {
             Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 3));
             PushGCD(AID.CrimsonStrike, BestMeleeTarget);

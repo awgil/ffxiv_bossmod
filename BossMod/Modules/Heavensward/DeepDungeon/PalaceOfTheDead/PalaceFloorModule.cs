@@ -41,10 +41,10 @@ public abstract class PalaceFloorModule(WorldState ws) : DeepDungeonAutoClear(ws
         {
             case AID.MysteriousLight:
             case AID.StoneGazeSingle:
-                Gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), null));
+                Gazes.Add((actor, null));
                 break;
             case AID.StoneGazeCone:
-                Gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), new AOEShapeCone(8.2f, 45.Degrees())));
+                Gazes.Add((actor, new AOEShapeCone(8.2f, 45.Degrees())));
                 break;
             case AID.Infatuation:
             case AID.VoidBlizzard:
@@ -54,27 +54,6 @@ public abstract class PalaceFloorModule(WorldState ws) : DeepDungeonAutoClear(ws
             case AID.ParalyzeIII:
             case AID.ParalyzeIII2:
                 Interrupts.Add(actor);
-                break;
-        }
-    }
-
-    protected override void OnCastFinished(Actor actor)
-    {
-        switch ((AID)actor.CastInfo!.Action.ID)
-        {
-            case AID.MysteriousLight:
-            case AID.StoneGazeSingle:
-            case AID.StoneGazeCone:
-                Gazes.RemoveAll(d => d.Source == actor);
-                break;
-            case AID.Infatuation:
-            case AID.VoidBlizzard:
-            case AID.HorroisonousBlast:
-            case AID.Mucin:
-            case AID.BladeOfSuffering:
-            case AID.ParalyzeIII:
-            case AID.ParalyzeIII2:
-                Interrupts.Remove(actor);
                 break;
         }
     }

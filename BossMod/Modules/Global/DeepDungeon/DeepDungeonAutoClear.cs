@@ -73,8 +73,9 @@ public abstract class DeepDungeonAutoClear : ZoneModule
     ];
     public static readonly HashSet<uint> RevealedTrapOIDs = [0x1EA08E, 0x1EA08F, 0x1EA090, 0x1EA091, 0x1EA092, 0x1EA9A0];
 
-    protected readonly List<(Actor Source, DateTime Activation, float Radius)> Donuts = [];
-    protected readonly List<(Actor Source, DateTime Activation, AOEShape? Shape)> Gazes = [];
+    protected readonly List<(Actor Source, float Radius)> Donuts = [];
+    protected readonly List<(Actor Source, float Radius)> Circles = [];
+    protected readonly List<(Actor Source, AOEShape? Shape)> Gazes = [];
     protected readonly List<Actor> Interrupts = [];
     protected readonly List<Actor> Stuns = [];
     protected readonly List<Actor> ForbiddenTargets = [];
@@ -219,25 +220,52 @@ public abstract class DeepDungeonAutoClear : ZoneModule
 
     private bool OnBeacon(WPos pos) => pos.AlmostEqual(new WPos(259.7f, 307.14f), 1);
 
+    private void IterAndExpire<T>(List<T> items, Func<T, bool> expire, Action<T> action)
+    {
+        for (var i = items.Count - 1; i >= 0; i--)
+        {
+            var item = items[i];
+            if (expire(item))
+                items.RemoveAt(i);
+            else
+                action(item);
+        }
+    }
+
+    private DateTime CastFinishAt(Actor c) => World.FutureTime(c.CastInfo!.NPCRemainingTime);
+
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
         if (!_config.Enable || Palace.Progress.Floor % 10 == 0)
             return;
 
-        foreach (var d in Gazes)
+        IterAndExpire(Gazes, g => g.Source.CastInfo == null, d =>
+        {
             if (d.Shape == null || d.Shape.Check(player.Position, d.Source))
-                hints.ForbiddenDirections.Add((player.AngleTo(d.Source), 45.Degrees(), d.Activation));
+                hints.ForbiddenDirections.Add((player.AngleTo(d.Source), 45.Degrees(), CastFinishAt(d.Source)));
+        });
 
-        foreach (var d in Donuts)
-            hints.AddForbiddenZone(new AOEShapeDonut(d.Radius, 100), d.Source.Position, default, d.Activation);
+        IterAndExpire(Donuts, d => d.Source.CastInfo == null, d =>
+        {
+            hints.AddForbiddenZone(new AOEShapeDonut(d.Radius, 100), d.Source.Position, default, CastFinishAt(d.Source));
+        });
 
-        foreach (var d in Interrupts)
+        IterAndExpire(Circles, d => d.Source.CastInfo == null, d =>
+        {
+            hints.AddForbiddenZone(new AOEShapeCircle(d.Radius), d.Source.Position, default, CastFinishAt(d.Source));
+        });
+
+        IterAndExpire(Interrupts, d => d.CastInfo == null, d =>
+        {
             if (hints.FindEnemy(d) is { } e)
                 e.ShouldBeInterrupted = true;
+        });
 
-        foreach (var d in Stuns)
+        IterAndExpire(Stuns, d => d.CastInfo == null, d =>
+        {
             if (hints.FindEnemy(d) is { } e)
                 e.ShouldBeStunned = true;
+        });
 
         foreach (var d in ForbiddenTargets)
             if (hints.FindEnemy(d) is { } e)

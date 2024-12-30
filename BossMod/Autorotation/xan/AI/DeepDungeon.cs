@@ -48,6 +48,9 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
+        if (World.DeepDungeon.DungeonId == 0)
+            return;
+
         var transformation = Transformation.None;
         if (Player.FindStatus(SID.Transfiguration) is { } status)
         {
@@ -88,12 +91,13 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
     }
 
     private static readonly HashSet<uint> NoMeleeAutos = [
-        // spellcasters
-        0x3DCC, // Orthos Imp
-        0x3DD2, // water sprite
-
         // doesn't autoattack at all
         0x22EF, // Heavenly Maruishi
+
+        // anchored bosses
+        0x3E77, // floor 20 cloning node
+        0x3D9A, // floor 30 tiamat
+        0x3D1D, // floor 40 twintania, boss does move around but kiting it interferes with the knockback stuff
     ];
 
     private void SetupKiteZone(StrategyValues strategy, Actor? primaryTarget)

@@ -40,41 +40,13 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
             case AID.Eyeshine:
             case AID.FrondFatale:
             case AID.Hex:
-                Gazes.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), null));
+                Gazes.Add((actor, null));
                 break;
             case AID.AtropineSpore:
-                Donuts.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), 10));
+                Donuts.Add((actor, 10));
                 break;
             case AID.TheDragonsVoice:
-                Donuts.Add((actor, World.FutureTime(actor.CastInfo.NPCRemainingTime), 8));
-                break;
-        }
-    }
-
-    protected override void OnCastFinished(Actor actor)
-    {
-        switch ((AID)actor.CastInfo!.Action.ID)
-        {
-            case AID.Cry:
-                Stuns.Remove(actor);
-                break;
-            case AID.Malice:
-            case AID.HorrisonousBlast:
-            case AID.Northerlies:
-                Interrupts.Remove(actor);
-                break;
-            case AID.StoneGaze:
-            case AID.BlindingBurst:
-            case AID.NightmarishLight:
-            case AID.ShiftingLight:
-            case AID.Eyeshine:
-            case AID.FrondFatale:
-            case AID.Hex:
-                Gazes.RemoveAll(g => g.Source == actor);
-                break;
-            case AID.AtropineSpore:
-            case AID.TheDragonsVoice:
-                Donuts.RemoveAll(g => g.Source == actor);
+                Donuts.Add((actor, 8));
                 break;
         }
     }
