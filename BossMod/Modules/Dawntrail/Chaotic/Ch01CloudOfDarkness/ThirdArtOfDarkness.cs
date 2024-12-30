@@ -63,6 +63,7 @@ class ThirdArtOfDarknessCleave(BossModule module) : Components.GenericAOEs(modul
             var (a, m) = Mechanics.FirstOrDefault(kv => kv.Key.Position.AlmostEqual(caster.Position, 1) && kv.Value.Count > 0 && kv.Value[0].mechanic == mechanic);
             if (a != null)
             {
+                ++NumCasts;
                 m.RemoveAt(0);
                 if (m.Count == 0)
                     Mechanics.Remove(a);

@@ -104,6 +104,9 @@ public enum SID : uint
     Recitation = 1896, // applied by Recitation to self
     BanefulImpaction = 3883, // applied by Baneful Impaction to target
     ImpactImminent = 3882, // applied by Chain Stratagem to self
+    ChainStratagem = 1221, // applied by Chain Stratagem to target
+    FeyUnion = 1222, // applied by Aetherpact to target
+    Seraphism = 3884, // applied by Seraphism to self
 
     //Shared
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
@@ -111,6 +114,8 @@ public enum SID : uint
 
 public sealed class Definitions : IDisposable
 {
+    private readonly SCHConfig _config = Service.Config.Get<SCHConfig>();
+
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.AngelFeathers, castAnimLock: 8.10f); // animLock=8.100s?

@@ -7,7 +7,8 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
     public enum AuroraStrategy { None, Force } //Aurora
     public enum DashStrategy { None, GapClose } //Gapcloser purposes
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
-    public bool TargetHasEffect<SID>(Actor target, SID sid) where SID : Enum => target?.FindStatus((uint)(object)sid, Player.InstanceID) != null; //Checks if Status effect is on target
+    public float GetStatusDetail(Actor target, GNB.SID sid) => StatusDetails(target, sid, Player.InstanceID).Left; //Checks if Status effect is on target
+    public bool HasEffect(Actor target, GNB.SID sid, float duration) => GetStatusDetail(target, sid) < duration; //Checks if anyone has a status effect
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(GNB.AID.GunmetalSoul);
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(GNB.AID.RoyalGuard);
@@ -54,7 +55,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         //Aurora execution
         var aur = strategy.Option(Track.Aurora);
         var aurTarget = ResolveTargetOverride(aur.Value) ?? primaryTarget ?? Player; //Smart-Targeting
-        var aurStatus = TargetHasEffect(aurTarget, GNB.SID.Aurora); //Checks if status is present
+        var aurStatus = HasEffect(aurTarget, GNB.SID.Aurora, 17); //Checks if status is present
         var aurora = aur.As<AuroraStrategy>() switch
         {
             AuroraStrategy.Force => GNB.AID.Aurora,
@@ -63,21 +64,24 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         if (aurora != default && !aurStatus)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(GNB.AID.Aurora), aurTarget, aur.Priority(), aur.Value.ExpireIn);
 
-        //Heart of Corundum execution
+        //Heart of Stone / Corundum execution
         var hoc = strategy.Option(Track.HeartOfCorundum);
         var hocTarget = ResolveTargetOverride(hoc.Value) ?? CoTank() ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
-        var aid = hoc.As<HoCOption>() switch
+        var hocStrat = hoc.As<HoCOption>() switch
         {
             HoCOption.HeartOfStone => GNB.AID.HeartOfStone,
             HoCOption.HeartOfCorundum => GNB.AID.HeartOfCorundum,
             _ => default
         };
-        if (aid != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), hocTarget, hoc.Priority(), hoc.Value.ExpireIn);
+        if (hocStrat != default)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ActionUnlocked(ActionID.MakeSpell(GNB.AID.HeartOfCorundum)) ? GNB.AID.HeartOfCorundum : GNB.AID.HeartOfStone), hocTarget, hoc.Priority(), hoc.Value.ExpireIn);
 
+        //Trajectory execution
+        var dash = strategy.Option(Track.Trajectory);
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget;
         var dashStrategy = strategy.Option(Track.Trajectory).As<DashStrategy>();
         if (ShouldUseDash(dashStrategy, primaryTarget))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(GNB.AID.Trajectory), primaryTarget, hoc.Priority());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(GNB.AID.Trajectory), dashTarget, dash.Priority(), dash.Value.ExpireIn);
     }
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {

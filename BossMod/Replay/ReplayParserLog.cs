@@ -288,6 +288,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("ZONE"u8)] = ParseZoneChange,
             [new("DIRU"u8)] = ParseDirectorUpdate,
             [new("ENVC"u8)] = ParseEnvControl,
+            [new("SLOG"u8)] = ParseSystemLog,
             [new("WAY+"u8)] = () => ParseWaymarkChange(true),
             [new("WAY-"u8)] = () => ParseWaymarkChange(false),
             [new("ACT+"u8)] = ParseActorCreate,
@@ -441,6 +442,16 @@ public sealed class ReplayParserLog : IDisposable
         if (_version < 11)
             _input.ReadUInt(true);
         return new(_input.ReadByte(true), _input.ReadUInt(true));
+    }
+
+    private WorldState.OpSystemLogMessage ParseSystemLog()
+    {
+        var id = _input.ReadUInt(false);
+        var argCount = _input.ReadInt();
+        var args = new int[argCount];
+        for (var i = 0; i < argCount; i++)
+            args[i] = _input.ReadInt();
+        return new(id, args);
     }
 
     private WaymarkState.OpWaymarkChange ParseWaymarkChange(bool set)
@@ -602,7 +613,6 @@ public sealed class ReplayParserLog : IDisposable
     private ActorState.OpPlayActionTimelineEvent ParseActorPlayActionTimelineEvent() => new(_input.ReadActorID(), _input.ReadUShort(true));
     private ActorState.OpEventNpcYell ParseActorEventNpcYell() => new(_input.ReadActorID(), _input.ReadUShort(false));
     private ActorState.OpEventOpenTreasure ParseActorEventOpenTreasure() => new(_input.ReadActorID());
-
     private PartyState.OpModify ParsePartyModify() => new(_input.ReadInt(), new(_input.ReadULong(true), _input.ReadULong(true), _version >= 15 && _input.ReadBool(), _version < 15 ? "" : _input.ReadString()));
     private PartyState.OpModify ParsePartyLeave() => new(_input.ReadInt(), new(0, 0, false, ""));
     private PartyState.OpLimitBreakChange ParsePartyLimitBreak() => new(_input.ReadInt(), _input.ReadInt());

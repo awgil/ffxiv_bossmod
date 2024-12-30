@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Chaotic.Ch01CloudOfDarkness;
 
-class EnaeroKnockback(BossModule module) : Components.Knockback(module)
+class EnaeroKnockback(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.EnaeroKnockback))
 {
     private Source? _source;
     private bool _delayed;
@@ -49,6 +49,7 @@ class EnaeroKnockback(BossModule module) : Components.Knockback(module)
         {
             case AID.AeroKnockback:
             case AID.EnaeroKnockback:
+                ++NumCasts;
                 _source = null;
                 break;
             case AID.BladeOfDarknessLAOE:
@@ -59,7 +60,11 @@ class EnaeroKnockback(BossModule module) : Components.Knockback(module)
         }
     }
 
-    private void Start(DateTime activation) => _source = new(Ch01CloudOfDarkness.Phase1Midpoint, 15, activation);
+    private void Start(DateTime activation)
+    {
+        NumCasts = 0;
+        _source = new(Ch01CloudOfDarkness.Phase1Midpoint, 15, activation);
+    }
 }
 
 class EnaeroAOE(BossModule module) : Components.GenericAOEs(module)
@@ -103,6 +108,7 @@ class EnaeroAOE(BossModule module) : Components.GenericAOEs(module)
 
     private void Start(DateTime activation)
     {
+        NumCasts = 0;
         _aoe = new(_shape, Ch01CloudOfDarkness.Phase1Midpoint, default, activation);
         _delayed = false;
     }
