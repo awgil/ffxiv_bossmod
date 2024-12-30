@@ -2,11 +2,14 @@
 
 public sealed class ClassASTUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
-    public enum Track { Helios = SharedTrack.Count, Lightspeed, BeneficII, EssentialDignity, AspectedBenefic, AspectedHelios, Synastry, CollectiveUnconscious, CelestialOpposition, CelestialIntersection, Horoscope, NeutralSect, Exaltation, Macrocosmos, SunSign }
+    public enum Track { Helios = SharedTrack.Count, Lightspeed, BeneficII, EssentialDignity, AspectedBenefic, AspectedHelios, Synastry, CollectiveUnconscious, CelestialOpposition, EarthlyStar, CelestialIntersection, Horoscope, NeutralSect, Exaltation, Macrocosmos, SunSign }
+    public enum StarOption { None, Use, End }
     public enum HoroscopeOption { None, Use, End }
     public enum MacrocosmosOption { None, Use, End }
     public enum HeliosOption { None, Use, UseEx }
-    public bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus((uint)(object)sid, Player.InstanceID) != null; //Checks if Status effect is on self
+    public float GetStatusDetail(Actor target, AST.SID sid) => StatusDetails(target, sid, Player.InstanceID).Left; //Checks if Status effect is on target
+    public bool HasEffect(Actor target, AST.SID sid, float duration) => GetStatusDetail(target, sid) < duration; //Checks if anyone has a status effect
+    public Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value);
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(AST.AID.AstralStasis);
 
@@ -30,6 +33,13 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Synastry, "Synastry", "", 200, AST.AID.Synastry, 20); //ST oGCD "kardia"-like heal, 120s CD, 20s effect duration
         DefineSimpleConfig(res, Track.CollectiveUnconscious, "CollectiveUnconscious", "C.Uncon", 100, AST.AID.CollectiveUnconscious, 5); //AoE oGCD mit/regen, 60s CD, 5s mitigation / 15s regen effect durations 
         DefineSimpleConfig(res, Track.CelestialOpposition, "CelestialOpposition", "C.Oppo", 100, AST.AID.CelestialOpposition, 15); //AoE oGCD heal/regen, 60s CD, 15s effect duration
+
+        res.Define(Track.EarthlyStar).As<StarOption>("EarthlyStar", "E.Star", 200) //AoE GCD heal, 60s CD, 10s + 10s effect duration
+            .AddOption(StarOption.None, "None", "Do not use automatically")
+            .AddOption(StarOption.Use, "Earthly Star", "Use Earthly Star", 60, 10, ActionTargets.Hostile, 62)
+            .AddOption(StarOption.End, "Stellar Detonation", "Use Stellar Detonation", 0, 1, ActionTargets.Hostile, 62)
+            .AddAssociatedActions(AST.AID.EarthlyStar, AST.AID.StellarDetonation);
+
         DefineSimpleConfig(res, Track.CelestialIntersection, "CelestialIntersection", "C.Inter", 100, AST.AID.CelestialIntersection, 30); //ST oGCD heal/shield, 30s CD (60s Total), 2 charges
 
         res.Define(Track.Horoscope).As<HoroscopeOption>("Horoscope", "Horo", 130) //Conditional AoE heal, 60s CD, 30s effect duration
@@ -56,19 +66,29 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Lightspeed), AST.AID.Lightspeed, Player);
-        ExecuteSimple(strategy.Option(Track.BeneficII), AST.AID.BeneficII, primaryTarget ?? Player);
-        ExecuteSimple(strategy.Option(Track.EssentialDignity), AST.AID.EssentialDignity, primaryTarget ?? Player);
-        ExecuteSimple(strategy.Option(Track.AspectedBenefic), AST.AID.AspectedBenefic, primaryTarget ?? Player);
-        ExecuteSimple(strategy.Option(Track.Synastry), AST.AID.Synastry, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.BeneficII), AST.AID.BeneficII, TargetChoice(strategy.Option(Track.BeneficII)) ?? Player);
+        ExecuteSimple(strategy.Option(Track.EssentialDignity), AST.AID.EssentialDignity, TargetChoice(strategy.Option(Track.EssentialDignity)) ?? Player);
+        ExecuteSimple(strategy.Option(Track.AspectedBenefic), AST.AID.AspectedBenefic, TargetChoice(strategy.Option(Track.AspectedBenefic)) ?? Player);
+        ExecuteSimple(strategy.Option(Track.Synastry), AST.AID.Synastry, TargetChoice(strategy.Option(Track.Synastry)) ?? Player);
         ExecuteSimple(strategy.Option(Track.CollectiveUnconscious), AST.AID.CollectiveUnconscious, Player);
         ExecuteSimple(strategy.Option(Track.CelestialOpposition), AST.AID.CelestialOpposition, Player);
         ExecuteSimple(strategy.Option(Track.CelestialIntersection), AST.AID.CelestialIntersection, Player);
         ExecuteSimple(strategy.Option(Track.NeutralSect), AST.AID.NeutralSect, Player);
-        ExecuteSimple(strategy.Option(Track.Exaltation), AST.AID.Exaltation, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.Exaltation), AST.AID.Exaltation, TargetChoice(strategy.Option(Track.Exaltation)) ?? Player);
         ExecuteSimple(strategy.Option(Track.SunSign), AST.AID.SunSign, Player);
 
+        var star = strategy.Option(Track.EarthlyStar);
+        var starAction = star.As<StarOption>() switch
+        {
+            StarOption.Use => AST.AID.EarthlyStar,
+            StarOption.End => AST.AID.StellarDetonation,
+            _ => default
+        };
+        if (starAction != default)
+            QueueOGCD(starAction, TargetChoice(star) ?? primaryTarget ?? Player);
+
         //Aspected Helios full execution
-        var heliosUp = HasEffect(AST.SID.AspectedHelios) || HasEffect(AST.SID.HeliosConjunction);
+        var heliosUp = HasEffect(Player, AST.SID.AspectedHelios, 15) || HasEffect(Player, AST.SID.HeliosConjunction, 15);
         var helios = strategy.Option(Track.AspectedHelios);
         var heliosAction = helios.As<HeliosOption>() switch
         {
@@ -77,7 +97,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (heliosAction != default && !heliosUp)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(heliosAction), Player, helios.Priority(), helios.Value.ExpireIn);
+            QueueGCD(heliosAction, Player);
 
         //Horoscope full execution
         var horo = strategy.Option(Track.Horoscope);
@@ -88,7 +108,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (horoAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(horoAction), Player, horo.Priority(), horo.Value.ExpireIn);
+            QueueOGCD(horoAction, Player);
 
         var cosmos = strategy.Option(Track.Macrocosmos);
         var cosmosAction = cosmos.As<MacrocosmosOption>() switch
@@ -98,7 +118,66 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (cosmosAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(cosmosAction), Player, cosmos.Priority(), cosmos.Value.ExpireIn);
-
+            QueueOGCD(cosmosAction, primaryTarget);
     }
+
+    #region Core Execution Helpers
+
+    public AST.AID NextGCD; //Next global cooldown action to be used
+    public void QueueGCD<P>(AST.AID aid, Actor? target, P priority, float delay = 0) where P : Enum
+        => QueueGCD(aid, target, (int)(object)priority, delay);
+
+    public void QueueGCD(AST.AID aid, Actor? target, int priority = 8, float delay = 0)
+    {
+        var NextGCDPrio = 0;
+
+        if (priority == 0)
+            return;
+
+        if (QueueAction(aid, target, ActionQueue.Priority.High, delay) && priority > NextGCDPrio)
+        {
+            NextGCD = aid;
+        }
+    }
+
+    public void QueueOGCD<P>(AST.AID aid, Actor? target, P priority, float delay = 0) where P : Enum
+        => QueueOGCD(aid, target, (int)(object)priority, delay);
+
+    public void QueueOGCD(AST.AID aid, Actor? target, int priority = 4, float delay = 0)
+    {
+        if (priority == 0)
+            return;
+
+        QueueAction(aid, target, ActionQueue.Priority.Medium + priority, delay);
+    }
+
+    public bool QueueAction(AST.AID aid, Actor? target, float priority, float delay)
+    {
+        if ((uint)(object)aid == 0)
+            return false;
+
+        var def = ActionDefinitions.Instance.Spell(aid);
+        if (def == null)
+            return false;
+
+        if (def.Range != 0 && target == null)
+        {
+            return false;
+        }
+
+        Vector3 targetPos = default;
+
+        if (def.AllowedTargets.HasFlag(ActionTargets.Area))
+        {
+            if (def.Range == 0)
+                targetPos = Player.PosRot.XYZ();
+            else if (target != null)
+                targetPos = target.PosRot.XYZ();
+        }
+
+        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos);
+        return true;
+    }
+    #endregion
+
 }

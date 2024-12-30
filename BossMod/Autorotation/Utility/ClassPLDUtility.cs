@@ -42,7 +42,7 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3, IDStanceApply, IDStanceRemove, (uint)PLD.SID.IronWill, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Cover), PLD.AID.Cover, primaryTarget); //Cover execution
+        ExecuteSimple(strategy.Option(Track.Cover), PLD.AID.Cover, ResolveTargetOverride(strategy.Option(Track.Cover).Value) ?? Player); //Cover execution
         ExecuteSimple(strategy.Option(Track.Bulwark), PLD.AID.Bulwark, Player); //Bulwark execution
         ExecuteSimple(strategy.Option(Track.DivineVeil), PLD.AID.DivineVeil, Player); //DivineVeil execution
         ExecuteSimple(strategy.Option(Track.PassageOfArms), PLD.AID.PassageOfArms, Player); //PassageOfArms execution

@@ -3,8 +3,7 @@
 public sealed class ClassDRGUtility(RotationModuleManager manager, Actor player) : RoleMeleeUtility(manager, player)
 {
     public enum Track { WingedGlide = SharedTrack.Count }
-    public enum DashStrategy { None, GapClose }
-    public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
+    public enum DashStrategy { None, GapClose, GapCloseHold1 }
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(DRG.AID.DragonsongDive);
 
@@ -15,7 +14,8 @@ public sealed class ClassDRGUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.WingedGlide).As<DashStrategy>("Winged Glide", "Dash", 20)
             .AddOption(DashStrategy.None, "Automatic", "No use.")
-            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 60, 0, ActionTargets.Hostile, 45)
+            .AddOption(DashStrategy.GapClose, "GapClose", "Use Winged Glide as gapcloser if outside melee range", 60, 0, ActionTargets.Hostile, 45)
+            .AddOption(DashStrategy.GapCloseHold1, "GapCloseHold1", "Use Winged Glide as gapcloser if outside melee range; conserves 1 charge for manual usage", 60, 0, ActionTargets.Hostile, 84)
             .AddAssociatedActions(DRG.AID.WingedGlide);
 
         return res;
@@ -26,14 +26,16 @@ public sealed class ClassDRGUtility(RotationModuleManager manager, Actor player)
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
 
         var dash = strategy.Option(Track.WingedGlide);
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget;
         var dashStrategy = strategy.Option(Track.WingedGlide).As<DashStrategy>();
         if (ShouldUseDash(dashStrategy, primaryTarget))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRG.AID.WingedGlide), primaryTarget, dash.Priority());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRG.AID.WingedGlide), dashTarget, dash.Priority(), dash.Value.ExpireIn);
     }
     private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
     {
         DashStrategy.None => false,
-        DashStrategy.GapClose => !InMeleeRange(primaryTarget),
+        DashStrategy.GapClose => Player.DistanceToHitbox(primaryTarget) is > 3 and <= 20,
+        DashStrategy.GapCloseHold1 => Player.DistanceToHitbox(primaryTarget) is > 3 and <= 20 && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(DRG.AID.WingedGlide)!.MainCooldownGroup].Remaining <= 59.9f,
         _ => false,
     };
 }
