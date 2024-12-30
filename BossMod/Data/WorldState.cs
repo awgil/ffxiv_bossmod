@@ -143,4 +143,19 @@ public sealed class WorldState
         protected override void Exec(WorldState ws) => ws.EnvControl.Fire(this);
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ENVC"u8).Emit(Index, "X2").Emit(State, "X8");
     }
+
+    public Event<OpSystemLogMessage> SystemLogMessage = new();
+    public sealed record class OpSystemLogMessage(uint MessageId, int[] Args) : Operation
+    {
+        public readonly int[] Args = Args;
+
+        protected override void Exec(WorldState ws) => ws.SystemLogMessage.Fire(this);
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("SLOG"u8).Emit(MessageId);
+            output.Emit(Args.Length);
+            foreach (var arg in Args)
+                output.Emit(arg);
+        }
+    }
 }
