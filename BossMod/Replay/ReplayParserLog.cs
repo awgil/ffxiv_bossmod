@@ -352,7 +352,6 @@ public sealed class ReplayParserLog : IDisposable
             [new("DDIT"u8)] = ParseDeepDungeonItems,
             [new("DDCT"u8)] = ParseDeepDungeonChests,
             [new("DDMG"u8)] = ParseDeepDungeonMagicite,
-            [new("SLOG"u8)] = ParseSystemLog,
             [new("IPCI"u8)] = ParseNetworkIDScramble,
             [new("IPCS"u8)] = ParseNetworkServerIPC,
         };
@@ -736,16 +735,6 @@ public sealed class ReplayParserLog : IDisposable
     }
 
     private DeepDungeonState.OpMagiciteChange ParseDeepDungeonMagicite() => new(_input.ReadBytes());
-
-    private WorldState.OpSystemLogMessage ParseSystemLog()
-    {
-        var id = _input.ReadUInt(false);
-        var argCount = _input.ReadInt();
-        var args = new int[argCount];
-        for (var i = 0; i < argCount; i++)
-            args[i] = _input.ReadInt();
-        return new(id, args);
-    }
 
     private NetworkState.OpIDScramble ParseNetworkIDScramble() => new(_input.ReadUInt(false));
     private NetworkState.OpServerIPC ParseNetworkServerIPC() => new(new((Network.ServerIPC.PacketID)_input.ReadInt(), _input.ReadUShort(false), _input.ReadUInt(false), _input.ReadUInt(true), new(_input.ReadLong()), _input.ReadBytes()));

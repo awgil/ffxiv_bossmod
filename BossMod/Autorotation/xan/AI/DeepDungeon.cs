@@ -105,7 +105,6 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         if (Player.Class.GetRole() is not (Role.Ranged or Role.Healer) || primaryTarget == null || !Player.InCombat || !IsFloorAppropriate(strategy.Option(Track.Kite2).As<PotionStrategy>()))
             return;
 
-        // "heavenly maruishi" doesn't autoattack
         if (NoMeleeAutos.Contains(primaryTarget.OID))
             return;
 

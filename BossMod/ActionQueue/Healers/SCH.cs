@@ -166,8 +166,6 @@ public sealed class Definitions : IDisposable
 
     public void Dispose() { }
 
-    private readonly SCHConfig _config = Service.Config.Get<SCHConfig>();
-
     private void Customize(ActionDefinitions d)
     {
         // prevent manually executed healing actions from locking up the rotation if we are missing resources
