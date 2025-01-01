@@ -76,8 +76,7 @@ class Ch01CloudOfDarknessStates : StateMachineBuilder
         ThirdArtOfDarknessParticleConcentration(id + 0x20000, 4);
         GhastlyGloom(id + 0x30000, 12.3f);
         CurseOfDarkness(id + 0x40000, 8.3f);
-        EvilSeed(id + 0x50000, 9.9f);
-        ChaosCondensedDiffusiveForceParticleBeam(id + 0x60000, 8.1f);
+        EvilSeedChaosCondensedDiffusiveForceParticleBeam(id + 0x50000, 9.9f);
         ActivePivotParticleBeam(id + 0x70000, 4.4f);
         LoomingChaos(id + 0x80000, 6.2f);
 
@@ -246,7 +245,8 @@ class Ch01CloudOfDarknessStates : StateMachineBuilder
             .DeactivateOnExit<ThirdArtOfDarknessHyperFocusedParticleBeam>()
             .DeactivateOnExit<ThirdArtOfDarknessMultiProngedParticleBeam>()
             .DeactivateOnExit<ThirdArtOfDarknessCleave>();
-        ComponentCondition<ParticleConcentration>(id + 0x50, 3.6f, comp => comp.NumCasts > 0, "Towers")
+        ComponentCondition<ParticleConcentration>(id + 0x50, 3.6f, comp => comp.Towers.Count == 0, "Towers")
+            .ExecOnEnter<ParticleConcentration>(comp => comp.ShowOuterTowers())
             .DeactivateOnExit<ParticleConcentration>();
     }
 
@@ -276,29 +276,29 @@ class Ch01CloudOfDarknessStates : StateMachineBuilder
             .DeactivateOnExit<FloodOfDarknessAdd>();
     }
 
-    // TODO: this one needs a lot of thought
-    private void EvilSeed(uint id, float delay)
+    private void EvilSeedChaosCondensedDiffusiveForceParticleBeam(uint id, float delay)
     {
         ComponentCondition<EvilSeedBait>(id, delay, comp => comp.Baiters.Any())
             .ActivateOnEnter<EvilSeedBait>();
         ComponentCondition<EvilSeedAOE>(id + 0x10, 8.1f, comp => comp.Casters.Count > 0, "Seed plant")
             .ActivateOnEnter<EvilSeedAOE>()
+            .ActivateOnEnter<EvilSeedVoidzone>()
             .DeactivateOnExit<EvilSeedBait>();
+
         GhastlyGloom(id + 0x1000, 2.8f)
             .DeactivateOnExit<EvilSeedAOE>();
+
         ComponentCondition<ThornyVine>(id + 0x2000, 14, comp => comp.Targets.Any())
             .ActivateOnEnter<ThornyVine>();
-        ComponentCondition<ThornyVine>(id + 0x2010, 3, comp => comp.HaveTethers);
-        FloodOfDarknessAdds(id + 0x2020, 2.2f)
-            .DeactivateOnExit<ThornyVine>();
-    }
+        ComponentCondition<ThornyVine>(id + 0x2010, 3, comp => comp.TethersAssigned, "Tethers");
+        FloodOfDarknessAdds(id + 0x2020, 2.2f);
 
-    private void ChaosCondensedDiffusiveForceParticleBeam(uint id, float delay)
-    {
-        CastMulti(id, [AID.ChaosCondensedParticleBeam, AID.DiffusiveForceParticleBeam], delay, 8)
+        CastMulti(id + 0x3000, [AID.ChaosCondensedParticleBeam, AID.DiffusiveForceParticleBeam], 8.1f, 8)
             .ActivateOnEnter<ChaosCondensedParticleBeam>()
-            .ActivateOnEnter<DiffusiveForceParticleBeam>();
-        Condition(id + 0x10, 0.7f, () => Module.FindComponent<ChaosCondensedParticleBeam>()?.NumCasts > 0 || Module.FindComponent<DiffusiveForceParticleBeam>()?.Spreads.Count == 0, "Spread/line stacks")
+            .ActivateOnEnter<DiffusiveForceParticleBeam>()
+            .DeactivateOnExit<EvilSeedVoidzone>()
+            .DeactivateOnExit<ThornyVine>();
+        Condition(id + 0x3010, 0.7f, () => Module.FindComponent<ChaosCondensedParticleBeam>()?.NumCasts > 0 || Module.FindComponent<DiffusiveForceParticleBeam>()?.Spreads.Count == 0, "Spread/line stacks")
             .DeactivateOnExit<ChaosCondensedParticleBeam>()
             .DeactivateOnExit<DiffusiveForceParticleBeam>(); // TODO: show second wave ...
     }
@@ -341,7 +341,8 @@ class Ch01CloudOfDarknessStates : StateMachineBuilder
             .ActivateOnEnter<ParticleConcentration>(); // TODO: towers appear 1s after cast end
         ComponentCondition<Phaser>(id + 0x11, 1.5f, comp => comp.NumCasts >= 6, "Adds sides/front")
             .DeactivateOnExit<Phaser>();
-        ComponentCondition<ParticleConcentration>(id + 0x20, 6.6f, comp => comp.NumCasts > 0, "Towers")
+        ComponentCondition<ParticleConcentration>(id + 0x20, 6.6f, comp => comp.Towers.Count == 0, "Towers")
+            .ExecOnEnter<ParticleConcentration>(comp => comp.ShowOuterTowers())
             .DeactivateOnExit<ParticleConcentration>();
     }
 

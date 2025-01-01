@@ -4,7 +4,7 @@ class Break(BossModule module) : Components.GenericGaze(module)
 {
     public readonly List<Eye> Eyes = [];
 
-    public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor) => Eyes;//_casters.Where(c => c.CastInfo?.TargetID != actor.InstanceID).Select(c => new Eye(EyePosition(c), Module.CastFinishAt(c.CastInfo), Range: range));
+    public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor) => Eyes;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

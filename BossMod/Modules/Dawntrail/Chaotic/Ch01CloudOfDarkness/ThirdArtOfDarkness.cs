@@ -5,6 +5,7 @@ class ThirdArtOfDarknessCleave(BossModule module) : Components.GenericAOEs(modul
     public enum Mechanic { None, Left, Right, Stack, Spread }
 
     public readonly Dictionary<Actor, List<(Mechanic mechanic, DateTime activation)>> Mechanics = [];
+    public BitMask PlatformPlayers;
 
     private static readonly AOEShapeCone _shape = new(15, 90.Degrees());
 
@@ -25,10 +26,26 @@ class ThirdArtOfDarknessCleave(BossModule module) : Components.GenericAOEs(modul
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        var (a, m) = Mechanics.FirstOrDefault(kv => kv.Key.InstanceID == actor.TargetID);
-        if (a != null && m.Count > 0)
-            hints.Add($"Order: {string.Join(" > ", m.Select(m => m.mechanic))}", false);
+        if (PlatformPlayers[slot])
+        {
+            var playerSide = actor.Position.X - Module.Center.X;
+            var (a, m) = Mechanics.FirstOrDefault(kv => (kv.Key.Position.X - Module.Center.X) * playerSide > 0);
+            if (a != null && m.Count > 0)
+                hints.Add($"Order: {string.Join(" > ", m.Select(m => m.mechanic))}", false);
+        }
         base.AddHints(slot, actor, hints);
+    }
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.OuterDarkness)
+            PlatformPlayers.Set(Raid.FindSlot(actor.InstanceID));
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.OuterDarkness)
+            PlatformPlayers.Clear(Raid.FindSlot(actor.InstanceID));
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
@@ -100,7 +117,7 @@ class ThirdArtOfDarknessMultiProngedParticleBeam(BossModule module) : Components
             foreach (var (a, m) in _main.Mechanics)
                 if (m.Count > 0 && m[0].mechanic == ThirdArtOfDarknessCleave.Mechanic.Stack)
                     foreach (var p in Raid.WithoutSlot().SortedByRange(a.Position).Take(3))
-                        AddStack(p, m[0].activation);
+                        AddStack(p, m[0].activation, ~_main.PlatformPlayers);
         base.Update();
     }
 }

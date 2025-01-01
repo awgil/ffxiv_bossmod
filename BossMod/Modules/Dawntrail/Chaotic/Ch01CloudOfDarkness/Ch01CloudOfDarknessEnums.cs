@@ -140,18 +140,17 @@ public enum AID : uint
 public enum SID : uint
 {
     //_Gen_ArcaneDesign = 4180, // Boss->Boss, extra=0x0
+    //_Gen_VeilOfDarkness = 4179, // Boss->Boss, extra=0x0
     //_Gen_LightningResistanceDown = 4386, // Helper/Boss->player, extra=0x1/0x2/0x3/0x4/0x5/0x6/0x7/0x8/0x9/0xA/0xB/0xC/0xD/0xE/0xF/0x10
     DeadlyEmbrace = 4181, // none->player, extra=0x0
     AbyssalEdge = 4182, // Boss->Boss, extra=0x0 (endeath/enaero stored)
-    //_Gen_VeilOfDarkness = 4179, // Boss->Boss, extra=0x0
-    //_Gen_CloyingCondensation = 2532, // none->player, extra=0x0
+    //_Gen_CloyingCondensation = 2532, // none->player, extra=0x0, prevent jumps?
     //_Gen_ = 4388, // none->StygianShadow, extra=0x1052
     //_Gen_ = 4387, // none->Boss, extra=0x1051
     InnerDarkness = 4177, // none->player, extra=0x0, on main platform
     OuterDarkness = 4178, // none->player, extra=0x0, on side platform
     //_Gen_Rehabilitation = 4191, // none->Boss, extra=0x1/0x4/0x3/0x2
     //_Gen_LifeDrain = 1377, // none->player, extra=0x0
-    //_Gen_CraftersGrace = 45, // player->player, extra=0x50
     CurseOfDarkness = 2387, // none->player, extra=0x0
     //_Gen_StabWound = 3061, // none->player, extra=0x0
     //_Gen_StabWound = 3062, // none->player, extra=0x0

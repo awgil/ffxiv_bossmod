@@ -19,21 +19,15 @@ class EvilSeedBait(BossModule module) : BossComponent(module)
 
 class EvilSeedAOE(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.EvilSeedAOE), 5);
 
-// todo: should be chains...
-class ThornyVine(BossModule module) : BossComponent(module)
+class EvilSeedVoidzone(BossModule module) : Components.PersistentVoidzone(module, 5, module => module.Enemies(OID.EvilSeed).Where(z => z.EventState != 7));
+
+class ThornyVine(BossModule module) : Components.Chains(module, (uint)TetherID.ThornyVine, default, 25)
 {
     public BitMask Targets;
-    public bool HaveTethers;
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.ThornyVineBait)
             Targets.Set(Raid.FindSlot(actor.InstanceID));
-    }
-
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
-    {
-        if (tether.ID == (uint)TetherID.ThornyVine)
-            HaveTethers = true;
     }
 }
