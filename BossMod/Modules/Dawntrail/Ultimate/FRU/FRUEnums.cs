@@ -30,10 +30,12 @@ public enum OID : uint
     UsurperOfFrostP4 = 0x45A9, // R6.125, x0 (spawn during fight)
     GreatWyrm = 0x45AA, // R3.500, x0 (spawn during fight), Part type
     OracleOfDarknessP4 = 0x45AB, // R7.040, x0 (spawn during fight)
+    DrachenWanderer = 0x45AC, // R1.000-2.000, x0 (spawn during fight), crystallize time dragon head
     SorrowsHourglass = 0x45AD, // R1.000, x0 (spawn during fight)
     FragmentOfFate = 0x45B1, // R3.500, x0 (spawn during fight)
     VisionOfRyne = 0x45B4, // R0.750, x0 (spawn during fight)
     VisionOfGaia = 0x45B5, // R1.500, x0 (spawn during fight)
+    DragonPuddle = 0x1EBD41, // R0.500, x0 (spawn during fight), EventObj type, puddle appears when head is touched
 }
 
 public enum AID : uint
@@ -206,7 +208,7 @@ public enum AID : uint
     DrachenArmor = 40186, // Helper->self, no cast, single-target, visual (wings appear)
     AutoAttackP4Wyrm = 40178, // GreatWyrm->player, no cast, single-target
     AutoAttackP4Usurper = 40177, // UsurperOfFrostP4->player, no cast, single-target
-    EdgeOfOblivion = 40174, // FragmentOfFate->self, 5.0s cast, range 100 circle, raidwide
+    EdgeOfOblivion = 40174, // FragmentOfFate->self, 5.0s cast, range 100 circle, minor raidwide
     AkhRhai = 40237, // Helper->location, 2.5s cast, range 4 circle, visual (puddle)
     AkhRhaiAOE = 40238, // Helper->location, no cast, range 4 circle, repeated puddle x10
 
@@ -229,6 +231,17 @@ public enum AID : uint
 
     CrystallizeTimeUsurper = 40240, // UsurperOfFrostP4->self, 10.0s cast, single-target, visual
     CrystallizeTimeOracle = 40298, // OracleOfDarknessP4->self, 10.0s cast, range 100 circle, raidwide
+    CrystallizeTimeMaelstrom = 40299, // SorrowsHourglass->self, 1.5s cast, range 12 circle, hourglass aoe
+    CrystallizeTimeDarkAero = 40280, // Helper->players, no cast, range 15 circle, knockback 30
+    TidalLight = 40251, // UsurperOfFrostP4->self, 3.0s cast, single-target, visual (exalines)
+    TidalLightAOEFirst = 40252, // Helper->self, 3.0s cast, range 10 width 40 rect
+    TidalLightAOERest = 40253, // Helper->self, 2.0s cast, range 10 width 40 rect
+    Quietus = 40281, // Helper->self, no cast, range 50 circle, raidwide
+    LongingOfTheLost = 40241, // Helper->location, no cast, range 12 circle, aoe when head is touched
+    DrachenWandererDisappear = 40244, // DrachenWanderer->self, no cast, single-target, visual (disappear)
+    JoylessDragonsong = 40242, // Helper->self, no cast, range 40 circle, wipe if ???
+    CrystallizeTimeHallowedWings = 40229, // UsurperOfFrostP4->self, 4.7+1.3s cast, single-target, visual (??? knockbacks?)
+    //_Weaponskill_HallowedWings = 40332, // UsurperOfFrostP4->self, 0.5s cast, range 40 width 50 rect
 }
 
 public enum SID : uint

@@ -3,6 +3,17 @@
 class P1CyclonicBreakSpreadStack(BossModule module) : Components.UniformStackSpread(module, 6, 6, 2, 2, true)
 {
     public DateTime Activation = DateTime.MaxValue;
+    private bool _fullHints; // we only need to actually stack/spread after first protean bait
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (_fullHints)
+            base.AddHints(slot, actor, hints);
+        else if (Stacks.Count > 0)
+            hints.Add("Prepare to stack", false);
+        else if (Spreads.Count > 0)
+            hints.Add("Prepare to spread", false);
+    }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // handled by dedicated component
 
@@ -33,6 +44,9 @@ class P1CyclonicBreakSpreadStack(BossModule module) : Components.UniformStackSpr
                 break;
             case AID.CyclonicBreakSinsmite:
                 Spreads.Clear();
+                break;
+            case AID.CyclonicBreakAOEFirst:
+                _fullHints = true;
                 break;
         }
     }

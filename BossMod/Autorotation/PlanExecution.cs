@@ -164,6 +164,10 @@ public sealed class PlanExecution
                     var windowStart = s.EnterTime + Math.Min(s.Duration, entry.TimeSinceActivation);
                     res.Add(new(windowStart, windowStart + entry.WindowLength, s.BranchID, s.NumBranches, entry.Value));
                 }
+                else
+                {
+                    Service.Log($"Failed to find state {entry.StateID:X} for plan {Plan?.Guid}");
+                }
             }
         }
         return res;

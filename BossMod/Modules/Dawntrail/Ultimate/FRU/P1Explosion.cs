@@ -21,13 +21,16 @@ class P1Explosion(BossModule module) : Components.GenericTowers(module)
 
         if (role < 2)
         {
-            // tanks: stay opposite towers on N/S side
+            // tanks: stay opposite towers on N/S side (unless cheesing tankbusters)
             // tweak for WAR: if PR is up, assume player will want to maintain full uptime on wide line by using it right before resolve - we want to stay far to increase travel time
             var horizOffset = _isWideLine && !_lineDone && actor.Class == Class.WAR && actor.FindStatus(WAR.SID.PrimalRend) != null ? 17 : 0;
             hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center - horizOffset * TowerDir, -TowerDir), Activation);
 
-            var vertDir = new WDir(0, role == 0 ? -1 : +1);
-            hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center + 5 * vertDir, vertDir), Activation);
+            if (!_config.P1ExplosionsTankbusterCheese)
+            {
+                var vertDir = new WDir(0, role == 0 ? -1 : +1);
+                hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center + 5 * vertDir, vertDir), Activation);
+            }
         }
         else
         {
