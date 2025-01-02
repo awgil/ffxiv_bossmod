@@ -72,8 +72,8 @@ class Ch01CloudOfDarknessStates : StateMachineBuilder
     private void Subphase2(uint id, float delay)
     {
         DelugeOfDarkness2(id, delay);
-        DarkDominion(id + 0x10000, 9.3f);
-        ThirdArtOfDarknessParticleConcentration(id + 0x20000, 4);
+        DarkDominion(id + 0x10000, 9.3f); // note: 1s after cast ends, outer ring becomes dangerous
+        ThirdArtOfDarknessParticleConcentration(id + 0x20000, 4); // note: 3s after towers resolve, outer ring becomes normal
         GhastlyGloom(id + 0x30000, 12.3f);
         CurseOfDarkness(id + 0x40000, 8.3f);
         EvilSeedChaosCondensedDiffusiveForceParticleBeam(id + 0x50000, 9.9f);
@@ -82,8 +82,8 @@ class Ch01CloudOfDarknessStates : StateMachineBuilder
 
         CurseOfDarkness(id + 0x100000, 11.9f);
         ParticleConcentrationPhaser(id + 0x110000, 4.2f);
-        DarkDominion(id + 0x120000, 1);
-        FeintParticleBeamThirdActOfDarkness(id + 0x130000, 3.1f);
+        DarkDominion(id + 0x120000, 1); // note: 1s after cast ends, outer ring becomes dangerous
+        FeintParticleBeamThirdActOfDarkness(id + 0x130000, 3.1f); // note: 2.5s after act of darkness resolves, outer ring becomes normal
         GhastlyGloom(id + 0x140000, 11.4f);
         PhaserChaosCondensedDiffusiveForceParticleBeam(id + 0x150000, 3.4f);
         FloodOfDarknessAdds(id + 0x160000, 3);
@@ -222,6 +222,8 @@ class Ch01CloudOfDarknessStates : StateMachineBuilder
         ComponentCondition<StygianShadow>(id + 0x10, 4.2f, comp => comp.ActiveActors.Any(), "Platform adds")
             .ActivateOnEnter<StygianShadow>()
             .ActivateOnEnter<Atomos>()
+            .ActivateOnEnter<Phase2OuterRing>()
+            .ActivateOnEnter<Phase2InnerCells>()
             .ActivateOnEnter<DarkEnergyParticleBeam>(); // overlaps with multiple mechanics
     }
 
@@ -387,6 +389,8 @@ class Ch01CloudOfDarknessStates : StateMachineBuilder
         CastStart(id, AID.FloodOfDarkness2, delay, "Adds disappear")
             .DeactivateOnExit<StygianShadow>()
             .DeactivateOnExit<Atomos>()
+            .DeactivateOnExit<Phase2OuterRing>()
+            .DeactivateOnExit<Phase2InnerCells>()
             .DeactivateOnExit<DarkEnergyParticleBeam>();
         CastEnd(id + 1, 7, "Raidwide + arena transition")
             .OnExit(() => Module.Arena.Bounds = Ch01CloudOfDarkness.InitialBounds)
