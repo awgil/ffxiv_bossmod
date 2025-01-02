@@ -17,7 +17,7 @@ public abstract class FarmModule(WorldState ws) : ZoneModule(ws)
 {
     protected abstract IEnumerable<(string Name, uint OID)> Targets();
 
-    public override bool WantToBeDrawn() => Targets().Any();
+    public override bool WantDrawHints() => Targets().Any();
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {

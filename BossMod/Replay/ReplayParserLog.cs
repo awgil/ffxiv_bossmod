@@ -698,7 +698,7 @@ public sealed class ReplayParserLog : IDisposable
     private ClientState.OpActivePetChange ParseClientActivePet() => new(new(_input.ReadULong(true), _input.ReadByte(false), _input.ReadByte(false)));
     private ClientState.OpFocusTargetChange ParseClientFocusTarget() => new(_input.ReadULong(true));
 
-    private DeepDungeonState.OpProgressChange ParseDeepDungeonProgress() => new(_input.ReadByte(false), new DeepDungeonState.DungeonProgress(_input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false)));
+    private DeepDungeonState.OpProgressChange ParseDeepDungeonProgress() => new(_input.ReadByte(false), new DeepDungeonState.DungeonProgress(_input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false)));
     private DeepDungeonState.OpMapDataChange ParseDeepDungeonMap() => new(_input.ReadBytes());
     private DeepDungeonState.OpPartyStateChange ParseDeepDungeonParty()
     {

@@ -70,6 +70,12 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             return;
         }
 
+        if (IsRanged && !Player.InCombat && primaryTarget is Actor target && !target.InCombat)
+        {
+            // bandaid fix to help deal with constant LOS issues
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(target, 3, 0.1f));
+        }
+
         SetupKiteZone(strategy, primaryTarget);
 
         if (Player.FindStatus(SID.ItemPenalty) != null)
@@ -100,9 +106,11 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         0x3D1D, // floor 40 twintania, boss does move around but kiting it interferes with the knockback stuff
     ];
 
+    private bool IsRanged => Player.Class.GetRole() is (Role.Ranged or Role.Healer);
+
     private void SetupKiteZone(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (Player.Class.GetRole() is not (Role.Ranged or Role.Healer) || primaryTarget == null || !Player.InCombat || !IsFloorAppropriate(strategy.Option(Track.Kite2).As<PotionStrategy>()))
+        if (!IsRanged || primaryTarget == null || !Player.InCombat || !IsFloorAppropriate(strategy.Option(Track.Kite2).As<PotionStrategy>()))
             return;
 
         if (NoMeleeAutos.Contains(primaryTarget.OID))

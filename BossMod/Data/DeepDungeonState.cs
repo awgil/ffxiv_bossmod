@@ -25,7 +25,10 @@ public sealed class DeepDungeonState
 
     public DungeonType Type => (DungeonType)DungeonId;
 
-    public record struct DungeonProgress(byte Floor, byte WeaponLevel, byte ArmorLevel, byte SyncedGearLevel, byte HoardCount, byte ReturnProgress, byte PassageProgress);
+    public record struct DungeonProgress(byte Floor, byte Tileset, byte WeaponLevel, byte ArmorLevel, byte SyncedGearLevel, byte HoardCount, byte ReturnProgress, byte PassageProgress)
+    {
+        public readonly bool IsBossFloor => Floor % 10 == 0;
+    }
     public record struct PartyMember(ulong EntityId, byte Room);
     public record struct Item(byte Count, byte Flags)
     {
@@ -45,6 +48,7 @@ public sealed class DeepDungeonState
 
     public bool ReturnActive => Progress.ReturnProgress >= 11;
     public bool PassageActive => Progress.PassageProgress >= 11;
+    public byte Floor => Progress.Floor;
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {
@@ -81,6 +85,7 @@ public sealed class DeepDungeonState
             output.EmitFourCC("DDPG"u8)
                 .Emit(DungeonId)
                 .Emit(Value.Floor)
+                .Emit(Value.Tileset)
                 .Emit(Value.WeaponLevel)
                 .Emit(Value.ArmorLevel)
                 .Emit(Value.SyncedGearLevel)

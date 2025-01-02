@@ -28,9 +28,9 @@ enum SID : uint
     IceSpikes = 198,
 }
 
-public abstract class PalaceFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 60)
+public abstract class PalaceFloorModule(WorldState ws) : AutoClear(ws, 60)
 {
-    protected override IEnumerable<ActionID> ActionsToIgnore() => [
+    protected override IEnumerable<ActionID> AutohintDisabledActions() => [
         ActionID.MakeSpell(AID.Chirp),
         ActionID.MakeSpell(AID.StoneGazeCone)
     ];

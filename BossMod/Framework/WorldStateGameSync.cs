@@ -704,13 +704,15 @@ sealed class WorldStateGameSync : IDisposable
 
             ReturnProgress = dd->ReturnProgress,
             PassageProgress = dd->PassageProgress,
+
+            Tileset = dd->ActiveLayoutIndex
         };
 
         var state = new DeepDungeonState
         {
             Progress = progress,
             Magicite = dd->Magicite.ToArray(),
-            DungeonId = AgentDeepDungeonMap.Instance()->Data->DeepDungeonId
+            DungeonId = dd->DeepDungeonId
         };
 
         dd->MapData.CopyTo(state.MapData);

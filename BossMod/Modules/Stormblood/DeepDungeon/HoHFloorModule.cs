@@ -19,7 +19,7 @@ public enum AID : uint
     Northerlies = 12227, // 230C->self, 5.0s cast, range 40+R circle
 }
 
-public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 70)
+public abstract class HoHFloorModule(WorldState ws) : AutoClear(ws, 70)
 {
     protected override void OnCastStarted(Actor actor)
     {
@@ -51,7 +51,7 @@ public abstract class HoHFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 7
         }
     }
 
-    protected override IEnumerable<ActionID> ActionsToIgnore() => [ActionID.MakeSpell(AID.BlindingBurst), ActionID.MakeSpell(AID.AtropineSpore), ActionID.MakeSpell(AID.TheDragonsVoice)];
+    protected override IEnumerable<ActionID> AutohintDisabledActions() => [ActionID.MakeSpell(AID.BlindingBurst), ActionID.MakeSpell(AID.AtropineSpore), ActionID.MakeSpell(AID.TheDragonsVoice)];
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 540)]

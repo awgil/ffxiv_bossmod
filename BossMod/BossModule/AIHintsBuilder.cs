@@ -110,7 +110,7 @@ public sealed class AIHintsBuilder : IDisposable
 
         foreach (var aoe in _activeAOEs.Values)
         {
-            if (aoe.Target == player && aoe.Shape is AOEShapeCircle || hints.HintedActions.Contains(aoe.Caster.CastInfo!.Action))
+            if (aoe.Target == player && aoe.Shape is AOEShapeCircle || hints.AutohintDisabledActions.Contains(aoe.Caster.CastInfo!.Action))
                 continue;
 
             var target = aoe.Target == aoe.Caster ? aoe.Caster.CastInfo!.LocXZ : (aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ);

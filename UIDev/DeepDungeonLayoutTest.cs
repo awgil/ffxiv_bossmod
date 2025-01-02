@@ -1,4 +1,5 @@
 ﻿using BossMod;
+using BossMod.Global.DeepDungeon;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using ImGuiNET;
@@ -67,35 +68,6 @@ record class DDTerritory(byte DungeonId, byte Floorset, uint CFCID)
     }
 }
 
-[Serializable]
-record class Floor<T>(
-    uint DungeonId,
-    uint Floorset,
-    Tileset<T> RoomsA,
-    Tileset<T> RoomsB
-)
-{
-    public Floor<M> Map<M>(Func<T, M> Mapping) => new(DungeonId, Floorset, RoomsA.Map(Mapping), RoomsB.Map(Mapping));
-}
-
-record class Tileset<T>(List<RoomData<T>> Rooms)
-{
-    public Tileset<M> Map<M>(Func<T, M> Mapping) => new(Rooms.Select(m => m.Map(Mapping)).ToList());
-
-    public override string ToString() => $"Tileset {{ Rooms = [{string.Join(", ", Rooms)}] }}";
-}
-
-record class RoomData<T>(
-    T Center,
-    T North,
-    T South,
-    T West,
-    T East
-)
-{
-    public RoomData<M> Map<M>(Func<T, M> F) => new(F(Center), F(North), F(South), F(West), F(East));
-}
-
 record struct Collider(uint Id, WPos Position);
 
 record struct Transform(V3 Translation, V3 Rotation)
@@ -134,12 +106,22 @@ unsafe class DeepDungeonLayoutTest : TestWindow
 
     public DeepDungeonLayoutTest() : base("Floorset generator", new(400, 400), ImGuiWindowFlags.None)
     {
-        using var fstream = new FileStream("walls.json", FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read);
-        LoadedFloors = JsonSerializer.Deserialize<Dictionary<string, Floor<WPos>>>(fstream)!;
     }
 
     public override void Draw()
     {
+        if (ImGui.Button("Search"))
+        {
+            foreach (var row in Service.LuminaSheet<DeepDungeonRoom>()!)
+            {
+                foreach (var l in row.Level)
+                {
+                    if (l.RowId == 0x5FF640)
+                        Service.Log($"found it in {row}");
+                }
+            }
+        }
+
         if (ImGui.Button("Generate"))
         {
             foreach (var t in Util.AllTerritories)

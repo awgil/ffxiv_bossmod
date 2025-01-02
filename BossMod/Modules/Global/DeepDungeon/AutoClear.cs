@@ -1,12 +1,40 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.Event;
-using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
-using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
-using ImGuiNET;
-using System.Data.SQLite;
+﻿using System.Data.SQLite;
 using System.IO;
-using System.Text;
+using System.Text.Json;
+using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
 
 namespace BossMod.Global.DeepDungeon;
+
+[Serializable]
+public record class Floor<T>(
+    uint DungeonId,
+    uint Floorset,
+    Tileset<T> RoomsA,
+    Tileset<T> RoomsB
+)
+{
+    public Floor<M> Map<M>(Func<T, M> Mapping) => new(DungeonId, Floorset, RoomsA.Map(Mapping), RoomsB.Map(Mapping));
+}
+
+public record class Tileset<T>(List<RoomData<T>> Rooms)
+{
+    public Tileset<M> Map<M>(Func<T, M> Mapping) => new(Rooms.Select(m => m.Map(Mapping)).ToList());
+
+    public RoomData<T> this[int index] => Rooms[index];
+
+    public override string ToString() => $"Tileset {{ Rooms = [{string.Join(", ", Rooms)}] }}";
+}
+
+public record class RoomData<T>(
+    T Center,
+    T North,
+    T South,
+    T West,
+    T East
+)
+{
+    public RoomData<M> Map<M>(Func<T, M> F) => new(F(Center), F(North), F(South), F(West), F(East));
+}
 
 [ConfigDisplay(Name = "Auto-DeepDungeon", Parent = typeof(ModuleConfig))]
 public class AutoDDConfig : ConfigNode
@@ -25,6 +53,8 @@ public class AutoDDConfig : ConfigNode
 
     [PropertyDisplay("Enable module")]
     public bool Enable = true;
+    [PropertyDisplay("Enable minimap")]
+    public bool EnableMinimap = true;
     [PropertyDisplay("Try to avoid traps", tooltip: "Avoid known trap locations sourced from PalacePal data. (Traps revealed by a Pomander of Sight will always be avoided regardless of this setting.)")]
     public bool TrapHints = true;
     [PropertyDisplay("Automatically navigate to Cairn of Passage")]
@@ -65,92 +95,13 @@ enum SID : uint
 
 sealed unsafe class DungeonDebugger : IDisposable
 {
-    private unsafe delegate char* DoLayoutDelegate(InstanceContentDeepDungeon* thisPtr, char a2, ulong a3);
-    private readonly HookAddress<DoLayoutDelegate> _h1;
-
-    private unsafe delegate char DoLayoutSingle(InstanceContentDeepDungeon* thisPtr, ulong a2, byte a3);
-    private readonly HookAddress<DoLayoutSingle> _h2;
-
-    private readonly LayoutManager* _layout;
-
-    public DungeonDebugger()
-    {
-        _h1 = new("E8 ?? ?? ?? ?? 0F B6 8B ?? ?? ?? ?? 48 89 B3 ?? ?? ?? ??", F1);
-        _h2 = new("E8 ?? ?? ?? ?? 48 81 C3 ?? ?? ?? ?? 48 8D 3D ?? ?? ?? ??", F2);
-
-        _layout = LayoutWorld.Instance()->ActiveLayout;
-    }
-
-    private char* F1(InstanceContentDeepDungeon* thisPtr, char a2, ulong a3)
-    {
-        var orig = _h1.Original(thisPtr, a2, a3);
-        Service.Log($"DoLayoutDetour: {(nint)thisPtr:X}, {(int)a2}, {a3:X} = {(nint)orig:X}");
-        Service.Log($"offset into self: {(nint)orig - (nint)thisPtr:X}");
-        return orig;
-    }
-
-    // second argument is the ID of a collisionbox in the layout instance
-    // third argument: only two observed values
-    //   - 0: collider should be left on
-    //   - 2: collider should be disabled
-    // there are at least two different sets of colliders that are updated here - for example, in PotD 1-10, the walls are group 256, layer E3F5
-    // the other set is group 259 layer E446 and it seems to just be small structures in the middle of rooms - i can't figure out what these are for
-    //
-    // all of the collider IDs are stored in a datastructure in InstanceContentDeepDungeon starting at offset 0x1F20, but this includes both active and inactive ones, we have to cross reference with MapData to figure out which
-    private char F2(InstanceContentDeepDungeon* thisPtr, ulong a2, byte a3)
-    {
-        var orig = _h2.Original(thisPtr, a2, a3);
-        Service.Log($"DoLayoutSingle: {(nint)thisPtr:X}, {a2:X}, {a3:X} = {(byte)orig:X}");
-        return orig;
-    }
 
     public void Dispose()
     {
-        _h1.Dispose();
-        _h2.Dispose();
-    }
-
-    internal void FloorChanged()
-    {
-        var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
-        if (dd == null)
-            return;
-
-        var roomKey = dd->LayoutInfos[dd->ActiveLayoutIndex].RoomStartIndex;
-
-        List<uint> ids = [];
-
-        for (var k = roomKey; k < roomKey + 21; k++)
-        {
-            var row = Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeonRoom>(k);
-            // Level array, from left to right
-            // center (id of SharedGroup, i think translation can be used to calculate room center?)
-            // North wall
-            // south wall
-            // west wall
-            // east wall
-            ids.AddRange(row!.Value.Level.Skip(1).Select(l => l.RowId).Where(r => r > 1));
-        }
-
-        foreach (var (_, cbox) in *_layout->InstancesByType[InstanceType.CollisionBox].Value)
-        {
-            var key = cbox.Value->Id.InstanceKey;
-            if (ids.Contains(key))
-            {
-                var tra = *cbox.Value->GetTranslationImpl();
-                var rot = *cbox.Value->GetRotationImpl();
-                var sc = *cbox.Value->GetScaleImpl();
-
-                var pos = new Vector3(tra.X, tra.Y, tra.Z);
-                var yrot = (2 * MathF.Acos(rot.W)).Radians();
-
-                Service.Log($"{key:X} = {tra.XZ()} {yrot}");
-            }
-        }
     }
 }
 
-public abstract class DeepDungeonAutoClear : ZoneModule
+public abstract class AutoClear : ZoneModule
 {
     public readonly int LevelCap;
 
@@ -184,9 +135,14 @@ public abstract class DeepDungeonAutoClear : ZoneModule
     private bool _trapsHidden = true;
     private readonly DungeonDebugger? _dbg = null;
 
+    private readonly Dictionary<string, Floor<WPos>> LoadedFloors;
+    private readonly List<(WPos Center, bool Rotated)> Walls = [];
+
+    private int DesiredRoom;
+
     protected DeepDungeonState Palace => World.DeepDungeon;
 
-    public DeepDungeonAutoClear(WorldState ws, int LevelCap) : base(ws)
+    public AutoClear(WorldState ws, int LevelCap) : base(ws)
     {
         this.LevelCap = LevelCap;
 
@@ -197,10 +153,20 @@ public abstract class DeepDungeonAutoClear : ZoneModule
             ws.Actors.StatusGain.Subscribe(OnStatusGain),
             ws.Actors.StatusLose.Subscribe(OnStatusLose),
             ws.Actors.EventOpenTreasure.Subscribe(OnOpenTreasure),
-            ws.Actors.EventObjectAnimation.Subscribe(OnEObjAnim)
+            ws.Actors.EventObjectAnimation.Subscribe(OnEObjAnim),
+            ws.DeepDungeon.MapDataChanged.Subscribe(_ =>
+            {
+                if (Walls.Count == 0)
+                    LoadWalls();
+            })
         );
 
         _trapsCurrentZone = PalacePalInterop.GetTrapLocationsForZone(ws.CurrentZone);
+
+        using (var fstream = new FileStream(Service.PluginInterface.ConfigDirectory.FullName + "/walls.json", FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
+        {
+            LoadedFloors = JsonSerializer.Deserialize<Dictionary<string, Floor<WPos>>>(fstream)!;
+        }
 
 #if DEBUG
         if (Service.SigScanner != null)
@@ -237,9 +203,6 @@ public abstract class DeepDungeonAutoClear : ZoneModule
             case 7256: // sight used
                 _trapsHidden = false;
                 break;
-            case 7270: // "Floor #"
-                _dbg?.FloorChanged();
-                break;
             case 10287: // demiclone overcap
                 _lastChestMagicite = true;
                 break;
@@ -258,8 +221,10 @@ public abstract class DeepDungeonAutoClear : ZoneModule
     private void ClearState()
     {
         Gazes.Clear();
+        Walls.Clear();
         Interrupts.Clear();
         ForbiddenTargets.Clear();
+        DesiredRoom = 0;
         _lastChestContentsGold = null;
         _lastChestMagicite = false;
         _chestContentsGold.Clear();
@@ -292,7 +257,7 @@ public abstract class DeepDungeonAutoClear : ZoneModule
 
             return Palace.Type switch
             {
-                DeepDungeonState.DungeonType.HOH or DeepDungeonState.DungeonType.EO => Palace.Progress.Floor >= 7,// magicite/demiclones start dropping on floor 7
+                DeepDungeonState.DungeonType.HOH or DeepDungeonState.DungeonType.EO => Palace.Floor >= 7,// magicite/demiclones start dropping on floor 7
                 _ => false,
             };
         }
@@ -300,26 +265,13 @@ public abstract class DeepDungeonAutoClear : ZoneModule
 
     private bool OpenBronze => _config.BronzeCoffer;
 
-    public override bool WantToBeDrawn() => false; // _dbg != null;
+    public override bool WantDrawExtra() => _config.EnableMinimap && !Palace.Progress.IsBossFloor;
 
     public override void DrawExtra()
     {
-        if (ImGui.Button("Check colliders"))
-        {
-            _dbg?.FloorChanged();
-        }
-    }
-
-    public override List<string> CalculateGlobalHints()
-    {
-        StringBuilder sb = new();
-        for (var i = 0; i < 25; i++)
-        {
-            sb.Append($"{Palace.MapData[i]:X2} ");
-            if (i % 5 == 4)
-                sb.Append('\n');
-        }
-        return [sb.ToString()];
+        var targetRoom = new Minimap(Palace.MapData, DesiredRoom).Draw();
+        if (targetRoom > 0)
+            DesiredRoom = targetRoom;
     }
 
     private bool CanAutoUse(PomanderID p) => p
@@ -327,11 +279,11 @@ public abstract class DeepDungeonAutoClear : ZoneModule
         or PomanderID.ProtoSteel or PomanderID.ProtoStrength or PomanderID.ProtoSight or PomanderID.ProtoRaising
         or PomanderID.ProtoLethargy;
 
-    protected virtual IEnumerable<ActionID> ActionsToIgnore() => [];
+    protected virtual IEnumerable<ActionID> AutohintDisabledActions() => [];
 
     public override void BeforeCalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
-        hints.HintedActions.UnionWith(ActionsToIgnore());
+        hints.AutohintDisabledActions.UnionWith(AutohintDisabledActions());
     }
 
     private bool OnBeacon(WPos pos) => pos.AlmostEqual(new WPos(259.7f, 307.14f), 1);
@@ -352,8 +304,13 @@ public abstract class DeepDungeonAutoClear : ZoneModule
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
-        if (!_config.Enable || Palace.Progress.Floor % 10 == 0)
+        if (!_config.Enable || Palace.Progress.IsBossFloor)
             return;
+
+        foreach (var (pos, rot) in Walls)
+            hints.AddForbiddenZone(new AOEShapeRect(0.5f, 20, 0.5f), pos, (rot ? 90f : 0f).Degrees());
+
+        HandleFloorPathfind(player, hints);
 
         IterAndExpire(Gazes, g => g.Source.CastInfo == null, d =>
         {
@@ -473,11 +430,19 @@ public abstract class DeepDungeonAutoClear : ZoneModule
             }
         }
 
-        if (!player.InCombat && _config.AutoPassage && Palace.PassageActive && passage is Actor c)
+        if (!player.InCombat && _config.AutoPassage && Palace.PassageActive)
         {
-            hints.GoalZones.Add(hints.GoalSingleTarget(c.Position, 2, 0.5f));
-            if (haveChest && player.DistanceToHitbox(c) < player.DistanceToHitbox(coffer) && !_config.OpenChestsFirst)
-                hints.InteractWithTarget = null;
+            if (!InBounds(hints, passage))
+                DesiredRoom = Array.FindIndex(Palace.MapData, d => ((RoomFlags)d).HasFlag(RoomFlags.Passage));
+
+            if (passage is Actor c)
+            {
+                hints.GoalZones.Add(hints.GoalSingleTarget(c.Position, 2, 0.5f));
+                // give pathfinder a little help lmao
+                hints.GoalZones.Add(hints.GoalSingleTarget(c.Position, 25, 0.25f));
+                if (haveChest && player.DistanceToHitbox(c) < player.DistanceToHitbox(coffer) && !_config.OpenChestsFirst)
+                    hints.InteractWithTarget = null;
+            }
         }
 
         if (revealedTraps.Count > 0)
@@ -501,6 +466,103 @@ public abstract class DeepDungeonAutoClear : ZoneModule
 
     private bool InBounds(AIHints hints, WPos pos) => hints.PathfindMapBounds.Contains(pos - hints.PathfindMapCenter);
 
+    private bool InBounds(AIHints hints, Actor? target) => target != null && InBounds(hints, target.Position);
+
+    private void HandleFloorPathfind(Actor player, AIHints hints)
+    {
+        // TODO add config option
+        if (player.InCombat)
+            return;
+
+        var playerRoom = Palace.Party[0].Room - 1;
+
+        if (DesiredRoom == playerRoom || DesiredRoom == 0)
+        {
+            DesiredRoom = 0;
+            return;
+        }
+
+        var path = new FloorPathfind(Palace.Map).Pathfind(playerRoom, DesiredRoom);
+        if (path.Count == 0)
+        {
+            Service.Log($"uh-oh, no path from {playerRoom} to {DesiredRoom}");
+            return;
+        }
+        var next = path[0];
+        Direction d;
+        if (next == playerRoom + 1)
+            d = Direction.East;
+        else if (next == playerRoom - 1)
+            d = Direction.West;
+        else if (next == playerRoom + 5)
+            d = Direction.South;
+        else if (next == playerRoom - 5)
+            d = Direction.North;
+        else
+        {
+            Service.Log($"pathfinding instructions are nonsense: {string.Join(", ", path)}");
+            DesiredRoom = 0;
+            return;
+        }
+
+        hints.GoalZones.Add(p =>
+        {
+            var pp = player.Position;
+            return d switch
+            {
+                Direction.North => pp.Z - p.Z,
+                Direction.South => p.Z - pp.Z,
+                Direction.East => p.X - pp.X,
+                Direction.West => pp.X - p.X,
+                _ => 0,
+            } * 0.001f;
+        });
+    }
+
+    private void LoadWalls()
+    {
+        Service.Log($"loading walls for current floor...");
+        Walls.Clear();
+        var floorset = Palace.Floor / 10;
+        var key = $"{Palace.DungeonId}.{floorset + 1}";
+        if (!LoadedFloors.TryGetValue(key, out var floor))
+        {
+            Service.Log($"unable to load floorset {key}");
+            return;
+        }
+        Tileset<WPos> tileset;
+        switch (Palace.Progress.Tileset)
+        {
+            case 0:
+                tileset = floor.RoomsA;
+                break;
+            case 1:
+                tileset = floor.RoomsB;
+                break;
+            case 2:
+                Service.Log($"hall of fallacies - nothing to do");
+                return;
+            default:
+                Service.Log($"unrecognized tileset number {Palace.Progress.Tileset}");
+                return;
+        }
+        foreach (var (room, i) in Palace.Map.ToArray().Select((m, i) => (m, i)))
+        {
+            if (room > 0)
+            {
+                var roomdata = tileset[i];
+                if (roomdata.North != default && !room.HasFlag(RoomFlags.ConnectionN))
+                    Walls.Add((roomdata.North, false));
+                if (roomdata.South != default && !room.HasFlag(RoomFlags.ConnectionS))
+                    Walls.Add((roomdata.South, false));
+                if (roomdata.East != default && !room.HasFlag(RoomFlags.ConnectionE))
+                    Walls.Add((roomdata.East, true));
+                if (roomdata.West != default && !room.HasFlag(RoomFlags.ConnectionW))
+                    Walls.Add((roomdata.West, true));
+            }
+        }
+
+    }
 }
 
 static class PalacePalInterop

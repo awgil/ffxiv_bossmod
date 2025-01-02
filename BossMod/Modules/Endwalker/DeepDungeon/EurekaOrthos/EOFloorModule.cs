@@ -17,14 +17,22 @@ public enum AID : uint
     AbyssalCry = 32467, // 3E00->self, 6.0s cast, range 30 circle, instakill mechanic
     SprigganHaste = 33175, // 3DFB->self, 1.5s cast
     GelidCharge = 33180, // 3E13->self, 2.0s cast, single-target
+    SmolderingScales = 32952, // 3E3D->self, 2.5s cast, single-target
+    ElectricCachexia = 32979, // 3E45->self, 4.0s cast, range ?-44 donut
+    EyeOfTheFierce = 32667, // 3E53->self, 3.0s cast, range 40 circle
+    DemonEye1 = 32762, // 3E5E->self, 15.0s cast, range 33 circle
+    DemonEye2 = 32761, // 3E5E->self, 5.0s cast, range 33 circle
+    Hypnotize = 32737, // 3E58->self, 3.0s cast, range 20 circle
+    Catharsis = 32732, // 3E56->self, 10.0s cast, range 40 circle
 }
 
 public enum SID : uint
 {
+    BlazeSpikes = 197,
     IceSpikes = 198
 }
 
-public abstract class EOFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 90)
+public abstract class EOFloorModule(WorldState ws) : AutoClear(ws, 90)
 {
     protected override void OnCastStarted(Actor actor)
     {
@@ -42,12 +50,18 @@ public abstract class EOFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 90
                 Interrupts.Add(actor);
                 break;
             case AID.DoubleHexEye:
+            case AID.EyeOfTheFierce:
+            case AID.DemonEye1:
+            case AID.DemonEye2:
+            case AID.Hypnotize:
                 Gazes.Add((actor, null));
                 break;
             case AID.TheDragonsVoice:
+            case AID.ElectricCachexia:
                 Donuts.Add((actor, 8));
                 break;
             case AID.SelfDetonate:
+            case AID.Catharsis:
                 Circles.Add((actor, 40));
                 break;
             case AID.AbyssalCry:
@@ -60,8 +74,9 @@ public abstract class EOFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 90
     {
         switch ((AID)actor.CastInfo!.Action.ID)
         {
-            // setting target to forbidden when it gains the Ice Spikes status is too late
+            // setting target to forbidden when it gains the spikes status is too late
             case AID.GelidCharge:
+            case AID.SmolderingScales:
                 ForbiddenTargets.Add(actor);
                 break;
         }
@@ -72,14 +87,17 @@ public abstract class EOFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 90
         switch ((SID)actor.Statuses[index].ID)
         {
             case SID.IceSpikes:
+            case SID.BlazeSpikes:
                 ForbiddenTargets.Remove(actor);
                 break;
         }
     }
 
-    protected override IEnumerable<ActionID> ActionsToIgnore() => [
+    protected override IEnumerable<ActionID> AutohintDisabledActions() => [
         ActionID.MakeSpell(AID.Bombination),
-        ActionID.MakeSpell(AID.TheDragonsVoice)
+        ActionID.MakeSpell(AID.TheDragonsVoice),
+        ActionID.MakeSpell(AID.ElectricCachexia),
+        ActionID.MakeSpell(AID.Hypnotize)
     ];
 }
 
