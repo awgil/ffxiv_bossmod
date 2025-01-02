@@ -16,6 +16,7 @@ public enum AID : uint
     Infatuation = 32798, // 3E80->player, 3.0s cast, single-target
     AbyssalCry = 32467, // 3E00->self, 6.0s cast, range 30 circle, instakill mechanic
     SprigganHaste = 33175, // 3DFB->self, 1.5s cast
+    GelidCharge = 33180, // 3E13->self, 2.0s cast, single-target
 }
 
 public enum SID : uint
@@ -55,11 +56,12 @@ public abstract class EOFloorModule(WorldState ws) : DeepDungeonAutoClear(ws, 90
         }
     }
 
-    protected override void OnStatusGain(Actor actor, int index)
+    protected override void OnCastFinished(Actor actor)
     {
-        switch ((SID)actor.Statuses[index].ID)
+        switch ((AID)actor.CastInfo!.Action.ID)
         {
-            case SID.IceSpikes:
+            // setting target to forbidden when it gains the Ice Spikes status is too late
+            case AID.GelidCharge:
                 ForbiddenTargets.Add(actor);
                 break;
         }

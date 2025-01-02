@@ -31,4 +31,4 @@ class D10GancanaghStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Puni.sh Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 897, NameID = 12240)]
-public class D10Gancanagh(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsSquare(20));
+public class D10Gancanagh(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsSquare(19.5f));

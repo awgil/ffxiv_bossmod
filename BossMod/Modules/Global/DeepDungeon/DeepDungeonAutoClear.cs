@@ -1,4 +1,8 @@
-﻿using System.Data.SQLite;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Event;
+using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
+using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
+using ImGuiNET;
+using System.Data.SQLite;
 using System.IO;
 using System.Text;
 
@@ -59,6 +63,93 @@ enum SID : uint
     ItemPenalty = 1094,
 }
 
+sealed unsafe class DungeonDebugger : IDisposable
+{
+    private unsafe delegate char* DoLayoutDelegate(InstanceContentDeepDungeon* thisPtr, char a2, ulong a3);
+    private readonly HookAddress<DoLayoutDelegate> _h1;
+
+    private unsafe delegate char DoLayoutSingle(InstanceContentDeepDungeon* thisPtr, ulong a2, byte a3);
+    private readonly HookAddress<DoLayoutSingle> _h2;
+
+    private readonly LayoutManager* _layout;
+
+    public DungeonDebugger()
+    {
+        _h1 = new("E8 ?? ?? ?? ?? 0F B6 8B ?? ?? ?? ?? 48 89 B3 ?? ?? ?? ??", F1);
+        _h2 = new("E8 ?? ?? ?? ?? 48 81 C3 ?? ?? ?? ?? 48 8D 3D ?? ?? ?? ??", F2);
+
+        _layout = LayoutWorld.Instance()->ActiveLayout;
+    }
+
+    private char* F1(InstanceContentDeepDungeon* thisPtr, char a2, ulong a3)
+    {
+        var orig = _h1.Original(thisPtr, a2, a3);
+        Service.Log($"DoLayoutDetour: {(nint)thisPtr:X}, {(int)a2}, {a3:X} = {(nint)orig:X}");
+        Service.Log($"offset into self: {(nint)orig - (nint)thisPtr:X}");
+        return orig;
+    }
+
+    // second argument is the ID of a collisionbox in the layout instance
+    // third argument: only two observed values
+    //   - 0: collider should be left on
+    //   - 2: collider should be disabled
+    // there are at least two different sets of colliders that are updated here - for example, in PotD 1-10, the walls are group 256, layer E3F5
+    // the other set is group 259 layer E446 and it seems to just be small structures in the middle of rooms - i can't figure out what these are for
+    //
+    // all of the collider IDs are stored in a datastructure in InstanceContentDeepDungeon starting at offset 0x1F20, but this includes both active and inactive ones, we have to cross reference with MapData to figure out which
+    private char F2(InstanceContentDeepDungeon* thisPtr, ulong a2, byte a3)
+    {
+        var orig = _h2.Original(thisPtr, a2, a3);
+        Service.Log($"DoLayoutSingle: {(nint)thisPtr:X}, {a2:X}, {a3:X} = {(byte)orig:X}");
+        return orig;
+    }
+
+    public void Dispose()
+    {
+        _h1.Dispose();
+        _h2.Dispose();
+    }
+
+    internal void FloorChanged()
+    {
+        var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+        if (dd == null)
+            return;
+
+        var roomKey = dd->LayoutInfos[dd->ActiveLayoutIndex].RoomStartIndex;
+
+        List<uint> ids = [];
+
+        for (var k = roomKey; k < roomKey + 21; k++)
+        {
+            var row = Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeonRoom>(k);
+            // Level array, from left to right
+            // center (id of SharedGroup, i think translation can be used to calculate room center?)
+            // North wall
+            // south wall
+            // west wall
+            // east wall
+            ids.AddRange(row!.Value.Level.Skip(1).Select(l => l.RowId).Where(r => r > 1));
+        }
+
+        foreach (var (_, cbox) in *_layout->InstancesByType[InstanceType.CollisionBox].Value)
+        {
+            var key = cbox.Value->Id.InstanceKey;
+            if (ids.Contains(key))
+            {
+                var tra = *cbox.Value->GetTranslationImpl();
+                var rot = *cbox.Value->GetRotationImpl();
+                var sc = *cbox.Value->GetScaleImpl();
+
+                var pos = new Vector3(tra.X, tra.Y, tra.Z);
+                var yrot = (2 * MathF.Acos(rot.W)).Radians();
+
+                Service.Log($"{key:X} = {tra.XZ()} {yrot}");
+            }
+        }
+    }
+}
+
 public abstract class DeepDungeonAutoClear : ZoneModule
 {
     public readonly int LevelCap;
@@ -84,11 +175,14 @@ public abstract class DeepDungeonAutoClear : ZoneModule
     private readonly EventSubscriptions _subscriptions;
     private readonly List<WPos> _trapsCurrentZone = [];
 
-    private readonly Dictionary<ulong, PomanderID> _chestContents = [];
+    private readonly Dictionary<ulong, PomanderID> _chestContentsGold = [];
+    private readonly Dictionary<ulong, int> _chestContentsSilver = [];
     private readonly HashSet<ulong> _openedChests = [];
     private readonly HashSet<ulong> _fakeExits = [];
-    private PomanderID? _lastChestContents;
-    private bool _showTrapHints = true;
+    private PomanderID? _lastChestContentsGold;
+    private bool _lastChestMagicite;
+    private bool _trapsHidden = true;
+    private readonly DungeonDebugger? _dbg = null;
 
     protected DeepDungeonState Palace => World.DeepDungeon;
 
@@ -107,11 +201,17 @@ public abstract class DeepDungeonAutoClear : ZoneModule
         );
 
         _trapsCurrentZone = PalacePalInterop.GetTrapLocationsForZone(ws.CurrentZone);
+
+#if DEBUG
+        if (Service.SigScanner != null)
+            _dbg = new();
+#endif
     }
 
     protected override void Dispose(bool disposing)
     {
         _subscriptions.Dispose();
+        _dbg?.Dispose();
         base.Dispose(disposing);
     }
 
@@ -128,14 +228,20 @@ public abstract class DeepDungeonAutoClear : ZoneModule
         switch (op.MessageId)
         {
             case 7222: // pomander overcap
-                _lastChestContents = (PomanderID)op.Args[0];
+                _lastChestContentsGold = (PomanderID)op.Args[0];
                 break;
             case 7248: // transference initiated
                 ClearState();
                 break;
             case 7255: // safety used
             case 7256: // sight used
-                _showTrapHints = false;
+                _trapsHidden = false;
+                break;
+            case 7270: // "Floor #"
+                _dbg?.FloorChanged();
+                break;
+            case 10287: // demiclone overcap
+                _lastChestMagicite = true;
                 break;
         }
     }
@@ -154,9 +260,11 @@ public abstract class DeepDungeonAutoClear : ZoneModule
         Gazes.Clear();
         Interrupts.Clear();
         ForbiddenTargets.Clear();
-        _lastChestContents = null;
-        _showTrapHints = true;
-        _chestContents.Clear();
+        _lastChestContentsGold = null;
+        _lastChestMagicite = false;
+        _chestContentsGold.Clear();
+        _chestContentsSilver.Clear();
+        _trapsHidden = true;
         _openedChests.Clear();
         _fakeExits.Clear();
     }
@@ -192,7 +300,15 @@ public abstract class DeepDungeonAutoClear : ZoneModule
 
     private bool OpenBronze => _config.BronzeCoffer;
 
-    public override bool WantToBeDrawn() => true;
+    public override bool WantToBeDrawn() => false; // _dbg != null;
+
+    public override void DrawExtra()
+    {
+        if (ImGui.Button("Check colliders"))
+        {
+            _dbg?.FloorChanged();
+        }
+    }
 
     public override List<string> CalculateGlobalHints()
     {
@@ -271,7 +387,7 @@ public abstract class DeepDungeonAutoClear : ZoneModule
             if (hints.FindEnemy(d) is { } e)
                 e.Priority = AIHints.Enemy.PriorityForbidFully;
 
-        if (_config.TrapHints && _showTrapHints)
+        if (_config.TrapHints && _trapsHidden)
         {
             var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30) && !OnBeacon(t)).Select(t => ShapeDistance.Circle(t, 2)).ToList();
             if (traps.Count > 0)
@@ -290,12 +406,16 @@ public abstract class DeepDungeonAutoClear : ZoneModule
 
         foreach (var a in World.Actors)
         {
-            if (_chestContents.TryGetValue(a.InstanceID, out var pid) && Palace.GetItem(pid).Count == 3 && a.IsTargetable)
+            if (_chestContentsGold.TryGetValue(a.InstanceID, out var pid) && Palace.GetItem(pid).Count == 3 && a.IsTargetable)
             {
                 if (CanAutoUse(pid))
                     pomanderToUseHere ??= pid;
                 continue;
             }
+
+            if (_chestContentsSilver.ContainsKey(a.InstanceID) && Palace.Magicite.All(m => m > 0))
+                // TODO use magicite/demiclone to prevent overcap
+                continue;
 
             if (_openedChests.Contains(a.InstanceID) || _fakeExits.Contains(a.InstanceID))
                 continue;
@@ -322,11 +442,22 @@ public abstract class DeepDungeonAutoClear : ZoneModule
                 revealedTraps.Add(ShapeDistance.Circle(a.Position, 2));
         }
 
-        if (coffer != null && _lastChestContents is PomanderID p)
+        if (coffer != null)
         {
-            _chestContents[coffer.InstanceID] = p;
-            _lastChestContents = null;
-            return;
+            if (_lastChestContentsGold is PomanderID p)
+            {
+                _chestContentsGold[coffer.InstanceID] = p;
+                _lastChestContentsGold = null;
+                return;
+            }
+
+            if (_lastChestMagicite)
+            {
+                // TODO figure out why the system log args arent working
+                _chestContentsSilver[coffer.InstanceID] = 1;
+                _lastChestMagicite = false;
+                return;
+            }
         }
 
         if (!isOccupied && pomanderToUseHere is PomanderID p2 && player.FindStatus(SID.ItemPenalty) == null)

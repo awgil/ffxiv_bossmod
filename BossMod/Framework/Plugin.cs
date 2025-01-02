@@ -38,6 +38,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ReplayManagementWindow _wndReplay;
     private readonly UIRotationWindow _wndRotation;
     private readonly AI.AIWindow _wndAI;
+    private readonly ZoneModuleWindow _wndZM;
     private readonly MainDebugWindow _wndDebug;
 
     public unsafe Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner, IDataManager dataManager)
@@ -93,6 +94,7 @@ public sealed class Plugin : IDalamudPlugin
         _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir);
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
         _wndAI = new(_ai);
+        _wndZM = new(_zonemod);
         _wndDebug = new(_ws, _rotation, _zonemod, _amex, _movementOverride, _hintsBuilder, dalamud);
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
@@ -108,6 +110,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         Service.Condition.ConditionChange -= OnConditionChanged;
         _wndDebug.Dispose();
+        _wndZM.Dispose();
         _wndAI.Dispose();
         _wndRotation.Dispose();
         _wndReplay.Dispose();

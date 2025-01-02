@@ -693,9 +693,6 @@ sealed class WorldStateGameSync : IDisposable
         if (dd == null)
             return new();
 
-        // TODO map this in CS
-        var magicite = new Span<byte>((byte*)dd + 0x1EF8, 3);
-
         var progress = new DeepDungeonState.DungeonProgress
         {
             Floor = dd->Floor,
@@ -712,7 +709,7 @@ sealed class WorldStateGameSync : IDisposable
         var state = new DeepDungeonState
         {
             Progress = progress,
-            Magicite = magicite.ToArray(),
+            Magicite = dd->Magicite.ToArray(),
             DungeonId = AgentDeepDungeonMap.Instance()->Data->DeepDungeonId
         };
 

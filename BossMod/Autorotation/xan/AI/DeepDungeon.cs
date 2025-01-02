@@ -70,6 +70,8 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             return;
         }
 
+        SetupKiteZone(strategy, primaryTarget);
+
         if (Player.FindStatus(SID.ItemPenalty) != null)
             return;
 
@@ -86,8 +88,6 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
         if (potAction != default && HPRatio() <= 0.3f)
             Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.VeryHigh);
-
-        SetupKiteZone(strategy, primaryTarget);
     }
 
     private static readonly HashSet<uint> NoMeleeAutos = [
