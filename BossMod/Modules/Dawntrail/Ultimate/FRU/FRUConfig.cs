@@ -10,7 +10,7 @@ public class FRUConfig() : ConfigNode()
     [GroupPreset("G1 N, G2 S, TMRH", [0, 4, 3, 7, 1, 5, 2, 6])]
     public GroupAssignmentUnique P1BoundOfFaithAssignment = GroupAssignmentUnique.DefaultRoles();
 
-    [PropertyDisplay("P1 Fall of Faith (cone tethers) : conga priority (two people without tethers with lower priorities join odd group)")]
+    [PropertyDisplay("P1 Fall of Faith (cone tethers): conga priority (two people without tethers with lower priorities join odd group)")]
     [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
     [GroupPreset("TTHHMMRR", [0, 1, 2, 3, 4, 5, 6, 7])]
     [GroupPreset("RHMTTMHR", [3, 4, 1, 6, 2, 5, 0, 7])]
@@ -23,6 +23,9 @@ public class FRUConfig() : ConfigNode()
     [GroupDetails(["Tank N", "Tank S", "Fixed N", "Fixed Center", "Fixed S", "Flex 1", "Flex 2", "Flex 3"])]
     [GroupPreset("H1-R2-H2 fixed, M1-M2-R1 flex", [0, 1, 2, 4, 5, 6, 7, 3])]
     public GroupAssignmentUnique P1ExplosionsAssignment = new() { Assignments = [0, 1, 2, 4, 5, 6, 7, 3] };
+
+    [PropertyDisplay("P1 Explosions: flex roles only fill 3/4 if their natural tower is 1 (instead of doing conga)")]
+    public bool P1ExplosionsPriorityFill;
 
     [PropertyDisplay("P1 Explosions: have tanks stack on tankbuster (survivable with saves, simplifies uptime)")]
     public bool P1ExplosionsTankbusterCheese;

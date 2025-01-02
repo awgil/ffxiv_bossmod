@@ -123,8 +123,25 @@ class P1Explosion(BossModule module) : Components.GenericTowers(module)
             ref var tower = ref Towers.Ref(i);
             tower.ForbiddenSoakers.Raw = 0xFF;
             tower.ForbiddenSoakers.Clear(slotByGroup[i + 2]); // fixed assignment
-            for (int j = 1; j < tower.MinSoakers; ++j)
-                tower.ForbiddenSoakers.Clear(slotByGroup[nextFlex++]);
+            if (tower.MinSoakers == 1)
+                continue; // this tower doesn't need anyone else
+
+            if (_config.P1ExplosionsPriorityFill)
+            {
+                // priority fill strategy - grab assigned flex soaker
+                tower.ForbiddenSoakers.Clear(slotByGroup[i + 5]);
+                // if the tower requires >2 soakers, also assign each flex soaker that has natural 1-man tower (this works, because only patterns are 2-2-2, 1-2-3 and 1-1-4)
+                if (tower.MinSoakers > 2)
+                    for (int j = 0; j < 3; ++j)
+                        if (Towers[j].MinSoakers == 1)
+                            tower.ForbiddenSoakers.Clear(slotByGroup[j + 5]);
+            }
+            else
+            {
+                // conga fill strategy - grab next N flex soakers in priority order
+                for (int j = 1; j < tower.MinSoakers; ++j)
+                    tower.ForbiddenSoakers.Clear(slotByGroup[nextFlex++]);
+            }
         }
     }
 }
