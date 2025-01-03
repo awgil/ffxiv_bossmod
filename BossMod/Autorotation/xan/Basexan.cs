@@ -301,10 +301,10 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         if (t == 0)
             return true;
 
-        return NextCastStart + t <= ForceMovementIn;
+        return NextCastStart + t <= MaxCastTime;
     }
 
-    protected float ForceMovementIn;
+    protected float MaxCastTime;
 
     protected bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     protected bool Unlocked(TraitID tid) => TraitUnlocked((uint)(object)tid);
@@ -336,6 +336,27 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         Manager.Hints.RecommendedPositional = (target, positional.pos, NextPositionalImminent, NextPositionalCorrect);
     }
 
+    private readonly SmartRotationConfig _smartrot = Service.Config.Get<SmartRotationConfig>();
+
+    private void EstimateCastTime()
+    {
+        MaxCastTime = Hints.MaxCastTimeEstimate;
+
+        if (World.PendingEffects.PendingKnockbacks(Player.InstanceID))
+        {
+            MaxCastTime = 0f;
+            return;
+        }
+
+        var forbiddenDir = Hints.ForbiddenDirections.Where(d => Player.Rotation.AlmostEqual(d.center, d.halfWidth.Rad)).Select(d => d.activation).DefaultIfEmpty(DateTime.MinValue).Min();
+        if (forbiddenDir > World.CurrentTime)
+        {
+            var cushion = _smartrot.MinTimeToAvoid;
+            var gazeIn = MathF.Max(0, (float)(forbiddenDir - World.CurrentTime).TotalSeconds - cushion);
+            MaxCastTime = MathF.Min(MaxCastTime, gazeIn);
+        }
+    }
+
     public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         NextGCD = default;
@@ -346,7 +367,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         SwiftcastLeft = MathF.Max(StatusLeft(ClassShared.SID.Swiftcast), StatusLeft(ClassShared.SID.LostChainspell));
         TrueNorthLeft = StatusLeft(ClassShared.SID.TrueNorth);
 
-        ForceMovementIn = Hints.MaxCastTimeEstimate;
+        EstimateCastTime();
         AnimationLockDelay = estimatedAnimLockDelay;
 
         CombatTimer = (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds;

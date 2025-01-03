@@ -74,6 +74,8 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         _ => 0
     };
 
+    public static readonly int LeylinesOID = 0x6DF;
+
     public override void Exec(StrategyValues strategy, Actor? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
@@ -134,6 +136,9 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (primaryTarget != null)
             Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 25));
+
+        if (Player.InCombat && World.Actors.FirstOrDefault(x => x.OID is 0x6DF && x.OwnerID == Player.InstanceID) is Actor ll)
+            Hints.GoalZones.Add(p => p.InCircle(ll.Position, 8) ? 0.5f : 0);
 
         if (!Player.InCombat && primaryTarget != null && Paint == 0)
             PushGCD(AID.RainbowDrip, primaryTarget, GCDPriority.Standard);

@@ -365,7 +365,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
             if (!Unlocked(TraitID.Shukiho) || Ninki >= 10)
                 PushOGCD(AID.Mug, primaryTarget);
 
-            if (ReadyIn(AID.Ten1) > GCD && Mudra.Left == 0 && Kassatsu == 0 && ShadowWalker == 0 && ForceMovementIn > GCD + 2)
+            if (ReadyIn(AID.Ten1) > GCD && Mudra.Left == 0 && Kassatsu == 0 && ShadowWalker == 0)
                 PushOGCD(AID.TenChiJin, Player);
 
             if (Ninki >= 50)

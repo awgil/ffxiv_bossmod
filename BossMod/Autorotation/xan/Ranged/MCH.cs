@@ -214,38 +214,25 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
     private void UseCharges(StrategyValues strategy, Actor? primaryTarget)
     {
-        var gaussRoundCD = ReadyIn(AID.GaussRound);
-        var ricochetCD = ReadyIn(AID.Ricochet);
-
-        var canGauss = Unlocked(AID.GaussRound) && CanWeave(gaussRoundCD, 0.6f);
-        var canRicochet = Unlocked(AID.Ricochet) && CanWeave(ricochetCD, 0.6f);
-
-        if (canGauss && CanWeave(MaxGaussCD, 0.6f))
+        // checking for max charges
+        if (CanWeave(MaxGaussCD, 0.6f))
             PushOGCD(AID.GaussRound, Unlocked(AID.DoubleCheck) ? BestRangedAOETarget : primaryTarget);
-
-        if (canRicochet && CanWeave(MaxRicochetCD, 0.6f))
+        if (CanWeave(MaxRicochetCD, 0.6f))
             PushOGCD(AID.Ricochet, BestRangedAOETarget);
 
         var useAllCharges = RaidBuffsLeft > 0 || RaidBuffsIn > 9000 || Overheated || !Unlocked(AID.Hypercharge);
         if (!useAllCharges)
             return;
 
-        // this is a little awkward but we want to try to keep the cooldowns of both actions within range of each other
-        if (canGauss && canRicochet)
-        {
-            if (gaussRoundCD > ricochetCD)
-                UseRicochet(primaryTarget);
-            else
-                UseGauss(primaryTarget);
-        }
-        else if (canGauss)
-            UseGauss(primaryTarget);
-        else if (canRicochet)
-            UseRicochet(primaryTarget);
+        var gelapse = World.Client.Cooldowns[14].Elapsed;
+        var relapse = World.Client.Cooldowns[15].Elapsed;
+
+        UseGauss(primaryTarget, gelapse > relapse ? 1 : 0);
+        UseRicochet(primaryTarget, relapse > gelapse ? 1 : 0);
     }
 
-    private void UseGauss(Actor? primaryTarget) => Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.GaussRound), Unlocked(AID.DoubleCheck) ? BestRangedAOETarget : primaryTarget, ActionQueue.Priority.Low - 50);
-    private void UseRicochet(Actor? primaryTarget) => Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Ricochet), BestRangedAOETarget, ActionQueue.Priority.Low - 50);
+    private void UseGauss(Actor? primaryTarget, int charges) => Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.GaussRound), Unlocked(AID.DoubleCheck) ? BestRangedAOETarget : primaryTarget, ActionQueue.Priority.Low - 50 + charges);
+    private void UseRicochet(Actor? primaryTarget, int charges) => Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Ricochet), BestRangedAOETarget, ActionQueue.Priority.Low - 50 + charges);
 
     private bool ShouldReassemble(StrategyValues strategy, Actor? primaryTarget)
     {

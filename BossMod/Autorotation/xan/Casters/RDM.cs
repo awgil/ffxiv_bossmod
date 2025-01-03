@@ -242,9 +242,9 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
     private bool DashOk(StrategyValues strategy, Actor? primaryTarget) => strategy.Option(Track.Dash).As<DashStrategy>() switch
     {
         DashStrategy.Any => true,
-        DashStrategy.Move => ForceMovementIn > 30,
+        DashStrategy.Move => MaxCastTime > 30,
         DashStrategy.Close => Player.DistanceToHitbox(primaryTarget) < 3,
-        DashStrategy.CloseMove => Player.DistanceToHitbox(primaryTarget) < 3 && ForceMovementIn > 30,
+        DashStrategy.CloseMove => Player.DistanceToHitbox(primaryTarget) < 3 && MaxCastTime > 30,
         _ => false
     };
 }

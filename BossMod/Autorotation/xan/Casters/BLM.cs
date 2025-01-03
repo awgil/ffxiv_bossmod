@@ -127,9 +127,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         if (PlayerTarget != null)
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget, 25));
 
-        var ll = World.Actors.FirstOrDefault(x => x.OID == 0x179 && x.OwnerID == Player.InstanceID);
-        if (ll != null)
-            Hints.GoalZones.Add(p => (p - ll.Position).Length() <= 3 ? 0.5f : 0);
+        if (Player.InCombat && World.Actors.FirstOrDefault(x => x.OID == 0x179 && x.OwnerID == Player.InstanceID) is Actor ll)
+            Hints.GoalZones.Add(p => p.InCircle(ll.Position, 3) ? 0.5f : 0);
 
         if (Unlocked(AID.Swiftcast))
             PushOGCD(AID.Swiftcast, Player);
@@ -438,7 +437,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private bool ShouldUseLeylines(StrategyValues strategy, int extraGCDs = 0)
         => CanWeave(MaxChargesIn(AID.LeyLines), extraGCDs)
-        && ForceMovementIn >= 30
+        && MaxCastTime >= 30
         && strategy.Option(SharedTrack.Buffs).As<OffensiveStrategy>() != OffensiveStrategy.Delay;
 
     private bool ShouldTranspose(StrategyValues strategy)
