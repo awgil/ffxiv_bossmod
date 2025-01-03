@@ -57,7 +57,9 @@ class P2MirrorMirrorReflectedScytheKickRed(BossModule module) : Components.SelfT
 
 class P2MirrorMirrorHouseOfLight(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.HouseOfLight))
 {
-    private WPos _mirror;
+    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private Angle? _blueMirror;
+    private int _numRedMirrors;
     private readonly List<(Actor source, DateTime activation)> _sources = [];
 
     private static readonly AOEShapeCone _shape = new(60, 15.Degrees());
@@ -72,15 +74,53 @@ class P2MirrorMirrorHouseOfLight(BossModule module) : Components.GenericBaitAway
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        // TODO: preassigned spots
-        //base.AddAIHints(slot, actor, assignment, hints);
+        var group = (NumCasts == 0 ? _config.P2MirrorMirror1SpreadSpots : _config.P2MirrorMirror2SpreadSpots)[assignment];
+        if (_sources.Count < 2 || _blueMirror == null || group < 0)
+            return; // inactive or no valid assignments
+
+        var origin = _sources[group < 4 ? 0 : 1];
+        Angle dir;
+        if (NumCasts == 0)
+        {
+            dir = _blueMirror.Value + (group & 3) switch
+            {
+                0 => -135.Degrees(),
+                1 => 135.Degrees(),
+                2 => -90.Degrees(),
+                3 => 90.Degrees(),
+                _ => default
+            };
+        }
+        else
+        {
+            var offset = origin.source.Position - Module.Center;
+            dir = Angle.FromDirection(offset) + (group & 3) switch
+            {
+                0 => -90.Degrees(),
+                1 => 90.Degrees(),
+                2 => 180.Degrees(),
+                3 => offset.OrthoL().Dot(_sources[group < 4 ? 1 : 0].source.Position - Module.Center) < 0 ? 135.Degrees() : -135.Degrees(),
+                _ => default
+            };
+
+            // special logic for current tank: if mechanic will take a while to resolve, and boss is far enough away from the destination, and normal destination is on the same side as the boss, drag towards other side first
+            // this guarantees uptime for OT
+            if (origin.activation > WorldState.FutureTime(3) && Module.Enemies(OID.BossP2).FirstOrDefault() is var boss && boss != null && boss.TargetID == actor.InstanceID)
+            {
+                var dirVec = dir.ToDirection();
+                if (dirVec.Dot(boss.Position - origin.source.Position) > 2 && (origin.source.Position - 4 * dirVec - boss.Position).Length() > boss.HitboxRadius + 3)
+                    dir += 180.Degrees();
+            }
+
+        }
+        hints.AddForbiddenZone(ShapeDistance.InvertedCone(origin.source.Position, 4, dir, 15.Degrees()), origin.activation);
     }
 
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (index is >= 1 and <= 8 && state == 0x00020001)
         {
-            _mirror = Module.Center + 20 * (225 - index * 45).Degrees().ToDirection();
+            _blueMirror = (225 - index * 45).Degrees();
         }
     }
 
@@ -91,12 +131,25 @@ class P2MirrorMirrorHouseOfLight(BossModule module) : Components.GenericBaitAway
             case AID.ScytheKick:
                 var activation = Module.CastFinishAt(spell, 0.7f);
                 _sources.Add((caster, activation));
-                var mirror = Module.Enemies(OID.FrozenMirror).Closest(_mirror);
+                var mirror = _blueMirror != null ? Module.Enemies(OID.FrozenMirror).Closest(Module.Center + 20 * _blueMirror.Value.ToDirection()) : null;
                 if (mirror != null)
                     _sources.Add((mirror, activation));
                 break;
             case AID.ReflectedScytheKickRed:
                 _sources.Add((caster, Module.CastFinishAt(spell, 0.6f)));
+                if (++_numRedMirrors == 2 && _blueMirror != null && _sources.Count >= 2)
+                {
+                    // order two red mirrors so that first one is closer to boss and second one closer to blue mirror; if both are same distance, select CW ones (arbitrary)
+                    var d1 = (Angle.FromDirection(_sources[^2].source.Position - Module.Center) - _blueMirror.Value).Normalized();
+                    var d2 = (Angle.FromDirection(_sources[^1].source.Position - Module.Center) - _blueMirror.Value).Normalized();
+                    var d1abs = d1.Abs();
+                    var d2abs = d2.Abs();
+                    var swap = d2abs.AlmostEqual(d1abs, 0.1f)
+                        ? d2.Rad > 0 // swap if currently second one is CCW from blue mirror
+                        : d2abs.Rad > d1abs.Rad; // swap if currently second one is further from the blue mirror
+                    if (swap)
+                        (_sources[^1], _sources[^2]) = (_sources[^2], _sources[^1]);
+                }
                 break;
         }
     }

@@ -165,7 +165,10 @@ class P4CrystallizeTimeMaelstrom(BossModule module) : Components.GenericAOEs(mod
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.SorrowsHourglass)
+        {
             _aoes.Add(new(_shape, actor.Position, actor.Rotation, WorldState.FutureTime(13.2f)));
+            _aoes.SortBy(aoe => aoe.Activation);
+        }
     }
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
