@@ -75,6 +75,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         {
             DrawStatuses();
         }
+        if (ImGui.CollapsingHeader("Cooldowns"))
+        {
+            DrawCooldowns();
+        }
         if (ImGui.CollapsingHeader("Casting enemies"))
         {
             DrawCastingEnemiesList();
@@ -386,13 +390,14 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         ImGui.Text($"{gauge.Low:X16} {gauge.High:X16}");
     }
 
+    private bool _showAllCooldowns = false;
+
     private unsafe void DrawCooldowns()
     {
-        var showAll = false;
-        ImGui.Checkbox("Show all", ref showAll);
+        ImGui.Checkbox("Show all", ref _showAllCooldowns);
 
         foreach (var (cd, i) in ws.Client.Cooldowns.Zip(Enumerable.Range(0, int.MaxValue)))
-            if (cd.Total > 0 || showAll || i == ActionDefinitions.GCDGroup)
+            if (cd.Total > 0 || _showAllCooldowns || i == ActionDefinitions.GCDGroup)
                 ImGui.Text($"{i}: {cd}");
     }
 

@@ -139,8 +139,11 @@ public abstract class AutoClear : ZoneModule
     private readonly List<(WPos Center, bool Rotated)> Walls = [];
 
     private int DesiredRoom;
+    private bool BetweenFloors;
 
     protected DeepDungeonState Palace => World.DeepDungeon;
+
+    public static readonly string WallsFile = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs", "BossMod", "walls.json");
 
     public AutoClear(WorldState ws, int LevelCap) : base(ws)
     {
@@ -156,6 +159,7 @@ public abstract class AutoClear : ZoneModule
             ws.Actors.EventObjectAnimation.Subscribe(OnEObjAnim),
             ws.DeepDungeon.MapDataChanged.Subscribe(_ =>
             {
+                BetweenFloors = false;
                 if (Walls.Count == 0)
                     LoadWalls();
             })
@@ -163,7 +167,7 @@ public abstract class AutoClear : ZoneModule
 
         _trapsCurrentZone = PalacePalInterop.GetTrapLocationsForZone(ws.CurrentZone);
 
-        using (var fstream = new FileStream(Service.PluginInterface.ConfigDirectory.FullName + "/walls.json", FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
+        using (var fstream = new FileStream(WallsFile, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
         {
             LoadedFloors = JsonSerializer.Deserialize<Dictionary<string, Floor<WPos>>>(fstream)!;
         }
@@ -232,6 +236,7 @@ public abstract class AutoClear : ZoneModule
         _trapsHidden = true;
         _openedChests.Clear();
         _fakeExits.Clear();
+        BetweenFloors = true;
     }
 
     private bool OpenGold => _config.GoldCoffer;
@@ -304,7 +309,7 @@ public abstract class AutoClear : ZoneModule
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
-        if (!_config.Enable || Palace.Progress.IsBossFloor)
+        if (!_config.Enable || Palace.Progress.IsBossFloor || BetweenFloors)
             return;
 
         foreach (var (pos, rot) in Walls)
@@ -432,8 +437,7 @@ public abstract class AutoClear : ZoneModule
 
         if (!player.InCombat && _config.AutoPassage && Palace.PassageActive)
         {
-            if (!InBounds(hints, passage))
-                DesiredRoom = Array.FindIndex(Palace.MapData, d => ((RoomFlags)d).HasFlag(RoomFlags.Passage));
+            DesiredRoom = Array.FindIndex(Palace.MapData, d => ((RoomFlags)d).HasFlag(RoomFlags.Passage));
 
             if (passage is Actor c)
             {

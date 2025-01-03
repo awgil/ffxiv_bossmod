@@ -24,6 +24,7 @@ public enum AID : uint
     DemonEye2 = 32761, // 3E5E->self, 5.0s cast, range 33 circle
     Hypnotize = 32737, // 3E58->self, 3.0s cast, range 20 circle
     Catharsis = 32732, // 3E56->self, 10.0s cast, range 40 circle
+    ElectricWhorl = 33186, // 3E09->self, 4.0s cast, range 60 circle
 }
 
 public enum SID : uint
@@ -58,6 +59,7 @@ public abstract class EOFloorModule(WorldState ws) : AutoClear(ws, 90)
                 break;
             case AID.TheDragonsVoice:
             case AID.ElectricCachexia:
+            case AID.ElectricWhorl:
                 Donuts.Add((actor, 8));
                 break;
             case AID.SelfDetonate:

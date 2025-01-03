@@ -13,6 +13,11 @@ public record class Minimap(byte[] MapData, int CurrentDestination)
     public int Draw()
     {
         var dest = -1;
+
+        // UIDev - TODO fix this
+        if (Service.Texture == null)
+            return 0;
+
         using var _ = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(0f, 0f));
 
         if (Service.Texture.GetFromGame("ui/uld/DeepDungeonNaviMap_Rooms_hr1.tex")?.TryGetWrap(out var tex, out var exc) ?? false)

@@ -31,6 +31,11 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         return def;
     }
 
+    enum OID : uint
+    {
+        Unei = 0x3E1A,
+    }
+
     enum Transformation : uint
     {
         None,
@@ -90,7 +95,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         };
 
         if (regenAction != default && ShouldPotion(strategy))
-            Hints.ActionsToExecute.Push(regenAction, Player, ActionQueue.Priority.Low);
+            Hints.ActionsToExecute.Push(regenAction, Player, ActionQueue.Priority.Medium);
 
         if (potAction != default && HPRatio() <= 0.3f)
             Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.VeryHigh);
@@ -180,6 +185,9 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
     private bool ShouldPotion(StrategyValues strategy)
     {
+        if (World.Actors.Any(w => w.OID == (uint)OID.Unei))
+            return false;
+
         var ratio = Player.ClassCategory is ClassCategory.Tank ? 0.6f : 0.8f;
         var use = PendingHPRatio(Player) < ratio && Player.FindStatus(648) == null && Player.InCombat;
         return use && IsFloorAppropriate(strategy.Option(Track.Potion).As<PotionStrategy>());

@@ -84,14 +84,14 @@ record struct V3(float X, float Y, float Z)
 
 record class Group(
     Transform ParentTransform,
-    Transform ChildTransform
+    List<Transform> ChildTransform
 )
 {
     public WPos GetActualPosition()
     {
         var prot = Quaternion.CreateFromYawPitchRoll(ParentTransform.Rotation.Y, ParentTransform.Rotation.X, ParentTransform.Rotation.Z);
         var roombase = new WDir(ParentTransform.Translation.XZ());
-        var childt = Vector3.Transform(ChildTransform.Translation, prot);
+        var childt = Vector3.Transform(ChildTransform[0].Translation, prot);
         return (roombase + new WDir(childt.XZ())).ToWPos();
     }
 }
@@ -106,6 +106,10 @@ unsafe class DeepDungeonLayoutTest : TestWindow
 
     public DeepDungeonLayoutTest() : base("Floorset generator", new(400, 400), ImGuiWindowFlags.None)
     {
+        using (var fstream = new FileStream(AutoClear.WallsFile, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
+        {
+            LoadedFloors = JsonSerializer.Deserialize<Dictionary<string, Floor<WPos>>>(fstream)!;
+        }
     }
 
     public override void Draw()
@@ -130,12 +134,13 @@ unsafe class DeepDungeonLayoutTest : TestWindow
                 LoadedFloors[$"{t.DungeonId}.{t.Floorset}"] = Generate(t).Map(m => m > 0 ? Translations[m].GetActualPosition() : default);
             }
             Save2();
+            Service.Log($"saved {LoadedFloors.Count} wall positions");
         }
     }
 
     private void Save2()
     {
-        using var fstream = new FileStream("walls.json", FileMode.Create, FileAccess.Write, FileShare.Read);
+        using var fstream = new FileStream(AutoClear.WallsFile, FileMode.Create, FileAccess.Write, FileShare.Read);
         JsonSerializer.Serialize(fstream, LoadedFloors, new JsonSerializerOptions() { WriteIndented = true });
     }
 
@@ -227,13 +232,10 @@ unsafe class DeepDungeonLayoutTest : TestWindow
             var inst = layer->Instance(instOffset);
             var key = prefabKey == 0 ? ((ulong)inst->Key) << 32 : prefabKey | (inst->Key << subShift);
             if (inst->Type is InstanceType.SharedGroup)
-                Translations[inst->Key] = new(inst->Transform, default);
+                Translations[inst->Key] = new(inst->Transform, []);
 
-            if (inst->Type is InstanceType.CollisionBox && prefabKey > 0)
-            {
-                var t = Translations[(uint)(prefabKey >> 32)];
-                Translations[(uint)(prefabKey >> 32)] = t with { ChildTransform = inst->Transform };
-            }
+            if (inst->Type is InstanceType.CollisionBox && prefabKey > 0 && Translations.ContainsKey((uint)(prefabKey >> 32)))
+                Translations[(uint)(prefabKey >> 32)].ChildTransform.Add(inst->Transform);
 
             if (inst->Type is InstanceType.SharedGroup or InstanceType.HelperObject)
             {
