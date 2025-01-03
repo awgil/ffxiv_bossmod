@@ -25,6 +25,7 @@ public enum AID : uint
     Hypnotize = 32737, // 3E58->self, 3.0s cast, range 20 circle
     Catharsis = 32732, // 3E56->self, 10.0s cast, range 40 circle
     ElectricWhorl = 33186, // 3E09->self, 4.0s cast, range 60 circle
+    HexEye = 32731, // 3E56->self, 3.0s cast, range 5 circle
 }
 
 public enum SID : uint
@@ -56,6 +57,9 @@ public abstract class EOFloorModule(WorldState ws) : AutoClear(ws, 90)
             case AID.DemonEye2:
             case AID.Hypnotize:
                 Gazes.Add((actor, null));
+                break;
+            case AID.HexEye:
+                Gazes.Add((actor, new AOEShapeCircle(5)));
                 break;
             case AID.TheDragonsVoice:
             case AID.ElectricCachexia:

@@ -38,11 +38,6 @@
     <Using Include="System.Numerics" />
   </ItemGroup>
 
-	<ItemGroup Condition="'$(Configuration)' == 'Release'">
-		<EmbeddedResource Include="Pathfinding\ObstacleMaps\maplist.json" />
-		<EmbeddedResource Include="Pathfinding\ObstacleMaps\*.bmp" />
-	</ItemGroup>
-
   <PropertyGroup>
     <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>

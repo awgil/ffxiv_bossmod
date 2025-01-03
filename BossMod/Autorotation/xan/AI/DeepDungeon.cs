@@ -81,6 +81,12 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             Hints.GoalZones.Add(Hints.GoalSingleTarget(target, 3, 0.1f));
         }
 
+        if (primaryTarget is Actor ptar && ptar.IsTargetable && Player.PosRot.Y + 9 <= ptar.PosRot.Y)
+        {
+            Hints.ForcedMovement = new();
+            Hints.MaxCastTimeEstimate = float.MaxValue;
+        }
+
         SetupKiteZone(strategy, primaryTarget);
 
         if (Player.FindStatus(SID.ItemPenalty) != null)
