@@ -250,6 +250,7 @@ class P2SinboundHoly(BossModule module) : Components.UniformStackSpread(module, 
     public int NumCasts;
     private DateTime _nextExplosion;
     private readonly WDir _destinationDir = CalculateDestination(module);
+    private readonly WPos[] _initialSpots = new WPos[PartyState.MaxPartySize];
 
     private static WDir CalculateDestination(BossModule module)
     {
@@ -276,11 +277,29 @@ class P2SinboundHoly(BossModule module) : Components.UniformStackSpread(module, 
         if (master != null && ((master.Position - actor.Position).LengthSq() > 100 || (master.Position - Module.Center).LengthSq() < 196))
             master = null; // our closest healer is too far away or too close to center, something is wrong (maybe kb didn't finish yet, or healer fucked up)
 
+        // determine movement speed and direction
+        // baseline is towards safety (opposite boss), or CW (arbitrary) if there's no obvious safe direction
+        // however, if we're non-healer, it is overridden by healer's decision (we can slide over later)
+        var moveQuickly = _destinationDir == default;
+        var preferredDir = !moveQuickly ? _destinationDir : (actor.Position - Module.Center).Normalized().OrthoR();
+        moveQuickly &= NumCasts > 0; // don't start moving while waiting for first cast
+
         if (master != null)
         {
+            var masterSlot = Raid.FindSlot(master.InstanceID);
+            if (masterSlot >= 0 && NumCasts > 0)
+            {
+                var masterMovement = preferredDir.Dot(master.Position - _initialSpots[masterSlot]);
+                if (masterMovement < -2)
+                    preferredDir = -preferredDir; // swap movement direction to follow healer
+            }
+
+            moveQuickly &= (actor.Position - master.Position).LengthSq() < 25; // don't move too quickly if healer can't catch up
+
             // non-healers should just stack with whatever closest healer is
-            var moveDir = master.LastFrameMovement.Normalized();
-            var capsule = ShapeDistance.Capsule(master.Position + 2 * moveDir, moveDir, 4, 2);
+            // before first cast, ignore master's movements
+            var moveDir = NumCasts > 0 ? master.LastFrameMovement.Normalized() : default;
+            var capsule = ShapeDistance.Capsule(master.Position + 2 * moveDir, moveDir, 4, 1);
             hints.AddForbiddenZone(p => -capsule(p), DateTime.MaxValue);
         }
 
@@ -292,9 +311,7 @@ class P2SinboundHoly(BossModule module) : Components.UniformStackSpread(module, 
         hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 16), hintTime);
 
         // prefer moving towards safety (CW is arbitrary)
-        var moveQuickly = _destinationDir == default;
-        var preferredDir = !moveQuickly ? _destinationDir : (actor.Position - Module.Center).Normalized().OrthoR();
-        var planeOffset = moveQuickly && master == null && NumCasts > 0 ? 2 : -2; // if we're moving quickly, mark our current spot as forbidden (don't bother if we have master or waiting for first cast, though)
+        var planeOffset = moveQuickly ? 2 : -2; // if we're moving quickly, mark our current spot as forbidden
         hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center + planeOffset * preferredDir, preferredDir), hintTime);
     }
 
@@ -310,6 +327,10 @@ class P2SinboundHoly(BossModule module) : Components.UniformStackSpread(module, 
     {
         if ((AID)spell.Action.ID == AID.SinboundHolyAOE && WorldState.CurrentTime > _nextExplosion)
         {
+            if (NumCasts == 0)
+                foreach (var (i, p) in Raid.WithSlot())
+                    _initialSpots[i] = p.Position;
+
             ++NumCasts;
             _nextExplosion = WorldState.FutureTime(0.5f);
         }

@@ -22,7 +22,7 @@ public class GroupAssignment
 
     public int this[PartyRolesConfig.Assignment r]
     {
-        get => Assignments[(int)r];
+        get => (int)r is var index && index >= 0 && index < Assignments.Length ? Assignments[index] : -1;
         set => Assignments[(int)r] = value;
     }
 

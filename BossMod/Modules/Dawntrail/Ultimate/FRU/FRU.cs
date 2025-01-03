@@ -4,7 +4,6 @@ class P2QuadrupleSlap(BossModule module) : Components.TankSwap(module, ActionID.
 class P2CrystalOfLight(BossModule module) : Components.Adds(module, (uint)OID.CrystalOfLight);
 class P3Junction(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Junction));
 class P3BlackHalo(BossModule module) : Components.CastSharedTankbuster(module, ActionID.MakeSpell(AID.BlackHalo), new AOEShapeCone(60, 45.Degrees())); // TODO: verify angle
-class P4EdgeOfOblivion(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.EdgeOfOblivion));
 class P4HallowedWingsL(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HallowedWingsL), new AOEShapeRect(80, 20, 0, 90.Degrees()));
 class P4HallowedWingsR(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HallowedWingsR), new AOEShapeRect(80, 20, 0, -90.Degrees()));
 

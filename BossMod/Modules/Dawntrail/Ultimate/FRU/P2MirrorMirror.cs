@@ -9,6 +9,18 @@ class P2MirrorMirrorReflectedScytheKickBlue(BossModule module) : Components.Gene
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (_aoe == null && Module.Enemies(OID.BossP2).FirstOrDefault() is var boss && boss != null && boss.TargetID == actor.InstanceID)
+        {
+            // main tank should drag the boss away
+            // note: before mirror appears, we want to stay near center (to minimize movement no matter where mirror appears), so this works fine if blue mirror is zero
+            // TODO: verify distance calculation - we want boss to be at least 4m away from center
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center - 16 * _blueMirror, 1), DateTime.MaxValue);
+        }
+    }
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_blueMirror != default)
@@ -56,6 +68,12 @@ class P2MirrorMirrorHouseOfLight(BossModule module) : Components.GenericBaitAway
         foreach (var s in _sources.Take(2))
             foreach (var p in Raid.WithoutSlot().SortedByRange(s.source.Position).Take(4))
                 CurrentBaits.Add(new(s.source, p, _shape, s.activation));
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // TODO: preassigned spots
+        //base.AddAIHints(slot, actor, assignment, hints);
     }
 
     public override void OnEventEnvControl(byte index, uint state)

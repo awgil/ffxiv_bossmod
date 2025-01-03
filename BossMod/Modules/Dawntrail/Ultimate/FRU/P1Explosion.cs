@@ -21,13 +21,16 @@ class P1Explosion(BossModule module) : Components.GenericTowers(module)
 
         if (role < 2)
         {
-            // tanks: stay opposite towers on N/S side
+            // tanks: stay opposite towers on N/S side (unless cheesing tankbusters)
             // tweak for WAR: if PR is up, assume player will want to maintain full uptime on wide line by using it right before resolve - we want to stay far to increase travel time
             var horizOffset = _isWideLine && !_lineDone && actor.Class == Class.WAR && actor.FindStatus(WAR.SID.PrimalRend) != null ? 17 : 0;
             hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center - horizOffset * TowerDir, -TowerDir), Activation);
 
-            var vertDir = new WDir(0, role == 0 ? -1 : +1);
-            hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center + 5 * vertDir, vertDir), Activation);
+            if (!_config.P1ExplosionsTankbusterCheese)
+            {
+                var vertDir = new WDir(0, role == 0 ? -1 : +1);
+                hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center + 5 * vertDir, vertDir), Activation);
+            }
         }
         else
         {
@@ -120,8 +123,25 @@ class P1Explosion(BossModule module) : Components.GenericTowers(module)
             ref var tower = ref Towers.Ref(i);
             tower.ForbiddenSoakers.Raw = 0xFF;
             tower.ForbiddenSoakers.Clear(slotByGroup[i + 2]); // fixed assignment
-            for (int j = 1; j < tower.MinSoakers; ++j)
-                tower.ForbiddenSoakers.Clear(slotByGroup[nextFlex++]);
+            if (tower.MinSoakers == 1)
+                continue; // this tower doesn't need anyone else
+
+            if (_config.P1ExplosionsPriorityFill)
+            {
+                // priority fill strategy - grab assigned flex soaker
+                tower.ForbiddenSoakers.Clear(slotByGroup[i + 5]);
+                // if the tower requires >2 soakers, also assign each flex soaker that has natural 1-man tower (this works, because only patterns are 2-2-2, 1-2-3 and 1-1-4)
+                if (tower.MinSoakers > 2)
+                    for (int j = 0; j < 3; ++j)
+                        if (Towers[j].MinSoakers == 1)
+                            tower.ForbiddenSoakers.Clear(slotByGroup[j + 5]);
+            }
+            else
+            {
+                // conga fill strategy - grab next N flex soakers in priority order
+                for (int j = 1; j < tower.MinSoakers; ++j)
+                    tower.ForbiddenSoakers.Clear(slotByGroup[nextFlex++]);
+            }
         }
     }
 }

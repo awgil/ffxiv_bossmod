@@ -177,7 +177,14 @@ class P4DarklitDragonsongPathOfLight(BossModule module) : Components.GenericBait
 
 class P4DarklitDragonsongDarkWater(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4, includeDeadTargets: true)
 {
+    public bool ResolveImminent;
     private readonly P4DarklitDragonsong? _assignments = module.FindComponent<P4DarklitDragonsong>();
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (ResolveImminent)
+            base.AddHints(slot, actor, hints);
+    }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

@@ -2,6 +2,7 @@
 
 class P1PowderMarkTrail(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.BurnMark), centerAtTarget: true)
 {
+    public bool AllowTankStacking;
     private Actor? _target;
     private Actor? _closest;
     private DateTime _activation;
@@ -21,13 +22,19 @@ class P1PowderMarkTrail(BossModule module) : Components.GenericBaitAway(module, 
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(slot, actor, hints);
-        if (_closest != null && _closest.Role != Role.Tank)
+        if (_target == null || _closest == null)
+            return; // no baits active
+
+        if (actor.Role == Role.Tank)
         {
-            if (actor == _closest)
-                hints.Add("GTFO from tank!");
-            else if (actor == _target || actor.Role == Role.Tank)
+            if (actor != _closest && actor != _target)
                 hints.Add("Get closer to co-tank!");
+            else if (Raid.WithoutSlot().InRadiusExcluding(actor, _shape.Radius).Any(p => !AllowTankStacking || p.Role != Role.Tank))
+                hints.Add("Bait away from raid!");
+        }
+        else if (actor == _closest || actor.Position.InCircle(_target.Position, _shape.Radius) || actor.Position.InCircle(_closest.Position, _shape.Radius))
+        {
+            hints.Add("GTFO from tanks!");
         }
     }
 
@@ -42,7 +49,8 @@ class P1PowderMarkTrail(BossModule module) : Components.GenericBaitAway(module, 
             if (isTank && otherTank)
             {
                 // tanks should stay near but not too near other tank
-                hints.AddForbiddenZone(_shape.Distance(p.Position, default), _activation);
+                if (!AllowTankStacking)
+                    hints.AddForbiddenZone(_shape.Distance(p.Position, default), _activation);
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(p.Position, _avoidBaitDistance), _activation);
             }
             else if (isTank != otherTank)
