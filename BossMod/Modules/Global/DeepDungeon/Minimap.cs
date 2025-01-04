@@ -14,10 +14,6 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
     {
         var dest = -1;
 
-        // UIDev - TODO fix this
-        if (Service.Texture == null)
-            return 0;
-
         var playerCell = State.Party[0].Room - 1;
 
         using var _ = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(0f, 0f));
