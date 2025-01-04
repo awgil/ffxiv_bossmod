@@ -203,9 +203,15 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
     {
         PotionStrategy.Always => true,
         PotionStrategy.Boss => World.DeepDungeon.Progress.Floor % 10 == 0,
-        PotionStrategy.BossOrHigh => IsHighFloor(World.DeepDungeon) || World.DeepDungeon.Progress.Floor % 10 == 0,
+        PotionStrategy.BossOrHigh => World.DeepDungeon.Progress.Floor >= HighStart(World.DeepDungeon) || World.DeepDungeon.Progress.Floor % 10 == 0,
         _ => false
     };
 
-    private bool IsHighFloor(DeepDungeonState st) => st.Progress.Floor > (st.Type == DeepDungeonState.DungeonType.POTD ? 100 : 50);
+    private int HighStart(DeepDungeonState st) => st.Type switch
+    {
+        DeepDungeonState.DungeonType.POTD => 101,
+        DeepDungeonState.DungeonType.HOH => 51,
+        DeepDungeonState.DungeonType.EO => 31,
+        _ => int.MaxValue
+    };
 }

@@ -274,8 +274,8 @@ public abstract class AutoClear : ZoneModule
 
     public override void DrawExtra()
     {
-        var targetRoom = new Minimap(Palace.MapData, DesiredRoom).Draw();
-        if (targetRoom > 0)
+        var targetRoom = new Minimap(Palace, World.Party.Player()?.Rotation ?? default, DesiredRoom).Draw();
+        if (targetRoom >= 0)
             DesiredRoom = targetRoom;
     }
 
