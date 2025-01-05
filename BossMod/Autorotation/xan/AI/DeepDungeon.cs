@@ -164,7 +164,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         if (World.Actors.Any(w => w.OID == (uint)OID.Unei) || !strategy.Enabled(Track.Potion))
             return false;
 
-        var ratio = Player.ClassCategory is ClassCategory.Tank ? 0.6f : 0.8f;
+        var ratio = Player.ClassCategory is ClassCategory.Tank ? 0.4f : 0.6f;
         return PendingHPRatio(Player) < ratio && Player.FindStatus(648) == null && Player.InCombat;
     }
 }

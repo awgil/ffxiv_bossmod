@@ -45,14 +45,14 @@ class CreatureOfDarkness(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _heads = [];
     private static readonly AOEShapeRect rect = new(2, 2, 2);
-    private static readonly AOEShapeRect rect2 = new(6, 2);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var c in _heads)
         {
             yield return new(rect, c.Position, c.Rotation, Color: ArenaColor.Danger);
-            yield return new(rect2, c.Position + 2 * c.Rotation.ToDirection(), c.Rotation);
+            yield return new(new AOEShapeRect(6, 2, 2), c.Position, c.Rotation, WorldState.FutureTime(1.5f));
+            yield return new(new AOEShapeRect(50, 2, 2), c.Position, c.Rotation, WorldState.FutureTime(10), Color: 0x00FFFFFF);
         }
     }
 

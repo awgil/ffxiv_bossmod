@@ -81,7 +81,7 @@ sealed class AIController(WorldState ws, ActionManagerEx amex, MovementOverride 
 
         // treasure chests actually have no clientside range check so we just have to guess here
         if (tobj->ObjectKind is ObjectKind.Treasure)
-            return player.DistanceToHitbox(target) < 2f;
+            return player.DistanceToHitbox(target) <= 2.09f;
 
         return EventFramework.Instance()->CheckInteractRange(pobj, tobj, 1, false);
     }

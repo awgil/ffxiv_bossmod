@@ -117,7 +117,7 @@ public abstract class AutoClear : ZoneModule
         // EO
         1541, 1542, 1543, 1544, 1545, 1546, 1547, 1548, 1549, 1550, 1551, 1552, 1553, 1554
     ];
-    public static readonly HashSet<uint> RevealedTrapOIDs = [0x1EA08E, 0x1EA08F, 0x1EA090, 0x1EA091, 0x1EA092, 0x1EA9A0];
+    public static readonly HashSet<uint> RevealedTrapOIDs = [0x1EA08E, 0x1EA08F, 0x1EA090, 0x1EA091, 0x1EA092, 0x1EA9A0, 0x1EB864];
 
     protected readonly List<(Actor Source, float Inner, float Outer)> Donuts = [];
     protected readonly List<(Actor Source, float Radius)> Circles = [];
