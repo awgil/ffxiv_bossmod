@@ -121,7 +121,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 200)
             .AddOption(AOEStrategy.AutoFinishCombo, "Auto (Finish Combo)", "Auto-selects best rotation dependant on targets; Finishes combo first", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.AutoBreakCombo, "Auto (Break Combo)", "Auto-selects best rotation dependant on targets; Breaks combo if needed", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.ForceST, "Use AOE", "Force single-target rotation")
+            .AddOption(AOEStrategy.ForceST, "Use AOE", "Force single-target rotation", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation");
         //Cooldown definitions
         res.Define(Track.Cooldowns).As<CooldownStrategy>("Cooldowns", uiPriority: 190)
@@ -190,10 +190,10 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         //Requiescat definitions
         res.Define(Track.Requiescat).As<OGCDStrategy>("Requiescat", "R.scat", uiPriority: 170)
             .AddOption(OGCDStrategy.Automatic, "Automatic", "Use Requiescat normally")
-            .AddOption(OGCDStrategy.Force, "Force", "Force use of Requiescat / Imperator", 60, 30, ActionTargets.Self, 68)
-            .AddOption(OGCDStrategy.AnyWeave, "Any Weave", "Force use of Requiescat / Imperator in any weave slot", 60, 30, ActionTargets.Self, 68)
-            .AddOption(OGCDStrategy.EarlyWeave, "Early Weave", "Force use of Requiescat / Imperator in the first weave slot", 60, 30, ActionTargets.Self, 68)
-            .AddOption(OGCDStrategy.LateWeave, "Late Weave", "Force use of Requiescat / Imperator in the last weave slot", 60, 30, ActionTargets.Self, 68)
+            .AddOption(OGCDStrategy.Force, "Force", "Force use of Requiescat / Imperator", 60, 30, ActionTargets.Hostile, 68)
+            .AddOption(OGCDStrategy.AnyWeave, "Any Weave", "Force use of Requiescat / Imperator in any weave slot", 60, 30, ActionTargets.Hostile, 68)
+            .AddOption(OGCDStrategy.EarlyWeave, "Early Weave", "Force use of Requiescat / Imperator in the first weave slot", 60, 30, ActionTargets.Hostile, 68)
+            .AddOption(OGCDStrategy.LateWeave, "Late Weave", "Force use of Requiescat / Imperator in the last weave slot", 60, 30, ActionTargets.Hostile, 68)
             .AddOption(OGCDStrategy.Delay, "Delay", "Delay use of Requiescat / Imperator", 0, 0, ActionTargets.None, 68)
             .AddAssociatedActions(AID.Requiescat, AID.Imperator);
         //Spirits Within definitions
@@ -208,10 +208,10 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         //Circle of Scorn definitions
         res.Define(Track.CircleOfScorn).As<OGCDStrategy>("Circle of Scorn", "C.Scorn", uiPriority: 150)
             .AddOption(OGCDStrategy.Automatic, "Automatic", "Use Circle of Scorn normally")
-            .AddOption(OGCDStrategy.Force, "Force", "Force use of Circle of Scorn ASAP", 30, 15, ActionTargets.Hostile, 50)
-            .AddOption(OGCDStrategy.AnyWeave, "Any Weave", "Force use of Circle of Scorn in any weave slot", 30, 15, ActionTargets.Hostile, 50)
-            .AddOption(OGCDStrategy.EarlyWeave, "Early Weave", "Force use of Circle of Scorn in the first weave slot", 30, 15, ActionTargets.Hostile, 50)
-            .AddOption(OGCDStrategy.LateWeave, "Late Weave", "Force use of Circle of Scorn in the last weave slot", 30, 15, ActionTargets.Hostile, 50)
+            .AddOption(OGCDStrategy.Force, "Force", "Force use of Circle of Scorn ASAP", 30, 15, ActionTargets.Self, 50)
+            .AddOption(OGCDStrategy.AnyWeave, "Any Weave", "Force use of Circle of Scorn in any weave slot", 30, 15, ActionTargets.Self, 50)
+            .AddOption(OGCDStrategy.EarlyWeave, "Early Weave", "Force use of Circle of Scorn in the first weave slot", 30, 15, ActionTargets.Self, 50)
+            .AddOption(OGCDStrategy.LateWeave, "Late Weave", "Force use of Circle of Scorn in the last weave slot", 30, 15, ActionTargets.Self, 50)
             .AddOption(OGCDStrategy.Delay, "Delay", "Delay use of Circle of Scorn", 0, 0, ActionTargets.None, 50)
             .AddAssociatedActions(AID.CircleOfScorn);
         //Goring Blade definitions
