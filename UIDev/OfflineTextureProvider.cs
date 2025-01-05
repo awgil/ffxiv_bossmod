@@ -44,7 +44,19 @@ internal class OfflineTextureProvider(IRenderer render) : ITextureProvider
     public ISharedImmediateTexture GetFromFile(string path) => throw new NotImplementedException();
     public ISharedImmediateTexture GetFromFile(FileInfo file) => throw new NotImplementedException();
     public ISharedImmediateTexture GetFromFileAbsolute(string fullPath) => throw new NotImplementedException();
-    public ISharedImmediateTexture GetFromGame(string path) => new OfflineSharedImmediateTexture(Renderer, CreateOfflineFromTexFile(Service.LuminaGameData!.GetFile<TexFile>(path)!));
+    public ISharedImmediateTexture GetFromGame(string path)
+    {
+        if (!_cachedFromGame.TryGetValue(path, out var cached))
+        {
+            cached = new OfflineSharedImmediateTexture(Renderer, CreateOfflineFromTexFile(Service.LuminaGameData!.GetFile<TexFile>(path)!));
+            _cachedFromGame.Add(path, cached);
+        }
+
+        return cached;
+    }
+
+    private readonly Dictionary<string, ISharedImmediateTexture> _cachedFromGame = [];
+
     public ISharedImmediateTexture GetFromGameIcon(in GameIconLookup lookup) => TryGetIconPath(lookup, out var path) ? GetFromGame(path) : throw new InvalidDataException($"icon {lookup} not found");
     public ISharedImmediateTexture GetFromManifestResource(Assembly assembly, string name) => throw new NotImplementedException();
     public string GetIconPath(in GameIconLookup lookup) => TryGetIconPath(lookup, out var path) ? path : throw new FileNotFoundException();
