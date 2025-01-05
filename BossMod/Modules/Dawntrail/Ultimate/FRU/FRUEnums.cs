@@ -227,7 +227,7 @@ public enum AID : uint
     AkhMornAOEOracle = 40303, // Helper->players, no cast, range 4 circle, 4-hit 4-man stack
     MornAfahUsurper = 40249, // UsurperOfFrostP4->self, 6.0s cast, single-target, visual (full raid stack, lethal if hp difference is large)
     MornAfahOracle = 40304, // OracleOfDarknessP4->self, 6.0s cast, single-target, visual (full raid stack, lethal if hp difference is large)
-    MornAfahAOE = 40250, // Helper->players, no cast, range 4 circle, wipe if hp difference check fails ?
+    MornAfahAOE = 40250, // Helper->players, no cast, range 4 circle, 8-man stack on usurper target, wipe if hp difference check fails
 
     CrystallizeTimeUsurper = 40240, // UsurperOfFrostP4->self, 10.0s cast, single-target, visual
     CrystallizeTimeOracle = 40298, // OracleOfDarknessP4->self, 10.0s cast, range 100 circle, raidwide
@@ -240,8 +240,9 @@ public enum AID : uint
     LongingOfTheLost = 40241, // Helper->location, no cast, range 12 circle, aoe when head is touched
     DrachenWandererDisappear = 40244, // DrachenWanderer->self, no cast, single-target, visual (disappear)
     JoylessDragonsong = 40242, // Helper->self, no cast, range 40 circle, wipe if ???
-    CrystallizeTimeHallowedWings = 40229, // UsurperOfFrostP4->self, 4.7+1.3s cast, single-target, visual (??? knockbacks?)
-    //_Weaponskill_HallowedWings = 40332, // UsurperOfFrostP4->self, 0.5s cast, range 40 width 50 rect
+    CrystallizeTimeHallowedWings1 = 40229, // UsurperOfFrostP4->self, 4.7+1.3s cast, single-target, visual (first knockback)
+    CrystallizeTimeHallowedWings2 = 40230, // UsurperOfFrostP4->self, 0.5+1.3s cast, single-target, visual (second knockback)
+    CrystallizeTimeHallowedWingsAOE = 40332, // UsurperOfFrostP4->self, 0.5s cast, range 40 width 50 rect, knockback 20, heavy damage on first target, vuln on first 4 targets
 }
 
 public enum SID : uint
