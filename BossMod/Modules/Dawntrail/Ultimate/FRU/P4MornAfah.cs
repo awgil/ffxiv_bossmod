@@ -4,9 +4,8 @@ class P4MornAfah(BossModule module) : Components.UniformStackSpread(module, 4, 0
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.MornAfahOracle)
+        if ((AID)spell.Action.ID == AID.MornAfahUsurper)
         {
-            // note: target is random?..
             var target = WorldState.Actors.Find(caster.TargetID);
             if (target != null)
                 AddStack(target, Module.CastFinishAt(spell, 0.9f));
@@ -15,7 +14,7 @@ class P4MornAfah(BossModule module) : Components.UniformStackSpread(module, 4, 0
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.MornAfahAOE) // TODO: proper spell...
+        if ((AID)spell.Action.ID == AID.MornAfahAOE)
             Stacks.Clear();
     }
 }

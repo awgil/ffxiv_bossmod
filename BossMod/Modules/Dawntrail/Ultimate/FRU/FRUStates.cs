@@ -54,6 +54,7 @@ class FRUStates : StateMachineBuilder
         P4DarklitDragonsong(id + 0x110000, 1.9f);
         P4AkhMornMornAfah(id + 0x120000, 5.8f);
         P4CrystallizeTime(id + 0x130000, 4.6f);
+        P4AkhMornMornAfah(id + 0x140000, 0.1f);
 
         SimpleState(id + 0xFF0000, 100, "???");
     }
@@ -593,18 +594,23 @@ class FRUStates : StateMachineBuilder
             .ActivateOnEnter<P4CrystallizeTimeQuietus>()
             .DeactivateOnExit<P4CrystallizeTimeQuietus>()
             .SetHint(StateMachine.StateHint.Raidwide);
-        ComponentCondition<P4CrystallizeTimeRewind>(id + 0x80, 1.9f, comp => comp.Done, "Rewind")
-            .DeactivateOnExit<P4CrystallizeTimeRewind>()
+        ComponentCondition<P4CrystallizeTimeRewind>(id + 0x80, 1.9f, comp => comp.RewindDone, "Rewind place")
             .DeactivateOnExit<P4CrystallizeTimeTidalLight>()
             .DeactivateOnExit<P4CrystallizeTimeDragonHead>()
             .DeactivateOnExit<P4CrystallizeTime>();
         ActorCastStart(id + 0x90, _module.BossP4Oracle, AID.SpiritTaker, 0.4f);
-        ActorCastStart(id + 0x91, _module.BossP4Usurper, AID.CrystallizeTimeHallowedWings, 2.2f)
+        ActorCastStart(id + 0x91, _module.BossP4Usurper, AID.CrystallizeTimeHallowedWings1, 2.2f)
             .ActivateOnEnter<P3SpiritTaker>();
         ActorCastEnd(id + 0x92, _module.BossP4Oracle, 0.8f);
         ComponentCondition<P3SpiritTaker>(id + 0x93, 0.3f, comp => comp.Spreads.Count == 0, "Jump")
             .DeactivateOnExit<P3SpiritTaker>();
-        ActorCastEnd(id + 0x94, _module.BossP4Usurper, 3.6f);
-        // TODO: knockbacks resolve, downtime end
+        ComponentCondition<P4CrystallizeTimeRewind>(id + 0x94, 3.3f, comp => comp.ReturnDone, "Rewind return")
+            .DeactivateOnExit<P4CrystallizeTimeRewind>();
+        ActorCastEnd(id + 0x95, _module.BossP4Usurper, 0.3f);
+        ActorCast(id + 0xA0, _module.BossP4Usurper, AID.CrystallizeTimeHallowedWingsAOE, 1.4f, 0.5f, true);
+        ActorCast(id + 0xB0, _module.BossP4Usurper, AID.CrystallizeTimeHallowedWings2, 2.1f, 0.5f, true);
+        ActorCast(id + 0xC0, _module.BossP4Usurper, AID.CrystallizeTimeHallowedWingsAOE, 1.4f, 0.5f, true);
+        ActorTargetable(id + 0xD0, _module.BossP4Usurper, true, 5.3f, "Bosses reappear")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
     }
 }
