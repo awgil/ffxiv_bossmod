@@ -137,7 +137,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         res.Define(Track.Atonement).As<AtonementStrategy>("Atonement", "Atones", uiPriority: 160)
             .AddOption(AtonementStrategy.Automatic, "Automatic", "Normal use of Atonement & it's combo")
             .AddOption(AtonementStrategy.ForceAtonement, "Force Atonement", "Force use of Atonement", 0, 30, ActionTargets.Hostile, 76)
-            .AddOption(AtonementStrategy.ForceSupplication, "Force Supplication", "Force use of Supplication", 0, 0, ActionTargets.Hostile, 76)
+            .AddOption(AtonementStrategy.ForceSupplication, "Force Supplication", "Force use of Supplication", 0, 30, ActionTargets.Hostile, 76)
             .AddOption(AtonementStrategy.ForceSepulchre, "Force Sepulchre", "Force use of Sepulchre", 0, 0, ActionTargets.Hostile, 76)
             .AddOption(AtonementStrategy.Delay, "Delay", "Delay use of Atonement & its combo chain", 0, 0, ActionTargets.None, 60)
             .AddAssociatedActions(AID.Atonement, AID.Supplication, AID.Sepulchre);
