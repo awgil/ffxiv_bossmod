@@ -2,31 +2,14 @@
 
 public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
 {
-    public enum Track { Potion, Kite2 }
-
-    public enum PotionStrategy
-    {
-        Disabled,
-        Always,
-        Boss,
-        BossOrHigh
-    }
+    public enum Track { Potion, Kite }
 
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("Deep Dungeon AI", "Utilities for deep dungeon - potion/pomander user", "AI (xan)", "xan", RotationModuleQuality.Basic, new BitMask(~0ul), 100, CanUseWhileRoleplaying: true);
 
-        def.Define(Track.Potion).As<PotionStrategy>("Potion")
-            .AddOption(PotionStrategy.Disabled, "Do not use")
-            .AddOption(PotionStrategy.Always, "Use below 80% HP if status is not present")
-            .AddOption(PotionStrategy.Boss, "Use during boss fights")
-            .AddOption(PotionStrategy.BossOrHigh, "Use during boss fights or at high floors");
-
-        def.Define(Track.Kite2).As<PotionStrategy>("Kite enemies")
-            .AddOption(PotionStrategy.Disabled, "Don't")
-            .AddOption(PotionStrategy.Always, "Always")
-            .AddOption(PotionStrategy.Boss, "During boss fights")
-            .AddOption(PotionStrategy.BossOrHigh, "During boss fights or at high floors");
+        def.AbilityTrack(Track.Potion, "Potion");
+        def.AbilityTrack(Track.Kite, "Kite enemies");
 
         return def;
     }
@@ -107,24 +90,11 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.VeryHigh);
     }
 
-    private static readonly HashSet<uint> NoMeleeAutos = [
-        // doesn't autoattack at all
-        0x22EF, // Heavenly Maruishi
-
-        // anchored bosses
-        0x3E77, // floor 20 cloning node
-        0x3D9A, // floor 30 tiamat
-        0x3D1D, // floor 40 twintania, boss does move around but kiting it interferes with the knockback stuff
-    ];
-
-    private bool IsRanged => Player.Class.GetRole() is (Role.Ranged or Role.Healer);
+    private bool IsRanged => Player.Class.GetRole() is Role.Ranged or Role.Healer;
 
     private void SetupKiteZone(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (!IsRanged || primaryTarget == null || !Player.InCombat || !IsFloorAppropriate(strategy.Option(Track.Kite2).As<PotionStrategy>()))
-            return;
-
-        if (NoMeleeAutos.Contains(primaryTarget.OID))
+        if (!IsRanged || primaryTarget == null || !Player.InCombat || !strategy.Enabled(Track.Kite))
             return;
 
         // assume we don't need to kite if mob is busy casting (TODO: some mob spells can be cast while moving, maybe there's a column in sheets for it)
@@ -191,27 +161,10 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
     private bool ShouldPotion(StrategyValues strategy)
     {
-        if (World.Actors.Any(w => w.OID == (uint)OID.Unei))
+        if (World.Actors.Any(w => w.OID == (uint)OID.Unei) || !strategy.Enabled(Track.Potion))
             return false;
 
         var ratio = Player.ClassCategory is ClassCategory.Tank ? 0.6f : 0.8f;
-        var use = PendingHPRatio(Player) < ratio && Player.FindStatus(648) == null && Player.InCombat;
-        return use && IsFloorAppropriate(strategy.Option(Track.Potion).As<PotionStrategy>());
+        return PendingHPRatio(Player) < ratio && Player.FindStatus(648) == null && Player.InCombat;
     }
-
-    private bool IsFloorAppropriate(PotionStrategy p) => p switch
-    {
-        PotionStrategy.Always => true,
-        PotionStrategy.Boss => World.DeepDungeon.Progress.Floor % 10 == 0,
-        PotionStrategy.BossOrHigh => World.DeepDungeon.Progress.Floor >= HighStart(World.DeepDungeon) || World.DeepDungeon.Progress.Floor % 10 == 0,
-        _ => false
-    };
-
-    private int HighStart(DeepDungeonState st) => st.Type switch
-    {
-        DeepDungeonState.DungeonType.POTD => 101,
-        DeepDungeonState.DungeonType.HOH => 51,
-        DeepDungeonState.DungeonType.EO => 31,
-        _ => int.MaxValue
-    };
 }

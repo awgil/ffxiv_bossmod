@@ -91,6 +91,10 @@ enum SID : uint
     Silence = 7,
     Pacification = 620,
     ItemPenalty = 1094,
+
+    PhysicalDamageUp = 53,
+    DamageUp = 61,
+    DreadBeastAura = 2056, // unnamed status, displays red fog vfx on actor
 }
 
 sealed unsafe class DungeonDebugger : IDisposable
@@ -115,12 +119,17 @@ public abstract class AutoClear : ZoneModule
     ];
     public static readonly HashSet<uint> RevealedTrapOIDs = [0x1EA08E, 0x1EA08F, 0x1EA090, 0x1EA091, 0x1EA092, 0x1EA9A0];
 
-    protected readonly List<(Actor Source, float Radius)> Donuts = [];
+    protected readonly List<(Actor Source, float Inner, float Outer)> Donuts = [];
     protected readonly List<(Actor Source, float Radius)> Circles = [];
-    protected readonly List<(Actor Source, AOEShape? Shape)> Gazes = [];
+    private readonly List<Gaze> Gazes = [];
     protected readonly List<Actor> Interrupts = [];
     protected readonly List<Actor> Stuns = [];
     protected readonly List<Actor> ForbiddenTargets = [];
+
+    public record class Gaze(Actor Source, AOEShape Shape);
+
+    protected void AddGaze(Actor Source, AOEShape Shape) => Gazes.Add(new(Source, Shape));
+    protected void AddGaze(Actor Source, float Radius) => AddGaze(Source, new AOEShapeCircle(Radius));
 
     protected readonly AutoDDConfig _config = Service.Config.Get<AutoDDConfig>();
     private readonly EventSubscriptions _subscriptions;
@@ -319,13 +328,13 @@ public abstract class AutoClear : ZoneModule
 
         IterAndExpire(Gazes, g => g.Source.CastInfo == null, d =>
         {
-            if (d.Shape == null || d.Shape.Check(player.Position, d.Source))
+            if (d.Shape.Check(player.Position, d.Source))
                 hints.ForbiddenDirections.Add((player.AngleTo(d.Source), 45.Degrees(), CastFinishAt(d.Source)));
         });
 
         IterAndExpire(Donuts, d => d.Source.CastInfo == null, d =>
         {
-            hints.AddForbiddenZone(new AOEShapeDonut(d.Radius, 100), d.Source.Position, default, CastFinishAt(d.Source));
+            hints.AddForbiddenZone(new AOEShapeDonut(d.Inner, d.Outer), d.Source.Position, default, CastFinishAt(d.Source));
         });
 
         IterAndExpire(Circles, d => d.Source.CastInfo == null, d =>
@@ -464,13 +473,13 @@ public abstract class AutoClear : ZoneModule
         };
 
         if (shouldTargetMobs)
-            foreach (var pp in hints.PotentialTargets.Where(t => t.Actor.FindStatus(2056) == null))
+            foreach (var pp in hints.PotentialTargets.Where(t => !t.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID))))
                 pp.Priority = 0;
     }
 
     private bool InBounds(AIHints hints, WPos pos) => hints.PathfindMapBounds.Contains(pos - hints.PathfindMapCenter);
 
-    private bool InBounds(AIHints hints, Actor? target) => target != null && InBounds(hints, target.Position);
+    private static bool IsDangerousOutOfCombatStatus(uint statusRaw) => (SID)statusRaw is SID.DamageUp or SID.DreadBeastAura or SID.PhysicalDamageUp;
 
     private void HandleFloorPathfind(Actor player, AIHints hints)
     {
@@ -587,14 +596,12 @@ static class PalacePalInterop
             ";
             command.Parameters.AddWithValue("$tt", zone);
 
-            using (var reader = command.ExecuteReader())
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
             {
-                while (reader.Read())
-                {
-                    var x = reader.GetFloat(0);
-                    var z = reader.GetFloat(1);
-                    locations.Add(new(x, z));
-                }
+                var x = reader.GetFloat(0);
+                var z = reader.GetFloat(1);
+                locations.Add(new(x, z));
             }
         }
 

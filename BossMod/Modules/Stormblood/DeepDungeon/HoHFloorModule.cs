@@ -34,19 +34,27 @@ public abstract class HoHFloorModule(WorldState ws) : AutoClear(ws, 70)
                 Interrupts.Add(actor);
                 break;
             case AID.StoneGaze:
+                AddGaze(actor, 100); // actually a single target cast
+                break;
             case AID.BlindingBurst:
+                AddGaze(actor, 25);
+                break;
             case AID.NightmarishLight:
             case AID.ShiftingLight:
+                AddGaze(actor, 35);
+                break;
             case AID.Eyeshine:
             case AID.FrondFatale:
+                AddGaze(actor, 40);
+                break;
             case AID.Hex:
-                Gazes.Add((actor, null));
+                AddGaze(actor, 30);
                 break;
             case AID.AtropineSpore:
-                Donuts.Add((actor, 10));
+                Donuts.Add((actor, 10, 41));
                 break;
             case AID.TheDragonsVoice:
-                Donuts.Add((actor, 8));
+                Donuts.Add((actor, 8, 30));
                 break;
         }
     }

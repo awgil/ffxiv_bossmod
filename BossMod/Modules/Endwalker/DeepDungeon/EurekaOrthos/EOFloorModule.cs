@@ -7,7 +7,7 @@ public enum AID : uint
     BigBurst = 32381, // 3DCA->self, 3.5s cast, range 6 circle
     TerrorTouch = 32389, // 3DD0->player, 4.0s cast, single-target
     Diamondback = 32431, // 3DEC->self, 4.0s cast, single-target, permanent defense up to self
-    Tailwind = 33167, // 3DF6->3DF5/3DF6, 3.0s cast, single-target, damage up to ally
+    Tailwind = 33167, // 3DF6->enemy, 3.0s cast, single-target, damage up to ally
     SelfDetonate = 32410, // 3DE0->self, 10.0s cast, range 40 circle, enrage
     DoubleHexEye = 32437, // 3DF1->self, 4.0s cast, range 40 circle, instakill mechanic
     Bombination = 32424, // 3DE9->self, 2.0s cast, range 25 circle
@@ -20,12 +20,15 @@ public enum AID : uint
     SmolderingScales = 32952, // 3E3D->self, 2.5s cast, single-target
     ElectricCachexia = 32979, // 3E45->self, 4.0s cast, range ?-44 donut
     EyeOfTheFierce = 32667, // 3E53->self, 3.0s cast, range 40 circle
-    DemonEye1 = 32762, // 3E5E->self, 15.0s cast, range 33 circle
+    DemonEye1 = 32762, // 3E5E->self, 5.0s cast, range 33 circle
     DemonEye2 = 32761, // 3E5E->self, 5.0s cast, range 33 circle
     Hypnotize = 32737, // 3E58->self, 3.0s cast, range 20 circle
     Catharsis = 32732, // 3E56->self, 10.0s cast, range 40 circle
     ElectricWhorl = 33186, // 3E09->self, 4.0s cast, range 60 circle
     HexEye = 32731, // 3E56->self, 3.0s cast, range 5 circle
+
+    TheDragonsVoice2 = 32910,
+    AllaganFear = 32896,
 }
 
 public enum SID : uint
@@ -53,18 +56,30 @@ public abstract class EOFloorModule(WorldState ws) : AutoClear(ws, 90)
                 break;
             case AID.DoubleHexEye:
             case AID.EyeOfTheFierce:
+                AddGaze(actor, 40);
+                break;
+            case AID.AllaganFear:
+                AddGaze(actor, 30);
+                break;
+            case AID.Hypnotize:
+                AddGaze(actor, 20);
+                break;
             case AID.DemonEye1:
             case AID.DemonEye2:
-            case AID.Hypnotize:
-                Gazes.Add((actor, null));
+                AddGaze(actor, 33);
                 break;
             case AID.HexEye:
-                Gazes.Add((actor, new AOEShapeCircle(5)));
+                AddGaze(actor, 5);
                 break;
             case AID.TheDragonsVoice:
+            case AID.TheDragonsVoice2:
+                Donuts.Add((actor, 8, 30));
+                break;
             case AID.ElectricCachexia:
+                Donuts.Add((actor, 8, 44));
+                break;
             case AID.ElectricWhorl:
-                Donuts.Add((actor, 8));
+                Donuts.Add((actor, 8, 60));
                 break;
             case AID.SelfDetonate:
             case AID.Catharsis:
@@ -102,7 +117,9 @@ public abstract class EOFloorModule(WorldState ws) : AutoClear(ws, 90)
     protected override IEnumerable<ActionID> AutohintDisabledActions() => [
         ActionID.MakeSpell(AID.Bombination),
         ActionID.MakeSpell(AID.TheDragonsVoice),
+        ActionID.MakeSpell(AID.TheDragonsVoice2),
         ActionID.MakeSpell(AID.ElectricCachexia),
+        ActionID.MakeSpell(AID.ElectricWhorl),
         ActionID.MakeSpell(AID.Hypnotize)
     ];
 }

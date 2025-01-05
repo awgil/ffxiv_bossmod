@@ -384,7 +384,17 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
         // check whether movement is safe; block movement if not and if desired
         MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
-        MoveMightInterruptCast |= imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f && !CanMoveWhileCasting(imminentActionAdj); // if we're not casting, but will start soon, moving might interrupt future cast
+
+        // also block movement if a casted action is imminent - we additionally use actionmanager's line of sight check here, as otherwise AI mode can get stuck trying to cast a spell to hit an enemy behind a wall
+        if (imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f && !CanMoveWhileCasting(imminentActionAdj))
+        {
+            var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+            ulong targetId = _inst->ActionQueued ? _inst->QueuedTargetId : (AutoQueue.Target?.InstanceID ?? 0);
+            var targetObj = GameObjectManager.Instance()->Objects.GetObjectByGameObjectId(targetId);
+            var haveLoS = targetObj == null || ActionManager.GetActionInRangeOrLoS(imminentActionAdj.ID, player, targetObj) == 0;
+
+            MoveMightInterruptCast |= haveLoS;
+        }
         bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast && _ws.Party.Player()?.MountId == 0;
         blockMovement |= Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold);
 

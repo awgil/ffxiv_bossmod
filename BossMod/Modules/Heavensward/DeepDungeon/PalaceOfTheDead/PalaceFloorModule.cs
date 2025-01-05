@@ -40,11 +40,13 @@ public abstract class PalaceFloorModule(WorldState ws) : AutoClear(ws, 60)
         switch ((AID)actor.CastInfo!.Action.ID)
         {
             case AID.MysteriousLight:
+                AddGaze(actor, 30);
+                break;
             case AID.StoneGazeSingle:
-                Gazes.Add((actor, null));
+                AddGaze(actor, 100);
                 break;
             case AID.StoneGazeCone:
-                Gazes.Add((actor, new AOEShapeCone(8.2f, 45.Degrees())));
+                AddGaze(actor, new AOEShapeCone(8.2f, 45.Degrees()));
                 break;
             case AID.Infatuation:
             case AID.VoidBlizzard:
