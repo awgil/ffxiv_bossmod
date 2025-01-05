@@ -1,8 +1,4 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using System;
-using System.Runtime.InteropServices;
-using static BossMod.ActorCastEvent;
-using static BossMod.Autorotation.akechi.AkechiGNB;
 using AID = BossMod.PLD.AID;
 using SID = BossMod.PLD.SID;
 
@@ -15,27 +11,27 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     #region Enums
     public enum Track
     {
-        AoE,                //Tracks both AoE and single-target actions
+        AOE,                //Tracks both AOE and single-target rotations
         Cooldowns,          //Tracks Cooldowns damage actions
         Potion,             //Tracks potion usage
-        Atonement,          //Tracks Atonement actions
-        BladeCombo,         //Tracks Blade Combo actions
+        Atonement,          //Tracks Atonement combo actions
+        BladeCombo,         //Tracks Blade combo actions
         Holy,               //Tracks Holy actions
-        Dash,               //Tracks the use of Intervene
+        Dash,               //Tracks Intervene
         Ranged,             //Tracks ranged attacks
-        FightOrFlight,      //Tracks Fight or Flight actions
+        FightOrFlight,      //Tracks Fight or Flight
         Requiescat,         //Tracks Requiescat actions
         SpiritsWithin,      //Tracks Spirits Within actions
-        CircleOfScorn,      //Tracks Circle of Scorn actions
-        GoringBlade,        //Tracks Goring Blade actions
-        BladeOfHonor,       //Tracks Blade of Honor actions
+        CircleOfScorn,      //Tracks Circle of Scorn
+        GoringBlade,        //Tracks Goring Blade
+        BladeOfHonor,       //Tracks Blade of Honor
     }
     public enum AOEStrategy
     {
         AutoFinishCombo,    //Automatically decide based on targets; finish combo first
         AutoBreakCombo,     //Automatically decide based on targets; break combo if needed
         ForceST,            //Force single-target rotation
-        ForceAoE            //Force AoE rotation
+        ForceAOE            //Force AOE rotation
     }
     public enum CooldownStrategy
     {
@@ -113,28 +109,39 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     #region Module & Strategy Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi PLD", "Standard Rotation Module", "Standard rotation (Akechi)", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.GLA, (int)Class.PLD), 100);
+        var res = new RotationModuleDefinition("Akechi PLD",
+            "Standard Rotation Module",
+            "Standard rotation (Akechi)",
+            "Akechi",
+            RotationModuleQuality.Good,
+            BitMask.Build((int)Class.GLA, (int)Class.PLD),
+            100);
 
-        res.Define(Track.AoE).As<AOEStrategy>("AoE", uiPriority: 200)
+        //AOE definitions
+        res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 200)
             .AddOption(AOEStrategy.AutoFinishCombo, "Auto (Finish Combo)", "Auto-selects best rotation dependant on targets; Finishes combo first", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.AutoBreakCombo, "Auto (Break Combo)", "Auto-selects best rotation dependant on targets; Breaks combo if needed", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.ForceST, "Use AoE", "Force single-target rotation")
-            .AddOption(AOEStrategy.ForceAoE, "Force AoE", "Force AoE rotation");
+            .AddOption(AOEStrategy.ForceST, "Use AOE", "Force single-target rotation")
+            .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation");
+        //Cooldown definitions
         res.Define(Track.Cooldowns).As<CooldownStrategy>("Cooldowns", uiPriority: 190)
             .AddOption(CooldownStrategy.Allow, "Allow", "Allow use of cooldowns")
             .AddOption(CooldownStrategy.Hold, "Hold", "Hold all cooldowns");
+        //Potion definitions
         res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 180)
             .AddOption(PotionStrategy.Manual, "Manual", "Do not use potions automatically")
             .AddOption(PotionStrategy.AlignWithRaidBuffs, "Align With Raid Buffs", "Align potion usage with raid buffs", 270, 30, ActionTargets.Self)
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use potions immediately when available", 270, 30, ActionTargets.Self)
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
-        res.Define(Track.Atonement).As<AtonementStrategy>("Atonement", "Atone", uiPriority: 160)
+        //Atonement Combo definitions
+        res.Define(Track.Atonement).As<AtonementStrategy>("Atonement", "Atones", uiPriority: 160)
             .AddOption(AtonementStrategy.Automatic, "Automatic", "Normal use of Atonement & it's combo")
             .AddOption(AtonementStrategy.ForceAtonement, "Force Atonement", "Force use of Atonement", 0, 30, ActionTargets.Hostile, 76)
             .AddOption(AtonementStrategy.ForceSupplication, "Force Supplication", "Force use of Supplication", 0, 0, ActionTargets.Hostile, 76)
             .AddOption(AtonementStrategy.ForceSepulchre, "Force Sepulchre", "Force use of Sepulchre", 0, 0, ActionTargets.Hostile, 76)
             .AddOption(AtonementStrategy.Delay, "Delay", "Delay use of Atonement & its combo chain", 0, 0, ActionTargets.None, 60)
             .AddAssociatedActions(AID.Atonement, AID.Supplication, AID.Sepulchre);
+        //Blade Combo definitions
         res.Define(Track.BladeCombo).As<BladeComboStrategy>("Blade Combo", "Blades", uiPriority: 160)
             .AddOption(BladeComboStrategy.Automatic, "Automatic", "Normal use of Confiteor & Blades Combo")
             .AddOption(BladeComboStrategy.ForceConfiteor, "Force", "Force use of Confiteor", 0, 0, ActionTargets.Hostile, 80)
@@ -143,12 +150,14 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             .AddOption(BladeComboStrategy.ForceValor, "Force Valor", "Force use of Blade of Valor", 0, 0, ActionTargets.Hostile, 90)
             .AddOption(BladeComboStrategy.Delay, "Delay", "Delay use of Confiteor & Blade Combo", 0, 0, ActionTargets.None, 80)
             .AddAssociatedActions(AID.Confiteor, AID.BladeOfFaith, AID.BladeOfTruth, AID.BladeOfValor);
-        res.Define(Track.Holy).As<HolyStrategy>("Holy Spirit / Circle", "Holy", uiPriority: 150)
+        //Holy action definitions
+        res.Define(Track.Holy).As<HolyStrategy>("Holy Spirit / Circle", "Holy S/C", uiPriority: 150)
             .AddOption(HolyStrategy.Automatic, "Automatic", "Automatically choose which Holy action to use based on conditions")
             .AddOption(HolyStrategy.Spirit, "Spirit", "Force use of Holy Spirit", 0, 0, ActionTargets.Hostile, 64)
             .AddOption(HolyStrategy.Circle, "Circle", "Force use of Holy Circle", 0, 0, ActionTargets.Hostile, 72)
             .AddOption(HolyStrategy.Delay, "Delay", "Delay use of Holy actions", 0, 0, ActionTargets.None, 64)
             .AddAssociatedActions(AID.HolySpirit, AID.HolyCircle);
+        //Intervene definitions
         res.Define(Track.Dash).As<DashStrategy>("Intervene", "Dash", uiPriority: 150)
             .AddOption(DashStrategy.Automatic, "Automatic", "Normal use of Intervene")
             .AddOption(DashStrategy.Force, "Force", "Force use of Intervene", 30, 0, ActionTargets.Hostile, 66)
@@ -157,6 +166,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             .AddOption(DashStrategy.GapClose1, "Gap Close (Hold 1)", "Use as gap closer if outside melee range; Hold one charge for manual usage", 30, 0, ActionTargets.None, 66)
             .AddOption(DashStrategy.Delay, "Delay", "Delay use of Intervene", 0, 0, ActionTargets.None, 66)
             .AddAssociatedActions(AID.Intervene);
+        //Ranged attack definitions
         res.Define(Track.Ranged).As<RangedStrategy>("Ranged", "Ranged", uiPriority: 140)
             .AddOption(RangedStrategy.OpenerRangedCast, "Opener (Cast)", "Use Holy Spirit at the start of combat if outside melee range", 0, 0, ActionTargets.Hostile, 64)
             .AddOption(RangedStrategy.OpenerCast, "Opener", "Use Holy Spirit at the start of combat regardless of range", 0, 0, ActionTargets.Hostile, 64)
@@ -168,6 +178,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             .AddOption(RangedStrategy.Ranged, "Ranged", "Use Shield Lob for ranged attacks", 0, 0, ActionTargets.Hostile, 15)
             .AddOption(RangedStrategy.Forbid, "Forbid", "Prohibit the use of ranged attacks", 0, 0, ActionTargets.Hostile, 15)
             .AddAssociatedActions(AID.ShieldLob, AID.HolySpirit);
+        //Fight or Flight definitions
         res.Define(Track.FightOrFlight).As<OGCDStrategy>("Fight or Flight", "F.Flight", uiPriority: 170)
             .AddOption(OGCDStrategy.Automatic, "Automatic", "Use Fight or Flight normally")
             .AddOption(OGCDStrategy.Force, "Force", "Force use of Fight or Flight", 60, 20, ActionTargets.Self, 2)
@@ -176,14 +187,16 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             .AddOption(OGCDStrategy.LateWeave, "Late Weave", "Force use of Fight or Flight in the last weave slot", 60, 20, ActionTargets.Self, 2)
             .AddOption(OGCDStrategy.Delay, "Delay", "Delay use of Fight or Flight", 0, 0, ActionTargets.None, 2)
             .AddAssociatedActions(AID.FightOrFlight);
+        //Requiescat definitions
         res.Define(Track.Requiescat).As<OGCDStrategy>("Requiescat", "R.scat", uiPriority: 170)
             .AddOption(OGCDStrategy.Automatic, "Automatic", "Use Requiescat normally")
-            .AddOption(OGCDStrategy.Force, "Force", "Force use of Requiescat / Imperator", 60, 20, ActionTargets.Self, 68)
-            .AddOption(OGCDStrategy.AnyWeave, "Any Weave", "Force use of Requiescat / Imperator in any weave slot", 60, 20, ActionTargets.Self, 68)
-            .AddOption(OGCDStrategy.EarlyWeave, "Early Weave", "Force use of Requiescat / Imperator in the first weave slot", 60, 20, ActionTargets.Self, 68)
-            .AddOption(OGCDStrategy.LateWeave, "Late Weave", "Force use of Requiescat / Imperator in the last weave slot", 60, 20, ActionTargets.Self, 68)
+            .AddOption(OGCDStrategy.Force, "Force", "Force use of Requiescat / Imperator", 60, 30, ActionTargets.Self, 68)
+            .AddOption(OGCDStrategy.AnyWeave, "Any Weave", "Force use of Requiescat / Imperator in any weave slot", 60, 30, ActionTargets.Self, 68)
+            .AddOption(OGCDStrategy.EarlyWeave, "Early Weave", "Force use of Requiescat / Imperator in the first weave slot", 60, 30, ActionTargets.Self, 68)
+            .AddOption(OGCDStrategy.LateWeave, "Late Weave", "Force use of Requiescat / Imperator in the last weave slot", 60, 30, ActionTargets.Self, 68)
             .AddOption(OGCDStrategy.Delay, "Delay", "Delay use of Requiescat / Imperator", 0, 0, ActionTargets.None, 68)
             .AddAssociatedActions(AID.Requiescat, AID.Imperator);
+        //Spirits Within definitions
         res.Define(Track.SpiritsWithin).As<OGCDStrategy>("Spirits Within", "S.Within", uiPriority: 150)
             .AddOption(OGCDStrategy.Automatic, "Automatic", "Use Spirits Within normally")
             .AddOption(OGCDStrategy.Force, "Force", "Force use of Spirits Within / Expiacion", 30, 0, ActionTargets.Hostile, 30)
@@ -192,19 +205,22 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             .AddOption(OGCDStrategy.LateWeave, "Late Weave", "Force use of Spirits Within / Expiacion in the last weave slot", 30, 0, ActionTargets.Hostile, 30)
             .AddOption(OGCDStrategy.Delay, "Delay", "Delay use of Spirits Within / Expiacion", 0, 0, ActionTargets.None, 30)
             .AddAssociatedActions(AID.SpiritsWithin, AID.Expiacion);
+        //Circle of Scorn definitions
         res.Define(Track.CircleOfScorn).As<OGCDStrategy>("Circle of Scorn", "C.Scorn", uiPriority: 150)
             .AddOption(OGCDStrategy.Automatic, "Automatic", "Use Circle of Scorn normally")
-            .AddOption(OGCDStrategy.Force, "Force", "Force use of Circle of Scorn ASAP", 60, 15, ActionTargets.Hostile, 50)
-            .AddOption(OGCDStrategy.AnyWeave, "Any Weave", "Force use of Circle of Scorn in any weave slot", 60, 15, ActionTargets.Hostile, 50)
-            .AddOption(OGCDStrategy.EarlyWeave, "Early Weave", "Force use of Circle of Scorn in the first weave slot", 60, 15, ActionTargets.Hostile, 50)
-            .AddOption(OGCDStrategy.LateWeave, "Late Weave", "Force use of Circle of Scorn in the last weave slot", 60, 15, ActionTargets.Hostile, 50)
+            .AddOption(OGCDStrategy.Force, "Force", "Force use of Circle of Scorn ASAP", 30, 15, ActionTargets.Hostile, 50)
+            .AddOption(OGCDStrategy.AnyWeave, "Any Weave", "Force use of Circle of Scorn in any weave slot", 30, 15, ActionTargets.Hostile, 50)
+            .AddOption(OGCDStrategy.EarlyWeave, "Early Weave", "Force use of Circle of Scorn in the first weave slot", 30, 15, ActionTargets.Hostile, 50)
+            .AddOption(OGCDStrategy.LateWeave, "Late Weave", "Force use of Circle of Scorn in the last weave slot", 30, 15, ActionTargets.Hostile, 50)
             .AddOption(OGCDStrategy.Delay, "Delay", "Delay use of Circle of Scorn", 0, 0, ActionTargets.None, 50)
             .AddAssociatedActions(AID.CircleOfScorn);
+        //Goring Blade definitions
         res.Define(Track.GoringBlade).As<GCDStrategy>("Goring Blade", "G.Blade", uiPriority: 150)
             .AddOption(GCDStrategy.Automatic, "Automatic", "Use Goring Blade normally")
-            .AddOption(GCDStrategy.Force, "Force", "Force use of Goring Blade ASAP", 0, 30, ActionTargets.Hostile, 54)
+            .AddOption(GCDStrategy.Force, "Force", "Force use of Goring Blade ASAP", 0, 0, ActionTargets.Hostile, 54)
             .AddOption(GCDStrategy.Delay, "Delay", "Delay use of Goring Blade", 0, 0, ActionTargets.None, 54)
             .AddAssociatedActions(AID.GoringBlade);
+        //Blade of Honor definitions
         res.Define(Track.BladeOfHonor).As<OGCDStrategy>("Blade of Honor", "B.Honor", uiPriority: 150)
             .AddOption(OGCDStrategy.Automatic, "Automatic", "Use Blade of Honor normally")
             .AddOption(OGCDStrategy.Force, "Force", "Force use of Blade of Honor ASAP", 0, 0, ActionTargets.Hostile, 100)
@@ -223,26 +239,21 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     public enum GCDPriority //Priority for GCDs used
     {
         None = 0,
-        Combo123 = 350,
-        NormalGCD = 450,
-        HolyCircle = 490,
-        HolySpirit = 500,
-        Atonement = 580,
-        GoringBlade = 590,
-        Valor = 600,
-        Truth = 610,
-        Faith = 620,
-        Confiteor = 650,
+        Combo123 = 300,
+        HolySpirit = 400,
+        Atonement = 500,
+        GoringBlade = 600,
+        Blades = 700,
         ForcedGCD = 900,
     }
     public enum OGCDPriority //Priority for oGCDs used
     {
         None = 0,
-        BladeOfHonor = 520,
-        Intervene = 530,
-        SpiritsWithin = 540,
+        BladeOfHonor = 400,
+        Intervene = 450,
+        SpiritsWithin = 500,
         CircleOfScorn = 550,
-        Requiescat = 650,
+        Requiescat = 600,
         FightOrFlight = 700,
         ForcedOGCD = 900,
         Potion = 910,
@@ -250,7 +261,6 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     #endregion
 
     #region Variables
-
     public int Oath; //Current value of the oath gauge
     public int BladeComboStep; //Current step in the Confiteor combo sequence
     public float GCDLength; //Length of the global cooldown, adjusted by skill speed and haste (baseline: 2.5s)
@@ -265,7 +275,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     public (float CD, bool IsReady) CircleOfScorn; //Conditions for Circle of Scorn ability
     public (float CD, float Left, bool IsReady, bool IsActive) GoringBlade; //Conditions for Goring Blade ability
     public (float TotalCD, bool HasCharges, bool IsReady) Intervene; //Conditions for Intervene ability
-    public (float CD, int Stacks, bool IsReady, bool IsActive) Requiescat; //Conditions for Requiescat ability
+    public (float CD, float Left, bool IsReady, bool IsActive) Requiescat; //Conditions for Requiescat ability
     public (float Left, bool IsReady, bool IsActive) Atonement; //Conditions for Atonement ability
     public (float Left, bool IsReady, bool IsActive) Supplication; //Conditions for Supplication ability
     public (float Left, bool IsReady, bool IsActive) Sepulchre; //Conditions for Sepulchre ability
@@ -281,7 +291,6 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     public bool canWeaveIn; //Can weave in oGCDs
     public bool canWeaveEarly; //Can early weave oGCDs
     public bool canWeaveLate; //Can late weave oGCDs
-    private delegate bool PositionCheck(Actor playerTarget, Actor targetToTest);
     #endregion
 
     #region Module Helpers
@@ -292,15 +301,15 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     private AID ComboLastMove => (AID)World.Client.ComboState.Action; //Get the last action used in the combo sequence
     private bool In3y(Actor? target) => Player.DistanceToHitbox(target) <= 2.99f; //Check if the target is within ST melee range (3 yalms)
     private bool In5y(Actor? target) => Player.DistanceToHitbox(target) <= 4.99f; //Check if the target is within AOE melee range (5 yalms)
-    private bool In20y(Actor? target) => Player.DistanceToHitbox(target) <= 19.99f; //Check if the target is within 20 yalms
     private bool In25y(Actor? target) => Player.DistanceToHitbox(target) <= 24.99f; //Check if the target is within 25 yalms
     private bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f; //Check if this is the first GCD in combat
-    private int TargetsHitByPlayerAOE() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5); //Returns the number of targets hit by AoE within a 5-yalm radius around the player
-    private int TargetsHitByTargetAOE(Actor? target) => Hints.NumPriorityTargetsInAOECircle(target!.Position, 5); //Returns the number of targets hit by AoE within a 5-yalm radius around the target
-    private PositionCheck IsSplashTarget => (Actor primary, Actor other) => Hints.TargetInAOECircle(other, primary.Position, 5);
+    private int TargetsHitByPlayerAOE() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5); //Returns the number of targets hit by AOE within a 5-yalm radius around the player
     public bool HasEffect(SID sid) => SelfStatusLeft(sid) > 0; //Checks if Status effect is on self
     public float CombatTimer => (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds; //Calculates the elapsed time since combat started in seconds
     public Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value);
+
+    //TODO: add better targeting for Blades
+    //public Actor? BestSplashTarget()
     #endregion
 
     #region Upgrade Paths
@@ -360,9 +369,9 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         Intervene.HasCharges = Intervene.TotalCD <= 30f; //Check if the player has charges of Intervene
         Intervene.IsReady = Unlocked(AID.Intervene) && Intervene.HasCharges; //Intervene ability
         Requiescat.CD = CD(BestRequiescat); //Remaining cooldown for the Requiescat ability
-        Requiescat.Stacks = SelfStatusDetails(SID.Requiescat).Stacks; //Get the current number of Requiescat stacks 
-        Requiescat.IsActive = Requiescat.Stacks > 0; //Check if the Requiescat buff is active
-        Requiescat.IsReady = Unlocked(AID.Requiescat) && Requiescat.IsActive; //Requiescat ability
+        Requiescat.Left = SelfStatusLeft(SID.Requiescat, 30); //Get the current number of Requiescat stacks 
+        Requiescat.IsActive = Requiescat.Left > 0; //Check if the Requiescat buff is active
+        Requiescat.IsReady = Unlocked(AID.Requiescat) && Requiescat.CD < 0.6f; //Requiescat ability
         Atonement.Left = SelfStatusLeft(SID.AtonementReady, 30); //Remaining duration of the Atonement buff
         Atonement.IsActive = Atonement.Left > 0; //Check if the Atonement buff is active
         Atonement.IsReady = Unlocked(AID.Atonement) && Atonement.IsActive; //Atonement ability
@@ -375,7 +384,6 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         Confiteor.Left = SelfStatusLeft(SID.ConfiteorReady, 30); //Remaining duration of the Confiteor buff
         Confiteor.IsActive = Confiteor.Left > 0; //Check if the Confiteor buff is active
         Confiteor.IsReady = Unlocked(AID.Confiteor) && Confiteor.IsActive && MP >= 1000; //Confiteor ability
-        var canBlade = Unlocked(AID.BladeOfValor) && BladeComboStep is not 0; //Blade abilities, only if combo step is not zero
         BladeOfHonor.Left = SelfStatusLeft(SID.BladeOfHonorReady, 30); //Remaining duration of the Blade of Honor buff
         BladeOfHonor.IsActive = BladeOfHonor.Left > 0; //Check if the Blade of Honor buff is active
         BladeOfHonor.IsReady = Unlocked(AID.BladeOfHonor) && IsOffCooldown(AID.BladeOfHonor); //Blade of Honor ability
@@ -395,7 +403,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         ShouldUseDMHolyCircle = DivineMight.IsActive && TargetsHitByPlayerAOE() > 2;
 
         #region Strategy Options
-        var AOE = strategy.Option(Track.AoE); //Retrieves AOE track
+        var AOE = strategy.Option(Track.AOE); //Retrieves AOE track
         var AOEStrategy = AOE.As<AOEStrategy>(); //Retrieves AOE strategy
         var cd = strategy.Option(Track.Cooldowns); //Retrieves Cooldowns track
         var cdStrat = cd.As<CooldownStrategy>(); //Retrieves Cooldowns strategy
@@ -519,29 +527,24 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
                     : GCDPriority.GoringBlade);
         }
 
-        if (canBlade &&
-            ShouldUseBladeCombo(bladeStrat, primaryTarget))
+        if (ShouldUseBladeCombo(bladeStrat, primaryTarget))
         {
             if (bladeStrat is BladeComboStrategy.Automatic)
                 QueueGCD(BestBlade,
                     TargetChoice(blade) ?? primaryTarget,
-                    GCDPriority.Confiteor);
+                    GCDPriority.Blades);
             if (bladeStrat is BladeComboStrategy.ForceFaith)
                 QueueGCD(AID.BladeOfFaith,
                     TargetChoice(blade) ?? primaryTarget,
                     GCDPriority.ForcedGCD);
-            if (BladeComboStep is 2)
+            if (bladeStrat is BladeComboStrategy.ForceTruth)
                 QueueGCD(AID.BladeOfTruth,
                     TargetChoice(blade) ?? primaryTarget,
-                    bladeStrat is BladeComboStrategy.ForceTruth
-                    ? GCDPriority.ForcedGCD
-                    : GCDPriority.Truth);
-            if (BladeComboStep is 3)
+                    GCDPriority.ForcedGCD);
+            if (bladeStrat is BladeComboStrategy.ForceValor)
                 QueueGCD(AID.BladeOfValor,
                     TargetChoice(blade) ?? primaryTarget,
-                    bladeStrat is BladeComboStrategy.ForceValor
-                    ? GCDPriority.ForcedGCD
-                    : GCDPriority.Valor);
+                    GCDPriority.ForcedGCD);
         }
         if (ShouldUseAtonement(atoneStrat, primaryTarget))
         {
@@ -566,8 +569,9 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
 
         if (ShouldUseHoly(holyStrat, primaryTarget))
         {
+            var HSoverAtone = FightOrFlight.Left is <= 2.5f and >= 0.01f && !Supplication.IsActive && !Sepulchre.IsActive;
             if (holyStrat == HolyStrategy.Automatic)
-                QueueGCD(BestHoly, TargetChoice(holy) ?? primaryTarget, GCDPriority.HolySpirit);
+                QueueGCD(BestHoly, TargetChoice(holy) ?? primaryTarget, HSoverAtone ? GCDPriority.GoringBlade : GCDPriority.HolySpirit);
             if (holyStrat == HolyStrategy.Spirit)
                 QueueGCD(AID.HolySpirit, TargetChoice(holy) ?? primaryTarget, GCDPriority.ForcedGCD);
             if (holyStrat == HolyStrategy.Circle)
@@ -578,8 +582,14 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             QueueGCD(AID.ShieldLob, TargetChoice(ranged) ?? primaryTarget, rangedStrat is RangedStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.Combo123);
         if (ShouldUseRangedCast(primaryTarget, rangedStrat))
             QueueGCD(AID.HolySpirit, TargetChoice(ranged) ?? primaryTarget, rangedStrat is RangedStrategy.ForceCast ? GCDPriority.ForcedGCD : GCDPriority.Combo123);
-        if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
+
+        if (ShouldUsePotion(potStrat))
+            Hints.ActionsToExecute.Push(
+                ActionDefinitions.IDPotionStr,
+                Player,
+                ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Potion,
+                0,
+                GCD - 0.9f);
         #endregion
     }
 
@@ -646,8 +656,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         AID.RiotBlade => RotationST(),
         AID.FastBlade => RotationST(),
         //AOE
-        AID.TotalEclipse => ShouldUseAOE ? RotationAOE() : RotationST(),
-        AID.Prominence => RotationAOE(),
+        AID.Prominence => ShouldUseAOE ? RotationAOE() : RotationST(),
+        AID.TotalEclipse => RotationAOE(),
         _ => ShouldUseAOE ? RotationAOE() : RotationST(),
     };
     #endregion
@@ -677,10 +687,10 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             target != null &&
             FightOrFlight.IsReady &&
             CombatTimer >= GCDLength * 2 + 0.5f,
-        OGCDStrategy.Force => true,
-        OGCDStrategy.AnyWeave => canWeaveIn,
-        OGCDStrategy.EarlyWeave => canWeaveEarly,
-        OGCDStrategy.LateWeave => canWeaveLate,
+        OGCDStrategy.Force => FightOrFlight.IsReady,
+        OGCDStrategy.AnyWeave => FightOrFlight.IsReady && canWeaveIn,
+        OGCDStrategy.EarlyWeave => FightOrFlight.IsReady && canWeaveEarly,
+        OGCDStrategy.LateWeave => FightOrFlight.IsReady && canWeaveLate,
         OGCDStrategy.Delay => false,
         _ => false
     };
@@ -691,10 +701,10 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             target != null &&
             Requiescat.IsReady &&
             FightOrFlight.IsActive,
-        OGCDStrategy.Force => true,
-        OGCDStrategy.AnyWeave => canWeaveIn,
-        OGCDStrategy.EarlyWeave => canWeaveEarly,
-        OGCDStrategy.LateWeave => canWeaveLate,
+        OGCDStrategy.Force => Requiescat.IsReady,
+        OGCDStrategy.AnyWeave => Requiescat.IsReady && canWeaveIn,
+        OGCDStrategy.EarlyWeave => Requiescat.IsReady && canWeaveEarly,
+        OGCDStrategy.LateWeave => Requiescat.IsReady && canWeaveLate,
         OGCDStrategy.Delay => false,
         _ => false
     };
@@ -706,10 +716,10 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             In3y(target) &&
             FightOrFlight.CD is < 57.55f and > 17 &&
             SpiritsWithin.IsReady,
-        OGCDStrategy.Force => true,
-        OGCDStrategy.AnyWeave => canWeaveIn,
-        OGCDStrategy.EarlyWeave => canWeaveEarly,
-        OGCDStrategy.LateWeave => canWeaveLate,
+        OGCDStrategy.Force => SpiritsWithin.IsReady,
+        OGCDStrategy.AnyWeave => SpiritsWithin.IsReady && canWeaveIn,
+        OGCDStrategy.EarlyWeave => SpiritsWithin.IsReady && canWeaveEarly,
+        OGCDStrategy.LateWeave => SpiritsWithin.IsReady && canWeaveLate,
         OGCDStrategy.Delay => false,
         _ => false
     };
@@ -721,10 +731,10 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             CircleOfScorn.IsReady &&
             In5y(target) &&
             FightOrFlight.CD is < 57.55f and > 17,
-        OGCDStrategy.Force => true,
-        OGCDStrategy.AnyWeave => canWeaveIn,
-        OGCDStrategy.EarlyWeave => canWeaveEarly,
-        OGCDStrategy.LateWeave => canWeaveLate,
+        OGCDStrategy.Force => CircleOfScorn.IsReady,
+        OGCDStrategy.AnyWeave => CircleOfScorn.IsReady && canWeaveIn,
+        OGCDStrategy.EarlyWeave => CircleOfScorn.IsReady && canWeaveEarly,
+        OGCDStrategy.LateWeave => CircleOfScorn.IsReady && canWeaveLate,
         OGCDStrategy.Delay => false,
         _ => false
     };
@@ -735,7 +745,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             In3y(target) &&
             GoringBlade.IsReady &&
             FightOrFlight.IsActive,
-        GCDStrategy.Force => true,
+        GCDStrategy.Force => GoringBlade.IsReady,
         GCDStrategy.Delay => false,
         _ => false
     };
@@ -745,9 +755,9 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             Player.InCombat &&
             target != null &&
             In25y(target) &&
-            Confiteor.IsReady &&
             FightOrFlight.IsActive &&
-            BladeComboStep is 0,
+            Requiescat.IsActive &&
+            BladeComboStep is 0 or 1 or 2 or 3,
         BladeComboStrategy.ForceConfiteor => Confiteor.IsReady && BladeComboStep is 0,
         BladeComboStrategy.ForceFaith => BladeComboStep is 1,
         BladeComboStrategy.ForceTruth => BladeComboStep is 2,
@@ -804,6 +814,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         DashStrategy.Automatic =>
             Player.InCombat &&
             target != null &&
+            In3y(target) &&
+            Intervene.IsReady &&
             FightOrFlight.IsActive,
         DashStrategy.Force => true,
         DashStrategy.Force1 => Intervene.TotalCD < 1f,
@@ -813,7 +825,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     };
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
-        PotionStrategy.AlignWithRaidBuffs =>  FightOrFlight.CD < 5 && Requiescat.CD < 15, //Align potions with major buffs
+        PotionStrategy.AlignWithRaidBuffs => FightOrFlight.CD < 5, //Align potions with buffs
         PotionStrategy.Immediate => true, //Force potion immediately
         _ => false,
     };
