@@ -722,7 +722,7 @@ sealed class WorldStateGameSync : IDisposable
         {
             ref var pinfo = ref state.Party[i];
             pinfo.EntityId = (uint)SanitizedObjectID(ddParty[i].EntityId);
-            pinfo.Room = (byte)(ddParty[i].RoomIndex + 1);
+            pinfo.Room = SanitizeRoom(ddParty[i].RoomIndex);
         }
 
         var ddItem = dd->Items;
@@ -738,11 +738,13 @@ sealed class WorldStateGameSync : IDisposable
         {
             ref var pchest = ref state.Chests[i];
             pchest.Type = ddChest[i].ChestType;
-            pchest.Room = (byte)(ddChest[i].RoomIndex + 1);
+            pchest.Room = SanitizeRoom(ddChest[i].RoomIndex);
         }
 
         return state;
     }
+
+    private byte SanitizeRoom(sbyte room) => room < 0 ? (byte)0 : (byte)room;
 
     private ulong SanitizedObjectID(ulong raw) => raw != InvalidEntityId ? raw : 0;
 

@@ -487,7 +487,7 @@ public abstract class AutoClear : ZoneModule
         if (player.InCombat)
             return;
 
-        var playerRoom = Palace.Party[0].Room - 1;
+        var playerRoom = Palace.Party[0].Room;
 
         if (DesiredRoom == playerRoom || DesiredRoom == 0)
         {
