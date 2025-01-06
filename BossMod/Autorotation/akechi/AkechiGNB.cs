@@ -154,7 +154,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     }
     #endregion
 
-    //Module Definitions
+    #region Module Definitions & Strategies
     public static RotationModuleDefinition Definition()
     {
         var res = new RotationModuleDefinition("Akechi GNB", //Title
@@ -295,6 +295,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
 
         return res;
     }
+    #endregion
 
     #region Priorities
     public enum GCDPriority //priorities for GCDs (higher number = higher priority)
@@ -822,6 +823,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         return true;
     }
 
+
+    #endregion
+
+    #region Rotation Helpers
     private AID NextBestRotation() => ComboLastMove switch
     {
         //ST
@@ -833,8 +838,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         AID.DemonSlice => AOEwithoutOvercap(),
         _ => ShouldUseAOE ? AOEwithoutOvercap() : STwithoutOvercap(),
     };
-
-    #endregion
 
     #region Single-Target Helpers
     private AID STwithOvercap() => ComboLastMove switch //with Overcap protection
@@ -862,6 +865,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         AID.DemonSlice => AID.DemonSlaughter, //if not at max ammo, use Demon Slaughter
         _ => AID.DemonSlice, //start with Demon Slice
     };
+    #endregion
+
     #endregion
 
     #region Cooldown Helpers
