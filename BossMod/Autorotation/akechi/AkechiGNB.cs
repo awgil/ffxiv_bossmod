@@ -51,10 +51,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     public enum CartridgeStrategy
     {
         Automatic,      //Automatically decide when to use Burst Strike & Fated Circle
-        OnlyBS,    //Force the use of Burst Strike; consumes 1 cartridge
-        OnlyFC,    //Force the use of Fated Circle; consumes 1 cartridge
-        ForceBS,   //Force the use of Gnashing Fang (cooldown only); consumes 1 cartridge
-        ForceFC,     //Force the use of Double Down; consumes 1 cartridge (yay)
+        OnlyBS,         //Force the use of Burst Strike; consumes 1 cartridge
+        OnlyFC,         //Force the use of Fated Circle; consumes 1 cartridge
+        ForceBS,        //Force the use of Gnashing Fang (cooldown only); consumes 1 cartridge
+        ForceFC,        //Force the use of Double Down; consumes 1 cartridge (yay)
         Conserve        //Conserves all cartridge-related abilities as much as possible
     }
 
