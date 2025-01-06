@@ -876,10 +876,11 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             ((Unlocked(AID.DoubleDown) && //Double Down is unlocked, indicating Lv90 or above
             (inOdd && Ammo >= 2) || //In Odd Window & conditions are met
             (!inOdd && Ammo < 3)) || //In Even Window & conditions are met
-            (!Unlocked(AID.DoubleDown) && Unlocked(AID.Bloodfest) && //Double Down is not unlocked but Bloodfest is, indicating Lv80-89
+            (!Unlocked(AID.DoubleDown) && GCD < 0.9f && //Double Down is not unlocked, so we late weave it
+            ((Unlocked(AID.Bloodfest) && //but Bloodfest is, indicating Lv80-89
             Ammo >= 1) || //Ammo is 1 or more
             (!Unlocked(AID.Bloodfest) && canGF) || //Bloodfest is not unlocked but Gnashing Fang is, indicating Lv60-79
-            !Unlocked(AID.GnashingFang)), //Gnashing Fang is not unlocked, indicating Lv59 and below
+            !Unlocked(AID.GnashingFang)))), //Gnashing Fang is not unlocked, indicating Lv59 and below
         NoMercyStrategy.Force => canNM, //Force No Mercy, regardless of correct weaving
         NoMercyStrategy.ForceW => canNM && canWeaveIn, //Force No Mercy into any weave slot 
         NoMercyStrategy.ForceQW => canNM && quarterWeave, //Force No Mercy into last possible second weave slot
