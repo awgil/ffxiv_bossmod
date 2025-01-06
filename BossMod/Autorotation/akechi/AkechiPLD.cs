@@ -260,7 +260,40 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     }
     #endregion
 
-    #region Variables
+    #region Upgrade Paths
+    public AID BestSpirits
+        => Unlocked(AID.Expiacion) //if Expiacion is unlocked
+        ? AID.Expiacion //then use Expiacion
+        : AID.SpiritsWithin; //otherwise use Spirits Within
+    public AID BestRequiescat
+        => Unlocked(AID.Imperator) //if Imperator is unlocked
+        ? AID.Imperator //then use Imperator
+        : AID.Requiescat; //otherwise use Requiescat
+    public AID BestHoly
+        => ShouldUseDMHolyCircle || ShouldNormalHolyCircle //if Holy Circle should be used
+        ? BestHolyCircle //then use Holy Circle
+        : AID.HolySpirit; //otherwise use Holy Spirit
+    public AID BestHolyCircle //for AOE use from Lv64-Lv71
+        => HolyCircle.IsReady //if Holy Circle is ready
+        ? AID.HolyCircle //then use Holy Circle
+        : AID.HolySpirit; //then use Holy Spirit
+    public AID BestAtonement
+        => Sepulchre.IsReady //if Sepulchre is ready
+        ? AID.Sepulchre //then use Sepulchre
+        : Supplication.IsReady //if Supplication is ready
+        ? AID.Supplication //then use Supplication
+        : AID.Atonement; //otherwise use Atonement
+    public AID BestBlade
+        => BladeComboStep is 3 //if Confiteor combo is at step 3
+        ? AID.BladeOfValor //then use Blade of Valor
+        : BladeComboStep is 2 //if Confiteor combo is at step 2
+        ? AID.BladeOfTruth //then use Blade of Truth
+        : BladeComboStep is 1 //if Confiteor combo is at step 1
+        ? AID.BladeOfFaith //then use Blade of Faith
+        : AID.Confiteor; //otherwise use Confiteor
+    #endregion
+
+    #region Module Variables
     public int Oath; //Current value of the oath gauge
     public int BladeComboStep; //Current step in the Confiteor combo sequence
     public float GCDLength; //Length of the global cooldown, adjusted by skill speed and haste (baseline: 2.5s)
@@ -310,38 +343,6 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     //public Actor? BestSplashTarget()
     #endregion
 
-    #region Upgrade Paths
-    public AID BestSpirits
-        => Unlocked(AID.Expiacion) //if Expiacion is unlocked
-        ? AID.Expiacion //then use Expiacion
-        : AID.SpiritsWithin; //otherwise use Spirits Within
-    public AID BestRequiescat
-        => Unlocked(AID.Imperator) //if Imperator is unlocked
-        ? AID.Imperator //then use Imperator
-        : AID.Requiescat; //otherwise use Requiescat
-    public AID BestHoly
-        => ShouldUseDMHolyCircle || ShouldNormalHolyCircle //if Holy Circle should be used
-        ? BestHolyCircle //then use Holy Circle
-        : AID.HolySpirit; //otherwise use Holy Spirit
-    public AID BestHolyCircle //for AOE use from Lv64-Lv71
-        => HolyCircle.IsReady //if Holy Circle is ready
-        ? AID.HolyCircle //then use Holy Circle
-        : AID.HolySpirit; //then use Holy Spirit
-    public AID BestAtonement
-        => Sepulchre.IsReady //if Sepulchre is ready
-        ? AID.Sepulchre //then use Sepulchre
-        : Supplication.IsReady //if Supplication is ready
-        ? AID.Supplication //then use Supplication
-        : AID.Atonement; //otherwise use Atonement
-    public AID BestBlade
-        => BladeComboStep is 3 //if Confiteor combo is at step 3
-        ? AID.BladeOfValor //then use Blade of Valor
-        : BladeComboStep is 2 //if Confiteor combo is at step 2
-        ? AID.BladeOfTruth //then use Blade of Truth
-        : BladeComboStep is 1 //if Confiteor combo is at step 1
-        ? AID.BladeOfFaith //then use Blade of Faith
-        : AID.Confiteor; //otherwise use Confiteor
-    #endregion
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
     {
         #region Variables

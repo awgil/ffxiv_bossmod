@@ -324,7 +324,31 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     }
     #endregion
 
-    #region Placeholders for Variables
+    #region Upgrade Paths
+    private AID BestZone //Determine the best Zone to use
+        => Unlocked(AID.BlastingZone) //If Blasting Zone is unlocked
+        ? AID.BlastingZone //Use Blasting Zone
+        : AID.DangerZone; //Otherwise, use Danger Zone
+    private AID BestCartSpender //Determine the best cartridge spender to use
+        => ShouldUseFC //And we should use Fated Circle because of targets nearby
+        ? BestFatedCircle //Use Fated Circle
+        : canBS //Otherwise, if Burst Strike is available
+        ? AID.BurstStrike //Use Burst Strike
+        : NextBestRotation(); //Otherwise, use the next best rotation
+    private AID BestFatedCircle //for AOE cart spending Lv30-71
+        => Unlocked(AID.FatedCircle) //If Fated Circle is unlocked
+        ? AID.FatedCircle //Use Fated Circle
+        : AID.BurstStrike; //Otherwise, use Burst Strike
+    private AID BestContinuation //Determine the best Continuation to use
+        => hasRaze ? AID.FatedBrand //If we have Ready To Raze buff
+        : hasBlast ? AID.Hypervelocity //If we have Ready To Blast buff
+        : hasGouge ? AID.EyeGouge //If we have Ready To Gouge buff
+        : hasTear ? AID.AbdomenTear //If we have Ready To Tear buff
+        : hasRip ? AID.JugularRip //If we have Ready To Rip buff
+        : AID.Continuation; //Otherwise, default to original hook
+    #endregion
+
+    #region Module Variables
     //Gauge
     public byte Ammo; //Range: 0-2 or 0-3 max; this counts current ammo count
     public byte GunComboStep; //0 = Gnashing Fang & Reign of Beasts, 1 = Savage Claw, 2 = Wicked Talon, 4 = NobleBlood, 5 = LionHeart
@@ -384,30 +408,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     public bool JustDid(AID aid) => Manager?.LastCast.Data?.IsSpell(aid) ?? false; //Check if the last action used was the desired ability
     public bool DidWithin(float variance) => (World.CurrentTime - Manager.LastCast.Time).TotalSeconds <= variance; //Check if the last action was used within a certain timeframe
     public bool JustUsed(AID aid, float variance) => JustDid(aid) && DidWithin(variance); //Check if the last action used was the desired ability & was used within a certain timeframe
-    #endregion
-
-    #region Upgrade Paths
-    private AID BestZone //Determine the best Zone to use
-        => Unlocked(AID.BlastingZone) //If Blasting Zone is unlocked
-        ? AID.BlastingZone //Use Blasting Zone
-        : AID.DangerZone; //Otherwise, use Danger Zone
-    private AID BestCartSpender //Determine the best cartridge spender to use
-        => ShouldUseFC //And we should use Fated Circle because of targets nearby
-        ? BestFatedCircle //Use Fated Circle
-        : canBS //Otherwise, if Burst Strike is available
-        ? AID.BurstStrike //Use Burst Strike
-        : NextBestRotation(); //Otherwise, use the next best rotation
-    private AID BestFatedCircle //for AOE cart spending Lv30-71
-        => Unlocked(AID.FatedCircle) //If Fated Circle is unlocked
-        ? AID.FatedCircle //Use Fated Circle
-        : AID.BurstStrike; //Otherwise, use Burst Strike
-    private AID BestContinuation //Determine the best Continuation to use
-        => hasRaze ? AID.FatedBrand //If we have Ready To Raze buff
-        : hasBlast ? AID.Hypervelocity //If we have Ready To Blast buff
-        : hasGouge ? AID.EyeGouge //If we have Ready To Gouge buff
-        : hasTear ? AID.AbdomenTear //If we have Ready To Tear buff
-        : hasRip ? AID.JugularRip //If we have Ready To Rip buff
-        : AID.Continuation; //Otherwise, default to original hook
     #endregion
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
@@ -822,8 +822,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos);
         return true;
     }
-
-
     #endregion
 
     #region Rotation Helpers
