@@ -7,6 +7,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using System.Runtime.InteropServices;
 using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
@@ -388,12 +389,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         // also block movement if a casted action is imminent - we additionally use actionmanager's line of sight check here, as otherwise AI mode can get stuck trying to cast a spell to hit an enemy behind a wall
         if (imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f && !CanMoveWhileCasting(imminentActionAdj))
         {
-            var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
-            ulong targetId = _inst->ActionQueued ? _inst->QueuedTargetId : (AutoQueue.Target?.InstanceID ?? 0);
-            var targetObj = GameObjectManager.Instance()->Objects.GetObjectByGameObjectId(targetId);
-            var haveLoS = targetObj == null || ActionManager.GetActionInRangeOrLoS(imminentActionAdj.ID, player, targetObj) == 0;
-
-            MoveMightInterruptCast |= haveLoS;
+            MoveMightInterruptCast |= CheckActionLoS(imminentAction, _inst->ActionQueued ? _inst->QueuedTargetId : (AutoQueue.Target?.InstanceID ?? 0));
         }
         bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast && _ws.Party.Player()?.MountId == 0;
         blockMovement |= Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold);
@@ -437,7 +433,6 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
         autoRotateConfig->Value.UInt = autoRotateOriginal;
         _cooldownTweak.StopAdjustment(); // clear any potential adjustments
-        Service.Log($"{blockMovement}");
         _movement.MovementBlocked = blockMovement;
 
         if (_ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(_ws.CurrentTime, ForceCancelCastNextFrame))
@@ -609,5 +604,34 @@ public sealed unsafe class ActionManagerEx : IDisposable
         var (recastElapsed, recastTotal) = recast != null ? (recast->Elapsed, recast->Total) : (0, 0);
         Service.Log($"[AMEx] UAL #{seq} {action} @ {targetID:X} / {Utils.Vec3String(targetPos)}, ALock={_inst->AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
         ActionRequestExecuted.Fire(new(action, targetID, targetPos, seq, _inst->AnimationLock, castElapsed, castTotal, recastElapsed, recastTotal));
+    }
+
+    private static bool CheckActionLoS(ActionID action, ulong targetID)
+    {
+        var row = Service.LuminaRow<Lumina.Excel.Sheets.Action>(action.ID);
+        if (row == null)
+            // unknown action, assume nothing
+            return true;
+
+        if (!row.Value.RequiresLineOfSight)
+            return true;
+
+        var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        var targetObj = GameObjectManager.Instance()->Objects.GetObjectByGameObjectId(targetID);
+        if (targetObj == null || targetObj->EntityId == player->EntityId)
+            return true;
+
+        var playerPos = *player->GetPosition();
+        var targetPos = *targetObj->GetPosition();
+
+        playerPos.Y += 2;
+        targetPos.Y += 2;
+
+        var offset = targetPos - playerPos;
+        var maxDist = offset.Magnitude;
+        var direction = offset / maxDist;
+        var result = BGCollisionModule.RaycastMaterialFilter(playerPos, direction, out var hInfo, maxDist);
+        Service.Log($"{hInfo}");
+        return result;
     }
 }
