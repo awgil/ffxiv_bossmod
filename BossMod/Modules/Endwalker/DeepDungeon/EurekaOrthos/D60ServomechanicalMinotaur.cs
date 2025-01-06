@@ -1,4 +1,3 @@
-
 namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.D60ServomechanicalMinotaur;
 
 public enum OID : uint

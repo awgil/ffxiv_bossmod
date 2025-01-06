@@ -70,7 +70,6 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
 
     private bool FilterInterestingActor(ulong instanceID, DateTime timestamp, bool allowPlayers)
     {
-        return true;
         var p = replay.FindParticipant(instanceID, timestamp)!;
         if ((p.OwnerID & 0xFF000000) == 0x10000000)
             return false; // player's pet/area

@@ -386,7 +386,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         // check whether movement is safe; block movement if not and if desired
         MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
 
-        // also block movement if a casted action is imminent - we additionally use actionmanager's line of sight check here, as otherwise AI mode can get stuck trying to cast a spell to hit an enemy behind a wall
+        // also block movement if a casted action is imminent (and if we have los on the target)
         if (imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f && !CanMoveWhileCasting(imminentActionAdj))
         {
             MoveMightInterruptCast |= CheckActionLoS(imminentAction, _inst->ActionQueued ? _inst->QueuedTargetId : (AutoQueue.Target?.InstanceID ?? 0));
@@ -630,8 +630,6 @@ public sealed unsafe class ActionManagerEx : IDisposable
         var offset = targetPos - playerPos;
         var maxDist = offset.Magnitude;
         var direction = offset / maxDist;
-        var result = BGCollisionModule.RaycastMaterialFilter(playerPos, direction, out var hInfo, maxDist);
-        Service.Log($"{hInfo}");
-        return result;
+        return !BGCollisionModule.RaycastMaterialFilter(playerPos, direction, out _, maxDist);
     }
 }

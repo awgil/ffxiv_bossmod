@@ -222,6 +222,9 @@ public sealed class AIHints
         ForbiddenZones.SortBy(e => e.activation);
         ForbiddenDirections.SortBy(e => e.activation);
         PredictedDamage.SortBy(e => e.activation);
+
+        if (ForcedMovement == default(Vector3))
+            MaxCastTimeEstimate = float.MaxValue;
     }
 
     public void InitPathfindMap(Pathfinding.Map map)
