@@ -37,7 +37,7 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
         var chests = new RoomChest[25];
         foreach (var c in State.Chests)
             if (c.Room > 0)
-                chests[c.Room] = (RoomChest)(1 << (c.Type - 1));
+                chests[c.Room] |= (RoomChest)(1 << (c.Type - 1));
 
         var playerCell = State.Party[0].Room;
 
@@ -91,32 +91,32 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
 
             if (State.Map[i].HasFlag(RoomFlags.Passage))
             {
-                ImGui.SetCursorPos(pos + new Vector2(28, 40));
+                ImGui.SetCursorPos(pos + new Vector2(28, 44));
                 ImGui.Image(passageTex.ImGuiHandle, new Vector2(32, 32));
             }
 
             if (State.Map[i].HasFlag(RoomFlags.Return))
             {
-                ImGui.SetCursorPos(pos + new Vector2(28, 40));
+                ImGui.SetCursorPos(pos + new Vector2(28, 44));
                 ImGui.Image(returnTex.ImGuiHandle, new Vector2(32, 32));
             }
 
             if (chests[i].HasFlag(RoomChest.Bronze))
             {
-                ImGui.SetCursorPos(pos + new Vector2(10, 10));
-                ImGui.Image(bronzeTex.ImGuiHandle, new Vector2(32, 32));
+                ImGui.SetCursorPos(pos + new Vector2(2, 2));
+                ImGui.Image(bronzeTex.ImGuiHandle, new Vector2(48, 48));
             }
 
             if (chests[i].HasFlag(RoomChest.Silver))
             {
-                ImGui.SetCursorPos(pos + new Vector2(28, 10));
-                ImGui.Image(silverTex.ImGuiHandle, new Vector2(32, 32));
+                ImGui.SetCursorPos(pos + new Vector2(20, 2));
+                ImGui.Image(silverTex.ImGuiHandle, new Vector2(48, 48));
             }
 
             if (chests[i].HasFlag(RoomChest.Gold))
             {
-                ImGui.SetCursorPos(pos + new Vector2(46, 10));
-                ImGui.Image(goldTex.ImGuiHandle, new Vector2(32, 32));
+                ImGui.SetCursorPos(pos + new Vector2(38, 2));
+                ImGui.Image(goldTex.ImGuiHandle, new Vector2(48, 48));
             }
 
             if (i == playerCell)

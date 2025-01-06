@@ -437,6 +437,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
         autoRotateConfig->Value.UInt = autoRotateOriginal;
         _cooldownTweak.StopAdjustment(); // clear any potential adjustments
+        Service.Log($"{blockMovement}");
         _movement.MovementBlocked = blockMovement;
 
         if (_ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(_ws.CurrentTime, ForceCancelCastNextFrame))

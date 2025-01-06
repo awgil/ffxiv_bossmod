@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace BossMod.Network.ServerIPC;
 
@@ -229,6 +228,10 @@ public enum PacketID
     SubmarineProgressionStatus = 551,
     SubmarineExplorationResult = 552,
     SubmarineTimers = 554,
+    DeepDungeonMap = 561,
+    DeepDungeonProgressItems = 563,
+    DeepDungeonParty = 564,
+    DeepDungeonChests = 565,
     PrepareZoning = 584,
     ActorGauge = 585,
     CharaVisualEffect = 586,

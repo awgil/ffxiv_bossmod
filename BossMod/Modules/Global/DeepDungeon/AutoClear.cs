@@ -1,4 +1,6 @@
-﻿using System.Data.SQLite;
+﻿using BossMod.Pathfinding;
+using ImGuiNET;
+using System.Data.SQLite;
 using System.IO;
 using System.Text.Json;
 using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
@@ -35,6 +37,8 @@ public record class RoomData<T>(
 {
     public RoomData<M> Map<M>(Func<T, M> F) => new(F(Center), F(North), F(South), F(West), F(East));
 }
+
+public record struct Wall(WPos Position, float Depth);
 
 [ConfigDisplay(Name = "Auto-DeepDungeon", Parent = typeof(ModuleConfig))]
 public class AutoDDConfig : ConfigNode
@@ -144,11 +148,14 @@ public abstract class AutoClear : ZoneModule
     private bool _trapsHidden = true;
     private readonly DungeonDebugger? _dbg = null;
 
-    private readonly Dictionary<string, Floor<WPos>> LoadedFloors;
-    private readonly List<(WPos Center, bool Rotated)> Walls = [];
+    private readonly Dictionary<string, Floor<Wall>> LoadedFloors;
+    private readonly List<(Wall Wall, bool Rotated)> Walls = [];
 
+    private int Kills;
     private int DesiredRoom;
     private bool BetweenFloors;
+
+    private ObstacleMapManager Obstacles;
 
     protected DeepDungeonState Palace => World.DeepDungeon;
 
@@ -157,6 +164,7 @@ public abstract class AutoClear : ZoneModule
     public AutoClear(WorldState ws, int LevelCap) : base(ws)
     {
         this.LevelCap = LevelCap;
+        Obstacles = new(ws);
 
         _subscriptions = new(
             ws.SystemLogMessage.Subscribe(OnSystemLogMessage),
@@ -164,6 +172,11 @@ public abstract class AutoClear : ZoneModule
             ws.Actors.CastFinished.Subscribe(OnCastFinished),
             ws.Actors.StatusGain.Subscribe(OnStatusGain),
             ws.Actors.StatusLose.Subscribe(OnStatusLose),
+            ws.Actors.IsDeadChanged.Subscribe(op =>
+            {
+                if (!op.IsAlly && op.IsDead)
+                    Kills++;
+            }),
             ws.Actors.EventOpenTreasure.Subscribe(OnOpenTreasure),
             ws.Actors.EventObjectAnimation.Subscribe(OnEObjAnim),
             ws.DeepDungeon.MapDataChanged.Subscribe(_ =>
@@ -178,7 +191,7 @@ public abstract class AutoClear : ZoneModule
 
         using (var fstream = new FileStream(WallsFile, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
         {
-            LoadedFloors = JsonSerializer.Deserialize<Dictionary<string, Floor<WPos>>>(fstream)!;
+            LoadedFloors = JsonSerializer.Deserialize<Dictionary<string, Floor<Wall>>>(fstream)!;
         }
 
 #if DEBUG
@@ -238,6 +251,7 @@ public abstract class AutoClear : ZoneModule
         Interrupts.Clear();
         ForbiddenTargets.Clear();
         DesiredRoom = 0;
+        Kills = 0;
         _lastChestContentsGold = null;
         _lastChestMagicite = false;
         _chestContentsGold.Clear();
@@ -281,11 +295,16 @@ public abstract class AutoClear : ZoneModule
 
     public override bool WantDrawExtra() => _config.EnableMinimap && !Palace.Progress.IsBossFloor;
 
+    private bool _allowNavigationInCombat = false;
+
     public override void DrawExtra()
     {
         var targetRoom = new Minimap(Palace, World.Party.Player()?.Rotation ?? default, DesiredRoom).Draw();
         if (targetRoom >= 0)
             DesiredRoom = targetRoom;
+
+        ImGui.Text($"Kills: {Kills}");
+        ImGui.Checkbox("Allow navigation in combat", ref _allowNavigationInCombat);
     }
 
     private bool CanAutoUse(PomanderID p) => p
@@ -321,8 +340,11 @@ public abstract class AutoClear : ZoneModule
         if (!_config.Enable || Palace.Progress.IsBossFloor || BetweenFloors)
             return;
 
-        foreach (var (pos, rot) in Walls)
-            hints.AddForbiddenZone(new AOEShapeRect(0.5f, 20, 0.5f), pos, (rot ? 90f : 0f).Degrees());
+        foreach (var (w, rot) in Walls)
+            hints.AddForbiddenZone(new AOEShapeRect(w.Depth, 20, w.Depth), w.Position, (rot ? 90f : 0f).Degrees());
+
+        if (Obstacles.Find(player.PosRot.XYZ()).entry == null)
+            hints.ForcedMovement = new(0);
 
         HandleFloorPathfind(player, hints);
 
@@ -483,8 +505,7 @@ public abstract class AutoClear : ZoneModule
 
     private void HandleFloorPathfind(Actor player, AIHints hints)
     {
-        // TODO add config option
-        if (player.InCombat)
+        if (player.InCombat && !_allowNavigationInCombat)
             return;
 
         var playerRoom = Palace.Party[0].Room;
@@ -543,7 +564,7 @@ public abstract class AutoClear : ZoneModule
             Service.Log($"unable to load floorset {key}");
             return;
         }
-        Tileset<WPos> tileset;
+        Tileset<Wall> tileset;
         switch (Palace.Progress.Tileset)
         {
             case 0:

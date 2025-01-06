@@ -59,16 +59,8 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         }
 
         if (IsRanged && !Player.InCombat && primaryTarget is Actor target && !target.InCombat && !target.IsAlly)
-        {
             // bandaid fix to help deal with constant LOS issues
             Hints.GoalZones.Add(Hints.GoalSingleTarget(target, 3, 0.1f));
-        }
-
-        if (primaryTarget is Actor ptar && ptar.IsTargetable && Player.PosRot.Y + 9 <= ptar.PosRot.Y)
-        {
-            Hints.ForcedMovement = new();
-            Hints.MaxCastTimeEstimate = float.MaxValue;
-        }
 
         SetupKiteZone(strategy, primaryTarget);
 
@@ -92,9 +84,21 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
     private bool IsRanged => Player.Class.GetRole() is Role.Ranged or Role.Healer;
 
+    private static readonly HashSet<uint> NoMeleeAutos = [
+        0x3DCC, // orthos imp
+        0x3DCE, // orthos fachan
+        0x3DD2, // orthos water sprite
+        0x3DD4, // orthos microsystem
+        0x3DE0, // orthodemolisher
+    ];
+
     private void SetupKiteZone(StrategyValues strategy, Actor? primaryTarget)
     {
         if (!IsRanged || primaryTarget == null || !Player.InCombat || !strategy.Enabled(Track.Kite))
+            return;
+
+        // wew
+        if (NoMeleeAutos.Contains(primaryTarget.OID))
             return;
 
         // assume we don't need to kite if mob is busy casting (TODO: some mob spells can be cast while moving, maybe there's a column in sheets for it)

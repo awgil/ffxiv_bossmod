@@ -5,7 +5,7 @@ namespace BossMod.StrikingDummy;
 
 public enum OID : uint
 {
-    Boss = 0x41CD, // L100 trial
+    Boss = 0x385, // L100 trial
 }
 
 class StrikingDummyStates : StateMachineBuilder
@@ -37,12 +37,11 @@ public sealed class StrikingDummyRotation(RotationModuleManager manager, Actor p
     {
         var cd = World.Client.CountdownRemaining;
         var boss = Bossmods.ActiveModule?.PrimaryActor;
-        if (cd > 0 && boss != null && Player.DistanceToHitbox(boss) > 3)
-            Hints.ForcedMovement = Player.DirectionTo(boss).ToVec3();
 
         if (strategy.Option(Track.Test).As<Strategy>() == Strategy.Some && primaryTarget != null)
         {
-            Hints.ForcedMovement = (primaryTarget.Position - Player.Position).OrthoL().ToVec3();
+            var dir = (primaryTarget.Position - Player.Position).OrthoL();
+            Hints.GoalZones.Add(p => new AOEShapeRect(3, 1).Check(p, Player.Position + dir, Angle.FromDirection(dir)) ? 1 : 0);
         }
     }
 }

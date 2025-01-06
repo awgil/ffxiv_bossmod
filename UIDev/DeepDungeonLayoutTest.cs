@@ -70,9 +70,9 @@ record class DDTerritory(byte DungeonId, byte Floorset, uint CFCID)
 
 record struct Collider(uint Id, WPos Position);
 
-record struct Transform(V3 Translation, V3 Rotation)
+record struct Transform(V3 Translation, V3 Rotation, V3 Scale)
 {
-    public static implicit operator Transform(FileLayerGroupTransform t) => new(t.Translation, t.Rotation);
+    public static implicit operator Transform(FileLayerGroupTransform t) => new(t.Translation, t.Rotation, t.Scale);
 }
 
 record struct V3(float X, float Y, float Z)
@@ -87,12 +87,13 @@ record class Group(
     List<Transform> ChildTransform
 )
 {
-    public WPos GetActualPosition()
+    public Wall GetActualPosition()
     {
         var prot = Quaternion.CreateFromYawPitchRoll(ParentTransform.Rotation.Y, ParentTransform.Rotation.X, ParentTransform.Rotation.Z);
         var roombase = new WDir(ParentTransform.Translation.XZ());
         var childt = Vector3.Transform(ChildTransform[0].Translation, prot);
-        return (roombase + new WDir(childt.XZ())).ToWPos();
+        var center = (roombase + new WDir(childt.XZ())).ToWPos();
+        return new(center, ChildTransform[0].Scale.Z);
     }
 }
 
@@ -102,30 +103,18 @@ unsafe class DeepDungeonLayoutTest : TestWindow
 {
     private readonly SortedDictionary<uint, Group> Translations = [];
 
-    private readonly Dictionary<string, Floor<WPos>> LoadedFloors = [];
+    private readonly Dictionary<string, Floor<Wall>> LoadedFloors = [];
 
     public DeepDungeonLayoutTest() : base("Floorset generator", new(400, 400), ImGuiWindowFlags.None)
     {
         using (var fstream = new FileStream(AutoClear.WallsFile, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
         {
-            LoadedFloors = JsonSerializer.Deserialize<Dictionary<string, Floor<WPos>>>(fstream)!;
+            LoadedFloors = JsonSerializer.Deserialize<Dictionary<string, Floor<Wall>>>(fstream)!;
         }
     }
 
     public override void Draw()
     {
-        if (ImGui.Button("Search"))
-        {
-            foreach (var row in Service.LuminaSheet<DeepDungeonRoom>()!)
-            {
-                foreach (var l in row.Level)
-                {
-                    if (l.RowId == 0x5FF640)
-                        Service.Log($"found it in {row}");
-                }
-            }
-        }
-
         if (ImGui.Button("Generate"))
         {
             foreach (var t in Util.AllTerritories)
