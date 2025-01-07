@@ -78,7 +78,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
         var targetId = autorot.Hints.ForcedTarget?.InstanceID ?? player.TargetID;
         var target = autorot.Hints.PriorityTargets.FirstOrDefault(e => e.Actor.InstanceID == targetId);
         if (autorot.Hints.ForcedTarget is Actor t)
-            target ??= new AIHints.Enemy(t, false);
+            target ??= new AIHints.Enemy(t, 0, false);
 
         // if we don't have a valid target yet, use some heuristics to select some 'ok' target to attack
         // try assisting master, otherwise (if player is own master, or if master has no valid target) just select closest valid target
@@ -239,5 +239,5 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
         ImGui.Checkbox("Disable movement", ref _config.ForbidMovement);
     }
 
-    private bool TargetIsForbidden(ulong actorId) => autorot.Hints.ForbiddenTargets.Any(e => e.Actor.InstanceID == actorId);
+    private bool TargetIsForbidden(ulong actorId) => autorot.Hints.PotentialTargets.Any(e => e.Actor.InstanceID == actorId && e.Priority <= AIHints.Enemy.PriorityForbidden);
 }

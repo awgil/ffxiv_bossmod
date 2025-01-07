@@ -5,15 +5,15 @@ namespace BossMod;
 // information relevant for AI decision making process for a specific player
 public sealed class AIHints
 {
-    public class Enemy(Actor actor, bool shouldBeTanked)
+    public class Enemy(Actor actor, int priority, bool shouldBeTanked)
     {
-        public const int PriorityPointless = -1; // enemy is pointless to attack, but gives gauge (i.e. enemy locked at 1HP, or low priority add)
-        public const int PriorityInvincible = -2; // enemy is pointless to attack and does not give gauge
-        public const int PriorityUndesirable = -3; // ai is forbidden from attacking this enemy, but player explicitly targeting it is not (e.g. out of combat enemies that we might not want to pull)
-        public const int PriorityForbidden = -4; // attacking this enemy is forbidden both by ai or player (e.g. invulnerable, or attacking/killing might lead to a wipe)
+        public const int PriorityPointless = -1; // attacking enemy won't improve your parse, but will give gauge and advance combo (e.g. boss locked to 1 HP, useless add in raid, etc)
+        public const int PriorityInvincible = -2; // attacking enemy will have no effect at all besides breaking your combo, but hitting it with AOEs is fine
+        public const int PriorityUndesirable = -3; // enemy can be attacked if targeted manually by a player, but should be considered forbidden for AOE actions (i.e. mobs that are not in combat, or are in combat with someone else's party)
+        public const int PriorityForbidden = -4; // attacking this enemy will probably lead to a wipe; autoattacks and actions that target it will be forcibly prevented (if custom queueing is enabled)
 
         public Actor Actor = actor;
-        public int Priority = actor.InCombat ? 0 : PriorityUndesirable;
+        public int Priority = priority;
         //public float TimeToKill;
         public float AttackStrength = 0.05f; // target's predicted HP percent is decreased by this amount (0.05 by default)
         public WPos DesiredPosition = actor.Position; // tank AI will try to move enemy to this position
@@ -157,7 +157,7 @@ public sealed class AIHints
                     prio = 0;
             }
 
-            var enemy = new Enemy(actor, playerIsDefaultTank) { Priority = prio };
+            var enemy = new Enemy(actor, prio, playerIsDefaultTank);
 
             PotentialTargets.Add(enemy);
             _enemies[actor.SpawnIndex / 2] = enemy;

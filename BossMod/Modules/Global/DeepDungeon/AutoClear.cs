@@ -155,7 +155,7 @@ public abstract class AutoClear : ZoneModule
     private int DesiredRoom;
     private bool BetweenFloors;
 
-    private ObstacleMapManager Obstacles;
+    private readonly ObstacleMapManager _obstacles;
 
     protected DeepDungeonState Palace => World.DeepDungeon;
 
@@ -164,7 +164,7 @@ public abstract class AutoClear : ZoneModule
     public AutoClear(WorldState ws, int LevelCap) : base(ws)
     {
         this.LevelCap = LevelCap;
-        Obstacles = new(ws);
+        _obstacles = new(ws);
 
         _subscriptions = new(
             ws.SystemLogMessage.Subscribe(OnSystemLogMessage),
@@ -343,7 +343,7 @@ public abstract class AutoClear : ZoneModule
         foreach (var (w, rot) in Walls)
             hints.AddForbiddenZone(new AOEShapeRect(w.Depth, 20, w.Depth), w.Position, (rot ? 90f : 0f).Degrees());
 
-        if (Obstacles.Find(player.PosRot.XYZ()).entry == null)
+        if (_obstacles.Find(player.PosRot.XYZ()).entry == null)
             hints.ForcedMovement = new(0);
 
         HandleFloorPathfind(player, hints);
