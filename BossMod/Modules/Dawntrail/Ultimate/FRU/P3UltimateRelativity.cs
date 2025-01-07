@@ -345,7 +345,7 @@ class P3UltimateRelativityDarkBlizzard(BossModule module) : Components.GenericAO
     private readonly List<Actor> _sources = [];
     private DateTime _activation;
 
-    private static readonly AOEShapeDonut _shape = new(2, 12); // TODO: verify inner radius
+    private static readonly AOEShapeDonut _shape = new(4, 12); // TODO: verify inner radius
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _sources.Select(s => new AOEInstance(_shape, s.Position, default, _activation));
 

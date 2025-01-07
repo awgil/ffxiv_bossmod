@@ -75,6 +75,7 @@ autorotation:
 - dot/regen server tick tracking
 - brd
 -- take traits into account (ij proccing rs, ea proccing repertoire)
+-- better handle bad misalignment (see JeunoTheFirstWalk_BRD100_VeynHumanmale_2025_01_05_20_42_19.log)
 - drg
 -- priorities...
 -- dragon sight is a true north

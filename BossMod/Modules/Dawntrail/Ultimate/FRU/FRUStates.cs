@@ -55,6 +55,7 @@ class FRUStates : StateMachineBuilder
         P4AkhMornMornAfah(id + 0x120000, 5.8f);
         P4CrystallizeTime(id + 0x130000, 4.6f);
         P4AkhMornMornAfah(id + 0x140000, 0.1f);
+        P4Enrage(id + 0x150000, 2.3f);
 
         SimpleState(id + 0xFF0000, 100, "???");
     }
@@ -612,5 +613,10 @@ class FRUStates : StateMachineBuilder
         ActorCast(id + 0xC0, _module.BossP4Usurper, AID.CrystallizeTimeHallowedWingsAOE, 1.4f, 0.5f, true);
         ActorTargetable(id + 0xD0, _module.BossP4Usurper, true, 5.3f, "Bosses reappear")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
+    }
+
+    private void P4Enrage(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP4Usurper, AID.AbsoluteZeroP4, delay, 10, true, "Enrage");
     }
 }
