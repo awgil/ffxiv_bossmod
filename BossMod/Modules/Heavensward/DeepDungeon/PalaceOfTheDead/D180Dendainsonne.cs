@@ -102,7 +102,7 @@ class ManualBurst(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Hold && hints.FindEnemy(Module.PrimaryActor) is { } e)
-            e.Priority = AIHints.Enemy.PriorityForbidFully;
+            e.Priority = AIHints.Enemy.PriorityForbidden;
     }
 
     public override void AddGlobalHints(GlobalHints hints)

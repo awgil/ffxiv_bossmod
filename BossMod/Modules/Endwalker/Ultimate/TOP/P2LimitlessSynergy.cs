@@ -88,9 +88,7 @@ class P2OptimizedPassageOfArms(BossModule module) : BossComponent(module)
         {
             var e = hints.PotentialTargets.FirstOrDefault(e => e.Actor == _invincible);
             if (e != null)
-            {
-                e.Priority = AIHints.Enemy.PriorityForbidFully;
-            }
+                e.Priority = AIHints.Enemy.PriorityInvincible;
         }
     }
 

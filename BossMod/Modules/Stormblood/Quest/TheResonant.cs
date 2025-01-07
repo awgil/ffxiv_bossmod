@@ -78,7 +78,7 @@ class Siphon(BossModule module) : BossComponent(module)
         {
             if (h.Actor.FindStatus(SID.Resonant) != null)
             {
-                h.Priority = AIHints.Enemy.PriorityForbidFully;
+                h.Priority = AIHints.Enemy.PriorityForbidden;
                 hints.ActionsToExecute.Push(WorldState.Client.DutyActions[0].Action, h.Actor, ActionQueue.Priority.Medium);
             }
         }

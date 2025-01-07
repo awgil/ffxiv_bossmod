@@ -7,12 +7,13 @@ public sealed class AIHints
 {
     public class Enemy(Actor actor, bool shouldBeTanked)
     {
-        // TODO: split 'pointless to attack' (eg invulnerable, but fine to hit by aoes) vs 'actually bad to hit' (eg can lead to wipe)
-        public const int PriorityForbidAI = -1; // ai is forbidden from attacking this enemy, but player explicitly targeting it is not (e.g. out of combat enemies that we might not want to pull)
-        public const int PriorityForbidFully = -2; // attacking this enemy is forbidden both by ai or player (e.g. invulnerable, or attacking/killing might lead to a wipe)
+        public const int PriorityPointless = -1; // enemy is pointless to attack, but gives gauge (i.e. enemy locked at 1HP, or low priority add)
+        public const int PriorityInvincible = -2; // enemy is pointless to attack and does not give gauge
+        public const int PriorityUndesirable = -3; // ai is forbidden from attacking this enemy, but player explicitly targeting it is not (e.g. out of combat enemies that we might not want to pull)
+        public const int PriorityForbidden = -4; // attacking this enemy is forbidden both by ai or player (e.g. invulnerable, or attacking/killing might lead to a wipe)
 
         public Actor Actor = actor;
-        public int Priority = actor.InCombat ? 0 : PriorityForbidAI; // <0 means damaging is actually forbidden, 0 is default (TODO: revise default...)
+        public int Priority = actor.InCombat ? 0 : PriorityUndesirable;
         //public float TimeToKill;
         public float AttackStrength = 0.05f; // target's predicted HP percent is decreased by this amount (0.05 by default)
         public WPos DesiredPosition = actor.Position; // tank AI will try to move enemy to this position
@@ -138,33 +139,22 @@ public sealed class AIHints
         var allowedFateID = playerInFate ? ws.Client.ActiveFate.ID : 0;
         foreach (var actor in ws.Actors.Where(a => a.IsTargetable && !a.IsAlly && !a.IsDead))
         {
-            // fate mob in fate we are NOT a part of, skip entirely. it's okay to "attack" these (i.e., they won't be added as forbidden targets) because we can't even hit them
-            // (though aggro'd mobs will continue attacking us after we unsync, but who really cares)
+            int prio = Enemy.PriorityUndesirable;
+            // fate mob in fate we are NOT a part of; we can't damage them at all
             if (actor.FateID > 0 && actor.FateID != allowedFateID)
-                continue;
-
-            // target is dying; skip it so that AI retargets, but ensure that it's not marked as a forbidden target
-            if (Utils.ActorIsDying(actor, ws))
-                continue;
-
-            var allowedAttack = actor.InCombat && ws.Party.FindSlot(actor.TargetID) >= 0;
-            // enemies in our enmity list can also be attacked, regardless of who they are targeting (since they are keeping us in combat)
-            allowedAttack |= actor.AggroPlayer;
-            // all fate mobs can be attacked if we are level synced (non synced mobs are skipped above)
-            allowedAttack |= actor.FateID > 0;
-
-            int prio;
-            if (allowedAttack)
-            {
-                // Forlorn Maiden / The Forlorn - grant xp bonus to fate participants
-                if (actor.NameID is 6737 or 6738)
-                    prio = 1;
-                else
-                    prio = 0;
-            }
+                prio = Enemy.PriorityInvincible;
+            else if (Utils.ActorIsDying(actor, ws))
+                prio = Enemy.PriorityPointless;
             else
             {
-                prio = Enemy.PriorityForbidAI;
+                var allowedAttack = actor.InCombat && ws.Party.FindSlot(actor.TargetID) >= 0;
+                // enemies in our enmity list can also be attacked, regardless of who they are targeting (since they are keeping us in combat)
+                allowedAttack |= actor.AggroPlayer;
+                // all fate mobs can be attacked if we are level synced (non synced mobs are skipped above)
+                allowedAttack |= actor.FateID > 0;
+
+                if (allowedAttack)
+                    prio = 0;
             }
 
             var enemy = new Enemy(actor, playerIsDefaultTank) { Priority = prio };
@@ -245,7 +235,7 @@ public sealed class AIHints
     // query utilities
     public IEnumerable<Enemy> PotentialTargetsEnumerable => PotentialTargets;
     public IEnumerable<Enemy> PriorityTargets => PotentialTargets.TakeWhile(e => e.Priority == HighestPotentialTargetPriority);
-    public IEnumerable<Enemy> ForbiddenTargets => PotentialTargetsEnumerable.Reverse().TakeWhile(e => e.Priority < 0);
+    public IEnumerable<Enemy> ForbiddenTargets => PotentialTargetsEnumerable.Reverse().TakeWhile(e => e.Priority <= Enemy.PriorityUndesirable);
 
     // TODO: verify how source/target hitboxes are accounted for by various aoe shapes
     public int NumPriorityTargetsInAOE(Func<Enemy, bool> pred) => ForbiddenTargets.Any(pred) ? 0 : PriorityTargets.Count(pred);

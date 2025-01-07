@@ -137,13 +137,9 @@ public sealed unsafe class ActionManagerEx : IDisposable
         if (Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold) && AutoQueue.Priority < ActionQueue.Priority.ManualEmergency)
             AutoQueue = default; // do not execute non-emergency actions when pyretic is imminent
 
-        if (AutoQueue.Target is Actor t && _hints.FindEnemy(t)?.Priority == AIHints.Enemy.PriorityForbidFully && !CanUseOnForbiddenTarget(AutoQueue))
+        if (AutoQueue.Target is Actor t && _hints.FindEnemy(t)?.Priority == AIHints.Enemy.PriorityForbidden)
             AutoQueue = default; // or if selected target is completely forbidden
     }
-
-    // todo: figure out a less dumb solution
-    private bool CanUseOnForbiddenTarget(ActionQueue.Entry entry) => entry.Priority >= ActionQueue.Priority.ManualGCD
-        || (ClassShared.AID)entry.Action.ID is ClassShared.AID.Interject or ClassShared.AID.HeadGraze;
 
     public Vector3? GetWorldPosUnderCursor()
     {

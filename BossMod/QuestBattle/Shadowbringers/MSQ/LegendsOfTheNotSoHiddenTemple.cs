@@ -114,6 +114,6 @@ public class LegendsOfTheNotSoHiddenTemple(WorldState ws) : QuestBattle(ws)
     {
         foreach (var h in hints.PotentialTargets)
             if (h.Actor.OID == 0x2955)
-                h.Priority = AIHints.Enemy.PriorityForbidFully;
+                h.Priority = AIHints.Enemy.PriorityForbidden;
     }
 }

@@ -378,7 +378,7 @@ public abstract class AutoClear : ZoneModule
 
         foreach (var d in ForbiddenTargets)
             if (hints.FindEnemy(d) is { } e)
-                e.Priority = AIHints.Enemy.PriorityForbidFully;
+                e.Priority = AIHints.Enemy.PriorityForbidden;
 
         if (_config.TrapHints && _trapsHidden)
         {
@@ -494,7 +494,7 @@ public abstract class AutoClear : ZoneModule
             _ => false
         };
 
-        if (shouldTargetMobs)
+        if (shouldTargetMobs && player.TargetID == 0)
             foreach (var pp in hints.PotentialTargets.Where(t => !t.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID))))
                 pp.Priority = 0;
     }
