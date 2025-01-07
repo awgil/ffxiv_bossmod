@@ -165,6 +165,6 @@ public class D032HunterOfBardam(WorldState ws, Actor primary) : BossModule(ws, p
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var e in hints.PotentialTargets)
-            e.Priority = -1;
+            e.Priority = AIHints.Enemy.PriorityPointless;
     }
 }

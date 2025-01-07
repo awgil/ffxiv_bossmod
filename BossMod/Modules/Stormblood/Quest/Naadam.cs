@@ -103,7 +103,7 @@ class ActivateOvoo(BossModule module) : BossComponent(module)
             if (e.Actor.TargetID == actor.InstanceID)
                 beingAttacked = true;
             else
-                e.Priority = -1;
+                e.Priority = AIHints.Enemy.PriorityForbidden;
         }
 
         var ovoo = WorldState.Actors.FirstOrDefault(x => x.OID == 0x1EA4E1);

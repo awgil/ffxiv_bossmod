@@ -71,7 +71,7 @@ class TargetPriorityHandler(BossModule module) : BossComponent(module)
                 }
                 else
                 {
-                    e.Priority = -1;
+                    e.Priority = AIHints.Enemy.PriorityUndesirable;
                 }
             }
 

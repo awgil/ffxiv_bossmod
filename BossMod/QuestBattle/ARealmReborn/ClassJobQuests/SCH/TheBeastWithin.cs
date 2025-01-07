@@ -42,7 +42,7 @@ internal class TheBeastWithin(WorldState ws) : QuestBattle(ws)
     {
         foreach (var h in hints.PotentialTargets)
             if (h.Actor.OID == 0x5F3)
-                h.Priority = -1;
+                h.Priority = AIHints.Enemy.PriorityForbidden;
     }
 }
 

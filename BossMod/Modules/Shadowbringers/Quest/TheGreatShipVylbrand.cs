@@ -128,6 +128,6 @@ public class SecondOrderRocksplitter(WorldState ws, Actor primary) : BossModule(
 
         foreach (var e in hints.PotentialTargets)
             if (e.Actor.OID == 0x3106)
-                e.Priority = -1;
+                e.Priority = AIHints.Enemy.PriorityPointless;
     }
 }

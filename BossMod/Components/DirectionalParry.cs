@@ -31,7 +31,7 @@ public class DirectionalParry(BossModule module, uint actorOID) : Adds(module, a
     {
         foreach (var enemy in hints.PotentialTargets)
             if (IsAttackForbidden(actor, enemy.Actor))
-                enemy.Priority = -1;
+                enemy.Priority = AIHints.Enemy.PriorityForbidden;
     }
 
     private bool IsAttackForbidden(Actor actor, Actor target)

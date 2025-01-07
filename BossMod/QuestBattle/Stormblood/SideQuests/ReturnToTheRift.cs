@@ -14,12 +14,12 @@ internal class ReturnToTheRift(WorldState ws) : QuestBattle(ws)
                 {
                     if (checker.Actor.InCombat)
                     {
-                        checker.Priority = -1;
+                        checker.Priority = AIHints.Enemy.PriorityForbidden;
                         if (player.TargetID == checker.Actor.InstanceID)
                             hints.ForcedTarget = player;
                     } else
                     {
-                        checker.Priority = 1;
+                        checker.Priority = AIHints.Enemy.PriorityForbidden;
                     }
                 }
             })
