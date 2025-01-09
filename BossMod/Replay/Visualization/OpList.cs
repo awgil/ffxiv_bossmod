@@ -15,23 +15,25 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
     private readonly HashSet<uint> _filteredStatuses = [];
     private readonly HashSet<uint> _filteredDirectorUpdateTypes = [];
     private bool _nodesUpToDate;
+    private bool _showActorSizeEvents = true;
+    private bool _showPlayerEvents;
 
     public bool ShowActorSizeEvents
     {
-        get;
+        get => _showActorSizeEvents;
         set
         {
-            field = value;
+            _showActorSizeEvents = value;
             _nodesUpToDate = false;
         }
-    } = true;
+    }
 
     public bool ShowPlayerEvents
     {
-        get;
+        get => _showPlayerEvents;
         set
         {
-            field = value;
+            _showPlayerEvents = value;
             _nodesUpToDate = false;
         }
     }
