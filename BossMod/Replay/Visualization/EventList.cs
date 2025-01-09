@@ -265,6 +265,10 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
         {
             list.ClearFilters();
         }
+        if (ImGui.MenuItem("Show player actions", "", list.ShowPlayerEvents, true))
+        {
+            list.ShowPlayerEvents = !list.ShowPlayerEvents;
+        }
         if (ImGui.MenuItem("Show actor-size events", "", list.ShowActorSizeEvents, true))
         {
             list.ShowActorSizeEvents = !list.ShowActorSizeEvents;

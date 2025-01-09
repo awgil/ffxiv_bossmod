@@ -89,7 +89,15 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         0x3DCE, // orthos fachan
         0x3DD2, // orthos water sprite
         0x3DD4, // orthos microsystem
+        0x3DD5, // orthosystem β
         0x3DE0, // orthodemolisher
+        0x3DE2, // orthodroid
+        0x3E10, // orthos ice sprite
+        0x3E5C, // orthos ahriman
+        0x3E62, // orthos abyss
+        0x3E63, // orthodrone
+        0x3E64, // orthosystem γ
+        0x3E66, // orthosystem α
     ];
 
     private void SetupKiteZone(StrategyValues strategy, Actor? primaryTarget)
@@ -105,14 +113,17 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         if (primaryTarget.CastInfo != null)
             return;
 
+        float maxRange = 25;
+        float maxKite = 9;
+
         var primaryPos = primaryTarget.Position;
-        var total = 25 + Player.HitboxRadius + primaryTarget.HitboxRadius;
+        var total = maxRange + Player.HitboxRadius + primaryTarget.HitboxRadius;
+        var totalKite = maxKite + Player.HitboxRadius + primaryTarget.HitboxRadius;
         float goalFactor = 0.05f;
         Hints.GoalZones.Add(pos =>
         {
             var dist = (pos - primaryPos).Length();
-            // discretize longer range zones into a small number of bands to avoid jitter
-            return dist > total ? 0 : MathF.Ceiling(dist / total * 3) / 3 * goalFactor;
+            return dist <= total && dist >= totalKite ? goalFactor : 0;
         });
     }
 

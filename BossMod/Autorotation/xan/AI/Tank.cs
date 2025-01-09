@@ -125,7 +125,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         // interrupt
         if (strategy.Enabled(Track.Interject) && NextChargeIn(ClassShared.AID.Interject) == 0)
         {
-            var interruptibleEnemy = Hints.PotentialTargets.FirstOrDefault(e => e.ShouldBeInterrupted && ShouldInterrupt(e.Actor) && Player.DistanceToHitbox(e.Actor) <= 3);
+            var interruptibleEnemy = Hints.PotentialTargets.FirstOrDefault(e => ShouldInterrupt(e) && Player.DistanceToHitbox(e.Actor) <= 3);
             if (interruptibleEnemy != null)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Interject), interruptibleEnemy.Actor, ActionQueue.Priority.Minimal);
         }
@@ -133,7 +133,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         // low blow
         if (strategy.Enabled(Track.Stun) && NextChargeIn(ClassShared.AID.LowBlow) == 0)
         {
-            var stunnableEnemy = Hints.PotentialTargets.Find(e => e.ShouldBeStunned && ShouldStun(e.Actor) && Player.DistanceToHitbox(e.Actor) <= 3);
+            var stunnableEnemy = Hints.PotentialTargets.Find(e => ShouldInterrupt(e) && Player.DistanceToHitbox(e.Actor) <= 3);
             if (stunnableEnemy != null)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.LowBlow), stunnableEnemy.Actor, ActionQueue.Priority.Minimal);
         }

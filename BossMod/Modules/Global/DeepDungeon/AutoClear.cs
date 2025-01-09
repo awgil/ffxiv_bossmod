@@ -99,6 +99,7 @@ enum SID : uint
     PhysicalDamageUp = 53,
     DamageUp = 61,
     DreadBeastAura = 2056, // unnamed status, displays red fog vfx on actor
+    EvasionUp = 2402, // applied by Peculiar Light from orthos diplocaulus
 }
 
 sealed unsafe class DungeonDebugger : IDisposable
@@ -155,13 +156,13 @@ public abstract class AutoClear : ZoneModule
     private int DesiredRoom;
     private bool BetweenFloors;
 
-    private readonly ObstacleMapManager _obstacles;
+    private ObstacleMapManager _obstacles;
 
     protected DeepDungeonState Palace => World.DeepDungeon;
 
     public static readonly string WallsFile = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs", "BossMod", "walls.json");
 
-    public AutoClear(WorldState ws, int LevelCap) : base(ws)
+    protected AutoClear(WorldState ws, int LevelCap) : base(ws)
     {
         this.LevelCap = LevelCap;
         _obstacles = new(ws);
@@ -203,6 +204,7 @@ public abstract class AutoClear : ZoneModule
     protected override void Dispose(bool disposing)
     {
         _subscriptions.Dispose();
+        _obstacles.Dispose();
         _dbg?.Dispose();
         base.Dispose(disposing);
     }
@@ -295,16 +297,27 @@ public abstract class AutoClear : ZoneModule
 
     public override bool WantDrawExtra() => _config.EnableMinimap && !Palace.Progress.IsBossFloor;
 
-    private bool _allowNavigationInCombat = false;
+    private bool _allowNavigationInCombat;
 
     public override void DrawExtra()
     {
-        var targetRoom = new Minimap(Palace, World.Party.Player()?.Rotation ?? default, DesiredRoom).Draw();
+        var player = World.Party.Player();
+        var targetRoom = new Minimap(Palace, player?.Rotation ?? default, DesiredRoom).Draw();
         if (targetRoom >= 0)
             DesiredRoom = targetRoom;
 
         ImGui.Text($"Kills: {Kills}");
         ImGui.Checkbox("Allow navigation in combat", ref _allowNavigationInCombat);
+        if (ImGui.Button("Reload obstacles"))
+        {
+            _obstacles.Dispose();
+            _obstacles = new(World);
+        }
+        if (player != null && _obstacles.Find(player.PosRot.XYZ()).entry == null)
+        {
+            ImGui.SameLine();
+            UIMisc.HelpMarker(() => "Obstacle map missing for floor!", Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle);
+        }
     }
 
     private bool CanAutoUse(PomanderID p) => p

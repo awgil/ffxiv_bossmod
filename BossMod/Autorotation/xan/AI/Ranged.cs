@@ -19,7 +19,7 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase(mana
         // interrupt
         if (strategy.Enabled(Track.Interrupt) && NextChargeIn(ClassShared.AID.HeadGraze) == 0)
         {
-            var interruptibleEnemy = Hints.PotentialTargets.FirstOrDefault(e => e.ShouldBeInterrupted && ShouldInterrupt(e.Actor) && Player.DistanceToHitbox(e.Actor) <= 25);
+            var interruptibleEnemy = Hints.PotentialTargets.FirstOrDefault(e => ShouldInterrupt(e) && Player.DistanceToHitbox(e.Actor) <= 25);
             if (interruptibleEnemy != null)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.HeadGraze), interruptibleEnemy.Actor, ActionQueue.Priority.High);
         }

@@ -69,6 +69,6 @@
   </ItemGroup>
 
   <Target Name="PostBuildScript" AfterTargets="Build">
-    <Copy SourceFiles="$(DalamudLibPath)\runtimes\win-x64\native\cimgui.dll" DestinationFolder="$(OutputPath)"/>
+    <Copy SourceFiles="$(DalamudLibPath)\cimgui.dll" DestinationFolder="$(OutputPath)"/>
   </Target>
 </Project>

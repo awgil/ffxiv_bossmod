@@ -1,6 +1,4 @@
-﻿using Lumina.Excel.Sheets;
-
-namespace BossMod.Autorotation.xan;
+﻿namespace BossMod.Autorotation.xan;
 
 public abstract class AIBase(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
@@ -11,10 +9,8 @@ public abstract class AIBase(RotationModuleManager manager, Actor player) : Rota
     internal static ActionID Spell<AID>(AID aid) where AID : Enum => ActionID.MakeSpell(aid);
 
     // note "in combat" check here, as deep dungeon enemies can randomly cast interruptible spells out of combat - interjecting causes aggro
-    internal bool ShouldInterrupt(Actor act) => act.InCombat && IsCastReactable(act) && act.CastInfo!.Interruptible;
-    internal bool ShouldStun(Actor act) => act.InCombat && IsCastReactable(act) && !act.CastInfo!.Interruptible && !IsBossFromIcon(act.OID);
-
-    private static bool IsBossFromIcon(uint oid) => Service.LuminaRow<BNpcBase>(oid)?.Rank is 1 or 2 or 6;
+    internal bool ShouldInterrupt(AIHints.Enemy e) => e.Actor.InCombat && e.ShouldBeInterrupted && (e.Actor.CastInfo?.Interruptible ?? false);
+    internal bool ShouldStun(AIHints.Enemy e) => e.Actor.InCombat && e.ShouldBeStunned;
 
     internal bool IsCastReactable(Actor act)
     {
