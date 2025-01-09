@@ -3,11 +3,8 @@
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 998)]
 public class TheProtectorAndTheDestroyer(WorldState ws) : QuestBattle(ws)
 {
-    public override List<QuestObjective> DefineObjectives(WorldState ws)
+    public override unsafe List<QuestObjective> DefineObjectives(WorldState ws)
     {
-        if (ws.Party.Player()?.PosRot.Y > 50)
-            return [];
-
         return [
         new QuestObjective(ws)
             .WithConnection(new Waypoint(new Vector3(-0.57f, -6.05f, 209.93f), false))
@@ -32,7 +29,8 @@ public class TheProtectorAndTheDestroyer(WorldState ws) : QuestBattle(ws)
 
                 obj.AddAIHints += (player, hints) => {
                     if (!player.InCombat)
-                        hints.InteractWithTarget = null; // World.Actors.FirstOrDefault(x => sadCitizens.Contains(Utils.GameObjectInternal(Service.ObjectTable[x.SpawnIndex])->LayoutId) && x.IsTargetable);
+                        // TODO make this work in uidev - layoutid is the only piece of information we get about these actors and they change per run
+                        hints.InteractWithTarget = Service.ObjectTable != null ? World.Actors.FirstOrDefault(x => sadCitizens.Contains(Utils.GameObjectInternal(Service.ObjectTable[x.SpawnIndex])->LayoutId) && x.IsTargetable) : null;
                 };
             }),
 
