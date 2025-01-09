@@ -296,7 +296,7 @@ class FRUStates : StateMachineBuilder
             .DeactivateOnExit<P2MirrorMirrorHouseOfLight>();
 
         ActorCastMulti(id + 0x100, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 0.5f, 5, true)
-            .ActivateOnEnter<P2Banish>();
+            .ActivateOnEnter<P2Banish1>();
         ComponentCondition<P2Banish>(id + 0x102, 0.1f, comp => !comp.Active, "Spread/Stack")
             .DeactivateOnExit<P2Banish>();
     }
@@ -327,7 +327,7 @@ class FRUStates : StateMachineBuilder
 
         ActorCastStartMulti(id + 0x70, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 1.7f, true);
         ComponentCondition<P2BrightHunger2>(id + 0x71, 1.9f, comp => comp.NumCasts > 0, "Central tower")
-            .ActivateOnEnter<P2Banish>()
+            .ActivateOnEnter<P2Banish2>()
             .DeactivateOnExit<P2BrightHunger2>()
             .DeactivateOnExit<P2SinboundHolyVoidzone>();
         ActorCastEnd(id + 0x72, _module.BossP2, 3.1f, true);

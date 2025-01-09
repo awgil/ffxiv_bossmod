@@ -8,7 +8,7 @@ namespace BossMod.Dawntrail.Ultimate.FRU;
 sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModule(manager, player)
 {
     public enum Track { Movement }
-    public enum MovementStrategy { None, Pathfind, PathfindMeleeGreed, Explicit, Prepull, DragToCenter }
+    public enum MovementStrategy { None, Pathfind, PathfindMeleeGreed, Explicit, ExplicitMelee, Prepull, DragToCenter }
 
     public static RotationModuleDefinition Definition()
     {
@@ -18,6 +18,7 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
             .AddOption(MovementStrategy.Pathfind, "Pathfind", "Use standard pathfinding to move")
             .AddOption(MovementStrategy.PathfindMeleeGreed, "PathfindMeleeGreed", "Melee greed: find closest safespot, then move to maxmelee closest to it")
             .AddOption(MovementStrategy.Explicit, "Explicit", "Move to specific point", supportedTargets: ActionTargets.Area)
+            .AddOption(MovementStrategy.ExplicitMelee, "ExplicitMelee", "Move to the point in maxmelee that is closest to specific point", supportedTargets: ActionTargets.Area)
             .AddOption(MovementStrategy.Prepull, "Prepull", "Pre-pull position: as close to the clock-spot as possible")
             .AddOption(MovementStrategy.DragToCenter, "DragToCenter", "Drag boss to the arena center");
         return res;
@@ -38,6 +39,7 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
         MovementStrategy.Pathfind => PathfindPosition(null),
         MovementStrategy.PathfindMeleeGreed => PathfindPosition(ResolveTargetOverride(strategy.Value) ?? primaryTarget),
         MovementStrategy.Explicit => ResolveTargetLocation(strategy.Value),
+        MovementStrategy.ExplicitMelee => ExplicitMeleePosition(ResolveTargetLocation(strategy.Value), ResolveTargetOverride(strategy.Value) ?? primaryTarget),
         MovementStrategy.Prepull => PrepullPosition(module, assignment),
         MovementStrategy.DragToCenter => DragToCenterPosition(module),
         _ => null
@@ -49,6 +51,8 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
         var res = NavigationDecision.Build(NavigationContext, World, Hints, Player, Speed());
         return meleeGreedTarget != null && res.Destination != null ? ClosestInMelee(res.Destination.Value, meleeGreedTarget) : (res.Destination ?? Player.Position);
     }
+
+    private WPos ExplicitMeleePosition(WPos ideal, Actor? target) => target != null ? ClosestInMelee(ideal, target) : ideal;
 
     // assumption: pull range is 12; hitbox is 5, so maxmelee is 8, meaning we have approx 4m to move during pull - with sprint, speed is 7.8, accel is 30 => over 0.26s accel period we move 1.014m, then need another 0.38s to reach boss (but it also moves)
     private WPos PrepullPosition(FRU module, PartyRolesConfig.Assignment assignment)

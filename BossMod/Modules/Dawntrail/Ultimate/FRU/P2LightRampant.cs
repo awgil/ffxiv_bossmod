@@ -31,15 +31,64 @@ class P2LightRampant(BossModule module) : BossComponent(module)
 class P2LuminousHammer(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(6), (uint)IconID.LuminousHammer, ActionID.MakeSpell(AID.LuminousHammer), 7.1f, true)
 {
     private readonly int[] _baitsPerPlayer = new int[PartyState.MaxPartySize];
+    private readonly WPos[] _prevBaitPos = new WPos[PartyState.MaxPartySize];
+
+    private const float FirstBaitOffset = 8;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var bait = ActiveBaitsOn(actor).FirstOrDefault();
+        if (bait.Target == null)
+            return; // no bait, don't care
+
+        switch (_baitsPerPlayer[slot])
+        {
+            case 0:
+                // position for first bait
+                var partner = ActiveBaitsNotOn(actor).FirstOrDefault().Target;
+                if (partner == null)
+                    return; // we can't resolve the hint without knowing the partner
+
+                // logic:
+                // - if actor and partner are north and south, stay on current side
+                // - if both are on the same side, the 'more clockwise' one (NE/SW) moves to the opposite side
+                // TODO: last rule is fuzzy in practice, see if we can adjust better
+                var north = actor.Position.Z < Module.Center.Z;
+                if (north == (partner.Position.Z < Module.Center.Z))
+                {
+                    // same side, see if we need to swap
+                    var moreRight = actor.Position.X > partner.Position.X;
+                    var moreCW = north == moreRight;
+                    north ^= moreCW;
+                }
+
+                var preposSpot = Module.Center + new WDir(0, north ? -FirstBaitOffset : FirstBaitOffset);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(preposSpot, 1), bait.Activation);
+                break;
+            case 1:
+            case 2:
+                // second/third bait - rotate 45 degrees CW
+                var secondSpot = Module.Center + (_prevBaitPos[slot] - Module.Center).Rotate(-45.Degrees());
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(secondSpot, 3));
+                break;
+            case 3:
+            case 4:
+                // fourth/fifth bait - move towards N/S wall
+                var dest = Module.Center + new WDir(0, _prevBaitPos[slot].X > Module.Center.X ? +18 : -18);
+                var thirdSpot = _prevBaitPos[slot] + 6 * (dest - _prevBaitPos[slot]).Normalized();
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(thirdSpot, 3));
+                break;
+        }
+    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action == WatchedAction)
+        if (spell.Action == WatchedAction && Raid.FindSlot(spell.MainTargetID) is var slot && slot >= 0)
         {
             ++NumCasts;
-            var slot = Raid.FindSlot(spell.MainTargetID);
-            if (slot >= 0 && ++_baitsPerPlayer[slot] >= 5)
-                CurrentBaits.RemoveAll(b => b.Target == Raid[slot]);
+            _prevBaitPos[slot] = Raid[slot]?.Position ?? default;
+            if (++_baitsPerPlayer[slot] == 5)
+                CurrentBaits.RemoveAll(b => b.Target == Raid[slot]); // last bait
         }
     }
 }
@@ -48,6 +97,18 @@ class P2BrightHunger1(BossModule module) : Components.GenericTowers(module, Acti
 {
     private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
     private BitMask _forbidden;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // if we have one tower assigned, stay inside it, somewhat closer to the edge
+        var assignedTowerIndex = Towers.FindIndex(t => !t.ForbiddenSoakers[slot]);
+        if (assignedTowerIndex >= 0 && Towers.FindIndex(assignedTowerIndex + 1, t => !t.ForbiddenSoakers[slot]) < 0)
+        {
+            ref var t = ref Towers.Ref(assignedTowerIndex);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center + (t.Position - Module.Center) * 1.125f, 2), t.Activation); // center is at R16, x1.125 == R18
+        }
+        // else: we either have no towers assigned (== doing puddles), or have multiple assigned (== assignments failed), so do nothing
+    }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
@@ -107,6 +168,15 @@ class P2HolyLightBurst(BossModule module) : Components.SelfTargetedAOEs(module, 
 
 class P2PowerfulLight(BossModule module) : Components.UniformStackSpread(module, 5, 0, 4, 4)
 {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // TODO: there are several 'stages' here, which need different hints:
+        // 1. initially (before first holy light burst cast start / last puddle bait, which happen roughly at the same time), we want to stack strictly N/S (unless we are baiting puddles)
+        // 2. after that, we need to move CW closer to the holy light burst border; if we are stack target, we need to ensure we wait for puddle baiter, otherwise we can just follow stack target very closely
+        // 3. after this mechanic resolves, we need to dodge HLBs
+        base.AddAIHints(slot, actor, assignment, hints);
+    }
+
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.WeightOfLight)
