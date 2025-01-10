@@ -127,14 +127,6 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _manualQueue.FillQueue(_hints.ActionsToExecute);
     }
 
-    private byte StartAutosDetour(bool* playerIsAutoattacking, bool wantStart, char unk1, byte unk2)
-    {
-        if (wantStart && !_autoAutosTweak.GetDesiredState(true, TargetSystem.Instance()->GetTargetObjectId()))
-            return 1;
-
-        return _startAutosHook.Original(playerIsAutoattacking, wantStart, unk1, unk2);
-    }
-
     // finish gathering candidate actions for this frame: sort by priority and select best action to execute
     public void FinishActionGather()
     {
@@ -613,6 +605,15 @@ public sealed unsafe class ActionManagerEx : IDisposable
         var (recastElapsed, recastTotal) = recast != null ? (recast->Elapsed, recast->Total) : (0, 0);
         Service.Log($"[AMEx] UAL #{seq} {action} @ {targetID:X} / {Utils.Vec3String(targetPos)}, ALock={_inst->AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
         ActionRequestExecuted.Fire(new(action, targetID, targetPos, seq, _inst->AnimationLock, castElapsed, castTotal, recastElapsed, recastTotal));
+    }
+
+    private byte StartAutosDetour(bool* playerIsAutoattacking, bool wantStart, char unk1, byte unk2)
+    {
+        // at the point this function is called, player target ID is not updated in worldstate
+        if (wantStart && !_autoAutosTweak.GetDesiredState(true, TargetSystem.Instance()->GetTargetObjectId()))
+            return 1;
+
+        return _startAutosHook.Original(playerIsAutoattacking, wantStart, unk1, unk2);
     }
 
     private static bool CheckActionLoS(ActionID action, ulong targetID)
