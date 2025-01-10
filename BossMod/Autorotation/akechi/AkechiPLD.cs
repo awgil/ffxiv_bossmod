@@ -782,7 +782,6 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             Player.InCombat && //In combat
             target != null && //Target exists
             In25y(target) && //Target in range
-            FightOrFlight.IsActive && //Fight or Flight is active
             Requiescat.IsActive && //Requiescat is active
             BladeComboStep is 0 or 1 or 2 or 3, //Blade Combo conditions are met
         BladeComboStrategy.ForceConfiteor => Confiteor.IsReady && BladeComboStep is 0, //Force Confiteor
