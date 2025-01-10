@@ -78,6 +78,9 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private delegate void UseMagiciteDelegate(InstanceContentDeepDungeon* thisPtr, uint slot);
     private readonly HookAddress<UseMagiciteDelegate> _useMagiciteHook;
 
+    private delegate byte StartAutoattackDelegate(bool* a1, bool a2, char a3, byte a4);
+    private readonly HookAddress<StartAutoattackDelegate> _startAutosHook;
+
     public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement)
     {
         _ws = ws;
@@ -97,6 +100,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
         _usePomanderHook = new("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8D 4F 10 E8 ?? ?? ?? ?? 48 63 F8", UsePomanderDetour);
         _useMagiciteHook = new("E8 ?? ?? ?? ?? EB 70 48 8D 4F 10", UseMagiciteDetour);
+        _startAutosHook = new("E8 ?? ?? ?? ?? EB 15 41 B0 01", StartAutosDetour);
         _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
 
         var executeCommandGTAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 1E 48 8B 53 08");
@@ -109,6 +113,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _processPacketActionEffectHook.Dispose();
         _useMagiciteHook.Dispose();
         _usePomanderHook.Dispose();
+        _startAutosHook.Dispose();
         _useBozjaFromHolsterDirectorHook.Dispose();
         _useActionLocationHook.Dispose();
         _useActionHook.Dispose();
@@ -120,6 +125,14 @@ public sealed unsafe class ActionManagerEx : IDisposable
     {
         _manualQueue.RemoveExpired();
         _manualQueue.FillQueue(_hints.ActionsToExecute);
+    }
+
+    private byte StartAutosDetour(bool* playerIsAutoattacking, bool wantStart, char unk1, byte unk2)
+    {
+        if (wantStart && !_autoAutosTweak.GetDesiredState(true, TargetSystem.Instance()->GetTargetObjectId()))
+            return 1;
+
+        return _startAutosHook.Original(playerIsAutoattacking, wantStart, unk1, unk2);
     }
 
     // finish gathering candidate actions for this frame: sort by priority and select best action to execute
@@ -447,7 +460,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private bool UseActionDetour(ActionManager* self, CSActionType actionType, uint actionId, ulong targetId, uint extraParam, ActionManager.UseActionMode mode, uint comboRouteId, bool* outOptAreaTargeted)
     {
         var action = new ActionID((ActionType)actionType, actionId);
-        //Service.Log($"[AMEx] UA: {action} @ {targetId:X}: {extraParam} {mode} {comboRouteId}");
+        Service.Log($"[AMEx] UA: {action} @ {targetId:X}: {extraParam} {mode} {comboRouteId}");
         action = NormalizeActionForQueue(action);
 
         // if mouseover mode is enabled AND target is a usual primary target AND current mouseover is valid target for action, then we override target to mouseover
