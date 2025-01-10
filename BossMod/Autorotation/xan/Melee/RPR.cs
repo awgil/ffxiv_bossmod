@@ -103,7 +103,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         Executioner = StatusLeft(SID.Executioner);
         PerfectioParata = StatusLeft(SID.PerfectioParata);
 
-        var primaryEnemy = Hints.PotentialTargets.FirstOrDefault(x => x.Actor.InstanceID == primaryTarget?.InstanceID);
+        var primaryEnemy = primaryTarget != null ? Hints.FindEnemy(primaryTarget) : null;
 
         TargetDDLeft = DDLeft(primaryEnemy);
         ShortestNearbyDDLeft = float.MaxValue;

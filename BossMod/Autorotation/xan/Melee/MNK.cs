@@ -414,7 +414,15 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     private Form GetEffectiveForm(StrategyValues strategy)
     {
         if (PerfectBalanceLeft == 0)
-            return CurrentForm;
+        {
+            if (Unlocked(AID.SnapPunch))
+                return CurrentForm;
+
+            if (Unlocked(AID.TrueStrike))
+                return CurrentForm == Form.Raptor ? Form.Raptor : Form.OpoOpo;
+
+            return Form.OpoOpo;
+        }
 
         var nadi = strategy.Option(Track.Nadi).As<NadiStrategy>();
 
