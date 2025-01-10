@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using ImGuiNET;
+using System.IO;
 
 namespace BossMod.ReplayVisualization;
 
@@ -211,6 +212,9 @@ class ReplayDetailsWindow : UIWindow
         ImGui.Checkbox("Show config", ref _showConfig);
         ImGui.SameLine();
         ImGui.Checkbox("Show debug", ref _showDebug);
+        ImGui.SameLine();
+        if (ImGui.Button("Split"))
+            SplitLog();
 
         if (_showConfig)
             _config.Draw();
@@ -495,5 +499,18 @@ class ReplayDetailsWindow : UIWindow
     private void ResetPF()
     {
         _pfVisu = null;
+    }
+
+    private void SplitLog()
+    {
+        if (_player.Replay.Ops.Count == 0)
+            return;
+
+        var player = new ReplayPlayer(_player.Replay);
+        player.WorldState.Frame.Timestamp = _player.Replay.Ops[0].Timestamp; // so that we get correct name etc.
+        using (var relogger = new ReplayRecorder(player.WorldState, ReplayLogFormat.BinaryCompressed, false, new FileInfo(_player.Replay.Path).Directory!, "Before"))
+            player.AdvanceTo(_curTime, () => { });
+        using (var relogger = new ReplayRecorder(player.WorldState, ReplayLogFormat.BinaryCompressed, true, new FileInfo(_player.Replay.Path).Directory!, "After"))
+            player.AdvanceTo(DateTime.MaxValue, () => { });
     }
 }
