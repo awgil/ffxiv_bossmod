@@ -289,8 +289,11 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         : BladeComboStep is 2 //if Confiteor combo is at step 2
         ? AID.BladeOfTruth //then use Blade of Truth
         : BladeComboStep is 1 //if Confiteor combo is at step 1
+        && Unlocked(AID.BladeOfFaith)
         ? AID.BladeOfFaith //then use Blade of Faith
-        : AID.Confiteor; //otherwise use Confiteor
+        : Unlocked(AID.Confiteor) //if Confiteor is unlocked
+        ? AID.Confiteor //otherwise use Confiteor
+        : BestHoly;
     #endregion
 
     #region Module Variables
@@ -818,7 +821,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             Player.InCombat && //In combat
             target != null && //Target exists
             In25y(target) && //Target in range
-            HolySpirit.IsReady && //can execute Holy Circle
+            HolySpirit.IsReady && //can execute Holy Spirit
             DivineMight.IsActive, //Divine Might is active
         _ => false
     };
