@@ -699,7 +699,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             Player.InCombat && //In combat
             target != null && //Target exists
             FightOrFlight.IsReady && //Fight or Flight is ready
-            CombatTimer >= GCDLength * 2 + 0.5f, //After 2+ GCDs
+            (CombatTimer <= 30 && ComboLastMove is AID.RoyalAuthority or AID.RageOfHalone || //Use within 30s of combat and after Royal Authority or Rage of Halone
+             CombatTimer > 30), //Use after 30s of combat
         OGCDStrategy.Force => FightOrFlight.IsReady, //Force Fight or Flight
         OGCDStrategy.AnyWeave => FightOrFlight.IsReady && canWeaveIn, //Force Weave Fight or Flight
         OGCDStrategy.EarlyWeave => FightOrFlight.IsReady && canWeaveEarly, //Force Early Weave Fight or Flight
