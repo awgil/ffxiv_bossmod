@@ -76,9 +76,44 @@ class P2Banish1(BossModule module) : P2Banish(module)
 // this variant provides hints after rampant
 class P2Banish2(BossModule module) : P2Banish(module)
 {
+    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private bool _allowHints;
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        // TODO
-        base.AddAIHints(slot, actor, assignment, hints);
+        if (!_allowHints)
+            return; // don't interfere with tower hints until it's done
+        var prepos = PrepositionLocation(assignment);
+        if (prepos != null)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(prepos.Value, 1), DateTime.MaxValue);
+        else
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
+
+    private WPos? PrepositionLocation(PartyRolesConfig.Assignment assignment)
+    {
+        var clockspot = _config.P2Banish2SpreadSpots[assignment];
+        if (clockspot < 0)
+            return null; // no assignment
+
+        var assignedDirection = (180 - 45 * clockspot).Degrees();
+        if (Stacks.Count > 0 && Stacks[0].Activation > WorldState.FutureTime(1))
+        {
+            var isSupport = assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT or PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.H2;
+            if (_config.P2Banish2SupportsMoveToStack == isSupport)
+                assignedDirection += (_config.P2Banish2MoveCCWToStack ? 45 : -45).Degrees();
+            return Module.Center + 10 * assignedDirection.ToDirection();
+        }
+        else if (Spreads.Count > 0 && Spreads[0].Activation > WorldState.FutureTime(1))
+        {
+            return Module.Center + 13 * assignedDirection.ToDirection();
+        }
+        return null;
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.BrightHunger)
+            _allowHints = true;
     }
 }

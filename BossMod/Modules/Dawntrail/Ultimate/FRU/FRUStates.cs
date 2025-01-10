@@ -309,25 +309,34 @@ class FRUStates : StateMachineBuilder
             .ActivateOnEnter<P2LightRampant>()
             .ActivateOnEnter<P2LuminousHammer>()
             .ActivateOnEnter<P2BrightHunger1>()
+            .ActivateOnEnter<P2LightRampantAITowers>()
             .SetHint(StateMachine.StateHint.DowntimeStart);
         ComponentCondition<P2LuminousHammer>(id + 0x20, 4.8f, comp => comp.NumCasts > 0, "Puddle bait");
         ComponentCondition<P2BrightHunger1>(id + 0x30, 3.3f, comp => comp.NumCasts > 0, "Towers")
             .ActivateOnEnter<P2SinboundHolyVoidzone>()
+            .DeactivateOnExit<P2LightRampantAITowers>()
             .DeactivateOnExit<P2BrightHunger1>();
-        ComponentCondition<P2PowerfulLight>(id + 0x40, 5.7f, comp => !comp.Active, "Stack")
+        ComponentCondition<P2HolyLightBurst>(id + 0x38, 3.2f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<P2HolyLightBurst>()
             .ActivateOnEnter<P2PowerfulLight>()
-            .DeactivateOnExit<P2LuminousHammer>() // last puddle is baited right before holy light burst casts start
-            .DeactivateOnExit<P2PowerfulLight>();
+            .ActivateOnEnter<P2LightRampantAIStack>()
+            .DeactivateOnExit<P2LuminousHammer>(); // last puddle is baited right before holy light burst casts start
+        ComponentCondition<P2PowerfulLight>(id + 0x40, 2.5f, comp => !comp.Active, "Stack")
+            .DeactivateOnExit<P2PowerfulLight>()
+            .DeactivateOnExit<P2LightRampantAIStack>();
         ComponentCondition<P2HolyLightBurst>(id + 0x50, 2.4f, comp => comp.NumCasts > 0, "Orbs 1")
+            .ActivateOnEnter<P2LightRampantAIOrbs>()
             .ActivateOnEnter<P2BrightHunger2>();
         ComponentCondition<P2HolyLightBurst>(id + 0x60, 3, comp => comp.NumCasts > 3, "Orbs 2")
+            .DeactivateOnExit<P2LightRampantAIOrbs>()
             .DeactivateOnExit<P2HolyLightBurst>()
             .DeactivateOnExit<P2LightRampant>(); // tethers resolve right after first orbs
 
-        ActorCastStartMulti(id + 0x70, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 1.7f, true);
+        ActorCastStartMulti(id + 0x70, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 1.7f, true)
+            .ActivateOnEnter<P2LightRampantAIResolve>();
         ComponentCondition<P2BrightHunger2>(id + 0x71, 1.9f, comp => comp.NumCasts > 0, "Central tower")
             .ActivateOnEnter<P2Banish2>()
+            .DeactivateOnExit<P2LightRampantAIResolve>()
             .DeactivateOnExit<P2BrightHunger2>()
             .DeactivateOnExit<P2SinboundHolyVoidzone>();
         ActorCastEnd(id + 0x72, _module.BossP2, 3.1f, true);
