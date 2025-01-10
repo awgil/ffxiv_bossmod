@@ -13,144 +13,144 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     //Abilities tracked for Cooldown Planner & Autorotation execution
     public enum Track
     {
-        AOE,             //ST&AOE rotations tracking
-        Cooldowns,       //Cooldown abilities tracking
-        Cartridges,      //Cartridge abilities tracking
-        Potion,          //Potion item tracking
-        LightningShot,   //Ranged ability tracking
-        NoMercy,         //No Mercy ability tracking
-        SonicBreak,      //Sonic Break ability tracking
-        GnashingFang,    //Gnashing Fang abilities tracking
-        Reign,           //Reign abilities tracking
-        Bloodfest,       //Bloodfest ability tracking
-        DoubleDown,      //Double Down ability tracking
-        Zone,            //Blasting Zone or Danger Zone ability tracking
-        BowShock,        //Bow Shock ability tracking
+        AOE,                 //ST&AOE rotations tracking
+        Cooldowns,           //Cooldown abilities tracking
+        Cartridges,          //Cartridge abilities tracking
+        Potion,              //Potion item tracking
+        LightningShot,       //Ranged ability tracking
+        NoMercy,             //No Mercy ability tracking
+        SonicBreak,          //Sonic Break ability tracking
+        GnashingFang,        //Gnashing Fang abilities tracking
+        Reign,               //Reign abilities tracking
+        Bloodfest,           //Bloodfest ability tracking
+        DoubleDown,          //Double Down ability tracking
+        Zone,                //Blasting Zone or Danger Zone ability tracking
+        BowShock,            //Bow Shock ability tracking
     }
 
     //Defines the strategy for using ST/AOE actions based on the current target selection and conditions
     public enum AOEStrategy
     {
-        AutoFinishCombo,    //Decide action based on target count but finish current combo if possible
-        AutoBreakCombo,     //Decide action based on target count; breaks combo if needed
-        ForceSTwithO,       //Force single-target rotation with overcap protection on cartridges
-        ForceSTwithoutO,    //Force single-target rotation without overcap protection on cartridges
-        ForceAOEwithO,      //Force AOE rotation with overcap protection on cartridges
-        ForceAOEwithoutO,   //Force AOE rotation without overcap protection on cartridges
-        GenerateDowntime    //Generate cartridges before downtime
+        AutoFinishCombo,     //Decide action based on target count but finish current combo if possible
+        AutoBreakCombo,      //Decide action based on target count; breaks combo if needed
+        ForceSTwithO,        //Force single-target rotation with overcap protection on cartridges
+        ForceSTwithoutO,     //Force single-target rotation without overcap protection on cartridges
+        ForceAOEwithO,       //Force AOE rotation with overcap protection on cartridges
+        ForceAOEwithoutO,    //Force AOE rotation without overcap protection on cartridges
+        GenerateDowntime     //Generate cartridges before downtime
     }
 
     //Defines different strategies for executing burst damage actions based on cooldown and resource availability
     public enum CooldownStrategy
     {
-        Automatic,          //Automatically execute based on conditions
-        Hold,               //Hold all resources
+        Automatic,           //Automatically execute based on conditions
+        Hold,                //Hold all resources
     }
 
     //Defines the strategy for using abilities that consume cartridges, allowing for different behaviors based on combat scenarios
     public enum CartridgeStrategy
     {
-        Automatic,      //Automatically decide when to use Burst Strike & Fated Circle
-        OnlyBS,         //Force the use of Burst Strike; consumes 1 cartridge
-        OnlyFC,         //Force the use of Fated Circle; consumes 1 cartridge
-        ForceBS,        //Force the use of Gnashing Fang (cooldown only); consumes 1 cartridge
-        ForceFC,        //Force the use of Double Down; consumes 1 cartridge (yay)
-        Conserve        //Conserves all cartridge-related abilities as much as possible
+        Automatic,           //Automatically decide when to use Burst Strike & Fated Circle
+        OnlyBS,              //Only use Burst Strike as cartridge spender
+        OnlyFC,              //Only use Fated Circle as cartridge spender
+        ForceBS,             //Force the use of Burst Strike
+        ForceFC,             //Force the use of Fated Circle
+        Conserve             //Conserves all cartridge-related abilities as much as possible
     }
 
     //Defines strategies for potion usage in combat, determining when and how to consume potions based on the situation
     public enum PotionStrategy
     {
-        Manual,                //Manual potion usage
-        AlignWithRaidBuffs,    //Align potion usage with raid buffs
-        Immediate              //Use potions immediately when available
+        Manual,              //Manual potion usage
+        AlignWithRaidBuffs,  //Align potion usage with raid buffs
+        Immediate            //Use potions immediately when available
     }
 
     //Defines strategies for using Lightning Shot during combat based on various conditions
     public enum LightningShotStrategy
     {
-        OpenerFar,      //Only use Lightning Shot in pre-pull & out of melee range
-        OpenerForce,    //Force use Lightning Shot in pre-pull in any range
-        Force,          //Force the use of Lightning Shot in any range
-        Allow,          //Allow the use of Lightning Shot when out of melee range
-        Forbid          //Prohibit the use of Lightning Shot
+        OpenerFar,           //Only use Lightning Shot in pre-pull & out of melee range
+        OpenerForce,         //Force use Lightning Shot in pre-pull in any range
+        Force,               //Force the use of Lightning Shot in any range
+        Allow,               //Allow the use of Lightning Shot when out of melee range
+        Forbid               //Prohibit the use of Lightning Shot
     }
 
     //Defines the strategy for using No Mercy, allowing for different behaviors based on combat scenarios
     public enum NoMercyStrategy
     {
-        Automatic,      //Automatically decide when to use No Mercy
-        Force,          //Force the use of No Mercy regardless of conditions
-        ForceW,         //Force the use of No Mercy in next possible weave slot
-        ForceQW,        //Force the use of No Mercy in next last possible second weave slot
-        Force1,         //Force the use of No Mercy when 1 cartridge is available
-        Force1W,        //Force the use of No Mercy when 1 cartridge is available in next possible weave slot
-        Force1QW,       //Force the use of No Mercy when 1 cartridge is available in next last possible second weave slot
-        Force2,         //Force the use of No Mercy when 2 cartridges are available
-        Force2W,        //Force the use of No Mercy when 2 cartridges are available in next possible weave slot
-        Force2QW,       //Force the use of No Mercy when 2 cartridges are available in next last possible second weave slot
-        Force3,         //Force the use of No Mercy when 3 cartridges are available
-        Force3W,        //Force the use of No Mercy when 3 cartridges are available in next possible weave slot
-        Force3QW,       //Force the use of No Mercy when 3 cartridges are available in next last possible second weave slot
-        Delay           //Delay the use of No Mercy for strategic reasons
+        Automatic,           //Automatically decide when to use No Mercy
+        Force,               //Force the use of No Mercy regardless of conditions
+        ForceW,              //Force the use of No Mercy in next possible weave slot
+        ForceQW,             //Force the use of No Mercy in next last possible second weave slot
+        Force1,              //Force the use of No Mercy when 1 cartridge is available
+        Force1W,             //Force the use of No Mercy when 1 cartridge is available in next possible weave slot
+        Force1QW,            //Force the use of No Mercy when 1 cartridge is available in next last possible second weave slot
+        Force2,              //Force the use of No Mercy when 2 cartridges are available
+        Force2W,             //Force the use of No Mercy when 2 cartridges are available in next possible weave slot
+        Force2QW,            //Force the use of No Mercy when 2 cartridges are available in next last possible second weave slot
+        Force3,              //Force the use of No Mercy when 3 cartridges are available
+        Force3W,             //Force the use of No Mercy when 3 cartridges are available in next possible weave slot
+        Force3QW,            //Force the use of No Mercy when 3 cartridges are available in next last possible second weave slot
+        Delay                //Delay the use of No Mercy for strategic reasons
     }
 
     //Defines the strategy for using Sonic Break, allowing for different behaviors based on combat scenarios
     public enum SonicBreakStrategy
     {
-        Automatic,      //Automatically decide when to use Sonic Break
-        Force,          //Force the use of Sonic Break regardless of conditions
-        Early,          //Force the use of Sonic Break on the first GCD slot inside No Mercy window
-        Late,           //Force the use of Sonic Break on the last GCD slot inside No Mercy window
-        Delay           //Delay the use of Sonic Break for strategic reasons
+        Automatic,           //Automatically decide when to use Sonic Break
+        Force,               //Force the use of Sonic Break regardless of conditions
+        Early,               //Force the use of Sonic Break on the first GCD slot inside No Mercy window
+        Late,                //Force the use of Sonic Break on the last GCD slot inside No Mercy window
+        Delay                //Delay the use of Sonic Break for strategic reasons
     }
 
     //Defines the strategy for using Gnashing Fang in combos, allowing for different behaviors based on combat scenarios
     public enum GnashingStrategy
     {
-        Automatic,      //Automatically decide when to use Gnashing Fang
-        ForceGnash,     //Force the use of Gnashing Fang regardless of conditions
-        ForceClaw,      //Force the use of Savage Claw action when in combo
-        ForceTalon,     //Force the use of Wicked Talon action when in combo
-        Delay           //Delay the use of Gnashing Fang for strategic reasons
+        Automatic,           //Automatically decide when to use Gnashing Fang
+        ForceGnash,          //Force the use of Gnashing Fang regardless of conditions
+        ForceClaw,           //Force the use of Savage Claw action when in combo
+        ForceTalon,          //Force the use of Wicked Talon action when in combo
+        Delay                //Delay the use of Gnashing Fang for strategic reasons
     }
 
     //Defines the strategy for using Reign of Beasts & it's combo chain, allowing for different behaviors based on combat scenarios
     public enum ReignStrategy
     {
-        Automatic,      //Automatically decide when to use Reign of Beasts
-        ForceReign,     //Force the use of Reign of Beasts when available
-        ForceNoble,     //Force the use of Noble Blood when in available
-        ForceLion,      //Force the use of Lion Heart when in available
-        Delay           //Delay the use of Reign combo for strategic reasons
+        Automatic,           //Automatically decide when to use Reign of Beasts
+        ForceReign,          //Force the use of Reign of Beasts when available
+        ForceNoble,          //Force the use of Noble Blood when in available
+        ForceLion,           //Force the use of Lion Heart when in available
+        Delay                //Delay the use of Reign combo for strategic reasons
     }
 
     //Defines the strategy for using Bloodfest, allowing for different behaviors based on combat scenarios
     public enum BloodfestStrategy
     {
-        Automatic,      //Automatically decide when to use Bloodfest
-        Force,          //Force the use of Bloodfest regardless of conditions
-        ForceW,         //Force the use of Bloodfest in next possible weave slot
-        Force0,         //Force the use of Bloodfest only when ammo is empty
-        Force0W,        //Force the use of Bloodfest only when ammo is empty in next possible weave slot
-        Delay           //Delay the use of Sonic Break for strategic reasons
+        Automatic,           //Automatically decide when to use Bloodfest
+        Force,               //Force the use of Bloodfest regardless of conditions
+        ForceW,              //Force the use of Bloodfest in next possible weave slot
+        Force0,              //Force the use of Bloodfest only when ammo is empty
+        Force0W,             //Force the use of Bloodfest only when ammo is empty in next possible weave slot
+        Delay                //Delay the use of Sonic Break for strategic reasons
     }
 
     //Defines different offensive strategies that dictate how abilities and resources are used during combat
     public enum GCDStrategy //Global Cooldown Strategy
     {
-        Automatic,      //Automatically decide when to use global offensive abilities
-        Force,          //Force the use of global offensive abilities regardless of conditions
-        Delay           //Delay the use of global offensive abilities for strategic reasons
+        Automatic,           //Automatically decide when to use global offensive abilities
+        Force,               //Force the use of global offensive abilities regardless of conditions
+        Delay                //Delay the use of global offensive abilities for strategic reasons
     }
     public enum OGCDStrategy //Off-Global Cooldown Strategy
     {
-        Automatic,       //Automatically decide when to use off-global offensive abilities
-        Force,           //Force the use of off-global offensive abilities, regardless of weaving conditions
-        AnyWeave,        //Force the use of off-global offensive abilities in any next possible weave slot
-        EarlyWeave,      //Force the use of off-global offensive abilities in very next FIRST weave slot only
-        LateWeave,       //Force the use of off-global offensive abilities in very next LAST weave slot only
-        Delay            //Delay the use of offensive abilities for strategic reasons
+        Automatic,           //Automatically decide when to use off-global offensive abilities
+        Force,               //Force the use of off-global offensive abilities, regardless of weaving conditions
+        AnyWeave,            //Force the use of off-global offensive abilities in any next possible weave slot
+        EarlyWeave,          //Force the use of off-global offensive abilities in very next FIRST weave slot only
+        LateWeave,           //Force the use of off-global offensive abilities in very next LAST weave slot only
+        Delay                //Delay the use of offensive abilities for strategic reasons
     }
     #endregion
 
