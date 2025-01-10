@@ -87,7 +87,7 @@ class T01AI(BossModule module) : BossComponent(module)
                 {
                     e.Priority = 1; // this is a baseline; depending on whether we want to prioritize clone vs boss, clone's priority changes
                     if (cloneSpawningSoon && e.Actor.FindStatus(SID.SteelScales) != null)
-                        e.Priority = AIHints.Enemy.PriorityForbidAI; // stop dps until stack can be dropped
+                        e.Priority = AIHints.Enemy.PriorityPointless; // stop dps until stack can be dropped
                 }
                 else
                 {
@@ -114,7 +114,7 @@ class T01AI(BossModule module) : BossComponent(module)
                 // for now, let kiter damage it until 20%
                 var predictedHP = (int)e.Actor.HPMP.CurHP + WorldState.PendingEffects.PendingHPDifference(e.Actor.InstanceID);
                 //e.Priority = predictedHP > 0.7f * e.Actor.HPMP.MaxHP ? (actor.Role is Role.Ranged or Role.Melee ? 3 : AIHints.Enemy.PriorityForbidAI) : AIHints.Enemy.PriorityForbidAI;
-                e.Priority = predictedHP > 0.2f * e.Actor.HPMP.MaxHP ? (e.Actor.TargetID == actor.InstanceID ? 3 : AIHints.Enemy.PriorityForbidAI) : AIHints.Enemy.PriorityForbidAI;
+                e.Priority = predictedHP > 0.2f * e.Actor.HPMP.MaxHP ? (e.Actor.TargetID == actor.InstanceID ? 3 : AIHints.Enemy.PriorityPointless) : AIHints.Enemy.PriorityPointless;
                 e.ShouldBeTanked = false;
                 e.ForbidDOTs = true;
             }

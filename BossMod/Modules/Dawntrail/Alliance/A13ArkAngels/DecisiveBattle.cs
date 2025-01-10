@@ -19,7 +19,7 @@ class DecisiveBattle(BossModule module) : BossComponent(module)
         if (slot < _assignedBoss.Length && _assignedBoss[slot] != null)
             foreach (var enemy in hints.PotentialTargets)
                 if (enemy.Actor != _assignedBoss[slot])
-                    enemy.Priority = AIHints.Enemy.PriorityForbidFully;
+                    enemy.Priority = AIHints.Enemy.PriorityInvincible;
     }
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)

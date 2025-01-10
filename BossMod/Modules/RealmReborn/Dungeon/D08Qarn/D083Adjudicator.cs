@@ -43,7 +43,7 @@ public class D083Adjudicator(WorldState ws, Actor primary) : BossModule(ws, prim
             e.Priority = (OID)e.Actor.OID switch
             {
                 OID.MythrilVerge => 3,
-                OID.SunJuror => WorldState.Actors.Where(other => (OID)other.OID is OID.Platform1 or OID.Platform2 or OID.Platform3).InRadius(e.Actor.Position, 1).Any() ? 2 : AIHints.Enemy.PriorityForbidAI,
+                OID.SunJuror => WorldState.Actors.Where(other => (OID)other.OID is OID.Platform1 or OID.Platform2 or OID.Platform3).InRadius(e.Actor.Position, 1).Any() ? 2 : AIHints.Enemy.PriorityPointless,
                 OID.Boss => 1,
                 _ => 0
             };
