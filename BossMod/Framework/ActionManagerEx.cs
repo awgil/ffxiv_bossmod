@@ -70,6 +70,9 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private readonly ExecuteCommandGTDelegate _executeCommandGT;
     private DateTime _nextAllowedExecuteCommand;
 
+    private delegate byte StartAutoattackDelegate(bool* playerAutoState, bool wantStart, char unk1, byte unk2);
+    private readonly HookAddress<StartAutoattackDelegate> _startAutosHook;
+
     public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement)
     {
         _ws = ws;
@@ -88,6 +91,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
         _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
         _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
+        _startAutosHook = new("E8 ?? ?? ?? ?? EB 15 41 B0 01", StartAutosDetour);
 
         var executeCommandGTAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 1E 48 8B 53 08");
         Service.Log($"ExecuteCommandGT address: 0x{executeCommandGTAddress:X}");
@@ -537,5 +541,14 @@ public sealed unsafe class ActionManagerEx : IDisposable
         var (recastElapsed, recastTotal) = recast != null ? (recast->Elapsed, recast->Total) : (0, 0);
         Service.Log($"[AMEx] UAL #{seq} {action} @ {targetID:X} / {Utils.Vec3String(targetPos)}, ALock={_inst->AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
         ActionRequestExecuted.Fire(new(action, targetID, targetPos, seq, _inst->AnimationLock, castElapsed, castTotal, recastElapsed, recastTotal));
+    }
+
+    private byte StartAutosDetour(bool* playerIsAutoattacking, bool wantStart, char unk1, byte unk2)
+    {
+        // in some cases, this function is called before player target ID is updated in worldstate; e.g. right clicking a passive mob
+        if (wantStart && !_autoAutosTweak.GetDesiredState(true, TargetSystem.Instance()->GetTargetObjectId()))
+            return 1;
+
+        return _startAutosHook.Original(playerIsAutoattacking, wantStart, unk1, unk2);
     }
 }
