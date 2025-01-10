@@ -105,6 +105,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _useActionLocationHook.Dispose();
         _useActionHook.Dispose();
         _updateHook.Dispose();
+        _startAutosHook.Dispose();
         _oocActionsTweak.Dispose();
     }
 
