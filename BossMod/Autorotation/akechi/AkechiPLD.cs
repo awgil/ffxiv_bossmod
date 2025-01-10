@@ -818,7 +818,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             Player.InCombat && //In combat
             target != null && //Target exists
             In25y(target) && //Target in range
-            HolyCircle.IsReady && //can execute Holy Circle
+            HolySpirit.IsReady && //can execute Holy Circle
             DivineMight.IsActive, //Divine Might is active
         _ => false
     };
