@@ -319,7 +319,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     public (float Left, bool IsReady, bool IsActive) BladeOfHonor; //Conditions for Blade of Honor ability
     public (bool HasMP, bool IsReady) HolySpirit; //Conditions for Holy Spirit ability
     public (bool HasMP, bool IsReady) HolyCircle; //Conditions for Holy Circle ability
-    public uint MP; //Current MP (mana points) of the player
+    public uint MP; //Current MP of the player
     public bool ShouldUseAOE; //Check if AOE rotation should be used
     public bool ShouldNormalHolyCircle; //Check if Holy Circle should be used
     public bool ShouldUseDMHolyCircle; //Check if Holy Circle should be used under Divine Might
@@ -388,10 +388,10 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         Confiteor.IsReady = Unlocked(AID.Confiteor) && Confiteor.IsActive && MP >= 1000; //Confiteor ability
         BladeOfHonor.Left = SelfStatusLeft(SID.BladeOfHonorReady, 30); //Remaining duration of the Blade of Honor buff
         BladeOfHonor.IsActive = BladeOfHonor.Left > 0; //Check if the Blade of Honor buff is active
-        BladeOfHonor.IsReady = Unlocked(AID.BladeOfHonor) && CD(AID.BladeOfHonor) < 0.6f; //Blade of Honor ability
-        HolySpirit.HasMP = MP >= 1000; //Check if the player has enough mana points for Holy Spirit
+        BladeOfHonor.IsReady = Unlocked(AID.BladeOfHonor) && BladeOfHonor.IsActive; //Checks if Blade of Honor is ready
+        HolySpirit.HasMP = MP >= 1000; //Check if the player has enough MP for Holy Spirit
         HolySpirit.IsReady = Unlocked(AID.HolySpirit) && HolySpirit.HasMP; //Holy Spirit ability
-        HolyCircle.HasMP = MP >= 1000; //Check if the player has enough mana points for Holy Circle
+        HolyCircle.HasMP = MP >= 1000; //Check if the player has enough MP for Holy Circle
         HolyCircle.IsReady = Unlocked(AID.HolyCircle) && HolyCircle.HasMP; //Holy Circle ability
         GCDLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level); //Calculate GCD based on skill speed and haste
         PotionLeft = PotionStatusLeft(); //Remaining duration of the potion buff (typically 30s)
@@ -401,8 +401,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         canWeaveEarly = GCD is <= 2.5f and >= 1.25f; //Can weave in oGCDs early
         canWeaveLate = GCD is <= 1.25f and >= 0.1f; //Can weave in oGCDs late
         ShouldUseAOE = TargetsHitByPlayerAOE() > 2; //Check if AOE rotation should be used
-        ShouldNormalHolyCircle = !DivineMight.IsActive && TargetsHitByPlayerAOE() > 3; //Check if Holy Circle should be used
-        ShouldUseDMHolyCircle = DivineMight.IsActive && TargetsHitByPlayerAOE() > 2;
+        ShouldNormalHolyCircle = !DivineMight.IsActive && TargetsHitByPlayerAOE() > 3; //Check if Holy Circle should be used (very niche)
+        ShouldUseDMHolyCircle = DivineMight.IsActive && TargetsHitByPlayerAOE() > 2; //Check if Holy Circle should be used under Divine Might
 
         #region Strategy Options
         var AOE = strategy.Option(Track.AOE); //Retrieves AOE track
