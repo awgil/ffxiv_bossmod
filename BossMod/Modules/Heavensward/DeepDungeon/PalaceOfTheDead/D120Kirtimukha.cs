@@ -24,12 +24,18 @@ class BossAdds(BossModule module) : Components.Adds(module, (uint)OID.DeepPalace
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var e in hints.PotentialTargets)
-            e.Priority = (OID)e.Actor.OID switch
+        {
+            switch ((OID)e.Actor.OID)
             {
-                OID.DeepPalaceHornet => 2,
-                OID.Boss => 1,
-                _ => 0
-            };
+                case OID.DeepPalaceHornet:
+                    e.Priority = 2;
+                    e.ForbidDOTs = true;
+                    break;
+                case OID.Boss:
+                    e.Priority = 1;
+                    break;
+            }
+        }
     }
 }
 class BloodyCaress(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.BloodyCaress), new AOEShapeCone(11.6f, 60.Degrees()), activeWhileCasting: false);

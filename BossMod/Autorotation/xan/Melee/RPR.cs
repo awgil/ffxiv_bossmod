@@ -322,6 +322,9 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         var spendEarly = RaidBuffsLeft > 0 || BlueGauge < 50;
         var gluttonySoon = CanWeave(AID.Gluttony, 5);
 
+        if (primaryTarget != null && Hints.FindEnemy(primaryTarget)?.Priority == AIHints.Enemy.PriorityPointless)
+            primaryTarget = null;
+
         if (RedGauge == 100 || spendEarly && !gluttonySoon)
         {
             if (NumConeTargets > 2)
