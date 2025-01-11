@@ -25,7 +25,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         Manticore,
         Succubus,
         Kuribu,
-        Dreadnought
+        Dreadnaught
     }
 
     enum SID : uint
@@ -47,7 +47,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
                 42 => Transformation.Manticore,
                 43 => Transformation.Succubus,
                 49 => Transformation.Kuribu,
-                244 => Transformation.Dreadnought,
+                244 => Transformation.Dreadnaught,
                 _ => Transformation.None
             };
         }
@@ -157,7 +157,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
                 attack = ActionID.MakeSpell(Roleplay.AID.HeavenlyJudge);
                 castTime = 2.5f;
                 break;
-            case Transformation.Dreadnought:
+            case Transformation.Dreadnaught:
                 goal = Hints.GoalSingleTarget(primaryTarget, 3);
                 numTargets = 1;
                 attack = ActionID.MakeSpell(Roleplay.AID.Rotosmash);
