@@ -36,6 +36,7 @@ public enum OID : uint
     VisionOfRyne = 0x45B4, // R0.750, x0 (spawn during fight)
     VisionOfGaia = 0x45B5, // R1.500, x0 (spawn during fight)
     DragonPuddle = 0x1EBD41, // R0.500, x0 (spawn during fight), EventObj type, puddle appears when head is touched
+    GuardianOfEden = 0x45AE, // R115.380, x0 (spawn during fight), p5 failure state tree
 }
 
 public enum AID : uint
@@ -243,6 +244,10 @@ public enum AID : uint
     CrystallizeTimeHallowedWings1 = 40229, // UsurperOfFrostP4->self, 4.7+1.3s cast, single-target, visual (first knockback)
     CrystallizeTimeHallowedWings2 = 40230, // UsurperOfFrostP4->self, 0.5+1.3s cast, single-target, visual (second knockback)
     CrystallizeTimeHallowedWingsAOE = 40332, // UsurperOfFrostP4->self, 0.5s cast, range 40 width 50 rect, knockback 20, heavy damage on first target, vuln on first 4 targets
+
+    MemorysEndP4 = 40305, // OracleOfDarknessP4->self, 10.0s cast, range 100 circle, enrage
+    AbsoluteZeroP4 = 40245, // UsurperOfFrostP4->self, 10.0s cast, range 100 circle, enrage
+    ParadiseLost = 40263, // Helper->self, no cast, range 100 circle, wipe on p5 failure state
 }
 
 public enum SID : uint

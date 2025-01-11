@@ -7,6 +7,8 @@
 // TODO: show second wave for players not hit by first wave
 class DiffusiveForceParticleBeam(BossModule module) : Components.UniformStackSpread(module, 0, 7)
 {
+    public int NumCasts;
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.DiffusiveForceParticleBeam)
@@ -16,6 +18,9 @@ class DiffusiveForceParticleBeam(BossModule module) : Components.UniformStackSpr
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.DiffusiveForceParticleBeamAOE1 or AID.DiffusiveForceParticleBeamAOE2)
-            Spreads.Clear();
+        {
+            ++NumCasts;
+            Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
+        }
     }
 }

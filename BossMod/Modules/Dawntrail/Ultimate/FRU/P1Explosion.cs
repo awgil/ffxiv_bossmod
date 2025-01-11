@@ -23,7 +23,10 @@ class P1Explosion(BossModule module) : Components.GenericTowers(module)
         {
             // tanks: stay opposite towers on N/S side (unless cheesing tankbusters)
             // tweak for WAR: if PR is up, assume player will want to maintain full uptime on wide line by using it right before resolve - we want to stay far to increase travel time
-            var horizOffset = _isWideLine && !_lineDone && actor.Class == Class.WAR && actor.FindStatus(WAR.SID.PrimalRend) != null ? 17 : 0;
+            // if doing tankbuster cheese, after line resolves, stay on maxmelee far from towers to give more space for melees
+            var horizOffset = !_lineDone
+                ? (_isWideLine && actor.Class == Class.WAR && actor.FindStatus(WAR.SID.PrimalRend) != null ? 17 : 0)
+                : (_config.P1ExplosionsTankbusterCheese ? 7 : 0);
             hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center - horizOffset * TowerDir, -TowerDir), Activation);
 
             if (!_config.P1ExplosionsTankbusterCheese)

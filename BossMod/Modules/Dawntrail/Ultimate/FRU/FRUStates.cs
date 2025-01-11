@@ -55,6 +55,7 @@ class FRUStates : StateMachineBuilder
         P4AkhMornMornAfah(id + 0x120000, 5.8f);
         P4CrystallizeTime(id + 0x130000, 4.6f);
         P4AkhMornMornAfah(id + 0x140000, 0.1f);
+        P4Enrage(id + 0x150000, 2.3f);
 
         SimpleState(id + 0xFF0000, 100, "???");
     }
@@ -295,7 +296,7 @@ class FRUStates : StateMachineBuilder
             .DeactivateOnExit<P2MirrorMirrorHouseOfLight>();
 
         ActorCastMulti(id + 0x100, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 0.5f, 5, true)
-            .ActivateOnEnter<P2Banish>();
+            .ActivateOnEnter<P2Banish1>();
         ComponentCondition<P2Banish>(id + 0x102, 0.1f, comp => !comp.Active, "Spread/Stack")
             .DeactivateOnExit<P2Banish>();
     }
@@ -308,25 +309,36 @@ class FRUStates : StateMachineBuilder
             .ActivateOnEnter<P2LightRampant>()
             .ActivateOnEnter<P2LuminousHammer>()
             .ActivateOnEnter<P2BrightHunger1>()
+            .ActivateOnEnter<P2LightRampantAITowers>()
             .SetHint(StateMachine.StateHint.DowntimeStart);
         ComponentCondition<P2LuminousHammer>(id + 0x20, 4.8f, comp => comp.NumCasts > 0, "Puddle bait");
         ComponentCondition<P2BrightHunger1>(id + 0x30, 3.3f, comp => comp.NumCasts > 0, "Towers")
             .ActivateOnEnter<P2SinboundHolyVoidzone>()
+            .DeactivateOnExit<P2LightRampantAITowers>()
             .DeactivateOnExit<P2BrightHunger1>();
-        ComponentCondition<P2PowerfulLight>(id + 0x40, 5.7f, comp => !comp.Active, "Stack")
+        ComponentCondition<P2HolyLightBurst>(id + 0x38, 3.2f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<P2HolyLightBurst>()
             .ActivateOnEnter<P2PowerfulLight>()
-            .DeactivateOnExit<P2LuminousHammer>() // last puddle is baited right before holy light burst casts start
+            .ActivateOnEnter<P2LightRampantAIStackPrepos>()
+            .DeactivateOnExit<P2LightRampantAIStackPrepos>()
+            .DeactivateOnExit<P2LuminousHammer>(); // last puddle is baited right before holy light burst casts start
+        ComponentCondition<P2PowerfulLight>(id + 0x40, 2.5f, comp => !comp.Active, "Stack")
+            .ActivateOnEnter<P2LightRampantAIStackResolve>()
+            .DeactivateOnExit<P2LightRampantAIStackResolve>()
             .DeactivateOnExit<P2PowerfulLight>();
         ComponentCondition<P2HolyLightBurst>(id + 0x50, 2.4f, comp => comp.NumCasts > 0, "Orbs 1")
+            .ActivateOnEnter<P2LightRampantAIOrbs>()
             .ActivateOnEnter<P2BrightHunger2>();
         ComponentCondition<P2HolyLightBurst>(id + 0x60, 3, comp => comp.NumCasts > 3, "Orbs 2")
+            .DeactivateOnExit<P2LightRampantAIOrbs>()
             .DeactivateOnExit<P2HolyLightBurst>()
             .DeactivateOnExit<P2LightRampant>(); // tethers resolve right after first orbs
 
-        ActorCastStartMulti(id + 0x70, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 1.7f, true);
+        ActorCastStartMulti(id + 0x70, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 1.7f, true)
+            .ActivateOnEnter<P2LightRampantAIResolve>();
         ComponentCondition<P2BrightHunger2>(id + 0x71, 1.9f, comp => comp.NumCasts > 0, "Central tower")
-            .ActivateOnEnter<P2Banish>()
+            .ActivateOnEnter<P2Banish2>()
+            .DeactivateOnExit<P2LightRampantAIResolve>()
             .DeactivateOnExit<P2BrightHunger2>()
             .DeactivateOnExit<P2SinboundHolyVoidzone>();
         ActorCastEnd(id + 0x72, _module.BossP2, 3.1f, true);
@@ -612,5 +624,10 @@ class FRUStates : StateMachineBuilder
         ActorCast(id + 0xC0, _module.BossP4Usurper, AID.CrystallizeTimeHallowedWingsAOE, 1.4f, 0.5f, true);
         ActorTargetable(id + 0xD0, _module.BossP4Usurper, true, 5.3f, "Bosses reappear")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
+    }
+
+    private void P4Enrage(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP4Usurper, AID.AbsoluteZeroP4, delay, 10, true, "Enrage");
     }
 }

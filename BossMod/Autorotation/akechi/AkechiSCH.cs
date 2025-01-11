@@ -338,9 +338,9 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldUseBio(Actor? target, BioStrategy strategy) => strategy switch
     {
         BioStrategy.Bio3 => Player.InCombat && target != null && bioLeft <= 3 && In25y(target),
-        BioStrategy.Bio6 => Player.InCombat && target != null && bioLeft <= 3 && In25y(target),
-        BioStrategy.Bio9 => Player.InCombat && target != null && bioLeft <= 3 && In25y(target),
-        BioStrategy.Bio0 => Player.InCombat && target != null && bioLeft <= 3 && In25y(target),
+        BioStrategy.Bio6 => Player.InCombat && target != null && bioLeft <= 6 && In25y(target),
+        BioStrategy.Bio9 => Player.InCombat && target != null && bioLeft <= 9 && In25y(target),
+        BioStrategy.Bio0 => Player.InCombat && target != null && bioLeft is 0 && In25y(target),
         BioStrategy.Force => true,
         BioStrategy.Delay => false,
         _ => false
