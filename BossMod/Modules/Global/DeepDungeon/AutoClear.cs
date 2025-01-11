@@ -499,7 +499,7 @@ public abstract class AutoClear : ZoneModule
         if (!isOccupied && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.GetItem(PomanderID.Intuition).Active && InBounds(hints, h.Position))
             hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));
 
-        var shouldTargetMobs = !isOccupied && _config.AutoClear switch
+        var shouldTargetMobs = _config.AutoClear switch
         {
             AutoDDConfig.ClearBehavior.Passage => !Palace.PassageActive,
             AutoDDConfig.ClearBehavior.Leveling => player.Level < LevelCap || !Palace.PassageActive,
@@ -507,7 +507,7 @@ public abstract class AutoClear : ZoneModule
             _ => false
         };
 
-        if (shouldTargetMobs && player.TargetID == 0)
+        if (shouldTargetMobs && !player.InCombat && player.TargetID == 0)
             foreach (var pp in hints.PotentialTargets.Where(t => !t.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID))))
                 pp.Priority = 0;
     }

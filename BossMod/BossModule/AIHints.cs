@@ -46,7 +46,7 @@ public sealed class AIHints
 
     // list of potential targets
     private readonly Enemy?[] _enemies = new Enemy?[99];
-    public Enemy? FindEnemy(Actor actor) => actor.SpawnIndex % 2 == 0 ? _enemies[actor.SpawnIndex / 2] : null;
+    public Enemy? FindEnemy(Actor? actor) => actor != null && actor.SpawnIndex % 2 == 0 ? _enemies[actor.SpawnIndex / 2] : null;
 
     // every non-null element of enemy list in priority order
     public List<Enemy> PotentialTargets = [];

@@ -103,7 +103,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         Executioner = StatusLeft(SID.Executioner);
         PerfectioParata = StatusLeft(SID.PerfectioParata);
 
-        var primaryEnemy = primaryTarget != null ? Hints.FindEnemy(primaryTarget) : null;
+        var primaryEnemy = Hints.FindEnemy(primaryTarget);
 
         TargetDDLeft = DDLeft(primaryEnemy);
         ShortestNearbyDDLeft = float.MaxValue;
@@ -322,15 +322,13 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         var spendEarly = RaidBuffsLeft > 0 || BlueGauge < 50;
         var gluttonySoon = CanWeave(AID.Gluttony, 5);
 
-        if (primaryTarget != null && Hints.FindEnemy(primaryTarget)?.Priority == AIHints.Enemy.PriorityPointless)
-            primaryTarget = null;
-
         if (RedGauge == 100 || spendEarly && !gluttonySoon)
         {
             if (NumConeTargets > 2)
                 PushOGCD(AID.GrimSwathe, BestConeTarget);
 
-            PushOGCD(AID.BloodStalk, primaryTarget);
+            if (Hints.FindEnemy(primaryTarget)?.Priority >= 0)
+                PushOGCD(AID.BloodStalk, primaryTarget);
         }
     }
 
