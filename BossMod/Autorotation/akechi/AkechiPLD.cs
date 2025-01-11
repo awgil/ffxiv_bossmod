@@ -79,6 +79,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     }
     public enum RangedStrategy
     {
+        Automatic,          //Automatically decide on ranged attacks based on conditions
         OpenerRangedCast,   //Use Holy Spirit at the start of combat only if outside melee range
         OpenerCast,         //Use Holy Spirit at the start of combat regardless of range
         ForceCast,          //Force Holy Spirit when possible
@@ -135,7 +136,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         //Atonement Combo definitions
         res.Define(Track.Atonement).As<AtonementStrategy>("Atonement", "Atones", uiPriority: 160)
-            .AddOption(AtonementStrategy.Automatic, "Automatic", "Normal use of Atonement & it's combo")
+            .AddOption(AtonementStrategy.Automatic, "Automatic", "Normal use of Atonement & its combo chain")
             .AddOption(AtonementStrategy.ForceAtonement, "Force Atonement", "Force use of Atonement", 0, 30, ActionTargets.Hostile, 76)
             .AddOption(AtonementStrategy.ForceSupplication, "Force Supplication", "Force use of Supplication", 0, 30, ActionTargets.Hostile, 76)
             .AddOption(AtonementStrategy.ForceSepulchre, "Force Sepulchre", "Force use of Sepulchre", 0, 0, ActionTargets.Hostile, 76)
@@ -143,12 +144,12 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             .AddAssociatedActions(AID.Atonement, AID.Supplication, AID.Sepulchre);
         //Blade Combo definitions
         res.Define(Track.BladeCombo).As<BladeComboStrategy>("Blade Combo", "Blades", uiPriority: 160)
-            .AddOption(BladeComboStrategy.Automatic, "Automatic", "Normal use of Confiteor & Blades Combo")
+            .AddOption(BladeComboStrategy.Automatic, "Automatic", "Normal use of Confiteor & Blades combo chain")
             .AddOption(BladeComboStrategy.ForceConfiteor, "Force", "Force use of Confiteor", 0, 0, ActionTargets.Hostile, 80)
             .AddOption(BladeComboStrategy.ForceFaith, "Force Faith", "Force use of Blade of Faith", 0, 0, ActionTargets.Hostile, 90)
             .AddOption(BladeComboStrategy.ForceTruth, "Force Truth", "Force use of Blade of Truth", 0, 0, ActionTargets.Hostile, 90)
             .AddOption(BladeComboStrategy.ForceValor, "Force Valor", "Force use of Blade of Valor", 0, 0, ActionTargets.Hostile, 90)
-            .AddOption(BladeComboStrategy.Delay, "Delay", "Delay use of Confiteor & Blade Combo", 0, 0, ActionTargets.None, 80)
+            .AddOption(BladeComboStrategy.Delay, "Delay", "Delay use of Confiteor & Blades combo chain", 0, 0, ActionTargets.None, 80)
             .AddAssociatedActions(AID.Confiteor, AID.BladeOfFaith, AID.BladeOfTruth, AID.BladeOfValor);
         //Holy action definitions
         res.Define(Track.Holy).As<HolyStrategy>("Holy Spirit / Circle", "Holy S/C", uiPriority: 150)
@@ -168,6 +169,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             .AddAssociatedActions(AID.Intervene);
         //Ranged attack definitions
         res.Define(Track.Ranged).As<RangedStrategy>("Ranged", "Ranged", uiPriority: 140)
+            .AddOption(RangedStrategy.Automatic, "Automatic", "Uses Holy Spirit when standing still; Uses Shield Lob if moving")
             .AddOption(RangedStrategy.OpenerRangedCast, "Opener (Cast)", "Use Holy Spirit at the start of combat if outside melee range", 0, 0, ActionTargets.Hostile, 64)
             .AddOption(RangedStrategy.OpenerCast, "Opener", "Use Holy Spirit at the start of combat regardless of range", 0, 0, ActionTargets.Hostile, 64)
             .AddOption(RangedStrategy.ForceCast, "Force Cast", "Force use of Holy Spirit", 0, 0, ActionTargets.Hostile, 64)
@@ -585,6 +587,12 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
                     Player, //on Self (no target needed)
                     GCDPriority.ForcedGCD); //use priority
         }
+        if (rangedStrat is RangedStrategy.Automatic && //if Automatic strategy is selected
+            !In3y(TargetChoice(ranged) ?? primaryTarget)) //and target is not in melee range
+            QueueGCD(isMoving ? AID.ShieldLob //queue Shield Lob if moving
+                : AID.HolySpirit, //otherwise queue Holy Spirit
+                TargetChoice(ranged) ?? primaryTarget, //with target choice
+                GCDPriority.Combo123); //use priority for 123/12 combo actions
         if (ShouldUseRangedLob(primaryTarget, rangedStrat)) //if Shield Lob should be used
             QueueGCD(AID.ShieldLob, //queue Shield Lob
                 TargetChoice(ranged) ?? primaryTarget, //with target choice
