@@ -6,8 +6,6 @@ using TraitID = BossMod.GNB.TraitID;
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
-//This module supports <=2.47 SkS rotation as default (or 'Automatic')
-//With user adjustment, 'SlowGNB' or 'FastGNB' usage is easily achievable
 
 public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
@@ -15,148 +13,148 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     //Abilities tracked for Cooldown Planner & Autorotation execution
     public enum Track
     {
-        AOE,             //ST&AOE rotations tracking
-        Cooldowns,       //Cooldown abilities tracking
-        Cartridges,      //Cartridge abilities tracking
-        Potion,          //Potion item tracking
-        LightningShot,   //Ranged ability tracking
-        NoMercy,         //No Mercy ability tracking
-        SonicBreak,      //Sonic Break ability tracking
-        GnashingFang,    //Gnashing Fang abilities tracking
-        Reign,           //Reign abilities tracking
-        Bloodfest,       //Bloodfest ability tracking
-        DoubleDown,      //Double Down ability tracking
-        Zone,            //Blasting Zone or Danger Zone ability tracking
-        BowShock,        //Bow Shock ability tracking
+        AOE,                 //ST&AOE rotations tracking
+        Cooldowns,           //Cooldown abilities tracking
+        Cartridges,          //Cartridge abilities tracking
+        Potion,              //Potion item tracking
+        LightningShot,       //Ranged ability tracking
+        NoMercy,             //No Mercy ability tracking
+        SonicBreak,          //Sonic Break ability tracking
+        GnashingFang,        //Gnashing Fang abilities tracking
+        Reign,               //Reign abilities tracking
+        Bloodfest,           //Bloodfest ability tracking
+        DoubleDown,          //Double Down ability tracking
+        Zone,                //Blasting Zone or Danger Zone ability tracking
+        BowShock,            //Bow Shock ability tracking
     }
 
     //Defines the strategy for using ST/AOE actions based on the current target selection and conditions
     public enum AOEStrategy
     {
-        AutoFinishCombo,    //Decide action based on target count but finish current combo if possible
-        AutoBreakCombo,     //Decide action based on target count; breaks combo if needed
-        ForceSTwithO,       //Force single-target rotation with overcap protection on cartridges
-        ForceSTwithoutO,    //Force single-target rotation without overcap protection on cartridges
-        ForceAOEwithO,      //Force AOE rotation with overcap protection on cartridges
-        ForceAOEwithoutO,   //Force AOE rotation without overcap protection on cartridges
-        GenerateDowntime    //Generate cartridges before downtime
+        AutoFinishCombo,     //Decide action based on target count but finish current combo if possible
+        AutoBreakCombo,      //Decide action based on target count; breaks combo if needed
+        ForceSTwithO,        //Force single-target rotation with overcap protection on cartridges
+        ForceSTwithoutO,     //Force single-target rotation without overcap protection on cartridges
+        ForceAOEwithO,       //Force AOE rotation with overcap protection on cartridges
+        ForceAOEwithoutO,    //Force AOE rotation without overcap protection on cartridges
+        GenerateDowntime     //Generate cartridges before downtime
     }
 
     //Defines different strategies for executing burst damage actions based on cooldown and resource availability
     public enum CooldownStrategy
     {
-        Automatic,          //Automatically execute based on conditions
-        Hold,               //Hold all resources
+        Automatic,           //Automatically execute based on conditions
+        Hold,                //Hold all resources
     }
 
     //Defines the strategy for using abilities that consume cartridges, allowing for different behaviors based on combat scenarios
     public enum CartridgeStrategy
     {
-        Automatic,      //Automatically decide when to use Burst Strike & Fated Circle
-        BurstStrike,    //Force the use of Burst Strike; consumes 1 cartridge
-        FatedCircle,    //Force the use of Fated Circle; consumes 1 cartridge
-        GnashingFang,   //Force the use of Gnashing Fang (cooldown only); consumes 1 cartridge
-        DoubleDown,     //Force the use of Double Down; consumes 1 cartridge (yay)
-        Conserve        //Conserves all cartridge-related abilities as much as possible
+        Automatic,           //Automatically decide when to use Burst Strike & Fated Circle
+        OnlyBS,              //Only use Burst Strike as cartridge spender
+        OnlyFC,              //Only use Fated Circle as cartridge spender
+        ForceBS,             //Force the use of Burst Strike
+        ForceFC,             //Force the use of Fated Circle
+        Conserve             //Conserves all cartridge-related abilities as much as possible
     }
 
     //Defines strategies for potion usage in combat, determining when and how to consume potions based on the situation
     public enum PotionStrategy
     {
-        Manual,                //Manual potion usage
-        AlignWithRaidBuffs,    //Align potion usage with raid buffs
-        Immediate              //Use potions immediately when available
+        Manual,              //Manual potion usage
+        AlignWithRaidBuffs,  //Align potion usage with raid buffs
+        Immediate            //Use potions immediately when available
     }
 
     //Defines strategies for using Lightning Shot during combat based on various conditions
     public enum LightningShotStrategy
     {
-        OpenerFar,      //Only use Lightning Shot in pre-pull & out of melee range
-        OpenerForce,    //Force use Lightning Shot in pre-pull in any range
-        Force,          //Force the use of Lightning Shot in any range
-        Allow,          //Allow the use of Lightning Shot when out of melee range
-        Forbid          //Prohibit the use of Lightning Shot
+        OpenerFar,           //Only use Lightning Shot in pre-pull & out of melee range
+        OpenerForce,         //Force use Lightning Shot in pre-pull in any range
+        Force,               //Force the use of Lightning Shot in any range
+        Allow,               //Allow the use of Lightning Shot when out of melee range
+        Forbid               //Prohibit the use of Lightning Shot
     }
 
     //Defines the strategy for using No Mercy, allowing for different behaviors based on combat scenarios
     public enum NoMercyStrategy
     {
-        Automatic,      //Automatically decide when to use No Mercy
-        Force,          //Force the use of No Mercy regardless of conditions
-        ForceW,         //Force the use of No Mercy in next possible weave slot
-        ForceQW,        //Force the use of No Mercy in next last possible second weave slot
-        Force1,         //Force the use of No Mercy when 1 cartridge is available
-        Force1W,        //Force the use of No Mercy when 1 cartridge is available in next possible weave slot
-        Force1QW,       //Force the use of No Mercy when 1 cartridge is available in next last possible second weave slot
-        Force2,         //Force the use of No Mercy when 2 cartridges are available
-        Force2W,        //Force the use of No Mercy when 2 cartridges are available in next possible weave slot
-        Force2QW,       //Force the use of No Mercy when 2 cartridges are available in next last possible second weave slot
-        Force3,         //Force the use of No Mercy when 3 cartridges are available
-        Force3W,        //Force the use of No Mercy when 3 cartridges are available in next possible weave slot
-        Force3QW,       //Force the use of No Mercy when 3 cartridges are available in next last possible second weave slot
-        Delay           //Delay the use of No Mercy for strategic reasons
+        Automatic,           //Automatically decide when to use No Mercy
+        Force,               //Force the use of No Mercy regardless of conditions
+        ForceW,              //Force the use of No Mercy in next possible weave slot
+        ForceQW,             //Force the use of No Mercy in next last possible second weave slot
+        Force1,              //Force the use of No Mercy when 1 cartridge is available
+        Force1W,             //Force the use of No Mercy when 1 cartridge is available in next possible weave slot
+        Force1QW,            //Force the use of No Mercy when 1 cartridge is available in next last possible second weave slot
+        Force2,              //Force the use of No Mercy when 2 cartridges are available
+        Force2W,             //Force the use of No Mercy when 2 cartridges are available in next possible weave slot
+        Force2QW,            //Force the use of No Mercy when 2 cartridges are available in next last possible second weave slot
+        Force3,              //Force the use of No Mercy when 3 cartridges are available
+        Force3W,             //Force the use of No Mercy when 3 cartridges are available in next possible weave slot
+        Force3QW,            //Force the use of No Mercy when 3 cartridges are available in next last possible second weave slot
+        Delay                //Delay the use of No Mercy for strategic reasons
     }
 
     //Defines the strategy for using Sonic Break, allowing for different behaviors based on combat scenarios
     public enum SonicBreakStrategy
     {
-        Automatic,      //Automatically decide when to use Sonic Break
-        Force,          //Force the use of Sonic Break regardless of conditions
-        Early,          //Force the use of Sonic Break on the first GCD slot inside No Mercy window
-        Late,           //Force the use of Sonic Break on the last GCD slot inside No Mercy window
-        Delay           //Delay the use of Sonic Break for strategic reasons
+        Automatic,           //Automatically decide when to use Sonic Break
+        Force,               //Force the use of Sonic Break regardless of conditions
+        Early,               //Force the use of Sonic Break on the first GCD slot inside No Mercy window
+        Late,                //Force the use of Sonic Break on the last GCD slot inside No Mercy window
+        Delay                //Delay the use of Sonic Break for strategic reasons
     }
 
     //Defines the strategy for using Gnashing Fang in combos, allowing for different behaviors based on combat scenarios
     public enum GnashingStrategy
     {
-        Automatic,      //Automatically decide when to use Gnashing Fang
-        ForceGnash,     //Force the use of Gnashing Fang regardless of conditions
-        ForceClaw,      //Force the use of Savage Claw action when in combo
-        ForceTalon,     //Force the use of Wicked Talon action when in combo
-        Delay           //Delay the use of Gnashing Fang for strategic reasons
+        Automatic,           //Automatically decide when to use Gnashing Fang
+        ForceGnash,          //Force the use of Gnashing Fang regardless of conditions
+        ForceClaw,           //Force the use of Savage Claw action when in combo
+        ForceTalon,          //Force the use of Wicked Talon action when in combo
+        Delay                //Delay the use of Gnashing Fang for strategic reasons
     }
 
     //Defines the strategy for using Reign of Beasts & it's combo chain, allowing for different behaviors based on combat scenarios
     public enum ReignStrategy
     {
-        Automatic,      //Automatically decide when to use Reign of Beasts
-        ForceReign,     //Force the use of Reign of Beasts when available
-        ForceNoble,     //Force the use of Noble Blood when in available
-        ForceLion,      //Force the use of Lion Heart when in available
-        Delay           //Delay the use of Reign combo for strategic reasons
+        Automatic,           //Automatically decide when to use Reign of Beasts
+        ForceReign,          //Force the use of Reign of Beasts when available
+        ForceNoble,          //Force the use of Noble Blood when in available
+        ForceLion,           //Force the use of Lion Heart when in available
+        Delay                //Delay the use of Reign combo for strategic reasons
     }
 
     //Defines the strategy for using Bloodfest, allowing for different behaviors based on combat scenarios
     public enum BloodfestStrategy
     {
-        Automatic,      //Automatically decide when to use Bloodfest
-        Force,          //Force the use of Bloodfest regardless of conditions
-        ForceW,         //Force the use of Bloodfest in next possible weave slot
-        Force0,         //Force the use of Bloodfest only when ammo is empty
-        Force0W,        //Force the use of Bloodfest only when ammo is empty in next possible weave slot
-        Delay           //Delay the use of Sonic Break for strategic reasons
+        Automatic,           //Automatically decide when to use Bloodfest
+        Force,               //Force the use of Bloodfest regardless of conditions
+        ForceW,              //Force the use of Bloodfest in next possible weave slot
+        Force0,              //Force the use of Bloodfest only when ammo is empty
+        Force0W,             //Force the use of Bloodfest only when ammo is empty in next possible weave slot
+        Delay                //Delay the use of Sonic Break for strategic reasons
     }
 
     //Defines different offensive strategies that dictate how abilities and resources are used during combat
     public enum GCDStrategy //Global Cooldown Strategy
     {
-        Automatic,      //Automatically decide when to use global offensive abilities
-        Force,          //Force the use of global offensive abilities regardless of conditions
-        Delay           //Delay the use of global offensive abilities for strategic reasons
+        Automatic,           //Automatically decide when to use global offensive abilities
+        Force,               //Force the use of global offensive abilities regardless of conditions
+        Delay                //Delay the use of global offensive abilities for strategic reasons
     }
     public enum OGCDStrategy //Off-Global Cooldown Strategy
     {
-        Automatic,       //Automatically decide when to use off-global offensive abilities
-        Force,           //Force the use of off-global offensive abilities, regardless of weaving conditions
-        AnyWeave,        //Force the use of off-global offensive abilities in any next possible weave slot
-        EarlyWeave,      //Force the use of off-global offensive abilities in very next FIRST weave slot only
-        LateWeave,       //Force the use of off-global offensive abilities in very next LAST weave slot only
-        Delay            //Delay the use of offensive abilities for strategic reasons
+        Automatic,           //Automatically decide when to use off-global offensive abilities
+        Force,               //Force the use of off-global offensive abilities, regardless of weaving conditions
+        AnyWeave,            //Force the use of off-global offensive abilities in any next possible weave slot
+        EarlyWeave,          //Force the use of off-global offensive abilities in very next FIRST weave slot only
+        LateWeave,           //Force the use of off-global offensive abilities in very next LAST weave slot only
+        Delay                //Delay the use of offensive abilities for strategic reasons
     }
     #endregion
 
-    //Module Definitions
+    #region Module Definitions & Strategies
     public static RotationModuleDefinition Definition()
     {
         var res = new RotationModuleDefinition("Akechi GNB", //Title
@@ -185,13 +183,13 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
 
         //Cartridges strategy
         res.Define(Track.Cartridges).As<CartridgeStrategy>("Cartridges", "Carts", uiPriority: 180)
-            .AddOption(CartridgeStrategy.Automatic, "Automatic", "Automatically decide when to use cartridges; uses them optimally", supportedTargets: ActionTargets.Hostile)
-            .AddOption(CartridgeStrategy.BurstStrike, "Burst Strike", "Force the use of Burst Strike; consumes 1 cartridge", supportedTargets: ActionTargets.Hostile)
-            .AddOption(CartridgeStrategy.FatedCircle, "Fated Circle", "Force the use of Fated Circle; consumes 1 cartridge")
-            .AddOption(CartridgeStrategy.GnashingFang, "Gnashing Fang", "Force the use of Gnashing Fang (cooldown only, no combo or CDs); consumes 1 cartridge", supportedTargets: ActionTargets.Hostile)
-            .AddOption(CartridgeStrategy.DoubleDown, "Double Down", "Force the use of Double Down; consumes 1 cartridge")
+            .AddOption(CartridgeStrategy.Automatic, "Automatic", "Automatically decide when to use cartridges; uses them optimally")
+            .AddOption(CartridgeStrategy.OnlyBS, "Only Burst Strike", "Uses Burst Strike optimally as cartridge spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(CartridgeStrategy.OnlyFC, "Only Fated Circle", "Uses Fated Circle optimally as cartridge spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 72)
+            .AddOption(CartridgeStrategy.ForceBS, "Force Burst Strike", "Force use of Burst Strike; consumes 1 cartridge", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(CartridgeStrategy.ForceFC, "Force Fated Circle", "Force use of Fated Circle; consumes 1 cartridge", 0, 0, ActionTargets.Hostile, 72)
             .AddOption(CartridgeStrategy.Conserve, "Conserve", "Prohibit use of all cartridge-related abilities; will not use any of these actions listed above")
-            .AddAssociatedActions(AID.BurstStrike, AID.FatedCircle, AID.GnashingFang, AID.DoubleDown);
+            .AddAssociatedActions(AID.BurstStrike, AID.FatedCircle);
 
         //Potion strategy
         res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 20)
@@ -297,6 +295,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
 
         return res;
     }
+    #endregion
 
     #region Priorities
     public enum GCDPriority //priorities for GCDs (higher number = higher priority)
@@ -325,7 +324,31 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     }
     #endregion
 
-    #region Placeholders for Variables
+    #region Upgrade Paths
+    private AID BestZone //Determine the best Zone to use
+        => Unlocked(AID.BlastingZone) //If Blasting Zone is unlocked
+        ? AID.BlastingZone //Use Blasting Zone
+        : AID.DangerZone; //Otherwise, use Danger Zone
+    private AID BestCartSpender //Determine the best cartridge spender to use
+        => ShouldUseFC //And we should use Fated Circle because of targets nearby
+        ? BestFatedCircle //Use Fated Circle
+        : canBS //Otherwise, if Burst Strike is available
+        ? AID.BurstStrike //Use Burst Strike
+        : NextBestRotation(); //Otherwise, use the next best rotation
+    private AID BestFatedCircle //for AOE cart spending Lv30-71
+        => Unlocked(AID.FatedCircle) //If Fated Circle is unlocked
+        ? AID.FatedCircle //Use Fated Circle
+        : AID.BurstStrike; //Otherwise, use Burst Strike
+    private AID BestContinuation //Determine the best Continuation to use
+        => hasRaze ? AID.FatedBrand //If we have Ready To Raze buff
+        : hasBlast ? AID.Hypervelocity //If we have Ready To Blast buff
+        : hasGouge ? AID.EyeGouge //If we have Ready To Gouge buff
+        : hasTear ? AID.AbdomenTear //If we have Ready To Tear buff
+        : hasRip ? AID.JugularRip //If we have Ready To Rip buff
+        : AID.Continuation; //Otherwise, default to original hook
+    #endregion
+
+    #region Module Variables
     //Gauge
     public byte Ammo; //Range: 0-2 or 0-3 max; this counts current ammo count
     public byte GunComboStep; //0 = Gnashing Fang & Reign of Beasts, 1 = Savage Claw, 2 = Wicked Talon, 4 = NobleBlood, 5 = LionHeart
@@ -334,6 +357,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     private float bfCD; //Time left on Bloodfest cooldown (120s base)
     private float nmLeft; //Time left on No Mercy buff (20s base)
     private float nmCD; //Time left on No Mercy cooldown (60s base)
+    private bool inOdd; //Checks if player is in an odd-minute window
     private bool hasNM; //Checks self for No Mercy buff
     private bool hasBreak; //Checks self for Ready To Break buff
     private bool hasReign; //Checks self for Ready To Reign buff
@@ -368,7 +392,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     public float BurstWindowLeft; //Time left in current burst window (typically 20s-22s)
     public float BurstWindowIn; //Time until next burst window (typically 20s-22s)
     public AID NextGCD; //Next global cooldown action to be used (needed for cartridge management)
-    private GCDPriority NextGCDPrio; //Priority of the next GCD, used for decision making on cooldowns
     #endregion
 
     #region Module Helpers
@@ -381,35 +404,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     private bool ActionReady(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining < 0.6f; //Check if the desired action is ready (cooldown less than 0.6 seconds)
     private bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f; //Check if this is the first GCD in combat
     private int TargetsInAOERange() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5); //Returns the number of targets hit by AOE within a 5-yalm radius around the player
-    public bool HasEffect(SID sid) => SelfStatusLeft(sid, 1000) > 0; //Checks if Status effect is on self
-
-    //TODO: try new things...
-    //public bool JustDid(AID aid) => Manager?.LastCast.Data?.IsSpell(aid) ?? false; //Check if the last action used was the desired ability
-    //public bool DidWithin(float variance) => (World.CurrentTime - Manager.LastCast.Time).TotalSeconds <= variance; //Check if the last action was used within a certain timeframe
-    //public bool JustUsed(AID aid, float variance) => JustDid(aid) && DidWithin(variance); //Check if the last action used was the desired ability & was used within a certain timeframe
-    #endregion
-
-    #region Upgrade Paths
-    private AID BestZone //Determine the best Zone to use
-        => Unlocked(AID.BlastingZone) //If Blasting Zone is unlocked
-        ? AID.BlastingZone //Use Blasting Zone
-        : AID.DangerZone; //Otherwise, use Danger Zone
-    private AID BestCartSpender //Determine the best cartridge spender to use
-        => Unlocked(AID.FatedCircle) //If Fated Circle is unlocked
-        && ShouldUseFC //And we should use Fated Circle because of targets nearby
-        ? AID.FatedCircle //Use Fated Circle
-        : canBS //Otherwise, if Burst Strike is available
-        ? AID.BurstStrike //Use Burst Strike
-        : NextBestRotation(); //Otherwise, use the next best rotation
-
-    private AID BestContinuation //Determine the best Continuation to use
-        => canContinue //And we can use Continuation
-        && hasBlast ? AID.Hypervelocity //If we have Ready To Blast buff
-        : hasRaze ? AID.FatedBrand //If we have Ready To Raze buff
-        : hasRip ? AID.JugularRip //If we have Ready To Rip buff
-        : hasTear ? AID.AbdomenTear //If we have Ready To Tear buff
-        : hasGouge ? AID.EyeGouge //If we have Ready To Gouge buff
-        : AID.Continuation; //Otherwise, dfault to original hook
+    public bool HasEffect(SID sid, float duration) => SelfStatusLeft(sid, duration) > 0; //Checks if Status effect is on self
+    public bool JustDid(AID aid) => Manager?.LastCast.Data?.IsSpell(aid) ?? false; //Check if the last action used was the desired ability
+    public bool DidWithin(float variance) => (World.CurrentTime - Manager.LastCast.Time).TotalSeconds <= variance; //Check if the last action was used within a certain timeframe
+    public bool JustUsed(AID aid, float variance) => JustDid(aid) && DidWithin(variance); //Check if the last action used was the desired ability & was used within a certain timeframe
     #endregion
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
@@ -425,14 +423,14 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         bfCD = CD(AID.Bloodfest); //Bloodfest cooldown (120s)
         nmCD = CD(AID.NoMercy); //No Mercy cooldown (60s)
         nmLeft = SelfStatusLeft(SID.NoMercy, 20); //Remaining time for No Mercy buff (20s)
-        hasBreak = HasEffect(SID.ReadyToBreak); //Checks for Ready To Break buff
-        hasReign = HasEffect(SID.ReadyToReign); //Checks for Ready To Reign buff
+        hasBreak = HasEffect(SID.ReadyToBreak, 30); //Checks for Ready To Break buff
+        hasReign = HasEffect(SID.ReadyToReign, 30); //Checks for Ready To Reign buff
         hasNM = nmCD is >= 39.5f and <= 60; //Checks if No Mercy is active
-        hasBlast = Unlocked(AID.Hypervelocity) && HasEffect(SID.ReadyToBlast); //Checks for Ready To Blast buff
-        hasRaze = Unlocked(AID.FatedBrand) && HasEffect(SID.ReadyToRaze); //Checks for Ready To Raze buff
-        hasRip = HasEffect(SID.ReadyToRip); //Checks for Ready To Rip buff
-        hasTear = HasEffect(SID.ReadyToTear); //Checks for Ready To Tear buff
-        hasGouge = HasEffect(SID.ReadyToGouge); //Checks for Ready To Gouge buff
+        hasBlast = Unlocked(AID.Hypervelocity) && HasEffect(SID.ReadyToBlast, 10f) && !JustUsed(AID.Hypervelocity, 10f); //Checks for Ready To Blast buff
+        hasRaze = Unlocked(AID.FatedBrand) && HasEffect(SID.ReadyToRaze, 10f) && !JustUsed(AID.FatedBrand, 10f); //Checks for Ready To Raze buff
+        hasRip = HasEffect(SID.ReadyToRip, 10f) && !JustUsed(AID.JugularRip, 10f); //Checks for Ready To Rip buff
+        hasTear = HasEffect(SID.ReadyToTear, 10f) && !JustUsed(AID.AbdomenTear, 10f); //Checks for Ready To Tear buff
+        hasGouge = HasEffect(SID.ReadyToGouge, 10f) && !JustUsed(AID.EyeGouge, 10f); //Checks for Ready To Gouge buff
 
         //GCD & Weaving
         canWeaveIn = GCD is <= 2.5f and >= 0.1f; //Can weave in oGCDs
@@ -441,9 +439,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         quarterWeave = GCD < 0.9f; //Can last second weave oGCDs
         GCDLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level); //GCD based on skill speed and haste
         NextGCD = AID.None; //Next global cooldown action to be used
-        NextGCDPrio = GCDPriority.None; //Priority of the next GCD, used for decision making on cooldowns
 
         //Misc
+        inOdd = bfCD is <= 90 and >= 30; //Checks if we are in an odd-minute window
         PotionLeft = PotionStatusLeft(); //Remaining time for potion buff (30s)
         ShouldUseAOE = //Determine if we should use AOE
             Unlocked(TraitID.MeleeMastery) //if Melee Mastery trait unlocked
@@ -454,7 +452,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
 
         #region Minimal Requirements
         //Ammo-relative
-        canNM = ActionReady(AID.NoMercy); //No Mercy conditions
+        canNM = CD(AID.NoMercy) < 1; //No Mercy conditions
         canBS = Unlocked(AID.BurstStrike) && Ammo > 0; //Burst Strike conditions; -1 Ammo ST
         canGF = Unlocked(AID.GnashingFang) && ActionReady(AID.GnashingFang) && Ammo > 0; //Gnashing Fang conditions; -1 Ammo ST
         canFC = Unlocked(AID.FatedCircle) && Ammo > 0; //Fated Circle conditions; -1 Ammo AOE
@@ -503,21 +501,21 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
 
         #region Force Execution
         if (AOEStrategy is AOEStrategy.ForceSTwithO) //if Single-target (with overcap protection) option is selected
-            QueueGCD(NextComboSingleTarget(), //queue the next single-target combo action with overcap protection
+            QueueGCD(STwithOvercap(), //queue the next single-target combo action with overcap protection
                 ResolveTargetOverride(AOE.Value) //Get target choice
                 ?? primaryTarget, //if none, choose primary target
                 GCDPriority.ForcedGCD); //with priority for forced GCDs
         if (AOEStrategy is AOEStrategy.ForceSTwithoutO) //if Single-target (without overcap protection) option is selected
-            QueueGCD(NextForceSingleTarget(), //queue the next single-target combo action without overcap protection
+            QueueGCD(STwithoutOvercap(), //queue the next single-target combo action without overcap protection
                 ResolveTargetOverride(AOE.Value) //Get target choice
                 ?? primaryTarget, //if none, choose primary target
                 GCDPriority.ForcedGCD); //with priority for forced GCDs
         if (AOEStrategy is AOEStrategy.ForceAOEwithO) //if AOE (with overcap protection) option is selected
-            QueueGCD(NextComboAOE(), //queue the next AOE combo action with overcap protection
+            QueueGCD(AOEwithOvercap(), //queue the next AOE combo action with overcap protection
                 Player, //on Self (no target needed)
                 GCDPriority.ForcedGCD); //with priority for forced GCDs
         if (AOEStrategy is AOEStrategy.ForceAOEwithoutO) //if AOE (without overcap protection) option is selected
-            QueueGCD(NextForceAOE(), //queue the next AOE combo action without overcap protection
+            QueueGCD(AOEwithoutOvercap(), //queue the next AOE combo action without overcap protection
                 Player, //on Self (no target needed)
                 GCDPriority.ForcedGCD);  //with priority for forced GCDs
         #endregion
@@ -569,7 +567,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             }
 
             if (Ammo == MaxCartridges) //if at max cartridges
-                QueueGCD(NextForceSingleTarget(), //queue the next single-target combo action without overcap protection to save resources for uptime
+                QueueGCD(STwithoutOvercap(), //queue the next single-target combo action without overcap protection to save resources for uptime
                     primaryTarget, //on the primary target
                     GCDPriority.ForcedGCD); //with priority for forced GCDs
         }
@@ -579,11 +577,11 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
         if (AOEStrategy == AOEStrategy.AutoBreakCombo) //if Break Combo option is selected
         {
             if (ShouldUseAOE) //if AOE rotation should be used
-                QueueGCD(NextComboAOE(), //queue the next AOE combo action
+                QueueGCD(AOEwithoutOvercap(), //queue the next AOE combo action
                     Player, //on Self (no target needed)
                     GCDPriority.Combo123); //with priority for 123/12 combo actions
             if (!ShouldUseAOE)
-                QueueGCD(NextComboSingleTarget(), //queue the next single-target combo action
+                QueueGCD(STwithoutOvercap(), //queue the next single-target combo action
                     ResolveTargetOverride(AOE.Value) //Get target choice
                     ?? primaryTarget, //if none, choose primary target
                     GCDPriority.Combo123); //with priority for 123/12 combo actions
@@ -659,15 +657,15 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
 
         //Continuation execution
         if (canContinue && //if Continuation is available
-            hasBlast || //and Ready To Blast buff is active
+            (hasBlast || //and Ready To Blast buff is active
             hasRaze || //or Ready To Raze buff is active
             hasRip || //or Ready To Rip buff is active
             hasTear || //or Ready To Tear buff is active
-            hasGouge) //or Ready To Gouge buff is active
+            hasGouge)) //or Ready To Gouge buff is active
             QueueOGCD(BestContinuation, //queue the best Continuation action
                 primaryTarget, //on the primary target
-                canWeaveLate //if inside second weave slot & still havent used
-                ? OGCDPriority.ForcedOGCD //use priority for forced oGCDs
+                canWeaveLate || GCD is 0 //if inside second weave slot & still havent used
+                ? OGCDPriority.Continuation + 1201 //force the fuck out of this to prevent loss, any loss is very bad
                 : OGCDPriority.Continuation); //otherwise, use intended priority
 
         #endregion
@@ -681,7 +679,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
                 if (ShouldUseDoubleDown(ddStrat, primaryTarget)) //if Double Down should be used
                     QueueGCD(AID.DoubleDown, //queue Double Down
                         primaryTarget, //on the primary target
-                        cartStrat == CartridgeStrategy.DoubleDown || //if Double Down is selected on Cartridge strategy
                         ddStrat == GCDStrategy.Force || //or Force Double Down is selected on Double Down strategy
                         Ammo == 1 //or only 1 cartridge is available
                         ? GCDPriority.ForcedGCD //use priority for forced GCDs
@@ -691,7 +688,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
                     QueueGCD(AID.GnashingFang, //queue Gnashing Fang
                         ResolveTargetOverride(gf.Value) //Get target choice
                         ?? primaryTarget, //if none, choose primary target
-                        cartStrat == CartridgeStrategy.GnashingFang || //if Gnashing Fang is selected on Cartridge strategy
                         gfStrat == GnashingStrategy.ForceGnash //or Force Gnashing Fang is selected on Gnashing Fang strategy
                         ? GCDPriority.ForcedGCD //use priority for forced GCDs
                         : GCDPriority.GF1); //otherwise, use intended priority
@@ -707,15 +703,15 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
                             ? GCDPriority.ForcedGCD //use priority for forced GCDs
                             : GCDPriority.Gauge); //otherwise, use priority for gauge actions
                     //Burst Strike forced execution
-                    if (cartStrat == CartridgeStrategy.BurstStrike) //if Burst Strike Cartridge strategy is selected
+                    if (cartStrat is CartridgeStrategy.OnlyBS or CartridgeStrategy.ForceBS) //if Burst Strike Cartridge strategies are selected
                         QueueGCD(AID.BurstStrike, //queue Burst Strike
                             ResolveTargetOverride(carts.Value) //Get target choice
                             ?? primaryTarget, //if none, choose primary target
                             GCDPriority.Gauge); //with priority for gauge actions
                     //Fated Circle forced execution
-                    if (cartStrat == CartridgeStrategy.FatedCircle) //if Fated Circle Cartridge strategy is selected
-                        QueueGCD(AID.FatedCircle, //queue Fated Circle
-                            Player, //on Self (no target needed)
+                    if (cartStrat is CartridgeStrategy.ForceFC or CartridgeStrategy.OnlyFC) //if Fated Circle Cartridge strategies are selected
+                        QueueGCD(BestFatedCircle, //queue Fated Circle
+                            primaryTarget ?? Player, //on Self (no target needed) if Fated Circle, on target if Burst Strike
                             GCDPriority.Gauge); //with priority for gauge actions
                 }
             }
@@ -786,82 +782,89 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     }
 
     #region Core Execution Helpers
-    private void QueueGCD(AID aid, Actor? target, GCDPriority prio) //QueueGCD execution
+    public void QueueGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum => QueueGCD(aid, target, (int)(object)priority, delay);
+    public void QueueOGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum => QueueOGCD(aid, target, (int)(object)priority, delay);
+    public void QueueGCD(AID aid, Actor? target, int priority = 8, float delay = 0)
     {
-        if (prio != GCDPriority.None) //if priority is not None
+        var NextGCDPrio = 0;
+        if (priority == 0)
+            return;
+        if (QueueAction(aid, target, ActionQueue.Priority.High + priority, delay) && priority > NextGCDPrio)
         {
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), //queue the action
-                target, //on the target
-                ActionQueue.Priority.High //with high priority
-                + (int)prio); //and the specified priority
-            if (prio > NextGCDPrio) //if the priority is higher than the current next GCD priority
-            {
-                NextGCD = aid; //set the next GCD to this action
-                NextGCDPrio = prio; //set the next GCD priority to this priority
-            }
+            NextGCD = aid;
         }
     }
-
-    private void QueueOGCD(AID aid, Actor? target, OGCDPriority prio, float basePrio = ActionQueue.Priority.Medium) //QueueOGCD execution
+    public void QueueOGCD(AID aid, Actor? target, int priority = 4, float delay = 0)
     {
-        if (prio != OGCDPriority.None) //if priority is not None
-        {
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), //queue the action
-                target, //on the target
-                basePrio //with the specified base priority
-                + (int)prio); //and the specified priority
-        }
+        if (priority == 0)
+            return;
+        QueueAction(aid, target, ActionQueue.Priority.Medium + priority, delay);
     }
+    public bool QueueAction(AID aid, Actor? target, float priority, float delay)
+    {
+        Vector3 targetPos = default;
+        var def = ActionDefinitions.Instance.Spell(aid);
+        if ((uint)(object)aid == 0)
+            return false;
+        if (def == null)
+            return false;
+        if (def.Range != 0 && target == null)
+        {
+            return false;
+        }
+        if (def.AllowedTargets.HasFlag(ActionTargets.Area))
+        {
+            if (def.Range == 0)
+                targetPos = Player.PosRot.XYZ();
+            else if (target != null)
+                targetPos = target.PosRot.XYZ();
+        }
+        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos);
+        return true;
+    }
+    #endregion
 
+    #region Rotation Helpers
     private AID NextBestRotation() => ComboLastMove switch
     {
         //ST
-        AID.SolidBarrel => ShouldUseAOE ? NextComboAOE() : NextComboSingleTarget(),
-        AID.BrutalShell => NextComboSingleTarget(),
-        AID.KeenEdge => NextComboSingleTarget(),
+        AID.SolidBarrel => ShouldUseAOE ? AOEwithoutOvercap() : STwithoutOvercap(),
+        AID.BrutalShell => STwithoutOvercap(),
+        AID.KeenEdge => STwithoutOvercap(),
         //AOE
-        AID.DemonSlaughter => ShouldUseAOE ? NextComboAOE() : NextComboSingleTarget(),
-        AID.DemonSlice => NextComboAOE(),
-        _ => ShouldUseAOE ? NextComboAOE() : NextComboSingleTarget(),
+        AID.DemonSlaughter => ShouldUseAOE ? AOEwithoutOvercap() : STwithoutOvercap(),
+        AID.DemonSlice => AOEwithoutOvercap(),
+        _ => ShouldUseAOE ? AOEwithoutOvercap() : STwithoutOvercap(),
     };
 
-    #endregion
-
     #region Single-Target Helpers
-    private AID NextComboSingleTarget() => ComboLastMove switch //with Overcap protection
+    private AID STwithOvercap() => ComboLastMove switch //with Overcap protection
     {
-        AID.BrutalShell =>
-            Ammo == MaxCartridges //if Brutal Shell is last move, check ammo count
-            ? (TargetsInAOERange() > 1 //if 2+ targets in AOE range
-            ? AID.FatedCircle //use Fated Circle
-            : AID.BurstStrike) //otherwise, use Burst Strike
-            : AID.SolidBarrel, //if not at max ammo, use Solid Barrel
+        AID.BrutalShell => Ammo == MaxCartridges ? BestCartSpender : AID.SolidBarrel, //if Brutal Shell is last move, use Solid Barrel regardless of ammo count
         AID.KeenEdge => AID.BrutalShell, //if Keen Edge is last move, use Brutal Shell
         _ => AID.KeenEdge, //start with Keen Edge
     };
-    private AID NextForceSingleTarget() => ComboLastMove switch //without Overcap protection
+    private AID STwithoutOvercap() => ComboLastMove switch //without Overcap protection
     {
-        AID.BrutalShell => AID.SolidBarrel, //if Brutal Shell is last move, use Solid Barrel regardless of ammo count
+        AID.BrutalShell => AID.SolidBarrel, //if Brutal Shell is last move, use Solid Barrel
         AID.KeenEdge => AID.BrutalShell, //if Keen Edge is last move, use Brutal Shell
         _ => AID.KeenEdge, //start with Keen Edge
     };
     #endregion
 
     #region AOE Helpers
-    private AID NextComboAOE() => ComboLastMove switch //with Overcap protection
+    private AID AOEwithOvercap() => ComboLastMove switch //with Overcap protection
     {
-        AID.DemonSlice => Ammo == MaxCartridges //if Demon Slice is last move, check ammo count
-                          ? Unlocked(AID.FatedCircle) //if Fated Circle is unlocked
-                          ? AID.FatedCircle //use Fated Circle
-                          : AID.BurstStrike //otherwise, use Burst Strike
-                          : AID.DemonSlaughter, //if not at max ammo, use Demon Slaughter
+        AID.DemonSlice => Ammo == MaxCartridges ? BestCartSpender : AID.DemonSlaughter, //if full ammo & Demon Slice is last move, use best cartridge spender
         _ => AID.DemonSlice, //start with Demon Slice
     };
-    private AID NextForceAOE() => ComboLastMove switch //without Overcap protection
+    private AID AOEwithoutOvercap() => ComboLastMove switch //without Overcap protection
     {
-        AID.DemonSlice => AID.DemonSlaughter, //if Demon Slice is last move, use Demon Slaughter regardless of ammo count
+        AID.DemonSlice => AID.DemonSlaughter, //if not at max ammo, use Demon Slaughter
         _ => AID.DemonSlice, //start with Demon Slice
     };
+    #endregion
+
     #endregion
 
     #region Cooldown Helpers
@@ -873,14 +876,14 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             Player.InCombat && //In combat
             target != null && //Target exists
             canNM && //No Mercy is available
-            GCD < 0.9f && //GCD is less than 0.9s
             ((Unlocked(AID.DoubleDown) && //Double Down is unlocked, indicating Lv90 or above
-            (((bfCD <= 90 && bfCD >= 30) && (Ammo >= 2 || (Ammo == 1 && ComboLastMove is AID.BrutalShell))) || //In Odd Window & conditions are met
-            (!(bfCD <= 90 && bfCD >= 30) && Ammo < 3))) || //In Even Window & conditions are met
-            (!Unlocked(AID.DoubleDown) && Unlocked(AID.Bloodfest) && //Double Down is not unlocked but Bloodfest is, indicating Lv80-89
+            (inOdd && Ammo >= 2) || //In Odd Window & conditions are met
+            (!inOdd && Ammo < 3)) || //In Even Window & conditions are met
+            (!Unlocked(AID.DoubleDown) && GCD < 0.9f && //Double Down is not unlocked, so we late weave it
+            ((Unlocked(AID.Bloodfest) && //but Bloodfest is, indicating Lv80-89
             Ammo >= 1) || //Ammo is 1 or more
             (!Unlocked(AID.Bloodfest) && canGF) || //Bloodfest is not unlocked but Gnashing Fang is, indicating Lv60-79
-            !Unlocked(AID.GnashingFang)), //Gnashing Fang is not unlocked, indicating Lv59 and below
+            !Unlocked(AID.GnashingFang)))), //Gnashing Fang is not unlocked, indicating Lv59 and below
         NoMercyStrategy.Force => canNM, //Force No Mercy, regardless of correct weaving
         NoMercyStrategy.ForceW => canNM && canWeaveIn, //Force No Mercy into any weave slot 
         NoMercyStrategy.ForceQW => canNM && quarterWeave, //Force No Mercy into last possible second weave slot
@@ -951,10 +954,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             ShouldUseFC //enough targets for optimal use of Fated Circle
             ? ShouldUseFatedCircle(CartridgeStrategy.Automatic, target) //use Fated Circle
             : ShouldUseBurstStrike(CartridgeStrategy.Automatic, target), //otherwise, use Burst Strike
-        CartridgeStrategy.BurstStrike => canBS, //Force Burst Strike if available
-        CartridgeStrategy.FatedCircle => canFC, //Force Fated Circle if available
-        CartridgeStrategy.GnashingFang => canGF && GunComboStep == 0, //Force Gnashing Fang if available and not in Reign combo
-        CartridgeStrategy.DoubleDown => canDD, //Force Double Down if available
+        CartridgeStrategy.OnlyBS => ShouldUseBurstStrike(CartridgeStrategy.Automatic, target), //Optimally use Burst Strike
+        CartridgeStrategy.OnlyFC => ShouldUseFatedCircle(CartridgeStrategy.Automatic, target), //Optimally use Fated Circle
+        CartridgeStrategy.ForceBS => canBS, //Force Burst Strike
+        CartridgeStrategy.ForceFC => canFC, //Force Fated Circle
         CartridgeStrategy.Conserve => false, //Conserve cartridges
         _ => false
     };
@@ -1001,7 +1004,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             (hasNM || //No Mercy is active
             (!(bfCD is <= 90 and >= 30) &&
             nmCD < 1 &&
-            Ammo == 3)), //No Mercy is almost ready and full carts
+            Ammo == 3)) || //No Mercy is almost ready and full carts
+            Ammo == MaxCartridges && ComboLastMove is AID.BrutalShell or AID.DemonSlice, //Full carts and last move was Brutal Shell or Demon Slice
         _ => false
     };
 
@@ -1016,7 +1020,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
             (hasNM || //No Mercy is active
             (!(bfCD is <= 90 and >= 30) &&
             nmCD < 1 &&
-            Ammo == 3)), //No Mercy is almost ready and full carts
+            Ammo == 3)) || //No Mercy is almost ready and full carts
+            Ammo == MaxCartridges && ComboLastMove is AID.BrutalShell or AID.DemonSlice, //Full carts and last move was Brutal Shell or Demon Slice
         _ => false
     };
 
