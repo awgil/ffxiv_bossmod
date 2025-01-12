@@ -35,7 +35,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     /// </summary>
     protected Actor? PlayerTarget { get; private set; }
 
-    protected float? CountdownRemaining => World.Client.CountdownRemaining;
+    protected float? CountdownRemaining { get; private set; }
 
     protected float AttackGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     protected float SpellGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
@@ -357,10 +357,29 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         }
     }
 
+    private float? _actualCountdownRemaining;
+    private DateTime _countdownDebounce = DateTime.MaxValue;
+
     public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         NextGCD = default;
         NextGCDPrio = 0;
+
+        var prevCD = _actualCountdownRemaining;
+        _actualCountdownRemaining = World.Client.CountdownRemaining;
+        if (prevCD == null && _actualCountdownRemaining != null)
+        {
+#pragma warning disable CA5394
+            var duration = new Random((int)World.Frame.Index).NextDouble() + 0.5;
+#pragma warning restore CA5394
+            _countdownDebounce = World.FutureTime((float)duration);
+        }
+
+        if (_countdownDebounce <= World.CurrentTime)
+        {
+            CountdownRemaining = _actualCountdownRemaining;
+            _countdownDebounce = DateTime.MaxValue;
+        }
 
         var pelo = Player.FindStatus(ClassShared.SID.Peloton);
         PelotonLeft = pelo != null ? StatusDuration(pelo.Value.ExpireAt) : 0;
