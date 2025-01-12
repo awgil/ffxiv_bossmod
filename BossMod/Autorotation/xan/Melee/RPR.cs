@@ -129,9 +129,6 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
         OGCD(strategy, primaryTarget);
 
-        if (!Player.InCombat && Player.MountId == 0 && !Soulsow)
-            PushGCD(AID.SoulSow, Player, GCDPriority.Soulsow);
-
         if (CountdownRemaining > 0)
         {
             if (CountdownRemaining < GetCastTime(AID.Harpe))
@@ -168,6 +165,9 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
             return; // every other GCD breaks soul reaver
         }
+
+        if (!Player.InCombat && Player.MountId == 0 && !Soulsow)
+            PushGCD(AID.SoulSow, Player, GCDPriority.Soulsow);
 
         switch (strategy.Option(Track.Harpe).As<HarpeStrategy>())
         {
