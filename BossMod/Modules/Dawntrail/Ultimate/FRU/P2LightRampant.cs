@@ -225,10 +225,29 @@ class P2LightRampantAITowers(BossModule module) : BossComponent(module)
     }
 }
 
-// movement to preposition for resolving stacks
-class P2LightRampantAIStack(BossModule module) : BossComponent(module)
+// movement to stack N/S after towers (and bait last two puddles)
+class P2LightRampantAIStackPrepos(BossModule module) : BossComponent(module)
 {
     private readonly P2LuminousHammer? _puddles = module.FindComponent<P2LuminousHammer>();
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var isPuddleBaiter = _puddles?.ActiveBaitsOn(actor).Any() ?? false;
+        var northCamp = isPuddleBaiter ? actor.Position.X < Module.Center.X : actor.Position.Z < Module.Center.Z; // this assumes CW movement for baiter
+        var dest = Module.Center + new WDir(0, northCamp ? -18 : 18);
+        if (isPuddleBaiter)
+        {
+            var maxDist = _puddles?.BaitsPerPlayer[slot] == 4 ? 7 : 13;
+            if (dest.InCircle(actor.Position, maxDist))
+                return; // don't move _too_ fast as a baiter
+        }
+        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(dest, 1), DateTime.MaxValue);
+    }
+}
+
+// movement to resolve stacks
+class P2LightRampantAIStackResolve(BossModule module) : BossComponent(module)
+{
     private readonly P2PowerfulLight? _stack = module.FindComponent<P2PowerfulLight>();
     private readonly P2HolyLightBurst? _orbs = module.FindComponent<P2HolyLightBurst>();
 
@@ -236,54 +255,40 @@ class P2LightRampantAIStack(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_puddles == null || _stack == null || _orbs == null)
+        if (_stack == null || _orbs == null)
             return;
 
-        // initially we don't know whether first orbs will cover N/S, puddle baiter is still relatively far away and has two baits left
-        // when orbs start, baiter has just finished his puddles; he can still be relatively far away from N/S center, so we might need to wait for him
         var northCamp = IsNorthCamp(actor);
-        var startingDir = (northCamp ? 180 : 0).Degrees();
-        var startingPos = Module.Center + new WDir(0, northCamp ? -Radius : Radius);
-        if (_puddles.ActiveBaits.Any())
+        var centerDangerous = _orbs.ActiveCasters.Any(c => c.Position.Z - Module.Center.Z is var off && (northCamp ? off < -15 : off > 15));
+        var destDir = (northCamp ? 180 : 0).Degrees() - (centerDangerous ? 40 : 20).Degrees();
+        var destPos = Module.Center + Radius * destDir.ToDirection();
+        if (_stack.IsStackTarget(actor))
         {
-            // just move to starting position, until all puddles are resolved
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(startingPos, 1), DateTime.MaxValue);
-            return;
-        }
-
-        var isStackTarget = _stack.IsStackTarget(actor);
-        var haveOrbs = _orbs.Casters.Count > 0;
-        var centerDangerous = haveOrbs && _orbs.ActiveCasters.Any(c => actor.Position.Z - Module.Center.Z is var off && (northCamp ? off < -15 : off > 15));
-        var idealDestDir = startingDir - (centerDangerous ? 40 : 20).Degrees(); // alt: haveOrbs ? 20 : 30 (but i don't think it's how people really move...)
-        var idealPos = Module.Center + Radius * idealDestDir.ToDirection();
-
-        if (isStackTarget)
-        {
-            // as a stack target, our responsibility is to wait for everyone to stack up, then carefully move towards ideal dir
+            // as a stack target, our responsibility is to wait for everyone to stack up, then carefully move towards destination
             // note that we need to be careful to avoid oscillations
-            var toIdeal = idealPos - actor.Position;
-            foreach (var partner in Raid.WithoutSlot().Exclude(actor).Where(p => IsNorthCamp(p) == northCamp))
+            var toDest = destPos - actor.Position;
+            bool needToWaitFor(Actor partner)
             {
+                if (partner == actor || IsNorthCamp(partner) != northCamp)
+                    return false; // this is not our partner, we don't need to wait for him
                 var toPartner = partner.Position - actor.Position;
                 var distSq = toPartner.LengthSq();
-                if (distSq > 9 && toIdeal.Dot(toPartner) < 0)
-                {
-                    // partner is far enough away, and moving towards ideal pos will not bring us closer => just stay where we are
-                    return;
-                }
+                return distSq > 9 && toDest.Dot(toPartner) < 0; // partner is far enough away, and moving towards destination will not bring us closer
             }
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(idealPos, 1), DateTime.MaxValue);
+            if (!Raid.WithoutSlot().Any(needToWaitFor))
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(destPos, 1), DateTime.MaxValue);
+            // else: we still have someone we need to wait for, just stay where we are...
         }
         else if (_stack.Stacks.FirstOrDefault(s => IsNorthCamp(s.Target) == northCamp).Target is var stackTarget && stackTarget != null)
         {
-            // otherwise we just want to stay close to the stack target, slightly offset to the ideal position
-            var dirToIdeal = idealPos - stackTarget.Position;
-            var dest = dirToIdeal.LengthSq() <= 4 ? idealPos : stackTarget.Position + 2 * dirToIdeal.Normalized();
+            // we just want to stay close to the stack target, slightly offset to the destination
+            var dirToDest = destPos - stackTarget.Position;
+            var dest = dirToDest.LengthSq() <= 4 ? destPos : stackTarget.Position + 2 * dirToDest.Normalized();
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(dest, 1), DateTime.MaxValue);
         }
     }
 
-    private bool IsNorthCamp(Actor actor) => (_puddles?.ActiveBaitsOn(actor).Any() ?? false) ? actor.Position.X < Module.Center.X : actor.Position.Z < Module.Center.Z;
+    private bool IsNorthCamp(Actor actor) => actor.Position.Z < Module.Center.Z;
 }
 
 // movement to dodge orbs after resolving stack
@@ -296,20 +301,32 @@ class P2LightRampantAIOrbs(BossModule module) : BossComponent(module)
         if (_orbs == null || _orbs.Casters.Count == 0)
             return;
 
+        // actual orb aoes
+        //var resolve = Module.CastFinishAt(_orbs.Casters[0].CastInfo, _orbs.NumCasts == 0 ? 0 : -1); // for second set, we want to dodge out asap without weird movement to the center
+        foreach (var c in _orbs.ActiveCasters)
+            hints.AddForbiddenZone(_orbs.Shape.Distance(c.Position, default), Module.CastFinishAt(c.CastInfo));
+
         if (_orbs.NumCasts == 0)
         {
             // dodge first orbs, while staying near edge
             hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 16));
+            // ... and close to the aoes
+            var cushioned = ShapeDistance.Union([.. _orbs.ActiveCasters.Select(c => ShapeDistance.Circle(c.Position, 13))]);
+            hints.AddForbiddenZone(p => -cushioned(p), DateTime.MaxValue);
+        }
+        else if (_orbs.Casters.Any(c => _orbs.Shape.Check(actor.Position, c)))
+        {
+            // dodge second orbs while staying near edge (tethers are still up for a bit after first dodge)
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 16));
         }
         else
         {
-            // dodge second orbs, while trying to come closer to the center
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 6), DateTime.MaxValue);
+            // now that we're safe, move closer to the center (this is a bit sus, but whatever...)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 16), WorldState.FutureTime(30));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 13), WorldState.FutureTime(40));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 10), WorldState.FutureTime(50));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 7), DateTime.MaxValue);
         }
-
-        // actual orb aoes
-        foreach (var c in _orbs.ActiveCasters)
-            hints.AddForbiddenZone(_orbs.Shape.Distance(c.Position, default), Module.CastFinishAt(c.CastInfo, -1));
     }
 }
 
@@ -326,6 +343,7 @@ class P2LightRampantAIResolve(BossModule module) : BossComponent(module)
 
         ref var t = ref _tower.Towers.Ref(0);
         hints.AddForbiddenZone(t.ForbiddenSoakers[slot] ? ShapeDistance.Circle(t.Position, t.Radius) : ShapeDistance.InvertedCircle(t.Position, t.Radius), t.Activation);
+        hints.AddForbiddenZone(t.ForbiddenSoakers[slot] ? ShapeDistance.Circle(t.Position, t.Radius + 2) : ShapeDistance.InvertedCircle(t.Position, t.Radius - 2), DateTime.MaxValue);
 
         var clockspot = _config.P2Banish2SpreadSpots[assignment];
         if (clockspot >= 0)

@@ -319,11 +319,13 @@ class FRUStates : StateMachineBuilder
         ComponentCondition<P2HolyLightBurst>(id + 0x38, 3.2f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<P2HolyLightBurst>()
             .ActivateOnEnter<P2PowerfulLight>()
-            .ActivateOnEnter<P2LightRampantAIStack>()
+            .ActivateOnEnter<P2LightRampantAIStackPrepos>()
+            .DeactivateOnExit<P2LightRampantAIStackPrepos>()
             .DeactivateOnExit<P2LuminousHammer>(); // last puddle is baited right before holy light burst casts start
         ComponentCondition<P2PowerfulLight>(id + 0x40, 2.5f, comp => !comp.Active, "Stack")
-            .DeactivateOnExit<P2PowerfulLight>()
-            .DeactivateOnExit<P2LightRampantAIStack>();
+            .ActivateOnEnter<P2LightRampantAIStackResolve>()
+            .DeactivateOnExit<P2LightRampantAIStackResolve>()
+            .DeactivateOnExit<P2PowerfulLight>();
         ComponentCondition<P2HolyLightBurst>(id + 0x50, 2.4f, comp => comp.NumCasts > 0, "Orbs 1")
             .ActivateOnEnter<P2LightRampantAIOrbs>()
             .ActivateOnEnter<P2BrightHunger2>();
