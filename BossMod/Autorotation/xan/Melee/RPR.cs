@@ -129,9 +129,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
         OGCD(strategy, primaryTarget);
 
-        if (Soulsow)
-            PushGCD(AID.HarvestMoon, BestRangedAOETarget, GCDPriority.HarvestMoon);
-        else if (!Player.InCombat && Player.MountId == 0)
+        if (!Player.InCombat && Player.MountId == 0 && !Soulsow)
             PushGCD(AID.SoulSow, Player, GCDPriority.Soulsow);
 
         if (CountdownRemaining > 0)
@@ -146,22 +144,6 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (PlayerTarget != null)
             // harpe
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget, 25, 0.5f));
-
-        if (SoulReaver == 0)
-        {
-            switch (strategy.Option(Track.Harpe).As<HarpeStrategy>())
-            {
-                case HarpeStrategy.Automatic:
-                    if (EnhancedHarpe > GCD)
-                        PushGCD(AID.Harpe, primaryTarget, GCDPriority.EnhancedHarpe);
-                    break;
-                case HarpeStrategy.Ranged:
-                    PushOGCD(AID.Harpe, primaryTarget, 50);
-                    break;
-            }
-        }
-
-        DDRefresh(primaryTarget);
 
         if (SoulReaver > GCD || Executioner > GCD)
         {
@@ -183,7 +165,25 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
                 else
                     PushGCD(gib, primaryTarget, GCDPriority.Reaver);
             }
+
+            return; // every other GCD breaks soul reaver
         }
+
+        switch (strategy.Option(Track.Harpe).As<HarpeStrategy>())
+        {
+            case HarpeStrategy.Automatic:
+                if (EnhancedHarpe > GCD)
+                    PushGCD(AID.Harpe, primaryTarget, GCDPriority.EnhancedHarpe);
+                break;
+            case HarpeStrategy.Ranged:
+                PushOGCD(AID.Harpe, primaryTarget, 50);
+                break;
+        }
+
+        if (Soulsow)
+            PushGCD(AID.HarvestMoon, BestRangedAOETarget, GCDPriority.HarvestMoon);
+
+        DDRefresh(primaryTarget);
 
         if (PerfectioParata > GCD)
             PushGCD(AID.Perfectio, BestRangedAOETarget, GCDPriority.Communio);
