@@ -8,6 +8,7 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
         public int RewindOrder;
         public int LaserOrder;
         public bool HaveDarkEruption; // all dark eruptions have rewind order 1
+        public bool HaveDarkBlizzard;
         public WDir AssignedDir;
         public WPos ReturnPos;
     }
@@ -18,7 +19,7 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
     private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
     private WDir _relNorth;
     private int _numYellowTethers;
-    private DateTime _nextProgress;
+    private DateTime _nextImminent = module.WorldState.FutureTime(21.9f - 2.5f); // approx 2.5s before next step resolves
 
     public const float RangeHintOut = 12; // explosion radius is 8
     public const float RangeHintStack = 1;
@@ -40,17 +41,55 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
         hints.Add(hint, false);
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (States[slot].AssignedDir != default)
+        {
+            var range = RangeHint(States[slot], actor.Class.IsSupport(), NumCasts);
+            switch (range)
+            {
+                case RangeHintOut:
+                    if (WorldState.CurrentTime < _nextImminent)
+                    {
+                        // there's still time, around maxmelee at assigned direction
+                        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(SafeSpot(slot, 9), 1), _nextImminent);
+                    }
+                    else
+                    {
+                        // ok, out is imminent, gtfo - we need to avoid clipping people, avoid dark blizzard (if it's being resolved now), and avoid lasers (if any)
+                        var avoidBlizzard = NumCasts == 2;
+                        foreach (var (i, p) in Raid.WithSlot().Exclude(slot))
+                        {
+                            var avoidRadius = avoidBlizzard && States[i].HaveDarkBlizzard ? 12 : 8;
+                            hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, avoidRadius + 1));
+                        }
+                        var lasers = Module.FindComponent<P3UltimateRelativitySinboundMeltdownAOE>();
+                        if (lasers != null)
+                            foreach (var laser in lasers.ActiveAOEs(slot, actor))
+                                hints.AddForbiddenZone(laser.Shape.Distance(laser.Origin, laser.Rotation), laser.Activation);
+                    }
+                    break;
+                case RangeHintLaser:
+                case RangeHintDarkEruption:
+                case RangeHintEye:
+                    // go to exact safespot
+                    hints.AddForbiddenZone(ShapeDistance.PrecisePosition(SafeSpot(slot, range), new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), _nextImminent);
+                    break;
+                default:
+                    // go to mid
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 1), _nextImminent);
+                    break;
+            }
+        }
+    }
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         var assignedDir = States[pcSlot].AssignedDir;
         if (assignedDir != default && NumCasts < 6)
         {
             Arena.AddLine(Module.Center, Module.Center + Module.Bounds.Radius * assignedDir, ArenaColor.Safe);
-
-            var safespot = Module.Center + RangeHint(States[pcSlot], pc.Class.IsSupport(), NumCasts) * assignedDir;
-            if (IsBaitingLaser(States[pcSlot], NumCasts) && LaserRotationAt(safespot) is var rot && rot != default)
-                safespot += 2 * (Angle.FromDirection(assignedDir) - 4.5f * rot).ToDirection();
-            Arena.AddCircle(safespot, 1, ArenaColor.Safe);
+            Arena.AddCircle(SafeSpot(pcSlot, RangeHint(States[pcSlot], pc.Class.IsSupport(), NumCasts)), 1, ArenaColor.Safe);
         }
     }
 
@@ -80,7 +119,10 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
             case SID.SpellInWaitingDarkBlizzard:
                 slot = Raid.FindSlot(actor.InstanceID);
                 if (slot >= 0)
+                {
                     States[slot].LaserOrder = actor.Class.IsSupport() ? 2 : 1;
+                    States[slot].HaveDarkBlizzard = true;
+                }
                 break;
             case SID.SpellInWaitingDarkEruption:
                 slot = Raid.FindSlot(actor.InstanceID);
@@ -137,10 +179,10 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.UltimateRelativityUnholyDarkness or AID.UltimateRelativitySinboundMeltdownAOEFirst && WorldState.CurrentTime > _nextProgress)
+        if ((AID)spell.Action.ID is AID.UltimateRelativityUnholyDarkness or AID.UltimateRelativitySinboundMeltdownAOEFirst && WorldState.CurrentTime > _nextImminent)
         {
             ++NumCasts;
-            _nextProgress = WorldState.FutureTime(1);
+            _nextImminent = WorldState.FutureTime(2.5f);
         }
     }
 
@@ -214,7 +256,6 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
         _ => RangeHintChill
     };
 
-    // TODO: rethink this...
     private string Hint(in PlayerState state, bool isSupport, int order) => order switch
     {
         0 => state.FireOrder == 1 ? "Out" : "Stack", // 10s
@@ -225,10 +266,21 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
         5 => state.LaserOrder == 3 ? "Laser" : "Chill", // 35s
         _ => "Look out"
     };
+
+    private WPos SafeSpot(int slot, float range)
+    {
+        var assignedDir = States[slot].AssignedDir;
+        var safespot = Module.Center + range * assignedDir;
+        if (IsBaitingLaser(States[slot], NumCasts) && LaserRotationAt(safespot) is var rot && rot != default)
+            safespot += 1.5f * (Angle.FromDirection(assignedDir) - 4.5f * rot).ToDirection();
+        return safespot;
+    }
 }
 
 class P3UltimateRelativityDarkFireUnholyDarkness(BossModule module) : Components.UniformStackSpread(module, 6, 8, 5, alwaysShowSpreads: true)
 {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // handled by main component
+
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
@@ -285,6 +337,8 @@ class P3UltimateRelativitySinboundMeltdownBait(BossModule module) : Components.G
             hints.Add("GTFO from baited aoe!");
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // handled by main component
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         base.DrawArenaForeground(pcSlot, pc);
@@ -321,6 +375,8 @@ class P3UltimateRelativitySinboundMeltdownAOE(BossModule module) : Components.Ge
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // handled by main component
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
@@ -348,6 +404,8 @@ class P3UltimateRelativityDarkBlizzard(BossModule module) : Components.GenericAO
     private static readonly AOEShapeDonut _shape = new(4, 12); // TODO: verify inner radius
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _sources.Select(s => new AOEInstance(_shape, s.Position, default, _activation));
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // handled by main component
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

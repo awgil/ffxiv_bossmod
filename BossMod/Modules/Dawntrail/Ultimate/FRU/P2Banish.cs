@@ -113,6 +113,7 @@ class P2Banish2(BossModule module) : P2Banish(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
+        base.OnEventCast(caster, spell);
         if ((AID)spell.Action.ID == AID.BrightHunger)
             _allowHints = true;
     }

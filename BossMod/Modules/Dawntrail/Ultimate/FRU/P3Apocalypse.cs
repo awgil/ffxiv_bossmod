@@ -1,9 +1,11 @@
-﻿namespace BossMod.Dawntrail.Ultimate.FRU;
+﻿using System.ComponentModel;
+
+namespace BossMod.Dawntrail.Ultimate.FRU;
 
 class P3Apocalypse(BossModule module) : Components.GenericAOEs(module)
 {
-    private Angle? _starting;
-    private Angle _rotation;
+    public Angle? Starting;
+    public Angle Rotation;
     private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCircle _shape = new(9);
@@ -18,14 +20,14 @@ class P3Apocalypse(BossModule module) : Components.GenericAOEs(module)
         }
         void addAt(int position, DateTime activation)
         {
-            if (position >= 0 && _starting != null)
-                addPair(14 * (_starting.Value + _rotation * position).ToDirection(), activation);
+            if (position >= 0 && Starting != null)
+                addPair(14 * (Starting.Value + Rotation * position).ToDirection(), activation);
             else if (position == -1)
                 addPair(default, activation);
         }
 
         var activation = WorldState.FutureTime(delay);
-        for (int i = -1; i < 6; ++i)
+        for (int i = -1; i < 5; ++i)
         {
             addAt(i + 1, activation);
             addAt(i, activation);
@@ -36,16 +38,7 @@ class P3Apocalypse(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(6);
 
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        // draw safespots (TODO: improve - account for concrete assignments, show different spots at different mechanic stages)
-        if (_aoes.Count > 0 && NumCasts < 16 && _starting != null)
-        {
-            var safeOff = 10 * (_starting.Value - _rotation).ToDirection();
-            Arena.AddCircle(Module.Center + safeOff, 1, ArenaColor.Safe);
-            Arena.AddCircle(Module.Center - safeOff, 1, ArenaColor.Safe);
-        }
-    }
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // we have dedicated components for this...
 
     public override void OnActorCreated(Actor actor)
     {
@@ -53,17 +46,17 @@ class P3Apocalypse(BossModule module) : Components.GenericAOEs(module)
         {
             if (actor.Position.AlmostEqual(Module.Center, 1))
             {
-                if (_starting == null)
-                    _starting = actor.Rotation;
-                else if (!_starting.Value.AlmostEqual(actor.Rotation + 180.Degrees(), 0.1f))
+                if (Starting == null)
+                    Starting = actor.Rotation;
+                else if (!Starting.Value.AlmostEqual(actor.Rotation + 180.Degrees(), 0.1f))
                     ReportError($"Inconsistent starting dir");
             }
             else
             {
                 var rot = 0.5f * (actor.Rotation - Angle.FromDirection(actor.Position - Module.Center)).Normalized();
-                if (_rotation == default)
-                    _rotation = rot;
-                else if (!_rotation.AlmostEqual(rot, 0.1f))
+                if (Rotation == default)
+                    Rotation = rot;
+                else if (!Rotation.AlmostEqual(rot, 0.1f))
                     ReportError($"Inconsistent rotation dir");
             }
         }
@@ -89,6 +82,7 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
     {
         public int Order;
         public int AssignedGroup;
+        public int AssignedPosition;
         public DateTime Expiration;
     }
 
@@ -122,6 +116,8 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
             hints.Add(_swaps);
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // we have dedicated components for this...
+
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.SpellInWaitingDarkWater && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
@@ -146,12 +142,11 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
 
     private void InitAssignments()
     {
-        Span<int> assignmentPerSlot = [-1, -1, -1, -1, -1, -1, -1, -1];
         Span<int> slotPerAssignment = [-1, -1, -1, -1, -1, -1, -1, -1];
         foreach (var (slot, group) in _config.P3ApocalypseAssignments.Resolve(Raid))
         {
             States[slot].AssignedGroup = group < 4 ? 1 : 2;
-            assignmentPerSlot[slot] = group;
+            States[slot].AssignedPosition = group & 3;
             slotPerAssignment[group] = slot;
         }
 
@@ -159,18 +154,52 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
             return; // no valid assignments
 
         var swap = _config.P3ApocalypseUptime ? FindUptimeSwap(slotPerAssignment) : FindStandardSwap(slotPerAssignment);
+        //var debugSwap = swap.Raw;
         for (int role = 0; role < slotPerAssignment.Length; ++role)
         {
-            if (swap[role])
+            if (!swap[role])
+                continue;
+            var slot = slotPerAssignment[role];
+            ref var state = ref States[slot];
+
+            // find partner to swap with; prioritize same position > neighbour position (eg melee with melee) > anyone that also swaps
+            int partnerRole = -1, partnerQuality = -1;
+            for (int candidateRole = role + 1; candidateRole < slotPerAssignment.Length; ++candidateRole)
             {
-                var slot = slotPerAssignment[role];
-                ref var state = ref States[slot];
-                state.AssignedGroup = 3 - state.AssignedGroup;
-                if (_swaps.Length > 0)
-                    _swaps += ", ";
-                _swaps += Raid[slot]?.Name ?? "";
+                if (!swap[candidateRole])
+                    continue; // this guy doesn't want to swap, skip
+                var candidateSlot = slotPerAssignment[candidateRole];
+                if (States[candidateSlot].AssignedGroup == state.AssignedGroup)
+                    continue; // this guy is from same group, skip
+                var positionDiff = state.AssignedPosition ^ States[candidateSlot].AssignedPosition;
+                var candidateQuality = positionDiff switch
+                {
+                    0 => 2, // same position, best
+                    1 => 1, // melee with melee / ranged with ranged (assuming sane config)
+                    _ => 0, // melee with ranged
+                };
+                if (candidateQuality > partnerQuality)
+                {
+                    partnerRole = candidateRole;
+                    partnerQuality = candidateQuality;
+                }
             }
+
+            if (partnerRole < 0)
+            {
+                ReportError($"Failed to find swap for {slot}");
+                continue;
+            }
+
+            swap.Clear(role);
+            swap.Clear(partnerRole);
+            var partnerSlot = slotPerAssignment[partnerRole];
+            ref var partnerState = ref States[partnerSlot];
+            Utils.Swap(ref state.AssignedGroup, ref partnerState.AssignedGroup);
+            Utils.Swap(ref state.AssignedPosition, ref partnerState.AssignedPosition);
+            _swaps += $"{(_swaps.Length > 0 ? ", " : "")}{Raid[slot]?.Name} <-> {Raid[partnerSlot]?.Name}";
         }
+        //ReportError($"FOO: {debugSwap:X2} == {_swaps}");
         _swaps = $"Swaps: {(_swaps.Length > 0 ? _swaps : "none")}";
     }
 
@@ -221,22 +250,82 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
     }
 }
 
-class P3SpiritTaker(BossModule module) : Components.UniformStackSpread(module, 0, 5)
+class P3ApocalypseSpiritTaker(BossModule module) : SpiritTaker(module)
 {
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if ((AID)spell.Action.ID == AID.SpiritTaker)
-            AddSpreads(Raid.WithoutSlot(true), Module.CastFinishAt(spell, 0.3f));
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID.SpiritTakerAOE)
-            Spreads.Clear();
+        base.AddAIHints(slot, actor, assignment, hints);
+        hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 6), DateTime.MaxValue); // don't dodge into center...
     }
 }
 
-class P3ApocalypseDarkEruption(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.DarkEruption, ActionID.MakeSpell(AID.DarkEruption), 6, 5.1f);
+class P3ApocalypseDarkEruption(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.DarkEruption, ActionID.MakeSpell(AID.DarkEruption), 6, 5.1f)
+{
+    private readonly P3Apocalypse? _apoc = module.FindComponent<P3Apocalypse>();
+    private readonly P3ApocalypseDarkWater? _water = module.FindComponent<P3ApocalypseDarkWater>();
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var safeSpot = SafeOffset(slot, out _);
+        if (safeSpot != default)
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + safeSpot, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), Spreads.Count > 0 ? Spreads[0].Activation : DateTime.MaxValue);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
+
+        // draw safespots
+        var safeSpot = SafeOffset(pcSlot, out var refSafeSpot);
+        if (safeSpot != default)
+        {
+            Arena.AddCircle(Module.Center + safeSpot, 1, ArenaColor.Safe);
+            if (refSafeSpot != safeSpot)
+                Arena.AddCircle(Module.Center + refSafeSpot, 1, ArenaColor.Danger);
+        }
+        else if (refSafeSpot != default)
+        {
+            // we don't have assignments, at least draw two reference ones
+            Arena.AddCircle(Module.Center + refSafeSpot, 1, ArenaColor.Danger);
+            Arena.AddCircle(Module.Center - refSafeSpot, 1, ArenaColor.Danger);
+        }
+    }
+
+    private WDir SafeOffset(int slot, out WDir reference)
+    {
+        reference = default;
+        if (_apoc?.Starting == null || _water == null)
+            return default;
+
+        var midDir = (_apoc.Starting.Value - _apoc.Rotation).Normalized();
+        reference = 10 * midDir.ToDirection();
+
+        ref var state = ref _water.States[slot];
+        if (state.AssignedGroup == 0)
+            return default; // no assignments - oh well, at least we know reference directions
+
+        // G1 takes dir CCW from N, G2 takes 0/45/90/135
+        var midIsForG2 = midDir.Deg is >= -20 and < 160;
+        if (midIsForG2 != (state.AssignedGroup == 2))
+        {
+            midDir += 180.Degrees();
+            reference = -reference;
+        }
+
+        if ((state.AssignedPosition & 2) == 0)
+        {
+            // melee spot; note that non-reference melee goes in right after second apoc (max range is 14-9)
+            var altPos = _apoc.Rotation.Rad < 0 ? 1 : 0;
+            return state.AssignedPosition == altPos ? (_apoc.NumCasts > 4 ? 4.5f : 10) * (midDir - _apoc.Rotation).ToDirection() : reference;
+        }
+        else
+        {
+            // ranged spot
+            var offset = (state.AssignedPosition == 2 ? -15 : +15).Degrees();
+            return 19 * (midDir + offset).ToDirection();
+        }
+    }
+}
 
 class P3DarkestDanceBait(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.DarkestDanceBait), centerAtTarget: true)
 {
@@ -254,6 +343,8 @@ class P3DarkestDanceBait(BossModule module) : Components.GenericBaitAway(module,
         }
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // we have dedicated components for this...
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.DarkestDance)
@@ -267,13 +358,13 @@ class P3DarkestDanceBait(BossModule module) : Components.GenericBaitAway(module,
 
 class P3DarkestDanceKnockback(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.DarkestDanceKnockback), true)
 {
-    private Actor? _source;
-    private DateTime _activation;
+    public Actor? Source;
+    public DateTime Activation;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        if (_source != null)
-            yield return new(_source.Position, 21, _activation);
+        if (Source != null)
+            yield return new(Source.Position, 21, Activation);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -281,13 +372,113 @@ class P3DarkestDanceKnockback(BossModule module) : Components.Knockback(module, 
         switch ((AID)spell.Action.ID)
         {
             case AID.DarkestDanceBait:
-                _source = caster;
-                _activation = WorldState.FutureTime(2.8f);
+                Source = caster;
+                Activation = WorldState.FutureTime(2.8f);
                 break;
             case AID.DarkestDanceKnockback:
-                _source = null;
                 ++NumCasts;
                 break;
+        }
+    }
+}
+
+// position for first dark water - note that this is somewhat arbitrary (range etc)
+class P3ApocalypseAIWater1(BossModule module) : BossComponent(module)
+{
+    private readonly P3ApocalypseDarkWater? _water = module.FindComponent<P3ApocalypseDarkWater>();
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_water == null)
+            return;
+        ref var state = ref _water.States[slot];
+        if (state.AssignedGroup == 0)
+            return; // no assignment (yet?)
+
+        var (dir, range) = state.AssignedPosition switch
+        {
+            0 => (-15.Degrees(), 5),
+            1 => (15.Degrees(), 5),
+            2 => (-10.Degrees(), 8),
+            3 => (10.Degrees(), 8),
+            _ => (default, 0)
+        };
+        dir += (state.AssignedGroup == 1 ? -90 : 90).Degrees();
+        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center + range * dir.ToDirection(), 1), _water.Stacks.Count > 0 ? _water.Stacks[0].Activation : DateTime.MaxValue);
+    }
+}
+
+// position for second dark water & darkest dance - for simplicity, we position in the direction tank would take darkest dance
+class P3ApocalypseAIWater2(BossModule module) : BossComponent(module)
+{
+    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly P3Apocalypse? _apoc = module.FindComponent<P3Apocalypse>();
+    private readonly P3ApocalypseDarkWater? _water = module.FindComponent<P3ApocalypseDarkWater>();
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_apoc?.Starting == null || _water == null)
+            return;
+
+        // add imminent apoc aoes
+        foreach (var aoe in _apoc.ActiveAOEs(slot, actor))
+            hints.AddForbiddenZone(aoe.Shape.Distance(aoe.Origin, aoe.Rotation), aoe.Activation);
+
+        ref var state = ref _water.States[slot];
+        if (state.AssignedGroup == 0)
+            return; // no assignments - oh well
+
+        var midDir = (_apoc.Starting.Value - _apoc.Rotation).Normalized();
+
+        // G1 takes dir CCW from N, G2 takes 0/45/90/135
+        var midIsForG2 = midDir.Deg is >= -20 and < 160;
+        if (midIsForG2 != (state.AssignedGroup == 2))
+            midDir += 180.Degrees();
+
+        var distance = 4.5f;
+        if (_apoc.NumCasts >= 28 && assignment == (_config.P3DarkestDanceOTBait ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT))
+        {
+            // bait darkest dance (but make sure to share water first!)
+            distance = _water.Stacks.Count == 0 ? 19 : 8;
+        }
+
+        var destOff = distance * (midDir - _apoc.Rotation).ToDirection();
+        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center + destOff, 1), DateTime.MaxValue);
+    }
+}
+
+// position for darkest dance knockback & third dark water
+class P3ApocalypseAIWater3(BossModule module) : BossComponent(module)
+{
+    private readonly P3ApocalypseDarkWater? _water = module.FindComponent<P3ApocalypseDarkWater>();
+    private readonly P3DarkestDanceKnockback? _knockback = module.FindComponent<P3DarkestDanceKnockback>();
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_water == null || _knockback?.Source == null)
+            return;
+
+        var toCenter = Module.Center - _knockback.Source.Position;
+        if (toCenter.LengthSq() < 1)
+            return; // did not jump yet, wait...
+
+        var angle = 30.Degrees(); //(_knockback.NumCasts == 0 ? 30 : 45).Degrees();
+        var dir = Angle.FromDirection(toCenter) + _water.States[slot].AssignedGroup switch
+        {
+            1 => -angle,
+            2 => angle,
+            _ => default
+        };
+
+        if (_knockback.NumCasts == 0)
+        {
+            // preposition for knockback
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(_knockback.Source.Position + 2 * dir.ToDirection(), new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), _knockback.Activation);
+        }
+        else if (_water.Stacks.Count > 0)
+        {
+            // stack at maxmelee
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_knockback.Source.Position + 10 * dir.ToDirection(), 1), _water.Stacks[0].Activation);
         }
     }
 }
