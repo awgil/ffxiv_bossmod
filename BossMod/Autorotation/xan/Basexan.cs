@@ -35,7 +35,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     /// </summary>
     protected Actor? PlayerTarget { get; private set; }
 
-    protected float? CountdownRemaining { get; private set; }
+    protected float? CountdownRemaining => World.Client.CountdownRemaining;
 
     protected float AttackGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     protected float SpellGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
