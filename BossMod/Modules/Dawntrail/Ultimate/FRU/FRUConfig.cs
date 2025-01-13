@@ -124,4 +124,13 @@ public class FRUConfig() : ConfigNode()
     [PropertyDisplay("P2 Banish after Light Rampant: direction to move to resolve pairs", tooltip: "Only used by AI")]
     [PropertyCombo("CW", "CCW")]
     public bool P2Banish2MoveCCWToStack = true;
+
+    [PropertyDisplay("P2 Intermission: clock spots (cardinals prioritize their crystals, intercardinals bait)", tooltip: "Only used by AI")]
+    [GroupDetails(["N", "NE", "E", "SE", "S", "SW", "W", "NW"])]
+    [GroupPreset("Default", [0, 2, 5, 3, 4, 6, 7, 1])]
+    public GroupAssignmentUnique P2IntermissionClockSpots = new() { Assignments = [0, 2, 5, 3, 4, 6, 7, 1] };
+
+    [PropertyDisplay("P3 Darkest Dance: baiter")]
+    [PropertyCombo("MT", "OT")]
+    public bool P3DarkestDanceOTBait;
 }

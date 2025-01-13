@@ -37,6 +37,9 @@ public enum OID : uint
     VisionOfGaia = 0x45B5, // R1.500, x0 (spawn during fight)
     DragonPuddle = 0x1EBD41, // R0.500, x0 (spawn during fight), EventObj type, puddle appears when head is touched
     GuardianOfEden = 0x45AE, // R115.380, x0 (spawn during fight), p5 failure state tree
+
+    BossP5 = 0x45AF, // R7.000, x0 (spawn during fight)
+    FulgentBladeLine = 0x1EBBF7, // R0.500, x0 (spawn during fight), EventObj type
 }
 
 public enum AID : uint
@@ -248,6 +251,32 @@ public enum AID : uint
     MemorysEndP4 = 40305, // OracleOfDarknessP4->self, 10.0s cast, range 100 circle, enrage
     AbsoluteZeroP4 = 40245, // UsurperOfFrostP4->self, 10.0s cast, range 100 circle, enrage
     ParadiseLost = 40263, // Helper->self, no cast, range 100 circle, wipe on p5 failure state
+    IntermissionP5Visual = 40231, // UsurperOfFrostP4->self, no cast, single-target, visual (intermission start)
+    IntermissionP5Start = 40232, // Helper->self, no cast, range 60 circle, stun + move players to a specific spot
+
+    // P5
+    AutoAttackP5 = 40114, // BossP5->self, no cast, single-target, visual (auto attack on both tanks)
+    AutoAttackP5AOE = 40115, // Helper->player, no cast, single-target, auto-attack
+
+    FulgentBlade = 40306, // BossP5->self, 6.0s cast, range 100 circle, raidwide + mechanic start
+    PathOfLightFirst = 40307, // Helper->self, 7.0s cast, range 5 width 80 rect
+    PathOfLightRest = 40308, // Helper->self, no cast, range 5 width 80 rect
+    PathOfDarknessFirst = 40118, // Helper->self, 7.0s cast, range 5 width 80 rect
+    PathOfDarknessRest = 40309, // Helper->self, no cast, range 5 width 80 rect
+
+    AkhMornPandora = 40310, // BossP5->self, 8.0s cast, single-target, visual (left/right stack)
+    AkhMornPandoraAOE1 = 40311, // Helper->players, no cast, range 4 circle, 4-man stack
+    AkhMornPandoraAOE2 = 40312, // Helper->players, no cast, range 4 circle, 4-man stack
+
+    ParadiseRegained = 40319, // BossP5->self, 4.0s cast, single-target, visual (mechanic start)
+    WingsDarkAndLightDL = 40233, // BossP5->self, 6.9+0.1s cast, single-target, visual (dark > light)
+    WingsDarkAndLightLD = 40313, // BossP5->self, 6.9+0.1s cast, single-target, visual (light > dark)
+    WingsDarkAndLightExplosion = 40320, // Helper->self, no cast, range 3 circle, tower
+    WingsDarkAndLightUnmitigatedExplosion = 40321, // Helper->self, no cast, range 100 circle, tower fail
+    WingsDarkAndLightCleaveLight = 40314, // BossP5->self, no cast, range 100 240?-degree cone on target
+    WingsDarkAndLightCleaveDark = 40315, // BossP5->self, no cast, range 100 240?-degree cone on target
+    WingsDarkAndLightTetherLight = 39879, // Helper->players, no cast, range 4 circle on farthest
+    WingsDarkAndLightTetherDark = 39880, // Helper->player, no cast, range 4 circle on closest
 }
 
 public enum SID : uint
@@ -307,4 +336,5 @@ public enum TetherID : uint
     UltimateRelativitySlow = 133, // DelightsHourglass->BossP3
     UltimateRelativityQuicken = 134, // DelightsHourglass->BossP3
     MornAfahHPCheck = 1, // UsurperOfFrostP4->OracleOfDarknessP4
+    MornAfahHPFail = 2, // UsurperOfFrostP4->OracleOfDarknessP4
 }

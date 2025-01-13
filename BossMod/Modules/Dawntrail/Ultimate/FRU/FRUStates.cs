@@ -4,6 +4,8 @@ class FRUStates : StateMachineBuilder
 {
     private readonly FRU _module;
 
+    private static bool IsActorDead(Actor? a, bool valueIfNull) => a == null ? valueIfNull : (a.IsDeadOrDestroyed || a.HPMP.CurHP <= 1);
+
     public FRUStates(FRU module) : base(module)
     {
         _module = module;
@@ -11,10 +13,13 @@ class FRUStates : StateMachineBuilder
             .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed;
         SimplePhase(1, Phase2, "P2: Usurper of Frost")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => !Module.PrimaryActor.IsDead || (_module.BossP2()?.IsDeadOrDestroyed ?? false) || (_module.IceVeil()?.IsDeadOrDestroyed ?? false);
+            .Raw.Update = () => !Module.PrimaryActor.IsDead || (_module.BossP2()?.IsDestroyed ?? false) || (_module.IceVeil()?.IsDeadOrDestroyed ?? false);
         SimplePhase(2, Phase34, "P3/4: Oracle of Darkness & Both")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => !Module.PrimaryActor.IsDead || (_module.BossP2()?.IsDeadOrDestroyed ?? false) && (_module.BossP3()?.IsDeadOrDestroyed ?? true) && (_module.BossP4Oracle()?.IsDeadOrDestroyed ?? true);
+            .Raw.Update = () => !Module.PrimaryActor.IsDead || (_module.BossP2()?.IsDestroyed ?? false) && (_module.BossP3()?.IsDestroyed ?? true) && IsActorDead(_module.BossP4Oracle(), true) && IsActorDead(_module.BossP4Usurper(), true);
+        SimplePhase(3, Phase5, "P5: Pandora")
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
+            .Raw.Update = () => !Module.PrimaryActor.IsDead || (_module.BossP4Oracle()?.IsDeadOrDestroyed ?? true) && (_module.BossP5()?.IsDeadOrDestroyed ?? true);
     }
 
     private void Phase1(uint id)
@@ -56,6 +61,13 @@ class FRUStates : StateMachineBuilder
         P4CrystallizeTime(id + 0x130000, 4.6f);
         P4AkhMornMornAfah(id + 0x140000, 0.1f);
         P4Enrage(id + 0x150000, 2.3f);
+    }
+
+    private void Phase5(uint id)
+    {
+        P5Start(id, 77);
+        P5FulgentBlade(id + 0x10000, 5.3f);
+        P5ParadiseRegained(id + 0x20000, 4.2f);
 
         SimpleState(id + 0xFF0000, 100, "???");
     }
@@ -365,14 +377,14 @@ class FRUStates : StateMachineBuilder
         ComponentCondition<P2SwellingFrost>(id + 3, 2.3f, comp => comp.NumCasts > 0, "Knockback")
             .DeactivateOnExit<P2SwellingFrost>();
 
-        ComponentCondition<P2CrystalOfLight>(id + 0x1000, 18.9f, comp => comp.ActiveActors.Any(), "Crystals appear")
-            .ActivateOnEnter<P2CrystalOfLight>()
+        ComponentCondition<P2Intermission>(id + 0x1000, 18.9f, comp => comp.CrystalsActive, "Crystals appear")
+            .ActivateOnEnter<P2SinboundBlizzard>()
+            .ActivateOnEnter<P2Intermission>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCast(id + 0x1010, _module.IceVeil, AID.EndlessIceAge, 4.7f, 40, true, "Enrage")
-            .ActivateOnEnter<P2SinboundBlizzard>()
             .ActivateOnEnter<P2HiemalStorm>()
             .ActivateOnEnter<P2HiemalRay>()
-            .DeactivateOnExit<P2CrystalOfLight>()
+            .DeactivateOnExit<P2Intermission>()
             .DeactivateOnExit<P2SinboundBlizzard>()
             .DeactivateOnExit<P2HiemalStorm>()
             .DeactivateOnExit<P2HiemalRay>();
@@ -452,40 +464,46 @@ class FRUStates : StateMachineBuilder
         ComponentCondition<P3ApocalypseDarkWater>(id + 0x12, 0.6f, comp => comp.NumStatuses >= 6)
             .ActivateOnEnter<P3Apocalypse>()
             .ActivateOnEnter<P3ApocalypseDarkWater>()
+            .ActivateOnEnter<P3ApocalypseAIWater1>()
             .ExecOnExit<P3ApocalypseDarkWater>(comp => comp.ShowOrder(1));
         ActorCast(id + 0x20, _module.BossP3, AID.Apocalypse, 2.6f, 4, true);
         ActorCastStart(id + 0x30, _module.BossP3, AID.SpiritTaker, 2.2f, true);
-        ComponentCondition<P3ApocalypseDarkWater>(id + 0x31, 1.3f, comp => comp.Stacks.Count == 0, "Stack 1");
+        ComponentCondition<P3ApocalypseDarkWater>(id + 0x31, 1.3f, comp => comp.Stacks.Count == 0, "Stack 1")
+            .DeactivateOnExit<P3ApocalypseAIWater1>();
         ActorCastEnd(id + 0x32, _module.BossP3, 1.7f, true)
-            .ActivateOnEnter<P3SpiritTaker>();
-        ComponentCondition<P3SpiritTaker>(id + 0x33, 0.3f, comp => comp.Spreads.Count == 0, "Jump")
-            .DeactivateOnExit<P3SpiritTaker>();
+            .ActivateOnEnter<P3ApocalypseSpiritTaker>();
+        ComponentCondition<SpiritTaker>(id + 0x33, 0.3f, comp => comp.Spreads.Count == 0, "Jump")
+            .DeactivateOnExit<SpiritTaker>();
         ActorCastStart(id + 0x40, _module.BossP3, AID.ApocalypseDarkEruption, 6.2f, true)
             .ExecOnEnter<P3Apocalypse>(comp => comp.Show(8.5f))
             .ActivateOnEnter<P3ApocalypseDarkEruption>();
-        ComponentCondition<P3Apocalypse>(id + 0x41, 2.4f, comp => comp.NumCasts > 0, "Apocalypse start");
+        ComponentCondition<P3Apocalypse>(id + 0x41, 2.4f, comp => comp.NumCasts >= 4, "Apocalypse start");
         ActorCastEnd(id + 0x42, _module.BossP3, 1.6f, true);
-        ComponentCondition<P3Apocalypse>(id + 0x43, 0.4f, comp => comp.NumCasts > 4);
+        ComponentCondition<P3Apocalypse>(id + 0x43, 0.4f, comp => comp.NumCasts >= 10);
         ComponentCondition<P3ApocalypseDarkEruption>(id + 0x44, 0.7f, comp => comp.NumFinishedSpreads > 0, "Spread")
             .DeactivateOnExit<P3ApocalypseDarkEruption>()
             .ExecOnExit<P3ApocalypseDarkWater>(comp => comp.ShowOrder(2));
-        ComponentCondition<P3Apocalypse>(id + 0x45, 1.3f, comp => comp.NumCasts > 10);
+        ComponentCondition<P3Apocalypse>(id + 0x45, 1.3f, comp => comp.NumCasts >= 16)
+            .ActivateOnEnter<P3ApocalypseAIWater2>();
         ActorCastStart(id + 0x50, _module.BossP3, AID.DarkestDance, 1.3f, true);
-        ComponentCondition<P3Apocalypse>(id + 0x51, 0.7f, comp => comp.NumCasts > 16);
-        ComponentCondition<P3Apocalypse>(id + 0x52, 2.0f, comp => comp.NumCasts > 22);
+        ComponentCondition<P3Apocalypse>(id + 0x51, 0.7f, comp => comp.NumCasts >= 22);
+        ComponentCondition<P3Apocalypse>(id + 0x52, 2.0f, comp => comp.NumCasts >= 28);
         ComponentCondition<P3ApocalypseDarkWater>(id + 0x53, 0.5f, comp => comp.Stacks.Count == 0, "Stack 2");
-        ComponentCondition<P3Apocalypse>(id + 0x54, 1.5f, comp => comp.NumCasts > 28)
+        ComponentCondition<P3Apocalypse>(id + 0x54, 1.5f, comp => comp.NumCasts >= 34)
             .ActivateOnEnter<P3DarkestDanceBait>()
             .DeactivateOnExit<P3Apocalypse>();
         ActorCastEnd(id + 0x55, _module.BossP3, 0.3f, true);
         ComponentCondition<P3DarkestDanceBait>(id + 0x56, 0.4f, comp => comp.NumCasts > 0, "Tankbuster")
             .ActivateOnEnter<P3DarkestDanceKnockback>()
+            .DeactivateOnExit<P3ApocalypseAIWater2>()
             .DeactivateOnExit<P3DarkestDanceBait>()
             .ExecOnExit<P3ApocalypseDarkWater>(comp => comp.ShowOrder(3))
             .SetHint(StateMachine.StateHint.Tankbuster);
         ComponentCondition<P3DarkestDanceKnockback>(id + 0x57, 2.8f, comp => comp.NumCasts > 0, "Knockback")
+            .ActivateOnEnter<P3ApocalypseAIWater3>()
             .DeactivateOnExit<P3DarkestDanceKnockback>();
         ComponentCondition<P3ApocalypseDarkWater>(id + 0x60, 4.1f, comp => comp.Stacks.Count == 0, "Stack 3")
+            .DeactivateOnExit<P3ApocalypseAIWater3>()
             .DeactivateOnExit<P3ApocalypseDarkWater>();
 
         P3ShockwavePulsar(id + 0x1000, 0.3f);
@@ -528,10 +546,10 @@ class FRUStates : StateMachineBuilder
         ComponentCondition<P4DarklitDragonsongPathOfLight>(id + 0x21, 0.8f, comp => comp.NumCasts > 0, "Proteans")
             .DeactivateOnExit<P4DarklitDragonsongPathOfLight>();
         ActorCastEnd(id + 0x22, _module.BossP4Oracle, 2.2f, true)
-            .ActivateOnEnter<P3SpiritTaker>();
+            .ActivateOnEnter<DefaultSpiritTaker>();
         ActorCastStartMulti(id + 0x23, _module.BossP4Usurper, [AID.HallowedWingsL, AID.HallowedWingsR], 0.1f, true);
-        ComponentCondition<P3SpiritTaker>(id + 0x24, 0.3f, comp => comp.Spreads.Count == 0, "Jump")
-            .DeactivateOnExit<P3SpiritTaker>();
+        ComponentCondition<SpiritTaker>(id + 0x24, 0.3f, comp => comp.Spreads.Count == 0, "Jump")
+            .DeactivateOnExit<SpiritTaker>();
         ActorCastStart(id + 0x25, _module.BossP4Oracle, AID.SomberDance, 2.8f)
             .ActivateOnEnter<P4HallowedWingsL>()
             .ActivateOnEnter<P4HallowedWingsR>()
@@ -612,10 +630,10 @@ class FRUStates : StateMachineBuilder
             .DeactivateOnExit<P4CrystallizeTime>();
         ActorCastStart(id + 0x90, _module.BossP4Oracle, AID.SpiritTaker, 0.4f);
         ActorCastStart(id + 0x91, _module.BossP4Usurper, AID.CrystallizeTimeHallowedWings1, 2.2f)
-            .ActivateOnEnter<P3SpiritTaker>();
+            .ActivateOnEnter<DefaultSpiritTaker>();
         ActorCastEnd(id + 0x92, _module.BossP4Oracle, 0.8f);
-        ComponentCondition<P3SpiritTaker>(id + 0x93, 0.3f, comp => comp.Spreads.Count == 0, "Jump")
-            .DeactivateOnExit<P3SpiritTaker>();
+        ComponentCondition<SpiritTaker>(id + 0x93, 0.3f, comp => comp.Spreads.Count == 0, "Jump")
+            .DeactivateOnExit<SpiritTaker>();
         ComponentCondition<P4CrystallizeTimeRewind>(id + 0x94, 3.3f, comp => comp.ReturnDone, "Rewind return")
             .DeactivateOnExit<P4CrystallizeTimeRewind>();
         ActorCastEnd(id + 0x95, _module.BossP4Usurper, 0.3f);
@@ -629,5 +647,45 @@ class FRUStates : StateMachineBuilder
     private void P4Enrage(uint id, float delay)
     {
         ActorCast(id, _module.BossP4Usurper, AID.AbsoluteZeroP4, delay, 10, true, "Enrage");
+    }
+
+    private void P5Start(uint id, float delay)
+    {
+        ActorTargetable(id, _module.BossP5, true, delay, "Boss appears")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
+    }
+
+    private void P5FulgentBlade(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP5, AID.FulgentBlade, delay, 6, true, "Raidwide")
+            .ActivateOnEnter<P5FulgentBlade>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ComponentCondition<P5FulgentBlade>(id + 0x10, 4.1f, comp => comp.Active);
+        ComponentCondition<P5FulgentBlade>(id + 0x20, 7, comp => comp.NumCasts > 0, "Exaline 1");
+        ComponentCondition<P5FulgentBlade>(id + 0x21, 2, comp => comp.NumCasts > 1, "Exaline 2");
+        ComponentCondition<P5FulgentBlade>(id + 0x22, 2, comp => comp.NumCasts > 2, "Exaline 3");
+        ComponentCondition<P5FulgentBlade>(id + 0x23, 2, comp => comp.NumCasts > 3, "Exaline 4");
+        ActorCastStart(id + 0x30, _module.BossP5, AID.AkhMornPandora, 1.8f, true);
+        ComponentCondition<P5FulgentBlade>(id + 0x31, 0.2f, comp => comp.NumCasts > 4, "Exaline 5")
+            .ActivateOnEnter<P5AkhMorn>();
+        ComponentCondition<P5FulgentBlade>(id + 0x32, 2, comp => comp.NumCasts > 5, "Exaline 6");
+        ActorCastEnd(id + 0x33, _module.BossP5, 5.8f, true);
+        ComponentCondition<P5AkhMorn>(id + 0x34, 0.1f, comp => comp.Source == null, "Left/right stack")
+            .DeactivateOnExit<P5AkhMorn>()
+            .DeactivateOnExit<P5FulgentBlade>(); // TODO: there are still lines going, but they are far...
+    }
+
+    private void P5ParadiseRegained(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP5, AID.ParadiseRegained, delay, 4, true)
+            .ActivateOnEnter<P5ParadiseRegainedTowers>(); // first tower appears ~0.9s after cast end, then every 3.5s
+        ActorCastMulti(id + 0x10, _module.BossP5, [AID.WingsDarkAndLightDL, AID.WingsDarkAndLightLD], 3.2f, 6.9f, true)
+            .ActivateOnEnter<P5ParadiseRegainedBaits>();
+        ComponentCondition<P5ParadiseRegainedBaits>(id + 0x20, 0.5f, comp => comp.NumCasts > 0, "Light/dark"); // first tower resolve ~0.1s earlier
+        ComponentCondition<P5ParadiseRegainedBaits>(id + 0x30, 3.7f, comp => comp.NumCasts > 1, "Dark/light") // second tower resolves ~1s earlier
+            .DeactivateOnExit<P5ParadiseRegainedBaits>();
+        // note: tethers resolve ~0.7s after cleave, but they won't happen if tether target dies to cleave
+        ComponentCondition<P5ParadiseRegainedTowers>(id + 0x40, 2.4f, comp => comp.NumCasts > 2, "Towers resolve")
+            .DeactivateOnExit<P5ParadiseRegainedTowers>();
     }
 }
