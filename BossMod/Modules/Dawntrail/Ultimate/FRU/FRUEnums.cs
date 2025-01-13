@@ -269,6 +269,14 @@ public enum AID : uint
     AkhMornPandoraAOE2 = 40312, // Helper->players, no cast, range 4 circle, 4-man stack
 
     ParadiseRegained = 40319, // BossP5->self, 4.0s cast, single-target, visual (mechanic start)
+    WingsDarkAndLightDL = 40233, // BossP5->self, 6.9+0.1s cast, single-target, visual (dark > light)
+    WingsDarkAndLightLD = 40313, // BossP5->self, 6.9+0.1s cast, single-target, visual (light > dark)
+    WingsDarkAndLightExplosion = 40320, // Helper->self, no cast, range 3 circle, tower
+    WingsDarkAndLightUnmitigatedExplosion = 40321, // Helper->self, no cast, range 100 circle, tower fail
+    WingsDarkAndLightCleaveLight = 40314, // BossP5->self, no cast, range 100 240?-degree cone on target
+    WingsDarkAndLightCleaveDark = 40315, // BossP5->self, no cast, range 100 240?-degree cone on target
+    WingsDarkAndLightTetherLight = 39879, // Helper->players, no cast, range 4 circle on farthest
+    WingsDarkAndLightTetherDark = 39880, // Helper->player, no cast, range 4 circle on closest
 }
 
 public enum SID : uint

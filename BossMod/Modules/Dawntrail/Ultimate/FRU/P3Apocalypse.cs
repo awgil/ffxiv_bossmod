@@ -358,13 +358,13 @@ class P3DarkestDanceBait(BossModule module) : Components.GenericBaitAway(module,
 
 class P3DarkestDanceKnockback(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.DarkestDanceKnockback), true)
 {
-    public Actor? Source;
+    public Actor? Caster;
     public DateTime Activation;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        if (Source != null)
-            yield return new(Source.Position, 21, Activation);
+        if (Caster != null)
+            yield return new(Caster.Position, 21, Activation);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -372,7 +372,7 @@ class P3DarkestDanceKnockback(BossModule module) : Components.Knockback(module, 
         switch ((AID)spell.Action.ID)
         {
             case AID.DarkestDanceBait:
-                Source = caster;
+                Caster = caster;
                 Activation = WorldState.FutureTime(2.8f);
                 break;
             case AID.DarkestDanceKnockback:
@@ -455,14 +455,14 @@ class P3ApocalypseAIWater3(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_water == null || _knockback?.Source == null)
+        if (_water == null || _knockback?.Caster == null)
             return;
 
-        var toCenter = Module.Center - _knockback.Source.Position;
+        var toCenter = Module.Center - _knockback.Caster.Position;
         if (toCenter.LengthSq() < 1)
             return; // did not jump yet, wait...
 
-        var angle = 30.Degrees(); //(_knockback.NumCasts == 0 ? 30 : 45).Degrees();
+        var angle = 20.Degrees(); //(_knockback.NumCasts == 0 ? 30 : 45).Degrees();
         var dir = Angle.FromDirection(toCenter) + _water.States[slot].AssignedGroup switch
         {
             1 => -angle,
@@ -473,12 +473,12 @@ class P3ApocalypseAIWater3(BossModule module) : BossComponent(module)
         if (_knockback.NumCasts == 0)
         {
             // preposition for knockback
-            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(_knockback.Source.Position + 2 * dir.ToDirection(), new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), _knockback.Activation);
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(_knockback.Caster.Position + 2 * dir.ToDirection(), new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), _knockback.Activation);
         }
         else if (_water.Stacks.Count > 0)
         {
             // stack at maxmelee
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_knockback.Source.Position + 10 * dir.ToDirection(), 1), _water.Stacks[0].Activation);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_knockback.Caster.Position + 10 * dir.ToDirection(), 1), _water.Stacks[0].Activation);
         }
     }
 }

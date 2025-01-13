@@ -677,6 +677,15 @@ class FRUStates : StateMachineBuilder
 
     private void P5ParadiseRegained(uint id, float delay)
     {
-        ActorCast(id, _module.BossP5, AID.ParadiseRegained, delay, 4, true, "???");
+        ActorCast(id, _module.BossP5, AID.ParadiseRegained, delay, 4, true)
+            .ActivateOnEnter<P5ParadiseRegainedTowers>(); // first tower appears ~0.9s after cast end, then every 3.5s
+        ActorCastMulti(id + 0x10, _module.BossP5, [AID.WingsDarkAndLightDL, AID.WingsDarkAndLightLD], 3.2f, 6.9f, true)
+            .ActivateOnEnter<P5ParadiseRegainedBaits>();
+        ComponentCondition<P5ParadiseRegainedBaits>(id + 0x20, 0.5f, comp => comp.NumCasts > 0, "Light/dark"); // first tower resolve ~0.1s earlier
+        ComponentCondition<P5ParadiseRegainedBaits>(id + 0x30, 3.7f, comp => comp.NumCasts > 1, "Dark/light") // second tower resolves ~1s earlier
+            .DeactivateOnExit<P5ParadiseRegainedBaits>();
+        // note: tethers resolve ~0.7s after cleave, but they won't happen if tether target dies to cleave
+        ComponentCondition<P5ParadiseRegainedTowers>(id + 0x40, 2.4f, comp => comp.NumCasts > 2, "Towers resolve")
+            .DeactivateOnExit<P5ParadiseRegainedTowers>();
     }
 }

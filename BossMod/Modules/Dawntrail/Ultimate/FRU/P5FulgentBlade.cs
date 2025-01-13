@@ -12,6 +12,13 @@ class P5FulgentBlade : Components.Exaflare
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
+        //// debug
+        //foreach (var l in _lines)
+        //{
+        //    var d = (Module.Center - l.Position).Normalized().OrthoL();
+        //    Arena.AddLine(l.Position - 50 * d, l.Position + 50 * d, ArenaColor.Object);
+        //}
+
         var safespot = SafeSpots().FirstOrDefault();
         if (safespot != default)
             Arena.AddCircle(safespot, 1, ArenaColor.Safe);
@@ -22,8 +29,8 @@ class P5FulgentBlade : Components.Exaflare
         if ((OID)actor.OID == OID.FulgentBladeLine)
         {
             _lines.Add(actor);
-            if (_lines.Count == 6)
-                _lines.SortByReverse(l => (l.Position - Module.Center).LengthSq());
+            //if (_lines.Count == 6)
+            //    _lines.SortByReverse(l => (l.Position - Module.Center).LengthSq()); // TODO: this isn't right, there are lines with same distance...
         }
     }
 
@@ -64,23 +71,31 @@ class P5FulgentBlade : Components.Exaflare
     {
         if (_lines.Count != 6)
             yield break;
-        if (NumCasts < 2)
-            yield return SafeSpot(_lines[0], _lines[1]);
-        if (NumCasts < 4)
-            yield return SafeSpot(_lines[2], _lines[3]);
-        if (NumCasts < 6)
-            yield return SafeSpot(_lines[4], _lines[5]);
+        //if (NumCasts < 2)
+        //    yield return SafeSpot(_lines[0], _lines[1]);
+        //if (NumCasts < 4)
+        //    yield return SafeSpot(_lines[2], _lines[3]);
+        //if (NumCasts < 6)
+        //    yield return SafeSpot(_lines[4], _lines[5]);
+
+        if (NumCasts == 0)
+        {
+            WDir avgOff = default;
+            foreach (var l in _lines)
+                avgOff += (l.Position - Module.Center).Normalized();
+            yield return Module.Center - 5 * avgOff;
+        }
     }
 
-    private WPos SafeSpot(Actor line1, Actor line2)
-    {
-        var d1 = (Module.Center - line1.Position).Normalized();
-        var d2 = (Module.Center - line2.Position).Normalized();
-        var n1 = d1.OrthoL();
-        var n2 = d2.OrthoL();
-        var p1 = line1.Position + 11 * d1 - 50 * n1;
-        var p2 = line2.Position + 11 * d2 - 50 * n2;
-        var t = Intersect.RayLine(p1, n1, p2, n2);
-        return t is > 0 and < 100 ? p1 + t * n1 : default;
-    }
+    //private WPos SafeSpot(Actor line1, Actor line2)
+    //{
+    //    var d1 = (Module.Center - line1.Position).Normalized();
+    //    var d2 = (Module.Center - line2.Position).Normalized();
+    //    var n1 = d1.OrthoL();
+    //    var n2 = d2.OrthoL();
+    //    var p1 = line1.Position + 11 * d1 - 50 * n1;
+    //    var p2 = line2.Position + 11 * d2 - 50 * n2;
+    //    var t = Intersect.RayLine(p1, n1, p2, n2);
+    //    return t is > 0 and < 100 ? p1 + t * n1 : default;
+    //}
 }

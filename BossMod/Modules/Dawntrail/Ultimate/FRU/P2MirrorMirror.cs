@@ -108,7 +108,7 @@ class P2MirrorMirrorHouseOfLight(BossModule module) : Components.GenericBaitAway
             if (origin.activation > WorldState.FutureTime(3) && Module.Enemies(OID.BossP2).FirstOrDefault() is var boss && boss != null && boss.TargetID == actor.InstanceID)
             {
                 var dirVec = dir.ToDirection();
-                if (dirVec.Dot(boss.Position - origin.source.Position) > 2 && (origin.source.Position - 4 * dirVec - boss.Position).Length() > boss.HitboxRadius + 3)
+                if (dirVec.Dot(boss.Position - origin.source.Position) > 2.5f && (origin.source.Position - 3 * dirVec - boss.Position).Length() > boss.HitboxRadius + 3.5f)
                     dir += 180.Degrees();
             }
 
