@@ -27,6 +27,8 @@ public enum AID : uint
     ElectricWhorl = 33186, // 3E09->self, 4.0s cast, range 60 circle
     HexEye = 32731, // 3E56->self, 3.0s cast, range 5 circle
 
+    EclipticMeteor = 33043, // 3DC9->self, 12.0s cast, range 50 circle
+
     TheDragonsVoice2 = 32910,
     AllaganFear = 32896,
 }
@@ -51,8 +53,14 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
             case AID.TerrorTouch:
             case AID.Diamondback:
             case AID.Infatuation:
+                Interrupts.Add(actor);
+                break;
             case AID.Quake:
                 Interrupts.Add(actor);
+                AddLOS(actor, 30);
+                break;
+            case AID.EclipticMeteor:
+                AddLOS(actor, 50);
                 break;
             case AID.DoubleHexEye:
             case AID.EyeOfTheFierce:
@@ -81,12 +89,14 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
             case AID.ElectricWhorl:
                 Donuts.Add((actor, 8, 60));
                 break;
-            case AID.SelfDetonate:
             case AID.Catharsis:
                 Circles.Add((actor, 40));
                 break;
             case AID.AbyssalCry:
-                Circles.Add((actor, 30));
+                AddLOS(actor, 30);
+                break;
+            case AID.SelfDetonate:
+                AddLOS(actor, 40);
                 break;
         }
     }

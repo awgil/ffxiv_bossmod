@@ -141,9 +141,7 @@ public sealed class AIHintsBuilder : IDisposable
         AOEShape? shape = data.Value.CastType switch
         {
             // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
-            // notably, i've observed instances of being hit by autohinted location-targeted AOEs despite my character's position being further from the cast location than this value by very small amounts (e.g. 4.007235y > 4y)
-            // and i don't understand why this happens, so we add a small cushion here
-            2 => new AOEShapeCircle(data.Value.EffectRange + 0.25f),
+            2 => new AOEShapeCircle(data.Value.EffectRange),
             3 => new AOEShapeCone(data.Value.EffectRange + actor.HitboxRadius, DetermineConeAngle(data.Value) * 0.5f),
             4 => new AOEShapeRect(data.Value.EffectRange + actor.HitboxRadius, data.Value.XAxisModifier * 0.5f),
             5 => new AOEShapeCircle(data.Value.EffectRange + actor.HitboxRadius),

@@ -130,11 +130,70 @@ public abstract class AutoClear : ZoneModule
     protected readonly List<Actor> Interrupts = [];
     protected readonly List<Actor> Stuns = [];
     protected readonly List<Actor> ForbiddenTargets = [];
+    private readonly List<Actor> LOS = [];
+
+    private readonly Dictionary<ulong, (WPos, Bitmap)> _losCache = [];
 
     public record class Gaze(Actor Source, AOEShape Shape);
 
     protected void AddGaze(Actor Source, AOEShape Shape) => Gazes.Add(new(Source, Shape));
     protected void AddGaze(Actor Source, float Radius) => AddGaze(Source, new AOEShapeCircle(Radius));
+
+    protected void AddLOS(Actor Source, float Range)
+    {
+        var (entry, data) = _obstacles.Find(Source.PosRot.XYZ());
+        if (entry == null || data == null)
+        {
+            Service.Log($"no bitmap found for {Source}, not adding LOS hints");
+            return;
+        }
+
+        var pixelRange = (int)(Range / data.PixelSize);
+        var casterOff = Source.Position - entry.Origin;
+        var casterCell = casterOff / data.PixelSize;
+        var casterX = (int)casterCell.X;
+        var casterZ = (int)casterCell.Z;
+
+        var bm = new Bitmap(data.Width, data.Height, data.Color0, data.Color1, data.Resolution);
+        for (var i = Math.Max(0, casterX - pixelRange); i <= Math.Min(data.Width, casterX + pixelRange); i++)
+        {
+            for (var j = Math.Max(0, casterZ - pixelRange); j <= Math.Min(data.Height, casterZ + pixelRange); j++)
+            {
+                var pt = new Vector2(i, j);
+                var cc = new Vector2(casterX, casterZ);
+                if (!IsBlocked(data, pt, cc, pixelRange))
+                    bm[i, j] = true;
+            }
+        }
+
+        _losCache[Source.InstanceID] = (entry.Origin, bm);
+        LOS.Add(Source);
+    }
+
+    private static bool IsBlocked(Bitmap map, Vector2 point, Vector2 origin, float maxRange)
+    {
+        var dir = origin - point;
+        var dist = dir.Length();
+        if (dist >= maxRange)
+            return true;
+
+        dir /= dist;
+
+        var ox = point.X;
+        var oy = point.Y;
+        var vx = dir.X;
+        var vy = dir.Y;
+
+        for (var i = 0; i < (int)dist; i++)
+        {
+            if (map[(int)ox, (int)oy])
+                return true;
+            ox += vx;
+            oy += vy;
+        }
+
+        return false;
+    }
 
     protected readonly AutoDDConfig _config = Service.Config.Get<AutoDDConfig>();
     private readonly EventSubscriptions _subscriptions;
@@ -299,6 +358,8 @@ public abstract class AutoClear : ZoneModule
 
     private bool _allowNavigationInCombat;
 
+    private UIBitmapEditor? _ed;
+
     public override void DrawExtra()
     {
         var player = World.Party.Player();
@@ -334,13 +395,16 @@ public abstract class AutoClear : ZoneModule
 
     private bool OnBeacon(WPos pos) => pos.AlmostEqual(new WPos(259.7f, 307.14f), 1);
 
-    private void IterAndExpire<T>(List<T> items, Func<T, bool> expire, Action<T> action)
+    private void IterAndExpire<T>(List<T> items, Func<T, bool> expire, Action<T> action, Action<T>? onRemove = null)
     {
         for (var i = items.Count - 1; i >= 0; i--)
         {
             var item = items[i];
             if (expire(item))
+            {
                 items.RemoveAt(i);
+                onRemove?.Invoke(item);
+            }
             else
                 action(item);
         }
@@ -388,6 +452,21 @@ public abstract class AutoClear : ZoneModule
             if (hints.FindEnemy(d) is { } e)
                 e.ShouldBeStunned = true;
         });
+
+        IterAndExpire(LOS, d => d.CastInfo == null, caster =>
+        {
+            if (!_losCache.TryGetValue(caster.InstanceID, out var dangermap))
+                return;
+
+            var origin = dangermap.Item1;
+            var map = dangermap.Item2;
+
+            hints.AddForbiddenZone(p =>
+            {
+                var offset = (p - origin) / map.PixelSize;
+                return map[(int)offset.X, (int)offset.Z] ? -10 : 10;
+            }, CastFinishAt(caster));
+        }, d => _losCache.Remove(d.InstanceID));
 
         foreach (var d in ForbiddenTargets)
             if (hints.FindEnemy(d) is { } e)

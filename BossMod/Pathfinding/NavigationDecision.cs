@@ -21,7 +21,7 @@ public struct NavigationDecision
     public float LeewaySeconds; // can be used for finishing casts / slidecasting etc.
     public float TimeToGoal;
 
-    public const float ForbiddenZoneCushion = 0; // increase to fatten forbidden zones
+    public const float ForbiddenZoneCushion = 0.05f; // increase to fatten forbidden zones
     public const float ActivationTimeCushion = 1; // reduce time between now and activation by this value in seconds; increase for more conservativeness
 
     public static NavigationDecision Build(Context ctx, WorldState ws, AIHints hints, Actor player, float playerSpeed = 6)
