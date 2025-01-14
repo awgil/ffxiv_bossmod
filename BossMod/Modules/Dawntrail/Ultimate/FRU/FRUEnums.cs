@@ -277,6 +277,15 @@ public enum AID : uint
     WingsDarkAndLightCleaveDark = 40315, // BossP5->self, no cast, range 100 240?-degree cone on target
     WingsDarkAndLightTetherLight = 39879, // Helper->players, no cast, range 4 circle on farthest
     WingsDarkAndLightTetherDark = 39880, // Helper->player, no cast, range 4 circle on closest
+
+    PolarizingStrikes = 40316, // BossP5->self, 6.5+0.5s cast, single-target, visual (line stacks)
+    CruelPathOfLightBait = 40317, // Helper->self, 0.5s cast, range 100 width 6 rect (left side)
+    CruelPathOfDarknessBait = 40318, // Helper->self, 0.5s cast, range 100 width 6 rect (right side)
+    CruelPathOfLightAOE = 40119, // Helper->self, no cast, range 100 width 6 rect (repeated hit)
+    CruelPathOfDarknessAOE = 40120, // Helper->self, no cast, range 100 width 6 rect (repeated hit)
+    PolarizingPaths = 40234, // BossP5->self, 2.5+0.5s cast, single-target, visual (second+ hit)
+
+    PandorasBox = 40326, // BossP5->self, 12.0s cast, range 100 circle, raidwide requiring tank LB
 }
 
 public enum SID : uint
@@ -309,6 +318,8 @@ public enum SID : uint
     SpellInWaitingDarkAero = 2463, // none->player, extra=0x0
     //SpellInWaitingReturn = 4208, // none->player, extra=0x0
     //SpellInWaitingReturnII = 4171, // Helper->UsurperOfFrostP4, extra=0x0
+    LightResistanceDown = 4164, // Helper->player, extra=0x0
+    DarkResistanceDown = 3323, // Helper->player, extra=0x0
 }
 
 public enum IconID : uint

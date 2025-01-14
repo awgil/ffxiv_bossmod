@@ -103,7 +103,7 @@ class P5ParadiseRegainedBaits(BossModule module) : Components.GenericBaitAway(mo
             _source = caster;
             _firstTarget = WorldState.Actors.Find(caster.TargetID);
             _curCleave = shape;
-            _activation = Module.CastFinishAt(spell, 0.5f);
+            _activation = Module.CastFinishAt(spell, 0.3f);
             _tetherClosest = closest;
         }
     }

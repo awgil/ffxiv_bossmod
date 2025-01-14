@@ -61,7 +61,7 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
                         foreach (var (i, p) in Raid.WithSlot().Exclude(slot))
                         {
                             var avoidRadius = avoidBlizzard && States[i].HaveDarkBlizzard ? 12 : 8;
-                            hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, avoidRadius + 1));
+                            hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, avoidRadius));
                         }
                         var lasers = Module.FindComponent<P3UltimateRelativitySinboundMeltdownAOE>();
                         if (lasers != null)
