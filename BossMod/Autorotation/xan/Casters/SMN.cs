@@ -219,6 +219,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         AttunementType = (AttunementType)(gauge.Attunement & 3);
         Attunement = gauge.Attunement >> 2;
 
+        // intentionally not using activepet as it is cleared when current summon's duration expires, even though the actor still exists, causing autorot to constantly do redundant summons
         Carbuncle = World.Actors.FirstOrDefault(x => x.Type == ActorType.Pet && x.OwnerID == Player.InstanceID);
 
         var favor = Player.Statuses.FirstOrDefault(x => (SID)x.ID is SID.GarudasFavor or SID.IfritsFavor or SID.TitansFavor);
@@ -310,13 +311,13 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
             }
 
             if (TranceFlags.HasFlag(SmnFlags.Topaz))
-                PushGCD(AID.SummonTopaz, primaryTarget);
+                PushGCD(AID.SummonTopaz, Unlocked(TraitID.TopazSummoningMastery) ? BestAOETarget : primaryTarget);
 
             if (TranceFlags.HasFlag(SmnFlags.Emerald))
-                PushGCD(AID.SummonEmerald, primaryTarget);
+                PushGCD(AID.SummonEmerald, Unlocked(TraitID.EmeraldSummoningMastery) ? BestAOETarget : primaryTarget);
 
             if (TranceFlags.HasFlag(SmnFlags.Ruby))
-                PushGCD(AID.SummonRuby, primaryTarget);
+                PushGCD(AID.SummonRuby, Unlocked(TraitID.RubySummoningMastery) ? BestAOETarget : primaryTarget);
         }
 
         if (FurtherRuin > GCD && SummonLeft == 0)
