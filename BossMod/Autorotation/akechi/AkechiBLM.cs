@@ -1,7 +1,7 @@
-﻿using BossMod.AST;
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using AID = BossMod.BLM.AID;
 using SID = BossMod.BLM.SID;
+using TraitID = BossMod.BLM.TraitID;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
@@ -79,7 +79,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             "Standard rotation (Akechi)", //Category
             "Akechi", //Contributor
             RotationModuleQuality.Ok, //Quality
-            BitMask.Build((int)Class.BLM), //Job
+            BitMask.Build(Class.THM, Class.BLM), //Job
             100); //Level supported
 
         #region Custom strategies
@@ -162,18 +162,59 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     {
         None = 0,             //default
         Standard = 300,       //standard abilities
-        DOT = 400,            //damage-over-time abilities
+        DOT = 350,            //damage-over-time abilities
+        Despair = 400,        //Despair
+        F3P = 450,            //Fire III proc
+        NeedB3 = 460,         //Need to use Blizzard III
+        Polyglot = 475,       //Polyglots
+        Paradox = 500,        //Paradox
+
+        NeedDOT = 600,        //Need to apply DOTs
+        NeedF3P = 625,        //Need to use Fire III proc
+        NeedDespair = 640,    //Need to use Despair
+        NeedPolyglot = 650,   //Need to use Polyglots
+        Moving = 700,         //Moving
         ForcedGCD = 900,      //Forced GCDs
     }
     public enum OGCDPriority //priorities for oGCDs (higher number = higher priority)
     {
         None = 0,             //default
+        Transpose = 400,      //Transpose
+        Manafont = 450,       //Manafont
+        LeyLines = 500,       //Ley Lines
+        Amplifier = 550,      //Amplifier
+        Triplecast = 600,     //Triplecast
         Potion = 800,         //Potion
         ForcedOGCD = 900,     //Forced oGCDs
     }
     #endregion
 
     #region Placeholders for Variables
+    private uint MP; //Current MP
+    private bool NoStance; //No stance
+    private bool InAstralFire; //In Astral Fire
+    private bool InUmbralIce; //In Umbral Ice
+    private sbyte ElementStance; //Elemental Stance
+    private byte Polyglots; //Polyglot Stacks
+    private int PolyglotTimer; //Polyglot timer
+    private int MaxPolyglots; // 
+    private byte UmbralHearts; //Umbral Hearts
+    private int MaxUmbralHearts; //Max Umbral Hearts
+    private int UmbralStacks; //Umbral Ice Stacks
+    private int AstralStacks; //Astral Fire Stacks
+    private int AstralSoulStacks; //Stacks for Flare Star (Lv100)
+    private int EnochianTimer; //Enochian timer
+    private float ElementTimer; //Time remaining on Enochian
+    private bool EnochianActive; //Enochian is active
+    private bool ParadoxActive; //Paradox is active
+    private bool canFoul; //Can use Foul
+    private bool canXeno; //Can use Xenoglossy
+    private bool canLL; //Can use Ley Lines
+    private bool canAmp; //Can use Amplifier
+    private bool canTC; //Can use Triplecast
+    private bool canMF; //Can use Manafont
+    private bool hasFirestarter; //Has Firestarter buff
+    private bool hasThunderhead; //Has Thunderhead buff
     private float ThunderLeft; //Time left on DOT effect (30s base)
     private bool ShouldUseAOE; //Checks if AOE should be used
     public bool canWeaveIn; //Can weave in oGCDs
@@ -196,11 +237,59 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     private bool In25y(Actor? target) => Player.DistanceToHitbox(target) <= 24.99f; //Check if the target is within 25 yalms
     private bool ActionReady(AID aid) => Unlocked(aid) && CD(aid) < 0.6f; //Check if the desired action is ready (cooldown less than 0.6 seconds)
     private bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f; //Check if this is the first GCD in combat
-    private int TargetsInAOERange() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5); //Returns the number of targets hit by AOE within a 5-yalm radius around the player
-    public bool PlayerHasEffect(SID sid, float duration) => SelfStatusLeft(sid, duration) > 0; //Checks if Status effect is on self
+    private int TargetsInRange() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 25); //Returns the number of targets hit by AOE within a 25-yalm radius around the player
+    public bool PlayerHasEffect(SID sid, float duration) => SelfStatusLeft(sid, duration) > GCD; //Checks if Status effect is on self
+    public bool JustUsed(AID aid, float variance)
+    {
+        if (Manager?.LastCast == null)
+            return false;
+
+        return Manager.LastCast.Data?.IsSpell(aid) == true
+               && (World.CurrentTime - Manager.LastCast.Time).TotalSeconds <= variance;
+    }
+    private float GetCastTime(AID aid) => ActionDefinitions.Instance.Spell(aid)!.CastTime * SpS / 2.5f;
+    private float CastTime(AID aid)
+    {
+        if (PlayerHasEffect(SID.Triplecast, 15) ||
+            PlayerHasEffect(SID.Swiftcast, 10))
+            return 0;
+
+        var aspect = ActionDefinitions.Instance.Spell(aid)!.Aspect;
+
+        if (aid == AID.Fire3 && hasFirestarter
+            || aid == AID.Foul && Unlocked(TraitID.EnhancedFoul)
+            || aspect == ActionAspect.Thunder && hasThunderhead)
+            return 0;
+
+        var castTime = GetCastTime(aid);
+        if (castTime == 0)
+            return 0;
+
+        if (ElementStance == -3 && aspect == ActionAspect.Fire || ElementStance == 3 && aspect == ActionAspect.Ice)
+            castTime *= 0.5f;
+
+        return castTime;
+
+    }
+    private int TargetsInPlayerAOE(Actor primary) => Hints.NumPriorityTargetsInAOERect( //Use Hints to count number of targets in AOE rectangle
+            Player.Position, //from Player's position
+            (primary.Position - Player.Position) //direction of AOE rectangle
+            .Normalized(), //normalized direction
+            25, //AOE rectangle length
+            5); //AOE rectangle width
+    public Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value); //Resolves the target choice based on the strategy
     #endregion
 
     #region Upgrade Paths
+    private AID BestFire1
+        => Unlocked(AID.Paradox) ? AID.Paradox
+        : AID.Fire1;
+    private AID BestBlizzard1
+        => Unlocked(AID.Blizzard4) ? AID.Blizzard4
+        : AID.Blizzard1;
+    private AID swiftcastB3
+        => Player.InCombat && ActionReady(AID.Swiftcast) ? AID.Swiftcast
+        : AID.Blizzard3;
     private AID BestThunderST
         => Unlocked(AID.HighThunder) ? AID.HighThunder
         : Unlocked(AID.Thunder3) ? AID.Thunder3
@@ -220,54 +309,112 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
     {
         #region Variables
-        var gauge = World.Client.GetGauge<BlackMageGauge>(); //Retrieve BLMolar gauge
+        var gauge = World.Client.GetGauge<BlackMageGauge>(); //Retrieve BLM gauge
+        NoStance = ElementStance is 0; //No stance
+        ElementStance = gauge.ElementStance; //Elemental Stance
+        InAstralFire = ElementStance is 1 or 2 or 3; //In Astral Fire
+        InUmbralIce = ElementStance is -1 or -2 or -3; //In Umbral Ice
+        Polyglots = gauge.PolyglotStacks; //Polyglot Stacks
+        UmbralHearts = gauge.UmbralHearts; //Umbral Hearts
+        MaxUmbralHearts = Unlocked(TraitID.UmbralHeart) ? 3 : 0;
+        UmbralStacks = gauge.UmbralStacks; //Umbral Ice Stacks
+        AstralStacks = gauge.AstralStacks; //Astral Fire Stacks
+        AstralSoulStacks = gauge.AstralSoulStacks; //Stacks for Flare Star (Lv100)
+        EnochianActive = gauge.EnochianActive; //Enochian is active
+        ParadoxActive = gauge.ParadoxActive; //Paradox is active
+        EnochianTimer = gauge.EnochianTimer; //Enochian timer
+        ElementTimer = gauge.ElementTimeRemaining / 1000f; //Time remaining on current element
+        PolyglotTimer = Math.Max(0, ((MaxPolyglots - Polyglots) * 30000) + (EnochianTimer - 30000));
+        MaxPolyglots = Unlocked(TraitID.EnhancedPolyglotII) ? 3 : Unlocked(TraitID.EnhancedPolyglot) ? 2 : 1;
+        canFoul = Unlocked(AID.Foul) && Polyglots > 0; //Can use Foul
+        canXeno = Unlocked(AID.Xenoglossy) && Polyglots > 0; //Can use Xenoglossy
+        canLL = Unlocked(AID.LeyLines) && CD(AID.LeyLines) <= 120 && SelfStatusLeft(SID.LeyLines, 30) == 0; //Can use Ley Lines
+        canAmp = ActionReady(AID.Amplifier); //Can use Amplifier
+        canTC = Unlocked(AID.Triplecast) && CD(AID.Triplecast) <= 60 && SelfStatusLeft(SID.Triplecast) == 0; //Can use Triplecast
+        canMF = ActionReady(AID.Manafont); //Can use Manafont
+        hasFirestarter = PlayerHasEffect(SID.Firestarter, 15); //Has Firestarter buff
+        hasThunderhead = PlayerHasEffect(SID.Thunderhead, 30); //Has Thunderhead buff
+        ThunderLeft = Utils.MaxAll(
+            StatusDetails(primaryTarget, SID.Thunder, Player.InstanceID, 24).Left,
+            StatusDetails(primaryTarget, SID.ThunderII, Player.InstanceID, 18).Left,
+            StatusDetails(primaryTarget, SID.ThunderIII, Player.InstanceID, 27).Left,
+            StatusDetails(primaryTarget, SID.ThunderIV, Player.InstanceID, 21).Left,
+            StatusDetails(primaryTarget, SID.HighThunder, Player.InstanceID, 30).Left,
+            StatusDetails(primaryTarget, SID.HighThunderII, Player.InstanceID, 24).Left);
+        MP = Player.HPMP.CurMP; //Current MP
         canWeaveIn = GCD is <= 2.5f and >= 0.1f; //Can weave in oGCDs
         canWeaveEarly = GCD is <= 2.5f and >= 1.25f; //Can weave in oGCDs early
         canWeaveLate = GCD is <= 1.25f and >= 0.1f; //Can weave in oGCDs late
         SpS = ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level); //GCD based on spell speed and haste
         NextGCD = AID.None; //Next global cooldown action to be used
         PotionLeft = PotionStatusLeft(); //Remaining time for potion buff (30s)
-        ShouldUseAOE = TargetsInAOERange() > 1; //otherwise, use AOE if 2+ targets would be hit
+        ShouldUseAOE = TargetsInRange() > 2; //otherwise, use AOE if 2+ targets would be hit
 
         #region Strategy Definitions
         var AOE = strategy.Option(Track.AOE); //AOE track
         var AOEStrategy = AOE.As<AOEStrategy>(); //AOE strategy
-        var Thunder = strategy.Option(Track.Thunder); //Thunder track
-        var ThunderStrategy = Thunder.As<ThunderStrategy>(); //Thunder strategy
+        var thunder = strategy.Option(Track.Thunder); //Thunder track
+        var thunderStrat = thunder.As<ThunderStrategy>(); //Thunder strategy
+        var polyglot = strategy.Option(Track.Polyglot); //Polyglot track
+        var polyglotStrat = polyglot.As<PolyglotStrategy>(); //Polyglot strategy
+        var mf = strategy.Option(Track.Manafont); //Manafont track
+        var mfStrat = mf.As<ManafontStrategy>(); //Manafont strategy
+        var tc = strategy.Option(Track.Triplecast); //Triplecast track
+        var tcStrat = tc.As<OffensiveStrategy>(); //Triplecast strategy
+        var ll = strategy.Option(Track.LeyLines); //Ley Lines track
+        var llStrat = ll.As<OffensiveStrategy>(); //Ley Lines strategy
+        var amp = strategy.Option(Track.Amplifier); //Amplifier track
+        var ampStrat = amp.As<OffensiveStrategy>(); //Amplifier strategy
         var potion = strategy.Option(Track.Potion).As<PotionStrategy>(); //Potion strategy
-
-
         #endregion
 
         #endregion
 
         #region Force Execution
         if (AOEStrategy is AOEStrategy.Auto)
-            QueueGCD(BestRotation(), ResolveTargetOverride(AOE.Value) ?? primaryTarget, GCDPriority.Standard);
+            STLv72toLv89(TargetChoice(AOE) ?? primaryTarget);
         if (AOEStrategy is AOEStrategy.ForceST)
-            QueueGCD(BestST(), ResolveTargetOverride(AOE.Value) ?? primaryTarget, GCDPriority.ForcedGCD);
+            BestST(TargetChoice(AOE) ?? primaryTarget);
         if (AOEStrategy is AOEStrategy.ForceAOE)
-            QueueGCD(BestAOE(), Player, GCDPriority.ForcedGCD);
+            BestAOE(TargetChoice(AOE) ?? primaryTarget);
         #endregion
 
         #region Standard Execution
-        if (AOEStrategy == AOEStrategy.Auto)
+        //Out of combat
+        if (Unlocked(AID.UmbralSoul))
         {
-            var STtarget = ResolveTargetOverride(AOE.Value) ?? primaryTarget;
-            if (In25y(STtarget))
+            if (primaryTarget == null &&
+                (!Player.InCombat || Player.InCombat && TargetsInRange() is 0))
             {
-                if (ShouldUseAOE)
-                    QueueGCD(BestAOE(), Player, GCDPriority.Standard);
-                if (In25y(STtarget) &&
-                    (!ShouldUseAOE || IsFirstGCD()))
-                    QueueGCD(BestST(), STtarget, GCDPriority.Standard);
-
+                if (InAstralFire)
+                    QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose);
+                if (InUmbralIce &&
+                    (ElementTimer <= 14 || UmbralStacks < 3 || UmbralHearts != MaxUmbralHearts))
+                    QueueGCD(AID.UmbralSoul, Player, GCDPriority.Standard);
             }
         }
-
+        //Thunder
+        if (ShouldUseThunder(primaryTarget, thunderStrat)) //if Thunder should be used based on strategy
+            QueueGCD(BestThunder, TargetChoice(thunder) ?? primaryTarget, ThunderLeft < 3 ? GCDPriority.NeedDOT : GCDPriority.DOT); //Queue Thunder
+        //Polyglots
+        if (ShouldUsePolyglot(primaryTarget, polyglotStrat)) //if Polyglot should be used based on strategy
+            QueueGCD(BestPolyglot, TargetChoice(polyglot) ?? primaryTarget, polyglotStrat is PolyglotStrategy.ForceFoul or PolyglotStrategy.ForceXeno ? GCDPriority.ForcedGCD : EnochianTimer < 5000 ? GCDPriority.NeedPolyglot : GCDPriority.Paradox); //Queue Polyglot
+        //LeyLines
+        if (ShouldUseLeyLines(primaryTarget, llStrat))
+            QueueOGCD(AID.LeyLines, Player, OGCDPriority.LeyLines);
+        //Triplecast
+        if (ShouldUseTriplecast(primaryTarget, tcStrat))
+            QueueOGCD(AID.Triplecast, Player, OGCDPriority.Triplecast);
+        //Amplifier
+        if (ShouldUseAmplifier(primaryTarget, ampStrat))
+            QueueOGCD(AID.Amplifier, Player, OGCDPriority.Amplifier);
+        //Manafont
+        if (ShouldUseManafont(primaryTarget, mfStrat))
+            QueueOGCD(AID.Manafont, Player, OGCDPriority.Manafont);
+        //Potion
         if (potion is PotionStrategy.AlignWithRaidBuffs && CD(AID.LeyLines) < 5 ||
             potion is PotionStrategy.Immediate)
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionInt, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
         #endregion
     }
 
@@ -327,21 +474,80 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         return true;
     }
     #endregion
-    private void STLv1toLv34()
+    private void STLv1toLv34(Actor? target)
     {
-        // TODO: Implement single-target rotation for level 1-34
+        //Fire
+        if (Unlocked(AID.Fire1) && //if Fire is unlocked
+            NoStance && MP >= 800 || //if no stance is active and MP is 800 or more
+            InAstralFire && MP >= 1600) //or if Astral Fire is active and MP is 1600 or more
+            QueueGCD(AID.Fire1, target, GCDPriority.Standard); //Queue Fire
+        //Ice
+        if (InUmbralIce && MP != 10000) //if Umbral Ice is active and MP is not max
+            QueueGCD(AID.Blizzard1, target, GCDPriority.Standard); //Queue Blizzard
+        //Transpose 
+        if (ActionReady(AID.Transpose) && //if Transpose is unlocked & off cooldown
+            InAstralFire && MP < 1600 || //if Astral Fire is active and MP is less than 1600
+            InUmbralIce && MP == 10000) //or if Umbral Ice is active and MP is max
+            QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose); //Queue Transpose
     }
-    private void STLv35toLv59()
+    private void STLv35toLv59(Actor? target)
     {
-        // TODO: Implement single-target rotation for level 35-59
+        //Ice
+        if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
+            (NoStance && MP == 10000 || //and if no stance is active and MP is max (opener)
+            (NoStance && MP < 10000 && Player.InCombat) || //or if in combat and no stance is active and MP is less than max (died or stopped attacking)
+            InAstralFire && MP < 1600)) //or if Astral Fire is active and MP is less than 1600
+            QueueGCD(AID.Blizzard3, target, GCDPriority.Standard);
+        if (UmbralStacks >= 1)
+            QueueGCD(BestBlizzard1, target, GCDPriority.Standard);
+        //Fire
+        if (CastTime(AID.Fire3) < 2.5f &&
+            (hasFirestarter || JustUsed(BestBlizzard1, 5)))
+            QueueGCD(AID.Fire3, target, GCDPriority.F3P);
+        if (InAstralFire && MP >= 1600)
+            QueueGCD(AID.Fire1, target, GCDPriority.Standard);
     }
-    private void STLv60toLv71()
+    private void STLv60toLv71(Actor? target)
     {
-        // TODO: Implement single-target rotation for level 60-71
+        //Ice
+        if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
+            (NoStance && MP == 10000 || //and if no stance is active and MP is max (opener)
+            (NoStance && MP < 10000 && Player.InCombat) || //or if in combat and no stance is active and MP is less than max (died or stopped attacking)
+            InAstralFire && MP < 1600)) //or if Astral Fire is active and MP is less than 1600
+            QueueGCD(AID.Blizzard3, target, GCDPriority.Standard);
+        if (UmbralStacks >= 1 ||
+            Unlocked(AID.Blizzard4) && UmbralHearts != MaxUmbralHearts)
+            QueueGCD(BestBlizzard1, target, GCDPriority.Standard);
+        //Fire
+        if (CastTime(AID.Fire3) < 2.5f &&
+            (hasFirestarter || JustUsed(BestBlizzard1, 5)))
+            QueueGCD(AID.Fire3, target, GCDPriority.F3P);
+        if (InAstralFire && MP >= 1600)
+            QueueGCD(AID.Fire4, target, GCDPriority.Standard);
+        if (InAstralFire && ElementTimer <= 6)
+            QueueGCD(BestFire1, target, GCDPriority.Paradox);
     }
-    private void STLv72toLv89()
+
+    private void STLv72toLv89(Actor? target)
     {
-        // TODO: Implement single-target rotation for level 72-89
+        //Ice
+        if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
+            (NoStance && MP == 10000 || //and if no stance is active and MP is max (opener)
+            (NoStance && MP < 10000 && Player.InCombat) || //or if in combat and no stance is active and MP is less than max (died or stopped attacking)
+            InAstralFire && MP < 1600)) //or if Astral Fire is active and MP is less than 400
+            QueueGCD(AID.Blizzard3, target, InAstralFire && MP is 0 ? GCDPriority.NeedB3 : GCDPriority.Standard);
+        if (InUmbralIce && UmbralHearts != MaxUmbralHearts)
+            QueueGCD(BestBlizzard1, target, GCDPriority.Standard);
+        //Fire
+        if (CastTime(AID.Fire3) < SpS && !JustUsed(AID.Fire3, 5) &&
+            (hasFirestarter || UmbralHearts == MaxUmbralHearts && UmbralStacks == 3))
+            QueueGCD(AID.Fire3, target, UmbralHearts == MaxUmbralHearts && UmbralStacks == 3 ? GCDPriority.NeedF3P : GCDPriority.F3P);
+        if (InAstralFire && MP >= 1600)
+            QueueGCD(AID.Fire4, target, GCDPriority.Standard);
+        if (InAstralFire && ElementTimer <= 6 && MP >= 2800)
+            QueueGCD(BestFire1, target, GCDPriority.Paradox);
+        if (InAstralFire && MP is < 1600 and >= 800)
+            QueueGCD(AID.Despair, target, ElementTimer <= 4 && MP <= 2800 ? GCDPriority.NeedDespair : GCDPriority.Despair);
     }
     private void STLv90toLv99()
     {
@@ -351,20 +557,32 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     {
         // TODO: Implement single-target rotation for level 100
     }
-    private void BestST()
+    private void BestST(Actor? target)
     {
         if (Player.Level is >= 1 and <= 34)
-            STLv1toLv34();
+        {
+            STLv1toLv34(target);
+        }
         if (Player.Level is >= 35 and <= 59)
-            STLv35toLv59();
+        {
+            STLv35toLv59(target);
+        }
         if (Player.Level is >= 60 and <= 71)
-            STLv60toLv71();
+        {
+            STLv60toLv71(target);
+        }
         if (Player.Level is >= 72 and <= 89)
-            STLv72toLv89();
+        {
+            //STLv72toLv89(target);
+        }
         if (Player.Level is >= 90 and <= 99)
-            STLv90toLv99();
+        {
+            //STLv90toLv99(target);
+        }
         if (Player.Level is 100)
-            STLv100();
+        {
+            //STLv100(target);
+        }
     }
     private void AOELv12toLv34()
     {
@@ -394,33 +612,50 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     {
         // TODO: Implement AOE rotation for level 100
     }
-    private void BestAOE()
+    private void BestAOE(Actor? target)
     {
-        if (Player.Level is >= 12 and <= 34)
-            AOELv12toLv34();
-        if (Player.Level is >= 35 and <= 39)
-            AOELv35toLv39();
-        if (Player.Level is >= 40 and <= 49)
-            AOELv40toLv49();
-        if (Player.Level is >= 50 and <= 57)
-            AOELv50toLv57();
-        if (Player.Level is >= 58 and <= 81)
-            AOELv58toLv81();
-        if (Player.Level is >= 82 and <= 99)
-            AOELv82toLv99();
-        if (Player.Level is 100)
-            AOELv100();
+        if (In25y(target))
+        {
+            if (Player.Level is >= 12 and <= 34)
+            {
+                AOELv12toLv34();
+            }
+            if (Player.Level is >= 35 and <= 39)
+            {
+                AOELv35toLv39();
+            }
+            if (Player.Level is >= 40 and <= 49)
+            {
+                AOELv40toLv49();
+            }
+            if (Player.Level is >= 50 and <= 57)
+            {
+                AOELv50toLv57();
+            }
+            if (Player.Level is >= 58 and <= 81)
+            {
+                AOELv58toLv81();
+            }
+            if (Player.Level is >= 82 and <= 99)
+            {
+                AOELv82toLv99();
+            }
+            if (Player.Level is 100)
+            {
+                AOELv100();
+            }
+        }
     }
 
-    private void BestRotation()
+    private void BestRotation(Actor? target)
     {
         if (ShouldUseAOE)
         {
-            BestAOE();
+            BestAOE(target);
         }
         if (!ShouldUseAOE)
         {
-            BestST();
+            BestST(target);
         }
     }
 
@@ -435,9 +670,50 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         ThunderStrategy.Delay => false,
         _ => false
     };
+    private bool ShouldUsePolyglot(Actor? target, PolyglotStrategy strategy) => strategy switch
+    {
+        PolyglotStrategy.Automatic
+        => Player.InCombat &&
+        target != null &&
+        Polyglots > 0 &&
+        ((CD(AID.Triplecast) <= 60 || CD(AID.LeyLines) <= 120) || (CD(AID.Manafont) < 0.6f && JustUsed(AID.Despair, 5) && MP < 1600) ||
+        (Polyglots == MaxPolyglots && PolyglotTimer <= 5000)), //Overcap
+        PolyglotStrategy.OnlyXeno => ShouldUseXenoglossy(target, PolyglotStrategy.Automatic),
+        PolyglotStrategy.OnlyFoul => ShouldUseFoul(target, PolyglotStrategy.Automatic),
+        PolyglotStrategy.ForceXeno => canXeno,
+        PolyglotStrategy.ForceFoul => canFoul,
+        PolyglotStrategy.Delay => false,
+        _ => false
+    };
+    private bool ShouldUseXenoglossy(Actor? target, PolyglotStrategy strategy) => strategy switch
+    {
+        PolyglotStrategy.Automatic
+        => Player.InCombat &&
+        target != null &&
+        canXeno &&
+        Polyglots > 0 &&
+        ((CD(AID.Triplecast) <= 60 || CD(AID.LeyLines) <= 120) || (CD(AID.Manafont) < 0.6f && JustUsed(AID.Despair, 5) && MP < 1600) ||
+        (Polyglots == MaxPolyglots && PolyglotTimer <= 5000)), //Overcap
+        _ => false
+    };
+    private bool ShouldUseFoul(Actor? target, PolyglotStrategy strategy) => strategy switch
+    {
+        PolyglotStrategy.Automatic
+        => Player.InCombat &&
+        target != null &&
+        canFoul &&
+        Polyglots > 0 &&
+        ((CD(AID.Triplecast) <= 60 || CD(AID.LeyLines) <= 120) || (CD(AID.Manafont) < 0.6f && JustUsed(AID.Despair, 5) && MP < 1600) ||
+        (Polyglots == MaxPolyglots && PolyglotTimer <= 5000)), //Overcap
+        _ => false
+    };
     private bool ShouldUseLeyLines(Actor? target, OffensiveStrategy strategy) => strategy switch
     {
-        OffensiveStrategy.Automatic => Player.InCombat && target != null && canLL && canWeaveIn,
+        OffensiveStrategy.Automatic
+        => Player.InCombat &&
+        target != null &&
+        canLL &&
+        canWeaveIn,
         OffensiveStrategy.Force => canLL,
         OffensiveStrategy.AnyWeave => canLL && canWeaveIn,
         OffensiveStrategy.EarlyWeave => canLL && canWeaveEarly,
@@ -447,7 +723,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     };
     private bool ShouldUseAmplifier(Actor? target, OffensiveStrategy strategy) => strategy switch
     {
-        OffensiveStrategy.Automatic => Player.InCombat && target != null && canAmp && canWeaveIn,
+        OffensiveStrategy.Automatic
+        => Player.InCombat &&
+        target != null &&
+        canAmp &&
+        canWeaveIn &&
+        Polyglots != MaxPolyglots,
         OffensiveStrategy.Force => canAmp,
         OffensiveStrategy.AnyWeave => canAmp && canWeaveIn,
         OffensiveStrategy.EarlyWeave => canAmp && canWeaveEarly,
@@ -457,12 +738,31 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     };
     private bool ShouldUseManafont(Actor? target, ManafontStrategy strategy) => strategy switch
     {
-        ManafontStrategy.Automatic => Player.InCombat && target != null && canMF && canWeaveIn,
+        ManafontStrategy.Automatic
+        => Player.InCombat &&
+        target != null &&
+        canMF &&
+        InAstralFire &&
+        (JustUsed(BestXenoglossy, 5) && MP < 1600),
         ManafontStrategy.Force => canMF,
         ManafontStrategy.ForceWeave => canMF && canWeaveIn,
         ManafontStrategy.ForceEX => canMF,
         ManafontStrategy.ForceWeaveEX => canMF && canWeaveIn,
         ManafontStrategy.Delay => false,
+        _ => false
+    };
+    private bool ShouldUseTriplecast(Actor? target, OffensiveStrategy strategy) => strategy switch
+    {
+        OffensiveStrategy.Automatic
+        => Player.InCombat &&
+        target != null &&
+        canTC &&
+        canWeaveIn,
+        OffensiveStrategy.Force => canWeaveIn,
+        OffensiveStrategy.AnyWeave => canWeaveIn,
+        OffensiveStrategy.EarlyWeave => canWeaveEarly,
+        OffensiveStrategy.LateWeave => canWeaveLate,
+        OffensiveStrategy.Delay => false,
         _ => false
     };
     #endregion
