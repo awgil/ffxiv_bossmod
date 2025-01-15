@@ -43,7 +43,6 @@ class P5FulgentBlade : Components.Exaflare
             var dir = spell.Rotation.ToDirection();
             var distanceToBorder = Intersect.RayCircle(caster.Position - Module.Center, dir, 22);
             Lines.Add(new() { Next = caster.Position, Advance = 5 * dir, Rotation = spell.Rotation, NextExplosion = Module.CastFinishAt(spell), TimeToMove = 2, ExplosionsLeft = (int)(distanceToBorder / 5) + 1, MaxShownExplosions = 1 });
-            ReportError($"Line start: d={(caster.Position - Module.Center).Length():f3}, dir={spell.Rotation}");
         }
     }
 

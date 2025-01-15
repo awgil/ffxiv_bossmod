@@ -130,7 +130,11 @@ public class FRUConfig() : ConfigNode()
     [GroupPreset("Default", [0, 2, 5, 3, 4, 6, 7, 1])]
     public GroupAssignmentUnique P2IntermissionClockSpots = new() { Assignments = [0, 2, 5, 3, 4, 6, 7, 1] };
 
-    [PropertyDisplay("P3 Darkest Dance: baiter")]
+    [PropertyDisplay("P3 Darkest Dance: baiter", tooltip: "Only used by AI")]
     [PropertyCombo("MT", "OT")]
     public bool P3DarkestDanceOTBait;
+
+    [PropertyDisplay("P4 Somber Dance: baiter", tooltip: "Only used by AI")]
+    [PropertyCombo("MT", "OT")]
+    public bool P4SomberDanceOTBait = true;
 }

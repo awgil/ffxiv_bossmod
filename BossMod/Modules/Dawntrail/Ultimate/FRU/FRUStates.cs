@@ -552,14 +552,14 @@ class FRUStates : StateMachineBuilder
         ComponentCondition<P4DarklitDragonsongPathOfLight>(id + 0x21, 0.8f, comp => comp.NumCasts > 0, "Proteans")
             .DeactivateOnExit<P4DarklitDragonsongPathOfLight>();
         ActorCastEnd(id + 0x22, _module.BossP4Oracle, 2.2f, true)
-            .ActivateOnEnter<DefaultSpiritTaker>();
+            .ActivateOnEnter<P4DarklitDragonsongSpiritTaker>();
         ActorCastStartMulti(id + 0x23, _module.BossP4Usurper, [AID.HallowedWingsL, AID.HallowedWingsR], 0.1f, true);
         ComponentCondition<SpiritTaker>(id + 0x24, 0.3f, comp => comp.Spreads.Count == 0, "Jump")
             .DeactivateOnExit<SpiritTaker>();
         ActorCastStart(id + 0x25, _module.BossP4Oracle, AID.SomberDance, 2.8f)
             .ActivateOnEnter<P4HallowedWingsL>()
             .ActivateOnEnter<P4HallowedWingsR>()
-            .ExecOnEnter<P4DarklitDragonsongDarkWater>(comp => comp.ResolveImminent = true);
+            .ExecOnEnter<P4DarklitDragonsongDarkWater>(comp => comp.Show());
         ComponentCondition<P4DarklitDragonsongDarkWater>(id + 0x26, 1.7f, comp => comp.Stacks.Count == 0, "Stacks")
             .DeactivateOnExit<P4DarklitDragonsongDarkWater>();
         ActorCastEnd(id + 0x27, _module.BossP4Usurper, 0.2f, false, "Side cleave")
