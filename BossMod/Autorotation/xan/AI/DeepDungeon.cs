@@ -85,6 +85,13 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
     private bool IsRanged => Player.Class.GetRole() is Role.Ranged or Role.Healer;
 
     private static readonly HashSet<uint> NoMeleeAutos = [
+        // hoh
+        0x22ED, // heavenly kongorei
+        0x22EF, // heavenly maruishi
+        0x22F3, // heavenly rachimonai
+        0x22FC, // heavenly doguzeri
+
+        // orthos
         0x3DCC, // orthos imp
         0x3DCE, // orthos fachan
         0x3DD2, // orthos water sprite

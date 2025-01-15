@@ -358,8 +358,6 @@ public abstract class AutoClear : ZoneModule
 
     private bool _allowNavigationInCombat;
 
-    private UIBitmapEditor? _ed;
-
     public override void DrawExtra()
     {
         var player = World.Party.Player();
@@ -374,10 +372,20 @@ public abstract class AutoClear : ZoneModule
             _obstacles.Dispose();
             _obstacles = new(World);
         }
-        if (player != null && _obstacles.Find(player.PosRot.XYZ()).entry == null)
+        if (player != null)
         {
-            ImGui.SameLine();
-            UIMisc.HelpMarker(() => "Obstacle map missing for floor!", Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle);
+            var (entry, data) = _obstacles.Find(player.PosRot.XYZ());
+            if (entry == null)
+            {
+                ImGui.SameLine();
+                UIMisc.HelpMarker(() => "Obstacle map missing for floor!", Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle);
+            }
+
+            if (data != null && data.PixelSize != 0.5f)
+            {
+                ImGui.SameLine();
+                UIMisc.HelpMarker(() => $"Wrong resolution for map; should be 0.5, got {data.PixelSize}", Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle);
+            }
         }
     }
 
@@ -392,8 +400,6 @@ public abstract class AutoClear : ZoneModule
     {
         hints.AutohintDisabledActions.UnionWith(AutohintDisabledActions());
     }
-
-    private bool OnBeacon(WPos pos) => pos.AlmostEqual(new WPos(259.7f, 307.14f), 1);
 
     private void IterAndExpire<T>(List<T> items, Func<T, bool> expire, Action<T> action, Action<T>? onRemove = null)
     {
@@ -474,7 +480,7 @@ public abstract class AutoClear : ZoneModule
 
         if (_config.TrapHints && _trapsHidden)
         {
-            var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30) && !OnBeacon(t)).Select(t => ShapeDistance.Circle(t, 2)).ToList();
+            var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30)).Select(t => ShapeDistance.Circle(t, 2)).ToList();
             if (traps.Count > 0)
                 hints.AddForbiddenZone(ShapeDistance.Union(traps));
         }
