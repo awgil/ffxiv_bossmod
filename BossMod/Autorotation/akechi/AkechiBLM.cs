@@ -345,6 +345,13 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         && ActionReady(AID.Swiftcast)
         ? AID.Swiftcast
         : AID.Blizzard3;
+    private AID SwiftcastB2
+        => Player.InCombat
+        && ActionReady(AID.Swiftcast)
+        ? AID.Swiftcast
+        : Unlocked(AID.HighBlizzard2)
+        ? AID.HighBlizzard2
+        : AID.Blizzard2;
     private AID BestThunderST
         => Unlocked(AID.HighThunder) ? AID.HighThunder
         : Unlocked(AID.Thunder3) ? AID.Thunder3
@@ -547,6 +554,19 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         return true;
     }
     #endregion
+    private void BestRotation(Actor? target)
+    {
+        if (ShouldUseAOE)
+        {
+            BestAOE(target);
+        }
+        if (!ShouldUseAOE)
+        {
+            BestST(target);
+        }
+    }
+
+    #region Single-Target Helpers
     private void STLv1toLv34(Actor? target) //Level 1-34 single-target rotation
     {
         //Fire
@@ -580,17 +600,17 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             //Step 1 - max stacks in UI
             if (JustUsed(AID.Blizzard3, 5)) //if Blizzard III was just used
             {
-                if (!Unlocked(AID.Blizzard4) && UmbralStacks != 3) //if Blizzard IV is not unlocked and Umbral Ice stacks are not max
+                if (!Unlocked(AID.Blizzard4) && UmbralStacks == 3) //if Blizzard IV is not unlocked and Umbral Ice stacks are max
                     QueueGCD(AID.Blizzard1, target, GCDPriority.Step2); //Queue Blizzard I
                 if (Unlocked(AID.Blizzard4) && UmbralHearts != MaxUmbralHearts) //if Blizzard IV is unlocked and Umbral Hearts are not max
                     QueueGCD(AID.Blizzard4, target, GCDPriority.Step2); //Queue Blizzard IV
-
             }
             //Step 2 - swap from UI to AF
             if (Unlocked(AID.Fire3) && //if Fire III is unlocked
-                UmbralStacks == 3 && //if Fire III is unlocked and Umbral Ice stacks are max
-                Unlocked(TraitID.UmbralHeart) ? UmbralHearts == MaxUmbralHearts : UmbralHearts == 0) //if Fire III is unlocked and Umbral Ice stacks are max and Umbral Hearts are max or 0
-                QueueGCD(AID.Fire3, target, GCDPriority.Step1); //Queue Fire III
+                JustUsed(AID.Blizzard1, 5) && //and Blizzard I was just used
+                MP < 10000 && //and MP is less than max
+                Unlocked(TraitID.UmbralHeart) ? UmbralHearts == MaxUmbralHearts : UmbralHearts == 0) //and Umbral Hearts are max if unlocked, or 0 if not
+                QueueGCD(AID.Fire3, target, JustUsed(AID.Blizzard1, 5) ? GCDPriority.Step10 : GCDPriority.Step1); //Queue Fire III, increase priority if Blizzard I was just used
         }
         if (InAstralFire) //if Astral Fire is active
         {
@@ -598,11 +618,11 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             if (MP >= 1600) //if MP is 1600 or more
                 QueueGCD(AID.Fire1, target, GCDPriority.Step3); //Queue Fire I
             //Step 2 - F3P
-            if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0) //if Firestarter buff is active and has less than 25s left
+            if (hasFirestarter && AstralStacks == 3) //if Firestarter buff is active and Astral Fire stacks are max
                 QueueGCD(AID.Fire3, target, GCDPriority.Step2); //Queue Fire III
             //Step 3 - swap from AF to UI
             if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
-                MP <= 400) //and MP is less than 400
+                MP < 1600) //and MP is less than 400
                 QueueGCD(AID.Blizzard3, target, GCDPriority.Step1); //Queue Blizzard III
         }
     }
@@ -640,11 +660,11 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 MP >= 4000) //and MP is 4000 or more
                 QueueGCD(AID.Fire1, target, ElementTimer <= 3 && MP >= 4000 ? GCDPriority.Paradox : GCDPriority.Step4); //Queue Fire I, increase priority if less than 3s left on element
             //Step 4B - F3P
-            if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0) //if Firestarter buff is active and has less than 25s left
+            if (hasFirestarter && AstralStacks == 3) //if Firestarter buff is active and Astral Fire stacks are max
                 QueueGCD(AID.Fire3, target, GCDPriority.Step3); //Queue Fire III
             //Step 8 - swap from AF to UI
             if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
-                MP <= 400) //and MP is less than 400
+                MP < 1600) //and MP is less than 400
                 QueueGCD(AID.Blizzard3, target, GCDPriority.Step1); //Queue Blizzard III
         }
     }
@@ -833,34 +853,290 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             STLv100(target);
         }
     }
+    #endregion
 
-    private void AOELv12toLv34()
+    #region AOE Helpers
+    private void AOELv12toLv34(Actor? target)
     {
-        // TODO: Implement AOE rotation for level 12-34
+        //Fire
+        if (Unlocked(AID.Fire2) && //if Fire is unlocked
+            NoStance && MP >= 800 || //if no stance is active and MP is 800 or more
+            InAstralFire && MP >= 1600) //or if Astral Fire is active and MP is 1600 or more
+            QueueGCD(AID.Fire2, target, GCDPriority.Standard); //Queue Fire
+        //Ice
+        if (InUmbralIce && MP != 10000) //if Umbral Ice is active and MP is not max
+            QueueGCD(AID.Blizzard2, target, GCDPriority.Standard); //Queue Blizzard
+        //Transpose 
+        if (ActionReady(AID.Transpose) && //if Transpose is unlocked & off cooldown
+            InAstralFire && MP < 1600 || //if Astral Fire is active and MP is less than 1600
+            InUmbralIce && MP == 10000) //or if Umbral Ice is active and MP is max
+            QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose); //Queue Transpose
     }
-    private void AOELv35toLv39()
+    private void AOELv35toLv39(Actor? target)
     {
-        // TODO: Implement AOE rotation for level 35-39
+        if (NoStance)
+        {
+            if (Unlocked(AID.Blizzard2))
+            {
+                if (MP >= 10000)
+                    QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
+                if (MP < 10000 && Player.InCombat)
+                    QueueGCD(SwiftcastB2, target, GCDPriority.NeedB3);
+            }
+        }
+        if (InUmbralIce)
+        {
+            if (JustUsed(AID.Fire2, 5))
+            {
+                if (Unlocked(AID.Blizzard2) && MP != 10000)
+                    QueueGCD(AID.Blizzard2, target, GCDPriority.Step2);
+            }
+            if (Unlocked(AID.Fire2) &&
+                MP >= 10000 &&
+                UmbralStacks == 3)
+                QueueGCD(AID.Fire2, target, GCDPriority.Step1);
+        }
+        if (InAstralFire)
+        {
+            if (MP >= 1600)
+                QueueGCD(AID.Fire2, target, GCDPriority.Step2);
+            if (Unlocked(AID.Blizzard2) &&
+                MP < 1600)
+                QueueGCD(AID.Blizzard2, target, GCDPriority.Step1);
+        }
     }
-    private void AOELv40toLv49()
+    private void AOELv40toLv49(Actor? target)
     {
-        // TODO: Implement AOE rotation for level 40-49
+        if (NoStance)
+        {
+            if (Unlocked(AID.Blizzard2))
+            {
+                if (MP >= 10000)
+                    QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
+                if (MP < 10000 && Player.InCombat)
+                    QueueGCD(SwiftcastB2, target, GCDPriority.NeedB3);
+            }
+        }
+        if (InUmbralIce)
+        {
+            //Step 1 - max stacks in UI
+            if (JustUsed(AID.Fire2, 5) &&
+                Unlocked(AID.Blizzard2) &&
+                UmbralStacks != 3)
+                QueueGCD(AID.Blizzard2, target, GCDPriority.Step2);
+            //Step 2 - Freeze
+            if (Unlocked(AID.Freeze) &&
+                JustUsed(AID.Blizzard2, 5) || UmbralStacks == 3)
+                QueueGCD(AID.Freeze, target, JustUsed(AID.Blizzard2, 5) ? GCDPriority.Step10 : GCDPriority.Step1);
+            //Step 3 - swap from UI to AF
+            if (Unlocked(AID.Fire2) &&
+                MP >= 10000 &&
+                UmbralStacks == 3)
+                QueueGCD(AID.Fire2, target, GCDPriority.Step1);
+        }
+        if (InAstralFire)
+        {
+            if (MP >= 1600)
+                QueueGCD(AID.Fire2, target, GCDPriority.Step2);
+            if (Unlocked(AID.Blizzard2) &&
+                MP < 1600)
+                QueueGCD(AID.Blizzard2, target, GCDPriority.Step1);
+        }
     }
-    private void AOELv50toLv57()
+    private void AOELv50toLv57(Actor? target)
     {
-        // TODO: Implement AOE rotation for level 50-57
+        if (NoStance)
+        {
+            if (Unlocked(AID.Blizzard2))
+            {
+                if (MP >= 10000)
+                    QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
+                if (MP < 10000 && Player.InCombat)
+                    QueueGCD(SwiftcastB2, target, GCDPriority.NeedB3);
+            }
+        }
+        if (InUmbralIce)
+        {
+            //Step 1 - max stacks in UI
+            if (JustUsed(AID.Fire2, 5) &&
+                Unlocked(AID.Blizzard2) &&
+                UmbralStacks != 3)
+                QueueGCD(AID.Blizzard2, target, GCDPriority.Step2);
+            //Step 2 - Freeze
+            if (Unlocked(AID.Freeze) &&
+                JustUsed(AID.Blizzard2, 5) || UmbralStacks == 3)
+                QueueGCD(AID.Freeze, target, JustUsed(AID.Blizzard2, 5) ? GCDPriority.Step10 : GCDPriority.Step1);
+            //Step 3 - swap from UI to AF
+            if (Unlocked(AID.Fire2) &&
+                MP >= 10000 &&
+                UmbralStacks == 3)
+                QueueGCD(AID.Fire2, target, GCDPriority.Step1);
+        }
+        if (InAstralFire)
+        {
+            //Step 1 - spam Fire 2
+            if (MP >= 1600)
+                QueueGCD(AID.Fire2, target, GCDPriority.Step3);
+            //Step 2 - Flare
+            if (Unlocked(AID.Flare) &&
+                MP < 1600)
+                QueueGCD(AID.Flare, target, GCDPriority.Step2);
+            //Step 3 - swap from AF to UI
+            if (Unlocked(AID.Blizzard2) &&
+                (!Unlocked(AID.Flare) && MP < 1600) ||
+                (Unlocked(AID.Flare) && MP < 400))
+                QueueGCD(AID.Blizzard2, target, GCDPriority.Step1);
+        }
     }
-    private void AOELv58toLv81()
+    private void AOELv58toLv81(Actor? target)
     {
-        // TODO: Implement AOE rotation for level 58-81
+        if (NoStance)
+        {
+            if (Unlocked(AID.Blizzard2))
+            {
+                if (MP >= 10000)
+                    QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
+                if (MP < 10000 && Player.InCombat)
+                    QueueGCD(SwiftcastB2, target, GCDPriority.NeedB3);
+            }
+        }
+        if (InUmbralIce)
+        {
+            //Step 1 - max stacks in UI
+            if (JustUsed(AID.Fire2, 5) &&
+                Unlocked(AID.Blizzard2) &&
+                UmbralStacks != 3)
+                QueueGCD(AID.Blizzard2, target, GCDPriority.Step2);
+            //Step 2 - Freeze
+            if (Unlocked(AID.Freeze) &&
+                JustUsed(AID.Blizzard2, 5) || UmbralStacks == 3)
+                QueueGCD(AID.Freeze, target, JustUsed(AID.Blizzard2, 5) ? GCDPriority.Step10 : GCDPriority.Step1);
+            //Step 3 - swap from UI to AF
+            if (Unlocked(AID.Fire2) &&
+                MP >= 10000 &&
+                UmbralStacks == 3)
+                QueueGCD(AID.Fire2, target, GCDPriority.Step1);
+        }
+        if (InAstralFire)
+        {
+            //Step 1 - spam Fire 2
+            if (MP > 5500)
+                QueueGCD(AID.Fire2, target, GCDPriority.Step4);
+            //Step 2 - Flare
+            if (Unlocked(AID.Flare))
+            {
+                //first cast
+                if (UmbralHearts == 1)
+                    QueueGCD(AID.Flare, target, GCDPriority.Step3);
+                //second cast
+                if (MP < 2500 && JustUsed(AID.Flare, 5f))
+                    QueueGCD(AID.Flare, target, GCDPriority.Step2);
+            }
+            //Step 3 - swap from AF to UI
+            if (Unlocked(AID.Blizzard2) &&
+                MP < 400)
+                QueueGCD(AID.Blizzard2, target, GCDPriority.Step1);
+        }
     }
-    private void AOELv82toLv99()
+    private void AOELv82toLv99(Actor? target)
     {
-        // TODO: Implement AOE rotation for level 82-99
+        if (NoStance)
+        {
+            if (Unlocked(AID.Blizzard2))
+            {
+                if (MP >= 10000)
+                    QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
+                if (MP < 10000 && Player.InCombat)
+                    QueueGCD(SwiftcastB2, target, GCDPriority.NeedB3);
+            }
+        }
+        if (InUmbralIce)
+        {
+            //Step 1 - max stacks in UI
+            if (JustUsed(AID.HighFire2, 5) &&
+                Unlocked(AID.HighBlizzard2) &&
+                UmbralStacks != 3)
+                QueueGCD(AID.HighBlizzard2, target, GCDPriority.Step2);
+            //Step 2 - Freeze
+            if (Unlocked(AID.Freeze) &&
+                JustUsed(AID.HighBlizzard2, 5) || UmbralStacks == 3)
+                QueueGCD(AID.Freeze, target, JustUsed(AID.Blizzard2, 5) ? GCDPriority.Step10 : GCDPriority.Step1);
+            //Step 3 - swap from UI to AF
+            if (Unlocked(AID.HighFire2) &&
+                MP >= 10000 &&
+                UmbralStacks == 3)
+                QueueGCD(AID.HighFire2, target, GCDPriority.Step1);
+        }
+        if (InAstralFire)
+        {
+            //Step 1 - spam Fire 2
+            if (MP > 5500)
+                QueueGCD(AID.HighFire2, target, GCDPriority.Step4);
+            //Step 2 - Flare
+            if (Unlocked(AID.Flare))
+            {
+                //first cast
+                if (UmbralHearts == 1)
+                    QueueGCD(AID.Flare, target, GCDPriority.Step3);
+                //second cast
+                if (MP < 2500 && JustUsed(AID.Flare, 5f))
+                    QueueGCD(AID.Flare, target, GCDPriority.Step2);
+            }
+            //Step 3 - swap from AF to UI
+            if (Unlocked(AID.HighBlizzard2) &&
+                MP < 400)
+                QueueGCD(AID.HighBlizzard2, target, GCDPriority.Step1);
+        }
     }
-    private void AOELv100()
+    private void AOELv100(Actor? target)
     {
-        // TODO: Implement AOE rotation for level 100
+        if (NoStance)
+        {
+            if (Unlocked(AID.HighBlizzard2))
+            {
+                if (MP >= 10000)
+                    QueueGCD(AID.HighBlizzard2, target, GCDPriority.NeedB3);
+                if (MP < 10000 && Player.InCombat)
+                    QueueGCD(SwiftcastB2, target, GCDPriority.NeedB3);
+            }
+        }
+        if (InUmbralIce)
+        {
+            //Step 1 - max stacks in UI
+            if (JustUsed(AID.HighFire2, 5) &&
+                Unlocked(AID.HighBlizzard2) &&
+                UmbralStacks != 3)
+                QueueGCD(AID.HighBlizzard2, target, GCDPriority.Step2);
+            //Step 2 - Freeze
+            if (Unlocked(AID.Freeze) &&
+                JustUsed(AID.HighBlizzard2, 5) || UmbralStacks == 3)
+                QueueGCD(AID.Freeze, target, JustUsed(AID.Blizzard2, 5) ? GCDPriority.Step10 : GCDPriority.Step1);
+            //Step 3 - swap from UI to AF
+            if (Unlocked(AID.HighFire2) &&
+                MP >= 10000 &&
+                UmbralStacks == 3)
+                QueueGCD(AID.HighFire2, target, GCDPriority.Step1);
+        }
+        if (InAstralFire)
+        {
+            //Step 1 - Flare
+            if (Unlocked(AID.Flare))
+            {
+                //first cast
+                if (UmbralHearts == 3)
+                    QueueGCD(AID.Flare, target, GCDPriority.Step3);
+                //second cast
+                if (MP < 2500 && JustUsed(AID.Flare, 5f))
+                    QueueGCD(AID.Flare, target, GCDPriority.Step2);
+            }
+            //Step 2 - Flare Star
+            if (AstralSoulStacks == 6) //if Astral Soul stacks are max
+                QueueGCD(AID.FlareStar, target, GCDPriority.Step2); //Queue Flare Star
+            //Step 3 - swap from AF to UI
+            if (Unlocked(AID.HighBlizzard2) &&
+                MP < 400)
+                QueueGCD(AID.HighBlizzard2, target, GCDPriority.Step1);
+        }
     }
     private void BestAOE(Actor? target)
     {
@@ -868,45 +1144,35 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         {
             if (Player.Level is >= 12 and <= 34)
             {
-                AOELv12toLv34();
+                AOELv12toLv34(target);
             }
             if (Player.Level is >= 35 and <= 39)
             {
-                AOELv35toLv39();
+                AOELv35toLv39(target);
             }
             if (Player.Level is >= 40 and <= 49)
             {
-                AOELv40toLv49();
+                AOELv40toLv49(target);
             }
             if (Player.Level is >= 50 and <= 57)
             {
-                AOELv50toLv57();
+                AOELv50toLv57(target);
             }
             if (Player.Level is >= 58 and <= 81)
             {
-                AOELv58toLv81();
+                AOELv58toLv81(target);
             }
             if (Player.Level is >= 82 and <= 99)
             {
-                AOELv82toLv99();
+                AOELv82toLv99(target);
             }
             if (Player.Level is 100)
             {
-                AOELv100();
+                AOELv100(target);
             }
         }
     }
-    private void BestRotation(Actor? target)
-    {
-        if (ShouldUseAOE)
-        {
-            BestAOE(target);
-        }
-        if (!ShouldUseAOE)
-        {
-            BestST(target);
-        }
-    }
+    #endregion
 
     #region Cooldown Helpers
     private bool ShouldUseThunder(Actor? target, ThunderStrategy strategy) => strategy switch
