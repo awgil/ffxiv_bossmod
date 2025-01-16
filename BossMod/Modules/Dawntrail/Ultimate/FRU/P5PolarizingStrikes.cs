@@ -2,10 +2,12 @@
 
 class P5PolarizingStrikes(BossModule module) : Components.GenericAOEs(module)
 {
+    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
     private readonly List<AOEInstance> _aoes = []; // 'afterglow'
     private readonly Actor?[] _baiters = [null, null]; // light/left, dark/right
     private readonly BitMask[] _forbidden = [default, default];
     private Actor? _source;
+    private bool _baitsActive;
 
     private static readonly AOEShapeRect _shape = new(100, 3);
 
@@ -14,7 +16,7 @@ class P5PolarizingStrikes(BossModule module) : Components.GenericAOEs(module)
     public override void Update()
     {
         _baiters[0] = _baiters[1] = null;
-        if (_source != null && _aoes.Count == 0)
+        if (_source != null && _aoes.Count == 0 && _baitsActive)
         {
             var left = _source.Rotation.ToDirection().OrthoL();
             float distL = float.MaxValue, distR = float.MaxValue;
@@ -36,7 +38,7 @@ class P5PolarizingStrikes(BossModule module) : Components.GenericAOEs(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (_source != null && _aoes.Count == 0)
+        if (_source != null && _aoes.Count == 0 && _baitsActive)
         {
             if (_baiters.Contains(actor) && (_forbidden[0] | _forbidden[1])[slot])
                 hints.Add("Hide behind party!");
@@ -54,9 +56,37 @@ class P5PolarizingStrikes(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_source == null)
+            return;
+        if (_aoes.Count == 0 && _baitsActive)
+        {
+            var role = _config.P5PolarizingStrikesAssignments[assignment];
+            if (role >= 0)
+            {
+                var left = role < 4;
+                var order = role & 3;
+                var currentBaitOrder = NumCasts >> 2;
+                var front = currentBaitOrder == order;
+                if (currentBaitOrder > order)
+                    left ^= true;
+                var distance = front ? 4 : 7;
+                var dir = _source.Rotation + (left ? 135 : -135).Degrees();
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_source.Position + distance * dir.ToDirection(), 1));
+            }
+        }
+        else
+        {
+            // avoid aftershock aoe by moving behind boss
+            base.AddAIHints(slot, actor, assignment, hints);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCone(_source.Position, 100, _source.Rotation + 180.Degrees(), 45.Degrees()), DateTime.MaxValue);
+        }
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (_source == null || !_baitsActive)
             return;
         foreach (var (baiter, forbidden) in _baiters.Zip(_forbidden))
             if (baiter != null)
@@ -70,10 +100,11 @@ class P5PolarizingStrikes(BossModule module) : Components.GenericAOEs(module)
             case AID.PolarizingStrikes:
             case AID.PolarizingPaths:
                 _source = caster;
+                _baitsActive = true;
                 break;
             case AID.CruelPathOfLightBait:
             case AID.CruelPathOfDarknessBait:
-                _source = null;
+                _baitsActive = false;
                 break;
         }
     }

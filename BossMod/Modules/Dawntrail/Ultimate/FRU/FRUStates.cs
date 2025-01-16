@@ -622,8 +622,7 @@ class FRUStates : StateMachineBuilder
             .ActivateOnEnter<P4CrystallizeTimeTidalLight>();
         ComponentCondition<P4CrystallizeTimeMaelstrom>(id + 0x50, 1.1f, comp => comp.NumCasts > 4, "Hourglass 3")
             .DeactivateOnExit<P4CrystallizeTimeMaelstrom>()
-            .DeactivateOnExit<P4CrystallizeTimeHints>()
-            .ExecOnExit<P4CrystallizeTimeDragonHead>(comp => comp.ShowPuddles = true);
+            .DeactivateOnExit<P4CrystallizeTimeHints>();
         ActorCast(id + 0x60, _module.BossP4Usurper, AID.TidalLight, 2.3f, 3, true, "Exaline NS start")
             .ActivateOnEnter<P4CrystallizeTimeRewind>();
         ComponentCondition<P4CrystallizeTimeQuietus>(id + 0x70, 4.1f, comp => comp.NumCasts > 0)
@@ -636,7 +635,7 @@ class FRUStates : StateMachineBuilder
             .DeactivateOnExit<P4CrystallizeTime>();
         ActorCastStart(id + 0x90, _module.BossP4Oracle, AID.SpiritTaker, 0.4f);
         ActorCastStart(id + 0x91, _module.BossP4Usurper, AID.CrystallizeTimeHallowedWings1, 2.2f)
-            .ActivateOnEnter<DefaultSpiritTaker>();
+            .ActivateOnEnter<P4CrystallizeTimeSpiritTaker>();
         ActorCastEnd(id + 0x92, _module.BossP4Oracle, 0.8f);
         ComponentCondition<SpiritTaker>(id + 0x93, 0.3f, comp => comp.Spreads.Count == 0, "Jump")
             .DeactivateOnExit<SpiritTaker>();
