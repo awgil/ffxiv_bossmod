@@ -86,6 +86,11 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
     private static readonly HashSet<uint> NoMeleeAutos = [
         // hoh
+        0x22C3, // heavenly onibi
+        0x22C5, // heavenly dhruva
+        0x22C6, // heavenly sai taisui
+        0x22DC, // heavenly dogu
+        0x22DE, // heavenly ganseki
         0x22ED, // heavenly kongorei
         0x22EF, // heavenly maruishi
         0x22F3, // heavenly rachimonai
@@ -99,6 +104,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         0x3DD5, // orthosystem β
         0x3DE0, // orthodemolisher
         0x3DE2, // orthodroid
+        0x3DFD, // orthos apa
         0x3E10, // orthos ice sprite
         0x3E5C, // orthos ahriman
         0x3E62, // orthos abyss

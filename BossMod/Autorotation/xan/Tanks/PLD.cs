@@ -72,7 +72,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining < GetCastTime(AID.HolySpirit))
+            if (CountdownRemaining < GetCastTime(AID.HolySpirit) + 0.76f)
                 PushGCD(AID.HolySpirit, primaryTarget);
 
             return;

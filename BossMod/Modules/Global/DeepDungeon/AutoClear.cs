@@ -67,6 +67,9 @@ public class AutoDDConfig : ConfigNode
     [PropertyDisplay("Automatic mob targeting behavior")]
     public ClearBehavior AutoClear = ClearBehavior.Leveling;
 
+    [PropertyDisplay("Allow navigation in combat")]
+    public bool NavigateInCombat = false;
+
     [PropertyDisplay("Automatically navigate to coffers")]
     public bool AutoMoveTreasure = true;
     [PropertyDisplay("Prioritize opening coffers over Cairn of Passage")]
@@ -356,8 +359,6 @@ public abstract class AutoClear : ZoneModule
 
     public override bool WantDrawExtra() => _config.EnableMinimap && !Palace.Progress.IsBossFloor;
 
-    private bool _allowNavigationInCombat;
-
     public override void DrawExtra()
     {
         var player = World.Party.Player();
@@ -366,7 +367,15 @@ public abstract class AutoClear : ZoneModule
             DesiredRoom = targetRoom;
 
         ImGui.Text($"Kills: {Kills}");
-        ImGui.Checkbox("Allow navigation in combat", ref _allowNavigationInCombat);
+
+        var navInCombat = _config.NavigateInCombat;
+
+        if (ImGui.Checkbox("Allow navigation in combat", ref navInCombat))
+        {
+            _config.NavigateInCombat = navInCombat;
+            _config.Modified.Fire();
+        }
+
         if (ImGui.Button("Reload obstacles"))
         {
             _obstacles.Dispose();
@@ -424,7 +433,7 @@ public abstract class AutoClear : ZoneModule
             return;
 
         foreach (var (w, rot) in Walls)
-            hints.AddForbiddenZone(new AOEShapeRect(w.Depth, 20, w.Depth), w.Position, (rot ? 90f : 0f).Degrees());
+            hints.AddForbiddenZone(new AOEShapeRect(w.Depth - NavigationDecision.ForbiddenZoneCushion, 20, w.Depth - NavigationDecision.ForbiddenZoneCushion), w.Position, (rot ? 90f : 0f).Degrees());
 
         if (_obstacles.Find(player.PosRot.XYZ()).entry == null)
             hints.ForcedMovement = new(0);
@@ -480,7 +489,7 @@ public abstract class AutoClear : ZoneModule
 
         if (_config.TrapHints && _trapsHidden)
         {
-            var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30)).Select(t => ShapeDistance.Circle(t, 2)).ToList();
+            var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30)).Select(t => ShapeDistance.Circle(t, 2 - NavigationDecision.ForbiddenZoneCushion)).ToList();
             if (traps.Count > 0)
                 hints.AddForbiddenZone(ShapeDistance.Union(traps));
         }
@@ -557,7 +566,8 @@ public abstract class AutoClear : ZoneModule
         var haveChest = false;
         if (coffer is Actor t && InBounds(hints, t.Position))
         {
-            if (_config.AutoMoveTreasure && !isOccupied || player.DistanceToHitbox(t) < 3.5f && !isStunned)
+            if (_config.AutoMoveTreasure && (!isOccupied || _config.NavigateInCombat)
+                || player.DistanceToHitbox(t) < 3.5f && !isStunned)
             {
                 hints.InteractWithTarget = coffer;
                 haveChest = true;
@@ -603,7 +613,7 @@ public abstract class AutoClear : ZoneModule
 
     private void HandleFloorPathfind(Actor player, AIHints hints)
     {
-        if (player.InCombat && !_allowNavigationInCombat)
+        if (player.InCombat && !_config.NavigateInCombat)
             return;
 
         var playerRoom = Palace.Party[0].Room;

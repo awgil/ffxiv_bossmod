@@ -390,7 +390,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         ImGui.Text($"{gauge.Low:X16} {gauge.High:X16}");
     }
 
-    private bool _showAllCooldowns = false;
+    private bool _showAllCooldowns;
 
     private unsafe void DrawCooldowns()
     {

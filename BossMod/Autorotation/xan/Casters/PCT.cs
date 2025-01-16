@@ -177,8 +177,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
             if (ShouldWeapon(strategy))
                 PushOGCD(AID.StrikingMuse, Player);
 
-            if (ShouldLivingMuse(strategy))
-                PushOGCD(BestLivingMuse, BestAOETarget);
+            PushOGCD(BestLivingMuse, BestAOETarget);
 
             if (ShouldLandscape(strategy))
                 PushOGCD(AID.StarryMuse, Player, 2);
@@ -186,8 +185,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
             if (ShouldSubtract(strategy))
                 PushOGCD(AID.SubtractivePalette, Player);
 
-            if (ShouldPortrait(strategy))
-                PushOGCD(BestPortrait, BestLineTarget);
+            PushOGCD(BestPortrait, BestLineTarget);
 
             if (Player.HPMP.CurMP <= 7000)
                 PushOGCD(AID.LucidDreaming, Player);
@@ -270,18 +268,6 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         return !WingFangMuse && BestPortrait == AID.None && (CreatureFlags.HasFlag(CreatureFlags.Pom) || CreatureFlags.HasFlag(CreatureFlags.Claw)) && CanWeave(AID.LivingMuse, 0, extraFixedDelay: 4) && CanWeave(AID.MogOfTheAges, 5);
     }
 
-    private bool ShouldLivingMuse(StrategyValues strategy)
-    {
-        if (PomClawMuse)
-            return true;
-
-        if (WingFangMuse)
-            // TODO: add application delay for portrait oGCD
-            return RaidBuffsLeft > World.Client.AnimationLock + 0.6f;
-
-        return false;
-    }
-
     protected override float GetCastTime(AID aid) => aid switch
     {
         AID.LandscapeMotif or AID.WeaponMotif or AID.CreatureMotif => SwiftcastLeft > GCD || !Player.InCombat ? 0 : 3,
@@ -309,6 +295,8 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         PushGCD(AID.HammerStamp, BestAOETarget, prio);
     }
 
+    private bool PaintOvercap => Paint == 5 && Hues == AetherHues.Two;
+
     private void Holy(StrategyValues strategy)
     {
         if (Paint == 0)
@@ -324,7 +312,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
         // use comet to prevent overcap or during buffs
         // regular holy can be overcapped without losing dps
-        if (Monochrome && (Paint == 5 || RaidBuffsLeft > GCD))
+        if (Monochrome && (PaintOvercap || RaidBuffsLeft > GCD))
             prio = GCDPriority.Standard;
 
         // holy always a gain in aoe
@@ -340,8 +328,6 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         // ReadyIn will return float.max if not unlocked so no additional check needed
         return WeaponPainted && ReadyIn(AID.StarryMuse) is < 10 or > 60;
     }
-
-    private bool ShouldPortrait(StrategyValues strategy) => RaidBuffsLeft > World.Client.AnimationLock + GetApplicationDelay(BestPortrait);
 
     private bool ShouldLandscape(StrategyValues strategy, int gcdsAhead = 0)
     {
