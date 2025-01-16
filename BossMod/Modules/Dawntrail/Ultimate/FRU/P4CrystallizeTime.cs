@@ -415,14 +415,15 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
             if (hint.hint.HasFlag(Hint.Knockback) && _ct != null)
             {
                 var source = _ct.FindPlayerByAssignment(P4CrystallizeTime.Mechanic.ClawAir, _ct.NorthSlowHourglass.X > 0 ? -1 : 1);
-                var pos = source != null ? source.Position + 2 * (Module.Center - source.Position).Normalized() : Module.Center + hint.offset;
-                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + hint.offset, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
+                var dest = Module.Center + SafeOffsetDarknessStack(_ct.NorthSlowHourglass.X > 0 ? 1 : -1);
+                var pos = source != null ? source.Position + 2 * (dest - source.Position).Normalized() : Module.Center + hint.offset;
+                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(pos, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
             }
             if (hint.hint.HasFlag(Hint.Mid) && _hourglass != null && !_hourglass.AOEs.Take(2).Any(aoe => aoe.Check(actor.Position)))
             {
-                hints.GoalZones.Add(hints.GoalSingleTarget(Module.Center, 8, 0.5f));
                 // stay on correct side
-                hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center, new(0, _ct?.PlayerMechanics[slot] == P4CrystallizeTime.Mechanic.ClawAir ? 1 : -1)), DateTime.MaxValue);
+                var dest = Module.Center + new WDir(0, hint.offset.Z > 0 ? 18 : -18);
+                hints.GoalZones.Add(hints.GoalSingleTarget(dest, 2, 0.5f));
             }
         }
     }

@@ -15,13 +15,24 @@ class P5FulgentBlade : Components.Exaflare
     {
         base.AddAIHints(slot, actor, assignment, hints);
         // add an extra hint to move to safe spot (TODO: reconsider? this can fuck up positionals for melee etc)
-        if (Lines.Count > 0 && NumCasts <= 6 && SafeSpots().FirstOrDefault() is var safespot && safespot != default)
+        if (Lines.Count > 0 && NumCasts <= 6 && SafeSpot() is var safespot && safespot != default)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(safespot, 1), DateTime.MaxValue);
+        //if (Lines.Count > 0 && NumCasts <= 6 && _lines.Count == 6)
+        //{
+        //    var shape = NumCasts switch
+        //    {
+        //        < 2 => ShapeDistance.InvertedCircle(SafeSpot(), 1),
+        //        < 4 => LineIntersection(0, 1),
+        //        < 6 => LineIntersection(2, 3),
+        //        _ => LineIntersection(4, 5),
+        //    };
+        //    hints.AddForbiddenZone(shape, DateTime.MaxValue);
+        //}
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        var safespot = SafeSpots().FirstOrDefault();
+        var safespot = SafeSpot();
         if (safespot != default)
             Arena.AddCircle(safespot, 1, ArenaColor.Safe);
     }
@@ -93,29 +104,26 @@ class P5FulgentBlade : Components.Exaflare
         }
     }
 
-    private IEnumerable<WPos> SafeSpots()
+    private WPos SafeSpot()
     {
         if (_lines.Count != 6)
-            yield break; // not enough data
+            return default; // not enough data
 
         if (Lines.Count == 0)
         {
             // we don't yet know the direction, so just give the approximate safespot (average direction of missing lines)
-            yield return Module.Center + 5 * _initialSafespot;
-            yield break;
+            return Module.Center + 5 * _initialSafespot;
         }
 
-        if (NumCasts < 2)
-            yield return SafeSpot(0, 1, 11); // prepare to dodge into third exaline of the first pair
-        if (NumCasts < 3)
-            yield return SafeSpot(0, 1, 9); // dodge into third exaline of the first pair
-        if (NumCasts < 4)
-            yield return SafeSpot(2, 3, 11); // prepare to dodge into third exaline of the second pair
-        if (NumCasts < 5)
-            yield return SafeSpot(2, 3, 9); // dodge into third exaline of the second pair
-        if (NumCasts < 6)
-            yield return SafeSpot(4, 5, 11); // prepare to dodge into third exaline of the third pair
-        yield return SafeSpot(4, 5, 9); // dodge into third exaline of the third pair
+        return NumCasts switch
+        {
+            < 2 => SafeSpot(0, 1, 11), // prepare to dodge into third exaline of the first pair
+            2 => SafeSpot(0, 1, 9), // dodge into third exaline of the first pair
+            3 => SafeSpot(2, 3, 11), // prepare to dodge into third exaline of the second pair
+            4 => SafeSpot(2, 3, 9), // dodge into third exaline of the second pair
+            5 => SafeSpot(4, 5, 11), // prepare to dodge into third exaline of the third pair
+            _ => SafeSpot(4, 5, 9), // dodge into third exaline of the third pair
+        };
     }
 
     private WPos SafeSpot(int i1, int i2, float distance)
@@ -131,4 +139,13 @@ class P5FulgentBlade : Components.Exaflare
         var t = Intersect.RayLine(p1, d1, p2, d2);
         return t is > 0 and < 100 ? p1 + t * d1 : default;
     }
+
+    //private Func<WPos, float> LineIntersection(int i1, int i2, float distance = 5, float cushion = 1)
+    //{
+    //    var l1 = _lines[i1];
+    //    var l2 = _lines[i2];
+    //    var r1 = ShapeDistance.Rect(l1.actor.Position - distance * l1.dir, -l1.dir, 5 - cushion, -cushion, 40);
+    //    var r2 = ShapeDistance.Rect(l2.actor.Position - distance * l2.dir, -l2.dir, 5 - cushion, -cushion, 40);
+    //    return p => -Math.Max(r1(p), r2(p));
+    //}
 }
