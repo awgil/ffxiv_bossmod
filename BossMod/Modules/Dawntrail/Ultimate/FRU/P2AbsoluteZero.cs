@@ -16,15 +16,25 @@ class P2SinboundBlizzard(BossModule module) : Components.SelfTargetedAOEs(module
 
 class P2HiemalStorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HiemalStormAOE), 7)
 {
+    private bool _slowDodges;
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         // storms are cast every 3s, ray voidzones appear every 2s; to place voidzones more tightly, we pretend radius is smaller during first half of cast
-        var deadline = WorldState.FutureTime(1.5f);
+        // there's no point doing it before first voidzone appears, however
+        var deadline = _slowDodges ? WorldState.FutureTime(1.5f) : DateTime.MaxValue;
         foreach (var c in Casters)
         {
             var activation = Module.CastFinishAt(c.CastInfo);
             hints.AddForbiddenZone(ShapeDistance.Circle(c.CastInfo!.LocXZ, activation > deadline ? 4 : 7), activation);
         }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+        if ((AID)spell.Action.ID == AID.HiemalRay)
+            _slowDodges = true;
     }
 }
 

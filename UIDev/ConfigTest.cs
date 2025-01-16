@@ -1,4 +1,5 @@
 ﻿using BossMod;
+using BossMod.Autorotation;
 using ImGuiNET;
 
 namespace UIDev;
@@ -8,9 +9,11 @@ class ConfigTest : TestWindow
     private string _command = "";
     private readonly ConfigUI _ui;
 
+    public static RotationDatabase? RotationDB;
+
     public ConfigTest() : base("Config", new(400, 400), ImGuiWindowFlags.None)
     {
-        _ui = new(Service.Config, new(TimeSpan.TicksPerSecond, "fake"), null, null);
+        _ui = new(Service.Config, new(TimeSpan.TicksPerSecond, "fake"), null, RotationDB);
     }
 
     protected override void Dispose(bool disposing)

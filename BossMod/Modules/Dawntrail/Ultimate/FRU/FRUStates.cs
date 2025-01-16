@@ -68,6 +68,12 @@ class FRUStates : StateMachineBuilder
         P5Start(id, 77);
         P5FulgentBlade(id + 0x10000, 5.3f);
         P5ParadiseRegained(id + 0x20000, 4.2f);
+        P5PolarizingStrikes(id + 0x30000, 7.6f);
+        P5PandorasBox(id + 0x40000, 5.8f);
+        P5FulgentBlade(id + 0x50000, 6.2f);
+        P5ParadiseRegained(id + 0x60000, 8.2f); // TODO: timing...
+        P5PolarizingStrikes(id + 0x70000, 8); // TODO: timing...
+        P5FulgentBlade(id + 0x80000, 8); // TODO: timing...
 
         SimpleState(id + 0xFF0000, 100, "???");
     }
@@ -546,14 +552,14 @@ class FRUStates : StateMachineBuilder
         ComponentCondition<P4DarklitDragonsongPathOfLight>(id + 0x21, 0.8f, comp => comp.NumCasts > 0, "Proteans")
             .DeactivateOnExit<P4DarklitDragonsongPathOfLight>();
         ActorCastEnd(id + 0x22, _module.BossP4Oracle, 2.2f, true)
-            .ActivateOnEnter<DefaultSpiritTaker>();
+            .ActivateOnEnter<P4DarklitDragonsongSpiritTaker>();
         ActorCastStartMulti(id + 0x23, _module.BossP4Usurper, [AID.HallowedWingsL, AID.HallowedWingsR], 0.1f, true);
         ComponentCondition<SpiritTaker>(id + 0x24, 0.3f, comp => comp.Spreads.Count == 0, "Jump")
             .DeactivateOnExit<SpiritTaker>();
         ActorCastStart(id + 0x25, _module.BossP4Oracle, AID.SomberDance, 2.8f)
             .ActivateOnEnter<P4HallowedWingsL>()
             .ActivateOnEnter<P4HallowedWingsR>()
-            .ExecOnEnter<P4DarklitDragonsongDarkWater>(comp => comp.ResolveImminent = true);
+            .ExecOnEnter<P4DarklitDragonsongDarkWater>(comp => comp.Show());
         ComponentCondition<P4DarklitDragonsongDarkWater>(id + 0x26, 1.7f, comp => comp.Stacks.Count == 0, "Stacks")
             .DeactivateOnExit<P4DarklitDragonsongDarkWater>();
         ActorCastEnd(id + 0x27, _module.BossP4Usurper, 0.2f, false, "Side cleave")
@@ -681,11 +687,38 @@ class FRUStates : StateMachineBuilder
             .ActivateOnEnter<P5ParadiseRegainedTowers>(); // first tower appears ~0.9s after cast end, then every 3.5s
         ActorCastMulti(id + 0x10, _module.BossP5, [AID.WingsDarkAndLightDL, AID.WingsDarkAndLightLD], 3.2f, 6.9f, true)
             .ActivateOnEnter<P5ParadiseRegainedBaits>();
-        ComponentCondition<P5ParadiseRegainedBaits>(id + 0x20, 0.5f, comp => comp.NumCasts > 0, "Light/dark"); // first tower resolve ~0.1s earlier
-        ComponentCondition<P5ParadiseRegainedBaits>(id + 0x30, 3.7f, comp => comp.NumCasts > 1, "Dark/light") // second tower resolves ~1s earlier
+        ComponentCondition<P5ParadiseRegainedBaits>(id + 0x20, 0.3f, comp => comp.NumCasts > 0, "Light/dark"); // first tower resolves at the same time
+        ComponentCondition<P5ParadiseRegainedBaits>(id + 0x30, 3.7f, comp => comp.NumCasts > 1, "Dark/light") // second tower resolves at the same time
             .DeactivateOnExit<P5ParadiseRegainedBaits>();
-        // note: tethers resolve ~0.7s after cleave, but they won't happen if tether target dies to cleave
-        ComponentCondition<P5ParadiseRegainedTowers>(id + 0x40, 2.4f, comp => comp.NumCasts > 2, "Towers resolve")
+        // note: tethers resolve ~0.8s after cleave, but they won't happen if tether target dies to cleave
+        ComponentCondition<P5ParadiseRegainedTowers>(id + 0x40, 3.4f, comp => comp.NumCasts > 2, "Towers resolve")
             .DeactivateOnExit<P5ParadiseRegainedTowers>();
+    }
+
+    private void P5PolarizingStrikes(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP5, AID.PolarizingStrikes, delay, 6.5f, true)
+            .ActivateOnEnter<P5PolarizingStrikes>();
+        ComponentCondition<P5PolarizingStrikes>(id + 0x10, 0.6f, comp => comp.NumCasts > 0, "Polarizing bait 1");
+        ActorCastStart(id + 0x20, _module.BossP5, AID.PolarizingPaths, 1.5f, true);
+        ComponentCondition<P5PolarizingStrikes>(id + 0x21, 0.5f, comp => comp.NumCasts > 2, "Polarizing AOE 1");
+        ActorCastEnd(id + 0x22, _module.BossP5, 2, true);
+        ComponentCondition<P5PolarizingStrikes>(id + 0x30, 0.6f, comp => comp.NumCasts > 4, "Polarizing bait 2");
+        ActorCastStart(id + 0x40, _module.BossP5, AID.PolarizingPaths, 1.5f, true);
+        ComponentCondition<P5PolarizingStrikes>(id + 0x41, 0.5f, comp => comp.NumCasts > 6, "Polarizing AOE 2");
+        ActorCastEnd(id + 0x42, _module.BossP5, 2, true);
+        ComponentCondition<P5PolarizingStrikes>(id + 0x50, 0.6f, comp => comp.NumCasts > 8, "Polarizing bait 3");
+        ActorCastStart(id + 0x60, _module.BossP5, AID.PolarizingPaths, 1.5f, true);
+        ComponentCondition<P5PolarizingStrikes>(id + 0x61, 0.5f, comp => comp.NumCasts > 10, "Polarizing AOE 3");
+        ActorCastEnd(id + 0x62, _module.BossP5, 2, true);
+        ComponentCondition<P5PolarizingStrikes>(id + 0x70, 0.6f, comp => comp.NumCasts > 12, "Polarizing bait 4");
+        ComponentCondition<P5PolarizingStrikes>(id + 0x80, 2.0f, comp => comp.NumCasts > 14, "Polarizing AOE 4")
+            .DeactivateOnExit<P5PolarizingStrikes>();
+    }
+
+    private void P5PandorasBox(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP5, AID.PandorasBox, delay, 12, true, "Tank LB")
+            .SetHint(StateMachine.StateHint.Raidwide);
     }
 }
