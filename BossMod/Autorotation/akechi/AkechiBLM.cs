@@ -1,4 +1,6 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+﻿using BossMod.Global.MaskedCarnivale.Stage26.Act2;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using System.Runtime.CompilerServices;
 using AID = BossMod.BLM.AID;
 using SID = BossMod.BLM.SID;
 using TraitID = BossMod.BLM.TraitID;
@@ -139,7 +141,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             .AddOption(PolyglotStrategy.FoulHold2, "FoulHold2", "Use Foul as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage", 0, 0, ActionTargets.Hostile, 70)
             .AddOption(PolyglotStrategy.FoulHold3, "FoulHold3", "Holds all Polyglots for as long as possible", 0, 0, ActionTargets.Hostile, 70)
             .AddOption(PolyglotStrategy.ForceXeno, "Force Xenoglossy", "Force use of Xenoglossy", 0, 0, ActionTargets.Hostile, 80)
-            .AddOption(PolyglotStrategy.ForceFoul, "Force Foul", "Force use of Foul", 0, 30, ActionTargets.Hostile, 70)
+            .AddOption(PolyglotStrategy.ForceFoul, "Force Foul", "Force use of Foul", 0, 0, ActionTargets.Hostile, 70)
             .AddOption(PolyglotStrategy.Delay, "Delay", "Delay the use of Polyglot abilities for manual or strategic usage", 0, 0, ActionTargets.Hostile, 70)
             .AddAssociatedActions(AID.Xenoglossy, AID.Foul);
         res.Define(Track.Manafont).As<ManafontStrategy>("Manafont", "Manafont", uiPriority: 170)
@@ -256,18 +258,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     #endregion
 
     #region Upgrade Paths
-    private AID SwiftcastB3
-        => Player.InCombat
-        && ActionReady(AID.Swiftcast)
-        ? AID.Swiftcast
-        : AID.Blizzard3;
-    private AID SwiftcastB2
-        => Player.InCombat
-        && ActionReady(AID.Swiftcast)
-        ? AID.Swiftcast
-        : Unlocked(AID.HighBlizzard2)
-        ? AID.HighBlizzard2
-        : AID.Blizzard2;
     private AID BestThunderST
         => Unlocked(AID.HighThunder) ? AID.HighThunder
         : Unlocked(AID.Thunder3) ? AID.Thunder3
@@ -322,6 +312,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     public float BurstWindowLeft; //Time left in current burst window (typically 20s-22s)
     public float BurstWindowIn; //Time until next burst window (typically 20s-22s)
     public AID NextGCD; //Next global cooldown action to be used
+    public float AnimLockDelay; //Estimated animation lock delay
     #endregion
 
     #region Module Helpers
@@ -329,18 +320,62 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     private bool Unlocked(TraitID tid) => TraitUnlocked((uint)tid); //Check if the desired trait is unlocked
     private float CD(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining; //Get remaining cooldown time for the specified action
     private bool In25y(Actor? target) => Player.DistanceToHitbox(target) <= 24.99f; //Check if the target is within 25 yalms
-    private bool ActionReady(AID aid) => Unlocked(aid) && CD(aid) < 0.6f; //Check if the desired action is ready (cooldown less than 0.6 seconds)
+    private bool ActionReady(AID aid) => Unlocked(aid) && CD(aid) < 0.6f; //Check if the desired action is unlocked and is ready (cooldown less than 0.6 seconds)
     private int TargetsInRange() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 25); //Returns the number of targets hit by AOE within a 25-yalm radius around the player
     private bool PlayerHasEffect(SID sid, float duration) => SelfStatusLeft(sid, duration) > GCD; //Checks if Status effect is on self
     private bool JustUsed(AID aid, float variance)
     {
-        if (Manager?.LastCast == null)
-            return false;
-
-        return Manager.LastCast.Data?.IsSpell(aid) == true
-               && (World.CurrentTime - Manager.LastCast.Time).TotalSeconds <= variance;
+        var used = Manager.LastCast.Data?.IsSpell(aid) == true;
+        var within = (World.CurrentTime - Manager.LastCast.Time).TotalSeconds <= variance;
+        return used && within;
     }
+    public float GetActualCastTime(AID aid) => ActionDefinitions.Instance.Spell(aid)!.CastTime * SpS / 2.5f;
+    public float GetCastTime(AID aid)
+    {
+        var aspect = ActionDefinitions.Instance.Spell(aid)!.Aspect;
+        var castTime = GetActualCastTime(aid);
+        if (PlayerHasEffect(SID.Triplecast, 15f) || PlayerHasEffect(SID.Swiftcast, 10f))
+            return 0f;
+        if (aid == AID.Fire3 && PlayerHasEffect(SID.Firestarter, 30f)
+            || aid == AID.Foul && Unlocked(TraitID.EnhancedFoul)
+            || aspect == ActionAspect.Thunder && PlayerHasEffect(SID.Thunderhead, 30f)
+            || aid == AID.Despair && Unlocked(TraitID.EnhancedAstralFire))
+            return 0;
+        if (castTime == 0)
+            return 0;
+        if (ElementStance == -3 && aspect == ActionAspect.Fire ||
+            ElementStance == 3 && aspect == ActionAspect.Ice)
+            castTime *= 0.5f;
+        return castTime;
+    }
+
     private Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value); //Resolves the target choice based on the strategy
+    private Actor? FindBestSplashTarget()
+    {
+        float splashPriorityFunc(Actor actor)
+        {
+            var distanceToPlayer = actor.DistanceToHitbox(Player);
+            if (distanceToPlayer <= 24f)
+            {
+                var targetsInSplashRadius = 0;
+                foreach (var enemy in Hints.PriorityTargets)
+                {
+                    var targetActor = enemy.Actor;
+                    if (targetActor != actor && targetActor.Position.InCircle(actor.Position, 5f))
+                    {
+                        targetsInSplashRadius++;
+                    }
+                }
+                return targetsInSplashRadius;
+            }
+            return float.MinValue;
+        }
+
+        var (bestTarget, bestPrio) = FindBetterTargetBy(null, 25f, splashPriorityFunc);
+
+        return bestTarget;
+    }
+    private Actor? BestAOETarget => FindBestSplashTarget(); // Find the best target for splash attack
     private bool ShouldUseAOE
     {
         get
@@ -380,33 +415,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             return false;
         }
     }
-    private Actor? BestAOETarget => FindBestSplashTarget(); // Find the best target for splash attack
 
-    private Actor? FindBestSplashTarget()
-    {
-        float splashPriorityFunc(Actor actor)
-        {
-            var distanceToPlayer = actor.DistanceToHitbox(Player);
-            if (distanceToPlayer <= 24f)
-            {
-                var targetsInSplashRadius = 0;
-                foreach (var enemy in Hints.PriorityTargets)
-                {
-                    var targetActor = enemy.Actor;
-                    if (targetActor != actor && targetActor.Position.InCircle(actor.Position, 5f))
-                    {
-                        targetsInSplashRadius++;
-                    }
-                }
-                return targetsInSplashRadius;
-            }
-            return float.MinValue;
-        }
-
-        var (bestTarget, bestPrio) = FindBetterTargetBy(null, 25f, splashPriorityFunc);
-
-        return bestTarget;
-    }
     #endregion
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
@@ -450,6 +459,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         canWeaveLate = GCD is <= 1.25f and >= 0.1f; //Can weave in oGCDs late
         SpS = ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level); //GCD based on spell speed and haste
         NextGCD = AID.None; //Next global cooldown action to be used
+        AnimLockDelay = estimatedAnimLockDelay; //Estimated animation lock delay
         PotionLeft = PotionStatusLeft(); //Remaining time for potion buff (30s)
 
         #region Strategy Definitions
@@ -479,11 +489,11 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         #region Rotation Execution
         //Rotations
         if (AOEStrategy is AOEStrategy.Auto)
-            BestRotation(TargetChoice(AOE) ?? primaryTarget);
+            BestRotation(TargetChoice(AOE) ?? BestAOETarget ?? primaryTarget);
         if (AOEStrategy is AOEStrategy.ForceST)
             BestST(TargetChoice(AOE) ?? primaryTarget);
         if (AOEStrategy is AOEStrategy.ForceAOE)
-            BestAOE(TargetChoice(AOE) ?? primaryTarget);
+            BestAOE(TargetChoice(AOE) ?? BestAOETarget ?? primaryTarget);
         //Out of combat
         if (Unlocked(AID.Transpose))
         {
@@ -512,10 +522,23 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         }
         //Thunder
         if (ShouldUseThunder(primaryTarget, thunderStrat)) //if Thunder should be used based on strategy
-            QueueGCD(BestThunder,
-                TargetChoice(thunder) ?? primaryTarget,
-                ThunderLeft < 3 ? GCDPriority.NeedDOT :
-                GCDPriority.DOT);
+        {
+            if (AOEStrategy is AOEStrategy.Auto)
+                QueueGCD(BestThunder,
+                    TargetChoice(thunder) ?? BestAOETarget ?? primaryTarget,
+                    ThunderLeft < 3 ? GCDPriority.NeedDOT :
+                    GCDPriority.DOT);
+            if (AOEStrategy is AOEStrategy.ForceST)
+                QueueGCD(BestThunderST,
+                    TargetChoice(thunder) ?? primaryTarget,
+                    ThunderLeft < 3 ? GCDPriority.NeedDOT :
+                    GCDPriority.DOT);
+            if (AOEStrategy is AOEStrategy.ForceAOE)
+                QueueGCD(BestThunderAOE,
+                    TargetChoice(thunder) ?? BestAOETarget ?? primaryTarget,
+                    ThunderLeft < 3 ? GCDPriority.NeedDOT :
+                    GCDPriority.DOT);
+        }
         //Polyglots
         if (ShouldUsePolyglot(primaryTarget, polyglotStrat)) //if Polyglot should be used based on strategy
         {
@@ -523,7 +546,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 or PolyglotStrategy.AutoHold1
                 or PolyglotStrategy.AutoHold2)
                 QueueGCD(BestPolyglot,
-                    TargetChoice(polyglot) ?? primaryTarget,
+                    TargetChoice(polyglot) ?? BestAOETarget ?? primaryTarget,
                     polyglotStrat is PolyglotStrategy.ForceXeno ? GCDPriority.ForcedGCD
                     : Polyglots == MaxPolyglots && EnochianTimer < 5000 ? GCDPriority.NeedPolyglot
                     : GCDPriority.Paradox);
@@ -536,7 +559,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                     : Polyglots == MaxPolyglots && EnochianTimer < 5000 ? GCDPriority.NeedPolyglot
                     : GCDPriority.Paradox);
             if (polyglotStrat is PolyglotStrategy.FoulSpendAll or PolyglotStrategy.FoulHold1 or PolyglotStrategy.FoulHold2)
-                QueueGCD(AID.Foul, TargetChoice(polyglot) ?? primaryTarget, polyglotStrat is PolyglotStrategy.ForceFoul ? GCDPriority.ForcedGCD : Polyglots == MaxPolyglots && EnochianTimer < 5000 ? GCDPriority.NeedPolyglot : GCDPriority.Paradox); //Queue Foul
+                QueueGCD(AID.Foul, TargetChoice(polyglot) ?? BestAOETarget ?? primaryTarget, polyglotStrat is PolyglotStrategy.ForceFoul ? GCDPriority.ForcedGCD : Polyglots == MaxPolyglots && EnochianTimer < 5000 ? GCDPriority.NeedPolyglot : GCDPriority.Paradox); //Queue Foul
         }
         //LeyLines
         if (ShouldUseLeyLines(primaryTarget, llStrat))
@@ -672,7 +695,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             InAstralFire && MP >= 1600) //or if Astral Fire is active and MP is 1600 or more
             QueueGCD(AID.Fire1, target, GCDPriority.Standard); //Queue Fire
         //Ice
-        if (InUmbralIce && MP != 10000) //if Umbral Ice is active and MP is not max
+        //TODO: Fix Blizzard I still casting once after at 10000MP due to MP tick not counting fast enough before next cast
+        if (InUmbralIce && MP < 9500) //if Umbral Ice is active and MP is not max
             QueueGCD(AID.Blizzard1, target, GCDPriority.Standard); //Queue Blizzard
         //Transpose 
         if (ActionReady(AID.Transpose) && //if Transpose is unlocked & off cooldown
@@ -689,7 +713,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (MP >= 10000) //if no stance is active and MP is max (opener)
                     QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
                 if (MP < 10000 && Player.InCombat) //or if in combat and no stance is active and MP is less than max (died or stopped attacking)
-                    QueueGCD(SwiftcastB3, target, GCDPriority.NeedB3); //Queue Swiftcast->Blizzard III
+                {
+                    if (ActionReady(AID.Swiftcast))
+                        QueueGCD(AID.Swiftcast, target, GCDPriority.NeedB3); //Queue Swiftcast->Blizzard III
+                    else
+                        QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
+                }
             }
         }
         if (InUmbralIce) //if Umbral Ice is active
@@ -733,7 +762,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (MP >= 10000) //if no stance is active and MP is max (opener)
                     QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
                 if (MP < 10000 && Player.InCombat) //or if in combat and no stance is active and MP is less than max (died or stopped attacking)
-                    QueueGCD(SwiftcastB3, target, GCDPriority.NeedB3); //Queue Swiftcast->Blizzard III
+                {
+                    if (ActionReady(AID.Swiftcast))
+                        QueueGCD(AID.Swiftcast, target, GCDPriority.NeedB3); //Queue Swiftcast->Blizzard III
+                    else
+                        QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
+                }
             }
         }
         if (InUmbralIce) //if Umbral Ice is active
@@ -775,7 +809,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (MP >= 10000) //if no stance is active and MP is max (opener)
                     QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
                 if (MP < 10000 && Player.InCombat) //or if in combat and no stance is active and MP is less than max (died or stopped attacking)
-                    QueueGCD(SwiftcastB3, target, GCDPriority.NeedB3); //Queue Swiftcast->Blizzard III
+                {
+                    if (ActionReady(AID.Swiftcast))
+                        QueueGCD(AID.Swiftcast, target, GCDPriority.NeedB3); //Queue Swiftcast->Blizzard III
+                    else
+                        QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
+                }
             }
         }
         if (InUmbralIce) //if Umbral Ice is active
@@ -805,7 +844,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             //Step 8 - Despair 
             if (MP is < 1600 and not 0 && //if MP is less than 1600 and not 0
                 Unlocked(AID.Despair)) //and Despair is unlocked
-                QueueGCD(AID.Despair, target, GCDPriority.Step2); //Queue Despair
+            {
+                if (ActionReady(AID.Swiftcast) && ElementTimer < GetCastTime(AID.Despair))
+                    QueueGCD(AID.Swiftcast, target, GCDPriority.Step2); //Queue Swiftcast->Despair
+                else
+                    QueueGCD(AID.Despair, target, GCDPriority.Step2); //Queue Despair
+            }
             //Step 9 - swap from AF to UI 
             if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
                 MP <= 400) //and MP is less than 400
@@ -821,7 +865,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (MP >= 10000) //if no stance is active and MP is max (opener)
                     QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
                 if (MP < 10000 && Player.InCombat) //or if in combat and no stance is active and MP is less than max (died or stopped attacking)
-                    QueueGCD(SwiftcastB3, target, GCDPriority.NeedB3); //Queue Swiftcast->Blizzard III
+                {
+                    if (ActionReady(AID.Swiftcast))
+                        QueueGCD(AID.Swiftcast, target, GCDPriority.NeedB3); //Queue Swiftcast->Blizzard III
+                    else
+                        QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
+                }
             }
         }
         if (InUmbralIce) //if Umbral Ice is active
@@ -853,10 +902,15 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
                 AstralStacks == 3) //and Umbral Hearts are 0
                 QueueGCD(AID.Fire3, target, GCDPriority.Step10); //Queue Fire III (AF3 F3P)
-            //Step 8 - Despair
+            //Step 8 - Despair 
             if (MP is < 1600 and not 0 && //if MP is less than 1600 and not 0
                 Unlocked(AID.Despair)) //and Despair is unlocked
-                QueueGCD(AID.Despair, target, GCDPriority.Step2); //Queue Despair
+            {
+                if (ActionReady(AID.Swiftcast) && ElementTimer < GetCastTime(AID.Despair))
+                    QueueGCD(AID.Swiftcast, target, GCDPriority.Step2); //Queue Swiftcast->Despair
+                else
+                    QueueGCD(AID.Despair, target, GCDPriority.Step2); //Queue Despair
+            }
             //Step 9 - swap from AF to UI
             if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
                 MP <= 400) //and MP is less than 400
@@ -872,7 +926,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (MP >= 10000) //if no stance is active and MP is max (opener)
                     QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
                 if (MP < 10000 && Player.InCombat) //or if in combat and no stance is active and MP is less than max (died or stopped attacking)
-                    QueueGCD(SwiftcastB3, target, GCDPriority.NeedB3); //Queue Swiftcast->Blizzard III
+                {
+                    if (ActionReady(AID.Swiftcast))
+                        QueueGCD(AID.Swiftcast, target, GCDPriority.NeedB3); //Queue Swiftcast->Blizzard III
+                    else
+                        QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
+                }
             }
         }
         if (InUmbralIce) //if Umbral Ice is active
@@ -960,18 +1019,34 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     #region AOE Helpers
     private void AOELv12toLv34(Actor? target) //Level 12-34 AOE rotation
     {
+        if (NoStance)
+        {
+            if (Unlocked(AID.Blizzard2))
+            {
+                if (MP >= 10000)
+                    QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
+                if (MP < 10000 && Player.InCombat)
+                {
+                    if (ActionReady(AID.Swiftcast))
+                        QueueGCD(AID.Swiftcast, target, GCDPriority.NeedB3);
+                    else
+                        QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
+                }
+            }
+        }
         //Fire
         if (Unlocked(AID.Fire2) && //if Fire is unlocked
-            NoStance && MP >= 800 || //if no stance is active and MP is 800 or more
-            InAstralFire && MP >= 1600) //or if Astral Fire is active and MP is 1600 or more
-            QueueGCD(AID.Fire2, target, GCDPriority.Standard); //Queue Fire
+            InAstralFire && MP >= 3000) //or if Astral Fire is active and MP is 1600 or more
+            QueueGCD(AID.Fire2, target, GCDPriority.Standard); //Queue Fire II
         //Ice
-        if (InUmbralIce && MP != 10000) //if Umbral Ice is active and MP is not max
-            QueueGCD(AID.Blizzard2, target, GCDPriority.Standard); //Queue Blizzard
+        //TODO: MP tick is not fast enough before next cast, this will cause an extra unnecessary cast
+        if (InUmbralIce &&
+            MP <= 9600)
+            QueueGCD(AID.Blizzard2, target, GCDPriority.Standard); //Queue Blizzard II
         //Transpose 
         if (ActionReady(AID.Transpose) && //if Transpose is unlocked & off cooldown
-            InAstralFire && MP < 1600 || //if Astral Fire is active and MP is less than 1600
-            InUmbralIce && MP == 10000) //or if Umbral Ice is active and MP is max
+            (InAstralFire && MP < 3000 || //if Astral Fire is active and MP is less than 1600
+            InUmbralIce && MP > 9600)) //or if Umbral Ice is active and MP is max
             QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose); //Queue Transpose
     }
     private void AOELv35toLv39(Actor? target) //Level 35-39 AOE rotation
@@ -983,27 +1058,33 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (MP >= 10000)
                     QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
                 if (MP < 10000 && Player.InCombat)
-                    QueueGCD(SwiftcastB2, target, GCDPriority.NeedB3);
+                {
+                    if (ActionReady(AID.Swiftcast))
+                        QueueGCD(AID.Swiftcast, target, GCDPriority.NeedB3);
+                    else
+                        QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
+                }
             }
         }
         if (InUmbralIce)
         {
-            if (JustUsed(AID.Fire2, 5))
-            {
-                if (Unlocked(AID.Blizzard2) && MP != 10000)
-                    QueueGCD(AID.Blizzard2, target, GCDPriority.Step2);
-            }
+            //Step 1 - max stacks in UI
+            //TODO: MP tick is not fast enough before next cast, this will cause an extra unnecessary cast
+            if (Unlocked(AID.Blizzard2) &&
+                MP < 9600)
+                QueueGCD(AID.Blizzard2, target, GCDPriority.Step2);
+            //Step 2 - swap from UI to AF
             if (Unlocked(AID.Fire2) &&
-                MP >= 10000 &&
+                MP >= 9600 &&
                 UmbralStacks == 3)
                 QueueGCD(AID.Fire2, target, GCDPriority.Step1);
         }
         if (InAstralFire)
         {
-            if (MP >= 1600)
+            if (MP >= 3000)
                 QueueGCD(AID.Fire2, target, GCDPriority.Step2);
             if (Unlocked(AID.Blizzard2) &&
-                MP < 1600)
+                MP < 3000)
                 QueueGCD(AID.Blizzard2, target, GCDPriority.Step1);
         }
     }
@@ -1016,20 +1097,24 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (MP >= 10000)
                     QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
                 if (MP < 10000 && Player.InCombat)
-                    QueueGCD(SwiftcastB2, target, GCDPriority.NeedB3);
+                {
+                    if (ActionReady(AID.Swiftcast))
+                        QueueGCD(AID.Swiftcast, target, GCDPriority.NeedB3);
+                    else
+                        QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
+                }
             }
         }
         if (InUmbralIce)
         {
             //Step 1 - max stacks in UI
-            if (JustUsed(AID.Fire2, 5) &&
-                Unlocked(AID.Blizzard2) &&
-                UmbralStacks != 3)
-                QueueGCD(AID.Blizzard2, target, GCDPriority.Step2);
+            if (Unlocked(AID.Blizzard2) &&
+                UmbralStacks < 3)
+                QueueGCD(AID.Blizzard2, target, GCDPriority.Step3);
             //Step 2 - Freeze
-            if (Unlocked(AID.Freeze) &&
-                JustUsed(AID.Blizzard2, 5) || UmbralStacks == 3)
-                QueueGCD(AID.Freeze, target, JustUsed(AID.Blizzard2, 5) ? GCDPriority.Step10 : GCDPriority.Step1);
+            if (Unlocked(AID.Freeze) && !JustUsed(AID.Freeze, 5f) &&
+                (JustUsed(AID.Blizzard2, 5) || MP < 10000))
+                QueueGCD(AID.Freeze, target, GCDPriority.Step2);
             //Step 3 - swap from UI to AF
             if (Unlocked(AID.Fire2) &&
                 MP >= 10000 &&
@@ -1038,10 +1123,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         }
         if (InAstralFire)
         {
-            if (MP >= 1600)
+            if (MP >= 3000)
                 QueueGCD(AID.Fire2, target, GCDPriority.Step2);
             if (Unlocked(AID.Blizzard2) &&
-                MP < 1600)
+                MP < 3000)
                 QueueGCD(AID.Blizzard2, target, GCDPriority.Step1);
         }
     }
@@ -1054,20 +1139,24 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (MP >= 10000)
                     QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
                 if (MP < 10000 && Player.InCombat)
-                    QueueGCD(SwiftcastB2, target, GCDPriority.NeedB3);
+                {
+                    if (ActionReady(AID.Swiftcast))
+                        QueueGCD(AID.Swiftcast, target, GCDPriority.NeedB3);
+                    else
+                        QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
+                }
             }
         }
         if (InUmbralIce)
         {
             //Step 1 - max stacks in UI
-            if (JustUsed(AID.Fire2, 5) &&
-                Unlocked(AID.Blizzard2) &&
-                UmbralStacks != 3)
-                QueueGCD(AID.Blizzard2, target, GCDPriority.Step2);
+            if (Unlocked(AID.Blizzard2) &&
+                UmbralStacks < 3)
+                QueueGCD(AID.Blizzard2, target, GCDPriority.Step3);
             //Step 2 - Freeze
-            if (Unlocked(AID.Freeze) &&
-                JustUsed(AID.Blizzard2, 5) || UmbralStacks == 3)
-                QueueGCD(AID.Freeze, target, JustUsed(AID.Blizzard2, 5) ? GCDPriority.Step10 : GCDPriority.Step1);
+            if (Unlocked(AID.Freeze) && !JustUsed(AID.Freeze, 5f) &&
+                (JustUsed(AID.Blizzard2, 5) || MP < 10000))
+                QueueGCD(AID.Freeze, target, GCDPriority.Step2);
             //Step 3 - swap from UI to AF
             if (Unlocked(AID.Fire2) &&
                 MP >= 10000 &&
@@ -1077,17 +1166,17 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         if (InAstralFire)
         {
             //Step 1 - spam Fire 2
-            if (MP >= 1600)
+            if (MP >= 3000)
                 QueueGCD(AID.Fire2, target, GCDPriority.Step3);
             //Step 2 - Flare
             if (Unlocked(AID.Flare) &&
-                MP < 1600)
+                MP < 3000)
                 QueueGCD(AID.Flare, target, GCDPriority.Step2);
             //Step 3 - swap from AF to UI
             if (Unlocked(AID.Blizzard2) &&
-                (!Unlocked(AID.Flare) && MP < 1600) ||
+                (!Unlocked(AID.Flare) && MP < 3000) || //do your job quests, fool
                 (Unlocked(AID.Flare) && MP < 400))
-                QueueGCD(AID.Blizzard2, target, GCDPriority.Step1);
+                QueueGCD(AID.Blizzard2, target, MP < 400 ? GCDPriority.Step10 : GCDPriority.Step1);
         }
     }
     private void AOELv58toLv81(Actor? target) //Level 58-81 AOE rotation
@@ -1099,25 +1188,29 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (MP >= 10000)
                     QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
                 if (MP < 10000 && Player.InCombat)
-                    QueueGCD(SwiftcastB2, target, GCDPriority.NeedB3);
+                {
+                    if (ActionReady(AID.Swiftcast))
+                        QueueGCD(AID.Swiftcast, target, GCDPriority.NeedB3);
+                    else
+                        QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
+                }
             }
         }
         if (InUmbralIce)
         {
             //Step 1 - max stacks in UI
-            if (JustUsed(AID.Fire2, 5) &&
-                Unlocked(AID.Blizzard2) &&
-                UmbralStacks != 3)
+            if (Unlocked(AID.Blizzard2) &&
+                UmbralStacks < 3)
                 QueueGCD(AID.Blizzard2, target, GCDPriority.Step3);
             //Step 2 - Freeze
-            if (Unlocked(AID.Freeze) &&
-                JustUsed(AID.Blizzard2, 5) || UmbralStacks == 3)
-                QueueGCD(AID.Freeze, target, JustUsed(AID.Blizzard2, 5) ? GCDPriority.Step10 : GCDPriority.Step2);
+            if (Unlocked(AID.Freeze) && !JustUsed(AID.Freeze, 5f) &&
+                (JustUsed(AID.Blizzard2, 5) || MP < 10000))
+                QueueGCD(AID.Freeze, target, GCDPriority.Step2);
             //Step 3 - swap from UI to AF
             if (Unlocked(AID.Fire2) &&
                 MP >= 10000 &&
                 UmbralStacks == 3)
-                QueueGCD(AID.Fire2, target, JustUsed(AID.Freeze, 5f) ? GCDPriority.Step10 : GCDPriority.Step1);
+                QueueGCD(AID.Fire2, target, GCDPriority.Step1);
         }
         if (InAstralFire)
         {
@@ -1132,7 +1225,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                     UmbralHearts == 1)
                     QueueGCD(AID.Flare, target, GCDPriority.Step3);
                 //second cast
-                if (MP < 2500 && JustUsed(AID.Flare, 5f))
+                if (MP is < 2500 and >= 800 && JustUsed(AID.Flare, 5f))
                     QueueGCD(AID.Flare, target, GCDPriority.Step2);
             }
             //Step 3 - swap from AF to UI
@@ -1145,25 +1238,29 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     {
         if (NoStance)
         {
-            if (Unlocked(AID.Blizzard2))
+            if (Unlocked(AID.HighBlizzard2))
             {
                 if (MP >= 10000)
-                    QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
+                    QueueGCD(AID.HighBlizzard2, target, GCDPriority.NeedB3);
                 if (MP < 10000 && Player.InCombat)
-                    QueueGCD(SwiftcastB2, target, GCDPriority.NeedB3);
+                {
+                    if (ActionReady(AID.Swiftcast))
+                        QueueGCD(AID.Swiftcast, target, GCDPriority.NeedB3);
+                    else
+                        QueueGCD(AID.HighBlizzard2, target, GCDPriority.NeedB3);
+                }
             }
         }
         if (InUmbralIce)
         {
             //Step 1 - max stacks in UI
-            if (JustUsed(AID.HighFire2, 5) &&
-                Unlocked(AID.HighBlizzard2) &&
-                UmbralStacks != 3)
-                QueueGCD(AID.HighBlizzard2, target, GCDPriority.Step2);
+            if (Unlocked(AID.HighBlizzard2) &&
+                UmbralStacks < 3)
+                QueueGCD(AID.HighBlizzard2, target, GCDPriority.Step3);
             //Step 2 - Freeze
-            if (Unlocked(AID.Freeze) &&
-                JustUsed(AID.HighBlizzard2, 5) || UmbralStacks == 3)
-                QueueGCD(AID.Freeze, target, JustUsed(AID.Blizzard2, 5) ? GCDPriority.Step10 : GCDPriority.Step1);
+            if (Unlocked(AID.Freeze) && !JustUsed(AID.Freeze, 5f) &&
+                (JustUsed(AID.HighBlizzard2, 5) || MP < 10000))
+                QueueGCD(AID.Freeze, target, GCDPriority.Step2);
             //Step 3 - swap from UI to AF
             if (Unlocked(AID.HighFire2) &&
                 MP >= 10000 &&
@@ -1182,7 +1279,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (UmbralHearts == 1)
                     QueueGCD(AID.Flare, target, GCDPriority.Step3);
                 //second cast
-                if (MP < 2500 && JustUsed(AID.Flare, 5f))
+                if (MP is < 2500 and >= 800 && JustUsed(AID.Flare, 5f))
                     QueueGCD(AID.Flare, target, GCDPriority.Step2);
             }
             //Step 3 - swap from AF to UI
@@ -1200,20 +1297,24 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (MP >= 10000)
                     QueueGCD(AID.HighBlizzard2, target, GCDPriority.NeedB3);
                 if (MP < 10000 && Player.InCombat)
-                    QueueGCD(SwiftcastB2, target, GCDPriority.NeedB3);
+                {
+                    if (ActionReady(AID.Swiftcast))
+                        QueueGCD(AID.Swiftcast, target, GCDPriority.NeedB3);
+                    else
+                        QueueGCD(AID.HighBlizzard2, target, GCDPriority.NeedB3);
+                }
             }
         }
         if (InUmbralIce)
         {
             //Step 1 - max stacks in UI
-            if (JustUsed(AID.HighFire2, 5) &&
-                Unlocked(AID.HighBlizzard2) &&
-                UmbralStacks != 3)
-                QueueGCD(AID.HighBlizzard2, target, GCDPriority.Step2);
+            if (Unlocked(AID.HighBlizzard2) &&
+                UmbralStacks < 3)
+                QueueGCD(AID.HighBlizzard2, target, GCDPriority.Step3);
             //Step 2 - Freeze
-            if (Unlocked(AID.Freeze) &&
-                JustUsed(AID.HighBlizzard2, 5) || UmbralStacks == 3)
-                QueueGCD(AID.Freeze, target, JustUsed(AID.Blizzard2, 5) ? GCDPriority.Step10 : GCDPriority.Step1);
+            if (Unlocked(AID.Freeze) && !JustUsed(AID.Freeze, 5f) &&
+                (JustUsed(AID.HighBlizzard2, 5) || MP < 10000))
+                QueueGCD(AID.Freeze, target, GCDPriority.Step2);
             //Step 3 - swap from UI to AF
             if (Unlocked(AID.HighFire2) &&
                 MP >= 10000 &&
@@ -1229,7 +1330,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (UmbralHearts == 3)
                     QueueGCD(AID.Flare, target, GCDPriority.Step3);
                 //second cast
-                if (MP < 2500 && JustUsed(AID.Flare, 5f))
+                if (MP is < 2500 and >= 800 && JustUsed(AID.Flare, 5f))
                     QueueGCD(AID.Flare, target, GCDPriority.Step2);
             }
             //Step 2 - Flare Star
