@@ -303,7 +303,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         if (Player.InCombat && Unlocked(WAR.AID.Infuriate))
         {
             var stratInf = strategy.Option(Track.Infuriate);
-            var inf = ShouldUseInfuriate(stratInf.As<InfuriateStrategy>(), primaryTarget);
+            var inf = ShouldUseInfuriate(stratInf.As<InfuriateStrategy>(), primaryTarget, burstStrategy == BurstStrategy.IgnoreST);
             if (inf.Use)
                 QueueOGCD(WAR.AID.Infuriate, Player, stratInf.Value.PriorityOverride, OGCDPriority.Infuriate, inf.Delayable ? ActionQueue.Priority.VeryLow : ActionQueue.Priority.Low);
         }
@@ -837,7 +837,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
         }
     }
 
-    private (bool Use, bool Delayable) ShouldUseInfuriate(InfuriateStrategy strategy, Actor? target)
+    private (bool Use, bool Delayable) ShouldUseInfuriate(InfuriateStrategy strategy, Actor? target, bool ignoreST)
     {
         if (strategy == InfuriateStrategy.Delay || CanFitGCD(NascentChaosLeft))
             return (false, false); // explicitly forbidden or NC still active
@@ -915,7 +915,7 @@ public sealed class StandardWAR(RotationModuleManager manager, Actor player) : R
             _ => (30, 4)
         };
         // don't double infuriate during opener when NC is not yet unlocked (TODO: consider making it better)
-        if (Gauge + stRefreshGauge + 50 > 100 && !CanFitGCD(SurgingTempestLeft, stRefreshGCDs))
+        if (!ignoreST && Gauge + stRefreshGauge + 50 > 100 && !CanFitGCD(SurgingTempestLeft, stRefreshGCDs))
             return (false, false);
 
         // at this point, use under burst or delay outside (TODO: reconsider, we might want to be smarter here...)

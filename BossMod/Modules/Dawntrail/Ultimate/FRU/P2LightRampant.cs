@@ -302,7 +302,6 @@ class P2LightRampantAIOrbs(BossModule module) : BossComponent(module)
             return;
 
         // actual orb aoes
-        //var resolve = Module.CastFinishAt(_orbs.Casters[0].CastInfo, _orbs.NumCasts == 0 ? 0 : -1); // for second set, we want to dodge out asap without weird movement to the center
         foreach (var c in _orbs.ActiveCasters)
             hints.AddForbiddenZone(_orbs.Shape.Distance(c.Position, default), Module.CastFinishAt(c.CastInfo));
 

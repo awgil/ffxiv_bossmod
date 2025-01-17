@@ -124,4 +124,26 @@ public class FRUConfig() : ConfigNode()
     [PropertyDisplay("P2 Banish after Light Rampant: direction to move to resolve pairs", tooltip: "Only used by AI")]
     [PropertyCombo("CW", "CCW")]
     public bool P2Banish2MoveCCWToStack = true;
+
+    [PropertyDisplay("P2 Intermission: clock spots (cardinals prioritize their crystals, intercardinals bait)", tooltip: "Only used by AI")]
+    [GroupDetails(["N", "NE", "E", "SE", "S", "SW", "W", "NW"])]
+    [GroupPreset("Default", [0, 2, 5, 3, 4, 6, 7, 1])]
+    public GroupAssignmentUnique P2IntermissionClockSpots = new() { Assignments = [0, 2, 5, 3, 4, 6, 7, 1] };
+
+    [PropertyDisplay("P3 Darkest Dance: baiter", tooltip: "Only used by AI")]
+    [PropertyCombo("MT", "OT")]
+    public bool P3DarkestDanceOTBait;
+
+    [PropertyDisplay("P4 Somber Dance: baiter", tooltip: "Only used by AI")]
+    [PropertyCombo("MT", "OT")]
+    public bool P4SomberDanceOTBait = true;
+
+    [PropertyDisplay("P5 Akh Morn: side assignments", tooltip: "Only used by AI")]
+    [GroupDetails(["Left (looking at boss)", "Right (looking at boss)"])]
+    public GroupAssignmentLightParties P5AkhMornAssignments = GroupAssignmentLightParties.DefaultLightParties();
+
+    [PropertyDisplay("P5 Polarizing Strikes: bait order", tooltip: "Only used by AI")]
+    [GroupDetails(["Left 1", "Left 2", "Left 3", "Left 4", "Right 1", "Right 2", "Right 3", "Right 4"])]
+    [GroupPreset("TMRH", [0, 4, 3, 7, 1, 5, 2, 6])]
+    public GroupAssignmentUnique P5PolarizingStrikesAssignments = new() { Assignments = [0, 4, 3, 7, 1, 5, 2, 6] };
 }

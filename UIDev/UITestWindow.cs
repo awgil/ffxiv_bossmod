@@ -40,6 +40,8 @@ class UITestWindow : UIWindow
             dir = dir.Parent;
         _rotationDB = new(new(rotationRoot), new(dir!.FullName + defaultPresets));
         _replayManager = new(_rotationDB, ".");
+
+        ConfigTest.RotationDB = _rotationDB;
     }
 
     protected override void Dispose(bool disposing)

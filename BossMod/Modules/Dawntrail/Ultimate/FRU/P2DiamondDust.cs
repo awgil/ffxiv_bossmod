@@ -413,33 +413,56 @@ class P2TwinStillnessSilence(BossModule module) : Components.GenericAOEs(module)
                 hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 16), WorldState.FutureTime(50));
                 hints.AddForbiddenZone(ShapeDistance.InvertedCone(Module.Center, 100, desiredDir, halfWidth), DateTime.MaxValue);
             }
-            return;
         }
-
-        // at this point, we have thin ice, so we can either stay or move fixed distance
-        hints.AddForbiddenZone(ShapeDistance.Donut(actor.Position, 1, 31));
-        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(actor.Position, 33));
-
-        if (AOEs.Count == 0)
+        else if (actor.LastFrameMovement == default)
         {
-            // if we're behind boss, slide over
-            hints.AddForbiddenZone(ShapeDistance.Rect(_source.Position, _source.Rotation, 20, 20, 20), DateTime.MaxValue);
-        }
-        else
-        {
-            // otherwise just dodge next aoe
-            ref var nextAOE = ref AOEs.Ref(0);
-            hints.AddForbiddenZone(nextAOE.Shape.Distance(nextAOE.Origin, nextAOE.Rotation), nextAOE.Activation);
-        }
+            // at this point, we have thin ice, so we can either stay or move fixed distance
+            var sourceOffset = _source.Position - Module.Center;
+            var needToMove = AOEs.Count > 0 ? AOEs[0].Check(actor.Position) : NumCasts == 0 && sourceOffset.Dot(actor.Position - Module.Center) > 0;
+            if (!needToMove)
+                return;
 
-        // ensure we don't slide over voidzones
-        foreach (var z in _voidzones.Sources(Module))
-        {
-            var offset = z.Position - actor.Position;
-            var dist = offset.Length();
-            if (dist > _voidzones.Shape.Radius)
-                hints.AddForbiddenZone(ShapeDistance.Cone(actor.Position, 100, Angle.FromDirection(offset), Angle.Asin(dist / _voidzones.Shape.Radius)));
+            var zoneList = new ArcList(actor.Position, SlideDistance);
+            zoneList.ForbidInverseCircle(Module.Center, Module.Bounds.Radius);
+
+            foreach (var z in _voidzones.Sources(Module))
+            {
+                var offset = z.Position - actor.Position;
+                var dist = offset.Length();
+                if (dist >= SlideDistance)
+                {
+                    // voidzone center is outside slide distance => forbid voidzone itself
+                    zoneList.ForbidCircle(z.Position, _voidzones.Shape.Radius);
+                }
+                else if (dist >= _voidzones.Shape.Radius)
+                {
+                    // forbid the voidzone's shadow
+                    zoneList.ForbidArcByLength(Angle.FromDirection(offset), Angle.Asin(_voidzones.Shape.Radius / dist));
+                }
+                // else: we're already in voidzone, oh well
+            }
+
+            if (AOEs.Count == 0)
+            {
+                // if we're behind boss, slide over
+                zoneList.ForbidInfiniteRect(Module.Center, Angle.FromDirection(sourceOffset), Module.Bounds.Radius);
+                //zoneList.ForbidCircle(_source.Position, 20);
+            }
+            else
+            {
+                // dodge next aoe
+                ref var nextAOE = ref AOEs.Ref(0);
+                zoneList.ForbidInfiniteCone(nextAOE.Origin, nextAOE.Rotation, ((AOEShapeCone)nextAOE.Shape).HalfAngle);
+            }
+
+            var best = zoneList.Allowed(1.Degrees()).MaxBy(r => (r.max - r.min).Rad);
+            if (best.max.Rad > best.min.Rad)
+            {
+                var dir = 0.5f * (best.min + best.max);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(actor.Position + SlideDistance * dir.ToDirection(), 1), DateTime.MaxValue);
+            }
         }
+        // else: we are already sliding, nothing to do...
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

@@ -64,21 +64,20 @@ class P4DarklitDragonsong(BossModule module) : BossComponent(module)
                 AssignS.Set(Raid.FindSlot(t.from.InstanceID));
         }
 
-        // remaining assignments (N/S for baits, E/W for everyone) in prio order
-        int numAssignedSoakers = 0, numAssignedBaits = 0;
+        // E/W assignments for tower soakers
+        AssignE.Set(SelectEastTowerSoaker(TowerSoakers & AssignS, playerPrios));
+        AssignE.Set(SelectEastTowerSoaker(TowerSoakers & ~AssignS, playerPrios));
+
+        // assignments for baiters in prio order
+        int numAssigned = 0;
         foreach (var slot in ccwOrderSlots)
         {
-            if (TowerSoakers[slot])
-            {
-                // first and last prio go E
-                AssignE[slot] = numAssignedSoakers++ is 0 or 3;
-            }
-            else
+            if (!TowerSoakers[slot])
             {
                 // first and last go N, last two go E
-                AssignS[slot] = numAssignedBaits is 1 or 2;
-                AssignE[slot] = numAssignedBaits >= 2;
-                ++numAssignedBaits;
+                AssignS[slot] = numAssigned is 1 or 2;
+                AssignE[slot] = numAssigned >= 2;
+                ++numAssigned;
             }
         }
 
@@ -93,34 +92,59 @@ class P4DarklitDragonsong(BossModule module) : BossComponent(module)
             AssignS ^= flexMask;
         }
     }
+
+    private int SelectEastTowerSoaker(BitMask soakers, ReadOnlySpan<int> prios)
+    {
+        if (soakers.NumSetBits() != 2)
+            return -1;
+        var s1 = soakers.LowestSetBit();
+        var s2 = soakers.HighestSetBit();
+        var p1 = prios[s1];
+        var p2 = prios[s2];
+        return p1 < 4 && p2 < 4 ? (p1 < p2 ? s1 : s2) // both 'western' (one is anchor) - lower (more cw) is east
+            : p1 >= 4 && p2 >= 4 ? (p1 > p2 ? s1 : s2) // both 'eastern' (neither is anchor) - higher (more cw) is east
+            : p1 < 4 ? s2 : s1; // whoever is more eastern
+    }
 }
 
 class P4DarklitDragonsongBrightHunger(BossModule module) : Components.GenericTowers(module, ActionID.MakeSpell(AID.BrightHunger))
 {
+    private readonly P4DarklitDragonsong? _darklit = module.FindComponent<P4DarklitDragonsong>();
     private int _numTethers;
+
+    private const float TowerOffset = 8;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_darklit == null || Towers.Count == 0 || _darklit.AssignS.None() || !_darklit.TowerSoakers[slot])
+            return; // we only provide hints for soakers
+
+        // stay on the far side of assigned tower, on the correct E/W side
+        var towerPos = Module.Center + new WDir(0, _darklit.AssignS[slot] ? +TowerOffset : -TowerOffset);
+        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(towerPos, 3), Towers[0].Activation);
+        hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, TowerOffset), Towers[0].Activation);
+        hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center, new(_darklit.AssignE[slot] ? +1 : -1, 0)), Towers[0].Activation);
+    }
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if (tether.ID == (uint)TetherID.LightRampantChains && ++_numTethers == 4)
+        if (tether.ID == (uint)TetherID.LightRampantChains && ++_numTethers == 4 && _darklit != null)
         {
-            var assignments = Module.FindComponent<P4DarklitDragonsong>();
-            if (assignments != null)
-            {
-                var allowedN = assignments.TowerSoakers & ~assignments.AssignS;
-                var allowedS = assignments.TowerSoakers & assignments.AssignS;
-                if (assignments.AssignS.None())
-                    allowedN = allowedS = assignments.TowerSoakers; // no assignments, just mark both towers as good
+            var allowedN = _darklit.TowerSoakers & ~_darklit.AssignS;
+            var allowedS = _darklit.TowerSoakers & _darklit.AssignS;
+            if (_darklit.AssignS.None())
+                allowedN = allowedS = _darklit.TowerSoakers; // no assignments, just mark both towers as good
 
-                var towerOffset = new WDir(0, 8);
-                Towers.Add(new(Module.Center - towerOffset, 4, 4, 4, new BitMask(0xFF) ^ allowedN, WorldState.FutureTime(10.4f)));
-                Towers.Add(new(Module.Center + towerOffset, 4, 4, 4, new BitMask(0xFF) ^ allowedS, WorldState.FutureTime(10.4f)));
-            }
+            var towerOffset = new WDir(0, TowerOffset);
+            Towers.Add(new(Module.Center - towerOffset, 4, 2, 2, new BitMask(0xFF) ^ allowedN, WorldState.FutureTime(10.4f)));
+            Towers.Add(new(Module.Center + towerOffset, 4, 2, 2, new BitMask(0xFF) ^ allowedS, WorldState.FutureTime(10.4f)));
         }
     }
 }
 
 class P4DarklitDragonsongPathOfLight(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.PathOfLightAOE))
 {
+    private readonly P4DarklitDragonsong? _darklit = module.FindComponent<P4DarklitDragonsong>();
     private Actor? _source;
     private DateTime _activation;
 
@@ -157,7 +181,15 @@ class P4DarklitDragonsongPathOfLight(BossModule module) : Components.GenericBait
             hints.Add("GTFO from baited cone!");
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { }
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_darklit == null || _source == null || _darklit.AssignS.None() || ForbiddenPlayers[slot])
+            return; // we only provide hints for baiters
+
+        // do not clip either tower (it's visible at half-angle = asin(4/8) = 30) or each other
+        var dir = (_darklit.AssignE[slot] ? +1 : -1) * (_darklit.AssignS[slot] ? 60 : 120).Degrees();
+        hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + 4 * dir.ToDirection(), new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), _activation);
+    }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -175,29 +207,100 @@ class P4DarklitDragonsongPathOfLight(BossModule module) : Components.GenericBait
     }
 }
 
+class P4DarklitDragonsongSpiritTaker(BossModule module) : SpiritTaker(module)
+{
+    //private readonly P4DarklitDragonsong? _darklit = module.FindComponent<P4DarklitDragonsong>();
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        //if (_darklit != null && _darklit.AssignS.Any() && Spreads.Count > 0 && Spreads[0].Activation > WorldState.FutureTime(1))
+        //{
+        //    // preposition
+        //    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center + PrepositionOffset(_darklit, slot, actor), 1), Spreads[0].Activation);
+        //}
+        //else
+        {
+            // just adjust and dodge...
+            base.AddAIHints(slot, actor, assignment, hints);
+        }
+    }
+
+    // TODO: this is very arbitrary...
+    //private WDir PrepositionOffset(P4DarklitDragonsong darklit, int slot, Actor actor)
+    //{
+    //    if (darklit.TowerSoakers[slot])
+    //    {
+    //        // tower soakers go to fixed spots, skewed not to hit the fragment
+    //        var dir = (darklit.AssignE[slot] ? 1 : -1) * (darklit.AssignS[slot] ? 25 : 135).Degrees();
+    //        return 9 * dir.ToDirection();
+    //    }
+    //    else
+    //    {
+    //        // baiting healer goes far west, tank goes near west, northern dd goes center, southern dd goes near east
+    //        var off = actor.Role switch
+    //        {
+    //            Role.Healer => -12,
+    //            Role.Tank => -6,
+    //            _ => darklit.AssignS[slot] ? 6 : 0
+    //        };
+    //        return new(off, 0);
+    //    }
+    //}
+}
+
 class P4DarklitDragonsongDarkWater(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4, includeDeadTargets: true)
 {
-    public bool ResolveImminent;
     private readonly P4DarklitDragonsong? _assignments = module.FindComponent<P4DarklitDragonsong>();
+    private bool _resolveImminent;
+
+    public void Show()
+    {
+        _resolveImminent = true;
+        if (_assignments != null && _assignments.AssignS.Any())
+        {
+            foreach (ref var s in Stacks.AsSpan())
+            {
+                var isSouth = _assignments.AssignS[Raid.FindSlot(s.Target.InstanceID)];
+                s.ForbiddenPlayers = _assignments.AssignS ^ new BitMask(isSouth ? 0xFF : 0u);
+            }
+        }
+    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (ResolveImminent)
+        if (_resolveImminent)
             base.AddHints(slot, actor, hints);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!_resolveImminent || _assignments == null || _assignments.AssignS.None())
+            return;
+
+        var stack = Stacks.FindIndex(s => !s.ForbiddenPlayers[slot]);
+        if (stack < 0)
+            return;
+
+        if (Stacks[stack].Target == actor || Stacks[stack].Activation > WorldState.FutureTime(1.5f))
+        {
+            // preposition
+            var off = 9 * (_assignments.AssignS[slot] ? 20 : 130).Degrees().ToDirection();
+            var p1 = ShapeDistance.Circle(Module.Center + off, 1);
+            var p2 = ShapeDistance.Circle(Module.Center + new WDir(-off.X, off.Z), 1);
+            hints.AddForbiddenZone(p => -MathF.Min(p1(p), p2(p)), Stacks[stack].Activation);
+        }
+        else
+        {
+            // otherwise just stack tightly with our target, and avoid other
+            foreach (var s in Stacks)
+                hints.AddForbiddenZone(s.ForbiddenPlayers[slot] ? ShapeDistance.Circle(s.Target.Position, s.Radius) : ShapeDistance.InvertedCircle(s.Target.Position, 2), s.Activation);
+        }
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.SpellInWaitingDarkWater)
-        {
-            BitMask forbidden = default;
-            if (_assignments != null && _assignments.AssignS.Any())
-            {
-                var isSouth = _assignments.AssignS[Raid.FindSlot(actor.InstanceID)];
-                forbidden = _assignments.AssignS ^ new BitMask(isSouth ? 0xFF : 0u);
-            }
-            AddStack(actor, status.ExpireAt, forbidden);
-        }
+            AddStack(actor, status.ExpireAt);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -209,6 +312,7 @@ class P4DarklitDragonsongDarkWater(BossModule module) : Components.UniformStackS
 
 class P4SomberDance(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
+    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
     private Actor? _source;
     private DateTime _activation;
 
@@ -223,6 +327,18 @@ class P4SomberDance(BossModule module) : Components.GenericBaitAway(module, cent
         var target = NumCasts == 0 ? targets.Farthest(_source.Position) : targets.Closest(_source.Position);
         if (target != null)
             CurrentBaits.Add(new(_source, target, _shape, _activation));
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (assignment == (_config.P4SomberDanceOTBait ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT))
+        {
+            // go far east/west
+            var pos = Module.Center + new WDir(actor.Position.X > Module.Center.X ? 19 : -19, 0);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, 1), _activation);
+        }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
