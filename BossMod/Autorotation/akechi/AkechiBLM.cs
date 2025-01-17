@@ -529,7 +529,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (!PlayerHasEffect(SID.Swiftcast, 10) ||
                     !PlayerHasEffect(SID.Triplecast, 15))
                     QueueGCD(
-                        Polyglots > 0 ? BestPolyglot
+                        Unlocked(TraitID.EnhancedPolyglot) && Polyglots > 0 ? BestPolyglot
                         : PlayerHasEffect(SID.Firestarter, 30) ? AID.Fire3
                         : hasThunderhead ? BestThunder
                         : AID.Scathe,
@@ -551,16 +551,18 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             if (movementStrat is MovementStrategy.OnlyGCDs)
             {
                 //GCDs
-                QueueGCD(
-                    Polyglots > 0 ? BestPolyglot
-                    : PlayerHasEffect(SID.Firestarter, 30) ? AID.Fire3
-                    : hasThunderhead ? BestThunder
-                    : AID.Scathe,
-                    Polyglots > 0 ? TargetChoice(polyglot) ?? BestAOETarget ?? primaryTarget
-                    : PlayerHasEffect(SID.Firestarter, 30) ? TargetChoice(AOE) ?? primaryTarget
-                    : hasThunderhead ? TargetChoice(thunder) ?? BestAOETarget ?? primaryTarget
-                    : primaryTarget,
-                    GCDPriority.Moving1);
+                if (!PlayerHasEffect(SID.Swiftcast, 10) ||
+                    !PlayerHasEffect(SID.Triplecast, 15))
+                    QueueGCD(
+                        Unlocked(TraitID.EnhancedPolyglot) && Polyglots > 0 ? BestPolyglot
+                        : PlayerHasEffect(SID.Firestarter, 30) ? AID.Fire3
+                        : hasThunderhead ? BestThunder
+                        : AID.Scathe,
+                        Polyglots > 0 ? TargetChoice(polyglot) ?? BestAOETarget ?? primaryTarget
+                        : PlayerHasEffect(SID.Firestarter, 30) ? TargetChoice(AOE) ?? primaryTarget
+                        : hasThunderhead ? TargetChoice(thunder) ?? BestAOETarget ?? primaryTarget
+                        : primaryTarget,
+                        GCDPriority.Moving1);
             }
             if (movementStrat is MovementStrategy.OnlyOGCDs)
             {
