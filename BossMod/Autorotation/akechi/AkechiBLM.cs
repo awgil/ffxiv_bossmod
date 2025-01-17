@@ -650,7 +650,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos);
         return true;
     }
-    private void BestRotation(Actor? target)
+    private void BestRotation(Actor? target) //Best rotation based on targets nearby
     {
         if (ShouldUseAOE)
         {
@@ -750,13 +750,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         if (InAstralFire) //if Astral Fire is active
         {
             //Step 1-3, 5-7 - Fire IV
-            if (ElementTimer >= (SpS * 3) && //if time remaining on current element is greater than or equal to 3x GCDs
-                MP >= 1600) //and MP is 1600 or more
+            if (MP >= 1600) //and MP is 1600 or more
                 QueueGCD(AID.Fire4, target, GCDPriority.Step5); //Queue Fire IV
             //Step 4A - Fire 1
             if (ElementTimer <= (SpS * 3) && //if time remaining on current element is less than 3x GCDs
                 MP >= 4000) //and MP is 4000 or more
-                QueueGCD(AID.Fire1, target, ElementTimer <= 3 && MP >= 4000 ? GCDPriority.Paradox : GCDPriority.Step4); //Queue Fire I, increase priority if less than 3s left on element
+                QueueGCD(AID.Fire1, target, ElementTimer <= 5 && MP >= 4000 ? GCDPriority.Paradox : GCDPriority.Step4); //Queue Fire I, increase priority if less than 3s left on element
             //Step 4B - F3P 
             if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
                 AstralStacks == 3) //and Umbral Hearts are 0
@@ -793,13 +792,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         if (InAstralFire) //if Astral Fire is active
         {
             //Step 1-3, 5-7 - Fire IV
-            if (ElementTimer >= (SpS * 3) && //if time remaining on current element is greater than or equal to 3x GCDs
-                MP >= 1600) //and MP is 1600 or more
+            if (MP >= 1600) //and MP is 1600 or more
                 QueueGCD(AID.Fire4, target, GCDPriority.Step5); //Queue Fire IV
             //Step 4A - Fire 1
             if (ElementTimer <= (SpS * 3) && //if time remaining on current element is less than 3x GCDs
                 MP >= 4000) //and MP is 4000 or more
-                QueueGCD(AID.Fire1, target, ElementTimer <= 3 && MP >= 4000 ? GCDPriority.Paradox : GCDPriority.Step4); //Queue Fire I, increase priority if less than 3s left on element
+                QueueGCD(AID.Fire1, target, ElementTimer <= 5 && MP >= 4000 ? GCDPriority.Paradox : GCDPriority.Step4); //Queue Fire I, increase priority if less than 3s left on element
             //Step 4B - F3P 
             if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
                 AstralStacks == 3) //and Umbral Hearts are 0
@@ -844,8 +842,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         if (InAstralFire) //if Astral Fire is active
         {
             //Step 1-4, 6 & 7 - Fire IV
-            if (ElementTimer >= (SpS * 3) && //if time remaining on current element is greater than or equal to 3x GCDs
-                MP >= 1600) //and MP is 1600 or more
+            if (MP >= 1600) //and MP is 1600 or more
                 QueueGCD(AID.Fire4, target, GCDPriority.Step5); //Queue Fire IV
             //Step 5A - Paradox
             if (canParadox && //if Paradox is unlocked and Paradox is active
@@ -896,8 +893,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         if (InAstralFire) //if Astral Fire is active
         {
             //Step 1-4, 6 & 7 - Fire IV
-            if (ElementTimer >= (SpS * 3) && //if time remaining on current element is greater than or equal to 3x GCDs
-                AstralSoulStacks != 6 && //and Astral Soul stacks are not max
+            if (AstralSoulStacks != 6 && //and Astral Soul stacks are not max
                 MP >= 1600) //and MP is 1600 or more
                 QueueGCD(AID.Fire4, target, GCDPriority.Step6); //Queue Fire IV
             //Step 5A - Paradox
@@ -932,7 +928,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 QueueGCD(AID.Blizzard3, target, GCDPriority.Step1); //Queue Blizzard III
         }
     }
-    private void BestST(Actor? target)
+    private void BestST(Actor? target) //Single-target rotation based on level
     {
         if (Player.Level is >= 1 and <= 34)
         {
@@ -962,7 +958,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     #endregion
 
     #region AOE Helpers
-    private void AOELv12toLv34(Actor? target)
+    private void AOELv12toLv34(Actor? target) //Level 12-34 AOE rotation
     {
         //Fire
         if (Unlocked(AID.Fire2) && //if Fire is unlocked
@@ -978,7 +974,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             InUmbralIce && MP == 10000) //or if Umbral Ice is active and MP is max
             QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose); //Queue Transpose
     }
-    private void AOELv35toLv39(Actor? target)
+    private void AOELv35toLv39(Actor? target) //Level 35-39 AOE rotation
     {
         if (NoStance)
         {
@@ -1011,7 +1007,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 QueueGCD(AID.Blizzard2, target, GCDPriority.Step1);
         }
     }
-    private void AOELv40toLv49(Actor? target)
+    private void AOELv40toLv49(Actor? target) //Level 40-49 AOE rotation
     {
         if (NoStance)
         {
@@ -1049,7 +1045,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 QueueGCD(AID.Blizzard2, target, GCDPriority.Step1);
         }
     }
-    private void AOELv50toLv57(Actor? target)
+    private void AOELv50toLv57(Actor? target) //Level 50-57 AOE rotation
     {
         if (NoStance)
         {
@@ -1094,7 +1090,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 QueueGCD(AID.Blizzard2, target, GCDPriority.Step1);
         }
     }
-    private void AOELv58toLv81(Actor? target)
+    private void AOELv58toLv81(Actor? target) //Level 58-81 AOE rotation
     {
         if (NoStance)
         {
@@ -1112,27 +1108,28 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             if (JustUsed(AID.Fire2, 5) &&
                 Unlocked(AID.Blizzard2) &&
                 UmbralStacks != 3)
-                QueueGCD(AID.Blizzard2, target, GCDPriority.Step2);
+                QueueGCD(AID.Blizzard2, target, GCDPriority.Step3);
             //Step 2 - Freeze
             if (Unlocked(AID.Freeze) &&
                 JustUsed(AID.Blizzard2, 5) || UmbralStacks == 3)
-                QueueGCD(AID.Freeze, target, JustUsed(AID.Blizzard2, 5) ? GCDPriority.Step10 : GCDPriority.Step1);
+                QueueGCD(AID.Freeze, target, JustUsed(AID.Blizzard2, 5) ? GCDPriority.Step10 : GCDPriority.Step2);
             //Step 3 - swap from UI to AF
             if (Unlocked(AID.Fire2) &&
                 MP >= 10000 &&
                 UmbralStacks == 3)
-                QueueGCD(AID.Fire2, target, GCDPriority.Step1);
+                QueueGCD(AID.Fire2, target, JustUsed(AID.Freeze, 5f) ? GCDPriority.Step10 : GCDPriority.Step1);
         }
         if (InAstralFire)
         {
             //Step 1 - spam Fire 2
-            if (MP > 5500)
+            if (MP > 7000)
                 QueueGCD(AID.Fire2, target, GCDPriority.Step4);
             //Step 2 - Flare
             if (Unlocked(AID.Flare))
             {
                 //first cast
-                if (UmbralHearts == 1)
+                if (MP <= 7000 &&
+                    UmbralHearts == 1)
                     QueueGCD(AID.Flare, target, GCDPriority.Step3);
                 //second cast
                 if (MP < 2500 && JustUsed(AID.Flare, 5f))
@@ -1144,7 +1141,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 QueueGCD(AID.Blizzard2, target, GCDPriority.Step1);
         }
     }
-    private void AOELv82toLv99(Actor? target)
+    private void AOELv82toLv99(Actor? target) //Level 82-99 AOE rotation
     {
         if (NoStance)
         {
@@ -1194,7 +1191,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 QueueGCD(AID.HighBlizzard2, target, GCDPriority.Step1);
         }
     }
-    private void AOELv100(Actor? target)
+    private void AOELv100(Actor? target) //Level 100 AOE rotation
     {
         if (NoStance)
         {
@@ -1244,7 +1241,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 QueueGCD(AID.HighBlizzard2, target, GCDPriority.Step1);
         }
     }
-    private void BestAOE(Actor? target)
+    private void BestAOE(Actor? target) //AOE rotation based on level
     {
         if (In25y(target))
         {
