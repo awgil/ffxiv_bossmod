@@ -13,6 +13,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     public enum Track
     {
         AOE,                 //ST&AOE rotations tracking
+        Movement,            //Movement strategy tracking
         Thunder,             //Thunder tracking
         Polyglot,            //Polyglot tracking
         Manafont,            //Manafont tracking
@@ -31,6 +32,14 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         ForceST,             //Force ST rotation only
         ForceAOE,            //Force AOE rotation only
     }
+    public enum MovementStrategy
+    {
+        Allow,               //Allow the use of all abilities for movement, regardless of any setting or condition set by the user in other options
+        OnlyGCDs,            //Only use instant cast GCDs for movement (Polyglots->Firestarter->Thunder->Scathe if nothing left), regardless of any setting or condition set by the user in other options
+        OnlyOGCDs,           //Only use OGCDs for movement, (Swiftcast->Triplecast) regardless of any setting or condition set by the user in other options
+        OnlyScathe,          //Only use Scathe for movement
+        Forbid               //Forbid the use of any abilities for movement
+    }
     public enum ThunderStrategy
     {
         Thunder3,            //Force use of Thunder if target has 3s or less remaining on DOT effect
@@ -46,11 +55,11 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         AutoHold1,           //Spend 2 Polyglots; holds one for manual usage
         AutoHold2,           //Spend 1 Polyglot; holds two for manual usage
         AutoHold3,           //Holds all Polyglots for as long as possible
-        XenoSpendAll,         //Use Xenoglossy as optimal spender, regardless of targets nearby; spends all Polyglots
+        XenoSpendAll,        //Use Xenoglossy as optimal spender, regardless of targets nearby; spends all Polyglots
         XenoHold1,           //Use Xenoglossy as optimal spender, regardless of targets nearby; holds one Polyglot for manual usage
         XenoHold2,           //Use Xenoglossy as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage
         XenoHold3,           //Holds all Polyglots for as long as possible
-        FoulSpendAll,         //Use Foul as optimal spender, regardless of targets nearby
+        FoulSpendAll,        //Use Foul as optimal spender, regardless of targets nearby
         FoulHold1,           //Use Foul as optimal spender, regardless of targets nearby; holds one Polyglot for manual usage
         FoulHold2,           //Use Foul as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage
         FoulHold3,           //Holds all Polyglots for as long as possible
@@ -97,7 +106,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         OOConly,            //Only use Transpose & Umbral Soul combo when fully out of combat
         Forbid              //Forbid Transpose & Umbral Soul combo
     }
-
     public enum OffensiveStrategy
     {
         Automatic,           //Automatically decide when to use off-global offensive abilities
@@ -125,7 +133,13 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             .AddOption(AOEStrategy.Auto, "Auto", "Automatically decide when to use ST or AOE abilities")
             .AddOption(AOEStrategy.ForceST, "Force ST", "Force use of ST abilities only", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force use of AOE abilities only", supportedTargets: ActionTargets.Hostile);
-        res.Define(Track.Thunder).As<ThunderStrategy>("Damage Over Time", "DOT", uiPriority: 190)
+        res.Define(Track.Movement).As<MovementStrategy>("Movement", uiPriority: 195)
+            .AddOption(MovementStrategy.Allow, "Allow", "Allow the use of all appropriate abilities for movement", 0, 0, ActionTargets.Self, 35)
+            .AddOption(MovementStrategy.OnlyGCDs, "OnlyGCDs", "Only use instant cast GCDs for movement; Polyglots->Firestarter->Thunder->Scathe if nothing left", 0, 0, ActionTargets.Self, 35)
+            .AddOption(MovementStrategy.OnlyOGCDs, "OnlyOGCDs", "Only use OGCDs for movement; Swiftcast->Triplecast", 0, 0, ActionTargets.Self, 35)
+            .AddOption(MovementStrategy.OnlyScathe, "OnlyScathe", "Only use Scathe for movement", 0, 0, ActionTargets.Self, 35)
+            .AddOption(MovementStrategy.Forbid, "Forbid", "Forbid the use of any abilities for movement", 0, 0, ActionTargets.Self, 35);
+        res.Define(Track.Thunder).As<ThunderStrategy>("Thunder", "DOT", uiPriority: 190)
             .AddOption(ThunderStrategy.Thunder3, "Thunder3", "Use Thunder if target has 3s or less remaining on DoT effect", 0, 30, ActionTargets.Hostile, 6)
             .AddOption(ThunderStrategy.Thunder6, "Thunder6", "Use Thunder if target has 6s or less remaining on DoT effect", 0, 30, ActionTargets.Hostile, 6)
             .AddOption(ThunderStrategy.Thunder9, "Thunder9", "Use Thunder if target has 9s or less remaining on DoT effect", 0, 30, ActionTargets.Hostile, 6)
@@ -227,6 +241,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     #endregion
 
     #region Priorities
+    //TODO: Fix this shit, looks crazy
     public enum GCDPriority //priorities for GCDs (higher number = higher priority)
     {
         None = 0,             //default
@@ -252,7 +267,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         NeedF3P = 625,        //Need to use Fire III proc
         NeedDespair = 640,    //Need to use Despair
         NeedPolyglot = 650,   //Need to use Polyglots
-        Moving = 700,         //Moving
+        Moving3 = 700,        //Moving (3rd priority)
+        Moving2 = 710,        //Moving (2nd priority)
+        Moving1 = 720,        //Moving (1st priority)
         ForcedGCD = 900,      //Forced GCDs
     }
     public enum OGCDPriority //priorities for oGCDs (higher number = higher priority)
@@ -475,6 +492,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         #region Strategy Definitions
         var AOE = strategy.Option(Track.AOE); //AOE track
         var AOEStrategy = AOE.As<AOEStrategy>(); //AOE strategy
+        var movementStrat = strategy.Option(Track.Movement).As<MovementStrategy>();
         var thunder = strategy.Option(Track.Thunder); //Thunder track
         var thunderStrat = thunder.As<ThunderStrategy>(); //Thunder strategy
         var polyglot = strategy.Option(Track.Polyglot); //Polyglot track
@@ -505,6 +523,64 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             BestST(TargetChoice(AOE) ?? primaryTarget);
         if (AOEStrategy is AOEStrategy.ForceAOE)
             BestAOE(TargetChoice(AOE) ?? BestAOETarget ?? primaryTarget);
+        //Movement
+        if (isMoving)
+        {
+            if (movementStrat is MovementStrategy.Allow)
+            {
+                //GCDs
+                if (!PlayerHasEffect(SID.Swiftcast, 10) ||
+                    !PlayerHasEffect(SID.Triplecast, 15))
+                    QueueGCD(
+                        Polyglots > 0 ? BestPolyglot
+                        : PlayerHasEffect(SID.Firestarter, 30) ? AID.Fire3
+                        : hasThunderhead ? BestThunder
+                        : AID.Scathe,
+                        Polyglots > 0 ? TargetChoice(polyglot) ?? BestAOETarget ?? primaryTarget
+                        : PlayerHasEffect(SID.Firestarter, 30) ? TargetChoice(AOE) ?? primaryTarget
+                        : hasThunderhead ? TargetChoice(thunder) ?? BestAOETarget ?? primaryTarget
+                        : primaryTarget,
+                        GCDPriority.Moving1);
+                //OGCDs
+                if (ActionReady(AID.Swiftcast) &&
+                    !PlayerHasEffect(SID.Triplecast, 15))
+                    QueueOGCD(AID.Swiftcast, Player, GCDPriority.Moving2);
+                if (Unlocked(AID.Triplecast) &&
+                    CD(AID.Triplecast) <= 60 &&
+                    !PlayerHasEffect(SID.Triplecast, 15) &&
+                    !PlayerHasEffect(SID.Swiftcast, 10))
+                    QueueOGCD(AID.Triplecast, Player, GCDPriority.Moving3);
+            }
+            if (movementStrat is MovementStrategy.OnlyGCDs)
+            {
+                //GCDs
+                QueueGCD(
+                    Polyglots > 0 ? BestPolyglot
+                    : PlayerHasEffect(SID.Firestarter, 30) ? AID.Fire3
+                    : hasThunderhead ? BestThunder
+                    : AID.Scathe,
+                    Polyglots > 0 ? TargetChoice(polyglot) ?? BestAOETarget ?? primaryTarget
+                    : PlayerHasEffect(SID.Firestarter, 30) ? TargetChoice(AOE) ?? primaryTarget
+                    : hasThunderhead ? TargetChoice(thunder) ?? BestAOETarget ?? primaryTarget
+                    : primaryTarget,
+                    GCDPriority.Moving1);
+            }
+            if (movementStrat is MovementStrategy.OnlyOGCDs)
+            {
+                //OGCDs
+                if (ActionReady(AID.Swiftcast) &&
+                    !PlayerHasEffect(SID.Triplecast, 15))
+                    QueueOGCD(AID.Swiftcast, Player, GCDPriority.Moving2);
+                if (canTC &&
+                    !PlayerHasEffect(SID.Swiftcast, 10))
+                    QueueOGCD(AID.Triplecast, Player, GCDPriority.Moving3);
+            }
+            if (movementStrat is MovementStrategy.OnlyScathe)
+            {
+                QueueGCD(AID.Scathe, primaryTarget, GCDPriority.Moving1);
+            }
+        }
+
         //Out of combat
         if (tpusStrat != TPUSStrategy.Forbid)
         {
@@ -513,8 +589,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (!Unlocked(AID.UmbralSoul))
                 {
                     if (primaryTarget == null &&
-                        (tpusStrat != TPUSStrategy.Allow && (!Player.InCombat || Player.InCombat && TargetsInRange() is 0)) ||
-                        (tpusStrat != TPUSStrategy.OOConly && !Player.InCombat))
+                        (tpusStrat == TPUSStrategy.Allow && (!Player.InCombat || Player.InCombat && TargetsInRange() is 0)) ||
+                        (tpusStrat == TPUSStrategy.OOConly && !Player.InCombat))
                     {
                         if (CD(AID.Transpose) < 0.6f &&
                             (InAstralFire || InUmbralIce))
@@ -524,8 +600,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (Unlocked(AID.UmbralSoul))
                 {
                     if (primaryTarget == null &&
-                        (tpusStrat != TPUSStrategy.Allow && (!Player.InCombat || Player.InCombat && TargetsInRange() is 0)) ||
-                        (tpusStrat != TPUSStrategy.OOConly && !Player.InCombat))
+                        (tpusStrat == TPUSStrategy.Allow && (!Player.InCombat || Player.InCombat && TargetsInRange() is 0)) ||
+                        (tpusStrat == TPUSStrategy.OOConly && !Player.InCombat))
                     {
                         if (InAstralFire)
                             QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose);
@@ -560,7 +636,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         {
             if (polyglotStrat is PolyglotStrategy.AutoSpendAll
                 or PolyglotStrategy.AutoHold1
-                or PolyglotStrategy.AutoHold2)
+                or PolyglotStrategy.AutoHold2
+                or PolyglotStrategy.AutoHold3)
                 QueueGCD(BestPolyglot,
                     TargetChoice(polyglot) ?? BestAOETarget ?? primaryTarget,
                     polyglotStrat is PolyglotStrategy.ForceXeno ? GCDPriority.ForcedGCD
@@ -568,13 +645,17 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                     : GCDPriority.Paradox);
             if (polyglotStrat is PolyglotStrategy.XenoSpendAll
                 or PolyglotStrategy.XenoHold1
-                or PolyglotStrategy.XenoHold2)
+                or PolyglotStrategy.XenoHold2
+                or PolyglotStrategy.XenoHold3)
                 QueueGCD(BestXenoglossy,
                     TargetChoice(polyglot) ?? primaryTarget,
                     polyglotStrat is PolyglotStrategy.ForceXeno ? GCDPriority.ForcedGCD
                     : Polyglots == MaxPolyglots && EnochianTimer < 5000 ? GCDPriority.NeedPolyglot
                     : GCDPriority.Paradox);
-            if (polyglotStrat is PolyglotStrategy.FoulSpendAll or PolyglotStrategy.FoulHold1 or PolyglotStrategy.FoulHold2)
+            if (polyglotStrat is PolyglotStrategy.FoulSpendAll
+                or PolyglotStrategy.FoulHold1
+                or PolyglotStrategy.FoulHold2
+                or PolyglotStrategy.FoulHold3)
                 QueueGCD(AID.Foul, TargetChoice(polyglot) ?? BestAOETarget ?? primaryTarget, polyglotStrat is PolyglotStrategy.ForceFoul ? GCDPriority.ForcedGCD : Polyglots == MaxPolyglots && EnochianTimer < 5000 ? GCDPriority.NeedPolyglot : GCDPriority.Paradox); //Queue Foul
         }
         //LeyLines
@@ -1436,7 +1517,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             => Player.InCombat &&
             target != null &&
             Polyglots == 3 && //if max Polyglots
-            EnochianTimer <= 5000, //Enochian is 5s away from adding a Polyglot
+            EnochianTimer <= 10000f, //Enochian is 5s away from adding a Polyglot
         _ => false
     };
     private bool ShouldUsePolyglot(Actor? target, PolyglotStrategy strategy) => strategy switch
