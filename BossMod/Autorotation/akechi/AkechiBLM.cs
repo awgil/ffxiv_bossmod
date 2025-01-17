@@ -1380,7 +1380,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (UmbralHearts == 1)
                     QueueGCD(AID.Flare, target, GCDPriority.Step3);
                 //second cast
-                if (MP is < 2500 and >= 800 && JustUsed(AID.Flare, 5f))
+                if (UmbralHearts == 0 &&
+                    MP >= 800)
                     QueueGCD(AID.Flare, target, GCDPriority.Step2);
             }
             //Step 3 - swap from AF to UI
@@ -1428,10 +1429,11 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             if (Unlocked(AID.Flare))
             {
                 //first cast
-                if (UmbralHearts == 3)
+                if (UmbralHearts == 1)
                     QueueGCD(AID.Flare, target, GCDPriority.Step3);
                 //second cast
-                if (MP is < 2500 and >= 800 && JustUsed(AID.Flare, 5f))
+                if (UmbralHearts == 0 &&
+                    MP >= 800)
                     QueueGCD(AID.Flare, target, GCDPriority.Step2);
             }
             //Step 2 - Flare Star
