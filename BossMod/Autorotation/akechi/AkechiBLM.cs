@@ -41,15 +41,18 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     }
     public enum PolyglotStrategy
     {
-        AutoSpendAll,             //Spend all Polyglots as soon as possible
-        AutoHold1,               //Spend 2 Polyglots; holds one for manual usage
-        AutoHold2,               //Spend 1 Polyglot; holds two for manual usage
-        OnlyXenoAll,         //Use Xenoglossy as optimal spender, regardless of targets nearby; spends all Polyglots
-        OnlyXeno2,           //Use Xenoglossy as optimal spender, regardless of targets nearby; holds one Polyglot for manual usage
-        OnlyXeno1,           //Use Xenoglossy as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage
-        OnlyFoulAll,         //Use Foul as optimal spender, regardless of targets nearby
-        OnlyFoul2,           //Use Foul as optimal spender, regardless of targets nearby; holds one Polyglot for manual usage
-        OnlyFoul1,           //Use Foul as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage
+        AutoSpendAll,        //Spend all Polyglots as soon as possible
+        AutoHold1,           //Spend 2 Polyglots; holds one for manual usage
+        AutoHold2,           //Spend 1 Polyglot; holds two for manual usage
+        AutoHold3,           //Holds all Polyglots for as long as possible
+        XenoSpendAll,         //Use Xenoglossy as optimal spender, regardless of targets nearby; spends all Polyglots
+        XenoHold1,           //Use Xenoglossy as optimal spender, regardless of targets nearby; holds one Polyglot for manual usage
+        XenoHold2,           //Use Xenoglossy as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage
+        XenoHold3,           //Holds all Polyglots for as long as possible
+        FoulSpendAll,         //Use Foul as optimal spender, regardless of targets nearby
+        FoulHold1,           //Use Foul as optimal spender, regardless of targets nearby; holds one Polyglot for manual usage
+        FoulHold2,           //Use Foul as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage
+        FoulHold3,           //Holds all Polyglots for as long as possible
         ForceXeno,           //Force use of Xenoglossy
         ForceFoul,           //Force use of Foul
         Delay                //Delay the use of Polyglot abilities for manual or strategic usage
@@ -126,12 +129,15 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             .AddOption(PolyglotStrategy.AutoSpendAll, "AutoSpendAll", "Spend all Polyglots as soon as possible", 0, 0, ActionTargets.Hostile, 70)
             .AddOption(PolyglotStrategy.AutoHold1, "AutoHold1", "Spend 2 Polyglots; holds one for manual usage", 0, 0, ActionTargets.Hostile, 70)
             .AddOption(PolyglotStrategy.AutoHold2, "AutoHold2", "Spend 1 Polyglot; holds two for manual usage", 0, 0, ActionTargets.Hostile, 70)
-            .AddOption(PolyglotStrategy.OnlyXenoAll, "OnlyXenoAll", "Use Xenoglossy as optimal spender, regardless of targets nearby; spends all Polyglots", 0, 0, ActionTargets.Hostile, 80)
-            .AddOption(PolyglotStrategy.OnlyXeno2, "OnlyXeno2", "Use Xenoglossy as optimal spender, regardless of targets nearby; holds one Polyglot for manual usage", 0, 0, ActionTargets.Hostile, 80)
-            .AddOption(PolyglotStrategy.OnlyXeno1, "OnlyXeno1", "Use Xenoglossy as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage", 0, 0, ActionTargets.Hostile, 80)
-            .AddOption(PolyglotStrategy.OnlyFoulAll, "OnlyFoulAll", "Use Foul as optimal spender, regardless of targets nearby", 0, 0, ActionTargets.Hostile, 70)
-            .AddOption(PolyglotStrategy.OnlyFoul2, "OnlyFoul2", "Use Foul as optimal spender, regardless of targets nearby; holds one Polyglot for manual usage", 0, 0, ActionTargets.Hostile, 70)
-            .AddOption(PolyglotStrategy.OnlyFoul1, "OnlyFoul1", "Use Foul as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage", 0, 0, ActionTargets.Hostile, 70)
+            .AddOption(PolyglotStrategy.AutoHold3, "AutoHold3", "Holds all Polyglots for as long as possible", 0, 0, ActionTargets.Hostile, 70)
+            .AddOption(PolyglotStrategy.XenoSpendAll, "XenoSpendAll", "Use Xenoglossy as optimal spender, regardless of targets nearby; spends all Polyglots", 0, 0, ActionTargets.Hostile, 80)
+            .AddOption(PolyglotStrategy.XenoHold1, "XenoHold1", "Use Xenoglossy as optimal spender, regardless of targets nearby; holds one Polyglot for manual usage", 0, 0, ActionTargets.Hostile, 80)
+            .AddOption(PolyglotStrategy.XenoHold2, "XenoHold2", "Use Xenoglossy as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage", 0, 0, ActionTargets.Hostile, 80)
+            .AddOption(PolyglotStrategy.XenoHold3, "XenoHold3", "Holds all Polyglots for as long as possible", 0, 0, ActionTargets.Hostile, 80)
+            .AddOption(PolyglotStrategy.FoulSpendAll, "FoulSpendAll", "Use Foul as optimal spender, regardless of targets nearby", 0, 0, ActionTargets.Hostile, 70)
+            .AddOption(PolyglotStrategy.FoulHold1, "FoulHold1", "Use Foul as optimal spender, regardless of targets nearby; holds one Polyglot for manual usage", 0, 0, ActionTargets.Hostile, 70)
+            .AddOption(PolyglotStrategy.FoulHold2, "FoulHold2", "Use Foul as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage", 0, 0, ActionTargets.Hostile, 70)
+            .AddOption(PolyglotStrategy.FoulHold3, "FoulHold3", "Holds all Polyglots for as long as possible", 0, 0, ActionTargets.Hostile, 70)
             .AddOption(PolyglotStrategy.ForceXeno, "Force Xenoglossy", "Force use of Xenoglossy", 0, 0, ActionTargets.Hostile, 80)
             .AddOption(PolyglotStrategy.ForceFoul, "Force Foul", "Force use of Foul", 0, 30, ActionTargets.Hostile, 70)
             .AddOption(PolyglotStrategy.Delay, "Delay", "Delay the use of Polyglot abilities for manual or strategic usage", 0, 0, ActionTargets.Hostile, 70)
@@ -305,7 +311,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     private bool canBTL; //Can use Between the Lines
     private bool hasThunderhead; //Has Thunderhead buff
     private float ThunderLeft; //Time left on DOT effect (30s base)
-    private bool ShouldUseAOE; //Checks if AOE should be used
     public bool canWeaveIn; //Can weave in oGCDs
     public bool canWeaveEarly; //Can early weave oGCDs
     public bool canWeaveLate; //Can late weave oGCDs
@@ -336,6 +341,72 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                && (World.CurrentTime - Manager.LastCast.Time).TotalSeconds <= variance;
     }
     private Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value); //Resolves the target choice based on the strategy
+    private bool ShouldUseAOE
+    {
+        get
+        {
+            // Check if there's a valid target for the AoE attack
+            var bestTarget = BestAOETarget;
+
+            // If there is a best target and it has a significant number of other targets in its splash radius, we can use AoE
+            if (bestTarget != null)
+            {
+                // We can define a threshold to require a minimum number of targets within the splash radius to make AoE worthwhile
+                var minimumTargetsForAOE = 2; // Example: At least 2 other enemies within the 5-yard splash radius
+                float splashPriorityFunc(Actor actor)
+                {
+                    var distanceToPlayer = actor.DistanceToHitbox(Player);
+                    if (distanceToPlayer <= 24f)
+                    {
+                        var targetsInSplashRadius = 0;
+                        foreach (var enemy in Hints.PriorityTargets)
+                        {
+                            var targetActor = enemy.Actor;
+                            if (targetActor != actor && targetActor.Position.InCircle(actor.Position, 5f))
+                            {
+                                targetsInSplashRadius++;
+                            }
+                        }
+                        return targetsInSplashRadius;
+                    }
+                    return float.MinValue;
+                }
+
+                var (_, bestPrio) = FindBetterTargetBy(null, 25f, splashPriorityFunc);
+
+                return bestPrio >= minimumTargetsForAOE;
+            }
+
+            return false;
+        }
+    }
+    private Actor? BestAOETarget => FindBestSplashTarget(); // Find the best target for splash attack
+
+    private Actor? FindBestSplashTarget()
+    {
+        float splashPriorityFunc(Actor actor)
+        {
+            var distanceToPlayer = actor.DistanceToHitbox(Player);
+            if (distanceToPlayer <= 24f)
+            {
+                var targetsInSplashRadius = 0;
+                foreach (var enemy in Hints.PriorityTargets)
+                {
+                    var targetActor = enemy.Actor;
+                    if (targetActor != actor && targetActor.Position.InCircle(actor.Position, 5f))
+                    {
+                        targetsInSplashRadius++;
+                    }
+                }
+                return targetsInSplashRadius;
+            }
+            return float.MinValue;
+        }
+
+        var (bestTarget, bestPrio) = FindBetterTargetBy(null, 25f, splashPriorityFunc);
+
+        return bestTarget;
+    }
     #endregion
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
@@ -380,7 +451,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         SpS = ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level); //GCD based on spell speed and haste
         NextGCD = AID.None; //Next global cooldown action to be used
         PotionLeft = PotionStatusLeft(); //Remaining time for potion buff (30s)
-        ShouldUseAOE = TargetsInRange() > 2; //otherwise, use AOE if 2+ targets would be hit
 
         #region Strategy Definitions
         var AOE = strategy.Option(Track.AOE); //AOE track
@@ -457,15 +527,15 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                     polyglotStrat is PolyglotStrategy.ForceXeno ? GCDPriority.ForcedGCD
                     : Polyglots == MaxPolyglots && EnochianTimer < 5000 ? GCDPriority.NeedPolyglot
                     : GCDPriority.Paradox);
-            if (polyglotStrat is PolyglotStrategy.OnlyXenoAll
-                or PolyglotStrategy.OnlyXeno2
-                or PolyglotStrategy.OnlyXeno1)
+            if (polyglotStrat is PolyglotStrategy.XenoSpendAll
+                or PolyglotStrategy.XenoHold1
+                or PolyglotStrategy.XenoHold2)
                 QueueGCD(BestXenoglossy,
                     TargetChoice(polyglot) ?? primaryTarget,
                     polyglotStrat is PolyglotStrategy.ForceXeno ? GCDPriority.ForcedGCD
                     : Polyglots == MaxPolyglots && EnochianTimer < 5000 ? GCDPriority.NeedPolyglot
                     : GCDPriority.Paradox);
-            if (polyglotStrat is PolyglotStrategy.OnlyFoulAll or PolyglotStrategy.OnlyFoul2 or PolyglotStrategy.OnlyFoul1)
+            if (polyglotStrat is PolyglotStrategy.FoulSpendAll or PolyglotStrategy.FoulHold1 or PolyglotStrategy.FoulHold2)
                 QueueGCD(AID.Foul, TargetChoice(polyglot) ?? primaryTarget, polyglotStrat is PolyglotStrategy.ForceFoul ? GCDPriority.ForcedGCD : Polyglots == MaxPolyglots && EnochianTimer < 5000 ? GCDPriority.NeedPolyglot : GCDPriority.Paradox); //Queue Foul
         }
         //LeyLines
@@ -580,7 +650,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos);
         return true;
     }
-    #endregion
     private void BestRotation(Actor? target)
     {
         if (ShouldUseAOE)
@@ -592,6 +661,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             BestST(target);
         }
     }
+    #endregion
 
     #region Single-Target Helpers
     private void STLv1toLv34(Actor? target) //Level 1-34 single-target rotation
@@ -1227,7 +1297,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         PolyglotStrategy.AutoSpendAll
             => Player.InCombat &&
             target != null &&
-            
             Polyglots > 0 && //Spend 3
             (((CD(AID.Triplecast) < 5 || CD(AID.Triplecast) == 0 || (CD(AID.Triplecast) >= 59 && CD(AID.Triplecast) <= 65)) && PlayerHasEffect(SID.LeyLines, 30)) || //Triplecast prep
             (CD(AID.LeyLines) < 5 || CD(AID.LeyLines) == 0 || CD(AID.LeyLines) <= 125 && CD(AID.LeyLines) >= 119) || //Ley Lines prep
@@ -1248,7 +1317,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             (((CD(AID.Triplecast) < 5 || (CD(AID.Triplecast) <= 60 && CD(AID.Triplecast) >= 65)) && PlayerHasEffect(SID.LeyLines, 30)) || //Triplecast prep
             (CD(AID.LeyLines) < 5 || CD(AID.LeyLines) <= 120 && CD(AID.LeyLines) >= 110 || //Ley Lines prep
             CD(AID.Amplifier) < 0.6f || //Amplifier prep
-            (CD(AID.Manafont) < 0.6f && MP < 1600)), //Manafont prep
+            (CD(AID.Manafont) < 0.6f && MP < 1600))), //Manafont prep
         PolyglotStrategy.AutoHold3
             => Player.InCombat &&
             target != null &&
@@ -1261,12 +1330,15 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         PolyglotStrategy.AutoSpendAll => ShouldSpendPolyglot(target, PolyglotStrategy.AutoSpendAll),
         PolyglotStrategy.AutoHold1 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold1),
         PolyglotStrategy.AutoHold2 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold2),
-        PolyglotStrategy.OnlyXenoAll => ShouldSpendPolyglot(target, PolyglotStrategy.AutoSpendAll),
-        PolyglotStrategy.OnlyXeno2 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold1),
-        PolyglotStrategy.OnlyXeno1 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold2),
-        PolyglotStrategy.OnlyFoulAll => ShouldSpendPolyglot(target, PolyglotStrategy.AutoSpendAll),
-        PolyglotStrategy.OnlyFoul2 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold1),
-        PolyglotStrategy.OnlyFoul1 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold2),
+        PolyglotStrategy.AutoHold3 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold3),
+        PolyglotStrategy.XenoSpendAll => ShouldSpendPolyglot(target, PolyglotStrategy.AutoSpendAll),
+        PolyglotStrategy.XenoHold1 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold1),
+        PolyglotStrategy.XenoHold2 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold2),
+        PolyglotStrategy.XenoHold3 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold3),
+        PolyglotStrategy.FoulSpendAll => ShouldSpendPolyglot(target, PolyglotStrategy.AutoSpendAll),
+        PolyglotStrategy.FoulHold1 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold1),
+        PolyglotStrategy.FoulHold2 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold2),
+        PolyglotStrategy.FoulHold3 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold3),
         PolyglotStrategy.ForceXeno => canXeno,
         PolyglotStrategy.ForceFoul => canFoul,
         PolyglotStrategy.Delay => false,
