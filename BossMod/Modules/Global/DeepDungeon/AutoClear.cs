@@ -209,10 +209,11 @@ public abstract class AutoClear : ZoneModule
     private PomanderID? _lastChestContentsGold;
     private bool _lastChestMagicite;
     private bool _trapsHidden = true;
-    private readonly DungeonDebugger? _dbg = null;
+    private readonly DungeonDebugger? _dbg;
 
     private readonly Dictionary<string, Floor<Wall>> LoadedFloors;
     private readonly List<(Wall Wall, bool Rotated)> Walls = [];
+    private readonly List<WPos> RoomCenters = [];
 
     private int Kills;
     private int DesiredRoom;
@@ -312,6 +313,7 @@ public abstract class AutoClear : ZoneModule
     {
         Gazes.Clear();
         Walls.Clear();
+        RoomCenters.Clear();
         Interrupts.Clear();
         ForbiddenTargets.Clear();
         DesiredRoom = 0;
@@ -395,6 +397,11 @@ public abstract class AutoClear : ZoneModule
                 ImGui.SameLine();
                 UIMisc.HelpMarker(() => $"Wrong resolution for map; should be 0.5, got {data.PixelSize}", Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle);
             }
+
+#if DEBUG
+            foreach (var r in RoomCenters)
+                Camera.Instance?.DrawWorldLine(player.PosRot.XYZ(), r.ToVec3(player.PosRot.Y), ArenaColor.Safe);
+#endif
         }
     }
 
@@ -693,6 +700,7 @@ public abstract class AutoClear : ZoneModule
             if (room > 0)
             {
                 var roomdata = tileset[i];
+                RoomCenters.Add(roomdata.Center.Position);
                 if (roomdata.North != default && !room.HasFlag(RoomFlags.ConnectionN))
                     Walls.Add((roomdata.North, false));
                 if (roomdata.South != default && !room.HasFlag(RoomFlags.ConnectionS))
