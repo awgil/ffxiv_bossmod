@@ -103,6 +103,9 @@ enum SID : uint
     DamageUp = 61,
     DreadBeastAura = 2056, // unnamed status, displays red fog vfx on actor
     EvasionUp = 2402, // applied by Peculiar Light from orthos diplocaulus
+
+    StoneCurse = 437, // petrification (on enemies)
+    AutoHealPenalty = 1097,
 }
 
 sealed unsafe class DungeonDebugger : IDisposable
@@ -134,6 +137,7 @@ public abstract class AutoClear : ZoneModule
     protected readonly List<Actor> Stuns = [];
     protected readonly List<Actor> ForbiddenTargets = [];
     private readonly List<Actor> LOS = [];
+    private readonly List<WPos> IgnoreTraps = [];
 
     private readonly Dictionary<ulong, (WPos, Bitmap)> _losCache = [];
 
@@ -316,6 +320,7 @@ public abstract class AutoClear : ZoneModule
         RoomCenters.Clear();
         Interrupts.Clear();
         ForbiddenTargets.Clear();
+        IgnoreTraps.Clear();
         DesiredRoom = 0;
         Kills = 0;
         _lastChestContentsGold = null;
@@ -439,6 +444,8 @@ public abstract class AutoClear : ZoneModule
         if (!_config.Enable || Palace.Progress.IsBossFloor || BetweenFloors)
             return;
 
+        IgnoreTraps.Add(new(-346.5f, 302.4f));
+
         foreach (var (w, rot) in Walls)
             hints.AddForbiddenZone(new AOEShapeRect(w.Depth - NavigationDecision.ForbiddenZoneCushion, 20, w.Depth - NavigationDecision.ForbiddenZoneCushion), w.Position, (rot ? 90f : 0f).Degrees());
 
@@ -494,13 +501,6 @@ public abstract class AutoClear : ZoneModule
             if (hints.FindEnemy(d) is { } e)
                 e.Priority = AIHints.Enemy.PriorityForbidden;
 
-        if (_config.TrapHints && _trapsHidden)
-        {
-            var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30)).Select(t => ShapeDistance.Circle(t, 2 - NavigationDecision.ForbiddenZoneCushion)).ToList();
-            if (traps.Count > 0)
-                hints.AddForbiddenZone(ShapeDistance.Union(traps));
-        }
-
         var isStunned = player.IsTransformed || player.Statuses.Any(s => (SID)s.ID is SID.Silence or SID.Pacification);
         var isOccupied = player.InCombat || isStunned;
 
@@ -545,8 +545,18 @@ public abstract class AutoClear : ZoneModule
             if ((OID)a.OID is OID.CairnPalace or OID.BeaconHoH or OID.PylonEO && (passage?.DistanceToHitbox(player) ?? float.MaxValue) > a.DistanceToHitbox(player))
                 passage = a;
 
+            if ((OID)a.OID is OID.BeaconHoH)
+                IgnoreTraps.Add(a.Position);
+
             if (RevealedTrapOIDs.Contains(a.OID))
                 revealedTraps.Add(ShapeDistance.Circle(a.Position, 2));
+        }
+
+        if (_config.TrapHints && _trapsHidden)
+        {
+            var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30) && !IgnoreTraps.Any(b => b.AlmostEqual(t, 1))).Select(t => ShapeDistance.Circle(t, 2 - NavigationDecision.ForbiddenZoneCushion)).ToList();
+            if (traps.Count > 0)
+                hints.AddForbiddenZone(ShapeDistance.Union(traps));
         }
 
         if (coffer != null)
@@ -609,9 +619,20 @@ public abstract class AutoClear : ZoneModule
             _ => false
         };
 
-        if (shouldTargetMobs && !player.InCombat && player.TargetID == 0)
-            foreach (var pp in hints.PotentialTargets.Where(t => !t.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID))))
+        foreach (var pp in hints.PotentialTargets)
+        {
+            // enemy is petrified, any damage will kill
+            if (pp.Actor.FindStatus(SID.StoneCurse)?.ExpireAt > World.FutureTime(1.5f))
                 pp.Priority = 0;
+
+            // pomander of storms was used, enemy can't autoheal; any damage will kill
+            else if (pp.Actor.FindStatus(SID.AutoHealPenalty) != null && pp.Actor.HPMP.CurHP < 10)
+                pp.Priority = 0;
+
+            // if player does not have a target, prioritize everything so that AI picks one - skip dangerous enemies
+            else if (shouldTargetMobs && !player.InCombat && player.TargetID == 0 && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)))
+                pp.Priority = 0;
+        }
     }
 
     private bool InBounds(AIHints hints, WPos pos) => hints.PathfindMapBounds.Contains(pos - hints.PathfindMapCenter);

@@ -14,7 +14,7 @@ enum AID : uint
     ParalyzeIII2 = 6388, // exactly the same as above but different action for some reason
     Infatuation = 6397, // 3s cast, applies pox
     VoidBlizzard = 7049, // 2.5s cast, applies slow to target, interruptible
-    Mucin = 7014, // 3s cast, applies stoneskin to mob
+    Mucin = 7014, // 3s cast, applies stoneskin to self
     BladeOfSuffering = 7029, // 3s cast, applies drain touch to self
     HorroisonousBlast = 7058, // 4s cast, 20 radius, interruptible, can't be dodged due to the heavy
 
