@@ -521,7 +521,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         #endregion
 
         #region Movement
-        if (isMoving)
+        if (Player.InCombat &&
+            primaryTarget != null &&
+            isMoving)
         {
             if (movementStrat is MovementStrategy.Allow)
             {
@@ -1314,17 +1316,17 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         if (InAstralFire)
         {
             //Step 1 - spam Fire 2
-            if (MP > 7000)
+            if (UmbralHearts > 1)
                 QueueGCD(AID.Fire2, target, GCDPriority.Step4);
             //Step 2 - Flare
             if (Unlocked(AID.Flare))
             {
                 //first cast
-                if (MP <= 7000 &&
-                    UmbralHearts == 1)
+                if (UmbralHearts == 1)
                     QueueGCD(AID.Flare, target, GCDPriority.Step3);
                 //second cast
-                if (MP is < 2500 and >= 800 && JustUsed(AID.Flare, 5f))
+                if (UmbralHearts == 0 &&
+                    MP >= 800)
                     QueueGCD(AID.Flare, target, GCDPriority.Step2);
             }
             //Step 3 - swap from AF to UI
@@ -1517,7 +1519,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         PolyglotStrategy.AutoHold3
             => Player.InCombat &&
             target != null &&
-            Polyglots == 3 && //if max Polyglots
+            Polyglots == MaxPolyglots && //if max Polyglots
             EnochianTimer <= 10000f, //Enochian is 5s away from adding a Polyglot
         _ => false
     };
@@ -1547,10 +1549,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         target != null &&
         canLL &&
         canWeaveIn,
-        LeyLinesStrategy.Force => canLL,
-        LeyLinesStrategy.Force1 => canLL && CD(AID.LeyLines) < (SpS * 2),
-        LeyLinesStrategy.ForceWeave => canLL && canWeaveIn,
-        LeyLinesStrategy.ForceWeave1 => canLL && canWeaveIn && CD(AID.LeyLines) < (SpS * 2),
+        LeyLinesStrategy.Force => Player.InCombat && canLL,
+        LeyLinesStrategy.Force1 => Player.InCombat && canLL && CD(AID.LeyLines) < (SpS * 2),
+        LeyLinesStrategy.ForceWeave => Player.InCombat && canLL && canWeaveIn,
+        LeyLinesStrategy.ForceWeave1 => Player.InCombat && canLL && canWeaveIn && CD(AID.LeyLines) < (SpS * 2),
         LeyLinesStrategy.Delay => false,
         _ => false
     };
@@ -1615,10 +1617,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         canWeaveIn &&
         InAstralFire &&
         PlayerHasEffect(SID.LeyLines, 30),
-        TriplecastStrategy.Force => canTC,
-        TriplecastStrategy.Force1 => canTC && CD(AID.Triplecast) < (SpS * 2),
-        TriplecastStrategy.ForceWeave => canTC && canWeaveIn,
-        TriplecastStrategy.ForceWeave1 => canTC && canWeaveIn && CD(AID.Triplecast) < (SpS * 2),
+        TriplecastStrategy.Force => Player.InCombat && canTC,
+        TriplecastStrategy.Force1 => Player.InCombat && canTC && CD(AID.Triplecast) < (SpS * 2),
+        TriplecastStrategy.ForceWeave => Player.InCombat && canTC && canWeaveIn,
+        TriplecastStrategy.ForceWeave1 => Player.InCombat && canTC && canWeaveIn && CD(AID.Triplecast) < (SpS * 2),
         TriplecastStrategy.Delay => false,
         _ => false
     };
