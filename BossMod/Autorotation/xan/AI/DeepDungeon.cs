@@ -95,6 +95,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         0x22EF, // heavenly maruishi
         0x22F3, // heavenly rachimonai
         0x22FC, // heavenly doguzeri
+        0x2320, // heavenly nuppeppo (WHM) (uses stone)
 
         // orthos
         0x3DCC, // orthos imp
