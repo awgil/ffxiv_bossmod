@@ -2,6 +2,11 @@
 
 class P5ParadiseRegainedTowers(BossModule module) : Components.GenericTowers(module, ActionID.MakeSpell(AID.WingsDarkAndLightExplosion))
 {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // TODO: implement hints for non-tanks here...
+    }
+
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (index is >= 51 and <= 53 && state == 0x00020001)
@@ -78,6 +83,15 @@ class P5ParadiseRegainedBaits(BossModule module) : Components.GenericBaitAway(mo
         }
 
         base.AddHints(slot, actor, hints);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!ForbiddenPlayers[slot])
+        {
+            // just go to the next safespot
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center + SafeOffset(slot, actor), 1));
+        }
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

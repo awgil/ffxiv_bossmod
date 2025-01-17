@@ -29,5 +29,3 @@ abstract class SpiritTaker(BossModule module) : Components.GenericStackSpread(mo
             Spreads.Clear();
     }
 }
-
-class DefaultSpiritTaker(BossModule module) : SpiritTaker(module); // TODO: remove...
