@@ -41,9 +41,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     }
     public enum PolyglotStrategy
     {
-        AutoAll,             //Spend all Polyglots as soon as possible
-        Auto2,               //Spend 2 Polyglots; holds one for manual usage
-        Auto1,               //Spend 1 Polyglot; holds two for manual usage
+        AutoSpendAll,             //Spend all Polyglots as soon as possible
+        AutoHold1,               //Spend 2 Polyglots; holds one for manual usage
+        AutoHold2,               //Spend 1 Polyglot; holds two for manual usage
         OnlyXenoAll,         //Use Xenoglossy as optimal spender, regardless of targets nearby; spends all Polyglots
         OnlyXeno2,           //Use Xenoglossy as optimal spender, regardless of targets nearby; holds one Polyglot for manual usage
         OnlyXeno1,           //Use Xenoglossy as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage
@@ -123,9 +123,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             .AddOption(ThunderStrategy.Delay, "Delay", "Delay the use of Thunder for manual or strategic usage", 0, 0, ActionTargets.Hostile, 6)
             .AddAssociatedActions(AID.Thunder1, AID.Thunder2, AID.Thunder3, AID.Thunder4, AID.HighThunder, AID.HighThunder2);
         res.Define(Track.Polyglot).As<PolyglotStrategy>("Polyglot", "Polyglot", uiPriority: 180)
-            .AddOption(PolyglotStrategy.AutoAll, "AutoAll", "Spend all Polyglots as soon as possible", 0, 0, ActionTargets.Hostile, 70)
-            .AddOption(PolyglotStrategy.Auto2, "Auto2", "Spend 2 Polyglots; holds one for manual usage", 0, 0, ActionTargets.Hostile, 70)
-            .AddOption(PolyglotStrategy.Auto1, "Auto1", "Spend 1 Polyglot; holds two for manual usage", 0, 0, ActionTargets.Hostile, 70)
+            .AddOption(PolyglotStrategy.AutoSpendAll, "AutoSpendAll", "Spend all Polyglots as soon as possible", 0, 0, ActionTargets.Hostile, 70)
+            .AddOption(PolyglotStrategy.AutoHold1, "AutoHold1", "Spend 2 Polyglots; holds one for manual usage", 0, 0, ActionTargets.Hostile, 70)
+            .AddOption(PolyglotStrategy.AutoHold2, "AutoHold2", "Spend 1 Polyglot; holds two for manual usage", 0, 0, ActionTargets.Hostile, 70)
             .AddOption(PolyglotStrategy.OnlyXenoAll, "OnlyXenoAll", "Use Xenoglossy as optimal spender, regardless of targets nearby; spends all Polyglots", 0, 0, ActionTargets.Hostile, 80)
             .AddOption(PolyglotStrategy.OnlyXeno2, "OnlyXeno2", "Use Xenoglossy as optimal spender, regardless of targets nearby; holds one Polyglot for manual usage", 0, 0, ActionTargets.Hostile, 80)
             .AddOption(PolyglotStrategy.OnlyXeno1, "OnlyXeno1", "Use Xenoglossy as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage", 0, 0, ActionTargets.Hostile, 80)
@@ -303,7 +303,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     private bool canMF; //Can use Manafont
     private bool canRetrace; //Can use Retrace
     private bool canBTL; //Can use Between the Lines
-    private bool hasFirestarter; //Has Firestarter buff
     private bool hasThunderhead; //Has Thunderhead buff
     private float ThunderLeft; //Time left on DOT effect (30s base)
     private bool ShouldUseAOE; //Checks if AOE should be used
@@ -366,7 +365,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         canMF = ActionReady(AID.Manafont); //Can use Manafont
         canRetrace = ActionReady(AID.Retrace) && PlayerHasEffect(SID.LeyLines, 30); //Can use Retrace
         canBTL = ActionReady(AID.BetweenTheLines) && PlayerHasEffect(SID.LeyLines, 30); //Can use Between the Lines
-        hasFirestarter = PlayerHasEffect(SID.Firestarter, 15); //Has Firestarter buff
         hasThunderhead = PlayerHasEffect(SID.Thunderhead, 30); //Has Thunderhead buff
         ThunderLeft = Utils.MaxAll(
             StatusDetails(primaryTarget, SID.Thunder, Player.InstanceID, 24).Left,
@@ -451,9 +449,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         //Polyglots
         if (ShouldUsePolyglot(primaryTarget, polyglotStrat)) //if Polyglot should be used based on strategy
         {
-            if (polyglotStrat is PolyglotStrategy.AutoAll
-                or PolyglotStrategy.Auto2
-                or PolyglotStrategy.Auto1)
+            if (polyglotStrat is PolyglotStrategy.AutoSpendAll
+                or PolyglotStrategy.AutoHold1
+                or PolyglotStrategy.AutoHold2)
                 QueueGCD(BestPolyglot,
                     TargetChoice(polyglot) ?? primaryTarget,
                     polyglotStrat is PolyglotStrategy.ForceXeno ? GCDPriority.ForcedGCD
@@ -646,9 +644,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             //Step 1 - Fire 1
             if (MP >= 1600) //if MP is 1600 or more
                 QueueGCD(AID.Fire1, target, GCDPriority.Step3); //Queue Fire I
-            //Step 2 - F3P
-            if (hasFirestarter && AstralStacks == 3) //if Firestarter buff is active and Astral Fire stacks are max
-                QueueGCD(AID.Fire3, target, GCDPriority.Step2); //Queue Fire III
+            //Step 2B - F3P 
+            if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
+                AstralStacks == 3) //and Umbral Hearts are 0
+                QueueGCD(AID.Fire3, target, GCDPriority.Step10); //Queue Fire III (AF3 F3P)
             //Step 3 - swap from AF to UI
             if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
                 MP < 1600) //and MP is less than 400
@@ -688,9 +687,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             if (ElementTimer <= (SpS * 3) && //if time remaining on current element is less than 3x GCDs
                 MP >= 4000) //and MP is 4000 or more
                 QueueGCD(AID.Fire1, target, ElementTimer <= 3 && MP >= 4000 ? GCDPriority.Paradox : GCDPriority.Step4); //Queue Fire I, increase priority if less than 3s left on element
-            //Step 4B - F3P
-            if (hasFirestarter && AstralStacks == 3) //if Firestarter buff is active and Astral Fire stacks are max
-                QueueGCD(AID.Fire3, target, GCDPriority.Step3); //Queue Fire III
+            //Step 4B - F3P 
+            if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
+                AstralStacks == 3) //and Umbral Hearts are 0
+                QueueGCD(AID.Fire3, target, GCDPriority.Step10); //Queue Fire III (AF3 F3P)
             //Step 8 - swap from AF to UI
             if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
                 MP < 1600) //and MP is less than 400
@@ -731,8 +731,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 MP >= 4000) //and MP is 4000 or more
                 QueueGCD(AID.Fire1, target, ElementTimer <= 3 && MP >= 4000 ? GCDPriority.Paradox : GCDPriority.Step4); //Queue Fire I, increase priority if less than 3s left on element
             //Step 4B - F3P 
-            if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0) //if Firestarter buff is active and has less than 25s left
-                QueueGCD(AID.Fire3, target, GCDPriority.Step3); //Queue Fire III
+            if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
+                AstralStacks == 3) //and Umbral Hearts are 0
+                QueueGCD(AID.Fire3, target, GCDPriority.Step10); //Queue Fire III (AF3 F3P)
             //Step 8 - Despair 
             if (MP is < 1600 and not 0 && //if MP is less than 1600 and not 0
                 Unlocked(AID.Despair)) //and Despair is unlocked
@@ -781,9 +782,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 ElementTimer < (SpS * 3) && //and time remaining on current element is less than 3x GCDs
                 MP >= 1600) //and MP is 1600 or more
                 QueueGCD(AID.Paradox, target, ElementTimer <= 3 ? GCDPriority.Paradox : GCDPriority.Step4); //Queue Paradox, increase priority if less than 3s left on element
-            //Step 5B - F3P 
-            if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0) //if Firestarter buff is active and has less than 25s left
-                QueueGCD(AID.Fire3, target, GCDPriority.Step3); //Queue Fire III
+            //Step 4B - F3P 
+            if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
+                AstralStacks == 3) //and Umbral Hearts are 0
+                QueueGCD(AID.Fire3, target, GCDPriority.Step10); //Queue Fire III (AF3 F3P)
             //Step 8 - Despair
             if (MP is < 1600 and not 0 && //if MP is less than 1600 and not 0
                 Unlocked(AID.Despair)) //and Despair is unlocked
@@ -833,16 +835,21 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 ElementTimer < (SpS * 3) && //and time remaining on current element is less than 3x GCDs
                 MP >= 1600) //and MP is 1600 or more
                 QueueGCD(AID.Paradox, target, ElementTimer <= 3 ? GCDPriority.Paradox : GCDPriority.Step5); //Queue Paradox, increase priority if less than 3s left on element
-            //Step 5B - F3P
-            if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0) //if Firestarter buff is active and has less than 25s left
-                QueueGCD(AID.Fire3, target, GCDPriority.Step4); //Queue Fire III
+            //Step 4B - F3P 
+            if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
+                AstralStacks == 3) //and Umbral Hearts are 0
+                QueueGCD(AID.Fire3, target, GCDPriority.Step10); //Queue Fire III (AF3 F3P)
             //Step 8 - Despair
             if (MP is < 1600 and not 0 && //if MP is less than 1600 and not 0
                 Unlocked(AID.Despair)) //and Despair is unlocked
                 QueueGCD(AID.Despair, target, GCDPriority.Step3); //Queue Despair
             //Step 9 - Flare Star
             if (AstralSoulStacks == 6) //if Astral Soul stacks are max
+            {
+                if (JustUsed(AID.Despair, 5f) && ActionReady(AID.Swiftcast))
+                    QueueGCD(AID.Swiftcast, Player, GCDPriority.Step2); //Queue Swiftcast->Flare Star
                 QueueGCD(AID.FlareStar, target, GCDPriority.Step2); //Queue Flare Star
+            }
             //Step 10A - skip Flare Star if we cant use it (cryge)
             if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
                 MP <= 400 && //and MP is less than 400
@@ -1214,45 +1221,52 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         ThunderStrategy.Delay => false,
         _ => false
     };
+
     private bool ShouldSpendPolyglot(Actor? target, PolyglotStrategy strategy) => strategy switch
     {
-        PolyglotStrategy.AutoAll
+        PolyglotStrategy.AutoSpendAll
             => Player.InCombat &&
             target != null &&
-            Polyglots > 0 &&
-            ((CD(AID.Triplecast) <= 60 && PlayerHasEffect(SID.LeyLines, 30)) ||
-            CD(AID.LeyLines) <= 120 ||
-            (CD(AID.Manafont) < 0.6f && MP < 1600) ||
-            (Polyglots == MaxPolyglots && EnochianTimer <= 5000)), //Overcap
-        PolyglotStrategy.Auto2
+            
+            Polyglots > 0 && //Spend 3
+            (((CD(AID.Triplecast) < 5 || CD(AID.Triplecast) == 0 || (CD(AID.Triplecast) >= 59 && CD(AID.Triplecast) <= 65)) && PlayerHasEffect(SID.LeyLines, 30)) || //Triplecast prep
+            (CD(AID.LeyLines) < 5 || CD(AID.LeyLines) == 0 || CD(AID.LeyLines) <= 125 && CD(AID.LeyLines) >= 119) || //Ley Lines prep
+            CD(AID.Amplifier) < 0.6f || //Amplifier prep
+            (CD(AID.Manafont) < 0.6f && MP < 1600)), //Manafont prep
+        PolyglotStrategy.AutoHold1
             => Player.InCombat &&
             target != null &&
-            Polyglots > 1 &&
-            (CD(AID.Triplecast) <= 60 ||
-            CD(AID.LeyLines) <= 120 ||
-            (CD(AID.Manafont) < 0.6f && MP < 1600) ||
-            (Polyglots == MaxPolyglots && EnochianTimer <= 5000)), //Overcap
-        PolyglotStrategy.Auto1
+            Polyglots > 1 && //Spend 2
+            (((CD(AID.Triplecast) < 5 || CD(AID.Triplecast) == 0 || (CD(AID.Triplecast) >= 59 && CD(AID.Triplecast) <= 65)) && PlayerHasEffect(SID.LeyLines, 30)) || //Triplecast prep
+            (CD(AID.LeyLines) < 5 || CD(AID.LeyLines) == 0 || CD(AID.LeyLines) <= 125 && CD(AID.LeyLines) >= 119) || //Ley Lines prep
+            CD(AID.Amplifier) < 0.6f || //Amplifier prep
+            (CD(AID.Manafont) < 0.6f && MP < 1600)), //Manafont prep
+        PolyglotStrategy.AutoHold2
             => Player.InCombat &&
             target != null &&
-            Polyglots > 2 &&
-            (CD(AID.Triplecast) <= 60 ||
-            CD(AID.LeyLines) <= 120 ||
-            (CD(AID.Manafont) < 0.6f && MP < 1600) ||
-            (Polyglots == MaxPolyglots && EnochianTimer <= 5000)), //Overcap
+            Polyglots > 2 && //Spend 1
+            (((CD(AID.Triplecast) < 5 || (CD(AID.Triplecast) <= 60 && CD(AID.Triplecast) >= 65)) && PlayerHasEffect(SID.LeyLines, 30)) || //Triplecast prep
+            (CD(AID.LeyLines) < 5 || CD(AID.LeyLines) <= 120 && CD(AID.LeyLines) >= 110 || //Ley Lines prep
+            CD(AID.Amplifier) < 0.6f || //Amplifier prep
+            (CD(AID.Manafont) < 0.6f && MP < 1600)), //Manafont prep
+        PolyglotStrategy.AutoHold3
+            => Player.InCombat &&
+            target != null &&
+            Polyglots == 3 && //if max Polyglots
+            EnochianTimer <= 5000, //Enochian is 5s away from adding a Polyglot
         _ => false
     };
     private bool ShouldUsePolyglot(Actor? target, PolyglotStrategy strategy) => strategy switch
     {
-        PolyglotStrategy.AutoAll => ShouldSpendPolyglot(target, PolyglotStrategy.AutoAll),
-        PolyglotStrategy.Auto2 => ShouldSpendPolyglot(target, PolyglotStrategy.Auto2),
-        PolyglotStrategy.Auto1 => ShouldSpendPolyglot(target, PolyglotStrategy.Auto1),
-        PolyglotStrategy.OnlyXenoAll => ShouldSpendPolyglot(target, PolyglotStrategy.AutoAll),
-        PolyglotStrategy.OnlyXeno2 => ShouldSpendPolyglot(target, PolyglotStrategy.Auto2),
-        PolyglotStrategy.OnlyXeno1 => ShouldSpendPolyglot(target, PolyglotStrategy.Auto1),
-        PolyglotStrategy.OnlyFoulAll => ShouldSpendPolyglot(target, PolyglotStrategy.AutoAll),
-        PolyglotStrategy.OnlyFoul2 => ShouldSpendPolyglot(target, PolyglotStrategy.Auto2),
-        PolyglotStrategy.OnlyFoul1 => ShouldSpendPolyglot(target, PolyglotStrategy.Auto1),
+        PolyglotStrategy.AutoSpendAll => ShouldSpendPolyglot(target, PolyglotStrategy.AutoSpendAll),
+        PolyglotStrategy.AutoHold1 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold1),
+        PolyglotStrategy.AutoHold2 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold2),
+        PolyglotStrategy.OnlyXenoAll => ShouldSpendPolyglot(target, PolyglotStrategy.AutoSpendAll),
+        PolyglotStrategy.OnlyXeno2 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold1),
+        PolyglotStrategy.OnlyXeno1 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold2),
+        PolyglotStrategy.OnlyFoulAll => ShouldSpendPolyglot(target, PolyglotStrategy.AutoSpendAll),
+        PolyglotStrategy.OnlyFoul2 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold1),
+        PolyglotStrategy.OnlyFoul1 => ShouldSpendPolyglot(target, PolyglotStrategy.AutoHold2),
         PolyglotStrategy.ForceXeno => canXeno,
         PolyglotStrategy.ForceFoul => canFoul,
         PolyglotStrategy.Delay => false,
@@ -1332,7 +1346,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         target != null &&
         canTC &&
         canWeaveIn &&
-        PlayerHasEffect(SID.LeyLines, 30), //Overcap
+        InAstralFire &&
+        PlayerHasEffect(SID.LeyLines, 30),
         TriplecastStrategy.Force => canTC,
         TriplecastStrategy.Force1 => canTC && CD(AID.Triplecast) < (SpS * 2),
         TriplecastStrategy.ForceWeave => canTC && canWeaveIn,
