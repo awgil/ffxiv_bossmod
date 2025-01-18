@@ -54,7 +54,7 @@ class Meteor(BossModule module) : Components.GenericLineOfSightAOE(module, defau
     }
 }
 
-class AutoAlisaie(BossModule module) : Components.RotationModule<AlisaieAI>(module);
+class AutoAlisaie(BossModule module) : QuestBattle.RotationModule<AlisaieAI>(module);
 
 class TerminusLaceratorStates : StateMachineBuilder
 {

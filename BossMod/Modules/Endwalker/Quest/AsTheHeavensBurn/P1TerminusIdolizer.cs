@@ -87,7 +87,7 @@ class SelfDestruct(BossModule module) : Components.GenericStackSpread(module)
 class Petrifaction(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.Petrifaction));
 class Whack(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Whack));
 
-class AutoAlphi(BossModule module) : Components.RotationModule<AlphinaudAI>(module);
+class AutoAlphi(BossModule module) : QuestBattle.RotationModule<AlphinaudAI>(module);
 
 class TerminusIdolizerStates : StateMachineBuilder
 {

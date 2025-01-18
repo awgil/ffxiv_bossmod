@@ -21,7 +21,7 @@ public enum AID : uint
     JestersReward = 33031, // Boss->self, 6.0s cast, range 28 180-degree cone
 }
 
-class AutoZero(BossModule module) : Components.RotationModule<ZeroAI>(module);
+class AutoZero(BossModule module) : QuestBattle.RotationModule<ZeroAI>(module);
 class Explosion(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Explosion), 5);
 class VoidSlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VoidSlash), new AOEShapeCone(9.7f, 45.Degrees()));
 class JongleursX(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.JongleursX));
