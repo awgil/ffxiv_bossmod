@@ -457,7 +457,7 @@ public abstract class AutoClear : ZoneModule
         IgnoreTraps.Add(new(-346.5f, 302.4f));
 
         foreach (var (w, rot) in Walls)
-            hints.AddForbiddenZone(new AOEShapeRect(w.Depth - NavigationDecision.ForbiddenZoneCushion, 20, w.Depth - NavigationDecision.ForbiddenZoneCushion), w.Position, (rot ? 90f : 0f).Degrees());
+            hints.AddForbiddenZone(new AOEShapeRect(w.Depth, 20, w.Depth), w.Position, (rot ? 90f : 0f).Degrees());
 
         if (_obstacles.Find(player.PosRot.XYZ()).entry == null)
             hints.ForcedMovement = new(0);
@@ -564,7 +564,7 @@ public abstract class AutoClear : ZoneModule
 
         if (_config.TrapHints && _trapsHidden)
         {
-            var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30) && !IgnoreTraps.Any(b => b.AlmostEqual(t, 1))).Select(t => ShapeDistance.Circle(t, 2 - NavigationDecision.ForbiddenZoneCushion)).ToList();
+            var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30) && !IgnoreTraps.Any(b => b.AlmostEqual(t, 1))).Select(t => ShapeDistance.Circle(t, 2)).ToList();
             if (traps.Count > 0)
                 hints.AddForbiddenZone(ShapeDistance.Union(traps));
         }
@@ -587,8 +587,8 @@ public abstract class AutoClear : ZoneModule
             }
         }
 
-        if (!isOccupied && pomanderToUseHere is PomanderID p2 && player.FindStatus(SID.ItemPenalty) == null)
-            hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)p2), null, ActionQueue.Priority.Low);
+        if (!isStunned && pomanderToUseHere is PomanderID p2 && player.FindStatus(SID.ItemPenalty) == null)
+            hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)p2), null, ActionQueue.Priority.VeryHigh);
 
         var haveChest = false;
         if (coffer is Actor t && InBounds(hints, t.Position))
@@ -603,7 +603,7 @@ public abstract class AutoClear : ZoneModule
 
         if (!player.InCombat && _config.AutoPassage && Palace.PassageActive)
         {
-            DesiredRoom = Array.FindIndex(Palace.MapData, d => ((RoomFlags)d).HasFlag(RoomFlags.Passage));
+            DesiredRoom = Array.FindIndex(Palace.MapData, d => d.HasFlag(RoomFlags.Passage));
 
             if (passage is Actor c)
             {
@@ -629,20 +629,33 @@ public abstract class AutoClear : ZoneModule
             _ => false
         };
 
+        if (World.Actors.Find(player.TargetID) is Actor playerTarget && !playerTarget.IsAlly)
+            return;
+
+        Actor? bestTarget = null;
+
+        void pickBetterTarget(Actor t)
+        {
+            if (player.DistanceToHitbox(t) < player.DistanceToHitbox(bestTarget))
+                bestTarget = t;
+        }
+
         foreach (var pp in hints.PotentialTargets)
         {
             // enemy is petrified, any damage will kill
             if (pp.Actor.FindStatus(SID.StoneCurse)?.ExpireAt > World.FutureTime(1.5f))
-                pp.Priority = 0;
+                pickBetterTarget(pp.Actor);
 
             // pomander of storms was used, enemy can't autoheal; any damage will kill
             else if (pp.Actor.FindStatus(SID.AutoHealPenalty) != null && pp.Actor.HPMP.CurHP < 10)
-                pp.Priority = 0;
+                pickBetterTarget(pp.Actor);
 
             // if player does not have a target, prioritize everything so that AI picks one - skip dangerous enemies
-            else if (shouldTargetMobs && !player.InCombat && player.TargetID == 0 && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)))
-                pp.Priority = 0;
+            else if (shouldTargetMobs && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)))
+                pickBetterTarget(pp.Actor);
         }
+
+        hints.ForcedTarget = bestTarget;
     }
 
     private bool InBounds(AIHints hints, WPos pos) => hints.PathfindMapBounds.Contains(pos - hints.PathfindMapCenter);

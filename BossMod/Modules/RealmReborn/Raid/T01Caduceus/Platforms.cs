@@ -35,7 +35,7 @@ class Platforms(BossModule module) : BossComponent(module)
         new(0, -HexaPlatformSide)
     ];
 
-    public static readonly Func<WPos, float>[] PlatformShapes = Enumerable.Range(0, HexaPlatformCenters.Length + 1).Select(i => ShapeDistance.ConvexPolygon(PlatformPoly(i), true, Pathfinding.NavigationDecision.ForbiddenZoneCushion)).ToArray();
+    public static readonly Func<WPos, float>[] PlatformShapes = Enumerable.Range(0, HexaPlatformCenters.Length + 1).Select(i => ShapeDistance.ConvexPolygon(PlatformPoly(i), true, 0)).ToArray();
     public static readonly Func<WPos, float>[] HighEdgeShapes = HighEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => ShapeDistance.Rect(e.Item1, e.Item2, 0)).ToArray();
     public static readonly (WPos p, WDir d, float l)[] JumpEdgeSegments = JumpEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => (e.Item1, (e.Item2 - e.Item1).Normalized(), (e.Item2 - e.Item1).Length())).ToArray();
 

@@ -59,6 +59,11 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             return false;
 
         var def = ActionDefinitions.Instance[ActionID.MakeSpell(aid)]!;
+
+        // amnesia check
+        if (def.Category == ActionCategory.Ability && Player.FindStatus(1092) != null)
+            return false;
+
         return CanWeave(ReadyIn(aid), def.InstantAnimLock, extraGCDs, extraFixedDelay);
     }
 

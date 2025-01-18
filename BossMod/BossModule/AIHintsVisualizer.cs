@@ -56,7 +56,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
     {
         var map = new Map();
         hints.InitPathfindMap(map);
-        map.BlockPixelsInside(shape, 0, NavigationDecision.ForbiddenZoneCushion);
+        map.BlockPixelsInside(shape, 0, 0);
         return new MapVisualizer(map, player.Position);
     }
 

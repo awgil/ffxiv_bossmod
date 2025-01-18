@@ -7,6 +7,8 @@ namespace BossMod;
 public sealed class AIHintsBuilder : IDisposable
 {
     private const float RaidwideSize = 30;
+    // f32 locations are quantized to ushort in packets, resulting in ~0.03y of imprecision
+    private const float PosImprecision = 2000f / 65535;
 
     public readonly Pathfinding.ObstacleMapManager Obstacles;
     private readonly WorldState _ws;
@@ -167,17 +169,17 @@ public sealed class AIHintsBuilder : IDisposable
         AOEShape? shape = data.Value.CastType switch
         {
             // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
-            2 => new AOEShapeCircle(data.Value.EffectRange),
-            3 => new AOEShapeCone(data.Value.EffectRange + actor.HitboxRadius, DetermineConeAngle(data.Value) * 0.5f),
-            4 => new AOEShapeRect(data.Value.EffectRange + actor.HitboxRadius, data.Value.XAxisModifier * 0.5f),
-            5 => new AOEShapeCircle(data.Value.EffectRange + actor.HitboxRadius),
+            2 => new AOEShapeCircle(data.Value.EffectRange + PosImprecision),
+            3 => new AOEShapeCone(data.Value.EffectRange + actor.HitboxRadius + PosImprecision, DetermineConeAngle(data.Value) * 0.5f),
+            4 => new AOEShapeRect(data.Value.EffectRange + actor.HitboxRadius + PosImprecision, data.Value.XAxisModifier * 0.5f + PosImprecision),
+            5 => new AOEShapeCircle(data.Value.EffectRange + actor.HitboxRadius + PosImprecision),
             //6 => ???
             //7 => new AOEShapeCircle(data.Value.EffectRange), - used for player ground-targeted circles a-la asylum
             //8 => charge rect
-            10 => new AOEShapeDonut(DetermineDonutInner(data.Value), data.Value.EffectRange),
-            11 => new AOEShapeCross(data.Value.EffectRange, data.Value.XAxisModifier * 0.5f),
-            12 => new AOEShapeRect(data.Value.EffectRange, data.Value.XAxisModifier * 0.5f),
-            13 => new AOEShapeCone(data.Value.EffectRange, DetermineConeAngle(data.Value) * 0.5f),
+            10 => new AOEShapeDonut(DetermineDonutInner(data.Value) - PosImprecision, data.Value.EffectRange + PosImprecision),
+            11 => new AOEShapeCross(data.Value.EffectRange + PosImprecision, data.Value.XAxisModifier * 0.5f + PosImprecision),
+            12 => new AOEShapeRect(data.Value.EffectRange + PosImprecision, data.Value.XAxisModifier * 0.5f + PosImprecision),
+            13 => new AOEShapeCone(data.Value.EffectRange + PosImprecision, DetermineConeAngle(data.Value) * 0.5f),
             _ => null
         };
         if (shape == null)
