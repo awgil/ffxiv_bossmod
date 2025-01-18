@@ -43,7 +43,7 @@ public sealed class AIHintsBuilder : IDisposable
         {
             var playerAssignment = Service.Config.Get<PartyRolesConfig>()[_ws.Party.Members[playerSlot].ContentId];
             var activeModule = _bmm.ActiveModule?.StateMachine.ActivePhase != null ? _bmm.ActiveModule : null;
-            hints.FillPotentialTargets(_ws, playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !_ws.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank));
+            FillEnemies(hints, playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !_ws.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank));
             if (activeModule != null)
             {
                 activeModule.CalculateAIHints(playerSlot, player, playerAssignment, hints);
@@ -55,6 +55,44 @@ public sealed class AIHintsBuilder : IDisposable
             }
         }
         hints.Normalize();
+    }
+
+    // fill list of potential targets from world state
+    private void FillEnemies(AIHints hints, bool playerIsDefaultTank)
+    {
+        var playerInFate = _ws.Client.ActiveFate.ID != 0 && _ws.Party.Player()?.Level <= Service.LuminaRow<Lumina.Excel.Sheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax;
+        var allowedFateID = playerInFate ? _ws.Client.ActiveFate.ID : 0;
+        foreach (var actor in _ws.Actors.Where(a => a.IsTargetable && !a.IsAlly && !a.IsDead))
+        {
+            var index = actor.CharacterSpawnIndex;
+            if (index < 0 || index >= hints.Enemies.Length)
+                continue;
+
+            int prio = AIHints.Enemy.PriorityUndesirable;
+            // fate mob in fate we are NOT a part of; we can't damage them at all
+            if (actor.FateID > 0 && actor.FateID != allowedFateID)
+            {
+                prio = AIHints.Enemy.PriorityInvincible;
+            }
+            else if (_ws.PendingEffects.ActorIsDying(actor))
+            {
+                prio = AIHints.Enemy.PriorityPointless;
+            }
+            else
+            {
+                var allowedAttack = actor.InCombat && _ws.Party.FindSlot(actor.TargetID) >= 0;
+                // enemies in our enmity list can also be attacked, regardless of who they are targeting (since they are keeping us in combat)
+                allowedAttack |= actor.AggroPlayer;
+                // all fate mobs can be attacked if we are level synced (non synced mobs are skipped above)
+                allowedAttack |= actor.FateID > 0;
+
+                if (allowedAttack)
+                    prio = 0;
+            }
+
+            var enemy = hints.Enemies[index] = new(actor, prio, playerIsDefaultTank);
+            hints.PotentialTargets.Add(enemy);
+        }
     }
 
     private void CalculateAutoHints(AIHints hints, Actor player)

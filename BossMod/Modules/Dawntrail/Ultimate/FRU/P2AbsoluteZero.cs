@@ -75,8 +75,8 @@ class P2Intermission(BossModule module) : Components.GenericBaitAway(module)
             e.Priority = (OID)e.Actor.OID switch
             {
                 OID.CrystalOfLight => CrystalPriority(e.Actor, clockSpot),
-                OID.CrystalOfDarkness => AIHints.Enemy.PriorityForbidFully,
-                OID.IceVeil => _iceVeilInvincible ? AIHints.Enemy.PriorityForbidFully : 1,
+                OID.CrystalOfDarkness => AIHints.Enemy.PriorityPointless,
+                OID.IceVeil => _iceVeilInvincible ? AIHints.Enemy.PriorityInvincible : 1,
                 _ => 0
             };
         }

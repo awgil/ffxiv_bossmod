@@ -41,8 +41,8 @@ public sealed class AIHints
     public Bitmap.Region PathfindMapObstacles;
 
     // list of potential targets
-    private readonly Enemy?[] _enemies = new Enemy?[99];
-    public Enemy? FindEnemy(Actor actor) => actor.SpawnIndex % 2 == 0 ? _enemies[actor.SpawnIndex / 2] : null;
+    public readonly Enemy?[] Enemies = new Enemy?[100];
+    public Enemy? FindEnemy(Actor? actor) => Enemies.BoundSafeAt(actor?.CharacterSpawnIndex ?? -1);
 
     // enemies in priority order
     public List<Enemy> PotentialTargets = [];
@@ -105,6 +105,7 @@ public sealed class AIHints
         PathfindMapCenter = default;
         PathfindMapBounds = DefaultBounds;
         PathfindMapObstacles = default;
+        Array.Fill(Enemies, null);
         PotentialTargets.Clear();
         ForcedTarget = null;
         ForcedMovement = null;
@@ -121,38 +122,6 @@ public sealed class AIHints
         StatusesToCancel.Clear();
         WantJump = false;
         WantDismount = false;
-    }
-
-    // fill list of potential targets from world state
-    public void FillPotentialTargets(WorldState ws, bool playerIsDefaultTank)
-    {
-        bool playerInFate = ws.Client.ActiveFate.ID != 0 && ws.Party.Player()?.Level <= Service.LuminaRow<Lumina.Excel.Sheets.Fate>(ws.Client.ActiveFate.ID)?.ClassJobLevelMax;
-        var allowedFateID = playerInFate ? ws.Client.ActiveFate.ID : 0;
-        foreach (var actor in ws.Actors.Where(a => a.IsTargetable && !a.IsAlly && !a.IsDead))
-        {
-            int prio = Enemy.PriorityUndesirable;
-            // fate mob in fate we are NOT a part of; we can't damage them at all
-            if (actor.FateID > 0 && actor.FateID != allowedFateID)
-                prio = Enemy.PriorityInvincible;
-            else if (Utils.ActorIsDying(actor, ws))
-                prio = Enemy.PriorityPointless;
-            else
-            {
-                var allowedAttack = actor.InCombat && ws.Party.FindSlot(actor.TargetID) >= 0;
-                // enemies in our enmity list can also be attacked, regardless of who they are targeting (since they are keeping us in combat)
-                allowedAttack |= actor.AggroPlayer;
-                // all fate mobs can be attacked if we are level synced (non synced mobs are skipped above)
-                allowedAttack |= actor.FateID > 0;
-
-                if (allowedAttack)
-                    prio = 0;
-            }
-
-            var enemy = new Enemy(actor, prio, playerIsDefaultTank);
-
-            PotentialTargets.Add(enemy);
-            _enemies[actor.SpawnIndex / 2] = enemy;
-        }
     }
 
     public void PrioritizeTargetsByOID(uint oid, int priority = 0)

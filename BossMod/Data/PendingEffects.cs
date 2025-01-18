@@ -169,6 +169,9 @@ public sealed class PendingEffects
 
     public bool PendingKnockbacks(ulong target) => PendingEffectsAtTarget(_entries, target).Any(eff => eff.Type is >= ActionEffectType.Knockback and <= ActionEffectType.AttractCustom3);
 
+    // striking dummy (nameid=541) - HP resets to full when "killed"
+    public bool ActorIsDying(Actor actor) => actor.NameID != 541 && actor.HPMP.CurHP + PendingHPDifference(actor.InstanceID) <= 0;
+
     private static IEnumerable<ActionEffect> PendingEffectsAtTarget(IEnumerable<Entry> entries, ulong target)
     {
         foreach (var e in entries)
