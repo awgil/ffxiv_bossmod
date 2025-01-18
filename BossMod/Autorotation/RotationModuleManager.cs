@@ -1,4 +1,6 @@
-﻿namespace BossMod.Autorotation;
+﻿using static BossMod.Autorotation.akechi.AkechiBLM;
+
+namespace BossMod.Autorotation;
 
 // the manager contains a set of rotation module instances corresponding to the selected preset/plan
 public sealed class RotationModuleManager : IDisposable
@@ -111,6 +113,13 @@ public sealed class RotationModuleManager : IDisposable
         StrategyTarget.Self => Player,
         StrategyTarget.PartyByAssignment => _prc.SlotsPerAssignment(WorldState.Party) is var spa && param < spa.Length ? WorldState.Party[spa[param]] : null,
         StrategyTarget.PartyWithLowestHP => WorldState.Party.WithoutSlot().Exclude(param != 0 ? null : Player).MinBy(a => a.HPMP.CurHP),
+        StrategyTarget.DPSWithLowestHP => WorldState.Party.WithoutSlot().Where(a => a.Role is Role.Ranged or Role.Melee).MinBy(a => a.HPMP.CurHP),
+        StrategyTarget.TankWithLowestHP => WorldState.Party.WithoutSlot().Where(a => a.Role == Role.Tank).MinBy(a => a.HPMP.CurHP),
+        StrategyTarget.HealerWithLowestHP => WorldState.Party.WithoutSlot().Where(a => a.Role == Role.Healer).MinBy(a => a.HPMP.CurHP),
+        StrategyTarget.EnemyWithLowestCurrentHP => Player != null ? Hints.PriorityTargets.MinBy(e => e.Actor.HPMP.CurHP)?.Actor : null,
+        StrategyTarget.EnemyWithHighestCurrentHP => Player != null ? Hints.PriorityTargets.MaxBy(e => e.Actor.HPMP.CurHP)?.Actor : null,
+        StrategyTarget.EnemyWithLowestMaxHP => Player != null ? Hints.PriorityTargets.MinBy(e => e.Actor.HPMP.MaxHP)?.Actor : null,
+        StrategyTarget.EnemyWithHighestMaxHP => Player != null ? Hints.PriorityTargets.MaxBy(e => e.Actor.HPMP.MaxHP)?.Actor : null,
         StrategyTarget.EnemyWithHighestPriority => Player != null ? Hints.PriorityTargets.MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor : null,
         StrategyTarget.EnemyByOID => Player != null && (uint)param is var oid && oid != 0 ? Hints.PotentialTargets.Where(e => e.Actor.OID == oid).MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor : null,
         _ => null

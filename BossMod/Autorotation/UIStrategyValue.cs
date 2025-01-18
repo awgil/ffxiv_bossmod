@@ -31,6 +31,9 @@ public static class UIStrategyValue
         {
             StrategyTarget.PartyByAssignment => ((PartyRolesConfig.Assignment)value.TargetParam).ToString(),
             StrategyTarget.PartyWithLowestHP => $"{(value.TargetParam != 0 ? "include" : "exclude")} self",
+            StrategyTarget.TankWithLowestHP => $"{(value.TargetParam != 0 ? "include" : "exclude")} self",
+            StrategyTarget.HealerWithLowestHP => $"{(value.TargetParam != 0 ? "include" : "exclude")} self",
+            StrategyTarget.DPSWithLowestHP => $"{(value.TargetParam != 0 ? "include" : "exclude")} self",
             StrategyTarget.EnemyByOID => $"{(moduleInfo?.ObjectIDType != null ? Enum.ToObject(moduleInfo.ObjectIDType, (uint)value.TargetParam).ToString() : "???")} (0x{value.TargetParam:X})",
             _ => ""
         };
@@ -175,6 +178,39 @@ public static class UIStrategyValue
                     }
                 }
                 break;
+            case StrategyTarget.TankWithLowestHP:
+                if (supportedTargets.HasFlag(ActionTargets.Self))
+                {
+                    var includeSelf = value.TargetParam != 0;
+                    if (ImGui.Checkbox("Allow self", ref includeSelf))
+                    {
+                        value.TargetParam = includeSelf ? 1 : 0;
+                        modified = true;
+                    }
+                }
+                break;
+            case StrategyTarget.HealerWithLowestHP:
+                if (supportedTargets.HasFlag(ActionTargets.Self))
+                {
+                    var includeSelf = value.TargetParam != 0;
+                    if (ImGui.Checkbox("Allow self", ref includeSelf))
+                    {
+                        value.TargetParam = includeSelf ? 1 : 0;
+                        modified = true;
+                    }
+                }
+                break;
+            case StrategyTarget.DPSWithLowestHP:
+                if (supportedTargets.HasFlag(ActionTargets.Self))
+                {
+                    var includeSelf = value.TargetParam != 0;
+                    if (ImGui.Checkbox("Allow self", ref includeSelf))
+                    {
+                        value.TargetParam = includeSelf ? 1 : 0;
+                        modified = true;
+                    }
+                }
+                break;
             case StrategyTarget.EnemyByOID:
                 if (moduleInfo?.ObjectIDType != null)
                 {
@@ -212,6 +248,13 @@ public static class UIStrategyValue
         StrategyTarget.Self => supported.HasFlag(ActionTargets.Self),
         StrategyTarget.PartyByAssignment => supported.HasFlag(ActionTargets.Party),
         StrategyTarget.PartyWithLowestHP => supported.HasFlag(ActionTargets.Party),
+        StrategyTarget.TankWithLowestHP => supported.HasFlag(ActionTargets.Party),
+        StrategyTarget.HealerWithLowestHP => supported.HasFlag(ActionTargets.Party),
+        StrategyTarget.DPSWithLowestHP => supported.HasFlag(ActionTargets.Party),
+        StrategyTarget.EnemyWithLowestCurrentHP => supported.HasFlag(ActionTargets.Hostile),
+        StrategyTarget.EnemyWithLowestMaxHP => supported.HasFlag(ActionTargets.Hostile),
+        StrategyTarget.EnemyWithHighestCurrentHP => supported.HasFlag(ActionTargets.Hostile),
+        StrategyTarget.EnemyWithHighestMaxHP => supported.HasFlag(ActionTargets.Hostile),
         StrategyTarget.EnemyWithHighestPriority => supported.HasFlag(ActionTargets.Hostile),
         StrategyTarget.EnemyByOID => supported.HasFlag(ActionTargets.Hostile) && moduleInfo != null,
         StrategyTarget.PointAbsolute or StrategyTarget.PointCenter => false,

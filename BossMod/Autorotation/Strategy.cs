@@ -7,6 +7,13 @@ public enum StrategyTarget
     Self,
     PartyByAssignment, // parameter is assignment; won't work if assignments aren't set up properly for a party
     PartyWithLowestHP, // parameter is whether self is allowed (1) or not (0)
+    TankWithLowestHP, // parameter is whether self is allowed (1) or not (0)
+    HealerWithLowestHP, // parameter is whether self is allowed (1) or not (0)
+    DPSWithLowestHP, // parameter is whether self is allowed (1) or not (0)
+    EnemyWithLowestCurrentHP,
+    EnemyWithLowestMaxHP,
+    EnemyWithHighestCurrentHP,
+    EnemyWithHighestMaxHP,
     EnemyWithHighestPriority, // selects closest if there are multiple
     EnemyByOID, // parameter is oid; not really useful outside planner; selects closest if there are multiple
     PointAbsolute, // absolute x/y coordinates
