@@ -65,13 +65,11 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private readonly HookAddress<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
     private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
     private readonly HookAddress<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
+    private readonly HookAddress<AutoAttackState.Delegates.SetImpl> _setAutoAttackStateHook;
 
     private delegate void ExecuteCommandGTDelegate(uint commandId, Vector3* position, uint param1, uint param2, uint param3, uint param4);
     private readonly ExecuteCommandGTDelegate _executeCommandGT;
     private DateTime _nextAllowedExecuteCommand;
-
-    private delegate byte StartAutoattackDelegate(bool* playerAutoState, bool wantStart, char unk1, byte unk2);
-    private readonly HookAddress<StartAutoattackDelegate> _startAutosHook;
 
     public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement)
     {
@@ -91,7 +89,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
         _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
         _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
-        _startAutosHook = new("E8 ?? ?? ?? ?? EB 15 41 B0 01", StartAutosDetour);
+        _setAutoAttackStateHook = new(AutoAttackState.Addresses.SetImpl, SetAutoAttackStateDetour);
 
         var executeCommandGTAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 1E 48 8B 53 08");
         Service.Log($"ExecuteCommandGT address: 0x{executeCommandGTAddress:X}");
@@ -100,12 +98,12 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     public void Dispose()
     {
+        _setAutoAttackStateHook.Dispose();
         _processPacketActionEffectHook.Dispose();
         _useBozjaFromHolsterDirectorHook.Dispose();
         _useActionLocationHook.Dispose();
         _useActionHook.Dispose();
         _updateHook.Dispose();
-        _startAutosHook.Dispose();
         _oocActionsTweak.Dispose();
     }
 
@@ -400,8 +398,8 @@ public sealed unsafe class ActionManagerEx : IDisposable
             UIState.Instance()->Hotbar.CancelCast();
         ForceCancelCastNextFrame = false;
 
-        var autosEnabled = UIState.Instance()->WeaponState.IsAutoAttacking;
-        if (_autoAutosTweak.GetDesiredState(autosEnabled) != autosEnabled)
+        var autosEnabled = UIState.Instance()->WeaponState.AutoAttackState.IsAutoAttacking;
+        if (_autoAutosTweak.GetDesiredState(autosEnabled, _ws.Party.Player()?.TargetID ?? 0) != autosEnabled)
             _inst->UseAction(CSActionType.GeneralAction, 1);
 
         if (_hints.WantDismount && _dismountTweak.AllowDismount())
@@ -551,12 +549,15 @@ public sealed unsafe class ActionManagerEx : IDisposable
         ActionRequestExecuted.Fire(new(action, targetID, targetPos, seq, _inst->AnimationLock, castElapsed, castTotal, recastElapsed, recastTotal));
     }
 
-    private byte StartAutosDetour(bool* playerIsAutoattacking, bool wantStart, char unk1, byte unk2)
+    // note: we can't rely on worldstate target id, it might not be updated when this is called
+    // TODO: current implementation means that we'll check desired state twice (once before making a decision to start autos, then again in the hook)
+    private bool SetAutoAttackStateDetour(AutoAttackState* self, bool value, bool sendPacket, bool isInstant)
     {
-        // in some cases, this function is called before player target ID is updated in worldstate; e.g. right clicking a passive mob
-        if (wantStart && !_autoAutosTweak.GetDesiredState(true, TargetSystem.Instance()->GetTargetObjectId()))
-            return 1;
-
-        return _startAutosHook.Original(playerIsAutoattacking, wantStart, unk1, unk2);
+        if (value && !_autoAutosTweak.GetDesiredState(true, TargetSystem.Instance()->GetTargetObjectId()))
+        {
+            Service.Log($"[AMEx] Prevented starting autoattacks");
+            return true;
+        }
+        return _setAutoAttackStateHook.Original(self, value, sendPacket, isInstant);
     }
 }
