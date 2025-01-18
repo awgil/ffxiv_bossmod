@@ -111,6 +111,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public bool Omnidirectional => Statuses.Any(s => s.ID == 3808) || Utils.CharacterIsOmnidirectional(OID);
     public bool IsDeadOrDestroyed => IsDead || IsDestroyed;
     public bool IsFriendlyNPC => Type == ActorType.Enemy && IsAlly && IsTargetable;
+    public int CharacterSpawnIndex => SpawnIndex < 200 && (SpawnIndex & 1) == 0 ? (SpawnIndex >> 1) : -1; // [0,100) for 'real' characters, -1 otherwise
 
     public bool IsTransformed => Statuses.Any(Autorotation.RotationModuleManager.IsTransformStatus);
 

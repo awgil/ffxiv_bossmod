@@ -331,13 +331,15 @@ class P4SomberDance(BossModule module) : Components.GenericBaitAway(module, cent
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(slot, actor, assignment, hints);
-
         if (assignment == (_config.P4SomberDanceOTBait ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT))
         {
             // go far east/west
             var pos = Module.Center + new WDir(actor.Position.X > Module.Center.X ? 19 : -19, 0);
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, 1), _activation);
+        }
+        else
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
         }
     }
 

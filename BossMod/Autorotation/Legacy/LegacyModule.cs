@@ -9,7 +9,7 @@ public abstract class LegacyModule(RotationModuleManager manager, Actor player) 
             return;
         if (data.Range == 0)
             target = Player; // override range-0 actions to always target player
-        if (target == null || Hints.ForbiddenTargets.FirstOrDefault(e => e.Actor == target)?.Priority == AIHints.Enemy.PriorityForbidden)
+        if (target == null || Hints.FindEnemy(target)?.Priority == AIHints.Enemy.PriorityForbidden)
             return; // forbidden
         Hints.ActionsToExecute.Push(action, target, (data.IsGCD ? ActionQueue.Priority.High : ActionQueue.Priority.Low) + 500);
     }

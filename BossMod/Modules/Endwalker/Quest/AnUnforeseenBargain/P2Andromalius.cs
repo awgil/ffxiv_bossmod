@@ -4,46 +4,30 @@ public enum OID : uint
 {
     Boss = 0x3D76, // R6.000, x1
     Helper = 0x233C, // R0.500, x13, Helper type
-    _Gen_Voidcrystal = 0x3D7C, // R0.350, x8
-    _Gen_VisitantOgre = 0x3EA6, // R1.560, x2
-    _Gen_VisitantBlackguard = 0x3EA5, // R1.700, x2
-    _Gen_Voidcluster = 0x3D7D, // R0.600, x4
-    _Gen_VisitantVoidskipper = 0x3D78, // R1.080, x0 (spawn during fight)
     AlphiShield = 0x1EB87A,
 }
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 6497, // 3EA5->3D7F/3D7E, no cast, single-target
-    _AutoAttack_Attack1 = 6499, // 3EA6->player/3D80, no cast, single-target
-    _AutoAttack_ = 19052, // Boss->player/3D80, no cast, single-target
-    _Spell_Cackle = 31820, // Boss->player, 4.0s cast, single-target
-    _Weaponskill_ChainOfCommands = 31813, // Boss->self, 9.0s cast, single-target
-    _Weaponskill_StraightSpindle = 31808, // 3D78->self, 5.0s cast, range 50+R width 5 rect
-    _Weaponskill_Dark = 31815, // Helper->location, 5.0s cast, range 10 circle
-    _Weaponskill_Dark1 = 31814, // Boss->self, 5.0s cast, single-target
-    _Weaponskill_StraightSpindle1 = 31809, // 3D78->self, 9.0s cast, range 50+R width 5 rect
-    _Spell_EvilMist = 31825, // Boss->self, 5.0s cast, range 60 circle
-    _Ability_SinisterSphere = 33009, // Boss->self, 4.0s cast, single-target
-    _Ability_Explosion = 33010, // Helper->self, 10.0s cast, range 5 circle
-    _Weaponskill_Hellsnap = 31816, // Boss->3D80, 5.0s cast, range 6 circle
-    _Weaponskill_VoidEvocation = 31821, // Boss->self, no cast, single-target
-    _Weaponskill_VoidEvocation1 = 31822, // Boss->self, no cast, single-target
-    _Spell_VoidEvocation = 31823, // Helper->self, 1.5s cast, range 60 circle
-    _Weaponskill_Decay = 32857, // _Gen_VisitantVoidskipper->self, 13.0s cast, range 60 circle
-    _Weaponskill_StraightSpindle2 = 33174, // 3D77->self, 8.0s cast, range 50+R width 5 rect
-    _Weaponskill_Voidblood = 33172, // 3EE4->location, 9.0s cast, range 6 circle
-    _Weaponskill_VoidSlash = 33173, // 3EE5->self, 11.0s cast, range 8+R 90-degree cone
-    _Spell_VoidEvocation1 = 31824, // Helper->self, 1.5s cast, range 60 circle
+    StraightSpindleFast = 31808, // 3D78->self, 5.0s cast, range 50+R width 5 rect
+    Dark = 31815, // Helper->location, 5.0s cast, range 10 circle
+    StraightSpindleSlow = 31809, // 3D78->self, 9.0s cast, range 50+R width 5 rect
+    EvilMist = 31825, // Boss->self, 5.0s cast, range 60 circle
+    Explosion = 33010, // Helper->self, 10.0s cast, range 5 circle
+    Hellsnap = 31816, // Boss->3D80, 5.0s cast, range 6 circle
+    Decay = 32857, // _Gen_VisitantVoidskipper->self, 13.0s cast, range 60 circle
+    StraightSpindleAdds = 33174, // 3D77->self, 8.0s cast, range 50+R width 5 rect
+    Voidblood = 33172, // 3EE4->location, 9.0s cast, range 6 circle
+    VoidSlash = 33173, // 3EE5->self, 11.0s cast, range 8+R 90-degree cone
 }
 
-class StraightSpindleAdds(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_StraightSpindle2), new AOEShapeRect(50, 2.5f));
-class Voidblood(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Voidblood), 6);
-class VoidSlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_VoidSlash), new AOEShapeCone(9.7f, 45.Degrees()));
-class EvilMist(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Spell_EvilMist));
-class Explosion(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID._Ability_Explosion), 5);
-class Dark(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Dark), 10);
-class Hellsnap(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID._Weaponskill_Hellsnap), 6);
+class StraightSpindleAdds(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StraightSpindleAdds), new AOEShapeRect(50, 2.5f));
+class Voidblood(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Voidblood), 6);
+class VoidSlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VoidSlash), new AOEShapeCone(9.7f, 45.Degrees()));
+class EvilMist(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EvilMist));
+class Explosion(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Explosion), 5);
+class Dark(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Dark), 10);
+class Hellsnap(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Hellsnap), 6);
 
 class StraightSpindle(BossModule module) : Components.GenericAOEs(module)
 {
@@ -53,17 +37,17 @@ class StraightSpindle(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_StraightSpindle or AID._Weaponskill_StraightSpindle1)
+        if ((AID)spell.Action.ID is AID.StraightSpindleFast or AID.StraightSpindleSlow)
             Casters.Add(caster);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_StraightSpindle or AID._Weaponskill_StraightSpindle1)
+        if ((AID)spell.Action.ID is AID.StraightSpindleFast or AID.StraightSpindleSlow)
             Casters.Remove(caster);
     }
 }
-class Decay(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID._Weaponskill_Decay), "Kill wasp before enrage!", true)
+class Decay(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Decay), "Kill wasp before enrage!", true)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -141,7 +125,7 @@ class AndromaliusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70209, NameID = 12071)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70209, NameID = 12071)]
 public class Andromalius(WorldState ws, Actor primary) : BossModule(ws, primary, new(97.85f, 286), new ArenaBoundsCircle(19.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);

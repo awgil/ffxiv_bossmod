@@ -9,38 +9,21 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _AutoAttack_ = 31261, // 39B5->player/39BE, no cast, single-target
-    _Weaponskill_ = 31241, // 39B4->player/39BE, no cast, single-target
-    _Weaponskill_Recomposition = 30019, // 39B3->self, 8.0s cast, single-target
-    _Weaponskill_Nox = 30020, // 39B3->self, 5.0s cast, single-target
-    _Weaponskill_Nox1 = 30021, // 233C->self, 8.0s cast, range 10 circle
-    _Weaponskill_VoidGravity = 30022, // 39B3->self, 5.0s cast, single-target
-    _Weaponskill_VoidGravity1 = 30023, // 233C->player/39BC/39BF/39BE, 5.0s cast, range 6 circle
     BlightedSweep = 30052,
     CursedNoise = 30026,
     BlightedBuffet = 30032,
     VacuumWave = 30033,
     BlightedSwathe = 30044,
     VoidQuakeIII = 30046,
-    _Weaponskill_CursedNoise = 30027, // 233C->self, no cast, range 60 circle
-    _Ability_ = 30335, // 39B7->location, no cast, single-target
-    _Weaponskill_DarkMist = 30034, // 39B8->self, 17.0s cast, range 8 circle
-    _Spell_VoidThunderIII = 30054, // 39B8->39C1, no cast, single-target
-    _Weaponskill_VoidSlash = 30048, // 39BA->self, 14.7s cast, single-target
-    _Spell_VoidQuakeIII = 30045, // 39B7->self, 20.0s cast, single-target
-    _Weaponskill_VoidSlash1 = 30049, // 233C->self, 15.0s cast, range 30 90-degree cone
-    _Weaponskill_VoidVortex = 30024, // 39B7->self, 4.0+1.0s cast, single-target
     // stack on varshahn
-    _Weaponskill_VoidVortex1 = 30025, // 233C->players, 5.0s cast, range 6 circle
-    _Weaponskill_RottenRampage = 30028, // 39B7->self, 8.0+2.0s cast, single-target
-    _Weaponskill_RottenRampage1 = 30031, // 233C->location, 10.0s cast, range 6 circle
-    _Weaponskill_RottenRampage2 = 30056, // 233C->player/39C1/39BC/39BF/39BE, 10.0s cast, range 6 circle
-    _Weaponskill_DeathStreak = 31242, // 39BA->self, 20.0s cast, range 60 circle
+    VoidVortex = 30025, // 233C->players, 5.0s cast, range 6 circle
+    RottenRampage = 30031, // 233C->location, 10.0s cast, range 6 circle
+    RottenRampageSpread = 30056, // 233C->player/39C1/39BC/39BF/39BE, 10.0s cast, range 6 circle
 }
 
-class VoidVortex(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID._Weaponskill_VoidVortex1), 6, minStackSize: 1);
-class RottenRampageSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID._Weaponskill_RottenRampage2), 6);
-class RottenRampage(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_RottenRampage1), 6);
+class VoidVortex(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.VoidVortex), 6, minStackSize: 1);
+class RottenRampageSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.RottenRampageSpread), 6);
+class RottenRampage(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RottenRampage), 6);
 class BlightedSwathe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlightedSwathe), new AOEShapeCone(40, 90.Degrees()));
 class BlightedSweep(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlightedSweep), new AOEShapeCone(40, 90.Degrees()));
 class BlightedBuffet(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlightedBuffet), new AOEShapeCircle(9));
@@ -130,7 +113,7 @@ public class ScarmiglioneStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70130, NameID = 11407)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70130, NameID = 11407)]
 public class Scarmiglione(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -148), new ArenaBoundsCircle(19.5f))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

@@ -1,6 +1,4 @@
-﻿using BossMod.AI;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // information relevant for AI decision making process for a specific player
 public sealed class AIHints
@@ -35,8 +33,6 @@ public sealed class AIHints
         Misdirection, // temporary misdirection - if current time is greater than activation, use special pathfinding codepath
     }
 
-    private readonly AIConfig _config = Service.Config.Get<AIConfig>();
-
     public static readonly ArenaBounds DefaultBounds = new ArenaBoundsSquare(30);
 
     // information needed to build base pathfinding map (onto which forbidden/goal zones are later rasterized), if needed (lazy, since it's somewhat expensive and not always needed)
@@ -45,10 +41,10 @@ public sealed class AIHints
     public Bitmap.Region PathfindMapObstacles;
 
     // list of potential targets
-    private readonly Enemy?[] _enemies = new Enemy?[99];
-    public Enemy? FindEnemy(Actor? actor) => actor != null && actor.SpawnIndex % 2 == 0 ? _enemies[actor.SpawnIndex / 2] : null;
+    public readonly Enemy?[] Enemies = new Enemy?[100];
+    public Enemy? FindEnemy(Actor? actor) => Enemies.BoundSafeAt(actor?.CharacterSpawnIndex ?? -1);
 
-    // every non-null element of enemy list in priority order
+    // enemies in priority order
     public List<Enemy> PotentialTargets = [];
     public int HighestPotentialTargetPriority;
 
@@ -111,7 +107,7 @@ public sealed class AIHints
         PathfindMapCenter = default;
         PathfindMapBounds = DefaultBounds;
         PathfindMapObstacles = default;
-        Array.Fill(_enemies, null);
+        Array.Fill(Enemies, null);
         PotentialTargets.Clear();
         ForcedTarget = null;
         ForcedMovement = null;
@@ -126,48 +122,8 @@ public sealed class AIHints
         MaxCastTimeEstimate = float.MaxValue;
         ActionsToExecute.Clear();
         StatusesToCancel.Clear();
-        AutohintDisabledActions.Clear();
         WantJump = false;
         WantDismount = false;
-    }
-
-    // fill list of potential targets from world state
-    public void FillPotentialTargets(WorldState ws, bool playerIsDefaultTank)
-    {
-        var curFate = Service.LuminaRow<Lumina.Excel.Sheets.Fate>(ws.Client.ActiveFate.ID);
-        bool playerInFate = _config.AutoFate && ws.Client.ActiveFate.ID != 0 && ws.Party.Player()?.Level <= curFate?.ClassJobLevelMax;
-        var allowedFateID = playerInFate ? ws.Client.ActiveFate.ID : 0;
-        foreach (var actor in ws.Actors.Where(a => a.IsTargetable && !a.IsAlly && !a.IsDead))
-        {
-            int prio = Enemy.PriorityUndesirable;
-            // fate mob in fate we are NOT a part of; we can't damage them at all
-            if (actor.FateID > 0 && actor.FateID != allowedFateID)
-                prio = Enemy.PriorityInvincible;
-            else if (Utils.ActorIsDying(actor, ws))
-                prio = Enemy.PriorityPointless;
-            else
-            {
-                var allowedAttack = actor.InCombat && ws.Party.FindSlot(actor.TargetID) >= 0;
-                // enemies in our enmity list can also be attacked, regardless of who they are targeting (since they are keeping us in combat)
-                allowedAttack |= actor.AggroPlayer;
-                // all fate mobs can be attacked if we are level synced (non synced mobs are skipped above)
-                allowedAttack |= actor.FateID > 0;
-
-                if (allowedAttack)
-                    prio = 0;
-            }
-
-            var enemy = new Enemy(actor, prio, playerIsDefaultTank);
-
-            PotentialTargets.Add(enemy);
-            _enemies[actor.SpawnIndex / 2] = enemy;
-        }
-    }
-
-    public void SetPriority(Actor actor, int priority)
-    {
-        if (FindEnemy(actor) is { } e)
-            e.Priority = priority;
     }
 
     public void PrioritizeTargetsByOID(uint oid, int priority = 0)
@@ -212,9 +168,6 @@ public sealed class AIHints
         ForbiddenZones.SortBy(e => e.activation);
         ForbiddenDirections.SortBy(e => e.activation);
         PredictedDamage.SortBy(e => e.activation);
-
-        if (ForcedMovement == default(Vector3))
-            MaxCastTimeEstimate = float.MaxValue;
     }
 
     public void InitPathfindMap(Pathfinding.Map map)

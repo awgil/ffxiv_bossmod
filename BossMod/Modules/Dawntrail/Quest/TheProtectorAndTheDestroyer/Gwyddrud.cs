@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Quest.TheProtectorAndTheDestroyer;
 
-class RollingThunder(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_RollingThunder1), new AOEShapeCone(20, 22.5f.Degrees()))
+class RollingThunder(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RollingThunder), new AOEShapeCone(20, 22.5f.Degrees()))
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -13,7 +13,7 @@ class RollingThunder(BossModule module) : Components.SelfTargetedAOEs(module, Ac
         }
     }
 }
-class CracklingHowl(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_CracklingHowl));
+class CracklingHowl(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CracklingHowl));
 class VioletVoltage(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> aoes = [];
@@ -31,28 +31,25 @@ class VioletVoltage(BossModule module) : Components.GenericAOEs(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var aoe in ActiveAOEs(slot, actor))
-        {
+        foreach (var aoe in ActiveAOEs(slot, actor).Take(1))
             hints.AddForbiddenZone(aoe.Shape, aoe.Origin, aoe.Rotation, aoe.Activation);
-            break;
-        }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.VioletVoltage3)
+        if (spell.Action.ID == (uint)AID.VioletVoltage3X)
         {
             Finish = Module.CastFinishAt(spell);
             CastsToRecord = 3;
         }
 
-        if (spell.Action.ID == (uint)AID.VioletVoltage4)
+        if (spell.Action.ID == (uint)AID.VioletVoltage4X)
         {
             Finish = Module.CastFinishAt(spell);
             CastsToRecord = 4;
         }
 
-        if (spell.Action.ID == (uint)AID._Weaponskill_ && Finish != null && CastsToRecord > 0)
+        if (spell.Action.ID == (uint)AID.VioletVoltageVisual && Finish != null && CastsToRecord > 0)
         {
             aoes.Add(new AOEInstance(Shape, caster.Position, caster.Rotation, Finish.Value.AddSeconds(aoes.Count * 2)));
             CastsToRecord--;
@@ -61,7 +58,7 @@ class VioletVoltage(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID == (uint)AID._Weaponskill_VioletVoltage2 && aoes.Count > 0)
+        if (spell.Action.ID == (uint)AID.VioletVoltageAOE && aoes.Count > 0)
             aoes.RemoveAt(0);
     }
 }
@@ -73,29 +70,29 @@ class UntamedCurrent(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_UntamedCurrent1 or AID._Weaponskill_UntamedCurrent2 or AID._Weaponskill_UntamedCurrent3 or AID._Weaponskill_UntamedCurrent4 or AID._Weaponskill_UntamedCurrent5 or AID._Weaponskill_UntamedCurrent6 or AID._Weaponskill_UntamedCurrent7 or AID._Weaponskill_1 or AID._Weaponskill_2)
+        if ((AID)spell.Action.ID is AID.UntamedCurrent1 or AID.UntamedCurrent2 or AID.UntamedCurrent3 or AID.UntamedCurrent4 or AID.UntamedCurrent5 or AID.UntamedCurrent6 or AID.UntamedCurrent7 or AID.UnnamedCurrent1 or AID.UnnamedCurrent2)
             Casters.Add(caster);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_UntamedCurrent1 or AID._Weaponskill_UntamedCurrent2 or AID._Weaponskill_UntamedCurrent3 or AID._Weaponskill_UntamedCurrent4 or AID._Weaponskill_UntamedCurrent5 or AID._Weaponskill_UntamedCurrent6 or AID._Weaponskill_UntamedCurrent7 or AID._Weaponskill_1 or AID._Weaponskill_2)
+        if ((AID)spell.Action.ID is AID.UntamedCurrent1 or AID.UntamedCurrent2 or AID.UntamedCurrent3 or AID.UntamedCurrent4 or AID.UntamedCurrent5 or AID.UntamedCurrent6 or AID.UntamedCurrent7 or AID.UnnamedCurrent1 or AID.UnnamedCurrent2)
             Casters.Remove(caster);
     }
 }
 
-class UntamedCurrentSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID._Weaponskill_UntamedCurrent8), 5);
+class UntamedCurrentSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.UntamedCurrentSpread), 5);
 
-class BallOfLevin(BossModule module) : Components.Adds(module, (uint)OID._Gen_BallOfLevin)
+class BallOfLevin(BossModule module) : Components.Adds(module, (uint)OID.BallOfLevin)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var h in hints.PotentialTargets)
-            if (h.Actor.OID == (uint)OID._Gen_BallOfLevin && h.Actor.Position.InCircle(Arena.Center, 20))
+            if (h.Actor.OID == (uint)OID.BallOfLevin && h.Actor.Position.InCircle(Arena.Center, 20))
                 h.Priority = (int)((20 - h.Actor.DistanceToHitbox(Module.PrimaryActor)) * 100);
     }
 }
-class SuperchargedLevin(BossModule module) : Components.Adds(module, (uint)OID._Gen_SuperchargedLevin);
+class SuperchargedLevin(BossModule module) : Components.Adds(module, (uint)OID.SuperchargedLevin);
 
 class GwyddrudStates : StateMachineBuilder
 {
@@ -112,8 +109,5 @@ class GwyddrudStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70478, NameID = 13170, PrimaryActorOID = (uint)OID.BossP2)]
-public class Gwyddrud(WorldState ws, Actor primary) : BossModule(ws, primary, new(349, -14), new ArenaBoundsCircle(19.5f))
-{
-    protected override void DrawArenaForeground(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => x.IsAlly && x.Type == ActorType.Enemy), ArenaColor.PlayerGeneric);
-}
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70478, NameID = 13170, PrimaryActorOID = (uint)OID.BossP2)]
+public class Gwyddrud(WorldState ws, Actor primary) : BossModule(ws, primary, new(349, -14), new ArenaBoundsCircle(19.5f));

@@ -271,6 +271,9 @@ public static partial class Utils
         return res;
     }
 
+    // bounds-checking access
+    public static T? BoundSafeAt<T>(this T[] array, int index, T? outOfBounds = default) => index >= 0 && index < array.Length ? array[index] : outOfBounds;
+
     // get all types defined in specified assembly
     public static IEnumerable<Type?> GetAllTypes(Assembly asm)
     {

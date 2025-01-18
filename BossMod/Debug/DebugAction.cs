@@ -202,7 +202,7 @@ sealed unsafe class DebugAction : IDisposable
 
     public void DrawAutoAttack()
     {
-        var aa = UIState.Instance()->WeaponState.IsAutoAttacking;
+        var aa = UIState.Instance()->WeaponState.AutoAttackState.IsAutoAttacking;
         if (_autoAttack != aa)
             Service.Log($"AA state changed: {_autoAttack} -> {aa}");
         _autoAttack = aa;
