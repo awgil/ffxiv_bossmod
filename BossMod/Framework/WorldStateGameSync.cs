@@ -517,16 +517,19 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe void UpdatePartyNPCs()
     {
+        var treatAlliesAsParty = _ws.CurrentCFCID != 0; // TODO: think more about it, do we ever care about allies in overworld?..
         for (int i = PartyState.MaxAllianceSize; i < PartyState.MaxAllies; ++i)
         {
             ref var m = ref _ws.Party.Members[i];
             if (m.InstanceId != 0)
             {
-                var actor = _ws.Actors.Find(m.InstanceId);
-                if (!(actor?.IsFriendlyNPC ?? false))
+                var actor = treatAlliesAsParty ? _ws.Actors.Find(m.InstanceId) : null;
+                if (actor == null || !actor.IsFriendlyNPC)
                     UpdatePartySlot(i, PartyState.EmptySlot);
             }
         }
+        if (!treatAlliesAsParty)
+            return;
         foreach (var actor in _ws.Actors)
         {
             if (!actor.IsFriendlyNPC)
