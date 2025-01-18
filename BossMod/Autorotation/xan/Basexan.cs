@@ -256,12 +256,16 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         return (newTarget, newTimer);
     }
 
-    protected void GoalZoneCombined(float range, Func<WPos, float> fAoe, int minAoe, Positional pos = Positional.Any)
+    protected void GoalZoneCombined(float range, Func<WPos, float> fAoe, int minAoe, Positional pos = Positional.Any, float? rangedAttackRange = null)
     {
         if (PlayerTarget == null)
             Hints.GoalZones.Add(fAoe);
         else
+        {
             Hints.GoalZones.Add(Hints.GoalCombined(Hints.GoalSingleTarget(PlayerTarget, pos, range), fAoe, minAoe));
+            if (rangedAttackRange is float r)
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget, r, 0.5f));
+        }
     }
 
     protected int NumMeleeAOETargets(StrategyValues strategy) => NumNearbyTargets(strategy, 5);

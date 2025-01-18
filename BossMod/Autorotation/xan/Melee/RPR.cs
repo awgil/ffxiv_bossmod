@@ -137,10 +137,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(3, Hints.GoalAOECircle(5), 3, pos.Item1);
-        if (PlayerTarget != null)
-            // harpe
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget, 25, 0.5f));
+        GoalZoneCombined(3, Hints.GoalAOECircle(5), 3, pos.Item1, rangedAttackRange: 25f);
 
         if (SoulReaver > GCD || Executioner > GCD)
         {
