@@ -21,6 +21,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         LeyLines,            //Ley Lines tracking
         Potion,              //Potion item tracking
         TPUS,                //Transpose&UmbralSoul combo tracking
+        Casting,              //Cast while Moving option tracking
         Transpose,           //Transpose tracking
         Amplifier,           //Amplifier tracking
         Retrace,             //Retrace tracking
@@ -105,6 +106,11 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         Allow,               //Allow Transpose & Umbral Soul combo whenever available
         OOConly,             //Only use Transpose & Umbral Soul combo when fully out of combat
         Forbid               //Forbid Transpose & Umbral Soul combo
+    }
+    public enum CastingOption
+    {
+        Allow,               //Allow casting while moving
+        Forbid               //Forbid casting while moving
     }
     public enum OffensiveStrategy
     {
@@ -198,6 +204,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             .AddOption(TPUSStrategy.OOConly, "OOConly", "Only use Transpose & Umbral Soul combo when fully out of combat", 0, 0, ActionTargets.Self, 35)
             .AddOption(TPUSStrategy.Forbid, "Forbid", "Forbid Transpose & Umbral Soul combo", 0, 0, ActionTargets.Self, 35)
             .AddAssociatedActions(AID.Transpose, AID.UmbralSoul);
+        res.Define(Track.Casting).As<CastingOption>("Casting", uiPriority: 155)
+            .AddOption(CastingOption.Allow, "Allow", "Allow casting while Casting")
+            .AddOption(CastingOption.Forbid, "Forbid", "Forbid casting while moving");
         #endregion
 
         #region Offensive Strategies
@@ -271,6 +280,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         Moving2 = 710,        //Moving (2nd priority)
         Moving1 = 720,        //Moving (1st priority)
         ForcedGCD = 900,      //Forced GCDs
+        BlockAll = 2000,      //Block all GCDs
     }
     public enum OGCDPriority //priorities for oGCDs (higher number = higher priority)
     {
@@ -505,6 +515,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         var btlStrat = btl.As<OffensiveStrategy>(); //Between the Lines strategy
         var potionStrat = strategy.Option(Track.Potion).As<PotionStrategy>(); //Potion strategy
         var tpusStrat = strategy.Option(Track.TPUS).As<TPUSStrategy>(); //Transpose/Umbral Soul strategy
+        var movingOption = strategy.Option(Track.Casting).As<CastingOption>(); //Casting while moving strategy
         #endregion
 
         #endregion
@@ -512,12 +523,22 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         #region Rotation Execution
 
         #region ST / AOE
-        if (AOEStrategy is AOEStrategy.Auto)
-            BestRotation(TargetChoice(AOE) ?? BestAOETarget ?? primaryTarget);
-        if (AOEStrategy is AOEStrategy.ForceST)
-            BestST(TargetChoice(AOE) ?? primaryTarget);
-        if (AOEStrategy is AOEStrategy.ForceAOE)
-            BestAOE(TargetChoice(AOE) ?? BestAOETarget ?? primaryTarget);
+        if (movingOption is CastingOption.Allow ||
+            movingOption is CastingOption.Forbid &&
+            (!isMoving || //if not moving
+            (PlayerHasEffect(SID.Swiftcast, 10) || //or has Swiftcast
+            PlayerHasEffect(SID.Triplecast, 15) || //or has Triplecast
+            (canParadox && ElementTimer < (SpS * 3) && MP >= 1600 || canParadox && JustUsed(AID.Blizzard4, 5)) || //or can use Paradox
+            SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 || //or can use F3P
+            (Unlocked(TraitID.EnhancedAstralFire) && MP is < 1600 and not 0)))) //instant cast Despair 
+        {
+            if (AOEStrategy is AOEStrategy.Auto)
+                BestRotation(TargetChoice(AOE) ?? BestAOETarget ?? primaryTarget);
+            if (AOEStrategy is AOEStrategy.ForceST)
+                BestST(TargetChoice(AOE) ?? primaryTarget);
+            if (AOEStrategy is AOEStrategy.ForceAOE)
+                BestAOE(TargetChoice(AOE) ?? BestAOETarget ?? primaryTarget);
+        }
         #endregion
 
         #region Movement
@@ -578,7 +599,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             }
             if (movementStrat is MovementStrategy.OnlyScathe)
             {
-                QueueGCD(AID.Scathe, primaryTarget, GCDPriority.Moving1);
+                if (MP >= 800)
+                    QueueGCD(AID.Scathe, primaryTarget, GCDPriority.Moving1);
             }
         }
         #endregion
