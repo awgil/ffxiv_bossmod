@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using BossMod.AI;
+
+namespace BossMod;
 
 // utility that recalculates ai hints based on different data sources (eg active bossmodule, etc)
 // when there is no active bossmodule (eg in outdoor or on trash), we try to guess things based on world state (eg actor casts)
@@ -13,6 +15,7 @@ public sealed class AIHintsBuilder : IDisposable
     private readonly EventSubscriptions _subscriptions;
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = [];
     private ArenaBoundsCircle? _activeFateBounds;
+    private readonly AIConfig _config = Service.Config.Get<AIConfig>();
 
     public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm)
     {
@@ -62,7 +65,7 @@ public sealed class AIHintsBuilder : IDisposable
     private void FillEnemies(AIHints hints, bool playerIsDefaultTank)
     {
         var playerInFate = _ws.Client.ActiveFate.ID != 0 && _ws.Party.Player()?.Level <= Service.LuminaRow<Lumina.Excel.Sheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax;
-        var allowedFateID = playerInFate ? _ws.Client.ActiveFate.ID : 0;
+        var allowedFateID = _config.AutoFate && playerInFate ? _ws.Client.ActiveFate.ID : 0;
         foreach (var actor in _ws.Actors.Where(a => a.IsTargetable && !a.IsAlly && !a.IsDead))
         {
             var index = actor.CharacterSpawnIndex;
