@@ -21,18 +21,6 @@ public class Ex3Titan : BossModule
         Bombs = Enemies(OID.BombBoulder);
     }
 
-    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        var heart = Heart();
-        if (heart != null && heart.IsTargetable)
-        {
-            // heart is not added by default, since it has weird actor type
-            // boss is not really a valid target, but it still hits tank pretty hard, so we want to set attacker strength (?)
-            hints.PotentialTargets.Add(new(heart, false));
-            //hints.PotentialTargets.Add(new(PrimaryActor, false));
-        }
-    }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);

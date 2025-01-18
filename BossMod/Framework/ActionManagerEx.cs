@@ -122,8 +122,15 @@ public sealed unsafe class ActionManagerEx : IDisposable
         AutoQueue = _hints.ActionsToExecute.FindBest(_ws, player, _ws.Client.Cooldowns, EffectiveAnimationLock, _hints, _animLockTweak.DelayEstimate);
         if (AutoQueue.Delay > 0)
             AutoQueue = default;
-        if (Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold) && AutoQueue.Priority < ActionQueue.Priority.ManualEmergency)
-            AutoQueue = default; // do not execute non-emergency actions when pyretic is imminent
+
+        if (AutoQueue.Priority < ActionQueue.Priority.ManualEmergency)
+        {
+            if (Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold))
+                AutoQueue = default; // do not execute non-emergency actions when pyretic is imminent
+
+            if (AutoQueue.Target is Actor t && _hints.FindEnemy(t)?.Priority == AIHints.Enemy.PriorityForbidden)
+                AutoQueue = default; // or if selected target is forbidden
+        }
     }
 
     public Vector3? GetWorldPosUnderCursor()

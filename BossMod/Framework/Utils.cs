@@ -41,6 +41,16 @@ public static partial class Utils
     public static string CastTimeString(ActorCastInfo cast, DateTime now) => CastTimeString(cast.ElapsedTime, cast.TotalTime);
     public static string LogMessageString(uint id) => $"{id} '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(id)?.Text}'";
 
+    public static bool ActorIsDying(Actor actor, WorldState ws)
+    {
+        // striking dummy - HP resets to full when "killed"
+        if (actor.NameID == 541)
+            return false;
+
+        var predicted = ws.PendingEffects.PendingHPDifference(actor.InstanceID);
+        return actor.HPMP.CurHP + predicted <= 0;
+    }
+
     public static unsafe T ReadField<T>(void* address, int offset) where T : unmanaged => *(T*)((IntPtr)address + offset);
     public static unsafe void WriteField<T>(void* address, int offset, T value) where T : unmanaged => *(T*)((IntPtr)address + offset) = value;
 

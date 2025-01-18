@@ -48,7 +48,7 @@ class Ex2GarudaAI(BossModule module) : BossComponent(module)
                     e.ShouldBeTanked = false;
                     break;
                 case OID.SpinyPlume:
-                    e.Priority = Module.PrimaryActor.IsTargetable ? AIHints.Enemy.PriorityForbidAI : 6;
+                    e.Priority = Module.PrimaryActor.IsTargetable ? AIHints.Enemy.PriorityPointless : 6;
                     e.AttackStrength = 0;
                     e.ShouldBeTanked = false;
                     if (actor.Role == Role.Tank && e.Actor.TargetID != actor.InstanceID && (WorldState.Actors.Find(e.Actor.TargetID)?.FindStatus(SID.ThermalLow)?.Extra ?? 0) >= 2)
