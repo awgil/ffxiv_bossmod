@@ -17,7 +17,7 @@ public sealed class AutoAutosTweak(WorldState ws, AIHints hints)
         return Enabled && ws.Client.CountdownRemaining > PrePullThreshold && !(ws.Party.Player()?.InCombat ?? false);
     }
 
-    public bool GetDesiredState(bool currentState)
+    public bool GetDesiredState(bool currentState, ulong? targetIdOverride = null)
     {
         if (!Enabled || _lastActionDisabledAutos)
             return currentState;
@@ -26,7 +26,7 @@ public sealed class AutoAutosTweak(WorldState ws, AIHints hints)
         if (player == null || player.IsDead || player.Statuses.Any(s => s.ID is 418 or 2648)) // transcendent
             return currentState;
 
-        var target = ws.Actors.Find(player.TargetID);
+        var target = ws.Actors.Find(targetIdOverride ?? player.TargetID);
         if (target == null || target.IsAlly)
             return currentState;
 
