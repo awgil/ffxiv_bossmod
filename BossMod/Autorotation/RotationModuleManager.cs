@@ -1,6 +1,4 @@
-﻿using static BossMod.Autorotation.akechi.AkechiBLM;
-
-namespace BossMod.Autorotation;
+﻿namespace BossMod.Autorotation;
 
 // the manager contains a set of rotation module instances corresponding to the selected preset/plan
 public sealed class RotationModuleManager : IDisposable
