@@ -74,7 +74,7 @@ public sealed class AIHintsBuilder : IDisposable
             {
                 prio = AIHints.Enemy.PriorityInvincible;
             }
-            else if (_ws.PendingEffects.ActorIsDying(actor))
+            else if (actor.PredictedDead)
             {
                 prio = AIHints.Enemy.PriorityPointless;
             }

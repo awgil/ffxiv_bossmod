@@ -383,7 +383,7 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (WorldState.PendingEffects.PendingKnockbacks(actor.InstanceID))
+        if (actor.PendingKnockbacks.Count > 0)
             return; // don't move while waiting for kb to resolve...
 
         var hint = CalculateHint(slot);

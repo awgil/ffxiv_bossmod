@@ -35,9 +35,6 @@ sealed class WorldStateGameSync : IDisposable
     private readonly Dictionary<ulong, Vector3> _lastCastPositions = []; // unfortunately, game only saves cast location for area-targeted spells
     private readonly Actor?[] _actorsByIndex = new Actor?[ObjectTableSize];
 
-    private readonly List<(ulong Caster, ActorCastEvent Event)> _castEvents = [];
-    private readonly List<(uint Seq, ulong Target, int TargetIndex)> _confirms = [];
-
     private readonly Network.OpcodeMap _opcodeMap = new();
     private readonly Network.PacketInterceptor _interceptor = new();
     private readonly Network.PacketDecoderGame _decoder = new();
@@ -169,14 +166,6 @@ sealed class WorldStateGameSync : IDisposable
         {
             _ws.Execute(new NetworkState.OpIDScramble(Network.IDScramble.Delta));
         }
-
-        foreach (var c in _confirms)
-            _ws.PendingEffects.Confirm(_ws.CurrentTime, c.Seq, c.Target, c.TargetIndex);
-        _confirms.Clear();
-        _ws.PendingEffects.RemoveExpired(_ws.CurrentTime);
-        foreach (var c in _castEvents)
-            _ws.PendingEffects.AddEntry(_ws.CurrentTime, c.Caster, c.Event);
-        _castEvents.Clear();
 
         foreach (var op in _globalOps)
         {
@@ -721,13 +710,11 @@ sealed class WorldStateGameSync : IDisposable
     private void OnActionEffect(ulong casterID, ActorCastEvent info)
     {
         _actorOps.GetOrAdd(casterID).Add(new ActorState.OpCastEvent(casterID, info));
-        _castEvents.Add((casterID, info));
     }
 
     private void OnEffectResult(ulong targetID, uint seq, int targetIndex)
     {
         _actorOps.GetOrAdd(targetID).Add(new ActorState.OpEffectResult(targetID, seq, targetIndex));
-        _confirms.Add((seq, targetID, targetIndex));
     }
 
     private unsafe void ProcessPacketActorCastDetour(uint casterId, Network.ServerIPC.ActorCast* packet)

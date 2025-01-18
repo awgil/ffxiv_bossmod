@@ -127,7 +127,7 @@ public class TrackPartyHealth(WorldState World)
             }
             else
             {
-                state.PredictedHP = (int)actor.HPMP.CurHP + World.PendingEffects.PendingHPDifference(actor.InstanceID);
+                state.PredictedHP = actor.PredictedHPRaw;
                 state.PredictedHPMissing = (int)actor.HPMP.MaxHP - state.PredictedHP;
                 state.PredictedHPRatio = state.PendingHPRatio = (float)state.PredictedHP / actor.HPMP.MaxHP;
                 state.AttackerStrength = 0;
