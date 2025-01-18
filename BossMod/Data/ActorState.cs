@@ -95,10 +95,10 @@ public sealed class ActorState : IEnumerable<Actor>
                         // note: effect reapplication (eg kardia) or some 'instant' effects (eg ast draw/earthly star) won't get confirmations
                         effTarget.PendingStatuses.Add(new(header, eff.Value, eff.Param2));
                         break;
-                    case ActionEffectType.LoseStatusEffectSource:
-                    case ActionEffectType.LoseStatusEffectTarget:
                     case ActionEffectType.RecoveredFromStatusEffect:
-                        effTarget.PendingStatusLoss.Add(new(header, eff.Value));
+                    case ActionEffectType.LoseStatusEffectTarget:
+                    case ActionEffectType.LoseStatusEffectSource:
+                        effTarget.PendingDispels.Add(new(header, eff.Value));
                         break;
                     case ActionEffectType.Knockback:
                     case ActionEffectType.Attract1:
@@ -119,6 +119,7 @@ public sealed class ActorState : IEnumerable<Actor>
         target.PendingHPDifferences.RemoveAll(e => predicate(e.Effect));
         target.PendingMPDifferences.RemoveAll(e => predicate(e.Effect));
         target.PendingStatuses.RemoveAll(e => predicate(e.Effect));
+        target.PendingDispels.RemoveAll(e => predicate(e.Effect));
         target.PendingKnockbacks.RemoveAll(e => predicate(e));
     }
 

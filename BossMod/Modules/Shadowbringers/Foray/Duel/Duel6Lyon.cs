@@ -90,8 +90,8 @@ class OnFire(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        //if (_hasBuff && !WorldState.PendingEffects.PendingStatusLoss(Module.PrimaryActor.InstanceID, (uint)SID.OnFire))
-        //    hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostDispel), Module.PrimaryActor, ActionQueue.Priority.VeryHigh);
+        if (_hasBuff && !Module.PrimaryActor.PendingDispels.Any(s => s.StatusId == (uint)SID.OnFire))
+            hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostDispel), Module.PrimaryActor, ActionQueue.Priority.VeryHigh);
     }
 }
 
