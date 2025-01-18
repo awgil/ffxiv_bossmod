@@ -166,7 +166,7 @@ class AutoWuk(WorldState ws) : UnmanagedRotation(ws, 3)
     }
 }
 
-class WukAI(BossModule module) : Components.RotationModule<AutoWuk>(module);
+class WukAI(BossModule module) : RotationModule<AutoWuk>(module);
 
 class BakoolJaJaStates : StateMachineBuilder
 {
