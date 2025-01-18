@@ -53,7 +53,7 @@ class Innerspace(BossModule module) : Components.PersistentInvertibleVoidzone(mo
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.HoundOutOfHell)
-            InvertResolveAt = WorldState.FutureTime(8.2f);
+            InvertResolveAt = Module.CastFinishAt(spell);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

@@ -20,7 +20,7 @@ class AncientAero(BossModule module) : Components.SelfTargetedAOEs(module, Actio
 class AncientAeroII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AncientAeroII), 6, "Get out of the aoe!");
 class AncientAeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.AncientAeroIII), 23.5f, true, stopAtWall: true);
 class Tornado(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Tornado), 6);
-class Windage(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.Whirlwind).Where(z => z.EventState != 7));
+class Windage(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.Whirlwind).Where(z => z.EventState != 7));
 
 class D40BhimaStates : StateMachineBuilder
 {

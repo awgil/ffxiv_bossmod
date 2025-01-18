@@ -402,18 +402,28 @@ public abstract class AutoClear : ZoneModule
                 ImGui.SameLine();
                 UIMisc.HelpMarker(() => $"Wrong resolution for map; should be 0.5, got {data.PixelSize}", Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle);
             }
-
-#if DEBUG
-            foreach (var r in RoomCenters)
-                Camera.Instance?.DrawWorldLine(player.PosRot.XYZ(), r.ToVec3(player.PosRot.Y), ArenaColor.Safe);
-#endif
         }
     }
 
-    private bool CanAutoUse(PomanderID p) => p
-        is PomanderID.Steel or PomanderID.Strength or PomanderID.Sight or PomanderID.Raising
-        or PomanderID.ProtoSteel or PomanderID.ProtoStrength or PomanderID.ProtoSight or PomanderID.ProtoRaising
-        or PomanderID.ProtoLethargy;
+    private readonly List<PomanderID> AutoUsable = [
+        PomanderID.Steel,
+        PomanderID.Strength,
+        PomanderID.Sight,
+        PomanderID.Raising,
+        PomanderID.Fortune,
+        PomanderID.Concealment,
+        PomanderID.Affluence,
+        PomanderID.Frailty,
+        PomanderID.ProtoSteel,
+        PomanderID.ProtoStrength,
+        PomanderID.ProtoSight,
+        PomanderID.ProtoRaising,
+        PomanderID.ProtoLethargy,
+        PomanderID.ProtoFortune,
+        PomanderID.ProtoAffluence
+    ];
+
+    private bool CanAutoUse(PomanderID p) => AutoUsable.Contains(p);
 
     protected virtual IEnumerable<ActionID> AutohintDisabledActions() => [];
 
