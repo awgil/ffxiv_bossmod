@@ -662,7 +662,7 @@ public abstract class AutoClear : ZoneModule
             return;
         }
 
-        var path = new FloorPathfind(Palace.Map).Pathfind(playerRoom, DesiredRoom);
+        var path = new FloorPathfind(Palace.MapData).Pathfind(playerRoom, DesiredRoom);
         if (path.Count == 0)
         {
             Service.Log($"uh-oh, no path from {playerRoom} to {DesiredRoom}");
@@ -726,7 +726,7 @@ public abstract class AutoClear : ZoneModule
                 Service.Log($"unrecognized tileset number {Palace.Progress.Tileset}");
                 return;
         }
-        foreach (var (room, i) in Palace.Map.ToArray().Select((m, i) => (m, i)))
+        foreach (var (room, i) in Palace.MapData.Select((m, i) => (m, i)))
         {
             if (room > 0)
             {

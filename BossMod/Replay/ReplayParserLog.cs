@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
@@ -699,7 +700,7 @@ public sealed class ReplayParserLog : IDisposable
     private ClientState.OpFocusTargetChange ParseClientFocusTarget() => new(_input.ReadULong(true));
 
     private DeepDungeonState.OpProgressChange ParseDeepDungeonProgress() => new(_input.ReadByte(false), new DeepDungeonState.DungeonProgress(_input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false)));
-    private DeepDungeonState.OpMapDataChange ParseDeepDungeonMap() => new(_input.ReadBytes());
+    private DeepDungeonState.OpMapDataChange ParseDeepDungeonMap() => new(Array.ConvertAll(_input.ReadBytes(), b => (InstanceContentDeepDungeon.RoomFlags)b));
     private DeepDungeonState.OpPartyStateChange ParseDeepDungeonParty()
     {
         var pt = new DeepDungeonState.PartyMember[4];

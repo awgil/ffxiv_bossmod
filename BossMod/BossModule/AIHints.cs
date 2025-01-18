@@ -126,6 +126,12 @@ public sealed class AIHints
         WantDismount = false;
     }
 
+    public void SetPriority(Actor actor, int priority)
+    {
+        if (FindEnemy(actor) is { } e)
+            e.Priority = priority;
+    }
+
     public void PrioritizeTargetsByOID(uint oid, int priority = 0)
     {
         foreach (var h in PotentialTargets)

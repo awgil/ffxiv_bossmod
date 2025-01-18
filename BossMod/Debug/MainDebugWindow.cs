@@ -297,7 +297,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
                     for (var i = 0; i < 25; i++)
                     {
                         var pos = ImGui.GetCursorPos();
-                        var tile = dd.MapData[i] & 0xF;
+                        var tile = (byte)dd.MapData[i] & 0xF;
                         var row = tile / 4;
                         var col = tile % 4;
 

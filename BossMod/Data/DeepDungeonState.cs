@@ -1,5 +1,4 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
-using System.Runtime.InteropServices;
+﻿using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
 
 namespace BossMod;
 
@@ -7,7 +6,7 @@ public sealed class DeepDungeonState
 {
     public DungeonProgress Progress;
     public byte DungeonId;
-    public byte[] MapData = new byte[25];
+    public RoomFlags[] MapData = new RoomFlags[25];
     public PartyMember[] Party = new PartyMember[4];
     public Item[] Items = new Item[16];
     public Chest[] Chests = new Chest[16];
@@ -20,8 +19,6 @@ public sealed class DeepDungeonState
         HOH = 2,
         EO = 3
     }
-
-    public ReadOnlySpan<InstanceContentDeepDungeon.RoomFlags> Map => MemoryMarshal.Cast<byte, InstanceContentDeepDungeon.RoomFlags>(MapData);
 
     public DungeonType Type => (DungeonType)DungeonId;
 
@@ -96,7 +93,7 @@ public sealed class DeepDungeonState
     }
 
     public Event<OpMapDataChange> MapDataChanged = new();
-    public sealed record class OpMapDataChange(byte[] Value) : WorldState.Operation
+    public sealed record class OpMapDataChange(RoomFlags[] Value) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {
@@ -105,7 +102,7 @@ public sealed class DeepDungeonState
         }
         public override void Write(ReplayRecorder.Output output)
         {
-            output.EmitFourCC("DDMP"u8).Emit(Value);
+            output.EmitFourCC("DDMP"u8).Emit(Array.ConvertAll(Value, r => (byte)r));
         }
     }
 

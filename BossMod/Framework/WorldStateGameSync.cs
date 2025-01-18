@@ -675,7 +675,7 @@ sealed class WorldStateGameSync : IDisposable
 
         if (ddold.DungeonId != ddnew.DungeonId || ddold.Progress != ddnew.Progress)
             _ws.Execute(new DeepDungeonState.OpProgressChange(ddnew.DungeonId, ddnew.Progress));
-        if (!MemoryExtensions.SequenceEqual<byte>(ddold.MapData, ddnew.MapData))
+        if (!MemoryExtensions.SequenceEqual<InstanceContentDeepDungeon.RoomFlags>(ddold.MapData, ddnew.MapData))
             _ws.Execute(new DeepDungeonState.OpMapDataChange(ddnew.MapData));
         if (!MemoryExtensions.SequenceEqual<DeepDungeonState.PartyMember>(ddold.Party, ddnew.Party))
             _ws.Execute(new DeepDungeonState.OpPartyStateChange(ddnew.Party));

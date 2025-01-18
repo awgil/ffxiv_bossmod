@@ -60,7 +60,7 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
             using var _1 = ImRaii.PushId($"room{i}");
 
             var pos = ImGui.GetCursorPos();
-            var tile = State.MapData[i] & 0xF;
+            var tile = (byte)State.MapData[i] & 0xF;
             var row = tile / 4;
             var col = tile % 4;
 
@@ -89,13 +89,13 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
                 ImGui.Image(mapTex.ImGuiHandle, new Vector2(64, 64), new Vector2(0.2424f, 0.4571f), new Vector2(0.4848f, 0.6857f));
             }
 
-            if (State.Map[i].HasFlag(RoomFlags.Passage))
+            if (State.MapData[i].HasFlag(RoomFlags.Passage))
             {
                 ImGui.SetCursorPos(pos + new Vector2(28, 44));
                 ImGui.Image(passageTex.ImGuiHandle, new Vector2(32, 32));
             }
 
-            if (State.Map[i].HasFlag(RoomFlags.Return))
+            if (State.MapData[i].HasFlag(RoomFlags.Return))
             {
                 ImGui.SetCursorPos(pos + new Vector2(28, 44));
                 ImGui.Image(returnTex.ImGuiHandle, new Vector2(32, 32));
