@@ -37,7 +37,7 @@ class PathReadyNoop : ICallGateSubscriber<bool>
     bool ICallGateSubscriber.HasAction => false;
     bool ICallGateSubscriber.HasFunction => true;
     public void InvokeAction() { }
-    public bool InvokeFunc() => false;
+    public bool InvokeFunc() => true;
     public void Subscribe(Action action) { }
     public void Unsubscribe(Action action) { }
 }
@@ -242,8 +242,9 @@ public abstract class QuestBattle : ZoneModule
     private bool Paused;
     private const float Tolerance = 0.25f;
     private readonly ICallGateSubscriber<Vector3, Vector3, bool, Task<List<Vector3>>?> _pathfind;
-    private readonly ICallGateSubscriber<bool> _isMeshReady;
+    private readonly ICallGateSubscriber<bool> _meshIsReady;
     private bool _combatFlag;
+    private bool _playerLoaded;
 
     // and these are from QBW
     private delegate void AbandonDuty(bool a1);
@@ -299,20 +300,14 @@ public abstract class QuestBattle : ZoneModule
         {
             //Log($"UIDev detected, skipping initialization");
             _pathfind = new PathfindNoop();
-            _isMeshReady = new PathReadyNoop();
+            _meshIsReady = new PathReadyNoop();
         }
         else
         {
             _pathfind = Service.PluginInterface.GetIpcSubscriber<Vector3, Vector3, bool, Task<List<Vector3>>?>("vnavmesh.Nav.Pathfind");
-            _isMeshReady = Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
+            _meshIsReady = Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
             _abandonDuty = Marshal.GetDelegateForFunctionPointer<AbandonDuty>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 41 B2 01 EB 39"));
         }
-
-        // start first objective
-        var player = ws.Party.Player();
-        var curObjective = CurrentObjective;
-        if (player != null && curObjective != null)
-            TryPathfind(player.PosRot.XYZ(), curObjective.Connections);
     }
 
     protected override void Dispose(bool disposing)
@@ -328,6 +323,17 @@ public abstract class QuestBattle : ZoneModule
 
     public override void Update()
     {
+        if (!_playerLoaded)
+        {
+            var player = World.Party.Player();
+            if (player != null)
+            {
+                _playerLoaded = true;
+                if (CurrentObjective != null)
+                    TryPathfind(player.PosRot.XYZ(), CurrentObjective.Connections);
+            }
+        }
+
         if (PathfindTask?.IsCompletedSuccessfully ?? false)
         {
             CurrentWaypoints = PathfindTask.Result;
@@ -453,9 +459,9 @@ public abstract class QuestBattle : ZoneModule
     public virtual void AddQuestAIHints(Actor player, AIHints hints) { }
 
     private Task<List<Vector3>>? Pathfind(Vector3 source, Vector3 target) => _pathfind.InvokeFunc(source, target, false);
-    private bool IsMeshReady() => _isMeshReady.InvokeFunc();
+    private bool MeshIsReady() => _meshIsReady.InvokeFunc();
 
-    public static bool HaveTarget(Actor player, AIHints hints) => hints.PriorityTargets.Any(x => hints.PathfindMapBounds.Contains(x.Actor.Position - hints.PathfindMapCenter));
+    public static bool HaveTarget(Actor player, AIHints hints) => player.InCombat || hints.PriorityTargets.Any(x => hints.PathfindMapBounds.Contains(x.Actor.Position - hints.PathfindMapCenter));
 
     // returns true if we want to restart pathfinding
     private bool OnObjectiveChanged()
@@ -481,16 +487,15 @@ public abstract class QuestBattle : ZoneModule
             return;
         }
 
-        PathfindTask = Task.Run(() => TryPathfind([new Waypoint(start), .. connections], maxRetries));
+        PathfindTask = Task.Run(() => TryPathfind([new Waypoint(start), .. connections]));
     }
 
-    // TODO: this is all not great at all... at very least need to improve vnav api to remove this retries bullshit
-    private async Task<List<NavigationWaypoint>> TryPathfind(IEnumerable<Waypoint> connectionPoints, int maxRetries = 5)
+    private async Task<List<NavigationWaypoint>> TryPathfind(IEnumerable<Waypoint> connectionPoints)
     {
-        if (!IsMeshReady())
+        while (!MeshIsReady())
         {
+            Log($"navmesh is not ready - waiting");
             await Task.Delay(500).ConfigureAwait(true);
-            return await TryPathfind(connectionPoints, maxRetries - 1).ConfigureAwait(true);
         }
         var points = connectionPoints.Take(3).ToList();
         if (points.Count < 2)
@@ -566,7 +571,7 @@ public abstract class QuestBattle : ZoneModule
 
     private void Dash(Actor player, Vector3 direction, AIHints hints)
     {
-        if (!_config.UseDash || player.Statuses.Any(s => (ActionsProhibitedStatus)s.ID is ActionsProhibitedStatus.OutOfTheAction or ActionsProhibitedStatus.InEvent || Autorotation.RotationModuleManager.IsTransformStatus(s)))
+        if (!_config.UseDash || player.MountId > 0 || player.Statuses.Any(s => (ActionsProhibitedStatus)s.ID is ActionsProhibitedStatus.OutOfTheAction or ActionsProhibitedStatus.InEvent || Autorotation.RotationModuleManager.IsTransformStatus(s)))
             return;
 
         var moveDistance = direction.Length();
