@@ -1,11 +1,13 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using System.Runtime.InteropServices;
 using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
@@ -71,6 +73,12 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private readonly ExecuteCommandGTDelegate _executeCommandGT;
     private DateTime _nextAllowedExecuteCommand;
 
+    private delegate void* UsePomanderDelegate(InstanceContentDeepDungeon* thisPtr, uint id);
+    private readonly HookAddress<UsePomanderDelegate> _usePomanderHook;
+
+    private delegate void UseMagiciteDelegate(InstanceContentDeepDungeon* thisPtr, uint slot);
+    private readonly HookAddress<UseMagiciteDelegate> _useMagiciteHook;
+
     public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement)
     {
         _ws = ws;
@@ -88,6 +96,8 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _useActionHook = new(ActionManager.Addresses.UseAction, UseActionDetour);
         _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
         _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
+        _usePomanderHook = new("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8D 4F 10 E8 ?? ?? ?? ?? 48 63 F8", UsePomanderDetour);
+        _useMagiciteHook = new("E8 ?? ?? ?? ?? EB 70 48 8D 4F 10", UseMagiciteDetour);
         _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
         _setAutoAttackStateHook = new(AutoAttackState.Addresses.SetImpl, SetAutoAttackStateDetour);
 
@@ -100,6 +110,8 @@ public sealed unsafe class ActionManagerEx : IDisposable
     {
         _setAutoAttackStateHook.Dispose();
         _processPacketActionEffectHook.Dispose();
+        _useMagiciteHook.Dispose();
+        _usePomanderHook.Dispose();
         _useBozjaFromHolsterDirectorHook.Dispose();
         _useActionLocationHook.Dispose();
         _useActionHook.Dispose();
@@ -214,6 +226,9 @@ public sealed unsafe class ActionManagerEx : IDisposable
     public int GetAdjustedCastTime(ActionID action, bool applyProcs = true, ActionManager.CastTimeProc* outOptProc = null)
         => ActionManager.GetAdjustedCastTime((CSActionType)action.Type, action.ID, applyProcs, outOptProc);
 
+    // only two actions have this attribute, both pvp: machinist Blast Charge and bard Powerful Shot
+    public bool CanMoveWhileCasting(ActionID action) => action.ID is 29391 or 29402;
+
     public int GetAdjustedRecastTime(ActionID action, bool applyClassMechanics = true) => ActionManager.GetAdjustedRecastTime((CSActionType)action.Type, action.ID, applyClassMechanics);
 
     public bool IsRecastTimerActive(ActionID action)
@@ -299,6 +314,30 @@ public sealed unsafe class ActionManagerEx : IDisposable
                 var state = PublicContentBozja.GetState(); // note: if it's non-null, the director instance can't be null too
                 var holsterIndex = state != null ? state->HolsterActions.IndexOf((byte)action.ID) : -1;
                 return holsterIndex >= 0 && PublicContentBozja.GetInstance()->UseFromHolster((uint)holsterIndex, action.Type == ActionType.BozjaHolsterSlot1 ? 1u : 0);
+            case ActionType.Pomander:
+                var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+                var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+                var prevRot = player != null ? player->Rotation.Radians() : default;
+                var slot = _ws.DeepDungeon.GetSlotForPomander((PomanderID)action.ID);
+                if (dd != null && slot >= 0 && _usePomanderHook.Original(dd, (uint)slot) != null)
+                {
+                    var currRot = player != null ? player->Rotation.Radians() : default;
+                    HandleActionRequest(action, 0, targetId, targetPos, prevRot, currRot);
+                    return true;
+                }
+                return false;
+            case ActionType.Magicite:
+                var dd2 = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+                var player2 = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+                var prevRot2 = player2 != null ? player2->Rotation.Radians() : default;
+                if (dd2 != null)
+                {
+                    _useMagiciteHook.Original(dd2, action.ID);
+                    var currRot2 = player2 != null ? player2->Rotation.Radians() : default;
+                    HandleActionRequest(action, 0, targetId, targetPos, prevRot2, currRot2);
+                    return true;
+                }
+                return false;
             default:
                 // fall back to UAL hook for everything not covered explicitly
                 return _inst->UseActionLocation((CSActionType)action.Type, action.ID, targetId, &targetPos, 0);
@@ -349,7 +388,12 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
         // check whether movement is safe; block movement if not and if desired
         MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
-        MoveMightInterruptCast |= imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f; // if we're not casting, but will start soon, moving might interrupt future cast
+
+        // also block movement if a casted action is imminent - we additionally use actionmanager's line of sight check here, as otherwise AI mode can get stuck trying to cast a spell to hit an enemy behind a wall
+        if (imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f && !CanMoveWhileCasting(imminentActionAdj))
+        {
+            MoveMightInterruptCast |= CheckActionLoS(imminentAction, _inst->ActionQueued ? _inst->QueuedTargetId : (AutoQueue.Target?.InstanceID ?? 0));
+        }
         bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast && _ws.Party.Player()?.MountId == 0;
         blockMovement |= Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold);
 
@@ -482,6 +526,22 @@ public sealed unsafe class ActionManagerEx : IDisposable
         return res;
     }
 
+    private void* UsePomanderDetour(InstanceContentDeepDungeon* self, uint pomanderSlot)
+    {
+        if (_manualQueue.Push(new ActionID(ActionType.Pomander, (uint)_ws.DeepDungeon.GetPomanderForSlot((int)pomanderSlot)), 0xE0000000, false, () => (0xE0000000, null)))
+            return null;
+
+        return _usePomanderHook.Original(self, pomanderSlot);
+    }
+
+    private void UseMagiciteDetour(InstanceContentDeepDungeon* self, uint magiciteSlot)
+    {
+        if (_manualQueue.Push(new ActionID(ActionType.Magicite, magiciteSlot), 0xE0000000, false, () => (0xE0000000, null)))
+            return;
+
+        _useMagiciteHook.Original(self, magiciteSlot);
+    }
+
     private void ProcessPacketActionEffectDetour(uint casterID, Character* casterObj, Vector3* targetPos, ActionEffectHandler.Header* header, ActionEffectHandler.TargetEffects* effects, GameObjectId* targets)
     {
         // notify listeners about the event
@@ -559,5 +619,32 @@ public sealed unsafe class ActionManagerEx : IDisposable
             return true;
         }
         return _setAutoAttackStateHook.Original(self, value, sendPacket, isInstant);
+    }
+
+    private static bool CheckActionLoS(ActionID action, ulong targetID)
+    {
+        var row = Service.LuminaRow<Lumina.Excel.Sheets.Action>(action.ID);
+        if (row == null)
+            // unknown action, assume nothing
+            return true;
+
+        if (!row.Value.RequiresLineOfSight)
+            return true;
+
+        var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        var targetObj = GameObjectManager.Instance()->Objects.GetObjectByGameObjectId(targetID);
+        if (targetObj == null || targetObj->EntityId == player->EntityId)
+            return true;
+
+        var playerPos = *player->GetPosition();
+        var targetPos = *targetObj->GetPosition();
+
+        playerPos.Y += 2;
+        targetPos.Y += 2;
+
+        var offset = targetPos - playerPos;
+        var maxDist = offset.Magnitude;
+        var direction = offset / maxDist;
+        return !BGCollisionModule.RaycastMaterialFilter(playerPos, direction, out _, maxDist);
     }
 }
