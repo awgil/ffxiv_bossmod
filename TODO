@@ -30,7 +30,6 @@ general:
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
 - constrain bossmodules to zone id (e.g. for T04)
 - revise module categories - consider merging fates/hunts/quests/gold saucer?/pvp? into outdoor?/casual?
-- refactor pendingeffects
 - debug utility to play action animations, spawn actors, play vfx, etc...
 - encounter hints (to show before pull)
 - zone modules: replay visualization
