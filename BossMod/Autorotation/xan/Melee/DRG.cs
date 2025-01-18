@@ -1,5 +1,6 @@
 ﻿using BossMod.DRG;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -46,11 +47,11 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
     public int NumLongAOETargets; // GSK, nastrond (15x4 rect)
     public int NumDiveTargets; // dragonfire, stardiver, etc
 
-    private Actor? BestAOETarget;
-    private Actor? BestLongAOETarget;
-    private Actor? BestDiveTarget;
+    private Enemy? BestAOETarget;
+    private Enemy? BestLongAOETarget;
+    private Enemy? BestDiveTarget;
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
@@ -91,7 +92,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(3, Hints.GoalAOERect(primaryTarget, 10, 2), 3, pos.Item1);
+        GoalZoneCombined(3, Hints.GoalAOERect(primaryTarget.Actor, 10, 2), 3, pos.Item1);
 
         if (NumAOETargets > 2)
         {
@@ -155,7 +156,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         OGCD(strategy, primaryTarget);
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (primaryTarget == null || !Player.InCombat || PowerSurge == 0)
             return;
@@ -252,7 +253,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
     private bool MoveOk(StrategyValues strategy) => strategy.Option(Track.Dive).As<DiveStrategy>() == DiveStrategy.Allow;
     private bool PosLockOk(StrategyValues strategy) => strategy.Option(Track.Dive).As<DiveStrategy>() != DiveStrategy.NoLock;
 
-    private (Positional, bool) GetPositional(StrategyValues strategy, Actor? primaryTarget)
+    private (Positional, bool) GetPositional(StrategyValues strategy, Enemy? primaryTarget)
     {
         // no positional
         if (NumAOETargets > 2 && Unlocked(AID.DoomSpike) || !Unlocked(AID.ChaosThrust) || primaryTarget == null)

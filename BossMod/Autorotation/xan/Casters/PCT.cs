@@ -1,5 +1,6 @@
 ﻿using BossMod.PCT;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -58,8 +59,8 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
     public int NumAOETargets;
     public int NumLineTargets;
 
-    private Actor? BestAOETarget;
-    private Actor? BestLineTarget;
+    private Enemy? BestAOETarget;
+    private Enemy? BestLineTarget;
 
     public enum GCDPriority : int
     {
@@ -110,7 +111,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         }
     }
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -163,8 +164,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
-        if (primaryTarget != null)
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 25));
+        GoalZoneSingle(25);
 
         if (Player.InCombat && World.Actors.FirstOrDefault(x => x.OID is LeylinesOID && x.OwnerID == Player.InstanceID) is Actor ll)
             Hints.GoalZones.Add(p => p.InCircle(ll.Position, 8) ? 0.5f : 0);

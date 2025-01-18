@@ -1,5 +1,6 @@
 ﻿using BossMod.MCH;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -63,13 +64,13 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
     public int NumSawTargets;
     public int NumFlamethrowerTargets;
 
-    private Actor? BestAOETarget;
-    private Actor? BestRangedAOETarget;
-    private Actor? BestChainsawTarget;
+    private Enemy? BestAOETarget;
+    private Enemy? BestRangedAOETarget;
+    private Enemy? BestChainsawTarget;
 
     private bool IsPausedForFlamethrower => Service.Config.Get<MCHConfig>().PauseForFlamethrower && Flamethrower;
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
 
@@ -115,7 +116,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             var aoebreakpoint = strategy.AOEOk()
                 ? Overheated && Unlocked(AID.AutoCrossbow) ? 4 : 3
                 : 50;
-            GoalZoneCombined(25, Hints.GoalAOECone(primaryTarget, 12, 60.Degrees()), aoebreakpoint);
+            GoalZoneCombined(25, Hints.GoalAOECone(primaryTarget.Actor, 12, 60.Degrees()), aoebreakpoint);
         }
 
         if (Overheated && Unlocked(AID.HeatBlast))
@@ -177,7 +178,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (CountdownRemaining is > 0 and < 5 && ReassembleLeft == 0)
             PushOGCD(AID.Reassemble, Player);
@@ -212,7 +213,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
     private float MaxGaussCD => MaxChargesIn(AID.GaussRound);
     private float MaxRicochetCD => MaxChargesIn(AID.Ricochet);
 
-    private void UseCharges(StrategyValues strategy, Actor? primaryTarget)
+    private void UseCharges(StrategyValues strategy, Enemy? primaryTarget)
     {
         // checking for max charges
         if (CanWeave(MaxGaussCD, 0.6f))
@@ -231,10 +232,10 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         UseRicochet(primaryTarget, relapse > gelapse ? 1 : 0);
     }
 
-    private void UseGauss(Actor? primaryTarget, int charges) => Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.GaussRound), Unlocked(AID.DoubleCheck) ? BestRangedAOETarget : primaryTarget, ActionQueue.Priority.Low - 50 + charges);
-    private void UseRicochet(Actor? primaryTarget, int charges) => Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Ricochet), BestRangedAOETarget, ActionQueue.Priority.Low - 50 + charges);
+    private void UseGauss(Enemy? primaryTarget, int charges) => Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.GaussRound), (Unlocked(AID.DoubleCheck) ? BestRangedAOETarget : primaryTarget)?.Actor, ActionQueue.Priority.Low - 50 + charges);
+    private void UseRicochet(Enemy? primaryTarget, int charges) => Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Ricochet), BestRangedAOETarget?.Actor, ActionQueue.Priority.Low - 50 + charges);
 
-    private bool ShouldReassemble(StrategyValues strategy, Actor? primaryTarget)
+    private bool ShouldReassemble(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (ReassembleLeft > 0 || !Unlocked(AID.Reassemble) || Overheated || primaryTarget == null)
             return false;
@@ -255,7 +256,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         return NextToolCharge <= GCD;
     }
 
-    private bool ShouldMinion(StrategyValues strategy, Actor? primaryTarget)
+    private bool ShouldMinion(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (!Unlocked(AID.RookAutoturret) || primaryTarget == null || HasMinion || Battery < 50 || ShouldWildfire(strategy))
             return false;

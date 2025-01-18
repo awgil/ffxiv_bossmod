@@ -1,5 +1,6 @@
 ﻿using BossMod.WHM;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -38,10 +39,10 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
     public int NumMiseryTargets;
     public int NumSolaceTargets;
 
-    private Actor? BestDotTarget;
-    private Actor? BestMiseryTarget;
+    private Enemy? BestDotTarget;
+    private Enemy? BestMiseryTarget;
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 

@@ -1,5 +1,6 @@
 ﻿using BossMod.PLD;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -84,7 +85,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
     public int NumAOETargets;
 
-    private Actor? BestRangedTarget;
+    private Enemy? BestRangedTarget;
 
     protected override float GetCastTime(AID aid) => aid switch
     {
@@ -92,7 +93,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         _ => 0
     };
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
@@ -173,7 +174,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         PushGCD(AID.FastBlade, primaryTarget, GCDPriority.Standard);
     }
 
-    private void CalcNextBestOGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void CalcNextBestOGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (primaryTarget == null || !Player.InCombat)
             return;
@@ -213,7 +214,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private void UseHS(StrategyValues strategy, Actor? primaryTarget)
+    private void UseHS(StrategyValues strategy, Enemy? primaryTarget)
     {
         var track = strategy.Option(Track.HolySpirit).As<HSStrategy>();
 
@@ -238,7 +239,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         PushGCD(AID.HolySpirit, primaryTarget, prio);
     }
 
-    private void UseAtone(StrategyValues strategy, Actor? primaryTarget)
+    private void UseAtone(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (AtonementReady <= GCD)
             return;
@@ -260,7 +261,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private bool ShouldFoF(StrategyValues strategy, Actor? primaryTarget)
+    private bool ShouldFoF(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (strategy.Simple(SharedTrack.Buffs) == OffensiveStrategy.Delay)
             return false;

@@ -1,5 +1,6 @@
 ﻿using BossMod.MNK;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -180,9 +181,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     public int NumAOETargets;
     public int NumLineTargets;
 
-    private Actor? BestBlitzTarget;
-    private Actor? BestRangedTarget; // fire's reply
-    private Actor? BestLineTarget; // enlightenment, wind's reply
+    private Enemy? BestBlitzTarget;
+    private Enemy? BestRangedTarget; // fire's reply
+    private Enemy? BestLineTarget; // enlightenment, wind's reply
 
     public bool HaveLunar => Nadi.HasFlag(NadiFlags.Lunar);
     public bool HaveSolar => Nadi.HasFlag(NadiFlags.Solar);
@@ -277,7 +278,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     public override string DescribeState() => $"F={BuffedGCDsLeft}, PB={PBGCDsLeft}";
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 3);
         HaveTarget = primaryTarget != null && Player.InCombat;
@@ -310,13 +311,13 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 (BestBlitzTarget, NumBlitzTargets) = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget);
             else
             {
-                BestBlitzTarget = Player;
+                BestBlitzTarget = null;
                 NumBlitzTargets = NumAOETargets;
             }
         }
         else
         {
-            BestBlitzTarget = Player;
+            BestBlitzTarget = null;
             NumBlitzTargets = 0;
         }
 
@@ -480,7 +481,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                         : Form.OpoOpo;
     }
 
-    private void QueuePB(StrategyValues strategy, Actor? primaryTarget)
+    private void QueuePB(StrategyValues strategy, Enemy? primaryTarget)
     {
         var pbstrat = strategy.Option(Track.PB).As<PBStrategy>();
 
@@ -520,7 +521,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         switch (strategy.Option(Track.Potion).As<PotionStrategy>())
         {
@@ -554,7 +555,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             if (NumLineTargets >= 3)
                 PushOGCD(AID.HowlingFist, BestLineTarget, OGCDPriority.TFC);
 
-            if (Hints.FindEnemy(primaryTarget)?.Priority >= 0)
+            if (primaryTarget?.Priority >= 0)
                 PushOGCD(AID.SteelPeak, primaryTarget, OGCDPriority.TFC);
         }
 
@@ -562,7 +563,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.Thunderclap, primaryTarget, OGCDPriority.TrueNorth);
     }
 
-    private void Brotherhood(StrategyValues strategy, Actor? primaryTarget)
+    private void Brotherhood(StrategyValues strategy, Enemy? primaryTarget)
     {
         switch (strategy.Simple(Track.BH))
         {
@@ -578,7 +579,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private void Meditate(StrategyValues strategy, Actor? primaryTarget)
+    private void Meditate(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (Chakra >= 5 || !Unlocked(AID.SteeledMeditation) || Player.MountId > 0)
             return;
@@ -607,7 +608,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         PushGCD(AID.SteeledMeditation, Player, prio);
     }
 
-    private void FormShift(StrategyValues strategy, Actor? primaryTarget)
+    private void FormShift(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (!Unlocked(AID.FormShift) || PerfectBalanceLeft > 0)
             return;
@@ -704,7 +705,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         _ => false
     };
 
-    private void UseTN(StrategyValues strategy, Actor? primaryTarget, bool rofPlanned)
+    private void UseTN(StrategyValues strategy, Enemy? primaryTarget, bool rofPlanned)
     {
         switch (strategy.Simple(Track.TN))
         {
@@ -737,7 +738,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         return s > 0 ? (Form.Coeurl, s) : (Form.None, 0);
     }
 
-    private void SmartEngage(StrategyValues strategy, Actor? primaryTarget)
+    private void SmartEngage(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (primaryTarget == null)
             return;
@@ -763,7 +764,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 // TODO account for acceleration
                 if (CountdownRemaining < secToMelee + 0.5f)
                 {
-                    Hints.ForcedMovement = Player.DirectionTo(primaryTarget).ToVec3();
+                    Hints.ForcedMovement = Player.DirectionTo(primaryTarget.Actor).ToVec3();
                     PushGCD(AID.DragonKick, primaryTarget);
                 }
 
@@ -781,7 +782,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             return;
 
         if (Player.DistanceToHitbox(primaryTarget) > 3)
-            Hints.ForcedMovement = Player.DirectionTo(primaryTarget).ToVec3();
+            Hints.ForcedMovement = Player.DirectionTo(primaryTarget.Actor).ToVec3();
 
         if (CountdownRemaining < GetApplicationDelay(facepullAction))
             PushGCD(facepullAction, primaryTarget);

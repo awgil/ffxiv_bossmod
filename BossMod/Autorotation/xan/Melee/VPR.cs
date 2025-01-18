@@ -1,6 +1,7 @@
 ﻿using BossMod.VPR;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using System.Runtime.InteropServices;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -53,12 +54,12 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
     public int NumAOETargets;
     public int NumRangedAOETargets;
 
-    private Actor? BestRangedAOETarget;
-    private Actor? BestGenerationTarget;
+    private Enemy? BestRangedAOETarget;
+    private Enemy? BestGenerationTarget;
 
     private int CoilMax => Unlocked(TraitID.EnhancedVipersRattle) ? 3 : 2;
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
@@ -289,7 +290,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool ShouldCoil(StrategyValues strategy) => Coil == CoilMax && Swiftscaled > GCD && DreadCombo == 0;
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat || primaryTarget == null)
             return;

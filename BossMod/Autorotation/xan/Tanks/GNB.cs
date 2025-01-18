@@ -1,5 +1,6 @@
 ﻿using BossMod.GNB;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -25,12 +26,12 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
     public int NumAOETargets;
     public int NumReignTargets;
 
-    private Actor? BestReignTarget;
+    private Enemy? BestReignTarget;
 
     public bool FastGCD => GCDLength <= 2.47f;
     public int MaxAmmo => Unlocked(TraitID.CartridgeChargeII) ? 3 : 2;
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
@@ -127,7 +128,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
         return ComboLastMove is AID.BrutalShell or AID.DemonSlice && Ammo == MaxAmmo;
     }
 
-    private void CalcNextBestOGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void CalcNextBestOGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat || primaryTarget == null)
             return;

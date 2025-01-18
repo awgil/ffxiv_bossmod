@@ -167,6 +167,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public WDir DirectionTo(WPos other) => (other - Position).Normalized();
     public Angle AngleTo(Actor other) => Angle.FromDirection(other.Position - Position);
 
+    public float DistanceToHitbox(AIHints.Enemy? other) => DistanceToHitbox(other?.Actor);
     public float DistanceToHitbox(Actor? other) => other == null ? float.MaxValue : DistanceToHitbox(other.Position, other.HitboxRadius);
     public float DistanceToHitbox(WPos other, float otherHitboxRadius) => (other - Position).Length() - otherHitboxRadius - HitboxRadius;
 

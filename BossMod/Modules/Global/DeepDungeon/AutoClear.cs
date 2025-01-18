@@ -755,7 +755,6 @@ public abstract class AutoClear : ZoneModule
                     Walls.Add((roomdata.West, true));
             }
         }
-
     }
 }
 

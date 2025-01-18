@@ -1,5 +1,6 @@
 ﻿using BossMod.SAM;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -67,10 +68,10 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
     public AID AOEStarter => Unlocked(AID.Fuko) ? AID.Fuko : AID.Fuga;
     public AID STStarter => Unlocked(AID.Gyofu) ? AID.Gyofu : AID.Hakaze;
 
-    private Actor? BestAOETarget; // null if fuko is unlocked since it's self-targeted
-    private Actor? BestLineTarget;
-    private Actor? BestOgiTarget;
-    private Actor? BestDotTarget;
+    private Enemy? BestAOETarget; // null if fuko is unlocked since it's self-targeted
+    private Enemy? BestLineTarget;
+    private Enemy? BestOgiTarget;
+    private Enemy? BestDotTarget;
 
     private float TargetDotLeft;
 
@@ -108,7 +109,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
     // TODO: fix GCD priorities - use kaeshi as fallback action (during forced movement, etc)
     // use kaeshi goken asap in aoe? we usually arent holding for buffs with 3 targets
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 3);
 
@@ -180,7 +181,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             PushGCD(AID.OgiNamikiri, BestOgiTarget);
 
         if (MeikyoLeft > GCD)
-            PushGCD(MeikyoAction, NumAOECircleTargets > 2 ? Player : primaryTarget);
+            PushGCD(MeikyoAction, NumAOECircleTargets > 2 ? null : primaryTarget);
 
         if (ComboLastMove == AOEStarter && NumAOECircleTargets > 0)
         {
@@ -272,7 +273,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private void UseKaeshi(Actor? primaryTarget)
+    private void UseKaeshi(Enemy? primaryTarget)
     {
         // namikiri combo is broken by other gcds, other followups are not
         if (KaeshiNamikiri)
@@ -286,16 +287,16 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             PushGCD(aid, target);
     }
 
-    private (AID, Actor?) KaeshiToAID(Actor? primaryTarget, Kaeshi k) => k switch
+    private (AID, Enemy?) KaeshiToAID(Enemy? primaryTarget, Kaeshi k) => k switch
     {
         Kaeshi.Setsugekka => (AID.KaeshiSetsugekka, primaryTarget),
         Kaeshi.TendoSetsugekka => (AID.TendoKaeshiSetsugekka, primaryTarget),
-        Kaeshi.Goken => (AID.KaeshiGoken, Player),
-        Kaeshi.TendoGoken => (AID.TendoKaeshiGoken, Player),
+        Kaeshi.Goken => (AID.KaeshiGoken, null),
+        Kaeshi.TendoGoken => (AID.TendoKaeshiGoken, null),
         _ => (default, null)
     };
 
-    private void UseIaijutsu(Actor? primaryTarget)
+    private void UseIaijutsu(Enemy? primaryTarget)
     {
         if (!HaveFugetsu || NumStickers == 0)
             return;
@@ -325,7 +326,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private void EmergencyMeikyo(StrategyValues strategy, Actor? primaryTarget)
+    private void EmergencyMeikyo(StrategyValues strategy, Enemy? primaryTarget)
     {
         // special case for if we got thrust into combat with no prep
         if (MeikyoLeft == 0 && !HaveFugetsu && CombatTimer < 5 && primaryTarget != null)
@@ -365,7 +366,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         return (Positional.Any, false);
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (primaryTarget == null || !HaveFugetsu || !Player.InCombat)
             return;

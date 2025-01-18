@@ -1,5 +1,6 @@
 ﻿using BossMod.SMN;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -85,8 +86,8 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
     public int NumMeleeTargets;
 
     private Actor? Carbuncle;
-    private Actor? BestAOETarget;
-    private Actor? BestMeleeTarget;
+    private Enemy? BestAOETarget;
+    private Enemy? BestMeleeTarget;
 
     public Trance Trance
     {
@@ -209,7 +210,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         }
     }
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -254,13 +255,13 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
-        Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 25));
+        GoalZoneSingle(25);
 
         OGCDs(strategy, primaryTarget);
 
         if (CrimsonStrikeReady)
         {
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 3));
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget.Actor, 3));
             PushGCD(AID.CrimsonStrike, BestMeleeTarget);
         }
 
@@ -330,7 +331,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
 
     }
 
-    private void OGCDs(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCDs(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat || primaryTarget == null)
             return;

@@ -1,5 +1,6 @@
 ﻿using BossMod.DNC;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -44,9 +45,9 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
     public float FinishingMoveLeft; // 30s max
     public float DanceOfTheDawnLeft; // 30s max
 
-    private Actor? BestFan4Target;
-    private Actor? BestRangedAOETarget;
-    private Actor? BestStarfallTarget;
+    private Enemy? BestFan4Target;
+    private Enemy? BestRangedAOETarget;
+    private Enemy? BestStarfallTarget;
 
     public int NumAOETargets;
     public int NumDanceTargets;
@@ -59,7 +60,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
 
     protected override float GetCastTime(AID aid) => 0;
 
-    private bool HaveTarget(Actor? primaryTarget) => NumAOETargets > 1 || primaryTarget != null;
+    private bool HaveTarget(Enemy? primaryTarget) => NumAOETargets > 1 || primaryTarget != null;
 
     private static float GetApplicationDelay(AID aid) => aid switch
     {
@@ -67,7 +68,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         _ => 0
     };
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
 
@@ -215,7 +216,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
 
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (CountdownRemaining > 0)
         {
@@ -275,7 +276,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         return NumDanceTargets > 0 && StandardFinishLeft > GCD + TechStepDuration + TechFinishDuration;
     }
 
-    private bool CanFlow(Actor? primaryTarget, out AID action)
+    private bool CanFlow(Enemy? primaryTarget, out AID action)
     {
         var act = NumAOETargets > 1 ? AID.Bloodshower : AID.Fountainfall;
         if (Unlocked(act) && FlowLeft > GCD && HaveTarget(primaryTarget))
@@ -288,7 +289,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         return false;
     }
 
-    private bool CanSymmetry(Actor? primaryTarget, out AID action)
+    private bool CanSymmetry(Enemy? primaryTarget, out AID action)
     {
         var act = NumAOETargets > 1 ? AID.RisingWindmill : AID.ReverseCascade;
         if (Unlocked(act) && SymmetryLeft > GCD && HaveTarget(primaryTarget))

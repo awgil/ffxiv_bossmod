@@ -1,5 +1,6 @@
 ﻿using BossMod.RPR;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -54,9 +55,9 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
     public int NumConeTargets; // grim swathe, guillotine
     public int NumLineTargets; // plentiful harvest
 
-    private Actor? BestRangedAOETarget;
-    private Actor? BestConeTarget;
-    private Actor? BestLineTarget;
+    private Enemy? BestRangedAOETarget;
+    private Enemy? BestConeTarget;
+    private Enemy? BestLineTarget;
 
     public enum GCDPriority
     {
@@ -77,7 +78,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool Enshrouded => BlueSouls > 0;
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
@@ -103,9 +104,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         Executioner = StatusLeft(SID.Executioner);
         PerfectioParata = StatusLeft(SID.PerfectioParata);
 
-        var primaryEnemy = Hints.FindEnemy(primaryTarget);
-
-        TargetDDLeft = DDLeft(primaryEnemy);
+        TargetDDLeft = DDLeft(primaryTarget);
         ShortestNearbyDDLeft = float.MaxValue;
 
         switch (strategy.AOE())
@@ -124,7 +123,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         (BestConeTarget, NumConeTargets) = SelectTarget(strategy, primaryTarget, 8, (primary, other) => Hints.TargetInAOECone(other, Player.Position, 8, Player.DirectionTo(primary), 90.Degrees()));
         (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
 
-        var pos = GetNextPositional(primaryTarget);
+        var pos = GetNextPositional(primaryTarget?.Actor);
         UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
 
         OGCD(strategy, primaryTarget);
@@ -154,7 +153,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
                     PushGCD(gal, primaryTarget, GCDPriority.Reaver);
                 else if (EnhancedGibbet > GCD)
                     PushGCD(gib, primaryTarget, GCDPriority.Reaver);
-                else if (GetCurrentPositional(primaryTarget!) == Positional.Rear)
+                else if (GetCurrentPositional(primaryTarget.Actor) == Positional.Rear)
                     PushGCD(gal, primaryTarget, GCDPriority.Reaver);
                 else
                     PushGCD(gib, primaryTarget, GCDPriority.Reaver);
@@ -220,7 +219,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         PushGCD(AID.Slice, primaryTarget, GCDPriority.Filler);
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (primaryTarget == null || !Player.InCombat)
             return;
@@ -255,9 +254,9 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         UseSoul(strategy, primaryTarget);
     }
 
-    private void DDRefresh(Actor? primaryTarget)
+    private void DDRefresh(Enemy? primaryTarget)
     {
-        void Extend(float timer, AID action, Actor? target)
+        void Extend(float timer, AID action, Enemy? target)
         {
             if (!CanFitGCD(timer, CanWeave(AID.Gluttony) ? 2 : 1))
                 PushGCD(action, target, GCDPriority.DDExpiring);
@@ -266,7 +265,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
                 PushGCD(action, target, GCDPriority.DDExtend);
         }
 
-        Extend(ShortestNearbyDDLeft, AID.WhorlofDeath, Player);
+        Extend(ShortestNearbyDDLeft, AID.WhorlofDeath, null);
         Extend(TargetDDLeft, AID.ShadowofDeath, primaryTarget);
     }
 
@@ -291,7 +290,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         return ReadyIn(AID.ArcaneCircle) > 65;
     }
 
-    private void UseSoul(StrategyValues strategy, Actor? primaryTarget)
+    private void UseSoul(StrategyValues strategy, Enemy? primaryTarget)
     {
         // can't
         if (RedGauge < 50 || Enshrouded)
@@ -324,12 +323,12 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             if (NumConeTargets > 2)
                 PushOGCD(AID.GrimSwathe, BestConeTarget);
 
-            if (Hints.FindEnemy(primaryTarget)?.Priority >= 0)
+            if (primaryTarget?.Priority >= 0)
                 PushOGCD(AID.BloodStalk, primaryTarget);
         }
     }
 
-    private void EnshroudGCDs(StrategyValues strategy, Actor? primaryTarget)
+    private void EnshroudGCDs(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (BlueSouls == 0)
             return;
@@ -382,7 +381,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         return (nextPos, SoulReaver > GCD || Executioner > GCD);
     }
 
-    private float DDLeft(AIHints.Enemy? target)
+    private float DDLeft(Enemy? target)
         => (target?.ForbidDOTs ?? false)
             ? float.MaxValue
             : StatusDetails(target?.Actor, SID.DeathsDesign, Player.InstanceID, 30).Left;

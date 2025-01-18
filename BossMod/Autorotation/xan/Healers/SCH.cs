@@ -1,5 +1,6 @@
 ﻿using BossMod.SCH;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player)
@@ -46,12 +47,12 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
     public PetOrder FairyOrder;
 
     private Actor? Eos;
-    private Actor? BestDotTarget;
-    private Actor? BestRangedAOETarget;
+    private Enemy? BestDotTarget;
+    private Enemy? BestRangedAOETarget;
 
     private DateTime _summonWait;
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -117,7 +118,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
         PushGCD(AID.Ruin2, primaryTarget);
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (primaryTarget == null || !Player.InCombat)
             return;

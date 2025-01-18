@@ -1,5 +1,6 @@
 ﻿using BossMod.SGE;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -38,15 +39,15 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
 
     public float TargetDotLeft;
 
-    private Actor? BestPhlegmaTarget; // 6y/5y
-    private Actor? BestRangedAOETarget; // 25y/5y toxikon, psyche
-    private Actor? BestPneumaTarget; // 25y/4y rect
+    private Enemy? BestPhlegmaTarget; // 6y/5y
+    private Enemy? BestRangedAOETarget; // 25y/5y toxikon, psyche
+    private Enemy? BestPneumaTarget; // 25y/4y rect
 
-    private Actor? BestDotTarget;
+    private Enemy? BestDotTarget;
 
     protected override float GetCastTime(AID aid) => Eukrasia ? 0 : base.GetCastTime(aid);
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
 
@@ -69,7 +70,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
         DoOGCD(strategy, primaryTarget);
     }
 
-    private void DoGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void DoGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (strategy.Option(Track.Kardia).As<KardiaStrategy>() == KardiaStrategy.Auto
             && Unlocked(AID.Kardia)
@@ -104,8 +105,8 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (ShouldPhlegma(strategy))
         {
-            if (ReadyIn(AID.Phlegma) <= GCD && primaryTarget is Actor t)
-                Hints.GoalZones.Add(Hints.GoalSingleTarget(t, 6));
+            if (ReadyIn(AID.Phlegma) <= GCD && primaryTarget is { } t)
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(t.Actor, 6));
 
             PushGCD(AID.Phlegma, BestPhlegmaTarget);
         }
@@ -135,7 +136,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
         return NumPhlegmaTargets > 2 || RaidBuffsLeft > GCD || RaidBuffsIn > 9000;
     }
 
-    private void DoOGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void DoOGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat)
             return;

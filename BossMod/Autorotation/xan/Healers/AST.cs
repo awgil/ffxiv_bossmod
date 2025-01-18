@@ -1,5 +1,6 @@
 ﻿using BossMod.AST;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 namespace BossMod.Autorotation.xan;
 public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player)
 {
@@ -24,8 +25,8 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
     public int NumCrownTargets;
     public int NumAOETargets;
 
-    private Actor? BestAOETarget;
-    private Actor? BestDotTarget;
+    private Enemy? BestAOETarget;
+    private Enemy? BestDotTarget;
 
     protected override float GetCastTime(AID aid)
     {
@@ -37,7 +38,7 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
         return b;
     }
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -73,7 +74,7 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
         PushGCD(AID.Malefic, primaryTarget);
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat || primaryTarget == null)
             return;

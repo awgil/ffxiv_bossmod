@@ -1,5 +1,6 @@
 ﻿using BossMod.BLM;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -47,7 +48,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     public int MaxPolyglot => Unlocked(TraitID.EnhancedPolyglotII) ? 3 : Unlocked(TraitID.EnhancedPolyglot) ? 2 : 1;
     public int MaxHearts => Unlocked(TraitID.UmbralHeart) ? 3 : 0;
 
-    private Actor? BestAOETarget;
+    private Enemy? BestAOETarget;
     private int NumAOETargets;
 
     protected override float GetCastTime(AID aid)
@@ -75,7 +76,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         return castTime;
     }
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
 
@@ -124,8 +125,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
-        if (PlayerTarget != null)
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget, 25));
+        GoalZoneSingle(25);
 
         if (Player.InCombat && World.Actors.FirstOrDefault(x => x.OID == 0x179 && x.OwnerID == Player.InstanceID) is Actor ll)
             Hints.GoalZones.Add(p => p.InCircle(ll.Position, 3) ? 0.5f : 0);
@@ -169,7 +169,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Scathe, primaryTarget);
     }
 
-    private void FirePhase(StrategyValues strategy, Actor? primaryTarget)
+    private void FirePhase(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (NumAOETargets > 2)
         {
@@ -184,7 +184,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             FirePhaseST(strategy, primaryTarget);
     }
 
-    private void FirePhaseST(StrategyValues strategy, Actor? primaryTarget)
+    private void FirePhaseST(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (Thunderhead > GCD && TargetThunderLeft < 5 && ElementLeft > GCDLength + AnimationLockDelay)
             PushGCD(AID.Thunder1, primaryTarget);
@@ -294,7 +294,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         TryInstantCast(strategy, BestAOETarget);
     }
 
-    private void FireAOELowLevel(StrategyValues strategy, Actor? primaryTarget)
+    private void FireAOELowLevel(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (Thunderhead > GCD && TargetThunderLeft < 5)
         {
@@ -315,7 +315,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         }
     }
 
-    private void IcePhase(StrategyValues strategy, Actor? primaryTarget)
+    private void IcePhase(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (NumAOETargets > 2 && Unlocked(AID.Blizzard2))
         {
@@ -328,7 +328,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             IcePhaseST(strategy, primaryTarget);
     }
 
-    private void IcePhaseST(StrategyValues strategy, Actor? primaryTarget)
+    private void IcePhaseST(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (Thunderhead > GCD && TargetThunderLeft < 5 && ElementLeft > GCDLength + AnimationLockDelay)
             PushGCD(AID.Thunder1, primaryTarget);
@@ -360,7 +360,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     }
 
-    private void IcePhaseAOE(StrategyValues strategy, Actor? primaryTarget)
+    private void IcePhaseAOE(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (Ice == 0)
         {
@@ -375,7 +375,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         TryInstantCast(strategy, primaryTarget);
     }
 
-    private void IceAOELowLevel(StrategyValues strategy, Actor? primaryTarget)
+    private void IceAOELowLevel(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (Thunderhead > GCD && TargetThunderLeft < 5)
         {
@@ -396,7 +396,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Blizzard2, BestAOETarget);
     }
 
-    private void Choose(AID st, AID aoe, Actor? primaryTarget, int additionalPrio = 0)
+    private void Choose(AID st, AID aoe, Enemy? primaryTarget, int additionalPrio = 0)
     {
         if (NumAOETargets > 2 && Unlocked(aoe))
             PushGCD(aoe, BestAOETarget, additionalPrio + 1);
@@ -404,7 +404,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(st, primaryTarget, additionalPrio + 1);
     }
 
-    private void TryInstantCast(StrategyValues strategy, Actor? primaryTarget, bool useFirestarter = true, bool useThunderhead = true, bool usePolyglot = true)
+    private void TryInstantCast(StrategyValues strategy, Enemy? primaryTarget, bool useFirestarter = true, bool useThunderhead = true, bool usePolyglot = true)
     {
         var tp = useThunderhead && Thunderhead > GCD;
 
@@ -421,7 +421,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Fire3, primaryTarget);
     }
 
-    private void TryInstantOrTranspose(StrategyValues strategy, Actor? primaryTarget, bool useThunderhead = true)
+    private void TryInstantOrTranspose(StrategyValues strategy, Enemy? primaryTarget, bool useThunderhead = true)
     {
         if (useThunderhead && Thunderhead > GCD)
             Choose(AID.Thunder1, AID.Thunder2, primaryTarget);
