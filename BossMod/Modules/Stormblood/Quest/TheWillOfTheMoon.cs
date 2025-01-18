@@ -73,15 +73,13 @@ class AutoYshtola(WorldState ws) : UnmanagedRotation(ws, 25)
     private Actor Hien => World.Actors.First(x => (OID)x.OID == OID.Hien);
     private Actor Daidukul => World.Actors.First(x => (OID)x.OID == OID.Daidukul);
 
-    private int PredictedHP(Actor a) => (int)a.HPMP.CurHP + World.PendingEffects.PendingHPDifference(a.InstanceID);
-
     protected override void Exec(Actor? primaryTarget)
     {
         var hienMinHP = Daidukul.CastInfo?.Action.ID == (uint)AID.TranquilAnnihilation
             ? 28000
             : 10000;
 
-        if (PredictedHP(Hien) < hienMinHP)
+        if (Hien.PredictedHPRaw < hienMinHP)
         {
             if (Player.DistanceToHitbox(Hien) > 25)
                 Hints.ForcedMovement = Player.DirectionTo(Hien).ToVec3();

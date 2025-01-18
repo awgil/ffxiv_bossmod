@@ -74,6 +74,7 @@ public record struct ActorModelState(byte ModelState, byte AnimState1, byte Anim
 public record struct PendingEffect(uint GlobalSequence, int TargetIndex, ulong SourceInstanceId, DateTime Expiration);
 public record struct PendingEffectDelta(PendingEffect Effect, int Value);
 public record struct PendingEffectStatus(PendingEffect Effect, uint StatusId, byte ExtraLo);
+public record struct PendingEffectStatusLoss(PendingEffect Effect, uint StatusId);
 
 public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string name, uint nameID, ActorType type, Class classID, int level, Vector4 posRot, float hitboxRadius = 1, ActorHPMP hpmp = default, bool targetable = true, bool ally = false, ulong ownerID = 0, uint fateID = 0)
 {
@@ -109,6 +110,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public List<PendingEffectDelta> PendingHPDifferences = []; // damage and heal effects applied to the target that were not confirmed yet
     public List<PendingEffectDelta> PendingMPDifferences = [];
     public List<PendingEffectStatus> PendingStatuses = [];
+    public List<PendingEffectStatusLoss> PendingStatusLoss = [];
     public List<PendingEffect> PendingKnockbacks = [];
 
     public Role Role => Class.GetRole();
@@ -128,6 +130,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public int PredictedMPRaw => (int)HPMP.CurMP + PendingMPDiffence;
     public int PredictedHPClamped => Math.Clamp(PredictedHPRaw, 0, (int)HPMP.MaxHP);
     public bool PredictedDead => PredictedHPRaw <= 1;
+    public float PredictedHPRatio => (float)PredictedHPRaw / HPMP.MaxHP;
 
     public bool IsTransformed => Statuses.Any(Autorotation.RotationModuleManager.IsTransformStatus);
 

@@ -38,8 +38,6 @@ class CodexOfGravity(BossModule module) : Components.StackWithCastTargets(module
 
 class LamittAI(WorldState ws) : UnmanagedRotation(ws, 25)
 {
-    private float ActorHP(Actor a) => (float)(a.HPMP.CurHP + World.PendingEffects.PendingHPDifference(a.InstanceID)) / a.HPMP.MaxHP;
-
     protected override void Exec(Actor? primaryTarget)
     {
         if (primaryTarget == null)
@@ -50,15 +48,15 @@ class LamittAI(WorldState ws) : UnmanagedRotation(ws, 25)
         Hints.GoalZones.Add(p => party.Count(act => act.Position.InCircle(p, 15 + Player.HitboxRadius + act.HitboxRadius)));
         Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 25));
 
-        var lowest = party.MinBy(ActorHP)!;
+        var lowest = party.MinBy(p => p.PredictedHPRatio)!;
         var esunable = party.FirstOrDefault(x => x.FindStatus(482) != null);
         var doomed = party.FirstOrDefault(x => x.FindStatus(1769) != null);
-        var partyHealth = party.Average(ActorHP);
+        var partyHealth = party.Average(p => p.PredictedHPRatio);
 
         // pre heal during doom cast since it does insane damage for some reason
         if (primaryTarget.CastInfo is { Action.ID: 17011 } ci && ci.TargetID == Player.InstanceID)
         {
-            if (ActorHP(Player) <= 0.8f)
+            if (Player.PredictedHPRatio <= 0.8f)
                 UseAction(Roleplay.AID.RonkanCureII, Player);
         }
 

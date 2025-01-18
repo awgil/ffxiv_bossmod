@@ -44,12 +44,12 @@ class Repose(BossModule module) : BossComponent(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        bool SleepProof(Actor a)
+        static bool SleepProof(Actor a)
         {
             if (a.Statuses.Any(x => x.ID is 1967 or 1968))
                 return true;
 
-            if (WorldState.PendingEffects.PendingStatus(a.InstanceID, 3) != null)
+            if (a.PendingStatuses.Any(s => s.StatusId == 3))
                 return true;
 
             return false;

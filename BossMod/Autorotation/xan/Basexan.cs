@@ -346,7 +346,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     {
         MaxCastTime = Hints.MaxCastTimeEstimate;
 
-        if (World.PendingEffects.PendingKnockbacks(Player.InstanceID))
+        if (Player.PendingKnockbacks.Count > 0)
         {
             MaxCastTime = 0f;
             return;
