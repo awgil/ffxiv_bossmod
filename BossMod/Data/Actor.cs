@@ -73,7 +73,8 @@ public record struct ActorModelState(byte ModelState, byte AnimState1, byte Anim
 
 public record struct PendingEffect(uint GlobalSequence, int TargetIndex, ulong SourceInstanceId, DateTime Expiration);
 public record struct PendingEffectDelta(PendingEffect Effect, int Value);
-public record struct PendingEffectStatus(PendingEffect Effect, uint StatusId, byte ExtraLo);
+public record struct PendingEffectStatus(PendingEffect Effect, uint StatusId);
+public record struct PendingEffectStatusExtra(PendingEffect Effect, uint StatusId, byte ExtraLo);
 
 public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string name, uint nameID, ActorType type, Class classID, int level, Vector4 posRot, float hitboxRadius = 1, ActorHPMP hpmp = default, bool targetable = true, bool ally = false, ulong ownerID = 0, uint fateID = 0)
 {
@@ -108,7 +109,8 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     // all pending lists are sorted by expiration time
     public List<PendingEffectDelta> PendingHPDifferences = []; // damage and heal effects applied to the target that were not confirmed yet
     public List<PendingEffectDelta> PendingMPDifferences = [];
-    public List<PendingEffectStatus> PendingStatuses = [];
+    public List<PendingEffectStatusExtra> PendingStatuses = [];
+    public List<PendingEffectStatus> PendingDispels = [];
     public List<PendingEffect> PendingKnockbacks = [];
 
     public Role Role => Class.GetRole();
@@ -120,13 +122,14 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public bool Omnidirectional => Utils.CharacterIsOmnidirectional(OID);
     public bool IsDeadOrDestroyed => IsDead || IsDestroyed;
     public bool IsFriendlyNPC => Type == ActorType.Enemy && IsAlly && IsTargetable;
+    public bool IsStrikingDummy => NameID == 541; // this is a hack, but striking dummies are special in some ways
     public int CharacterSpawnIndex => SpawnIndex < 200 && (SpawnIndex & 1) == 0 ? (SpawnIndex >> 1) : -1; // [0,100) for 'real' characters, -1 otherwise
     public int PendingHPDiffence => PendingHPDifferences.Sum(p => p.Value);
     public int PendingMPDiffence => PendingMPDifferences.Sum(p => p.Value);
     public int PredictedHPRaw => (int)HPMP.CurHP + PendingHPDiffence;
     public int PredictedMPRaw => (int)HPMP.CurMP + PendingMPDiffence;
     public int PredictedHPClamped => Math.Clamp(PredictedHPRaw, 0, (int)HPMP.MaxHP);
-    public bool PredictedDead => PredictedHPRaw <= 1;
+    public bool PredictedDead => PredictedHPRaw <= 1 && !IsStrikingDummy;
 
     // if expirationForPredicted is not null, search pending first, and return one if found; in that case only low byte of extra will be set
     public ActorStatus? FindStatus(uint sid, DateTime? expirationForPending = null)
