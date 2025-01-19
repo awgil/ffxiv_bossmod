@@ -184,6 +184,7 @@ public sealed class ActionDefinitions : IDisposable
             new BLU.Definitions(this),
             new PCT.Definitions(this),
             new VPR.Definitions(this),
+            new Roleplay.Definitions(this),
         ];
 
         // items (TODO: more generic approach is needed...)
