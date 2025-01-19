@@ -658,7 +658,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                     TargetChoice(thunder) ?? primaryTarget,
                     ThunderLeft < 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
-            if (AOEStrategy is AOEStrategy.ForceAOE)
+            if (forceAOE)
                 QueueGCD(BestThunderAOE,
                     TargetChoice(thunder) ?? primaryTarget ?? BestAOETarget,
                     ThunderLeft < 3 ? GCDPriority.NeedDOT :
