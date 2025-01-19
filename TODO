@@ -1,7 +1,5 @@
 immediate plans
-- review enemy prios usage
--- no search in sorted lists
--- should framework do anything about any prios? like taunt at -4...
+- review enemy prios usage - should framework do anything about any prios? like taunt at -4...
 - freeze
 - gaze avoidance + forced movement fail
 - get rid of legacyxxx
