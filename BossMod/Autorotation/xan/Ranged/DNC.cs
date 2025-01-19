@@ -117,7 +117,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
 
         var approach = IsDancing || ReadyIn(AID.StandardStep) <= GCD || ReadyIn(AID.TechnicalStep) <= GCD;
 
-        GoalZoneCombined(approach ? 15 : 25, Hints.GoalAOECircle(IsDancing ? 15 : 5), firstUnlockedAoeAction: 2);
+        GoalZoneCombined(strategy, approach ? 15 : 25, Hints.GoalAOECircle(IsDancing ? 15 : 5), AID.StandardFinish, 2);
 
         if (IsDancing)
         {
