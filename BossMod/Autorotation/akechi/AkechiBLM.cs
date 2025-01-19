@@ -837,7 +837,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
                 }
             }
-            if (!Unlocked(AID.Blizzard3) || Player.Level is >= 1 and <= 34)
+            if (Player.Level is >= 1 and <= 34)
             {
                 //Fire
                 if (Unlocked(AID.Fire1) && //if Fire is unlocked
@@ -855,7 +855,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                     QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose); //Queue Transpose
 
             }
-            if (!Unlocked(AID.Fire4) || Player.Level is >= 35 and <= 59)
+            if (Player.Level is >= 35 and <= 59)
             {
                 if (InUmbralIce) //if Umbral Ice is active
                 {
@@ -889,7 +889,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Blizzard3, target, GCDPriority.SecondStep); //Queue Blizzard III
                 }
             }
-            if (!Unlocked(AID.Despair) || Player.Level is >= 60 and <= 71)
+            if (Player.Level is >= 60 and <= 71)
             {
                 if (InUmbralIce) //if Umbral Ice is active
                 {
@@ -921,7 +921,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Blizzard3, target, GCDPriority.ThirdStep); //Queue Blizzard III
                 }
             }
-            if (!Unlocked(AID.Paradox) || Player.Level is >= 72 and <= 89)
+            if (Player.Level is >= 72 and <= 89)
             {
                 if (InUmbralIce) //if Umbral Ice is active
                 {
@@ -957,7 +957,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Blizzard3, target, GCDPriority.FourthStep); //Queue Blizzard III
                 }
             }
-            if (!Unlocked(AID.FlareStar) || Player.Level is >= 90 and <= 99)
+            if (Player.Level is >= 90 and <= 99)
             {
                 if (InUmbralIce) //if Umbral Ice is active
                 {
@@ -999,7 +999,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Blizzard3, target, GCDPriority.FourthStep); //Queue Blizzard III
                 }
             }
-            if (!Unlocked(AID.FlareStar) || Player.Level is 100)
+            if (Player.Level is 100)
             {
                 if (InUmbralIce) //if Umbral Ice is active
                 {
@@ -1073,7 +1073,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.HighBlizzard2, target, GCDPriority.NeedB3);
                 }
             }
-            if (!Unlocked(AID.Blizzard3) || Player.Level is >= 12 and <= 35)
+            if (Player.Level is >= 12 and <= 35)
             {
                 //Fire
                 if (Unlocked(AID.Fire2) && //if Fire is unlocked
@@ -1093,7 +1093,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 if (InAstralFire && !Unlocked(AID.Fire2))
                     QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose);
             }
-            if (!Unlocked(AID.Freeze) || Player.Level is >= 35 and <= 39)
+            if (Player.Level is >= 35 and <= 39)
             {
                 if (InUmbralIce)
                 {
@@ -1117,7 +1117,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Blizzard2, target, GCDPriority.SecondStep);
                 }
             }
-            if (!Unlocked(AID.Flare) || Player.Level is >= 40 and <= 49)
+            if (Player.Level is >= 40 and <= 49)
             {
                 if (InUmbralIce)
                 {
@@ -1144,7 +1144,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Blizzard2, target, GCDPriority.SecondStep);
                 }
             }
-            if (!Unlocked(AID.Blizzard4) || Player.Level is >= 50 and <= 57)
+            if (Player.Level is >= 50 and <= 57)
             {
                 if (InUmbralIce)
                 {
@@ -1178,7 +1178,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Blizzard2, target, MP < 400 ? GCDPriority.ForcedStep : GCDPriority.ThirdStep);
                 }
             }
-            if (!Unlocked(AID.HighBlizzard2) || Player.Level is >= 58 and <= 81)
+            if (Player.Level is >= 58 and <= 81)
             {
                 if (InUmbralIce)
                 {
@@ -1218,7 +1218,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Blizzard2, target, GCDPriority.FourthStep);
                 }
             }
-            if (!Unlocked(AID.FlareStar) || Player.Level is >= 82 and <= 99)
+            if (Player.Level is >= 82 and <= 99)
             {
                 if (InUmbralIce)
                 {
@@ -1258,7 +1258,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.HighBlizzard2, target, GCDPriority.ThirdStep);
                 }
             }
-            if (Unlocked(AID.FlareStar) || Player.Level is 100)
+            if (Player.Level is 100)
             {
                 if (InUmbralIce)
                 {
