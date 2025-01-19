@@ -353,7 +353,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             Positional.Rear => target.Rotation.ToDirection().Dot((Player.Position - target.Position).Normalized()) < -0.7071068f,
             _ => true
         };
-        Manager.Hints.RecommendedPositional = (target, positional.pos, NextPositionalImminent, NextPositionalCorrect);
+        Hints.RecommendedPositional = (target, positional.pos, NextPositionalImminent, NextPositionalCorrect);
     }
 
     private readonly SmartRotationConfig _smartrot = Service.Config.Get<SmartRotationConfig>();
