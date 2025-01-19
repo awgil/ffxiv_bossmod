@@ -214,7 +214,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     public bool CanFormShift => Unlocked(AID.FormShift) && PerfectBalanceLeft == 0;
 
     // TODO incorporate crit calculation - rockbreaker is a gain on 3 at 22.1% crit
-    public int AOEBreakpoint => EffectiveForm == Form.OpoOpo ? 3 : 4;
+    public int AOEBreakpoint => Unlocked(AID.ShadowOfTheDestroyer) && EffectiveForm == Form.OpoOpo ? 3 : 4;
     public bool UseAOE => NumAOETargets >= AOEBreakpoint;
 
     public int BuffedGCDsLeft => FireLeft > GCD ? (int)MathF.Floor((FireLeft - GCD) / AttackGCDLength) + 1 : 0;
@@ -345,7 +345,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(3, Hints.GoalAOECircle(5), AOEBreakpoint, pos.Item1);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, AOEBreakpoint, positional: pos.Item1, maximumActionRange: 20);
 
         UseBlitz(strategy, currentBlitz);
         FiresReply(strategy);

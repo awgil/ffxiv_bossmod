@@ -92,7 +92,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(3, Hints.GoalAOERect(primaryTarget.Actor, 10, 2), 3, pos.Item1);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOERect(primaryTarget.Actor, 10, 2), AID.DoomSpike, minAoe: 3, positional: pos.Item1, maximumActionRange: 20);
 
         if (NumAOETargets > 2)
         {

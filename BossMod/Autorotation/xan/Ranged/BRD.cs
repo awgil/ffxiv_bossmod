@@ -101,6 +101,9 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
+        if (primaryTarget != null)
+            GoalZoneCombined(25, Hints.GoalAOECone(primaryTarget.Actor, 12, 45.Degrees()), firstUnlockedAoeAction: 2);
+
         var ijDelay = EffectApplicationDelay(AID.IronJaws);
 
         if (CanFitGCD(TargetDotLeft.Min - ijDelay) && !CanFitGCD(TargetDotLeft.Min - ijDelay, 1))

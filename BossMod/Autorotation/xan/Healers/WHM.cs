@@ -69,7 +69,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
-        GoalZoneCombined(25, Hints.GoalAOECircle(8), 3);
+        GoalZoneCombined(strategy, 25, Hints.GoalAOECircle(8), AID.Holy1, 3);
 
         if (!CanFitGCD(TargetDotLeft, 1))
             PushGCD(AID.Aero1, BestDotTarget);

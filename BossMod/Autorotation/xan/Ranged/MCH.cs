@@ -113,10 +113,8 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
         if (primaryTarget != null)
         {
-            var aoebreakpoint = strategy.AOEOk()
-                ? Overheated && Unlocked(AID.AutoCrossbow) ? 4 : 3
-                : 50;
-            GoalZoneCombined(25, Hints.GoalAOECone(primaryTarget.Actor, 12, 60.Degrees()), aoebreakpoint);
+            var aoebreakpoint = Overheated && Unlocked(AID.AutoCrossbow) ? 4 : 3;
+            GoalZoneCombined(strategy, 25, Hints.GoalAOECone(primaryTarget.Actor, 12, 60.Degrees()), AID.SpreadShot, aoebreakpoint);
         }
 
         if (Overheated && Unlocked(AID.HeatBlast))

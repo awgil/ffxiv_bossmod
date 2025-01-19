@@ -131,7 +131,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
         CalcNextBestOGCD(strategy, primaryTarget);
 
-        GoalZoneCombined(3, Hints.GoalAOECircle(5), 3);
+        GoalZoneCombined(3, Hints.GoalAOECircle(5), firstUnlockedAoeAction: 3);
 
         if (ConfiteorCombo != AID.None && MP >= 1000)
             PushGCD(ConfiteorCombo, BestRangedTarget, GCDPriority.BladeCombo);

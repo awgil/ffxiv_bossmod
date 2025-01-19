@@ -133,7 +133,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(3, Hints.GoalAOECircle(5), 3, pos.Item1);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.DeathBlossom, minAoe: 3, positional: pos.Item1, maximumActionRange: 20);
 
         if (TenChiJin.Left > GCD)
         {

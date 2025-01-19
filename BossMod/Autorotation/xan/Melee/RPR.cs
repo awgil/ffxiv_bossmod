@@ -136,7 +136,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(3, Hints.GoalAOECircle(5), 3, pos.Item1, rangedAttackRange: 25f);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.SpinningScythe, 3, pos.Item1, maximumActionRange: 25);
 
         if (SoulReaver > GCD || Executioner > GCD)
         {

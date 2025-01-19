@@ -107,7 +107,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
 
         var needAOETargets = Unlocked(AID.Broil1) ? 2 : 1;
 
-        GoalZoneCombined(25, Hints.GoalAOECircle(5), needAOETargets);
+        GoalZoneCombined(strategy, 25, Hints.GoalAOECircle(5), AID.ArtOfWar1, needAOETargets);
 
         if (NumAOETargets >= needAOETargets)
             PushGCD(AID.ArtOfWar1, Player);
