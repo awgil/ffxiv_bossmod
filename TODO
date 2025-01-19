@@ -1,4 +1,18 @@
 immediate plans
+- ai refactoring
+-- high-level ai modules
+--- ordered before standard rotation modules
+--- responsible for tweaking forced-target and enemy priorities
+--- correspond to high-level decisions (eg fate mob grinding, follow master, etc)
+--- hardcoded force-target track from plans goes here
+-- standard/utility rotation modules
+--- responsible for filling actions (for casters - both casted and instant option, with casted higher prio), goal zones and positionals
+--- can expect priorities to be set to ultimate values, should use them for decisions
+-- movement modules
+--- ordered after rotation modules
+--- responsible for setting forced-movement (using pathfinding or other strategies) and max-cast-hint (based on leeway)
+--- tracks like destination (pathfind / explicit abs orient / explicit target orient) and adjustment (direct / maxmelee greed / uptime-downtime based on gcd / force-finish-cast / ...)
+-- framework (actionqueue getbest) should skip spells that won't finish in time
 - review enemy prios usage - should framework do anything about any prios? like taunt at -4...
 - freeze
 - gaze avoidance + forced movement fail
@@ -37,6 +51,8 @@ general:
 - refactor ipc/dtr
 - questbattles
 - autoautos: remove target-setting shenanigans in ual, instead deal with disabling autos in hook
+- pathfinding to actual cell entry instead of cell center?
+- pathfinding can cut corners by entering aoe (los check returns safe) - is that good?..
 
 boss modules:
 - timers
