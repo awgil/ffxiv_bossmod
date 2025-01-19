@@ -284,6 +284,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
 
         //Forced
         ForcedGCD = 900,      //Forced GCDs
+
+        //Opener
+        Opener = 1000,        //Opener
     }
     public enum OGCDPriority //priorities for oGCDs (higher number = higher priority)
     {
@@ -348,6 +351,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     public bool canWeaveLate; //Can late weave oGCDs
     public float SpS; //Current GCD length, adjusted by spell speed/haste (2.5s baseline)
     public AID NextGCD; //Next global cooldown action to be used
+    public bool canOpen; //Can use opener
     #endregion
 
     #region Module Helpers
@@ -461,7 +465,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         canWeaveLate = GCD is <= 1.25f and >= 0.1f; //Can weave in oGCDs late
         SpS = ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level); //GCD based on spell speed and haste
         NextGCD = AID.None; //Next global cooldown action to be used
-
+        canOpen = CD(AID.LeyLines) <= 120
+                && CD(AID.Triplecast) <= 0.1f
+                && CD(AID.Manafont) <= 0.1f
+                && CD(AID.Amplifier) <= 0.1f;
         #region Strategy Definitions
         var AOE = strategy.Option(Track.AOE); //AOE track
         var AOEStrategy = AOE.As<AOEStrategy>(); //AOE strategy
@@ -599,7 +606,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         (tpusStrat == TPUSStrategy.Allow && (!Player.InCombat || Player.InCombat && TargetsInRange() is 0)) ||
                         (tpusStrat == TPUSStrategy.OOConly && !Player.InCombat))
                     {
-                        if (CD(AID.Transpose) < 0.6f &&
+                        if (Player.Level < 35 &&
+                            CD(AID.Transpose) < 0.6f &&
                             (InAstralFire || InUmbralIce))
                             QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose);
                     }
@@ -788,7 +796,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     #endregion
 
     #region Rotation Helpers
-    private void BestRotation(Actor? target) //Best rotation based on targets nearby
+    private void BestRotation(Actor? target)
     {
         if (ShouldUseAOE)
         {
@@ -805,13 +813,13 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         {
             if (NoStance) //if no stance is active
             {
-                if (Unlocked(AID.Blizzard3)) //if Blizzard III is unlocked
-                {
-                    if (MP >= 10000) //if no stance is active and MP is max (opener)
-                        QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
-                    if (MP < 10000 && Player.InCombat) //or if in combat and no stance is active and MP is less than max (died or stopped attacking)
-                        QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
-                }
+                if (Unlocked(AID.Blizzard3) &&
+                    MP < 9600 &&
+                    Player.InCombat) //if Blizzard III is unlocked
+                    QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
+                if (Unlocked(AID.Fire3) &&
+                    (CD(AID.Manafont) < 5 && MP >= 10000))
+                    QueueGCD(AID.Fire3, target, canOpen ? GCDPriority.Opener : GCDPriority.NeedB3);
             }
             if (Player.Level is >= 1 and <= 34)
             {
@@ -1008,9 +1016,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         AstralStacks == 3) //and Umbral Hearts are 0
                         QueueGCD(AID.Fire3, target, GCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
                     //Step 8 - Despair
-                    if (MP is < 1600 and not 0 && //if MP is less than 1600 and not 0
-                        Unlocked(AID.Despair)) //and Despair is unlocked
-                        QueueGCD(AID.Despair, target, GCDPriority.ThirdStep); //Queue Despair
+                    if (Unlocked(AID.Despair) &&
+                        ((MP is < 1600 and not 0) || (MP <= 1600 && ElementTimer <= 4))) //if MP is less than 1600 and not 0
+                        QueueGCD(AID.Despair, target, (MP <= 1600 && ElementTimer <= 4) ? GCDPriority.NeedPolyglot : GCDPriority.ThirdStep); //Queue Despair
                     //Step 9 - Flare Star
                     if (AstralSoulStacks == 6) //if Astral Soul stacks are max
                         QueueGCD(AID.FlareStar, target, GCDPriority.FourthStep); //Queue Flare Star
@@ -1398,8 +1406,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         => Player.InCombat &&
         target != null &&
         canMF &&
-        InAstralFire &&
-        (JustUsed(BestXenoglossy, 5) && MP < 1600),
+        canWeaveIn &&
+        MP == 0,
         ManafontStrategy.Force => canMF,
         ManafontStrategy.ForceWeave => canMF && canWeaveIn,
         ManafontStrategy.ForceEX => canMF,
