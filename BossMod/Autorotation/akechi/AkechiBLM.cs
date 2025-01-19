@@ -1,9 +1,4 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Plugin.Services;
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using System;
-using static BossMod.ActorState;
-using static FFXIVClientStructs.FFXIV.Client.UI.Misc.DataCenterHelper;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using AID = BossMod.BLM.AID;
 using SID = BossMod.BLM.SID;
 using TraitID = BossMod.BLM.TraitID;
