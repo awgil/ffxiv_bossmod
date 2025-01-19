@@ -558,9 +558,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         Unlocked(TraitID.EnhancedPolyglot) && Polyglots > 0 ?
                         (forceST ? BestXenoglossy : forceAOE ? AID.Foul : BestPolyglot)
                         : PlayerHasEffect(SID.Firestarter, 30) ? AID.Fire3
-                        : hasThunderhead ?
-                        (forceST ? BestThunderST : forceAOE ? BestThunderAOE : BestThunder)
-                        : BestThunder,
+                        : hasThunderhead ? (forceST ? BestThunderST : forceAOE ? BestThunderAOE : BestThunder)
+                        : ActionReady(AID.Swiftcast) && !PlayerHasEffect(SID.Triplecast, 15) ? AID.Swiftcast
+                        : Unlocked(AID.Triplecast) && CD(AID.Triplecast) <= 60 && !PlayerHasEffect(SID.Triplecast, 15) && !PlayerHasEffect(SID.Swiftcast, 10) ? AID.Triplecast
+                        : AID.Scathe,
                         Polyglots > 0 ? TargetChoice(polyglot) ?? BestAOETarget ?? primaryTarget
                         : PlayerHasEffect(SID.Firestarter, 30) ? TargetChoice(AOE) ?? primaryTarget
                         : hasThunderhead ? TargetChoice(thunder) ?? BestAOETarget ?? primaryTarget
