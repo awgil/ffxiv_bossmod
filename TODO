@@ -1,7 +1,9 @@
 immediate plans
+- review enemy prios usage
+-- no search in sorted lists
+-- should framework do anything about any prios? like taunt at -4...
 - freeze
 - gaze avoidance + forced movement fail
-- rotation modules in preset/plan to be ordered (incl ui)
 - get rid of legacyxxx
 - ex3 p2 ice bridges
 - on ex1 the cleave is still telegraphed a bit too wide
@@ -36,6 +38,7 @@ general:
 - zone modules: module info ui
 - refactor ipc/dtr
 - questbattles
+- autoautos: remove target-setting shenanigans in ual, instead deal with disabling autos in hook
 
 boss modules:
 - timers

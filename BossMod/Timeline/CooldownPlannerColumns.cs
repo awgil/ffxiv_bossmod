@@ -17,7 +17,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
     private readonly bool _syncTimings;
     private readonly List<Replay.Action> _playerActions;
     private readonly DateTime _encStart;
-    private readonly Dictionary<Type, List<ColumnPlannerTrackStrategy>> _colsStrategy = [];
+    private readonly List<List<ColumnPlannerTrackStrategy>> _colsStrategy = [];
     private readonly ColumnPlannerTrackTarget _colTarget;
 
     private readonly float _trackWidth = 50 * ImGuiHelpers.GlobalScale;
@@ -62,40 +62,52 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         {
             if (popup)
             {
-                foreach (var (mt, m) in RotationModuleRegistry.Modules.Where(m => (m.Value.Definition.RelatedBossModule == null || m.Value.Definition.RelatedBossModule == Plan.Encounter) && m.Value.Definition.Classes[(int)Plan.Class]))
+                var disableRemove = !ImGui.GetIO().KeyShift;
+                Action? post = null;
+                for (int i = 0; i < Plan.Modules.Count; ++i)
                 {
-                    var added = Plan.Modules.ContainsKey(mt);
-                    var disable = added && !ImGui.GetIO().KeyShift;
-                    using (ImRaii.Disabled(disable))
-                    {
-                        if (ImGui.Checkbox(m.Definition.DisplayName, ref added))
-                        {
-                            if (added)
-                            {
-                                Plan.AddModule(mt);
-                                AddStrategyColumns(mt);
-                            }
-                            else
-                            {
-                                Plan.Modules.Remove(mt);
-                                if (_colsStrategy.Remove(mt, out var cols))
-                                    foreach (var col in cols)
-                                        Columns.Remove(col);
-                            }
-                            Modified = true;
-                        }
-                    }
+                    var m = Plan.Modules[i];
+                    var md = RotationModuleRegistry.Modules[m.Type].Definition;
+                    using (var disable = ImRaii.Disabled(i == 0))
+                        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowUp, "^", $"###up{i}"))
+                            post += SwapModulesAction(i, false);
+                    ImGui.SameLine();
+                    using (var disable = ImRaii.Disabled(i == Plan.Modules.Count - 1))
+                        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowDown, "v", $"###down{i}"))
+                            post += SwapModulesAction(i, true);
+                    ImGui.SameLine();
+                    var added = true;
+                    using (var disable = ImRaii.Disabled(disableRemove))
+                        if (ImGui.Checkbox(md.DisplayName, ref added))
+                            post += RemoveModuleAction(i);
+
                     if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
                     {
                         using var tooltip = ImRaii.Tooltip();
                         if (tooltip)
                         {
-                            if (disable)
-                                ImGui.TextUnformatted("Hold shift to remove");
+                            ImGui.TextUnformatted("Hold shift to remove");
+                            UIRotationModule.DescribeModule(m.Type, md);
+                        }
+                    }
+                }
+                ImGui.Separator();
+                foreach (var (mt, m) in RotationModuleRegistry.Modules.Where(m => (m.Value.Definition.RelatedBossModule == null || m.Value.Definition.RelatedBossModule == Plan.Encounter) && m.Value.Definition.Classes[(int)Plan.Class] && !Plan.Modules.Any(x => x.Type == m.Key)))
+                {
+                    var added = false;
+                    if (ImGui.Checkbox(m.Definition.DisplayName, ref added))
+                        post += AddModuleAction(mt);
+
+                    if (ImGui.IsItemHovered())
+                    {
+                        using var tooltip = ImRaii.Tooltip();
+                        if (tooltip)
+                        {
                             UIRotationModule.DescribeModule(mt, m.Definition);
                         }
                     }
                 }
+                post?.Invoke();
             }
         }
 
@@ -103,11 +115,11 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         {
             if (popup)
             {
-                foreach (var (mt, cols) in _colsStrategy)
+                for (int i = 0; i < Plan.Modules.Count; ++i)
                 {
-                    if (ImGui.BeginMenu(RotationModuleRegistry.Modules[mt].Definition.DisplayName))
+                    if (ImGui.BeginMenu(RotationModuleRegistry.Modules[Plan.Modules[i].Type].Definition.DisplayName))
                     {
-                        foreach (var col in cols)
+                        foreach (var col in _colsStrategy[i])
                         {
                             var visible = col.Width > 0;
                             if (ImGui.Checkbox(col.Name, ref visible))
@@ -139,7 +151,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
             {
                 _tree.ApplyTimings(Plan.PhaseDurations);
                 foreach (var cols in _colsStrategy)
-                    foreach (var col in cols.Value)
+                    foreach (var col in cols)
                         col.UpdateAllElements();
                 _colTarget.UpdateAllElements();
             }
@@ -192,13 +204,13 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
 
         // remove any existing strategy columns
         foreach (var cols in _colsStrategy)
-            foreach (var col in cols.Value)
+            foreach (var col in cols)
                 Columns.Remove(col);
         _colsStrategy.Clear();
 
         // add new strategy columns
-        foreach (var mt in Plan.Modules.Keys)
-            AddStrategyColumns(mt);
+        for (int i = 0; i < Plan.Modules.Count; ++i)
+            AddStrategyColumns(i);
 
         // clear and readd target overrides
         while (_colTarget.Elements.Count > 0)
@@ -213,13 +225,47 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         }
     }
 
-    private void AddStrategyColumns(Type t)
+    private Action AddModuleAction(Type type) => () =>
+    {
+        Modified = true;
+        Plan.AddModule(type);
+        AddStrategyColumns(Plan.Modules.Count - 1);
+    };
+
+    private Action RemoveModuleAction(int index) => () =>
+    {
+        Modified = true;
+        Plan.Modules.RemoveAt(index);
+        foreach (var col in _colsStrategy[index])
+            Columns.Remove(col);
+        _colsStrategy.RemoveAt(index);
+    };
+
+    private Action SwapModulesAction(int i, bool next) => () =>
+    {
+        Modified = true;
+        var j = next ? i + 1 : i - 1;
+        var (colsFirst, colsSecond) = next ? (_colsStrategy[i], _colsStrategy[j]) : (_colsStrategy[j], _colsStrategy[i]); // initially first/second
+        (Plan.Modules[i], Plan.Modules[j]) = (Plan.Modules[j], Plan.Modules[i]);
+        (_colsStrategy[i], _colsStrategy[j]) = (_colsStrategy[j], _colsStrategy[i]);
+        if (_colsStrategy[i].Count > 0 && _colsStrategy[j].Count > 0)
+        {
+            var iCol = Columns.IndexOf(colsFirst[0]);
+            for (int k = 0; k < colsSecond.Count; ++k)
+                Columns[iCol++] = colsSecond[k];
+            for (int k = 0; k < colsFirst.Count; ++k)
+                Columns[iCol++] = colsFirst[k];
+        }
+    };
+
+    private void AddStrategyColumns(int index)
     {
         var moduleInfo = BossModuleRegistry.FindByType(Plan.Encounter);
-        var cols = _colsStrategy[t] = [];
-        var md = RotationModuleRegistry.Modules[t].Definition;
-        var tracks = Plan.Modules[t];
-        List<int> uiOrder = [.. Enumerable.Range(0, tracks.Count)];
+        List<ColumnPlannerTrackStrategy> cols = [];
+        _colsStrategy.Add(cols);
+        var m = Plan.Modules[index];
+        var md = RotationModuleRegistry.Modules[m.Type].Definition;
+        List<int> uiOrder = [.. Enumerable.Range(0, m.Tracks.Count)];
         uiOrder.SortByReverse(i => md.Configs[i].UIPriority);
         foreach (int i in uiOrder)
         {
@@ -229,8 +275,8 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
 
             var col = AddBefore(new ColumnPlannerTrackStrategy(Timeline, _tree, _phaseBranches, config, Plan.Level, moduleInfo), _colTarget);
             col.Width = config.UIPriority >= 0 ? _trackWidth : 0;
-            col.NotifyModified = () => OnModifiedStrategy(tracks[i], col);
-            foreach (var entry in tracks[i])
+            col.NotifyModified = () => OnModifiedStrategy(m.Tracks[i], col);
+            foreach (var entry in m.Tracks[i])
             {
                 var state = _tree.Nodes.GetValueOrDefault(entry.StateID);
                 if (state != null)
