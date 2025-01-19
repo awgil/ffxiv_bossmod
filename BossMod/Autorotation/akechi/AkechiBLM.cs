@@ -655,7 +655,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                     GCDPriority.DOT);
             if (forceST)
                 QueueGCD(BestThunderST,
-                    TargetChoice(thunder) ?? primaryTarget,
+                    TargetChoice(thunder) ?? primaryTarget ?? BestAOETarget,
                     ThunderLeft < 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
             if (forceAOE)
@@ -681,7 +681,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 or PolyglotStrategy.XenoHold2
                 or PolyglotStrategy.XenoHold3)
                 QueueGCD(BestXenoglossy,
-                    TargetChoice(polyglot) ?? primaryTarget,
+                    TargetChoice(polyglot) ?? primaryTarget ?? BestAOETarget,
                     polyglotStrat is PolyglotStrategy.ForceXeno ? GCDPriority.ForcedGCD
                     : Polyglots == MaxPolyglots && EnochianTimer <= 5000 ? GCDPriority.NeedPolyglot
                     : GCDPriority.Polyglot);
@@ -736,11 +736,13 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 ? OGCDPriority.ForcedOGCD
                 : OGCDPriority.Manafont);
         //Retrace
+        //TODO: more options?
         if (ShouldUseRetrace(retraceStrat))
             QueueOGCD(AID.Retrace,
                 Player,
                 OGCDPriority.ForcedOGCD);
         //Between the Lines
+        //TODO: Utility maybe?
         if (ShouldUseBTL(btlStrat))
             QueueOGCD(AID.BetweenTheLines,
                 Player,
