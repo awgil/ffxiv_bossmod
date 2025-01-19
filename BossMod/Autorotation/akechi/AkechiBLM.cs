@@ -1,4 +1,9 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+﻿using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using System;
+using static BossMod.ActorState;
+using static FFXIVClientStructs.FFXIV.Client.UI.Misc.DataCenterHelper;
 using AID = BossMod.BLM.AID;
 using SID = BossMod.BLM.SID;
 using TraitID = BossMod.BLM.TraitID;
@@ -357,7 +362,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     private bool In25y(Actor? target) => Player.DistanceToHitbox(target) <= 24.99f; //Check if the target is within 25 yalms
     private bool ActionReady(AID aid) => Unlocked(aid) && CD(aid) < 0.6f; //Check if the desired action is unlocked and is ready (cooldown less than 0.6 seconds)
     private bool PlayerHasEffect(SID sid, float duration) => SelfStatusLeft(sid, duration) > GCD; //Checks if Status effect is on self
-    public float GetActualCastTime(AID aid) => ActionDefinitions.Instance.Spell(aid)!.CastTime * SpS / 2.5f;
+    private float GetCurrentCastTime(AID aid) => ActionDefinitions.Instance.Spell(aid)!.CastTime; //Get the current cast time for the specified action
+    public float GetActualCastTime(AID aid) => GetCurrentCastTime(aid) * SpS / 2.5f;
     public float GetCastTime(AID aid)
     {
         var aspect = ActionDefinitions.Instance.Spell(aid)!.Aspect;
@@ -384,49 +390,15 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     }
 
     #region Targeting
-    private bool ShouldUseAOE
-    {
-        get
-        {
-            var bestTarget = BestAOETarget;
-            if (bestTarget != null)
-            {
-                var minimumTargetsForAOE = 2;
-                float splashPriorityFunc(Actor actor)
-                {
-                    var distanceToPlayer = actor.DistanceToHitbox(Player);
-                    if (distanceToPlayer <= 24.99f)
-                    {
-                        var targetsInSplashRadius = 0;
-                        foreach (var enemy in Hints.PriorityTargets)
-                        {
-                            var targetActor = enemy.Actor;
-                            if (targetActor != actor && targetActor.Position.InCircle(actor.Position, 5f))
-                            {
-                                targetsInSplashRadius++;
-                            }
-                        }
-                        return targetsInSplashRadius;
-                    }
-                    return float.MinValue;
-                }
-
-                var (_, bestPrio) = FindBetterTargetBy(null, 25f, splashPriorityFunc);
-
-                return bestPrio >= minimumTargetsForAOE;
-            }
-
-            return false;
-        }
-    }
-    private int TargetsInRange() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 25); //Returns the number of targets hit by AOE within a 25-yalm radius around the player
+    private int TargetsInRange() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 26); //Returns the number of targets within 26-yalm radius around the player
+    private bool ShouldUseAOE => TargetsInRange() >= 3; //Check if we should use AOE
     private Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value); //Resolves the target choice based on the strategy
-    private Actor? FindBestSplashTarget()
+    private Actor? FindBestTarget()
     {
-        float splashPriorityFunc(Actor actor)
+        float AOEPriorityFunc(Actor actor)
         {
             var distanceToPlayer = actor.DistanceToHitbox(Player);
-            if (distanceToPlayer <= 24f)
+            if (distanceToPlayer <= 24.99f)
             {
                 var targetsInSplashRadius = 0;
                 foreach (var enemy in Hints.PriorityTargets)
@@ -437,16 +409,17 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         targetsInSplashRadius++;
                     }
                 }
-                return targetsInSplashRadius;
+                return targetsInSplashRadius * 10 - actor.HPMP.CurHP * 0.01f;
             }
             return float.MinValue;
         }
+        float STPriorityFunc(Actor actor) => actor.HPMP.CurHP > 0 ? 1f / actor.HPMP.CurHP : float.MinValue;
 
-        var (bestTarget, bestPrio) = FindBetterTargetBy(null, 25f, splashPriorityFunc);
-
-        return bestTarget;
+        var (bestAOETarget, bestAOEPrio) = FindBetterTargetBy(null, 25f, STPriorityFunc);
+        var (bestTarget, bestPrio) = FindBetterTargetBy(bestAOETarget, 25f, AOEPriorityFunc);
+        return ShouldUseAOE ? bestAOETarget : bestTarget;
     }
-    private Actor? BestAOETarget => FindBestSplashTarget(); // Find the best target for splash attack
+    private Actor? BestTarget => FindBestTarget(); // Find the best target for splash attack
     //TODO: BestDOTTarget
     #endregion
 
@@ -536,11 +509,11 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             (Unlocked(TraitID.EnhancedAstralFire) && MP is < 1600 and not 0)))) //instant cast Despair 
         {
             if (AOEStrategy is AOEStrategy.Auto)
-                BestRotation(TargetChoice(AOE) ?? primaryTarget ?? BestAOETarget); //target prio is user choice -> current target -> best AOE target
+                BestRotation(TargetChoice(AOE) ?? BestTarget ?? primaryTarget); //target prio is user choice -> current target -> best AOE target
             if (forceST)
                 BestST(TargetChoice(AOE) ?? primaryTarget); //target prio is user choice -> current target
             if (forceAOE)
-                BestAOE(TargetChoice(AOE) ?? primaryTarget ?? BestAOETarget); //target prio is user choice -> best AOE target -> current target
+                BestAOE(TargetChoice(AOE) ?? primaryTarget); //target prio is user choice -> best AOE target -> current target
         }
         #endregion
 
@@ -551,34 +524,38 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         {
             if (movementStrat is MovementStrategy.Allow)
             {
-                //GCDs
-                if (!PlayerHasEffect(SID.Swiftcast, 10) ||
-                    !PlayerHasEffect(SID.Triplecast, 15))
-                    QueueGCD(
-                        Unlocked(TraitID.EnhancedPolyglot) && Polyglots > 0 ?
-                        (forceST ? BestXenoglossy : forceAOE ? AID.Foul : BestPolyglot)
-                        : PlayerHasEffect(SID.Firestarter, 30) ? AID.Fire3
-                        : hasThunderhead ? (forceST ? BestThunderST : forceAOE ? BestThunderAOE : BestThunder)
-                        : ActionReady(AID.Swiftcast) && !PlayerHasEffect(SID.Triplecast, 15) ? AID.Swiftcast
-                        : Unlocked(AID.Triplecast) && CD(AID.Triplecast) <= 60 && !PlayerHasEffect(SID.Triplecast, 15) && !PlayerHasEffect(SID.Swiftcast, 10) ? AID.Triplecast
-                        : AID.Scathe,
-                        Polyglots > 0 ? TargetChoice(polyglot) ?? BestAOETarget ?? primaryTarget
-                        : PlayerHasEffect(SID.Firestarter, 30) ? TargetChoice(AOE) ?? primaryTarget
-                        : hasThunderhead ? TargetChoice(thunder) ?? BestAOETarget ?? primaryTarget
-                        : primaryTarget,
-                        GCDPriority.Moving1);
-                if (CD(AID.Swiftcast) > 2f && //if Swiftcast is on cooldown
-                    CD(AID.Triplecast) > 62f) //and Triplecast is not active
-                    QueueGCD(AID.Scathe, primaryTarget, GCDPriority.Moving1); //use Scathe
+                // GCDs
+                if (!PlayerHasEffect(SID.Swiftcast, 10) || !PlayerHasEffect(SID.Triplecast, 15))
+                {
+                    if (Unlocked(TraitID.EnhancedPolyglot) && Polyglots > 0)
+                        QueueGCD(forceST ? BestXenoglossy : forceAOE ? AID.Foul : BestPolyglot,
+                                 TargetChoice(polyglot) ?? primaryTarget ?? BestTarget,
+                                 GCDPriority.Moving1);
+
+                    if (PlayerHasEffect(SID.Firestarter, 30))
+                        QueueGCD(AID.Fire3,
+                                 TargetChoice(AOE) ?? primaryTarget ?? BestTarget,
+                                 GCDPriority.Moving1);
+
+                    if (hasThunderhead)
+                        QueueGCD(forceST ? BestThunderST : forceAOE ? BestThunderAOE : BestThunder,
+                                 TargetChoice(thunder) ?? primaryTarget ?? BestTarget,
+                                 GCDPriority.Moving1);
+
+                    if (MP >= 800 &&
+                        CD(AID.Swiftcast) > 2f && //if Swiftcast is on cooldown
+                        CD(AID.Triplecast) > 62f) //and Triplecast is not active
+                        QueueGCD(AID.Scathe, TargetChoice(AOE) ?? primaryTarget ?? BestTarget, GCDPriority.SixthStep); //use Scathe
+                }
                 //OGCDs
                 if (ActionReady(AID.Swiftcast) &&
                     !PlayerHasEffect(SID.Triplecast, 15))
-                    QueueOGCD(AID.Swiftcast, Player, GCDPriority.Moving2);
+                    QueueOGCD(AID.Swiftcast, Player, GCDPriority.Moving1);
                 if (Unlocked(AID.Triplecast) &&
                     CD(AID.Triplecast) <= 60 &&
                     !PlayerHasEffect(SID.Triplecast, 15) &&
                     !PlayerHasEffect(SID.Swiftcast, 10))
-                    QueueOGCD(AID.Triplecast, Player, GCDPriority.Moving3);
+                    QueueOGCD(AID.Triplecast, Player, GCDPriority.Moving1);
             }
             if (movementStrat is MovementStrategy.OnlyGCDs)
             {
@@ -592,9 +569,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         : hasThunderhead ?
                         (forceST ? BestThunderST : forceAOE ? BestThunderAOE : BestThunder)
                         : AID.Scathe,
-                        Polyglots > 0 ? TargetChoice(polyglot) ?? BestAOETarget ?? primaryTarget
-                        : PlayerHasEffect(SID.Firestarter, 30) ? TargetChoice(AOE) ?? primaryTarget
-                        : hasThunderhead ? TargetChoice(thunder) ?? BestAOETarget ?? primaryTarget
+                        Polyglots > 0 ? TargetChoice(polyglot) ?? primaryTarget ?? BestTarget
+                        : PlayerHasEffect(SID.Firestarter, 30) ? TargetChoice(AOE) ?? primaryTarget ?? BestTarget
+                        : hasThunderhead ? TargetChoice(thunder) ?? primaryTarget ?? BestTarget
                         : primaryTarget,
                         GCDPriority.Moving1);
             }
@@ -611,7 +588,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             if (movementStrat is MovementStrategy.OnlyScathe)
             {
                 if (Unlocked(AID.Scathe) && MP >= 800)
-                    QueueGCD(AID.Scathe, primaryTarget, GCDPriority.Moving1);
+                    QueueGCD(AID.Scathe, TargetChoice(AOE) ?? primaryTarget ?? BestTarget, GCDPriority.Moving1);
             }
         }
         #endregion
@@ -654,17 +631,17 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         {
             if (AOEStrategy is AOEStrategy.Auto)
                 QueueGCD(BestThunder,
-                    TargetChoice(thunder) ?? primaryTarget ?? BestAOETarget,
+                    TargetChoice(thunder) ?? primaryTarget ?? BestTarget,
                     ThunderLeft < 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
             if (forceST)
                 QueueGCD(BestThunderST,
-                    TargetChoice(thunder) ?? primaryTarget ?? BestAOETarget,
+                    TargetChoice(thunder) ?? primaryTarget ?? BestTarget,
                     ThunderLeft < 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
             if (forceAOE)
                 QueueGCD(BestThunderAOE,
-                    TargetChoice(thunder) ?? primaryTarget ?? BestAOETarget,
+                    TargetChoice(thunder) ?? primaryTarget ?? BestTarget,
                     ThunderLeft < 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
         }
@@ -676,7 +653,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 or PolyglotStrategy.AutoHold2
                 or PolyglotStrategy.AutoHold3)
                 QueueGCD(BestPolyglot,
-                    TargetChoice(polyglot) ?? primaryTarget ?? BestAOETarget,
+                    TargetChoice(polyglot) ?? primaryTarget ?? BestTarget,
                     polyglotStrat is PolyglotStrategy.ForceXeno ? GCDPriority.ForcedGCD
                     : Polyglots == MaxPolyglots && EnochianTimer <= 5000 ? GCDPriority.NeedPolyglot
                     : GCDPriority.Polyglot);
@@ -685,7 +662,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 or PolyglotStrategy.XenoHold2
                 or PolyglotStrategy.XenoHold3)
                 QueueGCD(BestXenoglossy,
-                    TargetChoice(polyglot) ?? primaryTarget ?? BestAOETarget,
+                    TargetChoice(polyglot) ?? primaryTarget ?? BestTarget,
                     polyglotStrat is PolyglotStrategy.ForceXeno ? GCDPriority.ForcedGCD
                     : Polyglots == MaxPolyglots && EnochianTimer <= 5000 ? GCDPriority.NeedPolyglot
                     : GCDPriority.Polyglot);
@@ -694,7 +671,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 or PolyglotStrategy.FoulHold2
                 or PolyglotStrategy.FoulHold3)
                 QueueGCD(AID.Foul,
-                    TargetChoice(polyglot) ?? primaryTarget ?? BestAOETarget,
+                    TargetChoice(polyglot) ?? primaryTarget ?? BestTarget,
                     polyglotStrat is PolyglotStrategy.ForceFoul ? GCDPriority.ForcedGCD
                     : Polyglots == MaxPolyglots && EnochianTimer <= 5000 ? GCDPriority.NeedPolyglot
                     : GCDPriority.Polyglot);
@@ -943,20 +920,20 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                     //Step 1-3, 5-7 - Fire IV
                     if (MP >= 1600) //and MP is 1600 or more
                         QueueGCD(AID.Fire4, target, GCDPriority.FirstStep); //Queue Fire IV
-                        //Step 4A - Fire 1
+                    //Step 4A - Fire 1
                     if (ElementTimer <= (GetCastTime(AID.Fire1) * 3) && //if time remaining on current element is less than 3x GCDs
                         MP >= 4000) //and MP is 4000 or more
                         QueueGCD(AID.Fire1, target, ElementTimer <= (GetCastTime(AID.Fire1) * 3) && MP >= 4000 ? GCDPriority.Paradox : GCDPriority.SecondStep); //Queue Fire I, increase priority if less than 3s left on element
-                        //Step 4B - F3P 
+                                                                                                                                                                //Step 4B - F3P 
                     if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
                         AstralStacks == 3) //and Umbral Hearts are 0
                         QueueGCD(AID.Fire3, target, GCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
-                        //Step 8 - Despair 
+                    //Step 8 - Despair 
                     if (Unlocked(AID.Despair) && //if Despair is unlocked
                         ((MP is < 1600 and >= 800) || //if MP is less than 1600 and not 0
                         (MP is <= 4000 and >= 800 && ElementTimer <= (GetCastTime(AID.Despair) * 2)))) //or if we dont have enough time for last F4s
                         QueueGCD(AID.Despair, target, ElementTimer <= (GetCastTime(AID.Despair) * 2) ? GCDPriority.ForcedGCD : GCDPriority.ThirdStep); //Queue Despair
-                        //Step 9 - swap from AF to UI 
+                                                                                                                                                       //Step 9 - swap from AF to UI 
                     if (MP <= 400) //and MP is less than 400
                         QueueGCD(AID.Blizzard3, target, GCDPriority.FourthStep); //Queue Blizzard III
                 }
