@@ -13,6 +13,7 @@ public enum AID : uint
     Bombination = 32424, // 3DE9->self, 2.0s cast, range 25 circle
     TheDragonsVoice = 32444, // 3DF4->self, 4.0s cast, range ?-30 donut
     Quake = 32470, // 3E02->self, 5.0s cast, range 30 circle, interruptible
+    Explosion = 32452, // 3DFA->self, 7.0s cast, range 60 circle
     Infatuation = 32798, // 3E80->player, 3.0s cast, single-target
     AbyssalCry = 32467, // 3E00->self, 6.0s cast, range 30 circle, instakill mechanic
     SprigganHaste = 33175, // 3DFB->self, 1.5s cast
@@ -65,6 +66,9 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
             case AID.DoubleHexEye:
             case AID.EyeOfTheFierce:
                 AddGaze(actor, 40);
+                break;
+            case AID.Explosion:
+                AddLOS(actor, 60);
                 break;
             case AID.AllaganFear:
                 AddGaze(actor, 30);
@@ -125,7 +129,6 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
     }
 
     protected override IEnumerable<ActionID> AutohintDisabledActions() => [
-        ActionID.MakeSpell(AID.Bombination),
         ActionID.MakeSpell(AID.TheDragonsVoice),
         ActionID.MakeSpell(AID.TheDragonsVoice2),
         ActionID.MakeSpell(AID.ElectricCachexia),

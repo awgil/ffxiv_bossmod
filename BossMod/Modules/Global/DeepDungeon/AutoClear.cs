@@ -69,6 +69,8 @@ public class AutoDDConfig : ConfigNode
 
     [PropertyDisplay("Allow navigation in combat")]
     public bool NavigateInCombat = false;
+    [PropertyDisplay("Try to use terrain to LOS attacks")]
+    public bool AutoLOS = false;
 
     [PropertyDisplay("Automatically navigate to coffers")]
     public bool AutoMoveTreasure = true;
@@ -147,6 +149,14 @@ public abstract class AutoClear : ZoneModule
     protected void AddGaze(Actor Source, float Radius) => AddGaze(Source, new AOEShapeCircle(Radius));
 
     protected void AddLOS(Actor Source, float Range)
+    {
+        if (_config.AutoLOS)
+            AddLOSFromTerrain(Source, Range);
+        else
+            Circles.Add((Source, Range));
+    }
+
+    protected void AddLOSFromTerrain(Actor Source, float Range)
     {
         var (entry, data) = _obstacles.Find(Source.PosRot.XYZ());
         if (entry == null || data == null)
@@ -455,6 +465,7 @@ public abstract class AutoClear : ZoneModule
             return;
 
         IgnoreTraps.Add(new(-346.5f, 302.4f));
+        IgnoreTraps.Add(new(-297.8f, 295.5f));
 
         foreach (var (w, rot) in Walls)
             hints.AddForbiddenZone(new AOEShapeRect(w.Depth, 20, w.Depth), w.Position, (rot ? 90f : 0f).Degrees());
@@ -591,10 +602,10 @@ public abstract class AutoClear : ZoneModule
             hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)p2), null, ActionQueue.Priority.VeryHigh);
 
         var haveChest = false;
-        if (coffer is Actor t && InBounds(hints, t.Position))
+        if (coffer is Actor t && InBounds(hints, t.Position) && !player.IsTransformed)
         {
-            if (_config.AutoMoveTreasure && (!isOccupied || _config.NavigateInCombat)
-                || player.DistanceToHitbox(t) < 3.5f && !isStunned)
+            if (_config.AutoMoveTreasure && (!player.InCombat || _config.NavigateInCombat)
+                || player.DistanceToHitbox(t) < 3.5f)
             {
                 hints.InteractWithTarget = coffer;
                 haveChest = true;
