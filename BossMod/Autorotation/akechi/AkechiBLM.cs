@@ -560,12 +560,15 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         : PlayerHasEffect(SID.Firestarter, 30) ? AID.Fire3
                         : hasThunderhead ?
                         (forceST ? BestThunderST : forceAOE ? BestThunderAOE : BestThunder)
-                        : AID.Scathe,
+                        : BestThunder,
                         Polyglots > 0 ? TargetChoice(polyglot) ?? BestAOETarget ?? primaryTarget
                         : PlayerHasEffect(SID.Firestarter, 30) ? TargetChoice(AOE) ?? primaryTarget
                         : hasThunderhead ? TargetChoice(thunder) ?? BestAOETarget ?? primaryTarget
                         : primaryTarget,
                         GCDPriority.Moving1);
+                if (CD(AID.Swiftcast) > 2f && //if Swiftcast is on cooldown
+                    CD(AID.Triplecast) > 62f) //and Triplecast is not active
+                    QueueGCD(AID.Scathe, primaryTarget, GCDPriority.Moving1); //use Scathe
                 //OGCDs
                 if (ActionReady(AID.Swiftcast) &&
                     !PlayerHasEffect(SID.Triplecast, 15))
