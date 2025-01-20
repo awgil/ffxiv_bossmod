@@ -274,7 +274,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                 continue; // don't bother showing tracks that have no customization options
 
             var col = AddBefore(new ColumnPlannerTrackStrategy(Timeline, _tree, _phaseBranches, config, Plan.Level, moduleInfo), _colTarget);
-            col.Width = config.UIPriority >= 0 ? _trackWidth : 0;
+            col.Width = config.UIPriority >= 0 || m.Tracks[i].Count > 0 ? _trackWidth : 0;
             col.NotifyModified = () => OnModifiedStrategy(m.Tracks[i], col);
             foreach (var entry in m.Tracks[i])
             {

@@ -372,7 +372,8 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
         Maelstrom = 1 << 2, // avoid maelstroms
         Heads = 1 << 3, // avoid head interceptors
         Knockback = 1 << 4, // position to knock back across
-        Mid = 1 << 5, // position closer to center if possible
+        KnockbackFrom = 1 << 5, // position to be a knockback source
+        Mid = 1 << 6, // position closer to center if possible
     }
 
     private readonly P4CrystallizeTime? _ct = module.FindComponent<P4CrystallizeTime>();
@@ -393,6 +394,10 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
             if (hint.offset.LengthSq() > 18 * 18)
                 hint.offset *= 19.5f / 19;
 
+            if (hint.hint.HasFlag(Hint.KnockbackFrom) && Raid.WithoutSlot().Any(p => p.PendingKnockbacks.Count > 0))
+            {
+                return; // don't even try moving until all knockbacks are resolved, that can fuck up others...
+            }
             if (hint.hint.HasFlag(Hint.SafespotRough))
             {
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center + hint.offset, 1), DateTime.MaxValue);
@@ -449,13 +454,14 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
     }
 
     // these are all possible 'raw' safespot offsets; they expect valid arguments
+    private static readonly Angle IdealSecondHeadBaitAngle = 33.Degrees();
     private WDir SafeOffsetDodgeFirstHourglassSouth(int side) => 19 * (side * 40).Degrees().ToDirection();
     private WDir SafeOffsetPreKnockbackSouth(int side, float radius) => radius * (side * 30).Degrees().ToDirection();
     private WDir SafeOffsetDarknessStack(int side) => 19 * (side * 140).Degrees().ToDirection();
     private WDir SafeOffsetDodgeSecondHourglassSouth(int side) => 19 * (side * 20).Degrees().ToDirection();
     private WDir SafeOffsetDodgeSecondHourglassEW(int side) => 19 * (side * 80).Degrees().ToDirection(); // for ice that doesn't share unholy darkness
     private WDir SafeOffsetFirstHeadBait(int side) => 13 * (side * 90).Degrees().ToDirection();
-    private WDir SafeOffsetSecondHeadBait(int side) => 13 * (side * 45).Degrees().ToDirection();
+    private WDir SafeOffsetSecondHeadBait(int side) => 13 * (side * IdealSecondHeadBaitAngle).ToDirection();
     private WDir SafeOffsetChillNorth(int side) => 6 * (side * 150).Degrees().ToDirection(); // final for non-airs
     private WDir SafeOffsetChillSouth(int side) => 6 * (side * 30).Degrees().ToDirection(); // final for 2 airs
 
@@ -488,8 +494,8 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
         if (head != null)
         {
             var headOff = head.Position - Module.Center;
-            var headDir = Angle.FromDirection(headOff);
-            return ((clawSide > 0 ? (headDir.Deg > 45) : (headDir.Deg < -45)) ? SafeOffsetSecondHeadBait(clawSide) : headOff, Hint.SafespotPrecise);
+            var headDir = Angle.FromDirection(headOff) * clawSide; // always decreases as head moves
+            return (headDir.Rad > IdealSecondHeadBaitAngle.Rad ? SafeOffsetSecondHeadBait(clawSide) : headOff, Hint.SafespotPrecise | (clawSide != northSlowSide ? Hint.KnockbackFrom : Hint.None));
         }
         // head is done, so dodge between last two hourglasses
         return (SafeOffsetChillSouth(northSlowSide), Hint.Maelstrom | Hint.Heads | Hint.Mid);

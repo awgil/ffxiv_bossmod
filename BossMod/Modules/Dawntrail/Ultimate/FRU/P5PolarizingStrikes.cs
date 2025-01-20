@@ -71,7 +71,7 @@ class P5PolarizingStrikes(BossModule module) : Components.GenericAOEs(module)
                 var front = currentBaitOrder == order;
                 if (currentBaitOrder > order)
                     left ^= true;
-                var distance = front ? 4 : 7;
+                var distance = front ? 5 : 9;
                 var dir = _source.Rotation + (left ? 135 : -135).Degrees();
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_source.Position + distance * dir.ToDirection(), 1));
             }
@@ -80,7 +80,7 @@ class P5PolarizingStrikes(BossModule module) : Components.GenericAOEs(module)
         {
             // avoid aftershock aoe by moving behind boss
             base.AddAIHints(slot, actor, assignment, hints);
-            hints.AddForbiddenZone(ShapeDistance.InvertedCone(_source.Position, 100, _source.Rotation + 180.Degrees(), 45.Degrees()), DateTime.MaxValue);
+            hints.GoalZones.Add(hints.GoalSingleTarget(_source.Position - 8 * _source.Rotation.ToDirection(), 1, 0.25f));
         }
     }
 
@@ -116,7 +116,7 @@ class P5PolarizingStrikes(BossModule module) : Components.GenericAOEs(module)
             case AID.CruelPathOfLightBait:
             case AID.CruelPathOfDarknessBait:
                 ++NumCasts;
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation, WorldState.FutureTime(2)));
+                _aoes.Add(new(_shape, caster.Position, caster.Rotation, WorldState.FutureTime(2)));
                 break;
             case AID.CruelPathOfLightAOE:
             case AID.CruelPathOfDarknessAOE:

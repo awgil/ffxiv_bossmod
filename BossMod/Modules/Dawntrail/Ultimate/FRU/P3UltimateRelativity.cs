@@ -76,8 +76,9 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
                     hints.AddForbiddenZone(ShapeDistance.PrecisePosition(SafeSpot(slot, range), new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), _nextImminent);
                     break;
                 default:
-                    // go to mid
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 1), _nextImminent);
+                    // go to mid, staying as tightly as possible to allow for better uptime; after all mechanics, go opposite to dodge eyes more naturally
+                    var dest = NumCasts >= 6 ? SafeSpot(slot, range) : Module.Center;
+                    hints.AddForbiddenZone(ShapeDistance.PrecisePosition(dest, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), _nextImminent);
                     break;
             }
         }
