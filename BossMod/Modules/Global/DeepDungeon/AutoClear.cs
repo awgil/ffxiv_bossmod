@@ -146,7 +146,7 @@ public abstract class AutoClear : ZoneModule
     protected readonly List<Actor> Interrupts = [];
     protected readonly List<Actor> Stuns = [];
     protected readonly List<Actor> ForbiddenTargets = [];
-    protected readonly List<Actor> IgnoredTargets = [];
+    protected readonly List<Actor> HintDisabled = [];
     private readonly List<Actor> LOS = [];
     private readonly List<WPos> IgnoreTraps = [];
 
@@ -263,7 +263,10 @@ public abstract class AutoClear : ZoneModule
             ws.Actors.IsDeadChanged.Subscribe(op =>
             {
                 if (!op.IsAlly && op.IsDead)
+                {
                     Kills++;
+                    OnActorDeath(op);
+                }
             }),
             ws.Actors.EventOpenTreasure.Subscribe(OnOpenTreasure),
             ws.Actors.EventObjectAnimation.Subscribe(OnEObjAnim),
@@ -305,6 +308,7 @@ public abstract class AutoClear : ZoneModule
     protected virtual void OnStatusGain(Actor actor, int index) { }
 
     protected virtual void OnStatusLose(Actor actor, int index) { }
+    protected virtual void OnActorDeath(Actor actor) { }
 
     private void OnSystemLogMessage(WorldState.OpSystemLogMessage op)
     {
@@ -337,11 +341,16 @@ public abstract class AutoClear : ZoneModule
 
     private void ClearState()
     {
+        Donuts.Clear();
+        Circles.Clear();
         Gazes.Clear();
+        Interrupts.Clear();
+        Stuns.Clear();
+        ForbiddenTargets.Clear();
+        HintDisabled.Clear();
+        LOS.Clear();
         Walls.Clear();
         RoomCenters.Clear();
-        Interrupts.Clear();
-        ForbiddenTargets.Clear();
         IgnoreTraps.Clear();
         IgnoreTraps.AddRange(ProblematicTrapLocations);
         DesiredRoom = 0;
@@ -353,8 +362,11 @@ public abstract class AutoClear : ZoneModule
         _trapsHidden = true;
         _openedChests.Clear();
         _fakeExits.Clear();
+        OnChangeFloors();
         BetweenFloors = true;
     }
+
+    protected virtual void OnChangeFloors() { }
 
     private bool OpenGold => _config.GoldCoffer;
     private bool OpenSilver
@@ -484,7 +496,7 @@ public abstract class AutoClear : ZoneModule
 
         HandleFloorPathfind(player, hints);
 
-        IterAndExpire(IgnoredTargets, g => g.CastInfo == null, hints.NoAutohint.Add);
+        IterAndExpire(HintDisabled, g => g.CastInfo == null, hints.NoAutohint.Add);
 
         IterAndExpire(Gazes, g => g.Source.CastInfo == null, d =>
         {
@@ -610,6 +622,7 @@ public abstract class AutoClear : ZoneModule
             hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)p2), null, ActionQueue.Priority.VeryHigh);
 
         var haveChest = false;
+        Service.Log($"{coffer}, {InBounds(hints, coffer?.Position ?? default)}");
         if (coffer is Actor t && InBounds(hints, t.Position) && !player.IsTransformed)
         {
             if (_config.AutoMoveTreasure && (!player.InCombat || _config.NavigateInCombat)

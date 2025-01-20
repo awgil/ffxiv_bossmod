@@ -42,10 +42,10 @@ public abstract class PalaceFloorModule(WorldState ws) : AutoClear(ws, 60)
                 break;
             case AID.StoneGazeCone:
                 AddGaze(actor, new AOEShapeCone(8.2f, 45.Degrees()));
-                IgnoredTargets.Add(actor);
+                HintDisabled.Add(actor);
                 break;
             case AID.Chirp:
-                IgnoredTargets.Add(actor);
+                HintDisabled.Add(actor);
                 break;
             case AID.Infatuation:
             case AID.VoidBlizzard:

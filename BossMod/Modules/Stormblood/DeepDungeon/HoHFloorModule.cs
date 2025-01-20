@@ -38,7 +38,7 @@ public abstract class HoHFloorModule(WorldState ws) : AutoClear(ws, 70)
                 break;
             case AID.BlindingBurst:
                 AddGaze(actor, 25);
-                IgnoredTargets.Add(actor);
+                HintDisabled.Add(actor);
                 break;
             case AID.NightmarishLight:
             case AID.ShiftingLight:
@@ -53,11 +53,11 @@ public abstract class HoHFloorModule(WorldState ws) : AutoClear(ws, 70)
                 break;
             case AID.AtropineSpore:
                 Donuts.Add((actor, 9.5f, 41));
-                IgnoredTargets.Add(actor);
+                HintDisabled.Add(actor);
                 break;
             case AID.TheDragonsVoice:
                 Donuts.Add((actor, 8, 30));
-                IgnoredTargets.Add(actor);
+                HintDisabled.Add(actor);
                 break;
         }
     }

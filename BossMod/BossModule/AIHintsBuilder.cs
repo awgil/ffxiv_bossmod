@@ -55,6 +55,7 @@ public sealed class AIHintsBuilder : IDisposable
             }
             else
             {
+                CalculateAutoBounds(hints, player);
                 _zmm.ActiveModule?.CalculateAIHints(playerSlot, player, hints);
                 CalculateAutoHints(hints, player);
             }
@@ -85,7 +86,7 @@ public sealed class AIHintsBuilder : IDisposable
         }
     }
 
-    private void CalculateAutoHints(AIHints hints, Actor player)
+    private void CalculateAutoBounds(AIHints hints, Actor player)
     {
         var inFate = _ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.Sheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax;
         var center = inFate ? _ws.Client.ActiveFate.Center : player.PosRot.XYZ();
@@ -134,7 +135,10 @@ public sealed class AIHintsBuilder : IDisposable
                 hints.PathfindMapCenter.Z += 2.5f;
             // keep default bounds
         }
+    }
 
+    private void CalculateAutoHints(AIHints hints, Actor player)
+    {
         foreach (var aoe in _activeAOEs.Values)
         {
             if (hints.NoAutohint.Contains(aoe.Caster))

@@ -10,6 +10,7 @@ public enum AID : uint
     Tailwind = 33167, // 3DF6->enemy, 3.0s cast, single-target, damage up to ally
     SelfDetonate = 32410, // 3DE0->self, 10.0s cast, range 40 circle, enrage
     Electromagnetism = 32413, // 3DE1->self, 5.0s cast, range 15 circle
+    Headspin = 32412, // 3DE1->self, 0.0s cast, range 6 circle, instant after Electromagnetism
     DoubleHexEye = 32437, // 3DF1->self, 4.0s cast, range 40 circle, instakill mechanic
     Bombination = 32424, // 3DE9->self, 2.0s cast, range 25 circle
     TheDragonsVoice = 32444, // 3DF4->self, 4.0s cast, range ?-30 donut
@@ -80,7 +81,7 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
                 break;
             case AID.Hypnotize:
                 AddGaze(actor, 20);
-                IgnoredTargets.Add(actor);
+                HintDisabled.Add(actor);
                 break;
             case AID.DemonEye1:
             case AID.DemonEye2:
@@ -92,15 +93,15 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
             case AID.TheDragonsVoice:
             case AID.TheDragonsVoice2:
                 Donuts.Add((actor, 8, 30));
-                IgnoredTargets.Add(actor);
+                HintDisabled.Add(actor);
                 break;
             case AID.ElectricCachexia:
                 Donuts.Add((actor, 8, 44));
-                IgnoredTargets.Add(actor);
+                HintDisabled.Add(actor);
                 break;
             case AID.ElectricWhorl:
                 Donuts.Add((actor, 8, 60));
-                IgnoredTargets.Add(actor);
+                HintDisabled.Add(actor);
                 break;
             case AID.Catharsis:
                 Circles.Add((actor, 40));
@@ -128,10 +129,10 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
 
     protected override void OnStatusLose(Actor actor, int index)
     {
-        switch ((SID)actor.Statuses[index].ID)
+        switch (actor.Statuses[index].ID)
         {
-            case SID.IceSpikes:
-            case SID.BlazeSpikes:
+            case (uint)SID.IceSpikes:
+            case (uint)SID.BlazeSpikes:
                 ForbiddenTargets.Remove(actor);
                 break;
         }
