@@ -40,6 +40,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
     public float DraconianFire;
     public float DragonsFlight;
     public float StarcrossReady;
+    public float EnhancedTalon;
 
     public float TargetDotLeft;
 
@@ -69,6 +70,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         DraconianFire = StatusLeft(SID.DraconianFire);
         DragonsFlight = StatusLeft(SID.DragonsFlight);
         StarcrossReady = StatusLeft(SID.StarcrossReady);
+        EnhancedTalon = StatusLeft(SID.EnhancedPiercingTalon);
         TargetDotLeft = MathF.Max(
             StatusDetails(primaryTarget, SID.ChaosThrust, Player.InstanceID).Left,
             StatusDetails(primaryTarget, SID.ChaoticSpring, Player.InstanceID).Left
@@ -152,6 +154,8 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         PushGCD(DraconianFire > GCD ? AID.RaidenThrust : AID.TrueThrust, primaryTarget);
+        if (EnhancedTalon > GCD)
+            PushGCD(AID.PiercingTalon, primaryTarget);
 
         OGCD(strategy, primaryTarget);
     }
@@ -185,7 +189,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (StarcrossReady > 0)
             PushOGCD(AID.Starcross, primaryTarget);
 
-        if (LotD > 0 && moveOk)
+        if (LotD > World.Client.AnimationLock && moveOk)
             PushOGCD(AID.Stardiver, BestDiveTarget);
 
         if (NastrondReady == 0)
