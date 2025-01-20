@@ -391,10 +391,52 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     }
 
     #region Targeting
-    private int TargetsInRange() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 26); //Returns the number of targets within 26-yalm radius around the player
-    private bool ShouldUseAOE => TargetsInRange() >= 3; //Check if we should use AOE
+    private int TargetsInRange() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 25); //Returns the number of targets within 26-yalm radius around the player
+    private bool ShouldUseAOE
+    {
+        get
+        {
+            var bestTarget = BestAOETarget;
+            if (bestTarget != null)
+            {
+                var minimumTargetsForAOE = 2;
+
+                //Are there enough targets in the general area?
+                if (TargetsInRange() < minimumTargetsForAOE)
+                {
+                    return false;
+                }
+
+                float splashPriorityFunc(Actor actor)
+                {
+                    var distanceToPlayer = actor.DistanceToHitbox(Player);
+                    if (distanceToPlayer < 26f)
+                    {
+                        var targetsInSplashRadius = 0;
+                        foreach (var enemy in Hints.PriorityTargets)
+                        {
+                            var targetActor = enemy.Actor;
+                            if (targetActor != actor && targetActor.Position.InCircle(actor.Position, 5f))
+                            {
+                                targetsInSplashRadius++;
+                            }
+                        }
+                        return targetsInSplashRadius;
+                    }
+                    return float.MinValue;
+                }
+
+                var (_, bestPrio) = FindBetterTargetBy(null, 25f, splashPriorityFunc);
+
+                return bestPrio >= minimumTargetsForAOE;
+            }
+
+            return false;
+        }
+    }
+
     private Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value); //Resolves the target choice based on the strategy
-    private Actor? FindBestTarget()
+    private Actor? FindBestAOETarget()
     {
         float AOEPriorityFunc(Actor actor)
         {
@@ -414,13 +456,11 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             }
             return float.MinValue;
         }
-        float STPriorityFunc(Actor actor) => actor.HPMP.CurHP > 0 ? 1f / actor.HPMP.CurHP : float.MinValue;
 
-        var (bestAOETarget, bestAOEPrio) = FindBetterTargetBy(null, 25f, STPriorityFunc);
-        var (bestTarget, bestPrio) = FindBetterTargetBy(bestAOETarget, 25f, AOEPriorityFunc);
-        return ShouldUseAOE ? bestAOETarget : bestTarget;
+        var (BestAOETarget, bestPrio) = FindBetterTargetBy(null, 25f, AOEPriorityFunc);
+        return BestAOETarget;
     }
-    private Actor? BestTarget => FindBestTarget(); // Find the best target for splash attack
+    private Actor? BestAOETarget => FindBestAOETarget(); // Find the best target for splash attack
     //TODO: BestDOTTarget
     #endregion
 
@@ -513,11 +553,11 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             (Unlocked(TraitID.EnhancedAstralFire) && MP is < 1600 and not 0)))) //instant cast Despair 
         {
             if (AOEStrategy is AOEStrategy.Auto)
-                BestRotation(TargetChoice(AOE) ?? BestTarget ?? primaryTarget); //target prio is user choice -> current target -> best AOE target
+                BestRotation(TargetChoice(AOE) ?? BestAOETarget ?? primaryTarget);
             if (forceST)
-                BestST(TargetChoice(AOE) ?? primaryTarget); //target prio is user choice -> current target
+                BestST(TargetChoice(AOE) ?? primaryTarget);
             if (forceAOE)
-                BestAOE(TargetChoice(AOE) ?? primaryTarget); //target prio is user choice -> best AOE target -> current target
+                BestAOE(TargetChoice(AOE) ?? primaryTarget);
         }
         #endregion
 
@@ -535,17 +575,17 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 {
                     if (Unlocked(TraitID.EnhancedPolyglot) && Polyglots > 0)
                         QueueGCD(forceST ? BestXenoglossy : forceAOE ? AID.Foul : BestPolyglot,
-                                 TargetChoice(polyglot) ?? primaryTarget ?? BestTarget,
+                                 TargetChoice(polyglot) ?? primaryTarget ?? BestAOETarget,
                                  GCDPriority.Moving1);
 
                     if (PlayerHasEffect(SID.Firestarter, 30))
                         QueueGCD(AID.Fire3,
-                                 TargetChoice(AOE) ?? primaryTarget ?? BestTarget,
+                                 TargetChoice(AOE) ?? primaryTarget ?? BestAOETarget,
                                  GCDPriority.Moving1);
 
                     if (hasThunderhead)
                         QueueGCD(forceST ? BestThunderST : forceAOE ? BestThunderAOE : BestThunder,
-                                 TargetChoice(thunder) ?? primaryTarget ?? BestTarget,
+                                 TargetChoice(thunder) ?? primaryTarget ?? BestAOETarget,
                                  GCDPriority.Moving1);
                 }
             }
@@ -565,7 +605,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 or MovementStrategy.OnlyScathe)
             {
                 if (Unlocked(AID.Scathe) && MP >= 800)
-                    QueueGCD(AID.Scathe, TargetChoice(AOE) ?? primaryTarget ?? BestTarget, GCDPriority.Moving1);
+                    QueueGCD(AID.Scathe, TargetChoice(AOE) ?? primaryTarget ?? BestAOETarget, GCDPriority.Moving1);
             }
         }
         #endregion
@@ -601,17 +641,17 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         {
             if (AOEStrategy is AOEStrategy.Auto)
                 QueueGCD(BestThunder,
-                    TargetChoice(thunder) ?? primaryTarget ?? BestTarget,
+                    TargetChoice(thunder),
                     ThunderLeft <= 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
             if (forceST)
                 QueueGCD(BestThunderST,
-                    TargetChoice(thunder) ?? primaryTarget ?? BestTarget,
+                    TargetChoice(thunder) ?? primaryTarget,
                     ThunderLeft <= 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
             if (forceAOE)
                 QueueGCD(BestThunderAOE,
-                    TargetChoice(thunder) ?? primaryTarget ?? BestTarget,
+                    TargetChoice(thunder) ?? primaryTarget,
                     ThunderLeft <= 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
         }
@@ -623,7 +663,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 or PolyglotStrategy.AutoHold2
                 or PolyglotStrategy.AutoHold3)
                 QueueGCD(BestPolyglot,
-                    TargetChoice(polyglot) ?? primaryTarget ?? BestTarget,
+                    TargetChoice(polyglot) ?? BestAOETarget ?? primaryTarget,
                     polyglotStrat is PolyglotStrategy.ForceXeno ? GCDPriority.ForcedGCD
                     : Polyglots == MaxPolyglots && EnochianTimer <= 5000 ? GCDPriority.NeedPolyglot
                     : GCDPriority.Polyglot);
@@ -632,7 +672,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 or PolyglotStrategy.XenoHold2
                 or PolyglotStrategy.XenoHold3)
                 QueueGCD(BestXenoglossy,
-                    TargetChoice(polyglot) ?? primaryTarget ?? BestTarget,
+                    TargetChoice(polyglot) ?? primaryTarget,
                     polyglotStrat is PolyglotStrategy.ForceXeno ? GCDPriority.ForcedGCD
                     : Polyglots == MaxPolyglots && EnochianTimer <= 5000 ? GCDPriority.NeedPolyglot
                     : GCDPriority.Polyglot);
@@ -641,7 +681,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                 or PolyglotStrategy.FoulHold2
                 or PolyglotStrategy.FoulHold3)
                 QueueGCD(AID.Foul,
-                    TargetChoice(polyglot) ?? primaryTarget ?? BestTarget,
+                    TargetChoice(polyglot) ?? primaryTarget,
                     polyglotStrat is PolyglotStrategy.ForceFoul ? GCDPriority.ForcedGCD
                     : Polyglots == MaxPolyglots && EnochianTimer <= 5000 ? GCDPriority.NeedPolyglot
                     : GCDPriority.Polyglot);
