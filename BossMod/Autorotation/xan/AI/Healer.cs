@@ -265,14 +265,17 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.AST.AID.EarthlyStar), Player, ActionQueue.Priority.Medium, targetPos: Player.PosRot.XYZ());
     }
 
-    private Vector3? GetArenaCenter()
+    private Vector3? ArenaCenter
     {
-        if (Bossmods.ActiveModule is BossModule m)
+        get
         {
-            var center = m.Arena.Center;
-            return new Vector3(center.X, Player.PosRot.Y, center.Z);
+            if (Bossmods.ActiveModule is BossModule m)
+            {
+                var center = m.Arena.Center;
+                return new Vector3(center.X, Player.PosRot.Y, center.Z);
+            }
+            return null;
         }
-        return null;
     }
 
     private void AutoSCH(StrategyValues strategy, Actor? primaryTarget)
@@ -281,7 +284,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         {
             if (World.Client.GetGauge<ScholarGauge>().Aetherflow == 0)
                 return;
-            location ??= GetArenaCenter() ?? Player.PosRot.XYZ();
+            location ??= ArenaCenter ?? Player.PosRot.XYZ();
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.SCH.AID.SacredSoil), null, ActionQueue.Priority.Medium + 5, targetPos: location.Value);
         }
 
