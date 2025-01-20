@@ -28,9 +28,7 @@ public class AddsMulti(BossModule module, uint[] oids, int priority = 0) : BossC
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (priority > 0)
-            foreach (var e in hints.PotentialTargets)
-                if (OIDs.Contains(e.Actor.OID))
-                    e.Priority = Math.Max(priority, e.Priority);
+            hints.PrioritizeTargetsByOID(OIDs, priority);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

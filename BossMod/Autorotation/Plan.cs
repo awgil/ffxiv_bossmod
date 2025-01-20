@@ -16,30 +16,30 @@ public sealed record class Plan(string Name, Type Encounter)
         public StrategyValue Value = Value;
     }
 
+    public readonly record struct Module(Type Type, List<List<Entry>> Tracks) : IRotationModuleData
+    {
+        public readonly Module MakeClone() => this with { Tracks = [.. Tracks.Select(t => new List<Entry>([.. t]))] };
+    }
+
     public string Guid = "";
     public string Name = Name;
     public Type Encounter = Encounter;
     public Class Class;
     public int Level;
     public List<float> PhaseDurations = [];
-    public Dictionary<Type, List<List<Entry>>> Modules = []; // [RM][track] = entries
+    public List<Module> Modules = [];
     public List<Entry> Targeting = []; // note that Value.Option & Value.Priority are (currently?) ignored
 
-    public Plan MakeClone()
-    {
-        var res = this with { PhaseDurations = [.. PhaseDurations], Modules = [], Targeting = [.. Targeting] };
-        foreach (var kv in Modules)
-            res.Modules[kv.Key] = [.. kv.Value.Select(t => new List<Entry>([.. t]))];
-        return res;
-    }
+    public Plan MakeClone() => this with { PhaseDurations = [.. PhaseDurations], Modules = [.. Modules.Select(m => m.MakeClone())], Targeting = [.. Targeting] };
 
     // this maintains the invariant that each module has entry list per track
     public List<List<Entry>> AddModule(Type t)
     {
-        var m = Modules[t] = [];
+        List<List<Entry>> tracks = [];
         foreach (var _ in RotationModuleRegistry.Modules[t].Definition.Configs)
-            m.Add([]);
-        return m;
+            tracks.Add([]);
+        Modules.Add(new(t, tracks));
+        return tracks;
     }
 }
 
@@ -126,11 +126,11 @@ public class JsonPlanConverter : JsonConverter<Plan>
         writer.WriteStartObject(nameof(Plan.Modules));
         foreach (var m in value.Modules)
         {
-            var md = RotationModuleRegistry.Modules[m.Key].Definition;
-            writer.WriteStartObject(m.Key.FullName!);
-            for (int iTrack = 0; iTrack < m.Value.Count; ++iTrack)
+            var md = RotationModuleRegistry.Modules[m.Type].Definition;
+            writer.WriteStartObject(m.Type.FullName!);
+            for (int iTrack = 0; iTrack < m.Tracks.Count; ++iTrack)
             {
-                var track = m.Value[iTrack];
+                var track = m.Tracks[iTrack];
                 if (track.Count == 0)
                     continue;
 

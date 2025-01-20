@@ -84,12 +84,9 @@ class P2OptimizedPassageOfArms(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_invincible != null)
-        {
-            var e = hints.PotentialTargets.FirstOrDefault(e => e.Actor == _invincible);
-            if (e != null)
-                e.Priority = AIHints.Enemy.PriorityInvincible;
-        }
+        var e = hints.FindEnemy(_invincible);
+        if (e != null)
+            e.Priority = AIHints.Enemy.PriorityInvincible;
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)

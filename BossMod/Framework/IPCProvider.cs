@@ -74,8 +74,8 @@ sealed class IPCProvider : IDisposable
             var iOpt = md.Definition.Configs[iTrack].Options.FindIndex(od => od.InternalName == value);
             if (iOpt < 0)
                 return false;
-            var preset = autorotation.Database.Presets.FindPresetByName(presetName);
-            if (preset == null || !preset.Modules.TryGetValue(mt, out var ms))
+            var ms = autorotation.Database.Presets.FindPresetByName(presetName)?.Modules.Find(m => m.Type == mt);
+            if (ms == null)
                 return false;
             ms.Settings.Add(new(default, iTrack, new() { Option = iOpt }));
             return true;

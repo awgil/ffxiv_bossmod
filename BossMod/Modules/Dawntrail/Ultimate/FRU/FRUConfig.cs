@@ -108,7 +108,7 @@ public class FRUConfig() : ConfigNode()
     public GroupAssignmentUnique P2MirrorMirror1SpreadSpots = new() { Assignments = [0, 1, 4, 5, 2, 3, 6, 7] };
 
     [PropertyDisplay("P2 Mirror Mirror: spread spots for second proteans (looking toward red mirror, if both red mirrors are symmetrical assume CW rotation)", tooltip: "Only used by AI")]
-    [GroupDetails(["Boss wall right", "Boss wall left", "Boss center", "Boss diagonal", "Mirror wall right", "Mirror wall left", "Mirror center", "Mirror diagonal"])]
+    [GroupDetails(["Boss wall opposite other", "Boss wall facing other", "Boss center", "Boss diagonal", "Mirror wall right", "Mirror wall left", "Mirror center right", "Mirror center left"])]
     [GroupPreset("Default", [1, 0, 6, 7, 2, 3, 4, 5])]
     public GroupAssignmentUnique P2MirrorMirror2SpreadSpots = new() { Assignments = [1, 0, 6, 7, 2, 3, 4, 5] };
 

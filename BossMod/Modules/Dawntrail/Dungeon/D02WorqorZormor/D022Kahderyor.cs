@@ -160,8 +160,7 @@ class CrystallineDebris(BossModule module) : Components.Adds(module, (uint)OID.C
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var t in hints.PotentialTargets.Where(e => (OID)e.Actor.OID == OID.CrystallineDebris))
-            t.Priority = 1;
+        hints.PrioritizeTargetsByOID(OID.CrystallineDebris, 1);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

@@ -95,6 +95,12 @@ public class T04PortaDecumana1(WorldState ws, Actor primary) : BossModule(ws, pr
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (PrimaryActor.FindStatus(SID.Invincibility) != null || PrimaryActor.FindStatus(SID.VortexBarrier) != null)
-            hints.PotentialTargets.RemoveAll(e => e.Actor == PrimaryActor);
+        {
+            var e = hints.FindEnemy(PrimaryActor);
+            if (e != null)
+            {
+                e.Priority = AIHints.Enemy.PriorityInvincible;
+            }
+        }
     }
 }

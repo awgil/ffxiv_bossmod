@@ -7,8 +7,9 @@ public sealed class UIPresetEditor
 {
     private class ModuleCategory
     {
+        public ModuleCategory? Parent;
         public SortedDictionary<string, ModuleCategory> Subcategories = [];
-        public List<Type> Leafs = [];
+        public List<(Type type, RotationModuleDefinition def)> Leafs = [];
     }
 
     private readonly PresetDatabase _db;
@@ -17,18 +18,19 @@ public sealed class UIPresetEditor
     public readonly Preset Preset;
     public bool Modified { get; private set; }
     public bool NameConflict { get; private set; }
-    public Type? SelectedModuleType { get; private set; }
+    private int _selectedModuleIndex = -1;
     private int _selectedSettingIndex = -1;
     private readonly List<int> _orderedTrackList = []; // for current module, by UI order
     private readonly List<int> _settingGuids = []; // a hack to keep track of held item during drag-n-drop
-    private readonly ModuleCategory _modulesByCategory;
+    private readonly ModuleCategory _availableModules;
+
+    public Type? SelectedModuleType => Preset.Modules.BoundSafeAt(_selectedModuleIndex)?.Type;
 
     public UIPresetEditor(PresetDatabase db, int index, bool isDefaultPreset, Type? initiallySelectedModuleType)
     {
         _db = db;
         _sourcePresetIndex = index;
         _sourcePresetDefault = isDefaultPreset;
-        _modulesByCategory = SplitModulesByCategory();
         if (index >= 0)
         {
             Preset = (isDefaultPreset ? db.DefaultPresets : db.UserPresets)[index].MakeClone(false);
@@ -40,28 +42,29 @@ public sealed class UIPresetEditor
             MakeNameUnique();
             Modified = false; // don't bother...
         }
-        SelectModule(initiallySelectedModuleType);
+        _availableModules = BuildAvailableModules();
+        SelectModule(FindModuleByType(initiallySelectedModuleType));
     }
 
     public UIPresetEditor(PresetDatabase db, Preset preset, Type? initiallySelectedModuleType)
     {
         _db = db;
         _sourcePresetIndex = -1;
-        _modulesByCategory = SplitModulesByCategory();
         Preset = preset;
         NameConflict = CheckNameConflict();
         Modified = true;
-        SelectModule(initiallySelectedModuleType);
+        _availableModules = BuildAvailableModules();
+        SelectModule(FindModuleByType(initiallySelectedModuleType));
     }
 
-    public void SelectModule(Type? type)
+    public void SelectModule(int index)
     {
-        SelectedModuleType = type;
+        _selectedModuleIndex = index;
         _selectedSettingIndex = -1;
         _orderedTrackList.Clear();
-        if (type != null && Preset.Modules.ContainsKey(type))
+        if (index >= 0)
         {
-            var md = RotationModuleRegistry.Modules[type].Definition;
+            var md = RotationModuleRegistry.Modules[Preset.Modules[index].Type].Definition;
             _orderedTrackList.AddRange(Enumerable.Range(0, md.Configs.Count));
             _orderedTrackList.SortByReverse(i => md.Configs[i].UIPriority);
         }
@@ -115,20 +118,38 @@ public sealed class UIPresetEditor
 
     public void DrawModulesList()
     {
+        Action? post = null;
         using (var popup = ImRaii.Popup("add_module"))
             if (popup)
-                DrawModuleAddPopup(_modulesByCategory);
+                DrawModuleAddPopup(_availableModules, ref post);
+        post?.Invoke();
 
         var width = new Vector2(ImGui.GetContentRegionAvail().X, 0);
         using (var list = ImRaii.ListBox("###modules", width))
         {
             if (list)
             {
-                foreach (var m in Preset.Modules.Keys)
+                for (int i = 0; i < Preset.Modules.Count; ++i)
                 {
-                    if (DrawModule(m, RotationModuleRegistry.Modules[m].Definition, m == SelectedModuleType))
+                    var m = Preset.Modules[i];
+                    if (DrawModule(m.Type, RotationModuleRegistry.Modules[m.Type].Definition, i == _selectedModuleIndex))
                     {
-                        SelectModule(m);
+                        SelectModule(i);
+                    }
+
+                    if (ImGui.IsItemActive() && !ImGui.IsItemHovered())
+                    {
+                        var j = ImGui.GetMouseDragDelta().Y < 0 ? i - 1 : i + 1;
+                        if (j >= 0 && j < Preset.Modules.Count)
+                        {
+                            (Preset.Modules[i], Preset.Modules[j]) = (Preset.Modules[j], Preset.Modules[i]);
+                            Modified = true;
+                            if (_selectedModuleIndex == i)
+                                _selectedModuleIndex = j;
+                            else if (_selectedModuleIndex == j)
+                                _selectedModuleIndex = i;
+                            ImGui.ResetMouseDragDelta();
+                        }
                     }
                 }
             }
@@ -139,45 +160,42 @@ public sealed class UIPresetEditor
         if (ImGui.Button("Add##module", width))
             ImGui.OpenPopup("add_module");
 
-        if (UIMisc.Button("Remove##module", width.X, (SelectedModuleType == null || !Preset.Modules.ContainsKey(SelectedModuleType), "Select any module to remove"), (!ImGui.GetIO().KeyShift, "Hold shift")))
+        if (UIMisc.Button("Remove##module", width.X, (_selectedModuleIndex < 0, "Select any module to remove"), (!ImGui.GetIO().KeyShift, "Hold shift")))
         {
-            Preset.Modules.Remove(SelectedModuleType!);
+            var m = Preset.Modules[_selectedModuleIndex].Type;
+            AddAvailableModule(m, RotationModuleRegistry.Modules[m].Definition, _availableModules);
+            Preset.Modules.RemoveAt(_selectedModuleIndex);
             Modified = true;
-            SelectModule(null);
+            SelectModule(-1);
         }
     }
 
-    private void DrawModuleAddPopup(ModuleCategory cat)
+    private void DrawModuleAddPopup(ModuleCategory cat, ref Action? actions)
     {
         foreach (var sub in cat.Subcategories)
         {
-            if (HaveModulesToAddInCategory(sub.Value))
+            if (ImGui.BeginMenu(sub.Key))
             {
-                if (ImGui.BeginMenu(sub.Key))
-                {
-                    DrawModuleAddPopup(sub.Value);
-                    ImGui.EndMenu();
-                }
+                DrawModuleAddPopup(sub.Value, ref actions);
+                ImGui.EndMenu();
             }
         }
 
         foreach (var leaf in cat.Leafs)
         {
-            if (!Preset.Modules.ContainsKey(leaf))
+            if (DrawModule(leaf.type, leaf.def))
             {
-                if (DrawModule(leaf, RotationModuleRegistry.Modules[leaf].Definition))
-                {
-                    Preset.Modules[leaf] = new();
-                    Modified = true;
-                    SelectModule(leaf);
-                }
+                Preset.Modules.Add(new(leaf.type));
+                Modified = true;
+                SelectModule(Preset.Modules.Count - 1);
+                actions += () => RemoveAvailableModule(cat, leaf.type);
             }
         }
     }
 
     private bool DrawModule(Type type, RotationModuleDefinition definition, bool selected = false)
     {
-        var res = ImGui.Selectable(definition.DisplayName, selected);
+        var res = ImGui.Selectable(definition.DisplayName, selected); // note: this assumes display names are unique
         if (ImGui.IsItemHovered())
         {
             using var tooltip = ImRaii.Tooltip();
@@ -191,7 +209,7 @@ public sealed class UIPresetEditor
 
     private void DrawSettingsList()
     {
-        if (SelectedModuleType == null || !Preset.Modules.TryGetValue(SelectedModuleType, out var ms))
+        if (_selectedModuleIndex < 0)
         {
             ImGui.TextUnformatted("Add or select rotation module to configure its strategies");
             return;
@@ -200,7 +218,8 @@ public sealed class UIPresetEditor
         using var d = ImRaii.Disabled(_sourcePresetDefault);
 
         var width = new Vector2(ImGui.GetContentRegionAvail().X, 0);
-        var md = RotationModuleRegistry.Modules[SelectedModuleType].Definition;
+        var ms = Preset.Modules[_selectedModuleIndex];
+        var md = RotationModuleRegistry.Modules[ms.Type].Definition;
         DrawAddSettingPopup(ms, md);
 
         using (var list = ImRaii.ListBox("###settings", width))
@@ -272,26 +291,27 @@ public sealed class UIPresetEditor
 
     private void DrawDetails()
     {
-        if (SelectedModuleType == null || !Preset.Modules.TryGetValue(SelectedModuleType, out var ms))
+        if (_selectedModuleIndex < 0)
         {
             ImGui.TextUnformatted("Select module to preview resulting strategies with different modifiers");
             ImGui.TextUnformatted("Select strategy to edit its preferences");
         }
         else if (_selectedSettingIndex < 0)
         {
-            DrawModulePreview(SelectedModuleType);
+            DrawModulePreview();
         }
         else
         {
-            DrawSettingDetails(SelectedModuleType, ms);
+            DrawSettingDetails();
         }
     }
 
-    private void DrawModulePreview(Type moduleType)
+    private void DrawModulePreview()
     {
         ImGui.TextUnformatted($"Current modifiers: {Preset.CurrentModifiers()}");
-        var md = RotationModuleRegistry.Modules[moduleType].Definition;
-        var values = Preset.ActiveStrategyOverrides(moduleType);
+        var ms = Preset.Modules[_selectedModuleIndex];
+        var md = RotationModuleRegistry.Modules[ms.Type].Definition;
+        var values = Preset.ActiveStrategyOverrides(_selectedModuleIndex);
         foreach (var i in _orderedTrackList)
         {
             ref var val = ref values.Values[i];
@@ -299,10 +319,11 @@ public sealed class UIPresetEditor
         }
     }
 
-    private void DrawSettingDetails(Type moduleType, Preset.ModuleSettings ms)
+    private void DrawSettingDetails()
     {
         using var d = ImRaii.Disabled(_sourcePresetDefault);
-        var md = RotationModuleRegistry.Modules[moduleType].Definition;
+        var ms = Preset.Modules[_selectedModuleIndex];
+        var md = RotationModuleRegistry.Modules[ms.Type].Definition;
         ref var s = ref ms.Settings.Ref(_selectedSettingIndex);
         var cfg = md.Configs[s.Track];
         ImGui.TextUnformatted($"Setting: {cfg.UIName}");
@@ -338,25 +359,53 @@ public sealed class UIPresetEditor
     private void RebuildSettingGuids()
     {
         _settingGuids.Clear();
-        if (SelectedModuleType != null && Preset.Modules.TryGetValue(SelectedModuleType, out var ms))
-            _settingGuids.AddRange(Enumerable.Range(0, ms.Settings.Count));
+        if (_selectedModuleIndex >= 0)
+            _settingGuids.AddRange(Enumerable.Range(0, Preset.Modules[_selectedModuleIndex].Settings.Count));
     }
 
-    private ModuleCategory SplitModulesByCategory()
+    private int FindModuleByType(Type? type) => type != null ? Preset.Modules.FindIndex(m => m.Type == type) : -1;
+
+    private ModuleCategory BuildAvailableModules()
     {
         ModuleCategory res = new();
         foreach (var m in RotationModuleRegistry.Modules)
         {
             if (m.Value.Definition.RelatedBossModule != null)
                 continue; // don't care about boss-specific modules for presets
-
-            var cat = res;
-            foreach (var part in m.Value.Definition.Category.Split('|', StringSplitOptions.RemoveEmptyEntries))
-                cat = cat.Subcategories.GetOrAdd(part);
-            cat.Leafs.Add(m.Key);
+            if (FindModuleByType(m.Key) >= 0)
+                continue; // module is already added to preset
+            AddAvailableModule(m.Key, m.Value.Definition, res);
         }
         return res;
     }
 
-    private bool HaveModulesToAddInCategory(ModuleCategory cat) => cat.Leafs.Any(leaf => !Preset.Modules.ContainsKey(leaf)) || cat.Subcategories.Values.Any(HaveModulesToAddInCategory);
+    private void AddAvailableModule(Type type, RotationModuleDefinition def, ModuleCategory root)
+    {
+        var cat = root;
+        foreach (var part in def.Category.Split('|', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (!cat.Subcategories.TryGetValue(part, out var sub))
+                sub = cat.Subcategories[part] = new() { Parent = cat };
+            cat = sub;
+        }
+        cat.Leafs.Add((type, def));
+        cat.Leafs.SortBy(e => e.def.DisplayName);
+    }
+
+    private void RemoveAvailableModule(ModuleCategory cat, Type type)
+    {
+        cat.Leafs.RemoveAll(e => e.type == type);
+        while (cat.Leafs.Count == 0 && cat.Subcategories.Count == 0 && cat.Parent != null)
+        {
+            foreach (var kv in cat.Parent.Subcategories)
+            {
+                if (kv.Value == cat)
+                {
+                    cat.Parent.Subcategories.Remove(kv.Key);
+                    break;
+                }
+            }
+            cat = cat.Parent;
+        }
+    }
 }

@@ -71,8 +71,8 @@ class FRUStates : StateMachineBuilder
         P5PolarizingStrikes(id + 0x30000, 7.6f);
         P5PandorasBox(id + 0x40000, 5.8f);
         P5FulgentBlade(id + 0x50000, 6.2f);
-        P5ParadiseRegained(id + 0x60000, 8.2f); // TODO: timing...
-        P5PolarizingStrikes(id + 0x70000, 8); // TODO: timing...
+        P5ParadiseRegained(id + 0x60000, 8.4f);
+        P5PolarizingStrikes(id + 0x70000, 2.3f);
         P5FulgentBlade(id + 0x80000, 8); // TODO: timing...
 
         SimpleState(id + 0xFF0000, 100, "???");
@@ -314,7 +314,7 @@ class FRUStates : StateMachineBuilder
             .DeactivateOnExit<P2MirrorMirrorHouseOfLight>();
 
         ActorCastMulti(id + 0x100, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 0.5f, 5, true)
-            .ActivateOnEnter<P2Banish1>();
+            .ActivateOnEnter<P2MirrorMirrorBanish>();
         ComponentCondition<P2Banish>(id + 0x102, 0.1f, comp => !comp.Active, "Spread/Stack")
             .DeactivateOnExit<P2Banish>();
     }
@@ -353,10 +353,8 @@ class FRUStates : StateMachineBuilder
             .DeactivateOnExit<P2LightRampant>(); // tethers resolve right after first orbs
 
         ActorCastStartMulti(id + 0x70, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 1.7f, true)
-            .ActivateOnEnter<P2LightRampantAIResolve>();
+            .ActivateOnEnter<P2LightRampantBanish>();
         ComponentCondition<P2BrightHunger2>(id + 0x71, 1.9f, comp => comp.NumCasts > 0, "Central tower")
-            .ActivateOnEnter<P2Banish2>()
-            .DeactivateOnExit<P2LightRampantAIResolve>()
             .DeactivateOnExit<P2BrightHunger2>()
             .DeactivateOnExit<P2SinboundHolyVoidzone>();
         ActorCastEnd(id + 0x72, _module.BossP2, 3.1f, true);

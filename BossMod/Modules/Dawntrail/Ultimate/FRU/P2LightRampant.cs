@@ -148,6 +148,89 @@ class P2BrightHunger2(BossModule module) : Components.GenericTowers(module, Acti
         if (Towers.Count == 0 && (AID)spell.Action.ID == AID.HolyLightBurst)
             Towers.Add(new(Module.Center, 4, 1, 8, _forbidden, WorldState.FutureTime(6.5f)));
     }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            Towers.Clear();
+            ++NumCasts;
+        }
+    }
+}
+
+// note: this also moves to soak or avoid the central tower, because these mechanics overlap
+class P2LightRampantBanish(BossModule module) : P2Banish(module)
+{
+    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly P2BrightHunger2? _tower = module.FindComponent<P2BrightHunger2>();
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_tower?.Towers.Count > 0)
+        {
+            // first deal with towers
+            ref var t = ref _tower.Towers.Ref(0);
+            if (t.ForbiddenSoakers[slot])
+            {
+                // we should not be soaking a tower
+                hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, t.Radius), t.Activation);
+                hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, t.Radius + 2), WorldState.FutureTime(30));
+
+                var prepos = PrepositionLocation(assignment);
+                if (prepos != null)
+                {
+                    // we know the mechanic, so preposition immediately
+                    // there might be puddles covering prepos spot, so add extra rougher hint
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(prepos.Value, 1), DateTime.MaxValue);
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCone(Module.Center, 50, Angle.FromDirection(prepos.Value - Module.Center), 15.Degrees()), WorldState.FutureTime(60));
+                }
+            }
+            else
+            {
+                // go soak the tower, somewhat offset to the assigned direction
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(t.Position, t.Radius), t.Activation);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(t.Position, t.Radius - 2), DateTime.MaxValue);
+
+                var clockspot = _config.P2Banish2SpreadSpots[assignment];
+                if (clockspot >= 0)
+                {
+                    var assignedDirection = (180 - 45 * clockspot).Degrees();
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCone(t.Position, 50, assignedDirection, 30.Degrees()), DateTime.MaxValue);
+                }
+            }
+        }
+        else
+        {
+            // now that towers are done, resolve the spread/stack
+            var prepos = PrepositionLocation(assignment);
+            if (prepos != null)
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(prepos.Value, 1), DateTime.MaxValue);
+            else
+                base.AddAIHints(slot, actor, assignment, hints);
+        }
+    }
+
+    private WPos? PrepositionLocation(PartyRolesConfig.Assignment assignment)
+    {
+        var clockspot = _config.P2Banish2SpreadSpots[assignment];
+        if (clockspot < 0)
+            return null; // no assignment
+
+        var assignedDirection = (180 - 45 * clockspot).Degrees();
+        if (Stacks.Count > 0 && Stacks[0].Activation > WorldState.FutureTime(1))
+        {
+            var isSupport = assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT or PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.H2;
+            if (_config.P2Banish2SupportsMoveToStack == isSupport)
+                assignedDirection += (_config.P2Banish2MoveCCWToStack ? 45 : -45).Degrees();
+            return Module.Center + 10 * assignedDirection.ToDirection();
+        }
+        else if (Spreads.Count > 0 && Spreads[0].Activation > WorldState.FutureTime(1))
+        {
+            return Module.Center + 13 * assignedDirection.ToDirection();
+        }
+        return null;
+    }
 }
 
 class P2HouseOfLightBoss(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.HouseOfLightBossAOE), false)
@@ -325,30 +408,6 @@ class P2LightRampantAIOrbs(BossModule module) : BossComponent(module)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 13), WorldState.FutureTime(40));
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 10), WorldState.FutureTime(50));
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 7), DateTime.MaxValue);
-        }
-    }
-}
-
-// movement to soak central tower (if needed) and preposition for banish
-class P2LightRampantAIResolve(BossModule module) : BossComponent(module)
-{
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
-    private readonly P2BrightHunger2? _tower = module.FindComponent<P2BrightHunger2>();
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (_tower == null || _tower.Towers.Count == 0)
-            return; // no towers
-
-        ref var t = ref _tower.Towers.Ref(0);
-        hints.AddForbiddenZone(t.ForbiddenSoakers[slot] ? ShapeDistance.Circle(t.Position, t.Radius) : ShapeDistance.InvertedCircle(t.Position, t.Radius), t.Activation);
-        hints.AddForbiddenZone(t.ForbiddenSoakers[slot] ? ShapeDistance.Circle(t.Position, t.Radius + 2) : ShapeDistance.InvertedCircle(t.Position, t.Radius - 2), DateTime.MaxValue);
-
-        var clockspot = _config.P2Banish2SpreadSpots[assignment];
-        if (clockspot >= 0)
-        {
-            var assignedDirection = (180 - 45 * clockspot).Degrees();
-            hints.AddForbiddenZone(ShapeDistance.InvertedCone(t.Position, 50, assignedDirection, 30.Degrees()), DateTime.MaxValue);
         }
     }
 }
