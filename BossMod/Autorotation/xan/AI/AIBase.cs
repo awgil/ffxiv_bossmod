@@ -12,12 +12,6 @@ public abstract class AIBase(RotationModuleManager manager, Actor player) : Rota
     internal bool ShouldInterrupt(AIHints.Enemy e) => e.Actor.InCombat && e.ShouldBeInterrupted && (e.Actor.CastInfo?.Interruptible ?? false);
     internal bool ShouldStun(AIHints.Enemy e) => e.Actor.InCombat && e.ShouldBeStunned;
 
-    internal bool IsCastReactable(Actor act)
-    {
-        var castInfo = act.CastInfo;
-        return !(castInfo == null || castInfo.TotalTime <= 1.5 || castInfo.EventHappened);
-    }
-
     internal IEnumerable<AIHints.Enemy> EnemiesAutoingMe => Hints.PriorityTargets.Where(x => x.Actor.CastInfo == null && x.Actor.TargetID == Player.InstanceID && Player.DistanceToHitbox(x.Actor) <= 6);
 
     internal IEnumerable<DateTime> Raidwides => Hints.PredictedDamage.Where(d => World.Party.WithSlot(excludeAlliance: true).IncludedInMask(d.players).Count() >= 2).Select(t => t.activation);
