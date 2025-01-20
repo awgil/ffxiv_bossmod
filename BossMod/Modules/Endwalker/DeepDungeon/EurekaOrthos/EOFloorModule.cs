@@ -9,6 +9,7 @@ public enum AID : uint
     Diamondback = 32431, // 3DEC->self, 4.0s cast, single-target, permanent defense up to self
     Tailwind = 33167, // 3DF6->enemy, 3.0s cast, single-target, damage up to ally
     SelfDetonate = 32410, // 3DE0->self, 10.0s cast, range 40 circle, enrage
+    Electromagnetism = 32413, // 3DE1->self, 5.0s cast, range 15 circle
     DoubleHexEye = 32437, // 3DF1->self, 4.0s cast, range 40 circle, instakill mechanic
     Bombination = 32424, // 3DE9->self, 2.0s cast, range 25 circle
     TheDragonsVoice = 32444, // 3DF4->self, 4.0s cast, range ?-30 donut
@@ -52,8 +53,12 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
                 break;
             case AID.TerrorTouch:
             case AID.Diamondback:
+                Interrupts.Add(actor);
+                break;
             case AID.Infatuation:
                 Interrupts.Add(actor);
+                if (Palace.Floor < 60)
+                    Stuns.Add(actor);
                 break;
             case AID.Quake:
             case AID.HighVoltage:
@@ -75,6 +80,7 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
                 break;
             case AID.Hypnotize:
                 AddGaze(actor, 20);
+                IgnoredTargets.Add(actor);
                 break;
             case AID.DemonEye1:
             case AID.DemonEye2:
@@ -86,12 +92,15 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
             case AID.TheDragonsVoice:
             case AID.TheDragonsVoice2:
                 Donuts.Add((actor, 8, 30));
+                IgnoredTargets.Add(actor);
                 break;
             case AID.ElectricCachexia:
                 Donuts.Add((actor, 8, 44));
+                IgnoredTargets.Add(actor);
                 break;
             case AID.ElectricWhorl:
                 Donuts.Add((actor, 8, 60));
+                IgnoredTargets.Add(actor);
                 break;
             case AID.Catharsis:
                 Circles.Add((actor, 40));
@@ -127,14 +136,6 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
                 break;
         }
     }
-
-    protected override IEnumerable<ActionID> AutohintDisabledActions() => [
-        ActionID.MakeSpell(AID.TheDragonsVoice),
-        ActionID.MakeSpell(AID.TheDragonsVoice2),
-        ActionID.MakeSpell(AID.ElectricCachexia),
-        ActionID.MakeSpell(AID.ElectricWhorl),
-        ActionID.MakeSpell(AID.Hypnotize)
-    ];
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {

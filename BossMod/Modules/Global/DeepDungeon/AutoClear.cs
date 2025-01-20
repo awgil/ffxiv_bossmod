@@ -146,6 +146,7 @@ public abstract class AutoClear : ZoneModule
     protected readonly List<Actor> Interrupts = [];
     protected readonly List<Actor> Stuns = [];
     protected readonly List<Actor> ForbiddenTargets = [];
+    protected readonly List<Actor> IgnoredTargets = [];
     private readonly List<Actor> LOS = [];
     private readonly List<WPos> IgnoreTraps = [];
 
@@ -447,13 +448,6 @@ public abstract class AutoClear : ZoneModule
 
     private bool CanAutoUse(PomanderID p) => AutoUsable.Contains(p);
 
-    protected virtual IEnumerable<ActionID> AutohintDisabledActions() => [];
-
-    public override void BeforeCalculateAIHints(int playerSlot, Actor player, AIHints hints)
-    {
-        hints.AutohintDisabledActions.UnionWith(AutohintDisabledActions());
-    }
-
     private void IterAndExpire<T>(List<T> items, Func<T, bool> expire, Action<T> action, Action<T>? onRemove = null)
     {
         for (var i = items.Count - 1; i >= 0; i--)
@@ -489,6 +483,8 @@ public abstract class AutoClear : ZoneModule
             hints.ForcedMovement = new(0);
 
         HandleFloorPathfind(player, hints);
+
+        IterAndExpire(IgnoredTargets, g => g.CastInfo == null, hints.NoAutohint.Add);
 
         IterAndExpire(Gazes, g => g.Source.CastInfo == null, d =>
         {

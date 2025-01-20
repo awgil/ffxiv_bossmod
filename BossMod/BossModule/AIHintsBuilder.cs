@@ -55,9 +55,8 @@ public sealed class AIHintsBuilder : IDisposable
             }
             else
             {
-                _zmm.ActiveModule?.BeforeCalculateAIHints(playerSlot, player, hints);
-                CalculateAutoHints(hints, player);
                 _zmm.ActiveModule?.CalculateAIHints(playerSlot, player, hints);
+                CalculateAutoHints(hints, player);
             }
         }
         hints.Normalize();
@@ -138,7 +137,7 @@ public sealed class AIHintsBuilder : IDisposable
 
         foreach (var aoe in _activeAOEs.Values)
         {
-            if (aoe.Target == player && aoe.Shape is AOEShapeCircle || hints.AutohintDisabledActions.Contains(aoe.Caster.CastInfo!.Action))
+            if (hints.NoAutohint.Contains(aoe.Caster))
                 continue;
 
             var target = aoe.Target == aoe.Caster ? aoe.Caster.CastInfo!.LocXZ : (aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ);

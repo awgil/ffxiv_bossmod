@@ -95,7 +95,7 @@ public sealed class AIHints
     // buffs to be canceled asap
     public List<(uint statusId, ulong sourceId)> StatusesToCancel = [];
 
-    public HashSet<ActionID> AutohintDisabledActions = [];
+    public List<Actor> NoAutohint = [];
 
     // misc stuff to execute
     public bool WantJump;
@@ -108,6 +108,7 @@ public sealed class AIHints
         PathfindMapBounds = DefaultBounds;
         PathfindMapObstacles = default;
         Array.Fill(Enemies, null);
+        NoAutohint.Clear();
         PotentialTargets.Clear();
         ForcedTarget = null;
         ForcedMovement = null;
