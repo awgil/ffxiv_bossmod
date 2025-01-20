@@ -36,6 +36,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     public enum MovementStrategy
     {
         Allow,               //Allow the use of all abilities for movement, regardless of any setting or condition set by the user in other options
+        AllowNoScathe,       //Allow the use of all abilities for movement, except Scathe
         OnlyGCDs,            //Only use instant cast GCDs for movement (Polyglots->Firestarter->Thunder->Scathe if nothing left), regardless of any setting or condition set by the user in other options
         OnlyOGCDs,           //Only use OGCDs for movement, (Swiftcast->Triplecast) regardless of any setting or condition set by the user in other options
         OnlyScathe,          //Only use Scathe for movement
@@ -141,6 +142,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force use of AOE abilities only", supportedTargets: ActionTargets.Hostile);
         res.Define(Track.Movement).As<MovementStrategy>("Movement", uiPriority: 195)
             .AddOption(MovementStrategy.Allow, "Allow", "Allow the use of all appropriate abilities for movement")
+            .AddOption(MovementStrategy.AllowNoScathe, "AllowNoScathe", "Allow the use of all appropriate abilities for movement except for Scathe")
             .AddOption(MovementStrategy.OnlyGCDs, "OnlyGCDs", "Only use instant cast GCDs for movement; Polyglots->Firestarter->Thunder->Scathe if nothing left")
             .AddOption(MovementStrategy.OnlyOGCDs, "OnlyOGCDs", "Only use OGCDs for movement; Swiftcast->Triplecast")
             .AddOption(MovementStrategy.OnlyScathe, "OnlyScathe", "Only use Scathe for movement")
@@ -524,7 +526,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             primaryTarget != null &&
             isMoving)
         {
-            if (movementStrat is MovementStrategy.Allow)
+            if (movementStrat is MovementStrategy.Allow
+                or MovementStrategy.AllowNoScathe
+                or MovementStrategy.OnlyGCDs)
             {
                 // GCDs
                 if (!PlayerHasEffect(SID.Swiftcast, 10) || !PlayerHasEffect(SID.Triplecast, 15))
@@ -543,41 +547,11 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(forceST ? BestThunderST : forceAOE ? BestThunderAOE : BestThunder,
                                  TargetChoice(thunder) ?? primaryTarget ?? BestTarget,
                                  GCDPriority.Moving1);
-
-                    if (MP >= 800 &&
-                        CD(AID.Swiftcast) > 2f && //if Swiftcast is on cooldown
-                        CD(AID.Triplecast) > 62f) //and Triplecast is not active
-                        QueueGCD(AID.Scathe, TargetChoice(AOE) ?? primaryTarget ?? BestTarget, GCDPriority.SixthStep); //use Scathe
                 }
-                //OGCDs
-                if (ActionReady(AID.Swiftcast) &&
-                    !PlayerHasEffect(SID.Triplecast, 15))
-                    QueueOGCD(AID.Swiftcast, Player, GCDPriority.Moving1);
-                if (Unlocked(AID.Triplecast) &&
-                    CD(AID.Triplecast) <= 60 &&
-                    !PlayerHasEffect(SID.Triplecast, 15) &&
-                    !PlayerHasEffect(SID.Swiftcast, 10))
-                    QueueOGCD(AID.Triplecast, Player, GCDPriority.Moving1);
             }
-            if (movementStrat is MovementStrategy.OnlyGCDs)
-            {
-                //GCDs
-                if (!PlayerHasEffect(SID.Swiftcast, 10) ||
-                    !PlayerHasEffect(SID.Triplecast, 15))
-                    QueueGCD(
-                        Unlocked(TraitID.EnhancedPolyglot) && Polyglots > 0 ?
-                        (forceST ? BestXenoglossy : forceAOE ? AID.Foul : BestPolyglot)
-                        : PlayerHasEffect(SID.Firestarter, 30) ? AID.Fire3
-                        : hasThunderhead ?
-                        (forceST ? BestThunderST : forceAOE ? BestThunderAOE : BestThunder)
-                        : AID.Scathe,
-                        Polyglots > 0 ? TargetChoice(polyglot) ?? primaryTarget ?? BestTarget
-                        : PlayerHasEffect(SID.Firestarter, 30) ? TargetChoice(AOE) ?? primaryTarget ?? BestTarget
-                        : hasThunderhead ? TargetChoice(thunder) ?? primaryTarget ?? BestTarget
-                        : primaryTarget,
-                        GCDPriority.Moving1);
-            }
-            if (movementStrat is MovementStrategy.OnlyOGCDs)
+            if (movementStrat is MovementStrategy.Allow
+                or MovementStrategy.AllowNoScathe
+                or MovementStrategy.OnlyOGCDs)
             {
                 //OGCDs
                 if (ActionReady(AID.Swiftcast) &&
@@ -587,7 +561,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                     !PlayerHasEffect(SID.Swiftcast, 10))
                     QueueOGCD(AID.Triplecast, Player, GCDPriority.Moving3);
             }
-            if (movementStrat is MovementStrategy.OnlyScathe)
+            if (movementStrat is MovementStrategy.Allow
+                or MovementStrategy.OnlyScathe)
             {
                 if (Unlocked(AID.Scathe) && MP >= 800)
                     QueueGCD(AID.Scathe, TargetChoice(AOE) ?? primaryTarget ?? BestTarget, GCDPriority.Moving1);
@@ -596,56 +571,48 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         #endregion
 
         #region Out of combat
-        if (tpusStrat != TPUSStrategy.Forbid)
+        if (primaryTarget == null &&
+            (tpusStrat == TPUSStrategy.Allow && (!Player.InCombat || Player.InCombat && TargetsInRange() is 0)) ||
+            (tpusStrat == TPUSStrategy.OOConly && !Player.InCombat))
         {
             if (Unlocked(AID.Transpose))
             {
                 if (!Unlocked(AID.UmbralSoul))
                 {
-                    if (primaryTarget == null &&
-                        (tpusStrat == TPUSStrategy.Allow && (!Player.InCombat || Player.InCombat && TargetsInRange() is 0)) ||
-                        (tpusStrat == TPUSStrategy.OOConly && !Player.InCombat))
-                    {
-                        if (Player.Level < 35 &&
-                            CD(AID.Transpose) < 0.6f &&
-                            (InAstralFire || InUmbralIce))
-                            QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose);
-                    }
+                    if (CD(AID.Transpose) < 0.6f &&
+                        (InAstralFire || InUmbralIce))
+                        QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose);
                 }
                 if (Unlocked(AID.UmbralSoul))
                 {
-                    if (primaryTarget == null &&
-                        (tpusStrat == TPUSStrategy.Allow && (!Player.InCombat || Player.InCombat && TargetsInRange() is 0)) ||
-                        (tpusStrat == TPUSStrategy.OOConly && !Player.InCombat))
-                    {
-                        if (InAstralFire)
-                            QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose);
-                        if (InUmbralIce &&
-                            (ElementTimer <= 14 || UmbralStacks < 3 || UmbralHearts != MaxUmbralHearts))
-                            QueueGCD(AID.UmbralSoul, Player, GCDPriority.Standard);
-                    }
+                    if (InAstralFire)
+                        QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose);
+                    if (InUmbralIce &&
+                        (ElementTimer <= 14 || UmbralStacks < 3 || UmbralHearts != MaxUmbralHearts))
+                        QueueGCD(AID.UmbralSoul, Player, GCDPriority.Standard);
                 }
             }
         }
         #endregion
 
+        #region Cooldowns
         //Thunder
         if (ShouldUseThunder(primaryTarget, thunderStrat)) //if Thunder should be used based on strategy
         {
             if (AOEStrategy is AOEStrategy.Auto)
                 QueueGCD(BestThunder,
                     TargetChoice(thunder) ?? primaryTarget ?? BestTarget,
-                    ThunderLeft < 3 ? GCDPriority.NeedDOT :
+                    ThunderLeft <= 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
             if (forceST)
                 QueueGCD(BestThunderST,
                     TargetChoice(thunder) ?? primaryTarget ?? BestTarget,
-                    ThunderLeft < 3 ? GCDPriority.NeedDOT :
+                    ThunderLeft <= 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
             if (forceAOE)
                 QueueGCD(BestThunderAOE,
                     TargetChoice(thunder) ?? primaryTarget ?? BestTarget,
-                    ThunderLeft < 3 ? GCDPriority.NeedDOT :
+                    ThunderLeft <= 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
         }
         //Polyglots
@@ -736,6 +703,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             potionStrat is PotionStrategy.Immediate)
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionInt, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
         #endregion
+
+        #endregion
     }
 
     #region Core Execution Helpers
@@ -818,7 +787,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                     Player.InCombat) //if Blizzard III is unlocked
                     QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
                 if (Unlocked(AID.Fire3) &&
-                    (CD(AID.Manafont) < 5 && MP >= 10000))
+                    ((CD(AID.Manafont) < 5 && CD(AID.LeyLines) <= 121 && MP >= 10000)) || (!Player.InCombat && World.Client.CountdownRemaining <= 4)) //F3 opener
                     QueueGCD(AID.Fire3, target, canOpen ? GCDPriority.Opener : GCDPriority.NeedB3);
             }
             if (Player.Level is >= 1 and <= 34)
