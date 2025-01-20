@@ -235,7 +235,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         if (ReadyIn(AID.Devilment) > 55)
             PushOGCD(AID.Flourish, Player);
 
-        if ((TechFinishLeft == 0 || OnCooldown(AID.Devilment)) && ThreefoldLeft > World.Client.AnimationLock && NumRangedAOETargets > 0)
+        if ((TechFinishLeft == 0 || OnCooldown(AID.Devilment)) && ThreefoldLeft > AnimLock && NumRangedAOETargets > 0)
             PushOGCD(AID.FanDanceIII, BestRangedAOETarget);
 
         var canF1 = ShouldSpendFeathers(strategy);
@@ -244,7 +244,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         if (Feathers == 4 && canF1)
             PushOGCD(f1ToUse, primaryTarget);
 
-        if (OnCooldown(AID.Devilment) && FourfoldLeft > World.Client.AnimationLock && NumFan4Targets > 0)
+        if (OnCooldown(AID.Devilment) && FourfoldLeft > AnimLock && NumFan4Targets > 0)
             PushOGCD(AID.FanDanceIV, BestFan4Target);
 
         if (canF1)
@@ -328,7 +328,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         if (Feathers == 4 || !Unlocked(AID.TechnicalStep))
             return true;
 
-        return TechFinishLeft > World.Client.AnimationLock;
+        return TechFinishLeft > AnimLock;
     }
 
     private bool IsFan4Target(Actor primary, Actor other) => Hints.TargetInAOECone(other, Player.Position, 15, Player.DirectionTo(primary), 60.Degrees());

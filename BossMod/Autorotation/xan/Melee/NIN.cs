@@ -79,7 +79,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         _ => AID.Ninjutsu
     };
 
-    private bool Hidden => HiddenStatus || ShadowWalker > World.Client.AnimationLock;
+    private bool Hidden => HiddenStatus || ShadowWalker > AnimLock;
 
     private bool CanTrickInCombat => Unlocked(AID.Suiton);
 
@@ -390,7 +390,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
     }
 
     private bool ShouldBhava(StrategyValues strategy)
-        => Ninki >= 50 && (Meisui > 0 || TargetTrickLeft > World.Client.AnimationLock || Ninki > 85);
+        => Ninki >= 50 && (Meisui > 0 || TargetTrickLeft > AnimLock || Ninki > 85);
 
     private (Positional, bool) GetNextPositional(Actor? primaryTarget)
     {

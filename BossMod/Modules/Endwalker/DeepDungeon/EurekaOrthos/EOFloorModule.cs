@@ -27,11 +27,10 @@ public enum AID : uint
     Catharsis = 32732, // 3E56->self, 10.0s cast, range 40 circle
     ElectricWhorl = 33186, // 3E09->self, 4.0s cast, range 60 circle
     HexEye = 32731, // 3E56->self, 3.0s cast, range 5 circle
-
     EclipticMeteor = 33043, // 3DC9->self, 12.0s cast, range 50 circle
-
     TheDragonsVoice2 = 32910,
     AllaganFear = 32896,
+    HighVoltage = 32878, // 3E64->self, 7.5s cast, range 30 circle
 }
 
 public enum SID : uint
@@ -57,6 +56,7 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
                 Interrupts.Add(actor);
                 break;
             case AID.Quake:
+            case AID.HighVoltage:
                 Interrupts.Add(actor);
                 AddLOS(actor, 30);
                 break;

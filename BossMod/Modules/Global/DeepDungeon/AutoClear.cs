@@ -122,6 +122,14 @@ public abstract class AutoClear : ZoneModule
 {
     public readonly int LevelCap;
 
+    public static readonly List<WPos> ProblematicTrapLocations = [
+        new(-346.5f, 302.4f),
+        new(-297.8f, 295.5f),
+        new(295.7f, -302.3f),
+        new(304.3f, -297f),
+        new(361.1f, -357.4f)
+    ];
+
     public static readonly HashSet<uint> BronzeChestIDs = [
         // PotD
         782, 783, 784, 785, 786, 787, 788, 789, 790, 802, 803, 804, 805,
@@ -248,6 +256,7 @@ public abstract class AutoClear : ZoneModule
             ws.SystemLogMessage.Subscribe(OnSystemLogMessage),
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
             ws.Actors.CastFinished.Subscribe(OnCastFinished),
+            ws.Actors.Added.Subscribe(OnActorCreated),
             ws.Actors.StatusGain.Subscribe(OnStatusGain),
             ws.Actors.StatusLose.Subscribe(OnStatusLose),
             ws.Actors.IsDeadChanged.Subscribe(op =>
@@ -266,6 +275,8 @@ public abstract class AutoClear : ZoneModule
         );
 
         _trapsCurrentZone = PalacePalInterop.GetTrapLocationsForZone(ws.CurrentZone);
+
+        IgnoreTraps.AddRange(ProblematicTrapLocations);
 
         using (var fstream = new FileStream(WallsFile, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
         {
@@ -331,6 +342,7 @@ public abstract class AutoClear : ZoneModule
         Interrupts.Clear();
         ForbiddenTargets.Clear();
         IgnoreTraps.Clear();
+        IgnoreTraps.AddRange(ProblematicTrapLocations);
         DesiredRoom = 0;
         Kills = 0;
         _lastChestContentsGold = null;
@@ -457,15 +469,18 @@ public abstract class AutoClear : ZoneModule
         }
     }
 
+    private void OnActorCreated(Actor c)
+    {
+        if ((OID)c.OID is OID.BeaconHoH or OID.BandedCofferIndicator)
+            IgnoreTraps.Add(c.Position);
+    }
+
     private DateTime CastFinishAt(Actor c) => World.FutureTime(c.CastInfo!.NPCRemainingTime);
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
         if (!_config.Enable || Palace.Progress.IsBossFloor || BetweenFloors)
             return;
-
-        IgnoreTraps.Add(new(-346.5f, 302.4f));
-        IgnoreTraps.Add(new(-297.8f, 295.5f));
 
         foreach (var (w, rot) in Walls)
             hints.AddForbiddenZone(new AOEShapeRect(w.Depth, 20, w.Depth), w.Position, (rot ? 90f : 0f).Degrees());
@@ -565,9 +580,6 @@ public abstract class AutoClear : ZoneModule
 
             if ((OID)a.OID is OID.CairnPalace or OID.BeaconHoH or OID.PylonEO && (passage?.DistanceToHitbox(player) ?? float.MaxValue) > a.DistanceToHitbox(player))
                 passage = a;
-
-            if ((OID)a.OID is OID.BeaconHoH)
-                IgnoreTraps.Add(a.Position);
 
             if (RevealedTrapOIDs.Contains(a.OID))
                 revealedTraps.Add(ShapeDistance.Circle(a.Position, 2));

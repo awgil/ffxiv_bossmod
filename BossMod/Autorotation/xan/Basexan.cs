@@ -35,6 +35,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected Enemy? PlayerTarget { get; private set; }
 
     protected float? CountdownRemaining => World.Client.CountdownRemaining;
+    protected float AnimLock => World.Client.AnimationLock;
 
     protected float AttackGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     protected float SpellGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
@@ -49,7 +50,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected bool OnCooldown(AID aid) => MaxChargesIn(aid) > 0;
 
     public bool CanWeave(float cooldown, float actionLock, int extraGCDs = 0, float extraFixedDelay = 0)
-        => MathF.Max(cooldown, World.Client.AnimationLock) + actionLock + AnimationLockDelay <= GCD + GCDLength * extraGCDs + extraFixedDelay;
+        => MathF.Max(cooldown, AnimLock) + actionLock + AnimationLockDelay <= GCD + GCDLength * extraGCDs + extraFixedDelay;
 
     public bool CanWeave(AID aid, int extraGCDs = 0, float extraFixedDelay = 0)
     {
@@ -317,7 +318,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     /// <returns></returns>
     protected virtual float GetCastTime(AID aid) => SwiftcastLeft > GCD ? 0 : ActionDefinitions.Instance.Spell(aid)!.CastTime * GCDLength / 2.5f;
 
-    protected float NextCastStart => World.Client.AnimationLock > GCD ? World.Client.AnimationLock + AnimationLockDelay : GCD;
+    protected float NextCastStart => AnimLock > GCD ? AnimLock + AnimationLockDelay : GCD;
 
     protected float GetSlidecastTime(AID aid) => MathF.Max(0, GetCastTime(aid) - 0.5f);
     protected float GetSlidecastEnd(AID aid) => NextCastStart + GetSlidecastTime(aid);

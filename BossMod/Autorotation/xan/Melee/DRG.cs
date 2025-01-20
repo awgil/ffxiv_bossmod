@@ -189,7 +189,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (StarcrossReady > 0)
             PushOGCD(AID.Starcross, primaryTarget);
 
-        if (LotD > World.Client.AnimationLock && moveOk)
+        if (LotD > AnimLock && moveOk)
             PushOGCD(AID.Stardiver, BestDiveTarget);
 
         if (NastrondReady == 0)

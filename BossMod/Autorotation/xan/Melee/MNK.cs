@@ -568,7 +568,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         switch (strategy.Simple(Track.BH))
         {
             case OffensiveStrategy.Automatic:
-                if (HaveTarget && (CombatTimer > 10 || BeastCount == 2) && DowntimeIn > World.Client.AnimationLock + 20 && GCD > 0)
+                if (HaveTarget && (CombatTimer > 10 || BeastCount == 2) && DowntimeIn > AnimLock + 20 && GCD > 0)
                     PushOGCD(AID.Brotherhood, Player, OGCDPriority.Brotherhood);
                 break;
             case OffensiveStrategy.Force:
@@ -691,7 +691,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
         return strategy.Option(Track.RoF).As<RoFStrategy>() switch
         {
-            RoFStrategy.Automatic => (HaveTarget && (extraGCDs > 0 || !CanWeave(AID.Brotherhood)) && DowntimeIn > World.Client.AnimationLock + 20, true),
+            RoFStrategy.Automatic => (HaveTarget && (extraGCDs > 0 || !CanWeave(AID.Brotherhood)) && DowntimeIn > AnimLock + 20, true),
             RoFStrategy.Force => (true, false),
             RoFStrategy.ForceMidWeave => (true, true),
             _ => (false, false)
@@ -700,7 +700,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool ShouldRoW(StrategyValues strategy) => strategy.Simple(Track.RoW) switch
     {
-        OffensiveStrategy.Automatic => HaveTarget && !CanWeave(AID.RiddleOfFire) && DowntimeIn > World.Client.AnimationLock + 15,
+        OffensiveStrategy.Automatic => HaveTarget && !CanWeave(AID.RiddleOfFire) && DowntimeIn > AnimLock + 15,
         OffensiveStrategy.Force => true,
         _ => false
     };

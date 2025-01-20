@@ -374,9 +374,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         if (strategy.BuffsOk())
             PushOGCD(AID.Ikishoten, Player);
 
-        var animlock = World.Client.AnimationLock;
-
-        if (Kenki >= 25 && (RaidBuffsLeft > animlock || RaidBuffsIn > (Unlocked(TraitID.EnhancedHissatsu) ? 40 : 100)))
+        if (Kenki >= 25 && (RaidBuffsLeft > AnimLock || RaidBuffsIn > (Unlocked(TraitID.EnhancedHissatsu) ? 40 : 100)))
         {
             if (NumLineTargets > 1)
                 PushOGCD(AID.HissatsuGuren, BestLineTarget);
@@ -393,7 +391,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         if (Meditation == 3)
             PushOGCD(AID.Shoha, BestLineTarget);
 
-        var saveKenki = RaidBuffsLeft <= animlock || Zanshin > 0 || ReadyIn(AID.HissatsuSenei) < 10;
+        var saveKenki = RaidBuffsLeft <= AnimLock || Zanshin > 0 || ReadyIn(AID.HissatsuSenei) < 10;
         var maxKenki = ReadyIn(AID.Ikishoten) < 15 ? 50 : 90;
 
         if (Kenki >= (saveKenki ? maxKenki : 25))
