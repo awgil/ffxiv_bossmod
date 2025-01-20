@@ -64,7 +64,7 @@ sealed class AIController(WorldState ws, ActionManagerEx amex, MovementOverride 
         if (hints.ForcedMovement == null && desiredPosition != null)
             hints.ForcedMovement = desiredPosition.Value - player.PosRot.XYZ();
 
-        if (hints.InteractWithTarget is Actor tar && CanInteract(player, tar))
+        if (hints.InteractWithTarget is Actor tar && !hints.ForbiddenZones.Any(z => z.shapeDistance(player.Position) <= 0) && CanInteract(player, tar))
         {
             hints.ForcedMovement = new();
             ExecuteInteract(now, tar);

@@ -142,6 +142,7 @@ public abstract class AutoClear : ZoneModule
 
     protected readonly List<(Actor Source, float Inner, float Outer)> Donuts = [];
     protected readonly List<(Actor Source, float Radius)> Circles = [];
+    protected readonly List<(Actor Source, AOEShape Zone)> Voidzones = [];
     private readonly List<Gaze> Gazes = [];
     protected readonly List<Actor> Interrupts = [];
     protected readonly List<Actor> Stuns = [];
@@ -257,16 +258,15 @@ public abstract class AutoClear : ZoneModule
             ws.SystemLogMessage.Subscribe(OnSystemLogMessage),
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
             ws.Actors.CastFinished.Subscribe(OnCastFinished),
+            ws.Actors.CastEvent.Subscribe(OnEventCast),
             ws.Actors.Added.Subscribe(OnActorCreated),
+            ws.Actors.InCombatChanged.Subscribe(OnActorCombatChanged),
             ws.Actors.StatusGain.Subscribe(OnStatusGain),
             ws.Actors.StatusLose.Subscribe(OnStatusLose),
             ws.Actors.IsDeadChanged.Subscribe(op =>
             {
                 if (!op.IsAlly && op.IsDead)
-                {
                     Kills++;
-                    OnActorDeath(op);
-                }
             }),
             ws.Actors.EventOpenTreasure.Subscribe(OnOpenTreasure),
             ws.Actors.EventObjectAnimation.Subscribe(OnEObjAnim),
@@ -304,11 +304,13 @@ public abstract class AutoClear : ZoneModule
     protected virtual void OnCastStarted(Actor actor) { }
 
     protected virtual void OnCastFinished(Actor actor) { }
+    protected virtual void OnEventCast(Actor actor, ActorCastEvent ev) { }
 
     protected virtual void OnStatusGain(Actor actor, int index) { }
 
     protected virtual void OnStatusLose(Actor actor, int index) { }
-    protected virtual void OnActorDeath(Actor actor) { }
+
+    protected virtual void OnActorCombatChanged(Actor actor) { }
 
     private void OnSystemLogMessage(WorldState.OpSystemLogMessage op)
     {
@@ -475,7 +477,7 @@ public abstract class AutoClear : ZoneModule
         }
     }
 
-    private void OnActorCreated(Actor c)
+    protected virtual void OnActorCreated(Actor c)
     {
         if ((OID)c.OID is OID.BeaconHoH or OID.BandedCofferIndicator)
             IgnoreTraps.Add(c.Position);
@@ -540,6 +542,11 @@ public abstract class AutoClear : ZoneModule
                 return map[(int)offset.X, (int)offset.Z] ? -10 : 10;
             }, CastFinishAt(caster));
         }, d => _losCache.Remove(d.InstanceID));
+
+        IterAndExpire(Voidzones, d => d.Source.IsDeadOrDestroyed, d =>
+        {
+            hints.AddForbiddenZone(d.Zone, d.Source.Position, d.Source.Rotation);
+        });
 
         foreach (var d in ForbiddenTargets)
             if (hints.FindEnemy(d) is { } e)

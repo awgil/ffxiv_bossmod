@@ -33,6 +33,18 @@ public enum AID : uint
     TheDragonsVoice2 = 32910,
     AllaganFear = 32896,
     HighVoltage = 32878, // 3E64->self, 7.5s cast, range 30 circle
+
+    KillingPaw = 33193, // 3E50->self, 3.0s cast, range 9 120-degree cone
+    SavageSwipe = 32654, // 3E50->self, instant cast, range 6 120-degree cone
+
+    SewerWaterCast = 32491, // 3E0F->self, 3.0s cast, range 12 180-degree cone
+    SewerWaterInstant = 32494, // 3E0F->self, instant cast, range 12 180-degree cone
+
+    GoobInhale = 33178, // 3E04->self, instant cast, range 40 90-degree cone
+    GoobSneeze = 32473, // 3E04->self, 1.0s cast, range 7 90-degree cone
+
+    GourmInhale = 32478, // 3E5B->self, instant cast, range 40 90-degree cone
+    GourmSneeze = 32749, // 3E5B->self, 1.0s cast, range 6 90-degree cone
 }
 
 public enum SID : uint
@@ -123,6 +135,32 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
             case AID.GelidCharge:
             case AID.SmolderingScales:
                 ForbiddenTargets.Add(actor);
+                break;
+        }
+    }
+
+    protected override void OnEventCast(Actor actor, ActorCastEvent ev)
+    {
+        switch ((AID)ev.Action.ID)
+        {
+            case AID.GoobInhale:
+                Voidzones.Add((actor, new AOEShapeCone(7, 45.Degrees())));
+                break;
+            case AID.GourmInhale:
+                Voidzones.Add((actor, new AOEShapeCone(6, 45.Degrees())));
+                break;
+            case AID.KillingPaw:
+                Voidzones.Add((actor, new AOEShapeCone(6, 60.Degrees())));
+                break;
+            case AID.SewerWaterCast:
+                Voidzones.Add((actor, new AOEShapeCone(12, 90.Degrees(), 180.Degrees())));
+                break;
+
+            case AID.GoobSneeze:
+            case AID.GourmSneeze:
+            case AID.SavageSwipe:
+            case AID.SewerWaterInstant:
+                Voidzones.RemoveAll(v => v.Source == actor);
                 break;
         }
     }

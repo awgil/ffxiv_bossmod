@@ -171,7 +171,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (NextPositionalImminent && !NextPositionalCorrect)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.TrueNorth), Player, ActionQueue.Priority.Low - 20, delay: GCD - 0.8f);
 
-        if (strategy.BuffsOk())
+        if (strategy.BuffsOk() && PowerSurge > GCD)
         {
             PushOGCD(AID.LanceCharge, Player);
             PushOGCD(AID.BattleLitany, Player);
@@ -190,7 +190,15 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.Starcross, primaryTarget);
 
         if (LotD > AnimLock && moveOk)
-            PushOGCD(AID.Stardiver, BestDiveTarget);
+        {
+            // stardiver: 1.5 + delay
+            // regular GCD: 0.6 + delay
+            // some conditions like DD haste (and maybe bozja?) can reduce GCD to 2.1s or lower, making stardiver weave impossible
+            if (GCDLength > 2.1f + 2 * AnimationLockDelay)
+                PushOGCD(AID.Stardiver, BestDiveTarget);
+            else
+                PushGCD(AID.Stardiver, BestDiveTarget);
+        }
 
         if (NastrondReady == 0)
             PushOGCD(AID.Geirskogul, BestLongAOETarget);
