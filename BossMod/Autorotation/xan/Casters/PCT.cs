@@ -1,5 +1,6 @@
 ﻿using BossMod.PCT;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -27,11 +28,14 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
     public int Palette; // 0-100
     public int Paint; // 0-5
-    public bool Creature;
-    public bool Weapon;
-    public bool Landscape;
-    public bool Moogle;
-    public bool Madeen;
+
+    public bool PomClawMuse => CanvasFlags.HasFlag(CanvasFlags.Pom) || CanvasFlags.HasFlag(CanvasFlags.Claw);
+    public bool WingFangMuse => CanvasFlags.HasFlag(CanvasFlags.Wing) || CanvasFlags.HasFlag(CanvasFlags.Maw);
+    public bool Portrait => CreatureFlags.HasFlag(CreatureFlags.MooglePortait) || CreatureFlags.HasFlag(CreatureFlags.MadeenPortrait);
+
+    public bool CreaturePainted => PomClawMuse || WingFangMuse;
+    public bool WeaponPainted => CanvasFlags.HasFlag(CanvasFlags.Weapon);
+    public bool LandscapePainted => CanvasFlags.HasFlag(CanvasFlags.Landscape);
     public bool Monochrome;
     public CreatureFlags CreatureFlags;
     public CanvasFlags CanvasFlags;
@@ -55,8 +59,8 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
     public int NumAOETargets;
     public int NumLineTargets;
 
-    private Actor? BestAOETarget;
-    private Actor? BestLineTarget;
+    private Enemy? BestAOETarget;
+    private Enemy? BestLineTarget;
 
     public enum GCDPriority : int
     {
@@ -69,23 +73,51 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
     private float GetApplicationDelay(AID action) => action switch
     {
         AID.RainbowDrip => 1.24f,
+        AID.FireInRed => 0.84f,
         AID.ClawedMuse => 0.98f,
         AID.FangedMuse => 1.16f,
+        AID.MogOfTheAges => 1.15f,
+        AID.RetributionOfTheMadeen => 1.30f,
         _ => 0
     };
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public const uint LeylinesOID = 0x6DF;
+
+    private AID BestLivingMuse
+    {
+        get
+        {
+            if (CanvasFlags.HasFlag(CanvasFlags.Pom))
+                return AID.PomMuse;
+            if (CanvasFlags.HasFlag(CanvasFlags.Wing))
+                return AID.WingedMuse;
+            if (CanvasFlags.HasFlag(CanvasFlags.Claw))
+                return AID.ClawedMuse;
+            if (CanvasFlags.HasFlag(CanvasFlags.Maw))
+                return AID.FangedMuse;
+            return AID.None;
+        }
+    }
+
+    private AID BestPortrait
+    {
+        get
+        {
+            if (CreatureFlags.HasFlag(CreatureFlags.MooglePortait))
+                return AID.MogOfTheAges;
+            if (CreatureFlags.HasFlag(CreatureFlags.MadeenPortrait))
+                return AID.RetributionOfTheMadeen;
+            return AID.None;
+        }
+    }
+
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
         var gauge = World.Client.GetGauge<PictomancerGauge>();
         Palette = gauge.PalleteGauge;
         Paint = gauge.Paint;
-        Creature = gauge.CreatureMotifDrawn;
-        Weapon = gauge.WeaponMotifDrawn;
-        Landscape = gauge.LandscapeMotifDrawn;
-        Moogle = gauge.MooglePortraitReady;
-        Madeen = gauge.MadeenPortraitReady;
         CreatureFlags = gauge.CreatureFlags;
         CanvasFlags = gauge.CanvasFlags;
 
@@ -111,26 +143,31 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (motifOk)
         {
-            if (!Creature && Unlocked(AID.CreatureMotif))
+            if (!CreaturePainted && Unlocked(AID.CreatureMotif))
                 PushGCD(AID.CreatureMotif, Player, GCDPriority.Standard);
 
-            if (!Weapon && Unlocked(AID.WeaponMotif) && HammerTime.Left == 0)
+            if (!WeaponPainted && Unlocked(AID.WeaponMotif) && HammerTime.Left == 0)
                 PushGCD(AID.WeaponMotif, Player, GCDPriority.Standard);
 
-            if (!Landscape && Unlocked(AID.LandscapeMotif) && StarryMuseLeft == 0)
+            if (!LandscapePainted && Unlocked(AID.LandscapeMotif) && StarryMuseLeft == 0)
                 PushGCD(AID.LandscapeMotif, Player, GCDPriority.Standard);
         }
 
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining <= GetCastTime(AID.RainbowDrip))
+            if (CountdownRemaining <= GetCastTime(AID.RainbowDrip) + GetApplicationDelay(AID.RainbowDrip))
                 PushGCD(AID.RainbowDrip, primaryTarget, GCDPriority.Standard);
 
-            if (CountdownRemaining <= GetCastTime(AID.FireInRed))
+            if (CountdownRemaining <= GetCastTime(AID.FireInRed) + GetApplicationDelay(AID.FireInRed))
                 PushGCD(AID.FireInRed, primaryTarget, GCDPriority.Standard);
 
             return;
         }
+
+        GoalZoneSingle(25);
+
+        if (Player.InCombat && World.Actors.FirstOrDefault(x => x.OID is LeylinesOID && x.OwnerID == Player.InstanceID) is Actor ll)
+            Hints.GoalZones.Add(p => p.InCircle(ll.Position, 8) ? 0.5f : 0);
 
         if (!Player.InCombat && primaryTarget != null && Paint == 0)
             PushGCD(AID.RainbowDrip, primaryTarget, GCDPriority.Standard);
@@ -140,8 +177,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
             if (ShouldWeapon(strategy))
                 PushOGCD(AID.StrikingMuse, Player);
 
-            if (CanvasFlags.HasFlag(CanvasFlags.Pom))
-                PushOGCD(AID.PomMuse, BestAOETarget);
+            PushOGCD(BestLivingMuse, BestAOETarget);
 
             if (ShouldLandscape(strategy))
                 PushOGCD(AID.StarryMuse, Player, 2);
@@ -149,14 +185,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
             if (ShouldSubtract(strategy))
                 PushOGCD(AID.SubtractivePalette, Player);
 
-            if (ShouldCreature(strategy))
-                PushOGCD(AID.LivingMuse, BestAOETarget);
-
-            if (ShouldMog(strategy))
-                PushOGCD(AID.MogOfTheAges, BestLineTarget);
-
-            if (Madeen)
-                PushOGCD(AID.RetributionOfTheMadeen, BestLineTarget);
+            PushOGCD(BestPortrait, BestLineTarget);
 
             if (Player.HPMP.CurMP <= 7000)
                 PushOGCD(AID.LucidDreaming, Player);
@@ -176,7 +205,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         if (RainbowBright > GCD)
             PushGCD(AID.RainbowDrip, BestLineTarget, GCDPriority.Standard);
 
-        var shouldWing = WingPlanned(strategy);
+        var shouldWing = ShouldPaintInOpener(strategy);
 
         // hardcasting wing motif is #1 prio in opener
         if (shouldWing)
@@ -231,12 +260,12 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
     }
 
     // only relevant during opener
-    private bool WingPlanned(StrategyValues strategy)
+    private bool ShouldPaintInOpener(StrategyValues strategy)
     {
         if (strategy.Option(Track.Motif).As<MotifStrategy>() != MotifStrategy.Combat)
             return false;
 
-        return PomOnly && !Creature && CanWeave(AID.LivingMuse, 0, extraFixedDelay: 4);
+        return !WingFangMuse && BestPortrait == AID.None && (CreatureFlags.HasFlag(CreatureFlags.Pom) || CreatureFlags.HasFlag(CreatureFlags.Claw)) && CanWeave(AID.LivingMuse, 0, extraFixedDelay: 4) && CanWeave(AID.MogOfTheAges, 5);
     }
 
     protected override float GetCastTime(AID aid) => aid switch
@@ -266,6 +295,8 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         PushGCD(AID.HammerStamp, BestAOETarget, prio);
     }
 
+    private bool PaintOvercap => Paint == 5 && Hues == AetherHues.Two;
+
     private void Holy(StrategyValues strategy)
     {
         if (Paint == 0)
@@ -276,12 +307,12 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         // use to weave in opener
         if (ShouldSubtract(strategy, 1))
             prio = GCDPriority.Standard;
-        if (CombatTimer < 10 && !CreatureFlags.HasFlag(CreatureFlags.Pom))
+        if (CombatTimer < 10 && !CreatureFlags.HasFlag(CreatureFlags.Pom) && CanvasFlags.HasFlag(CanvasFlags.Pom) && CanWeave(AID.LivingMuse, 1))
             prio = GCDPriority.Standard;
 
         // use comet to prevent overcap or during buffs
         // regular holy can be overcapped without losing dps
-        if (Monochrome && (Paint == 5 || RaidBuffsLeft > GCD))
+        if (Monochrome && (PaintOvercap || RaidBuffsLeft > GCD))
             prio = GCDPriority.Standard;
 
         // holy always a gain in aoe
@@ -291,27 +322,11 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         PushGCD(Monochrome ? AID.CometInBlack : AID.HolyInWhite, BestAOETarget, prio);
     }
 
-    private bool PomOnly => CreatureFlags.HasFlag(CreatureFlags.Pom) && !CreatureFlags.HasFlag(CreatureFlags.Wings);
-
     private bool ShouldWeapon(StrategyValues strategy)
     {
         // ensure muse alignment
         // ReadyIn will return float.max if not unlocked so no additional check needed
-        return Weapon && ReadyIn(AID.StarryMuse) is < 10 or > 60;
-    }
-
-    private bool ShouldCreature(StrategyValues strategy)
-    {
-        // triggers native autotarget if BestAOETarget is null because LivingMuse is self targeted and all the actual muse actions are not
-        // TODO figure out buff timing, this code always just sends it
-        return Creature && BestAOETarget != null;
-    }
-
-    private bool ShouldMog(StrategyValues strategy)
-    {
-        // ensure muse alignment - moogle takes two 40s charges to rebuild
-        // TODO fix this for madeen, i think we swap between mog/madeen every 2min?
-        return Moogle && (RaidBuffsLeft > 0 || ReadyIn(AID.StarryMuse) > 80);
+        return WeaponPainted && ReadyIn(AID.StarryMuse) is < 10 or > 60;
     }
 
     private bool ShouldLandscape(StrategyValues strategy, int gcdsAhead = 0)
@@ -319,10 +334,10 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         if (!strategy.BuffsOk())
             return false;
 
-        if (CombatTimer < 10 && !CanvasFlags.HasFlag(CanvasFlags.Wing))
+        if (CombatTimer < 10 && !WingFangMuse)
             return false;
 
-        return Landscape && CanWeave(AID.StarryMuse, gcdsAhead);
+        return LandscapePainted && CanWeave(AID.StarryMuse, gcdsAhead);
     }
 
     private bool ShouldSubtract(StrategyValues strategy, int gcdsAhead = 0)

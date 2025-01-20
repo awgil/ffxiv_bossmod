@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using static BossMod.AIHints;
+
+namespace BossMod;
 
 // objkind << 8 + objsubkind
 public enum ActorType : ushort
@@ -130,6 +132,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public int PredictedMPRaw => (int)HPMP.CurMP + PendingMPDiffence;
     public int PredictedHPClamped => Math.Clamp(PredictedHPRaw, 0, (int)HPMP.MaxHP);
     public bool PredictedDead => PredictedHPRaw <= 1 && !IsStrikingDummy;
+    public float PredictedHPRatio => (float)PredictedHPRaw / HPMP.MaxHP;
 
     // if expirationForPredicted is not null, search pending first, and return one if found; in that case only low byte of extra will be set
     public ActorStatus? FindStatus(uint sid, DateTime? expirationForPending = null)
@@ -163,6 +166,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public Angle AngleTo(Actor other) => Angle.FromDirection(other.Position - Position);
 
     public float DistanceToHitbox(Actor? other) => other == null ? float.MaxValue : (other.Position - Position).Length() - other.HitboxRadius - HitboxRadius;
+    public float DistanceToHitbox(Enemy? other) => DistanceToHitbox(other?.Actor);
 
     public override string ToString() => $"{OID:X} '{Name}' <{InstanceID:X}>";
 }

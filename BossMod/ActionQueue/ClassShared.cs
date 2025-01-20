@@ -92,6 +92,18 @@ public enum SID : uint
     Addle = 1203, // applied by Addle to target
     Swiftcast = 167, // applied by Swiftcast to self
     Raise = 148, // applied by Raise to target
+
+    // Bozja
+    LostChainspell = 2560, // instant cast
+
+    MagicBurst = 1652, // magic damage buff
+    BannerOfNobleEnds = 2326, // damage buff + healing disable
+    BannerOfHonoredSacrifice = 2327, // damage buff + hp drain
+    LostFontOfPower = 2346, // damage/crit buff
+    ClericStance = 2484, // damage buff (from seraph strike)
+    LostExcellence = 2564, // damage buff + invincibility
+    Memorable = 2565, // damage buff
+    BloodRush = 2567, // damage buff + ability haste
     #endregion
 
     #region PvP

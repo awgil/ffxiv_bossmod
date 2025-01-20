@@ -1,5 +1,6 @@
 ﻿using BossMod.DRG;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -39,6 +40,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
     public float DraconianFire;
     public float DragonsFlight;
     public float StarcrossReady;
+    public float EnhancedTalon;
 
     public float TargetDotLeft;
 
@@ -46,11 +48,11 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
     public int NumLongAOETargets; // GSK, nastrond (15x4 rect)
     public int NumDiveTargets; // dragonfire, stardiver, etc
 
-    private Actor? BestAOETarget;
-    private Actor? BestLongAOETarget;
-    private Actor? BestDiveTarget;
+    private Enemy? BestAOETarget;
+    private Enemy? BestLongAOETarget;
+    private Enemy? BestDiveTarget;
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
@@ -68,6 +70,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         DraconianFire = StatusLeft(SID.DraconianFire);
         DragonsFlight = StatusLeft(SID.DragonsFlight);
         StarcrossReady = StatusLeft(SID.StarcrossReady);
+        EnhancedTalon = StatusLeft(SID.EnhancedPiercingTalon);
         TargetDotLeft = MathF.Max(
             StatusDetails(primaryTarget, SID.ChaosThrust, Player.InstanceID).Left,
             StatusDetails(primaryTarget, SID.ChaoticSpring, Player.InstanceID).Left
@@ -80,12 +83,18 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         var pos = GetPositional(strategy, primaryTarget);
         UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
 
-        OGCD(strategy, primaryTarget);
-
         if (primaryTarget == null)
             return;
 
-        GoalZoneCombined(3, Hints.GoalAOERect(primaryTarget, 10, 2), 3, pos.Item1);
+        if (CountdownRemaining > 0)
+        {
+            if (CountdownRemaining < 0.7f)
+                PushGCD(AID.WingedGlide, primaryTarget);
+
+            return;
+        }
+
+        GoalZoneCombined(strategy, 3, Hints.GoalAOERect(primaryTarget.Actor, 10, 2), AID.DoomSpike, minAoe: 3, positional: pos.Item1, maximumActionRange: 20);
 
         if (NumAOETargets > 2)
         {
@@ -145,9 +154,13 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         PushGCD(DraconianFire > GCD ? AID.RaidenThrust : AID.TrueThrust, primaryTarget);
+        if (EnhancedTalon > GCD)
+            PushGCD(AID.PiercingTalon, primaryTarget);
+
+        OGCD(strategy, primaryTarget);
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (primaryTarget == null || !Player.InCombat || PowerSurge == 0)
             return;
@@ -174,11 +187,9 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.LifeSurge, Player);
 
         if (StarcrossReady > 0)
-            // TODO we *technically* should select a specific target for starcross because it's a 3y range 5y radius circle...
-            // but it's always gonna get used immediately after stardiver and we'll be melee range...so fuck it
             PushOGCD(AID.Starcross, primaryTarget);
 
-        if (LotD > 0 && moveOk)
+        if (LotD > AnimLock && moveOk)
             PushOGCD(AID.Stardiver, BestDiveTarget);
 
         if (NastrondReady == 0)
@@ -187,7 +198,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (DiveReady == 0 && posOk)
             PushOGCD(AID.Jump, primaryTarget);
 
-        if (moveOk)
+        if (moveOk && strategy.BuffsOk())
             PushOGCD(AID.DragonfireDive, BestDiveTarget);
 
         if (NastrondReady > 0)
@@ -246,7 +257,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
     private bool MoveOk(StrategyValues strategy) => strategy.Option(Track.Dive).As<DiveStrategy>() == DiveStrategy.Allow;
     private bool PosLockOk(StrategyValues strategy) => strategy.Option(Track.Dive).As<DiveStrategy>() != DiveStrategy.NoLock;
 
-    private (Positional, bool) GetPositional(StrategyValues strategy, Actor? primaryTarget)
+    private (Positional, bool) GetPositional(StrategyValues strategy, Enemy? primaryTarget)
     {
         // no positional
         if (NumAOETargets > 2 && Unlocked(AID.DoomSpike) || !Unlocked(AID.ChaosThrust) || primaryTarget == null)

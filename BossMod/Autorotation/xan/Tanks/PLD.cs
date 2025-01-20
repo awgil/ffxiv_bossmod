@@ -1,18 +1,69 @@
 ﻿using BossMod.PLD;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
 public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
-    public enum Track { Intervene = SharedTrack.Count }
+    public enum Track { Intervene = SharedTrack.Count, HolySpirit, Atonement }
+
+    public enum HSStrategy
+    {
+        Standard,
+        ForceDM,
+        Force,
+        Ranged,
+        Delay
+    }
+    public enum AtonementStrategy
+    {
+        Automatic,
+        Force,
+        Delay
+    }
+    public enum DashStrategy
+    {
+        Automatic,
+        GapCloser,
+        Delay
+    }
+
+    public enum GCDPriority
+    {
+        None = 0,
+        HS = 100,
+        Standard = 500,
+        Atonement = 600,
+        DMHS = 650,
+        AtonementCombo = 700,
+        BladeCombo = 750,
+        GoringBlade = 800,
+        Force = 900
+    }
 
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("xan PLD", "Paladin", "Standard rotation (xan)|Tanks", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA), 100);
 
         def.DefineShared().AddAssociatedActions(AID.FightOrFlight);
-        def.DefineSimple(Track.Intervene, "Dash").AddAssociatedActions(AID.Intervene);
+
+        def.Define(Track.Intervene).As<DashStrategy>("Intervene")
+            .AddOption(DashStrategy.Automatic, "Use during burst window", minLevel: 66)
+            .AddOption(DashStrategy.GapCloser, "Use if outside melee range", minLevel: 66)
+            .AddOption(DashStrategy.Delay, "Do not use", minLevel: 66)
+            .AddAssociatedActions(AID.Intervene);
+
+        def.Define(Track.HolySpirit).As<HSStrategy>("HS")
+            .AddOption(HSStrategy.Standard, "Use during Divine Might only; ASAP in burst, otherwise when out of melee range, or if next GCD will overwrite DM", minLevel: 64)
+            .AddOption(HSStrategy.ForceDM, "Use ASAP during next Divine Might proc, regardless of range", minLevel: 64)
+            .AddOption(HSStrategy.Force, "Use now, even if in melee range or if DM is not active", minLevel: 64)
+            .AddOption(HSStrategy.Ranged, "Always use when out of melee range", minLevel: 64)
+            .AddOption(HSStrategy.Delay, "Do not use", minLevel: 64)
+            .AddAssociatedActions(AID.HolySpirit);
+
+        def.DefineSimple(Track.Atonement, "Atone", minLevel: 76)
+            .AddAssociatedActions(AID.Atonement, AID.Supplication, AID.Sepulchre);
 
         return def;
     }
@@ -34,7 +85,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
     public int NumAOETargets;
 
-    private Actor? BestRangedTarget;
+    private Enemy? BestRangedTarget;
 
     protected override float GetCastTime(AID aid) => aid switch
     {
@@ -42,7 +93,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         _ => 0
     };
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
@@ -70,79 +121,62 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
         NumAOETargets = NumMeleeAOETargets(strategy);
 
-        CalcNextBestOGCD(strategy, primaryTarget);
-
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining < GetCastTime(AID.HolySpirit))
+            if (CountdownRemaining < GetCastTime(AID.HolySpirit) + 0.76f)
                 PushGCD(AID.HolySpirit, primaryTarget);
 
             return;
         }
 
-        GoalZoneCombined(3, Hints.GoalAOECircle(5), 3);
+        CalcNextBestOGCD(strategy, primaryTarget);
+
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.TotalEclipse, 3, maximumActionRange: 20);
 
         if (ConfiteorCombo != AID.None && MP >= 1000)
-            PushGCD(ConfiteorCombo, BestRangedTarget);
+            PushGCD(ConfiteorCombo, BestRangedTarget, GCDPriority.BladeCombo);
 
-        // use goring blade even in AOE
         if (GoringBladeReady > GCD)
-            PushGCD(AID.GoringBlade, primaryTarget, priority: 50);
+            PushGCD(AID.GoringBlade, primaryTarget, GCDPriority.GoringBlade);
 
         if (NumAOETargets >= 3 && Unlocked(AID.TotalEclipse))
         {
             if ((Requiescat.Left > GCD || DivineMight > GCD && FightOrFlight > GCD) && MP >= 1000)
-                PushGCD(AID.HolyCircle, Player);
+                PushGCD(AID.HolyCircle, Player, GCDPriority.Standard);
 
             if (ComboLastMove == AID.TotalEclipse)
             {
                 if (DivineMight > GCD && MP >= 1000)
-                    PushGCD(AID.HolyCircle, Player);
+                    PushGCD(AID.HolyCircle, Player, GCDPriority.Standard);
 
-                PushGCD(AID.Prominence, Player);
+                PushGCD(AID.Prominence, Player, GCDPriority.Standard);
             }
 
-            PushGCD(AID.TotalEclipse, Player);
+            PushGCD(AID.TotalEclipse, Player, GCDPriority.Standard);
+            return;
         }
-        else
-        {
-            // fallback - cast holy spirit if we don't have a melee
-            if (DivineMight > GCD && MP >= 1000)
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.HolySpirit), primaryTarget, ActionQueue.Priority.High - 50);
 
-            if (Requiescat.Left > GCD || DivineMight > GCD && FightOrFlight > GCD)
-                PushGCD(AID.HolySpirit, primaryTarget);
+        UseHS(strategy, primaryTarget);
+        UseAtone(strategy, primaryTarget);
 
-            if (AtonementReady > GCD && FightOrFlight > GCD)
-                PushGCD(AID.Atonement, primaryTarget);
+        if (SepulchreReady > GCD)
+            PushGCD(AID.Sepulchre, primaryTarget, GCDPriority.AtonementCombo);
 
-            if (SepulchreReady > GCD)
-                PushGCD(AID.Sepulchre, primaryTarget);
+        if (SupplicationReady > GCD)
+            PushGCD(AID.Supplication, primaryTarget, GCDPriority.AtonementCombo);
 
-            if (SupplicationReady > GCD)
-                PushGCD(AID.Supplication, primaryTarget);
+        if (ComboLastMove == AID.RiotBlade)
+            PushGCD(AID.RageOfHalone, primaryTarget, GCDPriority.Standard);
 
-            if (ComboLastMove == AID.RiotBlade)
-            {
-                if (DivineMight > GCD && MP >= 1000)
-                    PushGCD(AID.HolySpirit, primaryTarget);
+        if (ComboLastMove == AID.FastBlade)
+            PushGCD(AID.RiotBlade, primaryTarget, GCDPriority.Standard);
 
-                if (AtonementReady > GCD)
-                    PushGCD(AID.Atonement, primaryTarget);
-
-                PushGCD(AID.RageOfHalone, primaryTarget);
-            }
-
-            if (ComboLastMove == AID.FastBlade)
-                PushGCD(AID.RiotBlade, primaryTarget);
-
-            PushGCD(AID.FastBlade, primaryTarget);
-        }
+        PushGCD(AID.FastBlade, primaryTarget, GCDPriority.Standard);
     }
 
-    private void CalcNextBestOGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void CalcNextBestOGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (primaryTarget == null || CountdownRemaining > 0)
+        if (primaryTarget == null || !Player.InCombat)
             return;
 
         if (ShouldFoF(strategy, primaryTarget))
@@ -167,24 +201,75 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
                 PushOGCD(AID.CircleOfScorn, Player);
         }
 
-        switch (strategy.Simple(Track.Intervene))
+        switch (strategy.Option(Track.Intervene).As<DashStrategy>())
         {
-            case OffensiveStrategy.Automatic:
+            case DashStrategy.Automatic:
                 if (FightOrFlight > 0)
                     PushOGCD(AID.Intervene, primaryTarget);
                 break;
-            case OffensiveStrategy.Force:
-                PushOGCD(AID.Intervene, primaryTarget);
+            case DashStrategy.GapCloser:
+                if (Player.DistanceToHitbox(primaryTarget) > 3)
+                    PushOGCD(AID.Intervene, primaryTarget);
                 break;
         }
     }
 
-    private bool ShouldFoF(StrategyValues strategy, Actor? primaryTarget)
+    private void UseHS(StrategyValues strategy, Enemy? primaryTarget)
     {
+        var track = strategy.Option(Track.HolySpirit).As<HSStrategy>();
+
+        if (MP < 1000 || track == HSStrategy.Delay)
+            return;
+
+        var requiescat = Requiescat.Left > GCD;
+        var divineMight = DivineMight > GCD;
+        var fof = FightOrFlight > GCD;
+
+        var useStandard = divineMight && fof || requiescat || divineMight && ComboLastMove == AID.RiotBlade;
+
+        var prio = strategy.Option(Track.HolySpirit).As<HSStrategy>() switch
+        {
+            HSStrategy.Standard => useStandard ? GCDPriority.DMHS : GCDPriority.None,
+            HSStrategy.ForceDM => divineMight ? GCDPriority.Force : GCDPriority.None,
+            HSStrategy.Force => GCDPriority.Force,
+            HSStrategy.Ranged => useStandard ? GCDPriority.DMHS : GCDPriority.HS,
+            _ => GCDPriority.None
+        };
+
+        PushGCD(AID.HolySpirit, primaryTarget, prio);
+    }
+
+    private void UseAtone(StrategyValues strategy, Enemy? primaryTarget)
+    {
+        if (AtonementReady <= GCD)
+            return;
+
+        switch (strategy.Simple(Track.Atonement))
+        {
+            case OffensiveStrategy.Automatic:
+                if (FightOrFlight > GCD)
+                    // use after DMHS, which is higher potency
+                    PushGCD(AID.Atonement, primaryTarget, GCDPriority.Atonement);
+
+                if (ComboLastMove == AID.RiotBlade)
+                    PushGCD(AID.Atonement, primaryTarget, GCDPriority.AtonementCombo);
+                break;
+            case OffensiveStrategy.Force:
+                if (AtonementReady > GCD)
+                    PushGCD(AID.Atonement, primaryTarget, GCDPriority.Force);
+                break;
+        }
+    }
+
+    private bool ShouldFoF(StrategyValues strategy, Enemy? primaryTarget)
+    {
+        if (strategy.Simple(SharedTrack.Buffs) == OffensiveStrategy.Delay)
+            return false;
+
         if (!Unlocked(TraitID.DivineMagicMastery1))
             return true;
 
         // hold FoF until 3rd GCD for opener, otherwise use on cooldown
-        return DivineMight > 0 || CombatTimer > 30;
+        return DivineMight > 0 || CombatTimer > 30 || strategy.Simple(SharedTrack.Buffs) == OffensiveStrategy.Force;
     }
 }

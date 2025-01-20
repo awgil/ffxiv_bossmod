@@ -204,7 +204,7 @@ public sealed class AIHints
         var effRsq = radius * radius;
         return p => (p - target).LengthSq() <= effRsq ? weight : 0;
     }
-    public Func<WPos, float> GoalSingleTarget(Actor target, float range) => GoalSingleTarget(target.Position, range + target.HitboxRadius + 0.5f);
+    public Func<WPos, float> GoalSingleTarget(Actor target, float range, float weight = 1) => GoalSingleTarget(target.Position, range + target.HitboxRadius + 0.5f, weight);
 
     // simple goal zone that returns 1 if target is in range (usually melee), 2 if it's also in correct positional
     public Func<WPos, float> GoalSingleTarget(WPos target, Angle rotation, Positional positional, float radius)

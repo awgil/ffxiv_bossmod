@@ -21,62 +21,93 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         return def;
     }
 
-    public record struct TankActions(ActionID Ranged, ActionID Stance, uint StanceBuff, ActionID PartyMit, ActionID LongMit, ActionID ShortMit, float ShortMitDuration, ActionID AllyMit, ActionID SmallMit = default, Func<RotationModule, bool>? ShortMitCheck = null);
+    public record struct Buff(ActionID ID, float Duration, float ApplicationDelay = 0, Func<RotationModule, bool>? CanUse = null)
+    {
+        public Buff(object ID, float Duration, float ApplicationDelay = 0, Func<RotationModule, bool>? CanUse = null) : this(ActionID.MakeSpell((ClassShared.AID)ID), Duration, ApplicationDelay, CanUse) { }
+    }
 
-    private static TankActions WARActions = new(
+    public record struct TankActions(
+        ActionID Ranged,
+        ActionID Stance,
+        uint StanceBuff,
+        Buff Invuln,
+        Buff PartyMit,
+        Buff LongMit,
+        Buff ShortMit,
+        Buff AllyMit,
+        Buff SmallMit = default
+    );
+
+    // 120s mit application delays are guessed here, the DT sheet doesn't show them (but Rampart is 0.62s)
+
+    public static readonly TankActions WARActions = new(
         Ranged: Spell(WAR.AID.Tomahawk),
         Stance: Spell(WAR.AID.Defiance),
         StanceBuff: (uint)WAR.SID.Defiance,
-        PartyMit: Spell(WAR.AID.ShakeItOff),
-        LongMit: Spell(WAR.AID.Vengeance),
-        ShortMit: Spell(WAR.AID.RawIntuition),
-        ShortMitDuration: 8,
-        AllyMit: Spell(WAR.AID.NascentFlash)
+        Invuln: new(WAR.AID.Holmgang, 10, 0),
+        PartyMit: new(WAR.AID.ShakeItOff, 30),
+        LongMit: new(WAR.AID.Vengeance, 15, 0.62f),
+
+        // 8s lifesteal, 4s damage reduction, 20s shield
+        // before upgrade: 6s lifesteal, 6s damage reduction
+        ShortMit: new(WAR.AID.RawIntuition, 4, 0.62f),
+        // 8s lifesteal, 4s damage reduction, 20s shield
+        AllyMit: new(WAR.AID.NascentFlash, 4, 0.62f)
     );
-    private static TankActions PLDActions = new(
+
+    public static readonly TankActions PLDActions = new(
         Ranged: Spell(BossMod.PLD.AID.ShieldLob),
         Stance: Spell(BossMod.PLD.AID.IronWill),
         StanceBuff: (uint)BossMod.PLD.SID.IronWill,
-        PartyMit: Spell(BossMod.PLD.AID.DivineVeil),
-        LongMit: Spell(BossMod.PLD.AID.Sentinel),
-        ShortMit: Spell(BossMod.PLD.AID.Sheltron),
-        ShortMitDuration: 8,
-        AllyMit: Spell(BossMod.PLD.AID.Intervention),
-        SmallMit: Spell(BossMod.PLD.AID.Bulwark),
-        ShortMitCheck: (mod) => mod.World.Client.GetGauge<PaladinGauge>().OathGauge >= 50
+        Invuln: new(BossMod.PLD.AID.HallowedGround, 10, 0),
+        PartyMit: new(BossMod.PLD.AID.DivineVeil, 30),
+        LongMit: new(BossMod.PLD.AID.Sentinel, 15, 0.62f),
+        SmallMit: new(BossMod.PLD.AID.Bulwark, 10, 0.62f),
+
+        // 8s 15% mit, 4s of an additional 15% mit, 12s regen
+        // before upgrade: 6s 15%
+        ShortMit: new(BossMod.PLD.AID.Sheltron, 8, 0, mod => mod.World.Client.GetGauge<PaladinGauge>().OathGauge >= 50),
+        // same as above, no pre-upgrade version
+        AllyMit: new(BossMod.PLD.AID.Intervention, 8, 0.80f, mod => mod.World.Client.GetGauge<PaladinGauge>().OathGauge >= 50)
     );
-    private static TankActions DRKActions = new(
+
+    public static readonly TankActions DRKActions = new(
         Ranged: Spell(BossMod.DRK.AID.Unmend),
         Stance: Spell(BossMod.DRK.AID.Grit),
         StanceBuff: (uint)BossMod.DRK.SID.Grit,
-        PartyMit: Spell(BossMod.DRK.AID.DarkMissionary),
-        LongMit: Spell(BossMod.DRK.AID.ShadowWall),
-        ShortMit: Spell(BossMod.DRK.AID.TheBlackestNight),
-        ShortMitDuration: 7,
-        AllyMit: Spell(BossMod.DRK.AID.TheBlackestNight),
-        SmallMit: Spell(BossMod.DRK.AID.DarkMind),
-        ShortMitCheck: (mod) => mod.Player.HPMP.CurMP >= 3000
+        Invuln: new(BossMod.DRK.AID.LivingDead, 10, 0),
+        PartyMit: new(BossMod.DRK.AID.DarkMissionary, 15, 0.62f),
+        LongMit: new(BossMod.DRK.AID.ShadowWall, 15, 0.62f),
+        SmallMit: new(BossMod.DRK.AID.DarkMind, 10, 0.62f),
+
+        ShortMit: new(BossMod.DRK.AID.TheBlackestNight, 7, 0.62f, mod => mod.Player.HPMP.CurMP >= 3000),
+        AllyMit: new(BossMod.DRK.AID.TheBlackestNight, 7, 0.62f, mod => mod.Player.HPMP.CurMP >= 3000)
     );
-    private static TankActions GNBActions = new(
+
+    public static readonly TankActions GNBActions = new(
         Ranged: Spell(BossMod.GNB.AID.LightningShot),
         Stance: Spell(BossMod.GNB.AID.RoyalGuard),
         StanceBuff: (uint)BossMod.GNB.SID.RoyalGuard,
-        PartyMit: Spell(BossMod.GNB.AID.HeartOfLight),
-        LongMit: Spell(BossMod.GNB.AID.Nebula),
-        ShortMit: Spell(BossMod.GNB.AID.HeartOfCorundum),
-        ShortMitDuration: 8,
-        AllyMit: Spell(BossMod.GNB.AID.HeartOfCorundum),
-        SmallMit: Spell(BossMod.GNB.AID.Camouflage)
+        Invuln: new(BossMod.GNB.AID.Superbolide, 10, 0),
+        PartyMit: new(BossMod.GNB.AID.HeartOfLight, 15, 0.62f),
+        LongMit: new(BossMod.GNB.AID.Nebula, 15, 0.54f),
+        SmallMit: new(BossMod.GNB.AID.Camouflage, 20, 0.62f),
+
+        // 8s 15% mit, 4s of an additional 15% mit, 20s excog
+        ShortMit: new(BossMod.GNB.AID.HeartOfStone, 8, 0.62f),
+        AllyMit: new(BossMod.GNB.AID.HeartOfStone, 8, 0.62f)
     );
 
-    private TankActions JobActions => Player.Class switch
+    public static TankActions ActionsForJob(Class c) => c switch
     {
-        Class.GLA or Class.PLD => PLDActions,
-        Class.MRD or Class.WAR => WARActions,
+        Class.PLD => PLDActions,
+        Class.WAR => WARActions,
         Class.DRK => DRKActions,
         Class.GNB => GNBActions,
-        _ => default
+        _ => throw new InvalidOperationException($"{c} is not a tank class")
     };
+
+    private TankActions JobActions => ActionsForJob(Player.Class);
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -84,7 +115,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
             return;
 
         // ranged
-        if (strategy.Enabled(Track.Ranged) && Player.DistanceToHitbox(primaryTarget) is > 5 and <= 20 && primaryTarget!.Type is ActorType.Enemy && !primaryTarget.IsAlly)
+        if (ShouldRanged(strategy, primaryTarget))
             Hints.ActionsToExecute.Push(JobActions.Ranged, primaryTarget, ActionQueue.Priority.Low);
 
         // stance
@@ -94,7 +125,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         // interrupt
         if (strategy.Enabled(Track.Interject) && NextChargeIn(ClassShared.AID.Interject) == 0)
         {
-            var interruptibleEnemy = Hints.PotentialTargets.FirstOrDefault(e => ShouldInterrupt(e.Actor) && Player.DistanceToHitbox(e.Actor) <= 3);
+            var interruptibleEnemy = Hints.PotentialTargets.FirstOrDefault(e => ShouldInterrupt(e) && Player.DistanceToHitbox(e.Actor) <= 3);
             if (interruptibleEnemy != null)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Interject), interruptibleEnemy.Actor, ActionQueue.Priority.Minimal);
         }
@@ -102,7 +133,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         // low blow
         if (strategy.Enabled(Track.Stun) && NextChargeIn(ClassShared.AID.LowBlow) == 0)
         {
-            var stunnableEnemy = Hints.PotentialTargets.Find(e => ShouldStun(e.Actor) && Player.DistanceToHitbox(e.Actor) <= 3);
+            var stunnableEnemy = Hints.PotentialTargets.Find(e => ShouldInterrupt(e) && Player.DistanceToHitbox(e.Actor) <= 3);
             if (stunnableEnemy != null)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.LowBlow), stunnableEnemy.Actor, ActionQueue.Priority.Minimal);
         }
@@ -128,6 +159,14 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         }
     }
 
+    private bool ShouldRanged(StrategyValues strategy, Actor? primaryTarget)
+    {
+        return strategy.Enabled(Track.Ranged)
+            && Player.DistanceToHitbox(primaryTarget) is > 5 and <= 20
+            && !primaryTarget!.IsAlly
+            && !Player.Statuses.Any(x => x.ID is (uint)WAR.SID.Berserk or (uint)WAR.SID.InnerRelease);
+    }
+
     private void AutoProtect()
     {
         var threat = Hints.PriorityTargets.FirstOrDefault(x =>
@@ -151,27 +190,36 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         foreach (var rw in Raidwides)
             if ((rw - World.CurrentTime).TotalSeconds < 5)
             {
-                Hints.ActionsToExecute.Push(JobActions.PartyMit, Player, ActionQueue.Priority.Medium);
+                Hints.ActionsToExecute.Push(JobActions.PartyMit.ID, Player, ActionQueue.Priority.Medium);
                 if (Player.DistanceToHitbox(Bossmods.ActiveModule?.PrimaryActor) <= 5)
                     Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Reprisal), Player, ActionQueue.Priority.Low);
             }
 
         foreach (var (ally, t) in Tankbusters)
             if (ally != Player && (t - World.CurrentTime).TotalSeconds < 4)
-                Hints.ActionsToExecute.Push(JobActions.AllyMit, ally, ActionQueue.Priority.Low);
+                Hints.ActionsToExecute.Push(JobActions.AllyMit.ID, ally, ActionQueue.Priority.Low);
     }
 
     private void AutoMit()
     {
-        if (EnemiesAutoingMe.Count() > 1)
+        if (EnemiesAutoingMe.Any())
         {
-            if (HPRatio() < 0.8)
-                Hints.ActionsToExecute.Push(JobActions.ShortMit, Player, ActionQueue.Priority.Minimal);
+            if (Player.PredictedHPRatio < 0.8)
+            {
+                var delay = 0f;
+                if (JobActions.ShortMit.ID == ActionID.MakeSpell(WAR.AID.RawIntuition))
+                    delay = GCD - 0.8f;
+                Hints.ActionsToExecute.Push(JobActions.ShortMit.ID, Player, ActionQueue.Priority.Minimal, delay: delay);
+            }
 
-            if (HPRatio() < 0.6)
+            if (Player.PredictedHPRatio < 0.6)
                 // set arbitrary deadline to 1 second in the future
                 UseOneMit(1);
         }
+
+        // TODO figure out how consistent this is or if we should use predictively instead
+        if (Player.PredictedHPRaw <= 0)
+            Hints.ActionsToExecute.Push(JobActions.Invuln.ID, Player, ActionQueue.Priority.VeryHigh);
 
         foreach (var t in Tankbusters)
             if (t.Item1 == Player)
@@ -182,7 +230,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
     {
         if (strategy.Enabled(Track.Mit) && EnemiesAutoingMe.Any())
         {
-            if (HPRatio() < 0.8 && Player.FindStatus(BossMod.GNB.SID.Aurora) == null)
+            if (Player.PredictedHPRatio < 0.8 && Player.FindStatus(BossMod.GNB.SID.Aurora) == null)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.GNB.AID.Aurora), Player, ActionQueue.Priority.Minimal);
         }
     }
@@ -191,10 +239,10 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
     {
         if (strategy.Enabled(Track.Mit) && EnemiesAutoingMe.Any())
         {
-            if (HPRatio() < 0.75)
+            if (Player.PredictedHPRatio < 0.75)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(WAR.AID.Bloodwhetting), Player, ActionQueue.Priority.Low, delay: GCD - 1f);
 
-            if (HPRatio() < 0.5)
+            if (Player.PredictedHPRatio < 0.5)
             {
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(WAR.AID.ThrillOfBattle), Player, ActionQueue.Priority.Low);
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(WAR.AID.Equilibrium), Player, ActionQueue.Priority.Low);
@@ -204,16 +252,16 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
 
     private void UseOneMit(float deadline)
     {
-        var longmit = GetMitStatus(JobActions.LongMit, 15, deadline);
+        var longmit = GetMitStatus(JobActions.LongMit.ID, 15, deadline);
         var rampart = GetMitStatus(ActionID.MakeSpell(ClassShared.AID.Rampart), 20, deadline);
-        var shortmit = GetMitStatus(JobActions.ShortMit, JobActions.ShortMitDuration, deadline, JobActions.ShortMitCheck);
+        var shortmit = GetMitStatus(JobActions.ShortMit.ID, JobActions.ShortMit.Duration, deadline, JobActions.ShortMit.CanUse);
 
         if (longmit.Active || rampart.Active && shortmit.Active)
             return;
 
         if (longmit.Usable)
         {
-            Hints.ActionsToExecute.Push(JobActions.LongMit, Player, ActionQueue.Priority.Low);
+            Hints.ActionsToExecute.Push(JobActions.LongMit.ID, Player, ActionQueue.Priority.Low);
             return;
         }
 
@@ -221,7 +269,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Rampart), Player, ActionQueue.Priority.Low);
 
         if (shortmit.Usable)
-            Hints.ActionsToExecute.Push(JobActions.ShortMit, Player, ActionQueue.Priority.Low);
+            Hints.ActionsToExecute.Push(JobActions.ShortMit.ID, Player, ActionQueue.Priority.Low);
     }
 
     private (bool Ready, bool Active, bool Usable) GetMitStatus(ActionID action, float actionDuration, float deadline, Func<RotationModule, bool>? resourceCheck = null)

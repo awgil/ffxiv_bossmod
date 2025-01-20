@@ -17,27 +17,35 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase(manag
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (Player.Statuses.Any(x => x.ID is (uint)BossMod.NIN.SID.TenChiJin or (uint)BossMod.NIN.SID.Mudra))
+        if (Player.Statuses.Any(x => x.ID is (uint)BossMod.NIN.SID.TenChiJin or (uint)BossMod.NIN.SID.Mudra or 1092))
             return;
 
         // second wind
-        if (strategy.Enabled(Track.SecondWind) && Player.InCombat && HPRatio() <= 0.5)
+        if (strategy.Enabled(Track.SecondWind) && Player.InCombat && Player.PredictedHPRatio <= 0.5)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.SecondWind), Player, ActionQueue.Priority.Medium);
 
         // bloodbath
-        if (strategy.Enabled(Track.Bloodbath) && Player.InCombat && HPRatio() <= 0.75)
+        if (strategy.Enabled(Track.Bloodbath) && Player.InCombat && Player.PredictedHPRatio <= 0.75)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Bloodbath), Player, ActionQueue.Priority.Medium);
 
         // low blow
         if (strategy.Enabled(Track.Stun) && NextChargeIn(ClassShared.AID.LegSweep) == 0)
         {
-            var stunnableEnemy = Hints.PotentialTargets.FirstOrDefault(e => ShouldStun(e.Actor) && Player.DistanceToHitbox(e.Actor) <= 3);
+            var stunnableEnemy = Hints.PotentialTargets.FirstOrDefault(e => ShouldStun(e) && Player.DistanceToHitbox(e.Actor) <= 3);
             if (stunnableEnemy != null)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.LegSweep), stunnableEnemy.Actor, ActionQueue.Priority.Minimal);
         }
 
         if (Player.Class == Class.SAM)
             AISAM();
+
+        if (Player.FindStatus(2324) != null && Bossmods.ActiveModule?.Info?.GroupType is BossModuleInfo.GroupType.BozjaDuel)
+        {
+            var gcdLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
+            var fopLeft = Player.FindStatus(2346) is ActorStatus st ? StatusDuration(st.ExpireAt) : 0;
+            if (GCD + gcdLength < fopLeft)
+                Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostAssassination), primaryTarget, ActionQueue.Priority.Low);
+        }
 
         ExecLB(strategy, primaryTarget);
     }

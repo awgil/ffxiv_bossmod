@@ -1,5 +1,6 @@
 ﻿using BossMod.BRD;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -54,14 +55,14 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
     public int NumConeTargets; // 12y/90(?)deg cone - regular aoe gcds
     public int NumLineTargets; // 25y/4y rect - apex arrow and stuff
 
-    private Actor? BestCircleTarget;
-    private Actor? BestConeTarget;
-    private Actor? BestLineTarget;
-    private Actor? BestDotTarget;
+    private Enemy? BestCircleTarget;
+    private Enemy? BestConeTarget;
+    private Enemy? BestLineTarget;
+    private Enemy? BestDotTarget;
 
     public int Codas => (Coda.HasFlag(CodaSongs.MagesBallad) ? 1 : 0) + (Coda.HasFlag(CodaSongs.ArmysPaeon) ? 1 : 0) + (Coda.HasFlag(CodaSongs.WanderersMinuet) ? 1 : 0);
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -99,6 +100,9 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
 
             return;
         }
+
+        if (primaryTarget != null)
+            GoalZoneCombined(strategy, 25, Hints.GoalAOECone(primaryTarget.Actor, 12, 45.Degrees()), AID.QuickNock, minAoe: 2);
 
         var ijDelay = EffectApplicationDelay(AID.IronJaws);
 
@@ -149,7 +153,7 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
         return (MathF.Min(wind, poison), wind, poison);
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat || primaryTarget == null)
             return;

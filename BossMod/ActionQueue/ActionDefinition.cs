@@ -18,6 +18,30 @@ public enum ActionTargets
     All = (1 << 9) - 1,
 }
 
+// some debuffs prevent specific categories of action - amnesia, silence, pacification, etc
+public enum ActionCategory : byte
+{
+    None,
+    Autoattack,
+    Spell,
+    Weaponskill,
+    Ability,
+    Item,
+    DoLAbility,
+    DoHAbility,
+    Event,
+    LimitBreak9,
+    System10,
+    System11,
+    Mount,
+    Special,
+    ItemManipulation,
+    LimitBreak15,
+    Unk1,
+    Artillery,
+    Unk2
+}
+
 // used for BLM calculations and possibly BLU optimization
 public enum ActionAspect : byte
 {
@@ -47,6 +71,7 @@ public sealed record class ActionDefinition(ActionID ID)
     public ActionTargets AllowedTargets;
     public float Range; // 0 for self-targeted abilities
     public float CastTime; // 0 for instant-cast; can be adjusted by a number of factors (TODO: add functor)
+    public ActionCategory Category;
     public int MainCooldownGroup = -1;
     public int ExtraCooldownGroup = -1;
     public float Cooldown; // for single charge (if multi-charge action); can be adjusted by a number of factors (TODO: add functor)
@@ -340,7 +365,8 @@ public sealed class ActionDefinitions : IDisposable
             MaxChargesBase = SpellBaseMaxCharges(data),
             InstantAnimLock = instantAnimLock,
             CastAnimLock = castAnimLock,
-            IsRoleAction = data.IsRoleAction
+            IsRoleAction = data.IsRoleAction,
+            Category = (ActionCategory)data.ActionCategory.RowId
         };
         Register(aid, def);
     }
