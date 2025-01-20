@@ -115,7 +115,7 @@ class P4CrystallizeTimeDragonHead(BossModule module) : BossComponent(module)
             foreach (var p in _puddles.Where(p => p.puddle.EventState != 7))
             {
                 if (p.soaker == pcAssignment)
-                    hints.GoalZones.Add(hints.GoalProximity(p.puddle.Position, 5, 0.25f));
+                    hints.GoalZones.Add(hints.GoalProximity(p.puddle.Position, 15, 0.25f));
                 else
                     hints.AddForbiddenZone(ShapeDistance.Circle(p.puddle.Position, 1));
             }
@@ -580,7 +580,7 @@ class P4CrystallizeTimeRewind(BossModule module) : Components.Knockback(module)
         if (!RewindDone && _ct != null && _exalines != null && _ct.Cleansed[slot])
         {
             var midpoint = SafeCorner();
-            hints.GoalZones.Add(hints.GoalProximity(midpoint, 6, 0.5f));
+            hints.GoalZones.Add(hints.GoalProximity(midpoint, 15, 0.5f));
             var destPoint = midpoint + AssignedPositionOffset(actor, assignment);
             hints.GoalZones.Add(hints.GoalProximity(destPoint, 1, 1));
         }
