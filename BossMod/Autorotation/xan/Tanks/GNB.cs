@@ -20,7 +20,6 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
     public float Reign;
 
     public float SonicBreak;
-    public AID Continuation;
     public float NoMercy;
 
     public int NumAOETargets;
@@ -41,7 +40,6 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
 
         Reign = StatusLeft(SID.ReadyToReign);
         SonicBreak = StatusLeft(SID.ReadyToBreak);
-        Continuation = GetContinuation();
         NoMercy = StatusLeft(SID.NoMercy);
 
         NumAOETargets = NumMeleeAOETargets(strategy);
@@ -162,25 +160,28 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.NoMercy, Player, delay: GCD - 0.8f);
     }
 
-    private AID GetContinuation()
+    private AID Continuation
     {
-        foreach (var s in Player.Statuses)
+        get
         {
-            switch ((SID)s.ID)
+            foreach (var s in Player.Statuses)
             {
-                case SID.ReadyToBlast:
-                    return AID.Hypervelocity;
-                case SID.ReadyToRaze:
-                    return AID.FatedBrand;
-                case SID.ReadyToRip:
-                    return AID.JugularRip;
-                case SID.ReadyToGouge:
-                    return AID.EyeGouge;
-                case SID.ReadyToTear:
-                    return AID.AbdomenTear;
+                switch ((SID)s.ID)
+                {
+                    case SID.ReadyToBlast:
+                        return AID.Hypervelocity;
+                    case SID.ReadyToRaze:
+                        return AID.FatedBrand;
+                    case SID.ReadyToRip:
+                        return AID.JugularRip;
+                    case SID.ReadyToGouge:
+                        return AID.EyeGouge;
+                    case SID.ReadyToTear:
+                        return AID.AbdomenTear;
+                }
             }
-        }
 
-        return AID.None;
+            return AID.None;
+        }
     }
 }
