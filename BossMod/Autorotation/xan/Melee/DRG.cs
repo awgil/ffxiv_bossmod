@@ -167,6 +167,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
         var moveOk = MoveOk(strategy);
         var posOk = PosLockOk(strategy);
+        var bestSingleTarget = primaryTarget.Priority >= 0 ? primaryTarget : null;
 
         if (NextPositionalImminent && !NextPositionalCorrect)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.TrueNorth), Player, ActionQueue.Priority.Low - 20, delay: GCD - 0.8f);
@@ -187,7 +188,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.Geirskogul, BestLongAOETarget);
 
         if (DiveReady == 0 && posOk)
-            PushOGCD(AID.Jump, primaryTarget);
+            PushOGCD(AID.Jump, bestSingleTarget);
 
         if (LanceCharge > GCD && ShouldLifeSurge())
             PushOGCD(AID.LifeSurge, Player);
@@ -205,18 +206,18 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             // some conditions like DD haste (and maybe bozja?) can reduce GCD to 2.1s or lower, making stardiver weave impossible
             if (GCDLength > 2.1f + 2 * AnimationLockDelay)
                 PushOGCD(AID.Stardiver, BestDiveTarget);
-            else
-                PushGCD(AID.Stardiver, BestDiveTarget);
+            else if (GCD > 0)
+                PushGCD(AID.Stardiver, BestDiveTarget, 3);
         }
 
         if (StarcrossReady > 0)
-            PushOGCD(AID.Starcross, primaryTarget);
+            PushOGCD(AID.Starcross, BestDiveTarget);
 
         if (DragonsFlight > 0)
             PushOGCD(AID.RiseOfTheDragon, BestDiveTarget);
 
         if (DiveReady > 0)
-            PushOGCD(AID.MirageDive, primaryTarget);
+            PushOGCD(AID.MirageDive, bestSingleTarget);
 
         if (Focus == 2)
             PushOGCD(AID.WyrmwindThrust, BestLongAOETarget);
