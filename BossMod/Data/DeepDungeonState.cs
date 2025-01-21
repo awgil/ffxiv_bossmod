@@ -95,6 +95,8 @@ public sealed class DeepDungeonState
     public Event<OpMapDataChange> MapDataChanged = new();
     public sealed record class OpMapDataChange(RoomFlags[] Value) : WorldState.Operation
     {
+        public readonly RoomFlags[] Value = Value;
+
         protected override void Exec(WorldState ws)
         {
             ws.DeepDungeon.MapData = Value;
@@ -109,6 +111,8 @@ public sealed class DeepDungeonState
     public Event<OpPartyStateChange> PartyStateChanged = new();
     public sealed record class OpPartyStateChange(PartyMember[] Value) : WorldState.Operation
     {
+        public readonly PartyMember[] Value = Value;
+
         protected override void Exec(WorldState ws)
         {
             ws.DeepDungeon.Party = Value;
@@ -125,6 +129,8 @@ public sealed class DeepDungeonState
     public Event<OpItemsChange> ItemsChanged = new();
     public sealed record class OpItemsChange(Item[] Value) : WorldState.Operation
     {
+        public readonly Item[] Value = Value;
+
         protected override void Exec(WorldState ws)
         {
             ws.DeepDungeon.Items = Value;
@@ -141,6 +147,8 @@ public sealed class DeepDungeonState
     public Event<OpChestsChange> ChestsChanged = new();
     public sealed record class OpChestsChange(Chest[] Value) : WorldState.Operation
     {
+        public readonly Chest[] Value = Value;
+
         protected override void Exec(WorldState ws)
         {
             ws.DeepDungeon.Chests = Value;
@@ -157,6 +165,8 @@ public sealed class DeepDungeonState
     public Event<OpMagiciteChange> MagiciteChanged = new();
     public sealed record class OpMagiciteChange(byte[] Value) : WorldState.Operation
     {
+        public readonly byte[] Value = Value;
+
         protected override void Exec(WorldState ws)
         {
             ws.DeepDungeon.Magicite = Value;
