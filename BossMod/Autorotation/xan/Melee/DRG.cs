@@ -183,11 +183,20 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (CanWeave(AID.LanceCharge))
             return;
 
+        if (NastrondReady == 0)
+            PushOGCD(AID.Geirskogul, BestLongAOETarget);
+
+        if (DiveReady == 0 && posOk)
+            PushOGCD(AID.Jump, primaryTarget);
+
         if (LanceCharge > GCD && ShouldLifeSurge())
             PushOGCD(AID.LifeSurge, Player);
 
-        if (StarcrossReady > 0)
-            PushOGCD(AID.Starcross, primaryTarget);
+        if (moveOk && strategy.BuffsOk())
+            PushOGCD(AID.DragonfireDive, BestDiveTarget);
+
+        if (NastrondReady > 0)
+            PushOGCD(AID.Nastrond, BestLongAOETarget);
 
         if (LotD > AnimLock && moveOk)
         {
@@ -200,17 +209,8 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
                 PushGCD(AID.Stardiver, BestDiveTarget);
         }
 
-        if (NastrondReady == 0)
-            PushOGCD(AID.Geirskogul, BestLongAOETarget);
-
-        if (DiveReady == 0 && posOk)
-            PushOGCD(AID.Jump, primaryTarget);
-
-        if (moveOk && strategy.BuffsOk())
-            PushOGCD(AID.DragonfireDive, BestDiveTarget);
-
-        if (NastrondReady > 0)
-            PushOGCD(AID.Nastrond, BestLongAOETarget);
+        if (StarcrossReady > 0)
+            PushOGCD(AID.Starcross, primaryTarget);
 
         if (DragonsFlight > 0)
             PushOGCD(AID.RiseOfTheDragon, BestDiveTarget);

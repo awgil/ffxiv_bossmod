@@ -629,7 +629,6 @@ public abstract class AutoClear : ZoneModule
             hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)p2), null, ActionQueue.Priority.VeryHigh);
 
         var haveChest = false;
-        Service.Log($"{coffer}, {InBounds(hints, coffer?.Position ?? default)}");
         if (coffer is Actor t && InBounds(hints, t.Position) && !player.IsTransformed)
         {
             if (_config.AutoMoveTreasure && (!player.InCombat || _config.NavigateInCombat)
