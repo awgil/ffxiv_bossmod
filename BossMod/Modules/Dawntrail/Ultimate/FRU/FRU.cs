@@ -5,8 +5,9 @@ class P3Junction(BossModule module) : Components.CastCounter(module, ActionID.Ma
 class P3BlackHalo(BossModule module) : Components.CastSharedTankbuster(module, ActionID.MakeSpell(AID.BlackHalo), new AOEShapeCone(60, 45.Degrees())); // TODO: verify angle
 class P4HallowedWingsL(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HallowedWingsL), new AOEShapeRect(80, 20, 0, 90.Degrees()));
 class P4HallowedWingsR(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HallowedWingsR), new AOEShapeRect(80, 20, 0, -90.Degrees()));
+class P5ParadiseLost(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.ParadiseLostP5AOE));
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1006, NameID = 9707, PlanLevel = 100)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1006, NameID = 9707, PlanLevel = 100)]
 public class FRU(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20))
 {
     private Actor? _bossP2;

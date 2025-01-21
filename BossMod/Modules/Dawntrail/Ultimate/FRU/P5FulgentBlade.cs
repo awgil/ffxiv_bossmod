@@ -106,14 +106,8 @@ class P5FulgentBlade : Components.Exaflare
 
     private WPos SafeSpot()
     {
-        if (_lines.Count != 6)
+        if (Lines.Count == 0 || _lines.Count != 6)
             return default; // not enough data
-
-        if (Lines.Count == 0)
-        {
-            // we don't yet know the direction, so just give the approximate safespot (average direction of missing lines)
-            return Module.Center + 5 * _initialSafespot;
-        }
 
         return NumCasts switch
         {

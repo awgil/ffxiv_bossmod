@@ -73,9 +73,8 @@ class FRUStates : StateMachineBuilder
         P5FulgentBlade(id + 0x50000, 6.2f);
         P5ParadiseRegained(id + 0x60000, 8.4f);
         P5PolarizingStrikes(id + 0x70000, 2.3f);
-        P5FulgentBlade(id + 0x80000, 8); // TODO: timing...
-
-        SimpleState(id + 0xFF0000, 100, "???");
+        P5FulgentBlade(id + 0x80000, 2.6f);
+        P5Enrage(id + 0x90000, 8.4f);
     }
 
     private void P1CyclonicBreakPowderMarkTrail(uint id, float delay)
@@ -526,8 +525,9 @@ class FRUStates : StateMachineBuilder
             .ActivateOnEnter<P4Preposition>()
             .DeactivateOnExit<P4Preposition>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
-        ActorCast(id + 0x10, _module.BossP4Usurper, AID.Materialization, 5.1f, 3, true)
+        ActorCastStart(id + 0x10, _module.BossP4Usurper, AID.Materialization, 5.1f, true)
             .ActivateOnEnter<P4AkhRhai>();
+        ActorCastEnd(id + 0x11, _module.BossP4Usurper, 3, true);
         ComponentCondition<P4AkhRhai>(id + 0x20, 11.2f, comp => comp.AOEs.Count > 0, "Puddle baits");
         ComponentCondition<P4AkhRhai>(id + 0x30, 2.6f, comp => comp.NumCasts > 0);
         ActorTargetable(id + 0x50, _module.BossP4Oracle, true, 3.6f, "Oracle appears");
@@ -717,5 +717,13 @@ class FRUStates : StateMachineBuilder
     {
         ActorCast(id, _module.BossP5, AID.PandorasBox, delay, 12, true, "Tank LB")
             .SetHint(StateMachine.StateHint.Raidwide);
+    }
+
+    private void P5Enrage(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP5, AID.ParadiseLostP5, delay, 12, true);
+        ComponentCondition<P5ParadiseLost>(id + 2, 9.5f, comp => comp.NumCasts > 0, "Enrage")
+            .ActivateOnEnter<P5ParadiseLost>()
+            .DeactivateOnExit<P5ParadiseLost>();
     }
 }

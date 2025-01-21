@@ -250,7 +250,7 @@ public enum AID : uint
 
     MemorysEndP4 = 40305, // OracleOfDarknessP4->self, 10.0s cast, range 100 circle, enrage
     AbsoluteZeroP4 = 40245, // UsurperOfFrostP4->self, 10.0s cast, range 100 circle, enrage
-    ParadiseLost = 40263, // Helper->self, no cast, range 100 circle, wipe on p5 failure state
+    ParadiseLostP4 = 40263, // Helper->self, no cast, range 100 circle, wipe on p5 failure state
     IntermissionP5Visual = 40231, // UsurperOfFrostP4->self, no cast, single-target, visual (intermission start)
     IntermissionP5Start = 40232, // Helper->self, no cast, range 60 circle, stun + move players to a specific spot
 
@@ -286,6 +286,8 @@ public enum AID : uint
     PolarizingPaths = 40234, // BossP5->self, 2.5+0.5s cast, single-target, visual (second+ hit)
 
     PandorasBox = 40326, // BossP5->self, 12.0s cast, range 100 circle, raidwide requiring tank LB
+    ParadiseLostP5 = 40327, // BossP5->self, 12.0+9.5s cast, range 100 circle, visual (enrage)
+    ParadiseLostP5AOE = 40328, // Helper->self, 21.5s cast, range 100 circle, wipe
 }
 
 public enum SID : uint

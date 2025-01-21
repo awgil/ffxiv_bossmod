@@ -60,7 +60,14 @@ class P5PolarizingStrikes(BossModule module) : Components.GenericAOEs(module)
     {
         if (_source == null)
             return;
-        if (_aoes.Count == 0 && _baitsActive)
+
+        if (_aoes.Count > 0)
+        {
+            // avoid aftershock aoe by moving behind boss
+            base.AddAIHints(slot, actor, assignment, hints);
+            hints.GoalZones.Add(hints.GoalSingleTarget(_source.Position - 9 * _source.Rotation.ToDirection(), 1, 0.25f));
+        }
+        else if (_baitsActive)
         {
             var role = _config.P5PolarizingStrikesAssignments[assignment];
             if (role >= 0)
@@ -75,12 +82,6 @@ class P5PolarizingStrikes(BossModule module) : Components.GenericAOEs(module)
                 var dir = _source.Rotation + (left ? 135 : -135).Degrees();
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_source.Position + distance * dir.ToDirection(), 1));
             }
-        }
-        else
-        {
-            // avoid aftershock aoe by moving behind boss
-            base.AddAIHints(slot, actor, assignment, hints);
-            hints.GoalZones.Add(hints.GoalSingleTarget(_source.Position - 8 * _source.Rotation.ToDirection(), 1, 0.25f));
         }
     }
 

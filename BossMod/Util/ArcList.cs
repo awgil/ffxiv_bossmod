@@ -54,7 +54,7 @@ public class ArcList(WPos center, float radius)
         var cos = (oo.LengthSq() + Radius * Radius - radius * radius) / (2 * oo.Length() * Radius);
         if (cos is <= 1 and >= -1)
         {
-            ForbidArcByLength(center + 180.Degrees(), 180.Degrees() - Angle.Acos(cos));
+            ForbidArcByLength((center + 180.Degrees()).Normalized(), Angle.Acos(-cos));
         }
     }
 

@@ -101,6 +101,7 @@ class P4CrystallizeTimeDragonHead(BossModule module) : BossComponent(module)
     public readonly List<(Actor head, int side)> Heads = [];
     private readonly P4CrystallizeTime? _ct = module.FindComponent<P4CrystallizeTime>();
     private readonly List<(Actor puddle, P4CrystallizeTime.Mechanic soaker)> _puddles = [];
+    private int _numMaelstroms;
 
     public Actor? FindHead(int side) => Heads.FirstOrDefault(v => v.side == side).head;
     public static int NumHeadHits(Actor? head) => head == null ? 2 : head.HitboxRadius < 2 ? 1 : 0;
@@ -114,10 +115,10 @@ class P4CrystallizeTimeDragonHead(BossModule module) : BossComponent(module)
             var pcAssignment = _ct.PlayerMechanics[slot];
             foreach (var p in _puddles.Where(p => p.puddle.EventState != 7))
             {
-                if (p.soaker == pcAssignment)
+                if (p.soaker != pcAssignment)
+                    hints.AddForbiddenZone(ShapeDistance.Circle(p.puddle.Position, 2));
+                else if (_numMaelstroms >= 6)
                     hints.GoalZones.Add(hints.GoalProximity(p.puddle.Position, 15, 0.25f));
-                else
-                    hints.AddForbiddenZone(ShapeDistance.Circle(p.puddle.Position, 1));
             }
         }
     }
@@ -163,8 +164,15 @@ class P4CrystallizeTimeDragonHead(BossModule module) : BossComponent(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.DrachenWandererDisappear)
-            Heads.RemoveAll(h => h.head == caster);
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.DrachenWandererDisappear:
+                Heads.RemoveAll(h => h.head == caster);
+                break;
+            case AID.CrystallizeTimeMaelstrom:
+                ++_numMaelstroms;
+                break;
+        }
     }
 
     private P4CrystallizeTime.Mechanic AssignPuddle(P4CrystallizeTime.Mechanic first, P4CrystallizeTime.Mechanic second) => _puddles.Any(p => p.soaker == first) ? second : first;
