@@ -1,4 +1,15 @@
 immediate plans
+- circle vs rect/cone intersection
+- fru
+-- banish 2 ai
+-- proper circle bounds -> revise everything
+-- p1 fall of faith presets for hhttmmrr / hrmttmrh
+-- mirror 1 hints for ranged
+-- ur laser circle hint on top of baits
+-- apoc revise default prio for healers
+-- p4 crystal hitbox
+-- ct revise visual pos hints for eruptions
+-- ct revise visual pos hints for rewind
 - ai refactoring
 -- high-level ai modules
 --- ordered before standard rotation modules
