@@ -309,11 +309,11 @@ class FRUStates : StateMachineBuilder
         ComponentCondition<P2MirrorMirrorReflectedScytheKickRed>(id + 0x20, 9.3f, comp => comp.NumCasts > 0)
             .ActivateOnEnter<P2MirrorMirrorReflectedScytheKickRed>()
             .DeactivateOnExit<P2MirrorMirrorReflectedScytheKickRed>();
-        ComponentCondition<P2MirrorMirrorHouseOfLight>(id + 0x21, 0.6f, comp => comp.NumCasts > 1, "Mirror 2")
+        ComponentCondition<P2MirrorMirrorHouseOfLight>(id + 0x21, 0.6f, comp => comp.NumCasts > 8, "Mirror 2")
+            .ActivateOnEnter<P2MirrorMirrorBanish>() // activate a bit early, so that it can read state gathered by house of light component
             .DeactivateOnExit<P2MirrorMirrorHouseOfLight>();
 
-        ActorCastMulti(id + 0x100, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 0.5f, 5, true)
-            .ActivateOnEnter<P2MirrorMirrorBanish>();
+        ActorCastMulti(id + 0x100, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 0.5f, 5, true);
         ComponentCondition<P2Banish>(id + 0x102, 0.1f, comp => !comp.Active, "Spread/Stack")
             .DeactivateOnExit<P2Banish>();
     }
@@ -523,6 +523,7 @@ class FRUStates : StateMachineBuilder
     {
         ActorTargetable(id, _module.BossP4Usurper, true, delay, "Usurper appears")
             .ActivateOnEnter<P4Preposition>()
+            .ActivateOnEnter<P4FragmentOfFate>()
             .DeactivateOnExit<P4Preposition>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCastStart(id + 0x10, _module.BossP4Usurper, AID.Materialization, 5.1f, true)

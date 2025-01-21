@@ -342,16 +342,26 @@ class P3UltimateRelativitySinboundMeltdownBait(BossModule module) : Components.G
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(pcSlot, pc);
-
-        foreach (ref var b in CurrentBaits.AsSpan())
+        foreach (var bait in ActiveBaitsOn(pc))
         {
-            if (b.Target == pc && b.Source.Position.AlmostEqual(AssignedHourglass(pcSlot), 1) && _rel != null)
+            if (bait.Source.Position.AlmostEqual(AssignedHourglass(pcSlot), 1) && _rel != null)
             {
                 // draw extra rotation hints for correctly baited hourglass
-                var rot = _rel.LaserRotationAt(b.Source.Position);
-                for (int i = 1; i < 10; ++i)
-                    _shape.Outline(Arena, b.Source.Position, b.Rotation + i * rot);
+                // note: we don't want to draw 'short' edges of the rectangle (farther one is far outside arena bounds anyway, and closer one messes visualization up too much
+                var rot = _rel.LaserRotationAt(bait.Source.Position);
+                for (int i = 0; i < 10; ++i)
+                {
+                    var dir = (bait.Rotation + i * rot).ToDirection();
+                    var side = _shape.HalfWidth * dir.OrthoR();
+                    var end = bait.Source.Position + _shape.LengthFront * dir;
+                    Arena.AddLine(bait.Source.Position + side, end + side, ArenaColor.Danger);
+                    Arena.AddLine(bait.Source.Position - side, end - side, ArenaColor.Danger);
+                }
+            }
+            else
+            {
+                // just draw default hint
+                bait.Shape.Outline(Arena, bait.Source.Position, bait.Rotation);
             }
         }
     }
