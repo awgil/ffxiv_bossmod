@@ -4,6 +4,7 @@ using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
@@ -182,6 +183,7 @@ sealed class WorldStateGameSync : IDisposable
         UpdateActors();
         UpdateParty();
         UpdateClient();
+        UpdateDeepDungeon();
     }
 
     private unsafe void UpdateWaymarks()
@@ -645,6 +647,84 @@ sealed class WorldStateGameSync : IDisposable
         if (_ws.Client.FocusTargetId != focusTargetId)
             _ws.Execute(new ClientState.OpFocusTargetChange(focusTargetId));
     }
+
+    private unsafe void UpdateDeepDungeon()
+    {
+        var ddold = _ws.DeepDungeon;
+        var ddnew = GetDeepDungeonState();
+
+        if (ddold.DungeonId != ddnew.DungeonId || ddold.Progress != ddnew.Progress)
+            _ws.Execute(new DeepDungeonState.OpProgressChange(ddnew.DungeonId, ddnew.Progress));
+        if (!MemoryExtensions.SequenceEqual<InstanceContentDeepDungeon.RoomFlags>(ddold.MapData, ddnew.MapData))
+            _ws.Execute(new DeepDungeonState.OpMapDataChange(ddnew.MapData));
+        if (!MemoryExtensions.SequenceEqual<DeepDungeonState.PartyMember>(ddold.Party, ddnew.Party))
+            _ws.Execute(new DeepDungeonState.OpPartyStateChange(ddnew.Party));
+        if (!MemoryExtensions.SequenceEqual<DeepDungeonState.Item>(ddold.Items, ddnew.Items))
+            _ws.Execute(new DeepDungeonState.OpItemsChange(ddnew.Items));
+        if (!MemoryExtensions.SequenceEqual<DeepDungeonState.Chest>(ddold.Chests, ddnew.Chests))
+            _ws.Execute(new DeepDungeonState.OpChestsChange(ddnew.Chests));
+        if (!MemoryExtensions.SequenceEqual<byte>(ddold.Magicite, ddnew.Magicite))
+            _ws.Execute(new DeepDungeonState.OpMagiciteChange(ddnew.Magicite));
+    }
+
+    private unsafe DeepDungeonState GetDeepDungeonState()
+    {
+        var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+        if (dd == null)
+            return new();
+
+        var progress = new DeepDungeonState.DungeonProgress
+        {
+            Floor = dd->Floor,
+            WeaponLevel = dd->WeaponLevel,
+            ArmorLevel = dd->ArmorLevel,
+
+            SyncedGearLevel = dd->SyncedGearLevel,
+            HoardCount = dd->HoardCount,
+
+            ReturnProgress = dd->ReturnProgress,
+            PassageProgress = dd->PassageProgress,
+
+            Tileset = dd->ActiveLayoutIndex
+        };
+
+        var state = new DeepDungeonState
+        {
+            Progress = progress,
+            Magicite = dd->Magicite.ToArray(),
+            DungeonId = dd->DeepDungeonId
+        };
+
+        dd->MapData.CopyTo(state.MapData);
+
+        var ddParty = dd->Party;
+        for (var i = 0; i < 4; i++)
+        {
+            ref var pinfo = ref state.Party[i];
+            pinfo.EntityId = (uint)SanitizedObjectID(ddParty[i].EntityId);
+            pinfo.Room = SanitizeRoom(ddParty[i].RoomIndex);
+        }
+
+        var ddItem = dd->Items;
+        for (var i = 0; i < ddItem.Length; i++)
+        {
+            ref var pitem = ref state.Items[i];
+            pitem.Count = ddItem[i].Count;
+            pitem.Flags = ddItem[i].Flags;
+        }
+
+        var ddChest = dd->Chests;
+        for (var i = 0; i < ddChest.Length; i++)
+        {
+            ref var pchest = ref state.Chests[i];
+            pchest.Type = ddChest[i].ChestType;
+            pchest.Room = SanitizeRoom(ddChest[i].RoomIndex);
+        }
+
+        return state;
+    }
+
+    private byte SanitizeRoom(sbyte room) => room < 0 ? (byte)0 : (byte)room;
 
     private ulong SanitizedObjectID(ulong raw) => raw != InvalidEntityId ? raw : 0;
 

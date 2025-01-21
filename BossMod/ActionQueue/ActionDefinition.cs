@@ -197,6 +197,27 @@ public sealed class ActionDefinitions : IDisposable
         // bozja actions
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
             RegisterBozja(i);
+
+        // pomanders
+        for (var i = PomanderID.Safety; i < PomanderID.Count; ++i)
+        {
+            var pid = new ActionID(ActionType.Pomander, (uint)i);
+            _definitions[pid] = new(pid)
+            {
+                InstantAnimLock = 2.1f,
+                AllowedTargets = ActionTargets.Self
+            };
+        }
+
+        for (var i = 1u; i <= 3; i++)
+        {
+            var mid = new ActionID(ActionType.Magicite, i);
+            _definitions[mid] = new(mid)
+            {
+                InstantAnimLock = 2.1f,
+                AllowedTargets = ActionTargets.Self
+            };
+        }
     }
 
     public void Dispose()
