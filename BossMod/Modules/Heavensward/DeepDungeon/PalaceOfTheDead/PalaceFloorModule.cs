@@ -59,9 +59,8 @@ public abstract class PalaceFloorModule(WorldState ws) : AutoClear(ws, 60)
         }
     }
 
-    protected override void OnStatusGain(Actor actor, int index)
+    protected override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        var status = actor.Statuses[index];
         switch ((SID)status.ID)
         {
             case SID.BlazeSpikes:
@@ -71,9 +70,8 @@ public abstract class PalaceFloorModule(WorldState ws) : AutoClear(ws, 60)
         }
     }
 
-    protected override void OnStatusLose(Actor actor, int index)
+    protected override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        var status = actor.Statuses[index];
         switch ((SID)status.ID)
         {
             case SID.BlazeSpikes:

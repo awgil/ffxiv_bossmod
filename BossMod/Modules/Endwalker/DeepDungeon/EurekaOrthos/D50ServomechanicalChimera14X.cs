@@ -3,7 +3,7 @@
 static class Shapes
 {
     public static readonly AOEShape Dragon = new AOEShapeDonut(8, 40);
-    public static readonly AOEShape Ram = new AOEShapeCircle(9);
+    public static readonly AOEShape Ram = new AOEShapeCircle(9.1f);
 }
 
 public enum OID : uint

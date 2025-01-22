@@ -33,6 +33,14 @@ public class GenericTwister(BossModule module, float radius, uint oid, ActionID 
         if (actor.OID == _twisterOID)
             PredictedPositions.Clear();
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (PredictedPositions.Count > 0)
+            hints.StoredPosResolveIn(PredictedActivation - WorldState.CurrentTime);
+    }
 }
 
 // twister that activates immediately on init

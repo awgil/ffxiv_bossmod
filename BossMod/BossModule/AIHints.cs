@@ -89,6 +89,9 @@ public sealed class AIHints
     // TODO: reconsider...
     public float MaxCastTimeEstimate = float.MaxValue;
 
+    // predicted time until resolution of some mechanic where the player's position is important and should not be suddenly changed (like by a gap closer); usually baited AOEs (twisters, proteans, etc)
+    public float PositionStoredIn { get; private set; } = float.MaxValue;
+
     // actions that we want to be executed, gathered from various sources (manual input, autorotation, planner, ai, modules, etc.)
     public ActionQueue ActionsToExecute = new();
 
@@ -121,6 +124,7 @@ public sealed class AIHints
         MisdirectionThreshold = 15.Degrees();
         PredictedDamage.Clear();
         MaxCastTimeEstimate = float.MaxValue;
+        PositionStoredIn = float.MaxValue;
         ActionsToExecute.Clear();
         StatusesToCancel.Clear();
         WantJump = false;
@@ -165,6 +169,13 @@ public sealed class AIHints
         if (ImminentSpecialMode == default || ImminentSpecialMode.activation > activation)
             ImminentSpecialMode = (mode, activation);
     }
+
+    public void StoredPosResolveIn(float seconds)
+    {
+        PositionStoredIn = MathF.Max(0, MathF.Min(PositionStoredIn, seconds));
+    }
+
+    public void StoredPosResolveIn(TimeSpan span) => StoredPosResolveIn((float)span.TotalSeconds);
 
     // normalize all entries after gathering data: sort by priority / activation timestamp
     // TODO: note that the name is misleading - it actually happens mid frame, before all actions are gathered (eg before autorotation runs), but further steps (eg ai) might consume previously gathered data

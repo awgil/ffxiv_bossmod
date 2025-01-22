@@ -13,6 +13,7 @@ public enum AID : uint
     Headspin = 32412, // 3DE1->self, 0.0s cast, range 6 circle, instant after Electromagnetism
     DoubleHexEye = 32437, // 3DF1->self, 4.0s cast, range 40 circle, instakill mechanic
     Bombination = 32424, // 3DE9->self, 2.0s cast, range 25 circle
+    Bombination2 = 32461, // 3DFF->self, 2.0s cast, range 25 circle
     TheDragonsVoice = 32444, // 3DF4->self, 4.0s cast, range ?-30 donut
     Quake = 32470, // 3E02->self, 5.0s cast, range 30 circle, interruptible
     Explosion = 32452, // 3DFA->self, 7.0s cast, range 60 circle
@@ -33,12 +34,19 @@ public enum AID : uint
     TheDragonsVoice2 = 32910,
     AllaganFear = 32896,
     HighVoltage = 32878, // 3E64->self, 7.5s cast, range 30 circle
+    AquaSpear = 32500, // 3E12->self, 5.5s cast, width 5 charge, must be LOSed
+    Sucker = 32477, // 3E08->self, 3.5s cast, range 25 circle, draw-in
+    WaterIII = 32478, // 3E08->self, 2.5s cast, range 8 circle, used after sucker
+    RipeBanana = 33195, // 3E52->self, 2s cast, single-target, damage buff
+    ChestThump = 32680, // 3E52->self, 2s cast, range 52 circle, used after banana
 
     KillingPaw = 33193, // 3E50->self, 3.0s cast, range 9 120-degree cone
     SavageSwipe = 32654, // 3E50->self, instant cast, range 6 120-degree cone
 
-    SewerWaterCast = 32491, // 3E0F->self, 3.0s cast, range 12 180-degree cone
-    SewerWaterInstant = 32494, // 3E0F->self, instant cast, range 12 180-degree cone
+    SewerWaterCastFront = 32491, // 3E0F->self, 3.0s cast, range 12 180-degree cone
+    SewerWaterCastBack = 32492, // 3E0F->self, 3.0s cast, range 12 180-degree cone
+    SewerWaterInstantFront = 32493, // 3E0F->self, instant cast, range 12 180-degree cone
+    SewerWaterInstantBack = 32494, // 3E0F->self, instant cast, range 12 180-degree cone
 
     GoobInhale = 33178, // 3E04->self, instant cast, range 40 90-degree cone
     GoobSneeze = 32473, // 3E04->self, 1.0s cast, range 7 90-degree cone
@@ -59,11 +67,14 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
     {
         switch ((AID)actor.CastInfo!.Action.ID)
         {
+            // stunnable actions, either self buffs or large point blank AOEs that prevent going into melee range
             case AID.BigBurst:
             case AID.Tailwind:
             case AID.SprigganHaste:
                 Stuns.Add(actor);
                 break;
+
+            // interruptible casts
             case AID.TerrorTouch:
             case AID.Diamondback:
                 Interrupts.Add(actor);
@@ -73,20 +84,11 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
                 if (Palace.Floor < 60)
                     Stuns.Add(actor);
                 break;
-            case AID.Quake:
-            case AID.HighVoltage:
-                Interrupts.Add(actor);
-                AddLOS(actor, 30);
-                break;
-            case AID.EclipticMeteor:
-                AddLOS(actor, 50);
-                break;
+
+            // gazes
             case AID.DoubleHexEye:
             case AID.EyeOfTheFierce:
                 AddGaze(actor, 40);
-                break;
-            case AID.Explosion:
-                AddLOS(actor, 60);
                 break;
             case AID.AllaganFear:
                 AddGaze(actor, 30);
@@ -102,6 +104,8 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
             case AID.HexEye:
                 AddGaze(actor, 5);
                 break;
+
+            // donut AOEs
             case AID.TheDragonsVoice:
             case AID.TheDragonsVoice2:
                 Donuts.Add((actor, 8, 30));
@@ -115,14 +119,46 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
                 Donuts.Add((actor, 8, 60));
                 HintDisabled.Add(actor);
                 break;
+
+            // very large circle AOEs that trigger autohints' "this is a raidwide" check but are actually avoidable
             case AID.Catharsis:
                 Circles.Add((actor, 40));
+                break;
+
+            // LOS attacks
+            case AID.Quake:
+            case AID.HighVoltage:
+                Interrupts.Add(actor);
+                AddLOS(actor, 30);
+                break;
+            case AID.EclipticMeteor:
+            case AID.AquaSpear:
+                AddLOS(actor, 50);
+                break;
+            case AID.Explosion:
+                AddLOS(actor, 60);
                 break;
             case AID.AbyssalCry:
                 AddLOS(actor, 30);
                 break;
             case AID.SelfDetonate:
                 AddLOS(actor, 40);
+                break;
+
+            // knockbacks (can be ignored on kb penalty floors or if arms length is up)
+            case AID.Electromagnetism:
+                KnockbackZones.Add((actor, 15));
+                HintDisabled.Add(actor);
+                break;
+            case AID.Sucker:
+                KnockbackZones.Add((actor, 25));
+                HintDisabled.Add(actor);
+                break;
+
+            // large out of combat AOEs that are fast and generally nonthreatening, we want to ignore these so we don't interfere with pathfinding
+            case AID.Bombination:
+            case AID.Bombination2:
+                HintDisabled.Add(actor);
                 break;
         }
     }
@@ -152,22 +188,34 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
             case AID.KillingPaw:
                 Voidzones.Add((actor, new AOEShapeCone(6, 60.Degrees())));
                 break;
-            case AID.SewerWaterCast:
+            case AID.SewerWaterCastFront:
                 Voidzones.Add((actor, new AOEShapeCone(12, 90.Degrees(), 180.Degrees())));
+                break;
+            case AID.SewerWaterCastBack:
+                Voidzones.Add((actor, new AOEShapeCone(12, 90.Degrees())));
+                break;
+            case AID.Electromagnetism:
+                Voidzones.Add((actor, new AOEShapeCircle(6)));
+                break;
+            case AID.RipeBanana:
+                Voidzones.Add((actor, new AOEShapeCircle(52)));
                 break;
 
             case AID.GoobSneeze:
             case AID.GourmSneeze:
+            case AID.Headspin:
             case AID.SavageSwipe:
-            case AID.SewerWaterInstant:
+            case AID.SewerWaterInstantFront:
+            case AID.SewerWaterInstantBack:
+            case AID.ChestThump:
                 Voidzones.RemoveAll(v => v.Source == actor);
                 break;
         }
     }
 
-    protected override void OnStatusLose(Actor actor, int index)
+    protected override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        switch (actor.Statuses[index].ID)
+        switch (status.ID)
         {
             case (uint)SID.IceSpikes:
             case (uint)SID.BlazeSpikes:

@@ -71,6 +71,15 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected int NextGCDPrio;
     protected uint MP;
 
+    protected AID HighestUnlocked(params AID[] actions)
+    {
+        foreach (var act in actions)
+            if (Unlocked(act))
+                return act;
+
+        return default;
+    }
+
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
     protected void PushGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum
@@ -118,7 +127,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             return false;
 
         var def = ActionDefinitions.Instance.Spell(aid);
-        if (def == null)
+        if (def == null || !def.IsUnlocked(World, Player))
             return false;
 
         if (def.Range != 0 && target == null)

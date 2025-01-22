@@ -142,6 +142,7 @@ public abstract class AutoClear : ZoneModule
 
     protected readonly List<(Actor Source, float Inner, float Outer)> Donuts = [];
     protected readonly List<(Actor Source, float Radius)> Circles = [];
+    protected readonly List<(Actor Source, float Radius)> KnockbackZones = [];
     protected readonly List<(Actor Source, AOEShape Zone)> Voidzones = [];
     private readonly List<Gaze> Gazes = [];
     protected readonly List<Actor> Interrupts = [];
@@ -154,73 +155,6 @@ public abstract class AutoClear : ZoneModule
     private readonly Dictionary<ulong, (WPos, Bitmap)> _losCache = [];
 
     public record class Gaze(Actor Source, AOEShape Shape);
-
-    protected void AddGaze(Actor Source, AOEShape Shape) => Gazes.Add(new(Source, Shape));
-    protected void AddGaze(Actor Source, float Radius) => AddGaze(Source, new AOEShapeCircle(Radius));
-
-    protected void AddLOS(Actor Source, float Range)
-    {
-        if (_config.AutoLOS)
-            AddLOSFromTerrain(Source, Range);
-        else
-            Circles.Add((Source, Range));
-    }
-
-    protected void AddLOSFromTerrain(Actor Source, float Range)
-    {
-        var (entry, data) = _obstacles.Find(Source.PosRot.XYZ());
-        if (entry == null || data == null)
-        {
-            Service.Log($"no bitmap found for {Source}, not adding LOS hints");
-            return;
-        }
-
-        var pixelRange = (int)(Range / data.PixelSize);
-        var casterOff = Source.Position - entry.Origin;
-        var casterCell = casterOff / data.PixelSize;
-        var casterX = (int)casterCell.X;
-        var casterZ = (int)casterCell.Z;
-
-        var bm = new Bitmap(data.Width, data.Height, data.Color0, data.Color1, data.Resolution);
-        for (var i = Math.Max(0, casterX - pixelRange); i <= Math.Min(data.Width, casterX + pixelRange); i++)
-        {
-            for (var j = Math.Max(0, casterZ - pixelRange); j <= Math.Min(data.Height, casterZ + pixelRange); j++)
-            {
-                var pt = new Vector2(i, j);
-                var cc = new Vector2(casterX, casterZ);
-                if (!IsBlocked(data, pt, cc, pixelRange))
-                    bm[i, j] = true;
-            }
-        }
-
-        _losCache[Source.InstanceID] = (entry.Origin, bm);
-        LOS.Add(Source);
-    }
-
-    private static bool IsBlocked(Bitmap map, Vector2 point, Vector2 origin, float maxRange)
-    {
-        var dir = origin - point;
-        var dist = dir.Length();
-        if (dist >= maxRange)
-            return true;
-
-        dir /= dist;
-
-        var ox = point.X;
-        var oy = point.Y;
-        var vx = dir.X;
-        var vy = dir.Y;
-
-        for (var i = 0; i < (int)dist; i++)
-        {
-            if (map[(int)ox, (int)oy])
-                return true;
-            ox += vx;
-            oy += vy;
-        }
-
-        return false;
-    }
 
     protected readonly AutoDDConfig _config = Service.Config.Get<AutoDDConfig>();
     private readonly EventSubscriptions _subscriptions;
@@ -243,6 +177,17 @@ public abstract class AutoClear : ZoneModule
     private int DesiredRoom;
     private bool BetweenFloors;
 
+    protected struct PlayerImmuneState
+    {
+        public DateTime RoleBuffExpire; // 0 if not active
+        public DateTime JobBuffExpire; // 0 if not active
+        public bool KnockbackPenalty;
+
+        public readonly bool ImmuneAt(DateTime time) => KnockbackPenalty || RoleBuffExpire > time || JobBuffExpire > time;
+    }
+
+    private PlayerImmuneState[] PlayerImmunes = new PlayerImmuneState[4];
+
     private ObstacleMapManager _obstacles;
 
     protected DeepDungeonState Palace => World.DeepDungeon;
@@ -261,8 +206,8 @@ public abstract class AutoClear : ZoneModule
             ws.Actors.CastEvent.Subscribe(OnEventCast),
             ws.Actors.Added.Subscribe(OnActorCreated),
             ws.Actors.InCombatChanged.Subscribe(OnActorCombatChanged),
-            ws.Actors.StatusGain.Subscribe(OnStatusGain),
-            ws.Actors.StatusLose.Subscribe(OnStatusLose),
+            ws.Actors.StatusGain.Subscribe(OnActorStatusGain),
+            ws.Actors.StatusLose.Subscribe(OnActorStatusLose),
             ws.Actors.IsDeadChanged.Subscribe(op =>
             {
                 if (!op.IsAlly && op.IsDead)
@@ -306,9 +251,44 @@ public abstract class AutoClear : ZoneModule
     protected virtual void OnCastFinished(Actor actor) { }
     protected virtual void OnEventCast(Actor actor, ActorCastEvent ev) { }
 
-    protected virtual void OnStatusGain(Actor actor, int index) { }
+    private void OnActorStatusGain(Actor actor, int index)
+    {
+        var status = actor.Statuses[index];
 
-    protected virtual void OnStatusLose(Actor actor, int index) { }
+        switch (status.ID)
+        {
+            case (uint)WHM.SID.Surecast:
+            case (uint)WAR.SID.ArmsLength:
+                var slot1 = World.Party.FindSlot(actor.InstanceID);
+                if (slot1 >= 0)
+                    PlayerImmunes[slot1].RoleBuffExpire = status.ExpireAt;
+                break;
+            case (uint)WAR.SID.InnerStrength:
+                var slot2 = World.Party.FindSlot(actor.InstanceID);
+                if (slot2 >= 0)
+                    PlayerImmunes[slot2].JobBuffExpire = status.ExpireAt;
+                break;
+            // Knockback Penalty floor effect
+            case 1096:
+            case 1512:
+                var slot3 = World.Party.FindSlot(actor.InstanceID);
+                if (slot3 >= 0)
+                    PlayerImmunes[slot3].KnockbackPenalty = true;
+                break;
+        }
+
+        OnStatusGain(actor, status);
+    }
+
+    protected virtual void OnStatusGain(Actor actor, ActorStatus status) { }
+
+    private void OnActorStatusLose(Actor actor, int index)
+    {
+        var status = actor.Statuses[index];
+        OnStatusLose(actor, status);
+    }
+
+    protected virtual void OnStatusLose(Actor actor, ActorStatus status) { }
 
     protected virtual void OnActorCombatChanged(Actor actor) { }
 
@@ -341,6 +321,8 @@ public abstract class AutoClear : ZoneModule
             _fakeExits.Add(actor.InstanceID);
     }
 
+    protected virtual void OnChangeFloors() { }
+
     private void ClearState()
     {
         Donuts.Clear();
@@ -357,6 +339,7 @@ public abstract class AutoClear : ZoneModule
         IgnoreTraps.AddRange(ProblematicTrapLocations);
         DesiredRoom = 0;
         Kills = 0;
+        Array.Fill(PlayerImmunes, default);
         _lastChestContentsGold = null;
         _lastChestMagicite = false;
         _chestContentsGold.Clear();
@@ -368,7 +351,16 @@ public abstract class AutoClear : ZoneModule
         BetweenFloors = true;
     }
 
-    protected virtual void OnChangeFloors() { }
+    protected void AddGaze(Actor Source, AOEShape Shape) => Gazes.Add(new(Source, Shape));
+    protected void AddGaze(Actor Source, float Radius) => AddGaze(Source, new AOEShapeCircle(Radius));
+
+    protected void AddLOS(Actor Source, float Range)
+    {
+        if (_config.AutoLOS)
+            AddLOSFromTerrain(Source, Range);
+        else
+            Circles.Add((Source, Range));
+    }
 
     private bool OpenGold => _config.GoldCoffer;
     private bool OpenSilver
@@ -546,6 +538,15 @@ public abstract class AutoClear : ZoneModule
         IterAndExpire(Voidzones, d => d.Source.IsDeadOrDestroyed, d =>
         {
             hints.AddForbiddenZone(d.Zone, d.Source.Position, d.Source.Rotation);
+        });
+
+        IterAndExpire(KnockbackZones, d => d.Source.CastInfo == null, kb =>
+        {
+            var castFinish = CastFinishAt(kb.Source);
+            if (PlayerImmunes[playerSlot].ImmuneAt(castFinish))
+                return;
+
+            hints.AddForbiddenZone(new AOEShapeCircle(kb.Radius), kb.Source.Position, default, castFinish);
         });
 
         foreach (var d in ForbiddenTargets)
@@ -793,6 +794,62 @@ public abstract class AutoClear : ZoneModule
                     Walls.Add((roomdata.West, true));
             }
         }
+    }
+
+    protected void AddLOSFromTerrain(Actor Source, float Range)
+    {
+        var (entry, data) = _obstacles.Find(Source.PosRot.XYZ());
+        if (entry == null || data == null)
+        {
+            Service.Log($"no bitmap found for {Source}, not adding LOS hints");
+            return;
+        }
+
+        var pixelRange = (int)(Range / data.PixelSize);
+        var casterOff = Source.Position - entry.Origin;
+        var casterCell = casterOff / data.PixelSize;
+        var casterX = (int)casterCell.X;
+        var casterZ = (int)casterCell.Z;
+
+        var bm = new Bitmap(data.Width, data.Height, data.Color0, data.Color1, data.Resolution);
+        for (var i = Math.Max(0, casterX - pixelRange); i <= Math.Min(data.Width, casterX + pixelRange); i++)
+        {
+            for (var j = Math.Max(0, casterZ - pixelRange); j <= Math.Min(data.Height, casterZ + pixelRange); j++)
+            {
+                var pt = new Vector2(i, j);
+                var cc = new Vector2(casterX, casterZ);
+                if (!IsBlocked(data, pt, cc, pixelRange))
+                    bm[i, j] = true;
+            }
+        }
+
+        _losCache[Source.InstanceID] = (entry.Origin, bm);
+        LOS.Add(Source);
+    }
+
+    private static bool IsBlocked(Bitmap map, Vector2 point, Vector2 origin, float maxRange)
+    {
+        var dir = origin - point;
+        var dist = dir.Length();
+        if (dist >= maxRange)
+            return true;
+
+        dir /= dist;
+
+        var ox = point.X;
+        var oy = point.Y;
+        var vx = dir.X;
+        var vy = dir.Y;
+
+        for (var i = 0; i < (int)dist; i++)
+        {
+            if (map[(int)ox, (int)oy])
+                return true;
+            ox += vx;
+            oy += vy;
+        }
+
+        return false;
     }
 }
 
