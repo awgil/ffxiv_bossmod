@@ -70,7 +70,7 @@ public abstract class CommonState(RotationModule module)
         }
         // TODO: also check damage-taken debuffs on target
 
-        var targetEnemy = target != null ? Module.Hints.PotentialTargets.Find(e => e.Actor == target) : null;
+        var targetEnemy = Module.Hints.FindEnemy(target);
         ForbidDOTs = targetEnemy?.ForbidDOTs ?? false;
         FightEndIn = downtime.Item1 ? 0 : downtime.Item2;
         RaidBuffsIn = vuln.Item1 ? 0 : vuln.Item2;
