@@ -71,11 +71,10 @@ class FRUStates : StateMachineBuilder
         P5PolarizingStrikes(id + 0x30000, 7.6f);
         P5PandorasBox(id + 0x40000, 5.8f);
         P5FulgentBlade(id + 0x50000, 6.2f);
-        P5ParadiseRegained(id + 0x60000, 8.2f); // TODO: timing...
-        P5PolarizingStrikes(id + 0x70000, 8); // TODO: timing...
-        P5FulgentBlade(id + 0x80000, 8); // TODO: timing...
-
-        SimpleState(id + 0xFF0000, 100, "???");
+        P5ParadiseRegained(id + 0x60000, 8.4f);
+        P5PolarizingStrikes(id + 0x70000, 2.3f);
+        P5FulgentBlade(id + 0x80000, 2.6f);
+        P5Enrage(id + 0x90000, 8.4f);
     }
 
     private void P1CyclonicBreakPowderMarkTrail(uint id, float delay)
@@ -310,11 +309,11 @@ class FRUStates : StateMachineBuilder
         ComponentCondition<P2MirrorMirrorReflectedScytheKickRed>(id + 0x20, 9.3f, comp => comp.NumCasts > 0)
             .ActivateOnEnter<P2MirrorMirrorReflectedScytheKickRed>()
             .DeactivateOnExit<P2MirrorMirrorReflectedScytheKickRed>();
-        ComponentCondition<P2MirrorMirrorHouseOfLight>(id + 0x21, 0.6f, comp => comp.NumCasts > 1, "Mirror 2")
+        ComponentCondition<P2MirrorMirrorHouseOfLight>(id + 0x21, 0.6f, comp => comp.NumCasts > 8, "Mirror 2")
+            .ActivateOnEnter<P2MirrorMirrorBanish>() // activate a bit early, so that it can read state gathered by house of light component
             .DeactivateOnExit<P2MirrorMirrorHouseOfLight>();
 
-        ActorCastMulti(id + 0x100, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 0.5f, 5, true)
-            .ActivateOnEnter<P2Banish1>();
+        ActorCastMulti(id + 0x100, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 0.5f, 5, true);
         ComponentCondition<P2Banish>(id + 0x102, 0.1f, comp => !comp.Active, "Spread/Stack")
             .DeactivateOnExit<P2Banish>();
     }
@@ -353,10 +352,8 @@ class FRUStates : StateMachineBuilder
             .DeactivateOnExit<P2LightRampant>(); // tethers resolve right after first orbs
 
         ActorCastStartMulti(id + 0x70, _module.BossP2, [AID.BanishStack, AID.BanishSpread], 1.7f, true)
-            .ActivateOnEnter<P2LightRampantAIResolve>();
+            .ActivateOnEnter<P2LightRampantBanish>();
         ComponentCondition<P2BrightHunger2>(id + 0x71, 1.9f, comp => comp.NumCasts > 0, "Central tower")
-            .ActivateOnEnter<P2Banish2>()
-            .DeactivateOnExit<P2LightRampantAIResolve>()
             .DeactivateOnExit<P2BrightHunger2>()
             .DeactivateOnExit<P2SinboundHolyVoidzone>();
         ActorCastEnd(id + 0x72, _module.BossP2, 3.1f, true);
@@ -526,10 +523,12 @@ class FRUStates : StateMachineBuilder
     {
         ActorTargetable(id, _module.BossP4Usurper, true, delay, "Usurper appears")
             .ActivateOnEnter<P4Preposition>()
+            .ActivateOnEnter<P4FragmentOfFate>()
             .DeactivateOnExit<P4Preposition>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
-        ActorCast(id + 0x10, _module.BossP4Usurper, AID.Materialization, 5.1f, 3, true)
+        ActorCastStart(id + 0x10, _module.BossP4Usurper, AID.Materialization, 5.1f, true)
             .ActivateOnEnter<P4AkhRhai>();
+        ActorCastEnd(id + 0x11, _module.BossP4Usurper, 3, true);
         ComponentCondition<P4AkhRhai>(id + 0x20, 11.2f, comp => comp.AOEs.Count > 0, "Puddle baits");
         ComponentCondition<P4AkhRhai>(id + 0x30, 2.6f, comp => comp.NumCasts > 0);
         ActorTargetable(id + 0x50, _module.BossP4Oracle, true, 3.6f, "Oracle appears");
@@ -719,5 +718,13 @@ class FRUStates : StateMachineBuilder
     {
         ActorCast(id, _module.BossP5, AID.PandorasBox, delay, 12, true, "Tank LB")
             .SetHint(StateMachine.StateHint.Raidwide);
+    }
+
+    private void P5Enrage(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP5, AID.ParadiseLostP5, delay, 12, true);
+        ComponentCondition<P5ParadiseLost>(id + 2, 9.5f, comp => comp.NumCasts > 0, "Enrage")
+            .ActivateOnEnter<P5ParadiseLost>()
+            .DeactivateOnExit<P5ParadiseLost>();
     }
 }

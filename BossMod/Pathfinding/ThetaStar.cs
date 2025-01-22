@@ -12,6 +12,7 @@ public class ThetaStar
         UnsafeImprove, // the path is unsafe (there are cells along the path with negative leeway, but no max-g lower than starting cell), destination is at least better than start
         SemiSafeImprove, // the path is semi-safe (no cell along the path has negative leeway or max-g lower than starting cell), destination is unsafe but better than start
         Safe, // the path reaches safe cell and is fully safe (no cell along the path has negative leeway) (starting cell will have this score if it's safe)
+        SafeBetterPrio, // the path reaches safe cell with a higher goal priority than starting cell (but less than max) and is fully safe (no cell along the path has negative leeway)
         SafeMaxPrio, // the path reaches safe cell with max goal priority and is fully safe (no cell along the path has negative leeway)
     }
 
@@ -35,6 +36,7 @@ public class ThetaStar
     private float _deltaGSide;
     private int _startNodeIndex;
     private float _startMaxG;
+    private float _startPrio;
     private Score _startScore;
 
     private int _bestIndex; // node with best score
@@ -69,6 +71,7 @@ public class ThetaStar
         var start = map.ClampToGrid(map.FracToGrid(startFrac));
         _startNodeIndex = _bestIndex = _fallbackIndex = _map.GridToIndex(start.x, start.y);
         _startMaxG = _map.PixelMaxG[_startNodeIndex];
+        _startPrio = _map.PixelPriority[_startNodeIndex];
         //if (_startMaxG < 0)
         //    _startMaxG = float.MaxValue; // TODO: this is a hack that allows navigating outside the obstacles, reconsider...
         _startScore = CalculateScore(_startMaxG, _startMaxG, _startMaxG, _startNodeIndex);
@@ -202,7 +205,10 @@ public class ThetaStar
         var pathSafe = pathLeeway > 0;
         var destBetter = pixMaxG > _startMaxG;
         if (destSafe && pathSafe)
-            return _map.PixelPriority[pixelIndex] == _map.MaxPriority ? Score.SafeMaxPrio : Score.Safe;
+        {
+            var prio = _map.PixelPriority[pixelIndex];
+            return prio == _map.MaxPriority ? Score.SafeMaxPrio : prio > _startPrio ? Score.SafeBetterPrio : Score.Safe;
+        }
 
         if (pathMinG == _startMaxG) // TODO: some small threshold? should be solved by preprocessing...
             return pathSafe
