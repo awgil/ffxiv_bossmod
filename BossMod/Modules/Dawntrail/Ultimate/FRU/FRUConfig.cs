@@ -12,9 +12,9 @@ public class FRUConfig() : ConfigNode()
 
     [PropertyDisplay("P1 Fall of Faith (cone tethers): conga priority (two people without tethers with lower priorities join odd group)")]
     [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
-    [GroupPreset("TTHHMMRR", [0, 1, 2, 3, 4, 5, 6, 7])]
-    [GroupPreset("RHMTTMHR", [3, 4, 1, 6, 2, 5, 0, 7])]
-    public GroupAssignmentUnique P1FallOfFaithAssignment = GroupAssignmentUnique.DefaultRoles();
+    [GroupPreset("HHTTMMRR", [2, 3, 0, 1, 4, 5, 6, 7])]
+    [GroupPreset("HRMTTMRH", [3, 4, 0, 7, 2, 5, 1, 6])]
+    public GroupAssignmentUnique P1FallOfFaithAssignment = new() { Assignments = [2, 3, 0, 1, 4, 5, 6, 7] };
 
     [PropertyDisplay("P1 Fall of Faith (cone tethers): odd groups go W (rather than N)")]
     public bool P1FallOfFaithEW = false;

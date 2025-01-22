@@ -630,7 +630,7 @@ class P4CrystallizeTimeRewind(BossModule module) : Components.Knockback(module)
         var isLeft = assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.R1;
         var offDir = (Angle.FromDirection(_exalines.StartingOffsetSum) + (isLeft ? 45 : -45).Degrees()).ToDirection();
         var normDir = isLeft ? offDir.OrthoL() : offDir.OrthoR();
-        var (offX, offY) = actor.Role == Role.Tank ? (4, 1) : (2, 3);
+        var (offX, offY) = actor.Role == Role.Tank ? (4, 1) : (1, 2);
         return offX * offDir + offY * normDir;
     }
 }
