@@ -155,4 +155,19 @@ public static class Intersect
         return (circleOffset - corner).LengthSq() <= rsq;
     }
     public static bool CircleCone(WPos circleCenter, float circleRadius, WPos coneCenter, float coneRadius, WDir coneDir, Angle halfAngle) => CircleCone(circleCenter - coneCenter, circleRadius, coneRadius, coneDir, halfAngle);
+
+    public static bool CircleAARect(WDir circleOffset, float circleRadius, float halfExtentX, float halfExtentZ)
+    {
+        circleOffset = circleOffset.Abs(); // symmetrical along X/Z, consider only positive quadrant
+        var cornerOffset = circleOffset - new WDir(halfExtentX, halfExtentZ); // relative to corner
+        if (cornerOffset.X > circleRadius || cornerOffset.Z > circleRadius)
+            return false; // circle is too far from one of the edges, so can't intersect
+        if (cornerOffset.X <= 0 || cornerOffset.Z <= 0)
+            return true; // circle center is inside/on the edge, or close enough to one of the edges to intersect
+        return cornerOffset.LengthSq() <= circleRadius * circleRadius; // check whether circle touches the corner
+    }
+    public static bool CircleAARect(WPos circleCenter, float circleRadius, WPos rectCenter, float halfExtentX, float halfExtentZ) => CircleAARect(circleCenter - rectCenter, circleRadius, halfExtentX, halfExtentZ);
+
+    public static bool CircleRect(WDir circleOffset, float circleRadius, WDir rectZDir, float halfExtentX, float halfExtentZ) => CircleAARect(circleOffset.Rotate(rectZDir.MirrorX()), circleRadius, halfExtentX, halfExtentZ);
+    public static bool CircleRect(WPos circleCenter, float circleRadius, WPos rectCenter, WDir rectZDir, float halfExtentX, float halfExtentZ) => CircleRect(circleCenter - rectCenter, circleRadius, rectZDir, halfExtentX, halfExtentZ);
 }
