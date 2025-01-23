@@ -1,6 +1,8 @@
 ﻿using BossMod.Autorotation;
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using System.IO;
+using System.Security.AccessControl;
 
 namespace BossMod.ReplayVisualization;
 
@@ -280,7 +282,7 @@ class ReplayDetailsWindow : UIWindow
         if (actor.HPMP.MaxHP > 0)
         {
             float frac = Math.Min((float)(actor.HPMP.CurHP + actor.HPMP.Shield) / actor.HPMP.MaxHP, 1);
-            ImGui.ProgressBar(frac, new(ImGui.GetColumnWidth(), 0), $"{frac * 100:f1}% ({actor.HPMP.CurHP} + {actor.HPMP.Shield} / {actor.HPMP.MaxHP})");
+            ImGui.ProgressBar(frac, new(ImGui.GetColumnWidth(), 0), $"{frac * 100:f1}% ({actor.HPMP.CurHP} + {actor.HPMP.Shield} / {actor.HPMP.MaxHP}) [{actor.PendingHPDiffence} pending]");
         }
 
         ImGui.TableNextColumn();
@@ -296,20 +298,33 @@ class ReplayDetailsWindow : UIWindow
             ImGui.TextUnformatted($"{actor.CastInfo.Action}: {Utils.CastTimeString(actor.CastInfo, _player.WorldState.CurrentTime)}");
 
         ImGui.TableNextColumn();
-        if (actor.MountId > 0)
+        var numRealStatuses = actor.Statuses.Count(s => s.ID != 0);
+        var mouseOffset = ImGui.GetMousePos() - ImGui.GetWindowPos() - ImGui.GetCursorPos();
+        var mouseInColumn = mouseOffset.X >= 0 && mouseOffset.Y >= 0 && mouseOffset.X < ImGui.GetColumnWidth() && mouseOffset.Y < ImGui.GetFontSize() + 2 * ImGui.GetStyle().FramePadding.Y;
+        ImGui.TextUnformatted($"{(actor.PendingKnockbacks.Count > 0 ? "Knockbacks pending, " : "")}{(actor.MountId != 0 ? $"Mounted ({actor.MountId}), " : "")}{numRealStatuses} + {actor.PendingStatuses.Count} statuses, {actor.PendingDispels.Count} dispels");
+        if (mouseInColumn && numRealStatuses + actor.PendingStatuses.Count + actor.PendingDispels.Count > 0)
         {
-            ImGui.TextUnformatted($"'Mounted' ({actor.MountId})");
-            ImGui.SameLine();
-        }
-        foreach (var s in actor.Statuses.Where(s => s.ID != 0))
-        {
-            var src = _player.WorldState.Actors.Find(s.SourceID);
-            if (src?.Type is ActorType.Player or ActorType.Pet)
-                continue;
-            if (s.ID is 360 or 362 or 364 or 365 or 413 or 902)
-                continue; // skip FC buff
-            ImGui.TextUnformatted($"{Utils.StatusString(s.ID)} ({s.Extra}): {Utils.StatusTimeString(s.ExpireAt, _player.WorldState.CurrentTime)}");
-            ImGui.SameLine();
+            using var tooltip = ImRaii.Tooltip();
+            if (tooltip)
+            {
+                string fromString(string prefix, ulong instanceId) => instanceId == 0 ? "" : $", {prefix} {_player.WorldState.Actors.Find(instanceId)?.ToString() ?? instanceId.ToString("X")}";
+                for (int i = 0; i < actor.Statuses.Length; ++i)
+                {
+                    ref var s = ref actor.Statuses[i];
+                    if (s.ID != 0)
+                    {
+                        ImGui.TextUnformatted($"[{i}] {Utils.StatusString(s.ID)} ({s.Extra}): {Utils.StatusTimeString(s.ExpireAt, _player.WorldState.CurrentTime)}{fromString("from", s.SourceID)}");
+                    }
+                }
+                foreach (ref var s in actor.PendingStatuses.AsSpan())
+                {
+                    ImGui.TextUnformatted($"[pending] {Utils.StatusString(s.StatusId)} ({s.ExtraLo}){fromString("from", s.Effect.SourceInstanceId)}");
+                }
+                foreach (ref var s in actor.PendingDispels.AsSpan())
+                {
+                    ImGui.TextUnformatted($"[dispel] {Utils.StatusString(s.StatusId)}{fromString("by", s.Effect.SourceInstanceId)}");
+                }
+            }
         }
     }
 

@@ -23,36 +23,38 @@ public sealed record class Preset(string Name)
         public StrategyValue Value = Value;
     }
 
-    public record class ModuleSettings
+    public record class ModuleSettings(Type Type) : IRotationModuleData
     {
         public readonly List<ModuleSetting> Settings = [];
         public int NumSerialized; // entries above this are transient and are not serialized
     }
 
     public string Name = Name;
-    public Dictionary<Type, ModuleSettings> Modules = [];
+    public List<ModuleSettings> Modules = [];
 
     public Preset MakeClone(bool includeTransient)
     {
         var res = new Preset(Name);
-        foreach (var kv in Modules)
+        foreach (var m in Modules)
         {
-            var ms = res.Modules[kv.Key] = new() { NumSerialized = kv.Value.NumSerialized };
-            ms.Settings.AddRange(includeTransient ? kv.Value.Settings : kv.Value.Settings.Take(kv.Value.NumSerialized));
+            var ms = new ModuleSettings(m.Type) { NumSerialized = m.NumSerialized };
+            ms.Settings.AddRange(includeTransient ? m.Settings : m.Settings.Take(m.NumSerialized));
+            res.Modules.Add(ms);
         }
         return res;
     }
 
-    public StrategyValues ActiveStrategyOverrides(Type type, Modifier mods)
+    public StrategyValues ActiveStrategyOverrides(int moduleIndex, Modifier mods)
     {
-        var res = new StrategyValues(RotationModuleRegistry.Modules[type].Definition.Configs);
-        foreach (ref var s in Modules[type].Settings.AsSpan())
+        var m = Modules[moduleIndex];
+        var res = new StrategyValues(RotationModuleRegistry.Modules[m.Type].Definition.Configs);
+        foreach (ref var s in m.Settings.AsSpan())
             if ((s.Mod & mods) == s.Mod)
                 res.Values[s.Track] = s.Value;
         return res;
     }
 
-    public StrategyValues ActiveStrategyOverrides(Type type) => ActiveStrategyOverrides(type, CurrentModifiers());
+    public StrategyValues ActiveStrategyOverrides(int moduleIndex) => ActiveStrategyOverrides(moduleIndex, CurrentModifiers());
 
     public static Modifier CurrentModifiers()
     {
@@ -83,7 +85,7 @@ public class JsonPresetConverter : JsonConverter<Preset>
                 continue;
             }
 
-            var m = res.Modules[mt] = new();
+            var m = new Preset.ModuleSettings(mt);
             foreach (var js in jm.Value.EnumerateArray())
             {
                 var s = new Preset.ModuleSetting() { Value = new() };
@@ -122,6 +124,7 @@ public class JsonPresetConverter : JsonConverter<Preset>
                 m.Settings.Add(s);
                 ++m.NumSerialized;
             }
+            res.Modules.Add(m);
         }
         return res;
     }
@@ -133,9 +136,9 @@ public class JsonPresetConverter : JsonConverter<Preset>
         writer.WriteStartObject(nameof(Preset.Modules));
         foreach (var m in value.Modules)
         {
-            writer.WriteStartArray(m.Key.FullName!);
-            var md = RotationModuleRegistry.Modules[m.Key].Definition;
-            foreach (ref var s in m.Value.Settings.AsSpan()[..m.Value.NumSerialized])
+            writer.WriteStartArray(m.Type.FullName!);
+            var md = RotationModuleRegistry.Modules[m.Type].Definition;
+            foreach (ref var s in m.Settings.AsSpan()[..m.NumSerialized])
             {
                 writer.WriteStartObject();
                 writer.WriteString(nameof(Preset.ModuleSetting.Track), md.Configs[s.Track].InternalName);

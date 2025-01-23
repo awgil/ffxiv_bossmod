@@ -115,12 +115,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     // note that we check pending statuses first - otherwise we get the same problem with double refresh if we try to refresh early (we find old status even though we have pending one)
     protected (float Left, int Stacks) StatusDetails(Actor? actor, uint sid, ulong sourceID, float pendingDuration = 1000)
     {
-        if (actor == null)
-            return (0, 0);
-        var pending = World.PendingEffects.PendingStatus(actor.InstanceID, sid, sourceID);
-        if (pending != null)
-            return (pendingDuration, pending.Value);
-        var status = actor.FindStatus(sid, sourceID);
+        var status = actor?.FindStatus(sid, sourceID, World.FutureTime(pendingDuration));
         return status != null ? (StatusDuration(status.Value.ExpireAt), status.Value.Extra & 0xFF) : (0, 0);
     }
     protected (float Left, int Stacks) StatusDetails<SID>(Actor? actor, SID sid, ulong sourceID, float pendingDuration = 1000) where SID : Enum => StatusDetails(actor, (uint)(object)sid, sourceID, pendingDuration);
@@ -148,7 +143,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
     protected (float Left, float In) EstimateRaidBuffTimings(Actor? primaryTarget)
     {
-        if (primaryTarget?.OID != 0x385)
+        if (primaryTarget == null || !primaryTarget.IsStrikingDummy)
             return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), Bossmods.RaidCooldowns.NextDamageBuffIn());
 
         // hack for a dummy: expect that raidbuffs appear at 7.8s and then every 120s

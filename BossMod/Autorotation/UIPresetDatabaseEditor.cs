@@ -26,7 +26,7 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
         if (_selectedPreset != null)
         {
             _selectedPreset.Draw();
-            _selectedModuleType = _selectedPreset.SelectedModuleType;
+            _selectedModuleType = _selectedPreset.SelectedModuleType ?? _selectedModuleType;
         }
         else
         {

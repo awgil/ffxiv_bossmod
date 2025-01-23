@@ -46,14 +46,81 @@ public sealed class ActorState : IEnumerable<Actor>
         }
     }
 
-    public void Tick(float dt)
+    public void Tick(in FrameState frame)
     {
+        var ts = frame.Timestamp;
         foreach (var act in this)
         {
             act.PrevPosRot = act.PosRot;
             if (act.CastInfo != null)
-                act.CastInfo.ElapsedTime = Math.Min(act.CastInfo.ElapsedTime + dt, act.CastInfo.AdjustedTotalTime);
+                act.CastInfo.ElapsedTime = Math.Min(act.CastInfo.ElapsedTime + frame.Duration, act.CastInfo.AdjustedTotalTime);
+            RemovePendingEffects(act, (in PendingEffect p) => p.Expiration < ts);
         }
+    }
+
+    private void AddPendingEffects(Actor source, ActorCastEvent ev, DateTime timestamp)
+    {
+        var expiration = timestamp.AddSeconds(3);
+        for (int i = 0; i < ev.Targets.Count; ++i)
+        {
+            var target = ev.Targets[i].ID == source.InstanceID ? source : Find(ev.Targets[i].ID); // most common case by far is self-target
+            if (target == null)
+                continue;
+
+            foreach (var eff in ev.Targets[i].Effects)
+            {
+                var effSource = eff.FromTarget ? target : source;
+                var effTarget = eff.AtSource ? source : target;
+                var header = new PendingEffect(ev.GlobalSequence, i, effSource.InstanceID, expiration);
+                switch (eff.Type)
+                {
+                    case ActionEffectType.Damage:
+                    case ActionEffectType.BlockedDamage:
+                    case ActionEffectType.ParriedDamage:
+                        // note: if actual damage will not result in hp change (eg overkill by other pending effects, invulnerability effects), we won't get confirmation
+                        effTarget.PendingHPDifferences.Add(new(header, -eff.DamageHealValue));
+                        break;
+                    case ActionEffectType.Heal:
+                        // note: if actual heal will not result in hp change (eg 100% overheal), we won't get confirmation
+                        effTarget.PendingHPDifferences.Add(new(header, +eff.DamageHealValue));
+                        break;
+                    case ActionEffectType.MpLoss:
+                        effTarget.PendingMPDifferences.Add(new(header, -eff.Value));
+                        break;
+                    case ActionEffectType.MpGain:
+                        effTarget.PendingMPDifferences.Add(new(header, +eff.Value));
+                        break;
+                    case ActionEffectType.ApplyStatusEffectTarget:
+                    case ActionEffectType.ApplyStatusEffectSource:
+                        // note: effect reapplication (eg kardia) or some 'instant' effects (eg ast draw/earthly star) won't get confirmations
+                        effTarget.PendingStatuses.Add(new(header, eff.Value, eff.Param2));
+                        break;
+                    case ActionEffectType.RecoveredFromStatusEffect:
+                    case ActionEffectType.LoseStatusEffectTarget:
+                    case ActionEffectType.LoseStatusEffectSource:
+                        effTarget.PendingDispels.Add(new(header, eff.Value));
+                        break;
+                    case ActionEffectType.Knockback:
+                    case ActionEffectType.Attract1:
+                    case ActionEffectType.Attract2:
+                    case ActionEffectType.AttractCustom1:
+                    case ActionEffectType.AttractCustom2:
+                    case ActionEffectType.AttractCustom3:
+                        effTarget.PendingKnockbacks.Add(header);
+                        break;
+                }
+            }
+        }
+    }
+
+    private delegate bool RemovePendingEffectPredicate(in PendingEffect effect);
+    private void RemovePendingEffects(Actor target, RemovePendingEffectPredicate predicate)
+    {
+        target.PendingHPDifferences.RemoveAll(e => predicate(e.Effect));
+        target.PendingMPDifferences.RemoveAll(e => predicate(e.Effect));
+        target.PendingStatuses.RemoveAll(e => predicate(e.Effect));
+        target.PendingDispels.RemoveAll(e => predicate(e.Effect));
+        target.PendingKnockbacks.RemoveAll(e => predicate(e));
     }
 
     // implementation of operations
@@ -326,6 +393,7 @@ public sealed class ActorState : IEnumerable<Actor>
         {
             if (actor.CastInfo?.Action == Value.Action)
                 actor.CastInfo.EventHappened = true;
+            ws.Actors.AddPendingEffects(actor, Value, ws.CurrentTime);
             ws.Actors.CastEvent.Fire(actor, Value);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CST!"u8)
@@ -345,7 +413,11 @@ public sealed class ActorState : IEnumerable<Actor>
     public Event<Actor, uint, int> EffectResult = new();
     public sealed record class OpEffectResult(ulong InstanceID, uint Seq, int TargetIndex) : Operation(InstanceID)
     {
-        protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.EffectResult.Fire(actor, Seq, TargetIndex);
+        protected override void ExecActor(WorldState ws, Actor actor)
+        {
+            ws.Actors.RemovePendingEffects(actor, (in PendingEffect p) => p.GlobalSequence == Seq && p.TargetIndex == TargetIndex);
+            ws.Actors.EffectResult.Fire(actor, Seq, TargetIndex);
+        }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ER  "u8).EmitActor(InstanceID).Emit(Seq).Emit(TargetIndex);
     }
 
@@ -359,6 +431,7 @@ public sealed class ActorState : IEnumerable<Actor>
             if (prev.ID != 0 && (prev.ID != Value.ID || prev.SourceID != Value.SourceID))
                 ws.Actors.StatusLose.Fire(actor, Index);
             actor.Statuses[Index] = Value;
+            actor.PendingStatuses.RemoveAll(s => s.StatusId == Value.ID && s.Effect.SourceInstanceId == Value.SourceID);
             if (Value.ID != 0)
                 ws.Actors.StatusGain.Fire(actor, Index);
         }

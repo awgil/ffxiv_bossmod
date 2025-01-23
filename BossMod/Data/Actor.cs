@@ -71,6 +71,11 @@ public record struct ActorStatus(uint ID, ushort Extra, DateTime ExpireAt, ulong
 
 public record struct ActorModelState(byte ModelState, byte AnimState1, byte AnimState2);
 
+public record struct PendingEffect(uint GlobalSequence, int TargetIndex, ulong SourceInstanceId, DateTime Expiration);
+public record struct PendingEffectDelta(PendingEffect Effect, int Value);
+public record struct PendingEffectStatus(PendingEffect Effect, uint StatusId);
+public record struct PendingEffectStatusExtra(PendingEffect Effect, uint StatusId, byte ExtraLo);
+
 public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string name, uint nameID, ActorType type, Class classID, int level, Vector4 posRot, float hitboxRadius = 1, ActorHPMP hpmp = default, bool targetable = true, bool ally = false, ulong ownerID = 0, uint fateID = 0)
 {
     public ulong InstanceID = instanceID; // 'uuid'
@@ -101,6 +106,13 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public ActorTetherInfo Tether;
     public ActorStatus[] Statuses = new ActorStatus[60]; // empty slots have ID=0
 
+    // all pending lists are sorted by expiration time
+    public List<PendingEffectDelta> PendingHPDifferences = []; // damage and heal effects applied to the target that were not confirmed yet
+    public List<PendingEffectDelta> PendingMPDifferences = [];
+    public List<PendingEffectStatusExtra> PendingStatuses = [];
+    public List<PendingEffectStatus> PendingDispels = [];
+    public List<PendingEffect> PendingKnockbacks = [];
+
     public Role Role => Class.GetRole();
     public ClassCategory ClassCategory => Class.GetClassCategory();
     public WPos Position => new(PosRot.X, PosRot.Z);
@@ -110,22 +122,42 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public bool Omnidirectional => Utils.CharacterIsOmnidirectional(OID);
     public bool IsDeadOrDestroyed => IsDead || IsDestroyed;
     public bool IsFriendlyNPC => Type == ActorType.Enemy && IsAlly && IsTargetable;
+    public bool IsStrikingDummy => NameID == 541; // this is a hack, but striking dummies are special in some ways
     public int CharacterSpawnIndex => SpawnIndex < 200 && (SpawnIndex & 1) == 0 ? (SpawnIndex >> 1) : -1; // [0,100) for 'real' characters, -1 otherwise
+    public int PendingHPDiffence => PendingHPDifferences.Sum(p => p.Value);
+    public int PendingMPDiffence => PendingMPDifferences.Sum(p => p.Value);
+    public int PredictedHPRaw => (int)HPMP.CurHP + PendingHPDiffence;
+    public int PredictedMPRaw => (int)HPMP.CurMP + PendingMPDiffence;
+    public int PredictedHPClamped => Math.Clamp(PredictedHPRaw, 0, (int)HPMP.MaxHP);
+    public bool PredictedDead => PredictedHPRaw <= 1 && !IsStrikingDummy;
 
-    public ActorStatus? FindStatus(uint sid)
+    // if expirationForPredicted is not null, search pending first, and return one if found; in that case only low byte of extra will be set
+    public ActorStatus? FindStatus(uint sid, DateTime? expirationForPending = null)
     {
-        var i = Array.FindIndex(Statuses, x => x.ID == sid);
-        return i >= 0 ? Statuses[i] : null;
+        if (expirationForPending != null)
+            foreach (ref var s in PendingStatuses.AsSpan())
+                if (s.StatusId == sid)
+                    return new(sid, s.ExtraLo, expirationForPending.Value, s.Effect.SourceInstanceId);
+        foreach (ref var s in Statuses.AsSpan())
+            if (s.ID == sid)
+                return s;
+        return null;
     }
 
-    public ActorStatus? FindStatus(uint sid, ulong source)
+    public ActorStatus? FindStatus(uint sid, ulong source, DateTime? expirationForPending = null)
     {
-        var i = Array.FindIndex(Statuses, x => x.ID == sid && x.SourceID == source);
-        return i >= 0 ? Statuses[i] : null;
+        if (expirationForPending != null)
+            foreach (ref var s in PendingStatuses.AsSpan())
+                if (s.StatusId == sid && s.Effect.SourceInstanceId == source)
+                    return new(sid, s.ExtraLo, expirationForPending.Value, s.Effect.SourceInstanceId);
+        foreach (ref var s in Statuses.AsSpan())
+            if (s.ID == sid && s.SourceID == source)
+                return s;
+        return null;
     }
 
-    public ActorStatus? FindStatus<SID>(SID sid) where SID : Enum => FindStatus((uint)(object)sid);
-    public ActorStatus? FindStatus<SID>(SID sid, ulong source) where SID : Enum => FindStatus((uint)(object)sid, source);
+    public ActorStatus? FindStatus<SID>(SID sid, DateTime? expirationForPending = null) where SID : Enum => FindStatus((uint)(object)sid, expirationForPending);
+    public ActorStatus? FindStatus<SID>(SID sid, ulong source, DateTime? expirationForPending = null) where SID : Enum => FindStatus((uint)(object)sid, source, expirationForPending);
 
     public WDir DirectionTo(Actor other) => (other.Position - Position).Normalized();
     public Angle AngleTo(Actor other) => Angle.FromDirection(other.Position - Position);

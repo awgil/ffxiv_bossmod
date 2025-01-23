@@ -219,37 +219,6 @@ public static partial class Utils
             list.RemoveRange(last, list.Count - last);
     }
 
-    // rotate span elements left (so first element becomes last, second becomes first, etc)
-    public static void RotateLeft<T>(this Span<T> span)
-    {
-        if (span.Length == 0)
-            return;
-        var first = span[0];
-        for (int i = 1; i < span.Length; ++i)
-            span[i - 1] = span[i];
-        span[^1] = first;
-    }
-
-    // rotate span elements right (so last element becomes first, first becomes second, etc)
-    public static void RotateRight<T>(this Span<T> span)
-    {
-        if (span.Length == 0)
-            return;
-        var last = span[^1];
-        for (int i = span.Length - 1; i > 0; --i)
-            span[i] = span[i - 1];
-        span[0] = last;
-    }
-
-    // reorder element of the span to be at specified position, preserving the order of other elements
-    public static void Reorder<T>(this Span<T> span, int originalPos, int finalPos)
-    {
-        if (originalPos < finalPos)
-            RotateLeft(span[originalPos..finalPos]);
-        else
-            RotateRight(span[originalPos..finalPos]);
-    }
-
     // linear interpolation
     public static float Lerp(float a, float b, float t) => a + (b - a) * t;
 
@@ -263,6 +232,7 @@ public static partial class Utils
 
     // bounds-checking access
     public static T? BoundSafeAt<T>(this T[] array, int index, T? outOfBounds = default) => index >= 0 && index < array.Length ? array[index] : outOfBounds;
+    public static T? BoundSafeAt<T>(this List<T> array, int index, T? outOfBounds = default) => index >= 0 && index < array.Count ? array[index] : outOfBounds;
 
     // get all types defined in specified assembly
     public static IEnumerable<Type?> GetAllTypes(Assembly asm)

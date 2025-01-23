@@ -48,7 +48,7 @@ public class CastInterruptHint : CastHint
     {
         foreach (var c in Casters)
         {
-            var e = hints.PotentialTargets.Find(e => e.Actor == c);
+            var e = hints.FindEnemy(c);
             if (e != null)
             {
                 e.ShouldBeInterrupted |= CanBeInterrupted;
