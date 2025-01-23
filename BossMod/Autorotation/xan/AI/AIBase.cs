@@ -26,7 +26,7 @@ public abstract class AIBase(RotationModuleManager manager, Actor player) : Rota
     internal float HPRatio(Actor actor) => (float)actor.HPMP.CurHP / Player.HPMP.MaxHP;
     internal float HPRatio() => HPRatio(Player);
 
-    internal uint PredictedHP(Actor actor) => (uint)Math.Clamp(actor.HPMP.CurHP + World.PendingEffects.PendingHPDifference(actor.InstanceID), 0, actor.HPMP.MaxHP);
+    internal uint PredictedHP(Actor actor) => (uint)actor.PredictedHPClamped;
     internal float PredictedHPRatio(Actor actor) => (float)PredictedHP(actor) / actor.HPMP.MaxHP;
 
     internal IEnumerable<DateTime> Raidwides => Hints.PredictedDamage.Where(d => World.Party.WithSlot(excludeAlliance: true).IncludedInMask(d.players).Count() >= 2).Select(t => t.activation);

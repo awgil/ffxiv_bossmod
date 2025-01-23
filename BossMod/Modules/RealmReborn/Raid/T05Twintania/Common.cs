@@ -13,7 +13,7 @@ class Plummet : Components.Cleave
         base.AddAIHints(slot, actor, assignment, hints);
         if ((NextExpected - WorldState.CurrentTime).TotalSeconds < 3)
         {
-            var boss = hints.PotentialTargets.Find(e => e.Actor == Module.PrimaryActor);
+            var boss = hints.FindEnemy(Module.PrimaryActor);
             if (boss != null)
                 boss.AttackStrength += 0.3f;
         }
@@ -43,7 +43,7 @@ class DeathSentence(BossModule module) : Components.CastCounter(module, ActionID
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var boss = hints.PotentialTargets.Find(e => e.Actor == Module.PrimaryActor);
+        var boss = hints.FindEnemy(Module.PrimaryActor);
         if (boss == null)
             return;
 

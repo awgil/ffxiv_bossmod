@@ -68,29 +68,14 @@ public sealed class AIHintsBuilder : IDisposable
             if (index < 0 || index >= hints.Enemies.Length)
                 continue;
 
-            int prio = AIHints.Enemy.PriorityUndesirable;
-            // fate mob in fate we are NOT a part of; we can't damage them at all
-            if (actor.FateID > 0 && actor.FateID != allowedFateID)
-            {
-                prio = AIHints.Enemy.PriorityInvincible;
-            }
-            else if (_ws.PendingEffects.ActorIsDying(actor))
-            {
-                prio = AIHints.Enemy.PriorityPointless;
-            }
-            else
-            {
-                var allowedAttack = actor.InCombat && _ws.Party.FindSlot(actor.TargetID) >= 0;
-                // enemies in our enmity list can also be attacked, regardless of who they are targeting (since they are keeping us in combat)
-                allowedAttack |= actor.AggroPlayer;
-                // all fate mobs can be attacked if we are level synced (non synced mobs are skipped above)
-                allowedAttack |= actor.FateID > 0;
+            // determine default priority for the enemy
+            var priority = actor.FateID > 0 && actor.FateID != allowedFateID ? AIHints.Enemy.PriorityInvincible // fate mob in fate we are NOT a part of can't be damaged at all
+                : actor.PredictedDead ? AIHints.Enemy.PriorityPointless // this mob is about to be dead, any attacks will likely ghost
+                : actor.AggroPlayer ? 0 // enemies in our enmity list can be attacked, regardless of who they are targeting (since they are keeping us in combat)
+                : actor.InCombat && _ws.Party.FindSlot(actor.TargetID) >= 0 ? 0 // we generally want to assist our party members (note that it includes allied npcs in duties)
+                : AIHints.Enemy.PriorityUndesirable; // this enemy is either not pulled yet or fighting someone we don't care about - try not to aggro it by default
 
-                if (allowedAttack)
-                    prio = 0;
-            }
-
-            var enemy = hints.Enemies[index] = new(actor, prio, playerIsDefaultTank);
+            var enemy = hints.Enemies[index] = new(actor, priority, playerIsDefaultTank);
             hints.PotentialTargets.Add(enemy);
         }
     }

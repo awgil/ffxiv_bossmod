@@ -70,7 +70,7 @@ public abstract class CommonState(RotationModule module)
         }
         // TODO: also check damage-taken debuffs on target
 
-        var targetEnemy = target != null ? Module.Hints.PotentialTargets.Find(e => e.Actor == target) : null;
+        var targetEnemy = Module.Hints.FindEnemy(target);
         ForbidDOTs = targetEnemy?.ForbidDOTs ?? false;
         FightEndIn = downtime.Item1 ? 0 : downtime.Item2;
         RaidBuffsIn = vuln.Item1 ? 0 : vuln.Item2;
@@ -106,12 +106,7 @@ public abstract class CommonState(RotationModule module)
     // note that we check pending statuses first - otherwise we get the same problem with double refresh if we try to refresh early (we find old status even though we have pending one)
     public (float Left, int Stacks) StatusDetails(Actor? actor, uint sid, ulong sourceID, float pendingDuration = 1000)
     {
-        if (actor == null)
-            return (0, 0);
-        var pending = Module.World.PendingEffects.PendingStatus(actor.InstanceID, sid, sourceID);
-        if (pending != null)
-            return (pendingDuration, pending.Value);
-        var status = actor.FindStatus(sid, sourceID);
+        var status = actor?.FindStatus(sid, sourceID, Module.World.FutureTime(pendingDuration));
         return status != null ? (StatusDuration(status.Value.ExpireAt), status.Value.Extra & 0xFF) : (0, 0);
     }
     public (float Left, int Stacks) StatusDetails<SID>(Actor? actor, SID sid, ulong sourceID, float pendingDuration = 1000) where SID : Enum => StatusDetails(actor, (uint)(object)sid, sourceID, pendingDuration);

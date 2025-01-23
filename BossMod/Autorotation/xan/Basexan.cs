@@ -364,7 +364,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         }
 
         // TODO max MP can be higher in eureka/bozja
-        MP = (uint)Math.Clamp(Player.HPMP.CurMP + World.PendingEffects.PendingMPDifference(Player.InstanceID), 0, 10000);
+        MP = (uint)Math.Clamp(Player.PredictedMPRaw, 0, 10000);
 
         if (Player.MountId is not (103 or 117 or 128))
             Exec(strategy, primaryTarget);
@@ -394,7 +394,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected float HPRatio(Actor actor) => (float)actor.HPMP.CurHP / Player.HPMP.MaxHP;
     protected float HPRatio() => HPRatio(Player);
 
-    protected uint PredictedHP(Actor actor) => (uint)Math.Clamp(actor.HPMP.CurHP + World.PendingEffects.PendingHPDifference(actor.InstanceID), 0, actor.HPMP.MaxHP);
+    protected uint PredictedHP(Actor actor) => (uint)actor.PredictedHPClamped;
     protected float PredictedHPRatio(Actor actor) => (float)PredictedHP(actor) / actor.HPMP.MaxHP;
 }
 

@@ -23,11 +23,13 @@ public sealed class PlanExecution
         public bool IsActive(float t, StateData s) => t >= WindowStart && t <= WindowEnd && IntersectBranchRange(s.BranchID, s.NumBranches);
     }
 
+    public readonly record struct ModuleData(Type Type, List<List<EntryData>> Tracks);
+
     public readonly BossModule Module;
     public readonly Plan? Plan;
     private readonly StateData Pull;
     private readonly Dictionary<uint, StateData> States = [];
-    private readonly Dictionary<Type, List<List<EntryData>>> Strategies = [];
+    private readonly List<ModuleData> Strategies = [];
     private readonly List<EntryData> ForcedTargets = [];
 
     public PlanExecution(BossModule module, Plan? plan)
@@ -46,10 +48,7 @@ public sealed class PlanExecution
 
         if (plan != null)
         {
-            foreach (var (moduleType, moduleStrats) in plan.Modules)
-            {
-                Strategies[moduleType] = [.. moduleStrats.Select(BuildEntries)];
-            }
+            Strategies = [.. plan.Modules.Select(m => new ModuleData(m.Type, [.. m.Tracks.Select(BuildEntries)]))];
             ForcedTargets = BuildEntries(plan.Targeting);
         }
     }
@@ -81,15 +80,15 @@ public sealed class PlanExecution
         return (s.Vulnerable.Active, s.Vulnerable.TransitionIn - Math.Min(Module.StateMachine.TimeSinceTransition, s.Duration));
     }
 
-    public StrategyValues ActiveStrategyOverrides(Type module)
+    public StrategyValues ActiveStrategyOverrides(int moduleIndex)
     {
         var s = FindCurrentStateData();
         var t = GetVirtualTime(s);
-        var data = Strategies[module];
-        var res = new StrategyValues(RotationModuleRegistry.Modules[module].Definition.Configs);
-        for (int i = 0; i < data.Count; ++i)
+        var data = Strategies[moduleIndex];
+        var res = new StrategyValues(RotationModuleRegistry.Modules[data.Type].Definition.Configs);
+        for (int i = 0; i < data.Tracks.Count; ++i)
         {
-            var entry = GetEntryAt(data[i], t, s);
+            var entry = GetEntryAt(data.Tracks[i], t, s);
             if (entry != null)
                 res.Values[i] = entry.Value with { ExpireIn = entry.WindowEnd - t };
         }

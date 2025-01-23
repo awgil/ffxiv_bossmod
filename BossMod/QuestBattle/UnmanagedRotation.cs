@@ -18,7 +18,7 @@ public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
         Hints = hints;
         Player = player;
 
-        MP = (uint)Math.Max(0, Player.HPMP.CurMP + World.PendingEffects.PendingHPDifference(Player.InstanceID));
+        MP = (uint)Player.PredictedMPRaw;
 
         var primary = World.Actors.Find(player.TargetID);
         if (primary != null)
@@ -49,12 +49,7 @@ public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
 
     protected (float Left, int Stacks) StatusDetails(Actor? actor, uint sid, ulong sourceID, float pendingDuration = 1000)
     {
-        if (actor == null)
-            return (0, 0);
-        var pending = World.PendingEffects.PendingStatus(actor.InstanceID, sid, sourceID);
-        if (pending != null)
-            return (pendingDuration, pending.Value);
-        var status = actor.FindStatus(sid, sourceID);
+        var status = actor?.FindStatus(sid, sourceID, World.FutureTime(pendingDuration));
         return status != null ? (StatusDuration(status.Value.ExpireAt), status.Value.Extra & 0xFF) : (0, 0);
     }
     protected (float Left, int Stacks) StatusDetails<SID>(Actor? actor, SID sid, ulong sourceID, float pendingDuration = 1000) where SID : Enum => StatusDetails(actor, (uint)(object)sid, sourceID, pendingDuration);
