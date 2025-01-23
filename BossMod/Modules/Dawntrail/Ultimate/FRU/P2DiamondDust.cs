@@ -454,27 +454,30 @@ class P2TwinStillnessSilence(BossModule module) : Components.GenericAOEs(module)
 
             if (AOEs.Count == 0)
             {
-                // if we're behind boss, slide over
-                zoneList.ForbidInfiniteRect(Module.Center, Angle.FromDirection(sourceOffset), Module.Bounds.Radius);
+                // if we're behind boss, slide over to the safe point as opposite to the boss as possible
+                var farthestDir = Angle.FromDirection(-sourceOffset);
+                var bestRange = zoneList.Allowed(1.Degrees()).MinBy(r => farthestDir.Rad < r.min.Rad ? r.min.Rad - farthestDir.Rad : farthestDir.Rad > r.max.Rad ? farthestDir.Rad - r.max.Rad : 0);
+                var dir = farthestDir.Rad < bestRange.min.Rad ? bestRange.min : farthestDir.Rad > bestRange.max.Rad ? bestRange.max : farthestDir;
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(actor.Position + SlideDistance * dir.ToDirection(), 1), DateTime.MaxValue);
             }
             else
             {
                 // dodge next aoe
                 ref var nextAOE = ref AOEs.Ref(0);
                 zoneList.ForbidInfiniteCone(nextAOE.Origin, nextAOE.Rotation, ((AOEShapeCone)nextAOE.Shape).HalfAngle);
-            }
 
-            // prefer to return to the starting spot, for more natural preposition for next mechanic
-            if (AOEs.Count == 1 && _slideBackPos[slot] != default && !zoneList.Forbidden.Contains(Angle.FromDirection(_slideBackPos[slot] - actor.Position).Rad))
-            {
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_slideBackPos[slot], 1), DateTime.MaxValue);
+                // prefer to return to the starting spot, for more natural preposition for next mechanic
+                if (AOEs.Count == 1 && _slideBackPos[slot] != default && !zoneList.Forbidden.Contains(Angle.FromDirection(_slideBackPos[slot] - actor.Position).Rad))
+                {
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_slideBackPos[slot], 1), DateTime.MaxValue);
+                }
+                else if (zoneList.Allowed(1.Degrees()).MaxBy(r => (r.max - r.min).Rad) is var best && best.max.Rad > best.min.Rad)
+                {
+                    var dir = 0.5f * (best.min + best.max);
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(actor.Position + SlideDistance * dir.ToDirection(), 1), DateTime.MaxValue);
+                }
+                // else: no good direction can be found, wait for a bit, maybe voidzone will disappear
             }
-            else if (zoneList.Allowed(1.Degrees()).MaxBy(r => (r.max - r.min).Rad) is var best && best.max.Rad > best.min.Rad)
-            {
-                var dir = 0.5f * (best.min + best.max);
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(actor.Position + SlideDistance * dir.ToDirection(), 1), DateTime.MaxValue);
-            }
-            // else: no good direction can be found, wait for a bit, maybe voidzone will disappear
         }
         // else: we are already sliding, nothing to do...
     }
