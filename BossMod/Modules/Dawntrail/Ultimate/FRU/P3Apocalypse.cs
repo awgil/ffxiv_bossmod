@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace BossMod.Dawntrail.Ultimate.FRU;
+﻿namespace BossMod.Dawntrail.Ultimate.FRU;
 
 class P3Apocalypse(BossModule module) : Components.GenericAOEs(module)
 {
@@ -268,7 +266,10 @@ class P3ApocalypseDarkEruption(BossModule module) : Components.SpreadFromIcon(mo
     {
         var safeSpot = SafeOffset(slot, out _);
         if (safeSpot != default)
+        {
+            hints.PathfindMapBounds = FRU.PathfindHugBorderBounds;
             hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + safeSpot, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), Spreads.Count > 0 ? Spreads[0].Activation : DateTime.MaxValue);
+        }
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

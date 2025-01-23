@@ -181,6 +181,7 @@ class P1UtopianSkyAIResolve(BossModule module) : BossComponent(module)
                 _ => default
             };
             var range = spreadSpot == 0 ? 13 : 19;
+            hints.PathfindMapBounds = FRU.PathfindHugBorderBounds;
             hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + range * direction.ToDirection(), new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), _aoes.Activation);
         }
     }

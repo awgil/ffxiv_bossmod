@@ -116,17 +116,18 @@ public record class ArenaBoundsCircle(float Radius, float MapResolution = 0.5f) 
 
     private Pathfinding.Map BuildMap()
     {
-        // circle is convex, and pathfinding always aims to cell centers, so we can only block pixels which centers are out of bounds
         var map = new Pathfinding.Map(MapResolution, default, Radius, Radius);
         int iCell = 0;
         var threshold = Radius * Radius / (MapResolution * MapResolution); // square of bounds radius, in grid coordinates
         var dy = -map.Height / 2 + 0.5f;
         for (int y = 0; y < map.Height; ++y, ++dy)
         {
+            var cy = Math.Abs(dy) + 0.5f; // farthest corner
             var dx = -map.Width / 2 + 0.5f;
             for (int x = 0; x < map.Width; ++x, ++dx)
             {
-                if (dx * dx + dy * dy > threshold)
+                var cx = Math.Abs(dx) + 0.5f;
+                if (cx * cx + cy * cy > threshold)
                 {
                     map.PixelMaxG[iCell] = -1000;
                 }
