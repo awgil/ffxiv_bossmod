@@ -506,6 +506,22 @@ public abstract class AutoClear : ZoneModule
         IterAndExpire(Circles, d => d.Source.CastInfo == null, d =>
         {
             hints.AddForbiddenZone(new AOEShapeCircle(d.Radius), d.Source.Position, default, CastFinishAt(d.Source));
+
+            // some enrages are way bigger than pathfinding map size (e.g. slime explosion is 60y)
+            // in these cases, if the player is inside the aoe, add a goal zone telling it to GTFO as far as possible
+            if (d.Radius >= 30)
+            {
+                var distToSource = (player.Position - d.Source.Position).Length();
+                if (distToSource <= d.Radius)
+                {
+                    var desiredDistance = distToSource + 10;
+                    hints.GoalZones.Add(p =>
+                    {
+                        var dist = (p - d.Source.Position).Length();
+                        return dist >= desiredDistance ? 100 : 0;
+                    });
+                }
+            }
         });
 
         IterAndExpire(Interrupts, d => d.CastInfo == null, d =>
@@ -657,7 +673,7 @@ public abstract class AutoClear : ZoneModule
         if (revealedTraps.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Union(revealedTraps));
 
-        if (!isOccupied && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.GetItem(PomanderID.Intuition).Active && InBounds(hints, h.Position))
+        if (!player.IsTransformed && (!player.InCombat || _config.NavigateInCombat) && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.GetItem(PomanderID.Intuition).Active)
             hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));
 
         var shouldTargetMobs = _config.AutoClear switch

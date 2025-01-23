@@ -51,7 +51,7 @@ public enum AID : uint
     GoobInhale = 33178, // 3E04->self, instant cast, range 40 90-degree cone
     GoobSneeze = 32473, // 3E04->self, 1.0s cast, range 7 90-degree cone
 
-    GourmInhale = 32478, // 3E5B->self, instant cast, range 40 90-degree cone
+    GourmInhale = 32748, // 3E5B->self, instant cast, range 40 90-degree cone
     GourmSneeze = 32749, // 3E5B->self, 1.0s cast, range 6 90-degree cone
 }
 
