@@ -126,7 +126,10 @@ class P2DiamondDustSafespots(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_safeOffs[slot] != default)
+        {
+            hints.PathfindMapBounds = FRU.PathfindHugBorderBounds;
             hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + _safeOffs[slot], new WDir(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
+        }
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -299,7 +302,7 @@ class P2SinboundHoly(BossModule module) : Components.UniformStackSpread(module, 
             // non-healers should just stack with whatever closest healer is
             // before first cast, ignore master's movements
             var moveDir = NumCasts > 0 ? master.LastFrameMovement.Normalized() : default;
-            var capsule = ShapeDistance.Capsule(master.Position + 2 * moveDir, moveDir, 4, 1);
+            var capsule = ShapeDistance.Capsule(master.Position + 2 * moveDir, moveDir, 4, 1.5f);
             hints.AddForbiddenZone(p => -capsule(p), DateTime.MaxValue);
         }
 

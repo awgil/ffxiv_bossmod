@@ -100,8 +100,8 @@ class P2MirrorMirrorHouseOfLight(BossModule module) : Components.GenericBaitAway
             {
                 0 => -135.Degrees(),
                 1 => 135.Degrees(),
-                2 => -90.Degrees(),
-                3 => 90.Degrees(),
+                2 => -95.Degrees(),
+                3 => 95.Degrees(),
                 _ => default
             };
         }
@@ -109,12 +109,12 @@ class P2MirrorMirrorHouseOfLight(BossModule module) : Components.GenericBaitAway
         {
             dir = Angle.FromDirection(origin.Actor.Position - Module.Center) + group switch
             {
-                0 => (RedRangedLeftOfMelee ? -90 : 90).Degrees(),
-                1 => (RedRangedLeftOfMelee ? 90 : -90).Degrees(),
+                0 => (RedRangedLeftOfMelee ? -95 : 95).Degrees(),
+                1 => (RedRangedLeftOfMelee ? 95 : -95).Degrees(),
                 2 => 180.Degrees(),
                 3 => (RedRangedLeftOfMelee ? -135 : 135).Degrees(),
-                4 => -90.Degrees(),
-                5 => 90.Degrees(),
+                4 => -95.Degrees(),
+                5 => 95.Degrees(),
                 6 => (RedRangedLeftOfMelee ? 180 : -135).Degrees(),
                 7 => (RedRangedLeftOfMelee ? 135 : 180).Degrees(),
                 _ => default

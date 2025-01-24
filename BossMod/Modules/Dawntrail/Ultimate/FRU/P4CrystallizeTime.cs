@@ -412,6 +412,7 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
             }
             if (hint.hint.HasFlag(Hint.SafespotPrecise))
             {
+                hints.PathfindMapBounds = FRU.PathfindHugBorderBounds;
                 hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + hint.offset, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
             }
             if (hint.hint.HasFlag(Hint.Maelstrom) && _hourglass != null)
