@@ -79,6 +79,8 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
     public struct State
     {
         public int Order;
+        public int InitialGroup;
+        public int InitialPosition;
         public int AssignedGroup;
         public int AssignedPosition;
         public DateTime Expiration;
@@ -143,8 +145,9 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
         Span<int> slotPerAssignment = [-1, -1, -1, -1, -1, -1, -1, -1];
         foreach (var (slot, group) in _config.P3ApocalypseAssignments.Resolve(Raid))
         {
-            States[slot].AssignedGroup = group < 4 ? 1 : 2;
-            States[slot].AssignedPosition = group & 3;
+            ref var state = ref States[slot];
+            state.InitialGroup = state.AssignedGroup = group < 4 ? 1 : 2;
+            state.InitialPosition = state.AssignedPosition = group & 3;
             slotPerAssignment[group] = slot;
         }
 
@@ -259,6 +262,7 @@ class P3ApocalypseSpiritTaker(BossModule module) : SpiritTaker(module)
 
 class P3ApocalypseDarkEruption(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.DarkEruption, ActionID.MakeSpell(AID.DarkEruption), 6, 5.1f)
 {
+    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
     private readonly P3Apocalypse? _apoc = module.FindComponent<P3Apocalypse>();
     private readonly P3ApocalypseDarkWater? _water = module.FindComponent<P3ApocalypseDarkWater>();
 
@@ -302,27 +306,28 @@ class P3ApocalypseDarkEruption(BossModule module) : Components.SpreadFromIcon(mo
         reference = 10 * midDir.ToDirection();
 
         ref var state = ref _water.States[slot];
-        if (state.AssignedGroup == 0)
+        var (group, pos) = _config.P3ApocalypseStaticSpreads ? (state.InitialGroup, state.InitialPosition) : (state.AssignedGroup, state.AssignedPosition);
+        if (group == 0)
             return default; // no assignments - oh well, at least we know reference directions
 
         // G1 takes dir CCW from N, G2 takes 0/45/90/135
         var midIsForG2 = midDir.Deg is >= -20 and < 160;
-        if (midIsForG2 != (state.AssignedGroup == 2))
+        if (midIsForG2 != (group == 2))
         {
             midDir += 180.Degrees();
             reference = -reference;
         }
 
-        if ((state.AssignedPosition & 2) == 0)
+        if ((pos & 2) == 0)
         {
             // melee spot; note that non-reference melee goes in right after second apoc (max range is 14-9)
             var altPos = _apoc.Rotation.Rad < 0 ? 1 : 0;
-            return state.AssignedPosition == altPos ? (_apoc.NumCasts > 4 ? 4.5f : 10) * (midDir - _apoc.Rotation).ToDirection() : reference;
+            return pos == altPos ? (_apoc.NumCasts > 4 ? 4.5f : 10) * (midDir - _apoc.Rotation).ToDirection() : reference;
         }
         else
         {
             // ranged spot
-            var offset = (state.AssignedPosition == 2 ? -15 : +15).Degrees();
+            var offset = (pos == 2 ? -15 : +15).Degrees();
             return 19 * (midDir + offset).ToDirection();
         }
     }
