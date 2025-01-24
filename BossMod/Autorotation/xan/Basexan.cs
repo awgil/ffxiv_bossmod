@@ -1,4 +1,5 @@
-﻿using static BossMod.AIHints;
+﻿using System.Diagnostics.CodeAnalysis;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -393,11 +394,32 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         }
     }
 
+    private float? _prevCountdown;
+    private DateTime _cdLockout;
+
+    [SuppressMessage("Security", "CA5394:Do not use insecure randomness", Justification = "determinism is intentional here")]
+    private void PretendCountdown()
+    {
+        if (CountdownRemaining == null)
+        {
+            _cdLockout = DateTime.MinValue;
+            _prevCountdown = null;
+        }
+        else if (_prevCountdown == null)
+        {
+            var wait = (float)new Random((int)World.Frame.Index).NextDouble() + 0.5f;
+            _cdLockout = World.FutureTime(wait);
+            _prevCountdown = CountdownRemaining;
+        }
+    }
+
     public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         NextGCD = default;
         NextGCDPrio = 0;
         PlayerTarget = Hints.FindEnemy(primaryTarget);
+
+        PretendCountdown();
 
         var pelo = Player.FindStatus(ClassShared.SID.Peloton);
         PelotonLeft = pelo != null ? StatusDuration(pelo.Value.ExpireAt) : 0;
@@ -423,6 +445,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
         // TODO max MP can be higher in eureka/bozja
         MP = (uint)Math.Clamp(Player.PredictedMPRaw, 0, 10000);
+
+        if (_cdLockout > World.CurrentTime)
+            return;
 
         if (Player.MountId is not (103 or 117 or 128))
             Exec(strategy, PlayerTarget);
