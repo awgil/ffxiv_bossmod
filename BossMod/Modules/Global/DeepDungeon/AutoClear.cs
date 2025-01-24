@@ -646,14 +646,10 @@ public abstract class AutoClear : ZoneModule
             hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)p2), null, ActionQueue.Priority.VeryHigh);
 
         var haveChest = false;
-        if (coffer is Actor t && InBounds(hints, t.Position) && !player.IsTransformed)
+        if (coffer is Actor t && InBounds(hints, t.Position) && !player.IsTransformed && (_config.AutoMoveTreasure && (!player.InCombat || _config.NavigateInCombat) || player.DistanceToHitbox(t) < 3.5f))
         {
-            if (_config.AutoMoveTreasure && (!player.InCombat || _config.NavigateInCombat)
-                || player.DistanceToHitbox(t) < 3.5f)
-            {
-                hints.InteractWithTarget = coffer;
-                haveChest = true;
-            }
+            hints.InteractWithTarget = coffer;
+            haveChest = true;
         }
 
         if (!player.InCombat && _config.AutoPassage && Palace.PassageActive)
