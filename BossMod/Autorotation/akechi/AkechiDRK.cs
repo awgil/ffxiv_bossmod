@@ -8,17 +8,15 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    //Abilities tracked for Cooldown Planner & Autorotation execution
     public enum Track
     {
         Blood                //Blood abilities tracking
         = SharedTrack.Count, //Shared tracking
-        MP,                  //MP actions tracking
+        MPactions,                  //MP actions tracking
         Carve,               //Carve and Spit & Abyssal Drain tracking
-        ScarletCombo,        //Scarlet Combo ability tracking
+        DeliriumCombo,        //Scarlet Combo ability tracking
         Potion,              //Potion item tracking
         Unmend,              //Ranged ability tracking
-        BloodWeapon,         //Blood Weapon ability tracking
         Delirium,            //Delirium ability tracking
         SaltedEarth,         //Salted Earth ability tracking
         SaltAndDarkness,     //Salt and Darkness ability tracking
@@ -26,7 +24,6 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Shadowbringer,       //Shadowbringer ability tracking
         Disesteem            //Disesteem ability tracking
     }
-
     public enum BloodStrategy
     {
         Automatic,           //Automatically decide when to use Burst Strike & Fated Circle
@@ -38,28 +35,30 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     }
     public enum MPStrategy
     {
-        Auto9k,              //Automatically decide best MP action to use; Uses when at 9000+ MP
-        Auto6k,              //Automatically decide best MP action to use; Uses when at 6000+ MP
         Auto3k,              //Automatically decide best MP action to use; Uses when at 3000+ MP
+        Auto6k,              //Automatically decide best MP action to use; Uses when at 6000+ MP
+        Auto9k,              //Automatically decide best MP action to use; Uses when at 9000+ MP
         AutoRefresh,         //Automatically decide best MP action to use
-        Edge9k,              //Use Edge of Shadow as Darkside refresher & MP spender; Uses when at 9000+ MP
-        Edge6k,              //Use Edge of Shadow as Darkside refresher & MP spender; Uses when at 6000+ MP
         Edge3k,              //Use Edge of Shadow as Darkside refresher & MP spender; Uses when at 3000+ MP
+        Edge6k,              //Use Edge of Shadow as Darkside refresher & MP spender; Uses when at 6000+ MP
+        Edge9k,              //Use Edge of Shadow as Darkside refresher & MP spender; Uses when at 9000+ MP
         EdgeRefresh,         //Use Edge of Shadow as Darkside refresher only
-        Flood9k,             //Use Flood of Shadow as Darkside refresher & MP spender; Uses when at 9000+ MP
-        Flood6k,             //Use Flood of Shadow as Darkside refresher & MP spender; Uses when at 6000+ MP
         Flood3k,             //Use Flood of Shadow as Darkside refresher & MP spender; Uses when at 3000+ MP
+        Flood6k,             //Use Flood of Shadow as Darkside refresher & MP spender; Uses when at 6000+ MP
+        Flood9k,             //Use Flood of Shadow as Darkside refresher & MP spender; Uses when at 9000+ MP
         FloodRefresh,        //Use Flood of Shadow as Darkside refresher only
         Delay                //Delay the use of MP actions for strategic reasons
     }
     public enum CarveStrategy
     {
         Automatic,           //Automatically decide when to use either Carve and Spit or Abyssal Drain
-        CarveAndSpit,        //Force use of Carve and Spit
-        AbyssalDrain,        //Force use of Abyssal Drain
+        OnlyCarve,
+        OnlyDrain,
+        ForceCarve,
+        ForceDrain,
         Delay                //Delay the use of Carve and Spit and Abyssal Drain for strategic reasons
     }
-    public enum ScarletComboStrategy
+    public enum DeliriumComboStrategy
     {
         Automatic,           //Automatically decide when to use Scarlet Combo
         ScarletDelirum,      //Force use of Scarlet Delirium
@@ -98,6 +97,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         #region Strategies
 
         res.DefineShared();
+
         res.Define(Track.Blood).As<BloodStrategy>("Blood", "Carts", uiPriority: 180)
             .AddOption(BloodStrategy.Automatic, "Automatic", "Automatically decide when to use Blood optimally")
             .AddOption(BloodStrategy.OnlyBloodspiller, "Only Bloodspiller", "Uses Bloodspiller optimally as Blood spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 62)
@@ -106,7 +106,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddOption(BloodStrategy.ForceQuietus, "Force Quietus", "Force use of Quietus", 0, 0, ActionTargets.Hostile, 64)
             .AddOption(BloodStrategy.Conserve, "Conserve", "Conserves all Blood-related abilities as much as possible");
 
-        res.Define(Track.MP).As<MPStrategy>("MP", "MP", uiPriority: 170)
+        res.Define(Track.MPactions).As<MPStrategy>("MP", "MP", uiPriority: 170)
             .AddOption(MPStrategy.Auto3k, "Auto 3k", "Automatically decide best MP action to use; Uses when at 3000+ MP", 0, 0, ActionTargets.Self, 30)
             .AddOption(MPStrategy.Auto6k, "Auto 6k", "Automatically decide best MP action to use; Uses when at 6000+ MP", 0, 0, ActionTargets.Self, 30)
             .AddOption(MPStrategy.Auto9k, "Auto 9k", "Automatically decide best MP action to use; Uses when at 9000+ MP", 0, 0, ActionTargets.Self, 30)
@@ -124,18 +124,20 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
 
         res.Define(Track.Carve).As<CarveStrategy>("Carve", "Carve", uiPriority: 160)
             .AddOption(CarveStrategy.Automatic, "Auto", "Automatically decide when to use either Carve and Spit or Abyssal Drain")
-            .AddOption(CarveStrategy.CarveAndSpit, "Carve And Spit", "Force use of Carve and Spit", 60, 0, ActionTargets.Hostile, 60)
-            .AddOption(CarveStrategy.AbyssalDrain, "Abyssal Drain", "Force use of Abyssal Drain", 60, 0, ActionTargets.Hostile, 56)
+            .AddOption(CarveStrategy.OnlyCarve, "Only Carve and Spit", "Automatically use Carve and Spit as optimal spender", 0, 0, ActionTargets.Hostile, 60)
+            .AddOption(CarveStrategy.OnlyDrain, "Only Abysssal Drain", "Automatically use Abyssal Drain as optimal spender", 0, 0, ActionTargets.Hostile, 56)
+            .AddOption(CarveStrategy.ForceCarve, "Force Carve and Spit", "Force the use of Carve and Spit", 60, 0, ActionTargets.Hostile, 60)
+            .AddOption(CarveStrategy.ForceDrain, "Force Abyssal Drain", "Force the use of Abyssal Drain", 60, 0, ActionTargets.Hostile, 56)
             .AddOption(CarveStrategy.Delay, "Delay", "Delay the use of Carve and Spit for strategic reasons", 0, 0, ActionTargets.None, 56)
             .AddAssociatedActions(AID.CarveAndSpit);
 
-        res.Define(Track.ScarletCombo).As<ScarletComboStrategy>("Scarlet Combo", "ScarletCombo", uiPriority: 150)
-            .AddOption(ScarletComboStrategy.Automatic, "Auto", "Automatically decide when to use Scarlet Combo", 0, 0, ActionTargets.Hostile, 96)
-            .AddOption(ScarletComboStrategy.ScarletDelirum, "Scarlet Delirium", "Force use of Scarlet Delirium", 0, 0, ActionTargets.Hostile, 96)
-            .AddOption(ScarletComboStrategy.Comeuppance, "Comeuppance", "Force use of Comeuppance", 0, 0, ActionTargets.Hostile, 96)
-            .AddOption(ScarletComboStrategy.Torcleaver, "Torcleaver", "Force use of Torcleaver", 0, 0, ActionTargets.Hostile, 96)
-            .AddOption(ScarletComboStrategy.Impalement, "Impalement", "Force use of Impalement", 0, 0, ActionTargets.Hostile, 96)
-            .AddOption(ScarletComboStrategy.Delay, "Delay", "Delay use of Scarlet combo for strategic reasons", 0, 0, ActionTargets.Hostile, 96)
+        res.Define(Track.DeliriumCombo).As<DeliriumComboStrategy>("Scarlet Combo", "DeliriumCombo", uiPriority: 150)
+            .AddOption(DeliriumComboStrategy.Automatic, "Auto", "Automatically decide when to use Scarlet Combo", 0, 0, ActionTargets.Hostile, 96)
+            .AddOption(DeliriumComboStrategy.ScarletDelirum, "Scarlet Delirium", "Force use of Scarlet Delirium", 0, 0, ActionTargets.Hostile, 96)
+            .AddOption(DeliriumComboStrategy.Comeuppance, "Comeuppance", "Force use of Comeuppance", 0, 0, ActionTargets.Hostile, 96)
+            .AddOption(DeliriumComboStrategy.Torcleaver, "Torcleaver", "Force use of Torcleaver", 0, 0, ActionTargets.Hostile, 96)
+            .AddOption(DeliriumComboStrategy.Impalement, "Impalement", "Force use of Impalement", 0, 0, ActionTargets.Hostile, 96)
+            .AddOption(DeliriumComboStrategy.Delay, "Delay", "Delay use of Scarlet combo for strategic reasons", 0, 0, ActionTargets.Hostile, 96)
             .AddAssociatedActions(AID.ScarletDelirium, AID.Comeuppance, AID.Torcleaver, AID.Impalement);
 
         res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 20)
@@ -152,8 +154,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddOption(UnmendStrategy.Forbid, "Forbid", "Prohibit use of Unmend")
             .AddAssociatedActions(AID.Unmend);
 
-        res.DefineOGCD(Track.BloodWeapon, "Blood Weapon", "B.Weapon", 60, 15, ActionTargets.Self, 35, 68).AddAssociatedActions(AID.BloodWeapon);
-        res.DefineOGCD(Track.Delirium, "Delirium", "Delirium", 60, 15, ActionTargets.Self, 68).AddAssociatedActions(AID.BloodWeapon);
+        res.DefineOGCD(Track.Delirium, "Delirium", "Delirium", 60, 15, ActionTargets.Self, 35).AddAssociatedActions(AID.Delirium);
         res.DefineOGCD(Track.SaltedEarth, "Salted Earth", "S.Earth", 90, 15, ActionTargets.Self, 52).AddAssociatedActions(AID.SaltedEarth);
         res.DefineOGCD(Track.SaltAndDarkness, "Salt & Darkness", "S&D", 20, 0, ActionTargets.Self, 86).AddAssociatedActions(AID.SaltAndDarkness);
         res.DefineOGCD(Track.LivingShadow, "Living Shadow", "L.Shadow", 120, 20, ActionTargets.Self, 80).AddAssociatedActions(AID.LivingShadow);
@@ -166,694 +167,483 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Priorities
-    public enum GCDPriority //priorities for GCDs (higher number = higher priority)
+    public enum GCDPriority
     {
-        None = 0,           //default
-        Combo123 = 350,     //combo actions
-        Gauge = 500,        //Blood spender actions
-        Reign = 525,        //Reign of Beasts
-        comboNeed = 550,    //combo actions that need to be used
-        GF23 = 575,         //Gnashing combo chain
-        SonicBreak = 600,   //Sonic Break
-        DoubleDown = 675,   //Double Down
-        GF1 = 700,          //Gnashing Fang
-        ForcedGCD = 900,    //Forced GCDs
+        None = 0,
+        Standard = 300,
+        Blood = 400,
+        Disesteem = 500,
+        DeliriumCombo = 600,
+        NeedBlood = 700,
+        Opener = 800,
+        ForcedGCD = 900,
     }
-    public enum OGCDPriority //priorities for oGCDs (higher number = higher priority)
+    public enum OGCDPriority
     {
-        None = 0,           //default
-        Continuation = 500, //Continuation procs
-        Zone = 550,         //Blasting Zone
-        BowShock = 600,     //Bow Shock
-        Bloodfest = 700,    //Bloodfest
-        NoMercy = 875,      //No Mercy
-        Potion = 900,       //Potion
-        ForcedOGCD = 900,   //Forced oGCDs
+        None = 0,
+        Standard = 300,
+        MP = 350,
+        SaltedEarth = 400,
+        CarveOrDrain = 450,
+        Shadowbringer = 500,
+        Delirium = 550,
+        LivingShadow = 600,
+        NeedRefresh = 700,
+        ForcedOGCD = 900,
     }
     #endregion
 
     #region Upgrade Paths
-    private AID BestEdge
-        => Unlocked(AID.EdgeOfShadow)
-        ? AID.EdgeOfShadow
-        : Unlocked(AID.EdgeOfDarkness)
-        ? AID.EdgeOfDarkness
-        : AID.FloodOfDarkness;
-
-    private AID BestFlood
-        => Unlocked(AID.FloodOfShadow)
-        ? AID.FloodOfShadow
-        : AID.FloodOfDarkness;
-
-    private AID BestMPSpender
-        => ShouldUseAOE
-        ? BestFlood
-        : BestEdge;
-
-    private AID BestAOEMPSpender
-        => Unlocked(AID.FloodOfShadow)
-        && ShouldUseAOECircle(5).OnThreeOrMore
-        ? AID.FloodOfDarkness
-        : Unlocked(AID.FloodOfDarkness)
-        && ShouldUseAOECircle(5).OnFourOrMore
-        ? AID.FloodOfDarkness
-        : BestEdge;
-
-    private AID BestQuietus
-        => Unlocked(AID.Quietus)
-        ? AID.Quietus
-        : AID.Bloodspiller;
-
-    private AID BestBloodSpender
-        => ShouldUseAOE
-        ? BestQuietus
-        : AID.Bloodspiller;
-
-    private AID BestDelirium
-        => Unlocked(AID.Delirium)
-        ? AID.Delirium
-        : AID.BloodWeapon;
-
-    private AID CarveOrDrain
-        => ShouldUseAOE
-        ? AID.AbyssalDrain
-        : AID.CarveAndSpit;
-
-    private AID BestSalt
-        => Unlocked(AID.SaltAndDarkness)
-        && PlayerHasEffect(SID.SaltedEarth, 15)
-        ? AID.SaltAndDarkness
-        : AID.SaltedEarth;
-
-    private SID BestBloodWeapon
-        => Unlocked(AID.Delirium)
-        ? SID.Delirium
-        : SID.BloodWeapon;
+    private AID BestEdge => Unlocked(AID.EdgeOfShadow) ? AID.EdgeOfShadow : Unlocked(AID.EdgeOfDarkness) ? AID.EdgeOfDarkness : AID.FloodOfDarkness;
+    private AID BestFlood => Unlocked(AID.FloodOfShadow) ? AID.FloodOfShadow : AID.FloodOfDarkness;
+    private AID BestMPSpender => ShouldUseAOECircle(5).OnThreeOrMore ? BestAOEMPSpender : BestEdge;
+    private AID BestAOEMPSpender => Unlocked(AID.FloodOfShadow) && ShouldUseAOECircle(5).OnThreeOrMore ? AID.FloodOfDarkness : Unlocked(AID.FloodOfDarkness) && ShouldUseAOECircle(5).OnFourOrMore ? AID.FloodOfDarkness : BestEdge;
+    private AID BestQuietus => Unlocked(AID.Quietus) ? AID.Quietus : AID.Bloodspiller;
+    private AID BestBloodSpender => ShouldUseAOE ? BestQuietus : AID.Bloodspiller;
+    private AID BestDelirium => Unlocked(AID.Delirium) ? AID.Delirium : AID.BloodWeapon;
+    private AID CarveOrDrain => ShouldUseAOE ? AID.AbyssalDrain : AID.CarveAndSpit;
+    private AID BestSalt => Unlocked(AID.SaltAndDarkness) && PlayerHasEffect(SID.SaltedEarth, 15) ? AID.SaltAndDarkness : AID.SaltedEarth;
+    private SID BestBloodWeapon => Unlocked(AID.ScarletDelirium) ? SID.EnhancedDelirium : Unlocked(AID.Delirium) ? SID.Delirium : SID.BloodWeapon;
+    private AID DeliriumCombo => Delirium.Step is 2 ? AID.Torcleaver : Delirium.Step is 1 ? AID.Comeuppance : ShouldUseAOE ? AID.Impalement : AID.ScarletDelirium;
     #endregion
 
     #region Module Variables
-    //Gauge
-    public bool RiskingBlood;
     public byte Blood;
     public (byte State, bool IsActive) DarkArts;
+    public (float Timer, bool IsActive, bool NeedsRefresh) Darkside;
+    public bool RiskingBlood;
+    public bool RiskingMP;
+    public (float Left, float CD, bool IsActive, bool IsReady) SaltedEarth;
+    public (float CD, bool IsReady) AbyssalDrain;
+    public (float CD, bool IsReady) CarveAndSpit;
     public (ushort Step, float Left, int Stacks, float CD, bool IsActive, bool IsReady) Delirium;
-    public (ushort Timer, float CD, bool IsActive, bool IsReady) LivingShadow;
-
-    private bool inOdd; //Checks if player is in an odd-minute window
+    public (float Timer, float CD, bool IsActive, bool IsReady) LivingShadow;
+    public (float TotalCD, float ChargeCD, bool HasCharges, bool IsReady) Shadowbringer;
+    public (float Left, bool IsActive, bool IsReady) Disesteem;
     private bool ShouldUseAOE; //Checks if AOE rotation or abilities should be used
-    public bool canWeaveIn; //Can weave in oGCDs
-    public bool canWeaveEarly; //Can early weave oGCDs
-    public bool canWeaveLate; //Can late weave oGCDs
-    public float BurstWindowLeft; //Time left in current burst window (typically 20s-22s)
-    public float BurstWindowIn; //Time until next burst window (typically 20s-22s)
-    #endregion
-
-    #region Module Helpers
+    public int NumAOERectTargets;
+    public Actor? BestAOERectTarget;
     #endregion
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
     {
         #region Variables
-        //Gauge
-        var gauge = World.Client.GetGauge<DarkKnightGauge>(); //Retrieve Gunbreaker gauge
+        #region Gauge
+        var gauge = World.Client.GetGauge<DarkKnightGauge>(); //Retrieve DRK gauge
+        Blood = gauge.Blood;
         DarkArts.State = gauge.DarkArtsState; //Retrieve current Dark Arts state
         DarkArts.IsActive = DarkArts.State > 0; //Checks if Dark Arts is active
-
+        Darkside.Timer = gauge.DarksideTimer / 1000f; //Retrieve current Darkside timer
+        Darkside.IsActive = Darkside.Timer > 0.1f; //Checks if Darkside is active
+        Darkside.NeedsRefresh = Darkside.Timer <= 3; //Checks if Darkside needs to be refreshed
+        RiskingBlood =
+            (ComboLastMove is AID.SyphonStrike or AID.Unleash && Blood >= 80) || (Delirium.CD <= 3 && Blood >= 70); //Checks if we are risking Blood
+        RiskingMP = MP >= 9800 || Darkside.NeedsRefresh;
+        #endregion
+        #region Cooldowns
+        SaltedEarth.Left = StatusRemaining(Player, SID.SaltedEarth, 15); //Retrieve current Salted Earth time left
+        SaltedEarth.CD = TotalCD(AID.SaltedEarth); //Retrieve current Salted Earth cooldown
+        SaltedEarth.IsActive = SaltedEarth.Left > 0.1f; //Checks if Salted Earth is active
+        SaltedEarth.IsReady = Unlocked(AID.SaltedEarth) && SaltedEarth.CD < 0.6f; //Salted Earth ability
+        AbyssalDrain.CD = TotalCD(AID.AbyssalDrain); //Retrieve current Abyssal Drain cooldown
+        AbyssalDrain.IsReady = Unlocked(AID.AbyssalDrain) && AbyssalDrain.CD < 0.6f; //Abyssal Drain ability
+        CarveAndSpit.CD = TotalCD(AID.CarveAndSpit); //Retrieve current Carve and Spit cooldown
+        CarveAndSpit.IsReady = Unlocked(AID.CarveAndSpit) && CarveAndSpit.CD < 0.6f; //Carve and Spit ability
+        Disesteem.Left = StatusRemaining(Player, SID.Scorn, 30); //Retrieve current Disesteem time left
+        Disesteem.IsActive = Disesteem.Left > 0.1f; //Checks if Disesteem is active
+        Disesteem.IsReady = Unlocked(AID.Disesteem) && Disesteem.Left > 0.1f; //Disesteem ability
         Delirium.Step = gauge.DeliriumStep; //Retrieve current Delirium combo step
         Delirium.Left = StatusRemaining(Player, BestBloodWeapon, 15); //Retrieve current Delirium time left
         Delirium.Stacks = StacksRemaining(Player, BestBloodWeapon, 15); //Retrieve current Delirium stacks
         Delirium.CD = TotalCD(BestDelirium); //Retrieve current Delirium cooldown
         Delirium.IsActive = Delirium.Left > 0.1f; //Checks if Delirium is active
         Delirium.IsReady = Unlocked(BestDelirium) && Delirium.CD < 0.6f; //Delirium ability
-
-        LivingShadow.Timer = gauge.ShadowTimer; //Retrieve current Living Shadow timer
+        LivingShadow.Timer = gauge.ShadowTimer / 1000f; //Retrieve current Living Shadow timer
         LivingShadow.CD = TotalCD(AID.LivingShadow); //Retrieve current Living Shadow cooldown
         LivingShadow.IsActive = LivingShadow.Timer > 0; //Checks if Living Shadow is active
         LivingShadow.IsReady = Unlocked(AID.LivingShadow) && LivingShadow.CD < 0.6f; //Living Shadow ability
-        //Cooldowns
-
-        //GCD & Weaving
-        canWeaveIn = GCD is <= 2.5f and >= 0.1f; //Can weave in oGCDs
-        canWeaveEarly = GCD is <= 2.5f and >= 1.25f; //Can weave in oGCDs early
-        canWeaveLate = GCD is <= 1.25f and >= 0.1f; //Can weave in oGCDs late
-
-        //Misc
-        inOdd =  is <= 90 and >= 30; //Checks if we are in an odd-minute window
-        ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
-
-        #region Minimal Requirements
-
+        Shadowbringer.TotalCD = TotalCD(AID.Shadowbringer); //Retrieve current Shadowbringer cooldown
+        Shadowbringer.ChargeCD = ChargeCD(AID.Shadowbringer); //Retrieve current Shadowbringer charge cooldown
+        Shadowbringer.HasCharges = TotalCD(AID.Shadowbringer) <= 60; //Checks if Shadowbringer has charges
+        Shadowbringer.IsReady = Unlocked(AID.Shadowbringer) && Shadowbringer.HasCharges; //Shadowbringer ability
         #endregion
+        ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
+        (BestAOERectTarget, NumAOERectTargets) = SelectBestTarget(strategy, primaryTarget, 10, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 4));
 
         #region Strategy Definitions
-        var AOE = strategy.Option(Track.AOE); //AOE track
-        var AOEStrategy = AOE.As<AOEStrategy>(); //AOE strategy
-        var carts = strategy.Option(Track.Blood); //Blood track
-        var cartStrat = carts.As<Bloodtrategy>(); //Blood strategy
-        var nm = strategy.Option(Track.NoMercy); //No Mercy track
-        var nmStrat = nm.As<NoMercyStrategy>(); //No Mercy strategy
-        var zone = strategy.Option(Track.Zone); //Zone track
-        var zoneStrat = zone.As<OGCDStrategy>(); //Zone strategy
-        var bow = strategy.Option(Track.BowShock); //Bow Shock track
-        var bowStrat = bow.As<OGCDStrategy>(); //Bow Shock strategy
-        var bf = strategy.Option(Track.Bloodfest); //Bloodfest track
-        var bfStrat = bf.As<BloodfestStrategy>(); //Bloodfest strategy
-        var dd = strategy.Option(Track.DoubleDown); //Double Down track
-        var ddStrat = dd.As<GCDStrategy>(); //Double Down strategy
-        var gf = strategy.Option(Track.GnashingFang); //Gnashing Fang track
-        var gfStrat = gf.As<GnashingStrategy>(); //Gnashing Fang strategy
-        var reign = strategy.Option(Track.Reign); //Reign of Beasts track
-        var reignStrat = reign.As<ReignStrategy>(); //Reign of Beasts strategy
-        var sb = strategy.Option(Track.SonicBreak); //Sonic Break track
-        var sbStrat = sb.As<SonicBreakStrategy>(); //Sonic Break strategy
-        var ls = strategy.Option(Track.Unmend); //Unmend track
-        var lsStrat = ls.As<UnmendStrategy>(); //Unmend strategy
-        var hold = strategy.Option(Track.Cooldowns).As<CooldownStrategy>() == CooldownStrategy.Hold; //Determine if holding resources
-        var conserve = cartStrat == Bloodtrategy.Conserve; //Determine if conserving Blood
+        var mp = strategy.Option(Track.MPactions);
+        var mpStrat = mp.As<MPStrategy>(); //Retrieve MP strategy
+        var blood = strategy.Option(Track.Blood);
+        var bloodStrat = blood.As<BloodStrategy>(); //Retrieve Blood strategy
+        var se = strategy.Option(Track.SaltedEarth);
+        var seStrat = se.As<OGCDStrategy>(); //Retrieve Salted Earth strategy
+        var cd = strategy.Option(Track.Carve);
+        var cdStrat = cd.As<CarveStrategy>(); //Retrieve Carve and Drain strategy
+        var deli = strategy.Option(Track.Delirium);
+        var deliStrat = deli.As<OGCDStrategy>(); //Retrieve Delirium strategy
+        var ls = strategy.Option(Track.LivingShadow);
+        var lsStrat = ls.As<OGCDStrategy>(); //Retrieve Living Shadow strategy
+        var sb = strategy.Option(Track.Shadowbringer);
+        var sbStrat = sb.As<OGCDStrategy>(); //Retrieve Shadowbringer strategy
+        var dcombo = strategy.Option(Track.DeliriumCombo);
+        var dcomboStrat = dcombo.As<DeliriumComboStrategy>(); //Retrieve Delirium combo strategy
+        var de = strategy.Option(Track.Disesteem);
+        var deStrat = de.As<GCDStrategy>(); //Retrieve Disesteem strategy
+        var unmend = strategy.Option(Track.Unmend);
+        var unmendStrat = unmend.As<UnmendStrategy>(); //Retrieve Unmend strategy
         #endregion
-
         #endregion
 
         #region Full Rotation Execution
 
-        #region Standard Rotations (1-2-3 / 1-2)
-
-        #region Force Execution
-        if (AOEStrategy is AOEStrategy.ForceSTwithO) //if Single-target (with overcap protection) option is selected
-            QueueGCD(STwithOvercap(), //queue the next single-target combo action with overcap protection
-                ResolveTargetOverride(AOE.Value) //Get target choice
-                ?? primaryTarget, //if none, choose primary target
-                GCDPriority.ForcedGCD); //with priority for forced GCDs
-        if (AOEStrategy is AOEStrategy.ForceSTwithoutO) //if Single-target (without overcap protection) option is selected
-            QueueGCD(STwithoutOvercap(), //queue the next single-target combo action without overcap protection
-                ResolveTargetOverride(AOE.Value) //Get target choice
-                ?? primaryTarget, //if none, choose primary target
-                GCDPriority.ForcedGCD); //with priority for forced GCDs
-        if (AOEStrategy is AOEStrategy.ForceAOEwithO) //if AOE (with overcap protection) option is selected
-            QueueGCD(AOEwithOvercap(), //queue the next AOE combo action with overcap protection
-                Player, //on Self (no target needed)
-                GCDPriority.ForcedGCD); //with priority for forced GCDs
-        if (AOEStrategy is AOEStrategy.ForceAOEwithoutO) //if AOE (without overcap protection) option is selected
-            QueueGCD(AOEwithoutOvercap(), //queue the next AOE combo action without overcap protection
-                Player, //on Self (no target needed)
-                GCDPriority.ForcedGCD);  //with priority for forced GCDs
-        #endregion
-
-        #region Logic for Cart Generation before Downtime
-        //TODO: refactor this
-        if (AOEStrategy == AOEStrategy.GenerateDowntime) //if Generate Downtime option is selected
-        {
-            if (downtimeIn == GCD * 2 && Ammo == 2 || //if 2 GCDs until downtime & has 2 Blood
-                downtimeIn == GCD * 4 && Ammo == 1 || //if 4 GCDs until downtime & has 1 Blood
-                downtimeIn == GCD * 6 && Ammo == 0) //if 6 GCDs until downtime & has 0 Blood
-                QueueGCD(AID.Unleash, //queue Demon Slice
-                    Player, //on Self (no target needed)
-                    GCDPriority.ForcedGCD); //with priority for forced GCDs
-
-            if (downtimeIn == GCD * 3 && Ammo == 2 || //if 3 GCDs until downtime & has 2 Blood
-                downtimeIn == GCD * 5 && Ammo == 1 || //if 5 GCDs until downtime & has 1 Blood
-                downtimeIn == GCD * 8 && Ammo == 0 || //if 8 GCDs until downtime & has 0 Blood
-                downtimeIn == GCD * 9 && Ammo == 0) //if 9 GCDs until downtime & has 0 Blood
-                QueueGCD(AID.HardSlash, //queue Keen Edge
-                    primaryTarget, //on the primary target
-                    GCDPriority.ForcedGCD); //with priority for forced GCDs
-
-            if (ComboLastMove == AID.Unleash && //if last move was Demon Slice
-                (downtimeIn == GCD && Ammo == 2 || //if 1 GCD until downtime & has 2 Blood
-                downtimeIn == GCD * 3 && Ammo == 1 || //if 3 GCDs until downtime & has 1 Blood
-                downtimeIn == GCD * 5 && Ammo == 0)) //if 5 GCDs until downtime & has 0 Blood
-                QueueGCD(AID.StalwartSoul, //queue Demon Slaughter
-                    Player, //on Self (no target needed)
-                    GCDPriority.ForcedGCD); //with priority for forced GCDs
-
-            if (ComboLastMove == AID.HardSlash && //if last move was Keen Edge
-                (downtimeIn == GCD * 2 && Ammo == 2 || //if 2 GCDs until downtime & has 2 Blood
-                downtimeIn == GCD * 4 && Ammo == 1 || //if 4 GCDs until downtime & has 1 Blood
-                downtimeIn == GCD * 7 && Ammo == 2 || //if 7 GCDs until downtime & has 2 Blood
-                downtimeIn == GCD * 8 && Ammo == 2)) //if 8 GCDs until downtime & has 2 Blood
-                QueueGCD(AID.SyphonStrike, //queue Brutal Shell
-                    primaryTarget, //on the primary target
-                    GCDPriority.ForcedGCD); //with priority for forced GCDs
-
-            if (ComboLastMove == AID.SyphonStrike) //if last move was Brutal Shell
-            {
-                if (downtimeIn == GCD && (Ammo == 2 || Ammo == 3) || //if 1 GCD until downtime & has 2 or 3 Blood
-                    downtimeIn == GCD * 4 && Ammo == 1 || //if 4 GCDs until downtime & has 1 Blood
-                    downtimeIn == GCD * 7 && Ammo == 0) //if 7 GCDs until downtime & has 0 Blood
-                    QueueGCD(AID.Souleater, //queue Solid Barrel
-                        primaryTarget, //on the primary target
-                        GCDPriority.ForcedGCD); //with priority for forced GCDs
-            }
-
-            if (Ammo == MaxBlood) //if at max Blood
-                QueueGCD(STwithoutOvercap(), //queue the next single-target combo action without overcap protection to save resources for uptime
-                    primaryTarget, //on the primary target
-                    GCDPriority.ForcedGCD); //with priority for forced GCDs
-        }
-        #endregion
-
-        #region Standard Execution
-        if (AOEStrategy == AOEStrategy.AutoBreakCombo) //if Break Combo option is selected
-        {
-            if (ShouldUseAOE) //if AOE rotation should be used
-                QueueGCD(AOEwithoutOvercap(), //queue the next AOE combo action
-                    Player, //on Self (no target needed)
-                    GCDPriority.Combo123); //with priority for 123/12 combo actions
-            if (!ShouldUseAOE)
-                QueueGCD(STwithoutOvercap(), //queue the next single-target combo action
-                    ResolveTargetOverride(AOE.Value) //Get target choice
-                    ?? primaryTarget, //if none, choose primary target
-                    GCDPriority.Combo123); //with priority for 123/12 combo actions
-        }
-        if (AOEStrategy == AOEStrategy.AutoFinishCombo) //if Finish Combo option is selected
+        #region Standard Rotations
+        if (ModuleExtensions.AutoAOE(strategy))
         {
             QueueGCD(NextBestRotation(), //queue the next single-target combo action only if combo is finished
-                ResolveTargetOverride(AOE.Value) //Get target choice
+                ResolveTargetOverride(strategy.Option(SharedTrack.AOE).Value) //Get target choice
                 ?? primaryTarget, //if none, choose primary target
-                GCDPriority.Combo123); //with priority for 123/12 combo actions
+                GCDPriority.Standard); //with priority for 123/12 combo actions
+        }
+        if (ModuleExtensions.ForceST(strategy)) //if Force Single Target option is selected
+        {
+            QueueGCD(ST(),
+                ResolveTargetOverride(strategy.Option(SharedTrack.AOE).Value) //Get target choice
+                ?? primaryTarget, //if none, choose primary target
+                GCDPriority.Standard); //with priority for 123/12 combo actions
+        }
+        if (ModuleExtensions.ForceAOE(strategy)) //if Force AOE option is selected
+        {
+            QueueGCD(AOE(),
+                Player,
+                GCDPriority.Standard); //with priority for 123/12 combo actions
         }
         #endregion
 
-        #endregion
-
-        #region OGCDs
-        if (!hold) //if not holding cooldowns
+        if (!ModuleExtensions.HoldAll(strategy)) //if not holding cooldowns
         {
-            //No Mercy execution
-            if (ShouldUseNoMercy(nmStrat, primaryTarget)) //if No Mercy should be used
-                QueueOGCD(AID.NoMercy, //queue No Mercy
-                    Player, //on Self (no target needed, but desired to not waste)
-                    nmStrat is NoMercyStrategy.Force //if strategy option is Force
-                    or NoMercyStrategy.ForceW //or Force weave
-                    or NoMercyStrategy.ForceQW //or Force last second weave
-                    or NoMercyStrategy.Force1 //or Force with 1 Blood
-                    or NoMercyStrategy.Force1W //or Force weave with 1 Blood
-                    or NoMercyStrategy.Force1QW //or Force last second weave with 1 Blood
-                    or NoMercyStrategy.Force2 //or Force with 2 Blood
-                    or NoMercyStrategy.Force2W //or Force weave with 2 Blood
-                    or NoMercyStrategy.Force2QW //or Force last second weave with 2 Blood
-                    or NoMercyStrategy.Force3 //or Force with 3 Blood
-                    or NoMercyStrategy.Force3W //or Force weave with 3 Blood
-                    or NoMercyStrategy.Force3QW //or Force last second weave with 3 Blood
-                    ? OGCDPriority.ForcedOGCD //use priority for forced oGCDs
-                    : OGCDPriority.NoMercy); //otherwise, use intended priority
-
-            //Zone execution (Blasting Zone / Danger Zone)
-            if (ShouldUseZone(zoneStrat, primaryTarget)) //if Zone should be used
-                QueueOGCD(BestZone, //queue the best Zone action
-                    ResolveTargetOverride(zone.Value) //Get target choice
-                    ?? primaryTarget, //if none, choose primary target
-                    zoneStrat is OGCDStrategy.Force //if strategy option is Force
-                    or OGCDStrategy.AnyWeave //or any Weave
-                    or OGCDStrategy.EarlyWeave //or Early Weave
-                    or OGCDStrategy.LateWeave //or Late Weave
-                    ? OGCDPriority.ForcedOGCD //use priority for forced oGCDs
-                    : OGCDPriority.Zone); //otherwise, use intended priority
-
-            //Bow Shock execution
-            if (ShouldUseBowShock(bowStrat, primaryTarget)) //if Bow Shock should be used
-                QueueOGCD(AID.BowShock, //queue Bow Shock
-                    Player, //on Self (no target needed)
-                    bowStrat is OGCDStrategy.Force //if strategy option is Force
-                    or OGCDStrategy.AnyWeave //or Any Weave
-                    or OGCDStrategy.EarlyWeave //or Early Weave
-                    or OGCDStrategy.LateWeave //or Late Weave
-                    ? OGCDPriority.ForcedOGCD //use priority for forced oGCDs
-                    : OGCDPriority.BowShock); //otherwise, use intended priority
-
-            //Bloodfest execution
-            if (ShouldUseBloodfest(bfStrat, primaryTarget)) //if Bloodfest should be used
-                QueueOGCD(AID.Bloodfest, //queue Bloodfest
-                    ResolveTargetOverride(bf.Value) //Get target choice
-                    ?? primaryTarget, //if none, choose primary target
-                    bfStrat is BloodfestStrategy.Force //if strategy option is Force
-                    or BloodfestStrategy.ForceW //or Force weave
-                    or BloodfestStrategy.Force0 //or Force with 0 Blood
-                    or BloodfestStrategy.Force0W //or Force weave with 0 Blood
-                    ? OGCDPriority.ForcedOGCD //use priority for forced oGCDs
-                    : OGCDPriority.Bloodfest); //otherwise, use intended priority
-        }
-
-        //Continuation execution
-        if (canContinue && //if Continuation is available
-            (hasBlast || //and Ready To Blast buff is active
-            hasRaze || //or Ready To Raze buff is active
-            hasRip || //or Ready To Rip buff is active
-            hasTear || //or Ready To Tear buff is active
-            hasGouge)) //or Ready To Gouge buff is active
-            QueueOGCD(BestContinuation, //queue the best Continuation action
-                primaryTarget, //on the primary target
-                canWeaveLate || GCD is 0 //if inside second weave slot & still havent used
-                ? OGCDPriority.Continuation + 1201 //force the fuck out of this to prevent loss, any loss is very bad
-                : OGCDPriority.Continuation); //otherwise, use intended priority
-
-        #endregion
-
-        #region GCDs
-        if (!hold) //if not holding cooldowns
-        {
-            if (!conserve) //if not conserving Blood
+            if (!ModuleExtensions.HoldCooldowns(strategy)) //if holding cooldowns
             {
-                //Double Down execution
-                if (ShouldUseDoubleDown(ddStrat, primaryTarget)) //if Double Down should be used
-                    QueueGCD(AID.DoubleDown, //queue Double Down
-                        primaryTarget, //on the primary target
-                        ddStrat == GCDStrategy.Force || //or Force Double Down is selected on Double Down strategy
-                        Ammo == 1 //or only 1 Blood is available
-                        ? GCDPriority.ForcedGCD //use priority for forced GCDs
-                        : GCDPriority.DoubleDown); //otherwise, use intended priority
-                //Gnashing Fang execution
-                if (ShouldUseGnashingFang(gfStrat, primaryTarget)) //if Gnashing Fang should be used
-                    QueueGCD(AID.GnashingFang, //queue Gnashing Fang
-                        ResolveTargetOverride(gf.Value) //Get target choice
-                        ?? primaryTarget, //if none, choose primary target
-                        gfStrat == GnashingStrategy.ForceGnash //or Force Gnashing Fang is selected on Gnashing Fang strategy
-                        ? GCDPriority.ForcedGCD //use priority for forced GCDs
-                        : GCDPriority.GF1); //otherwise, use intended priority
-                //Burst Strike & Fated Circle execution
-                if (ShouldUseBlood(cartStrat, primaryTarget)) //if Blood should be used
+                if (ShouldUseSaltedEarth(seStrat, primaryTarget))
+                    QueueOGCD(BestSalt,
+                        Player,
+                        seStrat is OGCDStrategy.Force
+                        or OGCDStrategy.AnyWeave
+                        or OGCDStrategy.EarlyWeave
+                        or OGCDStrategy.LateWeave
+                        ? OGCDPriority.ForcedOGCD
+                        : OGCDPriority.SaltedEarth);
+
+                if (ShouldUseCarveOrDrain(cdStrat, primaryTarget))
                 {
-                    //Optimal targeting & execution for both gauge spenders
-                    if (cartStrat == Bloodtrategy.Automatic) //if Automatic Blood strategy is selected
-                        QueueGCD(BestCartSpender, //queue the best Blood spender
-                            ResolveTargetOverride(carts.Value) //Get target choice
-                            ?? primaryTarget, //if none, choose primary target
-                            nmCD < 1 && Ammo == 3 //if No Mercy is imminent and 3 Blood are available
-                            ? GCDPriority.ForcedGCD //use priority for forced GCDs
-                            : GCDPriority.Gauge); //otherwise, use priority for gauge actions
-                    //Burst Strike forced execution
-                    if (cartStrat is Bloodtrategy.OnlyBS or Bloodtrategy.ForceBS) //if Burst Strike Blood strategies are selected
-                        QueueGCD(AID.BurstStrike, //queue Burst Strike
-                            ResolveTargetOverride(carts.Value) //Get target choice
-                            ?? primaryTarget, //if none, choose primary target
-                            GCDPriority.Gauge); //with priority for gauge actions
-                    //Fated Circle forced execution
-                    if (cartStrat is Bloodtrategy.ForceFC or Bloodtrategy.OnlyFC) //if Fated Circle Blood strategies are selected
-                        QueueGCD(BestFatedCircle, //queue Fated Circle
-                            primaryTarget ?? Player, //on Self (no target needed) if Fated Circle, on target if Burst Strike
-                            GCDPriority.Gauge); //with priority for gauge actions
+                    if (cdStrat is CarveStrategy.Automatic)
+                        QueueOGCD(CarveOrDrain,
+                            TargetChoice(cd) ?? primaryTarget,
+                            cdStrat is CarveStrategy.ForceCarve
+                            or CarveStrategy.ForceDrain
+                            ? OGCDPriority.ForcedOGCD
+                            : OGCDPriority.CarveOrDrain);
+                    if (cdStrat is CarveStrategy.OnlyCarve)
+                        QueueOGCD(AID.CarveAndSpit,
+                            TargetChoice(cd) ?? primaryTarget,
+                            cdStrat is CarveStrategy.ForceCarve
+                            ? OGCDPriority.ForcedOGCD
+                            : OGCDPriority.CarveOrDrain);
+                    if (cdStrat is CarveStrategy.OnlyDrain)
+                        QueueOGCD(AID.AbyssalDrain,
+                            TargetChoice(cd) ?? primaryTarget,
+                            cdStrat is CarveStrategy.ForceDrain
+                            ? OGCDPriority.ForcedOGCD
+                            : OGCDPriority.CarveOrDrain);
+                }
+
+                if (ShouldUseDelirium(deliStrat, primaryTarget))
+                    QueueOGCD(BestDelirium,
+                        Player,
+                        deliStrat is OGCDStrategy.Force
+                        or OGCDStrategy.AnyWeave
+                        or OGCDStrategy.EarlyWeave
+                        or OGCDStrategy.LateWeave
+                        ? OGCDPriority.ForcedOGCD
+                        : OGCDPriority.Delirium);
+
+                if (ShouldUseLivingShadow(lsStrat, primaryTarget))
+                    QueueOGCD(AID.LivingShadow,
+                        Player,
+                        lsStrat is OGCDStrategy.Force
+                        or OGCDStrategy.AnyWeave
+                        or OGCDStrategy.EarlyWeave
+                        or OGCDStrategy.LateWeave
+                        ? OGCDPriority.ForcedOGCD
+                        : OGCDPriority.LivingShadow);
+
+                if (ShouldUseShadowbringer(sbStrat, primaryTarget))
+                    QueueOGCD(AID.Shadowbringer,
+                        TargetChoice(sb) ?? primaryTarget ?? BestAOERectTarget,
+                        sbStrat is OGCDStrategy.Force
+                        or OGCDStrategy.AnyWeave
+                        or OGCDStrategy.EarlyWeave
+                        or OGCDStrategy.LateWeave
+                        ? OGCDPriority.ForcedOGCD
+                        : OGCDPriority.Shadowbringer);
+
+                if (ShouldUseDisesteem(deStrat, primaryTarget))
+                    QueueGCD(AID.Disesteem,
+                        TargetChoice(de) ?? primaryTarget ?? BestAOERectTarget,
+                        deStrat is GCDStrategy.Force
+                        ? GCDPriority.ForcedGCD
+                        : CombatTimer < 30
+                        ? GCDPriority.Opener
+                        : GCDPriority.Disesteem);
+            }
+            if (!ModuleExtensions.HoldGauge(strategy)) //if holding gauge
+            {
+                if (ShouldUseBlood(bloodStrat, primaryTarget))
+                {
+                    if (bloodStrat is BloodStrategy.Automatic)
+                        QueueGCD(BestBloodSpender, TargetChoice(blood) ?? primaryTarget, bloodStrat is BloodStrategy.ForceBloodspiller or BloodStrategy.ForceQuietus ? GCDPriority.ForcedGCD : RiskingBlood ? GCDPriority.NeedBlood : GCDPriority.Blood);
+                    if (bloodStrat is BloodStrategy.OnlyBloodspiller)
+                        QueueGCD(AID.Bloodspiller, TargetChoice(blood) ?? primaryTarget, bloodStrat is BloodStrategy.ForceBloodspiller ? GCDPriority.ForcedGCD : RiskingBlood ? GCDPriority.NeedBlood : GCDPriority.Blood);
+                    if (bloodStrat is BloodStrategy.OnlyQuietus)
+                        QueueGCD(AID.Quietus, Unlocked(AID.Quietus) ? Player : TargetChoice(blood) ?? primaryTarget, bloodStrat is BloodStrategy.ForceQuietus ? GCDPriority.ForcedGCD : RiskingBlood ? GCDPriority.NeedBlood : GCDPriority.Blood);
                 }
             }
-
-            //Sonic Break execution
-            if (ShouldUseSonicBreak(sbStrat, primaryTarget)) //if Sonic Break should be used
-                QueueGCD(AID.SonicBreak, //queue Sonic Break
-                    ResolveTargetOverride(sb.Value) //Get target choice
-                    ?? primaryTarget, //if none, choose primary target
-                    sbStrat is SonicBreakStrategy.Force //if strategy option is Force
-                    or SonicBreakStrategy.Early //or Early
-                    ? GCDPriority.ForcedGCD //use priority for forced GCDs
-                    : GCDPriority.SonicBreak); //otherwise, use intended priority
-            //Reign of Beasts execution
-            if (ShouldUseReign(reignStrat, primaryTarget)) //if Reign of Beasts should be used
-                QueueGCD(AID.ReignOfBeasts, //queue Reign of Beasts
-                    ResolveTargetOverride(reign.Value) //Get target choice
-                    ?? primaryTarget, //if none, choose primary target
-                    reignStrat == ReignStrategy.ForceReign //if Force Reign of Beasts is selected on Reign of Beasts strategy
-                    ? GCDPriority.ForcedGCD //use priority for forced GCDs
-                    : GCDPriority.Reign); //otherwise, use intended priority
+            if (ShouldUseMP(mpStrat, primaryTarget))
+            {
+                if (mpStrat is MPStrategy.Auto9k
+                    or MPStrategy.Auto6k
+                    or MPStrategy.Auto3k
+                    or MPStrategy.AutoRefresh)
+                    QueueOGCD(BestMPSpender, TargetChoice(mp) ?? primaryTarget ?? BestAOERectTarget, RiskingMP ? OGCDPriority.ForcedOGCD : OGCDPriority.MP);
+                if (mpStrat is MPStrategy.Edge9k
+                    or MPStrategy.Edge6k
+                    or MPStrategy.Edge3k
+                    or MPStrategy.EdgeRefresh)
+                    QueueOGCD(BestEdge, TargetChoice(mp) ?? primaryTarget, RiskingMP ? OGCDPriority.ForcedOGCD : OGCDPriority.MP);
+                if (mpStrat is MPStrategy.Flood9k
+                    or MPStrategy.Flood6k
+                    or MPStrategy.Flood3k
+                    or MPStrategy.FloodRefresh)
+                    QueueOGCD(BestFlood, TargetChoice(mp) ?? primaryTarget ?? BestAOERectTarget, RiskingMP ? OGCDPriority.ForcedOGCD : OGCDPriority.MP);
+            }
         }
 
-        //Gnashing Fang combo execution
-        if (GunComboStep == 1) //if just used Gnashing Fang
-            QueueGCD(AID.SavageClaw, //queue Savage Claw
-                primaryTarget, //on the primary target
-                gfStrat == GnashingStrategy.ForceClaw //if Force Savage Claw is selected on Gnashing Fang strategy
-                ? GCDPriority.ForcedGCD //use priority for forced GCDs 
-                : GCDPriority.GF23); //otherwise, use priority for Gnashing Fang combo steps
-        if (GunComboStep == 2) //if just used Savage Claw
-            QueueGCD(AID.WickedTalon, //queue Wicked Talon
-                primaryTarget, //on the primary target
-                gfStrat == GnashingStrategy.ForceTalon //if Force Wicked Talon is selected on Gnashing Fang strategy
-                ? GCDPriority.ForcedGCD //use priority for forced GCDs
-                : GCDPriority.GF23); //otherwise, use priority for Gnashing Fang combo steps
-        //Reign of Beasts combo execution
-        if (GunComboStep == 3) //if just used Wicked Talon
-            QueueGCD(AID.NobleBlood, //queue Noble Blood
-                primaryTarget, //on the primary target
-                reignStrat == ReignStrategy.ForceNoble //if Force Noble Blood is selected on Reign of Beasts strategy
-                ? GCDPriority.ForcedGCD //use priority for forced GCDs
-                : GCDPriority.Reign); //otherwise, use priority for Reign of Beasts combo steps
-        if (GunComboStep == 4) //if just used Noble Blood
-            QueueGCD(AID.LionHeart, //queue Lion Heart
-                primaryTarget, //on the primary target
-                reignStrat == ReignStrategy.ForceLion //if Force Lion Heart is selected on Reign of Beasts strategy
-                ? GCDPriority.ForcedGCD //use priority for forced GCDs
-                : GCDPriority.Reign); //otherwise, use priority for Reign of Beasts combo steps
-        //Unmend execution
-        if (ShouldUseUnmend(primaryTarget, lsStrat)) //if Unmend should be used
-            QueueGCD(AID.Unmend, //queue Unmend
-                ResolveTargetOverride(ls.Value) //Get target choice
-                ?? primaryTarget, //if none, choose primary target
-                lsStrat is UnmendStrategy.Force //if strategy option is Force
-                or UnmendStrategy.Allow //or Allow
-                ? GCDPriority.ForcedGCD //use priority for forced GCDs
-                : GCDPriority.Combo123); //otherwise, use priority for standard combo actions
-        //Potion execution
-        if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>())) //if Potion should be used
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, //queue the potion
-                Player, //on Self (no target needed)
-                ActionQueue.Priority.VeryHigh //with very high priority
-                + (int)OGCDPriority.Potion, 0, GCD - 0.9f); //and the specified priority
-        #endregion
+        if (ShouldUseSaltAndDarkness(strategy.Option(Track.SaltAndDarkness).As<OGCDStrategy>(), primaryTarget))
+            QueueOGCD(AID.SaltAndDarkness, Player, OGCDPriority.SaltedEarth);
 
+        if (ShouldUseDeliriumCombo(dcomboStrat, primaryTarget))
+        {
+            if (dcomboStrat is DeliriumComboStrategy.Automatic)
+                QueueGCD(DeliriumCombo, TargetChoice(dcombo) ?? primaryTarget, GCDPriority.DeliriumCombo);
+            if (dcomboStrat is DeliriumComboStrategy.ScarletDelirum)
+                QueueGCD(AID.ScarletDelirium, TargetChoice(dcombo) ?? primaryTarget, GCDPriority.ForcedGCD);
+            if (dcomboStrat is DeliriumComboStrategy.Comeuppance)
+                QueueGCD(AID.Comeuppance, TargetChoice(dcombo) ?? primaryTarget, GCDPriority.ForcedGCD);
+            if (dcomboStrat is DeliriumComboStrategy.Torcleaver)
+                QueueGCD(AID.Torcleaver, TargetChoice(dcombo) ?? primaryTarget, GCDPriority.ForcedGCD);
+            if (dcomboStrat is DeliriumComboStrategy.Impalement)
+                QueueGCD(AID.Impalement, Player, GCDPriority.ForcedGCD);
+        }
+
+        if (ShouldUseUnmend(unmendStrat, primaryTarget))
+            QueueGCD(AID.Unmend, TargetChoice(unmend) ?? primaryTarget, GCDPriority.Standard);
+        if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.ForcedOGCD, 0, GCD - 0.9f);
         #endregion
     }
-
 
     #region Rotation Helpers
     private AID NextBestRotation() => ComboLastMove switch
     {
         //ST
-        AID.Souleater => ShouldUseAOE ? AOEwithoutOvercap() : STwithoutOvercap(),
-        AID.SyphonStrike => STwithoutOvercap(),
-        AID.HardSlash => STwithoutOvercap(),
+        AID.Souleater => ShouldUseAOE ? AOE() : ST(),
+        AID.SyphonStrike => ST(),
+        AID.HardSlash => ST(),
         //AOE
-        AID.StalwartSoul => ShouldUseAOE ? AOEwithoutOvercap() : STwithoutOvercap(),
-        AID.Unleash => AOEwithoutOvercap(),
-        _ => ShouldUseAOE ? AOEwithoutOvercap() : STwithoutOvercap(),
+        AID.StalwartSoul => ShouldUseAOE ? AOE() : ST(),
+        AID.Unleash => AOE(),
+        _ => ShouldUseAOE ? AOE() : ST(),
     };
-
-    #region Single-Target Helpers
-    private AID STwithOvercap() => ComboLastMove switch
-    {
-        AID.SyphonStrike => RiskingBlood ? BestBloodSpender : AID.Souleater,
-        AID.HardSlash => AID.SyphonStrike,
-        _ => AID.HardSlash,
-    };
-    private AID STwithoutOvercap() => ComboLastMove switch
+    private AID ST() => ComboLastMove switch
     {
         AID.SyphonStrike => AID.Souleater,
         AID.HardSlash => AID.SyphonStrike,
         _ => AID.HardSlash,
     };
-    #endregion
-
-    #region AOE Helpers
-    private AID AOEwithOvercap() => ComboLastMove switch
-    {
-        AID.Unleash => RiskingBlood ? BestBloodSpender : AID.StalwartSoul,
-        _ => AID.Unleash,
-    };
-    private AID AOEwithoutOvercap() => ComboLastMove switch
+    private AID AOE() => ComboLastMove switch
     {
         AID.Unleash => AID.StalwartSoul,
         _ => AID.Unleash,
     };
     #endregion
 
-    #endregion
-
     #region Cooldown Helpers
-    //No Mercy full strategy & conditions
-    private bool ShouldUseNoMercy(NoMercyStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseMP(MPStrategy strategy, Actor? target) => strategy switch
     {
-        NoMercyStrategy.Automatic =>
-            //Standard conditions
-            Player.InCombat && //In combat
-            target != null && //Target exists
-            canNM && //No Mercy is available
-            ((Unlocked(AID.DoubleDown) && //Double Down is unlocked, indicating Lv90 or above
-            (inOdd && Ammo >= 2) || //In Odd Window & conditions are met
-            (!inOdd && Ammo < 3)) || //In Even Window & conditions are met
-            (!Unlocked(AID.DoubleDown) && GCD < 0.9f && //Double Down is not unlocked, so we late weave it
-            ((Unlocked(AID.Bloodfest) && //but Bloodfest is, indicating Lv80-89
-            Ammo >= 1) || //Ammo is 1 or more
-            (!Unlocked(AID.Bloodfest) && canGF) || //Bloodfest is not unlocked but Gnashing Fang is, indicating Lv60-79
-            !Unlocked(AID.GnashingFang)))), //Gnashing Fang is not unlocked, indicating Lv59 and below
-        NoMercyStrategy.Force => canNM, //Force No Mercy, regardless of correct weaving
-        NoMercyStrategy.ForceW => canNM && canWeaveIn, //Force No Mercy into any weave slot 
-        NoMercyStrategy.ForceQW => canNM && quarterWeave, //Force No Mercy into last possible second weave slot
-        NoMercyStrategy.Force1 => canNM && Ammo == 1, //Force No Mercy if ready and 1 Blood, regardless of weaving
-        NoMercyStrategy.Force1W => canNM && canWeaveIn && Ammo == 1, //Force No Mercy into any weave slot if ready and 1 Blood
-        NoMercyStrategy.Force1QW => canNM && quarterWeave && Ammo == 1, //Force No Mercy into last possible second weave slot if ready and 1 Blood
-        NoMercyStrategy.Force2 => canNM && Ammo == 2, //Force No Mercy if ready and 2 Blood, regardless of weaving
-        NoMercyStrategy.Force2W => canNM && canWeaveIn && Ammo == 2, //Force No Mercy into any weave slot if ready and 2 Blood
-        NoMercyStrategy.Force2QW => canNM && quarterWeave && Ammo == 2, //Force No Mercy into last possible second weave slot if ready and 2 Blood
-        NoMercyStrategy.Force3 => canNM && Ammo == 3, //Force No Mercy if ready and 3 Blood, regardless of weaving
-        NoMercyStrategy.Force3W => canNM && canWeaveIn && Ammo == 3, //Force No Mercy into any weave slot if ready and 3 Blood
-        NoMercyStrategy.Force3QW => canNM && quarterWeave && Ammo == 3, //Force No Mercy into last possible second weave slot if ready and 3 Blood
-        NoMercyStrategy.Delay => false, //Delay No Mercy 
+        MPStrategy.Auto3k => CanWeaveIn && In10y(target) && MP >= 3000,
+        MPStrategy.Auto6k => CanWeaveIn && In10y(target) && MP >= 6000,
+        MPStrategy.Auto9k => CanWeaveIn && In10y(target) && MP >= 9000,
+        MPStrategy.AutoRefresh => CanWeaveIn && In10y(target) && RiskingMP,
+        MPStrategy.Edge3k => CanWeaveIn && In3y(target) && MP >= 3000,
+        MPStrategy.Edge6k => CanWeaveIn && In3y(target) && MP >= 6000,
+        MPStrategy.Edge9k => CanWeaveIn && In3y(target) && MP >= 9000,
+        MPStrategy.EdgeRefresh => CanWeaveIn && In3y(target) && RiskingMP,
+        MPStrategy.Flood3k => CanWeaveIn && In10y(target) && MP >= 3000,
+        MPStrategy.Flood6k => CanWeaveIn && In10y(target) && MP >= 6000,
+        MPStrategy.Flood9k => CanWeaveIn && In10y(target) && MP >= 9000,
+        MPStrategy.FloodRefresh => CanWeaveIn && In10y(target) && RiskingMP,
+        MPStrategy.Delay => false,
         _ => false
     };
-
-    //Bloodfest full strategy & conditions
-    private bool ShouldUseBloodfest(BloodfestStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseBlood(BloodStrategy strategy, Actor? target) => strategy switch
     {
-        BloodfestStrategy.Automatic =>
-            Player.InCombat && //In combat
-            target != null && //Target exists
-            canBF && Ammo == 0, //Bloodfest is available and empty on Blood
-        BloodfestStrategy.Force => canBF, //Force Bloodfest, regardless of correct weaving
-        BloodfestStrategy.ForceW => canBF && canWeaveIn, //Force Bloodfest into any weave slot
-        BloodfestStrategy.Force0 => canBF && Ammo == 0, //Force Bloodfest if ready and 0 Blood, regardless of weaving
-        BloodfestStrategy.Force0W => canBF && Ammo == 0 && canWeaveIn, //Force Bloodfest into any weave slot if ready and 0 Blood
-        BloodfestStrategy.Delay => false, //Delay Bloodfest
+        BloodStrategy.Automatic => ShouldSpendBlood(BloodStrategy.Automatic, target),
+        BloodStrategy.OnlyBloodspiller => ShouldSpendBlood(BloodStrategy.Automatic, target),
+        BloodStrategy.OnlyQuietus => ShouldSpendBlood(BloodStrategy.Automatic, target),
+        BloodStrategy.ForceBloodspiller => Unlocked(AID.Bloodspiller) && (Blood >= 50 || Delirium.IsActive),
+        BloodStrategy.ForceQuietus => Unlocked(AID.Quietus) && (Blood >= 50 || Delirium.IsActive),
+        BloodStrategy.Conserve => false,
         _ => false
     };
-
-    //Zone full strategy & conditions
-    private bool ShouldUseZone(OGCDStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldSpendBlood(BloodStrategy strategy, Actor? target) => strategy switch
+    {
+        BloodStrategy.Automatic =>
+            Player.InCombat &&
+            target != null &&
+            Darkside.IsActive &&
+            Unlocked(AID.Bloodspiller) &&
+            Blood >= 50 &&
+            (RiskingBlood || Delirium.IsActive),
+        _ => false
+    };
+    private bool ShouldUseSaltedEarth(OGCDStrategy strategy, Actor? target) => strategy switch
     {
         OGCDStrategy.Automatic =>
-            Player.InCombat && //In combat
-            In3y(target) && //Target in melee range
-            canZone && //Zone is available
-            nmCD is < 57.55f and > 17, //No Mercy is active & not just used within 1GCD or CD is greater than 17s
-        OGCDStrategy.Force => canZone, //Force Zone if available
-        OGCDStrategy.AnyWeave => canZone && canWeaveIn, //Force Zone into any weave slot
-        OGCDStrategy.EarlyWeave => canZone && canWeaveEarly, //Force weave Zone early
-        OGCDStrategy.LateWeave => canZone && canWeaveLate, //Force weave Zone late
+            Player.InCombat &&
+            target != null &&
+            CanWeaveIn &&
+            In3y(target) &&
+            Darkside.IsActive &&
+            SaltedEarth.IsReady,
+        OGCDStrategy.Force => SaltedEarth.IsReady,
+        OGCDStrategy.AnyWeave => SaltedEarth.IsReady && CanWeaveIn,
+        OGCDStrategy.EarlyWeave => SaltedEarth.IsReady && CanEarlyWeaveIn,
+        OGCDStrategy.LateWeave => SaltedEarth.IsReady && CanLateWeaveIn,
         OGCDStrategy.Delay => false,
         _ => false
     };
-
-    //Bow Shock full strategy & conditions
-    private bool ShouldUseBowShock(OGCDStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseSaltAndDarkness(OGCDStrategy strategy, Actor? target) => strategy switch
     {
         OGCDStrategy.Automatic =>
-            Player.InCombat && //In combat
-            ActionReady(AID.BowShock) && //Bow Shock is available
-            In5y(target) && //Target in range
-            nmCD is < 57.55f and >= 40, //No Mercy is active, but not just used within 1GCD
-        OGCDStrategy.Force => canBow, //Force Bow Shock if available, regardless of weaving
-        OGCDStrategy.AnyWeave => canBow && canWeaveIn, //Force Bow Shock into any weave slot
-        OGCDStrategy.EarlyWeave => canBow && canWeaveEarly, //Force weave Bow Shock early
-        OGCDStrategy.LateWeave => canBow && canWeaveLate, //Force weave Bow Shock late
+            Player.InCombat &&
+            target != null &&
+            CanWeaveIn &&
+            TotalCD(AID.SaltAndDarkness) < 0.6f &&
+            SaltedEarth.IsActive,
+        OGCDStrategy.Force => SaltedEarth.IsActive,
+        OGCDStrategy.AnyWeave => SaltedEarth.IsActive && CanWeaveIn,
+        OGCDStrategy.EarlyWeave => SaltedEarth.IsActive && CanEarlyWeaveIn,
+        OGCDStrategy.LateWeave => SaltedEarth.IsActive && CanLateWeaveIn,
         OGCDStrategy.Delay => false,
         _ => false
     };
-
-    //Gauge full strategy & conditions
-    private bool ShouldUseBlood(Bloodtrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseCarveOrDrain(CarveStrategy strategy, Actor? target) => strategy switch
     {
-        Bloodtrategy.Automatic =>
-            ShouldUseFC //enough targets for optimal use of Fated Circle
-            ? ShouldUseFatedCircle(Bloodtrategy.Automatic, target) //use Fated Circle
-            : ShouldUseBurstStrike(Bloodtrategy.Automatic, target), //otherwise, use Burst Strike
-        Bloodtrategy.OnlyBS => ShouldUseBurstStrike(Bloodtrategy.Automatic, target), //Optimally use Burst Strike
-        Bloodtrategy.OnlyFC => ShouldUseFatedCircle(Bloodtrategy.Automatic, target), //Optimally use Fated Circle
-        Bloodtrategy.ForceBS => canBS, //Force Burst Strike
-        Bloodtrategy.ForceFC => canFC, //Force Fated Circle
-        Bloodtrategy.Conserve => false, //Conserve Blood
+        CarveStrategy.Automatic => ShouldSpendCarveOrDrain(CarveStrategy.Automatic, target),
+        CarveStrategy.OnlyCarve => ShouldSpendCarveOrDrain(CarveStrategy.Automatic, target),
+        CarveStrategy.OnlyDrain => ShouldSpendCarveOrDrain(CarveStrategy.Automatic, target),
+        CarveStrategy.ForceCarve => CarveAndSpit.IsReady,
+        CarveStrategy.ForceDrain => AbyssalDrain.IsReady,
+        CarveStrategy.Delay => false,
         _ => false
     };
-
-    //Double Down full strategy & conditions
-    private bool ShouldUseDoubleDown(GCDStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldSpendCarveOrDrain(CarveStrategy strategy, Actor? target) => strategy switch
+    {
+        CarveStrategy.Automatic =>
+            Player.InCombat &&
+            target != null &&
+            CanWeaveIn &&
+            In3y(target) &&
+            Darkside.IsActive &&
+            AbyssalDrain.IsReady,
+        _ => false
+    };
+    private bool ShouldUseDelirium(OGCDStrategy strategy, Actor? target) => strategy switch
+    {
+        OGCDStrategy.Automatic =>
+            Player.InCombat &&
+            target != null &&
+            CanWeaveIn &&
+            Darkside.IsActive &&
+            Blood <= 70 &&
+            Delirium.IsReady,
+        OGCDStrategy.Force => Delirium.IsReady,
+        OGCDStrategy.AnyWeave => Delirium.IsReady && CanWeaveIn,
+        OGCDStrategy.EarlyWeave => Delirium.IsReady && CanEarlyWeaveIn,
+        OGCDStrategy.LateWeave => Delirium.IsReady && CanLateWeaveIn,
+        OGCDStrategy.Delay => false,
+        _ => false
+    };
+    private bool ShouldUseLivingShadow(OGCDStrategy strategy, Actor? target) => strategy switch
+    {
+        OGCDStrategy.Automatic =>
+            Player.InCombat &&
+            target != null &&
+            CanWeaveIn &&
+            Darkside.IsActive &&
+            LivingShadow.IsReady,
+        OGCDStrategy.Force => LivingShadow.IsReady,
+        OGCDStrategy.AnyWeave => LivingShadow.IsReady && CanWeaveIn,
+        OGCDStrategy.EarlyWeave => LivingShadow.IsReady && CanEarlyWeaveIn,
+        OGCDStrategy.LateWeave => LivingShadow.IsReady && CanLateWeaveIn,
+        OGCDStrategy.Delay => false,
+        _ => false
+    };
+    private bool ShouldUseShadowbringer(OGCDStrategy strategy, Actor? target) => strategy switch
+    {
+        OGCDStrategy.Automatic =>
+            Player.InCombat &&
+            In10y(target) &&
+            CanWeaveIn &&
+            Darkside.IsActive &&
+            Shadowbringer.IsReady &&
+            LivingShadow.IsActive &&
+            Delirium.IsActive,
+        OGCDStrategy.Force => Shadowbringer.IsReady,
+        OGCDStrategy.AnyWeave => Shadowbringer.IsReady && CanWeaveIn,
+        OGCDStrategy.EarlyWeave => Shadowbringer.IsReady && CanEarlyWeaveIn,
+        OGCDStrategy.LateWeave => Shadowbringer.IsReady && CanLateWeaveIn,
+        OGCDStrategy.Delay => false,
+        _ => false
+    };
+    private bool ShouldUseDeliriumCombo(DeliriumComboStrategy strategy, Actor? target) => strategy switch
+    {
+        DeliriumComboStrategy.Automatic
+            => Player.InCombat &&
+            target != null &&
+            In3y(target) &&
+            Unlocked(AID.ScarletDelirium) &&
+            Delirium.Step is (0 or 1 or 2) &&
+            Delirium.IsActive,
+        DeliriumComboStrategy.ScarletDelirum => Unlocked(AID.ScarletDelirium) && Delirium.Step is 0 && Delirium.IsActive,
+        DeliriumComboStrategy.Comeuppance => Unlocked(AID.Comeuppance) && Delirium.Step is 1 && Delirium.IsActive,
+        DeliriumComboStrategy.Torcleaver => Unlocked(AID.Torcleaver) && Delirium.Step is 2 && Delirium.IsActive,
+        DeliriumComboStrategy.Impalement => Unlocked(AID.Impalement) && Delirium.Step is 0 && Delirium.IsActive,
+        DeliriumComboStrategy.Delay => false,
+        _ => false
+    };
+    private bool ShouldUseDisesteem(GCDStrategy strategy, Actor? target) => strategy switch
     {
         GCDStrategy.Automatic =>
-            Player.InCombat && //In combat
-            target != null && //Target exists
-            In5y(target) && //Target in range
-            canDD && //Double Down is available
-            hasNM, //No Mercy is active
-        GCDStrategy.Force => canDD, //Force Double Down if available
+            Player.InCombat &&
+            target != null &&
+            In10y(target) &&
+            Darkside.IsActive &&
+            Disesteem.IsReady,
+        GCDStrategy.Force => Disesteem.IsReady,
         GCDStrategy.Delay => false,
         _ => false
     };
-
-    //Gnashing Fang & combo chain full strategy & conditions
-    private bool ShouldUseGnashingFang(GnashingStrategy strategy, Actor? target) => strategy switch
-    {
-        GnashingStrategy.Automatic =>
-            Player.InCombat && //In combat
-            target != null && //Target exists
-            In3y(target) && //Target in melee range
-            canGF && //Gnashing Fang is available
-            (nmLeft > 0 || hasNM || //No Mercy is active
-            nmCD is < 35 and > 17), //or greater than 17s on No Mercy CD
-        GnashingStrategy.ForceGnash => canGF, //Gnashing Fang is available
-        GnashingStrategy.ForceClaw => Player.InCombat && GunComboStep == 1, //Force Savage Claw if available
-        GnashingStrategy.ForceTalon => Player.InCombat && GunComboStep == 2, //Force Wicked Talon if available
-        GnashingStrategy.Delay => false,
-        _ => false
-    };
-
-    //Burst Strike & Fated Circle full strategy & conditions
-    private bool ShouldUseBurstStrike(Bloodtrategy strategy, Actor? target) => strategy switch
-    {
-        Bloodtrategy.Automatic =>
-            Player.InCombat && //In combat
-            target != null && //Target exists
-            In3y(target) && //Target in melee range
-            canBS && //Burst Strike is available
-            (hasNM || //No Mercy is active
-            (!(bfCD is <= 90 and >= 30) &&
-            nmCD < 1 &&
-            Ammo == 3)) || //No Mercy is almost ready and full carts
-            Ammo == MaxBlood && ComboLastMove is AID.SyphonStrike or AID.Unleash, //Full carts and last move was Brutal Shell or Demon Slice
-        _ => false
-    };
-
-    //Fated Circle full strategy & conditions
-    private bool ShouldUseFatedCircle(Bloodtrategy strategy, Actor? target) => strategy switch
-    {
-        Bloodtrategy.Automatic =>
-            Player.InCombat && //In combat
-            target != null && //Target exists
-            In5y(target) && //Target in range
-            canFC && //Fated Circle is available
-            (hasNM || //No Mercy is active
-            (!(bfCD is <= 90 and >= 30) &&
-            nmCD < 1 &&
-            Ammo == 3)) || //No Mercy is almost ready and full carts
-            Ammo == MaxBlood && ComboLastMove is AID.SyphonStrike or AID.Unleash, //Full carts and last move was Brutal Shell or Demon Slice
-        _ => false
-    };
-
-    //Sonic Break full strategy & conditions
-    private bool ShouldUseSonicBreak(SonicBreakStrategy strategy, Actor? target) => strategy switch
-    {
-        SonicBreakStrategy.Automatic =>
-            Player.InCombat && //In combat
-            In3y(target) && //Target in melee range
-            canBreak, //Sonic Break is available
-        SonicBreakStrategy.Force => canBreak, //Force Sonic Break
-        SonicBreakStrategy.Early => nmCD > 55 || hasBreak, //Use Sonic Break early
-        SonicBreakStrategy.Late => nmLeft <= GCDLength, //Use Sonic Break late
-        SonicBreakStrategy.Delay => false,
-        _ => false
-    };
-
-    //Reign of Beasts & combo chain full strategy & conditions
-    private bool ShouldUseReign(ReignStrategy strategy, Actor? target) => strategy switch
-    {
-        ReignStrategy.Automatic =>
-            Player.InCombat && //In combat
-            target != null && //Target exists
-            canReign && //Reign of Beasts is available
-            hasNM && //No Mercy is active
-            GunComboStep == 0, //not in GF combo
-        ReignStrategy.ForceReign => canReign, //Force Reign of Beasts
-        ReignStrategy.ForceNoble => Player.InCombat && GunComboStep == 3, //Force Noble Blood
-        ReignStrategy.ForceLion => Player.InCombat && GunComboStep == 4, //Force Lion Heart
-        ReignStrategy.Delay => false,
-        _ => false
-    };
-
-    //Unmend full strategy & conditions
-    private bool ShouldUseUnmend(Actor? target, UnmendStrategy strategy) => strategy switch
+    private bool ShouldUseUnmend(UnmendStrategy strategy, Actor? target) => strategy switch
     {
         UnmendStrategy.OpenerFar =>
             (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && //Prepull or already in combat
@@ -864,14 +654,10 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         UnmendStrategy.Forbid => false, //Do not use Unmend
         _ => false
     };
-
-    //Potion full strategy & conditions
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
-        PotionStrategy.AlignWithRaidBuffs => //Use potion when buffs are imminent
-            nmCD < 5 && //No Mercy is almost ready
-            bfCD < 15, //Bloodfest is almost ready
-        PotionStrategy.Immediate => true, //Use potion immediately
+        PotionStrategy.AlignWithRaidBuffs => LivingShadow.CD < 5,
+        PotionStrategy.Immediate => true,
         _ => false
     };
     #endregion

@@ -1,4 +1,6 @@
-﻿namespace BossMod.Autorotation.akechi;
+﻿using static BossMod.Autorotation.akechi.AkechiDRG;
+
+namespace BossMod.Autorotation.akechi;
 
 public enum SharedTrack { AOE, Hold, Count }
 public enum AOEStrategy { Automatic, ForceST, ForceAOE }
@@ -109,13 +111,13 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="duration"> </param>
     /// <param name="extraGCDs"> How many extra GCDs the user can fit in.</param>
     /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
-    public bool CanFitSkSGCD(float duration, int extraGCDs = 0) => GCD + SkSGCDLength * extraGCDs < duration;
+    protected bool CanFitSkSGCD(float duration, int extraGCDs = 0) => GCD + SkSGCDLength * extraGCDs < duration;
 
     /// <summary>Checks if we can fit in a <em>spell-speed based</em> GCD.</summary>
     /// <param name="duration"> </param>
     /// <param name="extraGCDs"> How many extra GCDs the user can fit in.</param>
     /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
-    public bool CanFitSpSGCD(float duration, int extraGCDs = 0) => GCD + SpSGCDLength * extraGCDs < duration;
+    protected bool CanFitSpSGCD(float duration, int extraGCDs = 0) => GCD + SpSGCDLength * extraGCDs < duration;
 
     /// <summary><para>Checks if player is available to weave in any abilities.</para>
     /// <para>NOTE: This function is only recommended for jobs with <em>Skill-Speed</em>. <em>Spell-Speed</em> users are <em>unaffected</em> by this.</para></summary>
@@ -124,7 +126,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="extraGCDs"> How many extra GCDs the user can fit in.</param>
     /// <param name="extraFixedDelay"> How much extra delay the user can add in, in seconds.</param>
     /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
-    public bool CanWeave(float cooldown, float actionLock, int extraGCDs = 0, float extraFixedDelay = 0)
+    protected bool CanWeave(float cooldown, float actionLock, int extraGCDs = 0, float extraFixedDelay = 0)
         => MathF.Max(cooldown, World.Client.AnimationLock) + actionLock + AnimationLockDelay <= GCD + SkSGCDLength * extraGCDs + extraFixedDelay;
 
     /// <summary><para>Checks if player is available to weave in any spells.</para>
@@ -134,7 +136,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="extraGCDs"> How many extra GCDs the user can fit in.</param>
     /// <param name="extraFixedDelay"> How much extra delay the user can add in, in seconds.</param>
     /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
-    public bool CanSpellWeave(float cooldown, float actionLock, int extraGCDs = 0, float extraFixedDelay = 0)
+    protected bool CanSpellWeave(float cooldown, float actionLock, int extraGCDs = 0, float extraFixedDelay = 0)
         => MathF.Max(cooldown, World.Client.AnimationLock) + actionLock + AnimationLockDelay <= GCD + SpSGCDLength * extraGCDs + extraFixedDelay;
 
     /// <summary><para>Checks if player is available to weave in any abilities.</para>
@@ -144,7 +146,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="extraGCDs"> How many extra GCDs the user can fit in.</param>
     /// <param name="extraFixedDelay"> How much extra delay the user can add in, in seconds.</param>
     /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
-    public bool CanWeave(AID aid, int extraGCDs = 0, float extraFixedDelay = 0)
+    protected bool CanWeave(AID aid, int extraGCDs = 0, float extraFixedDelay = 0)
     {
         if (!Unlocked(aid))
             return false;
@@ -154,6 +156,27 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
             return CanSpellWeave(ChargeCD(aid), res.InstantAnimLock, extraGCDs, extraFixedDelay);
         return SpS > 100 && CanWeave(ChargeCD(aid), res.InstantAnimLock, extraGCDs, extraFixedDelay);
     }
+
+    /// <summary>Checks if user is in pre-pull stage; useful for <em>First GCD</em> openings.</summary>
+    /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
+    protected bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f;
+
+    /// <summary>Checks if user can <em>Weave in</em> any abilities.</summary>
+    /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
+    protected bool CanWeaveIn => GCD is <= 2.49f and >= 0.01f;
+
+    /// <summary>Checks if user can <em>Early Weave in</em> any abilities.</summary>
+    /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
+    protected bool CanEarlyWeaveIn => GCD is <= 2.49f and >= 1.26f;
+
+    /// <summary>Checks if user can <em>Late Weave in</em> any abilities.</summary>
+    /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
+    protected bool CanLateWeaveIn => GCD is <= 1.25f and >= 0.01f;
+
+    /// <summary>Checks if user can <em>Quarter Weave in</em> any abilities.</summary>
+    /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
+    protected bool CanQuarterWeaveIn => GCD is < 0.9f and >= 0.01f;
+
     #endregion
 
     #region Cooldown
@@ -256,12 +279,12 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>A quick and easy helper for retrieving the <em>HP</em> of the player.
     /// <para><em>Example Given:</em> "<em>HP == 4200</em>"</para></summary>
     /// <returns>- Player's <em>current HP</em></returns>
-    protected uint HP;
+    protected uint HP => Player.HPMP.CurHP;
 
     /// <summary>A quick and easy helper for retrieving the <em>MP</em> of the player.
     /// <para><em>Example Given:</em> "<em>MP == 6900</em>"</para></summary>
     /// <returns>- Player's <em>current MP</em></returns>
-    protected uint MP;
+    protected uint MP => Player.HPMP.CurMP;
 
     /// <summary> Retrieves the amount of specified status effect's stacks remaining on any target.
     /// <para><em>NOTE:</em> The effect can be owned by anyone.</para>
@@ -338,7 +361,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// </summary>
     public Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value); //Resolves the target choice based on the strategy
 
-    /// <summary>Targeting function for indicating when or not <em>AOE Circle</em> abilities should be used.</summary>
+    /// <summary>Targeting function for indicating when or not <em>AOE Circle</em> abilities should be used based on targets nearby.</summary>
     /// <param name="range">The range of the <em>AOE Circle</em> ability, or radius from center of Player; this should be adjusted accordingly to user's module specific to job's abilities.</param>
     /// <returns>- A tuple with the following booleans:
     /// <para><b>-- OnTwoOrMore</b>: A boolean indicating if there are two (2) or more targets inside Player's <em>AOE Circle</em>.</para>
@@ -355,7 +378,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         return (OnTwoOrMore, OnThreeOrMore, OnFourOrMore, OnFiveOrMore);
     }
 
-    /// <summary>Targeting function for indicating when or not <em>AOE Cone</em> abilities should be used.</summary>
+    /// <summary>Targeting function for indicating when or not <em>AOE Cone</em> abilities should be used based on targets nearby.</summary>
     /// <param name="primary">The <em>Primary Target</em> for the ability that the user is specifying; ability tracked <em>must</em> be inside the module's <em>Track</em> enum for target selection.</param>
     /// <param name="range">The range of the <em>AOE Cone</em> ability, or radius from center of Player; this should be adjusted accordingly to user's module specific to job's abilities.</param>
     /// <returns>- A tuple with the following booleans:
@@ -373,21 +396,29 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         return (OnTwoOrMore, OnThreeOrMore, OnFourOrMore, OnFiveOrMore);
     }
 
-    /// <summary>Targeting function for indicating when or not <em>AOE Rectangle (or Line)</em> abilities should be used.</summary>
-    /// <param name="range">The range of the <em>AOE Rectangle</em> ability, or radius from center of Player; this should be adjusted accordingly to user's module specific to job's abilities.</param>
-    /// <returns>- A tuple with the following booleans:
-    /// <para><b>-- OnTwoOrMore</b>: A boolean indicating if there are two (2) or more targets inside Player's <em>AOE Rectangle</em>.</para>
-    /// <para><b>-- OnThreeOrMore</b>: A boolean indicating if there are three (3) or more targets inside Player's <em>AOE Rectangle</em>.</para>
-    /// <para><b>-- OnFourOrMore</b>: A boolean indicating if there are four (4) or more targets inside Player's <em>AOE Rectangle</em>.</para>
-    /// <para><b>-- OnFiveOrMore</b>: A boolean indicating if there are five (5) or more targets inside Player's <em>AOE Rectangle</em>.</para></returns>
+    /// <summary>
+    /// Targeting function for determining when an <em>AOE Rectangle (or Line)</em> ability should be used based on nearby targets.
+    /// </summary>
+    /// <param name="range">
+    /// The range of the <em>AOE Rectangle</em> ability or radius from the center of the Player.
+    /// This should be adjusted based on the user's job-specific abilities.
+    /// </param>
+    /// <returns>
+    /// A tuple with the following booleans:
+    /// <para><b>-- OnTwoOrMore</b>: Indicates if there are 2 or more targets inside the <em>AOE Rectangle</em>.</para>
+    /// <para><b>-- OnThreeOrMore</b>: Indicates if there are 3 or more targets inside the <em>AOE Rectangle</em>.</para>
+    /// <para><b>-- OnFourOrMore</b>: Indicates if there are 4 or more targets inside the <em>AOE Rectangle</em>.</para>
+    /// <para><b>-- OnFiveOrMore</b>: Indicates if there are 5 or more targets inside the <em>AOE Rectangle</em>.</para>
+    /// </returns>
     public (bool OnTwoOrMore, bool OnThreeOrMore, bool OnFourOrMore, bool OnFiveOrMore) ShouldUseAOERect(Actor primary, float range, float width = 2)
     {
-        var OnTwoOrMore = Hints.NumPriorityTargetsInAOERect(Player.Position, (primary.Position - Player.Position).Normalized(), range, width) > 1;
-        var OnThreeOrMore = Hints.NumPriorityTargetsInAOERect(Player.Position, (primary.Position - Player.Position).Normalized(), range, width) > 2;
-        var OnFourOrMore = Hints.NumPriorityTargetsInAOERect(Player.Position, (primary.Position - Player.Position).Normalized(), range, width) > 3;
-        var OnFiveOrMore = Hints.NumPriorityTargetsInAOERect(Player.Position, (primary.Position - Player.Position).Normalized(), range, width) > 4;
+        if (primary == null || range <= 0 || width <= 0)
+            return (false, false, false, false);
 
-        return (OnTwoOrMore, OnThreeOrMore, OnFourOrMore, OnFiveOrMore);
+        var direction = (primary.Position - Player.Position).Normalized();
+        var targetCount = Hints.NumPriorityTargetsInAOERect(Player.Position, direction, range, width);
+
+        return (targetCount >= 2, targetCount >= 3, targetCount >= 4, targetCount >= 5);
     }
 
     /// <summary>
@@ -413,7 +444,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>
     /// Attempts to select the best target automatically.
     /// </summary>
-    protected (Actor? Best, int Targets) SelectTarget(
+    protected (Actor? Best, int Targets) SelectBestTarget(
         StrategyValues strategy,
         Actor? primaryTarget,
         float range,
@@ -663,4 +694,11 @@ static class ModuleExtensions
             .AddOption(OGCDStrategy.LateWeave, "LateWeave", "Use in next possible late weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
             .AddOption(OGCDStrategy.Delay, "Delay", "Do not use", 0, 0, ActionTargets.None, minLevel: minLevel, maxLevel);
     }
+    public static bool AutoAOE(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() is AOEStrategy.Automatic;
+    public static bool ForceST(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() is AOEStrategy.ForceST;
+    public static bool ForceAOE(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() == AOEStrategy.ForceAOE;
+    public static bool HoldAll(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldEverything;
+    public static bool HoldCooldowns(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldCooldowns;
+    public static bool HoldGauge(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldGauge;
+    public static bool DontHold(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.DontHold;
 }
