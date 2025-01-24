@@ -1,7 +1,4 @@
-﻿using BossMod.AST;
-using static BossMod.ActorCastEvent;
-
-namespace BossMod.Autorotation.akechi.Tools;
+﻿namespace BossMod.Autorotation.akechi;
 
 public enum SharedTrack { AOE, Hold, Count }
 public enum AOEStrategy { Automatic, ForceST, ForceAOE }
@@ -66,86 +63,87 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     #region Actions
     /// <summary>Checks if action is <em>Unlocked</em> based on Level and Job Quest (if required)</summary>
-    /// <param name="aid"> User's specified <em>Action ID</em> </param>
-    /// <returns>- True if conditions met, False if not</returns>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
+    /// <returns>- <em>True</em> if the <em>specified Action is Unlocked</em>; <em>False</em> if not.</returns>
     protected bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid)); //Check if the desired ability is unlocked
 
     /// <summary>Checks if Trait is <em>Unlocked</em> based on Level and Job Quest (if required)</summary>
-    /// <param name="aid"> User's specified <em>Action ID</em> </param>
-    /// <returns>- True if conditions met, False if not</returns>
+    /// <param name="tid"> The user's specified <em>Trait ID</em> being checked.</param>
+    /// <returns>- <em>True</em> if the <em>specified Trait is Unlocked</em>; <em>False</em> if not.</returns>
     protected bool Unlocked(TraitID tid) => TraitUnlocked((uint)(object)tid);
 
     /// <summary><para>Checks if <em>last combo action</em> is what the user is specifying.</para>
     /// <para>NOTE: This does <em>NOT</em> check all actions, only combo actions.</para></summary>
-    /// <returns>- True if condition met, False if not</returns>
+    /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
-    /// <summary>
-    /// Retreieves <em>effective</em> cast time by returning the action's base cast time multiplied by the player's spell-speed factor, which accounts for haste buffs (like <em>Ley Lines</em>) and slow debuffs. It also accounts for <em>Swiftcast</em>.
-    /// </summary>
-    protected virtual float GetCastTime(AID aid) => PlayerHasEffect(SID.Swiftcast, 10) ? 0 : ActionDefinitions.Instance.Spell(aid)!.CastTime * SpSGCDLength / 2.5f;
+    /// <summary> Retrieves <em>actual</em> cast time of a specified action. </summary>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
+    /// <returns>- The current <em>Actual Cast Time</em> of an action</returns>
+    protected virtual float ActualCastTime(AID aid) => ActionDefinitions.Instance.Spell(aid)!.CastTime;
 
-    protected float NextCastStart => World.Client.AnimationLock > GCD ? World.Client.AnimationLock + AnimationLockDelay : GCD;
+    /// <summary>Retrieves <em>effective</em> cast time of a specified action by calculating the action's base cast time multiplied by the player's spell-speed factor, which accounts for haste buffs (like <em>Ley Lines</em>) and slow debuffs. It also accounts for <em>Swiftcast</em>.</summary>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
+    /// <returns>- The current <em>Effective Cast Time</em> of an action</returns>
+    protected virtual float EffectiveCastTime(AID aid) => PlayerHasEffect(ClassShared.SID.Swiftcast, 10) ? 0 : ActualCastTime(aid) * SpSGCDLength / 2.5f;
 
-    protected float GetSlidecastTime(AID aid) => MathF.Max(0, GetCastTime(aid) - 0.5f);
-    protected float GetSlidecastEnd(AID aid) => NextCastStart + GetSlidecastTime(aid);
-
-    protected virtual bool CanCast(AID aid)
-    {
-        var t = GetSlidecastTime(aid);
-        if (t == 0)
-            return true;
-
-        return NextCastStart + t <= ForceMovementIn;
-    }
-
-    /// <summary>
-    /// <para>Retrieves player's GCD length based on <em>Skill-Speed</em>.</para>
-    /// <para>NOTE: This function is only recommended for jobs with <em>Skill-Speed</em>. <em>Spell-Speed</em> users are <em>unaffected</em> by this.</para>
-    /// </summary>
+    /// <summary><para>Retrieves player's GCD length based on <em>Skill-Speed</em>.</para>
+    /// <para>NOTE: This function is only recommended for jobs with <em>Skill-Speed</em>. <em>Spell-Speed</em> users are <em>unaffected</em> by this function.</para></summary>
+    /// <returns>- The user's current <em>GCD length</em></returns>
     protected float SkSGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
 
-    /// <summary>
-    /// Retrieves player's current <em>Skill-Speed</em> stat.
-    /// </summary>
+    /// <summary>Retrieves player's current <em>Skill-Speed</em> stat.</summary>
+    /// <returns>- The user's current <em>Skill-Speed</em> value</returns>
     protected float SkS => ActionSpeed.Round(World.Client.PlayerStats.SkillSpeed);
 
-    /// <summary>
-    /// <para>Retrieves player's GCD length based on <em>Spell-Speed</em>.</para>
-    /// <para>NOTE: This function is only recommended for jobs with <em>Spell-Speed</em>. <em>Skill-Speed</em> users are <em>unaffected</em> by this.</para>
-    /// </summary>
+    /// <summary><para>Retrieves player's GCD length based on <em>Spell-Speed</em>.</para>
+    /// <para>NOTE: This function is only recommended for jobs with <em>Spell-Speed</em>. <em>Skill-Speed</em> users are <em>unaffected</em> by this function.</para></summary>
+    /// <returns>- The user's current <em>GCD length</em></returns>
     protected float SpSGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
 
-    /// <summary>
-    /// Retrieves player's current <em>Spell-Speed</em> stat.
-    /// </summary>
+    /// <summary>Retrieves player's current <em>Spell-Speed</em> stat.</summary>
+    /// <returns>- The user's current <em>Spell-Speed</em> value</returns>
     protected float SpS => ActionSpeed.Round(World.Client.PlayerStats.SpellSpeed);
 
-    /// <summary>
-    /// Checks if we can fit in a <em>skill-speed based</em> GCD.
-    /// </summary>
+    /// <summary>Checks if we can fit in a <em>skill-speed based</em> GCD.</summary>
+    /// <param name="duration"> </param>
+    /// <param name="extraGCDs"> How many extra GCDs the user can fit in.</param>
+    /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
     public bool CanFitSkSGCD(float duration, int extraGCDs = 0) => GCD + SkSGCDLength * extraGCDs < duration;
 
-    /// <summary>
-    /// Checks if we can fit in a <em>spell-speed based</em> GCD.
-    /// </summary>
+    /// <summary>Checks if we can fit in a <em>spell-speed based</em> GCD.</summary>
+    /// <param name="duration"> </param>
+    /// <param name="extraGCDs"> How many extra GCDs the user can fit in.</param>
+    /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
     public bool CanFitSpSGCD(float duration, int extraGCDs = 0) => GCD + SpSGCDLength * extraGCDs < duration;
 
-    /// <summary>
-    /// <para>Checks if player is available to weave in any abilities.</para>
-    /// <para>NOTE: This function is only recommended for jobs with <em>Skill-Speed</em>. <em>Spell-Speed</em> users are <em>unaffected</em> by this.</para>
-    /// </summary>
+    /// <summary><para>Checks if player is available to weave in any abilities.</para>
+    /// <para>NOTE: This function is only recommended for jobs with <em>Skill-Speed</em>. <em>Spell-Speed</em> users are <em>unaffected</em> by this.</para></summary>
+    /// <param name="cooldown"> The cooldown time of the action specified.</param>
+    /// <param name="actionLock"> The animation lock time of the action specified.</param>
+    /// <param name="extraGCDs"> How many extra GCDs the user can fit in.</param>
+    /// <param name="extraFixedDelay"> How much extra delay the user can add in, in seconds.</param>
+    /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
     public bool CanWeave(float cooldown, float actionLock, int extraGCDs = 0, float extraFixedDelay = 0)
         => MathF.Max(cooldown, World.Client.AnimationLock) + actionLock + AnimationLockDelay <= GCD + SkSGCDLength * extraGCDs + extraFixedDelay;
-    /// <summary>
-    /// <para>Checks if player is available to weave in any abilities.</para>
-    /// <para>NOTE: This function is only recommended for jobs with <em>Spell-Speed</em>. <em>Skill-Speed</em> users are <em>unaffected</em> by this.</para>
-    /// </summary>
+
+    /// <summary><para>Checks if player is available to weave in any spells.</para>
+    /// <para>NOTE: This function is only recommended for jobs with <em>Spell-Speed</em>. <em>Skill-Speed</em> users are <em>unaffected</em> by this.</para></summary>
+    /// <param name="cooldown"> The cooldown time of the action specified.</param>
+    /// <param name="actionLock"> The animation lock time of the action specified.</param>
+    /// <param name="extraGCDs"> How many extra GCDs the user can fit in.</param>
+    /// <param name="extraFixedDelay"> How much extra delay the user can add in, in seconds.</param>
+    /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
     public bool CanSpellWeave(float cooldown, float actionLock, int extraGCDs = 0, float extraFixedDelay = 0)
         => MathF.Max(cooldown, World.Client.AnimationLock) + actionLock + AnimationLockDelay <= GCD + SpSGCDLength * extraGCDs + extraFixedDelay;
-    /// <summary>
-    /// Checks if player is available to weave in any abilities.
-    /// </summary>
+
+    /// <summary><para>Checks if player is available to weave in any abilities.</para>
+    /// <para>NOTE: This function is only recommended for jobs with <em>Skill-Speed</em>. <em>Spell-Speed</em> users are <em>unaffected</em> by this.</para></summary>
+    /// <param name="cooldown"> The cooldown time of the action specified.</param>
+    /// <param name="actionLock"> The animation lock time of the action specified.</param>
+    /// <param name="extraGCDs"> How many extra GCDs the user can fit in.</param>
+    /// <param name="extraFixedDelay"> How much extra delay the user can add in, in seconds.</param>
+    /// <returns>- <em>True</em> if conditions are met; <em>False</em> if not</returns>
     public bool CanWeave(AID aid, int extraGCDs = 0, float extraFixedDelay = 0)
     {
         if (!Unlocked(aid))
@@ -153,37 +151,34 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
         var res = ActionDefinitions.Instance[ActionID.MakeSpell(aid)]!;
         if (SkS > 100)
-            return CanSpellWeave(ReadyIn(aid), res.InstantAnimLock, extraGCDs, extraFixedDelay);
-        if (SpS > 100)
-            return CanWeave(ReadyIn(aid), res.InstantAnimLock, extraGCDs, extraFixedDelay);
-
-        return false;
+            return CanSpellWeave(ChargeCD(aid), res.InstantAnimLock, extraGCDs, extraFixedDelay);
+        return SpS > 100 && CanWeave(ChargeCD(aid), res.InstantAnimLock, extraGCDs, extraFixedDelay);
     }
     #endregion
 
     #region Cooldown
     /// <summary> Retrieves the total cooldown time left on the specified action. </summary>
-    /// <param name="aid"> User's specified <em>Action ID</em> </param>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
     /// <returns>- The remaining cooldown duration </returns>
     protected float TotalCD(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
 
     /// <summary> Returns the charge cooldown time left on the specified action. </summary>
-    /// <param name="aid"> User's specified <em>Action ID</em> </param>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
     /// <returns>- The remaining cooldown duration </returns>
     protected float ChargeCD(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
 
     /// <summary> Checks if action has any charges remaining. </summary>
-    /// <param name="aid"> User's specified <em>Action ID</em> </param>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
     /// <returns>- True if the action has charges, False if not</returns>
     protected bool HasCharges(AID aid) => ChargeCD(aid) < 0.6f;
 
     /// <summary>Checks if action is on cooldown based on its <em>total cooldown timer</em>. </summary>
-    /// <param name="aid"> User's specified <em>Action ID</em> </param>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
     /// <returns>- True if the action is on cooldown, False if not</returns>
     protected bool IsOnCooldown(AID aid) => TotalCD(aid) > 0.6f;
 
     /// <summary>Checks if action is off cooldown based on its <em>total cooldown timer</em>. </summary>
-    /// <param name="aid"> User's specified <em>Action ID</em> </param>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
     /// <returns>- True if the action is off cooldown, False if not</returns>
     protected bool IsOffCooldown(AID aid) => !IsOnCooldown(aid);
     /// <summary>
@@ -192,17 +187,12 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool OnCooldown(AID aid) => MaxChargesIn(aid) > 0;
 
     /// <summary>Checks if last action used is what the user is specifying and within however long. </summary>
-    /// <param name="aid"> User's specified <em>Action ID</em> </param>
-    /// <param name="variance"> How long since last action was used. </param>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
     /// <returns>- True if the action is off cooldown, False if not</returns>
-    protected bool LastActionUsed(AID aid, float variance = 3f) => Manager.LastCast.Data?.IsSpell(aid) == true && Manager.LastCast.Time.Second <= variance;
-    /// <summary>
-    /// Time remaining until action is <em>ready</em>.
-    /// </summary>
-    protected float ReadyIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
-    /// <summary>
-    /// Time remaining until action is at <em>maximum charges</em>.
-    /// </summary>
+    protected bool LastActionUsed(AID aid) => Manager.LastCast.Data?.IsSpell(aid) == true;
+
+    /// <summary>Retrieves time remaining until specified action is at max charges. </summary>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
     protected float MaxChargesIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) : float.MaxValue;
 
     #endregion
@@ -352,7 +342,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
         PlayerTarget = primaryTarget;
         var AOEStrat = strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
-        if (AOEStrat is AOEStrategy.Auto)
+        if (AOEStrat is AOEStrategy.Automatic)
         {
             if (Player.DistanceToHitbox(primaryTarget) > range)
             {
@@ -397,7 +387,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
         var (newtarget, newprio) = strategy switch
         {
-            { } when AOEStrat == AOEStrategy.Auto => primaryTarget == null
+            { } when AOEStrat == AOEStrategy.Automatic => primaryTarget == null
                 ? (null, Priority: default)
                 : FindBetterTargetBy(
                     primaryTarget,
@@ -422,7 +412,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         {
             case AOEStrategy.ForceST:
             case AOEStrategy.ForceAOE:
-            case AOEStrategy.Auto:
+            case AOEStrategy.Automatic:
                 return (initial, getTimer(initial));
         }
 
@@ -465,7 +455,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
         return count == 0 ? 0 : aoeStrat switch
         {
-            AOEStrategy.Auto => count,
+            AOEStrategy.Automatic => count,
             AOEStrategy.ForceAOE => 10,
             AOEStrategy.ForceST => 0,
             _ => 0
@@ -565,7 +555,7 @@ static class ModuleExtensions
 {
     public static RotationModuleDefinition DefineSharedTA(this RotationModuleDefinition res)
     {
-        res.Define(SharedTrack.AOE).As<AOEStrategy>("Target")
+        res.Define(SharedTrack.AOE).As<AOEStrategy>("AOE")
             .AddOption(AOEStrategy.Automatic, "Auto", "Use optimal rotation", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceST, "ForceST", "Force Single Target", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Force AOE rotation", supportedTargets: ActionTargets.Hostile);
