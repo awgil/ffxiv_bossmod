@@ -267,7 +267,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>
     /// Elapsed time in <em>seconds</em> since the start of combat.
     /// </summary>
-    protected float CombatTimer { get; private set; }
+    protected float CombatTimer => (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds;
     /// <summary>
     /// Time remaining on pre-pull (or any) <em>Countdown Timer</em>.
     /// </summary>

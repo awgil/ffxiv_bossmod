@@ -170,8 +170,8 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     public enum GCDPriority
     {
         None = 0,
-        Standard = 300,
-        Blood = 400,
+        Standard = 100,
+        Blood = 300,
         Disesteem = 500,
         DeliriumCombo = 600,
         NeedBlood = 700,
@@ -181,14 +181,14 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     public enum OGCDPriority
     {
         None = 0,
-        Standard = 300,
-        MP = 350,
-        SaltedEarth = 400,
-        CarveOrDrain = 450,
-        Shadowbringer = 500,
+        Standard = 100,
+        MP = 300,
+        CarveOrDrain = 400,
+        Shadowbringer = 450,
+        SaltedEarth = 500,
         Delirium = 550,
         LivingShadow = 600,
-        NeedRefresh = 700,
+        NeedRefresh = 650,
         ForcedOGCD = 900,
     }
     #endregion
@@ -540,7 +540,8 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             CanWeaveIn &&
             In3y(target) &&
             Darkside.IsActive &&
-            SaltedEarth.IsReady,
+            SaltedEarth.IsReady &&
+            ((CombatTimer < 30 && ComboLastMove is AID.Souleater) || CombatTimer >= 30),
         OGCDStrategy.Force => SaltedEarth.IsReady,
         OGCDStrategy.AnyWeave => SaltedEarth.IsReady && CanWeaveIn,
         OGCDStrategy.EarlyWeave => SaltedEarth.IsReady && CanEarlyWeaveIn,
@@ -581,7 +582,8 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             CanWeaveIn &&
             In3y(target) &&
             Darkside.IsActive &&
-            AbyssalDrain.IsReady,
+            AbyssalDrain.IsReady &&
+            ((CombatTimer < 30 && ComboLastMove is AID.Souleater) || CombatTimer >= 30),
         _ => false
     };
     private bool ShouldUseDelirium(OGCDStrategy strategy, Actor? target) => strategy switch
@@ -591,7 +593,8 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             target != null &&
             CanWeaveIn &&
             Darkside.IsActive &&
-            Delirium.IsReady,
+            Delirium.IsReady &&
+            ((CombatTimer < 30 && ComboLastMove is AID.Souleater) || CombatTimer >= 30),
         OGCDStrategy.Force => Delirium.IsReady,
         OGCDStrategy.AnyWeave => Delirium.IsReady && CanWeaveIn,
         OGCDStrategy.EarlyWeave => Delirium.IsReady && CanEarlyWeaveIn,
@@ -655,7 +658,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             In10y(target) &&
             Darkside.IsActive &&
             Disesteem.IsReady &&
-            StatusRemaining(Player, SID.Scorn, 30) < 25,
+            ((CombatTimer < 30 && Delirium.IsActive) || (CombatTimer >= 30 && !Delirium.IsActive && Delirium.CD > 15)),
         GCDStrategy.Force => Disesteem.IsReady,
         GCDStrategy.Delay => false,
         _ => false
