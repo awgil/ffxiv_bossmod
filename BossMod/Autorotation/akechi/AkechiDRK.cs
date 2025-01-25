@@ -90,7 +90,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             "Standard Rotation Module", //Description
             "Standard rotation (Akechi)", //Category
             "Akechi", //Contributor
-            RotationModuleQuality.Basic, //Quality
+            RotationModuleQuality.Ok, //Quality
             BitMask.Build((int)Class.DRK), //Job
             100); //Level supported
 
@@ -189,7 +189,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Delirium = 550,
         LivingShadow = 600,
         NeedRefresh = 650,
-        ForcedOGCD = 900,
+        ForcedOGCD = 1100, //Enough to put it past CDPlanner's "Automatic" priority, which is really only Medium priority
     }
     #endregion
 
@@ -526,6 +526,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     {
         BloodStrategy.Automatic =>
             Player.InCombat &&
+            target != null &&
             Darkside.IsActive &&
             Unlocked(AID.Bloodspiller) &&
             Blood >= 50 &&
