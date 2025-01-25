@@ -37,6 +37,7 @@ public sealed class ReplayParserLog : IDisposable
         public abstract ActionID ReadAction();
         public abstract Class ReadClass();
         public abstract ActorStatus ReadStatus();
+        public abstract ActionEffects ReadActionEffects();
         public abstract void ReadTargets(List<ActorCastEvent.Target> list);
         public abstract (float, float) ReadFloatPair();
         public abstract (DateTime, float) ReadTimePair();
@@ -121,6 +122,13 @@ public sealed class ReplayParserLog : IDisposable
             int sep = sid.IndexOf(' ', StringComparison.Ordinal);
             return new(uint.Parse(sep >= 0 ? sid.AsSpan(0, sep) : sid.AsSpan()), ushort.Parse(ReadString(), NumberStyles.HexNumber), Timestamp.AddSeconds(ReadFloat()), ReadActorID());
         }
+        public override ActionEffects ReadActionEffects()
+        {
+            var effects = new ActionEffects();
+            for (int i = 0; i < ActionEffects.MaxCount; ++i)
+                effects[i] = ReadULong(true);
+            return effects;
+        }
         public override void ReadTargets(List<ActorCastEvent.Target> list)
         {
             while (CanRead())
@@ -193,18 +201,19 @@ public sealed class ReplayParserLog : IDisposable
         public override ActionID ReadAction() => new(_input.ReadUInt32());
         public override Class ReadClass() => (Class)_input.ReadByte();
         public override ActorStatus ReadStatus() => new(_input.ReadUInt32(), _input.ReadUInt16(), new(_input.ReadInt64()), _input.ReadUInt64());
+        public override ActionEffects ReadActionEffects()
+        {
+            var effects = new ActionEffects();
+            for (int i = 0; i < ActionEffects.MaxCount; ++i)
+                effects[i] = ReadULong(true);
+            return effects;
+        }
         public override void ReadTargets(List<ActorCastEvent.Target> list)
         {
             var count = _input.ReadInt32();
             list.Capacity = count;
             for (int i = 0; i < count; ++i)
-            {
-                var id = _input.ReadUInt64();
-                var effects = new ActionEffects();
-                for (int j = 0; j < ActionEffects.MaxCount; ++j)
-                    effects[j] = _input.ReadUInt64();
-                list.Add(new(id, effects));
-            }
+                list.Add(new(_input.ReadUInt64(), ReadActionEffects()));
         }
         public override (float, float) ReadFloatPair() => (_input.ReadSingle(), _input.ReadSingle());
         public override (DateTime, float) ReadTimePair() => (new(_input.ReadInt64()), _input.ReadSingle());
@@ -314,6 +323,8 @@ public sealed class ReplayParserLog : IDisposable
             [new("STA+"u8)] = () => ParseActorStatus(true),
             [new("STA-"u8)] = () => ParseActorStatus(false),
             [new("STA!"u8)] = () => ParseActorStatus(true),
+            [new("AIE+"u8)] = () => ParseActorIncomingEffect(true),
+            [new("AIE-"u8)] = () => ParseActorIncomingEffect(false),
             [new("ICON"u8)] = ParseActorIcon,
             [new("ESTA"u8)] = ParseActorEventObjectStateChange,
             [new("EANM"u8)] = ParseActorEventObjectAnimation,
@@ -594,6 +605,7 @@ public sealed class ReplayParserLog : IDisposable
 
     private ActorState.OpEffectResult ParseActorEffectResult() => new(_input.ReadActorID(), _input.ReadUInt(false), _input.ReadInt());
     private ActorState.OpStatus ParseActorStatus(bool gainOrUpdate) => new(_input.ReadActorID(), _input.ReadInt(), gainOrUpdate ? _input.ReadStatus() : default);
+    private ActorState.OpIncomingEffect ParseActorIncomingEffect(bool add) => new(_input.ReadActorID(), _input.ReadInt(), add ? new(_input.ReadUInt(false), _input.ReadInt(), _input.ReadActorID(), _input.ReadAction(), _input.ReadActionEffects()) : default);
     private ActorState.OpIcon ParseActorIcon() => new(_input.ReadActorID(), _input.ReadUInt(false), _version >= 22 ? _input.ReadActorID() : 0);
     private ActorState.OpEventObjectStateChange ParseActorEventObjectStateChange() => new(_input.ReadActorID(), _input.ReadUShort(true));
     private ActorState.OpEventObjectAnimation ParseActorEventObjectAnimation() => new(_input.ReadActorID(), _input.ReadUShort(true), _input.ReadUShort(true));

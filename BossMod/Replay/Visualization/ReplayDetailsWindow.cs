@@ -299,10 +299,11 @@ class ReplayDetailsWindow : UIWindow
 
         ImGui.TableNextColumn();
         var numRealStatuses = actor.Statuses.Count(s => s.ID != 0);
+        var numIncoming = actor.IncomingEffects.Count(i => i.GlobalSequence != 0);
         var mouseOffset = ImGui.GetMousePos() - ImGui.GetWindowPos() - ImGui.GetCursorPos();
         var mouseInColumn = mouseOffset.X >= 0 && mouseOffset.Y >= 0 && mouseOffset.X < ImGui.GetColumnWidth() && mouseOffset.Y < ImGui.GetFontSize() + 2 * ImGui.GetStyle().FramePadding.Y;
-        ImGui.TextUnformatted($"{(actor.PendingKnockbacks.Count > 0 ? "Knockbacks pending, " : "")}{(actor.MountId != 0 ? $"Mounted ({actor.MountId}), " : "")}{numRealStatuses} + {actor.PendingStatuses.Count} statuses, {actor.PendingDispels.Count} dispels");
-        if (mouseInColumn && numRealStatuses + actor.PendingStatuses.Count + actor.PendingDispels.Count > 0)
+        ImGui.TextUnformatted($"{(actor.PendingKnockbacks > 0 ? "Knockbacks pending, " : "")}{(actor.MountId != 0 ? $"Mounted ({actor.MountId}), " : "")}{numRealStatuses} + {actor.PendingStatuses.Count} statuses, {actor.PendingDispels.Count} dispels, {numIncoming} incoming effects");
+        if (mouseInColumn && numRealStatuses + actor.PendingStatuses.Count + actor.PendingDispels.Count + numIncoming > 0)
         {
             using var tooltip = ImRaii.Tooltip();
             if (tooltip)
@@ -323,6 +324,14 @@ class ReplayDetailsWindow : UIWindow
                 foreach (ref var s in actor.PendingDispels.AsSpan())
                 {
                     ImGui.TextUnformatted($"[dispel] {Utils.StatusString(s.StatusId)}{fromString("by", s.Effect.SourceInstanceId)}");
+                }
+                for (int i = 0; i < actor.IncomingEffects.Length; ++i)
+                {
+                    ref var inc = ref actor.IncomingEffects[i];
+                    if (inc.GlobalSequence != 0)
+                    {
+                        ImGui.TextUnformatted($"[incoming {i}] {inc.GlobalSequence}/{inc.TargetIndex} {inc.Action}{fromString("from", inc.SourceInstanceId)}");
+                    }
                 }
             }
         }
