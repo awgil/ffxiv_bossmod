@@ -3,15 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x29C5,
-    _Gen_Phronesis = 0x29E7, // R0.500, x3
-    _Gen_ = 0x2A1A, // R0.500, x0 (spawn during fight)
-    _Gen_1 = 0x2A1B, // R0.500, x0 (spawn during fight)
-    _Gen_2 = 0x2A1C, // R0.500, x0 (spawn during fight)
-    _Gen_3 = 0x2A19, // R0.500, x0 (spawn during fight)
-    _Gen_Hollow = 0x29C6, // R0.750-2.250, x0 (spawn during fight)
-    _Gen_4 = 0x2AC5, // R0.500, x0 (spawn during fight)
-    _Gen_5 = 0x2A1D, // R0.500, x0 (spawn during fight)
-    _Gen_LightningGlobe = 0x29C8, // R1.000, x0 (spawn during fight)
+    Hollow = 0x29C6, // R0.750-2.250, x0 (spawn during fight)
 }
 
 public enum AID : uint
@@ -30,7 +22,7 @@ class SanctifiedBlizzardIV(BossModule module) : Components.SelfTargetedAOEs(modu
 class SanctifiedBlizzardII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedBlizzardII), new AOEShapeCircle(5));
 class SanctifiedFireIII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedFireIII), 6);
 class SanctifiedBlizzardIII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedBlizzardIII), new AOEShapeCone(40.5f, 22.5f.Degrees()));
-class Hollow(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID._Gen_Hollow));
+class Hollow(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Hollow));
 class HollowTether(BossModule module) : Components.Chains(module, 1, chainLength: 5);
 class SanctifiedFireIV(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.SanctifiedFireIV1), 10);
 class SanctifiedFlare(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.SanctifiedFlare), 6, 1)
@@ -48,7 +40,7 @@ class SanctifiedFlare(BossModule module) : Components.StackWithCastTargets(modul
 class LightningGlobe(BossModule module) : Components.GenericLineOfSightAOE(module, default, 100, false)
 {
     private readonly List<Actor> Balls = [];
-    private IEnumerable<(WPos Center, float Radius)> Hollows => Module.Enemies(OID._Gen_Hollow).Select(h => (h.Position, h.HitboxRadius));
+    private IEnumerable<(WPos Center, float Radius)> Hollows => Module.Enemies(OID.Hollow).Select(h => (h.Position, h.HitboxRadius));
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {

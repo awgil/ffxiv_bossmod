@@ -27,7 +27,7 @@ class WaterDrop(BossModule module) : Components.SpreadFromCastTargets(module, Ac
 class ExplosiveTataru(BossModule module) : BossComponent(module)
 {
     private readonly List<Actor> Balls = [];
-    private Actor? Tataru = null;
+    private Actor? Tataru;
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {

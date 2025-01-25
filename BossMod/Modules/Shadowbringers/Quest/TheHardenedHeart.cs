@@ -68,7 +68,7 @@ class AutoBranden(WorldState ws) : UnmanagedRotation(ws, 3)
 class TankbusterTether(BossModule module) : BossComponent(module)
 {
     private record class Tether(Actor Source, Actor Target, DateTime Activation);
-    private Tether? DwarfTether = null;
+    private Tether? DwarfTether;
 
     private bool Danger => DwarfTether?.Target.OID == 0x2917;
 

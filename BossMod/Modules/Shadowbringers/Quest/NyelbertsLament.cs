@@ -2,14 +2,12 @@
 
 namespace BossMod.Shadowbringers.Quest.NyelbertsLament;
 
-// TODO: add AI hint for the "enrage" + paladin safe zone
-
 public enum OID : uint
 {
     Boss = 0x2977,
     Helper = 0x233C,
     BovianBull = 0x2976,
-    _Gen_LooseBoulder = 0x2978, // R2.400, x0 (spawn during fight)
+    LooseBoulder = 0x2978, // R2.400, x0 (spawn during fight)
 }
 
 public enum AID : uint
@@ -56,7 +54,7 @@ class TwoThousandMinaSlash : Components.GenericLineOfSightAOE
 
     private void Refresh()
     {
-        var blockers = Module.Enemies(OID._Gen_LooseBoulder);
+        var blockers = Module.Enemies(OID.LooseBoulder);
 
         Modify(ActiveCaster?.CastInfo?.LocXZ, blockers.Select(b => (b.Position, b.HitboxRadius)), Module.CastFinishAt(ActiveCaster?.CastInfo));
     }
