@@ -1,6 +1,4 @@
 immediate plans
-- circle vs rect/cone intersection
-- proper circle bounds -> revise everything in fru
 - ai refactoring
 -- high-level ai modules
 --- ordered before standard rotation modules

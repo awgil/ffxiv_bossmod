@@ -4,7 +4,6 @@ namespace BossMod.Autorotation.MiscAI;
 
 public sealed class StayCloseToTarget(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-
     public enum Tracks
     {
         Range
@@ -28,7 +27,7 @@ public sealed class StayCloseToTarget(RotationModuleManager manager, Actor playe
         return def;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (primaryTarget != null)
             Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget.Position, (strategy.Option(Tracks.Range).Value.Option + 10f) / 10f + primaryTarget.HitboxRadius, 0.5f));

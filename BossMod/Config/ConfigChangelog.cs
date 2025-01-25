@@ -44,6 +44,18 @@ class AINotice1 : ChangelogNotice
     }
 }
 
+class AINotice2 : ChangelogNotice
+{
+    public override Version Since => new(0, 0, 0, 289);
+
+    public override void Draw()
+    {
+        ImGui.TextUnformatted("`Automatically engage FATE mobs` AI configuration option has been removed.");
+        ImGui.TextUnformatted("The new way of getting this behaviour is by adding `Misc AI: Automatic farming of fates` module to your preset and configuring FATE-farming strategy track as wanted.");
+        ImGui.TextUnformatted("Note that this module ");
+    }
+}
+
 public class ConfigChangelogWindow : UIWindow
 {
     private readonly Version PreviousVersion;
