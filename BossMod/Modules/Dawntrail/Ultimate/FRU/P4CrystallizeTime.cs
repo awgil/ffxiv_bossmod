@@ -387,12 +387,12 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
     private readonly P4CrystallizeTime? _ct = module.FindComponent<P4CrystallizeTime>();
     private readonly P4CrystallizeTimeDragonHead? _heads = module.FindComponent<P4CrystallizeTimeDragonHead>();
     private readonly P4CrystallizeTimeMaelstrom? _hourglass = module.FindComponent<P4CrystallizeTimeMaelstrom>();
-    private bool KnockbacksDone;
+    private DateTime KnockbacksResolve; // default before knockbacks are done, set to estimated resolve time after they are done
     private bool DarknessDone;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (actor.PendingKnockbacks.Count > 0)
+        if (actor.PendingKnockbacks > 0)
             return; // don't move while waiting for kb to resolve...
 
         var hint = CalculateHint(slot);
@@ -402,7 +402,7 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
             if (hint.offset.LengthSq() > 18 * 18)
                 hint.offset *= 19.5f / 19;
 
-            if (hint.hint.HasFlag(Hint.KnockbackFrom) && Raid.WithoutSlot().Any(p => p.PendingKnockbacks.Count > 0))
+            if (hint.hint.HasFlag(Hint.KnockbackFrom) && Raid.WithoutSlot().Any(p => p.PendingKnockbacks > 0))
             {
                 return; // don't even try moving until all knockbacks are resolved, that can fuck up others...
             }
@@ -454,7 +454,7 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
         switch ((AID)spell.Action.ID)
         {
             case AID.CrystallizeTimeDarkAero:
-                KnockbacksDone = true;
+                KnockbacksResolve = WorldState.FutureTime(1); // it takes ~0.8s to resolve knockbacks
                 break;
             case AID.UltimateRelativityUnholyDarkness:
                 DarknessDone = true;
@@ -494,7 +494,7 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
     {
         if (numHourglassesDone < 2)
             return (SafeOffsetDodgeFirstHourglassSouth(clawSide), Hint.SafespotRough | Hint.Maelstrom); // dodge first hourglass by the south side
-        if (!KnockbacksDone)
+        if (KnockbacksResolve == default)
             return (SafeOffsetPreKnockbackSouth(clawSide, 19), Hint.SafespotPrecise); // preposition to knock party across
         if (numHourglassesDone < 4 && clawSide == northSlowSide)
             return (SafeOffsetDodgeSecondHourglassSouth(clawSide), Hint.SafespotRough | Hint.Maelstrom); // dodge second hourglass; note that player on the slow side can already go intercept the head
@@ -504,7 +504,8 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
         {
             var headOff = head.Position - Module.Center;
             var headDir = Angle.FromDirection(headOff) * clawSide; // always decreases as head moves
-            return (headDir.Rad > IdealSecondHeadBaitAngle.Rad ? SafeOffsetSecondHeadBait(clawSide) : headOff, Hint.SafespotPrecise | (clawSide != northSlowSide ? Hint.KnockbackFrom : Hint.None));
+            var hint = clawSide != northSlowSide && WorldState.CurrentTime < KnockbacksResolve ? Hint.None : Hint.SafespotPrecise; // Hint.KnockbackFrom?.. depends on how new pending knockbacks work for others
+            return (headDir.Rad > IdealSecondHeadBaitAngle.Rad ? SafeOffsetSecondHeadBait(clawSide) : headOff, hint);
         }
         // head is done, so dodge between last two hourglasses
         return (SafeOffsetChillSouth(northSlowSide), Hint.Maelstrom | Hint.Heads | Hint.Mid);
@@ -534,7 +535,7 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
     {
         if (numHourglassesDone < 2)
             return (SafeOffsetDodgeFirstHourglassSouth(-northSlowSide), Hint.SafespotRough | Hint.Maelstrom); // dodge first hourglass by the south side
-        if (!KnockbacksDone)
+        if (KnockbacksResolve == default)
             return (SafeOffsetPreKnockbackSouth(-northSlowSide, 17), Hint.Knockback); // preposition to knockback across arena
         // from now on move together with eruption
         return HintFangEruption(northSlowSide, numHourglassesDone);

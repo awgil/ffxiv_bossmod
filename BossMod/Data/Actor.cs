@@ -71,6 +71,7 @@ public record struct ActorStatus(uint ID, ushort Extra, DateTime ExpireAt, ulong
 
 public record struct ActorModelState(byte ModelState, byte AnimState1, byte AnimState2);
 
+public readonly record struct ActorIncomingEffect(uint GlobalSequence, int TargetIndex, ulong SourceInstanceId, ActionID Action, ActionEffects Effects);
 public record struct PendingEffect(uint GlobalSequence, int TargetIndex, ulong SourceInstanceId, DateTime Expiration);
 public record struct PendingEffectDelta(PendingEffect Effect, int Value);
 public record struct PendingEffectStatus(PendingEffect Effect, uint StatusId);
@@ -105,13 +106,14 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public ActorCastInfo? CastInfo;
     public ActorTetherInfo Tether;
     public ActorStatus[] Statuses = new ActorStatus[60]; // empty slots have ID=0
+    public ActorIncomingEffect[] IncomingEffects = new ActorIncomingEffect[32];
 
     // all pending lists are sorted by expiration time
     public List<PendingEffectDelta> PendingHPDifferences = []; // damage and heal effects applied to the target that were not confirmed yet
     public List<PendingEffectDelta> PendingMPDifferences = [];
     public List<PendingEffectStatusExtra> PendingStatuses = [];
     public List<PendingEffectStatus> PendingDispels = [];
-    public List<PendingEffect> PendingKnockbacks = [];
+    public int PendingKnockbacks;
 
     public Role Role => Class.GetRole();
     public ClassCategory ClassCategory => Class.GetClassCategory();
