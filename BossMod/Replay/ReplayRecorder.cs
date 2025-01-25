@@ -36,6 +36,7 @@ public sealed class ReplayRecorder : IDisposable
         public abstract Output Emit(ActionID v);
         public abstract Output Emit(Class v);
         public abstract Output Emit(ActorStatus v);
+        public abstract Output Emit(in ActionEffects v);
         public abstract Output Emit(List<ActorCastEvent.Target> v);
         public abstract Output EmitFloatPair(float t1, float t2);
         public abstract Output EmitActor(ulong instanceID);
@@ -82,6 +83,12 @@ public sealed class ReplayRecorder : IDisposable
         public override Output Emit(ActionID v) => WriteEntry(v.ToString());
         public override Output Emit(Class v) => WriteEntry(v.ToString());
         public override Output Emit(ActorStatus v) => WriteEntry(Utils.StatusString(v.ID)).WriteEntry(v.Extra.ToString("X4")).WriteEntry(Utils.StatusTimeString(v.ExpireAt, _curEntry)).EmitActor(v.SourceID);
+        public override Output Emit(in ActionEffects v)
+        {
+            for (int i = 0; i < ActionEffects.MaxCount; ++i)
+                Emit(v[i], "X16");
+            return this;
+        }
         public override Output Emit(List<ActorCastEvent.Target> v)
         {
             foreach (var t in v)
@@ -142,6 +149,12 @@ public sealed class ReplayRecorder : IDisposable
         public override Output Emit(ActionID v) { _dest.Write(v.Raw); return this; }
         public override Output Emit(Class v) { _dest.Write((byte)v); return this; }
         public override Output Emit(ActorStatus v) { _dest.Write(v.ID); _dest.Write(v.Extra); _dest.Write(v.ExpireAt.Ticks); _dest.Write(v.SourceID); return this; }
+        public override Output Emit(in ActionEffects v)
+        {
+            for (int i = 0; i < ActionEffects.MaxCount; ++i)
+                _dest.Write(v[i]);
+            return this;
+        }
         public override Output Emit(List<ActorCastEvent.Target> v)
         {
             _dest.Write(v.Count);
