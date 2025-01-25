@@ -14,8 +14,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     #region Core
     protected WorldState WorldState => Bossmods.WorldState;
     protected PartyRolesConfig PRC => Service.Config.Get<PartyRolesConfig>();
-    public void QueueGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum => QueueGCD(aid, target, (int)(object)priority, delay);
-    public void QueueOGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum => QueueOGCD(aid, target, (int)(object)priority, delay);
+
+    #region Ability Execution
     public bool QueueAction(AID aid, Actor? target, float priority, float delay)
     {
         if ((uint)(object)aid == 0)
@@ -61,6 +61,30 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
         QueueAction(aid, target, ActionQueue.Priority.Medium + priority, delay);
     }
+
+    /// <summary>
+    /// The primary function we use to call our GCD abilities.
+    /// </summary>
+    /// <typeparam name="P"></typeparam>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
+    /// <param name="target">The user's specified <em>Target</em>.</param>
+    /// <param name="priority"></param>
+    /// <param name="delay"></param>
+    /// <returns></returns>
+    public void QueueGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum => QueueGCD(aid, target, (int)(object)priority, delay);
+
+    /// <summary>
+    /// The primary function we use to call our OGCD abilities.
+    /// </summary>
+    /// <typeparam name="P"></typeparam>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
+    /// <param name="target">The user's specified <em>Target</em>.</param>
+    /// <param name="priority"></param>
+    /// <param name="delay"></param>
+    /// <returns></returns>
+    public void QueueOGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum => QueueOGCD(aid, target, (int)(object)priority, delay);
+    #endregion
+
     #endregion
 
     #region Actions
@@ -235,7 +259,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>
     /// Estimated time remaining until next downtime phase.
     /// </summary>
-    protected float DowntimeIn { get; private set; }
+    protected float DowntimeIn => Manager.Planner?.EstimateTimeToNextDowntime().Item2 ?? float.MaxValue;
     /// <summary>
     /// Estimated time remaining until next uptime phase.
     /// </summary>
@@ -272,7 +296,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         cycleTime %= 120;
         return cycleTime < 20 ? (20 - cycleTime, 0) : (0, 120 - cycleTime);
     }
-    protected float ForceMovementIn;
+    protected float ForceMovementIn => Hints.MaxCastTimeEstimate;
     #endregion
 
     #region Status
@@ -332,34 +356,61 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     #region Targeting
     /// <summary>
+    /// Checks if target is within <em>Zero (0) yalms</em> in distance, or if Player is inside hitbox.
+    /// </summary>
+    /// <param name="target">The user's specified <em>Target</em>.</param>
+    /// <returns></returns>
+    protected bool In0y(Actor? target) => Player.DistanceToHitbox(target) <= 0.00f;
+
+    /// <summary>
     /// Checks if target is within <em>Three (3) yalms</em> in distance.
     /// </summary>
-    protected bool In3y(Actor? target) => Player.DistanceToHitbox(target) <= 2.99f; //Check if the target is within melee range (3 yalms)
+    /// <param name="target">The user's specified <em>Target</em>.</param>
+    /// <returns></returns>
+    protected bool In3y(Actor? target) => Player.DistanceToHitbox(target) <= 2.99f;
+
     /// <summary>
     /// Checks if target is within <em>Five (5) yalms</em> in distance.
     /// </summary>
-    protected bool In5y(Actor? target) => Player.DistanceToHitbox(target) <= 4.99f; //Check if the target is within 5 yalms
+    /// <param name="target">The user's specified <em>Target</em>.</param>
+    /// <returns></returns>
+    protected bool In5y(Actor? target) => Player.DistanceToHitbox(target) <= 4.99f;
+
     /// <summary>
     /// Checks if target is within <em>Ten (10) yalms</em> in distance.
     /// </summary>
-    protected bool In10y(Actor? target) => Player.DistanceToHitbox(target) <= 9.99f; //Check if the target is within 10 yalms
+    /// <param name="target">The user's specified <em>Target</em>.</param>
+    /// <returns></returns>
+    protected bool In10y(Actor? target) => Player.DistanceToHitbox(target) <= 9.99f;
+
     /// <summary>
     /// Checks if target is within <em>Fifteen (15) yalms</em> in distance.
     /// </summary>
-    protected bool In15y(Actor? target) => Player.DistanceToHitbox(target) <= 14.99f; //Check if the target is within 15 yalms
+    /// <param name="target">The user's specified <em>Target</em>.</param>
+    /// <returns></returns>
+    protected bool In15y(Actor? target) => Player.DistanceToHitbox(target) <= 14.99f;
+
     /// <summary>
     /// Checks if target is within <em>Twenty (20) yalms</em> in distance.
     /// </summary>
-    protected bool In20y(Actor? target) => Player.DistanceToHitbox(target) <= 19.99f; //Check if the target is within 20 yalms
+    /// <param name="target">The user's specified <em>Target</em>.</param>
+    /// <returns></returns>
+    protected bool In20y(Actor? target) => Player.DistanceToHitbox(target) <= 19.99f;
+
     /// <summary>
     /// Checks if target is within <em>Twenty-five (25) yalms</em> in distance.
     /// </summary>
-    protected bool In25y(Actor? target) => Player.DistanceToHitbox(target) <= 24.99f; //Check if the target is within 25 yalms
+    /// <param name="target">The user's specified <em>Target</em>.</param>
+    /// <returns></returns>
+    protected bool In25y(Actor? target) => Player.DistanceToHitbox(target) <= 24.99f;
+
     /// <summary>
-    /// <para>A simpler smart-targeting helper for selecting a <em>specific</em> target over your current target.</para>
+    /// <para>A simpler smart-targeting helper for picking a <em>specific</em> target over your current target.</para>
     /// <para>Very useful for intricate planning of ability targeting in specific situations.</para>
     /// </summary>
-    public Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value); //Resolves the target choice based on the strategy
+    /// <param name="track">The user's picked strategy's option <em>Track</em>, retrieved from module's enums and definitions. (e.g. <em>strategy.Option(Track.NoMercy)</em>)</param>
+    /// <returns></returns>
+    public Actor? TargetChoice(StrategyValues.OptionRef track) => ResolveTargetOverride(track.Value); //Resolves the target choice based on the strategy
 
     /// <summary>Targeting function for indicating when or not <em>AOE Circle</em> abilities should be used based on targets nearby.</summary>
     /// <param name="range">The range of the <em>AOE Circle</em> ability, or radius from center of Player; this should be adjusted accordingly to user's module specific to job's abilities.</param>
@@ -378,53 +429,13 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         return (OnTwoOrMore, OnThreeOrMore, OnFourOrMore, OnFiveOrMore);
     }
 
-    /// <summary>Targeting function for indicating when or not <em>AOE Cone</em> abilities should be used based on targets nearby.</summary>
-    /// <param name="primary">The <em>Primary Target</em> for the ability that the user is specifying; ability tracked <em>must</em> be inside the module's <em>Track</em> enum for target selection.</param>
-    /// <param name="range">The range of the <em>AOE Cone</em> ability, or radius from center of Player; this should be adjusted accordingly to user's module specific to job's abilities.</param>
-    /// <returns>- A tuple with the following booleans:
-    /// <para><b>-- OnTwoOrMore</b>: A boolean indicating if there are two (2) or more targets inside Player's <em>AOE Cone</em>.</para>
-    /// <para><b>-- OnThreeOrMore</b>: A boolean indicating if there are three (3) or more targets inside Player's <em>AOE Cone</em>.</para>
-    /// <para><b>-- OnFourOrMore</b>: A boolean indicating if there are four (4) or more targets inside Player's <em>AOE Cone</em>.</para>
-    /// <para><b>-- OnFiveOrMore</b>: A boolean indicating if there are five (5) or more targets inside Player's <em>AOE Cone</em>.</para></returns>
-    protected (bool OnTwoOrMore, bool OnThreeOrMore, bool OnFourOrMore, bool OnFiveOrMore) ShouldUseAOECone(Actor primary, float range)
-    {
-        var OnTwoOrMore = Hints.NumPriorityTargetsInAOECone(Player.Position, range, (primary.Position - Player.Position).Normalized(), 45.Degrees()) > 1;
-        var OnThreeOrMore = Hints.NumPriorityTargetsInAOECone(Player.Position, range, (primary.Position - Player.Position).Normalized(), 45.Degrees()) > 2;
-        var OnFourOrMore = Hints.NumPriorityTargetsInAOECone(Player.Position, range, (primary.Position - Player.Position).Normalized(), 45.Degrees()) > 3;
-        var OnFiveOrMore = Hints.NumPriorityTargetsInAOECone(Player.Position, range, (primary.Position - Player.Position).Normalized(), 45.Degrees()) > 4;
-
-        return (OnTwoOrMore, OnThreeOrMore, OnFourOrMore, OnFiveOrMore);
-    }
-
     /// <summary>
-    /// Targeting function for determining when an <em>AOE Rectangle (or Line)</em> ability should be used based on nearby targets.
+    /// This function attempts to pick a suitable primary target automatically, even if a target is not already picked.
     /// </summary>
-    /// <param name="range">
-    /// The range of the <em>AOE Rectangle</em> ability or radius from the center of the Player.
-    /// This should be adjusted based on the user's job-specific abilities.
-    /// </param>
-    /// <returns>
-    /// A tuple with the following booleans:
-    /// <para><b>-- OnTwoOrMore</b>: Indicates if there are 2 or more targets inside the <em>AOE Rectangle</em>.</para>
-    /// <para><b>-- OnThreeOrMore</b>: Indicates if there are 3 or more targets inside the <em>AOE Rectangle</em>.</para>
-    /// <para><b>-- OnFourOrMore</b>: Indicates if there are 4 or more targets inside the <em>AOE Rectangle</em>.</para>
-    /// <para><b>-- OnFiveOrMore</b>: Indicates if there are 5 or more targets inside the <em>AOE Rectangle</em>.</para>
-    /// </returns>
-    public (bool OnTwoOrMore, bool OnThreeOrMore, bool OnFourOrMore, bool OnFiveOrMore) ShouldUseAOERect(Actor primary, float range, float width = 2)
-    {
-        if (primary == null || range <= 0 || width <= 0)
-            return (false, false, false, false);
-
-        var direction = (primary.Position - Player.Position).Normalized();
-        var targetCount = Hints.NumPriorityTargetsInAOERect(Player.Position, direction, range, width);
-
-        return (targetCount >= 2, targetCount >= 3, targetCount >= 4, targetCount >= 5);
-    }
-
-    /// <summary>
-    /// Attempts to select a suitable primary target automatically.
-    /// </summary>
-    protected void SelectPrimaryTarget(StrategyValues strategy, ref Actor? primaryTarget, float range)
+    /// <param name="strategy">The user's picked <em>Strategy</em></param>
+    /// <param name="primaryTarget">The user's current <em>picked Target</em>.</param>
+    /// <param name="range"></param>
+    protected void GetPrimaryTarget(StrategyValues strategy, ref Actor? primaryTarget, float range)
     {
         if (!IsValidEnemy(primaryTarget))
             primaryTarget = null;
@@ -441,24 +452,51 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
             }
         }
     }
+
     /// <summary>
-    /// Attempts to select the best target automatically.
+    /// This function attempts to pick the best target automatically.
     /// </summary>
-    protected (Actor? Best, int Targets) SelectBestTarget(
+    /// <param name="strategy">The user's picked <em>Strategy</em></param>
+    /// <param name="primaryTarget">The user's current <em>picked Target</em>.</param>
+    /// <param name="range"></param>
+    /// <param name="isInAOE"></param>
+    /// <returns></returns>
+    protected (Actor? Best, int Targets) GetBestTarget(
         StrategyValues strategy,
         Actor? primaryTarget,
         float range,
         PositionCheck isInAOE
-    ) => SelectTarget(strategy, primaryTarget, range, isInAOE, (numTargets, _) => numTargets, a => a);
+    ) => GetTarget(strategy, primaryTarget, range, isInAOE, (numTargets, _) => numTargets, a => a);
+
     /// <summary>
-    /// Attempts to select the best target automatically by tracking HP.
+    /// This function picks the target based on HP, modified by how many targets are in the AOE.
     /// </summary>
-    protected (Actor? Best, int Targets) SelectTargetByHP(StrategyValues strategy, Actor? primaryTarget, float range, PositionCheck isInAOE)
-        => SelectTarget(strategy, primaryTarget, range, isInAOE, (numTargets, actor) => (numTargets, numTargets > 2 ? actor.HPMP.CurHP : 0), args => args.numTargets);
+    /// <param name="strategy"></param>
+    /// <param name="primaryTarget">The user's current <em>picked Target</em>.</param>
+    /// <param name="range"></param>
+    /// <param name="isInAOE"></param>
+    /// <returns></returns>
+    protected (Actor? Best, int Targets) GetTargetByHP(
+        StrategyValues strategy,
+        Actor? primaryTarget,
+        float range,
+        PositionCheck isInAOE
+    ) => GetTarget(strategy, primaryTarget, range, isInAOE,
+        (numTargets, actor) => (numTargets, numTargets > 2 ? actor.HPMP.CurHP : 0),
+        args => args.numTargets);
+
     /// <summary>
-    /// Helper for <em>SelectTarget</em> functions.
+    /// Main function for picking a target, generalized for any prioritization and simplification logic.
     /// </summary>
-    protected (Actor? Best, int Priority) SelectTarget<P>(
+    /// <typeparam name="P"></typeparam>
+    /// <param name="strategy"></param>
+    /// <param name="primaryTarget">The user's current <em>picked Target</em>.</param>
+    /// <param name="range"></param>
+    /// <param name="isInAOE"></param>
+    /// <param name="prioritize"></param>
+    /// <param name="simplify"></param>
+    /// <returns></returns>
+    protected (Actor? Best, int Priority) GetTarget<P>(
         StrategyValues strategy,
         Actor? primaryTarget,
         float range,
@@ -467,34 +505,35 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         Func<P, int> simplify
     ) where P : struct, IComparable
     {
-        var AOEStrat = strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
+        // Local function for calculating the target priority.
         P targetPrio(Actor potentialTarget)
         {
             var numTargets = Hints.NumPriorityTargetsInAOE(enemy => isInAOE(potentialTarget, enemy.Actor));
-            return prioritize(AdjustNumTargets(strategy, numTargets), potentialTarget);
+            return prioritize(numTargets, potentialTarget); // Prioritize based on number of targets in AOE and the potential target
         }
 
-        var (newtarget, newprio) = strategy switch
-        {
-            { } when AOEStrat == AOEStrategy.Automatic => primaryTarget == null
-                ? (null, Priority: default)
-                : FindBetterTargetBy(
-                    primaryTarget,
-                    range,
-                    targetPrio,
-                    enemy => isInAOE(enemy.Actor, primaryTarget)
-                ),
-            _ => (primaryTarget, primaryTarget == null ? default : targetPrio(primaryTarget))
-        };
+        // If no primary target, we return null immediately, otherwise find a better target.
+        var (newtarget, newprio) = primaryTarget == null
+            ? (null, default)
+            : FindBetterTargetBy(primaryTarget, range, targetPrio); // Find a better target by using the provided logic
 
+        // Simplify the calculated priority.
         var newnewprio = simplify(newprio);
+
+        // Return the picked target if it has a valid priority.
         return (newnewprio > 0 ? newtarget : null, newnewprio);
     }
 
     /// <summary>
     /// Identify an appropriate target for applying <em>DoT</em> effect. This has no impact if any <em>auto-targeting</em> is disabled.
     /// </summary>
-    protected (Actor? Target, P Timer) SelectDOTTarget<P>(StrategyValues strategy, Actor? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
+    /// <typeparam name="P"></typeparam>
+    /// <param name="strategy"></param>
+    /// <param name="initial"></param>
+    /// <param name="getTimer"></param>
+    /// <param name="maxAllowedTargets"></param>
+    /// <returns></returns>
+    protected (Actor? Target, P Timer) GetDOTTarget<P>(StrategyValues strategy, Actor? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
     {
         var AOEStrat = strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
         switch (AOEStrat)
@@ -527,6 +566,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
         return (newTarget, newTimer);
     }
+
     /// <summary>
     /// Calculates number of AOE targets nearby inside <em>Melee range.</em>
     /// </summary>
@@ -645,11 +685,12 @@ static class ModuleExtensions
     /// <returns>- Options for shared custom strategies to be used via <em>AutoRotation</em> or <em>Cooldown Planner</em></returns>
     public static RotationModuleDefinition DefineShared(this RotationModuleDefinition res)
     {
-        res.Define(SharedTrack.AOE).As<AOEStrategy>("AOE")
+        res.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", uiPriority: 300)
             .AddOption(AOEStrategy.Automatic, "Auto", "Use optimal rotation", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceST, "ForceST", "Force Single Target", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Force AOE rotation", supportedTargets: ActionTargets.Hostile);
-        res.Define(SharedTrack.Hold).As<HoldStrategy>("Hold")
+
+        res.Define(SharedTrack.Hold).As<HoldStrategy>("Hold", uiPriority: 290)
             .AddOption(HoldStrategy.DontHold, "DontHold", "Don't hold any cooldowns or gauge abilities")
             .AddOption(HoldStrategy.HoldCooldowns, "Hold", "Hold all cooldowns only")
             .AddOption(HoldStrategy.HoldGauge, "HoldGauge", "Hold all gauge abilities only")
@@ -661,37 +702,39 @@ static class ModuleExtensions
     /// <param name="track">The <em>Track</em> for the ability that the user is specifying; ability tracked <em>must</em> be inside the module's <em>Track</em> enum for target selection.</param>
     /// <param name="internalName">The <em>Internal Name</em> for the ability that the user is specifying; we usually want to put the full name of the ability here, as this will show up as the main name representing this option. (e.g. "No Mercy")</param>
     /// <param name="displayName">The <em>Display Name</em> for the ability that the user is specifying; we usually want to put some sort of abbreviation here, as this will show up as the secondary name representing this option. (e.g. "NM" or "N.Mercy")</param>
+    /// <param name="uiPriority">The priority for specified ability inside the UI. (e.g. Higher the number = More to the left (in CDPlanner) or top (in Autorotation) menus)</param>
     /// <param name="cooldown"><para>The <em>Cooldown</em> for the ability that the user is specifying; 0 if none.</para><para><em>NOTE:</em> For charge abilities, this will check for its Charge CD, not its Total CD.</para></param>
     /// <param name="effectDuration">The <em>Effect Duration</em> for the ability that the user is specifying; 0 if none.</param>
     /// <param name="supportedTargets">The <em>Targets Supported</em> for the ability that the user is specifying.</param>
     /// <param name="minLevel">The <em>Minimum Level</em> required for the ability that the user is specifying.</param>
     /// <param name="maxLevel">The <em>Maximum Level</em> required for the ability that the user is specifying.</param>
     /// <returns>- Basic GCD options for any specified ability to be used via <em>AutoRotation</em> or <em>Cooldown Planner</em></returns>
-    public static RotationModuleDefinition.ConfigRef<GCDStrategy> DefineGCD<Index>(this RotationModuleDefinition res, Index track, string internalName, string displayName = "", float cooldown = 0, float effectDuration = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = 100) where Index : Enum
+    public static RotationModuleDefinition.ConfigRef<GCDStrategy> DefineGCD<Index>(this RotationModuleDefinition res, Index track, string internalName, string displayName = "", int uiPriority = 100, float cooldown = 0, float effectDuration = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = 100) where Index : Enum
     {
-        return res.Define(track).As<GCDStrategy>(internalName, displayName: displayName)
-            .AddOption(GCDStrategy.Automatic, "Auto", "Use when optimal", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
-            .AddOption(GCDStrategy.Force, "Force", "Use ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+        return res.Define(track).As<GCDStrategy>(internalName, displayName: displayName, uiPriority: uiPriority)
+            .AddOption(GCDStrategy.Automatic, "Auto", "Automatically uses when optimal", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(GCDStrategy.Force, "Force", "Force use ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
             .AddOption(GCDStrategy.Delay, "Delay", "Do not use", 0, 0, ActionTargets.None, minLevel: minLevel, maxLevel);
     }
     /// <summary>A quick and easy helper for shortcutting how we define our <em>OGCD</em> abilities.</summary>
     /// <param name="track">The <em>Track</em> for the ability that the user is specifying; ability tracked <em>must</em> be inside the module's <em>Track</em> enum for target selection.</param>
     /// <param name="internalName">The <em>Internal Name</em> for the ability that the user is specifying; we usually want to put the full name of the ability here, as this will show up as the main name representing this option. (e.g. "No Mercy")</param>
     /// <param name="displayName">The <em>Display Name</em> for the ability that the user is specifying; we usually want to put some sort of abbreviation here, as this will show up as the secondary name representing this option. (e.g. "NM" or "N.Mercy")</param>
+    /// <param name="uiPriority">The priority for specified ability inside the UI. (e.g. Higher the number = More to the left (in CDPlanner) or top (in Autorotation) menus)</param>
     /// <param name="cooldown"><para>The <em>Cooldown</em> for the ability that the user is specifying; 0 if none.</para><para><em>NOTE:</em> For charge abilities, this will check for its Charge CD, not its Total CD.</para></param>
     /// <param name="effectDuration">The <em>Effect Duration</em> for the ability that the user is specifying; 0 if none.</param>
     /// <param name="supportedTargets">The <em>Targets Supported</em> for the ability that the user is specifying.</param>
     /// <param name="minLevel">The <em>Minimum Level</em> required for the ability that the user is specifying.</param>
     /// <param name="maxLevel">The <em>Maximum Level</em> required for the ability that the user is specifying.</param>
     /// <returns>- Basic OGCD options for any specified ability to be used via <em>AutoRotation</em> or <em>Cooldown Planner</em></returns>
-    public static RotationModuleDefinition.ConfigRef<OGCDStrategy> DefineOGCD<Index>(this RotationModuleDefinition res, Index track, string internalName, string displayName = "", float cooldown = 0, float effectDuration = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = 100) where Index : Enum
+    public static RotationModuleDefinition.ConfigRef<OGCDStrategy> DefineOGCD<Index>(this RotationModuleDefinition res, Index track, string internalName, string displayName = "", int uiPriority = 100, float cooldown = 0, float effectDuration = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = 100) where Index : Enum
     {
-        return res.Define(track).As<OGCDStrategy>(internalName, displayName: displayName)
-            .AddOption(OGCDStrategy.Automatic, "Auto", "Use when optimal", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
-            .AddOption(OGCDStrategy.Force, "Force", "Use ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
-            .AddOption(OGCDStrategy.AnyWeave, "AnyWeave", "Use in next possible weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
-            .AddOption(OGCDStrategy.EarlyWeave, "EarlyWeave", "Use in next possible early weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
-            .AddOption(OGCDStrategy.LateWeave, "LateWeave", "Use in next possible late weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+        return res.Define(track).As<OGCDStrategy>(internalName, displayName: displayName, uiPriority: uiPriority)
+            .AddOption(OGCDStrategy.Automatic, "Auto", "Automatically uses when optimal", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(OGCDStrategy.Force, "Force", "Force use ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(OGCDStrategy.AnyWeave, "AnyWeave", "Force use in next possible weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(OGCDStrategy.EarlyWeave, "EarlyWeave", "Force use in next possible early-weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(OGCDStrategy.LateWeave, "LateWeave", "Force use in next possible late-weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
             .AddOption(OGCDStrategy.Delay, "Delay", "Do not use", 0, 0, ActionTargets.None, minLevel: minLevel, maxLevel);
     }
     public static bool AutoAOE(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() is AOEStrategy.Automatic;
