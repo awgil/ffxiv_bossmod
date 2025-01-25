@@ -132,6 +132,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public int PredictedMPRaw => (int)HPMP.CurMP + PendingMPDiffence;
     public int PredictedHPClamped => Math.Clamp(PredictedHPRaw, 0, (int)HPMP.MaxHP);
     public bool PredictedDead => PredictedHPRaw <= 1 && !IsStrikingDummy;
+    public float PredictedHPRatio => (float)PredictedHPRaw / HPMP.MaxHP;
 
     // if expirationForPredicted is not null, search pending first, and return one if found; in that case only low byte of extra will be set
     public ActorStatus? FindStatus(uint sid, DateTime? expirationForPending = null)
@@ -161,7 +162,8 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public ActorStatus? FindStatus<SID>(SID sid, DateTime? expirationForPending = null) where SID : Enum => FindStatus((uint)(object)sid, expirationForPending);
     public ActorStatus? FindStatus<SID>(SID sid, ulong source, DateTime? expirationForPending = null) where SID : Enum => FindStatus((uint)(object)sid, source, expirationForPending);
 
-    public WDir DirectionTo(Actor other) => (other.Position - Position).Normalized();
+    public WDir DirectionTo(WPos other) => (other - Position).Normalized();
+    public WDir DirectionTo(Actor other) => DirectionTo(other.Position);
     public Angle AngleTo(Actor other) => Angle.FromDirection(other.Position - Position);
 
     public float DistanceToHitbox(Actor? other) => other == null ? float.MaxValue : (other.Position - Position).Length() - other.HitboxRadius - HitboxRadius;
