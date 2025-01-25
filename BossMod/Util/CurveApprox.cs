@@ -27,18 +27,6 @@ public static class CurveApprox
     }
     public static IEnumerable<WPos> Circle(WPos center, float radius, float maxError) => Circle(radius, maxError).Select(off => center + off);
 
-    public static IEnumerable<WDir> Ellipse(float axis1, float axis2, float maxError)
-    {
-        int numSegments = CalculateCircleSegments((axis1 + axis2) / 2f, (2 * MathF.PI).Radians(), maxError);
-        var angle = (2 * MathF.PI / numSegments).Radians();
-        for (int i = 0; i < numSegments; ++i)
-        {
-            var t = i * angle;
-            yield return new WDir(axis1 * t.Cos(), axis2 * t.Sin());
-        }
-    }
-    public static IEnumerable<WPos> Ellipse(WPos center, float axis1, float axis2, float maxError) => Ellipse(axis1, axis2, maxError).Select(off => center + off);
-
     // return polygon points approximating circle arc; both start and end points are included
     // winding: points are either in CCW order (if length is positive) or CW order (if length is negative)
     public static IEnumerable<WDir> CircleArc(float radius, Angle angleStart, Angle angleEnd, float maxError)
