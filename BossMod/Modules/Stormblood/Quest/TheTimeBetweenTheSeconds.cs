@@ -4,36 +4,27 @@ public enum OID : uint
 {
     Boss = 0x1A36,
     Helper = 0x233C,
-    _Gen_ZenosYaeGalvus = 0x1CEE, // R0.500, x9
-    _Gen_DomanSignifer = 0x1A3A, // R0.500, x3
-    _Gen_DomanHoplomachus = 0x1A39, // R0.500, x2
-    _Gen_ZenosYaeGalvus1 = 0x1EBC, // R0.920, x1
-    _Gen_DarkReflection = 0x1A37, // R0.920, x2
-    _Gen_LightlessFlame = 0x1CED, // R1.000, x0 (spawn during fight)
+    ZenosYaeGalvus = 0x1CEE, // R0.500, x9
+    DomanSignifer = 0x1A3A, // R0.500, x3
+    DomanHoplomachus = 0x1A39, // R0.500, x2
+    ZenosYaeGalvus1 = 0x1EBC, // R0.920, x1
+    DarkReflection = 0x1A37, // R0.920, x2
+    LightlessFlame = 0x1CED, // R1.000, x0 (spawn during fight)
 }
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 870, // 1A39/Boss->player/1A38, no cast, single-target
-    _Spell_Fire = 966, // 1A3A->1A38, 1.0s cast, single-target
-    _Weaponskill_FastBlade = 717, // 1A39->1A38, no cast, single-target
-    _Ability_ = 8690, // 1A36->location, no cast, ???
-    _Weaponskill_VeinSplitter = 8987, // 1A36->self, 3.5s cast, range 10 circle
-    _Ability_1 = 3269, // 1A36->self, no cast, single-target
-    _Weaponskill_Concentrativity = 8986, // 1A36->self, 3.0s cast, range 80 circle
-    _Ability_2 = 4777, // 1A36->self, no cast, single-target
-    _Weaponskill_LightlessFlame = 8988, // 1CED->self, 1.0s cast, range 10+R circle
-    _Weaponskill_LightlessSpark = 8985, // 1A36->self, 3.0s cast, range 40+R 90-degree cone
-    _Weaponskill_Unsheathe = 8997, // 1A36->self, 3.0s cast, single-target
-    _Weaponskill_Unsheathe1 = 9016, // 1CEE->self, no cast, range 80+R circle
-    _Weaponskill_ArtOfTheSword = 8992, // Boss->self, 4.0s cast, single-target
-    _Weaponskill_ArtOfTheSword1 = 8993, // 1CEE->self, 3.0s cast, range 40+R width 6 rect
+    VeinSplitter = 8987, // 1A36->self, 3.5s cast, range 10 circle
+    Concentrativity = 8986, // 1A36->self, 3.0s cast, range 80 circle
+    LightlessFlame = 8988, // 1CED->self, 1.0s cast, range 10+R circle
+    LightlessSpark = 8985, // 1A36->self, 3.0s cast, range 40+R 90-degree cone
+    ArtOfTheSword1 = 8993, // 1CEE->self, 3.0s cast, range 40+R width 6 rect
 }
 
-class ArtOfTheSword(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_ArtOfTheSword1), new AOEShapeRect(41, 3));
-class VeinSplitter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_VeinSplitter), new AOEShapeCircle(10));
-class Concentrativity(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_Concentrativity));
-class LightlessFlame(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID._Weaponskill_LightlessFlame))
+class ArtOfTheSword(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ArtOfTheSword1), new AOEShapeRect(41, 3));
+class VeinSplitter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VeinSplitter), new AOEShapeCircle(10));
+class Concentrativity(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Concentrativity));
+class LightlessFlame(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.LightlessFlame))
 {
     private readonly Dictionary<ulong, (WPos position, DateTime activation)> Flames = [];
 
@@ -41,29 +32,29 @@ class LightlessFlame(BossModule module) : Components.GenericAOEs(module, ActionI
 
     public override void OnActorCreated(Actor actor)
     {
-        if ((OID)actor.OID == OID._Gen_LightlessFlame)
+        if ((OID)actor.OID == OID.LightlessFlame)
             Flames.Add(actor.InstanceID, (actor.Position, WorldState.CurrentTime.AddSeconds(7)));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_LightlessFlame)
+        if ((AID)spell.Action.ID == AID.LightlessFlame)
             Flames[caster.InstanceID] = (caster.Position, Module.CastFinishAt(spell));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_LightlessFlame)
+        if ((AID)spell.Action.ID == AID.LightlessFlame)
             Flames.Remove(caster.InstanceID);
     }
 }
-class LightlessSpark(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_LightlessSpark), new AOEShapeCone(40.92f, 45.Degrees()));
+class LightlessSpark(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightlessSpark), new AOEShapeCone(40.92f, 45.Degrees()));
 class P2Boss(BossModule module) : BossComponent(module)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        Arena.Actors(Module.Enemies(OID._Gen_ZenosYaeGalvus1), ArenaColor.Enemy);
-        Arena.Actors(Module.Enemies(OID._Gen_DarkReflection), ArenaColor.Enemy);
+        Arena.Actors(Module.Enemies(OID.ZenosYaeGalvus1), ArenaColor.Enemy);
+        Arena.Actors(Module.Enemies(OID.DarkReflection), ArenaColor.Enemy);
     }
 }
 
@@ -74,7 +65,7 @@ class ZenosYaeGalvusStates : StateMachineBuilder
         SimplePhase(0, id => BuildState(id, "P1 enrage", 1800), "P1")
             .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
         SimplePhase(1, id => BuildState(id, "P2 enrage", 1800).ActivateOnEnter<ArtOfTheSword>().ActivateOnEnter<P2Boss>(), "P2")
-            .Raw.Update = () => !Module.Enemies(OID._Gen_ZenosYaeGalvus1).Any();
+            .Raw.Update = () => !Module.Enemies(OID.ZenosYaeGalvus1).Any();
     }
 
     private State BuildState(uint id, string name, float duration = 10000)
@@ -87,7 +78,7 @@ class ZenosYaeGalvusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68034, NameID = 5954)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68034, NameID = 5954)]
 public class ZenosYaeGalvus(WorldState ws, Actor primary) : BossModule(ws, primary, new(-247, 546.5f), CustomBounds)
 {
     private static readonly List<WDir> vertices = [

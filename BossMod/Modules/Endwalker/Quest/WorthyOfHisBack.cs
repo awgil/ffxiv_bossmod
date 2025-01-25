@@ -1,6 +1,4 @@
-﻿using BossMod.QuestBattle;
-
-namespace BossMod.Endwalker.Quest.WorthyOfHisBack;
+﻿namespace BossMod.Endwalker.Quest.WorthyOfHisBack;
 
 public enum OID : uint
 {
@@ -273,4 +271,4 @@ public class VenatStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "xan", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69968, NameID = 10586)]
-public class Venat(WorldState ws, Actor primary) : InstapullModule(ws, primary, new(-630, 72), new ArenaBoundsCircle(24.5f));
+public class Venat(WorldState ws, Actor primary) : BossModule(ws, primary, new(-630, 72), new ArenaBoundsCircle(24.5f));

@@ -1,5 +1,4 @@
-﻿using BossMod.Autorotation;
-using BossMod.QuestBattle;
+﻿using BossMod.QuestBattle;
 using RID = BossMod.Roleplay.AID;
 
 namespace BossMod.Shadowbringers.Quest.DeathUntoDawn.P3;
@@ -15,17 +14,7 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _Ability_Explosion = 24046, // 3204->self, 5.0s cast, range 80 width 10 cross
-    _Ability_AtmaLinga = 24052, // Boss->self, no cast, range 40 circle
-    _Ability_SoulsOfWar = 24037, // Boss->self, 2.0s cast, single-target
-    _Spell_Freeze = 24039, // SpiritGana->2E2E, 8.0s cast, single-target
-    _Ability_BloodyFuller = 24040, // Boss->self, 6.0s cast, range 40 circle
-    _Ability_Chandrahas = 24041, // Boss->self, no cast, range 40 circle
-    _Ability_BlindingBlade = 24051, // Boss->player, no cast, range 11 ?-degree cone
-    _Ability_TheSeeingTail = 24047, // Boss->self, 1.5s cast, single-target
-    _Ability_Revengeance = 24048, // Helper->player, no cast, single-target
-    _Ability_ = 24045, // Boss->self, no cast, single-target
-    _Spell_Flare = 24038, // MoonGana->2E2E, 8.0s cast, single-target
+    Explosion = 24046, // 3204->self, 5.0s cast, range 80 width 10 cross
 }
 
 public enum SID : uint
@@ -89,14 +78,11 @@ class DirectionalParry(BossModule module) : Components.DirectionalParry(module, 
     {
         if (Module.PrimaryActor.FindStatus(680) != null)
         {
-            var dist = new AOEShapeCone(100, 45.Degrees()).Distance(Module.PrimaryActor.Position, Module.PrimaryActor.Rotation);
-            hints.AddForbiddenZone(dist, WorldState.FutureTime(1));
-            if (dist(actor.Position) < 0)
-                hints.ForcedTarget = actor;
+            hints.AddForbiddenZone(new AOEShapeCone(100, 45.Degrees()), Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, WorldState.FutureTime(10));
         }
     }
 }
-class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Ability_Explosion), new AOEShapeCross(80, 5), maxCasts: 2);
+class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion), new AOEShapeCross(80, 5), maxCasts: 2);
 
 class LunarRavanaStates : StateMachineBuilder
 {
@@ -110,7 +96,7 @@ class LunarRavanaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69602, NameID = 10037)]
-public class LunarRavana(WorldState ws, Actor primary) : InstapullModule(ws, primary, new(-144, 83), new ArenaBoundsCircle(20))
+public class LunarRavana(WorldState ws, Actor primary) : BossModule(ws, primary, new(-144, 83), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 

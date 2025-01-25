@@ -109,14 +109,12 @@ class P1Hints(BossModule module) : BossComponent(module)
     {
         foreach (var e in hints.PotentialTargets)
         {
-            e.Priority = 1;
-
             if (e.Actor.FindStatus(SID.Invincibility) != null)
-                e.Priority = 0;
+                e.Priority = AIHints.Enemy.PriorityInvincible;
 
             // they do very little damage and sadu will raise them after a short delay, no point in attacking
             if ((OID)e.Actor.OID == OID.KhunShavar)
-                e.Priority = 0;
+                e.Priority = AIHints.Enemy.PriorityPointless;
         }
     }
 }
@@ -161,11 +159,9 @@ class SaduHeavensflameStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68683, NameID = 6152)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68683, NameID = 6152)]
 public class SaduHeavensflame(WorldState ws, Actor primary) : BossModule(ws, primary, new(-223, 519), new ArenaBoundsCircle(20))
 {
-    protected override bool CheckPull() => true;
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);

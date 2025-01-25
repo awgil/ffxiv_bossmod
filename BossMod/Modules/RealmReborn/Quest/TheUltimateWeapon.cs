@@ -10,16 +10,16 @@ public enum OID : uint
 public enum AID : uint
 {
     AncientFireIII = 29327, // Boss->self, 4.0s cast, range 40 circle
-    DarkThunder = 29329, // _Gen_Lahabrea->self, 4.0s cast, range 1 circle
+    DarkThunder = 29329, // Lahabrea->self, 4.0s cast, range 1 circle
     EndOfDays = 29331, // Boss->self, 4.0s cast, range 60 width 8 rect
-    EndOfDaysAdds = 29762, // _Gen_PhantomLahabrea->self, 4.0s cast, range 60 width 8 rect
+    EndOfDaysAdds = 29762, // PhantomLahabrea->self, 4.0s cast, range 60 width 8 rect
     Nightburn = 29340, // Boss->player, 4.0s cast, single-target
     FiresphereSummon = 29332, // Boss->self, 4.0s cast, single-target
-    Burst = 29333, // _Gen_Firesphere->self, 3.0s cast, range 8 circle
-    AncientEruption = 29335, // _Gen_Lahabrea->self, 4.0s cast, range 6 circle
-    FluidFlare = 29760, // _Gen_Lahabrea->self, 4.0s cast, range 40 60-degree cone
-    AncientCross = 29756, // _Gen_Lahabrea->self, 4.0s cast, range 6 circle
-    BurstFlare = 29758, // _Gen_Lahabrea->self, 5.0s cast, range 60 circle
+    Burst = 29333, // Firesphere->self, 3.0s cast, range 8 circle
+    AncientEruption = 29335, // Lahabrea->self, 4.0s cast, range 6 circle
+    FluidFlare = 29760, // Lahabrea->self, 4.0s cast, range 40 60-degree cone
+    AncientCross = 29756, // Lahabrea->self, 4.0s cast, range 6 circle
+    BurstFlare = 29758, // Lahabrea->self, 5.0s cast, range 60 circle
     GripOfNight = 29337, // Boss->self, 6.0s cast, range 40 150-degree cone
 }
 
@@ -135,6 +135,6 @@ class LahabreaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70058, NameID = 2143)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70058, NameID = 2143)]
 public class Lahabrea(WorldState ws, Actor primary) : BossModule(ws, primary, new(-704, 480), new ArenaBoundsCircle(20));
 

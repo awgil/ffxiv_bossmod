@@ -49,6 +49,6 @@ class RaLaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 792, NameID = 10316)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 792, NameID = 10316)]
 public class RaLa(WorldState ws, Actor primary) : BossModule(ws, primary, new(-380, -135), new ArenaBoundsCircle(20));
 

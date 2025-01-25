@@ -23,30 +23,28 @@ public enum AID : uint
     Geirskogul = 21098, // 2F22/2F21->self, 4.0s cast, range 62 width 8 rect
 
     // zenos
-    _Weaponskill_ = 21119, // Zenos->self, no cast, single-target
-    _Weaponskill_EntropicFlame = 21116, // 2F29->self, 5.0s cast, single-target
-    _Spell_EntropicFlame = 21117, // Helper->self, 5.0s cast, range 50 width 8 rect
-    _Weaponskill_VeinSplitter = 21118, // 2F29->self, 5.0s cast, range 10 circle
+    EntropicFlame = 21117, // Helper->self, 5.0s cast, range 50 width 8 rect
+    VeinSplitter = 21118, // 2F29->self, 5.0s cast, range 10 circle
 
     // ardbert
     Overcome = 21126, // Ardbert->self, 2.5s cast, range 8 120-degree cone
     Skydrive = 21127, // Ardbert->self, 2.5s cast, range 5 circle
     SkyHighDriveCCW = 21138, // Ardbert->self, 4.5s cast, single-target
     SkyHighDriveCW = 21139, // Ardbert->self, 4.5s cast, single-target
-    _Weaponskill_SkyHighDrive1 = 21140, // 233C->self, 5.0s cast, range 40 width 8 rect
-    _Weaponskill_SkyHighDrive2 = 21141, // 233C->self, no cast, range 40 width 8 rect
-    _Weaponskill_AvalancheAxe1 = 21145, // 233C->self, 4.0s cast, range 10 circle
-    _Weaponskill_AvalancheAxe2 = 21144, // 233C->self, 7.0s cast, range 10 circle
-    _Weaponskill_AvalancheAxe3 = 21143, // 233C->self, 10.0s cast, range 10 circle
-    _Weaponskill_OvercomeAllOdds = 21130, // 233C->self, 2.5s cast, range 60 30-degree cone
-    _Weaponskill_Soulflash1 = 21136, // 233C->self, 4.0s cast, range 4 circle
-    _Weaponskill_EtesianAxe1 = 21147, // 233C->self, 6.5s cast, range 80 circle
-    _Weaponskill_Soulflash2 = 21137, // 233C->self, 4.0s cast, range 8 circle
-    _Weaponskill_Groundbreaker1 = 21563, // 233C->self, 5.0s cast, range 6 circle
-    _Weaponskill_Groundbreaker2 = 21151, // 233C->self, no cast, range 6 circle
-    _Weaponskill_Groundbreaker4 = 21153, // 233C->self, 6.0s cast, range 40 90-degree cone
-    _Weaponskill_Groundbreaker6 = 21157, // 233C->self, 6.0s cast, range 5-20 donut
-    _Weaponskill_Groundbreaker8 = 21155, // 233C->self, 6.0s cast, range 15 circle
+    SkyHighDriveFirst = 21140, // 233C->self, 5.0s cast, range 40 width 8 rect
+    SkyHighDriveRest = 21141, // 233C->self, no cast, range 40 width 8 rect
+    AvalanceAxe1 = 21145, // 233C->self, 4.0s cast, range 10 circle
+    AvalanceAxe2 = 21144, // 233C->self, 7.0s cast, range 10 circle
+    AvalanceAxe3 = 21143, // 233C->self, 10.0s cast, range 10 circle
+    OvercomeAllOdds = 21130, // 233C->self, 2.5s cast, range 60 30-degree cone
+    Soulflash1 = 21136, // 233C->self, 4.0s cast, range 4 circle
+    EtesianAxe = 21147, // 233C->self, 6.5s cast, range 80 circle
+    Soulflash2 = 21137, // 233C->self, 4.0s cast, range 8 circle
+    GroundbreakerExaFirst = 21563, // 233C->self, 5.0s cast, range 6 circle
+    GroundbreakerExaRest = 21151, // 233C->self, no cast, range 6 circle
+    GroundbreakerCone = 21153, // 233C->self, 6.0s cast, range 40 90-degree cone
+    GroundbreakerDonut = 21157, // 233C->self, 6.0s cast, range 5-20 donut
+    GroundbreakerCircle = 21155, // 233C->self, 6.0s cast, range 15 circle
 }
 
 public enum SID : uint

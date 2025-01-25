@@ -5,35 +5,25 @@ public enum OID : uint
     Boss = 0x1A88,
     Helper = 0x233C,
     TerminusEst = 0x1BCA,
-    _Gen_MarkXLIIIArtilleryCannon = 0x1B4A, // R2.000, x3
-    _Gen_ = 0x1A57, // R0.500, x8
-    _Gen_SkullsSpear = 0x1A8C, // R0.500, x3
-    _Gen_SkullsBlade = 0x1A8B, // R0.500, x3
-    _Gen_MagitekTurretII = 0x1BC7, // R0.600, x0 (spawn during fight)
+    MarkXLIIIArtilleryCannon = 0x1B4A, // R2.000, x3
+    SkullsSpear = 0x1A8C, // R0.500, x3
+    SkullsBlade = 0x1A8B, // R0.500, x3
+    MagitekTurretII = 0x1BC7, // R0.600, x0 (spawn during fight)
     ChoppingBlock = 0x1EA4D9, // R0.500, x0 (spawn during fight), voidzone event object
 }
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 870, // 1A8B/Boss->player/1F75/1F77/1F76, no cast, single-target
-    _AutoAttack_Attack1 = 871, // 1A8C->1F74/1F78/1F79, no cast, single-target
-    _Weaponskill_Innocence = 8343, // Boss->self, no cast, range 6+R ?-degree cone
-    _Weaponskill_FastBlade = 717, // 1A8B->1F77/1F76/1F75, no cast, single-target
-    _Weaponskill_TrueThrust = 722, // 1A8C->1F78/1F79/1F74, no cast, single-target
-    _Ability_Quickstep = 8696, // Boss->location, no cast, ???
-    _Weaponskill_TerminusEst = 8371, // Boss->self, no cast, single-target
-    _Weaponskill_TheOrder = 8370, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_TerminusEst1 = 8337, // 1BCA->self, no cast, range 40+R width 4 rect
-    _Weaponskill_Gunblade = 8310, // Boss->player, 5.0s cast, single-target, 10y knockback
-    _Weaponskill_PlanB = 8344, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_DiffractiveLaser = 8340, // 1BC7->self, 2.5s cast, range 18+R 60-degree cone
-    _Weaponskill_ChoppingBlock = 8345, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_ChoppingBlock1 = 8346, // 1A57->location, 3.0s cast, range 5 circle
+    TheOrder = 8370, // Boss->self, 3.0s cast, single-target
+    TerminusEst1 = 8337, // 1BCA->self, no cast, range 40+R width 4 rect
+    Gunblade = 8310, // Boss->player, 5.0s cast, single-target, 10y knockback
+    DiffractiveLaser = 8340, // 1BC7->self, 2.5s cast, range 18+R 60-degree cone
+    ChoppingBlock1 = 8346, // 1A57->location, 3.0s cast, range 5 circle
 }
 
-class DiffractiveLaser(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_DiffractiveLaser), new AOEShapeCone(18.6f, 30.Degrees()));
+class DiffractiveLaser(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DiffractiveLaser), new AOEShapeCone(18.6f, 30.Degrees()));
 
-class TerminusEst(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID._Weaponskill_TheOrder))
+class TerminusEst(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.TheOrder))
 {
     private readonly List<Actor> Termini = [];
     private DateTime? CastFinish;
@@ -63,12 +53,12 @@ class TerminusEst(BossModule module) : Components.GenericAOEs(module, ActionID.M
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID == (uint)AID._Weaponskill_TerminusEst1)
+        if (spell.Action.ID == (uint)AID.TerminusEst1)
             Termini.Remove(caster);
     }
 }
 
-class Gunblade(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID._Weaponskill_Gunblade), stopAtWall: true)
+class Gunblade(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.Gunblade), stopAtWall: true)
 {
     public readonly List<Actor> Casters = [];
 
@@ -113,7 +103,7 @@ class Gunblade(BossModule module) : Components.Knockback(module, ActionID.MakeSp
     }
 }
 
-class ChoppingBlock(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID._Weaponskill_ChoppingBlock1), m => m.Enemies(OID.ChoppingBlock).Where(x => x.EventState != 7), 0);
+class ChoppingBlock(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.ChoppingBlock1), m => m.Enemies(OID.ChoppingBlock).Where(x => x.EventState != 7), 0);
 
 class FordolaRemLupisStates : StateMachineBuilder
 {
@@ -128,6 +118,6 @@ class FordolaRemLupisStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68064, NameID = 5953)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68064, NameID = 5953)]
 public class FordolaRemLupis(WorldState ws, Actor primary) : BossModule(ws, primary, new(-195.25f, 147.5f), new ArenaBoundsCircle(20));
 

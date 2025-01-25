@@ -106,6 +106,6 @@ class TheOldOneStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 279, NameID = 6908)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 279, NameID = 6908)]
 public class TheOldOne(WorldState ws, Actor primary) : BossModule(ws, primary, new(115, 4), new ArenaBoundsCircle(20));
 

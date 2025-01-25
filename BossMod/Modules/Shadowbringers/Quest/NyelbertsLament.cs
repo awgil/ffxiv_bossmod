@@ -14,25 +14,10 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 870, // Troodon/Bovian/BovianBull->296F/296E, no cast, single-target
-    _Weaponskill_DeadlyHold = 16588, // Troodon->296F, no cast, single-target
-    _Weaponskill_WildCharge = 16589, // Troodon->player, no cast, single-target
-    _Weaponskill_RipperClaw = 16590, // Troodon->self, 3.7s cast, range 9 90-degree cone
-    _Weaponskill_2000MinaSwipe = 16591, // Bovian->self, 3.0s cast, range 10 ?-degree cone
-    _Weaponskill_DisorientingGroan = 16594, // Bovian->self, 3.0s cast, range 40 circle
-    _Ability_ = 16593, // Bovian->self, no cast, single-target
-    _Weaponskill_DisorientingGroan1 = 16606, // BovianBull->self, 5.0s cast, range 40 circle
-    _Weaponskill_2000MinaSwipe1 = 16605, // BovianBull->self, 3.0s cast, range 9 ?-degree cone
-    _Weaponskill_FallingRock = 16595, // Helper->location, 3.0s cast, range 4 circle
-    _Ability_1 = 16600, // Bovian->location, no cast, single-target
-    _Ability_2 = 16599, // Helper->player, no cast, single-target
-    _Weaponskill_ZoomIn = 16596, // Bovian->self, 5.0s cast, single-target
-    _Weaponskill_ZoomIn1 = 16597, // Bovian->location, no cast, single-target
-    _Weaponskill_ZoomIn2 = 16598, // Helper->self, no cast, range 42 width 8 rect
-    _Weaponskill_FallingBoulder = 16607, // _Gen_LooseBoulder->self, no cast, range 4 circle
-    _Weaponskill_2000MinaSlashOnPlayer = 16601, // Bovian->self/player, 5.0s cast, range 40 ?-degree cone
-    _Weaponskill_2000MinaSlashOnNPC = 16602, // Bovian->self, no cast, range 40 ?-degree cone
-    _Weaponskill_Shatter = 16608, // _Gen_LooseBoulder->self, no cast, range 8 circle
+    FallingRock = 16595, // Helper->location, 3.0s cast, range 4 circle
+    ZoomTargetSelect = 16599, // Helper->player, no cast, single-target
+    ZoomIn = 16598, // Helper->self, no cast, range 42 width 8 rect
+    TwoThousandMinaSlash = 16601, // Bovian->self/player, 5.0s cast, range 40 ?-degree cone
 }
 
 public enum SID : uint
@@ -44,7 +29,7 @@ class TwoThousandMinaSlash : Components.GenericLineOfSightAOE
 {
     private readonly List<Actor> _casters = [];
 
-    public TwoThousandMinaSlash(BossModule module) : base(module, ActionID.MakeSpell(AID._Weaponskill_2000MinaSlashOnPlayer), 40, false)
+    public TwoThousandMinaSlash(BossModule module) : base(module, ActionID.MakeSpell(AID.TwoThousandMinaSlash), 40, false)
     {
         Refresh();
     }
@@ -77,8 +62,8 @@ class TwoThousandMinaSlash : Components.GenericLineOfSightAOE
     }
 }
 
-class FallingRock(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_FallingRock), 4);
-class ZoomIn(BossModule module) : Components.SimpleLineStack(module, 4, 42, ActionID.MakeSpell(AID._Ability_2), ActionID.MakeSpell(AID._Weaponskill_ZoomIn2), 5.1f)
+class FallingRock(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FallingRock), 4);
+class ZoomIn(BossModule module) : Components.SimpleLineStack(module, 4, 42, ActionID.MakeSpell(AID.ZoomTargetSelect), ActionID.MakeSpell(AID.ZoomIn), 5.1f)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -126,13 +111,8 @@ class BovianStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69162, NameID = 8363)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69162, NameID = 8363)]
 public class Bovian(WorldState ws, Actor primary) : BossModule(ws, primary, new(-440, -691), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
-
-    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        hints.PrioritizeTargetsByOID(OID.BovianBull, 1);
-    }
 }

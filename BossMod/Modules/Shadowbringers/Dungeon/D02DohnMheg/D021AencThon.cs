@@ -73,6 +73,6 @@ class AencThonLordOfTheLingeringGazeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 649, NameID = 8141)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 649, NameID = 8141)]
 public class AencThonLordOfTheLingeringGaze(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 30), new ArenaBoundsCircle(19.5f));
 

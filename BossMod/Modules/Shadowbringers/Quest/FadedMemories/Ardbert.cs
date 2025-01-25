@@ -17,7 +17,7 @@ class SkyHighDrive(BossModule module) : Components.GenericRotatingAOE(module)
             case AID.SkyHighDriveCW:
                 angle = 20.Degrees();
                 return;
-            case AID._Weaponskill_SkyHighDrive1:
+            case AID.SkyHighDriveFirst:
                 if (angle != default)
                 {
                     Sequences.Add(new(new AOEShapeRect(40, 4), caster.Position, spell.Rotation, angle, Module.CastFinishAt(spell, 0.5f), 0.6f, 10, 4));
@@ -28,7 +28,7 @@ class SkyHighDrive(BossModule module) : Components.GenericRotatingAOE(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_SkyHighDrive1 or AID._Weaponskill_SkyHighDrive2)
+        if ((AID)spell.Action.ID is AID.SkyHighDriveFirst or AID.SkyHighDriveRest)
         {
             AdvanceSequence(caster.Position, caster.Rotation, WorldState.CurrentTime);
             if (Sequences.Count == 0)
@@ -37,10 +37,10 @@ class SkyHighDrive(BossModule module) : Components.GenericRotatingAOE(module)
     }
 }
 
-class AvalancheAxe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_AvalancheAxe1), new AOEShapeCircle(10));
-class AvalancheAxe2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_AvalancheAxe2), new AOEShapeCircle(10));
-class AvalancheAxe3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_AvalancheAxe3), new AOEShapeCircle(10));
-class OvercomeAllOdds(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_OvercomeAllOdds), new AOEShapeCone(60, 15.Degrees()), 1)
+class AvalancheAxe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AvalanceAxe1), new AOEShapeCircle(10));
+class AvalancheAxe2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AvalanceAxe2), new AOEShapeCircle(10));
+class AvalancheAxe3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AvalanceAxe3), new AOEShapeCircle(10));
+class OvercomeAllOdds(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OvercomeAllOdds), new AOEShapeCone(60, 15.Degrees()), 1)
 {
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
@@ -49,15 +49,15 @@ class OvercomeAllOdds(BossModule module) : Components.SelfTargetedAOEs(module, A
             MaxCasts = 2;
     }
 }
-class Soulflash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Soulflash1), new AOEShapeCircle(4));
-class EtesianAxe(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID._Weaponskill_EtesianAxe1), 15, kind: Kind.DirForward);
-class Soulflash2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Soulflash2), new AOEShapeCircle(8));
+class Soulflash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Soulflash1), new AOEShapeCircle(4));
+class EtesianAxe(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.EtesianAxe), 15, kind: Kind.DirForward);
+class Soulflash2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Soulflash2), new AOEShapeCircle(8));
 
 class GroundbreakerExaflares(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(6))
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID._Weaponskill_Groundbreaker1)
+        if (spell.Action.ID == (uint)AID.GroundbreakerExaFirst)
         {
             Lines.Add(new Line
             {
@@ -74,7 +74,7 @@ class GroundbreakerExaflares(BossModule module) : Components.Exaflare(module, ne
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID is (uint)AID._Weaponskill_Groundbreaker1 or (uint)AID._Weaponskill_Groundbreaker2)
+        if (spell.Action.ID is (uint)AID.GroundbreakerExaFirst or (uint)AID.GroundbreakerExaRest)
         {
             var line = Lines.FirstOrDefault(x => x.Next.AlmostEqual(caster.Position, 1));
             if (line != null)
@@ -83,9 +83,9 @@ class GroundbreakerExaflares(BossModule module) : Components.Exaflare(module, ne
     }
 }
 
-class GroundbreakerCone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Groundbreaker4), new AOEShapeCone(40, 45.Degrees()));
-class GroundbreakerDonut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Groundbreaker6), new AOEShapeDonut(5, 20));
-class GroundbreakerCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Groundbreaker8), new AOEShapeCircle(15));
+class GroundbreakerCone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GroundbreakerCone), new AOEShapeCone(40, 45.Degrees()));
+class GroundbreakerDonut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GroundbreakerDonut), new AOEShapeDonut(5, 20));
+class GroundbreakerCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GroundbreakerCircle), new AOEShapeCircle(15));
 
 class ArdbertStates : StateMachineBuilder
 {
@@ -109,10 +109,5 @@ class ArdbertStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69311, NameID = 8258, PrimaryActorOID = (uint)OID.Ardbert)]
-public class Ardbert(WorldState ws, Actor primary) : BossModule(ws, primary, new(-392, 780), new ArenaBoundsCircle(20))
-{
-    protected override bool CheckPull() => true;
-
-    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) => hints.PrioritizeTargetsByOID(OID.Ardbert);
-}
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69311, NameID = 8258, PrimaryActorOID = (uint)OID.Ardbert)]
+public class Ardbert(WorldState ws, Actor primary) : BossModule(ws, primary, new(-392, 780), new ArenaBoundsCircle(20));

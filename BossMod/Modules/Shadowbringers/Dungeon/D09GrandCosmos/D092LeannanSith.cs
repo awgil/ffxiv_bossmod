@@ -159,5 +159,5 @@ class LeannanSithStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 692, NameID = 9044)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 692, NameID = 9044)]
 public class LeannanSith(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -60), new ArenaBoundsSquare(19.5f));

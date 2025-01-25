@@ -4,8 +4,8 @@ namespace BossMod.Shadowbringers.Quest.DeathUntoDawn.P1;
 
 public enum AID : uint
 {
-    _Weaponskill_AntiPersonnelMissile = 24845, // 233C->player/321D, 5.0s cast, range 6 circle
-    _Weaponskill_MRVMissile = 24843, // 233C->location, 8.0s cast, range 12 circle
+    AntiPersonnelMissile = 24845, // 233C->player/321D, 5.0s cast, range 6 circle
+    MRVMissile = 24843, // 233C->location, 8.0s cast, range 12 circle
 }
 
 enum OID : uint
@@ -14,8 +14,8 @@ enum OID : uint
 }
 
 class AlisaieAI(BossModule module) : Components.RotationModule<AutoAlisaie>(module);
-class AntiPersonnelMissile(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID._Weaponskill_AntiPersonnelMissile), 6);
-class MRVMissile(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_MRVMissile), 12, maxCasts: 6);
+class AntiPersonnelMissile(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.AntiPersonnelMissile), 6);
+class MRVMissile(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MRVMissile), 12, maxCasts: 6);
 
 public class TelotekGammaStates : StateMachineBuilder
 {

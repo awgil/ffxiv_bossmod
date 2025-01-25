@@ -7,20 +7,20 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    FlameBreathCast = 30185, // _Gen_Vishap->self, 5.0s cast, range 1 width 2 rect
-    FlameBreathChannel = 30884, // _Gen_Vishap->self, no cast, range 40 width 20 rect
+    FlameBreathCast = 30185, // Vishap->self, 5.0s cast, range 1 width 2 rect
+    FlameBreathChannel = 30884, // Vishap->self, no cast, range 40 width 20 rect
     Cauterize = 30878, // Boss->self, 30.5+4.5s cast, single-target
-    Touchdown = 26408, // _Gen_Vishap->self, 6.0s cast, range 80 circle
-    Fireball = 30875, // _Gen_Vishap->players/3A71/3A6F/3A6C/3A69/3A68/3A62/3A61/3A60/3A72/3A70/3A6B/3A6A/3A64/3A63, 6.0s cast, range 6 circle
-    BodySlam = 26401, // _Gen_Vishap->self, 6.0s cast, range 80 width 44 rect
-    Flamisphere = 30883, // _Gen_Vishap->location, 8.0s cast, range 10 circle
+    Touchdown = 26408, // Vishap->self, 6.0s cast, range 80 circle
+    Fireball = 30875, // Vishap->players/3A71/3A6F/3A6C/3A69/3A68/3A62/3A61/3A60/3A72/3A70/3A6B/3A6A/3A64/3A63, 6.0s cast, range 6 circle
+    BodySlam = 26401, // Vishap->self, 6.0s cast, range 80 width 44 rect
+    Flamisphere = 30883, // Vishap->location, 8.0s cast, range 10 circle
     FlameBreath2Cast = 26411, // Boss->self, 3.8+1.2s cast, range 60 width 20 rect
     RipperClaw = 31262, // 3ABD->self, 3.7s cast, range 9 ?-degree cone
     EarthshakerAOE = 30880, // Boss->self, 4.5s cast, range 31 circle
-    Earthshaker = 30887, // _Gen_Vishap->self, 6.5s cast, range 80 30-degree cone
+    Earthshaker = 30887, // Vishap->self, 6.5s cast, range 80 30-degree cone
     EarthrisingAOE = 26410, // Boss->self, 4.5s cast, range 31 circle
-    EarthrisingCast = 30888, // _Gen_Vishap->self, 7.0s cast, range 8 circle
-    EarthrisingRepeat = 26412, // _Gen_Vishap->self, no cast, range 8 circle
+    EarthrisingCast = 30888, // Vishap->self, 7.0s cast, range 8 circle
+    EarthrisingRepeat = 26412, // Vishap->self, no cast, range 8 circle
     SidewiseSlice = 30879, // Boss->self, 8.0s cast, range 50 120-degree cone
     ScorchingBreath = 29785, // Boss->self, 15.0+5.0s cast, single-target
 
@@ -248,8 +248,8 @@ class VishapStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70127, NameID = 3330)]
-public class Vishap(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 245), ScrollingBounds.Bounds)
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70127, NameID = 3330)]
+public class TheStepsOfFaith(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 245), ScrollingBounds.Bounds)
 {
     // vishap doesn't start targetable
     protected override bool CheckPull() => PrimaryActor.InCombat;
@@ -259,7 +259,5 @@ public class Vishap(WorldState ws, Actor primary) : BossModule(ws, primary, new(
         Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
         Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
     }
-
-    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) => hints.PrioritizeAll();
 }
 

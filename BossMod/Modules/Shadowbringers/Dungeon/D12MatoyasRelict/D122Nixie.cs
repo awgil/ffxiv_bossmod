@@ -180,7 +180,7 @@ class NixieStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 746, NameID = 9738)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 746, NameID = 9738)]
 public class Nixie(WorldState ws, Actor primary) : BossModule(ws, primary, GroundCenter, DefaultBounds)
 {
     private static ArenaBoundsCustom MakeCloud()

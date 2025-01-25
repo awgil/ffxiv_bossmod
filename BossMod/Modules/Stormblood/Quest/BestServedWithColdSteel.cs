@@ -5,33 +5,17 @@ public enum OID : uint
     Boss = 0x1A52, // R2.100f, x1
     Grynewaht = 0x1A53,
     Helper = 0x233C,
-    _Gen_12ThLegionSlasher = 0x1D2F, // R1.050f, x2 (spawn during fight)
-    _Gen_12ThLegionHastatus = 0x1A54, // R0.500f, x1
-    _Gen_12ThLegionPrinceps = 0x1A55, // R0.500f, x1
-    _Gen_ = 0x19D9, // R0.500, x6
-    _Gen_12ThLegionSignifer = 0x1D31, // R0.500, x0 (spawn during fight)
-    _Gen_12ThLegionHoplomachus = 0x1D30, // R0.500, x0 (spawn during fight)
-    _Gen_MagitekTurret = 0x1A56, // R0.600, x0 (spawn during fight)
 }
 
 public enum AID : uint
 {
-    _Spell_Fire = 966, // 1A55->1A5C, 1.0fs cast, single-target
-    _Weaponskill_CermetPile = 8117, // 1A52->self, 3.0fs cast, range 4$1fR width 6 rect
-    _Weaponskill_Firebomb = 8495, // Boss->location, 3.0fs cast, range 4 circle
-
-    _Weaponskill_FastBlade = 717, // _Gen_12ThLegionHastatus->1A5B, no cast, single-target
-    _AutoAttack_Attack = 870, // _Gen_MagitekVanguardIPrototype/_Gen_12ThLegionHastatus/_Gen_12ThLegionSlasher->player/1A5A/1A5B, no cast, single-target
-    _Weaponskill_AugmentedShatter = 8494, // Boss->1A59, no cast, single-target
-    _Weaponskill_OpenFire = 8120, // _Gen_MagitekVanguardIPrototype->self, 3.0fs cast, single-target
-    _Weaponskill_OpenFire1 = 8121, // 19D9->location, 3.0fs cast, range 6 circle
-    _Weaponskill_AugmentedSuffering = 8492, // Boss->self, 3.5fs cast, range $1fR circle
-    _AutoAttack_Attack1 = 872, // Boss->1A59, no cast, single-target
-    _Weaponskill_AugmentedUprising = 8493, // Boss->self, 3.0fs cast, range $1fR 120-degree cone
-    _Weaponskill_MineLayer = 8119, // _Gen_MagitekVanguardIPrototype->self, 3.0s cast, single-target
-    _Weaponskill_SelfDetonate = 8122, // 1A56->self, no cast, range 6 circle
-    _Ability_ = 3269, // Boss->self, no cast, single-target
-    _Weaponskill_SelfDetonate1 = 9169, // Boss->self, 60.0s cast, range 100 circle
+    CermetPile = 8117, // 1A52->self, 3.0fs cast, range 4$1fR width 6 rect
+    Firebomb = 8495, // Boss->location, 3.0fs cast, range 4 circle
+    OpenFire1 = 8121, // 19D9->location, 3.0fs cast, range 6 circle
+    AugmentedSuffering = 8492, // Boss->self, 3.5fs cast, range $1fR circle
+    AugmentedUprising = 8493, // Boss->self, 3.0fs cast, range $1fR 120-degree cone
+    SelfDetonate = 8122, // 1A56->self, no cast, range 6 circle
+    SelfDetonate1 = 9169, // Boss->self, 60.0s cast, range 100 circle
 }
 
 public enum TetherID : uint
@@ -39,14 +23,14 @@ public enum TetherID : uint
     Mine = 54, // 1A56->player
 }
 
-class AugmentedUprising(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_AugmentedUprising), new AOEShapeCone(8.5f, 60.Degrees()));
-class AugmentedSuffering(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_AugmentedSuffering), new AOEShapeCircle(6.5f));
-class OpenFire(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_OpenFire1), 6);
+class AugmentedUprising(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AugmentedUprising), new AOEShapeCone(8.5f, 60.Degrees()));
+class AugmentedSuffering(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AugmentedSuffering), new AOEShapeCircle(6.5f));
+class OpenFire(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.OpenFire1), 6);
 
-class CermetPile(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_CermetPile), new AOEShapeRect(42.1f, 3f));
-class Firebomb(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Firebomb), 4);
+class CermetPile(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CermetPile), new AOEShapeRect(42.1f, 3f));
+class Firebomb(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Firebomb), 4);
 
-class MagitekTurret(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID._Weaponskill_SelfDetonate))
+class MagitekTurret(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SelfDetonate))
 {
     class Mine(Actor source, Actor target, WPos sourcePosLastFrame, DateTime tethered)
     {
@@ -73,7 +57,7 @@ class MagitekTurret(BossModule module) : Components.GenericAOEs(module, ActionID
             var projectedExplosion = mineToPlayer.Length() > m.DistanceLeft(WorldState)
                 ? (m.target.Position - m.source.Position).Normalized() * m.DistanceLeft(WorldState)
                 // offset danger zone slightly toward mine so that AI can dodge
-                // if centered on player it doesn't know which direction to g
+                // if centered on player it doesn't know which direction to go
                 : mineToPlayer * 0.9f;
             yield return new AOEInstance(new AOEShapeCircle(6), m.source.Position + projectedExplosion, default, Activation: m.tethered.AddSeconds(12));
         }
@@ -87,7 +71,7 @@ class MagitekTurret(BossModule module) : Components.GenericAOEs(module, ActionID
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID == (uint)AID._Weaponskill_SelfDetonate)
+        if (spell.Action.ID == (uint)AID.SelfDetonate)
             Mines.RemoveAll(m => m.source == caster);
     }
 
@@ -103,7 +87,7 @@ class MagitekTurret(BossModule module) : Components.GenericAOEs(module, ActionID
     }
 }
 
-class MagitekSelfDetonate(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID._Weaponskill_SelfDetonate1))
+class MagitekSelfDetonate(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.SelfDetonate1))
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -142,7 +126,7 @@ class MagitekVanguardIPrototypeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67989, NameID = 5650)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67989, NameID = 5650)]
 public class MagitekVanguardIPrototype(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, CustomBounds)
 {
     private static readonly List<WDir> vertices = [

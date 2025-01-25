@@ -203,6 +203,6 @@ class SartauvoirTheInfernoStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.BozjaDuel, GroupID = 735, NameID = 12)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.BozjaDuel, GroupID = 735, NameID = 12)]
 public class SartauvoirTheInferno(WorldState ws, Actor primary) : BossModule(ws, primary, new(-15, 145), new ArenaBoundsSquare(18));
 

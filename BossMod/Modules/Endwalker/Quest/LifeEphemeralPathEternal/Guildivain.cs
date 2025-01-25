@@ -87,11 +87,5 @@ class GuildivainOfTheTaintedEdgeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69608, NameID = 10733, PrimaryActorOID = (uint)OID.BossP2)]
-public class GuildivainOfTheTaintedEdge(WorldState ws, Actor primary) : BossModule(ws, primary, new(224.8f, -855.8f), new ArenaBoundsCircle(20))
-{
-    protected override bool CheckPull() => true;
-
-    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) => hints.PrioritizeAll();
-}
-
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69608, NameID = 10733, PrimaryActorOID = (uint)OID.BossP2)]
+public class GuildivainOfTheTaintedEdge(WorldState ws, Actor primary) : BossModule(ws, primary, new(224.8f, -855.8f), new ArenaBoundsCircle(20));

@@ -210,7 +210,7 @@ public class QuestStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 966, PrimaryActorOID = BossModuleInfo.PrimaryActorNone)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 966, PrimaryActorOID = BossModuleInfo.PrimaryActorNone)]
 public class Quest(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20))
 {
     protected override bool CheckPull() => true;

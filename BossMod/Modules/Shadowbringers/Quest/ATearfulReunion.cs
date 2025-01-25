@@ -16,42 +16,24 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _Spell_SanctifiedFire = 17032, // Boss->player/29C3, no cast, single-target
-    _Spell_Hollow = 17033, // Boss->location, 3.0s cast, single-target
-    _Spell_Hollow1 = 17034, // Boss->location, no cast, single-target
-    _Spell_Hollow2 = 17218, // Boss->location, no cast, single-target
-    _Spell_Hollow3 = 17219, // Boss->location, no cast, single-target
-    _Ability_ = 17455, // 29C6->player, no cast, single-target
-    _Weaponskill_HollowGravity = 17048, // 29C6->player, no cast, single-target
-    _Spell_SanctifiedFireIII = 17035, // Boss->self, 4.2s cast, single-target
-    _Spell_SanctifiedFireIII1 = 17036, // 29E7->location, 4.0s cast, range 6 circle
-    _Ability_1 = 17456, // 29C6->player/29C3, no cast, single-target
-    _Spell_SanctifiedBlizzardIII = 17045, // Boss->self, 4.0s cast, range 40+R 45-degree cone
-    _Ability_AetherialManipulation = 17041, // Boss->location, no cast, single-target
-
-    // stack with npc
-    _Spell_SanctifiedFlare = 17039, // Boss->players, 5.0s cast, range 6 circle
-
+    SanctifiedFireIII = 17036, // 29E7->location, 4.0s cast, range 6 circle
+    SanctifiedFlare = 17039, // Boss->players, 5.0s cast, range 6 circle
     // spread from npc
-    _Spell_SanctifiedFireIV = 17037, // Boss->self, 4.2s cast, single-target
-    _Spell_SanctifiedFireIV1 = 17038, // _Gen_Phronesis->players/29C3, 4.0s cast, range 10 circle
-
-    _Spell_Hollow4 = 17220, // Boss->location, no cast, single-target
-    _Spell_SanctifiedThunderIII = 17040, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_ = 17050, // _Gen_LightningGlobe/_Gen_Hollow->self, no cast, single-target
-    _Spell_SanctifiedBlizzardIV = 17046, // Boss->self, 5.2s cast, single-target
-    __SanctifiedBlizzardIV = 17047, // _Gen_Phronesis->self, 5.0s cast, range 5-20 donut
-    _Spell_SanctifiedBlizzardII = 17044, // Boss->self, 3.0s cast, range 5 circle
+    SanctifiedFireIV1 = 17038, // _Gen_Phronesis->players/29C3, 4.0s cast, range 10 circle
+    // stack with npc
+    SanctifiedBlizzardII = 17044, // Boss->self, 3.0s cast, range 5 circle
+    SanctifiedBlizzardIII = 17045, // Boss->self, 4.0s cast, range 40+R 45-degree cone
+    SanctifiedBlizzardIV = 17047, // _Gen_Phronesis->self, 5.0s cast, range 5-20 donut
 }
 
-class SanctifiedBlizzardIV(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.__SanctifiedBlizzardIV), new AOEShapeDonut(5, 20));
-class SanctifiedBlizzardII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Spell_SanctifiedBlizzardII), new AOEShapeCircle(5));
-class SanctifiedFireIII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Spell_SanctifiedFireIII1), 6);
-class SanctifiedBlizzardIII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Spell_SanctifiedBlizzardIII), new AOEShapeCone(40.5f, 22.5f.Degrees()));
+class SanctifiedBlizzardIV(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedBlizzardIV), new AOEShapeDonut(5, 20));
+class SanctifiedBlizzardII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedBlizzardII), new AOEShapeCircle(5));
+class SanctifiedFireIII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedFireIII), 6);
+class SanctifiedBlizzardIII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedBlizzardIII), new AOEShapeCone(40.5f, 22.5f.Degrees()));
 class Hollow(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID._Gen_Hollow));
 class HollowTether(BossModule module) : Components.Chains(module, 1, chainLength: 5);
-class SanctifiedFireIV(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID._Spell_SanctifiedFireIV1), 10);
-class SanctifiedFlare(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID._Spell_SanctifiedFlare), 6, 1)
+class SanctifiedFireIV(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.SanctifiedFireIV1), 10);
+class SanctifiedFlare(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.SanctifiedFlare), 6, 1)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -121,20 +103,5 @@ class PhronesisStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69164, NameID = 8931)]
-public class Phronesis(WorldState ws, Actor primary) : BossModule(ws, primary, new(-256, -284), new ArenaBoundsCircle(20))
-{
-    protected override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        foreach (var a in WorldState.Actors.Where(a => a.IsAlly && a.Type == ActorType.Enemy))
-            Arena.Actor(a, ArenaColor.PlayerGeneric);
-    }
-
-    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var e in hints.PotentialTargets)
-            e.Priority = 0;
-    }
-
-    protected override bool CheckPull() => true;
-}
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69164, NameID = 8931)]
+public class Phronesis(WorldState ws, Actor primary) : BossModule(ws, primary, new(-256, -284), new ArenaBoundsCircle(20));
