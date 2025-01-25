@@ -195,8 +195,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
 
     #region Upgrade Paths
     private AID BestEdge => Unlocked(AID.EdgeOfShadow) ? AID.EdgeOfShadow : Unlocked(AID.EdgeOfDarkness) ? AID.EdgeOfDarkness : AID.FloodOfDarkness;
-    private AID BestFlood => Unlocked(AID.FloodOfShadow) ? AID.FloodOfShadow : AID.FloodOfDarkness;
-    private AID BestMPSpender => ShouldUseMPRect ? BestFlood : BestEdge;
+    private AID BestFlood => !Unlocked(AID.FloodOfShadow) ? AID.FloodOfDarkness : AID.FloodOfShadow;
     private AID BestQuietus => Unlocked(AID.Quietus) ? AID.Quietus : AID.Bloodspiller;
     private AID BestBloodSpender => ShouldUseAOE ? BestQuietus : AID.Bloodspiller;
     private AID BestDelirium => Unlocked(AID.Delirium) ? AID.Delirium : AID.BloodWeapon;
@@ -220,9 +219,6 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     public (float TotalCD, float ChargeCD, bool HasCharges, bool IsReady) Shadowbringer;
     public (float Left, bool IsActive, bool IsReady) Disesteem;
     private bool ShouldUseAOE; //Checks if AOE rotation or abilities should be used
-    private bool insideTarget;
-    private bool ShouldUseMPRectHigh;
-    private bool ShouldUseMPRectLow;
     public int NumAOERectTargets;
     public int NumMPRectTargets;
 
@@ -277,17 +273,16 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Shadowbringer.IsReady = Unlocked(AID.Shadowbringer) && Shadowbringer.HasCharges; //Shadowbringer ability
         #endregion
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
-        ShouldUseMPRectHigh = Unlocked(AID.FloodOfShadow) && NumMPRectTargets > 2;
-        ShouldUseMPRectLow = !Unlocked(AID.FloodOfShadow) && NumMPRectTargets > 3;
-
-        (BestAOERectTargets, NumAOERectTargets) = GetBestTarget(strategy, primaryTarget, 10, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 2));
-        (BestMPRectTargets, NumMPRectTargets) = GetBestTarget(strategy, primaryTarget, 10, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 2));
-        insideTarget = primaryTarget != null && Player.DistanceToHitbox(primaryTarget) <= 0f;
-        if (insideTarget)
-            NumMPRectTargets -= 1;
-        BestTargetAOERect = NumAOERectTargets > 1 ? BestAOERectTargets : primaryTarget;
-        BestTargetMPRectHigh = ShouldUseMPRectHigh ? BestMPRectTargets : primaryTarget;
-        BestTargetMPRectLow = ShouldUseMPRectLow ? BestMPRectTargets : primaryTarget;
+        (BestAOERectTargets, NumAOERectTargets) = GetBestTarget(PlayerTarget, 10, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 3.5f));
+        BestTargetAOERect = Unlocked(AID.Shadowbringer) && NumAOERectTargets >= 2
+            ? BestAOERectTargets
+            : primaryTarget;
+        BestTargetMPRectHigh = Unlocked(AID.FloodOfShadow) && NumAOERectTargets >= 3
+            ? BestAOERectTargets // Use AoE rectangle targets if there are at least 3
+            : primaryTarget; // Fallback to primaryTarget or PlayerTarget if no AoE targets
+        BestTargetMPRectLow = !Unlocked(AID.FloodOfShadow) && NumAOERectTargets >= 4
+            ? BestAOERectTargets // Use AoE rectangle targets if there are at least 4
+            : primaryTarget; // Fallback to primaryTarget or PlayerTarget if no AoE targets
         #region Strategy Definitions
         var mp = strategy.Option(Track.MP);
         var mpStrat = mp.As<MPStrategy>(); //Retrieve MP strategy
@@ -313,20 +308,19 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region Full Rotation Execution
-        GetPrimaryTarget(strategy, ref primaryTarget, 3);
 
         #region Standard Rotations
         if (ModuleExtensions.AutoAOE(strategy))
         {
             QueueGCD(NextBestRotation(), //queue the next single-target combo action only if combo is finished
-                ResolveTargetOverride(strategy.Option(SharedTrack.AOE).Value) //Get target choice
+                TargetChoice(strategy.Option(SharedTrack.AOE)) //Get target choice
                 ?? primaryTarget, //if none, pick primary target
                 GCDPriority.Standard); //with priority for 103/10 combo actions
         }
         if (ModuleExtensions.ForceST(strategy)) //if Force Single Target option is picked
         {
             QueueGCD(ST(),
-                ResolveTargetOverride(strategy.Option(SharedTrack.AOE).Value) //Get target choice
+                TargetChoice(strategy.Option(SharedTrack.AOE)) //Get target choice
                 ?? primaryTarget, //if none, pick primary target
                 GCDPriority.Standard); //with priority for 103/10 combo actions
         }
@@ -397,7 +391,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
 
                 if (ShouldUseShadowbringer(sbStrat, primaryTarget))
                     QueueOGCD(AID.Shadowbringer,
-                        TargetChoice(sb) ?? BestTargetAOERect ?? primaryTarget,
+                        TargetChoice(sb) ?? BestTargetAOERect,
                         sbStrat is OGCDStrategy.Force
                         or OGCDStrategy.AnyWeave
                         or OGCDStrategy.EarlyWeave
@@ -407,7 +401,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
 
                 if (ShouldUseDisesteem(deStrat, primaryTarget))
                     QueueGCD(AID.Disesteem,
-                        TargetChoice(de) ?? BestTargetAOERect ?? primaryTarget,
+                        TargetChoice(de) ?? BestTargetAOERect,
                         deStrat is GCDStrategy.Force
                         ? GCDPriority.ForcedGCD
                         : CombatTimer < 30
@@ -432,7 +426,12 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                     or MPStrategy.Auto6k
                     or MPStrategy.Auto3k
                     or MPStrategy.AutoRefresh)
-                    QueueOGCD(BestMPSpender, TargetChoice(mp) ?? BestTargetMPRectHigh ?? BestTargetMPRectLow ?? primaryTarget, RiskingMP ? OGCDPriority.ForcedOGCD : OGCDPriority.MP);
+                {
+                    if (NumAOERectTargets >= 3)
+                        QueueOGCD(BestFlood, TargetChoice(mp) ?? BestTargetAOERect, RiskingMP ? OGCDPriority.ForcedOGCD : OGCDPriority.MP);
+                    if (NumAOERectTargets <= 2)
+                        QueueOGCD(BestEdge, TargetChoice(mp) ?? primaryTarget, RiskingMP ? OGCDPriority.ForcedOGCD : OGCDPriority.MP);
+                }
                 if (mpStrat is MPStrategy.Edge9k
                     or MPStrategy.Edge6k
                     or MPStrategy.Edge3k
@@ -442,7 +441,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                     or MPStrategy.Flood6k
                     or MPStrategy.Flood3k
                     or MPStrategy.FloodRefresh)
-                    QueueOGCD(BestFlood, TargetChoice(mp) ?? BestTargetMPRectHigh ?? BestTargetMPRectLow ?? primaryTarget, RiskingMP ? OGCDPriority.ForcedOGCD : OGCDPriority.MP);
+                    QueueOGCD(BestFlood, TargetChoice(mp) ?? BestTargetMPRectHigh, RiskingMP ? OGCDPriority.ForcedOGCD : OGCDPriority.MP);
             }
         }
 
@@ -527,7 +526,6 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     {
         BloodStrategy.Automatic =>
             Player.InCombat &&
-            target != null &&
             Darkside.IsActive &&
             Unlocked(AID.Bloodspiller) &&
             Blood >= 50 &&
@@ -620,7 +618,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     {
         OGCDStrategy.Automatic =>
             Player.InCombat &&
-            In10y(target) &&
+            target != null &&
             CanWeaveIn &&
             Darkside.IsActive &&
             Shadowbringer.IsReady &&

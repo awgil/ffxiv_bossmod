@@ -452,6 +452,19 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
             }
         }
     }
+    protected void GetPrimaryAOERectTarget(ref Actor? primaryTarget, float range)
+    {
+        if (!IsValidEnemy(primaryTarget))
+            primaryTarget = null;
+
+        PlayerTarget = primaryTarget;
+        if (Player.DistanceToHitbox(primaryTarget) > range)
+        {
+            var newTarget = Hints.PriorityTargets.FirstOrDefault(x => Player.DistanceToHitbox(x.Actor) <= range)?.Actor;
+            if (newTarget != null)
+                primaryTarget = newTarget;
+        }
+    }
 
     /// <summary>
     /// This function attempts to pick the best target automatically.
@@ -462,11 +475,10 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="isInAOE"></param>
     /// <returns></returns>
     protected (Actor? Best, int Targets) GetBestTarget(
-        StrategyValues strategy,
         Actor? primaryTarget,
         float range,
         PositionCheck isInAOE
-    ) => GetTarget(strategy, primaryTarget, range, isInAOE, (numTargets, _) => numTargets, a => a);
+    ) => GetTarget(primaryTarget, range, isInAOE, (numTargets, _) => numTargets, a => a);
 
     /// <summary>
     /// This function picks the target based on HP, modified by how many targets are in the AOE.
@@ -477,11 +489,10 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="isInAOE"></param>
     /// <returns></returns>
     protected (Actor? Best, int Targets) GetTargetByHP(
-        StrategyValues strategy,
         Actor? primaryTarget,
         float range,
         PositionCheck isInAOE
-    ) => GetTarget(strategy, primaryTarget, range, isInAOE,
+    ) => GetTarget(primaryTarget, range, isInAOE,
         (numTargets, actor) => (numTargets, numTargets > 2 ? actor.HPMP.CurHP : 0),
         args => args.numTargets);
 
@@ -497,7 +508,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="simplify"></param>
     /// <returns></returns>
     protected (Actor? Best, int Priority) GetTarget<P>(
-        StrategyValues strategy,
         Actor? primaryTarget,
         float range,
         PositionCheck isInAOE,
@@ -513,9 +523,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         }
 
         // If no primary target, we return null immediately, otherwise find a better target.
-        var (newtarget, newprio) = primaryTarget == null
-            ? (null, default)
-            : FindBetterTargetBy(primaryTarget, range, targetPrio); // Find a better target by using the provided logic
+        var (newtarget, newprio) = FindBetterTargetBy(primaryTarget, range, targetPrio);
 
         // Simplify the calculated priority.
         var newnewprio = simplify(newprio);
