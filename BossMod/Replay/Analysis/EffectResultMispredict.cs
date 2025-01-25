@@ -25,7 +25,8 @@ class EffectResultMispredict
                     bool expectConfirmTarget = false;
                     foreach (var eff in t.Effects)
                     {
-                        if (eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage or ActionEffectType.Heal or ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource or ActionEffectType.RecoveredFromStatusEffect)
+                        if (eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage or ActionEffectType.Heal or ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource or ActionEffectType.RecoveredFromStatusEffect or
+                            >= ActionEffectType.Knockback and <= ActionEffectType.AttractCustom3)
                         {
                             if (t.Target == a.Source)
                                 expectConfirmSource = expectConfirmTarget = true;
