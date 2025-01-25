@@ -348,7 +348,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     //public Actor? BestSplashTarget()
     #endregion
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
     {
         #region Variables
         var gauge = World.Client.GetGauge<PaladinGauge>(); //Retrieve Paladin gauge
