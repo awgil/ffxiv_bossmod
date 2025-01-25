@@ -165,8 +165,8 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public ActorStatus? FindStatus<SID>(SID sid, DateTime? expirationForPending = null) where SID : Enum => FindStatus((uint)(object)sid, expirationForPending);
     public ActorStatus? FindStatus<SID>(SID sid, ulong source, DateTime? expirationForPending = null) where SID : Enum => FindStatus((uint)(object)sid, source, expirationForPending);
 
-    public WDir DirectionTo(Actor other) => DirectionTo(other.Position);
     public WDir DirectionTo(WPos other) => (other - Position).Normalized();
+    public WDir DirectionTo(Actor other) => DirectionTo(other.Position);
     public Angle AngleTo(Actor other) => Angle.FromDirection(other.Position - Position);
 
     public float DistanceToHitbox(AIHints.Enemy? other) => DistanceToHitbox(other?.Actor);

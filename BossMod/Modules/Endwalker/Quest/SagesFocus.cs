@@ -4,14 +4,12 @@ public enum OID : uint
 {
     Boss = 0x3587,
     Helper = 0x233C,
-    _Gen_ChiBomb = 0x358D, // R1.000, x0 (spawn during fight)
     Mahaud = 0x3586,
     Loifa = 0x3588,
 }
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 872, // Boss->3589, no cast, single-target
     TripleThreat = 26535, // Boss->3589, 8.0s cast, single-target
     ChiBomb = 26536, // Boss->self, 5.0s cast, single-target
     Explosion = 26537, // 358D->self, 5.0s cast, range 6 circle
