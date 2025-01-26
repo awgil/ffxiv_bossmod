@@ -249,7 +249,7 @@ class VishapStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70127, NameID = 3330)]
-public class TheStepsOfFaith(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 245), ScrollingBounds.Bounds)
+public class Vishap(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 245), ScrollingBounds.Bounds)
 {
     // vishap doesn't start targetable
     protected override bool CheckPull() => PrimaryActor.InCombat;
