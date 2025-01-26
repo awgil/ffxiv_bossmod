@@ -101,6 +101,7 @@ class P4CrystallizeTimeDragonHead(BossModule module) : BossComponent(module)
     public readonly List<(Actor head, int side)> Heads = [];
     private readonly P4CrystallizeTime? _ct = module.FindComponent<P4CrystallizeTime>();
     private readonly List<(Actor puddle, P4CrystallizeTime.Mechanic soaker)> _puddles = [];
+    private int _numMaelstroms;
 
     public Actor? FindHead(int side) => Heads.FirstOrDefault(v => v.side == side).head;
     public static int NumHeadHits(Actor? head) => head == null ? 2 : head.HitboxRadius < 2 ? 1 : 0;
@@ -114,10 +115,10 @@ class P4CrystallizeTimeDragonHead(BossModule module) : BossComponent(module)
             var pcAssignment = _ct.PlayerMechanics[slot];
             foreach (var p in _puddles.Where(p => p.puddle.EventState != 7))
             {
-                if (p.soaker == pcAssignment)
+                if (p.soaker != pcAssignment)
+                    hints.AddForbiddenZone(ShapeDistance.Circle(p.puddle.Position, 2));
+                else if (_numMaelstroms >= 6)
                     hints.GoalZones.Add(hints.GoalProximity(p.puddle.Position, 15, 0.25f));
-                else
-                    hints.AddForbiddenZone(ShapeDistance.Circle(p.puddle.Position, 1));
             }
         }
     }
@@ -163,8 +164,15 @@ class P4CrystallizeTimeDragonHead(BossModule module) : BossComponent(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.DrachenWandererDisappear)
-            Heads.RemoveAll(h => h.head == caster);
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.DrachenWandererDisappear:
+                Heads.RemoveAll(h => h.head == caster);
+                break;
+            case AID.CrystallizeTimeMaelstrom:
+                ++_numMaelstroms;
+                break;
+        }
     }
 
     private P4CrystallizeTime.Mechanic AssignPuddle(P4CrystallizeTime.Mechanic first, P4CrystallizeTime.Mechanic second) => _puddles.Any(p => p.soaker == first) ? second : first;
@@ -379,12 +387,12 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
     private readonly P4CrystallizeTime? _ct = module.FindComponent<P4CrystallizeTime>();
     private readonly P4CrystallizeTimeDragonHead? _heads = module.FindComponent<P4CrystallizeTimeDragonHead>();
     private readonly P4CrystallizeTimeMaelstrom? _hourglass = module.FindComponent<P4CrystallizeTimeMaelstrom>();
-    private bool KnockbacksDone;
+    private DateTime KnockbacksResolve; // default before knockbacks are done, set to estimated resolve time after they are done
     private bool DarknessDone;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (actor.PendingKnockbacks.Count > 0)
+        if (actor.PendingKnockbacks > 0)
             return; // don't move while waiting for kb to resolve...
 
         var hint = CalculateHint(slot);
@@ -394,7 +402,7 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
             if (hint.offset.LengthSq() > 18 * 18)
                 hint.offset *= 19.5f / 19;
 
-            if (hint.hint.HasFlag(Hint.KnockbackFrom) && Raid.WithoutSlot().Any(p => p.PendingKnockbacks.Count > 0))
+            if (hint.hint.HasFlag(Hint.KnockbackFrom) && Raid.WithoutSlot().Any(p => p.PendingKnockbacks > 0))
             {
                 return; // don't even try moving until all knockbacks are resolved, that can fuck up others...
             }
@@ -404,6 +412,7 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
             }
             if (hint.hint.HasFlag(Hint.SafespotPrecise))
             {
+                hints.PathfindMapBounds = FRU.PathfindHugBorderBounds;
                 hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + hint.offset, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
             }
             if (hint.hint.HasFlag(Hint.Maelstrom) && _hourglass != null)
@@ -445,7 +454,7 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
         switch ((AID)spell.Action.ID)
         {
             case AID.CrystallizeTimeDarkAero:
-                KnockbacksDone = true;
+                KnockbacksResolve = WorldState.FutureTime(1); // it takes ~0.8s to resolve knockbacks
                 break;
             case AID.UltimateRelativityUnholyDarkness:
                 DarknessDone = true;
@@ -485,7 +494,7 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
     {
         if (numHourglassesDone < 2)
             return (SafeOffsetDodgeFirstHourglassSouth(clawSide), Hint.SafespotRough | Hint.Maelstrom); // dodge first hourglass by the south side
-        if (!KnockbacksDone)
+        if (KnockbacksResolve == default)
             return (SafeOffsetPreKnockbackSouth(clawSide, 19), Hint.SafespotPrecise); // preposition to knock party across
         if (numHourglassesDone < 4 && clawSide == northSlowSide)
             return (SafeOffsetDodgeSecondHourglassSouth(clawSide), Hint.SafespotRough | Hint.Maelstrom); // dodge second hourglass; note that player on the slow side can already go intercept the head
@@ -495,7 +504,8 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
         {
             var headOff = head.Position - Module.Center;
             var headDir = Angle.FromDirection(headOff) * clawSide; // always decreases as head moves
-            return (headDir.Rad > IdealSecondHeadBaitAngle.Rad ? SafeOffsetSecondHeadBait(clawSide) : headOff, Hint.SafespotPrecise | (clawSide != northSlowSide ? Hint.KnockbackFrom : Hint.None));
+            var hint = clawSide != northSlowSide && WorldState.CurrentTime < KnockbacksResolve ? Hint.None : Hint.SafespotPrecise; // Hint.KnockbackFrom?.. depends on how new pending knockbacks work for others
+            return (headDir.Rad > IdealSecondHeadBaitAngle.Rad ? SafeOffsetSecondHeadBait(clawSide) : headOff, hint);
         }
         // head is done, so dodge between last two hourglasses
         return (SafeOffsetChillSouth(northSlowSide), Hint.Maelstrom | Hint.Heads | Hint.Mid);
@@ -525,7 +535,7 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
     {
         if (numHourglassesDone < 2)
             return (SafeOffsetDodgeFirstHourglassSouth(-northSlowSide), Hint.SafespotRough | Hint.Maelstrom); // dodge first hourglass by the south side
-        if (!KnockbacksDone)
+        if (KnockbacksResolve == default)
             return (SafeOffsetPreKnockbackSouth(-northSlowSide, 17), Hint.Knockback); // preposition to knockback across arena
         // from now on move together with eruption
         return HintFangEruption(northSlowSide, numHourglassesDone);
@@ -622,7 +632,7 @@ class P4CrystallizeTimeRewind(BossModule module) : Components.Knockback(module)
         var isLeft = assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.R1;
         var offDir = (Angle.FromDirection(_exalines.StartingOffsetSum) + (isLeft ? 45 : -45).Degrees()).ToDirection();
         var normDir = isLeft ? offDir.OrthoL() : offDir.OrthoR();
-        var (offX, offY) = actor.Role == Role.Tank ? (4, 1) : (2, 3);
+        var (offX, offY) = actor.Role == Role.Tank ? (4, 1) : (1, 2);
         return offX * offDir + offY * normDir;
     }
 }

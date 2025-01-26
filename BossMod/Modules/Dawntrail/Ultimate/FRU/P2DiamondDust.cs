@@ -126,7 +126,10 @@ class P2DiamondDustSafespots(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_safeOffs[slot] != default)
+        {
+            hints.PathfindMapBounds = FRU.PathfindHugBorderBounds;
             hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + _safeOffs[slot], new WDir(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
+        }
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -299,7 +302,7 @@ class P2SinboundHoly(BossModule module) : Components.UniformStackSpread(module, 
             // non-healers should just stack with whatever closest healer is
             // before first cast, ignore master's movements
             var moveDir = NumCasts > 0 ? master.LastFrameMovement.Normalized() : default;
-            var capsule = ShapeDistance.Capsule(master.Position + 2 * moveDir, moveDir, 4, 1);
+            var capsule = ShapeDistance.Capsule(master.Position + 2 * moveDir, moveDir, 4, 1.5f);
             hints.AddForbiddenZone(p => -capsule(p), DateTime.MaxValue);
         }
 
@@ -365,6 +368,7 @@ class P2TwinStillnessSilence(BossModule module) : Components.GenericAOEs(module)
     public readonly List<AOEInstance> AOEs = [];
     private readonly Actor? _source = module.Enemies(OID.OraclesReflection).FirstOrDefault();
     private BitMask _thinIce;
+    private readonly WPos[] _slideBackPos = new WPos[PartyState.MaxPartySize]; // used for hints only
     private P2SinboundHolyVoidzone? _voidzones; // used for hints only
 
     private const float SlideDistance = 32;
@@ -377,6 +381,15 @@ class P2TwinStillnessSilence(BossModule module) : Components.GenericAOEs(module)
     }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs.Take(1);
+
+    public override void Update()
+    {
+        if (AOEs.Count != 2)
+            return;
+        foreach (var (i, p) in Raid.WithSlot().IncludedInMask(_thinIce))
+            if (_slideBackPos[i] == default && p.LastFrameMovement != default)
+                _slideBackPos[i] = p.PrevPosition;
+    }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -444,22 +457,29 @@ class P2TwinStillnessSilence(BossModule module) : Components.GenericAOEs(module)
 
             if (AOEs.Count == 0)
             {
-                // if we're behind boss, slide over
-                zoneList.ForbidInfiniteRect(Module.Center, Angle.FromDirection(sourceOffset), Module.Bounds.Radius);
-                //zoneList.ForbidCircle(_source.Position, 20);
+                // if we're behind boss, slide over to the safe point as opposite to the boss as possible
+                var farthestDir = Angle.FromDirection(-sourceOffset);
+                var bestRange = zoneList.Allowed(1.Degrees()).MinBy(r => farthestDir.Rad < r.min.Rad ? r.min.Rad - farthestDir.Rad : farthestDir.Rad > r.max.Rad ? farthestDir.Rad - r.max.Rad : 0);
+                var dir = farthestDir.Rad < bestRange.min.Rad ? bestRange.min : farthestDir.Rad > bestRange.max.Rad ? bestRange.max : farthestDir;
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(actor.Position + SlideDistance * dir.ToDirection(), 1), DateTime.MaxValue);
             }
             else
             {
                 // dodge next aoe
                 ref var nextAOE = ref AOEs.Ref(0);
                 zoneList.ForbidInfiniteCone(nextAOE.Origin, nextAOE.Rotation, ((AOEShapeCone)nextAOE.Shape).HalfAngle);
-            }
 
-            var best = zoneList.Allowed(1.Degrees()).MaxBy(r => (r.max - r.min).Rad);
-            if (best.max.Rad > best.min.Rad)
-            {
-                var dir = 0.5f * (best.min + best.max);
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(actor.Position + SlideDistance * dir.ToDirection(), 1), DateTime.MaxValue);
+                // prefer to return to the starting spot, for more natural preposition for next mechanic
+                if (AOEs.Count == 1 && _slideBackPos[slot] != default && !zoneList.Forbidden.Contains(Angle.FromDirection(_slideBackPos[slot] - actor.Position).Rad))
+                {
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_slideBackPos[slot], 1), DateTime.MaxValue);
+                }
+                else if (zoneList.Allowed(1.Degrees()).MaxBy(r => (r.max - r.min).Rad) is var best && best.max.Rad > best.min.Rad)
+                {
+                    var dir = 0.5f * (best.min + best.max);
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(actor.Position + SlideDistance * dir.ToDirection(), 1), DateTime.MaxValue);
+                }
+                // else: no good direction can be found, wait for a bit, maybe voidzone will disappear
             }
         }
         // else: we are already sliding, nothing to do...

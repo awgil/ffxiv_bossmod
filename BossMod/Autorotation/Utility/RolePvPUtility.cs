@@ -154,7 +154,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
     }
     public bool HasAnyDebuff(Actor? target) => DebuffsLeft(target) > 0;
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         #region Variables
         hasSprint = HasEffect(SID.SprintPvP);

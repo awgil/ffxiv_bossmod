@@ -44,7 +44,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Execution of Utility skills
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Execution of Utility skills
     {
         ExecuteShared(strategy, IDLimitBreak3, IDStanceApply, IDStanceRemove, (uint)GNB.SID.RoyalGuard, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Camouflage), GNB.AID.Camouflage, Player);

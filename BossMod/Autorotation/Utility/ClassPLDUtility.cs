@@ -39,7 +39,7 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3, IDStanceApply, IDStanceRemove, (uint)PLD.SID.IronWill, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Cover), PLD.AID.Cover, ResolveTargetOverride(strategy.Option(Track.Cover).Value) ?? Player); //Cover execution

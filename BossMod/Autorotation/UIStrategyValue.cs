@@ -30,7 +30,8 @@ public static class UIStrategyValue
         var targetDetails = value.Target switch
         {
             StrategyTarget.PartyByAssignment => ((PartyRolesConfig.Assignment)value.TargetParam).ToString(),
-            StrategyTarget.PartyWithLowestHP => $"{(value.TargetParam != 0 ? "include" : "exclude")} self",
+            StrategyTarget.PartyWithLowestHP => PreviewParam((StrategyPartyFiltering)value.TargetParam),
+            StrategyTarget.EnemyWithHighestPriority => $"{(StrategyEnemySelection)value.TargetParam}",
             StrategyTarget.EnemyByOID => $"{(moduleInfo?.ObjectIDType != null ? Enum.ToObject(moduleInfo.ObjectIDType, (uint)value.TargetParam).ToString() : "???")} (0x{value.TargetParam:X})",
             _ => ""
         };
@@ -157,23 +158,19 @@ public static class UIStrategyValue
         switch (value.Target)
         {
             case StrategyTarget.PartyByAssignment:
-                var assignment = (PartyRolesConfig.Assignment)value.TargetParam;
-                if (UICombo.Enum("Assignment", ref assignment))
-                {
-                    value.TargetParam = (int)assignment;
-                    modified = true;
-                }
+                modified |= DrawEditorTargetParamCombo<PartyRolesConfig.Assignment>(ref value.TargetParam, "Assignment");
                 break;
             case StrategyTarget.PartyWithLowestHP:
                 if (supportedTargets.HasFlag(ActionTargets.Self))
-                {
-                    var includeSelf = value.TargetParam != 0;
-                    if (ImGui.Checkbox("Allow self", ref includeSelf))
-                    {
-                        value.TargetParam = includeSelf ? 1 : 0;
-                        modified = true;
-                    }
-                }
+                    modified |= DrawEditorTargetParamFlags(ref value.TargetParam, StrategyPartyFiltering.IncludeSelf, "Allow self", false);
+                modified |= DrawEditorTargetParamFlags(ref value.TargetParam, StrategyPartyFiltering.ExcludeTanks, "Allow tanks", true);
+                modified |= DrawEditorTargetParamFlags(ref value.TargetParam, StrategyPartyFiltering.ExcludeHealers, "Allow healers", true);
+                modified |= DrawEditorTargetParamFlags(ref value.TargetParam, StrategyPartyFiltering.ExcludeMelee, "Allow melee", true);
+                modified |= DrawEditorTargetParamFlags(ref value.TargetParam, StrategyPartyFiltering.ExcludeRanged, "Allow ranged", true);
+                modified |= DrawEditorTargetParamFlags(ref value.TargetParam, StrategyPartyFiltering.ExcludeNoPredictedDamage, "Only if more damage is expected", false);
+                break;
+            case StrategyTarget.EnemyWithHighestPriority:
+                modified |= DrawEditorTargetParamCombo<StrategyEnemySelection>(ref value.TargetParam, "Criterion");
                 break;
             case StrategyTarget.EnemyByOID:
                 if (moduleInfo?.ObjectIDType != null)
@@ -217,4 +214,33 @@ public static class UIStrategyValue
         StrategyTarget.PointAbsolute or StrategyTarget.PointCenter => false,
         _ => true
     };
+
+    private static string PreviewParam(StrategyPartyFiltering pf)
+    {
+        string excludeIfSet(StrategyPartyFiltering flag, string value) => pf.HasFlag(flag) ? $", exclude {value}" : "";
+        return $"{(pf.HasFlag(StrategyPartyFiltering.IncludeSelf) ? "include" : "exclude")} self"
+            + excludeIfSet(StrategyPartyFiltering.ExcludeTanks, "tanks")
+            + excludeIfSet(StrategyPartyFiltering.ExcludeHealers, "healers")
+            + excludeIfSet(StrategyPartyFiltering.ExcludeMelee, "melee")
+            + excludeIfSet(StrategyPartyFiltering.ExcludeRanged, "ranged")
+            + excludeIfSet(StrategyPartyFiltering.ExcludeNoPredictedDamage, "players not expecting damage");
+    }
+
+    private static bool DrawEditorTargetParamCombo<E>(ref int current, string text) where E : Enum
+    {
+        var value = (E)(object)current;
+        if (!UICombo.Enum(text, ref value))
+            return false;
+        current = (int)(object)value;
+        return true;
+    }
+
+    private static bool DrawEditorTargetParamFlags(ref int current, StrategyPartyFiltering flag, string text, bool inverted)
+    {
+        var isChecked = ((StrategyPartyFiltering)current).HasFlag(flag) != inverted;
+        if (!ImGui.Checkbox(text, ref isChecked))
+            return false;
+        current ^= (int)flag;
+        return true;
+    }
 }

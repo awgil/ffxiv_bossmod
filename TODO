@@ -24,6 +24,8 @@ immediate plans
 - ishape
 
 general:
+- pending effects
+-- there's no effectresult for attract if it won't move (within mindistance)
 - horizontal timeline / cooldown planner
 - cdplanner should use real cds
 - assignments per ui order rather than per player + class-specific assignments

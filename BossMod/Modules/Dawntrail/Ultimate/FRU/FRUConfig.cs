@@ -12,9 +12,9 @@ public class FRUConfig() : ConfigNode()
 
     [PropertyDisplay("P1 Fall of Faith (cone tethers): conga priority (two people without tethers with lower priorities join odd group)")]
     [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
-    [GroupPreset("TTHHMMRR", [0, 1, 2, 3, 4, 5, 6, 7])]
-    [GroupPreset("RHMTTMHR", [3, 4, 1, 6, 2, 5, 0, 7])]
-    public GroupAssignmentUnique P1FallOfFaithAssignment = GroupAssignmentUnique.DefaultRoles();
+    [GroupPreset("HHTTMMRR", [2, 3, 0, 1, 4, 5, 6, 7])]
+    [GroupPreset("HRMTTMRH", [3, 4, 0, 7, 2, 5, 1, 6])]
+    public GroupAssignmentUnique P1FallOfFaithAssignment = new() { Assignments = [2, 3, 0, 1, 4, 5, 6, 7] };
 
     [PropertyDisplay("P1 Fall of Faith (cone tethers): odd groups go W (rather than N)")]
     public bool P1FallOfFaithEW = false;
@@ -63,6 +63,9 @@ public class FRUConfig() : ConfigNode()
 
     [PropertyDisplay("P3 Apocalypse: uptime swaps (only consider swaps within prio 1/2 and 3/4, assuming these are melee and ranged)")]
     public bool P3ApocalypseUptime;
+
+    [PropertyDisplay("P3 Apocalypse: ignore swaps and use initial static positions for spreads")]
+    public bool P3ApocalypseStaticSpreads;
 
     [PropertyDisplay("P4 Darklit Dragonsong: assignments (lower prio stays more clockwise, lowest prio support takes N tower)")]
     [GroupDetails(["Support prio1", "Support prio2", "Support prio3", "Support prio4", "DD prio1", "DD prio2", "DD prio3", "DD prio4"])]

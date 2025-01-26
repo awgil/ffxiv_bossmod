@@ -108,7 +108,7 @@ public sealed class RotationModuleManager : IDisposable
         foreach (var m in _activeModules)
         {
             var values = Preset?.ActiveStrategyOverrides(m.DataIndex) ?? Planner?.ActiveStrategyOverrides(m.DataIndex) ?? throw new InvalidOperationException("Both preset and plan are null, but there are active modules");
-            m.Module.Execute(values, target, estimatedAnimLockDelay, isMoving);
+            m.Module.Execute(values, ref target, estimatedAnimLockDelay, isMoving);
         }
     }
 
@@ -116,8 +116,8 @@ public sealed class RotationModuleManager : IDisposable
     {
         StrategyTarget.Self => Player,
         StrategyTarget.PartyByAssignment => _prc.SlotsPerAssignment(WorldState.Party) is var spa && param < spa.Length ? WorldState.Party[spa[param]] : null,
-        StrategyTarget.PartyWithLowestHP => WorldState.Party.WithoutSlot().Exclude(param != 0 ? null : Player).MinBy(a => a.HPMP.CurHP),
-        StrategyTarget.EnemyWithHighestPriority => Player != null ? Hints.PriorityTargets.MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor : null,
+        StrategyTarget.PartyWithLowestHP => FilteredPartyMembers((StrategyPartyFiltering)param).MinBy(a => a.HPMP.CurHP),
+        StrategyTarget.EnemyWithHighestPriority => Hints.PriorityTargets.MaxBy(RateEnemy((StrategyEnemySelection)param))?.Actor,
         StrategyTarget.EnemyByOID => Player != null && (uint)param is var oid && oid != 0 ? Hints.PotentialTargets.Where(e => e.Actor.OID == oid).MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor : null,
         _ => null
     };
@@ -127,6 +127,47 @@ public sealed class RotationModuleManager : IDisposable
         StrategyTarget.PointAbsolute => new(off1, off2),
         StrategyTarget.PointCenter or StrategyTarget.Automatic => (Bossmods.ActiveModule?.Center + off1 * off2.Degrees().ToDirection()) ?? Player?.Position ?? default,
         _ => (ResolveTargetOverride(strategy, param)?.Position + off1 * off2.Degrees().ToDirection()) ?? Player?.Position ?? default,
+    };
+
+    public override string ToString() => string.Join(", ", _activeModules?.Select(m => m.Module.GetType().Name) ?? []);
+
+    private IEnumerable<Actor> FilteredPartyMembers(StrategyPartyFiltering filter)
+    {
+        var fullMask = new BitMask(~0ul);
+        var allowedMask = fullMask;
+        if (!filter.HasFlag(StrategyPartyFiltering.IncludeSelf))
+            allowedMask.Clear(PlayerSlot);
+        if (filter.HasFlag(StrategyPartyFiltering.ExcludeNoPredictedDamage))
+        {
+            var predictedDamage = Hints.PredictedDamage.Aggregate(default(BitMask), (s, p) => s | p.players);
+            allowedMask &= predictedDamage;
+        }
+
+        if (allowedMask.None())
+            return [];
+        var players = allowedMask != fullMask ? WorldState.Party.WithSlot().IncludedInMask(allowedMask).Actors() : WorldState.Party.WithoutSlot();
+        if ((filter & (StrategyPartyFiltering.ExcludeTanks | StrategyPartyFiltering.ExcludeHealers | StrategyPartyFiltering.ExcludeMelee | StrategyPartyFiltering.ExcludeRanged)) != StrategyPartyFiltering.None)
+        {
+            players = players.Where(p => p.Role switch
+            {
+                Role.Tank => !filter.HasFlag(StrategyPartyFiltering.ExcludeTanks),
+                Role.Healer => !filter.HasFlag(StrategyPartyFiltering.ExcludeHealers),
+                Role.Melee => !filter.HasFlag(StrategyPartyFiltering.ExcludeMelee),
+                Role.Ranged => !filter.HasFlag(StrategyPartyFiltering.ExcludeRanged),
+                _ => true,
+            });
+        }
+        return players;
+    }
+
+    private Func<AIHints.Enemy, float> RateEnemy(StrategyEnemySelection criterion) => criterion switch
+    {
+        StrategyEnemySelection.Closest => Player != null ? e => -(e.Actor.Position - Player.Position).LengthSq() : _ => 0,
+        StrategyEnemySelection.LowestCurHP => e => -e.Actor.HPMP.CurHP,
+        StrategyEnemySelection.HighestCurHP => e => e.Actor.HPMP.CurHP,
+        StrategyEnemySelection.LowestMaxHP => e => -e.Actor.HPMP.MaxHP,
+        StrategyEnemySelection.HighestMaxHP => e => e.Actor.HPMP.MaxHP,
+        _ => _ => 0
     };
 
     private Plan? CalculateExpectedPlan()
@@ -139,8 +180,6 @@ public sealed class RotationModuleManager : IDisposable
         var plans = Database.Plans.GetPlans(Bossmods.ActiveModule.GetType(), player.Class);
         return plans.SelectedIndex >= 0 ? plans.Plans[plans.SelectedIndex] : null;
     }
-
-    public override string ToString() => string.Join(", ", _activeModules?.Select(m => m.Module.GetType().Name) ?? []);
 
     // TODO: consider not recreating modules that were active and continue to be active?
     private List<ActiveModule> RebuildActiveModules<T>(List<T> modules) where T : IRotationModuleData
