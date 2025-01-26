@@ -33,10 +33,9 @@ public sealed class PlanDatabase
         {
             try
             {
-                using var json = Serialization.ReadJson(f.FullName);
-                var version = json.RootElement.GetProperty("version").GetInt32();
-                var payload = json.RootElement.GetProperty("payload");
-                var plan = payload.Deserialize<Plan>(serOptions);
+                var data = PlanPresetConverter.PlanSchema.Load(f);
+                using var json = data.document;
+                var plan = data.payload.Deserialize<Plan>(serOptions);
                 if (plan != null)
                 {
                     plan.Guid = f.Name[..^5];
@@ -204,13 +203,7 @@ public sealed class PlanDatabase
         var filename = $"{_planStore.FullName}/{plan.Guid}.json";
         try
         {
-            using var fstream = new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.Read);
-            using var jwriter = Serialization.WriteJson(fstream);
-            jwriter.WriteStartObject();
-            jwriter.WriteNumber("version", 0);
-            jwriter.WritePropertyName("payload");
-            JsonSerializer.Serialize(jwriter, plan, Serialization.BuildSerializationOptions());
-            jwriter.WriteEndObject();
+            PlanPresetConverter.PlanSchema.Save(new(filename), jwriter => JsonSerializer.Serialize(jwriter, plan, Serialization.BuildSerializationOptions()));
             Service.Log($"Plan saved successfully to '{filename}'");
         }
         catch (Exception ex)

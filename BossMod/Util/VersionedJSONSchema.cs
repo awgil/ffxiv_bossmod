@@ -7,7 +7,7 @@ namespace BossMod;
 // utility for loading versioned json configuration files, executing conversion if needed
 public sealed class VersionedJSONSchema
 {
-    public delegate JsonObject ConvertDelegate(JsonObject input, int startingVersion, FileInfo path);
+    public delegate JsonNode ConvertDelegate(JsonNode input, int startingVersion, FileInfo path);
 
     public readonly int MinSupportedVersion;
     public readonly List<ConvertDelegate> Converters = [];
@@ -30,7 +30,12 @@ public sealed class VersionedJSONSchema
             return (json, jpayload);
 
         // execute the conversion
-        var converted = JsonObject.Create(jpayload) ?? throw new ArgumentException($"Failed to upgrade {file.FullName} from {version} to {CurrentVersion}");
+        JsonNode converted = jpayload.ValueKind switch
+        {
+            JsonValueKind.Object => JsonObject.Create(jpayload)!,
+            JsonValueKind.Array => JsonArray.Create(jpayload)!,
+            _ => throw new ArgumentException($"Config file {file.FullName} has unsupported payload type {jpayload.ValueKind}")
+        };
         for (int i = version - MinSupportedVersion; i < Converters.Count; ++i)
             converted = Converters[i](converted, version, file);
 
