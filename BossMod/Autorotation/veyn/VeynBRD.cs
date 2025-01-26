@@ -204,7 +204,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
     public BRD.SID ExpectedCaustic => Unlocked(BRD.AID.CausticBite) ? BRD.SID.CausticBite : BRD.SID.VenomousBite;
     public BRD.SID ExpectedStormbite => Unlocked(BRD.AID.Stormbite) ? BRD.SID.Stormbite : BRD.SID.Windbite;
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var gauge = World.Client.GetGauge<BardGauge>();
         ActiveSong = (Song)((byte)gauge.SongFlags & 3);

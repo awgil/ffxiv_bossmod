@@ -26,7 +26,7 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
 
     private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (Bossmods.ActiveModule is FRU module && module.Raid.FindSlot(Player.InstanceID) is var playerSlot && playerSlot >= 0)
         {

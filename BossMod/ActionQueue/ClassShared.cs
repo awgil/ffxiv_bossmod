@@ -97,14 +97,14 @@ public enum SID : uint
     // Bozja
     LostChainspell = 2560, // instant cast
 
-    MagicBurst = 1652, // magic damage increase
-    BannerOfNobleEnds = 2326, // damage increase + healing disable
-    BannerOfHonoredSacrifice = 2327, // damage increase + hp drain
-    LostFontOfPower = 2346, // damage/crit increase
-    ClericStance = 2484, // damage increase (from seraph strike)
-    LostExcellence = 2564, // damage increase + invincibility
-    Memorable = 2565, // damage increase
-    BloodRush = 2567, // damage increase + ability haste
+    MagicBurst = 1652, // magic damage buff
+    BannerOfNobleEnds = 2326, // damage buff + healing disable
+    BannerOfHonoredSacrifice = 2327, // damage buff + hp drain
+    LostFontOfPower = 2346, // damage/crit buff
+    ClericStance = 2484, // damage buff (from seraph strike)
+    LostExcellence = 2564, // damage buff + invincibility
+    Memorable = 2565, // damage buff
+    BloodRush = 2567, // damage buff + ability haste
     #endregion
 
     #region PvP

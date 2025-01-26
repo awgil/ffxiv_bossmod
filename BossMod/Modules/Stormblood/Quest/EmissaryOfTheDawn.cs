@@ -8,7 +8,7 @@ public enum OID : uint
     Helper = 0x233C,
 }
 
-class AlphiAI(BossModule module) : Components.RotationModule<AutoAlphi>(module);
+class AlphiAI(BossModule module) : QuestBattle.RotationModule<AutoAlphi>(module);
 
 class LB(BossModule module) : BossComponent(module)
 {

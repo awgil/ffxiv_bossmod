@@ -82,7 +82,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
     private IEnumerable<Actor> LightParty => World.Party.WithoutSlot(excludeAlliance: true, excludeNPCs: Health.HaveRealPartyMembers);
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (Player.MountId > 0)
             return;

@@ -505,7 +505,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Rot
 
     #endregion
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         #region Variables
 

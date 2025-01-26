@@ -33,7 +33,15 @@ class P2LuminousHammer(BossModule module) : Components.BaitAwayIcon(module, new 
     public readonly int[] BaitsPerPlayer = new int[PartyState.MaxPartySize];
     public readonly WDir[] PrevBaitOffset = new WDir[PartyState.MaxPartySize];
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // there are dedicated components for hints
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // note: movement hints are provided by dedicated components; this only marks targeted players as expecting to be damaged
+        BitMask predictedDamage = default;
+        foreach (var b in CurrentBaits)
+            predictedDamage.Set(Raid.FindSlot(b.Target.InstanceID));
+        if (predictedDamage.Any())
+            hints.PredictedDamage.Add((predictedDamage, CurrentBaits[0].Activation));
+    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

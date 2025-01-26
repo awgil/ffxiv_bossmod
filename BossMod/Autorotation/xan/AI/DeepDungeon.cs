@@ -34,7 +34,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         ItemPenalty = 1094,
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (World.DeepDungeon.DungeonId == 0)
             return;
@@ -67,7 +67,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         if (Player.FindStatus(SID.ItemPenalty) != null)
             return;
 
-        var (regenAction, potAction) = World.DeepDungeon.Type switch
+        var (regenAction, potAction) = World.DeepDungeon.DungeonId switch
         {
             DeepDungeonState.DungeonType.POTD => (ActionDefinitions.IDSustainingPotion, ActionDefinitions.IDMaxPotion),
             DeepDungeonState.DungeonType.HOH => (ActionDefinitions.IDEmpyreanPotion, ActionDefinitions.IDSuperPotion),

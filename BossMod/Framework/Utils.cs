@@ -50,6 +50,15 @@ public static partial class Utils
 
     public static unsafe ulong SceneObjectFlags(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o) => ReadField<ulong>(o, 0x38);
 
+    // lumina extensions
+    public static int FindIndex<T>(this Lumina.Excel.Collection<T> collection, Func<T, bool> predicate) where T : struct
+    {
+        for (int i = 0; i < collection.Count; ++i)
+            if (predicate(collection[i]))
+                return i;
+        return -1;
+    }
+
     // backport from .net 6, except that it doesn't throw on empty enumerable...
     public static TSource? MinBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector) where TKey : IComparable
     {

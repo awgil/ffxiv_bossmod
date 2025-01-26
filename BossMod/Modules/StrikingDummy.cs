@@ -33,7 +33,7 @@ public sealed class StrikingDummyRotation(RotationModuleManager manager, Actor p
         return res;
     }
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var cd = World.Client.CountdownRemaining;
         var boss = Bossmods.ActiveModule?.PrimaryActor;

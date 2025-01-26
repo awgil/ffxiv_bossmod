@@ -54,7 +54,7 @@ class NexusOfThunder(BossModule module) : Components.SelfTargetedAOEs(module, Ac
 class CoiledLevin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CoiledLevin1), new AOEShapeCircle(6));
 class LightningVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.LightningVoidzone).Where(x => x.EventState != 7));
 
-class ThancredAI(BossModule module) : Components.RotationModule<AutoThancred>(module);
+class ThancredAI(BossModule module) : RotationModule<AutoThancred>(module);
 
 class AutoThancred(WorldState ws) : UnmanagedRotation(ws, 3)
 {

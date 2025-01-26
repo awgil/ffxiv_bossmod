@@ -383,7 +383,7 @@ public abstract class AutoClear : ZoneModule
             if (Palace.Progress.WeaponLevel + Palace.Progress.ArmorLevel < 198)
                 return true;
 
-            return Palace.Type switch
+            return Palace.DungeonId switch
             {
                 DeepDungeonState.DungeonType.HOH or DeepDungeonState.DungeonType.EO => Palace.Floor >= 7,// magicite/demiclones start dropping on floor 7
                 _ => false,
@@ -393,7 +393,7 @@ public abstract class AutoClear : ZoneModule
 
     private bool OpenBronze => _config.BronzeCoffer;
 
-    public override bool WantDrawExtra() => _config.EnableMinimap && !Palace.Progress.IsBossFloor;
+    public override bool WantDrawExtra() => _config.EnableMinimap && !Palace.IsBossFloor;
 
     public override void DrawExtra()
     {
@@ -479,7 +479,7 @@ public abstract class AutoClear : ZoneModule
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
-        if (!_config.Enable || Palace.Progress.IsBossFloor || BetweenFloors)
+        if (!_config.Enable || Palace.IsBossFloor || BetweenFloors)
             return;
 
         foreach (var (w, rot) in Walls)
@@ -581,7 +581,7 @@ public abstract class AutoClear : ZoneModule
 
         foreach (var a in World.Actors)
         {
-            if (_chestContentsGold.TryGetValue(a.InstanceID, out var pid) && Palace.GetItem(pid).Count == 3 && a.IsTargetable)
+            if (_chestContentsGold.TryGetValue(a.InstanceID, out var pid) && Palace.GetPomanderState(pid).Count == 3 && a.IsTargetable)
             {
                 if (CanAutoUse(pid))
                     pomanderToUseHere ??= pid;
@@ -654,7 +654,7 @@ public abstract class AutoClear : ZoneModule
 
         if (!player.InCombat && _config.AutoPassage && Palace.PassageActive)
         {
-            DesiredRoom = Array.FindIndex(Palace.MapData, d => d.HasFlag(RoomFlags.Passage));
+            DesiredRoom = Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage));
 
             if (passage is Actor c)
             {
@@ -669,7 +669,7 @@ public abstract class AutoClear : ZoneModule
         if (revealedTraps.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Union(revealedTraps));
 
-        if (!player.IsTransformed && (!player.InCombat || _config.NavigateInCombat) && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.GetItem(PomanderID.Intuition).Active)
+        if (!player.IsTransformed && (!player.InCombat || _config.NavigateInCombat) && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.GetPomanderState(PomanderID.Intuition).Active)
             hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));
 
         var shouldTargetMobs = _config.AutoClear switch
@@ -726,7 +726,7 @@ public abstract class AutoClear : ZoneModule
             return;
         }
 
-        var path = new FloorPathfind(Palace.MapData).Pathfind(playerRoom, DesiredRoom);
+        var path = new FloorPathfind(Palace.Rooms).Pathfind(playerRoom, DesiredRoom);
         if (path.Count == 0)
         {
             Service.Log($"uh-oh, no path from {playerRoom} to {DesiredRoom}");
@@ -790,7 +790,7 @@ public abstract class AutoClear : ZoneModule
                 Service.Log($"unrecognized tileset number {Palace.Progress.Tileset}");
                 return;
         }
-        foreach (var (room, i) in Palace.MapData.Select((m, i) => (m, i)))
+        foreach (var (room, i) in Palace.Rooms.Select((m, i) => (m, i)))
         {
             if (room > 0)
             {

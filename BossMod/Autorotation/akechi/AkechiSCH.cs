@@ -205,7 +205,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         : AID.ArtOfWar1; //Otherwise, default to Art of War
     #endregion
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
     {
         #region Variables
         var gauge = World.Client.GetGauge<ScholarGauge>(); //Retrieve Scholar gauge

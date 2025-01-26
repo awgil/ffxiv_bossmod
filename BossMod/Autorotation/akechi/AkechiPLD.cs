@@ -325,6 +325,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     public bool ShouldUseAOE; //Check if AOE rotation should be used
     public bool ShouldNormalHolyCircle; //Check if Holy Circle should be used
     public bool ShouldUseDMHolyCircle; //Check if Holy Circle should be used under Divine Might
+    public bool ShouldHoldDMandAC; //Check if Divine Might buff and Atonement combo should be held into Fight or Flight
     public AID NextGCD; //The next action to be executed during the global cooldown (for cartridge management)
     public bool canWeaveIn; //Can weave in oGCDs
     public bool canWeaveEarly; //Can early weave oGCDs
@@ -348,7 +349,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     //public Actor? BestSplashTarget()
     #endregion
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
     {
         #region Variables
         var gauge = World.Client.GetGauge<PaladinGauge>(); //Retrieve Paladin gauge
@@ -405,6 +406,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
         ShouldUseAOE = TargetsHitByPlayerAOE() > 2; //Check if AOE rotation should be used
         ShouldNormalHolyCircle = !DivineMight.IsActive && TargetsHitByPlayerAOE() > 3; //Check if Holy Circle should be used (very niche)
         ShouldUseDMHolyCircle = DivineMight.IsActive && TargetsHitByPlayerAOE() > 2; //Check if Holy Circle should be used under Divine Might
+        ShouldHoldDMandAC = ComboLastMove is AID.RoyalAuthority ? FightOrFlight.CD < 5 : ComboLastMove is AID.FastBlade ? FightOrFlight.CD < 2.5 : ComboLastMove is AID.RiotBlade && FightOrFlight.CD < GCD;
 
         #region Strategy Options
         var AOE = strategy.Option(Track.AOE); //Retrieves AOE track
@@ -805,7 +807,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             Player.InCombat && //In combat
             target != null && //Target exists
             In3y(target) && //Target in range
-            Atonement.IsReady || Supplication.IsReady || Sepulchre.IsReady, //if any of the three are ready
+            !ShouldHoldDMandAC &&
+            (Atonement.IsReady || Supplication.IsReady || Sepulchre.IsReady), //if any of the three are ready
         AtonementStrategy.ForceAtonement => Atonement.IsReady, //Force Atonement
         AtonementStrategy.ForceSupplication => Supplication.IsReady, //Force Supplication
         AtonementStrategy.ForceSepulchre => Sepulchre.IsReady, //Force Sepulchre
@@ -830,6 +833,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
             target != null && //Target exists
             In25y(target) && //Target in range
             HolySpirit.IsReady && //can execute Holy Spirit
+            !ShouldHoldDMandAC &&
             DivineMight.IsActive, //Divine Might is active
         _ => false
     };

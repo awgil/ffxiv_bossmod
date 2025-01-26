@@ -99,7 +99,7 @@ class EstinienAI(WorldState ws) : UnmanagedRotation(ws, 3)
     }
 }
 
-class AutoEstinien(BossModule module) : Components.RotationModule<EstinienAI>(module);
+class AutoEstinien(BossModule module) : RotationModule<EstinienAI>(module);
 
 class ArchUltimaStates : StateMachineBuilder
 {

@@ -103,7 +103,7 @@ class TankbusterTether(BossModule module) : BossComponent(module)
     }
 }
 
-class BrandenAI(BossModule module) : Components.RotationModule<AutoBranden>(module);
+class BrandenAI(BossModule module) : RotationModule<AutoBranden>(module);
 
 class RustingClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RustingClaw), new AOEShapeCone(10.3f, 45.Degrees()));
 

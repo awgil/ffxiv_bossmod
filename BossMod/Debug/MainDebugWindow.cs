@@ -1,11 +1,8 @@
 ﻿using BossMod.Autorotation;
 using BossMod.Autorotation.xan.AI;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Interface.Components;
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -107,10 +104,6 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         {
             if (zmm.ActiveModule is QuestBattle.QuestBattle qb)
                 qb.DrawDebugInfo();
-        }
-        if (ImGui.CollapsingHeader("Deep dungeon"))
-        {
-            DrawDeepDungeon();
         }
         if (ImGui.CollapsingHeader("Party health"))
         {
@@ -226,109 +219,6 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
                 ImGui.TreePop();
             }
         }
-    }
-
-    private unsafe void DrawDeepDungeon()
-    {
-        var dd = ws.DeepDungeon;
-        if (dd.Type == DeepDungeonState.DungeonType.None)
-        {
-            ImGui.Text("Inactive");
-            return;
-        }
-
-        using (ImRaii.PushIndent())
-        {
-            if (ImGui.CollapsingHeader("Show debug"))
-            {
-                var dd2 = EventFramework.Instance()->GetInstanceContentDeepDungeon();
-                ImGui.Text($"{(nint)dd2:X}");
-
-                /*
-                var v18 = 5;
-                var v3 = dd2->LayoutInfo.GetPointer(dd2->LayoutInitializationType == 5 ? 2 : dd2->LayoutOffset);
-                var v15 = false;
-                var result = v3->Dd4.GetPointer(0);
-                do
-                {
-                    var v6 = result->Field0Shorts.GetPointer(0);
-                    var v7 = 5;
-                    do
-                    {
-                        // ImGui.Text($"{v7}, {v18}, {(nint)result:X}");
-                        if (*v6 > 0)
-                        {
-                            var ptr = (char*)v3 + 20 * (*v6 - v3->Offset1);
-                            ImGui.Text($"v9 = {(nint)ptr:X}");
-                            ImGui.Text($"ID? = {*((uint*)ptr + 79):X}");
-                            var v10 = (int*)(ptr + 320);
-                            for (var i = 0; i < 4; i++)
-                            {
-                                ImGui.Text($"v10 = {*v10:X}");
-                                v10++;
-                            }
-                        }
-                        v6++;
-                        v7--;
-                    } while (v7 > 0);
-                    result++;
-                    v15 = v18-- == 1;
-                } while (!v15);
-                */
-            }
-        }
-
-        using (ImRaii.PushIndent())
-        {
-            if (ImGui.CollapsingHeader("Show struct"))
-            {
-                Dalamud.Utility.Util.ShowStruct(EventFramework.Instance()->GetInstanceContentDeepDungeon());
-            }
-        }
-
-        using (ImRaii.PushIndent())
-        {
-            if (ImGui.CollapsingHeader("Show map"))
-            {
-                using var _ = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(0f, 0f));
-
-                if (Service.Texture.GetFromGame("ui/uld/DeepDungeonNaviMap_Rooms_hr1.tex")?.TryGetWrap(out var tex, out var exc) ?? false)
-                {
-                    for (var i = 0; i < 25; i++)
-                    {
-                        var pos = ImGui.GetCursorPos();
-                        var tile = (byte)dd.MapData[i] & 0xF;
-                        var row = tile / 4;
-                        var col = tile % 4;
-
-                        var xoff = 0.0104f + col * 0.25f;
-                        var yoff = 0.0104f + row * 0.25f;
-                        var xoffend = xoff + 0.2292f;
-                        var yoffend = yoff + 0.2292f;
-
-                        ImGui.SetCursorPos(pos);
-                        ImGui.Image(tex.ImGuiHandle, new(88, 88), new Vector2(xoff, yoff), new Vector2(xoffend, yoffend), tile > 0 ? new(1f) : new(0.6f));
-                        ImGui.SetCursorPos(pos + new Vector2(27, 28));
-                        if (tile > 0 && ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Crosshairs))
-                            SetDungeonDestination(i);
-                        ImGui.SetCursorPos(pos);
-                        ImGui.Dummy(new(88, 88));
-                        if (i % 5 < 4)
-                            ImGui.SameLine();
-                    }
-                    // new Vector2(0.2604f, 0.0104f), new Vector2(0.4896f, 0.2396f)
-                }
-                else
-                {
-                    ImGui.Text("unable to load texture");
-                }
-            }
-        }
-    }
-
-    private void SetDungeonDestination(int roomIndex)
-    {
-
     }
 
     private void DrawPartyHealth()

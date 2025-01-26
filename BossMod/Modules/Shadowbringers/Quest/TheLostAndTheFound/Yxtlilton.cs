@@ -67,7 +67,7 @@ class LamittAI(WorldState ws) : UnmanagedRotation(ws, 25)
     }
 }
 
-class AutoLamitt(BossModule module) : Components.RotationModule<LamittAI>(module);
+class AutoLamitt(BossModule module) : RotationModule<LamittAI>(module);
 
 class YxtliltonStates : StateMachineBuilder
 {

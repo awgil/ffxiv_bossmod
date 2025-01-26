@@ -410,7 +410,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     public bool JustUsed(AID aid, float variance) => JustDid(aid) && DidWithin(variance); //Check if the last action used was the desired ability & was used within a certain timeframe
     #endregion
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
     {
         #region Variables
         //Gauge

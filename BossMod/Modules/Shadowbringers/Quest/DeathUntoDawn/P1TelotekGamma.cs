@@ -13,7 +13,7 @@ enum OID : uint
     Boss = 0x3376
 }
 
-class AlisaieAI(BossModule module) : Components.RotationModule<AutoAlisaie>(module);
+class AlisaieAI(BossModule module) : QuestBattle.RotationModule<AutoAlisaie>(module);
 class AntiPersonnelMissile(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.AntiPersonnelMissile), 6);
 class MRVMissile(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MRVMissile), 12, maxCasts: 6);
 

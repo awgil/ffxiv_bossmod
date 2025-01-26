@@ -91,7 +91,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     public AIHints Hints => Manager.Hints;
 
     // the main entry point of the module - given a set of strategy values, fill the queue with a set of actions to execute
-    public abstract void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving);
+    public abstract void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving);
 
     public virtual string DescribeState() => "";
 

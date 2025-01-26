@@ -230,7 +230,7 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
 
         if (autoRaiseOnEnter && Palace.Floor % 10 == 1)
         {
-            var raising = Palace.GetItem(PomanderID.ProtoRaising);
+            var raising = Palace.GetPomanderState(PomanderID.ProtoRaising);
             if (!raising.Active && raising.Count > 0)
                 hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)PomanderID.ProtoRaising), player, ActionQueue.Priority.VeryHigh);
         }

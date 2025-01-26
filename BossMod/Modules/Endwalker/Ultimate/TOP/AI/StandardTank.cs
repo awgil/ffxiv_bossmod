@@ -37,7 +37,7 @@ internal class StandardTank(RotationModuleManager manager, Actor player) : AIRot
 
     private TankAI.TankActions TankActions => TankAI.ActionsForJob(Player.Class);
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (Bossmods.ActiveModule is not TOP module)
             return;

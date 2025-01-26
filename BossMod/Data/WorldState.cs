@@ -72,6 +72,8 @@ public sealed class WorldState
             yield return o;
         foreach (var o in Network.CompareToInitial())
             yield return o;
+        foreach (var o in DeepDungeon.CompareToInitial())
+            yield return o;
     }
 
     // implementation of operations

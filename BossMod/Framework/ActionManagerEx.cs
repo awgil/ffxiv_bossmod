@@ -318,7 +318,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
                 var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
                 var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
                 var prevRot = player != null ? player->Rotation.Radians() : default;
-                var slot = _ws.DeepDungeon.GetSlotForPomander((PomanderID)action.ID);
+                var slot = _ws.DeepDungeon.GetPomanderSlot((PomanderID)action.ID);
                 if (dd != null && slot >= 0 && _usePomanderHook.Original(dd, (uint)slot) != null)
                 {
                     var currRot = player != null ? player->Rotation.Radians() : default;
@@ -528,7 +528,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     private void* UsePomanderDetour(InstanceContentDeepDungeon* self, uint pomanderSlot)
     {
-        if (_manualQueue.Push(new ActionID(ActionType.Pomander, (uint)_ws.DeepDungeon.GetPomanderForSlot((int)pomanderSlot)), 0xE0000000, false, () => (0xE0000000, null)))
+        if (_manualQueue.Push(new ActionID(ActionType.Pomander, (uint)_ws.DeepDungeon.GetPomanderID((int)pomanderSlot)), 0xE0000000, false, () => (0xE0000000, null)))
             return null;
 
         return _usePomanderHook.Original(self, pomanderSlot);

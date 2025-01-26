@@ -413,7 +413,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         }
     }
 
-    public sealed override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         NextGCD = default;
         NextGCDPrio = 0;
@@ -556,4 +556,5 @@ static class Extendxan
     public static OffensiveStrategy Simple<Index>(this StrategyValues strategy, Index track) where Index : Enum => strategy.Option(track).As<OffensiveStrategy>();
     public static bool BuffsOk(this StrategyValues strategy) => strategy.Option(SharedTrack.Buffs).As<OffensiveStrategy>() != OffensiveStrategy.Delay;
     public static bool AOEOk(this StrategyValues strategy) => strategy.AOE() is AOEStrategy.AOE or AOEStrategy.ForceAOE;
+    public static float DistanceToHitbox(this Actor actor, Enemy? other) => actor.DistanceToHitbox(other?.Actor);
 }
