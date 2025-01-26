@@ -219,30 +219,13 @@ public sealed class ActionDefinitions : IDisposable
         RegisterPotion(IDPotionInt);
         RegisterPotion(IDPotionMnd);
 
-        // bozja actions
+        // special content actions - bozja, deep dungeons, etc
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
             RegisterBozja(i);
-
-        // pomanders
         for (var i = PomanderID.Safety; i < PomanderID.Count; ++i)
-        {
-            var pid = new ActionID(ActionType.Pomander, (uint)i);
-            _definitions[pid] = new(pid)
-            {
-                InstantAnimLock = 2.1f,
-                AllowedTargets = ActionTargets.Self
-            };
-        }
-
+            RegisterDeepDungeon(new(ActionType.Pomander, (uint)i));
         for (var i = 1u; i <= 3; i++)
-        {
-            var mid = new ActionID(ActionType.Magicite, i);
-            _definitions[mid] = new(mid)
-            {
-                InstantAnimLock = 2.1f,
-                AllowedTargets = ActionTargets.Self
-            };
-        }
+            RegisterDeepDungeon(new(ActionType.Magicite, i));
     }
 
     public void Dispose()
@@ -440,6 +423,11 @@ public sealed class ActionDefinitions : IDisposable
             var aid2 = ActionID.MakeBozjaHolster(id, 1);
             _definitions[aid2] = new(aid2) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
         }
+    }
+
+    private void RegisterDeepDungeon(ActionID id)
+    {
+        _definitions[id] = new(id) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
     }
 
     // hardcoded mechanic implementations

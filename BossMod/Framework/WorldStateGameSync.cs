@@ -667,82 +667,58 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe void UpdateDeepDungeon()
     {
-        var ddold = _ws.DeepDungeon;
-        var ddnew = GetDeepDungeonState();
-
-        if (ddold.DungeonId != ddnew.DungeonId || ddold.Progress != ddnew.Progress)
-            _ws.Execute(new DeepDungeonState.OpProgressChange(ddnew.DungeonId, ddnew.Progress));
-        if (!MemoryExtensions.SequenceEqual<InstanceContentDeepDungeon.RoomFlags>(ddold.MapData, ddnew.MapData))
-            _ws.Execute(new DeepDungeonState.OpMapDataChange(ddnew.MapData));
-        if (!MemoryExtensions.SequenceEqual<DeepDungeonState.PartyMember>(ddold.Party, ddnew.Party))
-            _ws.Execute(new DeepDungeonState.OpPartyStateChange(ddnew.Party));
-        if (!MemoryExtensions.SequenceEqual<DeepDungeonState.Item>(ddold.Items, ddnew.Items))
-            _ws.Execute(new DeepDungeonState.OpItemsChange(ddnew.Items));
-        if (!MemoryExtensions.SequenceEqual<DeepDungeonState.Chest>(ddold.Chests, ddnew.Chests))
-            _ws.Execute(new DeepDungeonState.OpChestsChange(ddnew.Chests));
-        if (!MemoryExtensions.SequenceEqual<byte>(ddold.Magicite, ddnew.Magicite))
-            _ws.Execute(new DeepDungeonState.OpMagiciteChange(ddnew.Magicite));
-    }
-
-    private unsafe DeepDungeonState GetDeepDungeonState()
-    {
         var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
-        if (dd == null)
-            return new();
-
-        var progress = new DeepDungeonState.DungeonProgress
+        if (dd != null)
         {
-            Floor = dd->Floor,
-            WeaponLevel = dd->WeaponLevel,
-            ArmorLevel = dd->ArmorLevel,
+            var currentId = (DeepDungeonState.DungeonType)dd->DeepDungeonId;
+            var fullUpdate = currentId != _ws.DeepDungeon.DungeonId;
 
-            SyncedGearLevel = dd->SyncedGearLevel,
-            HoardCount = dd->HoardCount,
+            var progress = new DeepDungeonState.DungeonProgress(dd->Floor, dd->ActiveLayoutIndex, dd->WeaponLevel, dd->ArmorLevel, dd->SyncedGearLevel, dd->HoardCount, dd->ReturnProgress, dd->PassageProgress);
+            if (fullUpdate || progress != _ws.DeepDungeon.Progress)
+                _ws.Execute(new DeepDungeonState.OpProgressChange(currentId, progress));
 
-            ReturnProgress = dd->ReturnProgress,
-            PassageProgress = dd->PassageProgress,
+            if (fullUpdate || !MemoryExtensions.SequenceEqual(_ws.DeepDungeon.Rooms.AsSpan(), dd->MapData))
+                _ws.Execute(new DeepDungeonState.OpMapDataChange(dd->MapData.ToArray()));
 
-            Tileset = dd->ActiveLayoutIndex
-        };
+            Span<DeepDungeonState.PartyMember> party = stackalloc DeepDungeonState.PartyMember[DeepDungeonState.NumPartyMembers];
+            for (var i = 0; i < DeepDungeonState.NumPartyMembers; ++i)
+            {
+                ref var p = ref dd->Party[i];
+                party[i] = new(SanitizedObjectID(p.EntityId), SanitizeDeepDungeonRoom(p.RoomIndex));
+            }
+            if (fullUpdate || !MemoryExtensions.SequenceEqual(_ws.DeepDungeon.Party.AsSpan(), party))
+                _ws.Execute(new DeepDungeonState.OpPartyStateChange(party.ToArray()));
 
-        var state = new DeepDungeonState
-        {
-            Progress = progress,
-            Magicite = dd->Magicite.ToArray(),
-            DungeonId = dd->DeepDungeonId
-        };
+            Span<DeepDungeonState.PomanderState> pomanders = stackalloc DeepDungeonState.PomanderState[DeepDungeonState.NumPomanderSlots];
+            for (var i = 0; i < DeepDungeonState.NumPomanderSlots; ++i)
+            {
+                ref var item = ref dd->Items[i];
+                pomanders[i] = new(item.Count, item.Flags);
+            }
+            if (fullUpdate || !MemoryExtensions.SequenceEqual(_ws.DeepDungeon.Pomanders.AsSpan(), pomanders))
+                _ws.Execute(new DeepDungeonState.OpPomandersChange(pomanders.ToArray()));
 
-        dd->MapData.CopyTo(state.MapData);
+            Span<DeepDungeonState.Chest> chests = stackalloc DeepDungeonState.Chest[DeepDungeonState.NumChests];
+            for (var i = 0; i < DeepDungeonState.NumChests; ++i)
+            {
+                ref var c = ref dd->Chests[i];
+                chests[i] = new(c.ChestType, SanitizeDeepDungeonRoom(c.RoomIndex));
+            }
+            if (fullUpdate || !MemoryExtensions.SequenceEqual(_ws.DeepDungeon.Chests.AsSpan(), chests))
+                _ws.Execute(new DeepDungeonState.OpChestsChange(chests.ToArray()));
 
-        var ddParty = dd->Party;
-        for (var i = 0; i < 4; i++)
-        {
-            ref var pinfo = ref state.Party[i];
-            pinfo.EntityId = (uint)SanitizedObjectID(ddParty[i].EntityId);
-            pinfo.Room = SanitizeRoom(ddParty[i].RoomIndex);
+            if (fullUpdate || !MemoryExtensions.SequenceEqual(_ws.DeepDungeon.Magicite.AsSpan(), dd->Magicite))
+                _ws.Execute(new DeepDungeonState.OpMagiciteChange(dd->Magicite.ToArray()));
         }
-
-        var ddItem = dd->Items;
-        for (var i = 0; i < ddItem.Length; i++)
+        else if (_ws.DeepDungeon.DungeonId != DeepDungeonState.DungeonType.None)
         {
-            ref var pitem = ref state.Items[i];
-            pitem.Count = ddItem[i].Count;
-            pitem.Flags = ddItem[i].Flags;
+            // exiting deep dungeon, clean up all state
+            _ws.Execute(new DeepDungeonState.OpProgressChange(DeepDungeonState.DungeonType.None, default));
         }
-
-        var ddChest = dd->Chests;
-        for (var i = 0; i < ddChest.Length; i++)
-        {
-            ref var pchest = ref state.Chests[i];
-            pchest.Type = ddChest[i].ChestType;
-            pchest.Room = SanitizeRoom(ddChest[i].RoomIndex);
-        }
-
-        return state;
+        // else: we were and still are outside deep dungeon, nothing to do
     }
 
-    private byte SanitizeRoom(sbyte room) => room < 0 ? (byte)0 : (byte)room;
-
+    private byte SanitizeDeepDungeonRoom(sbyte room) => room < 0 ? (byte)0 : (byte)room;
     private ulong SanitizedObjectID(ulong raw) => raw != InvalidEntityId ? raw : 0;
 
     private void DispatchActorEvents(ulong instanceID)

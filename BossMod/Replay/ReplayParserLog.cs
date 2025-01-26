@@ -1,5 +1,4 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
@@ -355,7 +354,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("DDPG"u8)] = ParseDeepDungeonProgress,
             [new("DDMP"u8)] = ParseDeepDungeonMap,
             [new("DDPT"u8)] = ParseDeepDungeonParty,
-            [new("DDIT"u8)] = ParseDeepDungeonItems,
+            [new("DDIT"u8)] = ParseDeepDungeonPomanders,
             [new("DDCT"u8)] = ParseDeepDungeonChests,
             [new("DDMG"u8)] = ParseDeepDungeonMagicite,
             [new("IPCI"u8)] = ParseNetworkIDScramble,
@@ -705,42 +704,35 @@ public sealed class ReplayParserLog : IDisposable
     private ClientState.OpActivePetChange ParseClientActivePet() => new(new(_input.ReadULong(true), _input.ReadByte(false), _input.ReadByte(false)));
     private ClientState.OpFocusTargetChange ParseClientFocusTarget() => new(_input.ReadULong(true));
 
-    private DeepDungeonState.OpProgressChange ParseDeepDungeonProgress() => new(_input.ReadByte(false), new DeepDungeonState.DungeonProgress(_input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false)));
-    private DeepDungeonState.OpMapDataChange ParseDeepDungeonMap() => new(Array.ConvertAll(_input.ReadBytes(), b => (InstanceContentDeepDungeon.RoomFlags)b));
+    private DeepDungeonState.OpProgressChange ParseDeepDungeonProgress() => new((DeepDungeonState.DungeonType)_input.ReadByte(false), new(_input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false)));
+    private DeepDungeonState.OpMapDataChange ParseDeepDungeonMap()
+    {
+        var rooms = new FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags[DeepDungeonState.NumRooms];
+        for (var i = 0; i < rooms.Length; ++i)
+            rooms[i] = (FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags)_input.ReadByte(true);
+        return new(rooms);
+    }
     private DeepDungeonState.OpPartyStateChange ParseDeepDungeonParty()
     {
-        var pt = new DeepDungeonState.PartyMember[4];
+        var pt = new DeepDungeonState.PartyMember[DeepDungeonState.NumPartyMembers];
         for (var i = 0; i < pt.Length; i++)
-        {
-            ref var p = ref pt[i];
-            p.EntityId = _input.ReadActorID();
-            p.Room = _input.ReadByte(false);
-        }
+            pt[i] = new(_input.ReadActorID(), _input.ReadByte(false));
         return new(pt);
     }
-    private DeepDungeonState.OpItemsChange ParseDeepDungeonItems()
+    private DeepDungeonState.OpPomandersChange ParseDeepDungeonPomanders()
     {
-        var it = new DeepDungeonState.Item[16];
+        var it = new DeepDungeonState.PomanderState[DeepDungeonState.NumPomanderSlots];
         for (var i = 0; i < it.Length; i++)
-        {
-            ref var item = ref it[i];
-            item.Count = _input.ReadByte(false);
-            item.Flags = _input.ReadByte(true);
-        }
+            it[i] = new(_input.ReadByte(false), _input.ReadByte(true));
         return new(it);
     }
     private DeepDungeonState.OpChestsChange ParseDeepDungeonChests()
     {
-        var ct = new DeepDungeonState.Chest[16];
+        var ct = new DeepDungeonState.Chest[DeepDungeonState.NumChests];
         for (var i = 0; i < ct.Length; i++)
-        {
-            ref var chest = ref ct[i];
-            chest.Type = _input.ReadByte(false);
-            chest.Room = _input.ReadByte(false);
-        }
+            ct[i] = new(_input.ReadByte(false), _input.ReadByte(false));
         return new(ct);
     }
-
     private DeepDungeonState.OpMagiciteChange ParseDeepDungeonMagicite() => new(_input.ReadBytes());
 
     private NetworkState.OpIDScramble ParseNetworkIDScramble() => new(_input.ReadUInt(false));
