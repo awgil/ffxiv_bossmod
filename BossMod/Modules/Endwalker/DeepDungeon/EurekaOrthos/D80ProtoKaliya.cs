@@ -177,9 +177,9 @@ class NerveGasRing(BossModule module) : Components.SelfTargetedAOEs(module, Acti
     }
 }
 
-class ProtoKaliyaStates : StateMachineBuilder
+class D80ProtoKaliyaStates : StateMachineBuilder
 {
-    public ProtoKaliyaStates(BossModule module) : base(module)
+    public D80ProtoKaliyaStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<AutoCannons>()
@@ -194,4 +194,4 @@ class ProtoKaliyaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 904, NameID = 12247)]
-public class ProtoKaliya(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsCircle(20));
+public class D80ProtoKaliya(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsCircle(20));

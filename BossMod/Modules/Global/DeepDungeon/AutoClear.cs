@@ -646,8 +646,9 @@ public abstract class AutoClear : ZoneModule
             hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)p2), null, ActionQueue.Priority.VeryHigh);
 
         var haveChest = false;
-        if (coffer is Actor t && InBounds(hints, t.Position) && !player.IsTransformed && (_config.AutoMoveTreasure && (!player.InCombat || _config.NavigateInCombat) || player.DistanceToHitbox(t) < 3.5f))
+        if (coffer is Actor t && !player.IsTransformed && (_config.AutoMoveTreasure && (!player.InCombat || _config.NavigateInCombat) || player.DistanceToHitbox(t) < 3.5f))
         {
+            hints.GoalZones.Add(hints.GoalSingleTarget(t.Position, 25));
             hints.InteractWithTarget = coffer;
             haveChest = true;
         }
@@ -680,7 +681,7 @@ public abstract class AutoClear : ZoneModule
             _ => false
         };
 
-        if (player.InCombat)
+        if (player.InCombat || World.Actors.Find(player.TargetID) is Actor t2 && !t2.IsAlly)
             return;
 
         Actor? bestTarget = null;
@@ -708,8 +709,6 @@ public abstract class AutoClear : ZoneModule
 
         hints.ForcedTarget = bestTarget;
     }
-
-    private bool InBounds(AIHints hints, WPos pos) => hints.PathfindMapBounds.Contains(pos - hints.PathfindMapCenter);
 
     private static bool IsDangerousOutOfCombatStatus(uint statusRaw) => (SID)statusRaw is SID.DamageUp or SID.DreadBeastAura or SID.PhysicalDamageUp;
 
@@ -768,7 +767,7 @@ public abstract class AutoClear : ZoneModule
         Service.Log($"loading walls for current floor...");
         Walls.Clear();
         var floorset = Palace.Floor / 10;
-        var key = $"{Palace.DungeonId}.{floorset + 1}";
+        var key = $"{(int)Palace.DungeonId}.{floorset + 1}";
         if (!LoadedFloors.TryGetValue(key, out var floor))
         {
             Service.Log($"unable to load floorset {key}");
