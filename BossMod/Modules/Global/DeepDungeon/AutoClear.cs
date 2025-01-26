@@ -680,7 +680,7 @@ public abstract class AutoClear : ZoneModule
             _ => false
         };
 
-        if (World.Actors.Find(player.TargetID) is Actor playerTarget && !playerTarget.IsAlly)
+        if (player.InCombat)
             return;
 
         Actor? bestTarget = null;
