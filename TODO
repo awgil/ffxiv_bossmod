@@ -1,4 +1,5 @@
 immediate plans
+- get rid of legacyxxx
 - ai refactoring
 -- high-level ai modules
 --- ordered before standard rotation modules
@@ -13,14 +14,13 @@ immediate plans
 --- responsible for setting forced-movement (using pathfinding or other strategies) and max-cast-hint (based on leeway)
 --- tracks like destination (pathfind / explicit abs orient / explicit target orient) and adjustment (direct / maxmelee greed / uptime-downtime based on gcd / force-finish-cast / ...)
 -- framework (actionqueue getbest) should skip spells that won't finish in time
+-- order should be a module-specified enum and framework should enforce ordering constraints
 - review enemy prios usage - should framework do anything about any prios? like taunt at -4...
 - freeze
 - gaze avoidance + forced movement fail
-- get rid of legacyxxx
 - ex3 p2 ice bridges
 - on ex1 the cleave is still telegraphed a bit too wide
 - for p2 thordan cleavebuster the telegraph on the minimap is narrower than the actual hitbox
-- alt style for player indicator on arena
 - ishape
 
 general:
@@ -53,8 +53,10 @@ general:
 - refactor ipc/dtr
 - questbattles
 - autoautos: remove target-setting shenanigans in ual, instead deal with disabling autos in hook
-- pathfinding to actual cell entry instead of cell center?
 - pathfinding can cut corners by entering aoe (los check returns safe) - is that good?..
+- alt style for player indicator on arena
+- MAO for pomanders holsters etc
+- ManualActionQueueTweak.Push should not special case gcds?..
 
 boss modules:
 - timers

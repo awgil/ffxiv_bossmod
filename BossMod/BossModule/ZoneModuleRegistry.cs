@@ -24,12 +24,12 @@ public static class ZoneModuleRegistry
             var attr = t.GetCustomAttribute<ZoneModuleInfoAttribute>();
             if (attr == null)
             {
-                Service.Log($"Zone module {t} has no ZoneModuleInfo attribute, skipping");
+                Service.Log($"[ZoneModuleRegistry] Zone module {t} has no ZoneModuleInfo attribute, skipping");
                 continue;
             }
             if (_modulesByCFC.TryGetValue(attr.CFCID, out var existingModule))
             {
-                Service.Log($"Two zone modules have same CFCID: {t.Name} and {existingModule.ModuleType.Name}");
+                Service.Log($"[ZoneModuleRegistry] Two zone modules have same CFCID: {t.FullName} and {existingModule.ModuleType.FullName}");
                 continue;
             }
             _modulesByCFC[attr.CFCID] = new Info(t, attr, New<ZoneModule>.ConstructorDerived<WorldState>(t));
