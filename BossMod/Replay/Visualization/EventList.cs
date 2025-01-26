@@ -124,9 +124,12 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
 
         foreach (var n in _tree.Node("EnvControls", !envControls.Any()))
         {
-            foreach (var n2 in _tree.Node("All"))
+            if (envControls.Any())
             {
-                _tree.LeafNodes(envControls, ec => $"{tp(ec.Timestamp)}: {ec.Index:X2} = {ec.State:X8}");
+                foreach (var n2 in _tree.Node("All"))
+                {
+                    _tree.LeafNodes(envControls, ec => $"{tp(ec.Timestamp)}: {ec.Index:X2} = {ec.State:X8}");
+                }
             }
             foreach (var index in _tree.Nodes(new SortedSet<byte>(envControls.Select(ec => ec.Index)), index => new($"Index {index:X2}")))
             {

@@ -708,8 +708,16 @@ public sealed class ReplayParserLog : IDisposable
     private DeepDungeonState.OpMapDataChange ParseDeepDungeonMap()
     {
         var rooms = new FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags[DeepDungeonState.NumRooms];
-        for (var i = 0; i < rooms.Length; ++i)
-            rooms[i] = (FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags)_input.ReadByte(true);
+        if (_version < 23)
+        {
+            var raw = _input.ReadBytes();
+            Array.Copy(raw, rooms, raw.Length);
+        }
+        else
+        {
+            for (var i = 0; i < rooms.Length; ++i)
+                rooms[i] = (FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags)_input.ReadByte(true);
+        }
         return new(rooms);
     }
     private DeepDungeonState.OpPartyStateChange ParseDeepDungeonParty()
