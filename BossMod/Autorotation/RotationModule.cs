@@ -1,6 +1,4 @@
-﻿using static BossMod.AIHints;
-
-namespace BossMod.Autorotation;
+﻿namespace BossMod.Autorotation;
 
 public enum RotationModuleQuality
 {
@@ -121,7 +119,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
         return status != null ? (StatusDuration(status.Value.ExpireAt), status.Value.Extra & 0xFF) : (0, 0);
     }
     protected (float Left, int Stacks) StatusDetails<SID>(Actor? actor, SID sid, ulong sourceID, float pendingDuration = 1000) where SID : Enum => StatusDetails(actor, (uint)(object)sid, sourceID, pendingDuration);
-    protected (float Left, int Stacks) StatusDetails<SID>(Enemy? enemy, SID sid, ulong sourceID, float pendingDuration = 1000) where SID : Enum => StatusDetails(enemy?.Actor, (uint)(object)sid, sourceID, pendingDuration);
+    protected (float Left, int Stacks) StatusDetails<SID>(AIHints.Enemy? enemy, SID sid, ulong sourceID, float pendingDuration = 1000) where SID : Enum => StatusDetails(enemy?.Actor, (uint)(object)sid, sourceID, pendingDuration);
     protected (float Left, int Stacks) SelfStatusDetails(uint sid, float pendingDuration = 1000) => StatusDetails(Player, sid, Player.InstanceID, pendingDuration);
     protected (float Left, int Stacks) SelfStatusDetails<SID>(SID sid, float pendingDuration = 1000) where SID : Enum => StatusDetails(Player, sid, Player.InstanceID, pendingDuration);
 

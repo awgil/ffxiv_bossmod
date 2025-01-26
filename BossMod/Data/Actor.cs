@@ -1,6 +1,4 @@
-﻿using static BossMod.AIHints;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // objkind << 8 + objsubkind
 public enum ActorType : ushort
@@ -168,7 +166,6 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public Angle AngleTo(Actor other) => Angle.FromDirection(other.Position - Position);
 
     public float DistanceToHitbox(Actor? other) => other == null ? float.MaxValue : (other.Position - Position).Length() - other.HitboxRadius - HitboxRadius;
-    public float DistanceToHitbox(Enemy? other) => DistanceToHitbox(other?.Actor);
 
     public override string ToString() => $"{OID:X} '{Name}' <{InstanceID:X}>";
 }
