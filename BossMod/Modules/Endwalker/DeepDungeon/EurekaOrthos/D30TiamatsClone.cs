@@ -52,8 +52,16 @@ class CreatureOfDarkness(BossModule module) : Components.GenericAOEs(module)
         {
             yield return new(rect, c.Position, c.Rotation, Color: ArenaColor.Danger);
             yield return new(new AOEShapeRect(6, 2, 2), c.Position, c.Rotation, WorldState.FutureTime(1.5f));
-            yield return new(new AOEShapeRect(50, 2, 2), c.Position, c.Rotation, WorldState.FutureTime(10), Color: 0x00FFFFFF);
         }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        // encourage AI mode casters to preposition out of harm's way
+        foreach (var c in _heads)
+            hints.AddForbiddenZone(new AOEShapeRect(50, 2, 2), c.Position, c.Rotation, WorldState.FutureTime(10));
     }
 
     public override void OnActorModelStateChange(Actor actor, byte modelState, byte animState1, byte animState2)
