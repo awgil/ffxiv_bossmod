@@ -44,11 +44,29 @@
         ],
         "BossMod.Autorotation.xan.MNK": [
           {
-            "Track": "Buffs",
+            "Track": "RoF",
             "Option": "Auto"
           },
           {
-            "Track": "Buffs",
+            "Track": "BH",
+            "Option": "Auto"
+          },
+          {
+            "Track": "RoW",
+            "Option": "Auto"
+          },
+          {
+            "Track": "RoF",
+            "Option": "Delay",
+            "Mod": "Shift, Ctrl"
+          },
+          {
+            "Track": "BH",
+            "Option": "Delay",
+            "Mod": "Shift, Ctrl"
+          },
+          {
+            "Track": "RoW",
             "Option": "Delay",
             "Mod": "Shift, Ctrl"
           },
