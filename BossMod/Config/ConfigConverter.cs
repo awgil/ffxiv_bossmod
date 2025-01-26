@@ -15,13 +15,13 @@ public static class ConfigConverter
         res.Converters.Add((j, v, _) => // v2: flat structure (config root contains all nodes)
         {
             JsonObject newPayload = [];
-            ConvertV1GatherChildren(newPayload, j, v == 0);
+            ConvertV1GatherChildren(newPayload, j.AsObject(), v == 0);
             return newPayload;
         });
         res.Converters.Add((j, _, _) => // v3: modified namespaces for old modules
         {
-            j.TryRenameNode("BossMod.Endwalker.P1S.P1SConfig", "BossMod.Endwalker.Savage.P1SErichthonios.P1SConfig");
-            j.TryRenameNode("BossMod.Endwalker.P4S2.P4S2Config", "BossMod.Endwalker.Savage.P4S2Hesperos.P4S2Config");
+            j.AsObject().TryRenameNode("BossMod.Endwalker.P1S.P1SConfig", "BossMod.Endwalker.Savage.P1SErichthonios.P1SConfig");
+            j.AsObject().TryRenameNode("BossMod.Endwalker.P4S2.P4S2Config", "BossMod.Endwalker.Savage.P4S2Hesperos.P4S2Config");
             return j;
         });
         res.Converters.Add((j, _, _) => // v4: cooldown plans moved to encounter configs
@@ -41,12 +41,12 @@ public static class ConfigConverter
                     node["CooldownPlans"] = planData;
                 }
             }
-            j.Remove("BossMod.CooldownPlanManager");
+            j.AsObject().Remove("BossMod.CooldownPlanManager");
             return j;
         });
         res.Converters.Add((j, _, _) => // v5: bloodwhetting -> raw intuition in cd planner, to support low-level content
         {
-            foreach (var (k, config) in j)
+            foreach (var (k, config) in j.AsObject())
                 if (config?["CooldownPlans"]?["WAR"]?["Available"] is JsonArray plans)
                     foreach (var plan in plans)
                         if (plan!["PlanAbilities"] is JsonObject planAbilities)
@@ -55,7 +55,7 @@ public static class ConfigConverter
         });
         res.Converters.Add((j, _, _) => // v6: new cooldown planner
         {
-            foreach (var (k, config) in j)
+            foreach (var (k, config) in j.AsObject())
             {
                 if (config?["CooldownPlans"] is not JsonObject plans)
                     continue;
@@ -109,16 +109,16 @@ public static class ConfigConverter
         res.Converters.Add((j, _, _) => j); // v8: remove accidentally serializable Modified field
         res.Converters.Add((j, _, _) => // v9: and again the same thing...
         {
-            foreach (var (_, config) in j)
+            foreach (var (_, config) in j.AsObject())
                 if (config is JsonObject jconfig)
                     jconfig.Remove("Modified");
             return j;
         });
         res.Converters.Add((j, _, f) => // v10: autorotation v2: moved configs around and importantly moved cdplans outside
         {
-            j.TryRenameNode("BossMod.ActionManagerConfig", "BossMod.ActionTweaksConfig");
-            j.TryRenameNode("BossMod.AutorotationConfig", "BossMod.Autorotation.AutorotationConfig");
-            ConvertV9Plans(j, f.Directory!);
+            j.AsObject().TryRenameNode("BossMod.ActionManagerConfig", "BossMod.ActionTweaksConfig");
+            j.AsObject().TryRenameNode("BossMod.AutorotationConfig", "BossMod.Autorotation.AutorotationConfig");
+            ConvertV9Plans(j.AsObject(), f.Directory!);
             return j;
         });
         return res;
