@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
@@ -351,6 +352,12 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLAF"u8)] = ParseClientActiveFate,
             [new("CPET"u8)] = ParseClientActivePet,
             [new("CLFT"u8)] = ParseClientFocusTarget,
+            [new("DDPG"u8)] = ParseDeepDungeonProgress,
+            [new("DDMP"u8)] = ParseDeepDungeonMap,
+            [new("DDPT"u8)] = ParseDeepDungeonParty,
+            [new("DDIT"u8)] = ParseDeepDungeonItems,
+            [new("DDCT"u8)] = ParseDeepDungeonChests,
+            [new("DDMG"u8)] = ParseDeepDungeonMagicite,
             [new("IPCI"u8)] = ParseNetworkIDScramble,
             [new("IPCS"u8)] = ParseNetworkServerIPC,
         };
@@ -697,6 +704,44 @@ public sealed class ReplayParserLog : IDisposable
     private ClientState.OpActiveFateChange ParseClientActiveFate() => new(new(_input.ReadUInt(false), _input.ReadVec3(), _input.ReadFloat()));
     private ClientState.OpActivePetChange ParseClientActivePet() => new(new(_input.ReadULong(true), _input.ReadByte(false), _input.ReadByte(false)));
     private ClientState.OpFocusTargetChange ParseClientFocusTarget() => new(_input.ReadULong(true));
+
+    private DeepDungeonState.OpProgressChange ParseDeepDungeonProgress() => new(_input.ReadByte(false), new DeepDungeonState.DungeonProgress(_input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false)));
+    private DeepDungeonState.OpMapDataChange ParseDeepDungeonMap() => new(Array.ConvertAll(_input.ReadBytes(), b => (InstanceContentDeepDungeon.RoomFlags)b));
+    private DeepDungeonState.OpPartyStateChange ParseDeepDungeonParty()
+    {
+        var pt = new DeepDungeonState.PartyMember[4];
+        for (var i = 0; i < pt.Length; i++)
+        {
+            ref var p = ref pt[i];
+            p.EntityId = _input.ReadActorID();
+            p.Room = _input.ReadByte(false);
+        }
+        return new(pt);
+    }
+    private DeepDungeonState.OpItemsChange ParseDeepDungeonItems()
+    {
+        var it = new DeepDungeonState.Item[16];
+        for (var i = 0; i < it.Length; i++)
+        {
+            ref var item = ref it[i];
+            item.Count = _input.ReadByte(false);
+            item.Flags = _input.ReadByte(true);
+        }
+        return new(it);
+    }
+    private DeepDungeonState.OpChestsChange ParseDeepDungeonChests()
+    {
+        var ct = new DeepDungeonState.Chest[16];
+        for (var i = 0; i < ct.Length; i++)
+        {
+            ref var chest = ref ct[i];
+            chest.Type = _input.ReadByte(false);
+            chest.Room = _input.ReadByte(false);
+        }
+        return new(ct);
+    }
+
+    private DeepDungeonState.OpMagiciteChange ParseDeepDungeonMagicite() => new(_input.ReadBytes());
 
     private NetworkState.OpIDScramble ParseNetworkIDScramble() => new(_input.ReadUInt(false));
     private NetworkState.OpServerIPC ParseNetworkServerIPC() => new(new((Network.ServerIPC.PacketID)_input.ReadInt(), _input.ReadUShort(false), _input.ReadUInt(false), _input.ReadUInt(true), new(_input.ReadLong()), _input.ReadBytes()));
