@@ -1,11 +1,12 @@
 ﻿using BossMod.MNK;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
 public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
-    public enum Track { Potion = SharedTrack.Buffs, SSS, Meditation, FormShift, FiresReply, Nadi, RoF, RoW, PB, BH, TC, Blitz, Engage }
+    public enum Track { Potion = SharedTrack.Buffs, SSS, Meditation, FormShift, FiresReply, Nadi, RoF, RoW, PB, BH, TC, Blitz, Engage, TN }
     public enum PotionStrategy
     {
         Manual,
@@ -33,6 +34,13 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         Lunar,
         [PropertyDisplay("Solar", 0xFF8EE6FA)]
         Solar
+    }
+    public enum RoFStrategy
+    {
+        Automatic,
+        Force,
+        ForceMidWeave,
+        Delay,
     }
     public enum RoWStrategy
     {
@@ -103,7 +111,13 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(NadiStrategy.Lunar, "Lunar", minLevel: 60)
             .AddOption(NadiStrategy.Solar, "Solar", minLevel: 60);
 
-        def.DefineSimple(Track.RoF, "RoF", minLevel: 68).AddAssociatedActions(AID.RiddleOfFire);
+        def.Define(Track.RoF).As<RoFStrategy>("RoF")
+            .AddOption(RoFStrategy.Automatic, "Auto", "Automatically use RoF during burst window", minLevel: 68)
+            .AddOption(RoFStrategy.Force, "Force", "Use ASAP", minLevel: 68)
+            .AddOption(RoFStrategy.ForceMidWeave, "ForceMid", "Use ASAP, but retain late-weave to ensure maximum GCDs covered", minLevel: 68)
+            .AddOption(RoFStrategy.Delay, "Delay", "Do not use", minLevel: 68)
+            .AddAssociatedActions(AID.RiddleOfFire);
+
         def.DefineSimple(Track.RoW, "RoW", minLevel: 72).AddAssociatedActions(AID.RiddleOfWind);
 
         def.Define(Track.PB).As<PBStrategy>("PB")
@@ -135,6 +149,8 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(EngageStrategy.FacepullDK, "Precast Dragon Kick from melee range")
             .AddOption(EngageStrategy.FacepullDemo, "Precast Demolish from melee range");
 
+        def.DefineSimple(Track.TN, "TrueNorth", minLevel: 50).AddAssociatedActions(AID.TrueNorth);
+
         return def;
     }
 
@@ -165,9 +181,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     public int NumAOETargets;
     public int NumLineTargets;
 
-    private Actor? BestBlitzTarget;
-    private Actor? BestRangedTarget; // fire's reply
-    private Actor? BestLineTarget; // enlightenment, wind's reply
+    private Enemy? BestBlitzTarget;
+    private Enemy? BestRangedTarget; // fire's reply
+    private Enemy? BestLineTarget; // enlightenment, wind's reply
 
     public bool HaveLunar => Nadi.HasFlag(NadiFlags.Lunar);
     public bool HaveSolar => Nadi.HasFlag(NadiFlags.Solar);
@@ -198,7 +214,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     public bool CanFormShift => Unlocked(AID.FormShift) && PerfectBalanceLeft == 0;
 
     // TODO incorporate crit calculation - rockbreaker is a gain on 3 at 22.1% crit
-    public int AOEBreakpoint => EffectiveForm == Form.OpoOpo ? 3 : 4;
+    public int AOEBreakpoint => Unlocked(AID.ShadowOfTheDestroyer) && EffectiveForm == Form.OpoOpo ? 3 : 4;
     public bool UseAOE => NumAOETargets >= AOEBreakpoint;
 
     public int BuffedGCDsLeft => FireLeft > GCD ? (int)MathF.Floor((FireLeft - GCD) / AttackGCDLength) + 1 : 0;
@@ -262,7 +278,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     public override string DescribeState() => $"F={BuffedGCDsLeft}, PB={PBGCDsLeft}";
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 3);
         HaveTarget = primaryTarget != null && Player.InCombat;
@@ -295,13 +311,13 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 (BestBlitzTarget, NumBlitzTargets) = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget);
             else
             {
-                BestBlitzTarget = Player;
+                BestBlitzTarget = null;
                 NumBlitzTargets = NumAOETargets;
             }
         }
         else
         {
-            BestBlitzTarget = Player;
+            BestBlitzTarget = null;
             NumBlitzTargets = 0;
         }
 
@@ -329,9 +345,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(3, Hints.GoalAOECircle(5), AOEBreakpoint, pos.Item1);
-
-        OGCD(strategy, primaryTarget);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, AOEBreakpoint, positional: pos.Item1, maximumActionRange: 20);
 
         UseBlitz(strategy, currentBlitz);
         FiresReply(strategy);
@@ -376,6 +390,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         Prep(strategy);
+
+        if (Player.InCombat)
+            OGCD(strategy, primaryTarget);
     }
 
     private void Prep(StrategyValues strategy)
@@ -413,9 +430,20 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     private Form GetEffectiveForm(StrategyValues strategy)
     {
         if (PerfectBalanceLeft == 0)
-            return CurrentForm;
+        {
+            if (Unlocked(AID.SnapPunch))
+                return CurrentForm;
+
+            if (Unlocked(AID.TrueStrike))
+                return CurrentForm == Form.Raptor ? Form.Raptor : Form.OpoOpo;
+
+            return Form.OpoOpo;
+        }
 
         var nadi = strategy.Option(Track.Nadi).As<NadiStrategy>();
+
+        if (ForcedLunar || nadi == NadiStrategy.Lunar)
+            return Form.OpoOpo;
 
         // TODO throw away all this crap and fix odd lunar PB (it should not be used before rof)
 
@@ -441,10 +469,19 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 canOpo &= chak != BeastChakraType.OpoOpo;
         }
 
-        return canRaptor ? Form.Raptor : canCoeurl ? Form.Coeurl : Form.OpoOpo;
+        // nice conditional
+        return canOpo && OpoStacks == 0
+            ? Form.OpoOpo
+            : canRaptor && RaptorStacks == 0
+                ? Form.Raptor
+                : canCoeurl
+                    ? Form.Coeurl
+                    : canRaptor
+                        ? Form.Raptor
+                        : Form.OpoOpo;
     }
 
-    private void QueuePB(StrategyValues strategy, Actor? primaryTarget)
+    private void QueuePB(StrategyValues strategy, Enemy? primaryTarget)
     {
         var pbstrat = strategy.Option(Track.PB).As<PBStrategy>();
 
@@ -471,7 +508,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         if (BrotherhoodLeft == 0 && MaxChargesIn(AID.PerfectBalance) > 30)
             return;
 
-        if (ShouldRoF(strategy, 3) || CanFitGCD(FireLeft, 3))
+        if (ShouldRoF(strategy, 3).Use || CanFitGCD(FireLeft, 3))
         {
             // in case of drift or whatever, if we end up wanting to triple weave after opo, delay PB in favor of using FR to get formless
             // check if BH cooldown is >118s. if we only checked CanWeave for both then autorotation would do BH -> PB because RoF is slightly delayed to get the optimal late weave
@@ -484,7 +521,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         switch (strategy.Option(Track.Potion).As<PotionStrategy>())
         {
@@ -500,35 +537,38 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         Brotherhood(strategy, primaryTarget);
         QueuePB(strategy, primaryTarget);
 
-        var useRof = ShouldRoF(strategy);
+        var (useRof, rofLate) = ShouldRoF(strategy);
 
         if (useRof)
-            PushOGCD(AID.RiddleOfFire, Player, OGCDPriority.RiddleOfFire, GCD - EarliestRoF(AnimationLockDelay));
+            PushOGCD(AID.RiddleOfFire, Player, OGCDPriority.RiddleOfFire, rofLate ? GCD - EarliestRoF(AnimationLockDelay) : 0);
+
+        if (strategy.Option(Track.RoF).As<RoFStrategy>() == RoFStrategy.Force && !HaveTarget)
+            PushOGCD(AID.RiddleOfFire, Player, OGCDPriority.RiddleOfFire);
 
         if (ShouldRoW(strategy))
             PushOGCD(AID.RiddleOfWind, Player, OGCDPriority.RiddleOfWind);
 
-        if (NextPositionalImminent && !NextPositionalCorrect)
-            PushOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth, useRof ? 0 : GCD - 0.8f);
+        UseTN(strategy, primaryTarget, useRof);
 
-        if (HaveTarget && Chakra >= 5 && !CanWeave(AID.RiddleOfFire))
+        if (HaveTarget && Chakra >= 5 && !useRof)
         {
             if (NumLineTargets >= 3)
                 PushOGCD(AID.HowlingFist, BestLineTarget, OGCDPriority.TFC);
 
-            PushOGCD(AID.SteelPeak, primaryTarget, OGCDPriority.TFC);
+            if (primaryTarget?.Priority >= 0)
+                PushOGCD(AID.SteelPeak, primaryTarget, OGCDPriority.TFC);
         }
 
         if (strategy.Option(Track.TC).As<TCStrategy>() == TCStrategy.GapClose && Player.DistanceToHitbox(primaryTarget) is > 3 and < 25)
             PushOGCD(AID.Thunderclap, primaryTarget, OGCDPriority.TrueNorth);
     }
 
-    private void Brotherhood(StrategyValues strategy, Actor? primaryTarget)
+    private void Brotherhood(StrategyValues strategy, Enemy? primaryTarget)
     {
         switch (strategy.Simple(Track.BH))
         {
             case OffensiveStrategy.Automatic:
-                if (HaveTarget && (CombatTimer > 10 || BeastCount == 2) && DowntimeIn > World.Client.AnimationLock + 20 && GCD > 0)
+                if (HaveTarget && (CombatTimer > 10 || BeastCount == 2) && DowntimeIn > AnimLock + 20 && GCD > 0)
                     PushOGCD(AID.Brotherhood, Player, OGCDPriority.Brotherhood);
                 break;
             case OffensiveStrategy.Force:
@@ -539,7 +579,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private void Meditate(StrategyValues strategy, Actor? primaryTarget)
+    private void Meditate(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (Chakra >= 5 || !Unlocked(AID.SteeledMeditation) || Player.MountId > 0)
             return;
@@ -568,7 +608,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         PushGCD(AID.SteeledMeditation, Player, prio);
     }
 
-    private void FormShift(StrategyValues strategy, Actor? primaryTarget)
+    private void FormShift(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (!Unlocked(AID.FormShift) || PerfectBalanceLeft > 0)
             return;
@@ -618,6 +658,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             _ => GCDPriority.None
         };
 
+        if (!CanFitGCD(FiresReplyLeft, 1))
+            prio = GCDPriority.FiresReply;
+
         PushGCD(AID.FiresReply, BestRangedTarget, prio);
     }
 
@@ -641,25 +684,41 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     private void Potion() => Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Low + 100 + (float)OGCDPriority.Potion);
 
-    private bool ShouldRoF(StrategyValues strategy, int extraGCDs = 0)
+    private (bool Use, bool LateWeave) ShouldRoF(StrategyValues strategy, int extraGCDs = 0)
     {
         if (!CanWeave(AID.RiddleOfFire, extraGCDs))
-            return false;
+            return (false, false);
 
-        return strategy.Simple(Track.RoF) switch
+        return strategy.Option(Track.RoF).As<RoFStrategy>() switch
         {
-            OffensiveStrategy.Automatic => HaveTarget && (extraGCDs > 0 || !CanWeave(AID.Brotherhood)) && DowntimeIn > World.Client.AnimationLock + 20,
-            OffensiveStrategy.Force => true,
-            _ => false
+            RoFStrategy.Automatic => (HaveTarget && (extraGCDs > 0 || !CanWeave(AID.Brotherhood)) && DowntimeIn > AnimLock + 20, true),
+            RoFStrategy.Force => (true, false),
+            RoFStrategy.ForceMidWeave => (true, true),
+            _ => (false, false)
         };
     }
 
     private bool ShouldRoW(StrategyValues strategy) => strategy.Simple(Track.RoW) switch
     {
-        OffensiveStrategy.Automatic => HaveTarget && !CanWeave(AID.RiddleOfFire) && DowntimeIn > World.Client.AnimationLock + 15,
+        OffensiveStrategy.Automatic => HaveTarget && !CanWeave(AID.RiddleOfFire) && DowntimeIn > AnimLock + 15,
         OffensiveStrategy.Force => true,
         _ => false
     };
+
+    private void UseTN(StrategyValues strategy, Enemy? primaryTarget, bool rofPlanned)
+    {
+        switch (strategy.Simple(Track.TN))
+        {
+            case OffensiveStrategy.Automatic:
+                if (NextPositionalImminent && !NextPositionalCorrect && Player.DistanceToHitbox(primaryTarget) < 6)
+                    PushOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth, rofPlanned ? 0 : GCD - 0.8f);
+                break;
+            case OffensiveStrategy.Force:
+                if (TrueNorthLeft == 0)
+                    PushOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth);
+                break;
+        }
+    }
 
     private bool IsEnlightenmentTarget(Actor primary, Actor other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 2);
 
@@ -679,7 +738,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         return s > 0 ? (Form.Coeurl, s) : (Form.None, 0);
     }
 
-    private void SmartEngage(StrategyValues strategy, Actor? primaryTarget)
+    private void SmartEngage(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (primaryTarget == null)
             return;
@@ -705,7 +764,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 // TODO account for acceleration
                 if (CountdownRemaining < secToMelee + 0.5f)
                 {
-                    Hints.ForcedMovement = Player.DirectionTo(primaryTarget).ToVec3();
+                    Hints.ForcedMovement = Player.DirectionTo(primaryTarget.Actor).ToVec3();
                     PushGCD(AID.DragonKick, primaryTarget);
                 }
 
@@ -723,7 +782,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             return;
 
         if (Player.DistanceToHitbox(primaryTarget) > 3)
-            Hints.ForcedMovement = Player.DirectionTo(primaryTarget).ToVec3();
+            Hints.ForcedMovement = Player.DirectionTo(primaryTarget.Actor).ToVec3();
 
         if (CountdownRemaining < GetApplicationDelay(facepullAction))
             PushGCD(facepullAction, primaryTarget);

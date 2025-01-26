@@ -1,8 +1,10 @@
-﻿namespace BossMod.Autorotation.xan;
+﻿using static BossMod.AIHints;
+
+namespace BossMod.Autorotation.xan;
 
 public enum Targeting { Manual, Auto, AutoPrimary, AutoTryPri }
 public enum OffensiveStrategy { Automatic, Delay, Force }
-public enum AOEStrategy { ST, AOE, ForceAOE, ForceST }
+public enum AOEStrategy { AOE, ST, ForceAOE, ForceST }
 
 public enum SharedTrack { Targeting, AOE, Buffs, Count }
 
@@ -30,12 +32,10 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected float RaidBuffsLeft { get; private set; }
     protected float DowntimeIn { get; private set; }
     protected float? UptimeIn { get; private set; }
-    /// <summary>
-    /// Player's "actual" target. Is guaranteed to be an enemy.
-    /// </summary>
-    protected Actor? PlayerTarget { get; private set; }
+    protected Enemy? PlayerTarget { get; private set; }
 
     protected float? CountdownRemaining => World.Client.CountdownRemaining;
+    protected float AnimLock => World.Client.AnimationLock;
 
     protected float AttackGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     protected float SpellGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
@@ -50,7 +50,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected bool OnCooldown(AID aid) => MaxChargesIn(aid) > 0;
 
     public bool CanWeave(float cooldown, float actionLock, int extraGCDs = 0, float extraFixedDelay = 0)
-        => MathF.Max(cooldown, World.Client.AnimationLock) + actionLock + AnimationLockDelay <= GCD + GCDLength * extraGCDs + extraFixedDelay;
+        => MathF.Max(cooldown, AnimLock) + actionLock + AnimationLockDelay <= GCD + GCDLength * extraGCDs + extraFixedDelay;
 
     public bool CanWeave(AID aid, int extraGCDs = 0, float extraFixedDelay = 0)
     {
@@ -59,6 +59,11 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             return false;
 
         var def = ActionDefinitions.Instance[ActionID.MakeSpell(aid)]!;
+
+        // amnesia check
+        if (def.Category == ActionCategory.Ability && Player.FindStatus(1092) != null)
+            return false;
+
         return CanWeave(ReadyIn(aid), def.InstantAnimLock, extraGCDs, extraFixedDelay);
     }
 
@@ -70,6 +75,11 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     protected void PushGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum
         => PushGCD(aid, target, (int)(object)priority, delay);
+
+    protected void PushGCD<P>(AID aid, Enemy? target, P priority, float delay = 0) where P : Enum
+        => PushGCD(aid, target?.Actor, (int)(object)priority, delay);
+
+    protected void PushGCD(AID aid, Enemy? target, int priority = 2, float delay = 0) => PushGCD(aid, target?.Actor, priority, delay);
 
     protected void PushGCD(AID aid, Actor? target, int priority = 2, float delay = 0)
     {
@@ -85,6 +95,11 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     protected void PushOGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum
         => PushOGCD(aid, target, (int)(object)priority, delay);
+
+    protected void PushOGCD<P>(AID aid, Enemy? target, P priority, float delay = 0) where P : Enum
+        => PushOGCD(aid, target?.Actor, (int)(object)priority, delay);
+
+    protected void PushOGCD(AID aid, Enemy? target, int priority = 1, float delay = 0) => PushOGCD(aid, target?.Actor, priority, delay);
 
     protected void PushOGCD(AID aid, Actor? target, int priority = 1, float delay = 0)
     {
@@ -134,20 +149,15 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     /// <param name="strategy">Targeting strategy</param>
     /// <param name="primaryTarget">Player's current target - may be null</param>
     /// <param name="range">Maximum distance from the player to search for a candidate target</param>
-    protected void SelectPrimaryTarget(StrategyValues strategy, ref Actor? primaryTarget, float range)
+    protected void SelectPrimaryTarget(StrategyValues strategy, ref Enemy? primaryTarget, float range)
     {
         var t = strategy.Option(SharedTrack.Targeting).As<Targeting>();
-
-        if (!IsValidEnemy(primaryTarget))
-            primaryTarget = null;
-
-        PlayerTarget = primaryTarget;
 
         if (t is Targeting.Auto or Targeting.AutoTryPri)
         {
             if (Player.DistanceToHitbox(primaryTarget) > range)
             {
-                var newTarget = Hints.PriorityTargets.FirstOrDefault(x => Player.DistanceToHitbox(x.Actor) <= range)?.Actor;
+                var newTarget = Hints.PriorityTargets.FirstOrDefault(x => Player.DistanceToHitbox(x.Actor) <= range);
                 if (newTarget != null)
                     primaryTarget = newTarget;
             }
@@ -157,19 +167,19 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected delegate bool PositionCheck(Actor playerTarget, Actor targetToTest);
     protected delegate P PriorityFunc<P>(int totalTargets, Actor primaryTarget);
 
-    protected (Actor? Best, int Targets) SelectTarget(
+    protected (Enemy? Best, int Targets) SelectTarget(
         StrategyValues strategy,
-        Actor? primaryTarget,
+        Enemy? primaryTarget,
         float range,
         PositionCheck isInAOE
     ) => SelectTarget(strategy, primaryTarget, range, isInAOE, (numTargets, _) => numTargets, a => a);
 
-    protected (Actor? Best, int Targets) SelectTargetByHP(StrategyValues strategy, Actor? primaryTarget, float range, PositionCheck isInAOE)
+    protected (Enemy? Best, int Targets) SelectTargetByHP(StrategyValues strategy, Enemy? primaryTarget, float range, PositionCheck isInAOE)
         => SelectTarget(strategy, primaryTarget, range, isInAOE, (numTargets, actor) => (numTargets, numTargets > 2 ? actor.HPMP.CurHP : 0), args => args.numTargets);
 
-    protected (Actor? Best, int Priority) SelectTarget<P>(
+    protected (Enemy? Best, int Priority) SelectTarget<P>(
         StrategyValues strategy,
-        Actor? primaryTarget,
+        Enemy? primaryTarget,
         float range,
         PositionCheck isInAOE,
         PriorityFunc<P> prioritize,
@@ -195,17 +205,17 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
         var (newtarget, newprio) = targeting switch
         {
-            Targeting.Auto => FindBetterTargetBy(primaryTarget, range, targetPrio),
+            Targeting.Auto => FindBetterTargetBy(primaryTarget?.Actor, range, targetPrio),
             Targeting.AutoPrimary => primaryTarget == null ? (null, default) : FindBetterTargetBy(
-                primaryTarget,
+                primaryTarget.Actor,
                 range,
                 targetPrio,
-                enemy => isInAOE(enemy.Actor, primaryTarget)
+                enemy => isInAOE(enemy.Actor, primaryTarget.Actor)
             ),
-            _ => (primaryTarget, primaryTarget == null ? default : targetPrio(primaryTarget))
+            _ => (primaryTarget?.Actor, primaryTarget == null ? default : targetPrio(primaryTarget.Actor))
         };
         var newnewprio = simplify(newprio);
-        return (newnewprio > 0 ? newtarget : null, newnewprio);
+        return (newnewprio > 0 ? Hints.FindEnemy(newtarget) : null, newnewprio);
     }
 
     /// <summary>
@@ -218,21 +228,22 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     /// <param name="getTimer"></param>
     /// <param name="maxAllowedTargets"></param>
     /// <returns></returns>
-    protected (Actor? Target, P Timer) SelectDotTarget<P>(StrategyValues strategy, Actor? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
+    protected (Enemy? Target, P Timer) SelectDotTarget<P>(StrategyValues strategy, Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
     {
+        var forbidden = initial?.ForbidDOTs ?? false;
         switch (strategy.Targeting())
         {
             case Targeting.Manual:
             case Targeting.AutoPrimary:
-                return (initial, getTimer(initial));
+                return forbidden ? (null, getTimer(null)) : (initial, getTimer(initial?.Actor));
             case Targeting.AutoTryPri:
                 if (initial != null)
-                    return (initial, getTimer(initial));
+                    return forbidden ? (null, getTimer(null)) : (initial, getTimer(initial?.Actor));
                 break;
         }
 
         var newTarget = initial;
-        var initialTimer = getTimer(initial);
+        var initialTimer = getTimer(initial?.Actor);
         var newTimer = initialTimer;
 
         var numTargets = 0;
@@ -248,7 +259,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             var thisTimer = getTimer(dotTarget.Actor);
             if (thisTimer.CompareTo(newTimer) < 0)
             {
-                newTarget = dotTarget.Actor;
+                newTarget = dotTarget;
                 newTimer = thisTimer;
             }
         }
@@ -256,12 +267,29 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         return (newTarget, newTimer);
     }
 
-    protected void GoalZoneCombined(float range, Func<WPos, float> fAoe, int minAoe, Positional pos = Positional.Any)
+    // used for casters that don't have a separate maximize-AOE function
+    protected void GoalZoneSingle(float range)
     {
+        if (PlayerTarget != null)
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, range));
+    }
+
+    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, Positional positional = Positional.Any, float? maximumActionRange = null)
+    {
+        if (!strategy.AOEOk() || !Unlocked(firstUnlockedAoeAction))
+            minAoe = 50;
+
         if (PlayerTarget == null)
-            Hints.GoalZones.Add(fAoe);
+        {
+            if (minAoe < 50)
+                Hints.GoalZones.Add(fAoe);
+        }
         else
-            Hints.GoalZones.Add(Hints.GoalCombined(Hints.GoalSingleTarget(PlayerTarget, pos, range), fAoe, minAoe));
+        {
+            Hints.GoalZones.Add(Hints.GoalCombined(Hints.GoalSingleTarget(PlayerTarget.Actor, positional, range), fAoe, minAoe));
+            if (maximumActionRange is float r)
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, r, 0.5f));
+        }
     }
 
     protected int NumMeleeAOETargets(StrategyValues strategy) => NumNearbyTargets(strategy, 5);
@@ -290,7 +318,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     /// <returns></returns>
     protected virtual float GetCastTime(AID aid) => SwiftcastLeft > GCD ? 0 : ActionDefinitions.Instance.Spell(aid)!.CastTime * GCDLength / 2.5f;
 
-    protected float NextCastStart => World.Client.AnimationLock > GCD ? World.Client.AnimationLock + AnimationLockDelay : GCD;
+    protected float NextCastStart => AnimLock > GCD ? AnimLock + AnimationLockDelay : GCD;
 
     protected float GetSlidecastTime(AID aid) => MathF.Max(0, GetCastTime(aid) - 0.5f);
     protected float GetSlidecastEnd(AID aid) => NextCastStart + GetSlidecastTime(aid);
@@ -301,15 +329,13 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         if (t == 0)
             return true;
 
-        return NextCastStart + t <= ForceMovementIn;
+        return NextCastStart + t <= MaxCastTime;
     }
 
-    protected float ForceMovementIn;
+    protected float MaxCastTime;
 
     protected bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     protected bool Unlocked(TraitID tid) => TraitUnlocked((uint)(object)tid);
-
-    private static bool IsValidEnemy(Actor? actor) => actor != null && !actor.IsAlly;
 
     protected Positional GetCurrentPositional(Actor target) => (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch
     {
@@ -321,8 +347,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected bool NextPositionalImminent;
     protected bool NextPositionalCorrect;
 
-    protected void UpdatePositionals(Actor? target, ref (Positional pos, bool imm) positional, bool trueNorth)
+    protected void UpdatePositionals(Enemy? enemy, ref (Positional pos, bool imm) positional, bool trueNorth)
     {
+        var target = enemy?.Actor;
         if ((target?.Omnidirectional ?? true) || target?.TargetID == Player.InstanceID && target?.CastInfo == null && positional.pos != Positional.Front && target?.NameID != 541)
             positional = (Positional.Any, false);
 
@@ -333,20 +360,42 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             Positional.Rear => target.Rotation.ToDirection().Dot((Player.Position - target.Position).Normalized()) < -0.7071068f,
             _ => true
         };
-        Manager.Hints.RecommendedPositional = (target, positional.pos, NextPositionalImminent, NextPositionalCorrect);
+        Hints.RecommendedPositional = (target, positional.pos, NextPositionalImminent, NextPositionalCorrect);
+    }
+
+    private readonly SmartRotationConfig _smartrot = Service.Config.Get<SmartRotationConfig>();
+
+    private void EstimateCastTime()
+    {
+        MaxCastTime = Hints.MaxCastTimeEstimate;
+
+        if (Player.PendingKnockbacks.Count > 0)
+        {
+            MaxCastTime = 0f;
+            return;
+        }
+
+        var forbiddenDir = Hints.ForbiddenDirections.Where(d => Player.Rotation.AlmostEqual(d.center, d.halfWidth.Rad)).Select(d => d.activation).DefaultIfEmpty(DateTime.MinValue).Min();
+        if (forbiddenDir > World.CurrentTime)
+        {
+            var cushion = _smartrot.MinTimeToAvoid;
+            var gazeIn = MathF.Max(0, (float)(forbiddenDir - World.CurrentTime).TotalSeconds - cushion);
+            MaxCastTime = MathF.Min(MaxCastTime, gazeIn);
+        }
     }
 
     public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         NextGCD = default;
         NextGCDPrio = 0;
+        PlayerTarget = Hints.FindEnemy(primaryTarget);
 
-        var pelo = Player.FindStatus(BossMod.BRD.SID.Peloton);
+        var pelo = Player.FindStatus(ClassShared.SID.Peloton);
         PelotonLeft = pelo != null ? StatusDuration(pelo.Value.ExpireAt) : 0;
-        SwiftcastLeft = StatusLeft(BossMod.WHM.SID.Swiftcast);
-        TrueNorthLeft = StatusLeft(BossMod.DRG.SID.TrueNorth);
+        SwiftcastLeft = MathF.Max(StatusLeft(ClassShared.SID.Swiftcast), StatusLeft(ClassShared.SID.LostChainspell));
+        TrueNorthLeft = StatusLeft(ClassShared.SID.TrueNorth);
 
-        ForceMovementIn = Hints.MaxCastTimeEstimate;
+        EstimateCastTime();
         AnimationLockDelay = estimatedAnimLockDelay;
 
         CombatTimer = (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds;
@@ -367,25 +416,63 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         MP = (uint)Math.Clamp(Player.PredictedMPRaw, 0, 10000);
 
         if (Player.MountId is not (103 or 117 or 128))
-            Exec(strategy, primaryTarget);
+            Exec(strategy, PlayerTarget);
     }
+
+    // other classes have timed personal buffs to plan around, like blm leylines, mch overheat, gnb nomercy
+    // war could also be here but i dont have a war rotation
+    private bool IsSelfish(Class cls) => cls is Class.VPR or Class.SAM or Class.WHM or Class.SGE;
 
     private new (float Left, float In) EstimateRaidBuffTimings(Actor? primaryTarget)
     {
-        // striking dummy that spawns in Explorer Mode
-        if (primaryTarget?.OID != 0x2DE0)
-            return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), Bossmods.RaidCooldowns.NextDamageBuffIn2());
+        if (Bossmods.ActiveModule?.Info?.GroupType is BossModuleInfo.GroupType.BozjaDuel && IsSelfish(Player.Class))
+            return (float.MaxValue, 0);
 
-        // hack for a dummy: expect that raidbuffs appear at 7.8s and then every 120s
-        var cycleTime = CombatTimer - 7.8f;
-        if (cycleTime < 0)
-            return (0, 7.8f - CombatTimer); // very beginning of a fight
+        // level 100 stone sky sea
+        if (primaryTarget?.OID == 0x41CD)
+        {
+            // hack for a dummy: expect that raidbuffs appear at 7.8s and then every 120s
+            var cycleTime = CombatTimer - 7.8f;
+            if (cycleTime < 0)
+                return (0, 7.8f - CombatTimer); // very beginning of a fight
 
-        cycleTime %= 120;
-        return cycleTime < 20 ? (20 - cycleTime, 0) : (0, 120 - cycleTime);
+            cycleTime %= 120;
+            return cycleTime < 20 ? (20 - cycleTime, 0) : (0, 120 - cycleTime);
+        }
+
+        var buffsIn = Bossmods.RaidCooldowns.NextDamageBuffIn2();
+        if (buffsIn == null)
+        {
+            if (CombatTimer < 7.8f && World.Party.WithoutSlot(false, true, true).Skip(1).Any(HavePartyBuff))
+                buffsIn = 7.8f - CombatTimer;
+            else
+                buffsIn = float.MaxValue;
+        }
+
+        return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), buffsIn.Value);
     }
 
-    public abstract void Exec(StrategyValues strategy, Actor? primaryTarget);
+    private bool HavePartyBuff(Actor player) => player.Class switch
+    {
+        Class.MNK => player.Level >= 70, // brotherhood
+        Class.DRG => player.Level >= 52, // battle litany
+        Class.NIN => player.Level >= 45, // mug/dokumori - level check is for suiton/huton, which grant Shadow Walker
+        Class.RPR => player.Level >= 72, // arcane circle
+
+        Class.SMN => player.Level >= 66, // searing light
+        Class.RDM => player.Level >= 58, // embolden
+        Class.PCT => player.Level >= 70, // starry muse
+
+        Class.BRD => player.Level >= 50, // battle voice - not counting songs since they are permanent kinda
+        Class.DNC => player.Level >= 70, // tech finish
+
+        Class.SCH => player.Level >= 66, // chain
+        Class.AST => player.Level >= 50, // divination
+
+        _ => false
+    };
+
+    public abstract void Exec(StrategyValues strategy, Enemy? primaryTarget);
 
     protected (float Left, int Stacks) Status<SID>(SID status) where SID : Enum => Player.FindStatus(status) is ActorStatus s ? (StatusDuration(s.ExpireAt), s.Extra & 0xFF) : (0, 0);
     protected float StatusLeft<SID>(SID status) where SID : Enum => Status(status).Left;
@@ -414,8 +501,8 @@ static class Extendxan
             .AddOption(xan.Targeting.AutoTryPri, "AutoTryPri", "Automatically select best target for AOE actions - if player has a target, ensure that target is hit");
 
         def.Define(SharedTrack.AOE).As<AOEStrategy>("AOE")
-            .AddOption(AOEStrategy.ST, "ST", "Use single-target actions")
             .AddOption(AOEStrategy.AOE, "AOE", "Use AOE actions if beneficial")
+            .AddOption(AOEStrategy.ST, "ST", "Use single-target actions")
             .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Always use AOE actions, even on one target")
             .AddOption(AOEStrategy.ForceST, "ForceST", "Forbid any action that can hit multiple targets");
 
@@ -434,4 +521,5 @@ static class Extendxan
     public static Targeting Targeting(this StrategyValues strategy) => strategy.Option(SharedTrack.Targeting).As<Targeting>();
     public static OffensiveStrategy Simple<Index>(this StrategyValues strategy, Index track) where Index : Enum => strategy.Option(track).As<OffensiveStrategy>();
     public static bool BuffsOk(this StrategyValues strategy) => strategy.Option(SharedTrack.Buffs).As<OffensiveStrategy>() != OffensiveStrategy.Delay;
+    public static bool AOEOk(this StrategyValues strategy) => strategy.AOE() is AOEStrategy.AOE or AOEStrategy.ForceAOE;
 }

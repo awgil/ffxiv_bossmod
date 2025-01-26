@@ -1,5 +1,6 @@
 ﻿using BossMod.DRK;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
@@ -45,10 +46,10 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
     public int NumRangedAOETargets;
     public int NumLineTargets;
 
-    private Actor? BestRangedAOETarget;
-    private Actor? BestLineTarget;
+    private Enemy? BestRangedAOETarget;
+    private Enemy? BestLineTarget;
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
@@ -73,7 +74,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         if (CountdownRemaining > 0)
             return;
 
-        GoalZoneCombined(3, Hints.GoalAOECircle(5), 3);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.Unleash, 3, maximumActionRange: 20);
 
         if (Darkside > GCD)
         {
@@ -138,7 +139,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         EdgeRefresh = 900,
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (primaryTarget == null || !Player.InCombat)
             return;
@@ -190,7 +191,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         return Blood + (impendingBlood ? 20 : 0) > 100;
     }
 
-    private void Edge(StrategyValues strategy, Actor? primaryTarget)
+    private void Edge(StrategyValues strategy, Enemy? primaryTarget)
     {
         var canUse = MP >= 3000 || DarkArts;
         var canUseTBN = MP >= 6000 || DarkArts || !Unlocked(AID.TheBlackestNight);

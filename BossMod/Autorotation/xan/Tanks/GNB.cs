@@ -1,5 +1,6 @@
 ﻿using BossMod.GNB;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -19,18 +20,17 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
     public float Reign;
 
     public float SonicBreak;
-    public bool Continuation;
     public float NoMercy;
 
     public int NumAOETargets;
     public int NumReignTargets;
 
-    private Actor? BestReignTarget;
+    private Enemy? BestReignTarget;
 
     public bool FastGCD => GCDLength <= 2.47f;
     public int MaxAmmo => Unlocked(TraitID.CartridgeChargeII) ? 3 : 2;
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
@@ -40,7 +40,6 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
 
         Reign = StatusLeft(SID.ReadyToReign);
         SonicBreak = StatusLeft(SID.ReadyToBreak);
-        Continuation = Player.Statuses.Any(s => IsContinuationStatus((SID)s.ID));
         NoMercy = StatusLeft(SID.NoMercy);
 
         NumAOETargets = NumMeleeAOETargets(strategy);
@@ -51,7 +50,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
         if (CountdownRemaining > 0)
             return;
 
-        GoalZoneCombined(3, Hints.GoalAOECircle(5), Unlocked(AID.FatedCircle) && Ammo > 0 ? 2 : 3);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.DemonSlice, Unlocked(AID.FatedCircle) && Ammo > 0 ? 2 : 3, maximumActionRange: 20);
 
         if (ReadyIn(AID.NoMercy) > 20 && Ammo > 0)
             PushGCD(AID.GnashingFang, primaryTarget);
@@ -127,13 +126,12 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
         return ComboLastMove is AID.BrutalShell or AID.DemonSlice && Ammo == MaxAmmo;
     }
 
-    private void CalcNextBestOGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void CalcNextBestOGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat || primaryTarget == null)
             return;
 
-        if (Continuation)
-            PushOGCD(AID.Continuation, primaryTarget);
+        PushOGCD(Continuation, primaryTarget);
 
         if (strategy.BuffsOk() && Unlocked(AID.Bloodfest) && Ammo == 0)
             PushOGCD(AID.Bloodfest, primaryTarget);
@@ -162,5 +160,28 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.NoMercy, Player, delay: GCD - 0.8f);
     }
 
-    private bool IsContinuationStatus(SID sid) => sid is SID.ReadyToBlast or SID.ReadyToRaze or SID.ReadyToGouge or SID.ReadyToTear or SID.ReadyToRip;
+    private AID Continuation
+    {
+        get
+        {
+            foreach (var s in Player.Statuses)
+            {
+                switch ((SID)s.ID)
+                {
+                    case SID.ReadyToBlast:
+                        return AID.Hypervelocity;
+                    case SID.ReadyToRaze:
+                        return AID.FatedBrand;
+                    case SID.ReadyToRip:
+                        return AID.JugularRip;
+                    case SID.ReadyToGouge:
+                        return AID.EyeGouge;
+                    case SID.ReadyToTear:
+                        return AID.AbdomenTear;
+                }
+            }
+
+            return AID.None;
+        }
+    }
 }

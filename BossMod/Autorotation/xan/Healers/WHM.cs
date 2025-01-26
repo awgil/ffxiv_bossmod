@@ -1,5 +1,6 @@
 ﻿using BossMod.WHM;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -38,10 +39,10 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
     public int NumMiseryTargets;
     public int NumSolaceTargets;
 
-    private Actor? BestDotTarget;
-    private Actor? BestMiseryTarget;
+    private Enemy? BestDotTarget;
+    private Enemy? BestMiseryTarget;
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -62,11 +63,13 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining < 1.7)
+            if (CountdownRemaining < GetCastTime(AID.Stone1))
                 PushGCD(AID.Stone1, primaryTarget);
 
             return;
         }
+
+        GoalZoneCombined(strategy, 25, Hints.GoalAOECircle(8), AID.Holy1, 3);
 
         if (!CanFitGCD(TargetDotLeft, 1))
             PushGCD(AID.Aero1, BestDotTarget);
@@ -90,12 +93,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
 
         // TODO make a track for this
         if (Lily == 3 || !CanFitGCD(NextLily, 2) && Lily == 2)
-        {
-            if (World.Party.WithoutSlot(excludeAlliance: true).Average(PredictedHPRatio) < 0.8 && NumSolaceTargets == World.Party.WithoutSlot(excludeAlliance: true).Count())
-                PushGCD(AID.AfflatusRapture, Player, 1);
-
-            PushGCD(AID.AfflatusSolace, World.Party.WithoutSlot(excludeAlliance: true).MinBy(PredictedHPRatio), 1);
-        }
+            PushGCD(AID.AfflatusSolace, World.Party.WithoutSlot(excludeAlliance: true).Where(m => Player.DistanceToHitbox(m) <= 30).MinBy(PredictedHPRatio));
 
         if (SacredSight > 0)
             PushGCD(AID.GlareIV, primaryTarget);

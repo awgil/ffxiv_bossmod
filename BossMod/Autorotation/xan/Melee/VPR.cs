@@ -1,6 +1,7 @@
 ﻿using BossMod.VPR;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using System.Runtime.InteropServices;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -53,12 +54,12 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
     public int NumAOETargets;
     public int NumRangedAOETargets;
 
-    private Actor? BestRangedAOETarget;
-    private Actor? BestGenerationTarget;
+    private Enemy? BestRangedAOETarget;
+    private Enemy? BestGenerationTarget;
 
     private int CoilMax => Unlocked(TraitID.EnhancedVipersRattle) ? 3 : 2;
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
@@ -116,7 +117,19 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
         OGCD(strategy, primaryTarget);
 
-        if (CombatTimer < 1 && Player.DistanceToHitbox(primaryTarget) is > 3 and < 20)
+        if (CountdownRemaining > 0 || primaryTarget == null)
+            return;
+
+        var aoeBreakpoint = DreadCombo switch
+        {
+            DreadCombo.Dreadwinder or DreadCombo.HuntersCoil or DreadCombo.SwiftskinsCoil => 50,
+            DreadCombo.HuntersDen or DreadCombo.SwiftskinsDen or DreadCombo.PitOfDread => 1,
+            _ => Anguine > 0 ? 50 : 3
+        };
+
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.SteelMaw, aoeBreakpoint, pos.Item1, 20);
+
+        if (CombatTimer < 0.5f && Player.DistanceToHitbox(primaryTarget) > 3)
             PushGCD(AID.Slither, primaryTarget);
 
         if (ShouldReawaken(strategy))
@@ -275,9 +288,9 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool ShouldVice(StrategyValues strategy) => Swiftscaled > GCD && DreadCombo == 0 && ReadyIn(AID.Vicewinder) <= GCD;
 
-    private bool ShouldCoil(StrategyValues strategy) => Coil > 1 && Swiftscaled > GCD && DreadCombo == 0;
+    private bool ShouldCoil(StrategyValues strategy) => Coil == CoilMax && Swiftscaled > GCD && DreadCombo == 0;
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat || primaryTarget == null)
             return;
@@ -331,6 +344,12 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
             if (DreadCombo == DreadCombo.SwiftskinsCoil)
                 return (Positional.Flank, true);
+
+            if (DreadCombo is DreadCombo.HuntersDen or DreadCombo.SwiftskinsDen or DreadCombo.PitOfDread)
+                return (Positional.Any, false);
+
+            if (NumAOETargets > 2)
+                return (Positional.Any, false);
 
             return ComboLastMove switch
             {

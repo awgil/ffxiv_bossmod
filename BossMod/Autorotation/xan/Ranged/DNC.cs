@@ -1,5 +1,6 @@
 ﻿using BossMod.DNC;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -44,9 +45,9 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
     public float FinishingMoveLeft; // 30s max
     public float DanceOfTheDawnLeft; // 30s max
 
-    private Actor? BestFan4Target;
-    private Actor? BestRangedAOETarget;
-    private Actor? BestStarfallTarget;
+    private Enemy? BestFan4Target;
+    private Enemy? BestRangedAOETarget;
+    private Enemy? BestStarfallTarget;
 
     public int NumAOETargets;
     public int NumDanceTargets;
@@ -59,9 +60,15 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
 
     protected override float GetCastTime(AID aid) => 0;
 
-    private bool HaveTarget(Actor? primaryTarget) => NumAOETargets > 1 || primaryTarget != null;
+    private bool HaveTarget(Enemy? primaryTarget) => NumAOETargets > 1 || primaryTarget != null;
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    private static float GetApplicationDelay(AID aid) => aid switch
+    {
+        AID.StandardFinish or AID.SingleStandardFinish or AID.DoubleStandardFinish => 0.54f,
+        _ => 0
+    };
+
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
 
@@ -110,7 +117,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
 
         var approach = IsDancing || ReadyIn(AID.StandardStep) <= GCD || ReadyIn(AID.TechnicalStep) <= GCD;
 
-        GoalZoneCombined(approach ? 15 : 25, Hints.GoalAOECircle(IsDancing ? 15 : 5), 2);
+        GoalZoneCombined(strategy, approach ? 15 : 25, Hints.GoalAOECircle(IsDancing ? 15 : 5), AID.StandardFinish, 2);
 
         if (IsDancing)
         {
@@ -209,7 +216,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
 
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (CountdownRemaining > 0)
         {
@@ -228,7 +235,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         if (ReadyIn(AID.Devilment) > 55)
             PushOGCD(AID.Flourish, Player);
 
-        if ((TechFinishLeft == 0 || OnCooldown(AID.Devilment)) && ThreefoldLeft > World.Client.AnimationLock && NumRangedAOETargets > 0)
+        if ((TechFinishLeft == 0 || OnCooldown(AID.Devilment)) && ThreefoldLeft > AnimLock && NumRangedAOETargets > 0)
             PushOGCD(AID.FanDanceIII, BestRangedAOETarget);
 
         var canF1 = ShouldSpendFeathers(strategy);
@@ -237,7 +244,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         if (Feathers == 4 && canF1)
             PushOGCD(f1ToUse, primaryTarget);
 
-        if (OnCooldown(AID.Devilment) && FourfoldLeft > World.Client.AnimationLock && NumFan4Targets > 0)
+        if (OnCooldown(AID.Devilment) && FourfoldLeft > AnimLock && NumFan4Targets > 0)
             PushOGCD(AID.FanDanceIV, BestFan4Target);
 
         if (canF1)
@@ -249,8 +256,12 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         if (ReadyIn(AID.StandardStep) > GCD)
             return false;
 
+        var stdFinishCast = GCD + 3.5f;
+        var stdFinishDamage = stdFinishCast + GetApplicationDelay(AID.StandardFinish);
+
         return NumDanceTargets > 0 &&
-            (TechFinishLeft == 0 || TechFinishLeft > GCD + 3.5 || !Unlocked(AID.TechnicalStep));
+            DowntimeIn > stdFinishDamage &&
+            (TechFinishLeft == 0 || TechFinishLeft > stdFinishCast || !Unlocked(AID.TechnicalStep));
     }
 
     private bool ShouldTechStep(StrategyValues strategy)
@@ -265,7 +276,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         return NumDanceTargets > 0 && StandardFinishLeft > GCD + TechStepDuration + TechFinishDuration;
     }
 
-    private bool CanFlow(Actor? primaryTarget, out AID action)
+    private bool CanFlow(Enemy? primaryTarget, out AID action)
     {
         var act = NumAOETargets > 1 ? AID.Bloodshower : AID.Fountainfall;
         if (Unlocked(act) && FlowLeft > GCD && HaveTarget(primaryTarget))
@@ -278,7 +289,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         return false;
     }
 
-    private bool CanSymmetry(Actor? primaryTarget, out AID action)
+    private bool CanSymmetry(Enemy? primaryTarget, out AID action)
     {
         var act = NumAOETargets > 1 ? AID.RisingWindmill : AID.ReverseCascade;
         if (Unlocked(act) && SymmetryLeft > GCD && HaveTarget(primaryTarget))
@@ -317,14 +328,14 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         if (Feathers == 4 || !Unlocked(AID.TechnicalStep))
             return true;
 
-        return TechFinishLeft > World.Client.AnimationLock;
+        return TechFinishLeft > AnimLock;
     }
 
     private bool IsFan4Target(Actor primary, Actor other) => Hints.TargetInAOECone(other, Player.Position, 15, Player.DirectionTo(primary), 60.Degrees());
 
     private Actor? FindDancePartner()
     {
-        var partner = World.Party.WithoutSlot(excludeAlliance: true).Exclude(Player).Where(x => Player.DistanceToHitbox(x) <= 30).MaxBy(p => p.Class switch
+        var partner = World.Party.WithoutSlot(excludeAlliance: true, excludeNPCs: true).Exclude(Player).Where(x => Player.DistanceToHitbox(x) <= 30).MaxBy(p => p.Class switch
         {
             Class.SAM => 100,
             Class.NIN or Class.VPR or Class.ROG => 99,

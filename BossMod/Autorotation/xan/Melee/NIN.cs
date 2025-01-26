@@ -1,6 +1,7 @@
 ﻿using BossMod.NIN;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using System.Collections.ObjectModel;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -46,7 +47,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
     public int NumRangedAOETargets;
 
     // 25y for hellfrog - ninjutsu have a range of 20y
-    private Actor? BestRangedAOETarget;
+    private Enemy? BestRangedAOETarget;
 
     // these aren't the same cdgroup :(
     public float AssassinateCD => ReadyIn(Unlocked(AID.DreamWithinADream) ? AID.DreamWithinADream : AID.Assassinate);
@@ -78,7 +79,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         _ => AID.Ninjutsu
     };
 
-    private bool Hidden => HiddenStatus || ShadowWalker > World.Client.AnimationLock;
+    private bool Hidden => HiddenStatus || ShadowWalker > AnimLock;
 
     private bool CanTrickInCombat => Unlocked(AID.Suiton);
 
@@ -86,7 +87,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         452
     ];
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 3);
 
@@ -119,7 +120,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
         NumAOETargets = NumMeleeAOETargets(strategy);
 
-        var pos = GetNextPositional(primaryTarget);
+        var pos = GetNextPositional(primaryTarget?.Actor);
         UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
 
         OGCD(strategy, primaryTarget);
@@ -132,7 +133,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(3, Hints.GoalAOECircle(5), 3, pos.Item1);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.DeathBlossom, minAoe: 3, positional: pos.Item1, maximumActionRange: 20);
 
         if (TenChiJin.Left > GCD)
         {
@@ -217,7 +218,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         else
         {
             if (ComboLastMove == AID.GustSlash && primaryTarget != null)
-                PushGCD(GetComboEnder(primaryTarget), primaryTarget);
+                PushGCD(GetComboEnder(primaryTarget.Actor), primaryTarget);
 
             if (ComboLastMove == AID.SpinningEdge)
                 PushGCD(AID.GustSlash, primaryTarget);
@@ -226,7 +227,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private bool ShouldPK(Actor? primaryTarget)
+    private bool ShouldPK(Enemy? primaryTarget)
     {
         if (RaidBuffsLeft > GCD || TargetTrickLeft > GCD || TargetMugLeft > GCD)
             return true;
@@ -251,14 +252,14 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         return primaryTarget.Omnidirectional || GetCurrentPositional(primaryTarget) == Positional.Rear ? AID.AeolianEdge : AID.ArmorCrush;
     }
 
-    private void UseMudra(AID mudra, Actor? target, bool startCondition = true, bool endCondition = true)
+    private void UseMudra(AID mudra, Enemy? target, bool startCondition = true, bool endCondition = true)
     {
         (var aid, var tar) = PickMudra(mudra, target, startCondition, endCondition);
         if (aid != AID.None)
             PushGCD(aid == AID.Ninjutsu ? CurrentNinjutsu : aid, tar);
     }
 
-    private (AID action, Actor? target) PickMudra(AID mudra, Actor? target, bool startCondition, bool endCondition)
+    private (AID action, Enemy? target) PickMudra(AID mudra, Enemy? target, bool startCondition, bool endCondition)
     {
         if (!Unlocked(mudra) || target == null)
             return (AID.None, null);
@@ -285,7 +286,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         if (len == 1)
         {
             if (Mudras[0] == 0)
-                return (ten1, Player);
+                return (ten1, null);
             else if (endCondition)
                 return (AID.Ninjutsu, target);
         }
@@ -297,10 +298,10 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
                 return (AID.Ninjutsu, target);
 
             if (Mudras[0] == 0)
-                return (last == 1 ? (Unlocked(jin1) ? jin1 : chi1) : ten1, Player);
+                return (last == 1 ? (Unlocked(jin1) ? jin1 : chi1) : ten1, null);
 
             if (Mudras[1] == 0)
-                return (last == 1 ? AID.Ten2 : last == 2 ? AID.Chi2 : AID.Jin2, Player);
+                return (last == 1 ? AID.Ten2 : last == 2 ? AID.Chi2 : AID.Jin2, null);
             else if (endCondition)
                 return (AID.Ninjutsu, target);
         }
@@ -312,7 +313,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
                 return (AID.Ninjutsu, target);
 
             if (Mudras[0] == 0)
-                return (last == 1 ? jin1 : ten1, Player);
+                return (last == 1 ? jin1 : ten1, null);
 
             if (Mudras[1] == 0)
                 return (Mudras[0] switch
@@ -321,10 +322,10 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
                     2 => last == 3 ? AID.Ten2 : AID.Jin2,
                     3 => last == 1 ? AID.Chi2 : AID.Ten2,
                     _ => AID.None
-                }, Player);
+                }, null);
 
             if (Mudras[2] == 0)
-                return (last == 1 ? AID.Ten2 : last == 2 ? AID.Chi2 : AID.Jin2, Player);
+                return (last == 1 ? AID.Ten2 : last == 2 ? AID.Chi2 : AID.Jin2, null);
             else if (endCondition)
                 return (AID.Ninjutsu, target);
         }
@@ -332,7 +333,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         return (AID.None, null);
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat)
         {
@@ -365,7 +366,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
             if (!Unlocked(TraitID.Shukiho) || Ninki >= 10)
                 PushOGCD(AID.Mug, primaryTarget);
 
-            if (ReadyIn(AID.Ten1) > GCD && Mudra.Left == 0 && Kassatsu == 0 && ShadowWalker == 0 && ForceMovementIn > GCD + 2)
+            if (ReadyIn(AID.Ten1) > GCD && Mudra.Left == 0 && Kassatsu == 0 && ShadowWalker == 0)
                 PushOGCD(AID.TenChiJin, Player);
 
             if (Ninki >= 50)
@@ -389,7 +390,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
     }
 
     private bool ShouldBhava(StrategyValues strategy)
-        => Ninki >= 50 && (Meisui > 0 || TargetTrickLeft > World.Client.AnimationLock || Ninki > 85);
+        => Ninki >= 50 && (Meisui > 0 || TargetTrickLeft > AnimLock || Ninki > 85);
 
     private (Positional, bool) GetNextPositional(Actor? primaryTarget)
     {

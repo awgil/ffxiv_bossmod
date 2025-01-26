@@ -19,6 +19,9 @@ public class TrackPartyHealth(WorldState World)
         public float NoHealStatusRemaining;
         // Doom (1769 and possibly other statuses) is only removed once a player reaches full HP, must be healed asap
         public float DoomRemaining;
+        public Vector2 AveragePosition;
+        public float MoveDelta;
+        public DateTime LastCombat;
     }
 
     public record PartyHealthState
@@ -34,15 +37,15 @@ public class TrackPartyHealth(WorldState World)
     public readonly PartyMemberState[] PartyMemberStates = new PartyMemberState[PartyState.MaxAllies];
     public PartyHealthState PartyHealth { get; private set; } = new();
 
+    public bool HaveRealPartyMembers { get; private set; }
+
     // looking up this field in sheets is noticeably expensive somehow
     private static readonly Dictionary<uint, bool> _esunaCache = [];
     private static bool StatusIsRemovable(uint statusID)
     {
         if (_esunaCache.TryGetValue(statusID, out var value))
             return value;
-        var check = Utils.StatusIsRemovable(statusID);
-        _esunaCache[statusID] = check;
-        return check;
+        return _esunaCache[statusID] = Utils.StatusIsRemovable(statusID);
     }
 
     private static readonly uint[] NoHealStatuses = [
@@ -115,12 +118,26 @@ public class TrackPartyHealth(WorldState World)
         foreach (var caster in World.Party.WithoutSlot(excludeAlliance: true).Where(a => a.CastInfo?.IsSpell(BossMod.WHM.AID.Esuna) ?? false))
             esunas.Set(World.Party.FindSlot(caster.CastInfo!.TargetID));
 
+        HaveRealPartyMembers = false;
+
         for (var i = 0; i < PartyState.MaxAllies; i++)
         {
+            var shouldSkip = false;
+            if (i >= PartyState.MaxPartySize)
+            {
+                // if we are running content with normal party, either duty support or human players, NPC allies should be ignored entirely
+                if (HaveRealPartyMembers)
+                    shouldSkip = true;
+
+                // otherwise alliance should be skipped since healing actions generally can't target them
+                if (i < PartyState.MaxAllianceSize)
+                    shouldSkip = true;
+            }
+
             var actor = World.Party[i];
             ref var state = ref PartyMemberStates[i];
             state.Slot = i;
-            if (actor == null || actor.IsDead || actor.HPMP.MaxHP == 0)
+            if (actor == null || actor.IsDead || actor.HPMP.MaxHP == 0 || shouldSkip)
             {
                 state.PredictedHP = state.PredictedHPMissing = 0;
                 state.PredictedHPRatio = state.PendingHPRatio = 1;
@@ -146,6 +163,19 @@ public class TrackPartyHealth(WorldState World)
                     if (s.ID == 1769)
                         state.DoomRemaining = StatusDuration(s.ExpireAt);
                 }
+
+                if (actor.InCombat)
+                    state.LastCombat = World.CurrentTime;
+
+                var pos = actor.Position.ToVec2();
+                if (state.AveragePosition == default)
+                    state.AveragePosition = pos;
+                else
+                {
+                    state.AveragePosition -= state.AveragePosition * World.Frame.Duration;
+                    state.AveragePosition += pos * World.Frame.Duration;
+                }
+                state.MoveDelta = (state.AveragePosition - pos).Length();
             }
         }
 
@@ -160,6 +190,11 @@ public class TrackPartyHealth(WorldState World)
                     state.PredictedHPRatio -= enemy.AttackStrength;
             }
         }
+
+        foreach (var predicted in Hints.PredictedDamage)
+            foreach (var bit in predicted.players.SetBits())
+                PartyMemberStates[bit].PredictedHPRatio -= 0.30f;
+
         PartyHealth = CalculatePartyHealthState(_ => true);
     }
 }

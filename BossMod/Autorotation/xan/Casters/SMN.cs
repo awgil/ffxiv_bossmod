@@ -1,5 +1,6 @@
 ﻿using BossMod.SMN;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -77,6 +78,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
     public float SearingLightLeft;
     public float SearingFlash;
     public float RefulgentLux;
+    public bool CrimsonStrikeReady;
 
     public int Aetherflow => TranceFlags.HasFlag(SmnFlags.Aetherflow2) ? 2 : TranceFlags.HasFlag(SmnFlags.Aetherflow) ? 1 : 0;
 
@@ -84,8 +86,8 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
     public int NumMeleeTargets;
 
     private Actor? Carbuncle;
-    private Actor? BestAOETarget;
-    private Actor? BestMeleeTarget;
+    private Enemy? BestAOETarget;
+    private Enemy? BestMeleeTarget;
 
     public Trance Trance
     {
@@ -208,7 +210,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         }
     }
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -218,6 +220,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         AttunementType = (AttunementType)(gauge.Attunement & 3);
         Attunement = gauge.Attunement >> 2;
 
+        // intentionally not using activepet as it is cleared when current summon's duration expires, even though the actor still exists, causing autorot to constantly do redundant summons
         Carbuncle = World.Actors.FirstOrDefault(x => x.Type == ActorType.Pet && x.OwnerID == Player.InstanceID);
 
         var favor = Player.Statuses.FirstOrDefault(x => (SID)x.ID is SID.GarudasFavor or SID.IfritsFavor or SID.TitansFavor);
@@ -233,6 +236,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         SearingFlash = StatusLeft(SID.RubysGlimmer);
         SearingLightLeft = Player.FindStatus(SID.SearingLight) is ActorStatus s ? StatusDuration(s.ExpireAt) : 0;
         RefulgentLux = StatusLeft(SID.RefulgentLux);
+        CrimsonStrikeReady = Player.FindStatus(SID.CrimsonStrikeReady) != null;
 
         (BestAOETarget, NumAOETargets) = SelectTargetByHP(strategy, primaryTarget, 25, IsSplashTarget);
         (BestMeleeTarget, NumMeleeTargets) = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget);
@@ -251,11 +255,13 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
+        GoalZoneSingle(25);
+
         OGCDs(strategy, primaryTarget);
 
-        if (ComboLastMove == AID.CrimsonCyclone)
+        if (CrimsonStrikeReady)
         {
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 3));
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget.Actor, 3));
             PushGCD(AID.CrimsonStrike, BestMeleeTarget);
         }
 
@@ -280,13 +286,13 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
                 case CycloneUse.Delay: // do nothing, pause rotation
                     return;
                 case CycloneUse.DelayMove:
-                    if (ForceMovementIn == 0)
+                    if (MaxCastTime == 0)
                         return;
                     else
                         PushGCD(AID.CrimsonCyclone, BestAOETarget);
                     break;
                 case CycloneUse.SkipMove:
-                    if (ForceMovementIn > 0)
+                    if (MaxCastTime > 0)
                         PushGCD(AID.CrimsonCyclone, BestAOETarget);
                     break;
                 case CycloneUse.Skip:
@@ -300,18 +306,19 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
             // balance says to default to summons if you don't know whether you will lose a usage or not
             if (ReadyIn(AID.Aethercharge) <= GCD && Player.InCombat)
             {
-                // scarlet flame and wyrmwave are both single target, this is ok
-                PushGCD(BestAethercharge, primaryTarget);
+                if (!Unlocked(AID.DreadwyrmTrance) || DowntimeIn > GCD + 15)
+                    // scarlet flame and wyrmwave are both single target, this is ok
+                    PushGCD(BestAethercharge, primaryTarget);
             }
 
             if (TranceFlags.HasFlag(SmnFlags.Topaz))
-                PushGCD(AID.SummonTopaz, primaryTarget);
+                PushGCD(AID.SummonTopaz, Unlocked(TraitID.TopazSummoningMastery) ? BestAOETarget : primaryTarget);
 
             if (TranceFlags.HasFlag(SmnFlags.Emerald))
-                PushGCD(AID.SummonEmerald, primaryTarget);
+                PushGCD(AID.SummonEmerald, Unlocked(TraitID.EmeraldSummoningMastery) ? BestAOETarget : primaryTarget);
 
             if (TranceFlags.HasFlag(SmnFlags.Ruby))
-                PushGCD(AID.SummonRuby, primaryTarget);
+                PushGCD(AID.SummonRuby, Unlocked(TraitID.RubySummoningMastery) ? BestAOETarget : primaryTarget);
         }
 
         if (FurtherRuin > GCD && SummonLeft == 0)
@@ -324,9 +331,9 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
 
     }
 
-    private void OGCDs(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCDs(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (!Player.InCombat)
+        if (!Player.InCombat || primaryTarget == null)
             return;
 
         if (Favor == Favor.Titan)

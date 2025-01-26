@@ -1,6 +1,4 @@
-﻿using Lumina.Excel.Sheets;
-
-namespace BossMod.Autorotation.xan;
+﻿namespace BossMod.Autorotation.xan;
 
 public abstract class AIBase(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
@@ -10,24 +8,11 @@ public abstract class AIBase(RotationModuleManager manager, Actor player) : Rota
 
     internal static ActionID Spell<AID>(AID aid) where AID : Enum => ActionID.MakeSpell(aid);
 
-    internal bool ShouldInterrupt(Actor act) => IsCastReactable(act) && act.CastInfo!.Interruptible;
-    internal bool ShouldStun(Actor act) => IsCastReactable(act) && !act.CastInfo!.Interruptible && !IsBossFromIcon(act.OID);
-
-    private static bool IsBossFromIcon(uint oid) => Service.LuminaRow<BNpcBase>(oid)?.Rank is 1 or 2 or 6;
-
-    internal bool IsCastReactable(Actor act)
-    {
-        var castInfo = act.CastInfo;
-        return !(castInfo == null || castInfo.TotalTime <= 1.5 || castInfo.EventHappened);
-    }
+    // note "in combat" check here, as deep dungeon enemies can randomly cast interruptible spells out of combat - interjecting causes aggro
+    internal bool ShouldInterrupt(AIHints.Enemy e) => e.Actor.InCombat && e.ShouldBeInterrupted && (e.Actor.CastInfo?.Interruptible ?? false);
+    internal bool ShouldStun(AIHints.Enemy e) => e.Actor.InCombat && e.ShouldBeStunned;
 
     internal IEnumerable<AIHints.Enemy> EnemiesAutoingMe => Hints.PriorityTargets.Where(x => x.Actor.CastInfo == null && x.Actor.TargetID == Player.InstanceID && Player.DistanceToHitbox(x.Actor) <= 6);
-
-    internal float HPRatio(Actor actor) => (float)actor.HPMP.CurHP / Player.HPMP.MaxHP;
-    internal float HPRatio() => HPRatio(Player);
-
-    internal uint PredictedHP(Actor actor) => (uint)actor.PredictedHPClamped;
-    internal float PredictedHPRatio(Actor actor) => (float)PredictedHP(actor) / actor.HPMP.MaxHP;
 
     internal IEnumerable<DateTime> Raidwides => Hints.PredictedDamage.Where(d => World.Party.WithSlot(excludeAlliance: true).IncludedInMask(d.players).Count() >= 2).Select(t => t.activation);
     internal IEnumerable<(Actor, DateTime)> Tankbusters
