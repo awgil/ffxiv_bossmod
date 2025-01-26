@@ -101,7 +101,7 @@ class AutoYshtola(WorldState ws) : UnmanagedRotation(ws, 25)
     }
 }
 
-class YshtolaAI(BossModule module) : Components.RotationModule<AutoYshtola>(module);
+class YshtolaAI(BossModule module) : RotationModule<AutoYshtola>(module);
 
 class P1Hints(BossModule module) : BossComponent(module)
 {

@@ -37,7 +37,7 @@ class AutoHien(WorldState ws) : UnmanagedRotation(ws, 3)
     }
 }
 
-class HienAI(BossModule module) : Components.RotationModule<AutoHien>(module);
+class HienAI(BossModule module) : RotationModule<AutoHien>(module);
 
 public class ZenosP1States : StateMachineBuilder
 {

@@ -59,7 +59,7 @@ class UriangerAI(WorldState ws) : UnmanagedRotation(ws, 25)
 }
 
 class Fetters(BossModule module) : Components.Adds(module, (uint)OID.Fetters);
-class AutoUri(BossModule module) : Components.RotationModule<UriangerAI>(module);
+class AutoUri(BossModule module) : RotationModule<UriangerAI>(module);
 class GunmetalSoul(BossModule module) : Components.GenericAOEs(module)
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Module.Enemies(0x1EB1D5).Where(e => e.EventState != 7).Select(e => new AOEInstance(new AOEShapeDonut(4, 100), e.Position));

@@ -50,7 +50,7 @@ class RendaRae(WorldState ws) : UnmanagedRotation(ws, 20)
     }
 }
 
-class RendaRaeAI(BossModule module) : Components.RotationModule<RendaRae>(module);
+class RendaRaeAI(BossModule module) : RotationModule<RendaRae>(module);
 
 class RonkanAura(BossModule module) : BossComponent(module)
 {

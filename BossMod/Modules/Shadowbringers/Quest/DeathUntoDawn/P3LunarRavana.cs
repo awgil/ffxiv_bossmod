@@ -71,7 +71,7 @@ class GrahaAI(WorldState ws) : UnmanagedRotation(ws, 25)
     }
 }
 
-class AutoGraha(BossModule module) : Components.RotationModule<GrahaAI>(module);
+class AutoGraha(BossModule module) : RotationModule<GrahaAI>(module);
 class DirectionalParry(BossModule module) : Components.DirectionalParry(module, 0x3201)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

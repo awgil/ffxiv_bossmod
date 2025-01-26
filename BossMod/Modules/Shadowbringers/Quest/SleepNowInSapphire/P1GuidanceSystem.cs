@@ -15,7 +15,7 @@ public enum AID : uint
 
 class AerialBombardment(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AerialBombardment), 12);
 
-class GWarrior(BossModule module) : Components.RotationModule<SapphireWeapon>(module);
+class GWarrior(BossModule module) : QuestBattle.RotationModule<SapphireWeapon>(module);
 
 class GuidanceSystemStates : StateMachineBuilder
 {
