@@ -78,6 +78,8 @@ public enum SID : uint
     #region PvE
     None = 0,
 
+    Sprint = 50, // applied by Sprint to self
+
     // Tank
     Reprisal = 1193, // applied by Reprisal to target
 

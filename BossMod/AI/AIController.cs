@@ -16,7 +16,6 @@ sealed class AIController(WorldState ws, ActionManagerEx amex, MovementOverride 
 
     private readonly ActionManagerEx _amex = amex;
     private readonly MovementOverride _movement = movement;
-    private DateTime _nextInteract;
 
     public bool IsVerticalAllowed => Service.Condition[ConditionFlag.InFlight];
     public Angle CameraFacing => (Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees();
@@ -60,19 +59,5 @@ sealed class AIController(WorldState ws, ActionManagerEx amex, MovementOverride 
 
         if (hints.ForcedMovement == null && desiredPosition != null)
             hints.ForcedMovement = desiredPosition.Value - player.PosRot.XYZ();
-
-        if (hints.InteractWithTarget is Actor tar && player.DistanceToHitbox(tar) <= 3)
-            ExecuteInteract(now, tar);
-    }
-
-    private unsafe void ExecuteInteract(DateTime now, Actor target)
-    {
-        if (_amex.EffectiveAnimationLock > 0 || now < _nextInteract)
-            return;
-        var obj = GameObjectManager.Instance()->Objects.IndexSorted[target.SpawnIndex].Value;
-        if (obj == null || obj->GetGameObjectId() != target.InstanceID)
-            return;
-        TargetSystem.Instance()->OpenObjectInteraction(obj);
-        _nextInteract = now.AddMilliseconds(100);
     }
 }
