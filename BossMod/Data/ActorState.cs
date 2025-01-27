@@ -115,6 +115,7 @@ public sealed class ActorState : IEnumerable<Actor>
         target.PendingMPDifferences.RemoveAll(e => predicate(e.Effect));
         target.PendingStatuses.RemoveAll(e => predicate(e.Effect));
         target.PendingDispels.RemoveAll(e => predicate(e.Effect));
+        target.PendingKnockbacks.RemoveAll(e => predicate(e));
     }
 
     // implementation of operations
@@ -445,17 +446,19 @@ public sealed class ActorState : IEnumerable<Actor>
         protected override void ExecActor(WorldState ws, Actor actor)
         {
             ref var prev = ref actor.IncomingEffects[Index];
-            if (prev.GlobalSequence != 0 && (prev.GlobalSequence != Value.GlobalSequence || prev.TargetIndex != Value.TargetIndex))
+            var prevSeq = prev.GlobalSequence;
+            var prevIdx = prev.TargetIndex;
+            if (prevSeq != 0 && (prevSeq != Value.GlobalSequence || prevIdx != Value.TargetIndex))
             {
                 if (prev.Effects.Any(eff => eff.Type is ActionEffectType.Knockback or ActionEffectType.Attract1 or ActionEffectType.Attract2 or ActionEffectType.AttractCustom1 or ActionEffectType.AttractCustom2 or ActionEffectType.AttractCustom3))
-                    --actor.PendingKnockbacks;
+                    actor.PendingKnockbacks.RemoveAll(e => e.GlobalSequence == prevSeq && e.TargetIndex == prevIdx);
                 ws.Actors.IncomingEffectRemove.Fire(actor, Index);
             }
             actor.IncomingEffects[Index] = Value;
             if (Value.GlobalSequence != 0)
             {
                 if (Value.Effects.Any(eff => eff.Type is ActionEffectType.Knockback or ActionEffectType.Attract1 or ActionEffectType.Attract2 or ActionEffectType.AttractCustom1 or ActionEffectType.AttractCustom2 or ActionEffectType.AttractCustom3))
-                    ++actor.PendingKnockbacks;
+                    actor.PendingKnockbacks.Add(new(Value.GlobalSequence, Value.TargetIndex, Value.SourceInstanceId, ws.FutureTime(3))); // note: sometimes effect can never be applied (eg if source dies shortly after actioneffect), so we need a timeout
                 ws.Actors.IncomingEffectAdd.Fire(actor, Index);
             }
         }

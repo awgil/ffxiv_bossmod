@@ -113,7 +113,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public List<PendingEffectDelta> PendingMPDifferences = [];
     public List<PendingEffectStatusExtra> PendingStatuses = [];
     public List<PendingEffectStatus> PendingDispels = [];
-    public int PendingKnockbacks;
+    public List<PendingEffect> PendingKnockbacks = [];
 
     public Role Role => Class.GetRole();
     public ClassCategory ClassCategory => Class.GetClassCategory();

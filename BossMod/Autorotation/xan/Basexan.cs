@@ -369,7 +369,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     {
         MaxCastTime = Hints.MaxCastTimeEstimate;
 
-        if (Player.PendingKnockbacks > 0)
+        if (Player.PendingKnockbacks.Count > 0)
         {
             MaxCastTime = 0f;
             return;

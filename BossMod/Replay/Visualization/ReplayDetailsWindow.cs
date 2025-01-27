@@ -302,7 +302,7 @@ class ReplayDetailsWindow : UIWindow
         var numIncoming = actor.IncomingEffects.Count(i => i.GlobalSequence != 0);
         var mouseOffset = ImGui.GetMousePos() - ImGui.GetWindowPos() - ImGui.GetCursorPos();
         var mouseInColumn = mouseOffset.X >= 0 && mouseOffset.Y >= 0 && mouseOffset.X < ImGui.GetColumnWidth() && mouseOffset.Y < ImGui.GetFontSize() + 2 * ImGui.GetStyle().FramePadding.Y;
-        ImGui.TextUnformatted($"{(actor.PendingKnockbacks > 0 ? "Knockbacks pending, " : "")}{(actor.MountId != 0 ? $"Mounted ({actor.MountId}), " : "")}{numRealStatuses} + {actor.PendingStatuses.Count} statuses, {actor.PendingDispels.Count} dispels, {numIncoming} incoming effects");
+        ImGui.TextUnformatted($"{(actor.PendingKnockbacks.Count > 0 ? "Knockbacks pending, " : "")}{(actor.MountId != 0 ? $"Mounted ({actor.MountId}), " : "")}{numRealStatuses} + {actor.PendingStatuses.Count} statuses, {actor.PendingDispels.Count} dispels, {numIncoming} incoming effects");
         if (mouseInColumn && numRealStatuses + actor.PendingStatuses.Count + actor.PendingDispels.Count + numIncoming > 0)
         {
             using var tooltip = ImRaii.Tooltip();
