@@ -314,7 +314,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="sid">The <em>Status ID</em> of specified status effect. (e.g. "<em>SID.NoMercy</em>")</param>
     /// <param name="duration"> The <em>Total Effect Duration</em> of specified status effect. (e.g. since <em>No Mercy</em>'s buff is 20 seconds, we simply use "<em>20</em>")</param>
     /// <returns>- A value indicating if the effect exists</returns>
-    protected bool PlayerHasEffect<SID>(SID sid, float duration) where SID : Enum => StatusRemaining(Player, sid, duration) > 0.1f;
+    protected bool PlayerHasEffect<SID>(SID sid, float duration = 1000f) where SID : Enum => StatusRemaining(Player, sid, duration) > 0.1f;
 
     /// <summary> Checks if a specific status effect on any specified target exists.
     /// <para><b><em>NOTE</em></b>: The effect can be owned by anyone.</para>
