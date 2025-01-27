@@ -1,6 +1,4 @@
-﻿using static BossMod.ActorCastEvent;
-
-namespace BossMod.Autorotation;
+﻿namespace BossMod.Autorotation;
 
 public sealed class ClassASTUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
