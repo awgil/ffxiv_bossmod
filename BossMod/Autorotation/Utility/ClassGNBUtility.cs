@@ -59,7 +59,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         var hasAurora = StatusDetails(auroraTarget, GNB.SID.Aurora, Player.InstanceID).Left > 0.1f; //Checks if status is present
         if (auroraStrat != AuroraStrategy.None && !hasAurora)
         {
-            if ((auroraStrat == AuroraStrategy.Force)||
+            if ((auroraStrat == AuroraStrategy.Force) ||
                 (auroraStrat == AuroraStrategy.ForceHold1) && auroraCD <= 0.6f)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(GNB.AID.Aurora), auroraTarget, aurora.Priority(), aurora.Value.ExpireIn);
         }
