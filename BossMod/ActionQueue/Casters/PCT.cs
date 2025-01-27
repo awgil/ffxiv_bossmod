@@ -90,6 +90,7 @@ public enum SID : uint
     Aetherhues = 3675, // applied by Fire in Red, Fire II in Red, Blizzard II in Cyan, Blizzard in Cyan to self
     AetherhuesII = 3676, // applied by Aero in Green, Aero II in Green, Stone in Yellow to self
     TemperaCoat = 3686, // applied by Tempera Coat to self
+    TemperaGrassa = 3687, // applied by Tempera Grassa to self
     Swiftcast = 167, // applied by Swiftcast to self
     Smudge = 3684, // applied by Smudge to self
     HammerTime = 3680, // applied by Striking Muse to self

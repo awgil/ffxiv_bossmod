@@ -9,9 +9,6 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
     public enum TBNStrategy { None, Force } //TheBlackestNight strategy
     public enum OblationStrategy { None, Force, ForceHold1 } //Oblation strategy
     public enum DashStrategy { None, GapClose, GapCloseHold1 } //GapCloser strategy
-    public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
-    public float GetStatusDetail(Actor target, DRK.SID sid) => StatusDetails(target, sid, Player.InstanceID).Left; //Checks if Status effect is on target
-    public bool HasEffect(Actor target, DRK.SID sid, float duration) => GetStatusDetail(target, sid) < duration; //Checks if anyone has a status effect
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(DRK.AID.DarkForce);
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(DRK.AID.Grit);
@@ -65,9 +62,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         var canTBN = ActionUnlocked(ActionID.MakeSpell(DRK.AID.TheBlackestNight)) && Player.HPMP.CurMP >= 3000;
         var tbn = strategy.Option(Track.TheBlackestNight);
         var tbnTarget = ResolveTargetOverride(tbn.Value) ?? CoTank() ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
-        if (tbn.As<TBNStrategy>() == TBNStrategy.Force &&
-            canTBN &&
-            !HasEffect(tbnTarget, DRK.SID.TheBlackestNight, 7))
+        if (canTBN && tbn.As<TBNStrategy>() == TBNStrategy.Force)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.TheBlackestNight), tbnTarget, tbn.Priority(), tbn.Value.ExpireIn);
 
         //Oblation execution

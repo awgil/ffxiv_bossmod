@@ -91,7 +91,7 @@ public enum SID : uint
     Flamethrower = 1205, // applied by Flamethrower to self
     ExcavatorReady = 3865, // applied by Chain Saw to self
     FullMetalMachinist = 3866, // applied by Hypercharge to self
-
+    Tactician = 1951, // applied by Tactician to self
     //Shared
     Peloton = ClassShared.SID.Peloton, // applied by Peloton to self/party
 }

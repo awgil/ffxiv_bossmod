@@ -101,7 +101,7 @@ public enum SID : uint
     BanefulImpaction = 3883, // applied by Baneful Impaction to target
     ImpactImminent = 3882, // applied by Chain Stratagem to self
     ChainStratagem = 1221, // applied by Chain Stratagem to target
-    FeyUnion = 1222, // applied by Aetherpact to target
+    FeyUnion = 1223, // applied by Aetherpact to target
     Seraphism = 3884, // applied by Seraphism to self
 
     //Shared

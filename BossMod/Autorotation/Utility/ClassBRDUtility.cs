@@ -33,7 +33,8 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.NaturesMinne), BRD.AID.NaturesMinne, Player);
 
         var troub = strategy.Option(Track.Troubadour);
-        if (troub.As<TroubOption>() != TroubOption.None)
+        var hasDefensive = StatusDetails(Player, BRD.SID.Troubadour, Player.InstanceID).Left > 5f || StatusDetails(Player, DNC.SID.ShieldSamba, Player.InstanceID).Left > 5f || StatusDetails(Player, MCH.SID.Tactician, Player.InstanceID).Left > 5f;
+        if (troub.As<TroubOption>() != TroubOption.None && !hasDefensive)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BRD.AID.Troubadour), Player, troub.Priority(), troub.Value.ExpireIn);
     }
 }

@@ -3,6 +3,7 @@
 public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player) : RoleCasterUtility(manager, player)
 {
     public enum Track { TemperaCoat = SharedTrack.Count }
+    public enum TemperaCoatOption { None, CoatOnly, CoatGrassaASAP, CoatGrassaWhenever }
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(PCT.AID.ChromaticFantasy);
 
@@ -11,7 +12,12 @@ public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player)
         var res = new RotationModuleDefinition("Utility: PCT", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.PCT), 100);
         DefineShared(res, IDLimitBreak3);
 
-        DefineSimpleConfig(res, Track.TemperaCoat, "Tempora Coat", "T.Coat", 600, PCT.AID.TemperaCoat, 10);
+        res.Define(Track.TemperaCoat).As<TemperaCoatOption>("Tempera Coat", "T.Coat", 600)
+            .AddOption(TemperaCoatOption.None, "None", "Do not use automatically")
+            .AddOption(TemperaCoatOption.CoatOnly, "Tempera Coat Only", "Use Tempera Coat only; ignores Tempera Grassa (if available)", 0, 0, ActionTargets.Self, 0, 95)
+            .AddOption(TemperaCoatOption.CoatGrassaASAP, "Tempera Coat + Grassa ASAP", "Use Tempera Coat + Tempera Grassa ASAP, regardless of casting & weaving", 0, 0, ActionTargets.Self, 96)
+            .AddOption(TemperaCoatOption.CoatGrassaWhenever, "Tempera Coat + Grassa when available", "Use Tempera Coat + Tempera Grassa when weaving or not casting", 0, 0, ActionTargets.Self, 96)
+            .AddAssociatedActions(PCT.AID.TemperaCoat, PCT.AID.TemperaGrassa);
 
         return res;
     }
@@ -19,6 +25,35 @@ public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player)
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.TemperaCoat), PCT.AID.TemperaCoat, Player);
+
+        var canCoat = ActionUnlocked(ActionID.MakeSpell(PCT.AID.TemperaCoat)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(PCT.AID.TemperaCoat)!.MainCooldownGroup].Remaining < 0.6f;
+        var leftCoat = StatusDetails(Player, PCT.SID.TemperaCoat, Player.InstanceID).Left;
+        var hasCoat = leftCoat > 0.1f;
+        var canGrassa = ActionUnlocked(ActionID.MakeSpell(PCT.AID.TemperaGrassa)) && hasCoat;
+        var hasGrassa = StatusDetails(Player, PCT.SID.TemperaGrassa, Player.InstanceID).Left > 0.1f;
+        var tempera = strategy.Option(Track.TemperaCoat);
+        var temperaStrat = tempera.As<TemperaCoatOption>();
+        if (temperaStrat != TemperaCoatOption.None)
+        {
+            if (temperaStrat == TemperaCoatOption.CoatOnly)
+            {
+                if (canCoat && (!hasCoat || !hasGrassa))
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(PCT.AID.TemperaCoat), Player, tempera.Priority(), tempera.Value.ExpireIn);
+            }
+            if (temperaStrat == TemperaCoatOption.CoatGrassaASAP)
+            {
+                if (canCoat && !hasCoat)
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(PCT.AID.TemperaCoat), Player, tempera.Priority() + 2000, tempera.Value.ExpireIn);
+                if (canGrassa && !hasGrassa)
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(PCT.AID.TemperaGrassa), Player, tempera.Priority() + 2000, tempera.Value.ExpireIn);
+            }
+            if (temperaStrat == TemperaCoatOption.CoatGrassaWhenever)
+            {
+                if (canCoat && !hasCoat)
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(PCT.AID.TemperaCoat), Player, tempera.Priority(), tempera.Value.ExpireIn);
+                if (canGrassa && !hasGrassa)
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(PCT.AID.TemperaGrassa), Player, tempera.Priority(), tempera.Value.ExpireIn);
+            }
+        }
     }
 }
