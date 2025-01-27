@@ -51,6 +51,7 @@ public sealed class ModuleViewer : IDisposable
         Customize(BossModuleInfo.Category.Dungeon, contentType.GetRow(2));
         Customize(BossModuleInfo.Category.Trial, contentType.GetRow(4));
         Customize(BossModuleInfo.Category.Raid, contentType.GetRow(5));
+        Customize(BossModuleInfo.Category.Chaotic, contentType.GetRow(37));
         Customize(BossModuleInfo.Category.PVP, contentType.GetRow(6));
         Customize(BossModuleInfo.Category.Quest, contentType.GetRow(7));
         Customize(BossModuleInfo.Category.FATE, contentType.GetRow(8));

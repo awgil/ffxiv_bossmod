@@ -25,6 +25,8 @@ public enum ActionType : byte
     // below are custom additions, these aren't proper actions from game's point of view, but it makes sense for us to treat them as such
     BozjaHolsterSlot0 = 0xE0, // id = BozjaHolsterID, use from holster to replace duty action 0
     BozjaHolsterSlot1 = 0xE1, // id = BozjaHolsterID, use from holster to replace duty action 1
+    Pomander = 0xE2, // id = PomanderID
+    Magicite = 0xE3, // id = slot (1-3)
 }
 
 public enum Positional { Any, Flank, Rear, Front }

@@ -1,4 +1,6 @@
-﻿namespace BossMod.Shadowbringers.Quest.VowsOfVitrueDeedsOfCruelty;
+﻿using BossMod.QuestBattle;
+
+namespace BossMod.Shadowbringers.Quest.VowsOfVirtueDeedsOfCruelty;
 
 public enum OID : uint
 {
@@ -71,9 +73,37 @@ class MetalCutter(BossModule module) : Components.SelfTargetedAOEs(module, Actio
 class MagitekRayBits(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRayBit), new AOEShapeRect(50, 1));
 class AtomicRay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AtomicRay), new AOEShapeCircle(10));
 class SelfDetonate(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.SelfDetonate), "Enrage if bits are not killed before cast");
-class VowsOfVirtueDeedsOfCrueltyStates : StateMachineBuilder
+
+class EstinienAI(WorldState ws) : UnmanagedRotation(ws, 3)
 {
-    public VowsOfVirtueDeedsOfCrueltyStates(BossModule module) : base(module)
+    protected override void Exec(Actor? primaryTarget)
+    {
+        if (primaryTarget == null)
+            return;
+
+        if (Hints.PotentialTargets.Any(x => (OID)x.Actor.OID is OID.SigniferPraetorianus or OID.MagitekBit))
+            UseAction(Roleplay.AID.HorridRoar, Player);
+
+        if (World.Party.LimitBreakCur == 10000)
+            UseAction(Roleplay.AID.DragonshadowDive, primaryTarget, 100);
+
+        if (primaryTarget.OID == (uint)OID.Boss)
+        {
+            var dotRemaining = StatusDetails(primaryTarget, Roleplay.SID.StabWound, Player.InstanceID).Left;
+            if (dotRemaining < 2.3f)
+                UseAction(Roleplay.AID.Drachenlance, primaryTarget);
+        }
+
+        UseAction(Roleplay.AID.AlaMorn, primaryTarget);
+        UseAction(Roleplay.AID.Stardiver, primaryTarget, -10);
+    }
+}
+
+class AutoEstinien(BossModule module) : RotationModule<EstinienAI>(module);
+
+class ArchUltimaStates : StateMachineBuilder
+{
+    public ArchUltimaStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<MagitekRayRightArm>()
@@ -86,9 +116,24 @@ class VowsOfVirtueDeedsOfCrueltyStates : StateMachineBuilder
             .ActivateOnEnter<MetalCutter>()
             .ActivateOnEnter<MagitekRayBits>()
             .ActivateOnEnter<AtomicRay>()
-            .ActivateOnEnter<SelfDetonate>();
+            .ActivateOnEnter<SelfDetonate>()
+            .ActivateOnEnter<AutoEstinien>();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "croizat", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69218, NameID = 9189)]
-public class VowsOfVirtueDeedsOfCruelty(WorldState ws, Actor primary) : BossModule(ws, primary, new(240, 230), new ArenaBoundsSquare(20));
+public class ArchUltima(WorldState ws, Actor primary) : BossModule(ws, primary, new(240, 230), new ArenaBoundsSquare(20))
+{
+    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var h in hints.PotentialTargets)
+            h.Priority = (OID)h.Actor.OID switch
+            {
+                OID.MagitekBit => 2,
+                OID.LembusPraetorianus => 1,
+                _ => 0
+            };
+    }
+
+    protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
+}

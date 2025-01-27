@@ -6,13 +6,36 @@ public enum StrategyTarget
     Automatic, // default 'smart' targeting, for hostile actions usually defaults to current primary target
     Self,
     PartyByAssignment, // parameter is assignment; won't work if assignments aren't set up properly for a party
-    PartyWithLowestHP, // parameter is whether self is allowed (1) or not (0)
-    EnemyWithHighestPriority, // selects closest if there are multiple
+    PartyWithLowestHP, // parameter is StrategyPartyFiltering, which filters subset of party members
+    EnemyWithHighestPriority, // parameter is StrategyEnemySelection, which determines selecton criteria if there are multiple matching enemies
     EnemyByOID, // parameter is oid; not really useful outside planner; selects closest if there are multiple
     PointAbsolute, // absolute x/y coordinates
     PointCenter, // offset from arena center
 
     Count
+}
+
+// parameter for party member filtering
+[Flags]
+public enum StrategyPartyFiltering : int
+{
+    None = 0,
+    IncludeSelf = 1 << 0,
+    ExcludeTanks = 1 << 1,
+    ExcludeHealers = 1 << 2,
+    ExcludeMelee = 1 << 3,
+    ExcludeRanged = 1 << 4,
+    ExcludeNoPredictedDamage = 1 << 5,
+}
+
+// parameter for prioritizing enemies
+public enum StrategyEnemySelection : int
+{
+    Closest = 0,
+    LowestCurHP = 1,
+    HighestCurHP = 2,
+    LowestMaxHP = 3,
+    HighestMaxHP = 4,
 }
 
 // the tuning knobs of the rotation module are represented by strategy config rather than usual global config classes, since we they need to be changed dynamically by planner or manual input

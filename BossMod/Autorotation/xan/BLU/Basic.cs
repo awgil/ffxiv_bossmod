@@ -1,4 +1,5 @@
 ﻿using BossMod.BLU;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -45,7 +46,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
         _ => World.Client.BlueMageSpells.Contains((uint)aid)
     };
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -73,7 +74,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
         var haveModule = Bossmods.ActiveModule?.StateMachine.ActiveState != null;
 
         // mortal flame
-        if (primaryTarget is Actor p && StatusDetails(p, 3643, Player.InstanceID).Left == 0 && Hints.PriorityTargets.Count() == 1 && haveModule)
+        if (primaryTarget is { } p && StatusDetails(p.Actor, 3643, Player.InstanceID).Left == 0 && Hints.PriorityTargets.Count() == 1 && haveModule)
             PushGCD(AID.MortalFlame, p, GCDPriority.GCDWithCooldown);
 
         if (haveModule && currentHP * 2 < Player.HPMP.MaxHP)
@@ -99,8 +100,8 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
         // standard filler spells
         if (HaveSpell(AID.GoblinPunch))
         {
-            if (primaryTarget is Actor t)
-                Hints.GoalZones.Add(Hints.GoalSingleTarget(t, Positional.Front, 3));
+            if (primaryTarget is { } t)
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(t.Actor, Positional.Front, 3));
             PushGCD(AID.GoblinPunch, primaryTarget, GCDPriority.FillerST);
         }
         PushGCD(AID.SonicBoom, primaryTarget, GCDPriority.FillerST);
@@ -110,7 +111,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
             var (poopTarget, poopNum) = SelectTarget(strategy, primaryTarget, 25, (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 6));
             if (poopTarget != null && poopNum > 2)
             {
-                var scoopNum = Hints.NumPriorityTargetsInAOE(act => StatusDetails(act.Actor, 3636, Player.InstanceID).Left > SpellGCDLength && Hints.TargetInAOECircle(act.Actor, poopTarget.Position, 6));
+                var scoopNum = Hints.NumPriorityTargetsInAOE(act => StatusDetails(act.Actor, 3636, Player.InstanceID).Left > SpellGCDLength && Hints.TargetInAOECircle(act.Actor, poopTarget.Actor.Position, 6));
                 if (scoopNum > 2)
                     PushGCD(AID.DeepClean, poopTarget, GCDPriority.Scoop);
                 PushGCD(AID.PeatPelt, poopTarget, GCDPriority.Poop);
@@ -154,12 +155,12 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
         PushOGCD(AID.JKick, primaryTarget);
     }
 
-    private void TankSpecific(Actor? primaryTarget)
+    private void TankSpecific(Enemy? primaryTarget)
     {
         if (HaveSpell(AID.Devour) && !CanFitGCD(StatusLeft(SID.HPBoost), 1))
         {
-            if (primaryTarget is Actor t)
-                Hints.GoalZones.Add(Hints.GoalSingleTarget(t, 3));
+            if (primaryTarget is { } t)
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(t.Actor, 3));
             PushGCD(AID.Devour, primaryTarget, GCDPriority.BuffRefresh);
         }
 
@@ -168,10 +169,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.ChelonianGate, Player, GCDPriority.BuffRefresh);
 
         if (Player.FindStatus(2497u) != null)
-        {
-            Service.Log($"executing Divine Cataract");
             PushGCD(AID.DivineCataract, Player, GCDPriority.SurpanakhaRepeat);
-        }
     }
 
     public Mimicry CurrentMimic()

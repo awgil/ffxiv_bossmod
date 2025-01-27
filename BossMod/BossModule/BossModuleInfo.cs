@@ -38,6 +38,7 @@ public static class BossModuleInfo
         Ultimate,
         Unreal,
         Alliance,
+        Chaotic,
         Foray,
         Criterion,
         DeepDungeon,

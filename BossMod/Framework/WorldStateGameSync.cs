@@ -4,6 +4,7 @@ using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
@@ -182,6 +183,7 @@ sealed class WorldStateGameSync : IDisposable
         UpdateActors();
         UpdateParty();
         UpdateClient();
+        UpdateDeepDungeon();
     }
 
     private unsafe void UpdateWaymarks()
@@ -663,6 +665,60 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ClientState.OpFocusTargetChange(focusTargetId));
     }
 
+    private unsafe void UpdateDeepDungeon()
+    {
+        var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+        if (dd != null)
+        {
+            var currentId = (DeepDungeonState.DungeonType)dd->DeepDungeonId;
+            var fullUpdate = currentId != _ws.DeepDungeon.DungeonId;
+
+            var progress = new DeepDungeonState.DungeonProgress(dd->Floor, dd->ActiveLayoutIndex, dd->WeaponLevel, dd->ArmorLevel, dd->SyncedGearLevel, dd->HoardCount, dd->ReturnProgress, dd->PassageProgress);
+            if (fullUpdate || progress != _ws.DeepDungeon.Progress)
+                _ws.Execute(new DeepDungeonState.OpProgressChange(currentId, progress));
+
+            if (fullUpdate || !MemoryExtensions.SequenceEqual(_ws.DeepDungeon.Rooms.AsSpan(), dd->MapData))
+                _ws.Execute(new DeepDungeonState.OpMapDataChange(dd->MapData.ToArray()));
+
+            Span<DeepDungeonState.PartyMember> party = stackalloc DeepDungeonState.PartyMember[DeepDungeonState.NumPartyMembers];
+            for (var i = 0; i < DeepDungeonState.NumPartyMembers; ++i)
+            {
+                ref var p = ref dd->Party[i];
+                party[i] = new(SanitizedObjectID(p.EntityId), SanitizeDeepDungeonRoom(p.RoomIndex));
+            }
+            if (fullUpdate || !MemoryExtensions.SequenceEqual(_ws.DeepDungeon.Party.AsSpan(), party))
+                _ws.Execute(new DeepDungeonState.OpPartyStateChange(party.ToArray()));
+
+            Span<DeepDungeonState.PomanderState> pomanders = stackalloc DeepDungeonState.PomanderState[DeepDungeonState.NumPomanderSlots];
+            for (var i = 0; i < DeepDungeonState.NumPomanderSlots; ++i)
+            {
+                ref var item = ref dd->Items[i];
+                pomanders[i] = new(item.Count, item.Flags);
+            }
+            if (fullUpdate || !MemoryExtensions.SequenceEqual(_ws.DeepDungeon.Pomanders.AsSpan(), pomanders))
+                _ws.Execute(new DeepDungeonState.OpPomandersChange(pomanders.ToArray()));
+
+            Span<DeepDungeonState.Chest> chests = stackalloc DeepDungeonState.Chest[DeepDungeonState.NumChests];
+            for (var i = 0; i < DeepDungeonState.NumChests; ++i)
+            {
+                ref var c = ref dd->Chests[i];
+                chests[i] = new(c.ChestType, SanitizeDeepDungeonRoom(c.RoomIndex));
+            }
+            if (fullUpdate || !MemoryExtensions.SequenceEqual(_ws.DeepDungeon.Chests.AsSpan(), chests))
+                _ws.Execute(new DeepDungeonState.OpChestsChange(chests.ToArray()));
+
+            if (fullUpdate || !MemoryExtensions.SequenceEqual(_ws.DeepDungeon.Magicite.AsSpan(), dd->Magicite))
+                _ws.Execute(new DeepDungeonState.OpMagiciteChange(dd->Magicite.ToArray()));
+        }
+        else if (_ws.DeepDungeon.DungeonId != DeepDungeonState.DungeonType.None)
+        {
+            // exiting deep dungeon, clean up all state
+            _ws.Execute(new DeepDungeonState.OpProgressChange(DeepDungeonState.DungeonType.None, default));
+        }
+        // else: we were and still are outside deep dungeon, nothing to do
+    }
+
+    private byte SanitizeDeepDungeonRoom(sbyte room) => room < 0 ? (byte)0 : (byte)room;
     private ulong SanitizedObjectID(ulong raw) => raw != InvalidEntityId ? raw : 0;
 
     private void DispatchActorEvents(ulong instanceID)

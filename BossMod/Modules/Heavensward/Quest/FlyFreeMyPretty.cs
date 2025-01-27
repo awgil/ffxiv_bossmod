@@ -1,4 +1,4 @@
-﻿namespace BossMod.Heavensward.Quest.Heliodrome;
+﻿namespace BossMod.Heavensward.Quest.FlyFreeMyPretty;
 
 public enum OID : uint
 {
@@ -12,11 +12,11 @@ public enum AID : uint
 {
     AugmentedUprising = 7608, // Boss->self, 3.0s cast, range 8+R 120-degree cone
     AugmentedSuffering = 7607, // Boss->self, 3.5s cast, range 6+R circle
-    Heartstopper = 866, // _Gen_ImperialEques->self, 2.5s cast, range 3+R width 3 rect
-    Overpower = 720, // _Gen_ImperialLaquearius->self, 2.1s cast, range 6+R 90-degree cone
-    GrandSword = 7615, // _Gen_ImperialColossus->self, 3.0s cast, range 18+R 120-degree cone
-    MagitekRay = 7617, // _Gen_ImperialColossus->location, 3.0s cast, range 6 circle
-    GrandStrike = 7616, // _Gen_ImperialColossus->self, 2.5s cast, range 45+R width 4 rect
+    Heartstopper = 866, // ImperialEques->self, 2.5s cast, range 3+R width 3 rect
+    Overpower = 720, // ImperialLaquearius->self, 2.1s cast, range 6+R 90-degree cone
+    GrandSword = 7615, // ImperialColossus->self, 3.0s cast, range 18+R 120-degree cone
+    MagitekRay = 7617, // ImperialColossus->location, 3.0s cast, range 6 circle
+    GrandStrike = 7616, // ImperialColossus->self, 2.5s cast, range 45+R width 4 rect
     ShrapnelShell = 7614, // GrynewahtP2->location, 2.5s cast, range 6 circle
     MagitekMissiles = 7612, // GrynewahtP2->location, 5.0s cast, range 15 circle
 
@@ -58,8 +58,11 @@ class ReaperAI(BossModule module) : BossComponent(module)
     {
         if (actor.MountId == 103 && WorldState.Actors.Find(actor.TargetID) is var target && target != null)
         {
-            var aid = (OID)target.OID == OID.ImperialColossus ? Roleplay.AID.DiffractiveMagitekCannon : Roleplay.AID.MagitekCannon;
-            hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High, targetPos: target.PosRot.XYZ());
+            if ((OID)target.OID == OID.ImperialColossus)
+                hints.ActionsToExecute.Push(ActionID.MakeSpell(Roleplay.AID.DiffractiveMagitekCannon), target, ActionQueue.Priority.High, targetPos: target.PosRot.XYZ());
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(Roleplay.AID.MagitekCannon), target, ActionQueue.Priority.High, targetPos: target.PosRot.XYZ());
+
+            hints.GoalZones.Add(hints.GoalSingleTarget(target, 25));
         }
     }
 }
@@ -90,7 +93,7 @@ class GrynewahtStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 222, NameID = 5576)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67894, NameID = 5576)]
 public class Grynewaht(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), HexBounds)
 {
     public static readonly ArenaBoundsCustom HexBounds = BuildHexBounds();
@@ -105,6 +108,4 @@ public class Grynewaht(WorldState ws, Actor primary) : BossModule(ws, primary, n
         List<WDir> verts = [new(hexSideLen, 0), hexSideLen * 30.Degrees().ToDirection(), -hexSideLen * 150.Degrees().ToDirection(), new(-hexSideLen, 0), hexSideLen * -30.Degrees().ToDirection(), hexSideLen * 150.Degrees().ToDirection()];
         return new(hexSideLen, new(verts));
     }
-
-    protected override bool CheckPull() => true;
 }

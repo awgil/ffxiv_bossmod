@@ -1,5 +1,6 @@
 ﻿using BossMod.RDM;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -57,9 +58,9 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
     public int NumConeTargets;
     public int NumLineTargets;
 
-    private Actor? BestAOETarget;
-    private Actor? BestConeTarget;
-    private Actor? BestLineTarget;
+    private Enemy? BestAOETarget;
+    private Enemy? BestConeTarget;
+    private Enemy? BestLineTarget;
 
     private bool InCombo
         => ComboLastMove == AID.Riposte && Unlocked(AID.Zwerchhau)
@@ -88,7 +89,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         return base.GetCastTime(aid);
     }
 
-    public override void Exec(StrategyValues strategy, Actor? primaryTarget)
+    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -122,8 +123,8 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             : Unlocked(AID.Zwerchhau) ? 35
             : 20;
 
-        if (primaryTarget is Actor tar && (Swordplay > 0 || LowestMana >= comboMana || InCombo))
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(tar, 3));
+        if (primaryTarget is { } tar && (Swordplay > 0 || LowestMana >= comboMana || InCombo))
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(tar.Actor, 3));
 
         OGCD(strategy, primaryTarget);
 
@@ -201,7 +202,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         PushGCD(AID.Jolt, primaryTarget);
     }
 
-    private void OGCD(StrategyValues strategy, Actor? primaryTarget)
+    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat || primaryTarget == null)
             return;
@@ -239,12 +240,12 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             PushOGCD(AID.LucidDreaming, Player);
     }
 
-    private bool DashOk(StrategyValues strategy, Actor? primaryTarget) => strategy.Option(Track.Dash).As<DashStrategy>() switch
+    private bool DashOk(StrategyValues strategy, Enemy? primaryTarget) => strategy.Option(Track.Dash).As<DashStrategy>() switch
     {
         DashStrategy.Any => true,
-        DashStrategy.Move => ForceMovementIn > 30,
+        DashStrategy.Move => MaxCastTime > 30,
         DashStrategy.Close => Player.DistanceToHitbox(primaryTarget) < 3,
-        DashStrategy.CloseMove => Player.DistanceToHitbox(primaryTarget) < 3 && ForceMovementIn > 30,
+        DashStrategy.CloseMove => Player.DistanceToHitbox(primaryTarget) < 3 && MaxCastTime > 30,
         _ => false
     };
 }

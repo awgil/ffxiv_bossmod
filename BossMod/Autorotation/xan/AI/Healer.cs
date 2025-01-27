@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation.xan.AI;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.Autorotation.xan.AI.TrackPartyHealth;
 
 namespace BossMod.Autorotation.xan;
 
@@ -7,7 +8,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 {
     private readonly TrackPartyHealth Health = new(manager.WorldState);
 
-    public enum Track { Raise, RaiseTarget, Heal, Esuna }
+    public enum Track { Raise, RaiseTarget, Heal, Esuna, StayNearParty }
     public enum RaiseStrategy
     {
         None,
@@ -33,7 +34,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Healer AI", "Auto-healer", "AI (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.CNJ, Class.WHM, Class.ACN, Class.SCH, Class.SGE, Class.AST), 100);
+        var def = new RotationModuleDefinition("Healer AI", "Auto-healer", "AI (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.CNJ, Class.WHM, Class.SCH, Class.SGE, Class.AST), 100);
 
         def.Define(Track.Raise).As<RaiseStrategy>("Raise")
             .AddOption(RaiseStrategy.None, "Don't automatically raise")
@@ -48,15 +49,38 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         def.AbilityTrack(Track.Heal, "Heal");
         def.AbilityTrack(Track.Esuna, "Esuna");
+        def.AbilityTrack(Track.StayNearParty, "Stay near party");
 
         return def;
     }
 
-    private void HealSingle(Action<Actor, TrackPartyHealth.PartyMemberState> healFun)
+    private void HealSingle(Action<Actor, PartyMemberState> healFun)
     {
         if (Health.BestSTHealTarget is (var a, var b))
             healFun(a, b);
     }
+
+    /// <summary>
+    /// Run the given Action if the party has exactly one tank, otherwise do nothing
+    /// </summary>
+    /// <param name="tankFun"></param>
+    private void RunForTank(Action<Actor, PartyMemberState> tankFun)
+    {
+        var tankSlot = -1;
+        foreach (var (slot, actor) in World.Party.WithSlot(excludeAlliance: true))
+            if (actor.ClassCategory == ClassCategory.Tank)
+            {
+                if (tankSlot >= 0)
+                    return;
+                else
+                    tankSlot = slot;
+            }
+
+        if (tankSlot >= 0)
+            tankFun(World.Party[tankSlot]!, Health.PartyMemberStates[tankSlot]!);
+    }
+
+    private IEnumerable<Actor> LightParty => World.Party.WithoutSlot(excludeAlliance: true, excludeNPCs: Health.HaveRealPartyMembers);
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -64,6 +88,12 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
             return;
 
         Health.Update(Hints);
+
+        if (strategy.Enabled(Track.StayNearParty) && Player.InCombat)
+        {
+            List<(WPos pos, float radius)> allies = [.. LightParty.Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
+            Hints.GoalZones.Add(p => allies.Count(a => a.pos.InCircle(p, a.radius + Player.HitboxRadius + 15)));
+        }
 
         AutoRaise(strategy);
 
@@ -160,8 +190,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         var candidates = strategy.Option(Track.RaiseTarget).As<RaiseTarget>() switch
         {
             RaiseTarget.Everyone => World.Actors.Where(x => x.Type is ActorType.Player or ActorType.DutySupport && x.IsAlly),
-            RaiseTarget.Alliance => World.Party.WithoutSlot(true, false),
-            _ => World.Party.WithoutSlot(true, true)
+            RaiseTarget.Alliance => World.Party.WithoutSlot(true, false, true),
+            _ => World.Party.WithoutSlot(true, true, true)
         };
 
         return candidates.Where(x => x.IsDead && Player.DistanceToHitbox(x) <= 30 && !BeingRaised(x)).MaxBy(actor => actor.Class.GetRole() switch
@@ -235,8 +265,33 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.AST.AID.EarthlyStar), Player, ActionQueue.Priority.Medium, targetPos: Player.PosRot.XYZ());
     }
 
+    private Vector3? ArenaCenter
+    {
+        get
+        {
+            if (Bossmods.ActiveModule is BossModule m)
+            {
+                var center = m.Arena.Center;
+                return new Vector3(center.X, Player.PosRot.Y, center.Z);
+            }
+            return null;
+        }
+    }
+
     private void AutoSCH(StrategyValues strategy, Actor? primaryTarget)
     {
+        void UseSoil(Vector3? location = null)
+        {
+            if (World.Client.GetGauge<ScholarGauge>().Aetherflow == 0)
+                return;
+            location ??= ArenaCenter ?? Player.PosRot.XYZ();
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.SCH.AID.SacredSoil), null, ActionQueue.Priority.Medium + 5, targetPos: location.Value);
+        }
+
+        // TODO make this configurable
+        if (primaryTarget != null)
+            UseOGCD(BossMod.SCH.AID.ChainStratagem, primaryTarget);
+
         var gauge = World.Client.GetGauge<ScholarGauge>();
 
         var pet = World.Client.ActivePet.InstanceID == 0xE0000000 ? null : World.Actors.Find(World.Client.ActivePet.InstanceID);
@@ -250,8 +305,15 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         if (pet != null)
         {
-            if (haveEos && ShouldHealInArea(pet.Position, 20, 0.5f))
-                UseOGCD(BossMod.SCH.AID.FeyBlessing, Player);
+            if (ShouldHealInArea(pet.Position, 30, 0.5f))
+            {
+                if (haveSeraph)
+                    UseOGCD(BossMod.SCH.AID.Consolation, Player);
+                else if (NextChargeIn(BossMod.SCH.AID.SummonSeraph) == 0)
+                    UseOGCD(BossMod.SCH.AID.SummonSeraph, Player);
+                else
+                    UseOGCD(BossMod.SCH.AID.FeyBlessing, Player);
+            }
 
             if (ShouldHealInArea(pet.Position, 15, 0.8f))
                 UseOGCD(BossMod.SCH.AID.WhisperingDawn, Player);
@@ -268,9 +330,30 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
                     UseOGCD(BossMod.SCH.AID.Lustrate, target);
                 }
                 else
-                    UseGCD(BossMod.SCH.AID.Physick, target);
+                    UseGCD(BossMod.SCH.AID.Adloquium, target);
             }
         });
+
+        RunForTank((tank, tankState) =>
+        {
+            if (!Player.InCombat && (World.CurrentTime - tankState.LastCombat).TotalSeconds > 1)
+            {
+                if (NextChargeIn(BossMod.SCH.AID.Excogitation) == 0)
+                    UseOGCD(BossMod.SCH.AID.Recitation, Player, 5);
+                UseOGCD(BossMod.SCH.AID.Excogitation, tank);
+            }
+
+            if (tank.InCombat && Bossmods.ActiveModule is null && tankState.MoveDelta < 0.75f)
+                UseSoil(tank.PosRot.XYZ());
+        });
+
+        foreach (var rw in Raidwides)
+            if ((rw - World.CurrentTime).TotalSeconds < 5)
+            {
+                var allies = LightParty.ToList();
+                var centroid = allies.Aggregate(allies[0].PosRot.XYZ(), (pos, actor) => (pos + actor.PosRot.XYZ()) / 2f);
+                UseSoil(centroid);
+            }
     }
 
     private void AutoSGE(StrategyValues strategy, Actor? primaryTarget)
@@ -302,9 +385,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         });
 
         foreach (var rw in Raidwides)
-        {
             if ((rw - World.CurrentTime).TotalSeconds < 15 && haveBalls)
                 UseOGCD(BossMod.SGE.AID.Kerachole, Player);
-        }
     }
 }

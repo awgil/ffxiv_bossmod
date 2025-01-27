@@ -49,6 +49,7 @@ class BurningBeamPlayer(BossModule module) : Components.BaitAwayTethers(module, 
 class SoundOfHeat(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheSoundOfHeat), new AOEShapeCone(60, 30.Degrees()));
 class DeceitOfPain(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TheDeceitOfPain), 14);
 class BalmOfDisgrace(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheBalmOfDisgrace), new AOEShapeCircle(12));
+
 class ASleepDisturbedStates : StateMachineBuilder
 {
     public ASleepDisturbedStates(BossModule module) : base(module)
@@ -66,4 +67,12 @@ class ASleepDisturbedStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "croizat", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69301, NameID = 9296)]
-public class ASleepDisturbed(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));
+public class ASleepDisturbed(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
+{
+    protected override bool CheckPull() => PrimaryActor.IsTargetable;
+
+    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        hints.PrioritizeTargetsByOID(OID.Boss, 0);
+    }
+}

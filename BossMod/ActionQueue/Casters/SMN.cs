@@ -136,6 +136,7 @@ public enum SID : uint
     GarudasFavor = 2725, // applied by Summon Garuda II to self
     RubysGlimmer = 3873, // applied by Searing Light to self
     RefulgentLux = 3874, // applied by Summon Solar Bahamut to self
+    CrimsonStrikeReady = 4403, // applied by Crimson Cyclone to self
 
     //Shared
     Addle = ClassShared.SID.Addle, // applied by Addle to target
