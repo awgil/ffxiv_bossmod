@@ -29,7 +29,7 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.WardensPaean), BRD.AID.WardensPaean, Player);
+        ExecuteSimple(strategy.Option(Track.WardensPaean), BRD.AID.WardensPaean, ResolveTargetOverride(strategy.Option(Track.WardensPaean).Value) ?? primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.NaturesMinne), BRD.AID.NaturesMinne, Player);
 
         var troub = strategy.Option(Track.Troubadour);

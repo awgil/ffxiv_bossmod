@@ -91,7 +91,6 @@ public enum SID : uint
     AetherhuesII = 3676, // applied by Aero in Green, Aero II in Green, Stone in Yellow to self
     TemperaCoat = 3686, // applied by Tempera Coat to self
     TemperaGrassa = 3687, // applied by Tempera Grassa to self
-    Swiftcast = 167, // applied by Swiftcast to self
     Smudge = 3684, // applied by Smudge to self
     HammerTime = 3680, // applied by Striking Muse to self
     SubtractivePalette = 3674, // applied by Subtractive Palette to self
@@ -104,6 +103,9 @@ public enum SID : uint
 
     //Shared
     Addle = ClassShared.SID.Addle, // applied by Addle to target
+    Surecast = ClassShared.SID.Surecast, // applied by Surecast to self
+    LucidDreaming = ClassShared.SID.LucidDreaming, // applied by Lucid Dreaming to self
+    Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
 public sealed class Definitions : IDisposable
