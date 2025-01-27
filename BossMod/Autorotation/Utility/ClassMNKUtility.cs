@@ -1,6 +1,4 @@
-﻿using static BossMod.ActorCastEvent;
-
-namespace BossMod.Autorotation;
+﻿namespace BossMod.Autorotation;
 
 public sealed class ClassMNKUtility(RotationModuleManager manager, Actor player) : RoleMeleeUtility(manager, player)
 {

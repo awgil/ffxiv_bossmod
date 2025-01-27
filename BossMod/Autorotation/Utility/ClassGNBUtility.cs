@@ -1,7 +1,4 @@
-﻿using static BossMod.ActorCastEvent;
-using static BossMod.Autorotation.ClassDRKUtility;
-
-namespace BossMod.Autorotation;
+﻿namespace BossMod.Autorotation;
 
 public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player) : RoleTankUtility(manager, player)
 {

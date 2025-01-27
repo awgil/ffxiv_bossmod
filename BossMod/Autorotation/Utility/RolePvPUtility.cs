@@ -1,7 +1,4 @@
-﻿using AID = BossMod.GNB.AID;
-using SID = BossMod.GNB.SID;
-
-namespace BossMod.Autorotation.Utility;
+﻿namespace BossMod.Autorotation.Utility;
 //Contribution by Akechi
 //Discord @akechdz or 'Akechi' on Puni.sh for maintenance
 
@@ -71,7 +68,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
             .AddOption(ElixirStrategy.Far, "Far")
             .AddOption(ElixirStrategy.Force, "Force")
             .AddOption(ElixirStrategy.Hold, "Hold")
-            .AddAssociatedActions(AID.Elixir);
+            .AddAssociatedActions(ClassShared.AID.Elixir);
         res.Define(Track.Recuperate).As<RecuperateStrategy>("Recuperate", uiPriority: 150)
             .AddOption(RecuperateStrategy.Automatic, "Automatic")
             .AddOption(RecuperateStrategy.Seventy, "Seventy")
@@ -79,7 +76,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
             .AddOption(RecuperateStrategy.Thirty, "Thirty")
             .AddOption(RecuperateStrategy.Force, "Force")
             .AddOption(RecuperateStrategy.Hold, "Hold")
-            .AddAssociatedActions(AID.Recuperate);
+            .AddAssociatedActions(ClassShared.AID.Recuperate);
         res.Define(Track.Guard).As<GuardStrategy>("Guard", uiPriority: 150)
             .AddOption(GuardStrategy.Automatic, "Automatic")
             .AddOption(GuardStrategy.Seventy, "Seventy")
@@ -87,17 +84,17 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
             .AddOption(GuardStrategy.Thirty, "Thirty")
             .AddOption(GuardStrategy.Force, "Force")
             .AddOption(GuardStrategy.Hold, "Hold")
-            .AddAssociatedActions(AID.Guard);
+            .AddAssociatedActions(ClassShared.AID.Guard);
         res.Define(Track.Purify).As<DefensiveStrategy>("Purify", uiPriority: 150)
             .AddOption(DefensiveStrategy.Automatic, "Automatic")
             .AddOption(DefensiveStrategy.Force, "Force")
             .AddOption(DefensiveStrategy.Delay, "Delay")
-            .AddAssociatedActions(AID.Purify);
+            .AddAssociatedActions(ClassShared.AID.Purify);
         res.Define(Track.Sprint).As<DefensiveStrategy>("Sprint", uiPriority: 150)
             .AddOption(DefensiveStrategy.Automatic, "Automatic")
             .AddOption(DefensiveStrategy.Force, "Force")
             .AddOption(DefensiveStrategy.Delay, "Delay")
-            .AddAssociatedActions(AID.Sprint);
+            .AddAssociatedActions(ClassShared.AID.Sprint);
         return res;
     }
 
@@ -126,30 +123,25 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
     private bool canGuard;
     private bool canPurify;
     private bool canSprint;
-
     public float GCDLength;
-    public AID NextGCD;
-    private GCDPriority NextGCDPrio;
     #endregion
 
     #region Module Helpers
     private bool In10y(Actor? target) => Player.DistanceToHitbox(target) <= 9.9;
     private bool In20y(Actor? target) => Player.DistanceToHitbox(target) <= 19.9;
     private bool In30y(Actor? target) => Player.DistanceToHitbox(target) <= 29.9;
-    private bool IsOffCooldown(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining < 0.6f;
-    public bool HasEffect(SID sid) => SelfStatusLeft(sid) > 0;
-    public bool TargetHasEffect(SID sid, Actor? target) => StatusDetails(target, sid, Player.InstanceID, 1000).Left > 0;
+    private bool IsOffCooldown(ClassShared.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining < 0.6f;
     #endregion
     public float DebuffsLeft(Actor? target)
     {
         return target == null ? 0f
             : Utils.MaxAll(
-            StatusDetails(target, SID.Silence, Player.InstanceID, 5).Left,
-            StatusDetails(target, SID.Stun, Player.InstanceID, 5).Left,
-            StatusDetails(target, SID.Bind, Player.InstanceID, 5).Left,
-            StatusDetails(target, SID.Heavy, Player.InstanceID, 5).Left,
-            StatusDetails(target, SID.Sleep, Player.InstanceID, 5).Left,
-            StatusDetails(target, SID.HalfAsleep, Player.InstanceID, 5).Left
+            StatusDetails(target, ClassShared.SID.Silence, Player.InstanceID, 5).Left,
+            StatusDetails(target, ClassShared.SID.StunPvP, Player.InstanceID, 5).Left,
+            StatusDetails(target, ClassShared.SID.Bind, Player.InstanceID, 5).Left,
+            StatusDetails(target, ClassShared.SID.Heavy, Player.InstanceID, 5).Left,
+            StatusDetails(target, ClassShared.SID.Sleep, Player.InstanceID, 5).Left,
+            StatusDetails(target, ClassShared.SID.HalfAsleep, Player.InstanceID, 5).Left
         );
     }
     public bool HasAnyDebuff(Actor? target) => DebuffsLeft(target) > 0;
@@ -157,59 +149,38 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         #region Variables
-        hasSprint = HasEffect(SID.SprintPvP);
+        hasSprint = Player.FindStatus(ClassShared.SID.SprintPvP) != null;
 
         #region Minimal Requirements
-        canElixir = IsOffCooldown(AID.Elixir) && strategy.Option(Track.Elixir).As<ElixirStrategy>() != ElixirStrategy.Hold;
+        canElixir = IsOffCooldown(ClassShared.AID.Elixir) && strategy.Option(Track.Elixir).As<ElixirStrategy>() != ElixirStrategy.Hold;
         canRecuperate = Player.HPMP.CurMP >= 2500 && strategy.Option(Track.Recuperate).As<RecuperateStrategy>() != RecuperateStrategy.Hold;
-        canGuard = IsOffCooldown(AID.Guard) && strategy.Option(Track.Guard).As<GuardStrategy>() != GuardStrategy.Hold;
-        canPurify = IsOffCooldown(AID.Purify) && strategy.Option(Track.Purify).As<DefensiveStrategy>() != DefensiveStrategy.Delay;
+        canGuard = IsOffCooldown(ClassShared.AID.Guard) && strategy.Option(Track.Guard).As<GuardStrategy>() != GuardStrategy.Hold;
+        canPurify = IsOffCooldown(ClassShared.AID.Purify) && strategy.Option(Track.Purify).As<DefensiveStrategy>() != DefensiveStrategy.Delay;
         canSprint = !hasSprint && strategy.Option(Track.Sprint).As<DefensiveStrategy>() != DefensiveStrategy.Delay;
         #endregion
         #endregion
 
         var elixirStrat = strategy.Option(Track.Elixir).As<ElixirStrategy>();
         if (ShouldUseElixir(elixirStrat, primaryTarget))
-            QueueGCD(AID.Elixir, Player, elixirStrat == ElixirStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.Elixir);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Elixir), Player, strategy.Option(Track.Elixir).Priority(), strategy.Option(Track.Elixir).Value.ExpireIn);
 
         var recuperateStrat = strategy.Option(Track.Recuperate).As<RecuperateStrategy>();
         if (ShouldUseRecuperate(recuperateStrat))
-            QueueOGCD(AID.Recuperate, Player, recuperateStrat == RecuperateStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Recuperate);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Recuperate), Player, strategy.Option(Track.Recuperate).Priority(), strategy.Option(Track.Recuperate).Value.ExpireIn);
 
         var guardStrat = strategy.Option(Track.Guard).As<GuardStrategy>();
-        if (ShouldUseGuard(guardStrat, primaryTarget))
-            QueueOGCD(AID.Guard, Player, guardStrat == GuardStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Guard);
+        if (ShouldUseGuard(guardStrat))
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Guard), Player, strategy.Option(Track.Guard).Priority(), strategy.Option(Track.Guard).Value.ExpireIn);
 
         var purifyStrat = strategy.Option(Track.Purify).As<DefensiveStrategy>();
         if (ShouldUsePurify(purifyStrat, primaryTarget))
-            QueueOGCD(AID.Purify, Player, purifyStrat == DefensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Purify);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Purify), Player, strategy.Option(Track.Purify).Priority(), strategy.Option(Track.Purify).Value.ExpireIn);
 
         var sprintStrat = strategy.Option(Track.Sprint).As<DefensiveStrategy>();
-        if (ShouldUseSprint(sprintStrat, primaryTarget))
-            QueueOGCD(AID.SprintPvP, Player, sprintStrat == DefensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Sprint);
+        if (ShouldUseSprint(sprintStrat))
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Sprint), Player, strategy.Option(Track.Sprint).Priority(), strategy.Option(Track.Sprint).Value.ExpireIn);
     }
 
-    #region Core Execution Helpers
-    private void QueueGCD(AID aid, Actor? target, GCDPriority prio)
-    {
-        if (prio != GCDPriority.None)
-        {
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + (int)prio);
-            if (prio > NextGCDPrio)
-            {
-                NextGCD = aid;
-                NextGCDPrio = prio;
-            }
-        }
-    }
-    private void QueueOGCD(AID aid, Actor? target, OGCDPriority prio, float basePrio = ActionQueue.Priority.Medium)
-    {
-        if (prio != OGCDPriority.None)
-        {
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, basePrio + (int)prio);
-        }
-    }
-    #endregion
 
     public bool ShouldUseElixir(ElixirStrategy strategy, Actor? target) => strategy switch
     {
@@ -238,7 +209,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
         _ => false,
     };
 
-    public bool ShouldUseGuard(GuardStrategy strategy, Actor? target) => strategy switch
+    public bool ShouldUseGuard(GuardStrategy strategy) => strategy switch
     {
         GuardStrategy.Automatic =>
             canGuard &&
@@ -261,7 +232,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
         _ => false,
     };
 
-    public bool ShouldUseSprint(DefensiveStrategy strategy, Actor? target) => strategy switch
+    public bool ShouldUseSprint(DefensiveStrategy strategy) => strategy switch
     {
         DefensiveStrategy.Automatic =>
             !Player.InCombat &&
