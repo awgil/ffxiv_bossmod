@@ -46,34 +46,34 @@ public sealed class ClassBLUUtility(RotationModuleManager manager, Actor player)
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Bristle), BLU.AID.Bristle, Player);
-        ExecuteSimple(strategy.Option(Track.WhiteWind), BLU.AID.WhiteWind, Player);
-        ExecuteSimple(strategy.Option(Track.IceSpikes), BLU.AID.IceSpikes, Player);
-        ExecuteSimple(strategy.Option(Track.OffGuard), BLU.AID.OffGuard, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Transfusion), BLU.AID.Transfusion, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Diamondback), BLU.AID.Diamondback, Player);
-        ExecuteSimple(strategy.Option(Track.MightyGuard), BLU.AID.MightyGuard, Player);
-        ExecuteSimple(strategy.Option(Track.ToadOil), BLU.AID.ToadOil, Player);
-        ExecuteSimple(strategy.Option(Track.MoonFlute), BLU.AID.MoonFlute, Player);
-        ExecuteSimple(strategy.Option(Track.PeculiarLight), BLU.AID.PeculiarLight, primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Bristle), BLU.AID.Bristle, Player, 1); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.WhiteWind), BLU.AID.WhiteWind, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.IceSpikes), BLU.AID.IceSpikes, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.OffGuard), BLU.AID.OffGuard, primaryTarget, 1); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.Transfusion), BLU.AID.Transfusion, primaryTarget, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.Diamondback), BLU.AID.Diamondback, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.MightyGuard), BLU.AID.MightyGuard, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.ToadOil), BLU.AID.ToadOil, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.MoonFlute), BLU.AID.MoonFlute, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.PeculiarLight), BLU.AID.PeculiarLight, primaryTarget, 1); // TODO[cast-time]: adjustment (swiftcast etc)
         ExecuteSimple(strategy.Option(Track.VeilOfTheWhorl), BLU.AID.VeilOfTheWhorl, Player);
-        ExecuteSimple(strategy.Option(Track.EerieSoundwave), BLU.AID.EerieSoundwave, Player);
-        ExecuteSimple(strategy.Option(Track.PomCure), BLU.AID.PomCure, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Gobskin), BLU.AID.Gobskin, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Avail), BLU.AID.Avail, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.FrogLegs), BLU.AID.FrogLegs, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Whistle), BLU.AID.Whistle, Player);
-        ExecuteSimple(strategy.Option(Track.Cactguard), BLU.AID.Cactguard, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.AngelWhisper), BLU.AID.AngelWhisper, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Exuviation), BLU.AID.Exuviation, Player);
-        ExecuteSimple(strategy.Option(Track.ColdFog), BLU.AID.ColdFog, Player);
-        ExecuteSimple(strategy.Option(Track.Stotram), BLU.AID.Stotram2, Player);
-        ExecuteSimple(strategy.Option(Track.AngelsSnack), BLU.AID.AngelsSnack, Player);
-        ExecuteSimple(strategy.Option(Track.ChelonianGate), BLU.AID.ChelonianGate, Player);
-        ExecuteSimple(strategy.Option(Track.BasicInstinct), BLU.AID.BasicInstinct, Player);
-        ExecuteSimple(strategy.Option(Track.DragonForce), BLU.AID.DragonForce, Player);
-        ExecuteSimple(strategy.Option(Track.Schiltron), BLU.AID.Schiltron, Player);
-        ExecuteSimple(strategy.Option(Track.Rehydration), BLU.AID.Rehydration, Player);
-        ExecuteSimple(strategy.Option(Track.ForceField), BLU.AID.ForceField, Player);
+        ExecuteSimple(strategy.Option(Track.EerieSoundwave), BLU.AID.EerieSoundwave, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.PomCure), BLU.AID.PomCure, primaryTarget, 1.5f); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.Gobskin), BLU.AID.Gobskin, primaryTarget, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.Avail), BLU.AID.Avail, primaryTarget, 1); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.FrogLegs), BLU.AID.FrogLegs, primaryTarget, 1); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.Whistle), BLU.AID.Whistle, Player, 1); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.Cactguard), BLU.AID.Cactguard, primaryTarget, 1); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.AngelWhisper), BLU.AID.AngelWhisper, primaryTarget, 10); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.Exuviation), BLU.AID.Exuviation, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.ColdFog), BLU.AID.ColdFog, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.Stotram), BLU.AID.Stotram2, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.AngelsSnack), BLU.AID.AngelsSnack, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.ChelonianGate), BLU.AID.ChelonianGate, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.BasicInstinct), BLU.AID.BasicInstinct, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.DragonForce), BLU.AID.DragonForce, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.Schiltron), BLU.AID.Schiltron, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.Rehydration), BLU.AID.Rehydration, Player, 5); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.ForceField), BLU.AID.ForceField, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
     }
 }

@@ -329,7 +329,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
                 targetPos = target.PosRot.XYZ();
         }
 
-        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos);
+        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, castTime: def.CastTime, targetPos: targetPos); // TODO[cast-time]-akechi: this probably needs explicit cast-time argument (adjusted by swiftcast, procs etc)
         return true;
     }
     #endregion

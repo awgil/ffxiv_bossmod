@@ -45,7 +45,6 @@ public sealed unsafe class ActionManagerEx : IDisposable
     public ActionTweaksConfig Config = Service.Config.Get<ActionTweaksConfig>();
     public ActionQueue.Entry AutoQueue { get; private set; }
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
-    public bool ForceCancelCastNextFrame;
     private readonly ActionManager* _inst = ActionManager.Instance();
     private readonly WorldState _ws;
     private readonly AIHints _hints;
@@ -394,9 +393,9 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _cooldownTweak.StopAdjustment(); // clear any potential adjustments
         _movement.MovementBlocked = blockMovement;
 
-        if (_ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(_ws.CurrentTime, ForceCancelCastNextFrame))
+        // TODO: what's the reason to do it in AM update, rather than plugin's executehints?..
+        if (_ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(_ws.CurrentTime, _hints.ForceCancelCast))
             UIState.Instance()->Hotbar.CancelCast();
-        ForceCancelCastNextFrame = false;
 
         var autosEnabled = UIState.Instance()->WeaponState.AutoAttackState.IsAutoAttacking;
         if (_autoAutosTweak.GetDesiredState(autosEnabled, _ws.Party.Player()?.TargetID ?? 0) != autosEnabled)
@@ -432,7 +431,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
         // note: only standard mode can be filtered
         // note: current implementation introduces slight input lag (on button press, next autorotation update will pick state updates, which will be executed on next action manager update)
-        if (mode == ActionManager.UseActionMode.None && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, !targetOverridden, getAreaTarget))
+        if (mode == ActionManager.UseActionMode.None && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, GetAdjustedCastTime(action) * 0.001f, !targetOverridden, getAreaTarget))
             return false;
 
         bool areaTargeted = false;

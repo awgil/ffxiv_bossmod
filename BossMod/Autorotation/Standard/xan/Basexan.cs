@@ -114,7 +114,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         if ((uint)(object)aid == 0)
             return false;
 
-        if (!CanCast(aid))
+        if (!CanCast(aid)) // TODO[cast-time]-xan: don't do this, it's now not reliable, instead queue all cast options at different prios
             return false;
 
         var def = ActionDefinitions.Instance.Spell(aid);
@@ -137,7 +137,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
                 targetPos = target.PosRot.XYZ();
         }
 
-        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos);
+        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos); // TODO[cast-time]-xan: verify all callers
         return true;
     }
 
@@ -367,14 +367,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     private void EstimateCastTime()
     {
-        MaxCastTime = Hints.MaxCastTimeEstimate;
+        MaxCastTime = Hints.MaxCastTime; // TODO[cast-time]-xan: this is now wrong, needs to be reviewed and fixed (queue all actions with casttime=time they need)
 
-        if (Player.PendingKnockbacks > 0)
-        {
-            MaxCastTime = 0f;
-            return;
-        }
-
+        // TODO[cast-time]-xan: this is not really correct in most cases: even if target is a gaze source, it's possible to start casting then rotate to be >45 && <75 degrees and finish cast successfully; the gaze avoidance tweak handles that
         var forbiddenDir = Hints.ForbiddenDirections.Where(d => Player.Rotation.AlmostEqual(d.center, d.halfWidth.Rad)).Select(d => d.activation).DefaultIfEmpty(DateTime.MinValue).Min();
         if (forbiddenDir > World.CurrentTime)
         {

@@ -85,7 +85,7 @@ class ReplayDetailsWindow : UIWindow
         ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
         ImGui.SameLine();
         ImGui.Checkbox("Override", ref _azimuthOverride);
-        _hintsBuilder.Update(_hints, _povSlot, float.MaxValue);
+        _hintsBuilder.Update(_hints, _povSlot, false);
         _rmm.Update(0, false);
         if (_mgr.ActiveModule != null)
         {
@@ -302,7 +302,7 @@ class ReplayDetailsWindow : UIWindow
         var numIncoming = actor.IncomingEffects.Count(i => i.GlobalSequence != 0);
         var mouseOffset = ImGui.GetMousePos() - ImGui.GetWindowPos() - ImGui.GetCursorPos();
         var mouseInColumn = mouseOffset.X >= 0 && mouseOffset.Y >= 0 && mouseOffset.X < ImGui.GetColumnWidth() && mouseOffset.Y < ImGui.GetFontSize() + 2 * ImGui.GetStyle().FramePadding.Y;
-        ImGui.TextUnformatted($"{(actor.PendingKnockbacks > 0 ? "Knockbacks pending, " : "")}{(actor.MountId != 0 ? $"Mounted ({actor.MountId}), " : "")}{numRealStatuses} + {actor.PendingStatuses.Count} statuses, {actor.PendingDispels.Count} dispels, {numIncoming} incoming effects");
+        ImGui.TextUnformatted($"{(actor.PendingKnockbacks.Count > 0 ? "Knockbacks pending, " : "")}{(actor.MountId != 0 ? $"Mounted ({actor.MountId}), " : "")}{numRealStatuses} + {actor.PendingStatuses.Count} statuses, {actor.PendingDispels.Count} dispels, {numIncoming} incoming effects");
         if (mouseInColumn && numRealStatuses + actor.PendingStatuses.Count + actor.PendingDispels.Count + numIncoming > 0)
         {
             using var tooltip = ImRaii.Tooltip();
