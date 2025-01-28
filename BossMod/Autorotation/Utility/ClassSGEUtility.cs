@@ -116,7 +116,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         {
             if (edStrat == DiagnosisOption.Use)
             {
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Diagnosis), Player, ed.Priority(), ed.Value.ExpireIn);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Diagnosis), primaryTarget, diag.Priority(), diag.Value.ExpireIn, castTime: ActionDefinitions.Instance.Spell(SGE.AID.Diagnosis)!.CastTime); // TODO[cast-time]: this probably needs explicit cast-time argument (adjusted by swiftcast etc)
             }
             if (edStrat == DiagnosisOption.UseED)
             {
@@ -136,14 +136,14 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         {
             if (epStrat == PrognosisOption.Use)
             {
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Prognosis), Player, ep.Priority(), ep.Value.ExpireIn);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Prognosis), Player, ep.Priority(), ep.Value.ExpireIn, castTime: ActionDefinitions.Instance.Spell(SGE.AID.Prognosis)!.CastTime));
             }
             if (epStrat is PrognosisOption.UseEP or PrognosisOption.UseEPEx)
             {
                 if (!hasEukrasia)
                     Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Eukrasia), Player, ep.Priority(), ep.Value.ExpireIn);
                 if (hasEukrasia && !shieldUp)
-                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianDiagnosis), Player, ep.Priority(), ep.Value.ExpireIn);
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianPrognosis), Player, ep.Priority(), ep.Value.ExpireIn);
             }
         }
 

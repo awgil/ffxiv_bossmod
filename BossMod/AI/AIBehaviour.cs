@@ -53,7 +53,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
         _followMaster = master != player;
 
         // note: if there are pending knockbacks, don't update navigation decision to avoid fucking up positioning
-        if (player.PendingKnockbacks == 0)
+        if (player.PendingKnockbacks.Count == 0)
         {
             _naviDecision = BuildNavigationDecision(player, master, ref target);
             // there is a difference between having a small positive leeway and having a negative one for pathfinding, prefer to keep positive

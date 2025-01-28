@@ -26,10 +26,10 @@ internal class Foxfire(WorldState ws) : QuestBattle(ws)
             .PauseForCombat(false)
             .Hints((player, hints) => {
                 if (World.Actors.FirstOrDefault(x => x.OID is 0x1DC2 or 0x1E13 && x.HPMP.CurHP < x.HPMP.MaxHP && x.IsAlly) is Actor w)
-                    hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.AST.AID.BeneficII), w, ActionQueue.Priority.High + 500);
+                    hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.AST.AID.BeneficII), w, ActionQueue.Priority.High + 500, castTime: 1.5f);
 
                 if (World.Actors.FirstOrDefault(x => x.OID is 0x1E18 && x.IsAlly) is Actor u)
-                    hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.AST.AID.BeneficII), u, ActionQueue.Priority.High + 500);
+                    hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.AST.AID.BeneficII), u, ActionQueue.Priority.High + 500, castTime: 1.5f);
             })
             .With(obj => obj.OnActorEventStateChanged += (act) => obj.CompleteIf(act.OID == 0x1E19 && act.EventState == 1)),
 

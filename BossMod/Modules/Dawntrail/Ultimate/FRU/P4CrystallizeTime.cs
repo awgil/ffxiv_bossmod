@@ -392,7 +392,7 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (actor.PendingKnockbacks > 0)
+        if (actor.PendingKnockbacks.Count > 0)
             return; // don't move while waiting for kb to resolve...
 
         var hint = CalculateHint(slot);
@@ -402,7 +402,7 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
             if (hint.offset.LengthSq() > 18 * 18)
                 hint.offset *= 19.5f / 19;
 
-            if (hint.hint.HasFlag(Hint.KnockbackFrom) && Raid.WithoutSlot().Any(p => p.PendingKnockbacks > 0))
+            if (hint.hint.HasFlag(Hint.KnockbackFrom) && Raid.WithoutSlot().Any(p => p.PendingKnockbacks.Count > 0))
             {
                 return; // don't even try moving until all knockbacks are resolved, that can fuck up others...
             }

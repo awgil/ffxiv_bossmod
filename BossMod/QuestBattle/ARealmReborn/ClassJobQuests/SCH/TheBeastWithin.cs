@@ -35,7 +35,7 @@ internal class TheBeastWithin(WorldState ws) : QuestBattle(ws)
             }),
 
         new QuestObjective(ws)
-            .Hints((player, hints) => hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.SCH.AID.Physick), World.Actors.FirstOrDefault(x => x.OID == 0x5F8 && x.IsTargetable), ActionQueue.Priority.High))
+            .Hints((player, hints) => hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.SCH.AID.Physick), World.Actors.FirstOrDefault(x => x.OID == 0x5F8 && x.IsTargetable), ActionQueue.Priority.High, castTime: 1.5f))
     ];
 
     public override void AddQuestAIHints(Actor player, AIHints hints)

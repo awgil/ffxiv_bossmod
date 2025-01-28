@@ -80,7 +80,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
         ExecuteSimple(strategy.Option(Track.WhisperingDawn), SCH.AID.WhisperingDawn, Player);
-        ExecuteSimple(strategy.Option(Track.Adloquium), SCH.AID.Adloquium, TargetChoice(strategy.Option(Track.Adloquium)) ?? Player);
+        ExecuteSimple(strategy.Option(Track.Adloquium), SCH.AID.Adloquium, TargetChoice(strategy.Option(Track.Adloquium)) ?? Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
         ExecuteSimple(strategy.Option(Track.FeyIllumination), SCH.AID.FeyIllumination, Player);
         ExecuteSimple(strategy.Option(Track.Indomitability), SCH.AID.Indomitability, Player);
         ExecuteSimple(strategy.Option(Track.EmergencyTactics), SCH.AID.EmergencyTactics, Player);
@@ -198,7 +198,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
                 targetPos = target.PosRot.XYZ();
         }
 
-        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos);
+        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, castTime: def.CastTime, targetPos: targetPos); // TODO[cast-time]: this probably needs explicit cast-time argument (adjusted by swiftcast etc)
         return true;
     }
     #endregion

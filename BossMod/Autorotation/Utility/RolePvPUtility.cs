@@ -181,6 +181,27 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Sprint), Player, strategy.Option(Track.Sprint).Priority(), strategy.Option(Track.Sprint).Value.ExpireIn);
     }
 
+    #region Core Execution Helpers
+    private void QueueGCD(AID aid, Actor? target, GCDPriority prio)
+    {
+        if (prio != GCDPriority.None)
+        {
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + (int)prio); // TODO[cast-time]: verify all callers
+            if (prio > NextGCDPrio)
+            {
+                NextGCD = aid;
+                NextGCDPrio = prio;
+            }
+        }
+    }
+    private void QueueOGCD(AID aid, Actor? target, OGCDPriority prio, float basePrio = ActionQueue.Priority.Medium)
+    {
+        if (prio != OGCDPriority.None)
+        {
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, basePrio + (int)prio);
+        }
+    }
+    #endregion
 
     public bool ShouldUseElixir(ElixirStrategy strategy, Actor? target) => strategy switch
     {

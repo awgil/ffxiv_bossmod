@@ -13,7 +13,7 @@
 // - entries from the manual queue are added to the autoqueue every frame with appropriate priorities, and usual logic selects best action to execute
 public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
 {
-    private readonly record struct Entry(ActionID Action, Actor? Target, Vector3 TargetPos, Angle? FacingAngle, ActionDefinition Definition, DateTime ExpireAt)
+    private readonly record struct Entry(ActionID Action, Actor? Target, Vector3 TargetPos, Angle? FacingAngle, ActionDefinition Definition, DateTime ExpireAt, float CastTime)
     {
         public readonly bool Expired(DateTime now) => ExpireAt < now || (Target?.IsDestroyed ?? false);
     }
@@ -47,17 +47,17 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         if (_emergencyMode)
         {
             ref var entry = ref _queue.Ref(0);
-            queue.Push(entry.Action, entry.Target, ActionQueue.Priority.ManualEmergency, 0, 0, entry.TargetPos, entry.FacingAngle);
+            queue.Push(entry.Action, entry.Target, ActionQueue.Priority.ManualEmergency, 0, 0, 0, entry.TargetPos, entry.FacingAngle);
         }
         else
         {
             float expireOrder = 0; // we don't actually care about values, only ordering...
             foreach (ref var e in _queue.AsSpan())
-                queue.Push(e.Action, e.Target, e.Definition.IsGCD ? ActionQueue.Priority.ManualGCD : ActionQueue.Priority.ManualOGCD, expireOrder++, 0, e.TargetPos, e.FacingAngle);
+                queue.Push(e.Action, e.Target, e.Definition.IsGCD ? ActionQueue.Priority.ManualGCD : ActionQueue.Priority.ManualOGCD, expireOrder++, 0, e.CastTime, e.TargetPos, e.FacingAngle);
         }
     }
 
-    public bool Push(ActionID action, ulong targetId, bool allowTargetOverride, Func<(ulong, Vector3?)> getAreaTarget)
+    public bool Push(ActionID action, ulong targetId, float castTime, bool allowTargetOverride, Func<(ulong, Vector3?)> getAreaTarget)
     {
         if (!_config.UseManualQueue)
             return false; // we don't use queue at all
@@ -85,7 +85,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         if (index < 0)
         {
             Service.Log($"[MAO] Queueing {action} @ {target}");
-            _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt));
+            _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt, castTime));
             return true;
         }
 
@@ -94,7 +94,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         {
             Service.Log($"[MAO] Replacing queued {e.Action} with {action} @ {target}");
             _queue.RemoveAt(index);
-            _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt));
+            _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt, castTime));
         }
         else if (isGCD)
         {
@@ -106,7 +106,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             Service.Log($"[MAO] Entering emergency mode for {e.Action}");
             // spamming oGCD - enter emergency mode
             _queue.Clear();
-            _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt));
+            _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt, castTime));
             _emergencyMode = true;
         }
         return true;

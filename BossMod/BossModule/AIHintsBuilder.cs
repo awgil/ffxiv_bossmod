@@ -34,11 +34,13 @@ public sealed class AIHintsBuilder : IDisposable
         Obstacles.Dispose();
     }
 
-    public void Update(AIHints hints, int playerSlot, float maxCastTime)
+    public void Update(AIHints hints, int playerSlot, bool moveImminent)
     {
-        hints.Clear();
-        hints.MaxCastTimeEstimate = maxCastTime;
         var player = _ws.Party[playerSlot];
+
+        hints.Clear();
+        if (moveImminent || player?.PendingKnockbacks.Count > 0)
+            hints.MaxCastTime = 0;
         if (player != null)
         {
             var playerAssignment = Service.Config.Get<PartyRolesConfig>()[_ws.Party.Members[playerSlot].ContentId];

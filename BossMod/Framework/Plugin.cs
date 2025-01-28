@@ -30,6 +30,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly SlashCommandProvider _slashCmd;
     private TimeSpan _prevUpdateTime;
     private DateTime _throttleJump;
+    private DateTime _throttleInteract;
 
     // windows
     private readonly ConfigUI _configUI; // TODO: should be a proper window!
@@ -251,16 +252,14 @@ public sealed class Plugin : IDalamudPlugin
     private void DrawUI()
     {
         var tsStart = DateTime.Now;
-
-        var userPreventingCast = _movementOverride.IsMoveRequested() && !_amex.Config.PreventMovingWhileCasting;
-        var maxCastTime = userPreventingCast ? 0 : _ai.ForceMovementIn;
+        var moveImminent = _movementOverride.IsMoveRequested() && (!_amex.Config.PreventMovingWhileCasting || _movementOverride.IsForceUnblocked());
 
         _dtr.Update();
         Camera.Instance?.Update();
         _wsSync.Update(_prevUpdateTime);
         _bossmod.Update();
         _zonemod.ActiveModule?.Update();
-        _hintsBuilder.Update(_hints, PartyState.PlayerSlot, maxCastTime);
+        _hintsBuilder.Update(_hints, PartyState.PlayerSlot, moveImminent);
         _amex.QueueManualActions();
         _rotation.Update(_amex.AnimationLockDelayEstimate, _movementOverride.IsMoving());
         _ai.Update();
@@ -309,6 +308,15 @@ public sealed class Plugin : IDalamudPlugin
             //Service.Log($"[ExecHints] Jumping...");
             FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance()->UseAction(FFXIVClientStructs.FFXIV.Client.Game.ActionType.GeneralAction, 2);
             _throttleJump = _ws.CurrentTime.AddMilliseconds(100);
+        }
+        if (_hints.InteractWithTarget?.DistanceToHitbox(_ws.Party.Player()) <= 3 && _amex.EffectiveAnimationLock == 0 && _ws.CurrentTime >= _throttleInteract)
+        {
+            var obj = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.IndexSorted[_hints.InteractWithTarget.SpawnIndex].Value;
+            if (obj != null && obj->GetGameObjectId() == _hints.InteractWithTarget.InstanceID)
+            {
+                FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->OpenObjectInteraction(obj);
+                _throttleInteract = _ws.FutureTime(0.1f);
+            }
         }
     }
 

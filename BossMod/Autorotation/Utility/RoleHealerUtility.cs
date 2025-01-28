@@ -30,8 +30,8 @@ public abstract class RoleHealerUtility(RotationModuleManager manager, Actor pla
     protected void ExecuteShared(StrategyValues strategy, ActionID lb3, Actor? primaryTarget)
     {
         ExecuteSimple(strategy.Option(SharedTrack.Sprint), ClassShared.AID.Sprint, Player);
-        ExecuteSimple(strategy.Option(SharedTrack.Repose), ClassShared.AID.Repose, primaryTarget);
-        ExecuteSimple(strategy.Option(SharedTrack.Esuna), ClassShared.AID.Esuna, ResolveTargetOverride(strategy.Option(SharedTrack.Esuna).Value) ?? primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.Repose), ClassShared.AID.Repose, primaryTarget, 2.5f); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(SharedTrack.Esuna), ClassShared.AID.Esuna, ResolveTargetOverride(strategy.Option(SharedTrack.Esuna).Value) ?? primaryTarget, 1); // TODO[cast-time]: adjustment (swiftcast etc)
         ExecuteSimple(strategy.Option(SharedTrack.LucidDreaming), ClassShared.AID.LucidDreaming, Player);
         ExecuteSimple(strategy.Option(SharedTrack.Surecast), ClassShared.AID.Surecast, Player);
         ExecuteSimple(strategy.Option(SharedTrack.Rescue), ClassShared.AID.Rescue, ResolveTargetOverride(strategy.Option(SharedTrack.Rescue).Value) ?? primaryTarget);
@@ -39,7 +39,10 @@ public abstract class RoleHealerUtility(RotationModuleManager manager, Actor pla
         var lb = strategy.Option(SharedTrack.LB);
         var lbLevel = LBLevelToExecute(lb.As<LBOption>());
         if (lbLevel > 0)
-            Hints.ActionsToExecute.Push(lbLevel == 3 ? lb3 : ActionID.MakeSpell(lbLevel == 2 ? ClassShared.AID.BreathOfTheEarth : ClassShared.AID.HealingWind), ResolveTargetOverride(lb.Value), ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn);
+        {
+            var lbAction = lbLevel == 3 ? lb3 : ActionID.MakeSpell(lbLevel == 2 ? ClassShared.AID.BreathOfTheEarth : ClassShared.AID.HealingWind);
+            Hints.ActionsToExecute.Push(lbAction, ResolveTargetOverride(lb.Value), ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn, castTime: ActionDefinitions.Instance[lbAction]!.CastTime);
+        }
 
         var swift = strategy.Option(SharedTrack.Swiftcast);
         if (swift.As<SwiftcastOption>() != SwiftcastOption.None)
