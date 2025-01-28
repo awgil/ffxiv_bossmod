@@ -1,6 +1,5 @@
 immediate plans
 - get rid of legacyxxx (waiting for net9)
-- better autopeloton
 - ai refactoring
 -- misdirection pathfinding
 -- order should be a module-specified enum and framework should enforce ordering constraints
