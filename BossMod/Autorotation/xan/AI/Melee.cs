@@ -66,7 +66,7 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase(manag
             case 1:
                 break;
             case 2:
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Bladedance), primaryTarget, ActionQueue.Priority.VeryHigh);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Bladedance), primaryTarget, ActionQueue.Priority.VeryHigh, castTime: 3);
                 break;
             case 3:
                 var lb3 = Player.Class switch
@@ -80,7 +80,7 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase(manag
                     _ => default
                 };
                 if (lb3 != default)
-                    Hints.ActionsToExecute.Push(lb3, primaryTarget, ActionQueue.Priority.VeryHigh);
+                    Hints.ActionsToExecute.Push(lb3, primaryTarget, ActionQueue.Priority.VeryHigh, castTime: 4.5f);
                 break;
         }
     }

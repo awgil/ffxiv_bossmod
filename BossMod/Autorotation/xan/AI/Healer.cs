@@ -130,7 +130,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
     private void UseGCD<AID>(AID action, Actor? target, int extraPriority = 0) where AID : Enum
         => UseGCD(ActionID.MakeSpell(action), target, extraPriority);
     private void UseGCD(ActionID action, Actor? target, int extraPriority = 0)
-        => Hints.ActionsToExecute.Push(action, target, ActionQueue.Priority.High + 500 + extraPriority);
+        => Hints.ActionsToExecute.Push(action, target, ActionQueue.Priority.High + 500 + extraPriority); // TODO[cast-time]-xan: verify all callers
 
     private void UseOGCD<AID>(AID action, Actor? target, int extraPriority = 0) where AID : Enum
         => UseOGCD(ActionID.MakeSpell(action), target, extraPriority);

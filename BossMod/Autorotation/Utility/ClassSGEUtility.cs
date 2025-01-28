@@ -119,7 +119,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         {
             if (!hasEukrasia)
             {
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(diagAction), primaryTarget, diag.Priority(), diag.Value.ExpireIn);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(diagAction), primaryTarget, diag.Priority(), diag.Value.ExpireIn, castTime: ActionDefinitions.Instance.Spell(diagAction)!.CastTime); // TODO[cast-time]: this probably needs explicit cast-time argument (adjusted by swiftcast etc)
             }
 
             if (hasEukrasia)
@@ -145,7 +145,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         if (progAction != default)
         {
             if (!hasEukrasia)// Push the primary action based on the selected option
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(progAction), Player, prog.Priority(), prog.Value.ExpireIn);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(progAction), Player, prog.Priority(), prog.Value.ExpireIn, castTime: ActionDefinitions.Instance.Spell(progAction)!.CastTime); // TODO[cast-time]: this probably needs explicit cast-time argument (adjusted by swiftcast etc)
 
             if (hasEukrasia && !alreadyUp)
             {

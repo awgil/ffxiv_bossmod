@@ -194,7 +194,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
     {
         if (prio != GCDPriority.None)
         {
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + (int)prio);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + (int)prio); // TODO[cast-time]: verify all callers
             if (prio > NextGCDPrio)
             {
                 NextGCD = aid;

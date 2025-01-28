@@ -8,7 +8,7 @@
 // - repeat the process until no more actions can be found
 public sealed class ActionQueue
 {
-    public readonly record struct Entry(ActionID Action, Actor? Target, float Priority, float Expire = float.MaxValue, float Delay = 0, Vector3 TargetPos = default, Angle? FacingAngle = null);
+    public readonly record struct Entry(ActionID Action, Actor? Target, float Priority, float Expire, float Delay, float CastTime, Vector3 TargetPos, Angle? FacingAngle);
 
     // reference priority guidelines
     // values divisible by 1000 are reserved for standard cooldown planner priorities
@@ -38,7 +38,7 @@ public sealed class ActionQueue
     public readonly List<Entry> Entries = [];
 
     public void Clear() => Entries.Clear();
-    public void Push(ActionID action, Actor? target, float priority, float expire = float.MaxValue, float delay = 0, Vector3 targetPos = default, Angle? facingAngle = null) => Entries.Add(new(action, target, priority, expire, delay, targetPos, facingAngle));
+    public void Push(ActionID action, Actor? target, float priority, float expire = float.MaxValue, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null) => Entries.Add(new(action, target, priority, expire, delay, castTime, targetPos, facingAngle));
 
     public Entry FindBest(WorldState ws, Actor player, ReadOnlySpan<Cooldown> cooldowns, float animationLock, AIHints hints, float instantAnimLockDelay)
     {
@@ -53,6 +53,9 @@ public sealed class ActionQueue
             var def = ActionDefinitions.Instance[candidate.Action];
             if (def == null || !def.IsUnlocked(ws, player))
                 continue; // unregistered or locked action
+
+            if (candidate.CastTime > hints.MaxCastTime)
+                continue; // this cast can't be finished in time, look for something else
 
             var startDelay = Math.Max(Math.Max(candidate.Delay, animationLock), def.ReadyIn(cooldowns, ws.Client.DutyActions));
 

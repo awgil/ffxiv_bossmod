@@ -66,7 +66,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Lightspeed), AST.AID.Lightspeed, Player);
-        ExecuteSimple(strategy.Option(Track.BeneficII), AST.AID.BeneficII, TargetChoice(strategy.Option(Track.BeneficII)) ?? Player);
+        ExecuteSimple(strategy.Option(Track.BeneficII), AST.AID.BeneficII, TargetChoice(strategy.Option(Track.BeneficII)) ?? Player, 1.5f); // TODO[cast-time]: adjustment (swiftcast etc)
         ExecuteSimple(strategy.Option(Track.EssentialDignity), AST.AID.EssentialDignity, TargetChoice(strategy.Option(Track.EssentialDignity)) ?? Player);
         ExecuteSimple(strategy.Option(Track.AspectedBenefic), AST.AID.AspectedBenefic, TargetChoice(strategy.Option(Track.AspectedBenefic)) ?? Player);
         ExecuteSimple(strategy.Option(Track.Synastry), AST.AID.Synastry, TargetChoice(strategy.Option(Track.Synastry)) ?? Player);
@@ -175,7 +175,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
                 targetPos = target.PosRot.XYZ();
         }
 
-        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos);
+        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, castTime: def.CastTime, targetPos: targetPos); // TODO[cast-time]: this probably needs explicit cast-time argument (adjusted by swiftcast etc)
         return true;
     }
     #endregion

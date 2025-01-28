@@ -85,7 +85,7 @@ class ReplayDetailsWindow : UIWindow
         ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
         ImGui.SameLine();
         ImGui.Checkbox("Override", ref _azimuthOverride);
-        _hintsBuilder.Update(_hints, _povSlot, float.MaxValue);
+        _hintsBuilder.Update(_hints, _povSlot, false);
         _rmm.Update(0, false);
         if (_mgr.ActiveModule != null)
         {

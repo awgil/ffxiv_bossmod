@@ -5,7 +5,6 @@ public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
     protected AIHints Hints = null!;
     protected Actor Player = null!;
     protected WorldState World => ws;
-    protected float MaxCastTime;
     protected uint MP;
 
     protected Roleplay.AID ComboAction => (Roleplay.AID)World.Client.ComboState.Action;
@@ -14,7 +13,6 @@ public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
 
     public void Execute(Actor player, AIHints hints)
     {
-        MaxCastTime = hints.MaxCastTimeEstimate;
         Hints = hints;
         Player = player;
 
@@ -31,18 +29,9 @@ public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
     protected void UseAction(ActionID action, Actor? target, float additionalPriority = 0, Vector3 targetPos = default)
     {
         var def = ActionDefinitions.Instance[action];
-
         if (def == null)
             return;
-
-        if (def.CastTime > 0)
-        {
-            var totalCastTime = def.CastTime + def.CastAnimLock;
-            if (MaxCastTime < totalCastTime - 0.5f)
-                return;
-        }
-
-        Hints.ActionsToExecute.Push(action, target, ActionQueue.Priority.High + additionalPriority, targetPos: targetPos);
+        Hints.ActionsToExecute.Push(action, target, ActionQueue.Priority.High + additionalPriority, castTime: def.CastTime + def.CastAnimLock - 0.5f, targetPos: targetPos); // TODO[cast-time]-xan: review, doesn't look right...
     }
 
     protected float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - World.CurrentTime).TotalSeconds, 0.0f);

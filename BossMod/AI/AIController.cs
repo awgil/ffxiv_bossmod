@@ -54,7 +54,7 @@ sealed class AIController(WorldState ws, ActionManagerEx amex, MovementOverride 
         }
         else
         {
-            _amex.ForceCancelCastNextFrame |= ForceCancelCast && castInProgress;
+            hints.ForceCancelCast |= ForceCancelCast && castInProgress;
         }
 
         if (hints.ForcedMovement == null && desiredPosition != null)
