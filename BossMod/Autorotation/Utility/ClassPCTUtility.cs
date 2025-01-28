@@ -14,9 +14,9 @@ public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.TemperaCoat).As<TemperaCoatOption>("Tempera Coat", "T.Coat", 600)
             .AddOption(TemperaCoatOption.None, "None", "Do not use automatically")
-            .AddOption(TemperaCoatOption.CoatOnly, "Tempera Coat Only", "Use Tempera Coat only; ignores Tempera Grassa (if available)", 0, 0, ActionTargets.Self, 0, 95)
-            .AddOption(TemperaCoatOption.CoatGrassaASAP, "Tempera Coat + Grassa ASAP", "Use Tempera Coat + Tempera Grassa ASAP, regardless of casting & weaving", 0, 0, ActionTargets.Self, 96)
-            .AddOption(TemperaCoatOption.CoatGrassaWhenever, "Tempera Coat + Grassa when available", "Use Tempera Coat + Tempera Grassa when weaving or not casting", 0, 0, ActionTargets.Self, 96)
+            .AddOption(TemperaCoatOption.CoatOnly, "Tempera Coat Only", "Use Tempera Coat only; ignores Tempera Grassa (if available)", 0, 0, ActionTargets.Self, 10)
+            .AddOption(TemperaCoatOption.CoatGrassaASAP, "Tempera Coat + Grassa ASAP", "Use Tempera Coat + Tempera Grassa ASAP, regardless of casting & weaving", 0, 0, ActionTargets.Self, 88)
+            .AddOption(TemperaCoatOption.CoatGrassaWhenever, "Tempera Coat + Grassa when available", "Use Tempera Coat + Tempera Grassa when weaving or not casting", 0, 0, ActionTargets.Self, 88)
             .AddAssociatedActions(PCT.AID.TemperaCoat, PCT.AID.TemperaGrassa);
 
         return res;
