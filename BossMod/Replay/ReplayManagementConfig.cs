@@ -1,5 +1,7 @@
 ﻿namespace BossMod;
 
+public record struct ReplayMemory(string Path, bool IsOpen, DateTime PlaybackPosition);
+
 [ConfigDisplay(Name = "Replays", Order = 0)]
 public class ReplayManagementConfig : ConfigNode
 {
@@ -27,4 +29,12 @@ public class ReplayManagementConfig : ConfigNode
 
     [PropertyDisplay("Format for recorded logs")]
     public ReplayLogFormat WorldLogFormat = ReplayLogFormat.BinaryCompressed;
+
+    [PropertyDisplay("Open previously open replays on plugin reload")]
+    public bool RememberReplays;
+
+    [PropertyDisplay("Remember playback position for previously opened replays")]
+    public bool RememberReplayTimes;
+
+    public List<ReplayMemory> ReplayHistory = [];
 }

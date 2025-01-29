@@ -26,7 +26,29 @@ public enum AID : uint
 }
 
 class BloodRain(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BloodRain), "Heavy Raidwide damage! Also killing any add that is currently up");
-class BossAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.FanaticZombie, (uint)OID.FanaticSuccubus]);
+class BossAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.FanaticZombie, (uint)OID.FanaticSuccubus])
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (actor.Class.GetRole() is Role.Ranged or Role.Healer)
+        {
+            // ignore all adds, just attack boss
+            hints.PrioritizeTargetsByOID(OID.Boss, 5);
+            foreach (var zombie in Module.Enemies(OID.FanaticZombie))
+            {
+                hints.AddForbiddenZone(new AOEShapeCircle(3), zombie.Position);
+                hints.AddForbiddenZone(new AOEShapeCircle(8), zombie.Position, activation: WorldState.FutureTime(5));
+            }
+        }
+        else
+        {
+            // kill zombies first, they have low health
+            hints.PrioritizeTargetsByOID(OID.FanaticZombie, 5);
+            // attack boss, ignore succubus
+            hints.PrioritizeTargetsByOID(OID.Boss, 1);
+        }
+    }
+}
 class DarkMist(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(10));
 class Desolation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Desolation), new AOEShapeRect(57.3f, 3));
 class FatalAllure(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.FatalAllure), "Boss is life stealing from the succubus");
@@ -35,9 +57,6 @@ class TerrorEye(BossModule module) : Components.LocationTargetedAOEs(module, Act
 class VoidAero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VoidAero), new AOEShapeRect(42.3f, 4));
 class VoidFireII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFireII), 5);
 class VoidFireIV(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFireIV), 10);
-class ZombieGrab(BossModule module) : Components.PersistentVoidzone(module, 2, m => m.Enemies(OID.FanaticZombie)); // Future note to Ice(self): Not entirely sure if I'm happy with this per se? It shows to essentially stay away from the zombies but, maybe a better hint when I can think of one
-
-// TODO: Add a switch to target the zombie that is currently attached to you. Missing the status effect that it gives when caught.
 
 class EncounterHints(BossModule module) : BossComponent(module)
 {
@@ -62,7 +81,6 @@ class D150TisiphoneStates : StateMachineBuilder
             .ActivateOnEnter<VoidAero>()
             .ActivateOnEnter<VoidFireII>()
             .ActivateOnEnter<VoidFireIV>()
-            .ActivateOnEnter<ZombieGrab>()
             .DeactivateOnEnter<EncounterHints>();
     }
 }

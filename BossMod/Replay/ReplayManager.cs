@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BossMod;
 
-public sealed class ReplayManager(RotationDatabase rotationDB, string fileDialogStartPath) : IDisposable
+public sealed class ReplayManager : IDisposable
 {
     private sealed class ReplayEntry : IDisposable
     {
@@ -20,11 +20,13 @@ public sealed class ReplayManager(RotationDatabase rotationDB, string fileDialog
         public bool AutoShowWindow;
         public bool Selected;
         public bool Disposed;
+        public DateTime? SavedPosition;
 
-        public ReplayEntry(string path, bool autoShow)
+        public ReplayEntry(string path, bool autoShow, DateTime? savedPosition = null)
         {
             Path = path;
             AutoShowWindow = autoShow;
+            SavedPosition = savedPosition;
             Replay = Task.Run(() => ReplayParserLog.Parse(path, ref Progress, Cancel.Token));
         }
 
@@ -43,6 +45,8 @@ public sealed class ReplayManager(RotationDatabase rotationDB, string fileDialog
             Window ??= new(Replay.Result, rotationDB);
             Window.IsOpen = true;
             Window.BringToFront();
+            if (SavedPosition != null)
+                Window.CurrentTime = SavedPosition.Value;
         }
     }
 
@@ -69,12 +73,22 @@ public sealed class ReplayManager(RotationDatabase rotationDB, string fileDialog
 
     private readonly List<ReplayEntry> _replayEntries = [];
     private readonly List<AnalysisEntry> _analysisEntries = [];
+    private readonly RotationDatabase rotationDB;
     private int _nextAnalysisId;
     private string _path = "";
     private FileDialog? _fileDialog;
+    private string fileDialogStartPath;
+
+    public ReplayManager(RotationDatabase rotationDB, string fileDialogStartPath)
+    {
+        this.rotationDB = rotationDB;
+        this.fileDialogStartPath = fileDialogStartPath;
+        RestoreHistory();
+    }
 
     public void Dispose()
     {
+        SaveHistory();
         foreach (var e in _analysisEntries)
             e.Dispose();
         foreach (var e in _replayEntries)
@@ -174,6 +188,7 @@ public sealed class ReplayManager(RotationDatabase rotationDB, string fileDialog
                 e.Dispose();
                 foreach (var a in _analysisEntries.Where(a => !a.Disposed && a.Replays.Contains(e)))
                     a.Dispose();
+                SaveHistory();
             }
 
             ImGui.TableNextColumn();
@@ -207,6 +222,7 @@ public sealed class ReplayManager(RotationDatabase rotationDB, string fileDialog
                     e.Dispose();
                 foreach (var e in _analysisEntries.Where(e => e.Replays.Any(r => r.Selected)))
                     e.Dispose();
+                SaveHistory();
             }
         }
         ImGui.SameLine();
@@ -216,6 +232,7 @@ public sealed class ReplayManager(RotationDatabase rotationDB, string fileDialog
                 e.Dispose();
             foreach (var e in _analysisEntries)
                 e.Dispose();
+            SaveHistory();
         }
     }
 
@@ -234,6 +251,7 @@ public sealed class ReplayManager(RotationDatabase rotationDB, string fileDialog
             if (ImGui.Button("Open"))
             {
                 _replayEntries.Add(new(_path, true));
+                SaveHistory();
             }
         }
         ImGui.SameLine();
@@ -252,6 +270,7 @@ public sealed class ReplayManager(RotationDatabase rotationDB, string fileDialog
             if (ImGui.Button("Load all"))
             {
                 LoadAll(_path);
+                SaveHistory();
             }
         }
     }
@@ -296,5 +315,25 @@ public sealed class ReplayManager(RotationDatabase rotationDB, string fileDialog
         player.WorldState.Frame.Timestamp = r.Ops[0].Timestamp; // so that we get correct name etc.
         using var relogger = new ReplayRecorder(player.WorldState, format, false, new FileInfo(r.Path).Directory!, format.ToString());
         player.AdvanceTo(DateTime.MaxValue, () => { });
+    }
+
+    private void SaveHistory()
+    {
+        var cfg = Service.Config.Get<ReplayManagementConfig>();
+        if (!cfg.RememberReplays)
+            return;
+
+        cfg.ReplayHistory = _replayEntries.Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? true, r.Window?.CurrentTime ?? default)).ToList();
+        cfg.Modified.Fire();
+    }
+
+    private void RestoreHistory()
+    {
+        var cfg = Service.Config.Get<ReplayManagementConfig>();
+        if (!cfg.RememberReplays)
+            return;
+
+        foreach (var memory in cfg.ReplayHistory)
+            _replayEntries.Add(new(memory.Path, memory.IsOpen, cfg.RememberReplayTimes ? memory.PlaybackPosition : null));
     }
 }
