@@ -16,7 +16,7 @@ public sealed record class Plan(string Name, Type Encounter)
         public StrategyValue Value = Value;
     }
 
-    public readonly record struct Module(Type Type, List<List<Entry>> Tracks) : IRotationModuleData
+    public readonly record struct Module(Type Type, RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder, List<List<Entry>> Tracks) : IRotationModuleData
     {
         public readonly Module MakeClone() => this with { Tracks = [.. Tracks.Select(t => new List<Entry>([.. t]))] };
     }
@@ -33,13 +33,18 @@ public sealed record class Plan(string Name, Type Encounter)
     public Plan MakeClone() => this with { PhaseDurations = [.. PhaseDurations], Modules = [.. Modules.Select(m => m.MakeClone())], Targeting = [.. Targeting] };
 
     // this maintains the invariant that each module has entry list per track
-    public List<List<Entry>> AddModule(Type t)
+    public int AddModule(Type t, RotationModuleDefinition def, Func<RotationModuleManager, Actor, RotationModule> builder)
     {
         List<List<Entry>> tracks = [];
-        foreach (var _ in RotationModuleRegistry.Modules[t].Definition.Configs)
+        foreach (var _ in def.Configs)
             tracks.Add([]);
-        Modules.Add(new(t, tracks));
-        return tracks;
+
+        var insertionIndex = Modules.Count;
+        while (insertionIndex > 0 && Modules[insertionIndex - 1].Definition.Order > def.Order)
+            --insertionIndex;
+
+        Modules.Insert(insertionIndex, new(t, def, builder, tracks));
+        return insertionIndex;
     }
 }
 
@@ -77,7 +82,8 @@ public class JsonPlanConverter : JsonConverter<Plan>
                 continue;
             }
 
-            var m = res.AddModule(mt);
+            var mi = res.AddModule(mt, md.Definition, md.Builder);
+            var m = res.Modules[mi].Tracks;
             foreach (var jt in jm.Value.EnumerateObject())
             {
                 var iTrack = md.Definition.Configs.FindIndex(s => s.InternalName == jt.Name);
@@ -126,7 +132,6 @@ public class JsonPlanConverter : JsonConverter<Plan>
         writer.WriteStartObject(nameof(Plan.Modules));
         foreach (var m in value.Modules)
         {
-            var md = RotationModuleRegistry.Modules[m.Type].Definition;
             writer.WriteStartObject(m.Type.FullName!);
             for (int iTrack = 0; iTrack < m.Tracks.Count; ++iTrack)
             {
@@ -134,7 +139,7 @@ public class JsonPlanConverter : JsonConverter<Plan>
                 if (track.Count == 0)
                     continue;
 
-                var cfg = md.Configs[iTrack];
+                var cfg = m.Definition.Configs[iTrack];
                 writer.WriteStartArray(cfg.InternalName);
                 foreach (ref var s in track.AsSpan())
                 {

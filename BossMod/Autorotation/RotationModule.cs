@@ -20,10 +20,22 @@ public enum RotationModuleQuality
     Count
 }
 
+public enum RotationModuleOrder
+{
+    [PropertyDisplay("[1] High-level strategy module. Responsible for targeting and enemy prioritization.")]
+    HighLevel = 1,
+
+    [PropertyDisplay("[2] Standard rotation/utility module. Responsible for deciding which actions to use and setting up goal zones.")]
+    Actions = 2,
+
+    [PropertyDisplay("[3] Movement module. Responsible for pathfinding and executing movement.")]
+    Movement = 3,
+}
+
 // the configuration part of the rotation module
 // importantly, it defines constraints (supported classes and level ranges) and strategy configs (with their sets of possible options) used by the module to make its decisions
 // rotation modules can optionally be constrained to a specific boss module, if they are used to implement custom encounter-specific logic - these would only be available in plans for that module
-public sealed record class RotationModuleDefinition(string DisplayName, string Description, string Category, string Author, RotationModuleQuality Quality, BitMask Classes, int MaxLevel, int MinLevel = 1, Type? RelatedBossModule = null, bool CanUseWhileRoleplaying = false)
+public sealed record class RotationModuleDefinition(string DisplayName, string Description, string Category, string Author, RotationModuleQuality Quality, BitMask Classes, int MaxLevel, int MinLevel = 1, RotationModuleOrder Order = RotationModuleOrder.Actions, Type? RelatedBossModule = null, bool CanUseWhileRoleplaying = false)
 {
     public readonly BitMask Classes = Classes;
     public readonly List<StrategyConfig> Configs = [];

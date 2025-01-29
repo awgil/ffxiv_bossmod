@@ -3,6 +3,8 @@
 public interface IRotationModuleData
 {
     public Type Type { get; }
+    public RotationModuleDefinition Definition { get; }
+    public Func<RotationModuleManager, Actor, RotationModule> Builder { get; }
 }
 
 // the manager contains a set of rotation module instances corresponding to the selected preset/plan
@@ -191,13 +193,12 @@ public sealed class RotationModuleManager : IDisposable
             var isRPMode = player.Statuses.Any(IsTransformStatus);
             for (int i = 0; i < modules.Count; ++i)
             {
-                if (!RotationModuleRegistry.Modules.TryGetValue(modules[i].Type, out var def))
+                var def = modules[i].Definition;
+                if (!def.Classes[(int)player.Class] || player.Level < def.MinLevel || player.Level > def.MaxLevel)
                     continue;
-                if (!def.Definition.Classes[(int)player.Class] || player.Level < def.Definition.MinLevel || player.Level > def.Definition.MaxLevel)
+                if (!def.CanUseWhileRoleplaying && isRPMode)
                     continue;
-                if (!def.Definition.CanUseWhileRoleplaying && isRPMode)
-                    continue;
-                res.Add(new(i, def.Definition, def.Builder(this, player)));
+                res.Add(new(i, def, modules[i].Builder(this, player)));
             }
         }
         return res;

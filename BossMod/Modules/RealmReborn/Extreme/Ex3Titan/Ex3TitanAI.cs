@@ -11,7 +11,7 @@ sealed class Ex3TitanAIRotation(RotationModuleManager manager, Actor player) : A
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 1000, 1, typeof(Ex3Titan));
+        var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 1000, 1, RotationModuleOrder.Movement, typeof(Ex3Titan));
         res.Define(Track.Movement).As<MovementStrategy>("Movement", "Movement")
             .AddOption(MovementStrategy.None, "None", "No automatic movement")
             .AddOption(MovementStrategy.Pathfind, "Pathfind", "Use standard pathfinding to move")
