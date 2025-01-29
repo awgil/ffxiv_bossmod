@@ -64,6 +64,8 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private readonly HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
     private readonly HookAddress<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
     private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
+    private readonly HookAddress<InstanceContentDeepDungeon.Delegates.UsePomander> _usePomanderHook;
+    private readonly HookAddress<InstanceContentDeepDungeon.Delegates.UseStone> _useStoneHook;
     private readonly HookAddress<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
     private readonly HookAddress<AutoAttackState.Delegates.SetImpl> _setAutoAttackStateHook;
 
@@ -88,6 +90,8 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _useActionHook = new(ActionManager.Addresses.UseAction, UseActionDetour);
         _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
         _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
+        _usePomanderHook = new(InstanceContentDeepDungeon.Addresses.UsePomander, UsePomanderDetour);
+        _useStoneHook = new(InstanceContentDeepDungeon.Addresses.UseStone, UseStoneDetour);
         _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
         _setAutoAttackStateHook = new(AutoAttackState.Addresses.SetImpl, SetAutoAttackStateDetour);
 
@@ -100,6 +104,8 @@ public sealed unsafe class ActionManagerEx : IDisposable
     {
         _setAutoAttackStateHook.Dispose();
         _processPacketActionEffectHook.Dispose();
+        _useStoneHook.Dispose();
+        _usePomanderHook.Dispose();
         _useBozjaFromHolsterDirectorHook.Dispose();
         _useActionLocationHook.Dispose();
         _useActionHook.Dispose();
@@ -499,6 +505,17 @@ public sealed unsafe class ActionManagerEx : IDisposable
             HandleActionRequest(ActionID.MakeBozjaHolster(entry, (int)slot), 0, 0xE0000000, default, prevRot, currRot);
         }
         return res;
+    }
+
+    // TODO add to manual q
+    private void UsePomanderDetour(InstanceContentDeepDungeon* self, uint slot)
+    {
+        _usePomanderHook.Original(self, slot);
+    }
+
+    private void UseStoneDetour(InstanceContentDeepDungeon* self, uint slot)
+    {
+        _useStoneHook.Original(self, slot);
     }
 
     private void ProcessPacketActionEffectDetour(uint casterID, Character* casterObj, Vector3* targetPos, ActionEffectHandler.Header* header, ActionEffectHandler.TargetEffects* effects, GameObjectId* targets)

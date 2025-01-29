@@ -336,7 +336,7 @@ public abstract class AutoClear : ZoneModule
 
         if (ImGui.Button("Set closest trap location as ignored"))
         {
-            var pos = _trapsCurrentZone.MinBy(t => (t - player.Position).LengthSq()).Rounded(0.1f);
+            var pos = _trapsCurrentZone.Except(ProblematicTrapLocations).MinBy(t => (t - player.Position).LengthSq()).Rounded(0.1f);
             ProblematicTrapLocations.Add(pos);
             IgnoreTraps.Add(pos);
         }
