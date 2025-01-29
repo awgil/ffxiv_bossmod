@@ -1,4 +1,5 @@
-﻿using static BossMod.AIHints;
+﻿using System.Diagnostics.CodeAnalysis;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -71,6 +72,15 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected int NextGCDPrio;
     protected uint MP;
 
+    protected AID HighestUnlocked(params AID[] actions)
+    {
+        foreach (var act in actions)
+            if (Unlocked(act))
+                return act;
+
+        return default;
+    }
+
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
     protected void PushGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum
@@ -114,11 +124,11 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         if ((uint)(object)aid == 0)
             return false;
 
-        if (!CanCast(aid)) // TODO[cast-time]-xan: don't do this, it's now not reliable, instead queue all cast options at different prios
+        if (!CanCast(aid))
             return false;
 
         var def = ActionDefinitions.Instance.Spell(aid);
-        if (def == null)
+        if (def == null || !def.IsUnlocked(World, Player))
             return false;
 
         if (def.Range != 0 && target == null)
@@ -137,7 +147,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
                 targetPos = target.PosRot.XYZ();
         }
 
-        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos); // TODO[cast-time]-xan: verify all callers
+        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos);
         return true;
     }
 
@@ -367,9 +377,14 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     private void EstimateCastTime()
     {
-        MaxCastTime = Hints.MaxCastTime; // TODO[cast-time]-xan: this is now wrong, needs to be reviewed and fixed (queue all actions with casttime=time they need)
+        MaxCastTime = Hints.MaxCastTimeEstimate;
 
-        // TODO[cast-time]-xan: this is not really correct in most cases: even if target is a gaze source, it's possible to start casting then rotate to be >45 && <75 degrees and finish cast successfully; the gaze avoidance tweak handles that
+        if (Player.PendingKnockbacks.Count > 0)
+        {
+            MaxCastTime = 0f;
+            return;
+        }
+
         var forbiddenDir = Hints.ForbiddenDirections.Where(d => Player.Rotation.AlmostEqual(d.center, d.halfWidth.Rad)).Select(d => d.activation).DefaultIfEmpty(DateTime.MinValue).Min();
         if (forbiddenDir > World.CurrentTime)
         {
@@ -379,11 +394,32 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         }
     }
 
+    private float? _prevCountdown;
+    private DateTime _cdLockout;
+
+    [SuppressMessage("Security", "CA5394:Do not use insecure randomness", Justification = "determinism is intentional here")]
+    private void PretendCountdown()
+    {
+        if (CountdownRemaining == null)
+        {
+            _cdLockout = DateTime.MinValue;
+            _prevCountdown = null;
+        }
+        else if (_prevCountdown == null)
+        {
+            var wait = (float)new Random((int)World.Frame.Index).NextDouble() + 0.5f;
+            _cdLockout = World.FutureTime(wait);
+            _prevCountdown = CountdownRemaining;
+        }
+    }
+
     public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         NextGCD = default;
         NextGCDPrio = 0;
         PlayerTarget = Hints.FindEnemy(primaryTarget);
+
+        PretendCountdown();
 
         var pelo = Player.FindStatus(ClassShared.SID.Peloton);
         PelotonLeft = pelo != null ? StatusDuration(pelo.Value.ExpireAt) : 0;
@@ -409,6 +445,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
         // TODO max MP can be higher in eureka/bozja
         MP = (uint)Math.Clamp(Player.PredictedMPRaw, 0, 10000);
+
+        if (_cdLockout > World.CurrentTime)
+            return;
 
         if (Player.MountId is not (103 or 117 or 128))
             Exec(strategy, PlayerTarget);
