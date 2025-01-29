@@ -4,6 +4,7 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using System.IO;
 using System.Reflection;
 
@@ -312,15 +313,43 @@ public sealed class Plugin : IDalamudPlugin
             FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance()->UseAction(FFXIVClientStructs.FFXIV.Client.Game.ActionType.GeneralAction, 2);
             _throttleJump = _ws.CurrentTime.AddMilliseconds(100);
         }
-        if (_hints.InteractWithTarget?.DistanceToHitbox(_ws.Party.Player()) <= 3 && _amex.EffectiveAnimationLock == 0 && _ws.CurrentTime >= _throttleInteract)
+
+        var player = _ws.Party.Player();
+        var target = _hints.InteractWithTarget;
+
+        if (_amex.EffectiveAnimationLock == 0 && _ws.CurrentTime >= _throttleInteract && CheckInteractRange(player, target))
         {
-            var obj = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.IndexSorted[_hints.InteractWithTarget.SpawnIndex].Value;
-            if (obj != null && obj->GetGameObjectId() == _hints.InteractWithTarget.InstanceID)
-            {
-                FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->OpenObjectInteraction(obj);
-                _throttleInteract = _ws.FutureTime(0.1f);
-            }
+            // many eventobj interactions immediately start some cast animation; if we keep trying to approach the object after a successful interaction, it will interrupt the cast, forcing us to do it again
+            _hints.ForcedMovement = default;
+            FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->InteractWithObject(GetActorObject(target));
+            _throttleInteract = _ws.FutureTime(0.1f);
         }
+    }
+
+    private unsafe bool CheckInteractRange(Actor? player, Actor? target)
+    {
+        var playerObj = GetActorObject(player);
+        var targetObj = GetActorObject(target);
+        if (playerObj == null || targetObj == null)
+            return false;
+
+        // treasure chests have no client-side interact range check at all; just assume they use the standard "small" range, seems to be accurate from testing
+        if (targetObj->ObjectKind is FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectKind.Treasure)
+            return player?.DistanceToHitbox(target) <= 2.09f;
+
+        return EventFramework.Instance()->CheckInteractRange(playerObj, targetObj, 1, false);
+    }
+
+    private unsafe FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* GetActorObject(Actor? actor)
+    {
+        if (actor == null)
+            return null;
+
+        var obj = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.IndexSorted[actor.SpawnIndex].Value;
+        if (obj == null || obj->GetGameObjectId() != actor.InstanceID)
+            return null;
+
+        return obj;
     }
 
     private void OnConditionChanged(ConditionFlag flag, bool value)
