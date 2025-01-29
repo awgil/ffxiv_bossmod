@@ -34,6 +34,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected float DowntimeIn { get; private set; }
     protected float? UptimeIn { get; private set; }
     protected Enemy? PlayerTarget { get; private set; }
+    protected bool IsMoving { get; private set; }
 
     protected float? CountdownRemaining => World.Client.CountdownRemaining;
     protected float AnimLock => World.Client.AnimationLock;
@@ -83,6 +84,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
+    // override if some action requires specific runtime checks that aren't covered by the existing framework code
+    protected virtual bool CanUse(AID action) => true;
+
     protected void PushGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum
         => PushGCD(aid, target, (int)(object)priority, delay);
 
@@ -124,7 +128,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         if ((uint)(object)aid == 0)
             return false;
 
-        if (!CanCast(aid))
+        if (!CanUse(aid))
             return false;
 
         var def = ActionDefinitions.Instance.Spell(aid);
@@ -147,7 +151,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
                 targetPos = target.PosRot.XYZ();
         }
 
-        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos);
+        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos, castTime: GetSlidecastTime(aid));
         return true;
     }
 
@@ -333,17 +337,6 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected float GetSlidecastTime(AID aid) => MathF.Max(0, GetCastTime(aid) - 0.5f);
     protected float GetSlidecastEnd(AID aid) => NextCastStart + GetSlidecastTime(aid);
 
-    protected virtual bool CanCast(AID aid)
-    {
-        var t = GetSlidecastTime(aid);
-        if (t == 0)
-            return true;
-
-        return NextCastStart + t <= MaxCastTime;
-    }
-
-    protected float MaxCastTime;
-
     protected bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     protected bool Unlocked(TraitID tid) => TraitUnlocked((uint)(object)tid);
 
@@ -373,27 +366,6 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         Hints.RecommendedPositional = (target, positional.pos, NextPositionalImminent, NextPositionalCorrect);
     }
 
-    private readonly SmartRotationConfig _smartrot = Service.Config.Get<SmartRotationConfig>();
-
-    private void EstimateCastTime()
-    {
-        MaxCastTime = Hints.MaxCastTimeEstimate;
-
-        if (Player.PendingKnockbacks.Count > 0)
-        {
-            MaxCastTime = 0f;
-            return;
-        }
-
-        var forbiddenDir = Hints.ForbiddenDirections.Where(d => Player.Rotation.AlmostEqual(d.center, d.halfWidth.Rad)).Select(d => d.activation).DefaultIfEmpty(DateTime.MinValue).Min();
-        if (forbiddenDir > World.CurrentTime)
-        {
-            var cushion = _smartrot.MinTimeToAvoid;
-            var gazeIn = MathF.Max(0, (float)(forbiddenDir - World.CurrentTime).TotalSeconds - cushion);
-            MaxCastTime = MathF.Min(MaxCastTime, gazeIn);
-        }
-    }
-
     private float? _prevCountdown;
     private DateTime _cdLockout;
 
@@ -415,6 +387,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
+        IsMoving = isMoving;
         NextGCD = default;
         NextGCDPrio = 0;
         PlayerTarget = Hints.FindEnemy(primaryTarget);
@@ -426,7 +399,6 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         SwiftcastLeft = MathF.Max(StatusLeft(ClassShared.SID.Swiftcast), StatusLeft(ClassShared.SID.LostChainspell));
         TrueNorthLeft = StatusLeft(ClassShared.SID.TrueNorth);
 
-        EstimateCastTime();
         AnimationLockDelay = estimatedAnimLockDelay;
 
         CombatTimer = (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds;

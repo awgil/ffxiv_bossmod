@@ -169,7 +169,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         var posOk = PosLockOk(strategy);
         var bestSingleTarget = primaryTarget.Priority >= 0 ? primaryTarget : null;
 
-        bool posCheck(float animationLock) => Hints.PositionStoredIn > AnimLock + animationLock;
+        bool posCheck(float animationLock) => true; //  Hints.PositionStoredIn > AnimLock + animationLock;
 
         if (NextPositionalImminent && !NextPositionalCorrect)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.TrueNorth), Player, ActionQueue.Priority.Low - 20, delay: GCD - 0.8f);

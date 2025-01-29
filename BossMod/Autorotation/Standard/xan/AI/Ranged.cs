@@ -46,11 +46,11 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase(mana
         {
             case 1:
                 if (lbTarget(2) is Actor a)
-                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.BigShot), a, ActionQueue.Priority.VeryHigh);
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.BigShot), a, ActionQueue.Priority.VeryHigh, castTime: 2);
                 break;
             case 2:
                 if (lbTarget(2.5f) is Actor b)
-                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Desperado), b, ActionQueue.Priority.VeryHigh);
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Desperado), b, ActionQueue.Priority.VeryHigh, castTime: 3);
                 break;
             case 3:
                 var lb3 = Player.Class switch
@@ -61,7 +61,7 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase(mana
                     _ => default
                 };
                 if (lbTarget(4) is Actor c && lb3 != default)
-                    Hints.ActionsToExecute.Push(lb3, c, ActionQueue.Priority.VeryHigh);
+                    Hints.ActionsToExecute.Push(lb3, c, ActionQueue.Priority.VeryHigh, castTime: 4.5f);
                 break;
         }
     }
