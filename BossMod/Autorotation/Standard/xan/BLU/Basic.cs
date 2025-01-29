@@ -37,11 +37,11 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
 
     private Mimicry Mimic;
 
-    protected override bool CanUse(AID aid) => aid switch
+    protected override bool CanUse(AID action) => action switch
     {
         // TODO add other transformed actions here
         AID.DivineCataract => true,
-        _ => World.Client.BlueMageSpells.Contains((uint)aid)
+        _ => World.Client.BlueMageSpells.Contains((uint)action)
     };
 
     public override void Exec(StrategyValues strategy, Enemy? primaryTarget)

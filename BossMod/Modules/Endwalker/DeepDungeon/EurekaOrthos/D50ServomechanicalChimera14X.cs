@@ -91,7 +91,7 @@ class Charge(BossModule module) : Components.GenericAOEs(module)
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        if (hint != "")
+        if (hint.Length > 0)
             hints.Add(hint);
     }
 }
