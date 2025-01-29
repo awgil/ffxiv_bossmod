@@ -49,6 +49,10 @@ public sealed class RotationModuleManager : IDisposable
         (uint)Roleplay.SID.BorrowedFlesh, // used specifically for In from the Cold (Endwalker)
         (uint)Roleplay.SID.FreshPerspective, // sapphire weapon quest
         565, // "Transfiguration" from certain pomanders in Palace of the Dead
+        439, // "Toad", palace of the dead
+        1546, // "Odder", heaven-on-high
+        3502, // "Owlet", EO
+        404, // "Transporting", not a transformation but prevents actions
     ];
 
     public static bool IsTransformStatus(ActorStatus st) => TransformationStatuses.Contains(st.ID);
