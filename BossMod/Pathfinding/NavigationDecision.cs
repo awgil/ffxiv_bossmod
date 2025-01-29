@@ -17,7 +17,8 @@ public struct NavigationDecision
     }
 
     public WPos? Destination;
-    public float NextTurn; // > 0 if we turn left after reaching first waypoint, < 0 if we turn right, 0 otherwise (no more waypoints)
+    public WPos? NextWaypoint;
+    //public float NextTurn; // > 0 if we turn left after reaching first waypoint, < 0 if we turn right, 0 otherwise (no more waypoints)
     public float LeewaySeconds; // can be used for finishing casts / slidecasting etc.
     public float TimeToGoal;
 
@@ -37,8 +38,8 @@ public struct NavigationDecision
         ctx.ThetaStar.Start(ctx.Map, player.Position, 1.0f / playerSpeed);
         var bestNodeIndex = ctx.ThetaStar.Execute();
         ref var bestNode = ref ctx.ThetaStar.NodeByIndex(bestNodeIndex);
-        var (destination, turn) = GetFirstWaypoint(ctx.ThetaStar, ctx.Map, bestNodeIndex, player.Position);
-        return new() { Destination = destination, NextTurn = turn, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore };
+        var waypoints = GetFirstWaypoints(ctx.ThetaStar, ctx.Map, bestNodeIndex, player.Position);
+        return new() { Destination = waypoints.first, NextWaypoint = waypoints.second, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore };
     }
 
     public static void RasterizeForbiddenZones(Map map, List<(Func<WPos, float> shapeDistance, DateTime activation, ulong source)> zones, DateTime current, ref float[] scratch)
@@ -184,11 +185,11 @@ public struct NavigationDecision
         return float.MaxValue;
     }
 
-    private static (WPos? destination, float turn) GetFirstWaypoint(ThetaStar pf, Map map, int cell, WPos startingPos)
+    private static (WPos? first, WPos? second) GetFirstWaypoints(ThetaStar pf, Map map, int cell, WPos startingPos)
     {
         ref var startingNode = ref pf.NodeByIndex(cell);
         if (startingNode.GScore == 0 && startingNode.PathMinG == float.MaxValue)
-            return (null, 0); // we're already in safe zone
+            return (null, null); // we're already in safe zone
 
         var nextCell = cell;
         do
@@ -204,7 +205,7 @@ public struct NavigationDecision
                 var dest = map.GridToWorld(destCoord.x, destCoord.y, destCoord.x == playerCoord.x ? playerCoordFrac.X - playerCoord.x : 0.5f, destCoord.y == playerCoord.y ? playerCoordFrac.Y - playerCoord.y : 0.5f);
 
                 var next = pf.CellCenter(nextCell);
-                return (dest, (dest - startingPos).OrthoL().Dot(next - dest));
+                return (dest, next);
             }
             nextCell = cell;
             cell = node.ParentIndex;

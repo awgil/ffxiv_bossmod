@@ -11,6 +11,7 @@ public enum StrategyTarget
     EnemyByOID, // parameter is oid; not really useful outside planner; selects closest if there are multiple
     PointAbsolute, // absolute x/y coordinates
     PointCenter, // offset from arena center
+    PointWaymark, // offset from waymark; parameter is waymark id
 
     Count
 }

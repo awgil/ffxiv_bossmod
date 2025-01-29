@@ -23,7 +23,7 @@ public sealed class PlanExecution
         public bool IsActive(float t, StateData s) => t >= WindowStart && t <= WindowEnd && IntersectBranchRange(s.BranchID, s.NumBranches);
     }
 
-    public readonly record struct ModuleData(Type Type, List<List<EntryData>> Tracks);
+    public readonly record struct ModuleData(Type Type, RotationModuleDefinition Definition, List<List<EntryData>> Tracks);
 
     public readonly BossModule Module;
     public readonly Plan? Plan;
@@ -48,7 +48,7 @@ public sealed class PlanExecution
 
         if (plan != null)
         {
-            Strategies = [.. plan.Modules.Select(m => new ModuleData(m.Type, [.. m.Tracks.Select(BuildEntries)]))];
+            Strategies = [.. plan.Modules.Select(m => new ModuleData(m.Type, m.Definition, [.. m.Tracks.Select(BuildEntries)]))];
             ForcedTargets = BuildEntries(plan.Targeting);
         }
     }
@@ -85,7 +85,7 @@ public sealed class PlanExecution
         var s = FindCurrentStateData();
         var t = GetVirtualTime(s);
         var data = Strategies[moduleIndex];
-        var res = new StrategyValues(RotationModuleRegistry.Modules[data.Type].Definition.Configs);
+        var res = new StrategyValues(data.Definition.Configs);
         for (int i = 0; i < data.Tracks.Count; ++i)
         {
             var entry = GetEntryAt(data.Tracks[i], t, s);

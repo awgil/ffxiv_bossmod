@@ -15,9 +15,9 @@ abstract class ChangelogNotice
     public abstract void Draw();
 }
 
-class AINotice1 : ChangelogNotice
+class AIMigrationNotice : ChangelogNotice
 {
-    public override Version Since => new(0, 0, 0, 253);
+    public override Version Since => new(0, 0, 0, 289);
 
     private void Bullet(string txt)
     {
@@ -28,31 +28,22 @@ class AINotice1 : ChangelogNotice
 
     public override void Draw()
     {
-        ImGui.TextUnformatted("The following AI configuration options have been removed:");
-        Bullet("AI Preset: AI mode will no longer attempt to control which preset is active, and the presence or absence of a preset will not affect targeting behavior.");
-        Bullet("Override positional");
-        Bullet("Override follow range");
-        Bullet("Follow target: This option had no effect.");
-        Bullet("Follow during active boss module");
-        Bullet("Follow during combat");
-        Bullet("Follow out of combat");
-        Bullet("Show advanced options in the UI");
-        ImGui.Spacing();
-        ImGui.TextUnformatted("The following AI configuration options have been renamed:");
-        Bullet("Forbid movement: renamed to Disable movement. Behavior is unchanged.");
-        Bullet("Forbid actions: renamed to Disable auto-target. Behavior is unchanged.");
-    }
-}
-
-class AINotice2 : ChangelogNotice
-{
-    public override Version Since => new(0, 0, 0, 289);
-
-    public override void Draw()
-    {
-        ImGui.TextUnformatted("`Automatically engage FATE mobs` AI configuration option has been removed.");
-        ImGui.TextUnformatted("The new way of getting this behaviour is by adding `Misc AI: Automatic farming of fates` module to your preset and configuring FATE-farming strategy track as wanted.");
-        ImGui.TextUnformatted("Note that this module ");
+        var link = "https://github.com/awgil/ffxiv_bossmod/wiki/AI-Migration-guide";
+        ImGui.TextUnformatted("AI is dead, long live AI!");
+        Bullet("AI feature is now deprecated and will be removed in one of the future versions.");
+        Bullet("The replacement is simple and much more flexible and powerful.");
+        Bullet($"See wiki ({link}) for details.");
+        if (ImGui.Button("Open wiki"))
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(link) { UseShellExecute = true });
+            }
+            catch (Exception e)
+            {
+                Service.Log($"Error opening link: {e}");
+            }
+        }
     }
 }
 

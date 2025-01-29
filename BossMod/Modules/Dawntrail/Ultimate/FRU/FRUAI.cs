@@ -12,7 +12,7 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, typeof(FRU));
+        var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, RotationModuleOrder.Movement, typeof(FRU));
         res.Define(Track.Movement).As<MovementStrategy>("Movement", "Movement")
             .AddOption(MovementStrategy.None, "None", "No automatic movement")
             .AddOption(MovementStrategy.Pathfind, "Pathfind", "Use standard pathfinding to move")

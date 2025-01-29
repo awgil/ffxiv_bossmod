@@ -70,7 +70,7 @@ public sealed class PresetDatabase
         }
     }
 
-    public IEnumerable<Preset> PresetsForClass(Class c) => VisiblePresets.Where(p => p.Modules.Any(m => RotationModuleRegistry.Modules[m.Type].Definition.Classes[(int)c]));
+    public IEnumerable<Preset> PresetsForClass(Class c) => VisiblePresets.Where(p => p.Modules.Any(m => m.Definition.Classes[(int)c]));
 
     public Preset? FindPresetByName(ReadOnlySpan<char> name, StringComparison cmp = StringComparison.CurrentCultureIgnoreCase)
     {

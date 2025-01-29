@@ -3,17 +3,17 @@
 public sealed class AutoFarm(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     public enum Track { General, Fate, Specific }
-    public enum GeneralStrategy { AllowPull, FightBack, Aggressive, Passive }
+    public enum GeneralStrategy { FightBack, AllowPull, Aggressive, Passive }
     public enum PriorityStrategy { None, Prioritize }
 
     public static RotationModuleDefinition Definition()
     {
-        RotationModuleDefinition res = new("Misc AI: Automatic farming", "Make sure this is ordered before standard rotation modules!", "Misc", "veyn", RotationModuleQuality.Basic, new(~0ul), 1000);
+        RotationModuleDefinition res = new("Automatic targeting", "Collection of utilities to automatically target and pull mobs based on different criteria.", "AI", "veyn", RotationModuleQuality.Basic, new(~0ul), 1000, 1, RotationModuleOrder.HighLevel);
 
         res.Define(Track.General).As<GeneralStrategy>("General")
-            .AddOption(GeneralStrategy.AllowPull, "AllowPull", "Automatically engage any mobs that are in combat with player; if player is not in combat, pull new mobs")
-            .AddOption(GeneralStrategy.FightBack, "FightBack", "Automatically engage any mobs that are in combat with player, but don't pull new mobs")
-            .AddOption(GeneralStrategy.Aggressive, "Aggressive", "Aggressively pull all mobs that are not yet in combat")
+            .AddOption(GeneralStrategy.FightBack, "FightBack", "Automatically engage any mobs that are in combat with player, but don't pull new mobs", supportedTargets: ActionTargets.Hostile)
+            .AddOption(GeneralStrategy.AllowPull, "AllowPull", "Automatically engage any mobs that are in combat with player; if player is not in combat, pull new mobs", supportedTargets: ActionTargets.Hostile)
+            .AddOption(GeneralStrategy.Aggressive, "Aggressive", "Aggressively pull all mobs that are not yet in combat", supportedTargets: ActionTargets.Hostile)
             .AddOption(GeneralStrategy.Passive, "Passive", "Do nothing");
 
         res.Define(Track.Fate).As<PriorityStrategy>("FATE")
@@ -29,7 +29,8 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var generalStrategy = strategy.Option(Track.General).As<GeneralStrategy>();
+        var generalOpt = strategy.Option(Track.General);
+        var generalStrategy = generalOpt.As<GeneralStrategy>();
         if (generalStrategy == GeneralStrategy.Passive)
             return;
 
@@ -40,17 +41,17 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
             _ => false
         };
 
-        Actor? closestTargetToSwitchTo = null; // non-null if we bump any priorities
-        float closestTargetDistSq = float.MaxValue;
+        Actor? switchTarget = null; // non-null if we bump any priorities
+        (int, float) switchTargetKey = (0, float.MinValue); // priority and negated squared distance
         void prioritize(AIHints.Enemy e, int prio)
         {
             e.Priority = prio;
 
-            var distSq = (e.Actor.Position - Player.Position).LengthSq();
-            if (distSq < closestTargetDistSq)
+            var key = (prio, -(e.Actor.Position - Player.Position).LengthSq());
+            if (key.CompareTo(switchTargetKey) > 0)
             {
-                closestTargetToSwitchTo = e.Actor;
-                closestTargetDistSq = distSq;
+                switchTarget = e.Actor;
+                switchTargetKey = key;
             }
         }
 
@@ -75,25 +76,25 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
             }
         }
 
-        // if we're not going to pull anyone, but we are already in combat and not targeting aggroed enemy, find one to target
-        if (closestTargetToSwitchTo == null && Player.InCombat && !(primaryTarget?.AggroPlayer ?? false))
+        // we are done with priority changes
+        // if we've updated any priorities, we need to re-sort target array
+        if (switchTarget != null)
         {
-            foreach (var e in Hints.PotentialTargets)
-            {
-                if (e.Actor.AggroPlayer)
-                {
-                    prioritize(e, 3);
-                }
-            }
-        }
-
-        // if we have target to attack, do that
-        if (closestTargetToSwitchTo != null)
-        {
-            // if we've updated any priorities, we need to re-sort target array
             Hints.PotentialTargets.SortByReverse(x => x.Priority);
             Hints.HighestPotentialTargetPriority = Math.Max(0, Hints.PotentialTargets[0].Priority);
-            primaryTarget = Hints.ForcedTarget = closestTargetToSwitchTo;
+        }
+
+        // if we did not select an enemy to pull, see if we can target something higher-priority than what we have now
+        if (switchTarget == null && Player.InCombat)
+        {
+            var curTargetPrio = Hints.FindEnemy(primaryTarget)?.Priority ?? int.MinValue;
+            switchTarget = ResolveTargetOverride(generalOpt.Value) ?? (curTargetPrio < Hints.HighestPotentialTargetPriority ? Hints.PriorityTargets.MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor : null);
+        }
+
+        // if we have target to switch to, do that
+        if (switchTarget != null)
+        {
+            primaryTarget = Hints.ForcedTarget = switchTarget;
         }
     }
 }
