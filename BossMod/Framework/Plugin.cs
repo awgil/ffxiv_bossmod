@@ -36,6 +36,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ConfigUI _configUI; // TODO: should be a proper window!
     private readonly BossModuleMainWindow _wndBossmod;
     private readonly BossModuleHintsWindow _wndBossmodHints;
+    private readonly ZoneModuleWindow _wndZone;
     private readonly ReplayManagementWindow _wndReplay;
     private readonly UIRotationWindow _wndRotation;
     private readonly AI.AIWindow _wndAI;
@@ -91,6 +92,7 @@ public sealed class Plugin : IDalamudPlugin
         _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
         _wndBossmod = new(_bossmod, _zonemod);
         _wndBossmodHints = new(_bossmod, _zonemod);
+        _wndZone = new(_zonemod);
         _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir);
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
         _wndAI = new(_ai);
@@ -112,6 +114,7 @@ public sealed class Plugin : IDalamudPlugin
         _wndAI.Dispose();
         _wndRotation.Dispose();
         _wndReplay.Dispose();
+        _wndZone.Dispose();
         _wndBossmodHints.Dispose();
         _wndBossmod.Dispose();
         _configUI.Dispose();

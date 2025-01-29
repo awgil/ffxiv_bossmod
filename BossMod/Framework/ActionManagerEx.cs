@@ -1,6 +1,7 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
@@ -292,12 +293,31 @@ public sealed unsafe class ActionManagerEx : IDisposable
                     // TODO: consider calling UsePetAction instead?..
                     return _useActionHook.Original(_inst, CSActionType.PetAction, action.ID, targetId, 0, ActionManager.UseActionMode.None, 0, null);
                 }
+
+            // fake action types
             case ActionType.BozjaHolsterSlot0:
             case ActionType.BozjaHolsterSlot1:
-                // fake action type - using action from bozja holster
                 var state = PublicContentBozja.GetState(); // note: if it's non-null, the director instance can't be null too
                 var holsterIndex = state != null ? state->HolsterActions.IndexOf((byte)action.ID) : -1;
                 return holsterIndex >= 0 && PublicContentBozja.GetInstance()->UseFromHolster((uint)holsterIndex, action.Type == ActionType.BozjaHolsterSlot1 ? 1u : 0);
+            case ActionType.Pomander:
+                var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+                var slot = _ws.DeepDungeon.GetPomanderSlot((PomanderID)action.ID);
+                if (dd != null && slot >= 0)
+                {
+                    dd->UsePomander((uint)slot);
+                    return true;
+                }
+                return false;
+            case ActionType.Magicite:
+                dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+                if (dd != null)
+                {
+                    dd->UseStone(action.ID);
+                    return true;
+                }
+                return false;
+
             default:
                 // fall back to UAL hook for everything not covered explicitly
                 return _inst->UseActionLocation((CSActionType)action.Type, action.ID, targetId, &targetPos, 0);
