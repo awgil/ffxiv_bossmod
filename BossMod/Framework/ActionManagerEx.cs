@@ -7,6 +7,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using System.Runtime.InteropServices;
 using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
@@ -374,7 +375,12 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
         // check whether movement is safe; block movement if not and if desired
         MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
-        MoveMightInterruptCast |= imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f; // if we're not casting, but will start soon, moving might interrupt future cast
+        // if we're not casting, but will start soon, moving might interrupt future cast
+        if (imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f)
+        {
+            // check LoS on target; blocking movement can cause AI mode to get stuck behind a wall trying to cast a spell on an unreachable target forever
+            MoveMightInterruptCast |= CheckActionLoS(imminentAction, _inst->ActionQueued ? _inst->QueuedTargetId : (AutoQueue.Target?.InstanceID ?? 0));
+        }
         bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast && _ws.Party.Player()?.MountId == 0;
         blockMovement |= Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold);
 
@@ -595,5 +601,34 @@ public sealed unsafe class ActionManagerEx : IDisposable
             return true;
         }
         return _setAutoAttackStateHook.Original(self, value, sendPacket, isInstant);
+    }
+
+    // just the LoS portion of ActionManager::GetActionInRangeOrLoS (which also checks range, which we don't care about, and also checks facing angle, which we don't care about)
+    private static bool CheckActionLoS(ActionID action, ulong targetID)
+    {
+        var row = Service.LuminaRow<Lumina.Excel.Sheets.Action>(action.ID);
+        if (row == null)
+            // unknown action, assume nothing
+            return true;
+
+        if (!row.Value.RequiresLineOfSight)
+            return true;
+
+        var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        var targetObj = GameObjectManager.Instance()->Objects.GetObjectByGameObjectId(targetID);
+        if (targetObj == null || targetObj->EntityId == player->EntityId)
+            return true;
+
+        var playerPos = *player->GetPosition();
+        var targetPos = *targetObj->GetPosition();
+
+        playerPos.Y += 2;
+        targetPos.Y += 2;
+
+        var offset = targetPos - playerPos;
+        var maxDist = offset.Magnitude;
+        var direction = offset / maxDist;
+
+        return !BGCollisionModule.RaycastMaterialFilter(playerPos, direction, out _, maxDist);
     }
 }
