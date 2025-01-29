@@ -46,6 +46,7 @@ ai:
 - nav decision delay
 - review TODO[cast-time]
 - remove old ai
+- revise misdirection, remove threshold hint
 - knockbacks, forced movement, pyretic/freezing, etc components should update max-cast hint
 - hardcoded cdplanner targeting track should be moved to a aimodule
 - utility modules / planner - how should planned casts work?

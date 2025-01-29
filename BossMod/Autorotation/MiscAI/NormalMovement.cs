@@ -134,15 +134,19 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             // assuming we wanna move at least for a second, speed is standard 6, threshold of 60 degrees would be fine for distances >= 6
             // for micro adjusts, if we move for 1 frame (1/60s), threshold of 60 degrees would be fine for distance 0.1, which is our typical threshold
             var threshold = 30.Degrees();
-            var allowMovement = World.Client.ForcedMovementDirection.AlmostEqual(Angle.FromDirection(dir), threshold.Rad)
-                && CalculateUnobstructedPathLength(World.Client.ForcedMovementDirection) >= Math.Min(4, distSq);
+            var allowMovement = World.Client.ForcedMovementDirection.AlmostEqual(Angle.FromDirection(dir), threshold.Rad);
+            if (allowMovement && destinationStrategy == DestinationStrategy.Pathfind)
+            {
+                // if we have a map, we can try to see if current direction has long enough unobstructed path
+                // TODO: maybe just check a single closest grid cell that we would intersect if we go forward?..
+                allowMovement = CalculateUnobstructedPathLength(World.Client.ForcedMovementDirection) >= Math.Min(4, distSq);
+            }
             Hints.ForcedMovement = allowMovement ? World.Client.ForcedMovementDirection.ToDirection().ToVec3(Player.PosRot.Y) : default;
 
             //var halfThreshold = Hints.MisdirectionThreshold; // even much smaller threshold seems to work fine in practice (TODO: reconsider...)
             //var idealDir = Angle.FromDirection(dir);
             //if (destinationStrategy == DestinationStrategy.Pathfind)
             //{
-            //    // if we have a map, we can try to see which alternative direction has longer unobstructed path
             //    var lenL = CalculateUnobstructedPathLength(idealDir + halfThreshold);
             //    var lenR = CalculateUnobstructedPathLength(idealDir - halfThreshold);
             //    if (lenL < 4)
