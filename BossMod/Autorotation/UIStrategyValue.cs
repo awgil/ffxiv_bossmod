@@ -33,6 +33,7 @@ public static class UIStrategyValue
             StrategyTarget.PartyWithLowestHP => PreviewParam((StrategyPartyFiltering)value.TargetParam),
             StrategyTarget.EnemyWithHighestPriority => $"{(StrategyEnemySelection)value.TargetParam}",
             StrategyTarget.EnemyByOID => $"{(moduleInfo?.ObjectIDType != null ? Enum.ToObject(moduleInfo.ObjectIDType, (uint)value.TargetParam).ToString() : "???")} (0x{value.TargetParam:X})",
+            StrategyTarget.PointWaymark => $"{(Waymark)value.TargetParam}",
             _ => ""
         };
         var offsetDetails = value.Target == StrategyTarget.PointAbsolute ? $" {value.Offset1}x{value.Offset2}" : value.Offset1 != 0 ? $" + R{value.Offset1}, dir={value.Offset2}" : "";
@@ -183,6 +184,14 @@ public static class UIStrategyValue
                     }
                 }
                 break;
+            case StrategyTarget.PointWaymark:
+                var wm = (Waymark)value.TargetParam;
+                if (UICombo.Enum("Waymark", ref wm))
+                {
+                    value.TargetParam = (int)wm;
+                    modified = true;
+                }
+                break;
         }
 
         if (supportedTargets.HasFlag(ActionTargets.Area))
@@ -211,7 +220,7 @@ public static class UIStrategyValue
         StrategyTarget.PartyWithLowestHP => supported.HasFlag(ActionTargets.Party),
         StrategyTarget.EnemyWithHighestPriority => supported.HasFlag(ActionTargets.Hostile),
         StrategyTarget.EnemyByOID => supported.HasFlag(ActionTargets.Hostile) && moduleInfo != null,
-        StrategyTarget.PointAbsolute or StrategyTarget.PointCenter => false,
+        StrategyTarget.PointAbsolute or StrategyTarget.PointCenter or StrategyTarget.PointWaymark => false,
         _ => true
     };
 

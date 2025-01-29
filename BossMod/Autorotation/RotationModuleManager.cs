@@ -127,6 +127,7 @@ public sealed class RotationModuleManager : IDisposable
     public WPos ResolveTargetLocation(StrategyTarget strategy, int param, float off1, float off2) => strategy switch
     {
         StrategyTarget.PointAbsolute => new(off1, off2),
+        StrategyTarget.PointWaymark => WorldState.Waymarks[(Waymark)param] is var wm && wm != null ? new WPos(wm.Value.XZ()) + off1 * off2.Degrees().ToDirection() : default,
         StrategyTarget.PointCenter or StrategyTarget.Automatic => (Bossmods.ActiveModule?.Center + off1 * off2.Degrees().ToDirection()) ?? Player?.Position ?? default,
         _ => (ResolveTargetOverride(strategy, param)?.Position + off1 * off2.Degrees().ToDirection()) ?? Player?.Position ?? default,
     };
