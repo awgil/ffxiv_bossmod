@@ -184,8 +184,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             return;
 
         Hints.GoalZones.Add(goal);
-        if (castTime == 0 || Hints.MaxCastTimeEstimate >= (castTime - 0.5f))
-            Hints.ActionsToExecute.Push(attack, primaryTarget, ActionQueue.Priority.High, targetPos: primaryTarget.PosRot.XYZ());
+        Hints.ActionsToExecute.Push(attack, primaryTarget, ActionQueue.Priority.High, targetPos: primaryTarget.PosRot.XYZ(), castTime: castTime - 0.5f);
     }
 
     private bool ShouldPotion(StrategyValues strategy)

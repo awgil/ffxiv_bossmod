@@ -173,6 +173,14 @@ public sealed class ActionDefinitions : IDisposable
     public static readonly ActionID IDPotionInt = new(ActionType.Item, 1044165); // hq grade 2 gemdraught of intelligence
     public static readonly ActionID IDPotionMnd = new(ActionType.Item, 1044166); // hq grade 2 gemdraught of mind
 
+    // deep dungeon consumables
+    public static readonly ActionID IDSustainingPotion = new(ActionType.Item, 20309);
+    public static readonly ActionID IDMaxPotion = new(ActionType.Item, 1013637);
+    public static readonly ActionID IDEmpyreanPotion = new(ActionType.Item, 23163);
+    public static readonly ActionID IDSuperPotion = new(ActionType.Item, 1023167);
+    public static readonly ActionID IDOrthosPotion = new(ActionType.Item, 38944);
+    public static readonly ActionID IDHyperPotion = new(ActionType.Item, 1038956);
+
     // special general actions that we support
     public static readonly ActionID IDGeneralLimitBreak = new(ActionType.General, 3);
     public static readonly ActionID IDGeneralSprint = new(ActionType.General, 4);
@@ -218,6 +226,13 @@ public sealed class ActionDefinitions : IDisposable
         RegisterPotion(IDPotionVit);
         RegisterPotion(IDPotionInt);
         RegisterPotion(IDPotionMnd);
+
+        RegisterPotion(IDSustainingPotion, 1.1f);
+        RegisterPotion(IDMaxPotion, 1.1f);
+        RegisterPotion(IDEmpyreanPotion, 1.1f);
+        RegisterPotion(IDSuperPotion, 1.1f);
+        RegisterPotion(IDOrthosPotion, 1.1f);
+        RegisterPotion(IDHyperPotion, 1.1f);
 
         // special content actions - bozja, deep dungeons, etc
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
@@ -380,7 +395,7 @@ public sealed class ActionDefinitions : IDisposable
 
     private void Register(ActionID aid, ActionDefinition definition) => _definitions.Add(aid, definition);
 
-    private void RegisterPotion(ActionID aid)
+    private void RegisterPotion(ActionID aid, float animLock = 0.6f)
     {
         var baseId = aid.ID % 500000;
         var item = ItemData(baseId);
@@ -399,6 +414,7 @@ public sealed class ActionDefinitions : IDisposable
             CastTime = castTime,
             MainCooldownGroup = cdgroup,
             Cooldown = cooldown,
+            InstantAnimLock = animLock,
         };
         var aidHQ = new ActionID(ActionType.Item, baseId + 1000000);
         _definitions[aidHQ] = new(aidHQ)
@@ -408,6 +424,7 @@ public sealed class ActionDefinitions : IDisposable
             CastTime = castTime,
             MainCooldownGroup = cdgroup,
             Cooldown = cooldown * 0.9f,
+            InstantAnimLock = animLock
         };
     }
 
