@@ -1,7 +1,5 @@
 immediate plans
 - get rid of legacyxxx (waiting for net9)
-- ai refactoring
--- misdirection pathfinding
 - review enemy prios usage - should framework do anything about any prios? like taunt at -4...
 - freeze
 - gaze avoidance + forced movement fail
@@ -44,8 +42,10 @@ general:
 - ManualActionQueueTweak.Push should not special case gcds?..
 
 ai:
+- auto retarget: higher prior / higher hp with same prio
 - nav decision delay
 - review TODO[cast-time]
+- remove old ai
 - knockbacks, forced movement, pyretic/freezing, etc components should update max-cast hint
 - hardcoded cdplanner targeting track should be moved to a aimodule
 - utility modules / planner - how should planned casts work?
