@@ -321,7 +321,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             // many eventobj interactions immediately start some cast animation; if we keep trying to approach the object after a successful interaction, it will interrupt the cast, forcing us to do it again
             _hints.ForcedMovement = default;
-            FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->InteractWithObject(GetActorObject(target));
+            FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->InteractWithObject(GetActorObject(target), false);
             _throttleInteract = _ws.FutureTime(0.1f);
         }
     }
