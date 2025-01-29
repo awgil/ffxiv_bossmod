@@ -42,7 +42,6 @@ general:
 - ManualActionQueueTweak.Push should not special case gcds?..
 
 ai:
-- auto retarget: higher prior / higher hp with same prio
 - nav decision delay
 - review TODO[cast-time]
 - remove old ai
