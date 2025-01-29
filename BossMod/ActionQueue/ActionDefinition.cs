@@ -120,7 +120,13 @@ public sealed record class ActionDefinition(ActionID ID)
         if (MainCooldownGroup < 0)
             return 0;
         var cdg = cooldowns[ActualMainCooldownGroup(dutyActions)];
-        return !IsMultiCharge || cdg.Total < Cooldown ? cdg.Remaining : Cooldown - cdg.Elapsed;
+        var max = MaxChargesAtCap();
+
+        // GCDs with multiple charges can be affected OR unaffected by haste depending on how many charges the user currently has access to
+        // the only separate-cooldown GCD that increases to >1 charge via trait is currently MCH Drill; others have multiple charges at unlock - SGE Phlegma, RPR Soul Slice, BLU Surpanakha
+        var cooldownSingleCharge = IsGCD && max > 1 && cdg.Total > 0 ? cdg.Total / max : Cooldown;
+
+        return !IsMultiCharge || cdg.Total < cooldownSingleCharge ? cdg.Remaining : cooldownSingleCharge - cdg.Elapsed;
     }
 
     public float ExtraReadyIn(ReadOnlySpan<Cooldown> cooldowns) => ExtraCooldownGroup >= 0 ? cooldowns[ExtraCooldownGroup].Remaining : 0;
