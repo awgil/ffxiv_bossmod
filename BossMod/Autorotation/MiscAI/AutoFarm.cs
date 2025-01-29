@@ -8,7 +8,7 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
 
     public static RotationModuleDefinition Definition()
     {
-        RotationModuleDefinition res = new("Misc AI: Automatic farming", "Collection of utilities to automatically target and pull mobs based on different criteria.", "Misc", "veyn", RotationModuleQuality.Basic, new(~0ul), 1000, 1, RotationModuleOrder.HighLevel);
+        RotationModuleDefinition res = new("Automatic targeting", "Collection of utilities to automatically target and pull mobs based on different criteria.", "AI", "veyn", RotationModuleQuality.Basic, new(~0ul), 1000, 1, RotationModuleOrder.HighLevel);
 
         res.Define(Track.General).As<GeneralStrategy>("General")
             .AddOption(GeneralStrategy.FightBack, "FightBack", "Automatically engage any mobs that are in combat with player, but don't pull new mobs", supportedTargets: ActionTargets.Hostile)
