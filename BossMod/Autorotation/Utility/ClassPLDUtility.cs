@@ -34,7 +34,6 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.DivineVeil, "DivineVeil", "Veil", 220, PLD.AID.DivineVeil, 30); //90s CD, 30s duration
         DefineSimpleConfig(res, Track.PassageOfArms, "PassageOfArms", "Arms", 470, PLD.AID.PassageOfArms, 3); //120s CD, 18s max duration
         DefineSimpleConfig(res, Track.HallowedGround, "HallowedGround", "Inv", 400, PLD.AID.HallowedGround, 10); //420s CD, 10s duration
-        //DefineSimpleConfig(res, Track.Clemency, "Clemency", "Clem", 420, PLD.AID.Clemency); (TODO: we don't really care about this, do we? maybe later)
 
         return res;
     }
@@ -42,12 +41,11 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3, IDStanceApply, IDStanceRemove, (uint)PLD.SID.IronWill, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Cover), PLD.AID.Cover, ResolveTargetOverride(strategy.Option(Track.Cover).Value) ?? Player); //Cover execution
+        ExecuteSimple(strategy.Option(Track.Cover), PLD.AID.Cover, ResolveTargetOverride(strategy.Option(Track.Cover).Value) ?? primaryTarget ?? Player); //Cover execution
         ExecuteSimple(strategy.Option(Track.Bulwark), PLD.AID.Bulwark, Player); //Bulwark execution
         ExecuteSimple(strategy.Option(Track.DivineVeil), PLD.AID.DivineVeil, Player); //DivineVeil execution
         ExecuteSimple(strategy.Option(Track.PassageOfArms), PLD.AID.PassageOfArms, Player); //PassageOfArms execution
         ExecuteSimple(strategy.Option(Track.HallowedGround), PLD.AID.HallowedGround, Player); //HallowedGround execution
-        //DefineSimpleConfig(res, Track.Clemency, "Clemency", "Clem", 420, PLD.AID.Clemency); (TODO: we don't really care about this, do we? maybe later)
 
         var shel = strategy.Option(Track.Sheltron);
         var shelAction = shel.As<ShelOption>() switch

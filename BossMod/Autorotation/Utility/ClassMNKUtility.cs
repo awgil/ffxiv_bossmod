@@ -3,11 +3,9 @@
 public sealed class ClassMNKUtility(RotationModuleManager manager, Actor player) : RoleMeleeUtility(manager, player)
 {
     public enum Track { Mantra = SharedTrack.Count, RiddleOfEarth, Thunderclap }
-    public enum DashStrategy { None, Force, GapClose }
+    public enum DashStrategy { None, GapClose, GapCloseHold1, GapCloseHold2 }
     public float CDleft => World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining;
     public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
-
-    public const float DashMinCD = 0.8f; //Triple-weaving dash is not a good idea, since it might delay gcd for longer than normal anim lock
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(MNK.AID.FinalHeaven);
 
@@ -21,8 +19,9 @@ public sealed class ClassMNKUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Thunderclap).As<DashStrategy>("Thunderclap", "Dash", 20)
             .AddOption(DashStrategy.None, "None", "No use")
-            .AddOption(DashStrategy.Force, "Force", "Use ASAP", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 35)
-            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 35)
+            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range; uses all charges if needed", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 35)
+            .AddOption(DashStrategy.GapCloseHold1, "GapCloseHold1", "Use as gapcloser if outside melee range; holds 1 charge for manual usage", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 35)
+            .AddOption(DashStrategy.GapCloseHold2, "GapCloseHold2", "Use as gapcloser if outside melee range; holds 2 charges for manual usage", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 84)
             .AddAssociatedActions(MNK.AID.Thunderclap);
 
         return res;
@@ -35,17 +34,19 @@ public sealed class ClassMNKUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.RiddleOfEarth), MNK.AID.RiddleOfEarth, Player);
 
         var dash = strategy.Option(Track.Thunderclap);
-        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
         var dashStrategy = strategy.Option(Track.Thunderclap).As<DashStrategy>();
-        if (ShouldUseDash(dashStrategy, dashTarget))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(MNK.AID.Thunderclap), dashTarget, dash.Priority());
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
+        var distance = Player.DistanceToHitbox(dashTarget);
+        var cd = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(MNK.AID.Thunderclap)!.MainCooldownGroup].Remaining;
+        var shouldDash = dashStrategy switch
+        {
+            DashStrategy.None => false,
+            DashStrategy.GapClose => distance is > 3f and <= 20f,
+            DashStrategy.GapCloseHold1 => distance is > 3f and <= 20f && cd <= 30.6f,
+            DashStrategy.GapCloseHold2 => distance is > 3f and <= 20f && cd <= 0.6f,
+            _ => false,
+        };
+        if (shouldDash)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(MNK.AID.Thunderclap), dashTarget, dash.Priority(), dash.Value.ExpireIn);
     }
-
-    private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
-    {
-        DashStrategy.None => false,
-        DashStrategy.Force => CDleft >= DashMinCD,
-        DashStrategy.GapClose => !InMeleeRange(primaryTarget),
-        _ => false,
-    };
 }

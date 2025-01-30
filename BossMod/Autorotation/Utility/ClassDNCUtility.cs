@@ -33,7 +33,8 @@ public sealed class ClassDNCUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Improvisation), DNC.AID.Improvisation, Player);
 
         var samba = strategy.Option(Track.ShieldSamba);
-        if (samba.As<SambaOption>() != SambaOption.None)
+        var hasDefensive = StatusDetails(Player, BRD.SID.Troubadour, Player.InstanceID).Left > 5f || StatusDetails(Player, DNC.SID.ShieldSamba, Player.InstanceID).Left > 5f || StatusDetails(Player, MCH.SID.Tactician, Player.InstanceID).Left > 5f;
+        if (samba.As<SambaOption>() != SambaOption.None && !hasDefensive)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(DNC.AID.ShieldSamba), Player, samba.Priority(), samba.Value.ExpireIn);
     }
 }

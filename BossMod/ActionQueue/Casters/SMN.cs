@@ -126,7 +126,6 @@ public enum SID : uint
     None = 0,
     Sleep = 3, // applied by Sleep to target
     FurtherRuin = 2701, // applied by Energy Drain, Energy Siphon to self
-    LucidDreaming = 1204, // applied by Lucid Dreaming to self
     SearingLight = 2703, // applied by Searing Light to self/target
     TitansFavor = 2853, // applied by Topaz Rite, Topaz Catastrophe to self
     Rekindle = 2704, // applied by Rekindle to self
@@ -140,8 +139,9 @@ public enum SID : uint
 
     //Shared
     Addle = ClassShared.SID.Addle, // applied by Addle to target
+    Surecast = ClassShared.SID.Surecast, // applied by Surecast to self
+    LucidDreaming = ClassShared.SID.LucidDreaming, // applied by Lucid Dreaming to self
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
-
 }
 
 public sealed class Definitions : IDisposable

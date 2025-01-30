@@ -87,8 +87,6 @@ public enum TraitID : uint
 public enum SID : uint
 {
     None = 0,
-    LucidDreaming = 1204, // applied by Lucid Dreaming to self
-    Swiftcast = 167, // applied by Swiftcast to self
     VerfireReady = 1234,
     VerstoneReady = 1235,
     Acceleration = 1238,
@@ -101,6 +99,9 @@ public enum SID : uint
 
     //Shared
     Addle = ClassShared.SID.Addle, // applied by Addle to target
+    Surecast = ClassShared.SID.Surecast, // applied by Surecast to self
+    LucidDreaming = ClassShared.SID.LucidDreaming, // applied by Lucid Dreaming to self
+    Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
 public sealed class Definitions : IDisposable

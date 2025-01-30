@@ -21,15 +21,15 @@ public abstract class RoleCasterUtility(RotationModuleManager manager, Actor pla
             .AddAssociatedActions(ClassShared.AID.Addle);
 
         DefineSimpleConfig(def, SharedTrack.Sleep, "Sleep", "", -10, ClassShared.AID.Sleep);
-        DefineSimpleConfig(def, SharedTrack.LucidDreaming, "LucidDreaming", "Lucid", 30, ClassShared.AID.LucidDreaming, 21);
+        DefineSimpleConfig(def, SharedTrack.LucidDreaming, "LucidDreaming", "Lucid D.", 30, ClassShared.AID.LucidDreaming, 21);
 
-        def.Define(SharedTrack.Swiftcast).As<SwiftcastOption>("Swiftcast", "Swift", 20)
+        def.Define(SharedTrack.Swiftcast).As<SwiftcastOption>("Swiftcast", "Swiftcast", 20)
             .AddOption(SwiftcastOption.None, "None", "Do not use automatically")
             .AddOption(SwiftcastOption.Use, "Use", "Use Swiftcast (10s)", 60, 10, ActionTargets.Self, 22, 93)
             .AddOption(SwiftcastOption.UseEx, "UseEx", "Use Swiftcast (15s)", 40, 10, ActionTargets.Self, 94)
             .AddAssociatedActions(ClassShared.AID.Swiftcast);
 
-        DefineSimpleConfig(def, SharedTrack.Surecast, "Surecast", "Anti-KB", 10, ClassShared.AID.Surecast, 6); // note: secondary effect 15s
+        DefineSimpleConfig(def, SharedTrack.Surecast, "Surecast", "", 10, ClassShared.AID.Surecast, 6); // note: secondary effect 15s
     }
 
     protected void ExecuteShared(StrategyValues strategy, ActionID lb3, Actor? primaryTarget)

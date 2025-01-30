@@ -4,11 +4,8 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
 {
     public enum Track { Camouflage = SharedTrack.Count, Nebula, Aurora, Superbolide, HeartOfLight, HeartOfCorundum, Trajectory } //Our defensives and utilities
     public enum HoCOption { None, HeartOfStone, HeartOfCorundum } //Checks for proper HoC
-    public enum AuroraStrategy { None, Force } //Aurora
-    public enum DashStrategy { None, GapClose } //Gapcloser purposes
-    public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
-    public float GetStatusDetail(Actor target, GNB.SID sid) => StatusDetails(target, sid, Player.InstanceID).Left; //Checks if Status effect is on target
-    public bool HasEffect(Actor target, GNB.SID sid, float duration) => GetStatusDetail(target, sid) < duration; //Checks if anyone has a status effect
+    public enum AuroraStrategy { None, Force, ForceHold1 } //Aurora
+    public enum DashStrategy { None, GapClose, GapCloseHold1 } //Gapcloser purposes
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(GNB.AID.GunmetalSoul);
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(GNB.AID.RoyalGuard);
@@ -25,6 +22,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         res.Define(Track.Aurora).As<AuroraStrategy>("Aurora", "", 150) //60s (120s total), 18s duration, 2 charges
             .AddOption(AuroraStrategy.None, "None", "Do not use automatically")
             .AddOption(AuroraStrategy.Force, "Use", "Use Aurora", 60, 18, ActionTargets.Self | ActionTargets.Party, 45)
+            .AddOption(AuroraStrategy.ForceHold1, "UseHold1", "Use Aurora; Holds 1 charge for manual usage", 60, 18, ActionTargets.Self | ActionTargets.Party, 82)
             .AddAssociatedActions(GNB.AID.Aurora);
 
         DefineSimpleConfig(res, Track.Superbolide, "Superbolide", "Bolide", 600, GNB.AID.Superbolide, 10); //360s CD, 10s duration
@@ -39,6 +37,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         res.Define(Track.Trajectory).As<DashStrategy>("Trajectory", "Dash", 20)
             .AddOption(DashStrategy.None, "None", "No use")
             .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 30, 0, ActionTargets.Hostile, 56)
+            .AddOption(DashStrategy.GapCloseHold1, "GapCloseHold1", "Use as gapcloser if outside melee range; conserves 1 charge for manual usage", 60, 0, ActionTargets.Hostile, 84)
             .AddAssociatedActions(GNB.AID.Trajectory);
 
         return res;
@@ -53,41 +52,40 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.HeartOfLight), GNB.AID.HeartOfLight, Player);
 
         //Aurora execution
-        var aur = strategy.Option(Track.Aurora);
-        var aurTarget = ResolveTargetOverride(aur.Value) ?? primaryTarget ?? Player; //Smart-Targeting
-        var aurStatus = HasEffect(aurTarget, GNB.SID.Aurora, 17); //Checks if status is present
-        var aurora = aur.As<AuroraStrategy>() switch
+        var aurora = strategy.Option(Track.Aurora);
+        var auroraTarget = ResolveTargetOverride(aurora.Value) ?? primaryTarget ?? Player; //Smart-Targeting
+        var auroraStrat = aurora.As<AuroraStrategy>();
+        var auroraCD = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(DRK.AID.Oblation)!.MainCooldownGroup].Remaining;
+        var hasAurora = StatusDetails(auroraTarget, GNB.SID.Aurora, Player.InstanceID).Left > 0.1f; //Checks if status is present
+        if (auroraStrat != AuroraStrategy.None && !hasAurora)
         {
-            AuroraStrategy.Force => GNB.AID.Aurora,
-            _ => default
-        };
-        if (aurora != default && !aurStatus)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(GNB.AID.Aurora), aurTarget, aur.Priority(), aur.Value.ExpireIn);
+            if ((auroraStrat == AuroraStrategy.Force) ||
+                (auroraStrat == AuroraStrategy.ForceHold1) && auroraCD <= 0.6f)
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(GNB.AID.Aurora), auroraTarget, aurora.Priority(), aurora.Value.ExpireIn);
+        }
 
         //Heart of Stone / Corundum execution
         var hoc = strategy.Option(Track.HeartOfCorundum);
         var hocTarget = ResolveTargetOverride(hoc.Value) ?? CoTank() ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
-        var hocStrat = hoc.As<HoCOption>() switch
-        {
-            HoCOption.HeartOfStone => GNB.AID.HeartOfStone,
-            HoCOption.HeartOfCorundum => GNB.AID.HeartOfCorundum,
-            _ => default
-        };
+        var BestHOC = ActionUnlocked(ActionID.MakeSpell(GNB.AID.HeartOfCorundum)) ? GNB.AID.HeartOfCorundum : GNB.AID.HeartOfStone;
+        var hocStrat = hoc.As<HoCOption>();
         if (hocStrat != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ActionUnlocked(ActionID.MakeSpell(GNB.AID.HeartOfCorundum)) ? GNB.AID.HeartOfCorundum : GNB.AID.HeartOfStone), hocTarget, hoc.Priority(), hoc.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(BestHOC), hocTarget, hoc.Priority(), hoc.Value.ExpireIn);
 
         //Trajectory execution
         var dash = strategy.Option(Track.Trajectory);
-        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget;
         var dashStrategy = strategy.Option(Track.Trajectory).As<DashStrategy>();
-        if (ShouldUseDash(dashStrategy, primaryTarget))
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
+        var distance = Player.DistanceToHitbox(dashTarget);
+        var cd = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(GNB.AID.Trajectory)!.MainCooldownGroup].Remaining;
+        var shouldDash = dashStrategy switch
+        {
+            DashStrategy.None => false,
+            DashStrategy.GapClose => distance is > 3f and <= 20f && cd <= 30.5f,
+            DashStrategy.GapCloseHold1 => distance is > 3f and <= 20f && cd < 0.6f,
+            _ => false,
+        };
+        if (shouldDash)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(GNB.AID.Trajectory), dashTarget, dash.Priority(), dash.Value.ExpireIn);
     }
-    private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
-    {
-        DashStrategy.None => false,
-        DashStrategy.GapClose => !InMeleeRange(primaryTarget),
-        _ => false,
-    };
-
 }

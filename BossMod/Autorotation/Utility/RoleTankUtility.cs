@@ -41,9 +41,9 @@ public abstract class RoleTankUtility(RotationModuleManager manager, Actor playe
     {
         ExecuteSimple(strategy.Option(SharedTrack.Sprint), ClassShared.AID.Sprint, Player);
         ExecuteSimple(strategy.Option(SharedTrack.Rampart), ClassShared.AID.Rampart, Player);
-        ExecuteSimple(strategy.Option(SharedTrack.LowBlow), ClassShared.AID.LowBlow, primaryTarget);
-        ExecuteSimple(strategy.Option(SharedTrack.Provoke), ClassShared.AID.Provoke, primaryTarget);
-        ExecuteSimple(strategy.Option(SharedTrack.Interject), ClassShared.AID.Interject, primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.LowBlow), ClassShared.AID.LowBlow, ResolveTargetOverride(strategy.Option(SharedTrack.LowBlow).Value) ?? primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.Provoke), ClassShared.AID.Provoke, ResolveTargetOverride(strategy.Option(SharedTrack.Provoke).Value) ?? primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.Interject), ClassShared.AID.Interject, ResolveTargetOverride(strategy.Option(SharedTrack.Interject).Value) ?? primaryTarget);
         ExecuteSimple(strategy.Option(SharedTrack.Shirk), ClassShared.AID.Shirk, CoTank());
         ExecuteSimple(strategy.Option(SharedTrack.ArmsLength), ClassShared.AID.ArmsLength, Player);
 

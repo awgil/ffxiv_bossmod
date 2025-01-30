@@ -28,15 +28,17 @@ public sealed class ClassBLMUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Manaward), BLM.AID.Manaward, Player);
 
         var dash = strategy.Option(Track.AetherialManipulation);
-        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
         var dashStrategy = strategy.Option(Track.AetherialManipulation).As<DashStrategy>();
-        if (ShouldUseDash(dashStrategy, dashTarget))
+        var dashTarget = ResolveTargetOverride(dash.Value); //Smart-Targeting: Target needs to be set in autorotation or CDPlanner to prevent unexpected behavior
+        var distance = Player.DistanceToHitbox(dashTarget);
+        var cd = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(BLM.AID.AetherialManipulation)!.MainCooldownGroup].Remaining;
+        var shouldDash = dashStrategy switch
+        {
+            DashStrategy.None => false,
+            DashStrategy.Force => distance <= 25 && cd < 0.6f,
+            _ => false,
+        };
+        if (shouldDash)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BLM.AID.AetherialManipulation), dashTarget, dash.Priority(), dash.Value.ExpireIn);
     }
-    private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
-    {
-        DashStrategy.None => false,
-        DashStrategy.Force => true,
-        _ => false,
-    };
 }

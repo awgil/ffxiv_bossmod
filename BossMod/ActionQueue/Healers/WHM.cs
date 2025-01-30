@@ -91,11 +91,9 @@ public enum SID : uint
     Medica2 = 150, // applied by Medica2 to targets, hot
     Freecure = 155, // applied by Cure1 to self, next cure2 is free
     ThinAir = 1217, // applied by Thin Air to self, next gcd costs no mp
-    LucidDreaming = 1204, // applied by Lucid Dreaming to self, mp regen
     DivineBenison = 1218, // applied by Divine Benison to target, shield
     Confession = 1219, // applied by Plenary Indulgence to self, heal buff
     Temperance = 1872, // applied by Temperance to self, heal and mitigate buff
-    Surecast = 160, // applied by Surecast to self, knockback immune
     PresenceOfMind = 157, // applied by Presence of Mind to self, damage buff
     Regen = 158, // applied by Regen to target, hp regen
     Asylum = 1911, // applied by Asylum to target, hp regen
@@ -109,6 +107,8 @@ public enum SID : uint
     DivineCaress = 3903, // applied by Divine Caress to self/target
 
     //Shared
+    Surecast = ClassShared.SID.Surecast, // applied by Surecast to self
+    LucidDreaming = ClassShared.SID.LucidDreaming, // applied by Lucid Dreaming to self
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 

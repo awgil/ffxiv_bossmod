@@ -16,8 +16,8 @@ public sealed class ClassNINUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Shukuchi).As<DashStrategy>("Shukuchi", "Dash", 20)
             .AddOption(DashStrategy.None, "Automatic", "No use.")
-            .AddOption(DashStrategy.GapClose, "GapClose", "Use Shukuchi as gapcloser if outside melee range of any target; will dash to target selected via CDPlanner. If none selected, will dash to current target or not at all if no target", 60, 0, ActionTargets.All, 40)
-            .AddOption(DashStrategy.GapCloseHold1, "GapCloseHold1", "Use Shukuchi as gapcloser if outside melee range; conserves 1 charge for manual usage", 60, 0, ActionTargets.All, 76)
+            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 60, 0, ActionTargets.Hostile, 45)
+            .AddOption(DashStrategy.GapCloseHold1, "GapCloseHold1", "Use as gapcloser if outside melee range; conserves 1 charge for manual usage", 60, 0, ActionTargets.Hostile, 74)
             .AddAssociatedActions(NIN.AID.Shukuchi);
 
         return res;
@@ -29,19 +29,20 @@ public sealed class ClassNINUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.ShadeShift), NIN.AID.ShadeShift, Player);
 
         var dash = strategy.Option(Track.Shukuchi);
-        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget;
         var dashStrategy = strategy.Option(Track.Shukuchi).As<DashStrategy>();
-        if (ShouldUseDash(dashStrategy, primaryTarget))
-            QueueOGCD(NIN.AID.Shukuchi, dashTarget);
-
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
+        var distance = Player.DistanceToHitbox(dashTarget);
+        var cd = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(NIN.AID.Shukuchi)!.MainCooldownGroup].Remaining;
+        var shouldDash = dashStrategy switch
+        {
+            DashStrategy.None => false,
+            DashStrategy.GapClose => distance is > 3f and <= 20f,
+            DashStrategy.GapCloseHold1 => distance is > 3f and <= 20f && cd <= 60.5f,
+            _ => false,
+        };
+        if (shouldDash)
+            QueueOGCD(NIN.AID.Shukuchi, dashTarget, 3000);
     }
-    private bool ShouldUseDash(DashStrategy strategy, Actor? primaryTarget) => strategy switch
-    {
-        DashStrategy.None => false,
-        DashStrategy.GapClose => Player.DistanceToHitbox(primaryTarget) is > 3 and <= 20,
-        DashStrategy.GapCloseHold1 => Player.DistanceToHitbox(primaryTarget) is > 3 and <= 20 && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(DRG.AID.WingedGlide)!.MainCooldownGroup].Remaining <= 59.9f,
-        _ => false,
-    };
 
     #region Core Execution Helpers
 

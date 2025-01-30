@@ -95,21 +95,46 @@ public enum TraitID : uint
 public enum SID : uint
 {
     None = 0,
-    LucidDreaming = 1204, // applied by Lucid Dreaming to self
-    Surecast = 160, // applied by Surecast to self
     Combust = 838,
-    AspectedHelios = 836,
-    AspectedBenefic = 835,
-    HeliosConjunction = 3894,
-    Lightspeed = 841,
     CombustII = 843,
     CombustIII = 1881,
+    AspectedBenefic = 835,
+    AspectedHelios = 836,
+    HeliosConjunction = 3894,
+    Horoscope = 1890,
+    HoroscopeHelios = 1891,
+    NeutralSect = 1892,
+    NeutralSectShield = 1921,
     Divination = 1878,
-    TheBalance = 3887,
-    TheSpear = 3889,
+    GiantDominance = 1248,
+    ClarifyingDraw = 2713,
+    Macrocosmos = 2718,
+    Lightspeed = 841,
+    SelfSynastry = 845,
+    TargetSynastry = 846,
     Divining = 3893,
 
+    //Cards
+    TheBalance = 3887,
+    TheSpear = 3889,
+    LordOfCrownsDrawn = 2054,
+    LadyOfCrownsDrawn = 2055,
+    BalanceDrawn = 913,
+    BoleDrawn = 914,
+    ArrowDrawn = 915,
+    SpearDrawn = 916,
+    EwerDrawn = 917,
+    SpireDrawn = 918,
+    BalanceBuff = 3887,
+    BoleBuff = 3890,
+    ArrowBuff = 3888,
+    SpearBuff = 3889,
+    EwerBuff = 3891,
+    SpireBuff = 3892,
+
     //Shared
+    Surecast = ClassShared.SID.Surecast, // applied by Surecast to self
+    LucidDreaming = ClassShared.SID.LucidDreaming, // applied by Lucid Dreaming to self
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 

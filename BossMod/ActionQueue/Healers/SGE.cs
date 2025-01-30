@@ -86,11 +86,9 @@ public enum SID : uint
 {
     None = 0,
     Sprint = 50, // applied by Sprint to self
-    Surecast = 160, // applied by Surecast to self
     Eukrasia = 2606,
     Kardion = 2605, // applied by Kardia to self
     Kardia = 2604, // applied by Kardia to self
-    LucidDreaming = 1204, // applied by Lucid Dreaming to self
     Haima = 2612, // applied by Haima to self
     Haimatinon = 2642, // applied by Haima to self
     Panhaima = 2613, // applied by Panhaima to self
@@ -114,6 +112,8 @@ public enum SID : uint
     EukrasianDyskrasia = 3897, // applied by Eukrasian Dyskrasia to target
 
     //Shared
+    Surecast = ClassShared.SID.Surecast, // applied by Surecast to self
+    LucidDreaming = ClassShared.SID.LucidDreaming, // applied by Lucid Dreaming to self
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
