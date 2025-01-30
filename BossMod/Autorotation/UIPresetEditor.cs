@@ -15,7 +15,7 @@ public sealed class UIPresetEditor
     private readonly PresetDatabase _db;
     private int _sourcePresetIndex;
     private bool _sourcePresetDefault;
-    public readonly Preset Preset;
+    public readonly Preset Preset; // note: this is an edited copy, and as such it never has transient settings
     public bool Modified { get; private set; }
     public bool NameConflict { get; private set; }
     private int _selectedModuleIndex = -1;
@@ -230,7 +230,7 @@ public sealed class UIPresetEditor
             {
                 for (int i = 0; i < ms.Settings.Count; ++i)
                 {
-                    var persistent = i < ms.NumSerialized;
+                    var persistent = i < ms.NumSerialized; // note: it's always false here, because we always clone actual preset for editing; still keeping it here just in case the assumptions change
                     ref var m = ref ms.Settings.Ref(i);
                     var cfg = ms.Definition.Configs[m.Track];
                     if (ImGui.Selectable($"[{i + 1}]{(persistent ? "" : " (transient)")} {cfg.UIName} [{m.Mod}] = {cfg.Options[m.Value.Option].UIName}###setting{_settingGuids[i]}", i == _selectedSettingIndex))
