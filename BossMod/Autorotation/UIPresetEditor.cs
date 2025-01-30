@@ -228,12 +228,11 @@ public sealed class UIPresetEditor
         {
             if (list)
             {
-                for (int i = 0; i < ms.Settings.Count; ++i)
+                for (int i = 0; i < ms.SerializedSettings.Count; ++i)
                 {
-                    var persistent = i < ms.NumSerialized; // note: it's always false here, because we always clone actual preset for editing; still keeping it here just in case the assumptions change
-                    ref var m = ref ms.Settings.Ref(i);
+                    ref var m = ref ms.SerializedSettings.Ref(i);
                     var cfg = ms.Definition.Configs[m.Track];
-                    if (ImGui.Selectable($"[{i + 1}]{(persistent ? "" : " (transient)")} {cfg.UIName} [{m.Mod}] = {cfg.Options[m.Value.Option].UIName}###setting{_settingGuids[i]}", i == _selectedSettingIndex))
+                    if (ImGui.Selectable($"[{i + 1}] {cfg.UIName} [{m.Mod}] = {cfg.Options[m.Value.Option].UIName}###setting{_settingGuids[i]}", i == _selectedSettingIndex))
                     {
                         _selectedSettingIndex = i;
                     }
@@ -241,11 +240,11 @@ public sealed class UIPresetEditor
                     if (ImGui.IsItemActive() && !ImGui.IsItemHovered())
                     {
                         var j = ImGui.GetMouseDragDelta().Y < 0 ? i - 1 : i + 1;
-                        if (j >= 0 && j < ms.Settings.Count && persistent == (j < ms.NumSerialized))
+                        if (j >= 0 && j < ms.SerializedSettings.Count)
                         {
-                            (ms.Settings[i], ms.Settings[j]) = (ms.Settings[j], ms.Settings[i]);
+                            (ms.SerializedSettings[i], ms.SerializedSettings[j]) = (ms.SerializedSettings[j], ms.SerializedSettings[i]);
                             (_settingGuids[i], _settingGuids[j]) = (_settingGuids[j], _settingGuids[i]);
-                            Modified |= persistent;
+                            Modified = true;
                             if (_selectedSettingIndex == i)
                                 _selectedSettingIndex = j;
                             else if (_selectedSettingIndex == j)
@@ -261,12 +260,8 @@ public sealed class UIPresetEditor
 
         if (UIMisc.Button("Remove##setting", width.X, (_selectedSettingIndex < 0, "Select any strategy to remove"), (!ImGui.GetIO().KeyShift, "Hold shift")))
         {
-            ms.Settings.RemoveAt(_selectedSettingIndex);
-            if (_selectedSettingIndex < ms.NumSerialized)
-            {
-                --ms.NumSerialized;
-                Modified = true;
-            }
+            ms.SerializedSettings.RemoveAt(_selectedSettingIndex);
+            Modified = true;
             _selectedSettingIndex = -1;
             RebuildSettingGuids();
         }
@@ -283,8 +278,8 @@ public sealed class UIPresetEditor
             var cfg = def.Configs[i];
             if (ImGui.Selectable(cfg.UIName))
             {
-                _selectedSettingIndex = ms.NumSerialized++;
-                ms.Settings.Insert(_selectedSettingIndex, new(Preset.Modifier.None, i, new() { Option = cfg.Options.Count > 1 ? 1 : 0 }));
+                _selectedSettingIndex = ms.SerializedSettings.Count;
+                ms.SerializedSettings.Add(new(Preset.Modifier.None, i, new() { Option = cfg.Options.Count > 1 ? 1 : 0 }));
                 Modified = true;
                 RebuildSettingGuids();
             }
@@ -324,14 +319,13 @@ public sealed class UIPresetEditor
     {
         using var d = ImRaii.Disabled(_sourcePresetDefault);
         var ms = Preset.Modules[_selectedModuleIndex];
-        ref var s = ref ms.Settings.Ref(_selectedSettingIndex);
+        ref var s = ref ms.SerializedSettings.Ref(_selectedSettingIndex);
         var cfg = ms.Definition.Configs[s.Track];
         ImGui.TextUnformatted($"Setting: {cfg.UIName}");
-        var persistent = _selectedSettingIndex < ms.NumSerialized;
-        Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Shift, "Shift") && persistent;
-        Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Ctrl, "Ctrl") && persistent;
-        Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Alt, "Alt") && persistent;
-        Modified |= UIStrategyValue.DrawEditor(ref s.Value, cfg, null, null) && persistent;
+        Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Shift, "Shift");
+        Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Ctrl, "Ctrl");
+        Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Alt, "Alt");
+        Modified |= UIStrategyValue.DrawEditor(ref s.Value, cfg, null, null);
     }
 
     private bool DrawModifier(ref Preset.Modifier mod, Preset.Modifier flag, string label)
@@ -360,7 +354,7 @@ public sealed class UIPresetEditor
     {
         _settingGuids.Clear();
         if (_selectedModuleIndex >= 0)
-            _settingGuids.AddRange(Enumerable.Range(0, Preset.Modules[_selectedModuleIndex].Settings.Count));
+            _settingGuids.AddRange(Enumerable.Range(0, Preset.Modules[_selectedModuleIndex].SerializedSettings.Count));
     }
 
     private int FindModuleByType(Type? type) => type != null ? Preset.Modules.FindIndex(m => m.Type == type) : -1;

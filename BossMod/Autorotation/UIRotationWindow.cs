@@ -92,7 +92,7 @@ public sealed class UIRotationWindow : UIWindow
 
         // TODO: more fancy action history/queue...
         ImGui.TextUnformatted($"Modules: {_mgr}");
-        if (_mgr.Preset?.Modules.Any(m => m.Settings.Count > m.NumSerialized) ?? false)
+        if (_mgr.Preset?.Modules.Any(m => m.TransientSettings.Count > 0) ?? false)
         {
             ImGui.SameLine();
             using (ImRaii.PushColor(ImGuiCol.Text, 0xff00ff00))
@@ -101,14 +101,14 @@ public sealed class UIRotationWindow : UIWindow
             {
                 using var tooltip = ImRaii.Tooltip();
                 ImGui.TextUnformatted("Transient strategies:");
-                foreach (var m in _mgr.Preset.Modules.Where(m => m.Settings.Count > m.NumSerialized))
+                foreach (var m in _mgr.Preset.Modules.Where(m => m.TransientSettings.Count > 0))
                 {
                     ImGui.TextUnformatted($"> {m.Type.FullName}");
                     using var indent = ImRaii.PushIndent();
-                    for (int i = m.NumSerialized; i < m.Settings.Count; ++i)
+                    foreach (var s in m.TransientSettings)
                     {
-                        var track = m.Definition.Configs[m.Settings[i].Track];
-                        ImGui.TextUnformatted($"{track.InternalName} = {track.Options[m.Settings[i].Value.Option].InternalName}");
+                        var track = m.Definition.Configs[s.Track];
+                        ImGui.TextUnformatted($"{track.InternalName} = {track.Options[s.Value.Option].InternalName}");
                     }
                 }
             }

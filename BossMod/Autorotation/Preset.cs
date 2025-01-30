@@ -25,8 +25,8 @@ public sealed record class Preset(string Name)
 
     public record class ModuleSettings(Type Type, RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder) : IRotationModuleData
     {
-        public readonly List<ModuleSetting> Settings = [];
-        public int NumSerialized; // entries above this are transient and are not serialized
+        public readonly List<ModuleSetting> SerializedSettings = [];
+        public readonly List<ModuleSetting> TransientSettings = [];
     }
 
     public string Name = Name;
@@ -37,8 +37,10 @@ public sealed record class Preset(string Name)
         var res = new Preset(Name);
         foreach (var m in Modules)
         {
-            var ms = new ModuleSettings(m.Type, m.Definition, m.Builder) { NumSerialized = m.NumSerialized };
-            ms.Settings.AddRange(includeTransient ? m.Settings : m.Settings.Take(m.NumSerialized));
+            var ms = new ModuleSettings(m.Type, m.Definition, m.Builder);
+            ms.SerializedSettings.AddRange(m.SerializedSettings);
+            if (includeTransient)
+                ms.TransientSettings.AddRange(m.TransientSettings);
             res.Modules.Add(ms);
         }
         return res;
@@ -58,7 +60,10 @@ public sealed record class Preset(string Name)
     {
         var m = Modules[moduleIndex];
         var res = new StrategyValues(m.Definition.Configs);
-        foreach (ref var s in m.Settings.AsSpan())
+        foreach (ref var s in m.SerializedSettings.AsSpan())
+            if ((s.Mod & mods) == s.Mod)
+                res.Values[s.Track] = s.Value;
+        foreach (ref var s in m.TransientSettings.AsSpan())
             if ((s.Mod & mods) == s.Mod)
                 res.Values[s.Track] = s.Value;
         return res;
@@ -132,8 +137,7 @@ public class JsonPresetConverter : JsonConverter<Preset>
                 if (js.TryGetProperty(nameof(StrategyValue.Comment), out var jcomment))
                     s.Value.Comment = jcomment.GetString() ?? "";
 
-                m.Settings.Add(s);
-                ++m.NumSerialized;
+                m.SerializedSettings.Add(s);
             }
         }
         return res;
@@ -147,7 +151,7 @@ public class JsonPresetConverter : JsonConverter<Preset>
         foreach (var m in value.Modules)
         {
             writer.WriteStartArray(m.Type.FullName!);
-            foreach (ref var s in m.Settings.AsSpan()[..m.NumSerialized])
+            foreach (ref var s in m.SerializedSettings.AsSpan())
             {
                 writer.WriteStartObject();
                 writer.WriteString(nameof(Preset.ModuleSetting.Track), m.Definition.Configs[s.Track].InternalName);
