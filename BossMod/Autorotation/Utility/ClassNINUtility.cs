@@ -17,7 +17,7 @@ public sealed class ClassNINUtility(RotationModuleManager manager, Actor player)
         res.Define(Track.Shukuchi).As<DashStrategy>("Shukuchi", "Dash", 20)
             .AddOption(DashStrategy.None, "Automatic", "No use.")
             .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 60, 0, ActionTargets.Hostile, 45)
-            .AddOption(DashStrategy.GapCloseHold1, "GapCloseHold1", "Use as gapcloser if outside melee range; conserves 1 charge for manual usage", 60, 0, ActionTargets.Hostile, 84)
+            .AddOption(DashStrategy.GapCloseHold1, "GapCloseHold1", "Use as gapcloser if outside melee range; conserves 1 charge for manual usage", 60, 0, ActionTargets.Hostile, 74)
             .AddAssociatedActions(NIN.AID.Shukuchi);
 
         return res;
