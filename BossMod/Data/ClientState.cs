@@ -57,6 +57,7 @@ public sealed class ClientState
     public Fate ActiveFate;
     public Pet ActivePet;
     public ulong FocusTargetId;
+    public Angle ForcedMovementDirection; // used for temporary misdirection and spinning states
 
     public int ClassJobLevel(Class c)
     {
@@ -114,6 +115,9 @@ public sealed class ClientState
 
         if (FocusTargetId != 0)
             yield return new OpFocusTargetChange(FocusTargetId);
+
+        if (ForcedMovementDirection != default)
+            yield return new OpForcedMovementDirectionChange(ForcedMovementDirection);
     }
 
     public void Tick(float dt)
@@ -339,5 +343,16 @@ public sealed class ClientState
             ws.Client.FocusTargetChanged.Fire(this);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLFT"u8).Emit(Value, "X8");
+    }
+
+    public Event<OpForcedMovementDirectionChange> ForcedMovementDirectionChanged = new();
+    public sealed record class OpForcedMovementDirectionChange(Angle Value) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            ws.Client.ForcedMovementDirection = Value;
+            ws.Client.ForcedMovementDirectionChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLFD"u8).Emit(Value);
     }
 }

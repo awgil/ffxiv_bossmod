@@ -663,6 +663,10 @@ sealed class WorldStateGameSync : IDisposable
         var focusTargetId = focusTarget != null ? SanitizedObjectID(focusTarget->GetGameObjectId()) : 0;
         if (_ws.Client.FocusTargetId != focusTargetId)
             _ws.Execute(new ClientState.OpFocusTargetChange(focusTargetId));
+
+        var forcedMovementDir = MovementOverride.ForcedMovementDirection->Radians();
+        if (_ws.Client.ForcedMovementDirection != forcedMovementDir)
+            _ws.Execute(new ClientState.OpForcedMovementDirectionChange(forcedMovementDir));
     }
 
     private unsafe void UpdateDeepDungeon()

@@ -1,6 +1,4 @@
-﻿using static BossMod.ActionQueue;
-
-namespace BossMod.Autorotation.MiscAI;
+﻿namespace BossMod.Autorotation.MiscAI;
 
 public sealed class StayWithinLeylines(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
@@ -24,7 +22,7 @@ public sealed class StayWithinLeylines(RotationModuleManager manager, Actor play
 
     public static RotationModuleDefinition Definition()
     {
-        RotationModuleDefinition def = new("Misc AI: Stay within leylines when active", "Black Mage utility module.", "Misc", "Taurenkey", RotationModuleQuality.Basic, BitMask.Build(Class.BLM), 1000);
+        RotationModuleDefinition def = new("Misc AI: Stay within leylines when active", "Black Mage utility module.", "AI", "Taurenkey", RotationModuleQuality.Basic, BitMask.Build(Class.BLM), 1000);
 
         var retrace = def.Define(Tracks.UseRetrace).As<RetraceDefinition>("Use Retrace", "Use Retrace");
         retrace.AddOption(RetraceDefinition.No, "No");
@@ -55,13 +53,12 @@ public sealed class StayWithinLeylines(RotationModuleManager manager, Actor play
 
                 //BTL first, followed by retrace, then walk
                 if (btlStrat == BetweenTheLinesDefinition.Yes && ActionUnlocked(btl) && btlCd.HasValue && World.Client.Cooldowns[btlCd.Value].Elapsed <= 2f && !isMoving)
-                    Hints.ActionsToExecute.Push(btl, Player, Priority.Low, targetPos: zone.PosRot.XYZ());
+                    Hints.ActionsToExecute.Push(btl, Player, ActionQueue.Priority.Low, targetPos: zone.PosRot.XYZ());
                 else if (retraceStrat == RetraceDefinition.Yes && ActionUnlocked(retrace) && retraceCd.HasValue && World.Client.Cooldowns[retraceCd.Value].Elapsed <= 2f && !isMoving)
-                    Hints.ActionsToExecute.Push(retrace, null, Priority.Low, targetPos: Player.PosRot.XYZ());
+                    Hints.ActionsToExecute.Push(retrace, null, ActionQueue.Priority.Low, targetPos: Player.PosRot.XYZ());
                 else
                     Hints.GoalZones.Add(Hints.GoalSingleTarget(zone.Position, 1f));
             }
         }
-
     }
 }

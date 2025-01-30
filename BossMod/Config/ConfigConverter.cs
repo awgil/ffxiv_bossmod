@@ -6,7 +6,7 @@ namespace BossMod;
 
 public static class ConfigConverter
 {
-    public static VersionedJSONSchema Schema = BuildSchema();
+    public static readonly VersionedJSONSchema Schema = BuildSchema();
 
     private static VersionedJSONSchema BuildSchema()
     {
