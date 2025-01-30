@@ -181,12 +181,17 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Sprint), Player, strategy.Option(Track.Sprint).Priority(), strategy.Option(Track.Sprint).Value.ExpireIn);
     }
 
+    //TODO: fix this later
     #region Core Execution Helpers
-    private void QueueGCD(AID aid, Actor? target, GCDPriority prio)
+    /*
+    public ClassShared.AID NextGCD; //Next global cooldown action to be used
+    public GCDPriority NextGCDPrio; //Priority of the next GCD for cooldown decision making
+
+    private void QueueGCD(ClassShared.AID aid, Actor? target, GCDPriority prio)
     {
         if (prio != GCDPriority.None)
         {
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + (int)prio); // TODO[cast-time]: verify all callers
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + (int)prio);
             if (prio > NextGCDPrio)
             {
                 NextGCD = aid;
@@ -194,13 +199,14 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
             }
         }
     }
-    private void QueueOGCD(AID aid, Actor? target, OGCDPriority prio, float basePrio = ActionQueue.Priority.Medium)
+    private void QueueOGCD(ClassShared.AID aid, Actor? target, OGCDPriority prio, float basePrio = ActionQueue.Priority.Medium)
     {
         if (prio != OGCDPriority.None)
         {
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, basePrio + (int)prio);
         }
     }
+    */
     #endregion
 
     public bool ShouldUseElixir(ElixirStrategy strategy, Actor? target) => strategy switch
