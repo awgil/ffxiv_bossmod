@@ -1,7 +1,7 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using BossMod.DRK;
 
-namespace BossMod.Autorotation.akechi;
+namespace BossMod.Autorotation.Standard.akechi;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
@@ -158,7 +158,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Darkside.IsActive = Darkside.Timer > 0.1f; //Checks if Darkside is active
         Darkside.NeedsRefresh = Darkside.Timer <= 3; //Checks if Darkside needs to be refreshed
         RiskingBlood =
-            (ComboLastMove is AID.SyphonStrike or AID.Unleash && Blood >= 80) || (Delirium.CD <= 3 && Blood >= 70); //Checks if we are risking Blood
+            ComboLastMove is AID.SyphonStrike or AID.Unleash && Blood >= 80 || Delirium.CD <= 3 && Blood >= 70; //Checks if we are risking Blood
         RiskingMP = MP >= 9800 || Darkside.NeedsRefresh;
         #endregion
         #region Cooldowns
@@ -226,21 +226,21 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         #region Full Rotation Execution
 
         #region Standard Rotations
-        if (ModuleExtensions.AutoAOE(strategy))
+        if (strategy.AutoAOE())
         {
             QueueGCD(BestRotation(), //queue the next single-target combo action only if combo is finished
                 TargetChoice(strategy.Option(SharedTrack.AOE)) //Get target choice
                 ?? primaryTarget, //if none, pick primary target
                 GCDPriority.Standard); //with priority for 103/10 combo actions
         }
-        if (ModuleExtensions.ForceST(strategy)) //if Force Single Target option is picked
+        if (strategy.ForceST()) //if Force Single Target option is picked
         {
             QueueGCD(ST(),
                 TargetChoice(strategy.Option(SharedTrack.AOE)) //Get target choice
                 ?? primaryTarget, //if none, pick primary target
                 GCDPriority.Standard); //with priority for 103/10 combo actions
         }
-        if (ModuleExtensions.ForceAOE(strategy)) //if Force AOE option is picked
+        if (strategy.ForceAOE()) //if Force AOE option is picked
         {
             QueueGCD(AOE(),
                 Player,
@@ -249,9 +249,9 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region Cooldowns
-        if (!ModuleExtensions.HoldAll(strategy)) //if not holding cooldowns
+        if (!strategy.HoldAll()) //if not holding cooldowns
         {
-            if (!ModuleExtensions.HoldCooldowns(strategy)) //if holding cooldowns
+            if (!strategy.HoldCooldowns()) //if holding cooldowns
             {
                 if (ShouldUseSaltedEarth(seStrat, primaryTarget))
                     QueueOGCD(AID.SaltedEarth,
@@ -320,7 +320,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                         ? GCDPriority.Opener
                         : GCDPriority.Disesteem);
             }
-            if (!ModuleExtensions.HoldGauge(strategy))
+            if (!strategy.HoldGauge())
             {
                 if (ShouldUseBlood(bloodStrat, primaryTarget))
                 {
@@ -495,7 +495,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     private bool ShouldUseSaltedEarth(OGCDStrategy strategy, Actor? target) => strategy switch
     {
         OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && In3y(target) &&
-            Darkside.IsActive && SaltedEarth.IsReady && ((CombatTimer < 30 && ComboLastMove is AID.Souleater) || CombatTimer >= 30),
+            Darkside.IsActive && SaltedEarth.IsReady && (CombatTimer < 30 && ComboLastMove is AID.Souleater || CombatTimer >= 30),
         OGCDStrategy.Force => SaltedEarth.IsReady,
         OGCDStrategy.AnyWeave => SaltedEarth.IsReady && CanWeaveIn,
         OGCDStrategy.EarlyWeave => SaltedEarth.IsReady && CanEarlyWeaveIn,
@@ -527,13 +527,13 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     private bool ShouldSpendCarveOrDrain(CarveStrategy strategy, Actor? target) => strategy switch
     {
         CarveStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && In3y(target) &&
-            Darkside.IsActive && AbyssalDrain.IsReady && ((CombatTimer < 30 && ComboLastMove is AID.Souleater) || CombatTimer >= 30),
+            Darkside.IsActive && AbyssalDrain.IsReady && (CombatTimer < 30 && ComboLastMove is AID.Souleater || CombatTimer >= 30),
         _ => false
     };
     private bool ShouldUseDelirium(OGCDStrategy strategy, Actor? target) => strategy switch
     {
         OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn &&
-            Darkside.IsActive && Delirium.IsReady && ((CombatTimer < 30 && ComboLastMove is AID.Souleater) || CombatTimer >= 30),
+            Darkside.IsActive && Delirium.IsReady && (CombatTimer < 30 && ComboLastMove is AID.Souleater || CombatTimer >= 30),
         OGCDStrategy.Force => Delirium.IsReady,
         OGCDStrategy.AnyWeave => Delirium.IsReady && CanWeaveIn,
         OGCDStrategy.EarlyWeave => Delirium.IsReady && CanEarlyWeaveIn,
@@ -566,7 +566,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     private bool ShouldUseDeliriumCombo(DeliriumComboStrategy strategy, Actor? target) => strategy switch
     {
         DeliriumComboStrategy.Automatic => Player.InCombat && target != null && In3y(target) &&
-            Unlocked(AID.ScarletDelirium) && Delirium.Step is (0 or 1 or 2) && Delirium.IsActive,
+            Unlocked(AID.ScarletDelirium) && Delirium.Step is 0 or 1 or 2 && Delirium.IsActive,
         DeliriumComboStrategy.ScarletDelirum => Unlocked(AID.ScarletDelirium) && Delirium.Step is 0 && Delirium.IsActive,
         DeliriumComboStrategy.Comeuppance => Unlocked(AID.Comeuppance) && Delirium.Step is 1 && Delirium.IsActive,
         DeliriumComboStrategy.Torcleaver => Unlocked(AID.Torcleaver) && Delirium.Step is 2 && Delirium.IsActive,
@@ -577,7 +577,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     private bool ShouldUseDisesteem(GCDStrategy strategy, Actor? target) => strategy switch
     {
         GCDStrategy.Automatic => Player.InCombat && target != null && In10y(target) &&
-            Darkside.IsActive && Disesteem.IsReady && ((CombatTimer < 30 && Delirium.IsActive) || (CombatTimer >= 30 && !Delirium.IsActive && Delirium.CD > 15)),
+            Darkside.IsActive && Disesteem.IsReady && (CombatTimer < 30 && Delirium.IsActive || CombatTimer >= 30 && !Delirium.IsActive && Delirium.CD > 15),
         GCDStrategy.Force => Disesteem.IsReady,
         GCDStrategy.Delay => false,
         _ => false

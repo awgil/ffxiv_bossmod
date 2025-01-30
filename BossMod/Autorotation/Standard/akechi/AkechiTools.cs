@@ -1,4 +1,4 @@
-﻿namespace BossMod.Autorotation.akechi;
+﻿namespace BossMod.Autorotation.Standard.akechi;
 
 public enum SharedTrack { AOE, Hold, Count }
 public enum AOEStrategy { Automatic, ForceST, ForceAOE }
@@ -246,7 +246,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary> Checks if action has any charges remaining. </summary>
     /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
     /// <returns>- <em><b>TRUE</b></em> if the specified Action has any <em>charges</em> available <para>- <em><b>FALSE</b></em> if locked or still on cooldown</para></returns>
-    protected bool HasCharges(AID aid) => ChargeCD(aid) < 0.6f;
+    protected bool HasCharges(AID aid) => ChargeCD(aid) < 0.6f || ChargeCD(aid) <= (TotalCD(aid) / 2);
 
     /// <summary>Checks if action is on cooldown based on its <em>total cooldown timer</em>. </summary>
     /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
@@ -349,23 +349,23 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>
     /// Position checker for determining the best target for an ability that deals <em>Splash</em> damage.
     /// </summary>
-    protected PositionCheck IsSplashTarget => (Actor primary, Actor other) => Hints.TargetInAOECircle(other, primary.Position, 5);
+    protected PositionCheck IsSplashTarget => (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 5);
     /// <summary>
     /// Position checker for determining the best target for an ability that deals damage in a <em>Cone</em> .
     /// </summary>
-    protected PositionCheck IsConeTarget => (Actor primary, Actor other) => Hints.TargetInAOECone(other, Player.Position, 8, Player.DirectionTo(primary), 45.Degrees());
+    protected PositionCheck IsConeTarget => (primary, other) => Hints.TargetInAOECone(other, Player.Position, 8, Player.DirectionTo(primary), 45.Degrees());
     /// <summary>
     /// <para>Position checker for determining the best target for an ability that deals damage in a <em>Line</em> within <em>Ten (10) yalms</em>.</para>
     /// </summary>
-    protected PositionCheck Is10yRectTarget => (Actor primary, Actor other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 2);
+    protected PositionCheck Is10yRectTarget => (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 2);
     /// <summary>
     /// <para>Position checker for determining the best target for an ability that deals damage in a <em>Line</em> within <em>Fifteen (15) yalms</em>.</para>
     /// </summary>
-    protected PositionCheck Is15yRectTarget => (Actor primary, Actor other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 15, 2);
+    protected PositionCheck Is15yRectTarget => (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 15, 2);
     /// <summary>
     /// Position checker for determining the best target for an ability that deals damage in a <em>Line</em> within <em>Twenty-five (25) yalms</em>
     /// </summary>
-    protected PositionCheck Is25yRectTarget => (Actor primary, Actor other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 25, 2);
+    protected PositionCheck Is25yRectTarget => (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 25, 2);
     #endregion
 
     /// <summary>
@@ -619,8 +619,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Time remaining on pre-pull (or any) <em>Countdown Timer</em>.</summary>
     protected float? CountdownRemaining => World.Client.CountdownRemaining;
 
-    /// <summary>Estimates the time remaining until the <em>next forced movement</em>.</summary>
-    protected float ForceMovementIn => Hints.MaxCastTimeEstimate;
     #endregion
 }
 
@@ -636,11 +634,12 @@ static class ModuleExtensions
             .AddOption(AOEStrategy.ForceST, "ForceST", "Force Single Target", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Force AOE rotation", supportedTargets: ActionTargets.Hostile);
 
-        res.Define(SharedTrack.Hold).As<HoldStrategy>("Hold", uiPriority: 290)
+        res.Define(SharedTrack.Hold).As<HoldStrategy>("CDs", uiPriority: 290)
             .AddOption(HoldStrategy.DontHold, "DontHold", "Don't hold any cooldowns or gauge abilities")
             .AddOption(HoldStrategy.HoldCooldowns, "Hold", "Hold all cooldowns only")
             .AddOption(HoldStrategy.HoldGauge, "HoldGauge", "Hold all gauge abilities only")
             .AddOption(HoldStrategy.HoldEverything, "HoldEverything", "Hold all cooldowns and gauge abilities");
+
         return res;
     }
 
