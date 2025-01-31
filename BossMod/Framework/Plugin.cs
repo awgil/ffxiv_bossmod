@@ -317,12 +317,16 @@ public sealed class Plugin : IDalamudPlugin
         var player = _ws.Party.Player();
         var target = _hints.InteractWithTarget;
 
-        if (_amex.EffectiveAnimationLock == 0 && _ws.CurrentTime >= _throttleInteract && CheckInteractRange(player, target))
+        if (CheckInteractRange(player, target))
         {
             // many eventobj interactions immediately start some cast animation; if we keep trying to approach the object after a successful interaction, it will interrupt the cast, forcing us to do it again
-            _hints.ForcedMovement = default;
-            FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->InteractWithObject(GetActorObject(target), false);
-            _throttleInteract = _ws.FutureTime(0.1f);
+            _movementOverride.DesiredDirection = default;
+
+            if (_amex.EffectiveAnimationLock == 0 && _ws.CurrentTime >= _throttleInteract)
+            {
+                FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->InteractWithObject(GetActorObject(target), false);
+                _throttleInteract = _ws.FutureTime(0.1f);
+            }
         }
     }
 
