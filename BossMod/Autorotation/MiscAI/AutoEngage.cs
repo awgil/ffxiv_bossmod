@@ -7,7 +7,7 @@ public sealed class AutoEngage(RotationModuleManager manager, Actor player) : Ro
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Misc AI: Auto-engage", "Automatically attack all nearby targets in certain circumstances", "Misc", "xan", RotationModuleQuality.Basic, new(~0ul), 1000);
+        var def = new RotationModuleDefinition("Misc AI: Auto-engage", "Automatically attack all nearby targets in certain circumstances", "Misc", "xan", RotationModuleQuality.Basic, new(~0ul), 1000, Order: RotationModuleOrder.HighLevel);
 
         def.AbilityTrack(Track.QuestBattle, "Automatically attack solo duty bosses");
         def.AbilityTrack(Track.DeepDungeon, "Automatically attack deep dungeon bosses when solo");
