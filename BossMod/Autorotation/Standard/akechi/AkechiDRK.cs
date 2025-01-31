@@ -8,7 +8,7 @@ namespace BossMod.Autorotation.Standard.akechi;
 public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Blood = SharedTrack.Count, MP, Carve, DeliriumCombo, Potion, Unmend, Delirium, SaltedEarth, SaltAndDarkness, LivingShadow, Shadowbringer, Disesteem }
+    public enum Track { Blood = SharedDamageTrack.Count, MP, Carve, DeliriumCombo, Potion, Unmend, Delirium, SaltedEarth, SaltAndDarkness, LivingShadow, Shadowbringer, Disesteem }
     public enum BloodStrategy { Automatic, OnlyBloodspiller, OnlyQuietus, ForceBloodspiller, ForceQuietus, Conserve }
     public enum MPStrategy { Auto3k, Auto6k, Auto9k, AutoRefresh, Edge3k, Edge6k, Edge9k, EdgeRefresh, Flood3k, Flood6k, Flood9k, FloodRefresh, Delay }
     public enum CarveStrategy { Automatic, OnlyCarve, OnlyDrain, ForceCarve, ForceDrain, Delay }
@@ -20,7 +20,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions & Strategies
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi DRK", "Standard Rotation Module", "Standard rotation (Akechi)", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.DRK), 100);
+        var res = new RotationModuleDefinition("Akechi DRK", "Standard Rotation Module", "Standard rotation (Akechi)|PvE|Tank", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.DRK), 100);
 
         res.DefineShared();
         res.Define(Track.Blood).As<BloodStrategy>("Blood", "Blood", uiPriority: 200)
@@ -146,7 +146,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     public Actor? BestTargetMPRectLow;
     #endregion
 
-    public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
+    public override void Execution(StrategyValues strategy, ref Actor? primaryTarget) //Executes our actions
     {
         #region Variables
         #region Gauge
@@ -188,17 +188,6 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Shadowbringer.HasCharges = TotalCD(AID.Shadowbringer) <= 60; //Checks if Shadowbringer has charges
         Shadowbringer.IsReady = Unlocked(AID.Shadowbringer) && Shadowbringer.HasCharges; //Shadowbringer ability
         #endregion
-        ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
-        (BestAOERectTargets, NumAOERectTargets) = GetBestTarget(PlayerTarget, 10, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 3.5f));
-        BestTargetAOERect = Unlocked(AID.Shadowbringer) && NumAOERectTargets >= 2
-            ? BestAOERectTargets
-            : primaryTarget;
-        BestTargetMPRectHigh = Unlocked(AID.FloodOfShadow) && NumAOERectTargets >= 3
-            ? BestAOERectTargets // Use AoE rectangle targets if there are at least 3
-            : primaryTarget; // Fallback to primaryTarget or PlayerTarget if no AoE targets
-        BestTargetMPRectLow = !Unlocked(AID.FloodOfShadow) && NumAOERectTargets >= 4
-            ? BestAOERectTargets // Use AoE rectangle targets if there are at least 4
-            : primaryTarget; // Fallback to primaryTarget or PlayerTarget if no AoE targets
         #region Strategy Definitions
         var mp = strategy.Option(Track.MP);
         var mpStrat = mp.As<MPStrategy>(); //Retrieve MP strategy
@@ -221,38 +210,70 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         var unmend = strategy.Option(Track.Unmend);
         var unmendStrat = unmend.As<UnmendStrategy>(); //Retrieve Unmend strategy
         #endregion
+        ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
+        (BestAOERectTargets, NumAOERectTargets) = GetBestTarget(PlayerTarget, 10, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 3.5f));
+        BestTargetAOERect = Unlocked(AID.Shadowbringer) && NumAOERectTargets >= 2
+            ? BestAOERectTargets
+            : primaryTarget;
+        BestTargetMPRectHigh = Unlocked(AID.FloodOfShadow) && NumAOERectTargets >= 3
+            ? BestAOERectTargets // Use AoE rectangle targets if there are at least 3
+            : primaryTarget; // Fallback to primaryTarget or PlayerTarget if no AoE targets
+        BestTargetMPRectLow = !Unlocked(AID.FloodOfShadow) && NumAOERectTargets >= 4
+            ? BestAOERectTargets // Use AoE rectangle targets if there are at least 4
+            : primaryTarget; // Fallback to primaryTarget or PlayerTarget if no AoE targets
         #endregion
 
         #region Full Rotation Execution
 
         #region Standard Rotations
-        if (strategy.AutoAOE())
+        if (strategy.Automatic())
         {
             QueueGCD(BestRotation(), //queue the next single-target combo action only if combo is finished
-                TargetChoice(strategy.Option(SharedTrack.AOE)) //Get target choice
+                TargetChoice(strategy.Option(SharedDamageTrack.AOE)) //Get target choice
                 ?? primaryTarget, //if none, pick primary target
-                GCDPriority.Standard); //with priority for 103/10 combo actions
+                GCDPriority.Standard); //with priority for 123/10 combo actions
         }
         if (strategy.ForceST()) //if Force Single Target option is picked
         {
             QueueGCD(ST(),
-                TargetChoice(strategy.Option(SharedTrack.AOE)) //Get target choice
+                TargetChoice(strategy.Option(SharedDamageTrack.AOE)) //Get target choice
                 ?? primaryTarget, //if none, pick primary target
-                GCDPriority.Standard); //with priority for 103/10 combo actions
+                GCDPriority.Standard); //with priority for 123/10 combo actions
         }
         if (strategy.ForceAOE()) //if Force AOE option is picked
         {
             QueueGCD(AOE(),
                 Player,
-                GCDPriority.Standard); //with priority for 103/10 combo actions
+                GCDPriority.Standard); //with priority for 123/10 combo actions
         }
         #endregion
 
         #region Cooldowns
         if (!strategy.HoldAll()) //if not holding cooldowns
         {
-            if (!strategy.HoldCooldowns()) //if holding cooldowns
+            if (!strategy.HoldCDs()) //if holding cooldowns
             {
+                if (!strategy.HoldBuffs())
+                {
+                    if (ShouldUseDelirium(deliStrat, primaryTarget))
+                        QueueOGCD(BestDelirium,
+                            Player,
+                            deliStrat is OGCDStrategy.Force
+                            or OGCDStrategy.AnyWeave
+                            or OGCDStrategy.EarlyWeave
+                            or OGCDStrategy.LateWeave
+                            ? OGCDPriority.ForcedOGCD
+                            : OGCDPriority.Delirium);
+                    if (ShouldUseLivingShadow(lsStrat, primaryTarget))
+                        QueueOGCD(AID.LivingShadow,
+                            Player,
+                            lsStrat is OGCDStrategy.Force
+                            or OGCDStrategy.AnyWeave
+                            or OGCDStrategy.EarlyWeave
+                            or OGCDStrategy.LateWeave
+                            ? OGCDPriority.ForcedOGCD
+                            : OGCDPriority.LivingShadow);
+                }
                 if (ShouldUseSaltedEarth(seStrat, primaryTarget))
                     QueueOGCD(AID.SaltedEarth,
                         Player,
@@ -284,24 +305,6 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                             ? OGCDPriority.ForcedOGCD
                             : OGCDPriority.CarveOrDrain);
                 }
-                if (ShouldUseDelirium(deliStrat, primaryTarget))
-                    QueueOGCD(BestDelirium,
-                        Player,
-                        deliStrat is OGCDStrategy.Force
-                        or OGCDStrategy.AnyWeave
-                        or OGCDStrategy.EarlyWeave
-                        or OGCDStrategy.LateWeave
-                        ? OGCDPriority.ForcedOGCD
-                        : OGCDPriority.Delirium);
-                if (ShouldUseLivingShadow(lsStrat, primaryTarget))
-                    QueueOGCD(AID.LivingShadow,
-                        Player,
-                        lsStrat is OGCDStrategy.Force
-                        or OGCDStrategy.AnyWeave
-                        or OGCDStrategy.EarlyWeave
-                        or OGCDStrategy.LateWeave
-                        ? OGCDPriority.ForcedOGCD
-                        : OGCDPriority.LivingShadow);
                 if (ShouldUseShadowbringer(sbStrat, primaryTarget))
                     QueueOGCD(AID.Shadowbringer,
                         TargetChoice(sb) ?? BestTargetAOERect,
