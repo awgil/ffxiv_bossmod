@@ -1,28 +1,176 @@
 ﻿using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.Standard.akechi;
+/// <summary>
+/// The <em>SharedTrack</em> enum used for <em>AOE</em> and <em>Hold</em> strategies, typically for modules featuring damage rotations.
+/// <br>This enum defines tracks that can be used for all PvE-related abilities, such as strategies containing standard rotations or holding abilities.</br>
+/// <para><em>Example Given:</em>
+/// <br>- <c>public enum Track { NoMercy = SharedTrack.Count }</c></br></para>
+/// <para><em>Explanation:</em>
+/// <br>- <b><em> Track</em></b> is the enum for tracking specific abilities on user's specific rotation module.</br>
+/// <br>- <b><em> NoMercy</em></b> is the example enum of a specific ability being tracked on user's specific rotation module.</br>
+/// <br>- <b><em> SharedTrack.Count</em></b> is the shared track being used for executing our shared strategies listed above, called using <seealso cref="AkechiTools{AID, TraitID}"/>.</br></para>
+/// </summary>
+/// <returns>- All strategies listed under <seealso cref="SharedTrack"/> into user's rotation module</returns>
+public enum SharedTrack
+{
+    /// <summary>
+    /// The main strategy for tracking <em>single-target</em> and <em>AOE</em> rotations.
+    /// </summary>
+    /// <returns>- All strategies listed under <seealso cref="AOEStrategy"/> into user's rotation module</returns>
+    AOE,
 
-/// <summary>The <em>Track</em> enum used for <em>AOE</em> and <em>Hold</em> strategies, typically for modules featuring damage rotations.
-/// <para>This features tracks that can be used for all PvE-related abilities.</para>
-/// <para>See <seealso cref="AOEStrategy"/> and <seealso cref="HoldStrategy"/> for more details.</para></summary>
-public enum SharedTrack { AOE, Hold, Count }
+    /// <summary>
+    /// The main strategy used for tracking when to <em>hold any buffs, gauge, or cooldown abilties</em> for optimal usage.
+    /// </summary>
+    /// <returns>- All strategies listed under <seealso cref="HoldStrategy"/> into user's rotation module</returns>
+    Hold,
 
-/// <summary>The <em>Track</em> enum used for single-target or AOE rotations.</summary>
-/// <returns>All strategies listed under <seealso cref="AOEStrategy"/>.</returns>
-public enum AOEStrategy { Automatic, ForceST, ForceAOE }
+    /// <summary>
+    /// Represents the total count of strategies available inside this specific track. We generally never actually use this as a strategy since there isn't any logic really linked to this besides the counting.
+    /// </summary>
+    Count
+}
 
-/// <summary>The <em>Track</em> enum used for allowing or forbidding use of many different abilities.</summary>
-/// <returns>All strategies listed under <seealso cref="HoldStrategy"/>.</returns>
-public enum HoldStrategy { DontHold, HoldCooldowns, HoldGauge, HoldBuffs, HoldEverything }
+/// <summary>
+/// The <em>Default Strategy</em> enum used for tracking <em>single-target</em> and <em>AOE</em> strategies.<para/>
+/// <em>Example Given:</em><br/>
+/// - <c>strategy.Option(SharedTrack.AOE).As&lt;<seealso cref="AOEStrategy"/>&gt;();</c><para/>
+/// <em>Explanation:</em><br/>
+/// - <b><em>'strategy'</em></b> is the parameter for tracking a specific strategy for a specific ability in the user's rotation module.<br/>
+/// - <b><em>'Option'</em></b> are the relative options for user's specific strategy.<br/>
+/// - <b><em>'(SharedTrack.AOE)'</em></b> is the enum representing all options relating to this custom strategy being tracked in the user's rotation module.<br/>
+/// - <b><em>'.As&lt;<seealso cref="AOEStrategy"/>&gt;();'</em></b> is the relative strategy for user's specific ability being tracked in the user's rotation module.
+/// </summary>
+/// <returns>- All strategies listed under <seealso cref="AOEStrategy"/> into user's rotation module</returns>
+public enum AOEStrategy
+{
+    /// <summary>
+    /// The default strategy used for <em>automatically executing</em> the rotation.<br/>
+    /// This can also be called using <seealso cref="ModuleExtensions.Automatic(StrategyValues),"/>, or also as `strategy.Automatic()` in some cases.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(SharedTrack.AOE).As&lt;<seealso cref="AOEStrategy"/>&gt;() == <seealso cref="Automatic"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(SharedTrack.AOE).As&lt;<seealso cref="AOEStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="AOEStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="Automatic"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- The most optimal rotation <em>automatically executed</em>.</returns>
+    Automatic,
 
-/// <summary>The <em>Track</em> enum used for allowing or forbidding use of specific abilities.</summary>
-/// <returns>All strategies listed under <seealso cref="GCDStrategy"/>.</returns>
+    /// <summary>
+    /// The main strategy used for <em>force-executing</em> the <em>single-target</em> rotation.<br/>
+    /// This can also be called using <seealso cref="ModuleExtensions.ForceST(StrategyValues),"/>, or also as `strategy.ForceST()` in some cases.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(SharedTrack.AOE).As&lt;<seealso cref="AOEStrategy"/>&gt;() == <seealso cref="ForceST"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(SharedTrack.AOE).As&lt;<seealso cref="AOEStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="AOEStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="ForceST"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- The single-target rotation <em>force-executed</em>, regardless of any conditions.</returns>
+    ForceST,
+
+    /// <summary>
+    /// The main strategy used for <em>force-executing</em> the <em>AOE</em> rotation.<br/>
+    /// This can also be called using <seealso cref="ModuleExtensions.ForceAOE(StrategyValues),"/>, or also as `strategy.ForceAOE()` in some cases.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(SharedTrack.AOE).As&lt;<seealso cref="AOEStrategy"/>&gt;() == <seealso cref="ForceAOE"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(SharedTrack.AOE).As&lt;<seealso cref="AOEStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="AOEStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="ForceAOE"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- The AOE rotation <em>force-executed</em>, regardless of any conditions.</returns>
+    ForceAOE
+}
+
+/// <summary>
+/// The <em>Default Strategy</em> enum used for tracking when to <em>hold any buffs, gauge, or cooldown abilties</em> for optimal usage.<para/>
+/// <em>Example Given:</em><br/>
+/// - <c>strategy.Option(SharedTrack.Hold).As&lt;<seealso cref="HoldStrategy"/>&gt;();</c><para/>
+/// <em>Explanation:</em><br/>
+/// - <b><em>'strategy'</em></b> is the parameter for tracking a specific strategy for a specific ability in the user's rotation module.<br/>
+/// - <b><em>'Option'</em></b> are the relative options for user's specific strategy.<br/>
+/// - <b><em>'(SharedTrack.Hold)'</em></b> is the enum representing all options relating to this custom strategy being tracked in the user's rotation module.<br/>
+/// - <b><em>'.As&lt;<seealso cref="HoldStrategy"/>&gt;();'</em></b> is the relative strategy for user's specific ability being tracked in the user's rotation module.
+/// </summary>
+/// <returns>- All strategies listed under <seealso cref="HoldStrategy"/> into user's rotation module</returns>
+public enum HoldStrategy
+{
+    /// <summary>
+    /// The default strategy used for <em>not holding any buffs, gauge, or cooldown abilties</em>.<br/>
+    /// This can also be called using <seealso cref="ModuleExtensions.DontHold(StrategyValues),"/>, or also as `strategy.DontHold()` in some cases.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(SharedTrack.Hold).As&lt;<seealso cref="HoldStrategy"/>&gt;() == <seealso cref="DontHold"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(SharedTrack.Hold).As&lt;<seealso cref="HoldStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="HoldStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="DontHold"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- The availability of <em>using all buffs, gauge, or cooldown abilties</em>.</returns>
+    DontHold,
+
+    /// <summary>
+    /// The main strategy used for <em>only holding</em> any ability that is <b>cooldown</b>-related.<br/>
+    /// This can also be called using <seealso cref="ModuleExtensions.HoldCDs(StrategyValues),"/>, or also as `strategy.HoldCDs()` in some cases.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(SharedTrack.Hold).As&lt;<seealso cref="HoldStrategy"/>&gt;() == <seealso cref="HoldCooldowns"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(SharedTrack.Hold).As&lt;<seealso cref="HoldStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="HoldStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="HoldCooldowns"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- The availability of <em>using all buffs and gauge abilties</em>, but <b>forbidden from using any cooldowns</b>.</returns>
+    HoldCooldowns,
+
+    /// <summary>
+    /// The main strategy used for <em>only holding</em> any ability that is <b>gauge</b>-related.<br/>
+    /// This can also be called using <seealso cref="ModuleExtensions.HoldGauge(StrategyValues),"/>, or also as `strategy.HoldGauge()` in some cases.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(SharedTrack.Hold).As&lt;<seealso cref="HoldStrategy"/>&gt;() == <seealso cref="HoldGauge"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(SharedTrack.Hold).As&lt;<seealso cref="HoldStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="HoldStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="HoldGauge"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- The availability of <em>using all buffs and cooldowns</em>, but <b>forbidden from using any gauge abilties</b>.</returns>
+    HoldGauge,
+
+    /// <summary>
+    /// The main strategy used for <em>only holding</em> any ability that is <b>buff</b>-related.<br/>
+    /// This can also be called using <seealso cref="ModuleExtensions.HoldBuffs(StrategyValues),"/>, or also as `strategy.HoldBuffs()` in some cases.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(SharedTrack.Hold).As&lt;<seealso cref="HoldStrategy"/>&gt;() == <seealso cref="HoldBuffs"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(SharedTrack.Hold).As&lt;<seealso cref="HoldStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="HoldStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="HoldBuffs"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- The availability of <em>using all cooldowns and gauge abilties</em>, but <b>forbidden from using any buffs</b>.</returns>
+    HoldBuffs,
+
+    /// <summary>
+    /// The main strategy used for <em>holding</em> any ability that is <b>buff, cooldown, or gauge</b>-related.<br/>
+    /// This can also be called using <seealso cref="ModuleExtensions.HoldAll(StrategyValues),"/>, or also as `strategy.HoldAll()` in some cases.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(SharedTrack.Hold).As&lt;<seealso cref="HoldStrategy"/>&gt;() == <seealso cref="HoldEverything"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(SharedTrack.Hold).As&lt;<seealso cref="HoldStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="HoldStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="HoldEverything"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- The forbiddance from using all <b>buffs, cooldowns and gauge</b> abilties.</returns>
+    HoldEverything
+}
+
+/// <summary>The <em>Track</em> enum used for allowing or forbidding use of module-specific abilities.</summary>
+/// <returns>- All strategies listed under <seealso cref="GCDStrategy"/>.</returns>
 public enum GCDStrategy { Automatic, Force, Delay }
 
-/// <summary>The <em>Track</em> enum used for allowing or forbidding use of specific abilities, whilst also considering weave windows.</summary>
-/// <returns>All strategies listed under <seealso cref="OGCDStrategy"/>.</returns>
+/// <summary>The <em>Track</em> enum used for allowing or forbidding use of module-specific abilities, whilst also considering weave windows.</summary>
+/// <returns>- All strategies listed under <seealso cref="OGCDStrategy"/>.</returns>
 public enum OGCDStrategy { Automatic, Force, AnyWeave, EarlyWeave, LateWeave, Delay }
 
+/// <summary>
+/// The primary base for all of our tools needed for rotations, jam-packed with many various functions to help with all sorts of optimization & ease when creating rotation modules.
+/// </summary>
+/// <typeparam name="AID"></typeparam>
+/// <typeparam name="TraitID"></typeparam>
+/// <param name="manager"></param>
+/// <param name="player"></param>
 public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
         where AID : struct, Enum where TraitID : Enum
 {
@@ -633,7 +781,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, Positional positional = Positional.Any, float? maximumActionRange = null)
     {
-        if (!Unlocked(firstUnlockedAoeAction))
+        if (!strategy.ForceAOE() && !Unlocked(firstUnlockedAoeAction))
             minAoe = 50;
 
         if (PlayerTarget == null)
