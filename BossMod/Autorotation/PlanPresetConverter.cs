@@ -10,8 +10,8 @@ public static class PlanPresetConverter
     private record class ModuleChanges(Dictionary<string, TrackChanges> TrackChanges, Dictionary<string, string> TrackRenames);
     private record class ModuleConverter(Dictionary<string, ModuleChanges> ModuleChanges, Dictionary<string, string> ModuleRenames);
 
-    public static VersionedJSONSchema PlanSchema = BuildSchema(true);
-    public static VersionedJSONSchema PresetSchema = BuildSchema(false);
+    public static readonly VersionedJSONSchema PlanSchema = BuildSchema(true);
+    public static readonly VersionedJSONSchema PresetSchema = BuildSchema(false);
 
     private static VersionedJSONSchema BuildSchema(bool plan)
     {

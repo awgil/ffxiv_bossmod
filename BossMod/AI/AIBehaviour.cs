@@ -189,8 +189,9 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
         }
         else if (misdirectionAngle != default && _naviDecision.Destination != null)
         {
-            ctrl.NaviTargetPos = _naviDecision.NextTurn == 0 ? _naviDecision.Destination
-                : player.Position + (_naviDecision.Destination.Value - player.Position).Rotate(_naviDecision.NextTurn > 0 ? -misdirectionAngle : misdirectionAngle);
+            var turn = (_naviDecision.Destination.Value - player.Position).OrthoL().Dot((_naviDecision.NextWaypoint ?? _naviDecision.Destination).Value - _naviDecision.Destination.Value);
+            ctrl.NaviTargetPos = turn == 0 ? _naviDecision.Destination
+                : player.Position + (_naviDecision.Destination.Value - player.Position).Rotate(turn > 0 ? -misdirectionAngle : misdirectionAngle);
             ctrl.AllowInterruptingCastByMovement = true;
 
             // debug

@@ -9,13 +9,13 @@ public sealed class UIPresetEditor
     {
         public ModuleCategory? Parent;
         public SortedDictionary<string, ModuleCategory> Subcategories = [];
-        public List<(Type type, RotationModuleDefinition def)> Leafs = [];
+        public List<(Type type, RotationModuleDefinition def, Func<RotationModuleManager, Actor, RotationModule> builder)> Leafs = [];
     }
 
     private readonly PresetDatabase _db;
     private int _sourcePresetIndex;
     private bool _sourcePresetDefault;
-    public readonly Preset Preset;
+    public readonly Preset Preset; // note: this is an edited copy, and as such it never has transient settings
     public bool Modified { get; private set; }
     public bool NameConflict { get; private set; }
     private int _selectedModuleIndex = -1;
@@ -64,7 +64,7 @@ public sealed class UIPresetEditor
         _orderedTrackList.Clear();
         if (index >= 0)
         {
-            var md = RotationModuleRegistry.Modules[Preset.Modules[index].Type].Definition;
+            var md = Preset.Modules[index].Definition;
             _orderedTrackList.AddRange(Enumerable.Range(0, md.Configs.Count));
             _orderedTrackList.SortByReverse(i => md.Configs[i].UIPriority);
         }
@@ -132,7 +132,10 @@ public sealed class UIPresetEditor
                 for (int i = 0; i < Preset.Modules.Count; ++i)
                 {
                     var m = Preset.Modules[i];
-                    if (DrawModule(m.Type, RotationModuleRegistry.Modules[m.Type].Definition, i == _selectedModuleIndex))
+                    if (i != 0 && Preset.Modules[i - 1].Definition.Order != m.Definition.Order)
+                        ImGui.Separator();
+
+                    if (DrawModule(m.Type, m.Definition, i == _selectedModuleIndex))
                     {
                         SelectModule(i);
                     }
@@ -140,7 +143,7 @@ public sealed class UIPresetEditor
                     if (ImGui.IsItemActive() && !ImGui.IsItemHovered())
                     {
                         var j = ImGui.GetMouseDragDelta().Y < 0 ? i - 1 : i + 1;
-                        if (j >= 0 && j < Preset.Modules.Count)
+                        if (j >= 0 && j < Preset.Modules.Count && Preset.Modules[j].Definition.Order == m.Definition.Order)
                         {
                             (Preset.Modules[i], Preset.Modules[j]) = (Preset.Modules[j], Preset.Modules[i]);
                             Modified = true;
@@ -162,8 +165,8 @@ public sealed class UIPresetEditor
 
         if (UIMisc.Button("Remove##module", width.X, (_selectedModuleIndex < 0, "Select any module to remove"), (!ImGui.GetIO().KeyShift, "Hold shift")))
         {
-            var m = Preset.Modules[_selectedModuleIndex].Type;
-            AddAvailableModule(m, RotationModuleRegistry.Modules[m].Definition, _availableModules);
+            var m = Preset.Modules[_selectedModuleIndex];
+            AddAvailableModule(m.Type, m.Definition, m.Builder, _availableModules);
             Preset.Modules.RemoveAt(_selectedModuleIndex);
             Modified = true;
             SelectModule(-1);
@@ -185,9 +188,9 @@ public sealed class UIPresetEditor
         {
             if (DrawModule(leaf.type, leaf.def))
             {
-                Preset.Modules.Add(new(leaf.type));
+                var index = Preset.AddModule(leaf.type, leaf.def, leaf.builder);
                 Modified = true;
-                SelectModule(Preset.Modules.Count - 1);
+                SelectModule(index);
                 actions += () => RemoveAvailableModule(cat, leaf.type);
             }
         }
@@ -219,19 +222,17 @@ public sealed class UIPresetEditor
 
         var width = new Vector2(ImGui.GetContentRegionAvail().X, 0);
         var ms = Preset.Modules[_selectedModuleIndex];
-        var md = RotationModuleRegistry.Modules[ms.Type].Definition;
-        DrawAddSettingPopup(ms, md);
+        DrawAddSettingPopup(ms, ms.Definition);
 
         using (var list = ImRaii.ListBox("###settings", width))
         {
             if (list)
             {
-                for (int i = 0; i < ms.Settings.Count; ++i)
+                for (int i = 0; i < ms.SerializedSettings.Count; ++i)
                 {
-                    var persistent = i < ms.NumSerialized;
-                    ref var m = ref ms.Settings.Ref(i);
-                    var cfg = md.Configs[m.Track];
-                    if (ImGui.Selectable($"[{i + 1}]{(persistent ? "" : " (transient)")} {cfg.UIName} [{m.Mod}] = {cfg.Options[m.Value.Option].UIName}###setting{_settingGuids[i]}", i == _selectedSettingIndex))
+                    ref var m = ref ms.SerializedSettings.Ref(i);
+                    var cfg = ms.Definition.Configs[m.Track];
+                    if (ImGui.Selectable($"[{i + 1}] {cfg.UIName} [{m.Mod}] = {cfg.Options[m.Value.Option].UIName}###setting{_settingGuids[i]}", i == _selectedSettingIndex))
                     {
                         _selectedSettingIndex = i;
                     }
@@ -239,11 +240,11 @@ public sealed class UIPresetEditor
                     if (ImGui.IsItemActive() && !ImGui.IsItemHovered())
                     {
                         var j = ImGui.GetMouseDragDelta().Y < 0 ? i - 1 : i + 1;
-                        if (j >= 0 && j < ms.Settings.Count && persistent == (j < ms.NumSerialized))
+                        if (j >= 0 && j < ms.SerializedSettings.Count)
                         {
-                            (ms.Settings[i], ms.Settings[j]) = (ms.Settings[j], ms.Settings[i]);
+                            (ms.SerializedSettings[i], ms.SerializedSettings[j]) = (ms.SerializedSettings[j], ms.SerializedSettings[i]);
                             (_settingGuids[i], _settingGuids[j]) = (_settingGuids[j], _settingGuids[i]);
-                            Modified |= persistent;
+                            Modified = true;
                             if (_selectedSettingIndex == i)
                                 _selectedSettingIndex = j;
                             else if (_selectedSettingIndex == j)
@@ -254,17 +255,13 @@ public sealed class UIPresetEditor
                 }
             }
         }
-        if (UIMisc.Button("Add##setting", md.Configs.Count == 0, "Module does not support configuration", width.X))
+        if (UIMisc.Button("Add##setting", ms.Definition.Configs.Count == 0, "Module does not support configuration", width.X))
             ImGui.OpenPopup("add_setting");
 
         if (UIMisc.Button("Remove##setting", width.X, (_selectedSettingIndex < 0, "Select any strategy to remove"), (!ImGui.GetIO().KeyShift, "Hold shift")))
         {
-            ms.Settings.RemoveAt(_selectedSettingIndex);
-            if (_selectedSettingIndex < ms.NumSerialized)
-            {
-                --ms.NumSerialized;
-                Modified = true;
-            }
+            ms.SerializedSettings.RemoveAt(_selectedSettingIndex);
+            Modified = true;
             _selectedSettingIndex = -1;
             RebuildSettingGuids();
         }
@@ -281,8 +278,8 @@ public sealed class UIPresetEditor
             var cfg = def.Configs[i];
             if (ImGui.Selectable(cfg.UIName))
             {
-                _selectedSettingIndex = ms.NumSerialized++;
-                ms.Settings.Insert(_selectedSettingIndex, new(Preset.Modifier.None, i, new() { Option = cfg.Options.Count > 1 ? 1 : 0 }));
+                _selectedSettingIndex = ms.SerializedSettings.Count;
+                ms.SerializedSettings.Add(new(Preset.Modifier.None, i, new() { Option = cfg.Options.Count > 1 ? 1 : 0 }));
                 Modified = true;
                 RebuildSettingGuids();
             }
@@ -310,12 +307,11 @@ public sealed class UIPresetEditor
     {
         ImGui.TextUnformatted($"Current modifiers: {Preset.CurrentModifiers()}");
         var ms = Preset.Modules[_selectedModuleIndex];
-        var md = RotationModuleRegistry.Modules[ms.Type].Definition;
         var values = Preset.ActiveStrategyOverrides(_selectedModuleIndex);
         foreach (var i in _orderedTrackList)
         {
             ref var val = ref values.Values[i];
-            ImGui.TextUnformatted($"{md.Configs[i].UIName} = {md.Configs[i].Options[val.Option].UIName}");
+            ImGui.TextUnformatted($"{ms.Definition.Configs[i].UIName} = {ms.Definition.Configs[i].Options[val.Option].UIName}");
         }
     }
 
@@ -323,15 +319,13 @@ public sealed class UIPresetEditor
     {
         using var d = ImRaii.Disabled(_sourcePresetDefault);
         var ms = Preset.Modules[_selectedModuleIndex];
-        var md = RotationModuleRegistry.Modules[ms.Type].Definition;
-        ref var s = ref ms.Settings.Ref(_selectedSettingIndex);
-        var cfg = md.Configs[s.Track];
+        ref var s = ref ms.SerializedSettings.Ref(_selectedSettingIndex);
+        var cfg = ms.Definition.Configs[s.Track];
         ImGui.TextUnformatted($"Setting: {cfg.UIName}");
-        var persistent = _selectedSettingIndex < ms.NumSerialized;
-        Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Shift, "Shift") && persistent;
-        Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Ctrl, "Ctrl") && persistent;
-        Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Alt, "Alt") && persistent;
-        Modified |= UIStrategyValue.DrawEditor(ref s.Value, cfg, null, null) && persistent;
+        Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Shift, "Shift");
+        Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Ctrl, "Ctrl");
+        Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Alt, "Alt");
+        Modified |= UIStrategyValue.DrawEditor(ref s.Value, cfg, null, null);
     }
 
     private bool DrawModifier(ref Preset.Modifier mod, Preset.Modifier flag, string label)
@@ -360,7 +354,7 @@ public sealed class UIPresetEditor
     {
         _settingGuids.Clear();
         if (_selectedModuleIndex >= 0)
-            _settingGuids.AddRange(Enumerable.Range(0, Preset.Modules[_selectedModuleIndex].Settings.Count));
+            _settingGuids.AddRange(Enumerable.Range(0, Preset.Modules[_selectedModuleIndex].SerializedSettings.Count));
     }
 
     private int FindModuleByType(Type? type) => type != null ? Preset.Modules.FindIndex(m => m.Type == type) : -1;
@@ -374,12 +368,12 @@ public sealed class UIPresetEditor
                 continue; // don't care about boss-specific modules for presets
             if (FindModuleByType(m.Key) >= 0)
                 continue; // module is already added to preset
-            AddAvailableModule(m.Key, m.Value.Definition, res);
+            AddAvailableModule(m.Key, m.Value.Definition, m.Value.Builder, res);
         }
         return res;
     }
 
-    private void AddAvailableModule(Type type, RotationModuleDefinition def, ModuleCategory root)
+    private void AddAvailableModule(Type type, RotationModuleDefinition def, Func<RotationModuleManager, Actor, RotationModule> builder, ModuleCategory root)
     {
         var cat = root;
         foreach (var part in def.Category.Split('|', StringSplitOptions.RemoveEmptyEntries))
@@ -388,7 +382,7 @@ public sealed class UIPresetEditor
                 sub = cat.Subcategories[part] = new() { Parent = cat };
             cat = sub;
         }
-        cat.Leafs.Add((type, def));
+        cat.Leafs.Add((type, def, builder));
         cat.Leafs.SortBy(e => e.def.DisplayName);
     }
 
