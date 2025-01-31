@@ -319,7 +319,7 @@ public sealed class Plugin : IDalamudPlugin
 
         if (CheckInteractRange(player, target))
         {
-            // many eventobj interactions immediately start some cast animation; if we keep trying to approach the object after a successful interaction, it will interrupt the cast, forcing us to do it again
+            // many eventobj interactions "immediately" start some cast animation (delayed by server roundtrip), and if we keep trying to move toward the target after sending the interact request, it will be canceled and force us to start over
             _movementOverride.DesiredDirection = default;
 
             if (_amex.EffectiveAnimationLock == 0 && _ws.CurrentTime >= _throttleInteract)
