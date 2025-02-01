@@ -187,8 +187,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Darkside.Timer = gauge.DarksideTimer / 1000f; //Retrieve current Darkside timer
         Darkside.IsActive = Darkside.Timer > 0.1f; //Checks if Darkside is active
         Darkside.NeedsRefresh = Darkside.Timer <= 3; //Checks if Darkside needs to be refreshed
-        RiskingBlood =
-            ComboLastMove is AID.SyphonStrike or AID.Unleash && Blood >= 80 || Delirium.CD <= 3 && Blood >= 70; //Checks if we are risking Blood
+        RiskingBlood = ((ComboLastMove is AID.SyphonStrike or AID.Unleash && Blood >= 80) || (Delirium.CD <= 3 && Blood >= 70)); //Checks if we are risking Blood
         RiskingMP = MP >= 10000 || Darkside.NeedsRefresh;
         //var ShouldUseDA = DarkArts.IsActive && (RiskingMP || (Delirium.CD <= (Darkside.Timer + GCD) && Delirium.IsActive));
         #endregion
