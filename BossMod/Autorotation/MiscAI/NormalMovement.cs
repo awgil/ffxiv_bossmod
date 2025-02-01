@@ -14,7 +14,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Automatic movement", "Automatically move character based on pathfinding or explicit coordinates.", "AI", "veyn", RotationModuleQuality.WIP, new(~0ul), 1000, 1, RotationModuleOrder.Movement);
+        var res = new RotationModuleDefinition("Automatic movement", "Automatically move character based on pathfinding or explicit coordinates.", "AI", "veyn", RotationModuleQuality.WIP, new(~0ul), 1000, 1, RotationModuleOrder.Movement, CanUseWhileRoleplaying: true);
         res.Define(Track.Destination).As<DestinationStrategy>("Destination", "Destination", 30)
             .AddOption(DestinationStrategy.None, "None", "No automatic movement")
             .AddOption(DestinationStrategy.Pathfind, "Pathfind", "Use standard pathfinding to find best position")
@@ -64,7 +64,18 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             }
 
             if (Hints.InteractWithTarget != null)
-                Hints.GoalZones.Add(Hints.GoalSingleTarget(Hints.InteractWithTarget.Position, 2, 100)); // strongly prefer moving towards interact target
+            {
+                // strongly prefer moving towards interact target
+                Hints.GoalZones.Add(p =>
+                {
+                    var length = (p - Hints.InteractWithTarget.Position).Length();
+
+                    // 99% of eventobjects have an interact range of 3.5y, while the rest have a range of 2.09y
+                    // checking only for the shorter range here would be fine in the vast majority of cases, but it can break interact pathfinding in the case that the target object is partially covered by a forbidden zone with a radius between 2.1 and 3.5
+                    // this is specifically an issue in the metal gear thancred solo duty in endwalker
+                    return length <= 2.09f ? 101 : length <= 3.5f ? 100 : 0;
+                });
+            }
         }
 
         var speed = Player.FindStatus(ClassShared.SID.Sprint) != null ? 7.8f : 6;

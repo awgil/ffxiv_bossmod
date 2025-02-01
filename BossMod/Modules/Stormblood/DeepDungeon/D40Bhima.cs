@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D40Bhima;
+﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D40Bhima;
 
 public enum OID : uint
 {
@@ -22,7 +20,7 @@ class AncientAero(BossModule module) : Components.SelfTargetedAOEs(module, Actio
 class AncientAeroII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AncientAeroII), 6, "Get out of the aoe!");
 class AncientAeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.AncientAeroIII), 23.5f, true, stopAtWall: true);
 class Tornado(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Tornado), 6);
-class Windage(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.Whirlwind).Where(z => z.EventState != 7));
+class Windage(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.Whirlwind).Where(z => z.EventState != 7));
 
 class D40BhimaStates : StateMachineBuilder
 {
@@ -38,4 +36,4 @@ class D40BhimaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 543, NameID = 7483)]
-public class D40Bhima(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(23.7f));
+public class D40Bhima(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(25));

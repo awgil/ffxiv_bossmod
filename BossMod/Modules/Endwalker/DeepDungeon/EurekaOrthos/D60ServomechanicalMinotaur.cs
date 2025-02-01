@@ -28,7 +28,30 @@ public enum AID : uint
 class BullishSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BullishSwing), new AOEShapeCircle(13));
 class BullishSwipeSingle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BullishSwipeSingle), new AOEShapeCone(40, 45.Degrees()));
 class DisorientingGroan(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.DisorientingGroan), 15, true);
-class Shock(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID.BallOfLevin));
+class Shock(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly Dictionary<Actor, DateTime> Casters = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Select(c => new AOEInstance(new AOEShapeCircle(5), c.Key.Position, default, c.Value));
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID.BallOfLevin)
+            Casters[actor] = WorldState.FutureTime(12.9f);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (Casters.ContainsKey(caster))
+            Casters[caster] = Module.CastFinishAt(spell);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.Shock)
+            Casters.Remove(caster);
+    }
+}
 class Thundercall(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Thundercall), "Raidwide + Summoning Orbs");
 
 class OctupleSwipe(BossModule module) : Components.GenericAOEs(module)

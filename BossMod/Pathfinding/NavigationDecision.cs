@@ -42,7 +42,7 @@ public struct NavigationDecision
         return new() { Destination = waypoints.first, NextWaypoint = waypoints.second, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore };
     }
 
-    public static void RasterizeForbiddenZones(Map map, List<(Func<WPos, float> shapeDistance, DateTime activation)> zones, DateTime current, ref float[] scratch)
+    public static void RasterizeForbiddenZones(Map map, List<(Func<WPos, float> shapeDistance, DateTime activation, ulong source)> zones, DateTime current, ref float[] scratch)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
         var zonesFixed = new (Func<WPos, float> shapeDistance, float g)[zones.Count];

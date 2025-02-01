@@ -24,9 +24,14 @@ class Trounce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.
 class EclipticMeteor(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EclipticMeteor), "Kill him before he kills you! 80% max HP damage incoming!");
 class Thunderbolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Thunderbolt), new AOEShapeCone(16.6f, 60.Degrees()));
 
-class EncounterHints(BossModule module) : BossComponent(module)
+class EncounterHints : BossComponent
 {
     private int NumCast { get; set; }
+
+    public EncounterHints(BossModule module) : base(module)
+    {
+        KeepOnPhaseChange = true;
+    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -89,22 +94,61 @@ class Hints(BossModule module) : BossComponent(module)
     }
 }
 
+class ManualBurst(BossModule module) : BossComponent(module)
+{
+    private float HPRatio => Module.PrimaryActor.HPMP.CurHP / (float)Module.PrimaryActor.HPMP.MaxHP;
+    private bool Hold => HPRatio is > 0.15f and < 0.158f;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Hold && hints.FindEnemy(Module.PrimaryActor) is { } e)
+            e.Priority = AIHints.Enemy.PriorityForbidden;
+    }
+
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (HPRatio is > 0.15f and < 0.20f)
+            hints.Add("Autorotation will not attack if boss HP is between 15 and 16% - press buttons manually when ready to start burst");
+    }
+}
+
 class D180DendainsonneStates : StateMachineBuilder
 {
+    private const uint BeheMaxHP = 373545;
+    private const uint Breakpoint1 = BeheMaxHP * 30 / 100;
+    private const uint Breakpoint2 = BeheMaxHP * 21 / 100;
+    private const uint Breakpoint3 = BeheMaxHP * 16 / 100;
+    private const uint Breakpoint4 = BeheMaxHP * 15 / 100;
+
     public D180DendainsonneStates(BossModule module) : base(module)
     {
-        TrivialPhase()
+        SimplePhase(0, StateCommon("30%", 600f), "p1")
+            .ActivateOnEnter<EncounterHints>()
+            .DeactivateOnEnter<Hints>()
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HPMP.CurHP <= Breakpoint1;
+        SimplePhase(1, StateCommon("21%", 120f), "p2")
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HPMP.CurHP <= Breakpoint2;
+        SimplePhase(2, StateCommon("16%", 120f), "p3")
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HPMP.CurHP <= Breakpoint3;
+        SimplePhase(3, StateCommon("15%", 120f), "p4")
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HPMP.CurHP <= Breakpoint4;
+        DeathPhase(4, StateCommon("Enrage", 60f))
+            .ActivateOnEnter<EclipticMeteor>()
+            .DeactivateOnEnter<EncounterHints>();
+    }
+
+    private Action<uint> StateCommon(string name, float duration = 10000f)
+    {
+        return id => SimpleState(id, duration, name)
             .ActivateOnEnter<Thunderbolt>()
             .ActivateOnEnter<Charybdis>()
             .ActivateOnEnter<Maelstrom>()
             .ActivateOnEnter<Trounce>()
-            .ActivateOnEnter<EclipticMeteor>()
-            .ActivateOnEnter<EncounterHints>()
-            .DeactivateOnEnter<Hints>();
+            .ActivateOnEnter<ManualBurst>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 216, NameID = 5461)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 216, NameID = 5461, PlanLevel = 60)]
 public class D180Dendainsonne : BossModule
 {
     public D180Dendainsonne(WorldState ws, Actor primary) : base(ws, primary, new(-300, -300), new ArenaBoundsCircle(25))

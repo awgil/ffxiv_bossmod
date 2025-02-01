@@ -437,7 +437,6 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private bool ShouldUseLeylines(StrategyValues strategy, int extraGCDs = 0)
         => CanWeave(MaxChargesIn(AID.LeyLines), extraGCDs)
-        && MaxCastTime >= 30
         && strategy.Option(SharedTrack.Buffs).As<OffensiveStrategy>() != OffensiveStrategy.Delay;
 
     private bool ShouldTranspose(StrategyValues strategy)

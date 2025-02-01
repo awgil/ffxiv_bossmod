@@ -95,13 +95,14 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         (BestChainsawTarget, NumSawTargets) = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget);
         NumFlamethrowerTargets = Hints.NumPriorityTargetsInAOECone(Player.Position, 8, Player.Rotation.ToDirection(), 45.Degrees());
 
-        OGCD(strategy, primaryTarget);
-
         if (IsPausedForFlamethrower)
             return;
 
         if (CountdownRemaining > 0)
         {
+            if (CountdownRemaining < 5 && ReassembleLeft == 0)
+                PushGCD(AID.Reassemble, Player);
+
             if (CountdownRemaining < 1.15f)
             {
                 PushGCD(AID.AirAnchor, primaryTarget);
@@ -122,69 +123,66 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             if (FMFLeft > GCD)
                 PushGCD(AID.FullMetalField, BestRangedAOETarget);
 
-            if (NumAOETargets > 3)
+            if (NumAOETargets > 2)
                 PushGCD(AID.AutoCrossbow, BestAOETarget);
 
-            PushGCD(AID.HeatBlast, primaryTarget);
-
-            // we don't use any other gcds during overheat
-            return;
+            PushGCD(HighestUnlocked(AID.BlazingShot, AID.HeatBlast), primaryTarget);
         }
-
-        if (ExcavatorLeft > GCD)
-            PushGCD(AID.Excavator, BestRangedAOETarget);
-
-        var toolOk = strategy.Simple(Track.Tools) != OffensiveStrategy.Delay;
-
-        if (toolOk)
-        {
-            if (ReadyIn(AID.AirAnchor) <= GCD)
-                PushGCD(AID.AirAnchor, primaryTarget, priority: 20);
-
-            if (ReadyIn(AID.ChainSaw) <= GCD)
-                PushGCD(AID.ChainSaw, BestChainsawTarget, 10);
-
-            if (ReadyIn(AID.Bioblaster) <= GCD && NumAOETargets > 2)
-                PushGCD(AID.Bioblaster, BestAOETarget, priority: MaxChargesIn(AID.Bioblaster) <= GCD ? 20 : 2);
-
-            if (ReadyIn(AID.Drill) <= GCD)
-                PushGCD(AID.Drill, primaryTarget, priority: MaxChargesIn(AID.Drill) <= GCD ? 20 : 2);
-        }
-
-        // TODO work out priorities
-        if (FMFLeft > GCD && ExcavatorLeft == 0)
-            PushGCD(AID.FullMetalField, BestRangedAOETarget);
-
-        if (ReassembleLeft > GCD && NumAOETargets > 3)
-            PushGCD(AID.Scattergun, BestAOETarget);
-
-        // different cdgroup?
-        if (!Unlocked(AID.AirAnchor) && ReadyIn(AID.HotShot) <= GCD && toolOk)
-            PushGCD(AID.HotShot, primaryTarget);
-
-        if (NumAOETargets > 2 && Unlocked(AID.SpreadShot))
-            PushGCD(AID.SpreadShot, BestAOETarget);
         else
         {
-            if (ComboLastMove == AID.SlugShot)
-                PushGCD(AID.CleanShot, primaryTarget);
+            if (ExcavatorLeft > GCD)
+                PushGCD(AID.Excavator, BestRangedAOETarget);
 
-            if (ComboLastMove == AID.SplitShot)
-                PushGCD(AID.SlugShot, primaryTarget);
+            var toolOk = strategy.Simple(Track.Tools) != OffensiveStrategy.Delay;
 
-            PushGCD(AID.SplitShot, primaryTarget);
+            if (toolOk)
+            {
+                if (ReadyIn(AID.AirAnchor) <= GCD)
+                    PushGCD(AID.AirAnchor, primaryTarget, priority: 20);
+
+                if (ReadyIn(AID.ChainSaw) <= GCD)
+                    PushGCD(AID.ChainSaw, BestChainsawTarget, 10);
+
+                if (ReadyIn(AID.Bioblaster) <= GCD && NumAOETargets > 1)
+                    PushGCD(AID.Bioblaster, BestAOETarget, priority: MaxChargesIn(AID.Bioblaster) <= GCD ? 20 : 2);
+
+                if (ReadyIn(AID.Drill) <= GCD)
+                    PushGCD(AID.Drill, primaryTarget, priority: MaxChargesIn(AID.Drill) <= GCD ? 20 : 2);
+
+                // different cdgroup fsr
+                if (!Unlocked(AID.AirAnchor) && ReadyIn(AID.HotShot) <= GCD)
+                    PushGCD(AID.HotShot, primaryTarget);
+            }
+
+            // TODO work out priorities
+            if (FMFLeft > GCD && ExcavatorLeft == 0)
+                PushGCD(AID.FullMetalField, BestRangedAOETarget);
+
+            var breakpoint = Unlocked(AID.Scattergun) ? 2 : 1;
+
+            if (NumAOETargets > breakpoint && Unlocked(AID.SpreadShot))
+                PushGCD(HighestUnlocked(AID.Scattergun, AID.SpreadShot), BestAOETarget);
+            else
+            {
+                if (ComboLastMove == AID.SlugShot)
+                    PushGCD(HighestUnlocked(AID.HeatedCleanShot, AID.CleanShot), primaryTarget);
+
+                if (ComboLastMove == AID.SplitShot)
+                    PushGCD(HighestUnlocked(AID.HeatedSlugShot, AID.SlugShot), primaryTarget);
+
+                PushGCD(HighestUnlocked(AID.HeatedSplitShot, AID.SplitShot), primaryTarget);
+            }
         }
+
+        OGCD(strategy, primaryTarget);
     }
 
     private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (CountdownRemaining is > 0 and < 5 && ReassembleLeft == 0)
-            PushOGCD(AID.Reassemble, Player);
+        if (CountdownRemaining == null && !Player.InCombat && Player.DistanceToHitbox(primaryTarget) <= 25 && ReassembleLeft == 0 && !Overheated && AlwaysReassemble(NextGCD))
+            PushGCD(AID.Reassemble, Player, priority: 50);
 
-        if (CountdownRemaining == null && !Player.InCombat && Player.DistanceToHitbox(primaryTarget) <= 25 && NextToolCharge == 0 && ReassembleLeft == 0 && !Overheated)
-            PushGCD(AID.Reassemble, Player, 30);
-
-        if (IsPausedForFlamethrower || !Player.InCombat || primaryTarget == null)
+        if (!Player.InCombat || primaryTarget == null)
             return;
 
         if (ShouldWildfire(strategy))
@@ -238,31 +236,42 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         if (ReassembleLeft > 0 || !Unlocked(AID.Reassemble) || Overheated || primaryTarget == null)
             return false;
 
-        if (NumAOETargets > 3 && Unlocked(AID.SpreadShot))
+        if (AlwaysReassemble(NextGCD))
             return true;
 
-        if (RaidBuffsIn < 10 && RaidBuffsIn > GCD)
-            return false;
+        return NextGCD switch
+        {
+            // AOE actions (TODO review usage, the wording in the balance guide is contradictory)
+            AID.SpreadShot or AID.Scattergun or AID.AutoCrossbow => true,
+            // highest potency before 58
+            AID.CleanShot => !Unlocked(AID.Drill),
+            // highest potency before 26
+            AID.HotShot => !Unlocked(AID.CleanShot),
 
-        if (!Unlocked(AID.Drill))
-            return ComboLastMove == (Unlocked(AID.CleanShot) ? AID.SlugShot : AID.SplitShot);
-
-        // past 58 we only reassemble on tool charges so don't bother
-        if (strategy.Simple(Track.Tools) == OffensiveStrategy.Delay)
-            return false;
-
-        return NextToolCharge <= GCD;
+            _ => false
+        };
     }
+
+    private bool AlwaysReassemble(AID action) => action is AID.Drill or AID.AirAnchor or AID.ChainSaw or AID.Excavator;
+
+    private int BatteryFromAction(AID action) => action switch
+    {
+        AID.ChainSaw or AID.AirAnchor or AID.Excavator or AID.HotShot => 20,
+        AID.CleanShot or AID.HeatedCleanShot => 10,
+        _ => 0
+    };
 
     private bool ShouldMinion(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (!Unlocked(AID.RookAutoturret) || primaryTarget == null || HasMinion || Battery < 50 || ShouldWildfire(strategy))
             return false;
 
+        var almostFull = Battery == 90 && BatteryFromAction(NextGCD) == 20;
+
         return strategy.Option(Track.Queen).As<QueenStrategy>() switch
         {
             QueenStrategy.MinGauge => true,
-            QueenStrategy.FullGauge => Battery == 100,
+            QueenStrategy.FullGauge => Battery == 100 || almostFull,
             // allow early summon, queen doesn't start autoing for 5 seconds
             QueenStrategy.RaidBuffsOnly => RaidBuffsLeft > 10 || RaidBuffsIn < 5,
             _ => false,

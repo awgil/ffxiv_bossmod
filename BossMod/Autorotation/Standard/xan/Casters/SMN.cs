@@ -286,13 +286,13 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
                 case CycloneUse.Delay: // do nothing, pause rotation
                     return;
                 case CycloneUse.DelayMove:
-                    if (MaxCastTime == 0)
+                    if (IsMoving)
                         return;
                     else
                         PushGCD(AID.CrimsonCyclone, BestAOETarget);
                     break;
                 case CycloneUse.SkipMove:
-                    if (MaxCastTime > 0)
+                    if (!IsMoving)
                         PushGCD(AID.CrimsonCyclone, BestAOETarget);
                     break;
                 case CycloneUse.Skip:

@@ -2,6 +2,13 @@
 
 public enum AID : uint
 {
+    // palace of the dead/EO transformations
+    Pummel = 6273,
+    VoidFireII = 6274,
+    HeavenlyJudge = 6871,
+    Rotosmash = 32781,
+    WreckingBall = 32782,
+
     // magitek reaper in Fly Free, My Pretty
     MagitekCannon = 7619, // range 30 radius 6 ground targeted aoe
     PhotonStream = 7620, // range 10 width 4 rect aoe
@@ -262,6 +269,12 @@ public sealed class Definitions : IDisposable
 {
     public Definitions(ActionDefinitions d)
     {
+        d.RegisterSpell(AID.Pummel);
+        d.RegisterSpell(AID.VoidFireII);
+        d.RegisterSpell(AID.HeavenlyJudge);
+        d.RegisterSpell(AID.Rotosmash);
+        d.RegisterSpell(AID.WreckingBall);
+
         d.RegisterSpell(AID.MagitekCannon);
         d.RegisterSpell(AID.PhotonStream);
         d.RegisterSpell(AID.DiffractiveMagitekCannon);

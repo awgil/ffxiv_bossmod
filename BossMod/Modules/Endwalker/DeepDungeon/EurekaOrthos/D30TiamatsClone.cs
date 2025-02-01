@@ -27,7 +27,16 @@ public enum IconID : uint
     ChasingAOE = 197, // player
 }
 
-class WheiMorn(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(6), ActionID.MakeSpell(AID.WheiMornFirst), ActionID.MakeSpell(AID.WheiMornRest), 6, 2, 5);
+class WheiMorn(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(6), ActionID.MakeSpell(AID.WheiMornFirst), ActionID.MakeSpell(AID.WheiMornRest), 6, 2, 5)
+{
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+
+        if (spell.Action == ActionRest && Chasers.Count == 0)
+            ExcludedTargets.Reset();
+    }
+}
 class DarkMegaflare(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DarkMegaflare2), 6);
 class DarkWyrmwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkWyrmwing2), new AOEShapeRect(40, 8));
 class DarkWyrmtail(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkWyrmtail2), new AOEShapeRect(40, 8));
@@ -36,15 +45,23 @@ class CreatureOfDarkness(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _heads = [];
     private static readonly AOEShapeRect rect = new(2, 2, 2);
-    private static readonly AOEShapeRect rect2 = new(6, 2);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var c in _heads)
         {
             yield return new(rect, c.Position, c.Rotation, Color: ArenaColor.Danger);
-            yield return new(rect2, c.Position + 2 * c.Rotation.ToDirection(), c.Rotation);
+            yield return new(new AOEShapeRect(6, 2, 2), c.Position, c.Rotation, WorldState.FutureTime(1.5f));
         }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        // encourage AI mode casters to preposition out of harm's way
+        foreach (var c in _heads)
+            hints.AddForbiddenZone(new AOEShapeRect(50, 2, 2), c.Position, c.Rotation, WorldState.FutureTime(10));
     }
 
     public override void OnActorModelStateChange(Actor actor, byte modelState, byte animState1, byte animState2)
@@ -73,4 +90,4 @@ class D30TiamatsCloneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 899, NameID = 12242)]
-public class D30TiamatsClone(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsSquare(20));
+public class D30TiamatsClone(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsSquare(19.5f));
