@@ -2,7 +2,7 @@
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using BossMod.DRK;
 
-namespace BossMod.Autorotation.Standard.akechi.Tank;
+namespace BossMod.Autorotation.Standard.akechi;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
@@ -11,7 +11,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     #region Enums: Abilities / Strategies
     public enum Track { Blood = SharedTrack.Count, MP, Carve, DeliriumCombo, Potion, Unmend, Delirium, SaltedEarth, SaltAndDarkness, LivingShadow, Shadowbringer, Disesteem }
     public enum BloodStrategy { Automatic, OnlyBloodspiller, OnlyQuietus, ForceBloodspiller, ForceQuietus, Conserve }
-    public enum MPStrategy { Auto3k, Auto6k, Auto9k, AutoRefresh, Edge3k, Edge6k, Edge9k, EdgeRefresh, Flood3k, Flood6k, Flood9k, FloodRefresh, Delay }
+    public enum MPStrategy { Optimal, Auto3k, Auto6k, Auto9k, AutoRefresh, Edge3k, Edge6k, Edge9k, EdgeRefresh, Flood3k, Flood6k, Flood9k, FloodRefresh, Delay }
     public enum CarveStrategy { Automatic, OnlyCarve, OnlyDrain, ForceCarve, ForceDrain, Delay }
     public enum DeliriumComboStrategy { Automatic, ScarletDelirum, Comeuppance, Torcleaver, Impalement, Delay }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
@@ -32,6 +32,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddOption(BloodStrategy.ForceQuietus, "Force Quietus", "Force use Quietus ASAP", 0, 0, ActionTargets.Hostile, 64)
             .AddOption(BloodStrategy.Conserve, "Conserve", "Conserves all Blood-related abilities as much as possible");
         res.Define(Track.MP).As<MPStrategy>("MP", "MP", uiPriority: 190)
+            .AddOption(MPStrategy.Optimal, "Optimal", "Use MP actions optimally; 2 for 1 minute, 4 (or 5 if Dark Arts is active) for 2 minutes")
             .AddOption(MPStrategy.Auto3k, "Auto 3k", "Automatically decide best MP action to use; Uses when at 3000+ MP", 0, 0, ActionTargets.Self, 30)
             .AddOption(MPStrategy.Auto6k, "Auto 6k", "Automatically decide best MP action to use; Uses when at 6000+ MP", 0, 0, ActionTargets.Self, 30)
             .AddOption(MPStrategy.Auto9k, "Auto 9k", "Automatically decide best MP action to use; Uses when at 9000+ MP", 0, 0, ActionTargets.Self, 30)
@@ -145,11 +146,39 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     public Enemy? BestTargetAOERect;
     public Enemy? BestTargetMPRectHigh;
     public Enemy? BestTargetMPRectLow;
+    private bool inOdd;
     #endregion
 
-    public override void Execution(StrategyValues strategy, Enemy? primaryTarget) //Executes our actions
+    private bool ShouldSpendMP(MPStrategy strategy)
+    {
+        if (strategy != MPStrategy.Optimal)
+            return false;
+        if (strategy == MPStrategy.Optimal)
+        {
+            if (RiskingMP)
+                return true;
+
+            if (DarkArts.IsActive)
+            {
+                if (Delirium.CD >= 40)
+                    return true;
+                if (Delirium.CD >= (Darkside.Timer + GCD))
+                    return true;
+            }
+            //2 uses
+            if (Delirium.CD >= 40 && inOdd)
+                return MP >= 6000;
+            //4 uses (5 with DA)
+            if (Delirium.CD >= 40 && !inOdd)
+                return MP >= 3000;
+        }
+        return false;
+    }
+
+    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         #region Variables
+
         #region Gauge
         var gauge = World.Client.GetGauge<DarkKnightGauge>(); //Retrieve DRK gauge
         Blood = gauge.Blood;
@@ -158,10 +187,11 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Darkside.Timer = gauge.DarksideTimer / 1000f; //Retrieve current Darkside timer
         Darkside.IsActive = Darkside.Timer > 0.1f; //Checks if Darkside is active
         Darkside.NeedsRefresh = Darkside.Timer <= 3; //Checks if Darkside needs to be refreshed
-        RiskingBlood =
-            ComboLastMove is AID.SyphonStrike or AID.Unleash && Blood >= 80 || Delirium.CD <= 3 && Blood >= 70; //Checks if we are risking Blood
-        RiskingMP = MP >= 9800 || Darkside.NeedsRefresh;
+        RiskingBlood = ((ComboLastMove is AID.SyphonStrike or AID.Unleash && Blood >= 80) || (Delirium.CD <= 3 && Blood >= 70)); //Checks if we are risking Blood
+        RiskingMP = MP >= 10000 || Darkside.NeedsRefresh;
+        //var ShouldUseDA = DarkArts.IsActive && (RiskingMP || (Delirium.CD <= (Darkside.Timer + GCD) && Delirium.IsActive));
         #endregion
+
         #region Cooldowns
         SaltedEarth.Left = StatusRemaining(Player, SID.SaltedEarth, 15); //Retrieve current Salted Earth time left
         SaltedEarth.CD = TotalCD(AID.SaltedEarth); //Retrieve current Salted Earth cooldown
@@ -189,6 +219,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Shadowbringer.HasCharges = TotalCD(AID.Shadowbringer) <= 60; //Checks if Shadowbringer has charges
         Shadowbringer.IsReady = Unlocked(AID.Shadowbringer) && Shadowbringer.HasCharges; //Shadowbringer ability
         #endregion
+
         #region Strategy Definitions
         var mp = strategy.Option(Track.MP);
         var mpStrat = mp.As<MPStrategy>(); //Retrieve MP strategy
@@ -211,17 +242,22 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         var unmend = strategy.Option(Track.Unmend);
         var unmendStrat = unmend.As<UnmendStrategy>(); //Retrieve Unmend strategy
         #endregion
+
+        #region Misc
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
         (BestAOERectTargets, NumAOERectTargets) = GetBestTarget(PlayerTarget, 10, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 3.5f));
         BestTargetAOERect = Unlocked(AID.Shadowbringer) && NumAOERectTargets >= 2
             ? BestAOERectTargets
             : primaryTarget;
         BestTargetMPRectHigh = Unlocked(AID.FloodOfShadow) && NumAOERectTargets >= 3
-            ? BestAOERectTargets // Use AoE rectangle targets if there are at least 3
-            : primaryTarget; // Fallback to primaryTarget or PlayerTarget if no AoE targets
+            ? BestAOERectTargets
+            : primaryTarget;
         BestTargetMPRectLow = !Unlocked(AID.FloodOfShadow) && NumAOERectTargets >= 4
-            ? BestAOERectTargets // Use AoE rectangle targets if there are at least 4
-            : primaryTarget; // Fallback to primaryTarget or PlayerTarget if no AoE targets
+            ? BestAOERectTargets
+            : primaryTarget;
+        inOdd = LivingShadow.CD is < 90 and > 30;
+        #endregion
+
         #endregion
 
         #region Full Rotation Execution
@@ -359,7 +395,8 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             }
             if (ShouldUseMP(mpStrat))
             {
-                if (mpStrat is MPStrategy.Auto9k
+                if (mpStrat is MPStrategy.Optimal
+                    or MPStrategy.Auto9k
                     or MPStrategy.Auto6k
                     or MPStrategy.Auto3k
                     or MPStrategy.AutoRefresh)
@@ -465,6 +502,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     #region Cooldown Helpers
     private bool ShouldUseMP(MPStrategy strategy) => strategy switch
     {
+        MPStrategy.Optimal => ShouldSpendMP(MPStrategy.Optimal),
         MPStrategy.Auto3k => CanWeaveIn && MP >= 3000,
         MPStrategy.Auto6k => CanWeaveIn && MP >= 6000,
         MPStrategy.Auto9k => CanWeaveIn && MP >= 9000,
