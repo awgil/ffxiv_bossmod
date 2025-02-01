@@ -2,7 +2,7 @@
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using BossMod.DRK;
 
-namespace BossMod.Autorotation.Standard.akechi;
+namespace BossMod.Autorotation.Standard.akechi.Tank;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
@@ -21,7 +21,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions & Strategies
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi DRK", "Standard Rotation Module", "Standard rotation (Akechi)|PvE|Tank", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.DRK), 100);
+        var res = new RotationModuleDefinition("Akechi DRK", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.DRK), 100);
 
         res.DefineShared();
         res.Define(Track.Blood).As<BloodStrategy>("Blood", "Blood", uiPriority: 200)
@@ -149,32 +149,6 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     private bool inOdd;
     #endregion
 
-    private bool ShouldSpendMP(MPStrategy strategy)
-    {
-        if (strategy != MPStrategy.Optimal)
-            return false;
-        if (strategy == MPStrategy.Optimal)
-        {
-            if (RiskingMP)
-                return true;
-
-            if (DarkArts.IsActive)
-            {
-                if (Delirium.CD >= 40)
-                    return true;
-                if (Delirium.CD >= (Darkside.Timer + GCD))
-                    return true;
-            }
-            //2 uses
-            if (Delirium.CD >= 40 && inOdd)
-                return MP >= 6000;
-            //4 uses (5 with DA)
-            if (Delirium.CD >= 40 && !inOdd)
-                return MP >= 3000;
-        }
-        return false;
-    }
-
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         #region Variables
@@ -187,7 +161,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Darkside.Timer = gauge.DarksideTimer / 1000f; //Retrieve current Darkside timer
         Darkside.IsActive = Darkside.Timer > 0.1f; //Checks if Darkside is active
         Darkside.NeedsRefresh = Darkside.Timer <= 3; //Checks if Darkside needs to be refreshed
-        RiskingBlood = ((ComboLastMove is AID.SyphonStrike or AID.Unleash && Blood >= 80) || (Delirium.CD <= 3 && Blood >= 70)); //Checks if we are risking Blood
+        RiskingBlood = ComboLastMove is AID.SyphonStrike or AID.Unleash && Blood >= 80 || Delirium.CD <= 3 && Blood >= 70; //Checks if we are risking Blood
         RiskingMP = MP >= 10000 || Darkside.NeedsRefresh;
         //var ShouldUseDA = DarkArts.IsActive && (RiskingMP || (Delirium.CD <= (Darkside.Timer + GCD) && Delirium.IsActive));
         #endregion
@@ -500,6 +474,31 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Cooldown Helpers
+    private bool ShouldSpendMP(MPStrategy strategy)
+    {
+        if (strategy != MPStrategy.Optimal)
+            return false;
+        if (strategy == MPStrategy.Optimal)
+        {
+            if (RiskingMP)
+                return true;
+
+            if (DarkArts.IsActive)
+            {
+                if (Delirium.CD >= 40)
+                    return true;
+                if (Delirium.CD >= Darkside.Timer + GCD)
+                    return true;
+            }
+            //2 uses
+            if (Delirium.CD >= 40 && inOdd)
+                return MP >= 6000;
+            //4 uses (5 with DA)
+            if (Delirium.CD >= 40 && !inOdd)
+                return MP >= 3000;
+        }
+        return false;
+    }
     private bool ShouldUseMP(MPStrategy strategy) => strategy switch
     {
         MPStrategy.Optimal => ShouldSpendMP(MPStrategy.Optimal),

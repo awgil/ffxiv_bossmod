@@ -112,7 +112,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     {
         var res = new RotationModuleDefinition("Akechi PLD",
             "Standard Rotation Module",
-            "Standard rotation (Akechi)",
+            "Standard rotation (Akechi)|Tank",
             "Akechi",
             RotationModuleQuality.Good,
             BitMask.Build((int)Class.GLA, (int)Class.PLD),

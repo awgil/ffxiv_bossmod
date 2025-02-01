@@ -159,7 +159,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Rot
     {
         var res = new RotationModuleDefinition("Akechi GNB", //Title
             "Standard Rotation Module", //Description
-            "Standard rotation (Akechi)", //Category
+            "Standard rotation (Akechi)|Tank", //Category
             "Akechi", //Contributor
             RotationModuleQuality.Good, //Quality
             BitMask.Build((int)Class.GNB), //Job
