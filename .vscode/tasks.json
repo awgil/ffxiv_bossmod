@@ -12,8 +12,8 @@
         "/consoleloggerparameters:NoSummary;ForceNoAlign",
         "--configuration",
         "Release",
-        "--output",
-        "${workspaceFolder}/BossMod/bin/x64/Release/"
+        "-p",
+        "Platform=x64"
       ],
       "problemMatcher": "$msCompile",
       "group": {
