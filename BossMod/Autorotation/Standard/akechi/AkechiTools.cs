@@ -156,21 +156,138 @@ public enum HoldStrategy
     HoldEverything
 }
 
-/// <summary>The <em>Track</em> enum used for allowing or forbidding use of module-specific abilities.</summary>
+/// <summary>
+/// The <em>Default Strategy</em> enum used for allowing or forbidding use of module-specific GCD abilities.<para/>
+/// <em>Example Given:</em><br/>
+/// - <c>strategy.Option(Track.SonicBreak).As&lt;<seealso cref="GCDStrategy"/>&gt;()</c><para/>
+/// <em>Explanation:</em><br/>
+/// - <b><em>'strategy'</em></b> is the parameter for tracking a specific strategy for a specific ability in the user's rotation module.<br/>
+/// - <b><em>'Option'</em></b> are the relative options for user's specific strategy.<br/>
+/// - <b><em>'(Track.SonicBreak)'</em></b> is the user's module-specific GCD ability enum being tracked.<br/>
+/// - <b><em>'.As&lt;<seealso cref="GCDStrategy"/>&gt;()'</em></b> is the relative Default strategy for user's module-specific GCD ability being tracked in the user's rotation module.
+/// </summary>
 /// <returns>- All strategies listed under <seealso cref="GCDStrategy"/>.</returns>
-public enum GCDStrategy { Automatic, Force, Delay }
+public enum GCDStrategy
+{
+    /// <summary>
+    /// The default strategy used for automatically executing user's module-specific GCD ability.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(Track.SonicBreak).As&lt;<seealso cref="GCDStrategy"/>&gt;() == <seealso cref="Automatic"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(Track.SonicBreak).As&lt;<seealso cref="GCDStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="GCDStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="Automatic"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- Automatic execution of ability based on user's logic.</returns>
+    Automatic,
 
-/// <summary>The <em>Track</em> enum used for allowing or forbidding use of module-specific abilities, whilst also considering weave windows.</summary>
-/// <returns>- All strategies listed under <seealso cref="OGCDStrategy"/>.</returns>
-public enum OGCDStrategy { Automatic, Force, AnyWeave, EarlyWeave, LateWeave, Delay }
+    /// <summary>
+    /// The main strategy used for force-executing user's module-specific GCD ability.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(Track.SonicBreak).As&lt;<seealso cref="GCDStrategy"/>&gt;() == <seealso cref="Force"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(Track.SonicBreak).As&lt;<seealso cref="GCDStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="GCDStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="Force"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- Forced execution of user's module-specific GCD ability.</returns>
+    Force,
+
+    /// <summary>
+    /// The main strategy used for forbidding use of user's module-specific GCD ability.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(Track.SonicBreak).As&lt;<seealso cref="GCDStrategy"/>&gt;() == <seealso cref="Delay"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(Track.SonicBreak).As&lt;<seealso cref="GCDStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="GCDStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="Delay"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- Forbiddance of execution for user's module-specific GCD ability.</returns>
+    Delay
+}
 
 /// <summary>
-/// The primary base for all of our tools needed for rotations, jam-packed with many various functions to help with all sorts of optimization & ease when creating rotation modules.
+/// The <em>Default Strategy</em> enum used for allowing or forbidding use of module-specific GCD abilities.<para/>
+/// <em>Example Given:</em><br/>
+/// - <c>strategy.Option(Track.NoMercy).As&lt;<seealso cref="OGCDStrategy"/>&gt;()</c><para/>
+/// <em>Explanation:</em><br/>
+/// - <b><em>'strategy'</em></b> is the parameter for tracking a specific strategy for a specific ability in the user's rotation module.<br/>
+/// - <b><em>'Option'</em></b> are the relative options for user's specific strategy.<br/>
+/// - <b><em>'(Track.NoMercy)'</em></b> is the user's module-specific OGCD ability enum being tracked.<br/>
+/// - <b><em>'.As&lt;<seealso cref="OGCDStrategy"/>&gt;()'</em></b> is the relative Default strategy for user's module-specific OGCD ability being tracked in the user's rotation module.
 /// </summary>
-/// <typeparam name="AID"></typeparam>
-/// <typeparam name="TraitID"></typeparam>
-/// <param name="manager"></param>
-/// <param name="player"></param>
+/// <returns>- All strategies listed under <seealso cref="OGCDStrategy"/>.</returns>
+public enum OGCDStrategy
+{
+    /// <summary>
+    /// The default strategy used for automatically executing user's module-specific OGCD ability.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(Track.NoMercy).As&lt;<seealso cref="OGCDStrategy"/>&gt;() == <seealso cref="Automatic"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(Track.NoMercy).As&lt;<seealso cref="OGCDStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="OGCDStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="Automatic"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- Automatic execution of ability based on user's logic.</returns>
+    Automatic,
+
+    /// <summary>
+    /// The main strategy used for force-executing user's module-specific OGCD ability.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(Track.NoMercy).As&lt;<seealso cref="OGCDStrategy"/>&gt;() == <seealso cref="Force"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(Track.NoMercy).As&lt;<seealso cref="OGCDStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="OGCDStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="Force"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- Forced execution of user's module-specific OGCD ability.</returns>
+    Force,
+
+    /// <summary>
+    /// The main strategy used for force-executing user's module-specific OGCD ability in the very next weave window.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(Track.NoMercy).As&lt;<seealso cref="OGCDStrategy"/>&gt;() == <seealso cref="AnyWeave"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(Track.NoMercy).As&lt;<seealso cref="OGCDStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="OGCDStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="AnyWeave"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- Forced execution of user's module-specific OGCD ability inside next weave.</returns>
+    AnyWeave,
+
+    /// <summary>
+    /// The main strategy used for force-executing user's module-specific OGCD ability in the first-half of very next weave window.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(Track.NoMercy).As&lt;<seealso cref="OGCDStrategy"/>&gt;() == <seealso cref="EarlyWeave"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(Track.NoMercy).As&lt;<seealso cref="OGCDStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="OGCDStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="EarlyWeave"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- Forced execution of user's module-specific OGCD ability inside next early-weave.</returns>
+    EarlyWeave,
+
+    /// <summary>
+    /// The main strategy used for force-executing user's module-specific OGCD ability in the second-half of very next weave window.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(Track.NoMercy).As&lt;<seealso cref="OGCDStrategy"/>&gt;() == <seealso cref="LateWeave"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(Track.NoMercy).As&lt;<seealso cref="OGCDStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="OGCDStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="LateWeave"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- Forced execution of user's module-specific OGCD ability inside next late-weave.</returns>
+    LateWeave,
+
+    /// <summary>
+    /// The main strategy used for forbidding use of user's module-specific OGCD ability.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>strategy.Option(Track.NoMercy).As&lt;<seealso cref="OGCDStrategy"/>&gt;() == <seealso cref="Delay"/></c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'strategy.Option(Track.NoMercy).As&lt;<seealso cref="OGCDStrategy"/>&gt;()'</em></b> is the full function (or <c>local variable</c> if user desires) for calling <seealso cref="OGCDStrategy"/>.<br/>
+    /// - <b><em>'<seealso cref="Delay"/>'</em></b> is the chosen option for this specific strategy.<br/>
+    /// </summary>
+    /// <returns>- Forbiddance of execution for user's module-specific OGCD ability.</returns>
+    Delay
+}
+
+/// <summary>The core foundation of how we execute everything, from queuing GCDs to implementing our rotation helpers, functions, and tools.<br/> This base provides a robust framework equipped with a comprehensive suite of functions designed to streamline optimization and simplify the creation of advanced rotation modules.</summary>
+/// <typeparam name="AID">The user's specified <em>Action ID</em> being checked, called by <b>using BossMod.(class/job acronym)</b></typeparam>
+/// <typeparam name="TraitID">The user's specified <em>Trait ID</em> being checked, called by <b>using BossMod.(class/job acronym)</b></typeparam>
+/// <param name="manager">The specified <em>Rotation Module Manager</em> being used.</param>
+/// <param name="player">The <em>User</em> that is executing this module.</param>
 public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
         where AID : struct, Enum where TraitID : Enum
 {
@@ -178,25 +295,34 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>The <em>Next GCD</em> being queued.</summary>
     protected AID NextGCD;
 
-    /// <summary>The <em>Next GCD's Priority</em> being queued.</summary>
+    /// <summary>The <em>Next GCD</em> being queued's <em>Priority</em>.</summary>
     protected int NextGCDPrio;
 
+    #region Queuing
+    #region GCD
     /// <summary>
-    /// The primary helper we use for calling all our abilities, both <em>Global</em> and <em>Off-Global</em>.
-    /// <para>This also handles <em>Ground Target</em> abilities, such as <em>BLM: Ley Lines</em> or <em>NIN: Shukuchi</em></para>
+    /// The primary helper we use for calling all our <b>GCD</b> abilities onto any actor.
+    /// <br>This also handles <em>Ground Target</em> abilities, such as <c>BLM:LeyLines</c> or <c>NIN:Shukuchi</c></br>
     /// </summary>
     /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
     /// <param name="target">The user's specified <em>Target</em>.</param>
     /// <param name="priority">The user's specified <em>Priority</em>.</param>
-    /// <param name="delay">The user's specified <em>Delay</em>.</param>
+    /// <param name="delay">The user's specified <em>application delay</em>.</param>
+    /// <param name="castTime">The user's specified <em>cast time</em> for the ability.</param>
     protected void QueueGCD<P>(AID aid, Actor? target, P priority, float delay = 0, float castTime = 0) where P : Enum
     => QueueGCD(aid, target, (int)(object)priority, delay, castTime);
 
-    protected void QueueGCD<P>(AID aid, Enemy? target, P priority, float delay = 0, float castTime = 0) where P : Enum
-        => QueueGCD(aid, target?.Actor, (int)(object)priority, delay, castTime);
-
+    /// <summary>
+    /// The primary helper we use for calling all our <b>GCD</b> abilities onto any enemy.
+    /// <br>This also handles <em>Ground Target</em> abilities, such as <c>BLM:LeyLines</c> or <c>NIN:Shukuchi</c></br>
+    /// </summary>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
+    /// <param name="target">The user's specified <em>Target</em>.</param>
+    /// <param name="priority">The user's specified <em>Priority</em>.</param>
+    /// <param name="delay">The user's specified <em>application delay</em>.</param>
+    /// <param name="castTime">The user's specified <em>cast time</em> for the ability.</param>
+    protected void QueueGCD<P>(AID aid, Enemy? target, P priority, float delay = 0, float castTime = 0) where P : Enum => QueueGCD(aid, target?.Actor, (int)(object)priority, delay, castTime);
     protected void QueueGCD(AID aid, Enemy? target, int priority = 2, float delay = 0, float castTime = 0) => QueueGCD(aid, target?.Actor, priority, delay, castTime);
-
     protected void QueueGCD(AID aid, Actor? target, int priority = 2, float delay = 0, float castTime = 0)
     {
         if (priority == 0)
@@ -208,13 +334,33 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
             NextGCDPrio = priority;
         }
     }
+    #endregion
 
+    #region OGCD
+    /// <summary>
+    /// The primary helper we use for calling all our <b>OGCD</b> abilities onto any actor.<br/>
+    /// This also handles <em>Ground Target</em> abilities, such as <c>BLM:LeyLines</c> or <c>NIN:Shukuchi</c>
+    /// <b>NOTE:</b> For compatibility between <c>Actor?</c> and <c>Enemy?</c> inside one function, use `primarytarget?.Actor` as `Enemy?` definition.
+    /// </summary>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
+    /// <param name="target">The user's specified <em>Target</em>.</param>
+    /// <param name="priority">The user's specified <em>Priority</em>.</param>
+    /// <param name="delay">The user's specified <em>application delay</em>.</param>
+    /// <param name="castTime">The user's specified <em>cast time</em> for the ability.</param>
     protected void QueueOGCD<P>(AID aid, Actor? target, P priority, float delay = 0, float castTime = 0) where P : Enum => QueueOGCD(aid, target, (int)(object)priority, delay, castTime);
 
+    /// <summary>
+    /// The primary helper we use for calling all our <b>OGCD</b> abilities onto any enemy.<br/>
+    /// This also handles <em>Ground Target</em> abilities, such as <c>BLM:LeyLines</c> or <c>NIN:Shukuchi</c><br/>
+    /// <b>NOTE:</b> For compatibility between <c>Actor?</c> and <c>Enemy?</c> inside one function, use `primarytarget?.Actor` as `Enemy?` definition.
+    /// </summary>
+    /// <param name="aid"> The user's specified <em>Action ID</em> being checked.</param>
+    /// <param name="target">The user's specified <em>Target</em>.</param>
+    /// <param name="priority">The user's specified <em>Priority</em>.</param>
+    /// <param name="delay">The user's specified <em>application delay</em>.</param>
+    /// <param name="castTime">The user's specified <em>cast time</em> for the ability.</param>
     protected void QueueOGCD<P>(AID aid, Enemy? target, P priority, float delay = 0, float castTime = 0) where P : Enum => QueueOGCD(aid, target?.Actor, (int)(object)priority, delay, castTime);
-
     protected void QueueOGCD(AID aid, Enemy? target, int priority = 1, float delay = 0, float castTime = 0) => QueueOGCD(aid, target?.Actor, priority, delay, castTime);
-
     protected void QueueOGCD(AID aid, Actor? target, int priority = 1, float delay = 0, float castTime = 0)
     {
         if (priority == 0)
@@ -222,7 +368,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
         QueueAction(aid, target, ActionQueue.Priority.Low + priority, delay, castTime);
     }
-
+    #endregion
 
     protected bool QueueAction(AID aid, Actor? target, float priority, float delay, float castTime)
     {
@@ -256,6 +402,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, castTime: castTime, targetPos: targetPos);
         return true;
     }
+    #endregion
+
     #endregion
 
     #region HP/MP/Shield
