@@ -385,6 +385,8 @@ public abstract class AutoClear : ZoneModule
 
     private DateTime CastFinishAt(Actor c) => World.FutureTime(c.CastInfo!.NPCRemainingTime);
 
+    protected virtual void CalculateExtraHints(int playerSlot, Actor player, AIHints hints) { }
+
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
         if (!_config.Enable || Palace.IsBossFloor || BetweenFloors)
@@ -395,6 +397,7 @@ public abstract class AutoClear : ZoneModule
 
         HandleFloorPathfind(player, hints);
         DrawAOEs(playerSlot, player, hints);
+        CalculateExtraHints(playerSlot, player, hints);
 
         var isStunned = player.IsTransformed || player.Statuses.Any(s => (SID)s.ID is SID.Silence or SID.Pacification);
         var isOccupied = player.InCombat || isStunned;

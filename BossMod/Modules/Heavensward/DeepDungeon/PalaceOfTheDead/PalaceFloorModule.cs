@@ -81,6 +81,16 @@ public abstract class PalaceFloorModule(WorldState ws) : AutoClear(ws, 60)
                 break;
         }
     }
+
+    protected override void CalculateExtraHints(int playerSlot, Actor player, AIHints hints)
+    {
+        foreach (var p in hints.PotentialTargets)
+        {
+            // this mob will enrage after some time
+            if (p.Actor.OID == 0x1842 && p.Actor.InCombat && p.Actor.TargetID == player.InstanceID)
+                p.Priority = 10;
+        }
+    }
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 174)]
