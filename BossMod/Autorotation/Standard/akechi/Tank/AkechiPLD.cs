@@ -2,7 +2,7 @@
 using AID = BossMod.PLD.AID;
 using SID = BossMod.PLD.SID;
 
-namespace BossMod.Autorotation.akechi;
+namespace BossMod.Autorotation.Standard.akechi.Tank;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
