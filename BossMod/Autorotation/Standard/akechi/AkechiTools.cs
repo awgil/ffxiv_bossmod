@@ -407,31 +407,102 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     #endregion
 
     #region HP/MP/Shield
-    /// <summary>A quick and easy helper for retrieving the <em>current HP value</em> of the player.</summary>
+    /// <summary>
+    /// A quick and easy helper for retrieving the <em>current HP value</em> of the player.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>HP >= 6900</c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'HP'</em></b> represents the <em>current HP value</em> of the player.<br/>
+    /// - <b><em>'>= 6900'</em></b> is the example conditional expression specified by the user.<br/>
+    /// </summary>
     /// <returns>- A <em>value</em> representing the Player's <em>current HP</em></returns>
     protected uint HP { get; private set; }
-    /// <summary>A quick and easy helper for retrieving the <em>MP value</em> of the player.</summary>
+
+    /// <summary>
+    /// A quick and easy helper for retrieving the <em>current MP value</em> of the player.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>MP != 4200</c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'MP'</em></b> represents the <em>current MP value</em> of the player.<br/>
+    /// - <b><em>'!= 4200'</em></b> is the example conditional expression specified by the user.<br/>
+    /// </summary>
     /// <returns>- A <em>value</em> representing the Player's <em>current MP</em></returns>
     protected uint MP { get; private set; }
 
-    /// <summary>A quick and easy helper for retrieving the <em>Shield value</em> of the player.</summary>
+    /// <summary>
+    /// A quick and easy helper for retrieving the <em>current Shield value</em> of the player.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>Shield > 0</c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'Shield'</em></b> represents the <em>current Shield value</em> of the player.<br/>
+    /// - <b><em>'> 0'</em></b> is the example conditional expression specified by the user.<br/>
+    /// </summary>
     /// <returns>- A <em>value</em> representing the Player's <em>current Shield</em></returns>
     protected uint Shield { get; private set; }
 
-    /// <summary>A quick and easy helper for retrieving the <em>Current HP</em> of any specified actor, whether it is the player or any other target user desires.</summary>
+    /// <summary>
+    /// A quick and easy helper for retrieving the <em>Current HP</em> of any specified actor, whether it is the player or any other target user desires.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>TargetCurrentHP(primaryTarget) > 0</c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'TargetCurrentHP'</em></b> represents the <em>current HP value</em> of the specified actor.<br/>
+    /// - <b><em>'(primaryTarget)'</em></b> represents the specified actor being checked.<br/>
+    /// - <b><em>'> 0'</em></b> is the example conditional expression specified by the user.<br/>
+    /// </summary>
     /// <param name="actor">Any specified player, ally, or target</param>
-    /// <returns>- The current HP value of user's specified actor</returns>
+    /// <returns>- A <em>value</em> representing the <em>current HP</em> of user's specified actor</returns>
     protected uint TargetCurrentHP(Actor actor) => actor.HPMP.CurHP;
 
-    /// <summary>A quick and easy helper for retrieving the <em>Current Shield</em> of any specified actor, whether it is the player or any other target user desires.</summary>
+    /// <summary>
+    /// A quick and easy helper for retrieving the <em>Current Shield</em> of any specified actor, whether it is the player or any other target user desires.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>TargetCurrentShield(primaryTarget) > 0</c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'TargetCurrentShield'</em></b> represents the <em>current Shield value</em> of the specified actor.<br/>
+    /// - <b><em>'(primaryTarget)'</em></b> represents the specified actor being checked.<br/>
+    /// - <b><em>'> 0'</em></b> is the example conditional expression specified by the user.<br/>
+    /// </summary>
     /// <param name="actor">Any specified player, ally, or target</param>
-    /// <returns>- The current shield value of user's specified actor</returns>
+    /// <returns>- A <em>value</em> representing the <b>current Shield of user's specified actor</b>.</returns>
     protected uint TargetCurrentShield(Actor actor) => actor.HPMP.Shield;
 
-    /// <summary>A quick and easy helper for checking if any specified actor has any urrent shield value active.</summary>
+    /// <summary>
+    /// A quick and easy helper for checking if specified actor has any <em>current Shield</em> present, whether it is the player or any other target user desires.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>TargetHasShield(primaryTarget)</c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'TargetHasShield'</em></b> checks if the specified actor has any <em>current Shield value</em>.<br/>
+    /// - <b><em>'(primaryTarget)'</em></b> represents the specified actor being checked.<br/>
+    /// </summary>
     /// <param name="actor">Any specified player, ally, or target</param>
-    /// <returns>- The current shield value of user's specified actor</returns>
     protected bool TargetHasShield(Actor actor) => actor.HPMP.Shield > 0.1f;
+
+    /// <summary>
+    /// A quick and easy helper for retrieving the <em>Current HP Percentage</em> of any specified actor, whether it is the player or any other target user desires.<para/>
+    /// <em>Example Given:</em><br/>
+    /// - <c>TargetHPP(primaryTarget) > 50</c><para/>
+    /// <em>Explanation:</em><br/>
+    /// - <b><em>'TargetHPP'</em></b> represents the <em>current HP Percentage value</em> of the specified actor.<br/>
+    /// - <b><em>'(primaryTarget)'</em></b> represents the specified actor being checked.<br/>
+    /// - <b><em>'> 50'</em></b> is the example conditional expression specified by the user.<br/>
+    /// </summary>
+    /// <param name="actor">Any specified player, ally, or target</param>
+    /// <returns>- A <em>value</em> representing the <b>current HP Percentage (%) of user's specified actor</b>.</returns>
+
+    public static float TargetHPP(Actor? target = null)
+    {
+        if (target is null || target.IsDead)
+            return 0f;
+
+        if (target is Actor actor)
+        {
+            var HPP = (float)actor.HPMP.CurHP / actor.HPMP.MaxHP * 100f;
+            return Math.Clamp(HPP, 0f, 100f);
+        }
+
+        return 0f;
+    }
+
     #endregion
 
     #region Actions
