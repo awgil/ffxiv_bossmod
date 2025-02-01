@@ -2,7 +2,7 @@
 using AID = BossMod.PLD.AID;
 using SID = BossMod.PLD.SID;
 
-namespace BossMod.Autorotation.akechi;
+namespace BossMod.Autorotation.Standard.akechi.Tank;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
@@ -112,7 +112,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     {
         var res = new RotationModuleDefinition("Akechi PLD",
             "Standard Rotation Module",
-            "Standard rotation (Akechi)",
+            "Standard rotation (Akechi)|Tank",
             "Akechi",
             RotationModuleQuality.Good,
             BitMask.Build((int)Class.GLA, (int)Class.PLD),
