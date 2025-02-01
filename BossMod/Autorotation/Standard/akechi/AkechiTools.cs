@@ -284,8 +284,8 @@ public enum OGCDStrategy
 }
 
 /// <summary>The core foundation of how we execute everything, from queuing GCDs to implementing our rotation helpers, functions, and tools.<br/> This base provides a robust framework equipped with a comprehensive suite of functions designed to streamline optimization and simplify the creation of advanced rotation modules.</summary>
-/// <typeparam name="AID">The user's specified <b>Action ID</b> being checked, called by <b>using BossMod.(class/job acronym)</b></typeparam>
-/// <typeparam name="TraitID">The user's specified <b>Trait ID</b> being checked, called by <b>using BossMod.(class/job acronym)</b></typeparam>
+/// <typeparam name="AID">The user's specified <b>Action ID</b> being checked, called by <b>using <seealso cref="BossMod"/>.[class/job acronym]</b>.</typeparam>
+/// <typeparam name="TraitID">The user's specified <b>Trait ID</b> being checked, called by <b>using <seealso cref="BossMod"/>.[class/job acronym]</b>.</typeparam>
 /// <param name="manager">The specified <b>Rotation Module Manager</b> being used.</param>
 /// <param name="player">The <b>User</b> that is executing this module.</param>
 public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
