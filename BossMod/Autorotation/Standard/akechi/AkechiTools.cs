@@ -857,7 +857,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// This function attempts to pick a suitable primary target automatically, even if a target is not already picked.
     /// </summary>
     /// <param name="strategy">The user's picked <b>Strategy</b></param>
-    /// <param name="primaryTarget">The user's current <b>picked Target</b>.</param>
+    /// <param name="primaryTarget">The user's current <b>specified Target</b>.</param>
     /// <param name="range"></param>
     protected void GetPrimaryTarget(StrategyValues strategy, ref Enemy? primaryTarget, float range)
     {
@@ -969,11 +969,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     //TODO: implement this soon
     protected Actor? AnyTarget { get; private set; }
-
-    /// <summary>
-    /// Checks if target is valid. (e.g. not forbidden or a party member)
-    /// </summary>
-    protected static bool IsValidEnemy(Actor? actor) => actor != null && !actor.IsAlly;
     #endregion
 
     #region Positionals
@@ -1002,20 +997,30 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="target">The user's specified <b>Target</b>.</param>
     /// <returns></returns>
     protected bool IsOnFlank(Actor target) => GetCurrentPositional(target) == Positional.Flank;
-
-    /// <summary>
-    /// Finds the <b>best Positional</b> automatically.
-    /// </summary>
-    ///
     #endregion
 
     #region AI
+    /// <summary>
+    /// Establishes a goal-zone for a single target within a specified range.<br/>
+    /// Primarily utilized by <b>caster-DPS</b> jobs that lack a dedicated maximize-AOE function.
+    /// </summary>
+    /// <param name="range">The range within which the goal zone is applied.</param>
     protected void GoalZoneSingle(float range)
     {
         if (PlayerTarget != null)
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, range));
     }
 
+    /// <summary>
+    /// Defines a goal-zone using a combined strategy, factoring in AOE considerations.
+    /// </summary>
+    /// <param name="strategy">The strategy values that influence the goal zone logic.</param>
+    /// <param name="range">The base range for the goal zone.</param>
+    /// <param name="fAoe">A function determining the area of effect.</param>
+    /// <param name="firstUnlockedAoeAction">The first available AOE action.</param>
+    /// <param name="minAoe">The minimum number of targets required to trigger AOE.</param>
+    /// <param name="positional">The positional requirement for the goal zone (default: any).</param>
+    /// <param name="maximumActionRange">An optional parameter specifying the maximum action range.</param>
     protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, Positional positional = Positional.Any, float? maximumActionRange = null)
     {
         if (!strategy.ForceAOE() && !Unlocked(firstUnlockedAoeAction))
@@ -1049,6 +1054,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Time remaining on pre-pull (or any) <b>Countdown Timer</b>.</summary>
     protected float? CountdownRemaining { get; private set; }
 
+    /// <summary>Checks if player is currently <b>moving</b>.</summary>
     protected bool IsMoving { get; private set; }
     #endregion
 
@@ -1107,6 +1113,13 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         if (Player.MountId is not (103 or 117 or 128))
             Execution(strategy, PlayerTarget);
     }
+
+    /// <summary>
+    /// The core function responsible for orchestrating the execution of all abilities and strategies.<br/>
+    /// </summary>
+    /// <param name="strategy">The user's specified <b>Strategy</b>.</param>
+    /// <param name="primaryTarget">The user's specified <b>Enemy</b>.</param>
+    /// <returns>- <b>Primary execution</b> of user's rotation module.</returns>
     public abstract void Execution(StrategyValues strategy, Enemy? primaryTarget);
 }
 

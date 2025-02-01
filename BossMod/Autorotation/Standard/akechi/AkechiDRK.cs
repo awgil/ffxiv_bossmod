@@ -147,9 +147,10 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     public Enemy? BestTargetMPRectLow;
     #endregion
 
-    public override void Execution(StrategyValues strategy, Enemy? primaryTarget) //Executes our actions
+    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         #region Variables
+
         #region Gauge
         var gauge = World.Client.GetGauge<DarkKnightGauge>(); //Retrieve DRK gauge
         Blood = gauge.Blood;
@@ -162,6 +163,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             ComboLastMove is AID.SyphonStrike or AID.Unleash && Blood >= 80 || Delirium.CD <= 3 && Blood >= 70; //Checks if we are risking Blood
         RiskingMP = MP >= 9800 || Darkside.NeedsRefresh;
         #endregion
+
         #region Cooldowns
         SaltedEarth.Left = StatusRemaining(Player, SID.SaltedEarth, 15); //Retrieve current Salted Earth time left
         SaltedEarth.CD = TotalCD(AID.SaltedEarth); //Retrieve current Salted Earth cooldown
@@ -189,6 +191,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Shadowbringer.HasCharges = TotalCD(AID.Shadowbringer) <= 60; //Checks if Shadowbringer has charges
         Shadowbringer.IsReady = Unlocked(AID.Shadowbringer) && Shadowbringer.HasCharges; //Shadowbringer ability
         #endregion
+
         #region Strategy Definitions
         var mp = strategy.Option(Track.MP);
         var mpStrat = mp.As<MPStrategy>(); //Retrieve MP strategy
@@ -211,17 +214,21 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         var unmend = strategy.Option(Track.Unmend);
         var unmendStrat = unmend.As<UnmendStrategy>(); //Retrieve Unmend strategy
         #endregion
+
+        #region Misc
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
         (BestAOERectTargets, NumAOERectTargets) = GetBestTarget(PlayerTarget, 10, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 3.5f));
         BestTargetAOERect = Unlocked(AID.Shadowbringer) && NumAOERectTargets >= 2
             ? BestAOERectTargets
             : primaryTarget;
         BestTargetMPRectHigh = Unlocked(AID.FloodOfShadow) && NumAOERectTargets >= 3
-            ? BestAOERectTargets // Use AoE rectangle targets if there are at least 3
-            : primaryTarget; // Fallback to primaryTarget or PlayerTarget if no AoE targets
+            ? BestAOERectTargets
+            : primaryTarget;
         BestTargetMPRectLow = !Unlocked(AID.FloodOfShadow) && NumAOERectTargets >= 4
-            ? BestAOERectTargets // Use AoE rectangle targets if there are at least 4
-            : primaryTarget; // Fallback to primaryTarget or PlayerTarget if no AoE targets
+            ? BestAOERectTargets
+            : primaryTarget;
+        #endregion
+
         #endregion
 
         #region Full Rotation Execution
