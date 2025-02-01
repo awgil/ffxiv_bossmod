@@ -23,7 +23,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions & Strategies
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi WAR", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.WAR), 100);
+        var res = new RotationModuleDefinition("Akechi WAR", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Ok, BitMask.Build(Class.MRD, Class.WAR), 100);
 
         res.DefineShared();
         res.Define(Track.Gauge).As<GaugeStrategy>("Gauge", "Gauge", uiPriority: 200)
