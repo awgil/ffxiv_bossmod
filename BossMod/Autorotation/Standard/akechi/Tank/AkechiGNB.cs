@@ -3,7 +3,7 @@ using AID = BossMod.GNB.AID;
 using SID = BossMod.GNB.SID;
 using TraitID = BossMod.GNB.TraitID;
 
-namespace BossMod.Autorotation.akechi;
+namespace BossMod.Autorotation.Standard.akechi.Tank;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
