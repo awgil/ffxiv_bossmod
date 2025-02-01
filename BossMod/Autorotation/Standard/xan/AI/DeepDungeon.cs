@@ -78,7 +78,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         if (regenAction != default && ShouldPotion(strategy))
             Hints.ActionsToExecute.Push(regenAction, Player, ActionQueue.Priority.Medium);
 
-        if (potAction != default && Player.PredictedHPRatio <= 0.3f)
+        if (potAction != default && Player.HPRatio <= 0.3f)
             Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.VeryHigh);
     }
 
