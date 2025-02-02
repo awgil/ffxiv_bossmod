@@ -175,12 +175,12 @@ public sealed class ActionDefinitions : IDisposable
     public static readonly ActionID IDPotionMnd = new(ActionType.Item, 1044166); // hq grade 2 gemdraught of mind
 
     // deep dungeon consumables
-    public static readonly ActionID IDSustainingPotion = new(ActionType.Item, 20309);
-    public static readonly ActionID IDMaxPotion = new(ActionType.Item, 1013637);
-    public static readonly ActionID IDEmpyreanPotion = new(ActionType.Item, 23163);
-    public static readonly ActionID IDSuperPotion = new(ActionType.Item, 1023167);
-    public static readonly ActionID IDOrthosPotion = new(ActionType.Item, 38944);
-    public static readonly ActionID IDHyperPotion = new(ActionType.Item, 1038956);
+    public static readonly ActionID IDPotionSustaining = new(ActionType.Item, 20309);
+    public static readonly ActionID IDPotionMax = new(ActionType.Item, 1013637);
+    public static readonly ActionID IDPotionEmpyrean = new(ActionType.Item, 23163);
+    public static readonly ActionID IDPotionSuper = new(ActionType.Item, 1023167);
+    public static readonly ActionID IDPotionOrthos = new(ActionType.Item, 38944);
+    public static readonly ActionID IDPotionHyper = new(ActionType.Item, 1038956);
 
     // special general actions that we support
     public static readonly ActionID IDGeneralLimitBreak = new(ActionType.General, 3);
@@ -228,12 +228,12 @@ public sealed class ActionDefinitions : IDisposable
         RegisterPotion(IDPotionInt);
         RegisterPotion(IDPotionMnd);
 
-        RegisterPotion(IDSustainingPotion, 1.1f);
-        RegisterPotion(IDMaxPotion, 1.1f);
-        RegisterPotion(IDEmpyreanPotion, 1.1f);
-        RegisterPotion(IDSuperPotion, 1.1f);
-        RegisterPotion(IDOrthosPotion, 1.1f);
-        RegisterPotion(IDHyperPotion, 1.1f);
+        RegisterPotion(IDPotionSustaining, 1.1f);
+        RegisterPotion(IDPotionMax, 1.1f);
+        RegisterPotion(IDPotionEmpyrean, 1.1f);
+        RegisterPotion(IDPotionSuper, 1.1f);
+        RegisterPotion(IDPotionOrthos, 1.1f);
+        RegisterPotion(IDPotionHyper, 1.1f);
 
         // special content actions - bozja, deep dungeons, etc
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)

@@ -69,9 +69,9 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
         var (regenAction, potAction) = World.DeepDungeon.DungeonId switch
         {
-            DeepDungeonState.DungeonType.POTD => (ActionDefinitions.IDSustainingPotion, ActionDefinitions.IDMaxPotion),
-            DeepDungeonState.DungeonType.HOH => (ActionDefinitions.IDEmpyreanPotion, ActionDefinitions.IDSuperPotion),
-            DeepDungeonState.DungeonType.EO => (ActionDefinitions.IDOrthosPotion, ActionDefinitions.IDHyperPotion),
+            DeepDungeonState.DungeonType.POTD => (ActionDefinitions.IDPotionSustaining, ActionDefinitions.IDPotionMax),
+            DeepDungeonState.DungeonType.HOH => (ActionDefinitions.IDPotionEmpyrean, ActionDefinitions.IDPotionSuper),
+            DeepDungeonState.DungeonType.EO => (ActionDefinitions.IDPotionOrthos, ActionDefinitions.IDPotionHyper),
             _ => (default, default)
         };
 
