@@ -722,7 +722,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary> Checks if a specific status effect on the player exists.
     /// <para><c><b>NOTE</b></c>: The effect MUST be owned by the Player.</para>
     /// <para><b>Example Given:</b> "<b>PlayerHasEffect(SID.NoMercy, 20)</b>"</para></summary>
-    /// <param name="sid">The <b>Status ID</b> of specified status effect. (e.g. "<b>SID.NoMercy</b>")</param>
+    /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     /// <param name="duration"> The <b>Total Effect Duration</b> of specified status effect. (e.g. since <b>No Mercy</b>'s buff is 20 seconds, we simply use "<b>20</b>")</param>
     /// <returns>- A value indicating if the effect exists</returns>
     protected bool PlayerHasEffect<SID>(SID sid, float duration) where SID : Enum => StatusRemaining(Player, sid, duration) > 0.1f;
@@ -730,7 +730,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary> Checks if a specific status effect on the player exists.
     /// <para><c><b>NOTE</b></c>: The effect can be owned by anyone; Player, Party, Alliance, NPCs or even enemies</para>
     /// <para><b>Example Given:</b> "<b>PlayerHasEffectAny(SID.Troubadour)</b>"</para></summary>
-    /// <param name="sid">The <b>Status ID</b> of specified status effect. (e.g. "<b>SID.NoMercy</b>")</param>
+    /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     /// <param name="duration"> The <b>Total Effect Duration</b> of specified status effect. (e.g. since <b>No Mercy</b>'s buff is 20 seconds, we simply use "<b>20</b>")</param>
     /// <returns>- A value indicating if the effect exists</returns>
     protected bool PlayerHasAnyEffect<SID>(SID sid) where SID : Enum => Player.FindStatus(sid) != null;
@@ -739,7 +739,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <para><c><b>NOTE</b></c>: The effect MUST be owned by the Player.</para>
     /// <para><b>Example Given:</b> "<b>TargetHasEffect(primaryTarget, SID.SonicBreak, 30)</b>"</para></summary>
     /// <param name="target">The <b>specified Target</b> we're checking for specified status effect. (e.g. "<b>primaryTarget</b>")<para>(<c><b>NOTE</b></c>: can even be "Player")</para> </param>
-    /// <param name="sid">The <b>Status ID</b> of specified status effect. (e.g. "<b>SID.SonicBreak</b>")</param>
+    /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     /// <param name="duration"> The <b>Total Effect Duration</b> of specified status effect. (e.g. since <b>Sonic Break</b>'s debuff is 30 seconds, we simply use "<b>30</b>")</param>
     /// <returns>- A value indicating if the effect exists</returns>
     protected bool TargetHasEffect<SID>(Actor? target, SID sid, float duration = 1000f) where SID : Enum => StatusRemaining(target, sid, duration) > 0.1f;
@@ -748,7 +748,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <para><c><b>NOTE</b></c>: The effect can be owned by anyone; Player, Party, Alliance, NPCs or even enemies</para>
     /// <para><b>Example Given:</b> "<b>TargetHasAnyEffect(primaryTarget, SID.MeditativeBrotherhood)</b>"</para></summary>
     /// <param name="target">The <b>specified Target</b> we're checking for specified status effect. (e.g. "<b>primaryTarget</b>")<para>(<c><b>NOTE</b></c>: can even be "Player")</para> </param>
-    /// <param name="sid">The <b>Status ID</b> of specified status effect. (e.g. "<b>SID.SonicBreak</b>")</param>
+    /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     /// <returns>- A value indicating if the effect exists</returns>
     protected bool TargetHasAnyEffect<SID>(Actor? target, SID sid) where SID : Enum => target?.FindStatus(sid) != null;
 
