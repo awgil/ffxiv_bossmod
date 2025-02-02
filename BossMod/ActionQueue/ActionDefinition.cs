@@ -114,19 +114,14 @@ public sealed record class ActionDefinition(ActionID ID)
             : MainCooldownGroup;
 
     // for multi-charge abilities, action is ready when elapsed >= single-charge cd; assume that if any multi-charge actions share cooldown group, they have same cooldown - otherwise dunno how it should work
-    // TODO: use adjusted cooldown
+    // note: GCDs with multiple charges can be affected OR unaffected by haste depending on how many charges the user currently has access to
+    // the only separate-cooldown GCD that increases to >1 charge via trait is currently MCH Drill; others have multiple charges at unlock - SGE Phlegma, RPR Soul Slice, BLU Surpanakha
     public float MainReadyIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ClientState.DutyAction> dutyActions)
     {
         if (MainCooldownGroup < 0)
             return 0;
         var cdg = cooldowns[ActualMainCooldownGroup(dutyActions)];
-        var max = MaxChargesAtCap();
-
-        // GCDs with multiple charges can be affected OR unaffected by haste depending on how many charges the user currently has access to
-        // the only separate-cooldown GCD that increases to >1 charge via trait is currently MCH Drill; others have multiple charges at unlock - SGE Phlegma, RPR Soul Slice, BLU Surpanakha
-        var cooldownSingleCharge = IsGCD && max > 1 && cdg.Total > 0 ? cdg.Total / max : Cooldown;
-
-        return !IsMultiCharge || cdg.Total < cooldownSingleCharge ? cdg.Remaining : cooldownSingleCharge - cdg.Elapsed;
+        return cdg.Total > 0 ? Math.Max(0, cdg.Total / MaxChargesAtCap() - cdg.Elapsed) : 0;
     }
 
     public float ExtraReadyIn(ReadOnlySpan<Cooldown> cooldowns) => ExtraCooldownGroup >= 0 ? cooldowns[ExtraCooldownGroup].Remaining : 0;
@@ -138,7 +133,7 @@ public sealed record class ActionDefinition(ActionID ID)
         if (MainCooldownGroup < 0)
             return 0;
         var cdg = cooldowns[ActualMainCooldownGroup(dutyActions)];
-        return cdg.Total > 0 ? (MaxChargesAtLevel(level) * Cooldown - cdg.Elapsed) : 0;
+        return cdg.Total > 0 ? Math.Max(0, MaxChargesAtLevel(level) * cdg.Total / MaxChargesAtCap() - cdg.Elapsed) : 0;
     }
 
     public bool IsUnlocked(WorldState ws, Actor player)
