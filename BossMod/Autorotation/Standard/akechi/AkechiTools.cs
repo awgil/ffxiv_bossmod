@@ -3,7 +3,7 @@
 namespace BossMod.Autorotation.akechi;
 /// <summary>
 /// The <b>SharedTrack</b> enum used for <b>AOE</b> and <b>Hold</b> strategies, typically for modules featuring damage rotations.
-/// <br>This enum defines tracks that can be used for all PvE-related abilities, such as strategies containing standard rotations or holding abilities.</br>
+/// <br>This enum defines tracks that can be used for all PvE classes and jobs, such as strategies containing executing standard rotations or explicitly holding abilities.</br>
 /// <para><b>Example Given:</b>
 /// <br>- <c>public enum Track { NoMercy = SharedTrack.Count }</c></br></para>
 /// <para><b>Explanation:</b>
@@ -1124,7 +1124,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         CanSwiftcast = ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Swiftcast)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Swiftcast)!.MainCooldownGroup].Remaining < 0.6f;
         HasSwiftcast = StatusRemaining(Player, ClassShared.SID.Swiftcast, 10) > 0.1f;
         CanPeloton = !Player.InCombat && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Peloton)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Peloton)!.MainCooldownGroup].Remaining < 0.6f;
-        HasPeloton = StatusRemaining(Player, ClassShared.SID.Peloton, 30) > 0.1f;
+        HasPeloton = PlayerHasAnyEffect(BRD.SID.Peloton);
 
         if (Player.MountId is not (103 or 117 or 128))
             Execution(strategy, PlayerTarget);
