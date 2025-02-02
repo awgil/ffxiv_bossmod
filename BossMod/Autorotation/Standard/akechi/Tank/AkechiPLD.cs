@@ -1,6 +1,5 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using AID = BossMod.PLD.AID;
-using SID = BossMod.PLD.SID;
+using BossMod.PLD;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
@@ -112,7 +111,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Rot
     {
         var res = new RotationModuleDefinition("Akechi PLD",
             "Standard Rotation Module",
-            "Standard rotation (Akechi)",
+            "Standard rotation (Akechi)|Tank",
             "Akechi",
             RotationModuleQuality.Good,
             BitMask.Build((int)Class.GLA, (int)Class.PLD),
