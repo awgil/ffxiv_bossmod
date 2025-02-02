@@ -26,14 +26,14 @@ public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
 
-        var canCoat = ActionUnlocked(ActionID.MakeSpell(PCT.AID.TemperaCoat)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(PCT.AID.TemperaCoat)!.MainCooldownGroup].Remaining < 0.6f;
-        var hasCoat = StatusDetails(Player, PCT.SID.TemperaCoat, Player.InstanceID).Left > 0.1f;
-        var canGrassa = ActionUnlocked(ActionID.MakeSpell(PCT.AID.TemperaGrassa)) && hasCoat;
-        var hasGrassa = StatusDetails(Player, PCT.SID.TemperaGrassa, Player.InstanceID).Left > 0.1f;
         var tempera = strategy.Option(Track.TemperaCoat);
         var temperaStrat = tempera.As<TemperaCoatOption>();
         if (temperaStrat != TemperaCoatOption.None)
         {
+            var canCoat = ActionUnlocked(ActionID.MakeSpell(PCT.AID.TemperaCoat)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(PCT.AID.TemperaCoat)!.MainCooldownGroup].Remaining < 0.6f;
+            var hasCoat = StatusDetails(Player, PCT.SID.TemperaCoat, Player.InstanceID).Left > 0.1f;
+            var canGrassa = ActionUnlocked(ActionID.MakeSpell(PCT.AID.TemperaGrassa)) && hasCoat;
+            var hasGrassa = StatusDetails(Player, PCT.SID.TemperaGrassa, Player.InstanceID).Left > 0.1f;
             if (temperaStrat == TemperaCoatOption.CoatOnly)
             {
                 if (canCoat && (!hasCoat || !hasGrassa))
@@ -42,9 +42,9 @@ public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player)
             if (temperaStrat == TemperaCoatOption.CoatGrassaASAP)
             {
                 if (canCoat && !hasCoat)
-                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(PCT.AID.TemperaCoat), Player, tempera.Priority() + 2000, tempera.Value.ExpireIn);
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(PCT.AID.TemperaCoat), Player, tempera.Priority() + 2000, tempera.Value.ExpireIn); // TODO: revise, this is bad, utility modules should not arbitrarily adjust priorities
                 if (canGrassa && !hasGrassa)
-                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(PCT.AID.TemperaGrassa), Player, tempera.Priority() + 2000, tempera.Value.ExpireIn);
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(PCT.AID.TemperaGrassa), Player, tempera.Priority() + 2000, tempera.Value.ExpireIn); // TODO: revise, this is bad, utility modules should not arbitrarily adjust priorities
             }
             if (temperaStrat == TemperaCoatOption.CoatGrassaWhenever)
             {

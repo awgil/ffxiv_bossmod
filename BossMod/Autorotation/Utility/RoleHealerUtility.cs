@@ -17,13 +17,14 @@ public abstract class RoleHealerUtility(RotationModuleManager manager, Actor pla
         DefineSimpleConfig(def, SharedTrack.Esuna, "Esuna", "", 40, ClassShared.AID.Esuna);
         DefineSimpleConfig(def, SharedTrack.LucidDreaming, "LucidDreaming", "Lucid", 30, ClassShared.AID.LucidDreaming, 21);
 
+        // TODO: combine standard/ex options
         def.Define(SharedTrack.Swiftcast).As<SwiftcastOption>("Swiftcast", "Swift", 20)
             .AddOption(SwiftcastOption.None, "None", "Do not use automatically")
             .AddOption(SwiftcastOption.Use, "Use", "Use Swiftcast (10s)", 60, 10, ActionTargets.Self, 22, 93)
             .AddOption(SwiftcastOption.UseEx, "UseEx", "Use Swiftcast (15s)", 40, 10, ActionTargets.Self, 94)
             .AddAssociatedActions(ClassShared.AID.Swiftcast);
 
-        DefineSimpleConfig(def, SharedTrack.Surecast, "Surecast", "Anti-KB", 10, ClassShared.AID.Surecast, 6); // note: secondary effect 15s
+        DefineSimpleConfig(def, SharedTrack.Surecast, "Surecast", "", 10, ClassShared.AID.Surecast, 6); // note: secondary effect 15s
         DefineSimpleConfig(def, SharedTrack.Rescue, "Rescue", "", 50, ClassShared.AID.Rescue);
     }
 
@@ -31,10 +32,10 @@ public abstract class RoleHealerUtility(RotationModuleManager manager, Actor pla
     {
         ExecuteSimple(strategy.Option(SharedTrack.Sprint), ClassShared.AID.Sprint, Player);
         ExecuteSimple(strategy.Option(SharedTrack.Repose), ClassShared.AID.Repose, primaryTarget, 2.5f); // TODO[cast-time]: adjustment (swiftcast etc)
-        ExecuteSimple(strategy.Option(SharedTrack.Esuna), ClassShared.AID.Esuna, ResolveTargetOverride(strategy.Option(SharedTrack.Esuna).Value) ?? primaryTarget, 1); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(SharedTrack.Esuna), ClassShared.AID.Esuna, primaryTarget);
         ExecuteSimple(strategy.Option(SharedTrack.LucidDreaming), ClassShared.AID.LucidDreaming, Player);
         ExecuteSimple(strategy.Option(SharedTrack.Surecast), ClassShared.AID.Surecast, Player);
-        ExecuteSimple(strategy.Option(SharedTrack.Rescue), ClassShared.AID.Rescue, ResolveTargetOverride(strategy.Option(SharedTrack.Rescue).Value) ?? primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.Rescue), ClassShared.AID.Rescue, primaryTarget);
 
         var lb = strategy.Option(SharedTrack.LB);
         var lbLevel = LBLevelToExecute(lb.As<LBOption>());

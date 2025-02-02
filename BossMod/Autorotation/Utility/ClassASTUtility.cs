@@ -7,7 +7,6 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
     public enum HoroscopeOption { None, Use, End }
     public enum MacrocosmosOption { None, Use, End }
     public enum HeliosOption { None, Use, UseEx }
-    public Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value);
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(AST.AID.AstralStasis);
 
@@ -60,19 +59,20 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         return res;
     }
 
+    // TODO: revise, this should be much simpler
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Lightspeed), AST.AID.Lightspeed, Player);
-        ExecuteSimple(strategy.Option(Track.BeneficII), AST.AID.BeneficII, TargetChoice(strategy.Option(Track.BeneficII)) ?? Player, 1.5f); // TODO[cast-time]: adjustment (swiftcast etc)
-        ExecuteSimple(strategy.Option(Track.EssentialDignity), AST.AID.EssentialDignity, TargetChoice(strategy.Option(Track.EssentialDignity)) ?? Player);
-        ExecuteSimple(strategy.Option(Track.AspectedBenefic), AST.AID.AspectedBenefic, TargetChoice(strategy.Option(Track.AspectedBenefic)) ?? Player);
-        ExecuteSimple(strategy.Option(Track.Synastry), AST.AID.Synastry, TargetChoice(strategy.Option(Track.Synastry)) ?? Player);
+        ExecuteSimple(strategy.Option(Track.BeneficII), AST.AID.BeneficII, Player, 1.5f); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.EssentialDignity), AST.AID.EssentialDignity, Player);
+        ExecuteSimple(strategy.Option(Track.AspectedBenefic), AST.AID.AspectedBenefic, Player);
+        ExecuteSimple(strategy.Option(Track.Synastry), AST.AID.Synastry, Player);
         ExecuteSimple(strategy.Option(Track.CollectiveUnconscious), AST.AID.CollectiveUnconscious, Player);
         ExecuteSimple(strategy.Option(Track.CelestialOpposition), AST.AID.CelestialOpposition, Player);
         ExecuteSimple(strategy.Option(Track.CelestialIntersection), AST.AID.CelestialIntersection, Player);
         ExecuteSimple(strategy.Option(Track.NeutralSect), AST.AID.NeutralSect, Player);
-        ExecuteSimple(strategy.Option(Track.Exaltation), AST.AID.Exaltation, TargetChoice(strategy.Option(Track.Exaltation)) ?? Player);
+        ExecuteSimple(strategy.Option(Track.Exaltation), AST.AID.Exaltation, Player);
         ExecuteSimple(strategy.Option(Track.SunSign), AST.AID.SunSign, Player);
 
         var star = strategy.Option(Track.EarthlyStar);
@@ -83,7 +83,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (starAction != default)
-            QueueOGCD(starAction, TargetChoice(star) ?? primaryTarget ?? Player);
+            QueueOGCD(starAction, ResolveTargetOverride(star.Value) ?? primaryTarget ?? Player);
 
         //Aspected Helios full execution
         var heliosUp = StatusDetails(Player, AST.SID.AspectedHelios, Player.InstanceID).Left > 0.1f || StatusDetails(Player, AST.SID.HeliosConjunction, Player.InstanceID).Left > 0.1f;

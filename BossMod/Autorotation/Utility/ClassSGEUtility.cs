@@ -9,7 +9,6 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
     public enum PhysisOption { None, Use, UseEx }
     public enum ZoeOption { None, Use, UseEx }
     public enum DashStrategy { None, GapClose }
-    public Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value);
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SGE.AID.TechneMakre);
 
@@ -77,12 +76,12 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Eukrasia), SGE.AID.Eukrasia, Player);
-        ExecuteSimple(strategy.Option(Track.Druochole), SGE.AID.Druochole, TargetChoice(strategy.Option(Track.Druochole)) ?? primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.Druochole), SGE.AID.Druochole, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.Kerachole), SGE.AID.Kerachole, Player);
         ExecuteSimple(strategy.Option(Track.Ixochole), SGE.AID.Ixochole, Player);
         ExecuteSimple(strategy.Option(Track.Pepsis), SGE.AID.Pepsis, Player);
-        ExecuteSimple(strategy.Option(Track.Taurochole), SGE.AID.Taurochole, TargetChoice(strategy.Option(Track.Taurochole)) ?? primaryTarget ?? Player);
-        ExecuteSimple(strategy.Option(Track.Haima), SGE.AID.Haima, TargetChoice(strategy.Option(Track.Haima)) ?? primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.Taurochole), SGE.AID.Taurochole, primaryTarget ?? Player);
+        ExecuteSimple(strategy.Option(Track.Haima), SGE.AID.Haima, primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.Rhizomata), SGE.AID.Rhizomata, Player);
         ExecuteSimple(strategy.Option(Track.Holos), SGE.AID.Holos, Player);
         ExecuteSimple(strategy.Option(Track.Panhaima), SGE.AID.Panhaima, Player);
@@ -91,16 +90,16 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
 
         if (World.Client.Cooldowns[ActionDefinitions.Instance.Spell(SGE.AID.Pneuma)!.MainCooldownGroup].Remaining < 0.6f)
         {
-            ExecuteSimple(strategy.Option(Track.Pneuma), SGE.AID.Pneuma, TargetChoice(strategy.Option(Track.Pneuma)) ?? primaryTarget);
+            ExecuteSimple(strategy.Option(Track.Pneuma), SGE.AID.Pneuma, primaryTarget);
         }
 
         //Kardia full execution
         var kardia = strategy.Option(Track.Kardia);
         var kardiaStrat = kardia.As<KardiaOption>();
-        var kardiaTarget = TargetChoice(kardia) ?? primaryTarget ?? Player;
-        var hasKardia = kardiaTarget.FindStatus(SGE.SID.Kardia) != null;
         if (kardiaStrat != KardiaOption.None)
         {
+            var kardiaTarget = ResolveTargetOverride(kardia.Value) ?? primaryTarget ?? Player;
+            var hasKardia = kardiaTarget.FindStatus(SGE.SID.Kardia) != null;
             if (kardiaStrat == KardiaOption.Kardia && !hasKardia)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Kardia), kardiaTarget, kardia.Priority(), kardia.Value.ExpireIn);
             if (kardiaStrat == KardiaOption.Soteria)
@@ -111,7 +110,6 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         var hasEukrasia = Player.FindStatus(SGE.SID.Eukrasia) != null;
         var ed = strategy.Option(Track.Diagnosis);
         var edStrat = ed.As<DiagnosisOption>();
-        var edTarget = TargetChoice(ed) ?? primaryTarget ?? Player;
         if (edStrat != DiagnosisOption.None)
         {
             if (edStrat == DiagnosisOption.Use)
@@ -123,7 +121,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
                 if (!hasEukrasia)
                     Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Eukrasia), Player, ed.Priority(), ed.Value.ExpireIn);
                 if (hasEukrasia)
-                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianDiagnosis), edTarget, ed.Priority(), ed.Value.ExpireIn);
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianDiagnosis), ResolveTargetOverride(ed.Value) ?? primaryTarget ?? Player, ed.Priority(), ed.Value.ExpireIn);
             }
         }
 
@@ -131,7 +129,6 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         var shieldUp = StatusDetails(Player, SCH.SID.Galvanize, Player.InstanceID).Left > 0.1f || StatusDetails(Player, SGE.SID.EukrasianPrognosis, Player.InstanceID).Left > 0.1f;
         var ep = strategy.Option(Track.Prognosis);
         var epStrat = ep.As<PrognosisOption>();
-
         if (epStrat != PrognosisOption.None)
         {
             if (epStrat == PrognosisOption.Use)

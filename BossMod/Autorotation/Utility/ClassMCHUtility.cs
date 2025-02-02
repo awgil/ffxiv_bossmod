@@ -2,14 +2,10 @@
 
 public sealed class ClassMCHUtility(RotationModuleManager manager, Actor player) : RoleRangedUtility(manager, player)
 {
-    // Add all MCH tracks to end of list, starting with Tactician
-    // SharedTrack.Count here is the "end" of the track list, so we set the first track we want as the "end"
     public enum Track { Tactician = SharedTrack.Count, Dismantle }
-
-    // Add Machinist LB3
-    public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(MCH.AID.SatelliteBeam);
-
     public enum TactOption { None, Use87, Use87IfNotActive, Use88, Use88IfNotActive }
+
+    public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(MCH.AID.SatelliteBeam);
 
     public static RotationModuleDefinition Definition()
     {
@@ -34,14 +30,16 @@ public sealed class ClassMCHUtility(RotationModuleManager manager, Actor player)
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
         ExecuteSimple(strategy.Option(Track.Dismantle), MCH.AID.Dismantle, ResolveTargetOverride(strategy.Option(Track.Dismantle).Value) ?? primaryTarget);
 
+        // TODO: for 'if-not-active' strategy, add configurable min-time-left
+        // TODO: combine 87/88 options
         var tact = strategy.Option(Track.Tactician);
-        var hasDefensive = Player.FindStatus(BRD.SID.Troubadour) != null || Player.FindStatus(MCH.SID.Tactician) != null || Player.FindStatus(DNC.SID.ShieldSamba) != null;
-        if (tact.As<TactOption>() != TactOption.None)
+        var wantTact = tact.As<TactOption>() switch
         {
-            if (tact.As<TactOption>() is TactOption.Use87 or TactOption.Use88)
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(MCH.AID.Tactician), Player, tact.Priority(), tact.Value.ExpireIn);
-            if (tact.As<TactOption>() is TactOption.Use87IfNotActive or TactOption.Use88IfNotActive && !hasDefensive)
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(MCH.AID.Tactician), Player, tact.Priority(), tact.Value.ExpireIn);
-        }
+            TactOption.Use87 or TactOption.Use88 => true,
+            TactOption.Use87IfNotActive or TactOption.Use88IfNotActive => Player.FindStatus(BRD.SID.Troubadour) == null && Player.FindStatus(MCH.SID.Tactician) == null && Player.FindStatus(DNC.SID.ShieldSamba) == null,
+            _ => false
+        };
+        if (wantTact)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(MCH.AID.Tactician), Player, tact.Priority(), tact.Value.ExpireIn);
     }
 }

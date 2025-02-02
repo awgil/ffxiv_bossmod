@@ -20,6 +20,8 @@ public abstract class RoleTankUtility(RotationModuleManager manager, Actor playe
         DefineSimpleConfig(def, SharedTrack.Provoke, "Provoke", "", 200, ClassShared.AID.Provoke);
         DefineSimpleConfig(def, SharedTrack.Interject, "Interject", "Interrupt", -50, ClassShared.AID.Interject);
 
+        // TODO: combine standard/ex options
+        // TODO: add 'if-not-active' strategy with configurable min-time-left
         def.Define(SharedTrack.Reprisal).As<ReprisalOption>("Reprisal", "", 250)
             .AddOption(ReprisalOption.None, "None", "Do not use automatically")
             .AddOption(ReprisalOption.Use, "Use", "Use Reprisal (10s)", 60, 10, ActionTargets.Self, 22, 97)
@@ -41,9 +43,9 @@ public abstract class RoleTankUtility(RotationModuleManager manager, Actor playe
     {
         ExecuteSimple(strategy.Option(SharedTrack.Sprint), ClassShared.AID.Sprint, Player);
         ExecuteSimple(strategy.Option(SharedTrack.Rampart), ClassShared.AID.Rampart, Player);
-        ExecuteSimple(strategy.Option(SharedTrack.LowBlow), ClassShared.AID.LowBlow, ResolveTargetOverride(strategy.Option(SharedTrack.LowBlow).Value) ?? primaryTarget);
-        ExecuteSimple(strategy.Option(SharedTrack.Provoke), ClassShared.AID.Provoke, ResolveTargetOverride(strategy.Option(SharedTrack.Provoke).Value) ?? primaryTarget);
-        ExecuteSimple(strategy.Option(SharedTrack.Interject), ClassShared.AID.Interject, ResolveTargetOverride(strategy.Option(SharedTrack.Interject).Value) ?? primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.LowBlow), ClassShared.AID.LowBlow, primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.Provoke), ClassShared.AID.Provoke, primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.Interject), ClassShared.AID.Interject, primaryTarget);
         ExecuteSimple(strategy.Option(SharedTrack.Shirk), ClassShared.AID.Shirk, CoTank());
         ExecuteSimple(strategy.Option(SharedTrack.ArmsLength), ClassShared.AID.ArmsLength, Player);
 

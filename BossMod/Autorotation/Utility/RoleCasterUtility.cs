@@ -14,6 +14,8 @@ public abstract class RoleCasterUtility(RotationModuleManager manager, Actor pla
             .AddAssociatedActions(ClassShared.AID.Skyshard, ClassShared.AID.Starstorm)
             .AddAssociatedAction(lb3);
 
+        // TODO: combine standard/ex options
+        // TODO: add 'if-not-active' strategy with configurable min-time-left
         def.Define(SharedTrack.Addle).As<AddleOption>("Addle", "", 250)
             .AddOption(AddleOption.None, "None", "Do not use automatically")
             .AddOption(AddleOption.Use, "Use", "Use Addle (10s)", 90, 10, ActionTargets.Hostile, 22, 97)
@@ -23,6 +25,7 @@ public abstract class RoleCasterUtility(RotationModuleManager manager, Actor pla
         DefineSimpleConfig(def, SharedTrack.Sleep, "Sleep", "", -10, ClassShared.AID.Sleep);
         DefineSimpleConfig(def, SharedTrack.LucidDreaming, "LucidDreaming", "Lucid D.", 30, ClassShared.AID.LucidDreaming, 21);
 
+        // TODO: combine standard/ex options
         def.Define(SharedTrack.Swiftcast).As<SwiftcastOption>("Swiftcast", "Swiftcast", 20)
             .AddOption(SwiftcastOption.None, "None", "Do not use automatically")
             .AddOption(SwiftcastOption.Use, "Use", "Use Swiftcast (10s)", 60, 10, ActionTargets.Self, 22, 93)

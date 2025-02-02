@@ -4,8 +4,6 @@ public sealed class ClassMNKUtility(RotationModuleManager manager, Actor player)
 {
     public enum Track { Mantra = SharedTrack.Count, RiddleOfEarth, Thunderclap }
     public enum DashStrategy { None, GapClose, GapCloseHold1, GapCloseHold2 }
-    public float CDleft => World.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining;
-    public bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3; //Checks if we're inside melee range
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(MNK.AID.FinalHeaven);
 

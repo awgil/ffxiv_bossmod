@@ -19,6 +19,8 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
         DefineSimpleConfig(def, SharedTrack.LegSweep, "LegSweep", "Stun", -150, ClassShared.AID.LegSweep, 3);
         DefineSimpleConfig(def, SharedTrack.Bloodbath, "Bloodbath", "", -50, ClassShared.AID.Bloodbath, 20);
 
+        // TODO: combine standard/ex options
+        // TODO: add 'if-not-active' strategy with configurable min-time-left
         def.Define(SharedTrack.Feint).As<FeintOption>("Feint", "", 250)
             .AddOption(FeintOption.None, "None", "Do not use automatically")
             .AddOption(FeintOption.Use, "Use", "Use Feint (10s)", 90, 10, ActionTargets.Hostile, 22, 97)

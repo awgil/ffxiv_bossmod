@@ -23,10 +23,10 @@ public abstract class RoleRangedUtility(RotationModuleManager manager, Actor pla
     protected void ExecuteShared(StrategyValues strategy, ActionID lb3, Actor? primaryTarget)
     {
         ExecuteSimple(strategy.Option(SharedTrack.Sprint), ClassShared.AID.Sprint, Player);
-        ExecuteSimple(strategy.Option(SharedTrack.LegGraze), ClassShared.AID.LegGraze, ResolveTargetOverride(strategy.Option(SharedTrack.LegGraze).Value) ?? primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.LegGraze), ClassShared.AID.LegGraze, primaryTarget);
         ExecuteSimple(strategy.Option(SharedTrack.SecondWind), ClassShared.AID.SecondWind, Player);
-        ExecuteSimple(strategy.Option(SharedTrack.FootGraze), ClassShared.AID.FootGraze, ResolveTargetOverride(strategy.Option(SharedTrack.FootGraze).Value) ?? primaryTarget);
-        ExecuteSimple(strategy.Option(SharedTrack.HeadGraze), ClassShared.AID.HeadGraze, ResolveTargetOverride(strategy.Option(SharedTrack.HeadGraze).Value) ?? primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.FootGraze), ClassShared.AID.FootGraze, primaryTarget);
+        ExecuteSimple(strategy.Option(SharedTrack.HeadGraze), ClassShared.AID.HeadGraze, primaryTarget);
         ExecuteSimple(strategy.Option(SharedTrack.ArmsLength), ClassShared.AID.ArmsLength, Player);
 
         var lb = strategy.Option(SharedTrack.LB);

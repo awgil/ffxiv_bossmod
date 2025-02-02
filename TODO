@@ -1,11 +1,7 @@
 immediate plans
-- get rid of legacyxxx (waiting for net9)
-- review enemy prios usage - should framework do anything about any prios? like taunt at -4...
-- freeze
-- gaze avoidance + forced movement fail
-- ex3 p2 ice bridges
-- on ex1 the cleave is still telegraphed a bit too wide
-- for p2 thordan cleavebuster the telegraph on the minimap is narrower than the actual hitbox
+- remove 'ex' variants of strategies, replace with cooldown/effect functors, write a converter
+- add strategy param, use for 'apply unless already active' flavours of utility strategies
+- get rid of legacyxxx
 - ishape
 
 general:
@@ -40,6 +36,9 @@ general:
 - alt style for player indicator on arena
 - MAO for pomanders holsters etc
 - ManualActionQueueTweak.Push should not special case gcds?..
+- review enemy prios usage - should framework do anything about any prios? like taunt at -4...
+- freeze special mode implementation
+- gaze avoidance + forced movement fail
 
 ai:
 - nav decision delay
@@ -60,6 +59,9 @@ boss modules:
 -- a11: ai hints for spikes+uppercut
 -- a14: complex aoe hints (cthonic, battlements)
 -- a14: dark nebula kb hints
+- [dt ex3] p2 ice bridges
+- [dt ex1] the cleave is still telegraphed a bit too wide
+- [dsr] for p2 thordan cleavebuster the telegraph on the minimap is narrower than the actual hitbox
 
 autorotation:
 - global strategy for track

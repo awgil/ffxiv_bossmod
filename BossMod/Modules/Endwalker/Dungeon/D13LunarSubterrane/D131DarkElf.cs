@@ -108,7 +108,7 @@ class Doom(BossModule module) : BossComponent(module)
         foreach (var c in _doomed)
         {
             if (_doomed.Count > 0 && actor.Role == Role.Healer)
-                hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Esuna), c, ActionQueue.Priority.High, castTime: 1);
+                hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Esuna), c, ActionQueue.Priority.High);
             if (_doomed.Count > 0 && actor.Class == Class.BRD)
                 hints.ActionsToExecute.Push(ActionID.MakeSpell(BRD.AID.WardensPaean), c, ActionQueue.Priority.High);
         }

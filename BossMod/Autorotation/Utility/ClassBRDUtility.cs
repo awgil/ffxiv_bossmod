@@ -3,10 +3,9 @@
 public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player) : RoleRangedUtility(manager, player)
 {
     public enum Track { WardensPaean = SharedTrack.Count, Troubadour, NaturesMinne }
+    public enum TroubOption { None, Use87, Use87IfNotActive, Use88, Use88IfNotActive }
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(BRD.AID.SagittariusArrow);
-
-    public enum TroubOption { None, Use87, Use87IfNotActive, Use88, Use88IfNotActive }
 
     public static RotationModuleDefinition Definition()
     {
@@ -34,14 +33,16 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.WardensPaean), BRD.AID.WardensPaean, ResolveTargetOverride(strategy.Option(Track.WardensPaean).Value) ?? primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.NaturesMinne), BRD.AID.NaturesMinne, Player);
 
+        // TODO: for 'if-not-active' strategy, add configurable min-time-left
+        // TODO: combine 87/88 options
         var troub = strategy.Option(Track.Troubadour);
-        var hasDefensive = Player.FindStatus(BRD.SID.Troubadour) != null || Player.FindStatus(MCH.SID.Tactician) != null || Player.FindStatus(DNC.SID.ShieldSamba) != null;
-        if (troub.As<TroubOption>() != TroubOption.None)
+        var wantTroub = troub.As<TroubOption>() switch
         {
-            if (troub.As<TroubOption>() is TroubOption.Use87 or TroubOption.Use88)
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(BRD.AID.Troubadour), Player, troub.Priority(), troub.Value.ExpireIn);
-            if (troub.As<TroubOption>() is TroubOption.Use87IfNotActive or TroubOption.Use88IfNotActive && !hasDefensive)
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(BRD.AID.Troubadour), Player, troub.Priority(), troub.Value.ExpireIn);
-        }
+            TroubOption.Use87 or TroubOption.Use88 => true,
+            TroubOption.Use87IfNotActive or TroubOption.Use88IfNotActive => Player.FindStatus(BRD.SID.Troubadour) == null && Player.FindStatus(MCH.SID.Tactician) == null && Player.FindStatus(DNC.SID.ShieldSamba) == null,
+            _ => false
+        };
+        if (wantTroub)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(BRD.AID.Troubadour), Player, troub.Priority(), troub.Value.ExpireIn);
     }
 }

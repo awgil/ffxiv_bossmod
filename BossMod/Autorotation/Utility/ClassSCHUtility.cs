@@ -9,7 +9,6 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
     public enum AetherpactOption { None, Use, End }
     public enum RecitationOption { None, Use, UseEx }
     public enum PetOption { None, Eos, Seraph }
-    public Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value);
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SCH.AID.AngelFeathers);
 
@@ -76,19 +75,20 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         return res;
     }
 
+    // TODO: revise, this should be much simpler
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
         ExecuteSimple(strategy.Option(Track.WhisperingDawn), SCH.AID.WhisperingDawn, Player);
-        ExecuteSimple(strategy.Option(Track.Adloquium), SCH.AID.Adloquium, TargetChoice(strategy.Option(Track.Adloquium)) ?? Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.Adloquium), SCH.AID.Adloquium, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
         ExecuteSimple(strategy.Option(Track.FeyIllumination), SCH.AID.FeyIllumination, Player);
         ExecuteSimple(strategy.Option(Track.Indomitability), SCH.AID.Indomitability, Player);
         ExecuteSimple(strategy.Option(Track.EmergencyTactics), SCH.AID.EmergencyTactics, Player);
         ExecuteSimple(strategy.Option(Track.Dissipation), SCH.AID.Dissipation, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Excogitation), SCH.AID.Excogitation, TargetChoice(strategy.Option(Track.Excogitation)) ?? Player);
+        ExecuteSimple(strategy.Option(Track.Excogitation), SCH.AID.Excogitation, Player);
         ExecuteSimple(strategy.Option(Track.FeyBlessing), SCH.AID.FeyBlessing, Player);
         ExecuteSimple(strategy.Option(Track.Consolation), SCH.AID.Consolation, Player);
-        ExecuteSimple(strategy.Option(Track.Protraction), SCH.AID.Protraction, TargetChoice(strategy.Option(Track.Protraction)) ?? Player);
+        ExecuteSimple(strategy.Option(Track.Protraction), SCH.AID.Protraction, Player);
         ExecuteSimple(strategy.Option(Track.Expedient), SCH.AID.Expedient, Player);
         ExecuteSimple(strategy.Option(Track.Seraphism), SCH.AID.Seraphism, Player);
 
@@ -110,7 +110,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (soilAction != default)
-            QueueOGCD(soilAction, TargetChoice(soil) ?? primaryTarget ?? Player);
+            QueueOGCD(soilAction, ResolveTargetOverride(soil.Value) ?? primaryTarget ?? Player);
 
         var deploy = strategy.Option(Track.DeploymentTactics);
         if (deploy.As<DeployOption>() != DeployOption.None)
@@ -119,7 +119,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
 
         var pact = strategy.Option(Track.Aetherpact);
         var pactStrat = pact.As<AetherpactOption>();
-        var pactTarget = TargetChoice(strategy.Option(Track.Aetherpact)) ?? primaryTarget ?? Player;
+        var pactTarget = ResolveTargetOverride(pact.Value) ?? primaryTarget ?? Player;
         var juicing = pactTarget.FindStatus(SCH.SID.FeyUnion) != null;
         if (pactStrat != AetherpactOption.None)
         {
@@ -145,24 +145,6 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
     }
 
     #region Core Execution Helpers
-
-    public SCH.AID NextGCD; //Next global cooldown action to be used
-    public void QueueGCD<P>(SCH.AID aid, Actor? target, P priority, float delay = 0) where P : Enum
-        => QueueGCD(aid, target, (int)(object)priority, delay);
-
-    public void QueueGCD(SCH.AID aid, Actor? target, int priority = 8, float delay = 0)
-    {
-        var NextGCDPrio = 0;
-
-        if (priority == 0)
-            return;
-
-        if (QueueAction(aid, target, ActionQueue.Priority.High, delay) && priority > NextGCDPrio)
-        {
-            NextGCD = aid;
-        }
-    }
-
     public void QueueOGCD<P>(SCH.AID aid, Actor? target, P priority, float delay = 0) where P : Enum
         => QueueOGCD(aid, target, (int)(object)priority, delay);
 
@@ -202,5 +184,4 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         return true;
     }
     #endregion
-
 }
