@@ -1,6 +1,5 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using AID = BossMod.DRG.AID;
-using SID = BossMod.DRG.SID;
+using BossMod.DRG;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi

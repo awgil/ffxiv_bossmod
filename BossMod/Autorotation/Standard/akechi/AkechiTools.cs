@@ -1,6 +1,6 @@
 ﻿using static BossMod.AIHints;
 
-namespace BossMod.Autorotation.Standard.akechi;
+namespace BossMod.Autorotation.akechi;
 /// <summary>
 /// The <b>SharedTrack</b> enum used for <b>AOE</b> and <b>Hold</b> strategies, typically for modules featuring damage rotations.
 /// <br>This enum defines tracks that can be used for all PvE-related abilities, such as strategies containing standard rotations or holding abilities.</br>

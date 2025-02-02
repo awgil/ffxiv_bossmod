@@ -1,8 +1,7 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using AID = BossMod.PLD.AID;
-using SID = BossMod.PLD.SID;
+using BossMod.PLD;
 
-namespace BossMod.Autorotation.Standard.akechi.Tank;
+namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 

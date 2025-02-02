@@ -2,7 +2,7 @@
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using BossMod.DRK;
 
-namespace BossMod.Autorotation.Standard.akechi.Tank;
+namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
