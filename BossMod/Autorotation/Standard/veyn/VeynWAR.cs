@@ -2,7 +2,7 @@
 
 namespace BossMod.Autorotation;
 
-public sealed class StandardWAR(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
+public sealed class VeynWAR(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     public enum Track { AOE, Burst, Potion, PrimalRend, Tomahawk, InnerRelease, Infuriate, Upheaval, Wrath, Onslaught, Bozja }
     public enum AOEStrategy { SingleTarget, ForceAOE, Auto, AutoFinishCombo }

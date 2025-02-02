@@ -6,7 +6,7 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(BRD.AID.SagittariusArrow);
 
-    public enum TroubOption { None, Use87, Use88 }
+    public enum TroubOption { None, Use87, Use87IfNotActive, Use88, Use88IfNotActive }
 
     public static RotationModuleDefinition Definition()
     {
@@ -17,8 +17,10 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Troubadour).As<TroubOption>("Troubadour", "Troub", 500)
             .AddOption(TroubOption.None, "None", "Do not use automatically")
-            .AddOption(TroubOption.Use87, "Use", "Use Troubadour", 120, 15, ActionTargets.Self, 62, 87)
-            .AddOption(TroubOption.Use88, "Use88", "Use Troubadour", 90, 15, ActionTargets.Self, 88)
+            .AddOption(TroubOption.Use87, "Use", "Use Troubadour (120s CD), regardless if equivalent ranged buff is already active", 120, 15, ActionTargets.Self, 62, 87)
+            .AddOption(TroubOption.Use87IfNotActive, "UseIfNotActive", "Use Troubadour (120s CD), unless equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 62, 87)
+            .AddOption(TroubOption.Use88, "Use88", "Use Troubadour (90s CD), regardless if equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 88)
+            .AddOption(TroubOption.Use88IfNotActive, "Use88IfNotActive", "Use Troubadour (90s CD), unless equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 88)
             .AddAssociatedActions(BRD.AID.Troubadour);
 
         DefineSimpleConfig(res, Track.NaturesMinne, "NaturesMinne", "Minne", 400, BRD.AID.NaturesMinne, 15);
@@ -29,11 +31,17 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.WardensPaean), BRD.AID.WardensPaean, Player);
+        ExecuteSimple(strategy.Option(Track.WardensPaean), BRD.AID.WardensPaean, ResolveTargetOverride(strategy.Option(Track.WardensPaean).Value) ?? primaryTarget ?? Player);
         ExecuteSimple(strategy.Option(Track.NaturesMinne), BRD.AID.NaturesMinne, Player);
 
         var troub = strategy.Option(Track.Troubadour);
+        var hasDefensive = Player.FindStatus(BRD.SID.Troubadour) != null || Player.FindStatus(MCH.SID.Tactician) != null || Player.FindStatus(DNC.SID.ShieldSamba) != null;
         if (troub.As<TroubOption>() != TroubOption.None)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(BRD.AID.Troubadour), Player, troub.Priority(), troub.Value.ExpireIn);
+        {
+            if (troub.As<TroubOption>() is TroubOption.Use87 or TroubOption.Use88)
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(BRD.AID.Troubadour), Player, troub.Priority(), troub.Value.ExpireIn);
+            if (troub.As<TroubOption>() is TroubOption.Use87IfNotActive or TroubOption.Use88IfNotActive && !hasDefensive)
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(BRD.AID.Troubadour), Player, troub.Priority(), troub.Value.ExpireIn);
+        }
     }
 }

@@ -90,8 +90,12 @@ public enum SID : uint
     // PhysRanged
     Peloton = 1199, // applied by Peloton to self/party
 
-    // Caster/Healer
+    // Caster
     Addle = 1203, // applied by Addle to target
+
+    // Magical
+    LucidDreaming = 1204, // applied by Lucid Dreaming to self
+    Surecast = 160, // applied by Surecast to self
     Swiftcast = 167, // applied by Swiftcast to self
     Raise = 148, // applied by Raise to target
 
