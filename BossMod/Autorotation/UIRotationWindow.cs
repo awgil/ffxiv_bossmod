@@ -92,6 +92,28 @@ public sealed class UIRotationWindow : UIWindow
 
         // TODO: more fancy action history/queue...
         ImGui.TextUnformatted($"Modules: {_mgr}");
+        if (_mgr.Preset?.Modules.Any(m => m.TransientSettings.Count > 0) ?? false)
+        {
+            ImGui.SameLine();
+            using (ImRaii.PushColor(ImGuiCol.Text, 0xff00ff00))
+                UIMisc.IconText(FontAwesomeIcon.BoltLightning, "(4)");
+            if (ImGui.IsItemHovered())
+            {
+                using var tooltip = ImRaii.Tooltip();
+                ImGui.TextUnformatted("Transient strategies:");
+                foreach (var m in _mgr.Preset.Modules.Where(m => m.TransientSettings.Count > 0))
+                {
+                    ImGui.TextUnformatted($"> {m.Type.FullName}");
+                    using var indent = ImRaii.PushIndent();
+                    foreach (var s in m.TransientSettings)
+                    {
+                        var track = m.Definition.Configs[s.Track];
+                        ImGui.TextUnformatted($"{track.InternalName} = {track.Options[s.Value.Option].InternalName}");
+                    }
+                }
+            }
+        }
+
         ImGui.TextUnformatted($"GCD={_mgr.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f3}, AnimLock={_amex.EffectiveAnimationLock:f3}+{_amex.AnimationLockDelayEstimate:f3}, Combo={_amex.ComboTimeLeft:f3}, RBIn={_mgr.Bossmods.RaidCooldowns.NextDamageBuffIn():f3}");
         foreach (var a in _mgr.Hints.ActionsToExecute.Entries)
         {
