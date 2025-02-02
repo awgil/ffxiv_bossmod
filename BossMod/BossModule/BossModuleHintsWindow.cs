@@ -27,6 +27,7 @@ public class BossModuleHintsWindow : UIWindow
         if (ShowZoneModule())
         {
             _zmm.ActiveModule?.DrawGlobalHints();
+            _zmm.ActiveModule?.DrawMainExtra();
         }
         else
         {
@@ -42,5 +43,5 @@ public class BossModuleHintsWindow : UIWindow
         }
     }
 
-    private bool ShowZoneModule() => _mgr.ActiveModule?.StateMachine.ActivePhase == null && _zmm.ActiveModule is ZoneModule z && z.WantToBeDrawn() && !z.DrawSeparately;
+    private bool ShowZoneModule() => _mgr.ActiveModule?.StateMachine.ActivePhase == null && _zmm.ActiveModule is ZoneModule z && z.WantDrawMain();
 }

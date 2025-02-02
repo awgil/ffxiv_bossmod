@@ -291,11 +291,9 @@ public abstract class AutoClear : ZoneModule
 
     private bool OpenBronze => _config.BronzeCoffer;
 
-    public override bool WantToBeDrawn() => _config.EnableMinimap && !Palace.IsBossFloor;
+    public override bool WantDrawSeparate() => _config.EnableMinimap && !Palace.IsBossFloor;
 
-    public override bool DrawSeparately => true;
-
-    public override void DrawExtra()
+    public override void DrawSeparate()
     {
         var player = World.Party.Player();
         var targetRoom = new Minimap(Palace, player?.Rotation ?? default, DesiredRoom).Draw();

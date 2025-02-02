@@ -5,7 +5,7 @@
 public sealed class AIHintsBuilder : IDisposable
 {
     private const float RaidwideSize = 30;
-    public const float MaxError = 2000f / 65535f;
+    public const float MaxError = 2000f / 65535f; // TODO: this should really be handled by the rasterization itself...
 
     public readonly Pathfinding.ObstacleMapManager Obstacles;
     private readonly WorldState _ws;

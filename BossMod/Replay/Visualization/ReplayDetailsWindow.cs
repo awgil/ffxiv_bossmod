@@ -78,9 +78,15 @@ class ReplayDetailsWindow : UIWindow
         DrawControlRow();
         DrawTimelineRow();
         ImGui.TextUnformatted($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.LoadedModules.Count(m => m.StateMachine.ActiveState != null)}, active module: {_mgr.ActiveModule?.GetType()}, zone module: {_zmm.ActiveModule?.GetType()}");
-        _zmm.ActiveModule?.DrawGlobalHints();
-        if (_zmm.ActiveModule?.WantToBeDrawn() ?? false)
-            _zmm.ActiveModule?.DrawExtra();
+        if (_zmm.ActiveModule != null)
+        {
+            // TODO: reconsider where this is all drawn...
+            _zmm.ActiveModule.DrawGlobalHints();
+            if (_zmm.ActiveModule.WantDrawMain())
+                _zmm.ActiveModule.DrawMainExtra();
+            if (_zmm.ActiveModule.WantDrawSeparate())
+                _zmm.ActiveModule.DrawSeparate();
+        }
         if (!_azimuthOverride)
             _azimuth = _mgr.WorldState.Client.CameraAzimuth.Deg;
         ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);

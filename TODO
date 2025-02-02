@@ -3,6 +3,7 @@ immediate plans
 - add strategy param, use for 'apply unless already active' flavours of utility strategies
 - get rid of legacyxxx
 - ishape
+-- rasterization should automatically deal with 0.03 position imprecision (and angle imprecision?..)
 
 general:
 - horizontal timeline / cooldown planner
