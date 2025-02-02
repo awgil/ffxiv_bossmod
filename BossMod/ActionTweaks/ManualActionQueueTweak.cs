@@ -129,6 +129,18 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
     {
         target = null;
         targetPos = default;
+
+        // BTL is a ground targeted action with only one valid target position, which is wherever player leylines happen to be
+        if (def.ID.ID == (uint)BLM.AID.BetweenTheLines)
+        {
+            var playerLL = ws.Actors.FirstOrDefault(act => act.OwnerID == player.InstanceID && act.OID == 0x179);
+            if (playerLL == null)
+                return false;
+
+            targetPos = playerLL.PosRot.XYZ();
+            return true;
+        }
+
         if (def.AllowedTargets.HasFlag(ActionTargets.Area))
         {
             // GT actions with range 0 must be cast on player - there are only a few of these (BLM leylines, PCT leylines, PCT PVP limit break)
