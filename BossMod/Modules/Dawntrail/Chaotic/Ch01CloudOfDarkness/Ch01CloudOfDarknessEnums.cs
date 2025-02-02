@@ -111,8 +111,8 @@ public enum AID : uint
     DiffusiveForceParticleBeamAOE1 = 40465, // Helper->players, no cast, range 7 circle, first wave (any specific targeting?)
     DiffusiveForceParticleBeamAOE2 = 40466, // Helper->players, no cast, range 5 circle, second wave
 
-    LateralCorePhaser = 40495, // StygianShadow->self, 6.0+2.0s cast, single-target, visual (sides > front)
-    CoreLateralPhaser = 40496, // StygianShadow->self, 6.0+2.0s cast, single-target, visual (front > sides)
+    CoreLateralPhaser = 40495, // StygianShadow->self, 6.0+2.0s cast, single-target, visual (sides > front)
+    LateralCorePhaser = 40496, // StygianShadow->self, 6.0+2.0s cast, single-target, visual (front > sides)
     Phaser = 40497, // Helper->self, 8.0s cast, range 23 ?-degree cone
 
     ActivePivotParticleBeamCW = 40467, // Boss->self, 14.0+0.5s cast, single-target, visual (cw rotation)
