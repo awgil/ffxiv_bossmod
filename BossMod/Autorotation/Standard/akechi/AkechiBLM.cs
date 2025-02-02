@@ -1,6 +1,5 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using BossMod.BLM;
-using static BossMod.ActorCastEvent;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
