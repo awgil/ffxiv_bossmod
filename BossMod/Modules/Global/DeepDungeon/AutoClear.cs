@@ -397,7 +397,7 @@ public abstract class AutoClear : ZoneModule
         DrawAOEs(playerSlot, player, hints);
         CalculateExtraHints(playerSlot, player, hints);
 
-        var isStunned = player.IsTransformed || player.Statuses.Any(s => (SID)s.ID is SID.Silence or SID.Pacification);
+        var isStunned = IsPlayerTransformed(player) || player.Statuses.Any(s => (SID)s.ID is SID.Silence or SID.Pacification);
         var isOccupied = player.InCombat || isStunned;
 
         Actor? coffer = null;
@@ -474,7 +474,7 @@ public abstract class AutoClear : ZoneModule
             hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)p2), null, ActionQueue.Priority.VeryHigh);
 
         Actor? wantCoffer = null;
-        if (coffer is Actor t && !player.IsTransformed && (_config.AutoMoveTreasure && (!player.InCombat || _config.NavigateInCombat) || player.DistanceToHitbox(t) < 3.5f))
+        if (coffer is Actor t && !IsPlayerTransformed(player) && (_config.AutoMoveTreasure && (!player.InCombat || _config.NavigateInCombat) || player.DistanceToHitbox(t) < 3.5f))
             wantCoffer = t;
 
         if (!player.InCombat && _config.AutoPassage && Palace.PassageActive)
@@ -501,7 +501,7 @@ public abstract class AutoClear : ZoneModule
         if (revealedTraps.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Union(revealedTraps));
 
-        if (!player.IsTransformed && (!player.InCombat || _config.NavigateInCombat) && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.GetPomanderState(PomanderID.Intuition).Active)
+        if (!IsPlayerTransformed(player) && (!player.InCombat || _config.NavigateInCombat) && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.GetPomanderState(PomanderID.Intuition).Active)
             hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));
 
         var shouldTargetMobs = _config.AutoClear switch
@@ -628,6 +628,7 @@ public abstract class AutoClear : ZoneModule
         });
     }
 
+    private static bool IsPlayerTransformed(Actor player) => player.Statuses.Any(Autorotation.RotationModuleManager.IsTransformStatus);
     private static bool IsDangerousOutOfCombatStatus(uint statusRaw) => (SID)statusRaw is SID.DamageUp or SID.DreadBeastAura or SID.PhysicalDamageUp;
 
     private void HandleFloorPathfind(Actor player, AIHints hints)

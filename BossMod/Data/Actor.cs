@@ -135,8 +135,6 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public bool PredictedDead => PredictedHPRaw <= 1 && !IsStrikingDummy;
     public float PredictedHPRatio => (float)PredictedHPRaw / HPMP.MaxHP;
 
-    public bool IsTransformed => Statuses.Any(Autorotation.RotationModuleManager.IsTransformStatus);
-
     // if expirationForPredicted is not null, search pending first, and return one if found; in that case only low byte of extra will be set
     public ActorStatus? FindStatus(uint sid, DateTime? expirationForPending = null)
     {
