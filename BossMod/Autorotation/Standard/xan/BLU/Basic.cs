@@ -37,13 +37,11 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
 
     private Mimicry Mimic;
 
-    protected override bool CanCast(AID aid) => HaveSpell(aid) && base.CanCast(aid);
-
-    private bool HaveSpell(AID aid) => aid switch
+    protected override bool CanUse(AID action) => action switch
     {
         // TODO add other transformed actions here
         AID.DivineCataract => true,
-        _ => World.Client.BlueMageSpells.Contains((uint)aid)
+        _ => World.Client.BlueMageSpells.Contains((uint)action)
     };
 
     public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
@@ -56,7 +54,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (World.CurrentCFCID > 0 && World.Party.WithoutSlot().Count(p => p.Type == ActorType.Player) == 1)
         {
-            if (HaveSpell(AID.BasicInstinct) && Player.FindStatus(SID.MightyGuard) == null)
+            if (CanUse(AID.BasicInstinct) && Player.FindStatus(SID.MightyGuard) == null)
                 PushGCD(AID.MightyGuard, Player);
 
             if (Player.FindStatus(SID.BasicInstinct) == null)
@@ -98,7 +96,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.TheRoseOfDestruction, primaryTarget, GCDPriority.GCDWithCooldown);
 
         // standard filler spells
-        if (HaveSpell(AID.GoblinPunch))
+        if (CanUse(AID.GoblinPunch))
         {
             if (primaryTarget is { } t)
                 Hints.GoalZones.Add(Hints.GoalSingleTarget(t.Actor, Positional.Front, 3));
@@ -106,7 +104,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
         }
         PushGCD(AID.SonicBoom, primaryTarget, GCDPriority.FillerST);
 
-        if (HaveSpell(AID.PeatPelt) && HaveSpell(AID.DeepClean) && StatusLeft(SID.SpickAndSpan) < GCDLength)
+        if (CanUse(AID.PeatPelt) && CanUse(AID.DeepClean) && StatusLeft(SID.SpickAndSpan) < GCDLength)
         {
             var (poopTarget, poopNum) = SelectTarget(strategy, primaryTarget, 25, (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 6));
             if (poopTarget != null && poopNum > 2)
@@ -118,7 +116,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
             }
         }
 
-        if (HaveSpell(AID.TheRamsVoice) && HaveSpell(AID.Ultravibration))
+        if (CanUse(AID.TheRamsVoice) && CanUse(AID.Ultravibration))
         {
             Hints.GoalZones.Add(Hints.GoalAOECircle(6));
             var priorityTotal = 0;
@@ -157,7 +155,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void TankSpecific(Enemy? primaryTarget)
     {
-        if (HaveSpell(AID.Devour) && !CanFitGCD(StatusLeft(SID.HPBoost), 1))
+        if (CanUse(AID.Devour) && !CanFitGCD(StatusLeft(SID.HPBoost), 1))
         {
             if (primaryTarget is { } t)
                 Hints.GoalZones.Add(Hints.GoalSingleTarget(t.Actor, 3));

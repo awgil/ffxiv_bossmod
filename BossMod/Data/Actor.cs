@@ -126,6 +126,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public bool IsFriendlyNPC => Type == ActorType.Enemy && IsAlly && IsTargetable;
     public bool IsStrikingDummy => NameID == 541; // this is a hack, but striking dummies are special in some ways
     public int CharacterSpawnIndex => SpawnIndex < 200 && (SpawnIndex & 1) == 0 ? (SpawnIndex >> 1) : -1; // [0,100) for 'real' characters, -1 otherwise
+    public float HPRatio => (float)HPMP.CurHP / HPMP.MaxHP;
     public int PendingHPDiffence => PendingHPDifferences.Sum(p => p.Value);
     public int PendingMPDiffence => PendingMPDifferences.Sum(p => p.Value);
     public int PredictedHPRaw => (int)HPMP.CurHP + PendingHPDiffence;
@@ -133,6 +134,8 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public int PredictedHPClamped => Math.Clamp(PredictedHPRaw, 0, (int)HPMP.MaxHP);
     public bool PredictedDead => PredictedHPRaw <= 1 && !IsStrikingDummy;
     public float PredictedHPRatio => (float)PredictedHPRaw / HPMP.MaxHP;
+
+    public bool IsTransformed => Statuses.Any(Autorotation.RotationModuleManager.IsTransformStatus);
 
     // if expirationForPredicted is not null, search pending first, and return one if found; in that case only low byte of extra will be set
     public ActorStatus? FindStatus(uint sid, DateTime? expirationForPending = null)
