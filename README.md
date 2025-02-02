@@ -32,7 +32,10 @@ For supported classes, the Autorotation module will execute a fully optimal rota
 
 The CD Planner allows you to turn your autorotation configuration into a plan for a specific boss fight. For instance, during a boss fight, you can automatically cast a raid-wide mitigation ability right before the boss casts an AoE. 
 
-All of the options from autorotations are supported in a CD planner, which include "tracks" for using role-based abilities, limit break, cooldowns, and more. These are all configured on a per-boss basis. A small guide on using this can be found [here](https://github.com/awgil/ffxiv_bossmod/wiki/Using-the-CD-Planner).
+All of the options from autorotations are supported in a CD planner, which include "tracks" for using role-based abilities, limit break, cooldowns, and more. These are all configured on a per-boss basis. A small guide on using this can be found [here](https://github.com/awgil/ffxiv_bossmod/wiki/Using-the-CD-Planner:-Basic-Tutorial).
+
+
+For an advanced version of the CD Planner with extended functionality and enhanced capabilities, please refer to the comprehensive guide available [here](https://github.com/awgil/ffxiv_bossmod/wiki/Using-the-CD-Planner:-Advanced-Plan-Making-using-Replays).
 
 # AI
 
@@ -67,7 +70,8 @@ When you've found a bug or think you have some issue with the plugin, please do 
    6. Find the replay (typically at `C:\Users\username\AppData\Roaming\XIVLauncher\pluginConfigs\BossMod\replays`)
 3. Create a [new issue](https://github.com/awgil/ffxiv_bossmod/issues/new/choose) on GitHub, provide a detailed description of the problem (including steps to reproduce the issue), and attach the logs and replay 
 
-**Do not** create GitHub issues to request new modules, ask questions, etc. Discord is much more convenient for these kinds of things.
+**Do NOT** create GitHub issues to request new modules, ask questions, etc. <br/>
+Our channel (`ffxiv-bossmod`) on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy) is much more convenient for these kinds of things.
 
 **Do** create GitHub issues for very concrete bugs (if you have replays, logs, or an easy way to reproduce what is obviously a problem) or very specific feature requests (please discuss in Discord first to understand whether there's any interest in it).
 
