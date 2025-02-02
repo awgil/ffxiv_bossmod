@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
-    <Platforms>AnyCPU</Platforms>
+    <Platforms>x64</Platforms>
     <Nullable>enable</Nullable>
     <OutputType>WinExe</OutputType>
     <LangVersion>preview</LangVersion>
