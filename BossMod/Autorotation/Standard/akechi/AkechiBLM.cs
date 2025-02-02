@@ -1,5 +1,6 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using BossMod.BLM;
+using static BossMod.ActorCastEvent;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
@@ -546,7 +547,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
             (!isMoving || //if not moving
             PlayerHasEffect(SID.Swiftcast, 10) || //or has Swiftcast
             PlayerHasEffect(SID.Triplecast, 15) || //or has Triplecast
-            (canParadox && ElementTimer < (SpS * 3) && MP >= 1600 || JustUsed(AID.Blizzard4, 5)) || //or can use Paradox
+            (canParadox && (ElementTimer < (SpS * 3) && MP >= 1600) || JustUsed(AID.Blizzard4, 5)) || //or can use Paradox
             SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 || //or can use F3P
             (Unlocked(TraitID.EnhancedAstralFire) && MP is < 1600 and not 0)))) //instant cast Despair 
         {
@@ -940,9 +941,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Fire3, target, GCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
                     //Step 8 - Despair 
                     if (Unlocked(AID.Despair) && //if Despair is unlocked
-                        (MP is < 1600 and >= 800 || //if MP is less than 1600 and not 0
-                        MP is <= 4000 and >= 800 && ElementTimer <= GetCastTime(AID.Despair) * 2)) //or if we dont have enough time for last F4s
-                        QueueGCD(AID.Despair, target, ElementTimer <= GetCastTime(AID.Despair) * 2 ? GCDPriority.ForcedGCD : GCDPriority.ThirdStep); //Queue Despair
+                        ((MP is < 1600 and >= 800) || //if MP is less than 1600 and not 0
+                        (MP is <= 4000 and >= 800 && ElementTimer <= (GetCastTime(AID.Despair) * 2)))) //or if we dont have enough time for last F4s
+                        QueueGCD(AID.Despair, target, ElementTimer <= (GetCastTime(AID.Despair) * 2) ? GCDPriority.ForcedGCD : GCDPriority.ThirdStep); //Queue Despair
                     //Step 9 - swap from AF to UI 
                     if (MP <= 400) //and MP is less than 400
                         QueueGCD(AID.Blizzard3, target, GCDPriority.FourthStep); //Queue Blizzard III
@@ -981,9 +982,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Fire3, target, GCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
                     //Step 8 - Despair 
                     if (Unlocked(AID.Despair) && //if Despair is unlocked
-                        (MP is < 1600 and >= 800 || //if MP is less than 1600 and not 0
-                        MP is <= 4000 and >= 800 && ElementTimer <= GetCastTime(AID.Despair) * 2)) //or if we dont have enough time for last F4s
-                        QueueGCD(AID.Despair, target, ElementTimer <= GetCastTime(AID.Despair) * 2 ? GCDPriority.ForcedGCD : GCDPriority.ThirdStep); //Queue Despair
+                        ((MP is < 1600 and >= 800) || //if MP is less than 1600 and not 0
+                        (MP is <= 4000 and >= 800 && ElementTimer <= (GetCastTime(AID.Despair) * 2)))) //or if we dont have enough time for last F4s
+                        QueueGCD(AID.Despair, target, ElementTimer <= (GetCastTime(AID.Despair) * 2) ? GCDPriority.ForcedGCD : GCDPriority.ThirdStep); //Queue Despair
                     //Step 9 - swap from AF to UI
                     if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
                         MP <= 400) //and MP is less than 400
@@ -1024,8 +1025,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Fire3, target, GCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
                     //Step 8 - Despair
                     if (Unlocked(AID.Despair) &&
-                        (MP is < 1600 and not 0 || MP <= 1600 && ElementTimer <= 4)) //if MP is less than 1600 and not 0
-                        QueueGCD(AID.Despair, target, MP <= 1600 && ElementTimer <= 4 ? GCDPriority.NeedPolyglot : GCDPriority.ThirdStep); //Queue Despair
+                        ((MP is < 1600 and not 0) || (MP <= 1600 && ElementTimer <= 4))) //if MP is less than 1600 and not 0
+                        QueueGCD(AID.Despair, target, (MP <= 1600 && ElementTimer <= 4) ? GCDPriority.NeedPolyglot : GCDPriority.ThirdStep); //Queue Despair
                     //Step 9 - Flare Star
                     if (AstralSoulStacks == 6) //if Astral Soul stacks are max
                         QueueGCD(AID.FlareStar, target, GCDPriority.FourthStep); //Queue Flare Star
@@ -1164,8 +1165,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Flare, target, GCDPriority.SecondStep);
                     //Step 3 - swap from AF to UI
                     if (Unlocked(AID.Blizzard2) &&
-                        !Unlocked(AID.Flare) && MP < 3000 || //do your job quests, fool
-                        Unlocked(AID.Flare) && MP < 400)
+                        (!Unlocked(AID.Flare) && MP < 3000) || //do your job quests, fool
+                        (Unlocked(AID.Flare) && MP < 400))
                         QueueGCD(AID.Blizzard2, target, MP < 400 ? GCDPriority.ForcedStep : GCDPriority.ThirdStep);
                 }
             }
@@ -1307,36 +1308,36 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
     private bool ShouldSpendPolyglot(Actor? target, PolyglotStrategy strategy) => strategy switch
     {
         PolyglotStrategy.AutoSpendAll
-            => Player.InCombat &&
-            target != null &&
-            Polyglots > 0 && //Spend 3
-            ((CD(AID.Triplecast) < 5 || CD(AID.Triplecast) == 0 || CD(AID.Triplecast) >= 59 && CD(AID.Triplecast) <= 65) && PlayerHasEffect(SID.LeyLines, 30) || //Triplecast prep
-            CD(AID.LeyLines) < 5 || CD(AID.LeyLines) == 0 || CD(AID.LeyLines) <= 125 && CD(AID.LeyLines) >= 119 || //Ley Lines prep
-            CD(AID.Amplifier) < 0.6f || //Amplifier prep
-            CD(AID.Manafont) < 0.6f && MP < 1600), //Manafont prep
+            => target != null &&
+            UsePolyglots(),
         PolyglotStrategy.AutoHold1
-            => Player.InCombat &&
-            target != null &&
-            Polyglots > 1 && //Spend 2
-            ((CD(AID.Triplecast) < 5 || CD(AID.Triplecast) == 0 || CD(AID.Triplecast) >= 59 && CD(AID.Triplecast) <= 65) && PlayerHasEffect(SID.LeyLines, 30) || //Triplecast prep
-            CD(AID.LeyLines) < 5 || CD(AID.LeyLines) == 0 || CD(AID.LeyLines) <= 125 && CD(AID.LeyLines) >= 119 || //Ley Lines prep
-            CD(AID.Amplifier) < 0.6f || //Amplifier prep
-            CD(AID.Manafont) < 0.6f && MP < 1600), //Manafont prep
+            => target != null &&
+            Polyglots > 1 &&
+            UsePolyglots(),
         PolyglotStrategy.AutoHold2
-            => Player.InCombat &&
-            target != null &&
-            Polyglots > 2 && //Spend 1
-            ((CD(AID.Triplecast) < 5 || CD(AID.Triplecast) <= 60 && CD(AID.Triplecast) >= 65) && PlayerHasEffect(SID.LeyLines, 30) || //Triplecast prep
-            CD(AID.LeyLines) < 5 || CD(AID.LeyLines) <= 120 && CD(AID.LeyLines) >= 110 || //Ley Lines prep
-            CD(AID.Amplifier) < 0.6f || //Amplifier prep
-            CD(AID.Manafont) < 0.6f && MP < 1600), //Manafont prep
+            => target != null &&
+            Polyglots > 2 &&
+            UsePolyglots(),
         PolyglotStrategy.AutoHold3
             => Player.InCombat &&
             target != null &&
             Polyglots == MaxPolyglots && //if max Polyglots
-            EnochianTimer <= 10000f, //Enochian is 5s away from adding a Polyglot
+            (EnochianTimer <= 10000f || CD(AID.Amplifier) < GCD), //Enochian is 5s away from adding a Polyglot
         _ => false
     };
+    private bool UsePolyglots()
+    {
+        if (Polyglots > 0)
+        {
+            if (Player.InCombat &&
+                (((CD(AID.Triplecast) < 5 || (CD(AID.Triplecast) <= 60 && CD(AID.Triplecast) >= 65)) && PlayerHasEffect(SID.LeyLines, 30)) || //Triplecast prep
+                (CD(AID.LeyLines) < 5 || CD(AID.LeyLines) == 0 || CD(AID.LeyLines) <= 125 && CD(AID.LeyLines) >= 119) || //Ley Lines prep
+                CD(AID.Amplifier) < 0.6f || //Amplifier prep
+                (CD(AID.Manafont) < 0.6f && MP < 1600))) //Manafont prep
+                return true;
+        }
+        return false;
+    }
     private bool ShouldUsePolyglot(Actor? target, PolyglotStrategy strategy) => strategy switch
     {
         PolyglotStrategy.AutoSpendAll => ShouldSpendPolyglot(target, PolyglotStrategy.AutoSpendAll),
