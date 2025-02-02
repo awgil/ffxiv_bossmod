@@ -39,6 +39,7 @@ general:
 - review enemy prios usage - should framework do anything about any prios? like taunt at -4...
 - freeze special mode implementation
 - gaze avoidance + forced movement fail
+- find a way to make ActionDefinition fields readonly
 
 ai:
 - nav decision delay
