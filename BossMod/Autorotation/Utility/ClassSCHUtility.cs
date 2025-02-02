@@ -9,10 +9,6 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
     public enum AetherpactOption { None, Use, End }
     public enum RecitationOption { None, Use, UseEx }
     public enum PetOption { None, Eos, Seraph }
-    public float GetStatusDetail(Actor target, SGE.SID sid) => StatusDetails(target, sid, Player.InstanceID).Left; //Checks if Status effect is on target
-    public bool HasEffect(Actor target, SGE.SID sid, float duration) => GetStatusDetail(target, sid) < duration; //Checks if anyone has a status effect
-    public float GetStatusDetail(Actor target, SCH.SID sid) => StatusDetails(target, sid, Player.InstanceID).Left; //Checks if Status effect is on target
-    public bool HasEffect(Actor target, SCH.SID sid, float duration) => GetStatusDetail(target, sid) < duration; //Checks if anyone has a status effect
     public Actor? TargetChoice(StrategyValues.OptionRef strategy) => ResolveTargetOverride(strategy.Value);
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SCH.AID.AngelFeathers);
@@ -96,7 +92,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Expedient), SCH.AID.Expedient, Player);
         ExecuteSimple(strategy.Option(Track.Seraphism), SCH.AID.Seraphism, Player);
 
-        var alreadyUp = HasEffect(Player, SGE.SID.EukrasianPrognosis, 30) || HasEffect(Player, SCH.SID.Galvanize, 30);
+        var shieldUp = StatusDetails(Player, SCH.SID.Galvanize, Player.InstanceID).Left > 0.1f || StatusDetails(Player, SGE.SID.EukrasianPrognosis, Player.InstanceID).Left > 0.1f;
         var succ = strategy.Option(Track.Succor);
         var succAction = succ.As<SuccorOption>() switch
         {
@@ -104,7 +100,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             SuccorOption.Concitation => SCH.AID.Concitation,
             _ => default
         };
-        if (succAction != default && !alreadyUp)
+        if (succAction != default && !shieldUp)
             QueueOGCD(succAction, Player);
 
         var soil = strategy.Option(Track.SacredSoil);
@@ -120,15 +116,18 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         if (deploy.As<DeployOption>() != DeployOption.None)
             QueueOGCD(SCH.AID.DeploymentTactics, Player);
 
+
         var pact = strategy.Option(Track.Aetherpact);
-        var pactAction = pact.As<AetherpactOption>() switch
+        var pactStrat = pact.As<AetherpactOption>();
+        var pactTarget = TargetChoice(strategy.Option(Track.Aetherpact)) ?? primaryTarget ?? Player;
+        var juicing = pactTarget.FindStatus(SCH.SID.FeyUnion) != null;
+        if (pactStrat != AetherpactOption.None)
         {
-            AetherpactOption.Use => SCH.AID.Aetherpact,
-            AetherpactOption.End => SCH.AID.DissolveUnion,
-            _ => default
-        };
-        if (pactAction != default)
-            QueueOGCD(pactAction, Player);
+            if (pactStrat == AetherpactOption.Use && !juicing)
+                QueueOGCD(SCH.AID.Aetherpact, pactTarget);
+            if (pactStrat == AetherpactOption.End && juicing)
+                QueueOGCD(SCH.AID.DissolveUnion, pactTarget);
+        }
 
         var recit = strategy.Option(Track.Recitation);
         if (recit.As<RecitationOption>() != RecitationOption.None)
