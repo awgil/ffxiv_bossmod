@@ -18,12 +18,11 @@ public abstract class ZoneModule(WorldState ws) : IDisposable
     }
 
     public virtual void Update() { }
-    public virtual bool WantDrawMain() => false; // return true if it wants to be drawn in the main window (higher priority than inactive boss modules, but lower priority than active)
-    public virtual bool WantDrawSeparate() => false; // return true if it wants to draw something in a separate window
+    public virtual bool WantDrawHints() => false; // return true if it wants to draw hints (higher priority than inactive boss modules, but lower priority than active)
     public virtual List<string> CalculateGlobalHints() => [];
     public virtual void CalculateAIHints(int playerSlot, Actor player, AIHints hints) { } // note: this is called after framework automatically fills auto-detected hints
-    public virtual void DrawMainExtra() { }
-    public virtual void DrawSeparate() { }
+    public virtual bool WantDrawExtra() => false; // return true if it wants to draw something in a separate window
+    public virtual void DrawExtra() { }
 
     public void DrawGlobalHints()
     {

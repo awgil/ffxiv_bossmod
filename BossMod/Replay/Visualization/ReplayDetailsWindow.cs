@@ -81,11 +81,10 @@ class ReplayDetailsWindow : UIWindow
         if (_zmm.ActiveModule != null)
         {
             // TODO: reconsider where this is all drawn...
-            _zmm.ActiveModule.DrawGlobalHints();
-            if (_zmm.ActiveModule.WantDrawMain())
-                _zmm.ActiveModule.DrawMainExtra();
-            if (_zmm.ActiveModule.WantDrawSeparate())
-                _zmm.ActiveModule.DrawSeparate();
+            if (_zmm.ActiveModule.WantDrawHints())
+                _zmm.ActiveModule.DrawGlobalHints();
+            if (_zmm.ActiveModule.WantDrawExtra())
+                _zmm.ActiveModule.DrawExtra();
         }
         if (!_azimuthOverride)
             _azimuth = _mgr.WorldState.Client.CameraAzimuth.Deg;

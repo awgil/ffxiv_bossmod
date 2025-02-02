@@ -12,11 +12,11 @@ public class ZoneModuleWindow : UIWindow
 
     public override void PreOpenCheck()
     {
-        IsOpen = _zmm.ActiveModule?.WantDrawSeparate() ?? false;
+        IsOpen = _zmm.ActiveModule?.WantDrawExtra() ?? false;
     }
 
     public override void Draw()
     {
-        _zmm.ActiveModule?.DrawSeparate();
+        _zmm.ActiveModule?.DrawExtra();
     }
 }

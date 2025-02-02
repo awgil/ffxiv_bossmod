@@ -36,7 +36,6 @@ public class D01Sastasha(WorldState ws) : ZoneModule(ws)
         }
     }
 
-    public override bool WantDrawMain() => _switchColor != Switch.Resolved;
-
+    public override bool WantDrawHints() => _switchColor != Switch.Resolved;
     public override List<string> CalculateGlobalHints() => [$"Correct switch: {_switchColor}"];
 }
