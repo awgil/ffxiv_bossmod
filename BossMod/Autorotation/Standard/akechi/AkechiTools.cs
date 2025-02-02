@@ -305,7 +305,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <br>This also handles <b>Ground Target</b> abilities, such as <c>BLM:LeyLines</c> or <c>NIN:Shukuchi</c></br>
     /// </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    /// <param name="target">The user's specified <b>Target</b>.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="priority">The user's specified <b>Priority</b>.</param>
     /// <param name="delay">The user's specified <b>application delay</b>.</param>
     /// <param name="castTime">The user's specified <b>cast time</b> for the ability.</param>
@@ -317,7 +317,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <br>This also handles <b>Ground Target</b> abilities, such as <c>BLM:LeyLines</c> or <c>NIN:Shukuchi</c></br>
     /// </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    /// <param name="target">The user's specified <b>Target</b>.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="priority">The user's specified <b>Priority</b>.</param>
     /// <param name="delay">The user's specified <b>application delay</b>.</param>
     /// <param name="castTime">The user's specified <b>cast time</b> for the ability.</param>
@@ -343,7 +343,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <b>NOTE:</b> For compatibility between <c>Actor?</c> and <c>Enemy?</c> inside one function, use `primarytarget?.Actor` as `Enemy?` definition.
     /// </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    /// <param name="target">The user's specified <b>Target</b>.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="priority">The user's specified <b>Priority</b>.</param>
     /// <param name="delay">The user's specified <b>application delay</b>.</param>
     /// <param name="castTime">The user's specified <b>cast time</b> for the ability.</param>
@@ -355,7 +355,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <b>NOTE:</b> For compatibility between <c>Actor?</c> and <c>Enemy?</c> inside one function, use `primarytarget?.Actor` as `Enemy?` definition.
     /// </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    /// <param name="target">The user's specified <b>Target</b>.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="priority">The user's specified <b>Priority</b>.</param>
     /// <param name="delay">The user's specified <b>application delay</b>.</param>
     /// <param name="castTime">The user's specified <b>cast time</b> for the ability.</param>
@@ -704,18 +704,18 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary> Retrieves the amount of specified status effect's stacks remaining on any target.
     /// <para><c><b>NOTE</b></c>: The effect MUST be owned by the Player.</para>
     /// <para><b>Example Given:</b> "<b>StacksRemaining(Player, SID.Requiescat, 30) > 0</b>"</para></summary>
-    /// <param name="target">The <b>specified Target</b> we're checking for specified status effect. (e.g. "<b>Player</b>")<para>(<c><b>NOTE</b></c>: can also be any target if called)</para> </param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
-    /// <param name="duration"> The <b>Total Effect Duration</b> of specified status effect. (e.g. since <b>Requiescat</b>'s buff is 30 seconds, we simply use "<b>30</b>")</param>
+    /// <param name="duration"> The <b>Total Effect Duration</b> of specified <b>Status ID</b> being checked.</param>
     /// <returns>- A value indicating how many stacks exist</returns>
     protected int StacksRemaining<SID>(Actor? target, SID sid, float duration = 1000f) where SID : Enum => StatusDetails(target, sid, Player.InstanceID, duration).Stacks;
 
     /// <summary> Retrieves the amount of specified status effect's time left remaining on any target.
     /// <para><c><b>NOTE</b></c>: The effect MUST be owned by the Player.</para>
     /// <para><b>Example Given:</b> "<b>StatusRemaining(Player, SID.Requiescat, 30) > 0f</b>"</para></summary>
-    /// <param name="target">The <b>specified Target</b> we're checking for specified status effect. (e.g. "<b>Player</b>")<para>(<c><b>NOTE</b></c>: can also be any target if called)</para> </param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
-    /// <param name="duration"> The <b>Total Effect Duration</b> of specified status effect. (e.g. since <b>Requiescat</b>'s buff is 30 seconds, we simply use "<b>30</b>")</param>
+    /// <param name="duration"> The <b>Total Effect Duration</b> of specified <b>Status ID</b> being checked.</param>
     /// <returns>- A value indicating how much time left on existing effect</returns>
     protected float StatusRemaining<SID>(Actor? target, SID sid, float duration) where SID : Enum => StatusDetails(target, sid, Player.InstanceID, duration).Left;
 
@@ -723,7 +723,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <para><c><b>NOTE</b></c>: The effect MUST be owned by the Player.</para>
     /// <para><b>Example Given:</b> "<b>PlayerHasEffect(SID.NoMercy, 20)</b>"</para></summary>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
-    /// <param name="duration"> The <b>Total Effect Duration</b> of specified status effect. (e.g. since <b>No Mercy</b>'s buff is 20 seconds, we simply use "<b>20</b>")</param>
+    /// <param name="duration"> The <b>Total Effect Duration</b> of specified <b>Status ID</b> being checked.</param>
     /// <returns>- A value indicating if the effect exists</returns>
     protected bool PlayerHasEffect<SID>(SID sid, float duration) where SID : Enum => StatusRemaining(Player, sid, duration) > 0.1f;
 
@@ -731,23 +731,23 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <para><c><b>NOTE</b></c>: The effect can be owned by anyone; Player, Party, Alliance, NPCs or even enemies</para>
     /// <para><b>Example Given:</b> "<b>PlayerHasEffectAny(SID.Troubadour)</b>"</para></summary>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
-    /// <param name="duration"> The <b>Total Effect Duration</b> of specified status effect. (e.g. since <b>No Mercy</b>'s buff is 20 seconds, we simply use "<b>20</b>")</param>
+    /// <param name="duration"> The <b>Total Effect Duration</b> of specified <b>Status ID</b> being checked.</param>
     /// <returns>- A value indicating if the effect exists</returns>
     protected bool PlayerHasAnyEffect<SID>(SID sid) where SID : Enum => Player.FindStatus(sid) != null;
 
     /// <summary> Checks if a specific status effect on any specified target exists.
     /// <para><c><b>NOTE</b></c>: The effect MUST be owned by the Player.</para>
     /// <para><b>Example Given:</b> "<b>TargetHasEffect(primaryTarget, SID.SonicBreak, 30)</b>"</para></summary>
-    /// <param name="target">The <b>specified Target</b> we're checking for specified status effect. (e.g. "<b>primaryTarget</b>")<para>(<c><b>NOTE</b></c>: can even be "Player")</para> </param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
-    /// <param name="duration"> The <b>Total Effect Duration</b> of specified status effect. (e.g. since <b>Sonic Break</b>'s debuff is 30 seconds, we simply use "<b>30</b>")</param>
+    /// <param name="duration"> The <b>Total Effect Duration</b> of specified <b>Status ID</b> being checked.</param>
     /// <returns>- A value indicating if the effect exists</returns>
     protected bool TargetHasEffect<SID>(Actor? target, SID sid, float duration = 1000f) where SID : Enum => StatusRemaining(target, sid, duration) > 0.1f;
 
     /// <summary> Checks if a specific status effect on any specified target exists.
     /// <para><c><b>NOTE</b></c>: The effect can be owned by anyone; Player, Party, Alliance, NPCs or even enemies</para>
     /// <para><b>Example Given:</b> "<b>TargetHasAnyEffect(primaryTarget, SID.MeditativeBrotherhood)</b>"</para></summary>
-    /// <param name="target">The <b>specified Target</b> we're checking for specified status effect. (e.g. "<b>primaryTarget</b>")<para>(<c><b>NOTE</b></c>: can even be "Player")</para> </param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     /// <returns>- A value indicating if the effect exists</returns>
     protected bool TargetHasAnyEffect<SID>(Actor? target, SID sid) where SID : Enum => target?.FindStatus(sid) != null;
@@ -798,49 +798,49 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>
     /// Checks if target is within <b>Zero (0) yalms</b> in distance, or if Player is inside hitbox.
     /// </summary>
-    /// <param name="target">The user's specified <b>Target</b>.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <returns></returns>
     protected bool In0y(Actor? target) => Player.DistanceToHitbox(target) <= 0.00f;
 
     /// <summary>
     /// Checks if target is within <b>Three (3) yalms</b> in distance.
     /// </summary>
-    /// <param name="target">The user's specified <b>Target</b>.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <returns></returns>
     protected bool In3y(Actor? target) => Player.DistanceToHitbox(target) <= 2.99f;
 
     /// <summary>
     /// Checks if target is within <b>Five (5) yalms</b> in distance.
     /// </summary>
-    /// <param name="target">The user's specified <b>Target</b>.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <returns></returns>
     protected bool In5y(Actor? target) => Player.DistanceToHitbox(target) <= 4.99f;
 
     /// <summary>
     /// Checks if target is within <b>Ten (10) yalms</b> in distance.
     /// </summary>
-    /// <param name="target">The user's specified <b>Target</b>.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <returns></returns>
     protected bool In10y(Actor? target) => Player.DistanceToHitbox(target) <= 9.99f;
 
     /// <summary>
     /// Checks if target is within <b>Fifteen (15) yalms</b> in distance.
     /// </summary>
-    /// <param name="target">The user's specified <b>Target</b>.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <returns></returns>
     protected bool In15y(Actor? target) => Player.DistanceToHitbox(target) <= 14.99f;
 
     /// <summary>
     /// Checks if target is within <b>Twenty (20) yalms</b> in distance.
     /// </summary>
-    /// <param name="target">The user's specified <b>Target</b>.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <returns></returns>
     protected bool In20y(Actor? target) => Player.DistanceToHitbox(target) <= 19.99f;
 
     /// <summary>
     /// Checks if target is within <b>Twenty-five (25) yalms</b> in distance.
     /// </summary>
-    /// <param name="target">The user's specified <b>Target</b>.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <returns></returns>
     protected bool In25y(Actor? target) => Player.DistanceToHitbox(target) <= 24.99f;
 
@@ -991,7 +991,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>
     /// Retrieves the current positional of the target based on target's position and rotation.
     /// </summary>
-    /// <param name="target">The user's specified <b>Target</b>.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <returns></returns>
     protected Positional GetCurrentPositional(Actor target) => (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch //Check current positional based on target
     {
@@ -1003,14 +1003,14 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>
     /// Checks if player is on specified target's <b>Rear Positional</b>.
     /// </summary>
-    /// <param name="target">The user's specified <b>Target</b>.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <returns></returns>
     protected bool IsOnRear(Actor target) => GetCurrentPositional(target) == Positional.Rear;
 
     /// <summary>
     /// Checks if player is on specified target's <b>Flank Positional</b>.
     /// </summary>
-    /// <param name="target">The user's specified <b>Target</b>.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <returns></returns>
     protected bool IsOnFlank(Actor target) => GetCurrentPositional(target) == Positional.Flank;
     #endregion
