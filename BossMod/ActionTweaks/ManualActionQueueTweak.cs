@@ -129,7 +129,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
     {
         target = null;
         targetPos = default;
-        
+
         // BTL is a ground targeted action with only one valid target position, which is wherever player leylines happen to be
         if (def.ID.ID == (uint)BLM.AID.BetweenTheLines)
         {
