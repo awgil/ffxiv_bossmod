@@ -542,13 +542,13 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
 
         #region ST / AOE
         if (movingOption is CastingOption.Allow ||
-            movingOption is CastingOption.Forbid &&
+            (movingOption is CastingOption.Forbid &&
             (!isMoving || //if not moving
             PlayerHasEffect(SID.Swiftcast, 10) || //or has Swiftcast
             PlayerHasEffect(SID.Triplecast, 15) || //or has Triplecast
-            canParadox && ElementTimer < SpS * 3 && MP >= 1600 || JustUsed(AID.Blizzard4, 5) || //or can use Paradox
+            (canParadox && ElementTimer < (SpS * 3) && MP >= 1600 || JustUsed(AID.Blizzard4, 5)) || //or can use Paradox
             SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 || //or can use F3P
-            Unlocked(TraitID.EnhancedAstralFire) && MP is < 1600 and not 0)) //instant cast Despair 
+            (Unlocked(TraitID.EnhancedAstralFire) && MP is < 1600 and not 0)))) //instant cast Despair 
         {
             if (AOEStrategy is AOEStrategy.Auto)
                 BestRotation(TargetChoice(AOE) ?? BestAOETarget ?? primaryTarget);
@@ -610,8 +610,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
 
         #region Out of combat
         if (primaryTarget == null &&
-            tpusStrat == TPUSStrategy.Allow && (!Player.InCombat || Player.InCombat && TargetsInRange() is 0) ||
-            tpusStrat == TPUSStrategy.OOConly && !Player.InCombat)
+            ((tpusStrat == TPUSStrategy.Allow && (!Player.InCombat || Player.InCombat && TargetsInRange() is 0)) ||
+            (tpusStrat == TPUSStrategy.OOConly && !Player.InCombat)))
         {
             if (Unlocked(AID.Transpose))
             {
@@ -825,7 +825,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                     Player.InCombat) //if Blizzard III is unlocked
                     QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
                 if (Unlocked(AID.Fire3) &&
-                    CD(AID.Manafont) < 5 && CD(AID.LeyLines) <= 121 && MP >= 10000 || !Player.InCombat && World.Client.CountdownRemaining <= 4) //F3 opener
+                    ((CD(AID.Manafont) < 5 && CD(AID.LeyLines) <= 121 && MP >= 10000) || (!Player.InCombat && World.Client.CountdownRemaining <= 4))) //F3 opener
                     QueueGCD(AID.Fire3, target, canOpen ? GCDPriority.Opener : GCDPriority.NeedB3);
             }
             if (Player.Level is >= 1 and <= 34)
@@ -899,7 +899,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                     if (MP >= 1600) //and MP is 1600 or more
                         QueueGCD(AID.Fire4, target, GCDPriority.FirstStep); //Queue Fire IV
                     //Step 4A - Fire 1
-                    if (ElementTimer <= SpS * 3 && //if time remaining on current element is less than 3x GCDs
+                    if (ElementTimer <= (SpS * 3) && //if time remaining on current element is less than 3x GCDs
                         MP >= 4000) //and MP is 4000 or more
                         QueueGCD(AID.Fire1, target, ElementTimer <= 5 && MP >= 4000 ? GCDPriority.Paradox : GCDPriority.SecondStep); //Queue Fire I, increase priority if less than 3s left on element
                     //Step 4B - F3P 
@@ -931,10 +931,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                     if (MP >= 1600) //and MP is 1600 or more
                         QueueGCD(AID.Fire4, target, GCDPriority.FirstStep); //Queue Fire IV
                     //Step 4A - Fire 1
-                    if (ElementTimer <= GetCastTime(AID.Fire1) * 3 && //if time remaining on current element is less than 3x GCDs
+                    if (ElementTimer <= (GetCastTime(AID.Fire1) * 3) && //if time remaining on current element is less than 3x GCDs
                         MP >= 4000) //and MP is 4000 or more
-                        QueueGCD(AID.Fire1, target, ElementTimer <= GetCastTime(AID.Fire1) * 3 && MP >= 4000 ? GCDPriority.Paradox : GCDPriority.SecondStep); //Queue Fire I, increase priority if less than 3s left on element
-                                                                                                                                                              //Step 4B - F3P 
+                        QueueGCD(AID.Fire1, target, ElementTimer <= (GetCastTime(AID.Fire1) * 3) && MP >= 4000 ? GCDPriority.Paradox : GCDPriority.SecondStep); //Queue Fire I, increase priority if less than 3s left on element
+                    //Step 4B - F3P 
                     if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
                         AstralStacks == 3) //and Umbral Hearts are 0
                         QueueGCD(AID.Fire3, target, GCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
@@ -943,7 +943,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         (MP is < 1600 and >= 800 || //if MP is less than 1600 and not 0
                         MP is <= 4000 and >= 800 && ElementTimer <= GetCastTime(AID.Despair) * 2)) //or if we dont have enough time for last F4s
                         QueueGCD(AID.Despair, target, ElementTimer <= GetCastTime(AID.Despair) * 2 ? GCDPriority.ForcedGCD : GCDPriority.ThirdStep); //Queue Despair
-                                                                                                                                                     //Step 9 - swap from AF to UI 
+                    //Step 9 - swap from AF to UI 
                     if (MP <= 400) //and MP is less than 400
                         QueueGCD(AID.Blizzard3, target, GCDPriority.FourthStep); //Queue Blizzard III
                 }
@@ -972,7 +972,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Fire4, target, GCDPriority.FirstStep); //Queue Fire IV
                     //Step 5A - Paradox
                     if (canParadox && //if Paradox is unlocked and Paradox is active
-                        ElementTimer < SpS * 3 && //and time remaining on current element is less than 3x GCDs
+                        ElementTimer < (SpS * 3) && //and time remaining on current element is less than 3x GCDs
                         MP >= 1600) //and MP is 1600 or more
                         QueueGCD(AID.Paradox, target, ElementTimer <= 3 ? GCDPriority.Paradox : GCDPriority.SecondStep); //Queue Paradox, increase priority if less than 3s left on element
                     //Step 4B - F3P 
@@ -1015,7 +1015,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
                         QueueGCD(AID.Fire4, target, GCDPriority.FirstStep); //Queue Fire IV
                     //Step 5A - Paradox
                     if (ParadoxActive && //if Paradox is active
-                        ElementTimer < SpS * 3 && //and time remaining on current element is less than 3x GCDs
+                        ElementTimer < (SpS * 3) && //and time remaining on current element is less than 3x GCDs
                         MP >= 1600) //and MP is 1600 or more
                         QueueGCD(AID.Paradox, target, ElementTimer <= 3 ? GCDPriority.Paradox : GCDPriority.SecondStep); //Queue Paradox, increase priority if less than 3s left on element
                     //Step 4B - F3P 
@@ -1364,9 +1364,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         canLL &&
         canWeaveIn,
         LeyLinesStrategy.Force => Player.InCombat && canLL,
-        LeyLinesStrategy.Force1 => Player.InCombat && canLL && CD(AID.LeyLines) < SpS * 2,
+        LeyLinesStrategy.Force1 => Player.InCombat && canLL && CD(AID.LeyLines) < (SpS * 2),
         LeyLinesStrategy.ForceWeave => Player.InCombat && canLL && canWeaveIn,
-        LeyLinesStrategy.ForceWeave1 => Player.InCombat && canLL && canWeaveIn && CD(AID.LeyLines) < SpS * 2,
+        LeyLinesStrategy.ForceWeave1 => Player.InCombat && canLL && canWeaveIn && CD(AID.LeyLines) < (SpS * 2),
         LeyLinesStrategy.Delay => false,
         _ => false
     };
@@ -1432,9 +1432,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Rot
         InAstralFire &&
         PlayerHasEffect(SID.LeyLines, 30),
         TriplecastStrategy.Force => Player.InCombat && canTC,
-        TriplecastStrategy.Force1 => Player.InCombat && canTC && CD(AID.Triplecast) < SpS * 2,
+        TriplecastStrategy.Force1 => Player.InCombat && canTC && CD(AID.Triplecast) < (SpS * 2),
         TriplecastStrategy.ForceWeave => Player.InCombat && canTC && canWeaveIn,
-        TriplecastStrategy.ForceWeave1 => Player.InCombat && canTC && canWeaveIn && CD(AID.Triplecast) < SpS * 2,
+        TriplecastStrategy.ForceWeave1 => Player.InCombat && canTC && canWeaveIn && CD(AID.Triplecast) < (SpS * 2),
         TriplecastStrategy.Delay => false,
         _ => false
     };
