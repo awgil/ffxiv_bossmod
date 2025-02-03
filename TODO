@@ -40,7 +40,6 @@ general:
 - ManualActionQueueTweak.Push should not special case gcds?..
 - review enemy prios usage - should framework do anything about any prios? like taunt at -4...
 - freeze special mode implementation
-- gaze avoidance + forced movement fail
 - find a way to make ActionDefinition fields readonly
 - better palacepal interop (download db asynchronously and load once on plugin init)
 - move ai hint execution to dedicated class

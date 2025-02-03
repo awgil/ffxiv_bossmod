@@ -149,12 +149,17 @@ public sealed unsafe class ActionManagerEx : IDisposable
         return _inst->GetGroundPositionForCursor(&res) ? res : null;
     }
 
-    public void FaceTarget(Vector3 position, ulong unkObjID = 0xE0000000) => _inst->AutoFaceTargetPosition(&position, unkObjID);
-    public void FaceDirection(WDir direction)
+    public void FaceDirection(Angle direction)
     {
-        var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        var player = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         if (player != null)
-            FaceTarget(player->Position.ToSystem() + direction.ToVec3());
+        {
+            var position = player->Position.ToSystem() + direction.ToDirection().ToVec3();
+            _inst->AutoFaceTargetPosition(&position);
+
+            // if rotation interpolation is in progress, we have to reset desired rotation to avoid game rotating us away next frame
+            player->Move.Interpolation.DesiredRotation = direction.Rad;
+        }
     }
 
     public void GetCooldown(ref Cooldown result, RecastDetail* data)
@@ -394,7 +399,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         if (desiredRotation != null)
         {
             autoRotateConfig->Value.UInt = 1;
-            FaceDirection(desiredRotation.Value.ToDirection());
+            FaceDirection(desiredRotation.Value);
         }
 
         if (actionImminent)

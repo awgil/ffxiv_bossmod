@@ -269,13 +269,14 @@ public sealed class Plugin : IDalamudPlugin
         _ai.Update();
         _broadcast.Update();
         _amex.FinishActionGather();
-        ExecuteHints();
 
         bool uiHidden = Service.GameGui.GameUiHidden || Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.WatchingCutscene];
         if (!uiHidden)
         {
             Service.WindowSystem?.Draw();
         }
+
+        ExecuteHints();
 
         Camera.Instance?.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
