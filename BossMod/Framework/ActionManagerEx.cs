@@ -513,7 +513,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         return res;
     }
 
-    // TODO add to manual q
+    // TODO add to manual queue (and also add holsters)
     private void UsePomanderDetour(InstanceContentDeepDungeon* self, uint slot)
     {
         _usePomanderHook.Original(self, slot);
@@ -606,10 +606,9 @@ public sealed unsafe class ActionManagerEx : IDisposable
     // just the LoS portion of ActionManager::GetActionInRangeOrLoS (which also checks range, which we don't care about, and also checks facing angle, which we don't care about)
     private static bool CheckActionLoS(ActionID action, ulong targetID)
     {
-        var row = Service.LuminaRow<Lumina.Excel.Sheets.Action>(action.ID);
+        var row = action.Type == ActionType.Spell ? Service.LuminaRow<Lumina.Excel.Sheets.Action>(action.ID) : null;
         if (row == null)
-            // unknown action, assume nothing
-            return true;
+            return true; // unknown action, assume nothing
 
         if (!row.Value.RequiresLineOfSight)
             return true;

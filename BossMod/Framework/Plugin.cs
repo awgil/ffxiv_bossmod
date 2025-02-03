@@ -314,17 +314,14 @@ public sealed class Plugin : IDalamudPlugin
             _throttleJump = _ws.CurrentTime.AddMilliseconds(100);
         }
 
-        var player = _ws.Party.Player();
-        var target = _hints.InteractWithTarget;
-
-        if (CheckInteractRange(player, target))
+        if (CheckInteractRange(_ws.Party.Player(), _hints.InteractWithTarget))
         {
             // many eventobj interactions "immediately" start some cast animation (delayed by server roundtrip), and if we keep trying to move toward the target after sending the interact request, it will be canceled and force us to start over
             _movementOverride.DesiredDirection = default;
 
             if (_amex.EffectiveAnimationLock == 0 && _ws.CurrentTime >= _throttleInteract)
             {
-                FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->InteractWithObject(GetActorObject(target), false);
+                FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->InteractWithObject(GetActorObject(_hints.InteractWithTarget), false);
                 _throttleInteract = _ws.FutureTime(0.1f);
             }
         }

@@ -41,6 +41,8 @@ general:
 - freeze special mode implementation
 - gaze avoidance + forced movement fail
 - find a way to make ActionDefinition fields readonly
+- better palacepal interop (download db asynchronously and load once on plugin init)
+- move ai hint execution to dedicated class
 
 ai:
 - nav decision delay
