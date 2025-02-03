@@ -1,4 +1,5 @@
 immediate plans
+- refactor replay history feature
 - remove 'ex' variants of strategies, replace with cooldown/effect functors, write a converter
 - add strategy param, use for 'apply unless already active' flavours of utility strategies
 - get rid of legacyxxx
@@ -43,6 +44,7 @@ general:
 - find a way to make ActionDefinition fields readonly
 - better palacepal interop (download db asynchronously and load once on plugin init)
 - move ai hint execution to dedicated class
+- obstacle maps - download from github
 
 ai:
 - nav decision delay

@@ -36,5 +36,6 @@ public class ReplayManagementConfig : ConfigNode
     [PropertyDisplay("Remember playback position for previously opened replays")]
     public bool RememberReplayTimes;
 
+    // TODO: this should not be part of the actual config! figure out where to store transient user preferences...
     public List<ReplayMemory> ReplayHistory = [];
 }

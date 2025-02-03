@@ -20,13 +20,13 @@ public sealed class ReplayManager : IDisposable
         public bool AutoShowWindow;
         public bool Selected;
         public bool Disposed;
-        public DateTime? SavedPosition;
+        public DateTime? InitialTime;
 
-        public ReplayEntry(string path, bool autoShow, DateTime? savedPosition = null)
+        public ReplayEntry(string path, bool autoShow, DateTime? initialTime = null)
         {
             Path = path;
             AutoShowWindow = autoShow;
-            SavedPosition = savedPosition;
+            InitialTime = initialTime;
             Replay = Task.Run(() => ReplayParserLog.Parse(path, ref Progress, Cancel.Token));
         }
 
@@ -42,11 +42,9 @@ public sealed class ReplayManager : IDisposable
 
         public void Show(RotationDatabase rotationDB)
         {
-            Window ??= new(Replay.Result, rotationDB);
+            Window ??= new(Replay.Result, rotationDB, InitialTime);
             Window.IsOpen = true;
             Window.BringToFront();
-            if (SavedPosition != null)
-                Window.CurrentTime = SavedPosition.Value;
         }
     }
 
@@ -71,18 +69,19 @@ public sealed class ReplayManager : IDisposable
         }
     }
 
+    private readonly RotationDatabase _rotationDB;
+    private readonly ReplayManagementConfig _config = Service.Config.Get<ReplayManagementConfig>();
     private readonly List<ReplayEntry> _replayEntries = [];
     private readonly List<AnalysisEntry> _analysisEntries = [];
-    private readonly RotationDatabase rotationDB;
     private int _nextAnalysisId;
     private string _path = "";
+    private string _fileDialogStartPath;
     private FileDialog? _fileDialog;
-    private string fileDialogStartPath;
 
     public ReplayManager(RotationDatabase rotationDB, string fileDialogStartPath)
     {
-        this.rotationDB = rotationDB;
-        this.fileDialogStartPath = fileDialogStartPath;
+        _rotationDB = rotationDB;
+        _fileDialogStartPath = fileDialogStartPath;
         RestoreHistory();
     }
 
@@ -106,7 +105,7 @@ public sealed class ReplayManager : IDisposable
         {
             if (e.AutoShowWindow && e.Window == null && e.Replay.IsCompletedSuccessfully && e.Replay.Result.Ops.Count > 0)
             {
-                e.Show(rotationDB);
+                e.Show(_rotationDB);
             }
         }
         // auto-show analysis windows that are now ready, auto dispose entries that had their windows closed
@@ -134,7 +133,7 @@ public sealed class ReplayManager : IDisposable
             if (_fileDialog.GetIsOk())
             {
                 _path = _fileDialog.GetResults().FirstOrDefault() ?? "";
-                fileDialogStartPath = _fileDialog.GetCurrentPath();
+                _fileDialogStartPath = _fileDialog.GetCurrentPath();
             }
             _fileDialog.Hide();
             _fileDialog = null;
@@ -170,7 +169,7 @@ public sealed class ReplayManager : IDisposable
                 if (popup)
                 {
                     if (ImGui.MenuItem("Show"))
-                        e.Show(rotationDB);
+                        e.Show(_rotationDB);
                     if (ImGui.MenuItem("Convert to verbose"))
                         ConvertLog(e.Replay.Result, ReplayLogFormat.TextVerbose);
                     if (ImGui.MenuItem("Convert to short text"))
@@ -242,7 +241,7 @@ public sealed class ReplayManager : IDisposable
         ImGui.SameLine();
         if (ImGui.Button("..."))
         {
-            _fileDialog ??= new("select_log", "Select file or directory", "Log files{.log},All files{.*}", fileDialogStartPath, "", ".log", 1, false, ImGuiFileDialogFlags.SelectOnly);
+            _fileDialog ??= new("select_log", "Select file or directory", "Log files{.log},All files{.*}", _fileDialogStartPath, "", ".log", 1, false, ImGuiFileDialogFlags.SelectOnly);
             _fileDialog.Show();
         }
         ImGui.SameLine();
@@ -319,21 +318,17 @@ public sealed class ReplayManager : IDisposable
 
     private void SaveHistory()
     {
-        var cfg = Service.Config.Get<ReplayManagementConfig>();
-        if (!cfg.RememberReplays)
+        if (!_config.RememberReplays)
             return;
-
-        cfg.ReplayHistory = _replayEntries.Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? true, r.Window?.CurrentTime ?? default)).ToList();
-        cfg.Modified.Fire();
+        _config.ReplayHistory = _replayEntries.Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? true, r.Window?.CurrentTime ?? default)).ToList();
+        _config.Modified.Fire();
     }
 
     private void RestoreHistory()
     {
-        var cfg = Service.Config.Get<ReplayManagementConfig>();
-        if (!cfg.RememberReplays)
+        if (!_config.RememberReplays)
             return;
-
-        foreach (var memory in cfg.ReplayHistory)
-            _replayEntries.Add(new(memory.Path, memory.IsOpen, cfg.RememberReplayTimes ? memory.PlaybackPosition : null));
+        foreach (var memory in _config.ReplayHistory)
+            _replayEntries.Add(new(memory.Path, memory.IsOpen, _config.RememberReplayTimes ? memory.PlaybackPosition : null));
     }
 }
