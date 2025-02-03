@@ -47,6 +47,7 @@ general:
 - obstacle maps - download from github
 
 ai:
+- forcedmovement with large leeway and casting...
 - nav decision delay
 - review TODO[cast-time]
 - remove old ai
