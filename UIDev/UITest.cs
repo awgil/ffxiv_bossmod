@@ -15,26 +15,34 @@ class UITest
 {
     public static void Main(string[] args)
     {
-        var width = 1200;
-        var height = 800;
-
-        if (SDL_Init(SDL_INIT_VIDEO) == 0 && SDL_GetDesktopDisplayMode(0, out var mode) >= 0)
-        {
-            width = mode.w - 200;
-            height = mode.h - 200;
-            SDL_Quit();
-        }
-
-        using var scene = new SimpleImGuiScene(RendererFactory.RendererBackend.DirectX11, new WindowCreateInfo
+        var windowInfo = new WindowCreateInfo()
         {
             Title = "UI Test",
-            XPos = 100,
-            YPos = 100,
-            Width = width,
-            Height = height,
-            TransparentColor = null,
-        });
+            XPos = -10,
+            //YPos = 20,
+            Fullscreen = true,
+            TransparentColor = [0, 0, 0],
+        };
 
+        if (args.Length > 0 && args[0] == "-w")
+        {
+            // windowed mode
+            windowInfo.XPos = 100;
+            windowInfo.YPos = 100;
+            windowInfo.Width = 1200;
+            windowInfo.Height = 800;
+            windowInfo.Fullscreen = false;
+            windowInfo.TransparentColor = null;
+
+            if (SDL_Init(SDL_INIT_VIDEO) == 0 && SDL_GetDesktopDisplayMode(0, out var mode) >= 0)
+            {
+                windowInfo.Width = mode.w - 200;
+                windowInfo.Height = mode.h - 200;
+                SDL_Quit();
+            }
+        }
+
+        using var scene = new SimpleImGuiScene(RendererFactory.RendererBackend.DirectX11, windowInfo);
         scene.Renderer.ClearColor = new Vector4(0, 0, 0, 0);
 
         InitializeDalamudStyle();
