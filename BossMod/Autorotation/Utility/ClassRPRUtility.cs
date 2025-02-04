@@ -48,7 +48,7 @@ public sealed class ClassRPRUtility(RotationModuleManager manager, Actor player)
         var reg = strategy.Option(Track.Regress);
         var regStrat = strategy.Option(Track.Regress).As<RegressStrategy>();
         var zone = World.Actors.FirstOrDefault(x => x.OID == 0x4C3 && x.OwnerID == Player.InstanceID);
-        if (regStrat != RegressStrategy.None)
+        if (regStrat != RegressStrategy.None && Player.FindStatus(RPR.SID.Threshold) != null)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(RPR.AID.Regress), Player, reg.Priority(), reg.Value.ExpireIn, targetPos: zone!.PosRot.XYZ());
 
         var ing = strategy.Option(Track.Ingress);
