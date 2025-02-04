@@ -65,7 +65,7 @@ sealed unsafe class DebugAction : IDisposable
 
         if (ImGui.Button("Rotate 30 CCW"))
         {
-            _amex.FaceDirection((_ws.Party.Player()?.Rotation ?? 0.Degrees() + 30.Degrees()).ToDirection());
+            _amex.FaceDirection(_ws.Party.Player()?.Rotation ?? 0.Degrees() + 30.Degrees());
         }
     }
 

@@ -40,43 +40,46 @@ public enum IconID : uint
     Icon3 = 392,
 }
 
-class AetherochemicalLaserCombo(BossModule module) : Components.GenericAOEs(module) // Pulled from the fork team, Currently a visual clutter but for now, functions... *-decently-*
+class AetheroChemicalLaserCombo(BossModule module) : Components.GenericAOEs(module) // Pulled from the fork team, Currently a visual clutter but for now, functions... *-decently-*
 {
-    private static readonly AOEShape[] Shapes = [new AOEShapeCone(50, 60.Degrees()), new AOEShapeDonut(8, 60), new AOEShapeRect(40, 2.5f),
+    private static readonly AOEShape[] _shapes = [new AOEShapeCone(50, 60.Degrees()), new AOEShapeDonut(8, 60), new AOEShapeRect(40, 2.5f),
     new AOEShapeCross(60, 5), new AOEShapeDonut(5, 60)];
     private readonly Dictionary<uint, List<AOEInstance>> _icons = new() {
         { (uint)IconID.Icon1, [] },
         { (uint)IconID.Icon2, [] },
-        { (uint)IconID.Icon3, [] },
+        { (uint)IconID.Icon3, [] }
     };
     private AOEInstance _boss;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        foreach (var icon in _icons.Where(icon => icon.Value.Count > 0))
+        foreach (var icon in _icons)
         {
-            foreach (var c in icon.Value)
-                yield return new(c.Shape, c.Origin, c.Rotation, c.Activation, ArenaColor.Danger);
-            var nextIcon = _icons.FirstOrDefault(x => x.Key == icon.Key + 1).Value;
-            if (nextIcon != null)
-                foreach (var c in nextIcon)
-                    yield return new(c.Shape, c.Origin, c.Rotation, c.Activation, ArenaColor.AOE, false);
-            if (_boss != default)
-                yield return new(_boss.Shape, _boss.Origin, _boss.Rotation, _boss.Activation, ArenaColor.AOE, false);
-            yield break;
+            if (icon.Value != null && icon.Value.Count > 0)
+            {
+                foreach (var c in icon.Value)
+                    yield return new(c.Shape, c.Origin, c.Rotation, c.Activation, ArenaColor.Danger);
+                var nextIcon = _icons.FirstOrDefault(x => x.Key == icon.Key + 1).Value;
+                if (nextIcon != null)
+                    foreach (var c in nextIcon)
+                        yield return new(c.Shape, c.Origin, c.Rotation, c.Activation, ArenaColor.AOE, false);
+                if (_boss != default)
+                    yield return new(_boss.Shape, _boss.Origin, _boss.Rotation, _boss.Activation, ArenaColor.AOE, false);
+                yield break;
+            }
         }
         if (_boss != default)
             yield return new(_boss.Shape, _boss.Origin, _boss.Rotation, _boss.Activation, ArenaColor.Danger);
     }
 
-    public void OnEventIcon(Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var shapeIndex = (OID)actor.OID switch
         {
             OID.InterceptorCube => 2,
             OID.InterceptorOrb => 1,
             OID.InterceptorEgg => 0,
-            _ => default,
+            _ => default
         };
 
         var activation = iconID switch
@@ -84,19 +87,19 @@ class AetherochemicalLaserCombo(BossModule module) : Components.GenericAOEs(modu
             (uint)IconID.Icon1 => WorldState.FutureTime(7),
             (uint)IconID.Icon2 => WorldState.FutureTime(10.5f),
             (uint)IconID.Icon3 => WorldState.FutureTime(14),
-            _ => default,
+            _ => default
         };
 
-        _icons[iconID].Add(new(Shapes[shapeIndex], actor.Position, (OID)actor.OID == OID.InterceptorOrb ? default : actor.Rotation, activation));
+        _icons[iconID].Add(new(_shapes[shapeIndex], actor.Position, (OID)actor.OID == OID.InterceptorOrb ? default : actor.Rotation, activation));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         _boss = (AID)spell.Action.ID switch
         {
-            AID.PeripheralLasers => new(Shapes[4], caster.Position, default, Module.CastFinishAt(spell)),
-            AID.CrossLasers => new(Shapes[3], caster.Position, spell.Rotation, Module.CastFinishAt(spell)),
-            _ => _boss,
+            AID.PeripheralLasers => new(_shapes[4], caster.Position, default, Module.CastFinishAt(spell)),
+            AID.CrossLasers => new(_shapes[3], caster.Position, spell.Rotation, Module.CastFinishAt(spell)),
+            _ => _boss
         };
     }
 
@@ -104,11 +107,12 @@ class AetherochemicalLaserCombo(BossModule module) : Components.GenericAOEs(modu
     {
         if ((AID)spell.Action.ID is AID.AetherochemicalLaserEgg1 or AID.AetherochemicalLaserCube1 or AID.AetherochemicalLaserOrb)
         {
-            foreach (var icon in _icons.Where(icon => icon.Value.Count > 0))
-            {
-                icon.Value.RemoveAt(0);
-                break;
-            }
+            foreach (var icon in _icons)
+                if (icon.Value.Count > 0)
+                {
+                    icon.Value.RemoveAt(0);
+                    break;
+                }
         }
         if ((AID)spell.Action.ID is AID.PeripheralLasers or AID.CrossLasers)
             _boss = default;
@@ -119,7 +123,7 @@ class AetherochemicalLaserLine(BossModule module) : Components.SelfTargetedAOEs(
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return !Module.FindComponent<AetherochemicalLaserCombo>()!.ActiveAOEs(slot, actor).Any()
+        return !Module.FindComponent<AetheroChemicalLaserCombo>()!.ActiveAOEs(slot, actor).Any()
             ? ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), ArenaColor.Danger, Risky)).Take(2)
                 .Concat(ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), ArenaColor.AOE, Risky)).Take(4).Skip(2))
             : ([]);
@@ -176,13 +180,14 @@ class D90AdministratorStates : StateMachineBuilder
     public D90AdministratorStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<AetherochemicalLaserCombo>()
+            .ActivateOnEnter<AetheroChemicalLaserCombo>()
             .ActivateOnEnter<AetherochemicalLaserLine>()
-            .ActivateOnEnter<SalvoScript>()
             .ActivateOnEnter<HomingLasers>()
+            .ActivateOnEnter<SalvoScript>()
             .ActivateOnEnter<Laserstream>();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 905, NameID = 12102)]
 public class D90Administrator(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsSquare(20));
+

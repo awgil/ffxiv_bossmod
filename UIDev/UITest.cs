@@ -15,21 +15,34 @@ class UITest
 {
     public static void Main(string[] args)
     {
-        // you can edit this if you want more control over things
-        // mainly if you want a regular window instead of transparent overlay
-        // Typically you don't want to change any colors here if you keep the fullscreen overlay
-        using var scene = new SimpleImGuiScene(RendererFactory.RendererBackend.DirectX11, new WindowCreateInfo
+        var windowInfo = new WindowCreateInfo()
         {
             Title = "UI Test",
             XPos = -10,
             //YPos = 20,
-            //Width = 1200,
-            //Height = 800,
             Fullscreen = true,
             TransparentColor = [0, 0, 0],
-        });
+        };
 
-        // the background color of your window - typically don't change this for fullscreen overlays
+        if (args.Length > 0 && args[0] == "-w")
+        {
+            // windowed mode
+            windowInfo.XPos = 100;
+            windowInfo.YPos = 100;
+            windowInfo.Width = 1200;
+            windowInfo.Height = 800;
+            windowInfo.Fullscreen = false;
+            windowInfo.TransparentColor = null;
+
+            if (SDL_Init(SDL_INIT_VIDEO) == 0 && SDL_GetDesktopDisplayMode(0, out var mode) >= 0)
+            {
+                windowInfo.Width = mode.w - 200;
+                windowInfo.Height = mode.h - 200;
+                SDL_Quit();
+            }
+        }
+
+        using var scene = new SimpleImGuiScene(RendererFactory.RendererBackend.DirectX11, windowInfo);
         scene.Renderer.ClearColor = new Vector4(0, 0, 0, 0);
 
         InitializeDalamudStyle();
@@ -39,6 +52,7 @@ class UITest
         //Service.LuminaGameData.Options.PanicOnSheetChecksumMismatch = false; // TODO: remove - temporary workaround until lumina is updated
         Service.LuminaGameData.Options.RsvResolver = Service.LuminaRSV.TryGetValue;
         Service.WindowSystem = new("uitest");
+        typeof(Service).GetProperty("Texture")!.SetValue(null, new OfflineTextureProvider(scene.Renderer));
         //Service.Device = (SharpDX.Direct3D11.Device?)scene.Renderer.GetType().GetField("_device", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(scene.Renderer);
 
         // esc should close focused window
@@ -129,6 +143,9 @@ class UITest
 
     private static string FindGameDataPath()
     {
+        if (Environment.GetEnvironmentVariable("FFXIV_GAME_FOLDER") is string gameFolderOverride)
+            return Path.Join(gameFolderOverride, "game", "sqpack");
+
         // stolen from FFXIVLauncher/src/XIVLauncher/AppUtil.cs
         foreach (var registryView in new RegistryView[] { RegistryView.Registry32, RegistryView.Registry64 })
         {

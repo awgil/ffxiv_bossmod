@@ -228,7 +228,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 return (Positional.Any, false);
 
             var pos = Unlocked(AID.Demolish) && CoeurlStacks == 0 ? Positional.Rear : Positional.Flank;
-            var imm = EffectiveForm == Form.Coeurl && NextGCD is not AID.WindsReply and not AID.FiresReply;
+            var imm = NextGCD is AID.Demolish or AID.SnapPunch or AID.PouncingCoeurl;
 
             return (pos, imm);
         }
@@ -328,9 +328,6 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
         EffectiveForm = GetEffectiveForm(strategy);
 
-        var pos = NextPositional;
-        UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
-
         Meditate(strategy, primaryTarget);
         FormShift(strategy, primaryTarget);
 
@@ -344,8 +341,6 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             SmartEngage(strategy, primaryTarget);
             return;
         }
-
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, AOEBreakpoint, positional: pos.Item1, maximumActionRange: 20);
 
         UseBlitz(strategy, currentBlitz);
         FiresReply(strategy);
@@ -390,6 +385,11 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         Prep(strategy);
+
+        var pos = NextPositional;
+        UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
+
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, AOEBreakpoint, positional: pos.Item1, maximumActionRange: 20);
 
         if (Player.InCombat)
             OGCD(strategy, primaryTarget);

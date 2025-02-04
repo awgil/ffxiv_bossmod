@@ -160,6 +160,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.ElixirBurst);
         d.RegisterSpell(AID.WindsReply);
         d.RegisterSpell(AID.FiresReply);
+        d.RegisterSpell(AID.EarthsReply);
         d.RegisterSpell(AID.EnlightenedMeditation);
         d.RegisterSpell(AID.ForbiddenMeditation);
         d.RegisterSpell(AID.InspiritedMeditation);

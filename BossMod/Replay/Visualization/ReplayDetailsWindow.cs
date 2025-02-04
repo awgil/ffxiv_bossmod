@@ -2,7 +2,6 @@
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using System.IO;
-using System.Security.AccessControl;
 
 namespace BossMod.ReplayVisualization;
 
@@ -40,7 +39,7 @@ class ReplayDetailsWindow : UIWindow
         set => MoveTo(value);
     }
 
-    public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB) : base($"Replay: {data.Path}", false, new(1500, 1000))
+    public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB, DateTime? initialTime) : base($"Replay: {data.Path}", false, new(1500, 1000))
     {
         _player = new(data);
         _rotationDB = rotationDB;
@@ -48,9 +47,10 @@ class ReplayDetailsWindow : UIWindow
         _zmm = new(_player.WorldState);
         _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
         _rmm = new(rotationDB, _mgr, _hints);
-        _curTime = _first = data.Ops[0].Timestamp;
+        _first = data.Ops[0].Timestamp;
         _last = data.Ops[^1].Timestamp;
-        _player.AdvanceTo(_first, _mgr.Update);
+        _curTime = initialTime ?? _first;
+        _player.AdvanceTo(_curTime, _mgr.Update);
         _config = new(Service.Config, _player.WorldState, null, null);
         _events = new(data, MoveTo, rotationDB.Plans, this);
         _analysis = new([data]);
@@ -79,7 +79,14 @@ class ReplayDetailsWindow : UIWindow
         DrawControlRow();
         DrawTimelineRow();
         ImGui.TextUnformatted($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.LoadedModules.Count(m => m.StateMachine.ActiveState != null)}, active module: {_mgr.ActiveModule?.GetType()}, zone module: {_zmm.ActiveModule?.GetType()}");
-        _zmm.ActiveModule?.DrawGlobalHints();
+        if (_zmm.ActiveModule != null)
+        {
+            // TODO: reconsider where this is all drawn...
+            if (_zmm.ActiveModule.WantDrawHints())
+                _zmm.ActiveModule.DrawGlobalHints();
+            if (_zmm.ActiveModule.WantDrawExtra())
+                _zmm.ActiveModule.DrawExtra();
+        }
         if (!_azimuthOverride)
             _azimuth = _mgr.WorldState.Client.CameraAzimuth.Deg;
         ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);

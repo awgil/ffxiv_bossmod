@@ -265,7 +265,11 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         if (strategy.Option(Track.Motif).As<MotifStrategy>() != MotifStrategy.Combat)
             return false;
 
-        return !WingFangMuse && BestPortrait == AID.None && (CreatureFlags.HasFlag(CreatureFlags.Pom) || CreatureFlags.HasFlag(CreatureFlags.Claw)) && CanWeave(AID.LivingMuse, 0, extraFixedDelay: 4) && CanWeave(AID.MogOfTheAges, 5);
+        return !CreaturePainted
+            && BestPortrait == AID.None
+            && (CreatureFlags.HasFlag(CreatureFlags.Pom) || CreatureFlags.HasFlag(CreatureFlags.Claw))
+            && CanWeave(AID.LivingMuse, 0, extraFixedDelay: 4)
+            && CanWeave(AID.MogOfTheAges, 5);
     }
 
     protected override float GetCastTime(AID aid) => aid switch

@@ -229,7 +229,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
         var prio = strategy.Option(Track.HolySpirit).As<HSStrategy>() switch
         {
-            HSStrategy.Standard => useStandard ? GCDPriority.DMHS : GCDPriority.None,
+            HSStrategy.Standard => useStandard ? GCDPriority.DMHS : divineMight ? GCDPriority.HS : GCDPriority.None,
             HSStrategy.ForceDM => divineMight ? GCDPriority.Force : GCDPriority.None,
             HSStrategy.Force => GCDPriority.Force,
             HSStrategy.Ranged => useStandard ? GCDPriority.DMHS : GCDPriority.HS,

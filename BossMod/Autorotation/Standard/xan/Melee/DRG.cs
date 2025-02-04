@@ -138,17 +138,17 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
                     break;
                 case AID.Disembowel:
                 case AID.SpiralBlow:
-                    PushGCD(AID.ChaosThrust, primaryTarget);
+                    PushGCD(HighestUnlocked(AID.ChaoticSpring, AID.ChaosThrust), primaryTarget);
                     break;
                 case AID.VorpalThrust:
                 case AID.LanceBarrage:
-                    PushGCD(AID.FullThrust, primaryTarget);
+                    PushGCD(HighestUnlocked(AID.HeavensThrust, AID.FullThrust), primaryTarget);
                     break;
                 case AID.TrueThrust:
                 case AID.RaidenThrust:
                     if (PowerSurge < 10)
-                        PushGCD(AID.Disembowel, primaryTarget);
-                    PushGCD(AID.VorpalThrust, primaryTarget);
+                        PushGCD(HighestUnlocked(AID.SpiralBlow, AID.Disembowel), primaryTarget);
+                    PushGCD(HighestUnlocked(AID.LanceBarrage, AID.VorpalThrust), primaryTarget);
                     break;
             }
         }
@@ -167,11 +167,14 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
         var moveOk = MoveOk(strategy);
         var posOk = PosLockOk(strategy);
+        var bestSingleTarget = primaryTarget.Priority >= 0 ? primaryTarget : null;
+
+        static bool posCheck(float animationLock) => true; //  Hints.PositionStoredIn > AnimLock + animationLock;
 
         if (NextPositionalImminent && !NextPositionalCorrect)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.TrueNorth), Player, ActionQueue.Priority.Low - 20, delay: GCD - 0.8f);
 
-        if (strategy.BuffsOk())
+        if (strategy.BuffsOk() && PowerSurge > GCD)
         {
             PushOGCD(AID.LanceCharge, Player);
             PushOGCD(AID.BattleLitany, Player);
@@ -183,35 +186,43 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (CanWeave(AID.LanceCharge))
             return;
 
-        if (LanceCharge > GCD && ShouldLifeSurge())
-            PushOGCD(AID.LifeSurge, Player);
-
-        if (StarcrossReady > 0)
-            PushOGCD(AID.Starcross, primaryTarget);
-
-        if (LotD > AnimLock && moveOk)
-            PushOGCD(AID.Stardiver, BestDiveTarget);
+        if (ShouldWT(strategy))
+            PushOGCD(AID.WyrmwindThrust, BestLongAOETarget);
 
         if (NastrondReady == 0)
             PushOGCD(AID.Geirskogul, BestLongAOETarget);
 
-        if (DiveReady == 0 && posOk)
-            PushOGCD(AID.Jump, primaryTarget);
+        if (DiveReady == 0 && posOk && posCheck(0.6f))
+            PushOGCD(AID.Jump, bestSingleTarget);
 
-        if (moveOk && strategy.BuffsOk())
+        if (LanceCharge > GCD && ShouldLifeSurge())
+            PushOGCD(AID.LifeSurge, Player);
+
+        if (moveOk && strategy.BuffsOk() && posCheck(0.8f))
             PushOGCD(AID.DragonfireDive, BestDiveTarget);
 
         if (NastrondReady > 0)
             PushOGCD(AID.Nastrond, BestLongAOETarget);
 
+        if (LotD > AnimLock && moveOk && posCheck(1.5f))
+        {
+            // stardiver: 1.5 + delay
+            // regular GCD: 0.6 + delay
+            // some conditions like DD haste (and maybe bozja?) can reduce GCD to 2.1s or lower, making stardiver weave impossible
+            if (GCDLength > 2.1f + 2 * AnimationLockDelay)
+                PushOGCD(AID.Stardiver, BestDiveTarget);
+            else if (GCD > 0)
+                PushGCD(AID.Stardiver, BestDiveTarget, 3);
+        }
+
+        if (StarcrossReady > 0)
+            PushOGCD(AID.Starcross, BestDiveTarget);
+
         if (DragonsFlight > 0)
             PushOGCD(AID.RiseOfTheDragon, BestDiveTarget);
 
         if (DiveReady > 0)
-            PushOGCD(AID.MirageDive, primaryTarget);
-
-        if (Focus == 2)
-            PushOGCD(AID.WyrmwindThrust, BestLongAOETarget);
+            PushOGCD(AID.MirageDive, bestSingleTarget);
     }
 
     private bool ShouldLifeSurge()
@@ -219,40 +230,23 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (LifeSurge > 0)
             return false;
 
-        if (NumAOETargets > 2 && Unlocked(AID.DoomSpike))
+        return NextGCD switch
         {
-            // coerthan torment is always our strongest aoe GCD (draconian fury just gives eyeball)
-            if (Unlocked(AID.CoerthanTorment))
-                return ComboLastMove == AID.SonicThrust;
+            // highest potency at max level (full thrust is still highest potency before it gets upgraded)
+            AID.CoerthanTorment or AID.Drakesbane or AID.HeavensThrust or AID.FullThrust => true,
 
-            if (Unlocked(AID.SonicThrust))
-                return ComboLastMove == AID.DoomSpike;
+            // highest potency before Full Thrust is unlocked at 26
+            AID.VorpalThrust => !Unlocked(AID.FullThrust),
 
-            // doom spike is our only AOE skill at this level, always use
-            return true;
-        }
-        else
-        {
-            // 440 potency, level 64
-            if (Unlocked(AID.Drakesbane))
-            {
-                var ok = ComboLastMove is AID.WheelingThrust or AID.FangAndClaw;
-
-                // also 440 potency, level 86
-                if (Unlocked(AID.HeavensThrust))
-                    ok |= ComboLastMove is AID.VorpalThrust or AID.LanceBarrage;
-
-                return ok;
-            }
-
-            // 380 potency, level 26
-            if (Unlocked(AID.FullThrust))
-                return ComboLastMove is AID.VorpalThrust;
-
-            // below level 26, strongest GCD is vorpal thrust
-            return ComboLastMove is AID.TrueThrust;
-        }
+            // fallbacks for AOE rotation
+            AID.SonicThrust => !Unlocked(AID.CoerthanTorment),
+            AID.DoomSpike => !Unlocked(AID.SonicThrust),
+            _ => false,
+        };
     }
+
+    private bool ShouldWT(StrategyValues strategy)
+        => Focus == 2 && (LotD > AnimLock || NextGCD is AID.RaidenThrust or AID.DraconianFury);
 
     private bool MoveOk(StrategyValues strategy) => strategy.Option(Track.Dive).As<DiveStrategy>() == DiveStrategy.Allow;
     private bool PosLockOk(StrategyValues strategy) => strategy.Option(Track.Dive).As<DiveStrategy>() != DiveStrategy.NoLock;

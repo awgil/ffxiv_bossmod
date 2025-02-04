@@ -1,5 +1,5 @@
 {
-  "version": 0,
+  "version": 1,
   "payload": [
     {
       "Name": "VBM Default",
@@ -359,7 +359,7 @@
             "Option": "Auto"
           }
         ],
-        "BossMod.Autorotation.StandardWAR": [
+        "BossMod.Autorotation.VeynWAR": [
           {
             "Track": "AOE",
             "Option": "AutoFinishCombo"

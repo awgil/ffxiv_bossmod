@@ -5,6 +5,7 @@
 public sealed class AIHintsBuilder : IDisposable
 {
     private const float RaidwideSize = 30;
+    public const float MaxError = 2000f / 65535f; // TODO: this should really be handled by the rasterization itself...
 
     public readonly Pathfinding.ObstacleMapManager Obstacles;
     private readonly WorldState _ws;
@@ -141,6 +142,13 @@ public sealed class AIHintsBuilder : IDisposable
             {
                 hints.AddForbiddenZone(ShapeDistance.Rect(aoe.Caster.Position, target, ((AOEShapeRect)aoe.Shape).HalfWidth), finishAt);
             }
+            else if (aoe.Shape is AOEShapeCone cone)
+            {
+                // not sure how best to adjust cone shape distance to account for quantization error - we just pretend it is being cast from MaxError units "behind" the reported position and increase radius similarly
+                var adjustedSourcePos = target + rot.ToDirection() * -MaxError;
+                var adjustedRadius = cone.Radius + MaxError * 2;
+                hints.AddForbiddenZone(ShapeDistance.Cone(adjustedSourcePos, adjustedRadius, rot, cone.HalfAngle), finishAt);
+            }
             else
             {
                 hints.AddForbiddenZone(aoe.Shape, target, rot, finishAt);
@@ -161,16 +169,16 @@ public sealed class AIHintsBuilder : IDisposable
             return;
         AOEShape? shape = data.Value.CastType switch
         {
-            2 => new AOEShapeCircle(data.Value.EffectRange), // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
+            2 => new AOEShapeCircle(data.Value.EffectRange + MaxError), // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
             3 => new AOEShapeCone(data.Value.EffectRange + actor.HitboxRadius, DetermineConeAngle(data.Value) * 0.5f),
-            4 => new AOEShapeRect(data.Value.EffectRange + actor.HitboxRadius, data.Value.XAxisModifier * 0.5f),
-            5 => new AOEShapeCircle(data.Value.EffectRange + actor.HitboxRadius),
+            4 => new AOEShapeRect(data.Value.EffectRange + actor.HitboxRadius + MaxError, data.Value.XAxisModifier * 0.5f + MaxError, MaxError),
+            5 => new AOEShapeCircle(data.Value.EffectRange + actor.HitboxRadius + MaxError),
             //6 => ???
             //7 => new AOEShapeCircle(data.Value.EffectRange), - used for player ground-targeted circles a-la asylum
             //8 => charge rect
-            10 => new AOEShapeDonut(DetermineDonutInner(data.Value), data.Value.EffectRange),
-            11 => new AOEShapeCross(data.Value.EffectRange, data.Value.XAxisModifier * 0.5f),
-            12 => new AOEShapeRect(data.Value.EffectRange, data.Value.XAxisModifier * 0.5f),
+            10 => new AOEShapeDonut(MathF.Max(0, DetermineDonutInner(data.Value) - MaxError), data.Value.EffectRange + MaxError),
+            11 => new AOEShapeCross(data.Value.EffectRange + MaxError, data.Value.XAxisModifier * 0.5f + MaxError),
+            12 => new AOEShapeRect(data.Value.EffectRange + MaxError, data.Value.XAxisModifier * 0.5f + MaxError, MaxError),
             13 => new AOEShapeCone(data.Value.EffectRange, DetermineConeAngle(data.Value) * 0.5f),
             _ => null
         };

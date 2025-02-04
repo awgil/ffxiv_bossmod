@@ -60,7 +60,9 @@ class FlameBreath(BossModule module) : Components.GenericAOEs(module)
         var isIntercardinal = IsCasterIntercardinal(caster);
         var distance = isIntercardinal ? intercardinalDistance : 22;
         var position = caster.Position + distance * caster.Rotation.ToDirection();
-        return RoundPosition(position);
+        var pos = RoundPosition(position);
+        // the top left add is slightly off for some godforsaken reason
+        return pos == new WPos(-315f, -315f) ? new WPos(-315.5f, -315.5f) : pos;
     }
 
     private static bool IsCasterIntercardinal(Actor caster)
