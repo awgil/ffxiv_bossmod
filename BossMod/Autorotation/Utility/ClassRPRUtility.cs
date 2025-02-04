@@ -33,8 +33,8 @@ public sealed class ClassRPRUtility(RotationModuleManager manager, Actor player)
             .AddAssociatedActions(RPR.AID.HellsEgress);
 
         res.Define(Track.Regress).As<RegressStrategy>("Regress", "Regress", 30)
-            .AddOption(RegressStrategy.None, "None", "No use.", 0, 0, ActionTargets.Self, 20)
-            .AddOption(RegressStrategy.Use, "Use", "Use Regress", 20, 10, ActionTargets.Self, 20)
+            .AddOption(RegressStrategy.None, "None", "No use.", 0, 0, ActionTargets.Self, 74)
+            .AddOption(RegressStrategy.Use, "Use", "Use Regress", 0, 0, ActionTargets.Self, 74)
             .AddAssociatedActions(RPR.AID.Regress);
 
         return res;
