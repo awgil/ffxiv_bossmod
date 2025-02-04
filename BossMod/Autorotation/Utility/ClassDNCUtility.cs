@@ -1,9 +1,12 @@
-﻿namespace BossMod.Autorotation;
+﻿using static BossMod.Autorotation.ClassPCTUtility;
+
+namespace BossMod.Autorotation;
 
 public sealed class ClassDNCUtility(RotationModuleManager manager, Actor player) : RoleRangedUtility(manager, player)
 {
-    public enum Track { CuringWaltz = SharedTrack.Count, ShieldSamba, Improvisation }
+    public enum Track { CuringWaltz = SharedTrack.Count, ShieldSamba, Improvisation, EnAvant }
     public enum SambaOption { None, Use87, Use87IfNotActive, Use88, Use88IfNotActive }
+    public enum EnAvantStrategy { None, CharacterForward, CharacterBackward, CameraForward, CameraBackward }
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(DNC.AID.CrimsonLotus);
 
@@ -23,6 +26,14 @@ public sealed class ClassDNCUtility(RotationModuleManager manager, Actor player)
             .AddAssociatedActions(DNC.AID.ShieldSamba);
 
         DefineSimpleConfig(res, Track.Improvisation, "Improvisation", "Improv", 300, DNC.AID.Improvisation, 15);
+
+        res.Define(Track.EnAvant).As<EnAvantStrategy>("En Avant", "EnAvant", 30)
+            .AddOption(EnAvantStrategy.None, "None", "No use.", 0, 0, ActionTargets.Self, 35)
+            .AddOption(EnAvantStrategy.CharacterForward, "CharacterForward", "Dashes in the Forward direction relative to the Character", 30, 0, ActionTargets.Self, 50)
+            .AddOption(EnAvantStrategy.CharacterBackward, "CharacterBackward", "Dashes in the Backward direction relative to the Character", 30, 0, ActionTargets.Self, 50)
+            .AddOption(EnAvantStrategy.CameraForward, "CameraForward", "Dashes in the Forward direction relative to the Camera", 30, 0, ActionTargets.Self, 50)
+            .AddOption(EnAvantStrategy.CameraBackward, "CameraBackward", "Dashes in the Backward direction relative to the Camera", 30, 0, ActionTargets.Self, 50)
+            .AddAssociatedActions(DNC.AID.EnAvant);
 
         return res;
     }
@@ -44,5 +55,18 @@ public sealed class ClassDNCUtility(RotationModuleManager manager, Actor player)
         };
         if (wantSamba)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(DNC.AID.ShieldSamba), Player, samba.Priority(), samba.Value.ExpireIn);
+
+        var ea = strategy.Option(Track.EnAvant);
+        if (ea.As<EnAvantStrategy>() != EnAvantStrategy.None)
+        {
+            var angle = ea.As<EnAvantStrategy>() switch
+            {
+                EnAvantStrategy.CharacterBackward => Player.Rotation + 180.Degrees(),
+                EnAvantStrategy.CameraForward => World.Client.CameraAzimuth + 180.Degrees(),
+                EnAvantStrategy.CameraBackward => World.Client.CameraAzimuth,
+                _ => Player.Rotation
+            };
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DNC.AID.EnAvant), Player, ea.Priority(), ea.Value.ExpireIn, facingAngle: angle);
+        }
     }
 }

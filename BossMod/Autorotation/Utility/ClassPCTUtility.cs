@@ -1,9 +1,13 @@
-﻿namespace BossMod.Autorotation;
+﻿using static BossMod.Autorotation.ClassDNCUtility;
+using static BossMod.Autorotation.ClassRPRUtility;
+
+namespace BossMod.Autorotation;
 
 public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player) : RoleCasterUtility(manager, player)
 {
-    public enum Track { TemperaCoat = SharedTrack.Count }
+    public enum Track { TemperaCoat = SharedTrack.Count, Smudge }
     public enum TemperaCoatOption { None, CoatOnly, CoatGrassaASAP, CoatGrassaWhenever }
+    public enum SmudgeStrategy { None, CharacterForward, CharacterBackward, CameraForward, CameraBackward }
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(PCT.AID.ChromaticFantasy);
 
@@ -18,6 +22,14 @@ public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player)
             .AddOption(TemperaCoatOption.CoatGrassaASAP, "Tempera Coat + Grassa ASAP", "Use Tempera Coat + Tempera Grassa ASAP, regardless of casting & weaving", 90, 10, ActionTargets.Self, 88)
             .AddOption(TemperaCoatOption.CoatGrassaWhenever, "Tempera Coat + Grassa when available", "Use Tempera Coat + Tempera Grassa when weaving or not casting", 90, 10, ActionTargets.Self, 88)
             .AddAssociatedActions(PCT.AID.TemperaCoat, PCT.AID.TemperaGrassa);
+
+        res.Define(Track.Smudge).As<SmudgeStrategy>("Smudge", uiPriority: 30)
+            .AddOption(SmudgeStrategy.None, "None", "No use.", 0, 0, ActionTargets.Self, 35)
+            .AddOption(SmudgeStrategy.CharacterForward, "CharacterForward", "Dashes in the Forward direction relative to the Character", 20, 5, ActionTargets.Self, 20)
+            .AddOption(SmudgeStrategy.CharacterBackward, "CharacterBackward", "Dashes in the Backward direction relative to the Character", 20, 5, ActionTargets.Self, 20)
+            .AddOption(SmudgeStrategy.CameraForward, "CameraForward", "Dashes in the Forward direction relative to the Camera", 20, 5, ActionTargets.Self, 20)
+            .AddOption(SmudgeStrategy.CameraBackward, "CameraBackward", "Dashes in the Backward direction relative to the Camera", 20, 5, ActionTargets.Self, 20)
+            .AddAssociatedActions(PCT.AID.Smudge);
 
         return res;
     }
@@ -53,6 +65,18 @@ public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player)
                 if (canGrassa && !hasGrassa)
                     Hints.ActionsToExecute.Push(ActionID.MakeSpell(PCT.AID.TemperaGrassa), Player, tempera.Priority(), tempera.Value.ExpireIn);
             }
+        }
+        var smuh = strategy.Option(Track.Smudge);
+        if (smuh.As<SmudgeStrategy>() != SmudgeStrategy.None)
+        {
+            var angle = smuh.As<SmudgeStrategy>() switch
+            {
+                SmudgeStrategy.CharacterBackward => Player.Rotation + 180.Degrees(),
+                SmudgeStrategy.CameraForward => World.Client.CameraAzimuth,
+                SmudgeStrategy.CameraBackward => World.Client.CameraAzimuth + 180.Degrees(),
+                _ => Player.Rotation
+            };
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(PCT.AID.Smudge), Player, smuh.Priority(), smuh.Value.ExpireIn, facingAngle: angle);
         }
     }
 }
