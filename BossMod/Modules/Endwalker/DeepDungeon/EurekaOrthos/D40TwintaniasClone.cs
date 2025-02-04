@@ -23,12 +23,13 @@ public enum AID : uint
     TwistingDive = 31471 // Boss->self, 5.0s cast, range 50 width 15 rect
 }
 
-class Twister(BossModule module) : Components.CastTwister(module, 1, (uint)OID.Twister, ActionID.MakeSpell(AID.TwisterVisual), 0.4f, 0.25f);
-class BitingWind(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.BitingWind), m => m.Enemies(OID.BitingWind).Where(z => z.EventState != 7), 0.9f);
+class Twister(BossModule module) : Components.CastTwister(module, 1.5f, (uint)OID.Twister, ActionID.MakeSpell(AID.TwisterVisual), 0.4f, 0.25f);
+class BitingWind(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.Gust), m => m.Enemies(OID.BitingWind).Where(z => z.EventState != 7), 0.9f);
 class MeracydianSquall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MeracydianSquall), 5);
 class TwistersHint(BossModule module, AID aid) : Components.CastHint(module, ActionID.MakeSpell(aid), "Twisters spawning, keep moving!");
 class Twisters1(BossModule module) : TwistersHint(module, AID.TwisterVisual);
 class Twisters2(BossModule module) : TwistersHint(module, AID.TwistingDive);
+class DiveTwister(BossModule module) : Components.CastTwister(module, 1.5f, (uint)OID.Twister, ActionID.MakeSpell(AID.TwistingDive), 0.4f, 0.25f);
 
 class TwistingDive(BossModule module) : Components.GenericAOEs(module)
 {
@@ -89,7 +90,8 @@ class D40TwintaniasCloneStates : StateMachineBuilder
             .ActivateOnEnter<BitingWind>()
             .ActivateOnEnter<MeracydianSquall>()
             .ActivateOnEnter<Turbine>()
-            .ActivateOnEnter<TwistingDive>();
+            .ActivateOnEnter<TwistingDive>()
+            .ActivateOnEnter<DiveTwister>();
     }
 }
 

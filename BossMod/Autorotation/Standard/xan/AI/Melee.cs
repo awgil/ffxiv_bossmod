@@ -25,7 +25,7 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase(manag
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.SecondWind), Player, ActionQueue.Priority.Medium);
 
         // bloodbath
-        if (strategy.Enabled(Track.Bloodbath) && Player.InCombat && Player.PredictedHPRatio <= 0.75)
+        if (strategy.Enabled(Track.Bloodbath) && Player.InCombat && Player.PredictedHPRatio <= 0.3)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Bloodbath), Player, ActionQueue.Priority.Medium);
 
         // low blow

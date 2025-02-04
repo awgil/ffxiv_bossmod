@@ -62,7 +62,6 @@ public class BossModuleMainWindow : UIWindow
         if (ShowZoneModule())
         {
             _zmm.ActiveModule?.DrawGlobalHints();
-            _zmm.ActiveModule?.DrawExtra();
         }
         else if (_mgr.ActiveModule != null)
         {
@@ -112,5 +111,5 @@ public class BossModuleMainWindow : UIWindow
             _ = new BossModuleConfigWindow(_mgr.ActiveModule.Info, _mgr.WorldState);
     }
 
-    private bool ShowZoneModule() => _mgr.Config.ShowGlobalHints && !_mgr.Config.HintsInSeparateWindow && _mgr.ActiveModule?.StateMachine.ActivePhase == null && (_zmm.ActiveModule?.WantToBeDrawn() ?? false);
+    private bool ShowZoneModule() => _mgr.Config.ShowGlobalHints && !_mgr.Config.HintsInSeparateWindow && _mgr.ActiveModule?.StateMachine.ActivePhase == null && (_zmm.ActiveModule?.WantDrawHints() ?? false);
 }

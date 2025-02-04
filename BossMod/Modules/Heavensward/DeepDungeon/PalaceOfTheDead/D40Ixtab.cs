@@ -55,4 +55,4 @@ class D40IxtabStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 177, NameID = 5025)]
-public class D40Ixtab(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -225), new ArenaBoundsCircle(25));
+public class D40Ixtab(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -226), new ArenaBoundsCircle(24));

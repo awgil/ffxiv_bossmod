@@ -1,8 +1,10 @@
 immediate plans
+- refactor replay history feature
 - remove 'ex' variants of strategies, replace with cooldown/effect functors, write a converter
 - add strategy param, use for 'apply unless already active' flavours of utility strategies
 - get rid of legacyxxx
 - ishape
+-- rasterization should automatically deal with 0.03 position imprecision (and angle imprecision?..)
 
 general:
 - horizontal timeline / cooldown planner
@@ -38,9 +40,13 @@ general:
 - ManualActionQueueTweak.Push should not special case gcds?..
 - review enemy prios usage - should framework do anything about any prios? like taunt at -4...
 - freeze special mode implementation
-- gaze avoidance + forced movement fail
+- find a way to make ActionDefinition fields readonly
+- better palacepal interop (download db asynchronously and load once on plugin init)
+- move ai hint execution to dedicated class
+- obstacle maps - download from github
 
 ai:
+- forcedmovement with large leeway and casting...
 - nav decision delay
 - review TODO[cast-time]
 - remove old ai

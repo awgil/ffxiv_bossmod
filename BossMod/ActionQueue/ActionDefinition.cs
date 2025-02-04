@@ -114,13 +114,14 @@ public sealed record class ActionDefinition(ActionID ID)
             : MainCooldownGroup;
 
     // for multi-charge abilities, action is ready when elapsed >= single-charge cd; assume that if any multi-charge actions share cooldown group, they have same cooldown - otherwise dunno how it should work
-    // TODO: use adjusted cooldown
+    // note: GCDs with multiple charges can be affected OR unaffected by haste depending on how many charges the user currently has access to
+    // the only separate-cooldown GCD that increases to >1 charge via trait is currently MCH Drill; others have multiple charges at unlock - SGE Phlegma, RPR Soul Slice, BLU Surpanakha
     public float MainReadyIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ClientState.DutyAction> dutyActions)
     {
         if (MainCooldownGroup < 0)
             return 0;
         var cdg = cooldowns[ActualMainCooldownGroup(dutyActions)];
-        return !IsMultiCharge || cdg.Total < Cooldown ? cdg.Remaining : Cooldown - cdg.Elapsed;
+        return cdg.Total > 0 ? Math.Max(0, cdg.Total / MaxChargesAtCap() - cdg.Elapsed) : 0;
     }
 
     public float ExtraReadyIn(ReadOnlySpan<Cooldown> cooldowns) => ExtraCooldownGroup >= 0 ? cooldowns[ExtraCooldownGroup].Remaining : 0;
@@ -132,7 +133,7 @@ public sealed record class ActionDefinition(ActionID ID)
         if (MainCooldownGroup < 0)
             return 0;
         var cdg = cooldowns[ActualMainCooldownGroup(dutyActions)];
-        return cdg.Total > 0 ? (MaxChargesAtLevel(level) * Cooldown - cdg.Elapsed) : 0;
+        return cdg.Total > 0 ? Math.Max(0, MaxChargesAtLevel(level) * cdg.Total / MaxChargesAtCap() - cdg.Elapsed) : 0;
     }
 
     public bool IsUnlocked(WorldState ws, Actor player)
@@ -172,6 +173,14 @@ public sealed class ActionDefinitions : IDisposable
     public static readonly ActionID IDPotionVit = new(ActionType.Item, 1044164); // hq grade 2 gemdraught of vitality
     public static readonly ActionID IDPotionInt = new(ActionType.Item, 1044165); // hq grade 2 gemdraught of intelligence
     public static readonly ActionID IDPotionMnd = new(ActionType.Item, 1044166); // hq grade 2 gemdraught of mind
+
+    // deep dungeon consumables
+    public static readonly ActionID IDPotionSustaining = new(ActionType.Item, 20309);
+    public static readonly ActionID IDPotionMax = new(ActionType.Item, 1013637);
+    public static readonly ActionID IDPotionEmpyrean = new(ActionType.Item, 23163);
+    public static readonly ActionID IDPotionSuper = new(ActionType.Item, 1023167);
+    public static readonly ActionID IDPotionOrthos = new(ActionType.Item, 38944);
+    public static readonly ActionID IDPotionHyper = new(ActionType.Item, 1038956);
 
     // special general actions that we support
     public static readonly ActionID IDGeneralLimitBreak = new(ActionType.General, 3);
@@ -218,6 +227,13 @@ public sealed class ActionDefinitions : IDisposable
         RegisterPotion(IDPotionVit);
         RegisterPotion(IDPotionInt);
         RegisterPotion(IDPotionMnd);
+
+        RegisterPotion(IDPotionSustaining, 1.1f);
+        RegisterPotion(IDPotionMax, 1.1f);
+        RegisterPotion(IDPotionEmpyrean, 1.1f);
+        RegisterPotion(IDPotionSuper, 1.1f);
+        RegisterPotion(IDPotionOrthos, 1.1f);
+        RegisterPotion(IDPotionHyper, 1.1f);
 
         // special content actions - bozja, deep dungeons, etc
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
@@ -380,7 +396,7 @@ public sealed class ActionDefinitions : IDisposable
 
     private void Register(ActionID aid, ActionDefinition definition) => _definitions.Add(aid, definition);
 
-    private void RegisterPotion(ActionID aid)
+    private void RegisterPotion(ActionID aid, float animLock = 0.6f)
     {
         var baseId = aid.ID % 500000;
         var item = ItemData(baseId);
@@ -399,6 +415,7 @@ public sealed class ActionDefinitions : IDisposable
             CastTime = castTime,
             MainCooldownGroup = cdgroup,
             Cooldown = cooldown,
+            InstantAnimLock = animLock,
         };
         var aidHQ = new ActionID(ActionType.Item, baseId + 1000000);
         _definitions[aidHQ] = new(aidHQ)
@@ -408,6 +425,7 @@ public sealed class ActionDefinitions : IDisposable
             CastTime = castTime,
             MainCooldownGroup = cdgroup,
             Cooldown = cooldown * 0.9f,
+            InstantAnimLock = animLock
         };
     }
 
