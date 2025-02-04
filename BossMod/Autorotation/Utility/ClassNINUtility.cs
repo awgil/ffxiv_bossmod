@@ -16,7 +16,7 @@ public sealed class ClassNINUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Shukuchi).As<DashStrategy>("Shukuchi", "Dash", 20)
             .AddOption(DashStrategy.None, "Automatic", "No use.")
-            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 60, 0, ActionTargets.Party | ActionTargets.Hostile, 45) // TODO: should use ActionTargets.Area, but the Point options do not work yet
+            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 60, 0, ActionTargets.Party | ActionTargets.Hostile, 45) // TODO: should use ActionTargets.Area, but the Point options do not work outside of AI yet
             .AddOption(DashStrategy.GapCloseHold1, "GapCloseHold1", "Use as gapcloser if outside melee range; conserves 1 charge for manual usage", 60, 0, ActionTargets.Party | ActionTargets.Hostile, 74)
             .AddAssociatedActions(NIN.AID.Shukuchi);
 

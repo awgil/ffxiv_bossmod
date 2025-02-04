@@ -30,7 +30,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.SacredSoil).As<SacredSoilOption>("Sacred Soil", "S.Soil", 200)
             .AddOption(SacredSoilOption.None, "None", "Do not use automatically")
-            .AddOption(SacredSoilOption.Use, "Use", "Use Sacred Soil", 30, 15, ActionTargets.Party | ActionTargets.Self | ActionTargets.Hostile, 50, 77) // TODO: should use ActionTargets.Area, but the Point options do not work yet
+            .AddOption(SacredSoilOption.Use, "Use", "Use Sacred Soil", 30, 15, ActionTargets.Party | ActionTargets.Self | ActionTargets.Hostile, 50, 77) // TODO: should use ActionTargets.Area, but the Point options do not work outside of AI yet
             .AddOption(SacredSoilOption.UseEx, "UseEx", "Use Enhanced Sacred Soil", 30, 15, ActionTargets.Area, 78)
             .AddAssociatedActions(SCH.AID.SacredSoil);
 
