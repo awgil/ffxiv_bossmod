@@ -33,7 +33,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.EarthlyStar).As<StarOption>("EarthlyStar", "E.Star", 200) //AoE GCD heal, 60s CD, 10s + 10s effect duration
             .AddOption(StarOption.None, "None", "Do not use automatically")
-            .AddOption(StarOption.Use, "Earthly Star", "Use Earthly Star", 60, 10, ActionTargets.Party | ActionTargets.Self | ActionTargets.Hostile, 62)
+            .AddOption(StarOption.Use, "Earthly Star", "Use Earthly Star", 60, 10, ActionTargets.Party | ActionTargets.Self | ActionTargets.Hostile, 62) // TODO: should use ActionTargets.Area, but the Point options do not work yet
             .AddOption(StarOption.End, "Stellar Detonation", "Use Stellar Detonation", 0, 1, ActionTargets.Self, 62)
             .AddAssociatedActions(AST.AID.EarthlyStar, AST.AID.StellarDetonation);
 
@@ -118,13 +118,19 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(horoAction), Player, horo.Priority(), horo.Value.ExpireIn);
 
         var cosmos = strategy.Option(Track.Macrocosmos);
+        var cosmosStrat = cosmos.As<MacrocosmosOption>() switch
+        {
+            MacrocosmosOption.Use => Player.FindStatus(AST.SID.Macrocosmos) == null,
+            MacrocosmosOption.End => Player.FindStatus(AST.SID.Macrocosmos) != null,
+            _ => default
+        };
         var cosmosAction = cosmos.As<MacrocosmosOption>() switch
         {
             MacrocosmosOption.Use => AST.AID.Macrocosmos,
             MacrocosmosOption.End => AST.AID.MicrocosmosEnd,
             _ => default
         };
-        if (cosmosAction != default)
+        if (cosmosStrat != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(cosmosAction), primaryTarget, cosmos.Priority(), cosmos.Value.ExpireIn);
     }
 }
