@@ -1,7 +1,4 @@
-﻿using static BossMod.Autorotation.ClassDNCUtility;
-using static BossMod.Autorotation.ClassRPRUtility;
-
-namespace BossMod.Autorotation;
+﻿namespace BossMod.Autorotation;
 
 public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player) : RoleCasterUtility(manager, player)
 {
