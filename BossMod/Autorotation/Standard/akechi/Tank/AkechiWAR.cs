@@ -142,10 +142,10 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     public enum GCDPriority
     {
         None = 0,
-        Standard = 100,
         Gauge = 300,
         PrimalRuination = 400,
         DelayFC = 390,
+        Standard = 400,
         FlexibleFC = 470,
         FlexibleIR = 490,
         PrimalRend = 500,
@@ -217,6 +217,8 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     #endregion
     public bool IsRiskingGauge()
     {
+        if (InnerRelease.Stacks > 0)
+            return true;
         if (BeastGauge >= 90 && //if 90
             ComboLastMove is AID.Maim) //next is Storm's Path, which overcaps. We need spender here
             return true;
@@ -324,6 +326,9 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
+
+        BurstWindowLeft = (InnerRelease.CD >= 40) ? 1.0f : 0.0f;
+        BurstWindowIn = (InnerRelease.CD == 0) ? 1.0f : 0.0f;
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
         BestSplashTarget = Unlocked(AID.PrimalRend) && NumSplashTargets >= 2 ? BestSplashTargets : primaryTarget;
         (TwoMinuteLeft, TwoMinuteIn) = EstimateRaidBuffTimings(primaryTarget?.Actor);
@@ -337,20 +342,20 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             QueueGCD(BestRotation(), //queue the next single-target combo action only if combo is finished
                 TargetChoice(strategy.Option(SharedTrack.AOE)) //Get target choice
                 ?? primaryTarget?.Actor, //if none, pick primary target
-                GCDPriority.Standard); //with priority for 123/10 combo actions
+                IsRiskingGauge() ? GCDPriority.Standard - 500 : GCDPriority.Standard); //with priority for 123/10 combo actions
         }
         if (strategy.ForceST()) //if Force Single Target option is picked
         {
             QueueGCD(ST(),
                 TargetChoice(strategy.Option(SharedTrack.AOE)) //Get target choice
                 ?? primaryTarget?.Actor, //if none, pick primary target
-                GCDPriority.Standard); //with priority for 123/10 combo actions
+                IsRiskingGauge() ? GCDPriority.Standard - 500 : GCDPriority.Standard); //with priority for 123/10 combo actions
         }
         if (strategy.ForceAOE()) //if Force AOE option is picked
         {
             QueueGCD(AOE(),
                 Player,
-                GCDPriority.Standard); //with priority for 123/10 combo actions
+                IsRiskingGauge() ? GCDPriority.Standard - 500 : GCDPriority.Standard); //with priority for 123/10 combo actions
         }
         #endregion
 
