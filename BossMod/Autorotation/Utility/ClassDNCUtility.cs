@@ -26,7 +26,7 @@ public sealed class ClassDNCUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Improvisation, "Improvisation", "Improv", 300, DNC.AID.Improvisation, 15);
 
         res.Define(Track.EnAvant).As<EnAvantStrategy>("En Avant", "EnAvant", 30)
-            .AddOption(EnAvantStrategy.None, "None", "No use.", 0, 0, ActionTargets.Self, 35)
+            .AddOption(EnAvantStrategy.None, "None", "No use.", 0, 0, ActionTargets.Self, 50)
             .AddOption(EnAvantStrategy.CharacterForward, "CharacterForward", "Dashes in the Forward direction relative to the Character", 30, 0, ActionTargets.Self, 50)
             .AddOption(EnAvantStrategy.CharacterBackward, "CharacterBackward", "Dashes in the Backward direction relative to the Character", 30, 0, ActionTargets.Self, 50)
             .AddOption(EnAvantStrategy.CameraForward, "CameraForward", "Dashes in the Forward direction relative to the Camera", 30, 0, ActionTargets.Self, 50)

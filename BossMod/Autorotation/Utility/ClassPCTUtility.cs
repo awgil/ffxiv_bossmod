@@ -21,7 +21,7 @@ public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player)
             .AddAssociatedActions(PCT.AID.TemperaCoat, PCT.AID.TemperaGrassa);
 
         res.Define(Track.Smudge).As<SmudgeStrategy>("Smudge", uiPriority: 30)
-            .AddOption(SmudgeStrategy.None, "None", "No use.", 0, 0, ActionTargets.Self, 35)
+            .AddOption(SmudgeStrategy.None, "None", "Do not use automatically", 0, 0, ActionTargets.Self, 20)
             .AddOption(SmudgeStrategy.CharacterForward, "CharacterForward", "Dashes in the Forward direction relative to the Character", 20, 5, ActionTargets.Self, 20)
             .AddOption(SmudgeStrategy.CharacterBackward, "CharacterBackward", "Dashes in the Backward direction relative to the Character", 20, 5, ActionTargets.Self, 20)
             .AddOption(SmudgeStrategy.CameraForward, "CameraForward", "Dashes in the Forward direction relative to the Camera", 20, 5, ActionTargets.Self, 20)
