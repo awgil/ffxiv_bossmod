@@ -391,6 +391,7 @@ class P3DarkestDanceKnockback(BossModule module) : Components.Knockback(module, 
 // position for first dark water - note that this is somewhat arbitrary (range etc)
 class P3ApocalypseAIWater1(BossModule module) : BossComponent(module)
 {
+    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
     private readonly P3ApocalypseDarkWater? _water = module.FindComponent<P3ApocalypseDarkWater>();
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -409,7 +410,9 @@ class P3ApocalypseAIWater1(BossModule module) : BossComponent(module)
             3 => (10.Degrees(), 8),
             _ => (default, 0)
         };
-        dir += (state.AssignedGroup == 1 ? -90 : 90).Degrees();
+        dir += _config.P3ApocalypseDarkWater1ReferenceDirection.Degrees();
+        if (state.AssignedGroup == 2)
+            dir += 180.Degrees();
         hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center + range * dir.ToDirection(), 1), _water.Stacks.Count > 0 ? _water.Stacks[0].Activation : DateTime.MaxValue);
     }
 }

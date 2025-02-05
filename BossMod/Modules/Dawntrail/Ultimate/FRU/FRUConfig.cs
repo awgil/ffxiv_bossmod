@@ -133,6 +133,10 @@ public class FRUConfig() : ConfigNode()
     [GroupPreset("Default", [0, 2, 5, 3, 4, 6, 7, 1])]
     public GroupAssignmentUnique P2IntermissionClockSpots = new() { Assignments = [0, 2, 5, 3, 4, 6, 7, 1] };
 
+    [PropertyDisplay("P3 Apocalypse: dark water 1 direction for group 1 (group 2 is opposite)", tooltip: "Only used by AI")]
+    [PropertySlider(-180, 180)]
+    public float P3ApocalypseDarkWater1ReferenceDirection = -90;
+
     [PropertyDisplay("P3 Darkest Dance: baiter", tooltip: "Only used by AI")]
     [PropertyCombo("MT", "OT")]
     public bool P3DarkestDanceOTBait;
