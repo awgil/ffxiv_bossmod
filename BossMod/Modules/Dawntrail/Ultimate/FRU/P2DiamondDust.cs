@@ -340,7 +340,16 @@ class P2SinboundHoly(BossModule module) : Components.UniformStackSpread(module, 
     }
 }
 
-class P2SinboundHolyVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.SinboundHolyVoidzone).Where(z => z.EventState != 7));
+class P2SinboundHolyVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.SinboundHolyVoidzone).Where(z => z.EventState != 7))
+{
+    public bool AIHintsEnabled = true;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (AIHintsEnabled)
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
+}
 
 class P2ShiningArmor(BossModule module) : Components.GenericGaze(module, ActionID.MakeSpell(AID.ShiningArmor))
 {
