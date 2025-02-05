@@ -27,6 +27,10 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
         return res;
     }
 
+    // these mobs give fate XP and reward boost and should be prioritized over regular mobs - otherwise it's easy to accidentally complete the fate before killing them and lose the bonus
+    public const uint NameForlornMaiden = 6737;
+    public const uint NameTheForlorn = 6738;
+
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var generalOpt = strategy.Option(Track.General);
@@ -64,7 +68,8 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
                 {
                     if (e.Actor.FateID == World.Client.ActiveFate.ID && e.Priority == AIHints.Enemy.PriorityUndesirable)
                     {
-                        prioritize(e, 1);
+                        var forlorn = e.Actor.NameID is NameForlornMaiden or NameTheForlorn;
+                        prioritize(e, forlorn ? 2 : 1);
                     }
                 }
             }
