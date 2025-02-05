@@ -30,7 +30,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.SacredSoil).As<SacredSoilOption>("Sacred Soil", "S.Soil", 200)
             .AddOption(SacredSoilOption.None, "None", "Do not use automatically")
-            .AddOption(SacredSoilOption.Use, "Use", "Use Sacred Soil", 30, 15, ActionTargets.Party | ActionTargets.Self | ActionTargets.Hostile, 50, 77) // TODO: should use ActionTargets.Area, but the Point options do not work outside of AI yet
+            .AddOption(SacredSoilOption.Use, "Use", "Use Sacred Soil", 30, 15, ActionTargets.Area, 50, 77)
             .AddOption(SacredSoilOption.UseEx, "UseEx", "Use Enhanced Sacred Soil", 30, 15, ActionTargets.Area, 78)
             .AddAssociatedActions(SCH.AID.SacredSoil);
 
@@ -98,14 +98,13 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(succAction), Player, succ.Priority(), succ.Value.ExpireIn, castTime: 2); // TODO[cast-time]: adjustment (swiftcast etc)
 
         var soil = strategy.Option(Track.SacredSoil);
-        var soilTarget = ResolveTargetOverride(soil.Value) ?? primaryTarget ?? Player;
         var soilAction = soil.As<SacredSoilOption>() switch
         {
             SacredSoilOption.Use or SacredSoilOption.UseEx => SCH.AID.SacredSoil,
             _ => default
         };
         if (soilAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(soilAction), soilTarget, soil.Priority(), soil.Value.ExpireIn, targetPos: soilTarget.PosRot.XYZ());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(soilAction), null, soil.Priority(), soil.Value.ExpireIn, targetPos: ResolveTargetLocation(soil.Value).ToVec3());
 
         var deploy = strategy.Option(Track.DeploymentTactics);
         if (deploy.As<DeployOption>() != DeployOption.None)

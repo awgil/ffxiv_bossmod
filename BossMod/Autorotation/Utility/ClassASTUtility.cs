@@ -33,7 +33,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.EarthlyStar).As<StarOption>("EarthlyStar", "E.Star", 200) //AoE GCD heal, 60s CD, 10s + 10s effect duration
             .AddOption(StarOption.None, "None", "Do not use automatically")
-            .AddOption(StarOption.Use, "Earthly Star", "Use Earthly Star", 60, 10, ActionTargets.Party | ActionTargets.Self | ActionTargets.Hostile, 62) // TODO: should use ActionTargets.Area, but the Point options do not work outside of AI yet
+            .AddOption(StarOption.Use, "Earthly Star", "Use Earthly Star", 60, 10, ActionTargets.Area, 62) // TODO: should use ActionTargets.Area, but the Point options do not work outside of AI yet
             .AddOption(StarOption.End, "Stellar Detonation", "Use Stellar Detonation", 0, 1, ActionTargets.Self, 62)
             .AddAssociatedActions(AST.AID.EarthlyStar, AST.AID.StellarDetonation);
 
@@ -75,10 +75,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Exaltation), AST.AID.Exaltation, Player);
         ExecuteSimple(strategy.Option(Track.SunSign), AST.AID.SunSign, Player);
 
-        //TODO: These should work with all Area targeting options? Able to target Waymarks, Center, AbsolutePoint, etc.
-        //Figure out how to make compatible with WPos
         var star = strategy.Option(Track.EarthlyStar);
-        var starTarget = ResolveTargetOverride(star.Value) ?? primaryTarget ?? Player;
         var starAction = star.As<StarOption>() switch
         {
             StarOption.Use => AST.AID.EarthlyStar,
@@ -86,7 +83,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (starAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(starAction), starTarget, star.Priority(), star.Value.ExpireIn, targetPos: starTarget.PosRot.XYZ());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(starAction), null, star.Priority(), star.Value.ExpireIn, targetPos: ResolveTargetLocation(star.Value).ToVec3());
 
         //Aspected Helios full execution
         var heliosUp = StatusDetails(Player, AST.SID.AspectedHelios, Player.InstanceID).Left > 0.1f || StatusDetails(Player, AST.SID.HeliosConjunction, Player.InstanceID).Left > 0.1f;
