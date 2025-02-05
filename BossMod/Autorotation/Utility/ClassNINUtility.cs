@@ -41,6 +41,6 @@ public sealed class ClassNINUtility(RotationModuleManager manager, Actor player)
             _ => false,
         };
         if (shouldDash)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(NIN.AID.Shukuchi), null, dash.Priority(), dash.Value.ExpireIn, targetPos: ResolveTargetLocation(dash.Value).ToVec3());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(NIN.AID.Shukuchi), null, dash.Priority(), dash.Value.ExpireIn, targetPos: ResolveTargetLocation(dash.Value).ToVec3(Player.PosRot.Y));
     }
 }

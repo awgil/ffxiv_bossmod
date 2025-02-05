@@ -83,7 +83,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (starAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(starAction), null, star.Priority(), star.Value.ExpireIn, targetPos: ResolveTargetLocation(star.Value).ToVec3());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(starAction), null, star.Priority(), star.Value.ExpireIn, targetPos: ResolveTargetLocation(star.Value).ToVec3(Player.PosRot.Y));
 
         //Aspected Helios full execution
         var heliosUp = StatusDetails(Player, AST.SID.AspectedHelios, Player.InstanceID).Left > 0.1f || StatusDetails(Player, AST.SID.HeliosConjunction, Player.InstanceID).Left > 0.1f;

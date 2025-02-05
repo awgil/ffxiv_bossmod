@@ -104,7 +104,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (soilAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(soilAction), null, soil.Priority(), soil.Value.ExpireIn, targetPos: ResolveTargetLocation(soil.Value).ToVec3());
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(soilAction), null, soil.Priority(), soil.Value.ExpireIn, targetPos: ResolveTargetLocation(soil.Value).ToVec3(Player.PosRot.Y));
 
         var deploy = strategy.Option(Track.DeploymentTactics);
         if (deploy.As<DeployOption>() != DeployOption.None)
