@@ -277,6 +277,7 @@ class FRUStates : StateMachineBuilder
             .DeactivateOnExit<P2SinboundHoly>();
         ComponentCondition<P2ShiningArmor>(id + 0x80, 3.7f, comp => comp.NumCasts > 0, "Gaze")
             .ExecOnEnter<P2TwinStillnessSilence>(comp => comp.EnableAIHints())
+            .ExecOnEnter<P2SinboundHolyVoidzone>(comp => comp.AIHintsEnabled = false)
             .DeactivateOnExit<P2ShiningArmor>();
         ComponentCondition<P2TwinStillnessSilence>(id + 0x90, 3.0f, comp => comp.AOEs.Count > 0);
         ComponentCondition<P2TwinStillnessSilence>(id + 0x91, 3.5f, comp => comp.NumCasts > 0, "Front/back");
