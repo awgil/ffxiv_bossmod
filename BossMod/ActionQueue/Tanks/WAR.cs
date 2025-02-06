@@ -189,5 +189,7 @@ public sealed class Definitions : IDisposable
         //d.Spell(AID.StormEye)!.TransformAction = config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextSTComboAction(ComboLastMove, AID.StormEye)) : null;
         //d.Spell(AID.StormPath)!.TransformAction = config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextSTComboAction(ComboLastMove, AID.StormPath)) : null;
         //d.Spell(AID.MythrilTempest)!.TransformAction = config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextAOEComboAction(ComboLastMove)) : null;
+
+        d.Spell(AID.Onslaught)!.ForbidExecute = d.Spell(AID.PrimalRend)!.ForbidExecute = ActionDefinitions.PreventDashIfDangerous;
     }
 }

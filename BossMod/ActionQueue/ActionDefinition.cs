@@ -245,6 +245,20 @@ public sealed class ActionDefinitions : IDisposable
     public static Actor? FindEsunaTarget(WorldState ws) => ws.Party.WithoutSlot().FirstOrDefault(p => p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)));
     public static Actor? SmartTargetEsunable(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? FindEsunaTarget(ws) ?? player;
 
+    // check if dashing to target will put the player inside a forbidden zone
+    // TODO should we check if dash trajectory will cross any zones with imminent activation?
+    public static bool PreventDashIfDangerous(WorldState _, Actor player, Actor? target, AIHints hints)
+    {
+        if (target == null || !Service.Config.Get<ActionTweaksConfig>().PreventDangerousDash)
+            return false;
+
+        var dist = player.DistanceToHitbox(target);
+        var dir = player.DirectionTo(target).Normalized();
+        var src = player.Position;
+        var proj = dist > 0 ? src + dir * MathF.Max(0, dist) : src;
+        return hints.ForbiddenZones.Any(d => d.shapeDistance(proj) < 0);
+    }
+
     public BitMask SpellAllowedClasses(Lumina.Excel.Sheets.Action data)
     {
         BitMask res = default;
