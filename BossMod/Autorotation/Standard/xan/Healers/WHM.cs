@@ -37,7 +37,6 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
     public int NumHolyTargets;
     public int NumAssizeTargets;
     public int NumMiseryTargets;
-    public int NumSolaceTargets;
 
     private Enemy? BestDotTarget;
     private Enemy? BestMiseryTarget;
@@ -58,8 +57,6 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
         NumAssizeTargets = NumNearbyTargets(strategy, 15);
         (BestMiseryTarget, NumMiseryTargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
         (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, DotLeft, 2);
-
-        NumSolaceTargets = World.Party.WithoutSlot(excludeAlliance: true).Count(x => Player.DistanceToHitbox(x) <= 20);
 
         if (CountdownRemaining > 0)
         {
@@ -93,7 +90,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
 
         // TODO make a track for this
         if (Lily == 3 || !CanFitGCD(NextLily, 2) && Lily == 2)
-            PushGCD(AID.AfflatusSolace, World.Party.WithoutSlot(excludeAlliance: true).Where(m => Player.DistanceToHitbox(m) <= 30).MinBy(PredictedHPRatio));
+            PushGCD(AID.AfflatusSolace, Player);
 
         if (SacredSight > 0)
             PushGCD(AID.GlareIV, primaryTarget);
