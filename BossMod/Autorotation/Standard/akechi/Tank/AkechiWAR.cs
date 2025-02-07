@@ -85,9 +85,9 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             .AddOption(PotionStrategy.AlignWithRaidBuffs, "AlignWithRaidBuffs", "Align with Inner Release & Infuriate charges to ensure use on 2-minute windows", 270, 30, ActionTargets.Self)
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
-        res.DefineOGCD(Track.InnerRelease, "Inner Release", "InnerR.", uiPriority: 170, 60, 15, ActionTargets.Self, 6).AddAssociatedActions(AID.InnerRelease);
-        res.DefineOGCD(Track.PrimalWrath, "Primal Wrath", "P.Wrath", uiPriority: 135, 20, 0, ActionTargets.Hostile, 96).AddAssociatedActions(AID.PrimalWrath);
-        res.DefineGCD(Track.PrimalRuination, "PrimalRuination", "P.Ruin.", uiPriority: 150, supportedTargets: ActionTargets.Hostile, minLevel: 100).AddAssociatedActions(AID.PrimalRuination);
+        res.DefineOGCD(Track.InnerRelease, AID.InnerRelease, "Inner Release", "InnerR.", uiPriority: 170, 60, 15, ActionTargets.Self, 6).AddAssociatedActions(AID.InnerRelease);
+        res.DefineOGCD(Track.PrimalWrath, AID.PrimalWrath, "Primal Wrath", "P.Wrath", uiPriority: 135, 20, 0, ActionTargets.Hostile, 96).AddAssociatedActions(AID.PrimalWrath);
+        res.DefineGCD(Track.PrimalRuination, AID.PrimalRuination, "PrimalRuination", "P.Ruin.", uiPriority: 150, supportedTargets: ActionTargets.Hostile, minLevel: 100).AddAssociatedActions(AID.PrimalRuination);
 
         return res;
     }

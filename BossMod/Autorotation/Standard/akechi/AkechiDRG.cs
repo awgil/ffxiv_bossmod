@@ -10,136 +10,18 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 {
     #region Enums: Abilities / Strategies
 
-    //Which abilities/strategies we're tracking
-    public enum Track
-    {
-        AOE,                   //Rotations
-        Hold,                  //Holding strategy
-        Dives,                 //Dive actions
-        Potion,                //Potion usage
-        LifeSurge,             //Life Surge ability
-        Jump,                  //Jump ability
-        DragonfireDive,        //Dragonfire Dive ability
-        Geirskogul,            //Geirskogul ability
-        Stardiver,             //Stardiver ability
-        PiercingTalon,         //Piercing Talon ability
-        TrueNorth,             //True North ability
-        LanceCharge,           //Lance Charge ability
-        BattleLitany,          //Battle Litany ability
-        MirageDive,            //Mirage Dive ability
-        Nastrond,              //Nastrond ability
-        WyrmwindThrust,        //Wyrmwind Thrust ability
-        RiseOfTheDragon,       //Rise of the Dragon ability
-        Starcross              //Starcross ability
-    }
-
-    //Specifying AOE strategy preferences
-    public enum AOEStrategy
-    {
-        AutoTargetHitPrimary,  //Auto-target AOE actions to hit primary target as well
-        AutoTargetHitMost,     //Auto-target AOE actions to hit most targets
-        ForceST,               //Force single-target abilities
-        Force123ST,            //Force single-target 123 combo
-        ForceBuffsST,          //Force single-target buffs combo
-        ForceAOE               //Force Area of Effect abilities
-    }
-
-    //Cooldowns strategy options
-    public enum HoldStrategy
-    {
-        Allow,                   //Allow use of cooldowns and buffs
-        Forbid,                  //Forbid use of cooldowns and buffs
-    }
-
-    public enum DivesStrategy
-    {
-        AllowMaxMelee,         //Allow Dives only at max melee range
-        AllowCloseMelee,       //Allow Dives only at close melee range
-        Allow,                 //Allow the use of Dives
-        Forbid,                //Forbid the use of Dives
-    }
-
-    //Potion usage strategies
-    public enum PotionStrategy
-    {
-        Manual,                //Manual potion usage
-        AlignWithRaidBuffs,    //Align potion use with raid buffs
-        Immediate              //Use potion immediately
-    }
-
-    //Life Surge strategy
-    public enum SurgeStrategy
-    {
-        Automatic,             //Automatically use Life Surge
-        Force,                 //Force use of Life Surge
-        ForceWeave,            //Force use of Life Surge inside the next possible weave window
-        ForceNextOpti,         //Force use of Life Surge in the next possible optimal window
-        ForceNextOptiWeave,    //Force use of Life Surge optimally inside the next possible weave window
-        Delay                  //Delay use of Life Surge
-    }
-
-    //Jump ability strategy
-    public enum JumpStrategy
-    {
-        Automatic,             //Automatically use Jump
-        Force,                 //Force use of Jump
-        ForceEX,               //Force use of Jump EX)
-        ForceEX2,              //Force use of High Jump
-        ForceWeave,            //Force use of Jump inside the next possible weave window
-        Delay                  //Delay use of Jump
-    }
-
-    //Dragonfire Dive strategy
-    public enum DragonfireStrategy
-    {
-        Automatic,             //Automatically use Dragonfire Dive
-        Force,                 //Force use of Dragonfire Dive
-        ForceEX,               //Force use of Dragonfire Dive (EX))
-        ForceWeave,            //Force use of Dragonfire Dive inside the next possible weave window
-        Delay                  //Delay use of Dragonfire Dive
-    }
-
-    //Geirskogul strategy
-    public enum GeirskogulStrategy
-    {
-        Automatic,             //Automatically use Geirskogul
-        Force,                 //Force use of Geirskogul
-        ForceEX,               //Force use of Geirskogul (EX)
-        ForceWeave,            //Force use of Geirskogul inside the next possible weave window
-        Delay                  //Delay use of Geirskogul
-    }
-
-    //Stardiver strategy
-    public enum StardiverStrategy
-    {
-        Automatic,             //Automatically use Stardiver
-        Force,                 //Force use of Stardiver
-        ForceEX,               //Force use of Stardiver (EX)
-        ForceWeave,            //Force use of Stardiver inside the next possible weave window
-        Delay                  //Delay use of Stardiver
-    }
-
-    //Piercing Talon strategy
-    public enum PiercingTalonStrategy
-    {
-        AllowEX,               //Use Piercing Talon when Enhanced
-        Allow,                 //Use Piercing Talon when appropriate
-        Force,                 //Force use of Piercing Talon
-        ForceEX,               //Force use of Piercing Talon when Enhanced
-        Forbid,                //Forbid the use of Piercing Talon
-    }
-
-    //True North strategy
-    public enum TrueNorthStrategy
-    {
-        Automatic,              //Weave
-        ASAP,                   //Use ASAP
-        Rear,                   //Use only when in Rear
-        Flank,                  //Use only when in Flank
-        Force,                  //Force
-        Delay                   //Delay
-    }
-
+    public enum Track { AOE, Hold, Dives, Potion, LifeSurge, Jump, DragonfireDive, Geirskogul, Stardiver, PiercingTalon, TrueNorth, LanceCharge, BattleLitany, MirageDive, Nastrond, WyrmwindThrust, RiseOfTheDragon, Starcross }
+    public enum AOEStrategy { AutoTargetHitPrimary, AutoTargetHitMost, ForceST, Force123ST, ForceBuffsST, ForceAOE }
+    public enum HoldStrategy { Allow, Forbid }
+    public enum DivesStrategy { AllowMaxMelee, AllowCloseMelee, Allow, Forbid }
+    public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
+    public enum SurgeStrategy { Automatic, Force, ForceWeave, ForceNextOpti, ForceNextOptiWeave, Delay }
+    public enum JumpStrategy { Automatic, Force, ForceEX, ForceEX2, ForceWeave, Delay }
+    public enum DragonfireStrategy { Automatic, Force, ForceEX, ForceWeave, Delay }
+    public enum GeirskogulStrategy { Automatic, Force, ForceEX, ForceWeave, Delay }
+    public enum StardiverStrategy { Automatic, Force, ForceEX, ForceWeave, Delay }
+    public enum PiercingTalonStrategy { AllowEX, Allow, Force, ForceEX, Forbid }
+    public enum TrueNorthStrategy { Automatic, ASAP, Rear, Flank, Force, Delay }
     #endregion
 
     //Module Definitions
@@ -231,13 +113,13 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region Offensive Strategies
-        res.DefineOGCD(Track.LanceCharge, "Lance Charge", "L.Charge", uiPriority: 165, 60, 20, ActionTargets.Hostile, 30).AddAssociatedActions(AID.LanceCharge);
-        res.DefineOGCD(Track.BattleLitany, "Battle Litany", "B.Litany", uiPriority: 165, 120, 20, ActionTargets.Hostile, 52).AddAssociatedActions(AID.BattleLitany);
-        res.DefineOGCD(Track.MirageDive, "Mirage Dive", "M.Dive", uiPriority: 105, 0, 0, ActionTargets.Hostile, 68).AddAssociatedActions(AID.MirageDive);
-        res.DefineOGCD(Track.Nastrond, "Nastrond", "Nast.", uiPriority: 125, 0, 0, ActionTargets.Hostile, 70).AddAssociatedActions(AID.Nastrond);
-        res.DefineOGCD(Track.WyrmwindThrust, "Wyrmwind Thrust", "W.Thrust", uiPriority: 120, 0, 10, ActionTargets.Hostile, 90).AddAssociatedActions(AID.WyrmwindThrust);
-        res.DefineOGCD(Track.RiseOfTheDragon, "Rise Of The Dragon", "RotD", uiPriority: 145, 0, 0, ActionTargets.Hostile, 92).AddAssociatedActions(AID.RiseOfTheDragon);
-        res.DefineOGCD(Track.Starcross, "Starcross", "S.cross", uiPriority: 135, 0, 0, ActionTargets.Hostile, 100).AddAssociatedActions(AID.Starcross);
+        res.DefineOGCD(Track.LanceCharge, AID.LanceCharge, "Lance Charge", "L.Charge", uiPriority: 165, 60, 20, ActionTargets.Self, 30);
+        res.DefineOGCD(Track.BattleLitany, AID.BattleLitany, "Battle Litany", "B.Litany", uiPriority: 165, 120, 20, ActionTargets.Self, 52);
+        res.DefineOGCD(Track.MirageDive, AID.MirageDive, "Mirage Dive", "M.Dive", uiPriority: 105, 0, 0, ActionTargets.Hostile, 68);
+        res.DefineOGCD(Track.Nastrond, AID.Nastrond, "Nastrond", "Nast.", uiPriority: 125, 0, 0, ActionTargets.Hostile, 70);
+        res.DefineOGCD(Track.WyrmwindThrust, AID.WyrmwindThrust, "Wyrmwind Thrust", "W.Thrust", uiPriority: 120, 0, 10, ActionTargets.Hostile, 90);
+        res.DefineOGCD(Track.RiseOfTheDragon, AID.RiseOfTheDragon, "Rise Of The Dragon", "RotD", uiPriority: 145, 0, 0, ActionTargets.Hostile, 92);
+        res.DefineOGCD(Track.Starcross, AID.Starcross, "Starcross", "S.cross", uiPriority: 135, 0, 0, ActionTargets.Hostile, 100);
         #endregion
 
         return res;
@@ -277,7 +159,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 
     #endregion
 
-    #region Placeholders for Variables
+    #region Module Variables
     private bool hasLOTD; //Flag for Life of the Dragon status
     private bool hasLC; //Flag for Lance Charge status
     private bool hasBL; //Flag for Battle Litany status
@@ -357,10 +239,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 
         #region Miscellaneous
         var hold = strategy.Option(Track.Hold).As<HoldStrategy>() == HoldStrategy.Forbid;  //Check if the Cooldowns should be held or delayed
-        (BestAOETargets, NumAOETargets) = GetBestTarget(strategy, primaryTarget, 10, Is10yRectTarget);
-        (BestSpearTargets, NumSpearTargets) = GetBestTarget(strategy, primaryTarget, 15, Is15yRectTarget);
-        (BestDiveTargets, NumDiveTargets) = GetBestTarget(strategy, primaryTarget, 20, IsSplashTarget);
-        BestAOETarget = Unlocked(AID.DoomSpike) && NumAOETargets > 1 ? BestAOETargets : primaryTarget;
+        (BestAOETargets, NumAOETargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);
+        (BestSpearTargets, NumSpearTargets) = GetBestTarget(primaryTarget, 15, Is15yRectTarget);
+        (BestDiveTargets, NumDiveTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
+        BestAOETarget = Unlocked(AID.DoomSpike) && NumAOETargets > 2 ? BestAOETargets : primaryTarget;
         BestSpearTarget = Unlocked(AID.Geirskogul) && NumSpearTargets > 1 ? BestSpearTargets : primaryTarget;
         BestDiveTarget = Unlocked(AID.Stardiver) && NumDiveTargets > 1 ? BestDiveTargets : primaryTarget;
         #endregion
@@ -375,11 +257,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         if (AOEStrategy == AOEStrategy.ForceST)  //if forced single target
             QueueGCD(NextFullST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the next single target action
         if (AOEStrategy == AOEStrategy.Force123ST)  //if forced 123 combo
-            QueueGCD(Useonly123ST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the 123 combo action
+            QueueGCD(UseOnly123ST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the 123 combo action
         if (AOEStrategy == AOEStrategy.ForceBuffsST)  //if forced buffs combo
-            QueueGCD(Useonly145ST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the buffed 145 combo action
+            QueueGCD(UseOnly145ST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the buffed 145 combo action
         if (AOEStrategy == AOEStrategy.ForceAOE)  //if forced AOE action
-            QueueGCD(NextFullAOE(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the next AOE action
+            QueueGCD(NextFullAOE(), TargetChoice(AOE) ?? (NumAOETargets > 1 ? BestAOETargets?.Actor : primaryTarget?.Actor), GCDPriority.ForcedGCD);  //Queue the next AOE action
         #endregion
 
         #region Dives Strategy
@@ -402,7 +284,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 
         #region Combo & Cooldown Execution
         //Combo Action evecution
-        QueueGCD(NumAOETargets > 1 ? NextFullAOE() : NextFullST(),
+        QueueGCD(NumAOETargets > 2 ? NextFullAOE() : NextFullST(),
             BestAOETarget?.Actor, //on best AOE target
             GCDPriority.Combo123); //set priority to Combo 123
         //Execute Lance Charge if available
@@ -618,23 +500,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         #endregion
     }
 
-    private AID BestRotation() => ComboLastMove switch
-    {
-        //3
-
-        //2
-        AID.SonicThrust => NextFullAOE(),
-        AID.Disembowel => NextFullST(),
-        AID.SpiralBlow => NextFullST(),
-        //1
-        AID.DraconianFury => NextFullAOE(),
-        AID.DoomSpike => NextFullAOE(),
-        AID.RaidenThrust => NextFullST(),
-        AID.TrueThrust => NextFullST(),
-        //0
-        _ => NumAOETargets > 2 ? NextFullAOE() : NextFullST(),
-    };
-
     #region Single-Target Helpers
 
     //Determines the next skill in the single-target (ST) combo chain based on the last used action.
@@ -680,7 +545,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
 
     //Limits the combo sequence to just 1-2-3 ST skills, ignoring other Unlocked actions.
-    private AID Useonly123ST() => ComboLastMove switch
+    private AID UseOnly123ST() => ComboLastMove switch
     {
         //Start combo with TrueThrust
         AID.TrueThrust or AID.RaidenThrust =>
@@ -710,7 +575,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
 
     //Limits the combo sequence to 1-4-5 ST skills, focusing on Disembowel and Chaos/ChaoticSpring.
-    private AID Useonly145ST() => ComboLastMove switch
+    private AID UseOnly145ST() => ComboLastMove switch
     {
         //Start combo with TrueThrust
         AID.TrueThrust or AID.RaidenThrust =>
