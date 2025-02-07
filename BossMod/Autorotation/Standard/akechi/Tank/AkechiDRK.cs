@@ -229,7 +229,6 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region Full Rotation Execution
-        static OGCDPriority StandardOGCDPriority(OGCDStrategy strategy, OGCDPriority fallback) => strategy is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.ForcedOGCD : fallback;
 
         #region Standard Rotations
         if (strategy.Automatic())
@@ -248,12 +247,12 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                 if (!strategy.HoldBuffs())
                 {
                     if (ShouldUseDelirium(deliStrat, primaryTarget))
-                        QueueOGCD(BestDelirium, Player, StandardOGCDPriority(deliStrat, OGCDPriority.Delirium));
+                        QueueOGCD(BestDelirium, Player, deliStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Delirium);
                     if (ShouldUseLivingShadow(lsStrat, primaryTarget))
-                        QueueOGCD(AID.LivingShadow, Player, StandardOGCDPriority(lsStrat, OGCDPriority.LivingShadow));
+                        QueueOGCD(AID.LivingShadow, Player, lsStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.LivingShadow);
                 }
                 if (ShouldUseSaltedEarth(seStrat, primaryTarget))
-                    QueueOGCD(AID.SaltedEarth, Player, StandardOGCDPriority(lsStrat, OGCDPriority.LivingShadow));
+                    QueueOGCD(AID.SaltedEarth, Player, seStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.SaltedEarth);
                 if (ShouldUseCarveOrDrain(cdStrat, primaryTarget))
                 {
                     if (cdStrat is CarveStrategy.Automatic)
@@ -264,9 +263,9 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                         QueueOGCD(AID.AbyssalDrain, TargetChoice(cd) ?? primaryTarget?.Actor, cdStrat is CarveStrategy.ForceDrain ? OGCDPriority.ForcedOGCD : OGCDPriority.CarveOrDrain);
                 }
                 if (ShouldUseShadowbringer(sbStrat, primaryTarget))
-                    QueueOGCD(AID.Shadowbringer, TargetChoice(sb) ?? BestTargetAOERect?.Actor, StandardOGCDPriority(lsStrat, OGCDPriority.LivingShadow));
+                    QueueOGCD(AID.Shadowbringer, TargetChoice(sb) ?? BestTargetAOERect?.Actor, sbStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Shadowbringer);
                 if (ShouldUseDisesteem(deStrat, primaryTarget))
-                    QueueGCD(AID.Disesteem, TargetChoice(de) ?? BestTargetAOERect?.Actor, StandardOGCDPriority(lsStrat, OGCDPriority.LivingShadow));
+                    QueueGCD(AID.Disesteem, TargetChoice(de) ?? BestTargetAOERect?.Actor, deStrat is GCDStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.Disesteem);
             }
             if (!strategy.HoldGauge())
             {
