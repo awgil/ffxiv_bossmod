@@ -121,7 +121,8 @@ public sealed unsafe class MovementOverride : IDisposable
         // movement override logic
         // note: currently we follow desired direction, only if user does not have any input _or_ if manual movement is blocked
         // this allows AI mode to move even if movement is blocked (TODO: is this the right behavior? AI mode should try to avoid moving while casting anyway...)
-        if ((movementAllowed || misdirectionMode) && ActualMove == default && DirectionToDestination(false) is var relDir && relDir != null)
+        var allowAuto = movementAllowed ? !MovementBlocked : misdirectionMode;
+        if (allowAuto && ActualMove == default && DirectionToDestination(false) is var relDir && relDir != null)
         {
             ActualMove = relDir.Value.h.ToDirection();
         }
