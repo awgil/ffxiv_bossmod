@@ -228,7 +228,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         canWT = Unlocked(AID.WyrmwindThrust) && ActionReady(AID.WyrmwindThrust) && focusCount == 2;
         canROTD = Unlocked(AID.RiseOfTheDragon) && hasDF;
         canSC = Unlocked(AID.Starcross) && hasSC;
-        var hold = strategy.Option(Track.Hold).As<HoldStrategy>() == HoldStrategy.Forbid;
         (BestAOETargets, NumAOETargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);
         (BestSpearTargets, NumSpearTargets) = GetBestTarget(primaryTarget, 15, Is15yRectTarget);
         (BestDiveTargets, NumDiveTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
@@ -237,6 +236,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         BestDiveTarget = Unlocked(AID.Stardiver) && NumDiveTargets > 1 ? BestDiveTargets : primaryTarget;
 
         #region Strategy Definitions
+        var hold = strategy.Option(Track.Hold).As<HoldStrategy>() == HoldStrategy.Forbid;
         var AOE = strategy.Option(Track.AOE);
         var AOEStrategy = AOE.As<AOEStrategy>();
         var dive = strategy.Option(Track.Dives).As<DivesStrategy>();
@@ -302,9 +302,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         #region Combo & Cooldown Execution
         //Combo Action evecution
         QueueGCD(NumAOETargets > 2 ? NextFullAOE() : NextFullST(),
-            BestAOETarget?.Actor, //on best AOE target
-            GCDPriority.Combo123); //set priority to Combo 123
-                                   // Check if 'hold' is false first, to avoid repeated checks
+            BestAOETarget?.Actor,
+            GCDPriority.Combo123);
+
         if (!hold)
         {
             if (ShouldUseLanceCharge(lcStrat, primaryTarget?.Actor))
@@ -376,7 +376,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                     TargetChoice(sc) ?? BestDiveTarget?.Actor,
                     scStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
                     ? OGCDPriority.ForcedOGCD : OGCDPriority.Starcross);
-
 
             if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
                 Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr,

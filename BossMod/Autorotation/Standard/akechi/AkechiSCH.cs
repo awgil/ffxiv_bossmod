@@ -1,11 +1,12 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+﻿using static BossMod.AIHints;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using BossMod.SCH;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
-public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
+public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
     public enum Track
@@ -153,20 +154,8 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
     public float PotionLeft; //Time left on potion buff (30s base)
     public float RaidBuffsLeft; //Time left on raid-wide buffs (typically 20s-22s)
     public float RaidBuffsIn; //Time until raid-wide buffs are applied again (typically 20s-22s)
-    public float SpS; //Current GCD length, adjusted by spell speed/haste (2.5s baseline)
     public float BurstWindowLeft; //Time left in current burst window (typically 20s-22s)
     public float BurstWindowIn; //Time until next burst window (typically 20s-22s)
-    public AID NextGCD; //Next global cooldown action to be used
-    #endregion
-
-    #region Module Helpers
-    private bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid)); //Check if the desired ability is unlocked
-    private float CD(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining; //Get remaining cooldown time for the specified action
-    private bool In25y(Actor? target) => Player.DistanceToHitbox(target) <= 24.99f; //Check if the target is within 25 yalms
-    private bool ActionReady(AID aid) => Unlocked(aid) && CD(aid) < 0.6f; //Check if the desired action is ready (cooldown less than 0.6 seconds)
-    private bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f; //Check if this is the first GCD in combat
-    private int TargetsInAOERange() => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5); //Returns the number of targets hit by AOE within a 5-yalm radius around the player
-    public bool PlayerHasEffect(SID sid, float duration) => SelfStatusLeft(sid, duration) > 0; //Checks if Status effect is on self
     #endregion
 
     #region Upgrade Paths
@@ -204,24 +193,23 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         : AID.ArtOfWar1; //Otherwise, default to Art of War
     #endregion
 
-    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) //Executes our actions
+    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         #region Variables
         var gauge = World.Client.GetGauge<ScholarGauge>(); //Retrieve Scholar gauge
         Aetherflow.Stacks = gauge.Aetherflow; //Current Aetherflow stacks
         Aetherflow.IsActive = Aetherflow.Stacks > 0; //Checks if Aetherflow is available
-        bioLeft = StatusDetails(primaryTarget, BestDOT, Player.InstanceID).Left;
-        stratagemLeft = StatusDetails(primaryTarget, SID.ChainStratagem, Player.InstanceID).Left;
+        bioLeft = StatusDetails(primaryTarget?.Actor, BestDOT, Player.InstanceID).Left;
+        stratagemLeft = StatusDetails(primaryTarget?.Actor, SID.ChainStratagem, Player.InstanceID).Left;
         canCS = ActionReady(AID.ChainStratagem); //Chain Stratagem is available
         canED = Unlocked(AID.EnergyDrain) && Aetherflow.IsActive; //Energy Drain is available
         canAF = ActionReady(AID.Aetherflow) && !Aetherflow.IsActive; //Aetherflow is available
         canWeaveIn = GCD is <= 2.5f and >= 0.1f; //Can weave in oGCDs
         canWeaveEarly = GCD is <= 2.5f and >= 1.25f; //Can weave in oGCDs early
         canWeaveLate = GCD is <= 1.25f and >= 0.1f; //Can weave in oGCDs late
-        SpS = ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level); //GCD based on spell speed and haste
         NextGCD = AID.None; //Next global cooldown action to be used
         PotionLeft = PotionStatusLeft(); //Remaining time for potion buff (30s)
-        ShouldUseAOE = TargetsInAOERange() > 1; //otherwise, use AOE if 2+ targets would be hit
+        ShouldUseAOE = ShouldUseAOECircle(5).OnTwoOrMore; //otherwise, use AOE if 2+ targets would be hit
 
         #region Strategy Definitions
         var AOE = strategy.Option(Track.AOE); //AOE track
@@ -241,9 +229,9 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
 
         #region Force Execution
         if (AOEStrategy is AOEStrategy.Ruin2)
-            QueueGCD(BestRuin, ResolveTargetOverride(AOE.Value) ?? primaryTarget, GCDPriority.ForcedGCD);
+            QueueGCD(BestRuin, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);
         if (AOEStrategy is AOEStrategy.Broil)
-            QueueGCD(BestBroil, ResolveTargetOverride(AOE.Value) ?? primaryTarget, GCDPriority.ForcedGCD);
+            QueueGCD(BestBroil, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);
         if (AOEStrategy is AOEStrategy.ArtOfWar)
             QueueGCD(BestAOE, Player, GCDPriority.ForcedGCD);
         #endregion
@@ -251,87 +239,37 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Rot
         #region Standard Execution
         if (AOEStrategy == AOEStrategy.Auto)
         {
-            var STtarget = ResolveTargetOverride(AOE.Value) ?? primaryTarget;
             if (ShouldUseAOE)
                 QueueGCD(BestAOE, Player, GCDPriority.Standard);
-            if (In25y(STtarget) &&
+            if (In25y(TargetChoice(AOE) ?? primaryTarget?.Actor) &&
                 (!ShouldUseAOE || IsFirstGCD()))
-                QueueGCD(isMoving ? BestRuin : BestST, STtarget, GCDPriority.Standard);
+                QueueGCD(IsMoving ? BestRuin : BestST, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Standard);
         }
-        if (ShouldUseBio(primaryTarget, BioStrategy))
-            QueueGCD(BestBio, ResolveTargetOverride(Bio.Value) ?? primaryTarget, GCDPriority.DOT);
+        if (ShouldUseBio(primaryTarget?.Actor, BioStrategy))
+            QueueGCD(BestBio, TargetChoice(Bio) ?? primaryTarget?.Actor, GCDPriority.DOT);
         if (PlayerHasEffect(SID.ImpactImminent, 30))
-            QueueOGCD(AID.BanefulImpaction, ResolveTargetOverride(Bio.Value) ?? primaryTarget, OGCDPriority.ChainStratagem);
-        if (ShouldUseChainStratagem(primaryTarget, csStrat))
-            QueueOGCD(AID.ChainStratagem, ResolveTargetOverride(cs.Value) ?? primaryTarget, csStrat is OffensiveStrategy.Force or OffensiveStrategy.AnyWeave or OffensiveStrategy.EarlyWeave or OffensiveStrategy.LateWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.ChainStratagem);
-        if (ShouldUseAetherflow(primaryTarget, afStrat))
-            QueueOGCD(AID.Aetherflow, Player, afStrat is OffensiveStrategy.Force or OffensiveStrategy.AnyWeave or OffensiveStrategy.EarlyWeave or OffensiveStrategy.LateWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Aetherflow);
-        if (ShouldUseEnergyDrain(primaryTarget, edStrat))
-            QueueOGCD(AID.EnergyDrain, ResolveTargetOverride(ed.Value) ?? primaryTarget, edStrat is EnergyStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.EnergyDrain);
+            QueueOGCD(AID.BanefulImpaction, TargetChoice(Bio) ?? primaryTarget?.Actor, OGCDPriority.ChainStratagem);
+        if (ShouldUseChainStratagem(primaryTarget?.Actor, csStrat))
+            QueueOGCD(AID.ChainStratagem,
+                TargetChoice(cs) ?? primaryTarget?.Actor,
+                csStrat is OffensiveStrategy.Force or OffensiveStrategy.AnyWeave or OffensiveStrategy.EarlyWeave or OffensiveStrategy.LateWeave
+                ? OGCDPriority.ForcedOGCD : OGCDPriority.ChainStratagem);
+        if (ShouldUseAetherflow(primaryTarget?.Actor, afStrat))
+            QueueOGCD(AID.Aetherflow,
+                Player,
+                afStrat is OffensiveStrategy.Force or OffensiveStrategy.AnyWeave or OffensiveStrategy.EarlyWeave or OffensiveStrategy.LateWeave
+                ? OGCDPriority.ForcedOGCD : OGCDPriority.Aetherflow);
+        if (ShouldUseEnergyDrain(primaryTarget?.Actor, edStrat))
+            QueueOGCD(AID.EnergyDrain,
+                TargetChoice(ed) ?? primaryTarget?.Actor,
+                edStrat is EnergyStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.EnergyDrain);
         if (Player.HPMP.CurMP <= 9000 && canWeaveIn && ActionReady(AID.LucidDreaming))
             QueueOGCD(AID.LucidDreaming, Player, OGCDPriority.EnergyDrain);
-        if (potion is PotionStrategy.AlignWithRaidBuffs && CD(AID.ChainStratagem) < 5 ||
+        if (potion is PotionStrategy.AlignWithRaidBuffs && TotalCD(AID.ChainStratagem) < 5 ||
             potion is PotionStrategy.Immediate)
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
         #endregion
     }
-
-    #region Core Execution Helpers
-    public void QueueGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum
-        => QueueGCD(aid, target, (int)(object)priority, delay);
-
-    public void QueueGCD(AID aid, Actor? target, int priority = 8, float delay = 0)
-    {
-        var NextGCDPrio = 0;
-
-        if (priority == 0)
-            return;
-
-        if (QueueAction(aid, target, ActionQueue.Priority.High + priority, delay) && priority > NextGCDPrio)
-        {
-            NextGCD = aid;
-        }
-    }
-
-    public void QueueOGCD<P>(AID aid, Actor? target, P priority, float delay = 0) where P : Enum
-        => QueueOGCD(aid, target, (int)(object)priority, delay);
-
-    public void QueueOGCD(AID aid, Actor? target, int priority = 4, float delay = 0)
-    {
-        if (priority == 0)
-            return;
-
-        QueueAction(aid, target, ActionQueue.Priority.Medium + priority, delay);
-    }
-
-    public bool QueueAction(AID aid, Actor? target, float priority, float delay)
-    {
-        if ((uint)(object)aid == 0)
-            return false;
-
-        var def = ActionDefinitions.Instance.Spell(aid);
-        if (def == null)
-            return false;
-
-        if (def.Range != 0 && target == null)
-        {
-            return false;
-        }
-
-        Vector3 targetPos = default;
-
-        if (def.AllowedTargets.HasFlag(ActionTargets.Area))
-        {
-            if (def.Range == 0)
-                targetPos = Player.PosRot.XYZ();
-            else if (target != null)
-                targetPos = target.PosRot.XYZ();
-        }
-
-        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, castTime: def.CastTime, targetPos: targetPos); // TODO[cast-time]-akechi: this probably needs explicit cast-time argument (adjusted by swiftcast, procs etc)
-        return true;
-    }
-    #endregion
 
     #region Cooldown Helpers
     private bool ShouldUseBio(Actor? target, BioStrategy strategy) => strategy switch

@@ -1,6 +1,4 @@
-﻿using Lumina.Excel.Sheets;
-using static BossMod.AIHints;
-using static BossMod.Autorotation.GenericUtility;
+﻿using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
 /// <summary>
