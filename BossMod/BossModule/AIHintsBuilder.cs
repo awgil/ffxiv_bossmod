@@ -63,8 +63,7 @@ public sealed class AIHintsBuilder : IDisposable
     // fill list of potential targets from world state
     private void FillEnemies(AIHints hints, bool playerIsDefaultTank)
     {
-        var playerInFate = _ws.Client.ActiveFate.ID != 0 && _ws.Party.Player()?.Level <= Service.LuminaRow<Lumina.Excel.Sheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax;
-        var allowedFateID = playerInFate ? _ws.Client.ActiveFate.ID : 0;
+        var allowedFateID = Utils.IsPlayerSyncedToFate(_ws) ? _ws.Client.ActiveFate.ID : 0;
         foreach (var actor in _ws.Actors.Where(a => a.IsTargetable && !a.IsAlly && !a.IsDead))
         {
             var index = actor.CharacterSpawnIndex;

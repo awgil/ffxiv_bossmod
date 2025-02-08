@@ -667,6 +667,19 @@ sealed class WorldStateGameSync : IDisposable
         var forcedMovementDir = MovementOverride.ForcedMovementDirection->Radians();
         if (_ws.Client.ForcedMovementDirection != forcedMovementDir)
             _ws.Execute(new ClientState.OpForcedMovementDirectionChange(forcedMovementDir));
+
+        var contentKeyValue = uiState->PlayerState.ContentKeyValueData;
+        var ckArray = new uint[]
+        {
+            contentKeyValue[0].Item1,
+            contentKeyValue[0].Item2,
+            contentKeyValue[1].Item1,
+            contentKeyValue[1].Item2,
+            contentKeyValue[2].Item1,
+            contentKeyValue[2].Item2
+        };
+        if (!MemoryExtensions.SequenceEqual<uint>(ckArray, _ws.Client.ContentKeyValueData))
+            _ws.Execute(new ClientState.OpContentKVDataChange(ckArray));
     }
 
     private unsafe void UpdateDeepDungeon()

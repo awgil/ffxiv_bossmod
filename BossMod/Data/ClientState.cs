@@ -58,6 +58,19 @@ public sealed class ClientState
     public Pet ActivePet;
     public ulong FocusTargetId;
     public Angle ForcedMovementDirection; // used for temporary misdirection and spinning states
+    public uint[] ContentKeyValueData = new uint[6]; // used for content-specific persistent player attributes, like bozja resistance rank
+
+    public uint GetContentValue(uint key) => ContentKeyValueData[0] == key
+        ? ContentKeyValueData[1]
+        : ContentKeyValueData[2] == key
+            ? ContentKeyValueData[3]
+            : ContentKeyValueData[4] == key
+                ? ContentKeyValueData[5]
+                : 0;
+
+    public uint ElementalLevel => GetContentValue(4);
+    public uint ElementalLevelSynced => GetContentValue(2);
+    public uint ResistanceRank => GetContentValue(5);
 
     public int ClassJobLevel(Class c)
     {
@@ -354,5 +367,21 @@ public sealed class ClientState
             ws.Client.ForcedMovementDirectionChanged.Fire(this);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLFD"u8).Emit(Value);
+    }
+
+    public Event<OpContentKVDataChange> ContentKVDataChanged = new();
+    public sealed record class OpContentKVDataChange(uint[] Value) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            ws.Client.ContentKeyValueData = Value;
+            ws.Client.ContentKVDataChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("CLKV"u8);
+            foreach (var val in Value)
+                output.Emit(val);
+        }
     }
 }
