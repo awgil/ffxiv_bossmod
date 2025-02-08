@@ -166,6 +166,8 @@ public sealed class Definitions : IDisposable
         //d.Spell(AID.TrueThrust)!.TransformAction = d.Spell(AID.RaidenThrust)!.TransformAction = () => ActionID.MakeSpell(_state.BestTrueThrust);
         //d.Spell(AID.DoomSpike)!.TransformAction = d.Spell(AID.DraconianFury)!.TransformAction = () => ActionID.MakeSpell(_state.BestDoomSpike);
         //d.Spell(AID.Geirskogul)!.TransformAction = d.Spell(AID.Nastrond)!.TransformAction = () => ActionID.MakeSpell(_state.BestGeirskogul);
+
+        d.Spell(AID.Stardiver)!.ForbidExecute = d.Spell(AID.DragonfireDive)!.ForbidExecute = ActionDefinitions.PreventDashIfDangerous;
     }
 
     public float EffectApplicationDelay(AID aid) => aid switch

@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using BossMod.Autorotation.xan.AI;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -87,6 +88,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         if (ImGui.CollapsingHeader("Autorotation"))
         {
             _debugAutorot.Draw();
+        }
+        if (ImGui.CollapsingHeader("Party health"))
+        {
+            DrawPartyHealth();
         }
         if (ImGui.CollapsingHeader("Solo duty module"))
         {
@@ -236,6 +241,35 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
             ImGui.TextUnformatted(elem.Position.ToString());
             ImGui.TableNextColumn();
             ImGui.TextUnformatted(elem.CastInfo.Rotation.ToString());
+        }
+        ImGui.EndTable();
+    }
+
+    private readonly TrackPartyHealth _partyHealth = new(ws);
+
+    private void DrawPartyHealth()
+    {
+        _partyHealth.Update(autorot.Hints);
+
+        var overall = _partyHealth.PartyHealth;
+
+        ImGui.TextUnformatted($"Avg: {overall.Avg * 100:f1}");
+        ImGui.TextUnformatted($"StD: {overall.StdDev:f3}");
+
+        ImGui.BeginTable("partyhealth", 4, ImGuiTableFlags.Resizable);
+        ImGui.TableSetupColumn("Name");
+        ImGui.TableSetupColumn("HP");
+        ImGui.TableSetupColumn("Type");
+        ImGui.TableHeadersRow();
+        foreach (var (_, actor) in _partyHealth.TrackedMembers)
+        {
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(actor.Name);
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{actor.HPMP.CurHP} ({actor.PendingHPDiffence}) / {actor.HPMP.MaxHP} ({actor.HPRatio * 100:f1}% / {actor.PredictedHPRatio * 100:f1}%)");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{actor.Type}");
+            ImGui.TableNextRow();
         }
         ImGui.EndTable();
     }

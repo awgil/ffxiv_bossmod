@@ -37,7 +37,10 @@ public class TrackPartyHealth(WorldState World)
     public readonly PartyMemberState[] PartyMemberStates = new PartyMemberState[PartyState.MaxAllies];
     public PartyHealthState PartyHealth { get; private set; } = new();
 
-    public bool HaveRealPartyMembers { get; private set; }
+    private bool _haveRealPartyMembers;
+    private BitMask _trackedActors;
+
+    public IEnumerable<(int, Actor)> TrackedMembers => World.Party.WithSlot().IncludedInMask(_trackedActors);
 
     // looking up this field in sheets is noticeably expensive somehow
     private static readonly Dictionary<uint, bool> _esunaCache = [];
@@ -118,7 +121,9 @@ public class TrackPartyHealth(WorldState World)
         foreach (var caster in World.Party.WithoutSlot(excludeAlliance: true).Where(a => a.CastInfo?.IsSpell(BossMod.WHM.AID.Esuna) ?? false))
             esunas.Set(World.Party.FindSlot(caster.CastInfo!.TargetID));
 
-        HaveRealPartyMembers = false;
+        _haveRealPartyMembers = false;
+
+        _trackedActors.Reset();
 
         for (var i = 0; i < PartyState.MaxAllies; i++)
         {
@@ -126,7 +131,7 @@ public class TrackPartyHealth(WorldState World)
             if (i >= PartyState.MaxPartySize)
             {
                 // if we are running content with normal party, either duty support or human players, NPC allies should be ignored entirely
-                if (HaveRealPartyMembers)
+                if (_haveRealPartyMembers)
                     shouldSkip = true;
 
                 // otherwise alliance should be skipped since healing actions generally can't target them
@@ -137,13 +142,14 @@ public class TrackPartyHealth(WorldState World)
             var actor = World.Party[i];
             ref var state = ref PartyMemberStates[i];
             state.Slot = i;
-            if (actor == null || actor.IsDead || actor.HPMP.MaxHP == 0 || shouldSkip)
+            if (actor == null || actor.IsDead || actor.HPMP.MaxHP == 0 || actor.FateID > 0 || shouldSkip)
             {
                 state.PredictedHP = state.PredictedHPMissing = 0;
                 state.PredictedHPRatio = state.PendingHPRatio = 1;
             }
             else
             {
+                _trackedActors[i] = true;
                 state.PredictedHP = actor.PredictedHPRaw;
                 state.PredictedHPMissing = (int)actor.HPMP.MaxHP - state.PredictedHP;
                 state.PredictedHPRatio = state.PendingHPRatio = (float)state.PredictedHP / actor.HPMP.MaxHP;
@@ -182,7 +188,7 @@ public class TrackPartyHealth(WorldState World)
         foreach (var enemy in Hints.PotentialTargets)
         {
             var targetSlot = World.Party.FindSlot(enemy.Actor.TargetID);
-            if (targetSlot >= 0)
+            if (_trackedActors[targetSlot])
             {
                 ref var state = ref PartyMemberStates[targetSlot];
                 state.AttackerStrength += enemy.AttackStrength;

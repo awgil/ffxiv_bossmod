@@ -161,5 +161,7 @@ public sealed class Definitions : IDisposable
         // upgrades (TODO: don't think we actually care...)
         //d.Spell(AID.Iaijutsu)!.TransformAction = () => ActionID.MakeSpell(_state.BestIai);
         //d.Spell(AID.MeikyoShisui)!.Condition = _ => _state.MeikyoLeft == 0;
+
+        d.Spell(AID.HissatsuGyoten)!.ForbidExecute = ActionDefinitions.PreventDashIfDangerous;
     }
 }

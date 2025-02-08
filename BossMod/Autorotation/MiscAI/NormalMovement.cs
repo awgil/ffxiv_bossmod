@@ -182,8 +182,13 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             CastStrategy.Greedy => float.MaxValue,
             _ => 0,
         };
-        Hints.MaxCastTime = Math.Min(Hints.MaxCastTime, maxCastTime);
+        Hints.MaxCastTime = Math.Max(0, Math.Min(Hints.MaxCastTime, maxCastTime));
         Hints.ForceCancelCast |= castStrategy == CastStrategy.DropMove;
+        if (castStrategy is CastStrategy.Leeway && Player.CastInfo is { } castInfo)
+        {
+            var effectiveCastRemaining = Math.Max(0, castInfo.RemainingTime - 0.5f);
+            Hints.ForceCancelCast |= Hints.MaxCastTime < effectiveCastRemaining;
+        }
     }
 
     private float CalculateUnobstructedPathLength(Angle dir)
