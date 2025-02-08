@@ -23,7 +23,13 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions & Strategies
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi WAR", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Ok, BitMask.Build(Class.MRD, Class.WAR), 100);
+        var res = new RotationModuleDefinition("Akechi WAR", //Title
+            "Standard Rotation Module", //Description
+            "Standard rotation (Akechi)|Tank", //Category
+            "Akechi", //Contributor
+            RotationModuleQuality.Ok, //Quality
+            BitMask.Build(Class.MRD, Class.WAR), //Job
+            100); //Level supported
 
         res.DefineShared();
         res.Define(Track.Gauge).As<GaugeStrategy>("Gauge", "Gauge", uiPriority: 200)
@@ -216,6 +222,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     public (float Left, int Stacks, float CD, bool IsActive, bool IsReady) InnerRelease;
     #endregion
 
+    #region Module Helpers
     public bool IsRiskingGauge()
     {
         if (BeastGauge >= 90 && //if 90
@@ -232,8 +239,9 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
 
         return false;
     }
+    #endregion
 
-    public override void Execution(StrategyValues strategy, Enemy? primaryTarget) //Executes our actions
+    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         #region Variables
 

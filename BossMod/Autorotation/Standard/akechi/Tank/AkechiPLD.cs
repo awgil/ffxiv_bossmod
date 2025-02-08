@@ -157,7 +157,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
     #endregion
 
-    public override void Execution(StrategyValues strategy, Enemy? primaryTarget) //Executes our actions
+    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         #region Variables
         var gauge = World.Client.GetGauge<PaladinGauge>(); //Retrieve Paladin gauge

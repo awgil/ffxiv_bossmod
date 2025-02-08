@@ -186,7 +186,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     private Enemy? BestSplashTarget;
     #endregion
 
-    public override void Execution(StrategyValues strategy, Enemy? primaryTarget) //Executes our actions
+    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         #region Variables
         var gauge = World.Client.GetGauge<GunbreakerGauge>(); //Retrieve Gunbreaker gauge
