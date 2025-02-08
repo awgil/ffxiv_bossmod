@@ -931,30 +931,33 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="getTimer"></param>
     /// <param name="maxAllowedTargets"></param>
     /// <returns></returns>
-    protected (Enemy? Target, P Timer) GetDOTTarget<P>(StrategyValues strategy, Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
+    protected (Enemy? Target, P Timer) GetDOTTarget<P>(Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
     {
-        var AOEStrat = strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
-        switch (AOEStrat)
+        // Check if the initial target is null or if the maxAllowedTargets is 0, in which case no valid target can be selected
+        if (initial == null || maxAllowedTargets <= 0)
         {
-            case AOEStrategy.ForceST:
-            case AOEStrategy.ForceAOE:
-            case AOEStrategy.Automatic:
-                return (initial, getTimer(initial?.Actor));
+            return (null, getTimer(null));
         }
 
         var newTarget = initial;
         var initialTimer = getTimer(initial?.Actor);
         var newTimer = initialTimer;
         var numTargets = 0;
+
         foreach (var dotTarget in Hints.PriorityTargets)
         {
+            // Skip targets that forbid DOTs
             if (dotTarget.ForbidDOTs)
                 continue;
 
+            // If we exceed the max number of allowed targets, stop and return the current best
             if (++numTargets > maxAllowedTargets)
-                return (null, getTimer(null));
+                return (newTarget, newTimer);
 
+            // Get the timer for the current target
             var thisTimer = getTimer(dotTarget.Actor);
+
+            // Update the new target and timer if the current one is better (has a smaller timer value)
             if (thisTimer.CompareTo(newTimer) < 0)
             {
                 newTarget = dotTarget;
@@ -1043,6 +1046,24 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
                 Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, r, 0.5f));
         }
     }
+    protected void AnyGoalZoneCombined(float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, Positional positional = Positional.Any, float? maximumActionRange = null)
+    {
+        if (!Unlocked(firstUnlockedAoeAction))
+            minAoe = 50;
+
+        if (PlayerTarget == null)
+        {
+            if (minAoe < 50)
+                Hints.GoalZones.Add(fAoe);
+        }
+        else
+        {
+            Hints.GoalZones.Add(Hints.GoalCombined(Hints.GoalSingleTarget(PlayerTarget.Actor, positional, range), fAoe, minAoe));
+            if (maximumActionRange is float r)
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, r, 0.5f));
+        }
+    }
+
     #endregion
 
     #region Misc

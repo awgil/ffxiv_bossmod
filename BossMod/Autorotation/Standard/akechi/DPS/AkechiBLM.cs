@@ -276,7 +276,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             StatusDetails(BestSplashTarget?.Actor, SID.HighThunderII, Player.InstanceID, 24).Left);
         ShouldUseAOE = Unlocked(AID.Blizzard2) && NumSplashTargets > 2;
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
-        (BestDOTTargets, thunderLeft) = GetDOTTarget(strategy, primaryTarget, ThunderLeft, 2);
+        (BestDOTTargets, thunderLeft) = GetDOTTarget(primaryTarget, ThunderRemaining, 5);
         BestSplashTarget = ShouldUseAOE ? BestSplashTargets : primaryTarget;
         BestDOTTarget = Unlocked(AID.Thunder1) ? BestDOTTargets : primaryTarget;
         canOpen = TotalCD(AID.LeyLines) <= 120
@@ -1012,7 +1012,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
 
     #region DOT
     private static SID[] GetDotStatus() => [SID.Thunder, SID.ThunderII, SID.ThunderIII, SID.ThunderIV, SID.HighThunder, SID.HighThunderII];
-    private float ThunderLeft(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 0);
+    private float ThunderRemaining(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 0);
     private bool ShouldUseThunder(Actor? target, ThunderStrategy strategy) => strategy switch
     {
         ThunderStrategy.Thunder3 => Player.InCombat && target != null && hasThunderhead && thunderLeft <= 3 && In25y(target),

@@ -126,7 +126,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         canED = Unlocked(AID.EnergyDrain) && Aetherflow.IsActive; //Energy Drain is available
         canAF = ActionReady(AID.Aetherflow) && !Aetherflow.IsActive; //Aetherflow is available
         ShouldUseAOE = ShouldUseAOECircle(5).OnTwoOrMore; //otherwise, use AOE if 2+ targets would be hit
-        (BestDOTTargets, bioLeft) = GetDOTTarget(strategy, PlayerTarget, BioLeft, 2);
+        (BestDOTTargets, bioLeft) = GetDOTTarget(primaryTarget, BioRemaining, 5);
         BestDOTTarget = Unlocked(AID.Bio1) ? BestDOTTargets : primaryTarget;
 
         #region Strategy Definitions
@@ -193,7 +193,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region AI
-        GoalZoneCombined(strategy, 25, Hints.GoalAOECircle(5), AID.ArtOfWar1, Unlocked(AID.Broil1) ? 2 : 1);
+        AnyGoalZoneCombined(25, Hints.GoalAOECircle(5), AID.ArtOfWar1, Unlocked(AID.Broil1) ? 2 : 1);
         #endregion
     }
 
@@ -201,7 +201,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
 
     #region DOT
     private static SID[] GetDotStatus() => [SID.Bio1, SID.Bio2, SID.Biolysis];
-    private float BioLeft(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 0);
+    private float BioRemaining(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 0);
     private bool ShouldUseBio(Actor? target, BioStrategy strategy) => strategy switch
     {
         BioStrategy.Bio3 => Player.InCombat && target != null && bioLeft <= 3 && In25y(target),
