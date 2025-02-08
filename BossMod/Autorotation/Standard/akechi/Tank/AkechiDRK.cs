@@ -18,7 +18,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     public enum UnmendStrategy { OpenerFar, OpenerForce, Force, Allow, Forbid }
     #endregion
 
-    #region Module Definitions & Strategies
+    #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
         var res = new RotationModuleDefinition("Akechi DRK", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.DRK), 100);
