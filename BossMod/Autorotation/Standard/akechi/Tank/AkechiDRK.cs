@@ -21,7 +21,13 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi DRK", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.DRK), 100);
+        var res = new RotationModuleDefinition("Akechi DRK", //Title
+            "Standard Rotation Module", //Description
+            "Standard rotation (Akechi)|Tank", //Category
+            "Akechi", //Contributor
+            RotationModuleQuality.Good, //Quality
+            BitMask.Build((int)Class.DRK), //Job
+            100); //Level supported
 
         res.DefineShared();
         res.Define(Track.Blood).As<BloodStrategy>("Blood", "Blood", uiPriority: 200)
@@ -91,6 +97,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     {
         None = 0,
         Standard = 100,
+        ForcedCombo = 499,
         Blood = 300,
         Disesteem = 500,
         DeliriumCombo = 600,
@@ -234,9 +241,9 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         if (strategy.Automatic())
             QueueGCD(BestRotation(), TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor, GCDPriority.Standard);
         if (strategy.ForceST())
-            QueueGCD(ST(), TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor, GCDPriority.Standard);
+            QueueGCD(ST(), TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor, GCDPriority.ForcedCombo);
         if (strategy.ForceAOE())
-            QueueGCD(AOE(), Player, GCDPriority.Standard);
+            QueueGCD(AOE(), Player, GCDPriority.ForcedCombo);
         #endregion
 
         #region Cooldowns

@@ -215,6 +215,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     public (float TotalCD, float ChargeCD, bool HasCharges, bool IsReady) Infuriate;
     public (float Left, int Stacks, float CD, bool IsActive, bool IsReady) InnerRelease;
     #endregion
+
     public bool IsRiskingGauge()
     {
         if (BeastGauge >= 90 && //if 90
@@ -231,6 +232,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
 
         return false;
     }
+
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget) //Executes our actions
     {
         #region Variables
@@ -333,25 +335,17 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
 
         #region Standard Rotations
         if (strategy.Automatic())
-        {
-            QueueGCD(BestRotation(), //queue the next single-target combo action only if combo is finished
-                TargetChoice(strategy.Option(SharedTrack.AOE)) //Get target choice
-                ?? primaryTarget?.Actor, //if none, pick primary target
-                GCDPriority.Standard); //with priority for 123/10 combo actions
-        }
-        if (strategy.ForceST()) //if Force Single Target option is picked
-        {
+            QueueGCD(BestRotation(),
+                TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
+                GCDPriority.ForcedCombo);
+        if (strategy.ForceST())
             QueueGCD(ST(),
-                TargetChoice(strategy.Option(SharedTrack.AOE)) //Get target choice
-                ?? primaryTarget?.Actor, //if none, pick primary target
-                GCDPriority.Standard); //with priority for 123/10 combo actions
-        }
-        if (strategy.ForceAOE()) //if Force AOE option is picked
-        {
+                TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
+                GCDPriority.ForcedCombo);
+        if (strategy.ForceAOE())
             QueueGCD(AOE(),
                 Player,
-                GCDPriority.Standard); //with priority for 123/10 combo actions
-        }
+                GCDPriority.ForcedCombo);
         #endregion
 
         #region Cooldowns

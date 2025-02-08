@@ -11,7 +11,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     #region Enums: Abilities / Strategies
     public enum Track { AOE, Cooldowns, Cartridges, Potion, LightningShot, NoMercy, SonicBreak, GnashingFang, Reign, Bloodfest, DoubleDown, Zone, BowShock }
     public enum AOEStrategy { AutoFinishCombo, AutoBreakCombo, ForceSTwithO, ForceSTwithoutO, ForceAOEwithO, ForceAOEwithoutO, GenerateDowntime }
-    public enum CooldownStrategy { Automatic, Hold }
+    public enum CooldownStrategy { Allow, Forbid }
     public enum CartridgeStrategy { Automatic, OnlyBS, OnlyFC, ForceBS, ForceFC, Conserve }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
     public enum LightningShotStrategy { OpenerFar, OpenerForce, Force, Allow, Forbid }
@@ -33,7 +33,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             BitMask.Build((int)Class.GNB), //Job
             100); //Level supported
 
-        #region Custom strategies
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 200)
             .AddOption(AOEStrategy.AutoFinishCombo, "Auto (Finish Combo)", "Auto-selects best rotation dependant on targets; Finishes combo first", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.AutoBreakCombo, "Auto (Break Combo)", "Auto-selects best rotation dependant on targets; Breaks combo if needed", supportedTargets: ActionTargets.Hostile)
@@ -42,9 +41,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddOption(AOEStrategy.ForceAOEwithO, "Force AOE with Overcap", "Force AOE rotation with overcap protection")
             .AddOption(AOEStrategy.ForceAOEwithoutO, "Force AOE without Overcap", "Force AOE rotation without overcap protection")
             .AddOption(AOEStrategy.GenerateDowntime, "Generate Downtime", "Generate cartridges before downtime");
-        res.Define(Track.Cooldowns).As<CooldownStrategy>("Cooldowns", "CDs", uiPriority: 190)
-            .AddOption(CooldownStrategy.Automatic, "Automatic", "Automatically decides when to use cooldowns; will use them optimally")
-            .AddOption(CooldownStrategy.Hold, "Hold", "Prohibit use of all cooldown-related abilities; will not use any actions with a cooldown timer");
+        res.Define(Track.Cooldowns).As<CooldownStrategy>("Hold", uiPriority: 190)
+            .AddOption(CooldownStrategy.Allow, "Allow", "Allows the use of all cooldowns & buffs; will use them optimally")
+            .AddOption(CooldownStrategy.Forbid, "Hold", "Forbids the use of all cooldowns & buffs; will not use any actions with a cooldown timer");
         res.Define(Track.Cartridges).As<CartridgeStrategy>("Cartridges", "Carts", uiPriority: 180)
             .AddOption(CartridgeStrategy.Automatic, "Automatic", "Automatically decide when to use cartridges; uses them optimally")
             .AddOption(CartridgeStrategy.OnlyBS, "Only Burst Strike", "Uses Burst Strike optimally as cartridge spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 30)
@@ -110,43 +109,39 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddOption(BloodfestStrategy.Force0W, "Force (0 cart, Weave)", "Force use of Bloodfest only if empty on cartridges & in next possible weave slot", 120, 0, ActionTargets.Hostile, 80)
             .AddOption(BloodfestStrategy.Delay, "Delay", "Delay use of Bloodfest", 0, 0, ActionTargets.None, 80)
             .AddAssociatedActions(AID.Bloodfest);
-        #endregion
-
-        #region Offensive Strategies
         res.DefineGCD(Track.DoubleDown, AID.DoubleDown, "DoubleDown", "D.Down", uiPriority: 160, 60, 0, ActionTargets.Hostile, 90);
         res.DefineOGCD(Track.Zone, AID.DangerZone, "Zone", "Zone", uiPriority: 150, 30, 0, ActionTargets.Hostile, 18).AddAssociatedActions(AID.BlastingZone, AID.DangerZone);
         res.DefineOGCD(Track.BowShock, AID.BowShock, "BowShock", "B.Shock", uiPriority: 150, 60, 15, ActionTargets.Self, 62);
-        #endregion
 
         return res;
     }
     #endregion
 
     #region Priorities
-    public enum GCDPriority //priorities for GCDs (higher number = higher priority)
+    public enum GCDPriority
     {
-        None = 0,           //default
-        Combo123 = 350,     //combo actions
-        ForcedCombo = 499,  //forced combo actions
-        Gauge = 500,        //cartridge spender actions
-        Reign = 525,        //Reign of Beasts
-        comboNeed = 550,    //combo actions that need to be used
-        GF23 = 575,         //Gnashing combo chain
-        SonicBreak = 600,   //Sonic Break
-        DoubleDown = 675,   //Double Down
-        GF1 = 700,          //Gnashing Fang
-        ForcedGCD = 900,    //Forced GCDs
+        None = 0,
+        Standard = 100,
+        ForcedCombo = 499,
+        Gauge = 500,
+        Reign = 525,
+        comboNeed = 550,
+        GF23 = 575,
+        SonicBreak = 600,
+        DoubleDown = 675,
+        GF1 = 700,
+        ForcedGCD = 900,
     }
-    public enum OGCDPriority //priorities for oGCDs (higher number = higher priority)
+    public enum OGCDPriority
     {
-        None = 0,           //default
-        Continuation = 500, //Continuation procs
-        Zone = 550,         //Blasting Zone
-        BowShock = 600,     //Bow Shock
-        Bloodfest = 700,    //Bloodfest
-        NoMercy = 875,      //No Mercy
-        Potion = 900,       //Potion
-        ForcedOGCD = 900,   //Forced oGCDs
+        None = 0,
+        Continuation = 500,
+        Zone = 550,
+        BowShock = 600,
+        Bloodfest = 700,
+        NoMercy = 875,
+        Potion = 900,
+        ForcedOGCD = 1100, //Enough to put it past CDPlanner's "Automatic" priority, which is really only Medium priority
     }
     #endregion
 
@@ -186,6 +181,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     private bool canReign; //Checks if Reign of Beasts & its combo chain are completely available
     private bool ShouldUseAOE; //Checks if AOE rotation should be used
     private bool ShouldUseFC; //Checks if Fated Circle should be used
+    private int NumSplashTargets;
+    private Enemy? BestSplashTargets;
+    private Enemy? BestSplashTarget;
     #endregion
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget) //Executes our actions
@@ -207,11 +205,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         hasTear = PlayerHasEffect(SID.ReadyToTear, 10f) && !LastActionUsed(AID.AbdomenTear); //Checks for Ready To Tear buff
         hasGouge = PlayerHasEffect(SID.ReadyToGouge, 10f) && !LastActionUsed(AID.EyeGouge); //Checks for Ready To Gouge buff
         inOdd = bfCD is <= 90 and >= 30; //Checks if we are in an odd-minute window
-        ShouldUseAOE = //Determine if we should use AOE
-            Unlocked(TraitID.MeleeMastery) //if Melee Mastery trait unlocked
-            ? ShouldUseAOECircle(5).OnThreeOrMore //use AOE if 3+ targets would be hit
-            : ShouldUseAOECircle(5).OnTwoOrMore; //otherwise, use AOE if 2+ targets would be hit
+        ShouldUseAOE = Unlocked(TraitID.MeleeMastery) ? ShouldUseAOECircle(5).OnThreeOrMore : ShouldUseAOECircle(5).OnTwoOrMore;
         ShouldUseFC = ShouldUseAOECircle(5).OnTwoOrMore; //Determine if we should use Fated Circle
+        (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 3, IsSplashTarget);
+        BestSplashTarget = Unlocked(AID.ReignOfBeasts) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
 
         #region Minimal Requirements
         canNM = TotalCD(AID.NoMercy) < 1; //No Mercy conditions
@@ -250,7 +247,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         var sbStrat = sb.As<SonicBreakStrategy>(); //Sonic Break strategy
         var ls = strategy.Option(Track.LightningShot); //Lightning Shot track
         var lsStrat = ls.As<LightningShotStrategy>(); //Lightning Shot strategy
-        var hold = strategy.Option(Track.Cooldowns).As<CooldownStrategy>() == CooldownStrategy.Hold; //Determine if holding resources
+        var hold = strategy.Option(Track.Cooldowns).As<CooldownStrategy>() == CooldownStrategy.Forbid; //Determine if holding resources
         var conserve = cartStrat == CartridgeStrategy.Conserve; //Determine if conserving cartridges
         #endregion
 
@@ -258,7 +255,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
 
         #region Full Rotation Execution
 
-        #region Standard Rotations (1-2-3 / 1-2)
+        #region Standard Rotations
 
         #region Force Execution
         if (AOEStrategy is AOEStrategy.ForceSTwithO) //if Single-target (with overcap protection) option is selected
@@ -340,19 +337,19 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             if (ShouldUseAOE) //if AOE rotation should be used
                 QueueGCD(AOEwithoutOvercap(), //queue the next AOE combo action
                     Player, //on Self (no target needed)
-                    GCDPriority.Combo123); //with priority for 123/12 combo actions
+                    GCDPriority.Standard); //with priority for 123/12 combo actions
             if (!ShouldUseAOE)
                 QueueGCD(STwithoutOvercap(), //queue the next single-target combo action
                     TargetChoice(AOE) //Get target choice
                     ?? primaryTarget?.Actor, //if none, choose primary target
-                    GCDPriority.Combo123); //with priority for 123/12 combo actions
+                    GCDPriority.Standard); //with priority for 123/12 combo actions
         }
         if (AOEStrategy == AOEStrategy.AutoFinishCombo) //if Finish Combo option is selected
         {
             QueueGCD(BestRotation(), //queue the next single-target combo action only if combo is finished
                 TargetChoice(AOE) //Get target choice
                 ?? primaryTarget?.Actor, //if none, choose primary target
-                GCDPriority.Combo123); //with priority for 123/12 combo actions
+                GCDPriority.Standard); //with priority for 123/12 combo actions
         }
         #endregion
 
@@ -388,7 +385,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                     ? GCDPriority.ForcedGCD : GCDPriority.SonicBreak);
             if (ShouldUseReign(reignStrat, primaryTarget?.Actor))
                 QueueGCD(AID.ReignOfBeasts,
-                    TargetChoice(reign) ?? primaryTarget?.Actor,
+                    TargetChoice(reign) ?? BestSplashTarget?.Actor,
                     reignStrat is ReignStrategy.ForceReign
                     ? GCDPriority.ForcedGCD : GCDPriority.Reign);
 
@@ -437,19 +434,19 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                 ? GCDPriority.ForcedGCD : GCDPriority.GF23);
         if (GunComboStep == 3)
             QueueGCD(AID.NobleBlood,
-                TargetChoice(reign) ?? primaryTarget?.Actor,
+                TargetChoice(reign) ?? BestSplashTarget?.Actor,
                 reignStrat is ReignStrategy.ForceNoble
                 ? GCDPriority.ForcedGCD : GCDPriority.Reign);
         if (GunComboStep == 4)
             QueueGCD(AID.LionHeart,
-                TargetChoice(reign) ?? primaryTarget?.Actor,
+                TargetChoice(reign) ?? BestSplashTarget?.Actor,
                 reignStrat is ReignStrategy.ForceLion
                 ? GCDPriority.ForcedGCD : GCDPriority.Reign);
         if (ShouldUseLightningShot(primaryTarget?.Actor, lsStrat))
             QueueGCD(AID.LightningShot,
                 TargetChoice(ls) ?? primaryTarget?.Actor,
                 lsStrat is >= LightningShotStrategy.Force
-                ? GCDPriority.ForcedGCD : GCDPriority.Combo123);
+                ? GCDPriority.ForcedGCD : GCDPriority.Standard);
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr,
                 Player,
