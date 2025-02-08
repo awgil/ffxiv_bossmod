@@ -9,118 +9,16 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track
-    {
-        AOE,                 //ST&AOE rotations tracking
-        Movement,            //Movement strategy tracking
-        Thunder,             //Thunder tracking
-        Polyglot,            //Polyglot tracking
-        Manafont,            //Manafont tracking
-        Triplecast,          //Triplecast tracking
-        LeyLines,            //Ley Lines tracking
-        Potion,              //Potion item tracking
-        TPUS,                //Transpose&UmbralSoul combo tracking
-        Casting,              //Cast while Moving option tracking
-        Transpose,           //Transpose tracking
-        Amplifier,           //Amplifier tracking
-        Retrace,             //Retrace tracking
-        BTL,                 //Between the Lines tracking
-    }
-    public enum AOEStrategy
-    {
-        Auto,                //Automatically decide when to use ST or AOE rotation based on targets nearby
-        ForceST,             //Force ST rotation only
-        ForceAOE,            //Force AOE rotation only
-    }
-    public enum MovementStrategy
-    {
-        Allow,               //Allow the use of all abilities for movement, regardless of any setting or condition set by the user in other options
-        AllowNoScathe,       //Allow the use of all abilities for movement, except Scathe
-        OnlyGCDs,            //Only use instant cast GCDs for movement (Polyglots->Firestarter->Thunder->Scathe if nothing left), regardless of any setting or condition set by the user in other options
-        OnlyOGCDs,           //Only use OGCDs for movement, (Swiftcast->Triplecast) regardless of any setting or condition set by the user in other options
-        OnlyScathe,          //Only use Scathe for movement
-        Forbid               //Forbid the use of any abilities for movement
-    }
-    public enum ThunderStrategy
-    {
-        Thunder3,            //Force use of Thunder if target has 3s or less remaining on DOT effect
-        Thunder6,            //Force use of Thunder if target has 6s or less remaining on DOT effect
-        Thunder9,            //Force use of Thunder if target has 9s or less remaining on DOT effect
-        Thunder0,            //Force use of Thunder if target has does not have DOT effect
-        Force,               //Force use of Thunder regardless of DOT effect
-        Delay                //Delay the use of Thunder for manual or strategic usage
-    }
-    public enum PolyglotStrategy
-    {
-        AutoSpendAll,        //Spend all Polyglots as soon as possible
-        AutoHold1,           //Spend 2 Polyglots; holds one for manual usage
-        AutoHold2,           //Spend 1 Polyglot; holds two for manual usage
-        AutoHold3,           //Holds all Polyglots for as long as possible
-        XenoSpendAll,        //Use Xenoglossy as optimal spender, regardless of targets nearby; spends all Polyglots
-        XenoHold1,           //Use Xenoglossy as optimal spender, regardless of targets nearby; holds one Polyglot for manual usage
-        XenoHold2,           //Use Xenoglossy as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage
-        XenoHold3,           //Holds all Polyglots for as long as possible
-        FoulSpendAll,        //Use Foul as optimal spender, regardless of targets nearby
-        FoulHold1,           //Use Foul as optimal spender, regardless of targets nearby; holds one Polyglot for manual usage
-        FoulHold2,           //Use Foul as optimal spender, regardless of targets nearby; holds two Polyglots for manual usage
-        FoulHold3,           //Holds all Polyglots for as long as possible
-        ForceXeno,           //Force use of Xenoglossy
-        ForceFoul,           //Force use of Foul
-        Delay                //Delay the use of Polyglot abilities for manual or strategic usage
-    }
-    public enum ManafontStrategy
-    {
-        Automatic,           //Automatically decide when to use Manafont
-        Force,               //Force the use of Manafont (180s TotalCD), regardless of weaving conditions
-        ForceWeave,          //Force the use of Manafont (180s TotalCD) in any next possible weave slot
-        ForceEX,             //Force the use of Manafont (100s TotalCD), regardless of weaving conditions
-        ForceWeaveEX,        //Force the use of Manafont (100s TotalCD) in any next possible weave slot
-        Delay                //Delay the use of Manafont for strategic reasons
-    }
-    public enum TriplecastStrategy
-    {
-        Automatic,           //Automatically decide when to use Triplecast
-        Force,               //Force the use of Triplecast; use all charges
-        Force1,              //Force the use of Triplecast; holds one charge for manual usage
-        ForceWeave,          //Force the use of Triplecast in any next possible weave slot
-        ForceWeave1,         //Force the use of Triplecast in any next possible weave slot; holds one charge for manual usage
-        Delay                //Delay the use of Triplecast
-    }
-    public enum LeyLinesStrategy
-    {
-        Automatic,           //Automatically decide when to use Ley Lines
-        Force,               //Force the use of Ley Lines, regardless of weaving conditions
-        Force1,              //Force the use of Ley Lines; holds one charge for manual usage
-        ForceWeave,          //Force the use of Ley Lines in any next possible weave slot
-        ForceWeave1,         //Force the use of Ley Lines in any next possible weave slot; holds one charge for manual usage
-        Delay                //Delay the use of Ley Lines
-    }
-    public enum PotionStrategy
-    {
-        Manual,              //Manual potion usage
-        AlignWithRaidBuffs,  //Align potion usage with raid buffs
-        Immediate            //Use potions immediately when available
-    }
-    public enum TPUSStrategy
-    {
-        Allow,               //Allow Transpose & Umbral Soul combo whenever available
-        OOConly,             //Only use Transpose & Umbral Soul combo when fully out of combat
-        Forbid               //Forbid Transpose & Umbral Soul combo
-    }
-    public enum CastingOption
-    {
-        Allow,               //Allow casting while moving
-        Forbid               //Forbid casting while moving
-    }
-    public enum OffensiveStrategy
-    {
-        Automatic,           //Automatically decide when to use off-global offensive abilities
-        Force,               //Force the use of off-global offensive abilities, regardless of weaving conditions
-        AnyWeave,            //Force the use of off-global offensive abilities in any next possible weave slot
-        EarlyWeave,          //Force the use of off-global offensive abilities in very next FIRST weave slot only
-        LateWeave,           //Force the use of off-global offensive abilities in very next LAST weave slot only
-        Delay                //Delay the use of offensive abilities for strategic reasons
-    }
+    public enum Track { Movement = SharedTrack.Count, Thunder, Polyglot, Manafont, Triplecast, LeyLines, Potion, TPUS, Casting, Transpose, Amplifier, Retrace, BTL }
+    public enum MovementStrategy { Allow, AllowNoScathe, OnlyGCDs, OnlyOGCDs, OnlyScathe, Forbid }
+    public enum ThunderStrategy { Thunder3, Thunder6, Thunder9, Thunder0, Force, Delay }
+    public enum PolyglotStrategy { AutoSpendAll, AutoHold1, AutoHold2, AutoHold3, XenoSpendAll, XenoHold1, XenoHold2, XenoHold3, FoulSpendAll, FoulHold1, FoulHold2, FoulHold3, ForceXeno, ForceFoul, Delay }
+    public enum ManafontStrategy { Automatic, Force, ForceWeave, ForceEX, ForceWeaveEX, Delay }
+    public enum TriplecastStrategy { Automatic, Force, Force1, ForceWeave, ForceWeave1, Delay }
+    public enum LeyLinesStrategy { Automatic, Force, Force1, ForceWeave, ForceWeave1, Delay }
+    public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
+    public enum TPUSStrategy { Allow, OOConly, Forbid }
+    public enum CastingOption { Allow, Forbid }
     #endregion
 
     #region Module Definitions
@@ -382,8 +280,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 && TotalCD(AID.Amplifier) <= 0.1f;
 
         #region Strategy Definitions
-        var AOE = strategy.Option(Track.AOE); //AOE track
-        var AOEStrategy = AOE.As<AOEStrategy>(); //AOE strategy
+        var AOE = strategy.Option(SharedTrack.AOE); //AOE track
         var movementStrat = strategy.Option(Track.Movement).As<MovementStrategy>();
         var thunder = strategy.Option(Track.Thunder); //Thunder track
         var thunderStrat = thunder.As<ThunderStrategy>(); //Thunder strategy
@@ -396,16 +293,14 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         var ll = strategy.Option(Track.LeyLines); //Ley Lines track
         var llStrat = ll.As<LeyLinesStrategy>(); //Ley Lines strategy
         var amp = strategy.Option(Track.Amplifier); //Amplifier track
-        var ampStrat = amp.As<OffensiveStrategy>(); //Amplifier strategy
+        var ampStrat = amp.As<OGCDStrategy>(); //Amplifier strategy
         var retrace = strategy.Option(Track.Retrace); //Retrace track
-        var retraceStrat = retrace.As<OffensiveStrategy>(); //Retrace strategy
+        var retraceStrat = retrace.As<OGCDStrategy>(); //Retrace strategy
         var btl = strategy.Option(Track.BTL); //Between the Lines track
-        var btlStrat = btl.As<OffensiveStrategy>(); //Between the Lines strategy
+        var btlStrat = btl.As<OGCDStrategy>(); //Between the Lines strategy
         var potionStrat = strategy.Option(Track.Potion).As<PotionStrategy>(); //Potion strategy
         var tpusStrat = strategy.Option(Track.TPUS).As<TPUSStrategy>(); //Transpose/Umbral Soul strategy
         var movingOption = strategy.Option(Track.Casting).As<CastingOption>(); //Casting while moving strategy
-        var forceST = AOEStrategy is AOEStrategy.ForceST; //Force single target
-        var forceAOE = AOEStrategy is AOEStrategy.ForceAOE; //Force AOE
         #endregion
 
         #endregion
@@ -425,8 +320,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 if (!PlayerHasEffect(SID.Swiftcast, 10) || !PlayerHasEffect(SID.Triplecast, 15))
                 {
                     if (Unlocked(TraitID.EnhancedPolyglot) && Polyglots > 0)
-                        QueueGCD(forceST ? BestXenoglossy : forceAOE ? AID.Foul : BestPolyglot,
-                                 TargetChoice(polyglot) ?? (forceST ? primaryTarget?.Actor : BestSplashTarget?.Actor),
+                        QueueGCD(strategy.ForceST() ? BestXenoglossy : strategy.ForceAOE() ? AID.Foul : BestPolyglot,
+                                 TargetChoice(polyglot) ?? (strategy.ForceST() ? primaryTarget?.Actor : BestSplashTarget?.Actor),
                                  GCDPriority.Moving1);
 
                     if (PlayerHasEffect(SID.Firestarter, 30))
@@ -435,8 +330,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                                  GCDPriority.Moving1);
 
                     if (hasThunderhead)
-                        QueueGCD(forceST ? BestThunderST : forceAOE ? BestThunderAOE : BestThunder,
-                                 TargetChoice(thunder) ?? (forceST ? primaryTarget?.Actor : BestSplashTarget?.Actor),
+                        QueueGCD(strategy.ForceST() ? BestThunderST : strategy.ForceAOE() ? BestThunderAOE : BestThunder,
+                                 TargetChoice(thunder) ?? (strategy.ForceST() ? primaryTarget?.Actor : BestSplashTarget?.Actor),
                                  GCDPriority.Moving1);
                 }
             }
@@ -496,11 +391,11 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 || //or can use F3P
             Unlocked(TraitID.EnhancedAstralFire) && MP is < 1600 and not 0)) //instant cast Despair 
         {
-            if (AOEStrategy is AOEStrategy.Auto)
+            if (strategy.Automatic())
                 BestRotation(TargetChoice(AOE) ?? BestSplashTarget?.Actor);
-            if (forceST)
+            if (strategy.ForceST())
                 BestST(TargetChoice(AOE) ?? primaryTarget?.Actor);
-            if (forceAOE)
+            if (strategy.ForceAOE())
                 BestAOE(TargetChoice(AOE) ?? BestSplashTarget?.Actor);
         }
         #endregion
@@ -509,17 +404,17 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         //Thunder
         if (ShouldUseThunder(BestSplashTarget?.Actor, thunderStrat)) //if Thunder should be used based on strategy
         {
-            if (AOEStrategy is AOEStrategy.Auto)
+            if (strategy.Automatic())
                 QueueGCD(BestThunder,
                     TargetChoice(thunder),
                     ThunderLeft <= 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
-            if (forceST)
+            if (strategy.ForceST())
                 QueueGCD(BestThunderST,
                     TargetChoice(thunder) ?? BestSplashTarget?.Actor,
                     ThunderLeft <= 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
-            if (forceAOE)
+            if (strategy.ForceAOE())
                 QueueGCD(BestThunderAOE,
                     TargetChoice(thunder) ?? BestSplashTarget?.Actor,
                     ThunderLeft <= 3 ? GCDPriority.NeedDOT :
@@ -580,10 +475,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         if (ShouldUseAmplifier(BestSplashTarget?.Actor, ampStrat))
             QueueOGCD(AID.Amplifier,
                 Player,
-                ampStrat is OffensiveStrategy.Force
-                or OffensiveStrategy.AnyWeave
-                or OffensiveStrategy.EarlyWeave
-                or OffensiveStrategy.LateWeave
+                ampStrat is OGCDStrategy.Force
+                or OGCDStrategy.AnyWeave
+                or OGCDStrategy.EarlyWeave
+                or OGCDStrategy.LateWeave
                 ? OGCDPriority.ForcedOGCD
                 : OGCDPriority.Amplifier);
         //Manafont
@@ -1160,29 +1055,29 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         LeyLinesStrategy.ForceWeave1 => Player.InCombat && canLL && CanWeaveIn && TotalCD(AID.LeyLines) < SpSGCDLength * 2,
         _ => false
     };
-    private bool ShouldUseAmplifier(Actor? target, OffensiveStrategy strategy) => strategy switch
+    private bool ShouldUseAmplifier(Actor? target, OGCDStrategy strategy) => strategy switch
     {
-        OffensiveStrategy.Automatic => Player.InCombat && target != null && canAmp && CanWeaveIn && Polyglots != MaxPolyglots,
-        OffensiveStrategy.Force => canAmp,
-        OffensiveStrategy.AnyWeave => canAmp && CanWeaveIn,
-        OffensiveStrategy.EarlyWeave => canAmp && CanEarlyWeaveIn,
-        OffensiveStrategy.LateWeave => canAmp && CanLateWeaveIn,
+        OGCDStrategy.Automatic => Player.InCombat && target != null && canAmp && CanWeaveIn && Polyglots != MaxPolyglots,
+        OGCDStrategy.Force => canAmp,
+        OGCDStrategy.AnyWeave => canAmp && CanWeaveIn,
+        OGCDStrategy.EarlyWeave => canAmp && CanEarlyWeaveIn,
+        OGCDStrategy.LateWeave => canAmp && CanLateWeaveIn,
         _ => false
     };
-    private bool ShouldUseRetrace(OffensiveStrategy strategy) => strategy switch
+    private bool ShouldUseRetrace(OGCDStrategy strategy) => strategy switch
     {
-        OffensiveStrategy.Force => canRetrace,
-        OffensiveStrategy.AnyWeave => canRetrace && CanWeaveIn,
-        OffensiveStrategy.EarlyWeave => canRetrace && CanEarlyWeaveIn,
-        OffensiveStrategy.LateWeave => canRetrace && CanLateWeaveIn,
+        OGCDStrategy.Force => canRetrace,
+        OGCDStrategy.AnyWeave => canRetrace && CanWeaveIn,
+        OGCDStrategy.EarlyWeave => canRetrace && CanEarlyWeaveIn,
+        OGCDStrategy.LateWeave => canRetrace && CanLateWeaveIn,
         _ => false
     };
-    private bool ShouldUseBTL(OffensiveStrategy strategy) => strategy switch
+    private bool ShouldUseBTL(OGCDStrategy strategy) => strategy switch
     {
-        OffensiveStrategy.Force => canBTL,
-        OffensiveStrategy.AnyWeave => canBTL && CanWeaveIn,
-        OffensiveStrategy.EarlyWeave => canBTL && CanEarlyWeaveIn,
-        OffensiveStrategy.LateWeave => canBTL && CanLateWeaveIn,
+        OGCDStrategy.Force => canBTL,
+        OGCDStrategy.AnyWeave => canBTL && CanWeaveIn,
+        OGCDStrategy.EarlyWeave => canBTL && CanEarlyWeaveIn,
+        OGCDStrategy.LateWeave => canBTL && CanLateWeaveIn,
         _ => false
     };
     private bool ShouldUseManafont(Actor? target, ManafontStrategy strategy) => strategy switch
