@@ -455,6 +455,21 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #endregion
+
+        #region AI
+        var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null; //Set goal for single target
+        var goalAOE = primaryTarget?.Actor != null ? Hints.GoalAOECircle(5) : null; //Set goal for AOE
+        var goal = AOEStrategy switch //Set goal based on AOE strategy
+        {
+            AOEStrategy.ForceSTwithoutO => goalST, //if forced single target
+            AOEStrategy.ForceSTwithO => goalST, //if forced 123 combo
+            AOEStrategy.ForceAOEwithoutO => goalAOE, //if forced buffs combo
+            AOEStrategy.ForceAOEwithO => goalAOE, //if forced AOE action
+            _ => goalST != null && goalAOE != null ? Hints.GoalCombined(goalST, goalAOE, 2) : goalAOE //otherwise, combine goals
+        };
+        if (goal != null) //if goal is set
+            Hints.GoalZones.Add(goal); //add goal to zones
+        #endregion
     }
 
     #region Rotation Helpers

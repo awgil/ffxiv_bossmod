@@ -481,6 +481,19 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #endregion
+
+        #region AI
+        var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null; //Set goal for single target
+        var goalAOE = primaryTarget?.Actor != null ? Hints.GoalAOECircle(5) : null; //Set goal for AOE
+        var goal = strategy.Option(SharedTrack.AOE).As<AOEStrategy>() switch //Set goal based on AOE strategy
+        {
+            AOEStrategy.ForceST => goalST, //if forced single target
+            AOEStrategy.ForceAOE => goalAOE, //if forced AOE
+            _ => goalST != null && goalAOE != null ? Hints.GoalCombined(goalST, goalAOE, 2) : goalAOE //otherwise, combine goals
+        };
+        if (goal != null) //if goal is set
+            Hints.GoalZones.Add(goal); //add goal to zones
+        #endregion
     }
 
     #region Rotation Helpers

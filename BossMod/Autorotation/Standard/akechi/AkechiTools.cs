@@ -1,6 +1,8 @@
 ﻿using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
+
+#region Shared Enums: Strategies
 /// <summary>
 /// The <b>SharedTrack</b> enum used for <b>AOE</b> and <b>Hold</b> strategies, typically for modules featuring damage rotations.
 /// <br>This enum defines tracks that can be used for all PvE classes and jobs, such as strategies containing executing standard rotations or explicitly holding abilities.</br>
@@ -282,6 +284,7 @@ public enum OGCDStrategy
     /// <returns>- <b>Forbiddance of execution</b> for user's module-specific OGCD ability.</returns>
     Delay
 }
+#endregion
 
 /// <summary>The core foundation of how we execute everything, from queuing GCDs to implementing our rotation helpers, functions, and tools.<br/> This base provides a robust framework equipped with a comprehensive suite of functions designed to streamline optimization and simplify the creation of advanced rotation modules.</summary>
 /// <typeparam name="AID">The user's specified <b>Action ID</b> being checked, called by <b>using <seealso cref="BossMod"/>.[class/job acronym]</b>.</typeparam>
@@ -1121,6 +1124,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
 static class ModuleExtensions
 {
+    #region Shared Definitions
     /// <summary>Defines our shared <b>AOE</b> (rotation) and <b>Hold</b> strategies.</summary>
     /// <param name="res">The definitions of our base module's strategies.</param>
     /// <returns>- Options for shared custom strategies to be used via <b>AutoRotation</b> or <b>Cooldown Planner</b></returns>
@@ -1188,6 +1192,7 @@ static class ModuleExtensions
             .AddOption(OGCDStrategy.Delay, "Delay", $"Do NOT use {action.Name()}", 0, 0, ActionTargets.None, minLevel: minLevel, maxLevel)
             .AddAssociatedActions(aid);
     }
+    #endregion
 
     #region Global Helpers
     /// <summary>A global helper for automatically executing the best optimal rotation. See <seealso cref="AOEStrategy"/> for more details.</summary>

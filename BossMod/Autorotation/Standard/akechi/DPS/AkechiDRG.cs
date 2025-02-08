@@ -23,19 +23,18 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     public enum TrueNorthStrategy { Automatic, ASAP, Rear, Flank, Force, Delay }
     #endregion
 
-    //Module Definitions
+    #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
         var res = new RotationModuleDefinition(
             "Akechi DRG", //Name
             "Standard Rotation Module", //Type
-            "Standard rotation (Akechi)", //Category
+            "Standard rotation (Akechi)|DPS", //Category
             "Akechi", //Contributor of module
             RotationModuleQuality.Good, //Quality
             BitMask.Build(Class.LNC, Class.DRG), //Class and Job
             100); //Max Level supported
 
-        #region Custom Strategies
         res.Define(Track.AOE).As<AOEStrategy>("Combo Option", "AOE", uiPriority: 200)
             .AddOption(AOEStrategy.AutoTargetHitPrimary, "AutoTargetHitPrimary", "Use AOE actions if profitable, select best target that ensures primary target is hit", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.AutoTargetHitMost, "AutoTargetHitMost", "Use AOE actions if profitable, select a target that ensures maximal number of targets are hit", supportedTargets: ActionTargets.Hostile)
@@ -93,7 +92,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(StardiverStrategy.ForceEX, "ForceEX", "Force Stardiver (Grants Starcross Ready)", 30, 0, ActionTargets.Hostile, 100)
             .AddOption(StardiverStrategy.ForceWeave, "Force Weave", "Force Stardiver usage inside the next possible weave window", 30, 0, ActionTargets.Hostile, 80)
             .AddOption(StardiverStrategy.Delay, "Delay", "Delay Stardiver usage", 0, 0, ActionTargets.None, 80)
-            .AddAssociatedActions(AID.Stardiver);        //Piercing Talon strategy
+            .AddAssociatedActions(AID.Stardiver);
         res.Define(Track.PiercingTalon).As<PiercingTalonStrategy>("Piercing Talon", "P.Talon", uiPriority: 25)
             .AddOption(PiercingTalonStrategy.AllowEX, "AllowEX", "Allow use of Piercing Talon if already in combat, outside melee range, & is Enhanced")
             .AddOption(PiercingTalonStrategy.Allow, "Allow", "Allow use of Piercing Talon if already in combat & outside melee range")
@@ -109,9 +108,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(TrueNorthStrategy.Force, "Force", "Force True North usage", 45, 10, ActionTargets.Self, 50)
             .AddOption(TrueNorthStrategy.Delay, "Delay", "Delay True North usage", 0, 0, ActionTargets.None, 50)
             .AddAssociatedActions(ClassShared.AID.TrueNorth);
-        #endregion
-
-        #region Offensive Strategies
         res.DefineOGCD(Track.LanceCharge, AID.LanceCharge, "Lance Charge", "L.Charge", uiPriority: 165, 60, 20, ActionTargets.Self, 30);
         res.DefineOGCD(Track.BattleLitany, AID.BattleLitany, "Battle Litany", "B.Litany", uiPriority: 165, 120, 20, ActionTargets.Self, 52);
         res.DefineOGCD(Track.MirageDive, AID.MirageDive, "Mirage Dive", "M.Dive", uiPriority: 105, 0, 0, ActionTargets.Hostile, 68);
@@ -119,10 +115,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         res.DefineOGCD(Track.WyrmwindThrust, AID.WyrmwindThrust, "Wyrmwind Thrust", "W.Thrust", uiPriority: 120, 0, 10, ActionTargets.Hostile, 90);
         res.DefineOGCD(Track.RiseOfTheDragon, AID.RiseOfTheDragon, "Rise Of The Dragon", "RotD", uiPriority: 145, 0, 0, ActionTargets.Hostile, 92);
         res.DefineOGCD(Track.Starcross, AID.Starcross, "Starcross", "S.cross", uiPriority: 135, 0, 0, ActionTargets.Hostile, 100);
-        #endregion
 
         return res;
     }
+    #endregion
 
     #region Priorities
 
