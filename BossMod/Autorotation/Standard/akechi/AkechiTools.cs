@@ -1,6 +1,8 @@
 ﻿using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
+
+#region Shared Enums: Strategies
 /// <summary>
 /// The <b>SharedTrack</b> enum used for <b>AOE</b> and <b>Hold</b> strategies, typically for modules featuring damage rotations.
 /// <br>This enum defines tracks that can be used for all PvE classes and jobs, such as strategies containing executing standard rotations or explicitly holding abilities.</br>
@@ -282,6 +284,7 @@ public enum OGCDStrategy
     /// <returns>- <b>Forbiddance of execution</b> for user's module-specific OGCD ability.</returns>
     Delay
 }
+#endregion
 
 /// <summary>The core foundation of how we execute everything, from queuing GCDs to implementing our rotation helpers, functions, and tools.<br/> This base provides a robust framework equipped with a comprehensive suite of functions designed to streamline optimization and simplify the creation of advanced rotation modules.</summary>
 /// <typeparam name="AID">The user's specified <b>Action ID</b> being checked, called by <b>using <seealso cref="BossMod"/>.[class/job acronym]</b>.</typeparam>
@@ -302,33 +305,24 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     #region GCD
     /// <summary>
     /// The primary helper we use for calling all our <b>GCD</b> abilities onto any actor.
-    /// <br>This also handles <b>Ground Target</b> abilities, such as <c>BLM:LeyLines</c> or <c>NIN:Shukuchi</c></br>
+    /// <br>This also handles <b>Ground Target</b> abilities, such as <c>BLM:LeyLines</c> or <c>NIN:Shukuchi</c></br><para/>
+    /// <b>NOTE:</b> For compatibility between <c>Actor?</c> and <c>Enemy?</c> inside one function, use <c> primaryTarget?.Actor</c>  as <c>Enemy?</c>  definition.
     /// </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="priority">The user's specified <b>Priority</b>.</param>
     /// <param name="delay">The user's specified <b>application delay</b>.</param>
     /// <param name="castTime">The user's specified <b>cast time</b> for the ability.</param>
-    protected void QueueGCD<P>(AID aid, Actor? target, P priority, float delay = 0, float castTime = 0) where P : Enum
-    => QueueGCD(aid, target, (int)(object)priority, delay, castTime);
-
-    /// <summary>
-    /// The primary helper we use for calling all our <b>GCD</b> abilities onto any enemy.
-    /// <br>This also handles <b>Ground Target</b> abilities, such as <c>BLM:LeyLines</c> or <c>NIN:Shukuchi</c></br>
-    /// </summary>
-    /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    /// <param name="priority">The user's specified <b>Priority</b>.</param>
-    /// <param name="delay">The user's specified <b>application delay</b>.</param>
-    /// <param name="castTime">The user's specified <b>cast time</b> for the ability.</param>
-    protected void QueueGCD<P>(AID aid, Enemy? target, P priority, float delay = 0, float castTime = 0) where P : Enum => QueueGCD(aid, target?.Actor, (int)(object)priority, delay, castTime);
-    protected void QueueGCD(AID aid, Enemy? target, int priority = 2, float delay = 0, float castTime = 0) => QueueGCD(aid, target?.Actor, priority, delay, castTime);
-    protected void QueueGCD(AID aid, Actor? target, int priority = 2, float delay = 0, float castTime = 0)
+    /// <param name="targetPos">The user's specified <b>Target Position</b> for the ability.</param>
+    /// <param name="facingAngle">The user's specified <b>Angle facing Target</b> for the ability.</param>
+    protected void QueueGCD<P>(AID aid, Actor? target, P priority, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null) where P : Enum
+                => QueueGCD(aid, target, (int)(object)priority, delay, castTime, targetPos, facingAngle);
+    protected void QueueGCD(AID aid, Actor? target, int priority = 2, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null)
     {
         if (priority == 0)
             return;
 
-        if (QueueAction(aid, target, ActionQueue.Priority.High + priority, delay, castTime) && priority > NextGCDPrio)
+        if (QueueAction(aid, target, ActionQueue.Priority.High + priority, delay, castTime, targetPos, facingAngle) && priority > NextGCDPrio)
         {
             NextGCD = aid;
             NextGCDPrio = priority;
@@ -339,41 +333,30 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     #region OGCD
     /// <summary>
     /// The primary helper we use for calling all our <b>OGCD</b> abilities onto any actor.<br/>
-    /// This also handles <b>Ground Target</b> abilities, such as <c>BLM:LeyLines</c> or <c>NIN:Shukuchi</c>
-    /// <b>NOTE:</b> For compatibility between <c>Actor?</c> and <c>Enemy?</c> inside one function, use `primarytarget?.Actor` as `Enemy?` definition.
+    /// This also handles <b>Ground Target</b> abilities, such as <c>BLM:LeyLines</c> or <c>NIN:Shukuchi</c><para/>
+    /// <b>NOTE:</b> For compatibility between <c>Actor?</c> and <c>Enemy?</c> inside one function, use <c> primaryTarget?.Actor</c>  as <c>Enemy?</c>  definition.
     /// </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="priority">The user's specified <b>Priority</b>.</param>
     /// <param name="delay">The user's specified <b>application delay</b>.</param>
     /// <param name="castTime">The user's specified <b>cast time</b> for the ability.</param>
-    protected void QueueOGCD<P>(AID aid, Actor? target, P priority, float delay = 0, float castTime = 0) where P : Enum => QueueOGCD(aid, target, (int)(object)priority, delay, castTime);
-
-    /// <summary>
-    /// The primary helper we use for calling all our <b>OGCD</b> abilities onto any enemy.<br/>
-    /// This also handles <b>Ground Target</b> abilities, such as <c>BLM:LeyLines</c> or <c>NIN:Shukuchi</c><br/>
-    /// <b>NOTE:</b> For compatibility between <c>Actor?</c> and <c>Enemy?</c> inside one function, use `primarytarget?.Actor` as `Enemy?` definition.
-    /// </summary>
-    /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    /// <param name="priority">The user's specified <b>Priority</b>.</param>
-    /// <param name="delay">The user's specified <b>application delay</b>.</param>
-    /// <param name="castTime">The user's specified <b>cast time</b> for the ability.</param>
-    protected void QueueOGCD<P>(AID aid, Enemy? target, P priority, float delay = 0, float castTime = 0) where P : Enum => QueueOGCD(aid, target?.Actor, (int)(object)priority, delay, castTime);
-    protected void QueueOGCD(AID aid, Enemy? target, int priority = 1, float delay = 0, float castTime = 0) => QueueOGCD(aid, target?.Actor, priority, delay, castTime);
-    protected void QueueOGCD(AID aid, Actor? target, int priority = 1, float delay = 0, float castTime = 0)
+    /// <param name="targetPos">The user's specified <b>Target Position</b> for the ability.</param>
+    /// <param name="facingAngle">The user's specified <b>Angle facing Target</b> for the ability.</param>
+    protected void QueueOGCD<P>(AID aid, Actor? target, P priority, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null) where P : Enum
+                => QueueOGCD(aid, target, (int)(object)priority, delay, castTime, targetPos, facingAngle);
+    protected void QueueOGCD(AID aid, Actor? target, int priority = 1, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null)
     {
         if (priority == 0)
             return;
 
-        QueueAction(aid, target, ActionQueue.Priority.Low + priority, delay, castTime);
+        QueueAction(aid, target, ActionQueue.Priority.Low + priority, delay, castTime, targetPos, facingAngle);
     }
     #endregion
 
-    protected bool QueueAction(AID aid, Actor? target, float priority, float delay, float castTime)
+    protected bool QueueAction(AID aid, Actor? target, float priority, float delay, float castTime, Vector3 targetPos = default, Angle? facingAngle = null)
     {
         var def = ActionDefinitions.Instance.Spell(aid);
-        Vector3 targetPos = default;
 
         if ((uint)(object)aid == 0)
             return false;
@@ -399,7 +382,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         if (castTime == 0)
             castTime = 0;
 
-        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, castTime: castTime, targetPos: targetPos);
+        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, castTime: castTime, targetPos: targetPos, facingAngle: facingAngle);
         return true;
     }
     #endregion
@@ -542,6 +525,12 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <returns>- <c><b>TRUE</b></c> if the last combo action is what the user is specifying.<br/>
     /// - <c><b>FALSE</b></c> if otherwise or last action was not a combo action.</returns>
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
+
+    /// <summary>
+    /// Checks the <b>time left remaining</b> inside current combo before expiration.<para/>
+    /// <c><b>NOTE</b></c>: This does <c><b>NOT</b></c> check all actions, only combo actions.<para/>
+    /// </summary>
+    protected float ComboTimer => (float)(object)World.Client.ComboState.Remaining;
 
     /// <summary>
     /// Retrieves <b>actual cast time</b> of a specified action.<para/>
@@ -725,7 +714,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     /// <param name="duration"> The <b>Total Effect Duration</b> of specified <b>Status ID</b> being checked.</param>
     /// <returns>- A value indicating if the effect exists</returns>
-    protected bool PlayerHasEffect<SID>(SID sid, float duration) where SID : Enum => StatusRemaining(Player, sid, duration) > 0.1f;
+    protected bool PlayerHasEffect<SID>(SID sid, float duration = 1000f) where SID : Enum => StatusRemaining(Player, sid, duration) > 0.1f;
 
     /// <summary> Checks if a specific status effect on the player exists.
     /// <para><c><b>NOTE</b></c>: The effect can be owned by anyone; Player, Party, Alliance, NPCs or even enemies</para>
@@ -942,30 +931,33 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="getTimer"></param>
     /// <param name="maxAllowedTargets"></param>
     /// <returns></returns>
-    protected (Enemy? Target, P Timer) GetDOTTarget<P>(StrategyValues strategy, Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
+    protected (Enemy? Target, P Timer) GetDOTTarget<P>(Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
     {
-        var AOEStrat = strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
-        switch (AOEStrat)
+        // Check if the initial target is null or if the maxAllowedTargets is 0, in which case no valid target can be selected
+        if (initial == null || maxAllowedTargets <= 0)
         {
-            case AOEStrategy.ForceST:
-            case AOEStrategy.ForceAOE:
-            case AOEStrategy.Automatic:
-                return (initial, getTimer(initial?.Actor));
+            return (null, getTimer(null));
         }
 
         var newTarget = initial;
         var initialTimer = getTimer(initial?.Actor);
         var newTimer = initialTimer;
         var numTargets = 0;
+
         foreach (var dotTarget in Hints.PriorityTargets)
         {
+            // Skip targets that forbid DOTs
             if (dotTarget.ForbidDOTs)
                 continue;
 
+            // If we exceed the max number of allowed targets, stop and return the current best
             if (++numTargets > maxAllowedTargets)
-                return (null, getTimer(null));
+                return (newTarget, newTimer);
 
+            // Get the timer for the current target
             var thisTimer = getTimer(dotTarget.Actor);
+
+            // Update the new target and timer if the current one is better (has a smaller timer value)
             if (thisTimer.CompareTo(newTimer) < 0)
             {
                 newTarget = dotTarget;
@@ -1054,6 +1046,24 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
                 Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, r, 0.5f));
         }
     }
+    protected void AnyGoalZoneCombined(float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, Positional positional = Positional.Any, float? maximumActionRange = null)
+    {
+        if (!Unlocked(firstUnlockedAoeAction))
+            minAoe = 50;
+
+        if (PlayerTarget == null)
+        {
+            if (minAoe < 50)
+                Hints.GoalZones.Add(fAoe);
+        }
+        else
+        {
+            Hints.GoalZones.Add(Hints.GoalCombined(Hints.GoalSingleTarget(PlayerTarget.Actor, positional, range), fAoe, minAoe));
+            if (maximumActionRange is float r)
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, r, 0.5f));
+        }
+    }
+
     #endregion
 
     #region Misc
@@ -1124,7 +1134,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         CanSwiftcast = ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Swiftcast)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Swiftcast)!.MainCooldownGroup].Remaining < 0.6f;
         HasSwiftcast = StatusRemaining(Player, ClassShared.SID.Swiftcast, 10) > 0.1f;
         CanPeloton = !Player.InCombat && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Peloton)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Peloton)!.MainCooldownGroup].Remaining < 0.6f;
-        HasPeloton = PlayerHasAnyEffect(BRD.SID.Peloton);
+        HasPeloton = PlayerHasAnyEffect(ClassShared.SID.Peloton);
 
         if (Player.MountId is not (103 or 117 or 128))
             Execution(strategy, PlayerTarget);
@@ -1141,6 +1151,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
 static class ModuleExtensions
 {
+    #region Shared Definitions
     /// <summary>Defines our shared <b>AOE</b> (rotation) and <b>Hold</b> strategies.</summary>
     /// <param name="res">The definitions of our base module's strategies.</param>
     /// <returns>- Options for shared custom strategies to be used via <b>AutoRotation</b> or <b>Cooldown Planner</b></returns>
@@ -1156,7 +1167,7 @@ static class ModuleExtensions
             .AddOption(HoldStrategy.HoldCooldowns, "Hold", "Forbid use of all cooldowns only")
             .AddOption(HoldStrategy.HoldGauge, "HoldGauge", "Forbid use of all gauge abilities only")
             .AddOption(HoldStrategy.HoldBuffs, "HoldBuffs", "Forbid use of all raidbuffs or buff-related abilities only")
-            .AddOption(HoldStrategy.HoldEverything, "HoldEverything", "Forbid use of  all cooldowns, buffs, and gauge abilities");
+            .AddOption(HoldStrategy.HoldEverything, "HoldEverything", "Forbid use of all cooldowns, buffs, and gauge abilities");
         return res;
     }
 
@@ -1171,12 +1182,16 @@ static class ModuleExtensions
     /// <param name="minLevel">The <b>Minimum Level</b> required for the ability that the user is specifying.</param>
     /// <param name="maxLevel">The <b>Maximum Level</b> required for the ability that the user is specifying.</param>
     /// <returns>- Basic GCD options for any specified ability to be used via <b>AutoRotation</b> or <b>Cooldown Planner</b></returns>
-    public static RotationModuleDefinition.ConfigRef<GCDStrategy> DefineGCD<Index>(this RotationModuleDefinition res, Index track, string internalName, string displayName = "", int uiPriority = 100, float cooldown = 0, float effectDuration = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = 100) where Index : Enum
+    public static RotationModuleDefinition.ConfigRef<GCDStrategy> DefineGCD<Index, AID>(this RotationModuleDefinition res, Index track, AID aid, string internalName, string displayName = "", int uiPriority = 100, float cooldown = 0, float effectDuration = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = 100)
+        where Index : Enum
+        where AID : Enum
     {
+        var action = ActionID.MakeSpell(aid);
         return res.Define(track).As<GCDStrategy>(internalName, displayName: displayName, uiPriority: uiPriority)
-            .AddOption(GCDStrategy.Automatic, "Auto", "Automatically uses when optimal", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
-            .AddOption(GCDStrategy.Force, "Force", "Force use ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
-            .AddOption(GCDStrategy.Delay, "Delay", "Do not use", 0, 0, ActionTargets.None, minLevel: minLevel, maxLevel);
+            .AddOption(GCDStrategy.Automatic, "Auto", $"Automatically use {action.Name()} when optimal", cooldown, effectDuration, supportedTargets, minLevel, maxLevel)
+            .AddOption(GCDStrategy.Force, "Force", $"Force use {action.Name()} ASAP", cooldown, effectDuration, supportedTargets, minLevel, maxLevel)
+            .AddOption(GCDStrategy.Delay, "Delay", $"Do NOT use {action.Name()}", 0, 0, ActionTargets.None, minLevel, maxLevel)
+            .AddAssociatedActions(aid);
     }
 
     /// <summary>A quick and easy helper for shortcutting how we define our <b>OGCD</b> abilities.</summary>
@@ -1190,16 +1205,21 @@ static class ModuleExtensions
     /// <param name="minLevel">The <b>Minimum Level</b> required for the ability that the user is specifying.</param>
     /// <param name="maxLevel">The <b>Maximum Level</b> required for the ability that the user is specifying.</param>
     /// <returns>- Basic OGCD options for any specified ability to be used via <b>AutoRotation</b> or <b>Cooldown Planner</b></returns>
-    public static RotationModuleDefinition.ConfigRef<OGCDStrategy> DefineOGCD<Index>(this RotationModuleDefinition res, Index track, string internalName, string displayName = "", int uiPriority = 100, float cooldown = 0, float effectDuration = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = 100) where Index : Enum
+    public static RotationModuleDefinition.ConfigRef<OGCDStrategy> DefineOGCD<Index, AID>(this RotationModuleDefinition res, Index track, AID aid, string internalName, string displayName = "", int uiPriority = 100, float cooldown = 0, float effectDuration = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = 100)
+        where Index : Enum
+        where AID : Enum
     {
+        var action = ActionID.MakeSpell(aid);
         return res.Define(track).As<OGCDStrategy>(internalName, displayName: displayName, uiPriority: uiPriority)
-            .AddOption(OGCDStrategy.Automatic, "Auto", "Automatically uses when optimal", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
-            .AddOption(OGCDStrategy.Force, "Force", "Force use ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
-            .AddOption(OGCDStrategy.AnyWeave, "AnyWeave", "Force use in next possible weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
-            .AddOption(OGCDStrategy.EarlyWeave, "EarlyWeave", "Force use in next possible early-weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
-            .AddOption(OGCDStrategy.LateWeave, "LateWeave", "Force use in next possible late-weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
-            .AddOption(OGCDStrategy.Delay, "Delay", "Do not use", 0, 0, ActionTargets.None, minLevel: minLevel, maxLevel);
+            .AddOption(OGCDStrategy.Automatic, "Auto", $"Automatically use {action.Name()} when optimal", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(OGCDStrategy.Force, "Force", $"Force use {action.Name()} ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(OGCDStrategy.AnyWeave, "AnyWeave", $"Force use {action.Name()} in next possible weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(OGCDStrategy.EarlyWeave, "EarlyWeave", $"Force use {action.Name()} in next possible early-weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(OGCDStrategy.LateWeave, "LateWeave", $"Force use {action.Name()} in next possible late-weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(OGCDStrategy.Delay, "Delay", $"Do NOT use {action.Name()}", 0, 0, ActionTargets.None, minLevel: minLevel, maxLevel)
+            .AddAssociatedActions(aid);
     }
+    #endregion
 
     #region Global Helpers
     /// <summary>A global helper for automatically executing the best optimal rotation. See <seealso cref="AOEStrategy"/> for more details.</summary>
