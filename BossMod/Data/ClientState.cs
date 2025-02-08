@@ -372,6 +372,7 @@ public sealed class ClientState
     public Event<OpContentKVDataChange> ContentKVDataChanged = new();
     public sealed record class OpContentKVDataChange(uint[] Value) : WorldState.Operation
     {
+        public readonly uint[] Value = Value;
         protected override void Exec(WorldState ws)
         {
             ws.Client.ContentKeyValueData = Value;
