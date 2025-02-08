@@ -20,7 +20,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     public enum RangedStrategy { Automatic, OpenerRangedCast, OpenerCast, ForceCast, RangedCast, OpenerRanged, Opener, Force, Ranged, Forbid }
     #endregion
 
-    #region Module & Strategy Definitions
+    #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
         var res = new RotationModuleDefinition("Akechi PLD", //Title
@@ -395,7 +395,6 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         if (goal != null) //if goal is set
             Hints.GoalZones.Add(goal); //add goal to zones
         #endregion
-
     }
 
     #region Rotation Helpers
@@ -444,7 +443,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseFightOrFlight(OGCDStrategy strategy, Actor? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target != null && FightOrFlight.IsReady && (CombatTimer <= 30 && ComboLastMove is AID.RoyalAuthority or AID.RageOfHalone || CombatTimer > 30),
+        OGCDStrategy.Automatic => Player.InCombat && target != null && FightOrFlight.IsReady && ((CombatTimer <= 30 && ComboLastMove is AID.RoyalAuthority or AID.RageOfHalone || ShouldUseAOE) || CombatTimer > 30),
         OGCDStrategy.Force => FightOrFlight.IsReady,
         OGCDStrategy.AnyWeave => FightOrFlight.IsReady && CanWeaveIn,
         OGCDStrategy.EarlyWeave => FightOrFlight.IsReady && CanEarlyWeaveIn,

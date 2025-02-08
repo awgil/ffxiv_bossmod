@@ -20,7 +20,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
     #endregion
 
-    #region Module Definitions & Strategies
+    #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
         var res = new RotationModuleDefinition("Akechi WAR", //Title

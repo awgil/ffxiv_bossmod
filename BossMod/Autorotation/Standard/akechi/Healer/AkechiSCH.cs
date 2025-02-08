@@ -59,17 +59,17 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
     }
     #endregion
 
+    #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
         var res = new RotationModuleDefinition("Akechi SCH", //Title
             "Standard Rotation Module", //Description
-            "Standard rotation (Akechi)", //Category
+            "Standard rotation (Akechi)|Healer", //Category
             "Akechi", //Contributor
             RotationModuleQuality.Ok, //Quality
             BitMask.Build((int)Class.SCH), //Job
             100); //Level supported
 
-        #region Custom strategies
         res.Define(Track.AOE).As<AOEStrategy>("AOE", "AOE", uiPriority: 200)
             .AddOption(AOEStrategy.Auto, "Auto", "Automatically decide when to use ST or AOE abilities")
             .AddOption(AOEStrategy.Ruin2, "Ruin II", "Force use of Ruin II only (instant cast ST, less DPS)", supportedTargets: ActionTargets.Hostile)
@@ -96,9 +96,6 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
             .AddOption(EnergyStrategy.Force, "Force", "Force use of Energy Drain if any Aetherflow is available", 0, 0, ActionTargets.None, 45)
             .AddOption(EnergyStrategy.Delay, "Delay", "Delay use of Energy Drain", 0, 0, ActionTargets.None, 45)
             .AddAssociatedActions(AID.EnergyDrain);
-        #endregion
-
-        #region Offensive Strategies
         res.Define(Track.ChainStratagem).As<OffensiveStrategy>("Chain Stratagem", "Stratagem", uiPriority: 170)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Normal use of Chain Stratagem")
             .AddOption(OffensiveStrategy.Force, "Force", "Force use of Chain Stratagem", 120, 20, ActionTargets.Hostile, 66)
@@ -115,10 +112,10 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
             .AddOption(OffensiveStrategy.LateWeave, "Late Weave", "Force use of Aetherflow in very next LAST weave slot only", 60, 10, ActionTargets.Self, 45)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Delay use of Aetherflow", 0, 0, ActionTargets.None, 45)
             .AddAssociatedActions(AID.Aetherflow);
-        #endregion
 
         return res;
     }
+    #endregion
 
     #region Priorities
     public enum GCDPriority //priorities for GCDs (higher number = higher priority)
@@ -139,7 +136,16 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
     }
     #endregion
 
-    #region Placeholders for Variables
+    #region Upgrade Paths
+    private AID BestBroil => Unlocked(AID.Broil4) ? AID.Broil4 : Unlocked(AID.Broil3) ? AID.Broil3 : Unlocked(AID.Broil2) ? AID.Broil2 : AID.Broil1;
+    private AID BestRuin => Unlocked(AID.Ruin2) ? AID.Ruin2 : AID.Ruin1;
+    private AID BestBio => Unlocked(AID.Biolysis) ? AID.Biolysis : Unlocked(AID.Bio2) ? AID.Bio2 : AID.Bio1;
+    private SID BestDOT => Unlocked(AID.Biolysis) ? SID.Biolysis : Unlocked(AID.Bio2) ? SID.Bio2 : SID.Bio1;
+    private AID BestST => Unlocked(AID.Broil1) ? BestBroil : BestRuin;
+    private AID BestAOE => Unlocked(AID.ArtOfWar2) ? AID.ArtOfWar2 : AID.ArtOfWar1;
+    #endregion
+
+    #region Module Variables
     private (int Stacks, bool IsActive) Aetherflow; //Current Aetherflow stacks (max: 3)
     private bool canAF; //Checks if Aetherflow is completely available
     private bool canED; //Checks if Energy Drain is completely available
@@ -156,41 +162,6 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
     public float RaidBuffsIn; //Time until raid-wide buffs are applied again (typically 20s-22s)
     public float BurstWindowLeft; //Time left in current burst window (typically 20s-22s)
     public float BurstWindowIn; //Time until next burst window (typically 20s-22s)
-    #endregion
-
-    #region Upgrade Paths
-    private AID BestBroil //Determine the best Broil to use
-        => Unlocked(AID.Broil4) //If Broil IV is unlocked
-        ? AID.Broil4 //Use Broil IV
-        : Unlocked(AID.Broil3) //Otherwise, if Broil III is unlocked
-        ? AID.Broil3 //Use Broil III
-        : Unlocked(AID.Broil2) //Otherwise, if Broil II is unlocked
-        ? AID.Broil2 //Use Broil II
-        : AID.Broil1; //Otherwise, default to Broil I
-    private AID BestRuin //Determine the best Ruin to use
-        => Unlocked(AID.Ruin2) //Otherwise, if Ruin II is unlocked
-        ? AID.Ruin2 //Use Ruin II
-        : AID.Ruin1; //Otherwise, default to Ruin I
-    private AID BestBio //Determine the best DOT to use
-        => Unlocked(AID.Biolysis) //If Biolysis is unlocked
-        ? AID.Biolysis //Use Biolysis
-        : Unlocked(AID.Bio2) //Otherwise, if Bio II is unlocked
-        ? AID.Bio2 //Use Bio II
-        : AID.Bio1; //Otherwise, default to Bio I
-    private SID BestDOT //Determine the best DOT to use
-        => Unlocked(AID.Biolysis) //If Biolysis is unlocked
-        ? SID.Biolysis //Use Biolysis
-        : Unlocked(AID.Bio2) //Otherwise, if Bio II is unlocked
-        ? SID.Bio2 //Use Bio II
-        : SID.Bio1; //Otherwise, default to Bio I
-    private AID BestST //Determine the best ST to use
-        => Unlocked(AID.Broil1) //If Broil I is unlocked
-        ? BestBroil //Use the best Broil
-        : BestRuin; //Otherwise, default to best Ruin
-    private AID BestAOE //Determine the best AOE to use
-        => Unlocked(AID.ArtOfWar2) //If Art of War II is unlocked
-        ? AID.ArtOfWar2 //Use Art of War II
-        : AID.ArtOfWar1; //Otherwise, default to Art of War
     #endregion
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
@@ -227,16 +198,9 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
 
         #endregion
 
-        #region Force Execution
-        if (AOEStrategy is AOEStrategy.Ruin2)
-            QueueGCD(BestRuin, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);
-        if (AOEStrategy is AOEStrategy.Broil)
-            QueueGCD(BestBroil, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);
-        if (AOEStrategy is AOEStrategy.ArtOfWar)
-            QueueGCD(BestAOE, Player, GCDPriority.ForcedGCD);
-        #endregion
+        #region Full Rotation Execution
 
-        #region Standard Execution
+        #region Standard Rotation
         if (AOEStrategy == AOEStrategy.Auto)
         {
             if (ShouldUseAOE)
@@ -245,8 +209,17 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
                 (!ShouldUseAOE || IsFirstGCD()))
                 QueueGCD(IsMoving ? BestRuin : BestST, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Standard);
         }
+        if (AOEStrategy is AOEStrategy.Ruin2)
+            QueueGCD(BestRuin, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);
+        if (AOEStrategy is AOEStrategy.Broil)
+            QueueGCD(BestBroil, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);
+        if (AOEStrategy is AOEStrategy.ArtOfWar)
+            QueueGCD(BestAOE, Player, GCDPriority.ForcedGCD);
         if (ShouldUseBio(primaryTarget?.Actor, BioStrategy))
             QueueGCD(BestBio, TargetChoice(Bio) ?? primaryTarget?.Actor, GCDPriority.DOT);
+        #endregion
+
+        #region Cooldowns
         if (PlayerHasEffect(SID.ImpactImminent, 30))
             QueueOGCD(AID.BanefulImpaction, TargetChoice(Bio) ?? primaryTarget?.Actor, OGCDPriority.ChainStratagem);
         if (ShouldUseChainStratagem(primaryTarget?.Actor, csStrat))
@@ -268,6 +241,12 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         if (potion is PotionStrategy.AlignWithRaidBuffs && TotalCD(AID.ChainStratagem) < 5 ||
             potion is PotionStrategy.Immediate)
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
+        #endregion
+
+        #endregion
+
+        #region AI
+        GoalZoneSingle(25);
         #endregion
     }
 

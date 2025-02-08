@@ -266,19 +266,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 
         #endregion
 
-        #region Forced Rotation
-        //Force specific actions based on the AOE strategy selected
-        if (AOEStrategy == AOEStrategy.ForceST)  //if forced single target
-            QueueGCD(NextFullST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the next single target action
-        if (AOEStrategy == AOEStrategy.Force123ST)  //if forced 123 combo
-            QueueGCD(UseOnly123ST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the 123 combo action
-        if (AOEStrategy == AOEStrategy.ForceBuffsST)  //if forced buffs combo
-            QueueGCD(UseOnly145ST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the buffed 145 combo action
-        if (AOEStrategy == AOEStrategy.ForceAOE)  //if forced AOE action
-            QueueGCD(NextFullAOE(), TargetChoice(AOE) ?? (NumAOETargets > 1 ? BestAOETargets?.Actor : primaryTarget?.Actor), GCDPriority.ForcedGCD);  //Queue the next AOE action
-        #endregion
+        #region Full Rotation Execution
 
-        #region Dives Strategy
+        #region Dives
         //Dive strategy
         var diveStrategy = dive switch
         {
@@ -295,11 +285,23 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         var divesGood = diveStrategy && (maxMelee || closeMelee || allowed) && !forbidden; //Check if dives are good to use
         #endregion
 
-        #region Combo & Cooldown Execution
+        #region Standard Rotations
+        //Force specific actions based on the AOE strategy selected
+        if (AOEStrategy == AOEStrategy.ForceST)  //if forced single target
+            QueueGCD(NextFullST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the next single target action
+        if (AOEStrategy == AOEStrategy.Force123ST)  //if forced 123 combo
+            QueueGCD(UseOnly123ST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the 123 combo action
+        if (AOEStrategy == AOEStrategy.ForceBuffsST)  //if forced buffs combo
+            QueueGCD(UseOnly145ST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the buffed 145 combo action
+        if (AOEStrategy == AOEStrategy.ForceAOE)  //if forced AOE action
+            QueueGCD(NextFullAOE(), TargetChoice(AOE) ?? (NumAOETargets > 1 ? BestAOETargets?.Actor : primaryTarget?.Actor), GCDPriority.ForcedGCD);  //Queue the next AOE action
         //Combo Action evecution
         QueueGCD(NumAOETargets > 2 ? NextFullAOE() : NextFullST(),
             BestAOETarget?.Actor,
             GCDPriority.Combo123);
+        #endregion
+
+        #region Cooldowns
 
         if (!hold)
         {
@@ -388,6 +390,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                 ? GCDPriority.ForcedGCD : GCDPriority.NormalGCD);
         #endregion
 
+        #endregion
+
         #region AI
         //AI hints for positioning
         var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null; //Set goal for single target
@@ -404,6 +408,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             Hints.GoalZones.Add(goal); //add goal to zones
         #endregion
     }
+
+    #region Rotation Helpers
 
     #region Single-Target Helpers
 
@@ -529,6 +535,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             ? Unlocked(AID.DraconianFury) ? AID.DraconianFury : AID.DoomSpike  //DraconianFury if Unlocked, else DoomSpike
             : AID.DoomSpike,  //No DraconianFire active, default to DoomSpike
     };
+
+    #endregion
 
     #endregion
 
