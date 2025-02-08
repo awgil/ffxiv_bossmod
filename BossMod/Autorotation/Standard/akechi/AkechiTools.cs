@@ -527,6 +527,12 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
     /// <summary>
+    /// Checks the <b>time left remaining</b> inside current combo before expiration.<para/>
+    /// <c><b>NOTE</b></c>: This does <c><b>NOT</b></c> check all actions, only combo actions.<para/>
+    /// </summary>
+    protected float ComboTimer => (float)(object)World.Client.ComboState.Remaining;
+
+    /// <summary>
     /// Retrieves <b>actual cast time</b> of a specified action.<para/>
     /// Example:<br/>
     /// - <b>ActualCastTime(AID.Fire3) > 0</b><para/>

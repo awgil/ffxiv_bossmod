@@ -207,12 +207,15 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     private bool canRetrace; //Can use Retrace
     private bool canBTL; //Can use Between the Lines
     private bool hasThunderhead; //Has Thunderhead buff
-    private float ThunderLeft; //Time left on DOT effect (30s base)
-    public bool canOpen; //Can use opener
+    private float thunderLeft; //Time left on DOT effect (30s base)
+    private bool canOpen; //Can use opener
     private bool ShouldUseAOE;
     private int NumSplashTargets;
     private Enemy? BestSplashTargets;
+    private Enemy? BestDOTTargets;
     private Enemy? BestSplashTarget;
+    private Enemy? BestDOTTarget;
+
     #endregion
 
     #region Module Helpers
@@ -264,7 +267,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         canRetrace = ActionReady(AID.Retrace) && PlayerHasEffect(SID.LeyLines, 30); //Can use Retrace
         canBTL = ActionReady(AID.BetweenTheLines) && PlayerHasEffect(SID.LeyLines, 30); //Can use Between the Lines
         hasThunderhead = PlayerHasEffect(SID.Thunderhead, 30); //Has Thunderhead buff
-        ThunderLeft = Utils.MaxAll( //Time left on DOT effect
+        thunderLeft = Utils.MaxAll( //Time left on DOT effect
             StatusDetails(BestSplashTarget?.Actor, SID.Thunder, Player.InstanceID, 24).Left,
             StatusDetails(BestSplashTarget?.Actor, SID.ThunderII, Player.InstanceID, 18).Left,
             StatusDetails(BestSplashTarget?.Actor, SID.ThunderIII, Player.InstanceID, 27).Left,
@@ -272,8 +275,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             StatusDetails(BestSplashTarget?.Actor, SID.HighThunder, Player.InstanceID, 30).Left,
             StatusDetails(BestSplashTarget?.Actor, SID.HighThunderII, Player.InstanceID, 24).Left);
         ShouldUseAOE = Unlocked(AID.Blizzard2) && NumSplashTargets > 2;
-        (BestSplashTargets, NumSplashTargets) = GetBestTarget(BestSplashTarget, 25, IsSplashTarget);
+        (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
+        (BestDOTTargets, thunderLeft) = GetDOTTarget(strategy, primaryTarget, ThunderLeft, 2);
         BestSplashTarget = ShouldUseAOE ? BestSplashTargets : primaryTarget;
+        BestDOTTarget = Unlocked(AID.Thunder1) ? BestDOTTargets : primaryTarget;
         canOpen = TotalCD(AID.LeyLines) <= 120
                 && TotalCD(AID.Triplecast) <= 0.1f
                 && TotalCD(AID.Manafont) <= 0.1f
@@ -406,18 +411,18 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         {
             if (strategy.Automatic())
                 QueueGCD(BestThunder,
-                    TargetChoice(thunder),
-                    ThunderLeft <= 3 ? GCDPriority.NeedDOT :
+                    TargetChoice(thunder) ?? (ShouldUseAOE ? BestSplashTargets?.Actor : BestDOTTarget?.Actor),
+                    thunderLeft <= 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
             if (strategy.ForceST())
                 QueueGCD(BestThunderST,
                     TargetChoice(thunder) ?? BestSplashTarget?.Actor,
-                    ThunderLeft <= 3 ? GCDPriority.NeedDOT :
+                    thunderLeft <= 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
             if (strategy.ForceAOE())
                 QueueGCD(BestThunderAOE,
                     TargetChoice(thunder) ?? BestSplashTarget?.Actor,
-                    ThunderLeft <= 3 ? GCDPriority.NeedDOT :
+                    thunderLeft <= 3 ? GCDPriority.NeedDOT :
                     GCDPriority.DOT);
         }
         //Polyglots
@@ -1004,16 +1009,22 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Cooldown Helpers
+
+    #region DOT
+    private static SID[] GetDotStatus() => [SID.Thunder, SID.ThunderII, SID.ThunderIII, SID.ThunderIV, SID.HighThunder, SID.HighThunderII];
+    private float ThunderLeft(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 0);
     private bool ShouldUseThunder(Actor? target, ThunderStrategy strategy) => strategy switch
     {
-        ThunderStrategy.Thunder3 => Player.InCombat && target != null && hasThunderhead && ThunderLeft <= 3 && In25y(target),
-        ThunderStrategy.Thunder6 => Player.InCombat && target != null && hasThunderhead && ThunderLeft <= 6 && In25y(target),
-        ThunderStrategy.Thunder9 => Player.InCombat && target != null && hasThunderhead && ThunderLeft <= 9 && In25y(target),
-        ThunderStrategy.Thunder0 => Player.InCombat && target != null && hasThunderhead && ThunderLeft is 0 && In25y(target),
+        ThunderStrategy.Thunder3 => Player.InCombat && target != null && hasThunderhead && thunderLeft <= 3 && In25y(target),
+        ThunderStrategy.Thunder6 => Player.InCombat && target != null && hasThunderhead && thunderLeft <= 6 && In25y(target),
+        ThunderStrategy.Thunder9 => Player.InCombat && target != null && hasThunderhead && thunderLeft <= 9 && In25y(target),
+        ThunderStrategy.Thunder0 => Player.InCombat && target != null && hasThunderhead && thunderLeft is 0 && In25y(target),
         ThunderStrategy.Force => hasThunderhead,
         ThunderStrategy.Delay => false,
         _ => false
     };
+    #endregion
+
     private bool ShouldSpendPolyglot(Actor? target, PolyglotStrategy strategy) => strategy switch
     {
         PolyglotStrategy.AutoSpendAll => target != null && UsePolyglots(),
