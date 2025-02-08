@@ -166,5 +166,39 @@ public sealed class Definitions : IDisposable
         //d.Spell(AID.TrueThrust)!.TransformAction = d.Spell(AID.RaidenThrust)!.TransformAction = () => ActionID.MakeSpell(_state.BestTrueThrust);
         //d.Spell(AID.DoomSpike)!.TransformAction = d.Spell(AID.DraconianFury)!.TransformAction = () => ActionID.MakeSpell(_state.BestDoomSpike);
         //d.Spell(AID.Geirskogul)!.TransformAction = d.Spell(AID.Nastrond)!.TransformAction = () => ActionID.MakeSpell(_state.BestGeirskogul);
+
+        d.Spell(AID.Stardiver)!.ForbidExecute = d.Spell(AID.DragonfireDive)!.ForbidExecute = ActionDefinitions.PreventDashIfDangerous;
     }
+
+    public float EffectApplicationDelay(AID aid) => aid switch
+    {
+        AID.ChaoticSpring => 0.45f,          //Chaotic Spring delay
+        AID.HighJump => 0.49f,               //High Jump delay
+        AID.CoerthanTorment => 0.49f,        //Coerthan Torment delay
+        AID.BattleLitany => 0.62f,           //Battle Litany delay
+        AID.LanceBarrage => 0.62f,           //Lance Barrage delay
+        AID.FangAndClaw => 0.62f,            //Fang and Claw delay
+        AID.RaidenThrust => 0.62f,           //Raiden Thrust delay
+        AID.Geirskogul => 0.67f,             //Geirskogul delay
+        AID.WheelingThrust => 0.67f,         //Wheeling Thrust delay
+        AID.HeavensThrust => 0.71f,          //Heavens Thrust delay
+        AID.DraconianFury => 0.76f,          //Draconian Fury delay
+        AID.Nastrond => 0.76f,               //Nastrond delay
+        AID.TrueThrust => 0.76f,             //True Thrust delay
+        AID.DragonfireDive => 0.8f,          //Dragonfire Dive delay
+        AID.MirageDive => 0.8f,              //Mirage Dive delay
+        AID.SonicThrust => 0.8f,             //Sonic Thrust delay
+        AID.PiercingTalon => 0.85f,          //Piercing Talon delay
+        AID.Starcross => 0.98f,              //Starcross delay
+        AID.VorpalThrust => 1.02f,           //Vorpal Thrust delay
+        AID.RiseOfTheDragon => 1.16f,        //Rise of the Dragon delay
+        AID.WyrmwindThrust => 1.2f,          //Wyrmwind Thrust delay
+        AID.DoomSpike => 1.29f,              //Doom Spike delay
+        AID.Stardiver => 1.29f,              //Stardiver delay
+        AID.SpiralBlow => 1.38f,             //Spiral Blow delay
+        AID.Disembowel => 1.65f,             //Disembowel delay
+        AID.DragonsongDive => 2.23f,         //Dragonsong Dive delay
+        _ => 0.0f
+    };
+
 }

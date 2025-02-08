@@ -30,7 +30,7 @@ public sealed class SmartRotationTweak(WorldState ws, AIHints hints)
     public Angle? GetSpellOrientation(uint spellId, WPos playerPos, bool targetIsSelf, WPos? targetPos, WPos targetLoc)
     {
         var data = Service.LuminaRow<Lumina.Excel.Sheets.Action>(spellId);
-        if (data == null || !data.Value.NeedToFaceTarget) // does not require facing
+        if (data == null || !data.Value.NeedToFaceTarget || data.Value.Range == 0) // does not require facing
             return null;
         if (data.Value.TargetArea)
             return Angle.FromDirection(targetLoc - playerPos);

@@ -151,6 +151,14 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
+        d.Spell(AID.PassageOfArms)!.TransformAngle = (ws, player, _, _) => _config.Wings switch
+        {
+            PLDConfig.WingsBehavior.CharacterForward => player.Rotation + 180.Degrees(),
+            PLDConfig.WingsBehavior.CameraBackward => ws.Client.CameraAzimuth + 180.Degrees(),
+            PLDConfig.WingsBehavior.CameraForward => ws.Client.CameraAzimuth,
+            _ => null
+        };
+
         d.Spell(AID.Intervention)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
         d.Spell(AID.HolySpirit)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyHolySpirit && !player.InCombat && ws.Client.CountdownRemaining > 1.75f;
         d.Spell(AID.ShieldLob)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyShieldLob && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
@@ -162,5 +170,7 @@ public sealed class Definitions : IDisposable
         //d.Spell(AID.HallowedGround)!.EffectDuration = 10;
         //d.Spell(AID.DivineVeil)!.EffectDuration = 30;
         // TODO: Intervention effect duration?
+
+        d.Spell(AID.Intervene)!.ForbidExecute = ActionDefinitions.PreventDashIfDangerous;
     }
 }

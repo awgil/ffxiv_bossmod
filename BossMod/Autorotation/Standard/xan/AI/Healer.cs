@@ -80,7 +80,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
             tankFun(World.Party[tankSlot]!, Health.PartyMemberStates[tankSlot]!);
     }
 
-    private IEnumerable<Actor> LightParty => World.Party.WithoutSlot(excludeAlliance: true, excludeNPCs: Health.HaveRealPartyMembers);
+    private IEnumerable<Actor> LightParty => Health.TrackedMembers.Select(x => x.Item2);
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {

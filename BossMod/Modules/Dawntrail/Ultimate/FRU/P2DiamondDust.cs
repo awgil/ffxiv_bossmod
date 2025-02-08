@@ -468,7 +468,7 @@ class P2TwinStillnessSilence(BossModule module) : Components.GenericAOEs(module)
             {
                 // if we're behind boss, slide over to the safe point as opposite to the boss as possible
                 var farthestDir = Angle.FromDirection(-sourceOffset);
-                var bestRange = zoneList.Allowed(1.Degrees()).MinBy(r => farthestDir.DistanceToRange(r.min, r.max).Abs().Rad);
+                var bestRange = zoneList.Allowed(5.Degrees()).MinBy(r => farthestDir.DistanceToRange(r.min, r.max).Abs().Rad);
                 var dir = farthestDir.ClosestInRange(bestRange.min, bestRange.max);
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(actor.Position + SlideDistance * dir.ToDirection(), 1), DateTime.MaxValue);
             }

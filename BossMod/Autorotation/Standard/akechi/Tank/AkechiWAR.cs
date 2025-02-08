@@ -1,4 +1,4 @@
-﻿using static BossMod.AIHints;
+using static BossMod.AIHints;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using BossMod.WAR;
 
@@ -20,10 +20,16 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
     #endregion
 
-    #region Module Definitions & Strategies
+    #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi WAR", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Ok, BitMask.Build(Class.MRD, Class.WAR), 100);
+        var res = new RotationModuleDefinition("Akechi WAR", //Title
+            "Standard Rotation Module", //Description
+            "Standard rotation (Akechi)|Tank", //Category
+            "Akechi", //Contributor
+            RotationModuleQuality.Ok, //Quality
+            BitMask.Build(Class.MRD, Class.WAR), //Job
+            100); //Level supported
 
         res.DefineShared();
         res.Define(Track.Gauge).As<GaugeStrategy>("Gauge", "Gauge", uiPriority: 200)
@@ -85,9 +91,9 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             .AddOption(PotionStrategy.AlignWithRaidBuffs, "AlignWithRaidBuffs", "Align with Inner Release & Infuriate charges to ensure use on 2-minute windows", 270, 30, ActionTargets.Self)
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
-        res.DefineOGCD(Track.InnerRelease, "Inner Release", "InnerR.", uiPriority: 170, 60, 15, ActionTargets.Self, 6).AddAssociatedActions(AID.InnerRelease);
-        res.DefineOGCD(Track.PrimalWrath, "Primal Wrath", "P.Wrath", uiPriority: 135, 20, 0, ActionTargets.Hostile, 96).AddAssociatedActions(AID.PrimalWrath);
-        res.DefineGCD(Track.PrimalRuination, "PrimalRuination", "P.Ruin.", uiPriority: 150, supportedTargets: ActionTargets.Hostile, minLevel: 100).AddAssociatedActions(AID.PrimalRuination);
+        res.DefineOGCD(Track.InnerRelease, AID.InnerRelease, "Inner Release", "InnerR.", uiPriority: 170, 60, 15, ActionTargets.Self, 6).AddAssociatedActions(AID.InnerRelease);
+        res.DefineOGCD(Track.PrimalWrath, AID.PrimalWrath, "Primal Wrath", "P.Wrath", uiPriority: 135, 20, 0, ActionTargets.Hostile, 96).AddAssociatedActions(AID.PrimalWrath);
+        res.DefineGCD(Track.PrimalRuination, AID.PrimalRuination, "PrimalRuination", "P.Ruin.", uiPriority: 150, supportedTargets: ActionTargets.Hostile, minLevel: 100).AddAssociatedActions(AID.PrimalRuination);
 
         return res;
     }
@@ -215,6 +221,8 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     public (float TotalCD, float ChargeCD, bool HasCharges, bool IsReady) Infuriate;
     public (float Left, int Stacks, float CD, bool IsActive, bool IsReady) InnerRelease;
     #endregion
+
+    #region Module Helpers
     public bool IsRiskingGauge()
     {
         if (InnerRelease.Stacks > 0)
@@ -233,7 +241,9 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
 
         return false;
     }
-    public override void Execution(StrategyValues strategy, Enemy? primaryTarget) //Executes our actions
+    #endregion
+
+    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         #region Variables
 
@@ -338,25 +348,17 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
 
         #region Standard Rotations
         if (strategy.Automatic())
-        {
-            QueueGCD(BestRotation(), //queue the next single-target combo action only if combo is finished
-                TargetChoice(strategy.Option(SharedTrack.AOE)) //Get target choice
-                ?? primaryTarget?.Actor, //if none, pick primary target
-                IsRiskingGauge() ? GCDPriority.Standard - 500 : GCDPriority.Standard); //with priority for 123/10 combo actions
-        }
-        if (strategy.ForceST()) //if Force Single Target option is picked
-        {
+            QueueGCD(BestRotation(),
+                TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
+                IsRiskingGauge() ? GCDPriority.Standard - 400 : GCDPriority.ForcedCombo);
+        if (strategy.ForceST())
             QueueGCD(ST(),
-                TargetChoice(strategy.Option(SharedTrack.AOE)) //Get target choice
-                ?? primaryTarget?.Actor, //if none, pick primary target
-                IsRiskingGauge() ? GCDPriority.Standard - 500 : GCDPriority.Standard); //with priority for 123/10 combo actions
-        }
-        if (strategy.ForceAOE()) //if Force AOE option is picked
-        {
+                TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
+                IsRiskingGauge() ? GCDPriority.Standard - 400 : GCDPriority.ForcedCombo);
+        if (strategy.ForceAOE())
             QueueGCD(AOE(),
                 Player,
-                IsRiskingGauge() ? GCDPriority.Standard - 500 : GCDPriority.Standard); //with priority for 123/10 combo actions
-        }
+                IsRiskingGauge() ? GCDPriority.Standard - 400 : GCDPriority.ForcedCombo);
         #endregion
 
         #region Cooldowns
@@ -483,6 +485,19 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
                 GCD - 0.9f);
         #endregion
 
+        #endregion
+
+        #region AI
+        var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null; //Set goal for single target
+        var goalAOE = primaryTarget?.Actor != null ? Hints.GoalAOECircle(5) : null; //Set goal for AOE
+        var goal = strategy.Option(SharedTrack.AOE).As<AOEStrategy>() switch //Set goal based on AOE strategy
+        {
+            AOEStrategy.ForceST => goalST, //if forced single target
+            AOEStrategy.ForceAOE => goalAOE, //if forced AOE
+            _ => goalST != null && goalAOE != null ? Hints.GoalCombined(goalST, goalAOE, 2) : goalAOE //otherwise, combine goals
+        };
+        if (goal != null) //if goal is set
+            Hints.GoalZones.Add(goal); //add goal to zones
         #endregion
     }
 
