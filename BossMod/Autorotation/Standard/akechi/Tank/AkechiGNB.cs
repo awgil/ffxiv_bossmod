@@ -12,14 +12,15 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     public enum Track { AOE, Cooldowns, Cartridges, Potion, LightningShot, NoMercy, SonicBreak, GnashingFang, Reign, Bloodfest, DoubleDown, Zone, BowShock }
     public enum AOEStrategy { AutoFinishCombo, AutoBreakCombo, ForceSTwithO, ForceSTwithoutO, ForceAOEwithO, ForceAOEwithoutO, GenerateDowntime }
     public enum CooldownStrategy { Allow, Forbid }
-    public enum CartridgeStrategy { Automatic, OnlyBS, OnlyFC, ForceBS, ForceFC, Conserve }
+    public enum CartridgeStrategy { Automatic, OnlyBS, OnlyFC, ForceBS, ForceBS1, ForceBS2, ForceBS3, ForceFC, ForceFC1, ForceFC2, ForceFC3, Conserve }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
     public enum LightningShotStrategy { OpenerFar, OpenerForce, Force, Allow, Forbid }
     public enum NoMercyStrategy { Automatic, Force, ForceW, ForceQW, Force1, Force1W, Force1QW, Force2, Force2W, Force2QW, Force3, Force3W, Force3QW, Delay }
     public enum SonicBreakStrategy { Automatic, Force, Early, Late, Delay }
-    public enum GnashingStrategy { Automatic, ForceGnash, ForceClaw, ForceTalon, Delay }
+    public enum GnashingStrategy { Automatic, ForceGnash, ForceGnash1, ForceGnash2, ForceGnash3, ForceClaw, ForceTalon, Delay }
     public enum ReignStrategy { Automatic, ForceReign, ForceNoble, ForceLion, Delay }
     public enum BloodfestStrategy { Automatic, Force, ForceW, Force0, Force0W, Delay }
+    public enum DoubleDownStrategy { Automatic, Force, Force1, Force2, Force3, Delay }
     #endregion
 
     #region Module Definitions
@@ -49,9 +50,15 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddOption(CartridgeStrategy.Automatic, "Automatic", "Automatically decide when to use cartridges; uses them optimally")
             .AddOption(CartridgeStrategy.OnlyBS, "Only Burst Strike", "Uses Burst Strike optimally as cartridge spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 30)
             .AddOption(CartridgeStrategy.OnlyFC, "Only Fated Circle", "Uses Fated Circle optimally as cartridge spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 72)
-            .AddOption(CartridgeStrategy.ForceBS, "Force Burst Strike", "Force use of Burst Strike; consumes 1 cartridge", 0, 0, ActionTargets.Hostile, 30)
-            .AddOption(CartridgeStrategy.ForceFC, "Force Fated Circle", "Force use of Fated Circle; consumes 1 cartridge", 0, 0, ActionTargets.Hostile, 72)
-            .AddOption(CartridgeStrategy.Conserve, "Conserve", "Prohibit use of all cartridge-related abilities; will not use any of these actions listed above")
+            .AddOption(CartridgeStrategy.ForceBS, "Force Burst Strike", "Force use of Burst Strike regardless of cartridge count", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(CartridgeStrategy.ForceBS1, "Force Burst Strike (1 cart)", "Force use of Burst Strike when only 1 cartridge is available", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(CartridgeStrategy.ForceBS2, "Force Burst Strike (2 cart)", "Force use of Burst Strike when only 2 cartridges are available", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(CartridgeStrategy.ForceBS3, "Force Burst Strike (3 cart)", "Force use of Burst Strike when only 3 cartridges are available", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(CartridgeStrategy.ForceFC, "Force Fated Circle", "Force use of Fated Circle when any cartridges are available", 0, 0, ActionTargets.Hostile, 72)
+            .AddOption(CartridgeStrategy.ForceFC1, "Force Fated Circle (1 cart)", "Force use of Fated Circle when only 1 cartridge is available", 0, 0, ActionTargets.Hostile, 72)
+            .AddOption(CartridgeStrategy.ForceFC2, "Force Fated Circle (2 cart)", "Force use of Fated Circle when only 2 cartridges are available", 0, 0, ActionTargets.Hostile, 72)
+            .AddOption(CartridgeStrategy.ForceFC3, "Force Fated Circle (3 cart)", "Force use of Fated Circle when only 3 cartridges are available", 0, 0, ActionTargets.Hostile, 72)
+            .AddOption(CartridgeStrategy.Conserve, "Conserve", "Forbid use of Burst Strike & Fated Circle", 0, 0, ActionTargets.None, 30)
             .AddAssociatedActions(AID.BurstStrike, AID.FatedCircle);
         res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 20)
             .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
@@ -70,15 +77,15 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddOption(NoMercyStrategy.Force, "Force", "Force use of No Mercy, regardless of weaving", 60, 20, ActionTargets.Self, 2)
             .AddOption(NoMercyStrategy.ForceW, "Force (Weave)", "Force use of No Mercy in next possible weave slot", 60, 20, ActionTargets.Self, 2)
             .AddOption(NoMercyStrategy.ForceQW, "Force (Q.Weave)", "Force use of No Mercy in next possible last second weave slot", 60, 20, ActionTargets.Self, 2)
-            .AddOption(NoMercyStrategy.Force1, "Force (1 cart)", "Force use of No Mercy when 1 cartridge is available, regardless of weaving", 60, 20, ActionTargets.Self, 2)
-            .AddOption(NoMercyStrategy.Force1W, "Force (1 cart, Weave)", "Force use of No Mercy when 1 cartridge is available & in next weave slot", 60, 20, ActionTargets.Self, 2)
-            .AddOption(NoMercyStrategy.Force1QW, "Force (1 cart, Q.Weave)", "Force use of No Mercy when 1 cartridge is available & in next possible last-second weave slot", 60, 20, ActionTargets.Self, 2)
-            .AddOption(NoMercyStrategy.Force2, "Force (2 carts)", "Force use of No Mercy when 2 cartridges are available, regardless of weaving", 60, 20, ActionTargets.Self, 2)
-            .AddOption(NoMercyStrategy.Force2W, "Force (2 carts, Weave)", "Force use of No Mercy when 2 cartridges are available & in next possible weave slot", 60, 20, ActionTargets.Self, 2)
-            .AddOption(NoMercyStrategy.Force2QW, "Force (2 carts, Q.Weave)", "Force use of No Mercy when 2 cartridges are available & in next possible last-second weave slot", 60, 20, ActionTargets.Self, 2)
-            .AddOption(NoMercyStrategy.Force3, "Force (3 carts)", "Force use of No Mercy when 3 cartridges are available, regardless of weaving", 60, 20, ActionTargets.Self, 2)
-            .AddOption(NoMercyStrategy.Force3W, "Force (3 carts, Weave)", "Force use of No Mercy when 3 cartridges are available & in next possible weave slot", 60, 20, ActionTargets.Self, 2)
-            .AddOption(NoMercyStrategy.Force3QW, "Force (3 carts, Q.Weave)", "Force use of No Mercy when 3 cartridges are available & in next possible last-second weave slot", 60, 20, ActionTargets.Self, 2)
+            .AddOption(NoMercyStrategy.Force1, "Force (1 cart)", "Force use of No Mercy when only 1 cartridge is available, regardless of weaving", 60, 20, ActionTargets.Self, 2)
+            .AddOption(NoMercyStrategy.Force1W, "Force (1 cart, Weave)", "Force use of No Mercy when only 1 cartridge is available & in next weave slot", 60, 20, ActionTargets.Self, 2)
+            .AddOption(NoMercyStrategy.Force1QW, "Force (1 cart, Q.Weave)", "Force use of No Mercy when only 1 cartridge is available & in next possible last-second weave slot", 60, 20, ActionTargets.Self, 2)
+            .AddOption(NoMercyStrategy.Force2, "Force (2 carts)", "Force use of No Mercy when only 2 cartridges are available, regardless of weaving", 60, 20, ActionTargets.Self, 2)
+            .AddOption(NoMercyStrategy.Force2W, "Force (2 carts, Weave)", "Force use of No Mercy when only 2 cartridges are available & in next possible weave slot", 60, 20, ActionTargets.Self, 2)
+            .AddOption(NoMercyStrategy.Force2QW, "Force (2 carts, Q.Weave)", "Force use of No Mercy when only 2 cartridges are available & in next possible last-second weave slot", 60, 20, ActionTargets.Self, 2)
+            .AddOption(NoMercyStrategy.Force3, "Force (3 carts)", "Force use of No Mercy when only 3 cartridges are available, regardless of weaving", 60, 20, ActionTargets.Self, 2)
+            .AddOption(NoMercyStrategy.Force3W, "Force (3 carts, Weave)", "Force use of No Mercy when only 3 cartridges are available & in next possible weave slot", 60, 20, ActionTargets.Self, 2)
+            .AddOption(NoMercyStrategy.Force3QW, "Force (3 carts, Q.Weave)", "Force use of No Mercy when only 3 cartridges are available & in next possible last-second weave slot", 60, 20, ActionTargets.Self, 2)
             .AddOption(NoMercyStrategy.Delay, "Delay", "Delay use of No Mercy", 0, 0, ActionTargets.None, 2)
             .AddAssociatedActions(AID.NoMercy);
         res.Define(Track.SonicBreak).As<SonicBreakStrategy>("Sonic Break", "S.Break", uiPriority: 150)
@@ -90,9 +97,12 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.SonicBreak);
         res.Define(Track.GnashingFang).As<GnashingStrategy>("Gnashing Fang", "G.Fang", uiPriority: 160)
             .AddOption(GnashingStrategy.Automatic, "Auto", "Normal use of Gnashing Fang")
-            .AddOption(GnashingStrategy.ForceGnash, "Force", "Force use of Gnashing Fang (Step 1)", 30, 0, ActionTargets.Hostile, 60)
-            .AddOption(GnashingStrategy.ForceClaw, "Force", "Force use of Savage Claw (Step 2)", 0, 0, ActionTargets.Hostile, 60)
-            .AddOption(GnashingStrategy.ForceTalon, "Force", "Force use of Wicked Talon (Step 3)", 0, 0, ActionTargets.Hostile, 60)
+            .AddOption(GnashingStrategy.ForceGnash, "Force", "Force use of Gnashing Fang", 30, 0, ActionTargets.Hostile, 60)
+            .AddOption(GnashingStrategy.ForceGnash1, "Force (1 cart)", "Force use of Gnashing Fang when only 1 cartridge is available", 30, 0, ActionTargets.Hostile, 60)
+            .AddOption(GnashingStrategy.ForceGnash2, "Force (2 carts)", "Force use of Gnashing Fang when only 2 cartridges are available", 30, 0, ActionTargets.Hostile, 60)
+            .AddOption(GnashingStrategy.ForceGnash3, "Force (3 carts)", "Force use of Gnashing Fang when only 3 cartridges are available", 30, 0, ActionTargets.Hostile, 60)
+            .AddOption(GnashingStrategy.ForceClaw, "Force Savage Claw", "Force use of Savage Claw", 0, 0, ActionTargets.Hostile, 60)
+            .AddOption(GnashingStrategy.ForceTalon, "Force Talon", "Force use of Wicked Talon", 0, 0, ActionTargets.Hostile, 60)
             .AddOption(GnashingStrategy.Delay, "Delay", "Delay use of Gnashing Fang", 0, 0, ActionTargets.None, 60)
             .AddAssociatedActions(AID.GnashingFang, AID.SavageClaw, AID.WickedTalon);
         res.Define(Track.Reign).As<ReignStrategy>("Reign of Beasts", "Reign", uiPriority: 160)
@@ -110,7 +120,15 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddOption(BloodfestStrategy.Force0W, "Force (0 cart, Weave)", "Force use of Bloodfest only if empty on cartridges & in next possible weave slot", 120, 0, ActionTargets.Hostile, 80)
             .AddOption(BloodfestStrategy.Delay, "Delay", "Delay use of Bloodfest", 0, 0, ActionTargets.None, 80)
             .AddAssociatedActions(AID.Bloodfest);
-        res.DefineGCD(Track.DoubleDown, AID.DoubleDown, "DoubleDown", "D.Down", uiPriority: 160, 60, 0, ActionTargets.Hostile, 90);
+        res.Define(Track.DoubleDown).As<DoubleDownStrategy>("DoubleDown", "D.Down", uiPriority: 160)
+            .AddOption(DoubleDownStrategy.Automatic, "Automatic", "Normal use of Double Down")
+            .AddOption(DoubleDownStrategy.Force, "Force Double Down", "Force use of Double Down regardless of cartridge count", 60, 0, ActionTargets.Hostile, 90)
+            .AddOption(DoubleDownStrategy.Force1, "Force Double Down (1 cart)", "Force use of Double Down when only 1 cartridge is available", 60, 0, ActionTargets.Hostile, 90)
+            .AddOption(DoubleDownStrategy.Force2, "Force Double Down (2 cart)", "Force use of Double Down when only 2 cartridges are available", 60, 0, ActionTargets.Hostile, 90)
+            .AddOption(DoubleDownStrategy.Force3, "Force Double Down (3 cart)", "Force use of Double Down when only 3 cartridges are available", 60, 0, ActionTargets.Hostile, 90)
+            .AddOption(DoubleDownStrategy.Delay, "Delay", "Delay use of Double Down", 0, 0, ActionTargets.None, 90)
+            .AddAssociatedActions(AID.DoubleDown);
+
         res.DefineOGCD(Track.Zone, AID.DangerZone, "Zone", "Zone", uiPriority: 150, 30, 0, ActionTargets.Hostile, 18).AddAssociatedActions(AID.BlastingZone, AID.DangerZone);
         res.DefineOGCD(Track.BowShock, AID.BowShock, "BowShock", "B.Shock", uiPriority: 150, 60, 15, ActionTargets.Self, 62);
 
@@ -123,24 +141,25 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     {
         None = 0,
         Standard = 100,
-        ForcedCombo = 499,
-        Gauge = 500,
-        Reign = 525,
-        comboNeed = 550,
-        GF23 = 575,
+        Gauge = 400,
+        ForcedCombo = 425,
+        Reign = 450,
+        comboNeed = 500,
+        GF23 = 550,
         SonicBreak = 600,
-        DoubleDown = 675,
+        DoubleDown = 650,
         GF1 = 700,
+        Only1Ammo = 750,
         ForcedGCD = 900,
     }
     public enum OGCDPriority
     {
         None = 0,
-        Continuation = 500,
-        Zone = 550,
-        BowShock = 600,
-        Bloodfest = 700,
-        NoMercy = 875,
+        Continuation = 400,
+        Zone = 450,
+        BowShock = 500,
+        Bloodfest = 600,
+        NoMercy = 650,
         Potion = 900,
         ForcedOGCD = 1100, //Enough to put it past CDPlanner's "Automatic" priority, which is really only Medium priority
     }
@@ -239,7 +258,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         var bf = strategy.Option(Track.Bloodfest); //Bloodfest track
         var bfStrat = bf.As<BloodfestStrategy>(); //Bloodfest strategy
         var dd = strategy.Option(Track.DoubleDown); //Double Down track
-        var ddStrat = dd.As<GCDStrategy>(); //Double Down strategy
+        var ddStrat = dd.As<DoubleDownStrategy>(); //Double Down strategy
         var gf = strategy.Option(Track.GnashingFang); //Gnashing Fang track
         var gfStrat = gf.As<GnashingStrategy>(); //Gnashing Fang strategy
         var reign = strategy.Option(Track.Reign); //Reign of Beasts track
@@ -395,12 +414,13 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                 if (ShouldUseDoubleDown(ddStrat, primaryTarget?.Actor))
                     QueueGCD(AID.DoubleDown,
                         primaryTarget?.Actor,
-                        ddStrat is GCDStrategy.Force || Ammo == 1
-                        ? GCDPriority.ForcedGCD : GCDPriority.DoubleDown);
+                        ddStrat is DoubleDownStrategy.Force or DoubleDownStrategy.Force1 or DoubleDownStrategy.Force2 or DoubleDownStrategy.Force3
+                        ? GCDPriority.ForcedGCD
+                        : Ammo == 1 ? GCDPriority.Only1Ammo : GCDPriority.DoubleDown);
                 if (ShouldUseGnashingFang(gfStrat, primaryTarget?.Actor))
                     QueueGCD(AID.GnashingFang,
                         TargetChoice(gf) ?? primaryTarget?.Actor,
-                        gfStrat is GnashingStrategy.ForceGnash
+                        gfStrat is GnashingStrategy.ForceGnash or GnashingStrategy.ForceGnash1 or GnashingStrategy.ForceGnash2 or GnashingStrategy.ForceGnash3
                         ? GCDPriority.ForcedGCD : GCDPriority.GF1);
                 if (ShouldUseCartridges(cartStrat, primaryTarget?.Actor))
                 {
@@ -409,11 +429,11 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                             TargetChoice(carts) ?? primaryTarget?.Actor,
                             nmCD < 1 && Ammo == 3
                             ? GCDPriority.ForcedGCD : GCDPriority.Gauge);
-                    if (cartStrat is CartridgeStrategy.OnlyBS or CartridgeStrategy.ForceBS)
+                    if (cartStrat is CartridgeStrategy.OnlyBS or CartridgeStrategy.ForceBS or CartridgeStrategy.ForceBS1 or CartridgeStrategy.ForceBS2 or CartridgeStrategy.ForceBS3)
                         QueueGCD(AID.BurstStrike,
                             TargetChoice(carts) ?? primaryTarget?.Actor,
                             GCDPriority.Gauge);
-                    if (cartStrat is CartridgeStrategy.ForceFC or CartridgeStrategy.OnlyFC)
+                    if (cartStrat is CartridgeStrategy.ForceFC or CartridgeStrategy.OnlyFC or CartridgeStrategy.ForceFC1 or CartridgeStrategy.ForceFC2 or CartridgeStrategy.ForceFC3)
                         QueueGCD(BestFatedCircle,
                             Unlocked(AID.FatedCircle) ? Player : primaryTarget?.Actor,
                             GCDPriority.Gauge);
@@ -571,40 +591,46 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseCartridges(CartridgeStrategy strategy, Actor? target) => strategy switch
     {
-        CartridgeStrategy.Automatic => ShouldUseFC ? ShouldUseFatedCircle(CartridgeStrategy.Automatic, target) : ShouldUseBurstStrike(CartridgeStrategy.Automatic, target),
-        CartridgeStrategy.OnlyBS => ShouldUseBurstStrike(CartridgeStrategy.Automatic, target),
-        CartridgeStrategy.OnlyFC => ShouldUseFatedCircle(CartridgeStrategy.Automatic, target),
+        CartridgeStrategy.Automatic => ShouldSpendCarts(CartridgeStrategy.Automatic, target),
+        CartridgeStrategy.OnlyBS => ShouldSpendCarts(CartridgeStrategy.Automatic, target),
+        CartridgeStrategy.OnlyFC => ShouldSpendCarts(CartridgeStrategy.Automatic, target),
         CartridgeStrategy.ForceBS => canBS,
+        CartridgeStrategy.ForceBS1 => canBS && Ammo == 1,
+        CartridgeStrategy.ForceBS2 => canBS && Ammo == 2,
+        CartridgeStrategy.ForceBS3 => canBS && Ammo == 3,
         CartridgeStrategy.ForceFC => canFC,
+        CartridgeStrategy.ForceFC1 => canFC && Ammo == 1,
+        CartridgeStrategy.ForceFC2 => canFC && Ammo == 2,
+        CartridgeStrategy.ForceFC3 => canFC && Ammo == 3,
         CartridgeStrategy.Conserve => false,
         _ => false
     };
-    private bool ShouldUseDoubleDown(GCDStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseDoubleDown(DoubleDownStrategy strategy, Actor? target) => strategy switch
     {
-        GCDStrategy.Automatic => Player.InCombat && target != null && In5y(target) && canDD && hasNM,
-        GCDStrategy.Force => canDD,
-        GCDStrategy.Delay => false,
+        DoubleDownStrategy.Automatic => Player.InCombat && target != null && In5y(target) && canDD && hasNM,
+        DoubleDownStrategy.Force => canDD,
+        DoubleDownStrategy.Force1 => canDD && Ammo == 1,
+        DoubleDownStrategy.Force2 => canDD && Ammo == 2,
+        DoubleDownStrategy.Force3 => canDD && Ammo == 3,
+        DoubleDownStrategy.Delay => false,
         _ => false
     };
     private bool ShouldUseGnashingFang(GnashingStrategy strategy, Actor? target) => strategy switch
     {
         GnashingStrategy.Automatic => Player.InCombat && target != null && In3y(target) && canGF && (nmLeft > 0 || hasNM || nmCD is < 35 and > 17),
         GnashingStrategy.ForceGnash => canGF,
+        GnashingStrategy.ForceGnash1 => canGF && Ammo == 1,
+        GnashingStrategy.ForceGnash2 => canGF && Ammo == 2,
+        GnashingStrategy.ForceGnash3 => canGF && Ammo == 3,
         GnashingStrategy.ForceClaw => Player.InCombat && GunComboStep == 1,
         GnashingStrategy.ForceTalon => Player.InCombat && GunComboStep == 2,
         GnashingStrategy.Delay => false,
         _ => false
     };
-    private bool ShouldUseBurstStrike(CartridgeStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldSpendCarts(CartridgeStrategy strategy, Actor? target) => strategy switch
     {
-        CartridgeStrategy.Automatic => Player.InCombat && target != null && In3y(target) && canBS &&
-            (hasNM || (!(bfCD is <= 90 and >= 30) && nmCD < 1 && Ammo == 3)) ||
-            Ammo == MaxCartridges && ComboLastMove is AID.BrutalShell or AID.DemonSlice,
-        _ => false
-    };
-    private bool ShouldUseFatedCircle(CartridgeStrategy strategy, Actor? target) => strategy switch
-    {
-        CartridgeStrategy.Automatic => Player.InCombat && target != null && In5y(target) && canFC &&
+        CartridgeStrategy.Automatic => Player.InCombat && target != null &&
+            (ShouldUseFC ? (In5y(target) && canFC) : (In3y(target) && canBS)) &&
             (hasNM || (!(bfCD is <= 90 and >= 30) && nmCD < 1 && Ammo == 3)) ||
             Ammo == MaxCartridges && ComboLastMove is AID.BrutalShell or AID.DemonSlice,
         _ => false
