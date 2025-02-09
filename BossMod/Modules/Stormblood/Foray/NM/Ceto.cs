@@ -28,6 +28,7 @@ class AbyssalReaper(BossModule module) : Components.SelfTargetedAOEs(module, Act
 class CircleOfFlames(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.CircleOfFlames), 5);
 class TailSlap(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSlap), new AOEShapeCone(12, 60.Degrees()));
 class Petrattraction(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Petrattraction), 50, kind: Kind.TowardsOrigin);
+class CircleBlade(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CircleBlade), new AOEShapeCircle(7));
 class Adds(BossModule module) : Components.Adds(module, (uint)OID.FaithlessGuard);
 
 class CetoStates : StateMachineBuilder
@@ -42,6 +43,7 @@ class CetoStates : StateMachineBuilder
             .ActivateOnEnter<CircleOfFlames>()
             .ActivateOnEnter<TailSlap>()
             .ActivateOnEnter<Petrattraction>()
+            .ActivateOnEnter<CircleBlade>()
             .ActivateOnEnter<Adds>();
     }
 }
