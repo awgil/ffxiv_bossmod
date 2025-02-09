@@ -239,7 +239,9 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             if (ComboLastMove is AID.HeavySwing)
                 return true;
         }
-
+        if (NascentChaos.IsActive && //if NC is active
+            InnerRelease.CD > 5) //and IR is not imminent
+            return true;
         return false;
     }
     #endregion

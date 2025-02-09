@@ -29,7 +29,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             BitMask.Build((int)Class.DRK), //Job
             100); //Level supported
 
-        res.DefineAOE().AddAssociatedActions(AID.HardSlash, AID.SyphonStrike, AID.Souleater, AID.Unleash, AID.StalwartSoul); ;
+        res.DefineAOE().AddAssociatedActions(AID.HardSlash, AID.SyphonStrike, AID.Souleater, AID.Unleash, AID.StalwartSoul);
         res.DefineHold();
         res.Define(Track.Blood).As<BloodStrategy>("Blood", "Blood", uiPriority: 200)
             .AddOption(BloodStrategy.Automatic, "Automatic", "Automatically use Blood-related abilities optimally")
