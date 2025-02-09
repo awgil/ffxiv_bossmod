@@ -40,7 +40,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddOption(AOEStrategy.ForceSTwithoutO, "Force ST without Overcap", "Force ST rotation without overcap protection", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceAOEwithO, "Force AOE with Overcap", "Force AOE rotation with overcap protection")
             .AddOption(AOEStrategy.ForceAOEwithoutO, "Force AOE without Overcap", "Force AOE rotation without overcap protection")
-            .AddOption(AOEStrategy.GenerateDowntime, "Generate Downtime", "Generate cartridges before downtime");
+            .AddOption(AOEStrategy.GenerateDowntime, "Generate Downtime", "Generate cartridges before downtime")
+            .AddAssociatedActions(AID.KeenEdge, AID.BrutalShell, AID.SolidBarrel, AID.DemonSlice, AID.DemonSlaughter);
         res.Define(Track.Cooldowns).As<CooldownStrategy>("Hold", uiPriority: 190)
             .AddOption(CooldownStrategy.Allow, "Allow", "Allows the use of all cooldowns & buffs; will use them optimally")
             .AddOption(CooldownStrategy.Forbid, "Hold", "Forbids the use of all cooldowns & buffs; will not use any actions with a cooldown timer");

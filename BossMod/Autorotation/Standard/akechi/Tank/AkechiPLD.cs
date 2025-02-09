@@ -35,7 +35,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(AOEStrategy.AutoFinishCombo, "Auto (Finish Combo)", "Auto-selects best rotation dependant on targets; Finishes combo first", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.AutoBreakCombo, "Auto (Break Combo)", "Auto-selects best rotation dependant on targets; Breaks combo if needed", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceST, "Use AOE", "Force single-target rotation", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation");
+            .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation")
+            .AddAssociatedActions(AID.FastBlade, AID.RiotBlade, AID.RageOfHalone, AID.RoyalAuthority, AID.Prominence, AID.TotalEclipse);
         res.Define(Track.Cooldowns).As<CooldownStrategy>("Hold", uiPriority: 190)
             .AddOption(CooldownStrategy.Allow, "Allow", "Allows the use of all cooldowns & buffs; will use them optimally")
             .AddOption(CooldownStrategy.Forbid, "Hold", "Forbids the use of all cooldowns & buffs; will not use any actions with a cooldown timer");

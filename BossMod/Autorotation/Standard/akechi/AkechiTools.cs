@@ -1152,23 +1152,28 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 static class ModuleExtensions
 {
     #region Shared Definitions
-    /// <summary>Defines our shared <b>AOE</b> (rotation) and <b>Hold</b> strategies.</summary>
+    /// <summary>Defines our shared <b>AOE</b> (rotation) strategies.</summary>
     /// <param name="res">The definitions of our base module's strategies.</param>
     /// <returns>- Options for shared custom strategies to be used via <b>AutoRotation</b> or <b>Cooldown Planner</b></returns>
-    public static RotationModuleDefinition DefineShared(this RotationModuleDefinition res)
+    public static RotationModuleDefinition.ConfigRef<AOEStrategy> DefineAOE(this RotationModuleDefinition res)
     {
-        res.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", uiPriority: 300)
+        return res.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", uiPriority: 300)
             .AddOption(AOEStrategy.Automatic, "Auto", "Automatically execute optimal rotation based on targets", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceST, "ForceST", "Force-execute Single Target", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Force-execute AOE rotation", supportedTargets: ActionTargets.Hostile);
+    }
 
-        res.Define(SharedTrack.Hold).As<HoldStrategy>("Hold", uiPriority: 290)
+    /// <summary>Defines our shared <b>Hold</b> strategies.</summary>
+    /// <param name="res">The definitions of our base module's strategies.</param>
+    /// <returns>- Options for shared custom strategies to be used via <b>AutoRotation</b> or <b>Cooldown Planner</b></returns>
+    public static RotationModuleDefinition.ConfigRef<HoldStrategy> DefineHold(this RotationModuleDefinition res)
+    {
+        return res.Define(SharedTrack.Hold).As<HoldStrategy>("Hold", uiPriority: 290)
             .AddOption(HoldStrategy.DontHold, "DontHold", "Allow use of all cooldowns, buffs, or gauge abilities")
             .AddOption(HoldStrategy.HoldCooldowns, "Hold", "Forbid use of all cooldowns only")
             .AddOption(HoldStrategy.HoldGauge, "HoldGauge", "Forbid use of all gauge abilities only")
             .AddOption(HoldStrategy.HoldBuffs, "HoldBuffs", "Forbid use of all raidbuffs or buff-related abilities only")
             .AddOption(HoldStrategy.HoldEverything, "HoldEverything", "Forbid use of all cooldowns, buffs, and gauge abilities");
-        return res;
     }
 
     /// <summary>A quick and easy helper for shortcutting how we define our <b>GCD</b> abilities.</summary>

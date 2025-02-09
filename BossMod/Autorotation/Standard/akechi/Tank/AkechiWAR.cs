@@ -31,7 +31,8 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             BitMask.Build(Class.MRD, Class.WAR), //Job
             100); //Level supported
 
-        res.DefineShared();
+        res.DefineAOE().AddAssociatedActions(AID.HeavySwing, AID.Maim, AID.StormEye, AID.StormPath, AID.Overpower, AID.MythrilTempest);
+        res.DefineHold();
         res.Define(Track.Gauge).As<GaugeStrategy>("Gauge", "Gauge", uiPriority: 200)
             .AddOption(GaugeStrategy.Automatic, "Automatic", "Automatically use Gauge-related abilities optimally", minLevel: 35)
             .AddOption(GaugeStrategy.OnlyST, "Only ST", "Uses Inner Beast / Fell Cleave / Inner Chaos optimally as Beast Gauge spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 35)
