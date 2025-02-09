@@ -20,7 +20,7 @@ public enum AID : uint
 
 class Spellwind(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SpellwindCast));
 class Upburst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Upburst), new AOEShapeCircle(8));
-class RoilingReach(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RoilingReach), new AOEShapeRect(32, 3.5f));
+class RoilingReach(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RoilingReach), new AOEShapeCross(32, 3.5f));
 class Wallop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wallop), new AOEShapeRect(50, 3.5f));
 class ChillingGlare(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.ChillingGlare));
 
