@@ -839,7 +839,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// </summary>
     /// <param name="track">The user's picked strategy's option <b>Track</b>, retrieved from module's enums and definitions. (e.g. <b>strategy.Option(Track.NoMercy)</b>)</param>
     /// <returns></returns>
-    protected Actor? TargetChoice(StrategyValues.OptionRef track) => ResolveTargetOverride(track.Value); //Resolves the target choice based on the strategy
+    protected Actor? TargetChoice(StrategyValues.OptionRef track) => ResolveTargetOverride(track.Value);
 
     /// <summary>Targeting function for indicating when or not <b>AOE Circle</b> abilities should be used based on targets nearby.</summary>
     /// <param name="range">The range of the <b>AOE Circle</b> ability, or radius from center of Player; this should be adjusted accordingly to user's module specific to job's abilities.</param>
