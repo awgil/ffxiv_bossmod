@@ -6,7 +6,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
-    public enum Track { Potion = SharedTrack.Buffs, SSS, Meditation, FormShift, FiresReply, Nadi, RoF, RoW, PB, BH, TC, Blitz, Engage, TN }
+    public enum Track { BH = SharedTrack.Buffs, RoF, FiresReply, RoW, WindsReply, PB, Nadi, Blitz, SSS, FormShift, Meditation, TC, Potion, Engage, TN, Positional }
     public enum PotionStrategy
     {
         Manual,
@@ -26,6 +26,12 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         Ranged,
         Force,
         Delay
+    }
+    public enum WRStrategy
+    {
+        Automatic,
+        Force,
+        PreDowntime
     }
     public enum NadiStrategy
     {
@@ -62,6 +68,11 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         None,
         GapClose
     }
+    public enum PositionalStrategy
+    {
+        Automatic,
+        Ignore
+    }
     public enum BlitzStrategy
     {
         Automatic,
@@ -83,44 +94,33 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         var def = new RotationModuleDefinition("xan MNK", "Monk", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Good, BitMask.Build(Class.MNK, Class.PGL), 100);
 
         def.DefineSharedTA();
-        def.Define(Track.Potion).As<PotionStrategy>("Pot")
-            .AddOption(PotionStrategy.Manual, "Do not automatically use")
-            .AddOption(PotionStrategy.PreBuffs, "Use ~4 GCDs before raid buff window")
-            .AddOption(PotionStrategy.Now, "Use ASAP");
 
-        def.DefineSimple(Track.SSS, "SixSidedStar", minLevel: 80).AddAssociatedActions(AID.SixSidedStar);
+        // buffs
+        def.DefineSimple(Track.BH, "BH", minLevel: 70, uiPriority: 99).AddAssociatedActions(AID.Brotherhood);
 
-        def.Define(Track.Meditation).As<MeditationStrategy>("Meditate")
-            .AddOption(MeditationStrategy.Safe, "Use out of combat, during countdown, or if no enemies are targetable")
-            .AddOption(MeditationStrategy.Greedy, "Allow using when primary enemy is targetable, but out of range")
-            .AddOption(MeditationStrategy.Force, "Use even if enemy is in melee range")
-            .AddOption(MeditationStrategy.Delay, "Do not use")
-            .AddAssociatedActions(AID.SteeledMeditation);
-
-        def.DefineSimple(Track.FormShift, "FormShift", minLevel: 52).AddAssociatedActions(AID.FormShift);
-
-        def.Define(Track.FiresReply).As<FRStrategy>("FiresReply")
+        def.Define(Track.RoF).As<RoFStrategy>("RoF", uiPriority: 96)
+            .AddOption(RoFStrategy.Automatic, "Auto", "Automatically use RoF during burst window", minLevel: 68)
+            .AddOption(RoFStrategy.Force, "Force", "Use ASAP", minLevel: 68)
+            .AddOption(RoFStrategy.ForceMidWeave, "ForceMid", "Use ASAP, but retain late-weave to ensure maximum GCDs covered", minLevel: 68)
+            .AddOption(RoFStrategy.Delay, "Delay", "Do not use", minLevel: 68)
+            .AddAssociatedActions(AID.RiddleOfFire);
+        def.Define(Track.FiresReply).As<FRStrategy>("FiresReply", uiPriority: 95)
             .AddOption(FRStrategy.Automatic, "Use after Opo GCD", minLevel: 100)
             .AddOption(FRStrategy.Ranged, "Use when out of melee range, or if about to expire", minLevel: 100)
             .AddOption(FRStrategy.Force, "Use ASAP", minLevel: 100)
             .AddOption(FRStrategy.Delay, "Do not use", minLevel: 100)
             .AddAssociatedActions(AID.FiresReply);
 
-        def.Define(Track.Nadi).As<NadiStrategy>("Nadi")
-            .AddOption(NadiStrategy.Automatic, "Automatically choose best nadi (double lunar opener, otherwise alternate)", minLevel: 60)
-            .AddOption(NadiStrategy.Lunar, "Lunar", minLevel: 60)
-            .AddOption(NadiStrategy.Solar, "Solar", minLevel: 60);
+        def.DefineSimple(Track.RoW, "RoW", minLevel: 72, uiPriority: 94).AddAssociatedActions(AID.RiddleOfWind);
+        def.Define(Track.WindsReply).As<WRStrategy>("WindsReply", uiPriority: 93)
+            .AddOption(WRStrategy.Automatic, "Use out of melee range, or if about to expire", minLevel: 96)
+            .AddOption(WRStrategy.Force, "Use ASAP", minLevel: 96)
+            .AddOption(WRStrategy.PreDowntime, "Ensure usage at least 2 GCDs before next downtime", minLevel: 96)
+            .AddAssociatedActions(AID.WindsReply);
 
-        def.Define(Track.RoF).As<RoFStrategy>("RoF")
-            .AddOption(RoFStrategy.Automatic, "Auto", "Automatically use RoF during burst window", minLevel: 68)
-            .AddOption(RoFStrategy.Force, "Force", "Use ASAP", minLevel: 68)
-            .AddOption(RoFStrategy.ForceMidWeave, "ForceMid", "Use ASAP, but retain late-weave to ensure maximum GCDs covered", minLevel: 68)
-            .AddOption(RoFStrategy.Delay, "Delay", "Do not use", minLevel: 68)
-            .AddAssociatedActions(AID.RiddleOfFire);
 
-        def.DefineSimple(Track.RoW, "RoW", minLevel: 72).AddAssociatedActions(AID.RiddleOfWind);
-
-        def.Define(Track.PB).As<PBStrategy>("PB")
+        // PB-related settings
+        def.Define(Track.PB).As<PBStrategy>("PB", uiPriority: 89)
             .AddOption(PBStrategy.Automatic, "Automatically use after Opo before or during Riddle of Fire", minLevel: 50)
             .AddOption(PBStrategy.ForceOpo, "Use ASAP after next Opo", minLevel: 50)
             .AddOption(PBStrategy.Force, "Use ASAP", minLevel: 50)
@@ -128,14 +128,11 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(PBStrategy.DowntimeSolar, "Downtime prep: Solar", minLevel: 60, effect: 39)
             .AddOption(PBStrategy.DowntimeLunar, "Downtime prep: Lunar", minLevel: 60, effect: 39)
             .AddAssociatedActions(AID.PerfectBalance);
-
-        def.DefineSimple(Track.BH, "BH", minLevel: 70).AddAssociatedActions(AID.Brotherhood);
-        def.Define(Track.TC).As<TCStrategy>("TC")
-            .AddOption(TCStrategy.None, "Do not use", minLevel: 35)
-            .AddOption(TCStrategy.GapClose, "Use if outside melee range", minLevel: 35)
-            .AddAssociatedActions(AID.Thunderclap);
-
-        def.Define(Track.Blitz).As<BlitzStrategy>("Blitz")
+        def.Define(Track.Nadi).As<NadiStrategy>("Nadi", uiPriority: 88)
+            .AddOption(NadiStrategy.Automatic, "Automatically choose best nadi (double lunar opener, otherwise alternate)", minLevel: 60)
+            .AddOption(NadiStrategy.Lunar, "Lunar", minLevel: 60)
+            .AddOption(NadiStrategy.Solar, "Solar", minLevel: 60);
+        def.Define(Track.Blitz).As<BlitzStrategy>("Blitz", uiPriority: 87)
             .AddOption(BlitzStrategy.Automatic, "Use ASAP", minLevel: 60)
             .AddOption(BlitzStrategy.RoF, "Hold blitz until Riddle of Fire is active", minLevel: 60)
             .AddOption(BlitzStrategy.Multi, "Hold blitz until at least two targets will be hit", minLevel: 60)
@@ -143,13 +140,38 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(BlitzStrategy.Delay, "Do not use", minLevel: 60)
             .AddAssociatedActions(AID.ElixirField, AID.FlintStrike, AID.TornadoKick, AID.ElixirBurst, AID.RisingPhoenix, AID.PhantomRush);
 
-        def.Define(Track.Engage).As<EngageStrategy>("Engage")
+        // downtime stuff
+        def.DefineSimple(Track.SSS, "SixSidedStar", minLevel: 80, uiPriority: 79).AddAssociatedActions(AID.SixSidedStar);
+        def.DefineSimple(Track.FormShift, "FormShift", minLevel: 52, uiPriority: 78).AddAssociatedActions(AID.FormShift);
+        def.Define(Track.Meditation).As<MeditationStrategy>("Meditate", uiPriority: 77)
+            .AddOption(MeditationStrategy.Safe, "Use out of combat, during countdown, or if no enemies are targetable")
+            .AddOption(MeditationStrategy.Greedy, "Allow using when primary enemy is targetable, but out of range")
+            .AddOption(MeditationStrategy.Force, "Use even if enemy is in melee range")
+            .AddOption(MeditationStrategy.Delay, "Do not use")
+            .AddAssociatedActions(AID.SteeledMeditation);
+
+        // other utils
+        def.Define(Track.TC).As<TCStrategy>("TC", uiPriority: 69)
+            .AddOption(TCStrategy.None, "Do not use", minLevel: 35)
+            .AddOption(TCStrategy.GapClose, "Use if outside melee range", minLevel: 35)
+            .AddAssociatedActions(AID.Thunderclap);
+
+        def.Define(Track.Potion).As<PotionStrategy>("Pot", uiPriority: 59)
+            .AddOption(PotionStrategy.Manual, "Do not automatically use")
+            .AddOption(PotionStrategy.PreBuffs, "Use ~4 GCDs before raid buff window")
+            .AddOption(PotionStrategy.Now, "Use ASAP");
+
+        def.Define(Track.Engage).As<EngageStrategy>("Engage", uiPriority: 49)
             .AddOption(EngageStrategy.TC, "Thunderclap to target")
             .AddOption(EngageStrategy.Sprint, "Sprint to melee range")
             .AddOption(EngageStrategy.FacepullDK, "Precast Dragon Kick from melee range")
             .AddOption(EngageStrategy.FacepullDemo, "Precast Demolish from melee range");
 
-        def.DefineSimple(Track.TN, "TrueNorth", minLevel: 50).AddAssociatedActions(AID.TrueNorth);
+        def.DefineSimple(Track.TN, "TrueNorth", minLevel: 50, uiPriority: 48).AddAssociatedActions(AID.TrueNorth);
+        def.Define(Track.Positional).As<PositionalStrategy>("Pos (AI)", uiPriority: 45)
+            .AddOption(PositionalStrategy.Automatic, "Tell AI mode to navigate to hit positionals")
+            .AddOption(PositionalStrategy.Ignore, "Tell AI mode to ignore positionals")
+            .AddAssociatedActions(AID.Demolish, AID.SnapPunch, AID.PouncingCoeurl);
 
         return def;
     }
@@ -190,6 +212,8 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     public bool HaveBothNadi => HaveLunar && HaveSolar;
 
     protected override float GetCastTime(AID aid) => 0;
+
+    public float EffectiveDowntimeIn => MathF.Max(0, DowntimeIn - GetApplicationDelay(AID.SixSidedStar));
 
     private (AID action, bool isTargeted) GetCurrentBlitz()
     {
@@ -344,7 +368,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
         UseBlitz(strategy, currentBlitz);
         FiresReply(strategy);
-        WindsReply();
+        WindsReply(strategy);
 
         if (UseAOE)
         {
@@ -379,14 +403,15 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 PushGCD(AID.SixSidedStar, primaryTarget, GCDPriority.SSS);
                 break;
             case OffensiveStrategy.Automatic:
-                if (DowntimeIn > 0 && !CanFitGCD(DowntimeIn - GetApplicationDelay(AID.SixSidedStar), 1))
+                if (EffectiveDowntimeIn > 0 && !CanFitGCD(EffectiveDowntimeIn, 1))
                     PushGCD(AID.SixSidedStar, primaryTarget, GCDPriority.SSS);
                 break;
         }
 
         Prep(strategy);
 
-        var pos = NextPositional;
+        var pos = strategy.Option(Track.Positional).As<PositionalStrategy>() == PositionalStrategy.Automatic ? NextPositional : (Positional.Any, false);
+
         UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
 
         GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, AOEBreakpoint, positional: pos.Item1, maximumActionRange: 20);
@@ -664,7 +689,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         PushGCD(AID.FiresReply, BestRangedTarget, prio);
     }
 
-    private void WindsReply()
+    private void WindsReply(StrategyValues strategy)
     {
         if (WindsReplyLeft <= GCD)
             return;
@@ -675,6 +700,17 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         // if riddle of fire is about to expire, or if the WR buff itself is about to expire, use ASAP
         if (FireLeft > GCD && !CanFitGCD(FireLeft, 1) || !CanFitGCD(WindsReplyLeft, 1))
             prio = GCDPriority.WindsReply;
+
+        switch (strategy.Option(Track.WindsReply).As<WRStrategy>())
+        {
+            case WRStrategy.Force:
+                prio = GCDPriority.WindsReply;
+                break;
+            case WRStrategy.PreDowntime:
+                if (EffectiveDowntimeIn < WindsReplyLeft && !CanFitGCD(EffectiveDowntimeIn, 2))
+                    prio = GCDPriority.WindsReply;
+                break;
+        }
 
         PushGCD(AID.WindsReply, BestLineTarget, prio);
     }
