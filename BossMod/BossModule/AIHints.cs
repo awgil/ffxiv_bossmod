@@ -23,6 +23,7 @@ public sealed class AIHints
         public bool ShouldBeInterrupted; // if set and enemy is casting interruptible spell, some ranged/tank will try to interrupt
         public bool ShouldBeStunned; // if set, AI will stun if possible
         public bool StayAtLongRange; // if set, players with ranged attacks don't bother coming closer than max range (TODO: reconsider)
+        public bool Spikes; // if set, autoattacks will be prevented
     }
 
     public enum SpecialMode

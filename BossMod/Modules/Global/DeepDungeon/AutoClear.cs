@@ -55,7 +55,7 @@ public abstract class AutoClear : ZoneModule
     private readonly List<Gaze> Gazes = [];
     protected readonly List<Actor> Interrupts = [];
     protected readonly List<Actor> Stuns = [];
-    protected readonly List<(Actor Actor, DateTime Timeout)> ForbiddenTargets = [];
+    protected readonly List<(Actor Actor, DateTime Timeout)> Spikes = [];
     protected readonly List<Actor> HintDisabled = [];
     private readonly List<Actor> LOS = [];
     private readonly List<WPos> IgnoreTraps = [];
@@ -228,7 +228,7 @@ public abstract class AutoClear : ZoneModule
         Gazes.Clear();
         Interrupts.Clear();
         Stuns.Clear();
-        ForbiddenTargets.Clear();
+        Spikes.Clear();
         HintDisabled.Clear();
         LOS.Clear();
         Walls.Clear();
@@ -621,10 +621,10 @@ public abstract class AutoClear : ZoneModule
             hints.AddForbiddenZone(new AOEShapeCircle(kb.Radius), kb.Source.Position, default, castFinish);
         });
 
-        IterAndExpire(ForbiddenTargets, t => t.Timeout <= World.CurrentTime, t =>
+        IterAndExpire(Spikes, t => t.Timeout <= World.CurrentTime, t =>
         {
             if (hints.FindEnemy(t.Actor) is { } enemy)
-                enemy.Priority = AIHints.Enemy.PriorityForbidden;
+                enemy.Spikes = true;
         });
     }
 
