@@ -152,6 +152,7 @@ public enum SID : uint
     HeartOfCorundumPvP = 4295, // applied by Heart of Corundum to self
     CatharsisOfCorundumPvP = 4296, // applied by Heart of Corundum to self
     RelentlessRushPvP = 3052,
+    RelentlessShrapnelPvP = 3053,
 
     //Shared
     Elixir = ClassShared.AID.Elixir,
