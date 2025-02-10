@@ -753,37 +753,94 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     #region Targeting
 
     #region Position Checks
+
+    #region Core
     /// <summary>
     /// Checks precise positioning between <b>player target</b> and any other targets.
     /// </summary>
     protected delegate bool PositionCheck(Actor playerTarget, Actor targetToTest);
+
     /// <summary>
     /// <para>Calculates the <b>priority</b> of a target based on the <b>total number of targets</b> and the <b>primary target</b> itself.</para>
     /// <para>It is generic, so it can return different types based on the implementation.</para>
     /// </summary>
     protected delegate P PriorityFunc<P>(int totalTargets, Actor primaryTarget);
+    #endregion
+
+    #region Splash
     /// <summary>
     /// Position checker for determining the best target for an ability that deals <b>Splash</b> damage.
     /// </summary>
     protected PositionCheck IsSplashTarget => (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 5);
+    #endregion
+
+    #region Cones
+    // some of these use-cases really are only for BLU modules, since their job's ability ranges are all over the place (i.e. 4y, 16y specifically)
+
     /// <summary>
-    /// Position checker for determining the best target for an ability that deals damage in a <b>Cone</b> .
+    /// Position checker for determining the best target for an ability that deals damage in a <b>Cone</b> within <b>Four (4) yalms</b>.
     /// </summary>
-    protected PositionCheck IsConeTarget => (primary, other) => Hints.TargetInAOECone(other, Player.Position, 8, Player.DirectionTo(primary), 45.Degrees());
+    protected PositionCheck Is4yConeTarget => (primary, other) => Hints.TargetInAOECone(other, Player.Position, 4, Player.DirectionTo(primary), 45.Degrees());
+
+    /// <summary>
+    /// Position checker for determining the best target for an ability that deals damage in a <b>Cone</b> within <b>Six (6) yalms</b>.
+    /// </summary>
+    protected PositionCheck Is6yConeTarget => (primary, other) => Hints.TargetInAOECone(other, Player.Position, 6, Player.DirectionTo(primary), 45.Degrees());
+
+    /// <summary>
+    /// Position checker for determining the best target for an ability that deals damage in a <b>Cone</b> within <b>Eight (8) yalms</b>.
+    /// </summary>
+    protected PositionCheck Is8yConeTarget => (primary, other) => Hints.TargetInAOECone(other, Player.Position, 8, Player.DirectionTo(primary), 45.Degrees());
+
+    /// <summary>
+    /// Position checker for determining the best target for an ability that deals damage in a <b>Cone</b> within <b>Ten (10) yalms</b>.
+    /// </summary>
+    protected PositionCheck Is10yConeTarget => (primary, other) => Hints.TargetInAOECone(other, Player.Position, 10, Player.DirectionTo(primary), 45.Degrees());
+
+    /// <summary>
+    /// Position checker for determining the best target for an ability that deals damage in a <b>Cone</b> within <b>Twelve (12) yalms</b>.
+    /// </summary>
+    protected PositionCheck Is12yConeTarget => (primary, other) => Hints.TargetInAOECone(other, Player.Position, 12, Player.DirectionTo(primary), 45.Degrees());
+
+    /// <summary>
+    /// Position checker for determining the best target for an ability that deals damage in a <b>Cone</b> within <b>Fifteen (15) yalms</b>.
+    /// </summary>
+    protected PositionCheck Is15yConeTarget => (primary, other) => Hints.TargetInAOECone(other, Player.Position, 15, Player.DirectionTo(primary), 45.Degrees());
+
+    /// <summary>
+    /// Position checker for determining the best target for an ability that deals damage in a <b>Cone</b> within <b>Sixteen (16) yalms</b>.
+    /// </summary>
+    protected PositionCheck Is16yConeTarget => (primary, other) => Hints.TargetInAOECone(other, Player.Position, 16, Player.DirectionTo(primary), 45.Degrees());
+
+    #endregion
+
+    #region Lines (aka AOE Rectangles)
     /// <summary>
     /// <para>Position checker for determining the best target for an ability that deals damage in a <b>Line</b> within <b>Ten (10) yalms</b>.</para>
     /// </summary>
     protected PositionCheck Is10yRectTarget => (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 2);
+
     /// <summary>
     /// <para>Position checker for determining the best target for an ability that deals damage in a <b>Line</b> within <b>Fifteen (15) yalms</b>.</para>
     /// </summary>
     protected PositionCheck Is15yRectTarget => (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 15, 2);
+
+    /// <summary>
+    /// <para>Position checker for determining the best target for an ability that deals damage in a <b>Line</b> within <b>Twenty (20) yalms</b>.</para>
+    /// </summary>
+    protected PositionCheck Is20yRectTarget => (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 20, 2);
+
+
     /// <summary>
     /// Position checker for determining the best target for an ability that deals damage in a <b>Line</b> within <b>Twenty-five (25) yalms</b>
     /// </summary>
     protected PositionCheck Is25yRectTarget => (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 25, 2);
+
     #endregion
 
+    #endregion
+
+    #region Range Checks
     /// <summary>
     /// Checks if target is within <b>Zero (0) yalms</b> in distance, or if Player is inside hitbox.
     /// </summary>
@@ -832,6 +889,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <returns></returns>
     protected bool In25y(Actor? target) => Player.DistanceToHitbox(target) <= 24.99f;
+    #endregion
 
     /// <summary>
     /// <para>A simpler smart-targeting helper for picking a <b>specific</b> target over your current target.</para>
@@ -877,6 +935,22 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
             }
         }
     }
+
+    /// <summary>
+    /// This function attempts to pick ANY suitable primary target automatically, even if a target is not already picked.
+    /// </summary>
+    /// <param name="primaryTarget">The user's current <b>specified Target</b>.</param>
+    /// <param name="range"></param>
+    protected void GetPvPTarget(ref Enemy? primaryTarget, float range)
+    {
+        if (Player.DistanceToHitbox(primaryTarget?.Actor) > range)
+        {
+            var newTarget = Hints.PriorityTargets.FirstOrDefault(x => Player.DistanceToHitbox(x.Actor) <= range);
+            if (newTarget != null)
+                primaryTarget = newTarget;
+        }
+    }
+
 
     /// <summary>
     /// This function attempts to pick the best target automatically.
