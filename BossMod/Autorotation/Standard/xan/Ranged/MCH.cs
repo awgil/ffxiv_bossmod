@@ -179,7 +179,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
     private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (CountdownRemaining == null && !Player.InCombat && Player.DistanceToHitbox(primaryTarget) <= 25 && ReassembleLeft == 0 && !Overheated && AlwaysReassemble(NextGCD))
+        if (CountdownRemaining == null && !Player.InCombat && Player.DistanceToHitbox(primaryTarget) <= 25 && ReassembleLeft == 0 && ShouldReassemble(strategy, primaryTarget))
             PushGCD(AID.Reassemble, Player, priority: 50);
 
         if (!Player.InCombat || primaryTarget == null)

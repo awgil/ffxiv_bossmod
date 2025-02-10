@@ -293,6 +293,8 @@ public abstract class AutoClear : ZoneModule
 
     public override bool WantDrawExtra() => _config.EnableMinimap && !Palace.IsBossFloor;
 
+    public sealed override string WindowName() => "VBM DD minimap###Zone module";
+
     public override void DrawExtra()
     {
         var player = World.Party.Player();
@@ -445,6 +447,18 @@ public abstract class AutoClear : ZoneModule
                 revealedTraps.Add(ShapeDistance.Circle(a.Position, 2));
         }
 
+        var fullClear = false;
+        if (_config.FullClear)
+        {
+            var unexplored = Array.FindIndex(Palace.Rooms, d => (byte)d > 0 && !d.HasFlag(RoomFlags.Revealed));
+            if (unexplored > 0)
+            {
+                DesiredRoom = unexplored;
+                fullClear = true;
+            }
+        }
+
+
         if (_config.TrapHints && _trapsHidden)
         {
             var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30) && !IgnoreTraps.Any(b => b.AlmostEqual(t, 1))).Select(t => ShapeDistance.Circle(t, 2)).ToList();
@@ -479,9 +493,10 @@ public abstract class AutoClear : ZoneModule
 
         if (!player.InCombat && _config.AutoPassage && Palace.PassageActive)
         {
-            DesiredRoom = Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage));
+            if (DesiredRoom == 0)
+                DesiredRoom = Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage));
 
-            if (passage is Actor c)
+            if (passage is Actor c && !fullClear)
             {
                 hints.GoalZones.Add(hints.GoalSingleTarget(c.Position, 2, 0.5f));
                 // give pathfinder a little help lmao
