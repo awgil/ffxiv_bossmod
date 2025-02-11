@@ -7,7 +7,6 @@ namespace BossMod.Autorotation.akechi;
 //Discord @akechdz or 'Akechi' on Puni.sh for maintenance
 
 public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
-
 {
     #region Enums: Abilities / Strategies
     public enum Track
@@ -153,7 +152,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
     }
     #endregion
 
-    #region Placeholders for Variables
+    #region Module Variables
     private float nmLeft;
     private float rdCD;
     private bool hasNM;
@@ -177,10 +176,8 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
     public bool inGF;
     #endregion
 
-    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Execution(StrategyValues strategy, Enemy? PlayerTarget)
     {
-        GetPvPTarget(ref primaryTarget, 3);
-
         #region Variables
         var gauge = World.Client.GetGauge<GunbreakerGauge>();
         var GunStep = gauge.AmmoComboStep;
@@ -210,82 +207,81 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         };
         inCombo = comboStep > 0;
         inGF = GFcomboStep > 0;
-
-        #region Minimal Requirements
-        canGF = IsOffCooldown(AID.GnashingFangPvP);
-        canFC = IsOffCooldown(AID.GnashingFangPvP);
-        canZone = IsOffCooldown(AID.BlastingZonePvP);
-        canHyper = hasBlast && In5y(primaryTarget?.Actor);
-        canBrand = hasRaze && In5y(primaryTarget?.Actor);
-        canRip = hasRip && In5y(primaryTarget?.Actor);
-        canTear = hasTear && In5y(primaryTarget?.Actor);
-        canGouge = hasGouge && In5y(primaryTarget?.Actor);
-        #endregion
-        #endregion
-
         var burst = strategy.Option(Track.Burst);
         var burstStrategy = burst.As<BurstStrategy>();
         var hold = burstStrategy == BurstStrategy.Hold;
-
-        if (strategy.Option(Track.Combo).As<ComboStrategy>() is ComboStrategy.Force)
-            QueueGCD(NextCombo(), primaryTarget?.Actor, GCDPriority.ForcedGCD);
+        canGF = IsOffCooldown(AID.GnashingFangPvP);
+        canFC = IsOffCooldown(AID.GnashingFangPvP);
+        canZone = IsOffCooldown(AID.BlastingZonePvP);
+        canHyper = hasBlast && In5y(PlayerTarget?.Actor);
+        canBrand = hasRaze && In5y(PlayerTarget?.Actor);
+        canRip = hasRip && In5y(PlayerTarget?.Actor);
+        canTear = hasTear && In5y(PlayerTarget?.Actor);
+        canGouge = hasGouge && In5y(PlayerTarget?.Actor);
+        #endregion
 
         #region Rotation Execution
+        GetPvPTarget(ref PlayerTarget, 3);
+
         if (!inGF)
-            QueueGCD(NextCombo(), primaryTarget?.Actor, GCDPriority.Combo);
+            QueueGCD(NextCombo(), PlayerTarget?.Actor, GCDPriority.Combo);
+        if (strategy.Option(Track.Combo).As<ComboStrategy>() is ComboStrategy.Force)
+            QueueGCD(NextCombo(), PlayerTarget?.Actor, GCDPriority.ForcedGCD);
 
         #region OGCDs
         var rdStrat = strategy.Option(Track.RoughDivide).As<OffensiveStrategy>();
         if (!hold &&
-            ShouldUseRoughDivide(rdStrat, primaryTarget?.Actor))
-            QueueOGCD(AID.RoughDividePvP, primaryTarget?.Actor, rdStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.RoughDivide);
+            ShouldUseRoughDivide(rdStrat, PlayerTarget?.Actor))
+            QueueOGCD(AID.RoughDividePvP, PlayerTarget?.Actor, rdStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.RoughDivide);
 
         var zoneStrat = strategy.Option(Track.Zone).As<OffensiveStrategy>();
         if (!hold &&
-            ShouldUseZone(zoneStrat, primaryTarget?.Actor))
-            QueueOGCD(AID.BlastingZonePvP, primaryTarget?.Actor, zoneStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Zone);
+            ShouldUseZone(zoneStrat, PlayerTarget?.Actor))
+            QueueOGCD(AID.BlastingZonePvP, PlayerTarget?.Actor, zoneStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Zone);
 
         if (canRip || GunStep == 1)
-            QueueOGCD(AID.JugularRipPvP, primaryTarget?.Actor, OGCDPriority.Continuation);
+            QueueOGCD(AID.JugularRipPvP, PlayerTarget?.Actor, OGCDPriority.Continuation);
         if (canTear || GunStep == 2)
-            QueueOGCD(AID.AbdomenTearPvP, primaryTarget?.Actor, OGCDPriority.Continuation);
+            QueueOGCD(AID.AbdomenTearPvP, PlayerTarget?.Actor, OGCDPriority.Continuation);
         if (canGouge)
-            QueueOGCD(AID.EyeGougePvP, primaryTarget?.Actor, OGCDPriority.Continuation);
+            QueueOGCD(AID.EyeGougePvP, PlayerTarget?.Actor, OGCDPriority.Continuation);
         if (canHyper)
-            QueueOGCD(AID.HypervelocityPvP, primaryTarget?.Actor, OGCDPriority.Continuation);
+            QueueOGCD(AID.HypervelocityPvP, PlayerTarget?.Actor, OGCDPriority.Continuation);
         if (canBrand)
-            QueueOGCD(AID.FatedBrandPvP, primaryTarget?.Actor, OGCDPriority.Continuation);
+            QueueOGCD(AID.FatedBrandPvP, PlayerTarget?.Actor, OGCDPriority.Continuation);
 
-        if (TargetHPP(Player) < 50)
-            QueueOGCD(AID.HeartOfCorundumPvP, primaryTarget?.Actor, OGCDPriority.Corundum);
+        if (TargetHPP(Player) < 55)
+            QueueOGCD(AID.HeartOfCorundumPvP, Player, OGCDPriority.Corundum);
         #endregion
 
         #region GCDs
         var gfStrat = strategy.Option(Track.GnashingFang).As<OffensiveStrategy>();
         if (!hold &&
-            ShouldUseGnashingFang(gfStrat, primaryTarget?.Actor))
-            QueueGCD(AID.GnashingFangPvP, primaryTarget?.Actor, GCDPriority.GnashingFang);
-        if (GunStep == 1 && In5y(primaryTarget?.Actor))
-            QueueGCD(AID.SavageClawPvP, primaryTarget?.Actor, GCDPriority.GnashingFang);
-        if (GunStep == 2 && In5y(primaryTarget?.Actor))
-            QueueGCD(AID.WickedTalonPvP, primaryTarget?.Actor, GCDPriority.GnashingFang);
+            ShouldUseGnashingFang(gfStrat, PlayerTarget?.Actor))
+            QueueGCD(AID.GnashingFangPvP, PlayerTarget?.Actor, GCDPriority.GnashingFang);
+        if (GunStep == 1 && In5y(PlayerTarget?.Actor))
+            QueueGCD(AID.SavageClawPvP, PlayerTarget?.Actor, GCDPriority.GnashingFang);
+        if (GunStep == 2 && In5y(PlayerTarget?.Actor))
+            QueueGCD(AID.WickedTalonPvP, PlayerTarget?.Actor, GCDPriority.GnashingFang);
 
         var fcStrat = strategy.Option(Track.FatedCircle).As<OffensiveStrategy>();
-        if (ShouldUseFatedCircle(fcStrat, primaryTarget?.Actor))
-            QueueGCD(AID.FatedCirclePvP, primaryTarget?.Actor, fcStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.FatedCircle);
+        if (ShouldUseFatedCircle(fcStrat, PlayerTarget?.Actor))
+            QueueGCD(AID.FatedCirclePvP, PlayerTarget?.Actor, fcStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.FatedCircle);
         #endregion
 
         #endregion
 
+        #region Limit Break
         var rrStrat = strategy.Option(Track.RelentlessRush).As<RushStrategy>();
-        if (ShouldUseRR(rrStrat, primaryTarget?.Actor))
+        if (ShouldUseRR(rrStrat, PlayerTarget?.Actor))
             QueueOGCD(AID.RelentlessRushPvP, Player, rrStrat == RushStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.LB);
         var ttStrat = strategy.Option(Track.TerminalTrigger).As<TriggerStrategy>();
-        if (ShouldUseTT(ttStrat, primaryTarget?.Actor) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 5) > 0)
+        if (ShouldUseTT(ttStrat, PlayerTarget?.Actor) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 5) > 0)
             QueueGCD(AID.TerminalTriggerPvP, Player, ttStrat == TriggerStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.ForcedGCD);
+        #endregion
     }
 
-    #region Single-Target Helpers
+    #region Cooldown Helpers
     private AID NextCombo() => ComboLastMove switch
     {
         AID.SolidBarrelPvP => AID.BurstStrikePvP,
@@ -293,74 +289,44 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         AID.KeenEdgePvP => AID.BrutalShellPvP,
         _ => AID.KeenEdgePvP,
     };
-    #endregion
-
-    #region Cooldown Helpers
     private bool ShouldUseRoughDivide(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
-        OffensiveStrategy.Automatic =>
-            target != null &&
-            !hasNM && rdCD >= 7 || !OnCooldown(AID.RoughDividePvP),
-        OffensiveStrategy.Force => true,
+        OffensiveStrategy.Automatic => target != null && (!hasNM && rdCD <= 14 || !OnCooldown(AID.RoughDividePvP)),
+        OffensiveStrategy.Force => rdCD <= 14.5f,
         OffensiveStrategy.Delay => false,
         _ => false
     };
-
     private bool ShouldUseZone(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
-        OffensiveStrategy.Automatic =>
-            Player.InCombat &&
-            target != null &&
-            canZone &&
-            hasNM &&
-            In5y(target),
+        OffensiveStrategy.Automatic => target != null && canZone && hasNM && In5y(target),
         OffensiveStrategy.Force => canZone,
         OffensiveStrategy.Delay => false,
         _ => false
     };
-
     private bool ShouldUseGnashingFang(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
-        OffensiveStrategy.Automatic =>
-            Player.InCombat &&
-            target != null &&
-            In5y(target) &&
-            hasNM &&
-            canGF,
+        OffensiveStrategy.Automatic => target != null && In5y(target) && hasNM && canGF,
         OffensiveStrategy.Force => canGF,
         OffensiveStrategy.Delay => false,
         _ => false
     };
-
     private bool ShouldUseFatedCircle(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
-        OffensiveStrategy.Automatic =>
-            Player.InCombat &&
-            target != null &&
-            In5y(target) &&
-            hasNM &&
-            canFC,
+        OffensiveStrategy.Automatic => target != null && In5y(target) && hasNM && canFC,
         OffensiveStrategy.Force => canFC,
         OffensiveStrategy.Delay => false,
         _ => false
     };
-
     private bool ShouldUseRR(RushStrategy strategy, Actor? target) => strategy switch
     {
-        RushStrategy.Automatic =>
-            target != null &&
-            In5y(target) &&
-            hasNM &&
-            LBready,
+        RushStrategy.Automatic => target != null && In5y(target) && hasNM && LBready,
         RushStrategy.Force => LBready,
         RushStrategy.Hold => false,
         _ => false
     };
-
     private bool ShouldUseTT(TriggerStrategy strategy, Actor? target) => strategy switch
     {
-        TriggerStrategy.Automatic
-            => StacksRemaining(target, SID.RelentlessShrapnelPvP) > 0 && PlayerHasEffect(SID.RelentlessRushPvP),
+        TriggerStrategy.Automatic => StacksRemaining(target, SID.RelentlessShrapnelPvP) > 0 && PlayerHasEffect(SID.RelentlessRushPvP),
         TriggerStrategy.Force => PlayerHasEffect(SID.RelentlessRushPvP),
         TriggerStrategy.Hold => false,
         _ => false

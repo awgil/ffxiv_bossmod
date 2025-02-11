@@ -461,6 +461,17 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool TargetHasShield(Actor actor) => actor.HPMP.Shield > 0.1f;
 
     /// <summary>
+    /// A quick and easy helper for retrieving the <b>Current HP Percentage</b> of the Player specifically.<para/>
+    /// Example:<br/>
+    /// - <c>PlayerHPP() > 69</c><para/>
+    /// Explanation:<br/>
+    /// - "<c><b>PlayerHPP</b></c>" represents the <b>current HP Percentage value</b> of the specified actor.<br/>
+    /// - "<c><b>> 69</b></c>" is the example conditional expression specified by the user.<br/>
+    /// </summary>
+    /// <returns>- A <b>value</b> representing the <b>current HP Percentage (%) of the Player</b>.</returns>
+    protected float PlayerHPP() => (float)Player.HPMP.CurHP / Player.HPMP.MaxHP * 100;
+
+    /// <summary>
     /// A quick and easy helper for retrieving the <b>Current HP Percentage</b> of any specified actor, whether it is the player or any other target user desires.<para/>
     /// Example:<br/>
     /// - <c>TargetHPP(primaryTarget) > 50</c><para/>
@@ -471,7 +482,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// </summary>
     /// <param name="target">Any specified player, ally, or target</param>
     /// <returns>- A <b>value</b> representing the <b>current HP Percentage (%) of user's specified actor</b>.</returns>
-    public static float TargetHPP(Actor? target = null)
+    protected static float TargetHPP(Actor? target = null)
     {
         if (target is null || target.IsDead)
             return 0f;
@@ -811,7 +822,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// Position checker for determining the best target for an ability that deals damage in a <b>Cone</b> within <b>Sixteen (16) yalms</b>.
     /// </summary>
     protected PositionCheck Is16yConeTarget => (primary, other) => Hints.TargetInAOECone(other, Player.Position, 16, Player.DirectionTo(primary), 45.Degrees());
-
     #endregion
 
     #region Lines (aka AOE Rectangles)
@@ -830,12 +840,10 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// </summary>
     protected PositionCheck Is20yRectTarget => (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 20, 2);
 
-
     /// <summary>
     /// Position checker for determining the best target for an ability that deals damage in a <b>Line</b> within <b>Twenty-five (25) yalms</b>
     /// </summary>
     protected PositionCheck Is25yRectTarget => (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 25, 2);
-
     #endregion
 
     #endregion
@@ -918,6 +926,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>
     /// This function attempts to pick a suitable primary target automatically, even if a target is not already picked.
+    /// <b>NOTE</b>: This function is solely used for auto-targeting enemies without having a target selected, mainly for AI usage. Please use appropriately.
     /// </summary>
     /// <param name="strategy">The user's picked <b>Strategy</b></param>
     /// <param name="primaryTarget">The user's current <b>specified Target</b>.</param>
@@ -937,20 +946,24 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     }
 
     /// <summary>
-    /// This function attempts to pick ANY suitable primary target automatically, even if a target is not already picked.
+    /// This function attempts to pick the most suitable primary target automatically, prioritizing the target with the lowest HP percentage within range. <para/>
+    /// <b>NOTE</b>: This function is solely used for finding a <b>PvP target</b> without having to click on other targets. Please use appropriately.
     /// </summary>
     /// <param name="primaryTarget">The user's current <b>specified Target</b>.</param>
-    /// <param name="range"></param>
+    /// <param name="range">The max range to search for a new target.</param>
     protected void GetPvPTarget(ref Enemy? primaryTarget, float range)
     {
-        if (Player.DistanceToHitbox(primaryTarget?.Actor) > range)
+        if (primaryTarget == null || Player.DistanceToHitbox(primaryTarget.Actor) > range)
         {
-            var newTarget = Hints.PriorityTargets.FirstOrDefault(x => Player.DistanceToHitbox(x.Actor) <= range);
+            var newTarget = Hints.PriorityTargets
+                .Where(x => x != null && x.Actor != null && Player.DistanceToHitbox(x.Actor) <= range)
+                .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP)
+                .FirstOrDefault();
+
             if (newTarget != null)
                 primaryTarget = newTarget;
         }
     }
-
 
     /// <summary>
     /// This function attempts to pick the best target automatically.
@@ -1048,9 +1061,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// Player's "actual" target; guaranteed to be an enemy.
     /// </summary>
     protected Enemy? PlayerTarget { get; private set; }
-
-    //TODO: implement this soon
-    protected Actor? AnyTarget { get; private set; }
     #endregion
 
     #region Positionals

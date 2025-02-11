@@ -75,19 +75,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
     #endregion
 
     #region Module Helpers
-    public static float TargetHPP(Actor? target = null)
-    {
-        if (target is null || target.IsDead)
-            return 0f;
-
-        if (target is Actor actor)
-        {
-            var HPP = (float)actor.HPMP.CurHP / actor.HPMP.MaxHP * 1f;
-            return Math.Clamp(HPP, 0f, 1f);
-        }
-
-        return 0f;
-    }
+    public float PlayerHPP() => (float)Player.HPMP.CurHP / Player.HPMP.MaxHP * 100;
     public float DebuffsLeft(Actor? target)
     {
         return target == null ? 0f
@@ -143,29 +131,29 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
 
     public bool ShouldUseElixir(ElixirStrategy strategy) => strategy switch
     {
-        ElixirStrategy.Automatic => canElixir && TargetHPP(Player) <= 60 && Hints.NumPriorityTargetsInAOECircle(Player.Position, 30) == 0,
-        ElixirStrategy.Close => TargetHPP(Player) <= 60 && Hints.NumPriorityTargetsInAOECircle(Player.Position, 15) == 0,
-        ElixirStrategy.Far => TargetHPP(Player) <= 60 && Hints.NumPriorityTargetsInAOECircle(Player.Position, 45) == 0,
+        ElixirStrategy.Automatic => canElixir && PlayerHPP() <= 60 && Hints.NumPriorityTargetsInAOECircle(Player.Position, 30) == 0,
+        ElixirStrategy.Close => canElixir && PlayerHPP() <= 60 && Hints.NumPriorityTargetsInAOECircle(Player.Position, 15) == 0,
+        ElixirStrategy.Far => canElixir && PlayerHPP() <= 60 && Hints.NumPriorityTargetsInAOECircle(Player.Position, 45) == 0,
         ElixirStrategy.Force => canElixir,
         ElixirStrategy.Delay => false,
         _ => false,
     };
     public bool ShouldUseRecuperate(RecuperateStrategy strategy) => strategy switch
     {
-        RecuperateStrategy.Automatic => canRecuperate && TargetHPP(Player) <= 40,
-        RecuperateStrategy.Seventy => canRecuperate && TargetHPP(Player) <= 70,
-        RecuperateStrategy.Fifty => canRecuperate && TargetHPP(Player) <= 50,
-        RecuperateStrategy.Thirty => canRecuperate && TargetHPP(Player) <= 30,
+        RecuperateStrategy.Automatic => canRecuperate && PlayerHPP() <= 40,
+        RecuperateStrategy.Seventy => canRecuperate && PlayerHPP() <= 70,
+        RecuperateStrategy.Fifty => canRecuperate && PlayerHPP() <= 50,
+        RecuperateStrategy.Thirty => canRecuperate && PlayerHPP() <= 30,
         RecuperateStrategy.Force => canRecuperate,
         RecuperateStrategy.Delay => false,
         _ => false,
     };
     public bool ShouldUseGuard(GuardStrategy strategy) => strategy switch
     {
-        GuardStrategy.Automatic => canGuard && TargetHPP(Player) <= 35,
-        GuardStrategy.Seventy => canGuard && TargetHPP(Player) <= 70,
-        GuardStrategy.Fifty => canGuard && TargetHPP(Player) <= 50,
-        GuardStrategy.Thirty => canGuard && TargetHPP(Player) <= 30,
+        GuardStrategy.Automatic => canGuard && PlayerHPP() <= 35,
+        GuardStrategy.Seventy => canGuard && PlayerHPP() <= 70,
+        GuardStrategy.Fifty => canGuard && PlayerHPP() <= 50,
+        GuardStrategy.Thirty => canGuard && PlayerHPP() <= 30,
         GuardStrategy.Force => canGuard,
         GuardStrategy.Delay => false,
         _ => false,
