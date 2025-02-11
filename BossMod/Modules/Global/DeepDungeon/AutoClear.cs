@@ -55,7 +55,7 @@ public abstract class AutoClear : ZoneModule
     private readonly List<Gaze> Gazes = [];
     protected readonly List<Actor> Interrupts = [];
     protected readonly List<Actor> Stuns = [];
-    protected readonly List<(Actor Actor, DateTime Timeout)> ForbiddenTargets = [];
+    protected readonly List<(Actor Actor, DateTime Timeout)> Spikes = [];
     protected readonly List<Actor> HintDisabled = [];
     private readonly List<Actor> LOS = [];
     private readonly List<WPos> IgnoreTraps = [];
@@ -228,7 +228,7 @@ public abstract class AutoClear : ZoneModule
         Gazes.Clear();
         Interrupts.Clear();
         Stuns.Clear();
-        ForbiddenTargets.Clear();
+        Spikes.Clear();
         HintDisabled.Clear();
         LOS.Clear();
         Walls.Clear();
@@ -292,6 +292,8 @@ public abstract class AutoClear : ZoneModule
     private bool OpenBronze => _config.BronzeCoffer;
 
     public override bool WantDrawExtra() => _config.EnableMinimap && !Palace.IsBossFloor;
+
+    public sealed override string WindowName() => "VBM DD minimap###Zone module";
 
     public override void DrawExtra()
     {
@@ -445,6 +447,18 @@ public abstract class AutoClear : ZoneModule
                 revealedTraps.Add(ShapeDistance.Circle(a.Position, 2));
         }
 
+        var fullClear = false;
+        if (_config.FullClear)
+        {
+            var unexplored = Array.FindIndex(Palace.Rooms, d => (byte)d > 0 && !d.HasFlag(RoomFlags.Revealed));
+            if (unexplored > 0)
+            {
+                DesiredRoom = unexplored;
+                fullClear = true;
+            }
+        }
+
+
         if (_config.TrapHints && _trapsHidden)
         {
             var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30) && !IgnoreTraps.Any(b => b.AlmostEqual(t, 1))).Select(t => ShapeDistance.Circle(t, 2)).ToList();
@@ -479,9 +493,10 @@ public abstract class AutoClear : ZoneModule
 
         if (!player.InCombat && _config.AutoPassage && Palace.PassageActive)
         {
-            DesiredRoom = Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage));
+            if (DesiredRoom == 0)
+                DesiredRoom = Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage));
 
-            if (passage is Actor c)
+            if (passage is Actor c && !fullClear)
             {
                 hints.GoalZones.Add(hints.GoalSingleTarget(c.Position, 2, 0.5f));
                 // give pathfinder a little help lmao
@@ -621,10 +636,10 @@ public abstract class AutoClear : ZoneModule
             hints.AddForbiddenZone(new AOEShapeCircle(kb.Radius), kb.Source.Position, default, castFinish);
         });
 
-        IterAndExpire(ForbiddenTargets, t => t.Timeout <= World.CurrentTime, t =>
+        IterAndExpire(Spikes, t => t.Timeout <= World.CurrentTime, t =>
         {
             if (hints.FindEnemy(t.Actor) is { } enemy)
-                enemy.Priority = AIHints.Enemy.PriorityForbidden;
+                enemy.Spikes = true;
         });
     }
 
@@ -670,14 +685,15 @@ public abstract class AutoClear : ZoneModule
         hints.GoalZones.Add(p =>
         {
             var pp = player.Position;
-            return d switch
+            var improvement = d switch
             {
                 Direction.North => pp.Z - p.Z,
                 Direction.South => p.Z - pp.Z,
                 Direction.East => p.X - pp.X,
                 Direction.West => pp.X - p.X,
                 _ => 0,
-            } * 0.001f;
+            };
+            return improvement > 10 ? 10 : 0;
         });
     }
 

@@ -33,7 +33,9 @@ public sealed class AutoAutosTweak(WorldState ws, AIHints hints)
         if (_config.PyreticThreshold > 0 && hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && hints.ImminentSpecialMode.activation < ws.FutureTime(_config.PyreticThreshold))
             return false; // pyretic => disable autos
 
-        if (hints.FindEnemy(target)?.Priority == AIHints.Enemy.PriorityForbidden)
+        var enemy = hints.FindEnemy(target);
+
+        if (enemy?.Priority == AIHints.Enemy.PriorityForbidden || enemy?.Spikes == true)
             return false;
 
         return player.InCombat || ws.Client.CountdownRemaining <= PrePullThreshold; // no reason not to enable autos!

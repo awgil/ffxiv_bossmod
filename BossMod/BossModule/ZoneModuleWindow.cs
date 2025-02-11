@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using Dalamud.Utility;
+
+namespace BossMod;
 
 public class ZoneModuleWindow : UIWindow
 {
@@ -13,6 +15,13 @@ public class ZoneModuleWindow : UIWindow
     public override void PreOpenCheck()
     {
         IsOpen = _zmm.ActiveModule?.WantDrawExtra() ?? false;
+        if (IsOpen)
+        {
+            var title = _zmm.ActiveModule!.WindowName();
+            if (title.IsNullOrEmpty())
+                title = "Zone module###Zone module";
+            WindowName = title;
+        }
     }
 
     public override void Draw()

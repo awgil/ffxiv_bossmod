@@ -13,7 +13,7 @@ public sealed class AutoPull(RotationModuleManager manager, Actor player) : Rota
         def.AbilityTrack(Track.QuestBattle, "Automatically attack solo duty bosses");
         def.AbilityTrack(Track.DeepDungeon, "Automatically attack deep dungeon bosses when solo");
         def.AbilityTrack(Track.EpicEcho, "Automatically attack all targets if the Epic Echo status is present (i.e. when unsynced)");
-        def.AbilityTrack(Track.Hunt, "Automatically attack hunt marks once they have already been pulled");
+        def.AbilityTrack(Track.Hunt, "Automatically attack hunt marks once they are below 95% HP");
 
         return def;
     }

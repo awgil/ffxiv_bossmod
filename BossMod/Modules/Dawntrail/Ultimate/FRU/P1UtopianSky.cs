@@ -23,7 +23,7 @@ class P1UtopianSkyBlastingZone(BossModule module) : Components.GenericAOEs(modul
         {
             Activation = WorldState.FutureTime(9.1f);
             AOEs.Add(new(_shape, actor.Position, actor.Rotation, Activation));
-            DangerousSpots.Set((int)MathF.Round((Angle.FromDirection(actor.Position - Module.Center).Deg + 180) / 45) % 8);
+            DangerousSpots.Set((int)MathF.Round((-Angle.FromDirection(actor.Position - Module.Center).Deg + 180) / 45) % 8);
         }
     }
 
@@ -172,7 +172,7 @@ class P1UtopianSkyAIResolve(BossModule module) : BossComponent(module)
             if (_spreadStack?.Stacks.Count > 0)
                 spreadSpot &= 4; // stack on close spot
 
-            var direction = (~_seenDangerSpot).LowestSetBit() * 45.Degrees() + (spreadSpot >= 4 ? 0 : 180).Degrees();
+            var direction = (4 - (~_seenDangerSpot).LowestSetBit()) % 4 * 45.Degrees() + (spreadSpot >= 4 ? 0 : 180).Degrees();
             spreadSpot &= 3;
             direction += spreadSpot switch
             {

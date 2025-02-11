@@ -50,6 +50,20 @@ public static partial class Utils
 
     public static unsafe ulong SceneObjectFlags(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o) => ReadField<ulong>(o, 0x38);
 
+    public static bool IsPlayerSyncedToFate(WorldState world)
+    {
+        if (world.Client.ActiveFate.ID == 0)
+            return false;
+
+        var fate = Service.LuminaRow<Lumina.Excel.Sheets.Fate>(world.Client.ActiveFate.ID);
+        if (fate == null)
+            return false;
+
+        return fate.Value.EurekaFate == 1
+            ? world.Client.ElementalLevelSynced <= fate.Value.ClassJobLevelMax
+            : world.Party.Player()?.Level <= fate.Value.ClassJobLevelMax;
+    }
+
     // lumina extensions
     public static int FindIndex<T>(this Lumina.Excel.Collection<T> collection, Func<T, bool> predicate) where T : struct
     {

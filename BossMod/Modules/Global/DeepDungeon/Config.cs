@@ -42,4 +42,7 @@ public class AutoDDConfig : ConfigNode
     public bool SilverCoffer = true;
     [PropertyDisplay("Open bronze coffers")]
     public bool BronzeCoffer = true;
+
+    [PropertyDisplay("Reveal all rooms before proceeding to next floor")]
+    public bool FullClear = false;
 }

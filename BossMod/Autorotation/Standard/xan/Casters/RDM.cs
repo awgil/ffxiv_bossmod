@@ -126,6 +126,8 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         if (primaryTarget is { } tar && (Swordplay > 0 || LowestMana >= comboMana || InCombo))
             Hints.GoalZones.Add(Hints.GoalSingleTarget(tar.Actor, 3));
 
+        GoalZoneSingle(25);
+
         OGCD(strategy, primaryTarget);
 
         if (ComboLastMove is AID.Scorch)
