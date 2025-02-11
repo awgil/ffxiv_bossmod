@@ -953,7 +953,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="range">The max range to search for a new target.</param>
     protected void GetPvPTarget(ref Enemy? primaryTarget, float range)
     {
-        if (primaryTarget == null || Player.DistanceToHitbox(primaryTarget.Actor) > range)
+        primaryTarget ??= PlayerTarget;
+
+        if (Player.DistanceToHitbox(PlayerTarget?.Actor) > range)
         {
             var newTarget = Hints.PriorityTargets
                 .Where(x => x != null && x.Actor != null && Player.DistanceToHitbox(x.Actor) <= range)
@@ -961,7 +963,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
                 .FirstOrDefault();
 
             if (newTarget != null)
-                primaryTarget = newTarget;
+                PlayerTarget = newTarget;
         }
     }
 
