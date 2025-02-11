@@ -176,7 +176,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
     public bool inGF;
     #endregion
 
-    public override void Execution(StrategyValues strategy, Enemy? PlayerTarget)
+    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         #region Variables
         var gauge = World.Client.GetGauge<GunbreakerGauge>();
@@ -221,7 +221,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         #endregion
 
         #region Rotation Execution
-        GetPvPTarget(ref PlayerTarget, 3);
+        GetPvPTarget(ref primaryTarget, 3);
 
         if (!inGF)
             QueueGCD(NextCombo(), PlayerTarget?.Actor, GCDPriority.Combo);
