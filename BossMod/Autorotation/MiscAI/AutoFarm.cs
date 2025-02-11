@@ -58,7 +58,7 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
         // first deal with pulling new enemies
         if (allowPulling)
         {
-            if (World.Client.ActiveFate.ID != 0 && Player.Level <= Service.LuminaRow<Lumina.Excel.Sheets.Fate>(World.Client.ActiveFate.ID)?.ClassJobLevelMax && strategy.Option(Track.Fate).As<PriorityStrategy>() == PriorityStrategy.Prioritize)
+            if (Utils.IsPlayerSyncedToFate(World) && strategy.Option(Track.Fate).As<PriorityStrategy>() == PriorityStrategy.Prioritize)
             {
                 foreach (var e in Hints.PotentialTargets)
                 {

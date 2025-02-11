@@ -515,9 +515,9 @@ static class Extendxan
         return def;
     }
 
-    public static RotationModuleDefinition.ConfigRef<OffensiveStrategy> DefineSimple<Index>(this RotationModuleDefinition def, Index track, string name, int minLevel = 1) where Index : Enum
+    public static RotationModuleDefinition.ConfigRef<OffensiveStrategy> DefineSimple<Index>(this RotationModuleDefinition def, Index track, string name, int minLevel = 1, float uiPriority = 0) where Index : Enum
     {
-        return def.Define(track).As<OffensiveStrategy>(name)
+        return def.Define(track).As<OffensiveStrategy>(name, uiPriority: uiPriority)
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Use when optimal", minLevel: minLevel)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Don't use", minLevel: minLevel)
             .AddOption(OffensiveStrategy.Force, "Force", "Use ASAP", minLevel: minLevel);

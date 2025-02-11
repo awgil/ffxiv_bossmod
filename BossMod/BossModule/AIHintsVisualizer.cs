@@ -1,4 +1,5 @@
-﻿using BossMod.Pathfinding;
+﻿using BossMod.Autorotation.xan.AI;
+using BossMod.Pathfinding;
 using ImGuiNET;
 
 namespace BossMod;
@@ -9,9 +10,12 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
     private MapVisualizer? _pathfindVisualizer;
     private readonly NavigationDecision.Context _naviCtx = new();
     private NavigationDecision _navi;
+    private readonly TrackPartyHealth _partyHealth = new(ws);
 
     public void Draw(UITree tree)
     {
+        _partyHealth.Update(hints);
+
         foreach (var _1 in tree.Node("Potential targets", hints.PotentialTargets.Count == 0))
         {
             tree.LeafNodes(hints.PotentialTargets, e => $"[{e.Priority}] {e.Actor} (str={e.AttackStrength:f2}), dist={(e.Actor.Position - player.Position).Length():f2}, tank={e.ShouldBeTanked}/{e.PreferProvoking}/{e.DesiredPosition}/{e.DesiredRotation}");
@@ -37,6 +41,13 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
         foreach (var _1 in tree.Node("Predicted damage", hints.PredictedDamage.Count == 0))
         {
             tree.LeafNodes(hints.PredictedDamage, d => $"[{string.Join(", ", ws.Party.WithSlot().IncludedInMask(d.players).Select(ia => ia.Item2.Name))}], at {Math.Max(0, (d.activation - ws.CurrentTime).TotalSeconds):f3}");
+        }
+        foreach (var _1 in tree.Node("Party health"))
+        {
+            var ph = _partyHealth.PartyHealth;
+            ImGui.TextUnformatted($"Total: {ph.Count}");
+            ImGui.TextUnformatted($"Average: {ph.Avg * 100:f2} / stddev {ph.StdDev * 100:f2}");
+            ImGui.TextUnformatted($"Lowest HP ally: {ws.Party[ph.LowestHPSlot]}");
         }
         foreach (var _1 in tree.Node("Planned actions", hints.ActionsToExecute.Entries.Count == 0))
         {

@@ -77,6 +77,6 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertyDisplay("Automatic target selection for ground-targeted abilities")]
     public GroundTargetingMode GTMode = GroundTargetingMode.Manual;
 
-    [PropertyDisplay("Try to prevent dashing into AOEs", tooltip: "Prevent automatic use of damaging gap closers (like WAR Onslaught) if they would move you into a dangerous area. May not work as expected in instances that do not have modules.")]
+    [PropertyDisplay("Try to prevent dashing into AOEs", tooltip: "Prevent automatic use of damaging gap closers (like WAR Onslaught) if they would move you into a dangerous area. May not work as expected in instances that do not have modules.", since: "0.0.0.290")]
     public bool PreventDangerousDash = false;
 }

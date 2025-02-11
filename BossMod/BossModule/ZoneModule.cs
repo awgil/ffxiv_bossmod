@@ -23,6 +23,7 @@ public abstract class ZoneModule(WorldState ws) : IDisposable
     public virtual void CalculateAIHints(int playerSlot, Actor player, AIHints hints) { } // note: this is called after framework automatically fills auto-detected hints
     public virtual bool WantDrawExtra() => false; // return true if it wants to draw something in a separate window
     public virtual void DrawExtra() { }
+    public virtual string WindowName() => "";
 
     public void DrawGlobalHints()
     {
