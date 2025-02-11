@@ -9,6 +9,12 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
     private readonly TrackPartyHealth Health = new(manager.WorldState);
 
     public enum Track { Raise, RaiseTarget, Heal, Esuna, StayNearParty }
+    public enum EsunaStrategy
+    {
+        None,
+        Hinted,
+        All
+    }
     public enum RaiseStrategy
     {
         None,
@@ -48,7 +54,12 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
             .AddOption(RaiseTarget.Everyone, "Any dead player");
 
         def.AbilityTrack(Track.Heal, "Heal");
-        def.AbilityTrack(Track.Esuna, "Esuna");
+
+        def.Define(Track.Esuna).As<EsunaStrategy>("Esuna")
+            .AddOption(EsunaStrategy.None, "Don't cleanse")
+            .AddOption(EsunaStrategy.Hinted, "Cleanse targets suggested by active module")
+            .AddOption(EsunaStrategy.All, "Cleanse all party members that have a removable debuff");
+
         def.AbilityTrack(Track.StayNearParty, "Stay near party");
 
         return def;
@@ -97,11 +108,13 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         AutoRaise(strategy);
 
-        if (strategy.Enabled(Track.Esuna))
+        var esuna = strategy.Option(Track.Esuna).As<EsunaStrategy>();
+
+        if (esuna != EsunaStrategy.None)
         {
             foreach (var st in Health.PartyMemberStates)
             {
-                if (st.EsunableStatusRemaining > GCD + 2f)
+                if (st.EsunableStatusRemaining > GCD + 1.14f && (esuna == EsunaStrategy.All || Hints.ShouldCleanse[st.Slot]))
                 {
                     UseGCD(BossMod.WHM.AID.Esuna, World.Party[st.Slot]);
                     break;

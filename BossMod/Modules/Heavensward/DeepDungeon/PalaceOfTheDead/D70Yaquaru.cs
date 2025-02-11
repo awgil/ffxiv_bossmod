@@ -16,6 +16,11 @@ public enum AID : uint
     FangsEnd = 7092, // Boss->player, no cast, single-target
 }
 
+public enum SID : uint
+{
+    Heavy = 14
+}
+
 class DouseCast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Douse), new AOEShapeCircle(8));
 class DousePuddle(BossModule module) : BossComponent(module)
 {
@@ -55,6 +60,34 @@ class DousePuddle(BossModule module) : BossComponent(module)
 }
 
 class Electrogenesis(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Electrogenesis), 8);
+class FangsEnd(BossModule module) : BossComponent(module)
+{
+    private BitMask _heavy;
+
+    public override void Update()
+    {
+        for (var i = 0; i < 4; i++)
+        {
+            var player = Raid[i];
+            if (player == null)
+                continue;
+
+            if (player.FindStatus(SID.Heavy) is ActorStatus st && (st.ExpireAt - WorldState.CurrentTime).TotalSeconds > 8)
+                _heavy.Set(i);
+        }
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if (status.ID == (uint)SID.Heavy)
+            _heavy.Clear(Raid.FindSlot(actor.InstanceID));
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        hints.ShouldCleanse |= _heavy;
+    }
+}
 
 class D70TaquaruStates : StateMachineBuilder
 {
@@ -63,7 +96,8 @@ class D70TaquaruStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<DouseCast>()
             .ActivateOnEnter<DousePuddle>()
-            .ActivateOnEnter<Electrogenesis>();
+            .ActivateOnEnter<Electrogenesis>()
+            .ActivateOnEnter<FangsEnd>();
     }
 }
 

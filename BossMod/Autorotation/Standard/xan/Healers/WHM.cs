@@ -89,7 +89,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Holy1, Player);
 
         // TODO make a track for this
-        if (Lily == 3 || !CanFitGCD(NextLily, 2) && Lily == 2)
+        if (Unlocked(AID.AfflatusMisery) && (Lily == 3 || !CanFitGCD(NextLily, 2) && Lily == 2))
             PushGCD(AID.AfflatusSolace, Player);
 
         if (SacredSight > 0)
