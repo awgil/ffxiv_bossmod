@@ -313,6 +313,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("EVTS"u8)] = ParseActorEventState,
             [new("TARG"u8)] = ParseActorTarget,
             [new("MNTD"u8)] = ParseActorMount,
+            [new("FORA"u8)] = ParseActorForay,
             [new("TETH"u8)] = () => ParseActorTether(true),
             [new("TET+"u8)] = () => ParseActorTether(true), // legacy (up to v4)
             [new("TET-"u8)] = () => ParseActorTether(false), // legacy (up to v4)
@@ -508,7 +509,7 @@ public sealed class ReplayParserLog : IDisposable
                 _version < 12 ? 0 : _input.ReadInt(),
                 new(_input.ReadVec3(), _input.ReadAngle().Rad),
                 _input.ReadFloat(),
-                new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false)),
+                new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _version < 24 ? 10000 : _input.ReadUInt(false)),
                 _input.ReadBool(),
                 _input.ReadBool(),
                 _input.ReadActorID(),
@@ -564,6 +565,7 @@ public sealed class ReplayParserLog : IDisposable
     private ActorState.OpEventState ParseActorEventState() => new(_input.ReadActorID(), _input.ReadByte(false));
     private ActorState.OpTarget ParseActorTarget() => new(_input.ReadActorID(), _input.ReadActorID());
     private ActorState.OpMount ParseActorMount() => new(_input.ReadActorID(), _input.ReadUInt(false));
+    private ActorState.OpForayInfo ParseActorForay() => new(_input.ReadActorID(), new(_input.ReadByte(false), _input.ReadByte(false)));
     private ActorState.OpTether ParseActorTether(bool tether) => new(_input.ReadActorID(), tether ? new(_input.ReadUInt(false), _input.ReadActorID()) : default);
 
     private ActorState.OpCastInfo ParseActorCastInfo(bool start)
@@ -762,11 +764,11 @@ public sealed class ReplayParserLog : IDisposable
         if (_version < 10)
         {
             var parts = _input.ReadString().Split('/');
-            return new(uint.Parse(parts[0]), uint.Parse(parts[1]), parts.Length > 2 ? uint.Parse(parts[2]) : 0, parts.Length > 3 ? uint.Parse(parts[3]) : 0);
+            return new(uint.Parse(parts[0]), uint.Parse(parts[1]), parts.Length > 2 ? uint.Parse(parts[2]) : 0, parts.Length > 3 ? uint.Parse(parts[3]) : 0, 10000);
         }
         else
         {
-            return new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false));
+            return new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _version < 24 ? 10000 : _input.ReadUInt(false));
         }
     }
 }

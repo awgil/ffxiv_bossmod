@@ -36,6 +36,8 @@ public sealed class ActorState : IEnumerable<Actor>
                 yield return new OpTarget(act.InstanceID, act.TargetID);
             if (act.MountId != 0)
                 yield return new OpMount(act.InstanceID, act.MountId);
+            if (act.ForayInfo != default)
+                yield return new OpForayInfo(act.InstanceID, act.ForayInfo);
             if (act.Tether.ID != 0)
                 yield return new OpTether(act.InstanceID, act.Tether);
             if (act.CastInfo != null)
@@ -241,7 +243,7 @@ public sealed class ActorState : IEnumerable<Actor>
             actor.HPMP = HPMP;
             ws.Actors.HPMPChanged.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("HP  "u8).EmitActor(InstanceID).Emit(HPMP.CurHP).Emit(HPMP.MaxHP).Emit(HPMP.Shield).Emit(HPMP.CurMP);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("HP  "u8).EmitActor(InstanceID).Emit(HPMP.CurHP).Emit(HPMP.MaxHP).Emit(HPMP.Shield).Emit(HPMP.CurMP).Emit(HPMP.MaxMP);
     }
 
     public Event<Actor> IsTargetableChanged = new();
@@ -341,6 +343,17 @@ public sealed class ActorState : IEnumerable<Actor>
             ws.Actors.MountChanged.Fire(actor);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("MNTD"u8).EmitActor(InstanceID).Emit(Value);
+    }
+
+    public Event<Actor> ForayInfoChanged = new();
+    public sealed record class OpForayInfo(ulong InstanceID, ActorForayInfo Value) : Operation(InstanceID)
+    {
+        protected override void ExecActor(WorldState ws, Actor actor)
+        {
+            actor.ForayInfo = Value;
+            ws.Actors.ForayInfoChanged.Fire(actor);
+        }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("FORA"u8).EmitActor(InstanceID).Emit(Value.Level).Emit(Value.Element);
     }
 
     // note: this is currently based on network events rather than per-frame state inspection

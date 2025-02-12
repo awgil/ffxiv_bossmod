@@ -259,6 +259,7 @@ sealed class WorldStateGameSync : IDisposable
             hpmp.MaxHP = chr->MaxHealth;
             hpmp.Shield = (uint)(chr->ShieldValue * 0.01f * hpmp.MaxHP);
             hpmp.CurMP = chr->Mana;
+            hpmp.MaxMP = chr->MaxMana;
             inCombat = chr->InCombat;
         }
         var targetable = obj->GetIsTargetable();
@@ -270,6 +271,8 @@ sealed class WorldStateGameSync : IDisposable
         var eventState = obj->EventState;
         var radius = obj->GetRadius();
         var mountId = chr != null ? chr->Mount.MountId : 0u;
+        var forayInfoPtr = chr != null ? chr->GetForayInfo() : null;
+        var forayInfo = forayInfoPtr == null ? default : new ActorForayInfo(forayInfoPtr->Level, forayInfoPtr->Element);
 
         if (act == null)
         {
@@ -314,6 +317,8 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ActorState.OpTarget(act.InstanceID, target));
         if (act.MountId != mountId)
             _ws.Execute(new ActorState.OpMount(act.InstanceID, mountId));
+        if (act.ForayInfo != forayInfo)
+            _ws.Execute(new ActorState.OpForayInfo(act.InstanceID, forayInfo));
 
         DispatchActorEvents(act.InstanceID);
 
