@@ -6,7 +6,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
-    public enum Track { BH = SharedTrack.Buffs, RoF, FiresReply, RoW, WindsReply, PB, Nadi, Blitz, SSS, FormShift, Meditation, TC, Potion, Engage, TN, Positional }
+    public enum Track { BH = SharedTrack.Buffs, RoF, FiresReply, RoW, WindsReply, PB, Nadi, Blitz, SSS, FormShift, Meditation, TC, Potion, Engage, TN }
     public enum PotionStrategy
     {
         Manual,
@@ -118,7 +118,6 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(WRStrategy.PreDowntime, "Ensure usage at least 2 GCDs before next downtime", minLevel: 96)
             .AddAssociatedActions(AID.WindsReply);
 
-
         // PB-related settings
         def.Define(Track.PB).As<PBStrategy>("PB", uiPriority: 89)
             .AddOption(PBStrategy.Automatic, "Automatically use after Opo before or during Riddle of Fire", minLevel: 50)
@@ -168,10 +167,6 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(EngageStrategy.FacepullDemo, "Precast Demolish from melee range");
 
         def.DefineSimple(Track.TN, "TrueNorth", minLevel: 50, uiPriority: 48).AddAssociatedActions(AID.TrueNorth);
-        def.Define(Track.Positional).As<PositionalStrategy>("Pos (AI)", uiPriority: 45)
-            .AddOption(PositionalStrategy.Automatic, "Tell AI mode to navigate to hit positionals")
-            .AddOption(PositionalStrategy.Ignore, "Tell AI mode to ignore positionals")
-            .AddAssociatedActions(AID.Demolish, AID.SnapPunch, AID.PouncingCoeurl);
 
         return def;
     }
@@ -410,11 +405,11 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
         Prep(strategy);
 
-        var pos = strategy.Option(Track.Positional).As<PositionalStrategy>() == PositionalStrategy.Automatic ? NextPositional : (Positional.Any, false);
+        var pos = NextPositional;
 
         UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
 
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, AOEBreakpoint, positional: pos.Item1, maximumActionRange: 20);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, AOEBreakpoint, positional: pos, maximumActionRange: 20);
 
         if (Player.InCombat)
             OGCD(strategy, primaryTarget);

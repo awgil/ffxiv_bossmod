@@ -288,8 +288,10 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, range));
     }
 
-    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, Positional positional = Positional.Any, float? maximumActionRange = null)
+    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, (Positional pos, bool imminent)? positional = null, float? maximumActionRange = null)
     {
+        var posActual = positional?.imminent == true ? positional.Value.pos : Positional.Any;
+
         if (!strategy.AOEOk() || !Unlocked(firstUnlockedAoeAction))
             minAoe = 50;
 
@@ -300,7 +302,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         }
         else
         {
-            Hints.GoalZones.Add(Hints.GoalCombined(Hints.GoalSingleTarget(PlayerTarget.Actor, positional, range), fAoe, minAoe));
+            Hints.GoalZones.Add(Hints.GoalCombined(Hints.GoalSingleTarget(PlayerTarget.Actor, posActual, range), fAoe, minAoe));
             if (maximumActionRange is float r)
                 Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, r, 0.5f));
         }

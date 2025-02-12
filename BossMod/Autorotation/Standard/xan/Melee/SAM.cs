@@ -171,7 +171,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(NumStickers == 2 ? 8 : 5), AID.Fuga, 3, pos.Item1, 20);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(NumStickers == 2 ? 8 : 5), AID.Fuga, 3, pos, 20);
 
         EmergencyMeikyo(strategy, primaryTarget);
         UseKaeshi(primaryTarget);
