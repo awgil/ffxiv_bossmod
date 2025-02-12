@@ -316,4 +316,21 @@ public sealed class AIHints
             return maxWeight * weight;
         };
     }
+
+    public Func<WPos, float> PullTargetToLocation(Actor target, WPos destination, float destRadius = 2)
+    {
+        var enemy = FindEnemy(target);
+        if (enemy == null)
+            return _ => 0;
+
+        var adjRange = enemy.TankDistance + target.HitboxRadius + 0.5f;
+        var desiredToTarget = target.Position - destination;
+        var leewaySq = destRadius * destRadius;
+        if (desiredToTarget.LengthSq() > leewaySq)
+        {
+            var dest = destination - adjRange * desiredToTarget.Normalized();
+            return GoalSingleTarget(dest, PathfindMapBounds.MapResolution, 10);
+        }
+        return _ => 0;
+    }
 }

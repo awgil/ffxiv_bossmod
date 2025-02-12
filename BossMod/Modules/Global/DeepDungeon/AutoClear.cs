@@ -458,7 +458,6 @@ public abstract class AutoClear : ZoneModule
             }
         }
 
-
         if (_config.TrapHints && _trapsHidden)
         {
             var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30) && !IgnoreTraps.Any(b => b.AlmostEqual(t, 1))).Select(t => ShapeDistance.Circle(t, 2)).ToList();
