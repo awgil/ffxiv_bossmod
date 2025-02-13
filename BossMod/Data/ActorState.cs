@@ -148,6 +148,7 @@ public sealed class ActorState : IEnumerable<Actor>
             .Emit(HPMP.MaxHP)
             .Emit(HPMP.Shield)
             .Emit(HPMP.CurMP)
+            .Emit(HPMP.MaxMP)
             .Emit(IsTargetable)
             .Emit(IsAlly)
             .EmitActor(OwnerID)

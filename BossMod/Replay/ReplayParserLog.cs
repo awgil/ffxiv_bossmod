@@ -509,7 +509,7 @@ public sealed class ReplayParserLog : IDisposable
                 _version < 12 ? 0 : _input.ReadInt(),
                 new(_input.ReadVec3(), _input.ReadAngle().Rad),
                 _input.ReadFloat(),
-                new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _version < 24 ? 10000 : _input.ReadUInt(false)),
+                new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _version >= 24 ? _input.ReadUInt(false) : 10000),
                 _input.ReadBool(),
                 _input.ReadBool(),
                 _input.ReadActorID(),
@@ -768,7 +768,7 @@ public sealed class ReplayParserLog : IDisposable
         }
         else
         {
-            return new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _version < 24 ? 10000 : _input.ReadUInt(false));
+            return new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _version >= 24 ? _input.ReadUInt(false) : 10000);
         }
     }
 }
