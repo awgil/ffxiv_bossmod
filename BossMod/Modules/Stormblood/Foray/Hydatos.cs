@@ -86,6 +86,8 @@ public class Hydatos(WorldState ws) : ZoneModule(ws)
 
     public override bool WantDrawExtra() => true;
 
+    public override string WindowName() => "Hydatos###Eureka module";
+
     public override void DrawExtra()
     {
         if (UICombo.Enum("Prep mob", ref _hydatosConfig.CurrentFarmTarget))

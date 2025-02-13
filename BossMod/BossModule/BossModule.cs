@@ -14,6 +14,7 @@ public abstract class BossModule : IDisposable
     public readonly MiniArena Arena;
     public readonly BossModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
+    public readonly Pathfinding.ObstacleMapManager Obstacles;
 
     private readonly EventSubscriptions _subscriptions;
 
@@ -79,6 +80,7 @@ public abstract class BossModule : IDisposable
 
     protected BossModule(WorldState ws, Actor primary, WPos center, ArenaBounds bounds)
     {
+        Obstacles = new(ws);
         WorldState = ws;
         PrimaryActor = primary;
         Arena = new(WindowConfig, center, bounds);
@@ -122,6 +124,7 @@ public abstract class BossModule : IDisposable
         ClearComponents(_ => true);
 
         _subscriptions.Dispose();
+        Obstacles.Dispose();
     }
 
     public void Update()
@@ -222,6 +225,17 @@ public abstract class BossModule : IDisposable
     {
         hints.PathfindMapCenter = Center;
         hints.PathfindMapBounds = Bounds;
+
+        var (entry, bitmap) = Obstacles.Find(new Vector3(Center.X, actor.PosRot.Y, Center.Z));
+        if (entry != null && bitmap != null)
+        {
+            var originCell = (Center - entry.Origin) / bitmap.PixelSize;
+            var originX = (int)originCell.X;
+            var originZ = (int)originCell.Z;
+            var halfSize = (int)(Bounds.Radius / bitmap.PixelSize);
+            hints.PathfindMapObstacles = new(bitmap, new(originX - halfSize, originZ - halfSize, originX + halfSize, originZ + halfSize));
+        }
+
         foreach (var comp in _components)
             comp.AddAIHints(slot, actor, assignment, hints);
         CalculateModuleAIHints(slot, actor, assignment, hints);
