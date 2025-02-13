@@ -69,15 +69,17 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
         // first deal with pulling new enemies
         if (allowPulling)
         {
-            if (Utils.IsPlayerSyncedToFate(World) && strategy.Option(Track.Fate).As<PriorityStrategy>() == PriorityStrategy.Prioritize)
+            var allowFate = Utils.IsPlayerSyncedToFate(World) && strategy.Option(Track.Fate).As<PriorityStrategy>() == PriorityStrategy.Prioritize;
+            foreach (var e in Hints.PotentialTargets)
             {
-                foreach (var e in Hints.PotentialTargets)
+                if (allowFate && e.Actor.FateID == World.Client.ActiveFate.ID && e.Priority == AIHints.Enemy.PriorityUndesirable)
                 {
-                    if (e.Actor.FateID == World.Client.ActiveFate.ID && e.Priority == AIHints.Enemy.PriorityUndesirable)
-                    {
-                        prioritize(e, 1);
-                    }
+                    prioritize(e, 1);
                 }
+
+                // allow targeting mobs that already have positive prio because e.g. they are attacking a party member
+                if (e.Priority >= 0)
+                    prioritize(e, e.Priority);
             }
 
             var specific = strategy.Option(Track.Specific);
