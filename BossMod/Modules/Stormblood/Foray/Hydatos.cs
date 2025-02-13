@@ -33,6 +33,8 @@ public class HydatosConfig : ConfigNode
         Frostmane = 0x26B8,
         [PropertyDisplay("Daphne (Dark Void Monk)")]
         Daphne = 0x26B9,
+        [PropertyDisplay("Goldemar (Hydatos Wraith)")]
+        Golde = 0x26E6,
         [PropertyDisplay("Leuke (Tigerhawk)")]
         Leuke = 0x26C0,
         [PropertyDisplay("Barong (Laboratory Lion)")]
@@ -66,6 +68,10 @@ public class Hydatos(WorldState ws) : ZoneModule(ws)
             foreach (var e in hints.PotentialTargets)
                 if (e.Actor.OID == farmOID && e.Priority == AIHints.Enemy.PriorityUndesirable && (e.Actor.Position - player.Position).LengthSq() <= farmRange * farmRange)
                 {
+                    // level 60 hydatos wraith does not spawn golde
+                    if (farmOID == 0x26E6 && e.Actor.ForayInfo.Level < 61)
+                        continue;
+
                     e.Priority = 1;
 
                     if (shouldSetTarget && (hints.ForcedTarget == null || (hints.ForcedTarget.Position - player.Position).LengthSq() > (e.Actor.Position - player.Position).LengthSq()))
