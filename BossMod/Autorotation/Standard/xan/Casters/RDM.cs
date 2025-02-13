@@ -220,7 +220,8 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         if (strategy.BuffsOk())
         {
             PushOGCD(AID.Embolden, Player);
-            PushOGCD(AID.Manafication, Player);
+            if (!InCombo)
+                PushOGCD(AID.Manafication, Player);
         }
 
         PushOGCD(AID.ContreSixte, BestAOETarget);
