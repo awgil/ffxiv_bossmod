@@ -407,9 +407,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
         var pos = NextPositional;
 
-        UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
+        UpdatePositionals(primaryTarget, ref pos);
 
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, AOEBreakpoint, positional: pos, maximumActionRange: 20);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, AOEBreakpoint, maximumActionRange: 20);
 
         if (Player.InCombat)
             OGCD(strategy, primaryTarget);
