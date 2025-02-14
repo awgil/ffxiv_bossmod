@@ -32,7 +32,11 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             BitMask.Build(Class.THM, Class.BLM), //Job
             100); //Level supported
 
-        res.DefineShared();
+        res.DefineAOE().AddAssociatedActions(
+            AID.Fire1, AID.Fire2, AID.Fire3, AID.Fire4, AID.HighFire2,
+            AID.Blizzard1, AID.Blizzard2, AID.Blizzard3, AID.Freeze, AID.Blizzard4, AID.HighBlizzard2,
+            AID.Flare, AID.Despair, AID.FlareStar);
+        res.DefineHold();
         res.Define(Track.Movement).As<MovementStrategy>("Movement", uiPriority: 195)
             .AddOption(MovementStrategy.Allow, "Allow", "Allow the use of all appropriate abilities for movement")
             .AddOption(MovementStrategy.AllowNoScathe, "AllowNoScathe", "Allow the use of all appropriate abilities for movement except for Scathe")

@@ -35,7 +35,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(AOEStrategy.AutoFinishCombo, "Auto (Finish Combo)", "Auto-selects best rotation dependant on targets; Finishes combo first", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.AutoBreakCombo, "Auto (Break Combo)", "Auto-selects best rotation dependant on targets; Breaks combo if needed", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceST, "Use AOE", "Force single-target rotation", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation");
+            .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation")
+            .AddAssociatedActions(AID.FastBlade, AID.RiotBlade, AID.RageOfHalone, AID.RoyalAuthority, AID.Prominence, AID.TotalEclipse);
         res.Define(Track.Cooldowns).As<CooldownStrategy>("Hold", uiPriority: 190)
             .AddOption(CooldownStrategy.Allow, "Allow", "Allows the use of all cooldowns & buffs; will use them optimally")
             .AddOption(CooldownStrategy.Forbid, "Hold", "Forbids the use of all cooldowns & buffs; will not use any actions with a cooldown timer");
@@ -385,12 +386,12 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
         #region AI
         var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null; //Set goal for single target
-        var goalAOE = primaryTarget?.Actor != null ? Hints.GoalAOECircle(5) : null; //Set goal for AOE
+        var goalAOE = Hints.GoalAOECircle(3); //Set goal for AOE
         var goal = strategy.Option(Track.AOE).As<AOEStrategy>() switch //Set goal based on AOE strategy
         {
             AOEStrategy.ForceST => goalST, //if forced single target
-            AOEStrategy.ForceAOE => goalAOE, //if forced AOE
-            _ => goalST != null && goalAOE != null ? Hints.GoalCombined(goalST, goalAOE, 2) : goalAOE //otherwise, combine goals
+            AOEStrategy.ForceAOE => goalAOE, //if forced single target
+            _ => goalST != null ? Hints.GoalCombined(goalST, goalAOE, 3) : goalAOE //otherwise, combine goals
         };
         if (goal != null) //if goal is set
             Hints.GoalZones.Add(goal); //add goal to zones
