@@ -83,10 +83,10 @@ public enum OGCDStrategy
     /// <summary> <b>Forces</b> execution of the ability in the very next weave window. </summary>
     AnyWeave,
 
-    /// <summary> <b>Forces</b> execution of the ability in the very next EARLY-weave window. </summary>
+    /// <summary> <b>Forces</b> execution of the ability in the very next <b>EARLY</b>-weave window. </summary>
     EarlyWeave,
 
-    /// <summary> <b>Forces</b> execution of the ability in the very next LATE-weave window. </summary>
+    /// <summary> <b>Forces</b> execution of the ability in the very next <b>LATE</b>-weave window. </summary>
     LateWeave,
 
     /// <summary> <b>Forbids</b> execution of the ability. </summary>
@@ -197,130 +197,88 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     #endregion
 
     #region HP/MP/Shield
-    /// <summary>
-    /// Retrieves the <b>current HP</b> value of the player.
-    /// </summary>
+    /// <summary>Retrieves the <b>current HP</b> value of the player.</summary>
     protected uint HP { get; private set; }
 
-    /// <summary>
-    /// Retrieves the <b>current MP</b> value of the player.
-    /// </summary>
+    /// <summary>Retrieves the <b>current MP</b> value of the player.</summary>
     protected uint MP { get; private set; }
 
-    /// <summary>
-    /// Retrieves the <b>current Shield</b> value of the player.
-    /// </summary>
+    /// <summary>Retrieves the <b>current Shield</b> value of the player.</summary>
     protected uint Shield { get; private set; }
 
-    /// <summary>
-    /// Retrieves the <b>current HP</b> of a specified actor.
-    /// </summary>
-    /// <param name="actor">The <b>target actor</b>.</param>
+    /// <summary>Retrieves the <b>current HP</b> value of a specified actor.</summary>
+    /// <param name="actor">The specified <b>target actor</b>.</param>
     protected uint TargetCurrentHP(Actor actor) => actor.HPMP.CurHP;
 
-    /// <summary>
-    /// Retrieves the <b>current Shield</b> value of a specified actor.
-    /// </summary>
+    /// <summary>Retrieves the <b>current Shield</b> value of a specified actor.</summary>
     /// <param name="actor">The <b>target actor</b>.</param>
     protected uint TargetCurrentShield(Actor actor) => actor.HPMP.Shield;
 
-    /// <summary>
-    /// Checks if a specified actor has any <b>active Shield</b>.
-    /// </summary>
+    /// <summary>Checks if a specified actor has any current <b>active Shield</b>.</summary>
     /// <param name="actor">The <b>target actor</b>.</param>
     protected bool TargetHasShield(Actor actor) => actor.HPMP.Shield > 0.1f;
 
-    /// <summary>
-    /// Retrieves the <b>player's current HP percentage</b>.
-    /// </summary>
+    /// <summary>Retrieves the <b>player's current HP percentage</b>.</summary>
     protected float PlayerHPP() => (float)Player.HPMP.CurHP / Player.HPMP.MaxHP * 100;
 
-    /// <summary>
-    /// Retrieves the <b>HP percentage</b> of a specified actor.
-    /// </summary>
-    /// <param name="target">The <b>target actor</b>.</param>
-    protected static float TargetHPP(Actor? target = null)
+    /// <summary>Retrieves the <b>current HP percentage</b> of a specified actor.</summary>
+    /// <param name="actor">The <b>target actor</b>.</param>
+    protected static float TargetHPP(Actor? actor = null)
     {
-        if (target is null || target.IsDead)
+        if (actor is null || actor.IsDead)
             return 0f;
 
-        var HPP = (float)target.HPMP.CurHP / target.HPMP.MaxHP * 100f;
+        var HPP = (float)actor.HPMP.CurHP / actor.HPMP.MaxHP * 100f;
         return Math.Clamp(HPP, 0f, 100f);
     }
     #endregion
 
     #region Actions
-    /// <summary>
-    /// Checks if specified <b>action</b> is <b>Unlocked</b> based on <b>Level</b> and <b>Job Quest</b> (if required).
-    /// </summary>
+    /// <summary>Checks if specified <b>action</b> is <b>Unlocked</b> based on <b>Level</b> and <b>Job Quest</b> (if required).</summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
 
-    /// <summary>
-    /// Checks if specified <b>trait</b> is <b>Unlocked</b> based on <b>Level</b> and <b>Job Quest</b> (if required).
-    /// </summary>
+    /// <summary>Checks if specified <b>trait</b> is <b>Unlocked</b> based on <b>Level</b> and <b>Job Quest</b> (if required).</summary>
     /// <param name="tid">The <b>Trait ID</b> being checked.</param>
     protected bool Unlocked(TraitID tid) => TraitUnlocked((uint)(object)tid);
 
-    /// <summary>
-    /// Checks the <b>last combo action</b> is what the user is specifying.
-    /// </summary>
+    /// <summary>Checks the <b>last combo action</b> is what the user is specifying.</summary>
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
-    /// <summary>
-    /// Checks the <b>time left remaining</b> inside current combo before expiration.
-    /// </summary>
+    /// <summary>Checks the <b>time left remaining</b> inside current combo before expiration.</summary>
     protected float ComboTimer => (float)(object)World.Client.ComboState.Remaining;
 
-    /// <summary>
-    /// Retrieves <b>actual cast time</b> of a specified <b>action</b>.
-    /// </summary>
+    /// <summary>Retrieves <b>actual cast time</b> of a specified <b>action</b>.</summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected virtual float ActualCastTime(AID aid) => ActionDefinitions.Instance.Spell(aid)!.CastTime;
 
-    /// <summary>
-    /// Retrieves <b>effective cast time</b> of a specified <b>action</b>.
-    /// </summary>
+    /// <summary>Retrieves <b>effective cast time</b> of a specified <b>action</b>.</summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected virtual float EffectiveCastTime(AID aid) => PlayerHasEffect(ClassShared.SID.Swiftcast, 10) ? 0 : ActualCastTime(aid) * SpSGCDLength / 2.5f;
 
-    /// <summary>
-    /// Retrieves player's <b>GCD length</b> based on <b>Skill-Speed</b>.
-    /// </summary>
+    /// <summary>Retrieves player's <b>GCD length</b> based on <b>Skill-Speed</b>.</summary>
     protected float SkSGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
 
-    /// <summary>
-    /// Retrieves player's current <b>Skill-Speed</b> stat.
-    /// </summary>
+    /// <summary>Retrieves player's current <b>Skill-Speed</b> stat.</summary>
     protected float SkS => ActionSpeed.Round(World.Client.PlayerStats.SkillSpeed);
 
-    /// <summary>
-    /// Retrieves player's <b>GCD length</b> based on <b>Spell-Speed</b>.
-    /// </summary>
+    /// <summary>Retrieves player's <b>GCD length</b> based on <b>Spell-Speed</b>.</summary>
     protected float SpSGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
 
-    /// <summary>
-    /// Retrieves player's current <b>Spell-Speed</b> stat.
-    /// </summary>
+    /// <summary>Retrieves player's current <b>Spell-Speed</b> stat.</summary>
     protected float SpS => ActionSpeed.Round(World.Client.PlayerStats.SpellSpeed);
 
-    /// <summary>
-    /// Checks if we can fit in a <b>skill-speed based</b> GCD.
-    /// </summary>
+    /// <summary>Checks if we can fit in a <b>skill-speed based</b> GCD.</summary>
     /// <param name="duration">The <b>duration</b> to check against.</param>
     /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
     protected bool CanFitSkSGCD(float duration, int extraGCDs = 0) => GCD + SkSGCDLength * extraGCDs < duration;
 
-    /// <summary>
-    /// Checks if we can fit in a <b>spell-speed based</b> GCD.
-    /// </summary>
+    /// <summary>Checks if we can fit in a <b>spell-speed based</b> GCD.</summary>
     /// <param name="duration">The <b>duration</b> to check against.</param>
     /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
     protected bool CanFitSpSGCD(float duration, int extraGCDs = 0) => GCD + SpSGCDLength * extraGCDs < duration;
 
-    /// <summary>
-    /// Checks if player is available to weave in any <b>abilities</b>.
-    /// </summary>
+    /// <summary>Checks if player is available to weave in any <b>abilities</b>.</summary>
     /// <param name="cooldown">The <b>cooldown</b> time of the action specified.</param>
     /// <param name="actionLock">The <b>animation lock</b> time of the action specified.</param>
     /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
@@ -328,9 +286,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool CanWeave(float cooldown, float actionLock, int extraGCDs = 0, float extraFixedDelay = 0)
         => MathF.Max(cooldown, World.Client.AnimationLock) + actionLock + AnimationLockDelay <= GCD + SkSGCDLength * extraGCDs + extraFixedDelay;
 
-    /// <summary>
-    /// Checks if player is available to weave in any <b>spells</b>.
-    /// </summary>
+    /// <summary>Checks if player is available to weave in any <b>spells</b>.</summary>
     /// <param name="cooldown">The <b>cooldown</b> time of the action specified.</param>
     /// <param name="actionLock">The <b>animation lock</b> time of the action specified.</param>
     /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
@@ -338,9 +294,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool CanSpellWeave(float cooldown, float actionLock, int extraGCDs = 0, float extraFixedDelay = 0)
         => MathF.Max(cooldown, World.Client.AnimationLock) + actionLock + AnimationLockDelay <= GCD + SpSGCDLength * extraGCDs + extraFixedDelay;
 
-    /// <summary>
-    /// Checks if player is available to weave in any <b>abilities</b>.
-    /// </summary>
+    /// <summary>Checks if player is available to weave in any <b>abilities</b>.</summary>
     /// <param name="aid">The <b>Action ID</b> being checked.</param>
     /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
     /// <param name="extraFixedDelay">How much <b>extra delay</b> the user can add in, in seconds.</param>
@@ -355,111 +309,101 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
             : SpS > 100 && CanWeave(ChargeCD(aid), res.InstantAnimLock, extraGCDs, extraFixedDelay);
     }
 
-    /// <summary>
-    /// Checks if user is in <b>pre-pull</b> stage.
-    /// </summary>
+    /// <summary>Checks if user is in <b>pre-pull</b> stage.</summary>
     protected bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f;
 
-    /// <summary>
-    /// Checks if user can <b>Weave in</b> any <b>abilities</b>.
-    /// </summary>
+    /// <summary>Checks if user can <b>Weave in</b> any <b>abilities</b>.</summary>
     protected bool CanWeaveIn => GCD is <= 2.49f and >= 0.01f;
 
-    /// <summary>
-    /// Checks if user can <b>Early Weave in</b> any <b>abilities</b>.
-    /// </summary>
+    /// <summary>Checks if user can <b>Early Weave in</b> any <b>abilities</b>.</summary>
     protected bool CanEarlyWeaveIn => GCD is <= 2.49f and >= 1.26f;
 
-    /// <summary>
-    /// Checks if user can <b>Late Weave in</b> any <b>abilities</b>.
-    /// </summary>
+    /// <summary>Checks if user can <b>Late Weave in</b> any <b>abilities</b>.</summary>
     protected bool CanLateWeaveIn => GCD is <= 1.25f and >= 0.01f;
 
-    /// <summary>
-    /// Checks if user can <b>Quarter Weave in</b> any <b>abilities</b>.
-    /// </summary>
+    /// <summary>Checks if user can <b>Quarter Weave in</b> any <b>abilities</b>.</summary>
     protected bool CanQuarterWeaveIn => GCD is < 0.9f and >= 0.01f;
     #endregion
 
     #region Cooldown
-    /// <summary> Retrieves the total <b>cooldown</b> time left on the specified <b>action</b>. </summary>
+    /// <summary>Retrieves the total <b>cooldown</b> time left on the specified <b>action</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected float TotalCD(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
 
-    /// <summary> Returns the <b>charge cooldown</b> time left on the specified <b>action</b>. </summary>
+    /// <summary>Returns the <b>charge cooldown</b> time left on the specified <b>action</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected float ChargeCD(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
 
-    /// <summary> Checks if <b>action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>charge cooldown timer</b>. </summary>
+    /// <summary>Checks if <b>action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>charge cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected bool ActionReady(AID aid) => Unlocked(aid) && ChargeCD(aid) < 0.6f;
 
-    /// <summary> Checks if <b>action</b> has any <b>charges</b> remaining. </summary>
+    /// <summary>Checks if <b>action</b> has any <b>charges</b> remaining. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected bool HasCharges(AID aid) => ChargeCD(aid) < 0.6f;
 
-    /// <summary> Checks if <b>action</b> is on <b>cooldown</b> based on its <b>total cooldown timer</b>. </summary>
+    /// <summary>Checks if <b>action</b> is on <b>cooldown</b> based on its <b>total cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected bool IsOnCooldown(AID aid) => TotalCD(aid) > 0.6f;
 
-    /// <summary> Checks if <b>action</b> is off <b>cooldown</b> based on its <b>total cooldown timer</b>. </summary>
+    /// <summary>Checks if <b>action</b> is off <b>cooldown</b> based on its <b>total cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected bool IsOffCooldown(AID aid) => !IsOnCooldown(aid);
 
-    /// <summary> Checks if <b>action</b> is off <b>cooldown</b> based on its <b>charge cooldown timer</b>. </summary>
+    /// <summary>Checks if <b>action</b> is off <b>cooldown</b> based on its <b>charge cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected bool OnCooldown(AID aid) => MaxChargesIn(aid) > 0;
 
-    /// <summary> Checks if last <b>action</b> used is what the user is specifying. </summary>
+    /// <summary>Checks if last <b>action</b> used is what the user is specifying. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected bool LastActionUsed(AID aid) => Manager.LastCast.Data?.IsSpell(aid) == true;
 
-    /// <summary> Retrieves time remaining until specified <b>action</b> is at <b>max charges</b>. </summary>
+    /// <summary>Retrieves time remaining until specified <b>action</b> is at <b>max charges</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected float MaxChargesIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) : float.MaxValue;
 
     #endregion
 
     #region Status
-    /// <summary> Retrieves the amount of specified <b>status effect's stacks</b> remaining on any target.
+    /// <summary>Retrieves the amount of specified <b>status effect's stacks</b> remaining on any target.
     /// <para><b>NOTE:</b> The effect MUST be owned by the <b>Player</b>.</para></summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     /// <param name="duration"> The <b>Total Effect Duration</b> of specified <b>Status ID</b> being checked.</param>
     protected int StacksRemaining<SID>(Actor? target, SID sid, float duration = 1000f) where SID : Enum => StatusDetails(target, sid, Player.InstanceID, duration).Stacks;
 
-    /// <summary> Retrieves the amount of specified <b>status effect's time</b> left remaining on any target.
+    /// <summary>Retrieves the amount of specified <b>status effect's time</b> left remaining on any target.
     /// <para><b>NOTE:</b> The effect <b>MUST</b> be owned by the <b>Player</b>.</para></summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     /// <param name="duration"> The <b>Total Effect Duration</b> of specified <b>Status ID</b> being checked.</param>
     protected float StatusRemaining<SID>(Actor? target, SID sid, float duration = 1000f) where SID : Enum => StatusDetails(target, sid, Player.InstanceID, duration).Left;
 
-    /// <summary> Checks if a specific <b>status effect</b> on the <b>Player</b> exists.
+    /// <summary>Checks if a specific <b>status effect</b> on the <b>Player</b> exists.
     /// <para><b>NOTE:</b> The effect <b>MUST</b> be owned by the <b>Player</b>.</para></summary>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     /// <param name="duration"> The <b>Total Effect Duration</b> of specified <b>Status ID</b> being checked.</param>
     protected bool PlayerHasEffect<SID>(SID sid, float duration = 1000f) where SID : Enum => StatusRemaining(Player, sid, duration) > 0.1f;
 
-    /// <summary> Checks if a specific <b>status effect</b> on the <b>Player</b> exists.
+    /// <summary>Checks if a specific <b>status effect</b> on the <b>Player</b> exists.
     /// <para><b>NOTE:</b> The effect can be owned by <b>anyone</b>; Player, Party, Alliance, NPCs, or even enemies.</para></summary>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     protected bool PlayerHasAnyEffect<SID>(SID sid) where SID : Enum => Player.FindStatus(sid) != null;
 
-    /// <summary> Checks if a specific <b>status effect</b> on any specified <b>Target</b> exists.
+    /// <summary>Checks if a specific <b>status effect</b> on any specified <b>Target</b> exists.
     /// <para><b>NOTE:</b> The effect <b>MUST</b> be owned by the <b>Player</b>.</para></summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     /// <param name="duration"> The <b>Total Effect Duration</b> of specified <b>Status ID</b> being checked.</param>
     protected bool TargetHasEffect<SID>(Actor? target, SID sid, float duration = 1000f) where SID : Enum => StatusRemaining(target, sid, duration) > 0.1f;
 
-    /// <summary> Checks if a specific <b>status effect</b> on any specified <b>Target</b> exists.
+    /// <summary>Checks if a specific <b>status effect</b> on any specified <b>Target</b> exists.
     /// <para><b>NOTE:</b> The effect can be owned by <b>anyone</b>; Player, Party, Alliance, NPCs, or even enemies.</para></summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     protected bool TargetHasAnyEffect<SID>(Actor? target, SID sid) where SID : Enum => target?.FindStatus(sid) != null;
 
-    /// <summary> Checks if <b>Player</b> has any <b>stacks</b> of a specific <b>status effect</b>.
+    /// <summary>Checks if <b>Player</b> has any <b>stacks</b> of a specific <b>status effect</b>.
     /// <para><b>NOTE:</b> The effect <b>MUST</b> be owned by the <b>Player</b>.</para></summary>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     protected bool PlayerHasStacks<SID>(SID sid) where SID : Enum => StacksRemaining(Player, sid) > 0;
@@ -471,182 +415,178 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     #region Position Checks
 
     #region Core
-    /// <summary>
-    /// Checks precise positioning between <b>player target</b> and any other targets.
-    /// </summary>
+    /// <summary>Checks precise positioning between <b>player target</b> and any other targets.</summary>
     protected delegate bool PositionCheck(Actor playerTarget, Actor targetToTest);
 
-    /// <summary>
-    /// <para>Calculates the <b>priority</b> of a target based on the <b>total number of targets</b> and the <b>primary target</b> itself.</para>
-    /// <para>It is generic, so it can return different types based on the implementation.</para>
-    /// </summary>
+    /// <summary>Calculates the <b>priority</b> of a target based on the <b>total number of targets</b> and the <b>primary target</b> itself.<br/>It is generic, so it can return different types based on the implementation.</summary>
     protected delegate P PriorityFunc<P>(int totalTargets, Actor primaryTarget);
     #endregion
 
     #region Splash
-    /// <summary>
-    /// Position checker for determining the best target for an ability that deals <b>Splash</b> damage.
-    /// </summary>
+    /// <summary>Position checker for determining the best target for an ability that deals <b>Splash</b> damage.</summary>
     protected PositionCheck IsSplashTarget => (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 5);
     #endregion
 
     #region Cones
-    /// <summary>
-    /// Creates a <b>Position Check</b> for <b>Cone AOE</b> attacks with the given range.
-    /// </summary>
+    //some use-cases for these are mainly for BLU modules, since the ranges for their abilities are all over the place. (e.g. 4y & 16y specifically)
+
+    /// <summary>Creates a <b>Position Check</b> for <b>Cone AOE</b> attacks with the given range.</summary>
     private PositionCheck ConeTargetCheck(float range) => (primary, other) =>
     {
-        var playerDir = Player.DirectionTo(primary); // Cache calculation
+        var playerDir = Player.DirectionTo(primary);
         return Hints.TargetInAOECone(other, Player.Position, range, playerDir, 45.Degrees());
     };
 
+    /// <summary>Checks if the target is within a <b>4-yalm Cone</b> range.</summary>
     protected PositionCheck Is4yConeTarget => ConeTargetCheck(4);
+
+    /// <summary>Checks if the target is within a <b>6-yalm Cone</b> range.</summary>
     protected PositionCheck Is6yConeTarget => ConeTargetCheck(6);
+
+    /// <summary>Checks if the target is within an <b>8-yalm Cone</b> range.</summary>
     protected PositionCheck Is8yConeTarget => ConeTargetCheck(8);
+
+    /// <summary>Checks if the target is within a <b>10-yalm Cone</b> range.</summary>
     protected PositionCheck Is10yConeTarget => ConeTargetCheck(10);
+
+    /// <summary>Checks if the target is within a <b>12-yalm Cone</b> range.</summary>
     protected PositionCheck Is12yConeTarget => ConeTargetCheck(12);
+
+    /// <summary>Checks if the target is within a <b>15-yalm Cone</b> range.</summary>
     protected PositionCheck Is15yConeTarget => ConeTargetCheck(15);
+
+    /// <summary>Checks if the target is within a <b>16-yalm Cone</b> range.</summary>
     protected PositionCheck Is16yConeTarget => ConeTargetCheck(16);
     #endregion
 
     #region Lines (AOE Rectangles)
-    /// <summary>
-    /// Creates a <b>Position Check</b> for <b>Line AOE (AOE Rectangle)</b> attacks with the given range.
-    /// </summary>
+    /// <summary>Creates a <b>Position Check</b> for <b>Line AOE (AOE Rectangle)</b> attacks with the given range.</summary>
     private PositionCheck LineTargetCheck(float range) => (primary, other) =>
     {
         var playerDir = Player.DirectionTo(primary); // Cache calculation
         return Hints.TargetInAOERect(other, Player.Position, playerDir, range, 2);
     };
 
+    /// <summary>Checks if the target is within a <b>10-yalm AOE Rect</b> range.</summary>
     protected PositionCheck Is10yRectTarget => LineTargetCheck(10);
+
+    /// <summary>Checks if the target is within a <b>15-yalm AOE Rect</b> range.</summary>
     protected PositionCheck Is15yRectTarget => LineTargetCheck(15);
+
+    /// <summary>Checks if the target is within a <b>20-yalm AOE Rect</b> range.</summary>
     protected PositionCheck Is20yRectTarget => LineTargetCheck(20);
+
+    /// <summary>Checks if the target is within a <b>25-yalm AOE Rect</b> range.</summary>
     protected PositionCheck Is25yRectTarget => LineTargetCheck(25);
     #endregion
 
     #endregion
 
     #region Range Checks
-    /// <summary>
-    /// Checks if target is within the specified distance in <b>yalms</b>.
-    /// </summary>
+    /// <summary>Checks if target is within the specified distance in <b>yalms</b>.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="maxDistance">The maximum distance threshold.</param>
-    /// <returns></returns>
     protected bool InRange(Actor? target, float maxDistance) => Player.DistanceToHitbox(target) <= maxDistance - 0.01f;
 
-    protected bool In0y(Actor? target) => InRange(target, 0.00f);
+    /// <summary>Checks if the target is within <b>0-yalm</b> range.</summary>
+    protected bool In0y(Actor? target) => InRange(target, 0.01f);
+
+    /// <summary>Checks if the target is within <b>3-yalm</b> range.</summary>
     protected bool In3y(Actor? target) => InRange(target, 3.00f);
+
+    /// <summary>Checks if the target is within <b>5-yalm</b> range.</summary>
     protected bool In5y(Actor? target) => InRange(target, 5.00f);
+
+    /// <summary>Checks if the target is within <b>10-yalm</b> range.</summary>
     protected bool In10y(Actor? target) => InRange(target, 10.00f);
+
+    /// <summary>Checks if the target is within <b>15-yalm</b> range.</summary>
     protected bool In15y(Actor? target) => InRange(target, 15.00f);
+
+    /// <summary>Checks if the target is within <b>20-yalm</b> range.</summary>
     protected bool In20y(Actor? target) => InRange(target, 20.00f);
+
+    /// <summary>Checks if the target is within <b>25-yalm</b> range.</summary>
     protected bool In25y(Actor? target) => InRange(target, 25.00f);
     #endregion
 
-    /// <summary>
-    /// <para>A simpler smart-targeting helper for picking a <b>specific</b> target over your current target.</para>
-    /// <para>Very useful for intricate planning of ability targeting in specific situations.</para>
-    /// </summary>
-    /// <param name="track">The user's picked strategy's option <b>Track</b>, retrieved from module's enums and definitions. (e.g. <b>strategy.Option(Track.NoMercy)</b>)</param>
+    #region Smart-Targeting
+    /// <summary>A simpler smart-targeting helper for picking a <b>specific</b> target over your current target.<br/>Very useful for intricate planning of ability targeting in specific situations.</summary>
+    /// <param name="track">The user's selected strategy's option <b>Track</b>, retrieved from module's enums and definitions. (e.g. <b>strategy.Option(Track.NoMercy)</b>)</param>
     /// <returns></returns>
     protected Actor? TargetChoice(StrategyValues.OptionRef track) => ResolveTargetOverride(track.Value);
 
-    /// <summary>
-    /// Targeting function for indicating when <b>AOE Circle</b> abilities should be used based on nearby targets.
-    /// </summary>
-    /// <param name="range">The radius of the <b>AOE Circle</b> ability from the Player.</param>
-    /// <returns>
-    /// A tuple with boolean values indicating whether the <b>AOE Circle</b> should be used based on the <b>number of targets nearby</b>:<br/>
-    /// <b>OnAny</b>: At least 1 target is inside.<br/>
-    /// <b>OnTwoOrMore</b>: At least 2 targets are inside.<br/>
-    /// <b>OnThreeOrMore</b>: At least 3 targets are inside.<br/>
-    /// <b>OnFourOrMore</b>: At least 4 targets are inside.<br/>
-    /// <b>OnFiveOrMore</b>: At least 5 targets are inside.
-    /// </returns>
-    protected (bool OnAny, bool OnTwoOrMore, bool OnThreeOrMore, bool OnFourOrMore, bool OnFiveOrMore)
-    ShouldUseAOECircle(float range)
-    {
-        var numTargets = Hints.NumPriorityTargetsInAOECircle(Player.Position, range);
-        return (numTargets > 0,  // OnAny
-                numTargets > 1,  // OnTwoOrMore
-                numTargets > 2,  // OnThreeOrMore
-                numTargets > 3,  // OnFourOrMore
-                numTargets > 4); // OnFiveOrMore
-    }
-
-    /// <summary>
-    /// This function attempts to pick a suitable primary target automatically, even if a target is not already picked.
-    /// <b>NOTE</b>: This function is solely used for auto-targeting enemies without having a target selected, mainly for AI usage. Please use appropriately.
-    /// </summary>
-    /// <param name="strategy">The user's picked <b>Strategy</b></param>
-    /// <param name="primaryTarget">The user's current <b>specified Target</b>.</param>
-    /// <param name="range"></param>
+    /// <summary>Attempts to <b>select</b> a suitable <b>primary PvE target</b> automatically.<para/>
+    /// <b>NOTE</b>: This function is solely used for <b>auto-targeting enemies</b> without having a target selected or for <b>AI</b> usage. Please use appropriately.</summary>
+    /// <param name="strategy">The user's selected <b>strategy</b>.</param>
+    /// <param name="primaryTarget">The user's current <b>target</b>.</param>
+    /// <param name="range">The <b>max range</b> to consider a new target.</param>
     protected void GetPvETarget(StrategyValues strategy, ref Enemy? primaryTarget, float range)
     {
-        var AOEStrat = strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
-        if (AOEStrat is AOEStrategy.Automatic)
+        if (primaryTarget?.Actor == null || Player.DistanceToHitbox(primaryTarget.Actor) > range)
         {
-            if (Player.DistanceToHitbox(primaryTarget?.Actor) > range)
+            var AOEStrat = strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
+            if (AOEStrat == AOEStrategy.Automatic)
             {
-                var newTarget = Hints.PriorityTargets.FirstOrDefault(x => Player.DistanceToHitbox(x.Actor) <= range);
-                if (newTarget != null)
-                    primaryTarget = newTarget;
+                primaryTarget = Hints.PriorityTargets
+                    .FirstOrDefault(x => Player.DistanceToHitbox(x.Actor) <= range);
             }
         }
     }
 
-    /// <summary>
-    /// This function attempts to pick the most suitable primary target automatically, prioritizing the target with the lowest HP percentage within range. <para/>
-    /// <b>NOTE</b>: This function is solely used for finding a <b>PvP target</b> without having to click on other targets. Please use appropriately.
-    /// </summary>
-    /// <param name="primaryTarget">The user's current <b>specified Target</b>.</param>
-    /// <param name="range">The max range to search for a new target.</param>
+    /// <summary>Attempts to <b>select</b> the most suitable <b>PvP target</b> automatically, prioritizing the target with the <b>lowest HP percentage</b> within range.<para/>
+    /// <b>NOTE</b>: This function is solely used for finding the best <b>PvP target</b> without having to manually scan & click on other targets. Please use appropriately.</summary>
+    /// <param name="primaryTarget">The user's current <b>target</b>.</param>
+    /// <param name="range">The <b>max range</b> to consider a new target.</param>
     protected void GetPvPTarget(ref Enemy? primaryTarget, float range)
     {
-        primaryTarget ??= PlayerTarget;
-
-        if (Player.DistanceToHitbox(PlayerTarget?.Actor) > range)
+        if (primaryTarget?.Actor == null || Player.DistanceToHitbox(primaryTarget.Actor) > range)
         {
-            var newTarget = Hints.PriorityTargets
-                .Where(x => x != null && x.Actor != null && Player.DistanceToHitbox(x.Actor) <= range)
+            primaryTarget = Hints.PriorityTargets
+                .Where(x => Player.DistanceToHitbox(x.Actor) <= range && x.Actor.FindStatus(ClassShared.SID.Guard) == null)
                 .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP)
                 .FirstOrDefault();
-
-            if (newTarget != null)
-                PlayerTarget = newTarget;
         }
     }
+    #endregion
 
-    /// <summary>
-    /// This function attempts to pick the best target automatically.
-    /// </summary>
-    /// <param name="primaryTarget">The user's current <b>picked Target</b>.</param>
-    /// <param name="range"></param>
-    /// <param name="isInAOE"></param>
-    /// <returns></returns>
-    protected (Enemy? Best, int Targets) GetBestTarget(Enemy? primaryTarget, float range, PositionCheck isInAOE) => GetTarget(primaryTarget, range, isInAOE, (numTargets, _) => numTargets, a => a);
+    /// <summary>Targeting function for indicating when <b>AOE Circle</b> abilities should be used based on nearby targets.</summary>
+    /// <param name="range">The radius of the <b>AOE Circle</b> ability from the Player.</param>
+    /// <returns>
+    /// A tuple with boolean values indicating whether the <b>AOE Circle</b> should be used based on the <b>number of targets nearby</b>:<br/>
+    /// <b>- OnAny</b>: At least 1 target is inside.<br/>
+    /// <b>- OnTwoOrMore</b>: At least 2 targets are inside.<br/>
+    /// <b>- OnThreeOrMore</b>: At least 3 targets are inside.<br/>
+    /// <b>- OnFourOrMore</b>: At least 4 targets are inside.<br/>
+    /// <b>- OnFiveOrMore</b>: At least 5 targets are inside.
+    /// </returns>
+    protected (bool OnAny, bool OnTwoOrMore, bool OnThreeOrMore, bool OnFourOrMore, bool OnFiveOrMore) ShouldUseAOECircle(float range)
+    {
+        var numTargets = Hints.NumPriorityTargetsInAOECircle(Player.Position, range);
+        return (numTargets > 0, numTargets > 1, numTargets > 2, numTargets > 3, numTargets > 4);
+    }
 
-    /// <summary>
-    /// This function picks the target based on HP, modified by how many targets are in the AOE.
-    /// </summary>
-    /// <param name="primaryTarget">The user's current <b>picked Target</b>.</param>
-    /// <param name="range"></param>
-    /// <param name="isInAOE"></param>
-    /// <returns></returns>
-    protected (Enemy? Best, int Targets) GetTargetByHP(Enemy? primaryTarget, float range, PositionCheck isInAOE) => GetTarget(primaryTarget, range, isInAOE, (numTargets, enemy) => (numTargets, numTargets > 2 ? enemy.HPMP.CurHP : 0), args => args.numTargets);
+    /// <summary>This function attempts to pick the best target automatically.</summary>
+    /// <param name="primaryTarget">The user's current <b>selected Target</b>.</param>
+    /// <param name="range">The <b>range</b> within which to evaluate potential targets.</param>
+    /// <param name="isInAOE">A flag indicating if the target is within the <b>Area of Effect</b> (AOE).</param>
+    protected (Enemy? Best, int Targets) GetBestTarget(Enemy? primaryTarget, float range, PositionCheck isInAOE)
+        => GetTarget(primaryTarget, range, isInAOE, (numTargets, _) => numTargets, a => a);
 
-    /// <summary>
-    /// Main function for picking a target, generalized for any prioritization and simplification logic.
-    /// </summary>
+    /// <summary>This function picks the target based on HP, modified by how many targets are in the AOE.</summary>
+    /// <param name="primaryTarget">The user's current <b>selected Target</b>.</param>
+    /// <param name="range">The <b>range</b> within which to evaluate potential targets.</param>
+    /// <param name="isInAOE">A flag indicating if the target is within the <b>Area of Effect</b> (AOE).</param>
+    protected (Enemy? Best, int Targets) GetBestHPTarget(Enemy? primaryTarget, float range, PositionCheck isInAOE)
+        => GetTarget(primaryTarget, range, isInAOE, (numTargets, enemy) => (numTargets, numTargets > 2 ? enemy.HPMP.CurHP : 0), args => args.numTargets);
+
+    /// <summary>Main function for picking a target, generalized for any prioritization and simplification logic.</summary>
     /// <typeparam name="P"></typeparam>
-    /// <param name="primaryTarget">The user's current <b>picked Target</b>.</param>
-    /// <param name="range"></param>
-    /// <param name="isInAOE"></param>
-    /// <param name="prioritize"></param>
-    /// <param name="simplify"></param>
-    /// <returns></returns>
+    /// <param name="primaryTarget">The user's current <b>selected Target</b>.</param>
+    /// <param name="range">The <b>range</b> within which to evaluate potential targets.</param>
+    /// <param name="isInAOE">A flag indicating if the target is within the <b>Area of Effect</b> (AOE).</param>
+    /// <param name="prioritize">A flag indicating whether <b>prioritization</b> of certain targets should occur.</param>
+    /// <param name="simplify">A flag indicating whether the <b>simplification</b> of target selection should apply.</param>
     protected (Enemy? Best, int Priority) GetTarget<P>(Enemy? primaryTarget, float range, PositionCheck isInAOE, PriorityFunc<P> prioritize, Func<P, int> simplify) where P : struct, IComparable
     {
         P targetPrio(Actor potentialTarget)
@@ -660,14 +600,11 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         return (newnewprio > 0 ? Hints.FindEnemy(newtarget) : null, newnewprio);
     }
 
-    /// <summary>
-    /// Identify an appropriate target for applying <b>DoT</b> effect. This has no impact if any <b>auto-targeting</b> is disabled.
-    /// </summary>
-    /// <typeparam name="P"></typeparam>
-    /// <param name="initial"></param>
-    /// <param name="getTimer"></param>
-    /// <param name="maxAllowedTargets"></param>
-    /// <returns></returns>
+    /// <summary>Identify an appropriate target for applying <b>DoT</b> effect. This has no impact if any <b>auto-targeting</b> is disabled.</summary>
+    /// <typeparam name="P">The type representing the timer value, which must be a struct and implement <see cref="IComparable"/>.</typeparam>
+    /// <param name="initial">The <b>initial</b> target to consider for applying the <b>DoT</b> effect.</param>
+    /// <param name="getTimer">A function that retrieves the <b>timer</b> value associated with a given <b>actor</b>.</param>
+    /// <param name="maxAllowedTargets">The maximum number of valid targets to evaluate.</param>
     protected (Enemy? Best, P Timer) GetDOTTarget<P>(Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
     {
         if (initial == null || maxAllowedTargets <= 0)
@@ -702,38 +639,27 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     #endregion
 
     #region Positionals
-    /// <summary>
-    /// Retrieves the current positional of the target based on target's position and rotation.
-    /// </summary>
+    /// <summary>Retrieves the current positional of the target based on target's position and rotation.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    /// <returns></returns>
-    protected Positional GetCurrentPositional(Actor target) => (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch //Check current positional based on target
+    protected Positional GetCurrentPositional(Actor target) => (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch
     {
-        < -0.7071068f => Positional.Rear, //value for Rear positional
-        < 0.7071068f => Positional.Flank, //value for Flank positional
-        _ => Positional.Front //default to Front positional if not on Rear or Flank
+        < -0.7071068f => Positional.Rear,
+        < 0.7071068f => Positional.Flank,
+        _ => Positional.Front
     };
 
-    /// <summary>
-    /// Checks if player is on specified target's <b>Rear Positional</b>.
-    /// </summary>
+    /// <summary>Checks if player is on specified target's <b>Rear Positional</b>.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    /// <returns></returns>
     protected bool IsOnRear(Actor target) => GetCurrentPositional(target) == Positional.Rear;
 
-    /// <summary>
-    /// Checks if player is on specified target's <b>Flank Positional</b>.
-    /// </summary>
+    /// <summary>Checks if player is on specified target's <b>Flank Positional</b>.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    /// <returns></returns>
     protected bool IsOnFlank(Actor target) => GetCurrentPositional(target) == Positional.Flank;
     #endregion
 
     #region AI
-    /// <summary>
-    /// Establishes a goal-zone for a single target within a specified range.<br/>
-    /// Primarily utilized by <b>caster-DPS</b> jobs that lack a dedicated maximize-AOE function.
-    /// </summary>
+    /// <summary>Establishes a goal-zone for a single target within a specified range.<br/>
+    /// Primarily utilized by <b>caster-DPS</b> jobs that lack a dedicated maximize-AOE function.</summary>
     /// <param name="range">The range within which the goal zone is applied.</param>
     protected void GoalZoneSingle(float range)
     {
@@ -741,9 +667,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, range));
     }
 
-    /// <summary>
-    /// Defines a goal-zone using a combined strategy, factoring in AOE considerations.
-    /// </summary>
+    /// <summary>Defines a goal-zone using a combined strategy, factoring in AOE considerations.</summary>
     /// <param name="strategy">The strategy values that influence the goal zone logic.</param>
     /// <param name="range">The base range for the goal zone.</param>
     /// <param name="fAoe">A function determining the area of effect.</param>
@@ -804,41 +728,27 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks if player is currently <b>moving</b>.</summary>
     protected bool IsMoving { get; private set; }
 
-    /// <summary>
-    /// Player's "actual" target; guaranteed to be an enemy.
-    /// </summary>
+    /// <summary>Player's <b>actual</b> target; guaranteed to be an enemy.</summary>
     protected Enemy? PlayerTarget { get; private set; }
     #endregion
 
     #region Shared Abilities
-    /// <summary>
-    /// Checks if player is able to execute the melee-DPS shared ability: <b>True North</b>
-    /// </summary>
+    /// <summary>Checks if player is able to execute the melee-DPS shared ability: <b>True North</b></summary>
     protected bool CanTrueNorth { get; private set; }
 
-    /// <summary>
-    /// Checks if player is under the effect of the melee-DPS shared ability: <b>True North</b>
-    /// </summary>
+    /// <summary>Checks if player is under the effect of the melee-DPS shared ability: <b>True North</b></summary>
     protected bool HasTrueNorth { get; private set; }
 
-    /// <summary>
-    /// Checks if player is able to execute the caster-DPS shared ability: <b>Swiftcast</b>
-    /// </summary>
+    /// <summary>Checks if player is able to execute the caster-DPS shared ability: <b>Swiftcast</b></summary>
     protected bool CanSwiftcast { get; private set; }
 
-    /// <summary>
-    /// Checks if player is under the effect of the caster-DPS shared ability: <b>Swiftcast</b>
-    /// </summary>
+    /// <summary>Checks if player is under the effect of the caster-DPS shared ability: <b>Swiftcast</b></summary>
     protected bool HasSwiftcast { get; private set; }
 
-    /// <summary>
-    /// Checks if player is able to execute the ranged-DPS shared ability: <b>Peloton</b>
-    /// </summary>
+    /// <summary>Checks if player is able to execute the ranged-DPS shared ability: <b>Peloton</b></summary>
     protected bool CanPeloton { get; private set; }
 
-    /// <summary>
-    /// Checks if player is under the effect of the ranged-DPS shared ability: <b>Peloton</b>
-    /// </summary>
+    /// <summary>Checks if player is under the effect of the ranged-DPS shared ability: <b>Peloton</b></summary>
     protected bool HasPeloton { get; private set; }
     #endregion
 
@@ -866,12 +776,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
             Execution(strategy, PlayerTarget);
     }
 
-    /// <summary>
-    /// The core function responsible for orchestrating the execution of all abilities and strategies.<br/>
-    /// </summary>
+    /// <summary>The core function responsible for orchestrating the execution of all abilities and strategies.<br/></summary>
     /// <param name="strategy">The user's specified <b>Strategy</b>.</param>
     /// <param name="primaryTarget">The user's specified <b>Enemy</b>.</param>
-    /// <returns>- <b>Primary execution</b> of user's rotation module.</returns>
     public abstract void Execution(StrategyValues strategy, Enemy? primaryTarget);
 }
 
@@ -880,7 +787,6 @@ static class ModuleExtensions
     #region Shared Definitions
     /// <summary>Defines our shared <b>AOE</b> (rotation) strategies.</summary>
     /// <param name="res">The definitions of our base module's strategies.</param>
-    /// <returns>- Options for shared custom strategies to be used via <b>AutoRotation</b> or <b>Cooldown Planner</b></returns>
     public static RotationModuleDefinition.ConfigRef<AOEStrategy> DefineAOE(this RotationModuleDefinition res)
     {
         return res.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", uiPriority: 300)
@@ -891,7 +797,6 @@ static class ModuleExtensions
 
     /// <summary>Defines our shared <b>Hold</b> strategies.</summary>
     /// <param name="res">The definitions of our base module's strategies.</param>
-    /// <returns>- Options for shared custom strategies to be used via <b>AutoRotation</b> or <b>Cooldown Planner</b></returns>
     public static RotationModuleDefinition.ConfigRef<HoldStrategy> DefineHold(this RotationModuleDefinition res)
     {
         return res.Define(SharedTrack.Hold).As<HoldStrategy>("Hold", uiPriority: 290)
@@ -912,7 +817,6 @@ static class ModuleExtensions
     /// <param name="supportedTargets">The <b>Targets Supported</b> for the ability that the user is specifying.</param>
     /// <param name="minLevel">The <b>Minimum Level</b> required for the ability that the user is specifying.</param>
     /// <param name="maxLevel">The <b>Maximum Level</b> required for the ability that the user is specifying.</param>
-    /// <returns>- Basic GCD options for any specified ability to be used via <b>AutoRotation</b> or <b>Cooldown Planner</b></returns>
     public static RotationModuleDefinition.ConfigRef<GCDStrategy> DefineGCD<Index, AID>(this RotationModuleDefinition res, Index track, AID aid, string internalName, string displayName = "", int uiPriority = 100, float cooldown = 0, float effectDuration = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = 100)
         where Index : Enum
         where AID : Enum
@@ -935,7 +839,6 @@ static class ModuleExtensions
     /// <param name="supportedTargets">The <b>Targets Supported</b> for the ability that the user is specifying.</param>
     /// <param name="minLevel">The <b>Minimum Level</b> required for the ability that the user is specifying.</param>
     /// <param name="maxLevel">The <b>Maximum Level</b> required for the ability that the user is specifying.</param>
-    /// <returns>- Basic OGCD options for any specified ability to be used via <b>AutoRotation</b> or <b>Cooldown Planner</b></returns>
     public static RotationModuleDefinition.ConfigRef<OGCDStrategy> DefineOGCD<Index, AID>(this RotationModuleDefinition res, Index track, AID aid, string internalName, string displayName = "", int uiPriority = 100, float cooldown = 0, float effectDuration = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = 100)
         where Index : Enum
         where AID : Enum
