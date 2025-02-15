@@ -170,9 +170,14 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
     protected (Actor? Target, P Priority) FindBetterTargetBy<P>(Actor? initial, float maxDistanceFromPlayer, Func<Actor, P> prioFunc, Func<AIHints.Enemy, bool>? filterFunc = null) where P : struct, IComparable
     {
+        bool inRange(Actor tar) => tar.Position.InCircle(Player.Position, maxDistanceFromPlayer + tar.HitboxRadius + 0.5f);
+
+        if (initial != null && !inRange(initial))
+            initial = null;
+
         var bestTarget = initial;
         var bestPrio = initial != null ? prioFunc(initial) : default;
-        foreach (var enemy in Hints.PriorityTargets.Where(x => x.Actor != initial && x.Actor.Position.InCircle(Player.Position, maxDistanceFromPlayer + x.Actor.HitboxRadius) && (filterFunc?.Invoke(x) ?? true)))
+        foreach (var enemy in Hints.PriorityTargets.Where(x => x.Actor != initial && inRange(x.Actor) && (filterFunc?.Invoke(x) ?? true)))
         {
             var newPrio = prioFunc(enemy.Actor);
             if (newPrio.CompareTo(bestPrio) > 0)

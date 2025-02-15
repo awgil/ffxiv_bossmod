@@ -215,7 +215,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             targeting = Targeting.Manual;
 
         if (targeting == Targeting.AutoTryPri)
-            targeting = primaryTarget == null ? Targeting.Auto : Targeting.AutoPrimary;
+            targeting = Player.DistanceToHitbox(primaryTarget) <= range ? Targeting.AutoPrimary : Targeting.Auto;
 
         var (newtarget, newprio) = targeting switch
         {
