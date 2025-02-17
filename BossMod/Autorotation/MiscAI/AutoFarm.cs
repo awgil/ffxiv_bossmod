@@ -76,10 +76,6 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
                 {
                     prioritize(e, 1);
                 }
-
-                // allow targeting mobs that already have positive prio because e.g. they are attacking a party member
-                if (e.Priority >= 0)
-                    prioritize(e, e.Priority);
             }
 
             var specific = strategy.Option(Track.Specific);
