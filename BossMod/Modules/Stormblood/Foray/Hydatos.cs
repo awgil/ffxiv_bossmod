@@ -97,8 +97,6 @@ public class Hydatos : ZoneModule
     {
         hints.ForbiddenZones.RemoveAll(z => World.Actors.Find(z.Source) is Actor src && ShouldIgnore(src, player));
 
-        var shouldSetTarget = true; //  !player.InCombat && player.TargetID == 0;
-
         var farmOID = (uint)_hydatosConfig.CurrentFarmTarget;
         var farmMax = _eurekaConfig.MaxPullCount;
         var farmRange = _eurekaConfig.MaxPullDistance;
@@ -112,6 +110,8 @@ public class Hydatos : ZoneModule
                         continue;
 
                     e.Priority = 0;
+
+                    var shouldSetTarget = !e.Actor.InCombat;
 
                     if (shouldSetTarget && (hints.ForcedTarget == null || (hints.ForcedTarget.Position - player.Position).LengthSq() > (e.Actor.Position - player.Position).LengthSq()))
                         hints.ForcedTarget = e.Actor;
