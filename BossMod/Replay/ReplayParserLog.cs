@@ -292,6 +292,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("DIRU"u8)] = ParseDirectorUpdate,
             [new("ENVC"u8)] = ParseEnvControl,
             [new("SLOG"u8)] = ParseSystemLog,
+            [new("FATE"u8)] = ParseFateInfo,
             [new("WAY+"u8)] = () => ParseWaymarkChange(true),
             [new("WAY-"u8)] = () => ParseWaymarkChange(false),
             [new("ACT+"u8)] = ParseActorCreate,
@@ -460,6 +461,8 @@ public sealed class ReplayParserLog : IDisposable
             args[i] = _input.ReadInt();
         return new(id, args);
     }
+
+    private WorldState.OpFateInfo ParseFateInfo() => new(_input.ReadUInt(false), new(_input.ReadLong()));
 
     private WaymarkState.OpWaymarkChange ParseWaymarkChange(bool set)
         => new(_version < 10 ? Enum.Parse<Waymark>(_input.ReadString()) : (Waymark)_input.ReadByte(false), set ? _input.ReadVec3() : null);

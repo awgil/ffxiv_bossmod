@@ -160,4 +160,11 @@ public sealed class WorldState
                 output.Emit(arg);
         }
     }
+
+    public Event<OpFateInfo> FateInfo = new();
+    public sealed record class OpFateInfo(uint FateId, DateTime StartTime) : Operation
+    {
+        protected override void Exec(WorldState ws) => ws.FateInfo.Fire(this);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("FATE"u8).Emit(FateId).Emit(StartTime.Ticks);
+    }
 }

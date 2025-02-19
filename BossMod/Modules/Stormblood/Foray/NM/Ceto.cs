@@ -29,14 +29,7 @@ class CircleOfFlames(BossModule module) : Components.LocationTargetedAOEs(module
 class TailSlap(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSlap), new AOEShapeCone(12, 60.Degrees()));
 class Petrattraction(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Petrattraction), 50, kind: Kind.TowardsOrigin);
 class CircleBlade(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CircleBlade), new AOEShapeCircle(7));
-class Adds(BossModule module) : Components.Adds(module, (uint)OID.FaithlessGuard)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var act in ActiveActors)
-            hints.SetPriority(act, AIHints.Enemy.PriorityPointless);
-    }
-}
+class Adds(BossModule module) : Components.AddsPointless(module, (uint)OID.FaithlessGuard);
 
 class CetoStates : StateMachineBuilder
 {
@@ -55,6 +48,6 @@ class CetoStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.EurekaNM, GroupID = 639, NameID = 1421, Contributors = "xan")]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.EurekaNM, GroupID = 639, NameID = 1421, Contributors = "xan", SortOrder = 9)]
 public class Ceto(WorldState ws, Actor primary) : BossModule(ws, primary, new(747.8959f, -878.8765f), new ArenaBoundsCircle(80, MapResolution: 1));
 
