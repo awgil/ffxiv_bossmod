@@ -922,7 +922,7 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe void* ProcessPacketFateInfoDetour(ulong fateId, long startTimestamp, ulong durationSecs)
     {
         var res = _processPacketFateInfoHook.Original(fateId, startTimestamp, durationSecs);
-        _globalOps.Add(new WorldState.OpFateInfo((uint)fateId, DateTimeOffset.FromUnixTimeSeconds(startTimestamp).UtcDateTime));
+        _globalOps.Add(new ClientState.OpFateInfo((uint)fateId, DateTimeOffset.FromUnixTimeSeconds(startTimestamp).UtcDateTime));
         return res;
     }
 }

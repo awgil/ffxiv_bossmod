@@ -385,4 +385,11 @@ public sealed class ClientState
                 output.Emit(val);
         }
     }
+
+    public Event<OpFateInfo> FateInfo = new();
+    public sealed record class OpFateInfo(uint FateId, DateTime StartTime) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws) => ws.Client.FateInfo.Fire(this);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("FATE"u8).Emit(FateId).Emit(StartTime.Ticks);
+    }
 }

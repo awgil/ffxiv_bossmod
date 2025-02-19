@@ -292,7 +292,6 @@ public sealed class ReplayParserLog : IDisposable
             [new("DIRU"u8)] = ParseDirectorUpdate,
             [new("ENVC"u8)] = ParseEnvControl,
             [new("SLOG"u8)] = ParseSystemLog,
-            [new("FATE"u8)] = ParseFateInfo,
             [new("WAY+"u8)] = () => ParseWaymarkChange(true),
             [new("WAY-"u8)] = () => ParseWaymarkChange(false),
             [new("ACT+"u8)] = ParseActorCreate,
@@ -355,6 +354,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLFT"u8)] = ParseClientFocusTarget,
             [new("CLFD"u8)] = ParseClientForcedMovementDirection,
             [new("CLKV"u8)] = ParseClientContentKVData,
+            [new("FATE"u8)] = ParseClientFateInfo,
             [new("DDPG"u8)] = ParseDeepDungeonProgress,
             [new("DDMP"u8)] = ParseDeepDungeonMap,
             [new("DDPT"u8)] = ParseDeepDungeonParty,
@@ -462,7 +462,7 @@ public sealed class ReplayParserLog : IDisposable
         return new(id, args);
     }
 
-    private WorldState.OpFateInfo ParseFateInfo() => new(_input.ReadUInt(false), new(_input.ReadLong()));
+    private ClientState.OpFateInfo ParseClientFateInfo() => new(_input.ReadUInt(false), new(_input.ReadLong()));
 
     private WaymarkState.OpWaymarkChange ParseWaymarkChange(bool set)
         => new(_version < 10 ? Enum.Parse<Waymark>(_input.ReadString()) : (Waymark)_input.ReadByte(false), set ? _input.ReadVec3() : null);

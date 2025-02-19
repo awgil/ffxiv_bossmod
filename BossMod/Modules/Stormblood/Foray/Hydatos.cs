@@ -49,10 +49,49 @@ public class HydatosConfig : ConfigNode
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 639)]
-public class Hydatos(WorldState ws) : ZoneModule(ws)
+public class Hydatos : ZoneModule
 {
     private readonly EurekaConfig _eurekaConfig = Service.Config.Get<EurekaConfig>();
     private readonly HydatosConfig _hydatosConfig = Service.Config.Get<HydatosConfig>();
+
+    private static readonly Dictionary<uint, HydatosConfig.Farm> FateIDs = new()
+    {
+        [1412] = HydatosConfig.Farm.Khalamari,
+        [1413] = HydatosConfig.Farm.Stego,
+        [1414] = HydatosConfig.Farm.Molech,
+        [1415] = HydatosConfig.Farm.Piasa,
+        [1416] = HydatosConfig.Farm.Frostmane,
+        [1417] = HydatosConfig.Farm.Daphne,
+        [1418] = HydatosConfig.Farm.Golde,
+        [1419] = HydatosConfig.Farm.Leuke,
+        [1420] = HydatosConfig.Farm.Barong,
+        [1421] = HydatosConfig.Farm.Ceto,
+        [1423] = HydatosConfig.Farm.PW,
+    };
+
+    private readonly EventSubscriptions _subscriptions;
+
+    public Hydatos(WorldState ws) : base(ws)
+    {
+        _subscriptions = new(
+            ws.Client.FateInfo.Subscribe(OnFateSpawned)
+        );
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        _subscriptions.Dispose();
+        base.Dispose(disposing);
+    }
+
+    private void OnFateSpawned(ClientState.OpFateInfo fate)
+    {
+        if (FateIDs.TryGetValue(fate.FateId, out var farm) && farm == _hydatosConfig.CurrentFarmTarget)
+        {
+            _hydatosConfig.CurrentFarmTarget = HydatosConfig.Farm.None;
+            _hydatosConfig.Modified.Fire();
+        }
+    }
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
