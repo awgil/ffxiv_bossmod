@@ -10,42 +10,76 @@ public class EurekaConfig : ConfigNode
     public float MaxPullDistance = 30f;
 
     [PropertyDisplay("Max number of mobs to pull at once (0 for no limit)")]
-    [PropertySlider(0, 30)]
+    [PropertySlider(0, 30, Speed = 0.1f)]
     public int MaxPullCount = 10;
 }
 
 [ConfigDisplay(Name = "Hydatos", Parent = typeof(EurekaConfig))]
 public class HydatosConfig : ConfigNode
 {
-    public enum Farm : uint
-    {
-        [PropertyDisplay("<none>")]
-        None,
-        [PropertyDisplay("Khalamari (Xzomit)")]
-        Khalamari = 0x26AB,
-        [PropertyDisplay("Stegodon (Hydatos Primelephas)")]
-        Stego = 0x26AF,
-        [PropertyDisplay("Molech (Val Nullchu)")]
-        Molech = 0x26B2,
-        [PropertyDisplay("Piasa (Vivid Gastornis)")]
-        Piasa = 0x26B3,
-        [PropertyDisplay("Frostmane (Northern Tiger)")]
-        Frostmane = 0x26B8,
-        [PropertyDisplay("Daphne (Dark Void Monk)")]
-        Daphne = 0x26B9,
-        [PropertyDisplay("Goldemar (Hydatos Wraith)")]
-        Golde = 0x26E6,
-        [PropertyDisplay("Leuke (Tigerhawk)")]
-        Leuke = 0x26C0,
-        [PropertyDisplay("Barong (Laboratory Lion)")]
-        Barong = 0x26C2,
-        [PropertyDisplay("Ceto (Hydatos Delphyne)")]
-        Ceto = 0x26C5,
-        [PropertyDisplay("PW (Crystal Claw)")]
-        PW = 0x26CA
-    }
+    public NotoriousMonster CurrentFarmTarget = NotoriousMonster.None;
+}
 
-    public Farm CurrentFarmTarget = Farm.None;
+public enum NotoriousMonster : uint
+{
+    None,
+    [PropertyDisplay("Khalamari (Xzomit)")]
+    Khalamari,
+    [PropertyDisplay("Stegodon (Hydatos Primelephas)")]
+    Stego,
+    [PropertyDisplay("Molech (Val Nullchu)")]
+    Molech,
+    [PropertyDisplay("Piasa (Vivid Gastornis)")]
+    Piasa,
+    [PropertyDisplay("Frostmane (Northern Tiger)")]
+    Frostmane,
+    [PropertyDisplay("Daphne (Dark Void Monk)")]
+    Daphne,
+    [PropertyDisplay("Goldemar (Hydatos Wraith)")]
+    Golde,
+    [PropertyDisplay("Leuke (Tigerhawk)")]
+    Leuke,
+    [PropertyDisplay("Barong (Laboratory Lion)")]
+    Barong,
+    [PropertyDisplay("Ceto (Hydatos Delphyne)")]
+    Ceto,
+    [PropertyDisplay("PW (Crystal Claw)")]
+    PW
+}
+
+static class NMExtensions
+{
+    public static uint GetMobID(this NotoriousMonster opt) => opt switch
+    {
+        NotoriousMonster.Khalamari => 0x26AB,
+        NotoriousMonster.Stego => 0x26AF,
+        NotoriousMonster.Molech => 0x26B2,
+        NotoriousMonster.Piasa => 0x26B3,
+        NotoriousMonster.Frostmane => 0x26B8,
+        NotoriousMonster.Daphne => 0x26B9,
+        NotoriousMonster.Golde => 0x26E6,
+        NotoriousMonster.Leuke => 0x26C0,
+        NotoriousMonster.Barong => 0x26C2,
+        NotoriousMonster.Ceto => 0x26C5,
+        NotoriousMonster.PW => 0x26CA,
+        _ => 0
+    };
+
+    public static uint GetFateID(this NotoriousMonster opt) => opt switch
+    {
+        NotoriousMonster.Khalamari => 1412,
+        NotoriousMonster.Stego => 1413,
+        NotoriousMonster.Molech => 1414,
+        NotoriousMonster.Piasa => 1415,
+        NotoriousMonster.Frostmane => 1416,
+        NotoriousMonster.Daphne => 1417,
+        NotoriousMonster.Golde => 1418,
+        NotoriousMonster.Leuke => 1419,
+        NotoriousMonster.Barong => 1420,
+        NotoriousMonster.Ceto => 1421,
+        NotoriousMonster.PW => 1423,
+        _ => 0
+    };
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 639)]
@@ -53,21 +87,6 @@ public class Hydatos : ZoneModule
 {
     private readonly EurekaConfig _eurekaConfig = Service.Config.Get<EurekaConfig>();
     private readonly HydatosConfig _hydatosConfig = Service.Config.Get<HydatosConfig>();
-
-    private static readonly Dictionary<uint, HydatosConfig.Farm> FateIDs = new()
-    {
-        [1412] = HydatosConfig.Farm.Khalamari,
-        [1413] = HydatosConfig.Farm.Stego,
-        [1414] = HydatosConfig.Farm.Molech,
-        [1415] = HydatosConfig.Farm.Piasa,
-        [1416] = HydatosConfig.Farm.Frostmane,
-        [1417] = HydatosConfig.Farm.Daphne,
-        [1418] = HydatosConfig.Farm.Golde,
-        [1419] = HydatosConfig.Farm.Leuke,
-        [1420] = HydatosConfig.Farm.Barong,
-        [1421] = HydatosConfig.Farm.Ceto,
-        [1423] = HydatosConfig.Farm.PW,
-    };
 
     private readonly EventSubscriptions _subscriptions;
 
@@ -86,9 +105,9 @@ public class Hydatos : ZoneModule
 
     private void OnFateSpawned(ClientState.OpFateInfo fate)
     {
-        if (FateIDs.TryGetValue(fate.FateId, out var farm) && farm == _hydatosConfig.CurrentFarmTarget)
+        if (_hydatosConfig.CurrentFarmTarget.GetFateID() == fate.FateId)
         {
-            _hydatosConfig.CurrentFarmTarget = HydatosConfig.Farm.None;
+            _hydatosConfig.CurrentFarmTarget = NotoriousMonster.None;
             _hydatosConfig.Modified.Fire();
         }
     }
@@ -97,7 +116,7 @@ public class Hydatos : ZoneModule
     {
         hints.ForbiddenZones.RemoveAll(z => World.Actors.Find(z.Source) is Actor src && ShouldIgnore(src, player));
 
-        var farmOID = (uint)_hydatosConfig.CurrentFarmTarget;
+        var farmOID = _hydatosConfig.CurrentFarmTarget.GetMobID();
         var farmMax = _eurekaConfig.MaxPullCount;
         var farmRange = _eurekaConfig.MaxPullDistance;
 
@@ -135,7 +154,7 @@ public class Hydatos : ZoneModule
 
     public override void DrawExtra()
     {
-        if (UICombo.Enum("Prep mob", ref _hydatosConfig.CurrentFarmTarget))
+        if (UICombo.Enum("Prep", ref _hydatosConfig.CurrentFarmTarget))
             _hydatosConfig.Modified.Fire();
 
         ImGui.SetNextItemWidth(200);
