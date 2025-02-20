@@ -2,9 +2,8 @@
 
 public sealed class ClassDRGUtility(RotationModuleManager manager, Actor player) : RoleMeleeUtility(manager, player)
 {
-    public enum Track { WingedGlide = SharedTrack.Count, ElusiveJump }
+    public enum Track { WingedGlide = SharedTrack.Count }
     public enum DashStrategy { None, GapClose, GapCloseHold1 }
-    public enum ElusiveStrategy { None, CharacterForward, CharacterBackward, CameraForward, CameraBackward }
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(DRG.AID.DragonsongDive);
 
@@ -19,33 +18,12 @@ public sealed class ClassDRGUtility(RotationModuleManager manager, Actor player)
             .AddOption(DashStrategy.GapCloseHold1, "GapCloseHold1", "Use as gapcloser if outside melee range; conserves 1 charge for manual usage", 60, 0, ActionTargets.Hostile, 84)
             .AddAssociatedActions(DRG.AID.WingedGlide);
 
-        res.Define(Track.ElusiveJump).As<ElusiveStrategy>("Elusive Jump", "E.Jump", 30)
-            .AddOption(ElusiveStrategy.None, "None", "No use.", 0, 0, ActionTargets.Self, 35)
-            .AddOption(ElusiveStrategy.CharacterForward, "CharacterForward", "Dashes in the Forward direction relative to the Character", 30, 15, ActionTargets.Self, 35)
-            .AddOption(ElusiveStrategy.CharacterBackward, "CharacterBackward", "Dashes in the Backward direction relative to the Character", 30, 15, ActionTargets.Self, 35)
-            .AddOption(ElusiveStrategy.CameraForward, "CameraForward", "Dashes in the Forward direction relative to the Camera", 30, 15, ActionTargets.Self, 35)
-            .AddOption(ElusiveStrategy.CameraBackward, "CameraBackward", "Dashes in the Backward direction relative to the Camera", 30, 15, ActionTargets.Self, 35)
-            .AddAssociatedActions(DRG.AID.ElusiveJump);
-
         return res;
     }
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
-
-        var ej = strategy.Option(Track.ElusiveJump);
-        if (ej.As<ElusiveStrategy>() != ElusiveStrategy.None)
-        {
-            var angle = ej.As<ElusiveStrategy>() switch
-            {
-                ElusiveStrategy.CharacterForward => Player.Rotation + 180.Degrees(),
-                ElusiveStrategy.CameraBackward => World.Client.CameraAzimuth + 180.Degrees(),
-                ElusiveStrategy.CameraForward => World.Client.CameraAzimuth,
-                _ => Player.Rotation
-            };
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRG.AID.ElusiveJump), Player, ej.Priority(), ej.Value.ExpireIn, facingAngle: angle);
-        }
 
         var dash = strategy.Option(Track.WingedGlide);
         var dashStrategy = strategy.Option(Track.WingedGlide).As<DashStrategy>();
