@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.Config;
+using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Input;
@@ -28,10 +29,12 @@ public sealed unsafe class MovementOverride : IDisposable
     public WDir UserMove { get; private set; } // unfiltered movement direction, as read from input
     public WDir ActualMove { get; private set; } // actual movement direction, as of last input read
 
+    private readonly IDalamudPluginInterface _dalamud;
     private readonly ActionTweaksConfig _tweaksConfig = Service.Config.Get<ActionTweaksConfig>();
     private bool _movementBlocked;
     private bool? _forcedControlState;
     private bool _legacyMode;
+    private bool[]? _navmeshPathIsRunning;
 
     public bool IsMoving() => ActualMove != default;
     public bool IsMoveRequested() => UserMove != default;
@@ -67,8 +70,10 @@ public sealed unsafe class MovementOverride : IDisposable
     private delegate byte MoveControlIsInputActiveDelegate(void* self, byte inputSourceFlags);
     private readonly HookAddress<MoveControlIsInputActiveDelegate> _mcIsInputActiveHook;
 
-    public MovementOverride()
+    public MovementOverride(IDalamudPluginInterface dalamud)
     {
+        _dalamud = dalamud;
+
         var rmiWalkIsInputEnabled1Addr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 38 43 3C");
         var rmiWalkIsInputEnabled2Addr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 03 88 47 3F");
         Service.Log($"RMIWalkIsInputEnabled1 address: 0x{rmiWalkIsInputEnabled1Addr:X}");
@@ -86,11 +91,18 @@ public sealed unsafe class MovementOverride : IDisposable
 
     public void Dispose()
     {
+        _dalamud.RelinquishData("vnav.PathIsRunning");
         Service.GameConfig.UiControlChanged -= OnConfigChanged;
         _movementBlocked = false;
         _mcIsInputActiveHook.Dispose();
         _rmiWalkHook.Dispose();
         _rmiFlyHook.Dispose();
+    }
+
+    private bool NavmeshActive()
+    {
+        _navmeshPathIsRunning ??= _dalamud.GetData<bool[]>("vnav.PathIsRunning");
+        return _navmeshPathIsRunning != null && _navmeshPathIsRunning[0];
     }
 
     private void RMIWalkDetour(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk)
@@ -99,7 +111,7 @@ public sealed unsafe class MovementOverride : IDisposable
         _rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
 
         // TODO: we really need to introduce some extra checks that PlayerMoveController::readInput does - sometimes it skips reading input, and returning something non-zero breaks stuff...
-        var movementAllowed = bAdditiveUnk == 0 && _rmiWalkIsInputEnabled1(self) && _rmiWalkIsInputEnabled2(self);
+        var movementAllowed = bAdditiveUnk == 0 && _rmiWalkIsInputEnabled1(self) && _rmiWalkIsInputEnabled2(self) && !NavmeshActive();
         var misdirectionMode = PlayerHasMisdirection();
         if (!movementAllowed && misdirectionMode)
         {
