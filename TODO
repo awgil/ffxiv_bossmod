@@ -2,7 +2,6 @@ immediate plans
 - refactor replay history feature
 - remove 'ex' variants of strategies, replace with cooldown/effect functors, write a converter
 - add strategy param, use for 'apply unless already active' flavours of utility strategies
-- get rid of legacyxxx
 - ishape
 -- rasterization should automatically deal with 0.03 position imprecision (and angle imprecision?..)
 
@@ -79,23 +78,17 @@ autorotation:
 - action history/queue visualization
 - simulation in replay analysis
 - spell out shared cooldowns in actiondefinitions comments instead of group?
-- delete/rework commonstate/legacy
-- delete autorotationlegacy dir
 - dot/regen server tick tracking
 - brd
 -- take traits into account (ij proccing rs, ea proccing repertoire)
 -- better handle bad misalignment (see JeunoTheFirstWalk_BRD100_VeynHumanmale_2025_01_05_20_42_19.log)
 - drg
--- priorities...
--- dragon sight is a true north
--- cd planning
+-- write new module(?)
 - war
 -- simulate gauge changes (message can arrive few frames after ActionEffect...)
 -- low-level rotation - improve berserk delay logic
 - whm:
--- resurrect (6.1 and later changes)
--- planner
--- smart-targeting for ST actions
+-- write new module(?)
 
 ai:
 - improve healing AI: analyze incoming dps
@@ -113,7 +106,6 @@ misc:
 - memory show/watch utility
 - clip circles to arena bounds...
 - draw target max-melee and boss positioning hints?..
-- assignments/config sharing (webservice?)
 
 notes on targeting:
 - aoe (e.g. cone) will hit if shape intersects target's hitbox; for players it is == 0.5
