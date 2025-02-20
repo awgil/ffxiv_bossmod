@@ -101,7 +101,9 @@ public sealed unsafe class MovementOverride : IDisposable
 
     private bool NavmeshActive()
     {
-        _navmeshPathIsRunning ??= _dalamud.GetData<bool[]>("vnav.PathIsRunning");
+        if (_navmeshPathIsRunning == null && _dalamud.TryGetData<bool[]>("vnav.PathIsRunning", out var data))
+            _navmeshPathIsRunning = data;
+
         return _navmeshPathIsRunning != null && _navmeshPathIsRunning[0];
     }
 
