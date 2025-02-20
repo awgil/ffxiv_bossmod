@@ -202,20 +202,20 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
 
     private void AutoMit()
     {
-        if (EnemiesAutoingMe.Any())
-        {
-            if (Player.PredictedHPRatio < 0.8)
-            {
-                var delay = 0f;
-                if (JobActions.ShortMit.ID == ActionID.MakeSpell(WAR.AID.RawIntuition))
-                    delay = GCD - 0.8f;
-                Hints.ActionsToExecute.Push(JobActions.ShortMit.ID, Player, ActionQueue.Priority.Minimal, delay: delay);
-            }
+        if (Player.PredictedHPRaw == Player.HPMP.CurHP && !Player.InCombat)
+            return;
 
-            if (Player.PredictedHPRatio < 0.6)
-                // set arbitrary deadline to 1 second in the future
-                UseOneMit(1);
+        if (Player.PredictedHPRatio < 0.8)
+        {
+            var delay = 0f;
+            if (JobActions.ShortMit.ID == ActionID.MakeSpell(WAR.AID.RawIntuition))
+                delay = GCD - 0.8f;
+            Hints.ActionsToExecute.Push(JobActions.ShortMit.ID, Player, ActionQueue.Priority.Minimal, delay: delay);
         }
+
+        if (Player.PredictedHPRatio < 0.6)
+            // set arbitrary deadline to 1 second in the future
+            UseOneMit(1);
 
         // TODO figure out how consistent this is or if we should use predictively instead
         if (Player.PredictedHPRaw <= 0)
