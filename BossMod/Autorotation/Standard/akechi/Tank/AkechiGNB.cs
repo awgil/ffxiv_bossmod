@@ -167,7 +167,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
 
     #region Upgrade Paths
     private AID BestZone => Unlocked(AID.BlastingZone) ? AID.BlastingZone : AID.DangerZone;
-    private AID BestCartSpender => ShouldUseFC ? BestFatedCircle : canBS ? AID.BurstStrike : BestRotation();
+    private AID BestCartSpender => ShouldUseAOE ? BestFatedCircle : canBS ? AID.BurstStrike : BestRotation();
     private AID BestFatedCircle => Unlocked(AID.FatedCircle) ? AID.FatedCircle : AID.BurstStrike;
     private AID BestContinuation => hasRaze ? AID.FatedBrand : hasBlast ? AID.Hypervelocity : hasGouge ? AID.EyeGouge : hasTear ? AID.AbdomenTear : hasRip ? AID.JugularRip : AID.Continuation;
     #endregion
@@ -200,7 +200,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     private bool canContinue; //Checks if Continuation is completely available 
     private bool canReign; //Checks if Reign of Beasts & its combo chain are completely available
     private bool ShouldUseAOE; //Checks if AOE rotation should be used
-    private bool ShouldUseFC; //Checks if Fated Circle should be used
     private int NumSplashTargets;
     private Enemy? BestSplashTargets;
     private Enemy? BestSplashTarget;
@@ -225,21 +224,20 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         hasTear = PlayerHasEffect(SID.ReadyToTear, 10f) && !LastActionUsed(AID.AbdomenTear); //Checks for Ready To Tear buff
         hasGouge = PlayerHasEffect(SID.ReadyToGouge, 10f) && !LastActionUsed(AID.EyeGouge); //Checks for Ready To Gouge buff
         inOdd = bfCD is <= 90 and >= 30; //Checks if we are in an odd-minute window
-        ShouldUseAOE = Unlocked(TraitID.MeleeMastery) ? ShouldUseAOECircle(5).OnThreeOrMore : ShouldUseAOECircle(5).OnTwoOrMore;
-        ShouldUseFC = ShouldUseAOECircle(5).OnTwoOrMore; //Determine if we should use Fated Circle
+        ShouldUseAOE = ShouldUseAOECircle(5).OnTwoOrMore;
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 3, IsSplashTarget);
         BestSplashTarget = Unlocked(AID.ReignOfBeasts) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
 
         #region Minimal Requirements
-        canNM = TotalCD(AID.NoMercy) < 1; //No Mercy conditions
+        canNM = ActionReady(AID.NoMercy); //No Mercy conditions
         canBS = Unlocked(AID.BurstStrike) && Ammo > 0; //Burst Strike conditions; -1 Ammo ST
-        canGF = Unlocked(AID.GnashingFang) && ActionReady(AID.GnashingFang) && Ammo > 0; //Gnashing Fang conditions; -1 Ammo ST
+        canGF = ActionReady(AID.GnashingFang) && Ammo > 0; //Gnashing Fang conditions; -1 Ammo ST
         canFC = Unlocked(AID.FatedCircle) && Ammo > 0; //Fated Circle conditions; -1 Ammo AOE
-        canDD = Unlocked(AID.DoubleDown) && ActionReady(AID.DoubleDown) && Ammo > 0; //Double Down conditions; -1 Ammo AOE
-        canBF = Unlocked(AID.Bloodfest) && ActionReady(AID.Bloodfest); //Bloodfest conditions; +all Ammo (must have target)
-        canZone = Unlocked(AID.DangerZone) && ActionReady(AID.DangerZone); //Zone conditions
-        canBreak = hasBreak && Unlocked(AID.SonicBreak); //Sonic Break conditions
-        canBow = Unlocked(AID.BowShock) && ActionReady(AID.BowShock); //Bow Shock conditions
+        canDD = ActionReady(AID.DoubleDown) && Ammo > 0; //Double Down conditions; -1 Ammo AOE
+        canBF = ActionReady(AID.Bloodfest); //Bloodfest conditions; +all Ammo (must have target)
+        canZone = ActionReady(AID.DangerZone); //Zone conditions
+        canBreak = Unlocked(AID.SonicBreak) && hasBreak; //Sonic Break conditions
+        canBow = ActionReady(AID.BowShock); //Bow Shock conditions
         canContinue = Unlocked(AID.Continuation); //Continuation conditions
         canReign = Unlocked(AID.ReignOfBeasts) && hasReign; //Reign of Beasts conditions
         #endregion
@@ -302,34 +300,34 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         //TODO: refactor this
         if (AOEStrategy == AOEStrategy.GenerateDowntime) //if Generate Downtime option is selected
         {
-            if (DowntimeIn == GCD * 2 && Ammo == 2 || //if 2 GCDs until downtime & has 2 cartridges
-                DowntimeIn == GCD * 4 && Ammo == 1 || //if 4 GCDs until downtime & has 1 cartridge
-                DowntimeIn == GCD * 6 && Ammo == 0) //if 6 GCDs until downtime & has 0 cartridges
+            if (DowntimeIn == SkSGCDLength * 2 && Ammo == 2 || //if 2 GCDs until downtime & has 2 cartridges
+                DowntimeIn == SkSGCDLength * 4 && Ammo == 1 || //if 4 GCDs until downtime & has 1 cartridge
+                DowntimeIn == SkSGCDLength * 6 && Ammo == 0) //if 6 GCDs until downtime & has 0 cartridges
                 QueueGCD(AID.DemonSlice, //queue Demon Slice
                     Player, //on Self (no target needed)
                     GCDPriority.ForcedCombo); //with priority for forced GCDs
 
-            if (DowntimeIn == GCD * 3 && Ammo == 2 || //if 3 GCDs until downtime & has 2 cartridges
-                DowntimeIn == GCD * 5 && Ammo == 1 || //if 5 GCDs until downtime & has 1 cartridge
-                DowntimeIn == GCD * 8 && Ammo == 0 || //if 8 GCDs until downtime & has 0 cartridges
-                DowntimeIn == GCD * 9 && Ammo == 0) //if 9 GCDs until downtime & has 0 cartridges
+            if (DowntimeIn == SkSGCDLength * 3 && Ammo == 2 || //if 3 GCDs until downtime & has 2 cartridges
+                DowntimeIn == SkSGCDLength * 5 && Ammo == 1 || //if 5 GCDs until downtime & has 1 cartridge
+                DowntimeIn == SkSGCDLength * 8 && Ammo == 0 || //if 8 GCDs until downtime & has 0 cartridges
+                DowntimeIn == SkSGCDLength * 9 && Ammo == 0) //if 9 GCDs until downtime & has 0 cartridges
                 QueueGCD(AID.KeenEdge, //queue Keen Edge
                     primaryTarget?.Actor, //on the primary target
                     GCDPriority.ForcedCombo); //with priority for forced GCDs
 
             if (ComboLastMove == AID.DemonSlice && //if last move was Demon Slice
                 (DowntimeIn == GCD && Ammo == 2 || //if 1 GCD until downtime & has 2 cartridges
-                DowntimeIn == GCD * 3 && Ammo == 1 || //if 3 GCDs until downtime & has 1 cartridge
-                DowntimeIn == GCD * 5 && Ammo == 0)) //if 5 GCDs until downtime & has 0 cartridges
+                DowntimeIn == SkSGCDLength * 3 && Ammo == 1 || //if 3 GCDs until downtime & has 1 cartridge
+                DowntimeIn == SkSGCDLength * 5 && Ammo == 0)) //if 5 GCDs until downtime & has 0 cartridges
                 QueueGCD(AID.DemonSlaughter, //queue Demon Slaughter
                     Player, //on Self (no target needed)
                     GCDPriority.ForcedCombo); //with priority for forced GCDs
 
             if (ComboLastMove == AID.KeenEdge && //if last move was Keen Edge
-                (DowntimeIn == GCD * 2 && Ammo == 2 || //if 2 GCDs until downtime & has 2 cartridges
-                DowntimeIn == GCD * 4 && Ammo == 1 || //if 4 GCDs until downtime & has 1 cartridge
-                DowntimeIn == GCD * 7 && Ammo == 2 || //if 7 GCDs until downtime & has 2 cartridges
-                DowntimeIn == GCD * 8 && Ammo == 2)) //if 8 GCDs until downtime & has 2 cartridges
+                (DowntimeIn == SkSGCDLength * 2 && Ammo == 2 || //if 2 GCDs until downtime & has 2 cartridges
+                DowntimeIn == SkSGCDLength * 4 && Ammo == 1 || //if 4 GCDs until downtime & has 1 cartridge
+                DowntimeIn == SkSGCDLength * 7 && Ammo == 2 || //if 7 GCDs until downtime & has 2 cartridges
+                DowntimeIn == SkSGCDLength * 8 && Ammo == 2)) //if 8 GCDs until downtime & has 2 cartridges
                 QueueGCD(AID.BrutalShell, //queue Brutal Shell
                     primaryTarget?.Actor, //on the primary target
                     GCDPriority.ForcedCombo); //with priority for forced GCDs
@@ -337,8 +335,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             if (ComboLastMove == AID.BrutalShell) //if last move was Brutal Shell
             {
                 if (DowntimeIn == GCD && (Ammo == 2 || Ammo == 3) || //if 1 GCD until downtime & has 2 or 3 cartridges
-                    DowntimeIn == GCD * 4 && Ammo == 1 || //if 4 GCDs until downtime & has 1 cartridge
-                    DowntimeIn == GCD * 7 && Ammo == 0) //if 7 GCDs until downtime & has 0 cartridges
+                    DowntimeIn == SkSGCDLength * 4 && Ammo == 1 || //if 4 GCDs until downtime & has 1 cartridge
+                    DowntimeIn == SkSGCDLength * 7 && Ammo == 0) //if 7 GCDs until downtime & has 0 cartridges
                     QueueGCD(AID.SolidBarrel, //queue Solid Barrel
                         primaryTarget?.Actor, //on the primary target
                         GCDPriority.ForcedCombo); //with priority for forced GCDs
@@ -540,10 +538,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     private bool ShouldUseNoMercy(NoMercyStrategy strategy, Actor? target) => strategy switch
     {
         NoMercyStrategy.Automatic => Player.InCombat && target != null && canNM &&
-            ((Unlocked(AID.DoubleDown) && (inOdd && Ammo >= 2 || !inOdd && Ammo < 3)) ||
-            (!Unlocked(AID.DoubleDown) && CanQuarterWeaveIn &&
-            ((Unlocked(AID.Bloodfest) && Ammo >= 1) || (!Unlocked(AID.Bloodfest) && canGF) ||
-            !Unlocked(AID.GnashingFang)))),
+            ((Unlocked(AID.DoubleDown) && (inOdd && Ammo >= 2 || !inOdd && Ammo < 3)) || //90+
+            (!Unlocked(AID.DoubleDown) && CanQuarterWeaveIn && Ammo >= 1)), //2-89
         NoMercyStrategy.Force => canNM,
         NoMercyStrategy.ForceW => canNM && CanWeaveIn,
         NoMercyStrategy.ForceQW => canNM && CanQuarterWeaveIn,
@@ -630,9 +626,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     private bool ShouldSpendCarts(CartridgeStrategy strategy, Actor? target) => strategy switch
     {
         CartridgeStrategy.Automatic => Player.InCombat && target != null &&
-            (ShouldUseFC ? (In5y(target) && canFC) : (In3y(target) && canBS)) &&
+            ((ShouldUseAOE ? (In5y(target) && canFC) : (In3y(target) && canBS)) &&
             (hasNM || (!(bfCD is <= 90 and >= 30) && nmCD < 1 && Ammo == 3)) ||
-            Ammo == MaxCartridges && ComboLastMove is AID.BrutalShell or AID.DemonSlice,
+            (Ammo == MaxCartridges && ComboLastMove is AID.BrutalShell or AID.DemonSlice)),
         _ => false
     };
     private bool ShouldUseSonicBreak(SonicBreakStrategy strategy, Actor? target) => strategy switch

@@ -150,12 +150,12 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     {
         None = 0,
         Gauge = 300,
-        PrimalRuination = 400,
         DelayFC = 390,
         Standard = 400,
         FlexibleFC = 470,
         FlexibleIR = 490,
         PrimalRend = 500,
+        PrimalRuination = 500,
         BuffedFC = 550,
         BuffedIR = 570,
         NeedTempest = 650,
@@ -350,10 +350,14 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         #region Full Rotation Execution
 
         #region Standard Rotations
-        if (strategy.Automatic())
+        if (strategy.AutoFinish())
             QueueGCD(BestRotation(),
                 TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
-                IsRiskingGauge() ? GCDPriority.Standard - 400 : GCDPriority.ForcedCombo);
+                IsRiskingGauge() ? GCDPriority.Standard - 400 : GCDPriority.Standard);
+        if (strategy.AutoBreak())
+            QueueGCD(ShouldUseAOE ? AOE() : ST(),
+                TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
+                IsRiskingGauge() ? GCDPriority.Standard - 400 : GCDPriority.Standard);
         if (strategy.ForceST())
             QueueGCD(ST(),
                 TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,

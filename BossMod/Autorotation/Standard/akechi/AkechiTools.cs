@@ -19,12 +19,18 @@ public enum SharedTrack
 }
 
 /// <summary>
-/// <b>AOEStrategy</b> enum for tracking <b>single-target</b> and <b>AOE</b> strategies.
+/// <b>AOEStrategy</b> enum for tracking <b>single-target</b> and <b>AOE</b> strategies.<para/>
+/// <b>NOTE</b>: For jobs with combos that have no relative combo timer (e.g. <b>BLM</b>), <seealso cref="AutoFinish"/> and <seealso cref="AutoBreak"/> are essentially the same function.
 /// </summary>
 public enum AOEStrategy
 {
-    /// <summary> Executes the most <b>optimal rotation</b> automatically. </summary>
-    Automatic,
+    /// <summary> Executes the most <b>optimal rotation</b> automatically.<br/>
+    /// Finishes any combo <em>if</em> currently inside one.</summary>
+    AutoFinish,
+
+    /// <summary> Executes the most <b>optimal rotation</b> automatically. <br/>
+    /// Breaks any combo <em>if</em> currently inside one.</summary>
+    AutoBreak,
 
     /// <summary> Forces execution of the <b>single-target rotation</b>. </summary>
     ForceST,
@@ -334,9 +340,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected float ChargeCD(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
 
-    /// <summary>Checks if <b>action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>charge cooldown timer</b>. </summary>
+    /// <summary>Checks if <b>action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool ActionReady(AID aid) => Unlocked(aid) && ChargeCD(aid) < 0.6f;
+    protected bool ActionReady(AID aid) => Unlocked(aid) && !IsOnCooldown(aid);
 
     /// <summary>Checks if <b>action</b> has any <b>charges</b> remaining. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
@@ -526,16 +532,15 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         if (primaryTarget?.Actor == null || Player.DistanceToHitbox(primaryTarget.Actor) > range)
         {
             var AOEStrat = strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
-            if (AOEStrat == AOEStrategy.Automatic)
+            if (AOEStrat is AOEStrategy.AutoFinish or AOEStrategy.AutoBreak)
             {
-                primaryTarget = Hints.PriorityTargets
-                    .FirstOrDefault(x => Player.DistanceToHitbox(x.Actor) <= range);
+                primaryTarget = Hints.PriorityTargets.FirstOrDefault(x => Player.DistanceToHitbox(x.Actor) <= range);
             }
         }
     }
 
     /// <summary>Attempts to <b>select</b> the most suitable <b>PvP target</b> automatically, prioritizing the target with the <b>lowest HP percentage</b> within range.<para/>
-    /// <b>NOTE</b>: This function is solely used for finding the best <b>PvP target</b> without having to manually scan & click on other targets. Please use appropriately.</summary>
+    /// <b>NOTE</b>: This function is solely used for finding the best <b>PvP target</b> without having to manually scan and click on other targets. Please use appropriately.</summary>
     /// <param name="primaryTarget">The user's current <b>target</b>.</param>
     /// <param name="range">The <b>max range</b> to consider a new target.</param>
     protected void GetPvPTarget(ref Enemy? primaryTarget, float range)
@@ -790,9 +795,10 @@ static class ModuleExtensions
     public static RotationModuleDefinition.ConfigRef<AOEStrategy> DefineAOE(this RotationModuleDefinition res)
     {
         return res.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", uiPriority: 300)
-            .AddOption(AOEStrategy.Automatic, "Auto", "Automatically execute optimal rotation based on targets", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.AutoFinish, "Auto (Finish combo)", "Automatically execute optimal rotation based on targets; finishes combo if possible", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.AutoBreak, "Auto (Break combo)", "Automatically execute optimal rotation based on targets; breaks combo if necessary", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceST, "ForceST", "Force-execute Single Target", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Force-execute AOE rotation", supportedTargets: ActionTargets.Hostile);
+            .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Force-execute AOE rotation", supportedTargets: ActionTargets.Hostile | ActionTargets.Self);
     }
 
     /// <summary>Defines our shared <b>Hold</b> strategies.</summary>
@@ -859,8 +865,11 @@ static class ModuleExtensions
     /// <summary>A global helper for easily retrieving the user's <b>Rotation</b> strategy. See <seealso cref="AOEStrategy"/> for more details.</summary>
     public static AOEStrategy Rotation(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
 
-    /// <summary>A global helper for automatically executing the best optimal rotation. See <seealso cref="AOEStrategy"/> for more details.</summary>
-    public static bool Automatic(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() is AOEStrategy.Automatic;
+    /// <summary>A global helper for automatically executing the best optimal rotation; finishes combo if possible. See <seealso cref="AOEStrategy"/> for more details.</summary>
+    public static bool AutoFinish(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() is AOEStrategy.AutoFinish;
+
+    /// <summary>A global helper for automatically executing the best optimal rotation; breaks combo if necessary. See <seealso cref="AOEStrategy"/> for more details.</summary>
+    public static bool AutoBreak(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() is AOEStrategy.AutoBreak;
 
     /// <summary>A global helper for force-executing the single-target rotation. See <seealso cref="AOEStrategy"/> for more details.</summary>
     public static bool ForceST(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() is AOEStrategy.ForceST;

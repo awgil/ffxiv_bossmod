@@ -400,7 +400,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 || //or can use F3P
             Unlocked(TraitID.EnhancedAstralFire) && MP is < 1600 and not 0)) //instant cast Despair 
         {
-            if (strategy.Automatic())
+            if (strategy.AutoFinish() || strategy.AutoBreak())
                 BestRotation(TargetChoice(AOE) ?? BestSplashTarget?.Actor);
             if (strategy.ForceST())
                 BestST(TargetChoice(AOE) ?? primaryTarget?.Actor);
@@ -413,7 +413,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         //Thunder
         if (ShouldUseThunder(BestSplashTarget?.Actor, thunderStrat)) //if Thunder should be used based on strategy
         {
-            if (strategy.Automatic())
+            if (strategy.AutoFinish() || strategy.AutoBreak())
                 QueueGCD(BestThunder,
                     TargetChoice(thunder) ?? (ShouldUseAOE ? BestSplashTargets?.Actor : BestDOTTarget?.Actor),
                     thunderLeft <= 3 ? GCDPriority.NeedDOT :

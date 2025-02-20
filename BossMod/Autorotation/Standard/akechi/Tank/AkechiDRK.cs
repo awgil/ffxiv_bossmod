@@ -235,8 +235,12 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         #region Full Rotation Execution
 
         #region Standard Rotations
-        if (strategy.Automatic())
+        if (strategy.AutoFinish())
             QueueGCD(BestRotation(),
+                TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
+                GCDPriority.Standard);
+        if (strategy.AutoBreak())
+            QueueGCD(ShouldUseAOE ? AOE() : ST(),
                 TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
                 GCDPriority.Standard);
         if (strategy.ForceST())
