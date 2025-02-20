@@ -158,7 +158,8 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         def.Define(Track.Potion).As<PotionStrategy>("Pot", uiPriority: 59)
             .AddOption(PotionStrategy.Manual, "Do not automatically use")
             .AddOption(PotionStrategy.PreBuffs, "Use ~4 GCDs before raid buff window")
-            .AddOption(PotionStrategy.Now, "Use ASAP");
+            .AddOption(PotionStrategy.Now, "Use ASAP")
+            .AddAssociatedAction(ActionDefinitions.IDPotionStr);
 
         def.Define(Track.Engage).As<EngageStrategy>("Engage", uiPriority: 49)
             .AddOption(EngageStrategy.TC, "Thunderclap to target")
@@ -543,14 +544,16 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
-        switch (strategy.Option(Track.Potion).As<PotionStrategy>())
+        var potionTrack = strategy.Option(Track.Potion);
+        var potionPrio = potionTrack.Priority(ActionQueue.Priority.Low + 100 + (float)OGCDPriority.Potion);
+        switch (potionTrack.As<PotionStrategy>())
         {
             case PotionStrategy.Now:
-                Potion();
+                Potion(potionPrio);
                 break;
             case PotionStrategy.PreBuffs:
                 if (HaveTarget && CanWeave(AID.Brotherhood, 4))
-                    Potion();
+                    Potion(potionPrio);
                 break;
         }
 
@@ -713,7 +716,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     private float DesiredFireWindow => GCDLength * 10;
     private float EarliestRoF(float estimatedDelay) => MathF.Max(estimatedDelay + 0.8f, 20.6f - DesiredFireWindow);
 
-    private void Potion() => Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Low + 100 + (float)OGCDPriority.Potion);
+    private void Potion(float priority) => Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, priority);
 
     private (bool Use, bool LateWeave) ShouldRoF(StrategyValues strategy, int extraGCDs = 0)
     {
