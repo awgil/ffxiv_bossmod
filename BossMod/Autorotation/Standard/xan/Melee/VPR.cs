@@ -113,7 +113,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         NumAOETargets = NumMeleeAOETargets(strategy);
 
         var pos = GetPositional(strategy);
-        UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
+        UpdatePositionals(primaryTarget, ref pos);
 
         OGCD(strategy, primaryTarget);
 
@@ -127,7 +127,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
             _ => Anguine > 0 ? 50 : 3
         };
 
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.SteelMaw, aoeBreakpoint, pos.Item1, 20);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.SteelMaw, aoeBreakpoint, 20);
 
         if (CombatTimer < 0.5f && Player.DistanceToHitbox(primaryTarget) > 3)
             PushGCD(AID.Slither, primaryTarget);

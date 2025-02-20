@@ -2,9 +2,10 @@
 
 public sealed class AutoFarm(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { General, Fate, Specific }
+    public enum Track { General, Fate, Specific, Mount }
     public enum GeneralStrategy { FightBack, AllowPull, Aggressive, Passive }
     public enum PriorityStrategy { None, Prioritize }
+    public enum MountedStrategy { None, DisableFightBack, DisableAll }
 
     public static RotationModuleDefinition Definition()
     {
@@ -24,6 +25,11 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
             .AddOption(PriorityStrategy.None, "None", "Do not do anything special")
             .AddOption(PriorityStrategy.Prioritize, "Prioritize", "Prioritize specific mobs by targeting criterion");
 
+        res.Define(Track.Mount).As<MountedStrategy>("Mount")
+            .AddOption(MountedStrategy.None, "None", "Do not do anything special")
+            .AddOption(MountedStrategy.DisableFightBack, "NoFightBack", "Do not engage previously uninteresting mobs if they aggro on player")
+            .AddOption(MountedStrategy.DisableAll, "NoAll", "Do not engage anything while mounted");
+
         return res;
     }
 
@@ -32,6 +38,11 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
         var generalOpt = strategy.Option(Track.General);
         var generalStrategy = generalOpt.As<GeneralStrategy>();
         if (generalStrategy == GeneralStrategy.Passive)
+            return;
+
+        var mountStrategy = strategy.Option(Track.Mount).As<MountedStrategy>();
+        var mounted = Player.MountId > 0;
+        if (mounted && mountStrategy == MountedStrategy.DisableAll)
             return;
 
         var allowPulling = generalStrategy switch
@@ -58,14 +69,12 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
         // first deal with pulling new enemies
         if (allowPulling)
         {
-            if (Utils.IsPlayerSyncedToFate(World) && strategy.Option(Track.Fate).As<PriorityStrategy>() == PriorityStrategy.Prioritize)
+            var allowFate = Utils.IsPlayerSyncedToFate(World) && strategy.Option(Track.Fate).As<PriorityStrategy>() == PriorityStrategy.Prioritize;
+            foreach (var e in Hints.PotentialTargets)
             {
-                foreach (var e in Hints.PotentialTargets)
+                if (allowFate && e.Actor.FateID == World.Client.ActiveFate.ID && e.Priority == AIHints.Enemy.PriorityUndesirable)
                 {
-                    if (e.Actor.FateID == World.Client.ActiveFate.ID && e.Priority == AIHints.Enemy.PriorityUndesirable)
-                    {
-                        prioritize(e, 1);
-                    }
+                    prioritize(e, 1);
                 }
             }
 
@@ -85,7 +94,9 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
         }
 
         // if we did not select an enemy to pull, see if we can target something higher-priority than what we have now
-        if (switchTarget == null && Player.InCombat)
+        // if mounted, check if the "fight back" strategy is undesired
+        var mountNoFightBack = mounted && mountStrategy == MountedStrategy.DisableFightBack;
+        if (switchTarget == null && Player.InCombat && !mountNoFightBack)
         {
             var curTargetPrio = Hints.FindEnemy(primaryTarget)?.Priority ?? int.MinValue;
             switchTarget = ResolveTargetOverride(generalOpt.Value) ?? (curTargetPrio < Hints.HighestPotentialTargetPriority ? Hints.PriorityTargets.MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor : null);

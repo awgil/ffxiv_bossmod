@@ -61,7 +61,7 @@ public sealed record class ActorCastEvent(ActionID Action, ulong MainTargetID, f
     public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);
 }
 
-public record struct ActorHPMP(uint CurHP, uint MaxHP, uint Shield, uint CurMP);
+public record struct ActorHPMP(uint CurHP, uint MaxHP, uint Shield, uint CurMP, uint MaxMP);
 
 // note on tethers - it is N:1 type of relation, actor can be tethered to 0 or 1 actors, but can itself have multiple actors tethering themselves to itself
 // target is an instance id
@@ -70,6 +70,8 @@ public record struct ActorTetherInfo(uint ID, ulong Target);
 public record struct ActorStatus(uint ID, ushort Extra, DateTime ExpireAt, ulong SourceID);
 
 public record struct ActorModelState(byte ModelState, byte AnimState1, byte AnimState2);
+
+public record struct ActorForayInfo(byte Level, byte Element);
 
 public readonly record struct ActorIncomingEffect(uint GlobalSequence, int TargetIndex, ulong SourceInstanceId, ActionID Action, ActionEffects Effects);
 public record struct PendingEffect(uint GlobalSequence, int TargetIndex, ulong SourceInstanceId, DateTime Expiration);
@@ -99,6 +101,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public bool InCombat;
     public bool AggroPlayer; // determines whether a given actor shows in the player's UI enemy list
     public ActorModelState ModelState;
+    public ActorForayInfo ForayInfo;
     public byte EventState; // not sure about the field meaning...
     public ulong OwnerID = ownerID; // uuid of owner, for pets and similar
     public ulong TargetID;

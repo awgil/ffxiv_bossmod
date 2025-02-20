@@ -304,11 +304,12 @@ public abstract class AutoClear : ZoneModule
 
         ImGui.Text($"Kills: {Kills}");
 
-        var navInCombat = _config.NavigateInCombat;
+        var maxPull = _config.MaxPull;
 
-        if (ImGui.Checkbox("Allow navigation in combat", ref navInCombat))
+        ImGui.SetNextItemWidth(200);
+        if (ImGui.DragInt("Max mobs to pull", ref maxPull, 0.05f, 0, 15))
         {
-            _config.NavigateInCombat = navInCombat;
+            _config.MaxPull = maxPull;
             _config.Modified.Fire();
         }
 
@@ -392,10 +393,14 @@ public abstract class AutoClear : ZoneModule
         if (!_config.Enable || Palace.IsBossFloor || BetweenFloors)
             return;
 
+        var canNavigate = _config.MaxPull == 0 ? !player.InCombat : hints.PotentialTargets.Count(t => t.Actor.AggroPlayer && !t.Actor.IsDeadOrDestroyed) < _config.MaxPull;
+
         foreach (var (w, rot) in Walls)
             hints.AddForbiddenZone(new AOEShapeRect(w.Depth, 20, w.Depth), w.Position, (rot ? 90f : 0f).Degrees());
 
-        HandleFloorPathfind(player, hints);
+        if (canNavigate)
+            HandleFloorPathfind(player, hints);
+
         DrawAOEs(playerSlot, player, hints);
         CalculateExtraHints(playerSlot, player, hints);
 
@@ -458,7 +463,6 @@ public abstract class AutoClear : ZoneModule
             }
         }
 
-
         if (_config.TrapHints && _trapsHidden)
         {
             var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30) && !IgnoreTraps.Any(b => b.AlmostEqual(t, 1))).Select(t => ShapeDistance.Circle(t, 2)).ToList();
@@ -488,7 +492,7 @@ public abstract class AutoClear : ZoneModule
             hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)p2), null, ActionQueue.Priority.VeryHigh);
 
         Actor? wantCoffer = null;
-        if (coffer is Actor t && !IsPlayerTransformed(player) && (_config.AutoMoveTreasure && (!player.InCombat || _config.NavigateInCombat) || player.DistanceToHitbox(t) < 3.5f))
+        if (coffer is Actor t && !IsPlayerTransformed(player) && (_config.AutoMoveTreasure && canNavigate || player.DistanceToHitbox(t) < 3.5f))
             wantCoffer = t;
 
         if (!player.InCombat && _config.AutoPassage && Palace.PassageActive)
@@ -516,7 +520,7 @@ public abstract class AutoClear : ZoneModule
         if (revealedTraps.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Union(revealedTraps));
 
-        if (!IsPlayerTransformed(player) && (!player.InCombat || _config.NavigateInCombat) && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.GetPomanderState(PomanderID.Intuition).Active)
+        if (!IsPlayerTransformed(player) && canNavigate && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.GetPomanderState(PomanderID.Intuition).Active)
             hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));
 
         var shouldTargetMobs = _config.AutoClear switch
@@ -648,9 +652,6 @@ public abstract class AutoClear : ZoneModule
 
     private void HandleFloorPathfind(Actor player, AIHints hints)
     {
-        if (player.InCombat && !_config.NavigateInCombat)
-            return;
-
         var playerRoom = Palace.Party[0].Room;
 
         if (DesiredRoom == playerRoom || DesiredRoom == 0)

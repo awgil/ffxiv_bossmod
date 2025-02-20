@@ -81,7 +81,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         (BestDiveTarget, NumDiveTargets) = SelectTarget(strategy, primaryTarget, 20, IsSplashTarget);
 
         var pos = GetPositional(strategy, primaryTarget);
-        UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
+        UpdatePositionals(primaryTarget, ref pos);
 
         if (primaryTarget == null)
             return;
@@ -94,7 +94,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(strategy, 3, Hints.GoalAOERect(primaryTarget.Actor, 10, 2), AID.DoomSpike, minAoe: 3, positional: pos.Item1, maximumActionRange: 20);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOERect(primaryTarget.Actor, 10, 2), AID.DoomSpike, minAoe: 3, maximumActionRange: 20);
 
         if (NumAOETargets > 2)
         {

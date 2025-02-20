@@ -215,7 +215,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             targeting = Targeting.Manual;
 
         if (targeting == Targeting.AutoTryPri)
-            targeting = primaryTarget == null ? Targeting.Auto : Targeting.AutoPrimary;
+            targeting = Player.DistanceToHitbox(primaryTarget) <= range ? Targeting.AutoPrimary : Targeting.Auto;
 
         var (newtarget, newprio) = targeting switch
         {
@@ -288,8 +288,10 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, range));
     }
 
-    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, Positional positional = Positional.Any, float? maximumActionRange = null)
+    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
     {
+        var (_, positional, imminent, _) = Hints.RecommendedPositional;
+
         if (!strategy.AOEOk() || !Unlocked(firstUnlockedAoeAction))
             minAoe = 50;
 
@@ -300,7 +302,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         }
         else
         {
-            Hints.GoalZones.Add(Hints.GoalCombined(Hints.GoalSingleTarget(PlayerTarget.Actor, positional, range), fAoe, minAoe));
+            Hints.GoalZones.Add(Hints.GoalCombined(Hints.GoalSingleTarget(PlayerTarget.Actor, imminent ? positional : Positional.Any, range), fAoe, minAoe));
             if (maximumActionRange is float r)
                 Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, r, 0.5f));
         }
@@ -350,8 +352,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected bool NextPositionalImminent;
     protected bool NextPositionalCorrect;
 
-    protected void UpdatePositionals(Enemy? enemy, ref (Positional pos, bool imm) positional, bool trueNorth)
+    protected void UpdatePositionals(Enemy? enemy, ref (Positional pos, bool imm) positional)
     {
+        var trueNorth = TrueNorthLeft > GCD;
         var target = enemy?.Actor;
         if ((target?.Omnidirectional ?? true) || target?.TargetID == Player.InstanceID && target?.CastInfo == null && positional.pos != Positional.Front && target?.NameID != 541)
             positional = (Positional.Any, false);

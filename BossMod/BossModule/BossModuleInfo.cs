@@ -64,6 +64,7 @@ public static class BossModuleInfo
         Hunt, // group id is HuntRank
         BozjaCE, // group id is ContentFinderCondition row, name id is DynamicEvent row
         BozjaDuel, // group id is ContentFinderCondition row, name id is DynamicEvent row
+        EurekaNM, // group id is ContentFinderCondition row, name id is Fate row
         GoldSaucer, // group id is GoldSaucerTextData row
     }
 

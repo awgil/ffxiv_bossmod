@@ -121,7 +121,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         NumAOETargets = NumMeleeAOETargets(strategy);
 
         var pos = GetNextPositional(primaryTarget?.Actor);
-        UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
+        UpdatePositionals(primaryTarget, ref pos);
 
         OGCD(strategy, primaryTarget);
 
@@ -133,7 +133,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.DeathBlossom, minAoe: 3, positional: pos.Item1, maximumActionRange: 20);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.DeathBlossom, minAoe: 3, maximumActionRange: 20);
 
         if (TenChiJin.Left > GCD)
         {

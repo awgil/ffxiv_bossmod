@@ -27,8 +27,9 @@ public class AutoDDConfig : ConfigNode
     [PropertyDisplay("Automatic mob targeting behavior")]
     public ClearBehavior AutoClear = ClearBehavior.Leveling;
 
-    [PropertyDisplay("Allow navigation in combat")]
-    public bool NavigateInCombat = false;
+    [PropertyDisplay("Max number of mobs to pull before pausing navigation (set to 0 to disable navigation while in combat)")]
+    [PropertySlider(0, 15)]
+    public int MaxPull = 0;
     [PropertyDisplay("Try to use terrain to LOS attacks")]
     public bool AutoLOS = false;
 

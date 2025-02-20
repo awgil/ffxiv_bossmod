@@ -344,6 +344,9 @@ public sealed class UIPresetEditor
 
     private bool CheckNameConflict()
     {
+        if (_db.DefaultPresets.Any(p => p.Name == Preset.Name))
+            return true;
+
         for (int i = 0; i < _db.UserPresets.Count; ++i)
             if (i != _sourcePresetIndex && _db.UserPresets[i].Name == Preset.Name)
                 return true;

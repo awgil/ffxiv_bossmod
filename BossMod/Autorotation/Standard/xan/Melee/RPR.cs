@@ -124,7 +124,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
 
         var pos = GetNextPositional(primaryTarget?.Actor);
-        UpdatePositionals(primaryTarget, ref pos, TrueNorthLeft > GCD);
+        UpdatePositionals(primaryTarget, ref pos);
 
         OGCD(strategy, primaryTarget);
 
@@ -136,7 +136,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.SpinningScythe, 3, pos.Item1, maximumActionRange: 25);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.SpinningScythe, 3, maximumActionRange: 25);
 
         if (SoulReaver > GCD || Executioner > GCD)
         {

@@ -19,7 +19,7 @@ public enum AID : uint
     SelfDestruct = 7106, // LavaBomb->self, 3.0s cast, range 6+R circle
 }
 
-class BossAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.GreyBomb, (uint)OID.GiddyBomb]);
+class GreyBomb(BossModule module) : Components.Adds(module, (uint)OID.GreyBomb, 5);
 class Burst(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Burst), "Kill the Grey Bomb! or take 80% of your Max HP");
 // future thing to do: maybe add a tether between bomb/boss to show it needs to show the aoe needs to explode on them. . . 
 class HypothermalCombustion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HypothermalCombustion), new AOEShapeCircle(7.2f))
@@ -30,6 +30,37 @@ class HypothermalCombustion(BossModule module) : Components.SelfTargetedAOEs(mod
 
         if (Module.Enemies(OID.GiddyBomb).FirstOrDefault() is Actor g && Module.PrimaryActor.Position.InCircle(g.Position, 7.2f))
             hints.SetPriority(g, AIHints.Enemy.PriorityForbidden);
+    }
+}
+class GiddyBomb(BossModule module) : BossComponent(module)
+{
+    public static readonly WPos[] BombSpawns = [
+        new(-305, -240),
+        new(-295, -240),
+        new(-295, -240),
+        new(-300, -235)
+    ];
+
+    private int _index;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.HypothermalCombustion)
+            _index++;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // not tanking
+        if (Module.PrimaryActor.TargetID != actor.InstanceID)
+            return;
+
+        // giddy bomb is alive, don't pull anywhere
+        if (Module.Enemies(OID.GiddyBomb).Any(x => !x.IsDeadOrDestroyed))
+            return;
+
+        var nextBombSpot = BombSpawns[_index % BombSpawns.Length];
+        hints.GoalZones.Add(hints.PullTargetToLocation(Module.PrimaryActor, nextBombSpot));
     }
 }
 class MassiveBurst(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MassiveBurst), "Knock the Giddy bomb into the boss and let it explode on the boss. \n or else take 99% damage!");
@@ -83,7 +114,8 @@ class D90TheGodmotherStates : StateMachineBuilder
     public D90TheGodmotherStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<BossAdds>()
+            .ActivateOnEnter<GreyBomb>()
+            .ActivateOnEnter<GiddyBomb>()
             .ActivateOnEnter<Burst>()
             .ActivateOnEnter<HypothermalCombustion>()
             .ActivateOnEnter<MassiveBurst>()
