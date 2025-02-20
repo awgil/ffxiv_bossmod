@@ -1,4 +1,4 @@
-﻿using static BossMod.AIHints;
+using static BossMod.AIHints;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using BossMod.WAR;
 
@@ -31,7 +31,8 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             BitMask.Build(Class.MRD, Class.WAR), //Job
             100); //Level supported
 
-        res.DefineShared();
+        res.DefineAOE().AddAssociatedActions(AID.HeavySwing, AID.Maim, AID.StormEye, AID.StormPath, AID.Overpower, AID.MythrilTempest);
+        res.DefineHold();
         res.Define(Track.Gauge).As<GaugeStrategy>("Gauge", "Gauge", uiPriority: 200)
             .AddOption(GaugeStrategy.Automatic, "Automatic", "Automatically use Gauge-related abilities optimally", minLevel: 35)
             .AddOption(GaugeStrategy.OnlyST, "Only ST", "Uses Inner Beast / Fell Cleave / Inner Chaos optimally as Beast Gauge spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 35)
@@ -148,13 +149,13 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     public enum GCDPriority
     {
         None = 0,
-        Standard = 100,
         Gauge = 300,
-        PrimalRuination = 400,
         DelayFC = 390,
+        Standard = 400,
         FlexibleFC = 470,
         FlexibleIR = 490,
         PrimalRend = 500,
+        PrimalRuination = 500,
         BuffedFC = 550,
         BuffedIR = 570,
         NeedTempest = 650,
@@ -225,6 +226,8 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     #region Module Helpers
     public bool IsRiskingGauge()
     {
+        if (InnerRelease.Stacks > 0)
+            return true;
         if (BeastGauge >= 90 && //if 90
             ComboLastMove is AID.Maim) //next is Storm's Path, which overcaps. We need spender here
             return true;
@@ -236,7 +239,9 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             if (ComboLastMove is AID.HeavySwing)
                 return true;
         }
-
+        if (NascentChaos.IsActive && //if NC is active
+            InnerRelease.CD > 5) //and IR is not imminent
+            return true;
         return false;
     }
     #endregion
@@ -334,6 +339,9 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
+
+        BurstWindowLeft = (InnerRelease.CD >= 40) ? 1.0f : 0.0f;
+        BurstWindowIn = (InnerRelease.CD == 0) ? 1.0f : 0.0f;
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
         BestSplashTarget = Unlocked(AID.PrimalRend) && NumSplashTargets >= 2 ? BestSplashTargets : primaryTarget;
         (TwoMinuteLeft, TwoMinuteIn) = EstimateRaidBuffTimings(primaryTarget?.Actor);
@@ -342,18 +350,22 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         #region Full Rotation Execution
 
         #region Standard Rotations
-        if (strategy.Automatic())
+        if (strategy.AutoFinish())
             QueueGCD(BestRotation(),
                 TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
-                GCDPriority.ForcedCombo);
+                IsRiskingGauge() ? GCDPriority.Standard - 400 : GCDPriority.Standard);
+        if (strategy.AutoBreak())
+            QueueGCD(ShouldUseAOE ? AOE() : ST(),
+                TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
+                IsRiskingGauge() ? GCDPriority.Standard - 400 : GCDPriority.Standard);
         if (strategy.ForceST())
             QueueGCD(ST(),
                 TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
-                GCDPriority.ForcedCombo);
+                IsRiskingGauge() ? GCDPriority.Standard - 400 : GCDPriority.ForcedCombo);
         if (strategy.ForceAOE())
             QueueGCD(AOE(),
                 Player,
-                GCDPriority.ForcedCombo);
+                IsRiskingGauge() ? GCDPriority.Standard - 400 : GCDPriority.ForcedCombo);
         #endregion
 
         #region Cooldowns
@@ -484,12 +496,12 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
 
         #region AI
         var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null; //Set goal for single target
-        var goalAOE = primaryTarget?.Actor != null ? Hints.GoalAOECircle(5) : null; //Set goal for AOE
+        var goalAOE = Hints.GoalAOECircle(3); //Set goal for AOE
         var goal = strategy.Option(SharedTrack.AOE).As<AOEStrategy>() switch //Set goal based on AOE strategy
         {
             AOEStrategy.ForceST => goalST, //if forced single target
             AOEStrategy.ForceAOE => goalAOE, //if forced AOE
-            _ => goalST != null && goalAOE != null ? Hints.GoalCombined(goalST, goalAOE, 2) : goalAOE //otherwise, combine goals
+            _ => goalST != null ? Hints.GoalCombined(goalST, goalAOE, 3) : goalAOE //otherwise, combine goals
         };
         if (goal != null) //if goal is set
             Hints.GoalZones.Add(goal); //add goal to zones

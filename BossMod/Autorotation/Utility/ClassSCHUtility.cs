@@ -2,13 +2,12 @@
 
 public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
-    public enum Track { WhisperingDawn = SharedTrack.Count, Adloquium, Succor, FeyIllumination, Lustrate, SacredSoil, Indomitability, DeploymentTactics, EmergencyTactics, Dissipation, Excogitation, Aetherpact, Recitation, FeyBlessing, Consolation, Protraction, Expedient, Seraphism, Summons }
+    public enum Track { WhisperingDawn = SharedTrack.Count, Adloquium, Succor, FeyIllumination, Lustrate, SacredSoil, Indomitability, DeploymentTactics, EmergencyTactics, Dissipation, Excogitation, Aetherpact, Recitation, FeyBlessing, Consolation, Protraction, Expedient, Seraphism, Seraph }
     public enum SuccorOption { None, Succor, Concitation }
     public enum SacredSoilOption { None, Use, UseEx }
     public enum DeployOption { None, Use, UseEx }
     public enum AetherpactOption { None, Use, End }
     public enum RecitationOption { None, Use, UseEx }
-    public enum PetOption { None, Eos, Seraph }
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SCH.AID.AngelFeathers);
 
@@ -31,8 +30,8 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.SacredSoil).As<SacredSoilOption>("Sacred Soil", "S.Soil", 200)
             .AddOption(SacredSoilOption.None, "None", "Do not use automatically")
-            .AddOption(SacredSoilOption.Use, "Use", "Use Sacred Soil", 30, 15, ActionTargets.All, 50, 77)
-            .AddOption(SacredSoilOption.UseEx, "UseEx", "Use Enhanced Sacred Soil", 30, 15, ActionTargets.All, 78)
+            .AddOption(SacredSoilOption.Use, "Use", "Use Sacred Soil", 30, 15, ActionTargets.Area, 50, 77)
+            .AddOption(SacredSoilOption.UseEx, "UseEx", "Use Enhanced Sacred Soil", 30, 15, ActionTargets.Area, 78)
             .AddAssociatedActions(SCH.AID.SacredSoil);
 
         DefineSimpleConfig(res, Track.Indomitability, "Indomitability", "Indom.", 90, SCH.AID.Indomitability);
@@ -64,13 +63,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Protraction, "Protraction", "Prot.", 110, SCH.AID.Protraction, 10);
         DefineSimpleConfig(res, Track.Expedient, "Expedient", "Exped.", 200, SCH.AID.Expedient, 20);
         DefineSimpleConfig(res, Track.Seraphism, "Seraphism", "Seraphism", 300, SCH.AID.Seraphism, 20);
-
-        // Pet Summons
-        res.Define(Track.Summons).As<PetOption>("Pet", "", 180)
-            .AddOption(PetOption.None, "None", "Do not use automatically")
-            .AddOption(PetOption.Eos, "Eos", "Summon Eos", 2, 0, ActionTargets.Self, 4)
-            .AddOption(PetOption.Seraph, "Seraph", "Summon Seraph", 120, 22, ActionTargets.Self, 80)
-            .AddAssociatedActions(SCH.AID.SummonEos, SCH.AID.SummonSeraph);
+        DefineSimpleConfig(res, Track.Seraph, "Seraph", "Seraph", 300, SCH.AID.SummonSeraph, 20);
 
         return res;
     }
@@ -91,6 +84,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Protraction), SCH.AID.Protraction, Player);
         ExecuteSimple(strategy.Option(Track.Expedient), SCH.AID.Expedient, Player);
         ExecuteSimple(strategy.Option(Track.Seraphism), SCH.AID.Seraphism, Player);
+        ExecuteSimple(strategy.Option(Track.Seraph), SCH.AID.SummonSeraph, Player);
 
         var shieldUp = StatusDetails(Player, SCH.SID.Galvanize, Player.InstanceID).Left > 0.1f || StatusDetails(Player, SGE.SID.EukrasianPrognosis, Player.InstanceID).Left > 0.1f;
         var succ = strategy.Option(Track.Succor);
@@ -101,7 +95,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (succAction != default && !shieldUp)
-            QueueOGCD(succAction, Player);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(succAction), Player, succ.Priority(), succ.Value.ExpireIn, castTime: 2); // TODO[cast-time]: adjustment (swiftcast etc)
 
         var soil = strategy.Option(Track.SacredSoil);
         var soilAction = soil.As<SacredSoilOption>() switch
@@ -110,12 +104,11 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (soilAction != default)
-            QueueOGCD(soilAction, ResolveTargetOverride(soil.Value) ?? primaryTarget ?? Player);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(soilAction), null, soil.Priority(), soil.Value.ExpireIn, targetPos: ResolveTargetLocation(soil.Value).ToVec3(Player.PosRot.Y));
 
         var deploy = strategy.Option(Track.DeploymentTactics);
         if (deploy.As<DeployOption>() != DeployOption.None)
-            QueueOGCD(SCH.AID.DeploymentTactics, Player);
-
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.DeploymentTactics), Player, deploy.Priority(), deploy.Value.ExpireIn);
 
         var pact = strategy.Option(Track.Aetherpact);
         var pactStrat = pact.As<AetherpactOption>();
@@ -124,64 +117,13 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         if (pactStrat != AetherpactOption.None)
         {
             if (pactStrat == AetherpactOption.Use && !juicing)
-                QueueOGCD(SCH.AID.Aetherpact, pactTarget);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.Aetherpact), pactTarget, pact.Priority(), pact.Value.ExpireIn);
             if (pactStrat == AetherpactOption.End && juicing)
-                QueueOGCD(SCH.AID.DissolveUnion, pactTarget);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.DissolveUnion), pactTarget, pact.Priority(), pact.Value.ExpireIn);
         }
 
         var recit = strategy.Option(Track.Recitation);
         if (recit.As<RecitationOption>() != RecitationOption.None)
-            QueueOGCD(SCH.AID.Recitation, Player);
-
-        var pet = strategy.Option(Track.Summons);
-        var petSummons = pet.As<PetOption>() switch
-        {
-            PetOption.Eos => SCH.AID.SummonEos,
-            PetOption.Seraph => SCH.AID.SummonSeraph,
-            _ => default
-        };
-        if (petSummons != default)
-            QueueOGCD(petSummons, Player);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.Recitation), Player, recit.Priority(), recit.Value.ExpireIn);
     }
-
-    #region Core Execution Helpers
-    public void QueueOGCD<P>(SCH.AID aid, Actor? target, P priority, float delay = 0) where P : Enum
-        => QueueOGCD(aid, target, (int)(object)priority, delay);
-
-    public void QueueOGCD(SCH.AID aid, Actor? target, int priority = 4, float delay = 0)
-    {
-        if (priority == 0)
-            return;
-
-        QueueAction(aid, target, ActionQueue.Priority.Medium + priority, delay);
-    }
-
-    public bool QueueAction(SCH.AID aid, Actor? target, float priority, float delay)
-    {
-        if ((uint)(object)aid == 0)
-            return false;
-
-        var def = ActionDefinitions.Instance.Spell(aid);
-        if (def == null)
-            return false;
-
-        if (def.Range != 0 && target == null)
-        {
-            return false;
-        }
-
-        Vector3 targetPos = default;
-
-        if (def.AllowedTargets.HasFlag(ActionTargets.Area))
-        {
-            if (def.Range == 0)
-                targetPos = Player.PosRot.XYZ();
-            else if (target != null)
-                targetPos = target.PosRot.XYZ();
-        }
-
-        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, castTime: def.CastTime, targetPos: targetPos); // TODO[cast-time]: this probably needs explicit cast-time argument (adjusted by swiftcast etc)
-        return true;
-    }
-    #endregion
 }

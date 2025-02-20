@@ -33,8 +33,8 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.EarthlyStar).As<StarOption>("EarthlyStar", "E.Star", 200) //AoE GCD heal, 60s CD, 10s + 10s effect duration
             .AddOption(StarOption.None, "None", "Do not use automatically")
-            .AddOption(StarOption.Use, "Earthly Star", "Use Earthly Star", 60, 10, ActionTargets.Hostile, 62)
-            .AddOption(StarOption.End, "Stellar Detonation", "Use Stellar Detonation", 0, 1, ActionTargets.Hostile, 62)
+            .AddOption(StarOption.Use, "Earthly Star", "Use Earthly Star", 60, 10, ActionTargets.Area, 62)
+            .AddOption(StarOption.End, "Stellar Detonation", "Use Stellar Detonation", 0, 1, ActionTargets.Self, 62)
             .AddAssociatedActions(AST.AID.EarthlyStar, AST.AID.StellarDetonation);
 
         DefineSimpleConfig(res, Track.CelestialIntersection, "CelestialIntersection", "C.Inter", 100, AST.AID.CelestialIntersection, 30); //ST oGCD heal/shield, 30s CD (60s Total), 2 charges
@@ -83,7 +83,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (starAction != default)
-            QueueOGCD(starAction, ResolveTargetOverride(star.Value) ?? primaryTarget ?? Player);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(starAction), null, star.Priority(), star.Value.ExpireIn, targetPos: ResolveTargetLocation(star.Value).ToVec3(Player.PosRot.Y));
 
         //Aspected Helios full execution
         var heliosUp = StatusDetails(Player, AST.SID.AspectedHelios, Player.InstanceID).Left > 0.1f || StatusDetails(Player, AST.SID.HeliosConjunction, Player.InstanceID).Left > 0.1f;
@@ -95,87 +95,39 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (heliosAction != default && !heliosUp)
-            QueueGCD(heliosAction, Player);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(heliosAction), Player, helios.Priority(), helios.Value.ExpireIn);
 
         //Horoscope full execution
         var horo = strategy.Option(Track.Horoscope);
+        var horoStrat = horo.As<HoroscopeOption>() switch
+        {
+            HoroscopeOption.Use => Player.FindStatus(AST.SID.Horoscope) == null,
+            HoroscopeOption.End => Player.FindStatus(AST.SID.Horoscope) != null,
+            _ => default
+        };
         var horoAction = horo.As<HoroscopeOption>() switch
         {
             HoroscopeOption.Use => AST.AID.Horoscope,
             HoroscopeOption.End => AST.AID.HoroscopeEnd,
             _ => default
         };
-        if (horoAction != default)
-            QueueOGCD(horoAction, Player);
+        if (horoStrat != default && horoAction != default)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(horoAction), Player, horo.Priority(), horo.Value.ExpireIn);
 
         var cosmos = strategy.Option(Track.Macrocosmos);
+        var cosmosStrat = cosmos.As<MacrocosmosOption>() switch
+        {
+            MacrocosmosOption.Use => Player.FindStatus(AST.SID.Macrocosmos) == null,
+            MacrocosmosOption.End => Player.FindStatus(AST.SID.Macrocosmos) != null,
+            _ => default
+        };
         var cosmosAction = cosmos.As<MacrocosmosOption>() switch
         {
             MacrocosmosOption.Use => AST.AID.Macrocosmos,
             MacrocosmosOption.End => AST.AID.MicrocosmosEnd,
             _ => default
         };
-        if (cosmosAction != default)
-            QueueOGCD(cosmosAction, primaryTarget);
+        if (cosmosStrat != default)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(cosmosAction), primaryTarget, cosmos.Priority(), cosmos.Value.ExpireIn);
     }
-
-    #region Core Execution Helpers
-
-    public AST.AID NextGCD; //Next global cooldown action to be used
-    public void QueueGCD<P>(AST.AID aid, Actor? target, P priority, float delay = 0) where P : Enum
-        => QueueGCD(aid, target, (int)(object)priority, delay);
-
-    public void QueueGCD(AST.AID aid, Actor? target, int priority = 8, float delay = 0)
-    {
-        var NextGCDPrio = 0;
-
-        if (priority == 0)
-            return;
-
-        if (QueueAction(aid, target, ActionQueue.Priority.High, delay) && priority > NextGCDPrio)
-        {
-            NextGCD = aid;
-        }
-    }
-
-    public void QueueOGCD<P>(AST.AID aid, Actor? target, P priority, float delay = 0) where P : Enum
-        => QueueOGCD(aid, target, (int)(object)priority, delay);
-
-    public void QueueOGCD(AST.AID aid, Actor? target, int priority = 4, float delay = 0)
-    {
-        if (priority == 0)
-            return;
-
-        QueueAction(aid, target, ActionQueue.Priority.Medium + priority, delay);
-    }
-
-    public bool QueueAction(AST.AID aid, Actor? target, float priority, float delay)
-    {
-        if ((uint)(object)aid == 0)
-            return false;
-
-        var def = ActionDefinitions.Instance.Spell(aid);
-        if (def == null)
-            return false;
-
-        if (def.Range != 0 && target == null)
-        {
-            return false;
-        }
-
-        Vector3 targetPos = default;
-
-        if (def.AllowedTargets.HasFlag(ActionTargets.Area))
-        {
-            if (def.Range == 0)
-                targetPos = Player.PosRot.XYZ();
-            else if (target != null)
-                targetPos = target.PosRot.XYZ();
-        }
-
-        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, castTime: def.CastTime, targetPos: targetPos); // TODO[cast-time]: this probably needs explicit cast-time argument (adjusted by swiftcast etc)
-        return true;
-    }
-    #endregion
-
 }

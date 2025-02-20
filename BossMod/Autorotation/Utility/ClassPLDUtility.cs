@@ -2,7 +2,7 @@
 
 public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player) : RoleTankUtility(manager, player)
 {
-    public enum Track { Sheltron = SharedTrack.Count, Sentinel, Cover, Bulwark, DivineVeil, PassageOfArms, HallowedGround } //What we're tracking
+    public enum Track { Sheltron = SharedTrack.Count, Sentinel, Cover, Bulwark, DivineVeil, HallowedGround } //What we're tracking
     public enum ShelOption { None, Sheltron, HolySheltron, Intervention } //Sheltron Options
     public enum SentOption { None, Sentinel, Guardian } //Sentinel enhancement
 
@@ -32,7 +32,6 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Cover, "Cover", "", 320, PLD.AID.Cover, 12); //120s CD, 12s duration, -50 OathGauge cost
         DefineSimpleConfig(res, Track.Bulwark, "Bulwark", "Bul", 450, PLD.AID.Bulwark, 10); //90s CD, 15s duration
         DefineSimpleConfig(res, Track.DivineVeil, "DivineVeil", "Veil", 220, PLD.AID.DivineVeil, 30); //90s CD, 30s duration
-        DefineSimpleConfig(res, Track.PassageOfArms, "PassageOfArms", "Arms", 470, PLD.AID.PassageOfArms, 3); //120s CD, 18s max duration
         DefineSimpleConfig(res, Track.HallowedGround, "HallowedGround", "Inv", 400, PLD.AID.HallowedGround, 10); //420s CD, 10s duration
 
         return res;
@@ -44,7 +43,6 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Cover), PLD.AID.Cover, primaryTarget ?? Player); //Cover execution
         ExecuteSimple(strategy.Option(Track.Bulwark), PLD.AID.Bulwark, Player); //Bulwark execution
         ExecuteSimple(strategy.Option(Track.DivineVeil), PLD.AID.DivineVeil, Player); //DivineVeil execution
-        ExecuteSimple(strategy.Option(Track.PassageOfArms), PLD.AID.PassageOfArms, Player); //PassageOfArms execution
         ExecuteSimple(strategy.Option(Track.HallowedGround), PLD.AID.HallowedGround, Player); //HallowedGround execution
 
         var shel = strategy.Option(Track.Sheltron);

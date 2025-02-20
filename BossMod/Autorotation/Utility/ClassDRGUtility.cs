@@ -12,8 +12,8 @@ public sealed class ClassDRGUtility(RotationModuleManager manager, Actor player)
         var res = new RotationModuleDefinition("Utility: DRG", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.DRG), 100);
         DefineShared(res, IDLimitBreak3);
 
-        res.Define(Track.WingedGlide).As<DashStrategy>("Winged Glide", "Dash", 20)
-            .AddOption(DashStrategy.None, "Automatic", "No use.")
+        res.Define(Track.WingedGlide).As<DashStrategy>("Winged Glide", "W.Glide", 20)
+            .AddOption(DashStrategy.None, "None", "No use.")
             .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 60, 0, ActionTargets.Hostile, 45)
             .AddOption(DashStrategy.GapCloseHold1, "GapCloseHold1", "Use as gapcloser if outside melee range; conserves 1 charge for manual usage", 60, 0, ActionTargets.Hostile, 84)
             .AddAssociatedActions(DRG.AID.WingedGlide);
@@ -27,7 +27,7 @@ public sealed class ClassDRGUtility(RotationModuleManager manager, Actor player)
 
         var dash = strategy.Option(Track.WingedGlide);
         var dashStrategy = strategy.Option(Track.WingedGlide).As<DashStrategy>();
-        var dashTarget = ResolveTargetOverride(dash.Value); //Smart-Targeting: Target needs to be set in autorotation or CDPlanner to prevent unexpected behavior
+        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
         var distance = Player.DistanceToHitbox(dashTarget);
         var cd = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(DRG.AID.WingedGlide)!.MainCooldownGroup].Remaining;
         var shouldDash = dashStrategy switch

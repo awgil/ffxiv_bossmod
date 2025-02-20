@@ -29,14 +29,16 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             BitMask.Build((int)Class.DRK), //Job
             100); //Level supported
 
-        res.DefineShared();
+        res.DefineAOE().AddAssociatedActions(AID.HardSlash, AID.SyphonStrike, AID.Souleater, AID.Unleash, AID.StalwartSoul);
+        res.DefineHold();
         res.Define(Track.Blood).As<BloodStrategy>("Blood", "Blood", uiPriority: 200)
             .AddOption(BloodStrategy.Automatic, "Automatic", "Automatically use Blood-related abilities optimally")
             .AddOption(BloodStrategy.OnlyBloodspiller, "Only Bloodspiller", "Uses Bloodspiller optimally as Blood spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 62)
             .AddOption(BloodStrategy.OnlyQuietus, "Only Quietus", "Uses Quietus optimally as Blood spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 64)
             .AddOption(BloodStrategy.ForceBloodspiller, "Force Bloodspiller", "Force use Bloodspiller ASAP", 0, 0, ActionTargets.Hostile, 62)
             .AddOption(BloodStrategy.ForceQuietus, "Force Quietus", "Force use Quietus ASAP", 0, 0, ActionTargets.Hostile, 64)
-            .AddOption(BloodStrategy.Conserve, "Conserve", "Conserves all Blood-related abilities as much as possible");
+            .AddOption(BloodStrategy.Conserve, "Conserve", "Conserves all Blood-related abilities as much as possible")
+            .AddAssociatedActions(AID.Bloodspiller, AID.Quietus);
         res.Define(Track.MP).As<MPStrategy>("MP", "MP", uiPriority: 190)
             .AddOption(MPStrategy.Optimal, "Optimal", "Use MP actions optimally; 2 for 1 minute, 4 (or 5 if Dark Arts is active) for 2 minutes")
             .AddOption(MPStrategy.Auto3k, "Auto 3k", "Automatically decide best MP action to use; Uses when at 3000+ MP", 0, 0, ActionTargets.Self, 30)
@@ -60,7 +62,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddOption(CarveStrategy.ForceCarve, "Force Carve and Spit", "Force use Carve and Spit ASAP", 60, 0, ActionTargets.Hostile, 60)
             .AddOption(CarveStrategy.ForceDrain, "Force Abyssal Drain", "Force use Abyssal Drain ASAP", 60, 0, ActionTargets.Hostile, 56)
             .AddOption(CarveStrategy.Delay, "Delay", "Delay the use of Carve and Spit for strategic reasons", 0, 0, ActionTargets.None, 56)
-            .AddAssociatedActions(AID.CarveAndSpit);
+            .AddAssociatedActions(AID.CarveAndSpit, AID.AbyssalDrain);
         res.Define(Track.DeliriumCombo).As<DeliriumComboStrategy>("Delirium Combo", "Scarlet", uiPriority: 180)
             .AddOption(DeliriumComboStrategy.Automatic, "Auto", "Automatically decide when to use Delirium Combo", 0, 0, ActionTargets.Hostile, 96)
             .AddOption(DeliriumComboStrategy.ScarletDelirum, "Scarlet Delirium", "Force use Scarlet Delirium ASAP", 0, 0, ActionTargets.Hostile, 96)
@@ -81,7 +83,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddOption(UnmendStrategy.Allow, "Allow", "Allow use of Unmend when out of melee range", supportedTargets: ActionTargets.Hostile)
             .AddOption(UnmendStrategy.Forbid, "Forbid", "Prohibit use of Unmend")
             .AddAssociatedActions(AID.Unmend);
-        res.DefineOGCD(Track.Delirium, AID.Delirium, "Delirium", "Deli.", uiPriority: 170, 60, 15, ActionTargets.Self, 35);
+        res.DefineOGCD(Track.Delirium, AID.Delirium, "Delirium", "Deli.", uiPriority: 170, 60, 15, ActionTargets.Self, 35).AddAssociatedActions(AID.BloodWeapon, AID.Delirium);
         res.DefineOGCD(Track.SaltedEarth, AID.SaltedEarth, "Salted Earth", "S.Earth", uiPriority: 140, 90, 15, ActionTargets.Self, 52);
         res.DefineOGCD(Track.SaltAndDarkness, AID.SaltAndDarkness, "Salt & Darkness", "Salt & D.", uiPriority: 135, 20, 0, ActionTargets.Self, 86);
         res.DefineOGCD(Track.LivingShadow, AID.LivingShadow, "Living Shadow", "L.Shadow", uiPriority: 175, 120, 20, ActionTargets.Self, 80);
@@ -233,8 +235,12 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         #region Full Rotation Execution
 
         #region Standard Rotations
-        if (strategy.Automatic())
+        if (strategy.AutoFinish())
             QueueGCD(BestRotation(),
+                TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
+                GCDPriority.Standard);
+        if (strategy.AutoBreak())
+            QueueGCD(ShouldUseAOE ? AOE() : ST(),
                 TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
                 GCDPriority.Standard);
         if (strategy.ForceST())
@@ -385,12 +391,12 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
 
         #region AI
         var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null; //Set goal for single target
-        var goalAOE = primaryTarget?.Actor != null ? Hints.GoalAOECircle(5) : null; //Set goal for AOE
+        var goalAOE = Hints.GoalAOECircle(3); //Set goal for AOE
         var goal = strategy.Option(SharedTrack.AOE).As<AOEStrategy>() switch //Set goal based on AOE strategy
         {
             AOEStrategy.ForceST => goalST, //if forced single target
             AOEStrategy.ForceAOE => goalAOE, //if forced AOE
-            _ => goalST != null && goalAOE != null ? Hints.GoalCombined(goalST, goalAOE, 2) : goalAOE //otherwise, combine goals
+            _ => goalST != null ? Hints.GoalCombined(goalST, goalAOE, 3) : goalAOE //otherwise, combine goals
         };
         if (goal != null) //if goal is set
             Hints.GoalZones.Add(goal); //add goal to zones
