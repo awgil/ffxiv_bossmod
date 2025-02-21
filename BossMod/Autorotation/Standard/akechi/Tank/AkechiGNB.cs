@@ -10,7 +10,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
 {
     #region Enums: Abilities / Strategies
     public enum Track { AOE, Cooldowns, Cartridges, Potion, LightningShot, NoMercy, SonicBreak, GnashingFang, Reign, Bloodfest, DoubleDown, Zone, BowShock }
-    public enum AOEStrategy { AutoFinishCombo, AutoBreakCombo, ForceSTwithO, ForceSTwithoutO, ForceAOEwithO, ForceAOEwithoutO, GenerateDowntime }
+    public enum AOEStrategy { AutoFinish, AutoBreak, ForceSTwithO, ForceSTwithoutO, ForceAOEwithO, ForceAOEwithoutO, GenerateDowntime }
     public enum CooldownStrategy { Allow, Forbid }
     public enum CartridgeStrategy { Automatic, OnlyBS, OnlyFC, ForceBS, ForceBS1, ForceBS2, ForceBS3, ForceFC, ForceFC1, ForceFC2, ForceFC3, Conserve }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
@@ -35,8 +35,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             100); //Level supported
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 200)
-            .AddOption(AOEStrategy.AutoFinishCombo, "Auto (Finish Combo)", "Auto-selects best rotation dependant on targets; Finishes combo first", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.AutoBreakCombo, "Auto (Break Combo)", "Auto-selects best rotation dependant on targets; Breaks combo if needed", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.AutoFinish, "Auto (Finish combo)", "Automatically execute optimal rotation based on targets; finishes combo if possible", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.AutoBreak, "Auto (Break combo)", "Automatically execute optimal rotation based on targets; breaks combo if necessary", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceSTwithO, "Force ST with Overcap", "Force single-target rotation with overcap protection", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceSTwithoutO, "Force ST without Overcap", "Force ST rotation without overcap protection", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceAOEwithO, "Force AOE with Overcap", "Force AOE rotation with overcap protection")
@@ -350,7 +350,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region Standard Execution
-        if (AOEStrategy == AOEStrategy.AutoBreakCombo) //if Break Combo option is selected
+        if (AOEStrategy == AOEStrategy.AutoBreak) //if Break Combo option is selected
         {
             if (ShouldUseAOE) //if AOE rotation should be used
                 QueueGCD(AOEwithoutOvercap(), //queue the next AOE combo action
@@ -362,7 +362,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                     ?? primaryTarget?.Actor, //if none, choose primary target
                     GCDPriority.Standard); //with priority for 123/12 combo actions
         }
-        if (AOEStrategy == AOEStrategy.AutoFinishCombo) //if Finish Combo option is selected
+        if (AOEStrategy == AOEStrategy.AutoFinish) //if Finish Combo option is selected
         {
             QueueGCD(BestRotation(), //queue the next single-target combo action only if combo is finished
                 TargetChoice(AOE) //Get target choice

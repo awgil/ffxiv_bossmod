@@ -10,7 +10,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 {
     #region Enums: Abilities / Strategies
     public enum Track { AOE, Hold, Dives, Potion, LifeSurge, Jump, DragonfireDive, Geirskogul, Stardiver, PiercingTalon, TrueNorth, LanceCharge, BattleLitany, MirageDive, Nastrond, WyrmwindThrust, RiseOfTheDragon, Starcross }
-    public enum AOEStrategy { AutoTargetHitPrimary, AutoTargetHitMost, ForceST, Force123ST, ForceBuffsST, ForceAOE }
+    public enum AOEStrategy { AutoFinish, AutoBreak, ForceST, Force123ST, ForceBuffsST, ForceAOE }
     public enum HoldStrategy { Allow, Forbid }
     public enum DivesStrategy { AllowMaxMelee, AllowCloseMelee, Allow, Forbid }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
@@ -36,8 +36,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             100); //Max Level supported
 
         res.Define(Track.AOE).As<AOEStrategy>("Combo Option", "AOE", uiPriority: 200)
-            .AddOption(AOEStrategy.AutoTargetHitPrimary, "AutoTargetHitPrimary", "Use AOE actions if profitable, select best target that ensures primary target is hit", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.AutoTargetHitMost, "AutoTargetHitMost", "Use AOE actions if profitable, select a target that ensures maximal number of targets are hit", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.AutoFinish, "Auto (Finish combo)", "Automatically execute optimal rotation based on targets; finishes combo if possible", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.AutoBreak, "Auto (Break combo)", "Automatically execute optimal rotation based on targets; breaks combo if necessary", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceST, "Force ST", "Force Single-Target rotation", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.Force123ST, "Only 1-2-3 ST", "Force only ST 1-2-3 rotation (No Buff or DoT)", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceBuffsST, "Only 1-4-5 ST", "Force only ST 1-4-5 rotation (Buff & DoT only)", supportedTargets: ActionTargets.Hostile)
@@ -188,9 +188,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     private Enemy? BestAOETargets;
     private Enemy? BestSpearTargets;
     private Enemy? BestDiveTargets;
+    private Enemy? BestDOTTargets;
     private Enemy? BestAOETarget;
     private Enemy? BestSpearTarget;
     private Enemy? BestDiveTarget;
+    private Enemy? BestDOTTarget;
 
     #endregion
 
@@ -224,12 +226,15 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         canWT = Unlocked(AID.WyrmwindThrust) && ActionReady(AID.WyrmwindThrust) && focusCount == 2;
         canROTD = Unlocked(AID.RiseOfTheDragon) && hasDF;
         canSC = Unlocked(AID.Starcross) && hasSC;
+
         (BestAOETargets, NumAOETargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);
         (BestSpearTargets, NumSpearTargets) = GetBestTarget(primaryTarget, 15, Is15yRectTarget);
         (BestDiveTargets, NumDiveTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
-        BestAOETarget = Unlocked(AID.DoomSpike) && NumAOETargets > 2 ? BestAOETargets : primaryTarget;
-        BestSpearTarget = Unlocked(AID.Geirskogul) && NumSpearTargets > 1 ? BestSpearTargets : primaryTarget;
-        BestDiveTarget = Unlocked(AID.Stardiver) && NumDiveTargets > 1 ? BestDiveTargets : primaryTarget;
+        (BestDOTTargets, chaosLeft) = GetDOTTarget(primaryTarget, ChaosRemaining, 2);
+        BestAOETarget = (Unlocked(AID.DoomSpike) && NumAOETargets > 2) ? BestAOETargets : BestDOTTarget;
+        BestSpearTarget = (Unlocked(AID.Geirskogul) && NumSpearTargets > 1) ? BestSpearTargets : primaryTarget;
+        BestDiveTarget = (Unlocked(AID.Stardiver) && NumDiveTargets > 1) ? BestDiveTargets : primaryTarget;
+        BestDOTTarget = (Unlocked(AID.ChaosThrust) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2) && ComboLastMove is AID.Disembowel or AID.SpiralBlow ? BestDOTTargets : primaryTarget;
 
         #region Strategy Definitions
         var hold = strategy.Option(Track.Hold).As<HoldStrategy>() == HoldStrategy.Forbid;
@@ -288,17 +293,22 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         #region Standard Rotations
         //Force specific actions based on the AOE strategy selected
         if (AOEStrategy == AOEStrategy.ForceST)  //if forced single target
-            QueueGCD(NextFullST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the next single target action
+            QueueGCD(FullST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the next single target action
         if (AOEStrategy == AOEStrategy.Force123ST)  //if forced 123 combo
             QueueGCD(UseOnly123ST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the 123 combo action
         if (AOEStrategy == AOEStrategy.ForceBuffsST)  //if forced buffs combo
-            QueueGCD(UseOnly145ST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the buffed 145 combo action
+            QueueGCD(UseOnly145ST(), TargetChoice(AOE) ?? BestDOTTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the buffed 145 combo action
         if (AOEStrategy == AOEStrategy.ForceAOE)  //if forced AOE action
-            QueueGCD(NextFullAOE(), TargetChoice(AOE) ?? (NumAOETargets > 1 ? BestAOETargets?.Actor : primaryTarget?.Actor), GCDPriority.ForcedGCD);  //Queue the next AOE action
-        //Combo Action evecution
-        QueueGCD(NumAOETargets > 2 ? NextFullAOE() : NextFullST(),
-            BestAOETarget?.Actor,
-            GCDPriority.Combo123);
+            QueueGCD(FullAOE(), TargetChoice(AOE) ?? (NumAOETargets > 1 ? BestAOETargets?.Actor : primaryTarget?.Actor), GCDPriority.ForcedGCD);  //Queue the next AOE action
+
+        if (AOEStrategy is AOEStrategy.AutoBreak)
+            QueueGCD(NumAOETargets > 2 ? FullAOE() : Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 ? UseOnly145ST() : FullST(),
+                BestAOETarget?.Actor,
+                GCDPriority.Combo123);
+        if (AOEStrategy is AOEStrategy.AutoFinish)
+            QueueGCD(FullRotation(),
+                BestAOETarget?.Actor,
+                GCDPriority.Combo123);
         #endregion
 
         #region Cooldowns
@@ -411,10 +421,28 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 
     #region Rotation Helpers
 
+    private AID FullRotation() => ComboLastMove switch
+    {
+        AID.Drakesbane or AID.CoerthanTorment => NumAOETargets > 2 ? FullAOE()
+             : Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 ? UseOnly145ST()
+             : FullST(),
+
+        AID.SonicThrust => FullAOE(),
+        AID.DoomSpike or AID.DraconianFury => FullAOE(),
+        AID.WheelingThrust or AID.FangAndClaw => FullST(),
+        AID.VorpalThrust or AID.LanceBarrage or AID.Disembowel or AID.SpiralBlow => FullST(),
+        AID.TrueThrust or AID.RaidenThrust => FullST(),
+        _ => NumAOETargets > 2 ? FullAOE()
+             : Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 ? UseOnly145ST()
+             : FullST()
+    };
+
     #region Single-Target Helpers
+    private static SID[] GetDotStatus() => [SID.ChaosThrust, SID.ChaoticSpring];
+    private float ChaosRemaining(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 6);
 
     //Determines the next skill in the single-target (ST) combo chain based on the last used action.
-    private AID NextFullST() => ComboLastMove switch
+    private AID FullST() => ComboLastMove switch
     {
         //Starting combo with TrueThrust or RaidenThrust
         AID.TrueThrust or AID.RaidenThrust =>
@@ -520,7 +548,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region AOE Helpers
 
     //Determines the next action in the AOE combo based on the last action used.
-    private AID NextFullAOE() => ComboLastMove switch
+    private AID FullAOE() => ComboLastMove switch
     {
         //Start AOE combo with DoomSpike
         AID.DoomSpike =>
