@@ -234,7 +234,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         BestAOETarget = (Unlocked(AID.DoomSpike) && NumAOETargets > 2) ? BestAOETargets : BestDOTTarget;
         BestSpearTarget = (Unlocked(AID.Geirskogul) && NumSpearTargets > 1) ? BestSpearTargets : primaryTarget;
         BestDiveTarget = (Unlocked(AID.Stardiver) && NumDiveTargets > 1) ? BestDiveTargets : primaryTarget;
-        BestDOTTarget = (Unlocked(AID.ChaosThrust) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2) && ComboLastMove is AID.Disembowel or AID.SpiralBlow ? BestDOTTargets : primaryTarget;
+        BestDOTTarget = (Unlocked(AID.ChaosThrust) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 && ComboLastMove is AID.Disembowel or AID.SpiralBlow) ? BestDOTTargets : primaryTarget;
 
         #region Strategy Definitions
         var hold = strategy.Option(Track.Hold).As<HoldStrategy>() == HoldStrategy.Forbid;
@@ -300,7 +300,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             QueueGCD(UseOnly145ST(), TargetChoice(AOE) ?? BestDOTTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the buffed 145 combo action
         if (AOEStrategy == AOEStrategy.ForceAOE)  //if forced AOE action
             QueueGCD(FullAOE(), TargetChoice(AOE) ?? (NumAOETargets > 1 ? BestAOETargets?.Actor : primaryTarget?.Actor), GCDPriority.ForcedGCD);  //Queue the next AOE action
-
         if (AOEStrategy is AOEStrategy.AutoBreak)
             QueueGCD(NumAOETargets > 2 ? FullAOE() : Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 ? UseOnly145ST() : FullST(),
                 BestAOETarget?.Actor,
@@ -319,76 +318,66 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                 QueueOGCD(AID.LanceCharge, Player,
                     lcStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
                     ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
-
             if (ShouldUseBattleLitany(blStrat, primaryTarget?.Actor))
                 QueueOGCD(AID.BattleLitany, Player,
                     blStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
                     ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
-
             if (ShouldUseLifeSurge(lsStrat, primaryTarget?.Actor))
                 QueueOGCD(AID.LifeSurge, Player,
                     lsStrat is SurgeStrategy.Force or SurgeStrategy.ForceWeave or SurgeStrategy.ForceNextOpti or SurgeStrategy.ForceNextOptiWeave
                     ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
-
-            if (divesGood && ShouldUseJump(jumpStrat, primaryTarget?.Actor))
-                QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump,
-                    TargetChoice(jump) ?? primaryTarget?.Actor,
-                    jumpStrat is JumpStrategy.Force or JumpStrategy.ForceEX or JumpStrategy.ForceEX2 or JumpStrategy.ForceWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.Jump);
-
-            if (divesGood && ShouldUseDragonfireDive(ddStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.DragonfireDive,
-                    TargetChoice(dd) ?? BestDiveTarget?.Actor,
-                    ddStrat is DragonfireStrategy.Force or DragonfireStrategy.ForceWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.DragonfireDive);
-
+            if (divesGood)
+            {
+                if (ShouldUseJump(jumpStrat, primaryTarget?.Actor))
+                    QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump,
+                        TargetChoice(jump) ?? primaryTarget?.Actor,
+                        jumpStrat is JumpStrategy.Force or JumpStrategy.ForceEX or JumpStrategy.ForceEX2 or JumpStrategy.ForceWeave
+                        ? OGCDPriority.ForcedOGCD : OGCDPriority.Jump);
+                if (ShouldUseDragonfireDive(ddStrat, primaryTarget?.Actor))
+                    QueueOGCD(AID.DragonfireDive,
+                        TargetChoice(dd) ?? BestDiveTarget?.Actor,
+                        ddStrat is DragonfireStrategy.Force or DragonfireStrategy.ForceWeave
+                        ? OGCDPriority.ForcedOGCD : OGCDPriority.DragonfireDive);
+                if (ShouldUseStardiver(sdStrat, primaryTarget?.Actor))
+                    QueueOGCD(AID.Stardiver,
+                        TargetChoice(sd) ?? BestDiveTarget?.Actor,
+                        sdStrat is StardiverStrategy.Force or StardiverStrategy.ForceEX or StardiverStrategy.ForceWeave
+                        ? OGCDPriority.ForcedOGCD : OGCDPriority.Stardiver);
+            }
             if (ShouldUseGeirskogul(geirskogulStrat, primaryTarget?.Actor))
                 QueueOGCD(AID.Geirskogul,
                     TargetChoice(geirskogul) ?? BestSpearTarget?.Actor,
                     geirskogulStrat is GeirskogulStrategy.Force or GeirskogulStrategy.ForceEX or GeirskogulStrategy.ForceWeave
                     ? OGCDPriority.ForcedOGCD : OGCDPriority.Geirskogul);
-
             if (ShouldUseMirageDive(mdStrat, primaryTarget?.Actor))
                 QueueOGCD(AID.MirageDive,
                     TargetChoice(md) ?? primaryTarget?.Actor,
                     mdStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
                     ? OGCDPriority.ForcedOGCD : OGCDPriority.MirageDive);
-
             if (ShouldUseNastrond(nastrondStrat, primaryTarget?.Actor))
                 QueueOGCD(AID.Nastrond,
                     TargetChoice(nastrond) ?? BestSpearTarget?.Actor,
                     nastrondStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
                     ? OGCDPriority.ForcedOGCD : OGCDPriority.Nastrond);
-
-            if (divesGood && ShouldUseStardiver(sdStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.Stardiver,
-                    TargetChoice(sd) ?? BestDiveTarget?.Actor,
-                    sdStrat is StardiverStrategy.Force or StardiverStrategy.ForceEX or StardiverStrategy.ForceWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.Stardiver);
-
             if (ShouldUseWyrmwindThrust(wtStrat, primaryTarget?.Actor))
                 QueueOGCD(AID.WyrmwindThrust,
                     TargetChoice(wt) ?? BestSpearTarget?.Actor,
                     wtStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
                     ? OGCDPriority.ForcedOGCD : PlayerHasEffect(SID.LanceCharge)
                     ? OGCDPriority.WyrmwindThrustOpti : OGCDPriority.WyrmwindThrust);
-
             if (ShouldUseRiseOfTheDragon(rotdStrat, primaryTarget?.Actor))
                 QueueOGCD(AID.RiseOfTheDragon,
                     TargetChoice(rotd) ?? BestDiveTarget?.Actor,
                     rotdStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
                     ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
-
             if (ShouldUseStarcross(scStrat, primaryTarget?.Actor))
                 QueueOGCD(AID.Starcross,
                     TargetChoice(sc) ?? BestDiveTarget?.Actor,
                     scStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
                     ? OGCDPriority.ForcedOGCD : OGCDPriority.Starcross);
-
             if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
                 Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr,
                     Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.ForcedOGCD, 0, GCD - 0.9f);
-
             if (ShouldUseTrueNorth(strategy.Option(Track.TrueNorth).As<TrueNorthStrategy>(), primaryTarget?.Actor))
                 QueueOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth);
         }
