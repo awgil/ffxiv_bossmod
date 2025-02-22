@@ -553,15 +553,15 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseTrueNorth(TrueNorthStrategy strategy, Actor? target) => strategy switch
     {
-        TrueNorthStrategy.Automatic => target != null && Player.InCombat && !PlayerHasEffect(SID.TrueNorth) && GCD < 1.25f &&
+        TrueNorthStrategy.Automatic => target != null && Player.InCombat && CanTrueNorth && GCD < 1.25f &&
             (!IsOnRear(target) && ComboLastMove is AID.Disembowel or AID.SpiralBlow or AID.ChaosThrust or AID.ChaoticSpring ||
             !IsOnFlank(target) && ComboLastMove is AID.HeavensThrust or AID.FullThrust),
-        TrueNorthStrategy.ASAP => target != null && Player.InCombat && !PlayerHasEffect(SID.TrueNorth) &&
+        TrueNorthStrategy.ASAP => target != null && Player.InCombat && CanTrueNorth &&
             (!IsOnRear(target) && ComboLastMove is AID.Disembowel or AID.SpiralBlow or AID.ChaosThrust or AID.ChaoticSpring ||
             !IsOnFlank(target) && ComboLastMove is AID.HeavensThrust or AID.FullThrust),
-        TrueNorthStrategy.Flank => target != null && Player.InCombat && !PlayerHasEffect(SID.TrueNorth) && GCD < 1.25f &&
+        TrueNorthStrategy.Flank => target != null && Player.InCombat && CanTrueNorth && GCD < 1.25f &&
             !IsOnFlank(target) && ComboLastMove is AID.HeavensThrust or AID.FullThrust,
-        TrueNorthStrategy.Rear => target != null && Player.InCombat && !PlayerHasEffect(SID.TrueNorth) && GCD < 1.25f &&
+        TrueNorthStrategy.Rear => target != null && Player.InCombat && CanTrueNorth && GCD < 1.25f &&
             !IsOnRear(target) && ComboLastMove is AID.Disembowel or AID.SpiralBlow or AID.ChaosThrust or AID.ChaoticSpring,
         TrueNorthStrategy.Force => !PlayerHasEffect(SID.TrueNorth),
         TrueNorthStrategy.Delay => false,
