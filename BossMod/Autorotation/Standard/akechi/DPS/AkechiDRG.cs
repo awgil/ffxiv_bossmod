@@ -121,7 +121,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Priorities
-
     public enum GCDPriority //Priorities for Global Cooldowns (GCDs)
 
     {
@@ -130,7 +129,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         NormalGCD = 500,        //Standard priority for normal GCD actions
         ForcedGCD = 900,        //High priority for forced GCD actions
     }
-
     public enum OGCDPriority //Priorities for Off Global Cooldowns (oGCDs)
 
     {
@@ -151,7 +149,13 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         Buffs = 800,               //Priority for buffs
         ForcedOGCD = 900,          //High priority for forced oGCD actions
     }
+    private OGCDPriority OGCDPrio(OGCDStrategy strat, OGCDPriority defaultPrio)
+    {
+        if (strat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave)
+            return OGCDPriority.ForcedOGCD;
 
+        return defaultPrio;
+    }
     #endregion
 
     #region Module Variables
@@ -193,7 +197,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     private Enemy? BestSpearTarget;
     private Enemy? BestDiveTarget;
     private Enemy? BestDOTTarget;
-
     #endregion
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
@@ -226,7 +229,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         canWT = Unlocked(AID.WyrmwindThrust) && ActionReady(AID.WyrmwindThrust) && focusCount == 2;
         canROTD = Unlocked(AID.RiseOfTheDragon) && hasDF;
         canSC = Unlocked(AID.Starcross) && hasSC;
-
         (BestAOETargets, NumAOETargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);
         (BestSpearTargets, NumSpearTargets) = GetBestTarget(primaryTarget, 15, Is15yRectTarget);
         (BestDiveTargets, NumDiveTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
@@ -277,9 +279,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         //Dive strategy
         var diveStrategy = dive switch
         {
-            DivesStrategy.AllowMaxMelee => In3y(primaryTarget?.Actor), //Only allow max melee if target is within 3 yalms
-            DivesStrategy.AllowCloseMelee => In0y(primaryTarget?.Actor), //Only allow close melee if target is within 1 yalm
-            DivesStrategy.Allow => In20y(primaryTarget?.Actor), //Always allow dives
+            DivesStrategy.AllowMaxMelee => In3y(BestDiveTarget?.Actor), //Only allow max melee if target is within 3 yalms
+            DivesStrategy.AllowCloseMelee => In0y(BestDiveTarget?.Actor), //Only allow close melee if target is within 1 yalm
+            DivesStrategy.Allow => In20y(BestDiveTarget?.Actor), //Always allow dives
             DivesStrategy.Forbid => false, //Never allow dives
             _ => false,
         };
@@ -291,41 +293,23 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region Standard Rotations
-        //Force specific actions based on the AOE strategy selected
-        if (AOEStrategy == AOEStrategy.ForceST)  //if forced single target
-            QueueGCD(FullST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the next single target action
-        if (AOEStrategy == AOEStrategy.Force123ST)  //if forced 123 combo
-            QueueGCD(UseOnly123ST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the 123 combo action
-        if (AOEStrategy == AOEStrategy.ForceBuffsST)  //if forced buffs combo
-            QueueGCD(UseOnly145ST(), TargetChoice(AOE) ?? BestDOTTarget?.Actor, GCDPriority.ForcedGCD);  //Queue the buffed 145 combo action
-        if (AOEStrategy == AOEStrategy.ForceAOE)  //if forced AOE action
-            QueueGCD(FullAOE(), TargetChoice(AOE) ?? (NumAOETargets > 1 ? BestAOETargets?.Actor : primaryTarget?.Actor), GCDPriority.ForcedGCD);  //Queue the next AOE action
-        if (AOEStrategy is AOEStrategy.AutoBreak)
-            QueueGCD(NumAOETargets > 2 ? FullAOE() : Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 ? UseOnly145ST() : FullST(),
-                BestAOETarget?.Actor,
-                GCDPriority.Combo123);
         if (AOEStrategy is AOEStrategy.AutoFinish)
-            QueueGCD(FullRotation(),
-                BestAOETarget?.Actor,
-                GCDPriority.Combo123);
+            QueueGCD(FullRotation(), BestAOETarget?.Actor, GCDPriority.Combo123);
+        if (AOEStrategy is AOEStrategy.AutoBreak)
+            QueueGCD(NumAOETargets > 2 ? FullAOE() : Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 ? STBuffs() : FullST(), BestAOETarget?.Actor, GCDPriority.Combo123);
+        if (AOEStrategy == AOEStrategy.ForceST)
+            QueueGCD(FullST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);
+        if (AOEStrategy == AOEStrategy.Force123ST)
+            QueueGCD(STNormal(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);
+        if (AOEStrategy == AOEStrategy.ForceBuffsST)
+            QueueGCD(STBuffs(), TargetChoice(AOE) ?? BestDOTTarget?.Actor, GCDPriority.ForcedGCD);
+        if (AOEStrategy == AOEStrategy.ForceAOE)
+            QueueGCD(FullAOE(), TargetChoice(AOE) ?? (NumAOETargets > 1 ? BestAOETargets?.Actor : primaryTarget?.Actor), GCDPriority.ForcedGCD);
         #endregion
 
         #region Cooldowns
-
         if (!hold)
         {
-            if (ShouldUseLanceCharge(lcStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.LanceCharge, Player,
-                    lcStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
-            if (ShouldUseBattleLitany(blStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.BattleLitany, Player,
-                    blStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
-            if (ShouldUseLifeSurge(lsStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.LifeSurge, Player,
-                    lsStrat is SurgeStrategy.Force or SurgeStrategy.ForceWeave or SurgeStrategy.ForceNextOpti or SurgeStrategy.ForceNextOptiWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
             if (divesGood)
             {
                 if (ShouldUseJump(jumpStrat, primaryTarget?.Actor))
@@ -344,67 +328,48 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                         sdStrat is StardiverStrategy.Force or StardiverStrategy.ForceEX or StardiverStrategy.ForceWeave
                         ? OGCDPriority.ForcedOGCD : OGCDPriority.Stardiver);
             }
+            if (ShouldUseLanceCharge(lcStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.LanceCharge, Player, OGCDPrio(lcStrat, OGCDPriority.Buffs));
+            if (ShouldUseBattleLitany(blStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.BattleLitany, Player, OGCDPrio(blStrat, OGCDPriority.Buffs));
+            if (ShouldUseLifeSurge(lsStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.LifeSurge, Player, lsStrat is SurgeStrategy.Force or SurgeStrategy.ForceWeave or SurgeStrategy.ForceNextOpti or SurgeStrategy.ForceNextOptiWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
             if (ShouldUseGeirskogul(geirskogulStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.Geirskogul,
-                    TargetChoice(geirskogul) ?? BestSpearTarget?.Actor,
-                    geirskogulStrat is GeirskogulStrategy.Force or GeirskogulStrategy.ForceEX or GeirskogulStrategy.ForceWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.Geirskogul);
+                QueueOGCD(AID.Geirskogul, TargetChoice(geirskogul) ?? BestSpearTarget?.Actor, geirskogulStrat is GeirskogulStrategy.Force or GeirskogulStrategy.ForceEX or GeirskogulStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Geirskogul);
             if (ShouldUseMirageDive(mdStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.MirageDive,
-                    TargetChoice(md) ?? primaryTarget?.Actor,
-                    mdStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.MirageDive);
+                QueueOGCD(AID.MirageDive, TargetChoice(md) ?? primaryTarget?.Actor, OGCDPrio(mdStrat, OGCDPriority.MirageDive));
             if (ShouldUseNastrond(nastrondStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.Nastrond,
-                    TargetChoice(nastrond) ?? BestSpearTarget?.Actor,
-                    nastrondStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.Nastrond);
+                QueueOGCD(AID.Nastrond, TargetChoice(nastrond) ?? BestSpearTarget?.Actor, OGCDPrio(nastrondStrat, OGCDPriority.Nastrond));
             if (ShouldUseWyrmwindThrust(wtStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.WyrmwindThrust,
-                    TargetChoice(wt) ?? BestSpearTarget?.Actor,
-                    wtStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                    ? OGCDPriority.ForcedOGCD : PlayerHasEffect(SID.LanceCharge)
-                    ? OGCDPriority.WyrmwindThrustOpti : OGCDPriority.WyrmwindThrust);
+                QueueOGCD(AID.WyrmwindThrust, TargetChoice(wt) ?? BestSpearTarget?.Actor, wtStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.ForcedOGCD : PlayerHasEffect(SID.LanceCharge) ? OGCDPriority.WyrmwindThrustOpti : OGCDPriority.WyrmwindThrust);
             if (ShouldUseRiseOfTheDragon(rotdStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.RiseOfTheDragon,
-                    TargetChoice(rotd) ?? BestDiveTarget?.Actor,
-                    rotdStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
+                QueueOGCD(AID.RiseOfTheDragon, TargetChoice(rotd) ?? BestDiveTarget?.Actor, OGCDPrio(rotdStrat, OGCDPriority.RiseOfTheDragon));
             if (ShouldUseStarcross(scStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.Starcross,
-                    TargetChoice(sc) ?? BestDiveTarget?.Actor,
-                    scStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.Starcross);
+                QueueOGCD(AID.Starcross, TargetChoice(sc) ?? BestDiveTarget?.Actor, OGCDPrio(scStrat, OGCDPriority.Starcross));
             if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
-                Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr,
-                    Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.ForcedOGCD, 0, GCD - 0.9f);
+                Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.ForcedOGCD, 0, GCD - 0.9f);
             if (ShouldUseTrueNorth(strategy.Option(Track.TrueNorth).As<TrueNorthStrategy>(), primaryTarget?.Actor))
                 QueueOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth);
         }
-
         if (ShouldUsePiercingTalon(primaryTarget?.Actor, ptStrat))
-            QueueGCD(AID.PiercingTalon,
-                TargetChoice(pt) ?? primaryTarget?.Actor,
-                ptStrat is PiercingTalonStrategy.Force or PiercingTalonStrategy.ForceEX
-                ? GCDPriority.ForcedGCD : GCDPriority.NormalGCD);
+            QueueGCD(AID.PiercingTalon, TargetChoice(pt) ?? primaryTarget?.Actor, ptStrat is PiercingTalonStrategy.Force or PiercingTalonStrategy.ForceEX ? GCDPriority.ForcedGCD : GCDPriority.NormalGCD);
         #endregion
 
         #endregion
 
         #region AI
-        //AI hints for positioning
-        var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null; //Set goal for single target
-        var goalAOE = primaryTarget?.Actor != null ? Hints.GoalAOECone(primaryTarget!.Actor, 10, 45.Degrees()) : null; //Set goal for AOE
-        var goal = AOEStrategy switch //Set goal based on AOE strategy
+        var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null;
+        var goalAOE = primaryTarget?.Actor != null ? Hints.GoalAOECone(primaryTarget!.Actor, 10, 45.Degrees()) : null;
+        var goal = AOEStrategy switch
         {
-            AOEStrategy.ForceST => goalST, //if forced single target
-            AOEStrategy.Force123ST => goalST, //if forced 123 combo
-            AOEStrategy.ForceBuffsST => goalST, //if forced buffs combo
-            AOEStrategy.ForceAOE => goalAOE, //if forced AOE action
-            _ => goalST != null && goalAOE != null ? Hints.GoalCombined(goalST, goalAOE, 2) : goalAOE //otherwise, combine goals
+            AOEStrategy.ForceST => goalST,
+            AOEStrategy.Force123ST => goalST,
+            AOEStrategy.ForceBuffsST => goalST,
+            AOEStrategy.ForceAOE => goalAOE,
+            _ => goalST != null && goalAOE != null ? Hints.GoalCombined(goalST, goalAOE, 2) : goalAOE
         };
-        if (goal != null) //if goal is set
-            Hints.GoalZones.Add(goal); //add goal to zones
+        if (goal != null)
+            Hints.GoalZones.Add(goal);
         #endregion
     }
 
@@ -412,147 +377,57 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 
     private AID FullRotation() => ComboLastMove switch
     {
-        AID.Drakesbane or AID.CoerthanTorment => NumAOETargets > 2 ? FullAOE()
-             : Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 ? UseOnly145ST()
-             : FullST(),
-
+        AID.Drakesbane or AID.CoerthanTorment => NumAOETargets > 2 ? FullAOE() : Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 ? STBuffs() : FullST(),
         AID.SonicThrust => FullAOE(),
         AID.DoomSpike or AID.DraconianFury => FullAOE(),
         AID.WheelingThrust or AID.FangAndClaw => FullST(),
         AID.VorpalThrust or AID.LanceBarrage or AID.Disembowel or AID.SpiralBlow => FullST(),
         AID.TrueThrust or AID.RaidenThrust => FullST(),
-        _ => NumAOETargets > 2 ? FullAOE()
-             : Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 ? UseOnly145ST()
-             : FullST()
+        _ => NumAOETargets > 2 ? FullAOE() : Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 ? STBuffs() : FullST()
     };
 
     #region Single-Target Helpers
+
+    #region DOT
     private static SID[] GetDotStatus() => [SID.ChaosThrust, SID.ChaoticSpring];
     private float ChaosRemaining(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 6);
+    #endregion
 
-    //Determines the next skill in the single-target (ST) combo chain based on the last used action.
     private AID FullST() => ComboLastMove switch
     {
-        //Starting combo with TrueThrust or RaidenThrust
-        AID.TrueThrust or AID.RaidenThrust =>
-            //if Disembowel is Unlocked and power is low or Chaotic Spring is 0, use Disembowel or SpiralBlow, else VorpalThrust or LanceBarrage
-            Unlocked(AID.Disembowel) && (powerLeft <= GCDLength * 6 || chaosLeft <= GCDLength * 4)
-            ? Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel
-            : Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : AID.VorpalThrust,
-
-        //Follow-up after Disembowel or SpiralBlow
-        AID.Disembowel or AID.SpiralBlow =>
-            Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring //Use ChaoticSpring if Unlocked
-            : Unlocked(AID.ChaosThrust) ? AID.ChaosThrust //Use ChaosThrust if Unlocked
-            : AID.TrueThrust, //Return to TrueThrust otherwise
-
-        //Follow-up after VorpalThrust or LanceBarrage
-        AID.VorpalThrust or AID.LanceBarrage =>
-            Unlocked(AID.HeavensThrust) ? AID.HeavensThrust //Use HeavensThrust if Unlocked
-            : Unlocked(AID.FullThrust) ? AID.FullThrust //Use FullThrust if Unlocked
-            : AID.TrueThrust, //Return to TrueThrust otherwise
-
-        //After FullThrust or HeavensThrust in the combo
-        AID.FullThrust or AID.HeavensThrust =>
-            Unlocked(AID.FangAndClaw) ? AID.FangAndClaw //Use FangAndClaw if Unlocked
-            : AID.TrueThrust, //Return to TrueThrust otherwise
-
-        //After ChaosThrust or ChaoticSpring in the combo
-        AID.ChaosThrust or AID.ChaoticSpring =>
-            Unlocked(AID.WheelingThrust) ? AID.WheelingThrust //Use WheelingThrust if Unlocked
-            : AID.TrueThrust, //Return to TrueThrust otherwise
-
-        //After WheelingThrust or FangAndClaw in the combo
-        AID.WheelingThrust or AID.FangAndClaw =>
-            Unlocked(AID.Drakesbane) ? AID.Drakesbane //Use Drakesbane if Unlocked
-            : AID.TrueThrust, //Return to TrueThrust otherwise
-
-        //if no combo active and Draconian Fire buff is up, use RaidenThrust
-        _ => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust //RaidenThrust if DraconianFire is active
-            : AID.TrueThrust, //No combo, start with TrueThrust
+        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) && (powerLeft <= GCDLength * 6 || chaosLeft <= GCDLength * 4) ? Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel : Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : AID.VorpalThrust,
+        AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : AID.TrueThrust,
+        AID.VorpalThrust or AID.LanceBarrage => Unlocked(AID.HeavensThrust) ? AID.HeavensThrust : Unlocked(AID.FullThrust) ? AID.FullThrust : AID.TrueThrust,
+        AID.FullThrust or AID.HeavensThrust => Unlocked(AID.FangAndClaw) ? AID.FangAndClaw : AID.TrueThrust,
+        AID.ChaosThrust or AID.ChaoticSpring => Unlocked(AID.WheelingThrust) ? AID.WheelingThrust : AID.TrueThrust,
+        AID.WheelingThrust or AID.FangAndClaw => Unlocked(AID.Drakesbane) ? AID.Drakesbane : AID.TrueThrust,
+        _ => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust,
     };
-
-    //Limits the combo sequence to just 1-2-3 ST skills, ignoring other Unlocked actions.
-    private AID UseOnly123ST() => ComboLastMove switch
+    private AID STNormal() => ComboLastMove switch
     {
-        //Start combo with TrueThrust
-        AID.TrueThrust or AID.RaidenThrust =>
-            Unlocked(AID.LanceBarrage) ? AID.LanceBarrage //LanceBarrage if Unlocked
-            : Unlocked(AID.VorpalThrust) ? AID.VorpalThrust //VorpalThrust otherwise
-            : AID.TrueThrust, //Else return to TrueThrust
-
-        //After VorpalThrust or LanceBarrage
-        AID.VorpalThrust or AID.LanceBarrage =>
-            Unlocked(AID.HeavensThrust) ? AID.HeavensThrust //HeavensThrust if Unlocked
-            : Unlocked(AID.FullThrust) ? AID.FullThrust //FullThrust to end combo
-            : AID.TrueThrust, //Else return to TrueThrust
-
-        //After FullThrust or HeavensThrust
-        AID.FullThrust or AID.HeavensThrust =>
-            Unlocked(AID.FangAndClaw) ? AID.FangAndClaw //FangAndClaw if Unlocked
-            : AID.TrueThrust, //Else return to TrueThrust
-
-        //After WheelingThrust or FangAndClaw
-        AID.WheelingThrust or AID.FangAndClaw =>
-            Unlocked(AID.Drakesbane) ? AID.Drakesbane //Drakesbane if Unlocked
-            : AID.TrueThrust, //Else return to TrueThrust
-
-        //if Draconian Fire buff is up, use RaidenThrust
-        _ => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust //RaidenThrust if DraconianFire is active
-            : AID.TrueThrust, //No combo, start with TrueThrust
+        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust,
+        AID.VorpalThrust or AID.LanceBarrage => Unlocked(AID.HeavensThrust) ? AID.HeavensThrust : Unlocked(AID.FullThrust) ? AID.FullThrust : AID.TrueThrust,
+        AID.FullThrust or AID.HeavensThrust => Unlocked(AID.FangAndClaw) ? AID.FangAndClaw : AID.TrueThrust,
+        AID.WheelingThrust or AID.FangAndClaw => Unlocked(AID.Drakesbane) ? AID.Drakesbane : AID.TrueThrust,
+        _ => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust,
     };
-
-    //Limits the combo sequence to 1-4-5 ST skills, focusing on Disembowel and Chaos/ChaoticSpring.
-    private AID UseOnly145ST() => ComboLastMove switch
+    private AID STBuffs() => ComboLastMove switch
     {
-        //Start combo with TrueThrust
-        AID.TrueThrust or AID.RaidenThrust =>
-            Unlocked(AID.Disembowel)
-            ? Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel //Disembowel/SpiralBlow if Unlocked
-            : AID.TrueThrust, //Else return to TrueThrust
-
-        //After Disembowel or SpiralBlow
-        AID.Disembowel or AID.SpiralBlow =>
-            Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring //ChaoticSpring if Unlocked
-            : Unlocked(AID.ChaosThrust) ? AID.ChaosThrust //ChaosThrust if Unlocked
-            : AID.TrueThrust, //Else return to TrueThrust
-
-        //After ChaosThrust or ChaoticSpring
-        AID.ChaosThrust or AID.ChaoticSpring =>
-            Unlocked(AID.WheelingThrust) ? AID.WheelingThrust  //WheelingThrust if Unlocked
-            : AID.TrueThrust, //Else return to TrueThrust
-
-        //After WheelingThrust or FangAndClaw
-        AID.WheelingThrust or AID.FangAndClaw =>
-            Unlocked(AID.Drakesbane) ? AID.Drakesbane //Drakesbane if Unlocked
-            : AID.TrueThrust, //Else return to TrueThrust
-
-        //if Draconian Fire buff is up, use RaidenThrust
-        _ => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust //RaidenThrust if DraconianFire is active
-            : AID.TrueThrust, //No combo, start with TrueThrust
+        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) ? (Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel) : AID.TrueThrust,
+        AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : Unlocked(AID.ChaosThrust) ? AID.ChaosThrust : AID.TrueThrust,
+        AID.ChaosThrust or AID.ChaoticSpring => Unlocked(AID.WheelingThrust) ? AID.WheelingThrust : AID.TrueThrust,
+        AID.WheelingThrust or AID.FangAndClaw => Unlocked(AID.Drakesbane) ? AID.Drakesbane : AID.TrueThrust,
+        _ => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust,
     };
-
     #endregion
 
     #region AOE Helpers
-
-    //Determines the next action in the AOE combo based on the last action used.
     private AID FullAOE() => ComboLastMove switch
     {
-        //Start AOE combo with DoomSpike
-        AID.DoomSpike =>
-            Unlocked(AID.SonicThrust) ? AID.SonicThrust : AID.DoomSpike,  //SonicThrust if Unlocked, else DoomSpike
-
-        //Continue AOE combo with SonicThrust
-        AID.SonicThrust =>
-            Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : AID.DoomSpike,  //CoerthanTorment if Unlocked, else DoomSpike
-
-        //if Draconian Fire buff is up, use DraconianFury
-        _ => PlayerHasEffect(SID.DraconianFire)
-            ? Unlocked(AID.DraconianFury) ? AID.DraconianFury : AID.DoomSpike  //DraconianFury if Unlocked, else DoomSpike
-            : AID.DoomSpike,  //No DraconianFire active, default to DoomSpike
+        AID.DoomSpike => Unlocked(AID.SonicThrust) ? AID.SonicThrust : AID.DoomSpike,
+        AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : AID.DoomSpike,
+        _ => PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike,
     };
-
     #endregion
 
     #endregion
