@@ -19,13 +19,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi SCH", //Title
-            "Standard Rotation Module", //Description
-            "Standard rotation (Akechi)|Healer", //Category
-            "Akechi", //Contributor
-            RotationModuleQuality.Ok, //Quality
-            BitMask.Build((int)Class.SCH), //Job
-            100); //Level supported
+        var res = new RotationModuleDefinition("Akechi SCH", "Standard Rotation Module", "Standard rotation (Akechi)|Healer", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.SCH), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", "AOE", uiPriority: 200)
             .AddOption(AOEStrategy.Auto, "Auto", "Automatically decide when to use ST or AOE abilities")
@@ -71,25 +65,6 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.Aetherflow);
 
         return res;
-    }
-    #endregion
-
-    #region Priorities
-    public enum GCDPriority //priorities for GCDs (higher number = higher priority)
-    {
-        None = 0,             //default
-        Standard = 300,       //standard abilities
-        DOT = 400,            //damage-over-time abilities
-        ForcedGCD = 900,      //Forced GCDs
-    }
-    public enum OGCDPriority //priorities for oGCDs (higher number = higher priority)
-    {
-        None = 0,             //default
-        EnergyDrain = 300,    //Energy Drain
-        Aetherflow = 400,     //Aetherflow
-        ChainStratagem = 500, //Chain Stratagem
-        Potion = 800,         //Potion
-        ForcedOGCD = 900,     //Forced oGCDs
     }
     #endregion
 
@@ -151,43 +126,33 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         if (AOEStrategy == AOEStrategy.Auto)
         {
             if (ShouldUseAOE)
-                QueueGCD(BestAOE, Player, GCDPriority.Standard);
-            if (In25y(TargetChoice(AOE) ?? primaryTarget?.Actor) &&
-                (!ShouldUseAOE || IsFirstGCD()))
-                QueueGCD(IsMoving ? BestRuin : BestST, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Standard);
+                QueueGCD(BestAOE, Player, GCDPriority.Low);
+            if (In25y(TargetChoice(AOE) ?? primaryTarget?.Actor) && (!ShouldUseAOE || IsFirstGCD()))
+                QueueGCD(IsMoving ? BestRuin : BestST, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
         }
         if (AOEStrategy is AOEStrategy.Ruin2)
-            QueueGCD(BestRuin, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);
+            QueueGCD(BestRuin, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Forced);
         if (AOEStrategy is AOEStrategy.Broil)
-            QueueGCD(BestBroil, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);
+            QueueGCD(BestBroil, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Forced);
         if (AOEStrategy is AOEStrategy.ArtOfWar)
-            QueueGCD(BestAOE, Player, GCDPriority.ForcedGCD);
+            QueueGCD(BestAOE, Player, GCDPriority.Forced);
         if (ShouldUseBio(primaryTarget?.Actor, BioStrategy))
-            QueueGCD(BestBio, TargetChoice(Bio) ?? BestDOTTarget?.Actor, GCDPriority.DOT);
+            QueueGCD(BestBio, TargetChoice(Bio) ?? BestDOTTarget?.Actor, GCDPriority.Average);
         #endregion
 
         #region Cooldowns
         if (PlayerHasEffect(SID.ImpactImminent, 30))
-            QueueOGCD(AID.BanefulImpaction, TargetChoice(Bio) ?? primaryTarget?.Actor, OGCDPriority.ChainStratagem);
+            QueueOGCD(AID.BanefulImpaction, TargetChoice(Bio) ?? primaryTarget?.Actor, OGCDPriority.VeryHigh);
         if (ShouldUseChainStratagem(primaryTarget?.Actor, csStrat))
-            QueueOGCD(AID.ChainStratagem,
-                TargetChoice(cs) ?? primaryTarget?.Actor,
-                csStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                ? OGCDPriority.ForcedOGCD : OGCDPriority.ChainStratagem);
+            QueueOGCD(AID.ChainStratagem, TargetChoice(cs) ?? primaryTarget?.Actor, csStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : OGCDPriority.VeryHigh);
         if (ShouldUseAetherflow(primaryTarget?.Actor, afStrat))
-            QueueOGCD(AID.Aetherflow,
-                Player,
-                afStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                ? OGCDPriority.ForcedOGCD : OGCDPriority.Aetherflow);
+            QueueOGCD(AID.Aetherflow, Player, afStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : OGCDPriority.AboveAverage);
         if (ShouldUseEnergyDrain(primaryTarget?.Actor, edStrat))
-            QueueOGCD(AID.EnergyDrain,
-                TargetChoice(ed) ?? primaryTarget?.Actor,
-                edStrat is EnergyStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.EnergyDrain);
+            QueueOGCD(AID.EnergyDrain, TargetChoice(ed) ?? primaryTarget?.Actor, edStrat is EnergyStrategy.Force ? OGCDPriority.Forced : OGCDPriority.Average);
         if (Player.HPMP.CurMP <= 9000 && CanWeaveIn && ActionReady(AID.LucidDreaming))
-            QueueOGCD(AID.LucidDreaming, Player, OGCDPriority.EnergyDrain);
-        if (potion is PotionStrategy.AlignWithRaidBuffs && TotalCD(AID.ChainStratagem) < 5 ||
-            potion is PotionStrategy.Immediate)
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
+            QueueOGCD(AID.LucidDreaming, Player, OGCDPriority.Average);
+        if ((potion is PotionStrategy.AlignWithRaidBuffs && TotalCD(AID.ChainStratagem) < 5) || potion is PotionStrategy.Immediate)
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.VeryCritical, 0, GCD - 0.9f);
         #endregion
 
         #endregion

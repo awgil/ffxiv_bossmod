@@ -610,9 +610,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="initial">The <b>initial</b> target to consider for applying the <b>DoT</b> effect.</param>
     /// <param name="getTimer">A function that retrieves the <b>timer</b> value associated with a given <b>actor</b>.</param>
     /// <param name="maxAllowedTargets">The maximum number of valid targets to evaluate.</param>
-    protected (Enemy? Best, P Timer) GetDOTTarget<P>(Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
+    protected (Enemy? Best, P Timer) GetDOTTarget<P>(Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets, float range = 30) where P : struct, IComparable
     {
-        if (initial == null || maxAllowedTargets <= 0)
+        if (initial == null || maxAllowedTargets <= 0 || Player.DistanceToHitbox(initial.Actor) > range)
         {
             return (null, getTimer(null));
         }
@@ -624,7 +624,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
         foreach (var dotTarget in Hints.PriorityTargets)
         {
-            if (dotTarget.ForbidDOTs)
+            if (dotTarget.ForbidDOTs || Player.DistanceToHitbox(dotTarget.Actor) > range)
                 continue;
 
             if (++numTargets > maxAllowedTargets)
@@ -757,6 +757,60 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool HasPeloton { get; private set; }
     #endregion
 
+    #region Priorities
+    protected GCDPriority GCDPrio(GCDStrategy strat, GCDPriority defaultPrio) => strat is GCDStrategy.Force ? GCDPriority.Forced : defaultPrio;
+    protected enum GCDPriority //Base = 4000
+    {
+        None = 0,
+        Minimal = 50,
+        ExtremelyLow = 100,
+        VeryLow = 150,
+        Low = 200,
+        ModeratelyLow = 250,
+        SlightlyLow = 300,
+        BelowAverage = 350,
+        Average = 400,
+        AboveAverage = 450,
+        SlightlyHigh = 500,
+        ModeratelyHigh = 550,
+        High = 600,
+        VeryHigh = 650,
+        ExtremelyHigh = 700,
+        Severe = 800,
+        VerySevere = 850,
+        Critical = 750,
+        VeryCritical = 900,
+        Max = 999,
+        Forced = 1000 //This is really high already, should never be past 5000 total tbh
+    }
+    protected OGCDPriority OGCDPrio(OGCDStrategy strat, OGCDPriority defaultPrio) => strat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : defaultPrio;
+    protected enum OGCDPriority //Base = 2000
+    {
+        None = 0,
+        Minimal = 50,
+
+        ExtremelyLow = 100,
+        VeryLow = 150,
+        Low = 200,
+        ModeratelyLow = 250,
+        SlightlyLow = 300,
+        BelowAverage = 350,
+        Average = 400,
+        AboveAverage = 450,
+        SlightlyHigh = 500,
+        ModeratelyHigh = 550,
+        High = 600,
+        VeryHigh = 650,
+        ExtremelyHigh = 700,
+        Severe = 750,
+        VerySevere = 800,
+        Critical = 850,
+        VeryCritical = 900,
+        Max = 999,
+        Forced = 1500 //makes priority higher than CDPlanner's automatic prio + 500, which is really only Medium prio
+    }
+    #endregion
+
     public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         NextGCD = default;
@@ -770,12 +824,12 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime().Item2 ?? float.MaxValue;
         CombatTimer = (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds;
         CountdownRemaining = World.Client.CountdownRemaining;
-        CanTrueNorth = ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.TrueNorth)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.TrueNorth)!.MainCooldownGroup].Remaining < 45.6f;
         HasTrueNorth = StatusRemaining(Player, ClassShared.SID.TrueNorth, 15) > 0.1f;
-        CanSwiftcast = ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Swiftcast)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Swiftcast)!.MainCooldownGroup].Remaining < 0.6f;
+        CanTrueNorth = !HasTrueNorth && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.TrueNorth)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.TrueNorth)!.MainCooldownGroup].Remaining < 45.6f;
         HasSwiftcast = StatusRemaining(Player, ClassShared.SID.Swiftcast, 10) > 0.1f;
-        CanPeloton = !Player.InCombat && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Peloton)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Peloton)!.MainCooldownGroup].Remaining < 0.6f;
+        CanSwiftcast = ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Swiftcast)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Swiftcast)!.MainCooldownGroup].Remaining < 0.6f;
         HasPeloton = PlayerHasAnyEffect(ClassShared.SID.Peloton);
+        CanPeloton = !Player.InCombat && !HasPeloton && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Peloton)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Peloton)!.MainCooldownGroup].Remaining < 0.6f;
 
         if (Player.MountId is not (103 or 117 or 128))
             Execution(strategy, PlayerTarget);
