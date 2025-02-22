@@ -763,29 +763,23 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     {
         None = 0,
         Minimal = 50,
-
         ExtremelyLow = 100,
         VeryLow = 150,
         Low = 200,
         ModeratelyLow = 250,
         SlightlyLow = 300,
-
         BelowAverage = 350,
         Average = 400,
         AboveAverage = 450,
-
         SlightlyHigh = 500,
         ModeratelyHigh = 550,
         High = 600,
         VeryHigh = 650,
         ExtremelyHigh = 700,
-
         Severe = 800,
         VerySevere = 850,
-
         Critical = 750,
         VeryCritical = 900,
-
         Max = 999,
         Forced = 1000 //This is really high already, should never be past 5000 total tbh
     }
@@ -800,23 +794,18 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         Low = 200,
         ModeratelyLow = 250,
         SlightlyLow = 300,
-
         BelowAverage = 350,
         Average = 400,
         AboveAverage = 450,
-
         SlightlyHigh = 500,
         ModeratelyHigh = 550,
         High = 600,
         VeryHigh = 650,
         ExtremelyHigh = 700,
-
         Severe = 750,
         VerySevere = 800,
-
         Critical = 850,
         VeryCritical = 900,
-
         Max = 999,
         Forced = 1500 //makes priority higher than CDPlanner's automatic prio + 500, which is really only Medium prio
     }
