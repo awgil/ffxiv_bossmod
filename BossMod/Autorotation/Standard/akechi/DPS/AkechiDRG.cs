@@ -26,14 +26,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition(
-            "Akechi DRG", //Name
-            "Standard Rotation Module", //Type
-            "Standard rotation (Akechi)|DPS", //Category
-            "Akechi", //Contributor of module
-            RotationModuleQuality.Good, //Quality
-            BitMask.Build(Class.LNC, Class.DRG), //Class and Job
-            100); //Max Level supported
+        var res = new RotationModuleDefinition("Akechi DRG", "Standard Rotation Module", "Standard rotation (Akechi)|DPS", "Akechi", RotationModuleQuality.Excellent, BitMask.Build(Class.LNC, Class.DRG), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("Combo Option", "AOE", uiPriority: 200)
             .AddOption(AOEStrategy.AutoFinish, "Auto (Finish combo)", "Automatically execute optimal rotation based on targets; finishes combo if possible", supportedTargets: ActionTargets.Hostile)
@@ -121,71 +114,61 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Priorities
-    public enum GCDPriority //Priorities for Global Cooldowns (GCDs)
-
+    public enum GCDPriority
     {
-        None = 0,               //No priority
-        Combo123 = 350,         //Priority for the first three combo actions
-        NormalGCD = 500,        //Standard priority for normal GCD actions
-        ForcedGCD = 900,        //High priority for forced GCD actions
+        None = 0,
+        Combo123 = 350,
+        NormalGCD = 500,
+        ForcedGCD = 900,
     }
-    public enum OGCDPriority //Priorities for Off Global Cooldowns (oGCDs)
-
+    public enum OGCDPriority
     {
-        None = 0,                  //No priority
-        //Flexible actions with varying priorities
-        MirageDive = 500,          //Priority for Mirage Dive
-        Nastrond = 540,            //Priority for Nastrond
-        Stardiver = 550,           //Priority for Stardiver
-        RiseOfTheDragon = 560,     //Priority for Rise of the Dragon
-        Starcross = 560,           //Priority for Starcross
-        WyrmwindThrust = 570,      //Priority for Wyrmwind Thrust (normal)
-        TrueNorth = 580,           //Priority for True North
-        //Non-flexible actions with fixed priorities
-        Jump = 660,                //Priority for Jump
-        WyrmwindThrustOpti = 670,  //Priority for Wyrmwind Thrust (optimal)
-        DragonfireDive = 680,      //Priority for Dragonfire Dive
-        Geirskogul = 700,          //Priority for Geirskogul
-        Buffs = 800,               //Priority for buffs
-        ForcedOGCD = 900,          //High priority for forced oGCD actions
+        None = 0,
+        MirageDive = 500,
+        Nastrond = 540,
+        Stardiver = 550,
+        RiseOfTheDragon = 560,
+        Starcross = 560,
+        WyrmwindThrust = 570,
+        TrueNorth = 580,
+        Jump = 660,
+        WyrmwindThrustOpti = 670,
+        DragonfireDive = 680,
+        Geirskogul = 700,
+        Buffs = 800,
+        ForcedOGCD = 900,
     }
-    private OGCDPriority OGCDPrio(OGCDStrategy strat, OGCDPriority defaultPrio)
-    {
-        if (strat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave)
-            return OGCDPriority.ForcedOGCD;
-
-        return defaultPrio;
-    }
+    private OGCDPriority OGCDPrio(OGCDStrategy strat, OGCDPriority defaultPrio) => strat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.ForcedOGCD : defaultPrio;
     #endregion
 
     #region Module Variables
-    private bool hasLOTD; //Flag for Life of the Dragon status
-    private bool hasLC; //Flag for Lance Charge status
-    private bool hasBL; //Flag for Battle Litany status
-    private bool hasMD; //Flag for Mirage Dive status
-    private bool hasDF; //Flag for Dragon's Flight status
-    private bool hasSC; //Flag for Starcross status
-    private bool hasNastrond; //Flag for Nastrond status
-    private bool canLC; //Ability to use Lance Charge
-    private bool canBL; //Ability to use Battle Litany
-    private bool canLS; //Ability to use Life Surge
-    private bool canJump; //Ability to use Jump
-    private bool canDD; //Ability to use Dragonfire Dive
-    private bool canGeirskogul; //Ability to use Geirskogul
-    private bool canMD; //Ability to use Mirage Dive
-    private bool canNastrond; //Ability to use Nastrond
-    private bool canSD; //Ability to use Stardiver
-    private bool canWT; //Ability to use Wyrmwind Thrust
-    private bool canROTD; //Ability to use Rise of the Dragon
-    private bool canSC; //Ability to use Starcross
-    private float GCDLength; //Length of the global cooldown
-    private float blCD; //Cooldown for Battle Litany
-    private float lcLeft; //Time remaining for Lance Charge
-    private float lcCD; //Cooldown for Lance Charge
-    private float powerLeft; //Time remaining for Power Surge
-    private float chaosLeft; //Remaining time for Chaotic Spring DoT
-    public float downtimeIn; //Duration of downtime in combat
-    private int focusCount; //Count of Firstmind's Focus gauge
+    private bool hasLOTD;
+    private bool hasLC;
+    private bool hasBL;
+    private bool hasMD;
+    private bool hasDF;
+    private bool hasSC;
+    private bool hasNastrond;
+    private bool canLC;
+    private bool canBL;
+    private bool canLS;
+    private bool canJump;
+    private bool canDD;
+    private bool canGeirskogul;
+    private bool canMD;
+    private bool canNastrond;
+    private bool canSD;
+    private bool canWT;
+    private bool canROTD;
+    private bool canSC;
+    private float GCDLength;
+    private float blCD;
+    private float lcLeft;
+    private float lcCD;
+    private float powerLeft;
+    private float chaosLeft;
+    public float downtimeIn;
+    private int focusCount;
     public int NumAOETargets;
     public int NumSpearTargets;
     public int NumDiveTargets;
