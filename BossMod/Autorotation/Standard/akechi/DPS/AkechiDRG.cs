@@ -214,7 +214,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         (BestAOETargets, NumAOETargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);
         (BestSpearTargets, NumSpearTargets) = GetBestTarget(primaryTarget, 15, Is15yRectTarget);
         (BestDiveTargets, NumDiveTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
-        (BestDOTTargets, chaosLeft) = GetDOTTarget(primaryTarget, ChaosRemaining, 2);
+        (BestDOTTargets, chaosLeft) = GetDOTTarget(primaryTarget, ChaosRemaining, 2, 3.5f);
         BestAOETarget = (Unlocked(AID.DoomSpike) && NumAOETargets > 2) ? BestAOETargets : BestDOTTarget;
         BestSpearTarget = (Unlocked(AID.Geirskogul) && NumSpearTargets > 1) ? BestSpearTargets : primaryTarget;
         BestDiveTarget = (Unlocked(AID.Stardiver) && NumDiveTargets > 1) ? BestDiveTargets : primaryTarget;
@@ -351,11 +351,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     private AID FullRotation() => ComboLastMove switch
     {
         AID.Drakesbane or AID.CoerthanTorment => NumAOETargets > 2 ? FullAOE() : Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 ? STBuffs() : FullST(),
-        AID.SonicThrust => FullAOE(),
-        AID.DoomSpike or AID.DraconianFury => FullAOE(),
-        AID.WheelingThrust or AID.FangAndClaw => FullST(),
-        AID.VorpalThrust or AID.LanceBarrage or AID.Disembowel or AID.SpiralBlow => FullST(),
-        AID.TrueThrust or AID.RaidenThrust => FullST(),
+        AID.DoomSpike or AID.DraconianFury or AID.SonicThrust => FullAOE(),
+        AID.TrueThrust or AID.RaidenThrust or AID.VorpalThrust or AID.LanceBarrage or AID.Disembowel or AID.SpiralBlow or AID.HeavensThrust or AID.FullThrust or AID.WheelingThrust or AID.FangAndClaw => FullST(),
         _ => NumAOETargets > 2 ? FullAOE() : Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 ? STBuffs() : FullST()
     };
 
@@ -369,7 +366,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     private AID FullST() => ComboLastMove switch
     {
         AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) && (powerLeft <= GCDLength * 6 || chaosLeft <= GCDLength * 4) ? Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel : Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : AID.VorpalThrust,
-        AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : AID.TrueThrust,
+        AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : Unlocked(AID.ChaosThrust) ? AID.ChaosThrust : AID.TrueThrust,
         AID.VorpalThrust or AID.LanceBarrage => Unlocked(AID.HeavensThrust) ? AID.HeavensThrust : Unlocked(AID.FullThrust) ? AID.FullThrust : AID.TrueThrust,
         AID.FullThrust or AID.HeavensThrust => Unlocked(AID.FangAndClaw) ? AID.FangAndClaw : AID.TrueThrust,
         AID.ChaosThrust or AID.ChaoticSpring => Unlocked(AID.WheelingThrust) ? AID.WheelingThrust : AID.TrueThrust,

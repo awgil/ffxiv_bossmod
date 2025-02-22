@@ -1,4 +1,5 @@
-﻿using static BossMod.AIHints;
+﻿using static BossMod.ActorState;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
 
@@ -610,9 +611,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="initial">The <b>initial</b> target to consider for applying the <b>DoT</b> effect.</param>
     /// <param name="getTimer">A function that retrieves the <b>timer</b> value associated with a given <b>actor</b>.</param>
     /// <param name="maxAllowedTargets">The maximum number of valid targets to evaluate.</param>
-    protected (Enemy? Best, P Timer) GetDOTTarget<P>(Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
+    protected (Enemy? Best, P Timer) GetDOTTarget<P>(Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets, float range = 30) where P : struct, IComparable
     {
-        if (initial == null || maxAllowedTargets <= 0)
+        if (initial == null || maxAllowedTargets <= 0 || Player.DistanceToHitbox(initial.Actor) > range)
         {
             return (null, getTimer(null));
         }
@@ -624,7 +625,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
         foreach (var dotTarget in Hints.PriorityTargets)
         {
-            if (dotTarget.ForbidDOTs)
+            if (dotTarget.ForbidDOTs || Player.DistanceToHitbox(dotTarget.Actor) > range)
                 continue;
 
             if (++numTargets > maxAllowedTargets)
