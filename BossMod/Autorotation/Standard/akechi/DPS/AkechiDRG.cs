@@ -295,20 +295,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             if (divesGood)
             {
                 if (ShouldUseJump(jumpStrat, primaryTarget?.Actor))
-                    QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump,
-                        TargetChoice(jump) ?? primaryTarget?.Actor,
-                        jumpStrat is JumpStrategy.Force or JumpStrategy.ForceEX or JumpStrategy.ForceEX2 or JumpStrategy.ForceWeave
-                        ? OGCDPriority.ForcedOGCD : OGCDPriority.Jump);
+                    QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump, TargetChoice(jump) ?? primaryTarget?.Actor, jumpStrat is JumpStrategy.Force or JumpStrategy.ForceEX or JumpStrategy.ForceEX2 or JumpStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Jump);
                 if (ShouldUseDragonfireDive(ddStrat, primaryTarget?.Actor))
-                    QueueOGCD(AID.DragonfireDive,
-                        TargetChoice(dd) ?? BestDiveTarget?.Actor,
-                        ddStrat is DragonfireStrategy.Force or DragonfireStrategy.ForceWeave
-                        ? OGCDPriority.ForcedOGCD : OGCDPriority.DragonfireDive);
+                    QueueOGCD(AID.DragonfireDive, TargetChoice(dd) ?? BestDiveTarget?.Actor, ddStrat is DragonfireStrategy.Force or DragonfireStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.DragonfireDive);
                 if (ShouldUseStardiver(sdStrat, primaryTarget?.Actor))
-                    QueueOGCD(AID.Stardiver,
-                        TargetChoice(sd) ?? BestDiveTarget?.Actor,
-                        sdStrat is StardiverStrategy.Force or StardiverStrategy.ForceEX or StardiverStrategy.ForceWeave
-                        ? OGCDPriority.ForcedOGCD : OGCDPriority.Stardiver);
+                    QueueOGCD(AID.Stardiver, TargetChoice(sd) ?? BestDiveTarget?.Actor, sdStrat is StardiverStrategy.Force or StardiverStrategy.ForceEX or StardiverStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Stardiver);
             }
             if (ShouldUseLanceCharge(lcStrat, primaryTarget?.Actor))
                 QueueOGCD(AID.LanceCharge, Player, OGCDPrio(lcStrat, OGCDPriority.Buffs));
