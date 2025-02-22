@@ -167,11 +167,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     private float lcCD;
     private float powerLeft;
     private float chaosLeft;
-    public float downtimeIn;
     private int focusCount;
-    public int NumAOETargets;
-    public int NumSpearTargets;
-    public int NumDiveTargets;
+    private int NumAOETargets;
+    private int NumSpearTargets;
+    private int NumDiveTargets;
     private Enemy? BestAOETargets;
     private Enemy? BestSpearTargets;
     private Enemy? BestDiveTargets;
