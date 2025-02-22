@@ -757,6 +757,41 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool HasPeloton { get; private set; }
     #endregion
 
+    #region Priorities
+    protected GCDPriority GCDPrio(GCDStrategy strat, GCDPriority defaultPrio) => strat is GCDStrategy.Force ? GCDPriority.Forced : defaultPrio;
+    protected enum GCDPriority //Base = 4000
+    {
+        None = 0,
+        ExtremelyLow = 100,
+        VeryLow = 200,
+        Low = 300,
+        BelowAverage = 400,
+        Average = 500,
+        AboveAverage = 600,
+        High = 700,
+        VeryHigh = 800,
+        ExtremelyHigh = 900,
+        Critical = 999,
+        Forced = 1000 //This is really high already, should never be past 5000 total tbh
+    }
+    protected OGCDPriority OGCDPrio(OGCDStrategy strat, OGCDPriority defaultPrio) => strat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : defaultPrio;
+    protected enum OGCDPriority //Base = 2000
+    {
+        None = 0,
+        ExtremelyLow = 100,
+        VeryLow = 200,
+        Low = 300,
+        BelowAverage = 400,
+        Average = 500,
+        AboveAverage = 600,
+        High = 700,
+        VeryHigh = 800,
+        ExtremelyHigh = 900,
+        Critical = 999,
+        Forced = 1500 //makes priority higher than CDPlanner's automatic prio + 500, which is really only Medium prio
+    }
+    #endregion
+
     public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         NextGCD = default;
