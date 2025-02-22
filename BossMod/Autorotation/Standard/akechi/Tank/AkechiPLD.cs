@@ -92,15 +92,6 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     }
     #endregion
 
-    #region Upgrade Paths
-    public AID BestSpirits => Unlocked(AID.Expiacion) ? AID.Expiacion : AID.SpiritsWithin;
-    public AID BestRequiescat => Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat;
-    public AID BestHoly => ShouldUseAOE ? BestHolyCircle : AID.HolySpirit;
-    public AID BestHolyCircle => HolyCircle.IsReady ? AID.HolyCircle : AID.HolySpirit;
-    public AID BestAtonement => Sepulchre.IsReady ? AID.Sepulchre : (Supplication.IsReady ? AID.Supplication : AID.Atonement);
-    public AID BestBlade => BladeComboStep == 3 ? AID.BladeOfValor : BladeComboStep == 2 ? AID.BladeOfTruth : BladeComboStep == 1 && Unlocked(AID.BladeOfFaith) ? AID.BladeOfFaith : Unlocked(AID.Confiteor) ? AID.Confiteor : BestHoly;
-    #endregion
-
     #region Module Variables
     public int Oath; //Current value of the oath gauge
     public int BladeComboStep; //Current step in the Confiteor combo sequence
@@ -123,6 +114,15 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     private int NumSplashTargets;
     private Enemy? BestSplashTargets;
     private Enemy? BestSplashTarget;
+    #endregion
+
+    #region Upgrade Paths
+    public AID BestSpirits => Unlocked(AID.Expiacion) ? AID.Expiacion : AID.SpiritsWithin;
+    public AID BestRequiescat => Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat;
+    public AID BestHoly => ShouldUseAOE ? BestHolyCircle : AID.HolySpirit;
+    public AID BestHolyCircle => HolyCircle.IsReady ? AID.HolyCircle : AID.HolySpirit;
+    public AID BestAtonement => Sepulchre.IsReady ? AID.Sepulchre : (Supplication.IsReady ? AID.Supplication : AID.Atonement);
+    public AID BestBlade => BladeComboStep == 3 ? AID.BladeOfValor : BladeComboStep == 2 ? AID.BladeOfTruth : BladeComboStep == 1 && Unlocked(AID.BladeOfFaith) ? AID.BladeOfFaith : Unlocked(AID.Confiteor) ? AID.Confiteor : BestHoly;
     #endregion
 
     #region Rotation Helpers
