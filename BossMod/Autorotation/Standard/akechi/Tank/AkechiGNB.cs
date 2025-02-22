@@ -169,7 +169,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     private AID BestContinuation => hasRaze ? AID.FatedBrand : hasBlast ? AID.Hypervelocity : hasGouge ? AID.EyeGouge : hasTear ? AID.AbdomenTear : hasRip ? AID.JugularRip : AID.Continuation;
     #endregion
 
-    #region Rotation Paths
+    #region Rotation Helpers
     private AID AutoFinish => ComboLastMove switch
     {
         AID.KeenEdge or AID.BrutalShell => STwithoutOvercap,

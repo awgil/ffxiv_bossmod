@@ -113,34 +113,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     }
     #endregion
 
-    #region Priorities
-    public enum GCDPriority
-    {
-        None = 0,
-        Combo123 = 350,
-        NormalGCD = 500,
-        ForcedGCD = 900,
-    }
-    public enum OGCDPriority
-    {
-        None = 0,
-        MirageDive = 500,
-        Nastrond = 540,
-        Stardiver = 550,
-        RiseOfTheDragon = 560,
-        Starcross = 560,
-        WyrmwindThrust = 570,
-        TrueNorth = 580,
-        Jump = 660,
-        WyrmwindThrustOpti = 670,
-        DragonfireDive = 680,
-        Geirskogul = 700,
-        Buffs = 800,
-        ForcedOGCD = 900,
-    }
-    private OGCDPriority OGCDPrio(OGCDStrategy strat, OGCDPriority defaultPrio) => strat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.ForcedOGCD : defaultPrio;
-    #endregion
-
     #region Module Variables
     private bool hasLOTD;
     private bool hasLC;
@@ -184,192 +156,16 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     private Enemy? BestDOTTarget;
     #endregion
 
-    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
-    {
-        #region Variables
-        var gauge = World.Client.GetGauge<DragoonGauge>();
-        focusCount = gauge.FirstmindsFocusCount;
-        hasLOTD = gauge.LotdTimer > 0;
-        blCD = TotalCD(AID.BattleLitany);
-        lcCD = TotalCD(AID.LanceCharge);
-        lcLeft = SelfStatusLeft(SID.LanceCharge, 20);
-        powerLeft = SelfStatusLeft(SID.PowerSurge, 30);
-        chaosLeft = MathF.Max(StatusDetails(primaryTarget?.Actor, SID.ChaosThrust, Player.InstanceID).Left, StatusDetails(primaryTarget?.Actor, SID.ChaoticSpring, Player.InstanceID).Left);
-        hasMD = PlayerHasEffect(SID.DiveReady);
-        hasNastrond = PlayerHasEffect(SID.NastrondReady);
-        hasLC = lcCD is >= 40 and <= 60;
-        hasBL = blCD is >= 100 and <= 120;
-        hasDF = PlayerHasEffect(SID.DragonsFlight);
-        hasSC = PlayerHasEffect(SID.StarcrossReady);
-        canLC = ActionReady(AID.LanceCharge);
-        canBL = ActionReady(AID.BattleLitany);
-        canLS = Unlocked(AID.LifeSurge) && (Unlocked(TraitID.EnhancedLifeSurge) ? TotalCD(AID.LifeSurge) < 40.6f : TotalCD(AID.LifeSurge) < 0.6f) && !PlayerHasEffect(SID.LifeSurge);
-        canJump = ActionReady(AID.Jump);
-        canDD = ActionReady(AID.DragonfireDive);
-        canGeirskogul = ActionReady(AID.Geirskogul);
-        canMD = Unlocked(AID.MirageDive) && hasMD;
-        canNastrond = Unlocked(AID.Nastrond) && hasNastrond;
-        canSD = ActionReady(AID.Stardiver);
-        canWT = ActionReady(AID.WyrmwindThrust) && focusCount == 2;
-        canROTD = Unlocked(AID.RiseOfTheDragon) && hasDF;
-        canSC = Unlocked(AID.Starcross) && hasSC;
-        ShouldUseAOE = Unlocked(AID.DoomSpike) && NumAOETargets > 2;
-        ShouldUseSpears = Unlocked(AID.Geirskogul) && NumSpearTargets > 1;
-        ShouldUseDives = Unlocked(AID.Stardiver) && NumDiveTargets > 1;
-        ShouldUseDOT = Unlocked(AID.ChaosThrust) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 && ComboLastMove is AID.Disembowel or AID.SpiralBlow;
-        (BestAOETargets, NumAOETargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);
-        (BestSpearTargets, NumSpearTargets) = GetBestTarget(primaryTarget, 15, Is15yRectTarget);
-        (BestDiveTargets, NumDiveTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
-        (BestDOTTargets, chaosLeft) = GetDOTTarget(primaryTarget, ChaosRemaining, 2, 3.5f);
-        BestAOETarget = ShouldUseAOE ? BestAOETargets : BestDOTTarget;
-        BestSpearTarget = ShouldUseSpears ? BestSpearTargets : primaryTarget;
-        BestDiveTarget = ShouldUseDives ? BestDiveTargets : primaryTarget;
-        BestDOTTarget = ShouldUseDOT ? BestDOTTargets : primaryTarget;
-
-        #region Strategy Definitions
-        var hold = strategy.Option(Track.Hold).As<HoldStrategy>() == HoldStrategy.Forbid;
-        var AOE = strategy.Option(Track.AOE);
-        var AOEStrategy = AOE.As<AOEStrategy>();
-        var dive = strategy.Option(Track.Dives).As<DivesStrategy>();
-        var lc = strategy.Option(Track.LanceCharge);
-        var lcStrat = lc.As<OGCDStrategy>();
-        var bl = strategy.Option(Track.BattleLitany);
-        var blStrat = bl.As<OGCDStrategy>();
-        var ls = strategy.Option(Track.LifeSurge);
-        var lsStrat = ls.As<SurgeStrategy>();
-        var jump = strategy.Option(Track.Jump);
-        var jumpStrat = jump.As<JumpStrategy>();
-        var dd = strategy.Option(Track.DragonfireDive);
-        var ddStrat = dd.As<DragonfireStrategy>();
-        var geirskogul = strategy.Option(Track.Geirskogul);
-        var geirskogulStrat = geirskogul.As<GeirskogulStrategy>();
-        var sd = strategy.Option(Track.Stardiver);
-        var sdStrat = sd.As<StardiverStrategy>();
-        var wt = strategy.Option(Track.WyrmwindThrust);
-        var wtStrat = wt.As<OGCDStrategy>();
-        var rotd = strategy.Option(Track.RiseOfTheDragon);
-        var rotdStrat = rotd.As<OGCDStrategy>();
-        var sc = strategy.Option(Track.Starcross);
-        var scStrat = sc.As<OGCDStrategy>();
-        var md = strategy.Option(Track.MirageDive);
-        var mdStrat = md.As<OGCDStrategy>();
-        var nastrond = strategy.Option(Track.Nastrond);
-        var nastrondStrat = nastrond.As<OGCDStrategy>();
-        var pt = strategy.Option(Track.PiercingTalon);
-        var ptStrat = pt.As<PiercingTalonStrategy>();
-        #endregion
-
-        #endregion
-
-        #region Full Rotation Execution
-
-        #region Dives
-        //Dive strategy
-        var diveStrategy = dive switch
-        {
-            DivesStrategy.AllowMaxMelee => In3y(BestDiveTarget?.Actor), //Only allow max melee if target is within 3 yalms
-            DivesStrategy.AllowCloseMelee => In0y(BestDiveTarget?.Actor), //Only allow close melee if target is within 1 yalm
-            DivesStrategy.Allow => In20y(BestDiveTarget?.Actor), //Always allow dives
-            DivesStrategy.Forbid => false, //Never allow dives
-            _ => false,
-        };
-        var maxMelee = dive == DivesStrategy.AllowMaxMelee; //Check if max melee is allowed
-        var closeMelee = dive == DivesStrategy.AllowCloseMelee; //Check if close melee is allowed
-        var allowed = dive == DivesStrategy.Allow; //Check if dives are allowed
-        var forbidden = dive == DivesStrategy.Forbid; //Check if dives are forbidden
-        var divesGood = diveStrategy && (maxMelee || closeMelee || allowed) && !forbidden; //Check if dives are good to use
-        #endregion
-
-        #region Standard Rotations
-        if (AOEStrategy is AOEStrategy.AutoFinish)
-            QueueGCD(FullRotation(), BestAOETarget?.Actor, GCDPriority.Combo123);
-        if (AOEStrategy is AOEStrategy.AutoBreak)
-            QueueGCD(ShouldUseAOE ? FullAOE() : ShouldUseDOT ? STBuffs() : FullST(), BestAOETarget?.Actor, GCDPriority.Combo123);
-        if (AOEStrategy == AOEStrategy.ForceST)
-            QueueGCD(FullST(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);
-        if (AOEStrategy == AOEStrategy.Force123ST)
-            QueueGCD(STNormal(), TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);
-        if (AOEStrategy == AOEStrategy.ForceBuffsST)
-            QueueGCD(STBuffs(), TargetChoice(AOE) ?? BestDOTTarget?.Actor, GCDPriority.ForcedGCD);
-        if (AOEStrategy == AOEStrategy.ForceAOE)
-            QueueGCD(FullAOE(), TargetChoice(AOE) ?? (NumAOETargets > 1 ? BestAOETargets?.Actor : primaryTarget?.Actor), GCDPriority.ForcedGCD);
-        #endregion
-
-        #region Cooldowns
-        if (!hold)
-        {
-            if (divesGood)
-            {
-                if (ShouldUseJump(jumpStrat, primaryTarget?.Actor))
-                    QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump, TargetChoice(jump) ?? primaryTarget?.Actor, jumpStrat is JumpStrategy.Force or JumpStrategy.ForceEX or JumpStrategy.ForceEX2 or JumpStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Jump);
-                if (ShouldUseDragonfireDive(ddStrat, primaryTarget?.Actor))
-                    QueueOGCD(AID.DragonfireDive, TargetChoice(dd) ?? BestDiveTarget?.Actor, ddStrat is DragonfireStrategy.Force or DragonfireStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.DragonfireDive);
-                if (ShouldUseStardiver(sdStrat, primaryTarget?.Actor))
-                    QueueOGCD(AID.Stardiver, TargetChoice(sd) ?? BestDiveTarget?.Actor, sdStrat is StardiverStrategy.Force or StardiverStrategy.ForceEX or StardiverStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Stardiver);
-            }
-            if (ShouldUseLanceCharge(lcStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.LanceCharge, Player, OGCDPrio(lcStrat, OGCDPriority.Buffs));
-            if (ShouldUseBattleLitany(blStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.BattleLitany, Player, OGCDPrio(blStrat, OGCDPriority.Buffs));
-            if (ShouldUseLifeSurge(lsStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.LifeSurge, Player, lsStrat is SurgeStrategy.Force or SurgeStrategy.ForceWeave or SurgeStrategy.ForceNextOpti or SurgeStrategy.ForceNextOptiWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Buffs);
-            if (ShouldUseGeirskogul(geirskogulStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.Geirskogul, TargetChoice(geirskogul) ?? BestSpearTarget?.Actor, geirskogulStrat is GeirskogulStrategy.Force or GeirskogulStrategy.ForceEX or GeirskogulStrategy.ForceWeave ? OGCDPriority.ForcedOGCD : OGCDPriority.Geirskogul);
-            if (ShouldUseMirageDive(mdStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.MirageDive, TargetChoice(md) ?? primaryTarget?.Actor, OGCDPrio(mdStrat, OGCDPriority.MirageDive));
-            if (ShouldUseNastrond(nastrondStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.Nastrond, TargetChoice(nastrond) ?? BestSpearTarget?.Actor, OGCDPrio(nastrondStrat, OGCDPriority.Nastrond));
-            if (ShouldUseWyrmwindThrust(wtStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.WyrmwindThrust, TargetChoice(wt) ?? BestSpearTarget?.Actor, wtStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.ForcedOGCD : PlayerHasEffect(SID.LanceCharge) ? OGCDPriority.WyrmwindThrustOpti : OGCDPriority.WyrmwindThrust);
-            if (ShouldUseRiseOfTheDragon(rotdStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.RiseOfTheDragon, TargetChoice(rotd) ?? BestDiveTarget?.Actor, OGCDPrio(rotdStrat, OGCDPriority.RiseOfTheDragon));
-            if (ShouldUseStarcross(scStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.Starcross, TargetChoice(sc) ?? BestDiveTarget?.Actor, OGCDPrio(scStrat, OGCDPriority.Starcross));
-            if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
-                Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.ForcedOGCD, 0, GCD - 0.9f);
-            if (ShouldUseTrueNorth(strategy.Option(Track.TrueNorth).As<TrueNorthStrategy>(), primaryTarget?.Actor))
-                QueueOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth);
-        }
-        if (ShouldUsePiercingTalon(primaryTarget?.Actor, ptStrat))
-            QueueGCD(AID.PiercingTalon, TargetChoice(pt) ?? primaryTarget?.Actor, ptStrat is PiercingTalonStrategy.Force or PiercingTalonStrategy.ForceEX ? GCDPriority.ForcedGCD : GCDPriority.NormalGCD);
-        #endregion
-
-        #endregion
-
-        #region AI
-        var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null;
-        var goalAOE = primaryTarget?.Actor != null ? Hints.GoalAOECone(primaryTarget!.Actor, 10, 45.Degrees()) : null;
-        var goal = AOEStrategy switch
-        {
-            AOEStrategy.ForceST => goalST,
-            AOEStrategy.Force123ST => goalST,
-            AOEStrategy.ForceBuffsST => goalST,
-            AOEStrategy.ForceAOE => goalAOE,
-            _ => goalST != null && goalAOE != null ? Hints.GoalCombined(goalST, goalAOE, 2) : goalAOE
-        };
-        if (goal != null)
-            Hints.GoalZones.Add(goal);
-        #endregion
-    }
-
     #region Rotation Helpers
-
-    private AID FullRotation() => ComboLastMove switch
+    private AID AutoFinish => ComboLastMove switch
     {
-        AID.Drakesbane or AID.CoerthanTorment => ShouldUseAOE ? FullAOE() : ShouldUseDOT ? STBuffs() : FullST(),
-        AID.DoomSpike or AID.DraconianFury or AID.SonicThrust => FullAOE(),
-        AID.TrueThrust or AID.RaidenThrust or AID.VorpalThrust or AID.LanceBarrage or AID.Disembowel or AID.SpiralBlow or AID.HeavensThrust or AID.FullThrust or AID.WheelingThrust or AID.FangAndClaw => FullST(),
-        _ => ShouldUseAOE ? FullAOE() : ShouldUseDOT ? STBuffs() : FullST()
+        AID.Drakesbane or AID.CoerthanTorment => ShouldUseAOE ? FullAOE : ShouldUseDOT ? STBuffs : FullST,
+        AID.DoomSpike or AID.DraconianFury or AID.SonicThrust => FullAOE,
+        AID.TrueThrust or AID.RaidenThrust or AID.VorpalThrust or AID.LanceBarrage or AID.Disembowel or AID.SpiralBlow or AID.HeavensThrust or AID.FullThrust or AID.WheelingThrust or AID.FangAndClaw => FullST,
+        _ => ShouldUseAOE ? FullAOE : ShouldUseDOT ? STBuffs : FullST
     };
-
-    #region Single-Target Helpers
-
-    #region DOT
-    private static SID[] GetDotStatus() => [SID.ChaosThrust, SID.ChaoticSpring];
-    private float ChaosRemaining(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 6);
-    #endregion
-
-    private AID FullST() => ComboLastMove switch
+    private AID AutoBreak => ShouldUseAOE ? FullAOE : ShouldUseDOT ? STBuffs : FullST;
+    private AID FullST => ComboLastMove switch
     {
         AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) && (powerLeft <= SkSGCDLength * 6 || chaosLeft <= SkSGCDLength * 4) ? Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel : Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : AID.VorpalThrust,
         AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : Unlocked(AID.ChaosThrust) ? AID.ChaosThrust : AID.TrueThrust,
@@ -379,7 +175,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         AID.WheelingThrust or AID.FangAndClaw => Unlocked(AID.Drakesbane) ? AID.Drakesbane : AID.TrueThrust,
         _ => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust,
     };
-    private AID STNormal() => ComboLastMove switch
+    private AID STNormal => ComboLastMove switch
     {
         AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust,
         AID.VorpalThrust or AID.LanceBarrage => Unlocked(AID.HeavensThrust) ? AID.HeavensThrust : Unlocked(AID.FullThrust) ? AID.FullThrust : AID.TrueThrust,
@@ -387,7 +183,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         AID.WheelingThrust or AID.FangAndClaw => Unlocked(AID.Drakesbane) ? AID.Drakesbane : AID.TrueThrust,
         _ => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust,
     };
-    private AID STBuffs() => ComboLastMove switch
+    private AID STBuffs => ComboLastMove switch
     {
         AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) ? (Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel) : AID.TrueThrust,
         AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : Unlocked(AID.ChaosThrust) ? AID.ChaosThrust : AID.TrueThrust,
@@ -395,15 +191,16 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         AID.WheelingThrust or AID.FangAndClaw => Unlocked(AID.Drakesbane) ? AID.Drakesbane : AID.TrueThrust,
         _ => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust,
     };
-    #endregion
-
-    #region AOE Helpers
-    private AID FullAOE() => ComboLastMove switch
+    private AID FullAOE => ComboLastMove switch
     {
         AID.DoomSpike => Unlocked(AID.SonicThrust) ? AID.SonicThrust : AID.DoomSpike,
         AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : AID.DoomSpike,
         _ => PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike,
     };
+
+    #region DOT
+    private static SID[] GetDotStatus() => [SID.ChaosThrust, SID.ChaoticSpring];
+    private float ChaosRemaining(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 6);
     #endregion
 
     #endregion
@@ -574,4 +371,172 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         _ => false
     };
     #endregion
+
+    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
+    {
+        #region Variables
+        var gauge = World.Client.GetGauge<DragoonGauge>();
+        focusCount = gauge.FirstmindsFocusCount;
+        hasLOTD = gauge.LotdTimer > 0;
+        blCD = TotalCD(AID.BattleLitany);
+        lcCD = TotalCD(AID.LanceCharge);
+        lcLeft = SelfStatusLeft(SID.LanceCharge, 20);
+        powerLeft = SelfStatusLeft(SID.PowerSurge, 30);
+        chaosLeft = MathF.Max(StatusDetails(primaryTarget?.Actor, SID.ChaosThrust, Player.InstanceID).Left, StatusDetails(primaryTarget?.Actor, SID.ChaoticSpring, Player.InstanceID).Left);
+        hasMD = PlayerHasEffect(SID.DiveReady);
+        hasNastrond = PlayerHasEffect(SID.NastrondReady);
+        hasLC = lcCD is >= 40 and <= 60;
+        hasBL = blCD is >= 100 and <= 120;
+        hasDF = PlayerHasEffect(SID.DragonsFlight);
+        hasSC = PlayerHasEffect(SID.StarcrossReady);
+        canLC = ActionReady(AID.LanceCharge);
+        canBL = ActionReady(AID.BattleLitany);
+        canLS = Unlocked(AID.LifeSurge) && (Unlocked(TraitID.EnhancedLifeSurge) ? TotalCD(AID.LifeSurge) < 40.6f : TotalCD(AID.LifeSurge) < 0.6f) && !PlayerHasEffect(SID.LifeSurge);
+        canJump = ActionReady(AID.Jump);
+        canDD = ActionReady(AID.DragonfireDive);
+        canGeirskogul = ActionReady(AID.Geirskogul);
+        canMD = Unlocked(AID.MirageDive) && hasMD;
+        canNastrond = Unlocked(AID.Nastrond) && hasNastrond;
+        canSD = ActionReady(AID.Stardiver);
+        canWT = ActionReady(AID.WyrmwindThrust) && focusCount == 2;
+        canROTD = Unlocked(AID.RiseOfTheDragon) && hasDF;
+        canSC = Unlocked(AID.Starcross) && hasSC;
+        ShouldUseAOE = Unlocked(AID.DoomSpike) && NumAOETargets > 2;
+        ShouldUseSpears = Unlocked(AID.Geirskogul) && NumSpearTargets > 1;
+        ShouldUseDives = Unlocked(AID.Stardiver) && NumDiveTargets > 1;
+        ShouldUseDOT = Unlocked(AID.ChaosThrust) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 && ComboLastMove is AID.Disembowel or AID.SpiralBlow;
+        (BestAOETargets, NumAOETargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);
+        (BestSpearTargets, NumSpearTargets) = GetBestTarget(primaryTarget, 15, Is15yRectTarget);
+        (BestDiveTargets, NumDiveTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
+        (BestDOTTargets, chaosLeft) = GetDOTTarget(primaryTarget, ChaosRemaining, 2, 3.5f);
+        BestAOETarget = ShouldUseAOE ? BestAOETargets : ShouldUseDOT ? BestDOTTargets : BestDOTTarget;
+        BestSpearTarget = ShouldUseSpears ? BestSpearTargets : primaryTarget;
+        BestDiveTarget = ShouldUseDives ? BestDiveTargets : primaryTarget;
+        BestDOTTarget = ShouldUseDOT ? BestDOTTargets : primaryTarget;
+
+        #region Strategy Definitions
+        var hold = strategy.Option(Track.Hold).As<HoldStrategy>() == HoldStrategy.Forbid;
+        var AOE = strategy.Option(Track.AOE);
+        var AOEStrategy = AOE.As<AOEStrategy>();
+        var dive = strategy.Option(Track.Dives).As<DivesStrategy>();
+        var lc = strategy.Option(Track.LanceCharge);
+        var lcStrat = lc.As<OGCDStrategy>();
+        var bl = strategy.Option(Track.BattleLitany);
+        var blStrat = bl.As<OGCDStrategy>();
+        var ls = strategy.Option(Track.LifeSurge);
+        var lsStrat = ls.As<SurgeStrategy>();
+        var jump = strategy.Option(Track.Jump);
+        var jumpStrat = jump.As<JumpStrategy>();
+        var dd = strategy.Option(Track.DragonfireDive);
+        var ddStrat = dd.As<DragonfireStrategy>();
+        var geirskogul = strategy.Option(Track.Geirskogul);
+        var geirskogulStrat = geirskogul.As<GeirskogulStrategy>();
+        var sd = strategy.Option(Track.Stardiver);
+        var sdStrat = sd.As<StardiverStrategy>();
+        var wt = strategy.Option(Track.WyrmwindThrust);
+        var wtStrat = wt.As<OGCDStrategy>();
+        var rotd = strategy.Option(Track.RiseOfTheDragon);
+        var rotdStrat = rotd.As<OGCDStrategy>();
+        var sc = strategy.Option(Track.Starcross);
+        var scStrat = sc.As<OGCDStrategy>();
+        var md = strategy.Option(Track.MirageDive);
+        var mdStrat = md.As<OGCDStrategy>();
+        var nastrond = strategy.Option(Track.Nastrond);
+        var nastrondStrat = nastrond.As<OGCDStrategy>();
+        var pt = strategy.Option(Track.PiercingTalon);
+        var ptStrat = pt.As<PiercingTalonStrategy>();
+        #endregion
+
+        #endregion
+
+        #region Full Rotation Execution
+
+        #region Dives
+        var diveStrategy = dive switch
+        {
+            DivesStrategy.AllowMaxMelee => In3y(BestDiveTarget?.Actor),
+            DivesStrategy.AllowCloseMelee => In0y(BestDiveTarget?.Actor),
+            DivesStrategy.Allow => In20y(BestDiveTarget?.Actor),
+            DivesStrategy.Forbid => false,
+            _ => false,
+        };
+
+        var maxMelee = dive == DivesStrategy.AllowMaxMelee;
+        var closeMelee = dive == DivesStrategy.AllowCloseMelee;
+        var allowed = dive == DivesStrategy.Allow;
+        var forbidden = dive == DivesStrategy.Forbid;
+        var divesGood = diveStrategy && (maxMelee || closeMelee || allowed) && !forbidden;
+        #endregion
+
+        #region Standard Rotations
+        if (AOEStrategy is AOEStrategy.AutoFinish)
+            QueueGCD(AutoFinish, TargetChoice(AOE) ?? BestAOETarget?.Actor, GCDPriority.Low);
+        if (AOEStrategy is AOEStrategy.AutoBreak)
+            QueueGCD(AutoBreak, TargetChoice(AOE) ?? BestAOETarget?.Actor, GCDPriority.Low);
+        if (AOEStrategy == AOEStrategy.ForceST)
+            QueueGCD(FullST, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.High);
+        if (AOEStrategy == AOEStrategy.Force123ST)
+            QueueGCD(STNormal, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.High);
+        if (AOEStrategy == AOEStrategy.ForceBuffsST)
+            QueueGCD(STBuffs, TargetChoice(AOE) ?? BestDOTTarget?.Actor, GCDPriority.High);
+        if (AOEStrategy == AOEStrategy.ForceAOE)
+            QueueGCD(FullAOE, TargetChoice(AOE) ?? (NumAOETargets > 1 ? BestAOETargets?.Actor : primaryTarget?.Actor), GCDPriority.High);
+        #endregion
+
+        #region Cooldowns
+        if (!hold)
+        {
+            if (divesGood)
+            {
+                if (ShouldUseJump(jumpStrat, primaryTarget?.Actor))
+                    QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump, TargetChoice(jump) ?? primaryTarget?.Actor, jumpStrat is JumpStrategy.Force or JumpStrategy.ForceEX or JumpStrategy.ForceEX2 or JumpStrategy.ForceWeave ? OGCDPriority.Forced : OGCDPriority.SlightlyHigh);
+                if (ShouldUseDragonfireDive(ddStrat, primaryTarget?.Actor))
+                    QueueOGCD(AID.DragonfireDive, TargetChoice(dd) ?? BestDiveTarget?.Actor, ddStrat is DragonfireStrategy.Force or DragonfireStrategy.ForceWeave ? OGCDPriority.Forced : OGCDPriority.High);
+                if (ShouldUseStardiver(sdStrat, primaryTarget?.Actor))
+                    QueueOGCD(AID.Stardiver, TargetChoice(sd) ?? BestDiveTarget?.Actor, sdStrat is StardiverStrategy.Force or StardiverStrategy.ForceEX or StardiverStrategy.ForceWeave ? OGCDPriority.Forced : OGCDPriority.Low);
+            }
+            if (ShouldUseLanceCharge(lcStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.LanceCharge, Player, OGCDPrio(lcStrat, OGCDPriority.VerySevere));
+            if (ShouldUseBattleLitany(blStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.BattleLitany, Player, OGCDPrio(blStrat, OGCDPriority.VerySevere));
+            if (ShouldUseLifeSurge(lsStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.LifeSurge, Player, lsStrat is SurgeStrategy.Force or SurgeStrategy.ForceWeave or SurgeStrategy.ForceNextOpti or SurgeStrategy.ForceNextOptiWeave ? OGCDPriority.Forced : OGCDPriority.Severe);
+            if (ShouldUseGeirskogul(geirskogulStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.Geirskogul, TargetChoice(geirskogul) ?? BestSpearTarget?.Actor, geirskogulStrat is GeirskogulStrategy.Force or GeirskogulStrategy.ForceEX or GeirskogulStrategy.ForceWeave ? OGCDPriority.Forced : OGCDPriority.ExtremelyHigh);
+            if (ShouldUseMirageDive(mdStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.MirageDive, TargetChoice(md) ?? primaryTarget?.Actor, OGCDPrio(mdStrat, OGCDPriority.ExtremelyLow));
+            if (ShouldUseNastrond(nastrondStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.Nastrond, TargetChoice(nastrond) ?? BestSpearTarget?.Actor, OGCDPrio(nastrondStrat, OGCDPriority.VeryLow));
+            if (ShouldUseWyrmwindThrust(wtStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.WyrmwindThrust, TargetChoice(wt) ?? BestSpearTarget?.Actor, wtStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : PlayerHasEffect(SID.LanceCharge) ? OGCDPriority.ModeratelyHigh : OGCDPriority.Average);
+            if (ShouldUseRiseOfTheDragon(rotdStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.RiseOfTheDragon, TargetChoice(rotd) ?? BestDiveTarget?.Actor, OGCDPrio(rotdStrat, OGCDPriority.BelowAverage));
+            if (ShouldUseStarcross(scStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.Starcross, TargetChoice(sc) ?? BestDiveTarget?.Actor, OGCDPrio(scStrat, OGCDPriority.BelowAverage));
+            if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
+                Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Forced, 0, GCD - 0.9f);
+            if (ShouldUseTrueNorth(strategy.Option(Track.TrueNorth).As<TrueNorthStrategy>(), primaryTarget?.Actor))
+                QueueOGCD(AID.TrueNorth, Player, OGCDPriority.AboveAverage);
+        }
+        if (ShouldUsePiercingTalon(primaryTarget?.Actor, ptStrat))
+            QueueGCD(AID.PiercingTalon, TargetChoice(pt) ?? primaryTarget?.Actor, ptStrat is PiercingTalonStrategy.Force or PiercingTalonStrategy.ForceEX ? GCDPriority.Forced : GCDPriority.Low);
+        #endregion
+
+        #endregion
+
+        #region AI
+        var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null;
+        var goalAOE = primaryTarget?.Actor != null ? Hints.GoalAOECone(primaryTarget!.Actor, 10, 45.Degrees()) : null;
+        var goal = AOEStrategy switch
+        {
+            AOEStrategy.ForceST => goalST,
+            AOEStrategy.Force123ST => goalST,
+            AOEStrategy.ForceBuffsST => goalST,
+            AOEStrategy.ForceAOE => goalAOE,
+            _ => goalST != null && goalAOE != null ? Hints.GoalCombined(goalST, goalAOE, 3) : goalAOE
+        };
+        if (goal != null)
+            Hints.GoalZones.Add(goal);
+        #endregion
+    }
 }
