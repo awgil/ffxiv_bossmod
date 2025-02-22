@@ -53,7 +53,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddOption(CartridgeStrategy.ForceFC3, "Force Fated Circle (3 cart)", "Force use of Fated Circle when only 3 cartridges are available", 0, 0, ActionTargets.Hostile, 72)
             .AddOption(CartridgeStrategy.Conserve, "Conserve", "Forbid use of Burst Strike & Fated Circle", 0, 0, ActionTargets.None, 30)
             .AddAssociatedActions(AID.BurstStrike, AID.FatedCircle);
-        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 170)
+        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 90)
             .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
             .AddOption(PotionStrategy.AlignWithRaidBuffs, "AlignWithRaidBuffs", "Align with No Mercy & Bloodfest together (to ensure use on 2-minute windows)", 270, 30, ActionTargets.Self)
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
@@ -442,7 +442,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         if (ShouldUseLightningShot(primaryTarget?.Actor, lsStrat))
             QueueGCD(AID.LightningShot, TargetChoice(ls) ?? primaryTarget?.Actor, lsStrat is >= LightningShotStrategy.Force ? GCDPriority.Forced : GCDPriority.ExtremelyLow);
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Critical, 0, GCD - 0.9f);
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.VeryCritical, 0, GCD - 0.9f);
         #endregion
 
         #endregion
