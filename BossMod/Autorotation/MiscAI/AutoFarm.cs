@@ -70,13 +70,9 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
         if (allowPulling)
         {
             var allowFate = Utils.IsPlayerSyncedToFate(World) && strategy.Option(Track.Fate).As<PriorityStrategy>() == PriorityStrategy.Prioritize;
-            foreach (var e in Hints.PotentialTargets)
-            {
-                if (allowFate && e.Actor.FateID == World.Client.ActiveFate.ID && e.Priority == AIHints.Enemy.PriorityUndesirable)
-                {
+            if (allowFate)
+                foreach (var e in Hints.PotentialTargets.Where(t => t.Actor.FateID == World.Client.ActiveFate.ID))
                     prioritize(e, 1);
-                }
-            }
 
             var specific = strategy.Option(Track.Specific);
             if (specific.As<PriorityStrategy>() == PriorityStrategy.Prioritize && Hints.FindEnemy(ResolveTargetOverride(specific.Value)) is var target && target != null)
