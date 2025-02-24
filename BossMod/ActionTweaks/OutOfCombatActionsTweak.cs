@@ -6,8 +6,9 @@ class OutOfCombatActionsConfig : ConfigNode
     [PropertyDisplay("Enable the feature")]
     public bool Enabled = false;
 
-    [PropertyDisplay("Auto use Peloton when moving out of combat")]
-    public bool AutoPeloton = true;
+    // changed name so that it's treated as a new option (that's set to false) since everyone hates this feature and it's extremely hard to find in the settings
+    [PropertyDisplay("Auto use Peloton when moving out of combat", since: "0.0.0.294")]
+    public bool AutoPeloton2 = false;
 }
 
 // Tweak to automatically use out-of-combat convenience actions (peloton, pet summoning, etc).
@@ -38,7 +39,7 @@ public sealed class OutOfCombatActionsTweak : IDisposable
         if (!_config.Enabled || player.InCombat || _ws.Client.CountdownRemaining != null || player.MountId != 0 || player.Statuses.Any(s => s.ID is 418 or 2648)) // note: in overworld content, you leave combat on death...
             return;
 
-        if (_config.AutoPeloton && player.ClassCategory == ClassCategory.PhysRanged && _ws.CurrentTime >= _nextAutoPeloton)
+        if (_config.AutoPeloton2 && player.ClassCategory == ClassCategory.PhysRanged && _ws.CurrentTime >= _nextAutoPeloton)
         {
             var movementThreshold = 5 * _ws.Frame.Duration;
             if (player.LastFrameMovement.LengthSq() >= movementThreshold * movementThreshold)

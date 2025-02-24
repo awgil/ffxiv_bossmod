@@ -74,7 +74,7 @@ class Zantetsuken(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> Casters = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Select(c => new AOEInstance(new AOEShapeRect(70, 19.5f), actor.CastInfo!.LocXZ, actor.CastInfo!.Rotation, Module.CastFinishAt(actor.CastInfo)));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Select(c => new AOEInstance(new AOEShapeRect(70, 19.5f), c.CastInfo!.LocXZ, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo)));
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -107,4 +107,7 @@ public class LunarOdinStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69602, NameID = 10034)]
-public class LunarOdin(WorldState ws, Actor primary) : BossModule(ws, primary, new(146.5f, 84.5f), new ArenaBoundsCircle(20));
+public class LunarOdin(WorldState ws, Actor primary) : BossModule(ws, primary, new(146.5f, 84.5f), new ArenaBoundsCircle(20))
+{
+    protected override bool CheckPull() => true;
+}

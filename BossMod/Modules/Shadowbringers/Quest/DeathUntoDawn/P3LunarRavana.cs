@@ -72,16 +72,7 @@ class GrahaAI(WorldState ws) : UnmanagedRotation(ws, 25)
 }
 
 class AutoGraha(BossModule module) : RotationModule<GrahaAI>(module);
-class DirectionalParry(BossModule module) : Components.DirectionalParry(module, 0x3201)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Module.PrimaryActor.FindStatus(680) != null)
-        {
-            hints.AddForbiddenZone(new AOEShapeCone(100, 45.Degrees()), Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, WorldState.FutureTime(10));
-        }
-    }
-}
+class DirectionalParry(BossModule module) : Components.DirectionalParry(module, 0x3201);
 class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion), new AOEShapeCross(80, 5), maxCasts: 2);
 
 class LunarRavanaStates : StateMachineBuilder
@@ -104,6 +95,9 @@ public class LunarRavana(WorldState ws, Actor primary) : BossModule(ws, primary,
     {
         base.CalculateModuleAIHints(slot, actor, assignment, hints);
         foreach (var h in hints.PotentialTargets)
-            h.Priority = h.Actor.FindStatus(SID.Invincibility) == null ? 1 : 0;
+            if (h.Actor.FindStatus(SID.Invincibility) != null)
+                h.Priority = AIHints.Enemy.PriorityInvincible;
     }
+
+    protected override bool CheckPull() => true;
 }

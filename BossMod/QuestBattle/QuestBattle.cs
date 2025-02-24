@@ -323,6 +323,9 @@ public abstract class QuestBattle : ZoneModule
 
     public override void Update()
     {
+        if (!_config.EnableQuestBattles)
+            return;
+
         if (!_playerLoaded)
         {
             var player = World.Party.Player();
@@ -343,6 +346,9 @@ public abstract class QuestBattle : ZoneModule
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
+        if (!_config.EnableQuestBattles)
+            return;
+
         var restartPathfind = false;
 
         // update combat flag (TODO: the name is not great...)
@@ -390,7 +396,7 @@ public abstract class QuestBattle : ZoneModule
                 TryPathfind(player.PosRot.XYZ(), curObjective.Connections[CurrentObjectiveNavigationProgress..]);
             }
 
-            if (_config.EnableQuestBattles && !Paused && !World.Party.Members[playerSlot].InCutscene)
+            if (!Paused && !World.Party.Members[playerSlot].InCutscene)
             {
                 MoveNext(player, curObjective, hints);
             }
