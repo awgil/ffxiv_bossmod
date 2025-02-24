@@ -141,7 +141,7 @@ public sealed class ModuleViewer : IDisposable
         ImGui.Text("Search:");
         ImGui.SameLine();
         ImGui.SetNextItemWidth(-1);
-        ImGui.InputTextWithHint("##search", "e.g. \"Ultimate\"", ref _searchText, 100, ImGuiInputTextFlags.CallbackCompletion);
+        DrawSearchBar();
         ImGui.TableNextColumn();
 
         ImGui.TableNextColumn();
@@ -158,6 +158,19 @@ public sealed class ModuleViewer : IDisposable
         ImGui.TableNextColumn();
         DrawContentTypeFilters();
     }
+
+    private void DrawSearchBar()
+    {
+        ImGui.InputTextWithHint("##search", "e.g. \"Ultimate\"", ref _searchText, 100, ImGuiInputTextFlags.CallbackCompletion);
+
+        if (ImGui.IsItemHovered() && !ImGui.IsItemFocused())
+        {
+            ImGui.BeginTooltip();
+            ImGui.Text("Type here to search for any specific instance by its respective title.");
+            ImGui.EndTooltip();
+        }
+    }
+
 
     private void DrawExpansionFilters()
     {
