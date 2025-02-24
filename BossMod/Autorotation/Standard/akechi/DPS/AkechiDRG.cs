@@ -36,8 +36,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(AOEStrategy.ForceBuffsST, "Only 1-4-5 ST", "Force only ST 1-4-5 rotation (Buff & DoT only)", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation, even if less than 3 targets");
         res.Define(Track.Hold).As<HoldStrategy>("Cooldowns", "CDs", uiPriority: 190)
-            .AddOption(HoldStrategy.Allow, "Allow", "Forbid use of all cooldowns & buffs")
-            .AddOption(HoldStrategy.Forbid, "Forbid", "Forbid use of all cooldowns & buffs");
+            .AddOption(HoldStrategy.Allow, "Allow", "Allow the use of all cooldowns & buffs")
+            .AddOption(HoldStrategy.Forbid, "Forbid", "Forbid the use of all cooldowns & buffs");
         res.Define(Track.Dives).As<DivesStrategy>("Dives", uiPriority: 185)
             .AddOption(DivesStrategy.AllowMaxMelee, "Allow Max Melee", "Allow Jump, Stardiver, & Dragonfire Dive only at max melee range (within 3y)")
             .AddOption(DivesStrategy.AllowCloseMelee, "Allow Close Melee", "Allow Jump, Stardiver, & Dragonfire Dive only at close melee range (within 1y)")
