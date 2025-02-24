@@ -1,6 +1,7 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
 using ImGuiNET;
 using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
@@ -28,6 +29,8 @@ public sealed class ModuleViewer : IDisposable
     private readonly uint _iconHunt;
     private readonly List<ModuleGroup>[,] _groups;
     private readonly Vector2 _iconSize = new(30, 30);
+
+    private string _searchText = "";
 
     public ModuleViewer(PlanDatabase? planDB, WorldState ws)
     {
@@ -133,6 +136,11 @@ public sealed class ModuleViewer : IDisposable
             return;
 
         ImGui.TableNextColumn();
+        ImGui.Text("Search:");
+        ImGui.SameLine();
+        ImGui.InputTextWithHint("##search", "e.g. \"Ultimate\"", ref _searchText, 100, ImGuiInputTextFlags.CallbackCompletion);
+
+        ImGui.TableNextColumn();
         ImGui.TableHeader("Expansion");
         ImGui.TableNextRow(ImGuiTableRowFlags.None);
         ImGui.TableNextColumn();
@@ -200,6 +208,9 @@ public sealed class ModuleViewer : IDisposable
 
                 foreach (var group in _groups[i, j])
                 {
+                    if (!_searchText.IsNullOrEmpty() && !group.Info.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     UIMisc.Image(Service.Texture?.GetFromGameIcon(_expansions[i].icon), new(36));
