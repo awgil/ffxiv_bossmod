@@ -136,8 +136,10 @@ public sealed class ModuleViewer : IDisposable
             return;
 
         ImGui.TableNextColumn();
+        ImGui.AlignTextToFramePadding(); // Ensures text aligns with input box
         ImGui.Text("Search:");
         ImGui.SameLine();
+        ImGui.SetNextItemWidth(-1); // Makes the input box take up the rest of the row
         ImGui.InputTextWithHint("##search", "e.g. \"Ultimate\"", ref _searchText, 100, ImGuiInputTextFlags.CallbackCompletion);
 
         ImGui.TableNextColumn();
