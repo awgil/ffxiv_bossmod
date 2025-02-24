@@ -51,7 +51,7 @@ class DirectSeeding(BossModule module) : BossComponent(module)
         new(-5, -15), new(5, -15), new(-15, -5), new(15, -5),
         new(-15, 5), new(5, 5), new(-5, 15), new(15, 15)
     ];
-    private Angle? CurrentTileset = null;
+    private Angle? CurrentTileset;
     private IEnumerable<Actor> Seeds => WorldState.Actors.Where(x => (OID)x.OID is OID.LeannanSeed1 or OID.LeannanSeed2 or OID.LeannanSeed3 or OID.LeannanSeed4);
     private IEnumerable<WPos> TileCenters => CurrentTileset == null ? [] : Tileset.Select(t => t.Rotate(CurrentTileset.Value) + Arena.Center);
 
@@ -118,7 +118,7 @@ class DirectSeeding(BossModule module) : BossComponent(module)
             if (zone(actor.Position) > 0)
             {
                 // normally the position of the seed we're carrying will lag behind our actual position in accordance with standard server latency
-                // jumping forces the server to acknowledge our current position, so we jump as soon as we enter a safe tile and then drop the seed
+                // jumping forces the server to acknowledge our current position (i think???) so we jump as soon as we enter a safe tile and then drop the seed
                 hints.WantJump = true;
                 if (actor.PosRot.Y > -11)
                     hints.StatusesToCancel.Add(((uint)SID.Transporting, default));

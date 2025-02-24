@@ -8,22 +8,19 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 872, // Boss->player, no cast, single-target
-    _Weaponskill_CandyCane = 8857, // Boss->player, 4.0s cast, single-target
-    _Weaponskill_Hydrofall = 8871, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_Hydrofall1 = 8893, // Helper->location, 3.0s cast, range 6 circle
-    _Weaponskill_LaughingLeap = 8852, // Boss->location, 4.0s cast, range 4 circle
-    _Weaponskill_LaughingLeap1 = 8840, // Boss->players, no cast, range 4 circle
-    _Weaponskill_Landsblood = 7822, // Boss->self, 3.0s cast, range 40 circle
-    _Weaponskill_Landsblood1 = 7899, // Boss->self, no cast, range 40 circle
-    _Weaponskill_Geyser = 8800, // Helper->self, no cast, range 6 circle
+    CandyCane = 8857, // Boss->player, 4.0s cast, single-target
+    Hydrofall = 8893, // Helper->location, 3.0s cast, range 6 circle
+    LaughingLeap = 8852, // Boss->location, 4.0s cast, range 4 circle
+    LaughingLeapStack = 8840, // Boss->players, no cast, range 4 circle
+    Landsblood = 7822, // Boss->self, 3.0s cast, range 40 circle
+    Geyser = 8800, // Helper->self, no cast, range 6 circle
 }
 
-class CandyCane(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID._Weaponskill_CandyCane));
-class Hydrofall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Hydrofall1), 6);
-class LaughingLeap(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_LaughingLeap), 4);
-class LaughingLeap2(BossModule module) : Components.StackWithIcon(module, 62, ActionID.MakeSpell(AID._Weaponskill_LaughingLeap1), 4, 5.15f);
-class Landsblood(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_Landsblood));
+class CandyCane(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CandyCane));
+class Hydrofall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrofall), 6);
+class LaughingLeap(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LaughingLeap), 4);
+class LaughingLeapStack(BossModule module) : Components.StackWithIcon(module, 62, ActionID.MakeSpell(AID.LaughingLeapStack), 4, 5.15f);
+class Landsblood(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Landsblood));
 
 class Geyser(BossModule module) : Components.GenericAOEs(module)
 {
@@ -54,7 +51,7 @@ class Geyser(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID == (uint)AID._Weaponskill_Geyser)
+        if (spell.Action.ID == (uint)AID.Geyser)
             Geysers.RemoveAll(g => g.Origin.AlmostEqual(caster.Position, 1));
     }
 }
@@ -67,7 +64,7 @@ class AencThonLordOfTheLingeringGazeStates : StateMachineBuilder
             .ActivateOnEnter<CandyCane>()
             .ActivateOnEnter<Hydrofall>()
             .ActivateOnEnter<LaughingLeap>()
-            .ActivateOnEnter<LaughingLeap2>()
+            .ActivateOnEnter<LaughingLeapStack>()
             .ActivateOnEnter<Landsblood>()
             .ActivateOnEnter<Geyser>();
     }

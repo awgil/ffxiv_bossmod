@@ -93,7 +93,7 @@ class Sputter(BossModule module) : Components.SpreadFromCastTargets(module, Acti
 class Geyser(BossModule module) : BossComponent(module)
 {
     private readonly List<Actor> Geysers = [];
-    private DateTime SplooshTime = default;
+    private DateTime SplooshTime;
     private BitMask floaters;
 
     private Actor? BestGeyser => Geysers.Count == 0 ? null : Geysers.MinBy(g => g.Position.Z);

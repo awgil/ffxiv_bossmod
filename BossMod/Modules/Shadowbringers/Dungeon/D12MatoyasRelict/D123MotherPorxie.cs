@@ -136,7 +136,7 @@ class HuffAndPuff(BossModule module) : Components.Knockback(module, stopAtWall: 
 
 class Barbeque(BossModule module) : BossComponent(module)
 {
-    private bool active = false;
+    private bool active;
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {

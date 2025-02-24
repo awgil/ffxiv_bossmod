@@ -2,19 +2,12 @@
 
 public enum AID : uint
 {
-    _AutoAttack_ = 18280, // Boss->player, no cast, single-target
-    _Spell_Shadowbolt = 18281, // Boss->player, 4.0s cast, single-target
-    _Spell_ImmortalAnathema = 18851, // Boss->self, 4.0s cast, range 60 circle
-    _Spell_Tribulation1 = 18283, // Boss->self, 3.0s cast, single-target
-    _Spell_Tribulation = 18852, // Helper->location, 3.0s cast, range 3 circle
-    _Spell_DarkShock = 18286, // Boss->self, 3.0s cast, single-target
-    _Spell_DarkShock1 = 18287, // Helper->location, 3.0s cast, range 6 circle
-    _Ability_Sweep = 18288, // Helper->player, no cast, single-target
-    _Ability_DeepClean = 18289, // Helper->player, no cast, single-target
-    _Spell_DarkPulse = 18282, // Boss->players, 5.0s cast, range 6 circle
-    _Spell_DarkWell = 18285, // Helper->player, 5.0s cast, range 5 circle
-    _Spell_DarkWell1 = 18284, // Boss->self, no cast, single-target
-    _Spell_MovementMagick = 18713, // Boss->self, 3.0s cast, single-target
+    Shadowbolt = 18281, // Boss->player, 4.0s cast, single-target
+    ImmortalAnathema = 18851, // Boss->self, 4.0s cast, range 60 circle
+    Tribulation = 18852, // Helper->location, 3.0s cast, range 3 circle
+    DarkShock = 18287, // Helper->location, 3.0s cast, range 6 circle
+    DarkPulse = 18282, // Boss->players, 5.0s cast, range 6 circle
+    DarkWell = 18285, // Helper->player, 5.0s cast, range 5 circle
 }
 
 public enum OID : uint
@@ -25,12 +18,12 @@ public enum OID : uint
     DirtPile = 0x1EAEAE
 }
 
-class Tribulation(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 3, ActionID.MakeSpell(AID._Spell_Tribulation), m => m.Enemies(OID.DirtPile).Where(x => x.EventState != 7), 0);
-class ImmortalAnathema(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Spell_ImmortalAnathema));
-class DarkPulse(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID._Spell_DarkPulse), 6);
-class DarkWell(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID._Spell_DarkWell), 5);
-class DarkShock(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Spell_DarkShock1), 6);
-class Shadowbolt(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID._Spell_Shadowbolt));
+class Tribulation(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 3, ActionID.MakeSpell(AID.Tribulation), m => m.Enemies(OID.DirtPile).Where(x => x.EventState != 7), 0);
+class ImmortalAnathema(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ImmortalAnathema));
+class DarkPulse(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.DarkPulse), 6);
+class DarkWell(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.DarkWell), 5);
+class DarkShock(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DarkShock), 6);
+class Shadowbolt(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Shadowbolt));
 
 // not sure about radius, sweep trigger is incredibly janky
 // filter out brooms who are too far outside the arena since they don't affect players and the AOE lingering on minimap is annoying

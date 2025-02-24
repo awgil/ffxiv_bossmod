@@ -8,29 +8,24 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _AutoAttack_ = 19283, // Boss->player, no cast, single-target
-    _Weaponskill_TheFinalVerse = 19288, // Boss->self, 4.0s cast, range 40 circle
-    _Weaponskill_2000MinaSwing = 19285, // Boss->self, 4.0s cast, range 12 circle
-    _Weaponskill_TerribleHammer = 19289, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_TerribleBlade = 19290, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_EyeOfTheCyclone = 19287, // Boss->self, 4.0s cast, range 8-25 donut
-    _Weaponskill_TerribleHammer1 = 19293, // Helper->self, no cast, range 10 width 10 rect
-    _Weaponskill_TerribleBlade1 = 19294, // Helper->self, no cast, range 10 width 10 rect
-    _Weaponskill_RagingGlower = 19286, // Boss->self, 3.0s cast, range 45 width 6 rect
-    _Weaponskill_2000MinaSwipe = 19284, // Boss->self, 4.0s cast, range 12 120-degree cone
-    _Weaponskill_OpenHearth = 19292, // Boss->self, no cast, single-target
-    _Weaponskill_OpenHearth1 = 19296, // Helper->player, 5.0s cast, range 6 circle
-    _Weaponskill_WanderersPyre = 19291, // Boss->self, no cast, single-target
-    _Weaponskill_WanderersPyre1 = 19295, // Helper->player, 5.0s cast, range 5 circle
+    TheFinalVerse = 19288, // Boss->self, 4.0s cast, range 40 circle
+    W2000MinaSwing = 19285, // Boss->self, 4.0s cast, range 12 circle
+    EyeOfTheCyclone = 19287, // Boss->self, 4.0s cast, range 8-25 donut
+    TerribleHammer = 19293, // Helper->self, no cast, range 10 width 10 rect
+    TerribleBlade = 19294, // Helper->self, no cast, range 10 width 10 rect
+    RagingGlower = 19286, // Boss->self, 3.0s cast, range 45 width 6 rect
+    W2000MinaSwipe = 19284, // Boss->self, 4.0s cast, range 12 120-degree cone
+    OpenHearth = 19296, // Helper->player, 5.0s cast, range 6 circle
+    WanderersPyre = 19295, // Helper->player, 5.0s cast, range 5 circle
 }
 
-class FinalVerse(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_TheFinalVerse));
-class C2000MinaSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_2000MinaSwing), new AOEShapeCircle(12));
-class WanderersPyre(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID._Weaponskill_WanderersPyre1), 5);
-class OpenHearth(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID._Weaponskill_OpenHearth1), 6);
-class RagingGlower(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_RagingGlower), new AOEShapeRect(45, 3));
-class C2000MinaSwipe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_2000MinaSwipe), new AOEShapeCone(12, 60.Degrees()));
-class EyeOfTheCyclone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_EyeOfTheCyclone), new AOEShapeDonut(8, 25));
+class FinalVerse(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TheFinalVerse));
+class C2000MinaSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.W2000MinaSwing), new AOEShapeCircle(12));
+class WanderersPyre(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.WanderersPyre), 5);
+class OpenHearth(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.OpenHearth), 6);
+class RagingGlower(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RagingGlower), new AOEShapeRect(45, 3));
+class C2000MinaSwipe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.W2000MinaSwipe), new AOEShapeCone(12, 60.Degrees()));
+class EyeOfTheCyclone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EyeOfTheCyclone), new AOEShapeDonut(8, 25));
 class Terrible(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<List<AOEInstance>> aoes = [];
@@ -66,9 +61,8 @@ class Terrible(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_TerribleHammer1 or AID._Weaponskill_TerribleBlade1)
+        if ((AID)spell.Action.ID is AID.TerribleHammer or AID.TerribleBlade)
         {
-            Service.Log($"bonk (aoe groups = {aoes.Count})");
             if (aoes.Count > 0)
             {
                 aoes[0].RemoveAt(0);

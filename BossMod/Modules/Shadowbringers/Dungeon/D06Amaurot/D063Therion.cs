@@ -17,14 +17,14 @@ public enum AID : uint
 
     DeathlyRayVisualFaces1 = 15579, // Boss->self, 3.0s cast, single-target
     DeathlyRayVisualFaces2 = 16786, // Boss->self, no cast, single-target
-    DeathlyRayVisualThereion1 = 17107, // Helper->self, 5.0s cast, range 80 width 6 rect
-    DeathlyRayVisualThereion2 = 15582, // Boss->self, 3.0s cast, single-target
-    DeathlyRayVisualThereion3 = 16785, // Boss->self, no cast, single-target
+    DeathlyRayVisualTherion1 = 17107, // Helper->self, 5.0s cast, range 80 width 6 rect
+    DeathlyRayVisualTherion2 = 15582, // Boss->self, 3.0s cast, single-target
+    DeathlyRayVisualTherion3 = 16785, // Boss->self, no cast, single-target
 
     DeathlyRayFacesFirst = 15580, // TheFaceOfTheBeast->self, no cast, range 60 width 6 rect
     DeathlyRayFacesRest = 15581, // Helper->self, no cast, range 60 width 6 rect
-    DeathlyRayThereionFirst = 15583, // Helper->self, no cast, range 60 width 6 rect
-    DeathlyRayThereionRest = 15585, // Helper->self, no cast, range 60 width 6 rect
+    DeathlyRayTherionFirst = 15583, // Helper->self, no cast, range 60 width 6 rect
+    DeathlyRayTherionRest = 15585, // Helper->self, no cast, range 60 width 6 rect
     Misfortune = 15586, // Helper->location, 3.0s cast, range 6 circle
 }
 
@@ -106,7 +106,7 @@ class DeathlyRayTherion(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.DeathlyRayVisualThereion1)
+        if ((AID)spell.Action.ID == AID.DeathlyRayVisualTherion1)
             _aoe = new(new AOEShapeRect(60, 3), caster.Position, spell.Rotation, Module.CastFinishAt(spell));
     }
 
@@ -114,8 +114,8 @@ class DeathlyRayTherion(BossModule module) : Components.GenericAOEs(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID.DeathlyRayThereionFirst:
-            case AID.DeathlyRayThereionRest:
+            case AID.DeathlyRayTherionFirst:
+            case AID.DeathlyRayTherionRest:
                 if (++NumCasts >= 5)
                 {
                     _aoe = null;
@@ -163,8 +163,8 @@ class Border : Components.GenericAOEs
 
     public int Stage { get; private set; }
 
-    private BitMask MissingPlatforms = new();
-    private BitMask UnsafePlatforms = new();
+    private BitMask MissingPlatforms;
+    private BitMask UnsafePlatforms;
 
     public IEnumerable<WPos> UnsafePlatformPositions => SidePlatforms.Where((_, i) => UnsafePlatforms[i]).Select(p => OriginalCenter + p);
 

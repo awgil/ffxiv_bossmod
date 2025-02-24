@@ -10,43 +10,38 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 870, // Boss/Unknown->player, no cast, single-target
-    _Ability_NursedGrudge = 19309, // Boss->self, no cast, single-target
-    _Ability_Scrutiny = 20005, // Boss->self, 13.0s cast, single-target
-    _Weaponskill_FetidFang = 19305, // Boss->player, 4.0s cast, single-target
-    _Weaponskill_FetidFang1 = 19314, // Unknown->player, 4.0s cast, single-target
-    _Weaponskill_Reflection = 19311, // Boss->self, 1.2s cast, range 40 45-degree cone
-    _Weaponskill_Explosion = 19310, // SinisterBubble->self, 14.0s cast, range 8 circle
-    _Weaponskill_LuminousRay = 20006, // Boss->self, 5.0s cast, range 50 width 8 rect
-    _Weaponskill_LuminousRay1 = 20007, // Unknown->self, 5.0s cast, range 50 width 8 rect
-    _Weaponskill_Inscrutability = 19306, // Boss->self, 4.0s cast, range 40 circle
-    _Weaponskill_Inscrutability1 = 19315, // Unknown->self, 4.0s cast, range 40 circle
-    EctoplasmMark1 = 19319, // Helper->player, no cast, single-target
-    EctoplasmMark2 = 19312, // Helper->player, no cast, single-target
-    _Ability_EctoplasmicRay = 19321, // Boss->self, 5.0s cast, single-target
-    _Ability_EctoplasmicRay1 = 19322, // Unknown->self, 5.0s cast, single-target
+    FetidFang = 19305, // Boss->player, 4.0s cast, single-target
+    FetidFang1 = 19314, // Unknown->player, 4.0s cast, single-target
+    Reflection = 19311, // Boss->self, 1.2s cast, range 40 45-degree cone
+    Explosion = 19310, // SinisterBubble->self, 14.0s cast, range 8 circle
+    LuminousRay = 20006, // Boss->self, 5.0s cast, range 50 width 8 rect
+    LuminousRay1 = 20007, // Unknown->self, 5.0s cast, range 50 width 8 rect
+    Inscrutability = 19306, // Boss->self, 4.0s cast, range 40 circle
+    Inscrutability1 = 19315, // Unknown->self, 4.0s cast, range 40 circle
+    Clearout = 19307, // Boss->self, 3.0s cast, range 9 120-degree cone
+    Clearout1 = 19316, // Unknown->self, 3.0s cast, range 9 120-degree cone
+    Setback = 19308, // Boss->self, 3.0s cast, range 9 120-degree cone
+    Setback1 = 19317, // Unknown->self, 3.0s cast, range 9 120-degree cone
+
+    EctoplasmicMark1 = 19319, // Helper->player, no cast, single-target
+    EctoplasmicMark2 = 19312, // Helper->player, no cast, single-target
     EctoplasmicRay1 = 19320, // Unknown->self, no cast, range 50 width 8 rect
     EctoplasmicRay2 = 19313, // Boss->self, no cast, range 50 width 8 rect
-    _Weaponskill_PlainWeirdness = 20043, // Unknown->self, 3.0s cast, single-target
-    _Weaponskill_Clearout = 19307, // Boss->self, 3.0s cast, range 9 120-degree cone
-    _Weaponskill_Clearout1 = 19316, // Unknown->self, 3.0s cast, range 9 120-degree cone
-    _Weaponskill_Setback = 19308, // Boss->self, 3.0s cast, range 9 120-degree cone
-    _Weaponskill_Setback1 = 19317, // Unknown->self, 3.0s cast, range 9 120-degree cone
 }
 
-class Clearout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Clearout), new AOEShapeCone(9, 60.Degrees()));
-class Clearout1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Clearout1), new AOEShapeCone(9, 60.Degrees()));
-class Setback(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Setback), new AOEShapeCone(9, 60.Degrees()));
-class Setback1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Setback1), new AOEShapeCone(9, 60.Degrees()));
-class FetidFang(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID._Weaponskill_FetidFang));
-class FetidFang1(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID._Weaponskill_FetidFang1));
-class LuminousRay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_LuminousRay), new AOEShapeRect(50, 4));
-class LuminousRay1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_LuminousRay1), new AOEShapeRect(50, 4));
-class Inscrutability(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_Inscrutability));
-class Inscrutability1(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_Inscrutability1));
-class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Explosion), new AOEShapeCircle(8));
-class EctoplasmicRay(BossModule module) : Components.SimpleLineStack(module, 4, 50, ActionID.MakeSpell(AID.EctoplasmMark1), ActionID.MakeSpell(AID.EctoplasmicRay1), 5.2f);
-class EctoplasmicRay2(BossModule module) : Components.SimpleLineStack(module, 4, 50, ActionID.MakeSpell(AID.EctoplasmMark2), ActionID.MakeSpell(AID.EctoplasmicRay2), 5.2f);
+class Clearout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Clearout), new AOEShapeCone(9, 60.Degrees()));
+class Clearout1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Clearout1), new AOEShapeCone(9, 60.Degrees()));
+class Setback(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Setback), new AOEShapeCone(9, 60.Degrees()));
+class Setback1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Setback1), new AOEShapeCone(9, 60.Degrees()));
+class FetidFang(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.FetidFang));
+class FetidFang1(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.FetidFang1));
+class LuminousRay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LuminousRay), new AOEShapeRect(50, 4));
+class LuminousRay1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LuminousRay1), new AOEShapeRect(50, 4));
+class Inscrutability(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Inscrutability));
+class Inscrutability1(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Inscrutability1));
+class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion), new AOEShapeCircle(8));
+class EctoplasmicRay(BossModule module) : Components.SimpleLineStack(module, 4, 50, ActionID.MakeSpell(AID.EctoplasmicMark1), ActionID.MakeSpell(AID.EctoplasmicRay1), 5.2f);
+class EctoplasmicRay2(BossModule module) : Components.SimpleLineStack(module, 4, 50, ActionID.MakeSpell(AID.EctoplasmicMark2), ActionID.MakeSpell(AID.EctoplasmicRay2), 5.2f);
 
 class Reflection(BossModule module) : Components.GenericAOEs(module)
 {
@@ -76,7 +71,7 @@ class Reflection(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_Reflection)
+        if ((AID)spell.Action.ID == AID.Reflection)
             _aoe = null;
     }
 }

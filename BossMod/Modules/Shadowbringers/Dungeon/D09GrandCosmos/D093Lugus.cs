@@ -8,28 +8,24 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 870, // Boss->player, no cast, single-target
-    _Weaponskill_ScorchingRight = 18274, // Boss->self, 5.0s cast, range 40 180-degree cone
-    _Spell_BlackFlame = 18269, // Helper->players, no cast, range 6 circle
-    _Weaponskill_OtherworldlyHeat = 18267, // Boss->self, 5.0s cast, single-target
-    _Weaponskill_OtherworldlyHeat1 = 18268, // Helper->self, 2.5s cast, range 10 width 4 cross
-    _Weaponskill_CaptiveBolt = 18276, // Boss->player, 5.0s cast, single-target
-    _Weaponskill_MortalFlame = 18265, // Boss->self, 5.0s cast, single-target
-    _Weaponskill_MortalFlame1 = 18266, // Helper->player, 5.5s cast, single-target
-    _Weaponskill_FiresDomain = 18270, // Boss->self, 8.0s cast, single-target
+    ScorchingRight = 18274, // Boss->self, 5.0s cast, range 40 180-degree cone
+    ScorchingLeft = 18275, // Boss->self, 5.0s cast, range 40 180-degree cone
+    BlackFlame = 18269, // Helper->players, no cast, range 6 circle
+    OtherworldlyHeat1 = 18268, // Helper->self, 2.5s cast, range 10 width 4 cross
+    CaptiveBolt = 18276, // Boss->player, 5.0s cast, single-target
+
+    // no idea what the difference is between these
     FiresDomain1 = 18272, // Boss->player, no cast, width 4 rect charge
     FiresDomain2 = 18271, // Boss->player, no cast, width 4 rect charge
-    _Weaponskill_FiresIre = 18273, // Boss->self, 2.0s cast, range 20 90-degree cone
-    _Weaponskill_CullingBlade = 18277, // Boss->self, 6.0s cast, range 80 circle
-    _Ability_ = 18278, // Helper->self, no cast, range 80 circle
-    _Weaponskill_Plummet = 18279, // Helper->self, 1.6s cast, range 3 circle
-    _Weaponskill_ScorchingLeft = 18275, // Boss->self, 5.0s cast, range 40 180-degree cone
+
+    FiresIre = 18273, // Boss->self, 2.0s cast, range 20 90-degree cone
+    CullingBlade = 18277, // Boss->self, 6.0s cast, range 80 circle
+    Plummet = 18279, // Helper->self, 1.6s cast, range 3 circle
 }
 
 public enum SID : uint
 {
-    _Gen_VulnerabilityUp = 1789, // Helper/Boss->player, extra=0x1/0x2/0x3/0x4/0x5/0x6/0x7/0x8
-    _Gen_MortalFlame = 2136, // Helper->player, extra=0x0/0x50/0xA0/0xF0/0x140
+    MortalFlame = 2136, // Helper->player, extra=0x0/0x50/0xA0/0xF0/0x140
 }
 
 public enum IconID : uint
@@ -43,13 +39,13 @@ public enum IconID : uint
     Tankbuster = 218 // player
 }
 
-class CullingBlade(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_CullingBlade));
-class CaptiveBolt(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID._Weaponskill_CaptiveBolt));
-class Plummet(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Plummet), new AOEShapeCircle(3));
-class ScorchingRight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_ScorchingRight), new AOEShapeCone(40, 90.Degrees()));
-class ScorchingLeft(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_ScorchingLeft), new AOEShapeCone(40, 90.Degrees()));
-class OtherworldlyHeat(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_OtherworldlyHeat1), new AOEShapeCross(10, 2));
-class FiresIre(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_FiresIre), new AOEShapeCone(20, 45.Degrees()));
+class CullingBlade(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CullingBlade));
+class CaptiveBolt(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CaptiveBolt));
+class Plummet(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Plummet), new AOEShapeCircle(3));
+class ScorchingRight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScorchingRight), new AOEShapeCone(40, 90.Degrees()));
+class ScorchingLeft(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScorchingLeft), new AOEShapeCone(40, 90.Degrees()));
+class OtherworldlyHeat(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OtherworldlyHeat1), new AOEShapeCross(10, 2));
+class FiresIre(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FiresIre), new AOEShapeCone(20, 45.Degrees()));
 class BlackFlame(BossModule module) : BossComponent(module)
 {
     private BitMask targets;
@@ -71,7 +67,7 @@ class BlackFlame(BossModule module) : BossComponent(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Spell_BlackFlame)
+        if ((AID)spell.Action.ID == AID.BlackFlame)
         {
             targets.Clear(Raid.FindSlot(spell.MainTargetID));
             if (!targets.Any())
@@ -110,6 +106,7 @@ class BlackFlame(BossModule module) : BossComponent(module)
 
     private bool IntersectFurniture(Actor furniture, WPos player) => IntersectBubble(furniture, player, 2, 10) || IntersectBubble(furniture, player, 10, 2);
 
+    // TODO replace with Intersect.CircleAARect
     private bool IntersectBubble(Actor furniture, WPos rectCenter, float halfWidth, float halfHeight)
     {
         var radius = furniture.HitboxRadius;
@@ -142,13 +139,13 @@ class MortalFlame(BossModule module) : BossComponent(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_MortalFlame && actor.Type != ActorType.Enemy)
+        if ((SID)status.ID == SID.MortalFlame && actor.Type != ActorType.Enemy)
             SetTimer(Raid.FindSlot(actor.InstanceID), (float)(status.ExpireAt - WorldState.CurrentTime).TotalSeconds);
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_MortalFlame)
+        if ((SID)status.ID == SID.MortalFlame)
             SetTimer(Raid.FindSlot(actor.InstanceID), 0);
     }
 

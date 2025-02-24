@@ -2,49 +2,26 @@
 
 public enum OID : uint
 {
-    _Gen_ = 0x2E20, // R4.000, x1
-    _Gen_1 = 0x2E1E, // R5.000, x1
-    _Gen_2 = 0x3346, // R0.500, x1
-    _Gen_3 = 0x3345, // R0.500, x1
-    _Gen_4 = 0x3344, // R0.500, x2
-    _Gen_5 = 0x3353, // R2.000, x3
-    _Gen_6 = 0x3355, // R1.000, x1
-    _Gen_7 = 0x3343, // R0.500, x1
-    Helper = 0x233C, // R0.500, x6, Helper type
-    _Gen_MagitekFortress = 0x32FE, // R1.000, x1
-    _Gen_TemperedImperial = 0x31AD, // R0.500, x3 (spawn during fight)
-    _Gen_TelotekPredator = 0x31AF, // R2.100, x2 (spawn during fight)
     Boss = 0x31AC, // R2.300, x1
-    _Gen_MarkIITelotekColossus = 0x31AE, // R3.000, x0 (spawn during fight)
-    _Gen_TelotekSkyArmor = 0x31B0, // R2.000, x0 (spawn during fight)
-    _Gen_MagitekMissile = 0x31B2, // R1.000, x0 (spawn during fight)
+    MagitekMissile = 0x31B2, // R1.000, x0 (spawn during fight)
 }
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 870, // _Gen_7/_Gen_1/_Gen_/_Gen_4/_Gen_TemperedImperial/_Gen_TelotekPredator/_Gen_TelotekSkyArmor/_Gen_MarkIITelotekColossus->player/3326/31D4, no cast, single-target
-    _Spell_Fire = 24827, // _Gen_2->318A, 1.0s cast, single-target
-    _AutoAttack_Attack1 = 872, // _Gen_3/_Gen_6->31D4/3326, no cast, single-target
-    _Weaponskill_ = 24866, // _Gen_5->3326/31D4, 3.0s cast, single-target
-    _Weaponskill_1 = 21174, // _Gen_1->self, no cast, range 20 ?-degree cone
-    _Weaponskill_2 = 24864, // _Gen_5->3326/31D4, no cast, single-target
-    _Weaponskill_MagitekClaw = 23706, // _Gen_TelotekPredator->player, 4.0s cast, single-target
-    _Weaponskill_3 = 21175, // _Gen_->self, no cast, range 9 circle
-    _Ability_StableCannon = 23700, // Helper->self, no cast, range 60 width 10 rect
-    _Weaponskill_DefensiveReaction = 23710, // Boss->self, 5.0s cast, range 60 circle
-    _Ability_Aethershot = 23708, // _Gen_TelotekSkyArmor->location, 4.0s cast, range 6 circle
-    __ = 10758, // _Gen_MagitekMissile->self, no cast, single-target
-    _Ability_GroundToGroundBallistic = 23703, // Helper->location, 5.0s cast, range 40 circle
-    _Weaponskill_Exhaust = 23705, // _Gen_MarkIITelotekColossus->self, 4.0s cast, range 40 width 7 rect
-    _Weaponskill_ExplosiveForce = 23704, // _Gen_MagitekMissile->player, no cast, single-target
-    _Ability_2TonzeMagitekMissile = 23701, // Helper->location, 5.0s cast, range 12 circle
+    StableCannon = 23700, // Helper->self, no cast, range 60 width 10 rect
+    DefensiveReaction = 23710, // Boss->self, 5.0s cast, range 60 circle
+    Aethershot = 23708, // TelotekSkyArmor->location, 4.0s cast, range 6 circle
+    GroundToGroundBallistic = 23703, // Helper->location, 5.0s cast, range 40 circle
+    Exhaust = 23705, // MarkIITelotekColossus->self, 4.0s cast, range 40 width 7 rect
+    ExplosiveForce = 23704, // MagitekMissile->player, no cast, single-target
+    W2TonzeMagitekMissile = 23701, // Helper->location, 5.0s cast, range 12 circle
 }
 
-class DefensiveReaction(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_DefensiveReaction));
-class Aethershot(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Ability_Aethershot), 6);
-class Exhaust(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID._Weaponskill_Exhaust), new AOEShapeRect(40, 3.5f));
+class DefensiveReaction(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.DefensiveReaction));
+class Aethershot(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Aethershot), 6);
+class Exhaust(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Exhaust), new AOEShapeRect(40, 3.5f));
 
-class TwoTonze(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Ability_2TonzeMagitekMissile), 12);
+class C2TonzeMagitekMissile(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.W2TonzeMagitekMissile), 12);
 
 class StableCannon(BossModule module) : Components.GenericAOEs(module)
 {
@@ -70,15 +47,14 @@ class StableCannon(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_StableCannon)
+        if ((AID)spell.Action.ID == AID.StableCannon)
             aoes.RemoveAt(0);
     }
 }
 
-class GroundToGroundBallistic(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID._Ability_GroundToGroundBallistic), 10, stopAtWall: true)
+class GroundToGroundBallistic(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.GroundToGroundBallistic), 10, stopAtWall: true)
 {
     private StableCannon? cannons;
 
@@ -165,7 +141,7 @@ class MagitekMissile(BossModule module) : BossComponent(module)
 
     public override void OnActorCreated(Actor actor)
     {
-        if ((OID)actor.OID == OID._Gen_MagitekMissile)
+        if ((OID)actor.OID == OID.MagitekMissile)
             Missiles.Add(actor);
     }
 
@@ -176,7 +152,7 @@ class MagitekMissile(BossModule module) : BossComponent(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_ExplosiveForce)
+        if ((AID)spell.Action.ID == AID.ExplosiveForce)
             Missiles.Remove(caster);
     }
 
@@ -204,7 +180,7 @@ class MagitekCoreStates : StateMachineBuilder
             .ActivateOnEnter<Aethershot>()
             .ActivateOnEnter<Exhaust>()
             .ActivateOnEnter<MagitekMissile>()
-            .ActivateOnEnter<TwoTonze>()
+            .ActivateOnEnter<C2TonzeMagitekMissile>()
             .ActivateOnEnter<DefensiveReaction>();
     }
 }
