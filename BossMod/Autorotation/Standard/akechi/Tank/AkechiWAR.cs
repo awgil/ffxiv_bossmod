@@ -101,52 +101,53 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Priorities
-    private GCDPriority FellCleave()
+    //TODO: I am too lazy to convert this
+    private NewGCDPriority FellCleave()
     {
         var ncActive = CanFitSkSGCD(NascentChaos.Left);
         if (ncActive)
         {
             var prExpiringSoon = CanFitSkSGCD(PrimalRend.Left) && !CanFitSkSGCD(PrimalRend.Left, 2);
             if (!CanFitSkSGCD(NascentChaos.Left, prExpiringSoon ? 2 : 1))
-                return GCDPriority.LastChanceIC;
+                return NewGCDPriority.LastChanceIC;
         }
 
         var irActive = CanFitSkSGCD(InnerRelease.Left);
         var effectiveIRStacks = InnerRelease.Stacks + (ncActive ? 1 : 0);
         if (irActive && !CanFitSkSGCD(InnerRelease.Left, effectiveIRStacks))
-            return GCDPriority.LastChanceFC;
+            return NewGCDPriority.LastChanceFC;
 
         var needFCBeforeInf = ncActive || BeastGauge > 50;
         if (needFCBeforeInf && !CanFitSkSGCD(Infuriate.TotalCD - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) - SkSGCDLength, 1))
-            return GCDPriority.AvoidOvercapInfuriateNext;
+            return NewGCDPriority.AvoidOvercapInfuriateNext;
 
         var numFCBeforeInf = InnerRelease.Stacks + ((ncActive || BeastGauge > 50) ? 1 : 0);
         if (irActive && !CanFitSkSGCD(InnerRelease.Left, numFCBeforeInf + 1) && !CanFitSkSGCD(Infuriate.TotalCD - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) * numFCBeforeInf - SkSGCDLength, numFCBeforeInf))
-            return GCDPriority.AvoidOvercapInfuriateIR;
+            return NewGCDPriority.AvoidOvercapInfuriateIR;
 
         var imminentIRStacks = ncActive ? 4 : 3;
         if (needFCBeforeInf && !CanFitSkSGCD(InnerRelease.CD, 1) && !CanFitSkSGCD(Infuriate.TotalCD - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) * imminentIRStacks - SkSGCDLength, imminentIRStacks))
-            return GCDPriority.AvoidOvercapInfuriateIR;
+            return NewGCDPriority.AvoidOvercapInfuriateIR;
 
         if (CanFitSkSGCD(BurstWindowLeft))
-            return irActive ? GCDPriority.BuffedIR : GCDPriority.BuffedFC;
+            return irActive ? NewGCDPriority.BuffedIR : NewGCDPriority.BuffedFC;
 
         if (irActive)
         {
             var maxFillers = (int)((InnerRelease.Left - GCD) / SkSGCDLength) + 1 - effectiveIRStacks;
             var canDelayFC = maxFillers > 0 && !CanFitSkSGCD(BurstWindowIn, maxFillers);
-            return canDelayFC ? GCDPriority.DelayFC : GCDPriority.FlexibleIR;
+            return canDelayFC ? NewGCDPriority.DelayFC : NewGCDPriority.FlexibleIR;
         }
         else if (ncActive)
         {
-            return NascentChaos.Left > BurstWindowIn ? GCDPriority.DelayFC : GCDPriority.FlexibleFC;
+            return NascentChaos.Left > BurstWindowIn ? NewGCDPriority.DelayFC : NewGCDPriority.FlexibleFC;
         }
         else
         {
-            return GCDPriority.DelayFC;
+            return NewGCDPriority.DelayFC;
         }
     }
-    public enum GCDPriority
+    private enum NewGCDPriority
     {
         None = 0,
         Gauge = 300,
@@ -172,7 +173,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         ForcedGCD = 900,
         GapclosePR = 990,
     }
-    public enum OGCDPriority
+    public enum NewOGCDPriority
     {
         None = 0,
         Standard = 100,
@@ -353,19 +354,19 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         if (strategy.AutoFinish())
             QueueGCD(BestRotation(),
                 TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
-                IsRiskingGauge() ? GCDPriority.Standard - 400 : GCDPriority.Standard);
+                IsRiskingGauge() ? NewGCDPriority.Standard - 400 : NewGCDPriority.Standard);
         if (strategy.AutoBreak())
             QueueGCD(ShouldUseAOE ? AOE() : ST(),
                 TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
-                IsRiskingGauge() ? GCDPriority.Standard - 400 : GCDPriority.Standard);
+                IsRiskingGauge() ? NewGCDPriority.Standard - 400 : NewGCDPriority.Standard);
         if (strategy.ForceST())
             QueueGCD(ST(),
                 TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
-                IsRiskingGauge() ? GCDPriority.Standard - 400 : GCDPriority.ForcedCombo);
+                IsRiskingGauge() ? NewGCDPriority.Standard - 400 : NewGCDPriority.ForcedCombo);
         if (strategy.ForceAOE())
             QueueGCD(AOE(),
                 Player,
-                IsRiskingGauge() ? GCDPriority.Standard - 400 : GCDPriority.ForcedCombo);
+                IsRiskingGauge() ? NewGCDPriority.Standard - 400 : NewGCDPriority.ForcedCombo);
         #endregion
 
         #region Cooldowns
@@ -382,8 +383,8 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
                             or OGCDStrategy.AnyWeave
                             or OGCDStrategy.EarlyWeave
                             or OGCDStrategy.LateWeave
-                            ? OGCDPriority.ForcedOGCD
-                            : OGCDPriority.InnerRelease);
+                            ? NewOGCDPriority.ForcedOGCD
+                            : NewOGCDPriority.InnerRelease);
                 }
                 if (ShouldUseUpheavalOrOrogeny(uoStrat, primaryTarget))
                 {
@@ -392,28 +393,28 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
                             TargetChoice(uo) ?? primaryTarget?.Actor,
                             uoStrat is UpheavalStrategy.ForceUpheaval
                             or UpheavalStrategy.ForceOrogeny
-                            ? OGCDPriority.ForcedOGCD
-                            : OGCDPriority.Upheaval);
+                            ? NewOGCDPriority.ForcedOGCD
+                            : NewOGCDPriority.Upheaval);
                     if (uoStrat is UpheavalStrategy.OnlyUpheaval)
                         QueueOGCD(AID.Upheaval,
                             TargetChoice(uo) ?? primaryTarget?.Actor,
                             uoStrat is UpheavalStrategy.ForceUpheaval
-                            ? OGCDPriority.ForcedOGCD
-                            : OGCDPriority.Upheaval);
+                            ? NewOGCDPriority.ForcedOGCD
+                            : NewOGCDPriority.Upheaval);
                     if (uoStrat is UpheavalStrategy.OnlyOrogeny)
                         QueueOGCD(BestOrogeny,
                             TargetChoice(uo) ?? primaryTarget?.Actor,
                             uoStrat is UpheavalStrategy.ForceOrogeny
-                            ? OGCDPriority.ForcedOGCD
-                            : OGCDPriority.Upheaval);
+                            ? NewOGCDPriority.ForcedOGCD
+                            : NewOGCDPriority.Upheaval);
                 }
                 if (ShouldUseInfuriate(infStrat, primaryTarget))
                     QueueOGCD(AID.Infuriate,
                         Player,
                         infStrat is InfuriateStrategy.Force
                         or InfuriateStrategy.ForceOvercap
-                        ? OGCDPriority.ForcedOGCD
-                        : OGCDPriority.Infuriate);
+                        ? NewOGCDPriority.ForcedOGCD
+                        : NewOGCDPriority.Infuriate);
 
                 if (ShouldUsePrimalRend(prendStrat, primaryTarget))
                     QueueGCD(AID.PrimalRend,
@@ -421,8 +422,8 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
                         prendStrat is PrimalRendStrategy.Force
                         or PrimalRendStrategy.ASAP
                         or PrimalRendStrategy.ASAPNotMoving
-                        ? GCDPriority.ForcedGCD
-                        : GCDPriority.PrimalRend);
+                        ? NewGCDPriority.ForcedGCD
+                        : NewGCDPriority.PrimalRend);
 
                 if (ShouldUsePrimalWrath(pwrathStrat, primaryTarget))
                     QueueGCD(AID.PrimalWrath,
@@ -431,22 +432,22 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
                         or OGCDStrategy.AnyWeave
                         or OGCDStrategy.EarlyWeave
                         or OGCDStrategy.LateWeave
-                        ? OGCDPriority.ForcedOGCD
-                        : OGCDPriority.PrimalWrath);
+                        ? NewOGCDPriority.ForcedOGCD
+                        : NewOGCDPriority.PrimalWrath);
 
                 if (ShouldUsePrimalRuination(pruinStrat, primaryTarget))
                     QueueGCD(AID.PrimalRuination,
                         TargetChoice(pruin) ?? BestSplashTarget?.Actor,
                         pruinStrat is GCDStrategy.Force
-                        ? GCDPriority.ForcedGCD
-                        : GCDPriority.PrimalRuination);
+                        ? NewGCDPriority.ForcedGCD
+                        : NewGCDPriority.PrimalRuination);
                 if (ShouldUseOnslaught(onsStrat, primaryTarget))
                     QueueOGCD(AID.Onslaught,
                         TargetChoice(ons) ?? primaryTarget?.Actor,
                         onsStrat is OnslaughtStrategy.Force
                         or OnslaughtStrategy.GapClose
-                        ? OGCDPriority.ForcedOGCD
-                        : OGCDPriority.Standard);
+                        ? NewOGCDPriority.ForcedOGCD
+                        : NewOGCDPriority.Standard);
             }
             if (!strategy.HoldGauge())
             {
@@ -457,37 +458,37 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
                             TargetChoice(bg) ?? primaryTarget?.Actor,
                             bgStrat is GaugeStrategy.ForceST
                             or GaugeStrategy.ForceAOE
-                            ? GCDPriority.ForcedGCD
+                            ? NewGCDPriority.ForcedGCD
                             : FellCleave());
                     if (bgStrat is GaugeStrategy.OnlyST)
                         QueueGCD(AID.FellCleave,
                             TargetChoice(bg) ?? primaryTarget?.Actor,
                             bgStrat is GaugeStrategy.ForceST
-                            ? GCDPriority.ForcedGCD
+                            ? NewGCDPriority.ForcedGCD
                             : IsRiskingGauge()
-                            ? GCDPriority.NeedGauge
-                            : GCDPriority.Gauge);
+                            ? NewGCDPriority.NeedGauge
+                            : NewGCDPriority.Gauge);
                     if (bgStrat is GaugeStrategy.OnlyAOE)
                         QueueGCD(AID.Decimate,
                             Unlocked(AID.Decimate)
                             ? Player
                             : TargetChoice(bg) ?? primaryTarget?.Actor,
                             bgStrat is GaugeStrategy.ForceAOE
-                            ? GCDPriority.ForcedGCD
+                            ? NewGCDPriority.ForcedGCD
                             : IsRiskingGauge()
-                            ? GCDPriority.NeedGauge
-                            : GCDPriority.Gauge);
+                            ? NewGCDPriority.NeedGauge
+                            : NewGCDPriority.Gauge);
                 }
             }
         }
         if (ShouldUseTomahawk(TomahawkStrat, primaryTarget))
             QueueGCD(AID.Tomahawk,
                 TargetChoice(Tomahawk) ?? primaryTarget?.Actor,
-                GCDPriority.Standard);
+                NewGCDPriority.Standard);
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr,
                 Player,
-                ActionQueue.Priority.VeryHigh + (int)OGCDPriority.ForcedOGCD,
+                ActionQueue.Priority.VeryHigh + (int)NewOGCDPriority.ForcedOGCD,
                 0,
                 GCD - 0.9f);
         #endregion

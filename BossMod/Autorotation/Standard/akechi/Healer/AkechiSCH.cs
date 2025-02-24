@@ -19,13 +19,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi SCH", //Title
-            "Standard Rotation Module", //Description
-            "Standard rotation (Akechi)|Healer", //Category
-            "Akechi", //Contributor
-            RotationModuleQuality.Ok, //Quality
-            BitMask.Build((int)Class.SCH), //Job
-            100); //Level supported
+        var res = new RotationModuleDefinition("Akechi SCH", "Standard Rotation Module", "Standard rotation (Akechi)|Healer", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.SCH), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", "AOE", uiPriority: 200)
             .AddOption(AOEStrategy.Auto, "Auto", "Automatically decide when to use ST or AOE abilities")
@@ -48,8 +42,8 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         res.Define(Track.EnergyDrain).As<EnergyStrategy>("Energy Drain", "E.Drain", uiPriority: 150)
             .AddOption(EnergyStrategy.Use3, "UseAll", "Uses all stacks of Aetherflow for Energy Drain; conserves no stacks for manual usage", 0, 0, ActionTargets.Hostile, 45)
-            .AddOption(EnergyStrategy.Use2, "Use2", "Uses 2 stacks of Aetherflow for Energy Drain; conserves 1 stack for manual usage", 0, 0, ActionTargets.Hostile, 45)
-            .AddOption(EnergyStrategy.Use1, "Use1", "Uses 1 stack of Aetherflow for Energy Drain; conserves 2 stacks for manual usage", 0, 0, ActionTargets.Hostile, 45)
+            .AddOption(EnergyStrategy.Use2, "Use2", "Uses 2 stacks of Aetherflow for Energy Drain; conserves 1 stack for manual usage, but consumes any remaining when Aetherflow ability is about to be up", 0, 0, ActionTargets.Hostile, 45)
+            .AddOption(EnergyStrategy.Use1, "Use1", "Uses 1 stack of Aetherflow for Energy Drain; conserves 2 stacks for manual usage, but consumes any remaining when Aetherflow ability is about to be up", 0, 0, ActionTargets.Hostile, 45)
             .AddOption(EnergyStrategy.Force, "Force", "Force use of Energy Drain if any Aetherflow is available", 0, 0, ActionTargets.None, 45)
             .AddOption(EnergyStrategy.Delay, "Delay", "Delay use of Energy Drain", 0, 0, ActionTargets.None, 45)
             .AddAssociatedActions(AID.EnergyDrain);
@@ -74,25 +68,6 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
     }
     #endregion
 
-    #region Priorities
-    public enum GCDPriority //priorities for GCDs (higher number = higher priority)
-    {
-        None = 0,             //default
-        Standard = 300,       //standard abilities
-        DOT = 400,            //damage-over-time abilities
-        ForcedGCD = 900,      //Forced GCDs
-    }
-    public enum OGCDPriority //priorities for oGCDs (higher number = higher priority)
-    {
-        None = 0,             //default
-        EnergyDrain = 300,    //Energy Drain
-        Aetherflow = 400,     //Aetherflow
-        ChainStratagem = 500, //Chain Stratagem
-        Potion = 800,         //Potion
-        ForcedOGCD = 900,     //Forced oGCDs
-    }
-    #endregion
-
     #region Upgrade Paths
     private AID BestBroil => Unlocked(AID.Broil4) ? AID.Broil4 : Unlocked(AID.Broil3) ? AID.Broil3 : Unlocked(AID.Broil2) ? AID.Broil2 : AID.Broil1;
     private AID BestRuin => Unlocked(AID.Ruin2) ? AID.Ruin2 : AID.Ruin1;
@@ -103,7 +78,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Module Variables
-    private (int Stacks, bool IsActive) Aetherflow; //Current Aetherflow stacks (max: 3)
+    private (float CD, int Stacks, bool IsActive) Aetherflow; //Current Aetherflow stacks (max: 3)
     private bool canAF; //Checks if Aetherflow is completely available
     private bool canED; //Checks if Energy Drain is completely available
     private bool canCS; //Checks if Chain Stratagem is completely available
@@ -120,13 +95,14 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         var gauge = World.Client.GetGauge<ScholarGauge>(); //Retrieve Scholar gauge
         Aetherflow.Stacks = gauge.Aetherflow; //Current Aetherflow stacks
         Aetherflow.IsActive = Aetherflow.Stacks > 0; //Checks if Aetherflow is available
-        bioLeft = StatusDetails(BestDOTTargets?.Actor, BestDOT, Player.InstanceID).Left;
-        stratagemLeft = StatusDetails(BestDOTTargets, SID.ChainStratagem, Player.InstanceID).Left;
+        Aetherflow.CD = TotalCD(AID.Aetherflow);
+        bioLeft = StatusRemaining(BestDOTTargets?.Actor, BestDOT);
+        stratagemLeft = StatusRemaining(BestDOTTargets?.Actor, SID.ChainStratagem);
         canCS = ActionReady(AID.ChainStratagem); //Chain Stratagem is available
         canED = Unlocked(AID.EnergyDrain) && Aetherflow.IsActive; //Energy Drain is available
         canAF = ActionReady(AID.Aetherflow) && !Aetherflow.IsActive; //Aetherflow is available
         ShouldUseAOE = ShouldUseAOECircle(5).OnTwoOrMore; //otherwise, use AOE if 2+ targets would be hit
-        (BestDOTTargets, bioLeft) = GetDOTTarget(primaryTarget, BioRemaining, 5);
+        (BestDOTTargets, bioLeft) = GetDOTTarget(primaryTarget, BioRemaining, ShouldUseAOECircle(5).OnFourOrMore ? 3 : 4);
         BestDOTTarget = Unlocked(AID.Bio1) ? BestDOTTargets : primaryTarget;
 
         #region Strategy Definitions
@@ -151,43 +127,33 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         if (AOEStrategy == AOEStrategy.Auto)
         {
             if (ShouldUseAOE)
-                QueueGCD(BestAOE, Player, GCDPriority.Standard);
-            if (In25y(TargetChoice(AOE) ?? primaryTarget?.Actor) &&
-                (!ShouldUseAOE || IsFirstGCD()))
-                QueueGCD(IsMoving ? BestRuin : BestST, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Standard);
+                QueueGCD(BestAOE, Player, GCDPriority.Low);
+            if (In25y(TargetChoice(AOE) ?? primaryTarget?.Actor) && (!ShouldUseAOE || IsFirstGCD()))
+                QueueGCD(IsMoving ? BestRuin : BestST, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
         }
         if (AOEStrategy is AOEStrategy.Ruin2)
-            QueueGCD(BestRuin, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);
+            QueueGCD(BestRuin, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Forced);
         if (AOEStrategy is AOEStrategy.Broil)
-            QueueGCD(BestBroil, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ForcedGCD);
+            QueueGCD(BestBroil, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Forced);
         if (AOEStrategy is AOEStrategy.ArtOfWar)
-            QueueGCD(BestAOE, Player, GCDPriority.ForcedGCD);
+            QueueGCD(BestAOE, Player, GCDPriority.Forced);
         if (ShouldUseBio(primaryTarget?.Actor, BioStrategy))
-            QueueGCD(BestBio, TargetChoice(Bio) ?? BestDOTTarget?.Actor, GCDPriority.DOT);
+            QueueGCD(BestBio, TargetChoice(Bio) ?? BestDOTTarget?.Actor, GCDPriority.Average);
         #endregion
 
         #region Cooldowns
         if (PlayerHasEffect(SID.ImpactImminent, 30))
-            QueueOGCD(AID.BanefulImpaction, TargetChoice(Bio) ?? primaryTarget?.Actor, OGCDPriority.ChainStratagem);
+            QueueOGCD(AID.BanefulImpaction, TargetChoice(Bio) ?? primaryTarget?.Actor, OGCDPriority.VeryHigh);
         if (ShouldUseChainStratagem(primaryTarget?.Actor, csStrat))
-            QueueOGCD(AID.ChainStratagem,
-                TargetChoice(cs) ?? primaryTarget?.Actor,
-                csStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                ? OGCDPriority.ForcedOGCD : OGCDPriority.ChainStratagem);
+            QueueOGCD(AID.ChainStratagem, TargetChoice(cs) ?? primaryTarget?.Actor, OGCDPrio(csStrat, OGCDPriority.VeryHigh));
         if (ShouldUseAetherflow(primaryTarget?.Actor, afStrat))
-            QueueOGCD(AID.Aetherflow,
-                Player,
-                afStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                ? OGCDPriority.ForcedOGCD : OGCDPriority.Aetherflow);
+            QueueOGCD(AID.Aetherflow, Player, OGCDPrio(afStrat, OGCDPriority.AboveAverage));
         if (ShouldUseEnergyDrain(primaryTarget?.Actor, edStrat))
-            QueueOGCD(AID.EnergyDrain,
-                TargetChoice(ed) ?? primaryTarget?.Actor,
-                edStrat is EnergyStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.EnergyDrain);
-        if (Player.HPMP.CurMP <= 9000 && CanWeaveIn && ActionReady(AID.LucidDreaming))
-            QueueOGCD(AID.LucidDreaming, Player, OGCDPriority.EnergyDrain);
-        if (potion is PotionStrategy.AlignWithRaidBuffs && TotalCD(AID.ChainStratagem) < 5 ||
-            potion is PotionStrategy.Immediate)
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
+            QueueOGCD(AID.EnergyDrain, TargetChoice(ed) ?? primaryTarget?.Actor, edStrat is EnergyStrategy.Force ? OGCDPriority.Forced : OGCDPriority.Average);
+        if (MP <= 9000 && CanWeaveIn && ActionReady(AID.LucidDreaming))
+            QueueOGCD(AID.LucidDreaming, Player, OGCDPriority.Average);
+        if ((potion is PotionStrategy.AlignWithRaidBuffs && TotalCD(AID.ChainStratagem) < 5) || potion is PotionStrategy.Immediate)
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.VeryCritical, 0, GCD - 0.9f);
         #endregion
 
         #endregion
@@ -202,16 +168,20 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
     #region DOT
     private static SID[] GetDotStatus() => [SID.Bio1, SID.Bio2, SID.Biolysis];
     private float BioRemaining(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 0);
-    private bool ShouldUseBio(Actor? target, BioStrategy strategy) => strategy switch
+    private bool ShouldUseBio(Actor? target, BioStrategy strategy)
     {
-        BioStrategy.Bio3 => Player.InCombat && target != null && bioLeft <= 3 && In25y(target),
-        BioStrategy.Bio6 => Player.InCombat && target != null && bioLeft <= 6 && In25y(target),
-        BioStrategy.Bio9 => Player.InCombat && target != null && bioLeft <= 9 && In25y(target),
-        BioStrategy.Bio0 => Player.InCombat && target != null && bioLeft is 0 && In25y(target),
-        BioStrategy.Force => true,
-        BioStrategy.Delay => false,
-        _ => false
-    };
+        var normalBio = Player.InCombat && target != null && In25y(target);
+        return strategy switch
+        {
+            BioStrategy.Bio3 => normalBio && bioLeft <= 3,
+            BioStrategy.Bio6 => normalBio && bioLeft <= 6,
+            BioStrategy.Bio9 => normalBio && bioLeft <= 9,
+            BioStrategy.Bio0 => normalBio && bioLeft == 0,
+            BioStrategy.Force => true,
+            BioStrategy.Delay => false,
+            _ => false
+        };
+    }
     #endregion
 
     private bool ShouldUseChainStratagem(Actor? target, OGCDStrategy strategy) => strategy switch
@@ -234,14 +204,19 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         OGCDStrategy.Delay => false,
         _ => false
     };
-    private bool ShouldUseEnergyDrain(Actor? target, EnergyStrategy strategy) => strategy switch
+    private bool ShouldUseEnergyDrain(Actor? target, EnergyStrategy strategy)
     {
-        EnergyStrategy.Use3 => canED && In25y(target) && CanWeaveIn,
-        EnergyStrategy.Use2 => canED && Aetherflow.Stacks > 1 && In25y(target) && CanWeaveIn,
-        EnergyStrategy.Use1 => canED && Aetherflow.Stacks > 2 && In25y(target) && CanWeaveIn,
-        EnergyStrategy.Force => canED,
-        EnergyStrategy.Delay => false,
-        _ => false
-    };
+        var normalED = Player.InCombat && target != null && canED && In25y(target) && CanWeaveIn;
+        var needED = Aetherflow.Stacks > 0 && Aetherflow.CD <= 5;
+        return strategy switch
+        {
+            EnergyStrategy.Use3 => normalED,
+            EnergyStrategy.Use2 => normalED && ((Aetherflow.Stacks > 1 && Aetherflow.CD > 5) || needED),
+            EnergyStrategy.Use1 => normalED && ((Aetherflow.Stacks > 2 && Aetherflow.CD > 5) || needED),
+            EnergyStrategy.Force => canED,
+            EnergyStrategy.Delay => false,
+            _ => false
+        };
+    }
     #endregion
 }

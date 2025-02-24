@@ -9,64 +9,13 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track
-    {
-        Burst,
-        Combo,
-        RelentlessRush,
-        TerminalTrigger,
-        GnashingFang,
-        FatedCircle,
-        RoughDivide,
-        Zone,
-        Corundum,
-    }
-
-    public enum BurstStrategy
-    {
-        Automatic,
-        Force,
-        Hold
-    }
-
-    public enum ComboStrategy
-    {
-        Automatic,
-        Force,
-        Hold
-    }
-
-    public enum RushStrategy
-    {
-        Automatic,
-        Force,
-        Hold
-    }
-
-    public enum TriggerStrategy
-    {
-        Automatic,
-        Force,
-        Hold
-    }
-
-    public enum ElixirStrategy
-    {
-        Automatic,
-        Close,
-        Mid,
-        Far,
-        Force,
-        Hold
-    }
-
-    public enum OffensiveStrategy
-    {
-        Automatic,
-        Force,
-        Delay
-    }
-
+    public enum Track { Burst, Combo, RelentlessRush, TerminalTrigger, GnashingFang, FatedCircle, RoughDivide, Zone, Corundum }
+    public enum BurstStrategy { Automatic, Force, Hold }
+    public enum ComboStrategy { Automatic, Force, Hold }
+    public enum RushStrategy { Automatic, Force, Hold }
+    public enum TriggerStrategy { Automatic, Force, Hold }
+    public enum ElixirStrategy { Automatic, Close, Mid, Far, Force, Hold }
+    public enum OffensiveStrategy { Automatic, Force, Delay }
     #endregion
 
     public static RotationModuleDefinition Definition()
@@ -127,7 +76,8 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
     }
 
     #region Priorities
-    public enum GCDPriority
+    //TODO: I am too lazy to convert this
+    public enum NewGCDPriority
     {
         None = 0,
         KeenEdge = 325,
@@ -140,7 +90,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         ForcedGCD = 900,
     }
 
-    public enum OGCDPriority
+    public enum NewOGCDPriority
     {
         None = 0,
         RoughDivide = 400,
@@ -224,49 +174,49 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         GetPvPTarget(ref primaryTarget, 3);
 
         if (!inGF)
-            QueueGCD(NextCombo(), PlayerTarget?.Actor, GCDPriority.Combo);
+            QueueGCD(NextCombo(), PlayerTarget?.Actor, NewGCDPriority.Combo);
         if (strategy.Option(Track.Combo).As<ComboStrategy>() is ComboStrategy.Force)
-            QueueGCD(NextCombo(), PlayerTarget?.Actor, GCDPriority.ForcedGCD);
+            QueueGCD(NextCombo(), PlayerTarget?.Actor, NewGCDPriority.ForcedGCD);
 
         #region OGCDs
         var rdStrat = strategy.Option(Track.RoughDivide).As<OffensiveStrategy>();
         if (!hold &&
             ShouldUseRoughDivide(rdStrat, PlayerTarget?.Actor))
-            QueueOGCD(AID.RoughDividePvP, PlayerTarget?.Actor, rdStrat is OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.RoughDivide);
+            QueueOGCD(AID.RoughDividePvP, PlayerTarget?.Actor, rdStrat is OffensiveStrategy.Force ? NewOGCDPriority.ForcedOGCD : NewOGCDPriority.RoughDivide);
 
         var zoneStrat = strategy.Option(Track.Zone).As<OffensiveStrategy>();
         if (!hold &&
             ShouldUseZone(zoneStrat, PlayerTarget?.Actor))
-            QueueOGCD(AID.BlastingZonePvP, PlayerTarget?.Actor, zoneStrat == OffensiveStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.Zone);
+            QueueOGCD(AID.BlastingZonePvP, PlayerTarget?.Actor, zoneStrat == OffensiveStrategy.Force ? NewOGCDPriority.ForcedOGCD : NewOGCDPriority.Zone);
 
         if (canRip || GunStep == 1)
-            QueueOGCD(AID.JugularRipPvP, PlayerTarget?.Actor, OGCDPriority.Continuation);
+            QueueOGCD(AID.JugularRipPvP, PlayerTarget?.Actor, NewOGCDPriority.Continuation);
         if (canTear || GunStep == 2)
-            QueueOGCD(AID.AbdomenTearPvP, PlayerTarget?.Actor, OGCDPriority.Continuation);
+            QueueOGCD(AID.AbdomenTearPvP, PlayerTarget?.Actor, NewOGCDPriority.Continuation);
         if (canGouge)
-            QueueOGCD(AID.EyeGougePvP, PlayerTarget?.Actor, OGCDPriority.Continuation);
+            QueueOGCD(AID.EyeGougePvP, PlayerTarget?.Actor, NewOGCDPriority.Continuation);
         if (canHyper)
-            QueueOGCD(AID.HypervelocityPvP, PlayerTarget?.Actor, OGCDPriority.Continuation);
+            QueueOGCD(AID.HypervelocityPvP, PlayerTarget?.Actor, NewOGCDPriority.Continuation);
         if (canBrand)
-            QueueOGCD(AID.FatedBrandPvP, PlayerTarget?.Actor, OGCDPriority.Continuation);
+            QueueOGCD(AID.FatedBrandPvP, PlayerTarget?.Actor, NewOGCDPriority.Continuation);
 
         if (TargetHPP(Player) < 55)
-            QueueOGCD(AID.HeartOfCorundumPvP, Player, OGCDPriority.Corundum);
+            QueueOGCD(AID.HeartOfCorundumPvP, Player, NewOGCDPriority.Corundum);
         #endregion
 
         #region GCDs
         var gfStrat = strategy.Option(Track.GnashingFang).As<OffensiveStrategy>();
         if (!hold &&
             ShouldUseGnashingFang(gfStrat, PlayerTarget?.Actor))
-            QueueGCD(AID.GnashingFangPvP, PlayerTarget?.Actor, GCDPriority.GnashingFang);
+            QueueGCD(AID.GnashingFangPvP, PlayerTarget?.Actor, NewGCDPriority.GnashingFang);
         if (GunStep == 1 && In5y(PlayerTarget?.Actor))
-            QueueGCD(AID.SavageClawPvP, PlayerTarget?.Actor, GCDPriority.GnashingFang);
+            QueueGCD(AID.SavageClawPvP, PlayerTarget?.Actor, NewGCDPriority.GnashingFang);
         if (GunStep == 2 && In5y(PlayerTarget?.Actor))
-            QueueGCD(AID.WickedTalonPvP, PlayerTarget?.Actor, GCDPriority.GnashingFang);
+            QueueGCD(AID.WickedTalonPvP, PlayerTarget?.Actor, NewGCDPriority.GnashingFang);
 
         var fcStrat = strategy.Option(Track.FatedCircle).As<OffensiveStrategy>();
         if (ShouldUseFatedCircle(fcStrat, PlayerTarget?.Actor))
-            QueueGCD(AID.FatedCirclePvP, PlayerTarget?.Actor, fcStrat == OffensiveStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.FatedCircle);
+            QueueGCD(AID.FatedCirclePvP, PlayerTarget?.Actor, fcStrat == OffensiveStrategy.Force ? NewGCDPriority.ForcedGCD : NewGCDPriority.FatedCircle);
         #endregion
 
         #endregion
@@ -274,10 +224,10 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         #region Limit Break
         var rrStrat = strategy.Option(Track.RelentlessRush).As<RushStrategy>();
         if (ShouldUseRR(rrStrat, PlayerTarget?.Actor))
-            QueueOGCD(AID.RelentlessRushPvP, Player, rrStrat == RushStrategy.Force ? OGCDPriority.ForcedOGCD : OGCDPriority.LB);
+            QueueOGCD(AID.RelentlessRushPvP, Player, rrStrat == RushStrategy.Force ? NewOGCDPriority.ForcedOGCD : NewOGCDPriority.LB);
         var ttStrat = strategy.Option(Track.TerminalTrigger).As<TriggerStrategy>();
         if (ShouldUseTT(ttStrat, PlayerTarget?.Actor) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 5) > 0)
-            QueueGCD(AID.TerminalTriggerPvP, Player, ttStrat == TriggerStrategy.Force ? GCDPriority.ForcedGCD : GCDPriority.ForcedGCD);
+            QueueGCD(AID.TerminalTriggerPvP, Player, ttStrat == TriggerStrategy.Force ? NewGCDPriority.ForcedGCD : NewGCDPriority.ForcedGCD);
         #endregion
     }
 
