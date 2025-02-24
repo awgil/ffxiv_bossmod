@@ -171,7 +171,6 @@ public sealed class ModuleViewer : IDisposable
         }
     }
 
-
     private void DrawExpansionFilters()
     {
         for (var e = BossModuleInfo.Expansion.RealmReborn; e < BossModuleInfo.Expansion.Count; ++e)
