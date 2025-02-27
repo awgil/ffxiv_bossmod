@@ -116,7 +116,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Priorities
-    //TODO: I am too lazy to convert this
     public enum NewGCDPriority //priorities for GCDs (higher number = higher priority)
     {
         None = 0,
@@ -215,6 +214,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     private float thunderLeft; //Time left on DOT effect (30s base)
     private bool canOpen; //Can use opener
     private bool ShouldUseAOE;
+    private bool ShouldUseSTDOT;
+    private bool ShouldUseAOEDOT;
     private int NumSplashTargets;
     private Enemy? BestSplashTargets;
     private Enemy? BestDOTTargets;
@@ -280,10 +281,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             StatusDetails(BestSplashTarget?.Actor, SID.HighThunder, Player.InstanceID, 30).Left,
             StatusDetails(BestSplashTarget?.Actor, SID.HighThunderII, Player.InstanceID, 24).Left);
         ShouldUseAOE = Unlocked(AID.Blizzard2) && NumSplashTargets > 2;
+        ShouldUseSTDOT = Unlocked(AID.Thunder1) && NumSplashTargets <= 2;
+        ShouldUseAOEDOT = Unlocked(AID.Thunder2) && NumSplashTargets > 2;
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
-        (BestDOTTargets, thunderLeft) = GetDOTTarget(primaryTarget, ThunderRemaining, 5);
+        (BestDOTTargets, thunderLeft) = GetDOTTarget(primaryTarget, ThunderRemaining, 2);
         BestSplashTarget = ShouldUseAOE ? BestSplashTargets : primaryTarget;
-        BestDOTTarget = Unlocked(AID.Thunder1) ? BestDOTTargets : primaryTarget;
+        BestDOTTarget = ShouldUseAOEDOT ? BestSplashTargets : ShouldUseSTDOT ? BestDOTTargets : primaryTarget;
         canOpen = TotalCD(AID.LeyLines) <= 120
                 && TotalCD(AID.Triplecast) <= 0.1f
                 && TotalCD(AID.Manafont) <= 0.1f
@@ -416,7 +419,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         {
             if (strategy.AutoFinish() || strategy.AutoBreak())
                 QueueGCD(BestThunder,
-                    TargetChoice(thunder) ?? (ShouldUseAOE ? BestSplashTargets?.Actor : BestDOTTarget?.Actor),
+                    TargetChoice(thunder) ?? (ShouldUseAOE ? BestSplashTarget?.Actor : BestDOTTarget?.Actor),
                     thunderLeft <= 3 ? NewGCDPriority.NeedDOT :
                     NewGCDPriority.DOT);
             if (strategy.ForceST())
@@ -989,6 +992,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 }
                 if (InAstralFire)
                 {
+                    //Step 0 - if forced over from ST
+                    if (Unlocked(AID.HighFire2) &&
+                        MP >= 8001)
+                        QueueGCD(AID.HighFire2, target, NewGCDPriority.FirstStep);
                     //Step 1 - Flare
                     if (Unlocked(AID.Flare))
                     {
