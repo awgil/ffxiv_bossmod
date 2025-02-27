@@ -225,18 +225,15 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         HealSingle((target, state) =>
         {
-            if (Unlocked(BossMod.WHM.AID.Regen) &&
-                state.PredictedHPRatio < 1 &&
+            if (state.PredictedHPRatio < 1 &&
                 target.FindStatus(BossMod.WHM.SID.Regen) == null)
                 UseGCD(BossMod.WHM.AID.Regen, target);
 
-            if (Unlocked(BossMod.WHM.AID.AfflatusSolace) &&
-                state.PredictedHPRatio < 0.5 &&
+            if (state.PredictedHPRatio < 0.5 &&
                 gauge.Lily > 0)
                 UseGCD(BossMod.WHM.AID.AfflatusSolace, target);
 
-            if (Unlocked(BossMod.WHM.AID.Tetragrammaton) &&
-                state.PredictedHPRatio < 0.25)
+            if (state.PredictedHPRatio < 0.25)
                 UseOGCD(BossMod.WHM.AID.Tetragrammaton, target);
 
             //CNJ
@@ -245,23 +242,17 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
                 UseGCD(Unlocked(BossMod.WHM.AID.Cure2) ? BossMod.WHM.AID.Cure2 : BossMod.WHM.AID.Cure1, target);
         });
 
-        if (Unlocked(BossMod.WHM.AID.AfflatusRapture) &&
-            ShouldHealInArea(Player.Position, 15, 0.75f) &&
-            gauge.Lily > 0)
+        if (ShouldHealInArea(Player.Position, 15, 0.75f) && gauge.Lily > 0)
             UseGCD(BossMod.WHM.AID.AfflatusRapture, Player);
 
-        if (Unlocked(BossMod.WHM.AID.Medica2) &&
-            ShouldHealInArea(Player.Position, 15, 0.75f) &&
-            Player.FindStatus(Unlocked(BossMod.WHM.SID.MedicaIII) ? BossMod.WHM.SID.MedicaIII : BossMod.WHM.SID.Medica2) == null)
+        if (ShouldHealInArea(Player.Position, 15, 0.75f) && Player.FindStatus(Unlocked(BossMod.WHM.SID.MedicaIII) ? BossMod.WHM.SID.MedicaIII : BossMod.WHM.SID.Medica2) == null)
             UseGCD(Unlocked(BossMod.WHM.AID.MedicaIII) ? BossMod.WHM.AID.MedicaIII : BossMod.WHM.AID.Medica2, Player);
 
-        if (Unlocked(BossMod.WHM.AID.Cure3) &&
-            ShouldHealInArea(Player.Position, 10, 0.5f))
+        if (Unlocked(BossMod.WHM.AID.Cure3) && ShouldHealInArea(Player.Position, 10, 0.5f))
             UseGCD(BossMod.WHM.AID.Cure3, Player);
 
         //CNJ
-        if (!Unlocked(BossMod.WHM.AID.Cure3) &&
-            ShouldHealInArea(Player.Position, 15, 0.75f))
+        if (!Unlocked(BossMod.WHM.AID.Cure3) && ShouldHealInArea(Player.Position, 15, 0.75f))
             UseGCD(BossMod.WHM.AID.Medica1, Player);
     }
 
