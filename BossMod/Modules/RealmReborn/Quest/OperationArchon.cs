@@ -24,8 +24,7 @@ public enum AID : uint
     GalesOfTartarus1 = 28876, // Boss->self, 6.0s cast, range 30 width 30 rect
 }
 
-class Adds(BossModule module) : Components.Adds(module, (uint)OID.ImperialCenturion);
-class Adds1(BossModule module) : Components.Adds(module, (uint)OID.ImperialPilusPrior);
+class Adds(BossModule module) : Components.AddsMulti(module, [(uint)OID.ImperialCenturion, (uint)OID.ImperialPilusPrior]);
 
 class MagitekMissiles(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekMissiles), 7);
 class DrillShot(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DrillShot), new AOEShapeRect(30, 2.5f));
@@ -33,14 +32,7 @@ class TartareanShockwave(BossModule module) : Components.SelfTargetedAOEs(module
 class BigTartareanShockwave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TartareanShockwave1), new AOEShapeCircle(14));
 class GalesOfTartarus(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GalesOfTartarus), new AOEShapeRect(30, 2.5f));
 class BigGalesOfTartarus(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GalesOfTartarus1), new AOEShapeRect(30, 15));
-class DirectionalParry(BossModule module) : Components.DirectionalParry(module, (uint)OID.Boss)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Module.PrimaryActor.FindStatus(SID.DirectionalParry) != null)
-            hints.AddForbiddenZone(new AOEShapeCone(100, 45.Degrees()), Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, WorldState.FutureTime(10));
-    }
-}
+class DirectionalParry(BossModule module) : Components.DirectionalParry(module, (uint)OID.Boss);
 class TartareanTomb(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TartareanTomb), new AOEShapeCircle(11));
 
 class RhitahtynSasArvinaStates : StateMachineBuilder
@@ -54,7 +46,6 @@ class RhitahtynSasArvinaStates : StateMachineBuilder
             .ActivateOnEnter<TartareanTomb>()
             .ActivateOnEnter<GalesOfTartarus>()
             .ActivateOnEnter<Adds>()
-            .ActivateOnEnter<Adds1>()
             .ActivateOnEnter<DrillShot>()
             .ActivateOnEnter<BigTartareanShockwave>()
             .ActivateOnEnter<BigGalesOfTartarus>()
