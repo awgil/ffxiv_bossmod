@@ -125,7 +125,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         if (strategy.Enabled(Track.Heal))
             switch (Player.Class)
             {
-                case Class.WHM:
+                case Class.CNJ or Class.WHM:
                     AutoWHM(strategy);
                     break;
                 case Class.AST:
@@ -225,18 +225,33 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         HealSingle((target, state) =>
         {
+            if (state.PredictedHPRatio < 1 &&
+                target.FindStatus(BossMod.WHM.SID.Regen) == null)
+                UseGCD(BossMod.WHM.AID.Regen, target);
+
             if (state.PredictedHPRatio < 0.5 && gauge.Lily > 0)
                 UseGCD(BossMod.WHM.AID.AfflatusSolace, target);
 
             if (state.PredictedHPRatio < 0.25)
                 UseOGCD(BossMod.WHM.AID.Tetragrammaton, target);
+
+            //CNJ
+            if (!Unlocked(BossMod.WHM.AID.Cure3) && state.PredictedHPRatio < 0.5)
+                UseGCD(Unlocked(BossMod.WHM.AID.Cure2) ? BossMod.WHM.AID.Cure2 : BossMod.WHM.AID.Cure1, target);
         });
 
         if (ShouldHealInArea(Player.Position, 15, 0.75f) && gauge.Lily > 0)
             UseGCD(BossMod.WHM.AID.AfflatusRapture, Player);
 
-        if (ShouldHealInArea(Player.Position, 10, 0.5f))
+        if (ShouldHealInArea(Player.Position, 15, 0.75f) && Player.FindStatus(Unlocked(BossMod.WHM.AID.MedicaIII) ? BossMod.WHM.SID.MedicaIII : BossMod.WHM.SID.Medica2) == null)
+            UseGCD(Unlocked(BossMod.WHM.AID.MedicaIII) ? BossMod.WHM.AID.MedicaIII : BossMod.WHM.AID.Medica2, Player);
+
+        if (Unlocked(BossMod.WHM.AID.Cure3) && ShouldHealInArea(Player.Position, 10, 0.5f))
             UseGCD(BossMod.WHM.AID.Cure3, Player);
+
+        //CNJ
+        if (!Unlocked(BossMod.WHM.AID.Cure3) && ShouldHealInArea(Player.Position, 15, 0.75f))
+            UseGCD(BossMod.WHM.AID.Medica1, Player);
     }
 
     private static readonly (AstrologianCard, BossMod.AST.AID)[] SupportCards = [
