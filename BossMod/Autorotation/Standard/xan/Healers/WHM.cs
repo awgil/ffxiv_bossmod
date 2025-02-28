@@ -60,16 +60,16 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining < GetCastTime(AID.Stone1))
-                PushGCD(AID.Stone1, primaryTarget);
+            if (CountdownRemaining < GetCastTime(AID.Stone))
+                PushGCD(AID.Stone, primaryTarget);
 
             return;
         }
 
-        GoalZoneCombined(strategy, 25, Hints.GoalAOECircle(8), AID.Holy1, 3);
+        GoalZoneCombined(strategy, 25, Hints.GoalAOECircle(8), AID.Holy, 3);
 
         if (!CanFitGCD(TargetDotLeft, 1))
-            PushGCD(AID.Aero1, BestDotTarget);
+            PushGCD(AID.Aero, BestDotTarget);
 
         if (BloodLily == 3 && NumMiseryTargets > 0)
         {
@@ -86,7 +86,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
         }
 
         if (NumHolyTargets > 2)
-            PushGCD(AID.Holy1, Player);
+            PushGCD(AID.Holy, Player);
 
         // TODO make a track for this
         if (Unlocked(AID.AfflatusMisery) && (Lily == 3 || !CanFitGCD(NextLily, 2) && Lily == 2))
@@ -95,7 +95,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
         if (SacredSight > 0)
             PushGCD(AID.GlareIV, primaryTarget);
 
-        PushGCD(AID.Stone1, primaryTarget);
+        PushGCD(AID.Stone, primaryTarget);
 
         if (!Player.InCombat)
             return;
@@ -120,8 +120,8 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
     }
 
     private float DotLeft(Actor? actor) => actor == null ? float.MaxValue : Utils.MaxAll(
-        StatusDetails(actor, SID.Aero1, Player.InstanceID).Left,
-        StatusDetails(actor, SID.Aero2, Player.InstanceID).Left,
+        StatusDetails(actor, SID.Aero, Player.InstanceID).Left,
+        StatusDetails(actor, SID.AeroII, Player.InstanceID).Left,
         StatusDetails(actor, SID.Dia, Player.InstanceID).Left
     );
 }

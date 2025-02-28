@@ -126,7 +126,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             if (NumAOETargets > 2)
                 PushGCD(AID.AutoCrossbow, BestAOETarget);
 
-            PushGCD(HighestUnlocked(AID.BlazingShot, AID.HeatBlast), primaryTarget);
+            PushGCD(BestActionUnlocked(AID.BlazingShot, AID.HeatBlast), primaryTarget);
         }
         else
         {
@@ -161,16 +161,16 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             var breakpoint = Unlocked(AID.Scattergun) ? 2 : 1;
 
             if (NumAOETargets > breakpoint && Unlocked(AID.SpreadShot))
-                PushGCD(HighestUnlocked(AID.Scattergun, AID.SpreadShot), BestAOETarget);
+                PushGCD(BestActionUnlocked(AID.Scattergun, AID.SpreadShot), BestAOETarget);
             else
             {
                 if (ComboLastMove == AID.SlugShot)
-                    PushGCD(HighestUnlocked(AID.HeatedCleanShot, AID.CleanShot), primaryTarget);
+                    PushGCD(BestActionUnlocked(AID.HeatedCleanShot, AID.CleanShot), primaryTarget);
 
                 if (ComboLastMove == AID.SplitShot)
-                    PushGCD(HighestUnlocked(AID.HeatedSlugShot, AID.SlugShot), primaryTarget);
+                    PushGCD(BestActionUnlocked(AID.HeatedSlugShot, AID.SlugShot), primaryTarget);
 
-                PushGCD(HighestUnlocked(AID.HeatedSplitShot, AID.SplitShot), primaryTarget);
+                PushGCD(BestActionUnlocked(AID.HeatedSplitShot, AID.SplitShot), primaryTarget);
             }
         }
 

@@ -108,6 +108,17 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     // utility to check action/trait unlocks
     public bool ActionUnlocked(ActionID action) => ActionDefinitions.Instance[action]?.IsUnlocked(World, Player) ?? false;
 
+    public bool ActionUnlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
+
+    public AID BestActionUnlocked<AID>(params AID[] aids) where AID : struct, Enum
+    {
+        foreach (var aid in aids)
+            if (ActionUnlocked(aid))
+                return aid;
+
+        return default;
+    }
+
     public bool TraitUnlocked(uint id)
     {
         var trait = Service.LuminaRow<Lumina.Excel.Sheets.Trait>(id);
