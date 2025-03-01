@@ -64,8 +64,8 @@ class DirectSeeding(BossModule module) : BossComponent(module)
         {
             0x00020001 => default(Angle),
             0x00200010 => 180.Degrees(),
-            0x01000080 => 270.Degrees(),
-            0x08000400 => 90.Degrees(),
+            0x01000080 => 90.Degrees(),
+            0x08000400 => 270.Degrees(),
             _ => null
         };
     }
