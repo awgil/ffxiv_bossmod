@@ -47,12 +47,12 @@ public class ProtoOzma(WorldState ws, Actor primary) : BossModule(ws, primary, n
     private static ArenaBoundsCustom MakeBounds()
     {
         var approx = CurveApprox.Donut(18.75f, 25f, 1 / 90f);
-        var rect1 = CurveApprox.Rect(new(5, 0), new(0, 12)).Select(off => new WDir(0, 24.5f) + off);
+        var platform = CurveApprox.Rect(new(5, 0), new(0, 12)).Select(off => new WDir(0, 24.5f) + off);
         var clipper = new PolygonClipper();
-        var u1 = clipper.Union(new(rect1), new(approx));
-        var u2 = clipper.Union(new(rect1.Select(d => d.Rotate(120.Degrees()))), new(u1));
-        var u3 = clipper.Union(new(rect1.Select(d => d.Rotate(240.Degrees()))), new(u2));
-        return new(36.5f, u3);
+        var plats = new PolygonClipper.Operand(platform);
+        plats.AddContour(platform.Select(d => d.Rotate(120.Degrees())));
+        plats.AddContour(platform.Select(d => d.Rotate(240.Degrees())));
+        return new(36.5f, clipper.Union(new(approx), plats));
     }
 
     protected override void DrawArenaForeground(int pcSlot, Actor pc)
