@@ -276,6 +276,12 @@ public sealed class ActionDefinitions : IDisposable
         var dir = player.DirectionTo(target).Normalized();
         var src = player.Position;
         var proj = dist > 0 ? src + dir * MathF.Max(0, dist) : src;
+
+        // dash might yeet us off the arena
+        // TODO make *this* configurable?
+        if (!hints.PathfindMapBounds.Contains(proj - hints.PathfindMapCenter))
+            return true;
+
         return hints.ForbiddenZones.Any(d => d.shapeDistance(proj) < 0);
     }
 

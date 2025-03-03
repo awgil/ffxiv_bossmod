@@ -28,7 +28,7 @@ class UITest
         {
             // windowed mode
             windowInfo.XPos = 100;
-            windowInfo.YPos = 100;
+            windowInfo.YPos = -2000;
             windowInfo.Width = 1200;
             windowInfo.Height = 800;
             windowInfo.Fullscreen = false;
