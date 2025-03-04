@@ -204,10 +204,12 @@ class AIPreposition(BossModule module) : BossComponent(module)
         }
     }
 
+#if DEBUG
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         hints.Add($"Prepositioning for mechanic: {NextMechanic}", false);
     }
+#endif
 }
 
 class AbsoluteVirtueStates : StateMachineBuilder
