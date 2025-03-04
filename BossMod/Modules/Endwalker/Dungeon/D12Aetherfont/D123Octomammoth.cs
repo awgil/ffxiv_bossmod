@@ -93,6 +93,7 @@ class D123OctomammothStates : StateMachineBuilder
     public D123OctomammothStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            // .ActivateOnEnter<Border>()
             .ActivateOnEnter<Wallop>()
             .ActivateOnEnter<Clearout>()
             .ActivateOnEnter<VividEyes>()
@@ -105,11 +106,46 @@ class D123OctomammothStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12334)]
-class D123Octomammoth : BossModule
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus, xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12334)]
+class D123Octomammoth(WorldState ws, Actor primary) : BossModule(ws, primary, new(-370, -355.5f), OctoBounds)
 {
-    public D123Octomammoth(WorldState ws, Actor primary) : base(ws, primary, new(-370, -368), new ArenaBoundsCircle(33.3f))
+    public static readonly ArenaBoundsCustom OctoBounds = MakeBounds();
+
+    private static ArenaBoundsCustom MakeBounds()
     {
-        ActivateComponent<Border>();
+        var island = CurveApprox.Circle(8, 1 / 90f);
+        var iop = new PolygonClipper.Operand();
+        var rot = -90.Degrees();
+
+        for (var i = 0; i < 5; i++)
+        {
+            var off = rot.ToDirection() * 25;
+            var thisIsland = island.Select(d => d + off);
+            iop.AddContour(island.Select(d => d + off));
+
+            rot += 45.Degrees();
+        }
+
+        var bop = new PolygonClipper.Operand();
+        rot = -67.5f.Degrees();
+
+        List<WDir> bridgeContour = [
+            new(-2.745f, 21.225f),
+            new(0, 21.725f),
+            new(2.745f, 21.225f),
+            new(2.745f, 26.467f),
+            new(0, 25.775f),
+            new(-2.745f, 26.467f),
+        ];
+
+        for (var i = 0; i < 4; i++)
+        {
+            bop.AddContour(bridgeContour.Select(b => b.Rotate(rot)));
+            rot += 45.Degrees();
+        }
+
+        return new(33, new PolygonClipper().Union(iop, bop).Transform(new(0, -12.5f), new(0, 1)));
     }
+
+    protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.ActorInsideBounds(PrimaryActor.Position, PrimaryActor.Rotation, ArenaColor.Enemy);
 }
