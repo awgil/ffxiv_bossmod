@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Global.DeepDungeon;
 
-[ConfigDisplay(Name = "Auto-DeepDungeon", Parent = typeof(ModuleConfig))]
+[ConfigDisplay(Name = "Auto-DeepDungeon (Experimental)", Parent = typeof(ModuleConfig))]
 public class AutoDDConfig : ConfigNode
 {
     public enum ClearBehavior
@@ -15,7 +15,7 @@ public class AutoDDConfig : ConfigNode
         All,
     }
 
-    [PropertyDisplay("Enable module")]
+    [PropertyDisplay("Enable module", tooltip: "WARNING: This feature is very experimental and most likely will contain bugs or unintended behavior.\nTo enable this feature in its current state, you must activate 'Work-in-Progress' maturity modules in the `Full Duty Automation` tab.")]
     public bool Enable = true;
     [PropertyDisplay("Enable minimap")]
     public bool EnableMinimap = true;
