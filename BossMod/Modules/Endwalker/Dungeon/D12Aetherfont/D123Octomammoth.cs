@@ -26,58 +26,6 @@ public enum AID : uint
     Wallop = 33346, // MammothTentacle->self, 3.0s cast, range 22 width 8 rect
 }
 
-class Border(BossModule module) : BossComponent(module)
-{
-    private const float _platformOffset = 25;
-    private const float _platformRadius = 8;
-    private static readonly Angle[] _platformDirections = [-90.Degrees(), -45.Degrees(), 0.Degrees(), 45.Degrees(), 90.Degrees()];
-    private static readonly WDir[] _platformCenters = _platformDirections.Select(d => _platformOffset * d.ToDirection()).ToArray();
-
-    private const float _bridgeInner = 22;
-    private const float _bridgeOuter = 26;
-    private static readonly Angle _offInner = DirToPointAtDistance(_bridgeInner);
-    private static readonly Angle _offOuter = DirToPointAtDistance(_bridgeOuter);
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        hints.AddForbiddenZone(p =>
-        {
-            // union of platforms
-            var res = _platformCenters.Select(off => ShapeDistance.Circle(Module.Center + off, _platformRadius)(p)).Min();
-            // union of bridges
-            for (int i = 1; i < 5; ++i)
-                res = Math.Min(res, ShapeDistance.Rect(Module.Center + _platformCenters[i - 1], Module.Center + _platformCenters[i], 3)(p));
-            // invert
-            return -res;
-        });
-
-        base.AddAIHints(slot, actor, assignment, hints);
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        // draw platforms
-        foreach (var c in _platformCenters)
-            Arena.AddCircle(Module.Center + c, _platformRadius, ArenaColor.Border);
-
-        // draw bridges
-        for (int i = 1; i < 5; ++i)
-        {
-            DrawBridgeLine(_platformDirections[i - 1], _platformDirections[i], _offInner, _bridgeInner);
-            DrawBridgeLine(_platformDirections[i - 1], _platformDirections[i], _offOuter, _bridgeOuter);
-        }
-    }
-
-    private static Angle DirToPointAtDistance(float d) => Angle.Acos((_platformOffset * _platformOffset + d * d - _platformRadius * _platformRadius) / (2 * _platformOffset * d));
-
-    private void DrawBridgeLine(Angle from, Angle to, Angle offset, float distance)
-    {
-        var p1 = Module.Center + distance * (from + offset).ToDirection();
-        var p2 = Module.Center + distance * (to - offset).ToDirection();
-        Arena.AddLine(p1, p2, ArenaColor.Border);
-    }
-}
-
 class Wallop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wallop), new AOEShapeRect(22, 4));
 class VividEyes(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VividEyes), new AOEShapeDonut(20, 26));
 class Clearout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Clearout), new AOEShapeCone(16, 60.Degrees()));
@@ -93,7 +41,6 @@ class D123OctomammothStates : StateMachineBuilder
     public D123OctomammothStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            // .ActivateOnEnter<Border>()
             .ActivateOnEnter<Wallop>()
             .ActivateOnEnter<Clearout>()
             .ActivateOnEnter<VividEyes>()
