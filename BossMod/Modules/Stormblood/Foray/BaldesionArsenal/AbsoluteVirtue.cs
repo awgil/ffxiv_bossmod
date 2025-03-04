@@ -9,6 +9,7 @@ public enum OID : uint
     BrightAurora = 0x25DF, // R1.000, x0 (spawn during fight)
     DarkHole = 0x1EAA49,
     BrightHole = 0x1EAA4A,
+    AernsWynav = 0x25DE, // R1.000, x0 (spawn during fight)
 }
 
 public enum AID : uint
@@ -16,17 +17,24 @@ public enum AID : uint
     AutoAttack = 14532, // Boss->player, no cast, single-target
     Meteor = 14233, // Boss->self, 4.0s cast, range 60 circle
     Eidos = 14214, // Boss->self, 2.0s cast, single-target, changes aspect (light/dark)
-    AstralRays = 14221, // Helper->self, 8.0s cast, range 8 circle
-    UmbralRays = 14222, // Helper->self, 8.0s cast, range 8 circle
+    AstralRaysSmall = 14220, // Helper->self, 8.0s cast, range 8 circle
+    AstralRaysBig = 14221, // Helper->self, 8.0s cast, range 8 circle
+    UmbralRaysSmall = 14222, // Helper->self, 8.0s cast, range 8 circle
+    UmbralRaysBig = 14223, // Helper->self, 8.0s cast, range 8 circle
     HostileAspect = 14219, // Boss->self, 8.0s cast, single-target
     MedusaJavelin = 14235, // Boss->self, 3.0s cast, range 60+R 90-degree cone
     BrightAurora = 14217, // Helper->self, 3.0s cast, range 30 width 100 rect
     DarkAurora = 14218, // Helper->self, 3.0s cast, range 30 width 100 rect
-    ImpactStream = 14216, // Boss->self, 3.0s cast, single-target
     AuroralWind = 14234, // Boss->players, 5.0s cast, range 5 circle
     TurbulentAether = 14224, // Boss->self, 3.0s cast, single-target
     BrightExplosion = 14225, // BrightAurora->self, no cast, range 6 circle
     DarkExplosion = 14226, // DarkAurora->self, no cast, range 6 circle
+    ExplosiveImpulseClone = 14227, // RelativeVirtue->self, 5.0s cast, range 60 circle, falloff at 18 probably
+    ExplosiveImpulse = 14228, // Boss->self, 5.0s cast, range 60 circle, falloff at 15 probably
+    BrightAuroraClone = 14230, // Helper->self, 5.0s cast, range 30 width 100 rect
+    DarkAuroraClone = 14231, // Helper->self, 5.0s cast, range 30 width 100 rect
+    Explosion = 14676, // 25DE->self, 8.0s cast, range 60 circle
+    MeteorEnrage = 14700, // Boss->self, 10.0s cast, range 60 circle
 }
 
 public enum SID : uint
@@ -47,6 +55,12 @@ public enum TetherID : uint
 class Meteor(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Meteor));
 class AuroralWind(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.AuroralWind), new AOEShapeCircle(5), centerAtTarget: true, endsOnCastEvent: true);
 class MedusaJavelin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MedusaJavelin), new AOEShapeCone(65, 45.Degrees()));
+class AstralRays(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AstralRaysSmall), new AOEShapeCircle(8));
+class UmbralRays(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.UmbralRaysSmall), new AOEShapeCircle(8));
+class AstralRaysBig(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AstralRaysBig), new AOEShapeCircle(15));
+class UmbralRaysBig(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.UmbralRaysBig), new AOEShapeCircle(15));
+class ExplosiveImpulse(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExplosiveImpulse), new AOEShapeCircle(18));
+class ExplosiveImpulseClone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExplosiveImpulseClone), new AOEShapeCircle(18));
 
 class Aurora(BossModule module) : Components.GenericAOEs(module)
 {
@@ -59,10 +73,12 @@ class Aurora(BossModule module) : Components.GenericAOEs(module)
         switch ((AID)spell.Action.ID)
         {
             case AID.BrightAurora:
+            case AID.BrightAuroraClone:
                 if (caster.FindStatus(SID.AstralEssence) != null)
                     Casters.Add(caster);
                 break;
             case AID.DarkAurora:
+            case AID.DarkAuroraClone:
                 if (caster.FindStatus(SID.UmbralEssence) != null)
                     Casters.Add(caster);
                 break;
@@ -71,33 +87,8 @@ class Aurora(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID.BrightAurora or AID.DarkAurora)
+        if ((AID)spell.Action.ID is AID.BrightAurora or AID.DarkAurora or AID.BrightAuroraClone or AID.DarkAuroraClone)
             Casters.Remove(caster);
-    }
-}
-class Rays(BossModule module) : Components.GenericAOEs(module)
-{
-    private readonly List<(Actor Actor, bool Big)> Casters = [];
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Select(c => new AOEInstance(new AOEShapeCircle(c.Big ? 15 : 8), c.Actor.Position, default, Module.CastFinishAt(c.Actor.CastInfo)));
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID.UmbralRays:
-                Casters.Add((caster, caster.FindStatus(SID.UmbralEssence) != null));
-                break;
-            case AID.AstralRays:
-                Casters.Add((caster, caster.FindStatus(SID.AstralEssence) != null));
-                break;
-        }
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID is AID.UmbralRays or AID.AstralRays)
-            Casters.RemoveAll(c => c.Actor == caster);
     }
 }
 
@@ -124,93 +115,10 @@ class Balls(BossModule module) : BossComponent(module)
     {
         Tethers.RemoveAll(t => t.Source == source);
     }
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        foreach (var (src, tar, col) in Tethers)
-            Arena.AddLine(src.Position, tar.Position, col);
-
-        foreach (var h in Module.Enemies(OID.DarkHole))
-            Arena.AddCircle(h.Position, 1.5f, DarkColor);
-        foreach (var h in Module.Enemies(OID.BrightHole))
-            Arena.AddCircle(h.Position, 1.5f, LightColor);
-    }
 }
 
-class AIPreposition(BossModule module) : BossComponent(module)
-{
-    enum Mechanic
-    {
-        None,
-        Javelin, // stay close to boss, cone is very large
-        Aurora, // stay on boss's vertical axis, room is split
-    }
-
-    private Mechanic NextMechanic = Mechanic.None;
-
-    private void StartMechanic(Mechanic m)
-    {
-        if (NextMechanic == m)
-            NextMechanic = Mechanic.None;
-    }
-
-    private int HostileAspectCounter;
-    private int EidosCounter;
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID.HostileAspect:
-                HostileAspectCounter++;
-                if (HostileAspectCounter == 1)
-                    NextMechanic = Mechanic.Javelin;
-                break;
-            case AID.Eidos:
-                EidosCounter++;
-                if (EidosCounter == 2)
-                    NextMechanic = Mechanic.Aurora;
-                break;
-            case AID.TurbulentAether:
-                NextMechanic = Mechanic.Javelin;
-                break;
-        }
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        switch (NextMechanic)
-        {
-            case Mechanic.Javelin:
-                hints.AddForbiddenZone(ShapeDistance.Donut(Module.PrimaryActor.Position, 6, 100), DateTime.MaxValue);
-                break;
-            case Mechanic.Aurora:
-                hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, 90.Degrees(), 50, 50, 3), DateTime.MaxValue);
-                break;
-        }
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID.MedusaJavelin:
-                StartMechanic(Mechanic.Javelin);
-                break;
-            case AID.BrightAurora:
-            case AID.DarkAurora:
-                StartMechanic(Mechanic.Aurora);
-                break;
-        }
-    }
-
-#if DEBUG
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        hints.Add($"Prepositioning for mechanic: {NextMechanic}", false);
-    }
-#endif
-}
+class Wyvern(BossModule module) : Components.Adds(module, (uint)OID.AernsWynav, 1);
+class MeteorEnrage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.MeteorEnrage), "Enrage!", true);
 
 class AbsoluteVirtueStates : StateMachineBuilder
 {
@@ -218,16 +126,21 @@ class AbsoluteVirtueStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<Meteor>()
-            .ActivateOnEnter<Rays>()
+            .ActivateOnEnter<AstralRays>()
+            .ActivateOnEnter<AstralRaysBig>()
+            .ActivateOnEnter<UmbralRays>()
+            .ActivateOnEnter<UmbralRaysBig>()
             .ActivateOnEnter<MedusaJavelin>()
             .ActivateOnEnter<AuroralWind>()
             .ActivateOnEnter<Aurora>()
-            .ActivateOnEnter<AIPreposition>()
             .ActivateOnEnter<Balls>()
-            ;
+            .ActivateOnEnter<ExplosiveImpulse>()
+            .ActivateOnEnter<ExplosiveImpulseClone>()
+            .ActivateOnEnter<Wyvern>()
+            .ActivateOnEnter<MeteorEnrage>();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 639, NameID = 7976)]
-public class AbsoluteVirtue(WorldState ws, Actor primary) : BossModule(ws, primary, new(-175, 314), new ArenaBoundsCircle(28));
+public class AbsoluteVirtue(WorldState ws, Actor primary) : BossModule(ws, primary, new(-175, 314), new ArenaBoundsCircle(30));
 
