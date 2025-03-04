@@ -20,6 +20,7 @@ public enum AID : uint
     TransfigurationPyramid = 14244, // Shadow/Boss->self, no cast, single-target
     TransfigurationUnPyramid = 14245, // Boss->self, no cast, single-target
     TransfigurationCube = 14238, // Shadow/Boss->self, no cast, single-target
+
     MourningStar = 14260, // Boss/Shadow->self, no cast, single-target
     MourningStar1 = 14261, // Helper->self, no cast, range 27 circle
     ShootingStar = 14263, // Boss->self, 5.0s cast, single-target
@@ -36,21 +37,39 @@ public enum AID : uint
     // haven't seen these in replays yet, they're guessed based on existing data and action ID order
     TransfigurationUnCube = 14238, // Boss->self, no cast, single-target
     AACube = 14252, // Helper->players, no cast, range 40 width 4 rect, cleaving auto, move away from tank
+
+    UrolithAuto = 872, // ArsenalUrolith->player, no cast, single-target
 }
 
 public enum SID : uint
 {
-    Cube = 1070, // 25E9->25E9, extra=0x0
-    Pyramid = 1071, // 25E9/Boss->25E9/Boss, extra=0x0
+    Cube = 1070, // Boss/Shadow->Boss/Shadow, extra=0x0
+    Pyramid = 1071, // Boss/Shadow->Boss/Shadow, extra=0x0
+    Stellation = 1744, // Boss/Shadow->Boss/Shadow, extra=0x0
     AccelerationBomb = 1072, // none->player, extra=0x0
-    Stellation = 1744, // Boss/25E9->Boss/25E9, extra=0x0
     BlackHoleBuffer = 1745, // none->player, extra=0x0
 }
 
 public enum IconID : uint
 {
+    MeteorImpact = 57, // player->self
+    MeteorStack = 62, // player->self
     AccelerationBomb = 75, // player->self
-    Meteor = 57, // player->self
+}
+
+class MeteorStack(BossModule module) : Components.UniformStackSpread(module, 10, 0)
+{
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.Meteor)
+            Stacks.RemoveAll(s => s.Target.Position.AlmostEqual(spell.TargetXZ, 2));
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if (iconID == (uint)IconID.MeteorStack)
+            AddStack(actor, WorldState.FutureTime(5.1f), Raid.WithSlot().Where(t => t.Item2.ClassCategory == ClassCategory.Tank).Mask());
+    }
 }
 
 class MourningStar(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.MourningStar1))
@@ -232,7 +251,7 @@ class BlackHole(BossModule module) : BossComponent(module)
     }
 }
 
-class MeteorBait(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Meteor, default, 15, 9)
+class MeteorBait(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.MeteorImpact, default, 15, 9)
 {
     public static readonly List<WDir> MeteorDropLocations = [
         // A plat
@@ -281,6 +300,7 @@ class ProtoOzmaStates : StateMachineBuilder
             .ActivateOnEnter<MeteorImpact>()
             .ActivateOnEnter<AccelerationBomb>()
             .ActivateOnEnter<Urolith>()
+            .ActivateOnEnter<MeteorStack>()
             ;
     }
 }
