@@ -321,14 +321,9 @@ public class ProtoOzma(WorldState ws, Actor primary) : BossModule(ws, primary, A
 
     public static Platform? GuessPlatform(WPos position) => Platforms().FirstOrDefault(p => p.Contains(position));
 
-    protected override void DrawArenaForeground(int pcSlot, Actor pc)
+    protected override void DrawEnemies(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(pcSlot, pc);
-
         Arena.ActorInsideBounds(Center, PrimaryActor.Rotation, ArenaColor.Enemy);
-
-        foreach (var actor in WorldState.Actors.Where(a => a.Type == ActorType.Player && Raid.FindSlot(a.InstanceID) < 0))
-            Arena.Actor(actor, ArenaColor.PlayerGeneric);
     }
 }
 
