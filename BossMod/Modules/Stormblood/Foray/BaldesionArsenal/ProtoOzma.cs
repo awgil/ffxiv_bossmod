@@ -51,7 +51,6 @@ public enum IconID : uint
 {
     AccelerationBomb = 75, // player->self
     Meteor = 57, // player->self
-    _Gen_Icon_62 = 62, // player->self
 }
 
 class MourningStar(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.MourningStar1))
