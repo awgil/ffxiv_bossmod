@@ -29,7 +29,6 @@ public enum AID : uint
     CloudToGround = 14448, // Boss->self, 4.0s cast, single-target
     CloudToGroundFirst = 14449, // Helper->self, 5.0s cast, range 6 circle
     CloudToGroundRest = 14450, // Helper->self, no cast, range 6 circle
-
 }
 
 public enum IconID : uint
@@ -79,6 +78,38 @@ class StreakLightning(BossModule module) : Components.GenericStackSpread(module,
 class LightningAdds(BossModule module) : Components.Adds(module, (uint)OID.StreakLightning, 1);
 class UltimateZantetsuken(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.UltimateZantetsuken), "Kill adds!", true);
 
+class CloudToGround(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(6), ActionID.MakeSpell(AID.CloudToGroundFirst))
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            Lines.Add(new()
+            {
+                Next = caster.Position,
+                Advance = caster.Rotation.ToDirection() * 8,
+                NextExplosion = Module.CastFinishAt(spell),
+                TimeToMove = 1.05f,
+                ExplosionsLeft = 8,
+                MaxShownExplosions = 4
+            });
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.CloudToGroundFirst or AID.CloudToGroundRest)
+        {
+            for (var i = 0; i < Lines.Count; ++i)
+            {
+                if (!Lines[i].Next.AlmostEqual(caster.Position, 1))
+                    continue;
+                AdvanceLine(Lines[i], caster.Position);
+                if (Lines[i].ExplosionsLeft == 0)
+                    Lines.RemoveAt(i--);
+            }
+        }
+    }
+}
+
 class RaidenStates : StateMachineBuilder
 {
     public RaidenStates(BossModule module) : base(module)
@@ -92,7 +123,8 @@ class RaidenStates : StateMachineBuilder
             .ActivateOnEnter<StreakLightning>()
             .ActivateOnEnter<LightningAdds>()
             .ActivateOnEnter<BoomingLament>()
-            .ActivateOnEnter<UltimateZantetsuken>();
+            .ActivateOnEnter<UltimateZantetsuken>()
+            .ActivateOnEnter<CloudToGround>();
     }
 }
 
