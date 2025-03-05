@@ -18,5 +18,6 @@ public static class ArenaColor
     public static uint Object => Config.ArenaObject.ABGR;
     public static uint PlayerInteresting => Config.ArenaPlayerInteresting.ABGR;
     public static uint PlayerGeneric => Config.ArenaPlayerGeneric.ABGR;
+    public static uint PlayerReallyGeneric => Config.ArenaPlayerReallyGeneric.ABGR;
     public static uint Vulnerable => Config.ArenaPlayerVulnerable.ABGR;
 }

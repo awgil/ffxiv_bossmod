@@ -40,6 +40,9 @@ public sealed class ColorConfig : ConfigNode
     [PropertyDisplay("Arena: generic/irrelevant player (can be overridden by role-specific colors, depending on settings)")]
     public Color ArenaPlayerGeneric = new(0xff808080);
 
+    [PropertyDisplay("Arena: player not in current party/alliance (usually not drawn on map)")]
+    public Color ArenaPlayerReallyGeneric = new(0x80808080);
+
     [PropertyDisplay("Arena: generic/irrelevant tank")]
     public Color ArenaPlayerGenericTank = Color.FromComponents(30, 50, 110);
 

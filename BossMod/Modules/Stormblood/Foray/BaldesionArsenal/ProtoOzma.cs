@@ -1,4 +1,6 @@
-﻿namespace BossMod.Stormblood.Foray.BaldesionArsenal.ProtoOzma;
+﻿using BossMod.Modules.Stormblood.Foray;
+
+namespace BossMod.Stormblood.Foray.BaldesionArsenal.ProtoOzma;
 
 public enum OID : uint
 {
@@ -339,16 +341,10 @@ class ProtoOzmaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 639, NameID = 7981)]
-public class ProtoOzma(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, OzmaBounds)
+public class ProtoOzma(WorldState ws, Actor primary) : BAModule(ws, primary, ArenaCenter, OzmaBounds)
 {
     public static readonly WPos ArenaCenter = new(-17, 29);
     public static readonly ArenaBoundsCustom OzmaBounds = MakeBounds();
-
-    public record class Platform(WPos Center, Angle DirectionToBoss, string Marker)
-    {
-        public static readonly AOEShapeRect Shape = new(12, 5, 12);
-        public bool Contains(WPos position) => Shape.Check(position, Center, DirectionToBoss);
-    }
 
     private static ArenaBoundsCustom MakeBounds()
     {
@@ -363,15 +359,6 @@ public class ProtoOzma(WorldState ws, Actor primary) : BossModule(ws, primary, A
 
         return new(36.5f, clipper.Union(new(ring), platforms));
     }
-
-    public static IEnumerable<Platform> Platforms()
-    {
-        yield return new(ArenaCenter + new WDir(0, 24.5f), 180.Degrees(), "A");
-        yield return new(ArenaCenter + new WDir(0, 24.5f).Rotate(-120.Degrees()), 60.Degrees(), "B");
-        yield return new(ArenaCenter + new WDir(0, 24.5f).Rotate(120.Degrees()), -60.Degrees(), "C");
-    }
-
-    public static Platform? GuessPlatform(WPos position) => Platforms().FirstOrDefault(p => p.Contains(position));
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

@@ -1,4 +1,6 @@
-﻿namespace BossMod.Stormblood.Foray.BaldesionArsenal.Owain;
+﻿using BossMod.Modules.Stormblood.Foray;
+
+namespace BossMod.Stormblood.Foray.BaldesionArsenal.Owain;
 
 public enum OID : uint
 {
@@ -100,5 +102,5 @@ class OwainStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 639, NameID = 7970)]
-public class Owain(WorldState ws, Actor primary) : BossModule(ws, primary, new(129, 748), new ArenaBoundsCircle(25));
+public class Owain(WorldState ws, Actor primary) : BAModule(ws, primary, new(129, 748), new ArenaBoundsCircle(25));
 

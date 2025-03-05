@@ -187,6 +187,10 @@ public abstract class BossModule : IDisposable
         // draw non-player alive party members
         DrawPartyMembers(pcSlot, pc);
 
+        // draw non-party pcs
+        if (DrawAllPlayers)
+            Arena.Actors(WorldState.Actors.Where(a => a.Type == ActorType.Player && Raid.FindSlot(a.InstanceID) < 0), ArenaColor.PlayerReallyGeneric);
+
         // draw foreground
         DrawArenaForeground(pcSlot, pc);
         foreach (var comp in _components)
@@ -260,6 +264,9 @@ public abstract class BossModule : IDisposable
     // called during update if module is active; should return true if module is to be reset (i.e. deleted and new instance recreated for same actor)
     // default implementation never resets, but it's useful for outdoor bosses that can be leashed
     public virtual bool CheckReset() => false;
+
+    // return true if non-party player characters should be drawn on the minimap
+    public virtual bool DrawAllPlayers => false;
 
     protected virtual void UpdateModule() { }
     protected virtual void DrawArenaBackground(int pcSlot, Actor pc) { } // before modules background

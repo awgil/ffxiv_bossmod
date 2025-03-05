@@ -272,6 +272,8 @@ public sealed class ActionDefinitions : IDisposable
         if (target == null || !Service.Config.Get<ActionTweaksConfig>().PreventDangerousDash)
             return false;
 
+        // if there are pending knockbacks, god only knows where we would be sent after using a gapcloser
+        // note that once the knockback is actually active and not pending, we can probably cancel it with a dash
         if (player.PendingKnockbacks.Count > 0)
             return true;
 

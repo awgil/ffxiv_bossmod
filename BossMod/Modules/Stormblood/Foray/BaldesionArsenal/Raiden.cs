@@ -1,4 +1,6 @@
-﻿namespace BossMod.Stormblood.Foray.BaldesionArsenal.Raiden;
+﻿using BossMod.Modules.Stormblood.Foray;
+
+namespace BossMod.Stormblood.Foray.BaldesionArsenal.Raiden;
 
 public enum OID : uint
 {
@@ -91,11 +93,4 @@ class RaidenStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 639, NameID = 7973)]
-public class Raiden(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 458), new ArenaBoundsCircle(35))
-{
-    protected override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        foreach (var actor in WorldState.Actors.Where(a => a.Type == ActorType.Player && WorldState.Party.FindSlot(a.InstanceID) < 0))
-            Arena.Actor(actor, ArenaColor.PlayerGeneric);
-    }
-}
+public class Raiden(WorldState ws, Actor primary) : BAModule(ws, primary, new(0, 458), new ArenaBoundsCircle(35));

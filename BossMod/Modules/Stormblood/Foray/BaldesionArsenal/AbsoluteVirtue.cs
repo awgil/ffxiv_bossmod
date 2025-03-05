@@ -1,4 +1,6 @@
-﻿namespace BossMod.Stormblood.Foray.BaldesionArsenal.AbsoluteVirtue;
+﻿using BossMod.Modules.Stormblood.Foray;
+
+namespace BossMod.Stormblood.Foray.BaldesionArsenal.AbsoluteVirtue;
 
 public enum OID : uint
 {
@@ -94,26 +96,116 @@ class Aurora(BossModule module) : Components.GenericAOEs(module)
 
 class Balls(BossModule module) : BossComponent(module)
 {
-    // EObjAnim 00040008 when hole disappears
+    // balls gain Sprint status and tower disappears ~21.85s after tether
 
-    private readonly List<(Actor Source, Actor Target, uint Color)> Tethers = [];
+    enum Color
+    {
+        None,
+        Dark,
+        Light
+    }
 
-    private const uint DarkColor = 0xFFB3198F;
-    private const uint LightColor = 0xFFB087E6;
+    private readonly List<(Actor Source, Actor Target, Color Color)> Tethers = [];
+    private readonly List<Actor> Towers = [];
+
+    private readonly Color[] TetherColors = Utils.MakeArray(PartyState.MaxPartySize, Color.None);
+
+    private const float TowerRadius = 1.5f;
+    private DateTime Deadline;
+
+    private IEnumerable<(Actor Tower, Color Color)> AllTowers => Towers.Select(t => (t, t.OID == (uint)OID.BrightHole ? Color.Light : Color.Dark));
+    private IEnumerable<Actor> SafeTowers(int pcSlot) => TetherColors[pcSlot] switch
+    {
+        Color.None => [],
+        var c => AllTowers.Where(t => t.Color != c).Select(t => t.Tower)
+    };
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.DarkTether or TetherID.BrightTether)
         {
+            if (Deadline == default)
+                Deadline = WorldState.FutureTime(21.85f);
+
             var actor = WorldState.Actors.Find(tether.Target);
             if (actor != null)
-                Tethers.Add((source, actor, tether.ID == (uint)TetherID.DarkTether ? DarkColor : LightColor));
+            {
+                var color = tether.ID == (uint)TetherID.DarkTether ? Color.Dark : Color.Light;
+                Tethers.Add((source, actor, color));
+                var slot = Raid.FindSlot(actor.InstanceID);
+                if (slot >= 0)
+                    TetherColors[slot] = color;
+            }
         }
     }
 
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         Tethers.RemoveAll(t => t.Source == source);
+        var slot = Raid.FindSlot(tether.Target);
+        if (slot >= 0)
+            TetherColors[slot] = default;
+
+        if (Tethers.Count == 0)
+            Deadline = default;
+    }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID is OID.BrightHole or OID.DarkHole)
+            Towers.Add(actor);
+    }
+
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if ((OID)actor.OID is OID.BrightHole or OID.DarkHole && state == 0x00040008)
+            Towers.Remove(actor);
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        foreach (var (src, tar, _) in Tethers)
+        {
+            Arena.AddLine(src.Position, tar.Position, ArenaColor.PlayerGeneric);
+            Arena.ZoneCircle(src.Position, 1, ArenaColor.AOE);
+        }
+
+        var tetherColor = TetherColors[pcSlot];
+        var tethered = tetherColor != Color.None;
+
+        foreach (var (t, tcol) in AllTowers)
+        {
+            Arena.AddCircle(t.Position, TowerRadius, tethered && tcol != tetherColor ? ArenaColor.Safe : ArenaColor.Danger);
+            foreach (var (_, ptar, _) in Tethers)
+                if (ptar.Position.InCircle(t.Position, TowerRadius))
+                {
+                    if (ptar == pc)
+                        Arena.AddCircle(ptar.Position, 6, ArenaColor.Danger);
+                    else
+                        Arena.ZoneCircle(ptar.Position, 6, ArenaColor.AOE);
+                }
+        }
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (TetherColors[slot] != Color.None)
+            hints.Add("Go to opposite color tower!", !SafeTowers(slot).Any(t => actor.Position.InCircle(t.Position, TowerRadius)));
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (TetherColors[slot] != Color.None)
+        {
+            var safeTowers = SafeTowers(slot).Select(t => ShapeDistance.Donut(t.Position, TowerRadius, 100)).ToList();
+            if (safeTowers.Count > 0)
+                hints.AddForbiddenZone(ShapeDistance.Intersection(safeTowers), Deadline);
+        }
+
+        // don't go to the same tower as another baiter
+        var otherBaits = Tethers.Where(t => t.Target != actor).Select(t => ShapeDistance.Circle(t.Target.Position, 6)).ToList();
+        if (otherBaits.Count > 0)
+            hints.AddForbiddenZone(ShapeDistance.Union(otherBaits), DateTime.MaxValue);
     }
 }
 
@@ -142,5 +234,9 @@ class AbsoluteVirtueStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 639, NameID = 7976)]
-public class AbsoluteVirtue(WorldState ws, Actor primary) : BossModule(ws, primary, new(-175, 314), new ArenaBoundsCircle(30));
+public class AbsoluteVirtue(WorldState ws, Actor primary) : BAModule(ws, primary, new(-175, 314), new ArenaBoundsCircle(30))
+{
+    // people like to early pull AV to be funny, so check if we have at least a BA low man run worth of people in the arena
+    protected override bool CheckPull() => PrimaryActor.InCombat && WorldState.Actors.Where(p => p.Type == ActorType.Player).Count(a => Bounds.Contains(a.Position - Center)) > 6;
+}
 
