@@ -1,5 +1,4 @@
-﻿using BossMod.Autorotation;
-using RID = BossMod.Roleplay.AID;
+﻿using RID = BossMod.Roleplay.AID;
 
 namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
@@ -86,7 +85,7 @@ internal class DeathUntoDawn(WorldState ws) : QuestBattle(ws)
                     hints.PathfindMapCenter = new(0, -180);
                     hints.PathfindMapBounds = new ArenaBoundsCircle(20);
                     if (!player.InCombat)
-                        hints.PrioritizeAll();
+                        hints.ForcedTarget = hints.PotentialTargets.MinBy(t => player.DistanceToPoint(t.Actor.Position))?.Actor;
                     _ai.Execute(player, hints);
                 };
             })

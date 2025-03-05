@@ -3,3 +3,4 @@ obj/
 bin/
 *.user
 logs/
+launchSettings.json

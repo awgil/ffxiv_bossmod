@@ -242,6 +242,10 @@ public sealed class ActionDefinitions : IDisposable
             RegisterDeepDungeon(new(ActionType.Pomander, (uint)i));
         for (var i = 1u; i <= 3; i++)
             RegisterDeepDungeon(new(ActionType.Magicite, i));
+
+        foreach (var act in typeof(EurekaActionID).GetEnumValues())
+            if ((uint)act > 0)
+                RegisterSpell((EurekaActionID)act);
     }
 
     public void Dispose()
@@ -272,6 +276,12 @@ public sealed class ActionDefinitions : IDisposable
         var dir = player.DirectionTo(target).Normalized();
         var src = player.Position;
         var proj = dist > 0 ? src + dir * MathF.Max(0, dist) : src;
+
+        // dash might yeet us off the arena
+        // TODO make *this* configurable?
+        if (!hints.PathfindMapBounds.Contains(proj - hints.PathfindMapCenter))
+            return true;
+
         return hints.ForbiddenZones.Any(d => d.shapeDistance(proj) < 0);
     }
 

@@ -249,6 +249,9 @@ public sealed class ReplayManager : IDisposable
         {
             if (ImGui.Button("Open"))
             {
+                if (_path.StartsWith('"') && _path.EndsWith('"'))
+                    _path = _path[1..^1];
+
                 _replayEntries.Add(new(_path, true));
                 SaveHistory();
             }

@@ -272,14 +272,20 @@ class ReplayDetailsWindow : UIWindow
     // x, z, rot, hp, name, target, cast, statuses
     private void DrawCommonColumns(Actor actor)
     {
+        (WPos center, float radius) bounds = _mgr.ActiveModule == null ? (new(100, 100), 20) : (_mgr.ActiveModule.Center, _mgr.ActiveModule.Bounds.Radius);
+        var minx = bounds.center.X - bounds.radius;
+        var maxx = bounds.center.X + bounds.radius;
+        var minz = bounds.center.Z - bounds.radius;
+        var maxz = bounds.center.Z + bounds.radius;
+
         var posX = actor.Position.X;
         var posZ = actor.Position.Z;
         var rot = actor.Rotation.Deg;
         bool modified = false;
         ImGui.TableNextColumn();
-        modified |= ImGui.DragFloat("###X", ref posX, 0.25f, 80, 120);
+        modified |= ImGui.DragFloat("###X", ref posX, 0.25f, minx, maxx);
         ImGui.TableNextColumn();
-        modified |= ImGui.DragFloat("###Z", ref posZ, 0.25f, 80, 120);
+        modified |= ImGui.DragFloat("###Z", ref posZ, 0.25f, minz, maxz);
         ImGui.TableNextColumn();
         modified |= ImGui.DragFloat("###Rot", ref rot, 1, -180, 180);
         if (modified)
@@ -307,10 +313,8 @@ class ReplayDetailsWindow : UIWindow
         ImGui.TableNextColumn();
         var numRealStatuses = actor.Statuses.Count(s => s.ID != 0);
         var numIncoming = actor.IncomingEffects.Count(i => i.GlobalSequence != 0);
-        var mouseOffset = ImGui.GetMousePos() - ImGui.GetWindowPos() - ImGui.GetCursorPos();
-        var mouseInColumn = mouseOffset.X >= 0 && mouseOffset.Y >= 0 && mouseOffset.X < ImGui.GetColumnWidth() && mouseOffset.Y < ImGui.GetFontSize() + 2 * ImGui.GetStyle().FramePadding.Y;
         ImGui.TextUnformatted($"{(actor.PendingKnockbacks.Count > 0 ? "Knockbacks pending, " : "")}{(actor.MountId != 0 ? $"Mounted ({actor.MountId}), " : "")}{numRealStatuses} + {actor.PendingStatuses.Count} statuses, {actor.PendingDispels.Count} dispels, {numIncoming} incoming effects");
-        if (mouseInColumn && numRealStatuses + actor.PendingStatuses.Count + actor.PendingDispels.Count + numIncoming > 0)
+        if (ImGui.IsItemHovered() && numRealStatuses + actor.PendingStatuses.Count + actor.PendingDispels.Count + numIncoming > 0)
         {
             using var tooltip = ImRaii.Tooltip();
             if (tooltip)

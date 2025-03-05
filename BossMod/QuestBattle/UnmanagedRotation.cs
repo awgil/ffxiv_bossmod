@@ -31,7 +31,7 @@ public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
         var def = ActionDefinitions.Instance[action];
         if (def == null)
             return;
-        Hints.ActionsToExecute.Push(action, target, ActionQueue.Priority.High + additionalPriority, castTime: def.CastTime + def.CastAnimLock - 0.5f, targetPos: targetPos); // TODO[cast-time]-xan: review, doesn't look right...
+        Hints.ActionsToExecute.Push(action, target, ActionQueue.Priority.High + additionalPriority, castTime: def.CastTime - 0.5f, targetPos: targetPos); // TODO[cast-time]-xan: review, doesn't look right...
     }
 
     protected float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - World.CurrentTime).TotalSeconds, 0.0f);

@@ -73,15 +73,6 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected int NextGCDPrio;
     protected uint MP;
 
-    protected AID HighestUnlocked(params AID[] actions)
-    {
-        foreach (var act in actions)
-            if (Unlocked(act))
-                return act;
-
-        return default;
-    }
-
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
     // override if some action requires specific runtime checks that aren't covered by the existing framework code

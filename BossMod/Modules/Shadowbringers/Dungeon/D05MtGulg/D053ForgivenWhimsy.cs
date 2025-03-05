@@ -49,14 +49,6 @@ class JudgmentDay(BossModule module) : Components.GenericTowers(module)
         if ((AID)spell.Action.ID is AID.Judged or AID.FoundWanting && Towers.Count > 0)
             Towers.RemoveAt(0);
     }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Towers.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 5));
-        if (Towers.Count > 1)
-            hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Sprint), actor, ActionQueue.Priority.High);
-    }
 }
 
 class Exegesis(BossModule module) : Components.GenericAOEs(module)

@@ -12,6 +12,8 @@ public class EurekaConfig : ConfigNode
     [PropertyDisplay("Max number of mobs to pull at once (0 for no limit)")]
     [PropertySlider(0, 30, Speed = 0.1f)]
     public int MaxPullCount = 10;
+
+    public bool AssistMode;
 }
 
 [ConfigDisplay(Name = "Hydatos", Parent = typeof(EurekaConfig))]
@@ -120,21 +122,31 @@ public class Hydatos : ZoneModule
         var farmMax = _eurekaConfig.MaxPullCount;
         var farmRange = _eurekaConfig.MaxPullDistance;
 
-        if (farmOID > 0 && (farmMax == 0 || hints.PotentialTargets.Count(e => e.Priority >= 0) < farmMax))
-            foreach (var e in hints.PotentialTargets)
-                if (e.Actor.OID == farmOID && e.Priority == AIHints.Enemy.PriorityUndesirable && (e.Actor.Position - player.Position).LengthSq() <= farmRange * farmRange)
-                {
-                    // level 60 hydatos wraith does not spawn golde
-                    if (farmOID == 0x26E6 && e.Actor.ForayInfo.Level < 61)
-                        continue;
+        if (farmMax > 0 && hints.PotentialTargets.Count(e => e.Priority >= 0) >= farmMax)
+            return;
 
-                    e.Priority = 0;
+        if (farmOID == 0)
+            return;
 
-                    var shouldSetTarget = !e.Actor.InCombat;
+        // only need to check "undesirable" targets, as mobs already attacking party members will be handled by autofarm
+        bool canTarget(AIHints.Enemy enemy) => enemy.Priority == AIHints.Enemy.PriorityUndesirable && (!_eurekaConfig.AssistMode || enemy.Actor.InCombat);
 
-                    if (shouldSetTarget && (hints.ForcedTarget == null || (hints.ForcedTarget.Position - player.Position).LengthSq() > (e.Actor.Position - player.Position).LengthSq()))
-                        hints.ForcedTarget = e.Actor;
-                }
+        foreach (var e in hints.PotentialTargets.Where(t => t.Actor.OID == farmOID))
+        {
+            if (canTarget(e) && (e.Actor.Position - player.Position).LengthSq() <= farmRange * farmRange)
+            {
+                // only level 61+ wraiths spawn golde
+                if (farmOID == 0x26E6 && e.Actor.ForayInfo.Level < 61)
+                    continue;
+
+                e.Priority = 0;
+
+                var wePull = !e.Actor.InCombat;
+
+                if (wePull && (hints.ForcedTarget == null || (hints.ForcedTarget.Position - player.Position).LengthSq() > (e.Actor.Position - player.Position).LengthSq()))
+                    hints.ForcedTarget = e.Actor;
+            }
+        }
     }
 
     private bool ShouldIgnore(Actor caster, Actor player)
@@ -162,6 +174,9 @@ public class Hydatos : ZoneModule
             _eurekaConfig.Modified.Fire();
         ImGui.SetNextItemWidth(200);
         if (ImGui.DragInt("Max mobs to pull (set to 0 for no limit)", ref _eurekaConfig.MaxPullCount, 1, 0, 30))
+            _eurekaConfig.Modified.Fire();
+
+        if (ImGui.Checkbox("Assist mode (only attack mobs that are already in combat)", ref _eurekaConfig.AssistMode))
             _eurekaConfig.Modified.Fire();
     }
 }

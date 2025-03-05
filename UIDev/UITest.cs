@@ -28,7 +28,7 @@ class UITest
         {
             // windowed mode
             windowInfo.XPos = 100;
-            windowInfo.YPos = 100;
+            windowInfo.YPos = -2000;
             windowInfo.Width = 1200;
             windowInfo.Height = 800;
             windowInfo.Fullscreen = false;
@@ -47,7 +47,8 @@ class UITest
 
         InitializeDalamudStyle();
 
-        Service.LogHandler = msg => Debug.WriteLine(msg);
+        Service.LogHandlerDebug = msg => Debug.WriteLine(msg);
+        Service.LogHandlerVerbose = msg => Debug.WriteLine(msg);
         Service.LuminaGameData = new(FindGameDataPath());
         //Service.LuminaGameData.Options.PanicOnSheetChecksumMismatch = false; // TODO: remove - temporary workaround until lumina is updated
         Service.LuminaGameData.Options.RsvResolver = Service.LuminaRSV.TryGetValue;

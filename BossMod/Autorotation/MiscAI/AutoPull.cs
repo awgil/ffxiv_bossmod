@@ -38,7 +38,7 @@ public sealed class AutoPull(RotationModuleManager manager, Actor player) : Rota
         if (strategy.Enabled(Track.Hunt) && Bossmods.ActiveModule?.Info?.Category == BossModuleInfo.Category.Hunt && Bossmods.ActiveModule?.PrimaryActor is Actor p && p.InCombat && p.HPRatio < 0.95f)
         {
             Hints.SetPriority(p, 0);
-            primaryTarget = p;
+            primaryTarget = Hints.ForcedTarget = p;
             return;
         }
 
@@ -48,7 +48,7 @@ public sealed class AutoPull(RotationModuleManager manager, Actor player) : Rota
             if (bestEnemy != null)
             {
                 bestEnemy.Priority = 0;
-                primaryTarget = bestEnemy.Actor;
+                primaryTarget = Hints.ForcedTarget = bestEnemy.Actor;
             }
         }
     }

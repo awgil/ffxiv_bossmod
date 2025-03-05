@@ -219,7 +219,7 @@ sealed class WorldStateGameSync : IDisposable
 
             if (obj != null && (obj->EntityId & 0xFF000000) == 0xFF000000)
             {
-                Service.Log($"[WorldState] Skipping bad object #{i} with id {obj->EntityId:X}");
+                Service.LogVerbose($"[WorldState] Skipping bad object #{i} with id {obj->EntityId:X}");
                 obj = null;
             }
 

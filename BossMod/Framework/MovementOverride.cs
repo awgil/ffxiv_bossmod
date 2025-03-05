@@ -99,7 +99,7 @@ public sealed unsafe class MovementOverride : IDisposable
         _rmiFlyHook.Dispose();
     }
 
-    private bool NavmeshActive()
+    private bool FollowpathActive()
     {
         if (_navmeshPathIsRunning == null && _dalamud.TryGetData<bool[]>("vnav.PathIsRunning", out var data))
             _navmeshPathIsRunning = data;
@@ -113,7 +113,7 @@ public sealed unsafe class MovementOverride : IDisposable
         _rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
 
         // TODO: we really need to introduce some extra checks that PlayerMoveController::readInput does - sometimes it skips reading input, and returning something non-zero breaks stuff...
-        var movementAllowed = bAdditiveUnk == 0 && _rmiWalkIsInputEnabled1(self) && _rmiWalkIsInputEnabled2(self) && !NavmeshActive();
+        var movementAllowed = bAdditiveUnk == 0 && _rmiWalkIsInputEnabled1(self) && _rmiWalkIsInputEnabled2(self) && !FollowpathActive();
         var misdirectionMode = PlayerHasMisdirection();
         if (!movementAllowed && misdirectionMode)
         {
@@ -166,6 +166,11 @@ public sealed unsafe class MovementOverride : IDisposable
     {
         _forcedControlState = null;
         _rmiFlyHook.Original(self, result);
+
+        // do nothing while followpath is running
+        if (FollowpathActive())
+            return;
+
         // TODO: we really need to introduce some extra checks that PlayerMoveController::readInput does - sometimes it skips reading input, and returning something non-zero breaks stuff...
         if (result->Forward == 0 && result->Left == 0 && result->Up == 0 && DirectionToDestination(true) is var relDir && relDir != null)
         {

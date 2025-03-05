@@ -1,10 +1,13 @@
-﻿namespace BossMod.Autorotation;
+﻿using static BossMod.Autorotation.ClassPCTUtility;
+
+namespace BossMod.Autorotation;
 
 public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player) : RoleTankUtility(manager, player)
 {
-    public enum Track { Sheltron = SharedTrack.Count, Sentinel, Cover, Bulwark, DivineVeil, HallowedGround } //What we're tracking
+    public enum Track { Sheltron = SharedTrack.Count, Sentinel, Cover, Bulwark, DivineVeil, PassageOfArms, HallowedGround } //What we're tracking
     public enum ShelOption { None, Sheltron, HolySheltron, Intervention } //Sheltron Options
     public enum SentOption { None, Sentinel, Guardian } //Sentinel enhancement
+    public enum ArmsDirection { None, CharacterForward, CharacterBackward, CameraForward, CameraBackward }
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(PLD.AID.LastBastion); //LB
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(PLD.AID.IronWill); //StanceOn
@@ -32,6 +35,15 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Cover, "Cover", "", 320, PLD.AID.Cover, 12); //120s CD, 12s duration, -50 OathGauge cost
         DefineSimpleConfig(res, Track.Bulwark, "Bulwark", "Bul", 450, PLD.AID.Bulwark, 10); //90s CD, 15s duration
         DefineSimpleConfig(res, Track.DivineVeil, "DivineVeil", "Veil", 220, PLD.AID.DivineVeil, 30); //90s CD, 30s duration
+
+        res.Define(Track.PassageOfArms).As<ArmsDirection>("PassageOfArms", "PoA", 400) //PassageOfArms definition for CD plans
+            .AddOption(ArmsDirection.None, "None", "Do not use automatically")
+            .AddOption(ArmsDirection.CharacterForward, "CharacterForward", "Faces the Forward direction relative to the Character", 120, 18, ActionTargets.Self, 70)
+            .AddOption(ArmsDirection.CharacterBackward, "CharacterBackward", "Faces the Backward direction relative to the Character", 120, 18, ActionTargets.Self, 70)
+            .AddOption(ArmsDirection.CameraForward, "CameraForward", "Faces the Forward direction relative to the Camera", 120, 18, ActionTargets.Self, 70)
+            .AddOption(ArmsDirection.CameraBackward, "CameraBackward", "Faces the Backward direction relative to the Camera", 120, 18, ActionTargets.Self, 70)
+            .AddAssociatedActions(PLD.AID.PassageOfArms);
+
         DefineSimpleConfig(res, Track.HallowedGround, "HallowedGround", "Inv", 400, PLD.AID.HallowedGround, 10); //420s CD, 10s duration
 
         return res;
@@ -65,5 +77,18 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
         };
         if (sentAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(sentAction), Player, sent.Priority(), sent.Value.ExpireIn); //Sentinel execution
+
+        var poa = strategy.Option(Track.PassageOfArms);
+        if (poa.As<ArmsDirection>() != ArmsDirection.None)
+        {
+            var angle = poa.As<ArmsDirection>() switch
+            {
+                ArmsDirection.CharacterBackward => Player.Rotation + 180.Degrees(),
+                ArmsDirection.CameraForward => World.Client.CameraAzimuth + 180.Degrees(),
+                ArmsDirection.CameraBackward => World.Client.CameraAzimuth,
+                _ => Player.Rotation
+            };
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(PLD.AID.PassageOfArms), Player, poa.Priority(), poa.Value.ExpireIn, facingAngle: angle);
+        }
     }
 }

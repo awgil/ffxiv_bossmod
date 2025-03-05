@@ -5,37 +5,37 @@ public enum AID : uint
     Sprint = ClassShared.AID.Sprint,
 
     PulseOfLife = 208, // LB3, 2.0s cast, range 0, AOE 50 circle, targets=Self, animLock=8.100s?
-    Stone1 = 119, // L1, 1.5s cast, GCD, range 25, single-target, targets=Hostile
-    Cure1 = 120, // L2, 1.5s cast, GCD, range 30, single-target, targets=Self/Party/Alliance/Friendly
-    Aero1 = 121, // L4, instant, GCD, range 25, single-target, targets=Hostile
-    Medica1 = 124, // L10, 2.0s cast, GCD, range 0, AOE 15 circle, targets=Self
+    Stone = 119, // L1, 1.5s cast, GCD, range 25, single-target, targets=Hostile
+    Cure = 120, // L2, 1.5s cast, GCD, range 30, single-target, targets=Self/Party/Alliance/Friendly
+    Aero = 121, // L4, instant, GCD, range 25, single-target, targets=Hostile
+    Medica = 124, // L10, 2.0s cast, GCD, range 0, AOE 15 circle, targets=Self
     Raise = 125, // L12, 8.0s cast, GCD, range 30, single-target, targets=Party/Alliance/Friendly/Dead
-    Stone2 = 127, // L18, 1.5s cast, GCD, range 25, single-target, targets=Hostile
+    StoneII = 127, // L18, 1.5s cast, GCD, range 25, single-target, targets=Hostile
     PresenceOfMind = 136, // L30, instant, 120.0s CD (group 20), range 0, single-target, targets=Self
-    Cure2 = 135, // L30, 2.0s cast, GCD, range 30, single-target, targets=Self/Party/Alliance/Friendly
+    CureII = 135, // L30, 2.0s cast, GCD, range 30, single-target, targets=Self/Party/Alliance/Friendly
     Regen = 137, // L35, instant, GCD, range 30, single-target, targets=Self/Party/Alliance/Friendly
     AetherialShift = 37008, // L40, instant, 60.0s CD (group 12), range 0, single-target, targets=Self, animLock=???
-    Cure3 = 131, // L40, 2.0s cast, GCD, range 30, AOE 10 circle, targets=Self/Party
-    Holy1 = 139, // L45, 2.5s cast, GCD, range 0, AOE 8 circle, targets=Self
-    Aero2 = 132, // L46, instant, GCD, range 25, single-target, targets=Hostile
-    Medica2 = 133, // L50, 2.0s cast, GCD, range 0, AOE 20 circle, targets=Self
+    CureIII = 131, // L40, 2.0s cast, GCD, range 30, AOE 10 circle, targets=Self/Party
+    Holy = 139, // L45, 2.5s cast, GCD, range 0, AOE 8 circle, targets=Self
+    AeroII = 132, // L46, instant, GCD, range 25, single-target, targets=Hostile
+    MedicaII = 133, // L50, 2.0s cast, GCD, range 0, AOE 20 circle, targets=Self
     Benediction = 140, // L50, instant, 180.0s CD (group 23), range 30, single-target, targets=Self/Party/Alliance/Friendly
     AfflatusSolace = 16531, // L52, instant, GCD, range 30, single-target, targets=Self/Party/Alliance/Friendly
     Asylum = 3569, // L52, instant, 90.0s CD (group 14), range 30, ???, targets=Area
-    Stone3 = 3568, // L54, 1.5s cast, GCD, range 25, single-target, targets=Hostile
+    StoneIII = 3568, // L54, 1.5s cast, GCD, range 25, single-target, targets=Hostile
     Assize = 3571, // L56, instant, 40.0s CD (group 7), range 0, AOE 15 circle, targets=Self
     ThinAir = 7430, // L58, instant, 60.0s CD (group 18/70) (2 charges), range 0, single-target, targets=Self
     Tetragrammaton = 3570, // L60, instant, 60.0s CD (group 19/72), range 30, single-target, targets=Self/Party/Alliance/Friendly
-    Stone4 = 7431, // L64, 1.5s cast, GCD, range 25, single-target, targets=Hostile
+    StoneIV = 7431, // L64, 1.5s cast, GCD, range 25, single-target, targets=Hostile
     DivineBenison = 7432, // L66, instant, 30.0s CD (group 9/71) (1-2 charges), range 30, single-target, targets=Self/Party
     PlenaryIndulgence = 7433, // L70, instant, 60.0s CD (group 10), range 0, AOE 20 circle, targets=Self
     Dia = 16532, // L72, instant, GCD, range 25, single-target, targets=Hostile
-    Glare1 = 16533, // L72, 1.5s cast, GCD, range 25, single-target, targets=Hostile
+    GlareI = 16533, // L72, 1.5s cast, GCD, range 25, single-target, targets=Hostile
     AfflatusMisery = 16535, // L74, instant, GCD, range 25, AOE 5 circle, targets=Hostile
     AfflatusRapture = 16534, // L76, instant, GCD, range 0, AOE 20 circle, targets=Self
     Temperance = 16536, // L80, instant, 120.0s CD (group 21), range 0, single-target, targets=Self
-    Glare3 = 25859, // L82, 1.5s cast, GCD, range 25, single-target, targets=Hostile
-    Holy3 = 25860, // L82, 2.5s cast, GCD, range 0, AOE 8 circle, targets=Self
+    GlareIII = 25859, // L82, 1.5s cast, GCD, range 25, single-target, targets=Hostile
+    HolyIII = 25860, // L82, 2.5s cast, GCD, range 0, AOE 8 circle, targets=Self
     Aquaveil = 25861, // L86, instant, 60.0s CD (group 11), range 30, single-target, targets=Self/Party
     LiturgyOfTheBell = 25862, // L90, instant, 180.0s CD (group 22), range 30, ???, targets=Area
     LiturgyOfTheBellEnd = 28509, // L90, instant, 1.0s CD (group 0), range 0, single-target, targets=Self
@@ -85,10 +85,10 @@ public enum TraitID : uint
 public enum SID : uint
 {
     None = 0,
-    Aero1 = 143, // applied by Aero1 to target, dot
-    Aero2 = 144, // applied by Aero2 to target, dot
+    Aero = 143, // applied by Aero1 to target, dot
+    AeroII = 144, // applied by Aero2 to target, dot
     Dia = 1871, // applied by Dia to target, dot
-    Medica2 = 150, // applied by Medica2 to targets, hot
+    MedicaII = 150, // applied by Medica2 to targets, hot
     Freecure = 155, // applied by Cure1 to self, next cure2 is free
     ThinAir = 1217, // applied by Thin Air to self, next gcd costs no mp
     DivineBenison = 1218, // applied by Divine Benison to target, shield
@@ -118,37 +118,37 @@ public sealed class Definitions : IDisposable
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.PulseOfLife, castAnimLock: 8.10f); // animLock=8.100s?
-        d.RegisterSpell(AID.Stone1);
-        d.RegisterSpell(AID.Cure1);
-        d.RegisterSpell(AID.Aero1);
-        d.RegisterSpell(AID.Medica1);
+        d.RegisterSpell(AID.Stone);
+        d.RegisterSpell(AID.Cure);
+        d.RegisterSpell(AID.Aero);
+        d.RegisterSpell(AID.Medica);
         d.RegisterSpell(AID.Raise);
-        d.RegisterSpell(AID.Stone2);
+        d.RegisterSpell(AID.StoneII);
         d.RegisterSpell(AID.PresenceOfMind);
-        d.RegisterSpell(AID.Cure2);
+        d.RegisterSpell(AID.CureII);
         d.RegisterSpell(AID.Regen);
         d.RegisterSpell(AID.AetherialShift); // animLock=???
-        d.RegisterSpell(AID.Cure3);
-        d.RegisterSpell(AID.Holy1);
-        d.RegisterSpell(AID.Aero2);
-        d.RegisterSpell(AID.Medica2);
+        d.RegisterSpell(AID.CureIII);
+        d.RegisterSpell(AID.Holy);
+        d.RegisterSpell(AID.AeroII);
+        d.RegisterSpell(AID.MedicaII);
         d.RegisterSpell(AID.Benediction);
         d.RegisterSpell(AID.AfflatusSolace);
         d.RegisterSpell(AID.Asylum);
-        d.RegisterSpell(AID.Stone3);
+        d.RegisterSpell(AID.StoneIII);
         d.RegisterSpell(AID.Assize);
         d.RegisterSpell(AID.ThinAir);
         d.RegisterSpell(AID.Tetragrammaton);
-        d.RegisterSpell(AID.Stone4);
+        d.RegisterSpell(AID.StoneIV);
         d.RegisterSpell(AID.DivineBenison);
         d.RegisterSpell(AID.PlenaryIndulgence);
         d.RegisterSpell(AID.Dia);
-        d.RegisterSpell(AID.Glare1);
+        d.RegisterSpell(AID.GlareI);
         d.RegisterSpell(AID.AfflatusMisery);
         d.RegisterSpell(AID.AfflatusRapture);
         d.RegisterSpell(AID.Temperance);
-        d.RegisterSpell(AID.Glare3);
-        d.RegisterSpell(AID.Holy3);
+        d.RegisterSpell(AID.GlareIII);
+        d.RegisterSpell(AID.HolyIII);
         d.RegisterSpell(AID.Aquaveil);
         d.RegisterSpell(AID.LiturgyOfTheBell);
         d.RegisterSpell(AID.LiturgyOfTheBellEnd);

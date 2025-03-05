@@ -35,15 +35,52 @@ public class DirectionalParry(BossModule module, uint actorOID) : Adds(module, a
                 _ => forbiddenSides.HasFlag(attackDir.Dot(facing.OrthoL()) > 0 ? Side.Left : Side.Right)
             };
             if (attackingFromForbidden)
-            {
                 hints.Add("Attack target from unshielded side!");
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var (id, targetState) in _actorStates)
+        {
+            var target = WorldState.Actors.Find(id);
+            if (target == null)
+                continue;
+
+            void forbidDirection(Angle offset) => hints.AddForbiddenZone(new AOEShapeCone(100, 45.Degrees()), target.Position, target.Rotation + offset, DateTime.MaxValue, target.InstanceID);
+
+            var forbiddenSides = ActiveSides(targetState);
+            var attackDir = (actor.Position - target.Position).Normalized();
+            var facing = target.Rotation.ToDirection();
+            bool attackingFromForbidden = attackDir.Dot(facing) switch
+            {
+                > 0.7071067f => forbiddenSides.HasFlag(Side.Front),
+                < -0.7071067f => forbiddenSides.HasFlag(Side.Back),
+                _ => forbiddenSides.HasFlag(attackDir.Dot(facing.OrthoL()) > 0 ? Side.Left : Side.Right)
+            };
+
+            if (attackingFromForbidden)
+            {
+                hints.SetPriority(target, AIHints.Enemy.PriorityForbidden);
+
+                // make AI move to an area where it can attack target safely
+                if (actor.TargetID == id)
+                {
+                    if (forbiddenSides.HasFlag(Side.Front))
+                        forbidDirection(default);
+                    if (forbiddenSides.HasFlag(Side.Left))
+                        forbidDirection(90.Degrees());
+                    if (forbiddenSides.HasFlag(Side.Back))
+                        forbidDirection(180.Degrees());
+                    if (forbiddenSides.HasFlag(Side.Right))
+                        forbidDirection(270.Degrees());
+                }
             }
         }
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(pcSlot, pc);
         foreach (var a in ActiveActors)
         {
             if (_actorStates.TryGetValue(a.InstanceID, out var aState))

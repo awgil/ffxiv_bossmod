@@ -125,7 +125,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         if (strategy.Enabled(Track.Heal))
             switch (Player.Class)
             {
-                case Class.WHM:
+                case Class.CNJ or Class.WHM:
                     AutoWHM(strategy);
                     break;
                 case Class.AST:
@@ -143,7 +143,20 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
     private void UseGCD<AID>(AID action, Actor? target, int extraPriority = 0) where AID : Enum
         => UseGCD(ActionID.MakeSpell(action), target, extraPriority);
     private void UseGCD(ActionID action, Actor? target, int extraPriority = 0)
-        => Hints.ActionsToExecute.Push(action, target, ActionQueue.Priority.High + 500 + extraPriority); // TODO[cast-time]-xan: verify all callers
+    {
+        var def = ActionDefinitions.Instance[action];
+        if (def == null)
+            return;
+
+        var castTime = Math.Max(0, def.CastTime - 0.5f);
+        if (castTime > 0)
+        {
+            if (StatusDetails(Player, (uint)BossMod.WHM.SID.Swiftcast, Player.InstanceID).Left > GCD || StatusDetails(Player, (uint)ClassShared.SID.LostChainspell, Player.InstanceID).Left > GCD)
+                castTime = 0;
+        }
+
+        Hints.ActionsToExecute.Push(action, target, ActionQueue.Priority.High + 500 + extraPriority, castTime: castTime);
+    }
 
     private void UseOGCD<AID>(AID action, Actor? target, int extraPriority = 0) where AID : Enum
         => UseOGCD(ActionID.MakeSpell(action), target, extraPriority);
@@ -223,20 +236,41 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
     {
         var gauge = World.Client.GetGauge<WhiteMageGauge>();
 
+        var bestC2 = BestActionUnlocked(BossMod.WHM.AID.CureII, BossMod.WHM.AID.Cure);
+        var bestM2 = BestActionUnlocked(BossMod.WHM.AID.MedicaIII, BossMod.WHM.AID.MedicaII);
+
         HealSingle((target, state) =>
         {
-            if (state.PredictedHPRatio < 0.5 && gauge.Lily > 0)
-                UseGCD(BossMod.WHM.AID.AfflatusSolace, target);
+            // TODO add a track for this kind of stuff
+            //if (state.PredictedHPRatio < 1 && target.FindStatus(BossMod.WHM.SID.Regen) == null)
+            //    UseGCD(BossMod.WHM.AID.Regen, target);
+
+            if (state.PredictedHPRatio < 0.5)
+            {
+                if (gauge.Lily > 0)
+                    UseGCD(BossMod.WHM.AID.AfflatusSolace, target);
+                else
+                    UseGCD(bestC2, target);
+            }
 
             if (state.PredictedHPRatio < 0.25)
                 UseOGCD(BossMod.WHM.AID.Tetragrammaton, target);
         });
 
-        if (ShouldHealInArea(Player.Position, 15, 0.75f) && gauge.Lily > 0)
-            UseGCD(BossMod.WHM.AID.AfflatusRapture, Player);
+        if (ShouldHealInArea(Player.Position, 15, 0.75f))
+        {
+            // do actual heals
+            if (gauge.Lily > 0)
+                UseGCD(BossMod.WHM.AID.AfflatusRapture, Player);
+            else if (Unlocked(BossMod.WHM.AID.CureIII))
+                UseGCD(BossMod.WHM.AID.CureIII, Player);
+            else
+                UseGCD(BossMod.WHM.AID.Medica, Player);
 
-        if (ShouldHealInArea(Player.Position, 10, 0.5f))
-            UseGCD(BossMod.WHM.AID.Cure3, Player);
+            // apply regens
+            if (Player.FindStatus(Unlocked(BossMod.WHM.AID.MedicaIII) ? BossMod.WHM.SID.MedicaIII : BossMod.WHM.SID.MedicaII) == null)
+                UseGCD(bestM2, Player);
+        }
     }
 
     private static readonly (AstrologianCard, BossMod.AST.AID)[] SupportCards = [

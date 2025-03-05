@@ -167,7 +167,8 @@ public sealed class Definitions : IDisposable
     private void Customize(ActionDefinitions d)
     {
         d.RegisterChargeIncreaseTrait(AID.StrikingMuse, TraitID.EnhancedPictomancyII);
-        d.RegisterChargeIncreaseTrait(AID.LivingMuse, TraitID.EnhancedPictomancyIV);
+        foreach (var creature in new AID[] { AID.LivingMuse, AID.PomMuse, AID.WingedMuse, AID.ClawedMuse, AID.FangedMuse })
+            d.RegisterChargeIncreaseTrait(creature, TraitID.EnhancedPictomancyIV);
 
         d.Spell(AID.Smudge)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera
             ? ws.Client.CameraAzimuth + 180.Degrees()

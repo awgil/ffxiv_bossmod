@@ -138,17 +138,17 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
                     break;
                 case AID.Disembowel:
                 case AID.SpiralBlow:
-                    PushGCD(HighestUnlocked(AID.ChaoticSpring, AID.ChaosThrust), primaryTarget);
+                    PushGCD(BestActionUnlocked(AID.ChaoticSpring, AID.ChaosThrust), primaryTarget);
                     break;
                 case AID.VorpalThrust:
                 case AID.LanceBarrage:
-                    PushGCD(HighestUnlocked(AID.HeavensThrust, AID.FullThrust), primaryTarget);
+                    PushGCD(BestActionUnlocked(AID.HeavensThrust, AID.FullThrust), primaryTarget);
                     break;
                 case AID.TrueThrust:
                 case AID.RaidenThrust:
                     if (PowerSurge < 10)
-                        PushGCD(HighestUnlocked(AID.SpiralBlow, AID.Disembowel), primaryTarget);
-                    PushGCD(HighestUnlocked(AID.LanceBarrage, AID.VorpalThrust), primaryTarget);
+                        PushGCD(BestActionUnlocked(AID.SpiralBlow, AID.Disembowel), primaryTarget);
+                    PushGCD(BestActionUnlocked(AID.LanceBarrage, AID.VorpalThrust), primaryTarget);
                     break;
             }
         }

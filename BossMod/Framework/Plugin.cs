@@ -57,7 +57,8 @@ public sealed class Plugin : IDalamudPlugin
         InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
 
         dalamud.Create<Service>();
-        Service.LogHandler = (string msg) => Service.Logger.Debug(msg);
+        Service.LogHandlerDebug = (string msg) => Service.Logger.Debug(msg);
+        Service.LogHandlerVerbose = (string msg) => Service.Logger.Verbose(msg);
         Service.LuminaGameData = dataManager.GameData;
         Service.WindowSystem = new("vbm");
         //Service.Device = pluginInterface.UiBuilder.Device;
