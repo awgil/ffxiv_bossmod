@@ -10,7 +10,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 {
     #region Enums: Abilities / Strategies
     public enum Track { AOE, Cooldowns, Potion, Atonement, BladeCombo, Holy, Dash, Ranged, FightOrFlight, Requiescat, SpiritsWithin, CircleOfScorn, GoringBlade, BladeOfHonor }
-    public enum AOEStrategy { AutoFinishCombo, AutoBreakCombo, ForceST, ForceAOE }
+    public enum AOEStrategy { AutoFinish, AutoBreak, ForceST, ForceAOE }
     public enum CooldownStrategy { Allow, Forbid }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
     public enum AtonementStrategy { Automatic, ForceAtonement, ForceSupplication, ForceSepulchre, Delay }
@@ -23,29 +23,23 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi PLD", //Title
-            "Standard Rotation Module", //Description
-            "Standard rotation (Akechi)|Tank", //Category
-            "Akechi", //Contributor
-            RotationModuleQuality.Good, //Quality
-            BitMask.Build((int)Class.GLA, (int)Class.PLD), //Class and Job
-            100); //Level supported
+        var res = new RotationModuleDefinition("Akechi PLD", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.GLA, (int)Class.PLD), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 200)
-            .AddOption(AOEStrategy.AutoFinishCombo, "Auto (Finish Combo)", "Auto-selects best rotation dependant on targets; Finishes combo first", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.AutoBreakCombo, "Auto (Break Combo)", "Auto-selects best rotation dependant on targets; Breaks combo if needed", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.AutoFinish, "Auto (Finish Combo)", "Auto-selects best rotation dependant on targets; finishes combo if possible", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.AutoBreak, "Auto (Break Combo)", "Auto-selects best rotation dependant on targets; breaks combo if necessary", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceST, "Use AOE", "Force single-target rotation", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation")
             .AddAssociatedActions(AID.FastBlade, AID.RiotBlade, AID.RageOfHalone, AID.RoyalAuthority, AID.Prominence, AID.TotalEclipse);
         res.Define(Track.Cooldowns).As<CooldownStrategy>("Hold", uiPriority: 190)
             .AddOption(CooldownStrategy.Allow, "Allow", "Allows the use of all cooldowns & buffs; will use them optimally")
             .AddOption(CooldownStrategy.Forbid, "Hold", "Forbids the use of all cooldowns & buffs; will not use any actions with a cooldown timer");
-        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 180)
+        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 90)
             .AddOption(PotionStrategy.Manual, "Manual", "Do not use potions automatically")
             .AddOption(PotionStrategy.AlignWithRaidBuffs, "Align With Raid Buffs", "Align potion usage with raid buffs", 270, 30, ActionTargets.Self)
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use potions immediately when available", 270, 30, ActionTargets.Self)
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
-        res.Define(Track.Atonement).As<AtonementStrategy>("Atonement", "Atones", uiPriority: 160)
+        res.Define(Track.Atonement).As<AtonementStrategy>("Atonement", "Atones", uiPriority: 155)
             .AddOption(AtonementStrategy.Automatic, "Automatic", "Normal use of Atonement & its combo chain")
             .AddOption(AtonementStrategy.ForceAtonement, "Force Atonement", "Force use of Atonement", 0, 30, ActionTargets.Hostile, 76)
             .AddOption(AtonementStrategy.ForceSupplication, "Force Supplication", "Force use of Supplication", 0, 30, ActionTargets.Hostile, 76)
@@ -66,7 +60,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(HolyStrategy.Circle, "Circle", "Force use of Holy Circle", 0, 0, ActionTargets.Hostile, 72)
             .AddOption(HolyStrategy.Delay, "Delay", "Delay use of Holy actions", 0, 0, ActionTargets.None, 64)
             .AddAssociatedActions(AID.HolySpirit, AID.HolyCircle);
-        res.Define(Track.Dash).As<DashStrategy>("Intervene", "Dash", uiPriority: 150)
+        res.Define(Track.Dash).As<DashStrategy>("Intervene", "Dash", uiPriority: 95)
             .AddOption(DashStrategy.Automatic, "Automatic", "Normal use of Intervene")
             .AddOption(DashStrategy.Force, "Force", "Force use of Intervene", 30, 0, ActionTargets.Hostile, 66)
             .AddOption(DashStrategy.Force1, "Force (Hold 1)", "Force use of Intervene; Hold one charge for manual usage", 30, 0, ActionTargets.Hostile, 66)
@@ -74,7 +68,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(DashStrategy.GapClose1, "Gap Close (Hold 1)", "Use as gap closer if outside melee range; Hold one charge for manual usage", 30, 0, ActionTargets.None, 66)
             .AddOption(DashStrategy.Delay, "Delay", "Delay use of Intervene", 0, 0, ActionTargets.None, 66)
             .AddAssociatedActions(AID.Intervene);
-        res.Define(Track.Ranged).As<RangedStrategy>("Ranged", "Ranged", uiPriority: 140)
+        res.Define(Track.Ranged).As<RangedStrategy>("Ranged", "Ranged", uiPriority: 100)
             .AddOption(RangedStrategy.Automatic, "Automatic", "Uses Holy Spirit when standing still; Uses Shield Lob if moving")
             .AddOption(RangedStrategy.OpenerRangedCast, "Opener (Cast)", "Use Holy Spirit at the start of combat if outside melee range", 0, 0, ActionTargets.Hostile, 64)
             .AddOption(RangedStrategy.OpenerCast, "Opener", "Use Holy Spirit at the start of combat regardless of range", 0, 0, ActionTargets.Hostile, 64)
@@ -86,51 +80,16 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(RangedStrategy.Ranged, "Ranged", "Use Shield Lob for ranged attacks", 0, 0, ActionTargets.Hostile, 15)
             .AddOption(RangedStrategy.Forbid, "Forbid", "Prohibit the use of ranged attacks", 0, 0, ActionTargets.Hostile, 15)
             .AddAssociatedActions(AID.ShieldLob, AID.HolySpirit);
-        res.DefineOGCD(Track.FightOrFlight, AID.FightOrFlight, "FightOrFlight", "F.Flight", uiPriority: 170, 60, 20, ActionTargets.Self, 2);
-        res.DefineOGCD(Track.Requiescat, AID.Requiescat, "Requiescat", "Req.", uiPriority: 170, 60, 30, ActionTargets.Hostile, 68).AddAssociatedActions(AID.Requiescat, AID.Imperator);
-        res.DefineOGCD(Track.SpiritsWithin, AID.SpiritsWithin, "SpiritsWithin", "S.Within", uiPriority: 170, 30, 0, ActionTargets.Hostile, 30).AddAssociatedActions(AID.SpiritsWithin, AID.Expiacion);
-        res.DefineOGCD(Track.CircleOfScorn, AID.CircleOfScorn, "CircleOfScorn", "C.Scorn", uiPriority: 170, 30, 15, ActionTargets.Self, 50);
-        res.DefineGCD(Track.GoringBlade, AID.GoringBlade, "GoringBlade", "G.Blade", uiPriority: 170, 0, 0, ActionTargets.Hostile, 54);
-        res.DefineOGCD(Track.BladeOfHonor, AID.BladeOfHonor, "BladeOfHonor", "B.Honor", uiPriority: 170, 0, 0, ActionTargets.Hostile, 100);
+        res.DefineOGCD(Track.FightOrFlight, AID.FightOrFlight, "FightOrFlight", "F.Flight", uiPriority: 170, 60, 20, ActionTargets.Self, 2).AddAssociatedActions(AID.FightOrFlight);
+        res.DefineOGCD(Track.Requiescat, AID.Requiescat, "Requiescat", "Req.", uiPriority: 165, 60, 30, ActionTargets.Hostile, 68).AddAssociatedActions(AID.Requiescat, AID.Imperator);
+        res.DefineOGCD(Track.SpiritsWithin, AID.SpiritsWithin, "SpiritsWithin", "S.Within", uiPriority: 145, 30, 0, ActionTargets.Hostile, 30).AddAssociatedActions(AID.SpiritsWithin, AID.Expiacion);
+        res.DefineOGCD(Track.CircleOfScorn, AID.CircleOfScorn, "CircleOfScorn", "C.Scorn", uiPriority: 140, 30, 15, ActionTargets.Self, 50).AddAssociatedActions(AID.CircleOfScorn);
+        res.DefineGCD(Track.GoringBlade, AID.GoringBlade, "GoringBlade", "G.Blade", uiPriority: 135, 0, 0, ActionTargets.Hostile, 54).AddAssociatedActions(AID.GoringBlade);
+        res.DefineOGCD(Track.BladeOfHonor, AID.BladeOfHonor, "BladeOfHonor", "B.Honor", uiPriority: 130, 0, 0, ActionTargets.Hostile, 100).AddAssociatedActions(AID.BladeOfHonor);
 
         return res;
 
     }
-    #endregion
-
-    #region Priorities
-    public enum GCDPriority
-    {
-        None = 0,
-        Standard = 100,
-        ForcedCombo = 499,
-        HolySpirit = 500,
-        Atonement = 550,
-        GoringBlade = 600,
-        Blades = 700,
-        ForcedGCD = 900,
-    }
-    public enum OGCDPriority
-    {
-        None = 0,
-        BladeOfHonor = 400,
-        Intervene = 450,
-        SpiritsWithin = 500,
-        CircleOfScorn = 550,
-        Requiescat = 600,
-        FightOrFlight = 700,
-        Potion = 910,
-        ForcedOGCD = 1100, //Enough to put it past CDPlanner's "Automatic" priority, which is really only Medium priority
-    }
-    #endregion
-
-    #region Upgrade Paths
-    public AID BestSpirits => Unlocked(AID.Expiacion) ? AID.Expiacion : AID.SpiritsWithin;
-    public AID BestRequiescat => Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat;
-    public AID BestHoly => ShouldUseAOE ? BestHolyCircle : AID.HolySpirit;
-    public AID BestHolyCircle => HolyCircle.IsReady ? AID.HolyCircle : AID.HolySpirit;
-    public AID BestAtonement => Sepulchre.IsReady ? AID.Sepulchre : (Supplication.IsReady ? AID.Supplication : AID.Atonement);
-    public AID BestBlade => BladeComboStep == 3 ? AID.BladeOfValor : BladeComboStep == 2 ? AID.BladeOfTruth : BladeComboStep == 1 && Unlocked(AID.BladeOfFaith) ? AID.BladeOfFaith : Unlocked(AID.Confiteor) ? AID.Confiteor : BestHoly;
     #endregion
 
     #region Module Variables
@@ -155,273 +114,27 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     private int NumSplashTargets;
     private Enemy? BestSplashTargets;
     private Enemy? BestSplashTarget;
-
     #endregion
 
-    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
-    {
-        #region Variables
-        var gauge = World.Client.GetGauge<PaladinGauge>(); //Retrieve Paladin gauge
-        Oath = gauge.OathGauge; //Retrieve current Oath gauge
-        BladeComboStep = gauge.ConfiteorComboStep; //Retrieve current step in the Confiteor/Blades combo
-        DivineMight.Left = SelfStatusLeft(SID.DivineMight, 30); //Remaining duration of the Divine Might buff
-        DivineMight.IsActive = DivineMight.Left > 0; //Check if the Divine Might buff is active
-        FightOrFlight.CD = TotalCD(AID.FightOrFlight); //Remaining cooldown for the Fight or Flight ability
-        FightOrFlight.Left = SelfStatusLeft(SID.FightOrFlight, 20); //Remaining duration of the Fight or Flight buff
-        FightOrFlight.IsActive = FightOrFlight.CD is >= 39.5f and <= 60; //Check if the Fight or Flight buff is active 
-        FightOrFlight.IsReady = FightOrFlight.CD < 0.6f; //Fight or Flight ability
-        SpiritsWithin.CD = TotalCD(BestSpirits); //Remaining cooldown for the Spirits Within ability
-        SpiritsWithin.IsReady = Unlocked(AID.SpiritsWithin) && SpiritsWithin.CD < 0.6f; //Spirits Within ability
-        CircleOfScorn.CD = TotalCD(AID.CircleOfScorn); //Remaining cooldown for the Circle of Scorn ability
-        CircleOfScorn.IsReady = Unlocked(AID.CircleOfScorn) && CircleOfScorn.CD < 0.6f; //Circle of Scorn ability
-        GoringBlade.CD = TotalCD(AID.GoringBlade); //Remaining cooldown for the Goring Blade ability
-        GoringBlade.Left = SelfStatusLeft(SID.GoringBladeReady, 30); //Remaining duration of the Goring Blade buff
-        GoringBlade.IsActive = GoringBlade.Left > 0; //Check if the Goring Blade buff is active
-        GoringBlade.IsReady = Unlocked(AID.GoringBlade) && GoringBlade.IsActive; //Goring Blade ability
-        Intervene.TotalCD = TotalCD(AID.Intervene); //Total cooldown for the Intervene ability (60s)
-        Intervene.HasCharges = Intervene.TotalCD <= 30f; //Check if the player has charges of Intervene
-        Intervene.IsReady = Unlocked(AID.Intervene) && Intervene.HasCharges; //Intervene ability
-        Requiescat.CD = TotalCD(BestRequiescat); //Remaining cooldown for the Requiescat ability
-        Requiescat.Left = SelfStatusLeft(SID.Requiescat, 30); //Get the current number of Requiescat stacks 
-        Requiescat.IsActive = Requiescat.Left > 0; //Check if the Requiescat buff is active
-        Requiescat.IsReady = Unlocked(AID.Requiescat) && Requiescat.CD < 0.6f; //Requiescat ability
-        Atonement.Left = SelfStatusLeft(SID.AtonementReady, 30); //Remaining duration of the Atonement buff
-        Atonement.IsActive = Atonement.Left > 0; //Check if the Atonement buff is active
-        Atonement.IsReady = Unlocked(AID.Atonement) && Atonement.IsActive; //Atonement ability
-        Supplication.Left = SelfStatusLeft(SID.SupplicationReady, 30); //Remaining duration of the Supplication buff
-        Supplication.IsActive = Supplication.Left > 0; //Check if the Supplication buff is active
-        Supplication.IsReady = Unlocked(AID.Supplication) && Supplication.IsActive; //Supplication ability
-        Sepulchre.Left = SelfStatusLeft(SID.SepulchreReady, 30); //Remaining duration of the Sepulchre buff
-        Sepulchre.IsActive = Sepulchre.Left > 0; //Check if the Sepulchre buff is active
-        Sepulchre.IsReady = Unlocked(AID.Sepulchre) && Sepulchre.IsActive; //Sepulchre ability
-        Confiteor.Left = SelfStatusLeft(SID.ConfiteorReady, 30); //Remaining duration of the Confiteor buff
-        Confiteor.IsActive = Confiteor.Left > 0; //Check if the Confiteor buff is active
-        Confiteor.IsReady = Unlocked(AID.Confiteor) && Confiteor.IsActive && MP >= 1000; //Confiteor ability
-        BladeOfHonor.Left = SelfStatusLeft(SID.BladeOfHonorReady, 30); //Remaining duration of the Blade of Honor buff
-        BladeOfHonor.IsActive = BladeOfHonor.Left > 0; //Check if the Blade of Honor buff is active
-        BladeOfHonor.IsReady = Unlocked(AID.BladeOfHonor) && BladeOfHonor.IsActive; //Checks if Blade of Honor is ready
-        HolySpirit.HasMP = MP >= 1000; //Check if the player has enough MP for Holy Spirit
-        HolySpirit.IsReady = Unlocked(AID.HolySpirit) && HolySpirit.HasMP; //Holy Spirit ability
-        HolyCircle.HasMP = MP >= 1000; //Check if the player has enough MP for Holy Circle
-        HolyCircle.IsReady = Unlocked(AID.HolyCircle) && HolyCircle.HasMP; //Holy Circle ability
-        ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore; //Check if AOE rotation should be used
-        ShouldHoldDMandAC = ComboLastMove is AID.RoyalAuthority ? FightOrFlight.CD < 5 : ComboLastMove is AID.FastBlade ? FightOrFlight.CD < 2.5 : ComboLastMove is AID.RiotBlade && FightOrFlight.CD < GCD;
-        (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
-        BestSplashTarget = Unlocked(AID.Confiteor) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
-
-        #region Strategy Definitions
-        var AOE = strategy.Option(Track.AOE); //Retrieves AOE track
-        var AOEStrategy = AOE.As<AOEStrategy>(); //Retrieves AOE strategy
-        var cd = strategy.Option(Track.Cooldowns); //Retrieves Cooldowns track
-        var cdStrat = cd.As<CooldownStrategy>(); //Retrieves Cooldowns strategy
-        var pot = strategy.Option(Track.Potion); //Retrieves Potion track
-        var potStrat = pot.As<PotionStrategy>(); //Retrieves Potion strategy
-        var fof = strategy.Option(Track.FightOrFlight); //Retrieves Fight or Flight track
-        var fofStrat = fof.As<OGCDStrategy>(); //Retrieves Fight or Flight strategy
-        var req = strategy.Option(Track.Requiescat); //Retrieves Requiescat track
-        var reqStrat = req.As<OGCDStrategy>(); //Retrieves Requiescat strategy
-        var atone = strategy.Option(Track.Atonement); //Retrieves Atonement track
-        var atoneStrat = atone.As<AtonementStrategy>(); //Retrieves Atonement strategy
-        var blade = strategy.Option(Track.BladeCombo); //Retrieves Blade Combo track
-        var bladeStrat = blade.As<BladeComboStrategy>(); //Retrieves Blade Combo strategy
-        var cos = strategy.Option(Track.CircleOfScorn); //Retrieves Circle of Scorn track
-        var cosStrat = cos.As<OGCDStrategy>(); //Retrieves Circle of Scorn strategy
-        var sw = strategy.Option(Track.SpiritsWithin); //Retrieves Spirits Within track
-        var swStrat = sw.As<OGCDStrategy>(); //Retrieves Spirits Within strategy
-        var dash = strategy.Option(Track.Dash); //Retrieves Dash track
-        var dashStrat = dash.As<DashStrategy>(); //Retrieves Dash strategy
-        var gb = strategy.Option(Track.GoringBlade); //Retrieves Goring Blade track
-        var gbStrat = gb.As<GCDStrategy>(); //Retrieves Goring Blade strategy
-        var boh = strategy.Option(Track.BladeOfHonor); //Retrieves Blade of Honor track
-        var bohStrat = boh.As<OGCDStrategy>(); //Retrieves Blade of Honor strategy
-        var holy = strategy.Option(Track.Holy); //Retrieves Holy track
-        var holyStrat = holy.As<HolyStrategy>(); //Retrieves Holy strategy
-        var ranged = strategy.Option(Track.Ranged); //Retrieves Ranged track
-        var rangedStrat = ranged.As<RangedStrategy>(); //Retrieves Ranged strategy
-        #endregion
-
-        #endregion
-
-        #region Full Rotation Execution
-
-        #region Standard Rotation
-        if (AOEStrategy == AOEStrategy.AutoBreakCombo)
-        {
-            if (ShouldUseAOE)
-                QueueGCD(BestAOE(),
-                    Player,
-                    GCDPriority.Standard);
-            if (!ShouldUseAOE)
-                QueueGCD(ST(),
-                    TargetChoice(AOE) ?? primaryTarget?.Actor,
-                    GCDPriority.Standard);
-        }
-        if (AOEStrategy == AOEStrategy.AutoFinishCombo)
-        {
-            QueueGCD(BestRotation(),
-                TargetChoice(AOE) ?? primaryTarget?.Actor,
-                GCDPriority.Standard);
-        }
-        #endregion
-
-        #region Cooldowns
-        var hold = cdStrat == CooldownStrategy.Forbid;
-        if (!hold)
-        {
-            if (ShouldUseFightOrFlight(fofStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.FightOrFlight,
-                    Player,
-                    fofStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.FightOrFlight);
-            if (ShouldUseRequiescat(reqStrat, primaryTarget?.Actor))
-                QueueOGCD(BestRequiescat,
-                    TargetChoice(req) ?? (Unlocked(AID.Imperator) ? BestSplashTarget?.Actor : primaryTarget?.Actor),
-                    reqStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.Requiescat);
-            if (bladeStrat == BladeComboStrategy.ForceConfiteor)
-                QueueGCD(AID.Confiteor,
-                    TargetChoice(blade) ?? BestSplashTarget?.Actor,
-                    GCDPriority.ForcedGCD);
-            if (ShouldUseCircleOfScorn(cosStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.CircleOfScorn,
-                    Player,
-                    cosStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.CircleOfScorn);
-            if (ShouldUseSpiritsWithin(swStrat, primaryTarget?.Actor))
-                QueueOGCD(BestSpirits,
-                    TargetChoice(sw) ?? primaryTarget?.Actor,
-                    swStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.SpiritsWithin);
-            if (ShouldUseDash(dashStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.Intervene,
-                    TargetChoice(dash) ?? primaryTarget?.Actor,
-                    dashStrat is DashStrategy.Force or DashStrategy.Force1 or DashStrategy.GapClose or DashStrategy.GapClose1
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.Intervene);
-            if (ShouldUseBladeOfHonor(bohStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.BladeOfHonor,
-                    TargetChoice(boh) ?? BestSplashTarget?.Actor,
-                    bohStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave
-                    ? OGCDPriority.ForcedOGCD : OGCDPriority.BladeOfHonor);
-            if (ShouldUseGoringBlade(gbStrat, primaryTarget?.Actor))
-                QueueGCD(AID.GoringBlade,
-                    TargetChoice(gb) ?? primaryTarget?.Actor,
-                    gbStrat is GCDStrategy.Force
-                    ? GCDPriority.ForcedGCD : GCDPriority.GoringBlade);
-        }
-        if (ShouldUseBladeCombo(bladeStrat, primaryTarget?.Actor))
-        {
-            if (bladeStrat == BladeComboStrategy.Automatic)
-                QueueGCD(BestBlade,
-                    TargetChoice(blade) ?? BestSplashTarget?.Actor,
-                    GCDPriority.Blades);
-            if (bladeStrat == BladeComboStrategy.ForceFaith)
-                QueueGCD(AID.BladeOfFaith,
-                    TargetChoice(blade) ?? BestSplashTarget?.Actor,
-                    GCDPriority.ForcedGCD);
-            if (bladeStrat == BladeComboStrategy.ForceTruth)
-                QueueGCD(AID.BladeOfTruth,
-                    TargetChoice(blade) ?? BestSplashTarget?.Actor,
-                    GCDPriority.ForcedGCD);
-            if (bladeStrat == BladeComboStrategy.ForceValor)
-                QueueGCD(AID.BladeOfValor,
-                    TargetChoice(blade) ?? BestSplashTarget?.Actor,
-                    GCDPriority.ForcedGCD);
-        }
-        if (ShouldUseAtonement(atoneStrat, primaryTarget?.Actor))
-        {
-            if (atoneStrat == AtonementStrategy.Automatic)
-                QueueGCD(BestAtonement,
-                    TargetChoice(atone) ?? primaryTarget?.Actor,
-                    GCDPriority.Atonement);
-            if (atoneStrat == AtonementStrategy.ForceAtonement)
-                QueueGCD(AID.Atonement,
-                    TargetChoice(atone) ?? primaryTarget?.Actor,
-                    GCDPriority.ForcedGCD);
-            if (atoneStrat == AtonementStrategy.ForceSupplication)
-                QueueGCD(AID.Supplication,
-                    TargetChoice(atone) ?? primaryTarget?.Actor,
-                    GCDPriority.ForcedGCD);
-            if (atoneStrat == AtonementStrategy.ForceSepulchre)
-                QueueGCD(AID.Sepulchre,
-                    TargetChoice(atone) ?? primaryTarget?.Actor,
-                    GCDPriority.ForcedGCD);
-        }
-        if (ShouldUseHoly(holyStrat, primaryTarget?.Actor))
-        {
-            if (holyStrat == HolyStrategy.Automatic)
-                QueueGCD(BestHoly,
-                    TargetChoice(holy) ?? primaryTarget?.Actor,
-                    (FightOrFlight.Left is <= 2.5f and >= 0.01f && !Supplication.IsActive && !Sepulchre.IsActive)
-                    ? GCDPriority.GoringBlade : GCDPriority.HolySpirit);
-            if (holyStrat == HolyStrategy.Spirit)
-                QueueGCD(AID.HolySpirit,
-                    TargetChoice(holy) ?? primaryTarget?.Actor,
-                    GCDPriority.ForcedGCD);
-            if (holyStrat == HolyStrategy.Circle)
-                QueueGCD(BestHolyCircle,
-                    Player,
-                    GCDPriority.ForcedGCD);
-        }
-        if (rangedStrat == RangedStrategy.Automatic && !In3y(TargetChoice(ranged) ?? primaryTarget?.Actor))
-            QueueGCD(IsMoving ? AID.ShieldLob : AID.HolySpirit,
-                TargetChoice(ranged) ?? primaryTarget?.Actor,
-                GCDPriority.Standard);
-        if (ShouldUseRangedLob(primaryTarget?.Actor, rangedStrat))
-            QueueGCD(AID.ShieldLob,
-                TargetChoice(ranged) ?? primaryTarget?.Actor,
-                (rangedStrat == RangedStrategy.Force)
-                ? GCDPriority.ForcedGCD : GCDPriority.Standard);
-        if (ShouldUseRangedCast(primaryTarget?.Actor, rangedStrat))
-            QueueGCD(AID.HolySpirit,
-                TargetChoice(ranged) ?? primaryTarget?.Actor,
-                (rangedStrat == RangedStrategy.ForceCast)
-                ? GCDPriority.ForcedGCD : GCDPriority.Standard);
-        if (ShouldUsePotion(potStrat))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player,
-                ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Potion,
-                0, GCD - 0.9f);
-        #endregion
-
-        #endregion
-
-        #region AI
-        var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null; //Set goal for single target
-        var goalAOE = Hints.GoalAOECircle(3); //Set goal for AOE
-        var goal = strategy.Option(Track.AOE).As<AOEStrategy>() switch //Set goal based on AOE strategy
-        {
-            AOEStrategy.ForceST => goalST, //if forced single target
-            AOEStrategy.ForceAOE => goalAOE, //if forced single target
-            _ => goalST != null ? Hints.GoalCombined(goalST, goalAOE, 3) : goalAOE //otherwise, combine goals
-        };
-        if (goal != null) //if goal is set
-            Hints.GoalZones.Add(goal); //add goal to zones
-        #endregion
-    }
+    #region Upgrade Paths
+    public AID BestSpirits => Unlocked(AID.Expiacion) ? AID.Expiacion : AID.SpiritsWithin;
+    public AID BestRequiescat => Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat;
+    public AID BestHoly => ShouldUseAOE ? BestHolyCircle : AID.HolySpirit;
+    public AID BestHolyCircle => HolyCircle.IsReady ? AID.HolyCircle : AID.HolySpirit;
+    public AID BestAtonement => Sepulchre.IsReady ? AID.Sepulchre : (Supplication.IsReady ? AID.Supplication : AID.Atonement);
+    public AID BestBlade => BladeComboStep == 3 ? AID.BladeOfValor : BladeComboStep == 2 ? AID.BladeOfTruth : BladeComboStep == 1 && Unlocked(AID.BladeOfFaith) ? AID.BladeOfFaith : Unlocked(AID.Confiteor) ? AID.Confiteor : BestHoly;
+    #endregion
 
     #region Rotation Helpers
-    private AID ST() => ComboLastMove switch
+    private AID AutoFinish => ComboLastMove switch
     {
-        AID.RiotBlade => Unlocked(AID.RoyalAuthority) ? AID.RoyalAuthority : AID.RageOfHalone, //If Riot Blade was last used, choose Royal Authority if available, otherwise Rage of Halone
-        AID.FastBlade => AID.RiotBlade, //If Fast Blade was last used, go back to Riot Blade
-        _ => AID.FastBlade, //Default to Fast Blade if no recognized last action
+        AID.FastBlade or AID.RiotBlade => FullST,
+        AID.TotalEclipse => FullAOE,
+        AID.RageOfHalone or AID.RoyalAuthority or AID.Prominence or _ => ShouldUseAOE ? FullAOE : FullST,
     };
-    private AID BestAOE() => ComboLastMove switch
-    {
-        AID.TotalEclipse => AID.Prominence, //If Total Eclipse was last used, use Prominence next
-        _ => AID.TotalEclipse, //Default to Total Eclipse if no recognized last action
-    };
-    private AID BestRotation() => ComboLastMove switch
-    {
-        //ST
-        AID.RoyalAuthority => ShouldUseAOE ? BestAOE() : ST(), //If Royal Authority was last used, choose between AOE and ST rotations
-        AID.RageOfHalone => ShouldUseAOE ? BestAOE() : ST(), //If Rage of Halone was last used, choose between AOE and ST rotations
-        AID.RiotBlade => ST(), //If Riot Blade was last used, continue ST rotation
-        AID.FastBlade => ST(), //If Fast Blade was last used, continue ST rotation
-        //AOE
-        AID.Prominence => ShouldUseAOE ? BestAOE() : ST(), //If Prominence was last used, choose between AOE and ST rotations
-        AID.TotalEclipse => BestAOE(), //If Total Eclipse was last used, continue AOE rotation
-        _ => ShouldUseAOE ? BestAOE() : ST(), //Default to AOE or ST rotation based on conditions
-    };
+    private AID AutoBreak => ShouldUseAOE ? FullAOE : FullST;
+    private AID FullST => ComboLastMove is AID.RiotBlade ? (Unlocked(AID.RoyalAuthority) ? AID.RoyalAuthority : Unlocked(AID.RageOfHalone) ? AID.RageOfHalone : AID.FastBlade) : Unlocked(AID.RiotBlade) && ComboLastMove is AID.FastBlade ? AID.RiotBlade : AID.FastBlade;
+    private AID FullAOE => Unlocked(AID.TotalEclipse) && ComboLastMove is AID.TotalEclipse ? AID.TotalEclipse : AID.Prominence;
     #endregion
 
     #region Cooldown Helpers
@@ -547,4 +260,200 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         _ => false
     };
     #endregion
+
+    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
+    {
+        #region Variables
+        var gauge = World.Client.GetGauge<PaladinGauge>(); //Retrieve Paladin gauge
+        Oath = gauge.OathGauge; //Retrieve current Oath gauge
+        BladeComboStep = gauge.ConfiteorComboStep; //Retrieve current step in the Confiteor/Blades combo
+        DivineMight.Left = SelfStatusLeft(SID.DivineMight, 30); //Remaining duration of the Divine Might buff
+        DivineMight.IsActive = DivineMight.Left > 0; //Check if the Divine Might buff is active
+        FightOrFlight.CD = TotalCD(AID.FightOrFlight); //Remaining cooldown for the Fight or Flight ability
+        FightOrFlight.Left = SelfStatusLeft(SID.FightOrFlight, 20); //Remaining duration of the Fight or Flight buff
+        FightOrFlight.IsActive = FightOrFlight.CD is >= 39.5f and <= 60; //Check if the Fight or Flight buff is active 
+        FightOrFlight.IsReady = FightOrFlight.CD < 0.6f; //Fight or Flight ability
+        SpiritsWithin.CD = TotalCD(BestSpirits); //Remaining cooldown for the Spirits Within ability
+        SpiritsWithin.IsReady = Unlocked(AID.SpiritsWithin) && SpiritsWithin.CD < 0.6f; //Spirits Within ability
+        CircleOfScorn.CD = TotalCD(AID.CircleOfScorn); //Remaining cooldown for the Circle of Scorn ability
+        CircleOfScorn.IsReady = Unlocked(AID.CircleOfScorn) && CircleOfScorn.CD < 0.6f; //Circle of Scorn ability
+        GoringBlade.CD = TotalCD(AID.GoringBlade); //Remaining cooldown for the Goring Blade ability
+        GoringBlade.Left = SelfStatusLeft(SID.GoringBladeReady, 30); //Remaining duration of the Goring Blade buff
+        GoringBlade.IsActive = GoringBlade.Left > 0; //Check if the Goring Blade buff is active
+        GoringBlade.IsReady = Unlocked(AID.GoringBlade) && GoringBlade.IsActive; //Goring Blade ability
+        Intervene.TotalCD = TotalCD(AID.Intervene); //Total cooldown for the Intervene ability (60s)
+        Intervene.HasCharges = Intervene.TotalCD <= 30f; //Check if the player has charges of Intervene
+        Intervene.IsReady = Unlocked(AID.Intervene) && Intervene.HasCharges; //Intervene ability
+        Requiescat.CD = TotalCD(BestRequiescat); //Remaining cooldown for the Requiescat ability
+        Requiescat.Left = SelfStatusLeft(SID.Requiescat, 30); //Get the current number of Requiescat stacks 
+        Requiescat.IsActive = Requiescat.Left > 0; //Check if the Requiescat buff is active
+        Requiescat.IsReady = Unlocked(AID.Requiescat) && Requiescat.CD < 0.6f; //Requiescat ability
+        Atonement.Left = SelfStatusLeft(SID.AtonementReady, 30); //Remaining duration of the Atonement buff
+        Atonement.IsActive = Atonement.Left > 0; //Check if the Atonement buff is active
+        Atonement.IsReady = Unlocked(AID.Atonement) && Atonement.IsActive; //Atonement ability
+        Supplication.Left = SelfStatusLeft(SID.SupplicationReady, 30); //Remaining duration of the Supplication buff
+        Supplication.IsActive = Supplication.Left > 0; //Check if the Supplication buff is active
+        Supplication.IsReady = Unlocked(AID.Supplication) && Supplication.IsActive; //Supplication ability
+        Sepulchre.Left = SelfStatusLeft(SID.SepulchreReady, 30); //Remaining duration of the Sepulchre buff
+        Sepulchre.IsActive = Sepulchre.Left > 0; //Check if the Sepulchre buff is active
+        Sepulchre.IsReady = Unlocked(AID.Sepulchre) && Sepulchre.IsActive; //Sepulchre ability
+        Confiteor.Left = SelfStatusLeft(SID.ConfiteorReady, 30); //Remaining duration of the Confiteor buff
+        Confiteor.IsActive = Confiteor.Left > 0; //Check if the Confiteor buff is active
+        Confiteor.IsReady = Unlocked(AID.Confiteor) && Confiteor.IsActive && MP >= 1000; //Confiteor ability
+        BladeOfHonor.Left = SelfStatusLeft(SID.BladeOfHonorReady, 30); //Remaining duration of the Blade of Honor buff
+        BladeOfHonor.IsActive = BladeOfHonor.Left > 0; //Check if the Blade of Honor buff is active
+        BladeOfHonor.IsReady = Unlocked(AID.BladeOfHonor) && BladeOfHonor.IsActive; //Checks if Blade of Honor is ready
+        HolySpirit.HasMP = MP >= 1000; //Check if the player has enough MP for Holy Spirit
+        HolySpirit.IsReady = Unlocked(AID.HolySpirit) && HolySpirit.HasMP; //Holy Spirit ability
+        HolyCircle.HasMP = MP >= 1000; //Check if the player has enough MP for Holy Circle
+        HolyCircle.IsReady = Unlocked(AID.HolyCircle) && HolyCircle.HasMP; //Holy Circle ability
+        ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore; //Check if AOE rotation should be used
+        ShouldHoldDMandAC = ComboLastMove is AID.RoyalAuthority ? FightOrFlight.CD < 5 : ComboLastMove is AID.FastBlade ? FightOrFlight.CD < 2.5 : ComboLastMove is AID.RiotBlade && FightOrFlight.CD < GCD;
+        (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
+        BestSplashTarget = Unlocked(AID.Confiteor) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
+
+        #region Strategy Definitions
+        var AOE = strategy.Option(Track.AOE); //Retrieves AOE track
+        var AOEStrategy = AOE.As<AOEStrategy>(); //Retrieves AOE strategy
+        var cd = strategy.Option(Track.Cooldowns); //Retrieves Cooldowns track
+        var cdStrat = cd.As<CooldownStrategy>(); //Retrieves Cooldowns strategy
+        var pot = strategy.Option(Track.Potion); //Retrieves Potion track
+        var potStrat = pot.As<PotionStrategy>(); //Retrieves Potion strategy
+        var fof = strategy.Option(Track.FightOrFlight); //Retrieves Fight or Flight track
+        var fofStrat = fof.As<OGCDStrategy>(); //Retrieves Fight or Flight strategy
+        var req = strategy.Option(Track.Requiescat); //Retrieves Requiescat track
+        var reqStrat = req.As<OGCDStrategy>(); //Retrieves Requiescat strategy
+        var atone = strategy.Option(Track.Atonement); //Retrieves Atonement track
+        var atoneStrat = atone.As<AtonementStrategy>(); //Retrieves Atonement strategy
+        var blade = strategy.Option(Track.BladeCombo); //Retrieves Blade Combo track
+        var bladeStrat = blade.As<BladeComboStrategy>(); //Retrieves Blade Combo strategy
+        var cos = strategy.Option(Track.CircleOfScorn); //Retrieves Circle of Scorn track
+        var cosStrat = cos.As<OGCDStrategy>(); //Retrieves Circle of Scorn strategy
+        var sw = strategy.Option(Track.SpiritsWithin); //Retrieves Spirits Within track
+        var swStrat = sw.As<OGCDStrategy>(); //Retrieves Spirits Within strategy
+        var dash = strategy.Option(Track.Dash); //Retrieves Dash track
+        var dashStrat = dash.As<DashStrategy>(); //Retrieves Dash strategy
+        var gb = strategy.Option(Track.GoringBlade); //Retrieves Goring Blade track
+        var gbStrat = gb.As<GCDStrategy>(); //Retrieves Goring Blade strategy
+        var boh = strategy.Option(Track.BladeOfHonor); //Retrieves Blade of Honor track
+        var bohStrat = boh.As<OGCDStrategy>(); //Retrieves Blade of Honor strategy
+        var holy = strategy.Option(Track.Holy); //Retrieves Holy track
+        var holyStrat = holy.As<HolyStrategy>(); //Retrieves Holy strategy
+        var ranged = strategy.Option(Track.Ranged); //Retrieves Ranged track
+        var rangedStrat = ranged.As<RangedStrategy>(); //Retrieves Ranged strategy
+        #endregion
+
+        #endregion
+
+        #region Full Rotation Execution
+
+        #region Standard Rotation
+        if (AOEStrategy == AOEStrategy.AutoFinish)
+            QueueGCD(AutoFinish, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
+        if (AOEStrategy == AOEStrategy.AutoBreak)
+            QueueGCD(AutoBreak, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
+        if (AOEStrategy == AOEStrategy.ForceST)
+            QueueGCD(FullST, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
+        if (AOEStrategy == AOEStrategy.ForceAOE)
+            QueueGCD(FullAOE, Player, GCDPriority.Low);
+        #endregion
+
+        #region Cooldowns
+        if (cdStrat != CooldownStrategy.Forbid)
+        {
+            if (ShouldUseFightOrFlight(fofStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.FightOrFlight, Player, OGCDPrio(fofStrat, OGCDPriority.ExtremelyHigh));
+            if (ShouldUseRequiescat(reqStrat, primaryTarget?.Actor))
+                QueueOGCD(BestRequiescat, TargetChoice(req) ?? (Unlocked(AID.Imperator) ? BestSplashTarget?.Actor : primaryTarget?.Actor), OGCDPrio(reqStrat, OGCDPriority.VeryHigh));
+            if (ShouldUseCircleOfScorn(cosStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.CircleOfScorn, Player, OGCDPrio(cosStrat, OGCDPriority.AboveAverage));
+            if (ShouldUseSpiritsWithin(swStrat, primaryTarget?.Actor))
+                QueueOGCD(BestSpirits, TargetChoice(sw) ?? primaryTarget?.Actor, OGCDPrio(swStrat, OGCDPriority.Average));
+            if (ShouldUseDash(dashStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.Intervene, TargetChoice(dash) ?? primaryTarget?.Actor, dashStrat is DashStrategy.Force or DashStrategy.Force1 or DashStrategy.GapClose or DashStrategy.GapClose1 ? OGCDPriority.Forced : OGCDPriority.BelowAverage);
+            if (ShouldUseBladeOfHonor(bohStrat, primaryTarget?.Actor))
+                QueueOGCD(AID.BladeOfHonor, TargetChoice(boh) ?? BestSplashTarget?.Actor, OGCDPrio(bohStrat, OGCDPriority.Low));
+            if (ShouldUseGoringBlade(gbStrat, primaryTarget?.Actor))
+                QueueGCD(AID.GoringBlade, TargetChoice(gb) ?? primaryTarget?.Actor, GCDPrio(gbStrat, GCDPriority.SlightlyHigh));
+        }
+        if (ShouldUseBladeCombo(bladeStrat, primaryTarget?.Actor))
+        {
+            switch (bladeStrat)
+            {
+                case BladeComboStrategy.Automatic:
+                    QueueGCD(BestBlade, TargetChoice(blade) ?? BestSplashTarget?.Actor, GCDPriority.VeryHigh);
+                    break;
+                case BladeComboStrategy.ForceConfiteor:
+                    QueueGCD(AID.Confiteor, TargetChoice(blade) ?? BestSplashTarget?.Actor, GCDPriority.Forced);
+                    break;
+                case BladeComboStrategy.ForceFaith:
+                    QueueGCD(AID.BladeOfFaith, TargetChoice(blade) ?? BestSplashTarget?.Actor, GCDPriority.Forced);
+                    break;
+                case BladeComboStrategy.ForceTruth:
+                    QueueGCD(AID.BladeOfTruth, TargetChoice(blade) ?? BestSplashTarget?.Actor, GCDPriority.Forced);
+                    break;
+                case BladeComboStrategy.ForceValor:
+                    QueueGCD(AID.BladeOfValor, TargetChoice(blade) ?? BestSplashTarget?.Actor, GCDPriority.Forced);
+                    break;
+            }
+        }
+        if (ShouldUseAtonement(atoneStrat, primaryTarget?.Actor))
+        {
+            switch (atoneStrat)
+            {
+                case AtonementStrategy.Automatic:
+                    QueueGCD(BestAtonement, TargetChoice(atone) ?? primaryTarget?.Actor, GCDPriority.SlightlyHigh);
+                    break;
+                case AtonementStrategy.ForceAtonement:
+                    QueueGCD(AID.Atonement, TargetChoice(atone) ?? primaryTarget?.Actor, GCDPriority.Forced);
+                    break;
+                case AtonementStrategy.ForceSupplication:
+                    QueueGCD(AID.Supplication, TargetChoice(atone) ?? primaryTarget?.Actor, GCDPriority.Forced);
+                    break;
+                case AtonementStrategy.ForceSepulchre:
+                    QueueGCD(AID.Sepulchre, TargetChoice(atone) ?? primaryTarget?.Actor, GCDPriority.Forced);
+                    break;
+            }
+        }
+        if (ShouldUseHoly(holyStrat, primaryTarget?.Actor))
+        {
+            var lastsecBurst = fofStrat != OGCDStrategy.Delay && FightOrFlight.Left is <= 2.5f and >= 0.01f && !Supplication.IsActive && !Sepulchre.IsActive;
+            switch (holyStrat)
+            {
+                case HolyStrategy.Automatic:
+                    QueueGCD(BestHoly, TargetChoice(holy) ?? primaryTarget?.Actor, lastsecBurst ? GCDPriority.VeryHigh : GCDPriority.AboveAverage);
+                    break;
+                case HolyStrategy.Spirit:
+                    QueueGCD(AID.HolySpirit, TargetChoice(holy) ?? primaryTarget?.Actor, GCDPriority.Forced);
+                    break;
+                case HolyStrategy.Circle:
+                    QueueGCD(BestHolyCircle, Player, GCDPriority.Forced);
+                    break;
+            }
+        }
+        if (rangedStrat == RangedStrategy.Automatic && !In3y(TargetChoice(ranged) ?? primaryTarget?.Actor))
+            QueueGCD(IsMoving ? AID.ShieldLob : AID.HolySpirit, TargetChoice(ranged) ?? primaryTarget?.Actor, GCDPriority.Low);
+        if (ShouldUseRangedLob(primaryTarget?.Actor, rangedStrat))
+            QueueGCD(AID.ShieldLob, TargetChoice(ranged) ?? primaryTarget?.Actor, rangedStrat == RangedStrategy.Force ? GCDPriority.Forced : GCDPriority.Low);
+        if (ShouldUseRangedCast(primaryTarget?.Actor, rangedStrat))
+            QueueGCD(AID.HolySpirit, TargetChoice(ranged) ?? primaryTarget?.Actor, rangedStrat == RangedStrategy.ForceCast ? GCDPriority.Forced : GCDPriority.Low);
+        if (ShouldUsePotion(potStrat))
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.VeryCritical, 0, GCD - 0.9f);
+        #endregion
+
+        #endregion
+
+        #region AI
+        var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null;
+        var goalAOE = Hints.GoalAOECircle(3);
+        var goal = strategy.Option(Track.AOE).As<AOEStrategy>() switch
+        {
+            AOEStrategy.ForceST => goalST,
+            AOEStrategy.ForceAOE => goalAOE,
+            _ => goalST != null ? Hints.GoalCombined(goalST, goalAOE, 3) : goalAOE
+        };
+        if (goal != null)
+            Hints.GoalZones.Add(goal);
+        #endregion
+    }
 }
