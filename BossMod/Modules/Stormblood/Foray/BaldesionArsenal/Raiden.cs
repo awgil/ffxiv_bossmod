@@ -20,12 +20,16 @@ public enum AID : uint
     AmeNoSakahoko1 = 14441, // Helper->self, 7.5s cast, range 25 circle
     WhirlingZantetsuken = 14442, // Boss->self, 5.5s cast, range ?-60 donut
     Shock = 14445, // BallLightning->self, 3.0s cast, range 8 circle
-    LateralZantetsuken = 14443, // Boss->self, 6.5s cast, range 70+R width 39 rect
+    LateralZantetsukenRight = 14443, // Boss->self, 6.5s cast, range 70+R width 39 rect
+    LateralZantetsukenLeft = 14444, // Boss->self, 6.5s cast, range 70+R width 39 rect
     LancingBolt = 14454, // Boss->self, 3.0s cast, single-target
     LancingBlow = 14455, // StreakLightning->self, no cast, range 10 circle
     BoomingLament = 14461, // Boss->location, 4.0s cast, range 10 circle
     UltimateZantetsuken = 14456, // Boss->self, 18.0s cast, range 80+R circle
     CloudToGround = 14448, // Boss->self, 4.0s cast, single-target
+    CloudToGroundFirst = 14449, // Helper->self, 5.0s cast, range 6 circle
+    CloudToGroundRest = 14450, // Helper->self, no cast, range 6 circle
+
 }
 
 public enum IconID : uint
@@ -38,7 +42,7 @@ class SpiritsOfTheFallen(BossModule module) : Components.RaidwideCast(module, Ac
 class AmeNoSakahoko(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AmeNoSakahoko1), new AOEShapeCircle(25));
 class WhirlingZantetsuken(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhirlingZantetsuken), new AOEShapeDonut(5, 60));
 class Shock(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shock), new AOEShapeCircle(8));
-class LateralZantetsuken(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.LateralZantetsuken))
+class LateralZantetsuken(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> Casters = [];
 
@@ -46,13 +50,13 @@ class LateralZantetsuken(BossModule module) : Components.GenericAOEs(module, Act
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action == WatchedAction)
+        if ((AID)spell.Action.ID is AID.LateralZantetsukenLeft or AID.LateralZantetsukenRight)
             Casters.Add(caster);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action == WatchedAction)
+        if ((AID)spell.Action.ID is AID.LateralZantetsukenLeft or AID.LateralZantetsukenRight)
             Casters.Remove(caster);
     }
 }
