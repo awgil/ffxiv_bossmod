@@ -272,6 +272,9 @@ public sealed class ActionDefinitions : IDisposable
         if (target == null || !Service.Config.Get<ActionTweaksConfig>().PreventDangerousDash)
             return false;
 
+        if (player.PendingKnockbacks.Count > 0)
+            return true;
+
         var dist = player.DistanceToHitbox(target);
         var dir = player.DirectionTo(target).Normalized();
         var src = player.Position;
