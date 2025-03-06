@@ -187,12 +187,6 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Verthunder, primaryTarget);
         }
 
-        if (VerfireReady > GCD)
-            PushGCD(AID.Verfire, primaryTarget);
-
-        if (VerstoneReady > GCD)
-            PushGCD(AID.Verstone, primaryTarget);
-
         if (NumAOETargets > 2)
         {
             if (BlackMana > WhiteMana)
@@ -200,6 +194,12 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
             PushGCD(AID.VerthunderII, BestAOETarget);
         }
+
+        if (VerfireReady > GCD)
+            PushGCD(AID.Verfire, primaryTarget);
+
+        if (VerstoneReady > GCD)
+            PushGCD(AID.Verstone, primaryTarget);
 
         PushGCD(AID.Jolt, primaryTarget);
     }

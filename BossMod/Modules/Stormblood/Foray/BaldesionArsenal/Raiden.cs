@@ -70,9 +70,7 @@ class StreakLightning(BossModule module) : Components.GenericStackSpread(module,
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.LancingBlow && Spreads.Count > 0)
-        {
             Spreads.Remove(Spreads.MinBy(s => (s.Target.Position - spell.TargetXZ).LengthSq()));
-        }
     }
 }
 class LightningAdds(BossModule module) : Components.Adds(module, (uint)OID.StreakLightning, 1);
@@ -88,7 +86,7 @@ class CloudToGround(BossModule module) : Components.Exaflare(module, new AOEShap
                 Next = caster.Position,
                 Advance = caster.Rotation.ToDirection() * 8,
                 NextExplosion = Module.CastFinishAt(spell),
-                TimeToMove = 1.05f,
+                TimeToMove = 1,
                 ExplosionsLeft = 8,
                 MaxShownExplosions = 4
             });
