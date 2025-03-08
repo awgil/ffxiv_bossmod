@@ -735,6 +735,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Player's <b>actual</b> target; guaranteed to be an enemy.</summary>
     protected Enemy? PlayerTarget { get; private set; }
+
+    /// <summary>Checks if Player is in an <b>odd minute window</b> by checking job's specified <b>120s ability</b> explicitly.</summary>
+    protected bool InOddWindow(AID aid) => TotalCD(aid) is < 90 and > 30;
     #endregion
 
     #region Shared Abilities

@@ -228,23 +228,21 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         OGCDStrategy.Delay => false,
         _ => false
     };
-    private bool ShouldUseLifeSurge(SurgeStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseLifeSurge(SurgeStrategy strategy, Actor? target)
     {
-        SurgeStrategy.Automatic => Player.InCombat && target != null && canLS && hasLC && !PlayerHasEffect(SID.LifeSurge) &&
-            (TotalCD(AID.LifeSurge) < 40 || TotalCD(AID.BattleLitany) > 50) &&
-            (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) ||
-            ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)),
-        SurgeStrategy.Force => canLS,
-        SurgeStrategy.ForceWeave => canLS && CanWeaveIn,
-        SurgeStrategy.ForceNextOpti => canLS &&
-            (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) ||
-            ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)),
-        SurgeStrategy.ForceNextOptiWeave => canLS && CanWeaveIn &&
-            (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane) ||
-            ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust)),
-        SurgeStrategy.Delay => false,
-        _ => false
-    };
+        var normal = (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane)) || (ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust));
+        var minute = Unlocked(TraitID.EnhancedLifeSurge) ? ((hasLC && (TotalCD(AID.LifeSurge) < 40 || TotalCD(AID.BattleLitany) > 50)) && normal) : normal;
+        return strategy switch
+        {
+            SurgeStrategy.Automatic => Player.InCombat && target != null && canLS && minute,
+            SurgeStrategy.Force => canLS,
+            SurgeStrategy.ForceWeave => canLS && CanWeaveIn,
+            SurgeStrategy.ForceNextOpti => canLS && normal,
+            SurgeStrategy.ForceNextOptiWeave => canLS && normal && CanWeaveIn,
+            SurgeStrategy.Delay => false,
+            _ => false
+        };
+    }
     #endregion
 
     #region Dives
@@ -290,16 +288,15 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Spears
     private bool ShouldUseGeirskogul(GeirskogulStrategy strategy, Actor? target) => strategy switch
     {
-        GeirskogulStrategy.Automatic => Player.InCombat && In15y(target) && canGeirskogul && hasLC,
-        GeirskogulStrategy.Force => canGeirskogul,
-        GeirskogulStrategy.ForceEX => canGeirskogul,
+        GeirskogulStrategy.Automatic => Player.InCombat && target != null && In15y(target) && canGeirskogul && ((InOddWindow(AID.BattleLitany) && hasLC) || (!InOddWindow(AID.BattleLitany) && hasLC && hasBL)),
+        GeirskogulStrategy.Force or GeirskogulStrategy.ForceEX => canGeirskogul,
         GeirskogulStrategy.ForceWeave => canGeirskogul && CanWeaveIn,
         GeirskogulStrategy.Delay => false,
         _ => false
     };
     private bool ShouldUseNastrond(OGCDStrategy strategy, Actor? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && In15y(target) && canNastrond,
+        OGCDStrategy.Automatic => Player.InCombat && target != null && In15y(target) && canNastrond,
         OGCDStrategy.Force => canNastrond,
         OGCDStrategy.AnyWeave => canNastrond && CanWeaveIn,
         OGCDStrategy.EarlyWeave => canNastrond && CanEarlyWeaveIn,
@@ -339,37 +336,43 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         OGCDStrategy.Delay => false,
         _ => false
     };
-    private bool ShouldUsePiercingTalon(Actor? target, PiercingTalonStrategy strategy) => strategy switch
+    private bool ShouldUsePiercingTalon(Actor? target, PiercingTalonStrategy strategy)
     {
-        PiercingTalonStrategy.AllowEX => Player.InCombat && target != null && !In3y(target) && PlayerHasEffect(SID.EnhancedPiercingTalon),
-        PiercingTalonStrategy.Allow => Player.InCombat && target != null && !In3y(target),
-        PiercingTalonStrategy.Force => true,
-        PiercingTalonStrategy.ForceEX => PlayerHasEffect(SID.EnhancedPiercingTalon),
-        PiercingTalonStrategy.Forbid => false,
-        _ => false
-    };
+        //EPT is 250p (Lv1-75) / (Lv76+) 350p; NPT is 100p (Lv1-75) / (Lv76+) 150p - given by Elusive Jump procs
+        //Due to no reliable info anywhere, we'll assume numbers here
+        //So we call EPT if the potency is better than our next attack
+        return strategy switch
+        {
+            PiercingTalonStrategy.AllowEX => Player.InCombat && target != null && (!In3y(target) || (In3y(target) && powerLeft > 5 && ComboLastMove is AID.Drakesbane or AID.TrueThrust or AID.RaidenThrust)) && PlayerHasEffect(SID.EnhancedPiercingTalon),
+            PiercingTalonStrategy.Allow => Player.InCombat && target != null && !In3y(target),
+            PiercingTalonStrategy.Force => true,
+            PiercingTalonStrategy.ForceEX => PlayerHasEffect(SID.EnhancedPiercingTalon),
+            PiercingTalonStrategy.Forbid => false,
+            _ => false
+        };
+    }
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
-        PotionStrategy.AlignWithRaidBuffs => lcCD <= GCD * 2 && blCD <= GCD * 2,
+        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && lcCD <= GCD * 2 && blCD <= GCD * 2,
         PotionStrategy.Immediate => true,
         _ => false
     };
-    private bool ShouldUseTrueNorth(TrueNorthStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseTrueNorth(TrueNorthStrategy strategy, Actor? target)
     {
-        TrueNorthStrategy.Automatic => target != null && Player.InCombat && CanTrueNorth && GCD < 1.25f &&
-            (!IsOnRear(target) && ComboLastMove is AID.Disembowel or AID.SpiralBlow or AID.ChaosThrust or AID.ChaoticSpring ||
-            !IsOnFlank(target) && ComboLastMove is AID.HeavensThrust or AID.FullThrust),
-        TrueNorthStrategy.ASAP => target != null && Player.InCombat && CanTrueNorth &&
-            (!IsOnRear(target) && ComboLastMove is AID.Disembowel or AID.SpiralBlow or AID.ChaosThrust or AID.ChaoticSpring ||
-            !IsOnFlank(target) && ComboLastMove is AID.HeavensThrust or AID.FullThrust),
-        TrueNorthStrategy.Flank => target != null && Player.InCombat && CanTrueNorth && GCD < 1.25f &&
-            !IsOnFlank(target) && ComboLastMove is AID.HeavensThrust or AID.FullThrust,
-        TrueNorthStrategy.Rear => target != null && Player.InCombat && CanTrueNorth && GCD < 1.25f &&
-            !IsOnRear(target) && ComboLastMove is AID.Disembowel or AID.SpiralBlow or AID.ChaosThrust or AID.ChaoticSpring,
-        TrueNorthStrategy.Force => !PlayerHasEffect(SID.TrueNorth),
-        TrueNorthStrategy.Delay => false,
-        _ => false
-    };
+        var condition = target != null && Player.InCombat && CanTrueNorth;
+        var needRear = !IsOnRear(target!) && ((Unlocked(AID.ChaosThrust) && ComboLastMove is AID.Disembowel or AID.SpiralBlow) || (Unlocked(AID.WheelingThrust) && ComboLastMove is AID.ChaosThrust or AID.ChaoticSpring));
+        var needFlank = !IsOnFlank(target!) && Unlocked(AID.FangAndClaw) && ComboLastMove is AID.HeavensThrust or AID.FullThrust;
+        return strategy switch
+        {
+            TrueNorthStrategy.Automatic => condition && CanLateWeaveIn && (needRear || needFlank),
+            TrueNorthStrategy.ASAP => condition && (needRear || needFlank),
+            TrueNorthStrategy.Flank => condition && CanLateWeaveIn && needFlank,
+            TrueNorthStrategy.Rear => condition && CanLateWeaveIn && needRear,
+            TrueNorthStrategy.Force => !PlayerHasEffect(SID.TrueNorth),
+            TrueNorthStrategy.Delay => false,
+            _ => false
+        };
+    }
     #endregion
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
@@ -517,7 +520,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                 QueueOGCD(AID.TrueNorth, Player, OGCDPriority.AboveAverage);
         }
         if (ShouldUsePiercingTalon(primaryTarget?.Actor, ptStrat))
-            QueueGCD(AID.PiercingTalon, TargetChoice(pt) ?? primaryTarget?.Actor, ptStrat is PiercingTalonStrategy.Force or PiercingTalonStrategy.ForceEX ? GCDPriority.Forced : GCDPriority.Low);
+            QueueGCD(AID.PiercingTalon, TargetChoice(pt) ?? primaryTarget?.Actor, ptStrat is PiercingTalonStrategy.Force or PiercingTalonStrategy.ForceEX ? GCDPriority.Forced : GCDPriority.SlightlyLow);
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.VeryCritical, 0, GCD - 0.9f);
         #endregion
