@@ -135,7 +135,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     private float nmLeft;
     private float nmCD;
     private float bfCD;
-    private bool inOdd;
     private bool hasNM;
     private bool hasBreak;
     private bool hasReign;
@@ -187,7 +186,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     private bool ShouldUseNoMercy(NoMercyStrategy strategy, Actor? target) => strategy switch
     {
         NoMercyStrategy.Automatic => Player.InCombat && target != null && canNM &&
-            ((Unlocked(AID.DoubleDown) && (inOdd && Ammo >= 2 || !inOdd && Ammo < 3)) || //90+
+            ((Unlocked(AID.DoubleDown) && (InOddWindow(AID.Bloodfest) && Ammo >= 2 || !InOddWindow(AID.Bloodfest) && Ammo < 3)) || //90+
             (!Unlocked(AID.DoubleDown) && CanQuarterWeaveIn && Ammo >= 1)), //2-89
         NoMercyStrategy.Force => canNM,
         NoMercyStrategy.ForceW => canNM && CanWeaveIn,
@@ -276,7 +275,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     {
         CartridgeStrategy.Automatic => Player.InCombat && target != null &&
             ((ShouldUseAOE ? (In5y(target) && canFC) : (In3y(target) && canBS)) &&
-            (hasNM || (!(bfCD is <= 90 and >= 30) && nmCD < 1 && Ammo == 3)) ||
+            (hasNM || (!InOddWindow(AID.Bloodfest) && nmCD < 1 && Ammo == 3)) ||
             (Ammo == MaxCartridges && ComboLastMove is AID.BrutalShell or AID.DemonSlice)),
         _ => false
     };
@@ -333,7 +332,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         hasRip = PlayerHasEffect(SID.ReadyToRip, 10f) && !LastActionUsed(AID.JugularRip);
         hasTear = PlayerHasEffect(SID.ReadyToTear, 10f) && !LastActionUsed(AID.AbdomenTear);
         hasGouge = PlayerHasEffect(SID.ReadyToGouge, 10f) && !LastActionUsed(AID.EyeGouge);
-        inOdd = bfCD is <= 90 and >= 30;
         ShouldUseAOE = ShouldUseAOECircle(5).OnTwoOrMore;
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 3.5f, IsSplashTarget);
         BestSplashTarget = Unlocked(AID.ReignOfBeasts) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
@@ -430,7 +428,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             }
         }
         if (canContinue && (hasBlast || hasRaze || hasRip || hasTear || hasGouge))
-            QueueOGCD(BestContinuation, TargetChoice(gf) ?? primaryTarget?.Actor, GCD < 0.4f ? OGCDPriority.Forced + 1500 : OGCDPriority.BelowAverage);
+            QueueOGCD(BestContinuation, TargetChoice(gf) ?? primaryTarget?.Actor, GCD < 0.5f ? OGCDPriority.Forced + 1500 : GCD is < 1.25f and >= 0.6f ? OGCDPriority.VeryHigh - 10 : OGCDPriority.BelowAverage);
         if (GunComboStep == 1)
             QueueGCD(AID.SavageClaw, TargetChoice(gf) ?? primaryTarget?.Actor, gfStrat is GnashingStrategy.ForceClaw ? GCDPriority.Forced : GCDPriority.BelowAverage);
         if (GunComboStep == 2)
