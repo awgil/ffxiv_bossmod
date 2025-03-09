@@ -319,16 +319,16 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f;
 
     /// <summary>Checks if user can <b>Weave in</b> any <b>abilities</b>.</summary>
-    protected bool CanWeaveIn => GCD is <= 2.49f and >= 0.01f;
+    protected bool CanWeaveIn => GCD is <= 2.49f and >= 0.6f;
 
     /// <summary>Checks if user can <b>Early Weave in</b> any <b>abilities</b>.</summary>
     protected bool CanEarlyWeaveIn => GCD is <= 2.49f and >= 1.26f;
 
     /// <summary>Checks if user can <b>Late Weave in</b> any <b>abilities</b>.</summary>
-    protected bool CanLateWeaveIn => GCD is <= 1.25f and >= 0.01f;
+    protected bool CanLateWeaveIn => GCD is <= 1.25f and >= 0.6f;
 
     /// <summary>Checks if user can <b>Quarter Weave in</b> any <b>abilities</b>.</summary>
-    protected bool CanQuarterWeaveIn => GCD is < 0.9f and >= 0.01f;
+    protected bool CanQuarterWeaveIn => GCD is < 1f and >= 0.6f;
     #endregion
 
     #region Cooldown
