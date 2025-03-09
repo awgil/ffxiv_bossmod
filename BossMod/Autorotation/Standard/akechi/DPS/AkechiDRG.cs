@@ -336,21 +336,15 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         OGCDStrategy.Delay => false,
         _ => false
     };
-    private bool ShouldUsePiercingTalon(Actor? target, PiercingTalonStrategy strategy)
+    private bool ShouldUsePiercingTalon(Actor? target, PiercingTalonStrategy strategy) => strategy switch
     {
-        //EPT is 250p (Lv1-75) / (Lv76+) 350p; NPT is 100p (Lv1-75) / (Lv76+) 150p - given by Elusive Jump procs
-        //Due to no reliable info anywhere, we'll assume numbers here
-        //So we call EPT if the potency is better than our next attack
-        return strategy switch
-        {
-            PiercingTalonStrategy.AllowEX => Player.InCombat && target != null && (!In3y(target) || (In3y(target) && powerLeft > 5 && ComboLastMove is AID.Drakesbane or AID.TrueThrust or AID.RaidenThrust)) && PlayerHasEffect(SID.EnhancedPiercingTalon),
-            PiercingTalonStrategy.Allow => Player.InCombat && target != null && !In3y(target),
-            PiercingTalonStrategy.Force => true,
-            PiercingTalonStrategy.ForceEX => PlayerHasEffect(SID.EnhancedPiercingTalon),
-            PiercingTalonStrategy.Forbid => false,
-            _ => false
-        };
-    }
+        PiercingTalonStrategy.AllowEX => Player.InCombat && target != null && !In3y(target) && PlayerHasEffect(SID.EnhancedPiercingTalon),
+        PiercingTalonStrategy.Allow => Player.InCombat && target != null && !In3y(target),
+        PiercingTalonStrategy.Force => true,
+        PiercingTalonStrategy.ForceEX => PlayerHasEffect(SID.EnhancedPiercingTalon),
+        PiercingTalonStrategy.Forbid => false,
+        _ => false
+    };
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
         PotionStrategy.AlignWithRaidBuffs => Player.InCombat && lcCD <= GCD * 2 && blCD <= GCD * 2,
