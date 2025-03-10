@@ -134,7 +134,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     };
     private AID AutoBreak => ShouldUseAOE ? FullAOE : FullST;
     private AID FullST => ComboLastMove is AID.RiotBlade ? (Unlocked(AID.RoyalAuthority) ? AID.RoyalAuthority : Unlocked(AID.RageOfHalone) ? AID.RageOfHalone : AID.FastBlade) : Unlocked(AID.RiotBlade) && ComboLastMove is AID.FastBlade ? AID.RiotBlade : AID.FastBlade;
-    private AID FullAOE => Unlocked(AID.TotalEclipse) && ComboLastMove is AID.TotalEclipse ? AID.TotalEclipse : AID.Prominence;
+    private AID FullAOE => Unlocked(AID.Prominence) && ComboLastMove is AID.TotalEclipse ? AID.Prominence : AID.TotalEclipse;
     #endregion
 
     #region Cooldown Helpers
