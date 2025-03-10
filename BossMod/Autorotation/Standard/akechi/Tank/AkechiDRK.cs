@@ -110,7 +110,6 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     public Enemy? BestTargetMPRectHigh;
     public Enemy? BestTargetMPRectLow;
     public Enemy? BestTargetMPRect;
-    private bool inOdd;
     #endregion
 
     #region Upgrade Paths
@@ -122,7 +121,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     private AID CarveOrDrain => ShouldUseAOE ? AID.AbyssalDrain : BestCarve;
     private AID BestCarve => Unlocked(AID.CarveAndSpit) ? AID.CarveAndSpit : AID.AbyssalDrain;
     private SID BestBloodWeapon => Unlocked(AID.ScarletDelirium) ? SID.EnhancedDelirium : Unlocked(AID.Delirium) ? SID.Delirium : SID.BloodWeapon;
-    private AID DeliriumCombo => Delirium.Step is 2 ? AID.Torcleaver : Delirium.Step is 1 ? AID.Comeuppance : ShouldUseAOE ? AID.Impalement : AID.ScarletDelirium;
+    private AID DeliriumCombo => Delirium.Step is 2 ? AID.Torcleaver : Delirium.Step is 1 ? AID.Comeuppance : ShouldUseAOE ? AID.Impalement : Unlocked(AID.ScarletDelirium) && Delirium.IsActive && Delirium.Step is 0 ? AID.ScarletDelirium : BestBloodSpender;
     #endregion
 
     #region Rotation Helpers
@@ -157,10 +156,10 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                     return true;
             }
             //2 uses
-            if (Delirium.CD >= 40 && inOdd)
+            if (Delirium.CD >= 40 && InOddWindow(AID.LivingShadow))
                 return MP >= 6000;
             //4 uses (5 with DA)
-            if (Delirium.CD >= 40 && !inOdd)
+            if (Delirium.CD >= 40 && !InOddWindow(AID.LivingShadow))
                 return MP >= 3000;
         }
         return false;
@@ -267,7 +266,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseDeliriumCombo(DeliriumComboStrategy strategy, Enemy? target) => strategy switch
     {
-        DeliriumComboStrategy.Automatic => Player.InCombat && target != null && In3y(target?.Actor) && Unlocked(AID.ScarletDelirium) && Delirium.Step is 0 or 1 or 2 && Delirium.IsActive,
+        DeliriumComboStrategy.Automatic => Player.InCombat && target != null && In3y(target?.Actor) && Delirium.IsActive && ((Unlocked(AID.ScarletDelirium) && Delirium.Step is 0 or 1 or 2) || (!Unlocked(AID.ScarletDelirium))),
         DeliriumComboStrategy.ScarletDelirum => Unlocked(AID.ScarletDelirium) && Delirium.Step is 0 && Delirium.IsActive,
         DeliriumComboStrategy.Comeuppance => Unlocked(AID.Comeuppance) && Delirium.Step is 1 && Delirium.IsActive,
         DeliriumComboStrategy.Torcleaver => Unlocked(AID.Torcleaver) && Delirium.Step is 2 && Delirium.IsActive,
@@ -336,7 +335,6 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Shadowbringer.ChargeCD = ChargeCD(AID.Shadowbringer); //Retrieve current Shadowbringer charge cooldown
         Shadowbringer.HasCharges = TotalCD(AID.Shadowbringer) <= 60; //Checks if Shadowbringer has charges
         Shadowbringer.IsReady = Unlocked(AID.Shadowbringer) && Shadowbringer.HasCharges; //Shadowbringer ability
-        inOdd = LivingShadow.CD is < 90 and > 30;
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
         (BestAOERectTargets, NumAOERectTargets) = GetBestTarget(PlayerTarget, 10, Is10yRectTarget);
         BestTargetAOERect = Unlocked(AID.Shadowbringer) && NumAOERectTargets > 1 ? BestAOERectTargets : primaryTarget;
