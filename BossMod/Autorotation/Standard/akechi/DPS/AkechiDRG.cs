@@ -249,9 +249,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         var normal = (Unlocked(AID.FullThrust) && ComboLastMove is AID.VorpalThrust or AID.LanceBarrage) || (Unlocked(AID.Drakesbane) && ComboLastMove is AID.WheelingThrust or AID.FangAndClaw);
         var optimal = hasLC && (TotalCD(AID.LifeSurge) < 40 || TotalCD(AID.BattleLitany) > 50) && normal;
         var minute = Unlocked(TraitID.EnhancedLifeSurge) ? optimal : (normal || lowlvl);
+        var aoe = Unlocked(AID.CoerthanTorment) ? ComboLastMove is AID.SonicThrust : Unlocked(AID.SonicThrust) ? ComboLastMove is AID.DoomSpike : Unlocked(AID.DoomSpike) && powerLeft > SkSGCDLength * 2;
         return strategy switch
         {
-            SurgeStrategy.Automatic => Player.InCombat && target != null && canLS && minute,
+            SurgeStrategy.Automatic => Player.InCombat && target != null && canLS && (ShouldUseAOE ? aoe : minute),
             SurgeStrategy.Force => canLS,
             SurgeStrategy.ForceWeave => canLS && CanWeaveIn,
             SurgeStrategy.ForceNextOpti => canLS && normal,
@@ -264,7 +265,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Dives
     private bool ShouldUseDragonfireDive(DragonfireStrategy strategy, Actor? target) => strategy switch
     {
-        DragonfireStrategy.Automatic => Player.InCombat && target != null && In20y(target) && canDD && hasLC && hasBL && hasLOTD,
+        DragonfireStrategy.Automatic => Player.InCombat && target != null && In20y(target) && canDD && ((hasLC && hasBL && hasLOTD) || (!Unlocked(AID.BattleLitany) && hasLC)),
         DragonfireStrategy.Force => canDD,
         DragonfireStrategy.ForceEX => canDD,
         DragonfireStrategy.ForceWeave => canDD && CanWeaveIn,
