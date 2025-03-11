@@ -41,9 +41,9 @@ public enum AbilityUse
 
 internal static class AIExt
 {
-    public static RotationModuleDefinition.ConfigRef<AbilityUse> AbilityTrack<Track>(this RotationModuleDefinition def, Track track, string name) where Track : Enum
+    public static RotationModuleDefinition.ConfigRef<AbilityUse> AbilityTrack<Track>(this RotationModuleDefinition def, Track track, string name, string display = "") where Track : Enum
     {
-        return def.Define(track).As<AbilityUse>(name).AddOption(AbilityUse.Enabled, "Enabled").AddOption(AbilityUse.Disabled, "Disabled");
+        return def.Define(track).As<AbilityUse>(name, display).AddOption(AbilityUse.Enabled, "Enabled").AddOption(AbilityUse.Disabled, "Disabled");
     }
 
     public static bool Enabled<Track>(this StrategyValues strategy, Track track) where Track : Enum

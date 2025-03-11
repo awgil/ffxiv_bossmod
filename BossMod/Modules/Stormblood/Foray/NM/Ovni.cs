@@ -18,6 +18,13 @@ public enum AID : uint
     ConcussiveOscillation = 14783, // Boss->self, 5.0s cast, range 24 circle
 }
 
+public enum SID : uint
+{
+    DamageUp = 1766, // Boss->Boss, extra=0x1
+    Stun = 149, // Boss->player, extra=0x0
+    Prey = 562, // Boss->player, extra=0x0
+}
+
 public enum IconID : uint
 {
     IonShower = 111, // player->self
@@ -29,6 +36,28 @@ class ConcussiveOscillation(BossModule module) : Components.SelfTargetedAOEs(mod
 class VitriolicBarrage(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.VitriolicBarrage));
 class RockHard(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RockHard), 8);
 class TorrentialTorment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TorrentialTorment), new AOEShapeCone(56, 22.5f.Degrees()));
+class Fluorescence(BossModule module) : BossComponent(module)
+{
+    private bool _damageUp;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_damageUp && hints.FindEnemy(Module.PrimaryActor) is { } ovni)
+            ovni.ShouldBeDispelled = true;
+    }
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if (status.ID == (uint)SID.DamageUp)
+            _damageUp = true;
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if (status.ID == (uint)SID.DamageUp)
+            _damageUp = false;
+    }
+}
 class IonShower(BossModule module) : Components.GenericStackSpread(module, alwaysShowSpreads: true, raidwideOnResolve: false)
 {
     private int _numCasts;
@@ -69,7 +98,8 @@ class OvniStates : StateMachineBuilder
             .ActivateOnEnter<VitriolicBarrage>()
             .ActivateOnEnter<RockHard>()
             .ActivateOnEnter<TorrentialTorment>()
-            .ActivateOnEnter<IonShower>();
+            .ActivateOnEnter<IonShower>()
+            .ActivateOnEnter<Fluorescence>();
     }
 }
 
