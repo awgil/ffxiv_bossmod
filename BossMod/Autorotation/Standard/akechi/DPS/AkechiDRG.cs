@@ -159,12 +159,19 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Rotation Helpers
     private AID AutoFinish => ComboLastMove switch
     {
-        AID.Drakesbane or AID.CoerthanTorment => AutoBreak,
-        AID.DoomSpike or AID.DraconianFury or AID.SonicThrust => !Unlocked(AID.SonicThrust) ? AutoBreak : FullAOE,
-        AID.TrueThrust or AID.RaidenThrust or AID.VorpalThrust or AID.LanceBarrage or AID.Disembowel or AID.SpiralBlow or AID.HeavensThrust or AID.FullThrust or AID.WheelingThrust or AID.FangAndClaw => FullST,
+        AID.CoerthanTorment => AutoBreak,
+        AID.SonicThrust => !Unlocked(AID.CoerthanTorment) ? AutoBreak : FullAOE,
+        AID.DoomSpike or AID.DraconianFury => !Unlocked(AID.SonicThrust) ? AutoBreak : FullAOE,
+        AID.Drakesbane => AutoBreak,
+        AID.WheelingThrust or AID.FangAndClaw => !Unlocked(AID.Drakesbane) ? AutoBreak : FullST,
+        AID.FullThrust or AID.HeavensThrust => !Unlocked(AID.FangAndClaw) ? AutoBreak : FullST,
+        AID.ChaosThrust or AID.ChaoticSpring => !Unlocked(AID.WheelingThrust) ? AutoBreak : FullST,
+        AID.VorpalThrust or AID.LanceBarrage => !Unlocked(AID.FullThrust) ? AutoBreak : FullST,
+        AID.Disembowel or AID.SpiralBlow => !Unlocked(AID.ChaosThrust) ? AutoBreak : FullST,
+        AID.TrueThrust or AID.RaidenThrust => !Unlocked(AID.VorpalThrust) ? AutoBreak : FullST,
         _ => AutoBreak
     };
-    private AID AutoBreak => ShouldUseAOE ? FullAOE : ShouldUseDOT ? STBuffs : FullST;
+    private AID AutoBreak => ShouldUseAOE && powerLeft > SkSGCDLength * 2 ? FullAOE : ShouldUseDOT ? STBuffs : FullST;
     private AID FullST => ComboLastMove switch
     {
         AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) && (Unlocked(AID.ChaosThrust) ? (powerLeft <= SkSGCDLength * 6 || chaosLeft <= SkSGCDLength * 4) : (Unlocked(AID.FullThrust) ? powerLeft <= SkSGCDLength * 3 : powerLeft <= SkSGCDLength * 2)) ? Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel : Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust,
@@ -193,9 +200,16 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private AID FullAOE => ComboLastMove switch
     {
-        AID.DoomSpike => Unlocked(AID.SonicThrust) ? AID.SonicThrust : AID.DoomSpike,
-        AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : AID.DoomSpike,
-        _ => powerLeft > SkSGCDLength * 2 ? (PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike) : (ComboLastMove is AID.TrueThrust or AID.RaidenThrust ? (Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel) : (PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust)),
+        AID.DoomSpike => Unlocked(AID.SonicThrust) ? AID.SonicThrust : LowLevelAOE,
+        AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : LowLevelAOE,
+        _ => PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : LowLevelAOE,
+    };
+
+    private AID LowLevelAOE => ComboLastMove switch
+    {
+        AID.Disembowel or AID.SpiralBlow => powerLeft > SkSGCDLength * 2 ? AID.DoomSpike : AID.TrueThrust,
+        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel,
+        _ => powerLeft > SkSGCDLength * 2 ? (PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike) : (PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust),
     };
 
     #region DOT
