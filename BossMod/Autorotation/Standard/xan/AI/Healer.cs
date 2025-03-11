@@ -346,10 +346,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.SCH.AID.SacredSoil), null, ActionQueue.Priority.Medium + 5, targetPos: location.Value);
         }
 
-        // TODO make this configurable
-        if (primaryTarget != null)
-            UseOGCD(BossMod.SCH.AID.ChainStratagem, primaryTarget);
-
         var gauge = World.Client.GetGauge<ScholarGauge>();
 
         var pet = World.Client.ActivePet.InstanceID == 0xE0000000 ? null : World.Actors.Find(World.Client.ActivePet.InstanceID);
