@@ -230,25 +230,18 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseLifeSurge(SurgeStrategy strategy, Actor? target)
     {
-        if (!canLS)
-            return false;
-
         var minimal = ComboLastMove is AID.TrueThrust;
-        var lowlvl = Unlocked(AID.Disembowel) ? (minimal && powerLeft > SkSGCDLength * 2) : minimal;
-        var normal = (Unlocked(AID.Drakesbane) && ComboLastMove is AID.WheelingThrust or AID.FangAndClaw) || (Unlocked(AID.FullThrust) && ComboLastMove is AID.VorpalThrust or AID.LanceBarrage);
-        var minute = Unlocked(TraitID.EnhancedLifeSurge)
-            ? (hasLC && (TotalCD(AID.LifeSurge) < 40 || TotalCD(AID.BattleLitany) > 50) && normal) // Lv88+
-            : (Unlocked(AID.ChaosThrust) ? normal // Lv50-87
-            : (Unlocked(AID.FullThrust) ? ComboLastMove is AID.VorpalThrust // Lv26-49
-            : lowlvl)); // Lv6-25
-
+        var lowlvl = !Unlocked(AID.FullThrust) && (Unlocked(AID.Disembowel) ? (minimal && powerLeft > SkSGCDLength * 2) : minimal);
+        var normal = (Unlocked(AID.FullThrust) && ComboLastMove is AID.VorpalThrust or AID.LanceBarrage) || (Unlocked(AID.Drakesbane) && ComboLastMove is AID.WheelingThrust or AID.FangAndClaw);
+        var optimal = hasLC && (TotalCD(AID.LifeSurge) < 40 || TotalCD(AID.BattleLitany) > 50) && normal;
+        var minute = Unlocked(TraitID.EnhancedLifeSurge) ? optimal : (normal || lowlvl);
         return strategy switch
         {
             SurgeStrategy.Automatic => Player.InCombat && target != null && minute,
-            SurgeStrategy.Force => true,
-            SurgeStrategy.ForceWeave => CanWeaveIn,
-            SurgeStrategy.ForceNextOpti => normal,
-            SurgeStrategy.ForceNextOptiWeave => normal && CanWeaveIn,
+            SurgeStrategy.Force => canLS,
+            SurgeStrategy.ForceWeave => canLS && CanWeaveIn,
+            SurgeStrategy.ForceNextOpti => canLS && normal,
+            SurgeStrategy.ForceNextOptiWeave => canLS && normal && CanWeaveIn,
             _ => false
         };
     }
