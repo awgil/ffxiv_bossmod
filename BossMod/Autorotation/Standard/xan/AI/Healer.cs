@@ -273,7 +273,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
                 UseGCD(BossMod.WHM.AID.Medica, Player);
 
             // apply regens
-            if (Player.FindStatus(Unlocked(BossMod.WHM.AID.MedicaIII) ? BossMod.WHM.SID.MedicaIII : BossMod.WHM.SID.MedicaII) == null)
+            if (Player.FindStatus(Unlocked(BossMod.WHM.AID.MedicaIII) ? BossMod.WHM.SID.MedicaIII : BossMod.WHM.SID.MedicaII, World.FutureTime(15)) == null)
                 UseGCD(bestM2, Player);
         }
     }
@@ -311,7 +311,13 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         });
 
         if (ShouldHealInArea(Player.Position, 15, 0.7f))
-            UseGCD(BossMod.AST.AID.AspectedHelios, Player);
+        {
+            if (Player.FindStatus(Unlocked(BossMod.AST.AID.HeliosConjunction) ? BossMod.AST.SID.HeliosConjunction : BossMod.AST.SID.AspectedHelios, World.FutureTime(15)) == null)
+                UseGCD(BossMod.AST.AID.AspectedHelios, Player);
+
+            if (!Unlocked(BossMod.AST.AID.HeliosConjunction))
+                UseGCD(BossMod.AST.AID.Helios, Player);
+        }
 
         if (Player.InCombat)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.AST.AID.EarthlyStar), Player, ActionQueue.Priority.Medium, targetPos: Player.PosRot.XYZ());
