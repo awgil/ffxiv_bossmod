@@ -159,10 +159,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Rotation Helpers
     private AID AutoFinish => ComboLastMove switch
     {
-        AID.Drakesbane or AID.CoerthanTorment => ShouldUseAOE ? FullAOE : ShouldUseDOT ? STBuffs : FullST,
-        AID.DoomSpike or AID.DraconianFury or AID.SonicThrust => FullAOE,
+        AID.Drakesbane or AID.CoerthanTorment => AutoBreak,
+        AID.DoomSpike or AID.DraconianFury or AID.SonicThrust => !Unlocked(AID.SonicThrust) ? AutoBreak : FullAOE,
         AID.TrueThrust or AID.RaidenThrust or AID.VorpalThrust or AID.LanceBarrage or AID.Disembowel or AID.SpiralBlow or AID.HeavensThrust or AID.FullThrust or AID.WheelingThrust or AID.FangAndClaw => FullST,
-        _ => ShouldUseAOE ? FullAOE : ShouldUseDOT ? STBuffs : FullST
+        _ => AutoBreak
     };
     private AID AutoBreak => ShouldUseAOE ? FullAOE : ShouldUseDOT ? STBuffs : FullST;
     private AID FullST => ComboLastMove switch
@@ -195,7 +195,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     {
         AID.DoomSpike => Unlocked(AID.SonicThrust) ? AID.SonicThrust : AID.DoomSpike,
         AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : AID.DoomSpike,
-        _ => PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike,
+        _ => powerLeft > SkSGCDLength * 2 ? (PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike) : (ComboLastMove is AID.TrueThrust or AID.RaidenThrust ? (Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel) : (PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust)),
     };
 
     #region DOT
@@ -408,7 +408,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         (BestSpearTargets, NumSpearTargets) = GetBestTarget(primaryTarget, 15, Is15yRectTarget);
         (BestDiveTargets, NumDiveTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
         (BestDOTTargets, chaosLeft) = GetDOTTarget(primaryTarget, ChaosRemaining, 2, 3.5f);
-        BestAOETarget = ShouldUseAOE ? BestAOETargets : ShouldUseDOT ? BestDOTTargets : BestDOTTarget;
+        BestAOETarget = ShouldUseAOE ? BestAOETargets : BestDOTTarget;
         BestSpearTarget = ShouldUseSpears ? BestSpearTargets : primaryTarget;
         BestDiveTarget = ShouldUseDives ? BestDiveTargets : primaryTarget;
         BestDOTTarget = ShouldUseDOT ? BestDOTTargets : primaryTarget;
