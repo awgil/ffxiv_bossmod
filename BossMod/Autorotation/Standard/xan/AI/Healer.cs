@@ -165,6 +165,11 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
     private void AutoRaise(StrategyValues strategy)
     {
+        // set of all statuses called "Resurrection Restricted"
+        // TODO maybe this is a flag in sheets somewhere
+        if (Player.Statuses.Any(s => s.ID is 1755 or 2449 or 3380))
+            return;
+
         var swiftcast = StatusDetails(Player, (uint)BossMod.WHM.SID.Swiftcast, Player.InstanceID, 15).Left;
         var thinair = StatusDetails(Player, (uint)BossMod.WHM.SID.ThinAir, Player.InstanceID, 12).Left;
         var swiftcastCD = NextChargeIn(BossMod.WHM.AID.Swiftcast);
