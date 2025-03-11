@@ -167,7 +167,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     private AID AutoBreak => ShouldUseAOE ? FullAOE : ShouldUseDOT ? STBuffs : FullST;
     private AID FullST => ComboLastMove switch
     {
-        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) && (powerLeft <= SkSGCDLength * 6 || chaosLeft <= SkSGCDLength * 4) ? Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel : Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : AID.VorpalThrust,
+        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) && (Unlocked(AID.ChaosThrust) ? (powerLeft <= SkSGCDLength * 6 || chaosLeft <= SkSGCDLength * 4) : (Unlocked(AID.FullThrust) ? powerLeft <= SkSGCDLength * 3 : powerLeft <= SkSGCDLength * 2)) ? Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel : Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust,
         AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : Unlocked(AID.ChaosThrust) ? AID.ChaosThrust : AID.TrueThrust,
         AID.VorpalThrust or AID.LanceBarrage => Unlocked(AID.HeavensThrust) ? AID.HeavensThrust : Unlocked(AID.FullThrust) ? AID.FullThrust : AID.TrueThrust,
         AID.FullThrust or AID.HeavensThrust => Unlocked(AID.FangAndClaw) ? AID.FangAndClaw : AID.TrueThrust,
@@ -230,16 +230,25 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseLifeSurge(SurgeStrategy strategy, Actor? target)
     {
-        var normal = (ComboLastMove is AID.WheelingThrust or AID.FangAndClaw && Unlocked(AID.Drakesbane)) || (ComboLastMove is AID.VorpalThrust or AID.LanceBarrage && Unlocked(AID.FullThrust));
-        var minute = Unlocked(TraitID.EnhancedLifeSurge) ? ((hasLC && (TotalCD(AID.LifeSurge) < 40 || TotalCD(AID.BattleLitany) > 50)) && normal) : normal;
+        if (!canLS)
+            return false;
+
+        var minimal = ComboLastMove is AID.TrueThrust;
+        var lowlvl = Unlocked(AID.Disembowel) ? (minimal && powerLeft > SkSGCDLength * 2) : minimal;
+        var normal = (Unlocked(AID.Drakesbane) && ComboLastMove is AID.WheelingThrust or AID.FangAndClaw) || (Unlocked(AID.FullThrust) && ComboLastMove is AID.VorpalThrust or AID.LanceBarrage);
+        var minute = Unlocked(TraitID.EnhancedLifeSurge)
+            ? (hasLC && (TotalCD(AID.LifeSurge) < 40 || TotalCD(AID.BattleLitany) > 50) && normal) // Lv88+
+            : (Unlocked(AID.ChaosThrust) ? normal // Lv50-87
+            : (Unlocked(AID.FullThrust) ? ComboLastMove is AID.VorpalThrust // Lv26-49
+            : lowlvl)); // Lv6-25
+
         return strategy switch
         {
-            SurgeStrategy.Automatic => Player.InCombat && target != null && canLS && minute,
-            SurgeStrategy.Force => canLS,
-            SurgeStrategy.ForceWeave => canLS && CanWeaveIn,
-            SurgeStrategy.ForceNextOpti => canLS && normal,
-            SurgeStrategy.ForceNextOptiWeave => canLS && normal && CanWeaveIn,
-            SurgeStrategy.Delay => false,
+            SurgeStrategy.Automatic => Player.InCombat && target != null && minute,
+            SurgeStrategy.Force => true,
+            SurgeStrategy.ForceWeave => CanWeaveIn,
+            SurgeStrategy.ForceNextOpti => normal,
+            SurgeStrategy.ForceNextOptiWeave => normal && CanWeaveIn,
             _ => false
         };
     }
@@ -513,6 +522,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             if (ShouldUseTrueNorth(strategy.Option(Track.TrueNorth).As<TrueNorthStrategy>(), primaryTarget?.Actor))
                 QueueOGCD(AID.TrueNorth, Player, OGCDPriority.AboveAverage);
         }
+        if (Player.Level < 60 && ActionReady(AID.LegSweep))
+            QueueOGCD(AID.LegSweep, TargetChoice(AOE) ?? primaryTarget?.Actor, OGCDPrio(mdStrat, OGCDPriority.ExtremelyLow));
         if (ShouldUsePiercingTalon(primaryTarget?.Actor, ptStrat))
             QueueGCD(AID.PiercingTalon, TargetChoice(pt) ?? primaryTarget?.Actor, ptStrat is PiercingTalonStrategy.Force or PiercingTalonStrategy.ForceEX ? GCDPriority.Forced : GCDPriority.SlightlyLow);
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))

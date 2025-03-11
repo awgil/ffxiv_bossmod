@@ -655,11 +655,11 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks if player is on specified target's <b>Rear Positional</b>.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    protected bool IsOnRear(Actor target) => GetCurrentPositional(target) == Positional.Rear;
+    protected bool IsOnRear(Actor target) => In5y(target) && GetCurrentPositional(target) == Positional.Rear;
 
     /// <summary>Checks if player is on specified target's <b>Flank Positional</b>.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    protected bool IsOnFlank(Actor target) => GetCurrentPositional(target) == Positional.Flank;
+    protected bool IsOnFlank(Actor target) => In5y(target) && GetCurrentPositional(target) == Positional.Flank;
     #endregion
 
     #region AI
