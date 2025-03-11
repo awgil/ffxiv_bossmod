@@ -237,7 +237,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         var minute = Unlocked(TraitID.EnhancedLifeSurge) ? optimal : (normal || lowlvl);
         return strategy switch
         {
-            SurgeStrategy.Automatic => Player.InCombat && target != null && minute,
+            SurgeStrategy.Automatic => Player.InCombat && target != null && canLS && minute,
             SurgeStrategy.Force => canLS,
             SurgeStrategy.ForceWeave => canLS && CanWeaveIn,
             SurgeStrategy.ForceNextOpti => canLS && normal,
@@ -390,7 +390,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         hasSC = PlayerHasEffect(SID.StarcrossReady);
         canLC = ActionReady(AID.LanceCharge);
         canBL = ActionReady(AID.BattleLitany);
-        canLS = Unlocked(AID.LifeSurge) && (Unlocked(TraitID.EnhancedLifeSurge) ? TotalCD(AID.LifeSurge) < 40.6f : TotalCD(AID.LifeSurge) < 0.6f) && !PlayerHasEffect(SID.LifeSurge);
+        canLS = Unlocked(AID.LifeSurge) && !PlayerHasEffect(SID.LifeSurge) && (Unlocked(TraitID.EnhancedLifeSurge) ? TotalCD(AID.LifeSurge) < 40.6f : ChargeCD(AID.LifeSurge) < 0.6f);
         canJump = ActionReady(AID.Jump);
         canDD = ActionReady(AID.DragonfireDive);
         canGeirskogul = ActionReady(AID.Geirskogul);
