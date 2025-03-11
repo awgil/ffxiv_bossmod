@@ -11,15 +11,16 @@ public static class UICombo
         return v.GetType().GetField(name)?.GetCustomAttribute<PropertyDisplayAttribute>()?.Label ?? name;
     }
 
-    public static bool Enum<T>(string label, ref T v) where T : Enum
+    public static bool Enum<T>(string label, ref T v, Func<T, string>? print = null) where T : Enum
     {
+        print ??= p => EnumString(p);
         bool res = false;
         ImGui.SetNextItemWidth(200);
-        if (ImGui.BeginCombo(label, EnumString(v)))
+        if (ImGui.BeginCombo(label, print(v)))
         {
             foreach (var opt in System.Enum.GetValues(v.GetType()))
             {
-                if (ImGui.Selectable(EnumString((Enum)opt), opt.Equals(v)))
+                if (ImGui.Selectable(print((T)opt), opt.Equals(v)))
                 {
                     v = (T)opt;
                     res = true;
