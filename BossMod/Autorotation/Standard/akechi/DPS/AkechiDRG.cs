@@ -134,7 +134,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     private bool canROTD;
     private bool canSC;
     private float blCD;
-    private float lcLeft;
     private float lcCD;
     private float powerLeft;
     private float chaosLeft;
@@ -472,8 +471,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         hasLOTD = gauge.LotdTimer > 0;
         blCD = TotalCD(AID.BattleLitany);
         lcCD = TotalCD(AID.LanceCharge);
-        lcLeft = SelfStatusLeft(SID.LanceCharge, 20);
-        powerLeft = SelfStatusLeft(SID.PowerSurge, 30);
+        powerLeft = StatusRemaining(Player, SID.PowerSurge, 30);
         chaosLeft = MathF.Max(StatusDetails(primaryTarget?.Actor, SID.ChaosThrust, Player.InstanceID).Left, StatusDetails(primaryTarget?.Actor, SID.ChaoticSpring, Player.InstanceID).Left);
         hasMD = PlayerHasEffect(SID.DiveReady);
         hasNastrond = PlayerHasEffect(SID.NastrondReady);
