@@ -13,6 +13,7 @@ public sealed class AIHintsBuilder : IDisposable
     private readonly ZoneModuleManager _zmm;
     private readonly EventSubscriptions _subscriptions;
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = [];
+    private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape)> _activeGazes = [];
     private ArenaBoundsCircle? _activeFateBounds;
 
     public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm)
@@ -153,46 +154,70 @@ public sealed class AIHintsBuilder : IDisposable
                 hints.AddForbiddenZone(aoe.Shape, target, rot, finishAt, aoe.Caster.InstanceID);
             }
         }
+
+        foreach (var gaze in _activeGazes.Values)
+        {
+            var target = gaze.Target?.Position ?? gaze.Caster.CastInfo!.LocXZ;
+            var rot = gaze.Caster.CastInfo!.Rotation;
+            var finishAt = _ws.FutureTime(gaze.Caster.CastInfo.NPCRemainingTime);
+            if (gaze.Shape.Check(player.Position, target, rot))
+                hints.ForbiddenDirections.Add((Angle.FromDirection(target - player.Position), 45.Degrees(), finishAt));
+        }
     }
 
     private void OnCastStarted(Actor actor)
     {
         if (actor.Type != ActorType.Enemy || actor.IsAlly)
             return;
-        var data = actor.CastInfo!.IsSpell() ? Service.LuminaRow<Lumina.Excel.Sheets.Action>(actor.CastInfo.Action.ID) : null;
-        if (data == null || data.Value.CastType == 1)
+        if (Service.LuminaRow<Lumina.Excel.Sheets.Action>(actor.CastInfo!.Action.ID) is not { } data)
+            return;
+
+        // gaze
+        if (data.VFX.RowId == 25)
+        {
+            if (GuessShape(data, actor) is AOEShape sh)
+                _activeGazes[actor.InstanceID] = (actor, _ws.Actors.Find(actor.CastInfo.TargetID), sh);
+            return;
+        }
+
+        if (!actor.CastInfo!.IsSpell() || data.CastType == 1)
             return;
         //if (data.Omen.Row == 0)
         //    return; // to consider: ignore aoes without omen, such aoes typically need a module to resolve...
-        if (data.Value.CastType is 2 or 5 && data.Value.EffectRange >= RaidwideSize)
+        if (data.CastType is 2 or 5 && data.EffectRange >= RaidwideSize)
             return;
-        AOEShape? shape = data.Value.CastType switch
+        if (GuessShape(data, actor) is not AOEShape shape)
         {
-            2 => new AOEShapeCircle(data.Value.EffectRange + MaxError), // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
-            3 => new AOEShapeCone(data.Value.EffectRange + actor.HitboxRadius, DetermineConeAngle(data.Value) * 0.5f),
-            4 => new AOEShapeRect(data.Value.EffectRange + actor.HitboxRadius + MaxError, data.Value.XAxisModifier * 0.5f + MaxError, MaxError),
-            5 => new AOEShapeCircle(data.Value.EffectRange + actor.HitboxRadius + MaxError),
-            //6 => ???
-            //7 => new AOEShapeCircle(data.Value.EffectRange), - used for player ground-targeted circles a-la asylum
-            //8 => charge rect
-            10 => new AOEShapeDonut(MathF.Max(0, DetermineDonutInner(data.Value) - MaxError), data.Value.EffectRange + MaxError),
-            11 => new AOEShapeCross(data.Value.EffectRange + MaxError, data.Value.XAxisModifier * 0.5f + MaxError),
-            12 => new AOEShapeRect(data.Value.EffectRange + MaxError, data.Value.XAxisModifier * 0.5f + MaxError, MaxError),
-            13 => new AOEShapeCone(data.Value.EffectRange, DetermineConeAngle(data.Value) * 0.5f),
-            _ => null
-        };
-        if (shape == null)
-        {
-            Service.Log($"[AutoHints] Unknown cast type {data.Value.CastType} for {actor.CastInfo.Action}");
+            Service.Log($"[AutoHints] Unknown cast type {data.CastType} for {actor.CastInfo.Action}");
             return;
         }
         var target = _ws.Actors.Find(actor.CastInfo.TargetID);
-        _activeAOEs[actor.InstanceID] = (actor, target, shape, data.Value.CastType == 8);
+        _activeAOEs[actor.InstanceID] = (actor, target, shape, data.CastType == 8);
     }
 
-    private void OnCastFinished(Actor actor) => _activeAOEs.Remove(actor.InstanceID);
+    private void OnCastFinished(Actor actor)
+    {
+        _activeAOEs.Remove(actor.InstanceID);
+        _activeGazes.Remove(actor.InstanceID);
+    }
 
-    private Angle DetermineConeAngle(Lumina.Excel.Sheets.Action data)
+    private static AOEShape? GuessShape(Lumina.Excel.Sheets.Action data, Actor actor) => data.CastType switch
+    {
+        2 => new AOEShapeCircle(data.EffectRange + MaxError), // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
+        3 => new AOEShapeCone(data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data) * 0.5f),
+        4 => new AOEShapeRect(data.EffectRange + actor.HitboxRadius + MaxError, data.XAxisModifier * 0.5f + MaxError, MaxError),
+        5 => new AOEShapeCircle(data.EffectRange + actor.HitboxRadius + MaxError),
+        //6 => ???
+        //7 => new AOEShapeCircle(data.EffectRange), - used for player ground-targeted circles a-la asylum
+        //8 => charge rect
+        10 => new AOEShapeDonut(MathF.Max(0, DetermineDonutInner(data) - MaxError), data.EffectRange + MaxError),
+        11 => new AOEShapeCross(data.EffectRange + MaxError, data.XAxisModifier * 0.5f + MaxError),
+        12 => new AOEShapeRect(data.EffectRange + MaxError, data.XAxisModifier * 0.5f + MaxError, MaxError),
+        13 => new AOEShapeCone(data.EffectRange, DetermineConeAngle(data) * 0.5f),
+        _ => null
+    };
+
+    private static Angle DetermineConeAngle(Lumina.Excel.Sheets.Action data)
     {
         var omen = data.Omen.ValueNullable;
         if (omen == null)
@@ -210,7 +235,7 @@ public sealed class AIHintsBuilder : IDisposable
         return angle.Degrees();
     }
 
-    private float DetermineDonutInner(Lumina.Excel.Sheets.Action data)
+    private static float DetermineDonutInner(Lumina.Excel.Sheets.Action data)
     {
         var omen = data.Omen.ValueNullable;
         if (omen == null)
