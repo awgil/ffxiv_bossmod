@@ -222,26 +222,38 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Cooldown Helpers
 
     #region Buffs
-    private bool ShouldUseLanceCharge(OGCDStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseLanceCharge(OGCDStrategy strategy, Actor? target)
     {
-        OGCDStrategy.Automatic => InsideCombatWith(target) && canLC && powerLeft > 0,
-        OGCDStrategy.Force => canLC,
-        OGCDStrategy.AnyWeave => canLC && CanWeaveIn,
-        OGCDStrategy.EarlyWeave => canLC && CanEarlyWeaveIn,
-        OGCDStrategy.LateWeave => canLC && CanLateWeaveIn,
-        OGCDStrategy.Delay => false,
-        _ => false
-    };
-    private bool ShouldUseBattleLitany(OGCDStrategy strategy, Actor? target) => strategy switch
+        if (!canLC)
+            return false;
+
+        return strategy switch
+        {
+            OGCDStrategy.Automatic => InsideCombatWith(target) && powerLeft > 0,
+            OGCDStrategy.Force => true,
+            OGCDStrategy.AnyWeave => CanWeaveIn,
+            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+            OGCDStrategy.LateWeave => CanLateWeaveIn,
+            OGCDStrategy.Delay => false,
+            _ => false
+        };
+    }
+    private bool ShouldUseBattleLitany(OGCDStrategy strategy, Actor? target)
     {
-        OGCDStrategy.Automatic => InsideCombatWith(target) && canBL && powerLeft > 0,
-        OGCDStrategy.Force => canBL,
-        OGCDStrategy.AnyWeave => canBL && CanWeaveIn,
-        OGCDStrategy.EarlyWeave => canBL && CanEarlyWeaveIn,
-        OGCDStrategy.LateWeave => canBL && CanLateWeaveIn,
-        OGCDStrategy.Delay => false,
-        _ => false
-    };
+        if (!canBL)
+            return false;
+
+        return strategy switch
+        {
+            OGCDStrategy.Automatic => InsideCombatWith(target) && powerLeft > 0,
+            OGCDStrategy.Force => true,
+            OGCDStrategy.AnyWeave => CanWeaveIn,
+            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+            OGCDStrategy.LateWeave => CanLateWeaveIn,
+            OGCDStrategy.Delay => false,
+            _ => false
+        };
+    }
     private bool ShouldUseLifeSurge(SurgeStrategy strategy, Actor? target)
     {
         if (!canLS)
@@ -284,99 +296,153 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             _ => false
         };
     }
-    private bool ShouldUseJump(JumpStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseJump(JumpStrategy strategy, Actor? target)
     {
-        JumpStrategy.Automatic => InsideCombatWith(target) && In20y(target) && canJump && (lcLeft > 0 || hasLC || lcCD is < 35 and > 17),
-        JumpStrategy.ForceEX => canJump,
-        JumpStrategy.ForceEX2 => canJump,
-        JumpStrategy.ForceWeave => canJump && CanWeaveIn,
-        JumpStrategy.Delay => false,
-        _ => false
-    };
-    private bool ShouldUseStardiver(StardiverStrategy strategy, Actor? target) => strategy switch
+        if (!canJump)
+            return false;
+
+        return strategy switch
+        {
+            JumpStrategy.Automatic => InsideCombatWith(target) && In20y(target) && (hasLC || lcCD is < 35 and > 13),
+            JumpStrategy.ForceEX or JumpStrategy.ForceEX2 => true,
+            JumpStrategy.ForceWeave => CanWeaveIn,
+            JumpStrategy.Delay => false,
+            _ => false
+        };
+
+    }
+    private bool ShouldUseStardiver(StardiverStrategy strategy, Actor? target)
     {
-        StardiverStrategy.Automatic => InsideCombatWith(target) && In20y(target) && canSD && hasLOTD,
-        StardiverStrategy.Force => canSD,
-        StardiverStrategy.ForceEX => canSD,
-        StardiverStrategy.ForceWeave => canSD && CanWeaveIn,
-        StardiverStrategy.Delay => false,
-        _ => false
-    };
-    private bool ShouldUseMirageDive(OGCDStrategy strategy, Actor? target) => strategy switch
+        if (!canSD)
+            return false;
+
+        return strategy switch
+        {
+            StardiverStrategy.Automatic => InsideCombatWith(target) && In20y(target) && hasLOTD,
+            StardiverStrategy.Force or StardiverStrategy.ForceEX => true,
+            StardiverStrategy.ForceWeave => CanWeaveIn,
+            StardiverStrategy.Delay => false,
+            _ => false
+        };
+
+    }
+    private bool ShouldUseMirageDive(OGCDStrategy strategy, Actor? target)
     {
-        OGCDStrategy.Automatic => InsideCombatWith(target) && In20y(target) && canMD,
-        OGCDStrategy.Force => canMD,
-        OGCDStrategy.AnyWeave => canMD && CanWeaveIn,
-        OGCDStrategy.EarlyWeave => canMD && CanEarlyWeaveIn,
-        OGCDStrategy.LateWeave => canMD && CanLateWeaveIn,
-        OGCDStrategy.Delay => false,
-        _ => false
-    };
+        if (!canMD)
+            return false;
+
+        return strategy switch
+        {
+            OGCDStrategy.Automatic => InsideCombatWith(target) && In20y(target),
+            OGCDStrategy.Force => true,
+            OGCDStrategy.AnyWeave => CanWeaveIn,
+            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+            OGCDStrategy.LateWeave => CanLateWeaveIn,
+            OGCDStrategy.Delay => false,
+            _ => false
+        };
+
+    }
     #endregion
 
     #region Spears
-    private bool ShouldUseGeirskogul(GeirskogulStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseGeirskogul(GeirskogulStrategy strategy, Actor? target)
     {
-        GeirskogulStrategy.Automatic => InsideCombatWith(target) && In15y(target) && canGeirskogul && ((InOddWindow(AID.BattleLitany) && hasLC) || (!InOddWindow(AID.BattleLitany) && hasLC && hasBL)),
-        GeirskogulStrategy.Force or GeirskogulStrategy.ForceEX => canGeirskogul,
-        GeirskogulStrategy.ForceWeave => canGeirskogul && CanWeaveIn,
-        GeirskogulStrategy.Delay => false,
-        _ => false
-    };
-    private bool ShouldUseNastrond(OGCDStrategy strategy, Actor? target) => strategy switch
+        if (!canGeirskogul)
+            return false;
+
+        return strategy switch
+        {
+            GeirskogulStrategy.Automatic => InsideCombatWith(target) && In15y(target) && ((InOddWindow(AID.BattleLitany) && hasLC) || (!InOddWindow(AID.BattleLitany) && hasLC && hasBL)),
+            GeirskogulStrategy.Force or GeirskogulStrategy.ForceEX => true,
+            GeirskogulStrategy.ForceWeave => CanWeaveIn,
+            GeirskogulStrategy.Delay => false,
+            _ => false
+        };
+    }
+    private bool ShouldUseNastrond(OGCDStrategy strategy, Actor? target)
     {
-        OGCDStrategy.Automatic => InsideCombatWith(target) && In15y(target) && canNastrond,
-        OGCDStrategy.Force => canNastrond,
-        OGCDStrategy.AnyWeave => canNastrond && CanWeaveIn,
-        OGCDStrategy.EarlyWeave => canNastrond && CanEarlyWeaveIn,
-        OGCDStrategy.LateWeave => canNastrond && CanLateWeaveIn,
-        OGCDStrategy.Delay => false,
-        _ => false
-    };
-    private bool ShouldUseWyrmwindThrust(OGCDStrategy strategy, Actor? target) => strategy switch
+        if (!canNastrond)
+            return false;
+
+        return strategy switch
+        {
+            OGCDStrategy.Automatic => InsideCombatWith(target) && In15y(target),
+            OGCDStrategy.Force => true,
+            OGCDStrategy.AnyWeave => CanWeaveIn,
+            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+            OGCDStrategy.LateWeave => CanLateWeaveIn,
+            OGCDStrategy.Delay => false,
+            _ => false
+        };
+    }
+    private bool ShouldUseWyrmwindThrust(OGCDStrategy strategy, Actor? target)
     {
-        OGCDStrategy.Automatic => InsideCombatWith(target) && In15y(target) && canWT && lcCD > SkSGCDLength * 2,
-        OGCDStrategy.Force => canWT,
-        OGCDStrategy.AnyWeave => canWT && CanWeaveIn,
-        OGCDStrategy.EarlyWeave => canWT && CanEarlyWeaveIn,
-        OGCDStrategy.LateWeave => canWT && CanLateWeaveIn,
-        OGCDStrategy.Delay => false,
-        _ => false
-    };
+        if (!canWT)
+            return false;
+
+        return strategy switch
+        {
+            OGCDStrategy.Automatic => InsideCombatWith(target) && In15y(target) && lcCD > SkSGCDLength * 2,
+            OGCDStrategy.Force => true,
+            OGCDStrategy.AnyWeave => CanWeaveIn,
+            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+            OGCDStrategy.LateWeave => CanLateWeaveIn,
+            OGCDStrategy.Delay => false,
+            _ => false
+        };
+    }
     #endregion
 
-    private bool ShouldUseRiseOfTheDragon(OGCDStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseRiseOfTheDragon(OGCDStrategy strategy, Actor? target)
     {
-        OGCDStrategy.Automatic => InsideCombatWith(target) && In20y(target) && canROTD,
-        OGCDStrategy.Force => canROTD,
-        OGCDStrategy.AnyWeave => canROTD && CanWeaveIn,
-        OGCDStrategy.EarlyWeave => canROTD && CanEarlyWeaveIn,
-        OGCDStrategy.LateWeave => canROTD && CanLateWeaveIn,
-        OGCDStrategy.Delay => false,
-        _ => false
-    };
-    private bool ShouldUseStarcross(OGCDStrategy strategy, Actor? target) => strategy switch
+        if (!canROTD)
+            return false;
+
+        return strategy switch
+        {
+            OGCDStrategy.Automatic => InsideCombatWith(target) && In20y(target),
+            OGCDStrategy.Force => true,
+            OGCDStrategy.AnyWeave => CanWeaveIn,
+            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+            OGCDStrategy.LateWeave => CanLateWeaveIn,
+            OGCDStrategy.Delay => false,
+            _ => false
+        };
+    }
+    private bool ShouldUseStarcross(OGCDStrategy strategy, Actor? target)
     {
-        OGCDStrategy.Automatic => InsideCombatWith(target) && In20y(target) && canSC,
-        OGCDStrategy.Force => canSC,
-        OGCDStrategy.AnyWeave => canSC && CanWeaveIn,
-        OGCDStrategy.EarlyWeave => canSC && CanEarlyWeaveIn,
-        OGCDStrategy.LateWeave => canSC && CanLateWeaveIn,
-        OGCDStrategy.Delay => false,
-        _ => false
-    };
-    private bool ShouldUsePiercingTalon(Actor? target, PiercingTalonStrategy strategy) => strategy switch
+        if (!canSC)
+            return false;
+
+        return strategy switch
+        {
+            OGCDStrategy.Automatic => InsideCombatWith(target) && In20y(target),
+            OGCDStrategy.Force => true,
+            OGCDStrategy.AnyWeave => CanWeaveIn,
+            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+            OGCDStrategy.LateWeave => CanLateWeaveIn,
+            OGCDStrategy.Delay => false,
+            _ => false
+        };
+    }
+    private bool ShouldUsePiercingTalon(Actor? target, PiercingTalonStrategy strategy)
     {
-        PiercingTalonStrategy.AllowEX => InsideCombatWith(target) && !In3y(target) && PlayerHasEffect(SID.EnhancedPiercingTalon),
-        PiercingTalonStrategy.Allow => InsideCombatWith(target) && !In3y(target),
-        PiercingTalonStrategy.Force => true,
-        PiercingTalonStrategy.ForceEX => PlayerHasEffect(SID.EnhancedPiercingTalon),
-        PiercingTalonStrategy.Forbid => false,
-        _ => false
-    };
+        var allow = InsideCombatWith(target) && !In3y(target);
+        return strategy switch
+        {
+            PiercingTalonStrategy.AllowEX => allow && PlayerHasEffect(SID.EnhancedPiercingTalon),
+            PiercingTalonStrategy.Allow => allow,
+            PiercingTalonStrategy.Force => true,
+            PiercingTalonStrategy.ForceEX => PlayerHasEffect(SID.EnhancedPiercingTalon),
+            PiercingTalonStrategy.Forbid => false,
+            _ => false
+        };
+
+    }
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
-        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && lcCD <= GCD * 2 && blCD <= GCD * 2,
+        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && lcCD <= SkSGCDLength * 2 && blCD <= SkSGCDLength * 2,
         PotionStrategy.Immediate => true,
         _ => false
     };
