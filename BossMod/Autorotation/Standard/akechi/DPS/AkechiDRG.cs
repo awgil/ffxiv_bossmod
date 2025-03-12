@@ -641,15 +641,14 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                     QueueOGCD(AID.RiseOfTheDragon, TargetChoice(rotd) ?? BestDiveTarget?.Actor, OGCDPrio(rotdStrat, OGCDPriority.BelowAverage));
                 if (ShouldUseStarcross(scStrat, primaryTarget?.Actor))
                     QueueOGCD(AID.Starcross, TargetChoice(sc) ?? BestDiveTarget?.Actor, OGCDPrio(scStrat, OGCDPriority.BelowAverage));
+                if (ShouldUseTrueNorth(strategy.Option(Track.TrueNorth).As<TrueNorthStrategy>(), primaryTarget?.Actor))
+                    QueueOGCD(AID.TrueNorth, Player, OGCDPriority.AboveAverage);
             }
             if (!strategy.HoldGauge())
             {
                 if (ShouldUseWyrmwindThrust(wtStrat, primaryTarget?.Actor))
                     QueueOGCD(AID.WyrmwindThrust, TargetChoice(wt) ?? BestSpearTarget?.Actor, wtStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : PlayerHasEffect(SID.LanceCharge) ? OGCDPriority.ModeratelyHigh : OGCDPriority.Average);
             }
-            if (ShouldUseTrueNorth(strategy.Option(Track.TrueNorth).As<TrueNorthStrategy>(), primaryTarget?.Actor))
-                QueueOGCD(AID.TrueNorth, Player, OGCDPriority.AboveAverage);
-
         }
         if (Player.Level < 60 && ActionReady(AID.LegSweep))
             QueueOGCD(AID.LegSweep, TargetChoice(AOE) ?? primaryTarget?.Actor, OGCDPrio(mdStrat, OGCDPriority.ExtremelyLow));
