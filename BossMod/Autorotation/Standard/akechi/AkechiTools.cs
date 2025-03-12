@@ -644,6 +644,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     #endregion
 
     #region Positionals
+    protected bool NextPositionalImminent;
+    protected bool NextPositionalCorrect;
+
     /// <summary>Retrieves the current positional of the target based on target's position and rotation.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     protected Positional GetCurrentPositional(Actor target) => (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch
@@ -660,6 +663,28 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks if player is on specified target's <b>Flank Positional</b>.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     protected bool IsOnFlank(Actor target) => In5y(target) && GetCurrentPositional(target) == Positional.Flank;
+
+    /// <summary>Updates the positional recommendations based on the current target and the positional requirement.</summary>
+    /// <param name="enemy">The user's current enemy scanned for user's current positional.</param>
+    /// <param name="pos">User's current positional (Front, Flank, or Rear)</param>
+    /// <param name="imm">The next incoming positional for User (Front, Flank, or Rear)</param>
+    protected void UpdatePositionals(Enemy? enemy, ref (Positional pos, bool imm) positional)
+    {
+        var trueNorth = HasTrueNorth;
+        var target = enemy?.Actor;
+        if ((target?.Omnidirectional ?? true) || target?.TargetID == Player.InstanceID && target?.CastInfo == null && positional.pos != Positional.Front && target?.NameID != 541)
+            positional = (Positional.Any, false);
+
+        NextPositionalImminent = !trueNorth && positional.imm;
+        NextPositionalCorrect = trueNorth || target == null || positional.pos switch
+        {
+            Positional.Flank => MathF.Abs(target.Rotation.ToDirection().Dot((Player.Position - target.Position).Normalized())) < 0.7071067f,
+            Positional.Rear => target.Rotation.ToDirection().Dot((Player.Position - target.Position).Normalized()) < -0.7071068f,
+            _ => true
+        };
+        Hints.RecommendedPositional = (target, positional.pos, NextPositionalImminent, NextPositionalCorrect);
+    }
+
     #endregion
 
     #region AI
@@ -680,8 +705,10 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="minAoe">The minimum number of targets required to trigger AOE.</param>
     /// <param name="positional">The positional requirement for the goal zone (default: any).</param>
     /// <param name="maximumActionRange">An optional parameter specifying the maximum action range.</param>
-    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, Positional positional = Positional.Any, float? maximumActionRange = null)
+    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
     {
+        var (_, positional, imminent, _) = Hints.RecommendedPositional;
+
         if (!strategy.ForceAOE() && !Unlocked(firstUnlockedAoeAction))
             minAoe = 50;
 
@@ -697,8 +724,11 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
                 Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, r, 0.5f));
         }
     }
-    protected void AnyGoalZoneCombined(float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, Positional positional = Positional.Any, float? maximumActionRange = null)
+
+    protected void AnyGoalZoneCombined(float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
     {
+        var (_, positional, imminent, _) = Hints.RecommendedPositional;
+
         if (!Unlocked(firstUnlockedAoeAction))
             minAoe = 50;
 
@@ -709,7 +739,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         }
         else
         {
-            Hints.GoalZones.Add(Hints.GoalCombined(Hints.GoalSingleTarget(PlayerTarget.Actor, positional, range), fAoe, minAoe));
+            Hints.GoalZones.Add(Hints.GoalCombined(Hints.GoalSingleTarget(PlayerTarget.Actor, imminent ? positional : Positional.Any, range), fAoe, minAoe));
             if (maximumActionRange is float r)
                 Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, r, 0.5f));
         }
