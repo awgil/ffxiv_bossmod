@@ -174,13 +174,14 @@ public sealed class ActionDefinitions : IDisposable
     public static readonly ActionID IDPotionInt = new(ActionType.Item, 1044165); // hq grade 2 gemdraught of intelligence
     public static readonly ActionID IDPotionMnd = new(ActionType.Item, 1044166); // hq grade 2 gemdraught of mind
 
-    // deep dungeon consumables
+    // content specific consumables
     public static readonly ActionID IDPotionSustaining = new(ActionType.Item, 20309);
     public static readonly ActionID IDPotionMax = new(ActionType.Item, 1013637);
     public static readonly ActionID IDPotionEmpyrean = new(ActionType.Item, 23163);
     public static readonly ActionID IDPotionSuper = new(ActionType.Item, 1023167);
     public static readonly ActionID IDPotionOrthos = new(ActionType.Item, 38944);
     public static readonly ActionID IDPotionHyper = new(ActionType.Item, 1038956);
+    public static readonly ActionID IDPotionEureka = new(ActionType.Item, 22306);
 
     // special general actions that we support
     public static readonly ActionID IDGeneralLimitBreak = new(ActionType.General, 3);

@@ -2,7 +2,7 @@
 
 public class EurekaAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
 {
-    public enum Track { Dispel, Feint, Platebearer }
+    public enum Track { Platebearer, Potion, Dispel, Feint, Bloodbath }
 
     public enum PBIgnore
     {
@@ -18,13 +18,16 @@ public class EurekaAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Eureka AI", "Eureka utilities", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 70, Order: RotationModuleOrder.HighLevel);
+        var def = new RotationModuleDefinition("Eureka AI", "Eureka utilities", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 70);
 
-        def.AbilityTrack(Track.Dispel, "Auto-Dispel L").AddAssociatedActions(EurekaActionID.DispelL);
-        def.AbilityTrack(Track.Feint, "Auto-Feint L").AddAssociatedActions(EurekaActionID.FeintL);
         def.Define(Track.Platebearer).As<PBIgnore>("PB", "Ignore all AOEs while Platebearer is active")
             .AddOption(PBIgnore.Disabled, "Disabled")
             .AddOption(PBIgnore.Enabled, "Enabled");
+        def.AbilityTrack(Track.Potion, "Potion").AddAssociatedAction(ActionDefinitions.IDPotionEureka);
+
+        def.AbilityTrack(Track.Dispel, "Auto-Dispel L").AddAssociatedActions(EurekaActionID.DispelL);
+        def.AbilityTrack(Track.Feint, "Auto-Feint L").AddAssociatedActions(EurekaActionID.FeintL);
+        def.AbilityTrack(Track.Bloodbath, "Auto-Bloodbath L").AddAssociatedActions(EurekaActionID.BloodbathL);
 
         return def;
     }
@@ -43,7 +46,15 @@ public class EurekaAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         if (strategy.Enabled(Track.Dispel) && HaveLogos(EurekaActionID.DispelL) && primaryTarget is { } p2 && Hints.FindEnemy(p2)?.ShouldBeDispelled == true && p2.PendingDispels.Count == 0)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(EurekaActionID.DispelL), p2, ActionQueue.Priority.VeryHigh);
+
+        if (strategy.Enabled(Track.Bloodbath) && HaveLogos(EurekaActionID.BloodbathL) && Player.InCombat && Player.PredictedHPRatio < 0.5f)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(EurekaActionID.BloodbathL), Player, ActionQueue.Priority.Medium);
+
+        if (strategy.Enabled(Track.Potion) && InEureka && Player.InCombat && Player.PredictedHPRatio < 0.75f)
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionEureka, Player, ActionQueue.Priority.Medium);
     }
 
     private bool HaveLogos(EurekaActionID id) => World.Client.DutyActions.Any(d => d.Action.ID == (uint)id);
+
+    private bool InEureka => World.CurrentCFCID is 283 or 581 or 598 or 639;
 }
