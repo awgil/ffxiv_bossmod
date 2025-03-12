@@ -329,6 +329,10 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks if user can <b>Quarter Weave in</b> any <b>abilities</b>.</summary>
     protected bool CanQuarterWeaveIn => GCD is < 1f and >= 0.6f;
+
+    /// <summary>Checks if Player is in an <b>odd minute window</b> by checking job's specified <b>120s ability</b> explicitly.</summary>
+    protected bool InOddWindow(AID aid) => TotalCD(aid) is < 90 and > 30;
+
     #endregion
 
     #region Cooldown
@@ -698,7 +702,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     }
 
     /// <summary>Defines a goal-zone using a combined strategy, factoring in AOE considerations.</summary>
-    /// <param name="strategy">The strategy values that influence the goal zone logic.</param>
+    /// <param name="strategy">The strategy that influences the goal zone logic.</param>
     /// <param name="range">The base range for the goal zone.</param>
     /// <param name="fAoe">A function determining the area of effect.</param>
     /// <param name="firstUnlockedAoeAction">The first available AOE action.</param>
@@ -766,9 +770,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Player's <b>actual</b> target; guaranteed to be an enemy.</summary>
     protected Enemy? PlayerTarget { get; private set; }
 
-    /// <summary>Checks if Player is in an <b>odd minute window</b> by checking job's specified <b>120s ability</b> explicitly.</summary>
-    protected bool InOddWindow(AID aid) => TotalCD(aid) is < 90 and > 30;
-
+    /// <summary>Checks if player is inside combat and has a primary target.</summary>
     protected bool InsideCombatWith(Actor? target) => Player.InCombat && target != null;
     #endregion
 
