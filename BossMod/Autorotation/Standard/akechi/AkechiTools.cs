@@ -738,6 +738,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks if Player is in an <b>odd minute window</b> by checking job's specified <b>120s ability</b> explicitly.</summary>
     protected bool InOddWindow(AID aid) => TotalCD(aid) is < 90 and > 30;
+
+    protected bool InsideCombatWith(Actor? target) => Player.InCombat && target != null;
     #endregion
 
     #region Shared Abilities

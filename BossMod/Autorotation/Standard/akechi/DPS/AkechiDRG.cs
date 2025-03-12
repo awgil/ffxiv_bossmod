@@ -224,7 +224,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Buffs
     private bool ShouldUseLanceCharge(OGCDStrategy strategy, Actor? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target != null && canLC && powerLeft > 0,
+        OGCDStrategy.Automatic => InsideCombatWith(target) && canLC && powerLeft > 0,
         OGCDStrategy.Force => canLC,
         OGCDStrategy.AnyWeave => canLC && CanWeaveIn,
         OGCDStrategy.EarlyWeave => canLC && CanEarlyWeaveIn,
@@ -234,7 +234,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseBattleLitany(OGCDStrategy strategy, Actor? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target != null && canBL && powerLeft > 0,
+        OGCDStrategy.Automatic => InsideCombatWith(target) && canBL && powerLeft > 0,
         OGCDStrategy.Force => canBL,
         OGCDStrategy.AnyWeave => canBL && CanWeaveIn,
         OGCDStrategy.EarlyWeave => canBL && CanEarlyWeaveIn,
@@ -244,37 +244,49 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseLifeSurge(SurgeStrategy strategy, Actor? target)
     {
-        var minimal = ComboLastMove is AID.TrueThrust;
-        var lowlvl = !Unlocked(AID.FullThrust) && (Unlocked(AID.Disembowel) ? (minimal && powerLeft > SkSGCDLength * 2) : minimal);
-        var normal = (Unlocked(AID.FullThrust) && ComboLastMove is AID.VorpalThrust or AID.LanceBarrage) || (Unlocked(AID.Drakesbane) && ComboLastMove is AID.WheelingThrust or AID.FangAndClaw);
-        var optimal = hasLC && (TotalCD(AID.LifeSurge) < 40 || TotalCD(AID.BattleLitany) > 50) && normal;
-        var minute = Unlocked(TraitID.EnhancedLifeSurge) ? optimal : (normal || lowlvl);
+        if (!canLS)
+            return false;
+
+        var lv6to17 = ComboLastMove is AID.TrueThrust;
+        var lv18to25 = !Unlocked(AID.FullThrust) && (Unlocked(AID.Disembowel) ? (lv6to17 && powerLeft > SkSGCDLength * 2) : lv6to17);
+        var lv26to88 = (Unlocked(AID.FullThrust) && ComboLastMove is AID.VorpalThrust or AID.LanceBarrage) || (Unlocked(AID.Drakesbane) && ComboLastMove is AID.WheelingThrust or AID.FangAndClaw);
+        var lv88plus = hasLC && (TotalCD(AID.LifeSurge) < 40 || TotalCD(AID.BattleLitany) > 50) && lv26to88;
+        var condition = Unlocked(TraitID.EnhancedLifeSurge) ? lv88plus : (lv26to88 || lv18to25);
         var aoe = Unlocked(AID.CoerthanTorment) ? ComboLastMove is AID.SonicThrust : Unlocked(AID.SonicThrust) ? ComboLastMove is AID.DoomSpike : Unlocked(AID.DoomSpike) && powerLeft > SkSGCDLength * 2;
         return strategy switch
         {
-            SurgeStrategy.Automatic => Player.InCombat && target != null && canLS && (ShouldUseAOE ? aoe : minute),
-            SurgeStrategy.Force => canLS,
-            SurgeStrategy.ForceWeave => canLS && CanWeaveIn,
-            SurgeStrategy.ForceNextOpti => canLS && normal,
-            SurgeStrategy.ForceNextOptiWeave => canLS && normal && CanWeaveIn,
+            SurgeStrategy.Automatic => InsideCombatWith(target) && (ShouldUseAOE ? aoe : condition),
+            SurgeStrategy.Force => true,
+            SurgeStrategy.ForceWeave => CanWeaveIn,
+            SurgeStrategy.ForceNextOpti => lv26to88,
+            SurgeStrategy.ForceNextOptiWeave => lv26to88 && CanWeaveIn,
             _ => false
         };
     }
     #endregion
 
     #region Dives
-    private bool ShouldUseDragonfireDive(DragonfireStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseDragonfireDive(DragonfireStrategy strategy, Actor? target)
     {
-        DragonfireStrategy.Automatic => Player.InCombat && target != null && In20y(target) && canDD && ((hasLC && hasBL && hasLOTD) || (!Unlocked(AID.BattleLitany) && hasLC)),
-        DragonfireStrategy.Force => canDD,
-        DragonfireStrategy.ForceEX => canDD,
-        DragonfireStrategy.ForceWeave => canDD && CanWeaveIn,
-        DragonfireStrategy.Delay => false,
-        _ => false
-    };
+        if (!canDD)
+            return false;
+
+        var lv60plus = hasLC && hasBL && hasLOTD;
+        var lv52to59 = hasLC && hasBL;
+        var lv50to51 = hasLC;
+        var condition = Unlocked(AID.Geirskogul) ? lv60plus : Unlocked(AID.BattleLitany) ? lv52to59 : lv50to51;
+        return strategy switch
+        {
+            DragonfireStrategy.Automatic => InsideCombatWith(target) && In20y(target) && condition,
+            DragonfireStrategy.Force => true,
+            DragonfireStrategy.ForceEX => true,
+            DragonfireStrategy.ForceWeave => CanWeaveIn,
+            _ => false
+        };
+    }
     private bool ShouldUseJump(JumpStrategy strategy, Actor? target) => strategy switch
     {
-        JumpStrategy.Automatic => Player.InCombat && target != null && In20y(target) && canJump && (lcLeft > 0 || hasLC || lcCD is < 35 and > 17),
+        JumpStrategy.Automatic => InsideCombatWith(target) && In20y(target) && canJump && (lcLeft > 0 || hasLC || lcCD is < 35 and > 17),
         JumpStrategy.ForceEX => canJump,
         JumpStrategy.ForceEX2 => canJump,
         JumpStrategy.ForceWeave => canJump && CanWeaveIn,
@@ -283,7 +295,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseStardiver(StardiverStrategy strategy, Actor? target) => strategy switch
     {
-        StardiverStrategy.Automatic => Player.InCombat && target != null && In20y(target) && canSD && hasLOTD,
+        StardiverStrategy.Automatic => InsideCombatWith(target) && In20y(target) && canSD && hasLOTD,
         StardiverStrategy.Force => canSD,
         StardiverStrategy.ForceEX => canSD,
         StardiverStrategy.ForceWeave => canSD && CanWeaveIn,
@@ -292,7 +304,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseMirageDive(OGCDStrategy strategy, Actor? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target != null && In20y(target) && canMD,
+        OGCDStrategy.Automatic => InsideCombatWith(target) && In20y(target) && canMD,
         OGCDStrategy.Force => canMD,
         OGCDStrategy.AnyWeave => canMD && CanWeaveIn,
         OGCDStrategy.EarlyWeave => canMD && CanEarlyWeaveIn,
@@ -305,7 +317,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Spears
     private bool ShouldUseGeirskogul(GeirskogulStrategy strategy, Actor? target) => strategy switch
     {
-        GeirskogulStrategy.Automatic => Player.InCombat && target != null && In15y(target) && canGeirskogul && ((InOddWindow(AID.BattleLitany) && hasLC) || (!InOddWindow(AID.BattleLitany) && hasLC && hasBL)),
+        GeirskogulStrategy.Automatic => InsideCombatWith(target) && In15y(target) && canGeirskogul && ((InOddWindow(AID.BattleLitany) && hasLC) || (!InOddWindow(AID.BattleLitany) && hasLC && hasBL)),
         GeirskogulStrategy.Force or GeirskogulStrategy.ForceEX => canGeirskogul,
         GeirskogulStrategy.ForceWeave => canGeirskogul && CanWeaveIn,
         GeirskogulStrategy.Delay => false,
@@ -313,7 +325,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseNastrond(OGCDStrategy strategy, Actor? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target != null && In15y(target) && canNastrond,
+        OGCDStrategy.Automatic => InsideCombatWith(target) && In15y(target) && canNastrond,
         OGCDStrategy.Force => canNastrond,
         OGCDStrategy.AnyWeave => canNastrond && CanWeaveIn,
         OGCDStrategy.EarlyWeave => canNastrond && CanEarlyWeaveIn,
@@ -323,7 +335,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseWyrmwindThrust(OGCDStrategy strategy, Actor? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target != null && In15y(target) && canWT && lcCD > SkSGCDLength * 2,
+        OGCDStrategy.Automatic => InsideCombatWith(target) && In15y(target) && canWT && lcCD > SkSGCDLength * 2,
         OGCDStrategy.Force => canWT,
         OGCDStrategy.AnyWeave => canWT && CanWeaveIn,
         OGCDStrategy.EarlyWeave => canWT && CanEarlyWeaveIn,
@@ -335,7 +347,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 
     private bool ShouldUseRiseOfTheDragon(OGCDStrategy strategy, Actor? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target != null && In20y(target) && canROTD,
+        OGCDStrategy.Automatic => InsideCombatWith(target) && In20y(target) && canROTD,
         OGCDStrategy.Force => canROTD,
         OGCDStrategy.AnyWeave => canROTD && CanWeaveIn,
         OGCDStrategy.EarlyWeave => canROTD && CanEarlyWeaveIn,
@@ -345,7 +357,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseStarcross(OGCDStrategy strategy, Actor? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target != null && In20y(target) && canSC,
+        OGCDStrategy.Automatic => InsideCombatWith(target) && In20y(target) && canSC,
         OGCDStrategy.Force => canSC,
         OGCDStrategy.AnyWeave => canSC && CanWeaveIn,
         OGCDStrategy.EarlyWeave => canSC && CanEarlyWeaveIn,
@@ -355,8 +367,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUsePiercingTalon(Actor? target, PiercingTalonStrategy strategy) => strategy switch
     {
-        PiercingTalonStrategy.AllowEX => Player.InCombat && target != null && !In3y(target) && PlayerHasEffect(SID.EnhancedPiercingTalon),
-        PiercingTalonStrategy.Allow => Player.InCombat && target != null && !In3y(target),
+        PiercingTalonStrategy.AllowEX => InsideCombatWith(target) && !In3y(target) && PlayerHasEffect(SID.EnhancedPiercingTalon),
+        PiercingTalonStrategy.Allow => InsideCombatWith(target) && !In3y(target),
         PiercingTalonStrategy.Force => true,
         PiercingTalonStrategy.ForceEX => PlayerHasEffect(SID.EnhancedPiercingTalon),
         PiercingTalonStrategy.Forbid => false,
@@ -415,10 +427,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         canWT = ActionReady(AID.WyrmwindThrust) && focusCount == 2;
         canROTD = Unlocked(AID.RiseOfTheDragon) && hasDF;
         canSC = Unlocked(AID.Starcross) && hasSC;
-        ShouldUseAOE = Unlocked(AID.DoomSpike) && NumAOETargets > 2;
+        ShouldUseAOE = Unlocked(AID.DoomSpike) && NumAOETargets > 2 && powerLeft > SkSGCDLength * 2;
         ShouldUseSpears = Unlocked(AID.Geirskogul) && NumSpearTargets > 1;
         ShouldUseDives = Unlocked(AID.Stardiver) && NumDiveTargets > 1;
-        ShouldUseDOT = Unlocked(AID.ChaosThrust) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 && ComboLastMove is AID.Disembowel or AID.SpiralBlow;
+        ShouldUseDOT = Unlocked(AID.ChaosThrust) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 && In3y(BestDOTTarget?.Actor) && ComboLastMove is AID.Disembowel or AID.SpiralBlow;
         (BestAOETargets, NumAOETargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);
         (BestSpearTargets, NumSpearTargets) = GetBestTarget(primaryTarget, 15, Is15yRectTarget);
         (BestDiveTargets, NumDiveTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
