@@ -674,13 +674,13 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="imm">The next incoming positional for User (Front, Flank, or Rear)</param>
     protected void UpdatePositionals(Enemy? enemy, ref (Positional pos, bool imm) positional)
     {
-        var trueNorth = HasTrueNorth;
+        var tn = HasTrueNorth;
         var target = enemy?.Actor;
         if ((target?.Omnidirectional ?? true) || target?.TargetID == Player.InstanceID && target?.CastInfo == null && positional.pos != Positional.Front && target?.NameID != 541)
             positional = (Positional.Any, false);
 
-        NextPositionalImminent = !trueNorth && positional.imm;
-        NextPositionalCorrect = trueNorth || target == null || positional.pos switch
+        NextPositionalImminent = !tn && positional.imm;
+        NextPositionalCorrect = tn || target == null || positional.pos switch
         {
             Positional.Flank => MathF.Abs(target.Rotation.ToDirection().Dot((Player.Position - target.Position).Normalized())) < 0.7071067f,
             Positional.Rear => target.Rotation.ToDirection().Dot((Player.Position - target.Position).Normalized()) < -0.7071068f,

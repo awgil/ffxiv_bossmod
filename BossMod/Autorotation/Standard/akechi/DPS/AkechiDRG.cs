@@ -9,10 +9,11 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Combo = SharedTrack.Count, Dives, Potion, LifeSurge, Jump, DragonfireDive, Geirskogul, Stardiver, PiercingTalon, TrueNorth, LanceCharge, BattleLitany, MirageDive, Nastrond, WyrmwindThrust, RiseOfTheDragon, Starcross }
+    public enum Track { Combo = SharedTrack.Count, Dives, Potion, BattleLitany, LifeSurge, Jump, DragonfireDive, Geirskogul, Stardiver, PiercingTalon, TrueNorth, LanceCharge, MirageDive, Nastrond, WyrmwindThrust, RiseOfTheDragon, Starcross }
     public enum ComboStrategy { None, Force123ST, ForceBuffsST }
     public enum DivesStrategy { AllowMaxMelee, AllowCloseMelee, Allow, Forbid }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
+    public enum LitanyStrategy { Automatic, Together, Force, ForceWeave, Delay }
     public enum SurgeStrategy { Automatic, Force, ForceWeave, ForceNextOpti, ForceNextOptiWeave, Delay }
     public enum JumpStrategy { Automatic, Force, ForceEX, ForceEX2, ForceWeave, Delay }
     public enum DragonfireStrategy { Automatic, Force, ForceEX, ForceWeave, Delay }
@@ -49,6 +50,13 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(PotionStrategy.AlignWithRaidBuffs, "Align With Raid Buffs", "Use potion in sync with 2-minute raid buffs (e.g., 0/6, 2/8)")
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use potion as soon as possible, regardless of any buffs")
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
+        res.Define(Track.BattleLitany).As<LitanyStrategy>("BattleLitany", "B.Litany", uiPriority: 165)
+            .AddOption(LitanyStrategy.Automatic, "Automatic", "Use Battle Litany normally")
+            .AddOption(LitanyStrategy.Together, "Together", "Use Battle Litany only with Lance Charge")
+            .AddOption(LitanyStrategy.Force, "Force", "Force Battle Litany usage", 180, 20, ActionTargets.Self, 52)
+            .AddOption(LitanyStrategy.ForceWeave, "Force Weave", "Force Battle Litany usage inside the next possible weave window", 180, 20, ActionTargets.Self, 52)
+            .AddOption(LitanyStrategy.Delay, "Delay", "Delay Battle Litany usage", 0, 0, ActionTargets.None, 52)
+            .AddAssociatedActions(AID.BattleLitany);
         res.Define(Track.LifeSurge).As<SurgeStrategy>("Life Surge", "L. Surge", uiPriority: 160)
             .AddOption(SurgeStrategy.Automatic, "Automatic", "Use Life Surge normally")
             .AddOption(SurgeStrategy.Force, "Force", "Force Life Surge usage", 40, 5, ActionTargets.Hostile, 6)
@@ -102,7 +110,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(TrueNorthStrategy.Delay, "Delay", "Delay True North usage", 0, 0, ActionTargets.None, 50)
             .AddAssociatedActions(ClassShared.AID.TrueNorth);
         res.DefineOGCD(Track.LanceCharge, AID.LanceCharge, "Lance Charge", "L.Charge", uiPriority: 170, 60, 20, ActionTargets.Self, 30);
-        res.DefineOGCD(Track.BattleLitany, AID.BattleLitany, "Battle Litany", "B.Litany", uiPriority: 165, 120, 20, ActionTargets.Self, 52);
         res.DefineOGCD(Track.MirageDive, AID.MirageDive, "Mirage Dive", "M.Dive", uiPriority: 130, 0, 0, ActionTargets.Hostile, 68);
         res.DefineOGCD(Track.Nastrond, AID.Nastrond, "Nastrond", "Nast.", uiPriority: 135, 0, 0, ActionTargets.Hostile, 70);
         res.DefineOGCD(Track.WyrmwindThrust, AID.WyrmwindThrust, "Wyrmwind Thrust", "W.Thrust", uiPriority: 141, 0, 10, ActionTargets.Hostile, 90);
@@ -217,32 +224,31 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Positionals
-    private (Positional, bool) GetPositional(StrategyValues strategy, Enemy? primaryTarget)
+    private (Positional, bool) GetBestPositional(StrategyValues strategy, Enemy? primaryTarget)
     {
-        // no positional
-        if (NumAOETargets > 2 && Unlocked(AID.DoomSpike) || !Unlocked(AID.ChaosThrust) || primaryTarget == null)
+        if (NumAOETargets > 2 && Unlocked(AID.DoomSpike) ||
+            !Unlocked(AID.ChaosThrust) ||
+            primaryTarget == null)
             return (Positional.Any, false);
 
         if (!Unlocked(AID.FangAndClaw))
             return (Positional.Rear, ComboLastMove == AID.Disembowel);
 
-        (Positional, bool) predictNext(int gcdsBeforeTrueThrust)
+        (Positional, bool) PredictNextPositional(int StepsBeforeReloop)
         {
-            var buffsUp = CanFitSkSGCD(chaosLeft, gcdsBeforeTrueThrust + 3) && CanFitSkSGCD(powerLeft, gcdsBeforeTrueThrust + 2);
-            return (buffsUp ? Positional.Flank : Positional.Rear, false);
+            var buffed = CanFitSkSGCD(chaosLeft, StepsBeforeReloop + 3) && CanFitSkSGCD(powerLeft, StepsBeforeReloop + 2);
+            return (buffed ? Positional.Flank : Positional.Rear, false);
         }
 
         return ComboLastMove switch
         {
-            AID.ChaosThrust => Unlocked(AID.WheelingThrust) ? (Positional.Rear, true) : predictNext(0),
-            AID.ChaoticSpring => (Positional.Rear, true), // wheeling thrust is unlocked
-            AID.Disembowel or AID.SpiralBlow => (Positional.Rear, true),
-            AID.TrueThrust or AID.RaidenThrust => predictNext(-1),
+            AID.ChaosThrust => Unlocked(AID.WheelingThrust) ? (Positional.Rear, true) : PredictNextPositional(0),
+            AID.Disembowel or AID.SpiralBlow or AID.ChaoticSpring => (Positional.Rear, true),
+            AID.TrueThrust or AID.RaidenThrust => PredictNextPositional(-1),
             AID.VorpalThrust or AID.LanceBarrage => (Positional.Flank, false),
             AID.HeavensThrust or AID.FullThrust => (Positional.Flank, true),
-            AID.WheelingThrust or AID.FangAndClaw => predictNext(Unlocked(AID.Drakesbane) ? 1 : 0),
-            // last action is AOE, or nothing, or drakesbane - loop reset
-            _ => predictNext(0)
+            AID.WheelingThrust or AID.FangAndClaw => PredictNextPositional(Unlocked(AID.Drakesbane) ? 1 : 0),
+            _ => PredictNextPositional(0)
         };
     }
     #endregion
@@ -268,19 +274,18 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             _ => false
         };
     }
-    private bool ShouldUseBattleLitany(OGCDStrategy strategy, Actor? target)
+    private bool ShouldUseBattleLitany(LitanyStrategy strategy, Actor? target)
     {
         if (!canBL)
             return false;
 
         return strategy switch
         {
-            OGCDStrategy.Automatic => InsideCombatWith(target) && powerLeft > 0,
-            OGCDStrategy.Force => true,
-            OGCDStrategy.AnyWeave => CanWeaveIn,
-            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
-            OGCDStrategy.LateWeave => CanLateWeaveIn,
-            OGCDStrategy.Delay => false,
+            LitanyStrategy.Automatic => InsideCombatWith(target) && powerLeft > 0,
+            LitanyStrategy.Together => powerLeft > 0 && hasLC,
+            LitanyStrategy.Force => true,
+            LitanyStrategy.ForceWeave => CanWeaveIn,
+            LitanyStrategy.Delay => false,
             _ => false
         };
     }
@@ -544,7 +549,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         var lc = strategy.Option(Track.LanceCharge);
         var lcStrat = lc.As<OGCDStrategy>();
         var bl = strategy.Option(Track.BattleLitany);
-        var blStrat = bl.As<OGCDStrategy>();
+        var blStrat = bl.As<LitanyStrategy>();
         var ls = strategy.Option(Track.LifeSurge);
         var lsStrat = ls.As<SurgeStrategy>();
         var jump = strategy.Option(Track.Jump);
@@ -618,7 +623,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                     if (ShouldUseLanceCharge(lcStrat, primaryTarget?.Actor))
                         QueueOGCD(AID.LanceCharge, Player, OGCDPrio(lcStrat, OGCDPriority.VerySevere));
                     if (ShouldUseBattleLitany(blStrat, primaryTarget?.Actor))
-                        QueueOGCD(AID.BattleLitany, Player, OGCDPrio(blStrat, OGCDPriority.VerySevere));
+                        QueueOGCD(AID.BattleLitany, Player, blStrat is LitanyStrategy.Force or LitanyStrategy.ForceWeave ? OGCDPriority.Forced : OGCDPriority.Severe);
                     if (ShouldUseLifeSurge(lsStrat, primaryTarget?.Actor))
                         QueueOGCD(AID.LifeSurge, Player, lsStrat is SurgeStrategy.Force or SurgeStrategy.ForceWeave or SurgeStrategy.ForceNextOpti or SurgeStrategy.ForceNextOptiWeave ? OGCDPriority.Forced : OGCDPriority.Severe);
                 }
@@ -661,7 +666,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region AI
-        var pos = GetPositional(strategy, primaryTarget);
+        var pos = GetBestPositional(strategy, primaryTarget);
         UpdatePositionals(primaryTarget, ref pos);
         if (primaryTarget != null)
         {
