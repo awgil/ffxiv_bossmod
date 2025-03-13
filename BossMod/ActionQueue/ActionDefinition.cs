@@ -235,6 +235,7 @@ public sealed class ActionDefinitions : IDisposable
         RegisterPotion(IDPotionSuper, 1.1f);
         RegisterPotion(IDPotionOrthos, 1.1f);
         RegisterPotion(IDPotionHyper, 1.1f);
+        RegisterPotion(IDPotionEureka, 1.1f);
 
         // special content actions - bozja, deep dungeons, etc
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
