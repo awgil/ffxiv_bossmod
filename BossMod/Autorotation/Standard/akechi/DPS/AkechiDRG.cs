@@ -9,14 +9,14 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Combo = SharedTrack.Count, Dives, Potion, BattleLitany, LifeSurge, PiercingTalon, TrueNorth, DragonfireDive, Geirskogul, Stardiver, Jump, LanceCharge, MirageDive, Nastrond, WyrmwindThrust, RiseOfTheDragon, Starcross }
+    public enum Track { Combo = SharedTrack.Count, Dives, Potion, LanceCharge, BattleLitany, LifeSurge, PiercingTalon, TrueNorth, DragonfireDive, Geirskogul, Stardiver, Jump, MirageDive, Nastrond, WyrmwindThrust, RiseOfTheDragon, Starcross }
     public enum ComboStrategy { None, Force123ST, ForceBuffsST }
     public enum DivesStrategy { AllowMaxMelee, AllowCloseMelee, Allow, Forbid }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
-    public enum LitanyStrategy { Automatic, Together, Force, ForceWeave, Delay }
-    public enum SurgeStrategy { Automatic, Force, ForceWeave, ForceNextOpti, ForceNextOptiWeave, Delay }
+    public enum SurgeStrategy { Automatic, WhenBuffed, Force, ForceWeave, ForceNextOpti, ForceNextOptiWeave, Delay }
     public enum PiercingTalonStrategy { AllowEX, Allow, Force, ForceEX, Forbid }
     public enum TrueNorthStrategy { Automatic, ASAP, Rear, Flank, Force, Delay }
+    public enum BuffsStrategy { Automatic, Together, Force, ForceWeave, Delay }
     public enum CommonStrategy { Automatic, Force, ForceEX, ForceWeave, ForceWeaveEX, Delay }
     #endregion
 
@@ -47,19 +47,27 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(PotionStrategy.AlignWithRaidBuffs, "Align With Raid Buffs", "Use potion in sync with 2-minute raid buffs (e.g., 0/6, 2/8)")
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use potion as soon as possible, regardless of any buffs")
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
-        res.Define(Track.BattleLitany).As<LitanyStrategy>("BattleLitany", "B.Litany", uiPriority: 165)
-            .AddOption(LitanyStrategy.Automatic, "Automatic", "Use Battle Litany normally")
-            .AddOption(LitanyStrategy.Together, "Together", "Use Battle Litany only with Lance Charge")
-            .AddOption(LitanyStrategy.Force, "Force", "Force Battle Litany usage", 180, 20, ActionTargets.Self, 52)
-            .AddOption(LitanyStrategy.ForceWeave, "Force Weave", "Force Battle Litany usage inside the next possible weave window", 180, 20, ActionTargets.Self, 52)
-            .AddOption(LitanyStrategy.Delay, "Delay", "Delay Battle Litany usage", 0, 0, ActionTargets.None, 52)
+        res.Define(Track.LanceCharge).As<BuffsStrategy>("Lance Charge", "L. Charge", uiPriority: 170)
+            .AddOption(BuffsStrategy.Automatic, "Automatic", "Use Lance Charge normally")
+            .AddOption(BuffsStrategy.Together, "Together", "Use Lance Charge only with Battle Litany; will delay in attempt to align itself with Battle Litany (up to 30s)", 60, 20, ActionTargets.Self, 52)
+            .AddOption(BuffsStrategy.Force, "Force", "Force Lance Charge usage", 60, 20, ActionTargets.Self, 52)
+            .AddOption(BuffsStrategy.ForceWeave, "Force Weave", "Force Lance Charge usage inside the next possible weave window", 60, 20, ActionTargets.Self, 52)
+            .AddOption(BuffsStrategy.Delay, "Delay", "Delay Lance Charge usage", 0, 0, ActionTargets.None, 52)
+            .AddAssociatedActions(AID.LanceCharge);
+        res.Define(Track.BattleLitany).As<BuffsStrategy>("BattleLitany", "B.Litany", uiPriority: 165)
+            .AddOption(BuffsStrategy.Automatic, "Automatic", "Use Battle Litany normally")
+            .AddOption(BuffsStrategy.Together, "Together", "Use Battle Litany only with Lance Charge; will delay in attempt to align itself with Lance Charge")
+            .AddOption(BuffsStrategy.Force, "Force", "Force Battle Litany usage", 180, 20, ActionTargets.Self, 52)
+            .AddOption(BuffsStrategy.ForceWeave, "Force Weave", "Force Battle Litany usage inside the next possible weave window", 180, 20, ActionTargets.Self, 52)
+            .AddOption(BuffsStrategy.Delay, "Delay", "Delay Battle Litany usage", 0, 0, ActionTargets.None, 52)
             .AddAssociatedActions(AID.BattleLitany);
         res.Define(Track.LifeSurge).As<SurgeStrategy>("Life Surge", "L. Surge", uiPriority: 160)
             .AddOption(SurgeStrategy.Automatic, "Automatic", "Use Life Surge normally")
-            .AddOption(SurgeStrategy.Force, "Force", "Force Life Surge usage", 40, 5, ActionTargets.Hostile, 6)
-            .AddOption(SurgeStrategy.ForceWeave, "Force Weave", "Force Life Surge usage inside the next possible weave window", 40, 5, ActionTargets.Hostile, 6)
-            .AddOption(SurgeStrategy.ForceNextOpti, "Force Optimally", "Force Life Surge usage in next possible optimal window", 40, 5, ActionTargets.Hostile, 6)
-            .AddOption(SurgeStrategy.ForceNextOptiWeave, "Force Weave Optimally", "Force Life Surge optimally inside the next possible weave window", 40, 5, ActionTargets.Hostile, 6)
+            .AddOption(SurgeStrategy.WhenBuffed, "When Buffed", "Attempts to use Life Surge when under any buffs - this may be wonky to use generally; mainly for rushing use when under raidbuff(s)", 40, 5, ActionTargets.Self, 6)
+            .AddOption(SurgeStrategy.Force, "Force", "Force Life Surge usage", 40, 5, ActionTargets.Self, 6)
+            .AddOption(SurgeStrategy.ForceWeave, "Force Weave", "Force Life Surge usage inside the next possible weave window", 40, 5, ActionTargets.Self, 6)
+            .AddOption(SurgeStrategy.ForceNextOpti, "Force Optimally", "Force Life Surge usage in next possible optimal window", 40, 5, ActionTargets.Self, 6)
+            .AddOption(SurgeStrategy.ForceNextOptiWeave, "Force Weave Optimally", "Force Life Surge optimally inside the next possible weave window", 40, 5, ActionTargets.Self, 6)
             .AddOption(SurgeStrategy.Delay, "Delay", "Delay the use of Life Surge", 0, 0, ActionTargets.None, 6)
             .AddAssociatedActions(AID.LifeSurge);
         res.Define(Track.PiercingTalon).As<PiercingTalonStrategy>("Piercing Talon", "P.Talon", uiPriority: 100)
@@ -103,13 +111,12 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.Stardiver);
         res.Define(Track.Jump).As<CommonStrategy>("Jump", uiPriority: 145)
             .AddOption(CommonStrategy.Automatic, "Automatic", "Use Jump normally")
-            .AddOption(CommonStrategy.Force, "Force Jump", "Force Jump usage", 30, 0, ActionTargets.Self, 30, 67)
-            .AddOption(CommonStrategy.ForceEX, "Force Jump (EX)", "Force Jump usage (Grants Dive Ready buff)", 30, 15, ActionTargets.Self, 68)
+            .AddOption(CommonStrategy.Force, "Force Jump", "Force Jump usage", 30, 0, ActionTargets.Hostile, 30, 67)
+            .AddOption(CommonStrategy.ForceEX, "Force Jump (EX)", "Force Jump usage (Grants Dive Ready buff)", 30, 15, ActionTargets.Hostile, 68)
             .AddOption(CommonStrategy.ForceWeave, "Force Weave", "Force Jump usage inside the next possible weave window", 30, 0, ActionTargets.Hostile, 30, 67)
             .AddOption(CommonStrategy.ForceWeaveEX, "Force Weave (EX)", "Force Jump usage inside the next possible weave window (Grants Dive Ready buff)", 30, 15, ActionTargets.Hostile, 68)
             .AddOption(CommonStrategy.Delay, "Delay", "Delay Jump usage", 0, 0, ActionTargets.None, 30)
             .AddAssociatedActions(AID.Jump, AID.HighJump);
-        res.DefineOGCD(Track.LanceCharge, AID.LanceCharge, "Lance Charge", "L.Charge", uiPriority: 170, 60, 20, ActionTargets.Self, 30);
         res.DefineOGCD(Track.MirageDive, AID.MirageDive, "Mirage Dive", "M.Dive", uiPriority: 130, 0, 0, ActionTargets.Hostile, 68);
         res.DefineOGCD(Track.Nastrond, AID.Nastrond, "Nastrond", "Nast.", uiPriority: 135, 0, 0, ActionTargets.Hostile, 70);
         res.DefineOGCD(Track.WyrmwindThrust, AID.WyrmwindThrust, "Wyrmwind Thrust", "W.Thrust", uiPriority: 141, 0, 10, ActionTargets.Hostile, 90);
@@ -257,34 +264,33 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Cooldown Helpers
 
     #region Buffs
-    private bool ShouldUseLanceCharge(OGCDStrategy strategy, Actor? target)
+    private bool ShouldUseLanceCharge(BuffsStrategy strategy, Actor? target)
     {
         if (!canLC)
             return false;
 
         return strategy switch
         {
-            OGCDStrategy.Automatic => InsideCombatWith(target) && powerLeft > 0,
-            OGCDStrategy.Force => true,
-            OGCDStrategy.AnyWeave => CanWeaveIn,
-            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
-            OGCDStrategy.LateWeave => CanLateWeaveIn,
-            OGCDStrategy.Delay => false,
+            BuffsStrategy.Automatic => InsideCombatWith(target) && InRange(target, 4) && powerLeft > 0,
+            BuffsStrategy.Together => powerLeft > 0 && (blCD > 30 || blCD < 1),
+            BuffsStrategy.Force => true,
+            BuffsStrategy.ForceWeave => CanWeaveIn,
+            BuffsStrategy.Delay => false,
             _ => false
         };
     }
-    private bool ShouldUseBattleLitany(LitanyStrategy strategy, Actor? target)
+    private bool ShouldUseBattleLitany(BuffsStrategy strategy, Actor? target)
     {
         if (!canBL)
             return false;
 
         return strategy switch
         {
-            LitanyStrategy.Automatic => InsideCombatWith(target) && powerLeft > 0,
-            LitanyStrategy.Together => powerLeft > 0 && hasLC,
-            LitanyStrategy.Force => true,
-            LitanyStrategy.ForceWeave => CanWeaveIn,
-            LitanyStrategy.Delay => false,
+            BuffsStrategy.Automatic => InsideCombatWith(target) && InRange(target, 4) && powerLeft > 0,
+            BuffsStrategy.Together => powerLeft > 0 && hasLC,
+            BuffsStrategy.Force => true,
+            BuffsStrategy.ForceWeave => CanWeaveIn,
+            BuffsStrategy.Delay => false,
             _ => false
         };
     }
@@ -297,11 +303,14 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         var lv18to25 = !Unlocked(AID.FullThrust) && (Unlocked(AID.Disembowel) ? (lv6to17 && powerLeft > SkSGCDLength * 2) : lv6to17);
         var lv26to88 = (Unlocked(AID.FullThrust) && ComboLastMove is AID.VorpalThrust or AID.LanceBarrage) || (Unlocked(AID.Drakesbane) && ComboLastMove is AID.WheelingThrust or AID.FangAndClaw);
         var lv88plus = hasLC && (TotalCD(AID.LifeSurge) < 40 || TotalCD(AID.BattleLitany) > 50) && lv26to88;
-        var condition = Unlocked(TraitID.EnhancedLifeSurge) ? lv88plus : (lv26to88 || lv18to25);
+        var st = Unlocked(TraitID.EnhancedLifeSurge) ? lv88plus : (lv26to88 || lv18to25);
         var aoe = Unlocked(AID.CoerthanTorment) ? ComboLastMove is AID.SonicThrust : Unlocked(AID.SonicThrust) ? ComboLastMove is AID.DoomSpike : Unlocked(AID.DoomSpike) && powerLeft > SkSGCDLength * 2;
+        var minimal = InsideCombatWith(target) && powerLeft > 0 && InRange(target, 4);
+        var buffed = ((hasLC && hasLOTD) || hasBL) && (ShouldUseAOE ? aoe : lv26to88);
         return strategy switch
         {
-            SurgeStrategy.Automatic => InsideCombatWith(target) && (ShouldUseAOE ? aoe : condition),
+            SurgeStrategy.Automatic => minimal && (ShouldUseAOE ? aoe : st),
+            SurgeStrategy.WhenBuffed => minimal && buffed,
             SurgeStrategy.Force => true,
             SurgeStrategy.ForceWeave => CanWeaveIn,
             SurgeStrategy.ForceNextOpti => lv26to88,
@@ -324,9 +333,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         return strategy switch
         {
             CommonStrategy.Automatic => InsideCombatWith(target) && In20y(target) && condition,
-            CommonStrategy.Force => true,
-            CommonStrategy.ForceEX => true,
-            CommonStrategy.ForceWeave => CanWeaveIn,
+            CommonStrategy.Force or CommonStrategy.ForceEX => true,
+            CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX => CanWeaveIn,
+            CommonStrategy.Delay => false,
             _ => false
         };
     }
@@ -338,7 +347,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         return strategy switch
         {
             CommonStrategy.Automatic => InsideCombatWith(target) && In20y(target) && (hasLC || lcCD is < 35 and > 13),
-            CommonStrategy.ForceEX or CommonStrategy.ForceEX => true,
+            CommonStrategy.Force or CommonStrategy.ForceEX => true,
             CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX => CanWeaveIn,
             CommonStrategy.Delay => false,
             _ => false
@@ -546,9 +555,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         var comboStrat = combo.As<ComboStrategy>();
         var dive = strategy.Option(Track.Dives).As<DivesStrategy>();
         var lc = strategy.Option(Track.LanceCharge);
-        var lcStrat = lc.As<OGCDStrategy>();
+        var lcStrat = lc.As<BuffsStrategy>();
         var bl = strategy.Option(Track.BattleLitany);
-        var blStrat = bl.As<LitanyStrategy>();
+        var blStrat = bl.As<BuffsStrategy>();
         var ls = strategy.Option(Track.LifeSurge);
         var lsStrat = ls.As<SurgeStrategy>();
         var jump = strategy.Option(Track.Jump);
@@ -620,11 +629,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                 if (!strategy.HoldBuffs())
                 {
                     if (ShouldUseLanceCharge(lcStrat, primaryTarget?.Actor))
-                        QueueOGCD(AID.LanceCharge, Player, OGCDPrio(lcStrat, OGCDPriority.VerySevere));
+                        QueueOGCD(AID.LanceCharge, Player, blStrat is BuffsStrategy.Force or BuffsStrategy.ForceWeave ? OGCDPriority.Forced : OGCDPriority.VerySevere);
                     if (ShouldUseBattleLitany(blStrat, primaryTarget?.Actor))
-                        QueueOGCD(AID.BattleLitany, Player, blStrat is LitanyStrategy.Force or LitanyStrategy.ForceWeave ? OGCDPriority.Forced : OGCDPriority.Severe);
+                        QueueOGCD(AID.BattleLitany, Player, blStrat is BuffsStrategy.Force or BuffsStrategy.ForceWeave ? OGCDPriority.Forced : OGCDPriority.Severe);
                     if (ShouldUseLifeSurge(lsStrat, primaryTarget?.Actor))
-                        QueueOGCD(AID.LifeSurge, Player, lsStrat is SurgeStrategy.Force or SurgeStrategy.ForceWeave or SurgeStrategy.ForceNextOpti or SurgeStrategy.ForceNextOptiWeave ? OGCDPriority.Forced : OGCDPriority.Severe);
+                        QueueOGCD(AID.LifeSurge, Player, lsStrat is SurgeStrategy.Force or SurgeStrategy.ForceWeave or SurgeStrategy.ForceNextOpti or SurgeStrategy.ForceNextOptiWeave ? OGCDPriority.Forced : OGCDPriority.ExtremelyHigh);
                 }
                 if (divesGood)
                 {
@@ -636,7 +645,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                         QueueOGCD(AID.Stardiver, TargetChoice(sd) ?? BestDiveTarget?.Actor, sdStrat is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.Low);
                 }
                 if (ShouldUseGeirskogul(geirskogulStrat, primaryTarget?.Actor))
-                    QueueOGCD(AID.Geirskogul, TargetChoice(geirskogul) ?? BestSpearTarget?.Actor, geirskogulStrat is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.ExtremelyHigh);
+                    QueueOGCD(AID.Geirskogul, TargetChoice(geirskogul) ?? BestSpearTarget?.Actor, geirskogulStrat is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.VeryHigh);
                 if (ShouldUseMirageDive(mdStrat, primaryTarget?.Actor))
                     QueueOGCD(AID.MirageDive, TargetChoice(md) ?? primaryTarget?.Actor, OGCDPrio(mdStrat, OGCDPriority.ExtremelyLow));
                 if (ShouldUseNastrond(nastrondStrat, primaryTarget?.Actor))
