@@ -891,8 +891,8 @@ static class ModuleExtensions
         return res.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", uiPriority: 300)
             .AddOption(AOEStrategy.AutoFinish, "Auto (Finish combo)", "Automatically execute optimal rotation based on targets; finishes combo if possible", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.AutoBreak, "Auto (Break combo)", "Automatically execute optimal rotation based on targets; breaks combo if necessary", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.ForceST, "ForceST", "Force-execute Single Target", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Force-execute AOE rotation", supportedTargets: ActionTargets.Hostile | ActionTargets.Self);
+            .AddOption(AOEStrategy.ForceST, "ForceST", "Force Single-Target rotation execution", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Force AOE rotation execution", supportedTargets: ActionTargets.Hostile | ActionTargets.Self);
     }
 
     /// <summary>Defines our shared <b>Hold</b> strategies.</summary>
