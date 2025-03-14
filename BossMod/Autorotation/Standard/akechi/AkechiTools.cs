@@ -498,6 +498,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="maxDistance">The maximum distance threshold.</param>
     protected bool InRange(Actor? target, float maxDistance) => Player.DistanceToHitbox(target) <= maxDistance - 0.01f;
 
+    /// <summary>Checks if target is within the Melee-range distance in <b>yalms</b>.</summary>
+    protected bool InMeleeRange(Actor? target) => InRange(target, 3.5f);
+
     /// <summary>Checks if the target is within <b>0-yalm</b> range.</summary>
     protected bool In0y(Actor? target) => InRange(target, 0.01f);
 

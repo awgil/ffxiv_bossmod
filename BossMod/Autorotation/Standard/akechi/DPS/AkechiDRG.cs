@@ -9,18 +9,15 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Combo = SharedTrack.Count, Dives, Potion, BattleLitany, LifeSurge, Jump, DragonfireDive, Geirskogul, Stardiver, PiercingTalon, TrueNorth, LanceCharge, MirageDive, Nastrond, WyrmwindThrust, RiseOfTheDragon, Starcross }
+    public enum Track { Combo = SharedTrack.Count, Dives, Potion, BattleLitany, LifeSurge, PiercingTalon, TrueNorth, DragonfireDive, Geirskogul, Stardiver, Jump, LanceCharge, MirageDive, Nastrond, WyrmwindThrust, RiseOfTheDragon, Starcross }
     public enum ComboStrategy { None, Force123ST, ForceBuffsST }
     public enum DivesStrategy { AllowMaxMelee, AllowCloseMelee, Allow, Forbid }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
     public enum LitanyStrategy { Automatic, Together, Force, ForceWeave, Delay }
     public enum SurgeStrategy { Automatic, Force, ForceWeave, ForceNextOpti, ForceNextOptiWeave, Delay }
-    public enum JumpStrategy { Automatic, Force, ForceEX, ForceEX2, ForceWeave, Delay }
-    public enum DragonfireStrategy { Automatic, Force, ForceEX, ForceWeave, Delay }
-    public enum GeirskogulStrategy { Automatic, Force, ForceEX, ForceWeave, Delay }
-    public enum StardiverStrategy { Automatic, Force, ForceEX, ForceWeave, Delay }
     public enum PiercingTalonStrategy { AllowEX, Allow, Force, ForceEX, Forbid }
     public enum TrueNorthStrategy { Automatic, ASAP, Rear, Flank, Force, Delay }
+    public enum CommonStrategy { Automatic, Force, ForceEX, ForceWeave, ForceWeaveEX, Delay }
     #endregion
 
     #region Module Definitions
@@ -65,35 +62,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(SurgeStrategy.ForceNextOptiWeave, "Force Weave Optimally", "Force Life Surge optimally inside the next possible weave window", 40, 5, ActionTargets.Hostile, 6)
             .AddOption(SurgeStrategy.Delay, "Delay", "Delay the use of Life Surge", 0, 0, ActionTargets.None, 6)
             .AddAssociatedActions(AID.LifeSurge);
-        res.Define(Track.Jump).As<JumpStrategy>("Jump", uiPriority: 145)
-            .AddOption(JumpStrategy.Automatic, "Automatic", "Use Jump normally")
-            .AddOption(JumpStrategy.Force, "Force Jump", "Force Jump usage", 30, 0, ActionTargets.Self, 30, 67)
-            .AddOption(JumpStrategy.ForceEX, "Force Jump (EX)", "Force Jump usage (Grants Dive Ready buff)", 30, 15, ActionTargets.Self, 68, 74)
-            .AddOption(JumpStrategy.ForceEX2, "Force High Jump", "Force High Jump usage", 30, 15, ActionTargets.Self, 75)
-            .AddOption(JumpStrategy.ForceWeave, "Force Weave", "Force Jump usage inside the next possible weave window", 30, 15, ActionTargets.Hostile, 68)
-            .AddOption(JumpStrategy.Delay, "Delay", "Delay Jump usage", 0, 0, ActionTargets.None, 30)
-            .AddAssociatedActions(AID.Jump, AID.HighJump);
-        res.Define(Track.DragonfireDive).As<DragonfireStrategy>("Dragonfire Dive", "D.Dive", uiPriority: 155)
-            .AddOption(DragonfireStrategy.Automatic, "Automatic", "Use Dragonfire Dive normally")
-            .AddOption(DragonfireStrategy.Force, "Force", "Force Dragonfire Dive usage", 120, 0, ActionTargets.Hostile, 50, 91)
-            .AddOption(DragonfireStrategy.ForceEX, "ForceEX", "Force Dragonfire Dive (Grants Dragon's Flight)", 120, 30, ActionTargets.Hostile, 92)
-            .AddOption(DragonfireStrategy.ForceWeave, "Force Weave", "Force Dragonfire Dive usage inside the next possible weave window", 120, 0, ActionTargets.Hostile, 68)
-            .AddOption(DragonfireStrategy.Delay, "Delay", "Delay Dragonfire Dive usage", 0, 0, ActionTargets.None, 50)
-            .AddAssociatedActions(AID.DragonfireDive);
-        res.Define(Track.Geirskogul).As<GeirskogulStrategy>("Geirskogul", "Geirs.", uiPriority: 150)
-            .AddOption(GeirskogulStrategy.Automatic, "Automatic", "Use Geirskogul normally")
-            .AddOption(GeirskogulStrategy.Force, "Force", "Force Geirskogul usage", 60, 0, ActionTargets.Hostile, 60, 69)
-            .AddOption(GeirskogulStrategy.ForceEX, "ForceEX", "Force Geirskogul (Grants Life of the Dragon & Nastrond Ready)", 60, 20, ActionTargets.Hostile, 70)
-            .AddOption(GeirskogulStrategy.ForceWeave, "Force Weave", "Force Geirskogul usage inside the next possible weave window", 60, 20, ActionTargets.Hostile, 70)
-            .AddOption(GeirskogulStrategy.Delay, "Delay", "Delay Geirskogul usage", 0, 0, ActionTargets.None, 60)
-            .AddAssociatedActions(AID.Geirskogul);
-        res.Define(Track.Stardiver).As<StardiverStrategy>("Stardiver", "S.diver", uiPriority: 140)
-            .AddOption(StardiverStrategy.Automatic, "Automatic", "Use Stardiver normally")
-            .AddOption(StardiverStrategy.Force, "Force", "Force Stardiver usage", 30, 0, ActionTargets.Hostile, 80, 99)
-            .AddOption(StardiverStrategy.ForceEX, "ForceEX", "Force Stardiver (Grants Starcross Ready)", 30, 0, ActionTargets.Hostile, 100)
-            .AddOption(StardiverStrategy.ForceWeave, "Force Weave", "Force Stardiver usage inside the next possible weave window", 30, 0, ActionTargets.Hostile, 80)
-            .AddOption(StardiverStrategy.Delay, "Delay", "Delay Stardiver usage", 0, 0, ActionTargets.None, 80)
-            .AddAssociatedActions(AID.Stardiver);
         res.Define(Track.PiercingTalon).As<PiercingTalonStrategy>("Piercing Talon", "P.Talon", uiPriority: 100)
             .AddOption(PiercingTalonStrategy.AllowEX, "AllowEX", "Allow use of Piercing Talon if already in combat, outside melee range, & is Enhanced")
             .AddOption(PiercingTalonStrategy.Allow, "Allow", "Allow use of Piercing Talon if already in combat & outside melee range")
@@ -109,6 +77,38 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(TrueNorthStrategy.Force, "Force", "Force True North usage", 45, 10, ActionTargets.Self, 50)
             .AddOption(TrueNorthStrategy.Delay, "Delay", "Delay True North usage", 0, 0, ActionTargets.None, 50)
             .AddAssociatedActions(ClassShared.AID.TrueNorth);
+        res.Define(Track.DragonfireDive).As<CommonStrategy>("Dragonfire Dive", "D.Dive", uiPriority: 155)
+            .AddOption(CommonStrategy.Automatic, "Automatic", "Use Dragonfire Dive normally")
+            .AddOption(CommonStrategy.Force, "Force", "Force Dragonfire Dive usage", 120, 0, ActionTargets.Hostile, 50, 91)
+            .AddOption(CommonStrategy.ForceEX, "ForceEX", "Force Dragonfire Dive (Grants Dragon's Flight)", 120, 30, ActionTargets.Hostile, 92)
+            .AddOption(CommonStrategy.ForceWeave, "Force Weave", "Force Dragonfire Dive usage inside the next possible weave window", 120, 0, ActionTargets.Hostile, 68)
+            .AddOption(CommonStrategy.ForceWeaveEX, "Force Weave (EX)", "Force Dragonfire Dive usage inside the next possible weave window (Grants Dragon's Flight)", 120, 30, ActionTargets.Hostile, 92)
+            .AddOption(CommonStrategy.Delay, "Delay", "Delay Dragonfire Dive usage", 0, 0, ActionTargets.None, 50)
+            .AddAssociatedActions(AID.DragonfireDive);
+        res.Define(Track.Geirskogul).As<CommonStrategy>("Geirskogul", "Geirs.", uiPriority: 150)
+            .AddOption(CommonStrategy.Automatic, "Automatic", "Use Geirskogul normally")
+            .AddOption(CommonStrategy.Force, "Force", "Force Geirskogul usage", 60, 0, ActionTargets.Hostile, 60, 69)
+            .AddOption(CommonStrategy.ForceEX, "ForceEX", "Force Geirskogul (Grants Life of the Dragon & Nastrond Ready)", 60, 20, ActionTargets.Hostile, 70)
+            .AddOption(CommonStrategy.ForceWeave, "Force Weave", "Force Geirskogul usage inside the next possible weave window", 60, 20, ActionTargets.Hostile, 70)
+            .AddOption(CommonStrategy.ForceWeaveEX, "Force Weave (EX)", "Force Geirskogul usage inside the next possible weave window (Grants Life of the Dragon & Nastrond Ready)", 60, 20, ActionTargets.Hostile, 70)
+            .AddOption(CommonStrategy.Delay, "Delay", "Delay Geirskogul usage", 0, 0, ActionTargets.None, 60)
+            .AddAssociatedActions(AID.Geirskogul);
+        res.Define(Track.Stardiver).As<CommonStrategy>("Stardiver", "S.diver", uiPriority: 140)
+            .AddOption(CommonStrategy.Automatic, "Automatic", "Use Stardiver normally")
+            .AddOption(CommonStrategy.Force, "Force", "Force Stardiver usage", 30, 0, ActionTargets.Hostile, 80, 99)
+            .AddOption(CommonStrategy.ForceEX, "ForceEX", "Force Stardiver (Grants Starcross Ready)", 30, 0, ActionTargets.Hostile, 100)
+            .AddOption(CommonStrategy.ForceWeave, "Force Weave", "Force Stardiver usage inside the next possible weave window", 30, 0, ActionTargets.Hostile, 80)
+            .AddOption(CommonStrategy.ForceWeaveEX, "Force Weave (EX)", "Force Stardiver usage inside the next possible weave window (Grants Starcross Ready)", 30, 0, ActionTargets.Hostile, 100)
+            .AddOption(CommonStrategy.Delay, "Delay", "Delay Stardiver usage", 0, 0, ActionTargets.None, 80)
+            .AddAssociatedActions(AID.Stardiver);
+        res.Define(Track.Jump).As<CommonStrategy>("Jump", uiPriority: 145)
+            .AddOption(CommonStrategy.Automatic, "Automatic", "Use Jump normally")
+            .AddOption(CommonStrategy.Force, "Force Jump", "Force Jump usage", 30, 0, ActionTargets.Self, 30, 67)
+            .AddOption(CommonStrategy.ForceEX, "Force Jump (EX)", "Force Jump usage (Grants Dive Ready buff)", 30, 15, ActionTargets.Self, 68)
+            .AddOption(CommonStrategy.ForceWeave, "Force Weave", "Force Jump usage inside the next possible weave window", 30, 0, ActionTargets.Hostile, 30, 67)
+            .AddOption(CommonStrategy.ForceWeaveEX, "Force Weave (EX)", "Force Jump usage inside the next possible weave window (Grants Dive Ready buff)", 30, 15, ActionTargets.Hostile, 68)
+            .AddOption(CommonStrategy.Delay, "Delay", "Delay Jump usage", 0, 0, ActionTargets.None, 30)
+            .AddAssociatedActions(AID.Jump, AID.HighJump);
         res.DefineOGCD(Track.LanceCharge, AID.LanceCharge, "Lance Charge", "L.Charge", uiPriority: 170, 60, 20, ActionTargets.Self, 30);
         res.DefineOGCD(Track.MirageDive, AID.MirageDive, "Mirage Dive", "M.Dive", uiPriority: 130, 0, 0, ActionTargets.Hostile, 68);
         res.DefineOGCD(Track.Nastrond, AID.Nastrond, "Nastrond", "Nast.", uiPriority: 135, 0, 0, ActionTargets.Hostile, 70);
@@ -210,7 +210,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : LowLevelAOE,
         _ => PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : LowLevelAOE,
     };
-
     private AID LowLevelAOE => ComboLastMove switch
     {
         AID.Disembowel or AID.SpiralBlow => powerLeft > SkSGCDLength * 2 ? AID.DoomSpike : AID.TrueThrust,
@@ -313,7 +312,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Dives
-    private bool ShouldUseDragonfireDive(DragonfireStrategy strategy, Actor? target)
+    private bool ShouldUseDragonfireDive(CommonStrategy strategy, Actor? target)
     {
         if (!canDD)
             return false;
@@ -324,39 +323,39 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         var condition = Unlocked(AID.Geirskogul) ? lv60plus : Unlocked(AID.BattleLitany) ? lv52to59 : lv50to51;
         return strategy switch
         {
-            DragonfireStrategy.Automatic => InsideCombatWith(target) && In20y(target) && condition,
-            DragonfireStrategy.Force => true,
-            DragonfireStrategy.ForceEX => true,
-            DragonfireStrategy.ForceWeave => CanWeaveIn,
+            CommonStrategy.Automatic => InsideCombatWith(target) && In20y(target) && condition,
+            CommonStrategy.Force => true,
+            CommonStrategy.ForceEX => true,
+            CommonStrategy.ForceWeave => CanWeaveIn,
             _ => false
         };
     }
-    private bool ShouldUseJump(JumpStrategy strategy, Actor? target)
+    private bool ShouldUseJump(CommonStrategy strategy, Actor? target)
     {
         if (!canJump)
             return false;
 
         return strategy switch
         {
-            JumpStrategy.Automatic => InsideCombatWith(target) && In20y(target) && (hasLC || lcCD is < 35 and > 13),
-            JumpStrategy.ForceEX or JumpStrategy.ForceEX2 => true,
-            JumpStrategy.ForceWeave => CanWeaveIn,
-            JumpStrategy.Delay => false,
+            CommonStrategy.Automatic => InsideCombatWith(target) && In20y(target) && (hasLC || lcCD is < 35 and > 13),
+            CommonStrategy.ForceEX or CommonStrategy.ForceEX => true,
+            CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX => CanWeaveIn,
+            CommonStrategy.Delay => false,
             _ => false
         };
 
     }
-    private bool ShouldUseStardiver(StardiverStrategy strategy, Actor? target)
+    private bool ShouldUseStardiver(CommonStrategy strategy, Actor? target)
     {
         if (!canSD)
             return false;
 
         return strategy switch
         {
-            StardiverStrategy.Automatic => InsideCombatWith(target) && In20y(target) && hasLOTD,
-            StardiverStrategy.Force or StardiverStrategy.ForceEX => true,
-            StardiverStrategy.ForceWeave => CanWeaveIn,
-            StardiverStrategy.Delay => false,
+            CommonStrategy.Automatic => InsideCombatWith(target) && In20y(target) && hasLOTD,
+            CommonStrategy.ForceEX or CommonStrategy.ForceEX => true,
+            CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX => CanWeaveIn,
+            CommonStrategy.Delay => false,
             _ => false
         };
 
@@ -381,17 +380,17 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Spears
-    private bool ShouldUseGeirskogul(GeirskogulStrategy strategy, Actor? target)
+    private bool ShouldUseGeirskogul(CommonStrategy strategy, Actor? target)
     {
         if (!canGeirskogul)
             return false;
 
         return strategy switch
         {
-            GeirskogulStrategy.Automatic => InsideCombatWith(target) && In15y(target) && ((InOddWindow(AID.BattleLitany) && hasLC) || (!InOddWindow(AID.BattleLitany) && hasLC && hasBL)),
-            GeirskogulStrategy.Force or GeirskogulStrategy.ForceEX => true,
-            GeirskogulStrategy.ForceWeave => CanWeaveIn,
-            GeirskogulStrategy.Delay => false,
+            CommonStrategy.Automatic => InsideCombatWith(target) && In15y(target) && ((InOddWindow(AID.BattleLitany) && hasLC) || (!InOddWindow(AID.BattleLitany) && hasLC && hasBL)),
+            CommonStrategy.ForceEX or CommonStrategy.ForceEX => true,
+            CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX => CanWeaveIn,
+            CommonStrategy.Delay => false,
             _ => false
         };
     }
@@ -463,7 +462,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUsePiercingTalon(Actor? target, PiercingTalonStrategy strategy)
     {
-        var allow = InsideCombatWith(target) && !In3y(target);
+        var allow = InsideCombatWith(target) && ((!ShouldUseAOE && !InMeleeRange(target)) || (ShouldUseAOE && !In10y(target)));
         return strategy switch
         {
             PiercingTalonStrategy.AllowEX => allow && PlayerHasEffect(SID.EnhancedPiercingTalon),
@@ -483,7 +482,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseTrueNorth(TrueNorthStrategy strategy, Actor? target)
     {
-        var condition = target != null && Player.InCombat && CanTrueNorth && NextPositionalImminent && !NextPositionalCorrect;
+        var condition = target != null && Player.InCombat && InMeleeRange(target) && CanTrueNorth && NextPositionalImminent && !NextPositionalCorrect;
         var needRear = !IsOnRear(target!) && ((Unlocked(AID.ChaosThrust) && ComboLastMove is AID.Disembowel or AID.SpiralBlow) || (Unlocked(AID.WheelingThrust) && ComboLastMove is AID.ChaosThrust or AID.ChaoticSpring));
         var needFlank = !IsOnFlank(target!) && Unlocked(AID.FangAndClaw) && ComboLastMove is AID.HeavensThrust or AID.FullThrust;
         return strategy switch
@@ -553,13 +552,13 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         var ls = strategy.Option(Track.LifeSurge);
         var lsStrat = ls.As<SurgeStrategy>();
         var jump = strategy.Option(Track.Jump);
-        var jumpStrat = jump.As<JumpStrategy>();
+        var jumpStrat = jump.As<CommonStrategy>();
         var dd = strategy.Option(Track.DragonfireDive);
-        var ddStrat = dd.As<DragonfireStrategy>();
+        var ddStrat = dd.As<CommonStrategy>();
         var geirskogul = strategy.Option(Track.Geirskogul);
-        var geirskogulStrat = geirskogul.As<GeirskogulStrategy>();
+        var geirskogulStrat = geirskogul.As<CommonStrategy>();
         var sd = strategy.Option(Track.Stardiver);
-        var sdStrat = sd.As<StardiverStrategy>();
+        var sdStrat = sd.As<CommonStrategy>();
         var wt = strategy.Option(Track.WyrmwindThrust);
         var wtStrat = wt.As<OGCDStrategy>();
         var rotd = strategy.Option(Track.RiseOfTheDragon);
@@ -630,14 +629,14 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                 if (divesGood)
                 {
                     if (ShouldUseJump(jumpStrat, primaryTarget?.Actor))
-                        QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump, TargetChoice(jump) ?? primaryTarget?.Actor, jumpStrat is JumpStrategy.Force or JumpStrategy.ForceEX or JumpStrategy.ForceEX2 or JumpStrategy.ForceWeave ? OGCDPriority.Forced : OGCDPriority.SlightlyHigh);
+                        QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump, TargetChoice(jump) ?? primaryTarget?.Actor, jumpStrat is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.SlightlyHigh);
                     if (ShouldUseDragonfireDive(ddStrat, primaryTarget?.Actor))
-                        QueueOGCD(AID.DragonfireDive, TargetChoice(dd) ?? BestDiveTarget?.Actor, ddStrat is DragonfireStrategy.Force or DragonfireStrategy.ForceWeave ? OGCDPriority.Forced : OGCDPriority.High);
+                        QueueOGCD(AID.DragonfireDive, TargetChoice(dd) ?? BestDiveTarget?.Actor, ddStrat is CommonStrategy.Force or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.High);
                     if (ShouldUseStardiver(sdStrat, primaryTarget?.Actor))
-                        QueueOGCD(AID.Stardiver, TargetChoice(sd) ?? BestDiveTarget?.Actor, sdStrat is StardiverStrategy.Force or StardiverStrategy.ForceEX or StardiverStrategy.ForceWeave ? OGCDPriority.Forced : OGCDPriority.Low);
+                        QueueOGCD(AID.Stardiver, TargetChoice(sd) ?? BestDiveTarget?.Actor, sdStrat is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.Low);
                 }
                 if (ShouldUseGeirskogul(geirskogulStrat, primaryTarget?.Actor))
-                    QueueOGCD(AID.Geirskogul, TargetChoice(geirskogul) ?? BestSpearTarget?.Actor, geirskogulStrat is GeirskogulStrategy.Force or GeirskogulStrategy.ForceEX or GeirskogulStrategy.ForceWeave ? OGCDPriority.Forced : OGCDPriority.ExtremelyHigh);
+                    QueueOGCD(AID.Geirskogul, TargetChoice(geirskogul) ?? BestSpearTarget?.Actor, geirskogulStrat is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.ExtremelyHigh);
                 if (ShouldUseMirageDive(mdStrat, primaryTarget?.Actor))
                     QueueOGCD(AID.MirageDive, TargetChoice(md) ?? primaryTarget?.Actor, OGCDPrio(mdStrat, OGCDPriority.ExtremelyLow));
                 if (ShouldUseNastrond(nastrondStrat, primaryTarget?.Actor))
@@ -655,8 +654,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                     QueueOGCD(AID.WyrmwindThrust, TargetChoice(wt) ?? BestSpearTarget?.Actor, wtStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : PlayerHasEffect(SID.LanceCharge) ? OGCDPriority.ModeratelyHigh : OGCDPriority.Average);
             }
         }
-        if (Player.Level < 60 && ActionReady(AID.LegSweep))
-            QueueOGCD(AID.LegSweep, TargetChoice(AOE) ?? primaryTarget?.Actor, OGCDPrio(mdStrat, OGCDPriority.ExtremelyLow));
         if (ShouldUsePiercingTalon(primaryTarget?.Actor, ptStrat))
             QueueGCD(AID.PiercingTalon, TargetChoice(pt) ?? primaryTarget?.Actor, ptStrat is PiercingTalonStrategy.Force or PiercingTalonStrategy.ForceEX ? GCDPriority.Forced : GCDPriority.SlightlyLow);
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))

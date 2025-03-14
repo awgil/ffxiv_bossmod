@@ -1,5 +1,4 @@
-﻿using BossMod;
-using BossMod.Components;
+﻿using BossMod.Components;
 
 namespace BossMod.Stormblood.Dungeon.D01SirensongSea.D012TheGovernor;
 
@@ -76,7 +75,6 @@ class ShadowFlow(BossModule module) : GenericAOEs(module)
 {
     public List<AOEInstance> aoes = [];
     public List<Actor> Grovellers = [];
-    public List<Actor> Boss = [];
 
     DateTime activation;
 
