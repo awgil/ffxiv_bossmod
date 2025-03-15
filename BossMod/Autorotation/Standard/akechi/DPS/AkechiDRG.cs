@@ -1,6 +1,8 @@
-﻿using static BossMod.AIHints;
+﻿#region Dependencies
+using static BossMod.AIHints;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using BossMod.DRG;
+#endregion
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
@@ -9,13 +11,14 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Combo = SharedTrack.Count, Dives, Potion, LanceCharge, BattleLitany, LifeSurge, PiercingTalon, TrueNorth, DragonfireDive, Geirskogul, Stardiver, Jump, MirageDive, Nastrond, WyrmwindThrust, RiseOfTheDragon, Starcross }
+    public enum Track { Combo = SharedTrack.Count, Dives, Potion, ElusiveJump, LanceCharge, BattleLitany, LifeSurge, PiercingTalon, TrueNorth, DragonfireDive, Geirskogul, Stardiver, Jump, MirageDive, Nastrond, WyrmwindThrust, RiseOfTheDragon, Starcross }
     public enum SingleTargetOption { FullST, Force123ST, ForceBuffsST }
     public enum DivesStrategy { AllowMaxMelee, AllowCloseMelee, Allow, Forbid }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
     public enum SurgeStrategy { Automatic, WhenBuffed, Force, ForceWeave, ForceNextOpti, ForceNextOptiWeave, Delay }
     public enum PiercingTalonStrategy { AllowEX, Allow, Force, ForceEX, Forbid }
     public enum TrueNorthStrategy { Automatic, ASAP, Rear, Flank, Force, Delay }
+    public enum ElusiveDirection { None, CharacterForward, CharacterBackward, CameraForward, CameraBackward }
     public enum BuffsStrategy { Automatic, Together, Force, ForceWeave, Delay }
     public enum CommonStrategy { Automatic, Force, ForceEX, ForceWeave, ForceWeaveEX, Delay }
     #endregion
@@ -47,6 +50,13 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(PotionStrategy.AlignWithRaidBuffs, "Align With Raid Buffs", "Use potion in sync with 2-minute raid buffs (e.g., 0/6, 2/8)")
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use potion as soon as possible, regardless of any buffs")
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
+        res.Define(Track.ElusiveJump).As<ElusiveDirection>("Elusive Jump", uiPriority: -1)
+            .AddOption(ElusiveDirection.None, "None", "Do not use Elusive Jump")
+            .AddOption(ElusiveDirection.CharacterForward, "Character Forward", "Jump into the direction forward of the character", 30, 15, ActionTargets.Self, 35)
+            .AddOption(ElusiveDirection.CharacterBackward, "Character Backward", "Jump into the direction backward of the character (default)", 30, 15, ActionTargets.Self, 35)
+            .AddOption(ElusiveDirection.CameraForward, "Camera Forward", "Jump into the direction forward of the camera", 30, 15, ActionTargets.Self, 35)
+            .AddOption(ElusiveDirection.CameraBackward, "Camera Backward", "Jump into the direction backward of the camera", 30, 15, ActionTargets.Self, 35)
+            .AddAssociatedActions(AID.ElusiveJump);
         res.Define(Track.LanceCharge).As<BuffsStrategy>("Lance Charge", "L. Charge", uiPriority: 170)
             .AddOption(BuffsStrategy.Automatic, "Automatic", "Use Lance Charge normally")
             .AddOption(BuffsStrategy.Together, "Together", "Use Lance Charge only with Battle Litany; will delay in attempt to align itself with Battle Litany (up to 30s)", 60, 20, ActionTargets.Self, 52)
@@ -154,7 +164,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     private float PowerLeft; //time left on Power Surge
     private float ChaosLeft; //time left on Chaos Thrust or Chaotic Spring
     private bool InsideRange; //inside range of target for ST (3.5y) or AOE (10y)
+    private bool OutsideRange; //outside range of target for ST (3.5y) or AOE (10y)
     private bool NeedPower; //need to reapply Power Surge
+    private bool NeedBoth; //need to reapply personal buffs
     private int NumAOETargets; //number of targets in range for AOE
     private int NumSpearTargets; //number of targets in range for Spears
     private int NumDiveTargets; //number of targets in range for Dives
@@ -173,6 +185,15 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Rotation Helpers
+
+    #region Upgrade Paths
+    private AID BestTrueThrust => Unlocked(AID.RaidenThrust) && PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust;
+    private AID BestDoomSpike => Unlocked(AID.DraconianFury) && PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike;
+    private AID BestDisembowel => Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel;
+    private AID BestVorpalThrust => Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : AID.VorpalThrust;
+    private AID BestFullThrust => Unlocked(AID.HeavensThrust) ? AID.HeavensThrust : AID.FullThrust;
+    private AID BestChaosThrust => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : AID.ChaosThrust;
+    #endregion
     private AID AutoFinish => ComboLastMove switch
     {
         AID.CoerthanTorment => AutoBreak,
@@ -187,44 +208,44 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         AID.TrueThrust or AID.RaidenThrust => !Unlocked(AID.VorpalThrust) ? AutoBreak : FullST,
         _ => AutoBreak
     };
-    private AID AutoBreak => NeedPower ? LowLevelAOE : (ShouldUseAOE && !NeedPower ? FullAOE : ShouldUseDOT ? BuffsST : FullST);
+    private AID AutoBreak => NeedPower ? GetPower : (ShouldUseAOE && !NeedPower ? FullAOE : ShouldUseDOT ? BuffsST : FullST);
     private AID FullST => ComboLastMove switch
     {
-        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) && (Unlocked(AID.ChaosThrust) ? (PowerLeft <= SkSGCDLength * 6 || ChaosLeft <= SkSGCDLength * 4) : (Unlocked(AID.FullThrust) ? PowerLeft <= SkSGCDLength * 3 : NeedPower)) ? Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel : Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust,
-        AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : Unlocked(AID.ChaosThrust) ? AID.ChaosThrust : AID.TrueThrust,
-        AID.VorpalThrust or AID.LanceBarrage => Unlocked(AID.HeavensThrust) ? AID.HeavensThrust : Unlocked(AID.FullThrust) ? AID.FullThrust : AID.TrueThrust,
+        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) && NeedBoth ? BestDisembowel : Unlocked(AID.VorpalThrust) ? BestVorpalThrust : AID.TrueThrust,
+        AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaosThrust) ? BestChaosThrust : AID.TrueThrust,
+        AID.VorpalThrust or AID.LanceBarrage => Unlocked(AID.FullThrust) ? BestFullThrust : AID.TrueThrust,
         AID.FullThrust or AID.HeavensThrust => Unlocked(AID.FangAndClaw) ? AID.FangAndClaw : AID.TrueThrust,
         AID.ChaosThrust or AID.ChaoticSpring => Unlocked(AID.WheelingThrust) ? AID.WheelingThrust : AID.TrueThrust,
         AID.WheelingThrust or AID.FangAndClaw => Unlocked(AID.Drakesbane) ? AID.Drakesbane : AID.TrueThrust,
-        _ => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust,
+        _ => BestTrueThrust,
     };
     private AID NormalST => ComboLastMove switch
     {
-        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust,
-        AID.VorpalThrust or AID.LanceBarrage => Unlocked(AID.HeavensThrust) ? AID.HeavensThrust : Unlocked(AID.FullThrust) ? AID.FullThrust : AID.TrueThrust,
+        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.VorpalThrust) ? BestVorpalThrust : AID.TrueThrust,
+        AID.VorpalThrust or AID.LanceBarrage => Unlocked(AID.FullThrust) ? BestFullThrust : AID.TrueThrust,
         AID.FullThrust or AID.HeavensThrust => Unlocked(AID.FangAndClaw) ? AID.FangAndClaw : AID.TrueThrust,
         AID.WheelingThrust or AID.FangAndClaw => Unlocked(AID.Drakesbane) ? AID.Drakesbane : AID.TrueThrust,
-        _ => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust,
+        _ => BestTrueThrust,
     };
     private AID BuffsST => ComboLastMove switch
     {
-        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) ? (Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel) : AID.TrueThrust,
-        AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : Unlocked(AID.ChaosThrust) ? AID.ChaosThrust : AID.TrueThrust,
+        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) ? BestDisembowel : AID.TrueThrust,
+        AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaosThrust) ? BestChaosThrust : AID.TrueThrust,
         AID.ChaosThrust or AID.ChaoticSpring => Unlocked(AID.WheelingThrust) ? AID.WheelingThrust : AID.TrueThrust,
         AID.WheelingThrust or AID.FangAndClaw => Unlocked(AID.Drakesbane) ? AID.Drakesbane : AID.TrueThrust,
-        _ => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust,
+        _ => BestTrueThrust,
     };
     private AID FullAOE => ComboLastMove switch
     {
-        AID.DoomSpike => Unlocked(AID.SonicThrust) ? AID.SonicThrust : LowLevelAOE,
-        AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : LowLevelAOE,
-        _ => PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : LowLevelAOE,
+        AID.DoomSpike or AID.DraconianFury => Unlocked(AID.SonicThrust) ? AID.SonicThrust : GetPower,
+        AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : GetPower,
+        _ => !NeedPower ? BestDoomSpike : GetPower,
     };
-    private AID LowLevelAOE => ComboLastMove switch
+    private AID GetPower => ComboLastMove switch
     {
         AID.Disembowel or AID.SpiralBlow => !NeedPower ? AID.DoomSpike : AID.TrueThrust,
-        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel,
-        _ => !NeedPower ? (PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike) : (PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust),
+        AID.TrueThrust or AID.RaidenThrust => BestDisembowel,
+        _ => !NeedPower ? BestDoomSpike : BestTrueThrust,
     };
 
     #region DOT
@@ -273,10 +294,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         if (!CanLC)
             return false;
         //otherwise, we continue
+        var condition = InsideCombatWith(target) && InsideRange && HasPower;
         return strategy switch
         {
-            BuffsStrategy.Automatic => InsideCombatWith(target) && InsideRange && HasPower,
-            BuffsStrategy.Together => HasPower && (BLcd > 30 || BLcd < 1),
+            BuffsStrategy.Automatic => condition,
+            BuffsStrategy.Together => condition && (BLcd > 30 || BLcd < 1),
             BuffsStrategy.Force => true,
             BuffsStrategy.ForceWeave => CanWeaveIn,
             BuffsStrategy.Delay => false,
@@ -289,10 +311,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         if (!CanBL)
             return false;
         //otherwise, we continue
+        var condition = InsideCombatWith(target) && InsideRange && HasPower;
         return strategy switch
         {
-            BuffsStrategy.Automatic => InsideCombatWith(target) && InsideRange && HasPower,
-            BuffsStrategy.Together => HasPower && HasLC,
+            BuffsStrategy.Automatic => condition,
+            BuffsStrategy.Together => condition && HasLC,
             BuffsStrategy.Force => true,
             BuffsStrategy.ForceWeave => CanWeaveIn,
             BuffsStrategy.Delay => false,
@@ -481,13 +504,33 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             _ => false
         };
     }
+    private void ShouldUseElusive(ElusiveDirection strategy, Actor? target)
+    {
+        if (!Unlocked(AID.ElusiveJump))
+            return;
+
+        if (ActionReady(AID.ElusiveJump))
+        {
+            if (strategy != ElusiveDirection.None)
+            {
+                var angle = strategy switch
+                {
+                    ElusiveDirection.CharacterForward => Player.Rotation,
+                    ElusiveDirection.CameraForward => World.Client.CameraAzimuth,
+                    ElusiveDirection.CameraBackward => World.Client.CameraAzimuth + 180.Degrees(),
+                    _ => Player.Rotation + 180.Degrees()
+                };
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.ElusiveJump), Player, ActionQueue.Priority.Low, facingAngle: angle);
+            }
+        }
+    }
     private bool ShouldUsePiercingTalon(Actor? target, PiercingTalonStrategy strategy)
     {
         //if Piercing Talon is unavailable, skip entirely
         if (!Unlocked(AID.PiercingTalon))
             return false;
         //otherwise, we continue
-        var allow = InsideCombatWith(target) && !InsideRange;
+        var allow = InsideCombatWith(target) && OutsideRange;
         return strategy switch
         {
             PiercingTalonStrategy.AllowEX => allow && PlayerHasEffect(SID.EnhancedPiercingTalon),
@@ -557,6 +600,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         CanROTD = Unlocked(AID.RiseOfTheDragon) && HasROTD;
         CanSC = Unlocked(AID.Starcross) && HasSC;
         NeedPower = PowerLeft <= SkSGCDLength * 2;
+        NeedBoth = Unlocked(AID.ChaosThrust) ? (PowerLeft <= SkSGCDLength * 6 || ChaosLeft <= SkSGCDLength * 4) : Unlocked(AID.FullThrust) ? (PowerLeft <= SkSGCDLength * 3) : NeedPower;
         ShouldUseAOE = Unlocked(AID.DoomSpike) && NumAOETargets > 2 && !NeedPower;
         ShouldUseSpears = Unlocked(AID.Geirskogul) && NumSpearTargets > 1;
         ShouldUseDives = Unlocked(AID.Stardiver) && NumDiveTargets > 1;
@@ -570,6 +614,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         BestDiveTarget = ShouldUseDives ? BestDiveTargets : primaryTarget;
         BestDOTTarget = ShouldUseDOT ? BestDOTTargets : primaryTarget;
         InsideRange = ShouldUseAOE ? In10y(BestAOETarget?.Actor) : InMeleeRange(BestDOTTarget?.Actor);
+        OutsideRange = ShouldUseAOE ? !In10y(BestAOETarget?.Actor) : !InMeleeRange(BestDOTTarget?.Actor);
 
         #region Strategy Definitions
         var AOE = strategy.Option(SharedTrack.AOE);
@@ -690,6 +735,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             QueueGCD(AID.PiercingTalon, TargetChoice(pt) ?? primaryTarget?.Actor, ptStrat is PiercingTalonStrategy.Force or PiercingTalonStrategy.ForceEX ? GCDPriority.Forced : GCDPriority.SlightlyLow);
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.VeryCritical, 0, GCD - 0.9f);
+        ShouldUseElusive(strategy.Option(Track.ElusiveJump).As<ElusiveDirection>(), primaryTarget?.Actor);
         #endregion
 
         #endregion

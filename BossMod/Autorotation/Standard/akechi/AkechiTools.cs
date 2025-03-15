@@ -775,6 +775,25 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks if player is inside combat and has a primary target.</summary>
     protected bool InsideCombatWith(Actor? target) => Player.InCombat && target != null;
+
+    //TODO: new stuff
+    /*
+    protected DateTime? movementStartTime;
+    protected void HandleMovement()
+    {
+        if (IsMoving)
+        {
+            if (movementStartTime == null)
+                movementStartTime = DateTime.Now;
+            if (movementStartTime.HasValue && (DateTime.Now - movementStartTime.Value).TotalSeconds >= 1)
+                movementStartTime = null;
+        }
+        else
+        {
+            movementStartTime = null;
+        }
+    }
+    */
     #endregion
 
     #region Shared Abilities
