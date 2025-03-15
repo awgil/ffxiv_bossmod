@@ -232,7 +232,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private AID FullAOE => ComboLastMove switch
     {
-        AID.DoomSpike => Unlocked(AID.SonicThrust) ? AID.SonicThrust : LowLevelAOE,
+        AID.DoomSpike or AID.DraconianFury => Unlocked(AID.SonicThrust) ? AID.SonicThrust : LowLevelAOE,
         AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : LowLevelAOE,
         _ => PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : LowLevelAOE,
     };
@@ -597,11 +597,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         ShouldUseAOE = Unlocked(AID.DoomSpike) && NumAOETargets > 2 && !NeedPower;
         ShouldUseSpears = Unlocked(AID.Geirskogul) && NumSpearTargets > 1;
         ShouldUseDives = Unlocked(AID.Stardiver) && NumDiveTargets > 1;
-        ShouldUseDOT = Unlocked(AID.ChaosThrust) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 && InMeleeRange(BestDOTTarget?.Actor) && ComboLastMove is AID.Disembowel or AID.SpiralBlow;
+        ShouldUseDOT = Unlocked(AID.ChaosThrust) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 8) == 2 && InMeleeRange(BestDOTTarget?.Actor) && ComboLastMove is AID.Disembowel or AID.SpiralBlow;
         (BestAOETargets, NumAOETargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);
         (BestSpearTargets, NumSpearTargets) = GetBestTarget(primaryTarget, 15, Is15yRectTarget);
         (BestDiveTargets, NumDiveTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
-        (BestDOTTargets, ChaosLeft) = GetDOTTarget(primaryTarget, ChaosRemaining, 2, 3.5f);
+        (BestDOTTargets, ChaosLeft) = GetDOTTarget(primaryTarget, ChaosRemaining, 2, 8);
         BestAOETarget = ShouldUseAOE ? BestAOETargets : BestDOTTarget;
         BestSpearTarget = ShouldUseSpears ? BestSpearTargets : primaryTarget;
         BestDiveTarget = ShouldUseDives ? BestDiveTargets : primaryTarget;
@@ -734,7 +734,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region AI
-        GetNextTarget(strategy, ref primaryTarget, 3);
+        if (BestDOTTargets != null)
+        {
+            Hints.ForcedTarget = BestDOTTargets.Actor;
+        }
         var pos = GetBestPositional(strategy, primaryTarget);
         UpdatePositionals(primaryTarget, ref pos);
         if (primaryTarget != null)
