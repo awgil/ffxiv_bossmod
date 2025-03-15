@@ -534,14 +534,16 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="strategy">The user's selected <b>strategy</b>.</param>
     /// <param name="primaryTarget">The user's current <b>target</b>.</param>
     /// <param name="range">The <b>max range</b> to consider a new target.</param>
-    protected void GetPvETarget(StrategyValues strategy, ref Enemy? primaryTarget, float range)
+    protected void GetNextTarget(StrategyValues strategy, ref Enemy? primaryTarget, float range)
     {
         if (primaryTarget?.Actor == null || Player.DistanceToHitbox(primaryTarget.Actor) > range)
         {
             var AOEStrat = strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
             if (AOEStrat is AOEStrategy.AutoFinish or AOEStrategy.AutoBreak)
             {
-                primaryTarget = Hints.PriorityTargets.FirstOrDefault(x => Player.DistanceToHitbox(x.Actor) <= range);
+                var newTarget = Hints.PriorityTargets.FirstOrDefault(x => Player.DistanceToHitbox(x.Actor) <= range);
+                if (newTarget != null)
+                    primaryTarget = newTarget;
             }
         }
     }

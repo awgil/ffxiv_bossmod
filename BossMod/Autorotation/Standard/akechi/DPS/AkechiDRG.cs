@@ -166,7 +166,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     private bool InsideRange; //inside range of target for ST (3.5y) or AOE (10y)
     private bool OutsideRange; //outside range of target for ST (3.5y) or AOE (10y)
     private bool NeedPower; //need to reapply Power Surge
-    private bool NeedBoth; //need to reapply personal buffs
     private int NumAOETargets; //number of targets in range for AOE
     private int NumSpearTargets; //number of targets in range for Spears
     private int NumDiveTargets; //number of targets in range for Dives
@@ -187,12 +186,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Rotation Helpers
 
     #region Upgrade Paths
-    private AID BestTrueThrust => Unlocked(AID.RaidenThrust) && PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust;
-    private AID BestDoomSpike => Unlocked(AID.DraconianFury) && PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike;
+    private AID BestTrueThrust => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust;
     private AID BestDisembowel => Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel;
-    private AID BestVorpalThrust => Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : AID.VorpalThrust;
-    private AID BestFullThrust => Unlocked(AID.HeavensThrust) ? AID.HeavensThrust : AID.FullThrust;
-    private AID BestChaosThrust => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : AID.ChaosThrust;
     #endregion
     private AID AutoFinish => ComboLastMove switch
     {
@@ -208,12 +203,12 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         AID.TrueThrust or AID.RaidenThrust => !Unlocked(AID.VorpalThrust) ? AutoBreak : FullST,
         _ => AutoBreak
     };
-    private AID AutoBreak => NeedPower ? GetPower : (ShouldUseAOE && !NeedPower ? FullAOE : ShouldUseDOT ? BuffsST : FullST);
+    private AID AutoBreak => NeedPower ? LowLevelAOE : (ShouldUseAOE && !NeedPower ? FullAOE : ShouldUseDOT ? BuffsST : FullST);
     private AID FullST => ComboLastMove switch
     {
-        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) && NeedBoth ? BestDisembowel : Unlocked(AID.VorpalThrust) ? BestVorpalThrust : AID.TrueThrust,
-        AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaosThrust) ? BestChaosThrust : AID.TrueThrust,
-        AID.VorpalThrust or AID.LanceBarrage => Unlocked(AID.FullThrust) ? BestFullThrust : AID.TrueThrust,
+        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) && (Unlocked(AID.ChaosThrust) ? (PowerLeft <= SkSGCDLength * 6 || ChaosLeft <= SkSGCDLength * 4) : (Unlocked(AID.FullThrust) ? PowerLeft <= SkSGCDLength * 3 : NeedPower)) ? BestDisembowel : Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust,
+        AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : Unlocked(AID.ChaosThrust) ? AID.ChaosThrust : AID.TrueThrust,
+        AID.VorpalThrust or AID.LanceBarrage => Unlocked(AID.HeavensThrust) ? AID.HeavensThrust : Unlocked(AID.FullThrust) ? AID.FullThrust : AID.TrueThrust,
         AID.FullThrust or AID.HeavensThrust => Unlocked(AID.FangAndClaw) ? AID.FangAndClaw : AID.TrueThrust,
         AID.ChaosThrust or AID.ChaoticSpring => Unlocked(AID.WheelingThrust) ? AID.WheelingThrust : AID.TrueThrust,
         AID.WheelingThrust or AID.FangAndClaw => Unlocked(AID.Drakesbane) ? AID.Drakesbane : AID.TrueThrust,
@@ -221,33 +216,32 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private AID NormalST => ComboLastMove switch
     {
-        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.VorpalThrust) ? BestVorpalThrust : AID.TrueThrust,
-        AID.VorpalThrust or AID.LanceBarrage => Unlocked(AID.FullThrust) ? BestFullThrust : AID.TrueThrust,
+        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust,
+        AID.VorpalThrust or AID.LanceBarrage => Unlocked(AID.HeavensThrust) ? AID.HeavensThrust : Unlocked(AID.FullThrust) ? AID.FullThrust : AID.TrueThrust,
         AID.FullThrust or AID.HeavensThrust => Unlocked(AID.FangAndClaw) ? AID.FangAndClaw : AID.TrueThrust,
         AID.WheelingThrust or AID.FangAndClaw => Unlocked(AID.Drakesbane) ? AID.Drakesbane : AID.TrueThrust,
         _ => BestTrueThrust,
     };
     private AID BuffsST => ComboLastMove switch
     {
-        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) ? BestDisembowel : AID.TrueThrust,
-        AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaosThrust) ? BestChaosThrust : AID.TrueThrust,
+        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) ? (BestDisembowel) : AID.TrueThrust,
+        AID.Disembowel or AID.SpiralBlow => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : Unlocked(AID.ChaosThrust) ? AID.ChaosThrust : AID.TrueThrust,
         AID.ChaosThrust or AID.ChaoticSpring => Unlocked(AID.WheelingThrust) ? AID.WheelingThrust : AID.TrueThrust,
         AID.WheelingThrust or AID.FangAndClaw => Unlocked(AID.Drakesbane) ? AID.Drakesbane : AID.TrueThrust,
         _ => BestTrueThrust,
     };
     private AID FullAOE => ComboLastMove switch
     {
-        AID.DoomSpike or AID.DraconianFury => Unlocked(AID.SonicThrust) ? AID.SonicThrust : GetPower,
-        AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : GetPower,
-        _ => !NeedPower ? BestDoomSpike : GetPower,
+        AID.DoomSpike => Unlocked(AID.SonicThrust) ? AID.SonicThrust : LowLevelAOE,
+        AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : LowLevelAOE,
+        _ => PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : LowLevelAOE,
     };
-    private AID GetPower => ComboLastMove switch
+    private AID LowLevelAOE => ComboLastMove switch
     {
         AID.Disembowel or AID.SpiralBlow => !NeedPower ? AID.DoomSpike : AID.TrueThrust,
         AID.TrueThrust or AID.RaidenThrust => BestDisembowel,
-        _ => !NeedPower ? BestDoomSpike : BestTrueThrust,
+        _ => !NeedPower ? (PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike) : BestTrueThrust,
     };
-
     #region DOT
     private static SID[] GetDotStatus() => [SID.ChaosThrust, SID.ChaoticSpring];
     private float ChaosRemaining(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 6);
@@ -600,11 +594,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         CanROTD = Unlocked(AID.RiseOfTheDragon) && HasROTD;
         CanSC = Unlocked(AID.Starcross) && HasSC;
         NeedPower = PowerLeft <= SkSGCDLength * 2;
-        NeedBoth = Unlocked(AID.ChaosThrust) ? (PowerLeft <= SkSGCDLength * 6 || ChaosLeft <= SkSGCDLength * 4) : Unlocked(AID.FullThrust) ? (PowerLeft <= SkSGCDLength * 3) : NeedPower;
         ShouldUseAOE = Unlocked(AID.DoomSpike) && NumAOETargets > 2 && !NeedPower;
         ShouldUseSpears = Unlocked(AID.Geirskogul) && NumSpearTargets > 1;
         ShouldUseDives = Unlocked(AID.Stardiver) && NumDiveTargets > 1;
-        ShouldUseDOT = Unlocked(AID.ChaosThrust) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 && In3y(BestDOTTarget?.Actor) && ComboLastMove is AID.Disembowel or AID.SpiralBlow;
+        ShouldUseDOT = Unlocked(AID.ChaosThrust) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 3.5f) == 2 && InMeleeRange(BestDOTTarget?.Actor) && ComboLastMove is AID.Disembowel or AID.SpiralBlow;
         (BestAOETargets, NumAOETargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);
         (BestSpearTargets, NumSpearTargets) = GetBestTarget(primaryTarget, 15, Is15yRectTarget);
         (BestDiveTargets, NumDiveTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
@@ -741,6 +734,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region AI
+        GetNextTarget(strategy, ref primaryTarget, 3);
         var pos = GetBestPositional(strategy, primaryTarget);
         UpdatePositionals(primaryTarget, ref pos);
         if (primaryTarget != null)
