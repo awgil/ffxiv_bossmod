@@ -100,8 +100,8 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
 
     public static TankActions ActionsForJob(Class c) => c switch
     {
-        Class.PLD => PLDActions,
-        Class.WAR => WARActions,
+        Class.GLA or Class.PLD => PLDActions,
+        Class.MRD or Class.WAR => WARActions,
         Class.DRK => DRKActions,
         Class.GNB => GNBActions,
         _ => throw new InvalidOperationException($"{c} is not a tank class")
