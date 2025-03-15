@@ -327,12 +327,13 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         var lv26to88 = (Unlocked(AID.FullThrust) && ComboLastMove is AID.VorpalThrust or AID.LanceBarrage) || (Unlocked(AID.Drakesbane) && ComboLastMove is AID.WheelingThrust or AID.FangAndClaw);
         var lv88plus = HasLC && (TotalCD(AID.LifeSurge) < 40 || TotalCD(AID.BattleLitany) > 50) && lv26to88;
         var st = Unlocked(TraitID.EnhancedLifeSurge) ? lv88plus : (lv26to88 || lv18to25);
+        var tt = (CanLC ? HasLC : CanLS) && (Unlocked(AID.ChaosThrust) ? (Unlocked(TraitID.EnhancedLifeSurge) ? ComboLastMove is AID.FangAndClaw or AID.WheelingThrust or AID.Drakesbane : ComboLastMove is AID.FangAndClaw or AID.WheelingThrust) : lv26to88);
         var aoe = Unlocked(AID.CoerthanTorment) ? ComboLastMove is AID.SonicThrust : Unlocked(AID.SonicThrust) ? ComboLastMove is AID.DoomSpike : Unlocked(AID.DoomSpike) && !NeedPower;
         var minimal = InsideCombatWith(target) && HasPower && InsideRange;
         var buffed = ((HasLC && HasLOTD) || HasBL) && (ShouldUseAOE ? aoe : lv26to88);
         return strategy switch
         {
-            SurgeStrategy.Automatic => minimal && (ShouldUseAOE ? aoe : st),
+            SurgeStrategy.Automatic => minimal && (ShouldUseAOE ? aoe : ShouldUseDOT ? tt : st),
             SurgeStrategy.WhenBuffed => minimal && buffed,
             SurgeStrategy.Force => true,
             SurgeStrategy.ForceWeave => CanWeaveIn,
@@ -737,6 +738,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         if (BestDOTTargets != null)
         {
             Hints.ForcedTarget = BestDOTTargets.Actor;
+        }
+        if (BestDOTTargets == null)
+        {
+            GetNextTarget(strategy, ref primaryTarget, 3);
         }
         var pos = GetBestPositional(strategy, primaryTarget);
         UpdatePositionals(primaryTarget, ref pos);
