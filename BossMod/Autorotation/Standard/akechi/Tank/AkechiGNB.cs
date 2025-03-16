@@ -143,9 +143,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     private bool hasRip;
     private bool hasTear;
     private bool hasGouge;
-    private bool canNM;
+    private bool CanNM;
     private bool canBS;
-    private bool canGF;
+    private bool CanGF;
     private bool canFC;
     private bool canDD;
     private bool canBF;
@@ -171,38 +171,47 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     #region Rotation Helpers
     private AID AutoFinish => ComboLastMove switch
     {
+        AID.SavageClaw => AID.WickedTalon,
+        AID.GnashingFang => AID.SavageClaw,
         AID.KeenEdge or AID.BrutalShell => STwithoutOvercap,
         AID.DemonSlice => AOEwithoutOvercap,
-        AID.SolidBarrel or AID.DemonSlaughter or _ => ShouldUseAOE ? AOEwithoutOvercap : STwithoutOvercap,
+        AID.SolidBarrel or AID.DemonSlaughter or AID.WickedTalon or _ => ShouldUseAOE ? AOEwithoutOvercap : STwithoutOvercap,
     };
     private AID AutoBreak => ShouldUseAOE ? AOEwithoutOvercap : STwithoutOvercap;
     private AID STwithOvercap => Ammo == MaxCartridges ? BestCartSpender : Unlocked(AID.SolidBarrel) & ComboLastMove is AID.BrutalShell ? AID.SolidBarrel : Unlocked(AID.BrutalShell) && ComboLastMove is AID.KeenEdge ? AID.BrutalShell : AID.KeenEdge;
     private AID STwithoutOvercap => Unlocked(AID.SolidBarrel) && ComboLastMove is AID.BrutalShell ? AID.SolidBarrel : Unlocked(AID.BrutalShell) && ComboLastMove is AID.KeenEdge ? AID.BrutalShell : AID.KeenEdge;
     private AID AOEwithOvercap => Ammo == MaxCartridges ? BestCartSpender : Unlocked(AID.DemonSlaughter) && ComboLastMove is AID.DemonSlice ? AID.DemonSlaughter : AID.DemonSlice;
     private AID AOEwithoutOvercap => Unlocked(AID.DemonSlaughter) && ComboLastMove is AID.DemonSlice ? AID.DemonSlaughter : AID.DemonSlice;
+    private AID GnashingCombo => GunComboStep == 2 ? AID.WickedTalon : GunComboStep == 1 ? AID.SavageClaw : AID.GnashingFang;
     #endregion
 
     #region Cooldown Helpers
-    private bool ShouldUseNoMercy(NoMercyStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseNoMercy(NoMercyStrategy strategy, Actor? target)
     {
-        NoMercyStrategy.Automatic => Player.InCombat && target != null && canNM &&
-            ((Unlocked(AID.DoubleDown) && (InOddWindow(AID.Bloodfest) && Ammo >= 2 || !InOddWindow(AID.Bloodfest) && Ammo < 3)) || //90+
-            (!Unlocked(AID.DoubleDown) && CanQuarterWeaveIn && Ammo >= 1)), //2-89
-        NoMercyStrategy.Force => canNM,
-        NoMercyStrategy.ForceW => canNM && CanWeaveIn,
-        NoMercyStrategy.ForceQW => canNM && CanQuarterWeaveIn,
-        NoMercyStrategy.Force1 => canNM && Ammo == 1,
-        NoMercyStrategy.Force1W => canNM && CanWeaveIn && Ammo == 1,
-        NoMercyStrategy.Force1QW => canNM && CanQuarterWeaveIn && Ammo == 1,
-        NoMercyStrategy.Force2 => canNM && Ammo == 2,
-        NoMercyStrategy.Force2W => canNM && CanWeaveIn && Ammo == 2,
-        NoMercyStrategy.Force2QW => canNM && CanQuarterWeaveIn && Ammo == 2,
-        NoMercyStrategy.Force3 => canNM && Ammo == 3,
-        NoMercyStrategy.Force3W => canNM && CanWeaveIn && Ammo == 3,
-        NoMercyStrategy.Force3QW => canNM && CanQuarterWeaveIn && Ammo == 3,
-        NoMercyStrategy.Delay => false,
-        _ => false
-    };
+        if (!CanNM)
+            return false;
+
+        var lv1to89 = CanQuarterWeaveIn && Ammo >= 1;
+        var lv90plus = (InOddWindow(AID.Bloodfest) && Ammo >= 2) || (!InOddWindow(AID.Bloodfest) && Ammo < 3);
+        return strategy switch
+        {
+            NoMercyStrategy.Automatic => InsideCombatWith(target) && (Unlocked(AID.DoubleDown) ? lv90plus : lv1to89),
+            NoMercyStrategy.Force => true,
+            NoMercyStrategy.ForceW => CanWeaveIn,
+            NoMercyStrategy.ForceQW => CanQuarterWeaveIn,
+            NoMercyStrategy.Force1 => Ammo == 1,
+            NoMercyStrategy.Force1W => CanWeaveIn && Ammo == 1,
+            NoMercyStrategy.Force1QW => CanQuarterWeaveIn && Ammo == 1,
+            NoMercyStrategy.Force2 => Ammo == 2,
+            NoMercyStrategy.Force2W => CanWeaveIn && Ammo == 2,
+            NoMercyStrategy.Force2QW => CanQuarterWeaveIn && Ammo == 2,
+            NoMercyStrategy.Force3 => Ammo == 3,
+            NoMercyStrategy.Force3W => CanWeaveIn && Ammo == 3,
+            NoMercyStrategy.Force3QW => CanQuarterWeaveIn && Ammo == 3,
+            NoMercyStrategy.Delay => false,
+            _ => false
+        };
+    }
     private bool ShouldUseBloodfest(BloodfestStrategy strategy, Actor? target) => strategy switch
     {
         BloodfestStrategy.Automatic => Player.InCombat && target != null && canBF && Ammo == 0,
@@ -259,26 +268,44 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         DoubleDownStrategy.Delay => false,
         _ => false
     };
-    private bool ShouldUseGnashingFang(GnashingStrategy strategy, Actor? target) => strategy switch
+    private bool ShouldUseGnashingFang(GnashingStrategy strategy, Actor? target)
     {
-        GnashingStrategy.Automatic => Player.InCombat && target != null && In3y(target) && canGF && (nmLeft > 0 || hasNM || nmCD is < 35 and > 17),
-        GnashingStrategy.ForceGnash => canGF,
-        GnashingStrategy.ForceGnash1 => canGF && Ammo == 1,
-        GnashingStrategy.ForceGnash2 => canGF && Ammo == 2,
-        GnashingStrategy.ForceGnash3 => canGF && Ammo == 3,
-        GnashingStrategy.ForceClaw => Player.InCombat && GunComboStep == 1,
-        GnashingStrategy.ForceTalon => Player.InCombat && GunComboStep == 2,
-        GnashingStrategy.Delay => false,
-        _ => false
-    };
-    private bool ShouldSpendCarts(CartridgeStrategy strategy, Actor? target) => strategy switch
+        //we usually only use this in two ways: inside & outside No Mercy, whilst trying to keep it aligned with Burst
+        //we also skip entirely if more than 3 targets are present
+        var condition = (CanGF && !ShouldUseAOECircle(5).OnFourOrMore && (hasNM || nmCD is < 35 and > 17)) || GunComboStep is 1 or 2;
+        return strategy switch
+        {
+            GnashingStrategy.Automatic => InsideCombatWith(target) && InMeleeRange(target) && condition,
+            GnashingStrategy.ForceGnash => CanGF,
+            GnashingStrategy.ForceGnash1 => CanGF && Ammo == 1,
+            GnashingStrategy.ForceGnash2 => CanGF && Ammo == 2,
+            GnashingStrategy.ForceGnash3 => CanGF && Ammo == 3,
+            GnashingStrategy.ForceClaw => GunComboStep == 1,
+            GnashingStrategy.ForceTalon => GunComboStep == 2,
+            GnashingStrategy.Delay => false,
+            _ => false
+        };
+
+    }
+    private bool ShouldSpendCarts(CartridgeStrategy strategy, Actor? target)
     {
-        CartridgeStrategy.Automatic => Player.InCombat && target != null &&
-            ((ShouldUseAOE ? (In5y(target) && canFC) : (In3y(target) && canBS)) &&
-            (hasNM || (!InOddWindow(AID.Bloodfest) && nmCD < 1 && Ammo == 3)) ||
-            (Ammo == MaxCartridges && ComboLastMove is AID.BrutalShell or AID.DemonSlice)),
-        _ => false
-    };
+        //until Lv71 - if more than 2 targets are present, we skip Burst Strike entirely
+        var lv30to71 = !ShouldUseAOECircle(5).OnThreeOrMore && In3y(target) && canBS;
+        //if more than 1 target is present, we choose Fated Circle over Burst Strike
+        var lv72plus = ShouldUseAOECircle(5).OnTwoOrMore ? (In5y(target) && canFC) : (In3y(target) && canBS);
+        var condition = Unlocked(AID.FatedCircle) ? lv72plus : lv30to71;
+        return strategy == CartridgeStrategy.Automatic &&
+            //minimal
+            (InsideCombatWith(target) && condition &&
+            //if we have No Mercy, spend as much as possible
+            ((hasNM ||
+            //when Lv90+, if we enter No Mercy with 3 Ammo it is a loss, as we cannot get 9 GCDs inside a 20 second window
+            //technically we can with Skill Speed, but we're not working around that here
+            //so, if Bloodfest & No Mercy are imminent and Ammo is 3, burn a cartridge to enter Burst with 2
+            (!InOddWindow(AID.Bloodfest) && nmCD < 1 && Ammo == 3)) ||
+            //overcap protection
+            (Ammo == MaxCartridges && ComboLastMove is AID.BrutalShell or AID.DemonSlice)));
+    }
     private bool ShouldUseSonicBreak(SonicBreakStrategy strategy, Actor? target) => strategy switch
     {
         SonicBreakStrategy.Automatic => Player.InCombat && In3y(target) && canBreak,
@@ -336,9 +363,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 3.5f, IsSplashTarget);
         BestSplashTarget = Unlocked(AID.ReignOfBeasts) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
         BestDOTTarget = Hints.PriorityTargets.Where(x => Player.DistanceToHitbox(x.Actor) <= 3.5f).OrderByDescending(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault();
-        canNM = ActionReady(AID.NoMercy);
+        CanNM = ActionReady(AID.NoMercy);
         canBS = Unlocked(AID.BurstStrike) && Ammo > 0;
-        canGF = ActionReady(AID.GnashingFang) && Ammo > 0;
+        CanGF = ActionReady(AID.GnashingFang) && Ammo > 0;
         canFC = Unlocked(AID.FatedCircle) && Ammo > 0;
         canDD = ActionReady(AID.DoubleDown) && Ammo > 0;
         canBF = ActionReady(AID.Bloodfest);
@@ -415,7 +442,16 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                 if (ShouldUseDoubleDown(ddStrat, primaryTarget?.Actor))
                     QueueGCD(AID.DoubleDown, primaryTarget?.Actor, ddStrat is DoubleDownStrategy.Force or DoubleDownStrategy.Force1 or DoubleDownStrategy.Force2 or DoubleDownStrategy.Force3 ? GCDPriority.Forced : Ammo == 1 ? GCDPriority.VeryHigh : GCDPriority.AboveAverage);
                 if (ShouldUseGnashingFang(gfStrat, primaryTarget?.Actor))
-                    QueueGCD(AID.GnashingFang, TargetChoice(gf) ?? primaryTarget?.Actor, gfStrat is GnashingStrategy.ForceGnash or GnashingStrategy.ForceGnash1 or GnashingStrategy.ForceGnash2 or GnashingStrategy.ForceGnash3 ? GCDPriority.Forced : GCDPriority.High);
+                {
+                    if (gfStrat == GnashingStrategy.Automatic)
+                        QueueGCD(GnashingCombo, TargetChoice(gf) ?? primaryTarget?.Actor, GunComboStep is 1 or 2 ? GCDPriority.BelowAverage : GCDPriority.High);
+                    if (gfStrat is GnashingStrategy.ForceGnash or GnashingStrategy.ForceGnash1 or GnashingStrategy.ForceGnash2 or GnashingStrategy.ForceGnash3)
+                        QueueGCD(AID.GnashingFang, primaryTarget?.Actor, GCDPriority.Forced);
+                    if (gfStrat == GnashingStrategy.ForceClaw)
+                        QueueGCD(AID.SavageClaw, primaryTarget?.Actor, GCDPriority.Forced);
+                    if (gfStrat == GnashingStrategy.ForceTalon)
+                        QueueGCD(AID.WickedTalon, primaryTarget?.Actor, GCDPriority.Forced);
+                }
                 if (ShouldUseCartridges(cartStrat, primaryTarget?.Actor))
                 {
                     if (cartStrat == CartridgeStrategy.Automatic)
@@ -429,10 +465,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         }
         if (canContinue && (hasBlast || hasRaze || hasRip || hasTear || hasGouge))
             QueueOGCD(BestContinuation, TargetChoice(gf) ?? primaryTarget?.Actor, GCD < 0.5f ? OGCDPriority.Forced + 1500 : GCD is < 1.25f and >= 0.6f ? OGCDPriority.VeryHigh - 10 : OGCDPriority.BelowAverage);
-        if (GunComboStep == 1)
-            QueueGCD(AID.SavageClaw, TargetChoice(gf) ?? primaryTarget?.Actor, gfStrat is GnashingStrategy.ForceClaw ? GCDPriority.Forced : GCDPriority.BelowAverage);
-        if (GunComboStep == 2)
-            QueueGCD(AID.WickedTalon, TargetChoice(gf) ?? primaryTarget?.Actor, gfStrat is GnashingStrategy.ForceTalon ? GCDPriority.Forced : GCDPriority.BelowAverage);
         if (GunComboStep == 3)
             QueueGCD(AID.NobleBlood, TargetChoice(reign) ?? BestSplashTarget?.Actor, reignStrat is ReignStrategy.ForceNoble ? GCDPriority.Forced : GCDPriority.BelowAverage);
         if (GunComboStep == 4)
