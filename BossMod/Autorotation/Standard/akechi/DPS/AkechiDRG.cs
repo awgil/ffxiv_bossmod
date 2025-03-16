@@ -184,24 +184,17 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Rotation Helpers
-
-    #region Upgrade Paths
-    private AID BestTrueThrust => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust;
-    private AID BestDisembowel => Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel;
-    #endregion
     private AID AutoFinish => ComboLastMove switch
     {
-        AID.CoerthanTorment => AutoBreak,
         AID.SonicThrust => !Unlocked(AID.CoerthanTorment) ? AutoBreak : FullAOE,
         AID.DoomSpike or AID.DraconianFury => !Unlocked(AID.SonicThrust) ? AutoBreak : FullAOE,
-        AID.Drakesbane => AutoBreak,
         AID.WheelingThrust or AID.FangAndClaw => !Unlocked(AID.Drakesbane) ? AutoBreak : FullST,
         AID.FullThrust or AID.HeavensThrust => !Unlocked(AID.FangAndClaw) ? AutoBreak : FullST,
         AID.ChaosThrust or AID.ChaoticSpring => !Unlocked(AID.WheelingThrust) ? AutoBreak : FullST,
         AID.VorpalThrust or AID.LanceBarrage => !Unlocked(AID.FullThrust) ? AutoBreak : FullST,
         AID.Disembowel or AID.SpiralBlow => !Unlocked(AID.ChaosThrust) ? AutoBreak : FullST,
         AID.TrueThrust or AID.RaidenThrust => !Unlocked(AID.VorpalThrust) ? AutoBreak : FullST,
-        _ => AutoBreak
+        AID.CoerthanTorment or AID.Drakesbane or _ => AutoBreak
     };
     private AID AutoBreak => NeedPower ? LowLevelAOE : (ShouldUseAOE && !NeedPower ? FullAOE : ShouldUseDOT ? BuffsST : FullST);
     private AID FullST => ComboLastMove switch
@@ -242,6 +235,12 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         AID.TrueThrust or AID.RaidenThrust => BestDisembowel,
         _ => !NeedPower ? (PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike) : BestTrueThrust,
     };
+
+    #region Upgrade Paths
+    private AID BestTrueThrust => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust;
+    private AID BestDisembowel => Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel;
+    #endregion
+
     #region DOT
     private static SID[] GetDotStatus() => [SID.ChaosThrust, SID.ChaoticSpring];
     private float ChaosRemaining(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 6);
