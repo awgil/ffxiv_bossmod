@@ -224,6 +224,9 @@ class ReplayDetailsWindow : UIWindow
         ImGui.SameLine();
         if (ImGui.Button("Split"))
             SplitLog();
+        ImGui.SameLine();
+        if (ImGui.Button("Split (encounter)"))
+            IsolateEncounter();
 
         if (_showConfig)
             _config.Draw();
@@ -547,5 +550,23 @@ class ReplayDetailsWindow : UIWindow
             player.AdvanceTo(_curTime, () => { });
         using (var relogger = new ReplayRecorder(player.WorldState, ReplayLogFormat.BinaryCompressed, true, new FileInfo(_player.Replay.Path).Directory!, "After"))
             player.AdvanceTo(DateTime.MaxValue, () => { });
+    }
+
+    private void IsolateEncounter()
+    {
+        if (_player.Replay.Ops.Count == 0)
+            return;
+
+        var enc = _player.Replay.Encounters.Find(e => e.Time.Start <= _curTime && e.Time.End >= _curTime);
+        if (enc == null)
+            return;
+
+        var player = new ReplayPlayer(_player.Replay);
+        player.WorldState.Frame.Timestamp = _player.Replay.Ops[0].Timestamp;
+        player.AdvanceTo(enc.Time.Start, () => { });
+        using (var relogger = new ReplayRecorder(player.WorldState, ReplayLogFormat.BinaryCompressed, true, new FileInfo(_player.Replay.Path).Directory!, $"Split_{enc.OID}"))
+        {
+            player.AdvanceTo(enc.Time.End, () => { });
+        }
     }
 }

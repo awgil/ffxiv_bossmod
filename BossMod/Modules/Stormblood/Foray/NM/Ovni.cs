@@ -36,28 +36,7 @@ class ConcussiveOscillation(BossModule module) : Components.SelfTargetedAOEs(mod
 class VitriolicBarrage(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.VitriolicBarrage));
 class RockHard(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RockHard), 8);
 class TorrentialTorment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TorrentialTorment), new AOEShapeCone(56, 22.5f.Degrees()));
-class Fluorescence(BossModule module) : BossComponent(module)
-{
-    private bool _damageUp;
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (_damageUp && hints.FindEnemy(Module.PrimaryActor) is { } ovni)
-            ovni.ShouldBeDispelled = true;
-    }
-
-    public override void OnStatusGain(Actor actor, ActorStatus status)
-    {
-        if (status.ID == (uint)SID.DamageUp)
-            _damageUp = true;
-    }
-
-    public override void OnStatusLose(Actor actor, ActorStatus status)
-    {
-        if (status.ID == (uint)SID.DamageUp)
-            _damageUp = false;
-    }
-}
+class Fluorescence(BossModule module) : DispelComponent(module, (uint)SID.DamageUp);
 class IonShower(BossModule module) : Components.GenericStackSpread(module, alwaysShowSpreads: true, raidwideOnResolve: false)
 {
     private int _numCasts;
