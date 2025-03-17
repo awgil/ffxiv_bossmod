@@ -51,7 +51,7 @@ public class EurekaAI(RotationModuleManager manager, Actor player) : AIBase(mana
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(EurekaActionID.BloodbathL), Player, ActionQueue.Priority.Medium);
 
         if (strategy.Enabled(Track.Potion) && InEureka && Player.InCombat && Player.PredictedHPRatio < 0.75f)
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionEureka, Player, ActionQueue.Priority.Medium);
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionEureka, Player, ActionQueue.Priority.VeryLow);
     }
 
     private bool HaveLogos(EurekaActionID id) => World.Client.DutyActions.Any(d => d.Action.ID == (uint)id);
