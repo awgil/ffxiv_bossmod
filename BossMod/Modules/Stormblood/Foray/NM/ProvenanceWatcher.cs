@@ -57,7 +57,7 @@ class IceAndLevin(BossModule module) : Components.GenericAOEs(module, ActionID.M
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.IceAndLevin)
-            _aoe = new(new AOEShapeDonut(12, 40), Module.PrimaryActor.Position, Activation: Module.CastFinishAt(spell).AddSeconds(1));
+            _aoe = new(new AOEShapeDonut(11, 40), Module.PrimaryActor.Position, Activation: Module.CastFinishAt(spell).AddSeconds(1));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
