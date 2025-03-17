@@ -116,7 +116,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Priorities
-    public enum GCDPriority //priorities for GCDs (higher number = higher priority)
+    public enum NewGCDPriority //priorities for GCDs (higher number = higher priority)
     {
         None = 0,
 
@@ -155,7 +155,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         //Opener
         Opener = 1000,        //Opener
     }
-    public enum OGCDPriority //priorities for oGCDs (higher number = higher priority)
+    public enum NewOGCDPriority //priorities for oGCDs (higher number = higher priority)
     {
         None = 0,
         Transpose = 400,      //Transpose
@@ -214,6 +214,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     private float thunderLeft; //Time left on DOT effect (30s base)
     private bool canOpen; //Can use opener
     private bool ShouldUseAOE;
+    private bool ShouldUseSTDOT;
+    private bool ShouldUseAOEDOT;
     private int NumSplashTargets;
     private Enemy? BestSplashTargets;
     private Enemy? BestDOTTargets;
@@ -279,10 +281,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             StatusDetails(BestSplashTarget?.Actor, SID.HighThunder, Player.InstanceID, 30).Left,
             StatusDetails(BestSplashTarget?.Actor, SID.HighThunderII, Player.InstanceID, 24).Left);
         ShouldUseAOE = Unlocked(AID.Blizzard2) && NumSplashTargets > 2;
+        ShouldUseSTDOT = Unlocked(AID.Thunder1) && NumSplashTargets <= 2;
+        ShouldUseAOEDOT = Unlocked(AID.Thunder2) && NumSplashTargets > 2;
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
-        (BestDOTTargets, thunderLeft) = GetDOTTarget(primaryTarget, ThunderRemaining, 5);
+        (BestDOTTargets, thunderLeft) = GetDOTTarget(primaryTarget, ThunderRemaining, 2);
         BestSplashTarget = ShouldUseAOE ? BestSplashTargets : primaryTarget;
-        BestDOTTarget = Unlocked(AID.Thunder1) ? BestDOTTargets : primaryTarget;
+        BestDOTTarget = ShouldUseAOEDOT ? BestSplashTargets : ShouldUseSTDOT ? BestDOTTargets : primaryTarget;
         canOpen = TotalCD(AID.LeyLines) <= 120
                 && TotalCD(AID.Triplecast) <= 0.1f
                 && TotalCD(AID.Manafont) <= 0.1f
@@ -331,17 +335,17 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     if (Unlocked(TraitID.EnhancedPolyglot) && Polyglots > 0)
                         QueueGCD(strategy.ForceST() ? BestXenoglossy : strategy.ForceAOE() ? AID.Foul : BestPolyglot,
                                  TargetChoice(polyglot) ?? (strategy.ForceST() ? primaryTarget?.Actor : BestSplashTarget?.Actor),
-                                 GCDPriority.Moving1);
+                                 NewGCDPriority.Moving1);
 
                     if (PlayerHasEffect(SID.Firestarter, 30))
                         QueueGCD(AID.Fire3,
                                  TargetChoice(AOE) ?? primaryTarget?.Actor,
-                                 GCDPriority.Moving1);
+                                 NewGCDPriority.Moving1);
 
                     if (hasThunderhead)
                         QueueGCD(strategy.ForceST() ? BestThunderST : strategy.ForceAOE() ? BestThunderAOE : BestThunder,
                                  TargetChoice(thunder) ?? (strategy.ForceST() ? primaryTarget?.Actor : BestSplashTarget?.Actor),
-                                 GCDPriority.Moving1);
+                                 NewGCDPriority.Moving1);
                 }
             }
             if (movementStrat is MovementStrategy.Allow
@@ -351,16 +355,16 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 //OGCDs
                 if (ActionReady(AID.Swiftcast) &&
                     !PlayerHasEffect(SID.Triplecast, 15))
-                    QueueOGCD(AID.Swiftcast, Player, GCDPriority.Moving2);
+                    QueueOGCD(AID.Swiftcast, Player, NewGCDPriority.Moving2);
                 if (canTC &&
                     !PlayerHasEffect(SID.Swiftcast, 10))
-                    QueueOGCD(AID.Triplecast, Player, GCDPriority.Moving3);
+                    QueueOGCD(AID.Triplecast, Player, NewGCDPriority.Moving3);
             }
             if (movementStrat is MovementStrategy.Allow
                 or MovementStrategy.OnlyScathe)
             {
                 if (Unlocked(AID.Scathe) && MP >= 800)
-                    QueueGCD(AID.Scathe, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Moving1);
+                    QueueGCD(AID.Scathe, TargetChoice(AOE) ?? primaryTarget?.Actor, NewGCDPriority.Moving1);
             }
         }
         #endregion
@@ -376,15 +380,15 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 {
                     if (TotalCD(AID.Transpose) < 0.6f &&
                         (InAstralFire || InUmbralIce))
-                        QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose);
+                        QueueOGCD(AID.Transpose, Player, NewOGCDPriority.Transpose);
                 }
                 if (Unlocked(AID.UmbralSoul))
                 {
                     if (InAstralFire)
-                        QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose);
+                        QueueOGCD(AID.Transpose, Player, NewOGCDPriority.Transpose);
                     if (InUmbralIce &&
                         (ElementTimer <= 14 || UmbralStacks < 3 || UmbralHearts != MaxUmbralHearts))
-                        QueueGCD(AID.UmbralSoul, Player, GCDPriority.Standard);
+                        QueueGCD(AID.UmbralSoul, Player, NewGCDPriority.Standard);
                 }
             }
         }
@@ -415,19 +419,19 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         {
             if (strategy.AutoFinish() || strategy.AutoBreak())
                 QueueGCD(BestThunder,
-                    TargetChoice(thunder) ?? (ShouldUseAOE ? BestSplashTargets?.Actor : BestDOTTarget?.Actor),
-                    thunderLeft <= 3 ? GCDPriority.NeedDOT :
-                    GCDPriority.DOT);
+                    TargetChoice(thunder) ?? (ShouldUseAOE ? BestSplashTarget?.Actor : BestDOTTarget?.Actor),
+                    thunderLeft <= 3 ? NewGCDPriority.NeedDOT :
+                    NewGCDPriority.DOT);
             if (strategy.ForceST())
                 QueueGCD(BestThunderST,
                     TargetChoice(thunder) ?? BestSplashTarget?.Actor,
-                    thunderLeft <= 3 ? GCDPriority.NeedDOT :
-                    GCDPriority.DOT);
+                    thunderLeft <= 3 ? NewGCDPriority.NeedDOT :
+                    NewGCDPriority.DOT);
             if (strategy.ForceAOE())
                 QueueGCD(BestThunderAOE,
                     TargetChoice(thunder) ?? BestSplashTarget?.Actor,
-                    thunderLeft <= 3 ? GCDPriority.NeedDOT :
-                    GCDPriority.DOT);
+                    thunderLeft <= 3 ? NewGCDPriority.NeedDOT :
+                    NewGCDPriority.DOT);
         }
         //Polyglots
         if (ShouldUsePolyglot(BestSplashTarget?.Actor, polyglotStrat)) //if Polyglot should be used based on strategy
@@ -438,27 +442,27 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 or PolyglotStrategy.AutoHold3)
                 QueueGCD(BestPolyglot,
                     TargetChoice(polyglot) ?? BestSplashTarget?.Actor,
-                    polyglotStrat is PolyglotStrategy.ForceXeno ? GCDPriority.ForcedGCD
-                    : Polyglots == MaxPolyglots && EnochianTimer <= 5000 ? GCDPriority.NeedPolyglot
-                    : GCDPriority.Polyglot);
+                    polyglotStrat is PolyglotStrategy.ForceXeno ? NewGCDPriority.ForcedGCD
+                    : Polyglots == MaxPolyglots && EnochianTimer <= 5000 ? NewGCDPriority.NeedPolyglot
+                    : NewGCDPriority.Polyglot);
             if (polyglotStrat is PolyglotStrategy.XenoSpendAll
                 or PolyglotStrategy.XenoHold1
                 or PolyglotStrategy.XenoHold2
                 or PolyglotStrategy.XenoHold3)
                 QueueGCD(BestXenoglossy,
                     TargetChoice(polyglot) ?? BestSplashTarget?.Actor,
-                    polyglotStrat is PolyglotStrategy.ForceXeno ? GCDPriority.ForcedGCD
-                    : Polyglots == MaxPolyglots && EnochianTimer <= 5000 ? GCDPriority.NeedPolyglot
-                    : GCDPriority.Polyglot);
+                    polyglotStrat is PolyglotStrategy.ForceXeno ? NewGCDPriority.ForcedGCD
+                    : Polyglots == MaxPolyglots && EnochianTimer <= 5000 ? NewGCDPriority.NeedPolyglot
+                    : NewGCDPriority.Polyglot);
             if (polyglotStrat is PolyglotStrategy.FoulSpendAll
                 or PolyglotStrategy.FoulHold1
                 or PolyglotStrategy.FoulHold2
                 or PolyglotStrategy.FoulHold3)
                 QueueGCD(AID.Foul,
                     TargetChoice(polyglot) ?? BestSplashTarget?.Actor,
-                    polyglotStrat is PolyglotStrategy.ForceFoul ? GCDPriority.ForcedGCD
-                    : Polyglots == MaxPolyglots && EnochianTimer <= 5000 ? GCDPriority.NeedPolyglot
-                    : GCDPriority.Polyglot);
+                    polyglotStrat is PolyglotStrategy.ForceFoul ? NewGCDPriority.ForcedGCD
+                    : Polyglots == MaxPolyglots && EnochianTimer <= 5000 ? NewGCDPriority.NeedPolyglot
+                    : NewGCDPriority.Polyglot);
         }
         //LeyLines
         if (ShouldUseLeyLines(BestSplashTarget?.Actor, llStrat))
@@ -468,8 +472,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 or LeyLinesStrategy.Force1
                 or LeyLinesStrategy.ForceWeave1
                 or LeyLinesStrategy.ForceWeave1
-                ? OGCDPriority.ForcedOGCD
-                : OGCDPriority.LeyLines);
+                ? NewOGCDPriority.ForcedOGCD
+                : NewOGCDPriority.LeyLines);
         //Triplecast
         if (ShouldUseTriplecast(BestSplashTarget?.Actor, tcStrat))
             QueueOGCD(AID.Triplecast,
@@ -478,8 +482,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 or TriplecastStrategy.Force1
                 or TriplecastStrategy.ForceWeave
                 or TriplecastStrategy.ForceWeave1
-                ? OGCDPriority.ForcedOGCD
-                : OGCDPriority.Triplecast);
+                ? NewOGCDPriority.ForcedOGCD
+                : NewOGCDPriority.Triplecast);
         //Amplifier
         if (ShouldUseAmplifier(BestSplashTarget?.Actor, ampStrat))
             QueueOGCD(AID.Amplifier,
@@ -488,8 +492,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 or OGCDStrategy.AnyWeave
                 or OGCDStrategy.EarlyWeave
                 or OGCDStrategy.LateWeave
-                ? OGCDPriority.ForcedOGCD
-                : OGCDPriority.Amplifier);
+                ? NewOGCDPriority.ForcedOGCD
+                : NewOGCDPriority.Amplifier);
         //Manafont
         if (ShouldUseManafont(BestSplashTarget?.Actor, mfStrat))
             QueueOGCD(AID.Manafont,
@@ -498,24 +502,24 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 or ManafontStrategy.ForceWeave
                 or ManafontStrategy.ForceEX
                 or ManafontStrategy.ForceWeaveEX
-                ? OGCDPriority.ForcedOGCD
-                : OGCDPriority.Manafont);
+                ? NewOGCDPriority.ForcedOGCD
+                : NewOGCDPriority.Manafont);
         //Retrace
         //TODO: more options?
         if (ShouldUseRetrace(retraceStrat))
             QueueOGCD(AID.Retrace,
                 Player,
-                OGCDPriority.ForcedOGCD);
+                NewOGCDPriority.ForcedOGCD);
         //Between the Lines
         //TODO: Utility maybe?
         if (ShouldUseBTL(btlStrat))
             QueueOGCD(AID.BetweenTheLines,
                 Player,
-                OGCDPriority.ForcedOGCD);
+                NewOGCDPriority.ForcedOGCD);
         //Potion
         if (potionStrat is PotionStrategy.AlignWithRaidBuffs && TotalCD(AID.LeyLines) < 5 ||
             potionStrat is PotionStrategy.Immediate)
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionInt, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Potion, 0, GCD - 0.9f);
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionInt, Player, ActionQueue.Priority.VeryHigh + (int)NewOGCDPriority.Potion, 0, GCD - 0.9f);
         #endregion
 
         #endregion
@@ -542,10 +546,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 if (Unlocked(AID.Blizzard3) &&
                     MP < 9600 &&
                     Player.InCombat) //if Blizzard III is unlocked
-                    QueueGCD(AID.Blizzard3, target, GCDPriority.NeedB3); //Queue Blizzard III
+                    QueueGCD(AID.Blizzard3, target, NewGCDPriority.NeedB3); //Queue Blizzard III
                 if (Unlocked(AID.Fire3) &&
                     (TotalCD(AID.Manafont) < 5 && TotalCD(AID.LeyLines) <= 121 && MP >= 10000 || !Player.InCombat && World.Client.CountdownRemaining <= 4)) //F3 opener
-                    QueueGCD(AID.Fire3, target, canOpen ? GCDPriority.Opener : GCDPriority.NeedB3);
+                    QueueGCD(AID.Fire3, target, canOpen ? NewGCDPriority.Opener : NewGCDPriority.NeedB3);
             }
             if (Player.Level is >= 1 and <= 34)
             {
@@ -553,16 +557,16 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 if (Unlocked(AID.Fire1) && //if Fire is unlocked
                     NoStance && MP >= 800 || //if no stance is active and MP is 800 or more
                     InAstralFire && MP >= 1600) //or if Astral Fire is active and MP is 1600 or more
-                    QueueGCD(AID.Fire1, target, GCDPriority.Standard); //Queue Fire
+                    QueueGCD(AID.Fire1, target, NewGCDPriority.Standard); //Queue Fire
                 //Ice
                 //TODO: Fix Blizzard I still casting once after at 10000MP due to MP tick not counting fast enough before next cast
                 if (InUmbralIce && MP < 9500) //if Umbral Ice is active and MP is not max
-                    QueueGCD(AID.Blizzard1, target, GCDPriority.Standard); //Queue Blizzard
+                    QueueGCD(AID.Blizzard1, target, NewGCDPriority.Standard); //Queue Blizzard
                 //Transpose 
                 if (ActionReady(AID.Transpose) && //if Transpose is unlocked & off cooldown
                     InAstralFire && MP < 1600 || //if Astral Fire is active and MP is less than 1600
                     InUmbralIce && MP == 10000) //or if Umbral Ice is active and MP is max
-                    QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose); //Queue Transpose
+                    QueueOGCD(AID.Transpose, Player, NewOGCDPriority.Transpose); //Queue Transpose
 
             }
             if (Player.Level is >= 35 and <= 59)
@@ -573,30 +577,30 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     if (LastActionUsed(AID.Blizzard3)) //if Blizzard III was just used
                     {
                         if (!Unlocked(AID.Blizzard4) && UmbralStacks == 3) //if Blizzard IV is not unlocked and Umbral Ice stacks are max
-                            QueueGCD(AID.Blizzard1, target, GCDPriority.FirstStep); //Queue Blizzard I
+                            QueueGCD(AID.Blizzard1, target, NewGCDPriority.FirstStep); //Queue Blizzard I
                         if (Unlocked(AID.Blizzard4) && UmbralHearts != MaxUmbralHearts) //if Blizzard IV is unlocked and Umbral Hearts are not max
-                            QueueGCD(AID.Blizzard4, target, GCDPriority.FirstStep); //Queue Blizzard IV
+                            QueueGCD(AID.Blizzard4, target, NewGCDPriority.FirstStep); //Queue Blizzard IV
                     }
                     //Step 2 - swap from UI to AF
                     if (Unlocked(AID.Fire3) && //if Fire III is unlocked
                         LastActionUsed(AID.Blizzard1) && //and Blizzard I was just used
                         MP < 10000 && //and MP is less than max
                         Unlocked(TraitID.UmbralHeart) ? UmbralHearts == MaxUmbralHearts : UmbralHearts == 0) //and Umbral Hearts are max if unlocked, or 0 if not
-                        QueueGCD(AID.Fire3, target, LastActionUsed(AID.Blizzard1) ? GCDPriority.ForcedStep : GCDPriority.SecondStep); //Queue Fire III, increase priority if Blizzard I was just used
+                        QueueGCD(AID.Fire3, target, LastActionUsed(AID.Blizzard1) ? NewGCDPriority.ForcedStep : NewGCDPriority.SecondStep); //Queue Fire III, increase priority if Blizzard I was just used
                 }
                 if (InAstralFire) //if Astral Fire is active
                 {
                     //Step 1 - Fire 1
                     if (MP >= 1600) //if MP is 1600 or more
-                        QueueGCD(AID.Fire1, target, GCDPriority.FirstStep); //Queue Fire I
+                        QueueGCD(AID.Fire1, target, NewGCDPriority.FirstStep); //Queue Fire I
                     //Step 2B - F3P 
                     if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
                         AstralStacks == 3) //and Umbral Hearts are 0
-                        QueueGCD(AID.Fire3, target, GCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
+                        QueueGCD(AID.Fire3, target, NewGCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
                     //Step 3 - swap from AF to UI
                     if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
                         MP < 1600) //and MP is less than 400
-                        QueueGCD(AID.Blizzard3, target, GCDPriority.SecondStep); //Queue Blizzard III
+                        QueueGCD(AID.Blizzard3, target, NewGCDPriority.SecondStep); //Queue Blizzard III
                 }
             }
             if (Player.Level is >= 60 and <= 71)
@@ -606,29 +610,29 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     //Step 1 - max stacks in UI
                     if (Unlocked(AID.Blizzard4) && //if Blizzard IV is unlocked
                         LastActionUsed(AID.Blizzard3) || UmbralHearts != MaxUmbralHearts) //and Blizzard III was just used or Umbral Hearts are not max
-                        QueueGCD(AID.Blizzard4, target, GCDPriority.FirstStep); //Queue Blizzard IV
+                        QueueGCD(AID.Blizzard4, target, NewGCDPriority.FirstStep); //Queue Blizzard IV
                     //Step 2 - swap from UI to AF
                     if (Unlocked(AID.Fire3) && //if Fire III is unlocked
                         UmbralHearts == MaxUmbralHearts) //and Umbral Hearts are max
-                        QueueGCD(AID.Fire3, target, GCDPriority.SecondStep); //Queue Fire III
+                        QueueGCD(AID.Fire3, target, NewGCDPriority.SecondStep); //Queue Fire III
                 }
                 if (InAstralFire) //if Astral Fire is active
                 {
                     //Step 1-3-7 - Fire IV
                     if (MP >= 1600) //and MP is 1600 or more
-                        QueueGCD(AID.Fire4, target, GCDPriority.FirstStep); //Queue Fire IV
+                        QueueGCD(AID.Fire4, target, NewGCDPriority.FirstStep); //Queue Fire IV
                     //Step 4A - Fire 1
                     if (ElementTimer <= SpSGCDLength * 3 && //if time remaining on current element is less than 3x GCDs
                         MP >= 4000) //and MP is 4000 or more
-                        QueueGCD(AID.Fire1, target, ElementTimer <= 5 && MP >= 4000 ? GCDPriority.Paradox : GCDPriority.SecondStep); //Queue Fire I, increase priority if less than 3s left on element
+                        QueueGCD(AID.Fire1, target, ElementTimer <= 5 && MP >= 4000 ? NewGCDPriority.Paradox : NewGCDPriority.SecondStep); //Queue Fire I, increase priority if less than 3s left on element
                     //Step 4B - F3P 
                     if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
                         AstralStacks == 3) //and Umbral Hearts are 0
-                        QueueGCD(AID.Fire3, target, GCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
+                        QueueGCD(AID.Fire3, target, NewGCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
                     //Step 8 - swap from AF to UI
                     if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
                         MP < 1600) //and MP is less than 400
-                        QueueGCD(AID.Blizzard3, target, GCDPriority.ThirdStep); //Queue Blizzard III
+                        QueueGCD(AID.Blizzard3, target, NewGCDPriority.ThirdStep); //Queue Blizzard III
                 }
             }
             if (Player.Level is >= 72 and <= 89)
@@ -638,33 +642,33 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     //Step 1 - max stacks in UI
                     if (Unlocked(AID.Blizzard4) && //if Blizzard IV is unlocked
                         LastActionUsed(AID.Blizzard3) || UmbralHearts != MaxUmbralHearts) //and Blizzard III was just used or Umbral Hearts are not max
-                        QueueGCD(AID.Blizzard4, target, GCDPriority.FirstStep); //Queue Blizzard IV
+                        QueueGCD(AID.Blizzard4, target, NewGCDPriority.FirstStep); //Queue Blizzard IV
                     //Step 2 - swap from UI to AF
                     if (Unlocked(AID.Fire3) && //if Fire III is unlocked
                         UmbralHearts == MaxUmbralHearts) //and Umbral Hearts are max
-                        QueueGCD(AID.Fire3, target, GCDPriority.SecondStep); //Queue Fire III
+                        QueueGCD(AID.Fire3, target, NewGCDPriority.SecondStep); //Queue Fire III
                 }
                 if (InAstralFire) //if Astral Fire is active
                 {
                     //Step 1-3-7 - Fire IV
                     if (MP >= 1600) //and MP is 1600 or more
-                        QueueGCD(AID.Fire4, target, GCDPriority.FirstStep); //Queue Fire IV
+                        QueueGCD(AID.Fire4, target, NewGCDPriority.FirstStep); //Queue Fire IV
                     //Step 4A - Fire 1
                     if (ElementTimer <= GetCastTime(AID.Fire1) * 3 && //if time remaining on current element is less than 3x GCDs
                         MP >= 4000) //and MP is 4000 or more
-                        QueueGCD(AID.Fire1, target, ElementTimer <= GetCastTime(AID.Fire1) * 3 && MP >= 4000 ? GCDPriority.Paradox : GCDPriority.SecondStep); //Queue Fire I, increase priority if less than 3s left on element
+                        QueueGCD(AID.Fire1, target, ElementTimer <= GetCastTime(AID.Fire1) * 3 && MP >= 4000 ? NewGCDPriority.Paradox : NewGCDPriority.SecondStep); //Queue Fire I, increase priority if less than 3s left on element
                     //Step 4B - F3P 
                     if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
                         AstralStacks == 3) //and Umbral Hearts are 0
-                        QueueGCD(AID.Fire3, target, GCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
+                        QueueGCD(AID.Fire3, target, NewGCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
                     //Step 8 - Despair 
                     if (Unlocked(AID.Despair) && //if Despair is unlocked
                         (MP is < 1600 and >= 800 || //if MP is less than 1600 and not 0
                         MP is <= 4000 and >= 800 && ElementTimer <= GetCastTime(AID.Despair) * 2)) //or if we dont have enough time for last F4s
-                        QueueGCD(AID.Despair, target, ElementTimer <= GetCastTime(AID.Despair) * 2 ? GCDPriority.ForcedGCD : GCDPriority.ThirdStep); //Queue Despair
+                        QueueGCD(AID.Despair, target, ElementTimer <= GetCastTime(AID.Despair) * 2 ? NewGCDPriority.ForcedGCD : NewGCDPriority.ThirdStep); //Queue Despair
                     //Step 9 - swap from AF to UI 
                     if (MP <= 400) //and MP is less than 400
-                        QueueGCD(AID.Blizzard3, target, GCDPriority.FourthStep); //Queue Blizzard III
+                        QueueGCD(AID.Blizzard3, target, NewGCDPriority.FourthStep); //Queue Blizzard III
                 }
             }
             if (Player.Level is >= 90 and <= 99)
@@ -674,39 +678,39 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     //Step 1 - max stacks in UI
                     if (Unlocked(AID.Blizzard4) && //if Blizzard IV is unlocked
                         LastActionUsed(AID.Blizzard3) || UmbralHearts != MaxUmbralHearts) //and Blizzard III was just used or Umbral Hearts are not max
-                        QueueGCD(AID.Blizzard4, target, GCDPriority.FirstStep); //Queue Blizzard IV
+                        QueueGCD(AID.Blizzard4, target, NewGCDPriority.FirstStep); //Queue Blizzard IV
                     //Step 2 - Ice Paradox
                     if (canParadox && //if Paradox is unlocked and Paradox is active
                         LastActionUsed(AID.Blizzard4)) //and Blizzard IV was just used
-                        QueueGCD(AID.Paradox, target, GCDPriority.SecondStep); //Queue Paradox
+                        QueueGCD(AID.Paradox, target, NewGCDPriority.SecondStep); //Queue Paradox
                     //Step 3 - swap from UI to AF
                     if (Unlocked(AID.Fire3) && //if Fire III is unlocked
                         UmbralHearts == MaxUmbralHearts) //and Umbral Hearts are max
-                        QueueGCD(AID.Fire3, target, GCDPriority.ThirdStep); //Queue Fire III
+                        QueueGCD(AID.Fire3, target, NewGCDPriority.ThirdStep); //Queue Fire III
                 }
                 if (InAstralFire) //if Astral Fire is active
                 {
                     //Step 1-4, 6 & 7 - Fire IV
                     if (MP >= 1600) //and MP is 1600 or more
-                        QueueGCD(AID.Fire4, target, GCDPriority.FirstStep); //Queue Fire IV
+                        QueueGCD(AID.Fire4, target, NewGCDPriority.FirstStep); //Queue Fire IV
                     //Step 5A - Paradox
                     if (canParadox && //if Paradox is unlocked and Paradox is active
                         ElementTimer < SpSGCDLength * 3 && //and time remaining on current element is less than 3x GCDs
                         MP >= 1600) //and MP is 1600 or more
-                        QueueGCD(AID.Paradox, target, ElementTimer <= 3 ? GCDPriority.Paradox : GCDPriority.SecondStep); //Queue Paradox, increase priority if less than 3s left on element
+                        QueueGCD(AID.Paradox, target, ElementTimer <= 3 ? NewGCDPriority.Paradox : NewGCDPriority.SecondStep); //Queue Paradox, increase priority if less than 3s left on element
                     //Step 4B - F3P 
                     if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
                         AstralStacks == 3) //and Umbral Hearts are 0
-                        QueueGCD(AID.Fire3, target, GCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
+                        QueueGCD(AID.Fire3, target, NewGCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
                     //Step 8 - Despair 
                     if (Unlocked(AID.Despair) && //if Despair is unlocked
                         (MP is < 1600 and >= 800 || //if MP is less than 1600 and not 0
                         MP is <= 4000 and >= 800 && ElementTimer <= GetCastTime(AID.Despair) * 2)) //or if we dont have enough time for last F4s
-                        QueueGCD(AID.Despair, target, ElementTimer <= GetCastTime(AID.Despair) * 2 ? GCDPriority.ForcedGCD : GCDPriority.ThirdStep); //Queue Despair
+                        QueueGCD(AID.Despair, target, ElementTimer <= GetCastTime(AID.Despair) * 2 ? NewGCDPriority.ForcedGCD : NewGCDPriority.ThirdStep); //Queue Despair
                     //Step 9 - swap from AF to UI
                     if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
                         MP <= 400) //and MP is less than 400
-                        QueueGCD(AID.Blizzard3, target, GCDPriority.FourthStep); //Queue Blizzard III
+                        QueueGCD(AID.Blizzard3, target, NewGCDPriority.FourthStep); //Queue Blizzard III
                 }
             }
             if (Player.Level is 100)
@@ -716,48 +720,48 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     //Step 1 - max stacks in UI
                     if (Unlocked(AID.Blizzard4) && //if Blizzard IV is unlocked
                         LastActionUsed(AID.Blizzard3) || UmbralHearts != MaxUmbralHearts) //and Blizzard III was just used or Umbral Hearts are not max
-                        QueueGCD(AID.Blizzard4, target, GCDPriority.FirstStep); //Queue Blizzard IV
+                        QueueGCD(AID.Blizzard4, target, NewGCDPriority.FirstStep); //Queue Blizzard IV
                     //Step 2 - Ice Paradox
                     if (canParadox && //if Paradox is unlocked and Paradox is active
                         LastActionUsed(AID.Blizzard4)) //and Blizzard IV was just used
-                        QueueGCD(AID.Paradox, target, GCDPriority.SecondStep); //Queue Paradox
+                        QueueGCD(AID.Paradox, target, NewGCDPriority.SecondStep); //Queue Paradox
                     //Step 3 - swap from UI to AF
                     if (Unlocked(AID.Fire3) && //if Fire III is unlocked
                         UmbralHearts == MaxUmbralHearts) //and Umbral Hearts are max
-                        QueueGCD(AID.Fire3, target, GCDPriority.ThirdStep); //Queue Fire III
+                        QueueGCD(AID.Fire3, target, NewGCDPriority.ThirdStep); //Queue Fire III
                 }
                 if (InAstralFire) //if Astral Fire is active
                 {
                     //Step 1-4, 6 & 7 - Fire IV
                     if (AstralSoulStacks != 6 && //and Astral Soul stacks are not max
                         MP >= 1600) //and MP is 1600 or more
-                        QueueGCD(AID.Fire4, target, GCDPriority.FirstStep); //Queue Fire IV
+                        QueueGCD(AID.Fire4, target, NewGCDPriority.FirstStep); //Queue Fire IV
                     //Step 5A - Paradox
                     if (ParadoxActive && //if Paradox is active
                         ElementTimer < SpSGCDLength * 3 && //and time remaining on current element is less than 3x GCDs
                         MP >= 1600) //and MP is 1600 or more
-                        QueueGCD(AID.Paradox, target, ElementTimer <= 3 ? GCDPriority.Paradox : GCDPriority.SecondStep); //Queue Paradox, increase priority if less than 3s left on element
+                        QueueGCD(AID.Paradox, target, ElementTimer <= 3 ? NewGCDPriority.Paradox : NewGCDPriority.SecondStep); //Queue Paradox, increase priority if less than 3s left on element
                     //Step 4B - F3P 
                     if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
                         AstralStacks == 3) //and Umbral Hearts are 0
-                        QueueGCD(AID.Fire3, target, GCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
+                        QueueGCD(AID.Fire3, target, NewGCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
                     //Step 8 - Despair
                     if (Unlocked(AID.Despair) &&
                         (MP is < 1600 and not 0 || MP <= 1600 && ElementTimer <= 4)) //if MP is less than 1600 and not 0
-                        QueueGCD(AID.Despair, target, MP <= 1600 && ElementTimer <= 4 ? GCDPriority.NeedPolyglot : GCDPriority.ThirdStep); //Queue Despair
+                        QueueGCD(AID.Despair, target, MP <= 1600 && ElementTimer <= 4 ? NewGCDPriority.NeedPolyglot : NewGCDPriority.ThirdStep); //Queue Despair
                     //Step 9 - Flare Star
                     if (AstralSoulStacks == 6) //if Astral Soul stacks are max
-                        QueueGCD(AID.FlareStar, target, GCDPriority.FourthStep); //Queue Flare Star
+                        QueueGCD(AID.FlareStar, target, NewGCDPriority.FourthStep); //Queue Flare Star
                     //Step 10A - skip Flare Star if we cant use it (cryge)
                     if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
                         MP <= 400 && //and MP is less than 400
                         AstralSoulStacks is < 6 and > 0) //and Astral Soul stacks are less than 6 but greater than 0
-                        QueueGCD(AID.Blizzard3, target, GCDPriority.FifthStep); //Queue Blizzard III
+                        QueueGCD(AID.Blizzard3, target, NewGCDPriority.FifthStep); //Queue Blizzard III
                     //Step 10B - swap from AF to UI
                     if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
                         MP <= 400 && //and MP is less than 400
                         AstralSoulStacks == 0) //and Astral Soul stacks are 0
-                        QueueGCD(AID.Blizzard3, target, GCDPriority.FifthStep); //Queue Blizzard III
+                        QueueGCD(AID.Blizzard3, target, NewGCDPriority.FifthStep); //Queue Blizzard III
                 }
             }
         }
@@ -771,16 +775,16 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 if (Unlocked(AID.Blizzard2) && !Unlocked(AID.HighBlizzard2))
                 {
                     if (MP >= 10000)
-                        QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
+                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.NeedB3);
                     if (MP < 10000 && Player.InCombat)
-                        QueueGCD(AID.Blizzard2, target, GCDPriority.NeedB3);
+                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.NeedB3);
                 }
                 if (Unlocked(AID.HighBlizzard2))
                 {
                     if (MP >= 10000)
-                        QueueGCD(AID.HighBlizzard2, target, GCDPriority.NeedB3);
+                        QueueGCD(AID.HighBlizzard2, target, NewGCDPriority.NeedB3);
                     if (MP < 10000 && Player.InCombat)
-                        QueueGCD(AID.HighBlizzard2, target, GCDPriority.NeedB3);
+                        QueueGCD(AID.HighBlizzard2, target, NewGCDPriority.NeedB3);
                 }
             }
             if (Player.Level is >= 12 and <= 35)
@@ -788,20 +792,20 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 //Fire
                 if (Unlocked(AID.Fire2) && //if Fire is unlocked
                     InAstralFire && MP >= 3000) //or if Astral Fire is active and MP is 1600 or more
-                    QueueGCD(AID.Fire2, target, GCDPriority.Standard); //Queue Fire II
+                    QueueGCD(AID.Fire2, target, NewGCDPriority.Standard); //Queue Fire II
                 //Ice
                 //TODO: MP tick is not fast enough before next cast, this will cause an extra unnecessary cast
                 if (InUmbralIce &&
                     MP <= 9600)
-                    QueueGCD(AID.Blizzard2, target, GCDPriority.Standard); //Queue Blizzard II
+                    QueueGCD(AID.Blizzard2, target, NewGCDPriority.Standard); //Queue Blizzard II
                 //Transpose 
                 if (ActionReady(AID.Transpose) && //if Transpose is unlocked & off cooldown
                     (InAstralFire && MP < 3000 || //if Astral Fire is active and MP is less than 1600
                     InUmbralIce && MP > 9600)) //or if Umbral Ice is active and MP is max
-                    QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose); //Queue Transpose
+                    QueueOGCD(AID.Transpose, Player, NewOGCDPriority.Transpose); //Queue Transpose
                 //if in AF but no F2 yet, TP back to UI for B2 spam
                 if (InAstralFire && !Unlocked(AID.Fire2))
-                    QueueOGCD(AID.Transpose, Player, OGCDPriority.Transpose);
+                    QueueOGCD(AID.Transpose, Player, NewOGCDPriority.Transpose);
             }
             if (Player.Level is >= 35 and <= 39)
             {
@@ -811,20 +815,20 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     //TODO: MP tick is not fast enough before next cast, this will cause an extra unnecessary cast
                     if (Unlocked(AID.Blizzard2) &&
                         MP < 9600)
-                        QueueGCD(AID.Blizzard2, target, GCDPriority.FirstStep);
+                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.FirstStep);
                     //Step 2 - swap from UI to AF
                     if (Unlocked(AID.Fire2) &&
                         MP >= 9600 &&
                         UmbralStacks == 3)
-                        QueueGCD(AID.Fire2, target, GCDPriority.SecondStep);
+                        QueueGCD(AID.Fire2, target, NewGCDPriority.SecondStep);
                 }
                 if (InAstralFire)
                 {
                     if (MP >= 3000)
-                        QueueGCD(AID.Fire2, target, GCDPriority.FirstStep);
+                        QueueGCD(AID.Fire2, target, NewGCDPriority.FirstStep);
                     if (Unlocked(AID.Blizzard2) &&
                         MP < 3000)
-                        QueueGCD(AID.Blizzard2, target, GCDPriority.SecondStep);
+                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.SecondStep);
                 }
             }
             if (Player.Level is >= 40 and <= 49)
@@ -834,24 +838,24 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     //Step 1 - max stacks in UI
                     if (Unlocked(AID.Blizzard2) &&
                         UmbralStacks < 3)
-                        QueueGCD(AID.Blizzard2, target, GCDPriority.FirstStep);
+                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.FirstStep);
                     //Step 2 - Freeze
                     if (Unlocked(AID.Freeze) && !LastActionUsed(AID.Freeze) &&
                         (LastActionUsed(AID.Blizzard2) || MP < 10000))
-                        QueueGCD(AID.Freeze, target, GCDPriority.SecondStep);
+                        QueueGCD(AID.Freeze, target, NewGCDPriority.SecondStep);
                     //Step 3 - swap from UI to AF
                     if (Unlocked(AID.Fire2) &&
                         MP >= 10000 &&
                         UmbralStacks == 3)
-                        QueueGCD(AID.Fire2, target, GCDPriority.ThirdStep);
+                        QueueGCD(AID.Fire2, target, NewGCDPriority.ThirdStep);
                 }
                 if (InAstralFire)
                 {
                     if (MP >= 3000)
-                        QueueGCD(AID.Fire2, target, GCDPriority.FirstStep);
+                        QueueGCD(AID.Fire2, target, NewGCDPriority.FirstStep);
                     if (Unlocked(AID.Blizzard2) &&
                         MP < 3000)
-                        QueueGCD(AID.Blizzard2, target, GCDPriority.SecondStep);
+                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.SecondStep);
                 }
             }
             if (Player.Level is >= 50 and <= 57)
@@ -861,31 +865,31 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     //Step 1 - max stacks in UI
                     if (Unlocked(AID.Blizzard2) &&
                         UmbralStacks < 3)
-                        QueueGCD(AID.Blizzard2, target, GCDPriority.FirstStep);
+                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.FirstStep);
                     //Step 2 - Freeze
                     if (Unlocked(AID.Freeze) && !LastActionUsed(AID.Freeze) &&
                         (LastActionUsed(AID.Blizzard2) || MP < 10000))
-                        QueueGCD(AID.Freeze, target, GCDPriority.SecondStep);
+                        QueueGCD(AID.Freeze, target, NewGCDPriority.SecondStep);
                     //Step 3 - swap from UI to AF
                     if (Unlocked(AID.Fire2) &&
                         MP >= 10000 &&
                         UmbralStacks == 3)
-                        QueueGCD(AID.Fire2, target, GCDPriority.ThirdStep);
+                        QueueGCD(AID.Fire2, target, NewGCDPriority.ThirdStep);
                 }
                 if (InAstralFire)
                 {
                     //Step 1 - spam Fire 2
                     if (MP >= 3000)
-                        QueueGCD(AID.Fire2, target, GCDPriority.FirstStep);
+                        QueueGCD(AID.Fire2, target, NewGCDPriority.FirstStep);
                     //Step 2 - Flare
                     if (Unlocked(AID.Flare) &&
                         MP < 3000)
-                        QueueGCD(AID.Flare, target, GCDPriority.SecondStep);
+                        QueueGCD(AID.Flare, target, NewGCDPriority.SecondStep);
                     //Step 3 - swap from AF to UI
                     if (Unlocked(AID.Blizzard2) &&
                         !Unlocked(AID.Flare) && MP < 3000 || //do your job quests, fool
                         Unlocked(AID.Flare) && MP < 400)
-                        QueueGCD(AID.Blizzard2, target, MP < 400 ? GCDPriority.ForcedStep : GCDPriority.ThirdStep);
+                        QueueGCD(AID.Blizzard2, target, MP < 400 ? NewGCDPriority.ForcedStep : NewGCDPriority.ThirdStep);
                 }
             }
             if (Player.Level is >= 58 and <= 81)
@@ -895,37 +899,37 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     //Step 1 - max stacks in UI
                     if (Unlocked(AID.Blizzard2) &&
                         UmbralStacks < 3)
-                        QueueGCD(AID.Blizzard2, target, GCDPriority.FirstStep);
+                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.FirstStep);
                     //Step 2 - Freeze
                     if (Unlocked(AID.Freeze) && !LastActionUsed(AID.Freeze) &&
                         (LastActionUsed(AID.Blizzard2) || MP < 10000))
-                        QueueGCD(AID.Freeze, target, GCDPriority.SecondStep);
+                        QueueGCD(AID.Freeze, target, NewGCDPriority.SecondStep);
                     //Step 3 - swap from UI to AF
                     if (Unlocked(AID.Fire2) &&
                         MP >= 10000 &&
                         UmbralStacks == 3)
-                        QueueGCD(AID.Fire2, target, GCDPriority.ThirdStep);
+                        QueueGCD(AID.Fire2, target, NewGCDPriority.ThirdStep);
                 }
                 if (InAstralFire)
                 {
                     //Step 1 - spam Fire 2
                     if (UmbralHearts > 1)
-                        QueueGCD(AID.Fire2, target, GCDPriority.FirstStep);
+                        QueueGCD(AID.Fire2, target, NewGCDPriority.FirstStep);
                     //Step 2 - Flare
                     if (Unlocked(AID.Flare))
                     {
                         //first cast
                         if (UmbralHearts == 1)
-                            QueueGCD(AID.Flare, target, GCDPriority.SecondStep);
+                            QueueGCD(AID.Flare, target, NewGCDPriority.SecondStep);
                         //second cast
                         if (UmbralHearts == 0 &&
                             MP >= 800)
-                            QueueGCD(AID.Flare, target, GCDPriority.ThirdStep);
+                            QueueGCD(AID.Flare, target, NewGCDPriority.ThirdStep);
                     }
                     //Step 3 - swap from AF to UI
                     if (Unlocked(AID.Blizzard2) &&
                         MP < 400)
-                        QueueGCD(AID.Blizzard2, target, GCDPriority.FourthStep);
+                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.FourthStep);
                 }
             }
             if (Player.Level is >= 82 and <= 99)
@@ -935,37 +939,37 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     //Step 1 - max stacks in UI
                     if (Unlocked(AID.HighBlizzard2) &&
                         UmbralStacks < 3)
-                        QueueGCD(AID.HighBlizzard2, target, GCDPriority.FirstStep);
+                        QueueGCD(AID.HighBlizzard2, target, NewGCDPriority.FirstStep);
                     //Step 2 - Freeze
                     if (Unlocked(AID.Freeze) && !LastActionUsed(AID.Freeze) &&
                         (LastActionUsed(AID.HighBlizzard2) || MP < 10000))
-                        QueueGCD(AID.Freeze, target, GCDPriority.SecondStep);
+                        QueueGCD(AID.Freeze, target, NewGCDPriority.SecondStep);
                     //Step 3 - swap from UI to AF
                     if (Unlocked(AID.HighFire2) &&
                         MP >= 10000 &&
                         UmbralStacks == 3)
-                        QueueGCD(AID.HighFire2, target, GCDPriority.ThirdStep);
+                        QueueGCD(AID.HighFire2, target, NewGCDPriority.ThirdStep);
                 }
                 if (InAstralFire)
                 {
                     //Step 1 - spam Fire 2
                     if (MP > 5500)
-                        QueueGCD(AID.HighFire2, target, GCDPriority.FirstStep);
+                        QueueGCD(AID.HighFire2, target, NewGCDPriority.FirstStep);
                     //Step 2 - Flare
                     if (Unlocked(AID.Flare))
                     {
                         //first cast
                         if (UmbralHearts == 1)
-                            QueueGCD(AID.Flare, target, GCDPriority.SecondStep);
+                            QueueGCD(AID.Flare, target, NewGCDPriority.SecondStep);
                         //second cast
                         if (UmbralHearts == 0 &&
                             MP >= 800)
-                            QueueGCD(AID.Flare, target, GCDPriority.ThirdStep);
+                            QueueGCD(AID.Flare, target, NewGCDPriority.ThirdStep);
                     }
                     //Step 3 - swap from AF to UI
                     if (Unlocked(AID.HighBlizzard2) &&
                         MP < 400)
-                        QueueGCD(AID.HighBlizzard2, target, GCDPriority.ThirdStep);
+                        QueueGCD(AID.HighBlizzard2, target, NewGCDPriority.ThirdStep);
                 }
             }
             if (Player.Level is 100)
@@ -975,37 +979,41 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     //Step 1 - max stacks in UI
                     if (Unlocked(AID.HighBlizzard2) &&
                         UmbralStacks < 3)
-                        QueueGCD(AID.HighBlizzard2, target, GCDPriority.FirstStep);
+                        QueueGCD(AID.HighBlizzard2, target, NewGCDPriority.FirstStep);
                     //Step 2 - Freeze
                     if (Unlocked(AID.Freeze) && !LastActionUsed(AID.Freeze) &&
                         (LastActionUsed(AID.HighBlizzard2) || MP < 10000))
-                        QueueGCD(AID.Freeze, target, GCDPriority.SecondStep);
+                        QueueGCD(AID.Freeze, target, NewGCDPriority.SecondStep);
                     //Step 3 - swap from UI to AF
                     if (Unlocked(AID.HighFire2) &&
                         MP >= 10000 &&
                         UmbralStacks == 3)
-                        QueueGCD(AID.HighFire2, target, GCDPriority.ThirdStep);
+                        QueueGCD(AID.HighFire2, target, NewGCDPriority.ThirdStep);
                 }
                 if (InAstralFire)
                 {
+                    //Step 0 - if forced over from ST
+                    if (Unlocked(AID.HighFire2) &&
+                        MP >= 8001)
+                        QueueGCD(AID.HighFire2, target, NewGCDPriority.FirstStep);
                     //Step 1 - Flare
                     if (Unlocked(AID.Flare))
                     {
                         //first cast
                         if (UmbralHearts == 1)
-                            QueueGCD(AID.Flare, target, GCDPriority.FirstStep);
+                            QueueGCD(AID.Flare, target, NewGCDPriority.FirstStep);
                         //second cast
                         if (UmbralHearts == 0 &&
                             MP >= 800)
-                            QueueGCD(AID.Flare, target, GCDPriority.SecondStep);
+                            QueueGCD(AID.Flare, target, NewGCDPriority.SecondStep);
                     }
                     //Step 2 - Flare Star
                     if (AstralSoulStacks == 6) //if Astral Soul stacks are max
-                        QueueGCD(AID.FlareStar, target, GCDPriority.ThirdStep); //Queue Flare Star
+                        QueueGCD(AID.FlareStar, target, NewGCDPriority.ThirdStep); //Queue Flare Star
                     //Step 3 - swap from AF to UI
                     if (Unlocked(AID.HighBlizzard2) &&
                         MP < 400)
-                        QueueGCD(AID.HighBlizzard2, target, GCDPriority.FourthStep);
+                        QueueGCD(AID.HighBlizzard2, target, NewGCDPriority.FourthStep);
                 }
             }
         }

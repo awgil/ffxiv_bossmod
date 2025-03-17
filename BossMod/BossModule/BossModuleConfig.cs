@@ -33,6 +33,10 @@ public class BossModuleConfig : ConfigNode
     [PropertySlider(0.1f, 10, Speed = 0.1f, Logarithmic = true)]
     public float ArenaScale = 1;
 
+    [PropertyDisplay("Radar element thickness scale factor", tooltip: "Globally scales the outline thickness of radar elements")]
+    [PropertySlider(0.1f, 10, Speed = 0.1f, Logarithmic = true)]
+    public float ThicknessScale = 1;
+
     [PropertyDisplay("Rotate radar to match camera orientation")]
     public bool RotateArena = true;
 
