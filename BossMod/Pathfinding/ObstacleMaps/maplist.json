@@ -3156,6 +3156,19 @@
       "ViewWidth": 60,
       "ViewHeight": 60,
       "Filename": "827.639.1.bmp"
+    },
+    {
+      "MinBoundsX": -318.5,
+      "MinBoundsY": -50,
+      "MinBoundsZ": 93,
+      "MaxBoundsX": 158.5,
+      "MaxBoundsY": 118.5,
+      "MaxBoundsZ": 901,
+      "OriginX": -318.5,
+      "OriginZ": 93,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "827.639.2.bmp"
     }
   ],
   "1242.1008": [

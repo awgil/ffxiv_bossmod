@@ -77,7 +77,12 @@ public class TrackPartyHealth(WorldState World)
             if (act == null || !filter(act))
                 continue;
 
+            // player has tank invuln/excog/etc, skip them
             if (p.NoHealStatusRemaining > 1.5f && p.DoomRemaining == 0)
+                continue;
+
+            // no amount of healing can save player, skip them
+            if (act.PendingHPDifferences.Any(p => -p.Value >= act.HPMP.MaxHP))
                 continue;
 
             var pred = p.DoomRemaining > 0 ? 0 : p.PredictedHPRatio;

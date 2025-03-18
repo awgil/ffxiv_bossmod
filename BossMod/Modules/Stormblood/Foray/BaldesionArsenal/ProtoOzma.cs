@@ -180,6 +180,8 @@ class StarAutos(BossModule module) : Components.GenericStackSpread(module)
     }
 }
 
+/*
+// TODO make this work better, the targeted tank is just whoever is on platform with highest enmity and may not be in the party, meaning we draw a phony bait on the party's tank(s) and fuck up positioning
 class CubeAutos(BossModule module) : Components.GenericBaitAway(module)
 {
     private bool Enabled;
@@ -208,6 +210,7 @@ class CubeAutos(BossModule module) : Components.GenericBaitAway(module)
         }
     }
 }
+*/
 
 class AccelerationBomb(BossModule module) : Components.StayMove(module)
 {
@@ -325,7 +328,7 @@ class ProtoOzmaStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<StarAutos>()
-            .ActivateOnEnter<CubeAutos>()
+            //.ActivateOnEnter<CubeAutos>()
             .ActivateOnEnter<MourningStar>()
             .ActivateOnEnter<ShootingStar>()
             .ActivateOnEnter<Execration>()
