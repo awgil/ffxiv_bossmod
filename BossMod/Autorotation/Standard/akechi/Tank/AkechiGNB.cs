@@ -9,18 +9,19 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { AOE, Cooldowns, Cartridges, Potion, LightningShot, NoMercy, SonicBreak, GnashingFang, Reign, Bloodfest, DoubleDown, Zone, BowShock }
+    public enum Track { AOE, Cooldowns, Cartridges, Potion, LightningShot, Zone, NoMercy, SonicBreak, GnashingFang, BowShock, Continuation, Bloodfest, DoubleDown, Reign, }
     public enum AOEStrategy { AutoFinish, AutoBreak, ForceSTwithO, ForceSTwithoutO, ForceAOEwithO, ForceAOEwithoutO }
     public enum CooldownStrategy { Allow, Forbid }
     public enum CartridgeStrategy { Automatic, OnlyBS, OnlyFC, ForceBS, ForceBS1, ForceBS2, ForceBS3, ForceFC, ForceFC1, ForceFC2, ForceFC3, Conserve }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
     public enum LightningShotStrategy { OpenerFar, OpenerForce, Force, Allow, Forbid }
-    public enum NoMercyStrategy { Automatic, Force, ForceW, ForceQW, Force1, Force1W, Force1QW, Force2, Force2W, Force2QW, Force3, Force3W, Force3QW, Delay }
+    public enum NoMercyStrategy { Automatic, BurstReady, Force, ForceW, ForceQW, Force1, Force1W, Force1QW, Force2, Force2W, Force2QW, Force3, Force3W, Force3QW, Delay }
     public enum SonicBreakStrategy { Automatic, Force, Early, Late, Delay }
     public enum GnashingStrategy { Automatic, ForceGnash, ForceGnash1, ForceGnash2, ForceGnash3, ForceClaw, ForceTalon, Delay }
-    public enum ReignStrategy { Automatic, ForceReign, ForceNoble, ForceLion, Delay }
+    public enum ContinuationStrategy { Automatic, Early, Late }
     public enum BloodfestStrategy { Automatic, Force, ForceW, Force0, Force0W, Delay }
     public enum DoubleDownStrategy { Automatic, Force, Force1, Force2, Force3, Delay }
+    public enum ReignStrategy { Automatic, ForceReign, ForceNoble, ForceLion, Delay }
     #endregion
 
     #region Module Definitions
@@ -42,15 +43,15 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         res.Define(Track.Cartridges).As<CartridgeStrategy>("Cartridges", "Carts", uiPriority: 180)
             .AddOption(CartridgeStrategy.Automatic, "Automatic", "Automatically decide when to use cartridges; uses them optimally")
             .AddOption(CartridgeStrategy.OnlyBS, "Only Burst Strike", "Uses Burst Strike optimally as cartridge spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 30)
-            .AddOption(CartridgeStrategy.OnlyFC, "Only Fated Circle", "Uses Fated Circle optimally as cartridge spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 72)
+            .AddOption(CartridgeStrategy.OnlyFC, "Only Fated Circle", "Uses Fated Circle optimally as cartridge spender only, regardless of targets", 0, 0, ActionTargets.Self, 72)
             .AddOption(CartridgeStrategy.ForceBS, "Force Burst Strike", "Force use of Burst Strike regardless of cartridge count", 0, 0, ActionTargets.Hostile, 30)
             .AddOption(CartridgeStrategy.ForceBS1, "Force Burst Strike (1 cart)", "Force use of Burst Strike when only 1 cartridge is available", 0, 0, ActionTargets.Hostile, 30)
             .AddOption(CartridgeStrategy.ForceBS2, "Force Burst Strike (2 cart)", "Force use of Burst Strike when only 2 cartridges are available", 0, 0, ActionTargets.Hostile, 30)
             .AddOption(CartridgeStrategy.ForceBS3, "Force Burst Strike (3 cart)", "Force use of Burst Strike when only 3 cartridges are available", 0, 0, ActionTargets.Hostile, 30)
-            .AddOption(CartridgeStrategy.ForceFC, "Force Fated Circle", "Force use of Fated Circle when any cartridges are available", 0, 0, ActionTargets.Hostile, 72)
-            .AddOption(CartridgeStrategy.ForceFC1, "Force Fated Circle (1 cart)", "Force use of Fated Circle when only 1 cartridge is available", 0, 0, ActionTargets.Hostile, 72)
-            .AddOption(CartridgeStrategy.ForceFC2, "Force Fated Circle (2 cart)", "Force use of Fated Circle when only 2 cartridges are available", 0, 0, ActionTargets.Hostile, 72)
-            .AddOption(CartridgeStrategy.ForceFC3, "Force Fated Circle (3 cart)", "Force use of Fated Circle when only 3 cartridges are available", 0, 0, ActionTargets.Hostile, 72)
+            .AddOption(CartridgeStrategy.ForceFC, "Force Fated Circle", "Force use of Fated Circle when any cartridges are available", 0, 0, ActionTargets.Self, 72)
+            .AddOption(CartridgeStrategy.ForceFC1, "Force Fated Circle (1 cart)", "Force use of Fated Circle when only 1 cartridge is available", 0, 0, ActionTargets.Self, 72)
+            .AddOption(CartridgeStrategy.ForceFC2, "Force Fated Circle (2 cart)", "Force use of Fated Circle when only 2 cartridges are available", 0, 0, ActionTargets.Self, 72)
+            .AddOption(CartridgeStrategy.ForceFC3, "Force Fated Circle (3 cart)", "Force use of Fated Circle when only 3 cartridges are available", 0, 0, ActionTargets.Self, 72)
             .AddOption(CartridgeStrategy.Conserve, "Conserve", "Forbid use of Burst Strike & Fated Circle", 0, 0, ActionTargets.None, 30)
             .AddAssociatedActions(AID.BurstStrike, AID.FatedCircle);
         res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 90)
@@ -65,8 +66,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddOption(LightningShotStrategy.Allow, "Allow", "Allow use of Lightning Shot when out of melee range", supportedTargets: ActionTargets.Hostile)
             .AddOption(LightningShotStrategy.Forbid, "Forbid", "Prohibit use of Lightning Shot")
             .AddAssociatedActions(AID.LightningShot);
+        res.DefineOGCD(Track.Zone, AID.DangerZone, "Zone", "Zone", uiPriority: 135, 30, 0, ActionTargets.Hostile, 18).AddAssociatedActions(AID.BlastingZone, AID.DangerZone);
         res.Define(Track.NoMercy).As<NoMercyStrategy>("No Mercy", "N.Mercy", uiPriority: 160)
             .AddOption(NoMercyStrategy.Automatic, "Auto", "Normal use of No Mercy")
+            .AddOption(NoMercyStrategy.BurstReady, "Burst Ready", "Use No Mercy only when burst is ready; will delay if necessary", 60, 20, ActionTargets.Self, 2)
             .AddOption(NoMercyStrategy.Force, "Force", "Force use of No Mercy, regardless of weaving", 60, 20, ActionTargets.Self, 2)
             .AddOption(NoMercyStrategy.ForceW, "Force (Weave)", "Force use of No Mercy in next possible weave slot", 60, 20, ActionTargets.Self, 2)
             .AddOption(NoMercyStrategy.ForceQW, "Force (Q.Weave)", "Force use of No Mercy in next possible last second weave slot", 60, 20, ActionTargets.Self, 2)
@@ -98,13 +101,12 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddOption(GnashingStrategy.ForceTalon, "Force Talon", "Force use of Wicked Talon", 0, 0, ActionTargets.Hostile, 60)
             .AddOption(GnashingStrategy.Delay, "Delay", "Delay use of Gnashing Fang", 0, 0, ActionTargets.None, 60)
             .AddAssociatedActions(AID.GnashingFang, AID.SavageClaw, AID.WickedTalon);
-        res.Define(Track.Reign).As<ReignStrategy>("Reign of Beasts", "Reign", uiPriority: 125)
-            .AddOption(ReignStrategy.Automatic, "Auto", "Normal use of Reign of Beasts")
-            .AddOption(ReignStrategy.ForceReign, "Force", "Force use of Reign of Beasts", 0, 0, ActionTargets.Hostile, 100)
-            .AddOption(ReignStrategy.ForceNoble, "Force", "Force use of Noble Blood", 0, 0, ActionTargets.Hostile, 100)
-            .AddOption(ReignStrategy.ForceLion, "Force", "Force use of Lion Heart", 0, 0, ActionTargets.Hostile, 100)
-            .AddOption(ReignStrategy.Delay, "Delay", "Delay use of Reign of Beasts", 0, 0, ActionTargets.None, 100)
-            .AddAssociatedActions(AID.ReignOfBeasts, AID.NobleBlood, AID.LionHeart);
+        res.DefineOGCD(Track.BowShock, AID.BowShock, "BowShock", "B.Shock", uiPriority: 140, 60, 15, ActionTargets.Self, 62).AddAssociatedActions(AID.BowShock);
+        res.Define(Track.Continuation).As<ContinuationStrategy>("Continuation", "Cont.", uiPriority: 135)
+            .AddOption(ContinuationStrategy.Automatic, "Auto", "Normal use of Continuation")
+            .AddOption(ContinuationStrategy.Early, "Early", "Use Continuation procs as early as possible", 0, 0, ActionTargets.Hostile, 70)
+            .AddOption(ContinuationStrategy.Late, "Late", "Use Continuation procs as late as possible", 0, 0, ActionTargets.Hostile, 70)
+            .AddAssociatedActions(AID.EyeGouge, AID.AbdomenTear, AID.JugularRip, AID.Hypervelocity, AID.FatedBrand);
         res.Define(Track.Bloodfest).As<BloodfestStrategy>("Bloodfest", "Fest", uiPriority: 150)
             .AddOption(BloodfestStrategy.Automatic, "Auto", "Normal use of Bloodfest")
             .AddOption(BloodfestStrategy.Force, "Force", "Force use of Bloodfest, regardless of ammo count & weaving", 120, 0, ActionTargets.Hostile, 80)
@@ -121,8 +123,13 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddOption(DoubleDownStrategy.Force3, "Force Double Down (3 cart)", "Force use of Double Down when only 3 cartridges are available", 60, 0, ActionTargets.Hostile, 90)
             .AddOption(DoubleDownStrategy.Delay, "Delay", "Delay use of Double Down", 0, 0, ActionTargets.None, 90)
             .AddAssociatedActions(AID.DoubleDown);
-        res.DefineOGCD(Track.Zone, AID.DangerZone, "Zone", "Zone", uiPriority: 135, 30, 0, ActionTargets.Hostile, 18).AddAssociatedActions(AID.BlastingZone, AID.DangerZone);
-        res.DefineOGCD(Track.BowShock, AID.BowShock, "BowShock", "B.Shock", uiPriority: 140, 60, 15, ActionTargets.Self, 62);
+        res.Define(Track.Reign).As<ReignStrategy>("Reign of Beasts", "Reign", uiPriority: 125)
+            .AddOption(ReignStrategy.Automatic, "Auto", "Normal use of Reign of Beasts")
+            .AddOption(ReignStrategy.ForceReign, "Force", "Force use of Reign of Beasts", 0, 0, ActionTargets.Hostile, 100)
+            .AddOption(ReignStrategy.ForceNoble, "Force", "Force use of Noble Blood", 0, 0, ActionTargets.Hostile, 100)
+            .AddOption(ReignStrategy.ForceLion, "Force", "Force use of Lion Heart", 0, 0, ActionTargets.Hostile, 100)
+            .AddOption(ReignStrategy.Delay, "Delay", "Delay use of Reign of Beasts", 0, 0, ActionTargets.None, 100)
+            .AddAssociatedActions(AID.ReignOfBeasts, AID.NobleBlood, AID.LionHeart);
 
         return res;
     }
@@ -132,29 +139,20 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     private byte Ammo;
     private byte GunComboStep;
     private int MaxCartridges;
-    private float nmLeft;
-    private float nmCD;
-    private float bfCD;
-    private bool hasNM;
-    private bool hasBreak;
-    private bool hasReign;
-    private bool hasBlast;
-    private bool hasRaze;
-    private bool hasRip;
-    private bool hasTear;
-    private bool hasGouge;
-    private bool CanNM;
-    private bool canBS;
+    private float NMcd;
+    private float BFcd;
+    private bool HasNM;
+    private bool HasBlast;
+    private bool HasRaze;
+    private bool HasRip;
+    private bool HasTear;
+    private bool HasGouge;
+    private bool CanBS;
     private bool CanGF;
-    private bool canFC;
-    private bool canDD;
-    private bool canBF;
-    private bool canZone;
-    private bool canBreak;
-    private bool canBow;
-    private bool canContinue;
-    private bool canReign;
-    private bool ShouldUseAOE;
+    private bool CanFC;
+    private bool CanDD;
+    private bool CanBreak;
+    private bool CanReign;
     private int NumSplashTargets;
     private Enemy? BestSplashTargets;
     private Enemy? BestSplashTarget;
@@ -162,10 +160,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Upgrade Paths
-    private AID BestZone => Unlocked(AID.BlastingZone) ? AID.BlastingZone : AID.DangerZone;
-    private AID BestCartSpender => ShouldUseAOE ? BestFatedCircle : canBS ? AID.BurstStrike : AutoFinish;
-    private AID BestFatedCircle => Unlocked(AID.FatedCircle) ? AID.FatedCircle : AID.BurstStrike;
-    private AID BestContinuation => hasRaze ? AID.FatedBrand : hasBlast ? AID.Hypervelocity : hasGouge ? AID.EyeGouge : hasTear ? AID.AbdomenTear : hasRip ? AID.JugularRip : AID.Continuation;
+    private AID BestCartSpender => CanFC ? (ShouldUseAOECircle(5).OnTwoOrMore ? AID.FatedCircle : AID.BurstStrike) : CanBS ? AID.BurstStrike : AutoFinish;
+    private AID BestContinuation => HasRaze ? AID.FatedBrand : HasBlast ? AID.Hypervelocity : HasGouge ? AID.EyeGouge : HasTear ? AID.AbdomenTear : HasRip ? AID.JugularRip : AID.Continuation;
     #endregion
 
     #region Rotation Helpers
@@ -175,27 +171,30 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         AID.GnashingFang => AID.SavageClaw,
         AID.KeenEdge or AID.BrutalShell => STwithoutOvercap,
         AID.DemonSlice => AOEwithoutOvercap,
-        AID.SolidBarrel or AID.DemonSlaughter or AID.WickedTalon or _ => ShouldUseAOE ? AOEwithoutOvercap : STwithoutOvercap,
+        AID.SolidBarrel or AID.DemonSlaughter or AID.WickedTalon or _ => ShouldUseAOECircle(5).OnTwoOrMore ? AOEwithoutOvercap : STwithoutOvercap,
     };
-    private AID AutoBreak => ShouldUseAOE ? AOEwithoutOvercap : STwithoutOvercap;
+    private AID AutoBreak => (ShouldUseAOECircle(5).OnTwoOrMore && GunComboStep == 0) ? AOEwithoutOvercap : STwithoutOvercap;
     private AID STwithOvercap => Ammo == MaxCartridges ? BestCartSpender : Unlocked(AID.SolidBarrel) & ComboLastMove is AID.BrutalShell ? AID.SolidBarrel : Unlocked(AID.BrutalShell) && ComboLastMove is AID.KeenEdge ? AID.BrutalShell : AID.KeenEdge;
     private AID STwithoutOvercap => Unlocked(AID.SolidBarrel) && ComboLastMove is AID.BrutalShell ? AID.SolidBarrel : Unlocked(AID.BrutalShell) && ComboLastMove is AID.KeenEdge ? AID.BrutalShell : AID.KeenEdge;
     private AID AOEwithOvercap => Ammo == MaxCartridges ? BestCartSpender : Unlocked(AID.DemonSlaughter) && ComboLastMove is AID.DemonSlice ? AID.DemonSlaughter : AID.DemonSlice;
     private AID AOEwithoutOvercap => Unlocked(AID.DemonSlaughter) && ComboLastMove is AID.DemonSlice ? AID.DemonSlaughter : AID.DemonSlice;
-    private AID GnashingCombo => GunComboStep == 2 ? AID.WickedTalon : GunComboStep == 1 ? AID.SavageClaw : AID.GnashingFang;
     #endregion
 
     #region Cooldown Helpers
     private bool ShouldUseNoMercy(NoMercyStrategy strategy, Actor? target)
     {
-        if (!CanNM)
+        if (!ActionReady(AID.NoMercy))
             return false;
-
-        var lv1to89 = CanQuarterWeaveIn && Ammo >= 1;
-        var lv90plus = (InOddWindow(AID.Bloodfest) && Ammo >= 2) || (!InOddWindow(AID.Bloodfest) && Ammo < 3);
+        var slow = SkSGCDLength >= 2.4800f && CanWeaveIn;
+        var fast = SkSGCDLength <= 2.4799f && CanQuarterWeaveIn;
+        var speed = slow || fast;
+        var lv1to89 = speed && Ammo >= 1;
+        var lv90plus = speed && ((InOddWindow(AID.Bloodfest) && Ammo >= 2) || (!InOddWindow(AID.Bloodfest) && Ammo < 3));
+        var burst = speed && Ammo >= 2 && (((Unlocked(AID.DoubleDown) && TotalCD(AID.DoubleDown) <= 3) || !Unlocked(AID.DoubleDown)) && ((Unlocked(AID.GnashingFang) && TotalCD(AID.GnashingFang) <= 1) || !Unlocked(AID.GnashingFang)));
         return strategy switch
         {
             NoMercyStrategy.Automatic => InsideCombatWith(target) && (Unlocked(AID.DoubleDown) ? lv90plus : lv1to89),
+            NoMercyStrategy.BurstReady => InsideCombatWith(target) && burst,
             NoMercyStrategy.Force => true,
             NoMercyStrategy.ForceW => CanWeaveIn,
             NoMercyStrategy.ForceQW => CanQuarterWeaveIn,
@@ -208,71 +207,14 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             NoMercyStrategy.Force3 => Ammo == 3,
             NoMercyStrategy.Force3W => CanWeaveIn && Ammo == 3,
             NoMercyStrategy.Force3QW => CanQuarterWeaveIn && Ammo == 3,
-            NoMercyStrategy.Delay => false,
-            _ => false
+            NoMercyStrategy.Delay or _ => false,
         };
     }
-    private bool ShouldUseBloodfest(BloodfestStrategy strategy, Actor? target) => strategy switch
-    {
-        BloodfestStrategy.Automatic => Player.InCombat && target != null && canBF && Ammo == 0,
-        BloodfestStrategy.Force => canBF,
-        BloodfestStrategy.ForceW => canBF && CanWeaveIn,
-        BloodfestStrategy.Force0 => canBF && Ammo == 0,
-        BloodfestStrategy.Force0W => canBF && Ammo == 0 && CanWeaveIn,
-        BloodfestStrategy.Delay => false,
-        _ => false
-    };
-    private bool ShouldUseZone(OGCDStrategy strategy, Actor? target) => strategy switch
-    {
-        OGCDStrategy.Automatic => Player.InCombat && In3y(target) && CanWeaveIn && canZone && nmCD is < 57.55f and > 17,
-        OGCDStrategy.Force => canZone,
-        OGCDStrategy.AnyWeave => canZone && CanWeaveIn,
-        OGCDStrategy.EarlyWeave => canZone && CanEarlyWeaveIn,
-        OGCDStrategy.LateWeave => canZone && CanLateWeaveIn,
-        OGCDStrategy.Delay => false,
-        _ => false
-    };
-    private bool ShouldUseBowShock(OGCDStrategy strategy, Actor? target) => strategy switch
-    {
-        OGCDStrategy.Automatic => Player.InCombat && ActionReady(AID.BowShock) && In5y(target) && CanWeaveIn && nmCD is < 57.55f and >= 40,
-        OGCDStrategy.Force => canBow,
-        OGCDStrategy.AnyWeave => canBow && CanWeaveIn,
-        OGCDStrategy.EarlyWeave => canBow && CanEarlyWeaveIn,
-        OGCDStrategy.LateWeave => canBow && CanLateWeaveIn,
-        OGCDStrategy.Delay => false,
-        _ => false
-    };
-    private bool ShouldUseCartridges(CartridgeStrategy strategy, Actor? target) => strategy switch
-    {
-        CartridgeStrategy.Automatic => ShouldSpendCarts(CartridgeStrategy.Automatic, target),
-        CartridgeStrategy.OnlyBS => ShouldSpendCarts(CartridgeStrategy.Automatic, target),
-        CartridgeStrategy.OnlyFC => ShouldSpendCarts(CartridgeStrategy.Automatic, target),
-        CartridgeStrategy.ForceBS => canBS,
-        CartridgeStrategy.ForceBS1 => canBS && Ammo == 1,
-        CartridgeStrategy.ForceBS2 => canBS && Ammo == 2,
-        CartridgeStrategy.ForceBS3 => canBS && Ammo == 3,
-        CartridgeStrategy.ForceFC => canFC,
-        CartridgeStrategy.ForceFC1 => canFC && Ammo == 1,
-        CartridgeStrategy.ForceFC2 => canFC && Ammo == 2,
-        CartridgeStrategy.ForceFC3 => canFC && Ammo == 3,
-        CartridgeStrategy.Conserve => false,
-        _ => false
-    };
-    private bool ShouldUseDoubleDown(DoubleDownStrategy strategy, Actor? target) => strategy switch
-    {
-        DoubleDownStrategy.Automatic => Player.InCombat && target != null && In5y(target) && canDD && hasNM,
-        DoubleDownStrategy.Force => canDD,
-        DoubleDownStrategy.Force1 => canDD && Ammo == 1,
-        DoubleDownStrategy.Force2 => canDD && Ammo == 2,
-        DoubleDownStrategy.Force3 => canDD && Ammo == 3,
-        DoubleDownStrategy.Delay => false,
-        _ => false
-    };
     private bool ShouldUseGnashingFang(GnashingStrategy strategy, Actor? target)
     {
-        //we usually only use this in two ways: inside & outside No Mercy, whilst trying to keep it aligned with Burst
+        //we usually use this in two ways: inside & outside No Mercy, whilst trying to keep it aligned with Burst
         //we also skip entirely if more than 3 targets are present
-        var condition = (CanGF && !ShouldUseAOECircle(5).OnFourOrMore && (hasNM || nmCD is < 35 and > 17)) || GunComboStep is 1 or 2;
+        var condition = (CanGF && !ShouldUseAOECircle(5).OnFourOrMore && NMcd is <= 60 and > 17) || GunComboStep is 1 or 2;
         return strategy switch
         {
             GnashingStrategy.Automatic => InsideCombatWith(target) && InMeleeRange(target) && condition,
@@ -282,60 +224,146 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             GnashingStrategy.ForceGnash3 => CanGF && Ammo == 3,
             GnashingStrategy.ForceClaw => GunComboStep == 1,
             GnashingStrategy.ForceTalon => GunComboStep == 2,
-            GnashingStrategy.Delay => false,
-            _ => false
+            GnashingStrategy.Delay or _ => false,
+        };
+    }
+    private bool ShouldUseContinuation(ContinuationStrategy strategy, Actor? target)
+    {
+        var condition = InsideCombatWith(target) && In5y(target) && (Unlocked(AID.Continuation) && (HasBlast || HasRaze || HasRip || HasTear || HasGouge));
+        return strategy switch
+        {
+            ContinuationStrategy.Automatic or ContinuationStrategy.Early => condition && CanWeaveIn,
+            ContinuationStrategy.Late => condition && GCD < 1.25,
+            _ => false,
+        };
+    }
+    private bool ShouldUseBowShock(OGCDStrategy strategy, Actor? target)
+    {
+        if (!ActionReady(AID.BowShock))
+            return false;
+        return strategy switch
+        {
+            OGCDStrategy.Automatic => InsideCombatWith(target) && In5y(target) && CanWeaveIn && NMcd is < 57.5f and >= 40,
+            OGCDStrategy.Force => true,
+            OGCDStrategy.AnyWeave => CanWeaveIn,
+            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+            OGCDStrategy.LateWeave => CanLateWeaveIn,
+            OGCDStrategy.Delay or _ => false,
+        };
+    }
+    private bool ShouldUseDoubleDown(DoubleDownStrategy strategy, Actor? target)
+    {
+        if (!CanDD)
+            return false;
+        return strategy switch
+        {
+            DoubleDownStrategy.Automatic => InsideCombatWith(target) && In5y(target) && HasNM,
+            DoubleDownStrategy.Force => true,
+            DoubleDownStrategy.Force1 => Ammo == 1,
+            DoubleDownStrategy.Force2 => Ammo == 2,
+            DoubleDownStrategy.Force3 => Ammo == 3,
+            DoubleDownStrategy.Delay or _ => false,
         };
 
     }
+    private bool ShouldUseBloodfest(BloodfestStrategy strategy, Actor? target)
+    {
+        if (!ActionReady(AID.Bloodfest))
+            return false;
+        return strategy switch
+        {
+            BloodfestStrategy.Automatic => InsideCombatWith(target) && Ammo == 0,
+            BloodfestStrategy.Force => true,
+            BloodfestStrategy.ForceW => CanWeaveIn,
+            BloodfestStrategy.Force0 => Ammo == 0,
+            BloodfestStrategy.Force0W => Ammo == 0 && CanWeaveIn,
+            BloodfestStrategy.Delay or _ => false,
+        };
+    }
+    private bool ShouldUseZone(OGCDStrategy strategy, Actor? target)
+    {
+        if (!ActionReady(AID.DangerZone))
+            return false;
+        //we usually use this in two ways: inside & outside No Mercy, whilst trying to keep it aligned with Burst
+        return strategy switch
+        {
+            OGCDStrategy.Automatic => InsideCombatWith(target) && InMeleeRange(target) && CanWeaveIn && NMcd is < 57.5f and > 17,
+            OGCDStrategy.Force => true,
+            OGCDStrategy.AnyWeave => CanWeaveIn,
+            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+            OGCDStrategy.LateWeave => CanLateWeaveIn,
+            OGCDStrategy.Delay or _ => false,
+        };
+    }
+    private bool ShouldUseSonicBreak(SonicBreakStrategy strategy, Actor? target)
+    {
+        if (!CanBreak)
+            return false;
+        return strategy switch
+        {
+            SonicBreakStrategy.Automatic => InsideCombatWith(target) && InMeleeRange(target),
+            SonicBreakStrategy.Force => true,
+            SonicBreakStrategy.Early => HasNM,
+            SonicBreakStrategy.Late => StatusRemaining(Player, SID.NoMercy, 20) <= SkSGCDLength,
+            SonicBreakStrategy.Delay or _ => false,
+        };
+    }
+    private bool ShouldUseReign(ReignStrategy strategy, Actor? target)
+    {
+        var condition = (HasNM && CanReign && GunComboStep == 0) || GunComboStep is 3 or 4;
+        return strategy switch
+        {
+            ReignStrategy.Automatic => InsideCombatWith(target) && condition,
+            ReignStrategy.ForceReign => CanReign,
+            ReignStrategy.ForceNoble => GunComboStep == 3,
+            ReignStrategy.ForceLion => GunComboStep == 4,
+            ReignStrategy.Delay or _ => false,
+        };
+
+    }
+    private bool ShouldUseCartridges(CartridgeStrategy strategy, Actor? target) => strategy switch
+    {
+        CartridgeStrategy.Automatic or CartridgeStrategy.OnlyBS or CartridgeStrategy.OnlyFC => ShouldSpendCarts(CartridgeStrategy.Automatic, target),
+        CartridgeStrategy.ForceBS => CanBS,
+        CartridgeStrategy.ForceBS1 => CanBS && Ammo == 1,
+        CartridgeStrategy.ForceBS2 => CanBS && Ammo == 2,
+        CartridgeStrategy.ForceBS3 => CanBS && Ammo == 3,
+        CartridgeStrategy.ForceFC => CanFC,
+        CartridgeStrategy.ForceFC1 => CanFC && Ammo == 1,
+        CartridgeStrategy.ForceFC2 => CanFC && Ammo == 2,
+        CartridgeStrategy.ForceFC3 => CanFC && Ammo == 3,
+        CartridgeStrategy.Conserve or _ => false,
+    };
     private bool ShouldSpendCarts(CartridgeStrategy strategy, Actor? target)
     {
         //until Lv71 - if more than 2 targets are present, we skip Burst Strike entirely
-        var lv30to71 = !ShouldUseAOECircle(5).OnThreeOrMore && In3y(target) && canBS;
+        var lv30to71 = !ShouldUseAOECircle(5).OnThreeOrMore && InMeleeRange(target) && CanBS;
         //if more than 1 target is present, we choose Fated Circle over Burst Strike
-        var lv72plus = ShouldUseAOECircle(5).OnTwoOrMore ? (In5y(target) && canFC) : (In3y(target) && canBS);
+        var lv72plus = ShouldUseAOECircle(5).OnTwoOrMore ? (In5y(target) && CanFC) : (InMeleeRange(target) && CanBS);
         var condition = Unlocked(AID.FatedCircle) ? lv72plus : lv30to71;
         return strategy == CartridgeStrategy.Automatic &&
             //minimal
             (InsideCombatWith(target) && condition &&
             //if we have No Mercy, spend as much as possible
-            ((hasNM ||
-            //when Lv90+, if we enter No Mercy with 3 Ammo it is a loss, as we cannot get 9 GCDs inside a 20 second window
-            //technically we can with Skill Speed, but we're not working around that here
+            ((HasNM ||
+            //when Lv90+, if we enter No Mercy with 3 Ammo it is a loss, as we Cannot get 9 GCDs inside a 20 second window
+            //technically we Can with Skill Speed, but we're not working around that here
             //so, if Bloodfest & No Mercy are imminent and Ammo is 3, burn a cartridge to enter Burst with 2
-            (!InOddWindow(AID.Bloodfest) && nmCD < 1 && Ammo == 3)) ||
+            (!InOddWindow(AID.Bloodfest) && NMcd < 1 && Ammo == 3)) ||
             //overcap protection
             (Ammo == MaxCartridges && ComboLastMove is AID.BrutalShell or AID.DemonSlice)));
     }
-    private bool ShouldUseSonicBreak(SonicBreakStrategy strategy, Actor? target) => strategy switch
-    {
-        SonicBreakStrategy.Automatic => Player.InCombat && In3y(target) && canBreak,
-        SonicBreakStrategy.Force => canBreak,
-        SonicBreakStrategy.Early => nmCD > 55 || hasBreak,
-        SonicBreakStrategy.Late => nmLeft <= SkSGCDLength,
-        SonicBreakStrategy.Delay => false,
-        _ => false
-    };
-    private bool ShouldUseReign(ReignStrategy strategy, Actor? target) => strategy switch
-    {
-        ReignStrategy.Automatic => Player.InCombat && target != null && canReign && hasNM && GunComboStep == 0,
-        ReignStrategy.ForceReign => canReign,
-        ReignStrategy.ForceNoble => Player.InCombat && GunComboStep == 3,
-        ReignStrategy.ForceLion => Player.InCombat && GunComboStep == 4,
-        ReignStrategy.Delay => false,
-        _ => false
-    };
     private bool ShouldUseLightningShot(Actor? target, LightningShotStrategy strategy) => strategy switch
     {
-        LightningShotStrategy.OpenerFar => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD() && !In3y(target),
+        LightningShotStrategy.OpenerFar => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD() && !InMeleeRange(target),
         LightningShotStrategy.OpenerForce => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD(),
         LightningShotStrategy.Force => true,
-        LightningShotStrategy.Allow => !In3y(target),
-        LightningShotStrategy.Forbid => false,
-        _ => false
+        LightningShotStrategy.Allow => !InMeleeRange(target),
+        LightningShotStrategy.Forbid or _ => false,
     };
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
-        PotionStrategy.AlignWithRaidBuffs => nmCD < 5 && bfCD < 15,
+        PotionStrategy.AlignWithRaidBuffs => NMcd < 5 && BFcd < 15,
         PotionStrategy.Immediate => true,
         _ => false
     };
@@ -348,32 +376,23 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         Ammo = gauge.Ammo;
         GunComboStep = gauge.AmmoComboStep;
         MaxCartridges = Unlocked(TraitID.CartridgeChargeII) ? 3 : 2;
-        bfCD = TotalCD(AID.Bloodfest);
-        nmCD = TotalCD(AID.NoMercy);
-        nmLeft = StatusRemaining(Player, SID.NoMercy, 20);
-        hasBreak = PlayerHasEffect(SID.ReadyToBreak, 30);
-        hasReign = PlayerHasEffect(SID.ReadyToReign, 30);
-        hasNM = nmCD is >= 39.5f and <= 60;
-        hasBlast = Unlocked(AID.Hypervelocity) && PlayerHasEffect(SID.ReadyToBlast, 10f) && !LastActionUsed(AID.Hypervelocity);
-        hasRaze = Unlocked(AID.FatedBrand) && PlayerHasEffect(SID.ReadyToRaze, 10f) && !LastActionUsed(AID.FatedBrand);
-        hasRip = PlayerHasEffect(SID.ReadyToRip, 10f) && !LastActionUsed(AID.JugularRip);
-        hasTear = PlayerHasEffect(SID.ReadyToTear, 10f) && !LastActionUsed(AID.AbdomenTear);
-        hasGouge = PlayerHasEffect(SID.ReadyToGouge, 10f) && !LastActionUsed(AID.EyeGouge);
-        ShouldUseAOE = ShouldUseAOECircle(5).OnTwoOrMore;
+        BFcd = TotalCD(AID.Bloodfest);
+        NMcd = TotalCD(AID.NoMercy);
+        HasNM = NMcd is >= 39.5f and <= 60;
+        HasBlast = Unlocked(AID.Hypervelocity) && PlayerHasEffect(SID.ReadyToBlast, 10f) && !LastActionUsed(AID.Hypervelocity);
+        HasRaze = Unlocked(AID.FatedBrand) && PlayerHasEffect(SID.ReadyToRaze, 10f) && !LastActionUsed(AID.FatedBrand);
+        HasRip = PlayerHasEffect(SID.ReadyToRip, 10f) && !LastActionUsed(AID.JugularRip);
+        HasTear = PlayerHasEffect(SID.ReadyToTear, 10f) && !LastActionUsed(AID.AbdomenTear);
+        HasGouge = PlayerHasEffect(SID.ReadyToGouge, 10f) && !LastActionUsed(AID.EyeGouge);
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 3.5f, IsSplashTarget);
         BestSplashTarget = Unlocked(AID.ReignOfBeasts) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
         BestDOTTarget = Hints.PriorityTargets.Where(x => Player.DistanceToHitbox(x.Actor) <= 3.5f).OrderByDescending(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault();
-        CanNM = ActionReady(AID.NoMercy);
-        canBS = Unlocked(AID.BurstStrike) && Ammo > 0;
+        CanBS = Unlocked(AID.BurstStrike) && Ammo > 0;
         CanGF = ActionReady(AID.GnashingFang) && Ammo > 0;
-        canFC = Unlocked(AID.FatedCircle) && Ammo > 0;
-        canDD = ActionReady(AID.DoubleDown) && Ammo > 0;
-        canBF = ActionReady(AID.Bloodfest);
-        canZone = ActionReady(AID.DangerZone);
-        canBreak = Unlocked(AID.SonicBreak) && hasBreak;
-        canBow = ActionReady(AID.BowShock);
-        canContinue = Unlocked(AID.Continuation);
-        canReign = Unlocked(AID.ReignOfBeasts) && hasReign;
+        CanFC = Unlocked(AID.FatedCircle) && Ammo > 0;
+        CanDD = ActionReady(AID.DoubleDown) && Ammo > 0;
+        CanBreak = Unlocked(AID.SonicBreak) && PlayerHasEffect(SID.ReadyToBreak, 30);
+        CanReign = Unlocked(AID.ReignOfBeasts) && PlayerHasEffect(SID.ReadyToReign, 30);
 
         #region Strategy Definitions
         var AOE = strategy.Option(Track.AOE);
@@ -410,7 +429,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         if (AOEStrategy == AOEStrategy.AutoFinish)
             QueueGCD(AutoFinish, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ExtremelyLow);
         if (AOEStrategy == AOEStrategy.AutoBreak)
-            QueueGCD(AutoBreak, ShouldUseAOE ? Player : TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ExtremelyLow);
+            QueueGCD(AutoBreak, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ExtremelyLow);
         if (AOEStrategy is AOEStrategy.ForceSTwithO)
             QueueGCD(STwithOvercap, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.BelowAverage);
         if (AOEStrategy is AOEStrategy.ForceSTwithoutO)
@@ -427,7 +446,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             if (ShouldUseNoMercy(nmStrat, primaryTarget?.Actor))
                 QueueOGCD(AID.NoMercy, Player, nmStrat is NoMercyStrategy.Force or NoMercyStrategy.ForceW or NoMercyStrategy.ForceQW or NoMercyStrategy.Force1 or NoMercyStrategy.Force1W or NoMercyStrategy.Force1QW or NoMercyStrategy.Force2 or NoMercyStrategy.Force2W or NoMercyStrategy.Force2QW or NoMercyStrategy.Force3 or NoMercyStrategy.Force3W or NoMercyStrategy.Force3QW ? OGCDPriority.Forced : OGCDPriority.VeryHigh);
             if (ShouldUseZone(zoneStrat, primaryTarget?.Actor))
-                QueueOGCD(BestZone, TargetChoice(zone) ?? primaryTarget?.Actor, OGCDPrio(zoneStrat, OGCDPriority.Average));
+                QueueOGCD(Unlocked(AID.BlastingZone) ? AID.BlastingZone : AID.DangerZone, TargetChoice(zone) ?? primaryTarget?.Actor, OGCDPrio(zoneStrat, OGCDPriority.Average));
             if (ShouldUseBowShock(bowStrat, primaryTarget?.Actor))
                 QueueOGCD(AID.BowShock, Player, OGCDPrio(bowStrat, OGCDPriority.AboveAverage));
             if (ShouldUseBloodfest(bfStrat, primaryTarget?.Actor))
@@ -435,8 +454,12 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             if (ShouldUseSonicBreak(sbStrat, primaryTarget?.Actor))
                 QueueGCD(AID.SonicBreak, TargetChoice(sb) ?? BestDOTTarget?.Actor, sbStrat is SonicBreakStrategy.Force ? GCDPriority.Forced : sbStrat is SonicBreakStrategy.Early ? GCDPriority.VeryHigh : GCDPriority.Average);
             if (ShouldUseReign(reignStrat, primaryTarget?.Actor))
-                QueueGCD(AID.ReignOfBeasts, TargetChoice(reign) ?? BestSplashTarget?.Actor, reignStrat is ReignStrategy.ForceReign ? GCDPriority.Forced : GCDPriority.BelowAverage);
-
+            {
+                if (reignStrat == ReignStrategy.Automatic)
+                    QueueGCD(GunComboStep == 4 ? AID.LionHeart : GunComboStep == 3 ? AID.NobleBlood : AID.ReignOfBeasts, TargetChoice(reign) ?? BestSplashTarget?.Actor, GCDPriority.BelowAverage);
+                if (reignStrat == ReignStrategy.ForceReign)
+                    QueueGCD(AID.ReignOfBeasts, TargetChoice(reign) ?? BestSplashTarget?.Actor, GCDPriority.Forced);
+            }
             if (!conserve)
             {
                 if (ShouldUseDoubleDown(ddStrat, primaryTarget?.Actor))
@@ -444,31 +467,39 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                 if (ShouldUseGnashingFang(gfStrat, primaryTarget?.Actor))
                 {
                     if (gfStrat == GnashingStrategy.Automatic)
-                        QueueGCD(GnashingCombo, TargetChoice(gf) ?? primaryTarget?.Actor, GunComboStep is 1 or 2 ? GCDPriority.BelowAverage : GCDPriority.High);
+                        QueueGCD(GunComboStep == 2 ? AID.WickedTalon : GunComboStep == 1 ? AID.SavageClaw : AID.GnashingFang, TargetChoice(gf) ?? primaryTarget?.Actor, GunComboStep is 1 or 2 ? GCDPriority.BelowAverage : GCDPriority.High);
                     if (gfStrat is GnashingStrategy.ForceGnash or GnashingStrategy.ForceGnash1 or GnashingStrategy.ForceGnash2 or GnashingStrategy.ForceGnash3)
                         QueueGCD(AID.GnashingFang, primaryTarget?.Actor, GCDPriority.Forced);
-                    if (gfStrat == GnashingStrategy.ForceClaw)
-                        QueueGCD(AID.SavageClaw, primaryTarget?.Actor, GCDPriority.Forced);
-                    if (gfStrat == GnashingStrategy.ForceTalon)
-                        QueueGCD(AID.WickedTalon, primaryTarget?.Actor, GCDPriority.Forced);
                 }
                 if (ShouldUseCartridges(cartStrat, primaryTarget?.Actor))
                 {
                     if (cartStrat == CartridgeStrategy.Automatic)
-                        QueueGCD(BestCartSpender, TargetChoice(carts) ?? primaryTarget?.Actor, nmCD < 1 && Ammo == 3 ? GCDPriority.Forced : GCDPriority.VeryLow);
+                        QueueGCD(BestCartSpender, TargetChoice(carts) ?? primaryTarget?.Actor, NMcd < 1 && Ammo == 3 ? GCDPriority.Forced : GCDPriority.VeryLow);
                     if (cartStrat is CartridgeStrategy.OnlyBS or CartridgeStrategy.ForceBS or CartridgeStrategy.ForceBS1 or CartridgeStrategy.ForceBS2 or CartridgeStrategy.ForceBS3)
                         QueueGCD(AID.BurstStrike, TargetChoice(carts) ?? primaryTarget?.Actor, GCDPriority.VeryLow);
                     if (cartStrat is CartridgeStrategy.ForceFC or CartridgeStrategy.OnlyFC or CartridgeStrategy.ForceFC1 or CartridgeStrategy.ForceFC2 or CartridgeStrategy.ForceFC3)
-                        QueueGCD(BestFatedCircle, Unlocked(AID.FatedCircle) ? Player : primaryTarget?.Actor, GCDPriority.VeryLow);
+                        QueueGCD(Unlocked(AID.FatedCircle) ? AID.FatedCircle : AID.BurstStrike, Unlocked(AID.FatedCircle) ? Player : primaryTarget?.Actor, GCDPriority.VeryLow);
                 }
             }
         }
-        if (canContinue && (hasBlast || hasRaze || hasRip || hasTear || hasGouge))
-            QueueOGCD(BestContinuation, TargetChoice(gf) ?? primaryTarget?.Actor, GCD < 0.5f ? OGCDPriority.Forced + 1500 : GCD is < 1.25f and >= 0.6f ? OGCDPriority.VeryHigh - 10 : OGCDPriority.BelowAverage);
-        if (GunComboStep == 3)
-            QueueGCD(AID.NobleBlood, TargetChoice(reign) ?? BestSplashTarget?.Actor, reignStrat is ReignStrategy.ForceNoble ? GCDPriority.Forced : GCDPriority.BelowAverage);
-        if (GunComboStep == 4)
-            QueueGCD(AID.LionHeart, TargetChoice(reign) ?? BestSplashTarget?.Actor, reignStrat is ReignStrategy.ForceLion ? GCDPriority.Forced : GCDPriority.BelowAverage);
+        if (ShouldUseGnashingFang(gfStrat, primaryTarget?.Actor))
+        {
+            if (gfStrat is GnashingStrategy.ForceGnash or GnashingStrategy.ForceGnash1 or GnashingStrategy.ForceGnash2 or GnashingStrategy.ForceGnash3)
+                QueueGCD(AID.GnashingFang, primaryTarget?.Actor, GCDPriority.Forced);
+            if (gfStrat == GnashingStrategy.ForceClaw)
+                QueueGCD(AID.SavageClaw, primaryTarget?.Actor, GCDPriority.Forced);
+            if (gfStrat == GnashingStrategy.ForceTalon)
+                QueueGCD(AID.WickedTalon, primaryTarget?.Actor, GCDPriority.Forced);
+        }
+        if (ShouldUseReign(reignStrat, primaryTarget?.Actor))
+        {
+            if (reignStrat == ReignStrategy.ForceNoble)
+                QueueGCD(AID.NobleBlood, TargetChoice(reign) ?? BestSplashTarget?.Actor, GCDPriority.Forced);
+            if (reignStrat == ReignStrategy.ForceLion)
+                QueueGCD(AID.LionHeart, TargetChoice(reign) ?? BestSplashTarget?.Actor, GCDPriority.Forced);
+        }
+        if (ShouldUseContinuation(strategy.Option(Track.Continuation).As<ContinuationStrategy>(), primaryTarget?.Actor))
+            QueueOGCD(BestContinuation, TargetChoice(strategy.Option(Track.Continuation)) ?? primaryTarget?.Actor, strategy.Option(Track.Continuation).As<ContinuationStrategy>() == ContinuationStrategy.Early ? OGCDPriority.Forced : GCD < 0.5f ? OGCDPriority.Forced + 1500 : GCD is < 1.25f and >= 0.6f ? OGCDPriority.VeryHigh - 10 : OGCDPriority.BelowAverage);
         if (ShouldUseLightningShot(primaryTarget?.Actor, lsStrat))
             QueueGCD(AID.LightningShot, TargetChoice(ls) ?? primaryTarget?.Actor, lsStrat is >= LightningShotStrategy.Force ? GCDPriority.Forced : GCDPriority.ExtremelyLow);
         if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
