@@ -212,7 +212,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         var condition = (CanGF && !ShouldUseAOECircle(5).OnFourOrMore && NMcd is <= 60 and > 17) || GunComboStep is 1 or 2;
         return strategy switch
         {
-            GnashingStrategy.Automatic => InsideCombatWith(target) && InMeleeRange(target) && condition,
+            GnashingStrategy.Automatic => InsideCombatWith(target) && In3y(target) && condition,
             GnashingStrategy.ForceGnash => CanGF,
             GnashingStrategy.ForceGnash1 => CanGF && Ammo == 1,
             GnashingStrategy.ForceGnash2 => CanGF && Ammo == 2,
@@ -282,7 +282,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         //we usually use this in two ways: inside & outside No Mercy, whilst trying to keep it aligned with Burst
         return strategy switch
         {
-            OGCDStrategy.Automatic => InsideCombatWith(target) && InMeleeRange(target) && CanWeaveIn && NMcd is < 57.5f and > 17,
+            OGCDStrategy.Automatic => InsideCombatWith(target) && In3y(target) && CanWeaveIn && NMcd is < 57.5f and > 17,
             OGCDStrategy.Force => true,
             OGCDStrategy.AnyWeave => CanWeaveIn,
             OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
@@ -296,7 +296,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             return false;
         return strategy switch
         {
-            SonicBreakStrategy.Automatic => InsideCombatWith(target) && InMeleeRange(target),
+            SonicBreakStrategy.Automatic => InsideCombatWith(target) && In3y(target),
             SonicBreakStrategy.Force => true,
             SonicBreakStrategy.Early => HasNM,
             SonicBreakStrategy.Late => StatusRemaining(Player, SID.NoMercy, 20) <= SkSGCDLength,
@@ -332,9 +332,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     private bool ShouldSpendCarts(CartridgeStrategy strategy, Actor? target)
     {
         //until Lv71 - if more than 2 targets are present, we skip Burst Strike entirely
-        var lv30to71 = !ShouldUseAOECircle(5).OnThreeOrMore && InMeleeRange(target) && CanBS;
+        var lv30to71 = !ShouldUseAOECircle(5).OnThreeOrMore && In3y(target) && CanBS;
         //if more than 1 target is present, we choose Fated Circle over Burst Strike
-        var lv72plus = ShouldUseAOECircle(5).OnTwoOrMore ? (In5y(target) && CanFC) : (InMeleeRange(target) && CanBS);
+        var lv72plus = ShouldUseAOECircle(5).OnTwoOrMore ? (In5y(target) && CanFC) : (In3y(target) && CanBS);
         var condition = Unlocked(AID.FatedCircle) ? lv72plus : lv30to71;
         return strategy == CartridgeStrategy.Automatic &&
             //minimal
@@ -350,10 +350,10 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseLightningShot(LightningShotStrategy strategy, Actor? target) => strategy switch
     {
-        LightningShotStrategy.OpenerFar => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD() && !InMeleeRange(target),
+        LightningShotStrategy.OpenerFar => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD() && !In3y(target),
         LightningShotStrategy.OpenerForce => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD(),
         LightningShotStrategy.Force => true,
-        LightningShotStrategy.Allow => !InMeleeRange(target),
+        LightningShotStrategy.Allow => !In3y(target),
         LightningShotStrategy.Forbid or _ => false,
     };
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
@@ -421,18 +421,18 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         #region Full Rotation Execution
 
         #region Standard Rotations
-        if (strategy.AutoFinish())
+        if (strategy.AutoFinish() && InsideCombatWith(primaryTarget?.Actor))
             QueueGCD(AutoFinish, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ExtremelyLow);
-        if (strategy.AutoBreak())
+        if (strategy.AutoBreak() && InsideCombatWith(primaryTarget?.Actor))
             QueueGCD(AutoBreak, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ExtremelyLow);
-        if (strategy.ForceST())
+        if (strategy.ForceST() && InsideCombatWith(primaryTarget?.Actor))
         {
             if (comboStrat != ComboStrategy.ForceSTwithoutO)
                 QueueGCD(STwithOvercap, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.BelowAverage);
             if (comboStrat != ComboStrategy.ForceSTwithO)
                 QueueGCD(STwithoutOvercap, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Forced);
         }
-        if (strategy.ForceAOE())
+        if (strategy.ForceAOE() && InsideCombatWith(primaryTarget?.Actor))
         {
             if (comboStrat != ComboStrategy.ForceAOEwithoutO)
                 QueueGCD(AOEwithOvercap, Player, GCDPriority.BelowAverage);
@@ -514,10 +514,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region AI
-        if (primaryTarget == null)
-        {
-            GetNextTarget(strategy, ref primaryTarget, 3);
-        }
+        GetNextTarget(strategy, ref primaryTarget, 3);
         GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.DemonSlice, 2, maximumActionRange: 20);
         #endregion
     }

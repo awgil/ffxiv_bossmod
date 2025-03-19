@@ -196,7 +196,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         AID.TrueThrust or AID.RaidenThrust => !Unlocked(AID.VorpalThrust) ? AutoBreak : FullST,
         AID.CoerthanTorment or AID.Drakesbane or _ => AutoBreak
     };
-    private AID AutoBreak => NeedPower ? LowLevelAOE : (ShouldUseAOE && !NeedPower ? FullAOE : ShouldUseDOT ? BuffsST : FullST);
+    private AID AutoBreak => ShouldUseAOE ? FullAOE : ShouldUseDOT ? BuffsST : FullST;
     private AID FullST => ComboLastMove switch
     {
         AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.Disembowel) && (Unlocked(AID.ChaosThrust) ? (PowerLeft <= SkSGCDLength * 6 || ChaosLeft <= SkSGCDLength * 4) : (Unlocked(AID.FullThrust) ? PowerLeft <= SkSGCDLength * 3 : NeedPower)) ? BestDisembowel : Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust,
@@ -225,20 +225,21 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private AID FullAOE => ComboLastMove switch
     {
+        AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : BestDoomSpike,
         AID.DoomSpike or AID.DraconianFury => Unlocked(AID.SonicThrust) ? AID.SonicThrust : LowLevelAOE,
-        AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : LowLevelAOE,
-        _ => PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : LowLevelAOE,
+        _ => Unlocked(AID.SonicThrust) ? BestDoomSpike : LowLevelAOE,
     };
     private AID LowLevelAOE => ComboLastMove switch
     {
-        AID.Disembowel or AID.SpiralBlow => !NeedPower ? AID.DoomSpike : AID.TrueThrust,
-        AID.TrueThrust or AID.RaidenThrust => BestDisembowel,
-        _ => !NeedPower ? (PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike) : BestTrueThrust,
+        AID.Disembowel or AID.SpiralBlow => Unlocked(AID.SonicThrust) ? BestDoomSpike : (NeedPower ? AID.TrueThrust : AID.DoomSpike),
+        AID.TrueThrust or AID.RaidenThrust => Unlocked(AID.SonicThrust) ? BestDoomSpike : BestDisembowel,
+        _ => Unlocked(AID.SonicThrust) ? BestDoomSpike : (NeedPower ? AID.TrueThrust : AID.DoomSpike),
     };
 
     #region Upgrade Paths
     private AID BestTrueThrust => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust;
     private AID BestDisembowel => Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel;
+    private AID BestDoomSpike => PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : Unlocked(AID.DoomSpike) ? AID.DoomSpike : FullST;
     #endregion
 
     #region DOT
@@ -548,7 +549,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         if (!CanTrueNorth)
             return false;
         //otherwise, we continue
-        var condition = InsideCombatWith(target) && !ShouldUseAOE && InMeleeRange(target) && NextPositionalImminent && !NextPositionalCorrect;
+        var condition = InsideCombatWith(target) && !ShouldUseAOE && In3y(target) && NextPositionalImminent && !NextPositionalCorrect;
         var needRear = !IsOnRear(target!) && ((Unlocked(AID.ChaosThrust) && ComboLastMove is AID.Disembowel or AID.SpiralBlow) || (Unlocked(AID.WheelingThrust) && ComboLastMove is AID.ChaosThrust or AID.ChaoticSpring));
         var needFlank = !IsOnFlank(target!) && Unlocked(AID.FangAndClaw) && ComboLastMove is AID.HeavensThrust or AID.FullThrust;
         return strategy switch
@@ -597,7 +598,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         ShouldUseAOE = Unlocked(AID.DoomSpike) && NumAOETargets > 2 && !NeedPower;
         ShouldUseSpears = Unlocked(AID.Geirskogul) && NumSpearTargets > 1;
         ShouldUseDives = Unlocked(AID.Stardiver) && NumDiveTargets > 1;
-        ShouldUseDOT = Unlocked(AID.ChaosThrust) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 8) == 2 && InMeleeRange(BestDOTTarget?.Actor) && ComboLastMove is AID.Disembowel or AID.SpiralBlow;
+        ShouldUseDOT = Unlocked(AID.ChaosThrust) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 4) == 2 && In3y(BestDOTTarget?.Actor) && ComboLastMove is AID.Disembowel or AID.SpiralBlow;
         (BestAOETargets, NumAOETargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);
         (BestSpearTargets, NumSpearTargets) = GetBestTarget(primaryTarget, 15, Is15yRectTarget);
         (BestDiveTargets, NumDiveTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
@@ -606,8 +607,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         BestSpearTarget = ShouldUseSpears ? BestSpearTargets : primaryTarget;
         BestDiveTarget = ShouldUseDives ? BestDiveTargets : primaryTarget;
         BestDOTTarget = ShouldUseDOT ? BestDOTTargets : primaryTarget;
-        InsideRange = ShouldUseAOE ? In10y(BestAOETarget?.Actor) : InMeleeRange(BestDOTTarget?.Actor);
-        OutsideRange = ShouldUseAOE ? !In10y(BestAOETarget?.Actor) : !InMeleeRange(BestDOTTarget?.Actor);
+        InsideRange = ShouldUseAOE ? In10y(BestAOETarget?.Actor) : In3y(BestDOTTarget?.Actor);
+        OutsideRange = ShouldUseAOE ? !In10y(BestAOETarget?.Actor) : !In3y(BestDOTTarget?.Actor);
 
         #region Strategy Definitions
         var AOE = strategy.Option(SharedTrack.AOE);
@@ -650,7 +651,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         #region Dives
         var diveStrategy = dive switch
         {
-            DivesStrategy.AllowMaxMelee => InMeleeRange(BestDiveTarget?.Actor),
+            DivesStrategy.AllowMaxMelee => In3y(BestDiveTarget?.Actor),
             DivesStrategy.AllowCloseMelee => InRange(BestDiveTarget?.Actor, 1),
             DivesStrategy.Allow => In20y(BestDiveTarget?.Actor),
             DivesStrategy.Forbid => false,
@@ -734,11 +735,12 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region AI
-        if (BestDOTTargets != null)
+        if (BestDOTTargets != null &&
+            In3y(BestDOTTargets.Actor))
         {
             Hints.ForcedTarget = BestDOTTargets.Actor;
         }
-        if (BestDOTTargets == null)
+        if (BestDOTTargets == null || (ShouldUseAOE ? !In10y(BestAOETarget?.Actor) : !In3y(BestDOTTarget?.Actor)))
         {
             GetNextTarget(strategy, ref primaryTarget, 3);
         }
