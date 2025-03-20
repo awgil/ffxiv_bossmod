@@ -735,8 +735,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region AI
-        if (BestDOTTargets != null &&
-            In3y(BestDOTTargets.Actor))
+        if (ComboLastMove is AID.Disembowel or AID.SpiralBlow &&
+            BestDOTTargets != null)
         {
             Hints.ForcedTarget = BestDOTTargets.Actor;
         }
