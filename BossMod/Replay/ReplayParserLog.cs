@@ -344,6 +344,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLAL"u8)] = ParseClientAnimationLock,
             [new("CLCB"u8)] = ParseClientCombo,
             [new("CLST"u8)] = ParseClientPlayerStats,
+            [new("CLMV"u8)] = ParseClientMovespeed,
             [new("CLCD"u8)] = ParseClientCooldown,
             [new("CLDA"u8)] = ParseClientDutyActions,
             [new("CLBH"u8)] = ParseClientBozjaHolster,
@@ -660,6 +661,7 @@ public sealed class ReplayParserLog : IDisposable
     private ClientState.OpAnimationLockChange ParseClientAnimationLock() => new(_input.ReadFloat());
     private ClientState.OpComboChange ParseClientCombo() => new(new(_input.ReadUInt(false), _input.ReadFloat()));
     private ClientState.OpPlayerStatsChange ParseClientPlayerStats() => new(new(_input.ReadInt(), _input.ReadInt(), _input.ReadInt()));
+    private ClientState.OpMoveSpeedChange ParseClientMovespeed() => new(_input.ReadFloat());
 
     private ClientState.OpCooldown ParseClientCooldown()
     {

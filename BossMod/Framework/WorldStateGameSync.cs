@@ -13,6 +13,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.Interop;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace BossMod;
@@ -611,6 +612,12 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new PartyState.OpModify(slot, m));
     }
 
+    [StructLayout(LayoutKind.Explicit)]
+    private unsafe struct Char8
+    {
+        [FieldOffset(0x8)] public Character* Character;
+    }
+
     private unsafe void UpdateClient()
     {
         var countdownAgent = AgentCountDownSettingDialog.Instance();
@@ -630,6 +637,15 @@ sealed class WorldStateGameSync : IDisposable
         var stats = new ClientState.Stats(uiState->PlayerState.Attributes[45], uiState->PlayerState.Attributes[46], uiState->PlayerState.Attributes[47]);
         if (_ws.Client.PlayerStats != stats)
             _ws.Execute(new ClientState.OpPlayerStatsChange(stats));
+
+        var pc = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        if (pc != null)
+        {
+            var c8 = new Char8() { Character = pc };
+            var move = Character.CalculateMovementSpeedMultiplier(&c8);
+            if (_ws.Client.MoveSpeedMultiplier != move)
+                _ws.Execute(new ClientState.OpMoveSpeedChange(move));
+        }
 
         Span<Cooldown> cooldowns = stackalloc Cooldown[_ws.Client.Cooldowns.Length];
         _amex.GetCooldowns(cooldowns);

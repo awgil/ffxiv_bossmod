@@ -192,6 +192,8 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
             player->GetStatusManager()->SetStatus(20, 911, 20.0f, 50, 0xE0000000, true); // param = distance * 10
         }
 
+        ImGui.TextUnformatted($"Movement speed multiplier: {ws.Client.MoveSpeedMultiplier}");
+
         foreach (var elem in ws.Actors)
         {
             var obj = (elem.InstanceID >> 32) == 0 ? Service.ObjectTable.SearchById((uint)elem.InstanceID) : null;
