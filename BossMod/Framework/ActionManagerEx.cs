@@ -228,6 +228,8 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     public int GetAdjustedRecastTime(ActionID action, bool applyClassMechanics = true) => ActionManager.GetAdjustedRecastTime((CSActionType)action.Type, action.ID, applyClassMechanics);
 
+    public bool CanMoveWhileCasting(ActionID action) => action.ID is 29391 or 29402;
+
     public bool IsRecastTimerActive(ActionID action)
         => _inst->IsRecastTimerActive((CSActionType)action.Type, action.ID);
 
@@ -381,7 +383,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         // check whether movement is safe; block movement if not and if desired
         MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
         // if we're not casting, but will start soon, moving might interrupt future cast
-        if (imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && GCD() < 0.1f)
+        if (imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && !CanMoveWhileCasting(imminentActionAdj) && GCD() < 0.1f)
         {
             // check LoS on target; blocking movement can cause AI mode to get stuck behind a wall trying to cast a spell on an unreachable target forever
             MoveMightInterruptCast |= CheckActionLoS(imminentAction, _inst->ActionQueued ? _inst->QueuedTargetId : (AutoQueue.Target?.InstanceID ?? 0));
@@ -578,7 +580,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _manualQueue.Pop(action);
         _animLockTweak.RecordRequest(seq, _inst->AnimationLock);
         _restoreRotTweak.Preserve(prevRot, currRot);
-        MoveMightInterruptCast = CastTimeRemaining > 0;
+        MoveMightInterruptCast = CastTimeRemaining > 0 && !CanMoveWhileCasting(action);
 
         var recast = _inst->GetRecastGroupDetail(GetRecastGroup(action));
 

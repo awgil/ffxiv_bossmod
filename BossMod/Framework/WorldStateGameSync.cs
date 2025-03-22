@@ -72,6 +72,8 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe delegate void* ProcessPacketFateInfoDelegate(ulong fateId, long startTimestamp, ulong durationSecs);
     private readonly Hook<ProcessPacketFateInfoDelegate> _processPacketFateInfoHook;
 
+    private readonly unsafe delegate* unmanaged<ContainerInterface*, float> _calculateMoveSpeedMulti;
+
     public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
     {
         _ws = ws;
@@ -132,6 +134,9 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketFateInfoHook = Service.Hook.HookFromSignature<ProcessPacketFateInfoDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B7 4B 10 48 8D 53 12 41 B8 ?? ?? ?? ??", ProcessPacketFateInfoDetour);
         _processPacketFateInfoHook.Enable();
         Service.Log($"[WSG] ProcessPacketFateInfo address = 0x{_processPacketFateInfoHook.Address:X}");
+
+        _calculateMoveSpeedMulti = (delegate* unmanaged<ContainerInterface*, float>)Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
+        Service.Log($"[WSG] CalculateMovementSpeedMultiplier address = 0x{(nint)_calculateMoveSpeedMulti:X}");
     }
 
     public void Dispose()
@@ -613,7 +618,7 @@ sealed class WorldStateGameSync : IDisposable
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    private unsafe struct Char8
+    private unsafe struct CharacterContainer
     {
         [FieldOffset(0x8)] public Character* Character;
     }
@@ -641,10 +646,12 @@ sealed class WorldStateGameSync : IDisposable
         var pc = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         if (pc != null)
         {
-            var c8 = new Char8() { Character = pc };
-            var move = Character.CalculateMovementSpeedMultiplier(&c8);
-            if (_ws.Client.MoveSpeedMultiplier != move)
-                _ws.Execute(new ClientState.OpMoveSpeedChange(move));
+            var baseSpeed = *(float*)((nint)Control.Instance() + 0x7108);
+            var c8 = new CharacterContainer() { Character = pc };
+            var factor = _calculateMoveSpeedMulti((ContainerInterface*)&c8);
+            var speed = baseSpeed * factor;
+            if (_ws.Client.MoveSpeed != speed)
+                _ws.Execute(new ClientState.OpMoveSpeedChange(speed));
         }
 
         Span<Cooldown> cooldowns = stackalloc Cooldown[_ws.Client.Cooldowns.Length];

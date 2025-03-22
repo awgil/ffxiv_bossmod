@@ -192,7 +192,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
             player->GetStatusManager()->SetStatus(20, 911, 20.0f, 50, 0xE0000000, true); // param = distance * 10
         }
 
-        ImGui.TextUnformatted($"Movement speed multiplier: {ws.Client.MoveSpeedMultiplier}");
+        ImGui.TextUnformatted($"Player move speed: {ws.Client.MoveSpeed:f2}");
 
         foreach (var elem in ws.Actors)
         {

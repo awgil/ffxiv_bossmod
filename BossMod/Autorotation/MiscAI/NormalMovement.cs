@@ -78,7 +78,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             }
         }
 
-        var speed = World.Client.MoveSpeedMultiplier * 6;
+        var speed = World.Client.MoveSpeed;
         var destinationOpt = strategy.Option(Track.Destination);
         var destinationStrategy = destinationOpt.As<DestinationStrategy>();
         var navi = destinationStrategy switch
