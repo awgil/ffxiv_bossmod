@@ -4,6 +4,7 @@ immediate plans
 - add strategy param, use for 'apply unless already active' flavours of utility strategies
 - ishape
 -- rasterization should automatically deal with 0.03 position imprecision (and angle imprecision?..)
+- custom queueing for manually-pressed actions should allow native autotarget
 
 general:
 - horizontal timeline / cooldown planner
