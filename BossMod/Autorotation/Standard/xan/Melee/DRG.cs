@@ -169,8 +169,6 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         var posOk = PosLockOk(strategy);
         var bestSingleTarget = primaryTarget.Priority >= 0 ? primaryTarget : null;
 
-        static bool posCheck(float animationLock) => true; //  Hints.PositionStoredIn > AnimLock + animationLock;
-
         if (NextPositionalImminent && !NextPositionalCorrect)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.TrueNorth), Player, ActionQueue.Priority.Low - 20, delay: GCD - 0.8f);
 
@@ -192,19 +190,19 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (NastrondReady == 0)
             PushOGCD(AID.Geirskogul, BestLongAOETarget);
 
-        if (DiveReady == 0 && posOk && posCheck(0.6f))
+        if (DiveReady == 0 && posOk)
             PushOGCD(AID.Jump, bestSingleTarget);
 
         if (LanceCharge > GCD && ShouldLifeSurge())
             PushOGCD(AID.LifeSurge, Player);
 
-        if (moveOk && strategy.BuffsOk() && posCheck(0.8f))
+        if (moveOk && strategy.BuffsOk())
             PushOGCD(AID.DragonfireDive, BestDiveTarget);
 
         if (NastrondReady > 0)
             PushOGCD(AID.Nastrond, BestLongAOETarget);
 
-        if (LotD > AnimLock && moveOk && posCheck(1.5f))
+        if (LotD > AnimLock && moveOk)
         {
             // stardiver: 1.5 + delay
             // regular GCD: 0.6 + delay
