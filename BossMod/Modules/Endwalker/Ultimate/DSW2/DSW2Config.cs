@@ -114,6 +114,7 @@ public class DSW2Config() : ConfigNode()
     [GroupDetails(["NW Flex", "NE Flex", "SE Flex", "SW Flex", "NW Stay", "NE Stay", "SE Stay", "SW Stay"])]
     [GroupPreset("LPDU", [1, 3, 6, 0, 2, 4, 5, 7])]
     [GroupPreset("LPDU but CCW", [0, 2, 5, 7, 1, 3, 4, 6])]
+    [GroupPreset("NA", [1, 3, 4, 6, 0, 2, 5, 7])]
     public GroupAssignmentUnique P3DarkdragonDiveCounterGroups = GroupAssignmentUnique.Default();
 
     [PropertyDisplay("P3 enumeration towers: prefer flexing to CCW tower (rather than to CW)")]
