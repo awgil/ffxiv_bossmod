@@ -131,3 +131,8 @@ public class ChargeAOEs(BossModule module, ActionID aid, float halfWidth) : Gene
             Casters.RemoveAll(e => e.caster == caster);
     }
 }
+
+public class StandardAOEs(BossModule module, ActionID aid, AOEShape shape, int maxCasts = int.MaxValue) : SelfTargetedAOEs(module, aid, shape, maxCasts)
+{
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(csr => new AOEInstance(Shape, csr.CastInfo!.LocXZ, csr.CastInfo.Rotation, Module.CastFinishAt(csr.CastInfo)));
+}

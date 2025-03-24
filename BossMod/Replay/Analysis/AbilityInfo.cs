@@ -63,7 +63,7 @@ class AbilityInfo : CommonEnumInfo
             foreach (var i in infos)
             {
                 var cast = i.Action.Source.Casts.LastOrDefault(c => c.ID == i.Action.ID && c.Time.Start < i.Action.Timestamp);
-                var sourcePosRot = i.Action.Source.PosRotAt(i.Action.Timestamp);
+                var sourcePosRot = cast == null ? i.Action.Source.PosRotAt(i.Action.Timestamp) : new Vector4(cast.Location, cast.Rotation.Rad);
                 var sourcePos = new WPos(sourcePosRot.XZ());
                 var targetPos = new WPos((cast?.Location ?? i.Action.TargetPos).XZ());
                 if (targetPos == sourcePos && i.Action.Targets.Count > 0)
