@@ -1,4 +1,6 @@
-﻿namespace BossMod.Shadowbringers.Foray.Dalriada.D1Beasts;
+﻿
+
+namespace BossMod.Shadowbringers.Foray.Dalriada.D1Beasts;
 
 public enum OID : uint
 {
@@ -11,7 +13,7 @@ public enum OID : uint
     StormborneZirnitra = 0x32C7, // R2.800, x0 (spawn during fight)
     WaveborneZirnitra = 0x32C6, // R2.800, x0 (spawn during fight)
     FlameborneZirnitra = 0x32C5, // R2.800, x0 (spawn during fight)
-    Actor1eb214 = 0x1EB214, // R0.500, x0 (spawn during fight), EventObj type
+    PyroplexyTower = 0x1EB214, // R0.500, x0 (spawn during fight), EventObj type
     Actor1eb213 = 0x1EB213, // R0.500, x0 (spawn during fight), EventObj type
     TamedAlkonost = 0x32CB, // R7.500, x0 (spawn during fight)
     TamedCarrionCrow = 0x32CA, // R4.320, x0 (spawn during fight)
@@ -34,33 +36,33 @@ public enum AID : uint
     TerminusEst2 = 24327, // TerminusEst->self, 5.0s cast, range 50 width 8 rect
     SurfaceMissileBoss = 24336, // Boss->self, 3.0s cast, single-target
     SurfaceMissile = 24337, // Helper->location, 3.0s cast, range 6 circle
-    FourthSanctifiedQuakeIII = 24351, // FourthLegionAugur2->self, 5.0s cast, single-target
-    FourthSanctifiedQuakeIIIHelper = 24352, // Helper->self, 5.6s cast, ???
-    FourthVoidCall = 24350, // FourthLegionAugur2->self, 3.0s cast, single-target
-    FourthTurbine = 24341, // Helper->self, 5.0s cast, ???
+    SanctifiedQuakeIII = 24351, // FourthLegionAugur2->self, 5.0s cast, single-target
+    SanctifiedQuakeIIIHelper = 24352, // Helper->self, 5.6s cast, ???
+    VoidCall = 24350, // FourthLegionAugur2->self, 3.0s cast, single-target
+    TurbineHelper = 24341, // Helper->self, 5.0s cast, ???
     Turbine = 24340, // FlameborneZirnitra->self, 5.0s cast, range 40 circle
-    FourthFlamingCyclone = 24345, // StormborneZirnitra->self, 7.5s cast, range 10 circle
-    Fourth74Degrees = 24343, // WaveborneZirnitra->players, 8.0s cast, range ?-8 donut
-    FourthPyroplexy = 24347, // FourthLegionAugur2->self, 12.0s cast, single-target
-    FourthPyroclysm = 24349, // Helper->location, no cast, range 40 circle
-    FourthPyroplexyHelper = 24348, // Helper->location, no cast, range 4 circle
-    FourthStormcall = 24358, // TamedAlkonost->self, 3.0s cast, single-target
-    FourthSouthWind = 24354, // TamedCarrionCrow->self, 8.0s cast, single-target
-    FourthStormcallOrb = 24359, // VorticalOrb/VorticalOrb2->self, 2.0s cast, range 35 circle
-    FourthUnknown = 24355, // Helper->self, 8.0s cast, range 60 width 60 rect
-    FourthSouthWindHelper = 24815, // Helper->self, no cast, ???
-    FourthPainStorm = 24363, // TamedAlkonost->self, 6.0s cast, range 35 130-degree cone
-    FourthShadowsCast = 24369, // TamedAlkonostsShadow->self, 6.0s cast, single-target
-    FourthFrigidPulse = 24362, // TamedAlkonost->self, 6.0s cast, range 8-25 donut
-    FourthNorthWind = 24353, // TamedCarrionCrow->self, 8.0s cast, single-target
-    FourthNorthWindHelper = 24814, // Helper->self, no cast, ???
-    FourthForeshadowing = 24368, // TamedAlkonost->self, 11.0s cast, single-target
-    FourthFrigidPulseShadow = 24365, // TamedAlkonostsShadow->self, 11.0s cast, range 8-25 donut
-    FourthPainStormShadow = 24366, // TamedAlkonostsShadow->self, 11.0s cast, range 35 130-degree cone
-    FourthNihilitysSong = 24360, // TamedAlkonost->self, 5.0s cast, single-target
-    FourthNihilitysSongHelper = 24361, // Helper->self, 5.6s cast, ???
-    FourthBroadsideBarrage = 24357, // TamedCarrionCrow->self, 5.0s cast, range 40 width 40 rect
-    FourthPainfulGust = 24364, // TamedAlkonost->self, 6.0s cast, range 20 circle
+    FlamingCyclone = 24345, // StormborneZirnitra->self, 7.5s cast, range 10 circle
+    A74Degrees = 24343, // WaveborneZirnitra->players, 8.0s cast, range ?-8 donut
+    Pyroplexy = 24347, // FourthLegionAugur2->self, 12.0s cast, single-target
+    Pyroclysm = 24349, // Helper->location, no cast, range 40 circle
+    PyroplexyHelper = 24348, // Helper->location, no cast, range 4 circle
+    Stormcall = 24358, // TamedAlkonost->self, 3.0s cast, single-target
+    SouthWind = 24354, // TamedCarrionCrow->self, 8.0s cast, single-target
+    StormcallOrb = 24359, // VorticalOrb/VorticalOrb2->self, 2.0s cast, range 35 circle
+    Unknown = 24355, // Helper->self, 8.0s cast, range 60 width 60 rect
+    SouthWindHelper = 24815, // Helper->self, no cast, ???
+    PainStorm = 24363, // TamedAlkonost->self, 6.0s cast, range 35 130-degree cone
+    ShadowsCast = 24369, // TamedAlkonostsShadow->self, 6.0s cast, single-target
+    FrigidPulse = 24362, // TamedAlkonost->self, 6.0s cast, range 8-25 donut
+    NorthWind = 24353, // TamedCarrionCrow->self, 8.0s cast, single-target
+    NorthWindHelper = 24814, // Helper->self, no cast, ???
+    Foreshadowing = 24368, // TamedAlkonost->self, 11.0s cast, single-target
+    FrigidPulseShadow = 24365, // TamedAlkonostsShadow->self, 11.0s cast, range 8-25 donut
+    PainStormShadow = 24366, // TamedAlkonostsShadow->self, 11.0s cast, range 35 130-degree cone
+    NihilitysSong = 24360, // TamedAlkonost->self, 5.0s cast, single-target
+    NihilitysSongHelper = 24361, // Helper->self, 5.6s cast, ???
+    BroadsideBarrage = 24357, // TamedCarrionCrow->self, 5.0s cast, range 40 width 40 rect
+    PainfulGust = 24364, // TamedAlkonost->self, 6.0s cast, range 20 circle
 }
 
 public enum SID : uint
@@ -78,7 +80,7 @@ public enum SID : uint
 public enum IconID : uint
 {
     BallisticImpact = 261, // Helper->self
-    Unk = 288, // player->self
+    Degrees = 288, // player->self
 }
 
 class BeastTracker(BossModule module) : BossComponent(module)
@@ -97,6 +99,165 @@ class BeastTracker(BossModule module) : BossComponent(module)
 }
 
 class SuppressiveMagitekRays(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SuppressiveMagitekRays));
+class SanctifiedQuake(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SanctifiedQuakeIIIHelper));
+
+class BallisticImpact(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.BallisticImpact))
+{
+    private readonly List<WPos> Impacts = [];
+    private DateTime Activation;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Impacts.Take(2).Select(t => new AOEInstance(new AOEShapeRect(12, 12, 12), t, Activation: Activation));
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if (iconID == (uint)IconID.BallisticImpact)
+        {
+            if (Impacts.Count == 0)
+                Activation = WorldState.FutureTime(11.9f);
+
+            Impacts.Add(actor.Position);
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            Impacts.RemoveAt(0);
+            if (Impacts.Count > 0)
+                Activation = WorldState.FutureTime(3.1f);
+            else
+                Activation = default;
+        }
+    }
+}
+
+class TerminusEst(BossModule module) : Components.CastWeakpoint(module, ActionID.MakeSpell(AID.TerminusEst2), new AOEShapeRect(60, 4), 0, (uint)SID.BackUnseen, (uint)SID.LeftUnseen, (uint)SID.RightUnseen);
+class SurfaceMissile(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SurfaceMissile), 6);
+
+class Turbine(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TurbineHelper), 15)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction && Casters.Count == 0)
+            Casters.Add(caster);
+    }
+}
+class FlamingCyclone(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.FlamingCyclone), new AOEShapeCircle(10));
+class A74Degrees(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.A74Degrees), new AOEShapeDonut(4, 8), centerAtTarget: true, endsOnCastEvent: true);
+class Pyroplexy(BossModule module) : Components.GenericTowers(module)
+{
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if ((OID)actor.OID == OID.PyroplexyTower && state == 0x00010002)
+            Towers.Add(new(actor.Position, 4, maxSoakers: int.MaxValue, activation: WorldState.FutureTime(8.2f)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.Pyroclysm or AID.PyroplexyHelper)
+            Towers.RemoveAll(t => t.Position.AlmostEqual(spell.TargetXZ, 1));
+    }
+}
+
+class Wind(BossModule module) : Components.Knockback(module)
+{
+    private readonly List<Source> sources = [];
+
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => sources;
+
+    public WDir KnockbackDir(int slot) => sources.Where(s => !IsImmune(slot, s.Activation)).Select(s => s.Direction.ToDirection() * s.Distance).FirstOrDefault();
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.SouthWind)
+        {
+            sources.Add(new(new WPos(222, -665), 40, Module.CastFinishAt(spell, 0.7f), null, 180.Degrees(), Kind.DirForward));
+        }
+
+        if ((AID)spell.Action.ID == AID.NorthWind)
+        {
+            sources.Add(new(new WPos(222, -713), 40, Module.CastFinishAt(spell, 0.7f), null, 0.Degrees(), Kind.DirForward));
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.SouthWindHelper or AID.NorthWindHelper)
+            sources.Clear();
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var src in Sources(slot, actor))
+        {
+            if (!IsImmune(slot, src.Activation))
+            {
+                var badZ = src.Origin.Z < Arena.Center.Z ? src.Origin.Z + 48 : src.Origin.Z - 48;
+                var badWall = new WPos(src.Origin.X, badZ);
+                hints.AddForbiddenZone(ShapeDistance.Rect(badWall, src.Direction + 180.Degrees(), 40, 0, 40), src.Activation);
+            }
+        }
+    }
+}
+
+// fast orb is 13.85s later
+// slow orb is 20.95s later
+class Stormcall(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => aoes.Take(1);
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID is OID.VorticalOrb or OID.VorticalOrb2)
+        {
+            var offset = actor.Position.Z < Arena.Center.Z ? new WDir(0, 48) : new WDir(0, -48);
+            aoes.Add(new(new AOEShapeCircle(35), actor.Position + offset, Activation: WorldState.FutureTime(actor.OID == (uint)OID.VorticalOrb ? 13.85f : 20.95f)));
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.StormcallOrb && aoes.Count > 0)
+            aoes.RemoveAt(0);
+    }
+}
+
+class KBAware(BossModule module, ActionID action, AOEShape shape) : Components.StandardAOEs(module, action, shape)
+{
+    private Wind? windComponent;
+
+    public override void Update()
+    {
+        windComponent ??= Module.FindComponent<Wind>();
+    }
+
+    private WDir KnockbackDir(int slot) => windComponent?.KnockbackDir(slot) ?? default;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (KnockbackDir(slot) == default)
+            return base.ActiveAOEs(slot, actor);
+        else
+            return base.ActiveAOEs(slot, actor).Select(a => a with { Risky = false });
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var dir = KnockbackDir(slot);
+        foreach (var aoe in ActiveAOEs(slot, actor))
+            hints.AddForbiddenZone(aoe.Shape, aoe.Origin - dir, aoe.Rotation, aoe.Activation);
+    }
+}
+
+class PainStorm(BossModule module) : KBAware(module, ActionID.MakeSpell(AID.PainStorm), new AOEShapeCone(35, 65.Degrees()));
+class PainStorm2(BossModule module) : KBAware(module, ActionID.MakeSpell(AID.PainStormShadow), new AOEShapeCone(35, 65.Degrees()));
+class FrigidPulse(BossModule module) : KBAware(module, ActionID.MakeSpell(AID.FrigidPulse), new AOEShapeDonut(8, 25));
+class FrigidPulse2(BossModule module) : KBAware(module, ActionID.MakeSpell(AID.FrigidPulseShadow), new AOEShapeDonut(8, 25));
+class BroadsideBarrage(BossModule module) : KBAware(module, ActionID.MakeSpell(AID.BroadsideBarrage), new AOEShapeRect(40, 20));
+class PainfulGust(BossModule module) : KBAware(module, ActionID.MakeSpell(AID.PainfulGust), new AOEShapeCircle(20));
 
 class FourthLegionAugurStates : StateMachineBuilder
 {
@@ -105,15 +266,29 @@ class FourthLegionAugurStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<BeastTracker>()
             .ActivateOnEnter<SuppressiveMagitekRays>()
+            .ActivateOnEnter<BallisticImpact>()
+            .ActivateOnEnter<TerminusEst>()
+            .ActivateOnEnter<SurfaceMissile>()
+            .ActivateOnEnter<SanctifiedQuake>()
+            .ActivateOnEnter<Turbine>()
+            .ActivateOnEnter<FlamingCyclone>()
+            .ActivateOnEnter<A74Degrees>()
+            .ActivateOnEnter<Pyroplexy>()
+            .ActivateOnEnter<Wind>()
+            .ActivateOnEnter<Stormcall>()
+            .ActivateOnEnter<PainStorm>()
+            .ActivateOnEnter<PainStorm2>()
+            .ActivateOnEnter<FrigidPulse>()
+            .ActivateOnEnter<FrigidPulse2>()
+            .ActivateOnEnter<BroadsideBarrage>()
+            .ActivateOnEnter<PainfulGust>()
             .Raw.Update = () => module.FindComponent<BeastTracker>()!.BothDead;
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 778, NameID = 10207)]
-public class FourthLegionAugur(WorldState ws, Actor primary) : BossModule(ws, primary, new(222, -689), new ArenaBoundsRect(29.5f, 29.5f))
+public class FourthLegionAugur(WorldState ws, Actor primary) : BossModule(ws, primary, new(222, -689), new ArenaBoundsRect(24, 24))
 {
-    // smaller arena during bird phase is 24 radius square
-
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 
     public override bool DrawAllPlayers => true;
