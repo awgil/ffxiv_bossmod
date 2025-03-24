@@ -91,7 +91,7 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
         }
 
         bool haveActions = actions.Any();
-        bool actionIsCrap(Replay.Action a) => a.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo;
+        bool actionIsCrap(Replay.Action a) => a.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo || a.Source.AllyAt(a.Timestamp) || Service.LuminaRow<Lumina.Excel.Sheets.Action>(a.ID.ID)?.ActionCategory.RowId == 1;
         foreach (var n in _tree.Node("Interesting actions", !haveActions))
         {
             DrawActions(actions.Where(a => !actionIsCrap(a)), tp, aidType);

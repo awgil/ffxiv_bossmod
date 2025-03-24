@@ -47,6 +47,7 @@ public sealed class Replay
         public readonly SortedList<DateTime, (string name, uint id)> NameHistory = [];
         public readonly SortedList<DateTime, bool> TargetableHistory = [];
         public readonly SortedList<DateTime, bool> DeadHistory = [];
+        public readonly SortedList<DateTime, bool> AllyHistory = [];
         public readonly SortedList<DateTime, Vector4> PosRotHistory = [];
         public readonly SortedList<DateTime, ActorHPMP> HPMPHistory = [];
         public readonly List<Cast> Casts = [];
@@ -59,9 +60,12 @@ public sealed class Replay
         public bool ExistsInWorldAt(DateTime t) => WorldExistence.Any(r => r.Contains(t));
         public (string? name, uint id) NameAt(DateTime t) => HistoryEntryAt(NameHistory, t);
         public bool TargetableAt(DateTime t) => HistoryEntryAt(TargetableHistory, t);
+        public bool AllyAt(DateTime t) => HistoryEntryAt(AllyHistory, t);
         public bool DeadAt(DateTime t) => HistoryEntryAt(DeadHistory, t);
         public Vector4 PosRotAt(DateTime t) => HistoryEntryAt(PosRotHistory, t);
         public ActorHPMP HPMPAt(DateTime t) => HistoryEntryAt(HPMPHistory, t);
+
+        public bool WasAlly => AllyHistory.Any(p => p.Value);
 
         private T? HistoryEntryAt<T>(SortedList<DateTime, T> history, DateTime t)
         {
