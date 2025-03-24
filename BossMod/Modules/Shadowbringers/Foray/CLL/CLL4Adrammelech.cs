@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CastrumLacusLatore.CLL4Adrammelech;
+﻿namespace BossMod.Shadowbringers.Foray.CLL.CLL4Adrammelech;
 
 public enum OID : uint
 {

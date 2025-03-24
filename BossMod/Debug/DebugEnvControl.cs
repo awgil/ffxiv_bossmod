@@ -37,6 +37,12 @@ unsafe class DebugEnvControl
 
         _history.Remove(_current);
         _history.Insert(0, _current);
-        ProcessEnvControl(EventFramework.Instance()->DirectorModule.ActiveContentDirector, index, (ushort)(state & 0xFFFF), (ushort)(state >> 16));
+        var director = EventFramework.Instance()->DirectorModule.ActiveContentDirector;
+        if (director == null)
+        {
+            Service.Log("No active content director, doing nothing");
+            return;
+        }
+        ProcessEnvControl(director, index, (ushort)(state & 0xFFFF), (ushort)(state >> 16));
     }
 }

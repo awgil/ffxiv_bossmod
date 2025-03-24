@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CastrumLacusLatore.CLL2Brionac;
+﻿namespace BossMod.Shadowbringers.Foray.CLL.CLL2Brionac;
 
 public enum OID : uint
 {
