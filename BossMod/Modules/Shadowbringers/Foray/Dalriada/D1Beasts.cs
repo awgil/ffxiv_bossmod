@@ -1,6 +1,4 @@
-﻿
-
-namespace BossMod.Shadowbringers.Foray.Dalriada.D1Beasts;
+﻿namespace BossMod.Shadowbringers.Foray.Dalriada.D1Beasts;
 
 public enum OID : uint
 {

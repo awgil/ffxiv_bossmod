@@ -114,9 +114,8 @@ class ParticipantInfo : CommonEnumInfo
         if (ImGui.MenuItem("Generate missing enum values for boss module"))
         {
             var sb = new StringBuilder();
-            foreach (var (oid, data) in _data.Where(kv => _oidType?.GetEnumName(kv.Key) == null))
+            foreach (var (name, val) in Utils.DedupKeys(_data.Where(kv => _oidType?.GetEnumName(kv.Key) == null).Select(d => EnumMemberString(d.Key, d.Value))))
             {
-                var (name, val) = EnumMemberString(oid, data);
                 sb.AppendLine($"{name} = {val}");
             }
             ImGui.SetClipboardText(sb.ToString());
@@ -182,19 +181,11 @@ class ParticipantInfo : CommonEnumInfo
 
     private StringBuilder AddOIDEnum(StringBuilder sb, uint forcedBossOID = 0)
     {
-        var members = new Dictionary<string, string>();
-        foreach (var (oid, data) in _data)
-        {
-            var i = 0;
-            var (name, val) = EnumMemberString(oid, data, oid == forcedBossOID ? "Boss" : null);
-            var key = name;
-            while (!members.TryAdd(key, val))
-                key = $"{name}{++i}";
-        }
+        var members = _data.Select(d => EnumMemberString(d.Key, d.Value, d.Key == forcedBossOID ? "Boss" : null));
 
         sb.AppendLine("public enum OID : uint");
         sb.AppendLine("{");
-        foreach (var (key, val) in members)
+        foreach (var (key, val) in Utils.DedupKeys(members))
             sb.AppendLine($"    {key} = {val}");
         sb.AppendLine("}");
         return sb;
