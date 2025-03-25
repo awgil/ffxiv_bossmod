@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    "net8.0-windows7.0": {
+    "net9.0-windows7.0": {
       "DalamudPackager": {
         "type": "Direct",
         "requested": "[11.0.0, )",
@@ -39,11 +39,6 @@
           "System.Configuration.ConfigurationManager": "4.7.0",
           "System.Data.SqlClient": "4.8.1"
         }
-      },
-      "JetBrains.Annotations": {
-        "type": "Transitive",
-        "resolved": "2021.2.0",
-        "contentHash": "kKSyoVfndMriKHLfYGmr0uzQuI4jcc3TKGyww7buJFCYeHb/X0kodYBPL7n9454q7v6ASiRmDgpPGaDGerg/Hg=="
       },
       "Microsoft.CSharp": {
         "type": "Transitive",
@@ -1096,8 +1091,7 @@
       "ffxivclientstructs": {
         "type": "Project",
         "dependencies": {
-          "InteropGenerator.Runtime": "[1.0.0, )",
-          "JetBrains.Annotations": "[2021.2.0, )"
+          "InteropGenerator.Runtime": "[1.0.0, )"
         }
       },
       "interopgenerator.runtime": {

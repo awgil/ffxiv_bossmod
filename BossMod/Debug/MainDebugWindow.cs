@@ -204,7 +204,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
                     foreach (var status in chara.StatusList)
                     {
                         var src = status.SourceObject != null ? Utils.ObjectString(status.SourceObject) : "none";
-                        ImGui.TextUnformatted($"{status.StatusId} '{status.GameData.Value.Name}': param={status.Param}, stacks={status.StackCount}, time={status.RemainingTime:f2}, source={src}");
+                        ImGui.TextUnformatted($"{status.StatusId} '{status.GameData.Value.Name}': param={status.Param}, stacks={status.Param}, time={status.RemainingTime:f2}, source={src}");
                     }
                 }
                 ImGui.TreePop();

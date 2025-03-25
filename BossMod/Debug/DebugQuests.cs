@@ -47,7 +47,8 @@ unsafe class DebugQuests
         }
         foreach (var quests in _dailyQuests.Values)
         {
-            quests.AllQuests.SortBy(q => (q.Unknown11 == 3, q.RowId));
+            // TODO map Unknown11
+            // quests.AllQuests.SortBy(q => (q.Unknown11 == 3, q.RowId));
             var rankMin = (int)quests.AllQuests.Select(q => q.BeastReputationRank.RowId).Min();
             var rankMax = (int)quests.AllQuests.Select(q => q.BeastReputationRank.RowId).Max();
             var rankCur = RankForQuest(quests.AllQuests[0], out var rankedUp);
@@ -100,7 +101,8 @@ unsafe class DebugQuests
                     int i = 0;
                     foreach (var q in quests.AllQuests)
                     {
-                        _tree.LeafNode($"[{i++}] G{q.Unknown11} {(IsEligible(q) ? "+" : "-")}{(quests.AvailableQuests.Contains(q) ? "+" : "-")} {q.RowId} '{q.Name}'");
+                        // TODO map Unknown11
+                        // _tree.LeafNode($"[{i++}] G{q.Unknown11} {(IsEligible(q) ? "+" : "-")}{(quests.AvailableQuests.Contains(q) ? "+" : "-")} {q.RowId} '{q.Name}'");
                     }
                 }
             }
@@ -152,7 +154,8 @@ unsafe class DebugQuests
         }
         else
         {
-            var firstExclusive = eligible.FindIndex(q => q.Unknown11 == 3);
+            // TODO map Unknown11
+            var firstExclusive = -1; //  eligible.FindIndex(q => q.Unknown11 == 3);
             if (firstExclusive >= 0)
                 available.Add(eligible[firstExclusive + rng.Next(eligible.Count - firstExclusive)]);
             else

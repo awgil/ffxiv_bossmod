@@ -50,7 +50,7 @@ class UITest
         Service.LogHandlerDebug = msg => Debug.WriteLine(msg);
         Service.LogHandlerVerbose = msg => Debug.WriteLine(msg);
         Service.LuminaGameData = new(FindGameDataPath());
-        //Service.LuminaGameData.Options.PanicOnSheetChecksumMismatch = false; // TODO: remove - temporary workaround until lumina is updated
+        Service.LuminaGameData.Options.PanicOnSheetChecksumMismatch = false; // TODO: remove - temporary workaround until lumina is updated
         Service.LuminaGameData.Options.RsvResolver = Service.LuminaRSV.TryGetValue;
         Service.WindowSystem = new("uitest");
         typeof(Service).GetProperty("Texture")!.SetValue(null, new OfflineTextureProvider(scene.Renderer));
