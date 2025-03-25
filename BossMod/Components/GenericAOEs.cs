@@ -134,5 +134,30 @@ public class ChargeAOEs(BossModule module, ActionID aid, float halfWidth) : Gene
 
 public class StandardAOEs(BossModule module, ActionID aid, AOEShape shape, int maxCasts = int.MaxValue) : SelfTargetedAOEs(module, aid, shape, maxCasts)
 {
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(csr => new AOEInstance(Shape, csr.CastInfo!.LocXZ, csr.CastInfo.Rotation, Module.CastFinishAt(csr.CastInfo)));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(csr => new AOEInstance(Shape, csr.CastInfo!.LocXZ, csr.CastInfo.Rotation, Module.CastFinishAt(csr.CastInfo), Color));
+}
+
+public class GroupedAOEs(BossModule module, Enum[] aids, AOEShape shape, int maxCasts = int.MaxValue) : GenericAOEs(module)
+{
+    public AOEShape Shape { get; init; } = shape;
+    public int MaxCasts = maxCasts;
+    public uint Color; // can be customized if needed
+    public bool Risky = true; // can be customized if needed
+    public readonly List<Actor> Casters = [];
+    public readonly List<ActionID> IDs = aids.Select(ActionID.MakeSpell).ToList();
+    public IEnumerable<Actor> ActiveCasters => Casters.Take(MaxCasts);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(csr => new AOEInstance(Shape, csr.CastInfo!.LocXZ, csr.CastInfo.Rotation, Module.CastFinishAt(csr.CastInfo), Color, Risky));
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (IDs.Contains(spell.Action))
+            Casters.Add(caster);
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if (IDs.Contains(spell.Action))
+            Casters.Remove(caster);
+    }
 }
