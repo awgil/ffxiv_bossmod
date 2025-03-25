@@ -30,12 +30,13 @@ public static unsafe class IDScramble
         //.text:0000000140778C71 div     r8d                           ; 41 F7 F0
         //.text:0000000140778C74 mov     cs:g_netOffAdjusted, edx      ; 89 15 ?? ?? ?? ??
         // note that these three globals are laid out in sequence, but in some builds there's another unknown int between them
-        var scrambleAddr = Service.SigScanner.ScanText("44 89 05 ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 8B 05 ?? ?? ?? ?? 33 D2 44 03 05 ?? ?? ?? ?? 48 8B 5C 24 ?? 48 8B 74 24 ?? 41 F7 F0 89 15");
-        Service.Log($"IDScramble sequence = 0x{scrambleAddr:X}");
-        OffsetBaseChanging = ReadRVA(scrambleAddr + 3);
-        OffsetAdjusted = ReadRVA(scrambleAddr + 43);
-        OffsetBaseFixed = ReadRVA(scrambleAddr + 15);
-        Service.Log($"IDScramble addresses = 0x{(nint)OffsetBaseChanging:X}==0x{(nint)ReadRVA(scrambleAddr + 24):X} 0x{(nint)OffsetAdjusted:X} 0x{(nint)OffsetBaseFixed:X}");
+        //var scrambleAddr = Service.SigScanner.ScanText("44 89 05 ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 8B 05 ?? ?? ?? ?? 33 D2 44 03 05 ?? ?? ?? ?? 48 8B 5C 24 ?? 48 8B 74 24 ?? 41 F7 F0 89 15");
+        //Service.Log($"IDScramble sequence = 0x{scrambleAddr:X}");
+        //OffsetBaseChanging = ReadRVA(scrambleAddr + 3);
+        //OffsetAdjusted = ReadRVA(scrambleAddr + 43);
+        //OffsetBaseFixed = ReadRVA(scrambleAddr + 15);
+        //Service.Log($"IDScramble addresses = 0x{(nint)OffsetBaseChanging:X}==0x{(nint)ReadRVA(scrambleAddr + 24):X} 0x{(nint)OffsetAdjusted:X} 0x{(nint)OffsetBaseFixed:X}");
+        Service.Log($"FIXME");
     }
 
     private static int* ReadRVA(nint ptr) => (int*)(ptr + 4 + *(int*)ptr);

@@ -47,7 +47,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DalamudPackager" Version="11.0.0" />
+    <PackageReference Include="DalamudPackager" Version="12.0.0" />
     <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
     <PackageReference Include="System.Data.Sqlite" Version="1.0.119" />
     <ProjectReference Include="..\CodeAnalysis\CodeAnalysis.csproj">
