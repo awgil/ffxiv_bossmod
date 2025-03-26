@@ -8,8 +8,7 @@ public sealed class BossModuleManager : IDisposable
     public readonly BossModuleConfig Config = Service.Config.Get<BossModuleConfig>();
     private readonly EventSubscriptions _subsciptions;
 
-    private readonly List<BossModule> _loadedModules = [];
-    public IReadOnlyList<BossModule> LoadedModules => _loadedModules;
+    public List<BossModule> LoadedModules { get; } = [];
     public Event<BossModule> ModuleLoaded = new();
     public Event<BossModule> ModuleUnloaded = new();
     public Event<BossModule> ModuleActivated = new();
@@ -48,9 +47,9 @@ public sealed class BossModuleManager : IDisposable
     public void Dispose()
     {
         _activeModule = null;
-        foreach (var m in _loadedModules)
+        foreach (var m in LoadedModules)
             m.Dispose();
-        _loadedModules.Clear();
+        LoadedModules.Clear();
 
         _subsciptions.Dispose();
         RaidCooldowns.Dispose();
@@ -62,11 +61,11 @@ public sealed class BossModuleManager : IDisposable
         int bestPriority = 0;
         BossModule? bestModule = null;
         bool anyModuleActivated = false;
-        for (int i = 0; i < _loadedModules.Count; ++i)
+        for (int i = 0; i < LoadedModules.Count; ++i)
         {
-            var m = _loadedModules[i];
+            var m = LoadedModules[i];
             bool wasActive = m.StateMachine.ActiveState != null;
-            bool allowUpdate = wasActive || !_loadedModules.Any(other => other.StateMachine.ActiveState != null && other.GetType() == m.GetType()); // hack: forbid activating multiple modules of the same type
+            bool allowUpdate = wasActive || !LoadedModules.Any(other => other.StateMachine.ActiveState != null && other.GetType() == m.GetType()); // hack: forbid activating multiple modules of the same type
             bool isActive;
             try
             {
@@ -129,14 +128,14 @@ public sealed class BossModuleManager : IDisposable
 
     private void LoadModule(BossModule m)
     {
-        _loadedModules.Add(m);
+        LoadedModules.Add(m);
         Service.Log($"[BMM] Boss module '{m.GetType()}' loaded for actor {m.PrimaryActor}");
         ModuleLoaded.Fire(m);
     }
 
     private void UnloadModule(int index)
     {
-        var m = _loadedModules[index];
+        var m = LoadedModules[index];
         Service.Log($"[BMM] Boss module '{m.GetType()}' unloaded for actor {m.PrimaryActor}");
         ModuleUnloaded.Fire(m);
         if (_activeModule == m)
@@ -145,7 +144,7 @@ public sealed class BossModuleManager : IDisposable
             _activeModuleOverridden = false;
         }
         m.Dispose();
-        _loadedModules.RemoveAt(index);
+        LoadedModules.RemoveAt(index);
     }
 
     private static int ModuleDisplayPriority(BossModule? m)
@@ -174,7 +173,7 @@ public sealed class BossModuleManager : IDisposable
 
     private void ConfigChanged()
     {
-        int demoIndex = _loadedModules.FindIndex(m => m is DemoModule);
+        int demoIndex = LoadedModules.FindIndex(m => m is DemoModule);
         if (Config.ShowDemo && demoIndex < 0)
             LoadModule(CreateDemoModule());
         else if (!Config.ShowDemo && demoIndex >= 0)

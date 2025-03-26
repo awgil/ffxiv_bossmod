@@ -77,7 +77,7 @@ class C011SilkieStates : StateMachineBuilder
 
     private void SqueakyClean(uint id, float delay)
     {
-        CastMulti(id, new AID[] { _savage ? AID.SSqueakyCleanE : AID.NSqueakyCleanE, _savage ? AID.SSqueakyCleanW : AID.NSqueakyCleanW }, delay, 4.5f)
+        CastMulti(id, [_savage ? AID.SSqueakyCleanE : AID.NSqueakyCleanE, _savage ? AID.SSqueakyCleanW : AID.NSqueakyCleanW], delay, 4.5f)
             .ActivateOnEnter<NSqueakyCleanE>(!_savage)
             .ActivateOnEnter<NSqueakyCleanW>(!_savage)
             .ActivateOnEnter<SSqueakyCleanE>(_savage)
@@ -104,7 +104,7 @@ class C011SilkieStates : StateMachineBuilder
 
     private void SudsSlipperySoap(uint id, float delay, bool longCharge = false)
     {
-        CastMulti(id, new AID[] { _savage ? AID.SBracingSuds : AID.NBracingSuds, _savage ? AID.SChillingSuds : AID.NChillingSuds, _savage ? AID.SFizzlingSuds : AID.NFizzlingSuds }, delay, 3);
+        CastMulti(id, [_savage ? AID.SBracingSuds : AID.NBracingSuds, _savage ? AID.SChillingSuds : AID.NChillingSuds, _savage ? AID.SFizzlingSuds : AID.NFizzlingSuds], delay, 3);
         SlipperySoap(id + 0x100, 2.1f, longCharge);
     }
 
@@ -151,7 +151,7 @@ class C011SilkieStates : StateMachineBuilder
 
     private void Tethers1(uint id, float delay)
     {
-        CastMulti(id, new AID[] { _savage ? AID.SBracingSuds : AID.NBracingSuds, _savage ? AID.SChillingSuds : AID.NChillingSuds }, delay, 3)
+        CastMulti(id, [_savage ? AID.SBracingSuds : AID.NBracingSuds, _savage ? AID.SChillingSuds : AID.NChillingSuds], delay, 3)
             .ActivateOnEnter<PuffTethers1>();
         Cast(id + 0x10, _savage ? AID.SFreshPuff : AID.NFreshPuff, 2.1f, 4);
         // +1.1s: puffs appear

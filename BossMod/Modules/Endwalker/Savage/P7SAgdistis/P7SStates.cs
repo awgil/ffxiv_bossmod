@@ -50,7 +50,7 @@ class P7SStates : StateMachineBuilder
 
     private void DispersedCondensedAero(uint id, float delay, bool duringBladesOfAttis = false)
     {
-        CastMulti(id, new AID[] { AID.DispersedAero, AID.CondensedAero }, delay, 7)
+        CastMulti(id, [AID.DispersedAero, AID.CondensedAero], delay, 7)
             .ActivateOnEnter<DispersedCondensedAero>()
             .DeactivateOnExit<BladesOfAttis>(duringBladesOfAttis)
             .SetHint(StateMachine.StateHint.PositioningEnd, duringBladesOfAttis);
@@ -75,7 +75,7 @@ class P7SStates : StateMachineBuilder
         ComponentCondition<BoughOfAttisFront>(id + 0x2, 1.2f, comp => comp.NumCasts > 0, withHoly ? "Front hit + stacks" : "Front hit")
             .DeactivateOnExit<BoughOfAttisFront>()
             .DeactivateOnExit<HemitheosHoly>(withHoly);
-        CastMulti(id + 0x10, new AID[] { AID.BoughOfAttisSideW, AID.BoughOfAttisSideE }, 2.4f, 4)
+        CastMulti(id + 0x10, [AID.BoughOfAttisSideW, AID.BoughOfAttisSideE], 2.4f, 4)
             .ActivateOnEnter<BoughOfAttisSide>();
         ComponentCondition<BoughOfAttisSide>(id + 0x12, 1, comp => comp.NumCasts > 0, "Side hit")
             .DeactivateOnExit<BoughOfAttisSide>();
@@ -150,7 +150,7 @@ class P7SStates : StateMachineBuilder
         ComponentCondition<WindsHoly>(id + 0x12, 0.1f, comp => comp.NumCasts >= 1, "Stack/spread back");
         ComponentCondition<BoughOfAttisFront>(id + 0x13, 1.1f, comp => comp.NumCasts > 0)
             .DeactivateOnExit<BoughOfAttisFront>();
-        CastMulti(id + 0x20, new AID[] { AID.BoughOfAttisSideW, AID.BoughOfAttisSideE }, 2.4f, 4)
+        CastMulti(id + 0x20, [AID.BoughOfAttisSideW, AID.BoughOfAttisSideE], 2.4f, 4)
             .ActivateOnEnter<BoughOfAttisSide>();
         ComponentCondition<BoughOfAttisSide>(id + 0x22, 1, comp => comp.NumCasts > 0)
             .DeactivateOnExit<BoughOfAttisSide>();

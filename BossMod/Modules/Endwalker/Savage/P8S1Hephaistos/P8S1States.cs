@@ -58,11 +58,11 @@ class P8S1States : StateMachineBuilder
 
     private void VolcanicTorchesSunforge(uint id, float delay)
     {
-        CastMulti(id, new AID[] { AID.ConceptualOctaflare, AID.ConceptualTetraflare }, delay, 3)
+        CastMulti(id, [AID.ConceptualOctaflare, AID.ConceptualTetraflare], delay, 3)
             .ActivateOnEnter<TetraOctaFlareConceptual>();
         Cast(id + 0x10, AID.VolcanicTorches, 3.2f, 3)
             .ActivateOnEnter<VolcanicTorches>(); // casts start ~4s later
-        CastStartMulti(id + 0x20, new AID[] { AID.SunforgeCenter, AID.SunforgeSides }, 8.5f);
+        CastStartMulti(id + 0x20, [AID.SunforgeCenter, AID.SunforgeSides], 8.5f);
         ComponentCondition<VolcanicTorches>(id + 0x30, 5.5f, comp => comp.NumCasts > 0, "Torches")
             .ActivateOnEnter<SunforgeCenterHint>()
             .ActivateOnEnter<SunforgeSidesHint>()
@@ -109,7 +109,7 @@ class P8S1States : StateMachineBuilder
         ComponentCondition<NestOfFlamevipersBaited>(id + 0x40, 4.2f, comp => !comp.Active, "Baits")
             .DeactivateOnExit<NestOfFlamevipersBaited>();
 
-        CastStartMulti(id + 0x50, new AID[] { AID.NestOfFlamevipers, AID.Tetraflare }, 2.3f)
+        CastStartMulti(id + 0x50, [AID.NestOfFlamevipers, AID.Tetraflare], 2.3f)
             .ActivateOnEnter<SunforgeCenterIntermission>() // note that sunforges start ~0.3s before baits
             .ActivateOnEnter<SunforgeSidesIntermission>()
             .ActivateOnEnter<TetraOctaFlareImmediate>()
@@ -133,7 +133,7 @@ class P8S1States : StateMachineBuilder
 
     private void FourfoldFires(uint id, float delay)
     {
-        CastMulti(id, new AID[] { AID.ConceptualOctaflare, AID.ConceptualTetraflare }, delay, 3)
+        CastMulti(id, [AID.ConceptualOctaflare, AID.ConceptualTetraflare], delay, 3)
             .ActivateOnEnter<TetraOctaFlareConceptual>();
         Cast(id + 0x10, AID.FourfoldFires, 3.2f, 3);
         ComponentCondition<AbyssalFires>(id + 0x12, 5.8f, comp => comp.NumCasts > 0, "Proximity aoes")
@@ -144,13 +144,13 @@ class P8S1States : StateMachineBuilder
         // +0.8f: vents cast start
         ComponentCondition<CthonicVent>(id + 0x30, 5.8f, comp => comp.NumTotalCasts > 0, "Vent 1")
             .ActivateOnEnter<CthonicVent>();
-        CastStartMulti(id + 0x40, new AID[] { AID.Tetraflare, AID.Octaflare }, 4.4f);
+        CastStartMulti(id + 0x40, [AID.Tetraflare, AID.Octaflare], 4.4f);
         ComponentCondition<CthonicVent>(id + 0x50, 4.7f, comp => comp.NumTotalCasts > 2, "Vent 2")
             .ActivateOnEnter<TetraOctaFlareImmediate>();
         CastEnd(id + 0x60, 0.3f);
         ComponentCondition<TetraOctaFlareImmediate>(id + 0x61, 0.8f, comp => !comp.Active, "Spread/stack in pairs")
             .DeactivateOnExit<TetraOctaFlareImmediate>();
-        CastStartMulti(id + 0x70, new AID[] { AID.SunforgeCenter, AID.SunforgeSides }, 5.7f);
+        CastStartMulti(id + 0x70, [AID.SunforgeCenter, AID.SunforgeSides], 5.7f);
         ComponentCondition<CthonicVent>(id + 0x80, 2.2f, comp => comp.NumTotalCasts > 4, "Vent 3")
             .ActivateOnEnter<SunforgeCenterHint>()
             .ActivateOnEnter<SunforgeSidesHint>()
@@ -214,14 +214,14 @@ class P8S1States : StateMachineBuilder
     {
         CentaurStart(id, delay);
 
-        CastMulti(id + 0x100, new AID[] { AID.QuadrupedalImpact, AID.QuadrupedalCrush }, 1.1f, 5)
+        CastMulti(id + 0x100, [AID.QuadrupedalImpact, AID.QuadrupedalCrush], 1.1f, 5)
             .ActivateOnEnter<QuadrupedalImpact>()
             .ActivateOnEnter<QuadrupedalCrush>();
         Condition(id + 0x102, 0.9f, () => Module.FindComponent<QuadrupedalImpact>()!.NumCasts + Module.FindComponent<QuadrupedalCrush>()!.NumCasts > 0, "Knockback or aoe")
             .DeactivateOnExit<QuadrupedalImpact>()
             .DeactivateOnExit<QuadrupedalCrush>();
 
-        CastMulti(id + 0x110, new AID[] { AID.ConceptualTetraflareCentaur, AID.ConceptualDiflare }, 2.7f, 3)
+        CastMulti(id + 0x110, [AID.ConceptualTetraflareCentaur, AID.ConceptualDiflare], 2.7f, 3)
             .ActivateOnEnter<CentaurTetraflare>()
             .ActivateOnEnter<CentaurDiflare>();
 

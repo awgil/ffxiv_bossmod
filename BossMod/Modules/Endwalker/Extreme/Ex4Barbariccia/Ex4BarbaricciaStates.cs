@@ -135,13 +135,13 @@ class Ex4BarbaricciaStates : StateMachineBuilder
 
     private void SavageBarberyHairRaid(uint id, float delay, bool fast = false)
     {
-        CastMulti(id, new AID[] { AID.SavageBarberyDonut1, AID.SavageBarberyDonut2, AID.SavageBarberyDonut3, AID.SavageBarberyDonut4, AID.SavageBarberyRect1, AID.SavageBarberyRect2 }, delay, 6)
+        CastMulti(id, [AID.SavageBarberyDonut1, AID.SavageBarberyDonut2, AID.SavageBarberyDonut3, AID.SavageBarberyDonut4, AID.SavageBarberyRect1, AID.SavageBarberyRect2], delay, 6)
             .ActivateOnEnter<SavageBarbery>();
         ComponentCondition<SavageBarbery>(id + 0x10, 1, comp => comp.NumActiveCasts < 2, "Donut/rect");
         ComponentCondition<SavageBarbery>(id + 0x20, 2.1f, comp => comp.NumActiveCasts == 0, "Sword")
             .DeactivateOnExit<SavageBarbery>();
 
-        CastMulti(id + 0x1000, new AID[] { AID.HairRaidCone, AID.HairRaidDonut }, fast ? 1 : 4.2f, 6)
+        CastMulti(id + 0x1000, [AID.HairRaidCone, AID.HairRaidDonut], fast ? 1 : 4.2f, 6)
             .ActivateOnEnter<HairRaid>()
             .ActivateOnEnter<HairSprayDeadlyTwist>();
         ComponentCondition<HairRaid>(id + 0x1010, 2, comp => comp.NumActiveCasts == 0, "Donut/cone")

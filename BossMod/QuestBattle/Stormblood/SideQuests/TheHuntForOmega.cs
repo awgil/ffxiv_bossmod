@@ -25,9 +25,8 @@ internal class TheHuntForOmega(WorldState ws) : QuestBattle(ws)
                         checker.Priority = -1;
                         if (player.TargetID == checker.Actor.InstanceID)
                             hints.ForcedTarget = player;
-                    } else {
+                    } else
                         checker.Priority = 1;
-                    }
                 }
             })
             .CompleteOnKilled(0x1E3D),

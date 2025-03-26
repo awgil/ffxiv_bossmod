@@ -128,7 +128,7 @@ class Un3SophiaStates : StateMachineBuilder
 
     private void RandomThunder(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.ThunderDonut, AID.ThunderCone }, delay, 3, "Donut/cone")
+        CastMulti(id, [AID.ThunderDonut, AID.ThunderCone], delay, 3, "Donut/cone")
             .ActivateOnEnter<ThunderDonut>()
             .ActivateOnEnter<ThunderCone>()
             .DeactivateOnExit<ThunderDonut>()
@@ -137,7 +137,7 @@ class Un3SophiaStates : StateMachineBuilder
 
     private void ThunderDonutAero(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.ThunderDonut, AID.Aero }, delay, 3, "Donut/circle")
+        CastMulti(id, [AID.ThunderDonut, AID.Aero], delay, 3, "Donut/circle")
             .ActivateOnEnter<ThunderDonut>()
             .ActivateOnEnter<Aero>()
             .DeactivateOnExit<ThunderDonut>()

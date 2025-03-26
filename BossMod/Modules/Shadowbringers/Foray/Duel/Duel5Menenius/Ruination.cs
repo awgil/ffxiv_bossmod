@@ -54,7 +54,8 @@ class RuinationExaflare(BossModule module) : Components.Exaflare(module, 4)
         if (Lines.Count > 0 && (AID)spell.Action.ID is AID.RuinationExaStart or AID.RuinationExaMove)
         {
             int index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
-            if (index < 0) return;
+            if (index < 0)
+                return;
             AdvanceLine(Lines[index], caster.Position);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);

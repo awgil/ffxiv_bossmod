@@ -21,9 +21,9 @@ class DRS3States : StateMachineBuilder
 
     private void Shockwave(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.LeftSidedShockwaveFirst, AID.RightSidedShockwaveFirst }, delay, 3, "Shockwave 1")
+        CastMulti(id, [AID.LeftSidedShockwaveFirst, AID.RightSidedShockwaveFirst], delay, 3, "Shockwave 1")
             .ActivateOnEnter<Shockwave>();
-        CastMulti(id + 0x10, new[] { AID.LeftSidedShockwaveSecond, AID.RightSidedShockwaveSecond }, 1.6f, 1, "Shockwave 2")
+        CastMulti(id + 0x10, [AID.LeftSidedShockwaveSecond, AID.RightSidedShockwaveSecond], 1.6f, 1, "Shockwave 2")
             .DeactivateOnExit<Shockwave>();
     }
 

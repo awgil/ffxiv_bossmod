@@ -84,7 +84,7 @@ class C023MokoStates : StateMachineBuilder
             .ActivateOnEnter<NBoundlessScarletRest>(!_savage) // first pair starts 0.6 into cast, pairs 7s apart
             .ActivateOnEnter<SBoundlessScarletRest>(_savage)
             .DeactivateOnExit<FleetingIaiGiriBait>();
-        CastMulti(id + 0x40, new[] { AID.NFleetingIaiGiriFront, AID.NFleetingIaiGiriRight, AID.NFleetingIaiGiriLeft, AID.SFleetingIaiGiriFront, AID.SFleetingIaiGiriRight, AID.SFleetingIaiGiriLeft }, 1.6f, 1, "Cleave")
+        CastMulti(id + 0x40, [AID.NFleetingIaiGiriFront, AID.NFleetingIaiGiriRight, AID.NFleetingIaiGiriLeft, AID.SFleetingIaiGiriFront, AID.SFleetingIaiGiriRight, AID.SFleetingIaiGiriLeft], 1.6f, 1, "Cleave")
             .DeactivateOnExit<IaiGiriResolve>();
         ComponentCondition<InvocationOfVengeance>(id + 0x50, 1.2f, comp => comp.NumMechanics > 0, "Stack/spread"); // first pair of explosions happen right before this
         ComponentCondition<BoundlessScarletRest>(id + 0x60, 6.8f, comp => comp.Casters.Count == 0, "Lines resolve")
@@ -123,7 +123,7 @@ class C023MokoStates : StateMachineBuilder
             .ActivateOnEnter<Clearout>() // PATEs 1.0s after cast end
             .SetHint(StateMachine.StateHint.Raidwide);
         Targetable(id + 0x20, false, 3.1f, "Boss disappears"); // around here we get second statuses
-        CastMulti(id + 0x30, new[] { AID.FarEdge, AID.NearEdge }, 0.1f, 6)
+        CastMulti(id + 0x30, [AID.FarEdge, AID.NearEdge], 0.1f, 6)
             .ActivateOnEnter<AccursedEdge>();
         ComponentCondition<AccursedEdge>(id + 0x32, 0.1f, comp => comp.NumCasts > 0, "Jump/bait 1") // also first clearout
             .DeactivateOnExit<AccursedEdge>();
@@ -138,7 +138,7 @@ class C023MokoStates : StateMachineBuilder
             .ActivateOnEnter<IaiGiriResolve>()
             .ActivateOnEnter<Clearout>() // PATEs 1.0s after cast end
             .SetHint(StateMachine.StateHint.Raidwide);
-        CastMulti(id + 0x110, new[] { AID.FarEdge, AID.NearEdge }, 3.2f, 6)
+        CastMulti(id + 0x110, [AID.FarEdge, AID.NearEdge], 3.2f, 6)
             .ActivateOnEnter<AccursedEdge>();
         ComponentCondition<AccursedEdge>(id + 0x112, 0.1f, comp => comp.NumCasts > 0, "Jump/bait 2") // also first clearout
            .DeactivateOnExit<AccursedEdge>();

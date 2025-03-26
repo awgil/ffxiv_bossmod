@@ -138,7 +138,7 @@ class Un2SephirotStates : StateMachineBuilder
 
     private void P3ForceField(uint id, float delay)
     {
-        ActorCastMulti(id, _module.BossP3, new[] { AID.GevurahChesed, AID.ChesedGevurah }, delay, 5, true)
+        ActorCastMulti(id, _module.BossP3, [AID.GevurahChesed, AID.ChesedGevurah], delay, 5, true)
             .ActivateOnEnter<P3GevurahChesed>();
         ComponentCondition<P3GevurahChesed>(id + 2, 0.6f, comp => comp.NumCasts > 0, "Match color")
             .DeactivateOnExit<P3GevurahChesed>();
@@ -156,7 +156,7 @@ class Un2SephirotStates : StateMachineBuilder
         ComponentCondition<P3FiendishWail>(id + 0x41, 4, comp => !comp.Active, "Towers 2")
             .DeactivateOnExit<P3FiendishWail>();
 
-        ActorCastMulti(id + 0x50, _module.BossP3, new[] { AID.GevurahChesed, AID.ChesedGevurah }, 2.2f, 5, true)
+        ActorCastMulti(id + 0x50, _module.BossP3, [AID.GevurahChesed, AID.ChesedGevurah], 2.2f, 5, true)
             .ActivateOnEnter<P3GevurahChesed>();
         ComponentCondition<P3GevurahChesed>(id + 0x52, 0.6f, comp => comp.NumCasts > 0, "Match color")
             .DeactivateOnExit<P3GevurahChesed>();
@@ -190,7 +190,7 @@ class Un2SephirotStates : StateMachineBuilder
 
     private void P3GevurahChesed(uint id, float delay)
     {
-        ActorCastMulti(id, _module.BossP3, new[] { AID.GevurahChesed, AID.ChesedGevurah }, delay, 5, true)
+        ActorCastMulti(id, _module.BossP3, [AID.GevurahChesed, AID.ChesedGevurah], delay, 5, true)
             .ActivateOnEnter<P3GevurahChesed>();
         ComponentCondition<P3GevurahChesed>(id + 2, 0.6f, comp => comp.NumCasts > 0, "Raidwide")
             .DeactivateOnExit<P3GevurahChesed>()
@@ -255,7 +255,7 @@ class Un2SephirotStates : StateMachineBuilder
         P3GevurahChesed(id + 0x2000, 0.5f);
 
         ComponentCondition<P3Yesod>(id + 0x3000, 9.5f, comp => comp.Casters.Count > 0, "Twisters bait");
-        ActorCastStartMulti(id + 0x3001, _module.BossP3, new[] { AID.GevurahChesed, AID.ChesedGevurah }, 1.1f, true);
+        ActorCastStartMulti(id + 0x3001, _module.BossP3, [AID.GevurahChesed, AID.ChesedGevurah], 1.1f, true);
         ComponentCondition<P3Yesod>(id + 0x3002, 1.9f, comp => comp.Casters.Count == 0, "Twisters resolve")
             .ActivateOnEnter<P3GevurahChesed>();
         ActorCastEnd(id + 0x3003, _module.BossP3, 3.1f, true);

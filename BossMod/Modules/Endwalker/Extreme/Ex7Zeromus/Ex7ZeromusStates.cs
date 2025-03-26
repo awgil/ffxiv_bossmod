@@ -109,7 +109,7 @@ class Ex7ZeromusStates : StateMachineBuilder
 
     private State VisceralWhirl(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.VisceralWhirlR, AID.VisceralWhirlL }, delay, 8)
+        CastMulti(id, [AID.VisceralWhirlR, AID.VisceralWhirlL], delay, 8)
             .ActivateOnEnter<VisceralWhirl>();
         ComponentCondition<VisceralWhirl>(id + 2, 0.8f, comp => !comp.Active, "Lines")
             .DeactivateOnExit<VisceralWhirl>();
@@ -129,7 +129,7 @@ class Ex7ZeromusStates : StateMachineBuilder
 
     private void VisceralWhirlChainsBombs(uint id, float delay)
     {
-        CastStartMulti(id, new[] { AID.VisceralWhirlR, AID.VisceralWhirlL }, delay);
+        CastStartMulti(id, [AID.VisceralWhirlR, AID.VisceralWhirlL], delay);
         ComponentCondition<BondsOfDarkness>(id + 1, 1.9f, comp => comp.NumTethers > 0, "Chains appear")
             .ActivateOnEnter<VisceralWhirl>()
             .ActivateOnEnter<BondsOfDarkness>(); // tethers have ~5s to be broken
@@ -167,7 +167,7 @@ class Ex7ZeromusStates : StateMachineBuilder
 
     private void SparklingBrandingFlare(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.SparkingFlare, AID.BrandingFlare }, delay, 7)
+        CastMulti(id, [AID.SparkingFlare, AID.BrandingFlare], delay, 7)
             .ActivateOnEnter<FlareTowers>();
         ComponentCondition<FlareTowers>(id + 2, 1, comp => comp.NumCasts > 0, "Towers")
             .ActivateOnEnter<FlareScald>()
@@ -234,7 +234,7 @@ class Ex7ZeromusStates : StateMachineBuilder
         Cast(id, AID.BlackHole, delay, 5);
         ComponentCondition<BlackHole>(id + 2, 0.8f, comp => comp.Baiter != null)
             .ActivateOnEnter<BlackHole>();
-        CastStartMulti(id + 0x10, new[] { AID.FracturedEventideWE, AID.FracturedEventideEW }, 1.4f);
+        CastStartMulti(id + 0x10, [AID.FracturedEventideWE, AID.FracturedEventideEW], 1.4f);
         ComponentCondition<BlackHole>(id + 0x11, 7.9f, comp => comp.Voidzone != null, "Black hole bait")
             .ActivateOnEnter<FracturedEventide>();
         CastEnd(id + 0x12, 2.1f);

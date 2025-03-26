@@ -301,7 +301,7 @@ class UWUStates : StateMachineBuilder
 
     private State P3LandslideAwakened(uint id, float delay)
     {
-        ActorCastMulti(id, _module.Titan, new AID[] { AID.LandslideBoss, AID.LandslideBossAwakened }, delay, 2.2f, true, "Landslide (awakened)")
+        ActorCastMulti(id, _module.Titan, [AID.LandslideBoss, AID.LandslideBossAwakened], delay, 2.2f, true, "Landslide (awakened)")
             .ActivateOnEnter<P3Landslide>();
         return ComponentCondition<P3Landslide>(id + 0x10, 2, comp => comp.Awakened ? comp.NumCasts >= 10 : (comp.NumCasts >= 5 && Module.WorldState.CurrentTime >= comp.PredictedActivation), "Landslide second hit")
             .DeactivateOnExit<P3Landslide>();
@@ -714,7 +714,7 @@ class UWUStates : StateMachineBuilder
             .DeactivateOnExit<P2Eruption>();
 
         // second set of feathers are baited at the same time as first laser cast start
-        ActorCastStartMulti(id + 0x60, _module.Ultima, new AID[] { AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft }, 1.2f, true, "Feathers bait 2")
+        ActorCastStartMulti(id + 0x60, _module.Ultima, [AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft], 1.2f, true, "Feathers bait 2")
             .ActivateOnEnter<P5LightPillar>() // first light pillar cast starts at the same time as first laser, activate earlier to show bait hints
             .ActivateOnEnter<P1GreatWhirlwind>(); // cast starts ~0.2s after last eruption ends
         ComponentCondition<P1FeatherRain>(id + 0x61, 0.5f, comp => comp.NumCasts > 0); // second set should still be predicted
@@ -728,10 +728,10 @@ class UWUStates : StateMachineBuilder
         ActorCastEnd(id + 0x64, _module.Ultima, 0.5f, true, "Laser 1");
 
         // TODO: gaol deadline is ~1.8s into second laser cast
-        ActorCastMulti(id + 0x70, _module.Ultima, new AID[] { AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft }, 1.2f, 3, true, "Laser 2")
+        ActorCastMulti(id + 0x70, _module.Ultima, [AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft], 1.2f, 3, true, "Laser 2")
             .DeactivateOnExit<P5LightPillar>(); // last light pillar ends ~1.1s before cast end
 
-        ActorCastStartMulti(id + 0x80, _module.Ultima, new AID[] { AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft }, 1.2f, true, "Landslide bait")
+        ActorCastStartMulti(id + 0x80, _module.Ultima, [AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft], 1.2f, true, "Landslide bait")
             .ActivateOnEnter<Landslide>() // landslide cast starts together with third laser cast, but activate it earlier just in case
             .ActivateOnEnter<P1Mesohigh>(); // mesohigh tether appears ~0.1s before cast start
         ActorCastEnd(id + 0x81, _module.Ultima, 3, true, "Laser 3")

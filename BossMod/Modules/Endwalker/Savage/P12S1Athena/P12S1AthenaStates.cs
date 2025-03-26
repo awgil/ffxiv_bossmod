@@ -49,7 +49,7 @@ class P12S1AthenaStates : StateMachineBuilder
 
     private void Dialogos(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.Apodialogos, AID.Peridialogos }, delay, 5)
+        CastMulti(id, [AID.Apodialogos, AID.Peridialogos], delay, 5)
             .ActivateOnEnter<Dialogos>();
         ComponentCondition<Dialogos>(id + 0x10, 0.3f, comp => comp.NumCasts >= 1, "Tankbuster in/out")
             .SetHint(StateMachine.StateHint.Tankbuster);
@@ -61,7 +61,7 @@ class P12S1AthenaStates : StateMachineBuilder
     private void TrinityOfSoulsCast(uint id, float delay)
     {
         // note: icons appear ~1, 4, 7 seconds into cast
-        CastMulti(id, new[] { AID.TrinityOfSoulsDirectTR, AID.TrinityOfSoulsDirectTL, AID.TrinityOfSoulsInvertBR, AID.TrinityOfSoulsInvertBL }, delay, 10, "Wings 1")
+        CastMulti(id, [AID.TrinityOfSoulsDirectTR, AID.TrinityOfSoulsDirectTL, AID.TrinityOfSoulsInvertBR, AID.TrinityOfSoulsInvertBL], delay, 10, "Wings 1")
             .ActivateOnEnter<TrinityOfSouls>();
     }
 

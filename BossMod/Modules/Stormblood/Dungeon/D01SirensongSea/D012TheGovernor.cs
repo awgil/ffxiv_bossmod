@@ -71,8 +71,6 @@ class Tether(BossModule module) : BaitAwayTethers(module, new AOEShapeCone(0, 0.
     }
 }
 
-
-
 class ShadowFlow(BossModule module) : GenericAOEs(module)
 {
     public List<AOEInstance> aoes = [];
@@ -126,7 +124,6 @@ class ShadowFlow(BossModule module) : GenericAOEs(module)
         }
     }
 }
-
 
 class DO12TheGovernorStates : StateMachineBuilder
 {

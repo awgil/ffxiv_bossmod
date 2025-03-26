@@ -60,7 +60,7 @@ class P10SPandaemoniumStates : StateMachineBuilder
 
     private State CirclesHoly(uint id, float delay)
     {
-        return CastMulti(id, new[] { AID.PandaemonsHoly, AID.CirclesOfPandaemonium }, delay, 4, "In/out")
+        return CastMulti(id, [AID.PandaemonsHoly, AID.CirclesOfPandaemonium], delay, 4, "In/out")
             .ActivateOnEnter<PandaemonsHoly>()
             .ActivateOnEnter<CirclesOfPandaemonium>()
             .DeactivateOnExit<PandaemonsHoly>()
@@ -151,7 +151,7 @@ class P10SPandaemoniumStates : StateMachineBuilder
 
     private void PandaemoniacRay(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.PandaemoniacRayL, AID.PandaemoniacRayR }, delay, 5)
+        CastMulti(id, [AID.PandaemoniacRayL, AID.PandaemoniacRayR], delay, 5)
             .ActivateOnEnter<PandaemoniacRay>();
         ComponentCondition<PandaemoniacRay>(id + 2, 0.2f, comp => comp.NumCasts > 0, "Half-room cleave")
             .DeactivateOnExit<PandaemoniacRay>();
@@ -164,7 +164,7 @@ class P10SPandaemoniumStates : StateMachineBuilder
     {
         // overlaps with ray & circle/holy
         Cast(id, AID.PartedPlumes, delay, 3);
-        CastStartMulti(id + 0x10, new[] { AID.PandaemoniacRayL, AID.PandaemoniacRayR }, 7.3f)
+        CastStartMulti(id + 0x10, [AID.PandaemoniacRayL, AID.PandaemoniacRayR], 7.3f)
             .ActivateOnEnter<PartedPlumes>() // first aoe cast start 3.8s after previous cast end, individual aoes are 0.3s apart
             .ActivateOnEnter<PartedPlumesVoidzone>();
         ComponentCondition<PartedPlumes>(id + 0x20, 0.5f, comp => comp.NumCasts > 0, "Plumes start")
@@ -175,7 +175,7 @@ class P10SPandaemoniumStates : StateMachineBuilder
         CastEnd(id + 0x40, 2.1f);
         ComponentCondition<PandaemoniacRay>(id + 0x41, 0.2f, comp => comp.NumCasts > 0, "Half-room cleave")
             .DeactivateOnExit<PandaemoniacRay>();
-        CastStartMulti(id + 0x50, new[] { AID.PandaemonsHoly, AID.CirclesOfPandaemonium }, 3)
+        CastStartMulti(id + 0x50, [AID.PandaemonsHoly, AID.CirclesOfPandaemonium], 3)
             .ActivateOnEnter<JadePassage>();
         ComponentCondition<JadePassage>(id + 0x60, 0.6f, comp => comp.NumCasts > 0, "Lines")
             .ActivateOnEnter<PandaemonsHoly>()
@@ -226,7 +226,7 @@ class P10SPandaemoniumStates : StateMachineBuilder
         CirclesHolyPillars(id + 0x3000, 1.5f);
 
         // overlap of pandaemoniac ray and daemoniac bonds resolve
-        CastStartMulti(id + 0x4000, new[] { AID.PandaemoniacRayL, AID.PandaemoniacRayR }, 2.0f)
+        CastStartMulti(id + 0x4000, [AID.PandaemoniacRayL, AID.PandaemoniacRayR], 2.0f)
             .ExecOnEnter<DaemoniacBonds>(comp => comp.Show());
         ComponentCondition<DaemoniacBonds>(id + 0x4010, 4.4f, comp => comp.NumMechanics >= 1, "Stack/spread")
             .ActivateOnEnter<PandaemoniacRay>();

@@ -53,7 +53,7 @@ class C022GoraiStates : StateMachineBuilder
             .ActivateOnEnter<SealOfScurryingSparks>();
         Cast(id + 0x10, AID.FlameAndSulphur, 2.4f, 3);
         // +0.8s: spawn rocks/flames
-        CastMulti(id + 0x20, new[] { AID.BrazenBalladExpanding, AID.BrazenBalladSplitting }, 6.4f, 5)
+        CastMulti(id + 0x20, [AID.BrazenBalladExpanding, AID.BrazenBalladSplitting], 6.4f, 5)
             .ActivateOnEnter<FlameAndSulphur>();
         ComponentCondition<FlameAndSulphur>(id + 0x30, 3.1f, comp => comp.NumCasts > 0, "Expanding/splitting aoes")
             .DeactivateOnExit<FlameAndSulphur>();

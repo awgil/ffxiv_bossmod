@@ -51,7 +51,7 @@ class A12RhalgrStates : StateMachineBuilder
     private void HandOfTheDestroyer(uint id, float delay)
     {
         Cast(id, AID.AdventOfTheEighth, delay, 4);
-        CastMulti(id + 0x10, new[] { AID.HandOfTheDestroyerWrath, AID.HandOfTheDestroyerJudgment }, 6.1f, 9)
+        CastMulti(id + 0x10, [AID.HandOfTheDestroyerWrath, AID.HandOfTheDestroyerJudgment], 6.1f, 9)
             .ActivateOnEnter<HandOfTheDestroyer>();
         ComponentCondition<HandOfTheDestroyer>(id + 0x20, 0.4f, comp => comp.NumCasts > 0, "Side cleave")
             .DeactivateOnExit<HandOfTheDestroyer>();
@@ -70,7 +70,7 @@ class A12RhalgrStates : StateMachineBuilder
     {
         Cast(id, AID.AdventOfTheEighth, delay, 4);
         Cast(id + 0x10, AID.BrokenWorld, first ? 7.5f : 6.1f, 3);
-        CastMulti(id + 0x20, new[] { AID.HandOfTheDestroyerWrathBroken/*, AID.HandOfTheDestroyerJudgmentBroken*/ }, 2.1f, 9)
+        CastMulti(id + 0x20, [AID.HandOfTheDestroyerWrathBroken/*, AID.HandOfTheDestroyerJudgmentBroken*/], 2.1f, 9)
             .ActivateOnEnter<BrokenShards>();
         ComponentCondition<BrokenShards>(id + 0x30, 5.7f, comp => comp.NumCasts >= 9, "AOEs")
             .DeactivateOnExit<BrokenShards>();
@@ -80,7 +80,7 @@ class A12RhalgrStates : StateMachineBuilder
     {
         Cast(id, AID.AdventOfTheEighth, delay, 4);
         Cast(id + 0x10, AID.BrokenWorld, 6.2f, 3);
-        CastMulti(id + 0x20, new[] { AID.HandOfTheDestroyerWrath, AID.HandOfTheDestroyerJudgment }, 2.1f, 9)
+        CastMulti(id + 0x20, [AID.HandOfTheDestroyerWrath, AID.HandOfTheDestroyerJudgment], 2.1f, 9)
             .ActivateOnEnter<HandOfTheDestroyer>()
             .ActivateOnEnter<BrokenWorld>();
         ComponentCondition<HandOfTheDestroyer>(id + 0x30, 0.4f, comp => comp.NumCasts > 0, "Side cleave")

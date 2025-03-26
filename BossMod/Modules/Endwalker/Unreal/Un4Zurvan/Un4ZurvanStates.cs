@@ -103,7 +103,7 @@ class Un4ZurvanStates : StateMachineBuilder
             .ActivateOnEnter<P2BitingHalberd>()
             .DeactivateOnExit<P2BitingHalberd>();
         SouthernCross(id + 0x100, 3.2f);
-        ActorCastStartMulti(id + 0x200, _module.BossP2, new[] { AID.BitingHalberd, AID.TailEnd, AID.Ciclicle }, 6.8f, true)
+        ActorCastStartMulti(id + 0x200, _module.BossP2, [AID.BitingHalberd, AID.TailEnd, AID.Ciclicle], 6.8f, true)
             .ActivateOnEnter<P2SouthernCrossVoidzone>()
             .ActivateOnEnter<P2MetalCutter>() // 1 metal cutter before cast start
             .DeactivateOnExit<P2MetalCutter>();
@@ -212,7 +212,7 @@ class Un4ZurvanStates : StateMachineBuilder
         ActorCast(id + 0x500, _module.BossP2, AID.BrokenSeal, 6.2f, 3, true)
             .DeactivateOnExit<P2SouthernCrossVoidzone>();
         // note: timings below have significant variance
-        ActorCastStartMulti(id + 0x510, _module.BossP2, new[] { AID.BitingHalberd, AID.TailEnd, AID.Ciclicle }, 10.5f, true);
+        ActorCastStartMulti(id + 0x510, _module.BossP2, [AID.BitingHalberd, AID.TailEnd, AID.Ciclicle], 10.5f, true);
         ComponentCondition<P2BrokenSeal>(id + 0x520, 1.2f, comp => comp.NumCasts > 0, "Towers", 2)
             .ActivateOnEnter<P2BitingHalberd>()
             .ActivateOnEnter<P2TailEnd>()

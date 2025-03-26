@@ -32,7 +32,7 @@ class DRS5States : StateMachineBuilder
             .ActivateOnEnter<Miasma>();
         // note: marker eobjs spawn ~0.2s after cast start, appear (eobjanim 00010002) ~1.0s after cast end, low row activates (eobjanim 00080010) right before next cast start
         // low row deactivates (eobjanim 00040020) and high row activates right when first set of aoes finish - ~1.0s after manipulate cast end
-        CastMulti(id + 0x10, new[] { AID.ManipulateMiasma, AID.InvertMiasma }, 7.1f, 9, "Miasma start");
+        CastMulti(id + 0x10, [AID.ManipulateMiasma, AID.InvertMiasma], 7.1f, 9, "Miasma start");
         // +1.0s: first set of 10-sec casts finish: rect covers whole lane, circle/donut are cast at Z+5
         // +1.0s: second set of 10-sec casts start - it's too early to show their hints though? but really, selecting donut/rect lane in the first place is a mistake...
         // +1.6s-2.6s: rest(1,1) cast (rect covers whole lane, circle/donut are cast at Z+11)

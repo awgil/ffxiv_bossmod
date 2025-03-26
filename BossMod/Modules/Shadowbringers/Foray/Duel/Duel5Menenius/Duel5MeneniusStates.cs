@@ -97,12 +97,12 @@ class Duel5MeneniusStates : StateMachineBuilder
 
     private void ReadyShot(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.DarkShot, AID.WindslicerShot }, delay, 4, "Load Dark/Windslicer Shot");
+        CastMulti(id, [AID.DarkShot, AID.WindslicerShot], delay, 4, "Load Dark/Windslicer Shot");
     }
 
     private void Gunberd(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.GunberdDark, AID.GunberdWindslicer }, delay, 4, "Shoot Dark/Windslicer Shot");
+        CastMulti(id, [AID.GunberdDark, AID.GunberdWindslicer], delay, 4, "Shoot Dark/Windslicer Shot");
     }
 
     private void Ruination(uint id, float delay)

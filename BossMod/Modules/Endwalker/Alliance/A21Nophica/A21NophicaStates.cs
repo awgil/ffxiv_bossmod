@@ -48,7 +48,7 @@ class A21NophicaStates : StateMachineBuilder
 
     private void GivingLand(uint id, float delay, bool withFloralHaze = false)
     {
-        CastStartMulti(id, new[] { AID.GivingLandDonut, AID.GivingLandCircle }, delay)
+        CastStartMulti(id, [AID.GivingLandDonut, AID.GivingLandCircle], delay)
             .ActivateOnEnter<FloralHaze>(withFloralHaze);
         CastEnd(id + 1, 5)
             .ActivateOnEnter<SummerShade>()
@@ -59,7 +59,7 @@ class A21NophicaStates : StateMachineBuilder
 
     private State MatronsHarvest(uint id, float delay)
     {
-        return CastMulti(id, new[] { AID.MatronsHarvestDonut, AID.MatronsHarvestCircle }, delay, 8, "Raidwide")
+        return CastMulti(id, [AID.MatronsHarvestDonut, AID.MatronsHarvestCircle], delay, 8, "Raidwide")
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
@@ -98,10 +98,10 @@ class A21NophicaStates : StateMachineBuilder
         Cast(id + 0x20, AID.Landwaker, 2.1f, 4, "Raidwide");
         ComponentCondition<Landwaker>(id + 0x30, 1.6f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<Landwaker>(); // TODO: consider activating it later, after first criss-cross
-        CastMulti(id + 0x40, new[] { AID.ReapersGale2, AID.ReapersGale3 }, 1.5f, 4) // TODO: what is the difference between these casts?
+        CastMulti(id + 0x40, [AID.ReapersGale2, AID.ReapersGale3], 1.5f, 4) // TODO: what is the difference between these casts?
             .ActivateOnEnter<ReapersGale>();
         ComponentCondition<ReapersGale>(id + 0x50, 0.5f, comp => comp.NumCasts > 0, "Criss-cross 1");
-        CastStartMulti(id + 0x60, new[] { AID.GivingLandDonut, AID.GivingLandCircle }, 1.6f);
+        CastStartMulti(id + 0x60, [AID.GivingLandDonut, AID.GivingLandCircle], 1.6f);
         ComponentCondition<ReapersGale>(id + 0x70, 0.9f, comp => comp.Casters.Count == 0, "Puddles + Criss-cross 2")
             .DeactivateOnExit<Landwaker>() // usually completes slightly before
             .DeactivateOnExit<ReapersGale>();

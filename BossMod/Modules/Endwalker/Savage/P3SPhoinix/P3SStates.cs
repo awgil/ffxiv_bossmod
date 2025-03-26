@@ -81,7 +81,7 @@ class P3SStates : StateMachineBuilder
         //    first pair starts cast almost immediately, then pairs 2-4 and finally central start their cast with 1 sec between them; each cast lasts 2 sec
         // so center (last/only) plume hits around 6s after cast end
         // note that our helpers rely on 233C casts rather than states
-        CastStartMulti(id, new AID[] { AID.ExperimentalFireplumeSingle, AID.ExperimentalFireplumeMulti }, delay)
+        CastStartMulti(id, [AID.ExperimentalFireplumeSingle, AID.ExperimentalFireplumeMulti], delay)
             .SetHint(StateMachine.StateHint.PositioningStart);
         return CastEnd(id + 1, 5, "Fireplume")
             .ActivateOnEnter<Fireplume>();
@@ -91,7 +91,7 @@ class P3SStates : StateMachineBuilder
     // note - since it resolves in a complex way, make sure to add a resolve state!
     private void AshplumeCast(uint id, float delay)
     {
-        CastMulti(id, new AID[] { AID.ExperimentalAshplumeStack, AID.ExperimentalAshplumeSpread }, delay, 5, "Ashplume")
+        CastMulti(id, [AID.ExperimentalAshplumeStack, AID.ExperimentalAshplumeSpread], delay, 5, "Ashplume")
             .ActivateOnEnter<Ashplume>();
     }
 
@@ -135,7 +135,7 @@ class P3SStates : StateMachineBuilder
 
     private State Cinderwing(uint id, float delay)
     {
-        return CastMulti(id, new AID[] { AID.RightCinderwing, AID.LeftCinderwing }, delay, 5, "Wing")
+        return CastMulti(id, [AID.RightCinderwing, AID.LeftCinderwing], delay, 5, "Wing")
             .ActivateOnEnter<Cinderwing>()
             .DeactivateOnExit<Cinderwing>();
     }
@@ -182,7 +182,7 @@ class P3SStates : StateMachineBuilder
     {
         // at this point boss teleports to one of the cardinals
         // parallel to this one of the helpers casts 26365 (actual aoe fire trails)
-        CastMulti(id, new AID[] { AID.TrailOfCondemnationCenter, AID.TrailOfCondemnationSides }, delay, 6)
+        CastMulti(id, [AID.TrailOfCondemnationCenter, AID.TrailOfCondemnationSides], delay, 6)
             .ActivateOnEnter<TrailOfCondemnation>();
         return ComponentCondition<TrailOfCondemnation>(id + 2, 1.5f, comp => comp.Done, "Trail")
             .DeactivateOnExit<TrailOfCondemnation>();

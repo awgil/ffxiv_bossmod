@@ -72,9 +72,12 @@ class DebugHate
         foreach (var h in hate->HateSpan)
         {
             ImGui.TableNextRow();
-            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{h.ObjectId:X}");
-            ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectString(h.ObjectId));
-            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{h.Enmity}");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{h.ObjectId:X}");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(Utils.ObjectString(h.ObjectId));
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{h.Enmity}");
         }
         ImGui.EndTable();
 
@@ -89,9 +92,12 @@ class DebugHate
         {
             var h = ((HaterInfo*)hater->HaterArray) + i;
             ImGui.TableNextRow();
-            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{h->ObjectId:X}");
-            ImGui.TableNextColumn(); ImGui.TextUnformatted(MemoryHelper.ReadSeString((IntPtr)h, 64).ToString());
-            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{h->Enmity}");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{h->ObjectId:X}");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(MemoryHelper.ReadSeString((IntPtr)h, 64).ToString());
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{h->Enmity}");
         }
         ImGui.EndTable();
     }

@@ -10,7 +10,8 @@ abstract class GigaTempest(BossModule module, AOEShapeRect shape, AID aidFirst, 
         if ((AID)spell.Action.ID == _aidStart)
         {
             WDir? advance = GetExaDirection(caster);
-            if (advance == null) return;
+            if (advance == null)
+                return;
             Lines.Add(new()
             {
                 Next = caster.Position,
@@ -59,7 +60,8 @@ abstract class GigaTempest(BossModule module, AOEShapeRect shape, AID aidFirst, 
             forwardAngle = 270.Degrees();
         }
 
-        if (forwardAngle == null) return null;
+        if (forwardAngle == null)
+            return null;
 
         const float _advanceDistance = 8;
         return _advanceDistance * forwardAngle.Value.ToDirection();

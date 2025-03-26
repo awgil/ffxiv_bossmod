@@ -102,7 +102,7 @@ class P12S2PallasAthenaStates : StateMachineBuilder
 
         Cast(id + 0x100, AID.DemiParhelion, 6.0f, 3)
             .ActivateOnEnter<DemiParhelion>(); // note: casts start ~0.8s after boss cast ends
-        CastMulti(id + 0x110, new[] { AID.GeocentrismV, AID.GeocentrismC, AID.GeocentrismH }, 3.2f, 7)
+        CastMulti(id + 0x110, [AID.GeocentrismV, AID.GeocentrismC, AID.GeocentrismH], 3.2f, 7)
             .ActivateOnEnter<Geocentrism>()
             .ActivateOnEnter<DivineExcoriation>(); // icons appear 4.9s into cast
         ComponentCondition<DemiParhelion>(id + 0x120, 0.1f, comp => comp.NumCasts > 0, "Circles")
@@ -131,7 +131,7 @@ class P12S2PallasAthenaStates : StateMachineBuilder
         Cast(id + 0x10, AID.SummonDarkness, 8.2f, 3);
         Cast(id + 0x20, AID.DemiParhelion, 3.1f, 3)
             .ActivateOnEnter<DemiParhelion>(); // note: casts start ~0.8s after boss cast ends
-        CastStartMulti(id + 0x30, new[] { AID.GeocentrismV, AID.GeocentrismC, AID.GeocentrismH }, 3.2f);
+        CastStartMulti(id + 0x30, [AID.GeocentrismV, AID.GeocentrismC, AID.GeocentrismH], 3.2f);
         ComponentCondition<MissingLink>(id + 0x40, 1.8f, comp => comp.TethersAssigned, "Tethers")
             .ActivateOnEnter<MissingLink>()
             .ActivateOnEnter<Geocentrism>()

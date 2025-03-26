@@ -34,7 +34,6 @@ public enum AID : uint
     SpreadingFireStartActionCombo4th = 36254, // Helper->self, 10.1s cast, range 30-40 donut
     SpreadingFire4th = 36250, // Helper->self, 10.3s cast, range 30-40 donut
 
-
     SmolderingClawVisual = 34791, // Boss->self, 2.3s cast, single-target
     SmolderingClawStartActionCombo = 35925, // Helper->self, 4.1s cast, range 40 150 degree cone
     SmolderingClawStartActionCombo2 = 34793, // Helper->self, 0.6s cast, range 40 150-degree cone

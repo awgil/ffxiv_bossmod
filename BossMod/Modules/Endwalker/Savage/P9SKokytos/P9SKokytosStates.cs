@@ -80,7 +80,7 @@ class P9SKokytosStates : StateMachineBuilder
 
     private State Dualspell(uint id, float delay, bool isTwoMinds = false)
     {
-        CastMulti(id, new[] { isTwoMinds ? AID.TwoMindsIceFire : AID.DualspellIceFire, isTwoMinds ? AID.TwoMindsIceLightning : AID.DualspellIceLightning }, delay, isTwoMinds ? 7 : 5)
+        CastMulti(id, [isTwoMinds ? AID.TwoMindsIceFire : AID.DualspellIceFire, isTwoMinds ? AID.TwoMindsIceLightning : AID.DualspellIceLightning], delay, isTwoMinds ? 7 : 5)
             .ActivateOnEnter<DualspellFire>()
             .ActivateOnEnter<DualspellLightning>()
             .ActivateOnEnter<DualspellIce>();
@@ -125,7 +125,7 @@ class P9SKokytosStates : StateMachineBuilder
     {
         ArchaicRockbreaker(id, delay);
 
-        CastMulti(id + 0x100, new[] { AID.FrontCombinationOut, AID.FrontCombinationIn, AID.RearCombinationOut, AID.RearCombinationIn }, 0.3f, 6) // note: second set of lines start casting ~4.4s into cast, overlapping with first
+        CastMulti(id + 0x100, [AID.FrontCombinationOut, AID.FrontCombinationIn, AID.RearCombinationOut, AID.RearCombinationIn], 0.3f, 6) // note: second set of lines start casting ~4.4s into cast, overlapping with first
             .ActivateOnEnter<ArchaicRockbreakerCombination>();
         ComponentCondition<ArchaicRockbreakerLine>(id + 0x110, 0.4f, comp => comp.NumCasts > 0)
             .DeactivateOnExit<ArchaicRockbreakerLine>(); // hide second set for a time
@@ -188,14 +188,14 @@ class P9SKokytosStates : StateMachineBuilder
     private void ChimericSuccession(uint id, float delay)
     {
         Cast(id, AID.ChimericSuccession, delay, 5);
-        CastStartMulti(id + 0x10, new[] { AID.FrontFirestrikes, AID.RearFirestrikes }, 7.5f)
+        CastStartMulti(id + 0x10, [AID.FrontFirestrikes, AID.RearFirestrikes], 7.5f)
             .ActivateOnEnter<ChimericSuccession>();
         ComponentCondition<ChimericSuccession>(id + 0x20, 3.3f, comp => comp.NumCasts >= 1, "Defamation 1");
         ComponentCondition<ChimericSuccession>(id + 0x21, 3.0f, comp => comp.NumCasts >= 2, "Defamation 2");
         CastEnd(id + 0x30, 1.7f);
         ComponentCondition<ChimericSuccession>(id + 0x31, 0.4f, comp => !comp.JumpActive, "Baited jump");
         ComponentCondition<ChimericSuccession>(id + 0x40, 0.9f, comp => comp.NumCasts >= 3, "Defamation 3");
-        CastStartMulti(id + 0x50, new[] { AID.SwingingKickFront, AID.SwingingKickRear }, 1.2f);
+        CastStartMulti(id + 0x50, [AID.SwingingKickFront, AID.SwingingKickRear], 1.2f);
         ComponentCondition<ChimericSuccession>(id + 0x60, 1.8f, comp => comp.NumCasts >= 4, "Defamation 4")
             .ActivateOnEnter<SwingingKickFront>()
             .ActivateOnEnter<SwingingKickRear>()

@@ -153,8 +153,8 @@ class Ex2HydaelynStates : StateMachineBuilder
     // note: keeps Lightwave3 component active, since it is relevant for next mechanic
     private void Lightwave3(uint id, float delay)
     {
-        CastMulti(id, new AID[] { AID.LightwaveSword, AID.LightwaveStaff, AID.LightwaveChakram }, delay, 4, "Lightwave");
-        CastStartMulti(id + 0x1000, new AID[] { AID.EchoesSword, AID.EchoesStaff, AID.EchoesChakram }, 15.2f)
+        CastMulti(id, [AID.LightwaveSword, AID.LightwaveStaff, AID.LightwaveChakram], delay, 4, "Lightwave");
+        CastStartMulti(id + 0x1000, [AID.EchoesSword, AID.EchoesStaff, AID.EchoesChakram], 15.2f)
             .ActivateOnEnter<Lightwave3>()
             .ActivateOnEnter<Echoes>(); // note that icon appears slightly before cast start...
         CastEnd(id + 0x1001, 5, "Stack");
@@ -220,7 +220,7 @@ class Ex2HydaelynStates : StateMachineBuilder
     private State Aureole(uint id, float delay)
     {
         // note: what is the difference between aureole spells? seems to be determined by weapon?..
-        CastMulti(id, new AID[] { AID.Aureole1, AID.Aureole2, AID.LateralAureole1, AID.LateralAureole2 }, delay, 5)
+        CastMulti(id, [AID.Aureole1, AID.Aureole2, AID.LateralAureole1, AID.LateralAureole2], delay, 5)
             .ActivateOnEnter<Aureole>();
         return ComponentCondition<Aureole>(id + 2, 0.5f, comp => comp.Done, "Aureole")
             .DeactivateOnExit<Aureole>();
@@ -244,7 +244,7 @@ class Ex2HydaelynStates : StateMachineBuilder
     private State CrystallizeCast(uint id, float delay, string name = "Crystallize")
     {
         // note: there are several crystallize spells, concrete is determined by element and current weapon; weapon to switch to doesn't seem to matter
-        return CastMulti(id, new AID[] { AID.CrystallizeSwordStaffWater, AID.CrystallizeStaffEarth, AID.CrystallizeStaffIce, AID.CrystallizeChakramIce, AID.CrystallizeChakramEarth, AID.CrystallizeChakramWater }, delay, 4, name)
+        return CastMulti(id, [AID.CrystallizeSwordStaffWater, AID.CrystallizeStaffEarth, AID.CrystallizeStaffIce, AID.CrystallizeChakramIce, AID.CrystallizeChakramEarth, AID.CrystallizeChakramWater], delay, 4, name)
             .ActivateOnEnter<Crystallize>()
             .SetHint(StateMachine.StateHint.PositioningStart);
     }

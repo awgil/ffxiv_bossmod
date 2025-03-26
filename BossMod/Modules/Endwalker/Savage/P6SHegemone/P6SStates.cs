@@ -48,7 +48,7 @@ class P6SStates : StateMachineBuilder
     private void Synergy(uint id, float delay)
     {
         // note that casts have different time, but resolve is the same
-        CastStartMulti(id, new AID[] { AID.Synergy, AID.ChelicSynergy }, delay);
+        CastStartMulti(id, [AID.Synergy, AID.ChelicSynergy], delay);
         ComponentCondition<Synergy>(id + 1, 7, comp => comp.Done, "Tankbuster")
             .ActivateOnEnter<Synergy>()
             .DeactivateOnExit<Synergy>()
@@ -67,7 +67,7 @@ class P6SStates : StateMachineBuilder
     // leaves component active for second cone
     private void ChorosIxouStart(uint id, float delay, bool withParasiteStun = false)
     {
-        CastMulti(id, new AID[] { AID.ChorosIxouFSFront, AID.ChorosIxouSFSides }, delay, 4.5f, withParasiteStun ? "Parasite stun" : "")
+        CastMulti(id, [AID.ChorosIxouFSFront, AID.ChorosIxouSFSides], delay, 4.5f, withParasiteStun ? "Parasite stun" : "")
             .ActivateOnEnter<ChorosIxou>()
             .SetHint(StateMachine.StateHint.DowntimeStart, withParasiteStun);
         ComponentCondition<ChorosIxou>(id + 2, 0.5f, comp => comp.FirstDone, "Cones 1");

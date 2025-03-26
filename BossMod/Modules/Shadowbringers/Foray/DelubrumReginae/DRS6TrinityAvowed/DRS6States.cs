@@ -251,13 +251,13 @@ class DRS6States : StateMachineBuilder
 
     private void AllegiantArsenalAOE(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.AllegiantArsenalSword, AID.AllegiantArsenalBow, AID.AllegiantArsenalStaff }, delay, 3);
+        CastMulti(id, [AID.AllegiantArsenalSword, AID.AllegiantArsenalBow, AID.AllegiantArsenalStaff], delay, 3);
         ComponentCondition<AllegiantArsenal>(id + 0x10, 5.2f, comp => !comp.Active, "Weapon aoe");
     }
 
     private void BladeOfEntropy(uint id, float delay, string name)
     {
-        CastMulti(id, new[] { AID.BladeOfEntropyBC11, AID.BladeOfEntropyBC21, AID.BladeOfEntropyBH11, AID.BladeOfEntropyBH21, AID.BladeOfEntropyAC11, AID.BladeOfEntropyAC21, AID.BladeOfEntropyAH11, AID.BladeOfEntropyAH21 }, delay, 10, name)
+        CastMulti(id, [AID.BladeOfEntropyBC11, AID.BladeOfEntropyBC21, AID.BladeOfEntropyBH11, AID.BladeOfEntropyBH21, AID.BladeOfEntropyAC11, AID.BladeOfEntropyAC21, AID.BladeOfEntropyAH11, AID.BladeOfEntropyAH21], delay, 10, name)
             .ActivateOnEnter<BladeOfEntropy>()
             .DeactivateOnExit<BladeOfEntropy>();
     }

@@ -82,13 +82,13 @@ class P11SThemisStates : StateMachineBuilder
 
     private void JuryOverruling(uint id, float delay)
     {
-        CastStartMulti(id, new[] { AID.JuryOverrulingLight, AID.JuryOverrulingDark }, delay);
+        CastStartMulti(id, [AID.JuryOverrulingLight, AID.JuryOverrulingDark], delay);
         JuryOverrulingResolve(id + 0x100, 6);
     }
 
     private void UpheldOverruling(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.UpheldOverrulingLight, AID.UpheldOverrulingDark }, delay, 7.3f)
+        CastMulti(id, [AID.UpheldOverrulingLight, AID.UpheldOverrulingDark], delay, 7.3f)
             .ActivateOnEnter<UpheldOverruling>();
         ComponentCondition<UpheldOverruling>(id + 0x10, 0.4f, comp => !comp.Active, "Stack/away from tank")
             .ActivateOnEnter<InevitableLawSentence>()
@@ -114,7 +114,7 @@ class P11SThemisStates : StateMachineBuilder
 
     private void DivisiveOverruling(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.DivisiveOverrulingSoloLight, AID.DivisiveOverrulingSoloDark }, delay, 6.3f)
+        CastMulti(id, [AID.DivisiveOverrulingSoloLight, AID.DivisiveOverrulingSoloDark], delay, 6.3f)
             .ActivateOnEnter<InevitableLawSentence>()
             .ActivateOnEnter<DivisiveOverruling>();
         DivisiveOverrulingResolve(id + 0x100, 1.9f);
@@ -122,9 +122,9 @@ class P11SThemisStates : StateMachineBuilder
 
     private void ArcaneRevelationMirrors(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.ArcaneRevelationMirrorsLight, AID.ArcaneRevelationMirrorsDark }, delay, 5)
+        CastMulti(id, [AID.ArcaneRevelationMirrorsLight, AID.ArcaneRevelationMirrorsDark], delay, 5)
             .ActivateOnEnter<ArcaneRevelation>(); // PATE happens 1s after cast end, actual cast starts ~3s after PATE
-        CastMulti(id + 0x10, new[] { AID.DismissalOverrulingLight, AID.DismissalOverrulingDark }, 2.1f, 5)
+        CastMulti(id + 0x10, [AID.DismissalOverrulingLight, AID.DismissalOverrulingDark], 2.1f, 5)
             .ActivateOnEnter<InevitableLawSentence>() // TODO: not sure whether this should be activated now (earliest point) or later...
             .ActivateOnEnter<DismissalOverruling>();
         ComponentCondition<DismissalOverruling>(id + 0x20, 0.5f, comp => comp.NumCasts > 0, "Knockback")
@@ -145,7 +145,7 @@ class P11SThemisStates : StateMachineBuilder
         Cast(id, AID.ShadowedMessengers, delay, 4);
         ComponentCondition<DivisiveOverruling>(id + 0x10, 5.2f, comp => comp.AOEs.Count > 0) // clones start their casts
             .ActivateOnEnter<DivisiveOverruling>();
-        CastStartMulti(id + 0x20, new[] { AID.DivisiveOverrulingBossLight, AID.DivisiveOverrulingBossDark }, 4.0f);
+        CastStartMulti(id + 0x20, [AID.DivisiveOverrulingBossLight, AID.DivisiveOverrulingBossDark], 4.0f);
         ComponentCondition<DivisiveOverruling>(id + 0x30, 5.2f, comp => comp.NumCasts > 0, "Clone lines 1");
         // +1.6s: upheld ruling casts start
         CastEnd(id + 0x40, 2.6f)
@@ -161,7 +161,7 @@ class P11SThemisStates : StateMachineBuilder
             .ActivateOnEnter<UpheldOverruling>() // note: actual casts start way earlier, but we want to start showing these hints only after previous stacks resolve
             .DeactivateOnExit<UpheldOverruling>();
         // jury overruling slightly overlaps with upheld aoes
-        CastStartMulti(id + 0x110, new[] { AID.JuryOverrulingLight, AID.JuryOverrulingDark }, 3.8f)
+        CastStartMulti(id + 0x110, [AID.JuryOverrulingLight, AID.JuryOverrulingDark], 3.8f)
             .ActivateOnEnter<LightburstClone>() // cast starts 0.6s after jump
             .ActivateOnEnter<DarkPerimeterClone>();
         ComponentCondition<DarkPerimeterClone>(id + 0x120, 0.3f, comp => comp.NumCasts > 0, "Circle + donut")
@@ -175,7 +175,7 @@ class P11SThemisStates : StateMachineBuilder
         Cast(id, AID.Lightstream, delay, 4);
         ComponentCondition<Lightstream>(id + 0x10, 12.2f, comp => comp.NumCasts > 0, "Rotating orbs start")
             .ActivateOnEnter<Lightstream>();
-        CastStartMulti(id + 0x20, new[] { AID.DivisiveOverrulingSoloLight, AID.DivisiveOverrulingSoloDark }, 0.6f); // TODO: second time it is 0.1 instead
+        CastStartMulti(id + 0x20, [AID.DivisiveOverrulingSoloLight, AID.DivisiveOverrulingSoloDark], 0.6f); // TODO: second time it is 0.1 instead
         ComponentCondition<Lightstream>(id + 0x30, 5.8f, comp => comp.NumCasts >= 21, maxOverdue: 2) // TODO: second time it is 6.3 instead
             .ActivateOnEnter<InevitableLawSentence>()
             .ActivateOnEnter<DivisiveOverruling>()
@@ -188,7 +188,7 @@ class P11SThemisStates : StateMachineBuilder
     {
         Cast(id, AID.DarkAndLight, delay, 4)
             .ActivateOnEnter<DarkAndLight>();
-        CastMulti(id + 0x1000, new[] { AID.ArcaneRevelationSpheresLight, AID.ArcaneRevelationSpheresDark }, 8.2f, 5)
+        CastMulti(id + 0x1000, [AID.ArcaneRevelationSpheresLight, AID.ArcaneRevelationSpheresDark], 8.2f, 5)
             .ActivateOnEnter<ArcaneRevelation>(); // PATE happens 1s after cast end, actual cast starts ~3s after PATE
         ComponentCondition<ArcaneRevelation>(id + 0x1010, 9.7f, comp => comp.NumCasts > 0, "Spheres")
             .ExecOnEnter<DarkAndLight>(comp => comp.ShowSafespots = false) // TODO: reconsider?
@@ -216,7 +216,7 @@ class P11SThemisStates : StateMachineBuilder
     private void LetterOfTheLaw(uint id, float delay)
     {
         Cast(id, AID.LetterOfTheLaw, delay, 4);
-        CastMulti(id + 0x10, new[] { AID.TwofoldRevelationLight, AID.TwofoldRevelationDark }, 2.1f, 5)
+        CastMulti(id + 0x10, [AID.TwofoldRevelationLight, AID.TwofoldRevelationDark], 2.1f, 5)
             .ActivateOnEnter<ArcaneRevelation>() // PATE happens 1s after cast end, actual cast starts ~3s after PATE
             .ActivateOnEnter<UpheldOverruling>(); // ruling casts start ~1.1s after this cast end
         Cast(id + 0x20, AID.HeartOfJudgment, 6.2f, 3);
@@ -235,7 +235,7 @@ class P11SThemisStates : StateMachineBuilder
             .DeactivateOnExit<HeartOfJudgment>();
         ComponentCondition<DivisiveOverruling>(id + 0x70, 3.4f, comp => comp.NumCasts > 0, "Clone lines 1")
             .ActivateOnEnter<DivisiveOverruling>();
-        CastStartMulti(id + 0x80, new[] { AID.DismissalOverrulingLight, AID.DismissalOverrulingDark }, 0.7f);
+        CastStartMulti(id + 0x80, [AID.DismissalOverrulingLight, AID.DismissalOverrulingDark], 0.7f);
         ComponentCondition<DivisiveOverruling>(id + 0x90, 2.5f, comp => comp.NumCasts > 2, "Clone lines 2")
             .DeactivateOnExit<DivisiveOverruling>();
         CastEnd(id + 0xA0, 2.5f)

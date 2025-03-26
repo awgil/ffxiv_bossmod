@@ -12,14 +12,13 @@ public sealed class RotationModuleManager : IDisposable
 {
     private readonly record struct ActiveModule(int DataIndex, RotationModuleDefinition Definition, RotationModule Module);
 
-    private Preset? _preset; // if non-null, this preset overrides the configuration
     public Preset? Preset
     {
-        get => _preset;
+        get;
         set
         {
-            DirtyActiveModules(_preset != value);
-            _preset = value;
+            DirtyActiveModules(field != value);
+            field = value;
         }
     }
 

@@ -118,9 +118,13 @@ public class DebugObjects
         {
             var o = module->ObjectInfos[i].GameObject;
             ImGui.TableNextRow();
-            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{i}: {(ulong)o:X}");
-            ImGui.TableNextColumn(); if (o != null) ImGui.TextUnformatted($"{o->BaseId:X} '{o->NameString}' <{o->EntityId:X}>");
-            ImGui.TableNextColumn(); ImGui.TextUnformatted($"{module->ObjectInfos[i].NamePlateObjectKind}");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{i}: {(ulong)o:X}");
+            ImGui.TableNextColumn();
+            if (o != null)
+                ImGui.TextUnformatted($"{o->BaseId:X} '{o->NameString}' <{o->EntityId:X}>");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{module->ObjectInfos[i].NamePlateObjectKind}");
         }
         ImGui.EndTable();
     }

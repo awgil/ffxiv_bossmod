@@ -225,7 +225,7 @@ class DSW2States : StateMachineBuilder
 
     private void P2BroadSwing(uint id, float delay)
     {
-        CastMulti(id, new AID[] { AID.BroadSwingLR, AID.BroadSwingRL }, delay, 3)
+        CastMulti(id, [AID.BroadSwingLR, AID.BroadSwingRL], delay, 3)
             .ActivateOnEnter<P2BroadSwing>();
         ComponentCondition<P2BroadSwing>(id + 2, 2.8f, comp => comp.NumCasts >= 3, "Swings")
             .DeactivateOnExit<P2BroadSwing>();
@@ -245,7 +245,7 @@ class DSW2States : StateMachineBuilder
             .ActivateOnEnter<P3DiveFromGrace>()
             .ActivateOnEnter<P3Geirskogul>();
 
-        ActorCastMulti(id + 0x10, _module.BossP3, new AID[] { AID.GnashAndLash, AID.LashAndGnash }, 2.1f, 7.6f, true, "Stack + Jump 1")
+        ActorCastMulti(id + 0x10, _module.BossP3, [AID.GnashAndLash, AID.LashAndGnash], 2.1f, 7.6f, true, "Stack + Jump 1")
             .ActivateOnEnter<P3GnashAndLash>()
             .SetHint(StateMachine.StateHint.Raidwide);
         // TODO: consider adding a state 0.3s later when stack happens; first jumps happen +/- 0.1s around it
@@ -254,7 +254,7 @@ class DSW2States : StateMachineBuilder
         ComponentCondition<P3GnashAndLash>(id + 0x30, 3.1f, comp => comp.NumCasts >= 2, "Towers 1 + In/out 2"); // note: towers happen ~0.1s earlier
         ComponentCondition<P3Geirskogul>(id + 0x40, 2.5f, comp => comp.Casters.Count > 0);
         ComponentCondition<P3DiveFromGrace>(id + 0x50, 0.8f, comp => comp.NumJumps > 3, "Jump 2");
-        ActorCastStartMulti(id + 0x58, _module.BossP3, new AID[] { AID.GnashAndLash, AID.LashAndGnash }, 3.8f, true);
+        ActorCastStartMulti(id + 0x58, _module.BossP3, [AID.GnashAndLash, AID.LashAndGnash], 3.8f, true);
         ComponentCondition<P3DiveFromGrace>(id + 0x60, 2.8f, comp => comp.NumCasts > 3, "Towers 2");
         ComponentCondition<P3Geirskogul>(id + 0x70, 2.6f, comp => comp.Casters.Count > 0);
         ComponentCondition<P3DiveFromGrace>(id + 0x80, 1.8f, comp => comp.NumJumps > 5, "Stack + Jump 3");
@@ -505,7 +505,7 @@ class DSW2States : StateMachineBuilder
 
     private void P6Wyrmsbreath1(uint id, float delay)
     {
-        ActorCastMulti(id, _module.NidhoggP6, new[] { AID.DreadWyrmsbreathNormal, AID.DreadWyrmsbreathGlow }, delay, 6.3f, true)
+        ActorCastMulti(id, _module.NidhoggP6, [AID.DreadWyrmsbreathNormal, AID.DreadWyrmsbreathGlow], delay, 6.3f, true)
             .ActivateOnEnter<P6HPCheck>()
             .ActivateOnEnter<P6Wyrmsbreath1>()
             .ActivateOnEnter<P6WyrmsbreathTankbusterShared>()
@@ -523,7 +523,7 @@ class DSW2States : StateMachineBuilder
 
     private void P6Wyrmsbreath2(uint id, float delay)
     {
-        ActorCastMulti(id, _module.NidhoggP6, new[] { AID.DreadWyrmsbreathNormal, AID.DreadWyrmsbreathGlow }, delay, 6.3f, true)
+        ActorCastMulti(id, _module.NidhoggP6, [AID.DreadWyrmsbreathNormal, AID.DreadWyrmsbreathGlow], delay, 6.3f, true)
             .ActivateOnEnter<P6Wyrmsbreath2>()
             .ActivateOnEnter<P6WyrmsbreathTankbusterShared>()
             .ActivateOnEnter<P6WyrmsbreathTankbusterSolo>()
@@ -541,7 +541,7 @@ class DSW2States : StateMachineBuilder
     private void P6HallowedWingsPlume1(uint id, float delay)
     {
         ActorTargetable(id, _module.NidhoggP6, false, delay, "Nidhogg disappears");
-        ActorCastMulti(id + 0x10, _module.HraesvelgrP6, new[] { AID.HallowedWingsLN, AID.HallowedWingsLF, AID.HallowedWingsRN, AID.HallowedWingsRF }, 1.8f, 7.5f, true)
+        ActorCastMulti(id + 0x10, _module.HraesvelgrP6, [AID.HallowedWingsLN, AID.HallowedWingsLF, AID.HallowedWingsRN, AID.HallowedWingsRF], 1.8f, 7.5f, true)
             .ActivateOnEnter<P6HallowedWings>()
             .ActivateOnEnter<P6CauterizeN>() // cauterize cast starts later, but nidhogg is already in position, so we start showing hints immediately
             .ActivateOnEnter<P6HallowedPlume1>();
@@ -557,7 +557,7 @@ class DSW2States : StateMachineBuilder
 
     private void P6HallowedWingsPlume2(uint id, float delay)
     {
-        ActorCastMulti(id, _module.HraesvelgrP6, new[] { AID.HallowedWingsLN, AID.HallowedWingsLF, AID.HallowedWingsRN, AID.HallowedWingsRF }, delay, 7.5f, true)
+        ActorCastMulti(id, _module.HraesvelgrP6, [AID.HallowedWingsLN, AID.HallowedWingsLF, AID.HallowedWingsRN, AID.HallowedWingsRF], delay, 7.5f, true)
             .ActivateOnEnter<P6HallowedWings>()
             .ActivateOnEnter<P6HotWingTail>() // this cast starts ~2s later
             .ActivateOnEnter<P6HallowedPlume2>();
@@ -591,7 +591,7 @@ class DSW2States : StateMachineBuilder
         ComponentCondition<P6WrothFlames>(id + 0x50, 0.5f, comp => comp.NumCasts > 4, "Cross 2")
             .ActivateOnEnter<P6HotWingTail>() // note: activating early, so that spreading/entangled flames can use it
             .ActivateOnEnter<P6SpreadingEntangledFlames>();
-        ActorCastStartMulti(id + 0x60, _module.NidhoggP6, new[] { AID.HotWing, AID.HotTail }, 1.1f);
+        ActorCastStartMulti(id + 0x60, _module.NidhoggP6, [AID.HotWing, AID.HotTail], 1.1f);
         ComponentCondition<P6WrothFlames>(id + 0x70, 1.9f, comp => comp.NumCasts > 7, "Cross 3")
             .DeactivateOnExit<P6WrothFlames>();
         ActorCastEnd(id + 0x80, _module.NidhoggP6, 3.6f);

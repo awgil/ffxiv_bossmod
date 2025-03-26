@@ -75,7 +75,7 @@ class P2SStates : StateMachineBuilder
 
     private State Cataract(uint id, float delay)
     {
-        CastStartMulti(id, new AID[] { AID.SpokenCataract, AID.WingedCataract }, delay)
+        CastStartMulti(id, [AID.SpokenCataract, AID.WingedCataract], delay)
             .SetHint(StateMachine.StateHint.PositioningStart);
         return CastEnd(id + 1, 8, "Cataract")
             .ActivateOnEnter<Cataract>()

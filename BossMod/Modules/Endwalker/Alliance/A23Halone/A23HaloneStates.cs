@@ -91,7 +91,7 @@ class A23HaloneStates : StateMachineBuilder
 
     private void ThousandfoldThrust(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.ThousandfoldThrustFirst1, AID.ThousandfoldThrustFirst2, AID.ThousandfoldThrustFirst3, AID.ThousandfoldThrustFirst4 }, delay, 5)
+        CastMulti(id, [AID.ThousandfoldThrustFirst1, AID.ThousandfoldThrustFirst2, AID.ThousandfoldThrustFirst3, AID.ThousandfoldThrustFirst4], delay, 5)
             .ActivateOnEnter<ThousandfoldThrust>();
         ComponentCondition<ThousandfoldThrust>(id + 0x10, 1.3f, comp => comp.NumCasts > 0, "Safe half start");
         ComponentCondition<ThousandfoldThrust>(id + 0x20, 4.3f, comp => comp.NumCasts > 4, "Safe half resolve")
@@ -113,7 +113,7 @@ class A23HaloneStates : StateMachineBuilder
         CastStart(id, AID.Lochos, delay)
             .ActivateOnEnter<Lochos2>();
         CastEnd(id + 1, 5);
-        CastMulti(id + 0x10, new[] { AID.ThousandfoldThrustFirst1, AID.ThousandfoldThrustFirst2, AID.ThousandfoldThrustFirst3, AID.ThousandfoldThrustFirst4 }, 3.5f, 5)
+        CastMulti(id + 0x10, [AID.ThousandfoldThrustFirst1, AID.ThousandfoldThrustFirst2, AID.ThousandfoldThrustFirst3, AID.ThousandfoldThrustFirst4], 3.5f, 5)
             .ActivateOnEnter<ThousandfoldThrust>();
         ComponentCondition<ThousandfoldThrust>(id + 0x20, 1.3f, comp => comp.NumCasts > 0, "Safe eighth start");
         ComponentCondition<Lochos>(id + 0x30, 4.4f, comp => comp.NumCasts > 8, "Safe eighth resolve")

@@ -93,8 +93,7 @@ public class StateMachineTree
     private readonly Dictionary<uint, Node> _nodes = [];
     public IReadOnlyDictionary<uint, Node> Nodes => _nodes;
 
-    private readonly List<Phase> _phases = [];
-    public IReadOnlyList<Phase> Phases => _phases;
+    public List<Phase> Phases { get; } = [];
 
     public int TotalBranches { get; private set; }
     public float TotalMaxTime { get; private set; }
@@ -104,7 +103,7 @@ public class StateMachineTree
         for (int i = 0; i < sm.Phases.Count; ++i)
         {
             var (startingNode, maxTime) = LayoutNodeAndSuccessors(0, i, TotalBranches, sm.Phases[i].InitialState, sm.Phases[i], null);
-            _phases.Add(new(sm.Phases[i], startingNode, maxTime));
+            Phases.Add(new(sm.Phases[i], startingNode, maxTime));
             TotalBranches += startingNode.NumBranches;
             TotalMaxTime = Math.Max(TotalMaxTime, maxTime);
         }
@@ -129,10 +128,10 @@ public class StateMachineTree
     // find phase index that corresponds to specified time; assumes ApplyTimings was called before
     public int FindPhaseAtTime(float t)
     {
-        int next = _phases.FindIndex(p => p.StartTime > t);
+        int next = Phases.FindIndex(p => p.StartTime > t);
         return next switch
         {
-            < 0 => _phases.Count - 1,
+            < 0 => Phases.Count - 1,
             0 => 0,
             _ => next - 1
         };

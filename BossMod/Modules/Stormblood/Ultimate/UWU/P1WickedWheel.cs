@@ -34,7 +34,7 @@ class WickedWheel(BossModule module) : Components.GenericAOEs(module)
             case AID.WickedWheelSister:
                 Sources.Add((caster, ShapeSister, Module.CastFinishAt(spell)));
                 break;
-        };
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

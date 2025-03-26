@@ -44,7 +44,7 @@ class P4S2States : StateMachineBuilder
 
     private State FarNearSight(uint id, float delay)
     {
-        CastStartMulti(id, new AID[] { AID.Nearsight, AID.Farsight }, delay)
+        CastStartMulti(id, [AID.Nearsight, AID.Farsight], delay)
             .SetHint(StateMachine.StateHint.PositioningStart);
         CastEnd(id + 1, 5)
             .ActivateOnEnter<NearFarSight>();

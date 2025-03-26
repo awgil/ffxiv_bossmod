@@ -572,7 +572,7 @@ class TEAStates : StateMachineBuilder
 
     private State P4OrdainedMotionStillness(uint id, float delay)
     {
-        return ActorCastMulti(id, _module.PerfectAlex, new[] { AID.OrdainedMotion, AID.OrdainedStillness }, delay, 4, true, "Stay/move");
+        return ActorCastMulti(id, _module.PerfectAlex, [AID.OrdainedMotion, AID.OrdainedStillness], delay, 4, true, "Stay/move");
     }
 
     private void P4FinalWord(uint id, float delay)
@@ -589,7 +589,7 @@ class TEAStates : StateMachineBuilder
 
     private void P4OpticalSight(uint id, float delay)
     {
-        ActorCastStartMulti(id, _module.PerfectAlex, new[] { AID.OpticalSightSpread, AID.OpticalSightStack }, delay, true)
+        ActorCastStartMulti(id, _module.PerfectAlex, [AID.OpticalSightSpread, AID.OpticalSightStack], delay, true)
             .ActivateOnEnter<P4OpticalSight>(); // icons appear right before cast start
         ActorCastEnd(id + 1, _module.PerfectAlex, 3, true);
         ComponentCondition<P4OpticalSight>(id + 2, 2.1f, comp => !comp.Active, "Spread/stack")

@@ -57,7 +57,7 @@ class Ex1ZodiarkStates : StateMachineBuilder
 
     private State Algedon(uint id, float delay, bool setPosFlags)
     {
-        CastStartMulti(id, new AID[] { AID.AlgedonTL, AID.AlgedonTR }, delay)
+        CastStartMulti(id, [AID.AlgedonTL, AID.AlgedonTR], delay)
             .SetHint(StateMachine.StateHint.PositioningStart, setPosFlags);
         CastEnd(id + 1, 7)
             .ActivateOnEnter<Algedon>();
@@ -104,7 +104,7 @@ class Ex1ZodiarkStates : StateMachineBuilder
     // this is used by various paradeigma states; automatically deactivates paradeigma component
     private State AstralFlow(uint id, float delay)
     {
-        CastStartMulti(id, new AID[] { AID.AstralFlowCW, AID.AstralFlowCCW }, delay);
+        CastStartMulti(id, [AID.AstralFlowCW, AID.AstralFlowCCW], delay);
         CastEnd(id + 1, 10, "Rotate")
             .SetHint(StateMachine.StateHint.PositioningStart);
         return Condition(id + 0x10, 6.2f, () => Module.WorldState.Party.WithoutSlot().All(a => (a.FindStatus(SID.TenebrousGrasp) == null)), "Rotate resolve", 5, 1)
@@ -223,7 +223,7 @@ class Ex1ZodiarkStates : StateMachineBuilder
     {
         Targetable(id, false, delay, "Intermission start")
             .ClearHint(StateMachine.StateHint.DowntimeStart); // adds appear almost immediately, so there is no downtime
-        CastStartMulti(id + 0x1000, new AID[] { AID.AddsEndFail, AID.AddsEndSuccess }, 40, "Add enrage")
+        CastStartMulti(id + 0x1000, [AID.AddsEndFail, AID.AddsEndSuccess], 40, "Add enrage")
             .ActivateOnEnter<Exoterikos>()
             .DeactivateOnExit<Exoterikos>()
             .SetHint(StateMachine.StateHint.DowntimeStart);

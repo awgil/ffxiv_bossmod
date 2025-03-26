@@ -136,7 +136,6 @@ class Aethersup(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)

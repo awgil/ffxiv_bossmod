@@ -130,7 +130,7 @@ class P1SStates : StateMachineBuilder
 
     private void GaolerFlail(uint id, float delay)
     {
-        CastStartMulti(id, new AID[] { AID.GaolerFlailRL, AID.GaolerFlailLR, AID.GaolerFlailIO1, AID.GaolerFlailIO2, AID.GaolerFlailOI1, AID.GaolerFlailOI2 }, delay)
+        CastStartMulti(id, [AID.GaolerFlailRL, AID.GaolerFlailLR, AID.GaolerFlailIO1, AID.GaolerFlailIO2, AID.GaolerFlailOI1, AID.GaolerFlailOI2], delay)
             .SetHint(StateMachine.StateHint.PositioningStart);
         CastEnd(id + 1, 11.5f)
             .ActivateOnEnter<Flails>();
@@ -141,7 +141,7 @@ class P1SStates : StateMachineBuilder
 
     private void Aetherflail(uint id, float delay)
     {
-        CastStartMulti(id, new AID[] { AID.AetherflailRX, AID.AetherflailLX, AID.AetherflailIL, AID.AetherflailIR, AID.AetherflailOL, AID.AetherflailOR }, delay)
+        CastStartMulti(id, [AID.AetherflailRX, AID.AetherflailLX, AID.AetherflailIL, AID.AetherflailIR, AID.AetherflailOL, AID.AetherflailOR], delay)
             .SetHint(StateMachine.StateHint.PositioningStart);
         CastEnd(id + 1, 11.5f)
             .ActivateOnEnter<Flails>()
@@ -154,7 +154,7 @@ class P1SStates : StateMachineBuilder
 
     private void Knockback(uint id, float delay, bool positioningHints = true)
     {
-        CastStartMulti(id, new AID[] { AID.KnockbackGrace, AID.KnockbackPurge }, delay)
+        CastStartMulti(id, [AID.KnockbackGrace, AID.KnockbackPurge], delay)
             .SetHint(StateMachine.StateHint.PositioningStart, positioningHints);
         CastEnd(id + 1, 5, "Knockback")
             .ActivateOnEnter<Knockback>()
@@ -168,7 +168,7 @@ class P1SStates : StateMachineBuilder
     private void IntemperancePhase(uint id, float delay, bool withWraths)
     {
         Cast(id, AID.Intemperance, delay, 2, "Intemperance");
-        CastStartMulti(id + 0x1000, new AID[] { AID.IntemperateTormentUp, AID.IntemperateTormentDown }, 5.9f)
+        CastStartMulti(id + 0x1000, [AID.IntemperateTormentUp, AID.IntemperateTormentDown], 5.9f)
             .ActivateOnEnter<Intemperance>();
         CastEnd(id + 0x1001, 10);
         ComponentCondition<Intemperance>(id + 0x2000, 1.2f, comp => comp.NumExplosions > 0, "Cube1", 0.2f)
@@ -182,7 +182,7 @@ class P1SStates : StateMachineBuilder
         }
         else
         {
-            CastStartMulti(id + 0x3000, new AID[] { AID.GaolerFlailRL, AID.GaolerFlailLR, AID.GaolerFlailIO1, AID.GaolerFlailIO2, AID.GaolerFlailOI1, AID.GaolerFlailOI2 }, 3);
+            CastStartMulti(id + 0x3000, [AID.GaolerFlailRL, AID.GaolerFlailLR, AID.GaolerFlailIO1, AID.GaolerFlailIO2, AID.GaolerFlailOI1, AID.GaolerFlailOI2], 3);
             ComponentCondition<Intemperance>(id + 0x4000, 8, comp => comp.NumExplosions > 1, "Cube2")
                 .ActivateOnEnter<Flails>();
             CastEnd(id + 0x5000, 3.5f);

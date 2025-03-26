@@ -21,7 +21,6 @@ public sealed class AsGoesLightSoGoesDarkness(WorldState ws) : QuestBattle(ws)
         Bonds = 0x1E9EE0,
     }
 
-
     public override List<QuestObjective> DefineObjectives(WorldState ws)
     {
         QuestObjective Refugee(OID oid)

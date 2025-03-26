@@ -108,7 +108,7 @@ class DRS4States : StateMachineBuilder
     {
         ActorCast(id, _module.Knight, AID.RelentlessBatteryKnight, delay, 5); // both knight and warrior cast their visual
 
-        ActorCastStartMulti(id + 0x10, _module.Knight, new[] { AID.SwordOmen, AID.ShieldOmen }, 3.2f);
+        ActorCastStartMulti(id + 0x10, _module.Knight, [AID.SwordOmen, AID.ShieldOmen], 3.2f);
         ActorCastStart(id + 0x11, _module.Warrior, AID.Bombslinger, 1);
         ActorCastEnd(id + 0x12, _module.Knight, 2);
         ActorCastEnd(id + 0x13, _module.Warrior, 1);
@@ -123,7 +123,7 @@ class DRS4States : StateMachineBuilder
 
         // main cast is a charge aoe from knight's position (at border) to cast location (center)
         // for shield, together with this cast, we have two raidwide knockback casts and sphere-move cast - they have identical cast times
-        ActorCastStartMulti(id + 0x30, _module.Knight, new[] { AID.OptimalOffensiveSword, AID.OptimalOffensiveShield }, 2.3f);
+        ActorCastStartMulti(id + 0x30, _module.Knight, [AID.OptimalOffensiveSword, AID.OptimalOffensiveShield], 2.3f);
         ActorCastStart(id + 0x31, _module.Warrior, AID.AboveBoard, 2.9f)
             .ActivateOnEnter<OptimalOffensiveSword>()
             .ActivateOnEnter<OptimalOffensiveShield>()
@@ -154,13 +154,13 @@ class DRS4States : StateMachineBuilder
         // +0.9s: replace tethers with statuses
 
         ActorCastStart(id + 0x20, _module.Warrior, AID.WindsOfWeight, 3.2f);
-        ActorCastStartMulti(id + 0x21, _module.Knight, new[] { AID.SwordOmen, AID.ShieldOmen }, 1.9f)
+        ActorCastStartMulti(id + 0x21, _module.Knight, [AID.SwordOmen, AID.ShieldOmen], 1.9f)
             .ActivateOnEnter<WindsOfWeight>();
         ActorCastEnd(id + 0x22, _module.Knight, 3);
         ActorCastEnd(id + 0x23, _module.Warrior, 1.1f, false, "Wind/gravity")
             .DeactivateOnExit<WindsOfWeight>();
 
-        ActorCastStartMulti(id + 0x30, _module.Knight, new[] { AID.OptimalPlaySword, AID.OptimalPlayShield }, 2.1f);
+        ActorCastStartMulti(id + 0x30, _module.Knight, [AID.OptimalPlaySword, AID.OptimalPlayShield], 2.1f);
         ActorCastStart(id + 0x31, _module.Warrior, AID.Boost, 3)
             .ActivateOnEnter<OptimalPlaySword>()
             .ActivateOnEnter<OptimalPlayShield>()
@@ -232,7 +232,7 @@ class DRS4States : StateMachineBuilder
         P2BloodAndBone(id + 0x40, 6.9f, "Turret tankbusters");
 
         // note: deadline to kill both turrets (explosion cast end) is ~2s into next cast
-        ActorCastMulti(id + 0x50, _module.Soldier, new[] { AID.FieryPortent, AID.IcyPortent }, 11.2f, 6, false, "Move/stay")
+        ActorCastMulti(id + 0x50, _module.Soldier, [AID.FieryPortent, AID.IcyPortent], 11.2f, 6, false, "Move/stay")
             .ActivateOnEnter<FieryPortent>()
             .ActivateOnEnter<IcyPortent>()
             .DeactivateOnExit<FieryPortent>()

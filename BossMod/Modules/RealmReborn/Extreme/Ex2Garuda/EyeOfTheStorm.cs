@@ -30,5 +30,4 @@ class EyeOfTheStorm(BossModule module) : Components.GenericAOEs(module, ActionID
             _nextCastAt = WorldState.FutureTime(4.2f);
         }
     }
-
 }

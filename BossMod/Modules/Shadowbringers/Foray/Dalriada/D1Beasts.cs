@@ -160,29 +160,29 @@ class Pyroplexy(BossModule module) : Components.GenericTowers(module)
 
 class Wind(BossModule module) : Components.Knockback(module)
 {
-    private readonly List<Source> sources = [];
+    private readonly List<Source> winds = [];
 
-    public override IEnumerable<Source> Sources(int slot, Actor actor) => sources;
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => winds;
 
-    public WDir KnockbackDir(int slot) => sources.Where(s => !IsImmune(slot, s.Activation)).Select(s => s.Direction.ToDirection() * s.Distance).FirstOrDefault();
+    public WDir KnockbackDir(int slot) => winds.Where(s => !IsImmune(slot, s.Activation)).Select(s => s.Direction.ToDirection() * s.Distance).FirstOrDefault();
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SouthWind)
         {
-            sources.Add(new(new WPos(222, -665), 40, Module.CastFinishAt(spell, 0.7f), null, 180.Degrees(), Kind.DirForward));
+            winds.Add(new(new WPos(222, -665), 40, Module.CastFinishAt(spell, 0.7f), null, 180.Degrees(), Kind.DirForward));
         }
 
         if ((AID)spell.Action.ID == AID.NorthWind)
         {
-            sources.Add(new(new WPos(222, -713), 40, Module.CastFinishAt(spell, 0.7f), null, 0.Degrees(), Kind.DirForward));
+            winds.Add(new(new WPos(222, -713), 40, Module.CastFinishAt(spell, 0.7f), null, 0.Degrees(), Kind.DirForward));
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.SouthWindHelper or AID.NorthWindHelper)
-            sources.Clear();
+            winds.Clear();
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

@@ -185,7 +185,7 @@ class Ex6GolbezStates : StateMachineBuilder
     // leaves component active
     private void AzdajasShadow(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.AzdajasShadowCircleStack, AID.AzdajasShadowDonutSpread }, delay, 8)
+        CastMulti(id, [AID.AzdajasShadowCircleStack, AID.AzdajasShadowDonutSpread], delay, 8)
             .ActivateOnEnter<AzdajasShadow>();
         ComponentCondition<FlamesOfEventide>(id + 0x10, 5.2f, comp => comp.NumCasts >= 1, "Tankbuster 1")
             .ActivateOnEnter<FlamesOfEventide>()
@@ -257,7 +257,7 @@ class Ex6GolbezStates : StateMachineBuilder
     private void VoidStardust(uint id, float delay)
     {
         VoidStardustAbyssalQuasarStart(id, delay);
-        CastStartMulti(id + 0x100, new[] { AID.EventideTriad, AID.EventideFall }, 3.0f);
+        CastStartMulti(id + 0x100, [AID.EventideTriad, AID.EventideFall], 3.0f);
         VoidStardustAbyssalQuasarEnd(id + 0x110, 0.1f)
             .ActivateOnEnter<EventideFallTriad>();
         CastEnd(id + 0x120, 4.9f, "Triad/fall")
@@ -272,7 +272,7 @@ class Ex6GolbezStates : StateMachineBuilder
         LingeringSparkStart(id + 0x100, 1.0f);
         VoidStardustAbyssalQuasarEnd(id + 0x110, 2.1f);
         LingeringSparkEnd(id + 0x120, 0.9f);
-        CastMulti(id + 0x200, new[] { AID.EventideTriad, AID.EventideFall }, 0.1f, 5, "Triad/fall")
+        CastMulti(id + 0x200, [AID.EventideTriad, AID.EventideFall], 0.1f, 5, "Triad/fall")
             .ActivateOnEnter<EventideFallTriad>()
             .DeactivateOnExit<EventideFallTriad>();
     }

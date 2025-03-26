@@ -422,7 +422,7 @@ class ReplayDetailsWindow : UIWindow
         }
     }
 
-    private void DrawEnemyTable(uint oid, ICollection<Actor> actors)
+    private void DrawEnemyTable(uint oid, List<Actor> actors)
     {
         var moduleInfo = _mgr.ActiveModule != null ? BossModuleRegistry.FindByOID(_mgr.ActiveModule.PrimaryActor.OID) : null;
         var oidName = moduleInfo?.ObjectIDType?.GetEnumName(oid);

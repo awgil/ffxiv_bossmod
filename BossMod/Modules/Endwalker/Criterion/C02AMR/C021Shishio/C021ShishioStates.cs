@@ -119,7 +119,7 @@ class C021ShishioStates : StateMachineBuilder
     {
         Cast(id, _savage ? AID.SUnnaturalWail : AID.NUnnaturalWail, delay, 3)
             .ActivateOnEnter<UnnaturalWail>(); // debuffs are assigned 0.9s after cast ends
-        CastMulti(id + 0x10, new[] { _savage ? AID.SEyeOfTheThunderVortexFirst : AID.NEyeOfTheThunderVortexFirst, _savage ? AID.SVortexOfTheThunderEyeFirst : AID.NVortexOfTheThunderEyeFirst }, 2.2f, 5.2f, "In/out")
+        CastMulti(id + 0x10, [_savage ? AID.SEyeOfTheThunderVortexFirst : AID.NEyeOfTheThunderVortexFirst, _savage ? AID.SVortexOfTheThunderEyeFirst : AID.NVortexOfTheThunderEyeFirst], 2.2f, 5.2f, "In/out")
             .ActivateOnEnter<EyeThunderVortex>();
         ComponentCondition<UnnaturalWail>(id + 0x20, 0.6f, comp => comp.NumMechanics > 0, "Spread/stack 1");
         ComponentCondition<EyeThunderVortex>(id + 0x30, 3.4f, comp => comp.NumCasts > 1, "Out/in")

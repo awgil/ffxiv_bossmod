@@ -60,7 +60,6 @@ class Artillery(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID is AID.ArtilleryAOE1 or AID.ArtilleryAOE2 or AID.ArtilleryAOE3 or AID.ArtilleryAOE4)
             AOEs.RemoveAll(aoe => aoe.Origin.AlmostEqual(caster.Position, 1));
     }
-
 }
 
 class Pummel(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Pummel));

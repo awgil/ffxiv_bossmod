@@ -148,7 +148,7 @@ class Ex5RubicanteStates : StateMachineBuilder
 
     private void ScaldingSignalRingSweepingImmolation(uint id, float delay)
     {
-        CastMulti(id, new[] { AID.ScaldingSignal, AID.ScaldingRing }, delay, 5, "Circle/donut")
+        CastMulti(id, [AID.ScaldingSignal, AID.ScaldingRing], delay, 5, "Circle/donut")
             .ActivateOnEnter<ScaldingSignal>()
             .ActivateOnEnter<ScaldingRing>()
             .ActivateOnEnter<ScaldingFleetFirst>()
@@ -157,7 +157,7 @@ class Ex5RubicanteStates : StateMachineBuilder
         ComponentCondition<ScaldingFleetFirst>(id + 0x10, 1.1f, comp => comp.NumCasts > 0, "Baited lines")
             .DeactivateOnExit<ScaldingFleetFirst>();
 
-        CastMulti(id + 0x20, new[] { AID.SweepingImmolationSpread, AID.SweepingImmolationStack }, 2.5f, 7)
+        CastMulti(id + 0x20, [AID.SweepingImmolationSpread, AID.SweepingImmolationStack], 2.5f, 7)
             .ActivateOnEnter<SweepingImmolationSpread>()
             .ActivateOnEnter<SweepingImmolationStack>()
             .ActivateOnEnter<PartialTotalImmolation>()

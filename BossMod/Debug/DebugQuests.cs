@@ -102,7 +102,7 @@ unsafe class DebugQuests
                     foreach (var q in quests.AllQuests)
                     {
                         // TODO map Unknown11
-                        // _tree.LeafNode($"[{i++}] G{q.Unknown11} {(IsEligible(q) ? "+" : "-")}{(quests.AvailableQuests.Contains(q) ? "+" : "-")} {q.RowId} '{q.Name}'");
+                        _tree.LeafNode($"[{i++}] G{{q.Unknown11}} {(IsEligible(q) ? "+" : "-")}{(quests.AvailableQuests.Contains(q) ? "+" : "-")} {q.RowId} '{q.Name}'");
                     }
                 }
             }

@@ -155,7 +155,7 @@ class DRS8States : StateMachineBuilder
         ActorCastStart(id + 0x20, Module.Enemies(OID.QueensSoldier).FirstOrDefault, AID.DoubleGambit, 4.5f);
         Targetable(id + 0x21, false, 0.4f, "Disappear");
         ActorCastStart(id + 0x22, Module.Enemies(OID.QueensKnight).FirstOrDefault, AID.OptimalOffensive, 1.4f);
-        CastStartMulti(id + 0x23, new[] { AID.JudgmentBladeR, AID.JudgmentBladeL }, 1.9f)
+        CastStartMulti(id + 0x23, [AID.JudgmentBladeR, AID.JudgmentBladeL], 1.9f)
             .ActivateOnEnter<OptimalOffensive>()
             .ActivateOnEnter<OptimalOffensiveKnockback>()
             .ActivateOnEnter<UnluckyLotAetherialSphere>();
@@ -172,7 +172,7 @@ class DRS8States : StateMachineBuilder
             .DeactivateOnExit<UnluckyLotAetherialSphere>();
         ActorCastEnd(id + 0x2A, Module.Enemies(OID.QueensSoldier).FirstOrDefault, 1.7f);
 
-        CastMulti(id + 0x30, new[] { AID.JudgmentBladeR, AID.JudgmentBladeL }, 2.2f, 7)
+        CastMulti(id + 0x30, [AID.JudgmentBladeR, AID.JudgmentBladeL], 2.2f, 7)
             .ActivateOnEnter<JudgmentBlade>()
             .ActivateOnEnter<PawnOff>(); // cast starts ~2.7s after judgment blade; we could show hints much earlier based on tethers
         ComponentCondition<JudgmentBlade>(id + 0x32, 0.3f, comp => comp.NumCasts > 0, "Cleave")
@@ -186,10 +186,10 @@ class DRS8States : StateMachineBuilder
     private void RelentlessPlay3(uint id, float delay)
     {
         Cast(id, AID.RelentlessPlay, delay, 5);
-        ActorCastMulti(id + 0x10, Module.Enemies(OID.QueensKnight).FirstOrDefault, new[] { AID.SwordOmen, AID.ShieldOmen }, 3.1f, 3);
+        ActorCastMulti(id + 0x10, Module.Enemies(OID.QueensKnight).FirstOrDefault, [AID.SwordOmen, AID.ShieldOmen], 3.1f, 3);
 
         // note: gunner starts automatic turret visual together with optimal play
-        ActorCastMulti(id + 0x20, Module.Enemies(OID.QueensKnight).FirstOrDefault, new[] { AID.OptimalPlaySword, AID.OptimalPlayShield }, 6.5f, 5, false, "Cone + circle/donut")
+        ActorCastMulti(id + 0x20, Module.Enemies(OID.QueensKnight).FirstOrDefault, [AID.OptimalPlaySword, AID.OptimalPlayShield], 6.5f, 5, false, "Cone + circle/donut")
             .ActivateOnEnter<OptimalPlaySword>()
             .ActivateOnEnter<OptimalPlayShield>()
             .ActivateOnEnter<OptimalPlayCone>()
@@ -216,7 +216,7 @@ class DRS8States : StateMachineBuilder
 
         ComponentCondition<HeavensWrathAOE>(id + 0x30, 0.8f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<HeavensWrathAOE>();
-        ActorCastStartMulti(id + 0x31, Module.Enemies(OID.QueensSoldier).FirstOrDefault, new[] { AID.FieryPortent, AID.IcyPortent }, 2.2f)
+        ActorCastStartMulti(id + 0x31, Module.Enemies(OID.QueensSoldier).FirstOrDefault, [AID.FieryPortent, AID.IcyPortent], 2.2f)
             .ActivateOnEnter<HeavensWrathKnockback>()
             .ActivateOnEnter<AboveBoard>();
         ComponentCondition<HeavensWrathAOE>(id + 0x32, 2.8f, comp => comp.NumCasts > 0, "Knockback")

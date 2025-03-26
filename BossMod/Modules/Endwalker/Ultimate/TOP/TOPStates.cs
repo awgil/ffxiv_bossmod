@@ -263,7 +263,7 @@ class TOPStates : StateMachineBuilder
 
     private void P3OversampledWaveCannon(uint id, float delay)
     {
-        ActorCastMulti(id, _module.BossP3, new[] { AID.OversampledWaveCannonR, AID.OversampledWaveCannonL }, delay, 10, true)
+        ActorCastMulti(id, _module.BossP3, [AID.OversampledWaveCannonR, AID.OversampledWaveCannonL], delay, 10, true)
             .ActivateOnEnter<P3OversampledWaveCannon>()
             .ActivateOnEnter<P3OversampledWaveCannonSpread>()
             .DeactivateOnExit<P3OversampledWaveCannon>();

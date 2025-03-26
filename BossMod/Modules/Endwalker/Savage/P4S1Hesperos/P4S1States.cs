@@ -110,7 +110,7 @@ class P4S1States : StateMachineBuilder
             .ActivateOnEnter<Pinax>();
         ComponentCondition<Pinax>(id + 0x3000, 3, comp => comp.NumFinished == 2, "Corner2")
             .SetHint(StateMachine.StateHint.PositioningEnd);
-        CastStartMulti(id + 0x4000, new AID[] { AID.NortherlyShiftCloak, AID.SoutherlyShiftCloak, AID.EasterlyShiftCloak, AID.WesterlyShiftCloak, AID.NortherlyShiftSword, AID.SoutherlyShiftSword, AID.EasterlyShiftSword, AID.WesterlyShiftSword }, 3.9f)
+        CastStartMulti(id + 0x4000, [AID.NortherlyShiftCloak, AID.SoutherlyShiftCloak, AID.EasterlyShiftCloak, AID.WesterlyShiftCloak, AID.NortherlyShiftSword, AID.SoutherlyShiftSword, AID.EasterlyShiftSword, AID.WesterlyShiftSword], 3.9f)
             .SetHint(StateMachine.StateHint.PositioningStart);
         ComponentCondition<Pinax>(id + 0x5000, 6.1f, comp => comp.NumFinished == 3, "Corner3")
             .ActivateOnEnter<Shift>(); // together with this, one of the helpers starts casting 27142 or 27137

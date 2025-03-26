@@ -59,7 +59,7 @@ class Ex3EndsingerStates : StateMachineBuilder
 
     private State Elenchos(uint id, float delay)
     {
-        return CastMulti(id, new AID[] { AID.ElenchosCenter, AID.ElenchosSides }, delay, 6, "Elenchos")
+        return CastMulti(id, [AID.ElenchosCenter, AID.ElenchosSides], delay, 6, "Elenchos")
             .ActivateOnEnter<Elenchos>()
             .DeactivateOnExit<Elenchos>();
     }

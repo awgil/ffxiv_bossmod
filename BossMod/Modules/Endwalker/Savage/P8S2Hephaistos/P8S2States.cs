@@ -67,7 +67,7 @@ class P8S2States : StateMachineBuilder
             .ActivateOnEnter<TyrantsFlare>() // AOE casts start right after visual cast end
             .DeactivateOnExit<TyrantsFlare>(); // AOE casts end together with first NA proc
 
-        CastMulti(id + 0x40, new AID[] { AID.AshingBlazeL, AID.AshingBlazeR }, 0.2f, 6, "Spread/stack") // second mechanic happens together with ashing blaze end
+        CastMulti(id + 0x40, [AID.AshingBlazeL, AID.AshingBlazeR], 0.2f, 6, "Spread/stack") // second mechanic happens together with ashing blaze end
             .ActivateOnEnter<AshingBlaze>()
             .DeactivateOnExit<AshingBlaze>();
 
@@ -125,7 +125,7 @@ class P8S2States : StateMachineBuilder
             .DeactivateOnExit<EndOfDays>();
 
         // end-of-days ends right after mechanic proc & ashing blaze start
-        CastMulti(id + 0x90, new AID[] { AID.AshingBlazeL, AID.AshingBlazeR }, 0.1f, 6)
+        CastMulti(id + 0x90, [AID.AshingBlazeL, AID.AshingBlazeR], 0.1f, 6)
             .ActivateOnEnter<AshingBlaze>()
             .DeactivateOnExit<AshingBlaze>();
 
@@ -144,7 +144,7 @@ class P8S2States : StateMachineBuilder
         // +1.0s: perfection status gains
         // +1.1s: first towers appear
 
-        CastMulti(id + 0x30, new AID[] { AID.AshingBlazeL, AID.AshingBlazeR }, 6.2f, 6, "Towers 1") // tower explosions happen at the same time as cast-end
+        CastMulti(id + 0x30, [AID.AshingBlazeL, AID.AshingBlazeR], 6.2f, 6, "Towers 1") // tower explosions happen at the same time as cast-end
             .ActivateOnEnter<AshingBlaze>()
             .DeactivateOnExit<AshingBlaze>();
 
@@ -153,7 +153,7 @@ class P8S2States : StateMachineBuilder
         // +0.7s: perfection status gains
         // +1.1s: second towers appear
 
-        CastMulti(id + 0x120, new AID[] { AID.AshingBlazeL, AID.AshingBlazeR }, 6.2f, 6, "Towers 2") // tower explosions happen at the same time as cast-end
+        CastMulti(id + 0x120, [AID.AshingBlazeL, AID.AshingBlazeR], 6.2f, 6, "Towers 2") // tower explosions happen at the same time as cast-end
             .ActivateOnEnter<AshingBlaze>()
             .DeactivateOnExit<AshingBlaze>();
 
@@ -176,7 +176,7 @@ class P8S2States : StateMachineBuilder
         // +1.0s: perfection status gains
         // +1.1s: first towers appear (always blue or purple)
 
-        CastMulti(id + 0x30, new AID[] { AID.AshingBlazeL, AID.AshingBlazeR }, 6.2f, 6, "Towers 1") // tower explosions happen at the same time as cast-end
+        CastMulti(id + 0x30, [AID.AshingBlazeL, AID.AshingBlazeR], 6.2f, 6, "Towers 1") // tower explosions happen at the same time as cast-end
             .ActivateOnEnter<AshingBlaze>()
             .DeactivateOnExit<AshingBlaze>();
 

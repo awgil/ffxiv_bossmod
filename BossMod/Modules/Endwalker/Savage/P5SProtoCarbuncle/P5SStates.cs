@@ -109,7 +109,7 @@ class P5SStates : StateMachineBuilder
         Cast(id + 0x1010, AID.VenomPoolRecolor, 2.1f, 5);
         ComponentCondition<RubyGlow4>(id + 0x1020, 3.9f, comp => comp.NumCasts > 0, "Recolor");
         ComponentCondition<RubyGlow4>(id + 0x1030, 3, comp => !comp.MagicStones.Any(), "Cells");
-        CastMulti(id + 0x2000, new AID[] { AID.SearingRay, AID.RagingClaw }, 0.2f, 5, "Searing ray / Raging claw");
+        CastMulti(id + 0x2000, [AID.SearingRay, AID.RagingClaw], 0.2f, 5, "Searing ray / Raging claw");
         // note: poison disappears later, during next mechanic...
         // note: raging claw continues hitting for ~2.5s, searing ray resolves immediately - next mechanic is fixed relative to cast end
     }
@@ -161,7 +161,7 @@ class P5SStates : StateMachineBuilder
 
     private void VenomSquallSurge(uint id, float delay)
     {
-        CastMulti(id, new AID[] { AID.VenomSquall, AID.VenomSurge }, delay, 5)
+        CastMulti(id, [AID.VenomSquall, AID.VenomSurge], delay, 5)
             .ActivateOnEnter<VenomSquallSurge>();
         ComponentCondition<VenomSquallSurge>(id + 2, 3.8f, comp => comp.Progress > 0, "Spread/stack");
         ComponentCondition<VenomSquallSurge>(id + 3, 3, comp => comp.Progress > 1, "Mid bait");
@@ -183,7 +183,7 @@ class P5SStates : StateMachineBuilder
     private void ClawTail(uint id, float delay)
     {
         // note: tail to claw is ~0.5s shorter (and next state is longer), but other timings are unaffected
-        CastStartMulti(id, new AID[] { AID.ClawToTail, AID.TailToClaw }, delay);
+        CastStartMulti(id, [AID.ClawToTail, AID.TailToClaw], delay);
         ComponentCondition<ClawTail>(id + 1, 6, comp => comp.Progress > 0, "Claw/tail hit 1")
             .ActivateOnEnter<ClawTail>()
             .SetHint(StateMachine.StateHint.BossCastEnd);
@@ -195,7 +195,7 @@ class P5SStates : StateMachineBuilder
     {
         ComponentCondition<VenomTowers>(id, delay, comp => comp.Active)
             .ActivateOnEnter<VenomTowers>();
-        CastStartMulti(id + 1, new AID[] { AID.ClawToTail, AID.TailToClaw }, 12.2f);
+        CastStartMulti(id + 1, [AID.ClawToTail, AID.TailToClaw], 12.2f);
         ComponentCondition<VenomTowers>(id + 2, 0.8f, comp => !comp.Active, "Towers")
             .DeactivateOnExit<VenomTowers>();
         ComponentCondition<ClawTail>(id + 3, 5.2f, comp => comp.Progress > 0, "Claw/tail hit 1")

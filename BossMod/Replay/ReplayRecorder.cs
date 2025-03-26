@@ -130,25 +130,107 @@ public sealed class ReplayRecorder : IDisposable
         protected override void Dispose(bool disposing) => _dest.Dispose();
         public override void StartEntry(DateTime t) { }
         public override Output Emit() => this;
-        public override Output Emit(string v) { _dest.Write(v); return this; }
-        public override Output Emit(FourCC v) { _dest.Write(v.Value); return this; }
-        public override Output Emit(float v, string format) { _dest.Write(v); return this; }
-        public override Output Emit(double v, string format) { _dest.Write(v); return this; }
-        public override Output Emit(Vector3 v) { _dest.Write(v.X); _dest.Write(v.Y); _dest.Write(v.Z); return this; }
-        public override Output Emit(Angle v) { _dest.Write(v.Rad); return this; }
-        public override Output Emit(bool v) { _dest.Write(v); return this; }
-        public override Output Emit(sbyte v) { _dest.Write(v); return this; }
-        public override Output Emit(short v) { _dest.Write(v); return this; }
-        public override Output Emit(int v) { _dest.Write(v); return this; }
-        public override Output Emit(long v) { _dest.Write(v); return this; }
-        public override Output Emit(byte v, string format = "d") { _dest.Write(v); return this; }
-        public override Output Emit(ushort v, string format = "d") { _dest.Write(v); return this; }
-        public override Output Emit(uint v, string format = "d") { _dest.Write(v); return this; }
-        public override Output Emit(ulong v, string format = "d") { _dest.Write(v); return this; }
-        public override Output Emit(byte[] v) { _dest.Write(v.Length); _dest.Write(v); return this; }
-        public override Output Emit(ActionID v) { _dest.Write(v.Raw); return this; }
-        public override Output Emit(Class v) { _dest.Write((byte)v); return this; }
-        public override Output Emit(ActorStatus v) { _dest.Write(v.ID); _dest.Write(v.Extra); _dest.Write(v.ExpireAt.Ticks); _dest.Write(v.SourceID); return this; }
+        public override Output Emit(string v)
+        {
+            _dest.Write(v);
+            return this;
+        }
+        public override Output Emit(FourCC v)
+        {
+            _dest.Write(v.Value);
+            return this;
+        }
+        public override Output Emit(float v, string format)
+        {
+            _dest.Write(v);
+            return this;
+        }
+        public override Output Emit(double v, string format)
+        {
+            _dest.Write(v);
+            return this;
+        }
+        public override Output Emit(Vector3 v)
+        {
+            _dest.Write(v.X);
+            _dest.Write(v.Y);
+            _dest.Write(v.Z);
+            return this;
+        }
+        public override Output Emit(Angle v)
+        {
+            _dest.Write(v.Rad);
+            return this;
+        }
+        public override Output Emit(bool v)
+        {
+            _dest.Write(v);
+            return this;
+        }
+        public override Output Emit(sbyte v)
+        {
+            _dest.Write(v);
+            return this;
+        }
+        public override Output Emit(short v)
+        {
+            _dest.Write(v);
+            return this;
+        }
+        public override Output Emit(int v)
+        {
+            _dest.Write(v);
+            return this;
+        }
+        public override Output Emit(long v)
+        {
+            _dest.Write(v);
+            return this;
+        }
+        public override Output Emit(byte v, string format = "d")
+        {
+            _dest.Write(v);
+            return this;
+        }
+        public override Output Emit(ushort v, string format = "d")
+        {
+            _dest.Write(v);
+            return this;
+        }
+        public override Output Emit(uint v, string format = "d")
+        {
+            _dest.Write(v);
+            return this;
+        }
+        public override Output Emit(ulong v, string format = "d")
+        {
+            _dest.Write(v);
+            return this;
+        }
+        public override Output Emit(byte[] v)
+        {
+            _dest.Write(v.Length);
+            _dest.Write(v);
+            return this;
+        }
+        public override Output Emit(ActionID v)
+        {
+            _dest.Write(v.Raw);
+            return this;
+        }
+        public override Output Emit(Class v)
+        {
+            _dest.Write((byte)v);
+            return this;
+        }
+        public override Output Emit(ActorStatus v)
+        {
+            _dest.Write(v.ID);
+            _dest.Write(v.Extra);
+            _dest.Write(v.ExpireAt.Ticks);
+            _dest.Write(v.SourceID);
+            return this;
+        }
         public override Output Emit(in ActionEffects v)
         {
             for (int i = 0; i < ActionEffects.MaxCount; ++i)
@@ -166,8 +248,17 @@ public sealed class ReplayRecorder : IDisposable
             }
             return this;
         }
-        public override Output EmitFloatPair(float t1, float t2) { _dest.Write(t1); _dest.Write(t2); return this; }
-        public override Output EmitActor(ulong instanceID) { _dest.Write(instanceID); return this; }
+        public override Output EmitFloatPair(float t1, float t2)
+        {
+            _dest.Write(t1);
+            _dest.Write(t2);
+            return this;
+        }
+        public override Output EmitActor(ulong instanceID)
+        {
+            _dest.Write(instanceID);
+            return this;
+        }
         public override void EndEntry() { }
         public override void Flush() => _dest.Flush();
     }

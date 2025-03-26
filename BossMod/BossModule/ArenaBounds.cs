@@ -12,15 +12,14 @@ public abstract record class ArenaBounds(float Radius, float MapResolution)
     public List<RelTriangle> ShapeTriangulation { get; private set; } = [];
     private readonly PolygonClipper.Operand _clipOperand = new();
 
-    private float _screenHalfSize;
     public float ScreenHalfSize
     {
-        get => _screenHalfSize;
+        get;
         set
         {
-            if (_screenHalfSize != value)
+            if (field != value)
             {
-                _screenHalfSize = value;
+                field = value;
                 MaxApproxError = CurveApprox.ScreenError / value * Radius;
                 ShapeSimplified = Clipper.Simplify(BuildClipPoly());
                 ShapeTriangulation = ShapeSimplified.Triangulate();
