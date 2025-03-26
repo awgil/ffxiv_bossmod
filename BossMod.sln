@@ -9,6 +9,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIDev", "UIDev\UIDev.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeAnalysis", "CodeAnalysis\CodeAnalysis.csproj", "{F5F7E565-DCF2-494A-A18F-F7FA503428F5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{83DEBDD2-29E9-4087-8FBD-092B458D2F7D}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build_pr.yml = .github\workflows\build_pr.yml
+		.github\workflows\publish.yml = .github\workflows\publish.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
