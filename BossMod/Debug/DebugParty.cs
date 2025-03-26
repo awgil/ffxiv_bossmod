@@ -27,7 +27,7 @@ class DebugParty
         for (int i = 0; i < gm->MemberCount; ++i)
             DrawPartyMember($"P{i}", ref gm->PartyMembers[i]);
         for (int i = 0; i < gm->AllianceMembers.Length; ++i)
-            if (gm->AllianceMembers[i].IsValidAllianceMember)
+            if (gm->AllianceMembers[i].IsValidAllianceMember())
                 DrawPartyMember($"A{i}", ref gm->AllianceMembers[i]);
         for (int i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
         {

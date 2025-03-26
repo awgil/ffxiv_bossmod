@@ -157,8 +157,9 @@ public sealed unsafe class ActionManagerEx : IDisposable
             var position = player->Position.ToSystem() + direction.ToDirection().ToVec3();
             _inst->AutoFaceTargetPosition(&position);
 
+            var pm = (PlayerMove*)player;
             // if rotation interpolation is in progress, we have to reset desired rotation to avoid game rotating us away next frame
-            player->Move.Interpolation.DesiredRotation = direction.Rad;
+            pm->Move.Interpolation.DesiredRotation = direction.Rad;
         }
     }
 

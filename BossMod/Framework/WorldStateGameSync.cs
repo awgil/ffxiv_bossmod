@@ -547,7 +547,7 @@ sealed class WorldStateGameSync : IDisposable
         for (int i = PartyState.MaxPartySize; i < PartyState.MaxAllianceSize; ++i)
         {
             var member = isNormalAlliance ? group->AllianceMembers.GetPointer(i - PartyState.MaxPartySize) : null;
-            if (member != null && !member->IsValidAllianceMember)
+            if (member != null && !member->IsValidAllianceMember())
                 member = null;
             UpdatePartySlot(i, BuildPartyMember(member));
         }
