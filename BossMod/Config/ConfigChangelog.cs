@@ -50,8 +50,8 @@ class AIMigrationNotice : ChangelogNotice
 public class ConfigChangelogWindow : UIWindow
 {
     private readonly Version PreviousVersion;
-    private readonly List<VersionedField> Fields;
-    private readonly List<ChangelogNotice> Notices;
+    private readonly List<VersionedField> Fields = [];
+    private readonly List<ChangelogNotice> Notices = [];
 
     private int StuffCount => Fields.Count + Notices.Count;
 
@@ -64,11 +64,6 @@ public class ConfigChangelogWindow : UIWindow
             Service.Config.Modified.Fire();
             Fields = [.. GetAllFields().Where(f => f.AddedVersion > PreviousVersion)];
             Notices = [.. GetNotices().Where(f => f.Since > PreviousVersion)];
-        }
-        else
-        {
-            Fields = [];
-            Notices = [];
         }
 
         if (StuffCount == 0)
