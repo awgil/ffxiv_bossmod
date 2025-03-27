@@ -291,7 +291,7 @@ class BlackHole(BossModule module) : BossComponent(module)
         if (Activation == default)
             return;
 
-        var towers = ShapeDistance.Intersection(Buttons.Select(b => ShapeDistance.Donut(b, 2, 100)).ToList());
+        var towers = ShapeDistance.Intersection([.. Buttons.Select(b => ShapeDistance.Donut(b, 2, 100))]);
         hints.AddForbiddenZone(towers, Activation);
     }
 }

@@ -55,8 +55,8 @@ class Terrible(BossModule module) : Components.GenericAOEs(module)
 
     private void AddPattern(WDir[] first, WDir[] second)
     {
-        aoes.Add(first.Select(d => new AOEInstance(new AOEShapeRect(5, 5, 5), Arena.Center + d, default, WorldState.FutureTime(16f))).ToList());
-        aoes.Add(second.Select(d => new AOEInstance(new AOEShapeRect(5, 5, 5), Arena.Center + d, default, WorldState.FutureTime(18.2f))).ToList());
+        aoes.Add([.. first.Select(d => new AOEInstance(new AOEShapeRect(5, 5, 5), Arena.Center + d, default, WorldState.FutureTime(16f)))]);
+        aoes.Add([.. second.Select(d => new AOEInstance(new AOEShapeRect(5, 5, 5), Arena.Center + d, default, WorldState.FutureTime(18.2f)))]);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

@@ -62,8 +62,8 @@ public class ConfigChangelogWindow : UIWindow
         if (Service.Config.AssemblyVersion != PreviousVersion)
         {
             Service.Config.Modified.Fire();
-            Fields = GetAllFields().Where(f => f.AddedVersion > PreviousVersion).ToList();
-            Notices = GetNotices().Where(f => f.Since > PreviousVersion).ToList();
+            Fields = [.. GetAllFields().Where(f => f.AddedVersion > PreviousVersion)];
+            Notices = [.. GetNotices().Where(f => f.Since > PreviousVersion)];
         }
         else
         {

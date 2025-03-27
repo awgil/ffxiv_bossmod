@@ -72,7 +72,7 @@ class ScarecrowChase(BossModule module) : Components.GenericAOEs(module)
             if (_activation == default)
                 _activation = WorldState.FutureTime(9.9f);
         }
-        _casterssorted = _casters.OrderBy(x => x.icon).Select(x => x.actor).ToList();
+        _casterssorted = [.. _casters.OrderBy(x => x.icon).Select(x => x.actor)];
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

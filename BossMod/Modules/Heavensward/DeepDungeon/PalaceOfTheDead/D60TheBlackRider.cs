@@ -57,7 +57,7 @@ class ValfodrKB(BossModule module) : Components.Knockback(module, ActionID.MakeS
         if (_infatuation == null || _infatuation.Casters.Count == 0)
             return null;
 
-        return ShapeDistance.Union(_infatuation.Casters.Select(c => ShapeDistance.Circle(c.Position, 7)).ToList());
+        return ShapeDistance.Union([.. _infatuation.Casters.Select(c => ShapeDistance.Circle(c.Position, 7))]);
     }
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => GetFireballZone() is var z && z != null && z(pos) < 0;

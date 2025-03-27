@@ -207,7 +207,7 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
     {
         bool ccw = Service.Config.Get<P4S2Config>().Act4DarkSoakCCW;
         var pos = RotateCW(source.Position, (ccw ? -1 : 1) * 45.Degrees(), 18);
-        return _playerTetherSource.Where(x => x != null && x.Position.InCircle(pos, 4)).FirstOrDefault();
+        return _playerTetherSource.FirstOrDefault(x => x != null && x.Position.InCircle(pos, 4));
     }
 
     private Actor? NextAOE()

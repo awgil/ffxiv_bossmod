@@ -31,7 +31,7 @@ public abstract class BossModule : IDisposable
     public IReadOnlyList<Actor> Enemies(uint oid)
     {
         IReadOnlyList<Actor>? entry = _relevantEnemies.GetValueOrDefault(oid);
-        entry ??= _relevantEnemies[oid] = WorldState.Actors.Where(actor => actor.OID == oid).ToList();
+        entry ??= _relevantEnemies[oid] = [.. WorldState.Actors.Where(actor => actor.OID == oid)];
         return entry;
     }
     public IReadOnlyList<Actor> Enemies<OID>(OID oid) where OID : Enum => Enemies((uint)(object)oid);

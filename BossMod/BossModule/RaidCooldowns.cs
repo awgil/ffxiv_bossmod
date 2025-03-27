@@ -34,7 +34,7 @@ public sealed class RaidCooldowns : IDisposable
             return 0;
         }
         // find first ability coming off CD and return time until it happens
-        var firstAvailable = _damageCooldowns.Select(e => e.AvailableAt).Min();
+        var firstAvailable = _damageCooldowns.Min(e => e.AvailableAt);
         return MathF.Max(0, (float)(firstAvailable - _ws.CurrentTime).TotalSeconds);
     }
 
@@ -44,7 +44,7 @@ public sealed class RaidCooldowns : IDisposable
         if (_damageCooldowns.Count == 0)
             return null;
 
-        var firstAvailable = _damageCooldowns.Select(e => e.AvailableAt).Min();
+        var firstAvailable = _damageCooldowns.Min(e => e.AvailableAt);
         return MathF.Min(float.MaxValue, (float)(firstAvailable - _ws.CurrentTime).TotalSeconds);
     }
 

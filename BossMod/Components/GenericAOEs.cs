@@ -144,7 +144,7 @@ public class GroupedAOEs(BossModule module, Enum[] aids, AOEShape shape, int max
     public uint Color; // can be customized if needed
     public bool Risky = true; // can be customized if needed
     public readonly List<Actor> Casters = [];
-    public readonly List<ActionID> IDs = aids.Select(ActionID.MakeSpell).ToList();
+    public readonly List<ActionID> IDs = [.. aids.Select(ActionID.MakeSpell)];
     public IEnumerable<Actor> ActiveCasters => Casters.Take(MaxCasts);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(csr => new AOEInstance(Shape, csr.CastInfo!.LocXZ, csr.CastInfo.Rotation, Module.CastFinishAt(csr.CastInfo), Color, Risky));

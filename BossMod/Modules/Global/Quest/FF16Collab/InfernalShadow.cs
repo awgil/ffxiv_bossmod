@@ -51,7 +51,7 @@ class FireRampageCleave(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID is AID.FieryRampageCleaveReal or AID.FieryRampageCleaveReal2)
         {
             _castersunsorted.Add((caster.Position, spell.Rotation, Module.CastFinishAt(spell), spell.Action.ID)); //casters appear in random order in raw ops
-            _casters = _castersunsorted.OrderBy(x => x.AID).Select(x => (x.position, x.rotation, x.activation)).ToList();
+            _casters = [.. _castersunsorted.OrderBy(x => x.AID).Select(x => (x.position, x.rotation, x.activation))];
         }
     }
 
@@ -134,7 +134,7 @@ class Eruption2(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID is AID.EruptionReal2 or AID.EruptionReal3 or AID.EruptionReal4)
         {
             _castersunsorted.Add((spell.LocXZ, Module.CastFinishAt(spell), spell.Action.ID));
-            _casters = _castersunsorted.OrderBy(x => x.AID).Select(x => (x.position, x.activation)).ToList();
+            _casters = [.. _castersunsorted.OrderBy(x => x.AID).Select(x => (x.position, x.activation))];
         }
     }
 

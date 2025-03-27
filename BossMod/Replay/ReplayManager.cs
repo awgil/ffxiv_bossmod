@@ -63,7 +63,7 @@ public sealed class ReplayManager : IDisposable
 
         public void Show()
         {
-            Analysis ??= new(Replays.Where(r => r.Replay.IsCompletedSuccessfully && r.Replay.Result.Ops.Count > 0).Select(r => r.Replay.Result).ToList());
+            Analysis ??= new([.. Replays.Where(r => r.Replay.IsCompletedSuccessfully && r.Replay.Result.Ops.Count > 0).Select(r => r.Replay.Result)]);
             Window ??= new($"Multiple logs: {Identifier}", Analysis.Draw, false, new(1200, 800));
             Window.IsOpen = true;
         }
@@ -323,7 +323,7 @@ public sealed class ReplayManager : IDisposable
     {
         if (!_config.RememberReplays)
             return;
-        _config.ReplayHistory = _replayEntries.Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? true, r.Window?.CurrentTime ?? default)).ToList();
+        _config.ReplayHistory = [.. _replayEntries.Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? true, r.Window?.CurrentTime ?? default))];
         _config.Modified.Fire();
     }
 

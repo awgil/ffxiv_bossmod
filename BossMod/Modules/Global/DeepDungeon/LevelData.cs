@@ -14,7 +14,7 @@ public record class Floor<T>(
 [Serializable]
 public record class Tileset<T>(List<RoomData<T>> Rooms)
 {
-    public Tileset<M> Map<M>(Func<T, M> Mapping) => new(Rooms.Select(m => m.Map(Mapping)).ToList());
+    public Tileset<M> Map<M>(Func<T, M> Mapping) => new([.. Rooms.Select(m => m.Map(Mapping))]);
 
     public RoomData<T> this[int index] => Rooms[index];
 

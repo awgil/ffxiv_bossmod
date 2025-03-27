@@ -21,7 +21,7 @@ public class ColumnEnemiesCastEvents : Timeline.ColumnGroup
         _phaseBranches = phaseBranches;
         _encounter = enc;
         _moduleInfo = BossModuleRegistry.FindByOID(enc.OID);
-        _actions = replay.EncounterActions(enc).Where(a => a.Source.Type is not (ActorType.Player or ActorType.Pet or ActorType.Chocobo)).ToList();
+        _actions = [.. replay.EncounterActions(enc).Where(a => a.Source.Type is not (ActorType.Player or ActorType.Pet or ActorType.Chocobo))];
         foreach (var a in _actions)
         {
             var f = _filters.GetOrAdd(a.ID);

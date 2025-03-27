@@ -14,7 +14,7 @@ class Platforms(BossModule module) : BossComponent(module)
     public static readonly WPos ClosestPlatformCenter = new(0.6f, -374); // (0,0) on hexa grid
     public static readonly (int, int)[] HexaPlatforms = [(0, 0), (0, 1), (1, 1), (0, 2), (1, 2), (2, 2), (3, 2), (0, 3), (1, 3), (2, 3), (1, 4), (2, 4)];
     public static readonly (int, int) OctaPlatform = (3, 4);
-    public static readonly WPos[] HexaPlatformCenters = HexaPlatforms.Select(HexaCenter).ToArray();
+    public static readonly WPos[] HexaPlatformCenters = [.. HexaPlatforms.Select(HexaCenter)];
     public static readonly WDir OctaCenterOffset = 0.5f * new WDir(OctaPlatformShort, OctaPlatformLong - HexaPlatformSide);
     public static readonly WPos OctaPlatformCenter = HexaCenter(OctaPlatform) - OctaCenterOffset;
 
@@ -35,9 +35,9 @@ class Platforms(BossModule module) : BossComponent(module)
         new(0, -HexaPlatformSide)
     ];
 
-    public static readonly Func<WPos, float>[] PlatformShapes = Enumerable.Range(0, HexaPlatformCenters.Length + 1).Select(i => ShapeDistance.ConvexPolygon(PlatformPoly(i), true, Pathfinding.NavigationDecision.ForbiddenZoneCushion)).ToArray();
-    public static readonly Func<WPos, float>[] HighEdgeShapes = HighEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => ShapeDistance.Rect(e.Item1, e.Item2, 0)).ToArray();
-    public static readonly (WPos p, WDir d, float l)[] JumpEdgeSegments = JumpEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => (e.Item1, (e.Item2 - e.Item1).Normalized(), (e.Item2 - e.Item1).Length())).ToArray();
+    public static readonly Func<WPos, float>[] PlatformShapes = [.. Enumerable.Range(0, HexaPlatformCenters.Length + 1).Select(i => ShapeDistance.ConvexPolygon(PlatformPoly(i), true, Pathfinding.NavigationDecision.ForbiddenZoneCushion))];
+    public static readonly Func<WPos, float>[] HighEdgeShapes = [.. HighEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => ShapeDistance.Rect(e.Item1, e.Item2, 0))];
+    public static readonly (WPos p, WDir d, float l)[] JumpEdgeSegments = [.. JumpEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => (e.Item1, (e.Item2 - e.Item1).Normalized(), (e.Item2 - e.Item1).Length()))];
 
     public static IEnumerable<WPos> HexaPoly(WPos center) => HexaCornerOffsets.Select(off => center + off);
     public static IEnumerable<WPos> OctaPoly()

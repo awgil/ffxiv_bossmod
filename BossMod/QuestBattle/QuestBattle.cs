@@ -528,7 +528,7 @@ public abstract class QuestBattle : ZoneModule
             ptVecs.RemoveAt(ptVecs.Count - 1);
 
             Log(string.Join(", ", ptVecs.Select(Utils.Vec3String)));
-            thesePoints = ptVecs.Take(ptVecs.Count - 1).Select(p => new NavigationWaypoint(p, false)).ToList();
+            thesePoints = [.. ptVecs.Take(ptVecs.Count - 1).Select(p => new NavigationWaypoint(p, false))];
             thesePoints.Add(new NavigationWaypoint(ptVecs.Last(), true));
         }
         else

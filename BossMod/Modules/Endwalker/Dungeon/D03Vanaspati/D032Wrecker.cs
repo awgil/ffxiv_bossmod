@@ -62,7 +62,7 @@ class QueerBubble(BossModule module) : Components.GenericAOEs(module)
                 forbiddenInverted.Add(ShapeDistance.InvertedCircle(a.Position, 2.5f));
             var activation = Module.CastFinishAt(Module.FindComponent<AetherSprayFire>()!.Casters[0].CastInfo);
             if (forbiddenInverted.Count > 0)
-                hints.AddForbiddenZone(p => forbiddenInverted.Select(f => f(p)).Max(), activation);
+                hints.AddForbiddenZone(p => forbiddenInverted.Max(f => f(p)), activation);
         }
         else
             base.AddAIHints(slot, actor, assignment, hints);
@@ -99,7 +99,7 @@ class AetherSprayWaterKB(BossModule module) : Components.KnockbackFromCastTarget
                 if (Module.Enemies(OID.QueerBubble).Where(x => x.Position.AlmostEqual(RotateAroundOrigin(i * 60, Arena.Center, x.Position), 1) && Module.FindComponent<QueerBubble>()!._aoes.Contains(x)) != null)
                     forbidden.Add(ShapeDistance.Cone(Arena.Center, 20, i * 60.Degrees(), 10.Degrees()));
             if (forbidden.Count > 0)
-                hints.AddForbiddenZone(p => forbidden.Select(f => f(p)).Min(), source.Activation);
+                hints.AddForbiddenZone(p => forbidden.Min(f => f(p)), source.Activation);
         }
     }
 }

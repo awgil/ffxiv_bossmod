@@ -72,7 +72,7 @@ class Turbine(BossModule module) : Components.KnockbackFromCastTarget(module, Ac
             forbidden.Add(ShapeDistance.InvertedCircle(Arena.Center, 5));
             forbidden.AddRange(component.Select(c => ShapeDistance.Cone(Arena.Center, 20, Angle.FromDirection(c.Origin - Arena.Center), 20.Degrees())));
             if (forbidden.Count > 0)
-                hints.AddForbiddenZone(p => forbidden.Select(f => f(p)).Min(), source.Activation);
+                hints.AddForbiddenZone(p => forbidden.Min(f => f(p)), source.Activation);
         }
     }
 

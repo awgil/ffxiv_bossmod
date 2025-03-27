@@ -96,7 +96,7 @@ class CrystalInOut(BossModule module) : Components.GenericAOEs(module)
 
         float distance(WPos p)
         {
-            var dist = shapes.Select(s => s(p)).Min();
+            var dist = shapes.Min(s => s(p));
             return _mechanic == Mechanic.Out ? dist : -dist;
         }
         hints.AddForbiddenZone(distance, _activation);

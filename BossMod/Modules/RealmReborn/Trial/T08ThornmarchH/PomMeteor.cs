@@ -11,7 +11,7 @@ class PomMeteor(BossModule module) : BossComponent(module)
     private const float _towerRadius = 5;
     private const float _cometAvoidRadius = 6;
     private static readonly Angle[] _towerAngles = [180.Degrees(), 90.Degrees(), 0.Degrees(), -90.Degrees(), 135.Degrees(), 45.Degrees(), -45.Degrees(), -135.Degrees()];
-    private static readonly WDir[] _towerOffsets = _towerAngles.Select(a => 10 * a.ToDirection()).ToArray();
+    private static readonly WDir[] _towerOffsets = [.. _towerAngles.Select(a => 10 * a.ToDirection())];
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
