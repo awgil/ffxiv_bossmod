@@ -229,7 +229,15 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     public int GetAdjustedRecastTime(ActionID action, bool applyClassMechanics = true) => ActionManager.GetAdjustedRecastTime((CSActionType)action.Type, action.ID, applyClassMechanics);
 
-    public bool CanMoveWhileCasting(ActionID action) => action.ID is 29391 or 29402;
+    public bool CanMoveWhileCasting(ActionID action)
+    {
+        return action switch
+        {
+            { Type: ActionType.Spell, ID: 29391 or 29402 } => true, // phys ranged PVP actions
+            { Type: ActionType.Mount } => true,
+            _ => false
+        };
+    }
 
     public bool IsRecastTimerActive(ActionID action)
         => _inst->IsRecastTimerActive((CSActionType)action.Type, action.ID);

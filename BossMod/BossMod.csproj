@@ -46,6 +46,30 @@
     <DalamudLibPath>$(DALAMUD_HOME)/</DalamudLibPath>
   </PropertyGroup>
 
+	<PropertyGroup>
+		<LocalCS>false</LocalCS>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(LocalCS)' == 'true'">
+		<DefineConstants>LOCAL_CS</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(LocalCS)' == 'true'">
+		<ProjectReference Include="..\..\cs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
+		<ProjectReference Include="..\..\cs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(LocalCS)' == 'false'">
+		<Reference Include="FFXIVClientStructs">
+		  <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
+		  <Private>false</Private>
+		</Reference>
+		<Reference Include="InteropGenerator.Runtime">
+		  <HintPath>$(DalamudLibPath)InteropGenerator.Runtime.dll</HintPath>
+		  <Private>False</Private>
+		</Reference>
+	</ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="DalamudPackager" Version="12.0.0" />
     <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
@@ -54,15 +78,6 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <OutputItemType>Analyzer</OutputItemType>
     </ProjectReference>
-    <!--<ProjectReference Include="..\..\cs\FFXIVClientStructs\FFXIVClientStructs.csproj" />-->
-    <Reference Include="FFXIVClientStructs">
-      <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-	<Reference Include="InteropGenerator.Runtime">
-      <HintPath>$(DalamudLibPath)InteropGenerator.Runtime.dll</HintPath>
-      <Private>False</Private>
-	</Reference>
     <Reference Include="Dalamud">
       <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
       <Private>false</Private>

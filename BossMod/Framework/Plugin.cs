@@ -52,6 +52,11 @@ public sealed class Plugin : IDalamudPlugin
                 GetMethod("Get")!.Invoke(null, BindingFlags.Default, null, [], null);
         var dalamudStartInfo = dalamudRoot?.GetType().GetProperty("StartInfo", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(dalamudRoot) as DalamudStartInfo;
         var gameVersion = dalamudStartInfo?.GameVersion?.ToString() ?? "unknown";
+#if LOCAL_CS
+        InteropGenerator.Runtime.Resolver.GetInstance.Setup(sigScanner.SearchBase, gameVersion, new(dalamud.ConfigDirectory.FullName + "/cs.json"));
+        FFXIVClientStructs.Interop.Generated.Addresses.Register();
+        InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
+#endif
 
         dalamud.Create<Service>();
         Service.LogHandlerDebug = (string msg) => Service.Logger.Debug(msg);
