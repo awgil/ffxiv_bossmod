@@ -362,8 +362,11 @@ class DebugGraphics
 
         ImGui.Checkbox("Circle", ref _overlayCircle);
         ImGui.DragFloat2("Center", ref _overlayCenter);
-        ImGui.DragFloat2("Step", ref _overlayStep);
+        ImGui.DragFloat2("Step", ref _overlayStep, 0.25f, 1, 10);
         ImGui.DragFloat2("Max offset", ref _overlayMaxOffset);
+
+        if (_overlayStep.X < 1 || _overlayStep.Y < 1)
+            return;
 
         int mx = (int)(_overlayMaxOffset.X / _overlayStep.X);
         int mz = (int)(_overlayMaxOffset.Y / _overlayStep.Y);
