@@ -178,16 +178,17 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.BattleLitany, Player);
         }
 
+        // ok to use WT outside of buffs, otherwise we might overcap and waste one
+        if (ShouldWT(strategy))
+            PushOGCD(AID.WyrmwindThrust, BestLongAOETarget);
+
         // delay all damaging ogcds until we've used lance charge
         // first one (jump) unlocks at level 30, same as lance charge, so we don't need extra checks
         // TODO check if this is actually a good idea
         if (CanWeave(AID.LanceCharge))
             return;
 
-        if (ShouldWT(strategy))
-            PushOGCD(AID.WyrmwindThrust, BestLongAOETarget);
-
-        if (NastrondReady == 0)
+        if (NastrondReady == 0 && strategy.BuffsOk())
             PushOGCD(AID.Geirskogul, BestLongAOETarget);
 
         if (DiveReady == 0 && posOk)
