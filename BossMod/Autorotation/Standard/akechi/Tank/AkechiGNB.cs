@@ -12,7 +12,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     public enum Track { Combo = SharedTrack.Count, Cartridges, Potion, LightningShot, Zone, NoMercy, SonicBreak, GnashingFang, BowShock, Continuation, Bloodfest, DoubleDown, Reign, }
     public enum ComboStrategy { ForceSTwithO, ForceSTwithoutO, ForceAOEwithO, ForceAOEwithoutO }
     public enum CartridgeStrategy { Automatic, OnlyBS, OnlyFC, ForceBS, ForceBS1, ForceBS2, ForceBS3, ForceFC, ForceFC1, ForceFC2, ForceFC3, Delay }
-    public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
+    public enum PotionStrategy { Manual, AlignWithBloodfest, Immediate }
     public enum LightningShotStrategy { OpenerFar, OpenerForce, Force, Allow, Forbid }
     public enum NoMercyStrategy { Automatic, BurstReady, Force, ForceW, ForceQW, Force1, Force1W, Force1QW, Force2, Force2W, Force2QW, Force3, Force3W, Force3QW, Delay }
     public enum SonicBreakStrategy { Automatic, Force, Early, Late, Delay }
@@ -51,7 +51,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.BurstStrike, AID.FatedCircle);
         res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 90)
             .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
-            .AddOption(PotionStrategy.AlignWithRaidBuffs, "AlignWithRaidBuffs", "Align with No Mercy & Bloodfest together (to ensure use on 2-minute windows)", 270, 30, ActionTargets.Self)
+            .AddOption(PotionStrategy.AlignWithBloodfest, "AlignWithBloodfest", "Align with No Mercy & Bloodfest together (to ensure use on 2-minute windows)", 270, 30, ActionTargets.Self)
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         res.Define(Track.LightningShot).As<LightningShotStrategy>("Lightning Shot", "L.Shot", uiPriority: 100)
@@ -358,7 +358,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
-        PotionStrategy.AlignWithRaidBuffs => NMcd < 5 && BFcd < 15,
+        PotionStrategy.AlignWithBloodfest => NMcd < 5 && BFcd < 15,
         PotionStrategy.Immediate => true,
         _ => false
     };

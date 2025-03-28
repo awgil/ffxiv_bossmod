@@ -17,7 +17,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     public enum UpheavalStrategy { Automatic, OnlyUpheaval, OnlyOrogeny, ForceUpheaval, ForceOrogeny, Delay }
     public enum OnslaughtStrategy { Automatic, Force, Hold0, Hold1, Hold2, GapClose, Delay }
     public enum TomahawkStrategy { OpenerFar, OpenerForce, Force, Allow, Forbid }
-    public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
+    public enum PotionStrategy { Manual, AlignWithInnerRelease, Immediate }
     #endregion
 
     #region Module Definitions
@@ -89,7 +89,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.Tomahawk);
         res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 20)
             .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
-            .AddOption(PotionStrategy.AlignWithRaidBuffs, "AlignWithRaidBuffs", "Align with Inner Release & Infuriate charges to ensure use on 2-minute windows", 270, 30, ActionTargets.Self)
+            .AddOption(PotionStrategy.AlignWithInnerRelease, "AlignWithInnerRelease", "Align with Inner Release", 270, 30, ActionTargets.Self)
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         res.DefineOGCD(Track.InnerRelease, AID.InnerRelease, "Inner Release", "InnerR.", uiPriority: 170, 60, 15, ActionTargets.Self, 6).AddAssociatedActions(AID.InnerRelease);
@@ -717,7 +717,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
-        PotionStrategy.AlignWithRaidBuffs => InnerRelease.CD < 5,
+        PotionStrategy.AlignWithInnerRelease => InnerRelease.CD < 5,
         PotionStrategy.Immediate => true,
         _ => false
     };

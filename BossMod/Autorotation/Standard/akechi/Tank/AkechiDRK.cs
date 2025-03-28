@@ -14,7 +14,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     public enum MPStrategy { Optimal, Auto3k, Auto6k, Auto9k, AutoRefresh, Edge3k, Edge6k, Edge9k, EdgeRefresh, Flood3k, Flood6k, Flood9k, FloodRefresh, ForceEdge, ForceFlood, Delay }
     public enum CarveStrategy { Automatic, OnlyCarve, OnlyDrain, ForceCarve, ForceDrain, Delay }
     public enum DeliriumComboStrategy { Automatic, ScarletDelirum, Comeuppance, Torcleaver, Impalement, Delay }
-    public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
+    public enum PotionStrategy { Manual, AlignWithLivingShadow, Immediate }
     public enum UnmendStrategy { OpenerFar, OpenerForce, Force, Allow, Forbid }
     #endregion
 
@@ -69,7 +69,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.ScarletDelirium, AID.Comeuppance, AID.Torcleaver, AID.Impalement);
         res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 20)
             .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
-            .AddOption(PotionStrategy.AlignWithRaidBuffs, "AlignWithRaidBuffs", "Align with Living Shadow (to ensure use on 2-minute windows)", 270, 30, ActionTargets.Self)
+            .AddOption(PotionStrategy.AlignWithLivingShadow, "AlignWithLivingShadow", "Align with Living Shadow (to ensure use on 2-minute windows)", 270, 30, ActionTargets.Self)
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         res.Define(Track.Unmend).As<UnmendStrategy>("Ranged", "Ranged", uiPriority: 30)
@@ -318,7 +318,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
-        PotionStrategy.AlignWithRaidBuffs => LivingShadow.CD < 5,
+        PotionStrategy.AlignWithLivingShadow => LivingShadow.CD < 5,
         PotionStrategy.Immediate => true,
         _ => false
     };
