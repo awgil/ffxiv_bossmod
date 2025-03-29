@@ -131,8 +131,11 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
 
     internal readonly ObstacleMapManager Obstacles = obstacles;
     private readonly UITree _tree = new();
-    private readonly Func<Vector3, string, float, (Vector3, Vector3)> _createMap = (startingPos, filename, pixelSize) => dalamud.GetIpcSubscriber<Vector3, string, float, (Vector3, Vector3)>("vnavmesh.Nav.BuildBitmap").InvokeFunc(startingPos, filename, pixelSize);
+    private readonly Func<Vector3, string, float, Vector3, Vector3, (Vector3, Vector3)> _createMap = (startingPos, filename, pixelSize, minBounds, maxBounds) => dalamud.GetIpcSubscriber<Vector3, string, float, Vector3, Vector3, (Vector3, Vector3)>("vnavmesh.Nav.BuildBitmapBounded").InvokeFunc(startingPos, filename, pixelSize, minBounds, maxBounds);
     private bool _dbModified;
+
+    private Vector3 _minBounds = new(-1024);
+    private Vector3 _maxBounds = new(1024);
 
     public void Draw()
     {
@@ -151,6 +154,9 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
             if (ImGui.Button(_dbModified ? "Revert" : "Reload"))
                 ReloadDatabase();
         }
+
+        ImGui.DragFloat3("Map min bounds", ref _minBounds, 1, -1024, 1024);
+        ImGui.DragFloat3("Map max bounds", ref _maxBounds, 1, -1024, 1024);
 
         foreach (var n in _tree.Node($"Current zone: {Obstacles.World.CurrentZone}.{Obstacles.World.CurrentCFCID}###curr", curZoneEntries == null || curZoneEntries.Count == 0))
             DrawEntries(curZoneEntries ?? []);
@@ -193,7 +199,7 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
     {
         var pos = Obstacles.World.Party.Player()?.PosRot.XYZ() ?? default;
         var filename = GenerateMapName();
-        var (min, max) = _createMap(pos, Obstacles.RootPath + filename, 0.5f);
+        var (min, max) = _createMap(pos, Obstacles.RootPath + filename, 0.5f, _minBounds, _maxBounds);
         var entry = new ObstacleMapDatabase.Entry(min - new Vector3(0, 1, 0), max + new Vector3(0, 10, 0), new(min.XZ()), 60, 60, filename); // account for jumping etc...
         OpenEditor(entry);
         Obstacles.Database.Entries.GetOrAdd(Obstacles.CurrentKey()).Add(entry);
