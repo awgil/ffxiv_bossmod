@@ -71,6 +71,30 @@ class AmbientPulsation(BossModule module) : Components.StandardAOEs(module, Acti
 }
 class FellFlow(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.FellFlow), new AOEShapeCone(50, 60.Degrees()));
 
+class Puddles(BossModule module) : Components.GenericAOEs(module)
+{
+    private bool Active;
+
+    private static readonly float[] xs = [662.71f, 637.27f];
+    private static readonly float[] ys = [-200.133f, -174.667f];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (!Active)
+            yield break;
+
+        foreach (var x in xs)
+            foreach (var y in ys)
+                yield return new AOEInstance(new AOEShapeCircle(5), new(x, y));
+    }
+
+    public override void OnEventEnvControl(byte index, uint state)
+    {
+        if (index == 0x0C && state == 0x00020001)
+            Active = true;
+    }
+}
+
 class FourthMakeCuchulainnStates : StateMachineBuilder
 {
     public FourthMakeCuchulainnStates(BossModule module) : base(module)
@@ -82,6 +106,7 @@ class FourthMakeCuchulainnStates : StateMachineBuilder
             .ActivateOnEnter<AmbientPulsation>()
             .ActivateOnEnter<FellFlow>()
             .ActivateOnEnter<FellFlowBait>()
+            .ActivateOnEnter<Puddles>()
             ;
     }
 }

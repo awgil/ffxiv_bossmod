@@ -77,13 +77,14 @@ class SpiralScourge(BossModule module) : Components.GenericAOEs(module)
     }
 
     private Path NextPath;
+    private Angle NextPathRotation;
 
     public static readonly List<WDir> Zigzag = [
         new(-20.52f, -20.01f), new(-20.52f, -15.22f), new(-20.49f, -10.00f), new(-20.49f, -4.78f), new(-20.49f, 0.41f), new(-20.49f, 5.26f), new(-20.43f, 10.14f), new(-20.40f, 14.96f), new(-18.99f, 18.38f), new(-15.73f, 20.94f), new(-11.27f, 21.80f), new(-7.37f, 21.62f), new(-2.94f, 19.94f), new(-0.50f, 16.67f), new(-0.04f, 12.34f), new(0.05f, 7.70f), new(0.05f, 2.91f), new(-0.01f, -1.91f), new(-0.07f, -6.74f), new(-0.01f, -11.92f), new(0.51f, -16.44f), new(2.95f, -19.95f), new(7.04f, -21.51f), new(11.62f, -21.60f), new(15.98f, -20.74f), new(19.25f, -17.66f), new(20.41f, -13.54f), new(20.53f, -8.72f), new(20.53f, -3.90f), new(20.50f, 0.92f), new(20.47f, 5.50f), new(20.47f, 10.69f), new(20.47f, 15.91f), new(20.44f, 20.15f)
     ];
 
     public static readonly List<WDir> Spiral = [
-        new(0.48f, 26.50f), new(-3.95f, 26.35f), new(-8.59f, 25.40f), new(-12.95f, 23.48f), new(-16.86f, 20.88f), new(-20.15f, 17.62f), new(-23.05f, 14.02f), new(-25.25f, 9.38f), new(-26.32f, 5.11f), new(-26.50f, 1.17f), new(-26.47f, -3.50f), new(-25.37f, -8.23f), new(-23.36f, -12.26f), new(-20.67f, -16.04f), new(-17.10f, -19.19f), new(-13.01f, -21.48f), new(-8.10f, -23.19f), new(-3.31f, -23.98f), new(1.39f, -23.43f), new(5.63f, -21.35f), new(10.15f, -18.73f), new(13.20f, -14.98f), new(15.46f, -10.89f), new(16.93f, -6.31f), new(16.62f, -1.52f), new(15.09f, 3.00f), new(11.95f, 6.26f), new(7.40f, 8.80f), new(3.47f, 10.02f), new(-1.14f, 8.80f), new(-4.41f, 5.75f), new(-5.90f, 1.99f), new(-4.35f, -1.76f), new(-0.50f, -0.21f)
+        new WDir(3.95f, -26.35f), new WDir(8.59f, -25.40f), new WDir(12.95f, -23.48f), new WDir(16.86f, -20.88f), new WDir(20.15f, -17.62f), new WDir(23.05f, -14.02f), new WDir(25.25f, -9.38f), new WDir(26.32f, -5.11f), new WDir(26.50f, -1.17f), new WDir(26.47f, 3.50f), new WDir(25.37f, 8.23f), new WDir(23.36f, 12.26f), new WDir(20.67f, 16.04f), new WDir(17.10f, 19.19f), new WDir(13.01f, 21.48f), new WDir(8.10f, 23.19f), new WDir(3.31f, 23.98f), new WDir(-1.39f, 23.43f), new WDir(-5.63f, 21.35f), new WDir(-10.15f, 18.73f), new WDir(-13.20f, 14.98f), new WDir(-15.46f, 10.89f), new WDir(-16.93f, 6.31f), new WDir(-16.62f, 1.52f), new WDir(-15.09f, -3.00f), new WDir(-11.95f, -6.26f), new WDir(-7.40f, -8.80f), new WDir(-3.47f, -10.02f), new WDir(1.14f, -8.80f), new WDir(4.41f, -5.75f), new WDir(5.90f, -1.99f), new WDir(4.35f, 1.76f), new WDir(0.50f, 0.21f)
     ];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => aoes.Take(16);
@@ -101,7 +102,7 @@ class SpiralScourge(BossModule module) : Components.GenericAOEs(module)
             var finish = Module.CastFinishAt(spell, 0.8f);
             foreach (var z in path)
             {
-                aoes.Add(new AOEInstance(new AOEShapeCircle(13), Arena.Center + z, default, finish));
+                aoes.Add(new AOEInstance(new AOEShapeCircle(13), Arena.Center + z.Rotate(NextPathRotation), default, finish));
                 finish = finish.AddSeconds(0.58f);
             }
         }
@@ -113,9 +114,11 @@ class SpiralScourge(BossModule module) : Components.GenericAOEs(module)
         {
             case OID.PathSpiral:
                 NextPath = Path.Spiral;
+                NextPathRotation = actor.Rotation;
                 break;
             case OID.PathZigzag:
                 NextPath = Path.Zigzag;
+                NextPathRotation = actor.Rotation;
                 break;
         }
     }
@@ -123,7 +126,14 @@ class SpiralScourge(BossModule module) : Components.GenericAOEs(module)
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.SpiralScourge)
+        {
             aoes.RemoveAt(0);
+            if (aoes.Count == 0)
+            {
+                NextPath = Path.None;
+                NextPathRotation = default;
+            }
+        }
     }
 }
 
@@ -263,8 +273,6 @@ class Feathers(BossModule module) : Components.GenericAOEs(module)
 class SwoopingFrenzy(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SwoopingFrenzy), 12);
 class FrigidPulse(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.FrigidPulse), new AOEShapeDonut(12, 180));
 
-// 16.16 from marker 1 to action 1
-// 6.425s between actions
 class Obey(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> aoes = [];
