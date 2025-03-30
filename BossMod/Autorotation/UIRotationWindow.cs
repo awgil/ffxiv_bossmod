@@ -1,6 +1,7 @@
 ﻿using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
+using BossMod.Util;
 
 namespace BossMod.Autorotation;
 
@@ -45,12 +46,35 @@ public sealed class UIRotationWindow : UIWindow
 
     public override bool DrawConditions() => _mgr.WorldState.Party.Player() != null;
 
+    public unsafe void DrawCoordinates()
+    {
+        if (_config.EnableCoordinates)
+        {
+            ImGui.Text("Coordinates:");
+            ImGui.SameLine();
+            ImGui.Text("X: " + PlayerEx.Position.X.ToString("F3"));
+            ImGui.SameLine();
+            ImGui.Text("Y: " + PlayerEx.Position.Y.ToString("F3"));
+            ImGui.SameLine();
+            ImGui.Text("Z: " + PlayerEx.Position.Z.ToString("F3"));
+            ImGui.Separator();
+            //TODO: add current target coordinates (if one is selected)
+            //ImGui.BeginGroup();
+            //ImGui.Text("Current Target's Coordinates:");
+            //ImGui.Text("X: " + TargetEx.Position.X.ToString("F3"));
+            //ImGui.Text("Y: " + TargetEx.Position.Y.ToString("F3"));
+            //ImGui.Text("Z: " + TargetEx.Position.Z.ToString("F3"));
+            //ImGui.EndGroup();
+        }
+    }
+
     public override void Draw()
     {
         var player = _mgr.Player;
         if (player == null)
             return;
 
+        DrawCoordinates();
         DrawRotationSelector(_mgr);
 
         var activeModule = _mgr.Bossmods.ActiveModule;

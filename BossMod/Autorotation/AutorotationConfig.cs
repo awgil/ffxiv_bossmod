@@ -1,4 +1,6 @@
-﻿namespace BossMod.Autorotation;
+﻿using BossMod.Endwalker.Criterion.C02AMR.C020Trash1;
+
+namespace BossMod.Autorotation;
 
 [ConfigDisplay(Name = "Autorotation", Order = 5)]
 public sealed class AutorotationConfig : ConfigNode
@@ -34,4 +36,7 @@ public sealed class AutorotationConfig : ConfigNode
     [PropertyDisplay("Early pull threshold", tooltip: "If someone enters combat with a boss when the countdown is longer than this value, it's consider a ninja-pull and autorotation is force disabled")]
     [PropertySlider(0, 30, Speed = 1)]
     public float EarlyPullThreshold = 1.5f;
+
+    [PropertyDisplay("Show player coordinates inside autorotation window", tooltip: "Shows your current XYZ coordinates in the autorotation window\nCan be useful for easier setup of AI plans")]
+    public bool EnableCoordinates;
 }
