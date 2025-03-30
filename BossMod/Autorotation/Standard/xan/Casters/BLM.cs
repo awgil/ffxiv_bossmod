@@ -92,7 +92,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         AstralSoul = gauge.AstralSoulStacks;
 
         Triplecast = Status(SID.Triplecast);
-        Thunderhead = StatusLeft(SID.Thunderhead);
+        Thunderhead = Player.FindStatus(SID.Thunderhead) == null ? 0 : float.MaxValue;
         Firestarter = StatusLeft(SID.Firestarter);
         InLeyLines = Player.FindStatus(SID.CircleOfPower) != null;
 
@@ -117,10 +117,10 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (primaryTarget == null)
         {
-            if (Fire > 0 && Unlocked(AID.Transpose) && Unlocked(AID.UmbralSoul) && ReadyIn(AID.Transpose) == 0)
+            if (Fire > 0 && AstralSoul == 0 && Firestarter > 0 && Unlocked(AID.Transpose) && ReadyIn(AID.Transpose) == 0)
                 PushOGCD(AID.Transpose, Player);
 
-            if (Unlocked(AID.UmbralSoul) && Ice > 0 && (Ice < 3 || Hearts < MaxHearts || ElementLeft < 14))
+            if (Unlocked(AID.UmbralSoul) && Ice > 0 && (Ice < 3 || Hearts < MaxHearts))
                 PushGCD(AID.UmbralSoul, Player);
 
             return;
@@ -434,7 +434,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Transpose, Player);
     }
 
-    private bool ShouldTriplecast(StrategyValues strategy) => TriplecastLeft == 0 && (ShouldUseLeylines(strategy) || InLeyLines);
+    private bool ShouldTriplecast(StrategyValues strategy) => false; // add strategy track, triplecast is no longer a gain during burst
 
     private bool ShouldUseLeylines(StrategyValues strategy, int extraGCDs = 0)
         => CanWeave(MaxChargesIn(AID.LeyLines), extraGCDs)

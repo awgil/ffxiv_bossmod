@@ -49,7 +49,7 @@ public enum IconID : uint
 
 class FellFlowBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(50, 7.5f.Degrees()), (uint)IconID.FellFlow, ActionID.MakeSpell(AID.FellFlow1), 5.2f);
 class PutrifiedSoul(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PutrifiedSoul));
-class BurgeoningDread(BossModule module) : Components.StatusDrivenForcedMarch(module, 3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace);
+class BurgeoningDread(BossModule module) : Components.StatusDrivenForcedMarch(module, 3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace, stopAtWall: true);
 class NecroticBillow(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.NecroticBillow1), new AOEShapeCircle(8));
 
 class AmbientPulsation(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.AmbientPulsation1), new AOEShapeCircle(12), maxCasts: 6)
