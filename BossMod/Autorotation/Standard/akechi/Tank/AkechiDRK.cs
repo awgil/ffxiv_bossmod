@@ -459,7 +459,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             }
         }
         if (ShouldUseDisesteem(deStrat, primaryTarget))
-            QueueGCD(AID.Disesteem, TargetChoice(de) ?? BestRectTarget?.Actor, deStrat is GCDStrategy.Force ? GCDPriority.Forced : GCDPriority.AboveAverage);
+            QueueGCD(AID.Disesteem, TargetChoice(de) ?? BestRectTarget?.Actor, deStrat is GCDStrategy.Force ? GCDPriority.Forced : CombatTimer < 30 ? GCDPriority.VeryHigh : GCDPriority.AboveAverage);
         if (ShouldUseMP(mpStrat))
         {
             switch (mpStrat)
