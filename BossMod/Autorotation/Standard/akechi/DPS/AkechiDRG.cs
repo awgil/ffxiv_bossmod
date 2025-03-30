@@ -284,10 +284,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Buffs
     private bool ShouldUseLanceCharge(BuffsStrategy strategy, Actor? target)
     {
-        //if Lance Charge is unavailable, skip entirely
         if (!CanLC)
             return false;
-        //otherwise, we continue
         var condition = InsideCombatWith(target) && InsideRange && HasPower;
         return strategy switch
         {
@@ -301,10 +299,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseBattleLitany(BuffsStrategy strategy, Actor? target)
     {
-        //if Battle Litany is unavailable, skip entirely
         if (!CanBL)
             return false;
-        //otherwise, we continue
         var condition = InsideCombatWith(target) && InsideRange && HasPower;
         return strategy switch
         {
@@ -318,10 +314,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseLifeSurge(SurgeStrategy strategy, Actor? target)
     {
-        //if Life Surge is unavailable, skip entirely
         if (!CanLS)
             return false;
-        //otherwise, we continue
         var lv6to17 = ComboLastMove is AID.TrueThrust;
         var lv18to25 = !Unlocked(AID.FullThrust) && (Unlocked(AID.Disembowel) ? (lv6to17 && !NeedPower) : lv6to17);
         var lv26to88 = (Unlocked(AID.FullThrust) && ComboLastMove is AID.VorpalThrust or AID.LanceBarrage) || (Unlocked(AID.Drakesbane) && ComboLastMove is AID.WheelingThrust or AID.FangAndClaw);
@@ -347,10 +341,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Dives
     private bool ShouldUseDragonfireDive(CommonStrategy strategy, Actor? target)
     {
-        //if Dragonfire Dive is unavailable, skip entirely
         if (!CanDD)
             return false;
-        //otherwise, we continue
         var lv60plus = HasLC && HasBL && HasLOTD;
         var lv52to59 = HasLC && HasBL;
         var lv50to51 = HasLC;
@@ -366,10 +358,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseJump(CommonStrategy strategy, Actor? target)
     {
-        //if Jump is unavailable, skip entirely
         if (!CanJump)
             return false;
-        //otherwise, we continue
         return strategy switch
         {
             CommonStrategy.Automatic => InsideCombatWith(target) && In20y(target) && (HasLC || LCcd is < 35 and > 13),
@@ -381,10 +371,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseStardiver(CommonStrategy strategy, Actor? target)
     {
-        //if Stardiver is unavailable, skip entirely
         if (!CanSD)
             return false;
-        //otherwise, we continue
         return strategy switch
         {
             CommonStrategy.Automatic => InsideCombatWith(target) && In20y(target) && HasLOTD,
@@ -396,10 +384,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseMirageDive(OGCDStrategy strategy, Actor? target)
     {
-        //if Mirage Dive is unavailable, skip entirely
         if (!CanMD)
             return false;
-        //otherwise, we continue
         return strategy switch
         {
             OGCDStrategy.Automatic => InsideCombatWith(target) && In20y(target),
@@ -416,10 +402,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Spears
     private bool ShouldUseGeirskogul(CommonStrategy strategy, Actor? target)
     {
-        //if Geirskogul is unavailable, skip entirely
         if (!CanGeirskogul)
             return false;
-        //otherwise, we continue
         return strategy switch
         {
             CommonStrategy.Automatic => InsideCombatWith(target) && In15y(target) && ((InOddWindow(AID.BattleLitany) && HasLC) || (!InOddWindow(AID.BattleLitany) && HasLC && HasBL)),
@@ -431,10 +415,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseNastrond(OGCDStrategy strategy, Actor? target)
     {
-        //if Nastrond is unavailable, skip entirely
         if (!CanNastrond)
             return false;
-        //otherwise, we continue
         return strategy switch
         {
             OGCDStrategy.Automatic => InsideCombatWith(target) && In15y(target),
@@ -448,10 +430,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseWyrmwindThrust(OGCDStrategy strategy, Actor? target)
     {
-        //if Wyrmwind Thrust is unavailable, skip entirely
         if (!CanWT)
             return false;
-        //otherwise, we continue
         return strategy switch
         {
             OGCDStrategy.Automatic => InsideCombatWith(target) && In15y(target) && LCcd > SkSGCDLength * 2,
@@ -467,10 +447,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 
     private bool ShouldUseRiseOfTheDragon(OGCDStrategy strategy, Actor? target)
     {
-        //if Rise of the Dragon is unavailable, skip entirely
         if (!CanROTD)
             return false;
-        //otherwise, we continue
         return strategy switch
         {
             OGCDStrategy.Automatic => InsideCombatWith(target) && In20y(target),
@@ -484,10 +462,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseStarcross(OGCDStrategy strategy, Actor? target)
     {
-        //if Starcross is unavailable, skip entirely
         if (!CanSC)
             return false;
-        //otherwise, we continue
         return strategy switch
         {
             OGCDStrategy.Automatic => InsideCombatWith(target) && In20y(target),
@@ -521,10 +497,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUsePiercingTalon(Actor? target, PiercingTalonStrategy strategy)
     {
-        //if Piercing Talon is unavailable, skip entirely
         if (!Unlocked(AID.PiercingTalon))
             return false;
-        //otherwise, we continue
         var allow = InsideCombatWith(target) && OutsideRange;
         return strategy switch
         {
@@ -545,10 +519,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseTrueNorth(TrueNorthStrategy strategy, Actor? target)
     {
-        //if True North is unavailable, skip entirely
         if (!CanTrueNorth)
             return false;
-        //otherwise, we continue
         var condition = InsideCombatWith(target) && !ShouldUseAOE && In3y(target) && NextPositionalImminent && !NextPositionalCorrect;
         var needRear = !IsOnRear(target!) && ((Unlocked(AID.ChaosThrust) && ComboLastMove is AID.Disembowel or AID.SpiralBlow) || (Unlocked(AID.WheelingThrust) && ComboLastMove is AID.ChaosThrust or AID.ChaoticSpring));
         var needFlank = !IsOnFlank(target!) && Unlocked(AID.FangAndClaw) && ComboLastMove is AID.HeavensThrust or AID.FullThrust;
