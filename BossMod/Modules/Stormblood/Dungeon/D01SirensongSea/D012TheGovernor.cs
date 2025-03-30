@@ -67,7 +67,6 @@ class Tether(BossModule module) : BaitAwayTethers(module, new AOEShapeCone(0, 0.
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 19));
-
     }
 }
 
