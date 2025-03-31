@@ -503,8 +503,8 @@ class AbilityInfo : CommonEnumInfo
         {
             var sb = new StringBuilder("public enum AID : uint\n{\n");
             foreach (var (key, value) in Utils.DedupKeys(_data.Select(d => EnumMemberString(d.Key, d.Value))))
-                sb.Append($"    {key} = {value}\n");
-            sb.Append("}\n");
+                sb.AppendLine($"    {key} = {value}");
+            sb.AppendLine("}");
             ImGui.SetClipboardText(sb.ToString());
         }
 
@@ -512,7 +512,7 @@ class AbilityInfo : CommonEnumInfo
         {
             var sb = new StringBuilder();
             foreach (var (key, value) in Utils.DedupKeys(_data.Where(kv => kv.Key.Type != ActionType.Spell || _aidType?.GetEnumName(kv.Key.ID) == null).Select(d => EnumMemberString(d.Key, d.Value))))
-                sb.AppendLine($"    {key} = {value}\n");
+                sb.AppendLine($"    {key} = {value}");
             ImGui.SetClipboardText(sb.ToString());
         }
     }

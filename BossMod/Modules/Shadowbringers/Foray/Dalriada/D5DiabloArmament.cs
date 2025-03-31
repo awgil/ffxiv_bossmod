@@ -62,6 +62,10 @@ public enum AID : uint
     PillarOfShamashTarget = 23741, // Helper->player, no cast, single-target
     PillarOfShamashSpread = 23740, // Helper->player, no cast, range 70 width 4 rect
     PillarOfShamashStack = 23742, // Helper->players, no cast, range 70 width 8 rect
+    AdvancedNoxBoss = 23743, // Boss->self, 4.0s cast, single-target
+    AdvancedNoxFirst = 23744, // Helper->self, 10.0s cast, range 10 circle
+    AdvancedNoxRest = 23745, // Helper->self, no cast, range 10 circle
+    FusionBurst = 23734, // Aether->self, no cast, range 100 circle
 }
 
 public enum IconID : uint
@@ -131,13 +135,16 @@ class DiabolicGate(BossModule module) : Components.GenericAOEs(module)
                 Charges.Add((next.Position, next.Rotation, Charges[^1].Activation.AddSeconds(Delays[i])));
             }
         }
-    }
 
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        foreach (var aoe in ActiveAOEs(slot, actor).Skip(1))
-            if (aoe.Shape.Check(actor.Position, aoe.Origin, aoe.Rotation))
-                hints.Add("GTFO from aoe!");
+        // last pseudomen isn't aligned with the gate
+        if ((AID)spell.Action.ID == AID.RuinousPseudomen5 && Charges.Count > 0)
+        {
+            var c = Charges[^1];
+            Charges.RemoveAt(Charges.Count - 1);
+            c.Source = caster.Position;
+            c.Rotation = caster.Rotation;
+            Charges.Add(c);
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -260,7 +267,7 @@ class TheDiabloArmamentStates : StateMachineBuilder
 {
     public TheDiabloArmamentStates(BossModule module) : base(module)
     {
-        // TODO add pillar of shamash line stack
+        // TODO add nox exaflares
         TrivialPhase()
             .ActivateOnEnter<AdvancedDeathRay>()
             .ActivateOnEnter<AethericExplosion>()

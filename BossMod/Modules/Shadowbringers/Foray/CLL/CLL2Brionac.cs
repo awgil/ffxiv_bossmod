@@ -29,11 +29,147 @@ public enum AID : uint
     Voltstream = 20955, // Helper->self, 6.0s cast, range 40 width 10 rect
     PoleShiftBoss = 20947, // Boss->self, 8.0s cast, single-target
     PoleShift = 20948, // Helper->Lightsphere/Shadowsphere, no cast, single-target
+
+    _Weaponskill_FalseThunder = 20942, // Boss->self, 8.0s cast, range 47 ?-degree cone
+    _Weaponskill_MagitekMagnetism = 20949, // Boss->self, 6.0s cast, single-target
+    _Weaponskill_MagneticJolt = 20951, // Helper->self, no cast, ???
+    _Weaponskill_PolarMagnetism = 20953, // Boss->self, 6.0s cast, single-target
+
+    _Weaponskill_PolarMagnetismAttract = 20950, // Helper->self, no cast, ???
+    _Weaponskill_PolarMagnetismKnockback = 20952, // Helper->self, no cast, ???
+}
+
+public enum TetherID : uint
+{
+    PoleShift = 21, // Shadowsphere->Lightsphere
+    PolarMagnetism = 124, // player->Lightsphere
+}
+
+public enum IconID : uint
+{
+    MagnetPlus = 231, // player->self
+    MagnetMinus = 232, // player->self
+    BallPlus = 162,
+    BallMinus = 163,
 }
 
 class ElectricAnvil(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.ElectricAnvil));
-class FalseThunder(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.FalseThunder), new AOEShapeCone(47, 64.Degrees()));
+class FalseThunder(BossModule module) : Components.GroupedAOEs(module, [AID.FalseThunder, AID._Weaponskill_FalseThunder], new AOEShapeCone(47, 65.Degrees()));
 class LightningShower(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.LightningShower));
+
+class MagnetTethers(BossModule module) : Components.Knockback(module, stopAtWall: true)
+{
+    private readonly Actor?[] tetheredTo = new Actor?[PartyState.MaxPartySize];
+    private readonly DateTime[] activations = new DateTime[PartyState.MaxPartySize];
+
+    enum Charge
+    {
+        None,
+        Plus,
+        Minus
+    }
+
+    private readonly Dictionary<ulong, WPos> swaps = [];
+    private readonly Dictionary<ulong, Charge> charges = [];
+
+    private Balls? balls;
+
+    public override void Update()
+    {
+        balls ??= Module.FindComponent<Balls>();
+    }
+
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
+    {
+        if (slot <= PartyState.MaxPartySize && tetheredTo[slot] is { } src)
+        {
+            var c1 = GetCharge(actor);
+            var c2 = GetCharge(src);
+            if (c1 == Charge.None || c2 == Charge.None)
+                yield break;
+
+            yield return new(ActualSource(src), 30, Activation: activations[slot], Kind: c1 == c2 ? Kind.AwayFromOrigin : Kind.TowardsOrigin);
+        }
+    }
+
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => balls?.ActiveAOEs(slot, actor).Any(a => a.Shape.Check(pos, a.Origin, a.Rotation)) == true;
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        for (var slot = 0; slot < PartyState.MaxPartySize; slot++)
+        {
+            var actor = Raid[slot];
+            if (actor == null)
+                continue;
+
+            if (tetheredTo[slot] is { } src)
+                Arena.AddLine(actor.Position, ActualSource(src), ArenaColor.PlayerGeneric);
+        }
+    }
+
+    private WPos ActualSource(Actor s) => swaps.TryGetValue(s.InstanceID, out var p) ? p : s.Position;
+    private Charge GetCharge(Actor c) => charges.TryGetValue(c.InstanceID, out var c2) ? c2 : Charge.None;
+
+    // delay 8.2f
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if (tether.ID == (uint)TetherID.PolarMagnetism && Raid.FindSlot(source.InstanceID) is var slot && slot >= 0 && WorldState.Actors.Find(tether.Target) is { } target)
+        {
+            tetheredTo[slot] = target;
+            activations[slot] = WorldState.FutureTime(8.2f);
+        }
+
+        if (tether.ID == (uint)TetherID.PoleShift && WorldState.Actors.Find(tether.Target) is { } t)
+        {
+            swaps[source.InstanceID] = t.Position;
+            swaps[t.InstanceID] = source.Position;
+        }
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        switch ((IconID)iconID)
+        {
+            case IconID.MagnetPlus:
+            case IconID.BallPlus:
+                charges[actor.InstanceID] = Charge.Plus;
+                break;
+            case IconID.MagnetMinus:
+            case IconID.BallMinus:
+                charges[actor.InstanceID] = Charge.Minus;
+                break;
+        }
+    }
+
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    {
+        if (tether.ID == (uint)TetherID.PolarMagnetism && Raid.FindSlot(source.InstanceID) is var slot && slot >= 0)
+            tetheredTo[slot] = null;
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID._Weaponskill_PolarMagnetismAttract or AID._Weaponskill_PolarMagnetismKnockback)
+        {
+            Array.Fill(tetheredTo, null);
+            charges.Clear();
+            swaps.Clear();
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var src in Sources(slot, actor))
+        {
+            if (src.Kind == Kind.AwayFromOrigin && balls?.CurrentPattern == Balls.Pattern.DonutOut)
+            {
+                WDir dirToCenter = src.Origin.X < 80 ? new(4, 0) : new(-4, 0);
+                hints.AddForbiddenZone(ShapeDistance.InvertedRect(src.Origin, src.Origin + dirToCenter, 0.5f), src.Activation);
+            }
+            break;
+        }
+    }
+}
 
 class Balls(BossModule module) : Components.GenericAOEs(module)
 {
@@ -45,10 +181,33 @@ class Balls(BossModule module) : Components.GenericAOEs(module)
         public WPos Destination = destination;
     }
 
+    public enum Pattern
+    {
+        None,
+        DonutOut,
+        DonutIn
+    }
+
+    public Pattern CurrentPattern { get; private set; }
+
     private readonly List<Ball> Casters = [];
 
     private static readonly AOEShape Circle = new AOEShapeCircle(12);
     private static readonly AOEShape Donut = new AOEShapeDonut(5, 20);
+
+    public override void Update()
+    {
+        foreach (var c in Casters)
+        {
+            if (c.Destination.X < 65)
+            {
+                CurrentPattern = c.Caster.OID == (uint)OID.Lightsphere ? Pattern.DonutOut : Pattern.DonutIn;
+                return;
+            }
+        }
+
+        CurrentPattern = Pattern.None;
+    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -111,6 +270,7 @@ class BrionacStates : StateMachineBuilder
             .ActivateOnEnter<Balls>()
             .ActivateOnEnter<MagitekCore>()
             .ActivateOnEnter<Voltstream>()
+            .ActivateOnEnter<MagnetTethers>()
             ;
     }
 }
