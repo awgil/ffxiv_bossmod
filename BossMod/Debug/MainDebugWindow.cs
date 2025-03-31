@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using BossMod.Autorotation.xan.AI;
+using BossMod.Debug;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -16,6 +17,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly DebugObjects _debugObjects = new();
     private readonly DebugParty _debugParty = new();
     private readonly DebugEnvControl _debugEnvControl = new();
+    private readonly DebugDirector _debugDirector = new();
     private readonly DebugGraphics _debugGraphics = new();
     private readonly DebugAction _debugAction = new(ws, amex);
     private readonly DebugHate _debugHate = new();
@@ -84,6 +86,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         if (ImGui.CollapsingHeader("EnvControl"))
         {
             _debugEnvControl.Draw();
+        }
+        if (ImGui.CollapsingHeader("Director"))
+        {
+            _debugDirector.Draw();
         }
         if (ImGui.CollapsingHeader("Autorotation"))
         {

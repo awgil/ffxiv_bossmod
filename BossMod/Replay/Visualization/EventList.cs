@@ -65,6 +65,7 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
         var tethers = filter != null ? r.EncounterTethers(filter) : r.Tethers;
         var icons = filter != null ? r.EncounterIcons(filter) : r.Icons;
         var envControls = filter != null ? r.EncounterEnvControls(filter) : r.EnvControls;
+        var dirus = filter != null ? r.EncounterDirectorUpdates(filter) : r.DirectorUpdates;
 
         foreach (var n in _tree.Node("Participants"))
         {
@@ -134,6 +135,18 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
             foreach (var index in _tree.Nodes(new SortedSet<byte>(envControls.Select(ec => ec.Index)), index => new($"Index {index:X2}")))
             {
                 _tree.LeafNodes(envControls.Where(ec => ec.Index == index), ec => $"{tp(ec.Timestamp)}: {ec.Index:X2} = {ec.State:X8}");
+            }
+        }
+
+        foreach (var n in _tree.Node("Director updates", !dirus.Any()))
+        {
+            if (dirus.Any())
+                foreach (var n2 in _tree.Node("All"))
+                    _tree.LeafNodes(dirus, d => $"{tp(d.Timestamp)}: {d.UpdateID:X8} [0x{d.Param1:X}, 0x{d.Param2:X}, 0x{d.Param3:X}, 0x{d.Param4:X}]");
+
+            foreach (var ix in _tree.Nodes(new SortedSet<uint>(dirus.Select(d => d.UpdateID)), index => new($"ID {index:X4}")))
+            {
+                _tree.LeafNodes(dirus.Where(d => d.UpdateID == ix), d => $"{tp(d.Timestamp)}: {d.UpdateID:X8} [0x{d.Param1:X}, 0x{d.Param2:X}, 0x{d.Param3:X}, 0x{d.Param4:X}]");
             }
         }
     }

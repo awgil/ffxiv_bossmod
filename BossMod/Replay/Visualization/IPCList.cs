@@ -55,5 +55,13 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
             _filteredPackets.Add(op.Packet.ID);
             _nodes = null;
         }
+        if (ImGui.MenuItem($"Focus opcode {op.Packet.ID}"))
+        {
+            _filteredPackets.Clear();
+            foreach (var p in Enum.GetValues(typeof(Network.ServerIPC.PacketID)))
+                _filteredPackets.Add((Network.ServerIPC.PacketID)p);
+            _filteredPackets.Remove(op.Packet.ID);
+            _nodes = null;
+        }
     }
 }
