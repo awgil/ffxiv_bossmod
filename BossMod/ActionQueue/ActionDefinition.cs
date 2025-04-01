@@ -284,10 +284,12 @@ public sealed class ActionDefinitions : IDisposable
         var src = player.Position;
         var proj = dist > 0 ? src + dir * MathF.Max(0, dist) : src;
 
-        // dash might yeet us off the arena
-        // TODO make *this* configurable?
-        if (!hints.PathfindMapBounds.Contains(proj - hints.PathfindMapCenter))
-            return true;
+        // if arena is a weird shape, try to ensure player won't dash out of it
+        if (proj != src && hints.PathfindMapBounds is ArenaBoundsCustom)
+        {
+            if (hints.PathfindMapBounds.IntersectRay(src - hints.PathfindMapCenter, proj - src) is >= 0 and < float.MaxValue)
+                return true;
+        }
 
         return hints.ForbiddenZones.Any(d => d.shapeDistance(proj) < 0);
     }
