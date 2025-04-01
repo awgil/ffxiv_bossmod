@@ -77,8 +77,8 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
         if (ImGui.MenuItem($"Focus opcode {op.Packet.ID}"))
         {
             _filteredPackets.Clear();
-            foreach (var p in Enum.GetValues(typeof(PacketID)))
-                _filteredPackets.Add((PacketID)p);
+            foreach (var p in Enum.GetValues<PacketID>())
+                _filteredPackets.Add(p);
             _filteredPackets.Remove(op.Packet.ID);
             _nodes = null;
         }

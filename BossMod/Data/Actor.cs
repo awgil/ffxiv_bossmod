@@ -124,7 +124,12 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public WPos PrevPosition => new(PrevPosRot.X, PrevPosRot.Z);
     public WDir LastFrameMovement => Position - PrevPosition;
     public Angle Rotation => PosRot.W.Radians();
-    public bool Omnidirectional => Utils.CharacterIsOmnidirectional(OID);
+    public bool Omnidirectional
+    {
+        get => Utils.CharacterIsOmnidirectional(OID) || field;
+        set;
+    }
+
     public bool IsDeadOrDestroyed => IsDead || IsDestroyed;
     public bool IsFriendlyNPC => Type == ActorType.Enemy && IsAlly && IsTargetable;
     public bool IsStrikingDummy => NameID == 541; // this is a hack, but striking dummies are special in some ways

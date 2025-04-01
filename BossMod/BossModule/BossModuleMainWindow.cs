@@ -115,11 +115,5 @@ public class BossModuleMainWindow : UIWindow
         }
     }
 
-    private void OpenModuleConfig()
-    {
-        if (_mgr.ActiveModule?.Info != null)
-            _ = new BossModuleConfigWindow(_mgr.ActiveModule.Info, _mgr.WorldState);
-    }
-
     private bool ShowZoneModule() => _mgr.Config.ShowGlobalHints && !_mgr.Config.HintsInSeparateWindow && _mgr.ActiveModule?.StateMachine.ActivePhase == null && (_zmm.ActiveModule?.WantDrawHints() ?? false);
 }
