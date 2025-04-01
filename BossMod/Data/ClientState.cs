@@ -407,12 +407,4 @@ public sealed class ClientState
         protected override void Exec(WorldState ws) => ws.Client.FateInfo.Fire(this);
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("FATE"u8).Emit(FateId).Emit(StartTime.Ticks);
     }
-
-    public Event<OpMapEffect> MapEffect = new();
-    public sealed record class OpMapEffect(uint Index, ushort State) : WorldState.Operation
-    {
-        protected override void Exec(WorldState ws) => ws.Client.MapEffect.Fire(this);
-
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLME"u8).Emit(Index).Emit(State);
-    }
 }

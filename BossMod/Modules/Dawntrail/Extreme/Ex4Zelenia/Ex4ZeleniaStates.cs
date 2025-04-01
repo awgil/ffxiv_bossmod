@@ -97,6 +97,7 @@ class ZeleniaStates : StateMachineBuilder
     public ZeleniaStates(BossModule module) : base(module)
     {
         SimplePhase(0, Phase1, "P1")
+            .ActivateOnEnter<TileTracker>()
             .ActivateOnEnter<ThornedCatharsis>()
             .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
 
@@ -114,7 +115,6 @@ class ZeleniaStates : StateMachineBuilder
             };
 
         DeathPhase(2, Phase2)
-            .ActivateOnEnter<ThornedCatharsis>()
             .SetHint(StateMachine.PhaseHint.StartWithDowntime);
     }
 

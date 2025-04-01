@@ -979,7 +979,7 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe byte LookupMapEffectDetour(void* thisPtr, uint index, ushort state)
     {
-        _globalOps.Add(new ClientState.OpMapEffect(index, state));
+        _globalOps.Add(new WorldState.OpMapEffect(index, state));
         return _lookupDirectorLayoutIdHook.Original(thisPtr, index, state);
     }
 }
