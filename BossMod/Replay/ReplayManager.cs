@@ -249,9 +249,7 @@ public sealed class ReplayManager : IDisposable
         {
             if (ImGui.Button("Open"))
             {
-                if (_path.StartsWith('"') && _path.EndsWith('"'))
-                    _path = _path[1..^1];
-
+                CleanPath();
                 _replayEntries.Add(new(_path, true));
                 SaveHistory();
             }
@@ -261,6 +259,7 @@ public sealed class ReplayManager : IDisposable
         {
             if (ImGui.Button("Analyze all"))
             {
+                CleanPath();
                 var replays = LoadAll(_path);
                 if (replays.Count > 0)
                     _analysisEntries.Add(new(_path, replays));
@@ -271,10 +270,17 @@ public sealed class ReplayManager : IDisposable
         {
             if (ImGui.Button("Load all"))
             {
+                CleanPath();
                 LoadAll(_path);
                 SaveHistory();
             }
         }
+    }
+
+    private void CleanPath()
+    {
+        if (_path.StartsWith('"') && _path.EndsWith('"'))
+            _path = _path[1..^1];
     }
 
     private List<ReplayEntry> LoadAll(string path)

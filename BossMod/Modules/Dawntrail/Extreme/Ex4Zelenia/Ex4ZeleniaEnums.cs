@@ -48,8 +48,8 @@ public enum AID : uint
     _Weaponskill_RosebloodBloom = 43193, // Boss->self, 2.6+0.4s cast, single-target
     _Ability_QueensCrusade = 43194, // Helper->self, 3.7s cast, range 2 circle
     _Weaponskill_AlexandrianThunderII = 43198, // Boss->self, 5.0s cast, single-target
-    _Ability_AlexandrianThunderII = 43199, // Helper->self, 5.7s cast, ???
-    _Ability_AlexandrianThunderII1 = 43064, // Helper->self, no cast, ???
+    _Ability_AlexandrianThunderII = 43199, // Helper->self, 5.7s cast, range 24 45-degree cone
+    _Ability_AlexandrianThunderII1 = 43064, // Helper->self, no cast, range 24 45-degree cone
     _Spell_AlexandrianThunderIII = 43235, // Boss->self, 4.3s cast, single-target, visual
     _Spell_AlexandrianThunderIII1 = 43236, // Helper->players, 5.0s cast, ???, icon spread
     _Weaponskill_Roseblood2NdBloom = 43540, // Boss->self, 2.6+0.4s cast, single-target
@@ -93,14 +93,14 @@ public enum IconID : uint
     ShockDonut = 580, // player->self
     ShockCircle = 581, // player->self
     StockBreak = 590, // player->self
+    ThunderCW = 167, // Boss->self
+    ThunderCCW = 168, // Boss->self
     _Gen_Icon_23 = 23, // player->self
-    _Gen_Icon_168 = 168, // Boss->self
-    _Gen_Icon_596 = 596, // player->self
+    AlexandrianThunderIII = 596, // player->self
     _Gen_Icon_592 = 592, // player->self
     _Gen_Icon_93 = 93, // player->self
     _Gen_Icon_12 = 12, // player->self
     _Gen_Icon_597 = 597, // player->self
-    _Gen_Icon_167 = 167, // Boss->self
 }
 
 public enum SID : uint

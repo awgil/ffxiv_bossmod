@@ -92,6 +92,62 @@ class RosebloodDrop(BossModule module) : Components.Adds(module, (uint)OID.Roseb
 
 class PerfumedQuietus(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_PerfumedQuietus1));
 
+class AlexandrianThunderII(BossModule module) : Components.GenericRotatingAOE(module)
+{
+    private Angle Rotation;
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        switch ((IconID)iconID)
+        {
+            case IconID.ThunderCCW:
+                Rotation = 10.Degrees();
+                break;
+            case IconID.ThunderCW:
+                Rotation = -10.Degrees();
+                break;
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Ability_AlexandrianThunderII && Rotation != default)
+            Sequences.Add(new(new AOEShapeCone(24, 22.5f.Degrees()), caster.Position, caster.Rotation, Rotation, Module.CastFinishAt(spell), 1, 15));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID._Ability_AlexandrianThunderII or AID._Ability_AlexandrianThunderII1)
+        {
+            NumCasts++;
+            AdvanceSequence(caster.Position, caster.Rotation, WorldState.CurrentTime);
+        }
+    }
+}
+
+class AlexandrianThunderIII(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.AlexandrianThunderIII, ActionID.MakeSpell(AID._Spell_AlexandrianThunderIII1), 4, 5)
+{
+    private TileTracker? Tiles;
+
+    public override void Update()
+    {
+        Tiles ??= Module.FindComponent<TileTracker>();
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (Tiles != null && Spreads.Count > 0)
+            hints.AddForbiddenZone(Tiles.ActiveTiles, Spreads[0].Activation);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (Spreads.Count > 0 && Tiles != null && Tiles.InActiveTile(actor))
+            hints.Add($"GTFO from rose tile!");
+    }
+}
+
 class ZeleniaStates : StateMachineBuilder
 {
     public ZeleniaStates(BossModule module) : base(module)
@@ -120,7 +176,7 @@ class ZeleniaStates : StateMachineBuilder
 
     private void Phase1(uint id)
     {
-        Cast(id, AID._Weaponskill_ThornedCatharsis, 6.1f, 5, "Raidwide");
+        Raidwide(id, 6.1f);
 
         CastStart(id + 2, AID._Weaponskill_Shock, 7.6f)
             .ActivateOnEnter<P1Explosion>()
@@ -173,20 +229,27 @@ class ZeleniaStates : StateMachineBuilder
         CastStart(id + 0x10, AID._Weaponskill_PerfumedQuietus, 0.1f);
         ComponentCondition<PerfumedQuietus>(id + 0x12, 9.2f, p => p.NumCasts > 0, "Raidwide");
 
-        // env controls:
-        // 01.00020001: bleed puddle on
-        // 01.00080004: bleed puddle off
-        // 02.00100008: rose vfx around the outside of the arena
-        // 03.00400020: 8 red pizzas spawn at around Y=15
-        // 03.00100004: red pizzas move down to ground level and fill arena
+        Cast(id + 0x20, AID._Weaponskill_RosebloodBloom, 12.3f, 2.6f, "Bloom 1 start")
+            .ActivateOnEnter<AlexandrianThunderII>()
+            .ActivateOnEnter<AlexandrianThunderIII>();
 
-        // 00.00080004 ???
+        CastStart(id + 0x30, AID._Weaponskill_AlexandrianThunderII, 3.5f);
+        ComponentCondition<AlexandrianThunderII>(id + 0x32, 5.7f, e => e.NumCasts > 0, "Rotating AOEs start");
+        ComponentCondition<AlexandrianThunderII>(id + 0x34, 14.2f, e => e.NumCasts >= 90, "Rotating AOEs end");
+        ComponentCondition<AlexandrianThunderIII>(id + 0x36, 5.7f, e => e.NumFinishedSpreads > 0, "Spreads");
 
-        // 2C.00020001: make floor dark
+        Raidwide(id + 0x100, 2.4f);
 
-        Cast(id + 0x20, AID._Weaponskill_RosebloodBloom, 12.3f, 3);
+        id += 0x10000;
 
-        Timeout(id + 0x10000, 9999, "Enrage");
+        Cast(id, AID._Weaponskill_Roseblood2NdBloom, 7.4f, 2.6f, "Bloom 2 start");
+
+        Timeout(id + 0x100000, 9999, "Enrage");
+    }
+
+    private void Raidwide(uint id, float delay)
+    {
+        Cast(id, AID._Weaponskill_ThornedCatharsis, delay, 5, "Raidwide");
     }
 
     private void EscelonsFall(uint id, float delay, string name)
