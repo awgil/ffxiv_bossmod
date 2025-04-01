@@ -29,7 +29,7 @@ public enum IOD : uint
 {
     Stack = 62
 }
-class ConcussiveOscillationBoss(BossModule module) : LocationTargetedAOEs(module, ActionID.MakeSpell(AID.ConcussiveOscillationBoss), 8);
+class ConcussiveOscillationBoss(BossModule module) : LocationTargetedAOEs(module, ActionID.MakeSpell(AID.ConcussiveOscillationBoss), 7);
 class ConcussiveOscillation(BossModule module) : LocationTargetedAOEs(module, ActionID.MakeSpell(AID.ConcussiveOscillation), 8);
 class AmorphousApplause(BossModule module) : SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AmorphousApplause), new AOEShapeCone(30, 90.Degrees()));
 

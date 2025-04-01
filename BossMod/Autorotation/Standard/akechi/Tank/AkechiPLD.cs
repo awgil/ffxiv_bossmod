@@ -12,7 +12,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     public enum Track { AOE, Cooldowns, Potion, Atonement, BladeCombo, Holy, Dash, Ranged, FightOrFlight, Requiescat, SpiritsWithin, CircleOfScorn, GoringBlade, BladeOfHonor }
     public enum AOEStrategy { AutoFinish, AutoBreak, ForceST, ForceAOE }
     public enum CooldownStrategy { Allow, Forbid }
-    public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
+    public enum PotionStrategy { Manual, AlignWithFOF, Immediate }
     public enum AtonementStrategy { Automatic, ForceAtonement, ForceSupplication, ForceSepulchre, Delay }
     public enum BladeComboStrategy { Automatic, ForceConfiteor, ForceFaith, ForceTruth, ForceValor, Delay }
     public enum HolyStrategy { Automatic, Spirit, Circle, Delay }
@@ -36,7 +36,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(CooldownStrategy.Forbid, "Hold", "Forbids the use of all cooldowns & buffs; will not use any actions with a cooldown timer");
         res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 90)
             .AddOption(PotionStrategy.Manual, "Manual", "Do not use potions automatically")
-            .AddOption(PotionStrategy.AlignWithRaidBuffs, "Align With Raid Buffs", "Align potion usage with raid buffs", 270, 30, ActionTargets.Self)
+            .AddOption(PotionStrategy.AlignWithFOF, "AlignWithFOF", "Align with Fight or Flight & Requiescat together", 270, 30, ActionTargets.Self)
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use potions immediately when available", 270, 30, ActionTargets.Self)
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         res.Define(Track.Atonement).As<AtonementStrategy>("Atonement", "Atones", uiPriority: 155)
@@ -134,7 +134,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     };
     private AID AutoBreak => ShouldUseAOE ? FullAOE : FullST;
     private AID FullST => ComboLastMove is AID.RiotBlade ? (Unlocked(AID.RoyalAuthority) ? AID.RoyalAuthority : Unlocked(AID.RageOfHalone) ? AID.RageOfHalone : AID.FastBlade) : Unlocked(AID.RiotBlade) && ComboLastMove is AID.FastBlade ? AID.RiotBlade : AID.FastBlade;
-    private AID FullAOE => Unlocked(AID.TotalEclipse) && ComboLastMove is AID.TotalEclipse ? AID.TotalEclipse : AID.Prominence;
+    private AID FullAOE => Unlocked(AID.Prominence) && ComboLastMove is AID.TotalEclipse ? AID.Prominence : AID.TotalEclipse;
     #endregion
 
     #region Cooldown Helpers
@@ -255,7 +255,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
-        PotionStrategy.AlignWithRaidBuffs => FightOrFlight.CD < 5,
+        PotionStrategy.AlignWithFOF => FightOrFlight.CD < 5,
         PotionStrategy.Immediate => true,
         _ => false
     };

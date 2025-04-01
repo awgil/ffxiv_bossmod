@@ -543,15 +543,16 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         {
             if (NoStance) //if no stance is active
             {
-                if (Unlocked(AID.Blizzard3) &&
-                    MP < 9600 &&
-                    Player.InCombat) //if Blizzard III is unlocked
-                    QueueGCD(AID.Blizzard3, target, NewGCDPriority.NeedB3); //Queue Blizzard III
-                if (Unlocked(AID.Fire3) &&
-                    (TotalCD(AID.Manafont) < 5 && TotalCD(AID.LeyLines) <= 121 && MP >= 10000 || !Player.InCombat && World.Client.CountdownRemaining <= 4)) //F3 opener
-                    QueueGCD(AID.Fire3, target, canOpen ? NewGCDPriority.Opener : NewGCDPriority.NeedB3);
+                if (Unlocked(AID.Blizzard3))
+                {
+                    if (MP < 9600 && Player.InCombat) //if Blizzard III is unlocked
+                        QueueGCD(AID.Blizzard3, target, NewGCDPriority.NeedB3); //Queue Blizzard III
+                    if (Unlocked(AID.Fire3) &&
+                        (TotalCD(AID.Manafont) < 5 && TotalCD(AID.LeyLines) <= 121 && MP >= 10000 || !Player.InCombat && World.Client.CountdownRemaining <= 4)) //F3 opener
+                        QueueGCD(AID.Fire3, target, canOpen ? NewGCDPriority.Opener : NewGCDPriority.NeedB3);
+                }
             }
-            if (Player.Level is >= 1 and <= 34)
+            if (Player.Level is >= 1 and <= 34 || !Unlocked(AID.Blizzard3))
             {
                 //Fire
                 if (Unlocked(AID.Fire1) && //if Fire is unlocked
@@ -569,7 +570,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     QueueOGCD(AID.Transpose, Player, NewOGCDPriority.Transpose); //Queue Transpose
 
             }
-            if (Player.Level is >= 35 and <= 59)
+            if (Player.Level is >= 35 and <= 59 || (Unlocked(AID.Blizzard3) && !Unlocked(AID.Fire4)))
             {
                 if (InUmbralIce) //if Umbral Ice is active
                 {
@@ -603,7 +604,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                         QueueGCD(AID.Blizzard3, target, NewGCDPriority.SecondStep); //Queue Blizzard III
                 }
             }
-            if (Player.Level is >= 60 and <= 71)
+            if (Player.Level is >= 60 and <= 71 || (Unlocked(AID.Fire4) && !Unlocked(AID.Despair)))
             {
                 if (InUmbralIce) //if Umbral Ice is active
                 {
