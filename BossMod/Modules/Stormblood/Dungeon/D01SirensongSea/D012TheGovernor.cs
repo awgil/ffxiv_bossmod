@@ -1,5 +1,4 @@
-﻿using BossMod;
-using BossMod.Components;
+﻿using BossMod.Components;
 
 namespace BossMod.Stormblood.Dungeon.D01SirensongSea.D012TheGovernor;
 
@@ -88,7 +87,7 @@ class ShadowFlow(BossModule module) : GenericAOEs(module)
         }
         foreach (Actor groveller in Grovellers)
         {
-            yield return new AOEInstance(new AOEShapeCircle(7f), groveller.Position, Activation: activation);
+            yield return new AOEInstance(new AOEShapeCircle(6), groveller.Position, Activation: activation);
         }
     }
 
@@ -104,7 +103,7 @@ class ShadowFlow(BossModule module) : GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.ShadowFlow)
         {
-            aoes.Add(new AOEInstance(new AOEShapeCircle(7f), Module.Center, Activation: Module.CastFinishAt(spell, 10f)));
+            aoes.Add(new AOEInstance(new AOEShapeCircle(6), Module.Center, Activation: Module.CastFinishAt(spell, 10f)));
         }
     }
 

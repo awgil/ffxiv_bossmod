@@ -319,16 +319,19 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f;
 
     /// <summary>Checks if user can <b>Weave in</b> any <b>abilities</b>.</summary>
-    protected bool CanWeaveIn => GCD is <= 2.49f and >= 0.01f;
+    protected bool CanWeaveIn => GCD is <= 2.49f and >= 0.6f;
 
     /// <summary>Checks if user can <b>Early Weave in</b> any <b>abilities</b>.</summary>
     protected bool CanEarlyWeaveIn => GCD is <= 2.49f and >= 1.26f;
 
     /// <summary>Checks if user can <b>Late Weave in</b> any <b>abilities</b>.</summary>
-    protected bool CanLateWeaveIn => GCD is <= 1.25f and >= 0.01f;
+    protected bool CanLateWeaveIn => GCD is <= 1.25f and >= 0.6f;
 
     /// <summary>Checks if user can <b>Quarter Weave in</b> any <b>abilities</b>.</summary>
-    protected bool CanQuarterWeaveIn => GCD is < 0.9f and >= 0.01f;
+    protected bool CanQuarterWeaveIn => GCD is < 1f and >= 0.6f;
+
+    /// <summary>Checks if Player is in an <b>odd minute window</b> by checking job's specified <b>120s ability</b> explicitly.</summary>
+    protected bool InOddWindow(AID aid) => TotalCD(aid) is < 90 and > 30;
     #endregion
 
     #region Cooldown
@@ -494,6 +497,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="maxDistance">The maximum distance threshold.</param>
     protected bool InRange(Actor? target, float maxDistance) => Player.DistanceToHitbox(target) <= maxDistance - 0.01f;
 
+    /// <summary>Checks if target is within the Melee-range distance in <b>yalms</b>.</summary>
+    protected bool InMeleeRange(Actor? target) => InRange(target, 3.5f);
+
     /// <summary>Checks if the target is within <b>0-yalm</b> range.</summary>
     protected bool In0y(Actor? target) => InRange(target, 0.01f);
 
@@ -527,14 +533,16 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="strategy">The user's selected <b>strategy</b>.</param>
     /// <param name="primaryTarget">The user's current <b>target</b>.</param>
     /// <param name="range">The <b>max range</b> to consider a new target.</param>
-    protected void GetPvETarget(StrategyValues strategy, ref Enemy? primaryTarget, float range)
+    protected void GetNextTarget(StrategyValues strategy, ref Enemy? primaryTarget, float range)
     {
         if (primaryTarget?.Actor == null || Player.DistanceToHitbox(primaryTarget.Actor) > range)
         {
             var AOEStrat = strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
             if (AOEStrat is AOEStrategy.AutoFinish or AOEStrategy.AutoBreak)
             {
-                primaryTarget = Hints.PriorityTargets.FirstOrDefault(x => Player.DistanceToHitbox(x.Actor) <= range);
+                var newTarget = Hints.PriorityTargets.FirstOrDefault(x => Player.DistanceToHitbox(x.Actor) <= range);
+                if (newTarget != null)
+                    primaryTarget = newTarget;
             }
         }
     }
@@ -644,6 +652,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     #endregion
 
     #region Positionals
+    protected bool NextPositionalImminent;
+    protected bool NextPositionalCorrect;
+
     /// <summary>Retrieves the current positional of the target based on target's position and rotation.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     protected Positional GetCurrentPositional(Actor target) => (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch
@@ -655,11 +666,33 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks if player is on specified target's <b>Rear Positional</b>.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    protected bool IsOnRear(Actor target) => GetCurrentPositional(target) == Positional.Rear;
+    protected bool IsOnRear(Actor target) => In5y(target) && GetCurrentPositional(target) == Positional.Rear;
 
     /// <summary>Checks if player is on specified target's <b>Flank Positional</b>.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    protected bool IsOnFlank(Actor target) => GetCurrentPositional(target) == Positional.Flank;
+    protected bool IsOnFlank(Actor target) => In5y(target) && GetCurrentPositional(target) == Positional.Flank;
+
+    /// <summary>Updates the positional recommendations based on the current target and the positional requirement.</summary>
+    /// <param name="enemy">The user's current enemy scanned for user's current positional.</param>
+    /// <param name="pos">User's current positional (Front, Flank, or Rear)</param>
+    /// <param name="imm">The next incoming positional for User (Front, Flank, or Rear)</param>
+    protected void UpdatePositionals(Enemy? enemy, ref (Positional pos, bool imm) positional)
+    {
+        var tn = HasTrueNorth;
+        var target = enemy?.Actor;
+        if ((target?.Omnidirectional ?? true) || target?.TargetID == Player.InstanceID && target?.CastInfo == null && positional.pos != Positional.Front && target?.NameID != 541)
+            positional = (Positional.Any, false);
+
+        NextPositionalImminent = !tn && positional.imm;
+        NextPositionalCorrect = tn || target == null || positional.pos switch
+        {
+            Positional.Flank => MathF.Abs(target.Rotation.ToDirection().Dot((Player.Position - target.Position).Normalized())) < 0.7071067f,
+            Positional.Rear => target.Rotation.ToDirection().Dot((Player.Position - target.Position).Normalized()) < -0.7071068f,
+            _ => true
+        };
+        Hints.RecommendedPositional = (target, positional.pos, NextPositionalImminent, NextPositionalCorrect);
+    }
+
     #endregion
 
     #region AI
@@ -673,15 +706,17 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     }
 
     /// <summary>Defines a goal-zone using a combined strategy, factoring in AOE considerations.</summary>
-    /// <param name="strategy">The strategy values that influence the goal zone logic.</param>
+    /// <param name="strategy">The strategy that influences the goal zone logic.</param>
     /// <param name="range">The base range for the goal zone.</param>
     /// <param name="fAoe">A function determining the area of effect.</param>
     /// <param name="firstUnlockedAoeAction">The first available AOE action.</param>
     /// <param name="minAoe">The minimum number of targets required to trigger AOE.</param>
     /// <param name="positional">The positional requirement for the goal zone (default: any).</param>
     /// <param name="maximumActionRange">An optional parameter specifying the maximum action range.</param>
-    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, Positional positional = Positional.Any, float? maximumActionRange = null)
+    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
     {
+        var (_, positional, imminent, _) = Hints.RecommendedPositional;
+
         if (!strategy.ForceAOE() && !Unlocked(firstUnlockedAoeAction))
             minAoe = 50;
 
@@ -697,8 +732,11 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
                 Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, r, 0.5f));
         }
     }
-    protected void AnyGoalZoneCombined(float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, Positional positional = Positional.Any, float? maximumActionRange = null)
+
+    protected void AnyGoalZoneCombined(float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
     {
+        var (_, positional, imminent, _) = Hints.RecommendedPositional;
+
         if (!Unlocked(firstUnlockedAoeAction))
             minAoe = 50;
 
@@ -709,7 +747,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         }
         else
         {
-            Hints.GoalZones.Add(Hints.GoalCombined(Hints.GoalSingleTarget(PlayerTarget.Actor, positional, range), fAoe, minAoe));
+            Hints.GoalZones.Add(Hints.GoalCombined(Hints.GoalSingleTarget(PlayerTarget.Actor, imminent ? positional : Positional.Any, range), fAoe, minAoe));
             if (maximumActionRange is float r)
                 Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, r, 0.5f));
         }
@@ -735,6 +773,28 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Player's <b>actual</b> target; guaranteed to be an enemy.</summary>
     protected Enemy? PlayerTarget { get; private set; }
+
+    /// <summary>Checks if player is inside combat and has a primary target.</summary>
+    protected bool InsideCombatWith(Actor? target) => Player.InCombat && target != null;
+
+    //TODO: new stuff
+    /*
+    protected DateTime? movementStartTime;
+    protected void HandleMovement()
+    {
+        if (IsMoving)
+        {
+            if (movementStartTime == null)
+                movementStartTime = DateTime.Now;
+            if (movementStartTime.HasValue && (DateTime.Now - movementStartTime.Value).TotalSeconds >= 1)
+                movementStartTime = null;
+        }
+        else
+        {
+            movementStartTime = null;
+        }
+    }
+    */
     #endregion
 
     #region Shared Abilities
@@ -851,8 +911,8 @@ static class ModuleExtensions
         return res.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", uiPriority: 300)
             .AddOption(AOEStrategy.AutoFinish, "Auto (Finish combo)", "Automatically execute optimal rotation based on targets; finishes combo if possible", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.AutoBreak, "Auto (Break combo)", "Automatically execute optimal rotation based on targets; breaks combo if necessary", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.ForceST, "ForceST", "Force-execute Single Target", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Force-execute AOE rotation", supportedTargets: ActionTargets.Hostile | ActionTargets.Self);
+            .AddOption(AOEStrategy.ForceST, "ForceST", "Force Single-Target rotation execution", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Force AOE rotation execution", supportedTargets: ActionTargets.Hostile | ActionTargets.Self);
     }
 
     /// <summary>Defines our shared <b>Hold</b> strategies.</summary>

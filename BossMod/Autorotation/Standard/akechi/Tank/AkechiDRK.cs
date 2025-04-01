@@ -11,10 +11,10 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     #region Enums: Abilities / Strategies
     public enum Track { Blood = SharedTrack.Count, MP, Carve, DeliriumCombo, Potion, Unmend, Delirium, SaltedEarth, SaltAndDarkness, LivingShadow, Shadowbringer, Disesteem }
     public enum BloodStrategy { Automatic, OnlyBloodspiller, OnlyQuietus, ForceBloodspiller, ForceQuietus, Conserve }
-    public enum MPStrategy { Optimal, Auto3k, Auto6k, Auto9k, AutoRefresh, Edge3k, Edge6k, Edge9k, EdgeRefresh, Flood3k, Flood6k, Flood9k, FloodRefresh, Delay }
+    public enum MPStrategy { Optimal, Auto3k, Auto6k, Auto9k, AutoRefresh, Edge3k, Edge6k, Edge9k, EdgeRefresh, Flood3k, Flood6k, Flood9k, FloodRefresh, ForceEdge, ForceFlood, Delay }
     public enum CarveStrategy { Automatic, OnlyCarve, OnlyDrain, ForceCarve, ForceDrain, Delay }
     public enum DeliriumComboStrategy { Automatic, ScarletDelirum, Comeuppance, Torcleaver, Impalement, Delay }
-    public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
+    public enum PotionStrategy { Manual, AlignWithLivingShadow, Immediate }
     public enum UnmendStrategy { OpenerFar, OpenerForce, Force, Allow, Forbid }
     #endregion
 
@@ -35,18 +35,20 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.Bloodspiller, AID.Quietus);
         res.Define(Track.MP).As<MPStrategy>("MP", "MP", uiPriority: 190)
             .AddOption(MPStrategy.Optimal, "Optimal", "Use MP actions optimally; 2 for 1 minute, 4 (or 5 if Dark Arts is active) for 2 minutes")
-            .AddOption(MPStrategy.Auto3k, "Auto 3k", "Automatically decide best MP action to use; Uses when at 3000+ MP", 0, 0, ActionTargets.Self, 30)
-            .AddOption(MPStrategy.Auto6k, "Auto 6k", "Automatically decide best MP action to use; Uses when at 6000+ MP", 0, 0, ActionTargets.Self, 30)
-            .AddOption(MPStrategy.Auto9k, "Auto 9k", "Automatically decide best MP action to use; Uses when at 9000+ MP", 0, 0, ActionTargets.Self, 30)
-            .AddOption(MPStrategy.AutoRefresh, "Auto Refresh", "Automatically decide best MP action to use as Darkside refresher only", 0, 0, ActionTargets.Self, 30)
-            .AddOption(MPStrategy.Edge3k, "Edge 3k", "Use Edge of Shadow as Darkside refresher & MP spender; Uses when at 3000+ MP", 0, 0, ActionTargets.Self, 40)
-            .AddOption(MPStrategy.Edge6k, "Edge 6k", "Use Edge of Shadow as Darkside refresher & MP spender; Uses when at 6000+ MP", 0, 0, ActionTargets.Self, 40)
-            .AddOption(MPStrategy.Edge9k, "Edge 9k", "Use Edge of Shadow as Darkside refresher & MP spender; Uses when at 9000+ MP", 0, 0, ActionTargets.Self, 40)
-            .AddOption(MPStrategy.EdgeRefresh, "Edge Refresh", "Use Edge abilities as Darkside refresher only", 0, 0, ActionTargets.Self, 40)
-            .AddOption(MPStrategy.Flood3k, "Flood 3k", "Use Flood of Shadow as Darkside refresher & MP spender; Uses when at 3000+ MP", 0, 0, ActionTargets.Self, 30)
-            .AddOption(MPStrategy.Flood6k, "Flood 6k", "Use Flood of Shadow as Darkside refresher & MP spender; Uses when at 6000+ MP", 0, 0, ActionTargets.Self, 30)
-            .AddOption(MPStrategy.Flood9k, "Flood 9k", "Use Flood of Shadow as Darkside refresher & MP spender; Uses when at 9000+ MP", 0, 0, ActionTargets.Self, 30)
-            .AddOption(MPStrategy.FloodRefresh, "Flood Refresh", "Use Flood abilities as Darkside refresher only", 0, 0, ActionTargets.Self, 30)
+            .AddOption(MPStrategy.Auto3k, "Auto 3k", "Automatically decide best MP action to use; Uses when at 3000+ MP", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(MPStrategy.Auto6k, "Auto 6k", "Automatically decide best MP action to use; Uses when at 6000+ MP", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(MPStrategy.Auto9k, "Auto 9k", "Automatically decide best MP action to use; Uses when at 9000+ MP", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(MPStrategy.AutoRefresh, "Auto Refresh", "Automatically decide best MP action to use as Darkside refresher only", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(MPStrategy.Edge3k, "Edge 3k", "Use Edge of Shadow as Darkside refresher & MP spender; Uses when at 3000+ MP", 0, 0, ActionTargets.Hostile, 40)
+            .AddOption(MPStrategy.Edge6k, "Edge 6k", "Use Edge of Shadow as Darkside refresher & MP spender; Uses when at 6000+ MP", 0, 0, ActionTargets.Hostile, 40)
+            .AddOption(MPStrategy.Edge9k, "Edge 9k", "Use Edge of Shadow as Darkside refresher & MP spender; Uses when at 9000+ MP", 0, 0, ActionTargets.Hostile, 40)
+            .AddOption(MPStrategy.EdgeRefresh, "Edge Refresh", "Use Edge abilities as Darkside refresher only", 0, 0, ActionTargets.Hostile, 40)
+            .AddOption(MPStrategy.Flood3k, "Flood 3k", "Use Flood of Shadow as Darkside refresher & MP spender; Uses when at 3000+ MP", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(MPStrategy.Flood6k, "Flood 6k", "Use Flood of Shadow as Darkside refresher & MP spender; Uses when at 6000+ MP", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(MPStrategy.Flood9k, "Flood 9k", "Use Flood of Shadow as Darkside refresher & MP spender; Uses when at 9000+ MP", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(MPStrategy.FloodRefresh, "Flood Refresh", "Use Flood abilities as Darkside refresher only", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(MPStrategy.ForceEdge, "Force Edge", "Force use Edge abilities ASAP", 0, 0, ActionTargets.Hostile, 40)
+            .AddOption(MPStrategy.ForceFlood, "Force Flood", "Force use Flood abilities ASAP", 0, 0, ActionTargets.Hostile, 30)
             .AddOption(MPStrategy.Delay, "Delay", "Delay the use of MP actions for strategic reasons", 0, 0, ActionTargets.None, 30)
             .AddAssociatedActions(AID.EdgeOfDarkness, AID.EdgeOfShadow, AID.FloodOfDarkness, AID.FloodOfShadow);
         res.Define(Track.Carve).As<CarveStrategy>("Carve & Spit / Abyssal Drain", "Carve", uiPriority: 160)
@@ -67,7 +69,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.ScarletDelirium, AID.Comeuppance, AID.Torcleaver, AID.Impalement);
         res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 20)
             .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
-            .AddOption(PotionStrategy.AlignWithRaidBuffs, "AlignWithRaidBuffs", "Align with Living Shadow (to ensure use on 2-minute windows)", 270, 30, ActionTargets.Self)
+            .AddOption(PotionStrategy.AlignWithLivingShadow, "AlignWithLivingShadow", "Align with Living Shadow (to ensure use on 2-minute windows)", 270, 30, ActionTargets.Self)
             .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
             .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         res.Define(Track.Unmend).As<UnmendStrategy>("Ranged", "Ranged", uiPriority: 30)
@@ -89,52 +91,50 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Module Variables
-    public byte Blood;
-    public (byte State, bool IsActive) DarkArts;
-    public (float Timer, bool IsActive, bool NeedsRefresh) Darkside;
-    public bool RiskingBlood;
-    public bool RiskingMP;
-    public (float Left, float CD, bool IsActive, bool IsReady) SaltedEarth;
-    public (float CD, bool IsReady) AbyssalDrain;
-    public (float CD, bool IsReady) CarveAndSpit;
-    public (ushort Step, float Left, int Stacks, float CD, bool IsActive, bool IsReady) Delirium;
-    public (float Timer, float CD, bool IsActive, bool IsReady) LivingShadow;
-    public (float TotalCD, float ChargeCD, bool HasCharges, bool IsReady) Shadowbringer;
-    public (float Left, bool IsActive, bool IsReady) Disesteem;
+    private byte Blood;
+    private (byte State, bool IsActive) DarkArts;
+    private (float Timer, bool IsActive, bool NeedsRefresh) Darkside;
+    private bool RiskingBlood;
+    private bool RiskingMP;
+    private (float Left, float CD, bool IsActive, bool IsReady) SaltedEarth;
+    private (float CD, bool IsReady) AbyssalDrain;
+    private (float CD, bool IsReady) CarveAndSpit;
+    private (ushort Step, float Left, int Stacks, float CD, bool IsActive, bool IsReady) Delirium;
+    private (float Timer, float CD, bool IsActive, bool IsReady) LivingShadow;
+    private (float TotalCD, float ChargeCD, bool HasCharges, bool IsReady) Shadowbringer;
+    private (float Left, bool IsActive, bool IsReady) Disesteem;
+    private bool Opener;
     private bool ShouldUseAOE;
-    public int NumAOERectTargets;
-    public int NumMPRectTargets;
-    public Enemy? BestAOERectTargets;
-    public Enemy? BestMPRectTargets;
-    public Enemy? BestTargetAOERect;
-    public Enemy? BestTargetMPRectHigh;
-    public Enemy? BestTargetMPRectLow;
-    public Enemy? BestTargetMPRect;
-    private bool inOdd;
+    private int NumAOERectTargets;
+    private Enemy? BestAOERectTargets;
+    private Enemy? BestRectTarget;
+    private Enemy? BestMPTarget;
     #endregion
+
+    #region Rotation Helpers
+    private AID AutoFinish => ComboLastMove switch
+    {
+        AID.SyphonStrike => !Unlocked(AID.Souleater) ? AutoBreak : FullST,
+        AID.HardSlash => !Unlocked(AID.SyphonStrike) ? AutoBreak : FullST,
+        AID.Unleash => !Unlocked(AID.StalwartSoul) ? AutoBreak : FullAOE,
+        AID.Souleater or AID.StalwartSoul or _ => AutoBreak,
+    };
+    private AID AutoBreak => ShouldUseAOE ? FullAOE : FullST;
+    private AID FullST => Unlocked(AID.Souleater) && ComboLastMove is AID.SyphonStrike ? AID.Souleater : Unlocked(AID.SyphonStrike) && ComboLastMove is AID.HardSlash ? AID.SyphonStrike : AID.HardSlash;
+    private AID FullAOE => Unlocked(AID.StalwartSoul) && ComboLastMove is AID.Unleash ? AID.StalwartSoul : AID.Unleash;
 
     #region Upgrade Paths
     private AID BestEdge => Unlocked(AID.EdgeOfShadow) ? AID.EdgeOfShadow : Unlocked(AID.EdgeOfDarkness) ? AID.EdgeOfDarkness : AID.FloodOfDarkness;
-    private AID BestFlood => !Unlocked(AID.FloodOfShadow) ? AID.FloodOfDarkness : AID.FloodOfShadow;
+    private AID BestFlood => Unlocked(AID.FloodOfShadow) ? AID.FloodOfShadow : AID.FloodOfDarkness;
     private AID BestQuietus => Unlocked(AID.Quietus) ? AID.Quietus : AID.Bloodspiller;
     private AID BestBloodSpender => ShouldUseAOE ? BestQuietus : AID.Bloodspiller;
     private AID BestDelirium => Unlocked(AID.Delirium) ? AID.Delirium : AID.BloodWeapon;
     private AID CarveOrDrain => ShouldUseAOE ? AID.AbyssalDrain : BestCarve;
     private AID BestCarve => Unlocked(AID.CarveAndSpit) ? AID.CarveAndSpit : AID.AbyssalDrain;
     private SID BestBloodWeapon => Unlocked(AID.ScarletDelirium) ? SID.EnhancedDelirium : Unlocked(AID.Delirium) ? SID.Delirium : SID.BloodWeapon;
-    private AID DeliriumCombo => Delirium.Step is 2 ? AID.Torcleaver : Delirium.Step is 1 ? AID.Comeuppance : ShouldUseAOE ? AID.Impalement : AID.ScarletDelirium;
+    private AID DeliriumCombo => Delirium.Step is 2 ? AID.Torcleaver : Delirium.Step is 1 ? AID.Comeuppance : ShouldUseAOE ? AID.Impalement : Unlocked(AID.ScarletDelirium) && Delirium.IsActive && Delirium.Step is 0 ? AID.ScarletDelirium : BestBloodSpender;
     #endregion
 
-    #region Rotation Helpers
-    private AID AutoFinish => ComboLastMove switch
-    {
-        AID.SyphonStrike or AID.HardSlash => FullST,
-        AID.Unleash => FullAOE,
-        AID.Souleater or AID.StalwartSoul or _ => ShouldUseAOE ? FullAOE : FullST,
-    };
-    private AID AutoBreak => ShouldUseAOE ? FullAOE : FullST;
-    private AID FullST => Unlocked(AID.Souleater) && ComboLastMove is AID.SyphonStrike ? AID.Souleater : Unlocked(AID.SyphonStrike) && ComboLastMove is AID.HardSlash ? AID.SyphonStrike : AID.HardSlash;
-    private AID FullAOE => Unlocked(AID.StalwartSoul) && ComboLastMove is AID.Unleash ? AID.StalwartSoul : Unlocked(AID.Unleash) ? AID.Unleash : FullST;
     #endregion
 
     #region Cooldown Helpers
@@ -142,47 +142,68 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     #region MP
     private bool ShouldSpendMP(MPStrategy strategy)
     {
-        if (strategy != MPStrategy.Optimal)
+        //if locked, skip
+        if (strategy != MPStrategy.Optimal || !Unlocked(AID.FloodOfDarkness))
             return false;
-        if (strategy == MPStrategy.Optimal)
+        if (strategy == MPStrategy.Optimal && Unlocked(AID.FloodOfDarkness))
         {
+            //if we're risking MP we should spend it
             if (RiskingMP)
-                return true;
-
-            if (DarkArts.IsActive)
+                return MP >= 3000 || DarkArts.IsActive;
+            if (Unlocked(AID.Delirium))
             {
-                if (Delirium.CD >= 40)
-                    return true;
-                if (Delirium.CD >= Darkside.Timer + GCD)
-                    return true;
+                //Dark Arts
+                if (Unlocked(AID.TheBlackestNight) && DarkArts.IsActive)
+                {
+                    //if Delirium is active, burn it
+                    if (Delirium.CD >= 40)
+                        return true;
+                    //if Delirium is down longer than Darkside, burn it
+                    if (Delirium.CD >= Darkside.Timer + GCD)
+                        return true;
+                }
+                //1 minute window - 2 uses expected
+                if (Delirium.CD >= 40 && InOddWindow(AID.LivingShadow))
+                    return MP >= 6000;
+                //2 minute window - 4 uses expected; 5 with Dark Arts
+                if (Delirium.CD >= 40 && !InOddWindow(AID.LivingShadow))
+                    return MP >= 3000;
             }
-            //2 uses
-            if (Delirium.CD >= 40 && inOdd)
-                return MP >= 6000;
-            //4 uses (5 with DA)
-            if (Delirium.CD >= 40 && !inOdd)
+            //if no Delirium, just use it whenever we have more than 3000 MP
+            if (!Unlocked(AID.Delirium))
                 return MP >= 3000;
         }
+        if (strategy is MPStrategy.ForceEdge or MPStrategy.ForceFlood)
+            return MP >= 3000;
         return false;
     }
-    private bool ShouldUseMP(MPStrategy strategy) => strategy switch
+    private bool ShouldUseMP(MPStrategy strategy)
     {
-        MPStrategy.Optimal => ShouldSpendMP(MPStrategy.Optimal),
-        MPStrategy.Auto3k => CanWeaveIn && MP >= 3000,
-        MPStrategy.Auto6k => CanWeaveIn && MP >= 6000,
-        MPStrategy.Auto9k => CanWeaveIn && MP >= 9000,
-        MPStrategy.AutoRefresh => CanWeaveIn && RiskingMP,
-        MPStrategy.Edge3k => CanWeaveIn && MP >= 3000,
-        MPStrategy.Edge6k => CanWeaveIn && MP >= 6000,
-        MPStrategy.Edge9k => CanWeaveIn && MP >= 9000,
-        MPStrategy.EdgeRefresh => CanWeaveIn && RiskingMP,
-        MPStrategy.Flood3k => CanWeaveIn && MP >= 3000,
-        MPStrategy.Flood6k => CanWeaveIn && MP >= 6000,
-        MPStrategy.Flood9k => CanWeaveIn && MP >= 9000,
-        MPStrategy.FloodRefresh => CanWeaveIn && RiskingMP,
-        MPStrategy.Delay => false,
-        _ => false
-    };
+        if (!CanWeaveIn)
+            return false;
+
+        return strategy switch
+        {
+            MPStrategy.Optimal => ShouldSpendMP(MPStrategy.Optimal),
+            MPStrategy.Auto3k => MP >= 3000,
+            MPStrategy.Auto6k => MP >= 6000,
+            MPStrategy.Auto9k => MP >= 9000,
+            MPStrategy.AutoRefresh => RiskingMP,
+            MPStrategy.Edge3k => MP >= 3000,
+            MPStrategy.Edge6k => MP >= 6000,
+            MPStrategy.Edge9k => MP >= 9000,
+            MPStrategy.EdgeRefresh => RiskingMP,
+            MPStrategy.Flood3k => MP >= 3000,
+            MPStrategy.Flood6k => MP >= 6000,
+            MPStrategy.Flood9k => MP >= 9000,
+            MPStrategy.FloodRefresh => RiskingMP,
+            MPStrategy.ForceEdge => MP >= 3000 || DarkArts.IsActive,
+            MPStrategy.ForceFlood => MP >= 3000 || DarkArts.IsActive,
+            MPStrategy.Delay => false,
+            _ => false
+        };
+
+    }
     #endregion
 
     private bool ShouldUseBlood(BloodStrategy strategy, Enemy? target) => strategy switch
@@ -202,7 +223,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseSaltedEarth(OGCDStrategy strategy, Enemy? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && In3y(target?.Actor) && Darkside.IsActive && SaltedEarth.IsReady && (CombatTimer < 30 && ComboLastMove is AID.Souleater || CombatTimer >= 30),
+        OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && In3y(target?.Actor) && Darkside.IsActive && SaltedEarth.IsReady && Opener,
         OGCDStrategy.Force => SaltedEarth.IsReady,
         OGCDStrategy.AnyWeave => SaltedEarth.IsReady && CanWeaveIn,
         OGCDStrategy.EarlyWeave => SaltedEarth.IsReady && CanEarlyWeaveIn,
@@ -232,19 +253,24 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldSpendCarveOrDrain(CarveStrategy strategy, Enemy? target) => strategy switch
     {
-        CarveStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && In3y(target?.Actor) && Darkside.IsActive && AbyssalDrain.IsReady && (CombatTimer < 30 && ComboLastMove is AID.Souleater || CombatTimer >= 30),
+        CarveStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && In3y(target?.Actor) && Darkside.IsActive && AbyssalDrain.IsReady && Opener,
         _ => false
     };
-    private bool ShouldUseDelirium(OGCDStrategy strategy, Enemy? target) => strategy switch
+    private bool ShouldUseDelirium(OGCDStrategy strategy, Enemy? target)
     {
-        OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && Darkside.IsActive && Delirium.IsReady && (CombatTimer < 30 && ComboLastMove is AID.Souleater || CombatTimer >= 30),
-        OGCDStrategy.Force => Delirium.IsReady,
-        OGCDStrategy.AnyWeave => Delirium.IsReady && CanWeaveIn,
-        OGCDStrategy.EarlyWeave => Delirium.IsReady && CanEarlyWeaveIn,
-        OGCDStrategy.LateWeave => Delirium.IsReady && CanLateWeaveIn,
-        OGCDStrategy.Delay => false,
-        _ => false
-    };
+        if (!Delirium.IsReady)
+            return false;
+
+        return strategy switch
+        {
+            OGCDStrategy.Automatic => InsideCombatWith(target?.Actor) && Darkside.IsActive && (Unlocked(AID.Delirium) ? Delirium.IsReady : ActionReady(AID.BloodWeapon) && (Unlocked(AID.LivingShadow) ? Opener : CombatTimer > 0)),
+            OGCDStrategy.Force => true,
+            OGCDStrategy.AnyWeave => CanWeaveIn,
+            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+            OGCDStrategy.LateWeave => CanLateWeaveIn,
+            OGCDStrategy.Delay or _ => false
+        };
+    }
     private bool ShouldUseLivingShadow(OGCDStrategy strategy, Enemy? target) => strategy switch
     {
         OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && Darkside.IsActive && LivingShadow.IsReady,
@@ -252,8 +278,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         OGCDStrategy.AnyWeave => LivingShadow.IsReady && CanWeaveIn,
         OGCDStrategy.EarlyWeave => LivingShadow.IsReady && CanEarlyWeaveIn,
         OGCDStrategy.LateWeave => LivingShadow.IsReady && CanLateWeaveIn,
-        OGCDStrategy.Delay => false,
-        _ => false
+        OGCDStrategy.Delay or _ => false
     };
     private bool ShouldUseShadowbringer(OGCDStrategy strategy, Enemy? target) => strategy switch
     {
@@ -267,7 +292,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseDeliriumCombo(DeliriumComboStrategy strategy, Enemy? target) => strategy switch
     {
-        DeliriumComboStrategy.Automatic => Player.InCombat && target != null && In3y(target?.Actor) && Unlocked(AID.ScarletDelirium) && Delirium.Step is 0 or 1 or 2 && Delirium.IsActive,
+        DeliriumComboStrategy.Automatic => Player.InCombat && target != null && In3y(target?.Actor) && Delirium.IsActive && ((Unlocked(AID.ScarletDelirium) && Delirium.Step is 0 or 1 or 2) || (!Unlocked(AID.ScarletDelirium))),
         DeliriumComboStrategy.ScarletDelirum => Unlocked(AID.ScarletDelirium) && Delirium.Step is 0 && Delirium.IsActive,
         DeliriumComboStrategy.Comeuppance => Unlocked(AID.Comeuppance) && Delirium.Step is 1 && Delirium.IsActive,
         DeliriumComboStrategy.Torcleaver => Unlocked(AID.Torcleaver) && Delirium.Step is 2 && Delirium.IsActive,
@@ -293,7 +318,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
     {
-        PotionStrategy.AlignWithRaidBuffs => LivingShadow.CD < 5,
+        PotionStrategy.AlignWithLivingShadow => LivingShadow.CD < 5,
         PotionStrategy.Immediate => true,
         _ => false
     };
@@ -336,13 +361,13 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Shadowbringer.ChargeCD = ChargeCD(AID.Shadowbringer); //Retrieve current Shadowbringer charge cooldown
         Shadowbringer.HasCharges = TotalCD(AID.Shadowbringer) <= 60; //Checks if Shadowbringer has charges
         Shadowbringer.IsReady = Unlocked(AID.Shadowbringer) && Shadowbringer.HasCharges; //Shadowbringer ability
-        inOdd = LivingShadow.CD is < 90 and > 30;
+        Opener = (CombatTimer < 30 && ComboLastMove is AID.Souleater) || CombatTimer >= 30;
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
-        (BestAOERectTargets, NumAOERectTargets) = GetBestTarget(PlayerTarget, 10, Is10yRectTarget);
-        BestTargetAOERect = Unlocked(AID.Shadowbringer) && NumAOERectTargets > 1 ? BestAOERectTargets : primaryTarget;
-        BestTargetMPRectHigh = Unlocked(AID.FloodOfShadow) && NumAOERectTargets > 2 ? BestAOERectTargets : primaryTarget;
-        BestTargetMPRectLow = !Unlocked(AID.FloodOfShadow) && NumAOERectTargets > 3 ? BestAOERectTargets : primaryTarget;
-        BestTargetMPRect = Unlocked(AID.FloodOfShadow) ? BestTargetMPRectHigh : BestTargetMPRectLow;
+        (BestAOERectTargets, NumAOERectTargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);
+        BestRectTarget = Unlocked(AID.Shadowbringer) && NumAOERectTargets > 1 ? BestAOERectTargets : primaryTarget;
+        var BestHighMPTarget = NumAOERectTargets > 2 ? BestAOERectTargets : primaryTarget;
+        var BestLowMPTarget = NumAOERectTargets > 3 ? BestAOERectTargets : primaryTarget;
+        BestMPTarget = Unlocked(AID.FloodOfShadow) ? BestHighMPTarget : BestLowMPTarget;
 
         #region Strategy Definitions
         var mp = strategy.Option(Track.MP);
@@ -400,7 +425,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                 if (ShouldUseSaltedEarth(seStrat, primaryTarget))
                     QueueOGCD(AID.SaltedEarth, Player, seStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : OGCDPriority.AboveAverage);
                 if (ShouldUseShadowbringer(sbStrat, primaryTarget))
-                    QueueOGCD(AID.Shadowbringer, TargetChoice(sb) ?? BestTargetAOERect?.Actor, sbStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : OGCDPriority.Average);
+                    QueueOGCD(AID.Shadowbringer, TargetChoice(sb) ?? BestRectTarget?.Actor, sbStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : OGCDPriority.Average);
                 if (ShouldUseCarveOrDrain(cdStrat, primaryTarget))
                 {
                     switch (cdStrat)
@@ -434,7 +459,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             }
         }
         if (ShouldUseDisesteem(deStrat, primaryTarget))
-            QueueGCD(AID.Disesteem, TargetChoice(de) ?? BestTargetAOERect?.Actor, deStrat is GCDStrategy.Force ? GCDPriority.Forced : GCDPriority.AboveAverage);
+            QueueGCD(AID.Disesteem, TargetChoice(de) ?? BestRectTarget?.Actor, deStrat is GCDStrategy.Force ? GCDPriority.Forced : CombatTimer < 30 ? GCDPriority.VeryHigh : GCDPriority.AboveAverage);
         if (ShouldUseMP(mpStrat))
         {
             switch (mpStrat)
@@ -444,22 +469,24 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                 case MPStrategy.Auto6k:
                 case MPStrategy.Auto3k:
                 case MPStrategy.AutoRefresh:
-                    if (NumAOERectTargets >= 3)
-                        QueueOGCD(BestFlood, TargetChoice(mp) ?? BestTargetMPRectHigh?.Actor, RiskingMP ? OGCDPriority.Forced : OGCDPriority.Low);
-                    if (NumAOERectTargets <= 2)
+                    if (NumAOERectTargets >= 3 && Unlocked(AID.FloodOfDarkness))
+                        QueueOGCD(BestFlood, TargetChoice(mp) ?? BestMPTarget?.Actor, RiskingMP ? OGCDPriority.Forced : OGCDPriority.Low);
+                    if (NumAOERectTargets <= 2 && Unlocked(AID.EdgeOfDarkness))
                         QueueOGCD(BestEdge, TargetChoice(mp) ?? primaryTarget?.Actor, RiskingMP ? OGCDPriority.Forced : OGCDPriority.Low);
                     break;
                 case MPStrategy.Edge9k:
                 case MPStrategy.Edge6k:
                 case MPStrategy.Edge3k:
                 case MPStrategy.EdgeRefresh:
+                case MPStrategy.ForceEdge:
                     QueueOGCD(BestEdge, TargetChoice(mp) ?? primaryTarget?.Actor, RiskingMP ? OGCDPriority.Forced : OGCDPriority.Low);
                     break;
                 case MPStrategy.Flood9k:
                 case MPStrategy.Flood6k:
                 case MPStrategy.Flood3k:
                 case MPStrategy.FloodRefresh:
-                    QueueOGCD(BestFlood, TargetChoice(mp) ?? (NumAOERectTargets > 1 ? BestAOERectTargets?.Actor : primaryTarget?.Actor), RiskingMP ? OGCDPriority.Forced : OGCDPriority.Low);
+                case MPStrategy.ForceFlood:
+                    QueueOGCD(BestFlood, TargetChoice(mp) ?? BestRectTarget?.Actor, RiskingMP ? OGCDPriority.Forced : OGCDPriority.Low);
                     break;
             }
         }
