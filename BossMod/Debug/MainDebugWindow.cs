@@ -33,6 +33,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         _debugAction.Dispose();
         _debugInput.Dispose();
         _debugAddon.Dispose();
+        _debugDirector.Dispose();
         //_debugVfx.Dispose();
         base.Dispose(disposing);
     }

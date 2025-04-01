@@ -356,6 +356,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLFD"u8)] = ParseClientForcedMovementDirection,
             [new("CLKV"u8)] = ParseClientContentKVData,
             [new("FATE"u8)] = ParseClientFateInfo,
+            [new("CLME"u8)] = ParseClientMapEffect,
             [new("DDPG"u8)] = ParseDeepDungeonProgress,
             [new("DDMP"u8)] = ParseDeepDungeonMap,
             [new("DDPT"u8)] = ParseDeepDungeonParty,
@@ -464,6 +465,15 @@ public sealed class ReplayParserLog : IDisposable
     }
 
     private ClientState.OpFateInfo ParseClientFateInfo() => new(_input.ReadUInt(false), new(_input.ReadLong()));
+
+    private ClientState.OpMapEffects ParseClientMapEffect()
+    {
+        var len = _input.ReadByte(false);
+        var data = new ushort[len];
+        for (var i = 0; i < len; i++)
+            data[i] = _input.ReadUShort(false);
+        return new(data);
+    }
 
     private WaymarkState.OpWaymarkChange ParseWaymarkChange(bool set)
         => new(_version < 10 ? Enum.Parse<Waymark>(_input.ReadString()) : (Waymark)_input.ReadByte(false), set ? _input.ReadVec3() : null);

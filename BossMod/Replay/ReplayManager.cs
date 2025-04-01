@@ -241,7 +241,7 @@ public sealed class ReplayManager : IDisposable
         ImGui.SameLine();
         if (ImGui.Button("..."))
         {
-            _fileDialog ??= new("select_log", "Select file or directory", "", _fileDialogStartPath, "", ".log", 1, false, ImGuiFileDialogFlags.SelectOnly);
+            _fileDialog ??= new("select_log", "Select file or directory", "Log files{.log},All files{.*}", _fileDialogStartPath, "", ".log", 1, false, ImGuiFileDialogFlags.SelectOnly);
             _fileDialog.Show();
         }
         ImGui.SameLine();

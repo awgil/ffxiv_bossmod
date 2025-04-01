@@ -1,4 +1,5 @@
 ﻿using BossMod.Network;
+using BossMod.Network.ServerIPC;
 using ImGuiNET;
 
 namespace BossMod.ReplayVisualization;
@@ -20,7 +21,25 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
     private readonly Decoder _decoder = new(replay);
     private DateTime _relativeTS;
     private List<(int index, NetworkState.OpServerIPC op, PacketDecoder.TextNode data)>? _nodes;
-    private readonly HashSet<Network.ServerIPC.PacketID> _filteredPackets = [];
+    private readonly HashSet<PacketID> _filteredPackets = [
+        PacketID.ActorMove,
+        PacketID.ActorControl,
+        PacketID.ActorControlSelf,
+        PacketID.UpdateHate,
+        PacketID.UpdateHater,
+        PacketID.EffectResult1,
+        PacketID.ActionEffect1,
+        PacketID.ActionEffect8,
+        PacketID.EffectResultBasic1,
+        PacketID.StatusEffectList,
+        PacketID.UpdateHpMpTp,
+        PacketID.ActorSetPos,
+        PacketID.UpdateClassInfo,
+        PacketID.PlayerStats,
+        PacketID.CharaVisualEffect,
+        PacketID.ItemInfo,
+        PacketID.ContainerInfo
+    ];
 
     public void Draw(UITree tree, DateTime reference)
     {
@@ -58,8 +77,8 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
         if (ImGui.MenuItem($"Focus opcode {op.Packet.ID}"))
         {
             _filteredPackets.Clear();
-            foreach (var p in Enum.GetValues(typeof(Network.ServerIPC.PacketID)))
-                _filteredPackets.Add((Network.ServerIPC.PacketID)p);
+            foreach (var p in Enum.GetValues(typeof(PacketID)))
+                _filteredPackets.Add((PacketID)p);
             _filteredPackets.Remove(op.Packet.ID);
             _nodes = null;
         }

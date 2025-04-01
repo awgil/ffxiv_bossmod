@@ -15,7 +15,7 @@ public class BossModuleMainWindow : UIWindow
         _mgr = mgr;
         _zmm = zmm;
         RespectCloseHotkey = false;
-        TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => OpenModuleConfig() });
+        TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.WindowClose, IconOffset = new(1), Click = _ => OnClose() });
     }
 
     public override void PreOpenCheck()
@@ -49,11 +49,31 @@ public class BossModuleMainWindow : UIWindow
     {
         if (!IsOpen)
         {
-            // user pressed close button - deactivate current module and show module list instead
-            // show module list instead of boss module
-            Service.Log("[BMM] Bossmod window closed by user, showing module list instead...");
-            _mgr.ActiveModule = null;
+            // user pressed close button
+            OnManualClose();
             IsOpen = true;
+        }
+    }
+
+    private void OnManualClose()
+    {
+        switch (_mgr.Config.CloseBehavior)
+        {
+            case BossModuleConfig.RadarCloseBehavior.Prompt:
+                Service.Log($"TODO: implement prompt");
+                break;
+
+            case BossModuleConfig.RadarCloseBehavior.DisableRadar:
+                _mgr.Config.Enable = false;
+                break;
+
+            case BossModuleConfig.RadarCloseBehavior.DisableActiveModule:
+                Service.Log($"TODO: implement disable single {_mgr.ActiveModule?.Info}");
+                break;
+
+            case BossModuleConfig.RadarCloseBehavior.DisableActiveModuleCategory:
+                Service.Log($"TODO: implement disable group {_mgr.ActiveModule?.Info}");
+                break;
         }
     }
 
@@ -73,16 +93,6 @@ public class BossModuleMainWindow : UIWindow
             {
                 Service.Log($"Boss module draw crashed: {ex}");
                 _mgr.ActiveModule = null;
-            }
-        }
-        else
-        {
-            foreach (var m in _mgr.LoadedModules)
-            {
-                var oidType = BossModuleRegistry.FindByOID(m.PrimaryActor.OID)?.ObjectIDType;
-                var oidName = oidType?.GetEnumName(m.PrimaryActor.OID);
-                if (ImGui.Button($"{m.GetType()} ({m.PrimaryActor.InstanceID:X} '{m.PrimaryActor.Name}' {oidName})"))
-                    _mgr.ActiveModule = m;
             }
         }
     }

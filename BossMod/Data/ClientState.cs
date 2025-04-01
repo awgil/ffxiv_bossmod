@@ -60,6 +60,7 @@ public sealed class ClientState
     public ulong FocusTargetId;
     public Angle ForcedMovementDirection; // used for temporary misdirection and spinning states
     public uint[] ContentKeyValueData = new uint[6]; // used for content-specific persistent player attributes, like bozja resistance rank
+    public ushort[] MapEffectData = new ushort[64];
 
     public uint GetContentValue(uint key) => ContentKeyValueData[0] == key
         ? ContentKeyValueData[1]
@@ -406,5 +407,23 @@ public sealed class ClientState
     {
         protected override void Exec(WorldState ws) => ws.Client.FateInfo.Fire(this);
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("FATE"u8).Emit(FateId).Emit(StartTime.Ticks);
+    }
+
+    public Event<OpMapEffects> MapEffects = new();
+    public sealed record class OpMapEffects(ushort[] Values) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            ws.Client.MapEffectData = Values;
+            ws.Client.MapEffects.Fire(this);
+        }
+
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("CLME"u8);
+            output.Emit((byte)Values.Length);
+            foreach (var e in Values)
+                output.Emit(e);
+        }
     }
 }

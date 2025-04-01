@@ -3,6 +3,18 @@
 [ConfigDisplay(Name = "Boss Modules and Radar", Order = 1)]
 public class BossModuleConfig : ConfigNode
 {
+    public enum RadarCloseBehavior
+    {
+        [PropertyDisplay("Open settings dialog")]
+        Prompt,
+        [PropertyDisplay("Hide radar")]
+        DisableRadar,
+        [PropertyDisplay("Disable current module (and hide radar)")]
+        DisableActiveModule,
+        [PropertyDisplay("Disable current module and all modules in the same category")]
+        DisableActiveModuleCategory
+    }
+
     // boss module settings
     [PropertyDisplay("Minimal maturity for the module to be loaded", tooltip: "Some modules will have the \"WIP\" status and will not automatically load unless you change this")]
     public BossModuleInfo.Maturity MinMaturity = BossModuleInfo.Maturity.Contributed;
@@ -16,6 +28,9 @@ public class BossModuleConfig : ConfigNode
     // radar window settings
     [PropertyDisplay("Enable radar")]
     public bool Enable = true;
+
+    [PropertyDisplay("Close button behavior")]
+    public RadarCloseBehavior CloseBehavior = RadarCloseBehavior.Prompt;
 
     [PropertyDisplay("Lock radar and hint window movement and mouse interaction")]
     public bool Lock = false;
