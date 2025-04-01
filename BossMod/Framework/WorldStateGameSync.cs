@@ -74,6 +74,9 @@ sealed class WorldStateGameSync : IDisposable
 
     private readonly unsafe delegate* unmanaged<ContainerInterface*, float> _calculateMoveSpeedMulti;
 
+    private unsafe delegate byte LookupMapEffectDelegate(void* thisPtr, uint index, ushort state);
+    private readonly Hook<LookupMapEffectDelegate> _lookupDirectorLayoutIdHook;
+
     public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
     {
         _ws = ws;
@@ -137,10 +140,14 @@ sealed class WorldStateGameSync : IDisposable
 
         _calculateMoveSpeedMulti = (delegate* unmanaged<ContainerInterface*, float>)Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
         Service.Log($"[WSG] CalculateMovementSpeedMultiplier address = 0x{(nint)_calculateMoveSpeedMulti:X}");
+
+        _lookupDirectorLayoutIdHook = Service.Hook.HookFromSignature<LookupMapEffectDelegate>("E8 ?? ?? ?? ?? 3A C3 74 12 44 0F B7 C5", LookupMapEffectDetour);
+        _lookupDirectorLayoutIdHook.Enable();
     }
 
     public void Dispose()
     {
+        _lookupDirectorLayoutIdHook.Dispose();
         _processPacketActorCastHook.Dispose();
         _processPacketEffectResultBasicHook.Dispose();
         _processPacketEffectResultHook.Dispose();
@@ -717,6 +724,7 @@ sealed class WorldStateGameSync : IDisposable
         if (!MemoryExtensions.SequenceEqual(ckArray, _ws.Client.ContentKeyValueData))
             _ws.Execute(new ClientState.OpContentKVDataChange(ckArray));
 
+        /*
         var id = EventFramework.Instance()->GetInstanceContentDirector();
         if (id != null)
         {
@@ -735,6 +743,7 @@ sealed class WorldStateGameSync : IDisposable
             if (!MemoryExtensions.SequenceEqual(mapeffects, _ws.Client.MapEffectData))
                 _ws.Execute(new ClientState.OpMapEffects(mapeffects));
         }
+        */
     }
 
     private unsafe void UpdateDeepDungeon()
@@ -966,5 +975,11 @@ sealed class WorldStateGameSync : IDisposable
         var res = _processPacketFateInfoHook.Original(fateId, startTimestamp, durationSecs);
         _globalOps.Add(new ClientState.OpFateInfo((uint)fateId, DateTimeOffset.FromUnixTimeSeconds(startTimestamp).UtcDateTime));
         return res;
+    }
+
+    private unsafe byte LookupMapEffectDetour(void* thisPtr, uint index, ushort state)
+    {
+        _globalOps.Add(new ClientState.OpMapEffect(index, state));
+        return _lookupDirectorLayoutIdHook.Original(thisPtr, index, state);
     }
 }

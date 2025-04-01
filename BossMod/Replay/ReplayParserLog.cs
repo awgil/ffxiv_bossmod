@@ -466,14 +466,7 @@ public sealed class ReplayParserLog : IDisposable
 
     private ClientState.OpFateInfo ParseClientFateInfo() => new(_input.ReadUInt(false), new(_input.ReadLong()));
 
-    private ClientState.OpMapEffects ParseClientMapEffect()
-    {
-        var len = _input.ReadByte(false);
-        var data = new ushort[len];
-        for (var i = 0; i < len; i++)
-            data[i] = _input.ReadUShort(false);
-        return new(data);
-    }
+    private ClientState.OpMapEffect ParseClientMapEffect() => new(_input.ReadUInt(false), _input.ReadUShort(false));
 
     private WaymarkState.OpWaymarkChange ParseWaymarkChange(bool set)
         => new(_version < 10 ? Enum.Parse<Waymark>(_input.ReadString()) : (Waymark)_input.ReadByte(false), set ? _input.ReadVec3() : null);
