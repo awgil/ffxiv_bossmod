@@ -1,7 +1,4 @@
 using BossMod.Autorotation;
-using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 //using FFXIVClientStructs.FFXIV.Client.Game.Group;
 
 namespace BossMod.AI;
@@ -74,7 +71,6 @@ sealed class AIManager(RotationModuleManager autorot, ActionManagerEx amex, Move
         Behaviour = null;
 
         Config.FollowSlot = PartyState.PlayerSlot;
-        Config.Modified.Fire();
         _controller.Clear();
     }
 
@@ -82,7 +78,6 @@ sealed class AIManager(RotationModuleManager autorot, ActionManagerEx amex, Move
     {
         SwitchToIdle();
         Config.FollowSlot = (AIConfig.Slot)masterSlot;
-        Config.Modified.Fire();
         Behaviour = new AIBehaviour(_controller, autorot);
     }
 }
