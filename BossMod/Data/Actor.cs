@@ -126,9 +126,9 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public Angle Rotation => PosRot.W.Radians();
     public bool Omnidirectional
     {
-        get => Utils.CharacterIsOmnidirectional(OID) || field;
-        set;
-    }
+        get;
+        set => field = value || Utils.CharacterIsOmnidirectional(OID);
+    } = Utils.CharacterIsOmnidirectional(oid);
 
     public bool IsDeadOrDestroyed => IsDead || IsDestroyed;
     public bool IsFriendlyNPC => Type == ActorType.Enemy && IsAlly && IsTargetable;
