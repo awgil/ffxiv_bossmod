@@ -160,12 +160,4 @@ public sealed class WorldState
                 output.Emit(arg);
         }
     }
-
-    public Event<OpMapEffect> MapEffect = new();
-    public sealed record class OpMapEffect(uint Index, ushort State) : Operation
-    {
-        protected override void Exec(WorldState ws) => ws.MapEffect.Fire(this);
-
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("MPEF"u8).Emit(Index).Emit(State);
-    }
 }

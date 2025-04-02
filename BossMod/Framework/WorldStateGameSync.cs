@@ -74,8 +74,11 @@ sealed class WorldStateGameSync : IDisposable
 
     private readonly unsafe delegate* unmanaged<ContainerInterface*, float> _calculateMoveSpeedMulti;
 
-    private unsafe delegate byte LookupMapEffectDelegate(void* thisPtr, uint index, ushort state);
-    private readonly Hook<LookupMapEffectDelegate> _lookupMapEffectHook;
+    private unsafe delegate void ProcessMapEffectDelegate(byte* data);
+
+    private readonly Hook<ProcessMapEffectDelegate> _processMapEffect1Hook;
+    private readonly Hook<ProcessMapEffectDelegate> _processMapEffect2Hook;
+    private readonly Hook<ProcessMapEffectDelegate> _processMapEffect3Hook;
 
     public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
     {
@@ -141,16 +144,21 @@ sealed class WorldStateGameSync : IDisposable
         _calculateMoveSpeedMulti = (delegate* unmanaged<ContainerInterface*, float>)Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
         Service.Log($"[WSG] CalculateMovementSpeedMultiplier address = 0x{(nint)_calculateMoveSpeedMulti:X}");
 
-        // there are 4 separate functions that handle MapEffect packets, but this function is the only code that all 4 of them use
-        // i think it's used to check whether the provided index and layout ID are valid for the current director
-        _lookupMapEffectHook = Service.Hook.HookFromSignature<LookupMapEffectDelegate>("E8 ?? ?? ?? ?? 3A C3 74 12 44 0F B7 C5", LookupMapEffectDetour);
-        _lookupMapEffectHook.Enable();
-        Service.Log($"[WSG] LookupMapEffect address = 0x{_lookupMapEffectHook.Address:X}");
+        var processMapEffectAddr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 4C 8D 46 10 8B D7 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8D 4E 10 E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 4C 8D 46 10 8B D7 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8D 4E 10 E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8D 4E 10 BA ?? ?? ?? ??");
+        _processMapEffect1Hook = Service.Hook.HookFromAddress<ProcessMapEffectDelegate>(processMapEffectAddr, ProcessMapEffect1Detour);
+        _processMapEffect1Hook.Enable();
+        _processMapEffect2Hook = Service.Hook.HookFromAddress<ProcessMapEffectDelegate>(processMapEffectAddr + 0x40, ProcessMapEffect2Detour);
+        _processMapEffect2Hook.Enable();
+        _processMapEffect3Hook = Service.Hook.HookFromAddress<ProcessMapEffectDelegate>(processMapEffectAddr + 0x80, ProcessMapEffect3Detour);
+        _processMapEffect3Hook.Enable();
+        Service.Log($"[WSG] MapEffect addresses = 0x{_processMapEffect1Hook.Address:X}, 0x{_processMapEffect2Hook.Address:X}, 0x{_processMapEffect3Hook.Address:X}");
     }
 
     public void Dispose()
     {
-        _lookupMapEffectHook.Dispose();
+        _processMapEffect1Hook.Dispose();
+        _processMapEffect2Hook.Dispose();
+        _processMapEffect3Hook.Dispose();
         _processPacketActorCastHook.Dispose();
         _processPacketEffectResultBasicHook.Dispose();
         _processPacketEffectResultHook.Dispose();
@@ -980,10 +988,32 @@ sealed class WorldStateGameSync : IDisposable
         return res;
     }
 
-    private unsafe byte LookupMapEffectDetour(void* thisPtr, uint index, ushort state)
+    private unsafe void ProcessMapEffect1Detour(byte* data)
     {
-        var res = _lookupMapEffectHook.Original(thisPtr, index, state);
-        _globalOps.Add(new WorldState.OpMapEffect(index, state));
-        return res;
+        _processMapEffect1Hook.Original(data);
+        ProcessMapEffect(data, 10, 18);
+    }
+
+    private unsafe void ProcessMapEffect2Detour(byte* data)
+    {
+        _processMapEffect2Hook.Original(data);
+        ProcessMapEffect(data, 18, 34);
+    }
+
+    private unsafe void ProcessMapEffect3Detour(byte* data)
+    {
+        _processMapEffect3Hook.Original(data);
+        ProcessMapEffect(data, 26, 50);
+    }
+
+    private unsafe void ProcessMapEffect(byte* data, byte offLow, byte offIndex)
+    {
+        for (var i = 0; i < *data; i++)
+        {
+            var low = *(ushort*)(data + 2 * i + offLow);
+            var high = *(ushort*)(data + 2 * i + 2);
+            var index = data[i + offIndex];
+            _globalOps.Add(new WorldState.OpEnvControl(index, low | ((uint)high << 16)));
+        }
     }
 }

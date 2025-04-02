@@ -160,4 +160,10 @@ public class GroupedAOEs(BossModule module, Enum[] aids, AOEShape shape, int max
         if (IDs.Contains(spell.Action))
             Casters.Remove(caster);
     }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (IDs.Contains(spell.Action))
+            NumCasts++;
+    }
 }

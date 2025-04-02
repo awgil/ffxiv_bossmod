@@ -11,6 +11,7 @@ class ThornedCatharsis : Components.RaidwideCast
 class TileTracker : BossComponent
 {
     public BitMask TileMask;
+    public Func<WPos, float> ActiveTiles { get; private set; } = _ => float.MaxValue;
 
     public TileTracker(BossModule module) : base(module)
     {
@@ -18,46 +19,47 @@ class TileTracker : BossComponent
 
 #if DEBUG
         WorldState.Network.ServerIPCReceived.Subscribe(OnIPCReceived);
-#endif
     }
 
-    public override void OnEventMapEffect(uint index, ushort state)
+    private unsafe void OnIPCReceived(NetworkState.OpServerIPC packet)
     {
-        if (index is >= 4 and <= 19)
+        switch (packet.Packet.ID)
         {
-            var ix = (int)index - 4;
-            switch (state)
-            {
-                case 0x100:
-                    TileMask.Set(ix);
-                    break;
-                case 0x20:
-                    TileMask.Clear(ix);
-                    break;
-            }
+            case Network.ServerIPC.PacketID.EnvControl4:
+                fixed (byte* payload = packet.Packet.Payload)
+                    for (var i = 0; i < *payload; i++)
+                        ApplyMapEffect(payload[i + 18], *(ushort*)(payload + 2 * i + 10), *(ushort*)(payload + 2 * i + 2));
+                break;
+            case Network.ServerIPC.PacketID.EnvControl8:
+                fixed (byte* payload = packet.Packet.Payload)
+                    for (var i = 0; i < *payload; i++)
+                        ApplyMapEffect(payload[i + 34], *(ushort*)(payload + 2 * i + 18), *(ushort*)(payload + 2 * i + 2));
+                break;
+            case Network.ServerIPC.PacketID.EnvControl12:
+                fixed (byte* payload = packet.Packet.Payload)
+                    for (var i = 0; i < *payload; i++)
+                        ApplyMapEffect(payload[i + 50], *(ushort*)(payload + 2 * i + 26), *(ushort*)(payload + 2 * i + 2));
+                break;
         }
     }
 
-#if DEBUG
-    private unsafe void OnIPCReceived(NetworkState.OpServerIPC packet)
+    private void ApplyMapEffect(byte index, ushort s1, ushort s2)
     {
-        var opcode = (int)packet.Packet.ID;
-        if (opcode == 405)
-            fixed (byte* payload = packet.Packet.Payload)
-                for (var i = 0; i < *payload; i++)
-                    OnEventMapEffect(payload[i + 50], *(ushort*)(payload + 2 * i + 26));
-
-        if (opcode == 404)
-            fixed (byte* payload = packet.Packet.Payload)
-                for (var i = 0; i < *payload; i++)
-                    OnEventMapEffect(payload[i + 34], *(ushort*)(payload + 2 * i + 18));
-
-        if (opcode == 403)
-            fixed (byte* payload = packet.Packet.Payload)
-                for (var i = 0; i < *payload; i++)
-                    OnEventMapEffect(payload[i + 18], *(ushort*)(payload + 2 * i + 10));
-    }
+        OnEventEnvControl(index, s1 | ((uint)s2 << 16));
 #endif
+    }
+
+    public override void OnEventEnvControl(byte index, uint state)
+    {
+        if (state == 0x00800040)
+            TileMask.Set(index - 4);
+
+        if (state == 0x00400100)
+            TileMask.Set(index - 4);
+
+        if (state == 0x00040020)
+            TileMask.Clear(index - 4);
+    }
 
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -91,8 +93,6 @@ class TileTracker : BossComponent
 
     public bool InActiveTile(Actor actor) => TileMask[GetTile(actor)];
 
-    public Func<WPos, float> ActiveTiles { get; private set; }
-
     public override void Update()
     {
         List<Func<WPos, float>> zones = [];
@@ -107,6 +107,7 @@ class TileTracker : BossComponent
     }
 }
 
+#if DEBUG
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1031, NameID = 13861)]
 public class Zelenia(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(16));
-
+#endif

@@ -217,7 +217,7 @@ class ZeleniaStates : StateMachineBuilder
         ComponentCondition<P2Explosion>(id + 0x10, 10.8f, e => e.NumCasts >= 2, "Towers 1");
         ComponentCondition<P2Explosion>(id + 0x12, 12, e => e.NumCasts >= 4, "Towers 2");
         ComponentCondition<P2Explosion>(id + 0x14, 12, e => e.NumCasts >= 6, "Towers 3");
-        ComponentCondition<SpearpointAOE>(id + 0x16, 12.9f, e => e.NumCasts >= 8, "Baits 4");
+        ComponentCondition<SpearpointAOE>(id + 0x16, 11.9f, e => e.NumCasts >= 8, "Baits 4");
 
         Timeout(id + 0x100, 9999, "Enrage");
     }
