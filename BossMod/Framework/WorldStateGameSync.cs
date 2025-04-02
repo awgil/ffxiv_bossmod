@@ -75,7 +75,7 @@ sealed class WorldStateGameSync : IDisposable
     private readonly unsafe delegate* unmanaged<ContainerInterface*, float> _calculateMoveSpeedMulti;
 
     private unsafe delegate byte LookupMapEffectDelegate(void* thisPtr, uint index, ushort state);
-    private readonly Hook<LookupMapEffectDelegate> _lookupDirectorLayoutIdHook;
+    private readonly Hook<LookupMapEffectDelegate> _lookupMapEffectHook;
 
     public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
     {
@@ -141,13 +141,16 @@ sealed class WorldStateGameSync : IDisposable
         _calculateMoveSpeedMulti = (delegate* unmanaged<ContainerInterface*, float>)Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
         Service.Log($"[WSG] CalculateMovementSpeedMultiplier address = 0x{(nint)_calculateMoveSpeedMulti:X}");
 
-        _lookupDirectorLayoutIdHook = Service.Hook.HookFromSignature<LookupMapEffectDelegate>("E8 ?? ?? ?? ?? 3A C3 74 12 44 0F B7 C5", LookupMapEffectDetour);
-        _lookupDirectorLayoutIdHook.Enable();
+        // there are 4 separate functions that handle MapEffect packets, but this function is the only code that all 4 of them use
+        // i think it's used to check whether the provided index and layout ID are valid for the current director
+        _lookupMapEffectHook = Service.Hook.HookFromSignature<LookupMapEffectDelegate>("E8 ?? ?? ?? ?? 3A C3 74 12 44 0F B7 C5", LookupMapEffectDetour);
+        _lookupMapEffectHook.Enable();
+        Service.Log($"[WSG] LookupMapEffect address = 0x{_lookupMapEffectHook.Address:X}");
     }
 
     public void Dispose()
     {
-        _lookupDirectorLayoutIdHook.Dispose();
+        _lookupMapEffectHook.Dispose();
         _processPacketActorCastHook.Dispose();
         _processPacketEffectResultBasicHook.Dispose();
         _processPacketEffectResultHook.Dispose();
@@ -979,7 +982,8 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe byte LookupMapEffectDetour(void* thisPtr, uint index, ushort state)
     {
+        var res = _lookupMapEffectHook.Original(thisPtr, index, state);
         _globalOps.Add(new WorldState.OpMapEffect(index, state));
-        return _lookupDirectorLayoutIdHook.Original(thisPtr, index, state);
+        return res;
     }
 }
