@@ -67,6 +67,21 @@ public enum Role
     Ranged = 4,
 }
 
+public enum Role2
+{
+    None = 0,
+    Tank = 1,
+    Healer = 2,
+    DPS = 3
+}
+
+public enum Role3
+{
+    None,
+    Support,
+    DPS
+}
+
 public static class ClassRole
 {
     public static ClassCategory GetClassCategory(this Class cls, bool allowLimited = true) => cls switch
@@ -88,6 +103,14 @@ public static class ClassRole
         ClassCategory.PhysRanged or ClassCategory.Caster or ClassCategory.Limited => Role.Ranged,
         _ => Role.None
     };
+    public static Role2 GetRole2(this Class cls) => cls.GetClassCategory() switch
+    {
+        ClassCategory.Tank => Role2.Tank,
+        ClassCategory.Healer => Role2.Healer,
+        ClassCategory.Melee or ClassCategory.PhysRanged or ClassCategory.Caster or ClassCategory.Limited => Role2.DPS,
+        _ => Role2.None
+    };
+    public static Role3 GetRole3(this Class cls) => cls.IsSupport() ? Role3.Support : cls.IsDD() ? Role3.DPS : Role3.None;
 
     public static bool IsSupport(this Class cls) => cls.GetClassCategory() is ClassCategory.Tank or ClassCategory.Healer;
     public static bool IsDD(this Class cls) => cls.GetClassCategory() is ClassCategory.Melee or ClassCategory.PhysRanged or ClassCategory.Caster;
