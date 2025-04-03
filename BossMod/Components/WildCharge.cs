@@ -91,6 +91,9 @@ public class GenericWildCharge(BossModule module, float halfWidth, ActionID aid 
                     hints.AddForbiddenZone(ShapeDistance.Rect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth), Activation);
                 break;
         }
+
+        foreach (var aoe in EnumerateAOEs())
+            hints.PredictedDamage.Add((Raid.WithSlot().Where(p => InAOE(aoe, p.Item2)).Mask(), Activation));
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
