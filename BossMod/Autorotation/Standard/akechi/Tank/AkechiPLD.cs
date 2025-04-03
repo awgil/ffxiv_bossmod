@@ -121,8 +121,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     public AID BestRequiescat => Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat;
     public AID BestHoly => ShouldUseAOE ? BestHolyCircle : AID.HolySpirit;
     public AID BestHolyCircle => HolyCircle.IsReady ? AID.HolyCircle : AID.HolySpirit;
-    public AID BestAtonement => Sepulchre.IsReady ? AID.Sepulchre : (Supplication.IsReady ? AID.Supplication : AID.Atonement);
-    public AID BestBlade => BladeComboStep == 3 ? AID.BladeOfValor : BladeComboStep == 2 ? AID.BladeOfTruth : BladeComboStep == 1 && Unlocked(AID.BladeOfFaith) ? AID.BladeOfFaith : Unlocked(AID.Confiteor) ? AID.Confiteor : BestHoly;
+    public AID BestAtonement => Sepulchre.IsReady ? AID.Sepulchre : Supplication.IsReady ? AID.Supplication : AID.Atonement;
+    public AID BestBlade => BladeComboStep == 3 ? AID.BladeOfValor : BladeComboStep == 2 ? AID.BladeOfTruth : BladeComboStep == 1 && Unlocked(AID.BladeOfFaith) ? AID.BladeOfFaith : Confiteor.IsReady ? AID.Confiteor : BestHoly;
     #endregion
 
     #region Rotation Helpers
