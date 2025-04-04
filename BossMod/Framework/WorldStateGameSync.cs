@@ -539,7 +539,7 @@ sealed class WorldStateGameSync : IDisposable
         for (int i = 0; i < group->MemberCount; ++i)
         {
             var member = group->PartyMembers.GetPointer(i);
-            if (member != player && Array.FindIndex(_ws.Party.Members, m => m.ContentId == member->ContentId) < 0)
+            if (member->ContentId != player->ContentId && Array.FindIndex(_ws.Party.Members, m => m.ContentId == member->ContentId) < 0)
                 AddPartyMember(BuildPartyMember(member));
             // else: member is either a player (it was handled by a different function) or already exists in party state
         }
@@ -626,7 +626,10 @@ sealed class WorldStateGameSync : IDisposable
         if (freeSlot >= 0)
             _ws.Execute(new PartyState.OpModify(freeSlot, m));
         else
-            Service.Log($"[WorldState] Failed to find empty slot for party member {m.ContentId:X}:{m.InstanceId:X}");
+        {
+            Service.Log($"[WorldState] Failed to find empty slot for party member {m.ContentId:X}:{m.InstanceId:X} ({_ws.Actors.Find(m.InstanceId)})");
+            Service.Log($"[WorldState] Current slots: {string.Join(", ", _ws.Party.Members.Select(m => _ws.Actors.Find(m.InstanceId)?.ToString() ?? "<unknown>"))}");
+        }
     }
 
     private void UpdatePartySlot(int slot, PartyState.Member m)
