@@ -71,7 +71,11 @@ public sealed class Plugin : IDalamudPlugin
 
         Service.Config.Initialize();
         Service.Config.LoadFromFile(dalamud.ConfigFile);
-        Service.Config.Modified.Subscribe(() => Service.Config.SaveToFile(dalamud.ConfigFile));
+        Service.Config.Modified.Subscribe(() =>
+        {
+            Service.Log($"saving configuration to {dalamud.ConfigFile}");
+            Service.Config.SaveToFile(dalamud.ConfigFile);
+        });
 
         ActionDefinitions.Instance.UnlockCheck = QuestUnlocked; // ensure action definitions are initialized and set unlock check functor (we don't really store the quest progress in clientstate, for now at least)
 

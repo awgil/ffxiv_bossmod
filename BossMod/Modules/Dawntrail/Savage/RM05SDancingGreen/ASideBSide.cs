@@ -9,10 +9,10 @@ class ABSide(BossModule module) : BossComponent(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_FlipToASide:
+            case AID.FlipToASide:
                 NextMechanic = Mechanic.Roles;
                 break;
-            case AID._Weaponskill_FlipToBSide:
+            case AID.FlipToBSide:
                 NextMechanic = Mechanic.Parties;
                 break;
         }
@@ -35,8 +35,8 @@ class ABSide(BossModule module) : BossComponent(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_PlayASide1:
-            case AID._Weaponskill_PlayBSide1:
+            case AID.PlayASide:
+            case AID.PlayBSide:
                 NextMechanic = Mechanic.None;
                 break;
         }
@@ -59,7 +59,7 @@ class PlayASide(BossModule module) : BossComponent(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_2SnapTwistDropTheNeedle2 or AID._Weaponskill_3SnapTwistDropTheNeedle3 or AID._Weaponskill_4SnapTwistDropTheNeedle4)
+        if ((AID)spell.Action.ID is AID.W2SnapAOELast or AID.W3SnapAOELast or AID.W4SnapAOELast)
         {
             Active = _ab?.NextMechanic == ABSide.Mechanic.Roles;
             if (Active)
@@ -69,7 +69,7 @@ class PlayASide(BossModule module) : BossComponent(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_PlayASide1)
+        if ((AID)spell.Action.ID is AID.PlayASide)
             Active = false;
     }
 
@@ -124,7 +124,7 @@ class PlayASide(BossModule module) : BossComponent(module)
     }
 }
 
-class PlayBSide(BossModule module) : Components.GenericWildCharge(module, 4, ActionID.MakeSpell(AID._Weaponskill_PlayBSide1), 60)
+class PlayBSide(BossModule module) : Components.GenericWildCharge(module, 4, ActionID.MakeSpell(AID.PlayBSide), 60)
 {
     private ABSide? _ab;
 
@@ -135,7 +135,7 @@ class PlayBSide(BossModule module) : Components.GenericWildCharge(module, 4, Act
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (_ab?.NextMechanic == ABSide.Mechanic.Parties && (AID)spell.Action.ID is AID._Weaponskill_2SnapTwistDropTheNeedle2 or AID._Weaponskill_3SnapTwistDropTheNeedle3 or AID._Weaponskill_4SnapTwistDropTheNeedle4)
+        if (_ab?.NextMechanic == ABSide.Mechanic.Parties && (AID)spell.Action.ID is AID.W2SnapAOELast or AID.W3SnapAOELast or AID.W4SnapAOELast)
         {
             Source = Module.PrimaryActor;
             Array.Fill(PlayerRoles, PlayerRole.Share);
@@ -154,4 +154,4 @@ class PlayBSide(BossModule module) : Components.GenericWildCharge(module, 4, Act
     }
 }
 
-class PlaySideCounter(BossModule module) : Components.CastCounterMulti(module, [ActionID.MakeSpell(AID._Weaponskill_PlayASide1), ActionID.MakeSpell(AID._Weaponskill_PlayBSide1)]);
+class PlaySideCounter(BossModule module) : Components.CastCounterMulti(module, [ActionID.MakeSpell(AID.PlayASide), ActionID.MakeSpell(AID.PlayBSide)]);

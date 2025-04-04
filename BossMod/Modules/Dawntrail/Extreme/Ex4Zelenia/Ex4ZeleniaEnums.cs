@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.Extreme.Ex4Zelenia;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Dawntrail.Extreme.Ex4Zelenia;
 
 public enum OID : uint
 {

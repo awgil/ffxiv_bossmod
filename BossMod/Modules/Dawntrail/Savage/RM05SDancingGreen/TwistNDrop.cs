@@ -5,12 +5,13 @@ class TwistNDrop(BossModule module) : Components.GroupedAOEs(module, [.. BossCas
     public bool Side1 { get; private set; }
     public bool Side2 { get; private set; }
 
+    // he REALLY likes casting these
     public static readonly AID[] BossCasts = [
-        AID._Weaponskill_2SnapTwistDropTheNeedle, AID._Weaponskill_3SnapTwistDropTheNeedle, AID._Weaponskill_4SnapTwistDropTheNeedle, AID._Weaponskill_2SnapTwistDropTheNeedle6, AID._Weaponskill_2SnapTwistDropTheNeedle5, AID._Weaponskill_4SnapTwistDropTheNeedle8, AID._Weaponskill_4SnapTwistDropTheNeedle7, AID._Weaponskill_2SnapTwistDropTheNeedle7, AID._Weaponskill_2SnapTwistDropTheNeedle8, AID._Weaponskill_3SnapTwistDropTheNeedle6, AID._Weaponskill_3SnapTwistDropTheNeedle7, AID._Weaponskill_4SnapTwistDropTheNeedle6, AID._Weaponskill_3SnapTwistDropTheNeedle4, AID._Weaponskill_4SnapTwistDropTheNeedle9, AID._Weaponskill_3SnapTwistDropTheNeedle8, AID._Weaponskill_3SnapTwistDropTheNeedle9, AID._Weaponskill_3SnapTwistDropTheNeedle5, AID._Weaponskill_4SnapTwistDropTheNeedle5, AID._Weaponskill_2SnapTwistDropTheNeedle3, AID._Weaponskill_2SnapTwistDropTheNeedle4
+        AID.W2SnapBoss1, AID.W3SnapBoss1, AID.W4SnapBoss1, AID.W2SnapBoss2, AID.W2SnapBoss3, AID.W4SnapBoss2, AID.W4SnapBoss3, AID.W2SnapBoss4, AID.W2SnapBoss5, AID.W3SnapBoss2, AID.W3SnapBoss3, AID.W4SnapBoss4, AID.W3SnapBoss4, AID.W4SnapBoss5, AID.W3SnapBoss5, AID.W3SnapBoss6, AID.W3SnapBoss7, AID.W4SnapBoss6, AID.W2SnapBoss6, AID.W2SnapBoss7, AID.W4SnapBoss7
     ];
 
     public static readonly AID[] HelperCasts = [
-        AID._Weaponskill_2SnapTwistDropTheNeedle1, AID._Weaponskill_2SnapTwistDropTheNeedle2, AID._Weaponskill_3SnapTwistDropTheNeedle1, AID._Weaponskill_3SnapTwistDropTheNeedle2, AID._Weaponskill_3SnapTwistDropTheNeedle3, AID._Weaponskill_4SnapTwistDropTheNeedle1, AID._Weaponskill_4SnapTwistDropTheNeedle2, AID._Weaponskill_4SnapTwistDropTheNeedle3, AID._Weaponskill_4SnapTwistDropTheNeedle4,
+        AID.W2SnapAOE1, AID.W2SnapAOELast, AID.W3SnapAOE1, AID.W3SnapAOE2, AID.W3SnapAOELast, AID.W4SnapAOE1, AID.W4SnapAOE2, AID.W4SnapAOE3, AID.W4SnapAOELast,
     ];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.OrderBy(c => Module.CastFinishAt(c.CastInfo)).Take(1).Select(csr => new AOEInstance(Shape, csr.CastInfo!.LocXZ, csr.CastInfo.Rotation, Module.CastFinishAt(csr.CastInfo), Color, Risky));
@@ -19,10 +20,10 @@ class TwistNDrop(BossModule module) : Components.GroupedAOEs(module, [.. BossCas
     {
         base.OnEventCast(caster, spell);
 
-        if ((AID)spell.Action.ID is AID._Weaponskill_2SnapTwistDropTheNeedle1 or AID._Weaponskill_3SnapTwistDropTheNeedle2 or AID._Weaponskill_4SnapTwistDropTheNeedle3)
+        if ((AID)spell.Action.ID is AID.W2SnapAOE1 or AID.W3SnapAOE2 or AID.W4SnapAOE3)
             Side1 = true;
 
-        if ((AID)spell.Action.ID is AID._Weaponskill_2SnapTwistDropTheNeedle2 or AID._Weaponskill_3SnapTwistDropTheNeedle3 or AID._Weaponskill_4SnapTwistDropTheNeedle4)
+        if ((AID)spell.Action.ID is AID.W2SnapAOELast or AID.W3SnapAOELast or AID.W4SnapAOELast)
             Side2 = true;
     }
 }

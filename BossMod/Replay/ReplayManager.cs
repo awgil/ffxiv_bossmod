@@ -20,6 +20,7 @@ public sealed class ReplayManager : IDisposable
         public bool AutoShowWindow;
         public bool Selected;
         public bool Disposed;
+        public bool Disposing;
         public DateTime? InitialTime;
 
         public ReplayEntry(string path, bool autoShow, DateTime? initialTime = null)
@@ -32,6 +33,7 @@ public sealed class ReplayManager : IDisposable
 
         public void Dispose()
         {
+            Disposing = true;
             Window?.Dispose();
             Cancel.Cancel();
             Replay.Wait();
@@ -329,7 +331,7 @@ public sealed class ReplayManager : IDisposable
     {
         if (!_config.RememberReplays)
             return;
-        _config.ReplayHistory = [.. _replayEntries.Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? true, r.Window?.CurrentTime ?? default))];
+        _config.ReplayHistory = [.. _replayEntries.Where(r => !r.Disposing).Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? true, r.Window?.CurrentTime ?? default))];
         _config.Modified.Fire();
     }
 

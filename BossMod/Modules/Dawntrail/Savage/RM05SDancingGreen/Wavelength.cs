@@ -12,7 +12,7 @@ class Wavelength(BossModule module) : BossComponent(module)
         public int Order = order;
     }
 
-    private PlayerState[] PlayerStates = Utils.MakeArray(8, new PlayerState());
+    private readonly PlayerState[] PlayerStates = Utils.MakeArray(8, new PlayerState());
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -20,28 +20,45 @@ class Wavelength(BossModule module) : BossComponent(module)
         if (slot < 0)
             return;
 
-        if ((SID)status.ID == SID._Gen_WavelengthA)
-            PlayerStates[slot] = new(Letter.A, status.ExpireAt, slot);
-        if ((SID)status.ID == SID._Gen_WavelengthB)
-            PlayerStates[slot] = new(Letter.B, status.ExpireAt, slot);
-
-        if (PlayerStates.All(p => p.Assignment != Letter.None))
+        var order = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds switch
         {
-            var ordered = PlayerStates.Select(st => new PlayerState(st.Assignment, st.Activation, st.Slot, st.Players, PlayerStates.Count(p1 => p1.Assignment == st.Assignment && p1.Activation < st.Activation) + 1));
-            var masked = ordered.Select(st =>
+            < 12f => 1,
+            < 18f => 2,
+            < 22f => 3,
+            _ => 4,
+        };
+
+        if ((SID)status.ID == SID.WavelengthA)
+        {
+            PlayerStates[slot] = new(Letter.A, status.ExpireAt, slot, default, order);
+            UpdateMasks();
+        }
+        if ((SID)status.ID == SID.WavelengthB)
+        {
+            PlayerStates[slot] = new(Letter.B, status.ExpireAt, slot, default, order);
+            UpdateMasks();
+        }
+    }
+
+    private void UpdateMasks()
+    {
+        foreach (var st in PlayerStates)
+        {
+            if (st.Order != 0)
             {
-                var mask = new BitMask();
-                foreach (var o in ordered.Where(o => o.Order == st.Order))
-                    mask.Set(o.Slot);
-                return st with { Players = mask };
-            });
-            PlayerStates = [.. masked];
+                st.Players.Reset();
+                foreach (var p in PlayerStates.Where(p => p.Order == st.Order))
+                    st.Players.Set(p.Slot);
+            }
+            var num = st.Players.NumSetBits();
+            if (num > 2)
+                ReportError($"too many players ({num}) for {st.Order}");
         }
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID._Gen_WavelengthA or SID._Gen_WavelengthB)
+        if ((SID)status.ID is SID.WavelengthA or SID.WavelengthB)
             PlayerStates[Raid.FindSlot(actor.InstanceID)] = default;
     }
 
