@@ -141,7 +141,11 @@ class Wingmark(BossModule module) : Components.Knockback(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_adds?.SafeCorner() is { } p && actor.FindStatus(SID._Gen_Wingmark) is { } st)
+        {
             hints.AddForbiddenZone(ShapeDistance.Circle(p, 35), st.ExpireAt);
+            var angleToCorner = Angle.FromDirection(p - actor.Position);
+            hints.ForbiddenDirections.Add((angleToCorner + 180.Degrees(), 178.Degrees(), st.ExpireAt));
+        }
     }
 }
 
@@ -277,10 +281,8 @@ class StickyMousse(BossModule module) : Components.GenericBaitAway(module, Actio
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID._Weaponskill_StickyMousse)
-        {
             foreach (var tar in Raid.WithoutSlot())
                 CurrentBaits.Add(new(caster, tar, new AOEShapeCircle(4), Module.CastFinishAt(spell, 0.9f)));
-        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
