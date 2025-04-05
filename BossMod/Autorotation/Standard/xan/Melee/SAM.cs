@@ -89,6 +89,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
     private bool Flower => Sen.HasFlag(SenFlags.Ka);
 
     private bool HaveFugetsu => FugetsuLeft > GCD + GetCastTime(AID.Higanbana);
+    private bool HaveFuka => FukaLeft > GCD;
 
     private (float Left, Kaeshi Action) GetKaeshiAction()
     {
@@ -152,11 +153,6 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
                 break;
         }
 
-        var pos = GetNextPositional(strategy);
-        UpdatePositionals(primaryTarget, ref pos);
-
-        OGCD(strategy, primaryTarget);
-
         if (CountdownRemaining > 0)
         {
             if (MeikyoLeft == 0 && CountdownRemaining < 14)
@@ -171,13 +167,11 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(NumStickers == 2 ? 8 : 5), AID.Fuga, 3, 20);
-
         EmergencyMeikyo(strategy, primaryTarget);
         UseKaeshi(primaryTarget);
         UseIaijutsu(primaryTarget);
 
-        if (OgiLeft > GCD && TargetDotLeft > 10 && HaveFugetsu && (RaidBuffsLeft > GCD || RaidBuffsIn > 1000))
+        if (OgiLeft > GCD && TargetDotLeft > 10 && HaveFugetsu && HaveFuka && (RaidBuffsLeft > GCD || RaidBuffsIn > 1000))
             PushGCD(AID.OgiNamikiri, BestOgiTarget);
 
         if (MeikyoLeft > GCD)
@@ -213,6 +207,12 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         };
 
         PushGCD(AID.Enpi, primaryTarget, enpiprio);
+
+        OGCD(strategy, primaryTarget);
+
+        var pos = GetNextPositional(strategy);
+        UpdatePositionals(primaryTarget, ref pos);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(NumStickers == 2 ? 8 : 5), AID.Fuga, 3, 20);
     }
 
     private AID GetHakazeComboAction(StrategyValues strategy)
@@ -335,33 +335,17 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
     private (Positional, bool) GetNextPositional(StrategyValues strategy)
     {
-        if (NumAOETargets > 2)
+        if (NumAOETargets > 2 || !Unlocked(AID.Gekko))
             return (Positional.Any, false);
 
-        if (MeikyoLeft > GCD)
-            return MeikyoAction switch
-            {
-                AID.Gekko => (Positional.Rear, true),
-                AID.Kasha => (Positional.Flank, true),
-                _ => (Positional.Any, false)
-            };
-
-        if (ComboLastMove == AID.Jinpu)
+        if (NextGCD == AID.Gekko)
             return (Positional.Rear, true);
-
-        if (ComboLastMove == AID.Shifu)
+        else if (NextGCD == AID.Kasha)
             return (Positional.Flank, true);
-
-        if (ComboLastMove == AID.Hakaze)
-        {
-            var pos = GetHakazeComboAction(strategy) switch
-            {
-                AID.Jinpu => Positional.Rear,
-                AID.Shifu => Positional.Flank,
-                _ => Positional.Any
-            };
-            return (pos, false);
-        }
+        else if (FugetsuLeft <= FukaLeft)
+            return (Positional.Rear, false);
+        else if (Unlocked(AID.Kasha))
+            return (Positional.Flank, false);
 
         return (Positional.Any, false);
     }
@@ -388,11 +372,11 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         if (Kenki >= 50 && Zanshin > 0 && ReadyIn(AID.HissatsuSenei) > 30)
             PushOGCD(AID.Zanshin, BestOgiTarget);
 
-        if (Meditation == 3)
+        if (Meditation == 3 && (RaidBuffsLeft > AnimLock || GrantsMeditation(NextGCD)))
             PushOGCD(AID.Shoha, BestLineTarget);
 
         var saveKenki = RaidBuffsLeft <= AnimLock || Zanshin > 0 || ReadyIn(AID.HissatsuSenei) < 10;
-        var maxKenki = ReadyIn(AID.Ikishoten) < 15 ? 50 : 90;
+        var maxKenki = strategy.BuffsOk() && ReadyIn(AID.Ikishoten) < 15 ? 50 : 90;
 
         if (Kenki >= (saveKenki ? maxKenki : 25))
         {
@@ -404,6 +388,8 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
         Meikyo(strategy);
     }
+
+    private bool GrantsMeditation(AID aid) => aid is AID.MidareSetsugekka or AID.TenkaGoken or AID.Higanbana or AID.TendoSetsugekka or AID.TendoGoken or AID.OgiNamikiri;
 
     private void Meikyo(StrategyValues strategy)
     {
