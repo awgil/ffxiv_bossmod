@@ -111,6 +111,12 @@ class Wingmark(BossModule module) : Components.Knockback(module)
 {
     private BitMask Players;
     private DateTime KnockbackFinishAt = DateTime.MaxValue;
+    private WingmarkAdds? _adds;
+
+    public override void Update()
+    {
+        _adds ??= Module.FindComponent<WingmarkAdds>();
+    }
 
     public bool StunHappened => KnockbackFinishAt != DateTime.MaxValue;
     public bool KnockbackFinished => WorldState.CurrentTime >= KnockbackFinishAt;
@@ -131,6 +137,12 @@ class Wingmark(BossModule module) : Components.Knockback(module)
         if (Players[slot])
             yield return new Source(actor.Position, 35, Direction: actor.Rotation, Kind: Kind.DirForward);
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_adds?.SafeCorner() is { } p && actor.FindStatus(SID._Gen_Wingmark) is { } st)
+            hints.AddForbiddenZone(ShapeDistance.Circle(p, 35), st.ExpireAt);
+    }
 }
 
 class WingmarkAdds(BossModule module) : Components.GenericAOEs(module)
@@ -139,6 +151,9 @@ class WingmarkAdds(BossModule module) : Components.GenericAOEs(module)
     private DateTime Activation;
     public bool Risky;
 
+    private BitMask DangerCorners;
+    private static readonly WPos[] Corners = [new(80, 80), new(120, 80), new(120, 120), new(80, 120)];
+
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID._Gen_Tether_319 or TetherID._Gen_Tether_320 && !source.IsAlly)
@@ -146,7 +161,40 @@ class WingmarkAdds(BossModule module) : Components.GenericAOEs(module)
             Adds.Add(source);
             if (Activation == default)
                 Activation = WorldState.FutureTime(13.2f);
+
+            switch ((OID)source.OID)
+            {
+                case OID._Gen_PaintBomb:
+                    MarkDanger(p => p.InCircle(source.Position, 15));
+                    break;
+                case OID._Gen_HeavenBomb:
+                    MarkDanger(p => p.InCircle(source.Position + source.Rotation.ToDirection() * 16, 15));
+                    break;
+                case OID._Gen_MouthwateringMorbol:
+                    MarkDanger(p => p.InCone(source.Position, source.Rotation, 50.Degrees()));
+                    break;
+                case OID._Gen_CandiedSuccubus:
+                    MarkDanger(p => p.InCircle(source.Position, 30));
+                    break;
+            }
         }
+    }
+
+    private void MarkDanger(Func<WPos, bool> f)
+    {
+        for (var i = 0; i < Corners.Length; i++)
+            if (f(Corners[i]))
+                DangerCorners.Set(i);
+    }
+
+    public WPos? SafeCorner()
+    {
+        if (DangerCorners.NumSetBits() == 3)
+            for (var i = 0; i < Corners.Length; i++)
+                if (!DangerCorners[i])
+                    return Corners[i];
+
+        return null;
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -159,6 +207,8 @@ class WingmarkAdds(BossModule module) : Components.GenericAOEs(module)
             case AID._Spell_DarkMist:
                 NumCasts++;
                 Adds.Remove(caster);
+                if (Adds.Count == 0)
+                    DangerCorners.Reset();
                 break;
         }
     }
