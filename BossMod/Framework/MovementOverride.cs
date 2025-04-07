@@ -28,12 +28,14 @@ public sealed unsafe class MovementOverride : IDisposable
 
     public WDir UserMove { get; private set; } // unfiltered movement direction, as read from input
     public WDir ActualMove { get; private set; } // actual movement direction, as of last input read
+    public bool UserControlActive { get; private set; } // indicates if user manual control is currently active
 
     private readonly IDalamudPluginInterface _dalamud;
     private readonly ActionTweaksConfig _tweaksConfig = Service.Config.Get<ActionTweaksConfig>();
     private bool? _forcedControlState;
     private bool _legacyMode;
     private bool[]? _navmeshPathIsRunning;
+    private DateTime _lastUserControlTime = DateTime.MinValue; // track when user last had control
 
     public bool IsMoving() => ActualMove != default;
     public bool IsMoveRequested() => UserMove != default;
@@ -131,13 +133,64 @@ public sealed unsafe class MovementOverride : IDisposable
         // the assumption is that, with misdirection active, it's not safe to block movement just because player is casting or doing something else (as arrow will rotate away)
         ActualMove = !MovementBlocked || misdirectionMode ? UserMove : default;
 
-        // movement override logic
-        // note: currently we follow desired direction, only if user does not have any input _or_ if manual movement is blocked
-        // this allows AI mode to move even if movement is blocked (TODO: is this the right behavior? AI mode should try to avoid moving while casting anyway...)
-        var allowAuto = movementAllowed ? !MovementBlocked : misdirectionMode;
-        if (allowAuto && ActualMove == default && DirectionToDestination(false) is var relDir && relDir != null)
+        // Get AIConfig to check for the movement override key
+        var aiConfig = Service.Config.Get<AI.AIConfig>();
+        
+        // Check if the override key is being held down
+        bool overrideKeyPressed = false;
+        switch (aiConfig.MovementOverrideKey)
         {
-            ActualMove = relDir.Value.h.ToDirection();
+            case AI.AIConfig.ManualOverrideKey.Shift:
+                overrideKeyPressed = ImGui.GetIO().KeyShift;
+                break;
+            case AI.AIConfig.ManualOverrideKey.Ctrl:
+                overrideKeyPressed = ImGui.GetIO().KeyCtrl;
+                break;
+            case AI.AIConfig.ManualOverrideKey.Alt:
+                overrideKeyPressed = ImGui.GetIO().KeyAlt;
+                break;
+        }
+
+        // Check if user is attempting to move
+        bool hasUserInput = UserMove != default;
+        
+        // Keep user in control for a short period (0.5 seconds) after they stop input
+        // This prevents AI from immediately taking control when you briefly let go of keys
+        bool extendedUserControl = overrideKeyPressed || (DateTime.Now - _lastUserControlTime).TotalSeconds < 0.5;
+        
+        // When override key is pressed and user is providing input,
+        // keep their movement intact and don't apply AI movement
+        if (overrideKeyPressed || (extendedUserControl && hasUserInput))
+        {
+            if (hasUserInput)
+            {
+                _lastUserControlTime = DateTime.Now;
+            }
+            
+            // Only log when control changes from AI to user to avoid spamming
+            if (!UserControlActive)
+            {
+                UserControlActive = true;
+                Service.Log("Hybrid mode: Manual control active (key held)");
+            }
+            
+            // User is in control - we already set ActualMove to UserMove above
+        }
+        else
+        {
+            // Only log when control changes from user to AI to avoid spamming
+            if (UserControlActive)
+            {
+                UserControlActive = false;
+                Service.Log("Hybrid mode: AI control resumed");
+            }
+            
+            // movement override logic - AI takes control when override key is not pressed
+            var allowAuto = movementAllowed ? !MovementBlocked : misdirectionMode;
+            if (allowAuto && ActualMove == default && DirectionToDestination(false) is var relDir && relDir != null)
+            {
+                ActualMove = relDir.Value.h.ToDirection();
+            }
         }
 
         // misdirection override logic
