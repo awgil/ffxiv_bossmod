@@ -22,7 +22,6 @@ sealed class AIConfig : ConfigNode
     public float MoveDelay = 0f;
 
     // ai settings
-    // TODO: this is really bad, it should not be here! it's a transient thing, doesn't make sense to preserve in config
     [PropertyDisplay($"Follow slot")]
     public Slot FollowSlot = 0;
 
@@ -37,13 +36,13 @@ sealed class AIConfig : ConfigNode
 
     [PropertyDisplay("Broadcast keypresses to other windows")]
     public bool BroadcastToSlaves = false;
-    
+
     // hybrid mode settings
     [PropertyDisplay("Respect manual targeting", tooltip: "When enabled, the AI will not override your manually selected targets")]
     public bool RespectManualTargeting = false;
-    
+
     public enum ManualOverrideKey { None, Shift, Ctrl, Alt }
-    
+
     [PropertyDisplay("Manual movement key", tooltip: "Hold this key to temporarily take manual movement control")]
     public ManualOverrideKey MovementOverrideKey = ManualOverrideKey.Shift;
 }

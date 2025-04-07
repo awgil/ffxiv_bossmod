@@ -79,8 +79,8 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
         var target = autorot.Hints.PriorityTargets.FirstOrDefault(e => e.Actor.InstanceID == targetId);
 
         // If respecting manual targeting is enabled and player has a valid target, use it
-        if (_config.RespectManualTargeting && player.TargetID != 0 && 
-            (target != null || !autorot.Hints.PriorityTargets.Any()))
+        if (_config.RespectManualTargeting && player.TargetID != 0
+            && (target != null || !autorot.Hints.PriorityTargets.Any()))
         {
             // Keep current player-selected target even if it's not in priority targets
             if (target == null)
@@ -89,28 +89,28 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
                 if (manualTarget != null)
                 {
                     Service.Log($"Hybrid mode: Respecting manually selected target {manualTarget.Name}");
-                    
+
                     // Create a custom enemy for the manually selected target - with a priority of 1 and not marked as forbidden
                     var manualTargeting = new Targeting(new AIHints.Enemy(manualTarget, 1, false), player.Role is Role.Melee or Role.Tank ? 2.9f : 24.5f);
-                    
+
                     var manualPos = autorot.Hints.RecommendedPositional;
                     if (manualPos.Target != null && manualTargeting.Target.Actor == manualPos.Target)
                         manualTargeting.PreferredPosition = manualPos.Pos;
-                    
+
                     return manualTargeting;
                 }
             }
             else
             {
                 Service.Log($"Hybrid mode: Keeping priority target {target.Actor.Name} that you selected");
-                
+
                 // Use existing target from priority targets
                 var existingTargeting = new Targeting(target!, player.Role is Role.Melee or Role.Tank ? 2.9f : 24.5f);
-                
+
                 var existingPos = autorot.Hints.RecommendedPositional;
                 if (existingPos.Target != null && existingTargeting.Target.Actor == existingPos.Target)
                     existingTargeting.PreferredPosition = existingPos.Pos;
-                
+
                 return existingTargeting;
             }
         }
@@ -274,11 +274,11 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
             ImGui.Checkbox("Respect manual targeting", ref _config.RespectManualTargeting);
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("When enabled, the AI will not override targets you manually select");
-            
+
             // Manual movement key option
-            string[] keyNames = new string[] { "None", "Shift", "Ctrl", "Alt" };
+            var keyNames = new[] { "None", "Shift", "Ctrl", "Alt" };
             int selectedKey = (int)_config.MovementOverrideKey;
-            
+
             // Check if the key is currently being pressed
             bool keyActive = false;
             if (_config.MovementOverrideKey != AIConfig.ManualOverrideKey.None)
@@ -296,13 +296,13 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
                         break;
                 }
             }
-            
+
             // Set text color to green if the key is active
             if (keyActive)
                 ImGui.TextColored(new Vector4(0, 1, 0, 1), "Movement key (active):");
             else
                 ImGui.Text("Movement key:");
-            
+
             ImGui.SameLine();
             ImGui.SetNextItemWidth(80); // Set a narrower width for the dropdown
             if (ImGui.Combo("###OverrideKey", ref selectedKey, keyNames, keyNames.Length))

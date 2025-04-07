@@ -135,7 +135,7 @@ public sealed unsafe class MovementOverride : IDisposable
 
         // Get AIConfig to check for the movement override key
         var aiConfig = Service.Config.Get<AI.AIConfig>();
-        
+
         // Check if the override key is being held down
         bool overrideKeyPressed = false;
         switch (aiConfig.MovementOverrideKey)
@@ -153,11 +153,11 @@ public sealed unsafe class MovementOverride : IDisposable
 
         // Check if user is attempting to move
         bool hasUserInput = UserMove != default;
-        
+
         // Keep user in control for a short period (0.5 seconds) after they stop input
         // This prevents AI from immediately taking control when you briefly let go of keys
         bool extendedUserControl = overrideKeyPressed || (DateTime.Now - _lastUserControlTime).TotalSeconds < 0.5;
-        
+
         // When override key is pressed and user is providing input,
         // keep their movement intact and don't apply AI movement
         if (overrideKeyPressed || (extendedUserControl && hasUserInput))
@@ -166,14 +166,14 @@ public sealed unsafe class MovementOverride : IDisposable
             {
                 _lastUserControlTime = DateTime.Now;
             }
-            
+
             // Only log when control changes from AI to user to avoid spamming
             if (!UserControlActive)
             {
                 UserControlActive = true;
                 Service.Log("Hybrid mode: Manual control active (key held)");
             }
-            
+
             // User is in control - we already set ActualMove to UserMove above
         }
         else
@@ -184,7 +184,7 @@ public sealed unsafe class MovementOverride : IDisposable
                 UserControlActive = false;
                 Service.Log("Hybrid mode: AI control resumed");
             }
-            
+
             // movement override logic - AI takes control when override key is not pressed
             var allowAuto = movementAllowed ? !MovementBlocked : misdirectionMode;
             if (allowAuto && ActualMove == default && DirectionToDestination(false) is var relDir && relDir != null)
