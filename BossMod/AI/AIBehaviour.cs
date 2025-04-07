@@ -302,7 +302,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
                 ImGui.TextColored(new Vector4(0, 1, 0, 1), "Movement key (active):");
             else
                 ImGui.Text("Movement key:");
-                
+            
             ImGui.SameLine();
             ImGui.SetNextItemWidth(80); // Set a narrower width for the dropdown
             if (ImGui.Combo("###OverrideKey", ref selectedKey, keyNames, keyNames.Length))
