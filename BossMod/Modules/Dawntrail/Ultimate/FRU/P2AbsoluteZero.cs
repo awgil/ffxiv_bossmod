@@ -26,7 +26,7 @@ class P2HiemalStorm(BossModule module) : Components.LocationTargetedAOEs(module,
         foreach (var c in Casters)
         {
             var activation = Module.CastFinishAt(c.CastInfo);
-            hints.AddForbiddenZone(ShapeDistance.Circle(c.CastInfo!.LocXZ, activation > deadline ? 4 : 7), activation);
+            hints.AddForbiddenZone(ShapeContains.Circle(c.CastInfo!.LocXZ, activation > deadline ? 4 : 7), activation);
         }
     }
 
@@ -83,7 +83,7 @@ class P2Intermission(BossModule module) : Components.GenericBaitAway(module)
 
         // don't stand inside light crystals, to avoid bad puddle baits
         foreach (var c in CrystalsOfLight)
-            hints.AddForbiddenZone(ShapeDistance.Circle(c.Position, 4), WorldState.FutureTime(30));
+            hints.AddForbiddenZone(ShapeContains.Circle(c.Position, 4), WorldState.FutureTime(30));
 
         // mechanic resolution
         if (clockSpot < 0)
@@ -98,15 +98,15 @@ class P2Intermission(BossModule module) : Components.GenericBaitAway(module)
             var assignedCrystal = CrystalsOfLight.FirstOrDefault(c => c.Position.AlmostEqual(assignedPosition, 2));
             if (assignedCrystal != null)
             {
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(assignedPosition, 5), WorldState.FutureTime(60));
-                hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 17), DateTime.MaxValue); // prefer to stay near border, unless everything else is covered with aoes
+                hints.AddForbiddenZone(ShapeContains.InvertedCircle(assignedPosition, 5), WorldState.FutureTime(60));
+                hints.AddForbiddenZone(ShapeContains.Circle(Module.Center, 17), DateTime.MaxValue); // prefer to stay near border, unless everything else is covered with aoes
             }
             else
             {
                 // go to the ice veil
                 // TODO: consider helping other melees with their crystals? a bit dangerous, can misbait
                 // TODO: consider helping nearby ranged to bait their cones?
-                hints.AddForbiddenZone(ShapeDistance.InvertedCone(Module.Center, 7, assignedDir, 10.Degrees()), DateTime.MaxValue);
+                hints.AddForbiddenZone(ShapeContains.InvertedCone(Module.Center, 7, assignedDir, 10.Degrees()), DateTime.MaxValue);
             }
         }
         else
@@ -117,7 +117,7 @@ class P2Intermission(BossModule module) : Components.GenericBaitAway(module)
                 var assignedPosition = Module.Center + 9 * (180 - 45 * clockSpot).Degrees().ToDirection(); // crystal is at R=8
                 var assignedCrystal = CrystalsOfDarkness.FirstOrDefault(c => c.Position.AlmostEqual(assignedPosition, 2));
                 if (assignedCrystal != null)
-                    hints.AddForbiddenZone(ShapeDistance.PrecisePosition(assignedPosition, new WDir(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
+                    hints.AddForbiddenZone(ShapeContains.PrecisePosition(assignedPosition, new WDir(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
             }
             // else: just dodge cones etc...
         }

@@ -87,11 +87,11 @@ class ColorRiot(BossModule module) : Components.GenericBaitAway(module, centerAt
         {
             case Preference.Close:
                 var closest = Raid.WithoutSlot().Exclude(actor).Closest(Casters[0].Position)!;
-                hints.AddForbiddenZone(ShapeDistance.Donut(Casters[0].Position, closest.DistanceToPoint(Casters[0].Position), 100), CurrentBaits[0].Activation);
+                hints.AddForbiddenZone(ShapeContains.Donut(Casters[0].Position, closest.DistanceToPoint(Casters[0].Position), 100), CurrentBaits[0].Activation);
                 break;
             case Preference.Far:
                 var farthest = Raid.WithoutSlot().Exclude(actor).Farthest(Casters[0].Position)!;
-                hints.AddForbiddenZone(ShapeDistance.Circle(Casters[0].Position, farthest.DistanceToPoint(Casters[0].Position)), CurrentBaits[0].Activation);
+                hints.AddForbiddenZone(ShapeContains.Circle(Casters[0].Position, farthest.DistanceToPoint(Casters[0].Position)), CurrentBaits[0].Activation);
                 break;
         }
     }
@@ -148,7 +148,7 @@ class WingmarkKB(BossModule module) : Components.Knockback(module)
     {
         if (_adds?.SafeCorner() is { } p && actor.FindStatus(SID._Gen_Wingmark) is { } st)
         {
-            hints.AddForbiddenZone(ShapeDistance.Circle(p, 35), st.ExpireAt);
+            hints.AddForbiddenZone(ShapeContains.Circle(p, 35), st.ExpireAt);
             var angleToCorner = Angle.FromDirection(p - actor.Position);
             hints.ForbiddenDirections.Add((angleToCorner + 180.Degrees(), 178.Degrees(), st.ExpireAt));
         }

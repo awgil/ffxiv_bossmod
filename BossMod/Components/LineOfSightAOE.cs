@@ -46,7 +46,7 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
         {
             // inverse of a union of inverted max-range circle and a bunch of infinite cones minus inner cirles
             var normals = Visibility.Select(v => (v.Distance, (v.Dir + v.HalfWidth).ToDirection().OrthoL(), (v.Dir - v.HalfWidth).ToDirection().OrthoR())).ToArray();
-            float invertedDistanceToSafe(WPos p)
+            bool invertedDistanceToSafe(WPos p)
             {
                 var off = p - Origin.Value;
                 var distOrigin = off.Length();
@@ -59,13 +59,13 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
                     var distCone = Math.Max(distInnerInv, Math.Max(distLeft, distRight));
                     distanceToSafe = Math.Min(distanceToSafe, distCone);
                 }
-                return -distanceToSafe;
+                return distanceToSafe > 0;
             }
             hints.AddForbiddenZone(invertedDistanceToSafe, NextExplosion);
         }
         if (BlockersImpassable)
         {
-            var blockers = Blockers.Select(b => ShapeDistance.Circle(b.Center, b.Radius)).ToArray();
+            var blockers = Blockers.Select(b => ShapeContains.Circle(b.Center, b.Radius)).ToArray();
             hints.AddForbiddenZone(p => blockers.Min(b => b(p)));
         }
     }

@@ -142,7 +142,7 @@ class ShootingStar(BossModule module) : Components.KnockbackFromCastTarget(modul
                 continue;
 
             var directionToBoss = Angle.FromDirection((Module.PrimaryActor.Position - s.Origin).Normalized());
-            var rect = ShapeDistance.InvertedRect(s.Origin, directionToBoss, 12, 12, 5);
+            var rect = ShapeContains.InvertedRect(s.Origin, directionToBoss, 12, 12, 5);
             hints.AddForbiddenZone(p =>
             {
                 var dir = (p - s.Origin).Normalized();
@@ -291,7 +291,7 @@ class BlackHole(BossModule module) : BossComponent(module)
         if (Activation == default)
             return;
 
-        var towers = ShapeDistance.Intersection([.. Buttons.Select(b => ShapeDistance.Donut(b, 2, 100))]);
+        var towers = ShapeContains.Intersection([.. Buttons.Select(b => ShapeContains.Donut(b, 2, 100))]);
         hints.AddForbiddenZone(towers, Activation);
     }
 }
@@ -320,12 +320,12 @@ class MeteorBait(BossModule module) : Components.SpreadFromIcon(module, (uint)Ic
     {
         if (Spreads.Any(s => s.Target.InstanceID == actor.InstanceID))
         {
-            var drops = MeteorDropLocations.Select(m => ShapeDistance.InvertedCircle(Arena.Center + m, 1)).ToList();
-            hints.AddForbiddenZone(ShapeDistance.Intersection(drops), Spreads[0].Activation);
+            var drops = MeteorDropLocations.Select(m => ShapeContains.InvertedCircle(Arena.Center + m, 1)).ToList();
+            hints.AddForbiddenZone(ShapeContains.Intersection(drops), Spreads[0].Activation);
 
             // try to avoid other spreads if we can help it, but would rather drop two meteors in one spot
-            var otherSpreads = ActiveSpreadTargets.Exclude(actor).Select(t => ShapeDistance.Circle(t.Position, 15)).ToList();
-            hints.AddForbiddenZone(ShapeDistance.Union(otherSpreads), DateTime.MaxValue);
+            var otherSpreads = ActiveSpreadTargets.Exclude(actor).Select(t => ShapeContains.Circle(t.Position, 15)).ToList();
+            hints.AddForbiddenZone(ShapeContains.Union(otherSpreads), DateTime.MaxValue);
         }
     }
 }
@@ -362,13 +362,13 @@ class Holy(BossModule module) : Components.KnockbackFromCastTarget(module, Actio
 
             var ringMidpointToPlatform = 60.Degrees() - Angle.FromDirection(new WDir(5, 25));
 
-            var kbZones = ShapeDistance.Union([
-                ShapeDistance.DonutSector(src.Origin, 22, 100, 180.Degrees(), ringMidpointToPlatform),
-                ShapeDistance.DonutSector(src.Origin, 22, 100, 60.Degrees(), ringMidpointToPlatform),
-                ShapeDistance.DonutSector(src.Origin, 22, 100, -60.Degrees(), ringMidpointToPlatform),
-                ShapeDistance.Rect(src.Origin + new WDir(0, 33.5f), default(Angle), 5, 0, 5),
-                ShapeDistance.Rect(src.Origin + new WDir(0, 33.5f).Rotate(120.Degrees()), 120.Degrees(), 5, 0, 5),
-                ShapeDistance.Rect(src.Origin + new WDir(0, 33.5f).Rotate(-120.Degrees()), -120.Degrees(), 5, 0, 5),
+            var kbZones = ShapeContains.Union([
+                ShapeContains.DonutSector(src.Origin, 22, 100, 180.Degrees(), ringMidpointToPlatform),
+                ShapeContains.DonutSector(src.Origin, 22, 100, 60.Degrees(), ringMidpointToPlatform),
+                ShapeContains.DonutSector(src.Origin, 22, 100, -60.Degrees(), ringMidpointToPlatform),
+                ShapeContains.Rect(src.Origin + new WDir(0, 33.5f), default(Angle), 5, 0, 5),
+                ShapeContains.Rect(src.Origin + new WDir(0, 33.5f).Rotate(120.Degrees()), 120.Degrees(), 5, 0, 5),
+                ShapeContains.Rect(src.Origin + new WDir(0, 33.5f).Rotate(-120.Degrees()), -120.Degrees(), 5, 0, 5),
             ]);
 
             hints.AddForbiddenZone(kbZones, src.Activation);

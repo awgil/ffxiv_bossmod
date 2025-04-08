@@ -64,14 +64,14 @@ class Ex2GarudaAI(BossModule module) : BossComponent(module)
         bool haveMonoliths = false;
         foreach (var monolith in Module.Enemies(OID.Monolith).Where(a => !a.IsDead))
         {
-            hints.AddForbiddenZone(ShapeDistance.Circle(monolith.Position, 5));
+            hints.AddForbiddenZone(ShapeContains.Circle(monolith.Position, 5));
             haveMonoliths = true;
         }
 
         if (haveMonoliths && actor.Role is Role.Healer or Role.Ranged)
         {
             // have ranged stay in center to avoid los issues
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 7), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Module.Center, 7), DateTime.MaxValue);
         }
     }
 }

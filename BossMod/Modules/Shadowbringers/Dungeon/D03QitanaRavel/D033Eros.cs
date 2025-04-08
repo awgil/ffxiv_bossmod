@@ -79,7 +79,7 @@ class HoundOutOfHeavenGood(BossModule module) : Components.BaitAwayTethers(modul
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
+            hints.AddForbiddenZone(ShapeContains.Circle(Module.PrimaryActor.Position, 15));
     }
 }
 
@@ -117,7 +117,7 @@ class HoundOutOfHeavenBad(BossModule module) : Components.BaitAwayTethers(module
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
+            hints.AddForbiddenZone(ShapeContains.Circle(Module.PrimaryActor.Position, 15));
     }
 }
 
@@ -163,7 +163,7 @@ class ViperPoisonBait(BossModule module) : Components.GenericBaitAway(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Rect(new(17, -518), new(17, -558), 13));
+            hints.AddForbiddenZone(ShapeContains.Rect(new(17, -518), new(17, -558), 13));
     }
 }
 

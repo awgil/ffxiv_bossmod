@@ -104,14 +104,14 @@ class P1UtopianSkyAIInitial(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 18)); // stay on edge
+        hints.AddForbiddenZone(ShapeContains.Circle(Module.Center, 18)); // stay on edge
 
         var clockspot = _config.P1UtopianSkyInitialSpots[assignment];
         if (clockspot >= 0)
         {
             // ... and in assigned cone
             var assignedDirection = (180 - 45 * clockspot).Degrees();
-            hints.AddForbiddenZone(ShapeDistance.InvertedCone(Module.Center, 50, assignedDirection, 5.Degrees()), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeContains.InvertedCone(Module.Center, 50, assignedDirection, 5.Degrees()), DateTime.MaxValue);
         }
     }
 }
@@ -161,7 +161,7 @@ class P1UtopianSkyAIResolve(BossModule module) : BossComponent(module)
             if (clockSpot >= 0 && (_aoes.DangerousSpots[clockSpot] || _seenDangerSpot[clockSpot & 3]))
             {
                 // our spot is dangerous, or our partner's is and he has moved - move to center
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 5), _aoes.Activation);
+                hints.AddForbiddenZone(ShapeContains.InvertedCircle(Module.Center, 5), _aoes.Activation);
             }
             // else: we don't have a reason to move, stay where we are...
         }
@@ -182,7 +182,7 @@ class P1UtopianSkyAIResolve(BossModule module) : BossComponent(module)
             };
             var range = spreadSpot == 0 ? 13 : 19;
             hints.PathfindMapBounds = FRU.PathfindHugBorderBounds;
-            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + range * direction.ToDirection(), new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), _aoes.Activation);
+            hints.AddForbiddenZone(ShapeContains.PrecisePosition(Module.Center + range * direction.ToDirection(), new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), _aoes.Activation);
         }
     }
 }

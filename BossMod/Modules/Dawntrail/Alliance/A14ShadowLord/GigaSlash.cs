@@ -13,7 +13,7 @@ class GigaSlash(BossModule module) : Components.GenericAOEs(module)
         base.AddAIHints(slot, actor, assignment, hints);
         // stay close to the middle if there is next imminent aoe from same origin
         if (_aoes.Count > 1 && _aoes[0].Origin == _aoes[1].Origin)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_aoes[0].Origin, 3), _aoes[0].Activation);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(_aoes[0].Origin, 3), _aoes[0].Activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

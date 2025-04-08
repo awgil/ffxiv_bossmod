@@ -41,11 +41,11 @@ class ShudderingSwipeKB(BossModule module) : Components.Knockback(module, Action
     {
         winds ??= Module.FindComponent<TheFourWinds>();
 
-        var aoes = (winds?.Sources(Module) ?? []).Select(a => ShapeDistance.Circle(a.Position, 6)).ToList();
+        var aoes = (winds?.Sources(Module) ?? []).Select(a => ShapeContains.Circle(a.Position, 6)).ToList();
         if (aoes.Count == 0)
             return;
 
-        var windzone = ShapeDistance.Union(aoes);
+        var windzone = ShapeContains.Union(aoes);
         if (Casters.FirstOrDefault() is Actor c)
             hints.AddForbiddenZone(p =>
             {

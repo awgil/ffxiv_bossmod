@@ -16,9 +16,9 @@ public class PersistentVoidzone(BossModule module, float radius, Func<BossModule
     {
         foreach (var s in Sources(Module))
         {
-            hints.AddForbiddenZone(Shape.Distance(s.Position, s.Rotation));
+            hints.AddForbiddenZone(Shape.CheckFn(s.Position, s.Rotation));
             if (MoveHintLength > 0)
-                hints.AddForbiddenZone(ShapeDistance.Capsule(s.Position, s.Rotation, MoveHintLength, Shape.Radius), WorldState.FutureTime(2));
+                hints.AddForbiddenZone(ShapeContains.Capsule(s.Position, s.Rotation, MoveHintLength, Shape.Radius), WorldState.FutureTime(2));
         }
     }
 }
@@ -101,14 +101,14 @@ public class PersistentInvertibleVoidzone(BossModule module, float radius, Func<
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var shapes = Sources(Module).Select(s => Shape.Distance(s.Position, s.Rotation)).ToList();
+        var shapes = Sources(Module).Select(s => Shape.CheckFn(s.Position, s.Rotation)).ToList();
         if (shapes.Count == 0)
             return;
 
-        float distance(WPos p)
+        bool distance(WPos p)
         {
-            var dist = shapes.Min(s => s(p));
-            return Inverted ? -dist : dist;
+            var dist = shapes.Any(s => s(p));
+            return Inverted ? !dist : dist;
         }
         hints.AddForbiddenZone(distance, InvertResolveAt);
     }

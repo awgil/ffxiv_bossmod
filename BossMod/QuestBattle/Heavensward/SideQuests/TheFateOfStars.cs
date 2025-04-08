@@ -8,7 +8,7 @@ internal class ABloodyReunion(WorldState ws) : QuestBattle(ws)
             .WithConnection(new Vector3(288.62f, 222.20f, 271.82f))
             .Hints((player, hints) => {
                 if (World.Actors.FirstOrDefault(x => x.OID == 0x1EA080 && x.EventState != 7) is Actor shield)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(shield.Position, 5));
+                    hints.AddForbiddenZone(ShapeContains.InvertedCircle(shield.Position, 5));
             })
     ];
 }

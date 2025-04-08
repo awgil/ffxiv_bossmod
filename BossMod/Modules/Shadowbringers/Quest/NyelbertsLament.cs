@@ -78,7 +78,7 @@ class PassageOfArms(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (EnrageCast != null && Paladin != null)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCone(Paladin.Position, 8, Paladin.Rotation + 180.Degrees(), 60.Degrees()), Module.CastFinishAt(EnrageCast));
+            hints.AddForbiddenZone(ShapeContains.InvertedCone(Paladin.Position, 8, Paladin.Rotation + 180.Degrees(), 60.Degrees()), Module.CastFinishAt(EnrageCast));
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

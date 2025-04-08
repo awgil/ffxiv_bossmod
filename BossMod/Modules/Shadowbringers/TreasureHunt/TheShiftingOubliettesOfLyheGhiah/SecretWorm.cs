@@ -69,7 +69,7 @@ class Bubble(BossModule module) : Components.GenericBaitAway(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 17.5f));
+            hints.AddForbiddenZone(ShapeContains.Circle(Module.Center, 17.5f));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

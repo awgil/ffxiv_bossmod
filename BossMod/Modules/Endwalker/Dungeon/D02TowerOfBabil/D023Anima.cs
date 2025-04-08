@@ -110,7 +110,7 @@ class BoundlessPain(BossModule module) : Components.GenericAOEs(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (ActiveAOEs(slot, actor).Any())
-            hints.AddForbiddenZone(ShapeDistance.Rect(Arena.Center, Arena.Center + new WDir(0, 20), 20));
+            hints.AddForbiddenZone(ShapeContains.Rect(Arena.Center, Arena.Center + new WDir(0, 20), 20));
     }
 }
 
@@ -172,9 +172,9 @@ class CoffinScratch(BossModule module) : Components.StandardChasingAOEs(module, 
             AddForbiddenZones(actor, hints, false);
         }
         if (Actors.Contains(actor))
-            hints.AddForbiddenZone(ShapeDistance.Rect(Arena.Center + new WDir(19, 0), Arena.Center + new WDir(-19, 0), 20), Activation);
+            hints.AddForbiddenZone(ShapeContains.Rect(Arena.Center + new WDir(19, 0), Arena.Center + new WDir(-19, 0), 20), Activation);
         else if (Chasers.Any(x => x.Target == actor))
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(actor.Position, 90.Degrees(), 40, 40, 3));
+            hints.AddForbiddenZone(ShapeContains.InvertedRect(actor.Position, 90.Degrees(), 40, 40, 3));
     }
     private void AddForbiddenZones(Actor actor, AIHints hints, bool isTarget)
     {
@@ -184,7 +184,7 @@ class CoffinScratch(BossModule module) : Components.StandardChasingAOEs(module, 
             var circle = (AOEShapeCircle)c.Shape;
             var radius = isTarget ? MoveDistance + circle.Radius : circle.Radius + 1;
             var position = isTarget ? c.PredictedPosition() - circle.Radius * actor.Rotation.ToDirection() : c.PredictedPosition();
-            hints.AddForbiddenZone(ShapeDistance.Circle(position, radius), c.NextActivation);
+            hints.AddForbiddenZone(ShapeContains.Circle(position, radius), c.NextActivation);
         }
     }
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

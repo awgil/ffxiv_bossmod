@@ -83,8 +83,8 @@ class P5AI(BossModule module) : BossComponent(module)
                 //if (!orbIntercepted)
                 {
                     forbidNeurolinks = false;
-                    var forbidden = _hatch.Neurolinks.Exclude(neurolinkUnderBoss).Select(n => ShapeDistance.Circle(n.Position, T05Twintania.NeurolinkRadius));
-                    hints.AddForbiddenZone(p => -forbidden.Min(f => f(p)));
+                    var forbidden = _hatch.Neurolinks.Exclude(neurolinkUnderBoss).Select(n => ShapeContains.Circle(n.Position, T05Twintania.NeurolinkRadius));
+                    hints.AddForbiddenZone(p => !forbidden.Any(f => f(p)));
                 }
             }
             else if (assignment == ((_deathSentence?.TankedByOT ?? false) ? PartyRolesConfig.Assignment.MT : PartyRolesConfig.Assignment.OT) && neurolinkUnderBoss != null && actor != _liquidHell?.Target)
@@ -94,30 +94,30 @@ class P5AI(BossModule module) : BossComponent(module)
                 if (!neurolinkUnsafe)
                 {
                     forbidNeurolinks = false;
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(neurolinkUnderBoss.Position, T05Twintania.NeurolinkRadius));
+                    hints.AddForbiddenZone(ShapeContains.InvertedCircle(neurolinkUnderBoss.Position, T05Twintania.NeurolinkRadius));
                 }
             }
             else //if (!orbIntercepted)
             {
                 // everyone else should gtfo from orb path
                 foreach (var orb in _hatch.Orbs)
-                    hints.AddForbiddenZone(ShapeDistance.Rect(orb.Position, _hatch.Target.Position, 2));
+                    hints.AddForbiddenZone(ShapeContains.Rect(orb.Position, _hatch.Target.Position, 2));
                 // also avoid predicted movement path
                 var closestNeurolink = _hatch.Neurolinks.Exclude(neurolinkUnderBoss).Closest(_hatch.Target.Position);
                 if (closestNeurolink != null)
-                    hints.AddForbiddenZone(ShapeDistance.Rect(_hatch.Target.Position, closestNeurolink.Position, 2));
+                    hints.AddForbiddenZone(ShapeContains.Rect(_hatch.Target.Position, closestNeurolink.Position, 2));
             }
         }
 
         if (forbidNeurolinks && _hatch != null)
             foreach (var neurolink in _hatch.Neurolinks)
-                hints.AddForbiddenZone(ShapeDistance.Circle(neurolink.Position, 5));
+                hints.AddForbiddenZone(ShapeContains.Circle(neurolink.Position, 5));
 
         if (actor == _liquidHell?.Target)
         {
             // liquid hell target should gtfo from raid
             foreach (var p in Raid.WithoutSlot().Exclude(actor))
-                hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, _liquidHell.Shape.Radius));
+                hints.AddForbiddenZone(ShapeContains.Circle(p.Position, _liquidHell.Shape.Radius));
         }
     }
 }

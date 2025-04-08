@@ -42,7 +42,7 @@ class Hydroball(BossModule module) : StackWithCastTargets(module, ActionID.MakeS
         {
             foreach (var s in ActiveStacks)
             {
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(actorCheck.Position, 3), s.Activation);
+                hints.AddForbiddenZone(ShapeContains.InvertedCircle(actorCheck.Position, 3), s.Activation);
             }
         }
     }

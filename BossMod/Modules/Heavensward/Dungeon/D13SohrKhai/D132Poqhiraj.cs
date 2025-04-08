@@ -56,7 +56,7 @@ class GallopKnockback(BossModule module) : Components.KnockbackFromCastTarget(mo
         hints.AddForbiddenZone(p =>
         {
             var blockers = p.X > 400 ? rightBlockers : leftBlockers;
-            return blockers.Any(b => Utils.AlmostEqual(p.Z, b.Z, 5.1f)) ? 0 : -1;
+            return !blockers.Any(b => Utils.AlmostEqual(p.Z, b.Z, 5.1f));
         }, Module.CastFinishAt(Casters[0].CastInfo));
     }
 }

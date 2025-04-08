@@ -137,7 +137,7 @@ class MiniSupercell(BossModule module) : Components.GenericBaitAway(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (CurrentBaits.Count > 0 && actor != target)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 45, 0, 3));
+            hints.AddForbiddenZone(ShapeContains.InvertedRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 45, 0, 3));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

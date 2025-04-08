@@ -121,9 +121,9 @@ class P4DarklitDragonsongBrightHunger(BossModule module) : Components.GenericTow
 
         // stay on the far side of assigned tower, on the correct E/W side
         var towerPos = Module.Center + new WDir(0, _darklit.AssignS[slot] ? +TowerOffset : -TowerOffset);
-        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(towerPos, 3), Towers[0].Activation);
-        hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, TowerOffset), Towers[0].Activation);
-        hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center, new(_darklit.AssignE[slot] ? +1 : -1, 0)), Towers[0].Activation);
+        hints.AddForbiddenZone(ShapeContains.InvertedCircle(towerPos, 3), Towers[0].Activation);
+        hints.AddForbiddenZone(ShapeContains.Circle(Module.Center, TowerOffset), Towers[0].Activation);
+        hints.AddForbiddenZone(ShapeContains.HalfPlane(Module.Center, new(_darklit.AssignE[slot] ? +1 : -1, 0)), Towers[0].Activation);
     }
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
@@ -188,7 +188,7 @@ class P4DarklitDragonsongPathOfLight(BossModule module) : Components.GenericBait
 
         // do not clip either tower (it's visible at half-angle = asin(4/8) = 30) or each other
         var dir = (_darklit.AssignE[slot] ? +1 : -1) * (_darklit.AssignS[slot] ? 60 : 120).Degrees();
-        hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + 4 * dir.ToDirection(), new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), _activation);
+        hints.AddForbiddenZone(ShapeContains.PrecisePosition(Module.Center + 4 * dir.ToDirection(), new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), _activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -285,15 +285,15 @@ class P4DarklitDragonsongDarkWater(BossModule module) : Components.UniformStackS
         {
             // preposition
             var off = 9 * (_assignments.AssignS[slot] ? 20 : 130).Degrees().ToDirection();
-            var p1 = ShapeDistance.Circle(Module.Center + off, 1);
-            var p2 = ShapeDistance.Circle(Module.Center + new WDir(-off.X, off.Z), 1);
-            hints.AddForbiddenZone(p => -MathF.Min(p1(p), p2(p)), Stacks[stack].Activation);
+            var p1 = ShapeContains.Circle(Module.Center + off, 1);
+            var p2 = ShapeContains.Circle(Module.Center + new WDir(-off.X, off.Z), 1);
+            hints.AddForbiddenZone(p => !(p1(p) || p2(p)), Stacks[stack].Activation);
         }
         else
         {
             // otherwise just stack tightly with our target, and avoid other
             foreach (var s in Stacks)
-                hints.AddForbiddenZone(s.ForbiddenPlayers[slot] ? ShapeDistance.Circle(s.Target.Position, s.Radius) : ShapeDistance.InvertedCircle(s.Target.Position, 2), s.Activation);
+                hints.AddForbiddenZone(s.ForbiddenPlayers[slot] ? ShapeContains.Circle(s.Target.Position, s.Radius) : ShapeContains.InvertedCircle(s.Target.Position, 2), s.Activation);
         }
     }
 
@@ -335,7 +335,7 @@ class P4SomberDance(BossModule module) : Components.GenericBaitAway(module, cent
         {
             // go far east/west
             var pos = Module.Center + new WDir(actor.Position.X > Module.Center.X ? 19 : -19, 0);
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, 1), _activation);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(pos, 1), _activation);
         }
         else
         {

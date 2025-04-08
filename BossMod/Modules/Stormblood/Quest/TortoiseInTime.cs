@@ -57,7 +57,7 @@ class ExplosiveTataru(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Tataru != null)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Tataru.Position, 6));
+            hints.AddForbiddenZone(ShapeContains.Circle(Tataru.Position, 6));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -95,7 +95,7 @@ class ShieldHint(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Shield is Actor s)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(s.Position, Radius), Module.CastFinishAt(Module.PrimaryActor.CastInfo));
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(s.Position, Radius), Module.CastFinishAt(Module.PrimaryActor.CastInfo));
     }
 }
 

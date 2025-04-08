@@ -11,7 +11,7 @@ class ThornedCatharsis : Components.RaidwideCast
 class TileTracker : BossComponent
 {
     public BitMask TileMask;
-    public Func<WPos, float> ActiveTiles { get; private set; } = _ => float.MaxValue;
+    public Func<WPos, bool> ActiveTiles { get; private set; } = _ => false;
 
     public TileTracker(BossModule module) : base(module)
     {
@@ -95,15 +95,15 @@ class TileTracker : BossComponent
 
     public override void Update()
     {
-        List<Func<WPos, float>> zones = [];
+        List<Func<WPos, bool>> zones = [];
         foreach (var tile in TileMask.SetBits())
         {
             var order = tile % 8;
 
-            zones.Add(ShapeDistance.DonutSector(Module.Center, tile < 8 ? 0 : 8, tile < 8 ? 8 : 16, 157.5f.Degrees() - 45.Degrees() * order, 22.5f.Degrees()));
+            zones.Add(ShapeContains.DonutSector(Module.Center, tile < 8 ? 0 : 8, tile < 8 ? 8 : 16, 157.5f.Degrees() - 45.Degrees() * order, 22.5f.Degrees()));
         }
 
-        ActiveTiles = zones.Count > 0 ? ShapeDistance.Union(zones) : _ => float.MaxValue;
+        ActiveTiles = zones.Count > 0 ? ShapeContains.Union(zones) : _ => false;
     }
 }
 

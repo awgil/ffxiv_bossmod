@@ -114,12 +114,12 @@ class P1BoundOfFaithAIKnockback(BossModule module) : BossComponent(module)
             return;
 
         var sideOffset = _horizDone ? 0 : 7; // before horizonal aoes are done, we don't show knockback, so adjust the unsafe zone
-        hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center + sideOffset * _comp.SafeSide, _comp.SafeSide), _comp.Activation);
+        hints.AddForbiddenZone(ShapeContains.HalfPlane(Module.Center + sideOffset * _comp.SafeSide, _comp.SafeSide), _comp.Activation);
 
         var lane = _comp.AssignedLane(slot);
         if (_horizDone && lane.Z != 0)
         {
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.Center + lane, new WDir(1, 0), 20, 20, 0.7f), _comp.Activation);
+            hints.AddForbiddenZone(ShapeContains.InvertedRect(Module.Center + lane, new WDir(1, 0), 20, 20, 0.7f), _comp.Activation);
         }
     }
 
@@ -148,8 +148,8 @@ class P1BoundOfFaithAIStack(BossModule module) : BossComponent(module)
             foreach (var s in _comp.Stacks)
             {
                 var zone = s.Target == stackWith.Target
-                    ? ShapeDistance.InvertedCircle(s.Target.Position, 4) // stay a bit closer to the target to avoid spooking people
-                    : ShapeDistance.Circle(s.Target.Position, 6);
+                    ? ShapeContains.InvertedCircle(s.Target.Position, 4) // stay a bit closer to the target to avoid spooking people
+                    : ShapeContains.Circle(s.Target.Position, 6);
                 hints.AddForbiddenZone(zone, _comp.Activation);
             }
 
@@ -159,7 +159,7 @@ class P1BoundOfFaithAIStack(BossModule module) : BossComponent(module)
         else
         {
             // just go to center
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.Center, new WDir(1, 0), 1, 1, 20), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeContains.InvertedRect(Module.Center, new WDir(1, 0), 1, 1, 20), DateTime.MaxValue);
         }
     }
 

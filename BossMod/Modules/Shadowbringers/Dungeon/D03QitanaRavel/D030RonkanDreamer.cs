@@ -139,13 +139,13 @@ public class Layout(BossModule module) : BossComponent(module)
         base.AddAIHints(slot, actor, assignment, hints);
         if (Module.PrimaryActor.Position.AlmostEqual(new(0, 634), 1))
         {
-            hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall1(), true));
-            hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall2(), false));
+            hints.AddForbiddenZone(ShapeContains.ConvexPolygon(Wall1(), true));
+            hints.AddForbiddenZone(ShapeContains.ConvexPolygon(Wall2(), false));
         }
         if (Module.PrimaryActor.Position.AlmostEqual(new(0, 428), 1))
         {
-            hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall3(), false));
-            hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall4(), true));
+            hints.AddForbiddenZone(ShapeContains.ConvexPolygon(Wall3(), false));
+            hints.AddForbiddenZone(ShapeContains.ConvexPolygon(Wall4(), true));
         }
     }
 }

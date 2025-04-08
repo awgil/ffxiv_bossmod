@@ -43,10 +43,10 @@ public class Layout2Corners(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall1A(), false));
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall1B(), false));
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall2A(), false));
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall2B(), true));
+        hints.AddForbiddenZone(ShapeContains.ConvexPolygon(Wall1A(), false));
+        hints.AddForbiddenZone(ShapeContains.ConvexPolygon(Wall1B(), false));
+        hints.AddForbiddenZone(ShapeContains.ConvexPolygon(Wall2A(), false));
+        hints.AddForbiddenZone(ShapeContains.ConvexPolygon(Wall2B(), true));
     }
 }
 
@@ -93,10 +93,10 @@ public class Layout4Quads(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad1(), false));
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad2(), false));
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad3(), false));
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad4(), false));
+        hints.AddForbiddenZone(ShapeContains.ConvexPolygon(Quad1(), false));
+        hints.AddForbiddenZone(ShapeContains.ConvexPolygon(Quad2(), false));
+        hints.AddForbiddenZone(ShapeContains.ConvexPolygon(Quad3(), false));
+        hints.AddForbiddenZone(ShapeContains.ConvexPolygon(Quad4(), false));
     }
 }
 
@@ -117,6 +117,6 @@ public class LayoutBigQuad(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad(), false));
+        hints.AddForbiddenZone(ShapeContains.ConvexPolygon(Quad(), false));
     }
 }

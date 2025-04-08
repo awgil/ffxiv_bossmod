@@ -128,7 +128,7 @@ class P2DiamondDustSafespots(BossModule module) : BossComponent(module)
         if (_safeOffs[slot] != default)
         {
             hints.PathfindMapBounds = FRU.PathfindHugBorderBounds;
-            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + _safeOffs[slot], new WDir(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
+            hints.AddForbiddenZone(ShapeContains.PrecisePosition(Module.Center + _safeOffs[slot], new WDir(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
         }
     }
 
@@ -222,7 +222,7 @@ class P2HeavenlyStrike(BossModule module) : Components.Knockback(module, ActionI
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_safeDirs[slot] != default)
-            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + 6 * _safeDirs[slot], new(1, 0), Module.Bounds.MapResolution, actor.Position, 0.25f), _activation);
+            hints.AddForbiddenZone(ShapeContains.PrecisePosition(Module.Center + 6 * _safeDirs[slot], new(1, 0), Module.Bounds.MapResolution, actor.Position, 0.25f), _activation);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -302,8 +302,8 @@ class P2SinboundHoly(BossModule module) : Components.UniformStackSpread(module, 
             // non-healers should just stack with whatever closest healer is
             // before first cast, ignore master's movements
             var moveDir = NumCasts > 0 ? master.LastFrameMovement.Normalized() : default;
-            var capsule = ShapeDistance.Capsule(master.Position + 2 * moveDir, moveDir, 4, 1.5f);
-            hints.AddForbiddenZone(p => -capsule(p), DateTime.MaxValue);
+            var capsule = ShapeContains.Capsule(master.Position + 2 * moveDir, moveDir, 4, 1.5f);
+            hints.AddForbiddenZone(p => !capsule(p), DateTime.MaxValue);
         }
 
         // note: other hints have to be 'later' than immediate (to make getting out of voidzones higher prio), but 'earlier' than stack-with-healer:
@@ -311,11 +311,11 @@ class P2SinboundHoly(BossModule module) : Components.UniformStackSpread(module, 
         var hintTime = WorldState.FutureTime(50);
 
         // stay near border
-        hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 16), hintTime);
+        hints.AddForbiddenZone(ShapeContains.Circle(Module.Center, 16), hintTime);
 
         // prefer moving towards safety (CW is arbitrary)
         var planeOffset = moveQuickly ? 2 : -2; // if we're moving quickly, mark our current spot as forbidden
-        hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center + planeOffset * preferredDir, preferredDir), hintTime);
+        hints.AddForbiddenZone(ShapeContains.HalfPlane(Module.Center + planeOffset * preferredDir, preferredDir), hintTime);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -432,8 +432,8 @@ class P2TwinStillnessSilence(BossModule module) : Components.GenericAOEs(module)
                     var oppositeDist = (sourceDir + 180.Degrees()).DistanceToRange(closest.min + halfWidth, closest.max - halfWidth);
                     desiredDir = oppositeDist.Abs().Rad < sourceDist.Abs().Rad ? (sourceDir + 180.Degrees() + oppositeDist) : (sourceDir + sourceDist);
                 }
-                hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 16), WorldState.FutureTime(50));
-                hints.AddForbiddenZone(ShapeDistance.InvertedCone(Module.Center, 100, desiredDir, halfWidth), DateTime.MaxValue);
+                hints.AddForbiddenZone(ShapeContains.Circle(Module.Center, 16), WorldState.FutureTime(50));
+                hints.AddForbiddenZone(ShapeContains.InvertedCone(Module.Center, 100, desiredDir, halfWidth), DateTime.MaxValue);
             }
         }
         else if (actor.LastFrameMovement == default)
@@ -470,7 +470,7 @@ class P2TwinStillnessSilence(BossModule module) : Components.GenericAOEs(module)
                 var farthestDir = Angle.FromDirection(-sourceOffset);
                 var bestRange = zoneList.Allowed(5.Degrees()).MinBy(r => farthestDir.DistanceToRange(r.min, r.max).Abs().Rad);
                 var dir = farthestDir.ClosestInRange(bestRange.min, bestRange.max);
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(actor.Position + SlideDistance * dir.ToDirection(), 1), DateTime.MaxValue);
+                hints.AddForbiddenZone(ShapeContains.InvertedCircle(actor.Position + SlideDistance * dir.ToDirection(), 1), DateTime.MaxValue);
             }
             else
             {
@@ -481,12 +481,12 @@ class P2TwinStillnessSilence(BossModule module) : Components.GenericAOEs(module)
                 // prefer to return to the starting spot, for more natural preposition for next mechanic
                 if (AOEs.Count == 1 && _slideBackPos[slot] != default && !zoneList.Forbidden.Contains(Angle.FromDirection(_slideBackPos[slot] - actor.Position).Rad))
                 {
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_slideBackPos[slot], 1), DateTime.MaxValue);
+                    hints.AddForbiddenZone(ShapeContains.InvertedCircle(_slideBackPos[slot], 1), DateTime.MaxValue);
                 }
                 else if (zoneList.Allowed(1.Degrees()).MaxBy(r => (r.max - r.min).Rad) is var best && best.max.Rad > best.min.Rad)
                 {
                     var dir = 0.5f * (best.min + best.max);
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(actor.Position + SlideDistance * dir.ToDirection(), 1), DateTime.MaxValue);
+                    hints.AddForbiddenZone(ShapeContains.InvertedCircle(actor.Position + SlideDistance * dir.ToDirection(), 1), DateTime.MaxValue);
                 }
                 // else: no good direction can be found, wait for a bit, maybe voidzone will disappear
             }

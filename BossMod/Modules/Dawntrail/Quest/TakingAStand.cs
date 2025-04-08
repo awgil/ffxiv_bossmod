@@ -87,9 +87,9 @@ class Kickdown(BossModule module) : Components.Knockback(module, ActionID.MakeSp
             return;
 
         var source = Casters[0];
-        var arenaBounds = ShapeDistance.InvertedCircle(Arena.Center, 20);
+        var arenaBounds = ShapeContains.InvertedCircle(Arena.Center, 20);
 
-        float kbdist(WPos playerPos)
+        bool kbdist(WPos playerPos)
         {
             var dir = (playerPos - source.Position).Normalized();
             var expected = playerPos + 18 * dir;

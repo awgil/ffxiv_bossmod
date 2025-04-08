@@ -90,33 +90,33 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
         // TODO: think how to improve this, current implementation works, but isn't particularly good - e.g. nearby players tend to move to same spot, turn around, etc.
         // ideally we should provide per-mechanic spread spots, but for simple cases we should try to let melee spread close and healers/rdd spread far from main target...
         foreach (var spreadFrom in ActiveSpreads.Where(s => s.Target != actor))
-            hints.AddForbiddenZone(ShapeDistance.Circle(spreadFrom.Target.Position, spreadFrom.Radius + ExtraAISpreadThreshold), spreadFrom.Activation);
+            hints.AddForbiddenZone(ShapeContains.Circle(spreadFrom.Target.Position, spreadFrom.Radius + ExtraAISpreadThreshold), spreadFrom.Activation);
 
         // if player has spread himself, stay away from everyone else
         var actorSpread = Spreads.FirstOrDefault(s => s.Target == actor);
         if (actorSpread.Target != null)
             foreach (var p in Raid.WithoutSlot().Exclude(actor))
-                hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, actorSpread.Radius), actorSpread.Activation);
+                hints.AddForbiddenZone(ShapeContains.Circle(p.Position, actorSpread.Radius), actorSpread.Activation);
 
         foreach (var avoid in ActiveStacks.Where(s => s.Target != actor && s.ForbiddenPlayers[slot]))
-            hints.AddForbiddenZone(ShapeDistance.Circle(avoid.Target.Position, avoid.Radius), avoid.Activation);
+            hints.AddForbiddenZone(ShapeContains.Circle(avoid.Target.Position, avoid.Radius), avoid.Activation);
 
         if (Stacks.FirstOrDefault(s => s.Target == actor) is var actorStack && actorStack.Target != null)
         {
             // forbid standing next to other stack markers
             foreach (var stackWith in ActiveStacks.Where(s => s.Target != actor))
-                hints.AddForbiddenZone(ShapeDistance.Circle(stackWith.Target.Position, stackWith.Radius), stackWith.Activation);
+                hints.AddForbiddenZone(ShapeContains.Circle(stackWith.Target.Position, stackWith.Radius), stackWith.Activation);
             // and try to stack with closest non-stack/spread player
             var closest = Raid.WithoutSlot().Where(p => p != actor && !IsSpreadTarget(p) && !IsStackTarget(p)).Closest(actor.Position);
             if (closest != null)
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closest.Position, actorStack.Radius * 0.5f), actorStack.Activation);
+                hints.AddForbiddenZone(ShapeContains.InvertedCircle(closest.Position, actorStack.Radius * 0.5f), actorStack.Activation);
         }
         else if (actorSpread.Target == null)
         {
             // TODO: handle multi stacks better...
             var closestStack = ActiveStacks.Where(s => !s.ForbiddenPlayers[slot]).MinBy(s => (s.Target.Position - actor.Position).LengthSq());
             if (closestStack.Target != null)
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closestStack.Target.Position, closestStack.Radius), closestStack.Activation);
+                hints.AddForbiddenZone(ShapeContains.InvertedCircle(closestStack.Target.Position, closestStack.Radius), closestStack.Activation);
         }
 
         if (RaidwideOnResolve)

@@ -42,11 +42,11 @@ class WindSafe(BossModule module) : Components.GenericAOEs(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var shapes = SafeZones.Take(4).Select(s => s.aoe.Shape.Distance(s.aoe.Origin, s.aoe.Rotation)).ToList();
+        var shapes = SafeZones.Take(4).Select(s => s.aoe.Shape.CheckFn(s.aoe.Origin, s.aoe.Rotation)).ToList();
         if (shapes.Count == 0)
             return;
 
-        hints.AddForbiddenZone(p => -shapes.Min(e => e(p)), SafeZones[0].aoe.Activation);
+        hints.AddForbiddenZone(p => !shapes.Any(e => e(p)), SafeZones[0].aoe.Activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

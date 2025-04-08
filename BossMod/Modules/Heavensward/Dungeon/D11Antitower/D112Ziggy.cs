@@ -91,7 +91,7 @@ class JitteringJounceTether(BossModule module) : BossComponent(module)
         if (Target == null || Target == actor)
             return;
 
-        hints.AddForbiddenZone(ShapeDistance.Rect(Module.PrimaryActor.Position, Target.Position, 3), Module.CastFinishAt(Module.PrimaryActor.CastInfo, 0.5f));
+        hints.AddForbiddenZone(ShapeContains.Rect(Module.PrimaryActor.Position, Target.Position, 3), Module.CastFinishAt(Module.PrimaryActor.CastInfo, 0.5f));
     }
 }
 

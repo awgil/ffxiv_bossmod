@@ -44,7 +44,7 @@ class PathoPurge(BossModule module) : Components.GenericAOEs(module)
         base.AddAIHints(slot, actor, assignment, hints);
         // if next is cross and there are donuts after it, we still want to stay closer to it, to simplify getting to the next donut
         if (AOEs.Count >= 2 && AOEs[0].Shape == _shapeCross && AOEs.Skip(1).Any(aoe => aoe.Shape == _shapeDonut))
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(AOEs[0].Origin, 8), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(AOEs[0].Origin, 8), DateTime.MaxValue);
     }
 
     public override void OnActorCreated(Actor actor)
@@ -83,7 +83,7 @@ class Disinfection(BossModule module) : Components.BaitAwayIcon(module, new AOES
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var b in ActiveBaitsOn(actor))
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 6), b.Activation);
+            hints.AddForbiddenZone(ShapeContains.Circle(Module.Center, 6), b.Activation);
     }
 }
 
@@ -95,7 +95,7 @@ class Quarantine(BossModule module) : Components.UniformStackSpread(module, 6, 0
     {
         foreach (var s in ActiveStacks)
             if (!s.ForbiddenPlayers[slot])
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 3), s.Activation); // stack neatly in center
+                hints.AddForbiddenZone(ShapeContains.InvertedCircle(Module.Center, 3), s.Activation); // stack neatly in center
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)

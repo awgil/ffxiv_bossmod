@@ -5,7 +5,6 @@ record class AOEShapeTiles(BitMask Tiles) : AOEShape
     public BitMask Tiles = Tiles;
 
     public override bool Check(WPos position, WPos origin, Angle rotation) => Tiles[FunkyFloor.GetPosTile(position)];
-    public override Func<WPos, float> Distance(WPos origin, Angle rotation) => p => Tiles[FunkyFloor.GetPosTile(p)] ? -1 : 1;
     public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = 0)
     {
         foreach (var t in Tiles.SetBits())
@@ -189,9 +188,9 @@ class BurnBabyBurn(BossModule module) : BossComponent(module)
     {
         if (Imminent(slot))
         {
-            var tiles = GetSafeTiles(slot).Select(t => ShapeDistance.Circle(FunkyFloor.GetTilePos(t), 2.5f)).ToList();
-            var all = ShapeDistance.Union(tiles);
-            hints.AddForbiddenZone(p => -all(p), Timers[slot]);
+            var tiles = GetSafeTiles(slot).Select(t => ShapeContains.Circle(FunkyFloor.GetTilePos(t), 2.5f)).ToList();
+            var all = ShapeContains.Union(tiles);
+            hints.AddForbiddenZone(p => !all(p), Timers[slot]);
         }
     }
 }

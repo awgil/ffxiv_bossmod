@@ -148,17 +148,17 @@ class Magnetism(BossModule module) : Components.Knockback(module, ignoreImmunes:
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var forbidden = new List<Func<WPos, float>>();
+        var forbidden = new List<Func<WPos, bool>>();
         if (IsKnockback(actor, Shape.Circle, MagneticPole.Plus) || IsKnockback(actor, Shape.Circle, MagneticPole.Minus))
-            forbidden.Add(ShapeDistance.InvertedCircle(Arena.Center, 10));
+            forbidden.Add(ShapeContains.InvertedCircle(Arena.Center, 10));
         else if (IsPull(actor, Shape.Circle, MagneticPole.Plus) || IsPull(actor, Shape.Circle, MagneticPole.Minus))
-            forbidden.Add(ShapeDistance.Circle(Arena.Center, 13));
+            forbidden.Add(ShapeContains.Circle(Arena.Center, 13));
         else if (IsKnockback(actor, Shape.Rect, MagneticPole.Plus) || IsKnockback(actor, Shape.Rect, MagneticPole.Minus))
-            forbidden.Add(ShapeDistance.InvertedCircle(Arena.Center, 6));
+            forbidden.Add(ShapeContains.InvertedCircle(Arena.Center, 6));
         else if (IsPull(actor, Shape.Rect, MagneticPole.Plus) || IsPull(actor, Shape.Rect, MagneticPole.Minus))
-            forbidden.Add(ShapeDistance.Rect(Arena.Center, rotation, 15, 15, 12));
+            forbidden.Add(ShapeContains.Rect(Arena.Center, rotation, 15, 15, 12));
         if (forbidden.Count > 0)
-            hints.AddForbiddenZone(p => forbidden.Max(f => f(p)), activation);
+            hints.AddForbiddenZone(p => forbidden.Any(f => f(p)), activation);
     }
 }
 

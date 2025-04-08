@@ -63,10 +63,10 @@ class Surge(BossModule module) : Components.Knockback(module, ActionID.MakeSpell
         if (Activation != default)
         {
             foreach (var t in _fakeTurrets)
-                hints.AddForbiddenZone(ShapeDistance.Rect(t.origin, t.dir, 20, 0, 5), Activation);
+                hints.AddForbiddenZone(ShapeContains.Rect(t.origin, t.dir, 20, 0, 5), Activation);
             // this is paired with spread (electray), which resolve right after knockback - avoid taking same lanes as other party members
             foreach (var p in Raid.WithoutSlot().Exclude(actor))
-                hints.AddForbiddenZone(ShapeDistance.Rect(new(Module.Center.X, p.Position.Z), new WDir(p.Position.X < Module.Center.X ? -1 : 1, 0), 16, 0, 5), Activation);
+                hints.AddForbiddenZone(ShapeContains.Rect(new(Module.Center.X, p.Position.Z), new WDir(p.Position.X < Module.Center.X ? -1 : 1, 0), 16, 0, 5), Activation);
         }
     }
 

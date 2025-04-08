@@ -85,7 +85,7 @@ class Aetheroplasm(BossModule module) : BossComponent(module)
         if (orb != null)
         {
             hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Sprint), actor, ActionQueue.Priority.High);
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(orb.Position + 0.7f * orb.Rotation.ToDirection(), 1.2f));
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(orb.Position + 0.7f * orb.Rotation.ToDirection(), 1.2f));
         }
     }
 

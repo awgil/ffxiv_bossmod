@@ -51,16 +51,16 @@ class ValfodrKB(BossModule module) : Components.Knockback(module, ActionID.MakeS
         }
     }
 
-    private Func<WPos, float>? GetFireballZone()
+    private Func<WPos, bool>? GetFireballZone()
     {
         _infatuation ??= Module.FindComponent<Infatuation>();
         if (_infatuation == null || _infatuation.Casters.Count == 0)
             return null;
 
-        return ShapeDistance.Union([.. _infatuation.Casters.Select(c => ShapeDistance.Circle(c.Position, 7))]);
+        return ShapeContains.Union([.. _infatuation.Casters.Select(c => ShapeContains.Circle(c.Position, 7))]);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => GetFireballZone() is var z && z != null && z(pos) < 0;
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => GetFireballZone() is var z && z != null && z(pos);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

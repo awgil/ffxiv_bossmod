@@ -165,7 +165,7 @@ class MagnetTethers(BossModule module) : Components.Knockback(module, stopAtWall
             if (src.Kind == Kind.AwayFromOrigin && balls?.CurrentPattern == Balls.Pattern.DonutOut)
             {
                 WDir dirToCenter = src.Origin.X < 80 ? new(4, 0) : new(-4, 0);
-                hints.AddForbiddenZone(ShapeDistance.InvertedRect(src.Origin, src.Origin + dirToCenter, 0.5f), src.Activation);
+                hints.AddForbiddenZone(ShapeContains.InvertedRect(src.Origin, src.Origin + dirToCenter, 0.5f), src.Activation);
             }
             break;
         }

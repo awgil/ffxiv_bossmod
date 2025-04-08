@@ -193,7 +193,7 @@ class Wind(BossModule module) : Components.Knockback(module)
             {
                 var badZ = src.Origin.Z < Arena.Center.Z ? src.Origin.Z + 48 : src.Origin.Z - 48;
                 var badWall = new WPos(src.Origin.X, badZ);
-                hints.AddForbiddenZone(ShapeDistance.Rect(badWall, src.Direction + 180.Degrees(), 40, 0, 40), src.Activation);
+                hints.AddForbiddenZone(ShapeContains.Rect(badWall, src.Direction + 180.Degrees(), 40, 0, 40), src.Activation);
             }
         }
     }

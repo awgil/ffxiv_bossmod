@@ -77,7 +77,7 @@ class Meteors(BossModule module) : Components.GenericBaitAway(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (targets.Contains(actor))
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(new(-80, 97), new(-80, 67), 15));
+            hints.AddForbiddenZone(ShapeContains.InvertedRect(new(-80, 97), new(-80, 67), 15));
     }
 }
 

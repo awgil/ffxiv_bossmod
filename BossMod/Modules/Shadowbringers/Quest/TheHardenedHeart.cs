@@ -81,7 +81,7 @@ class TankbusterTether(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (DwarfTether?.Target.OID == 0x2917)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(DwarfTether.Source.Position, DwarfTether.Target.Position, 1), DwarfTether.Activation);
+            hints.AddForbiddenZone(ShapeContains.InvertedRect(DwarfTether.Source.Position, DwarfTether.Target.Position, 1), DwarfTether.Activation);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

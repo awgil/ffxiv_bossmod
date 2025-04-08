@@ -67,7 +67,7 @@ class CullingBlade(BossModule module) : Components.SelfTargetedAOEs(module, Acti
 
         // zone rasterization can end up missing the arena center since it only contains the tips of a bunch of very pointy triangles
         if (Casters.FirstOrDefault() is Actor c)
-            hints.AddForbiddenZone(ShapeDistance.Circle(c.Position, 0.5f), Module.CastFinishAt(c.CastInfo));
+            hints.AddForbiddenZone(ShapeContains.Circle(c.Position, 0.5f), Module.CastFinishAt(c.CastInfo));
     }
 }
 class TerminusEst(BossModule module) : Components.GenericAOEs(module)

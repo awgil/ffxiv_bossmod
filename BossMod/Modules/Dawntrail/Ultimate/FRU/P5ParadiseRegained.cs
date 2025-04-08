@@ -90,7 +90,7 @@ class P5ParadiseRegainedBaits(BossModule module) : Components.GenericBaitAway(mo
         if (!ForbiddenPlayers[slot])
         {
             // just go to the next safespot
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center + SafeOffset(slot, actor), 1));
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Module.Center + SafeOffset(slot, actor), 1));
         }
     }
 

@@ -88,7 +88,7 @@ class P2AI(BossModule module) : BossComponent(module)
                     break;
                 case OID.Conflagration:
                     e.Priority = 2;
-                    hints.AddForbiddenZone(ShapeDistance.Circle(e.Actor.Position, 6)); // TODO: reconsider (e.g. fireball target might want to run inside conflag)
+                    hints.AddForbiddenZone(ShapeContains.Circle(e.Actor.Position, 6)); // TODO: reconsider (e.g. fireball target might want to run inside conflag)
                     break;
             }
         }
@@ -101,7 +101,7 @@ class P2AI(BossModule module) : BossComponent(module)
         if (_conflagrate?.Target == actor)
         {
             hints.ForbiddenZones.Clear(); // ignore things like cleave
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position, 1), _conflagrate.FettersAt);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Module.PrimaryActor.Position, 1), _conflagrate.FettersAt);
         }
         else if (_deathSentence?.TankRole != assignment)
         {
@@ -115,7 +115,7 @@ class P2AI(BossModule module) : BossComponent(module)
             var bossTarget = WorldState.Actors.Find(Module.PrimaryActor.TargetID);
             var dir = bossTarget != null ? Angle.FromDirection(bossTarget.Position - Module.PrimaryActor.Position) : Module.PrimaryActor.Rotation;
             dir += (stayLeft ? 135 : -135).Degrees();
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position + dir.ToDirection() * 8, P2Fireball.Radius * 0.5f), _fireball?.Target != null ? _fireball.ExplosionAt : DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Module.PrimaryActor.Position + dir.ToDirection() * 8, P2Fireball.Radius * 0.5f), _fireball?.Target != null ? _fireball.ExplosionAt : DateTime.MaxValue);
         }
 
         if (_fireball?.Target != null)

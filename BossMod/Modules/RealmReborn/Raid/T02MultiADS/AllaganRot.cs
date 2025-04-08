@@ -26,9 +26,9 @@ class AllaganRot(BossModule module) : BossComponent(module)
             return;
 
         if (WantToPickUpRot(assignment))
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(rotHolder.Position, _rotPassRadius - 1), _rotExpiration[_rotHolderSlot]);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(rotHolder.Position, _rotPassRadius - 1), _rotExpiration[_rotHolderSlot]);
         else
-            hints.AddForbiddenZone(ShapeDistance.Circle(rotHolder.Position, _rotPassRadius + 4), _immunityExpiration[slot]);
+            hints.AddForbiddenZone(ShapeContains.Circle(rotHolder.Position, _rotPassRadius + 4), _immunityExpiration[slot]);
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)

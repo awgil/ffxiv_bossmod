@@ -159,10 +159,10 @@ class LightningRod(BossModule module) : Components.GenericAOEs(module)
         if (!PlayerStates[slot] || LightningBoltAt == null)
             return;
 
-        var inactiveRods = InactiveRods.Select(r => ShapeDistance.InvertedCircle(r.Position, 3)).ToList();
+        var inactiveRods = InactiveRods.Select(r => ShapeContains.InvertedCircle(r.Position, 3)).ToList();
         if (inactiveRods.Count > 0)
         {
-            var zone = ShapeDistance.Intersection(inactiveRods);
+            var zone = ShapeContains.Intersection(inactiveRods);
             hints.AddForbiddenZone(zone, LightningBoltAt.Value);
         }
     }

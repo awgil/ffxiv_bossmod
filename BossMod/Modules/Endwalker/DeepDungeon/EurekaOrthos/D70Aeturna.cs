@@ -71,7 +71,7 @@ class FerocityGood(BossModule module) : Components.BaitAwayTethers(module, new A
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
+            hints.AddForbiddenZone(ShapeContains.Circle(Module.PrimaryActor.Position, 15));
     }
 }
 
@@ -109,7 +109,7 @@ class FerocityBad(BossModule module) : Components.BaitAwayTethers(module, new AO
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15), Module.CastFinishAt(Module.PrimaryActor.CastInfo));
+            hints.AddForbiddenZone(ShapeContains.Circle(Module.PrimaryActor.Position, 15), Module.CastFinishAt(Module.PrimaryActor.CastInfo));
     }
 }
 

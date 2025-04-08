@@ -25,7 +25,7 @@ public class Chains(BossModule module, uint tetherID, ActionID aid = default, fl
         var partner = Partners[slot];
         if (partner.Partner != null)
         {
-            var forbiddenZone = spreadChains ? ShapeDistance.Circle(partner.Partner.Position, partner.InitialDistance + chainLength) : ShapeDistance.InvertedCircle(partner.Partner.Position, chainLength);
+            var forbiddenZone = spreadChains ? ShapeContains.Circle(partner.Partner.Position, partner.InitialDistance + chainLength) : ShapeContains.InvertedCircle(partner.Partner.Position, chainLength);
             hints.AddForbiddenZone(forbiddenZone);
         }
     }

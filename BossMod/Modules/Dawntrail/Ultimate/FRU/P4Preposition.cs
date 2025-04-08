@@ -8,7 +8,7 @@ class P4Preposition(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var b in _boss)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(b.Position, 8), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(b.Position, 8), DateTime.MaxValue);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

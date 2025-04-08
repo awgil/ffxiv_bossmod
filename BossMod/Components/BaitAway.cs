@@ -74,7 +74,7 @@ public class GenericBaitAway(BossModule module, ActionID aid = default, bool alw
                         else if (b.Shape is AOEShapeRect shapeRect)
                         {
                             // to avoid clipping player with a rect, we need to avoid the cone with half-angle = asin(halfWidth/distance) centered on other player
-                            hints.AddForbiddenZone(ShapeDistance.Cone(b.Source.Position, 100, b.Source.AngleTo(p), Angle.Asin(shapeRect.HalfWidth / (p.Position - b.Source.Position).Length())), b.Activation);
+                            hints.AddForbiddenZone(ShapeContains.Cone(b.Source.Position, 100, b.Source.AngleTo(p), Angle.Asin(shapeRect.HalfWidth / (p.Position - b.Source.Position).Length())), b.Activation);
                         }
                     }
                 }

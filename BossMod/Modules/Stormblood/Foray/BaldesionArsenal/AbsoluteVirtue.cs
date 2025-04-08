@@ -197,15 +197,15 @@ class Balls(BossModule module) : BossComponent(module)
     {
         if (TetherColors[slot] != Color.None)
         {
-            var safeTowers = SafeTowers(slot).Select(t => ShapeDistance.Donut(t.Position, TowerRadius, 100)).ToList();
+            var safeTowers = SafeTowers(slot).Select(t => ShapeContains.Donut(t.Position, TowerRadius, 100)).ToList();
             if (safeTowers.Count > 0)
-                hints.AddForbiddenZone(ShapeDistance.Intersection(safeTowers), Deadline);
+                hints.AddForbiddenZone(ShapeContains.Intersection(safeTowers), Deadline);
         }
 
         // don't go to the same tower as another baiter
-        var otherBaits = Tethers.Where(t => t.Target != actor).Select(t => ShapeDistance.Circle(t.Target.Position, 6)).ToList();
+        var otherBaits = Tethers.Where(t => t.Target != actor).Select(t => ShapeContains.Circle(t.Target.Position, 6)).ToList();
         if (otherBaits.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.Union(otherBaits), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeContains.Union(otherBaits), DateTime.MaxValue);
     }
 }
 

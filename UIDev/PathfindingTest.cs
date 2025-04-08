@@ -86,11 +86,11 @@ class PathfindingTest : TestWindow
         Map map = new(_mapResolution, new(_mapCenter), _mapHalfSize.X, _mapHalfSize.Y, _mapRotationDeg.Degrees());
         float[] scratch = [];
         var now = DateTime.MinValue.AddSeconds(NavigationDecision.ActivationTimeCushion);
-        List<(Func<WPos, float> shapeDistance, DateTime activation, ulong source)> zones = [];
+        List<(Func<WPos, bool> containsFn, DateTime activation, ulong source)> zones = [];
         if (_blockCone)
-            zones.Add((ShapeDistance.DonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()), now.AddSeconds(_blockConeG), 0));
+            zones.Add((ShapeContains.DonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()), now.AddSeconds(_blockConeG), 0));
         if (_blockRect)
-            zones.Add((ShapeDistance.Rect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth), now.AddSeconds(_blockRectG), 0));
+            zones.Add((ShapeContains.Rect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth), now.AddSeconds(_blockRectG), 0));
         zones.SortBy(z => z.activation);
         NavigationDecision.RasterizeForbiddenZones(map, zones, now, ref scratch);
 

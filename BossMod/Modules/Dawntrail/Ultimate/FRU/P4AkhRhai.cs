@@ -15,9 +15,9 @@ class P4AkhRhai(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
         {
             // preposition for baits - note that this is very arbitrary...
             var off = 10 * 45.Degrees().ToDirection();
-            var p1 = ShapeDistance.Circle(Module.Center + off, 1);
-            var p2 = ShapeDistance.Circle(Module.Center - off, 1);
-            hints.AddForbiddenZone(p => -MathF.Min(p1(p), p2(p)), DateTime.MaxValue);
+            var p1 = ShapeContains.Circle(Module.Center + off, 1);
+            var p2 = ShapeContains.Circle(Module.Center - off, 1);
+            hints.AddForbiddenZone(p => !(p1(p) || p2(p)), DateTime.MaxValue);
         }
     }
 

@@ -52,7 +52,7 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
     {
         foreach (var h in hints.PotentialTargets.Where(p => p.Actor.Position.InCircle(player.Position, 40)))
             if (!h.Actor.InCombat && !h.Actor.Position.AlmostEqual(new(111, -317), 10))
-                hints.AddForbiddenZone(ShapeDistance.Cone(h.Actor.Position, 8.5f + h.Actor.HitboxRadius, h.Actor.Rotation, 45.Degrees()));
+                hints.AddForbiddenZone(ShapeContains.Cone(h.Actor.Position, 8.5f + h.Actor.HitboxRadius, h.Actor.Rotation, 45.Degrees()));
 
         _ai.Execute(player, hints);
     }

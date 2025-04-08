@@ -96,9 +96,9 @@ class PlayASide(BossModule module) : BossComponent(module)
 
         hints.PredictedDamage.Add((Raid.WithSlot().Mask(), Activation));
 
-        var cones = DifferentRole(actor).Select(p => ShapeDistance.Cone(Module.PrimaryActor.Position, 60, Module.PrimaryActor.AngleTo(p), 22.5f.Degrees())).ToList();
+        var cones = DifferentRole(actor).Select(p => ShapeContains.Cone(Module.PrimaryActor.Position, 60, Module.PrimaryActor.AngleTo(p), 22.5f.Degrees())).ToList();
         if (cones.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.Union(cones), Activation);
+            hints.AddForbiddenZone(ShapeContains.Union(cones), Activation);
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)

@@ -102,7 +102,7 @@ class P1CyclonicBreakAIBait(BossModule module) : BossComponent(module)
             return; // no assignment
         var assignedDirection = (180 - 45 * clockspot).Degrees();
         // TODO: think about melee vs ranged distance...
-        hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, assignedDirection, 15, -5, 1), _spreadStack.Activation);
+        hints.AddForbiddenZone(ShapeContains.InvertedRect(Module.PrimaryActor.Position, assignedDirection, 15, -5, 1), _spreadStack.Activation);
     }
 }
 
@@ -128,8 +128,8 @@ class P1CyclonicBreakAIDodgeSpreadStack(BossModule module) : BossComponent(modul
         var assignedDirection = (180 - 45 * clockspot).Degrees();
         var safeAngles = _forbiddenDirections.NextAllowed(assignedDirection, dodgeCCW);
         var (rangeMin, rangeMax) = _spreadStack.Stacks.Count > 0 ? (4, 10) : assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT or PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.M2 ? (3, 6) : (7, 15);
-        var safeZone = ShapeDistance.DonutSector(_forbiddenDirections.Center, rangeMin, rangeMax, (safeAngles.min + safeAngles.max) * 0.5f, (safeAngles.max - safeAngles.min) * 0.5f);
-        hints.AddForbiddenZone(p => -safeZone(p), _spreadStack.Activation);
+        var safeZone = ShapeContains.DonutSector(_forbiddenDirections.Center, rangeMin, rangeMax, (safeAngles.min + safeAngles.max) * 0.5f, (safeAngles.max - safeAngles.min) * 0.5f);
+        hints.AddForbiddenZone(p => !safeZone(p), _spreadStack.Activation);
 
         // micro adjusts if activation is imminent
         if (_spreadStack.Activation < WorldState.FutureTime(0.5f))
@@ -138,12 +138,12 @@ class P1CyclonicBreakAIDodgeSpreadStack(BossModule module) : BossComponent(modul
             {
                 var closestPartner = Module.Raid.WithoutSlot().Where(p => p.Class.IsSupport() != isSupport).Closest(actor.Position);
                 if (closestPartner != null)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closestPartner.Position, _spreadStack.StackRadius), _spreadStack.Activation);
+                    hints.AddForbiddenZone(ShapeContains.InvertedCircle(closestPartner.Position, _spreadStack.StackRadius), _spreadStack.Activation);
             }
             else
             {
                 foreach (var p in Raid.WithoutSlot().Exclude(actor))
-                    hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, _spreadStack.SpreadRadius), _spreadStack.Activation);
+                    hints.AddForbiddenZone(ShapeContains.Circle(p.Position, _spreadStack.SpreadRadius), _spreadStack.Activation);
             }
         }
     }
@@ -157,6 +157,6 @@ class P1CyclonicBreakAIDodgeRest(BossModule module) : BossComponent(module)
     {
         if (_cones != null)
             foreach (var aoe in _cones.AOEs)
-                hints.AddForbiddenZone(aoe.Shape.Distance(aoe.Origin, aoe.Rotation), aoe.Activation);
+                hints.AddForbiddenZone(aoe.Shape.CheckFn(aoe.Origin, aoe.Rotation), aoe.Activation);
     }
 }

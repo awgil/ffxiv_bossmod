@@ -23,7 +23,7 @@ class Ex1UltimaAI(BossModule module) : BossComponent(module)
                 PartyRolesConfig.Assignment.H2 => _rangedRange * (-10).Degrees().ToDirection(),
                 _ => new(0, _viscousAetheroplasm!.NeedTankSwap ? -2 : _meleeRange)
             };
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.PrimaryActor.Position + hintOffset, 1.5f), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Module.PrimaryActor.Position + hintOffset, 1.5f), DateTime.MaxValue);
         }
 
         foreach (var e in hints.PotentialTargets)

@@ -73,8 +73,8 @@ class March(BossModule module) : Components.GenericAOEs(module)
     {
         foreach (var b in _knights)
         {
-            hints.AddForbiddenZone(ShapeDistance.Capsule(b.Position, b.Rotation.ToDirection(), 12, 2));
-            hints.AddForbiddenZone(ShapeDistance.Circle(b.Position, 2.5f));
+            hints.AddForbiddenZone(ShapeContains.Capsule(b.Position, b.Rotation.ToDirection(), 12, 2));
+            hints.AddForbiddenZone(ShapeContains.Circle(b.Position, 2.5f));
         }
     }
 };

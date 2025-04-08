@@ -47,15 +47,15 @@ class EclipsingExhaust(BossModule module) : Components.KnockbackFromCastTarget(m
             hints.AddForbiddenZone(pos =>
             {
                 if ((pos - Arena.Center).Length() > 5)
-                    return -1;
+                    return true;
 
                 var proj = pos + (pos - Arena.Center).Normalized() * 11;
 
                 foreach (var p in _peacefire?.Casters ?? [])
                     if (proj.InCircle(p.CastInfo!.LocXZ, 10))
-                        return -1;
+                        return true;
 
-                return 0;
+                return false;
             }, Module.CastFinishAt(c.CastInfo));
         }
     }

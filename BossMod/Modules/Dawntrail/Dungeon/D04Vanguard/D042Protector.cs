@@ -72,8 +72,8 @@ class FulminousFence(BossModule module) : BossComponent(module)
     {
         foreach (var (a, b) in ActiveLines())
         {
-            var raw = ShapeDistance.Rect(a, b, 0);
-            hints.AddForbiddenZone(p => raw(p) - 1);
+            var raw = ShapeContains.Rect(a, b, 1);
+            hints.AddForbiddenZone(raw);
         }
     }
 

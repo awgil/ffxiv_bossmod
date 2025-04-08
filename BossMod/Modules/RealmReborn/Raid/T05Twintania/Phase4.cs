@@ -28,9 +28,9 @@ class P4Twisters(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var p in _predictedPositions)
-            hints.AddForbiddenZone(ShapeDistance.Circle(p, PredictAvoidRadius), Module.CastFinishAt(Module.PrimaryActor.CastInfo));
+            hints.AddForbiddenZone(ShapeContains.Circle(p, PredictAvoidRadius), Module.CastFinishAt(Module.PrimaryActor.CastInfo));
         foreach (var t in ActiveTwisters)
-            hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, t.HitboxRadius + TwisterCushion));
+            hints.AddForbiddenZone(ShapeContains.Circle(t.Position, t.HitboxRadius + TwisterCushion));
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -59,7 +59,7 @@ class P4Dreadknights(BossModule module) : BossComponent(module)
             // until target is selected, stay away from any dreadknights
             foreach (var dk in ActiveDreadknights)
             {
-                hints.AddForbiddenZone(ShapeDistance.Circle(dk.Position, 15));
+                hints.AddForbiddenZone(ShapeContains.Circle(dk.Position, 15));
             }
         }
         else

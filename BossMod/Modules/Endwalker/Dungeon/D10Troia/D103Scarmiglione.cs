@@ -72,7 +72,7 @@ class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module,
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Casters.FirstOrDefault() is Actor c)
-            hints.AddForbiddenZone(p => WallCheck(p) ? 0 : -1, Module.CastFinishAt(c.CastInfo));
+            hints.AddForbiddenZone(p => !WallCheck(p), Module.CastFinishAt(c.CastInfo));
     }
 }
 

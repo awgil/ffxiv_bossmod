@@ -291,7 +291,7 @@ public sealed class ActionDefinitions : IDisposable
                 return true;
         }
 
-        return hints.ForbiddenZones.Any(d => d.shapeDistance(proj) < 0);
+        return hints.ForbiddenZones.Any(d => d.containsFn(proj));
     }
 
     public BitMask SpellAllowedClasses(Lumina.Excel.Sheets.Action data)

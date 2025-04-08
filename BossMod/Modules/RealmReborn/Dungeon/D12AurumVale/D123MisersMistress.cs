@@ -26,7 +26,7 @@ class AIPosition(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_centers.MinBy(p => (p - Module.PrimaryActor.Position).LengthSq()), 5));
+        hints.AddForbiddenZone(ShapeContains.InvertedCircle(_centers.MinBy(p => (p - Module.PrimaryActor.Position).LengthSq()), 5));
     }
 }
 
