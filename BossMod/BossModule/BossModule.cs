@@ -61,6 +61,8 @@ public abstract class BossModule : IDisposable
                 if (actor.CastInfo?.IsSpell() ?? false)
                     comp.OnCastStarted(actor, actor.CastInfo);
             }
+            if (actor.IsTargetable)
+                comp.OnTargetable(actor);
             if (actor.Tether.ID != 0)
                 comp.OnTethered(actor, actor.Tether);
             for (int i = 0; i < actor.Statuses.Length; ++i)
@@ -93,6 +95,7 @@ public abstract class BossModule : IDisposable
             WorldState.Actors.Removed.Subscribe(OnActorDestroyed),
             WorldState.Actors.CastStarted.Subscribe(OnActorCastStarted),
             WorldState.Actors.CastFinished.Subscribe(OnActorCastFinished),
+            WorldState.Actors.IsTargetableChanged.Subscribe(OnIsTargetableChanged),
             WorldState.Actors.Tethered.Subscribe(OnActorTethered),
             WorldState.Actors.Untethered.Subscribe(OnActorUntethered),
             WorldState.Actors.StatusGain.Subscribe(OnActorStatusGain),
@@ -413,6 +416,20 @@ public abstract class BossModule : IDisposable
         if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && (actor.CastInfo?.IsSpell() ?? false))
             foreach (var comp in _components)
                 comp.OnCastFinished(actor, actor.CastInfo);
+    }
+
+    private void OnIsTargetableChanged(Actor actor)
+    {
+        if (actor.IsTargetable)
+        {
+            foreach (var comp in _components)
+                comp.OnTargetable(actor);
+        }
+        else
+        {
+            foreach (var comp in _components)
+                comp.OnUntargetable(actor);
+        }
     }
 
     private void OnActorTethered(Actor actor)

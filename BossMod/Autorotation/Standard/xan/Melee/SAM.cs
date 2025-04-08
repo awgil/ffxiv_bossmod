@@ -6,13 +6,21 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
-    public enum Track { Higanbana = SharedTrack.Count, Enpi }
+    public enum Track { Higanbana = SharedTrack.Count, Enpi, Meikyo }
 
     public enum EnpiStrategy
     {
         Enhanced,
         None,
         Ranged
+    }
+
+    public enum MeikyoStrategy
+    {
+        Auto,
+        Delay,
+        Force,
+        HoldOne
     }
 
     public static RotationModuleDefinition Definition()
@@ -30,6 +38,12 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(EnpiStrategy.Enhanced, "Enhanced", "Use if Enhanced Enpi is active")
             .AddOption(EnpiStrategy.None, "None", "Do not use")
             .AddOption(EnpiStrategy.Ranged, "Ranged", "Use when out of range");
+
+        def.Define(Track.Meikyo).As<MeikyoStrategy>("Meikyo")
+            .AddOption(MeikyoStrategy.Auto, "Auto", "Use every minute or so")
+            .AddOption(MeikyoStrategy.Delay, "Delay", "Don't use")
+            .AddOption(MeikyoStrategy.Force, "Force", "Use ASAP (unless already active)")
+            .AddOption(MeikyoStrategy.HoldOne, "HoldOne", "Only use if charges are capped");
 
         return def;
     }
@@ -78,8 +92,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
     protected override float GetCastTime(AID aid)
     {
         var c = base.GetCastTime(aid);
-        // iaijutsu are actually affected by haste wtf?
-        return Unlocked(TraitID.EnhancedIaijutsu) ? c / 1.8f * 1.3f : c;
+        return c > 0 && Unlocked(TraitID.EnhancedIaijutsu) ? 1.3f : c;
     }
 
     private int NumStickers => (Ice ? 1 : 0) + (Moon ? 1 : 0) + (Flower ? 1 : 0);
@@ -393,11 +406,20 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
     private void Meikyo(StrategyValues strategy)
     {
-        if (ComboLastMove is AID.Jinpu or AID.Shifu or AID.Hakaze or AID.Gyofu or AID.Fuga or AID.Fuko)
+        if (MeikyoLeft > GCD)
             return;
 
-        // TODO: DT requires early meikyo in even windows, resulting in double meikyo at 6m
-        if (MeikyoLeft == 0 && Tendo == 0 && (CanWeave(MaxChargesIn(AID.MeikyoShisui), 0.6f) || CanFitGCD(RaidBuffsLeft, 3)))
+        var midCombo = ComboLastMove is AID.Jinpu or AID.Shifu or AID.Hakaze or AID.Gyofu or AID.Fuga or AID.Fuko;
+
+        var use = strategy.Option(Track.Meikyo).As<MeikyoStrategy>() switch
+        {
+            MeikyoStrategy.Auto => !midCombo && Tendo == 0 && (CanWeave(MaxChargesIn(AID.MeikyoShisui), 0.6f) || CanFitGCD(RaidBuffsLeft, 3)),
+            MeikyoStrategy.HoldOne => !midCombo && Tendo == 0 && CanWeave(MaxChargesIn(AID.MeikyoShisui), 0.6f),
+            MeikyoStrategy.Force => true,
+            _ => false
+        };
+
+        if (use)
             PushOGCD(AID.MeikyoShisui, Player);
     }
 

@@ -329,17 +329,19 @@ public sealed class ReplayManager : IDisposable
 
     private void SaveHistory()
     {
-        if (!_config.RememberReplays)
+        if (!RememberReplays)
             return;
-        _config.ReplayHistory = [.. _replayEntries.Where(r => !r.Disposing).Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? true, r.Window?.CurrentTime ?? default))];
+        _config.ReplayHistory = [.. _replayEntries.Where(r => !r.Disposing).Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? false, r.Window?.CurrentTime ?? default))];
         _config.Modified.Fire();
     }
 
     private void RestoreHistory()
     {
-        if (!_config.RememberReplays)
+        if (!RememberReplays)
             return;
         foreach (var memory in _config.ReplayHistory)
             _replayEntries.Add(new(memory.Path, memory.IsOpen, _config.RememberReplayTimes ? memory.PlaybackPosition : null));
     }
+
+    private bool RememberReplays => Service.SigScanner == null && _config.RememberReplays;
 }

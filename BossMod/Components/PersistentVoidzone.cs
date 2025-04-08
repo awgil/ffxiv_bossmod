@@ -27,7 +27,7 @@ public class PersistentVoidzone(BossModule module, float radius, Func<BossModule
 // note that if voidzone is predicted by cast start rather than cast event, we have to account for possibility of cast finishing without event (e.g. if actor dies before cast finish)
 // TODO: this has problems when target moves - castevent and spawn position could be quite different
 // TODO: this has problems if voidzone never actually spawns after castevent, eg because of phase changes
-public class PersistentVoidzoneAtCastTarget(BossModule module, float radius, ActionID aid, Func<BossModule, IEnumerable<Actor>> sources, float castEventToSpawn) : GenericAOEs(module, aid, "GTFO from voidzone!")
+public class PersistentVoidzoneAtCastTarget(BossModule module, float radius, ActionID aid, Func<BossModule, IEnumerable<Actor>> sources, float castEventToSpawn, float castEventTimeout = float.MaxValue) : GenericAOEs(module, aid, "GTFO from voidzone!")
 {
     public AOEShapeCircle Shape { get; init; } = new(radius);
     public Func<BossModule, IEnumerable<Actor>> Sources { get; init; } = sources;
@@ -50,8 +50,13 @@ public class PersistentVoidzoneAtCastTarget(BossModule module, float radius, Act
     public override void Update()
     {
         if (_predictedByEvent.Count > 0)
+        {
+            if (castEventTimeout < float.MaxValue)
+                _predictedByEvent.RemoveAll(e => (WorldState.CurrentTime - e.time).TotalSeconds > castEventTimeout);
+
             foreach (var s in Sources(Module))
                 _predictedByEvent.RemoveAll(p => p.pos.InCircle(s.Position, 6));
+        }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
