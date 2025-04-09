@@ -1,6 +1,4 @@
-﻿using BossMod.Autorotation;
-
-namespace BossMod.QuestBattle.Shadowbringers.SideQuests;
+﻿namespace BossMod.QuestBattle.Shadowbringers.SideQuests;
 
 class SapphireWeapon(WorldState ws) : UnmanagedRotation(ws, 40)
 {
@@ -45,7 +43,7 @@ class SapphireWeapon(WorldState ws) : UnmanagedRotation(ws, 40)
             if (gapCloseDistance > 0.05f)
                 gapCloseTo += Player.DirectionTo(primaryTarget) * gapCloseDistance;
 
-            var gapCloseDanger = Hints.ForbiddenZones.Any(s => s.shapeDistance(gapCloseTo) < 0);
+            var gapCloseDanger = Hints.ForbiddenZones.Any(s => s.containsFn(gapCloseTo));
 
             if (!gapCloseDanger)
                 UseAction(Roleplay.AID.Aethersaber, primaryTarget);

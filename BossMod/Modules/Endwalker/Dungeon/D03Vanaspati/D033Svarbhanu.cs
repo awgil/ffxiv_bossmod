@@ -173,27 +173,27 @@ class CosmicKissKnockback(BossModule module) : Components.KnockbackFromCastTarge
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var forbidden = new List<Func<WPos, float>>();
+        var forbidden = new List<Func<WPos, bool>>();
         var component = Module.FindComponent<ChaoticUndercurrent>()?.ActiveAOEs(slot, actor)?.ToList();
         var source = Sources(slot, actor).FirstOrDefault();
         if (component != null && component.Count != 0 && source != default)
         {
             if (component!.Any(x => x.Origin.Z == -152) && component!.Any(x => x.Origin.Z == -162))
             {
-                forbidden.Add(ShapeDistance.InvertedCone(Arena.Center, 7, a0, a45));
-                forbidden.Add(ShapeDistance.InvertedCone(Arena.Center, 7, a180, a45));
+                forbidden.Add(ShapeContains.InvertedCone(Arena.Center, 7, a0, a45));
+                forbidden.Add(ShapeContains.InvertedCone(Arena.Center, 7, a180, a45));
             }
             else if (component!.Any(x => x.Origin.Z == -142) && component!.Any(x => x.Origin.Z == -172))
             {
-                forbidden.Add(ShapeDistance.InvertedCone(Arena.Center, 7, a90, a45));
-                forbidden.Add(ShapeDistance.InvertedCone(Arena.Center, 7, -a90, a45));
+                forbidden.Add(ShapeContains.InvertedCone(Arena.Center, 7, a90, a45));
+                forbidden.Add(ShapeContains.InvertedCone(Arena.Center, 7, -a90, a45));
             }
             else if (component!.Any(x => x.Origin.Z == -142) && component!.Any(x => x.Origin.Z == -152))
-                forbidden.Add(ShapeDistance.InvertedCone(Arena.Center, 7, a180, a90));
+                forbidden.Add(ShapeContains.InvertedCone(Arena.Center, 7, a180, a90));
             else if (component!.Any(x => x.Origin.Z == -162) && component!.Any(x => x.Origin.Z == -172))
-                forbidden.Add(ShapeDistance.InvertedCone(Arena.Center, 7, a0, a90));
+                forbidden.Add(ShapeContains.InvertedCone(Arena.Center, 7, a0, a90));
             if (forbidden.Count > 0)
-                hints.AddForbiddenZone(p => forbidden.Max(f => f(p)), source.Activation);
+                hints.AddForbiddenZone(p => forbidden.Any(f => f(p)), source.Activation);
         }
     }
 }

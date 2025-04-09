@@ -271,19 +271,19 @@ class Drains(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        List<Func<WPos, float>> zones = [];
+        List<Func<WPos, bool>> zones = [];
         foreach (var drain in GetActiveDrains())
         {
             bool inDrain(WPos p) => p.AlmostEqual(drain.Position, 1.25f);
             var numBlockers = Raid.WithoutSlot().Count(p => inDrain(p.Position));
             if (numBlockers == 0 || numBlockers == 1 && inDrain(actor.Position))
-                zones.Add(ShapeDistance.Rect(drain.Position, default(Angle), 1.25f, 1.25f, 1.25f));
+                zones.Add(ShapeContains.Rect(drain.Position, default(Angle), 1.25f, 1.25f, 1.25f));
         }
         if (zones.Count == 0)
             return;
 
-        var zunion = ShapeDistance.Union(zones);
-        hints.AddForbiddenZone(p => -zunion(p), activation);
+        var zunion = ShapeContains.Union(zones);
+        hints.AddForbiddenZone(p => !zunion(p), activation);
     }
 }
 

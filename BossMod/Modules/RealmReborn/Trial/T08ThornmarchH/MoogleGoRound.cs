@@ -17,9 +17,9 @@ class MoogleGoRound(BossModule module) : Components.GenericAOEs(module)
         // if there is a third cast, add a smaller shape to ensure people stay closer to eventual safespot
         if (_casters.Count > 2)
         {
-            var f1 = ShapeDistance.InvertedCircle(_casters[0].Position, 23);
-            var f2 = ShapeDistance.Circle(_casters[2].Position, 10);
-            hints.AddForbiddenZone(p => Math.Min(f1(p), f2(p)), Module.CastFinishAt(_casters[1].CastInfo!));
+            var f1 = ShapeContains.InvertedCircle(_casters[0].Position, 23);
+            var f2 = ShapeContains.Circle(_casters[2].Position, 10);
+            hints.AddForbiddenZone(p => f1(p) || f2(p), Module.CastFinishAt(_casters[1].CastInfo!));
         }
     }
 

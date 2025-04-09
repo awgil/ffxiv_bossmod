@@ -62,7 +62,7 @@ class P3Adds(BossModule module) : BossComponent(module)
                     e.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
                     bool gtfo = predictedHP <= (e.ShouldBeTanked ? 1 : 0.1f * e.Actor.HPMP.MaxHP);
                     if (gtfo)
-                        hints.AddForbiddenZone(ShapeDistance.Circle(e.Actor.Position, 9));
+                        hints.AddForbiddenZone(ShapeContains.Circle(e.Actor.Position, 9));
                     break;
                 case OID.Asclepius:
                     e.Priority = 1;
@@ -75,7 +75,7 @@ class P3Adds(BossModule module) : BossComponent(module)
         if (!Module.PrimaryActor.IsTargetable && !ActiveHygieia.Any() && !Asclepius.Any(a => !a.IsDead))
         {
             // once all adds are dead, gather where boss will return
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(-6.67f, 5), 5), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(new(-6.67f, 5), 5), DateTime.MaxValue);
         }
     }
 
@@ -105,7 +105,7 @@ class P3AethericProfusion(BossModule module) : Components.CastCounter(module, Ac
             bool isClosest = neurolink == closerNeurolink;
             bool stayAtClosest = assignment != PartyRolesConfig.Assignment.MT;
             if (isClosest == stayAtClosest)
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(neurolink.Position, T05Twintania.NeurolinkRadius), _activation);
+                hints.AddForbiddenZone(ShapeContains.InvertedCircle(neurolink.Position, T05Twintania.NeurolinkRadius), _activation);
         }
 
         // let MT taunt boss if needed

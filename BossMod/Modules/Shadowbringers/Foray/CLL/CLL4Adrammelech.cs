@@ -1,4 +1,5 @@
-﻿namespace BossMod.Shadowbringers.Foray.CLL.CLL4Adrammelech;
+﻿#if DEBUG
+namespace BossMod.Shadowbringers.Foray.CLL.CLL4Adrammelech;
 
 public enum OID : uint
 {
@@ -159,4 +160,4 @@ public class Adrammelech(WorldState ws, Actor primary) : BossModule(ws, primary,
 {
     public override bool DrawAllPlayers => true;
 }
-
+#endif

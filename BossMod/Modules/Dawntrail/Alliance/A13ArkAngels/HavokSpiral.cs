@@ -40,6 +40,6 @@ class SpiralFinish(BossModule module) : Components.KnockbackFromCastTarget(modul
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Casters.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center, 9), Module.CastFinishAt(Casters[0].CastInfo));
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Module.Center, 9), Module.CastFinishAt(Casters[0].CastInfo));
     }
 }

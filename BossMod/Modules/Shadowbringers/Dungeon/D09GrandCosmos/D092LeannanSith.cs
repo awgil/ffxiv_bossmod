@@ -105,17 +105,17 @@ class DirectSeeding(BossModule module) : BossComponent(module)
         else
         {
             var off = WindOffset;
-            List<Func<WPos, float>> tiledist = [];
+            List<Func<WPos, bool>> tiledist = [];
             foreach (var t in TileCenters)
             {
-                tiledist.Add(ShapeDistance.Rect(t - off, default(Angle), 5, 5, 5));
+                tiledist.Add(ShapeContains.Rect(t - off, default(Angle), 5, 5, 5));
                 // tile is at edge of arena; seed can't be pushed out of it, it will just hit the wall
                 if (!Module.Arena.InBounds(t + off))
-                    tiledist.Add(ShapeDistance.Rect(t, default(Angle), 5, 5, 5));
+                    tiledist.Add(ShapeContains.Rect(t, default(Angle), 5, 5, 5));
             }
-            var zone = ShapeDistance.Union(tiledist);
+            var zone = ShapeContains.Union(tiledist);
 
-            if (zone(actor.Position) > 0)
+            if (!zone(actor.Position))
             {
                 // normally the position of the seed we're carrying will lag behind our actual position in accordance with standard server latency
                 // jumping forces the server to acknowledge our current position (i think???) so we jump as soon as we enter a safe tile and then drop the seed

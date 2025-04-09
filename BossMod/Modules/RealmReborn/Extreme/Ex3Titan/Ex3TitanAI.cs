@@ -95,13 +95,13 @@ class Ex3TitanAI(BossModule module) : BossComponent(module)
                 var pos = actor.Role == Role.Healer
                     ? Module.Center + Module.Bounds.Radius * (-30).Degrees().ToDirection() // healers should go to the back; 30 degrees will be safe if landslide is baited straight to south (which it should, since it will follow upheaval)
                     : Module.PrimaryActor.Position + new WDir(0, 1);
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, 2), _rockThrow.ResolveAt);
+                hints.AddForbiddenZone(ShapeContains.InvertedCircle(pos, 2), _rockThrow.ResolveAt);
             }
             else
             {
                 var pos = StackPosition();
                 if (pos != null)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos.Value, 2), /*module.StateMachine.NextTransitionWithFlag(StateMachine.StateHint.BossCastStart)*/DateTime.MaxValue);
+                    hints.AddForbiddenZone(ShapeContains.InvertedCircle(pos.Value, 2), /*module.StateMachine.NextTransitionWithFlag(StateMachine.StateHint.BossCastStart)*/DateTime.MaxValue);
             }
         }
     }

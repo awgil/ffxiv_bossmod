@@ -42,10 +42,10 @@ public struct NavigationDecision
         return new() { Destination = waypoints.first, NextWaypoint = waypoints.second, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore };
     }
 
-    public static void RasterizeForbiddenZones(Map map, List<(Func<WPos, float> shapeDistance, DateTime activation, ulong source)> zones, DateTime current, ref float[] scratch)
+    public static void RasterizeForbiddenZones(Map map, List<(Func<WPos, bool> containsFn, DateTime activation, ulong source)> zones, DateTime current, ref float[] scratch)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
-        var zonesFixed = new (Func<WPos, float> shapeDistance, float g)[zones.Count];
+        var zonesFixed = new (Func<WPos, bool> containsFn, float g)[zones.Count];
         DateTime clusterEnd = default, globalStart = current, globalEnd = current.AddSeconds(120);
         float clusterG = 0;
         for (int i = 0; i < zonesFixed.Length; ++i)
@@ -56,7 +56,7 @@ public struct NavigationDecision
                 clusterG = ActivationToG(activation, current);
                 clusterEnd = activation.AddSeconds(0.5f);
             }
-            zonesFixed[i] = (zones[i].shapeDistance, clusterG);
+            zonesFixed[i] = (zones[i].containsFn, clusterG);
         }
 
         // note that a zone can partially intersect a pixel; so what we do is check each corner and set the maxg value of a pixel equal to the minimum of 4 corners
@@ -177,10 +177,10 @@ public struct NavigationDecision
 
     private static float ActivationToG(DateTime activation, DateTime current) => MathF.Max(0, (float)(activation - current).TotalSeconds - ActivationTimeCushion);
 
-    private static float CalculateMaxG(Span<(Func<WPos, float> shapeDistance, float g)> zones, WPos p)
+    private static float CalculateMaxG(Span<(Func<WPos, bool> containsFn, float g)> zones, WPos p)
     {
         foreach (ref var z in zones)
-            if (z.shapeDistance(p) < ForbiddenZoneCushion)
+            if (z.containsFn(p))
                 return z.g;
         return float.MaxValue;
     }

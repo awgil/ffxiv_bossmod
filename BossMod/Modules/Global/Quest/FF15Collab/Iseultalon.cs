@@ -76,7 +76,7 @@ class Electrocution(BossModule module) : Components.GenericTowers(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Towers.Count > 0 && NumCasts == 0) // Noctis ignores the first tower as a tutorial
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 3));
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Towers[0].Position, 3));
     }
 }
 
@@ -85,7 +85,7 @@ class Electrocution2(BossModule module) : Components.CastTowers(module, ActionID
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Towers.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 3));
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Towers[0].Position, 3));
     }
 }
 

@@ -35,7 +35,7 @@ class TwoTonzeMagitekMissile(BossModule module) : Components.IconStackSpread(mod
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var s in ActiveStackTargets)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(s.Position, 6));
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(s.Position, 6));
     }
 }
 class ChainMines(BossModule module) : Components.GenericAOEs(module)
@@ -82,7 +82,7 @@ class MagitekMissile2(BossModule module) : Components.CastTowers(module, ActionI
         {
             foreach (var t in Towers)
             {
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(t.Position, Radius - 1));
+                hints.AddForbiddenZone(ShapeContains.InvertedCircle(t.Position, Radius - 1));
             }
         }
     }

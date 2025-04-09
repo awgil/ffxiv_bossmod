@@ -65,7 +65,7 @@ class ExtrasensoryExpulsion(BossModule module) : Components.Knockback(module)
     {
         foreach (var s in AOEs)
             if (DestinationUnsafe(slot, actor, s.Origin + s.Distance * s.Direction.ToDirection()))
-                hints.AddForbiddenZone(ShapeDistance.Rect(s.Origin, s.Direction, 15, 15, 15), s.Activation); // note: bigger than actual aoe, to prevent ai from standing too close to the border and being knocked across safe tile
+                hints.AddForbiddenZone(ShapeContains.Rect(s.Origin, s.Direction, 15, 15, 15), s.Activation); // note: bigger than actual aoe, to prevent ai from standing too close to the border and being knocked across safe tile
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

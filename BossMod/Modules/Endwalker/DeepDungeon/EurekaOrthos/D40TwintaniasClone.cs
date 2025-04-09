@@ -64,15 +64,15 @@ class Turbine(BossModule module) : Components.KnockbackFromCastTarget(module, Ac
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var forbidden = new List<Func<WPos, float>>();
+        var forbidden = new List<Func<WPos, bool>>();
         var component = Module.FindComponent<BitingWind>()?.ActiveAOEs(slot, actor)?.ToList();
         var source = Sources(slot, actor).FirstOrDefault();
         if (source != default && component != null)
         {
-            forbidden.Add(ShapeDistance.InvertedCircle(Arena.Center, 5));
-            forbidden.AddRange(component.Select(c => ShapeDistance.Cone(Arena.Center, 20, Angle.FromDirection(c.Origin - Arena.Center), 20.Degrees())));
+            forbidden.Add(ShapeContains.InvertedCircle(Arena.Center, 5));
+            forbidden.AddRange(component.Select(c => ShapeContains.Cone(Arena.Center, 20, Angle.FromDirection(c.Origin - Arena.Center), 20.Degrees())));
             if (forbidden.Count > 0)
-                hints.AddForbiddenZone(p => forbidden.Min(f => f(p)), source.Activation);
+                hints.AddForbiddenZone(p => forbidden.Any(f => f(p)), source.Activation);
         }
     }
 

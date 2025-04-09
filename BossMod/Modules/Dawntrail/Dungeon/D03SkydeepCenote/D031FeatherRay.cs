@@ -79,8 +79,8 @@ class AiryBubbles(BossModule module) : Components.GenericAOEs(module)
     {
         foreach (var s in _bubbles)
         {
-            hints.AddForbiddenZone(_shape.Distance(s.Position, s.Rotation));
-            hints.AddForbiddenZone(ShapeDistance.Capsule(s.Position, s.Rotation, 5, _shape.Radius), WorldState.FutureTime(2));
+            hints.AddForbiddenZone(_shape.CheckFn(s.Position, s.Rotation));
+            hints.AddForbiddenZone(ShapeContains.Capsule(s.Position, s.Rotation, 5, _shape.Radius), WorldState.FutureTime(2));
         }
     }
 

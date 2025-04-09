@@ -256,7 +256,7 @@ class P3ApocalypseSpiritTaker(BossModule module) : SpiritTaker(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 6), DateTime.MaxValue); // don't dodge into center...
+        hints.AddForbiddenZone(ShapeContains.Circle(Module.Center, 6), DateTime.MaxValue); // don't dodge into center...
     }
 }
 
@@ -272,7 +272,7 @@ class P3ApocalypseDarkEruption(BossModule module) : Components.SpreadFromIcon(mo
         if (safeSpot != default)
         {
             hints.PathfindMapBounds = FRU.PathfindHugBorderBounds;
-            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + safeSpot, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), Spreads.Count > 0 ? Spreads[0].Activation : DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeContains.PrecisePosition(Module.Center + safeSpot, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), Spreads.Count > 0 ? Spreads[0].Activation : DateTime.MaxValue);
         }
     }
 
@@ -413,7 +413,7 @@ class P3ApocalypseAIWater1(BossModule module) : BossComponent(module)
         dir += _config.P3ApocalypseDarkWater1ReferenceDirection.Degrees();
         if (state.AssignedGroup == 2)
             dir += 180.Degrees();
-        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center + range * dir.ToDirection(), 1), _water.Stacks.Count > 0 ? _water.Stacks[0].Activation : DateTime.MaxValue);
+        hints.AddForbiddenZone(ShapeContains.InvertedCircle(Module.Center + range * dir.ToDirection(), 1), _water.Stacks.Count > 0 ? _water.Stacks[0].Activation : DateTime.MaxValue);
     }
 }
 
@@ -431,7 +431,7 @@ class P3ApocalypseAIWater2(BossModule module) : BossComponent(module)
 
         // add imminent apoc aoes
         foreach (var aoe in _apoc.ActiveAOEs(slot, actor))
-            hints.AddForbiddenZone(aoe.Shape.Distance(aoe.Origin, aoe.Rotation), aoe.Activation);
+            hints.AddForbiddenZone(aoe.Shape.CheckFn(aoe.Origin, aoe.Rotation), aoe.Activation);
 
         ref var state = ref _water.States[slot];
         if (state.AssignedGroup == 0)
@@ -452,7 +452,7 @@ class P3ApocalypseAIWater2(BossModule module) : BossComponent(module)
         }
 
         var destOff = distance * (midDir - _apoc.Rotation).ToDirection();
-        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center + destOff, 1), DateTime.MaxValue);
+        hints.AddForbiddenZone(ShapeContains.InvertedCircle(Module.Center + destOff, 1), DateTime.MaxValue);
     }
 }
 
@@ -482,12 +482,12 @@ class P3ApocalypseAIWater3(BossModule module) : BossComponent(module)
         if (_knockback.NumCasts == 0)
         {
             // preposition for knockback
-            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(_knockback.Caster.Position + 2 * dir.ToDirection(), new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), _knockback.Activation);
+            hints.AddForbiddenZone(ShapeContains.PrecisePosition(_knockback.Caster.Position + 2 * dir.ToDirection(), new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f), _knockback.Activation);
         }
         else if (_water.Stacks.Count > 0)
         {
             // stack at maxmelee
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_knockback.Caster.Position + 10 * dir.ToDirection(), 1), _water.Stacks[0].Activation);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(_knockback.Caster.Position + 10 * dir.ToDirection(), 1), _water.Stacks[0].Activation);
         }
     }
 }

@@ -134,8 +134,11 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
     private readonly Func<Vector3, string, float, Vector3, Vector3, (Vector3, Vector3)> _createMap = (startingPos, filename, pixelSize, minBounds, maxBounds) => dalamud.GetIpcSubscriber<Vector3, string, float, Vector3, Vector3, (Vector3, Vector3)>("vnavmesh.Nav.BuildBitmapBounded").InvokeFunc(startingPos, filename, pixelSize, minBounds, maxBounds);
     private bool _dbModified;
 
-    private Vector3 _minBounds = new(-1024);
-    private Vector3 _maxBounds = new(1024);
+    private static readonly Vector3 DefaultMinBounds = new(-1024);
+    private static readonly Vector3 DefaultMaxBounds = new(1024);
+
+    private Vector3 _minBounds = DefaultMinBounds;
+    private Vector3 _maxBounds = DefaultMaxBounds;
 
     public void Draw()
     {
@@ -200,7 +203,8 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
         var pos = Obstacles.World.Party.Player()?.PosRot.XYZ() ?? default;
         var filename = GenerateMapName();
         var (min, max) = _createMap(pos, Obstacles.RootPath + filename, 0.5f, _minBounds, _maxBounds);
-        var entry = new ObstacleMapDatabase.Entry(min - new Vector3(0, 1, 0), max + new Vector3(0, 10, 0), new(min.XZ()), 60, 60, filename); // account for jumping etc...
+        var (tweakMin, tweakMax) = _minBounds == DefaultMinBounds && _maxBounds == DefaultMaxBounds ? (min - new Vector3(0, 1, 0), max + new Vector3(0, 10, 0)) : (min, max); // account for jumping etc...
+        var entry = new ObstacleMapDatabase.Entry(tweakMin, tweakMax, new(min.XZ()), 60, 60, filename);
         OpenEditor(entry);
         Obstacles.Database.Entries.GetOrAdd(Obstacles.CurrentKey()).Add(entry);
         _dbModified = true;

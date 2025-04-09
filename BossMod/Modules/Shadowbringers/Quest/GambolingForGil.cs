@@ -39,9 +39,9 @@ class FoxshotKB(BossModule module) : Components.Knockback(module, stopAtWall: tr
         {
             foreach (var s in sources)
                 if (Intersect.RayCircle(source.Position, source.DirectionTo(p), s, 6) < 1000)
-                    return -1;
+                    return true;
 
-            return 1;
+            return false;
         }, Module.CastFinishAt(source.CastInfo));
     }
 

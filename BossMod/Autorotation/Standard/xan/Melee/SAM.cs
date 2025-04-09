@@ -6,13 +6,21 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
-    public enum Track { Higanbana = SharedTrack.Count, Enpi }
+    public enum Track { Higanbana = SharedTrack.Count, Enpi, Meikyo }
 
     public enum EnpiStrategy
     {
         Enhanced,
         None,
         Ranged
+    }
+
+    public enum MeikyoStrategy
+    {
+        Auto,
+        Delay,
+        Force,
+        HoldOne
     }
 
     public static RotationModuleDefinition Definition()
@@ -30,6 +38,12 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(EnpiStrategy.Enhanced, "Enhanced", "Use if Enhanced Enpi is active")
             .AddOption(EnpiStrategy.None, "None", "Do not use")
             .AddOption(EnpiStrategy.Ranged, "Ranged", "Use when out of range");
+
+        def.Define(Track.Meikyo).As<MeikyoStrategy>("Meikyo")
+            .AddOption(MeikyoStrategy.Auto, "Auto", "Use every minute or so")
+            .AddOption(MeikyoStrategy.Delay, "Delay", "Don't use")
+            .AddOption(MeikyoStrategy.Force, "Force", "Use ASAP (unless already active)")
+            .AddOption(MeikyoStrategy.HoldOne, "HoldOne", "Only use if charges are capped");
 
         return def;
     }
@@ -78,8 +92,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
     protected override float GetCastTime(AID aid)
     {
         var c = base.GetCastTime(aid);
-        // iaijutsu are actually affected by haste wtf?
-        return Unlocked(TraitID.EnhancedIaijutsu) ? c / 1.8f * 1.3f : c;
+        return c > 0 && Unlocked(TraitID.EnhancedIaijutsu) ? 1.3f : c;
     }
 
     private int NumStickers => (Ice ? 1 : 0) + (Moon ? 1 : 0) + (Flower ? 1 : 0);
@@ -89,6 +102,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
     private bool Flower => Sen.HasFlag(SenFlags.Ka);
 
     private bool HaveFugetsu => FugetsuLeft > GCD + GetCastTime(AID.Higanbana);
+    private bool HaveFuka => FukaLeft > GCD;
 
     private (float Left, Kaeshi Action) GetKaeshiAction()
     {
@@ -152,11 +166,6 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
                 break;
         }
 
-        var pos = GetNextPositional(strategy);
-        UpdatePositionals(primaryTarget, ref pos);
-
-        OGCD(strategy, primaryTarget);
-
         if (CountdownRemaining > 0)
         {
             if (MeikyoLeft == 0 && CountdownRemaining < 14)
@@ -171,13 +180,11 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(NumStickers == 2 ? 8 : 5), AID.Fuga, 3, 20);
-
         EmergencyMeikyo(strategy, primaryTarget);
         UseKaeshi(primaryTarget);
         UseIaijutsu(primaryTarget);
 
-        if (OgiLeft > GCD && TargetDotLeft > 10 && HaveFugetsu && (RaidBuffsLeft > GCD || RaidBuffsIn > 1000))
+        if (OgiLeft > GCD && TargetDotLeft > 10 && HaveFugetsu && HaveFuka && (RaidBuffsLeft > GCD || RaidBuffsIn > 1000))
             PushGCD(AID.OgiNamikiri, BestOgiTarget);
 
         if (MeikyoLeft > GCD)
@@ -213,6 +220,12 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         };
 
         PushGCD(AID.Enpi, primaryTarget, enpiprio);
+
+        OGCD(strategy, primaryTarget);
+
+        var pos = GetNextPositional(strategy);
+        UpdatePositionals(primaryTarget, ref pos);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(NumStickers == 2 ? 8 : 5), AID.Fuga, 3, 20);
     }
 
     private AID GetHakazeComboAction(StrategyValues strategy)
@@ -335,33 +348,17 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
     private (Positional, bool) GetNextPositional(StrategyValues strategy)
     {
-        if (NumAOETargets > 2)
+        if (NumAOETargets > 2 || !Unlocked(AID.Gekko))
             return (Positional.Any, false);
 
-        if (MeikyoLeft > GCD)
-            return MeikyoAction switch
-            {
-                AID.Gekko => (Positional.Rear, true),
-                AID.Kasha => (Positional.Flank, true),
-                _ => (Positional.Any, false)
-            };
-
-        if (ComboLastMove == AID.Jinpu)
+        if (NextGCD == AID.Gekko)
             return (Positional.Rear, true);
-
-        if (ComboLastMove == AID.Shifu)
+        else if (NextGCD == AID.Kasha)
             return (Positional.Flank, true);
-
-        if (ComboLastMove == AID.Hakaze)
-        {
-            var pos = GetHakazeComboAction(strategy) switch
-            {
-                AID.Jinpu => Positional.Rear,
-                AID.Shifu => Positional.Flank,
-                _ => Positional.Any
-            };
-            return (pos, false);
-        }
+        else if (FugetsuLeft <= FukaLeft)
+            return (Positional.Rear, false);
+        else if (Unlocked(AID.Kasha))
+            return (Positional.Flank, false);
 
         return (Positional.Any, false);
     }
@@ -388,11 +385,11 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         if (Kenki >= 50 && Zanshin > 0 && ReadyIn(AID.HissatsuSenei) > 30)
             PushOGCD(AID.Zanshin, BestOgiTarget);
 
-        if (Meditation == 3)
+        if (Meditation == 3 && (RaidBuffsLeft > AnimLock || GrantsMeditation(NextGCD)))
             PushOGCD(AID.Shoha, BestLineTarget);
 
         var saveKenki = RaidBuffsLeft <= AnimLock || Zanshin > 0 || ReadyIn(AID.HissatsuSenei) < 10;
-        var maxKenki = ReadyIn(AID.Ikishoten) < 15 ? 50 : 90;
+        var maxKenki = strategy.BuffsOk() && ReadyIn(AID.Ikishoten) < 15 ? 50 : 90;
 
         if (Kenki >= (saveKenki ? maxKenki : 25))
         {
@@ -405,13 +402,24 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         Meikyo(strategy);
     }
 
+    private bool GrantsMeditation(AID aid) => aid is AID.MidareSetsugekka or AID.TenkaGoken or AID.Higanbana or AID.TendoSetsugekka or AID.TendoGoken or AID.OgiNamikiri;
+
     private void Meikyo(StrategyValues strategy)
     {
-        if (ComboLastMove is AID.Jinpu or AID.Shifu or AID.Hakaze or AID.Gyofu or AID.Fuga or AID.Fuko)
+        if (MeikyoLeft > GCD)
             return;
 
-        // TODO: DT requires early meikyo in even windows, resulting in double meikyo at 6m
-        if (MeikyoLeft == 0 && Tendo == 0 && (CanWeave(MaxChargesIn(AID.MeikyoShisui), 0.6f) || CanFitGCD(RaidBuffsLeft, 3)))
+        var midCombo = ComboLastMove is AID.Jinpu or AID.Shifu or AID.Hakaze or AID.Gyofu or AID.Fuga or AID.Fuko;
+
+        var use = strategy.Option(Track.Meikyo).As<MeikyoStrategy>() switch
+        {
+            MeikyoStrategy.Auto => !midCombo && Tendo == 0 && (CanWeave(MaxChargesIn(AID.MeikyoShisui), 0.6f) || CanFitGCD(RaidBuffsLeft, 3)),
+            MeikyoStrategy.HoldOne => !midCombo && Tendo == 0 && CanWeave(MaxChargesIn(AID.MeikyoShisui), 0.6f),
+            MeikyoStrategy.Force => true,
+            _ => false
+        };
+
+        if (use)
             PushOGCD(AID.MeikyoShisui, Player);
     }
 

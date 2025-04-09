@@ -18,7 +18,7 @@ class SpinyShield(BossModule module) : BossComponent(module)
     {
         var shield = ActiveShield;
         if (shield != null)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(shield.Position, _radius));
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(shield.Position, _radius));
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

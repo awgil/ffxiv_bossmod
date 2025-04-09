@@ -16,7 +16,7 @@ class P5FulgentBlade : Components.Exaflare
         base.AddAIHints(slot, actor, assignment, hints);
         // add an extra hint to move to safe spot (TODO: reconsider? this can fuck up positionals for melee etc)
         if (Lines.Count > 0 && NumCasts <= 6 && SafeSpot() is var safespot && safespot != default)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(safespot, 1), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(safespot, 1), DateTime.MaxValue);
         //if (Lines.Count > 0 && NumCasts <= 6 && _lines.Count == 6)
         //{
         //    var shape = NumCasts switch

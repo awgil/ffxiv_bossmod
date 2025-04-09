@@ -102,7 +102,7 @@ class AntipodalAssault(BossModule module) : Components.GenericBaitAway(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (CurrentBaits.Count > 0 && actor != target)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 50, 0, 4));
+            hints.AddForbiddenZone(ShapeContains.InvertedRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 50, 0, 4));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

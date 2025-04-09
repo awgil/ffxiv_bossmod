@@ -37,9 +37,9 @@ public class GenericSharedTankbuster(BossModule module, ActionID aid, AOEShape s
     {
         if (Source != null && Target != null && Target != actor)
         {
-            var shape = OriginAtTarget ? Shape.Distance(Target.Position, Target.Rotation) : Shape.Distance(Source.Position, Angle.FromDirection(Target.Position - Source.Position));
+            var shape = OriginAtTarget ? Shape.CheckFn(Target.Position, Target.Rotation) : Shape.CheckFn(Source.Position, Angle.FromDirection(Target.Position - Source.Position));
             if (actor.Role == Role.Tank)
-                hints.AddForbiddenZone(p => -shape(p), Activation);
+                hints.AddForbiddenZone(p => !shape(p), Activation);
             else
                 hints.AddForbiddenZone(shape, Activation);
         }

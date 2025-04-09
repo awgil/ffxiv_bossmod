@@ -80,8 +80,8 @@ class OnHigh(BossModule module) : Components.Knockback(module, ActionID.MakeSpel
         if (Casters.Count == 0)
             return;
 
-        var zones = UnblockedWalls.Select(w => ShapeDistance.InvertedCone(Arena.Center, 30, w, WallHalfAngle.Radians())).ToList();
-        hints.AddForbiddenZone(ShapeDistance.Intersection(zones), Module.CastFinishAt(Casters[0].CastInfo));
+        var zones = UnblockedWalls.Select(w => ShapeContains.InvertedCone(Arena.Center, 30, w, WallHalfAngle.Radians())).ToList();
+        hints.AddForbiddenZone(ShapeContains.Intersection(zones), Module.CastFinishAt(Casters[0].CastInfo));
     }
 
     private bool CheckWall(WPos pos) => Walls.Any(w => Angle.FromDirection(pos - Arena.Center).AlmostEqual(w, WallHalfAngle));

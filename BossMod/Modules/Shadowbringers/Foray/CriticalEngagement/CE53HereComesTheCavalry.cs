@@ -111,7 +111,7 @@ class RawSteel(BossModule module) : Components.BaitAwayChargeCast(module, Action
         foreach (var b in ActiveBaits)
         {
             if (b.Target == actor)
-                hints.AddForbiddenZone(ShapeDistance.Circle(b.Source.Position, _safeDistance));
+                hints.AddForbiddenZone(ShapeContains.Circle(b.Source.Position, _safeDistance));
             hints.PredictedDamage.Add((new BitMask().WithBit(Raid.FindSlot(b.Target.InstanceID)), Module.CastFinishAt(b.Source.CastInfo)));
         }
     }

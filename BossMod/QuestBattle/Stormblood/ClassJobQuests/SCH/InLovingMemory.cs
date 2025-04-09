@@ -27,11 +27,11 @@ internal class InLovingMemory(WorldState ws) : QuestBattle(ws)
             .Hints((player, hints) => {
                 if (player.InCombat)
                     foreach (var p in World.Party.WithoutSlot().Exclude(player))
-                        hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 6), World.FutureTime(1));
+                        hints.AddForbiddenZone(ShapeContains.Circle(p.Position, 6), World.FutureTime(1));
 
                 foreach(var e in World.Actors)
                     if (e.OID == 0x1E43)
-                        hints.AddForbiddenZone(ShapeDistance.Circle(e.Position, 6));
+                        hints.AddForbiddenZone(ShapeContains.Circle(e.Position, 6));
             })
             .WithInteract(0x1EA732)
     ];

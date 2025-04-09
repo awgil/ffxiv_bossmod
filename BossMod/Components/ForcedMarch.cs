@@ -3,7 +3,7 @@
 // generic component dealing with 'forced march' mechanics
 // these mechanics typically feature 'march left/right/forward/backward' debuffs, which rotate player and apply 'forced march' on expiration
 // if there are several active march debuffs, we assume they are chained together
-public class GenericForcedMarch(BossModule module, float activationLimit = float.MaxValue) : BossComponent(module)
+public class GenericForcedMarch(BossModule module, float activationLimit = float.MaxValue, bool stopAtWall = false) : BossComponent(module)
 {
     public class PlayerState
     {
@@ -70,9 +70,15 @@ public class GenericForcedMarch(BossModule module, float activationLimit = float
         var dir = player.Rotation;
         if (state.ForcedEnd > WorldState.CurrentTime)
         {
+            var dist = MovementSpeed * (float)(state.ForcedEnd - WorldState.CurrentTime).TotalSeconds;
+
+            if (stopAtWall)
+                dist = Math.Min(dist, Arena.IntersectRayBounds(from, dir.ToDirection()) - 0.1f);
+
             // note: as soon as player starts marching, he turns to desired direction
             // TODO: would be nice to use non-interpolated rotation here...
-            var to = from + MovementSpeed * (float)(state.ForcedEnd - WorldState.CurrentTime).TotalSeconds * dir.ToDirection();
+            var to = from + dist * dir.ToDirection();
+
             yield return (from, to, dir);
             from = to;
         }
@@ -89,7 +95,7 @@ public class GenericForcedMarch(BossModule module, float activationLimit = float
 }
 
 // typical forced march is driven by statuses
-public class StatusDrivenForcedMarch(BossModule module, float duration, uint statusForward, uint statusBackward, uint statusLeft, uint statusRight, uint statusForced = 1257, float activationLimit = float.MaxValue) : GenericForcedMarch(module, activationLimit)
+public class StatusDrivenForcedMarch(BossModule module, float duration, uint statusForward, uint statusBackward, uint statusLeft, uint statusRight, uint statusForced = 1257, float activationLimit = float.MaxValue, bool stopAtWall = false) : GenericForcedMarch(module, activationLimit, stopAtWall)
 {
     public float Duration = duration;
     public readonly uint[] Statuses = [statusForward, statusLeft, statusBackward, statusRight, statusForced]; // 5 elements: fwd, left, back, right, forced

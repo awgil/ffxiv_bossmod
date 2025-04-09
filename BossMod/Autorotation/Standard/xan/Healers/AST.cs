@@ -112,7 +112,13 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
         if (CanWeave(MaxChargesIn(AID.Lightspeed), 0.6f))
             return true;
 
-        return LightspeedLeft == 0 && (DivinationLeft > 10 || CanWeave(AID.Divination, 2));
+        if (LightspeedLeft > 0)
+            return false;
+
+        if (DivinationLeft > 10)
+            return true;
+
+        return strategy.BuffsOk() && CanWeave(AID.Divination, 2);
     }
 
     private float CombustLeft(Actor? actor) => actor == null ? float.MaxValue : Utils.MaxAll(

@@ -33,8 +33,8 @@ class Sweep(BossModule module) : Components.PersistentVoidzone(module, 4, m => m
     {
         foreach (var t in Sources(Module))
         {
-            hints.AddForbiddenZone(ShapeDistance.Capsule(t.Position, t.Rotation, 2, 4));
-            hints.AddForbiddenZone(ShapeDistance.Capsule(t.Position, t.Rotation, 6, 4), WorldState.FutureTime(2));
+            hints.AddForbiddenZone(ShapeContains.Capsule(t.Position, t.Rotation, 2, 4));
+            hints.AddForbiddenZone(ShapeContains.Capsule(t.Position, t.Rotation, 6, 4), WorldState.FutureTime(2));
         }
     }
 }

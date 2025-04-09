@@ -24,7 +24,7 @@ class P2MirrorMirrorReflectedScytheKickBlue : Components.GenericAOEs
             // main tank should drag the boss away
             // note: before mirror appears, we want to stay near center (to minimize movement no matter where mirror appears), so this works fine if blue mirror is zero
             // TODO: verify distance calculation - we want boss to be at least 4m away from center
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center - 16 * _blueMirror, 1), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Module.Center - 16 * _blueMirror, 1), DateTime.MaxValue);
         }
     }
 
@@ -120,7 +120,7 @@ class P2MirrorMirrorHouseOfLight(BossModule module) : Components.GenericBaitAway
                 _ => default
             };
         }
-        hints.AddForbiddenZone(ShapeDistance.InvertedCone(origin.Actor.Position, 4, dir, 15.Degrees()), origin.Activation);
+        hints.AddForbiddenZone(ShapeContains.InvertedCone(origin.Actor.Position, 4, dir, 15.Degrees()), origin.Activation);
     }
 
     public override void OnEventEnvControl(byte index, uint state)
@@ -203,7 +203,7 @@ class P2MirrorMirrorBanish : P2Banish
     {
         var prepos = PrepositionLocation(slot, assignment);
         if (prepos != null)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(prepos.Value, 1), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(prepos.Value, 1), DateTime.MaxValue);
         else
             base.AddAIHints(slot, actor, assignment, hints);
     }

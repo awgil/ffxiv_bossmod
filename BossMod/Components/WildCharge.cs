@@ -77,20 +77,23 @@ public class GenericWildCharge(BossModule module, float halfWidth, ActionID aid 
                     if (closest != null)
                     {
                         var stack = GetAOEForTarget(Source.Position, closest.Position);
-                        hints.AddForbiddenZone(ShapeDistance.InvertedRect(stack.origin, stack.dir, stack.length, 0, HalfWidth * 0.5f), Activation);
+                        hints.AddForbiddenZone(ShapeContains.InvertedRect(stack.origin, stack.dir, stack.length, 0, HalfWidth * 0.5f), Activation);
                     }
                 }
                 break;
             case PlayerRole.Share: // TODO: some hint to be first in line...
             case PlayerRole.ShareNotFirst:
                 foreach (var aoe in EnumerateAOEs())
-                    hints.AddForbiddenZone(ShapeDistance.InvertedRect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth), Activation);
+                    hints.AddForbiddenZone(ShapeContains.InvertedRect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth), Activation);
                 break;
             case PlayerRole.Avoid:
                 foreach (var aoe in EnumerateAOEs())
-                    hints.AddForbiddenZone(ShapeDistance.Rect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth), Activation);
+                    hints.AddForbiddenZone(ShapeContains.Rect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth), Activation);
                 break;
         }
+
+        foreach (var aoe in EnumerateAOEs())
+            hints.PredictedDamage.Add((Raid.WithSlot().Where(p => InAOE(aoe, p.Item2)).Mask(), Activation));
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

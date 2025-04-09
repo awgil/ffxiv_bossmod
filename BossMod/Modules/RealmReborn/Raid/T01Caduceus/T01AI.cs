@@ -28,8 +28,8 @@ class T01AI(BossModule module) : BossComponent(module)
         else if (activePlatforms.Any())
         {
             bool actorIsSpawner = !cloneSpawned && assignment == (activePlatforms[0] ? PartyRolesConfig.Assignment.R2 : PartyRolesConfig.Assignment.R1);
-            Func<WPos, float> nonAllowedPlatforms = actorIsSpawner
-                ? p => -activePlatforms.SetBits().Min(platform => Platforms.PlatformShapes[platform](p)) - 1 // inverse union of active, slightly reduced to avoid standing on borders
+            Func<WPos, bool> nonAllowedPlatforms = actorIsSpawner
+                ? p => !activePlatforms.SetBits().Min(platform => Platforms.PlatformShapes[platform](p)) // inverse union of active
                 : p => activePlatforms.SetBits().Min(platform => Platforms.PlatformShapes[platform](p)); // union of active
             hints.AddForbiddenZone(nonAllowedPlatforms, _platforms!.ExplosionAt);
         }
@@ -42,7 +42,7 @@ class T01AI(BossModule module) : BossComponent(module)
                 var dest = Module.PrimaryActor.Position;
                 if (kitedSlime.HPMP.CurHP > 0.2f * kitedSlime.HPMP.MaxHP)
                     dest += (kitedSlime.Position - Module.PrimaryActor.Position).Normalized() * (Module.PrimaryActor.HitboxRadius + kitedSlime.HitboxRadius + 6); // 6 to avoid triggering whip back
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(dest, 2), DateTime.MaxValue);
+                hints.AddForbiddenZone(ShapeContains.InvertedCircle(dest, 2), DateTime.MaxValue);
             }
             else
             {
@@ -54,7 +54,7 @@ class T01AI(BossModule module) : BossComponent(module)
                     case PartyRolesConfig.Assignment.OT:
                         // when clone is about to spawn, have OT move closer to tank position
                         if (cloneSpawningSoon)
-                            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Platforms.HexaPlatformCenters[6], 20), DateTime.MaxValue);
+                            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Platforms.HexaPlatformCenters[6], 20), DateTime.MaxValue);
                         //else if (clone != null)
                         //    SetPreferredPlatform(hints, 6);
                         break;
@@ -123,8 +123,9 @@ class T01AI(BossModule module) : BossComponent(module)
 
     private void SetPreferredPlatform(AIHints hints, int platform)
     {
+        // TODO do we still need to avoid borders
         //Func<WPos, float> nonAllowedPlatforms = p => -allowedPlatforms.SetBits().Min(platform => Platforms.PlatformShapes[platform](p)) - 1; // inverse union of allowed, slightly reduced to avoid standing on borders
-        float invAllowed(WPos p) => -Platforms.PlatformShapes[platform](p) - 1; // inverted and slightly reduced to avoid standing on borders
+        bool invAllowed(WPos p) => !Platforms.PlatformShapes[platform](p); // inverted and slightly reduced
         hints.AddForbiddenZone(invAllowed, DateTime.MaxValue);
     }
 }

@@ -51,8 +51,8 @@ class Orbs(BossModule module) : Components.GenericAOEs(module, default, "GTFO fr
     {
         foreach (var p in _orbs)
         {
-            hints.AddForbiddenZone(circle.Distance(p.Position, p.Rotation));
-            hints.AddForbiddenZone(ShapeDistance.Rect(p.Position, p.Rotation, 15, 0, circle.Radius), WorldState.FutureTime(2));
+            hints.AddForbiddenZone(circle.CheckFn(p.Position, p.Rotation));
+            hints.AddForbiddenZone(ShapeContains.Rect(p.Position, p.Rotation, 15, 0, circle.Radius), WorldState.FutureTime(2));
         }
     }
 

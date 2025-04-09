@@ -140,14 +140,14 @@ public sealed class AIHintsBuilder : IDisposable
             var finishAt = _ws.FutureTime(aoe.Caster.CastInfo.NPCRemainingTime);
             if (aoe.IsCharge)
             {
-                hints.AddForbiddenZone(ShapeDistance.Rect(aoe.Caster.Position, target, ((AOEShapeRect)aoe.Shape).HalfWidth), finishAt, aoe.Caster.InstanceID);
+                hints.AddForbiddenZone(ShapeContains.Rect(aoe.Caster.Position, target, ((AOEShapeRect)aoe.Shape).HalfWidth), finishAt, aoe.Caster.InstanceID);
             }
             else if (aoe.Shape is AOEShapeCone cone)
             {
                 // not sure how best to adjust cone shape distance to account for quantization error - we just pretend it is being cast from MaxError units "behind" the reported position and increase radius similarly
                 var adjustedSourcePos = target + rot.ToDirection() * -MaxError;
                 var adjustedRadius = cone.Radius + MaxError * 2;
-                hints.AddForbiddenZone(ShapeDistance.Cone(adjustedSourcePos, adjustedRadius, rot, cone.HalfAngle), finishAt, aoe.Caster.InstanceID);
+                hints.AddForbiddenZone(ShapeContains.Cone(adjustedSourcePos, adjustedRadius, rot, cone.HalfAngle), finishAt, aoe.Caster.InstanceID);
             }
             else
             {

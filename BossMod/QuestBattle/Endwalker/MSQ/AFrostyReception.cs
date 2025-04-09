@@ -1,6 +1,4 @@
-﻿using BossMod.Autorotation;
-
-namespace BossMod.QuestBattle.Endwalker.MSQ;
+﻿namespace BossMod.QuestBattle.Endwalker.MSQ;
 
 class AutoThancred(WorldState ws) : UnmanagedRotation(ws, 3)
 {
@@ -48,12 +46,12 @@ internal class AFrostyReception(WorldState ws) : QuestBattle(ws)
         _ai.Execute(player, hints);
     }
 
-    private static Func<WPos, float> GetSightCone(Actor p)
+    private static Func<WPos, bool> GetSightCone(Actor p)
     {
         if (p.OID == 0x362A)
-            return ShapeDistance.Circle(p.Position, 8.5f + p.HitboxRadius);
+            return ShapeContains.Circle(p.Position, 8.5f + p.HitboxRadius);
 
-        return ShapeDistance.Cone(p.Position, 10 + p.HitboxRadius, p.Rotation, 45.Degrees());
+        return ShapeContains.Cone(p.Position, 10 + p.HitboxRadius, p.Rotation, 45.Degrees());
     }
 
     private QuestObjective Takedown(Vector3 destination, uint enemyOID) => new QuestObjective(World)

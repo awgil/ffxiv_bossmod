@@ -92,18 +92,18 @@ class DownpourMagitekChakram(BossModule module) : Components.GenericAOEs(module)
     {
         if (CurrentMechanic == Mechanic.Chakram && actor.FindStatus(SID.Minimum) == null && !avoidSquares)
         {
-            hints.AddForbiddenZone(ShapeDistance.Rect(toad, new Angle(), square.LengthFront, square.LengthBack, square.HalfWidth));
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(mini, new Angle(), square.LengthFront, square.LengthBack, square.HalfWidth));
+            hints.AddForbiddenZone(ShapeContains.Rect(toad, new Angle(), square.LengthFront, square.LengthBack, square.HalfWidth));
+            hints.AddForbiddenZone(ShapeContains.InvertedRect(mini, new Angle(), square.LengthFront, square.LengthBack, square.HalfWidth));
         }
         else if (CurrentMechanic == Mechanic.Downpour && actor.FindStatus(SID.Toad) == null)
         {
-            hints.AddForbiddenZone(ShapeDistance.Rect(mini, new Angle(), square.LengthFront, square.LengthBack, square.HalfWidth));
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(toad, new Angle(), square.LengthFront, square.LengthBack, square.HalfWidth));
+            hints.AddForbiddenZone(ShapeContains.Rect(mini, new Angle(), square.LengthFront, square.LengthBack, square.HalfWidth));
+            hints.AddForbiddenZone(ShapeContains.InvertedRect(toad, new Angle(), square.LengthFront, square.LengthBack, square.HalfWidth));
         }
         else if (avoidSquares)
         {
-            hints.AddForbiddenZone(ShapeDistance.Rect(toad, new Angle(), square.LengthFront, square.LengthBack, square.HalfWidth));
-            hints.AddForbiddenZone(ShapeDistance.Rect(mini, new Angle(), square.LengthFront, square.LengthBack, square.HalfWidth));
+            hints.AddForbiddenZone(ShapeContains.Rect(toad, new Angle(), square.LengthFront, square.LengthBack, square.HalfWidth));
+            hints.AddForbiddenZone(ShapeContains.Rect(mini, new Angle(), square.LengthFront, square.LengthBack, square.HalfWidth));
         }
     }
 }

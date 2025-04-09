@@ -56,7 +56,7 @@ class BracingWind(BossModule module) : Components.KnockbackFromCastTarget(module
         var length = Module.Bounds.Radius * 2; // casters are at the border, orthogonal to borders
         foreach (var c in Casters)
         {
-            hints.AddForbiddenZone(ShapeDistance.Rect(c.Position, c.CastInfo!.Rotation, length, Distance - length, 6), Module.CastFinishAt(c.CastInfo!));
+            hints.AddForbiddenZone(ShapeContains.Rect(c.Position, c.CastInfo!.Rotation, length, Distance - length, 6), Module.CastFinishAt(c.CastInfo!));
         }
     }
 }

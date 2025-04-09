@@ -11,7 +11,7 @@ class KnuckleSandwich(BossModule module) : Components.GenericAOEs(module)
         base.AddAIHints(slot, actor, assignment, hints);
         // extra ai hint: stay close to the edge of the first aoe
         if (_aoes.Count == 2 && _aoes[1].Shape is AOEShapeDonut donut)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_aoes[0].Origin, donut.InnerRadius + 2), _aoes[0].Activation);
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(_aoes[0].Origin, donut.InnerRadius + 2), _aoes[0].Activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

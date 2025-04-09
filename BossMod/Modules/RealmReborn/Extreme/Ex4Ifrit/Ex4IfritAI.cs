@@ -43,7 +43,7 @@ class Ex4IfritAICommon(BossModule module) : BossComponent(module)
 
     protected void AddPositionHint(AIHints hints, WPos target, bool asap = true, float radius = 2)
     {
-        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(target, radius), asap ? new() : DateTime.MaxValue);
+        hints.AddForbiddenZone(ShapeContains.InvertedCircle(target, radius), asap ? new() : DateTime.MaxValue);
     }
 
     protected void AddDefaultEruptionBaiterHints(AIHints hints)
@@ -51,7 +51,7 @@ class Ex4IfritAICommon(BossModule module) : BossComponent(module)
         // avoid non-baiters (TODO: should this be done by eruption component itself?)
         if (_eruption != null)
             foreach (var (i, p) in Raid.WithSlot().ExcludedFromMask(_eruption.Baiters))
-                hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, _eruption.Shape.Radius));
+                hints.AddForbiddenZone(ShapeContains.Circle(p.Position, _eruption.Shape.Radius));
     }
 
     // TODO: this shouldn't be here...
@@ -272,7 +272,7 @@ class Ex4IfritAINails : Ex4IfritAINormal
                 {
                     // in addition to usual hints, we want to avoid center (so that we don't bait eruption there)
                     if (!EruptionActive)
-                        hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, Eruption.Radius));
+                        hints.AddForbiddenZone(ShapeContains.Circle(Module.Center, Eruption.Radius));
                 }
             }
 

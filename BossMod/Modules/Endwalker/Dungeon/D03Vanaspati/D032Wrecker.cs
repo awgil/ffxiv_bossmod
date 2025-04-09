@@ -57,12 +57,12 @@ class QueerBubble(BossModule module) : Components.GenericAOEs(module)
     {
         if (Module.FindComponent<AetherSprayFire>()!.Active)
         {
-            var forbiddenInverted = new List<Func<WPos, float>>();
+            var forbiddenInverted = new List<Func<WPos, bool>>();
             foreach (var a in _aoes)
-                forbiddenInverted.Add(ShapeDistance.InvertedCircle(a.Position, 2.5f));
+                forbiddenInverted.Add(ShapeContains.InvertedCircle(a.Position, 2.5f));
             var activation = Module.CastFinishAt(Module.FindComponent<AetherSprayFire>()!.Casters[0].CastInfo);
             if (forbiddenInverted.Count > 0)
-                hints.AddForbiddenZone(p => forbiddenInverted.Max(f => f(p)), activation);
+                hints.AddForbiddenZone(p => forbiddenInverted.All(f => f(p)), activation);
         }
         else
             base.AddAIHints(slot, actor, assignment, hints);
@@ -90,16 +90,16 @@ class AetherSprayWaterKB(BossModule module) : Components.KnockbackFromCastTarget
     }
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var forbidden = new List<Func<WPos, float>>();
+        var forbidden = new List<Func<WPos, bool>>();
         var source = Sources(slot, actor).FirstOrDefault();
         if (Module.FindComponent<QueerBubble>()!.ActiveAOEs(slot, actor).Any() && source != default)
         {
-            forbidden.Add(ShapeDistance.InvertedCircle(Arena.Center, 7));
+            forbidden.Add(ShapeContains.InvertedCircle(Arena.Center, 7));
             for (var i = 0; i < 6; i++)
                 if (Module.Enemies(OID.QueerBubble).Where(x => x.Position.AlmostEqual(RotateAroundOrigin(i * 60, Arena.Center, x.Position), 1) && Module.FindComponent<QueerBubble>()!._aoes.Contains(x)) != null)
-                    forbidden.Add(ShapeDistance.Cone(Arena.Center, 20, i * 60.Degrees(), 10.Degrees()));
+                    forbidden.Add(ShapeContains.Cone(Arena.Center, 20, i * 60.Degrees(), 10.Degrees()));
             if (forbidden.Count > 0)
-                hints.AddForbiddenZone(p => forbidden.Min(f => f(p)), source.Activation);
+                hints.AddForbiddenZone(p => forbidden.Any(f => f(p)), source.Activation);
         }
     }
 }

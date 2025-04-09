@@ -74,6 +74,12 @@ sealed class WorldStateGameSync : IDisposable
 
     private readonly unsafe delegate* unmanaged<ContainerInterface*, float> _calculateMoveSpeedMulti;
 
+    private unsafe delegate void ProcessMapEffectDelegate(byte* data);
+
+    private readonly Hook<ProcessMapEffectDelegate> _processMapEffect1Hook;
+    private readonly Hook<ProcessMapEffectDelegate> _processMapEffect2Hook;
+    private readonly Hook<ProcessMapEffectDelegate> _processMapEffect3Hook;
+
     public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
     {
         _ws = ws;
@@ -137,10 +143,22 @@ sealed class WorldStateGameSync : IDisposable
 
         _calculateMoveSpeedMulti = (delegate* unmanaged<ContainerInterface*, float>)Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
         Service.Log($"[WSG] CalculateMovementSpeedMultiplier address = 0x{(nint)_calculateMoveSpeedMulti:X}");
+
+        var processMapEffectAddr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 4C 8D 46 10 8B D7 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8D 4E 10 E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 4C 8D 46 10 8B D7 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8D 4E 10 E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8D 4E 10 BA ?? ?? ?? ??");
+        _processMapEffect1Hook = Service.Hook.HookFromAddress<ProcessMapEffectDelegate>(processMapEffectAddr, ProcessMapEffect1Detour);
+        _processMapEffect1Hook.Enable();
+        _processMapEffect2Hook = Service.Hook.HookFromAddress<ProcessMapEffectDelegate>(processMapEffectAddr + 0x40, ProcessMapEffect2Detour);
+        _processMapEffect2Hook.Enable();
+        _processMapEffect3Hook = Service.Hook.HookFromAddress<ProcessMapEffectDelegate>(processMapEffectAddr + 0x80, ProcessMapEffect3Detour);
+        _processMapEffect3Hook.Enable();
+        Service.Log($"[WSG] MapEffect addresses = 0x{_processMapEffect1Hook.Address:X}, 0x{_processMapEffect2Hook.Address:X}, 0x{_processMapEffect3Hook.Address:X}");
     }
 
     public void Dispose()
     {
+        _processMapEffect1Hook.Dispose();
+        _processMapEffect2Hook.Dispose();
+        _processMapEffect3Hook.Dispose();
         _processPacketActorCastHook.Dispose();
         _processPacketEffectResultBasicHook.Dispose();
         _processPacketEffectResultHook.Dispose();
@@ -521,7 +539,7 @@ sealed class WorldStateGameSync : IDisposable
         for (int i = 0; i < group->MemberCount; ++i)
         {
             var member = group->PartyMembers.GetPointer(i);
-            if (member != player && Array.FindIndex(_ws.Party.Members, m => m.ContentId == member->ContentId) < 0)
+            if (member->ContentId != player->ContentId && Array.FindIndex(_ws.Party.Members, m => m.ContentId == member->ContentId) < 0)
                 AddPartyMember(BuildPartyMember(member));
             // else: member is either a player (it was handled by a different function) or already exists in party state
         }
@@ -608,7 +626,10 @@ sealed class WorldStateGameSync : IDisposable
         if (freeSlot >= 0)
             _ws.Execute(new PartyState.OpModify(freeSlot, m));
         else
-            Service.Log($"[WorldState] Failed to find empty slot for party member {m.ContentId:X}:{m.InstanceId:X}");
+        {
+            Service.Log($"[WorldState] Failed to find empty slot for party member {m.ContentId:X}:{m.InstanceId:X} ({_ws.Actors.Find(m.InstanceId)})");
+            Service.Log($"[WorldState] Current slots: {string.Join(", ", _ws.Party.Members.Select(m => _ws.Actors.Find(m.InstanceId)?.ToString() ?? "<unknown>"))}");
+        }
     }
 
     private void UpdatePartySlot(int slot, PartyState.Member m)
@@ -714,8 +735,29 @@ sealed class WorldStateGameSync : IDisposable
             contentKeyValue[2].Item1,
             contentKeyValue[2].Item2
         };
-        if (!MemoryExtensions.SequenceEqual<uint>(ckArray, _ws.Client.ContentKeyValueData))
+        if (!MemoryExtensions.SequenceEqual(ckArray, _ws.Client.ContentKeyValueData))
             _ws.Execute(new ClientState.OpContentKVDataChange(ckArray));
+
+        /*
+        var id = EventFramework.Instance()->GetInstanceContentDirector();
+        if (id != null)
+        {
+            var layoutData = id->LayoutData;
+            var cnt = (int)layoutData->InstanceCount;
+            if (cnt > _ws.Client.MapEffectData.Length)
+            {
+                Service.Log($"exceeded capacity for map effects {cnt} > {_ws.Client.MapEffectData.Length}");
+                cnt = _ws.Client.MapEffectData.Length;
+            }
+
+            var mapeffects = new ushort[cnt];
+            for (var i = 0; i < mapeffects.Length; i++)
+                mapeffects[i] = layoutData->Instances[i].State;
+
+            if (!MemoryExtensions.SequenceEqual(mapeffects, _ws.Client.MapEffectData))
+                _ws.Execute(new ClientState.OpMapEffects(mapeffects));
+        }
+        */
     }
 
     private unsafe void UpdateDeepDungeon()
@@ -947,5 +989,34 @@ sealed class WorldStateGameSync : IDisposable
         var res = _processPacketFateInfoHook.Original(fateId, startTimestamp, durationSecs);
         _globalOps.Add(new ClientState.OpFateInfo((uint)fateId, DateTimeOffset.FromUnixTimeSeconds(startTimestamp).UtcDateTime));
         return res;
+    }
+
+    private unsafe void ProcessMapEffect1Detour(byte* data)
+    {
+        _processMapEffect1Hook.Original(data);
+        ProcessMapEffect(data, 10, 18);
+    }
+
+    private unsafe void ProcessMapEffect2Detour(byte* data)
+    {
+        _processMapEffect2Hook.Original(data);
+        ProcessMapEffect(data, 18, 34);
+    }
+
+    private unsafe void ProcessMapEffect3Detour(byte* data)
+    {
+        _processMapEffect3Hook.Original(data);
+        ProcessMapEffect(data, 26, 50);
+    }
+
+    private unsafe void ProcessMapEffect(byte* data, byte offLow, byte offIndex)
+    {
+        for (var i = 0; i < *data; i++)
+        {
+            var low = *(ushort*)(data + 2 * i + offLow);
+            var high = *(ushort*)(data + 2 * i + 2);
+            var index = data[i + offIndex];
+            _globalOps.Add(new WorldState.OpEnvControl(index, low | ((uint)high << 16)));
+        }
     }
 }

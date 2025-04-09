@@ -84,7 +84,7 @@ class GroundToGroundBallistic(BossModule module) : Components.KnockbackFromCastT
         {
             var dist = (p - source).Normalized();
             var proj = Arena.ClampToBounds(p + dist * 10);
-            return aoes.Any(e => e.Check(proj)) ? -1 : 0;
+            return aoes.Any(e => e.Check(proj));
         }, Module.CastFinishAt(Casters[0].CastInfo));
     }
 }
@@ -165,7 +165,7 @@ class MagitekMissile(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var m in Missiles)
-            hints.AddForbiddenZone(ShapeDistance.Capsule(m.Position, m.Rotation, 7, Radius), WorldState.FutureTime(1.5f));
+            hints.AddForbiddenZone(ShapeContains.Capsule(m.Position, m.Rotation, 7, Radius), WorldState.FutureTime(1.5f));
     }
 }
 

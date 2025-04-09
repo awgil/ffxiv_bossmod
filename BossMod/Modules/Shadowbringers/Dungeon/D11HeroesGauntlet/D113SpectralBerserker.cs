@@ -147,7 +147,7 @@ class FallingRock(BossModule module) : Components.IconStackSpread(module, (uint)
             {
                 foreach (var s in WorldState.Party.WithoutSlot().Where(s => s != actor))
                 {
-                    hints.AddForbiddenZone(ShapeDistance.Circle(s.Position, 6));
+                    hints.AddForbiddenZone(ShapeContains.Circle(s.Position, 6));
                 }
             }
             else
@@ -164,17 +164,17 @@ class FallingRock(BossModule module) : Components.IconStackSpread(module, (uint)
 
                 if (unsuitableRubbles != null)
                 {
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(unsuitableRubbles.Position, 6));
+                    hints.AddForbiddenZone(ShapeContains.InvertedCircle(unsuitableRubbles.Position, 6));
                 }
             }
         }
 
         foreach (var spreadFrom in ActiveSpreads.Where(s => s.Target != actor))
-            hints.AddForbiddenZone(ShapeDistance.Circle(spreadFrom.Target.Position, spreadFrom.Radius), spreadFrom.Activation);
+            hints.AddForbiddenZone(ShapeContains.Circle(spreadFrom.Target.Position, spreadFrom.Radius), spreadFrom.Activation);
 
         foreach (var avoid in ActiveStacks.Where(s => s.Target != actor && s.ForbiddenPlayers[slot]))
         {
-            hints.AddForbiddenZone(ShapeDistance.Circle(avoid.Target.Position, avoid.Radius), avoid.Activation.AddSeconds(4));
+            hints.AddForbiddenZone(ShapeContains.Circle(avoid.Target.Position, avoid.Radius), avoid.Activation.AddSeconds(4));
         }
     }
 

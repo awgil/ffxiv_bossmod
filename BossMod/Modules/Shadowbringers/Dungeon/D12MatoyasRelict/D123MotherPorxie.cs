@@ -128,7 +128,7 @@ class HuffAndPuff(BossModule module) : Components.Knockback(module, stopAtWall: 
         foreach (var movement in CalculateMovements(slot, actor))
         {
             var offset = movement.from - movement.to;
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(p.Position + offset, 5), Module.CastFinishAt(p.CastInfo));
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(p.Position + offset, 5), Module.CastFinishAt(p.CastInfo));
             break;
         }
     }

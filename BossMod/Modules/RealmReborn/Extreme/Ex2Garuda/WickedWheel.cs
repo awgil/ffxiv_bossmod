@@ -15,7 +15,7 @@ class WickedWheel(BossModule module) : Components.CastCounter(module, ActionID.M
     {
         // note: suparna also casts this, but we generally ignore it...
         if (_expectedNext != default && Module.PrimaryActor.TargetID != actor.InstanceID && (_expectedNext - WorldState.CurrentTime).TotalSeconds < 3)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, _radius), _expectedNext);
+            hints.AddForbiddenZone(ShapeContains.Circle(Module.PrimaryActor.Position, _radius), _expectedNext);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
