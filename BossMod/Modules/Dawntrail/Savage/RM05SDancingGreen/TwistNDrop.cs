@@ -7,7 +7,7 @@ class TwistNDrop(BossModule module) : Components.GroupedAOEs(module, [.. BossCas
 
     // he REALLY likes casting these
     public static readonly AID[] BossCasts = [
-        AID.W2SnapBoss1, AID.W3SnapBoss1, AID.W4SnapBoss1, AID.W2SnapBoss2, AID.W2SnapBoss3, AID.W4SnapBoss2, AID.W4SnapBoss3, AID.W2SnapBoss4, AID.W2SnapBoss5, AID.W3SnapBoss2, AID.W3SnapBoss3, AID.W4SnapBoss4, AID.W3SnapBoss4, AID.W4SnapBoss5, AID.W3SnapBoss5, AID.W3SnapBoss6, AID.W3SnapBoss7, AID.W4SnapBoss6, AID.W2SnapBoss6, AID.W2SnapBoss7, AID.W4SnapBoss7
+        AID.W2SnapBoss1, AID.W3SnapBoss1, AID.W4SnapBoss1, AID.W2SnapBoss2, AID.W2SnapBoss3, AID.W4SnapBoss2, AID.W4SnapBoss3, AID.W2SnapBoss4, AID.W2SnapBoss5, AID.W3SnapBoss2, AID.W3SnapBoss3, AID.W4SnapBoss4, AID.W3SnapBoss4, AID.W4SnapBoss5, AID.W3SnapBoss5, AID.W3SnapBoss6, AID.W3SnapBoss7, AID.W4SnapBoss6, AID.W2SnapBoss6, AID.W2SnapBoss7, AID.W4SnapBoss7, AID.W2SnapBoss8, AID.W3SnapBoss8, AID.W4SnapBoss8
     ];
 
     public static readonly AID[] HelperCasts = [

@@ -169,7 +169,9 @@ class BurnBabyBurn(BossModule module) : BossComponent(module)
             yield return t;
     }
 
-    private bool Imminent(int slot) => Orders[slot] != Order.None && Timers[slot] < WorldState.FutureTime(7);
+    private readonly DancingGreenConfig _cfg = Service.Config.Get<DancingGreenConfig>();
+
+    private bool Imminent(int slot) => Orders[slot] != Order.None && Timers[slot] < WorldState.FutureTime(_cfg.SpotlightHintSeconds);
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
@@ -180,8 +182,9 @@ class BurnBabyBurn(BossModule module) : BossComponent(module)
 
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {
-        foreach (var t in GetSafeTiles(slot))
-            movementHints.Add((actor.Position, FunkyFloor.GetTilePos(t), Imminent(slot) ? ArenaColor.Safe : ArenaColor.Danger));
+        if (Imminent(slot))
+            foreach (var t in GetSafeTiles(slot))
+                movementHints.Add((actor.Position, FunkyFloor.GetTilePos(t), Imminent(slot) ? ArenaColor.Safe : ArenaColor.Danger));
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

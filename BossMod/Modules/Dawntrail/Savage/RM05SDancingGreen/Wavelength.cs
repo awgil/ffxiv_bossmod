@@ -42,17 +42,18 @@ class Wavelength(BossModule module) : BossComponent(module)
 
     private void UpdateMasks()
     {
-        foreach (var st in PlayerStates)
+        foreach (ref var st in PlayerStates.AsSpan())
         {
             if (st.Order != 0)
             {
+                var order = st.Order;
                 st.Players.Reset();
-                foreach (var p in PlayerStates.Where(p => p.Order == st.Order))
+                foreach (var p in PlayerStates.Where(p => p.Order == order))
                     st.Players.Set(p.Slot);
+                var num = st.Players.NumSetBits();
+                if (num > 2)
+                    ReportError($"too many players ({num}) for {st.Order}");
             }
-            var num = st.Players.NumSetBits();
-            if (num > 2)
-                ReportError($"too many players ({num}) for {st.Order}");
         }
     }
 

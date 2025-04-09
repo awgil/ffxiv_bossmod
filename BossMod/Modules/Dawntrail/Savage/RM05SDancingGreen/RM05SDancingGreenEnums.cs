@@ -128,6 +128,9 @@ public enum AID : uint
     FrogtourageFinale = 42209, // Boss->self, 3.0s cast, single-target
     HiNRGFever = 42873, // Boss->self, 12.0s cast, range 60 circle
     BossReposition = 42693, // Boss->location, no cast, single-target
+    W2SnapBoss8 = 42203, // Boss->self, 5.0s cast, range 20 width 40 rect
+    W3SnapBoss8 = 42206, // Boss->self, 5.0s cast, range 20 width 40 rect
+    W4SnapBoss8 = 42207, // Boss->self, 5.0s cast, range 20 width 40 rect
 
     Unk1 = 42849, // Boss->self, no cast, single-target
     Unk2 = 37825, // Helper->Frogtourage, 1.2s cast, single-target
