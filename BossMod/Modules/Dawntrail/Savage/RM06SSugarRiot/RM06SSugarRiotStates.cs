@@ -45,9 +45,9 @@ class PuddingParty(BossModule module) : Components.StackWithIcon(module, (uint)I
 
 class RushEnrage(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.RushEnrage));
 
-class SugarRiotStates : StateMachineBuilder
+class RM06SSugarRiotStates : StateMachineBuilder
 {
-    public SugarRiotStates(BossModule module) : base(module)
+    public RM06SSugarRiotStates(BossModule module) : base(module)
     {
         DeathPhase(0, SinglePhase)
             .ActivateOnEnter<MousseMural>();

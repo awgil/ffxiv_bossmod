@@ -142,19 +142,19 @@ class ColorClash(BossModule module) : Components.GenericStackSpread(module)
     private readonly List<Stack> SavedStacks = [];
     public int NumCasts;
 
-    private string _hint = "";
+    private string hint = "";
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.ColorClashParty:
-                _hint = "Next: party stacks";
+                hint = "Next: party stacks";
                 foreach (var h in Raid.WithoutSlot().Where(r => r.Class.GetRole() == Role.Healer).Take(2))
                     SavedStacks.Add(new(h, 6, 4, activation: WorldState.FutureTime(24.5f)));
                 break;
             case AID.ColorClashPairs:
-                _hint = "Next: pairs";
+                hint = "Next: pairs";
                 foreach (var h in Raid.WithoutSlot().Where(r => r.Class.GetRole3() == Role3.Support).Take(4))
                     SavedStacks.Add(new(h, 6, 2, 2, activation: WorldState.FutureTime(24.5f)));
                 break;
@@ -172,8 +172,8 @@ class ColorClash(BossModule module) : Components.GenericStackSpread(module)
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        if (_hint != "")
-            hints.Add(_hint);
+        if (hint.Length > 0)
+            hints.Add(hint);
     }
 
     public void Activate()

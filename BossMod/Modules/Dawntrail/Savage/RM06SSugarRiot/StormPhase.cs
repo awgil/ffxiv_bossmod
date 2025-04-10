@@ -115,7 +115,7 @@ class LightningStorm(BossModule module) : Components.BaitAwayIcon(module, new AO
     {
         base.DrawArenaBackground(pcSlot, pc);
 
-        foreach (var (island, shape) in SugarRiot.IslandCones)
+        foreach (var (island, shape) in RM06SSugarRiot.IslandCones)
             if (ActiveBaitsNotOn(pc).Any(b => !IsOnBridge(b.Target) && b.Target.Position.InCone(Arena.Center, island, 60.Degrees())))
                 Arena.ZoneComplex(Arena.Center, default, shape, ArenaColor.AOE);
     }
@@ -139,5 +139,5 @@ class LightningStorm(BossModule module) : Components.BaitAwayIcon(module, new AO
     }
 
     private bool IsOnBridge(Actor p) => IsOnBridge(p.Position);
-    private bool IsOnBridge(WPos p) => SugarRiot.Bridges.Any(b => SugarRiot.BridgeShape.Check(p, b.Center, b.Rotation));
+    private bool IsOnBridge(WPos p) => RM06SSugarRiot.Bridges.Any(b => RM06SSugarRiot.BridgeShape.Check(p, b.Center, b.Rotation));
 }

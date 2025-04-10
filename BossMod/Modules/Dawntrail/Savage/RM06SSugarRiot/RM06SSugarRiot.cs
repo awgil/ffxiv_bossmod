@@ -33,7 +33,7 @@ class RM06SSugarRiotConfig : ConfigNode
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1022, NameID = 13822, PlanLevel = 100, Contributors = "xan")]
-public class SugarRiot(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsSquare(20))
+public class RM06SSugarRiot(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsSquare(20))
 {
     public static readonly WPos ArenaCenter = new(100, 100);
 
@@ -62,9 +62,7 @@ public class SugarRiot(WorldState ws, Actor primary) : BossModule(ws, primary, A
 
     public static int GetIsland(WPos p) => Array.FindIndex(IslandCones, i => p.InCone(ArenaCenter, i.Item1, 60.Degrees()));
 
-    private static ArenaBoundsCustom BuildBoundsMinusRiver() => RiverPoly == null
-        ? throw new Exception("static initializer order mismatch!")
-        : new ArenaBoundsCustom(20, new PolygonClipper().Difference(new(CurveApprox.Rect(new WDir(1, 0), 20, 20)), new(RiverPoly)));
+    private static ArenaBoundsCustom BuildBoundsMinusRiver() => new(20, new PolygonClipper().Difference(new(CurveApprox.Rect(new WDir(1, 0), 20, 20)), new(RiverPoly)));
 
     private static RelSimplifiedComplexPolygon BuildRiverPoly()
     {
@@ -112,9 +110,6 @@ public class SugarRiot(WorldState ws, Actor primary) : BossModule(ws, primary, A
 
     private static RelSimplifiedComplexPolygon BuildLavaPoly()
     {
-        if (RiverPoly == null)
-            throw new Exception("static initializer order mismatch!");
-
         // hack bs to connect the 4 separate river polygons together without going through all the trouble again
         var p0 = RiverPoly.Parts[0];
         var p1 = RiverPoly.Parts[1];

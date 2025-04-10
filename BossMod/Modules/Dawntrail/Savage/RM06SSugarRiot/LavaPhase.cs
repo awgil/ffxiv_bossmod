@@ -9,8 +9,8 @@ class MousseDripStack(BossModule module) : Components.GenericStackSpread(module)
     {
         if (iconID == (uint)IconID.MousseDrip)
         {
-            var isle = SugarRiot.GetIsland(actor.Position);
-            Stacks.Add(new(actor, 5, minSize: 2, maxSize: 2, forbiddenPlayers: Raid.WithSlot().WhereActor(a => SugarRiot.GetIsland(a.Position) != isle).Mask()));
+            var isle = RM06SSugarRiot.GetIsland(actor.Position);
+            Stacks.Add(new(actor, 5, minSize: 2, maxSize: 2, forbiddenPlayers: Raid.WithSlot().WhereActor(a => RM06SSugarRiot.GetIsland(a.Position) != isle).Mask()));
         }
     }
 

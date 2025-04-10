@@ -94,7 +94,7 @@ public sealed class ConfigUI : IDisposable
                 var dependsEnabled = node.GetType().GetField(prop)?.GetValue(node) switch
                 {
                     bool v => v,
-                    _ => throw new Exception($"Internal error: cannot use dependsOn with a non-bool field")
+                    _ => throw new InvalidDataException($"Internal error: cannot use dependsOn with a non-bool field")
                 };
                 disabled = !dependsEnabled;
             }

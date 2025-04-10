@@ -5,7 +5,7 @@ class RiverPhaseArena(BossModule module) : BossComponent(module)
     private bool RiverSafe;
     private DateTime Activation;
 
-    private static RelSimplifiedComplexPolygon RiverPoly => SugarRiot.RiverPoly;
+    private static RelSimplifiedComplexPolygon RiverPoly => RM06SSugarRiot.RiverPoly;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -110,7 +110,7 @@ class StormPhaseArena(BossModule module) : Components.GenericAOEs(module, warnin
                 break;
             case (4, 0x00200010):
                 CurArena = ArenaType.Storm;
-                Arena.Bounds = new ArenaBoundsCustom(20, Arena.Bounds.Clipper.Difference(new(CurveApprox.Rect(new WDir(1, 0), 20, 20)), new(SugarRiot.RiverPoly)));
+                Arena.Bounds = new ArenaBoundsCustom(20, Arena.Bounds.Clipper.Difference(new(CurveApprox.Rect(new WDir(1, 0), 20, 20)), new(RM06SSugarRiot.RiverPoly)));
                 NextArena = default;
                 break;
 
@@ -119,7 +119,7 @@ class StormPhaseArena(BossModule module) : Components.GenericAOEs(module, warnin
                 NextArena = ArenaType.Lava;
                 break;
             case (4, 0x08000004):
-                Arena.Bounds = new ArenaBoundsCustom(20, Arena.Bounds.Clipper.Difference(new(CurveApprox.Rect(new WDir(1, 0), 20, 20)), new(SugarRiot.LavaPoly)));
+                Arena.Bounds = new ArenaBoundsCustom(20, Arena.Bounds.Clipper.Difference(new(CurveApprox.Rect(new WDir(1, 0), 20, 20)), new(RM06SSugarRiot.LavaPoly)));
                 CurArena = ArenaType.Lava;
                 NextArena = default;
                 break;
@@ -137,10 +137,10 @@ class StormPhaseArena(BossModule module) : Components.GenericAOEs(module, warnin
         switch (NextArena)
         {
             case ArenaType.Storm:
-                yield return new AOEInstance(new AOEShapeCustom(SugarRiot.RiverPoly), Arena.Center, default, Activation);
+                yield return new AOEInstance(new AOEShapeCustom(RM06SSugarRiot.RiverPoly), Arena.Center, default, Activation);
                 break;
             case ArenaType.Lava:
-                yield return new AOEInstance(new AOEShapeCustom(SugarRiot.LavaPoly), Arena.Center, default, Activation);
+                yield return new AOEInstance(new AOEShapeCustom(RM06SSugarRiot.LavaPoly), Arena.Center, default, Activation);
                 break;
         }
     }
