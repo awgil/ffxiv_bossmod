@@ -169,7 +169,7 @@ class BurnBabyBurn(BossModule module) : BossComponent(module)
             yield return t;
     }
 
-    private readonly DancingGreenConfig _cfg = Service.Config.Get<DancingGreenConfig>();
+    private readonly RM05SDancingGreenConfig _cfg = Service.Config.Get<RM05SDancingGreenConfig>();
 
     private bool Imminent(int slot) => Orders[slot] != Order.None && Timers[slot] < WorldState.FutureTime(_cfg.SpotlightHintSeconds);
 

@@ -15,7 +15,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
     private readonly DebugObjects _debugObjects = new();
     private readonly DebugParty _debugParty = new();
-    private readonly DebugEnvControl _debugEnvControl = new();
+    private readonly DebugEnvControl _debugEnvControl = new(ws);
     private readonly DebugGraphics _debugGraphics = new();
     private readonly DebugAction _debugAction = new(ws, amex);
     private readonly DebugHate _debugHate = new();
@@ -31,6 +31,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         _debugAction.Dispose();
         _debugInput.Dispose();
         _debugAddon.Dispose();
+        _debugEnvControl.Dispose();
         //_debugVfx.Dispose();
         base.Dispose(disposing);
     }

@@ -11,6 +11,9 @@ public class ReplayManagementConfig : ConfigNode
     [PropertyDisplay("Auto record replays on duty start/end or outdoor module start/end")]
     public bool AutoRecord = true;
 
+    [PropertyDisplay("Auto record in Duty Recorder replays", tooltip: "Requires auto-record to be turned on")]
+    public bool AutoARR = true;
+
     [PropertyDisplay("Max replays to keep before removal")]
     [PropertySlider(0, 1000)]
     public int MaxReplays = 20;

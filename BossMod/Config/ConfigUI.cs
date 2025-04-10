@@ -87,10 +87,25 @@ public sealed class ConfigUI : IDisposable
             if (props == null)
                 continue;
 
-            var value = field.GetValue(node);
-            if (DrawProperty(props.Label, props.Tooltip, node, field, value, root, tree, ws))
+            var disabled = false;
+
+            if (props.Depends is { } prop)
             {
-                node.Modified.Fire();
+                var dependsEnabled = node.GetType().GetField(prop)?.GetValue(node) switch
+                {
+                    bool v => v,
+                    _ => throw new Exception($"Internal error: cannot use dependsOn with a non-bool field")
+                };
+                disabled = !dependsEnabled;
+            }
+
+            var value = field.GetValue(node);
+            using (ImRaii.Disabled(disabled))
+            {
+                if (DrawProperty(props.Label, props.Tooltip, node, field, value, root, tree, ws))
+                {
+                    node.Modified.Fire();
+                }
             }
 
             if (props.Separator)

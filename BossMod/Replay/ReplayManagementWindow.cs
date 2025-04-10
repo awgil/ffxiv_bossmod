@@ -115,9 +115,11 @@ public class ReplayManagementWindow : UIWindow
 
     private void UpdateTitle() => WindowName = $"Replay recording: {(_recorder != null ? "in progress..." : "idle")}{_windowID}";
 
+    public bool ShouldAutoRecord => _config.AutoRecord && (_config.AutoARR || !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback]);
+
     private bool OnZoneChange(uint cfcId)
     {
-        if (!_config.AutoRecord || _recordingManual)
+        if (!ShouldAutoRecord || _recordingManual)
             return false; // don't care
 
         var isDuty = cfcId != 0;
@@ -142,7 +144,7 @@ public class ReplayManagementWindow : UIWindow
 
     private void OnModuleActivation(BossModule m)
     {
-        if (!_config.AutoRecord || _recordingManual)
+        if (!ShouldAutoRecord || _recordingManual)
             return; // don't care
 
         ++_recordingActiveModules;
@@ -152,7 +154,7 @@ public class ReplayManagementWindow : UIWindow
 
     private void OnModuleDeactivation(BossModule m)
     {
-        if (!_config.AutoRecord || _recordingManual || _recordingActiveModules <= 0)
+        if (!ShouldAutoRecord || _recordingManual || _recordingActiveModules <= 0)
             return; // don't care
 
         --_recordingActiveModules;
