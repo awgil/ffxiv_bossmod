@@ -141,7 +141,7 @@ class Impact(BossModule module) : Components.Knockback(module)
             // knockback to any of the corners
             var c1 = SafeSpotInDirection(origin, (-35).Degrees().ToDirection());
             var c2 = SafeSpotInDirection(origin, 35.Degrees().ToDirection());
-            hints.AddForbiddenZone(p => c1(p) || c2(p), AOEs[0].Activation);
+            hints.AddForbiddenZone(p => c1(p) && c2(p), AOEs[0].Activation);
         }
     }
 
