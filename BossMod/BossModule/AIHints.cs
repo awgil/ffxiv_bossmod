@@ -25,6 +25,9 @@ public sealed class AIHints
         public bool ShouldBeDispelled; // if set, AI will try to cast a dispel action; only relevant for foray content
         public bool StayAtLongRange; // if set, players with ranged attacks don't bother coming closer than max range (TODO: reconsider)
         public bool Spikes; // if set, autoattacks will be prevented
+
+        // easier to read
+        public bool AllowDOTs { get => !ForbidDOTs; set => ForbidDOTs = !value; }
     }
 
     public enum SpecialMode

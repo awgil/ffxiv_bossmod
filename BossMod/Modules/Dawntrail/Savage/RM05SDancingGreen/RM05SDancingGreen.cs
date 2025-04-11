@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM05SDancingGreen;
 
 [ConfigDisplay(Parent = typeof(DawntrailConfig))]
-public class DancingGreenConfig : ConfigNode
+public class RM05SDancingGreenConfig : ConfigNode
 {
     [PropertyDisplay("Seconds in advance to show spotlight safe spots (default: 15)")]
     [PropertySlider(5, 30)]

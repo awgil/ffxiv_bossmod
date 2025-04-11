@@ -397,60 +397,7 @@ class DebugGraphics
                 Camera.Instance.DrawWorldLine(new(_overlayCenter.X - _overlayMaxOffset.X, y, z), new(_overlayCenter.X + _overlayMaxOffset.X, y, z), ArenaColor.PC);
             }
         }
-
-        ImGui.Text("Arc approximation");
-        ImGui.DragFloat2("Ref point A", ref _arcA);
-        ImGui.DragFloat2("Ref point B", ref _arcB);
-        ImGui.DragFloat("Radius", ref _arcRadius);
-
-        y = -0.68f;
-
-        var x1 = _arcA.X;
-        var x2 = _arcB.X;
-        var y1 = _arcA.Y;
-        var y2 = _arcB.Y;
-
-        var centerdx = x1 - x2;
-        var centerdy = y1 - y2;
-        var R = MathF.Sqrt(centerdx * centerdx + centerdy * centerdy);
-        var r1 = _arcRadius;
-        var r2 = _arcRadius;
-        if (!(MathF.Abs(r1 - r2) <= R && R <= r1 + r2))
-            return;
-
-        var R2 = R * R;
-        var R4 = R2 * R2;
-        var a = (r1 * r1 - r2 * r2) / (2 * R2);
-        var r2r2 = (r1 * r1 - r2 * r2);
-        var c = MathF.Sqrt(2 * (r1 * r1 + r2 * r2) / R2 - (r2r2 * r2r2) / R4 - 1);
-
-        var fx = (x1 + x2) / 2 + a * (x2 - x1);
-        var gx = c * (y2 - y1) / 2;
-        var ix1 = fx + gx;
-        var ix2 = fx - gx;
-
-        var fy = (y1 + y2) / 2 + a * (y2 - y1);
-        var gy = c * (x1 - x2) / 2;
-        var iy1 = fy + gy;
-        var iy2 = fy - gy;
-
-        void drawCircle(float x, float z)
-        {
-            Camera.Instance!.DrawWorldCircle(new(x, y, z), _arcRadius, ArenaColor.Enemy);
-            var ptA = _arcA - new Vector2(x, z);
-            var ptB = _arcB - new Vector2(x, z);
-            var dirA = MathF.Atan2(ptA.X, ptA.Y);
-            var dirB = MathF.Atan2(ptB.X, ptB.Y);
-            ImGui.Text($"Midpoint: {x}, {z}; angles: {dirA * 180 / MathF.PI}deg / {dirB * 180 / MathF.PI}deg");
-        }
-
-        drawCircle(ix1, iy1);
-        drawCircle(ix2, iy2);
     }
-
-    private Vector2 _arcA = new(104.01682f, 88.348915f);
-    private Vector2 _arcB = new(106.509705f, 80.25038f);
-    private float _arcRadius = 28;
 
     public static unsafe FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* FindSceneRoot()
     {
