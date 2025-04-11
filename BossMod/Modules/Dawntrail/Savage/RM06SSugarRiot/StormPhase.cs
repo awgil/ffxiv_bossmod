@@ -68,20 +68,14 @@ class TempestPiece(BossModule module) : Components.GenericAOEs(module)
         if (move == default)
             return;
 
-        if (move.AlmostEqual(147.Degrees(), 0.05f) || move.AlmostEqual(90.Degrees(), 0.05f))
+        if (move.AlmostEqual(120.Degrees(), 60.Degrees().Rad))
             NextPosition = new(115, 92);
 
-        if (move.AlmostEqual(-90.Degrees(), 0.05f) || move.AlmostEqual(-149.Degrees(), 0.05f))
+        if (move.AlmostEqual(-120.Degrees(), 60.Degrees().Rad))
             NextPosition = new(87, 92);
 
-        if (move.AlmostEqual(29.Degrees(), 0.05f) || move.AlmostEqual(-32.Degrees(), 0.05f))
+        if (move.AlmostEqual(0.Degrees(), 60.Degrees().Rad))
             NextPosition = new(100, 115);
-
-        if (NextPosition == null)
-        {
-            ReportError($"unable to determine next cloud position from {move}");
-            NextPosition = Arena.Center;
-        }
     }
 
     public override void OnActorCreated(Actor actor)

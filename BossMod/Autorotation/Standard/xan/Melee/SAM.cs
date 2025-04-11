@@ -221,10 +221,11 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
         PushGCD(AID.Enpi, primaryTarget, enpiprio);
 
-        OGCD(strategy, primaryTarget);
-
         var pos = GetNextPositional(strategy);
         UpdatePositionals(primaryTarget, ref pos);
+
+        OGCD(strategy, primaryTarget);
+
         GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(NumStickers == 2 ? 8 : 5), AID.Fuga, 3, 20);
     }
 
@@ -400,6 +401,9 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         Meikyo(strategy);
+
+        if (NextPositionalImminent && !NextPositionalCorrect)
+            PushOGCD(AID.TrueNorth, Player, -10, GCD - 0.8f);
     }
 
     private bool GrantsMeditation(AID aid) => aid is AID.MidareSetsugekka or AID.TenkaGoken or AID.Higanbana or AID.TendoSetsugekka or AID.TendoGoken or AID.OgiNamikiri;
