@@ -512,6 +512,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks if the target is within <b>10-yalm</b> range.</summary>
     protected bool In10y(Actor? target) => InRange(target, 10.00f);
 
+    /// <summary>Checks if the target is within <b>12-yalm</b> range.</summary>
+    protected bool In12y(Actor? target) => InRange(target, 12.00f);
+
     /// <summary>Checks if the target is within <b>15-yalm</b> range.</summary>
     protected bool In15y(Actor? target) => InRange(target, 15.00f);
 
@@ -819,7 +822,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     #region Priorities
     protected GCDPriority GCDPrio(GCDStrategy strat, GCDPriority defaultPrio) => strat is GCDStrategy.Force ? GCDPriority.Forced : defaultPrio;
-    protected enum GCDPriority //Base = 4000
+    public enum GCDPriority //Base = 4000
     {
         None = 0,
         Minimal = 50,
@@ -844,7 +847,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         Forced = 1000 //This is really high already, should never be past 5000 total tbh
     }
     protected OGCDPriority OGCDPrio(OGCDStrategy strat, OGCDPriority defaultPrio) => strat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : defaultPrio;
-    protected enum OGCDPriority //Base = 2000
+    public enum OGCDPriority //Base = 2000
     {
         None = 0,
         Minimal = 50,
