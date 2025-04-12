@@ -163,5 +163,9 @@ public sealed class Definitions : IDisposable
         //d.Spell(AID.MeikyoShisui)!.Condition = _ => _state.MeikyoLeft == 0;
 
         d.Spell(AID.HissatsuGyoten)!.ForbidExecute = ActionDefinitions.PreventDashIfDangerous;
+        d.Spell(AID.HissatsuYaten)!.ForbidExecute = ActionDefinitions.PreventBackdashIfDangerous(10);
+
+        // dont want accidental double meikyo
+        d.Spell(AID.MeikyoShisui)!.ForbidExecute = (_, player, _, _) => player.FindStatus(SID.MeikyoShisui) != null;
     }
 }

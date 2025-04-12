@@ -163,6 +163,8 @@ public sealed class Definitions : IDisposable
 
         // smart targets
         d.Spell(AID.WardensPaean)!.SmartTarget = ActionDefinitions.SmartTargetEsunable;
+
+        d.Spell(AID.RepellingShot)!.ForbidExecute = ActionDefinitions.PreventBackdashIfDangerous(10);
     }
 }
 

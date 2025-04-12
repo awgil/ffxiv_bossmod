@@ -315,7 +315,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         if (!HaveFugetsu || NumStickers == 0)
             return;
 
-        if (NumStickers == 1 && TargetDotLeft < 10 && FukaLeft > 0)
+        if (NumStickers == 1 && !CanFitGCD(TargetDotLeft, 1) && FukaLeft > 0)
             PushGCD(AID.Higanbana, BestDotTarget);
 
         void kaeshi()
@@ -372,6 +372,8 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         if (strategy.BuffsOk())
             PushOGCD(AID.Ikishoten, Player);
 
+        Meikyo(strategy);
+
         if (Kenki >= 25 && (RaidBuffsLeft > AnimLock || RaidBuffsIn > (Unlocked(TraitID.EnhancedHissatsu) ? 40 : 100)))
         {
             if (NumLineTargets > 1)
@@ -399,8 +401,6 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
             PushOGCD(AID.HissatsuShinten, primaryTarget);
         }
-
-        Meikyo(strategy);
 
         if (NextPositionalImminent && !NextPositionalCorrect)
             PushOGCD(AID.TrueNorth, Player, -10, GCD - 0.8f);

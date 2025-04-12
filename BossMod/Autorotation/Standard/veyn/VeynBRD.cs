@@ -296,7 +296,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         // initial dot application & refresh
         // TODO: pre-IJ refresh logic: slightly early but avoiding clipping ticks? early during buffs?
         var strategyDOTs = strategyDOTsOption.As<DotStrategy>();
-        var allowApplyDOTs = strategyDOTs switch
+        var allowApplyDOTs = Hints.FindEnemy(dotTarget)?.ForbidDOTs != true && strategyDOTs switch
         {
             DotStrategy.ApplyOrExtend => true,
             DotStrategy.AutomaticExtendOnly or DotStrategy.Forbid => false,

@@ -282,16 +282,35 @@ public sealed class ActionDefinitions : IDisposable
         var dist = player.DistanceToHitbox(target);
         var dir = player.DirectionTo(target).Normalized();
         var src = player.Position;
-        var proj = dist > 0 ? src + dir * MathF.Max(0, dist) : src;
 
-        // if arena is a weird shape, try to ensure player won't dash out of it
-        if (proj != src && hints.PathfindMapBounds is ArenaBoundsCustom)
+        return IsDashDangerous(src, src + dir * MathF.Max(0, dist), hints);
+    }
+
+    public static ActionDefinition.ConditionDelegate PreventBackdashIfDangerous(float range)
+         => (ws, player, target, hints) =>
         {
-            if (hints.PathfindMapBounds.IntersectRay(src - hints.PathfindMapCenter, proj - src) is >= 0 and < float.MaxValue)
+            if (target == null || !Service.Config.Get<ActionTweaksConfig>().PreventDangerousDash)
+                return false;
+
+            if (player.PendingKnockbacks.Count > 0)
+                return true;
+
+            var dir = target.DirectionTo(player).Normalized();
+
+            return IsDashDangerous(player.Position, player.Position + dir * range, hints);
+        };
+
+    private static bool IsDashDangerous(WPos from, WPos to, AIHints hints)
+    {
+        // if arena is a weird shape, try to ensure player won't dash out of it
+        if (from != to && hints.PathfindMapBounds is ArenaBoundsCustom)
+        {
+            var center = hints.PathfindMapCenter;
+            if (hints.PathfindMapBounds.IntersectRay(from - center, to - from) is >= 0 and < float.MaxValue)
                 return true;
         }
 
-        return hints.ForbiddenZones.Any(d => d.containsFn(proj));
+        return hints.ForbiddenZones.Any(d => d.containsFn(to));
     }
 
     public BitMask SpellAllowedClasses(Lumina.Excel.Sheets.Action data)
