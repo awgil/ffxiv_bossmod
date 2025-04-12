@@ -101,7 +101,7 @@ class RM06SSugarRiotStates : StateMachineBuilder
         Wingmark1(id + 0x20, 6.6f);
 
         id += 0x10000;
-        Cast(id, AID.ArtisticAnarchy, 9, 8, "Enrage start");
+        Cast(id, AID.ArtisticAnarchy, 9, 8);
         ComponentCondition<RushEnrage>(id + 2, 6.1f, r => r.NumCasts > 0, "Enrage")
             .ActivateOnEnter<RushEnrage>();
     }
@@ -265,7 +265,7 @@ class RM06SSugarRiotStates : StateMachineBuilder
 
     private void RiverPhase(uint id, float delay)
     {
-        Cast(id, AID.SugarscapeRiver, delay, 1, "Sugarscape")
+        Cast(id, AID.SugarscapeRiver, delay, 1, "River start")
             .ActivateOnEnter<SweetShot>();
         CastStartMulti(id + 0x10, [AID.DoubleStyleFire, AID.DoubleStyleLightning], 14.1f)
             .ActivateOnEnter<DoubleStyleFireLightning>()
@@ -299,9 +299,9 @@ class RM06SSugarRiotStates : StateMachineBuilder
         ComponentCondition<Highlightning>(id + 0x20, 5, h => h.NumCasts > 0, "Thundercloud 1")
             .DeactivateOnExit<TasteOfLightningBait>();
         ComponentCondition<Highlightning>(id + 0x21, 10.5f, h => h.NumCasts > 1, "Thundercloud 2");
-        ComponentCondition<Highlightning>(id + 0x22, 10.6f, h => h.NumCasts > 2, "Thundercloud 2");
-        ComponentCondition<Highlightning>(id + 0x23, 10.6f, h => h.NumCasts > 3, "Thundercloud 3");
-        ComponentCondition<Highlightning>(id + 0x24, 10.6f, h => h.NumCasts > 4, "Thundercloud 4")
+        ComponentCondition<Highlightning>(id + 0x22, 10.6f, h => h.NumCasts > 2, "Thundercloud 3");
+        ComponentCondition<Highlightning>(id + 0x23, 10.6f, h => h.NumCasts > 3, "Thundercloud 4");
+        ComponentCondition<Highlightning>(id + 0x24, 10.6f, h => h.NumCasts > 4, "Thundercloud 5")
             .DeactivateOnExit<Highlightning>();
 
         ComponentCondition<PuddingParty>(id + 0x30, 5.8f, p => p.NumCasts > 0, "Stack 1");
