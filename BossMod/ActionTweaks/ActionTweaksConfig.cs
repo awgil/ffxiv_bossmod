@@ -31,7 +31,7 @@ public sealed class ActionTweaksConfig : ConfigNode
         M12
     }
 
-    [PropertyDisplay("Key to hold to allow movement while casting", tooltip: "Requires the above setting checked as well")]
+    [PropertyDisplay("Key to hold to allow movement while casting", depends: nameof(PreventMovingWhileCasting))]
     public ModifierKey MoveEscapeHatch = ModifierKey.None;
 
     [PropertyDisplay("Automatically cancel a cast when target is dead")]
@@ -44,9 +44,6 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertyDisplay("Auto misdirection: prevent movement under misdirection if angle between normal movement and misdirected is greater than this threshold (set to 180 to disable).")]
     [PropertySlider(0, 180)]
     public float MisdirectionThreshold = 180;
-
-    [PropertyDisplay("Restore character orientation after action use (deprecated)", tooltip: "Note: this is deprecated in favour of smart character orientation and will be removed in future")]
-    public bool RestoreRotation = false;
 
     [PropertyDisplay("Use actions on mouseover target")]
     public bool PreferMouseover = false;

@@ -56,7 +56,6 @@ public sealed unsafe class ActionManagerEx : IDisposable
     private readonly CooldownDelayTweak _cooldownTweak = new();
     private readonly CancelCastTweak _cancelCastTweak;
     private readonly AutoDismountTweak _dismountTweak;
-    private readonly RestoreRotationTweak _restoreRotTweak = new();
     private readonly SmartRotationTweak _smartRotationTweak;
     private readonly OutOfCombatActionsTweak _oocActionsTweak;
     private readonly AutoAutosTweak _autoAutosTweak;
@@ -357,9 +356,6 @@ public sealed unsafe class ActionManagerEx : IDisposable
             return null;
         var current = player->Rotation.Radians();
 
-        // restore rotation logic; note that movement abilities (like charge) can take multiple frames until they allow changing facing
-        var restored = MoveMightInterruptCast || actionImminent ? null : _restoreRotTweak.TryRestore(current);
-
         // gaze avoidance & targeting
         // note: to execute an oriented action (cast a spell or use instant), target has to be within 45 degrees of character orientation (reversed)
         // to finish a spell without interruption, by the beginning of the slide-cast window target has to be within 75 degrees of character orientation (empyrical)
@@ -372,10 +368,8 @@ public sealed unsafe class ActionManagerEx : IDisposable
         WPos? currentTargetPos = currentTargetObj != null ? new WPos(currentTargetObj->Position.X, currentTargetObj->Position.Z) : null;
         var currentTargetLoc = isCasting ? new WPos(castInfo->TargetLocation.X, castInfo->TargetLocation.Z) : new(AutoQueue.TargetPos.XZ()); // note: this only matters for area-targeted spells, for which targetlocation in castinfo is set correctly
         var idealOrientation = currentAction ? _smartRotationTweak.GetSpellOrientation(GetSpellIdForAction(currentAction), new(player->Position.X, player->Position.Z), currentTargetSelf, currentTargetPos, currentTargetLoc) : null;
-        var avoidGaze = _smartRotationTweak.GetSafeRotation(current, idealOrientation, isCasting ? 75.Degrees() : 45.Degrees());
-
         // avoiding a gaze has a priority over restore
-        return avoidGaze ?? restored;
+        return _smartRotationTweak.GetSafeRotation(current, idealOrientation, isCasting ? 75.Degrees() : 45.Degrees());
     }
 
     private void UpdateDetour(ActionManager* self)
@@ -588,7 +582,6 @@ public sealed unsafe class ActionManagerEx : IDisposable
     {
         _manualQueue.Pop(action);
         _animLockTweak.RecordRequest(seq, _inst->AnimationLock);
-        _restoreRotTweak.Preserve(prevRot, currRot);
         MoveMightInterruptCast = CastTimeRemaining > 0 && !CanMoveWhileCasting(action);
 
         var recast = _inst->GetRecastGroupDetail(GetRecastGroup(action));
