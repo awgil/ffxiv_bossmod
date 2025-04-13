@@ -30,9 +30,9 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         def.DefineShared().AddAssociatedActions(AID.Ikishoten, AID.HissatsuSenei);
 
         def.Define(Track.Higanbana).As<OffensiveStrategy>("Higanbana")
-            .AddOption(OffensiveStrategy.Automatic, "Auto", "Keep Higanbana uptime against 1 or 2 targets")
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Do not apply Higanbana")
-            .AddOption(OffensiveStrategy.Force, "Force", "Always apply Higanbana to target");
+            .AddOption(OffensiveStrategy.Automatic, "Auto", "Refresh every 60s according to standard rotation", supportedTargets: ActionTargets.Hostile)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Don't apply")
+            .AddOption(OffensiveStrategy.Force, "Force", "Apply to target ASAP, regardless of remaining duration", supportedTargets: ActionTargets.Hostile);
 
         def.Define(Track.Enpi).As<EnpiStrategy>("Enpi")
             .AddOption(EnpiStrategy.Enhanced, "Enhanced", "Use if Enhanced Enpi is active")
@@ -154,7 +154,9 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         NumTenkaTargets = NumNearbyTargets(strategy, 8);
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, InLineAOE);
 
-        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, HiganbanaLeft, 2);
+        var dotTarget = Hints.FindEnemy(ResolveTargetOverride(strategy.Option(Track.Higanbana).Value)) ?? primaryTarget;
+
+        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, dotTarget, HiganbanaLeft, 2);
 
         switch (strategy.Option(Track.Higanbana).As<OffensiveStrategy>())
         {
