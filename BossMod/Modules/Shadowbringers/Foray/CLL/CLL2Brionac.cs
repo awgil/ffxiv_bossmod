@@ -22,7 +22,6 @@ public enum AID : uint
     LightningShowerBoss = 21444, // Boss->self, 4.0s cast, single-target
     LightningShower = 21445, // Helper->self, 5.0s cast, range 60 circle
     EnergyGeneration = 20944, // Boss->self, 3.0s cast, single-target
-    MagitekMissiles = 20991, // Helper->player, 5.0s cast, single-target
     Lightburst = 20945, // Lightsphere->self, 2.0s cast, range 5-20 donut
     InfraredBlast = 20974, // Helper->player, no cast, single-target
     ShadowBurst = 20946, // Shadowsphere->self, 2.0s cast, range 12 circle
