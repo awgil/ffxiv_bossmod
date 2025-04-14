@@ -780,6 +780,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks if player is inside combat and has a primary target.</summary>
     protected bool InsideCombatWith(Actor? target) => Player.InCombat && target != null;
 
+    protected float RaidBuffsIn { get; private set; }
+    protected float RaidBuffsLeft { get; private set; }
+
     //TODO: new stuff
     /*
     protected DateTime? movementStartTime;
@@ -893,6 +896,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         CanSwiftcast = ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Swiftcast)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Swiftcast)!.MainCooldownGroup].Remaining < 0.6f;
         HasPeloton = PlayerHasAnyEffect(ClassShared.SID.Peloton);
         CanPeloton = !Player.InCombat && !HasPeloton && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Peloton)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Peloton)!.MainCooldownGroup].Remaining < 0.6f;
+        (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);
 
         if (Player.MountId is not (103 or 117 or 128))
             Execution(strategy, PlayerTarget);

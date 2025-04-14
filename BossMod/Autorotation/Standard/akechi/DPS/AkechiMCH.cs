@@ -118,6 +118,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     public bool CanChainsaw;
     public bool CanExcavate;
     public bool CanFMF;
+    public bool CanFT;
     public bool AfterDrill;
     public bool AfterAirAnchor;
     public bool AfterChainsaw;
@@ -138,8 +139,8 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
 
     #region Upgrade Paths
     public AID ST
-        => ComboLastMove == BestSlugShot ? BestCleanShot : //3
-        ComboLastMove == BestSplitShot ? BestSlugShot : //2
+        => ComboLastMove is AID.SlugShot or AID.HeatedSlugShot ? BestCleanShot : //3
+        ComboLastMove is AID.SplitShot or AID.HeatedSplitShot ? BestSlugShot : //2
         BestSplitShot; //1
     public AID BestSpreadShot => Unlocked(AID.Scattergun) ? AID.Scattergun : AID.SpreadShot;
     public AID BestSplitShot => Unlocked(AID.HeatedSplitShot) ? AID.HeatedSplitShot : AID.SplitShot;
@@ -168,7 +169,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     #region Buffs
     private bool ShouldUseWildfire(WildfireStrategy strategy, Actor? target) => strategy switch
     {
-        WildfireStrategy.Automatic => InsideCombatWith(target) && In25y(target) && CanWF && LastActionUsed(AID.Hypercharge),
+        WildfireStrategy.Automatic => InsideCombatWith(target) && In25y(target) && CanWF && (LastActionUsed(AID.Hypercharge) || OverheatActive),
         WildfireStrategy.End => PlayerHasEffect(SID.WildfirePlayer),
         WildfireStrategy.Force => CanWF,
         WildfireStrategy.ForceWeave => CanWF && CanWeaveIn,
@@ -188,27 +189,20 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             OGCDStrategy.Delay or _ => false,
         };
     }
-    private bool Assemble(AID aid) => aid is AID.Drill or AID.AirAnchor or AID.ChainSaw or AID.Excavator;
-    private bool ShouldUseReassemble(ReassembleStrategy strategy)
+    private bool ShouldUseReassemble(ReassembleStrategy strategy, Actor? target)
     {
-        if (!CanReassemble)
+        if (!CanReassemble || target == null)
             return false;
 
         if (strategy == ReassembleStrategy.Automatic ||
-            strategy == ReassembleStrategy.HoldOne && TotalCD(AID.Reassemble) < 20)
+            (strategy == ReassembleStrategy.HoldOne && TotalCD(AID.Reassemble) < 20))
         {
-            Assemble(NextGCD);
-            return NextGCD switch
-            {
-                AID.SpreadShot or AID.Scattergun or AID.AutoCrossbow => true,
-                AID.CleanShot => !Unlocked(AID.Drill),
-                AID.HotShot => !Unlocked(AID.CleanShot),
-                _ => false
-            };
+            if (TotalCD(AID.BarrelStabilizer) > 20 && CanWeaveIn && (ShouldUseAOE ? (TotalCD(AID.ChainSaw) < 1.5 || CanExcavate) : (TotalCD(AID.ChainSaw) < 1.5 || (Unlocked(AID.Drill) ? TotalCD(AID.Drill) < 1.5 : Unlocked(AID.CleanShot) ? NextGCD is AID.CleanShot : TotalCD(AID.HotShot) < 1.5) || TotalCD(AID.ChainSaw) < 1.5 || CanExcavate)))
+                return true;
         }
         return strategy switch
         {
-            ReassembleStrategy.Force => !PlayerHasEffect(SID.Reassembled),
+            ReassembleStrategy.Force => ReassembleLeft == 0,
             ReassembleStrategy.Delay or _ => false,
         };
     }
@@ -219,13 +213,23 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     {
         if (!CanDrill)
             return false;
+
+        if (strategy == DrillStrategy.Automatic && InsideCombatWith(target) && TotalCD(AID.BarrelStabilizer) > 19)
+        {
+            if (Unlocked(AID.Bioblaster))
+            {
+                return !ShouldUseAOE || !TargetHasAnyEffect(target, SID.Bioblaster);
+            }
+            else
+                return true;
+        }
+
         return strategy switch
         {
-            DrillStrategy.Automatic => InsideCombatWith(target) && (ShouldUseAOE ? In12y(target) : In25y(target)),
-            DrillStrategy.OnlyDrill => true,
-            DrillStrategy.OnlyBioblaster => true,
+            DrillStrategy.OnlyDrill => Unlocked(AID.Drill) && InsideCombatWith(target),
+            DrillStrategy.OnlyBioblaster => Unlocked(AID.Bioblaster) && !TargetHasAnyEffect(target, SID.Bioblaster) && InsideCombatWith(target),
             DrillStrategy.ForceDrill => true,
-            DrillStrategy.ForceBioblaster => true,
+            DrillStrategy.ForceBioblaster => Unlocked(AID.Bioblaster),
             DrillStrategy.Delay or _ => false,
         };
     }
@@ -246,7 +250,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             return false;
         return strategy switch
         {
-            GCDStrategy.Automatic => InsideCombatWith(target) && In25y(target),
+            GCDStrategy.Automatic => InsideCombatWith(target) && In25y(target) && ActionReady(AID.ChainSaw),
             GCDStrategy.Force => true,
             GCDStrategy.Delay or _ => false,
         };
@@ -285,20 +289,20 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
 
         if (strategy == HyperchargeStrategy.Automatic)
         {
-            // Ensures Hypercharge is double weaved with WF
-            if (Unlocked(AID.FullMetalField) && LastActionUsed(AID.FullMetalField) &&
-                (TotalCD(AID.Wildfire) < GCD || ActionReady(AID.Wildfire)) ||
-                !Unlocked(AID.FullMetalField) && ActionReady(AID.Wildfire) ||
-                !Unlocked(AID.Wildfire))
-                return true;
-
-            // Only Hypercharge when tools are on cooldown
-            if (AfterAirAnchor && AfterChainsaw && AfterDrill &&
-                (!Unlocked(AID.Wildfire) ||
-                (Unlocked(AID.Wildfire) &&
-                (TotalCD(AID.Wildfire) > 40 ||
-                IsOffCooldown(AID.Wildfire) && !PlayerHasEffect(SID.FullMetalMachinist)))))
-                return true;
+            if (AfterAirAnchor && AfterChainsaw && AfterDrill && ExcavatorLeft == 0 && FMFLeft == 0)
+            {
+                if (!Unlocked(AID.Wildfire))
+                    return true;
+                if (ActionReady(AID.Wildfire) && !PlayerHasEffect(SID.WildfirePlayer))
+                    return true;
+                if (Heat >= 95 && (TotalCD(AID.AirAnchor) is < 17 and >= 9 || TotalCD(AID.ChainSaw) is < 20 and >= 9))
+                    return true;
+                //1min
+                if (TotalCD(AID.BarrelStabilizer) is > 50 and < 60)
+                    return true;
+                if (HyperchargedLeft > 0 || Heat == 100 || RaidBuffsLeft > 0 || OverheatActive)
+                    return true;
+            }
         }
 
         return strategy switch
@@ -322,16 +326,13 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     }
     #endregion
 
-    #region Battery
-    #endregion
-
     private bool ShouldUseGaussRound(OGCDStrategy strategy, Actor? target)
     {
         if (!CanGR)
             return false;
         return strategy switch
         {
-            OGCDStrategy.Automatic => InsideCombatWith(target) && In25y(target),
+            OGCDStrategy.Automatic => InsideCombatWith(target) && In25y(target) && (TotalCD(BestGauss) < 30.6f || OverheatActive || RaidBuffsLeft > 0),
             OGCDStrategy.AnyWeave => CanWeaveIn,
             OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
             OGCDStrategy.LateWeave => CanLateWeaveIn,
@@ -345,7 +346,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             return false;
         return strategy switch
         {
-            OGCDStrategy.Automatic => InsideCombatWith(target) && In25y(target),
+            OGCDStrategy.Automatic => InsideCombatWith(target) && In25y(target) && (TotalCD(BestRicochet) < 30.6f || OverheatActive || RaidBuffsLeft > 0),
             OGCDStrategy.AnyWeave => CanWeaveIn,
             OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
             OGCDStrategy.LateWeave => CanLateWeaveIn,
@@ -355,7 +356,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseFlamethrower(GCDStrategy strategy, Actor? target)
     {
-        if (!CanHC)
+        if (!CanFT)
             return false;
         return strategy switch
         {
@@ -375,6 +376,64 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     }
     #endregion
 
+    public bool ShouldUseBattery(BatteryStrategy strategy)
+    {
+        if (CanSummon)
+        {
+            //TODO: this is a pretty shitty hack-around and will need some refactoring later on
+            if (strategy == BatteryStrategy.Automatic)
+            {
+                //Under Buffs
+                if (RaidBuffsLeft > 0 || RaidBuffsIn > 9000)
+                    return true;
+                //Opener
+                if (CombatTimer < 90)
+                {
+                    //1st Queen
+                    if (CombatTimer <= 15 && Battery >= 60)
+                        return true;
+                    //1min; 2nd Queen
+                    if (TotalCD(AID.BarrelStabilizer) is > 50 and < 90 && Battery >= 90)
+                        return true;
+                }
+                if (CombatTimer >= 90)
+                {
+                    if (TotalCD(AID.AirAnchor) > 35 || TotalCD(AID.BarrelStabilizer) is > 50 and < 60)
+                    {
+                        //1min; 50-80 for rest
+                        if (TotalCD(AID.BarrelStabilizer) is > 50 and < 90 && Battery is >= 50 and <= 80)
+                            return true;
+                        //2min; 90-100 Battery expected
+                        if (TotalCD(AID.BarrelStabilizer) is < 15 or > 105)
+                            return true;
+                    }
+                }
+                //Overcap
+                if ((Battery >= 90 && (TotalCD(BestAirAnchor) <= 2 || TotalCD(AID.ChainSaw) <= 2 || ExcavatorLeft > 0)) ||
+                    (Battery == 100 && ComboLastMove is AID.SlugShot or AID.HeatedSlugShot))
+                    return true;
+            }
+        }
+
+        return strategy switch
+        {
+            BatteryStrategy.Fifty => CanSummon,
+            BatteryStrategy.Hundred => CanSummon && Battery >= 100,
+            BatteryStrategy.RaidBuffs => CanSummon && (RaidBuffsLeft > 0 || RaidBuffsIn > 9000),
+            BatteryStrategy.End => MinionActive,
+            _ => false
+        };
+    }
+    public void Opener(Actor? target)
+    {
+        if (Unlocked(AID.AirAnchor))
+            QueueGCD(AID.AirAnchor, target, GCDPriority.VerySevere);
+        if (!Unlocked(AID.ChainSaw) && !Unlocked(AID.AirAnchor) && Unlocked(AID.Drill))
+            QueueGCD(AID.Drill, target, GCDPriority.VerySevere);
+        if (!Unlocked(AID.ChainSaw) && !Unlocked(AID.AirAnchor) && !Unlocked(AID.Drill))
+            QueueGCD(AID.HotShot, target, GCDPriority.VerySevere);
+    }
+
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         #region Variables
@@ -391,9 +450,9 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         ExcavatorLeft = StatusRemaining(Player, SID.ExcavatorReady);
         FMFLeft = StatusRemaining(Player, SID.FullMetalMachinist);
         InFlamethrower = StatusRemaining(Player, SID.Flamethrower) > 0;
-        AfterDrill = !CanDrill || (CanDrill && ((!Unlocked(TraitID.EnhancedMultiweapon) && TotalCD(AID.Drill) >= 9) || (Unlocked(TraitID.EnhancedMultiweapon) && TotalCD(AID.Drill) >= 9)));
-        AfterAirAnchor = !CanAA || (CanAA && TotalCD(BestAirAnchor) >= 9);
-        AfterChainsaw = !CanChainsaw || (CanChainsaw && TotalCD(AID.ChainSaw) >= 9);
+        AfterDrill = !Unlocked(AID.Drill) || (Unlocked(AID.Drill) && ((!Unlocked(TraitID.EnhancedMultiweapon) && TotalCD(AID.Drill) >= 9) || (Unlocked(TraitID.EnhancedMultiweapon) && TotalCD(AID.Drill) >= 9)));
+        AfterAirAnchor = !Unlocked(AID.Drill) || (Unlocked(AID.AirAnchor) && TotalCD(AID.AirAnchor) >= 9);
+        AfterChainsaw = !Unlocked(AID.Drill) || (Unlocked(AID.ChainSaw) && TotalCD(AID.ChainSaw) >= 9);
         (BestAOETargets, NumAOETargets) = GetBestTarget(primaryTarget, 12, Is12yConeTarget);
         (BestRangedAOETargets, NumRangedAOETargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
         (BestChainsawTargets, NumSawTargets) = GetBestTarget(primaryTarget, 25, Is25yRectTarget);
@@ -407,32 +466,52 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         BestChainsawTarget = ShouldUseSaw ? BestChainsawTargets : primaryTarget;
         BestFlamethrowerTarget = ShouldFlamethrower ? BestAOETarget : primaryTarget;
 
-        CanHC = ActionReady(AID.Hypercharge) && Heat >= 50 && !OverheatActive;
+        CanHC = ActionReady(AID.Hypercharge) && (Heat >= 50 || HyperchargedLeft > 0) && !OverheatActive;
         CanHB = Unlocked(AID.HeatBlast) && OverheatActive;
         CanGR = Unlocked(BestGauss) && ChargeCD(BestGauss) < 0.6f;
         CanRicochet = Unlocked(BestRicochet) && ChargeCD(BestRicochet) < 0.6f;
-
-        CanSummon = Unlocked(AID.RookAutoturret) && Battery >= 90;
-
+        CanSummon = Unlocked(AID.RookAutoturret) && Battery >= 50 && !MinionActive;
         CanWF = ActionReady(AID.Wildfire);
         CanBS = ActionReady(AID.BarrelStabilizer);
-        CanReassemble = Unlocked(AID.Reassemble) && ChargeCD(AID.Reassemble) < 0.6f && !OverheatActive;
-
+        CanReassemble = Unlocked(AID.Reassemble) && ChargeCD(AID.Reassemble) < 0.6f && !OverheatActive && ReassembleLeft == 0;
         CanDrill = Unlocked(AID.Drill) && ChargeCD(AID.Drill) < 0.6f && !OverheatActive;
         CanAA = ActionReady(BestAirAnchor) && !OverheatActive;
         CanChainsaw = ActionReady(AID.ChainSaw) && !OverheatActive;
-        CanExcavate = Unlocked(AID.Excavator) && PlayerHasEffect(SID.ExcavatorReady) && !OverheatActive;
-        CanFMF = Unlocked(AID.FullMetalField) && PlayerHasEffect(SID.FullMetalMachinist) && !OverheatActive;
+        CanExcavate = Unlocked(AID.Excavator) && ExcavatorLeft > 0 && !OverheatActive;
+        CanFMF = Unlocked(AID.FullMetalField) && FMFLeft > 0 && !OverheatActive;
+        CanFT = ActionReady(AID.Flamethrower) && !OverheatActive && !InFlamethrower && NumFlamethrowerTargets > 2;
 
-        #region Strategy Definitions
         var AOE = strategy.Option(SharedTrack.AOE); //Retrieves AOE track
         var AOEStrategy = AOE.As<AOEStrategy>(); //Retrieves AOE strategy
         var pot = strategy.Option(Track.Potion); //Retrieves Potion track
         var potStrat = pot.As<PotionStrategy>(); //Retrieves Potion strategy
-        #endregion
 
         #endregion
 
+        if (IsPausedForFlamethrower && ((Unlocked(TraitID.EnhancedMultiweapon) ? ChargeCD(AID.Drill) > 0 : TotalCD(AID.Drill) > 0) || TotalCD(AID.AirAnchor) > 0 || TotalCD(AID.ChainSaw) > 0))
+            return;
+        if (CountdownRemaining == null)
+        {
+            if (!Player.InCombat && In25y(primaryTarget?.Actor))
+            {
+                if (ReassembleLeft == 0)
+                    QueueGCD(AID.Reassemble, Player, GCDPriority.Max);
+                if (ReassembleLeft > 0)
+                {
+                    Opener(primaryTarget?.Actor);
+                }
+            }
+        }
+        if (CountdownRemaining > 0)
+        {
+            if (CountdownRemaining < 5 && ReassembleLeft == 0)
+                QueueGCD(AID.Reassemble, Player);
+            if (CountdownRemaining < 1)
+            {
+                Opener(primaryTarget?.Actor);
+            }
+            return;
+        }
         #region Full Rotation Execution
 
         #region Standard Rotation
@@ -461,20 +540,20 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                         if (wfStrat == WildfireStrategy.End)
                             QueueOGCD(AID.Detonator, TargetChoice(wf) ?? primaryTarget?.Actor, OGCDPriority.Max);
                         else
-                            QueueOGCD(AID.Wildfire, TargetChoice(wf) ?? primaryTarget?.Actor, wfStrat is WildfireStrategy.Force or WildfireStrategy.ForceWeave ? OGCDPriority.Forced : OGCDPriority.VeryHigh);
+                            QueueOGCD(AID.Wildfire, TargetChoice(wf) ?? primaryTarget?.Actor, wfStrat is WildfireStrategy.Force or WildfireStrategy.ForceWeave ? OGCDPriority.Forced : OGCDPriority.Critical);
                     }
 
                     //Barrel Stabilizer
                     var bs = strategy.Option(Track.BarrelStabilizer);
                     var bsStrat = bs.As<OGCDStrategy>();
                     if (ShouldUseBarrelStabilizer(bsStrat, primaryTarget?.Actor))
-                        QueueOGCD(AID.BarrelStabilizer, TargetChoice(bs) ?? primaryTarget?.Actor, OGCDPrio(bsStrat, OGCDPriority.Average));
+                        QueueOGCD(AID.BarrelStabilizer, TargetChoice(bs) ?? primaryTarget?.Actor, OGCDPrio(bsStrat, OGCDPriority.Severe));
 
                     //Reassemble
                     var assemble = strategy.Option(Track.Reassemble);
                     var assembleStrat = assemble.As<ReassembleStrategy>();
-                    if (ShouldUseReassemble(assembleStrat))
-                        QueueOGCD(AID.Reassemble, Player, OGCDPriority.VeryHigh);
+                    if (ShouldUseReassemble(assembleStrat, primaryTarget?.Actor))
+                        QueueOGCD(AID.Reassemble, Player, OGCDPriority.Critical);
                 }
 
                 //Gauss Round & Double Check
@@ -488,19 +567,6 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                 var ricochetStrat = ricochet.As<OGCDStrategy>();
                 if (ShouldUseRicochet(ricochetStrat, primaryTarget?.Actor))
                     QueueOGCD(BestRicochet, TargetChoice(ricochet) ?? BestRangedAOETarget?.Actor, OGCDPrio(ricochetStrat, GaussAndRico(BestRicochet)));
-
-                //Drill & Bioblaster
-                var drill = strategy.Option(Track.Drill);
-                var drillStrat = drill.As<DrillStrategy>();
-                if (ShouldUseDrill(drillStrat, primaryTarget?.Actor))
-                {
-                    if (drillStrat is DrillStrategy.Automatic)
-                        QueueGCD(BestDrill, TargetChoice(drill) ?? BestAOETarget?.Actor, GCDPriority.High);
-                    if (drillStrat is DrillStrategy.OnlyDrill or DrillStrategy.ForceDrill)
-                        QueueGCD(AID.Drill, TargetChoice(drill) ?? BestAOETarget?.Actor, drillStrat == DrillStrategy.ForceDrill ? GCDPriority.Forced : GCDPriority.High);
-                    if (drillStrat is DrillStrategy.OnlyBioblaster or DrillStrategy.ForceBioblaster)
-                        QueueGCD(AID.Bioblaster, TargetChoice(drill) ?? BestAOETarget?.Actor, drillStrat == DrillStrategy.ForceBioblaster ? GCDPriority.Forced : GCDPriority.High);
-                }
 
                 //Flamethrower
                 var ft = strategy.Option(Track.Flamethrower);
@@ -518,25 +584,32 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                 var fmf = strategy.Option(Track.FullMetalField);
                 var fmfStrat = fmf.As<GCDStrategy>();
                 if (ShouldUseFullMetalField(fmfStrat, primaryTarget?.Actor))
-                    QueueGCD(AID.FullMetalField, TargetChoice(fmf) ?? BestRangedAOETarget?.Actor, fmfStrat is GCDStrategy.Force ? GCDPriority.Forced : GCDPriority.High);
+                    QueueGCD(AID.FullMetalField, TargetChoice(fmf) ?? BestRangedAOETarget?.Actor, fmfStrat is GCDStrategy.Force ? GCDPriority.Forced : GCDPriority.SlightlyHigh);
 
                 //Chainsaw
                 var cs = strategy.Option(Track.Chainsaw);
                 var csStrat = cs.As<GCDStrategy>();
                 if (ShouldUseChainsaw(csStrat, primaryTarget?.Actor))
-                    QueueGCD(AID.ChainSaw, TargetChoice(cs) ?? BestChainsawTarget?.Actor, csStrat is GCDStrategy.Force ? GCDPriority.Forced : GCDPriority.ExtremelyHigh);
+                    QueueGCD(AID.ChainSaw, TargetChoice(cs) ?? BestChainsawTarget?.Actor, csStrat is GCDStrategy.Force ? GCDPriority.Forced : GCDPriority.VeryHigh);
 
                 //Hot Shot & Air Anchor
                 var aa = strategy.Option(Track.AirAnchor);
                 var aaStrat = aa.As<GCDStrategy>();
                 if (ShouldUseAirAnchor(aaStrat, primaryTarget?.Actor))
-                    QueueGCD(BestAirAnchor, TargetChoice(aa) ?? BestAOETarget?.Actor, aaStrat is GCDStrategy.Force ? GCDPriority.Forced : GCDPriority.VeryHigh);
+                    QueueGCD(BestAirAnchor, TargetChoice(aa) ?? BestAOETarget?.Actor, aaStrat is GCDStrategy.Force ? GCDPriority.Forced : GCDPriority.Critical);
 
-                //Hypercharge
-                var hc = strategy.Option(Track.Hypercharge);
-                var hcStrat = hc.As<HyperchargeStrategy>();
-                if (ShouldUseHypercharge(hcStrat, primaryTarget?.Actor))
-                    QueueOGCD(AID.Hypercharge, TargetChoice(hc) ?? primaryTarget?.Actor, hcStrat == HyperchargeStrategy.ASAP ? OGCDPriority.Forced : Heat >= 100 ? OGCDPriority.Critical : OGCDPriority.High);
+                //Drill & Bioblaster
+                var drill = strategy.Option(Track.Drill);
+                var drillStrat = drill.As<DrillStrategy>();
+                if (ShouldUseDrill(drillStrat, primaryTarget?.Actor))
+                {
+                    if (drillStrat is DrillStrategy.Automatic)
+                        QueueGCD(BestDrill, TargetChoice(drill) ?? BestAOETarget?.Actor, TotalCD(AID.Drill) < 0.6f ? GCDPriority.ExtremelyHigh : CombatTimer < 30 ? GCDPriority.ModeratelyHigh : GCDPriority.AboveAverage);
+                    if (drillStrat is DrillStrategy.OnlyDrill or DrillStrategy.ForceDrill)
+                        QueueGCD(AID.Drill, TargetChoice(drill) ?? BestAOETarget?.Actor, drillStrat == DrillStrategy.ForceDrill ? GCDPriority.Forced : TotalCD(AID.Drill) < 0.6f ? GCDPriority.ExtremelyHigh : CombatTimer < 30 ? GCDPriority.ModeratelyHigh : GCDPriority.AboveAverage);
+                    if (drillStrat is DrillStrategy.OnlyBioblaster or DrillStrategy.ForceBioblaster)
+                        QueueGCD(AID.Bioblaster, TargetChoice(drill) ?? BestAOETarget?.Actor, drillStrat == DrillStrategy.ForceBioblaster ? GCDPriority.Forced : TotalCD(AID.Drill) < 0.6f ? GCDPriority.ExtremelyHigh : CombatTimer < 30 ? GCDPriority.ModeratelyHigh : GCDPriority.AboveAverage);
+                }
 
                 //Heat Blast, Blazing Shot, & Auto-Crossbow
                 var hsp = strategy.Option(Track.HeatSpender);
@@ -544,11 +617,31 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                 if (ShouldChooseHeat(hspStrat, primaryTarget?.Actor))
                 {
                     if (hspStrat == HeatSpenderStrategy.Automatic)
-                        QueueGCD(BestHeatSpender, TargetChoice(hsp) ?? BestAOETarget?.Actor, GCDPriority.High);
+                        QueueGCD(BestHeatSpender, TargetChoice(hsp) ?? primaryTarget?.Actor, GCDPriority.High);
                     if (hspStrat == HeatSpenderStrategy.OnlyHeatBlast)
-                        QueueGCD(BestHeatBlast, TargetChoice(hsp) ?? BestAOETarget?.Actor, GCDPriority.High);
+                        QueueGCD(BestHeatBlast, TargetChoice(hsp) ?? primaryTarget?.Actor, GCDPriority.High);
                     if (hspStrat == HeatSpenderStrategy.OnlyAutoCrossbow)
                         QueueGCD(Unlocked(AID.AutoCrossbow) ? AID.AutoCrossbow : BestHeatBlast, TargetChoice(hsp) ?? BestAOETarget?.Actor, GCDPriority.High);
+                }
+            }
+
+            if (!strategy.HoldGauge())
+            {
+                //Hypercharge
+                var hc = strategy.Option(Track.Hypercharge);
+                var hcStrat = hc.As<HyperchargeStrategy>();
+                if (ShouldUseHypercharge(hcStrat, primaryTarget?.Actor))
+                    QueueOGCD(AID.Hypercharge, TargetChoice(hc) ?? primaryTarget?.Actor, hcStrat == HyperchargeStrategy.ASAP ? OGCDPriority.Forced : Heat >= 100 ? OGCDPriority.VerySevere : OGCDPriority.High);
+
+                //Queen
+                var battery = strategy.Option(Track.Battery);
+                var batteryStrat = battery.As<BatteryStrategy>();
+                if (ShouldUseBattery(batteryStrat))
+                {
+                    if (batteryStrat is BatteryStrategy.Automatic or BatteryStrategy.Fifty or BatteryStrategy.Hundred or BatteryStrategy.RaidBuffs)
+                        QueueOGCD(BestBattery, Player, OGCDPriority.Critical);
+                    if (batteryStrat == BatteryStrategy.End)
+                        QueueOGCD(AID.Detonator, Player, OGCDPriority.Critical);
                 }
             }
         }
