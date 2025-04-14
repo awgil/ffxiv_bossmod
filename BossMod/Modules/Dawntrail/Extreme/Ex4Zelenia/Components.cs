@@ -200,7 +200,108 @@ class Voidzone(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Explosion2(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID._Spell_Explosion2))
+class B3Emblazon(BossModule module) : BossComponent(module)
+{
+    public BitMask Baiters;
+    private BitMask TowerTiles;
+    private DateTime Activation;
+    private Tiles? TilesComponent;
+
+    private Tiles Tiles => TilesComponent!;
+
+    public override void Update()
+    {
+        TilesComponent ??= Module.FindComponent<Tiles>();
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if ((IconID)iconID == IconID.Rose)
+        {
+            Baiters.Set(Raid.FindSlot(actor.InstanceID));
+            Activation = WorldState.FutureTime(6.7f);
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Spell_Explosion2)
+            TowerTiles.Set(Tiles.GetTile(spell.LocXZ));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID._Ability_Emblazon)
+        {
+            Baiters.Clear(Raid.FindSlot(spell.MainTargetID));
+            if (!Baiters.Any())
+                Activation = default;
+        }
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        foreach (var (slot, player) in Raid.WithSlot().IncludedInMask(Baiters))
+        {
+            var tile = Tiles.GetTile(player);
+            if (slot == pcSlot)
+                Tiles.DrawTile(Arena, tile, ArenaColor.Danger);
+            else if (Baiters[pcSlot])
+                Tiles.ZoneTile(Arena, tile, ArenaColor.AOE);
+        }
+
+        if (Baiters[pcSlot])
+            foreach (var t in Tiles.ActiveTiles)
+                Tiles.ZoneTile(Arena, t, ArenaColor.AOE);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        // rose icons/spreads are harmless to non-baiting players
+        if (!Baiters[slot])
+            return;
+
+        var tile = Tiles.GetTile(actor);
+
+        if (Tiles[tile])
+            hints.Add("GTFO from tile!");
+        else if (DangerTile(tile))
+            hints.Add("Don't connect towers!");
+
+        if (OtherBaits(actor).Any(p => Tiles.GetTile(p) == tile))
+            hints.Add("GTFO from spreads!");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Baiters[slot])
+            return;
+
+        var tile = Tiles.GetTile(actor);
+
+        hints.AddForbiddenZone(p => DangerTile(Tiles.GetTile(p)), Activation);
+
+        foreach (var b in OtherBaits(actor))
+        {
+            var t = Tiles.GetTile(b);
+            hints.AddForbiddenZone(p => Tiles.GetTile(p) == t, Activation);
+        }
+    }
+
+    private bool DangerTile(int t)
+    {
+        var tileNext = t is 7 or 15 ? t - 7 : t + 1;
+        var tilePrev = t is 0 or 8 ? t + 7 : t - 1;
+
+        return t >= 8 // outer ring always unsafe
+            || Tiles[t] // active tiles always unsafe
+            || Tiles[t + 8] && Tiles[tileNext] != Tiles[tilePrev]; // inner "side tiles" always unsafe
+    }
+
+    private IEnumerable<Actor> OtherBaits(Actor actor) => Raid.WithSlot().IncludedInMask(Baiters).Exclude(actor).Select(p => p.Item2);
+}
+
+class B3Explosion(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID._Spell_Explosion2))
 {
     private Tiles? TilesComponent;
     private Tiles Tiles => TilesComponent!;
@@ -209,6 +310,8 @@ class Explosion2(BossModule module) : Components.CastCounter(module, ActionID.Ma
     private readonly List<Actor> Casters = [];
     private readonly List<BitMask> Towers = [];
     private BitMask ForbiddenSoakers = new();
+
+    private struct Tower(BitMask tiles);
 
     public override void Update()
     {
@@ -225,7 +328,7 @@ class Explosion2(BossModule module) : Components.CastCounter(module, ActionID.Ma
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (Active)
-            foreach (var t in Tiles.TileMask.SetBits())
+            foreach (var t in Tiles.ActiveTiles)
                 Tiles.ZoneTile(Arena, t, ForbiddenSoakers[pcSlot] ? ArenaColor.AOE : ArenaColor.SafeFromAOE);
     }
 
@@ -239,8 +342,14 @@ class Explosion2(BossModule module) : Components.CastCounter(module, ActionID.Ma
             if (Tiles.InActiveTile(actor))
                 hints.Add("GTFO from tile!");
         }
-        else
-            hints.Add("Go to tower!", !Towers.Any(t => t[Tiles.GetTile(actor)]));
+        else if (Towers.FindIndex(t => t[Tiles.GetTile(actor)]) is var soaked && soaked >= 0)
+        {
+            var count = Raid.WithSlot().ExcludedFromMask(ForbiddenSoakers).Count(p => Towers[soaked][Tiles.GetTile(p.Item2)]);
+            if (count > 1)
+                hints.Add("Too many people in tower!");
+        }
+        else if (!Tiles.InActiveTile(actor))
+            hints.Add("Soak a tower!");
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -283,110 +392,4 @@ class Explosion2(BossModule module) : Components.CastCounter(module, ActionID.Ma
         if ((SID)status.ID == SID._Gen_MagicVulnerabilityUp)
             ForbiddenSoakers.Set(Raid.FindSlot(actor.InstanceID));
     }
-}
-
-class Emblazon(BossModule module) : BossComponent(module)
-{
-    public BitMask Baiters;
-    private BitMask TowerTiles;
-    private DateTime Activation;
-    private Tiles? TilesComponent;
-
-    private BitMask PredictedTiles;
-
-    private Tiles Tiles => TilesComponent!;
-
-    public override void Update()
-    {
-        TilesComponent ??= Module.FindComponent<Tiles>();
-
-        PredictedTiles = Tiles.TileMask;
-        foreach (var (_, player) in Raid.WithSlot().IncludedInMask(Baiters))
-            PredictedTiles.Set(Tiles.GetTile(player));
-    }
-
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
-    {
-        if ((IconID)iconID == IconID.Rose)
-        {
-            Baiters.Set(Raid.FindSlot(actor.InstanceID));
-            Activation = WorldState.FutureTime(6.7f);
-        }
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID._Spell_Explosion2)
-            TowerTiles.Set(Tiles.GetTile(spell.LocXZ));
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID._Ability_Emblazon)
-        {
-            Baiters.Clear(Raid.FindSlot(spell.MainTargetID));
-            if (!Baiters.Any())
-                Activation = default;
-        }
-    }
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        foreach (var (slot, player) in Raid.WithSlot().IncludedInMask(Baiters))
-        {
-            var tile = Tiles.GetTile(player);
-            if (slot == pcSlot)
-                Tiles.DrawTile(Arena, tile, ArenaColor.Danger);
-            else if (Baiters[pcSlot])
-                Tiles.ZoneTile(Arena, tile, ArenaColor.AOE);
-        }
-
-        if (Baiters[pcSlot])
-            foreach (var t in Tiles.TileMask.SetBits())
-                Tiles.ZoneTile(Arena, t, ArenaColor.AOE);
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        var tile = Tiles.GetTile(actor);
-
-        if (Baiters[slot])
-        {
-            if (Tiles.TileMask[tile])
-                hints.Add("GTFO from tile!");
-            else if (DangerTile(tile))
-                hints.Add("Don't connect towers!");
-
-            if (OtherBaits(actor).Any(p => Tiles.GetTile(p) == tile))
-                hints.Add("GTFO from spreads!");
-        }
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        var tile = Tiles.GetTile(actor);
-
-        if (Baiters[slot])
-        {
-            hints.AddForbiddenZone(p => DangerTile(Tiles.GetTile(p)), Activation);
-
-            foreach (var b in OtherBaits(actor))
-            {
-                var t = Tiles.GetTile(b);
-                hints.AddForbiddenZone(p => Tiles.GetTile(p) == t, Activation);
-            }
-        }
-    }
-
-    private bool DangerTile(int t)
-    {
-        var tileNext = t is 7 or 15 ? t - 7 : t + 1;
-        var tilePrev = t is 0 or 8 ? t + 7 : t - 1;
-
-        return t >= 8 // outer ring always unsafe
-            || Tiles.TileMask[t] // active tiles always unsafe
-            || Tiles.TileMask[t + 8] && Tiles.TileMask[tileNext] != Tiles.TileMask[tilePrev]; // inner "side tiles" always unsafe
-    }
-
-    private IEnumerable<Actor> OtherBaits(Actor actor) => Raid.WithSlot().IncludedInMask(Baiters).Exclude(actor).Select(p => p.Item2);
 }

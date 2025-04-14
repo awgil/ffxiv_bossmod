@@ -117,9 +117,11 @@ class ZeleniaStates : StateMachineBuilder
 
         id += 0x10000;
 
-        Cast(id, AID._Weaponskill_Roseblood3RdBloom, 6.8f, 2.6f, "Bloom 3 start")
-            .ActivateOnEnter<Emblazon>()
-            .ActivateOnEnter<Explosion2>();
+        Cast(id, AID._Weaponskill_Roseblood3RdBloom, 6.8f, 2.5f, "Bloom 3 start")
+            .ActivateOnEnter<B3Emblazon>()
+            .ActivateOnEnter<B3Explosion>();
+
+        Cast(id + 0x10, AID._Weaponskill_BudOfValor, 3.6f, 3);
 
         Timeout(id + 0x100000, 9999, "Enrage");
     }

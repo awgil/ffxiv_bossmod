@@ -2,9 +2,11 @@
 
 class Tiles : BossComponent
 {
-    public BitMask TileMask;
+    public BitMask Mask;
 
     public bool ShouldDraw;
+
+    public bool this[int index] => Mask[index];
 
     public Tiles(BossModule module) : base(module)
     {
@@ -43,19 +45,19 @@ class Tiles : BossComponent
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00800040)
-            TileMask.Set(index - 4);
+            Mask.Set(index - 4);
 
         if (state == 0x00400100)
-            TileMask.Set(index - 4);
+            Mask.Set(index - 4);
 
         if (state == 0x00040020)
-            TileMask.Clear(index - 4);
+            Mask.Clear(index - 4);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (ShouldDraw)
-            foreach (var tile in TileMask.SetBits())
+            foreach (var tile in Mask.SetBits())
                 ZoneTile(Arena, tile, ArenaColor.AOE);
     }
 
@@ -73,9 +75,11 @@ class Tiles : BossComponent
     }
     public static int GetTile(Actor actor) => GetTile(actor.Position);
 
-    public bool InActiveTile(Actor actor) => TileMask[GetTile(actor)];
+    public bool InActiveTile(Actor actor) => Mask[GetTile(actor)];
 
-    public Func<WPos, bool> TileShape() => p => TileMask[GetTile(p)];
+    public Func<WPos, bool> TileShape() => p => Mask[GetTile(p)];
+
+    public IEnumerable<int> ActiveTiles => Mask.SetBits();
 
     public BitMask GetConnectedTiles(int tile)
     {
@@ -87,7 +91,7 @@ class Tiles : BossComponent
         {
             foreach (var w in Edges(v))
             {
-                if (TileMask[w] && !mask[w])
+                if (Mask[w] && !mask[w])
                 {
                     mask[w] = true;
                     queue.Enqueue(w);
