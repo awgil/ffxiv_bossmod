@@ -273,8 +273,11 @@ class PulpSmashProtean(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 
+class ItCameFromTheDirt(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Spell_ItCameFromTheDirt), 6);
+
 class NeoBombarianSpecial(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_NeoBombarianSpecial));
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1024, NameID = 13756)]
+#if DEBUG
+[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1024, NameID = 13756, PlanLevel = 100)]
 public class RM07BruteAbombinator(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));
-
+#endif

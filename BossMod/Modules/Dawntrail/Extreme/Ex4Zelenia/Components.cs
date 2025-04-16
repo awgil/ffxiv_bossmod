@@ -309,9 +309,7 @@ class B3Explosion(BossModule module) : Components.CastCounter(module, ActionID.M
 
     private readonly List<Actor> Casters = [];
     private readonly List<BitMask> Towers = [];
-    private BitMask ForbiddenSoakers = new();
-
-    private struct Tower(BitMask tiles);
+    private BitMask ForbiddenSoakers;
 
     public override void Update()
     {

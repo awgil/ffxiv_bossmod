@@ -152,6 +152,21 @@ class PlayBSide(BossModule module) : Components.GenericWildCharge(module, 4, Act
         if (spell.Action == WatchedAction)
             Source = null;
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var aoes = EnumerateAOEs().ToList();
+        if (aoes.Count != 2)
+            return;
+
+        var rects = aoes.Select(aoe => ShapeContains.Rect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth)).ToList();
+        var r0 = rects[0];
+        var r1 = rects[1];
+
+        hints.AddForbiddenZone(p => r0(p) == r1(p), Activation);
+
+        hints.PredictedDamage.Add((Raid.WithSlot().Where(p => r0(p.Item2.Position) || r1(p.Item2.Position)).Mask(), Activation));
+    }
 }
 
 class PlaySideCounter(BossModule module) : Components.CastCounterMulti(module, [ActionID.MakeSpell(AID.PlayASide), ActionID.MakeSpell(AID.PlayBSide)]);

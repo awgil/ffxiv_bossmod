@@ -24,7 +24,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly DebugAddon _debugAddon = new();
     private readonly DebugTiming _debugTiming = new();
     private readonly DebugQuests _debugQuests = new();
-    //private readonly DebugVfx _debugVfx = new();
+    private readonly DebugVfx _debugVfx = new();
 
     protected override void Dispose(bool disposing)
     {
@@ -32,7 +32,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         _debugInput.Dispose();
         _debugAddon.Dispose();
         _debugEnvControl.Dispose();
-        //_debugVfx.Dispose();
+        _debugVfx.Dispose();
         base.Dispose(disposing);
     }
 
@@ -163,10 +163,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         {
             DrawWindowSystem();
         }
-        //if (ImGui.CollapsingHeader("VFX"))
-        //{
-        //    _debugVfx.Draw();
-        //}
+        if (ImGui.CollapsingHeader("VFX"))
+        {
+            _debugVfx.Draw();
+        }
         if (ImGui.CollapsingHeader("Limit break"))
         {
             DrawLimitBreak();

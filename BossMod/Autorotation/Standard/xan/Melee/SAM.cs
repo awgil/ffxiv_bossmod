@@ -371,7 +371,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         if (primaryTarget == null || !HaveFugetsu || !Player.InCombat)
             return;
 
-        if (strategy.BuffsOk())
+        if (strategy.BuffsOk() && Kenki <= 50)
             PushOGCD(AID.Ikishoten, Player);
 
         Meikyo(strategy);
@@ -383,8 +383,10 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
             // queue senei since guren may not be unlocked (gated by job quest)
             PushOGCD(AID.HissatsuSenei, primaryTarget);
+
             // queue guren since senei may not be unlocked (unlocks at level 72)
-            PushOGCD(AID.HissatsuGuren, BestLineTarget);
+            if (!Unlocked(AID.HissatsuSenei))
+                PushOGCD(AID.HissatsuGuren, BestLineTarget);
         }
 
         if (Kenki >= 50 && Zanshin > 0 && ReadyIn(AID.HissatsuSenei) > 30)
@@ -394,9 +396,8 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.Shoha, BestLineTarget);
 
         var saveKenki = RaidBuffsLeft <= AnimLock || Zanshin > 0 || ReadyIn(AID.HissatsuSenei) < 10;
-        var maxKenki = strategy.BuffsOk() && ReadyIn(AID.Ikishoten) < 15 ? 50 : 90;
 
-        if (Kenki >= (saveKenki ? maxKenki : 25))
+        if (Kenki >= (saveKenki ? 90 : 25))
         {
             if (NumAOECircleTargets > 2)
                 PushOGCD(AID.HissatsuKyuten, Player);

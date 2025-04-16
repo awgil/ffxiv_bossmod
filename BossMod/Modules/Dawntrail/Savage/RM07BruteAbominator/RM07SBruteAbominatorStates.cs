@@ -67,7 +67,8 @@ class RM07BruteAbombinatorStates : StateMachineBuilder
             .ActivateOnEnter<P1Stoneringer>()
             .ActivateOnEnter<P1Smash>()
             .ActivateOnEnter<PulpSmash>()
-            .ActivateOnEnter<PulpSmashProtean>();
+            .ActivateOnEnter<PulpSmashProtean>()
+            .ActivateOnEnter<ItCameFromTheDirt>();
 
         id += 0x10000;
 
